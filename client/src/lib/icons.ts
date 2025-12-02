@@ -1,0 +1,57 @@
+import {
+  Scale,
+  Gavel,
+  Landmark,
+  TrendingUp,
+  Briefcase,
+  Zap,
+  Leaf,
+  Lightbulb,
+  Globe,
+  Users,
+  Building,
+  FileText,
+  RefreshCw,
+  Calculator,
+  Shield,
+  ShieldCheck,
+  Plane,
+  Car,
+  DollarSign,
+  Construction,
+  HeartPulse,
+  Monitor,
+  ShoppingBag,
+  type LucideIcon,
+} from "lucide-react";
+
+const iconMap: Record<string, LucideIcon> = {
+  scale: Scale,
+  gavel: Gavel,
+  landmark: Landmark,
+  "trending-up": TrendingUp,
+  briefcase: Briefcase,
+  zap: Zap,
+  leaf: Leaf,
+  lightbulb: Lightbulb,
+  globe: Globe,
+  users: Users,
+  building: Building,
+  "file-text": FileText,
+  "refresh-cw": RefreshCw,
+  calculator: Calculator,
+  shield: Shield,
+  "shield-check": ShieldCheck,
+  plane: Plane,
+  car: Car,
+  "dollar-sign": DollarSign,
+  construction: Construction,
+  "heart-pulse": HeartPulse,
+  monitor: Monitor,
+  "shopping-bag": ShoppingBag,
+};
+
+export function getIcon(iconName: string | null | undefined): LucideIcon {
+  if (!iconName) return Briefcase;
+  return iconMap[iconName] || Briefcase;
+}

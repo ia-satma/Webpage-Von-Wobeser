@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { Link, useLocation } from "wouter";
 import { Menu, X, Globe } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -12,6 +13,7 @@ interface HeaderProps {
 export default function Header({ language, onLanguageChange }: HeaderProps) {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [location, navigate] = useLocation();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -22,19 +24,30 @@ export default function Header({ language, onLanguageChange }: HeaderProps) {
   }, []);
 
   const menuItems = [
-    { label: language === "es" ? "Inicio" : "Home", href: "#hero", id: "hero" },
-    { label: language === "es" ? "Noticias" : "News", href: "#news", id: "news" },
-    { label: language === "es" ? "Oficinas" : "Offices", href: "#vision", id: "vision" },
-    { label: language === "es" ? "Ubicaci\u00f3n" : "Location", href: "#location", id: "location" },
-    { label: language === "es" ? "Contacto" : "Contact", href: "#footer", id: "contact" },
+    { label: language === "es" ? "Inicio" : "Home", href: "/", id: "home", isPage: true },
+    { label: language === "es" ? "Áreas de Práctica" : "Practice Groups", href: "/practice-groups", id: "practice-groups", isPage: true },
+    { label: language === "es" ? "Industrias" : "Industries", href: "/industry-groups", id: "industry-groups", isPage: true },
+    { label: language === "es" ? "Equipo" : "Team", href: "/team", id: "team", isPage: true },
+    { label: language === "es" ? "Noticias" : "News", href: "#news", id: "news", isPage: false },
+    { label: language === "es" ? "Contacto" : "Contact", href: "#footer", id: "contact", isPage: false },
   ];
 
   const scrollToSection = (href: string) => {
-    const element = document.querySelector(href);
-    if (element) {
-      element.scrollIntoView({ behavior: "smooth" });
-    }
     setIsMobileMenuOpen(false);
+    if (location !== "/") {
+      navigate("/");
+      setTimeout(() => {
+        const element = document.querySelector(href);
+        if (element) {
+          element.scrollIntoView({ behavior: "smooth" });
+        }
+      }, 100);
+    } else {
+      const element = document.querySelector(href);
+      if (element) {
+        element.scrollIntoView({ behavior: "smooth" });
+      }
+    }
   };
 
   return (
@@ -49,12 +62,8 @@ export default function Header({ language, onLanguageChange }: HeaderProps) {
         data-testid="header"
       >
         <div className="max-w-7xl mx-auto px-6 lg:px-12 flex items-center justify-between gap-4">
-          <a
-            href="#hero"
-            onClick={(e) => {
-              e.preventDefault();
-              scrollToSection("#hero");
-            }}
+          <Link
+            href="/"
             className="flex items-center gap-3"
             data-testid="link-logo"
           >
@@ -68,27 +77,43 @@ export default function Header({ language, onLanguageChange }: HeaderProps) {
               )}
               data-testid="img-logo"
             />
-          </a>
+          </Link>
 
           <nav className="hidden lg:flex items-center gap-8" data-testid="nav-desktop">
             {menuItems.map((item) => (
-              <a
-                key={item.href}
-                href={item.href}
-                onClick={(e) => {
-                  e.preventDefault();
-                  scrollToSection(item.href);
-                }}
-                className={cn(
-                  "text-sm font-medium tracking-wide uppercase transition-colors duration-200",
-                  isScrolled
-                    ? "text-gray-700 dark:text-gray-300 hover:text-primary"
-                    : "text-white/90 hover:text-white"
-                )}
-                data-testid={`link-nav-${item.id}`}
-              >
-                {item.label}
-              </a>
+              item.isPage ? (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={cn(
+                    "text-sm font-medium tracking-wide uppercase transition-colors duration-200",
+                    isScrolled
+                      ? "text-gray-700 dark:text-gray-300 hover:text-primary"
+                      : "text-white/90 hover:text-white"
+                  )}
+                  data-testid={`link-nav-${item.id}`}
+                >
+                  {item.label}
+                </Link>
+              ) : (
+                <a
+                  key={item.href}
+                  href={item.href}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    scrollToSection(item.href);
+                  }}
+                  className={cn(
+                    "text-sm font-medium tracking-wide uppercase transition-colors duration-200",
+                    isScrolled
+                      ? "text-gray-700 dark:text-gray-300 hover:text-primary"
+                      : "text-white/90 hover:text-white"
+                  )}
+                  data-testid={`link-nav-${item.id}`}
+                >
+                  {item.label}
+                </a>
+              )
             ))}
           </nav>
 
@@ -148,18 +173,30 @@ export default function Header({ language, onLanguageChange }: HeaderProps) {
 
             <nav className="flex flex-col items-center justify-center flex-1 gap-8" data-testid="nav-mobile">
               {menuItems.map((item) => (
-                <a
-                  key={item.href}
-                  href={item.href}
-                  onClick={(e) => {
-                    e.preventDefault();
-                    scrollToSection(item.href);
-                  }}
-                  className="text-2xl font-heading text-white/90 hover:text-white transition-colors"
-                  data-testid={`link-mobile-${item.id}`}
-                >
-                  {item.label}
-                </a>
+                item.isPage ? (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className="text-2xl font-heading text-white/90 hover:text-white transition-colors"
+                    data-testid={`link-mobile-${item.id}`}
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    {item.label}
+                  </Link>
+                ) : (
+                  <a
+                    key={item.href}
+                    href={item.href}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      scrollToSection(item.href);
+                    }}
+                    className="text-2xl font-heading text-white/90 hover:text-white transition-colors"
+                    data-testid={`link-mobile-${item.id}`}
+                  >
+                    {item.label}
+                  </a>
+                )
               ))}
               <button
                 onClick={() => {

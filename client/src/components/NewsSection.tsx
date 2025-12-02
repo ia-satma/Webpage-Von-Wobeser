@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
 import { ArrowRight, AlertCircle } from "lucide-react";
+import { Link } from "wouter";
 import { Card } from "@/components/ui/card";
 import { useQuery } from "@tanstack/react-query";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -115,41 +116,42 @@ export default function NewsSection({ language }: NewsSectionProps) {
           >
             {newsItems?.map((item) => (
               <motion.div key={item.id} variants={itemVariants}>
-                <Card
-                  className="group overflow-hidden border-0 shadow-sm hover:shadow-lg transition-all duration-300 rounded-none bg-white dark:bg-gray-900"
-                  data-testid={`card-news-${item.id}`}
-                >
-                  <div className="aspect-[16/10] overflow-hidden">
-                    <img
-                      src={item.imageUrl || "https://images.unsplash.com/photo-1497366216548-37526070297c?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"}
-                      alt={language === "es" ? item.titleEs : item.title}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                      data-testid={`img-news-${item.id}`}
-                    />
-                  </div>
-                  <div className="p-6">
-                    <p className="text-xs text-gray-400 uppercase tracking-wider mb-3" data-testid={`text-news-date-${item.id}`}>
-                      {item.date ? new Date(item.date).toLocaleDateString(
-                        language === "es" ? "es-MX" : "en-US",
-                        { year: "numeric", month: "long", day: "numeric" }
-                      ) : ""}
-                    </p>
-                    <h3 
-                      className="text-lg font-serif text-gray-800 dark:text-white leading-relaxed mb-4 line-clamp-3"
-                      data-testid={`text-news-title-${item.id}`}
-                    >
-                      {language === "es" ? item.titleEs : item.title}
-                    </h3>
-                    <a
-                      href="#"
-                      className="inline-flex items-center gap-2 text-sm font-medium text-primary hover:text-primary/80 transition-colors group/link"
-                      data-testid={`link-news-read-${item.id}`}
-                    >
-                      {t.seeMore}
-                      <ArrowRight className="w-3 h-3 group-hover/link:translate-x-1 transition-transform" />
-                    </a>
-                  </div>
-                </Card>
+                <Link href={`/news/${item.slug}`} className="block">
+                  <Card
+                    className="group overflow-hidden border-0 shadow-sm hover:shadow-lg transition-all duration-300 rounded-none bg-white dark:bg-gray-900"
+                    data-testid={`card-news-${item.id}`}
+                  >
+                    <div className="aspect-[16/10] overflow-hidden">
+                      <img
+                        src={item.imageUrl || "https://images.unsplash.com/photo-1497366216548-37526070297c?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"}
+                        alt={language === "es" ? item.titleEs : item.title}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                        data-testid={`img-news-${item.id}`}
+                      />
+                    </div>
+                    <div className="p-6">
+                      <p className="text-xs text-gray-400 uppercase tracking-wider mb-3" data-testid={`text-news-date-${item.id}`}>
+                        {item.date ? new Date(item.date).toLocaleDateString(
+                          language === "es" ? "es-MX" : "en-US",
+                          { year: "numeric", month: "long", day: "numeric" }
+                        ) : ""}
+                      </p>
+                      <h3 
+                        className="text-lg font-serif text-gray-800 dark:text-white leading-relaxed mb-4 line-clamp-3"
+                        data-testid={`text-news-title-${item.id}`}
+                      >
+                        {language === "es" ? item.titleEs : item.title}
+                      </h3>
+                      <span
+                        className="inline-flex items-center gap-2 text-sm font-medium text-primary hover:text-primary/80 transition-colors group/link"
+                        data-testid={`link-news-read-${item.id}`}
+                      >
+                        {t.seeMore}
+                        <ArrowRight className="w-3 h-3 group-hover/link:translate-x-1 transition-transform" />
+                      </span>
+                    </div>
+                  </Card>
+                </Link>
               </motion.div>
             ))}
           </motion.div>
