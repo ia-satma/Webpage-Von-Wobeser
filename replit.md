@@ -41,6 +41,17 @@ Preferred communication style: Simple, everyday language.
 - Home page (`client/src/pages/Home.tsx`) orchestrates all major sections
 - Modular section components: Hero, News, Vision, Stats, ImageCollage, Quote, Map, Footer
 
+**Recent Feature Additions (December 2025)**
+- Video hero with looping Mexico City skyline background and dark gradient overlay
+- News overlay panel on hero (shows 2 latest articles on left side, desktop only)
+- New offices popup modal with Google Maps embed (1.5s delay, localStorage tracking)
+- World map section showing German Desk with animated red marker
+- Image collage with 9 real office images from vonwobeser.com/img/Collage/
+- Team member avatars with graceful initials fallback when external images blocked
+- JSON-LD Schema.org structured data for SEO (LegalService type)
+- Font optimization with preload and font-display: swap
+- Improved accessibility with better text contrast ratios
+
 ### Backend Architecture
 
 **Server Framework**
