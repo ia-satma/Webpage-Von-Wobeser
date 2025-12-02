@@ -11,6 +11,7 @@ import QuoteSection from "@/components/QuoteSection";
 import Footer from "@/components/Footer";
 import NewOfficesPopup from "@/components/NewOfficesPopup";
 import JsonLdSchema from "@/components/JsonLdSchema";
+import CookieBanner from "@/components/CookieBanner";
 
 export default function Home() {
   const [language, setLanguage] = useState<"es" | "en">("es");
@@ -31,6 +32,7 @@ export default function Home() {
       </main>
       <Footer language={language} />
       <NewOfficesPopup language={language} />
+      <CookieBanner language={language} />
     </div>
   );
 }
