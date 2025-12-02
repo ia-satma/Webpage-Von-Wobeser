@@ -69,21 +69,30 @@ Preferred communication style: Simple, everyday language.
 ### Data Storage
 
 **Current Implementation**
-- In-memory storage with TypeScript objects and arrays
-- Default mock data for news articles, office images, site content, statistics
-- Data models include bilingual content (English/Spanish fields)
+- PostgreSQL database with Drizzle ORM
+- Real content from vonwobeser.com extracted and seeded
+- All content is bilingual (English/Spanish fields)
 
-**Planned Database Architecture**
+**Database Architecture**
 - PostgreSQL via Neon serverless driver (`@neondatabase/serverless`)
 - Drizzle ORM for type-safe database operations
 - Schema migration ready with `drizzle.config.ts`
-- Tables: users (authentication), news (bilingual articles), office_images (gallery), site content (CMS-style content)
+- Tables: users, news, office_images, practice_groups, industry_groups, team_members
 
 **Data Models**
-- News: Bilingual title/excerpt, slug, image URL, timestamp
-- Office Images: Image URL, bilingual alt text, display order
+- Team Members: 25 real lawyers with photos from vonwobeser.com/images/Socios/, bilingual bios, contact info
+- Practice Groups: 18 real practice areas with authentic descriptions (Corporativo/M&A, Arbitraje, Litigio, Competencia Económica, etc.)
+- Industry Groups: 7 real industry sectors (Farmacéutica, Energía, Automotriz, Servicios Financieros, etc.)
+- News: Real firm announcements (new offices, rankings, recognitions)
+- Office Images: Tower SOMA Chapultepec office photos
 - Site Content: Key-value pairs for hero text, vision, quotes, contact info
 - Stats: Numeric values with bilingual labels
+
+**Real Content Sources**
+- Team photos: https://www.vonwobeser.com/images/Socios/Fotos_socios/
+- Practice area descriptions: Extracted from vonwobeser.com/index.php/practica
+- Industry group descriptions: Extracted from vonwobeser.com/index.php/industria
+- Firm address: Torre SOMA Chapultepec Piso 18, Campos Elíseos 204, Polanco, 11560 CDMX
 
 ### Authentication & Authorization
 
@@ -171,6 +180,7 @@ Preferred communication style: Simple, everyday language.
 - Font loading via Google Fonts CDN (Cormorant Garamond, Inter)
 
 **Image Strategy**
-- Currently uses Unsplash URLs for office imagery
-- Images optimized with URL parameters: `w=800`, `w=1200`, `q=80`
-- Responsive images handled via Tailwind classes and srcset could be added
+- Team member photos loaded directly from vonwobeser.com/images/Socios/Fotos_socios/
+- Office imagery uses Von Wobeser branding images
+- Responsive images handled via Tailwind classes
+- All 25 team members have real profile photos from the firm's website
