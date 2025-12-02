@@ -3,6 +3,7 @@ import { MapPin, Phone, Mail, Linkedin, ExternalLink, AlertCircle, Building2 } f
 import { useQuery } from "@tanstack/react-query";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { SiteContent } from "@shared/schema";
+import esrLogo from "@assets/image_1764710915519.png";
 
 interface FooterProps {
   language: "es" | "en";
@@ -287,9 +288,17 @@ export default function Footer({ language }: FooterProps) {
 
         <div className="border-t border-gray-800 pt-8">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-            <p className="text-xs text-gray-500" data-testid="text-copyright">
-              {t.legal}
-            </p>
+            <div className="flex items-center gap-6">
+              <p className="text-xs text-gray-500" data-testid="text-copyright">
+                {t.legal}
+              </p>
+              <img 
+                src={esrLogo} 
+                alt="Empresa Socialmente Responsable" 
+                className="h-10 object-contain"
+                data-testid="img-esr-logo"
+              />
+            </div>
             <div className="flex items-center gap-6">
               <a
                 href="#"

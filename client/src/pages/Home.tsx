@@ -8,6 +8,7 @@ import StatsSection from "@/components/StatsSection";
 import ImageCollage from "@/components/ImageCollage";
 import WorldMapSection from "@/components/WorldMapSection";
 import QuoteSection from "@/components/QuoteSection";
+import RankingsSection from "@/components/RankingsSection";
 import Footer from "@/components/Footer";
 import NewOfficesPopup from "@/components/NewOfficesPopup";
 import JsonLdSchema from "@/components/JsonLdSchema";
@@ -22,6 +23,7 @@ export default function Home() {
       <Header language={language} onLanguageChange={setLanguage} />
       <main>
         <HeroSection language={language} />
+        <RankingsSection language={language} />
         <NewsSection language={language} />
         <VisionSection language={language} />
         <StatsSection language={language} />

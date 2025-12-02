@@ -34,29 +34,28 @@ function NewsPanel({ language, news }: { language: "es" | "en"; news: News[] }) 
       className="absolute left-6 md:left-12 bottom-24 md:bottom-20 z-20 hidden md:block"
       data-testid="panel-news-overlay"
     >
-      <div className="bg-white/95 backdrop-blur-sm p-6 w-80 shadow-lg">
-        <div className="mb-4">
+      <div className="bg-white/95 backdrop-blur-sm p-6 shadow-lg" style={{ width: '420px' }}>
+        <div className="mb-4 text-center">
           <h3 
-            className="text-sm font-medium tracking-[0.2em] uppercase text-[#5E5E5E]"
+            className="text-sm font-medium tracking-[0.2em] uppercase text-[#5E5E5E] border-b border-[#CCCCCC] pb-2"
             data-testid="text-news-header"
           >
             {t.news}
           </h3>
-          <div className="w-full h-px bg-[#CCCCCC] mt-2" />
         </div>
 
-        <div className="space-y-4">
+        <div className="grid grid-cols-2 gap-4">
           {displayNews.map((item, index) => (
             <motion.div
               key={item.id}
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 1 + index * 0.15 }}
-              className="group"
+              className={`group ${index === 0 ? 'border-r border-[#E5E7EB] pr-4' : 'pl-2'}`}
               data-testid={`card-news-${item.id}`}
             >
               <h4 
-                className="text-sm font-medium text-[#1F2937] leading-snug mb-2 line-clamp-2"
+                className="text-sm font-medium text-[#1F2937] leading-snug mb-3 italic"
                 data-testid={`text-news-title-${item.id}`}
               >
                 {language === "es" ? item.titleEs : item.title}
@@ -67,11 +66,7 @@ function NewsPanel({ language, news }: { language: "es" | "en"; news: News[] }) 
                 data-testid={`link-news-seemore-${item.id}`}
               >
                 {t.seeMore}
-                <ChevronDown className="w-3 h-3 ml-1 -rotate-90" />
               </Link>
-              {index < displayNews.length - 1 && (
-                <div className="w-full h-px bg-[#E5E7EB] mt-4" />
-              )}
             </motion.div>
           ))}
         </div>
