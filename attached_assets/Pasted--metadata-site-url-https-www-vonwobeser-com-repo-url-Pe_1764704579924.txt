@@ -1,0 +1,395 @@
+{
+  "metadata": {
+    "site_url": "https://www.vonwobeser.com",
+    "repo_url": "Pendiente de acceso",
+    "audit_report_reference": "AUDIT-VWB-2025-Q1",
+    "generated_at": "2025-05-20T10:00:00Z"
+  },
+  "summary": {
+    "overall_priority": "Crítica",
+    "goals": [
+      "Transformar la experiencia a Mobile-First real.",
+      "Reducir LCP a < 2.5s y CLS a < 0.1 en conexiones 4G.",
+      "Implementar identidad visual 'Old Money Tech' con sistema de diseño escalable.",
+      "Alcanzar cumplimiento WCAG 2.1 Nivel AA.",
+      "Maximizar visibilidad en búsqueda orgánica mediante Schema.org y SEO técnico."
+    ],
+    "key_metrics_target": {
+      "lighthouse": {
+        "performance": 95,
+        "accessibility": 100,
+        "best_practices": 100,
+        "seo": 100
+      },
+      "wcag": {
+        "level": "AA",
+        "compliance_percentage": 100
+      }
+    }
+  },
+  "sprints": [
+    {
+      "id": "sprint-0",
+      "name": "Sprint 0: Hotfixes Críticos & Estabilización",
+      "priority_level": "Crítica",
+      "tasks": [
+        "task-img-opt-hero",
+        "task-seo-meta-fix",
+        "task-secure-headers"
+      ]
+    },
+    {
+      "id": "sprint-1",
+      "name": "Sprint 1: Core Performance & Accesibilidad Base",
+      "priority_level": "Alta",
+      "tasks": [
+        "task-font-loading",
+        "task-a11y-contrast",
+        "task-a11y-nav-keyboard"
+      ]
+    },
+    {
+      "id": "sprint-2",
+      "name": "Sprint 2: UI/UX Redesign & Sistema de Componentes",
+      "priority_level": "Alta",
+      "tasks": [
+        "task-ui-tokens",
+        "task-ui-component-lawyer-card",
+        "task-ui-mobile-nav"
+      ]
+    },
+    {
+      "id": "sprint-3",
+      "name": "Sprint 3: SEO Avanzado & Automatización",
+      "priority_level": "Media",
+      "tasks": [
+        "task-seo-schema",
+        "task-ci-cd-setup",
+        "task-analytics-events"
+      ]
+    }
+  ],
+  "tasks": [
+    {
+      "id": "task-img-opt-hero",
+      "title": "Optimización Crítica de Imágenes Hero (LCP)",
+      "priority": "Critical",
+      "category": "Performance",
+      "estimate_hours": 4.0,
+      "roles": ["Frontend Dev", "Designer"],
+      "dependency_ids": [],
+      "description": "El Hero actual carga imágenes >2MB bloqueando el renderizado. Se debe implementar formato AVIF/WebP con fallback y dimensionamiento explícito.",
+      "files_to_change": [
+        {
+          "path": "src/components/HomeHero.jsx",
+          "file_type": "jsx",
+          "change_type": "modify"
+        }
+      ],
+      "code_changes": [
+        {
+          "type": "snippet",
+          "language": "html",
+          "content": "<picture>\n  <source srcset=\"/images/hero-home.avif\" type=\"image/avif\">\n  <source srcset=\"/images/hero-home.webp\" type=\"image/webp\">\n  <img \n    src=\"/images/hero-home.jpg\" \n    alt=\"Oficinas centrales Von Wobeser\" \n    width=\"1920\" \n    height=\"1080\" \n    fetchpriority=\"high\"\n    decoding=\"async\"\n    class=\"hero-img\"\n  >\n</picture>"
+        },
+        {
+          "type": "command",
+          "language": "bash",
+          "content": "npx sharp-cli -i raw-assets/hero.jpg -o public/images/hero-home.avif -f avif --quality 80"
+        }
+      ],
+      "terminal_commands": [
+        "npm install sharp-cli --save-dev"
+      ],
+      "acceptance_criteria": [
+        "La imagen Hero pesa menos de 100kb en móvil.",
+        "LCP baja de 4s a < 2.5s.",
+        "La imagen se sirve en AVIF en navegadores compatibles."
+      ],
+      "qa_tests": [
+        "Lighthouse Performance Scan > Comprobar 'Serve images in next-gen formats'"
+      ],
+      "risk": "Low",
+      "rollback_instructions": "Revertir commit y restaurar referencia a imagen .jpg original."
+    },
+    {
+      "id": "task-seo-schema",
+      "title": "Implementación JSON-LD LegalService",
+      "priority": "High",
+      "category": "SEO",
+      "estimate_hours": 3.0,
+      "roles": ["SEO Specialist", "Frontend Dev"],
+      "dependency_ids": [],
+      "description": "Google no identifica la entidad como firma legal. Implementar Schema.org estructurado.",
+      "files_to_change": [
+        {
+          "path": "public/index.html",
+          "file_type": "html",
+          "change_type": "modify"
+        }
+      ],
+      "code_changes": [
+        {
+          "type": "snippet",
+          "language": "html",
+          "content": "<script type=\"application/ld+json\">\n{\n  \"@context\": \"https://schema.org\",\n  \"@type\": \"LegalService\",\n  \"name\": \"Von Wobeser y Sierra\",\n  \"url\": \"https://www.vonwobeser.com\",\n  \"logo\": \"https://www.vonwobeser.com/assets/logo.png\",\n  \"sameAs\": [\n    \"https://www.linkedin.com/company/von-wobeser-y-sierra-s-c-/\",\n    \"https://twitter.com/vonwobeser\"\n  ],\n  \"address\": {\n    \"@type\": \"PostalAddress\",\n    \"streetAddress\": \"Guillermo González Camarena 1100\",\n    \"addressLocality\": \"Ciudad de México\",\n    \"postalCode\": \"01210\",\n    \"addressCountry\": \"MX\"\n  },\n  \"telephone\": \"+525552581000\",\n  \"priceRange\": \"$$$\"\n}\n</script>"
+        }
+      ],
+      "terminal_commands": [],
+      "acceptance_criteria": [
+        "Validador de Schema.org no muestra errores.",
+        "Google Search Console reconoce la entidad."
+      ],
+      "qa_tests": [
+        "Copiar código fuente en https://search.google.com/test/rich-results"
+      ],
+      "risk": "Low",
+      "rollback_instructions": "Eliminar el script JSON-LD del head."
+    },
+    {
+      "id": "task-font-loading",
+      "title": "Optimización de Carga de Fuentes (FOIT Fix)",
+      "priority": "High",
+      "category": "Performance",
+      "estimate_hours": 2.0,
+      "roles": ["Frontend Dev"],
+      "dependency_ids": [],
+      "description": "Las fuentes bloquean el renderizado. Usar preload y font-display: swap.",
+      "files_to_change": [
+        {
+          "path": "src/styles/fonts.css",
+          "file_type": "css",
+          "change_type": "modify"
+        },
+        {
+          "path": "index.html",
+          "file_type": "html",
+          "change_type": "modify"
+        }
+      ],
+      "code_changes": [
+        {
+          "type": "snippet",
+          "language": "css",
+          "content": "@font-face {\n  font-family: 'Domine';\n  src: url('/fonts/domine-bold.woff2') format('woff2');\n  font-weight: 700;\n  font-display: swap;\n}"
+        },
+        {
+          "type": "snippet",
+          "language": "html",
+          "content": "<link rel=\"preload\" href=\"/fonts/domine-bold.woff2\" as=\"font\" type=\"font/woff2\" crossorigin>"
+        }
+      ],
+      "terminal_commands": [],
+      "acceptance_criteria": [
+        "Texto visible inmediatamente (flash de fuente fallback aceptable).",
+        "Sin advertencias de 'preload key requests' en Lighthouse."
+      ],
+      "qa_tests": [
+        "Network throttling 'Slow 3G' -> Verificar que el texto aparece antes de cargar la fuente custom."
+      ],
+      "risk": "Low",
+      "rollback_instructions": "Eliminar link preload y propiedad font-display."
+    },
+    {
+      "id": "task-ui-tokens",
+      "title": "Definición de Design Tokens & Variables CSS",
+      "priority": "High",
+      "category": "UI",
+      "estimate_hours": 5.0,
+      "roles": ["Frontend Dev", "UI Designer"],
+      "dependency_ids": [],
+      "description": "Establecer las bases del sistema de diseño 'Old Money Tech' usando variables CSS modernas.",
+      "files_to_change": [
+        {
+          "path": "src/styles/variables.css",
+          "file_type": "css",
+          "change_type": "create"
+        }
+      ],
+      "code_changes": [
+        {
+          "type": "snippet",
+          "language": "css",
+          "content": ":root {\n  /* Colors */\n  --color-primary: #0A1F33; /* Oxford Blue */\n  --color-secondary: #F5F2EA; /* Alabaster */\n  --color-accent: #C4A066; /* Muted Gold */\n  --color-tech: #0057FF; /* Electric Blue */\n  --color-text-body: #2C333A;\n  \n  /* Typography Scale (Clamp) */\n  --font-serif: 'Domine', serif;\n  --font-sans: 'Manrope', sans-serif;\n  --text-base: clamp(1rem, 0.95rem + 0.25vw, 1.125rem);\n  --text-xl: clamp(1.25rem, 1.15rem + 0.50vw, 1.5rem);\n  --text-3xl: clamp(2rem, 1.80rem + 1vw, 3rem);\n}"
+        }
+      ],
+      "terminal_commands": [],
+      "acceptance_criteria": [
+        "Variables disponibles globalmente.",
+        "Tipografía escala fluidamente al redimensionar ventana."
+      ],
+      "qa_tests": [
+        "Inspeccionar elementos en DevTools y verificar herencia de variables."
+      ],
+      "risk": "Medium",
+      "rollback_instructions": "Eliminar importación de variables.css."
+    },
+    {
+      "id": "task-ci-cd-setup",
+      "title": "Setup Pipeline CI/CD con Auditoría Automática",
+      "priority": "Medium",
+      "category": "DevOps",
+      "estimate_hours": 6.0,
+      "roles": ["DevOps"],
+      "dependency_ids": [],
+      "description": "Configurar GitHub Actions para build, test y deploy automático, incluyendo Lighthouse CI.",
+      "files_to_change": [
+        {
+          "path": ".github/workflows/deploy.yml",
+          "file_type": "yaml",
+          "change_type": "create"
+        }
+      ],
+      "code_changes": [
+        {
+          "type": "config",
+          "language": "yaml",
+          "content": "name: CI/CD\non: [push]\njobs:\n  audit:\n    runs-on: ubuntu-latest\n    steps:\n      - uses: actions/checkout@v3\n      - name: Install\n        run: npm ci\n      - name: Build\n        run: npm run build\n      - name: Lighthouse CI\n        uses: treosh/lighthouse-ci-action@v9\n        with:\n          urls: | \n            http://localhost:3000/\n          budgetPath: ./lighthouserc.json\n          uploadArtifacts: true"
+        }
+      ],
+      "terminal_commands": [
+        "npm install @lhci/cli --save-dev"
+      ],
+      "acceptance_criteria": [
+        "Build pasa en verde en GitHub.",
+        "Reporte de Lighthouse generado en cada PR."
+      ],
+      "qa_tests": [
+        "Crear PR dummy y verificar ejecución de Action."
+      ],
+      "risk": "High",
+      "rollback_instructions": "Deshabilitar workflow en GitHub Actions settings."
+    }
+  ],
+  "components": [
+    {
+      "name": "LawyerProfileCard",
+      "behavior": "Tarjeta interactiva que muestra foto, nombre, cargo y áreas. Hover sutil con borde 'tech' y zoom en imagen.",
+      "accessibility_notes": "Toda la tarjeta clickeable usando pseudo-elemento en el enlace principal para no romper la anidación semántica. Focus visible.",
+      "html_snippet": "<article class=\"lawyer-card\">\n  <div class=\"img-wrapper\">\n    <img src=\"...\" alt=\"Foto de Socio\" loading=\"lazy\">\n  </div>\n  <div class=\"content\">\n    <h3><a href=\"/abogado/nombre\" class=\"card-link\">Nombre Apellido</a></h3>\n    <p class=\"role\">Socio Fundador</p>\n  </div>\n</article>",
+      "css_snippet": ".lawyer-card { position: relative; border: 1px solid transparent; transition: all 0.3s ease; }\n.lawyer-card:hover { border-color: var(--color-tech); }\n.card-link::after { content: ''; position: absolute; inset: 0; }\n.lawyer-card:focus-within { outline: 2px solid var(--color-tech); }",
+      "js_snippet": ""
+    },
+    {
+      "name": "MainNavigation",
+      "behavior": "Sticky header. Mobile hamburger menu con animación suave.",
+      "accessibility_notes": "Uso correcto de aria-expanded, aria-controls y focus trap en móvil.",
+      "html_snippet": "<nav aria-label=\"Principal\">\n  <button id=\"menu-btn\" aria-expanded=\"false\" aria-controls=\"menu-list\">\n    <span class=\"sr-only\">Menú</span>\n    <svg aria-hidden=\"true\">...</svg>\n  </button>\n  <ul id=\"menu-list\" hidden>\n    <li><a href=\"/\">Inicio</a></li>\n  </ul>\n</nav>",
+      "css_snippet": "",
+      "js_snippet": "const btn = document.getElementById('menu-btn');\nbtn.addEventListener('click', () => {\n  const expanded = btn.getAttribute('aria-expanded') === 'true';\n  btn.setAttribute('aria-expanded', !expanded);\n  document.getElementById('menu-list').hidden = expanded;\n});"
+    }
+  ],
+  "design_tokens": {
+    "colors": {
+      "primary": "#0A1F33",
+      "secondary": "#F5F2EA",
+      "accent": "#C4A066",
+      "tech": "#0057FF",
+      "white": "#FFFFFF"
+    },
+    "typography": {
+      "serif": "'Domine', serif",
+      "sans": "'Manrope', sans-serif"
+    },
+    "spacing": {
+      "sm": "0.5rem",
+      "md": "1rem",
+      "lg": "2rem",
+      "xl": "4rem"
+    },
+    "breakpoints": {
+      "mobile": "320px",
+      "tablet": "768px",
+      "desktop": "1024px",
+      "wide": "1440px"
+    }
+  },
+  "seo": [
+    {
+      "task_id": "task-seo-schema",
+      "code_snippets": {
+        "BreadcrumbList": "<script type=\"application/ld+json\">{\"@context\": \"https://schema.org\", \"@type\": \"BreadcrumbList\", \"itemListElement\": [...]}</script>"
+      },
+      "meta_tags": [
+        "<meta name=\"description\" content=\"Von Wobeser y Sierra: Firma legal líder en México. Expertos en arbitraje y derecho corporativo.\">",
+        "<link rel=\"canonical\" href=\"https://www.vonwobeser.com/actual-url\">"
+      ],
+      "redirects": [
+        {
+          "from": "/old-lawyers-page",
+          "to": "/equipo",
+          "code": 301
+        }
+      ],
+      "sitemap_actions": [
+        "Regenerar sitemap.xml excluyendo /admin y /temp",
+        "Incluir lastmod date en cada entrada"
+      ]
+    }
+  ],
+  "performance": [
+    {
+      "task_id": "task-perf-caching",
+      "optimization_type": "Server Caching",
+      "code_snippet": "location ~* \\.(?:ico|css|js|gif|jpe?g|png|woff2?|webp|avif)$ {\n    expires 1y;\n    add_header Cache-Control \"public, max-age=31536000, immutable\";\n}",
+      "configuration": "Nginx Config Block"
+    }
+  ],
+  "accessibility": [
+    {
+      "task_id": "task-a11y-skip",
+      "action": "Implementar Skip Link",
+      "example": "<a href=\"#main-content\" class=\"skip-link\">Saltar al contenido</a>\n.skip-link { position: absolute; top: -9999px; } .skip-link:focus { top: 0; }"
+    }
+  ],
+  "analytics_and_monitoring": {
+    "analytics": {
+      "setup": "GA4 + GTM",
+      "events": ["generate_lead", "download_pdf", "click_lawyer_contact"]
+    },
+    "monitoring": {
+      "tool": "Sentry",
+      "config": "Sentry.init({ dsn: '...', tracesSampleRate: 1.0 });"
+    },
+    "alerting": {
+      "trigger": "LCP > 3s or JS Errors > 1%"
+    }
+  },
+  "ci_cd": {
+    "workflow_example": "name: Deploy\non: push\njobs:\n  build:\n    runs-on: ubuntu-latest\n    steps:\n      - run: npm install\n      - run: npm run build\n      - run: npm run test:e2e"
+  },
+  "rollout_plan": {
+    "stages": [
+      "Deploy a Staging (URL oculta)",
+      "Smoke Tests manuales y automáticos",
+      "Deploy a Producción (Canary 10% tráfico si la infra lo permite)",
+      "Full rollout"
+    ],
+    "feature_flags": [
+      "new_lawyer_profile_design",
+      "animated_hero"
+    ],
+    "smoke_tests": [
+      "Verificar carga de Home",
+      "Verificar funcionamiento de formulario de contacto",
+      "Verificar navegación móvil"
+    ],
+    "rollback_steps": [
+      "Revertir Git Commit via CLI o UI de Hosting",
+      "Purgar caché de CDN (Cloudflare/AWS CloudFront)"
+    ]
+  },
+  "acceptance_summary": [
+    "Lighthouse Score > 90 en todas las categorías.",
+    "0 errores críticos en auditoría Axe Accessibility.",
+    "Datos estructurados validados por Google Rich Results.",
+    "Tiempo de carga (Time to Interactive) < 2.5s en 4G."
+  ],
+  "missing_information": [
+    "Acceso al repositorio de código fuente (Git).",
+    "Credenciales y tipo de CMS (WordPress, Drupal, Custom?).",
+    "Acceso a cuenta actual de Google Analytics/GTM.",
+    "Proveedor de hosting para definir configuración de servidor específica.",
+    "Logos y tipografías oficiales en formato de alta calidad."
+  ]
+}
