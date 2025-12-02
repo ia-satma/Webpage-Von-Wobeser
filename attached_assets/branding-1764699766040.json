@@ -1,0 +1,117 @@
+{
+  "colorScheme": "light",
+  "fonts": [
+    {
+      "family": "OptimaLTStd",
+      "role": "body"
+    },
+    {
+      "family": "Geomanist-Book",
+      "role": "body"
+    },
+    {
+      "family": "Publico-Roman",
+      "role": "body"
+    },
+    {
+      "family": "Arial",
+      "role": "body"
+    },
+    {
+      "family": "sans-serif",
+      "role": "body"
+    }
+  ],
+  "colors": {
+    "primary": "#AC162C",
+    "accent": "#841A1A",
+    "background": "#FFFFFF",
+    "textPrimary": "#5E5E5E",
+    "link": "#841A1A"
+  },
+  "typography": {
+    "fontFamilies": {
+      "primary": "OptimaLTStd",
+      "heading": "OptimaLTStd"
+    },
+    "fontStacks": {
+      "heading": [
+        "OptimaLTStd",
+        "sans-serif"
+      ],
+      "body": [
+        "OptimaLTStd",
+        "sans-serif"
+      ],
+      "paragraph": [
+        "Publico-Roman",
+        "serif"
+      ]
+    },
+    "fontSizes": {
+      "h1": "38px",
+      "h2": "28.5px",
+      "body": "25px"
+    }
+  },
+  "spacing": {
+    "baseUnit": 4,
+    "borderRadius": "0px"
+  },
+  "components": {
+    "input": {
+      "borderColor": "#CCCCCC",
+      "borderRadius": "0px"
+    },
+    "buttonPrimary": {
+      "background": "#AC162C",
+      "textColor": "#FFFFFF",
+      "borderRadius": "0px",
+      "shadow": "none"
+    },
+    "buttonSecondary": {
+      "background": "#FFFFFF",
+      "textColor": "#808080",
+      "borderRadius": "0px",
+      "shadow": "none"
+    }
+  },
+  "images": {
+    "logo": "https://vonwobeser.com/images/vonwobeser_2025_.png",
+    "favicon": "https://www.vonwobeser.com/img/favicon/apple-touch-icon-57x57.png",
+    "ogImage": null
+  },
+  "__framework_hints": [],
+  "__llm_logo_reasoning": {
+    "selectedIndex": 0,
+    "reasoning": "Logo #0 matches the brand name 'Home English' and is located in the header, linking to the homepage, making it the primary brand logo.",
+    "confidence": 0.9
+  },
+  "__llm_button_reasoning": {
+    "primary": {
+      "index": 0,
+      "text": "Close",
+      "reasoning": "Button #0 has a vibrant background color (#AC162C) which is the brand color and is action-oriented, making it the primary CTA."
+    },
+    "secondary": {
+      "index": 1,
+      "text": "MENU",
+      "reasoning": "Button #1 has a light background color (#FFFFFF) and is less prominent, making it suitable as the secondary button."
+    },
+    "confidence": 0.95
+  },
+  "personality": {
+    "tone": "professional",
+    "energy": "medium",
+    "targetAudience": "corporate clients and legal professionals"
+  },
+  "designSystem": {
+    "framework": "custom",
+    "componentLibrary": null
+  },
+  "confidence": {
+    "buttons": 0.95,
+    "colors": 0.9,
+    "overall": 0.925
+  }
+}
