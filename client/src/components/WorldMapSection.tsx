@@ -7,102 +7,173 @@ interface WorldMapSectionProps {
 export default function WorldMapSection({ language }: WorldMapSectionProps) {
   const content = {
     en: {
-      label: "GERMAN",
+      title: "Global Reach",
+      subtitle: "Von Wobeser y Sierra's German Desk provides specialized legal services for German-speaking clients investing in Mexico and Latin America.",
+      label: "GERMAN DESK",
+      mexicoLabel: "MEXICO CITY",
+      germanyLabel: "GERMANY",
     },
     es: {
-      label: "ALEMÁN",
+      title: "Alcance Global",
+      subtitle: "El German Desk de Von Wobeser y Sierra proporciona servicios legales especializados para clientes de habla alemana que invierten en México y América Latina.",
+      label: "GERMAN DESK",
+      mexicoLabel: "CIUDAD DE MÉXICO",
+      germanyLabel: "ALEMANIA",
     },
   };
 
   const t = content[language];
 
-  const germanyPosition = { x: 520, y: 145 };
-  const labelPosition = { x: 620, y: 80 };
-
   return (
     <section
       id="german-desk"
-      className="py-20 lg:py-28 bg-white dark:bg-gray-900"
+      className="py-20 lg:py-28 bg-gray-50 dark:bg-gray-800"
       data-testid="section-world-map"
     >
       <div className="max-w-6xl mx-auto px-6 lg:px-12">
         <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6 }}
+          className="text-center mb-12"
+        >
+          <h2 
+            className="text-3xl md:text-4xl font-heading font-light text-gray-800 dark:text-white mb-4"
+            data-testid="text-global-reach-title"
+          >
+            {t.title}
+          </h2>
+          <p 
+            className="text-lg text-gray-600 dark:text-gray-400 max-w-3xl mx-auto"
+            data-testid="text-global-reach-subtitle"
+          >
+            {t.subtitle}
+          </p>
+        </motion.div>
+
+        <motion.div
           initial={{ opacity: 0 }}
           whileInView={{ opacity: 1 }}
           viewport={{ once: true }}
-          transition={{ duration: 0.8 }}
-          className="relative"
+          transition={{ duration: 0.8, delay: 0.2 }}
+          className="relative bg-white dark:bg-gray-900 rounded-md p-8 shadow-sm"
         >
-          <svg
-            viewBox="0 0 900 450"
-            className="w-full h-auto"
-            data-testid="svg-world-map"
-          >
-            <g fill="#9CA3AF" fillOpacity="0.6">
-              <path d="M165,85 L175,75 L190,78 L205,72 L215,75 L225,68 L235,72 L240,82 L235,95 L225,98 L220,108 L230,115 L235,130 L225,145 L210,152 L195,155 L180,165 L165,175 L150,185 L135,178 L125,168 L115,155 L105,145 L100,132 L105,118 L115,105 L130,95 L145,88 L155,85 Z" />
-              <path d="M175,185 L185,178 L200,175 L215,180 L230,195 L245,215 L255,235 L250,255 L240,275 L225,295 L205,310 L185,318 L165,315 L150,305 L140,290 L135,272 L140,255 L150,238 L160,222 L165,205 L170,192 Z" />
-              <path d="M240,320 L255,310 L275,305 L290,315 L305,330 L315,350 L310,370 L295,385 L275,392 L255,388 L240,375 L235,355 L238,338 Z" />
-              
-              <path d="M425,65 L445,58 L468,55 L490,60 L510,55 L528,62 L545,58 L562,65 L575,72 L590,68 L605,75 L618,72 L630,78 L640,85 L650,92 L660,88 L672,95 L680,105 L685,118 L678,132 L665,140 L648,145 L632,148 L615,145 L598,150 L580,155 L562,152 L545,148 L528,155 L510,162 L492,158 L475,152 L458,158 L440,165 L422,162 L405,155 L390,148 L378,138 L370,125 L375,110 L385,98 L400,88 L415,78 Z" />
-              <path d="M450,172 L470,165 L490,168 L510,175 L525,185 L535,198 L540,215 L535,232 L525,248 L510,262 L490,272 L468,278 L445,275 L425,268 L410,255 L400,238 L398,218 L405,198 L420,182 Z" />
-              <path d="M548,172 L568,165 L590,168 L612,175 L632,185 L648,198 L660,215 L665,235 L658,255 L645,272 L625,285 L602,295 L578,298 L555,292 L535,282 L520,268 L512,248 L515,228 L525,208 L538,188 Z" />
-              <path d="M660,145 L680,138 L702,142 L722,155 L738,172 L750,192 L758,215 L752,238 L740,258 L722,275 L700,288 L675,295 L650,290 L628,278 L612,262 L605,242 L610,220 L622,198 L640,178 L655,158 Z" />
-              
-              <path d="M720,150 L745,142 L772,138 L798,145 L820,155 L838,172 L852,192 L860,215 L855,240 L842,265 L822,285 L798,302 L770,312 L742,308 L718,295 L700,275 L692,252 L695,228 L708,205 L725,182 L738,162 Z" />
-              <path d="M765,315 L790,308 L818,312 L842,325 L860,345 L870,368 L865,392 L850,412 L825,425 L798,432 L770,428 L745,415 L728,395 L722,372 L730,348 L748,328 Z" />
-              <path d="M820,175 L848,168 L875,172 L898,185 L895,195 L880,195 L865,188 L848,192 L835,185 Z" />
-              
-              <path d="M745,338 L758,355 L752,375 L735,388 L715,392 L698,382 L692,362 L702,345 L720,335 L738,332 Z" />
-              <path d="M762,368 L780,358 L800,362 L815,378 L818,398 L808,415 L788,422 L768,418 L755,402 L752,382 Z" />
-            </g>
-
-            <motion.line
-              x1={germanyPosition.x}
-              y1={germanyPosition.y}
-              x2={labelPosition.x}
-              y2={labelPosition.y}
-              stroke="#AC162C"
-              strokeWidth="2"
-              strokeLinecap="round"
-              initial={{ pathLength: 0 }}
-              whileInView={{ pathLength: 1 }}
+          <div className="flex flex-col md:flex-row items-center justify-center gap-8 md:gap-16">
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
-              transition={{ duration: 0.8, delay: 0.3 }}
-              data-testid="line-germany-connector"
-            />
+              transition={{ duration: 0.5, delay: 0.4 }}
+              className="text-center"
+            >
+              <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-primary/10 flex items-center justify-center">
+                <svg viewBox="0 0 24 24" className="w-10 h-10 text-primary" fill="currentColor">
+                  <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+                </svg>
+              </div>
+              <h3 
+                className="text-lg font-semibold text-gray-800 dark:text-white mb-1"
+                data-testid="text-mexico-label"
+              >
+                {t.mexicoLabel}
+              </h3>
+              <p className="text-sm text-gray-500 dark:text-gray-400">
+                Torre SOMA Chapultepec
+              </p>
+            </motion.div>
 
-            <motion.circle
-              cx={germanyPosition.x}
-              cy={germanyPosition.y}
-              r="6"
-              fill="#AC162C"
-              initial={{ scale: 0, opacity: 0 }}
-              whileInView={{ scale: 1, opacity: 1 }}
+            <motion.div
+              initial={{ scaleX: 0 }}
+              whileInView={{ scaleX: 1 }}
               viewport={{ once: true }}
-              transition={{ duration: 0.4, delay: 0.2 }}
-              data-testid="marker-germany"
-            />
+              transition={{ duration: 0.6, delay: 0.6 }}
+              className="hidden md:block"
+            >
+              <div className="flex items-center gap-2">
+                <div className="w-24 h-0.5 bg-gradient-to-r from-primary to-primary/50" />
+                <motion.div
+                  animate={{ scale: [1, 1.2, 1] }}
+                  transition={{ duration: 2, repeat: Infinity }}
+                  className="w-3 h-3 rounded-full bg-primary"
+                />
+                <div className="w-24 h-0.5 bg-gradient-to-l from-primary to-primary/50" />
+              </div>
+              <p 
+                className="text-xs text-primary font-semibold tracking-wider mt-2 text-center"
+                data-testid="text-german-desk-label"
+              >
+                {t.label}
+              </p>
+            </motion.div>
 
-            <motion.g
-              initial={{ opacity: 0, x: 10 }}
+            <div className="md:hidden flex flex-col items-center">
+              <div className="w-0.5 h-12 bg-gradient-to-b from-primary to-primary/50" />
+              <motion.div
+                animate={{ scale: [1, 1.2, 1] }}
+                transition={{ duration: 2, repeat: Infinity }}
+                className="w-3 h-3 rounded-full bg-primary my-2"
+              />
+              <div className="w-0.5 h-12 bg-gradient-to-t from-primary to-primary/50" />
+              <p 
+                className="text-xs text-primary font-semibold tracking-wider mt-2"
+              >
+                {t.label}
+              </p>
+            </div>
+
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.5, delay: 0.8 }}
+              className="text-center"
             >
-              <text
-                x={labelPosition.x + 8}
-                y={labelPosition.y + 5}
-                fill="#AC162C"
-                fontSize="16"
-                fontWeight="600"
-                fontFamily="'Optima', 'Segoe UI', sans-serif"
-                letterSpacing="0.1em"
+              <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-primary/10 flex items-center justify-center">
+                <svg viewBox="0 0 24 24" className="w-10 h-10 text-primary" fill="currentColor">
+                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>
+                </svg>
+              </div>
+              <h3 
+                className="text-lg font-semibold text-gray-800 dark:text-white mb-1"
                 data-testid="text-germany-label"
               >
-                {t.label}
-              </text>
-            </motion.g>
-          </svg>
+                {t.germanyLabel}
+              </h3>
+              <p className="text-sm text-gray-500 dark:text-gray-400">
+                German Desk
+              </p>
+            </motion.div>
+          </div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5, delay: 1 }}
+            className="mt-8 pt-8 border-t border-gray-200 dark:border-gray-700"
+          >
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
+              <div>
+                <p className="text-2xl font-semibold text-primary mb-1">25+</p>
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  {language === "es" ? "Años de experiencia" : "Years of Experience"}
+                </p>
+              </div>
+              <div>
+                <p className="text-2xl font-semibold text-primary mb-1">100+</p>
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  {language === "es" ? "Clientes alemanes" : "German Clients"}
+                </p>
+              </div>
+              <div>
+                <p className="text-2xl font-semibold text-primary mb-1">3</p>
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  {language === "es" ? "Idiomas (ES/EN/DE)" : "Languages (ES/EN/DE)"}
+                </p>
+              </div>
+            </div>
+          </motion.div>
         </motion.div>
       </div>
     </section>
