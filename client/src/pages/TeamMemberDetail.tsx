@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, useParams } from "wouter";
 import { motion } from "framer-motion";
-import { ArrowLeft, Mail, Phone, Linkedin, AlertCircle, Crown, Download, GraduationCap, Globe2, Award, FileText, Briefcase } from "lucide-react";
+import { ArrowLeft, Mail, Phone, Linkedin, AlertCircle, Crown, Download, GraduationCap, Globe2, Award, FileText, Briefcase, Scale, Users, BookOpen, Building2, Languages } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -11,7 +11,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import type { TeamMember, PracticeGroup, IndustryGroup } from "@shared/schema";
+import type { TeamMember, PracticeGroup, IndustryGroup, Education, Affiliation, Ranking, Publication, RepresentativeMatter, BarAdmission } from "@shared/schema";
 
 export default function TeamMemberDetail() {
   const [language, setLanguage] = useState<"es" | "en">("es");
@@ -46,10 +46,13 @@ export default function TeamMemberDetail() {
       industryGroups: "Industry Groups",
       biography: "Biography",
       education: "Education",
+      barAdmissions: "Bar Admissions",
       languages: "Languages",
+      affiliations: "Professional Affiliations",
       rankings: "Rankings & Recognition",
       publications: "Publications",
       representativeMatters: "Representative Matters",
+      experience: "Professional Experience",
       contactCta: "Get in touch",
       contactSubtitle: "Connect with our team to discuss how we can assist with your legal needs.",
       emailUs: "Send Email",
@@ -69,11 +72,14 @@ export default function TeamMemberDetail() {
       practiceAreas: "Áreas de Práctica",
       industryGroups: "Grupos Industriales",
       biography: "Biografía",
-      education: "Educación",
+      education: "Formación Académica",
+      barAdmissions: "Admisiones al Colegio",
       languages: "Idiomas",
+      affiliations: "Afiliaciones Profesionales",
       rankings: "Rankings y Reconocimientos",
       publications: "Publicaciones",
       representativeMatters: "Asuntos Representativos",
+      experience: "Experiencia Profesional",
       contactCta: "Contáctenos",
       contactSubtitle: "Conéctese con nuestro equipo para discutir cómo podemos ayudarle con sus necesidades legales.",
       emailUs: "Enviar Email",
@@ -413,6 +419,308 @@ export default function TeamMemberDetail() {
                           {language === "es" ? group.nameEs : group.name}
                         </Badge>
                       </Link>
+                    ))}
+                  </div>
+                </motion.section>
+              )}
+
+              {member?.education && member.education.length > 0 && (
+                <motion.section
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.6, delay: 0.4 }}
+                  data-testid="section-education"
+                >
+                  <h2 
+                    className="text-2xl font-heading font-light text-gray-800 dark:text-white mb-6 flex items-center gap-3"
+                    data-testid="text-education-title"
+                  >
+                    <GraduationCap className="w-6 h-6 text-primary" />
+                    {t.education}
+                  </h2>
+                  <div className="space-y-4">
+                    {(member.education as Education[]).map((edu, index) => (
+                      <div 
+                        key={index} 
+                        className="border-l-2 border-primary/30 pl-4 py-1"
+                        data-testid={`item-education-${index}`}
+                      >
+                        <p className="text-lg font-medium text-gray-800 dark:text-white">
+                          {language === "es" && edu.degreeEs ? edu.degreeEs : edu.degree}
+                        </p>
+                        <p className="text-gray-600 dark:text-gray-400">
+                          {language === "es" && edu.schoolEs ? edu.schoolEs : edu.school}
+                          {edu.year && <span className="ml-2 text-sm">({edu.year})</span>}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                </motion.section>
+              )}
+
+              {member?.barAdmissions && member.barAdmissions.length > 0 && (
+                <motion.section
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.6, delay: 0.45 }}
+                  data-testid="section-bar-admissions"
+                >
+                  <h2 
+                    className="text-2xl font-heading font-light text-gray-800 dark:text-white mb-6 flex items-center gap-3"
+                    data-testid="text-bar-admissions-title"
+                  >
+                    <Scale className="w-6 h-6 text-primary" />
+                    {t.barAdmissions}
+                  </h2>
+                  <div className="flex flex-wrap gap-3">
+                    {(member.barAdmissions as BarAdmission[]).map((admission, index) => (
+                      <Badge 
+                        key={index}
+                        variant="secondary"
+                        className="rounded-md py-2 px-4"
+                        data-testid={`badge-bar-admission-${index}`}
+                      >
+                        {language === "es" && admission.jurisdictionEs ? admission.jurisdictionEs : admission.jurisdiction}
+                        {admission.year && <span className="ml-1 opacity-70">({admission.year})</span>}
+                      </Badge>
+                    ))}
+                  </div>
+                </motion.section>
+              )}
+
+              {member?.languages && member.languages.length > 0 && (
+                <motion.section
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.6, delay: 0.5 }}
+                  data-testid="section-languages"
+                >
+                  <h2 
+                    className="text-2xl font-heading font-light text-gray-800 dark:text-white mb-6 flex items-center gap-3"
+                    data-testid="text-languages-title"
+                  >
+                    <Languages className="w-6 h-6 text-primary" />
+                    {t.languages}
+                  </h2>
+                  <div className="flex flex-wrap gap-3">
+                    {(member.languages as string[]).map((lang, index) => (
+                      <Badge 
+                        key={index}
+                        variant="outline"
+                        className="rounded-md py-2 px-4"
+                        data-testid={`badge-language-${index}`}
+                      >
+                        {lang}
+                      </Badge>
+                    ))}
+                  </div>
+                </motion.section>
+              )}
+
+              {member?.affiliations && member.affiliations.length > 0 && (
+                <motion.section
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.6, delay: 0.55 }}
+                  data-testid="section-affiliations"
+                >
+                  <h2 
+                    className="text-2xl font-heading font-light text-gray-800 dark:text-white mb-6 flex items-center gap-3"
+                    data-testid="text-affiliations-title"
+                  >
+                    <Users className="w-6 h-6 text-primary" />
+                    {t.affiliations}
+                  </h2>
+                  <div className="space-y-3">
+                    {(member.affiliations as Affiliation[]).map((affiliation, index) => (
+                      <div 
+                        key={index}
+                        className="flex items-start gap-3"
+                        data-testid={`item-affiliation-${index}`}
+                      >
+                        <div className="w-2 h-2 rounded-full bg-primary mt-2 flex-shrink-0" />
+                        <div>
+                          <p className="text-gray-800 dark:text-white">
+                            {language === "es" && affiliation.organizationEs ? affiliation.organizationEs : affiliation.organization}
+                          </p>
+                          {affiliation.role && (
+                            <p className="text-sm text-gray-500 dark:text-gray-400">
+                              {language === "es" && affiliation.roleEs ? affiliation.roleEs : affiliation.role}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </motion.section>
+              )}
+
+              {member?.rankings && member.rankings.length > 0 && (
+                <motion.section
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.6, delay: 0.6 }}
+                  data-testid="section-rankings"
+                >
+                  <h2 
+                    className="text-2xl font-heading font-light text-gray-800 dark:text-white mb-6 flex items-center gap-3"
+                    data-testid="text-rankings-title"
+                  >
+                    <Award className="w-6 h-6 text-primary" />
+                    {t.rankings}
+                  </h2>
+                  <div className="space-y-4">
+                    {(member.rankings as Ranking[]).map((ranking, index) => (
+                      <Card 
+                        key={index}
+                        className="border-0 bg-gray-50 dark:bg-gray-800 rounded-md"
+                        data-testid={`card-ranking-${index}`}
+                      >
+                        <CardContent className="p-4">
+                          <div className="flex items-start justify-between">
+                            <div>
+                              <p className="font-medium text-gray-800 dark:text-white">
+                                {ranking.publication}
+                              </p>
+                              <p className="text-primary font-medium mt-1">
+                                {language === "es" && ranking.rankingEs ? ranking.rankingEs : ranking.ranking}
+                              </p>
+                              {ranking.area && (
+                                <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                                  {language === "es" && ranking.areaEs ? ranking.areaEs : ranking.area}
+                                </p>
+                              )}
+                            </div>
+                            {ranking.year && (
+                              <Badge variant="outline" className="rounded-md">
+                                {ranking.year}
+                              </Badge>
+                            )}
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                </motion.section>
+              )}
+
+              {member?.publications && member.publications.length > 0 && (
+                <motion.section
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.6, delay: 0.65 }}
+                  data-testid="section-publications"
+                >
+                  <h2 
+                    className="text-2xl font-heading font-light text-gray-800 dark:text-white mb-6 flex items-center gap-3"
+                    data-testid="text-publications-title"
+                  >
+                    <BookOpen className="w-6 h-6 text-primary" />
+                    {t.publications}
+                  </h2>
+                  <div className="space-y-4">
+                    {(member.publications as Publication[]).map((pub, index) => (
+                      <div 
+                        key={index}
+                        className="border-l-2 border-primary/30 pl-4 py-1"
+                        data-testid={`item-publication-${index}`}
+                      >
+                        <p className="text-gray-800 dark:text-white font-medium">
+                          {language === "es" && pub.titleEs ? pub.titleEs : pub.title}
+                        </p>
+                        <div className="flex flex-wrap items-center gap-2 mt-1 text-sm text-gray-500 dark:text-gray-400">
+                          {pub.journal && <span>{pub.journal}</span>}
+                          {pub.year && <span>• {pub.year}</span>}
+                          {pub.url && (
+                            <a 
+                              href={pub.url} 
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                              className="text-primary hover:underline"
+                            >
+                              View Publication
+                            </a>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </motion.section>
+              )}
+
+              {member?.representativeMatters && member.representativeMatters.length > 0 && (
+                <motion.section
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.6, delay: 0.7 }}
+                  data-testid="section-representative-matters"
+                >
+                  <h2 
+                    className="text-2xl font-heading font-light text-gray-800 dark:text-white mb-6 flex items-center gap-3"
+                    data-testid="text-representative-matters-title"
+                  >
+                    <Briefcase className="w-6 h-6 text-primary" />
+                    {t.representativeMatters}
+                  </h2>
+                  <div className="space-y-3">
+                    {(member.representativeMatters as RepresentativeMatter[]).map((matter, index) => (
+                      <div 
+                        key={index}
+                        className="flex items-start gap-3"
+                        data-testid={`item-representative-matter-${index}`}
+                      >
+                        <div className="w-2 h-2 rounded-full bg-primary mt-2 flex-shrink-0" />
+                        <div>
+                          <p className="text-gray-800 dark:text-white">
+                            {language === "es" && matter.descriptionEs ? matter.descriptionEs : matter.description}
+                          </p>
+                          {(matter.client || matter.year) && (
+                            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                              {matter.client && <span>{matter.client}</span>}
+                              {matter.client && matter.year && <span> • </span>}
+                              {matter.year && <span>{matter.year}</span>}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </motion.section>
+              )}
+
+              {member?.experience && member.experience.length > 0 && (
+                <motion.section
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.6, delay: 0.75 }}
+                  data-testid="section-experience"
+                >
+                  <h2 
+                    className="text-2xl font-heading font-light text-gray-800 dark:text-white mb-6 flex items-center gap-3"
+                    data-testid="text-experience-title"
+                  >
+                    <Building2 className="w-6 h-6 text-primary" />
+                    {t.experience}
+                  </h2>
+                  <div className="space-y-4">
+                    {(member.experience as any[]).map((exp, index) => (
+                      <div 
+                        key={index}
+                        className="border-l-2 border-primary/30 pl-4 py-1"
+                        data-testid={`item-experience-${index}`}
+                      >
+                        <p className="text-lg font-medium text-gray-800 dark:text-white">
+                          {language === "es" && exp.positionEs ? exp.positionEs : exp.position}
+                        </p>
+                        <p className="text-gray-600 dark:text-gray-400">
+                          {exp.company}
+                          {(exp.startYear || exp.endYear) && (
+                            <span className="ml-2 text-sm">
+                              ({exp.startYear}{exp.endYear ? ` - ${exp.endYear}` : ' - Present'})
+                            </span>
+                          )}
+                        </p>
+                      </div>
                     ))}
                   </div>
                 </motion.section>

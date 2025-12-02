@@ -1,7 +1,61 @@
 import { sql } from "drizzle-orm";
-import { pgTable, text, varchar, timestamp, integer, boolean } from "drizzle-orm/pg-core";
+import { pgTable, text, varchar, timestamp, integer, boolean, jsonb } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
+
+// Types for team member structured data
+export interface Education {
+  school: string;
+  schoolEs?: string;
+  degree: string;
+  degreeEs?: string;
+  year?: string;
+}
+
+export interface BarAdmission {
+  jurisdiction: string;
+  jurisdictionEs?: string;
+  year?: string;
+}
+
+export interface Ranking {
+  publication: string;
+  ranking: string;
+  rankingEs?: string;
+  year?: string;
+  area?: string;
+  areaEs?: string;
+}
+
+export interface Publication {
+  title: string;
+  titleEs?: string;
+  journal?: string;
+  year?: string;
+  url?: string;
+}
+
+export interface RepresentativeMatter {
+  description: string;
+  descriptionEs?: string;
+  client?: string;
+  year?: string;
+}
+
+export interface Affiliation {
+  organization: string;
+  organizationEs?: string;
+  role?: string;
+  roleEs?: string;
+}
+
+export interface Experience {
+  company: string;
+  position: string;
+  positionEs?: string;
+  startYear?: string;
+  endYear?: string;
+}
 
 export const users = pgTable("users", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -99,6 +153,15 @@ export const teamMembers = pgTable("team_members", {
   linkedinUrl: text("linkedin_url"),
   isPartner: boolean("is_partner").default(false),
   order: integer("order").default(0),
+  // Extended profile fields
+  education: jsonb("education").$type<Education[]>(),
+  barAdmissions: jsonb("bar_admissions").$type<BarAdmission[]>(),
+  languages: jsonb("languages").$type<string[]>(),
+  affiliations: jsonb("affiliations").$type<Affiliation[]>(),
+  rankings: jsonb("rankings").$type<Ranking[]>(),
+  publications: jsonb("publications").$type<Publication[]>(),
+  representativeMatters: jsonb("representative_matters").$type<RepresentativeMatter[]>(),
+  experience: jsonb("experience").$type<Experience[]>(),
 });
 
 export const insertTeamMemberSchema = createInsertSchema(teamMembers).omit({ id: true });
