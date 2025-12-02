@@ -1,5 +1,27 @@
-import { type User, type InsertUser, type News, type InsertNews, type OfficeImage, type InsertOfficeImage, type SiteContent, type Stat } from "@shared/schema";
-import { randomUUID } from "crypto";
+import { eq, desc, asc } from "drizzle-orm";
+import { db } from "./db";
+import {
+  type User,
+  type InsertUser,
+  type News,
+  type InsertNews,
+  type OfficeImage,
+  type InsertOfficeImage,
+  type PracticeGroup,
+  type InsertPracticeGroup,
+  type IndustryGroup,
+  type InsertIndustryGroup,
+  type TeamMember,
+  type InsertTeamMember,
+  type SiteContent,
+  type Stat,
+  users,
+  news,
+  officeImages,
+  practiceGroups,
+  industryGroups,
+  teamMembers,
+} from "@shared/schema";
 
 export interface IStorage {
   getUser(id: string): Promise<User | undefined>;
@@ -7,10 +29,24 @@ export interface IStorage {
   createUser(user: InsertUser): Promise<User>;
   getNews(): Promise<News[]>;
   getNewsById(id: string): Promise<News | undefined>;
+  getNewsBySlug(slug: string): Promise<News | undefined>;
   createNews(news: InsertNews): Promise<News>;
   getOfficeImages(): Promise<OfficeImage[]>;
   getSiteContent(): SiteContent;
   getStats(): Stat[];
+  getPracticeGroups(): Promise<PracticeGroup[]>;
+  getPracticeGroupById(id: string): Promise<PracticeGroup | undefined>;
+  getPracticeGroupBySlug(slug: string): Promise<PracticeGroup | undefined>;
+  createPracticeGroup(group: InsertPracticeGroup): Promise<PracticeGroup>;
+  getIndustryGroups(): Promise<IndustryGroup[]>;
+  getIndustryGroupById(id: string): Promise<IndustryGroup | undefined>;
+  getIndustryGroupBySlug(slug: string): Promise<IndustryGroup | undefined>;
+  createIndustryGroup(group: InsertIndustryGroup): Promise<IndustryGroup>;
+  getTeamMembers(): Promise<TeamMember[]>;
+  getTeamMemberById(id: string): Promise<TeamMember | undefined>;
+  getTeamMemberBySlug(slug: string): Promise<TeamMember | undefined>;
+  getPartners(): Promise<TeamMember[]>;
+  createTeamMember(member: InsertTeamMember): Promise<TeamMember>;
 }
 
 const siteContent: SiteContent = {
@@ -36,97 +72,43 @@ const stats: Stat[] = [
   { value: "6", label: "levels", labelEs: "niveles" },
 ];
 
-const defaultNews: News[] = [
-  {
-    id: "1",
-    title: "Von Wobeser y Sierra completes transition to new offices: a strategic investment in the firm's future",
-    titleEs: "Von Wobeser y Sierra completa la transici\u00f3n a nuevas oficinas: una inversi\u00f3n estrat\u00e9gica en el futuro de la firma",
-    excerpt: "The firm has completed the move to its new location in Polanco.",
-    excerptEs: "La firma ha completado la mudanza a su nueva ubicaci\u00f3n en Polanco.",
-    slug: "new-offices-transition",
-    imageUrl: "https://images.unsplash.com/photo-1497366216548-37526070297c?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
-    date: new Date("2025-11-15"),
-  },
-  {
-    id: "2",
-    title: "Von Wobeser y Sierra has been ranked by Chambers and Partners Latin America 2026",
-    titleEs: "Von Wobeser y Sierra ha sido clasificada por Chambers and Partners Latin America 2026",
-    excerpt: "The firm continues to be recognized as a leading practice in Mexico.",
-    excerptEs: "La firma contin\u00faa siendo reconocida como una pr\u00e1ctica l\u00edder en M\u00e9xico.",
-    slug: "chambers-ranking-2026",
-    imageUrl: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
-    date: new Date("2025-11-10"),
-  },
-  {
-    id: "3",
-    title: "Leading practice groups recognized in international rankings",
-    titleEs: "Grupos de pr\u00e1ctica l\u00edderes reconocidos en rankings internacionales",
-    excerpt: "Multiple practice areas receive top-tier recognition.",
-    excerptEs: "M\u00faltiples \u00e1reas de pr\u00e1ctica reciben reconocimiento de primer nivel.",
-    slug: "international-rankings",
-    imageUrl: "https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
-    date: new Date("2025-11-05"),
-  },
-];
-
-const defaultImages: OfficeImage[] = [
-  { id: "1", imageUrl: "https://images.unsplash.com/photo-1497366216548-37526070297c?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80", alt: "Modern office collaborative workspace", altEs: "Espacio de trabajo colaborativo moderno", order: 1 },
-  { id: "2", imageUrl: "https://images.unsplash.com/photo-1497366811353-6870744d04b2?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80", alt: "Office meeting room with city views", altEs: "Sala de juntas con vistas a la ciudad", order: 2 },
-  { id: "3", imageUrl: "https://images.unsplash.com/photo-1524758631624-e2822e304c36?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80", alt: "Modern reception area", altEs: "\u00c1rea de recepci\u00f3n moderna", order: 3 },
-];
-
-export class MemStorage implements IStorage {
-  private users: Map<string, User>;
-  private news: Map<string, News>;
-  private officeImages: Map<string, OfficeImage>;
-
-  constructor() {
-    this.users = new Map();
-    this.news = new Map();
-    this.officeImages = new Map();
-
-    defaultNews.forEach((n) => this.news.set(n.id, n));
-    defaultImages.forEach((img) => this.officeImages.set(img.id, img));
-  }
-
+export class DatabaseStorage implements IStorage {
   async getUser(id: string): Promise<User | undefined> {
-    return this.users.get(id);
+    const [user] = await db.select().from(users).where(eq(users.id, id));
+    return user;
   }
 
   async getUserByUsername(username: string): Promise<User | undefined> {
-    return Array.from(this.users.values()).find(
-      (user) => user.username === username
-    );
+    const [user] = await db.select().from(users).where(eq(users.username, username));
+    return user;
   }
 
   async createUser(insertUser: InsertUser): Promise<User> {
-    const id = randomUUID();
-    const user: User = { ...insertUser, id };
-    this.users.set(id, user);
+    const [user] = await db.insert(users).values(insertUser).returning();
     return user;
   }
 
   async getNews(): Promise<News[]> {
-    return Array.from(this.news.values()).sort(
-      (a, b) => new Date(b.date || 0).getTime() - new Date(a.date || 0).getTime()
-    );
+    return db.select().from(news).orderBy(desc(news.date));
   }
 
   async getNewsById(id: string): Promise<News | undefined> {
-    return this.news.get(id);
+    const [item] = await db.select().from(news).where(eq(news.id, id));
+    return item;
+  }
+
+  async getNewsBySlug(slug: string): Promise<News | undefined> {
+    const [item] = await db.select().from(news).where(eq(news.slug, slug));
+    return item;
   }
 
   async createNews(insertNews: InsertNews): Promise<News> {
-    const id = randomUUID();
-    const newsItem: News = { ...insertNews, id, date: new Date() };
-    this.news.set(id, newsItem);
-    return newsItem;
+    const [item] = await db.insert(news).values(insertNews).returning();
+    return item;
   }
 
   async getOfficeImages(): Promise<OfficeImage[]> {
-    return Array.from(this.officeImages.values()).sort(
-      (a, b) => (a.order || 0) - (b.order || 0)
-    );
+    return db.select().from(officeImages).orderBy(asc(officeImages.order));
   }
 
   getSiteContent(): SiteContent {
@@ -136,6 +118,67 @@ export class MemStorage implements IStorage {
   getStats(): Stat[] {
     return stats;
   }
+
+  async getPracticeGroups(): Promise<PracticeGroup[]> {
+    return db.select().from(practiceGroups).orderBy(asc(practiceGroups.order));
+  }
+
+  async getPracticeGroupById(id: string): Promise<PracticeGroup | undefined> {
+    const [group] = await db.select().from(practiceGroups).where(eq(practiceGroups.id, id));
+    return group;
+  }
+
+  async getPracticeGroupBySlug(slug: string): Promise<PracticeGroup | undefined> {
+    const [group] = await db.select().from(practiceGroups).where(eq(practiceGroups.slug, slug));
+    return group;
+  }
+
+  async createPracticeGroup(group: InsertPracticeGroup): Promise<PracticeGroup> {
+    const [item] = await db.insert(practiceGroups).values(group).returning();
+    return item;
+  }
+
+  async getIndustryGroups(): Promise<IndustryGroup[]> {
+    return db.select().from(industryGroups).orderBy(asc(industryGroups.order));
+  }
+
+  async getIndustryGroupById(id: string): Promise<IndustryGroup | undefined> {
+    const [group] = await db.select().from(industryGroups).where(eq(industryGroups.id, id));
+    return group;
+  }
+
+  async getIndustryGroupBySlug(slug: string): Promise<IndustryGroup | undefined> {
+    const [group] = await db.select().from(industryGroups).where(eq(industryGroups.slug, slug));
+    return group;
+  }
+
+  async createIndustryGroup(group: InsertIndustryGroup): Promise<IndustryGroup> {
+    const [item] = await db.insert(industryGroups).values(group).returning();
+    return item;
+  }
+
+  async getTeamMembers(): Promise<TeamMember[]> {
+    return db.select().from(teamMembers).orderBy(asc(teamMembers.order));
+  }
+
+  async getTeamMemberById(id: string): Promise<TeamMember | undefined> {
+    const [member] = await db.select().from(teamMembers).where(eq(teamMembers.id, id));
+    return member;
+  }
+
+  async getTeamMemberBySlug(slug: string): Promise<TeamMember | undefined> {
+    const [member] = await db.select().from(teamMembers).where(eq(teamMembers.slug, slug));
+    return member;
+  }
+
+  async getPartners(): Promise<TeamMember[]> {
+    return db.select().from(teamMembers).where(eq(teamMembers.isPartner, true)).orderBy(asc(teamMembers.order));
+  }
+
+  async createTeamMember(member: InsertTeamMember): Promise<TeamMember> {
+    const [item] = await db.insert(teamMembers).values(member).returning();
+    return item;
+  }
 }
 
-export const storage = new MemStorage();
+export const storage = new DatabaseStorage();
