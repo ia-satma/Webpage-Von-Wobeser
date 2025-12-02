@@ -128,9 +128,47 @@ export default function NewsDetail() {
     : (newsArticle?.content || newsArticle?.excerpt);
   const heroImage = newsArticle?.imageUrl || "https://images.unsplash.com/photo-1497366216548-37526070297c?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80";
 
+  const generateArticleJsonLd = () => {
+    if (!newsArticle) return null;
+    
+    return {
+      "@context": "https://schema.org",
+      "@type": "Article",
+      "headline": language === "es" ? newsArticle.titleEs : newsArticle.title,
+      "description": language === "es" ? newsArticle.excerptEs : newsArticle.excerpt,
+      "image": newsArticle.imageUrl,
+      "datePublished": newsArticle.date,
+      "dateModified": newsArticle.date,
+      "author": {
+        "@type": "Organization",
+        "name": "Von Wobeser y Sierra, S.C.",
+        "url": "https://www.vonwobeser.com"
+      },
+      "publisher": {
+        "@type": "Organization",
+        "name": "Von Wobeser y Sierra, S.C.",
+        "logo": {
+          "@type": "ImageObject",
+          "url": "https://vonwobeser.com/images/vonwobeser_2025_.png"
+        }
+      },
+      "mainEntityOfPage": {
+        "@type": "WebPage",
+        "@id": `https://www.vonwobeser.com/news/${newsArticle.slug}`
+      }
+    };
+  };
+
   return (
     <div className="min-h-screen bg-white dark:bg-gray-900" data-testid="page-news-detail">
       <Header language={language} onLanguageChange={setLanguage} />
+      
+      {newsArticle && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(generateArticleJsonLd()) }}
+        />
+      )}
       
       <section className="pt-24 relative" data-testid="section-news-hero">
         <div className="relative w-full h-[50vh] min-h-[400px] overflow-hidden">

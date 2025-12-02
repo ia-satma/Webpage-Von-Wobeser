@@ -12,18 +12,24 @@ import IndustryGroupDetail from "@/pages/IndustryGroupDetail";
 import Team from "@/pages/Team";
 import TeamMemberDetail from "@/pages/TeamMemberDetail";
 import NewsDetail from "@/pages/NewsDetail";
+import News from "@/pages/News";
+import Contact from "@/pages/Contact";
+import About from "@/pages/About";
 
 function Router() {
   return (
     <Switch>
       <Route path="/" component={Home} />
+      <Route path="/about" component={About} />
       <Route path="/practice-groups" component={PracticeGroups} />
       <Route path="/practice-groups/:slug" component={PracticeGroupDetail} />
       <Route path="/industry-groups" component={IndustryGroups} />
       <Route path="/industry-groups/:slug" component={IndustryGroupDetail} />
       <Route path="/team" component={Team} />
       <Route path="/team/:slug" component={TeamMemberDetail} />
+      <Route path="/news" component={News} />
       <Route path="/news/:slug" component={NewsDetail} />
+      <Route path="/contact" component={Contact} />
       <Route component={NotFound} />
     </Switch>
   );

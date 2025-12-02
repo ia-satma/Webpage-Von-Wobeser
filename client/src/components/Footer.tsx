@@ -1,4 +1,5 @@
-import { MapPin, Phone, Mail, Linkedin, ExternalLink, AlertCircle } from "lucide-react";
+import { Link } from "wouter";
+import { MapPin, Phone, Mail, Linkedin, ExternalLink, AlertCircle, Building2 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { SiteContent } from "@shared/schema";
@@ -14,58 +15,72 @@ export default function Footer({ language }: FooterProps) {
 
   const content = {
     en: {
-      firm: "About the Firm",
+      firm: "The Firm",
       firmLinks: [
-        { label: "The Firm", href: "#", id: "firm" },
-        { label: "Our People", href: "#", id: "people" },
-        { label: "Pro Bono", href: "#", id: "probono" },
-        { label: "Careers", href: "#", id: "careers" },
+        { label: "About Us", href: "/about", id: "about" },
+        { label: "Our Team", href: "/team", id: "people" },
+        { label: "Careers", href: "mailto:carreras@vonwobeser.com", id: "careers", external: true },
+        { label: "Contact", href: "/contact", id: "contact" },
       ],
       capabilities: "Capabilities",
       capabilitiesLinks: [
-        { label: "Practice Groups", href: "#", id: "practice" },
-        { label: "Industry Groups", href: "#", id: "industry" },
+        { label: "Practice Areas", href: "/practice-groups", id: "practice" },
+        { label: "Industry Groups", href: "/industry-groups", id: "industry" },
+      ],
+      resources: "Resources",
+      resourcesLinks: [
+        { label: "News & Insights", href: "/news", id: "news" },
+        { label: "Rankings", href: "/about", id: "rankings" },
       ],
       contact: "Contact",
       building: "Torre SOMA Chapultepec Floor 18",
-      street: "Campos El\u00edseos 204, Polanco",
+      street: "Campos Elíseos 204, Polanco",
       city: "C.P. 11560, Mexico City",
       phone: siteContent?.phone || "+52 55 5258 1000",
       email: siteContent?.email || "info@vonwobeser.com",
-      legal: "\u00a9 2025 Von Wobeser y Sierra, S.C. All rights reserved.",
+      legal: "© 2025 Von Wobeser y Sierra, S.C. All rights reserved.",
       privacy: "Privacy Policy",
       terms: "Terms of Use",
+      cookies: "Cookie Preferences",
       description: "Leading law firm in Mexico with over 70 years of experience providing excellent legal services.",
-      practiceLabel: "Practice Groups",
+      practiceLabel: "Practice Areas",
       industryLabel: "Industry Groups",
       errorMessage: "Contact information unavailable",
+      followUs: "Follow Us",
     },
     es: {
-      firm: "Acerca de la Firma",
+      firm: "La Firma",
       firmLinks: [
-        { label: "La Firma", href: "#", id: "firm" },
-        { label: "Nuestra Gente", href: "#", id: "people" },
-        { label: "Pro Bono", href: "#", id: "probono" },
-        { label: "Carreras", href: "#", id: "careers" },
+        { label: "Acerca de Nosotros", href: "/about", id: "about" },
+        { label: "Nuestro Equipo", href: "/team", id: "people" },
+        { label: "Carreras", href: "mailto:carreras@vonwobeser.com", id: "careers", external: true },
+        { label: "Contacto", href: "/contact", id: "contact" },
       ],
       capabilities: "Capacidades",
       capabilitiesLinks: [
-        { label: "Grupos de Pr\u00e1ctica", href: "#", id: "practice" },
-        { label: "Grupos Industriales", href: "#", id: "industry" },
+        { label: "Áreas de Práctica", href: "/practice-groups", id: "practice" },
+        { label: "Grupos Industriales", href: "/industry-groups", id: "industry" },
+      ],
+      resources: "Recursos",
+      resourcesLinks: [
+        { label: "Noticias e Insights", href: "/news", id: "news" },
+        { label: "Rankings", href: "/about", id: "rankings" },
       ],
       contact: "Contacto",
       building: "Torre SOMA Chapultepec Piso 18",
-      street: "Campos El\u00edseos 204, Polanco",
-      city: "C.P. 11560, Ciudad de M\u00e9xico",
+      street: "Campos Elíseos 204, Polanco",
+      city: "C.P. 11560, Ciudad de México",
       phone: siteContent?.phone || "+52 55 5258 1000",
       email: siteContent?.email || "info@vonwobeser.com",
-      legal: "\u00a9 2025 Von Wobeser y Sierra, S.C. Todos los derechos reservados.",
-      privacy: "Pol\u00edtica de Privacidad",
-      terms: "T\u00e9rminos de Uso",
-      description: "Firma de abogados l\u00edder en M\u00e9xico con m\u00e1s de 70 a\u00f1os de experiencia brindando servicios legales de excelencia.",
-      practiceLabel: "Grupos de Pr\u00e1ctica",
+      legal: "© 2025 Von Wobeser y Sierra, S.C. Todos los derechos reservados.",
+      privacy: "Política de Privacidad",
+      terms: "Términos de Uso",
+      cookies: "Preferencias de Cookies",
+      description: "Firma de abogados líder en México con más de 70 años de experiencia brindando servicios legales de excelencia.",
+      practiceLabel: "Áreas de Práctica",
       industryLabel: "Grupos Industriales",
-      errorMessage: "Informaci\u00f3n de contacto no disponible",
+      errorMessage: "Información de contacto no disponible",
+      followUs: "Síguenos",
     },
   };
 
@@ -107,7 +122,7 @@ export default function Footer({ language }: FooterProps) {
     return (
       <div className="space-y-4">
         <div className="flex items-start gap-3" data-testid="text-footer-address">
-          <MapPin className="w-4 h-4 text-primary flex-shrink-0 mt-1" />
+          <Building2 className="w-4 h-4 text-primary flex-shrink-0 mt-1" />
           <div className="text-sm text-gray-400">
             <p>{t.building}</p>
             <p>{t.street}</p>
@@ -134,25 +149,28 @@ export default function Footer({ language }: FooterProps) {
             {t.email}
           </a>
         </div>
-        <div className="flex items-center gap-4 pt-4">
-          <a
-            href="https://www.linkedin.com/company/von-wobeser-y-sierra/"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-gray-400 hover:text-white transition-colors"
-            data-testid="link-linkedin"
-          >
-            <Linkedin className="w-5 h-5" />
-          </a>
-          <a
-            href="https://www.vonwobeser.com"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-gray-400 hover:text-white transition-colors"
-            data-testid="link-website"
-          >
-            <ExternalLink className="w-5 h-5" />
-          </a>
+        <div className="pt-4">
+          <p className="text-xs text-gray-500 uppercase tracking-wider mb-3">{t.followUs}</p>
+          <div className="flex items-center gap-4">
+            <a
+              href="https://www.linkedin.com/company/von-wobeser-y-sierra/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-gray-400 hover:text-white transition-colors"
+              data-testid="link-linkedin"
+            >
+              <Linkedin className="w-5 h-5" />
+            </a>
+            <a
+              href="https://www.vonwobeser.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-gray-400 hover:text-white transition-colors"
+              data-testid="link-website"
+            >
+              <ExternalLink className="w-5 h-5" />
+            </a>
+          </div>
         </div>
       </div>
     );
@@ -165,8 +183,8 @@ export default function Footer({ language }: FooterProps) {
       data-testid="footer"
     >
       <div className="max-w-7xl mx-auto px-6 lg:px-12">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10 lg:gap-12 mb-16">
-          <div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-10 lg:gap-8 mb-16">
+          <div className="lg:col-span-1">
             <img
               src="https://vonwobeser.com/images/vonwobeser_2025_.png"
               alt="Von Wobeser y Sierra"
@@ -185,13 +203,23 @@ export default function Footer({ language }: FooterProps) {
             <ul className="space-y-3" data-testid="list-firm-links">
               {t.firmLinks.map((link) => (
                 <li key={link.id}>
-                  <a
-                    href={link.href}
-                    className="text-gray-400 hover:text-white transition-colors text-sm"
-                    data-testid={`link-footer-${link.id}`}
-                  >
-                    {link.label}
-                  </a>
+                  {link.external ? (
+                    <a
+                      href={link.href}
+                      className="text-gray-400 hover:text-white transition-colors text-sm"
+                      data-testid={`link-footer-${link.id}`}
+                    >
+                      {link.label}
+                    </a>
+                  ) : (
+                    <Link
+                      href={link.href}
+                      className="text-gray-400 hover:text-white transition-colors text-sm"
+                      data-testid={`link-footer-${link.id}`}
+                    >
+                      {link.label}
+                    </Link>
+                  )}
                 </li>
               ))}
             </ul>
@@ -204,13 +232,13 @@ export default function Footer({ language }: FooterProps) {
             <ul className="space-y-3" data-testid="list-capabilities-links">
               {t.capabilitiesLinks.map((link) => (
                 <li key={link.id}>
-                  <a
+                  <Link
                     href={link.href}
                     className="text-gray-400 hover:text-white transition-colors text-sm"
                     data-testid={`link-footer-${link.id}`}
                   >
                     {link.label}
-                  </a>
+                  </Link>
                 </li>
               ))}
             </ul>
@@ -228,6 +256,25 @@ export default function Footer({ language }: FooterProps) {
                 </span>
               </div>
             </div>
+          </div>
+
+          <div>
+            <h3 className="text-sm font-semibold uppercase tracking-wider text-white mb-6" data-testid="text-footer-resources-title">
+              {t.resources}
+            </h3>
+            <ul className="space-y-3" data-testid="list-resources-links">
+              {t.resourcesLinks.map((link) => (
+                <li key={link.id}>
+                  <Link
+                    href={link.href}
+                    className="text-gray-400 hover:text-white transition-colors text-sm"
+                    data-testid={`link-footer-${link.id}`}
+                  >
+                    {link.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
           </div>
 
           <div>
@@ -258,6 +305,13 @@ export default function Footer({ language }: FooterProps) {
               >
                 {t.terms}
               </a>
+              <button
+                onClick={() => localStorage.removeItem('vwb_cookie_consent')}
+                className="text-xs text-gray-500 hover:text-white transition-colors"
+                data-testid="button-cookies"
+              >
+                {t.cookies}
+              </button>
             </div>
           </div>
         </div>
