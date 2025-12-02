@@ -10,15 +10,15 @@ interface ImageCollageProps {
 }
 
 const fallbackImages: OfficeImage[] = [
-  { id: "1", imageUrl: "https://images.unsplash.com/photo-1497366216548-37526070297c?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80", alt: "Modern office collaborative workspace", altEs: "Espacio de trabajo colaborativo moderno", order: 1 },
-  { id: "2", imageUrl: "https://images.unsplash.com/photo-1497366811353-6870744d04b2?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80", alt: "Office meeting room with city views", altEs: "Sala de juntas con vistas a la ciudad", order: 2 },
-  { id: "3", imageUrl: "https://images.unsplash.com/photo-1524758631624-e2822e304c36?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80", alt: "Modern reception area", altEs: "\u00c1rea de recepci\u00f3n moderna", order: 3 },
-  { id: "4", imageUrl: "https://images.unsplash.com/photo-1497366754035-f200968a6e72?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80", alt: "Open plan office space", altEs: "Espacio de oficina abierto", order: 4 },
-  { id: "5", imageUrl: "https://images.unsplash.com/photo-1604328698692-f76ea9498e76?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80", alt: "Architectural details", altEs: "Detalles arquitect\u00f3nicos", order: 5 },
-  { id: "6", imageUrl: "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80", alt: "Panoramic terrace view", altEs: "Vista de terraza panor\u00e1mica", order: 6 },
-  { id: "7", imageUrl: "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80", alt: "Contemporary lounge area", altEs: "\u00c1rea de descanso contempor\u00e1nea", order: 7 },
-  { id: "8", imageUrl: "https://images.unsplash.com/photo-1497215842964-222b430dc094?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80", alt: "Executive conference room", altEs: "Sala de conferencias ejecutiva", order: 8 },
-  { id: "9", imageUrl: "https://images.unsplash.com/photo-1600566752355-35792bedcfea?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80", alt: "Modern workspace design", altEs: "Dise\u00f1o moderno del espacio de trabajo", order: 9 },
+  { id: "1", imageUrl: "https://vonwobeser.com/img/Collage/collage_01.jpg", alt: "Von Wobeser new office space", altEs: "Nuevo espacio de oficinas Von Wobeser", order: 1 },
+  { id: "2", imageUrl: "https://vonwobeser.com/img/Collage/collage_02.jpg", alt: "Modern collaborative workspace", altEs: "Espacio de trabajo colaborativo moderno", order: 2 },
+  { id: "3", imageUrl: "https://vonwobeser.com/img/Collage/collage_05.jpg", alt: "Office interior design", altEs: "Diseño interior de oficinas", order: 3 },
+  { id: "4", imageUrl: "https://vonwobeser.com/img/Collage/collage_04.jpg", alt: "Meeting room with city views", altEs: "Sala de juntas con vistas a la ciudad", order: 4 },
+  { id: "5", imageUrl: "https://vonwobeser.com/img/Collage/collage_07.jpg", alt: "Executive work areas", altEs: "Áreas de trabajo ejecutivas", order: 5 },
+  { id: "6", imageUrl: "https://vonwobeser.com/img/Collage/05.jpg", alt: "Panoramic terrace view", altEs: "Vista de terraza panorámica", order: 6 },
+  { id: "7", imageUrl: "https://vonwobeser.com/img/Collage/collage_09.jpg", alt: "Contemporary lounge area", altEs: "Área de descanso contemporánea", order: 7 },
+  { id: "8", imageUrl: "https://vonwobeser.com/img/Collage/collage_08.jpg", alt: "Conference facilities", altEs: "Instalaciones de conferencias", order: 8 },
+  { id: "9", imageUrl: "https://vonwobeser.com/img/Collage/collage_03.jpg", alt: "Modern workspace design", altEs: "Diseño moderno del espacio de trabajo", order: 9 },
 ];
 
 const getSpanClass = (index: number): string => {
@@ -35,7 +35,7 @@ export default function ImageCollage({ language }: ImageCollageProps) {
 
   const displayImages = images && images.length > 0 ? images : fallbackImages;
 
-  const errorMessage = language === "es" ? "Error al cargar galer\u00eda" : "Failed to load gallery";
+  const errorMessage = language === "es" ? "Error al cargar galería" : "Failed to load gallery";
 
   const containerVariants = {
     hidden: { opacity: 0 },
