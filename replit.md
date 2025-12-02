@@ -52,6 +52,13 @@ Preferred communication style: Simple, everyday language.
 - Font optimization with preload and font-display: swap
 - Improved accessibility with better text contrast ratios
 
+**Comprehensive Team Member Profiles (December 2025)**
+- Extended team member schema with JSONB fields for: education[], barAdmissions[], languages[], affiliations[], rankings[], publications[], representativeMatters[], experience[]
+- TeamMemberDetail.tsx updated with full profile sections displaying all new fields
+- Bilingual support for all profile sections (English/Spanish)
+- Sample comprehensive profiles for Luis Burgueño (Partner) and Claus von Wobeser (Of Counsel/Founding Partner)
+- vCard download functionality with bilingual support
+
 ### Backend Architecture
 
 **Server Framework**
