@@ -33,7 +33,7 @@ export default function ImageCollage({ language }: ImageCollageProps) {
     queryKey: ["/api/office-images"],
   });
 
-  const displayImages = images && images.length > 0 ? images : fallbackImages;
+  const displayImages = images && images.length >= 9 ? images : fallbackImages;
 
   const errorMessage = language === "es" ? "Error al cargar galería" : "Failed to load gallery";
 
