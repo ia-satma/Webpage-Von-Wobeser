@@ -6,8 +6,10 @@ import VisionSection from "@/components/VisionSection";
 import MapSection from "@/components/MapSection";
 import StatsSection from "@/components/StatsSection";
 import ImageCollage from "@/components/ImageCollage";
+import WorldMapSection from "@/components/WorldMapSection";
 import QuoteSection from "@/components/QuoteSection";
 import Footer from "@/components/Footer";
+import NewOfficesPopup from "@/components/NewOfficesPopup";
 
 export default function Home() {
   const [language, setLanguage] = useState<"es" | "en">("es");
@@ -21,10 +23,12 @@ export default function Home() {
         <VisionSection language={language} />
         <StatsSection language={language} />
         <ImageCollage language={language} />
+        <WorldMapSection language={language} />
         <QuoteSection language={language} />
         <MapSection language={language} />
       </main>
       <Footer language={language} />
+      <NewOfficesPopup language={language} />
     </div>
   );
 }

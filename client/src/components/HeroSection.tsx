@@ -2,10 +2,81 @@ import { useEffect, useState } from "react";
 import { ChevronDown } from "lucide-react";
 import { motion } from "framer-motion";
 import { useQuery } from "@tanstack/react-query";
-import type { SiteContent } from "@shared/schema";
+import { Link } from "wouter";
+import type { SiteContent, News } from "@shared/schema";
 
 interface HeroSectionProps {
   language: "es" | "en";
+}
+
+function NewsPanel({ language, news }: { language: "es" | "en"; news: News[] }) {
+  const displayNews = news.slice(0, 2);
+  
+  const labels = {
+    en: {
+      news: "News",
+      seeMore: "SEE MORE",
+    },
+    es: {
+      news: "Noticias",
+      seeMore: "VER MÁS",
+    },
+  };
+
+  const t = labels[language];
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, x: -30 }}
+      animate={{ opacity: 1, x: 0 }}
+      transition={{ duration: 0.7, delay: 0.8 }}
+      className="absolute left-6 md:left-12 bottom-24 md:bottom-20 z-20 hidden md:block"
+      data-testid="panel-news-overlay"
+    >
+      <div className="bg-white/95 backdrop-blur-sm p-6 w-80 shadow-lg">
+        <div className="mb-4">
+          <h3 
+            className="text-sm font-medium tracking-[0.2em] uppercase text-[#5E5E5E]"
+            data-testid="text-news-header"
+          >
+            {t.news}
+          </h3>
+          <div className="w-full h-px bg-[#CCCCCC] mt-2" />
+        </div>
+
+        <div className="space-y-4">
+          {displayNews.map((item, index) => (
+            <motion.div
+              key={item.id}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 1 + index * 0.15 }}
+              className="group"
+              data-testid={`card-news-${item.id}`}
+            >
+              <h4 
+                className="text-sm font-medium text-[#1F2937] leading-snug mb-2 line-clamp-2"
+                data-testid={`text-news-title-${item.id}`}
+              >
+                {language === "es" ? item.titleEs : item.title}
+              </h4>
+              <Link 
+                href={`/news/${item.slug}`}
+                className="inline-flex items-center text-xs font-medium tracking-wider text-[#AC162C] hover:text-[#841A1A] transition-colors"
+                data-testid={`link-news-seemore-${item.id}`}
+              >
+                {t.seeMore}
+                <ChevronDown className="w-3 h-3 ml-1 -rotate-90" />
+              </Link>
+              {index < displayNews.length - 1 && (
+                <div className="w-full h-px bg-[#E5E7EB] mt-4" />
+              )}
+            </motion.div>
+          ))}
+        </div>
+      </div>
+    </motion.div>
+  );
 }
 
 export default function HeroSection({ language }: HeroSectionProps) {
@@ -13,6 +84,10 @@ export default function HeroSection({ language }: HeroSectionProps) {
 
   const { data: siteContent } = useQuery<SiteContent>({
     queryKey: ["/api/site-content"],
+  });
+
+  const { data: newsData } = useQuery<News[]>({
+    queryKey: ["/api/news"],
   });
 
   useEffect(() => {
@@ -50,15 +125,25 @@ export default function HeroSection({ language }: HeroSectionProps) {
       data-testid="section-hero"
     >
       <div className="absolute inset-0 z-0">
-        <div
-          className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-          style={{
-            backgroundImage: `url('https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80')`,
-          }}
-          data-testid="img-hero-background"
-        />
+        <video
+          autoPlay
+          muted
+          loop
+          playsInline
+          className="absolute inset-0 w-full h-full object-cover"
+          data-testid="video-hero-background"
+        >
+          <source
+            src="https://assets.mixkit.co/videos/preview/mixkit-aerial-shot-of-a-city-at-sunset-17896-large.mp4"
+            type="video/mp4"
+          />
+        </video>
         <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/40 to-black/70" />
       </div>
+
+      {newsData && newsData.length > 0 && (
+        <NewsPanel language={language} news={newsData} />
+      )}
 
       <div className="relative z-10 text-center px-6 max-w-5xl mx-auto">
         <motion.p
