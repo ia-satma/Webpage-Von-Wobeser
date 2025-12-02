@@ -130,9 +130,14 @@ export default function HeroSection({ language }: HeroSectionProps) {
           muted
           loop
           playsInline
+          poster="https://www.vonwobeser.com/images/vonwobeser_2025.png"
           className="absolute inset-0 w-full h-full object-cover"
           data-testid="video-hero-background"
         >
+          <source
+            src="https://www.vonwobeser.com/video/home-video.mp4"
+            type="video/mp4"
+          />
           <source
             src="https://assets.mixkit.co/videos/preview/mixkit-aerial-shot-of-a-city-at-sunset-17896-large.mp4"
             type="video/mp4"
