@@ -1,0 +1,63 @@
+// scripts/scrape-full.js
+const axios = require('axios');
+const cheerio = require('cheerio');
+const fs = require('fs');
+const path = require('path');
+
+const BASE_URL = 'https://www.vonwobeser.com';
+const DB_FILE = path.join(__dirname, '../src/data/db.json');
+
+// Función para descargar imágenes (evita enlaces rotos)
+async function downloadImage(url, folder) {
+  if (!url) return '/assets/placeholder.jpg';
+  try {
+    const response = await axios({ url, responseType: 'stream' });
+    const filename = path.basename(url);
+    const localPath = path.join(__dirname, `../public/assets/${folder}`, filename);
+    // Asegurar que el directorio existe
+    fs.mkdirSync(path.dirname(localPath), { recursive: true });
+    response.data.pipe(fs.createWriteStream(localPath));
+    return `/assets/${folder}/${filename}`;
+  } catch (e) {
+    console.error(`Error descargando imagen: ${url}`);
+    return '/assets/placeholder-person.jpg'; 
+  }
+}
+
+async function scrapeSite() {
+  console.log('🚀 Iniciando extracción masiva de Von Wobeser...');
+  
+  const db = { lawyers: [], practices: [], news: [] };
+  
+  // 1. Extraer Abogados (Ejemplo simplificado de la lógica)
+  try {
+    const { data } = await axios.get(`${BASE_URL}/equipo`);
+    const $ = cheerio.load(data);
+    
+    // Iterar sobre cada tarjeta de abogado encontrada en el HTML
+    // NOTA: Los selectores '.lawyer-card' deben ajustarse al HTML real del sitio fuente
+    $('.lawyer-item').each(async (i, el) => {
+      const name = $(el).find('h3').text().trim();
+      const role = $(el).find('.position').text().trim();
+      const imgUrl = $(el).find('img').attr('src');
+      const detailUrl = $(el).find('a').attr('href');
+      
+      const localImg = await downloadImage(imgUrl ? `${BASE_URL}${imgUrl}` : null, 'lawyers');
+      
+      db.lawyers.push({
+        id: i,
+        name,
+        role,
+        image: localImg,
+        link: detailUrl
+      });
+    });
+    console.log(`✅ ${db.lawyers.length} abogados extraídos.`);
+  } catch (e) { console.error("Error scrapeando abogados:", e.message); }
+
+  // 2. Guardar en base de datos local
+  fs.writeFileSync(DB_FILE, JSON.stringify(db, null, 2));
+  console.log('💾 Base de datos generada exitosamente en src/data/db.json');
+}
+
+scrapeSite();
