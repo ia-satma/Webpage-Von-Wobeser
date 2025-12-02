@@ -131,7 +131,7 @@ export default function TeamMemberDetail() {
           >
             <Link href="/team">
               <span 
-                className="inline-flex items-center gap-2 text-white/80 hover:text-white transition-colors mb-6 cursor-pointer text-sm"
+                className="inline-flex items-center gap-2 text-white/90 hover:text-white transition-colors mb-6 cursor-pointer text-sm"
                 data-testid="link-back-to-team"
               >
                 <ArrowLeft className="w-4 h-4" />
@@ -184,7 +184,7 @@ export default function TeamMemberDetail() {
                   {displayTitle}
                 </p>
                 <p 
-                  className="text-lg text-white/70"
+                  className="text-lg text-white/85"
                   data-testid="text-team-member-role"
                 >
                   {displayRole}

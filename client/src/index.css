@@ -31,7 +31,7 @@
   --secondary: 0 0% 91%;
   --secondary-foreground: 0 0% 20%;
   --muted: 0 0% 93%;
-  --muted-foreground: 0 0% 40%;
+  --muted-foreground: 0 0% 35%;
   --accent: 0 2% 94%;
   --accent-foreground: 0 0% 20%;
   --destructive: 0 72% 45%;
@@ -43,9 +43,9 @@
   --chart-3: 0 0% 30%;
   --chart-4: 0 0% 45%;
   --chart-5: 351 30% 55%;
-  --font-sans: 'Segoe UI', 'Optima', sans-serif;
-  --font-serif: 'Georgia', 'Times New Roman', serif;
-  --font-heading: 'Playfair Display', 'Optima', serif;
+  --font-sans: 'Inter', 'Segoe UI', 'Optima', sans-serif;
+  --font-serif: 'Cormorant Garamond', 'Georgia', 'Times New Roman', serif;
+  --font-heading: 'Cormorant Garamond', 'Playfair Display', 'Optima', serif;
   --font-mono: Menlo, monospace;
   --radius: .5rem;
   --shadow-2xs: 0px 2px 0px 0px hsl(0 0% 0% / 0.00);

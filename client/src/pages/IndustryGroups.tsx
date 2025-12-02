@@ -72,7 +72,7 @@ export default function IndustryGroups() {
               {t.title}
             </h1>
             <p 
-              className="text-lg text-white/80 max-w-2xl mx-auto"
+              className="text-lg text-white/90 max-w-2xl mx-auto"
               data-testid="text-industry-groups-subtitle"
             >
               {t.subtitle}

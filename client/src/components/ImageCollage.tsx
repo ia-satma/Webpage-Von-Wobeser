@@ -125,7 +125,7 @@ export default function ImageCollage({ language }: ImageCollageProps) {
           data-testid="modal-lightbox"
         >
           <button
-            className="absolute top-6 right-6 text-white/80 hover:text-white transition-colors"
+            className="absolute top-6 right-6 text-white/90 hover:text-white transition-colors"
             onClick={() => setSelectedImage(null)}
             data-testid="button-close-lightbox"
           >

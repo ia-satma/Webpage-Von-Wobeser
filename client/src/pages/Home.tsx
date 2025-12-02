@@ -10,12 +10,14 @@ import WorldMapSection from "@/components/WorldMapSection";
 import QuoteSection from "@/components/QuoteSection";
 import Footer from "@/components/Footer";
 import NewOfficesPopup from "@/components/NewOfficesPopup";
+import JsonLdSchema from "@/components/JsonLdSchema";
 
 export default function Home() {
   const [language, setLanguage] = useState<"es" | "en">("es");
 
   return (
     <div className="min-h-screen bg-white" data-testid="page-home">
+      <JsonLdSchema language={language} />
       <Header language={language} onLanguageChange={setLanguage} />
       <main>
         <HeroSection language={language} />

@@ -151,14 +151,14 @@ export default function NewsDetail() {
               >
                 <button
                   onClick={scrollToNewsSection}
-                  className="inline-flex items-center gap-2 text-white/80 hover:text-white transition-colors mb-6 cursor-pointer text-sm"
+                  className="inline-flex items-center gap-2 text-white/90 hover:text-white transition-colors mb-6 cursor-pointer text-sm"
                   data-testid="link-back-to-news"
                 >
                   <ArrowLeft className="w-4 h-4" />
                   {t.backToNews}
                 </button>
                 
-                <div className="flex items-center gap-2 text-white/70 text-sm mb-4">
+                <div className="flex items-center gap-2 text-white/85 text-sm mb-4">
                   <Calendar className="w-4 h-4" />
                   <span data-testid="text-news-date">{formatDate(newsArticle?.date || null)}</span>
                 </div>

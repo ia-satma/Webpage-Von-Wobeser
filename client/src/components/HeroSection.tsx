@@ -150,7 +150,7 @@ export default function HeroSection({ language }: HeroSectionProps) {
           initial={{ opacity: 0, y: 20 }}
           animate={isVisible ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.6, delay: 0.2 }}
-          className="text-white/80 text-sm tracking-[0.3em] uppercase mb-8 font-sans"
+          className="text-white/90 text-sm tracking-[0.3em] uppercase mb-8 font-sans"
           data-testid="text-hero-tagline"
         >
           {t.tagline}
@@ -182,7 +182,7 @@ export default function HeroSection({ language }: HeroSectionProps) {
         animate={isVisible ? { opacity: 1 } : {}}
         transition={{ duration: 0.6, delay: 1 }}
         onClick={scrollToNews}
-        className="absolute bottom-12 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-white/70 hover:text-white transition-colors cursor-pointer"
+        className="absolute bottom-12 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-white/85 hover:text-white transition-colors cursor-pointer"
         data-testid="button-scroll-down"
       >
         <span className="text-xs tracking-[0.2em] uppercase" data-testid="text-scroll">{t.scroll}</span>
