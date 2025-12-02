@@ -101,7 +101,7 @@ export default function ImageCollage({ language }: ImageCollageProps) {
                   onClick={() => setSelectedImage(image.imageUrl)}
                   data-testid={`button-gallery-image-${image.id}`}
                 >
-                  <div className={`aspect-square ${getSpanClass(index) ? "h-full" : ""}`}>
+                  <div className={`img-fallback aspect-square ${getSpanClass(index) ? "h-full" : ""}`}>
                     <img
                       src={image.imageUrl}
                       alt={language === "es" ? image.altEs : image.alt}
