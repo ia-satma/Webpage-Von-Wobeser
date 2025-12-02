@@ -125,25 +125,34 @@ export default function HeroSection({ language }: HeroSectionProps) {
       data-testid="section-hero"
     >
       <div className="absolute inset-0 z-0">
+        <div 
+          className="absolute inset-0 bg-gradient-to-br from-[#1a1a2e] via-[#16213e] to-[#0f3460]"
+          data-testid="background-gradient"
+        />
+        <div 
+          className="absolute inset-0 opacity-30"
+          style={{
+            backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23AC162C' fill-opacity='0.15'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
+          }}
+        />
         <video
           autoPlay
           muted
           loop
           playsInline
-          poster="/assets/hero-poster.jpg"
-          className="absolute inset-0 w-full h-full object-cover"
+          className="absolute inset-0 w-full h-full object-cover opacity-60"
           data-testid="video-hero-background"
+          onError={(e) => {
+            (e.target as HTMLVideoElement).style.display = 'none';
+          }}
         >
           <source
-            src="https://cdn.coverr.co/videos/coverr-aerial-view-of-a-cityscape-at-sunset-8180/1080p.mp4"
-            type="video/mp4"
-          />
-          <source
-            src="https://static.videezy.com/system/resources/previews/000/044/564/original/200720_02_Mexico_City_4k_024.mp4"
+            src="https://cdn.pixabay.com/video/2019/06/18/24588-343489495_large.mp4"
             type="video/mp4"
           />
         </video>
-        <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/40 to-black/70" />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/30 to-black/60" />
+        <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-black/80 to-transparent" />
       </div>
 
       {newsData && newsData.length > 0 && (

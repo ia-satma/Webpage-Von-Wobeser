@@ -264,7 +264,31 @@ const teamMembersData = [
     phone: "+52 (55) 5258-1003",
     isPartner: true, 
     order: 1, 
-    imageUrl: "https://www.vonwobeser.com/images/Socios/Fotos_socios/04_Luis_Burgueno.jpg" 
+    imageUrl: "https://www.vonwobeser.com/images/Socios/Fotos_socios/04_Luis_Burgueno.jpg",
+    education: [
+      { school: "Universidad Nacional Autónoma de México (UNAM)", schoolEs: "Universidad Nacional Autónoma de México (UNAM)", degree: "Law Degree (Licenciatura en Derecho)", degreeEs: "Licenciatura en Derecho", year: "1987" },
+      { school: "Universidad Panamericana", schoolEs: "Universidad Panamericana", degree: "Master in Business Law", degreeEs: "Maestría en Derecho Empresarial", year: "1992" }
+    ],
+    barAdmissions: [
+      { jurisdiction: "Mexico", jurisdictionEs: "México", year: "1988" }
+    ],
+    languages: ["Spanish", "English", "German"],
+    affiliations: [
+      { organization: "International Bar Association (IBA)", organizationEs: "Asociación Internacional de Abogados (IBA)", role: "Member", roleEs: "Miembro" },
+      { organization: "Barra Mexicana Colegio de Abogados", organizationEs: "Barra Mexicana Colegio de Abogados", role: "Active Member", roleEs: "Miembro Activo" }
+    ],
+    rankings: [
+      { publication: "Chambers and Partners", ranking: "Band 1", rankingEs: "Banda 1", year: "2024", area: "Corporate/M&A", areaEs: "Corporativo/M&A" },
+      { publication: "Legal 500", ranking: "Leading Individual", rankingEs: "Abogado Líder", year: "2024", area: "Commercial, Corporate and M&A", areaEs: "Comercial, Corporativo y M&A" }
+    ],
+    publications: [
+      { title: "M&A Trends in Mexican Energy Sector", titleEs: "Tendencias de M&A en el Sector Energético Mexicano", journal: "Latin Lawyer", year: "2023" },
+      { title: "Corporate Governance Best Practices", titleEs: "Mejores Prácticas de Gobierno Corporativo", journal: "International Financial Law Review", year: "2022" }
+    ],
+    representativeMatters: [
+      { description: "Advised on $2.5 billion acquisition of major Mexican energy company", descriptionEs: "Asesoró en adquisición de $2.5 mil millones de importante empresa energética mexicana", year: "2023" },
+      { description: "Lead counsel in cross-border joint venture for renewable energy project", descriptionEs: "Abogado principal en joint venture transfronterizo para proyecto de energía renovable", year: "2022" }
+    ]
   },
   { 
     name: "Luis Miguel Jiménez", 
@@ -558,7 +582,42 @@ const teamMembersData = [
     phone: "+52 (55) 5258-1000",
     isPartner: false, 
     order: 23, 
-    imageUrl: "https://www.vonwobeser.com/images/Socios/Fotos_socios/ClausVonWobeser_Hires.jpg" 
+    imageUrl: "https://www.vonwobeser.com/images/Socios/Fotos_socios/ClausVonWobeser_Hires.jpg",
+    education: [
+      { school: "Universidad Nacional Autónoma de México (UNAM)", schoolEs: "Universidad Nacional Autónoma de México (UNAM)", degree: "Law Degree (Licenciatura en Derecho)", degreeEs: "Licenciatura en Derecho", year: "1976" },
+      { school: "University of Freiburg, Germany", schoolEs: "Universidad de Friburgo, Alemania", degree: "Dr. iur. (Doctorate in Law)", degreeEs: "Dr. iur. (Doctorado en Derecho)", year: "1983" },
+      { school: "Harvard Law School", schoolEs: "Escuela de Derecho de Harvard", degree: "LL.M. (Master of Laws)", degreeEs: "LL.M. (Maestría en Derecho)", year: "1979" }
+    ],
+    barAdmissions: [
+      { jurisdiction: "Mexico", jurisdictionEs: "México", year: "1977" },
+      { jurisdiction: "New York", jurisdictionEs: "Nueva York", year: "1981" }
+    ],
+    languages: ["Spanish", "English", "German", "French"],
+    affiliations: [
+      { organization: "ICC International Court of Arbitration", organizationEs: "Corte Internacional de Arbitraje de la ICC", role: "Former Vice-President", roleEs: "Ex-Vicepresidente" },
+      { organization: "International Bar Association (IBA)", organizationEs: "Asociación Internacional de Abogados (IBA)", role: "Former Co-Chair, Arbitration Committee", roleEs: "Ex-Copresidente, Comité de Arbitraje" },
+      { organization: "ICC Mexico Arbitration Commission", organizationEs: "Comisión de Arbitraje de ICC México", role: "Former President", roleEs: "Ex-Presidente" },
+      { organization: "ICDR (International Centre for Dispute Resolution)", organizationEs: "ICDR (Centro Internacional para Resolución de Disputas)", role: "Arbitrator", roleEs: "Árbitro" }
+    ],
+    rankings: [
+      { publication: "Chambers Global", ranking: "Star Individual", rankingEs: "Individuo Estrella", year: "2024", area: "Dispute Resolution: Arbitration", areaEs: "Resolución de Disputas: Arbitraje" },
+      { publication: "Who's Who Legal", ranking: "Global Elite Thought Leader", rankingEs: "Líder de Pensamiento Global de Élite", year: "2024", area: "Arbitration", areaEs: "Arbitraje" },
+      { publication: "Legal 500", ranking: "Hall of Fame", rankingEs: "Salón de la Fama", year: "2024", area: "Dispute Resolution", areaEs: "Resolución de Disputas" }
+    ],
+    publications: [
+      { title: "International Commercial Arbitration in Latin America", titleEs: "Arbitraje Comercial Internacional en América Latina", journal: "Oxford University Press", year: "2020" },
+      { title: "The Enforcement of Foreign Arbitral Awards in Mexico", titleEs: "La Ejecución de Laudos Arbitrales Extranjeros en México", journal: "ICC Dispute Resolution Bulletin", year: "2018" },
+      { title: "Investment Arbitration in NAFTA: Evolution and Perspectives", titleEs: "Arbitraje de Inversión en el TLCAN: Evolución y Perspectivas", journal: "Arbitration International", year: "2015" }
+    ],
+    representativeMatters: [
+      { description: "Lead arbitrator in billion-dollar energy infrastructure dispute", descriptionEs: "Árbitro principal en disputa de infraestructura energética de miles de millones de dólares", year: "2023" },
+      { description: "Represented multinational corporation in ICSID proceedings against Latin American state", descriptionEs: "Representó a corporación multinacional en procedimientos CIADI contra estado latinoamericano", year: "2022" },
+      { description: "Advised on landmark constitutional challenge regarding Mexican energy reform", descriptionEs: "Asesoró en histórico desafío constitucional sobre reforma energética mexicana", year: "2021" }
+    ],
+    experience: [
+      { company: "Von Wobeser y Sierra, S.C.", position: "Founding Partner", positionEs: "Socio Fundador", startYear: "1986" },
+      { company: "Harvard Law School", position: "Visiting Scholar", positionEs: "Académico Visitante", startYear: "1982", endYear: "1983" }
+    ]
   },
   { 
     name: "Javier Lizardi", 
