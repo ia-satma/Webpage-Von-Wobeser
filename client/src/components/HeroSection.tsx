@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "wouter";
 import type { SiteContent, News } from "@shared/schema";
+import heroVideo from "@assets/dron_1764710361340.mp4";
 
 interface HeroSectionProps {
   language: "es" | "en";
@@ -140,14 +141,14 @@ export default function HeroSection({ language }: HeroSectionProps) {
           muted
           loop
           playsInline
-          className="absolute inset-0 w-full h-full object-cover opacity-60"
+          className="absolute inset-0 w-full h-full object-cover opacity-70"
           data-testid="video-hero-background"
           onError={(e) => {
             (e.target as HTMLVideoElement).style.display = 'none';
           }}
         >
           <source
-            src="https://cdn.pixabay.com/video/2019/06/18/24588-343489495_large.mp4"
+            src={heroVideo}
             type="video/mp4"
           />
         </video>
