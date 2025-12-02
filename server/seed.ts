@@ -643,7 +643,7 @@ const newsData = [
     content: "Von Wobeser y Sierra has completed the transition to its new offices in the dynamic Campos Elíseos area in Polanco. This relocation materializes a stage of growth, evolution and consolidation, and represents a key investment in the firm's future. The new facilities are designed to maximize collaboration between all areas for the benefit of its clients to continue offering a high-quality and integrated service, reaffirming the firm's commitment and its philosophy of being where clients need them. The new offices are located in the most dynamic business center in Mexico and one of the most important in Latin America. Strategically located in the vibrant Polanco area, steps from the iconic Paseo de la Reforma Avenue, they ensure the closeness that clients need for agile and personalized support.",
     contentEs: "Von Wobeser y Sierra ha completado la transición a sus nuevas oficinas en la dinámica zona de Campos Elíseos en Polanco. Esta reubicación materializa una etapa de crecimiento, evolución y consolidación, y representa una inversión clave en el futuro de la firma. Las nuevas instalaciones están diseñadas para maximizar la colaboración entre todas las áreas en beneficio de sus clientes para seguir ofreciendo un servicio de alta calidad e integrado, reafirmando el compromiso del despacho y su filosofía de estar donde los clientes lo necesitan. Las nuevas oficinas se encuentran ubicadas en el centro de negocios más dinámico de México y en uno de los más importantes en América Latina. Estratégicamente ubicados en la vibrante zona de Polanco, a pasos de la icónica Avenida Paseo de la Reforma, aseguran la cercanía que los clientes necesitan para un acompañamiento ágil y personalizado.",
     slug: "new-offices-transition",
-    imageUrl: "https://vonwobeser.com/images/vonwobeser_2025.png",
+    imageUrl: "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80",
     published: true,
   },
   {
@@ -654,7 +654,7 @@ const newsData = [
     content: "Von Wobeser y Sierra has received top rankings in the Chambers and Partners Latin America 2026 guide, reinforcing its position as one of Mexico's leading law firms. The firm was recognized across multiple practice areas including Corporate/M&A, Banking & Finance, Energy, Antitrust/Competition, and Dispute Resolution. Multiple partners were also individually recognized for their expertise and market-leading practices.",
     contentEs: "Von Wobeser y Sierra ha recibido las más altas clasificaciones en la guía Chambers and Partners Latin America 2026, reforzando su posición como una de las principales firmas de abogados de México. La firma fue reconocida en múltiples áreas de práctica incluyendo Corporativo/M&A, Banca y Finanzas, Energía, Competencia Económica y Resolución de Disputas. Múltiples socios también fueron reconocidos individualmente por su experiencia y prácticas líderes en el mercado.",
     slug: "chambers-ranking-2026",
-    imageUrl: "https://vonwobeser.com/images/vonwobeser_2025.png",
+    imageUrl: "https://images.unsplash.com/photo-1507679799987-c73779587ccf?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80",
     published: true,
   },
   {
@@ -665,7 +665,7 @@ const newsData = [
     content: "Global Investigations Review 100 recognizes the Investigations, Anti-corruption & Compliance practice of Von Wobeser y Sierra as one of the hundred most important in the world in the matter, distinguishing us as the only Mexican firm present in this prestigious list. According to Chambers and Partners Global, Chambers and Partners Latin America, Legal 500, and Latin Lawyer 250, we are one of the elite practices in Mexico.",
     contentEs: "Global Investigations Review 100 reconoce la práctica de Investigaciones, Anticorrupción y Compliance de Von Wobeser y Sierra como una de las cien más importantes del mundo en la materia, distinguiéndonos como la única firma mexicana presente en este prestigioso listado. De acuerdo con Chambers and Partners Global, Chambers and Partners Latin America, Legal 500, y Latin Lawyer 250, somos una de las prácticas de élite en México.",
     slug: "gir-100-recognition",
-    imageUrl: "https://vonwobeser.com/images/vonwobeser_2025.png",
+    imageUrl: "https://images.unsplash.com/photo-1589829545856-d10d557cf95f?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80",
     published: true,
   },
 ];

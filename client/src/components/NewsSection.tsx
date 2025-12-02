@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { motion } from "framer-motion";
 import { ArrowRight, AlertCircle } from "lucide-react";
 import { Link } from "wouter";
@@ -5,6 +6,39 @@ import { Card } from "@/components/ui/card";
 import { useQuery } from "@tanstack/react-query";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { News } from "@shared/schema";
+
+function NewsImageWithFallback({ 
+  src, 
+  alt, 
+  className 
+}: { 
+  src: string; 
+  alt: string; 
+  className?: string;
+}) {
+  const [hasError, setHasError] = useState(false);
+  
+  if (hasError || !src) {
+    return (
+      <div className={`bg-gradient-to-br from-primary/10 to-primary/5 flex items-center justify-center ${className}`}>
+        <div className="text-center">
+          <span className="text-4xl md:text-5xl font-heading font-bold text-primary/30 tracking-wider">
+            VWS
+          </span>
+        </div>
+      </div>
+    );
+  }
+  
+  return (
+    <img
+      src={src}
+      alt={alt}
+      className={className}
+      onError={() => setHasError(true)}
+    />
+  );
+}
 
 interface NewsSectionProps {
   language: "es" | "en";
@@ -122,11 +156,10 @@ export default function NewsSection({ language }: NewsSectionProps) {
                     data-testid={`card-news-${item.id}`}
                   >
                     <div className="aspect-[16/10] overflow-hidden">
-                      <img
-                        src={item.imageUrl || "https://images.unsplash.com/photo-1497366216548-37526070297c?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"}
+                      <NewsImageWithFallback
+                        src={item.imageUrl || ""}
                         alt={language === "es" ? item.titleEs : item.title}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                        data-testid={`img-news-${item.id}`}
                       />
                     </div>
                     <div className="p-6">

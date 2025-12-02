@@ -4,13 +4,42 @@ import { motion } from "framer-motion";
 import { AlertCircle, Calendar, ArrowRight, Search, Newspaper } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import type { News } from "@shared/schema";
+
+function NewsImageWithFallback({ 
+  src, 
+  alt, 
+  className 
+}: { 
+  src: string; 
+  alt: string; 
+  className?: string;
+}) {
+  const [hasError, setHasError] = useState(false);
+  
+  if (hasError || !src) {
+    return (
+      <div className={`bg-gradient-to-br from-primary/10 to-primary/5 flex items-center justify-center ${className}`}>
+        <span className="text-4xl font-heading font-bold text-primary/30 tracking-wider">
+          VWS
+        </span>
+      </div>
+    );
+  }
+  
+  return (
+    <img
+      src={src}
+      alt={alt}
+      className={className}
+      onError={() => setHasError(true)}
+    />
+  );
+}
 
 export default function NewsPage() {
   const [language, setLanguage] = useState<"es" | "en">("es");
@@ -183,16 +212,14 @@ export default function NewsPage() {
                       className="group h-full rounded-md overflow-hidden border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-lg transition-all duration-300 cursor-pointer bg-white dark:bg-gray-800"
                       data-testid={`card-news-${article.slug}`}
                     >
-                      {article.imageUrl && (
-                        <div className="relative h-48 overflow-hidden bg-gray-100 dark:bg-gray-700">
-                          <img
-                            src={article.imageUrl}
-                            alt={language === "es" ? article.titleEs : article.title}
-                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                          />
-                          <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
-                        </div>
-                      )}
+                      <div className="relative h-48 overflow-hidden bg-gray-100 dark:bg-gray-700">
+                        <NewsImageWithFallback
+                          src={article.imageUrl || ""}
+                          alt={language === "es" ? article.titleEs : article.title}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
+                      </div>
                       <CardContent className="p-6">
                         <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400 mb-3">
                           <Calendar className="w-4 h-4" />

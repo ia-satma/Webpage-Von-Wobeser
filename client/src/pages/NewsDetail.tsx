@@ -12,6 +12,58 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import type { News } from "@shared/schema";
 
+function NewsHeroImage({ 
+  src, 
+  alt
+}: { 
+  src: string; 
+  alt: string;
+}) {
+  const [hasError, setHasError] = useState(false);
+  const fallbackImage = "https://images.unsplash.com/photo-1497366216548-37526070297c?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80";
+  
+  return (
+    <img
+      src={hasError ? fallbackImage : src}
+      alt={alt}
+      className="w-full h-full object-cover"
+      onError={() => setHasError(true)}
+      data-testid="img-news-hero"
+    />
+  );
+}
+
+function NewsCardImage({ 
+  src, 
+  alt, 
+  className 
+}: { 
+  src: string; 
+  alt: string; 
+  className?: string;
+}) {
+  const [hasError, setHasError] = useState(false);
+  
+  if (hasError || !src) {
+    return (
+      <div className={`bg-gradient-to-br from-primary/10 to-primary/5 flex items-center justify-center ${className}`}>
+        <span className="text-3xl font-heading font-bold text-primary/30 tracking-wider">
+          VWS
+        </span>
+      </div>
+    );
+  }
+  
+  return (
+    <img
+      src={src}
+      alt={alt}
+      className={className}
+      onError={() => setHasError(true)}
+    />
+  );
+}
+
 export default function NewsDetail() {
   const [language, setLanguage] = useState<"es" | "en">("es");
   const params = useParams<{ slug: string }>();
@@ -172,11 +224,9 @@ export default function NewsDetail() {
       
       <section className="pt-24 relative" data-testid="section-news-hero">
         <div className="relative w-full h-[50vh] min-h-[400px] overflow-hidden">
-          <img
+          <NewsHeroImage
             src={heroImage}
             alt={displayTitle || ""}
-            className="w-full h-full object-cover"
-            data-testid="img-news-hero"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/40 to-black/20" />
           
@@ -301,11 +351,10 @@ export default function NewsDetail() {
                       data-testid={`card-related-news-${item.id}`}
                     >
                       <div className="aspect-[16/10] overflow-hidden">
-                        <img
-                          src={item.imageUrl || "https://images.unsplash.com/photo-1497366216548-37526070297c?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"}
+                        <NewsCardImage
+                          src={item.imageUrl || ""}
                           alt={language === "es" ? item.titleEs : item.title}
                           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                          data-testid={`img-related-news-${item.id}`}
                         />
                       </div>
                       <CardContent className="p-4">
