@@ -58,6 +58,9 @@ export async function registerRoutes(
   
   // Serve associate photos from attached_assets/associate_photos
   app.use('/associate_photos', express.static(path.join(process.cwd(), 'attached_assets', 'associate_photos')));
+  
+  // Serve Of Counsel photos from attached_assets/of_counsel_photos
+  app.use('/of_counsel_photos', express.static(path.join(process.cwd(), 'attached_assets', 'of_counsel_photos')));
 
   app.get("/api/news", async (_req, res) => {
     try {
