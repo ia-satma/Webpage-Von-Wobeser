@@ -264,7 +264,7 @@ const teamMembersData = [
     phone: "+52 (55) 5258-1003",
     isPartner: true, 
     order: 1, 
-    imageUrl: "https://www.vonwobeser.com/images/Socios/Fotos_socios/04_Luis_Burgueno.jpg",
+    imageUrl: "/partner_photos/luis_burgueno.jpg",
     education: [
       { school: "Universidad Nacional Autónoma de México (UNAM)", schoolEs: "Universidad Nacional Autónoma de México (UNAM)", degree: "Law Degree (Licenciatura en Derecho)", degreeEs: "Licenciatura en Derecho", year: "1987" },
       { school: "Universidad Panamericana", schoolEs: "Universidad Panamericana", degree: "Master in Business Law", degreeEs: "Maestría en Derecho Empresarial", year: "1992" }
@@ -301,7 +301,7 @@ const teamMembersData = [
     phone: "+52 (55) 5258-1058",
     isPartner: true, 
     order: 2, 
-    imageUrl: "https://www.vonwobeser.com/images/Socios/Fotos_socios/LuisMiguelJimenez_Hires.jpg" 
+    imageUrl: "/partner_photos/luis_miguel_jimenez.jpg" 
   },
   { 
     name: "Rupert Hüttler", 
@@ -314,7 +314,7 @@ const teamMembersData = [
     phone: "+52 (55) 5258-1038",
     isPartner: true, 
     order: 3, 
-    imageUrl: "https://www.vonwobeser.com/images/Socios/Fotos_socios/RupertHuttler_Hires.jpg" 
+    imageUrl: "/partner_photos/rupert_huttler.jpg" 
   },
   { 
     name: "Fernando Carreño", 
@@ -329,7 +329,7 @@ const teamMembersData = [
     phone: "+52 (55) 5258-1042",
     isPartner: true, 
     order: 4, 
-    imageUrl: "https://www.vonwobeser.com/images/Socios/Fotos_socios/FernandoCarreno_HiRes-1.jpg" 
+    imageUrl: "/partner_photos/fernando_carreno.jpg" 
   },
   { 
     name: "Edmond Frederic Grieger", 
@@ -342,7 +342,7 @@ const teamMembersData = [
     phone: "+52 (55) 5258-1048",
     isPartner: true, 
     order: 5, 
-    imageUrl: "https://www.vonwobeser.com/images/Socios/Fotos_socios/05_Edmond_Grieger.jpg" 
+    imageUrl: "/partner_photos/edmond_grieger.jpg" 
   },
   { 
     name: "Adrián Magallanes", 
@@ -355,7 +355,7 @@ const teamMembersData = [
     phone: "+52 (55) 5258-1077",
     isPartner: true, 
     order: 6, 
-    imageUrl: "https://www.vonwobeser.com/images/Socios/Fotos_socios/06_Adrian_Magallanes.jpg" 
+    imageUrl: "/partner_photos/adrian_magallanes.jpg" 
   },
   { 
     name: "Diego Sierra", 
@@ -370,7 +370,7 @@ const teamMembersData = [
     phone: "+52 (55) 5258-1039",
     isPartner: true, 
     order: 7, 
-    imageUrl: "https://www.vonwobeser.com/images/Socios/8.-Diego-Sierra.jpg" 
+    imageUrl: "/partner_photos/diego_sierra.jpg" 
   },
   { 
     name: "Montserrat Manzano", 
@@ -383,7 +383,7 @@ const teamMembersData = [
     phone: "+52 (55) 5258-1018",
     isPartner: true, 
     order: 8, 
-    imageUrl: "https://www.vonwobeser.com/images/Socios/Fotos_socios/MontserratManzano_Hires.jpg" 
+    imageUrl: "/partner_photos/montserrat_manzano.jpg" 
   },
   { 
     name: "Pablo Saez Williams", 
@@ -396,7 +396,7 @@ const teamMembersData = [
     phone: "+52 (55) 5258-1085",
     isPartner: true, 
     order: 9, 
-    imageUrl: "https://www.vonwobeser.com/images/Socios/Fotos_socios/PabloSaezWilliams_Hires.jpg" 
+    imageUrl: "/partner_photos/pablo_saez_williams.jpg" 
   },
   { 
     name: "Patricia Kaim", 
@@ -409,7 +409,7 @@ const teamMembersData = [
     phone: "+52 (55) 5258-1038",
     isPartner: true, 
     order: 10, 
-    imageUrl: "https://www.vonwobeser.com/images/Socios/Fotos_socios/PatriciaKaim_Hires.jpg" 
+    imageUrl: "/partner_photos/patricia_kaim.jpg" 
   },
   { 
     name: "Alberto Córdoba", 
@@ -422,7 +422,7 @@ const teamMembersData = [
     phone: "+52 (55) 5258-1016",
     isPartner: true, 
     order: 11, 
-    imageUrl: "https://www.vonwobeser.com/images/Socios/Fotos_socios/AlbertoCordoba_Hires.jpg" 
+    imageUrl: "/partner_photos/alberto_cordoba.jpg" 
   },
   { 
     name: "Pablo Fautsch", 
@@ -435,7 +435,7 @@ const teamMembersData = [
     phone: "+52 (55) 5258-1072",
     isPartner: true, 
     order: 12, 
-    imageUrl: "https://www.vonwobeser.com/images/Socios/Fotos_socios/PabloFautsch_Hires.jpg" 
+    imageUrl: "/partner_photos/pablo_fautsch.jpg" 
   },
   { 
     name: "Jessika Rocha", 
@@ -450,7 +450,7 @@ const teamMembersData = [
     phone: "+52 (55) 5258-1076",
     isPartner: true, 
     order: 13, 
-    imageUrl: "https://www.vonwobeser.com/images/asociados/JessikaRocha_HiRes_03082022.jpg" 
+    imageUrl: "/partner_photos/jessika_rocha.jpg" 
   },
   { 
     name: "Raymundo Soberanis", 
@@ -463,7 +463,7 @@ const teamMembersData = [
     phone: "+52 (55) 5258-1059",
     isPartner: true, 
     order: 14, 
-    imageUrl: "https://www.vonwobeser.com/images/Socios/Fotos_socios/RaymundoSoberanis_Hires.jpg" 
+    imageUrl: "/partner_photos/raymundo_soberanis.jpg" 
   },
   { 
     name: "Pablo Jiménez", 
@@ -476,7 +476,7 @@ const teamMembersData = [
     phone: "+52 (55) 5258-1016",
     isPartner: true, 
     order: 15, 
-    imageUrl: "https://www.vonwobeser.com/images/Socios/Fotos_socios/PabloJimenez_Hires.jpg" 
+    imageUrl: "/partner_photos/pablo_jimenez.jpg" 
   },
   { 
     name: "Ariel Garfio", 
@@ -489,7 +489,7 @@ const teamMembersData = [
     phone: "+52 (55) 5258-1007",
     isPartner: true, 
     order: 16, 
-    imageUrl: "https://www.vonwobeser.com/images/Socios/Fotos_socios/ArielGarfio_Hires.jpg" 
+    imageUrl: "/partner_photos/ariel_garfio.jpg" 
   },
   { 
     name: "Rafael Vallejo", 
@@ -502,7 +502,7 @@ const teamMembersData = [
     phone: "+52 (55) 5258-1014",
     isPartner: true, 
     order: 17, 
-    imageUrl: "https://www.vonwobeser.com/images/Socios/Fotos_socios/RafaelVallejo_Hires.jpg" 
+    imageUrl: "/partner_photos/rafael_vallejo.jpg" 
   },
   { 
     name: "Katharina Roehr", 
@@ -515,7 +515,7 @@ const teamMembersData = [
     phone: "+52 (55) 5258-1023",
     isPartner: true, 
     order: 18, 
-    imageUrl: "https://www.vonwobeser.com/images/Socios/Fotos_socios/KatharinaRoehr_Hires.jpg" 
+    imageUrl: "/partner_photos/katharina_roehr.jpg" 
   },
   { 
     name: "Sergio López", 
@@ -528,7 +528,7 @@ const teamMembersData = [
     phone: "+52 (55) 5258-1042",
     isPartner: true, 
     order: 19, 
-    imageUrl: "https://www.vonwobeser.com/images/Socios/Fotos_socios/SergioLopez_Hires.jpg" 
+    imageUrl: "/partner_photos/sergio_lopez.jpg" 
   },
   { 
     name: "Alejandro Torres", 
@@ -541,7 +541,7 @@ const teamMembersData = [
     phone: "+52 (55) 5258-1072",
     isPartner: true, 
     order: 20, 
-    imageUrl: "https://www.vonwobeser.com/images/Socios/Fotos_socios/AlejandroTorres_Hires.jpg" 
+    imageUrl: "/partner_photos/alejandro_torres.jpg" 
   },
   { 
     name: "Javier Betancourt", 
@@ -554,7 +554,7 @@ const teamMembersData = [
     phone: "+52 (55) 5258-1085",
     isPartner: true, 
     order: 21, 
-    imageUrl: "https://www.vonwobeser.com/images/Socios/Fotos_socios/JavierBetancourt_Hires.jpg" 
+    imageUrl: "/partner_photos/javier_betancourt.jpg" 
   },
   { 
     name: "Adrián Castillo", 

@@ -2,6 +2,8 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { seed } from "./seed";
+import express from "express";
+import path from "path";
 
 function generateVCard(member: any, language: "es" | "en" = "es"): string {
   const title = language === "es" ? member.titleEs : member.title;
@@ -50,6 +52,9 @@ export async function registerRoutes(
   app: Express
 ): Promise<Server> {
   await seed();
+
+  // Serve partner photos from attached_assets/partner_photos
+  app.use('/partner_photos', express.static(path.join(process.cwd(), 'attached_assets', 'partner_photos')));
 
   app.get("/api/news", async (_req, res) => {
     try {
