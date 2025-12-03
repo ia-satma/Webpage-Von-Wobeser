@@ -198,7 +198,15 @@ Preferred communication style: Simple, everyday language.
 - Font loading via Google Fonts CDN (Cormorant Garamond, Inter)
 
 **Image Strategy**
-- Team member photos loaded directly from vonwobeser.com/images/Socios/Fotos_socios/
+- Partner photos served locally from `/partner_photos/` endpoint (21 photos in attached_assets/partner_photos/)
+- Photo naming convention: `[firstname_lastname].jpg` (e.g., `luis_burgueno.jpg`, `montserrat_manzano.jpg`)
+- Adrián Castillo is the only partner without a local photo (uses initials fallback)
 - Office imagery uses Von Wobeser branding images
 - Responsive images handled via Tailwind classes
-- All 25 team members have real profile photos from the firm's website
+- Avatar component has initials fallback for failed image loads
+
+**Partner Photo Hosting**
+- Static files served from: `attached_assets/partner_photos/`
+- URL pattern: `/partner_photos/[firstname_lastname].jpg`
+- Configured in: `server/routes.ts` using `express.static`
+- 21 partner photos migrated from vonwobeser.com to local storage
