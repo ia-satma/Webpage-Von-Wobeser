@@ -1,0 +1,92 @@
+Necesito que realices una auditoría completa de contenidos del sitio web de la firma de abogados Von Wobeser y Sierra. Revisa sección por sección y subsección, verificando que no falte contenido, funcionalidades ni elementos importantes.
+
+Analiza las siguientes secciones y genera un reporte detallado indicando qué existe, qué falta y qué necesita mejoras:
+
+1. **PÁGINA DE INICIO (HOME)**
+   - Hero section (imagen/video, headline, CTA)
+   - Navegación principal (logo, menú, responsive, buscador, idiomas)
+   - Introducción de la firma
+   - Áreas de práctica destacadas
+   - Reconocimientos y rankings
+   - Noticias recientes
+   - Footer completo (contacto, redes, legales, copyright)
+
+2. **LA FIRMA / SOBRE NOSOTROS**
+   - Historia y trayectoria
+   - Misión, visión y valores
+   - Cultura organizacional
+   - Pro bono y responsabilidad social
+   - Diversidad e inclusión
+
+3. **EQUIPO / ABOGADOS**
+   - Directorio general con filtros y búsqueda
+   - Perfiles individuales (foto, bio, educación, contacto, áreas, idiomas, reconocimientos, publicaciones)
+   - Categorías (socios, counsel, asociados)
+
+4. **ÁREAS DE PRÁCTICA**
+   - Listado completo de áreas
+   - Páginas individuales por área con: descripción, servicios, experiencia, equipo, reconocimientos
+   - Áreas a verificar: Corporativo/M&A, Litigio/Arbitraje, Fiscal, Laboral, Propiedad Intelectual, Inmobiliario, Energía, Competencia, Telecomunicaciones/Tech, Financiero/Bancario, Reestructuras, Ambiental, Comercio Internacional
+
+5. **INDUSTRIAS / SECTORES**
+   - Página principal de industrias
+   - Páginas por sector (automotriz, manufactura, retail, salud, etc.)
+   - Contenido por industria (experiencia, servicios, equipo)
+
+6. **EXPERIENCIA / CASOS REPRESENTATIVOS**
+   - Buscador de experiencia con filtros
+   - Detalle de casos (descripción, cliente, año, áreas, abogados)
+
+7. **RECONOCIMIENTOS Y RANKINGS**
+   - Chambers, Legal 500, IFLR1000, Best Lawyers, Latin Lawyer
+   - Rankings de firma e individuales
+   - Premios
+
+8. **NOTICIAS Y PUBLICACIONES**
+   - Feed de noticias con filtros y búsqueda
+   - Tipos: noticias institucionales, prensa, artículos, alertas, eventos
+   - Detalle de publicación (título, fecha, autor, contenido, compartir)
+
+9. **OFICINAS / UBICACIONES**
+   - Listado de oficinas
+   - Información por oficina (dirección, teléfono, email, mapa)
+
+10. **CARRERAS / ÚNETE AL EQUIPO**
+    - Cultura y beneficios
+    - Vacantes abiertas
+    - Programa de pasantes
+    - Formulario de aplicación
+
+11. **CONTACTO**
+    - Información de contacto
+    - Formulario funcional con validación
+    - Redes sociales
+
+12. **ASPECTOS LEGALES**
+    - Aviso de privacidad (LFPDPPP)
+    - Términos y condiciones
+    - Política y banner de cookies
+
+13. **ASPECTOS TÉCNICOS Y UX**
+    - SEO (meta tags, sitemap, robots.txt, schema)
+    - Rendimiento (velocidad, optimización de imágenes)
+    - Responsive design (desktop, tablet, mobile)
+    - Accesibilidad (contraste, navegación por teclado, ARIA)
+    - Seguridad (SSL, headers)
+    - Analytics configurado
+
+14. **MULTILENGUAJE**
+    - Contenido completo en español
+    - Contenido completo en inglés
+    - Selector de idioma funcional
+    - URLs y hreflang correctos
+
+Para cada elemento, indica:
+- ✅ Existe y está completo
+- ⚠️ Existe pero necesita mejoras (especificar cuáles)
+- ❌ No existe o falta
+
+Al final, genera un resumen ejecutivo con:
+- Porcentaje de completitud por sección
+- Lista de elementos críticos faltantes
+- Recomendaciones prioritarias
