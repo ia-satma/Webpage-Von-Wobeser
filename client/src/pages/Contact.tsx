@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { motion } from "framer-motion";
 import { MapPin, Phone, Mail, Clock, ExternalLink, Linkedin, Building2, Send, Loader2 } from "lucide-react";
 import { useQuery, useMutation } from "@tanstack/react-query";
@@ -29,6 +28,8 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import SEOHead from "@/components/SEOHead";
+import { useLanguage } from "@/contexts/LanguageContext";
 import type { SiteContent, ContactFormData } from "@shared/schema";
 import { practiceAreas } from "@shared/schema";
 
@@ -61,7 +62,7 @@ const getContactFormSchema = (language: "es" | "en") => {
 };
 
 export default function Contact() {
-  const [language, setLanguage] = useState<"es" | "en">("es");
+  const { language } = useLanguage();
   const { toast } = useToast();
 
   const { data: siteContent, isLoading } = useQuery<SiteContent>({
@@ -204,7 +205,8 @@ export default function Contact() {
 
   return (
     <div className="min-h-screen bg-white dark:bg-gray-900" data-testid="page-contact">
-      <Header language={language} onLanguageChange={setLanguage} />
+      <SEOHead page="contact" language={language} />
+      <Header />
       
       <section className="pt-32 pb-12 bg-primary" data-testid="section-contact-hero">
         <div className="max-w-7xl mx-auto px-6 lg:px-12">
@@ -230,7 +232,7 @@ export default function Contact() {
         </div>
       </section>
 
-      <main className="py-16 lg:py-20">
+      <main id="main-content" className="py-16 lg:py-20">
         <div className="max-w-7xl mx-auto px-6 lg:px-12">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -621,7 +623,7 @@ export default function Contact() {
         </div>
       </main>
 
-      <Footer language={language} />
+      <Footer />
     </div>
   );
 }

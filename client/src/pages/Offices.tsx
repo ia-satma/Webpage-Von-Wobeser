@@ -26,10 +26,12 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import SEOHead from "@/components/SEOHead";
+import { useLanguage } from "@/contexts/LanguageContext";
 import type { OfficeImage } from "@shared/schema";
 
 export default function Offices() {
-  const [language, setLanguage] = useState<"es" | "en">("es");
+  const { language } = useLanguage();
   const [selectedImage, setSelectedImage] = useState<OfficeImage | null>(null);
 
   const { data: officeImages, isLoading: imagesLoading } = useQuery<OfficeImage[]>({
@@ -181,7 +183,8 @@ export default function Offices() {
 
   return (
     <div className="min-h-screen bg-white dark:bg-gray-900" data-testid="page-offices">
-      <Header language={language} onLanguageChange={setLanguage} />
+      <SEOHead page="offices" language={language} />
+      <Header />
       
       <section className="pt-32 pb-12 bg-primary" data-testid="section-offices-hero">
         <div className="max-w-7xl mx-auto px-6 lg:px-12">
@@ -207,7 +210,7 @@ export default function Offices() {
         </div>
       </section>
 
-      <main className="py-16 lg:py-20">
+      <main id="main-content" className="py-16 lg:py-20">
         <div className="max-w-7xl mx-auto px-6 lg:px-12">
           <motion.section
             initial={{ opacity: 0, y: 20 }}
@@ -655,7 +658,7 @@ export default function Offices() {
         </div>
       )}
 
-      <Footer language={language} />
+      <Footer />
     </div>
   );
 }

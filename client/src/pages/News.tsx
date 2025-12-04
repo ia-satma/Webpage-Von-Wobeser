@@ -6,9 +6,12 @@ import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Button } from "@/components/ui/button";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import type { News } from "@shared/schema";
+import SEOHead from "@/components/SEOHead";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { newsCategories, type News } from "@shared/schema";
 
 function NewsImageWithFallback({ 
   src, 
@@ -42,8 +45,9 @@ function NewsImageWithFallback({
 }
 
 export default function NewsPage() {
-  const [language, setLanguage] = useState<"es" | "en">("es");
+  const { language } = useLanguage();
   const [searchQuery, setSearchQuery] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState<string>("all");
 
   const { data: news, isLoading, error } = useQuery<News[]>({
     queryKey: ["/api/news"],
@@ -58,10 +62,12 @@ export default function NewsPage() {
       readMore: "Read More",
       noResults: "No news articles match your search",
       published: "Published",
-      allNews: "All News",
+      all: "All",
+      press: "Press",
       insights: "Insights",
-      pressReleases: "Press Releases",
       rankings: "Rankings",
+      events: "Events",
+      alerts: "Alerts",
     },
     es: {
       title: "Noticias e Insights",
@@ -71,21 +77,36 @@ export default function NewsPage() {
       readMore: "Leer Más",
       noResults: "No hay artículos que coincidan con su búsqueda",
       published: "Publicado",
-      allNews: "Todas las Noticias",
+      all: "Todos",
+      press: "Prensa",
       insights: "Insights",
-      pressReleases: "Comunicados",
       rankings: "Rankings",
+      events: "Eventos",
+      alerts: "Alertas",
     },
   };
 
   const t = content[language];
 
+  const categoryFilters = [
+    { value: "all", label: language === "es" ? "Todos" : "All" },
+    ...newsCategories.map(cat => ({
+      value: cat.value,
+      label: language === "es" ? cat.es : cat.en,
+    })),
+  ];
+
   const filteredNews = news?.filter(article => {
-    if (!searchQuery) return true;
+    const matchesCategory = selectedCategory === "all" || article.category === selectedCategory;
+    
+    if (!searchQuery) return matchesCategory;
+    
     const query = searchQuery.toLowerCase();
     const title = language === "es" ? article.titleEs : article.title;
     const excerpt = language === "es" ? article.excerptEs : article.excerpt;
-    return title.toLowerCase().includes(query) || excerpt.toLowerCase().includes(query);
+    const matchesSearch = title.toLowerCase().includes(query) || excerpt.toLowerCase().includes(query);
+    
+    return matchesCategory && matchesSearch;
   });
 
   const formatDate = (date: string | Date | null) => {
@@ -119,7 +140,8 @@ export default function NewsPage() {
 
   return (
     <div className="min-h-screen bg-white dark:bg-gray-900" data-testid="page-news">
-      <Header language={language} onLanguageChange={setLanguage} />
+      <SEOHead page="news" language={language} />
+      <Header />
       
       <section className="pt-32 pb-12 bg-primary" data-testid="section-news-hero">
         <div className="max-w-7xl mx-auto px-6 lg:px-12">
@@ -145,14 +167,33 @@ export default function NewsPage() {
         </div>
       </section>
 
-      <main className="py-16 lg:py-20">
+      <main id="main-content" className="py-16 lg:py-20">
         <div className="max-w-7xl mx-auto px-6 lg:px-12">
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4 }}
-            className="mb-10"
+            className="mb-10 space-y-6"
           >
+            <div className="flex flex-wrap items-center gap-2" data-testid="container-category-filters">
+              {categoryFilters.map((cat) => (
+                <Button
+                  key={cat.value}
+                  variant={selectedCategory === cat.value ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setSelectedCategory(cat.value)}
+                  className={`transition-all ${
+                    selectedCategory === cat.value 
+                      ? "bg-primary text-white" 
+                      : "text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
+                  }`}
+                  data-testid={`button-filter-${cat.value}`}
+                >
+                  {cat.label}
+                </Button>
+              ))}
+            </div>
+
             <div className="relative max-w-md">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
               <Input
@@ -219,6 +260,14 @@ export default function NewsPage() {
                           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
+                        {article.category && (
+                          <span 
+                            className="absolute top-3 left-3 px-2 py-1 text-xs font-medium bg-primary text-white rounded"
+                            data-testid={`badge-category-${article.slug}`}
+                          >
+                            {language === "es" ? article.categoryEs : article.category?.charAt(0).toUpperCase() + article.category?.slice(1)}
+                          </span>
+                        )}
                       </div>
                       <CardContent className="p-6">
                         <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400 mb-3">
@@ -253,7 +302,7 @@ export default function NewsPage() {
         </div>
       </main>
 
-      <Footer language={language} />
+      <Footer />
     </div>
   );
 }

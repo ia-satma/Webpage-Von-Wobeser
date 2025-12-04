@@ -1,15 +1,17 @@
 import { useState } from "react";
 import { Link, useParams } from "wouter";
 import { motion } from "framer-motion";
-import { ArrowLeft, Calendar, Share2, Linkedin, Twitter, Facebook, AlertCircle } from "lucide-react";
+import { ArrowLeft, Calendar, Share2, Linkedin, Twitter, Mail, LinkIcon, AlertCircle, MessageCircle } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { es, enUS } from "date-fns/locale";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useToast } from "@/hooks/use-toast";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import { useLanguage } from "@/contexts/LanguageContext";
 import type { News } from "@shared/schema";
 
 function NewsHeroImage({ 
@@ -65,7 +67,8 @@ function NewsCardImage({
 }
 
 export default function NewsDetail() {
-  const [language, setLanguage] = useState<"es" | "en">("es");
+  const { language } = useLanguage();
+  const { toast } = useToast();
   const params = useParams<{ slug: string }>();
   const slug = params.slug;
 
@@ -86,6 +89,9 @@ export default function NewsDetail() {
       errorMessage: "Article not found",
       loading: "Loading...",
       readMore: "Read More",
+      copyLink: "Copy Link",
+      linkCopied: "Link copied to clipboard!",
+      shareVia: "Share via",
     },
     es: {
       backToNews: "Volver a Noticias",
@@ -94,6 +100,9 @@ export default function NewsDetail() {
       errorMessage: "Artículo no encontrado",
       loading: "Cargando...",
       readMore: "Leer Más",
+      copyLink: "Copiar Enlace",
+      linkCopied: "¡Enlace copiado al portapapeles!",
+      shareVia: "Compartir vía",
     },
   };
 
@@ -107,17 +116,35 @@ export default function NewsDetail() {
     });
   };
 
-  const handleShare = (platform: "linkedin" | "twitter" | "facebook") => {
+  const handleShare = (platform: "linkedin" | "twitter" | "whatsapp" | "email") => {
     const url = window.location.href;
     const title = language === "es" ? newsArticle?.titleEs : newsArticle?.title;
+    const excerpt = language === "es" ? newsArticle?.excerptEs : newsArticle?.excerpt;
     
     const shareUrls = {
       linkedin: `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}`,
       twitter: `https://twitter.com/intent/tweet?url=${encodeURIComponent(url)}&text=${encodeURIComponent(title || "")}`,
-      facebook: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`,
+      whatsapp: `https://wa.me/?text=${encodeURIComponent(`${title} - ${url}`)}`,
+      email: `mailto:?subject=${encodeURIComponent(title || "")}&body=${encodeURIComponent(`${excerpt || ""}\n\n${url}`)}`,
     };
     
-    window.open(shareUrls[platform], "_blank", "width=600,height=400");
+    if (platform === "email") {
+      window.location.href = shareUrls[platform];
+    } else {
+      window.open(shareUrls[platform], "_blank", "width=600,height=400");
+    }
+  };
+
+  const handleCopyLink = async () => {
+    try {
+      await navigator.clipboard.writeText(window.location.href);
+      toast({
+        title: t.linkCopied,
+        duration: 3000,
+      });
+    } catch (err) {
+      console.error("Failed to copy link:", err);
+    }
   };
 
   const scrollToNewsSection = () => {
@@ -129,7 +156,7 @@ export default function NewsDetail() {
   if (error) {
     return (
       <div className="min-h-screen bg-white dark:bg-gray-900" data-testid="page-news-error">
-        <Header language={language} onLanguageChange={setLanguage} />
+        <Header />
         <div className="pt-32 pb-20">
           <div className="max-w-7xl mx-auto px-6 lg:px-12 text-center">
             <AlertCircle className="w-16 h-16 text-gray-400 mx-auto mb-4" />
@@ -146,7 +173,7 @@ export default function NewsDetail() {
             </Button>
           </div>
         </div>
-        <Footer language={language} />
+        <Footer />
       </div>
     );
   }
@@ -154,11 +181,11 @@ export default function NewsDetail() {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-white dark:bg-gray-900" data-testid="page-news-loading">
-        <Header language={language} onLanguageChange={setLanguage} />
+        <Header />
         <section className="pt-24 relative">
           <Skeleton className="w-full h-[50vh] min-h-[400px]" />
         </section>
-        <main className="py-16 lg:py-20">
+        <main id="main-content" className="py-16 lg:py-20">
           <div className="max-w-4xl mx-auto px-6 lg:px-12">
             <Skeleton className="h-4 w-32 mb-4" />
             <Skeleton className="h-10 w-full mb-2" />
@@ -169,7 +196,7 @@ export default function NewsDetail() {
             <Skeleton className="h-6 w-full mb-4" />
           </div>
         </main>
-        <Footer language={language} />
+        <Footer />
       </div>
     );
   }
@@ -213,7 +240,7 @@ export default function NewsDetail() {
 
   return (
     <div className="min-h-screen bg-white dark:bg-gray-900" data-testid="page-news-detail">
-      <Header language={language} onLanguageChange={setLanguage} />
+      <Header />
       
       {newsArticle && (
         <script
@@ -263,7 +290,7 @@ export default function NewsDetail() {
         </div>
       </section>
 
-      <main className="py-16 lg:py-20">
+      <main id="main-content" className="py-16 lg:py-20">
         <div className="max-w-4xl mx-auto px-6 lg:px-12">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -293,13 +320,14 @@ export default function NewsDetail() {
                   <Share2 className="w-4 h-4" />
                   <span className="text-sm font-medium">{t.share}</span>
                 </div>
-                <div className="flex gap-2">
+                <div className="flex flex-wrap gap-2">
                   <Button
                     variant="outline"
                     size="icon"
                     className="rounded-md"
                     onClick={() => handleShare("linkedin")}
                     data-testid="button-share-linkedin"
+                    title="LinkedIn"
                   >
                     <Linkedin className="w-4 h-4" />
                   </Button>
@@ -309,6 +337,7 @@ export default function NewsDetail() {
                     className="rounded-md"
                     onClick={() => handleShare("twitter")}
                     data-testid="button-share-twitter"
+                    title="Twitter/X"
                   >
                     <Twitter className="w-4 h-4" />
                   </Button>
@@ -316,10 +345,31 @@ export default function NewsDetail() {
                     variant="outline"
                     size="icon"
                     className="rounded-md"
-                    onClick={() => handleShare("facebook")}
-                    data-testid="button-share-facebook"
+                    onClick={() => handleShare("whatsapp")}
+                    data-testid="button-share-whatsapp"
+                    title="WhatsApp"
                   >
-                    <Facebook className="w-4 h-4" />
+                    <MessageCircle className="w-4 h-4" />
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className="rounded-md"
+                    onClick={() => handleShare("email")}
+                    data-testid="button-share-email"
+                    title="Email"
+                  >
+                    <Mail className="w-4 h-4" />
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className="rounded-md"
+                    onClick={handleCopyLink}
+                    data-testid="button-share-copy-link"
+                    title={t.copyLink}
+                  >
+                    <LinkIcon className="w-4 h-4" />
                   </Button>
                 </div>
               </div>
@@ -377,7 +427,7 @@ export default function NewsDetail() {
         </div>
       </main>
 
-      <Footer language={language} />
+      <Footer />
     </div>
   );
 }

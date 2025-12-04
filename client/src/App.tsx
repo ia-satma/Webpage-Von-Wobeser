@@ -3,6 +3,7 @@ import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { LanguageProvider, useLanguage } from "@/contexts/LanguageContext";
 import NotFound from "@/pages/not-found";
 import Home from "@/pages/Home";
 import PracticeGroups from "@/pages/PracticeGroups";
@@ -21,6 +22,42 @@ import PrivacyPolicy from "@/pages/PrivacyPolicy";
 import Terms from "@/pages/Terms";
 import Rankings from "@/pages/Rankings";
 import Offices from "@/pages/Offices";
+
+function SkipLinks() {
+  const { language } = useLanguage();
+  
+  const labels = {
+    en: {
+      skipToMain: "Skip to main content",
+      skipToNav: "Skip to navigation",
+    },
+    es: {
+      skipToMain: "Saltar al contenido principal",
+      skipToNav: "Saltar a la navegación",
+    },
+  };
+  
+  const t = labels[language];
+  
+  return (
+    <div className="skip-links">
+      <a
+        href="#main-content"
+        className="skip-link"
+        data-testid="link-skip-to-main"
+      >
+        {t.skipToMain}
+      </a>
+      <a
+        href="#main-navigation"
+        className="skip-link"
+        data-testid="link-skip-to-nav"
+      >
+        {t.skipToNav}
+      </a>
+    </div>
+  );
+}
 
 function Router() {
   return (
@@ -51,8 +88,11 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
-        <Toaster />
-        <Router />
+        <LanguageProvider>
+          <SkipLinks />
+          <Toaster />
+          <Router />
+        </LanguageProvider>
       </TooltipProvider>
     </QueryClientProvider>
   );

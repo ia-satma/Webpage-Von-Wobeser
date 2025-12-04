@@ -18,10 +18,12 @@ import {
 } from "@/components/ui/select";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import SEOHead from "@/components/SEOHead";
+import { useLanguage } from "@/contexts/LanguageContext";
 import type { TeamMember, PracticeGroup, IndustryGroup } from "@shared/schema";
 
 export default function Team() {
-  const [language, setLanguage] = useState<"es" | "en">("es");
+  const { language } = useLanguage();
   const [searchQuery, setSearchQuery] = useState("");
   const [filterSeniority, setFilterSeniority] = useState<string>("all");
   const [filterPractice, setFilterPractice] = useState<string>("all");
@@ -166,7 +168,8 @@ export default function Team() {
 
   return (
     <div className="min-h-screen bg-white dark:bg-gray-900" data-testid="page-team">
-      <Header language={language} onLanguageChange={setLanguage} />
+      <SEOHead page="team" language={language} />
+      <Header />
       
       <section className="pt-32 pb-12 bg-primary" data-testid="section-team-hero">
         <div className="max-w-7xl mx-auto px-6 lg:px-12">
@@ -192,7 +195,7 @@ export default function Team() {
         </div>
       </section>
 
-      <main className="py-16 lg:py-20">
+      <main id="main-content" className="py-16 lg:py-20">
         <div className="max-w-7xl mx-auto px-6 lg:px-12">
           <motion.div
             initial={{ opacity: 0, y: 10 }}
@@ -382,7 +385,7 @@ export default function Team() {
         </div>
       </main>
 
-      <Footer language={language} />
+      <Footer />
     </div>
   );
 }

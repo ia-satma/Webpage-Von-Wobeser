@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { Link, useParams } from "wouter";
 import { motion } from "framer-motion";
 import { ArrowLeft, Mail, Phone, Linkedin, AlertCircle, Crown, Download, GraduationCap, Globe2, Award, FileText, Briefcase, Scale, Users, BookOpen, Building2, Languages } from "lucide-react";
@@ -11,10 +10,11 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import { useLanguage } from "@/contexts/LanguageContext";
 import type { TeamMember, PracticeGroup, IndustryGroup, Education, Affiliation, Ranking, Publication, RepresentativeMatter, BarAdmission } from "@shared/schema";
 
 export default function TeamMemberDetail() {
-  const [language, setLanguage] = useState<"es" | "en">("es");
+  const { language } = useLanguage();
   const params = useParams<{ slug: string }>();
   const slug = params.slug;
 
@@ -148,7 +148,7 @@ export default function TeamMemberDetail() {
   if (error) {
     return (
       <div className="min-h-screen bg-white dark:bg-gray-900" data-testid="page-team-member-error">
-        <Header language={language} onLanguageChange={setLanguage} />
+        <Header />
         <div className="pt-32 pb-20">
           <div className="max-w-7xl mx-auto px-6 lg:px-12 text-center">
             <AlertCircle className="w-16 h-16 text-gray-400 mx-auto mb-4" />
@@ -163,7 +163,7 @@ export default function TeamMemberDetail() {
             </Link>
           </div>
         </div>
-        <Footer language={language} />
+        <Footer />
       </div>
     );
   }
@@ -171,7 +171,7 @@ export default function TeamMemberDetail() {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-white dark:bg-gray-900" data-testid="page-team-member-loading">
-        <Header language={language} onLanguageChange={setLanguage} />
+        <Header />
         <section className="pt-32 pb-12 bg-primary">
           <div className="max-w-7xl mx-auto px-6 lg:px-12">
             <Skeleton className="h-5 w-48 bg-white/20 mb-6" />
@@ -185,7 +185,7 @@ export default function TeamMemberDetail() {
             </div>
           </div>
         </section>
-        <main className="py-16 lg:py-20">
+        <main id="main-content" className="py-16 lg:py-20">
           <div className="max-w-4xl mx-auto px-6 lg:px-12">
             <Skeleton className="h-6 w-full mb-4" />
             <Skeleton className="h-6 w-full mb-4" />
@@ -193,7 +193,7 @@ export default function TeamMemberDetail() {
             <Skeleton className="h-6 w-5/6 mb-4" />
           </div>
         </main>
-        <Footer language={language} />
+        <Footer />
       </div>
     );
   }
@@ -204,7 +204,7 @@ export default function TeamMemberDetail() {
 
   return (
     <div className="min-h-screen bg-white dark:bg-gray-900" data-testid="page-team-member-detail">
-      <Header language={language} onLanguageChange={setLanguage} />
+      <Header />
       
       {member && (
         <script
@@ -335,7 +335,7 @@ export default function TeamMemberDetail() {
         </div>
       </section>
 
-      <main className="py-16 lg:py-20">
+      <main id="main-content" className="py-16 lg:py-20">
         <div className="max-w-6xl mx-auto px-6 lg:px-12">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
             <div className="lg:col-span-2 space-y-12">
@@ -835,7 +835,7 @@ export default function TeamMemberDetail() {
         </div>
       </main>
 
-      <Footer language={language} />
+      <Footer />
     </div>
   );
 }

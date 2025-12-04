@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { Link } from "wouter";
 import { motion } from "framer-motion";
 import { ArrowRight, AlertCircle } from "lucide-react";
@@ -7,11 +6,13 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import SEOHead from "@/components/SEOHead";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { getIcon } from "@/lib/icons";
 import type { IndustryGroup } from "@shared/schema";
 
 export default function IndustryGroups() {
-  const [language, setLanguage] = useState<"es" | "en">("es");
+  const { language } = useLanguage();
 
   const { data: industryGroups, isLoading, error } = useQuery<IndustryGroup[]>({
     queryKey: ["/api/industry-groups"],
@@ -55,7 +56,8 @@ export default function IndustryGroups() {
 
   return (
     <div className="min-h-screen bg-white dark:bg-gray-900" data-testid="page-industry-groups">
-      <Header language={language} onLanguageChange={setLanguage} />
+      <SEOHead page="industryGroups" language={language} />
+      <Header />
       
       <section className="pt-32 pb-12 bg-primary" data-testid="section-industry-groups-hero">
         <div className="max-w-7xl mx-auto px-6 lg:px-12">
@@ -81,7 +83,7 @@ export default function IndustryGroups() {
         </div>
       </section>
 
-      <main className="py-16 lg:py-20">
+      <main id="main-content" className="py-16 lg:py-20">
         <div className="max-w-7xl mx-auto px-6 lg:px-12">
           {error ? (
             <div className="text-center py-12" data-testid="container-industry-groups-error">
@@ -158,7 +160,7 @@ export default function IndustryGroups() {
         </div>
       </main>
 
-      <Footer language={language} />
+      <Footer />
     </div>
   );
 }

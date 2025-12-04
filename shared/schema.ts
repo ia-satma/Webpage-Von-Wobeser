@@ -83,7 +83,17 @@ export const news = pgTable("news", {
   imageUrl: text("image_url"),
   date: timestamp("date").defaultNow(),
   published: boolean("published").default(true),
+  category: text("category").default("press"),
+  categoryEs: text("category_es").default("Prensa"),
 });
+
+export const newsCategories = [
+  { value: "press", en: "Press", es: "Prensa" },
+  { value: "insights", en: "Insights", es: "Insights" },
+  { value: "rankings", en: "Rankings", es: "Rankings" },
+  { value: "events", en: "Events", es: "Eventos" },
+  { value: "alerts", en: "Alerts", es: "Alertas" },
+] as const;
 
 export const insertNewsSchema = createInsertSchema(news).omit({ id: true, date: true });
 export type InsertNews = z.infer<typeof insertNewsSchema>;

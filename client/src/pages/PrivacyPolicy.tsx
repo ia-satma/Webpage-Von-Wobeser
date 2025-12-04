@@ -1,12 +1,13 @@
-import { useState } from "react";
 import { motion } from "framer-motion";
 import { Shield, FileText, Lock, Mail, Phone, Building2, Clock, Users, Database, Globe, Cookie, AlertCircle } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import SEOHead from "@/components/SEOHead";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function PrivacyPolicy() {
-  const [language, setLanguage] = useState<"es" | "en">("es");
+  const { language } = useLanguage();
 
   const content = {
     en: {
@@ -594,7 +595,8 @@ Sitio web: www.vonwobeser.com`
 
   return (
     <div className="min-h-screen bg-white dark:bg-gray-900" data-testid="page-privacy-policy">
-      <Header language={language} onLanguageChange={setLanguage} />
+      <SEOHead page="privacyPolicy" language={language} />
+      <Header />
       
       <section className="pt-32 pb-12 bg-primary" data-testid="section-privacy-hero">
         <div className="max-w-7xl mx-auto px-6 lg:px-12">
@@ -629,7 +631,7 @@ Sitio web: www.vonwobeser.com`
         </div>
       </section>
 
-      <main className="py-16 lg:py-20">
+      <main id="main-content" className="py-16 lg:py-20">
         <div className="max-w-4xl mx-auto px-6 lg:px-12">
           <motion.div
             variants={containerVariants}
@@ -709,7 +711,7 @@ Sitio web: www.vonwobeser.com`
         </div>
       </main>
 
-      <Footer language={language} />
+      <Footer />
     </div>
   );
 }

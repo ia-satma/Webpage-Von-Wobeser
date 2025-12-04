@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { Link, useParams } from "wouter";
 import { motion } from "framer-motion";
 import { ArrowLeft, Mail, Phone, AlertCircle } from "lucide-react";
@@ -9,11 +8,12 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { getIcon } from "@/lib/icons";
 import type { IndustryGroup, PracticeGroup } from "@shared/schema";
 
 export default function IndustryGroupDetail() {
-  const [language, setLanguage] = useState<"es" | "en">("es");
+  const { language } = useLanguage();
   const params = useParams<{ slug: string }>();
   const slug = params.slug;
 
@@ -56,7 +56,7 @@ export default function IndustryGroupDetail() {
   if (error) {
     return (
       <div className="min-h-screen bg-white dark:bg-gray-900" data-testid="page-industry-group-error">
-        <Header language={language} onLanguageChange={setLanguage} />
+        <Header />
         <div className="pt-32 pb-20">
           <div className="max-w-7xl mx-auto px-6 lg:px-12 text-center">
             <AlertCircle className="w-16 h-16 text-gray-400 mx-auto mb-4" />
@@ -71,7 +71,7 @@ export default function IndustryGroupDetail() {
             </Link>
           </div>
         </div>
-        <Footer language={language} />
+        <Footer />
       </div>
     );
   }
@@ -79,7 +79,7 @@ export default function IndustryGroupDetail() {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-white dark:bg-gray-900" data-testid="page-industry-group-loading">
-        <Header language={language} onLanguageChange={setLanguage} />
+        <Header />
         <section className="pt-32 pb-12 bg-primary">
           <div className="max-w-7xl mx-auto px-6 lg:px-12">
             <Skeleton className="h-5 w-48 bg-white/20 mb-6" />
@@ -89,7 +89,7 @@ export default function IndustryGroupDetail() {
             </div>
           </div>
         </section>
-        <main className="py-16 lg:py-20">
+        <main id="main-content" className="py-16 lg:py-20">
           <div className="max-w-4xl mx-auto px-6 lg:px-12">
             <Skeleton className="h-6 w-full mb-4" />
             <Skeleton className="h-6 w-full mb-4" />
@@ -97,7 +97,7 @@ export default function IndustryGroupDetail() {
             <Skeleton className="h-6 w-5/6 mb-4" />
           </div>
         </main>
-        <Footer language={language} />
+        <Footer />
       </div>
     );
   }
@@ -112,7 +112,7 @@ export default function IndustryGroupDetail() {
 
   return (
     <div className="min-h-screen bg-white dark:bg-gray-900" data-testid="page-industry-group-detail">
-      <Header language={language} onLanguageChange={setLanguage} />
+      <Header />
       
       <section className="pt-32 pb-12 bg-primary" data-testid="section-industry-group-hero">
         <div className="max-w-7xl mx-auto px-6 lg:px-12">
@@ -147,7 +147,7 @@ export default function IndustryGroupDetail() {
         </div>
       </section>
 
-      <main className="py-16 lg:py-20">
+      <main id="main-content" className="py-16 lg:py-20">
         <div className="max-w-4xl mx-auto px-6 lg:px-12">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -234,7 +234,7 @@ export default function IndustryGroupDetail() {
         </div>
       </main>
 
-      <Footer language={language} />
+      <Footer />
     </div>
   );
 }

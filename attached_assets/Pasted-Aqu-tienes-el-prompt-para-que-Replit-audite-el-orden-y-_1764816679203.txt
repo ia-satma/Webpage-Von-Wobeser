@@ -1,0 +1,122 @@
+Aquí tienes el prompt para que Replit audite el orden y estructura de despliegue del contenido, asegurando que coincida exactamente con el sitio original de Von Wobeser:
+
+---
+
+**Prompt para Replit:**
+
+```
+Necesito que realices una auditoría de ORDEN Y ESTRUCTURA de despliegue del contenido, comparando el sitio web original de Von Wobeser y Sierra (https://www.vonwobeser.com) contra lo que estamos construyendo en Replit.
+
+Tu tarea es verificar que el orden exacto en que aparecen los elementos, secciones y contenidos sea idéntico al sitio original. Revisa de arriba hacia abajo, de izquierda a derecha, en el orden preciso en que el usuario los ve.
+
+## INSTRUCCIONES:
+
+1. Visita cada página del sitio original de Von Wobeser
+2. Documenta el orden EXACTO de aparición de cada elemento
+3. Compara con nuestra versión en Replit
+4. Identifica cualquier diferencia en el orden o estructura
+
+## AUDITORÍA POR PÁGINA:
+
+### 1. HOME PAGE - Orden de aparición:
+Documenta el orden exacto de:
+- [ ] Header: ¿Qué aparece primero? (logo, menú, idiomas, buscador) - ¿En qué orden de izquierda a derecha?
+- [ ] Hero section: ¿Qué elementos y en qué orden? (imagen/video, título, subtítulo, CTA)
+- [ ] Primera sección después del hero: ¿Cuál es? ¿Qué contiene?
+- [ ] Segunda sección: ¿Cuál es? ¿Qué contiene?
+- [ ] Orden de todas las secciones intermedias
+- [ ] Penúltima sección antes del footer
+- [ ] Footer: Orden de columnas y elementos
+
+### 2. NAVEGACIÓN PRINCIPAL - Orden del menú:
+- [ ] ¿Cuál es el primer item del menú?
+- [ ] ¿Cuál es el segundo item?
+- [ ] Documenta el orden completo de todos los items del menú principal
+- [ ] Para cada item con submenú: ¿cuál es el orden de los subitems?
+
+### 3. LA FIRMA / ABOUT - Orden de contenido:
+- [ ] ¿Qué sección aparece primero al entrar?
+- [ ] ¿Hay tabs o navegación interna? ¿En qué orden?
+- [ ] Orden de subsecciones (historia, valores, etc.)
+- [ ] Orden de elementos dentro de cada subsección
+
+### 4. EQUIPO / PROFESIONALES - Orden y estructura:
+- [ ] ¿Cómo se ordenan los abogados por defecto? (alfabético, jerárquico, otro)
+- [ ] ¿Qué filtros hay y en qué orden aparecen?
+- [ ] En el perfil individual: ¿qué información aparece primero, segundo, tercero?
+- [ ] Orden exacto de campos en cada perfil
+
+### 5. ÁREAS DE PRÁCTICA - Orden de aparición:
+- [ ] ¿En qué orden aparecen las áreas en el listado principal?
+- [ ] Dentro de cada área: ¿qué secciones hay y en qué orden?
+- [ ] ¿El equipo aparece antes o después de la experiencia?
+- [ ] ¿Los reconocimientos dónde se ubican?
+
+### 6. INDUSTRIAS / SECTORES - Orden:
+- [ ] Orden de industrias en el listado
+- [ ] Estructura interna de cada página de industria
+
+### 7. EXPERIENCIA / CASOS - Orden:
+- [ ] ¿Cómo se ordenan los casos? (cronológico, por área, otro)
+- [ ] Orden de información en cada caso
+
+### 8. RECONOCIMIENTOS - Orden:
+- [ ] ¿Por año? ¿Por directorio? ¿Cuál es el criterio de orden?
+- [ ] ¿Qué aparece primero: firma o individuales?
+
+### 9. NOTICIAS / PUBLICACIONES - Orden:
+- [ ] Orden cronológico: ¿más recientes primero?
+- [ ] Categorías: ¿en qué orden aparecen los filtros?
+- [ ] En cada noticia: orden de elementos (título, fecha, imagen, contenido)
+
+### 10. OFICINAS - Orden:
+- [ ] ¿Qué oficina aparece primero?
+- [ ] Orden de información en cada oficina
+
+### 11. CARRERAS - Orden de secciones:
+- [ ] ¿Qué aparece primero: cultura, vacantes, programa de pasantes?
+- [ ] Orden de campos en formularios
+
+### 12. CONTACTO - Orden:
+- [ ] ¿Información de contacto antes o después del formulario?
+- [ ] Orden de campos en el formulario
+- [ ] Posición de redes sociales
+
+### 13. FOOTER - Orden exacto:
+- [ ] ¿Cuántas columnas tiene?
+- [ ] ¿Qué contiene cada columna de izquierda a derecha?
+- [ ] Orden de links en cada columna
+- [ ] Posición de redes sociales, copyright, legales
+
+## FORMATO DEL REPORTE:
+
+Para cada página, genera una tabla comparativa:
+
+| # | Elemento/Sección | Orden en Original | Orden en Replit | ¿Coincide? | Acción requerida |
+|---|------------------|-------------------|-----------------|------------|------------------|
+| 1 | [elemento]       | [posición]        | [posición]      | ✅/❌      | [qué ajustar]    |
+
+## RESUMEN EJECUTIVO:
+
+Al final incluye:
+1. Porcentaje de coincidencia en orden por página
+2. Lista de discrepancias críticas encontradas
+3. Elementos que están en diferente posición
+4. Elementos que faltan en nuestra versión
+5. Elementos que sobran en nuestra versión
+6. Plan de acción para corregir el orden
+
+## IMPORTANTE:
+
+- El orden importa tanto como el contenido
+- Si en el original el botón de contacto está a la derecha del logo, debe estar igual
+- Si las áreas de práctica se listan en cierto orden, debe respetarse
+- La experiencia del usuario debe ser idéntica al navegar
+- Considera tanto desktop como mobile
+
+Genera el reporte completo comparando ambas versiones.
+```
+
+---
+
+Este prompt le pide a Replit que haga una comparación exhaustiva del orden de despliegue elemento por elemento, asegurando que la experiencia de navegación sea idéntica al sitio original.

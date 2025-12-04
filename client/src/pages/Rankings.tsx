@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { Link } from "wouter";
 import { motion } from "framer-motion";
 import { Award, Star, Trophy, Medal, BookOpen, Users, Scale, Building2, Globe2, Briefcase, ChevronRight, Quote } from "lucide-react";
@@ -8,6 +7,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import SEOHead from "@/components/SEOHead";
+import { useLanguage } from "@/contexts/LanguageContext";
 import type { TeamMember } from "@shared/schema";
 
 interface DirectoryInfo {
@@ -167,7 +168,7 @@ const rankedLawyers = [
 ];
 
 export default function Rankings() {
-  const [language, setLanguage] = useState<"es" | "en">("es");
+  const { language } = useLanguage();
 
   const { data: teamMembers } = useQuery<TeamMember[]>({
     queryKey: ["/api/team"],
@@ -233,7 +234,8 @@ export default function Rankings() {
 
   return (
     <div className="min-h-screen bg-white dark:bg-gray-900" data-testid="page-rankings">
-      <Header language={language} onLanguageChange={setLanguage} />
+      <SEOHead page="rankings" language={language} />
+      <Header />
 
       <section className="pt-32 pb-16 bg-primary" data-testid="section-rankings-hero">
         <div className="max-w-7xl mx-auto px-6 lg:px-12">
@@ -262,7 +264,7 @@ export default function Rankings() {
         </div>
       </section>
 
-      <main className="py-16 lg:py-20">
+      <main id="main-content" className="py-16 lg:py-20">
         <div className="max-w-7xl mx-auto px-6 lg:px-12">
           <motion.section
             initial={{ opacity: 0, y: 20 }}
@@ -489,7 +491,7 @@ export default function Rankings() {
         </div>
       </main>
 
-      <Footer language={language} />
+      <Footer />
     </div>
   );
 }

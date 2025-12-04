@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { Link } from "wouter";
 import { motion } from "framer-motion";
 import { ArrowRight, AlertCircle } from "lucide-react";
@@ -7,11 +6,13 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import SEOHead from "@/components/SEOHead";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { getIcon } from "@/lib/icons";
 import type { PracticeGroup } from "@shared/schema";
 
 export default function PracticeGroups() {
-  const [language, setLanguage] = useState<"es" | "en">("es");
+  const { language } = useLanguage();
 
   const { data: practiceGroups, isLoading, error } = useQuery<PracticeGroup[]>({
     queryKey: ["/api/practice-groups"],
@@ -55,7 +56,8 @@ export default function PracticeGroups() {
 
   return (
     <div className="min-h-screen bg-white dark:bg-gray-900" data-testid="page-practice-groups">
-      <Header language={language} onLanguageChange={setLanguage} />
+      <SEOHead page="practiceGroups" language={language} />
+      <Header />
       
       <section className="pt-32 pb-12 bg-primary" data-testid="section-practice-groups-hero">
         <div className="max-w-7xl mx-auto px-6 lg:px-12">
@@ -81,7 +83,7 @@ export default function PracticeGroups() {
         </div>
       </section>
 
-      <main className="py-16 lg:py-20">
+      <main id="main-content" className="py-16 lg:py-20">
         <div className="max-w-7xl mx-auto px-6 lg:px-12">
           {error ? (
             <div className="text-center py-12" data-testid="container-practice-groups-error">
@@ -158,7 +160,7 @@ export default function PracticeGroups() {
         </div>
       </main>
 
-      <Footer language={language} />
+      <Footer />
     </div>
   );
 }

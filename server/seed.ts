@@ -749,6 +749,8 @@ const newsData = [
     slug: "new-offices-transition",
     imageUrl: "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80",
     published: true,
+    category: "press",
+    categoryEs: "Prensa",
   },
   {
     title: "Von Wobeser y Sierra has been ranked by Chambers and Partners Latin America 2026",
@@ -760,6 +762,8 @@ const newsData = [
     slug: "chambers-ranking-2026",
     imageUrl: "https://images.unsplash.com/photo-1507679799987-c73779587ccf?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80",
     published: true,
+    category: "rankings",
+    categoryEs: "Rankings",
   },
   {
     title: "Von Wobeser y Sierra recognized in Global Investigations Review 100",
@@ -771,6 +775,8 @@ const newsData = [
     slug: "gir-100-recognition",
     imageUrl: "https://images.unsplash.com/photo-1589829545856-d10d557cf95f?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80",
     published: true,
+    category: "rankings",
+    categoryEs: "Rankings",
   },
 ];
 

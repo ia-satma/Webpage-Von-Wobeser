@@ -16,10 +16,12 @@ import {
 } from "@/components/ui/select";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import SEOHead from "@/components/SEOHead";
+import { useLanguage } from "@/contexts/LanguageContext";
 import type { RepresentativeMatterDb, PracticeGroup, IndustryGroup } from "@shared/schema";
 
 export default function Experience() {
-  const [language, setLanguage] = useState<"es" | "en">("es");
+  const { language } = useLanguage();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedPracticeArea, setSelectedPracticeArea] = useState<string>("all");
   const [selectedIndustry, setSelectedIndustry] = useState<string>("all");
@@ -134,7 +136,8 @@ export default function Experience() {
 
   return (
     <div className="min-h-screen bg-white dark:bg-gray-900" data-testid="page-experience">
-      <Header language={language} onLanguageChange={setLanguage} />
+      <SEOHead page="experience" language={language} />
+      <Header />
       
       <section className="pt-32 pb-16 bg-primary" data-testid="section-experience-hero">
         <div className="max-w-7xl mx-auto px-6 lg:px-12">
@@ -461,7 +464,7 @@ export default function Experience() {
         </>
       )}
 
-      <Footer language={language} />
+      <Footer />
     </div>
   );
 }

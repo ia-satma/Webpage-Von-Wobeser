@@ -6,12 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import ThemeToggle from "./ThemeToggle";
+import { useLanguage } from "@/contexts/LanguageContext";
 import type { TeamMember, PracticeGroup, IndustryGroup, News } from "@shared/schema";
-
-interface HeaderProps {
-  language: "es" | "en";
-  onLanguageChange: (lang: "es" | "en") => void;
-}
 
 interface SearchResults {
   team: TeamMember[];
@@ -20,7 +16,8 @@ interface SearchResults {
   news: News[];
 }
 
-export default function Header({ language, onLanguageChange }: HeaderProps) {
+export default function Header() {
+  const { language, setLanguage } = useLanguage();
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
@@ -50,6 +47,43 @@ export default function Header({ language, onLanguageChange }: HeaderProps) {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
+  const ariaLabels = {
+    en: {
+      mainNav: "Main navigation",
+      mobileNav: "Mobile navigation",
+      search: "Search",
+      openSearch: "Open search",
+      closeSearch: "Close search",
+      openMenu: "Open menu",
+      closeMenu: "Close menu",
+      toggleLanguage: "Switch language",
+      searchPlaceholder: "Search...",
+      noResults: "No results found",
+      teamSection: "Team",
+      practiceSection: "Practice Areas",
+      industrySection: "Industries",
+      newsSection: "News",
+    },
+    es: {
+      mainNav: "Navegación principal",
+      mobileNav: "Navegación móvil",
+      search: "Buscar",
+      openSearch: "Abrir búsqueda",
+      closeSearch: "Cerrar búsqueda",
+      openMenu: "Abrir menú",
+      closeMenu: "Cerrar menú",
+      toggleLanguage: "Cambiar idioma",
+      searchPlaceholder: "Buscar...",
+      noResults: "No se encontraron resultados",
+      teamSection: "Equipo",
+      practiceSection: "Áreas de Práctica",
+      industrySection: "Industrias",
+      newsSection: "Noticias",
+    },
+  };
+
+  const aria = ariaLabels[language];
 
   const menuItems = [
     { 
@@ -142,6 +176,7 @@ export default function Header({ language, onLanguageChange }: HeaderProps) {
             href="/"
             className="flex items-center gap-3"
             data-testid="link-logo"
+            aria-label={language === "es" ? "Von Wobeser y Sierra - Inicio" : "Von Wobeser y Sierra - Home"}
           >
             <img
               src="https://vonwobeser.com/images/vonwobeser_2025_.png"
@@ -155,7 +190,13 @@ export default function Header({ language, onLanguageChange }: HeaderProps) {
             />
           </Link>
 
-          <nav className="hidden lg:flex items-center gap-6" data-testid="nav-desktop">
+          <nav 
+            id="main-navigation"
+            className="hidden lg:flex items-center gap-6" 
+            data-testid="nav-desktop"
+            role="navigation"
+            aria-label={aria.mainNav}
+          >
             {menuItems.map((item) => (
               <Link
                 key={item.href}
@@ -168,6 +209,7 @@ export default function Header({ language, onLanguageChange }: HeaderProps) {
                   location === item.href && "text-primary"
                 )}
                 data-testid={`link-nav-${item.id}`}
+                aria-current={location === item.href ? "page" : undefined}
               >
                 {item.label}
               </Link>
@@ -184,30 +226,44 @@ export default function Header({ language, onLanguageChange }: HeaderProps) {
                 )}
                 onClick={() => setIsSearchOpen(!isSearchOpen)}
                 data-testid="button-search"
+                aria-label={isSearchOpen ? aria.closeSearch : aria.openSearch}
+                aria-expanded={isSearchOpen}
+                aria-controls="search-panel"
               >
-                <Search className="w-5 h-5" />
+                <Search className="w-5 h-5" aria-hidden="true" />
               </Button>
               
               {isSearchOpen && (
-                <div className="absolute right-0 top-full mt-2 w-80 bg-white dark:bg-gray-800 rounded-md shadow-xl border border-gray-200 dark:border-gray-700 overflow-hidden" data-testid="container-search">
+                <div 
+                  id="search-panel"
+                  className="absolute right-0 top-full mt-2 w-80 bg-white dark:bg-gray-800 rounded-md shadow-xl border border-gray-200 dark:border-gray-700 overflow-hidden" 
+                  data-testid="container-search"
+                  role="search"
+                  aria-label={aria.search}
+                >
                   <div className="p-3">
                     <Input
-                      type="text"
-                      placeholder={language === "es" ? "Buscar..." : "Search..."}
+                      type="search"
+                      placeholder={aria.searchPlaceholder}
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
                       className="rounded-md"
                       autoFocus
                       data-testid="input-global-search"
+                      aria-label={aria.search}
                     />
                   </div>
                   
                   {searchQuery.length >= 2 && hasResults && (
-                    <div className="max-h-96 overflow-y-auto border-t border-gray-100 dark:border-gray-700">
+                    <div 
+                      className="max-h-96 overflow-y-auto border-t border-gray-100 dark:border-gray-700"
+                      role="listbox"
+                      aria-label={language === "es" ? "Resultados de búsqueda" : "Search results"}
+                    >
                       {searchResults.team.length > 0 && (
-                        <div className="p-2">
-                          <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase px-2 mb-1">
-                            {language === "es" ? "Equipo" : "Team"}
+                        <div className="p-2" role="group" aria-label={aria.teamSection}>
+                          <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase px-2 mb-1" id="search-team-label">
+                            {aria.teamSection}
                           </p>
                           {searchResults.team.map((member) => (
                             <button
@@ -215,8 +271,9 @@ export default function Header({ language, onLanguageChange }: HeaderProps) {
                               onClick={() => handleSearchSelect(`/team/${member.slug}`)}
                               className="w-full text-left px-2 py-2 rounded hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-3"
                               data-testid={`search-result-team-${member.slug}`}
+                              role="option"
                             >
-                              <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary text-xs font-medium">
+                              <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary text-xs font-medium" aria-hidden="true">
                                 {member.name.split(' ').map(n => n[0]).join('').slice(0, 2)}
                               </div>
                               <div>
@@ -231,9 +288,9 @@ export default function Header({ language, onLanguageChange }: HeaderProps) {
                       )}
                       
                       {searchResults.practiceGroups.length > 0 && (
-                        <div className="p-2 border-t border-gray-100 dark:border-gray-700">
+                        <div className="p-2 border-t border-gray-100 dark:border-gray-700" role="group" aria-label={aria.practiceSection}>
                           <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase px-2 mb-1">
-                            {language === "es" ? "Áreas de Práctica" : "Practice Areas"}
+                            {aria.practiceSection}
                           </p>
                           {searchResults.practiceGroups.map((group) => (
                             <button
@@ -241,6 +298,7 @@ export default function Header({ language, onLanguageChange }: HeaderProps) {
                               onClick={() => handleSearchSelect(`/practice-groups/${group.slug}`)}
                               className="w-full text-left px-2 py-2 rounded hover:bg-gray-100 dark:hover:bg-gray-700"
                               data-testid={`search-result-practice-${group.slug}`}
+                              role="option"
                             >
                               <p className="text-sm font-medium text-gray-800 dark:text-white">
                                 {language === "es" ? group.nameEs : group.name}
@@ -251,9 +309,9 @@ export default function Header({ language, onLanguageChange }: HeaderProps) {
                       )}
                       
                       {searchResults.industryGroups.length > 0 && (
-                        <div className="p-2 border-t border-gray-100 dark:border-gray-700">
+                        <div className="p-2 border-t border-gray-100 dark:border-gray-700" role="group" aria-label={aria.industrySection}>
                           <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase px-2 mb-1">
-                            {language === "es" ? "Industrias" : "Industries"}
+                            {aria.industrySection}
                           </p>
                           {searchResults.industryGroups.map((group) => (
                             <button
@@ -261,6 +319,7 @@ export default function Header({ language, onLanguageChange }: HeaderProps) {
                               onClick={() => handleSearchSelect(`/industry-groups/${group.slug}`)}
                               className="w-full text-left px-2 py-2 rounded hover:bg-gray-100 dark:hover:bg-gray-700"
                               data-testid={`search-result-industry-${group.slug}`}
+                              role="option"
                             >
                               <p className="text-sm font-medium text-gray-800 dark:text-white">
                                 {language === "es" ? group.nameEs : group.name}
@@ -271,9 +330,9 @@ export default function Header({ language, onLanguageChange }: HeaderProps) {
                       )}
                       
                       {searchResults.news.length > 0 && (
-                        <div className="p-2 border-t border-gray-100 dark:border-gray-700">
+                        <div className="p-2 border-t border-gray-100 dark:border-gray-700" role="group" aria-label={aria.newsSection}>
                           <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase px-2 mb-1">
-                            {language === "es" ? "Noticias" : "News"}
+                            {aria.newsSection}
                           </p>
                           {searchResults.news.map((article) => (
                             <button
@@ -281,6 +340,7 @@ export default function Header({ language, onLanguageChange }: HeaderProps) {
                               onClick={() => handleSearchSelect(`/news/${article.slug}`)}
                               className="w-full text-left px-2 py-2 rounded hover:bg-gray-100 dark:hover:bg-gray-700"
                               data-testid={`search-result-news-${article.slug}`}
+                              role="option"
                             >
                               <p className="text-sm font-medium text-gray-800 dark:text-white line-clamp-1">
                                 {language === "es" ? article.titleEs : article.title}
@@ -293,8 +353,8 @@ export default function Header({ language, onLanguageChange }: HeaderProps) {
                   )}
                   
                   {searchQuery.length >= 2 && !hasResults && (
-                    <div className="p-4 text-center text-sm text-gray-500 dark:text-gray-400 border-t border-gray-100 dark:border-gray-700">
-                      {language === "es" ? "No se encontraron resultados" : "No results found"}
+                    <div className="p-4 text-center text-sm text-gray-500 dark:text-gray-400 border-t border-gray-100 dark:border-gray-700" role="status">
+                      {aria.noResults}
                     </div>
                   )}
                 </div>
@@ -304,7 +364,7 @@ export default function Header({ language, onLanguageChange }: HeaderProps) {
             {isScrolled && <ThemeToggle />}
             
             <button
-              onClick={() => onLanguageChange(language === "es" ? "en" : "es")}
+              onClick={() => setLanguage(language === "es" ? "en" : "es")}
               className={cn(
                 "flex items-center gap-2 text-sm font-medium transition-colors duration-200 px-2 py-1",
                 isScrolled
@@ -312,8 +372,9 @@ export default function Header({ language, onLanguageChange }: HeaderProps) {
                   : "text-white/90 hover:text-white"
               )}
               data-testid="button-language-toggle"
+              aria-label={`${aria.toggleLanguage}: ${language === "es" ? "English" : "Español"}`}
             >
-              <Globe className="w-4 h-4" data-testid="icon-globe" />
+              <Globe className="w-4 h-4" data-testid="icon-globe" aria-hidden="true" />
               <span data-testid="text-language">{language === "es" ? "ENG" : "ESP"}</span>
             </button>
 
@@ -326,15 +387,25 @@ export default function Header({ language, onLanguageChange }: HeaderProps) {
               )}
               onClick={() => setIsMobileMenuOpen(true)}
               data-testid="button-mobile-menu"
+              aria-label={aria.openMenu}
+              aria-expanded={isMobileMenuOpen}
+              aria-controls="mobile-menu"
             >
-              <Menu className="w-6 h-6" />
+              <Menu className="w-6 h-6" aria-hidden="true" />
             </Button>
           </div>
         </div>
       </header>
 
       {isMobileMenuOpen && (
-        <div className="fixed inset-0 z-[60] bg-primary" data-testid="modal-mobile-menu">
+        <div 
+          id="mobile-menu"
+          className="fixed inset-0 z-[60] bg-primary" 
+          data-testid="modal-mobile-menu"
+          role="dialog"
+          aria-modal="true"
+          aria-label={aria.mobileNav}
+        >
           <div className="flex flex-col h-full">
             <div className="flex items-center justify-between p-6">
               <img
@@ -349,12 +420,18 @@ export default function Header({ language, onLanguageChange }: HeaderProps) {
                 className="text-white"
                 onClick={() => setIsMobileMenuOpen(false)}
                 data-testid="button-close-menu"
+                aria-label={aria.closeMenu}
               >
-                <X className="w-6 h-6" />
+                <X className="w-6 h-6" aria-hidden="true" />
               </Button>
             </div>
 
-            <nav className="flex flex-col items-center justify-center flex-1 gap-6" data-testid="nav-mobile">
+            <nav 
+              className="flex flex-col items-center justify-center flex-1 gap-6" 
+              data-testid="nav-mobile"
+              role="navigation"
+              aria-label={aria.mobileNav}
+            >
               {menuItems.map((item) => (
                 <Link
                   key={item.href}
@@ -362,19 +439,21 @@ export default function Header({ language, onLanguageChange }: HeaderProps) {
                   className="text-2xl font-heading text-white/90 hover:text-white transition-colors"
                   data-testid={`link-mobile-${item.id}`}
                   onClick={() => setIsMobileMenuOpen(false)}
+                  aria-current={location === item.href ? "page" : undefined}
                 >
                   {item.label}
                 </Link>
               ))}
               <button
                 onClick={() => {
-                  onLanguageChange(language === "es" ? "en" : "es");
+                  setLanguage(language === "es" ? "en" : "es");
                   setIsMobileMenuOpen(false);
                 }}
                 className="flex items-center gap-2 text-lg text-white/80 hover:text-white mt-8"
                 data-testid="button-mobile-language"
+                aria-label={`${aria.toggleLanguage}: ${language === "es" ? "English" : "Español"}`}
               >
-                <Globe className="w-5 h-5" />
+                <Globe className="w-5 h-5" aria-hidden="true" />
                 <span>{language === "es" ? "English" : "Español"}</span>
               </button>
             </nav>

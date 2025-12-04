@@ -1,12 +1,13 @@
-import { useState } from "react";
 import { motion } from "framer-motion";
 import { FileText, Scale, Globe, AlertTriangle, Users, Shield, Gavel, BookOpen, Bell, Phone, Mail, Building2 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import SEOHead from "@/components/SEOHead";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function Terms() {
-  const [language, setLanguage] = useState<"es" | "en">("es");
+  const { language } = useLanguage();
 
   const content = {
     en: {
@@ -570,7 +571,8 @@ Para consultas relacionadas con posible representación legal, comuníquese con 
 
   return (
     <div className="min-h-screen bg-white dark:bg-gray-900" data-testid="page-terms">
-      <Header language={language} onLanguageChange={setLanguage} />
+      <SEOHead page="terms" language={language} />
+      <Header />
       
       <section className="pt-32 pb-12 bg-primary" data-testid="section-terms-hero">
         <div className="max-w-7xl mx-auto px-6 lg:px-12">
@@ -605,7 +607,7 @@ Para consultas relacionadas con posible representación legal, comuníquese con 
         </div>
       </section>
 
-      <main className="py-16 lg:py-20">
+      <main id="main-content" className="py-16 lg:py-20">
         <div className="max-w-4xl mx-auto px-6 lg:px-12">
           <motion.div
             variants={containerVariants}
@@ -685,7 +687,7 @@ Para consultas relacionadas con posible representación legal, comuníquese con 
         </div>
       </main>
 
-      <Footer language={language} />
+      <Footer />
     </div>
   );
 }

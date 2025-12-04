@@ -2,14 +2,12 @@ import { Link } from "wouter";
 import { MapPin, Phone, Mail, Linkedin, ExternalLink, AlertCircle, Building2 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useLanguage } from "@/contexts/LanguageContext";
 import type { SiteContent } from "@shared/schema";
 import esrLogo from "@assets/image_1764710915519.png";
 
-interface FooterProps {
-  language: "es" | "en";
-}
-
-export default function Footer({ language }: FooterProps) {
+export default function Footer() {
+  const { language } = useLanguage();
   const { data: siteContent, isLoading, error } = useQuery<SiteContent>({
     queryKey: ["/api/site-content"],
   });
@@ -48,6 +46,11 @@ export default function Footer({ language }: FooterProps) {
       industryLabel: "Industry Groups",
       errorMessage: "Contact information unavailable",
       followUs: "Follow Us",
+      linkedinLabel: "Visit Von Wobeser on LinkedIn (opens in new tab)",
+      websiteLabel: "Visit Von Wobeser website (opens in new tab)",
+      phoneLabel: "Call Von Wobeser",
+      emailLabel: "Email Von Wobeser",
+      cookiesLabel: "Manage cookie preferences",
     },
     es: {
       firm: "La Firma",
@@ -82,6 +85,11 @@ export default function Footer({ language }: FooterProps) {
       industryLabel: "Grupos Industriales",
       errorMessage: "Información de contacto no disponible",
       followUs: "Síguenos",
+      linkedinLabel: "Visitar Von Wobeser en LinkedIn (abre en nueva pestaña)",
+      websiteLabel: "Visitar sitio web de Von Wobeser (abre en nueva pestaña)",
+      phoneLabel: "Llamar a Von Wobeser",
+      emailLabel: "Enviar correo a Von Wobeser",
+      cookiesLabel: "Gestionar preferencias de cookies",
     },
   };
 
@@ -90,7 +98,7 @@ export default function Footer({ language }: FooterProps) {
   const renderContactInfo = () => {
     if (isLoading) {
       return (
-        <div className="space-y-4" data-testid="skeleton-contact">
+        <div className="space-y-4" data-testid="skeleton-contact" aria-busy="true" aria-label={language === "es" ? "Cargando información de contacto" : "Loading contact information"}>
           <div className="flex items-start gap-3">
             <Skeleton className="w-4 h-4 rounded-full flex-shrink-0 mt-1 bg-gray-700" />
             <div className="space-y-1">
@@ -113,8 +121,8 @@ export default function Footer({ language }: FooterProps) {
 
     if (error) {
       return (
-        <div className="flex items-center gap-3 text-gray-500" data-testid="text-contact-error">
-          <AlertCircle className="w-5 h-5" />
+        <div className="flex items-center gap-3 text-gray-500" data-testid="text-contact-error" role="alert">
+          <AlertCircle className="w-5 h-5" aria-hidden="true" />
           <span className="text-sm">{t.errorMessage}</span>
         </div>
       );
@@ -122,30 +130,34 @@ export default function Footer({ language }: FooterProps) {
 
     return (
       <div className="space-y-4">
-        <div className="flex items-start gap-3" data-testid="text-footer-address">
-          <Building2 className="w-4 h-4 text-primary flex-shrink-0 mt-1" />
-          <div className="text-sm text-gray-400">
-            <p>{t.building}</p>
-            <p>{t.street}</p>
-            <p>{t.city}</p>
+        <address className="not-italic" data-testid="text-footer-address">
+          <div className="flex items-start gap-3">
+            <Building2 className="w-4 h-4 text-primary flex-shrink-0 mt-1" aria-hidden="true" />
+            <div className="text-sm text-gray-400">
+              <p>{t.building}</p>
+              <p>{t.street}</p>
+              <p>{t.city}</p>
+            </div>
           </div>
-        </div>
+        </address>
         <div className="flex items-center gap-3">
-          <Phone className="w-4 h-4 text-primary flex-shrink-0" />
+          <Phone className="w-4 h-4 text-primary flex-shrink-0" aria-hidden="true" />
           <a
             href={`tel:${t.phone.replace(/\s/g, "")}`}
             className="text-sm text-gray-400 hover:text-white transition-colors"
             data-testid="link-footer-phone"
+            aria-label={`${t.phoneLabel}: ${t.phone}`}
           >
             {t.phone}
           </a>
         </div>
         <div className="flex items-center gap-3">
-          <Mail className="w-4 h-4 text-primary flex-shrink-0" />
+          <Mail className="w-4 h-4 text-primary flex-shrink-0" aria-hidden="true" />
           <a
             href={`mailto:${t.email}`}
             className="text-sm text-gray-400 hover:text-white transition-colors"
             data-testid="link-footer-email"
+            aria-label={`${t.emailLabel}: ${t.email}`}
           >
             {t.email}
           </a>
@@ -159,8 +171,9 @@ export default function Footer({ language }: FooterProps) {
               rel="noopener noreferrer"
               className="text-gray-400 hover:text-white transition-colors"
               data-testid="link-linkedin"
+              aria-label={t.linkedinLabel}
             >
-              <Linkedin className="w-5 h-5" />
+              <Linkedin className="w-5 h-5" aria-hidden="true" />
             </a>
             <a
               href="https://www.vonwobeser.com"
@@ -168,8 +181,9 @@ export default function Footer({ language }: FooterProps) {
               rel="noopener noreferrer"
               className="text-gray-400 hover:text-white transition-colors"
               data-testid="link-website"
+              aria-label={t.websiteLabel}
             >
-              <ExternalLink className="w-5 h-5" />
+              <ExternalLink className="w-5 h-5" aria-hidden="true" />
             </a>
           </div>
         </div>
@@ -182,6 +196,8 @@ export default function Footer({ language }: FooterProps) {
       id="footer"
       className="bg-gray-900 text-white py-16 lg:py-20"
       data-testid="footer"
+      role="contentinfo"
+      aria-label={language === "es" ? "Pie de página del sitio" : "Site footer"}
     >
       <div className="max-w-7xl mx-auto px-6 lg:px-12">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-10 lg:gap-8 mb-16">
@@ -197,10 +213,10 @@ export default function Footer({ language }: FooterProps) {
             </p>
           </div>
 
-          <div>
-            <h3 className="text-sm font-semibold uppercase tracking-wider text-white mb-6" data-testid="text-footer-firm-title">
+          <nav aria-label={language === "es" ? "Enlaces de la firma" : "Firm links"}>
+            <h2 className="text-sm font-semibold uppercase tracking-wider text-white mb-6" data-testid="text-footer-firm-title">
               {t.firm}
-            </h3>
+            </h2>
             <ul className="space-y-3" data-testid="list-firm-links">
               {t.firmLinks.map((link) => (
                 <li key={link.id}>
@@ -224,34 +240,36 @@ export default function Footer({ language }: FooterProps) {
                 </li>
               ))}
             </ul>
-          </div>
+          </nav>
 
           <div>
-            <h3 className="text-sm font-semibold uppercase tracking-wider text-white mb-6" data-testid="text-footer-capabilities-title">
-              {t.capabilities}
-            </h3>
-            <ul className="space-y-3" data-testid="list-capabilities-links">
-              {t.capabilitiesLinks.map((link) => (
-                <li key={link.id}>
-                  <Link
-                    href={link.href}
-                    className="text-gray-400 hover:text-white transition-colors text-sm"
-                    data-testid={`link-footer-${link.id}`}
-                  >
-                    {link.label}
-                  </Link>
-                </li>
-              ))}
-            </ul>
+            <nav aria-label={language === "es" ? "Enlaces de capacidades" : "Capabilities links"}>
+              <h2 className="text-sm font-semibold uppercase tracking-wider text-white mb-6" data-testid="text-footer-capabilities-title">
+                {t.capabilities}
+              </h2>
+              <ul className="space-y-3" data-testid="list-capabilities-links">
+                {t.capabilitiesLinks.map((link) => (
+                  <li key={link.id}>
+                    <Link
+                      href={link.href}
+                      className="text-gray-400 hover:text-white transition-colors text-sm"
+                      data-testid={`link-footer-${link.id}`}
+                    >
+                      {link.label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </nav>
             <div className="mt-6 pt-6 border-t border-gray-800">
               <div className="flex items-center gap-3 text-primary mb-2" data-testid="stat-practice-groups">
-                <span className="text-2xl font-heading">18</span>
+                <span className="text-2xl font-heading" aria-label={`18 ${t.practiceLabel}`}>18</span>
                 <span className="text-xs text-gray-400 uppercase tracking-wider">
                   {t.practiceLabel}
                 </span>
               </div>
               <div className="flex items-center gap-3 text-primary" data-testid="stat-industry-groups">
-                <span className="text-2xl font-heading">7</span>
+                <span className="text-2xl font-heading" aria-label={`7 ${t.industryLabel}`}>7</span>
                 <span className="text-xs text-gray-400 uppercase tracking-wider">
                   {t.industryLabel}
                 </span>
@@ -259,10 +277,10 @@ export default function Footer({ language }: FooterProps) {
             </div>
           </div>
 
-          <div>
-            <h3 className="text-sm font-semibold uppercase tracking-wider text-white mb-6" data-testid="text-footer-resources-title">
+          <nav aria-label={language === "es" ? "Enlaces de recursos" : "Resources links"}>
+            <h2 className="text-sm font-semibold uppercase tracking-wider text-white mb-6" data-testid="text-footer-resources-title">
               {t.resources}
-            </h3>
+            </h2>
             <ul className="space-y-3" data-testid="list-resources-links">
               {t.resourcesLinks.map((link) => (
                 <li key={link.id}>
@@ -276,12 +294,12 @@ export default function Footer({ language }: FooterProps) {
                 </li>
               ))}
             </ul>
-          </div>
+          </nav>
 
           <div>
-            <h3 className="text-sm font-semibold uppercase tracking-wider text-white mb-6" data-testid="text-footer-contact-title">
+            <h2 className="text-sm font-semibold uppercase tracking-wider text-white mb-6" data-testid="text-footer-contact-title">
               {t.contact}
-            </h3>
+            </h2>
             {renderContactInfo()}
           </div>
         </div>
@@ -294,12 +312,12 @@ export default function Footer({ language }: FooterProps) {
               </p>
               <img 
                 src={esrLogo} 
-                alt="Empresa Socialmente Responsable" 
+                alt={language === "es" ? "Empresa Socialmente Responsable" : "Socially Responsible Company"}
                 className="h-10 object-contain"
                 data-testid="img-esr-logo"
               />
             </div>
-            <div className="flex items-center gap-6">
+            <nav className="flex items-center gap-6" aria-label={language === "es" ? "Enlaces legales" : "Legal links"}>
               <Link
                 href="/privacy-policy"
                 className="text-xs text-gray-500 hover:text-white transition-colors"
@@ -318,10 +336,11 @@ export default function Footer({ language }: FooterProps) {
                 onClick={() => localStorage.removeItem('vwb_cookie_consent')}
                 className="text-xs text-gray-500 hover:text-white transition-colors"
                 data-testid="button-cookies"
+                aria-label={t.cookiesLabel}
               >
                 {t.cookies}
               </button>
-            </div>
+            </nav>
           </div>
         </div>
       </div>
