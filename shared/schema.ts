@@ -271,3 +271,151 @@ export const practiceAreas = [
   { value: "administrative-law", en: "Administrative Law", es: "Derecho Administrativo" },
   { value: "german-desk", en: "German Desk", es: "Desk Alemán" },
 ] as const;
+
+// ============================================
+// BLOG ADMIN MODULE
+// ============================================
+
+// Admin Users with roles
+export const adminUsers = pgTable("admin_users", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  username: text("username").notNull().unique(),
+  email: text("email").notNull().unique(),
+  passwordHash: text("password_hash").notNull(),
+  role: text("role").notNull().default("editor"), // super_admin, editor, author
+  createdAt: timestamp("created_at").defaultNow(),
+  lastLogin: timestamp("last_login"),
+  isActive: boolean("is_active").default(true),
+});
+
+export const insertAdminUserSchema = createInsertSchema(adminUsers).omit({ id: true, createdAt: true, lastLogin: true });
+export type InsertAdminUser = z.infer<typeof insertAdminUserSchema>;
+export type AdminUser = typeof adminUsers.$inferSelect;
+
+// Blog Categories
+export const blogCategories = pgTable("blog_categories", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull(),
+  nameEs: text("name_es").notNull(),
+  slug: text("slug").notNull().unique(),
+  description: text("description"),
+  descriptionEs: text("description_es"),
+  order: integer("order").default(0),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertBlogCategorySchema = createInsertSchema(blogCategories).omit({ id: true, createdAt: true });
+export type InsertBlogCategory = z.infer<typeof insertBlogCategorySchema>;
+export type BlogCategory = typeof blogCategories.$inferSelect;
+
+// Blog Tags
+export const blogTags = pgTable("blog_tags", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull(),
+  nameEs: text("name_es"),
+  slug: text("slug").notNull().unique(),
+});
+
+export const insertBlogTagSchema = createInsertSchema(blogTags).omit({ id: true });
+export type InsertBlogTag = z.infer<typeof insertBlogTagSchema>;
+export type BlogTag = typeof blogTags.$inferSelect;
+
+// Blog Posts
+export const blogPosts = pgTable("blog_posts", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  title: text("title").notNull(),
+  titleEs: text("title_es").notNull(),
+  slug: text("slug").notNull().unique(),
+  content: text("content"),
+  contentEs: text("content_es"),
+  excerpt: text("excerpt"),
+  excerptEs: text("excerpt_es"),
+  featuredImage: text("featured_image"),
+  categoryId: varchar("category_id"),
+  authorId: varchar("author_id"),
+  status: text("status").notNull().default("draft"), // draft, published, trash
+  publishedAt: timestamp("published_at"),
+  metaTitle: text("meta_title"),
+  metaTitleEs: text("meta_title_es"),
+  metaDescription: text("meta_description"),
+  metaDescriptionEs: text("meta_description_es"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+  deletedAt: timestamp("deleted_at"),
+});
+
+export const insertBlogPostSchema = createInsertSchema(blogPosts).omit({ id: true, createdAt: true, updatedAt: true });
+export type InsertBlogPost = z.infer<typeof insertBlogPostSchema>;
+export type BlogPost = typeof blogPosts.$inferSelect;
+
+// Blog Post Tags (pivot table)
+export const blogPostTags = pgTable("blog_post_tags", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  postId: varchar("post_id").notNull(),
+  tagId: varchar("tag_id").notNull(),
+});
+
+// Media Library
+export const mediaItems = pgTable("media_items", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  filename: text("filename").notNull(),
+  originalName: text("original_name").notNull(),
+  path: text("path").notNull(),
+  mimeType: text("mime_type").notNull(),
+  size: integer("size"),
+  width: integer("width"),
+  height: integer("height"),
+  alt: text("alt"),
+  altEs: text("alt_es"),
+  uploadedBy: varchar("uploaded_by"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertMediaItemSchema = createInsertSchema(mediaItems).omit({ id: true, createdAt: true });
+export type InsertMediaItem = z.infer<typeof insertMediaItemSchema>;
+export type MediaItem = typeof mediaItems.$inferSelect;
+
+// Admin sessions for token-based auth
+export const adminSessions = pgTable("admin_sessions", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull(),
+  token: text("token").notNull().unique(),
+  expiresAt: timestamp("expires_at").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+  ipAddress: text("ip_address"),
+  userAgent: text("user_agent"),
+});
+
+export const insertAdminSessionSchema = createInsertSchema(adminSessions).omit({ id: true, createdAt: true });
+export type InsertAdminSession = z.infer<typeof insertAdminSessionSchema>;
+export type AdminSession = typeof adminSessions.$inferSelect;
+
+// Admin login schema for validation
+export const adminLoginSchema = z.object({
+  username: z.string().min(1, "Username is required"),
+  password: z.string().min(6, "Password must be at least 6 characters"),
+});
+
+export type AdminLoginData = z.infer<typeof adminLoginSchema>;
+
+// Blog post creation schema with validation
+export const blogPostFormSchema = z.object({
+  title: z.string().min(1, "Title is required").max(200),
+  titleEs: z.string().min(1, "Spanish title is required").max(200),
+  slug: z.string().min(1, "Slug is required").max(250),
+  content: z.string().optional(),
+  contentEs: z.string().optional(),
+  excerpt: z.string().max(500).optional(),
+  excerptEs: z.string().max(500).optional(),
+  featuredImage: z.string().optional(),
+  categoryId: z.string().optional(),
+  status: z.enum(["draft", "published", "trash"]).default("draft"),
+  publishedAt: z.date().optional().nullable(),
+  metaTitle: z.string().max(70).optional(),
+  metaTitleEs: z.string().max(70).optional(),
+  metaDescription: z.string().max(160).optional(),
+  metaDescriptionEs: z.string().max(160).optional(),
+  tagIds: z.array(z.string()).optional(),
+});
+
+export type BlogPostFormData = z.infer<typeof blogPostFormSchema>;

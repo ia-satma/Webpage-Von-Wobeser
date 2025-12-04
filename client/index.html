@@ -2,17 +2,79 @@
 <html lang="es">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes" />
+    <meta name="theme-color" content="#AC162C" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="format-detection" content="telephone=no" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    
     <title>Von Wobeser y Sierra - We Go Where Clients Need Us</title>
-    <meta name="description" content="Von Wobeser y Sierra, S.C. - Firma de abogados l\u00edder en M\u00e9xico. Nuevas oficinas en Torre SOMA Chapultepec, Polanco. 18 grupos de pr\u00e1ctica legal y 7 grupos industriales." />
+    <meta name="description" content="Von Wobeser y Sierra, S.C. - Firma de abogados líder en México. Nuevas oficinas en Torre SOMA Chapultepec, Polanco. 18 grupos de práctica legal y 7 grupos industriales." />
+    <meta name="keywords" content="Von Wobeser, abogados Mexico, firma legal, law firm Mexico, corporate law, M&A, litigation, arbitration" />
+    <meta name="author" content="Von Wobeser y Sierra, S.C." />
+    <meta name="robots" content="index, follow" />
+    
     <meta property="og:title" content="Von Wobeser y Sierra - We Go Where Clients Need Us" />
-    <meta property="og:description" content="Firma de abogados l\u00edder en M\u00e9xico con nuevas oficinas en Polanco." />
+    <meta property="og:description" content="Firma de abogados líder en México con nuevas oficinas en Polanco." />
     <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://www.vonwobeser.com" />
+    <meta property="og:image" content="https://vonwobeser.com/images/vonwobeser_2025_.png" />
+    <meta property="og:site_name" content="Von Wobeser y Sierra" />
+    <meta property="og:locale" content="es_MX" />
+    <meta property="og:locale:alternate" content="en_US" />
+    
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:site" content="@vonwobeser" />
+    <meta name="twitter:title" content="Von Wobeser y Sierra - We Go Where Clients Need Us" />
+    <meta name="twitter:description" content="Firma de abogados líder en México." />
+    <meta name="twitter:image" content="https://vonwobeser.com/images/vonwobeser_2025_.png" />
+    
     <link rel="icon" type="image/png" href="/favicon.png" />
-    <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,400&family=Inter:wght@300;400;500;600&display=swap">
-    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,400&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="apple-touch-icon" sizes="180x180" href="/favicon.png" />
+    <link rel="manifest" href="/manifest.json" />
+    <link rel="canonical" href="https://www.vonwobeser.com" />
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
+    <link rel="dns-prefetch" href="https://fonts.gstatic.com" />
+    
+    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,400&family=Inter:wght@300;400;500;600&display=swap" />
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,400&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
+    
+    <style>
+      @font-face {
+        font-family: 'Inter';
+        font-display: swap;
+      }
+      @font-face {
+        font-family: 'Cormorant Garamond';
+        font-display: swap;
+      }
+      body {
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        text-rendering: optimizeLegibility;
+      }
+      .loading-skeleton {
+        background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+        background-size: 200% 100%;
+        animation: loading 1.5s infinite;
+      }
+      @keyframes loading {
+        0% { background-position: 200% 0; }
+        100% { background-position: -200% 0; }
+      }
+      #root:empty::before {
+        content: '';
+        display: block;
+        width: 100%;
+        height: 100vh;
+        background: #ffffff;
+      }
+    </style>
   </head>
   <body>
     <div id="root"></div>

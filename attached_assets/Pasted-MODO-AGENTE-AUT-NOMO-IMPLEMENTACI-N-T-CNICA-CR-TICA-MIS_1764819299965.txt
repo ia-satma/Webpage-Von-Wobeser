@@ -1,0 +1,467 @@
+MODO AGENTE AUTÓNOMO - IMPLEMENTACIÓN TÉCNICA CRÍTICA
+
+MISIÓN: Implementar optimizaciones de rendimiento, SEO y sistema de administración de blog en nuestro sitio de Von Wobeser.
+
+⚠️ ADVERTENCIA: NO TOCAR CONTENIDO NI ESTRUCTURA VISUAL ⚠️
+Solo implementa las mejoras técnicas. No cambies textos, orden de secciones, ni diseño.
+
+═══════════════════════════════════════════════════════════════
+PARTE 1: OPTIMIZACIÓN MÓVIL (MOBILE-FIRST)
+═══════════════════════════════════════════════════════════════
+
+IMPLEMENTAR:
+
+1. VIEWPORT Y META TAGS MÓVILES
+   - <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+   - Touch icons para iOS y Android
+   - Theme color para barra de navegador móvil
+
+2. CSS MOBILE-FIRST
+   - Reescribir media queries: empezar con estilos móviles, escalar hacia desktop
+   - Breakpoints estándar: 320px, 480px, 768px, 1024px, 1280px, 1536px
+   - Touch targets mínimo 44x44 píxeles en botones y links
+   - Espaciado adecuado para dedos, no para mouse
+
+3. NAVEGACIÓN MÓVIL
+   - Menú hamburguesa optimizado
+   - Transiciones suaves (no laggy)
+   - Cerrar menú al hacer tap fuera
+   - Submenús accesibles en touch
+
+4. IMÁGENES RESPONSIVE
+   - Usar <picture> con srcset para diferentes tamaños
+   - Tamaños: 320w, 640w, 768w, 1024w, 1536w, 2048w
+   - Formato WebP con fallback a JPG/PNG
+   - Aspect ratio definido para evitar layout shift
+
+5. TIPOGRAFÍA RESPONSIVE
+   - Usar clamp() para tamaños fluidos
+   - Ejemplo: font-size: clamp(1rem, 2.5vw, 1.5rem)
+   - Line-height adecuado para lectura móvil
+
+6. FORMULARIOS MÓVILES
+   - Inputs con type correcto (tel, email, etc.) para teclados nativos
+   - Labels visibles, no solo placeholders
+   - Botones de submit grandes y accesibles
+
+═══════════════════════════════════════════════════════════════
+PARTE 2: VELOCIDAD DE CARGA (PERFORMANCE)
+═══════════════════════════════════════════════════════════════
+
+IMPLEMENTAR:
+
+1. CRITICAL CSS
+   - Extraer CSS crítico above-the-fold
+   - Inline en <head> para primera pintura instantánea
+   - Cargar resto de CSS con preload/async
+
+2. LAZY LOADING
+   - loading="lazy" en todas las imágenes below-the-fold
+   - Intersection Observer para cargar secciones bajo demanda
+   - Placeholder blur o color sólido mientras carga
+
+3. OPTIMIZACIÓN DE IMÁGENES
+   - Comprimir todas las imágenes (quality 80-85%)
+   - Convertir a WebP
+   - Implementar CDN si es posible
+   - Dimensiones exactas (no escalar con CSS)
+
+4. OPTIMIZACIÓN DE FUENTES
+   - font-display: swap en todas las fuentes
+   - Preload de fuentes críticas
+   - Subset de caracteres (solo latin si aplica)
+   - Limitar variantes de peso
+
+5. JAVASCRIPT OPTIMIZADO
+   - defer en scripts no críticos
+   - async donde sea posible
+   - Code splitting si usas framework
+   - Eliminar JS no utilizado
+
+6. MINIFICACIÓN Y COMPRESIÓN
+   - Minificar HTML, CSS, JS
+   - Habilitar Gzip/Brotli en servidor
+   - Eliminar comentarios y espacios en producción
+
+7. CACHE HEADERS
+   - Cache-Control para assets estáticos (1 año)
+   - Versionado de archivos para cache busting
+   - Service Worker para cache offline (opcional)
+
+8. PRECONNECT Y PREFETCH
+   - <link rel="preconnect"> para dominios externos (fonts, analytics)
+   - <link rel="dns-prefetch"> para recursos secundarios
+   - <link rel="prefetch"> para páginas probables de navegación
+
+META DE PERFORMANCE:
+- Largest Contentful Paint (LCP): < 2.5 segundos
+- First Input Delay (FID): < 100ms
+- Cumulative Layout Shift (CLS): < 0.1
+- Time to First Byte (TTFB): < 600ms
+
+═══════════════════════════════════════════════════════════════
+PARTE 3: SEO TÉCNICO COMPLETO
+═══════════════════════════════════════════════════════════════
+
+IMPLEMENTAR:
+
+1. META TAGS POR PÁGINA
+   Cada página debe tener únicos:
+   - <title> - máximo 60 caracteres, keyword principal al inicio
+   - <meta name="description"> - máximo 160 caracteres, call to action
+   - <meta name="keywords"> - palabras clave relevantes
+   - <link rel="canonical"> - URL canónica
+
+2. OPEN GRAPH (REDES SOCIALES)
+   - og:title
+   - og:description  
+   - og:image (1200x630 píxeles mínimo)
+   - og:url
+   - og:type
+   - og:site_name
+   - og:locale (es_MX)
+
+3. TWITTER CARDS
+   - twitter:card (summary_large_image)
+   - twitter:title
+   - twitter:description
+   - twitter:image
+
+4. SCHEMA.ORG (DATOS ESTRUCTURADOS)
+   
+   Para HOME:
+   - Organization schema
+   - WebSite schema con SearchAction
+   
+   Para LA FIRMA:
+   - Organization schema completo
+   - LocalBusiness schema
+   
+   Para PROFESIONALES:
+   - Person schema por cada abogado
+   - Employee schema vinculado a Organization
+   
+   Para ÁREAS DE PRÁCTICA:
+   - Service schema por cada área
+   - ProfessionalService schema
+   
+   Para NOTICIAS/BLOG:
+   - Article schema
+   - BlogPosting schema
+   - Author schema
+   - DatePublished, DateModified
+   
+   Para CONTACTO:
+   - ContactPage schema
+   - LocalBusiness con dirección y teléfono
+
+5. SITEMAP.XML
+   - Generar sitemap.xml dinámico
+   - Incluir todas las páginas públicas
+   - Incluir lastmod, changefreq, priority
+   - Separar sitemap de imágenes si hay muchas
+   - Actualizar automáticamente al agregar contenido
+
+6. ROBOTS.TXT
+   - Permitir rastreo de páginas públicas
+   - Bloquear /admin/, /api/, archivos sensibles
+   - Incluir referencia a sitemap.xml
+   - User-agent específicos si necesario
+
+7. ESTRUCTURA DE URLs
+   - URLs limpias y descriptivas
+   - Usar guiones, no guiones bajos
+   - Minúsculas siempre
+   - Sin parámetros innecesarios
+   - Estructura jerárquica lógica
+
+8. HEADINGS SEMÁNTICOS
+   - Un solo <h1> por página
+   - Jerarquía correcta h1 > h2 > h3
+   - Keywords en headings naturalmente
+
+9. ENLACES INTERNOS
+   - Anchor text descriptivo
+   - Breadcrumbs con schema
+   - Links a páginas relacionadas
+   - No enlaces rotos (verificar todos)
+
+10. HREFLANG (MULTIIDIOMA)
+    - <link rel="alternate" hreflang="es" href="url-español">
+    - <link rel="alternate" hreflang="en" href="url-inglés">
+    - <link rel="alternate" hreflang="x-default" href="url-default">
+    - Implementar en TODAS las páginas
+
+11. ACCESIBILIDAD (AFECTA SEO)
+    - Alt text descriptivo en todas las imágenes
+    - ARIA labels donde necesario
+    - Contraste de colores adecuado
+    - Navegación por teclado funcional
+
+═══════════════════════════════════════════════════════════════
+PARTE 4: MÓDULO DE ADMINISTRACIÓN DE BLOG
+═══════════════════════════════════════════════════════════════
+
+CREAR SISTEMA COMPLETO DE ADMIN:
+
+1. AUTENTICACIÓN SEGURA
+   
+   Base de datos de usuarios:
+   - Tabla: admin_users
+   - Campos: id, username, email, password_hash, role, created_at, last_login
+   - Passwords hasheados con bcrypt (mínimo 10 rounds)
+   
+   Login:
+   - Ruta: /admin/login
+   - Formulario: usuario + contraseña
+   - Rate limiting: máximo 5 intentos por IP en 15 minutos
+   - Bloqueo temporal tras intentos fallidos
+   - CSRF token en formulario
+   
+   Sesiones:
+   - JWT token o sesión server-side
+   - Expiración: 8 horas de inactividad
+   - Refresh token para sesiones largas
+   - Logout limpia tokens completamente
+   
+   Roles:
+   - Super Admin: todo acceso
+   - Editor: crear, editar, eliminar posts propios
+   - Autor: crear y editar posts propios
+
+2. DASHBOARD DE ADMINISTRACIÓN
+   
+   Ruta: /admin/dashboard (protegida)
+   
+   Mostrar:
+   - Total de posts publicados
+   - Posts en borrador
+   - Últimos 5 posts
+   - Accesos rápidos a crear/editar
+
+3. GESTIÓN DE POSTS DEL BLOG
+   
+   Listado de posts (/admin/posts):
+   - Tabla con: título, autor, fecha, estado, acciones
+   - Filtros: por estado (publicado/borrador), por fecha, por autor
+   - Búsqueda por título
+   - Paginación (20 por página)
+   - Acciones: editar, eliminar, ver, duplicar
+   
+   Crear post (/admin/posts/new):
+   - Título (requerido, máx 200 caracteres)
+   - Slug (auto-generado del título, editable)
+   - Contenido (editor WYSIWYG - usar TinyMCE, CKEditor o Quill)
+   - Extracto/resumen (máx 300 caracteres)
+   - Imagen destacada (upload con preview)
+   - Categoría (select de categorías existentes)
+   - Tags (input múltiple)
+   - Estado: borrador / publicado
+   - Fecha de publicación (puede ser futura para programar)
+   - Meta title (para SEO)
+   - Meta description (para SEO)
+   - Botones: Guardar borrador, Vista previa, Publicar
+   
+   Editar post (/admin/posts/edit/:id):
+   - Mismos campos que crear
+   - Mostrar fecha de creación y última modificación
+   - Historial de cambios (opcional)
+   
+   Eliminar post:
+   - Confirmación antes de eliminar
+   - Soft delete (marcar como eliminado, no borrar de BD)
+   - Papelera con opción de restaurar
+
+4. GESTIÓN DE IMÁGENES
+   
+   Biblioteca de medios (/admin/media):
+   - Grid de imágenes subidas
+   - Upload múltiple con drag & drop
+   - Formatos permitidos: JPG, PNG, WebP, GIF
+   - Tamaño máximo: 5MB por imagen
+   - Redimensionamiento automático a múltiples tamaños
+   - Compresión automática
+   - Generación de thumbnails
+   - Búsqueda y filtros
+   - Eliminar imágenes no usadas
+   
+   Al subir imagen:
+   - Validar tipo de archivo (verificar magic bytes, no solo extensión)
+   - Sanitizar nombre de archivo
+   - Generar nombre único
+   - Crear versiones: thumbnail (150x150), medium (600x400), large (1200x800), original
+   - Guardar metadatos: tamaño, dimensiones, fecha, usuario
+
+5. GESTIÓN DE CATEGORÍAS
+   
+   Ruta: /admin/categories
+   - Listar categorías
+   - Crear nueva categoría (nombre, slug, descripción)
+   - Editar categoría
+   - Eliminar categoría (solo si no tiene posts)
+   - Ordenar categorías
+
+6. SEGURIDAD DEL MÓDULO ADMIN
+
+   Protección de rutas:
+   - Middleware de autenticación en todas las rutas /admin/*
+   - Verificar sesión válida en cada request
+   - Redirigir a login si no autenticado
+   
+   Protección de uploads:
+   - Validar MIME type real del archivo
+   - No permitir archivos ejecutables
+   - Guardar fuera de directorio público si es posible
+   - Servir a través de ruta controlada
+   
+   Headers de seguridad:
+   - X-Content-Type-Options: nosniff
+   - X-Frame-Options: DENY (en admin)
+   - Content-Security-Policy apropiado
+   - X-XSS-Protection: 1; mode=block
+   
+   Logs:
+   - Registrar todos los logins (exitosos y fallidos)
+   - Registrar acciones de admin (crear, editar, eliminar)
+   - IP, timestamp, usuario, acción
+
+7. API ENDPOINTS (SI USAS ARQUITECTURA SEPARADA)
+   
+   POST /api/admin/login - autenticar
+   POST /api/admin/logout - cerrar sesión
+   GET /api/admin/posts - listar posts
+   POST /api/admin/posts - crear post
+   GET /api/admin/posts/:id - obtener post
+   PUT /api/admin/posts/:id - actualizar post
+   DELETE /api/admin/posts/:id - eliminar post
+   POST /api/admin/media/upload - subir imagen
+   GET /api/admin/media - listar imágenes
+   DELETE /api/admin/media/:id - eliminar imagen
+   
+   Todos los endpoints protegidos con:
+   - Token de autenticación
+   - Validación de permisos
+   - Rate limiting
+   - Validación de inputs
+
+8. BASE DE DATOS - ESTRUCTURA
+
+   Tabla: posts
+   - id (primary key)
+   - title (varchar 200)
+   - slug (varchar 250, unique)
+   - content (text/longtext)
+   - excerpt (varchar 500)
+   - featured_image (varchar 500)
+   - category_id (foreign key)
+   - author_id (foreign key)
+   - status (enum: draft, published, trash)
+   - published_at (datetime, nullable)
+   - meta_title (varchar 70)
+   - meta_description (varchar 160)
+   - created_at (datetime)
+   - updated_at (datetime)
+   - deleted_at (datetime, nullable)
+   
+   Tabla: categories
+   - id
+   - name
+   - slug
+   - description
+   - order
+   - created_at
+   
+   Tabla: tags
+   - id
+   - name
+   - slug
+   
+   Tabla: post_tags (pivot)
+   - post_id
+   - tag_id
+   
+   Tabla: media
+   - id
+   - filename
+   - original_name
+   - path
+   - mime_type
+   - size
+   - width
+   - height
+   - uploaded_by
+   - created_at
+   
+   Tabla: admin_users
+   - id
+   - username
+   - email
+   - password_hash
+   - role
+   - is_active
+   - last_login
+   - created_at
+
+9. INTERFAZ DE ADMIN - DISEÑO
+
+   - Diseño limpio y profesional
+   - Sidebar con navegación
+   - Header con usuario logueado y logout
+   - Responsive (debe funcionar en tablet)
+   - Colores consistentes con marca Von Wobeser
+   - Feedback visual en acciones (guardando, guardado, error)
+   - Validación de formularios en tiempo real
+
+10. CREDENCIALES INICIALES
+
+    Crear usuario admin inicial:
+    - Username: admin
+    - Password: generar password seguro aleatorio
+    - Mostrarme las credenciales UNA VEZ al terminar
+    - Forzar cambio de password en primer login
+
+═══════════════════════════════════════════════════════════════
+PARTE 5: INTEGRACIÓN DEL BLOG CON SEO
+═══════════════════════════════════════════════════════════════
+
+El blog público debe:
+
+1. URLs amigables: /noticias/slug-del-post
+2. Schema BlogPosting en cada post
+3. Sitemap actualizado automáticamente al publicar
+4. Meta tags dinámicos desde campos del admin
+5. Imagen destacada optimizada para Open Graph
+6. Breadcrumbs con schema
+7. Posts relacionados al final
+8. Compartir en redes sociales
+9. Paginación SEO-friendly (rel prev/next)
+
+═══════════════════════════════════════════════════════════════
+EJECUCIÓN
+═══════════════════════════════════════════════════════════════
+
+ORDEN DE IMPLEMENTACIÓN:
+
+1. Primero: Optimización móvil (no rompe nada existente)
+2. Segundo: Performance (mejora sin cambiar funcionalidad)
+3. Tercero: SEO técnico (agrega sin modificar visual)
+4. Cuarto: Módulo de admin (funcionalidad nueva)
+
+PROHIBIDO:
+- Cambiar diseño visual existente
+- Modificar contenido de texto
+- Alterar orden de secciones
+- Romper funcionalidad existente
+
+OBLIGATORIO:
+- Testear en móvil después de cada cambio
+- Verificar que no se rompió nada
+- Correr Lighthouse después de performance
+- Probar login/logout del admin
+
+CUANDO TERMINES:
+1. Dame las credenciales del admin
+2. Dame el score de Lighthouse (Performance, SEO, Accessibility, Best Practices)
+3. Confirma que el admin funciona
+
+EMPIEZA AHORA.

@@ -1,5 +1,6 @@
 import { db } from "./db";
-import { news, officeImages, practiceGroups, industryGroups, teamMembers, representativeMatters } from "@shared/schema";
+import { news, officeImages, practiceGroups, industryGroups, teamMembers, representativeMatters, adminUsers } from "@shared/schema";
+import { hashPassword } from "./auth";
 
 const practiceGroupsData = [
   { 
@@ -1073,6 +1074,21 @@ export async function seed() {
   if (existingRepresentativeMatters.length === 0) {
     console.log("Seeding representative matters...");
     await db.insert(representativeMatters).values(representativeMattersData);
+  }
+
+  // Seed default admin user
+  const existingAdminUsers = await db.select().from(adminUsers);
+  if (existingAdminUsers.length === 0) {
+    console.log("Seeding default admin user...");
+    const passwordHash = await hashPassword("Admin123!");
+    await db.insert(adminUsers).values({
+      username: "admin",
+      email: "admin@vonwobeser.com",
+      passwordHash,
+      role: "super_admin",
+      isActive: true,
+    });
+    console.log("Default admin user created: username='admin', password='Admin123!'");
   }
 
   console.log("Database seeded successfully with real Von Wobeser y Sierra content!");

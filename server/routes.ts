@@ -1,10 +1,64 @@
-import type { Express } from "express";
+import type { Express, Request, Response } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { seed } from "./seed";
 import express from "express";
 import path from "path";
-import { contactFormSchema } from "@shared/schema";
+import fs from "fs";
+import crypto from "crypto";
+import multer from "multer";
+import { 
+  contactFormSchema, 
+  adminLoginSchema, 
+  insertBlogPostSchema,
+  insertBlogCategorySchema,
+  insertBlogTagSchema,
+} from "@shared/schema";
+import {
+  hashPassword,
+  comparePassword,
+  generateToken,
+  getSessionExpiry,
+  checkRateLimit,
+  recordLoginAttempt,
+  authMiddleware,
+} from "./auth";
+
+const uploadsDir = path.join(process.cwd(), "uploads");
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir, { recursive: true });
+}
+
+const upload = multer({
+  storage: multer.diskStorage({
+    destination: (_req, _file, cb) => {
+      cb(null, uploadsDir);
+    },
+    filename: (_req, file, cb) => {
+      const uniqueSuffix = crypto.randomBytes(8).toString("hex");
+      const ext = path.extname(file.originalname);
+      cb(null, `${Date.now()}-${uniqueSuffix}${ext}`);
+    },
+  }),
+  limits: {
+    fileSize: 10 * 1024 * 1024, // 10MB limit
+  },
+  fileFilter: (_req, file, cb) => {
+    const allowedMimes = [
+      "image/jpeg",
+      "image/png",
+      "image/gif",
+      "image/webp",
+      "image/svg+xml",
+      "application/pdf",
+    ];
+    if (allowedMimes.includes(file.mimetype)) {
+      cb(null, true);
+    } else {
+      cb(new Error("Invalid file type"));
+    }
+  },
+});
 
 function generateVCard(member: any, language: "es" | "en" = "es"): string {
   const title = language === "es" ? member.titleEs : member.title;
@@ -425,6 +479,399 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
     } catch (error) {
       console.error("Sitemap generation error:", error);
       res.status(500).send('<?xml version="1.0" encoding="UTF-8"?><error>Failed to generate sitemap</error>');
+    }
+  });
+
+  // Serve uploaded files
+  app.use('/uploads', express.static(uploadsDir));
+
+  // =============================================
+  // ADMIN ROUTES
+  // =============================================
+
+  // Admin Login
+  app.post("/api/admin/login", async (req: Request, res: Response) => {
+    try {
+      const ip = req.ip || req.socket.remoteAddress || "unknown";
+      
+      // Check rate limit
+      const rateCheck = checkRateLimit(ip);
+      if (!rateCheck.allowed) {
+        return res.status(429).json({ 
+          error: "Too many login attempts", 
+          retryAfter: rateCheck.retryAfter 
+        });
+      }
+
+      // Validate input
+      const validation = adminLoginSchema.safeParse(req.body);
+      if (!validation.success) {
+        recordLoginAttempt(ip, false);
+        return res.status(400).json({ 
+          error: "Invalid input", 
+          details: validation.error.errors 
+        });
+      }
+
+      const { username, password } = validation.data;
+
+      // Find user
+      const user = await storage.getAdminUserByUsername(username);
+      if (!user) {
+        recordLoginAttempt(ip, false);
+        return res.status(401).json({ error: "Invalid credentials" });
+      }
+
+      // Check if user is active
+      if (!user.isActive) {
+        recordLoginAttempt(ip, false);
+        return res.status(401).json({ error: "Account is disabled" });
+      }
+
+      // Verify password
+      const validPassword = await comparePassword(password, user.passwordHash);
+      if (!validPassword) {
+        recordLoginAttempt(ip, false);
+        return res.status(401).json({ error: "Invalid credentials" });
+      }
+
+      // Record successful attempt
+      recordLoginAttempt(ip, true);
+
+      // Create session
+      const token = generateToken();
+      const session = await storage.createAdminSession({
+        userId: user.id,
+        token,
+        expiresAt: getSessionExpiry(),
+        ipAddress: ip,
+        userAgent: req.headers["user-agent"] || null,
+      });
+
+      // Update last login
+      await storage.updateAdminUserLogin(user.id);
+
+      res.json({
+        token: session.token,
+        user: {
+          id: user.id,
+          username: user.username,
+          email: user.email,
+          role: user.role,
+        },
+      });
+    } catch (error) {
+      console.error("Login error:", error);
+      res.status(500).json({ error: "Login failed" });
+    }
+  });
+
+  // Admin Logout
+  app.post("/api/admin/logout", authMiddleware, async (req: Request, res: Response) => {
+    try {
+      const authHeader = req.headers.authorization;
+      if (authHeader && authHeader.startsWith("Bearer ")) {
+        const token = authHeader.substring(7);
+        await storage.deleteAdminSession(token);
+      }
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Logout error:", error);
+      res.status(500).json({ error: "Logout failed" });
+    }
+  });
+
+  // Get current admin user
+  app.get("/api/admin/me", authMiddleware, async (req: Request, res: Response) => {
+    try {
+      const user = req.adminUser!;
+      res.json({
+        id: user.id,
+        username: user.username,
+        email: user.email,
+        role: user.role,
+        createdAt: user.createdAt,
+        lastLogin: user.lastLogin,
+      });
+    } catch (error) {
+      console.error("Get current user error:", error);
+      res.status(500).json({ error: "Failed to get user" });
+    }
+  });
+
+  // =============================================
+  // BLOG POSTS CRUD
+  // =============================================
+
+  // Get all blog posts
+  app.get("/api/admin/posts", authMiddleware, async (_req: Request, res: Response) => {
+    try {
+      const posts = await storage.getBlogPosts();
+      res.json(posts);
+    } catch (error) {
+      console.error("Get posts error:", error);
+      res.status(500).json({ error: "Failed to fetch posts" });
+    }
+  });
+
+  // Get single blog post
+  app.get("/api/admin/posts/:id", authMiddleware, async (req: Request, res: Response) => {
+    try {
+      const post = await storage.getBlogPostById(req.params.id);
+      if (!post) {
+        return res.status(404).json({ error: "Post not found" });
+      }
+      res.json(post);
+    } catch (error) {
+      console.error("Get post error:", error);
+      res.status(500).json({ error: "Failed to fetch post" });
+    }
+  });
+
+  // Create blog post
+  app.post("/api/admin/posts", authMiddleware, async (req: Request, res: Response) => {
+    try {
+      const validation = insertBlogPostSchema.safeParse({
+        ...req.body,
+        authorId: req.adminUser!.id,
+      });
+      
+      if (!validation.success) {
+        return res.status(400).json({ 
+          error: "Validation failed", 
+          details: validation.error.errors 
+        });
+      }
+
+      // Check for duplicate slug
+      const existingPost = await storage.getBlogPostBySlug(validation.data.slug);
+      if (existingPost) {
+        return res.status(400).json({ error: "Slug already exists" });
+      }
+
+      const post = await storage.createBlogPost(validation.data);
+      res.status(201).json(post);
+    } catch (error) {
+      console.error("Create post error:", error);
+      res.status(500).json({ error: "Failed to create post" });
+    }
+  });
+
+  // Update blog post
+  app.put("/api/admin/posts/:id", authMiddleware, async (req: Request, res: Response) => {
+    try {
+      const existingPost = await storage.getBlogPostById(req.params.id);
+      if (!existingPost) {
+        return res.status(404).json({ error: "Post not found" });
+      }
+
+      // Check for duplicate slug if slug is being changed
+      if (req.body.slug && req.body.slug !== existingPost.slug) {
+        const slugPost = await storage.getBlogPostBySlug(req.body.slug);
+        if (slugPost) {
+          return res.status(400).json({ error: "Slug already exists" });
+        }
+      }
+
+      const post = await storage.updateBlogPost(req.params.id, req.body);
+      res.json(post);
+    } catch (error) {
+      console.error("Update post error:", error);
+      res.status(500).json({ error: "Failed to update post" });
+    }
+  });
+
+  // Delete blog post (soft delete)
+  app.delete("/api/admin/posts/:id", authMiddleware, async (req: Request, res: Response) => {
+    try {
+      const deleted = await storage.deleteBlogPost(req.params.id);
+      if (!deleted) {
+        return res.status(404).json({ error: "Post not found" });
+      }
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Delete post error:", error);
+      res.status(500).json({ error: "Failed to delete post" });
+    }
+  });
+
+  // =============================================
+  // BLOG CATEGORIES CRUD
+  // =============================================
+
+  // Get all categories
+  app.get("/api/admin/categories", authMiddleware, async (_req: Request, res: Response) => {
+    try {
+      const categories = await storage.getBlogCategories();
+      res.json(categories);
+    } catch (error) {
+      console.error("Get categories error:", error);
+      res.status(500).json({ error: "Failed to fetch categories" });
+    }
+  });
+
+  // Get single category
+  app.get("/api/admin/categories/:id", authMiddleware, async (req: Request, res: Response) => {
+    try {
+      const category = await storage.getBlogCategoryById(req.params.id);
+      if (!category) {
+        return res.status(404).json({ error: "Category not found" });
+      }
+      res.json(category);
+    } catch (error) {
+      console.error("Get category error:", error);
+      res.status(500).json({ error: "Failed to fetch category" });
+    }
+  });
+
+  // Create category
+  app.post("/api/admin/categories", authMiddleware, async (req: Request, res: Response) => {
+    try {
+      const validation = insertBlogCategorySchema.safeParse(req.body);
+      
+      if (!validation.success) {
+        return res.status(400).json({ 
+          error: "Validation failed", 
+          details: validation.error.errors 
+        });
+      }
+
+      const category = await storage.createBlogCategory(validation.data);
+      res.status(201).json(category);
+    } catch (error) {
+      console.error("Create category error:", error);
+      res.status(500).json({ error: "Failed to create category" });
+    }
+  });
+
+  // Update category
+  app.put("/api/admin/categories/:id", authMiddleware, async (req: Request, res: Response) => {
+    try {
+      const category = await storage.updateBlogCategory(req.params.id, req.body);
+      if (!category) {
+        return res.status(404).json({ error: "Category not found" });
+      }
+      res.json(category);
+    } catch (error) {
+      console.error("Update category error:", error);
+      res.status(500).json({ error: "Failed to update category" });
+    }
+  });
+
+  // Delete category
+  app.delete("/api/admin/categories/:id", authMiddleware, async (req: Request, res: Response) => {
+    try {
+      const deleted = await storage.deleteBlogCategory(req.params.id);
+      if (!deleted) {
+        return res.status(404).json({ error: "Category not found" });
+      }
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Delete category error:", error);
+      res.status(500).json({ error: "Failed to delete category" });
+    }
+  });
+
+  // =============================================
+  // BLOG TAGS CRUD
+  // =============================================
+
+  // Get all tags
+  app.get("/api/admin/tags", authMiddleware, async (_req: Request, res: Response) => {
+    try {
+      const tags = await storage.getBlogTags();
+      res.json(tags);
+    } catch (error) {
+      console.error("Get tags error:", error);
+      res.status(500).json({ error: "Failed to fetch tags" });
+    }
+  });
+
+  // Create tag
+  app.post("/api/admin/tags", authMiddleware, async (req: Request, res: Response) => {
+    try {
+      const validation = insertBlogTagSchema.safeParse(req.body);
+      
+      if (!validation.success) {
+        return res.status(400).json({ 
+          error: "Validation failed", 
+          details: validation.error.errors 
+        });
+      }
+
+      const tag = await storage.createBlogTag(validation.data);
+      res.status(201).json(tag);
+    } catch (error) {
+      console.error("Create tag error:", error);
+      res.status(500).json({ error: "Failed to create tag" });
+    }
+  });
+
+  // Delete tag
+  app.delete("/api/admin/tags/:id", authMiddleware, async (req: Request, res: Response) => {
+    try {
+      const deleted = await storage.deleteBlogTag(req.params.id);
+      if (!deleted) {
+        return res.status(404).json({ error: "Tag not found" });
+      }
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Delete tag error:", error);
+      res.status(500).json({ error: "Failed to delete tag" });
+    }
+  });
+
+  // =============================================
+  // MEDIA ITEMS CRUD
+  // =============================================
+
+  // Get all media items
+  app.get("/api/admin/media", authMiddleware, async (_req: Request, res: Response) => {
+    try {
+      const items = await storage.getMediaItems();
+      res.json(items);
+    } catch (error) {
+      console.error("Get media error:", error);
+      res.status(500).json({ error: "Failed to fetch media" });
+    }
+  });
+
+  // Upload media
+  app.post("/api/admin/media/upload", authMiddleware, upload.single("file"), async (req: Request, res: Response) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ error: "No file uploaded" });
+      }
+
+      const mediaItem = await storage.createMediaItem({
+        filename: req.file.filename,
+        originalName: req.file.originalname,
+        path: `/uploads/${req.file.filename}`,
+        mimeType: req.file.mimetype,
+        size: req.file.size,
+        uploadedBy: req.adminUser!.id,
+        alt: req.body.alt || null,
+        altEs: req.body.altEs || null,
+      });
+
+      res.status(201).json(mediaItem);
+    } catch (error) {
+      console.error("Upload media error:", error);
+      res.status(500).json({ error: "Failed to upload file" });
+    }
+  });
+
+  // Delete media item
+  app.delete("/api/admin/media/:id", authMiddleware, async (req: Request, res: Response) => {
+    try {
+      const deleted = await storage.deleteMediaItem(req.params.id);
+      if (!deleted) {
+        return res.status(404).json({ error: "Media item not found" });
+      }
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Delete media error:", error);
+      res.status(500).json({ error: "Failed to delete media" });
     }
   });
 

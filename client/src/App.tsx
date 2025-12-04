@@ -22,6 +22,11 @@ import PrivacyPolicy from "@/pages/PrivacyPolicy";
 import Terms from "@/pages/Terms";
 import Rankings from "@/pages/Rankings";
 import Offices from "@/pages/Offices";
+import AdminLogin from "@/pages/admin/AdminLogin";
+import AdminDashboard from "@/pages/admin/AdminDashboard";
+import AdminPosts from "@/pages/admin/AdminPosts";
+import AdminPostForm from "@/pages/admin/AdminPostForm";
+import AdminCategories from "@/pages/admin/AdminCategories";
 
 function SkipLinks() {
   const { language } = useLanguage();
@@ -79,6 +84,12 @@ function Router() {
       <Route path="/terms" component={Terms} />
       <Route path="/rankings" component={Rankings} />
       <Route path="/offices" component={Offices} />
+      <Route path="/admin/login" component={AdminLogin} />
+      <Route path="/admin/dashboard" component={AdminDashboard} />
+      <Route path="/admin/posts" component={AdminPosts} />
+      <Route path="/admin/posts/new" component={AdminPostForm} />
+      <Route path="/admin/posts/:id/edit" component={AdminPostForm} />
+      <Route path="/admin/categories" component={AdminCategories} />
       <Route component={NotFound} />
     </Switch>
   );

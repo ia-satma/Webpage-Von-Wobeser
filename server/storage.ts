@@ -1,4 +1,4 @@
-import { eq, desc, asc } from "drizzle-orm";
+import { eq, desc, asc, and, isNull } from "drizzle-orm";
 import { db } from "./db";
 import {
   type User,
@@ -17,6 +17,18 @@ import {
   type Stat,
   type RepresentativeMatterDb,
   type InsertRepresentativeMatter,
+  type AdminUser,
+  type InsertAdminUser,
+  type BlogPost,
+  type InsertBlogPost,
+  type BlogCategory,
+  type InsertBlogCategory,
+  type BlogTag,
+  type InsertBlogTag,
+  type MediaItem,
+  type InsertMediaItem,
+  type AdminSession,
+  type InsertAdminSession,
   users,
   news,
   officeImages,
@@ -24,6 +36,13 @@ import {
   industryGroups,
   teamMembers,
   representativeMatters,
+  adminUsers,
+  blogPosts,
+  blogCategories,
+  blogTags,
+  mediaItems,
+  adminSessions,
+  blogPostTags,
 } from "@shared/schema";
 
 export interface IStorage {
@@ -52,20 +71,56 @@ export interface IStorage {
   createTeamMember(member: InsertTeamMember): Promise<TeamMember>;
   getRepresentativeMatters(): Promise<RepresentativeMatterDb[]>;
   createRepresentativeMatter(matter: InsertRepresentativeMatter): Promise<RepresentativeMatterDb>;
+  
+  // Admin User CRUD
+  getAdminUser(id: string): Promise<AdminUser | undefined>;
+  getAdminUserByUsername(username: string): Promise<AdminUser | undefined>;
+  createAdminUser(user: InsertAdminUser): Promise<AdminUser>;
+  updateAdminUserLogin(id: string): Promise<AdminUser | undefined>;
+  
+  // Blog Posts CRUD
+  getBlogPosts(): Promise<BlogPost[]>;
+  getBlogPostById(id: string): Promise<BlogPost | undefined>;
+  getBlogPostBySlug(slug: string): Promise<BlogPost | undefined>;
+  createBlogPost(post: InsertBlogPost): Promise<BlogPost>;
+  updateBlogPost(id: string, post: Partial<InsertBlogPost>): Promise<BlogPost | undefined>;
+  deleteBlogPost(id: string): Promise<boolean>;
+  
+  // Blog Categories CRUD
+  getBlogCategories(): Promise<BlogCategory[]>;
+  getBlogCategoryById(id: string): Promise<BlogCategory | undefined>;
+  createBlogCategory(category: InsertBlogCategory): Promise<BlogCategory>;
+  updateBlogCategory(id: string, category: Partial<InsertBlogCategory>): Promise<BlogCategory | undefined>;
+  deleteBlogCategory(id: string): Promise<boolean>;
+  
+  // Blog Tags CRUD
+  getBlogTags(): Promise<BlogTag[]>;
+  createBlogTag(tag: InsertBlogTag): Promise<BlogTag>;
+  deleteBlogTag(id: string): Promise<boolean>;
+  
+  // Media Items CRUD
+  getMediaItems(): Promise<MediaItem[]>;
+  createMediaItem(item: InsertMediaItem): Promise<MediaItem>;
+  deleteMediaItem(id: string): Promise<boolean>;
+  
+  // Admin Sessions
+  createAdminSession(session: InsertAdminSession): Promise<AdminSession>;
+  getAdminSession(token: string): Promise<AdminSession | undefined>;
+  deleteAdminSession(token: string): Promise<boolean>;
 }
 
 const siteContent: SiteContent = {
   heroTitle: "WE GO WHERE CLIENTS NEED US",
   heroSubtitle: "New offices of Von Wobeser y Sierra",
   visionTitle: "A vision of the future, collaboration, and excellence",
-  visionText: "Von Wobeser y Sierra has completed the transition to its new offices in the dynamic Campos El\u00edseos area in Polanco.",
+  visionText: "Von Wobeser y Sierra has completed the transition to its new offices in the dynamic Campos Elíseos area in Polanco.",
   locationTitle: "New office address",
-  locationText: "Torre SOMA Chapultepec Piso 18. Campos El\u00edseos 204, Polanco",
+  locationText: "Torre SOMA Chapultepec Piso 18. Campos Elíseos 204, Polanco",
   statsTitle: "Collaboration, technology and well-being",
   quoteText: "The relocation of our offices responds to two inseparable goals: first, being closer to our clients; and second, offering our team a space designed to foster collaboration and productivity.",
-  quoteAuthor: "Fernando Carre\u00f1o",
+  quoteAuthor: "Fernando Carreño",
   quoteRole: "Partner and member of the Executive Committee",
-  address: "Torre SOMA Chapultepec Piso 18. Campos El\u00edseos 204, Polanco, C.P. 11560, Ciudad de M\u00e9xico",
+  address: "Torre SOMA Chapultepec Piso 18. Campos Elíseos 204, Polanco, C.P. 11560, Ciudad de México",
   phone: "+52 55 5258 1000",
   email: "info@vonwobeser.com",
 };
@@ -192,6 +247,155 @@ export class DatabaseStorage implements IStorage {
   async createRepresentativeMatter(matter: InsertRepresentativeMatter): Promise<RepresentativeMatterDb> {
     const [item] = await db.insert(representativeMatters).values(matter).returning();
     return item;
+  }
+
+  // Admin User CRUD
+  async getAdminUser(id: string): Promise<AdminUser | undefined> {
+    const [user] = await db.select().from(adminUsers).where(eq(adminUsers.id, id));
+    return user;
+  }
+
+  async getAdminUserByUsername(username: string): Promise<AdminUser | undefined> {
+    const [user] = await db.select().from(adminUsers).where(eq(adminUsers.username, username));
+    return user;
+  }
+
+  async createAdminUser(user: InsertAdminUser): Promise<AdminUser> {
+    const [item] = await db.insert(adminUsers).values(user).returning();
+    return item;
+  }
+
+  async updateAdminUserLogin(id: string): Promise<AdminUser | undefined> {
+    const [user] = await db
+      .update(adminUsers)
+      .set({ lastLogin: new Date() })
+      .where(eq(adminUsers.id, id))
+      .returning();
+    return user;
+  }
+
+  // Blog Posts CRUD
+  async getBlogPosts(): Promise<BlogPost[]> {
+    return db
+      .select()
+      .from(blogPosts)
+      .where(isNull(blogPosts.deletedAt))
+      .orderBy(desc(blogPosts.createdAt));
+  }
+
+  async getBlogPostById(id: string): Promise<BlogPost | undefined> {
+    const [post] = await db
+      .select()
+      .from(blogPosts)
+      .where(and(eq(blogPosts.id, id), isNull(blogPosts.deletedAt)));
+    return post;
+  }
+
+  async getBlogPostBySlug(slug: string): Promise<BlogPost | undefined> {
+    const [post] = await db
+      .select()
+      .from(blogPosts)
+      .where(and(eq(blogPosts.slug, slug), isNull(blogPosts.deletedAt)));
+    return post;
+  }
+
+  async createBlogPost(post: InsertBlogPost): Promise<BlogPost> {
+    const [item] = await db.insert(blogPosts).values(post).returning();
+    return item;
+  }
+
+  async updateBlogPost(id: string, post: Partial<InsertBlogPost>): Promise<BlogPost | undefined> {
+    const [item] = await db
+      .update(blogPosts)
+      .set({ ...post, updatedAt: new Date() })
+      .where(eq(blogPosts.id, id))
+      .returning();
+    return item;
+  }
+
+  async deleteBlogPost(id: string): Promise<boolean> {
+    const [item] = await db
+      .update(blogPosts)
+      .set({ deletedAt: new Date(), status: "trash" })
+      .where(eq(blogPosts.id, id))
+      .returning();
+    return !!item;
+  }
+
+  // Blog Categories CRUD
+  async getBlogCategories(): Promise<BlogCategory[]> {
+    return db.select().from(blogCategories).orderBy(asc(blogCategories.order));
+  }
+
+  async getBlogCategoryById(id: string): Promise<BlogCategory | undefined> {
+    const [category] = await db.select().from(blogCategories).where(eq(blogCategories.id, id));
+    return category;
+  }
+
+  async createBlogCategory(category: InsertBlogCategory): Promise<BlogCategory> {
+    const [item] = await db.insert(blogCategories).values(category).returning();
+    return item;
+  }
+
+  async updateBlogCategory(id: string, category: Partial<InsertBlogCategory>): Promise<BlogCategory | undefined> {
+    const [item] = await db
+      .update(blogCategories)
+      .set(category)
+      .where(eq(blogCategories.id, id))
+      .returning();
+    return item;
+  }
+
+  async deleteBlogCategory(id: string): Promise<boolean> {
+    const result = await db.delete(blogCategories).where(eq(blogCategories.id, id)).returning();
+    return result.length > 0;
+  }
+
+  // Blog Tags CRUD
+  async getBlogTags(): Promise<BlogTag[]> {
+    return db.select().from(blogTags).orderBy(asc(blogTags.name));
+  }
+
+  async createBlogTag(tag: InsertBlogTag): Promise<BlogTag> {
+    const [item] = await db.insert(blogTags).values(tag).returning();
+    return item;
+  }
+
+  async deleteBlogTag(id: string): Promise<boolean> {
+    await db.delete(blogPostTags).where(eq(blogPostTags.tagId, id));
+    const result = await db.delete(blogTags).where(eq(blogTags.id, id)).returning();
+    return result.length > 0;
+  }
+
+  // Media Items CRUD
+  async getMediaItems(): Promise<MediaItem[]> {
+    return db.select().from(mediaItems).orderBy(desc(mediaItems.createdAt));
+  }
+
+  async createMediaItem(item: InsertMediaItem): Promise<MediaItem> {
+    const [mediaItem] = await db.insert(mediaItems).values(item).returning();
+    return mediaItem;
+  }
+
+  async deleteMediaItem(id: string): Promise<boolean> {
+    const result = await db.delete(mediaItems).where(eq(mediaItems.id, id)).returning();
+    return result.length > 0;
+  }
+
+  // Admin Sessions
+  async createAdminSession(session: InsertAdminSession): Promise<AdminSession> {
+    const [item] = await db.insert(adminSessions).values(session).returning();
+    return item;
+  }
+
+  async getAdminSession(token: string): Promise<AdminSession | undefined> {
+    const [session] = await db.select().from(adminSessions).where(eq(adminSessions.token, token));
+    return session;
+  }
+
+  async deleteAdminSession(token: string): Promise<boolean> {
+    const result = await db.delete(adminSessions).where(eq(adminSessions.token, token)).returning();
+    return result.length > 0;
   }
 }
 

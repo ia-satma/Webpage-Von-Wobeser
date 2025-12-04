@@ -1,0 +1,598 @@
+MODO AGENTE AUTÓNOMO - DISEÑO DE CLASE MUNDIAL Y LIGHTHOUSE 100
+
+MISIÓN: Transformar el sitio de Von Wobeser en una experiencia de diseño premium que refleje el prestigio de una firma legal de primer nivel, aplicando las últimas tendencias 2024-2025 y logrando puntuación perfecta en Lighthouse.
+
+⚠️ RESTRICCIONES ABSOLUTAS ⚠️
+- NO inventar información sobre la firma, abogados, casos o reconocimientos
+- NO agregar testimonios falsos o datos inventados
+- NO cambiar el contenido textual existente (solo mejorar presentación)
+- Todo el contenido debe ser REAL y verificable
+- El storytelling se logra con DISEÑO, no inventando contenido
+
+═══════════════════════════════════════════════════════════════
+PARTE 1: TENDENCIAS DE DISEÑO 2024-2025 A IMPLEMENTAR
+═══════════════════════════════════════════════════════════════
+
+1. BENTO GRID LAYOUTS
+   - Implementar layouts estilo Bento Box en secciones de servicios
+   - Grids asimétricos pero balanceados
+   - Cards de diferentes tamaños que crean jerarquía visual
+   - Ejemplo: áreas de práctica en grid bento, no grid uniforme aburrido
+
+2. GLASSMORPHISM SUTIL (NO EXCESIVO)
+   - Usar backdrop-filter: blur() en elementos flotantes
+   - Cards con fondo semi-transparente sobre imágenes
+   - Navegación sticky con efecto glass
+   - Opacidad controlada: no más de 0.8
+   - Solo donde aporte, no en todo el sitio
+
+3. GRADIENTES MESH Y AURORA
+   - Fondos con gradientes suaves estilo aurora
+   - Usar para secciones hero o separadores
+   - Colores de marca Von Wobeser: tonos azul marino, dorado, blanco
+   - Gradientes sutiles, profesionales, no neón
+
+4. TIPOGRAFÍA VARIABLE Y CINÉTICA
+   - Implementar variable fonts para mejor rendimiento
+   - Títulos con peso dinámico en hover
+   - Micro-animaciones en texto hero
+   - Kerning y tracking refinados
+   - Escala tipográfica armónica (ratio 1.25 o 1.333)
+
+5. DARK MODE ELEGANTE
+   - Implementar toggle dark/light mode
+   - Dark mode con tonos profundos, no negro puro (#0a0a0a mejor que #000)
+   - Mantener contraste WCAG AAA
+   - Guardar preferencia en localStorage
+   - Respetar prefers-color-scheme del sistema
+
+6. MICRO-INTERACCIONES
+   - Hover effects sutiles en cards (lift + shadow)
+   - Botones con feedback táctil (scale 0.98 on press)
+   - Links con underline animado
+   - Iconos que reaccionan al hover
+   - Transiciones de 200-300ms, easing cubic-bezier
+
+7. SCROLL-DRIVEN ANIMATIONS
+   - Elementos que aparecen al hacer scroll (fade up)
+   - Parallax sutil en imágenes hero (no excesivo)
+   - Progress bar de lectura en artículos
+   - Navbar que cambia al scroll
+   - Usar Intersection Observer, no scroll events
+
+8. CURSOR PERSONALIZADO
+   - Cursor custom para desktop
+   - Efecto de hover que sigue el cursor
+   - Cursor que cambia sobre elementos interactivos
+   - Desactivar en móvil
+
+9. NOISE TEXTURE Y GRAIN
+   - Overlay sutil de grain en fondos sólidos
+   - Agrega profundidad y sofisticación
+   - Opacidad muy baja (0.03-0.05)
+   - Usar SVG filter o imagen optimizada
+
+10. ESPACIADO GENEROSO
+    - Whitespace abundante entre secciones
+    - Padding interno generoso en cards
+    - Respiración visual entre elementos
+    - Diseño que no se siente apretado
+
+═══════════════════════════════════════════════════════════════
+PARTE 2: UI/UX MEJORES PRÁCTICAS
+═══════════════════════════════════════════════════════════════
+
+1. JERARQUÍA VISUAL CLARA
+   
+   - Un solo punto focal por sección
+   - Títulos que guían la mirada
+   - CTAs que destacan sin gritar
+   - Contraste intencional para dirigir atención
+   - F-pattern y Z-pattern según contenido
+
+2. NAVEGACIÓN INTUITIVA
+   
+   Header:
+   - Logo siempre visible, click = home
+   - Menú principal máximo 7 items
+   - Mega menu para secciones con subsecciones
+   - Buscador accesible
+   - CTA de contacto siempre visible
+   
+   Mobile:
+   - Hamburger menu con animación suave
+   - Full-screen overlay menu
+   - Fácil de cerrar (X visible, tap outside)
+   - Submenús con acordeón o drill-down
+   
+   Footer:
+   - Mapa del sitio completo
+   - Información de contacto
+   - Links legales
+   - Redes sociales
+   - Newsletter signup opcional
+
+3. SISTEMA DE DISEÑO CONSISTENTE
+   
+   Crear y aplicar:
+   - Paleta de colores definida (máximo 5 colores + neutrals)
+   - Escala tipográfica (6-8 tamaños máximo)
+   - Sistema de espaciado (4px base: 4, 8, 12, 16, 24, 32, 48, 64, 96)
+   - Border radius consistente
+   - Sombras definidas (sm, md, lg, xl)
+   - Transiciones estándar
+
+4. ACCESIBILIDAD TOTAL (WCAG 2.2 AAA)
+   
+   - Contraste mínimo 7:1 para texto normal
+   - Contraste mínimo 4.5:1 para texto grande
+   - Focus visible en TODOS los elementos interactivos
+   - Focus outline: 2px solid, offset 2px, color contrastante
+   - Skip to main content link
+   - ARIA labels donde necesario
+   - Roles semánticos correctos
+   - Navegación completa por teclado
+   - No depender solo del color para comunicar
+   - Textos alternativos descriptivos
+
+5. FORMULARIOS PERFECTOS
+   
+   - Labels siempre visibles (no solo placeholder)
+   - Placeholder como ejemplo, no como label
+   - Validación en tiempo real
+   - Mensajes de error claros y específicos
+   - Estados: default, focus, filled, error, success
+   - Inputs suficientemente grandes (mínimo 44px alto)
+   - Autocompletado habilitado donde aplique
+   - Indicador de campos requeridos
+
+6. FEEDBACK INSTANTÁNEO
+   
+   - Loading states para acciones
+   - Skeleton screens mientras carga contenido
+   - Confirmaciones visuales de acciones
+   - Toasts/notificaciones no intrusivas
+   - Progress indicators para procesos largos
+
+7. DISEÑO EMOCIONAL
+   
+   - Imágenes de alta calidad que transmitan confianza
+   - Fotografía profesional, no stock genérico
+   - Espacios que comunican prestigio
+   - Detalles que sorprenden positivamente
+   - Consistencia que genera confianza
+
+═══════════════════════════════════════════════════════════════
+PARTE 3: STORYTELLING VISUAL (SIN INVENTAR CONTENIDO)
+═══════════════════════════════════════════════════════════════
+
+El storytelling se logra a través del DISEÑO, no inventando información.
+
+1. HERO QUE COMUNICA PRESTIGIO
+   
+   - Imagen/video de alta calidad de las oficinas o ciudad
+   - Headline existente con tipografía impactante
+   - Animación sutil de entrada
+   - Scroll indicator elegante
+   - NO agregar textos inventados
+
+2. NARRATIVA VISUAL EN SECCIONES
+   
+   La Firma:
+   - Timeline visual para historia (usando SOLO datos reales)
+   - Números destacados (años de experiencia, abogados, etc.) con animación de conteo
+   - Transiciones entre secciones que guían la historia
+   
+   Profesionales:
+   - Fotos profesionales con hover reveal de info
+   - Filtros visuales elegantes
+   - Transición fluida a perfil individual
+   
+   Áreas de Práctica:
+   - Iconografía custom o premium
+   - Cards que invitan a explorar
+   - Jerarquía visual por importancia/demanda
+   
+   Reconocimientos:
+   - Badges animados sutilmente
+   - Timeline de logros si hay datos de años
+   - Logos de directorios con tratamiento visual unificado
+
+3. RITMO VISUAL
+   
+   - Alternar secciones claras y oscuras
+   - Variar layouts (full width, contained, asymmetric)
+   - Momentos de pausa visual (whitespace)
+   - Puntos de interés distribuidos
+   - Llamadas a acción en momentos estratégicos
+
+4. ELEMENTOS QUE CUENTAN HISTORIA
+   
+   - Números animados (counter up) para estadísticas REALES
+   - Progress bars para mostrar rankings
+   - Mapas para presencia geográfica
+   - Líneas de tiempo para trayectoria
+   - Quotes de reconocimientos REALES (de Chambers, Legal500, etc.)
+
+═══════════════════════════════════════════════════════════════
+PARTE 4: LIGHTHOUSE 100 EN TODOS LOS FACTORES
+═══════════════════════════════════════════════════════════════
+
+META: 100/100 en Performance, Accessibility, Best Practices, SEO
+
+PERFORMANCE (100/100):
+
+1. Largest Contentful Paint < 1.2s
+   - Hero image en WebP, preloaded
+   - Critical CSS inline
+   - Font preload
+   - Server response < 200ms
+
+2. Total Blocking Time < 150ms
+   - JavaScript defer/async
+   - Code splitting
+   - No long tasks (>50ms)
+   - Web Workers para tareas pesadas
+
+3. Cumulative Layout Shift < 0.1
+   - Dimensiones explícitas en imágenes
+   - Font-display: optional o swap con fallback similar
+   - Reservar espacio para contenido dinámico
+   - No insertar contenido arriba de existente
+
+4. First Contentful Paint < 1.0s
+   - Critical rendering path optimizado
+   - Inline critical CSS
+   - Preconnect a dominios externos
+   - HTML mínimo initial
+
+5. Speed Index < 2.0s
+   - Progressive rendering
+   - Above-the-fold priorizado
+   - Lazy load below-the-fold
+
+Implementar:
+```html
+<!-- En <head> -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preload" as="image" href="hero-image.webp">
+<link rel="preload" as="font" href="main-font.woff2" type="font/woff2" crossorigin>
+<style>/* Critical CSS inline aquí */</style>
+<link rel="preload" href="styles.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+```
+
+ACCESSIBILITY (100/100):
+
+1. Estructura semántica perfecta
+   - <header>, <nav>, <main>, <aside>, <footer>
+   - <article> para posts
+   - <section> con aria-labelledby
+   - Headings en orden (h1 > h2 > h3)
+
+2. ARIA completo
+   - aria-label en elementos sin texto visible
+   - aria-expanded en menús colapsables
+   - aria-current="page" en nav
+   - role="navigation", role="main", etc.
+   - aria-live para contenido dinámico
+
+3. Focus management
+   - Focus trap en modales
+   - Focus visible personalizado pero claro
+   - Tab order lógico
+   - Skip links funcionales
+
+4. Formularios accesibles
+   - Labels asociados con for/id
+   - aria-describedby para instrucciones
+   - aria-invalid para errores
+   - Mensajes de error vinculados
+
+5. Imágenes
+   - Alt text descriptivo en todas
+   - Alt vacío (alt="") para decorativas
+   - figure/figcaption donde aplique
+
+6. Links
+   - Texto descriptivo (no "click aquí")
+   - Indicar si abre nueva ventana
+   - Distinguibles del texto normal
+
+BEST PRACTICES (100/100):
+
+1. HTTPS en todo
+2. No errores en console
+3. No APIs deprecated
+4. Imágenes con aspect ratio correcto
+5. No document.write
+6. No bibliotecas con vulnerabilidades
+7. No errores de CORS
+8. Charset UTF-8 declarado
+9. Doctype HTML5
+
+Headers de seguridad:
+Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' https://fonts.gstatic.com;
+X-Content-Type-Options: nosniff
+X-Frame-Options: SAMEORIGIN
+Referrer-Policy: strict-origin-when-cross-origin
+Permissions-Policy: geolocation=(), microphone=(), camera=()
+
+SEO (100/100):
+
+1. Meta tags completos en todas las páginas
+2. Title único y descriptivo (50-60 chars)
+3. Meta description única (150-160 chars)
+4. Canonical URLs
+5. Hreflang para idiomas
+6. Open Graph completo
+7. Twitter Cards
+8. Schema.org markup
+9. Sitemap.xml válido
+10. Robots.txt correcto
+11. Mobile-friendly
+12. Links crawleables
+13. Texto legible (font-size >= 16px)
+14. Tap targets >= 48x48px
+
+═══════════════════════════════════════════════════════════════
+PARTE 5: IMPLEMENTACIÓN DE COMPONENTES ESPECÍFICOS
+═══════════════════════════════════════════════════════════════
+
+HERO SECTION:
+```css
+.hero {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.hero-bg {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, #0a1628 0%, #1a2744 50%, #0d1520 100%);
+}
+
+.hero-content {
+  position: relative;
+  z-index: 2;
+  text-align: center;
+  animation: fadeUp 1s ease-out;
+}
+
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+```
+
+CARDS CON HOVER:
+```css
+.card {
+  background: var(--card-bg);
+  border-radius: 16px;
+  padding: 2rem;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+}
+
+.card:focus-within {
+  outline: 3px solid var(--focus-color);
+  outline-offset: 2px;
+}
+```
+
+BOTONES PREMIUM:
+```css
+.btn-primary {
+  background: linear-gradient(135deg, var(--gold) 0%, var(--gold-dark) 100%);
+  color: var(--dark);
+  padding: 1rem 2.5rem;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-primary::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, transparent 0%, rgba(255,255,255,0.2) 100%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.btn-primary:hover::before {
+  opacity: 1;
+}
+
+.btn-primary:active {
+  transform: scale(0.98);
+}
+
+.btn-primary:focus-visible {
+  outline: 3px solid var(--focus-color);
+  outline-offset: 3px;
+}
+```
+
+SCROLL ANIMATIONS:
+```javascript
+const observerOptions = {
+  threshold: 0.1,
+  rootMargin: '0px 0px -50px 0px'
+};
+
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.classList.add('animate-in');
+      observer.unobserve(entry.target);
+    }
+  });
+}, observerOptions);
+
+document.querySelectorAll('[data-animate]').forEach(el => {
+  observer.observe(el);
+});
+```
+```css
+[data-animate] {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+
+[data-animate].animate-in {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+[data-animate="fade-left"] {
+  transform: translateX(-30px);
+}
+
+[data-animate="fade-right"] {
+  transform: translateX(30px);
+}
+
+[data-animate="scale"] {
+  transform: scale(0.95);
+}
+
+/* Respetar preferencia de movimiento reducido */
+@media (prefers-reduced-motion: reduce) {
+  [data-animate] {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}
+```
+
+DARK MODE:
+```css
+:root {
+  --bg-primary: #ffffff;
+  --bg-secondary: #f8f7f4;
+  --text-primary: #0d1520;
+  --text-secondary: #4a5568;
+  --accent: #c9a962;
+}
+
+[data-theme="dark"] {
+  --bg-primary: #0d1520;
+  --bg-secondary: #1a2744;
+  --text-primary: #f8f7f4;
+  --text-secondary: #a0aec0;
+  --accent: #c9a962;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg-primary: #0d1520;
+    --bg-secondary: #1a2744;
+    --text-primary: #f8f7f4;
+    --text-secondary: #a0aec0;
+  }
+}
+```
+
+═══════════════════════════════════════════════════════════════
+PARTE 6: CHECKLIST DE VALIDACIÓN FINAL
+═══════════════════════════════════════════════════════════════
+
+Antes de terminar, verificar:
+
+DISEÑO:
+[ ] Todas las tendencias aplicadas apropiadamente
+[ ] Sistema de diseño consistente
+[ ] Dark mode funcional
+[ ] Animaciones suaves (no laggy)
+[ ] Responsive perfecto en todos los breakpoints
+
+UX:
+[ ] Navegación intuitiva
+[ ] CTAs claros y visibles
+[ ] Feedback en todas las interacciones
+[ ] Formularios fáciles de usar
+[ ] No hay dead ends
+
+ACCESIBILIDAD:
+[ ] Navegación completa por teclado
+[ ] Screen reader friendly
+[ ] Contraste suficiente
+[ ] Focus visible
+[ ] No dependencia solo en color
+
+PERFORMANCE:
+[ ] LCP < 1.2s
+[ ] TBT < 150ms
+[ ] CLS < 0.1
+[ ] FCP < 1.0s
+
+LIGHTHOUSE:
+[ ] Performance: 100 (o 95+ mínimo)
+[ ] Accessibility: 100
+[ ] Best Practices: 100
+[ ] SEO: 100
+
+CONTENIDO:
+[ ] NO se inventó ninguna información
+[ ] NO hay textos placeholder
+[ ] NO hay Lorem Ipsum
+[ ] Todo el contenido es real y verificable
+
+═══════════════════════════════════════════════════════════════
+EJECUCIÓN
+═══════════════════════════════════════════════════════════════
+
+ORDEN DE IMPLEMENTACIÓN:
+
+1. Sistema de diseño (variables, tokens)
+2. Mejoras de accesibilidad (estructura, ARIA)
+3. Performance optimizations
+4. Tendencias de diseño visual
+5. Micro-interacciones y animaciones
+6. Dark mode
+7. Testing en Lighthouse
+8. Ajustes finales para 100/100
+
+PROHIBIDO:
+- Inventar contenido, testimonios o datos
+- Agregar texto que no exista en el original
+- Sacrificar accesibilidad por estética
+- Animaciones que afecten performance
+- Ignorar prefers-reduced-motion
+
+OBLIGATORIO:
+- Mantener todo el contenido real
+- Testear en Lighthouse después de cada fase
+- Verificar en múltiples dispositivos
+- Probar con teclado y screen reader
+
+CUANDO TERMINES:
+
+Muéstrame:
+1. Screenshot del resultado visual
+2. Scores de Lighthouse (los 4 números)
+3. Lista de tendencias implementadas
+4. Confirmación de que no se inventó contenido
+
+EMPIEZA AHORA.
