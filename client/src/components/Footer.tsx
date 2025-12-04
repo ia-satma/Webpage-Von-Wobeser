@@ -5,7 +5,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useLanguage } from "@/contexts/LanguageContext";
 import type { SiteContent } from "@shared/schema";
 import esrLogo from "@assets/image_1764710915519.png";
-import footerLogo from "@assets/image_1764817018634.png";
+import footerLogo from "@assets/Recurso_2_1764819007853.png";
 
 export default function Footer() {
   const { language } = useLanguage();
@@ -218,7 +218,7 @@ export default function Footer() {
             <img
               src={footerLogo}
               alt="Von Wobeser y Sierra"
-              className="h-6 mb-6"
+              className="h-8 mb-6"
               data-testid="img-footer-logo"
             />
             <p className="text-gray-400 text-sm leading-relaxed" data-testid="text-footer-description">
