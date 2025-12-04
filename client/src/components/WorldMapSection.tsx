@@ -1,34 +1,114 @@
 import { motion } from "framer-motion";
+import { Card } from "@/components/ui/card";
+
+import clausVonWobeserPhoto from "@assets/of_counsel_photos/claus_von_wobeser.jpg";
+import luisBurguenoPhoto from "@assets/partner_photos/luis_burgueno.jpg";
+import katharinaRoehrPhoto from "@assets/partner_photos/katharina_roehr.jpg";
+import rupertHuttlerPhoto from "@assets/partner_photos/rupert_huttler.jpg";
+import annaMariaBrandstadterPhoto from "@assets/associate_photos/anna_maria_brandstadter.jpg";
+import michaelSchreiberPhoto from "@assets/associate_photos/michael_schreiber.jpg";
+import alexanderBarnesPhoto from "@assets/associate_photos/alexander_barnes.jpg";
 
 interface WorldMapSectionProps {
   language: "es" | "en";
 }
 
+interface TeamMember {
+  id: string;
+  name: string;
+  photo: string;
+  title?: string;
+}
+
 export default function WorldMapSection({ language }: WorldMapSectionProps) {
   const content = {
     en: {
+      sectionTitle: "GERMAN DESK",
       title: "Global Reach",
       subtitle: "Von Wobeser y Sierra's German Desk provides specialized legal services for German-speaking clients investing in Mexico and Latin America.",
-      label: "GERMAN DESK",
       mexicoLabel: "MEXICO CITY",
       germanyLabel: "GERMANY",
+      historicalText: "For more than 34 years, Von Wobeser y Sierra has maintained a dedicated German Desk to serve German-speaking clients investing in Mexico and Latin America. Our German Desk attorneys are fluent in German, English, and Spanish, and have extensive experience working with German and Austrian companies on their investments in the region. We understand the German business culture and legal requirements, enabling us to provide seamless service that bridges both legal systems.",
+      partnersTitle: "Partners of the German Desk",
+      ofCounselTitle: "Of Counsel",
+      associatesTitle: "Associates",
+      yearsLabel: "Years of Experience",
+      clientsLabel: "German Clients",
+      languagesLabel: "Languages (ES/EN/DE)",
     },
     es: {
+      sectionTitle: "GERMAN DESK",
       title: "Alcance Global",
       subtitle: "El German Desk de Von Wobeser y Sierra proporciona servicios legales especializados para clientes de habla alemana que invierten en México y América Latina.",
-      label: "GERMAN DESK",
       mexicoLabel: "CIUDAD DE MÉXICO",
       germanyLabel: "ALEMANIA",
+      historicalText: "Durante más de 34 años, Von Wobeser y Sierra ha mantenido un German Desk dedicado a atender a clientes de habla alemana que invierten en México y América Latina. Los abogados de nuestro German Desk hablan alemán, inglés y español con fluidez, y tienen amplia experiencia trabajando con empresas alemanas y austriacas en sus inversiones en la región. Comprendemos la cultura empresarial y los requisitos legales alemanes, lo que nos permite brindar un servicio integrado que conecta ambos sistemas legales.",
+      partnersTitle: "Socios del German Desk",
+      ofCounselTitle: "Of Counsel",
+      associatesTitle: "Asociados",
+      yearsLabel: "Años de experiencia",
+      clientsLabel: "Clientes alemanes",
+      languagesLabel: "Idiomas (ES/EN/DE)",
     },
   };
 
   const t = content[language];
 
+  const partners: TeamMember[] = [
+    { id: "claus-von-wobeser", name: "Claus von Wobeser", photo: clausVonWobeserPhoto, title: language === "es" ? "Socio Fundador" : "Founding Partner" },
+    { id: "luis-burgueno", name: "Luis Burgueño", photo: luisBurguenoPhoto, title: language === "es" ? "Socio" : "Partner" },
+  ];
+
+  const ofCounsel: TeamMember[] = [
+    { id: "katharina-roehr", name: "Katharina Roehr", photo: katharinaRoehrPhoto },
+    { id: "rupert-huttler", name: "Rupert Hüttler", photo: rupertHuttlerPhoto },
+  ];
+
+  const associates: TeamMember[] = [
+    { id: "anna-maria-brandstadter", name: "Anna Maria Brandstädter", photo: annaMariaBrandstadterPhoto },
+    { id: "michael-schreiber", name: "Michael Schreiber", photo: michaelSchreiberPhoto },
+    { id: "alexander-barnes", name: "Alexander Barnes", photo: alexanderBarnesPhoto },
+  ];
+
+  const TeamMemberCard = ({ member, testIdPrefix }: { member: TeamMember; testIdPrefix: string }) => (
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+      transition={{ duration: 0.4 }}
+      className="flex flex-col items-center text-center"
+      data-testid={`${testIdPrefix}-${member.id}`}
+    >
+      <div className="w-24 h-24 md:w-28 md:h-28 rounded-full overflow-hidden mb-3 border-2 border-primary/20">
+        <img
+          src={member.photo}
+          alt={member.name}
+          className="w-full h-full object-cover"
+          data-testid={`img-${testIdPrefix}-${member.id}`}
+        />
+      </div>
+      <h4
+        className="text-sm md:text-base font-semibold text-gray-800 dark:text-white"
+        data-testid={`text-name-${member.id}`}
+      >
+        {member.name}
+      </h4>
+      {member.title && (
+        <p
+          className="text-xs text-gray-500 dark:text-gray-400 mt-1"
+          data-testid={`text-title-${member.id}`}
+        >
+          {member.title}
+        </p>
+      )}
+    </motion.div>
+  );
+
   return (
     <section
       id="german-desk"
       className="py-20 lg:py-28 bg-gray-50 dark:bg-gray-800"
-      data-testid="section-world-map"
+      data-testid="section-german-desk"
     >
       <div className="max-w-6xl mx-auto px-6 lg:px-12">
         <motion.div
@@ -38,13 +118,19 @@ export default function WorldMapSection({ language }: WorldMapSectionProps) {
           transition={{ duration: 0.6 }}
           className="text-center mb-12"
         >
-          <h2 
+          <p
+            className="text-sm font-semibold tracking-widest text-primary mb-4"
+            data-testid="text-section-title"
+          >
+            {t.sectionTitle}
+          </p>
+          <h2
             className="text-3xl md:text-4xl font-heading font-light text-gray-800 dark:text-white mb-4"
             data-testid="text-global-reach-title"
           >
             {t.title}
           </h2>
-          <p 
+          <p
             className="text-lg text-gray-600 dark:text-gray-400 max-w-3xl mx-auto"
             data-testid="text-global-reach-subtitle"
           >
@@ -58,6 +144,7 @@ export default function WorldMapSection({ language }: WorldMapSectionProps) {
           viewport={{ once: true }}
           transition={{ duration: 0.8, delay: 0.2 }}
           className="relative bg-white dark:bg-gray-900 rounded-md p-8 shadow-sm"
+          data-testid="card-map-connection"
         >
           <div className="flex flex-col md:flex-row items-center justify-center gap-8 md:gap-16">
             <motion.div
@@ -66,13 +153,14 @@ export default function WorldMapSection({ language }: WorldMapSectionProps) {
               viewport={{ once: true }}
               transition={{ duration: 0.5, delay: 0.4 }}
               className="text-center"
+              data-testid="location-mexico"
             >
               <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-primary/10 flex items-center justify-center">
                 <svg viewBox="0 0 24 24" className="w-10 h-10 text-primary" fill="currentColor">
                   <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
                 </svg>
               </div>
-              <h3 
+              <h3
                 className="text-lg font-semibold text-gray-800 dark:text-white mb-1"
                 data-testid="text-mexico-label"
               >
@@ -89,6 +177,7 @@ export default function WorldMapSection({ language }: WorldMapSectionProps) {
               viewport={{ once: true }}
               transition={{ duration: 0.6, delay: 0.6 }}
               className="hidden md:block"
+              data-testid="connection-line-desktop"
             >
               <div className="flex items-center gap-2">
                 <div className="w-24 h-0.5 bg-gradient-to-r from-primary to-primary/50" />
@@ -99,15 +188,15 @@ export default function WorldMapSection({ language }: WorldMapSectionProps) {
                 />
                 <div className="w-24 h-0.5 bg-gradient-to-l from-primary to-primary/50" />
               </div>
-              <p 
-                className="text-xs text-primary font-semibold tracking-wider mt-2 text-center"
+              <p
+                className="text-xs text-primary font-semibold tracking-widest mt-2 text-center"
                 data-testid="text-german-desk-label"
               >
-                {t.label}
+                {t.sectionTitle}
               </p>
             </motion.div>
 
-            <div className="md:hidden flex flex-col items-center">
+            <div className="md:hidden flex flex-col items-center" data-testid="connection-line-mobile">
               <div className="w-0.5 h-12 bg-gradient-to-b from-primary to-primary/50" />
               <motion.div
                 animate={{ scale: [1, 1.2, 1] }}
@@ -115,10 +204,8 @@ export default function WorldMapSection({ language }: WorldMapSectionProps) {
                 className="w-3 h-3 rounded-full bg-primary my-2"
               />
               <div className="w-0.5 h-12 bg-gradient-to-t from-primary to-primary/50" />
-              <p 
-                className="text-xs text-primary font-semibold tracking-wider mt-2"
-              >
-                {t.label}
+              <p className="text-xs text-primary font-semibold tracking-widest mt-2">
+                {t.sectionTitle}
               </p>
             </div>
 
@@ -128,13 +215,14 @@ export default function WorldMapSection({ language }: WorldMapSectionProps) {
               viewport={{ once: true }}
               transition={{ duration: 0.5, delay: 0.8 }}
               className="text-center"
+              data-testid="location-germany"
             >
               <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-primary/10 flex items-center justify-center">
                 <svg viewBox="0 0 24 24" className="w-10 h-10 text-primary" fill="currentColor">
                   <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>
                 </svg>
               </div>
-              <h3 
+              <h3
                 className="text-lg font-semibold text-gray-800 dark:text-white mb-1"
                 data-testid="text-germany-label"
               >
@@ -152,29 +240,116 @@ export default function WorldMapSection({ language }: WorldMapSectionProps) {
             viewport={{ once: true }}
             transition={{ duration: 0.5, delay: 1 }}
             className="mt-8 pt-8 border-t border-gray-200 dark:border-gray-700"
+            data-testid="stats-container"
           >
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
-              <div>
-                <p className="text-2xl font-semibold text-primary mb-1">25+</p>
+              <div data-testid="stat-years">
+                <p className="text-2xl font-semibold text-primary mb-1">34+</p>
                 <p className="text-sm text-gray-600 dark:text-gray-400">
-                  {language === "es" ? "Años de experiencia" : "Years of Experience"}
+                  {t.yearsLabel}
                 </p>
               </div>
-              <div>
+              <div data-testid="stat-clients">
                 <p className="text-2xl font-semibold text-primary mb-1">100+</p>
                 <p className="text-sm text-gray-600 dark:text-gray-400">
-                  {language === "es" ? "Clientes alemanes" : "German Clients"}
+                  {t.clientsLabel}
                 </p>
               </div>
-              <div>
+              <div data-testid="stat-languages">
                 <p className="text-2xl font-semibold text-primary mb-1">3</p>
                 <p className="text-sm text-gray-600 dark:text-gray-400">
-                  {language === "es" ? "Idiomas (ES/EN/DE)" : "Languages (ES/EN/DE)"}
+                  {t.languagesLabel}
                 </p>
               </div>
             </div>
           </motion.div>
         </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6, delay: 0.3 }}
+          className="mt-12"
+          data-testid="historical-text-container"
+        >
+          <Card className="p-8 bg-white dark:bg-gray-900">
+            <p
+              className="text-base md:text-lg text-gray-700 dark:text-gray-300 leading-relaxed text-center font-serif"
+              data-testid="text-historical-description"
+            >
+              {t.historicalText}
+            </p>
+          </Card>
+        </motion.div>
+
+        <div className="mt-16 space-y-12" data-testid="team-members-container">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+            data-testid="partners-section"
+          >
+            <h3
+              className="text-xl md:text-2xl font-heading font-light text-gray-800 dark:text-white text-center mb-8"
+              data-testid="text-partners-title"
+            >
+              {t.partnersTitle}
+            </h3>
+            <Card className="p-6 md:p-8 bg-white dark:bg-gray-900">
+              <div className="flex flex-wrap justify-center gap-8 md:gap-12">
+                {partners.map((member) => (
+                  <TeamMemberCard key={member.id} member={member} testIdPrefix="partner" />
+                ))}
+              </div>
+            </Card>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6, delay: 0.1 }}
+            data-testid="of-counsel-section"
+          >
+            <h3
+              className="text-xl md:text-2xl font-heading font-light text-gray-800 dark:text-white text-center mb-8"
+              data-testid="text-of-counsel-title"
+            >
+              {t.ofCounselTitle}
+            </h3>
+            <Card className="p-6 md:p-8 bg-white dark:bg-gray-900">
+              <div className="flex flex-wrap justify-center gap-8 md:gap-12">
+                {ofCounsel.map((member) => (
+                  <TeamMemberCard key={member.id} member={member} testIdPrefix="of-counsel" />
+                ))}
+              </div>
+            </Card>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+            data-testid="associates-section"
+          >
+            <h3
+              className="text-xl md:text-2xl font-heading font-light text-gray-800 dark:text-white text-center mb-8"
+              data-testid="text-associates-title"
+            >
+              {t.associatesTitle}
+            </h3>
+            <Card className="p-6 md:p-8 bg-white dark:bg-gray-900">
+              <div className="flex flex-wrap justify-center gap-8 md:gap-12">
+                {associates.map((member) => (
+                  <TeamMemberCard key={member.id} member={member} testIdPrefix="associate" />
+                ))}
+              </div>
+            </Card>
+          </motion.div>
+        </div>
       </div>
     </section>
   );

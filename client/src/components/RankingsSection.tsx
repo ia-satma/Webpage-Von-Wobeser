@@ -11,20 +11,22 @@ interface RankingsSectionProps {
 export default function RankingsSection({ language }: RankingsSectionProps) {
   const content = {
     en: {
-      title: "Rankings & Recognition",
+      intro: "Von Wobeser y Sierra, S.C. has been recognized on an international level by various institutions including",
     },
     es: {
-      title: "Reconocimientos",
+      intro: "Von Wobeser y Sierra, S.C. ha sido reconocido a nivel internacional por diversas instituciones incluyendo",
     },
   };
 
   const t = content[language];
 
+  const institutionsList = "Chambers & Partners Global, Chambers & Partners Latin America, Legal 500, Latin Lawyer 250, Global Arbitration Review (GAR 100), Global Competition Review (GCR 100), Global Investigations Review (GIR 100), Global Restructuring Review (GCR), Lexology Index, Latin America Corporate Counsel Association (LACCA) and IFLR 1000, Best Lawyers, Benchmark Litigation among others.";
+
   const rankings = [
-    { src: chambersGlobal, alt: "Chambers Global 2025 - Top Ranked", id: "chambers-global" },
-    { src: chambersLatam, alt: "Chambers Latin America 2026 - Top Ranked", id: "chambers-latam" },
-    { src: latinLawyer, alt: "Latin Lawyer 250 2026 - Highly Recommended Firm", id: "latin-lawyer" },
-    { src: legal500, alt: "Legal 500 Latin America 2026 - Top Tier Firm", id: "legal-500" },
+    { src: chambersGlobal, alt: "Chambers Global 2025 - Top Ranked", id: "chambers-global", hasFirmName: true },
+    { src: legal500, alt: "Legal 500 Latin America 2026 - Top Tier Firm", id: "legal-500", hasFirmName: false },
+    { src: latinLawyer, alt: "Latin Lawyer 250 2026 - Highly Recommended Firm", id: "latin-lawyer", hasFirmName: false },
+    { src: chambersLatam, alt: "Chambers Latin America 2026 - Top Ranked", id: "chambers-latam", hasFirmName: true },
   ];
 
   const containerVariants = {
@@ -58,14 +60,50 @@ export default function RankingsSection({ language }: RankingsSectionProps) {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
-          className="text-center mb-10"
+          className="text-center mb-8"
         >
           <h2 
-            className="text-2xl md:text-3xl font-heading font-light text-gray-800 dark:text-white"
+            className="text-2xl md:text-3xl font-heading font-light"
+            style={{ color: '#8B0000', letterSpacing: '0.3em' }}
             data-testid="text-rankings-title"
           >
-            {t.title}
+            RECOGNITIONS
           </h2>
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6, delay: 0.1 }}
+          className="text-center mb-8 max-w-4xl mx-auto"
+        >
+          <p 
+            className="font-serif italic text-gray-700 dark:text-gray-300 text-lg leading-relaxed"
+            data-testid="text-recognitions-intro"
+          >
+            {t.intro}
+          </p>
+          <p 
+            className="font-serif text-gray-700 dark:text-gray-300 text-lg leading-relaxed mt-2"
+            data-testid="text-recognitions-institutions"
+          >
+            {institutionsList}
+          </p>
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.4, delay: 0.2 }}
+          className="mb-10"
+        >
+          <div 
+            className="w-full max-w-2xl mx-auto"
+            style={{ borderBottom: '1px solid #e5e2db' }}
+            data-testid="divider-recognitions"
+          />
         </motion.div>
         
         <motion.div
@@ -73,13 +111,13 @@ export default function RankingsSection({ language }: RankingsSectionProps) {
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true }}
-          className="flex flex-wrap justify-center items-center gap-8 md:gap-12 lg:gap-16"
+          className="flex flex-wrap justify-center items-start gap-8 md:gap-12 lg:gap-16"
         >
           {rankings.map((ranking) => (
             <motion.div
               key={ranking.id}
               variants={itemVariants}
-              className="flex-shrink-0"
+              className="flex flex-col items-center flex-shrink-0"
             >
               <img 
                 src={ranking.src} 
@@ -87,6 +125,14 @@ export default function RankingsSection({ language }: RankingsSectionProps) {
                 className="h-24 md:h-28 lg:h-32 w-auto object-contain grayscale hover:grayscale-0 transition-all duration-300"
                 data-testid={`img-ranking-${ranking.id}`}
               />
+              {ranking.hasFirmName && (
+                <span 
+                  className="mt-2 text-xs text-gray-600 dark:text-gray-400 font-serif text-center"
+                  data-testid={`text-firm-name-${ranking.id}`}
+                >
+                  Von Wobeser y Sierra, S.C.
+                </span>
+              )}
             </motion.div>
           ))}
         </motion.div>
