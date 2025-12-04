@@ -15,12 +15,15 @@ import {
   type InsertTeamMember,
   type SiteContent,
   type Stat,
+  type RepresentativeMatterDb,
+  type InsertRepresentativeMatter,
   users,
   news,
   officeImages,
   practiceGroups,
   industryGroups,
   teamMembers,
+  representativeMatters,
 } from "@shared/schema";
 
 export interface IStorage {
@@ -47,6 +50,8 @@ export interface IStorage {
   getTeamMemberBySlug(slug: string): Promise<TeamMember | undefined>;
   getPartners(): Promise<TeamMember[]>;
   createTeamMember(member: InsertTeamMember): Promise<TeamMember>;
+  getRepresentativeMatters(): Promise<RepresentativeMatterDb[]>;
+  createRepresentativeMatter(matter: InsertRepresentativeMatter): Promise<RepresentativeMatterDb>;
 }
 
 const siteContent: SiteContent = {
@@ -177,6 +182,15 @@ export class DatabaseStorage implements IStorage {
 
   async createTeamMember(member: InsertTeamMember): Promise<TeamMember> {
     const [item] = await db.insert(teamMembers).values(member).returning();
+    return item;
+  }
+
+  async getRepresentativeMatters(): Promise<RepresentativeMatterDb[]> {
+    return db.select().from(representativeMatters).orderBy(desc(representativeMatters.year), asc(representativeMatters.order));
+  }
+
+  async createRepresentativeMatter(matter: InsertRepresentativeMatter): Promise<RepresentativeMatterDb> {
+    const [item] = await db.insert(representativeMatters).values(matter).returning();
     return item;
   }
 }

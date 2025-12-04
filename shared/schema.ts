@@ -208,6 +208,26 @@ export interface MenuItem {
   href: string;
 }
 
+// Representative Matters table for Experience page
+export const representativeMatters = pgTable("representative_matters", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  title: text("title").notNull(),
+  titleEs: text("title_es").notNull(),
+  description: text("description").notNull(),
+  descriptionEs: text("description_es").notNull(),
+  client: text("client"),
+  clientEs: text("client_es"),
+  year: integer("year").notNull(),
+  practiceAreaSlug: text("practice_area_slug").notNull(),
+  industrySlug: text("industry_slug"),
+  isHighlight: boolean("is_highlight").default(false),
+  order: integer("order").default(0),
+});
+
+export const insertRepresentativeMatterSchema = createInsertSchema(representativeMatters).omit({ id: true });
+export type InsertRepresentativeMatter = z.infer<typeof insertRepresentativeMatterSchema>;
+export type RepresentativeMatterDb = typeof representativeMatters.$inferSelect;
+
 // Contact form schema
 export const contactFormSchema = z.object({
   fullName: z.string().min(1, "Full name is required"),

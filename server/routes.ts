@@ -253,6 +253,15 @@ export async function registerRoutes(
     }
   });
 
+  app.get("/api/representative-matters", async (_req, res) => {
+    try {
+      const matters = await storage.getRepresentativeMatters();
+      res.json(matters);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch representative matters" });
+    }
+  });
+
   app.get("/api/search", async (req, res) => {
     try {
       const query = (req.query.q as string || '').toLowerCase().trim();
@@ -308,6 +317,114 @@ export async function registerRoutes(
       });
     } catch (error) {
       res.status(500).json({ error: "Search failed" });
+    }
+  });
+
+  app.get("/robots.txt", (_req, res) => {
+    const robotsTxt = `# robots.txt for https://www.vonwobeser.com
+User-agent: *
+Allow: /
+
+# Disallow API endpoints
+Disallow: /api/
+
+# Sitemap location
+Sitemap: https://www.vonwobeser.com/sitemap.xml
+`;
+    res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+    res.send(robotsTxt);
+  });
+
+  app.get("/sitemap.xml", async (_req, res) => {
+    try {
+      const baseUrl = 'https://www.vonwobeser.com';
+      const today = new Date().toISOString().split('T')[0];
+
+      const staticPages = [
+        { loc: '/', changefreq: 'weekly', priority: '1.0' },
+        { loc: '/about', changefreq: 'monthly', priority: '0.8' },
+        { loc: '/team', changefreq: 'weekly', priority: '0.9' },
+        { loc: '/practice-groups', changefreq: 'monthly', priority: '0.8' },
+        { loc: '/industry-groups', changefreq: 'monthly', priority: '0.8' },
+        { loc: '/news', changefreq: 'daily', priority: '0.9' },
+        { loc: '/contact', changefreq: 'monthly', priority: '0.7' },
+        { loc: '/careers', changefreq: 'weekly', priority: '0.7' },
+        { loc: '/rankings', changefreq: 'monthly', priority: '0.7' },
+        { loc: '/offices', changefreq: 'monthly', priority: '0.7' },
+        { loc: '/experience', changefreq: 'monthly', priority: '0.7' },
+        { loc: '/privacy-policy', changefreq: 'yearly', priority: '0.3' },
+        { loc: '/terms', changefreq: 'yearly', priority: '0.3' },
+      ];
+
+      const [teamMembers, practiceGroups, industryGroups, newsItems] = await Promise.all([
+        storage.getTeamMembers(),
+        storage.getPracticeGroups(),
+        storage.getIndustryGroups(),
+        storage.getNews(),
+      ]);
+
+      let urlEntries = '';
+
+      for (const page of staticPages) {
+        urlEntries += `
+  <url>
+    <loc>${baseUrl}${page.loc}</loc>
+    <lastmod>${today}</lastmod>
+    <changefreq>${page.changefreq}</changefreq>
+    <priority>${page.priority}</priority>
+  </url>`;
+      }
+
+      for (const member of teamMembers) {
+        urlEntries += `
+  <url>
+    <loc>${baseUrl}/team/${member.slug}</loc>
+    <lastmod>${today}</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>`;
+      }
+
+      for (const group of practiceGroups) {
+        urlEntries += `
+  <url>
+    <loc>${baseUrl}/practice-groups/${group.slug}</loc>
+    <lastmod>${today}</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>`;
+      }
+
+      for (const group of industryGroups) {
+        urlEntries += `
+  <url>
+    <loc>${baseUrl}/industry-groups/${group.slug}</loc>
+    <lastmod>${today}</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>`;
+      }
+
+      for (const newsItem of newsItems) {
+        const lastmod = newsItem.date ? new Date(newsItem.date).toISOString().split('T')[0] : today;
+        urlEntries += `
+  <url>
+    <loc>${baseUrl}/news/${newsItem.slug}</loc>
+    <lastmod>${lastmod}</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>`;
+      }
+
+      const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">${urlEntries}
+</urlset>`;
+
+      res.setHeader('Content-Type', 'application/xml; charset=utf-8');
+      res.send(sitemap);
+    } catch (error) {
+      console.error("Sitemap generation error:", error);
+      res.status(500).send('<?xml version="1.0" encoding="UTF-8"?><error>Failed to generate sitemap</error>');
     }
   });
 

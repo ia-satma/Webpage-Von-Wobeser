@@ -15,8 +15,12 @@ import NewsDetail from "@/pages/NewsDetail";
 import News from "@/pages/News";
 import Contact from "@/pages/Contact";
 import About from "@/pages/About";
+import Careers from "@/pages/Careers";
+import Experience from "@/pages/Experience";
 import PrivacyPolicy from "@/pages/PrivacyPolicy";
 import Terms from "@/pages/Terms";
+import Rankings from "@/pages/Rankings";
+import Offices from "@/pages/Offices";
 
 function Router() {
   return (
@@ -32,8 +36,12 @@ function Router() {
       <Route path="/news" component={News} />
       <Route path="/news/:slug" component={NewsDetail} />
       <Route path="/contact" component={Contact} />
+      <Route path="/careers" component={Careers} />
+      <Route path="/experience" component={Experience} />
       <Route path="/privacy-policy" component={PrivacyPolicy} />
       <Route path="/terms" component={Terms} />
+      <Route path="/rankings" component={Rankings} />
+      <Route path="/offices" component={Offices} />
       <Route component={NotFound} />
     </Switch>
   );

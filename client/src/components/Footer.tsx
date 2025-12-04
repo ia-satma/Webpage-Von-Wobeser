@@ -20,7 +20,7 @@ export default function Footer({ language }: FooterProps) {
       firmLinks: [
         { label: "About Us", href: "/about", id: "about" },
         { label: "Our Team", href: "/team", id: "people" },
-        { label: "Careers", href: "mailto:carreras@vonwobeser.com", id: "careers", external: true },
+        { label: "Careers", href: "/careers", id: "careers" },
         { label: "Contact", href: "/contact", id: "contact" },
       ],
       capabilities: "Capabilities",
@@ -31,7 +31,7 @@ export default function Footer({ language }: FooterProps) {
       resources: "Resources",
       resourcesLinks: [
         { label: "News & Insights", href: "/news", id: "news" },
-        { label: "Rankings", href: "/about", id: "rankings" },
+        { label: "Rankings", href: "/rankings", id: "rankings" },
       ],
       contact: "Contact",
       building: "Torre SOMA Chapultepec Floor 18",
@@ -54,7 +54,7 @@ export default function Footer({ language }: FooterProps) {
       firmLinks: [
         { label: "Acerca de Nosotros", href: "/about", id: "about" },
         { label: "Nuestro Equipo", href: "/team", id: "people" },
-        { label: "Carreras", href: "mailto:carreras@vonwobeser.com", id: "careers", external: true },
+        { label: "Carreras", href: "/careers", id: "careers" },
         { label: "Contacto", href: "/contact", id: "contact" },
       ],
       capabilities: "Capacidades",
@@ -65,7 +65,7 @@ export default function Footer({ language }: FooterProps) {
       resources: "Recursos",
       resourcesLinks: [
         { label: "Noticias e Insights", href: "/news", id: "news" },
-        { label: "Rankings", href: "/about", id: "rankings" },
+        { label: "Rankings", href: "/rankings", id: "rankings" },
       ],
       contact: "Contacto",
       building: "Torre SOMA Chapultepec Piso 18",
