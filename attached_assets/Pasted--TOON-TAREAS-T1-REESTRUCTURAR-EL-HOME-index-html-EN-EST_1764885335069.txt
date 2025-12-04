@@ -1,0 +1,148 @@
+<TOON>
+
+[TAREAS]
+
+T1. REESTRUCTURAR EL HOME (index.html) EN ESTE ORDEN EXACTO:
+
+1. HEADER / NAV
+   - Menú profundo completo con subniveles
+   - Selector de idioma (ES/EN) visible fuera del menú hamburguesa
+
+2. HERO SECTION
+   - Slider o imagen principal
+   - Tagline del home
+   - Mantener estructura visual actual (no simplificar)
+
+3. NOTICIAS DESTACADAS
+   - 2 notas principales
+   - Botones SEE MORE / VER MÁS
+
+4. SOCIAL PROOF (CITAS)
+   - Testimoniales de Chambers, Legal 500, Latin Lawyer
+   - PRIORIDAD ALTA: debe quedar inmediatamente después de las Noticias
+
+5. 18 PRACTICES
+   - Lista numerada 1–18 completa, sin fusionar con industrias
+   - Botón SEE MORE
+
+6. BANNER DE EXPERIENCIA
+   - Texto exacto: “Von Wobeser y Sierra, S.C. has more than three decades of experience.”
+
+7. 7 INDUSTRY GROUPS
+   - Lista numerada 1–7 completa
+   - NO mezclar con Practices
+
+8. STATS / EQUIPO
+   - “Team of more than 150 lawyers…” + cifras completas
+
+9. GERMAN DESK (SECCIÓN COMPLETA)
+   - Texto histórico extenso
+   - Listas completas: Partners, Of Counsel, Associates
+   - NO convertir en botón o enlace
+   - Mantener como bloque independiente y robusto
+
+10. RECOGNITIONS (CORREGIDO 100%)
+    - Título EXACTO: "RECOGNITIONS" (mayúsculas, inglés siempre)
+    - Color título: #8B0000
+    - Letter-spacing: amplio (tracking aumentado)
+    - Párrafo introductorio obligatorio:
+      "Von Wobeser y Sierra, S.C. has been recognized on an international level 
+      by various institutions including"
+    - Lista completa de instituciones (texto plano)
+    - ORDEN OBLIGATORIO DE BADGES (izq → der):
+        1) Chambers Global 2025
+        2) Legal 500 Latin America 2026
+        3) Latin Lawyer 250 2026
+        4) Chambers Latin America 2026
+    - Texto bajo badges de Chambers:
+      “Von Wobeser y Sierra, S.C.”
+    - Línea divisoria sutil: 1px #e5e2db
+
+11. DIVERSITY & INCLUSION
+    - Texto introductorio
+    - Botón VER MÁS / SEE MORE
+
+12. PRO BONO
+    - Texto introductorio
+    - Botón correspondiente
+
+13. ABOUT US
+    - Vision
+    - Mission
+    - Values (Integrity, Excellence, Commitment, Agility, Diversity)
+    - Mantener cerca del footer
+
+14. FOOTER
+    - Dirección Torre SOMA
+    - Teléfono
+    - Aviso de privacidad / Privacy Notice
+    - Copyright
+
+T2. MENÚ PROFUNDO – JERARQUÍA OBLIGATORIA:
+
+Our Firm
+  - Probono
+  - Diversity & Inclusion
+
+Attorneys
+  - Partners
+  - Of Counsel
+  - Counsel
+  - Associates
+
+Capabilities
+  - Practices (18)
+  - Industry Groups (7)
+  - Desk (German Desk)
+
+Publications
+  - News
+  - Articles
+  - Newsletter
+
+Career at VWyS
+  - Interns
+
+Contact
+
+T3. BILINGÜISMO ESTRICTO:
+- Cada sección en ES debe tener su equivalente en EN
+- NO mezclar idiomas
+- “RECOGNITIONS” jamás se traduce al español
+
+T4. JERARQUÍA VISUAL:
+- Citas SIEMPRE después de Noticias
+- Practices es la sección principal de servicios
+- Industry Groups debajo del banner
+- German Desk es un bloque extenso
+- D&I y Pro Bono después de RECOGNITIONS
+- About Us pegado al footer
+
+[RESTRICCIONES]
+
+- NO fusionar Practices con Industry Groups
+- NO mover German Desk arriba del flujo
+- NO reducir contenido del German Desk
+- NO mover About Us hacia arriba
+- NO mover Social Proof al final
+- NO traducir “RECOGNITIONS”
+- NO cambiar colores ni estilo de badges
+- NO simplificar la navegación
+- NO aplicar estilo McKinsey antes de completar TODA esta alineación
+
+[CHECKLIST]
+
+□ Orden del HOME EXACTO (1–14)  
+□ Social Proof antes de Practices  
+□ 18 Practices completas  
+□ 7 Industry Groups completas  
+□ German Desk completo (texto + listas)  
+□ RECOGNITIONS corregido (título, intro, lista, badges, texto Chambers)  
+□ D&I y Pro Bono presentes y en orden correcto  
+□ About Us cerca del footer  
+□ Footer con Torre SOMA y aviso legal  
+□ Menú profundo funcional  
+□ Selector de idioma visible  
+□ Bilingüismo 1:1 respetado  
+
+</TOON>

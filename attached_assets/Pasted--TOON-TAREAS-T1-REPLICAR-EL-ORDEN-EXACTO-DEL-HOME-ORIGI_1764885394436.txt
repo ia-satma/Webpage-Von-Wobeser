@@ -1,0 +1,180 @@
+<TOON>
+
+[TAREAS]
+
+T1. REPLICAR EL ORDEN EXACTO DEL HOME ORIGINAL (DE ARRIBA A ABAJO):
+
+1. Header/Nav:
+   - Menú profundo completo (ver T2)
+   - Selector de idioma ES/EN visible en header principal
+
+2. Hero + Noticias:
+   - Hero visual (slider con tagline)
+   - Noticias destacadas (2 notas principales con botón "SEE MORE"/"VER MÁS")
+
+3. Social Proof / Testimoniales:
+   - Citas: Chambers, Legal 500, Latin Lawyer
+   - PRIORIDAD ALTA: Inmediatamente después de Hero/Noticias, NO al final
+
+4. 18 Practices (lista numerada completa):
+   1. Arbitration / Arbitraje
+   2. Banking & Finance / Bancario y Financiero
+   3. Bankruptcy & Restructuring / Concursos Mercantiles y Reestructuración
+   4. Competition & Antitrust / Competencia Económica
+   5. Corporate, Mergers & Acquisitions / Corporativo, Fusiones y Adquisiciones
+   6. Energy & Natural Resources / Energía y Recursos Naturales
+   7. Environmental / Ambiental
+   8. ESG (Environmental, Social and Governance)
+   9. Immigration & Global Mobility / Migración y Movilidad Global
+   10. Industrial & Intellectual Property / Propiedad Industrial e Intelectual
+   11. International Trade & Customs / Comercio Exterior y Aduanas
+   12. Investigations, Anti-corruption & Compliance / Investigaciones, Anticorrupción y Cumplimiento
+   13. Labor, Executive Compensations & Benefits / Laboral, Compensaciones Ejecutivas y Beneficios
+   14. Litigation / Litigio
+   15. Projects & Infrastructure / Proyectos e Infraestructura
+   16. Real Estate / Inmobiliario
+   17. Tax (Consultancy, Controversy & Litigation) / Fiscal
+   18. Telecommunications, Media & Technology / Telecomunicaciones, Medios y Tecnología
+   - Botón "SEE MORE"
+
+5. Banner de Experiencia:
+   - "Von Wobeser y Sierra, S.C. has more than three decades of experience."
+
+6. 7 Industry Groups (lista numerada completa):
+   1. Automotive, Mobility & Manufacturing / Automotriz, Movilidad y Manufactura
+   2. Consumer Goods / Bienes de Consumo
+   3. Energy & Natural Resources / Energía y Recursos Naturales
+   4. Financial Services / Servicios Financieros
+   5. Pharmaceutical & Life Sciences / Farmacéutica y Ciencias de la Salud
+   6. Real Estate / Inmobiliario
+   7. Technology / Tecnología
+   - Botón "SEE MORE"
+
+7. Equipo / Stats:
+   - "Team of more than 150 lawyers (22 partners, 6 of counsel, 12 counsel...)"
+
+8. German Desk (SECCIÓN COMPLETA - NO REDUCIR):
+   - Texto extenso sobre 34 años de historia
+   - Lista de Partners del Desk
+   - Lista de Of Counsel del Desk
+   - Lista de Associates del Desk
+
+9. RECOGNITIONS (SECCIÓN COMPLETA):
+   - Título: "RECOGNITIONS"
+     * Mayúsculas
+     * Color: #8B0000
+     * Letter-spacing: 0.3em
+     * NO traducir al español
+   - Párrafo introductorio (fuente serif, itálica):
+     "Von Wobeser y Sierra, S.C. has been recognized on an international level by various institutions including"
+   - Lista de instituciones:
+     "Chambers & Partners Global, Chambers & Partners Latin America, Legal 500, Latin Lawyer 250, Global Arbitration Review (GAR 100), Global Competition Review (GCR 100), Global Investigations Review (GIR 100), Global Restructuring Review (GCR), Lexology Index, Latin America Corporate Counsel Association (LACCA) and IFLR 1000, Best Lawyers, Benchmark Litigation among others."
+   - Línea divisoria sutil (#e5e2db)
+   - Badges en ORDEN EXACTO (izq → der):
+     1) Chambers Global 2025
+     2) Legal 500 Latin America 2026
+     3) Latin Lawyer 250 2026
+     4) Chambers Latin America 2026
+   - Texto bajo badges de Chambers: "Von Wobeser y Sierra, S.C."
+
+10. Diversity & Inclusion:
+    - Bloque separado
+    - Texto introductorio
+    - Botón "VER MÁS"
+
+11. Pro Bono:
+    - Bloque separado
+    - Texto introductorio
+    - Botón "VER MÁS"
+
+12. About Us:
+    - Vision
+    - Mission
+    - Values: Integrity, Excellence, Commitment, Agility, Diversity
+    - Ubicación: cerca del Footer
+
+13. Footer:
+    - Dirección: Torre SOMA Chapultepec, Campos Elíseos 204, Polanco, 11560, CDMX
+    - Teléfono
+    - Aviso de Privacidad / Privacy Notice
+    - Copyright © 2025
+
+T2. MENÚ DE NAVEGACIÓN PROFUNDO (OBLIGATORIO):
+
+Our Firm / Nuestra Firma
+├── Probono
+└── Diversity & Inclusion / Diversidad e Inclusión
+
+Attorneys / Abogados
+├── Partners / Socios
+├── Of Counsel
+├── Counsel / Consejeros
+└── Associates / Asociados
+
+Capabilities / Capacidades
+├── Practices / Prácticas (18)
+├── Industry Groups / Grupos de Industria (7)
+└── Desk (German Desk)
+
+Publications / Publicaciones
+├── News / Noticias
+├── Articles / Artículos
+└── Newsletter / Boletines
+
+Career at VWyS / Carrera en VWyS
+└── Interns / Pasantes
+
+Contact / Contacto
+
+T3. BILINGÜISMO:
+- Todas las secciones ES ↔ EN deben existir en paralelo
+- No mezclar idiomas en una misma versión
+- "RECOGNITIONS" NO se traduce (inglés en ambas versiones)
+- Selector de idioma visible en header principal
+
+T4. JERARQUÍA VISUAL (OBLIGATORIA):
+- Social Proof SIEMPRE después de Noticias, ANTES de servicios
+- Practices es la sección principal de servicios
+- Industry Groups va después del banner de experiencia
+- German Desk es un bloque completo con texto extenso
+- D&I y Pro Bono van después de Recognitions
+- About Us va encima del footer
+
+[RESTRICCIONES]
+
+- NO fusionar Practices con Industry Groups
+- NO mover German Desk arriba
+- NO simplificar German Desk a un botón o link
+- NO mover About Us al inicio
+- NO traducir "RECOGNITIONS"
+- NO mover Citas/Social Proof hacia abajo
+- NO simplificar menú de navegación
+- NO ocultar selector de idioma
+- NO aplicar estilo McKinsey antes de cumplir TODAS estas tareas
+- NO crear secciones que no existan en el original
+- NO cambiar orden de badges
+
+[CHECKLIST]
+
+□ Orden del HOME replicado 1:1 según T1 (13 secciones)
+□ Selector ES/EN visible en header
+□ Menú profundo con todos los subniveles de T2
+□ Social Proof/Citas aparece DESPUÉS de noticias, ANTES de prácticas
+□ 18 Practices listadas completas
+□ Banner "more than three decades" presente
+□ 7 Industry Groups listados completos
+□ Stats de equipo presentes (150 lawyers...)
+□ German Desk completo (texto + listas de miembros)
+□ RECOGNITIONS con título correcto (#8B0000, mayúsculas, letter-spacing)
+□ Párrafo introductorio de RECOGNITIONS presente (serif, itálica)
+□ Lista de instituciones presente
+□ Badges en orden: Chambers Global → Legal 500 → Latin Lawyer → Chambers LatAm
+□ Texto "Von Wobeser y Sierra, S.C." bajo badges Chambers
+□ D&I presente después de Recognitions
+□ Pro Bono presente después de D&I
+□ About Us (Vision/Mission/Values) cerca del footer
+□ Footer completo (Torre SOMA, teléfono, aviso privacidad, copyright)
+□ Estructura bilingüe ES/EN completa
+□ Ningún cambio creativo aplicado antes de completar checklist
+
+</TOON>
