@@ -1,5 +1,5 @@
 import { Link } from "wouter";
-import { MapPin, Phone, Mail, Linkedin, ExternalLink, AlertCircle, Building2 } from "lucide-react";
+import { MapPin, Phone, Mail, Linkedin, ExternalLink, AlertCircle, Building2, Twitter } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -47,6 +47,7 @@ export default function Footer() {
       errorMessage: "Contact information unavailable",
       followUs: "Follow Us",
       linkedinLabel: "Visit Von Wobeser on LinkedIn (opens in new tab)",
+      twitterLabel: "Visit Von Wobeser on X/Twitter (opens in new tab)",
       websiteLabel: "Visit Von Wobeser website (opens in new tab)",
       phoneLabel: "Call Von Wobeser",
       emailLabel: "Email Von Wobeser",
