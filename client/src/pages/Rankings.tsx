@@ -193,8 +193,8 @@ export default function Rankings() {
       viewAllTeam: "View All Team Members",
     },
     es: {
-      title: "Rankings y Reconocimientos",
-      subtitle: "Consistentemente reconocido como una de las principales firmas de abogados en México y América Latina",
+      title: "Reconocimientos",
+      subtitle: "Von Wobeser y Sierra ha sido reconocido a nivel internacional por diversas instituciones que incluyen Chambers Global, Chambers Latin America, Latin Lawyer 250, Global Arbitration Review (GAR 100), Global Competition Review (GCR), Global Investigations Review (GIR), Legal 500, Lexology Index, Latin America Corporate Counsel Association (LACCA), IFLR 1000 e IFLR Energy & Infrastructure y Benchmark Litigation entre otras.",
       overviewTitle: "Excelencia Reconocida Mundialmente",
       overviewText1: "Von Wobeser y Sierra es consistentemente clasificado entre las principales firmas de abogados en México y América Latina por los directorios legales más prestigiosos del mundo. Nuestro compromiso con la excelencia, profunda experiencia y enfoque centrado en el cliente nos han ganado reconocimiento en todas las principales áreas de práctica.",
       overviewText2: "Durante más de siete décadas, hemos mantenido nuestra posición como líder del mercado, obteniendo clasificaciones de primer nivel de Chambers and Partners, Legal 500, IFLR1000, Latin Lawyer 250 y otras publicaciones líderes.",

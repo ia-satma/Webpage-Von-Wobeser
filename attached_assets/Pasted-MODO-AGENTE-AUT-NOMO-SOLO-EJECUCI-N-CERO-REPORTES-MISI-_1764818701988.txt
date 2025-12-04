@@ -1,0 +1,72 @@
+MODO AGENTE AUTÓNOMO - SOLO EJECUCIÓN, CERO REPORTES
+
+MISIÓN: Hacer que nuestro sitio en Replit sea IDÉNTICO al sitio original de Von Wobeser.
+
+SITIO ORIGINAL (FUENTE DE VERDAD): https://www.vonwobeser.com
+
+⚠️ ADVERTENCIA CRÍTICA SOBRE IDIOMAS ⚠️
+
+El sitio de Von Wobeser tiene DOS versiones de idioma:
+- Español: https://www.vonwobeser.com/es/ 
+- Inglés: https://www.vonwobeser.com/en/
+
+REGLAS DE IDIOMA:
+
+1. USA LA VERSIÓN EN ESPAÑOL COMO REFERENCIA PRINCIPAL
+2. NO mezcles contenido en inglés con español
+3. NO cambies textos que ya están correctamente en español
+4. Si una sección nuestra dice "Reconocimientos" y el original en ESPAÑOL dice "Reconocimientos", DÉJALO ASÍ
+5. Si una sección nuestra dice "Rankings y Reconocimientos" y el original en ESPAÑOL dice "Reconocimientos", CÁMBIALO A "Reconocimientos"
+6. VERIFICA siempre que estás viendo la versión /es/ del sitio original antes de comparar
+
+PRESERVACIÓN DEL TRABAJO EXISTENTE:
+
+- NO borres secciones completas sin verificar que realmente sobran
+- NO cambies textos que ya están correctos
+- NO elimines funcionalidades que ya implementamos
+- SOLO modifica lo que está DIFERENTE al original en español
+- Si algo nuestro está bien, DÉJALO
+- Haz cambios QUIRÚRGICOS, no reescribas todo
+
+INSTRUCCIONES:
+
+1. Abre el sitio original en ESPAÑOL: https://www.vonwobeser.com/es/
+2. Abre nuestro proyecto de Replit
+3. Compara sección por sección
+4. SOLO cuando encuentres una diferencia real, corrige el código
+5. No toques lo que ya está bien
+
+PÁGINAS A REVISAR (VERSIÓN ESPAÑOL):
+
+1. HOME /es/ - comparar secciones en orden
+2. LA FIRMA /es/la-firma - contenido y subsecciones  
+3. PROFESIONALES /es/profesionales - listado, filtros, perfiles
+4. ÁREAS DE PRÁCTICA /es/areas-de-practica - listado y páginas individuales
+5. RECONOCIMIENTOS /es/reconocimientos - título, intro, badges
+6. NOTICIAS /es/noticias - formato y cards
+7. CONTACTO /es/contacto - formulario y datos
+8. FOOTER - columnas, links, orden
+
+ANTES DE CADA CAMBIO PREGÚNTATE:
+
+- ¿Estoy viendo la versión en ESPAÑOL del original?
+- ¿Este cambio es necesario o lo nuestro ya está correcto?
+- ¿Voy a romper algo que ya funcionaba?
+
+PROHIBIDO:
+- Usar la versión en inglés como referencia para la versión español
+- Mezclar idiomas
+- Borrar trabajo existente que está correcto
+- Reescribir archivos completos
+- Preguntarme confirmación
+
+OBLIGATORIO:
+- Verificar que estás en /es/ antes de comparar
+- Preservar lo que ya está bien
+- Hacer cambios mínimos y precisos
+- Mantener consistencia de idioma
+
+CUANDO TERMINES:
+Solo dime "Listo, corregí X archivos" con una lista breve de qué cambiaste.
+
+EMPIEZA AHORA. Ve a https://www.vonwobeser.com/es/ y comienza a comparar y corregir.

@@ -14,7 +14,7 @@ export default function RankingsSection({ language }: RankingsSectionProps) {
       title: "Rankings & Recognition",
     },
     es: {
-      title: "Rankings y Reconocimientos",
+      title: "Reconocimientos",
     },
   };
 

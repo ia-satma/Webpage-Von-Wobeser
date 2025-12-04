@@ -98,21 +98,21 @@ export default function Header() {
       ]
     },
     { 
-      label: language === "es" ? "Áreas de Práctica" : "Practice Areas", 
+      label: language === "es" ? "Profesionales" : "Professionals", 
+      href: "/team", 
+      id: "team", 
+      isPage: true 
+    },
+    { 
+      label: language === "es" ? "Prácticas" : "Practice Areas", 
       href: "/practice-groups", 
       id: "practice-groups", 
       isPage: true 
     },
     { 
-      label: language === "es" ? "Industrias" : "Industries", 
-      href: "/industry-groups", 
-      id: "industry-groups", 
-      isPage: true 
-    },
-    { 
-      label: language === "es" ? "Equipo" : "Team", 
-      href: "/team", 
-      id: "team", 
+      label: language === "es" ? "Reconocimientos" : "Rankings", 
+      href: "/rankings", 
+      id: "rankings", 
       isPage: true 
     },
     { 
