@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils";
 import ThemeToggle from "./ThemeToggle";
 import { useLanguage } from "@/contexts/LanguageContext";
 import type { TeamMember, PracticeGroup, IndustryGroup, News } from "@shared/schema";
+import vwsLogo from "@assets/Recurso_2_1764817269682.png";
 
 interface SearchResults {
   team: TeamMember[];
@@ -179,12 +180,12 @@ export default function Header() {
             aria-label={language === "es" ? "Von Wobeser y Sierra - Inicio" : "Von Wobeser y Sierra - Home"}
           >
             <img
-              src="https://vonwobeser.com/images/vonwobeser_2025_.png"
+              src={vwsLogo}
               alt="Von Wobeser y Sierra"
               className={cn(
                 "transition-all duration-300",
-                isScrolled ? "h-10" : "h-12",
-                !isScrolled && "brightness-0 invert"
+                isScrolled ? "h-8 md:h-10" : "h-10 md:h-12",
+                isScrolled && "invert dark:invert-0"
               )}
               data-testid="img-logo"
             />
@@ -409,9 +410,9 @@ export default function Header() {
           <div className="flex flex-col h-full">
             <div className="flex items-center justify-between p-6">
               <img
-                src="https://vonwobeser.com/images/vonwobeser_2025_.png"
+                src={vwsLogo}
                 alt="Von Wobeser y Sierra"
-                className="h-10 brightness-0 invert"
+                className="h-8"
                 data-testid="img-logo-mobile"
               />
               <Button

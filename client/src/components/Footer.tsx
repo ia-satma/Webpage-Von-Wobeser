@@ -5,6 +5,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useLanguage } from "@/contexts/LanguageContext";
 import type { SiteContent } from "@shared/schema";
 import esrLogo from "@assets/image_1764710915519.png";
+import footerLogo from "@assets/image_1764817018634.png";
 
 export default function Footer() {
   const { language } = useLanguage();
@@ -87,6 +88,7 @@ export default function Footer() {
       errorMessage: "Información de contacto no disponible",
       followUs: "Síguenos",
       linkedinLabel: "Visitar Von Wobeser en LinkedIn (abre en nueva pestaña)",
+      twitterLabel: "Visitar Von Wobeser en X/Twitter (abre en nueva pestaña)",
       websiteLabel: "Visitar sitio web de Von Wobeser (abre en nueva pestaña)",
       phoneLabel: "Llamar a Von Wobeser",
       emailLabel: "Enviar correo a Von Wobeser",
@@ -177,6 +179,16 @@ export default function Footer() {
               <Linkedin className="w-5 h-5" aria-hidden="true" />
             </a>
             <a
+              href="https://twitter.com/vonwobeser"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-gray-400 hover:text-white transition-colors"
+              data-testid="link-twitter"
+              aria-label={t.twitterLabel}
+            >
+              <Twitter className="w-5 h-5" aria-hidden="true" />
+            </a>
+            <a
               href="https://www.vonwobeser.com"
               target="_blank"
               rel="noopener noreferrer"
@@ -204,9 +216,9 @@ export default function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-10 lg:gap-8 mb-16">
           <div className="lg:col-span-1">
             <img
-              src="https://vonwobeser.com/images/vonwobeser_2025_.png"
+              src={footerLogo}
               alt="Von Wobeser y Sierra"
-              className="h-10 brightness-0 invert mb-6"
+              className="h-6 mb-6"
               data-testid="img-footer-logo"
             />
             <p className="text-gray-400 text-sm leading-relaxed" data-testid="text-footer-description">
@@ -221,23 +233,13 @@ export default function Footer() {
             <ul className="space-y-3" data-testid="list-firm-links">
               {t.firmLinks.map((link) => (
                 <li key={link.id}>
-                  {link.external ? (
-                    <a
-                      href={link.href}
-                      className="text-gray-400 hover:text-white transition-colors text-sm"
-                      data-testid={`link-footer-${link.id}`}
-                    >
-                      {link.label}
-                    </a>
-                  ) : (
-                    <Link
-                      href={link.href}
-                      className="text-gray-400 hover:text-white transition-colors text-sm"
-                      data-testid={`link-footer-${link.id}`}
-                    >
-                      {link.label}
-                    </Link>
-                  )}
+                  <Link
+                    href={link.href}
+                    className="text-gray-400 hover:text-white transition-colors text-sm"
+                    data-testid={`link-footer-${link.id}`}
+                  >
+                    {link.label}
+                  </Link>
                 </li>
               ))}
             </ul>
