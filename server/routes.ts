@@ -603,11 +603,41 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
   // BLOG POSTS CRUD
   // =============================================
 
-  // Get all blog posts
-  app.get("/api/admin/posts", authMiddleware, async (_req: Request, res: Response) => {
+  // Get all blog posts with pagination
+  app.get("/api/admin/posts", authMiddleware, async (req: Request, res: Response) => {
     try {
-      const posts = await storage.getBlogPosts();
-      res.json(posts);
+      const search = req.query.search as string || "";
+      const status = req.query.status as string || "";
+      const page = parseInt(req.query.page as string) || 1;
+      const limit = parseInt(req.query.limit as string) || 20;
+      
+      let posts = await storage.getBlogPosts();
+      
+      // Filter by search
+      if (search) {
+        const searchLower = search.toLowerCase();
+        posts = posts.filter(post => 
+          post.title.toLowerCase().includes(searchLower) ||
+          post.titleEs.toLowerCase().includes(searchLower)
+        );
+      }
+      
+      // Filter by status
+      if (status && status !== "all") {
+        posts = posts.filter(post => post.status === status);
+      }
+      
+      const total = posts.length;
+      const totalPages = Math.ceil(total / limit);
+      const startIndex = (page - 1) * limit;
+      const paginatedPosts = posts.slice(startIndex, startIndex + limit);
+      
+      res.json({
+        posts: paginatedPosts,
+        total,
+        page,
+        totalPages,
+      });
     } catch (error) {
       console.error("Get posts error:", error);
       res.status(500).json({ error: "Failed to fetch posts" });

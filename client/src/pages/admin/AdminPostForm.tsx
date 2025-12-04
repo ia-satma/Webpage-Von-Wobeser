@@ -316,8 +316,8 @@ export default function AdminPostForm() {
                       <FormItem>
                         <FormLabel>{t.categoryLabel}</FormLabel>
                         <Select 
-                          value={field.value || ""} 
-                          onValueChange={field.onChange}
+                          value={field.value || "__none__"} 
+                          onValueChange={(val) => field.onChange(val === "__none__" ? "" : val)}
                         >
                           <FormControl>
                             <SelectTrigger data-testid="select-category">
@@ -325,7 +325,7 @@ export default function AdminPostForm() {
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            <SelectItem value="" data-testid="option-no-category">
+                            <SelectItem value="__none__" data-testid="option-no-category">
                               {t.noCategory}
                             </SelectItem>
                             {categories.map((cat) => (
