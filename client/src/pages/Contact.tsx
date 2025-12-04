@@ -1,20 +1,115 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { MapPin, Phone, Mail, Clock, ExternalLink, Linkedin, Building2 } from "lucide-react";
-import { useQuery } from "@tanstack/react-query";
+import { MapPin, Phone, Mail, Clock, ExternalLink, Linkedin, Building2, Send, Loader2 } from "lucide-react";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { useToast } from "@/hooks/use-toast";
+import { apiRequest } from "@/lib/queryClient";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import type { SiteContent } from "@shared/schema";
+import type { SiteContent, ContactFormData } from "@shared/schema";
+import { practiceAreas } from "@shared/schema";
+
+const getContactFormSchema = (language: "es" | "en") => {
+  const messages = {
+    en: {
+      fullNameRequired: "Full name is required",
+      emailRequired: "Email is required",
+      emailInvalid: "Please enter a valid email address",
+      messageRequired: "Message is required",
+    },
+    es: {
+      fullNameRequired: "El nombre completo es requerido",
+      emailRequired: "El correo electrónico es requerido",
+      emailInvalid: "Por favor ingrese una dirección de correo válida",
+      messageRequired: "El mensaje es requerido",
+    },
+  };
+
+  const t = messages[language];
+
+  return z.object({
+    fullName: z.string().min(1, t.fullNameRequired),
+    email: z.string().min(1, t.emailRequired).email(t.emailInvalid),
+    phone: z.string().optional(),
+    company: z.string().optional(),
+    practiceArea: z.string().optional(),
+    message: z.string().min(1, t.messageRequired),
+  });
+};
 
 export default function Contact() {
   const [language, setLanguage] = useState<"es" | "en">("es");
+  const { toast } = useToast();
 
   const { data: siteContent, isLoading } = useQuery<SiteContent>({
     queryKey: ["/api/site-content"],
   });
+
+  const formSchema = getContactFormSchema(language);
+
+  const form = useForm<ContactFormData>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      fullName: "",
+      email: "",
+      phone: "",
+      company: "",
+      practiceArea: "",
+      message: "",
+    },
+  });
+
+  const contactMutation = useMutation({
+    mutationFn: async (data: ContactFormData) => {
+      const response = await apiRequest("POST", "/api/contact", data);
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: language === "es" ? "¡Mensaje enviado!" : "Message sent!",
+        description: language === "es" 
+          ? "Nos pondremos en contacto con usted pronto." 
+          : "We will get back to you soon.",
+      });
+      form.reset();
+    },
+    onError: (error: Error) => {
+      toast({
+        title: language === "es" ? "Error" : "Error",
+        description: language === "es" 
+          ? "No se pudo enviar el mensaje. Por favor intente de nuevo." 
+          : "Failed to send message. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const onSubmit = (data: ContactFormData) => {
+    contactMutation.mutate(data);
+  };
 
   const content = {
     en: {
@@ -42,6 +137,22 @@ export default function Contact() {
       contactUs: "Contact Us",
       sendEmail: "Send Email",
       callUs: "Call Us",
+      formTitle: "Send Us a Message",
+      formSubtitle: "Fill out the form below and we will get back to you as soon as possible.",
+      fullName: "Full Name",
+      fullNamePlaceholder: "Enter your full name",
+      emailLabel: "Email",
+      emailPlaceholder: "Enter your email address",
+      phoneLabel: "Phone (optional)",
+      phonePlaceholder: "Enter your phone number",
+      companyLabel: "Company/Organization (optional)",
+      companyPlaceholder: "Enter your company name",
+      practiceAreaLabel: "Practice Area of Interest (optional)",
+      practiceAreaPlaceholder: "Select a practice area",
+      messageLabel: "Message",
+      messagePlaceholder: "How can we help you?",
+      submit: "Send Message",
+      submitting: "Sending...",
     },
     es: {
       title: "Contáctenos",
@@ -68,6 +179,22 @@ export default function Contact() {
       contactUs: "Contáctenos",
       sendEmail: "Enviar Email",
       callUs: "Llámenos",
+      formTitle: "Envíenos un Mensaje",
+      formSubtitle: "Complete el formulario a continuación y nos pondremos en contacto con usted lo antes posible.",
+      fullName: "Nombre Completo",
+      fullNamePlaceholder: "Ingrese su nombre completo",
+      emailLabel: "Correo Electrónico",
+      emailPlaceholder: "Ingrese su correo electrónico",
+      phoneLabel: "Teléfono (opcional)",
+      phonePlaceholder: "Ingrese su número de teléfono",
+      companyLabel: "Empresa/Organización (opcional)",
+      companyPlaceholder: "Ingrese el nombre de su empresa",
+      practiceAreaLabel: "Área de Práctica de Interés (opcional)",
+      practiceAreaPlaceholder: "Seleccione un área de práctica",
+      messageLabel: "Mensaje",
+      messagePlaceholder: "¿Cómo podemos ayudarle?",
+      submit: "Enviar Mensaje",
+      submitting: "Enviando...",
     },
   };
 
@@ -105,6 +232,180 @@ export default function Contact() {
 
       <main className="py-16 lg:py-20">
         <div className="max-w-7xl mx-auto px-6 lg:px-12">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.1 }}
+            className="mb-16"
+            data-testid="section-contact-form"
+          >
+            <Card className="rounded-md border border-gray-200 dark:border-gray-700">
+              <CardContent className="p-8">
+                <div className="mb-8">
+                  <h2 
+                    className="text-2xl font-heading font-light text-gray-800 dark:text-white mb-2"
+                    data-testid="text-form-title"
+                  >
+                    {t.formTitle}
+                  </h2>
+                  <p 
+                    className="text-gray-600 dark:text-gray-400"
+                    data-testid="text-form-subtitle"
+                  >
+                    {t.formSubtitle}
+                  </p>
+                </div>
+
+                <Form {...form}>
+                  <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6" data-testid="form-contact">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <FormField
+                        control={form.control}
+                        name="fullName"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel data-testid="label-fullname">{t.fullName}</FormLabel>
+                            <FormControl>
+                              <Input 
+                                placeholder={t.fullNamePlaceholder} 
+                                {...field} 
+                                data-testid="input-fullname"
+                              />
+                            </FormControl>
+                            <FormMessage data-testid="error-fullname" />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={form.control}
+                        name="email"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel data-testid="label-email">{t.emailLabel}</FormLabel>
+                            <FormControl>
+                              <Input 
+                                type="email"
+                                placeholder={t.emailPlaceholder} 
+                                {...field} 
+                                data-testid="input-email"
+                              />
+                            </FormControl>
+                            <FormMessage data-testid="error-email" />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={form.control}
+                        name="phone"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel data-testid="label-phone">{t.phoneLabel}</FormLabel>
+                            <FormControl>
+                              <Input 
+                                type="tel"
+                                placeholder={t.phonePlaceholder} 
+                                {...field} 
+                                data-testid="input-phone"
+                              />
+                            </FormControl>
+                            <FormMessage data-testid="error-phone" />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={form.control}
+                        name="company"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel data-testid="label-company">{t.companyLabel}</FormLabel>
+                            <FormControl>
+                              <Input 
+                                placeholder={t.companyPlaceholder} 
+                                {...field} 
+                                data-testid="input-company"
+                              />
+                            </FormControl>
+                            <FormMessage data-testid="error-company" />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+
+                    <FormField
+                      control={form.control}
+                      name="practiceArea"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel data-testid="label-practice-area">{t.practiceAreaLabel}</FormLabel>
+                          <Select onValueChange={field.onChange} value={field.value}>
+                            <FormControl>
+                              <SelectTrigger data-testid="select-practice-area">
+                                <SelectValue placeholder={t.practiceAreaPlaceholder} />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent data-testid="select-practice-area-content">
+                              {practiceAreas.map((area) => (
+                                <SelectItem 
+                                  key={area.value} 
+                                  value={area.value}
+                                  data-testid={`option-practice-area-${area.value}`}
+                                >
+                                  {language === "es" ? area.es : area.en}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <FormMessage data-testid="error-practice-area" />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="message"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel data-testid="label-message">{t.messageLabel}</FormLabel>
+                          <FormControl>
+                            <Textarea 
+                              placeholder={t.messagePlaceholder} 
+                              className="min-h-[120px]"
+                              {...field} 
+                              data-testid="textarea-message"
+                            />
+                          </FormControl>
+                          <FormMessage data-testid="error-message" />
+                        </FormItem>
+                      )}
+                    />
+
+                    <Button 
+                      type="submit" 
+                      className="w-full md:w-auto rounded-md"
+                      disabled={contactMutation.isPending}
+                      data-testid="button-submit-contact"
+                    >
+                      {contactMutation.isPending ? (
+                        <>
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                          {t.submitting}
+                        </>
+                      ) : (
+                        <>
+                          <Send className="w-4 h-4 mr-2" />
+                          {t.submit}
+                        </>
+                      )}
+                    </Button>
+                  </form>
+                </Form>
+              </CardContent>
+            </Card>
+          </motion.div>
+
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 mb-16">
             <motion.div
               initial={{ opacity: 0, x: -20 }}

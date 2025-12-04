@@ -15,6 +15,8 @@ import NewsDetail from "@/pages/NewsDetail";
 import News from "@/pages/News";
 import Contact from "@/pages/Contact";
 import About from "@/pages/About";
+import PrivacyPolicy from "@/pages/PrivacyPolicy";
+import Terms from "@/pages/Terms";
 
 function Router() {
   return (
@@ -30,6 +32,8 @@ function Router() {
       <Route path="/news" component={News} />
       <Route path="/news/:slug" component={NewsDetail} />
       <Route path="/contact" component={Contact} />
+      <Route path="/privacy-policy" component={PrivacyPolicy} />
+      <Route path="/terms" component={Terms} />
       <Route component={NotFound} />
     </Switch>
   );

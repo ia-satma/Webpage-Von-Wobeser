@@ -300,20 +300,20 @@ export default function Footer({ language }: FooterProps) {
               />
             </div>
             <div className="flex items-center gap-6">
-              <a
-                href="#"
+              <Link
+                href="/privacy-policy"
                 className="text-xs text-gray-500 hover:text-white transition-colors"
                 data-testid="link-privacy"
               >
                 {t.privacy}
-              </a>
-              <a
-                href="#"
+              </Link>
+              <Link
+                href="/terms"
                 className="text-xs text-gray-500 hover:text-white transition-colors"
                 data-testid="link-terms"
               >
                 {t.terms}
-              </a>
+              </Link>
               <button
                 onClick={() => localStorage.removeItem('vwb_cookie_consent')}
                 className="text-xs text-gray-500 hover:text-white transition-colors"

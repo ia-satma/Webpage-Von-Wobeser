@@ -207,3 +207,37 @@ export interface MenuItem {
   labelEs: string;
   href: string;
 }
+
+// Contact form schema
+export const contactFormSchema = z.object({
+  fullName: z.string().min(1, "Full name is required"),
+  email: z.string().min(1, "Email is required").email("Invalid email address"),
+  phone: z.string().optional(),
+  company: z.string().optional(),
+  practiceArea: z.string().optional(),
+  message: z.string().min(1, "Message is required"),
+});
+
+export type ContactFormData = z.infer<typeof contactFormSchema>;
+
+// Practice areas list for contact form
+export const practiceAreas = [
+  { value: "corporate-ma", en: "Corporate, Mergers & Acquisitions", es: "Corporativo, Fusiones y Adquisiciones" },
+  { value: "antitrust-competition", en: "Antitrust & Competition", es: "Competencia Económica" },
+  { value: "arbitration", en: "Arbitration", es: "Arbitraje" },
+  { value: "litigation", en: "Litigation", es: "Litigio" },
+  { value: "investigations-anticorruption", en: "Investigations, Anti-corruption & Compliance", es: "Investigaciones, Anticorrupción y Compliance" },
+  { value: "bankruptcy-restructuring", en: "Bankruptcy & Restructuring", es: "Concursos Mercantiles y Reestructuración" },
+  { value: "banking-finance", en: "Banking & Finance", es: "Bancario y Financiero" },
+  { value: "energy-natural-resources", en: "Energy & Natural Resources", es: "Energía y Recursos Naturales" },
+  { value: "esg", en: "ESG (Environmental, Social & Corporate Governance)", es: "ESG (Ambiental, Social y Gobierno Corporativo)" },
+  { value: "real-estate", en: "Real Estate", es: "Inmobiliario" },
+  { value: "intellectual-property", en: "Intellectual Property", es: "Propiedad Intelectual" },
+  { value: "labor-employment", en: "Labor & Employment", es: "Laboral" },
+  { value: "tax", en: "Tax", es: "Fiscal" },
+  { value: "international-trade", en: "International Trade", es: "Comercio Exterior" },
+  { value: "telecommunications-media-technology", en: "Telecommunications, Media & Technology", es: "Telecomunicaciones, Medios y Tecnología" },
+  { value: "environmental", en: "Environmental", es: "Ambiental" },
+  { value: "administrative-law", en: "Administrative Law", es: "Derecho Administrativo" },
+  { value: "german-desk", en: "German Desk", es: "Desk Alemán" },
+] as const;

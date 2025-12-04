@@ -4,6 +4,7 @@ import { storage } from "./storage";
 import { seed } from "./seed";
 import express from "express";
 import path from "path";
+import { contactFormSchema } from "@shared/schema";
 
 function generateVCard(member: any, language: "es" | "en" = "es"): string {
   const title = language === "es" ? member.titleEs : member.title;
@@ -219,6 +220,36 @@ export async function registerRoutes(
       res.send(vcard);
     } catch (error) {
       res.status(500).json({ error: "Failed to generate vCard" });
+    }
+  });
+
+  app.post("/api/contact", async (req, res) => {
+    try {
+      const validationResult = contactFormSchema.safeParse(req.body);
+      
+      if (!validationResult.success) {
+        return res.status(400).json({ 
+          error: "Validation failed", 
+          details: validationResult.error.errors 
+        });
+      }
+      
+      const contactData = validationResult.data;
+      
+      console.log("=== New Contact Form Submission ===");
+      console.log("Full Name:", contactData.fullName);
+      console.log("Email:", contactData.email);
+      console.log("Phone:", contactData.phone || "Not provided");
+      console.log("Company:", contactData.company || "Not provided");
+      console.log("Practice Area:", contactData.practiceArea || "Not specified");
+      console.log("Message:", contactData.message);
+      console.log("Submitted at:", new Date().toISOString());
+      console.log("===================================");
+      
+      res.json({ success: true, message: "Contact form submitted successfully" });
+    } catch (error) {
+      console.error("Contact form error:", error);
+      res.status(500).json({ error: "Failed to process contact form" });
     }
   });
 
