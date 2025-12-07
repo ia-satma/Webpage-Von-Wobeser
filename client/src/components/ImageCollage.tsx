@@ -10,20 +10,41 @@ interface ImageCollageProps {
 }
 
 const fallbackImages: OfficeImage[] = [
-  { id: "1", imageUrl: "https://vonwobeser.com/img/Collage/collage_01.jpg", alt: "Von Wobeser new office space", altEs: "Nuevo espacio de oficinas Von Wobeser", order: 1 },
-  { id: "2", imageUrl: "https://vonwobeser.com/img/Collage/collage_02.jpg", alt: "Modern collaborative workspace", altEs: "Espacio de trabajo colaborativo moderno", order: 2 },
-  { id: "3", imageUrl: "https://vonwobeser.com/img/Collage/collage_05.jpg", alt: "Office interior design", altEs: "Diseño interior de oficinas", order: 3 },
-  { id: "4", imageUrl: "https://vonwobeser.com/img/Collage/collage_04.jpg", alt: "Meeting room with city views", altEs: "Sala de juntas con vistas a la ciudad", order: 4 },
-  { id: "5", imageUrl: "https://vonwobeser.com/img/Collage/collage_07.jpg", alt: "Executive work areas", altEs: "Áreas de trabajo ejecutivas", order: 5 },
-  { id: "6", imageUrl: "https://vonwobeser.com/img/Collage/05.jpg", alt: "Panoramic terrace view", altEs: "Vista de terraza panorámica", order: 6 },
-  { id: "7", imageUrl: "https://vonwobeser.com/img/Collage/collage_09.jpg", alt: "Contemporary lounge area", altEs: "Área de descanso contemporánea", order: 7 },
-  { id: "8", imageUrl: "https://vonwobeser.com/img/Collage/collage_08.jpg", alt: "Conference facilities", altEs: "Instalaciones de conferencias", order: 8 },
-  { id: "9", imageUrl: "https://vonwobeser.com/img/Collage/collage_03.jpg", alt: "Modern workspace design", altEs: "Diseño moderno del espacio de trabajo", order: 9 },
+  { id: "1", imageUrl: "https://vonwobeser.com/img/Collage/collage_01.jpg", alt: "Von Wobeser new office space with modern open floor plan", altEs: "Nuevo espacio de oficinas Von Wobeser con planta abierta moderna", order: 1 },
+  { id: "2", imageUrl: "https://vonwobeser.com/img/Collage/collage_02.jpg", alt: "Modern collaborative workspace with natural lighting", altEs: "Espacio de trabajo colaborativo moderno con iluminación natural", order: 2 },
+  { id: "3", imageUrl: "https://vonwobeser.com/img/Collage/collage_05.jpg", alt: "Professional office interior design with contemporary furniture", altEs: "Diseño interior de oficinas profesional con mobiliario contemporáneo", order: 3 },
+  { id: "4", imageUrl: "https://vonwobeser.com/img/Collage/collage_04.jpg", alt: "Executive meeting room with panoramic city views", altEs: "Sala de juntas ejecutiva con vistas panorámicas a la ciudad", order: 4 },
+  { id: "5", imageUrl: "https://vonwobeser.com/img/Collage/collage_07.jpg", alt: "Executive work areas with ergonomic design", altEs: "Áreas de trabajo ejecutivas con diseño ergonómico", order: 5 },
+  { id: "6", imageUrl: "https://vonwobeser.com/img/Collage/05.jpg", alt: "Panoramic terrace view overlooking Mexico City skyline", altEs: "Vista de terraza panorámica con horizonte de Ciudad de México", order: 6 },
+  { id: "7", imageUrl: "https://vonwobeser.com/img/Collage/collage_09.jpg", alt: "Contemporary lounge area for informal meetings", altEs: "Área de descanso contemporánea para reuniones informales", order: 7 },
+  { id: "8", imageUrl: "https://vonwobeser.com/img/Collage/collage_08.jpg", alt: "State-of-the-art conference facilities", altEs: "Instalaciones de conferencias de última generación", order: 8 },
+  { id: "9", imageUrl: "https://vonwobeser.com/img/Collage/collage_03.jpg", alt: "Modern workspace design promoting productivity", altEs: "Diseño moderno del espacio de trabajo que promueve la productividad", order: 9 },
 ];
 
 const getSpanClass = (index: number): string => {
   if (index === 0 || index === 5 || index === 6) return "row-span-2";
   return "";
+};
+
+const generateSrcSet = (imageUrl: string): string => {
+  const baseWidth = 400;
+  const sizes = [baseWidth, baseWidth * 1.5, baseWidth * 2];
+  
+  if (imageUrl.includes('vonwobeser.com')) {
+    return sizes
+      .map(size => `${imageUrl} ${size}w`)
+      .join(', ');
+  }
+  
+  return "";
+};
+
+const getSizes = (index: number): string => {
+  const isSpanning = index === 0 || index === 5 || index === 6;
+  if (isSpanning) {
+    return "(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 300px";
+  }
+  return "(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 250px";
 };
 
 export default function ImageCollage({ language }: ImageCollageProps) {
@@ -35,7 +56,22 @@ export default function ImageCollage({ language }: ImageCollageProps) {
 
   const displayImages = images && images.length >= 9 ? images : fallbackImages;
 
-  const errorMessage = language === "es" ? "Error al cargar galería" : "Failed to load gallery";
+  const labels = {
+    en: {
+      errorMessage: "Failed to load gallery",
+      galleryLabel: "Office image gallery showcasing Von Wobeser y Sierra facilities",
+      viewFullSize: "View full size image",
+      closeModal: "Close image viewer",
+    },
+    es: {
+      errorMessage: "Error al cargar galería",
+      galleryLabel: "Galería de imágenes de las instalaciones de Von Wobeser y Sierra",
+      viewFullSize: "Ver imagen en tamaño completo",
+      closeModal: "Cerrar visor de imágenes",
+    },
+  };
+
+  const t = labels[language];
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -58,10 +94,15 @@ export default function ImageCollage({ language }: ImageCollageProps) {
 
   if (error) {
     return (
-      <section id="gallery" className="py-20 lg:py-28 bg-gray-50 dark:bg-gray-800" data-testid="section-gallery">
+      <section 
+        id="gallery" 
+        className="py-20 lg:py-28 bg-gray-50 dark:bg-gray-800" 
+        data-testid="section-gallery"
+        aria-label={t.galleryLabel}
+      >
         <div className="max-w-7xl mx-auto px-6 lg:px-12 text-center">
-          <AlertCircle className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-          <p className="text-gray-500 dark:text-gray-400" data-testid="text-gallery-error">{errorMessage}</p>
+          <AlertCircle className="w-12 h-12 text-gray-400 mx-auto mb-4" aria-hidden="true" />
+          <p className="text-gray-500 dark:text-gray-400" data-testid="text-gallery-error" role="alert">{t.errorMessage}</p>
         </div>
       </section>
     );
@@ -73,10 +114,15 @@ export default function ImageCollage({ language }: ImageCollageProps) {
         id="gallery"
         className="py-20 lg:py-28 bg-gray-50 dark:bg-gray-800"
         data-testid="section-gallery"
+        aria-label={t.galleryLabel}
       >
         <div className="max-w-7xl mx-auto px-6 lg:px-12">
           {isLoading ? (
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4">
+            <div 
+              className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4"
+              role="status"
+              aria-label={language === "es" ? "Cargando galería" : "Loading gallery"}
+            >
               {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((i) => (
                 <Skeleton
                   key={i}
@@ -92,27 +138,41 @@ export default function ImageCollage({ language }: ImageCollageProps) {
               whileInView="visible"
               viewport={{ once: true }}
               className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4"
+              role="list"
             >
-              {displayImages.map((image, index) => (
-                <motion.button
-                  key={image.id}
-                  variants={itemVariants}
-                  className={`relative overflow-hidden group cursor-pointer ${getSpanClass(index)}`}
-                  onClick={() => setSelectedImage(image.imageUrl)}
-                  data-testid={`button-gallery-image-${image.id}`}
-                >
-                  <div className={`img-fallback aspect-square ${getSpanClass(index) ? "h-full" : ""}`}>
-                    <img
-                      src={image.imageUrl}
-                      alt={language === "es" ? image.altEs : image.alt}
-                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                      loading="lazy"
-                      data-testid={`img-gallery-${image.id}`}
-                    />
-                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors duration-300" />
-                  </div>
-                </motion.button>
-              ))}
+              {displayImages.map((image, index) => {
+                const altText = language === "es" ? image.altEs : image.alt;
+                const srcSet = generateSrcSet(image.imageUrl);
+                const sizes = getSizes(index);
+                
+                return (
+                  <motion.button
+                    key={image.id}
+                    variants={itemVariants}
+                    className={`relative overflow-hidden group cursor-pointer ${getSpanClass(index)}`}
+                    onClick={() => setSelectedImage(image.imageUrl)}
+                    data-testid={`button-gallery-image-${image.id}`}
+                    aria-label={`${t.viewFullSize}: ${altText}`}
+                    role="listitem"
+                  >
+                    <div className={`img-fallback aspect-square ${getSpanClass(index) ? "h-full" : ""}`}>
+                      <img
+                        src={image.imageUrl}
+                        alt={altText}
+                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                        loading="lazy"
+                        decoding="async"
+                        srcSet={srcSet || undefined}
+                        sizes={srcSet ? sizes : undefined}
+                        width={400}
+                        height={getSpanClass(index) ? 800 : 400}
+                        data-testid={`img-gallery-${image.id}`}
+                      />
+                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors duration-300" aria-hidden="true" />
+                    </div>
+                  </motion.button>
+                );
+              })}
             </motion.div>
           )}
         </div>
@@ -123,23 +183,28 @@ export default function ImageCollage({ language }: ImageCollageProps) {
           className="fixed inset-0 z-[70] bg-black/90 flex items-center justify-center p-4"
           onClick={() => setSelectedImage(null)}
           data-testid="modal-lightbox"
+          role="dialog"
+          aria-modal="true"
+          aria-label={t.viewFullSize}
         >
           <button
             className="absolute top-6 right-6 text-white/90 hover:text-white transition-colors"
             onClick={() => setSelectedImage(null)}
             data-testid="button-close-lightbox"
+            aria-label={t.closeModal}
           >
-            <X className="w-8 h-8" />
+            <X className="w-8 h-8" aria-hidden="true" />
           </button>
           <motion.img
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.9 }}
             src={selectedImage}
-            alt="Selected image"
+            alt={language === "es" ? "Imagen seleccionada de la galería" : "Selected gallery image"}
             className="max-w-full max-h-[90vh] object-contain"
             onClick={(e) => e.stopPropagation()}
             data-testid="img-lightbox"
+            loading="eager"
           />
         </div>
       )}

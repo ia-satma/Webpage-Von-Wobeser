@@ -1,7 +1,34 @@
 import { useEffect } from "react";
+import { SUPPORTED_LANGUAGES, type LanguageCode } from "@shared/schema";
 
 const BASE_URL = "https://www.vonwobeser.com";
 const DEFAULT_IMAGE = "https://vonwobeser.com/images/vonwobeser_2025_.png";
+
+const HREFLANG_CODES: Record<LanguageCode, string> = {
+  en: "en",
+  es: "es-MX",
+  de: "de",
+  zh: "zh-CN",
+  ko: "ko",
+  ja: "ja",
+  ar: "ar",
+  ru: "ru",
+  fr: "fr",
+  it: "it",
+};
+
+const OG_LOCALE_CODES: Record<LanguageCode, string> = {
+  en: "en_US",
+  es: "es_MX",
+  de: "de_DE",
+  zh: "zh_CN",
+  ko: "ko_KR",
+  ja: "ja_JP",
+  ar: "ar_SA",
+  ru: "ru_RU",
+  fr: "fr_FR",
+  it: "it_IT",
+};
 
 interface SEOConfig {
   title: {
@@ -264,8 +291,6 @@ export default function SEOHead({
     const path = customPath || config.path;
     const image = customImage || DEFAULT_IMAGE;
     const url = `${BASE_URL}${path}`;
-    const alternateLanguage = language === "en" ? "es" : "en";
-    const alternateUrl = `${BASE_URL}${path}`;
 
     document.title = title;
 
@@ -311,8 +336,24 @@ export default function SEOHead({
     updateOrCreateMeta("og:image", image, true);
     updateOrCreateMeta("og:type", "website", true);
     updateOrCreateMeta("og:site_name", "Von Wobeser y Sierra", true);
-    updateOrCreateMeta("og:locale", language === "es" ? "es_MX" : "en_US", true);
-    updateOrCreateMeta("og:locale:alternate", language === "es" ? "en_US" : "es_MX", true);
+    
+    const displayLang = (language === "es" ? "es" : "en") as LanguageCode;
+    updateOrCreateMeta("og:locale", OG_LOCALE_CODES[displayLang], true);
+
+    const removeExistingOgLocaleAlternates = () => {
+      const existingAlternates = document.querySelectorAll('meta[property="og:locale:alternate"]');
+      existingAlternates.forEach(el => el.remove());
+    };
+    removeExistingOgLocaleAlternates();
+
+    SUPPORTED_LANGUAGES.forEach((lang) => {
+      if (lang.code !== displayLang) {
+        const alternateMeta = document.createElement("meta");
+        alternateMeta.setAttribute("property", "og:locale:alternate");
+        alternateMeta.setAttribute("content", OG_LOCALE_CODES[lang.code]);
+        document.head.appendChild(alternateMeta);
+      }
+    });
 
     updateOrCreateMeta("twitter:card", "summary_large_image");
     updateOrCreateMeta("twitter:title", title);
@@ -321,9 +362,25 @@ export default function SEOHead({
 
     updateOrCreateLink("canonical", url);
 
-    updateOrCreateLink("alternate", url, { hreflang: language === "es" ? "es-MX" : "en" });
-    updateOrCreateLink("alternate", alternateUrl, { hreflang: alternateLanguage === "es" ? "es-MX" : "en" });
-    updateOrCreateLink("alternate", url, { hreflang: "x-default" });
+    const removeExistingHreflangLinks = () => {
+      const existingLinks = document.querySelectorAll('link[rel="alternate"][hreflang]');
+      existingLinks.forEach(el => el.remove());
+    };
+    removeExistingHreflangLinks();
+
+    SUPPORTED_LANGUAGES.forEach((lang) => {
+      const hreflangLink = document.createElement("link");
+      hreflangLink.setAttribute("rel", "alternate");
+      hreflangLink.setAttribute("hreflang", HREFLANG_CODES[lang.code]);
+      hreflangLink.setAttribute("href", url);
+      document.head.appendChild(hreflangLink);
+    });
+
+    const xDefaultLink = document.createElement("link");
+    xDefaultLink.setAttribute("rel", "alternate");
+    xDefaultLink.setAttribute("hreflang", "x-default");
+    xDefaultLink.setAttribute("href", `${BASE_URL}${path}`);
+    document.head.appendChild(xDefaultLink);
 
     return () => {
     };

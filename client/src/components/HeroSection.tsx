@@ -4,8 +4,10 @@ import { motion } from "framer-motion";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
+import { useIsMobile } from "@/hooks/use-mobile";
 import type { SiteContent, News } from "@shared/schema";
 import heroVideo from "@assets/dron_1764710361340.mp4";
+import heroImage from "@assets/hero_office.jpg";
 
 interface HeroSectionProps {
   language: "es" | "en";
@@ -78,6 +80,7 @@ function NewsPanel({ language, news }: { language: "es" | "en"; news: News[] }) 
 
 export default function HeroSection({ language }: HeroSectionProps) {
   const [isVisible, setIsVisible] = useState(false);
+  const isMobile = useIsMobile();
 
   const { data: siteContent } = useQuery<SiteContent>({
     queryKey: ["/api/site-content"],
@@ -106,6 +109,8 @@ export default function HeroSection({ language }: HeroSectionProps) {
       scroll: "scroll",
       ctaContact: "Contact Us",
       ctaConsult: "Schedule Consultation",
+      heroVideoLabel: "Aerial view of Von Wobeser y Sierra offices in Mexico City",
+      heroImageLabel: "Von Wobeser y Sierra headquarters building",
     },
     es: {
       tagline: "Firma Líder de Abogados en México",
@@ -114,6 +119,8 @@ export default function HeroSection({ language }: HeroSectionProps) {
       scroll: "scroll",
       ctaContact: "Contáctenos",
       ctaConsult: "Agendar Consulta",
+      heroVideoLabel: "Vista aérea de las oficinas de Von Wobeser y Sierra en Ciudad de México",
+      heroImageLabel: "Edificio de la sede de Von Wobeser y Sierra",
     },
   };
 
@@ -124,6 +131,7 @@ export default function HeroSection({ language }: HeroSectionProps) {
       id="hero"
       className="relative min-h-screen flex items-center justify-center overflow-hidden"
       data-testid="section-hero"
+      aria-label={language === "es" ? "Sección principal de bienvenida" : "Main welcome section"}
     >
       <div className="absolute inset-0 z-0">
         <div 
@@ -136,22 +144,45 @@ export default function HeroSection({ language }: HeroSectionProps) {
             backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23AC162C' fill-opacity='0.15'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
           }}
         />
-        <video
-          autoPlay
-          muted
-          loop
-          playsInline
-          className="absolute inset-0 w-full h-full object-cover opacity-70"
-          data-testid="video-hero-background"
-          onError={(e) => {
-            (e.target as HTMLVideoElement).style.display = 'none';
-          }}
-        >
-          <source
-            src={heroVideo}
-            type="video/mp4"
+        
+        {isMobile ? (
+          <img
+            src={heroImage}
+            alt={t.heroImageLabel}
+            className="absolute inset-0 w-full h-full object-cover opacity-70"
+            loading="eager"
+            data-testid="img-hero-background-mobile"
           />
-        </video>
+        ) : (
+          <video
+            autoPlay
+            muted
+            loop
+            playsInline
+            preload="metadata"
+            poster="/assets/hero-poster.jpg"
+            className="absolute inset-0 w-full h-full object-cover opacity-70"
+            data-testid="video-hero-background"
+            aria-label={t.heroVideoLabel}
+            onError={(e) => {
+              (e.target as HTMLVideoElement).style.display = 'none';
+            }}
+          >
+            <source
+              src={heroVideo}
+              type="video/mp4"
+            />
+            <img 
+              src={heroImage}
+              alt={t.heroImageLabel}
+              className="absolute inset-0 w-full h-full object-cover"
+            />
+            {language === "es" 
+              ? "Tu navegador no soporta el elemento de video." 
+              : "Your browser does not support the video element."}
+          </video>
+        )}
+        
         <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/30 to-black/60" />
         <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-black/80 to-transparent" />
       </div>
@@ -229,6 +260,7 @@ export default function HeroSection({ language }: HeroSectionProps) {
         onClick={scrollToNews}
         className="absolute bottom-12 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-white/85 hover:text-white transition-colors cursor-pointer"
         data-testid="button-scroll-down"
+        aria-label={language === "es" ? "Desplazar hacia abajo a la sección de noticias" : "Scroll down to news section"}
       >
         <span className="text-xs tracking-[0.2em] uppercase" data-testid="text-scroll">{t.scroll}</span>
         <motion.div

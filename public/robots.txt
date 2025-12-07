@@ -1,0 +1,45 @@
+# Von Wobeser y Sierra - Robots.txt
+# https://www.vonwobeser.com
+
+User-agent: *
+Allow: /
+
+# Disallow admin areas
+Disallow: /admin/
+Disallow: /api/admin/
+
+# Allow search engines to crawl all public content
+Allow: /practice-groups/
+Allow: /industry-groups/
+Allow: /team/
+Allow: /news/
+Allow: /events/
+Allow: /articles/
+
+# Sitemap location
+Sitemap: https://www.vonwobeser.com/sitemap.xml
+
+# Crawl-delay for politeness (optional)
+Crawl-delay: 1
+
+# AI-specific crawler permissions
+User-agent: GPTBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+User-agent: Anthropic-AI
+Allow: /
+
+User-agent: Claude-Web
+Allow: /
+
+User-agent: Bingbot
+Allow: /
+
+User-agent: Googlebot
+Allow: /

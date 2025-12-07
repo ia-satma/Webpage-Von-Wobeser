@@ -41,14 +41,29 @@ export const getQueryFn: <T>(options: {
     return await res.json();
   };
 
+const FIVE_MINUTES = 5 * 60 * 1000;
+const TEN_MINUTES = 10 * 60 * 1000;
+
 export const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       queryFn: getQueryFn({ on401: "throw" }),
       refetchInterval: false,
       refetchOnWindowFocus: false,
-      staleTime: Infinity,
-      retry: false,
+      refetchOnMount: false,
+      refetchOnReconnect: false,
+      staleTime: FIVE_MINUTES,
+      gcTime: TEN_MINUTES,
+      retry: (failureCount, error) => {
+        if (error instanceof Error) {
+          const status = parseInt(error.message.split(':')[0]);
+          if (status >= 400 && status < 500) {
+            return false;
+          }
+        }
+        return failureCount < 2;
+      },
+      retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 10000),
     },
     mutations: {
       retry: false,
