@@ -79,6 +79,27 @@ Preferred communication style: Simple, everyday language.
 - AdminPostForm has AI translation suggestion buttons for Spanish fields (titleEs, excerptEs, contentEs) with confidence percentage display
 - Content fallback: Non-EN/ES languages display English content until translations are added to database
 
+**Website Optimization (December 2025)**
+SEO & AI Readability:
+- robots.txt created allowing all crawlers including AI bots (GPTBot, ChatGPT-User, Anthropic-AI, Claude-Web)
+- sitemap.xml with hreflang tags for 10 languages (en, es-MX, de, zh-CN, ko, ja, ar, ru, fr, it)
+- SEOHead component updated with comprehensive hreflang tags for all 10 languages
+- JSON-LD schemas expanded: Organization, LegalService, LocalBusiness, WebSite, BreadcrumbList, Article (for news), Person (for team members)
+- Heading hierarchy fixed: Single H1 per page, proper H2/H3 structure throughout
+- All meta tags: Open Graph, Twitter Cards, canonical URLs
+
+Performance:
+- Hero video optimization: poster image, mobile fallback (static image on < 768px), preload="metadata"
+- Image lazy loading with srcset for responsive images
+- React Query caching: 5min staleTime, 10min gcTime, smart retry logic
+- Font optimization with preload and font-display: swap
+
+Mobile Responsiveness:
+- 44px minimum touch targets on all interactive elements
+- Mobile navigation improvements with proper sizing
+- Responsive grids with flex-wrap and gap utilities
+- touch-manipulation CSS for better mobile interactions
+
 **New Pages & Navigation Fixes (December 2025)**
 - Created 6 new pages to fix 404 navigation errors:
   - `/diversity-inclusion` - DiversityInclusion.tsx: Full D&I program page with stats, initiatives, and commitment history
