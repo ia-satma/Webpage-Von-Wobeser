@@ -94,7 +94,7 @@ export default function SocialProofSection({ language: propLanguage }: SocialPro
           className="text-center mb-16"
         >
           <h2
-            className="text-2xl md:text-3xl lg:text-4xl font-heading font-light text-gray-800 dark:text-white"
+            className="text-2xl md:text-3xl lg:text-4xl font-heading font-light text-[#AC162C]"
             data-testid="text-social-proof-title"
           >
             {t.title}
