@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils";
 import ThemeToggle from "./ThemeToggle";
 import { useLanguage } from "@/contexts/LanguageContext";
 import type { TeamMember, PracticeGroup, IndustryGroup, News } from "@shared/schema";
+import logoHD from "@assets/vonwobeser_logo_2025_full.png";
 
 interface SearchResults {
   team: TeamMember[];
@@ -228,14 +229,17 @@ export default function Header() {
             aria-label={language === "es" ? "Von Wobeser y Sierra - Inicio" : "Von Wobeser y Sierra - Home"}
           >
             <img
-              src="https://vonwobeser.com/images/vonwobeser_2025_.png"
+              src={logoHD}
               alt="Von Wobeser y Sierra"
+              width={318}
+              height={70}
               className={cn(
-                "transition-all duration-300",
+                "transition-all duration-300 w-auto",
                 isScrolled ? "h-8 md:h-10" : "h-10 md:h-12",
                 !isScrolled && "brightness-0 invert",
                 isScrolled && "dark:brightness-0 dark:invert"
               )}
+              style={{ imageRendering: "crisp-edges" }}
               data-testid="img-logo"
             />
           </Link>
@@ -502,9 +506,12 @@ export default function Header() {
           <div className="flex flex-col h-full overflow-hidden">
             <div className="flex items-center justify-between p-6">
               <img
-                src="https://vonwobeser.com/images/vonwobeser_2025_.png"
+                src={logoHD}
                 alt="Von Wobeser y Sierra"
-                className="h-6 brightness-0 invert"
+                width={318}
+                height={70}
+                className="h-6 w-auto brightness-0 invert"
+                style={{ imageRendering: "crisp-edges" }}
                 data-testid="img-logo-mobile"
               />
               <div className="flex items-center gap-2">

@@ -15,6 +15,7 @@ import collage07 from "@assets/collage_07.jpg";
 import collage08 from "@assets/collage_08.jpg";
 import collage09 from "@assets/collage_09.jpg";
 import heroOffice from "@assets/hero_office.jpg";
+import logoHD from "@assets/vonwobeser_logo_2025_full.png";
 
 interface NewOfficesPopupProps {
   language: "es" | "en";
@@ -89,22 +90,12 @@ export default function NewOfficesPopup({ language }: NewOfficesPopupProps) {
   const [isOpen, setIsOpen] = useState(false);
 
   useEffect(() => {
-    console.log('[NewOfficesPopup] Component mounted');
     const hasShown = localStorage.getItem(STORAGE_KEY);
-    console.log('[NewOfficesPopup] localStorage check:', { hasShown, STORAGE_KEY });
-    
     if (!hasShown) {
-      console.log('[NewOfficesPopup] Setting timer for 1500ms');
       const timer = setTimeout(() => {
-        console.log('[NewOfficesPopup] Timer fired, opening popup');
         setIsOpen(true);
       }, 1500);
-      return () => {
-        console.log('[NewOfficesPopup] Cleanup - clearing timer');
-        clearTimeout(timer);
-      };
-    } else {
-      console.log('[NewOfficesPopup] Already shown before, not displaying');
+      return () => clearTimeout(timer);
     }
   }, []);
 
@@ -134,9 +125,12 @@ export default function NewOfficesPopup({ language }: NewOfficesPopupProps) {
         </VisuallyHidden>
         <div className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between flex-shrink-0">
           <img
-            src="https://vonwobeser.com/images/vonwobeser_2025.png"
+            src={logoHD}
             alt="Von Wobeser"
-            className="h-6 md:h-8"
+            width={318}
+            height={70}
+            className="h-6 md:h-8 w-auto"
+            style={{ imageRendering: "crisp-edges" }}
             data-testid="img-popup-logo"
           />
           <span className="text-xs text-gray-500 uppercase tracking-wider">

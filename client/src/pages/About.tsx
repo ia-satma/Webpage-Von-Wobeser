@@ -30,6 +30,7 @@ import Footer from "@/components/Footer";
 import SEOHead from "@/components/SEOHead";
 import { useLanguage } from "@/contexts/LanguageContext";
 import type { TeamMember, PracticeGroup, IndustryGroup } from "@shared/schema";
+import logoHD from "@assets/vonwobeser_logo_2025_full.png";
 
 export default function About() {
   const { language } = useLanguage();
@@ -543,9 +544,12 @@ export default function About() {
               </div>
               <div className="flex justify-center">
                 <img
-                  src="https://vonwobeser.com/images/vonwobeser_2025.png"
+                  src={logoHD}
                   alt="Von Wobeser y Sierra"
+                  width={318}
+                  height={70}
                   className="max-w-full h-auto"
+                  style={{ imageRendering: "crisp-edges" }}
                   data-testid="img-rankings"
                 />
               </div>
