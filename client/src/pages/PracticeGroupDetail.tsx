@@ -251,9 +251,9 @@ export default function PracticeGroupDetail() {
         <div className="pt-32 pb-20">
           <div className="max-w-7xl mx-auto px-6 lg:px-12 text-center">
             <AlertCircle className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-            <h1 className="text-2xl font-heading text-gray-800 dark:text-white mb-4" data-testid="text-error-title">
+            <h2 className="text-2xl font-heading text-gray-800 dark:text-white mb-4" data-testid="text-error-title">
               {t.errorMessage}
-            </h1>
+            </h2>
             <Link href="/practice-groups">
               <Button variant="outline" data-testid="button-back-to-practice-groups">
                 <ArrowLeft className="w-4 h-4 mr-2" />

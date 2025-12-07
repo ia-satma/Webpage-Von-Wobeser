@@ -99,11 +99,11 @@ export default function StatsSection({ language }: StatsSectionProps) {
         </motion.div>
 
         {isLoading ? (
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 lg:gap-12 mb-16">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 sm:gap-8 lg:gap-12 mb-16">
             {[1, 2, 3, 4].map((i) => (
-              <div key={i} className="text-center" data-testid={`skeleton-stat-${i}`}>
-                <Skeleton className="h-16 w-24 mx-auto mb-3" />
-                <Skeleton className="h-4 w-20 mx-auto" />
+              <div key={i} className="text-center p-4" data-testid={`skeleton-stat-${i}`}>
+                <Skeleton className="h-12 sm:h-16 w-20 sm:w-24 mx-auto mb-3" />
+                <Skeleton className="h-4 w-16 sm:w-20 mx-auto" />
               </div>
             ))}
           </div>
@@ -113,23 +113,23 @@ export default function StatsSection({ language }: StatsSectionProps) {
             initial="hidden"
             whileInView="visible"
             viewport={{ once: true }}
-            className="grid grid-cols-2 md:grid-cols-4 gap-8 lg:gap-12 mb-16"
+            className="grid grid-cols-2 md:grid-cols-4 gap-6 sm:gap-8 lg:gap-12 mb-16"
           >
             {stats?.map((stat, index) => (
               <motion.div
                 key={index}
                 variants={itemVariants}
-                className="text-center"
+                className="text-center p-2 sm:p-4"
                 data-testid={`stat-item-${index}`}
               >
                 <div 
-                  className="text-4xl md:text-5xl lg:text-6xl font-heading font-light text-primary mb-3"
+                  className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-heading font-light text-primary mb-2 sm:mb-3"
                   data-testid={`text-stat-value-${index}`}
                 >
                   {stat.value}
                 </div>
                 <div 
-                  className="text-sm md:text-base text-gray-500 dark:text-gray-400 uppercase tracking-wider"
+                  className="text-xs sm:text-sm md:text-base text-gray-500 dark:text-gray-400 uppercase tracking-wider leading-tight"
                   data-testid={`text-stat-label-${index}`}
                 >
                   {language === "es" ? stat.labelEs : stat.label}

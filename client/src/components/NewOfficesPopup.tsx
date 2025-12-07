@@ -177,7 +177,7 @@ export default function NewOfficesPopup({ language }: NewOfficesPopupProps) {
                 animate={{ opacity: 1 }}
                 transition={{ duration: 0.6, delay: 0.8 }}
                 onClick={scrollToContent}
-                className="mt-8 flex flex-col items-center gap-1 text-white/80 hover:text-white transition-colors mx-auto cursor-pointer"
+                className="mt-8 flex flex-col items-center gap-1 text-white/80 hover:text-white transition-colors mx-auto cursor-pointer min-h-[44px] min-w-[44px] p-2 touch-manipulation"
                 data-testid="button-popup-scroll"
               >
                 <span className="text-xs tracking-widest uppercase">{t.scroll}</span>
@@ -266,7 +266,7 @@ export default function NewOfficesPopup({ language }: NewOfficesPopupProps) {
                 href={GOOGLE_MAPS_URL}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex flex-col items-center gap-2 text-gray-600 hover:text-[#AC162C] transition-colors group"
+                className="inline-flex flex-col items-center gap-2 min-h-[44px] p-4 text-gray-600 hover:text-[#AC162C] transition-colors group touch-manipulation"
                 data-testid="link-popup-address"
               >
                 <MapPin className="w-8 h-8 text-[#AC162C] group-hover:scale-110 transition-transform" />

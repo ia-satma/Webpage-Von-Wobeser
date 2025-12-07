@@ -32,7 +32,7 @@ export default function LanguageSelector({
     <Select value={language} onValueChange={handleLanguageChange}>
       <SelectTrigger 
         className={cn(
-          "border-0 bg-transparent focus:ring-0 focus:ring-offset-0 gap-2 min-w-0 w-auto",
+          "border-0 bg-transparent focus:ring-0 focus:ring-offset-0 gap-2 min-w-0 w-auto min-h-[44px] touch-manipulation",
           isMobile 
             ? "text-white/90 hover:text-white" 
             : isScrolled 

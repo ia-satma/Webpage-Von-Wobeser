@@ -168,17 +168,17 @@ export default function CookieBanner({ language }: CookieBannerProps) {
                 </a>.
               </p>
             </div>
-            <div className="flex gap-3 shrink-0">
+            <div className="flex flex-wrap gap-3 shrink-0">
               <button 
                 onClick={openPreferences}
-                className="px-4 py-2 text-sm border border-white/20 hover:bg-white/10 transition-colors"
+                className="min-h-[44px] px-4 py-2 text-sm border border-white/20 hover:bg-white/10 transition-colors touch-manipulation"
                 data-testid="button-cookie-configure"
               >
                 {t.configure}
               </button>
               <button 
                 onClick={acceptAll}
-                className="px-6 py-2 text-sm bg-[#AC162C] text-white font-medium hover:bg-[#841A1A] transition-colors"
+                className="min-h-[44px] px-6 py-2 text-sm bg-[#AC162C] text-white font-medium hover:bg-[#841A1A] transition-colors touch-manipulation"
                 data-testid="button-cookie-accept"
               >
                 {t.accept}
@@ -213,7 +213,7 @@ export default function CookieBanner({ language }: CookieBannerProps) {
               </h2>
               <button
                 onClick={closePreferences}
-                className="p-2 hover:bg-white/10 transition-colors"
+                className="min-w-[44px] min-h-[44px] p-2 flex items-center justify-center hover:bg-white/10 transition-colors touch-manipulation"
                 data-testid="button-close-preferences"
                 aria-label="Close"
               >
@@ -280,14 +280,14 @@ export default function CookieBanner({ language }: CookieBannerProps) {
             <div className="flex flex-col sm:flex-row gap-3 p-6 border-t border-white/10">
               <button
                 onClick={saveCustomPreferences}
-                className="flex-1 px-6 py-3 text-sm border border-white/20 hover:bg-white/10 transition-colors font-medium"
+                className="flex-1 min-h-[44px] px-6 py-3 text-sm border border-white/20 hover:bg-white/10 transition-colors font-medium touch-manipulation"
                 data-testid="button-save-preferences"
               >
                 {t.savePreferences}
               </button>
               <button
                 onClick={acceptAll}
-                className="flex-1 px-6 py-3 text-sm bg-[#AC162C] text-white font-medium hover:bg-[#841A1A] transition-colors"
+                className="flex-1 min-h-[44px] px-6 py-3 text-sm bg-[#AC162C] text-white font-medium hover:bg-[#841A1A] transition-colors touch-manipulation"
                 data-testid="button-accept-all-preferences"
               >
                 {t.acceptAllButton}

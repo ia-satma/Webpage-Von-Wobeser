@@ -12,6 +12,7 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { useToast } from "@/hooks/use-toast";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import { ArticleJsonLd, BreadcrumbJsonLd } from "@/components/JsonLdSchema";
 import { useLanguage } from "@/contexts/LanguageContext";
 import type { News, TeamMember } from "@shared/schema";
 
@@ -180,9 +181,9 @@ export default function NewsDetail() {
         <div className="pt-32 pb-20">
           <div className="max-w-7xl mx-auto px-6 lg:px-12 text-center">
             <AlertCircle className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-            <h1 className="text-2xl font-heading text-gray-800 dark:text-white mb-4" data-testid="text-error-title">
+            <h2 className="text-2xl font-heading text-gray-800 dark:text-white mb-4" data-testid="text-error-title">
               {t.errorMessage}
-            </h1>
+            </h2>
             <Button 
               variant="outline" 
               onClick={scrollToNewsSection}
@@ -227,46 +228,34 @@ export default function NewsDetail() {
     : (newsArticle?.content || newsArticle?.excerpt);
   const heroImage = newsArticle?.imageUrl || "https://images.unsplash.com/photo-1497366216548-37526070297c?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80";
 
-  const generateArticleJsonLd = () => {
-    if (!newsArticle) return null;
-    
-    return {
-      "@context": "https://schema.org",
-      "@type": "Article",
-      "headline": language === "es" ? newsArticle.titleEs : newsArticle.title,
-      "description": language === "es" ? newsArticle.excerptEs : newsArticle.excerpt,
-      "image": newsArticle.imageUrl,
-      "datePublished": newsArticle.date,
-      "dateModified": newsArticle.date,
-      "author": {
-        "@type": "Organization",
-        "name": "Von Wobeser y Sierra, S.C.",
-        "url": "https://www.vonwobeser.com"
-      },
-      "publisher": {
-        "@type": "Organization",
-        "name": "Von Wobeser y Sierra, S.C.",
-        "logo": {
-          "@type": "ImageObject",
-          "url": "https://vonwobeser.com/images/vonwobeser_2025_.png"
-        }
-      },
-      "mainEntityOfPage": {
-        "@type": "WebPage",
-        "@id": `https://www.vonwobeser.com/news/${newsArticle.slug}`
-      }
-    };
-  };
+  const primaryAuthor = relatedAuthors && relatedAuthors.length > 0 ? relatedAuthors[0] : null;
 
   return (
     <div className="min-h-screen bg-white dark:bg-gray-900" data-testid="page-news-detail">
       <Header />
       
       {newsArticle && (
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(generateArticleJsonLd()) }}
-        />
+        <>
+          <ArticleJsonLd
+            headline={language === "es" ? newsArticle.titleEs : newsArticle.title}
+            description={language === "es" ? newsArticle.excerptEs : newsArticle.excerpt}
+            datePublished={newsArticle.date}
+            dateModified={newsArticle.date}
+            authorName={primaryAuthor?.name}
+            authorUrl={primaryAuthor ? `https://www.vonwobeser.com/team/${primaryAuthor.slug}` : undefined}
+            imageUrl={newsArticle.imageUrl}
+            url={`https://www.vonwobeser.com/news/${newsArticle.slug}`}
+            language={displayLanguage}
+          />
+          <BreadcrumbJsonLd
+            items={[
+              { name: language === "es" ? "Inicio" : "Home", url: "https://www.vonwobeser.com" },
+              { name: language === "es" ? "Noticias" : "News", url: "https://www.vonwobeser.com/#news" },
+              { name: language === "es" ? newsArticle.titleEs : newsArticle.title, url: `https://www.vonwobeser.com/news/${newsArticle.slug}` }
+            ]}
+            language={displayLanguage}
+          />
+        </>
       )}
       
       <section className="pt-24 relative" data-testid="section-news-hero">

@@ -111,23 +111,23 @@ export default function RankingsSection({ language }: RankingsSectionProps) {
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true }}
-          className="flex flex-wrap justify-center items-start gap-8 md:gap-12 lg:gap-16"
+          className="grid grid-cols-2 sm:flex sm:flex-wrap justify-center items-start gap-6 sm:gap-8 md:gap-12 lg:gap-16"
         >
           {rankings.map((ranking) => (
             <motion.div
               key={ranking.id}
               variants={itemVariants}
-              className="flex flex-col items-center flex-shrink-0"
+              className="flex flex-col items-center justify-center p-2"
             >
               <img 
                 src={ranking.src} 
                 alt={ranking.alt}
-                className="h-24 md:h-28 lg:h-32 w-auto object-contain grayscale hover:grayscale-0 transition-all duration-300"
+                className="h-20 sm:h-24 md:h-28 lg:h-32 w-auto max-w-full object-contain grayscale hover:grayscale-0 transition-all duration-300"
                 data-testid={`img-ranking-${ranking.id}`}
               />
               {ranking.hasFirmName && (
                 <span 
-                  className="mt-2 text-xs text-gray-600 dark:text-gray-400 font-serif text-center"
+                  className="mt-2 text-[10px] sm:text-xs text-gray-600 dark:text-gray-400 font-serif text-center"
                   data-testid={`text-firm-name-${ranking.id}`}
                 >
                   Von Wobeser y Sierra, S.C.

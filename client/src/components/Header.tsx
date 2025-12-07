@@ -533,7 +533,7 @@ export default function Header() {
                       <>
                         <button
                           onClick={() => toggleMobileSubmenu(item.id)}
-                          className="w-full flex items-center justify-between py-4 text-xl font-heading text-white/90 hover:text-white transition-colors"
+                          className="w-full flex items-center justify-between min-h-[48px] py-4 text-xl font-heading text-white/90 hover:text-white transition-colors touch-manipulation"
                           data-testid={`button-mobile-nav-${item.id}`}
                           aria-expanded={expandedMobileMenus.includes(item.id)}
                           aria-controls={`mobile-submenu-${item.id}`}
@@ -542,7 +542,7 @@ export default function Header() {
                           <span>{item.label[displayLanguage]}</span>
                           <ChevronDown
                             className={cn(
-                              "w-5 h-5 transition-transform duration-200",
+                              "w-6 h-6 transition-transform duration-200",
                               expandedMobileMenus.includes(item.id) && "rotate-180"
                             )}
                             aria-hidden="true"
@@ -559,10 +559,10 @@ export default function Header() {
                           role="menu"
                           aria-label={`${item.label[displayLanguage]} submenu`}
                         >
-                          <div className="pl-4 space-y-2">
+                          <div className="pl-4 space-y-1">
                             <button
                               onClick={() => handleMobileNavClick(item.href)}
-                              className="block w-full text-left py-2 text-base text-white/70 hover:text-white transition-colors"
+                              className="block w-full text-left min-h-[44px] py-3 text-base text-white/70 hover:text-white transition-colors"
                               role="menuitem"
                               data-testid={`link-mobile-subnav-${item.id}-all`}
                             >
@@ -572,7 +572,7 @@ export default function Header() {
                               <button
                                 key={subItem.id}
                                 onClick={() => handleMobileNavClick(subItem.href)}
-                                className="block w-full text-left py-2 text-base text-white/70 hover:text-white transition-colors"
+                                className="block w-full text-left min-h-[44px] py-3 text-base text-white/70 hover:text-white transition-colors"
                                 role="menuitem"
                                 data-testid={`link-mobile-subnav-${subItem.id}`}
                               >
@@ -585,7 +585,7 @@ export default function Header() {
                     ) : (
                       <button
                         onClick={() => handleMobileNavClick(item.href)}
-                        className="w-full text-left py-4 text-xl font-heading text-white/90 hover:text-white transition-colors"
+                        className="w-full text-left min-h-[48px] py-4 text-xl font-heading text-white/90 hover:text-white transition-colors touch-manipulation"
                         data-testid={`link-mobile-${item.id}`}
                         aria-current={location === item.href ? "page" : undefined}
                       >

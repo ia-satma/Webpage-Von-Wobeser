@@ -11,6 +11,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import { PersonJsonLd, BreadcrumbJsonLd } from "@/components/JsonLdSchema";
 import { useLanguage } from "@/contexts/LanguageContext";
 import type { TeamMember, PracticeGroup, IndustryGroup, Education, Affiliation, Ranking, Publication, RepresentativeMatter, BarAdmission, News } from "@shared/schema";
 
@@ -237,33 +238,23 @@ export default function TeamMemberDetail() {
     };
   }, [member?.rankings]);
 
-  const generatePersonJsonLd = () => {
-    if (!member) return null;
-    
-    return {
-      "@context": "https://schema.org",
-      "@type": "Person",
-      "name": member.name,
-      "jobTitle": language === "es" ? member.titleEs : member.title,
-      "worksFor": {
-        "@type": "LegalService",
-        "name": "Von Wobeser y Sierra, S.C.",
-        "url": "https://www.vonwobeser.com"
-      },
-      "email": member.email,
-      "telephone": member.phone,
-      "image": member.imageUrl,
-      "url": `https://www.vonwobeser.com/team/${member.slug}`,
-      "sameAs": member.linkedinUrl ? [member.linkedinUrl] : [],
-      "address": {
-        "@type": "PostalAddress",
-        "streetAddress": "Torre SOMA Chapultepec Piso 18, Campos Elíseos 204",
-        "addressLocality": "Ciudad de México",
-        "addressRegion": "CDMX",
-        "postalCode": "11560",
-        "addressCountry": "MX"
-      }
-    };
+  const getMemberEducation = () => {
+    if (!member?.education || member.education.length === 0) return undefined;
+    return (member.education as Education[]).map(edu => ({
+      school: language === "es" && edu.schoolEs ? edu.schoolEs : edu.school,
+      degree: language === "es" && edu.degreeEs ? edu.degreeEs : edu.degree,
+      year: edu.year
+    }));
+  };
+
+  const getMemberKnowsAbout = () => {
+    const areas: string[] = [];
+    if (practiceGroups && member) {
+      practiceGroups.forEach(pg => {
+        areas.push(language === "es" ? pg.nameEs : pg.name);
+      });
+    }
+    return areas.length > 0 ? areas.slice(0, 10) : undefined;
   };
 
   if (error) {
@@ -273,9 +264,9 @@ export default function TeamMemberDetail() {
         <div className="pt-32 pb-20">
           <div className="max-w-7xl mx-auto px-6 lg:px-12 text-center">
             <AlertCircle className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-            <h1 className="text-2xl font-heading text-gray-800 dark:text-white mb-4" data-testid="text-error-title">
+            <h2 className="text-2xl font-heading text-gray-800 dark:text-white mb-4" data-testid="text-error-title">
               {t.errorMessage}
-            </h1>
+            </h2>
             <Link href="/team">
               <Button variant="outline" data-testid="button-back-to-team">
                 <ArrowLeft className="w-4 h-4 mr-2" />
@@ -328,10 +319,29 @@ export default function TeamMemberDetail() {
       <Header />
       
       {member && (
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(generatePersonJsonLd()) }}
-        />
+        <>
+          <PersonJsonLd
+            name={member.name}
+            jobTitle={displayTitle || member.title}
+            email={member.email}
+            telephone={member.phone}
+            imageUrl={member.imageUrl}
+            url={`https://www.vonwobeser.com/team/${member.slug}`}
+            linkedinUrl={member.linkedinUrl}
+            education={getMemberEducation()}
+            languages={member.languages as string[] | undefined}
+            knowsAbout={getMemberKnowsAbout()}
+            language={displayLanguage}
+          />
+          <BreadcrumbJsonLd
+            items={[
+              { name: language === "es" ? "Inicio" : "Home", url: "https://www.vonwobeser.com" },
+              { name: language === "es" ? "Equipo" : "Team", url: "https://www.vonwobeser.com/team" },
+              { name: member.name, url: `https://www.vonwobeser.com/team/${member.slug}` }
+            ]}
+            language={displayLanguage}
+          />
+        </>
       )}
       
       <section className="pt-32 pb-12 bg-primary" data-testid="section-team-member-hero">

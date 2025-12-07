@@ -193,7 +193,7 @@ export default function NewsSection({ language }: NewsSectionProps) {
         <div className="mt-10 text-center md:hidden">
           <a
             href="#"
-            className="inline-flex items-center gap-2 text-sm font-medium text-primary"
+            className="inline-flex items-center justify-center gap-2 min-h-[44px] px-4 py-2 text-sm font-medium text-primary touch-manipulation"
             data-testid="link-news-see-more-mobile"
           >
             {t.seeMore}

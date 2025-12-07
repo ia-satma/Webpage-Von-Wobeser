@@ -258,7 +258,7 @@ export default function HeroSection({ language }: HeroSectionProps) {
         animate={isVisible ? { opacity: 1 } : {}}
         transition={{ duration: 0.6, delay: 1 }}
         onClick={scrollToNews}
-        className="absolute bottom-12 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-white/85 hover:text-white transition-colors cursor-pointer"
+        className="absolute bottom-12 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-white/85 hover:text-white transition-colors cursor-pointer min-h-[44px] min-w-[44px] touch-manipulation p-2"
         data-testid="button-scroll-down"
         aria-label={language === "es" ? "Desplazar hacia abajo a la sección de noticias" : "Scroll down to news section"}
       >

@@ -167,12 +167,12 @@ export default function Footer() {
         </div>
         <div className="pt-4">
           <p className="text-xs text-gray-500 uppercase tracking-wider mb-3">{t.followUs}</p>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2">
             <a
               href="https://www.linkedin.com/company/von-wobeser-y-sierra/"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-gray-400 hover:text-white transition-colors"
+              className="flex items-center justify-center min-w-[44px] min-h-[44px] p-2 text-gray-400 hover:text-white transition-colors touch-manipulation"
               data-testid="link-linkedin"
               aria-label={t.linkedinLabel}
             >
@@ -182,7 +182,7 @@ export default function Footer() {
               href="https://twitter.com/vonwobeser"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-gray-400 hover:text-white transition-colors"
+              className="flex items-center justify-center min-w-[44px] min-h-[44px] p-2 text-gray-400 hover:text-white transition-colors touch-manipulation"
               data-testid="link-twitter"
               aria-label={t.twitterLabel}
             >
@@ -192,7 +192,7 @@ export default function Footer() {
               href="https://www.vonwobeser.com"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-gray-400 hover:text-white transition-colors"
+              className="flex items-center justify-center min-w-[44px] min-h-[44px] p-2 text-gray-400 hover:text-white transition-colors touch-manipulation"
               data-testid="link-website"
               aria-label={t.websiteLabel}
             >
@@ -309,7 +309,7 @@ export default function Footer() {
 
         <div className="border-t border-gray-800 pt-8">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-            <div className="flex items-center gap-6">
+            <div className="flex flex-wrap items-center justify-center md:justify-start gap-4 sm:gap-6">
               <p className="text-xs text-gray-500" data-testid="text-copyright">
                 {t.legal}
               </p>
@@ -320,24 +320,24 @@ export default function Footer() {
                 data-testid="img-esr-logo"
               />
             </div>
-            <nav className="flex items-center gap-6" aria-label={displayLanguage === "es" ? "Enlaces legales" : "Legal links"}>
+            <nav className="flex flex-wrap items-center gap-2 sm:gap-4" aria-label={displayLanguage === "es" ? "Enlaces legales" : "Legal links"}>
               <Link
                 href="/privacy-policy"
-                className="text-xs text-gray-500 hover:text-white transition-colors"
+                className="inline-flex items-center min-h-[44px] px-2 text-xs text-gray-500 hover:text-white transition-colors touch-manipulation"
                 data-testid="link-privacy"
               >
                 {t.privacy}
               </Link>
               <Link
                 href="/terms"
-                className="text-xs text-gray-500 hover:text-white transition-colors"
+                className="inline-flex items-center min-h-[44px] px-2 text-xs text-gray-500 hover:text-white transition-colors touch-manipulation"
                 data-testid="link-terms"
               >
                 {t.terms}
               </Link>
               <button
                 onClick={() => localStorage.removeItem('vwb_cookie_consent')}
-                className="text-xs text-gray-500 hover:text-white transition-colors"
+                className="inline-flex items-center min-h-[44px] px-2 text-xs text-gray-500 hover:text-white transition-colors touch-manipulation"
                 data-testid="button-cookies"
                 aria-label={t.cookiesLabel}
               >
