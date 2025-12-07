@@ -231,13 +231,13 @@ export default function TeamMemberDetail() {
             </Link>
             <div className="flex flex-col md:flex-row items-center md:items-start gap-8">
               <div className="relative flex-shrink-0">
-                <Avatar className="w-40 h-40 border-4 border-white/20">
+                <Avatar className="w-40 h-40 border-4 border-white/20" data-testid="avatar-profile">
                   <AvatarImage 
                     src={member?.imageUrl || undefined} 
                     alt={member?.name}
-                    className="object-cover"
+                    data-testid="img-profile-photo"
                   />
-                  <AvatarFallback className="bg-white/10 text-white text-4xl font-light">
+                  <AvatarFallback className="bg-white/10 text-white text-4xl font-light" data-testid="avatar-fallback">
                     {member?.name ? getInitials(member.name) : ''}
                   </AvatarFallback>
                 </Avatar>
