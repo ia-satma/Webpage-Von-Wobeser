@@ -7,11 +7,11 @@ import { Button } from "@/components/ui/button";
 const industryGroups = [
   { id: 1, nameEn: "Automotive, Mobility & Manufacturing", nameEs: "Automotriz, Movilidad y Manufactura", slug: "automotive-mobility-manufacturing" },
   { id: 2, nameEn: "Consumer Goods", nameEs: "Bienes de Consumo", slug: "consumer-goods" },
-  { id: 3, nameEn: "Energy & Natural Resources", nameEs: "Energía y Recursos Naturales", slug: "energy-natural-resources" },
-  { id: 4, nameEn: "Financial Services", nameEs: "Servicios Financieros", slug: "financial-services" },
-  { id: 5, nameEn: "Pharmaceutical & Life Sciences", nameEs: "Farmacéutica y Ciencias de la Salud", slug: "pharmaceutical-life-sciences" },
-  { id: 6, nameEn: "Real Estate", nameEs: "Inmobiliario", slug: "real-estate" },
-  { id: 7, nameEn: "Technology", nameEs: "Tecnología", slug: "technology" },
+  { id: 3, nameEn: "Energy & Natural Resources", nameEs: "Energía y Recursos Naturales", slug: "energy-natural-resources-industry" },
+  { id: 4, nameEn: "Pharmaceutical & Life Sciences", nameEs: "Farmacéutica y Ciencias de la Salud", slug: "pharmaceutical-life-sciences" },
+  { id: 5, nameEn: "Financial Services", nameEs: "Servicios Financieros", slug: "financial-services" },
+  { id: 6, nameEn: "Real Estate", nameEs: "Inmobiliario", slug: "real-estate-industry" },
+  { id: 7, nameEn: "Technology", nameEs: "Tecnología", slug: "technology-industry" },
 ];
 
 const content = {
