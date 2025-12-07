@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import { Button } from "@/components/ui/button";
 import { MapPin, ChevronDown } from "lucide-react";
 import { motion } from "framer-motion";
@@ -88,12 +89,22 @@ export default function NewOfficesPopup({ language }: NewOfficesPopupProps) {
   const [isOpen, setIsOpen] = useState(false);
 
   useEffect(() => {
+    console.log('[NewOfficesPopup] Component mounted');
     const hasShown = localStorage.getItem(STORAGE_KEY);
+    console.log('[NewOfficesPopup] localStorage check:', { hasShown, STORAGE_KEY });
+    
     if (!hasShown) {
+      console.log('[NewOfficesPopup] Setting timer for 1500ms');
       const timer = setTimeout(() => {
+        console.log('[NewOfficesPopup] Timer fired, opening popup');
         setIsOpen(true);
       }, 1500);
-      return () => clearTimeout(timer);
+      return () => {
+        console.log('[NewOfficesPopup] Cleanup - clearing timer');
+        clearTimeout(timer);
+      };
+    } else {
+      console.log('[NewOfficesPopup] Already shown before, not displaying');
     }
   }, []);
 
@@ -117,6 +128,10 @@ export default function NewOfficesPopup({ language }: NewOfficesPopupProps) {
         className="max-w-4xl w-[95vw] max-h-[95vh] p-0 gap-0 rounded-none overflow-hidden flex flex-col"
         data-testid="dialog-new-offices"
       >
+        <VisuallyHidden>
+          <DialogTitle>{t.heroTitle}</DialogTitle>
+          <DialogDescription>{t.heroSubtitle}</DialogDescription>
+        </VisuallyHidden>
         <div className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between flex-shrink-0">
           <img
             src="https://vonwobeser.com/images/vonwobeser_2025.png"
