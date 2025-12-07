@@ -470,6 +470,25 @@ export const eventTypes = [
 // MULTI-LANGUAGE SUPPORT
 // ============================================
 
+// Translation cache table for storing AI-generated translations
+export const translationCache = pgTable("translation_cache", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  contentType: text("content_type").notNull(), // 'team_member', 'practice_group', 'industry_group', 'news', 'site_content'
+  entityId: varchar("entity_id").notNull(), // ID of the entity being translated
+  field: text("field").notNull(), // 'title', 'bio', 'description', etc.
+  sourceLanguage: text("source_language").notNull().default("en"), // Source language code
+  targetLanguage: text("target_language").notNull(), // Target language code
+  sourceText: text("source_text").notNull(), // Original text
+  translatedText: text("translated_text").notNull(), // Translated text
+  isApproved: boolean("is_approved").default(false), // Whether translation has been reviewed
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const insertTranslationCacheSchema = createInsertSchema(translationCache).omit({ id: true, createdAt: true, updatedAt: true });
+export type InsertTranslationCache = z.infer<typeof insertTranslationCacheSchema>;
+export type TranslationCache = typeof translationCache.$inferSelect;
+
 export const SUPPORTED_LANGUAGES = [
   { code: "en", name: "English", nameNative: "English" },
   { code: "es", name: "Spanish", nameNative: "Español" },

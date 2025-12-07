@@ -1,7 +1,7 @@
 import { Link, useParams } from "wouter";
 import { useMemo } from "react";
 import { motion } from "framer-motion";
-import { ArrowLeft, Mail, Phone, AlertCircle, Award, Star, Trophy, ChevronRight } from "lucide-react";
+import { ArrowLeft, Mail, Phone, AlertCircle, Award, Star, Trophy, ChevronRight, Loader2 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useTranslatedContent } from "@/hooks/useTranslatedContent";
 import { getIcon } from "@/lib/icons";
 import type { PracticeGroup, TeamMember, RepresentativeMatterDb } from "@shared/schema";
 
@@ -146,6 +147,20 @@ export default function PracticeGroupDetail() {
   const { data: representativeMatters } = useQuery<RepresentativeMatterDb[]>({
     queryKey: ['/api/practice-groups', slug, 'representative-matters'],
     enabled: !!slug,
+  });
+
+  const { translatedFields, isTranslating } = useTranslatedContent({
+    contentType: 'practice_group',
+    entityId: practiceGroup?.id?.toString() || '',
+    fields: {
+      name: practiceGroup?.name,
+      nameEs: practiceGroup?.nameEs,
+      description: practiceGroup?.description,
+      descriptionEs: practiceGroup?.descriptionEs,
+      fullDescription: practiceGroup?.fullDescription,
+      fullDescriptionEs: practiceGroup?.fullDescriptionEs,
+    },
+    enabled: !!practiceGroup,
   });
 
   const content = {
@@ -294,10 +309,8 @@ export default function PracticeGroupDetail() {
   }
 
   const IconComponent = practiceGroup ? getIcon(practiceGroup.iconName) : null;
-  const displayName = language === "es" ? practiceGroup?.nameEs : practiceGroup?.name;
-  const displayDescription = language === "es" 
-    ? (practiceGroup?.fullDescriptionEs || practiceGroup?.descriptionEs) 
-    : (practiceGroup?.fullDescription || practiceGroup?.description);
+  const displayName = translatedFields.name || practiceGroup?.name;
+  const displayDescription = translatedFields.fullDescription || translatedFields.description || practiceGroup?.fullDescription || practiceGroup?.description;
 
   const MAX_ASSOCIATES_DISPLAY = 6;
   const displayedAssociates = filteredAndGroupedMembers.associates.slice(0, MAX_ASSOCIATES_DISPLAY);
@@ -367,6 +380,9 @@ export default function PracticeGroupDetail() {
                 data-testid="text-practice-group-title"
               >
                 {displayName}
+                {isTranslating && (
+                  <Loader2 className="inline-block w-5 h-5 ml-3 animate-spin text-white/60" />
+                )}
               </h1>
             </div>
           </motion.div>

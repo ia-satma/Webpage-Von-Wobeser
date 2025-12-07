@@ -33,7 +33,20 @@ export default function PracticeGroups() {
     },
   };
 
+  const translationBannerMessages: Record<string, string> = {
+    de: "Inhalte werden in Englisch angezeigt. Klicken Sie auf einen Praxisbereich für vollständige Übersetzung.",
+    zh: "内容以英语显示。点击业务领域查看完整翻译。",
+    ko: "콘텐츠가 영어로 표시됩니다. 업무 분야를 클릭하면 전체 번역을 볼 수 있습니다.",
+    ja: "コンテンツは英語で表示されています。業務分野をクリックして完全な翻訳をご覧ください。",
+    ar: "يتم عرض المحتوى باللغة الإنجليزية. انقر على مجال الممارسة للترجمة الكاملة.",
+    ru: "Содержимое отображается на английском языке. Нажмите на практику для полного перевода.",
+    fr: "Le contenu est affiché en anglais. Cliquez sur un domaine de pratique pour la traduction complète.",
+    it: "Il contenuto viene visualizzato in inglese. Fare clic su un'area di pratica per la traduzione completa.",
+  };
+
   const t = content[displayLanguage];
+  const isNonNativeLanguage = language !== 'en' && language !== 'es';
+  const translationBanner = isNonNativeLanguage ? translationBannerMessages[language] : null;
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -79,6 +92,14 @@ export default function PracticeGroups() {
             >
               {t.subtitle}
             </p>
+            {translationBanner && (
+              <p 
+                className="mt-4 text-sm italic text-white/70 max-w-2xl mx-auto"
+                data-testid="text-translation-banner"
+              >
+                {translationBanner}
+              </p>
+            )}
           </motion.div>
         </div>
       </section>

@@ -86,7 +86,20 @@ export default function NewsPage() {
     },
   };
 
+  const translationBannerMessages: Record<string, string> = {
+    de: "Inhalte werden in Englisch angezeigt. Klicken Sie auf einen Artikel für vollständige Übersetzung.",
+    zh: "内容以英语显示。点击文章查看完整翻译。",
+    ko: "콘텐츠가 영어로 표시됩니다. 기사를 클릭하면 전체 번역을 볼 수 있습니다.",
+    ja: "コンテンツは英語で表示されています。記事をクリックして完全な翻訳をご覧ください。",
+    ar: "يتم عرض المحتوى باللغة الإنجليزية. انقر على مقال للترجمة الكاملة.",
+    ru: "Содержимое отображается на английском языке. Нажмите на статью для полного перевода.",
+    fr: "Le contenu est affiché en anglais. Cliquez sur un article pour la traduction complète.",
+    it: "Il contenuto viene visualizzato in inglese. Fare clic su un articolo per la traduzione completa.",
+  };
+
   const t = content[displayLanguage];
+  const isNonNativeLanguage = language !== 'en' && language !== 'es';
+  const translationBanner = isNonNativeLanguage ? translationBannerMessages[language] : null;
 
   const categoryFilters = [
     { value: "all", label: language === "es" ? "Todos" : "All" },
@@ -163,6 +176,14 @@ export default function NewsPage() {
             >
               {t.subtitle}
             </p>
+            {translationBanner && (
+              <p 
+                className="mt-4 text-sm italic text-white/70 max-w-2xl mx-auto"
+                data-testid="text-translation-banner"
+              >
+                {translationBanner}
+              </p>
+            )}
           </motion.div>
         </div>
       </section>

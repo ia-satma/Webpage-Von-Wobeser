@@ -1131,5 +1131,185 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
     }
   });
 
+  // =============================================
+  // TRANSLATION CACHE API
+  // =============================================
+
+  // GET /api/translations/:contentType/:entityId/:targetLanguage - Get all cached translations for an entity
+  app.get("/api/translations/:contentType/:entityId/:targetLanguage", async (req: Request, res: Response) => {
+    try {
+      const { contentType, entityId, targetLanguage } = req.params;
+
+      const validCodes = SUPPORTED_LANGUAGES.map(l => l.code);
+      if (!validCodes.includes(targetLanguage)) {
+        return res.status(400).json({ error: "Invalid target language code" });
+      }
+
+      const translations = await storage.getTranslations(contentType, entityId, targetLanguage);
+      
+      const translationsMap: Record<string, string> = {};
+      for (const t of translations) {
+        translationsMap[t.field] = t.translatedText;
+      }
+
+      res.json({ translations: translationsMap, contentType, entityId, targetLanguage });
+    } catch (error) {
+      console.error("Get translations error:", error);
+      res.status(500).json({ error: "Failed to fetch translations" });
+    }
+  });
+
+  // POST /api/translate-content - Translate single content and cache it
+  app.post("/api/translate-content", async (req: Request, res: Response) => {
+    try {
+      const { contentType, entityId, field, sourceText, sourceLanguage, targetLanguage } = req.body;
+
+      if (!contentType || !entityId || !field || !sourceText || !sourceLanguage || !targetLanguage) {
+        return res.status(400).json({ 
+          error: "Missing required fields: contentType, entityId, field, sourceText, sourceLanguage, targetLanguage" 
+        });
+      }
+
+      const validCodes = SUPPORTED_LANGUAGES.map(l => l.code);
+      if (!validCodes.includes(sourceLanguage) || !validCodes.includes(targetLanguage)) {
+        return res.status(400).json({ error: "Invalid language code" });
+      }
+
+      const existingTranslation = await storage.getTranslation(contentType, entityId, field, targetLanguage);
+      if (existingTranslation && existingTranslation.sourceText === sourceText) {
+        return res.json({ 
+          translation: existingTranslation.translatedText, 
+          cached: true,
+          contentType, 
+          entityId, 
+          field, 
+          targetLanguage 
+        });
+      }
+
+      const translatedText = await translateLegalText(
+        sourceText,
+        sourceLanguage as LanguageCode,
+        targetLanguage as LanguageCode
+      );
+
+      const saved = await storage.saveTranslation({
+        contentType,
+        entityId,
+        field,
+        sourceLanguage,
+        targetLanguage,
+        sourceText,
+        translatedText,
+      });
+
+      res.json({ 
+        translation: saved.translatedText, 
+        cached: false,
+        contentType, 
+        entityId, 
+        field, 
+        targetLanguage 
+      });
+    } catch (error) {
+      console.error("Translate content error:", error);
+      res.status(500).json({ error: "Failed to translate content" });
+    }
+  });
+
+  // POST /api/translate-entity - Batch translate all translatable fields for an entity
+  app.post("/api/translate-entity", async (req: Request, res: Response) => {
+    try {
+      const { contentType, entityId, fields, sourceLanguage, targetLanguage } = req.body;
+
+      if (!contentType || !entityId || !fields || !sourceLanguage || !targetLanguage) {
+        return res.status(400).json({ 
+          error: "Missing required fields: contentType, entityId, fields, sourceLanguage, targetLanguage" 
+        });
+      }
+
+      const validContentTypes = ['team_member', 'practice_group', 'industry_group', 'news'] as const;
+      if (!validContentTypes.includes(contentType)) {
+        return res.status(400).json({ 
+          error: `Invalid contentType. Must be one of: ${validContentTypes.join(', ')}` 
+        });
+      }
+
+      const validFieldsByContentType: Record<string, readonly string[]> = {
+        team_member: ['title', 'role', 'bio'],
+        practice_group: ['name', 'description', 'fullDescription'],
+        industry_group: ['name', 'description', 'fullDescription'],
+        news: ['title', 'excerpt', 'content'],
+      };
+
+      const validFields = validFieldsByContentType[contentType] || [];
+      const submittedFields = Object.keys(fields as Record<string, string>);
+      const invalidFields = submittedFields.filter(f => !validFields.includes(f));
+      
+      if (invalidFields.length > 0) {
+        return res.status(400).json({ 
+          error: `Invalid field names for ${contentType}: ${invalidFields.join(', ')}. Valid fields are: ${validFields.join(', ')}` 
+        });
+      }
+
+      const validCodes = SUPPORTED_LANGUAGES.map(l => l.code);
+      if (!validCodes.includes(sourceLanguage) || !validCodes.includes(targetLanguage)) {
+        return res.status(400).json({ error: "Invalid language code" });
+      }
+
+      const fieldsToTranslate: { key: string; text: string }[] = [];
+      const cachedTranslations: Record<string, string> = {};
+
+      for (const [fieldName, text] of Object.entries(fields as Record<string, string>)) {
+        if (!text || typeof text !== 'string' || !text.trim()) continue;
+
+        const existingTranslation = await storage.getTranslation(contentType, entityId, fieldName, targetLanguage);
+        if (existingTranslation && existingTranslation.sourceText === text) {
+          cachedTranslations[fieldName] = existingTranslation.translatedText;
+        } else {
+          fieldsToTranslate.push({ key: fieldName, text });
+        }
+      }
+
+      let newTranslations: Record<string, string> = {};
+      if (fieldsToTranslate.length > 0) {
+        newTranslations = await translateMultipleTexts(
+          fieldsToTranslate,
+          sourceLanguage as LanguageCode,
+          targetLanguage as LanguageCode
+        );
+
+        for (const [fieldName, translatedText] of Object.entries(newTranslations)) {
+          const originalField = fieldsToTranslate.find(f => f.key === fieldName);
+          if (originalField) {
+            await storage.saveTranslation({
+              contentType,
+              entityId,
+              field: fieldName,
+              sourceLanguage,
+              targetLanguage,
+              sourceText: originalField.text,
+              translatedText,
+            });
+          }
+        }
+      }
+
+      const allTranslations = { ...cachedTranslations, ...newTranslations };
+
+      res.json({ 
+        translations: allTranslations, 
+        contentType, 
+        entityId, 
+        targetLanguage,
+        cachedCount: Object.keys(cachedTranslations).length,
+        translatedCount: Object.keys(newTranslations).length,
+      });
+    } catch (error) {
+      console.error("Translate entity error:", error);
+      res.status(500).json({ error: "Failed to translate entity" });
+    }
+  });
+
   return httpServer;
 }

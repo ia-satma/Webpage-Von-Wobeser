@@ -1,7 +1,7 @@
 import { useState, useMemo } from "react";
 import { Link, useParams } from "wouter";
 import { motion } from "framer-motion";
-import { ArrowLeft, Mail, Phone, Linkedin, AlertCircle, Crown, Download, GraduationCap, Globe2, Award, FileText, Briefcase, Scale, Users, BookOpen, Building2, Languages, Newspaper, Calendar, ArrowRight, Trophy, Star } from "lucide-react";
+import { ArrowLeft, Mail, Phone, Linkedin, AlertCircle, Crown, Download, GraduationCap, Globe2, Award, FileText, Briefcase, Scale, Users, BookOpen, Building2, Languages, Newspaper, Calendar, ArrowRight, Trophy, Star, Loader2 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -13,6 +13,7 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { PersonJsonLd, BreadcrumbJsonLd } from "@/components/JsonLdSchema";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useTranslatedContent } from "@/hooks/useTranslatedContent";
 import type { TeamMember, PracticeGroup, IndustryGroup, Education, Affiliation, Ranking, Publication, RepresentativeMatter, BarAdmission, News } from "@shared/schema";
 
 function NewsImageWithFallback({ 
@@ -71,6 +72,20 @@ export default function TeamMemberDetail() {
   const { data: relatedNews } = useQuery<News[]>({
     queryKey: ['/api/team', slug, 'news'],
     enabled: !!slug,
+  });
+
+  const { translatedFields, isTranslating } = useTranslatedContent({
+    contentType: 'team_member',
+    entityId: member?.id?.toString() || '',
+    fields: { 
+      title: member?.title, 
+      titleEs: member?.titleEs,
+      role: member?.role, 
+      roleEs: member?.roleEs,
+      bio: member?.bio,
+      bioEs: member?.bioEs,
+    },
+    enabled: !!member,
   });
 
   const content = {
@@ -310,9 +325,9 @@ export default function TeamMemberDetail() {
     );
   }
 
-  const displayTitle = language === "es" ? member?.titleEs : member?.title;
-  const displayRole = language === "es" ? member?.roleEs : member?.role;
-  const displayBio = language === "es" ? member?.bioEs : member?.bio;
+  const displayTitle = translatedFields.title || member?.title;
+  const displayRole = translatedFields.role || member?.role;
+  const displayBio = translatedFields.bio || member?.bio;
 
   return (
     <div className="min-h-screen bg-white dark:bg-gray-900" data-testid="page-team-member-detail">
@@ -402,6 +417,9 @@ export default function TeamMemberDetail() {
                   data-testid="text-team-member-title"
                 >
                   {displayTitle}
+                  {isTranslating && (
+                    <Loader2 className="inline-block w-4 h-4 ml-2 animate-spin text-white/60" />
+                  )}
                 </p>
                 <p 
                   className="text-lg text-white/85 mb-6"

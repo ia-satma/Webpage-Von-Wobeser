@@ -1,6 +1,6 @@
 import { Link, useParams } from "wouter";
 import { motion } from "framer-motion";
-import { ArrowLeft, Mail, Phone, AlertCircle } from "lucide-react";
+import { ArrowLeft, Mail, Phone, AlertCircle, Loader2 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useTranslatedContent } from "@/hooks/useTranslatedContent";
 import { getIcon } from "@/lib/icons";
 import type { IndustryGroup, PracticeGroup } from "@shared/schema";
 
@@ -24,6 +25,20 @@ export default function IndustryGroupDetail() {
 
   const { data: practiceGroups } = useQuery<PracticeGroup[]>({
     queryKey: ["/api/practice-groups"],
+  });
+
+  const { translatedFields, isTranslating } = useTranslatedContent({
+    contentType: 'industry_group',
+    entityId: industryGroup?.id?.toString() || '',
+    fields: {
+      name: industryGroup?.name,
+      nameEs: industryGroup?.nameEs,
+      description: industryGroup?.description,
+      descriptionEs: industryGroup?.descriptionEs,
+      fullDescription: industryGroup?.fullDescription,
+      fullDescriptionEs: industryGroup?.fullDescriptionEs,
+    },
+    enabled: !!industryGroup,
   });
 
   const content = {
@@ -103,10 +118,8 @@ export default function IndustryGroupDetail() {
   }
 
   const IconComponent = industryGroup ? getIcon(industryGroup.iconName) : null;
-  const displayName = language === "es" ? industryGroup?.nameEs : industryGroup?.name;
-  const displayDescription = language === "es" 
-    ? (industryGroup?.fullDescriptionEs || industryGroup?.descriptionEs) 
-    : (industryGroup?.fullDescription || industryGroup?.description);
+  const displayName = translatedFields.name || industryGroup?.name;
+  const displayDescription = translatedFields.fullDescription || translatedFields.description || industryGroup?.fullDescription || industryGroup?.description;
 
   const relatedPracticeGroups = practiceGroups?.slice(0, 4);
 
@@ -141,6 +154,9 @@ export default function IndustryGroupDetail() {
                 data-testid="text-industry-group-title"
               >
                 {displayName}
+                {isTranslating && (
+                  <Loader2 className="inline-block w-5 h-5 ml-3 animate-spin text-white/60" />
+                )}
               </h1>
             </div>
           </motion.div>

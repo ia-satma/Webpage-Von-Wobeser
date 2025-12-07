@@ -84,7 +84,20 @@ export default function Team() {
     },
   };
 
+  const translationBannerMessages: Record<string, string> = {
+    de: "Inhalte werden in Englisch angezeigt. Klicken Sie auf ein Teammitglied für vollständige Übersetzung.",
+    zh: "内容以英语显示。点击团队成员查看完整翻译。",
+    ko: "콘텐츠가 영어로 표시됩니다. 팀원을 클릭하면 전체 번역을 볼 수 있습니다.",
+    ja: "コンテンツは英語で表示されています。チームメンバーをクリックして完全な翻訳をご覧ください。",
+    ar: "يتم عرض المحتوى باللغة الإنجليزية. انقر على عضو الفريق للترجمة الكاملة.",
+    ru: "Содержимое отображается на английском языке. Нажмите на члена команды для полного перевода.",
+    fr: "Le contenu est affiché en anglais. Cliquez sur un membre de l'équipe pour la traduction complète.",
+    it: "Il contenuto viene visualizzato in inglese. Fare clic su un membro del team per la traduzione completa.",
+  };
+
   const t = content[displayLanguage];
+  const isNonNativeLanguage = language !== 'en' && language !== 'es';
+  const translationBanner = isNonNativeLanguage ? translationBannerMessages[language] : null;
 
   const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
 
@@ -191,6 +204,14 @@ export default function Team() {
             >
               {t.subtitle}
             </p>
+            {translationBanner && (
+              <p 
+                className="mt-4 text-sm italic text-white/70 max-w-2xl mx-auto"
+                data-testid="text-translation-banner"
+              >
+                {translationBanner}
+              </p>
+            )}
           </motion.div>
         </div>
       </section>

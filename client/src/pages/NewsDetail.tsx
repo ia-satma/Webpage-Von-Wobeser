@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, useParams } from "wouter";
 import { motion } from "framer-motion";
-import { ArrowLeft, Calendar, Share2, Linkedin, Twitter, Mail, LinkIcon, AlertCircle, MessageCircle } from "lucide-react";
+import { ArrowLeft, Calendar, Share2, Linkedin, Twitter, Mail, LinkIcon, AlertCircle, MessageCircle, Loader2 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { es, enUS } from "date-fns/locale";
@@ -14,6 +14,7 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { ArticleJsonLd, BreadcrumbJsonLd } from "@/components/JsonLdSchema";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useTranslatedContent } from "@/hooks/useTranslatedContent";
 import type { News, TeamMember } from "@shared/schema";
 
 function NewsHeroImage({ 
@@ -86,6 +87,20 @@ export default function NewsDetail() {
   const { data: relatedAuthors } = useQuery<TeamMember[]>({
     queryKey: ['/api/news', slug, 'authors'],
     enabled: !!slug,
+  });
+
+  const { translatedFields, isTranslating } = useTranslatedContent({
+    contentType: 'news',
+    entityId: newsArticle?.id?.toString() || '',
+    fields: {
+      title: newsArticle?.title,
+      titleEs: newsArticle?.titleEs,
+      excerpt: newsArticle?.excerpt,
+      excerptEs: newsArticle?.excerptEs,
+      content: newsArticle?.content,
+      contentEs: newsArticle?.contentEs,
+    },
+    enabled: !!newsArticle,
   });
 
   const content = {
@@ -222,10 +237,8 @@ export default function NewsDetail() {
     );
   }
 
-  const displayTitle = language === "es" ? newsArticle?.titleEs : newsArticle?.title;
-  const displayContent = language === "es" 
-    ? (newsArticle?.contentEs || newsArticle?.excerptEs) 
-    : (newsArticle?.content || newsArticle?.excerpt);
+  const displayTitle = translatedFields.title || newsArticle?.title;
+  const displayContent = translatedFields.content || translatedFields.excerpt || newsArticle?.content || newsArticle?.excerpt;
   const heroImage = newsArticle?.imageUrl || "https://images.unsplash.com/photo-1497366216548-37526070297c?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80";
 
   const primaryAuthor = relatedAuthors && relatedAuthors.length > 0 ? relatedAuthors[0] : null;
@@ -292,6 +305,9 @@ export default function NewsDetail() {
                   data-testid="text-news-title"
                 >
                   {displayTitle}
+                  {isTranslating && (
+                    <Loader2 className="inline-block w-5 h-5 ml-3 animate-spin text-white/60" />
+                  )}
                 </h1>
               </motion.div>
             </div>

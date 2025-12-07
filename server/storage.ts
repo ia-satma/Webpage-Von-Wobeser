@@ -31,6 +31,8 @@ import {
   type InsertAdminSession,
   type Event,
   type InsertEvent,
+  type TranslationCache,
+  type InsertTranslationCache,
   users,
   news,
   officeImages,
@@ -47,6 +49,7 @@ import {
   blogPostTags,
   newsTeamMembers,
   events,
+  translationCache,
 } from "@shared/schema";
 
 export interface IStorage {
@@ -123,6 +126,11 @@ export interface IStorage {
   getEventById(id: string): Promise<Event | undefined>;
   getUpcomingEvents(limit?: number): Promise<Event[]>;
   createEvent(event: InsertEvent): Promise<Event>;
+  
+  // Translation Cache
+  getTranslation(contentType: string, entityId: string, field: string, targetLanguage: string): Promise<TranslationCache | undefined>;
+  getTranslations(contentType: string, entityId: string, targetLanguage: string): Promise<TranslationCache[]>;
+  saveTranslation(translation: InsertTranslationCache): Promise<TranslationCache>;
 }
 
 const siteContent: SiteContent = {
@@ -500,6 +508,70 @@ export class DatabaseStorage implements IStorage {
 
   async createEvent(event: InsertEvent): Promise<Event> {
     const [item] = await db.insert(events).values(event).returning();
+    return item;
+  }
+
+  // Translation Cache
+  async getTranslation(
+    contentType: string,
+    entityId: string,
+    field: string,
+    targetLanguage: string
+  ): Promise<TranslationCache | undefined> {
+    const [translation] = await db
+      .select()
+      .from(translationCache)
+      .where(
+        and(
+          eq(translationCache.contentType, contentType),
+          eq(translationCache.entityId, entityId),
+          eq(translationCache.field, field),
+          eq(translationCache.targetLanguage, targetLanguage)
+        )
+      );
+    return translation;
+  }
+
+  async getTranslations(
+    contentType: string,
+    entityId: string,
+    targetLanguage: string
+  ): Promise<TranslationCache[]> {
+    return db
+      .select()
+      .from(translationCache)
+      .where(
+        and(
+          eq(translationCache.contentType, contentType),
+          eq(translationCache.entityId, entityId),
+          eq(translationCache.targetLanguage, targetLanguage)
+        )
+      );
+  }
+
+  async saveTranslation(translation: InsertTranslationCache): Promise<TranslationCache> {
+    const existing = await this.getTranslation(
+      translation.contentType,
+      translation.entityId,
+      translation.field,
+      translation.targetLanguage
+    );
+
+    if (existing) {
+      const [updated] = await db
+        .update(translationCache)
+        .set({
+          translatedText: translation.translatedText,
+          sourceText: translation.sourceText,
+          sourceLanguage: translation.sourceLanguage,
+          updatedAt: new Date(),
+        })
+        .where(eq(translationCache.id, existing.id))
+        .returning();
+      return updated;
+    }
+
+    const [item] = await db.insert(translationCache).values(translation).returning();
     return item;
   }
 }
