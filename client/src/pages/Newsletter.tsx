@@ -50,10 +50,10 @@ const getNewsletterFormSchema = (language: "es" | "en") => {
 };
 
 export default function Newsletter() {
-  const { language } = useLanguage();
+  const { language, displayLanguage } = useLanguage();
   const { toast } = useToast();
 
-  const formSchema = getNewsletterFormSchema(language);
+  const formSchema = getNewsletterFormSchema(displayLanguage);
 
   const form = useForm<NewsletterFormData>({
     resolver: zodResolver(formSchema),
@@ -174,7 +174,7 @@ export default function Newsletter() {
     },
   };
 
-  const t = content[language];
+  const t = content[displayLanguage];
 
   const benefits = [
     {
@@ -201,7 +201,7 @@ export default function Newsletter() {
 
   return (
     <div className="min-h-screen bg-white dark:bg-gray-900" data-testid="page-newsletter">
-      <SEOHead page="newsletter" language={language} />
+      <SEOHead page="newsletter" language={displayLanguage} />
       <Header />
       
       <section className="pt-32 pb-12 bg-primary" data-testid="section-newsletter-hero">

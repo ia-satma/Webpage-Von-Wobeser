@@ -12,7 +12,7 @@ import { getIcon } from "@/lib/icons";
 import type { IndustryGroup } from "@shared/schema";
 
 export default function IndustryGroups() {
-  const { language } = useLanguage();
+  const { language, displayLanguage } = useLanguage();
 
   const { data: industryGroups, isLoading, error } = useQuery<IndustryGroup[]>({
     queryKey: ["/api/industry-groups"],
@@ -33,7 +33,7 @@ export default function IndustryGroups() {
     },
   };
 
-  const t = content[language];
+  const t = content[displayLanguage];
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -56,7 +56,7 @@ export default function IndustryGroups() {
 
   return (
     <div className="min-h-screen bg-white dark:bg-gray-900" data-testid="page-industry-groups">
-      <SEOHead page="industryGroups" language={language} />
+      <SEOHead page="industryGroups" language={displayLanguage} />
       <Header />
       
       <section className="pt-32 pb-12 bg-primary" data-testid="section-industry-groups-hero">

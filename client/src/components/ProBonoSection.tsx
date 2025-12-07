@@ -4,7 +4,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { Button } from "@/components/ui/button";
 
 export default function ProBonoSection() {
-  const { language } = useLanguage();
+  const { displayLanguage } = useLanguage();
 
   const content = {
     en: {
@@ -19,7 +19,7 @@ export default function ProBonoSection() {
     },
   };
 
-  const t = content[language];
+  const t = content[displayLanguage];
 
   return (
     <section

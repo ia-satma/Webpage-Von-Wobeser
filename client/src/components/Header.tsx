@@ -1,11 +1,12 @@
 import { useState, useEffect, useRef } from "react";
 import { Link, useLocation } from "wouter";
-import { Menu, X, Globe, Search, ChevronDown } from "lucide-react";
+import { Menu, X, Search, ChevronDown } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import ThemeToggle from "./ThemeToggle";
+import LanguageSelector from "./LanguageSelector";
 import { useLanguage } from "@/contexts/LanguageContext";
 import type { TeamMember, PracticeGroup, IndustryGroup, News } from "@shared/schema";
 import logoHD from "@assets/vonwobeser_logo_2025_full.png";
@@ -31,7 +32,7 @@ interface MenuItem {
 }
 
 export default function Header() {
-  const { language, setLanguage } = useLanguage();
+  const { language, displayLanguage } = useLanguage();
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
@@ -112,7 +113,7 @@ export default function Header() {
     },
   };
 
-  const aria = ariaLabels[language];
+  const aria = ariaLabels[displayLanguage];
 
   const menuItems: MenuItem[] = [
     {
@@ -226,7 +227,7 @@ export default function Header() {
             href="/"
             className="flex items-center gap-3"
             data-testid="link-logo"
-            aria-label={language === "es" ? "Von Wobeser y Sierra - Inicio" : "Von Wobeser y Sierra - Home"}
+            aria-label={displayLanguage === "es" ? "Von Wobeser y Sierra - Inicio" : "Von Wobeser y Sierra - Home"}
           >
             <img
               src={logoHD}
@@ -273,7 +274,7 @@ export default function Header() {
                   aria-haspopup={item.subItems ? "true" : undefined}
                   aria-expanded={item.subItems ? activeDropdown === item.id : undefined}
                 >
-                  {item.label[language]}
+                  {item.label[displayLanguage]}
                   {item.subItems && (
                     <ChevronDown
                       className={cn(
@@ -290,7 +291,7 @@ export default function Header() {
                   <div
                     className="absolute top-full left-0 mt-1 min-w-[220px] bg-white dark:bg-gray-800 rounded-md shadow-xl border border-gray-200 dark:border-gray-700 py-2 z-50"
                     role="menu"
-                    aria-label={`${item.label[language]} submenu`}
+                    aria-label={`${item.label[displayLanguage]} submenu`}
                     data-testid={`dropdown-${item.id}`}
                     onMouseEnter={() => handleDropdownEnter(item.id)}
                     onMouseLeave={handleDropdownLeave}
@@ -304,7 +305,7 @@ export default function Header() {
                         data-testid={`link-subnav-${subItem.id}`}
                         onClick={() => setActiveDropdown(null)}
                       >
-                        {subItem.label[language]}
+                        {subItem.label[displayLanguage]}
                       </Link>
                     ))}
                   </div>
@@ -355,7 +356,7 @@ export default function Header() {
                     <div
                       className="max-h-96 overflow-y-auto border-t border-gray-100 dark:border-gray-700"
                       role="listbox"
-                      aria-label={language === "es" ? "Resultados de búsqueda" : "Search results"}
+                      aria-label={displayLanguage === "es" ? "Resultados de búsqueda" : "Search results"}
                     >
                       {searchResults.team.length > 0 && (
                         <div className="p-2" role="group" aria-label={aria.teamSection}>
@@ -376,7 +377,7 @@ export default function Header() {
                               <div>
                                 <p className="text-sm font-medium text-gray-800 dark:text-white">{member.name}</p>
                                 <p className="text-xs text-gray-500 dark:text-gray-400">
-                                  {language === "es" ? member.titleEs : member.title}
+                                  {displayLanguage === "es" ? member.titleEs : member.title}
                                 </p>
                               </div>
                             </button>
@@ -398,7 +399,7 @@ export default function Header() {
                               role="option"
                             >
                               <p className="text-sm font-medium text-gray-800 dark:text-white">
-                                {language === "es" ? group.nameEs : group.name}
+                                {displayLanguage === "es" ? group.nameEs : group.name}
                               </p>
                             </button>
                           ))}
@@ -419,7 +420,7 @@ export default function Header() {
                               role="option"
                             >
                               <p className="text-sm font-medium text-gray-800 dark:text-white">
-                                {language === "es" ? group.nameEs : group.name}
+                                {displayLanguage === "es" ? group.nameEs : group.name}
                               </p>
                             </button>
                           ))}
@@ -440,7 +441,7 @@ export default function Header() {
                               role="option"
                             >
                               <p className="text-sm font-medium text-gray-800 dark:text-white line-clamp-1">
-                                {language === "es" ? article.titleEs : article.title}
+                                {displayLanguage === "es" ? article.titleEs : article.title}
                               </p>
                             </button>
                           ))}
@@ -460,20 +461,7 @@ export default function Header() {
 
             {isScrolled && <ThemeToggle />}
 
-            <button
-              onClick={() => setLanguage(language === "es" ? "en" : "es")}
-              className={cn(
-                "flex items-center gap-2 text-sm font-medium transition-colors duration-200 px-2 py-1",
-                isScrolled
-                  ? "text-gray-700 dark:text-gray-300 hover:text-primary"
-                  : "text-white/90 hover:text-white"
-              )}
-              data-testid="button-language-toggle"
-              aria-label={`${aria.toggleLanguage}: ${language === "es" ? "English" : "Español"}`}
-            >
-              <Globe className="w-4 h-4" data-testid="icon-globe" aria-hidden="true" />
-              <span data-testid="text-language">{language === "es" ? "EN" : "ES"}</span>
-            </button>
+            <LanguageSelector isScrolled={isScrolled} />
 
             <Button
               variant="ghost"
@@ -515,15 +503,7 @@ export default function Header() {
                 data-testid="img-logo-mobile"
               />
               <div className="flex items-center gap-2">
-                <button
-                  onClick={() => setLanguage(language === "es" ? "en" : "es")}
-                  className="flex items-center gap-2 text-sm font-medium text-white/90 hover:text-white transition-colors duration-200 px-2 py-1"
-                  data-testid="button-mobile-language-toggle"
-                  aria-label={`${aria.toggleLanguage}: ${language === "es" ? "English" : "Español"}`}
-                >
-                  <Globe className="w-4 h-4" aria-hidden="true" />
-                  <span>{language === "es" ? "EN" : "ES"}</span>
-                </button>
+                <LanguageSelector isMobile={true} />
                 <Button
                   variant="ghost"
                   size="icon"
@@ -557,9 +537,9 @@ export default function Header() {
                           data-testid={`button-mobile-nav-${item.id}`}
                           aria-expanded={expandedMobileMenus.includes(item.id)}
                           aria-controls={`mobile-submenu-${item.id}`}
-                          aria-label={`${item.label[language]} - ${expandedMobileMenus.includes(item.id) ? aria.collapseSubmenu : aria.expandSubmenu}`}
+                          aria-label={`${item.label[displayLanguage]} - ${expandedMobileMenus.includes(item.id) ? aria.collapseSubmenu : aria.expandSubmenu}`}
                         >
-                          <span>{item.label[language]}</span>
+                          <span>{item.label[displayLanguage]}</span>
                           <ChevronDown
                             className={cn(
                               "w-5 h-5 transition-transform duration-200",
@@ -577,7 +557,7 @@ export default function Header() {
                               : "max-h-0 opacity-0"
                           )}
                           role="menu"
-                          aria-label={`${item.label[language]} submenu`}
+                          aria-label={`${item.label[displayLanguage]} submenu`}
                         >
                           <div className="pl-4 space-y-2">
                             <button
@@ -586,7 +566,7 @@ export default function Header() {
                               role="menuitem"
                               data-testid={`link-mobile-subnav-${item.id}-all`}
                             >
-                              {language === "es" ? "Ver todo" : "View all"}
+                              {displayLanguage === "es" ? "Ver todo" : "View all"}
                             </button>
                             {item.subItems.map((subItem) => (
                               <button
@@ -596,7 +576,7 @@ export default function Header() {
                                 role="menuitem"
                                 data-testid={`link-mobile-subnav-${subItem.id}`}
                               >
-                                {subItem.label[language]}
+                                {subItem.label[displayLanguage]}
                               </button>
                             ))}
                           </div>
@@ -609,7 +589,7 @@ export default function Header() {
                         data-testid={`link-mobile-${item.id}`}
                         aria-current={location === item.href ? "page" : undefined}
                       >
-                        {item.label[language]}
+                        {item.label[displayLanguage]}
                       </button>
                     )}
                   </div>

@@ -106,10 +106,10 @@ function generateSlug(name: string): string {
 }
 
 export default function AdminCategories() {
-  const { language } = useLanguage();
+  const { language, displayLanguage } = useLanguage();
   const { isAuthenticated, isLoading: authLoading, requireAuth } = useAdminAuth();
   const { toast } = useToast();
-  const t = translations[language];
+  const t = translations[displayLanguage];
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingCategory, setEditingCategory] = useState<BlogCategory | null>(null);
@@ -420,7 +420,7 @@ export default function AdminCategories() {
                   {categories.map((category) => (
                     <TableRow key={category.id} data-testid={`row-category-${category.id}`}>
                       <TableCell className="font-medium" data-testid={`text-name-${category.id}`}>
-                        {language === "es" ? category.nameEs : category.name}
+                        {displayLanguage === "es" ? category.nameEs : category.name}
                       </TableCell>
                       <TableCell className="text-muted-foreground" data-testid={`text-slug-${category.id}`}>
                         {category.slug}

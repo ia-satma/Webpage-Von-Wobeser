@@ -168,7 +168,7 @@ const rankedLawyers = [
 ];
 
 export default function Rankings() {
-  const { language } = useLanguage();
+  const { language, displayLanguage } = useLanguage();
 
   const { data: teamMembers } = useQuery<TeamMember[]>({
     queryKey: ["/api/team"],
@@ -211,7 +211,7 @@ export default function Rankings() {
     },
   };
 
-  const t = content[language];
+  const t = content[displayLanguage];
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -234,7 +234,7 @@ export default function Rankings() {
 
   return (
     <div className="min-h-screen bg-white dark:bg-gray-900" data-testid="page-rankings">
-      <SEOHead page="rankings" language={language} />
+      <SEOHead page="rankings" language={displayLanguage} />
       <Header />
 
       <section className="pt-32 pb-16 bg-primary" data-testid="section-rankings-hero">

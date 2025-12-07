@@ -20,22 +20,22 @@ import SEOHead from "@/components/SEOHead";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function Home() {
-  const { language } = useLanguage();
+  const { language, displayLanguage } = useLanguage();
 
   return (
     <div className="min-h-screen bg-white" data-testid="page-home">
-      <SEOHead page="home" language={language} />
-      <JsonLdSchema language={language} />
+      <SEOHead page="home" language={displayLanguage} />
+      <JsonLdSchema language={displayLanguage} />
       
       {/* 1. Header/Nav with deep menu */}
       <Header />
       
       <main id="main-content">
         {/* 2. Hero Section with news overlay */}
-        <HeroSection language={language} />
+        <HeroSection language={displayLanguage} />
         
         {/* 3. Social Proof / Testimonials (Chambers, Legal 500, Latin Lawyer) */}
-        <SocialProofSection language={language} />
+        <SocialProofSection language={displayLanguage} />
         
         {/* 4. 18 Practices (complete list) */}
         <PracticesSection />
@@ -47,16 +47,16 @@ export default function Home() {
         <IndustryGroupsSection />
         
         {/* 7. Stats / Team (150 lawyers...) */}
-        <StatsSection language={language} />
+        <StatsSection language={displayLanguage} />
         
         {/* Upcoming Events */}
-        <EventsSection language={language} />
+        <EventsSection language={displayLanguage} />
         
         {/* 8. German Desk (complete section with text + member lists) */}
-        <WorldMapSection language={language} />
+        <WorldMapSection language={displayLanguage} />
         
         {/* 9. RECOGNITIONS (badges, intro, institutions) */}
-        <RankingsSection language={language} />
+        <RankingsSection language={displayLanguage} />
         
         {/* 10. Diversity & Inclusion */}
         <DiversityInclusionSection />
@@ -68,15 +68,15 @@ export default function Home() {
         <AboutUsSection />
         
         {/* 13. Map / Location */}
-        <MapSection language={language} />
+        <MapSection language={displayLanguage} />
       </main>
       
       {/* 14. Footer */}
       <Footer />
       
       {/* Popups and Banners */}
-      <NewOfficesPopup language={language} />
-      <CookieBanner language={language} />
+      <NewOfficesPopup language={displayLanguage} />
+      <CookieBanner language={displayLanguage} />
     </div>
   );
 }

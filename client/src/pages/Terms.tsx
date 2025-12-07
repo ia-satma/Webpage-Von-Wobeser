@@ -7,7 +7,7 @@ import SEOHead from "@/components/SEOHead";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function Terms() {
-  const { language } = useLanguage();
+  const { language, displayLanguage } = useLanguage();
 
   const content = {
     en: {
@@ -548,7 +548,7 @@ Para consultas relacionadas con posible representación legal, comuníquese con 
     }
   };
 
-  const t = content[language];
+  const t = content[displayLanguage];
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -571,7 +571,7 @@ Para consultas relacionadas con posible representación legal, comuníquese con 
 
   return (
     <div className="min-h-screen bg-white dark:bg-gray-900" data-testid="page-terms">
-      <SEOHead page="terms" language={language} />
+      <SEOHead page="terms" language={displayLanguage} />
       <Header />
       
       <section className="pt-32 pb-12 bg-primary" data-testid="section-terms-hero">

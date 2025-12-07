@@ -28,7 +28,7 @@ import SEOHead from "@/components/SEOHead";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function Careers() {
-  const { language } = useLanguage();
+  const { language, displayLanguage } = useLanguage();
 
   const content = {
     en: {
@@ -229,7 +229,7 @@ export default function Careers() {
     },
   };
 
-  const t = content[language];
+  const t = content[displayLanguage];
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -252,7 +252,7 @@ export default function Careers() {
 
   return (
     <div className="min-h-screen bg-white dark:bg-gray-900" data-testid="page-careers">
-      <SEOHead page="careers" language={language} />
+      <SEOHead page="careers" language={displayLanguage} />
       <Header />
       
       <section className="pt-32 pb-16 bg-primary" data-testid="section-careers-hero">

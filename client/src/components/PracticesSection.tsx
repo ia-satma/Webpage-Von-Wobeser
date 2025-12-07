@@ -39,8 +39,8 @@ const content = {
 };
 
 export default function PracticesSection() {
-  const { language } = useLanguage();
-  const t = content[language];
+  const { displayLanguage } = useLanguage();
+  const t = content[displayLanguage];
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -101,7 +101,7 @@ export default function PracticesSection() {
                   {area.id}.
                 </span>
                 <span className="text-base text-gray-700 dark:text-gray-300 group-hover:text-primary transition-colors" data-testid={`text-practice-name-${area.id}`}>
-                  {language === "es" ? area.nameEs : area.nameEn}
+                  {displayLanguage === "es" ? area.nameEs : area.nameEn}
                 </span>
               </Link>
             </motion.div>

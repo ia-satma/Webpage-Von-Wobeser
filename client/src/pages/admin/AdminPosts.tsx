@@ -90,10 +90,10 @@ interface PostsResponse {
 const ITEMS_PER_PAGE = 20;
 
 export default function AdminPosts() {
-  const { language } = useLanguage();
+  const { language, displayLanguage } = useLanguage();
   const { isAuthenticated, isLoading: authLoading, requireAuth } = useAdminAuth();
   const { toast } = useToast();
-  const t = translations[language];
+  const t = translations[displayLanguage];
 
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
@@ -144,7 +144,7 @@ export default function AdminPosts() {
 
   const formatDate = (date: string | Date | null | undefined) => {
     if (!date) return "-";
-    return new Date(date).toLocaleDateString(language === "es" ? "es-MX" : "en-US", {
+    return new Date(date).toLocaleDateString(displayLanguage === "es" ? "es-MX" : "en-US", {
       year: "numeric",
       month: "short",
       day: "numeric",
@@ -266,7 +266,7 @@ export default function AdminPosts() {
                     {data.posts.map((post) => (
                       <TableRow key={post.id} data-testid={`row-post-${post.id}`}>
                         <TableCell className="font-medium" data-testid={`text-title-${post.id}`}>
-                          {language === "es" ? post.titleEs : post.title}
+                          {displayLanguage === "es" ? post.titleEs : post.title}
                         </TableCell>
                         <TableCell data-testid={`text-date-${post.id}`}>
                           {formatDate(post.createdAt)}

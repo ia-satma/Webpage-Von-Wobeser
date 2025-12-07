@@ -5,7 +5,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function ThemeToggle() {
   const [isDark, setIsDark] = useState(false);
-  const { language } = useLanguage();
+  const { displayLanguage } = useLanguage();
 
   useEffect(() => {
     const stored = localStorage.getItem("theme");
@@ -29,7 +29,7 @@ export default function ThemeToggle() {
     }
   };
 
-  const ariaLabel = language === "es" 
+  const ariaLabel = displayLanguage === "es" 
     ? (isDark ? "Cambiar a modo claro" : "Cambiar a modo oscuro")
     : (isDark ? "Switch to light mode" : "Switch to dark mode");
 

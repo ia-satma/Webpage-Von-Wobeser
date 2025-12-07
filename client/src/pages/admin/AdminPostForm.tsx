@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useQuery, useMutation } from "@tanstack/react-query";
@@ -16,7 +16,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft, Save, Send } from "lucide-react";
+import { ArrowLeft, Save, Send, Sparkles, Loader2 } from "lucide-react";
 import type { BlogPost, BlogCategory } from "@shared/schema";
 
 const translations = {
@@ -55,6 +55,11 @@ const translations = {
     saveError: "Failed to save post",
     loading: "Loading...",
     required: "This field is required",
+    suggestTranslation: "Suggest Translation",
+    translating: "Translating...",
+    translationSuccess: "Translation suggested with {confidence}% confidence",
+    translationError: "Failed to suggest translation",
+    noEnglishText: "Enter English text first",
   },
   es: {
     createTitle: "Crear Nuevo Post",
@@ -91,6 +96,11 @@ const translations = {
     saveError: "Error al guardar el post",
     loading: "Cargando...",
     required: "Este campo es requerido",
+    suggestTranslation: "Sugerir Traducción",
+    translating: "Traduciendo...",
+    translationSuccess: "Traducción sugerida con {confidence}% de confianza",
+    translationError: "Error al sugerir traducción",
+    noEnglishText: "Ingrese texto en inglés primero",
   },
 };
 
@@ -122,14 +132,22 @@ function generateSlug(title: string): string {
     .replace(/^-+|-+$/g, "");
 }
 
+type TranslationField = "title" | "excerpt" | "content";
+
 export default function AdminPostForm() {
   const { id } = useParams<{ id: string }>();
   const isEditing = !!id;
-  const { language } = useLanguage();
+  const { language, displayLanguage } = useLanguage();
   const [, setLocation] = useLocation();
   const { isAuthenticated, isLoading: authLoading, requireAuth } = useAdminAuth();
   const { toast } = useToast();
-  const t = translations[language];
+  const t = translations[displayLanguage];
+
+  const [translatingFields, setTranslatingFields] = useState<Record<TranslationField, boolean>>({
+    title: false,
+    excerpt: false,
+    content: false,
+  });
 
   useEffect(() => {
     if (!authLoading) {
@@ -239,6 +257,60 @@ export default function AdminPostForm() {
     }
   };
 
+  const handleSuggestTranslation = async (field: TranslationField) => {
+    const englishFieldMap = {
+      title: "title",
+      excerpt: "excerpt",
+      content: "content",
+    } as const;
+    
+    const spanishFieldMap = {
+      title: "titleEs",
+      excerpt: "excerptEs",
+      content: "contentEs",
+    } as const;
+
+    const englishText = form.getValues(englishFieldMap[field]);
+    
+    if (!englishText || !englishText.trim()) {
+      toast({
+        title: t.noEnglishText,
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setTranslatingFields((prev) => ({ ...prev, [field]: true }));
+
+    try {
+      const response = await adminApiRequest("POST", "/api/translate/suggest", {
+        originalText: englishText,
+        targetLanguage: "es",
+        existingTranslations: { en: englishText },
+      });
+
+      if (!response.ok) {
+        throw new Error("Translation failed");
+      }
+
+      const result = await response.json();
+      const confidencePercent = Math.round(result.confidence * 100);
+
+      form.setValue(spanishFieldMap[field], result.translation);
+
+      toast({
+        title: t.translationSuccess.replace("{confidence}", String(confidencePercent)),
+      });
+    } catch (error) {
+      toast({
+        title: t.translationError,
+        variant: "destructive",
+      });
+    } finally {
+      setTranslatingFields((prev) => ({ ...prev, [field]: false }));
+    }
+  };
+
   if (authLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -334,7 +406,7 @@ export default function AdminPostForm() {
                                 value={cat.id}
                                 data-testid={`option-category-${cat.id}`}
                               >
-                                {language === "es" ? cat.nameEs : cat.name}
+                                {displayLanguage === "es" ? cat.nameEs : cat.name}
                               </SelectItem>
                             ))}
                           </SelectContent>
@@ -468,7 +540,30 @@ export default function AdminPostForm() {
                       name="titleEs"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>{t.titleLabel}</FormLabel>
+                          <div className="flex items-center justify-between gap-2">
+                            <FormLabel>{t.titleLabel}</FormLabel>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleSuggestTranslation("title")}
+                              disabled={translatingFields.title}
+                              data-testid="button-translate-title"
+                              className="h-6 px-2 text-xs"
+                            >
+                              {translatingFields.title ? (
+                                <>
+                                  <Loader2 className="mr-1 h-3 w-3 animate-spin" />
+                                  {t.translating}
+                                </>
+                              ) : (
+                                <>
+                                  <Sparkles className="mr-1 h-3 w-3" />
+                                  {t.suggestTranslation}
+                                </>
+                              )}
+                            </Button>
+                          </div>
                           <FormControl>
                             <Input
                               {...field}
@@ -486,7 +581,30 @@ export default function AdminPostForm() {
                       name="excerptEs"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>{t.excerptLabel}</FormLabel>
+                          <div className="flex items-center justify-between gap-2">
+                            <FormLabel>{t.excerptLabel}</FormLabel>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleSuggestTranslation("excerpt")}
+                              disabled={translatingFields.excerpt}
+                              data-testid="button-translate-excerpt"
+                              className="h-6 px-2 text-xs"
+                            >
+                              {translatingFields.excerpt ? (
+                                <>
+                                  <Loader2 className="mr-1 h-3 w-3 animate-spin" />
+                                  {t.translating}
+                                </>
+                              ) : (
+                                <>
+                                  <Sparkles className="mr-1 h-3 w-3" />
+                                  {t.suggestTranslation}
+                                </>
+                              )}
+                            </Button>
+                          </div>
                           <FormControl>
                             <Textarea
                               {...field}
@@ -505,7 +623,30 @@ export default function AdminPostForm() {
                       name="contentEs"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>{t.contentLabel}</FormLabel>
+                          <div className="flex items-center justify-between gap-2">
+                            <FormLabel>{t.contentLabel}</FormLabel>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleSuggestTranslation("content")}
+                              disabled={translatingFields.content}
+                              data-testid="button-translate-content"
+                              className="h-6 px-2 text-xs"
+                            >
+                              {translatingFields.content ? (
+                                <>
+                                  <Loader2 className="mr-1 h-3 w-3 animate-spin" />
+                                  {t.translating}
+                                </>
+                              ) : (
+                                <>
+                                  <Sparkles className="mr-1 h-3 w-3" />
+                                  {t.suggestTranslation}
+                                </>
+                              )}
+                            </Button>
+                          </div>
                           <FormControl>
                             <Textarea
                               {...field}

@@ -465,3 +465,23 @@ export const eventTypes = [
   { value: "speaking", en: "Speaking Engagement", es: "Ponencia" },
   { value: "networking", en: "Networking Event", es: "Evento de Networking" },
 ] as const;
+
+// ============================================
+// MULTI-LANGUAGE SUPPORT
+// ============================================
+
+export const SUPPORTED_LANGUAGES = [
+  { code: "en", name: "English", nameNative: "English" },
+  { code: "es", name: "Spanish", nameNative: "Español" },
+  { code: "de", name: "German", nameNative: "Deutsch" },
+  { code: "zh", name: "Chinese", nameNative: "中文" },
+  { code: "ko", name: "Korean", nameNative: "한국어" },
+  { code: "ja", name: "Japanese", nameNative: "日本語" },
+  { code: "ar", name: "Arabic", nameNative: "العربية" },
+  { code: "ru", name: "Russian", nameNative: "Русский" },
+  { code: "fr", name: "French", nameNative: "Français" },
+  { code: "it", name: "Italian", nameNative: "Italiano" },
+] as const;
+
+export type LanguageCode = typeof SUPPORTED_LANGUAGES[number]["code"];
+export type SupportedLanguage = typeof SUPPORTED_LANGUAGES[number];

@@ -31,7 +31,7 @@ const getEventTypeLabel = (eventType: string, language: "es" | "en"): string => 
 };
 
 export default function EventsPage() {
-  const { language } = useLanguage();
+  const { language, displayLanguage } = useLanguage();
   const [selectedType, setSelectedType] = useState<string>("all");
 
   const { data: events, isLoading, error } = useQuery<Event[]>({
@@ -61,7 +61,7 @@ export default function EventsPage() {
     },
   };
 
-  const t = content[language];
+  const t = content[displayLanguage];
 
   const typeFilters = [
     { value: "all", en: "All", es: "Todos" },
@@ -111,7 +111,7 @@ export default function EventsPage() {
 
   return (
     <div className="min-h-screen bg-white dark:bg-gray-900" data-testid="page-events">
-      <SEOHead page="events" language={language} />
+      <SEOHead page="events" language={displayLanguage} />
       <Header />
       
       <section className="pt-32 pb-12 bg-primary" data-testid="section-events-hero">

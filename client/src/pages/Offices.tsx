@@ -31,7 +31,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import type { OfficeImage } from "@shared/schema";
 
 export default function Offices() {
-  const { language } = useLanguage();
+  const { language, displayLanguage } = useLanguage();
   const [selectedImage, setSelectedImage] = useState<OfficeImage | null>(null);
 
   const { data: officeImages, isLoading: imagesLoading } = useQuery<OfficeImage[]>({
@@ -157,7 +157,7 @@ export default function Offices() {
     },
   };
 
-  const t = content[language];
+  const t = content[displayLanguage];
 
   const googleMapsEmbedUrl = "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3762.661068768984!2d-99.19441!3d19.4325!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x85d1ff5f5c0c3e1b%3A0x7c0c7c7c7c7c7c7c!2sTorre%20SOMA%20Chapultepec!5e0!3m2!1ses!2smx!4v1700000000000!5m2!1ses!2smx";
   const googleMapsDirectionsUrl = "https://www.google.com/maps/dir//Torre+SOMA+Chapultepec,+Campos+El%C3%ADseos+204,+Polanco,+11560+Ciudad+de+M%C3%A9xico,+CDMX,+Mexico";
@@ -183,7 +183,7 @@ export default function Offices() {
 
   return (
     <div className="min-h-screen bg-white dark:bg-gray-900" data-testid="page-offices">
-      <SEOHead page="offices" language={language} />
+      <SEOHead page="offices" language={displayLanguage} />
       <Header />
       
       <section className="pt-32 pb-12 bg-primary" data-testid="section-offices-hero">

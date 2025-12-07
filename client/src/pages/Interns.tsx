@@ -30,7 +30,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { Link } from "wouter";
 
 export default function Interns() {
-  const { language } = useLanguage();
+  const { language, displayLanguage } = useLanguage();
 
   const content = {
     en: {
@@ -171,7 +171,7 @@ export default function Interns() {
     },
   };
 
-  const t = content[language];
+  const t = content[displayLanguage];
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -194,7 +194,7 @@ export default function Interns() {
 
   return (
     <div className="min-h-screen bg-white dark:bg-gray-900" data-testid="page-interns">
-      <SEOHead page="interns" language={language} />
+      <SEOHead page="interns" language={displayLanguage} />
       <Header />
       
       <section className="pt-32 pb-16 bg-primary" data-testid="section-interns-hero">

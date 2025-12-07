@@ -24,7 +24,7 @@ import SEOHead from "@/components/SEOHead";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function GermanDesk() {
-  const { language } = useLanguage();
+  const { language, displayLanguage } = useLanguage();
 
   const content = {
     en: {
@@ -155,7 +155,7 @@ export default function GermanDesk() {
     },
   };
 
-  const t = content[language];
+  const t = content[displayLanguage];
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -178,7 +178,7 @@ export default function GermanDesk() {
 
   return (
     <div className="min-h-screen bg-white dark:bg-gray-900" data-testid="page-german-desk">
-      <SEOHead page="germanDesk" language={language} />
+      <SEOHead page="germanDesk" language={displayLanguage} />
       <Header />
       
       <section className="pt-32 pb-12 bg-primary" data-testid="section-german-desk-hero">

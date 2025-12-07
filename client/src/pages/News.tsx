@@ -45,7 +45,7 @@ function NewsImageWithFallback({
 }
 
 export default function NewsPage() {
-  const { language } = useLanguage();
+  const { language, displayLanguage } = useLanguage();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
 
@@ -86,7 +86,7 @@ export default function NewsPage() {
     },
   };
 
-  const t = content[language];
+  const t = content[displayLanguage];
 
   const categoryFilters = [
     { value: "all", label: language === "es" ? "Todos" : "All" },
@@ -140,7 +140,7 @@ export default function NewsPage() {
 
   return (
     <div className="min-h-screen bg-white dark:bg-gray-900" data-testid="page-news">
-      <SEOHead page="news" language={language} />
+      <SEOHead page="news" language={displayLanguage} />
       <Header />
       
       <section className="pt-32 pb-12 bg-primary" data-testid="section-news-hero">

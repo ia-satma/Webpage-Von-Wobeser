@@ -130,7 +130,7 @@ const practiceAreaRoleMapping: Record<string, string[]> = {
 };
 
 export default function PracticeGroupDetail() {
-  const { language } = useLanguage();
+  const { language, displayLanguage } = useLanguage();
   const params = useParams<{ slug: string }>();
   const slug = params.slug;
 
@@ -191,7 +191,7 @@ export default function PracticeGroupDetail() {
     },
   };
 
-  const t = content[language];
+  const t = content[displayLanguage];
 
   const filteredAndGroupedMembers = useMemo(() => {
     if (!allTeamMembers || !slug) return { partners: [], ofCounsel: [], associates: [] };

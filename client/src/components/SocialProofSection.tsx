@@ -46,8 +46,8 @@ interface SocialProofSectionProps {
 }
 
 export default function SocialProofSection({ language: propLanguage }: SocialProofSectionProps) {
-  const { language: contextLanguage } = useLanguage();
-  const language = propLanguage || contextLanguage;
+  const { displayLanguage: contextDisplayLanguage } = useLanguage();
+  const displayLanguage = propLanguage || contextDisplayLanguage;
 
   const content = {
     en: {
@@ -58,7 +58,7 @@ export default function SocialProofSection({ language: propLanguage }: SocialPro
     },
   };
 
-  const t = content[language];
+  const t = content[displayLanguage];
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -137,7 +137,7 @@ export default function SocialProofSection({ language: propLanguage }: SocialPro
                 className="font-serif italic text-lg lg:text-xl text-gray-600 dark:text-gray-300 leading-relaxed mb-8"
                 data-testid={`text-quote-${quote.id}`}
               >
-                "{quote.text[language]}"
+                "{quote.text[displayLanguage]}"
               </blockquote>
 
               <div className="mt-auto">

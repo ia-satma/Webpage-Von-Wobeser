@@ -21,7 +21,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import type { RepresentativeMatterDb, PracticeGroup, IndustryGroup } from "@shared/schema";
 
 export default function Experience() {
-  const { language } = useLanguage();
+  const { language, displayLanguage } = useLanguage();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedPracticeArea, setSelectedPracticeArea] = useState<string>("all");
   const [selectedIndustry, setSelectedIndustry] = useState<string>("all");
@@ -75,7 +75,7 @@ export default function Experience() {
     },
   };
 
-  const t = content[language];
+  const t = content[displayLanguage];
 
   const highlightedMatters = useMemo(() => {
     return matters?.filter((m) => m.isHighlight) || [];
@@ -136,7 +136,7 @@ export default function Experience() {
 
   return (
     <div className="min-h-screen bg-white dark:bg-gray-900" data-testid="page-experience">
-      <SEOHead page="experience" language={language} />
+      <SEOHead page="experience" language={displayLanguage} />
       <Header />
       
       <section className="pt-32 pb-16 bg-primary" data-testid="section-experience-hero">

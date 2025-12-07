@@ -62,14 +62,14 @@ const getContactFormSchema = (language: "es" | "en") => {
 };
 
 export default function Contact() {
-  const { language } = useLanguage();
+  const { language, displayLanguage } = useLanguage();
   const { toast } = useToast();
 
   const { data: siteContent, isLoading } = useQuery<SiteContent>({
     queryKey: ["/api/site-content"],
   });
 
-  const formSchema = getContactFormSchema(language);
+  const formSchema = getContactFormSchema(displayLanguage);
 
   const form = useForm<ContactFormData>({
     resolver: zodResolver(formSchema),
@@ -199,13 +199,13 @@ export default function Contact() {
     },
   };
 
-  const t = content[language];
+  const t = content[displayLanguage];
 
   const googleMapsUrl = "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3762.6610687689834!2d-99.19441!3d19.4325!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x85d1ff5f5c0c3e1b%3A0x7c0c7c7c7c7c7c7c!2sTorre%20SOMA%20Chapultepec!5e0!3m2!1sen!2smx!4v1700000000000!5m2!1sen!2smx";
 
   return (
     <div className="min-h-screen bg-white dark:bg-gray-900" data-testid="page-contact">
-      <SEOHead page="contact" language={language} />
+      <SEOHead page="contact" language={displayLanguage} />
       <Header />
       
       <section className="pt-32 pb-12 bg-primary" data-testid="section-contact-hero">

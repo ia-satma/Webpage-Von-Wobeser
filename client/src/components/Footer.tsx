@@ -8,7 +8,7 @@ import esrLogo from "@assets/image_1764710915519.png";
 import footerLogo from "@assets/Recurso_2_1764819007853.png";
 
 export default function Footer() {
-  const { language } = useLanguage();
+  const { displayLanguage } = useLanguage();
   const { data: siteContent, isLoading, error } = useQuery<SiteContent>({
     queryKey: ["/api/site-content"],
   });
@@ -96,12 +96,12 @@ export default function Footer() {
     },
   };
 
-  const t = content[language];
+  const t = content[displayLanguage];
 
   const renderContactInfo = () => {
     if (isLoading) {
       return (
-        <div className="space-y-4" data-testid="skeleton-contact" aria-busy="true" aria-label={language === "es" ? "Cargando información de contacto" : "Loading contact information"}>
+        <div className="space-y-4" data-testid="skeleton-contact" aria-busy="true" aria-label={displayLanguage === "es" ? "Cargando información de contacto" : "Loading contact information"}>
           <div className="flex items-start gap-3">
             <Skeleton className="w-4 h-4 rounded-full flex-shrink-0 mt-1 bg-gray-700" />
             <div className="space-y-1">
@@ -210,7 +210,7 @@ export default function Footer() {
       className="bg-gray-900 text-white py-16 lg:py-20"
       data-testid="footer"
       role="contentinfo"
-      aria-label={language === "es" ? "Pie de página del sitio" : "Site footer"}
+      aria-label={displayLanguage === "es" ? "Pie de página del sitio" : "Site footer"}
     >
       <div className="max-w-7xl mx-auto px-6 lg:px-12">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-10 lg:gap-8 mb-16">
@@ -226,7 +226,7 @@ export default function Footer() {
             </p>
           </div>
 
-          <nav aria-label={language === "es" ? "Enlaces de la firma" : "Firm links"}>
+          <nav aria-label={displayLanguage === "es" ? "Enlaces de la firma" : "Firm links"}>
             <h3 className="text-sm font-semibold uppercase tracking-wider text-white mb-6" data-testid="text-footer-firm-title">
               {t.firm}
             </h3>
@@ -246,7 +246,7 @@ export default function Footer() {
           </nav>
 
           <div>
-            <nav aria-label={language === "es" ? "Enlaces de capacidades" : "Capabilities links"}>
+            <nav aria-label={displayLanguage === "es" ? "Enlaces de capacidades" : "Capabilities links"}>
               <h3 className="text-sm font-semibold uppercase tracking-wider text-white mb-6" data-testid="text-footer-capabilities-title">
                 {t.capabilities}
               </h3>
@@ -280,7 +280,7 @@ export default function Footer() {
             </div>
           </div>
 
-          <nav aria-label={language === "es" ? "Enlaces de recursos" : "Resources links"}>
+          <nav aria-label={displayLanguage === "es" ? "Enlaces de recursos" : "Resources links"}>
             <h3 className="text-sm font-semibold uppercase tracking-wider text-white mb-6" data-testid="text-footer-resources-title">
               {t.resources}
             </h3>
@@ -315,12 +315,12 @@ export default function Footer() {
               </p>
               <img 
                 src={esrLogo} 
-                alt={language === "es" ? "Empresa Socialmente Responsable" : "Socially Responsible Company"}
+                alt={displayLanguage === "es" ? "Empresa Socialmente Responsable" : "Socially Responsible Company"}
                 className="h-10 object-contain"
                 data-testid="img-esr-logo"
               />
             </div>
-            <nav className="flex items-center gap-6" aria-label={language === "es" ? "Enlaces legales" : "Legal links"}>
+            <nav className="flex items-center gap-6" aria-label={displayLanguage === "es" ? "Enlaces legales" : "Legal links"}>
               <Link
                 href="/privacy-policy"
                 className="text-xs text-gray-500 hover:text-white transition-colors"

@@ -15,6 +15,13 @@ import {
   insertBlogTagSchema,
 } from "@shared/schema";
 import {
+  SUPPORTED_LANGUAGES,
+  translateLegalText,
+  translateMultipleTexts,
+  suggestTranslation,
+  type LanguageCode,
+} from "./openai";
+import {
   hashPassword,
   comparePassword,
   generateToken,
@@ -1025,6 +1032,102 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
     } catch (error) {
       console.error("Remove team member from news error:", error);
       res.status(500).json({ error: "Failed to remove team member from news" });
+    }
+  });
+
+  // =============================================
+  // TRANSLATION API (AI-powered)
+  // =============================================
+
+  // GET /api/languages - Get list of supported languages
+  app.get("/api/languages", (_req, res) => {
+    res.json(SUPPORTED_LANGUAGES);
+  });
+
+  // POST /api/translate - Translate single text
+  app.post("/api/translate", async (req: Request, res: Response) => {
+    try {
+      const { text, sourceLanguage, targetLanguage } = req.body;
+
+      if (!text || !sourceLanguage || !targetLanguage) {
+        return res.status(400).json({ 
+          error: "Missing required fields: text, sourceLanguage, targetLanguage" 
+        });
+      }
+
+      const validCodes = SUPPORTED_LANGUAGES.map(l => l.code);
+      if (!validCodes.includes(sourceLanguage) || !validCodes.includes(targetLanguage)) {
+        return res.status(400).json({ error: "Invalid language code" });
+      }
+
+      const translation = await translateLegalText(
+        text,
+        sourceLanguage as LanguageCode,
+        targetLanguage as LanguageCode
+      );
+
+      res.json({ translation, sourceLanguage, targetLanguage });
+    } catch (error) {
+      console.error("Translation error:", error);
+      res.status(500).json({ error: "Failed to translate text" });
+    }
+  });
+
+  // POST /api/translate/batch - Translate multiple texts
+  app.post("/api/translate/batch", async (req: Request, res: Response) => {
+    try {
+      const { texts, sourceLanguage, targetLanguage } = req.body;
+
+      if (!texts || !Array.isArray(texts) || !sourceLanguage || !targetLanguage) {
+        return res.status(400).json({ 
+          error: "Missing required fields: texts (array), sourceLanguage, targetLanguage" 
+        });
+      }
+
+      const validCodes = SUPPORTED_LANGUAGES.map(l => l.code);
+      if (!validCodes.includes(sourceLanguage) || !validCodes.includes(targetLanguage)) {
+        return res.status(400).json({ error: "Invalid language code" });
+      }
+
+      const translations = await translateMultipleTexts(
+        texts,
+        sourceLanguage as LanguageCode,
+        targetLanguage as LanguageCode
+      );
+
+      res.json({ translations, sourceLanguage, targetLanguage });
+    } catch (error) {
+      console.error("Batch translation error:", error);
+      res.status(500).json({ error: "Failed to translate texts" });
+    }
+  });
+
+  // POST /api/translate/suggest - Suggest translation for blog post
+  app.post("/api/translate/suggest", async (req: Request, res: Response) => {
+    try {
+      const { originalText, existingTranslations, targetLanguage } = req.body;
+
+      if (!originalText || !targetLanguage) {
+        return res.status(400).json({ 
+          error: "Missing required fields: originalText, targetLanguage" 
+        });
+      }
+
+      const validCodes = SUPPORTED_LANGUAGES.map(l => l.code);
+      if (!validCodes.includes(targetLanguage)) {
+        return res.status(400).json({ error: "Invalid target language code" });
+      }
+
+      const result = await suggestTranslation(
+        originalText,
+        existingTranslations || {},
+        targetLanguage as LanguageCode
+      );
+
+      res.json({ ...result, targetLanguage });
+    } catch (error) {
+      console.error("Translation suggestion error:", error);
+      res.status(500).json({ error: "Failed to suggest translation" });
     }
   });
 

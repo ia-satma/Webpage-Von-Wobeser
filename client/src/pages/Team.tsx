@@ -23,7 +23,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import type { TeamMember, PracticeGroup, IndustryGroup } from "@shared/schema";
 
 export default function Team() {
-  const { language } = useLanguage();
+  const { language, displayLanguage } = useLanguage();
   const [searchQuery, setSearchQuery] = useState("");
   const [filterSeniority, setFilterSeniority] = useState<string>("all");
   const [filterPractice, setFilterPractice] = useState<string>("all");
@@ -84,7 +84,7 @@ export default function Team() {
     },
   };
 
-  const t = content[language];
+  const t = content[displayLanguage];
 
   const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
 
@@ -168,7 +168,7 @@ export default function Team() {
 
   return (
     <div className="min-h-screen bg-white dark:bg-gray-900" data-testid="page-team">
-      <SEOHead page="team" language={language} />
+      <SEOHead page="team" language={displayLanguage} />
       <Header />
       
       <section className="pt-32 pb-12 bg-primary" data-testid="section-team-hero">

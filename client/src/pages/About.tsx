@@ -33,7 +33,7 @@ import type { TeamMember, PracticeGroup, IndustryGroup } from "@shared/schema";
 import logoHD from "@assets/vonwobeser_logo_2025_full.png";
 
 export default function About() {
-  const { language } = useLanguage();
+  const { language, displayLanguage } = useLanguage();
 
   const { data: teamMembers } = useQuery<TeamMember[]>({
     queryKey: ["/api/team"],
@@ -260,7 +260,7 @@ export default function About() {
     },
   };
 
-  const t = content[language];
+  const t = content[displayLanguage];
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -283,7 +283,7 @@ export default function About() {
 
   return (
     <div className="min-h-screen bg-white dark:bg-gray-900" data-testid="page-about">
-      <SEOHead page="about" language={language} />
+      <SEOHead page="about" language={displayLanguage} />
       <Header />
       
       <section className="pt-32 pb-12 bg-primary" data-testid="section-about-hero">

@@ -10,7 +10,7 @@ const values = [
 ];
 
 export default function AboutUsSection() {
-  const { language } = useLanguage();
+  const { displayLanguage } = useLanguage();
 
   const content = {
     en: {
@@ -31,7 +31,7 @@ export default function AboutUsSection() {
     },
   };
 
-  const t = content[language];
+  const t = content[displayLanguage];
 
   return (
     <section
@@ -137,7 +137,7 @@ export default function AboutUsSection() {
                   className="text-base md:text-lg font-heading text-gray-700 dark:text-gray-200"
                   data-testid={`text-value-${index}`}
                 >
-                  {language === "en" ? value.en : value.es}
+                  {displayLanguage === "en" ? value.en : value.es}
                 </span>
               </motion.div>
             ))}

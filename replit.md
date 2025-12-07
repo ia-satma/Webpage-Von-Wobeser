@@ -2,7 +2,7 @@
 
 ## Overview
 
-This is a corporate website for Von Wobeser y Sierra, a leading law firm in Mexico, showcasing their new office location in Polanco, Mexico City. The application is built as a single-page website with multiple sections including news, office vision, statistics, image galleries, and location information. The site features bilingual support (Spanish/English) and follows a professional, sophisticated design aesthetic inspired by premium law firm websites.
+This is a corporate website for Von Wobeser y Sierra, a leading law firm in Mexico, showcasing their new office location in Polanco, Mexico City. The application is built as a single-page website with multiple sections including news, office vision, statistics, image galleries, and location information. The site features comprehensive multi-language support (10 languages with AI-powered legal translation), dark mode, and follows a professional, sophisticated design aesthetic inspired by premium law firm websites.
 
 ## User Preferences
 
@@ -66,6 +66,18 @@ Preferred communication style: Simple, everyday language.
 - Industry groups include: Automotive/Manufacturing, Consumer Goods, Energy & Natural Resources, Pharmaceutical, Financial Services, Real Estate, Technology
 - PracticeGroupDetail.tsx uses fallback logic: displays fullDescription if available, otherwise falls back to description
 - Content stored in both database (for runtime) and seed.ts (for future seeding)
+
+**Multi-Language System with AI Translation (December 2025)**
+- Expanded language support from 2 to 10 languages: English (en), Spanish (es), German (de), Chinese (zh), Korean (ko), Japanese (ja), Arabic (ar), Russian (ru), French (fr), Italian (it)
+- Created server/openai.ts with OpenAI GPT-5 integration for legal translation:
+  - translateLegalText(): Single text translation with legal terminology focus
+  - translateMultipleTexts(): Batch translation for multiple texts
+  - suggestTranslation(): AI-powered translation suggestion with confidence scores
+- API endpoints: GET /api/languages, POST /api/translate, POST /api/translate/batch, POST /api/translate/suggest
+- LanguageContext provides: language (10-language code), displayLanguage (fallback "en"/"es"), setLanguage, getLanguageInfo
+- LanguageSelector dropdown component in header with native language names
+- AdminPostForm has AI translation suggestion buttons for Spanish fields (titleEs, excerptEs, contentEs) with confidence percentage display
+- Content fallback: Non-EN/ES languages display English content until translations are added to database
 
 **New Pages & Navigation Fixes (December 2025)**
 - Created 6 new pages to fix 404 navigation errors:

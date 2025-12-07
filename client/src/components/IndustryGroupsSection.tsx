@@ -28,8 +28,8 @@ const content = {
 };
 
 export default function IndustryGroupsSection() {
-  const { language } = useLanguage();
-  const t = content[language];
+  const { displayLanguage } = useLanguage();
+  const t = content[displayLanguage];
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -90,7 +90,7 @@ export default function IndustryGroupsSection() {
                   {group.id}.
                 </span>
                 <span className="text-base text-gray-700 dark:text-gray-300 group-hover:text-primary transition-colors" data-testid={`text-industry-group-name-${group.id}`}>
-                  {language === "es" ? group.nameEs : group.nameEn}
+                  {displayLanguage === "es" ? group.nameEs : group.nameEn}
                 </span>
               </Link>
             </motion.div>

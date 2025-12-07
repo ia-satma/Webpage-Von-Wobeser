@@ -36,7 +36,7 @@ import AdminPostForm from "@/pages/admin/AdminPostForm";
 import AdminCategories from "@/pages/admin/AdminCategories";
 
 function SkipLinks() {
-  const { language } = useLanguage();
+  const { displayLanguage } = useLanguage();
   
   const labels = {
     en: {
@@ -49,7 +49,7 @@ function SkipLinks() {
     },
   };
   
-  const t = labels[language];
+  const t = labels[displayLanguage];
   
   return (
     <div className="skip-links">

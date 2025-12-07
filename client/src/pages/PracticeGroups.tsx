@@ -12,7 +12,7 @@ import { getIcon } from "@/lib/icons";
 import type { PracticeGroup } from "@shared/schema";
 
 export default function PracticeGroups() {
-  const { language } = useLanguage();
+  const { language, displayLanguage } = useLanguage();
 
   const { data: practiceGroups, isLoading, error } = useQuery<PracticeGroup[]>({
     queryKey: ["/api/practice-groups"],
@@ -33,7 +33,7 @@ export default function PracticeGroups() {
     },
   };
 
-  const t = content[language];
+  const t = content[displayLanguage];
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -56,7 +56,7 @@ export default function PracticeGroups() {
 
   return (
     <div className="min-h-screen bg-white dark:bg-gray-900" data-testid="page-practice-groups">
-      <SEOHead page="practiceGroups" language={language} />
+      <SEOHead page="practiceGroups" language={displayLanguage} />
       <Header />
       
       <section className="pt-32 pb-12 bg-primary" data-testid="section-practice-groups-hero">

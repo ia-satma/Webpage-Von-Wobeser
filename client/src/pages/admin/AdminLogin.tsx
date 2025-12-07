@@ -50,10 +50,10 @@ const translations = {
 };
 
 export default function AdminLogin() {
-  const { language } = useLanguage();
+  const { displayLanguage } = useLanguage();
   const [, setLocation] = useLocation();
   const { toast } = useToast();
-  const t = translations[language];
+  const t = translations[displayLanguage];
 
   useEffect(() => {
     if (isAuthenticated()) {

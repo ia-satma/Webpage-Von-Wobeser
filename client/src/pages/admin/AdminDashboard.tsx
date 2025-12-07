@@ -63,9 +63,9 @@ interface DashboardStats {
 }
 
 export default function AdminDashboard() {
-  const { language } = useLanguage();
+  const { language, displayLanguage } = useLanguage();
   const { isAuthenticated, isLoading: authLoading, logout, requireAuth } = useAdminAuth();
-  const t = translations[language];
+  const t = translations[displayLanguage];
 
   useEffect(() => {
     if (!authLoading) {
@@ -220,7 +220,7 @@ export default function AdminDashboard() {
                     >
                       <div className="flex-1 min-w-0">
                         <p className="font-medium truncate" data-testid={`text-post-title-${post.id}`}>
-                          {language === "es" ? post.titleEs : post.title}
+                          {displayLanguage === "es" ? post.titleEs : post.title}
                         </p>
                         <p className="text-sm text-muted-foreground">
                           {post.status === "draft" ? t.draft : t.publishedStatus}

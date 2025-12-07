@@ -44,7 +44,7 @@ function ArticleImageWithFallback({
 }
 
 export default function ArticlesPage() {
-  const { language } = useLanguage();
+  const { language, displayLanguage } = useLanguage();
   const [searchQuery, setSearchQuery] = useState("");
 
   const { data: articles, isLoading, error } = useQuery<News[]>({
@@ -76,7 +76,7 @@ export default function ArticlesPage() {
     },
   };
 
-  const t = content[language];
+  const t = content[displayLanguage];
 
   const filteredArticles = articles?.filter(article => {
     if (!searchQuery) return true;
@@ -118,7 +118,7 @@ export default function ArticlesPage() {
 
   return (
     <div className="min-h-screen bg-white dark:bg-gray-900" data-testid="page-articles">
-      <SEOHead page="articles" language={language} />
+      <SEOHead page="articles" language={displayLanguage} />
       <Header />
       
       <section className="pt-32 pb-12 bg-primary" data-testid="section-articles-hero">

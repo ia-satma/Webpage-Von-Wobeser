@@ -11,8 +11,8 @@ const content = {
 };
 
 export default function ExperienceBanner() {
-  const { language } = useLanguage();
-  const t = content[language];
+  const { displayLanguage } = useLanguage();
+  const t = content[displayLanguage];
 
   return (
     <section

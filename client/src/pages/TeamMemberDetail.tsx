@@ -46,7 +46,7 @@ function NewsImageWithFallback({
 }
 
 export default function TeamMemberDetail() {
-  const { language } = useLanguage();
+  const { language, displayLanguage } = useLanguage();
   const params = useParams<{ slug: string }>();
   const slug = params.slug;
 
@@ -145,7 +145,7 @@ export default function TeamMemberDetail() {
     },
   };
 
-  const t = content[language];
+  const t = content[displayLanguage];
 
   const formatDate = (date: string | Date | null) => {
     if (!date) return '';

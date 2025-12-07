@@ -1,25 +1,34 @@
 import { createContext, useContext, useState, useEffect, type ReactNode } from "react";
+import { SUPPORTED_LANGUAGES, type LanguageCode, type SupportedLanguage } from "@shared/schema";
 
-type Language = "es" | "en";
+type DisplayLanguage = "en" | "es";
 
 interface LanguageContextType {
-  language: Language;
-  setLanguage: (lang: Language) => void;
+  language: LanguageCode;
+  displayLanguage: DisplayLanguage;
+  setLanguage: (lang: LanguageCode) => void;
+  getLanguageInfo: () => SupportedLanguage;
 }
 
 const STORAGE_KEY = "vwb_language";
-const DEFAULT_LANGUAGE: Language = "en";
+const DEFAULT_LANGUAGE: LanguageCode = "en";
 
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
 
-function getInitialLanguage(): Language {
+const validLanguageCodes = SUPPORTED_LANGUAGES.map(lang => lang.code);
+
+function isValidLanguageCode(code: string): code is LanguageCode {
+  return validLanguageCodes.includes(code as LanguageCode);
+}
+
+function getInitialLanguage(): LanguageCode {
   if (typeof window === "undefined") {
     return DEFAULT_LANGUAGE;
   }
   
   try {
     const stored = localStorage.getItem(STORAGE_KEY);
-    if (stored === "es" || stored === "en") {
+    if (stored && isValidLanguageCode(stored)) {
       return stored;
     }
   } catch {
@@ -32,10 +41,17 @@ interface LanguageProviderProps {
   children: ReactNode;
 }
 
-export function LanguageProvider({ children }: LanguageProviderProps) {
-  const [language, setLanguageState] = useState<Language>(getInitialLanguage);
+function getDisplayLanguage(lang: LanguageCode): DisplayLanguage {
+  if (lang === "es") return "es";
+  return "en";
+}
 
-  const setLanguage = (lang: Language) => {
+export function LanguageProvider({ children }: LanguageProviderProps) {
+  const [language, setLanguageState] = useState<LanguageCode>(getInitialLanguage);
+
+  const displayLanguage = getDisplayLanguage(language);
+
+  const setLanguage = (lang: LanguageCode) => {
     setLanguageState(lang);
     try {
       localStorage.setItem(STORAGE_KEY, lang);
@@ -43,15 +59,20 @@ export function LanguageProvider({ children }: LanguageProviderProps) {
     }
   };
 
+  const getLanguageInfo = (): SupportedLanguage => {
+    const langInfo = SUPPORTED_LANGUAGES.find(l => l.code === language);
+    return langInfo || SUPPORTED_LANGUAGES[0];
+  };
+
   useEffect(() => {
     const stored = localStorage.getItem(STORAGE_KEY);
-    if (stored === "es" || stored === "en") {
+    if (stored && isValidLanguageCode(stored)) {
       setLanguageState(stored);
     }
   }, []);
 
   return (
-    <LanguageContext.Provider value={{ language, setLanguage }}>
+    <LanguageContext.Provider value={{ language, displayLanguage, setLanguage, getLanguageInfo }}>
       {children}
     </LanguageContext.Provider>
   );

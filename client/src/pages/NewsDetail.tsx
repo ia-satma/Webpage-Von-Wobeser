@@ -68,7 +68,7 @@ function NewsCardImage({
 }
 
 export default function NewsDetail() {
-  const { language } = useLanguage();
+  const { language, displayLanguage } = useLanguage();
   const { toast } = useToast();
   const params = useParams<{ slug: string }>();
   const slug = params.slug;
@@ -116,7 +116,7 @@ export default function NewsDetail() {
     },
   };
 
-  const t = content[language];
+  const t = content[displayLanguage];
 
   const formatDate = (date: Date | string | null) => {
     if (!date) return "";

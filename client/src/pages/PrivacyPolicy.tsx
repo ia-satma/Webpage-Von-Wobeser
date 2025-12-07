@@ -7,7 +7,7 @@ import SEOHead from "@/components/SEOHead";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function PrivacyPolicy() {
-  const { language } = useLanguage();
+  const { language, displayLanguage } = useLanguage();
 
   const content = {
     en: {
@@ -572,7 +572,7 @@ Sitio web: www.vonwobeser.com`
     }
   };
 
-  const t = content[language];
+  const t = content[displayLanguage];
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -595,7 +595,7 @@ Sitio web: www.vonwobeser.com`
 
   return (
     <div className="min-h-screen bg-white dark:bg-gray-900" data-testid="page-privacy-policy">
-      <SEOHead page="privacyPolicy" language={language} />
+      <SEOHead page="privacyPolicy" language={displayLanguage} />
       <Header />
       
       <section className="pt-32 pb-12 bg-primary" data-testid="section-privacy-hero">

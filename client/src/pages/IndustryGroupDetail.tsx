@@ -13,7 +13,7 @@ import { getIcon } from "@/lib/icons";
 import type { IndustryGroup, PracticeGroup } from "@shared/schema";
 
 export default function IndustryGroupDetail() {
-  const { language } = useLanguage();
+  const { language, displayLanguage } = useLanguage();
   const params = useParams<{ slug: string }>();
   const slug = params.slug;
 
@@ -51,7 +51,7 @@ export default function IndustryGroupDetail() {
     },
   };
 
-  const t = content[language];
+  const t = content[displayLanguage];
 
   if (error) {
     return (
