@@ -59,6 +59,14 @@ Preferred communication style: Simple, everyday language.
 - Sample comprehensive profiles for Luis Burgueño (Partner) and Claus von Wobeser (Of Counsel/Founding Partner)
 - vCard download functionality with bilingual support
 
+**Complete Practice & Industry Group Content (December 2025)**
+- All 18 practice groups now have comprehensive bilingual fullDescription content sourced from vonwobeser.com, Chambers, Legal 500, and official firm pages
+- All 7 industry groups now have comprehensive bilingual fullDescription content
+- Practice groups include: Corporate/M&A, Arbitration, Litigation, Competition Law, Banking & Finance, ESG, Real Estate, Intellectual Property, Labor & Employment, Tax, International Trade, TMT, Environmental, Administrative Law, German Desk, etc.
+- Industry groups include: Automotive/Manufacturing, Consumer Goods, Energy & Natural Resources, Pharmaceutical, Financial Services, Real Estate, Technology
+- PracticeGroupDetail.tsx uses fallback logic: displays fullDescription if available, otherwise falls back to description
+- Content stored in both database (for runtime) and seed.ts (for future seeding)
+
 ### Backend Architecture
 
 **Server Framework**
