@@ -225,7 +225,7 @@ export default function Header() {
         <div className="max-w-7xl mx-auto px-6 lg:px-12 flex items-center justify-between gap-4">
           <Link
             href="/"
-            className="flex items-center gap-3"
+            className="flex items-center gap-3 flex-shrink-0"
             data-testid="link-logo"
             aria-label={displayLanguage === "es" ? "Von Wobeser y Sierra - Inicio" : "Von Wobeser y Sierra - Home"}
           >
@@ -235,12 +235,14 @@ export default function Header() {
               width={318}
               height={70}
               className={cn(
-                "transition-all duration-300 w-auto",
-                isScrolled ? "h-8 md:h-10" : "h-10 md:h-12",
+                "transition-all duration-300 flex-shrink-0",
+                isScrolled 
+                  ? "h-8 sm:h-9 md:h-10 w-auto max-w-[160px] sm:max-w-[180px] md:max-w-[200px]" 
+                  : "h-9 sm:h-10 md:h-12 w-auto max-w-[180px] sm:max-w-[200px] md:max-w-[240px]",
                 !isScrolled && "brightness-0 invert",
                 isScrolled && "dark:brightness-0 dark:invert"
               )}
-              style={{ imageRendering: "crisp-edges" }}
+              style={{ imageRendering: "crisp-edges", objectFit: "contain" }}
               data-testid="img-logo"
             />
           </Link>
@@ -492,14 +494,14 @@ export default function Header() {
           aria-label={aria.mobileNav}
         >
           <div className="flex flex-col h-full overflow-hidden">
-            <div className="flex items-center justify-between p-6">
+            <div className="flex items-center justify-between p-4 sm:p-6">
               <img
                 src={logoHD}
                 alt="Von Wobeser y Sierra"
                 width={318}
                 height={70}
-                className="h-6 w-auto brightness-0 invert"
-                style={{ imageRendering: "crisp-edges" }}
+                className="h-8 sm:h-10 w-auto max-w-[180px] sm:max-w-[220px] brightness-0 invert flex-shrink-0"
+                style={{ imageRendering: "crisp-edges", objectFit: "contain" }}
                 data-testid="img-logo-mobile"
               />
               <div className="flex items-center gap-2">
