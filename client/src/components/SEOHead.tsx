@@ -214,6 +214,17 @@ const seoConfig: Record<string, SEOConfig> = {
     },
     path: "/newsletter",
   },
+  events: {
+    title: {
+      en: "Events | Von Wobeser y Sierra",
+      es: "Eventos | Von Wobeser y Sierra",
+    },
+    description: {
+      en: "Join Von Wobeser y Sierra at conferences, webinars, speaking engagements, and networking events. Stay connected with Mexico's leading law firm.",
+      es: "Únase a Von Wobeser y Sierra en conferencias, webinars, ponencias y eventos de networking. Manténgase conectado con la firma de abogados líder de México.",
+    },
+    path: "/events",
+  },
   interns: {
     title: {
       en: "Internship Program | Von Wobeser y Sierra",

@@ -12,7 +12,7 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { getIcon } from "@/lib/icons";
-import type { PracticeGroup, TeamMember } from "@shared/schema";
+import type { PracticeGroup, TeamMember, RepresentativeMatterDb } from "@shared/schema";
 
 interface PracticeRanking {
   publication: string;
@@ -143,6 +143,11 @@ export default function PracticeGroupDetail() {
     queryKey: ["/api/team"],
   });
 
+  const { data: representativeMatters } = useQuery<RepresentativeMatterDb[]>({
+    queryKey: ['/api/practice-groups', slug, 'representative-matters'],
+    enabled: !!slug,
+  });
+
   const content = {
     en: {
       backToAll: "All Practice Groups",
@@ -159,6 +164,8 @@ export default function PracticeGroupDetail() {
       viewProfile: "View Profile",
       rankingsTitle: "Rankings & Recognition",
       rankingsSubtitle: "Our practice has been recognized by leading legal directories worldwide.",
+      successCasesTitle: "Success Cases",
+      successCasesSubtitle: "Representative matters successfully handled by our practice.",
       errorMessage: "Practice group not found",
       loading: "Loading...",
     },
@@ -177,6 +184,8 @@ export default function PracticeGroupDetail() {
       viewProfile: "Ver Perfil",
       rankingsTitle: "Rankings y Reconocimientos",
       rankingsSubtitle: "Nuestra práctica ha sido reconocida por los principales directorios legales a nivel mundial.",
+      successCasesTitle: "Casos de Éxito",
+      successCasesSubtitle: "Casos representativos manejados exitosamente por nuestra práctica.",
       errorMessage: "Área de práctica no encontrada",
       loading: "Cargando...",
     },
@@ -380,6 +389,92 @@ export default function PracticeGroupDetail() {
               </p>
             </div>
           </motion.div>
+
+          {representativeMatters && representativeMatters.length > 0 && (
+            <motion.section
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.22 }}
+              className="mb-16"
+              data-testid="section-representative-matters"
+            >
+              <div className="flex items-center gap-3 mb-4">
+                <Trophy className="w-6 h-6 text-primary" />
+                <h2 
+                  className="text-2xl font-heading font-light text-gray-800 dark:text-white"
+                  data-testid="text-success-cases-title"
+                >
+                  {t.successCasesTitle}
+                </h2>
+              </div>
+              <p 
+                className="text-gray-600 dark:text-gray-400 mb-6"
+                data-testid="text-success-cases-subtitle"
+              >
+                {t.successCasesSubtitle}
+              </p>
+              <div className="grid grid-cols-1 gap-4">
+                {representativeMatters
+                  .sort((a, b) => {
+                    if (a.isHighlight && !b.isHighlight) return -1;
+                    if (!a.isHighlight && b.isHighlight) return 1;
+                    return b.year - a.year;
+                  })
+                  .map((matter) => (
+                    <Card 
+                      key={matter.id}
+                      className={`rounded-md border ${matter.isHighlight ? 'border-primary/30 bg-primary/5 dark:bg-primary/10' : 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800'}`}
+                      data-testid={`card-matter-${matter.id}`}
+                    >
+                      <CardContent className="p-6">
+                        <div className="flex items-start justify-between gap-4 mb-3">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-2">
+                              {matter.isHighlight && (
+                                <Badge className="bg-primary text-white rounded-md text-xs">
+                                  <Star className="w-3 h-3 mr-1" />
+                                  Featured
+                                </Badge>
+                              )}
+                              <Badge 
+                                variant="outline" 
+                                className="rounded-md text-xs"
+                                data-testid={`badge-matter-year-${matter.id}`}
+                              >
+                                {matter.year}
+                              </Badge>
+                            </div>
+                            <h3 
+                              className="font-semibold text-gray-800 dark:text-white text-lg"
+                              data-testid={`text-matter-title-${matter.id}`}
+                            >
+                              {language === "es" ? matter.titleEs : matter.title}
+                            </h3>
+                          </div>
+                        </div>
+                        <p 
+                          className="text-gray-600 dark:text-gray-400 mb-3"
+                          data-testid={`text-matter-description-${matter.id}`}
+                        >
+                          {language === "es" ? matter.descriptionEs : matter.description}
+                        </p>
+                        {matter.client && (
+                          <p 
+                            className="text-sm text-gray-500 dark:text-gray-500"
+                            data-testid={`text-matter-client-${matter.id}`}
+                          >
+                            <span className="font-medium">
+                              {language === "es" ? "Cliente: " : "Client: "}
+                            </span>
+                            {language === "es" ? (matter.clientEs || matter.client) : matter.client}
+                          </p>
+                        )}
+                      </CardContent>
+                    </Card>
+                  ))}
+              </div>
+            </motion.section>
+          )}
 
           {practiceRankings.length > 0 && (
             <motion.section

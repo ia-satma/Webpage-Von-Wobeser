@@ -142,6 +142,21 @@ export async function registerRoutes(
     }
   });
 
+  // Get all team members (authors) related to a news article by slug
+  app.get("/api/news/:slug/authors", async (req, res) => {
+    try {
+      const slug = req.params.slug;
+      const newsItem = await storage.getNewsBySlug(slug);
+      if (!newsItem) {
+        return res.status(404).json({ error: "News not found" });
+      }
+      const teamMembersList = await storage.getTeamMembersByNewsId(newsItem.id);
+      res.json(teamMembersList);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch authors for news" });
+    }
+  });
+
   app.get("/api/office-images", async (_req, res) => {
     try {
       const images = await storage.getOfficeImages();
@@ -277,6 +292,21 @@ export async function registerRoutes(
     }
   });
 
+  // Get all news articles related to a team member by slug
+  app.get("/api/team/:slug/news", async (req, res) => {
+    try {
+      const slug = req.params.slug;
+      const member = await storage.getTeamMemberBySlug(slug);
+      if (!member) {
+        return res.status(404).json({ error: "Team member not found" });
+      }
+      const newsList = await storage.getNewsByTeamMemberId(member.id);
+      res.json(newsList);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch news for team member" });
+    }
+  });
+
   app.post("/api/contact", async (req, res) => {
     try {
       const validationResult = contactFormSchema.safeParse(req.body);
@@ -313,6 +343,49 @@ export async function registerRoutes(
       res.json(matters);
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch representative matters" });
+    }
+  });
+
+  app.get("/api/practice-groups/:slug/representative-matters", async (req, res) => {
+    try {
+      const { slug } = req.params;
+      const allMatters = await storage.getRepresentativeMatters();
+      const filtered = allMatters.filter(m => m.practiceAreaSlug === slug);
+      res.json(filtered);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch representative matters" });
+    }
+  });
+
+  // Events API routes
+  app.get("/api/events", async (_req, res) => {
+    try {
+      const eventsList = await storage.getEvents();
+      res.json(eventsList);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch events" });
+    }
+  });
+
+  app.get("/api/events/upcoming", async (req, res) => {
+    try {
+      const limit = parseInt(req.query.limit as string) || 4;
+      const eventsList = await storage.getUpcomingEvents(limit);
+      res.json(eventsList);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch upcoming events" });
+    }
+  });
+
+  app.get("/api/events/:id", async (req, res) => {
+    try {
+      const event = await storage.getEventById(req.params.id);
+      if (!event) {
+        return res.status(404).json({ error: "Event not found" });
+      }
+      res.json(event);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch event" });
     }
   });
 
@@ -902,6 +975,56 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
     } catch (error) {
       console.error("Delete media error:", error);
       res.status(500).json({ error: "Failed to delete media" });
+    }
+  });
+
+  // =============================================
+  // NEWS-TEAM MEMBERS RELATIONSHIP (Admin)
+  // =============================================
+
+  // Add a team member to a news article
+  app.post("/api/news/:id/team-members", authMiddleware, async (req: Request, res: Response) => {
+    try {
+      const newsId = req.params.id;
+      const { teamMemberId } = req.body;
+
+      if (!teamMemberId) {
+        return res.status(400).json({ error: "teamMemberId is required" });
+      }
+
+      const newsItem = await storage.getNewsById(newsId);
+      if (!newsItem) {
+        return res.status(404).json({ error: "News not found" });
+      }
+
+      const teamMember = await storage.getTeamMemberById(teamMemberId);
+      if (!teamMember) {
+        return res.status(404).json({ error: "Team member not found" });
+      }
+
+      await storage.addTeamMemberToNews(newsId, teamMemberId);
+      res.status(201).json({ success: true, message: "Team member added to news article" });
+    } catch (error) {
+      console.error("Add team member to news error:", error);
+      res.status(500).json({ error: "Failed to add team member to news" });
+    }
+  });
+
+  // Remove a team member from a news article
+  app.delete("/api/news/:id/team-members/:teamMemberId", authMiddleware, async (req: Request, res: Response) => {
+    try {
+      const { id: newsId, teamMemberId } = req.params;
+
+      const newsItem = await storage.getNewsById(newsId);
+      if (!newsItem) {
+        return res.status(404).json({ error: "News not found" });
+      }
+
+      await storage.removeTeamMemberFromNews(newsId, teamMemberId);
+      res.json({ success: true, message: "Team member removed from news article" });
+    } catch (error) {
+      console.error("Remove team member from news error:", error);
+      res.status(500).json({ error: "Failed to remove team member from news" });
     }
   });
 

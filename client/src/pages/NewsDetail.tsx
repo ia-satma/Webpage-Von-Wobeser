@@ -8,11 +8,12 @@ import { es, enUS } from "date-fns/locale";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { useToast } from "@/hooks/use-toast";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { useLanguage } from "@/contexts/LanguageContext";
-import type { News } from "@shared/schema";
+import type { News, TeamMember } from "@shared/schema";
 
 function NewsHeroImage({ 
   src, 
@@ -81,6 +82,11 @@ export default function NewsDetail() {
     queryKey: ["/api/news"],
   });
 
+  const { data: relatedAuthors } = useQuery<TeamMember[]>({
+    queryKey: ['/api/news', slug, 'authors'],
+    enabled: !!slug,
+  });
+
   const content = {
     en: {
       backToNews: "Back to News",
@@ -92,6 +98,8 @@ export default function NewsDetail() {
       copyLink: "Copy Link",
       linkCopied: "Link copied to clipboard!",
       shareVia: "Share via",
+      aboutTheAuthor: "About the Author",
+      aboutTheAuthors: "About the Authors",
     },
     es: {
       backToNews: "Volver a Noticias",
@@ -103,6 +111,8 @@ export default function NewsDetail() {
       copyLink: "Copiar Enlace",
       linkCopied: "¡Enlace copiado al portapapeles!",
       shareVia: "Compartir vía",
+      aboutTheAuthor: "Acerca del Autor",
+      aboutTheAuthors: "Acerca de los Autores",
     },
   };
 
@@ -152,6 +162,16 @@ export default function NewsDetail() {
   };
 
   const relatedNews = allNews?.filter((item) => item.id !== newsArticle?.id).slice(0, 3);
+
+  const getInitials = (name: string) => {
+    return name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase();
+  };
+
+  const truncateBio = (bio: string | null | undefined, maxLength: number = 150) => {
+    if (!bio) return '';
+    if (bio.length <= maxLength) return bio;
+    return bio.slice(0, maxLength).trim() + '...';
+  };
 
   if (error) {
     return (
@@ -375,6 +395,72 @@ export default function NewsDetail() {
               </div>
             </div>
           </motion.div>
+
+          {relatedAuthors && relatedAuthors.length > 0 && (
+            <motion.section
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.25 }}
+              className="mb-16"
+              data-testid="section-related-authors"
+            >
+              <h2 
+                className="text-2xl font-heading font-light text-gray-800 dark:text-white mb-8"
+                data-testid="text-authors-title"
+              >
+                {relatedAuthors.length === 1 ? t.aboutTheAuthor : t.aboutTheAuthors}
+              </h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {relatedAuthors.map((author) => (
+                  <Link 
+                    key={author.id} 
+                    href={`/team/${author.slug}`}
+                    className="block"
+                  >
+                    <Card
+                      className="group overflow-visible border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-lg transition-all duration-300 rounded-md bg-white dark:bg-gray-800 hover-elevate"
+                      data-testid={`card-author-${author.slug}`}
+                    >
+                      <CardContent className="p-6">
+                        <div className="flex items-start gap-4">
+                          <Avatar className="w-16 h-16 flex-shrink-0 border-2 border-gray-100 dark:border-gray-700" data-testid={`avatar-author-${author.slug}`}>
+                            <AvatarImage 
+                              src={author.imageUrl || undefined} 
+                              alt={author.name}
+                              className="object-cover"
+                            />
+                            <AvatarFallback className="bg-primary/10 text-primary text-lg font-medium">
+                              {getInitials(author.name)}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div className="flex-1 min-w-0">
+                            <h3 
+                              className="text-lg font-medium text-gray-800 dark:text-white group-hover:text-primary transition-colors"
+                              data-testid={`text-author-name-${author.slug}`}
+                            >
+                              {author.name}
+                            </h3>
+                            <p 
+                              className="text-sm text-primary font-medium mb-2"
+                              data-testid={`text-author-title-${author.slug}`}
+                            >
+                              {language === "es" ? author.titleEs : author.title}
+                            </p>
+                            <p 
+                              className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed line-clamp-3"
+                              data-testid={`text-author-bio-${author.slug}`}
+                            >
+                              {truncateBio(language === "es" ? author.bioEs : author.bio)}
+                            </p>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </Link>
+                ))}
+              </div>
+            </motion.section>
+          )}
 
           {relatedNews && relatedNews.length > 0 && (
             <motion.section

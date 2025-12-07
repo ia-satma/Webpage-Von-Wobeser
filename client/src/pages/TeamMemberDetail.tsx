@@ -1,6 +1,7 @@
+import { useState, useMemo } from "react";
 import { Link, useParams } from "wouter";
 import { motion } from "framer-motion";
-import { ArrowLeft, Mail, Phone, Linkedin, AlertCircle, Crown, Download, GraduationCap, Globe2, Award, FileText, Briefcase, Scale, Users, BookOpen, Building2, Languages } from "lucide-react";
+import { ArrowLeft, Mail, Phone, Linkedin, AlertCircle, Crown, Download, GraduationCap, Globe2, Award, FileText, Briefcase, Scale, Users, BookOpen, Building2, Languages, Newspaper, Calendar, ArrowRight, Trophy, Star } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -11,7 +12,38 @@ import { Separator } from "@/components/ui/separator";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { useLanguage } from "@/contexts/LanguageContext";
-import type { TeamMember, PracticeGroup, IndustryGroup, Education, Affiliation, Ranking, Publication, RepresentativeMatter, BarAdmission } from "@shared/schema";
+import type { TeamMember, PracticeGroup, IndustryGroup, Education, Affiliation, Ranking, Publication, RepresentativeMatter, BarAdmission, News } from "@shared/schema";
+
+function NewsImageWithFallback({ 
+  src, 
+  alt, 
+  className 
+}: { 
+  src: string; 
+  alt: string; 
+  className?: string;
+}) {
+  const [hasError, setHasError] = useState(false);
+  
+  if (hasError || !src) {
+    return (
+      <div className={`bg-gradient-to-br from-primary/10 to-primary/5 flex items-center justify-center ${className}`}>
+        <span className="text-4xl font-heading font-bold text-primary/30 tracking-wider">
+          VWS
+        </span>
+      </div>
+    );
+  }
+  
+  return (
+    <img
+      src={src}
+      alt={alt}
+      className={className}
+      onError={() => setHasError(true)}
+    />
+  );
+}
 
 export default function TeamMemberDetail() {
   const { language } = useLanguage();
@@ -33,6 +65,11 @@ export default function TeamMemberDetail() {
 
   const { data: allTeamMembers } = useQuery<TeamMember[]>({
     queryKey: ["/api/team"],
+  });
+
+  const { data: relatedNews } = useQuery<News[]>({
+    queryKey: ['/api/team', slug, 'news'],
+    enabled: !!slug,
   });
 
   const content = {
@@ -62,6 +99,14 @@ export default function TeamMemberDetail() {
       loading: "Loading...",
       relatedTeam: "Related Team Members",
       viewProfile: "View Profile",
+      relatedNews: "Latest News & Articles",
+      readMore: "Read More",
+      featuredRecognition: "Featured Recognition",
+      totalRecognitions: "Total Recognitions",
+      topPublications: "Top Publications",
+      tieredRankings: "Tiered Rankings",
+      otherRecognitions: "Other Recognitions",
+      band: "Band",
     },
     es: {
       backToAll: "Todos los Miembros",
@@ -89,10 +134,28 @@ export default function TeamMemberDetail() {
       loading: "Cargando...",
       relatedTeam: "Equipo Relacionado",
       viewProfile: "Ver Perfil",
+      relatedNews: "Últimas Noticias y Artículos",
+      readMore: "Leer Más",
+      featuredRecognition: "Reconocimiento Destacado",
+      totalRecognitions: "Total de Reconocimientos",
+      topPublications: "Publicaciones Principales",
+      tieredRankings: "Rankings por Nivel",
+      otherRecognitions: "Otros Reconocimientos",
+      band: "Banda",
     },
   };
 
   const t = content[language];
+
+  const formatDate = (date: string | Date | null) => {
+    if (!date) return '';
+    const d = new Date(date);
+    return d.toLocaleDateString(language === "es" ? 'es-MX' : 'en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+  };
 
   const getInitials = (name: string) => {
     return name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase();
@@ -115,6 +178,64 @@ export default function TeamMemberDetail() {
     ((m.isPartner && member?.isPartner) || 
      (m.title === member?.title))
   ).slice(0, 4);
+
+  const getPublicationIcon = (publication: string) => {
+    const pubLower = publication.toLowerCase();
+    if (pubLower.includes("chambers")) {
+      return <Trophy className="w-5 h-5 text-amber-500" />;
+    }
+    if (pubLower.includes("legal 500")) {
+      return <Award className="w-5 h-5 text-amber-500" />;
+    }
+    if (pubLower.includes("who's who") || pubLower.includes("whos who")) {
+      return <Star className="w-5 h-5 text-amber-500" />;
+    }
+    if (pubLower.includes("iflr") || pubLower.includes("benchmark")) {
+      return <Trophy className="w-5 h-5 text-amber-500" />;
+    }
+    return <Award className="w-5 h-5 text-amber-500" />;
+  };
+
+  const getPublicationPriority = (publication: string): number => {
+    const pubLower = publication.toLowerCase();
+    if (pubLower.includes("chambers")) return 1;
+    if (pubLower.includes("legal 500")) return 2;
+    if (pubLower.includes("who's who") || pubLower.includes("whos who")) return 3;
+    if (pubLower.includes("iflr")) return 4;
+    if (pubLower.includes("benchmark")) return 5;
+    return 10;
+  };
+
+  const processedRankings = useMemo(() => {
+    if (!member?.rankings || member.rankings.length === 0) return null;
+    
+    const rankings = member.rankings as Ranking[];
+    
+    const tieredRankings = rankings.filter(r => r.ranking && r.ranking.trim() !== "");
+    const simpleRankings = rankings.filter(r => !r.ranking || r.ranking.trim() === "");
+    
+    const sortedTiered = [...tieredRankings].sort((a, b) => {
+      const prioA = getPublicationPriority(a.publication);
+      const prioB = getPublicationPriority(b.publication);
+      if (prioA !== prioB) return prioA - prioB;
+      const bandA = a.ranking?.match(/\d+/)?.[0];
+      const bandB = b.ranking?.match(/\d+/)?.[0];
+      if (bandA && bandB) return parseInt(bandA) - parseInt(bandB);
+      return 0;
+    });
+
+    const uniquePublications = Array.from(new Set(rankings.map(r => r.publication)));
+    const topPublications = uniquePublications
+      .sort((a, b) => getPublicationPriority(a) - getPublicationPriority(b))
+      .slice(0, 3);
+    
+    return {
+      tieredRankings: sortedTiered,
+      simpleRankings,
+      totalCount: rankings.length,
+      topPublications,
+    };
+  }, [member?.rankings]);
 
   const generatePersonJsonLd = () => {
     if (!member) return null;
@@ -364,6 +485,122 @@ export default function TeamMemberDetail() {
                 </motion.section>
               )}
 
+              {processedRankings && (
+                <motion.section
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.6, delay: 0.25 }}
+                  data-testid="section-rankings"
+                >
+                  <div className="bg-gradient-to-r from-amber-50 to-amber-100/50 dark:from-amber-900/20 dark:to-amber-800/10 rounded-md p-6 border border-amber-200/50 dark:border-amber-700/30">
+                    <h2 
+                      className="text-2xl font-heading font-light text-gray-800 dark:text-white mb-6 flex items-center gap-3"
+                      data-testid="text-rankings-title"
+                    >
+                      <div className="p-2 bg-amber-500/20 rounded-md">
+                        <Trophy className="w-6 h-6 text-amber-600 dark:text-amber-400" />
+                      </div>
+                      <span>{t.rankings}</span>
+                      <Badge 
+                        className="ml-auto bg-amber-500 text-white rounded-md border-0"
+                        data-testid="badge-rankings-count"
+                      >
+                        {processedRankings.totalCount}
+                      </Badge>
+                    </h2>
+
+                    {processedRankings.tieredRankings.length > 0 && (
+                      <div className="mb-6" data-testid="container-tiered-rankings">
+                        <h3 className="text-sm font-semibold text-amber-700 dark:text-amber-400 uppercase tracking-wider mb-4 flex items-center gap-2">
+                          <Star className="w-4 h-4" />
+                          {t.tieredRankings}
+                        </h3>
+                        <div className="space-y-3">
+                          {processedRankings.tieredRankings.map((ranking, index) => (
+                            <Card 
+                              key={index}
+                              className="border border-amber-200/50 dark:border-amber-700/30 bg-white dark:bg-gray-800/50 rounded-md overflow-visible"
+                              data-testid={`card-ranking-tiered-${index}`}
+                            >
+                              <CardContent className="p-4">
+                                <div className="flex items-start gap-3">
+                                  <div className="flex-shrink-0 mt-0.5">
+                                    {getPublicationIcon(ranking.publication)}
+                                  </div>
+                                  <div className="flex-1 min-w-0">
+                                    <p className="font-medium text-gray-800 dark:text-white">
+                                      {ranking.publication}
+                                    </p>
+                                    <div className="flex flex-wrap items-center gap-2 mt-2">
+                                      <Badge 
+                                        className="bg-amber-500 text-white rounded-md border-0"
+                                        data-testid={`badge-ranking-band-${index}`}
+                                      >
+                                        {language === "es" && ranking.rankingEs 
+                                          ? ranking.rankingEs 
+                                          : ranking.ranking
+                                        }
+                                      </Badge>
+                                      {ranking.year && (
+                                        <Badge 
+                                          variant="outline" 
+                                          className="rounded-md border-amber-300 dark:border-amber-600"
+                                        >
+                                          {ranking.year}
+                                        </Badge>
+                                      )}
+                                    </div>
+                                    {ranking.area && (
+                                      <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
+                                        {language === "es" && ranking.areaEs ? ranking.areaEs : ranking.area}
+                                      </p>
+                                    )}
+                                  </div>
+                                </div>
+                              </CardContent>
+                            </Card>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {processedRankings.simpleRankings.length > 0 && (
+                      <div data-testid="container-simple-rankings">
+                        {processedRankings.tieredRankings.length > 0 && (
+                          <h3 className="text-sm font-semibold text-amber-700 dark:text-amber-400 uppercase tracking-wider mb-4 flex items-center gap-2">
+                            <Award className="w-4 h-4" />
+                            {t.otherRecognitions}
+                          </h3>
+                        )}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                          {processedRankings.simpleRankings.map((ranking, index) => (
+                            <div
+                              key={index}
+                              className="flex items-center gap-3 p-3 bg-white dark:bg-gray-800/50 rounded-md border border-amber-200/30 dark:border-amber-700/20"
+                              data-testid={`item-ranking-simple-${index}`}
+                            >
+                              <div className="flex-shrink-0">
+                                {getPublicationIcon(ranking.publication)}
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <p className="text-sm font-medium text-gray-800 dark:text-white truncate">
+                                  {ranking.publication}
+                                </p>
+                                {ranking.year && (
+                                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                                    {ranking.year}
+                                  </p>
+                                )}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </motion.section>
+              )}
+
               {practiceGroups && practiceGroups.length > 0 && (
                 <motion.section
                   initial={{ opacity: 0, y: 20 }}
@@ -555,55 +792,6 @@ export default function TeamMemberDetail() {
                 </motion.section>
               )}
 
-              {member?.rankings && member.rankings.length > 0 && (
-                <motion.section
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.6, delay: 0.6 }}
-                  data-testid="section-rankings"
-                >
-                  <h2 
-                    className="text-2xl font-heading font-light text-gray-800 dark:text-white mb-6 flex items-center gap-3"
-                    data-testid="text-rankings-title"
-                  >
-                    <Award className="w-6 h-6 text-primary" />
-                    {t.rankings}
-                  </h2>
-                  <div className="space-y-4">
-                    {(member.rankings as Ranking[]).map((ranking, index) => (
-                      <Card 
-                        key={index}
-                        className="border-0 bg-gray-50 dark:bg-gray-800 rounded-md"
-                        data-testid={`card-ranking-${index}`}
-                      >
-                        <CardContent className="p-4">
-                          <div className="flex items-start justify-between">
-                            <div>
-                              <p className="font-medium text-gray-800 dark:text-white">
-                                {ranking.publication}
-                              </p>
-                              <p className="text-primary font-medium mt-1">
-                                {language === "es" && ranking.rankingEs ? ranking.rankingEs : ranking.ranking}
-                              </p>
-                              {ranking.area && (
-                                <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                                  {language === "es" && ranking.areaEs ? ranking.areaEs : ranking.area}
-                                </p>
-                              )}
-                            </div>
-                            {ranking.year && (
-                              <Badge variant="outline" className="rounded-md">
-                                {ranking.year}
-                              </Badge>
-                            )}
-                          </div>
-                        </CardContent>
-                      </Card>
-                    ))}
-                  </div>
-                </motion.section>
-              )}
-
               {member?.publications && member.publications.length > 0 && (
                 <motion.section
                   initial={{ opacity: 0, y: 20 }}
@@ -728,6 +916,60 @@ export default function TeamMemberDetail() {
             </div>
 
             <div className="space-y-8">
+              {processedRankings && (
+                <motion.section
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.6, delay: 0.35 }}
+                  className="bg-gradient-to-br from-amber-100 to-amber-50 dark:from-amber-900/30 dark:to-amber-800/20 rounded-md p-6 border border-amber-200/50 dark:border-amber-700/30"
+                  data-testid="section-featured-recognition"
+                >
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="p-2 bg-amber-500 rounded-md">
+                      <Trophy className="w-5 h-5 text-white" />
+                    </div>
+                    <h2 
+                      className="text-lg font-heading font-medium text-gray-800 dark:text-white"
+                      data-testid="text-featured-recognition-title"
+                    >
+                      {t.featuredRecognition}
+                    </h2>
+                  </div>
+                  
+                  <div className="flex items-center gap-2 mb-4">
+                    <span 
+                      className="text-3xl font-bold text-amber-600 dark:text-amber-400"
+                      data-testid="text-total-recognitions-count"
+                    >
+                      {processedRankings.totalCount}
+                    </span>
+                    <span className="text-sm text-gray-600 dark:text-gray-400">
+                      {t.totalRecognitions}
+                    </span>
+                  </div>
+                  
+                  {processedRankings.topPublications.length > 0 && (
+                    <div data-testid="container-top-publications">
+                      <p className="text-xs font-semibold text-amber-700 dark:text-amber-400 uppercase tracking-wider mb-2">
+                        {t.topPublications}
+                      </p>
+                      <div className="space-y-2">
+                        {processedRankings.topPublications.map((pub, index) => (
+                          <div 
+                            key={index}
+                            className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300"
+                            data-testid={`item-top-publication-${index}`}
+                          >
+                            {getPublicationIcon(pub)}
+                            <span className="truncate">{pub}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </motion.section>
+              )}
+
               <motion.section
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -833,6 +1075,84 @@ export default function TeamMemberDetail() {
             </div>
           </div>
         </div>
+
+        {relatedNews && relatedNews.length > 0 && (
+          <motion.section
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.8 }}
+            className="mt-16 pt-12 border-t border-gray-200 dark:border-gray-700"
+            data-testid="section-related-news"
+          >
+            <div className="max-w-6xl mx-auto">
+              <h2 
+                className="text-2xl font-heading font-light text-gray-800 dark:text-white mb-8 flex items-center gap-3"
+                data-testid="text-related-news-title"
+              >
+                <Newspaper className="w-6 h-6 text-primary" />
+                {t.relatedNews}
+              </h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                {relatedNews.map((article) => (
+                  <motion.div 
+                    key={article.id}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.4 }}
+                  >
+                    <Link href={`/news/${article.slug}`}>
+                      <Card
+                        className="group h-full rounded-md overflow-hidden border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-lg transition-all duration-300 cursor-pointer bg-white dark:bg-gray-800"
+                        data-testid={`card-related-news-${article.slug}`}
+                      >
+                        <div className="relative h-48 overflow-hidden bg-gray-100 dark:bg-gray-700">
+                          <NewsImageWithFallback
+                            src={article.imageUrl || ""}
+                            alt={language === "es" ? article.titleEs : article.title}
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                          />
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
+                          {article.category && (
+                            <span 
+                              className="absolute top-3 left-3 px-2 py-1 text-xs font-medium bg-primary text-white rounded"
+                              data-testid={`badge-news-category-${article.slug}`}
+                            >
+                              {language === "es" ? article.categoryEs : article.category?.charAt(0).toUpperCase() + article.category?.slice(1)}
+                            </span>
+                          )}
+                        </div>
+                        <CardContent className="p-6">
+                          <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400 mb-3">
+                            <Calendar className="w-4 h-4" />
+                            <span data-testid={`text-news-date-${article.slug}`}>
+                              {formatDate(article.date)}
+                            </span>
+                          </div>
+                          <h3 
+                            className="text-xl font-semibold text-gray-800 dark:text-white mb-3 group-hover:text-primary transition-colors line-clamp-2"
+                            data-testid={`text-news-title-${article.slug}`}
+                          >
+                            {language === "es" ? article.titleEs : article.title}
+                          </h3>
+                          <p 
+                            className="text-gray-600 dark:text-gray-400 text-sm line-clamp-3 mb-4"
+                            data-testid={`text-news-excerpt-${article.slug}`}
+                          >
+                            {language === "es" ? article.excerptEs : article.excerpt}
+                          </p>
+                          <div className="flex items-center gap-2 text-primary font-medium text-sm group-hover:gap-3 transition-all">
+                            {t.readMore}
+                            <ArrowRight className="w-4 h-4" />
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </Link>
+                  </motion.div>
+                ))}
+              </div>
+            </div>
+          </motion.section>
+        )}
       </main>
 
       <Footer />

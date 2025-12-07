@@ -11,6 +11,7 @@ import DiversityInclusionSection from "@/components/DiversityInclusionSection";
 import ProBonoSection from "@/components/ProBonoSection";
 import AboutUsSection from "@/components/AboutUsSection";
 import MapSection from "@/components/MapSection";
+import EventsSection from "@/components/EventsSection";
 import Footer from "@/components/Footer";
 import NewOfficesPopup from "@/components/NewOfficesPopup";
 import JsonLdSchema from "@/components/JsonLdSchema";
@@ -47,6 +48,9 @@ export default function Home() {
         
         {/* 7. Stats / Team (150 lawyers...) */}
         <StatsSection language={language} />
+        
+        {/* Upcoming Events */}
+        <EventsSection language={language} />
         
         {/* 8. German Desk (complete section with text + member lists) */}
         <WorldMapSection language={language} />

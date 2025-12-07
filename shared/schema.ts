@@ -85,6 +85,7 @@ export const news = pgTable("news", {
   published: boolean("published").default(true),
   category: text("category").default("press"),
   categoryEs: text("category_es").default("Prensa"),
+  authorId: varchar("author_id"),
 });
 
 export const newsCategories = [
@@ -189,6 +190,16 @@ export const teamMemberIndustryGroups = pgTable("team_member_industry_groups", {
   teamMemberId: varchar("team_member_id").notNull(),
   industryGroupId: varchar("industry_group_id").notNull(),
 });
+
+export const newsTeamMembers = pgTable("news_team_members", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  newsId: varchar("news_id").notNull(),
+  teamMemberId: varchar("team_member_id").notNull(),
+});
+
+export const insertNewsTeamMemberSchema = createInsertSchema(newsTeamMembers).omit({ id: true });
+export type InsertNewsTeamMember = z.infer<typeof insertNewsTeamMemberSchema>;
+export type NewsTeamMember = typeof newsTeamMembers.$inferSelect;
 
 export interface SiteContent {
   heroTitle: string;
@@ -419,3 +430,38 @@ export const blogPostFormSchema = z.object({
 });
 
 export type BlogPostFormData = z.infer<typeof blogPostFormSchema>;
+
+// ============================================
+// EVENTS MODULE
+// ============================================
+
+export const events = pgTable("events", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  title: text("title").notNull(),
+  titleEs: text("title_es").notNull(),
+  description: text("description").notNull(),
+  descriptionEs: text("description_es").notNull(),
+  date: timestamp("date").notNull(),
+  endDate: timestamp("end_date"),
+  location: text("location"),
+  locationEs: text("location_es"),
+  imageUrl: text("image_url"),
+  eventType: text("event_type").default("conference"),
+  eventTypeEs: text("event_type_es"),
+  externalUrl: text("external_url"),
+  isHighlight: boolean("is_highlight").default(false),
+  published: boolean("published").default(true),
+  order: integer("order").default(0),
+});
+
+export const insertEventSchema = createInsertSchema(events).omit({ id: true });
+export type InsertEvent = z.infer<typeof insertEventSchema>;
+export type Event = typeof events.$inferSelect;
+
+export const eventTypes = [
+  { value: "conference", en: "Conference", es: "Conferencia" },
+  { value: "webinar", en: "Webinar", es: "Webinar" },
+  { value: "sponsorship", en: "Sponsorship", es: "Patrocinio" },
+  { value: "speaking", en: "Speaking Engagement", es: "Ponencia" },
+  { value: "networking", en: "Networking Event", es: "Evento de Networking" },
+] as const;

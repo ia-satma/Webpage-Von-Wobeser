@@ -28,6 +28,7 @@ import ProBono from "@/pages/ProBono";
 import GermanDesk from "@/pages/GermanDesk";
 import Articles from "@/pages/Articles";
 import Newsletter from "@/pages/Newsletter";
+import Events from "@/pages/Events";
 import AdminLogin from "@/pages/admin/AdminLogin";
 import AdminDashboard from "@/pages/admin/AdminDashboard";
 import AdminPosts from "@/pages/admin/AdminPosts";
@@ -96,6 +97,7 @@ function Router() {
       <Route path="/german-desk" component={GermanDesk} />
       <Route path="/articles" component={Articles} />
       <Route path="/newsletter" component={Newsletter} />
+      <Route path="/events" component={Events} />
       <Route path="/admin/login" component={AdminLogin} />
       <Route path="/admin/dashboard" component={AdminDashboard} />
       <Route path="/admin/posts" component={AdminPosts} />

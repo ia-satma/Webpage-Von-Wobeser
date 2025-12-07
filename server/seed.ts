@@ -1,5 +1,5 @@
 import { db } from "./db";
-import { news, officeImages, practiceGroups, industryGroups, teamMembers, representativeMatters, adminUsers } from "@shared/schema";
+import { news, officeImages, practiceGroups, industryGroups, teamMembers, representativeMatters, adminUsers, events } from "@shared/schema";
 import { hashPassword } from "./auth";
 
 const practiceGroupsData = [
@@ -1069,6 +1069,89 @@ const representativeMattersData = [
   },
 ];
 
+const eventsData = [
+  {
+    title: "M&A Trends Conference 2024",
+    titleEs: "Conferencia de Tendencias en M&A 2024",
+    description: "Annual conference exploring the latest trends in mergers and acquisitions, featuring insights from leading practitioners and industry experts on cross-border transactions, due diligence best practices, and regulatory developments.",
+    descriptionEs: "Conferencia anual explorando las últimas tendencias en fusiones y adquisiciones, con perspectivas de destacados profesionales y expertos de la industria sobre transacciones transfronterizas, mejores prácticas de due diligence y desarrollos regulatorios.",
+    date: new Date("2024-11-15T09:00:00"),
+    endDate: new Date("2024-11-15T17:00:00"),
+    location: "Hotel St. Regis, Mexico City",
+    locationEs: "Hotel St. Regis, Ciudad de México",
+    eventType: "conference",
+    eventTypeEs: "Conferencia",
+    externalUrl: null,
+    isHighlight: true,
+    published: true,
+    order: 1,
+  },
+  {
+    title: "ESG Compliance Webinar: Navigating New Regulations",
+    titleEs: "Webinar de Cumplimiento ESG: Navegando Nuevas Regulaciones",
+    description: "Join our ESG practice team for an in-depth webinar on the latest environmental, social, and governance compliance requirements affecting businesses in Latin America.",
+    descriptionEs: "Únase a nuestro equipo de práctica ESG para un webinar profundo sobre los últimos requisitos de cumplimiento ambiental, social y de gobierno corporativo que afectan a las empresas en Latinoamérica.",
+    date: new Date("2025-02-20T11:00:00"),
+    endDate: new Date("2025-02-20T12:30:00"),
+    location: "Online - Zoom",
+    locationEs: "En línea - Zoom",
+    eventType: "webinar",
+    eventTypeEs: "Webinar",
+    externalUrl: null,
+    isHighlight: true,
+    published: true,
+    order: 2,
+  },
+  {
+    title: "New Offices Grand Opening Networking Event",
+    titleEs: "Evento de Networking - Inauguración Nuevas Oficinas",
+    description: "Celebrate the opening of our new state-of-the-art offices at Torre SOMA Chapultepec with clients, colleagues, and industry partners. An evening of networking and celebration.",
+    descriptionEs: "Celebre la inauguración de nuestras nuevas oficinas de última generación en Torre SOMA Chapultepec con clientes, colegas y socios de la industria. Una noche de networking y celebración.",
+    date: new Date("2025-03-15T18:00:00"),
+    endDate: new Date("2025-03-15T22:00:00"),
+    location: "Torre SOMA Chapultepec, Piso 18, Campos Elíseos 204, Polanco",
+    locationEs: "Torre SOMA Chapultepec, Piso 18, Campos Elíseos 204, Polanco",
+    eventType: "networking",
+    eventTypeEs: "Evento de Networking",
+    externalUrl: null,
+    isHighlight: true,
+    published: true,
+    order: 3,
+  },
+  {
+    title: "Latin American Legal Summit - Speaking Engagement",
+    titleEs: "Cumbre Legal Latinoamericana - Ponencia",
+    description: "Our partners will be presenting on cross-border arbitration and investment treaty disputes at the Latin American Legal Summit, sharing insights from recent high-profile cases.",
+    descriptionEs: "Nuestros socios presentarán sobre arbitraje transfronterizo y disputas de tratados de inversión en la Cumbre Legal Latinoamericana, compartiendo perspectivas de casos recientes de alto perfil.",
+    date: new Date("2025-04-10T14:00:00"),
+    endDate: new Date("2025-04-10T16:00:00"),
+    location: "Centro Citibanamex, Mexico City",
+    locationEs: "Centro Citibanamex, Ciudad de México",
+    eventType: "speaking",
+    eventTypeEs: "Ponencia",
+    externalUrl: "https://latamlegalsummit.com",
+    isHighlight: false,
+    published: true,
+    order: 4,
+  },
+  {
+    title: "Tech Innovation Forum 2025 - Platinum Sponsor",
+    titleEs: "Foro de Innovación Tecnológica 2025 - Patrocinador Platino",
+    description: "Von Wobeser y Sierra is proud to be a platinum sponsor of the Tech Innovation Forum 2025, bringing together technology leaders and legal experts to discuss the future of tech regulation.",
+    descriptionEs: "Von Wobeser y Sierra se enorgullece de ser patrocinador platino del Foro de Innovación Tecnológica 2025, reuniendo a líderes tecnológicos y expertos legales para discutir el futuro de la regulación tecnológica.",
+    date: new Date("2025-05-22T08:00:00"),
+    endDate: new Date("2025-05-23T18:00:00"),
+    location: "Expo Santa Fe, Mexico City",
+    locationEs: "Expo Santa Fe, Ciudad de México",
+    eventType: "sponsorship",
+    eventTypeEs: "Patrocinio",
+    externalUrl: "https://techinnovationforum.mx",
+    isHighlight: true,
+    published: true,
+    order: 5,
+  },
+];
+
 export async function seed() {
   console.log("Seeding database with real Von Wobeser y Sierra content...");
 
@@ -1121,6 +1204,13 @@ export async function seed() {
       isActive: true,
     });
     console.log("Default admin user created: username='admin', password='Admin123!'");
+  }
+
+  // Seed events
+  const existingEvents = await db.select().from(events);
+  if (existingEvents.length === 0) {
+    console.log("Seeding events...");
+    await db.insert(events).values(eventsData);
   }
 
   console.log("Database seeded successfully with real Von Wobeser y Sierra content!");

@@ -1,4 +1,4 @@
-import { eq, desc, asc, and, isNull } from "drizzle-orm";
+import { eq, desc, asc, and, isNull, gte } from "drizzle-orm";
 import { db } from "./db";
 import {
   type User,
@@ -29,6 +29,8 @@ import {
   type InsertMediaItem,
   type AdminSession,
   type InsertAdminSession,
+  type Event,
+  type InsertEvent,
   users,
   news,
   officeImages,
@@ -43,6 +45,8 @@ import {
   mediaItems,
   adminSessions,
   blogPostTags,
+  newsTeamMembers,
+  events,
 } from "@shared/schema";
 
 export interface IStorage {
@@ -107,6 +111,18 @@ export interface IStorage {
   createAdminSession(session: InsertAdminSession): Promise<AdminSession>;
   getAdminSession(token: string): Promise<AdminSession | undefined>;
   deleteAdminSession(token: string): Promise<boolean>;
+  
+  // News Team Members (many-to-many relationship)
+  getNewsByTeamMemberId(teamMemberId: string): Promise<News[]>;
+  getTeamMembersByNewsId(newsId: string): Promise<TeamMember[]>;
+  addTeamMemberToNews(newsId: string, teamMemberId: string): Promise<void>;
+  removeTeamMemberFromNews(newsId: string, teamMemberId: string): Promise<void>;
+  
+  // Events CRUD
+  getEvents(): Promise<Event[]>;
+  getEventById(id: string): Promise<Event | undefined>;
+  getUpcomingEvents(limit?: number): Promise<Event[]>;
+  createEvent(event: InsertEvent): Promise<Event>;
 }
 
 const siteContent: SiteContent = {
@@ -396,6 +412,95 @@ export class DatabaseStorage implements IStorage {
   async deleteAdminSession(token: string): Promise<boolean> {
     const result = await db.delete(adminSessions).where(eq(adminSessions.token, token)).returning();
     return result.length > 0;
+  }
+
+  // News Team Members (many-to-many relationship)
+  async getNewsByTeamMemberId(teamMemberId: string): Promise<News[]> {
+    const pivotRows = await db
+      .select()
+      .from(newsTeamMembers)
+      .where(eq(newsTeamMembers.teamMemberId, teamMemberId));
+    
+    if (pivotRows.length === 0) {
+      return [];
+    }
+    
+    const newsIds = pivotRows.map(row => row.newsId);
+    const result: News[] = [];
+    
+    for (const newsId of newsIds) {
+      const [newsItem] = await db.select().from(news).where(eq(news.id, newsId));
+      if (newsItem) {
+        result.push(newsItem);
+      }
+    }
+    
+    return result;
+  }
+
+  async getTeamMembersByNewsId(newsId: string): Promise<TeamMember[]> {
+    const pivotRows = await db
+      .select()
+      .from(newsTeamMembers)
+      .where(eq(newsTeamMembers.newsId, newsId));
+    
+    if (pivotRows.length === 0) {
+      return [];
+    }
+    
+    const teamMemberIds = pivotRows.map(row => row.teamMemberId);
+    const result: TeamMember[] = [];
+    
+    for (const teamMemberId of teamMemberIds) {
+      const [member] = await db.select().from(teamMembers).where(eq(teamMembers.id, teamMemberId));
+      if (member) {
+        result.push(member);
+      }
+    }
+    
+    return result;
+  }
+
+  async addTeamMemberToNews(newsId: string, teamMemberId: string): Promise<void> {
+    const [existing] = await db
+      .select()
+      .from(newsTeamMembers)
+      .where(and(eq(newsTeamMembers.newsId, newsId), eq(newsTeamMembers.teamMemberId, teamMemberId)));
+    
+    if (!existing) {
+      await db.insert(newsTeamMembers).values({ newsId, teamMemberId });
+    }
+  }
+
+  async removeTeamMemberFromNews(newsId: string, teamMemberId: string): Promise<void> {
+    await db
+      .delete(newsTeamMembers)
+      .where(and(eq(newsTeamMembers.newsId, newsId), eq(newsTeamMembers.teamMemberId, teamMemberId)));
+  }
+
+  // Events CRUD
+  async getEvents(): Promise<Event[]> {
+    return db.select().from(events).where(eq(events.published, true)).orderBy(desc(events.date));
+  }
+
+  async getEventById(id: string): Promise<Event | undefined> {
+    const [event] = await db.select().from(events).where(eq(events.id, id));
+    return event;
+  }
+
+  async getUpcomingEvents(limit: number = 4): Promise<Event[]> {
+    const now = new Date();
+    return db
+      .select()
+      .from(events)
+      .where(and(eq(events.published, true), gte(events.date, now)))
+      .orderBy(asc(events.date))
+      .limit(limit);
+  }
+
+  async createEvent(event: InsertEvent): Promise<Event> {
+    const [item] = await db.insert(events).values(event).returning();
+    return item;
   }
 }
 
