@@ -22,6 +22,10 @@ import PrivacyPolicy from "@/pages/PrivacyPolicy";
 import Terms from "@/pages/Terms";
 import Rankings from "@/pages/Rankings";
 import Offices from "@/pages/Offices";
+import DiversityInclusion from "@/pages/DiversityInclusion";
+import ProBono from "@/pages/ProBono";
+import GermanDesk from "@/pages/GermanDesk";
+import Articles from "@/pages/Articles";
 import AdminLogin from "@/pages/admin/AdminLogin";
 import AdminDashboard from "@/pages/admin/AdminDashboard";
 import AdminPosts from "@/pages/admin/AdminPosts";
@@ -84,6 +88,10 @@ function Router() {
       <Route path="/terms" component={Terms} />
       <Route path="/rankings" component={Rankings} />
       <Route path="/offices" component={Offices} />
+      <Route path="/diversity-inclusion" component={DiversityInclusion} />
+      <Route path="/pro-bono" component={ProBono} />
+      <Route path="/german-desk" component={GermanDesk} />
+      <Route path="/articles" component={Articles} />
       <Route path="/admin/login" component={AdminLogin} />
       <Route path="/admin/dashboard" component={AdminDashboard} />
       <Route path="/admin/posts" component={AdminPosts} />

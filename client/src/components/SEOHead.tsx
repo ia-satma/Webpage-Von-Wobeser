@@ -159,6 +159,61 @@ const seoConfig: Record<string, SEOConfig> = {
     },
     path: "/terms",
   },
+  diversityInclusion: {
+    title: {
+      en: "Diversity & Inclusion | Von Wobeser y Sierra",
+      es: "Diversidad e Inclusión | Von Wobeser y Sierra",
+    },
+    description: {
+      en: "Von Wobeser y Sierra is committed to diversity and inclusion since 1986. Learn about our initiatives for gender equality, inclusive hiring, and equal opportunities.",
+      es: "Von Wobeser y Sierra está comprometido con la diversidad e inclusión desde 1986. Conozca nuestras iniciativas de igualdad de género, contratación inclusiva e igualdad de oportunidades.",
+    },
+    path: "/diversity-inclusion",
+  },
+  proBono: {
+    title: {
+      en: "Pro Bono | Von Wobeser y Sierra",
+      es: "Pro Bono | Von Wobeser y Sierra",
+    },
+    description: {
+      en: "Von Wobeser y Sierra has been committed to pro bono legal services for over 35 years. We support NGOs, human rights causes, and access to justice initiatives.",
+      es: "Von Wobeser y Sierra está comprometido con servicios legales pro bono por más de 35 años. Apoyamos ONGs, causas de derechos humanos e iniciativas de acceso a la justicia.",
+    },
+    path: "/pro-bono",
+  },
+  germanDesk: {
+    title: {
+      en: "German Desk | Von Wobeser y Sierra",
+      es: "German Desk | Von Wobeser y Sierra",
+    },
+    description: {
+      en: "Over 34 years serving German and Austrian companies in Mexico. Our German Desk provides specialized legal services with attorneys educated in Germany and Austria.",
+      es: "Más de 34 años sirviendo a empresas alemanas y austriacas en México. Nuestro German Desk ofrece servicios legales especializados con abogados educados en Alemania y Austria.",
+    },
+    path: "/german-desk",
+  },
+  articles: {
+    title: {
+      en: "Articles | Von Wobeser y Sierra",
+      es: "Artículos | Von Wobeser y Sierra",
+    },
+    description: {
+      en: "Read legal articles and publications from Von Wobeser y Sierra. Expert insights on Mexican law, regulatory changes, and industry developments.",
+      es: "Lea artículos y publicaciones legales de Von Wobeser y Sierra. Insights expertos sobre la ley mexicana, cambios regulatorios y desarrollos de la industria.",
+    },
+    path: "/articles",
+  },
+  newsletter: {
+    title: {
+      en: "Newsletter | Von Wobeser y Sierra",
+      es: "Boletín Informativo | Von Wobeser y Sierra",
+    },
+    description: {
+      en: "Subscribe to Von Wobeser y Sierra's newsletter for legal updates, industry insights, and firm news. Stay informed about Mexican law and regulatory developments.",
+      es: "Suscríbase al boletín de Von Wobeser y Sierra para actualizaciones legales, insights de la industria y noticias de la firma. Manténgase informado sobre la ley mexicana.",
+    },
+    path: "/newsletter",
+  },
 };
 
 interface SEOHeadProps {
