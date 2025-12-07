@@ -67,6 +67,17 @@ Preferred communication style: Simple, everyday language.
 - PracticeGroupDetail.tsx uses fallback logic: displays fullDescription if available, otherwise falls back to description
 - Content stored in both database (for runtime) and seed.ts (for future seeding)
 
+**New Pages & Navigation Fixes (December 2025)**
+- Created 6 new pages to fix 404 navigation errors:
+  - `/diversity-inclusion` - DiversityInclusion.tsx: Full D&I program page with stats, initiatives, and commitment history
+  - `/pro-bono` - ProBono.tsx: Pro bono program details, 35+ years of service, areas of practice, impact statistics
+  - `/german-desk` - GermanDesk.tsx: German/Austrian client services, 34+ years experience, cultural understanding
+  - `/articles` - Articles.tsx: Legal articles and insights grid with search functionality
+  - `/newsletter` - Newsletter.tsx: Newsletter subscription form and archive section
+  - `/careers/interns` - Interns.tsx: Internship program details, requirements, application process
+- All pages feature bilingual support (EN/ES), SEOHead meta tags, framer-motion animations, brand color #AC162C
+- Favicon updated from Replit logo to Von Wobeser logo (vw-icon) in brand red
+
 ### Backend Architecture
 
 **Server Framework**
