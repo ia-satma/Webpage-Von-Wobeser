@@ -1,7 +1,8 @@
 import { motion } from "framer-motion";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Phone } from "lucide-react";
 import { Link } from "wouter";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { Button } from "@/components/ui/button";
 
 const industryGroups = [
   { id: 1, nameEn: "Automotive, Mobility & Manufacturing", nameEs: "Automotriz, Movilidad y Manufactura", slug: "automotive-mobility-manufacturing" },
@@ -17,10 +18,12 @@ const content = {
   en: {
     title: "INDUSTRY GROUPS",
     seeMore: "SEE MORE",
+    ctaText: "Industry Expertise",
   },
   es: {
     title: "GRUPOS DE INDUSTRIA",
     seeMore: "VER MÁS",
+    ctaText: "Expertise en Industrias",
   },
 };
 
@@ -62,7 +65,7 @@ export default function IndustryGroupsSection() {
           className="mb-12"
         >
           <h2
-            className="text-3xl md:text-4xl font-heading font-light text-gray-800 dark:text-white tracking-wide"
+            className="text-3xl md:text-4xl font-heading font-light text-[#AC162C] tracking-wide"
             data-testid="text-industry-groups-title"
           >
             {t.title}
@@ -99,7 +102,7 @@ export default function IndustryGroupsSection() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6, delay: 0.3 }}
-          className="mt-12 text-center"
+          className="mt-12 flex flex-col sm:flex-row items-center justify-center gap-4"
         >
           <Link
             href="/industry-groups"
@@ -108,6 +111,16 @@ export default function IndustryGroupsSection() {
           >
             {t.seeMore}
             <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+          </Link>
+          <Link href="/contact">
+            <Button
+              size="lg"
+              className="bg-[#AC162C] hover:bg-[#841A1A] text-white uppercase tracking-wide"
+              data-testid="button-industry-groups-contact"
+            >
+              <Phone className="w-4 h-4 mr-2" />
+              {t.ctaText}
+            </Button>
           </Link>
         </motion.div>
       </div>

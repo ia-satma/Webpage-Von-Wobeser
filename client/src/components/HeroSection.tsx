@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, Phone, Calendar } from "lucide-react";
 import { motion } from "framer-motion";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "wouter";
+import { Button } from "@/components/ui/button";
 import type { SiteContent, News } from "@shared/schema";
 import heroVideo from "@assets/dron_1764710361340.mp4";
 
@@ -99,16 +100,20 @@ export default function HeroSection({ language }: HeroSectionProps) {
 
   const content = {
     en: {
-      tagline: "Von Wobeser - New Offices",
-      headline: siteContent?.heroTitle || "WE GO WHERE CLIENTS NEED US",
-      subheadline: siteContent?.heroSubtitle || "New offices of Von Wobeser y Sierra",
+      tagline: "Leading Law Firm in Mexico",
+      headline: "VON WOBESER Y SIERRA",
+      subheadline: siteContent?.heroSubtitle || "Corporate Legal Excellence Since 1986",
       scroll: "scroll",
+      ctaContact: "Contact Us",
+      ctaConsult: "Schedule Consultation",
     },
     es: {
-      tagline: "Von Wobeser - Nuevas Oficinas",
-      headline: "VAMOS DONDE NUESTROS CLIENTES NOS NECESITAN",
-      subheadline: "Nuevas oficinas de Von Wobeser y Sierra",
+      tagline: "Firma Líder de Abogados en México",
+      headline: "VON WOBESER Y SIERRA",
+      subheadline: "Excelencia Legal Corporativa Desde 1986",
       scroll: "scroll",
+      ctaContact: "Contáctenos",
+      ctaConsult: "Agendar Consulta",
     },
   };
 
@@ -185,6 +190,36 @@ export default function HeroSection({ language }: HeroSectionProps) {
         >
           {t.subheadline}
         </motion.p>
+
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={isVisible ? { opacity: 1, y: 0 } : {}}
+          transition={{ duration: 0.6, delay: 0.8 }}
+          className="flex flex-col sm:flex-row gap-4 justify-center mt-10"
+          data-testid="hero-cta-buttons"
+        >
+          <Link href="/contact">
+            <Button
+              size="lg"
+              className="bg-[#AC162C] hover:bg-[#841A1A] text-white px-8 py-6 text-base font-medium tracking-wide uppercase"
+              data-testid="button-hero-contact"
+            >
+              <Phone className="w-5 h-5 mr-2" />
+              {t.ctaContact}
+            </Button>
+          </Link>
+          <Link href="/contact">
+            <Button
+              size="lg"
+              variant="outline"
+              className="border-2 border-white text-white hover:bg-white/10 px-8 py-6 text-base font-medium tracking-wide uppercase backdrop-blur-sm"
+              data-testid="button-hero-consult"
+            >
+              <Calendar className="w-5 h-5 mr-2" />
+              {t.ctaConsult}
+            </Button>
+          </Link>
+        </motion.div>
       </div>
 
       <motion.button

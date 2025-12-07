@@ -227,9 +227,9 @@ export default function Footer() {
           </div>
 
           <nav aria-label={language === "es" ? "Enlaces de la firma" : "Firm links"}>
-            <h2 className="text-sm font-semibold uppercase tracking-wider text-white mb-6" data-testid="text-footer-firm-title">
+            <h3 className="text-sm font-semibold uppercase tracking-wider text-white mb-6" data-testid="text-footer-firm-title">
               {t.firm}
-            </h2>
+            </h3>
             <ul className="space-y-3" data-testid="list-firm-links">
               {t.firmLinks.map((link) => (
                 <li key={link.id}>
@@ -247,9 +247,9 @@ export default function Footer() {
 
           <div>
             <nav aria-label={language === "es" ? "Enlaces de capacidades" : "Capabilities links"}>
-              <h2 className="text-sm font-semibold uppercase tracking-wider text-white mb-6" data-testid="text-footer-capabilities-title">
+              <h3 className="text-sm font-semibold uppercase tracking-wider text-white mb-6" data-testid="text-footer-capabilities-title">
                 {t.capabilities}
-              </h2>
+              </h3>
               <ul className="space-y-3" data-testid="list-capabilities-links">
                 {t.capabilitiesLinks.map((link) => (
                   <li key={link.id}>
@@ -281,9 +281,9 @@ export default function Footer() {
           </div>
 
           <nav aria-label={language === "es" ? "Enlaces de recursos" : "Resources links"}>
-            <h2 className="text-sm font-semibold uppercase tracking-wider text-white mb-6" data-testid="text-footer-resources-title">
+            <h3 className="text-sm font-semibold uppercase tracking-wider text-white mb-6" data-testid="text-footer-resources-title">
               {t.resources}
-            </h2>
+            </h3>
             <ul className="space-y-3" data-testid="list-resources-links">
               {t.resourcesLinks.map((link) => (
                 <li key={link.id}>
@@ -300,9 +300,9 @@ export default function Footer() {
           </nav>
 
           <div>
-            <h2 className="text-sm font-semibold uppercase tracking-wider text-white mb-6" data-testid="text-footer-contact-title">
+            <h3 className="text-sm font-semibold uppercase tracking-wider text-white mb-6" data-testid="text-footer-contact-title">
               {t.contact}
-            </h2>
+            </h3>
             {renderContactInfo()}
           </div>
         </div>

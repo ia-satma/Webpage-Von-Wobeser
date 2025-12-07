@@ -45,7 +45,7 @@ export default function AboutUsSection() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
-          className="text-sm md:text-base font-heading uppercase tracking-widest text-gray-800 dark:text-white text-center mb-16"
+          className="text-2xl md:text-3xl font-heading font-light uppercase tracking-wide text-[#AC162C] text-center mb-16"
           data-testid="text-about-us-title"
         >
           {t.sectionTitle}

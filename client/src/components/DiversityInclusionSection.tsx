@@ -32,7 +32,7 @@ export default function DiversityInclusionSection() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
-          className="text-2xl md:text-3xl font-heading font-light uppercase tracking-wide text-gray-800 dark:text-white mb-8"
+          className="text-2xl md:text-3xl font-heading font-light uppercase tracking-wide text-[#AC162C] mb-8"
           data-testid="text-diversity-inclusion-title"
         >
           {t.title}
@@ -57,8 +57,8 @@ export default function DiversityInclusionSection() {
         >
           <Link href="/diversity-inclusion">
             <Button
-              variant="outline"
-              className="px-8 py-4 border-2 border-gray-400 text-gray-700 dark:text-gray-300 dark:border-gray-600 uppercase tracking-wide"
+              size="lg"
+              className="px-8 py-4 bg-[#AC162C] hover:bg-[#841A1A] text-white uppercase tracking-wide"
               data-testid="button-diversity-inclusion-see-more"
             >
               {t.buttonText}
