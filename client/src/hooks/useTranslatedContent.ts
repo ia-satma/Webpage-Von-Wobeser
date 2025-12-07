@@ -73,7 +73,7 @@ export function useTranslatedContent({
     },
   });
 
-  const hasTriggeredRef = useRef(false);
+  const lastTranslationKeyRef = useRef<string>('');
 
   const fieldsToTranslate = useMemo(() => {
     const result: Record<string, string> = {};
@@ -91,9 +91,11 @@ export function useTranslatedContent({
   const needsTranslation = !isNative && enabled && !!entityId && !isLoading && 
     !hasCachedTranslations && Object.keys(fieldsToTranslate).length > 0;
 
+  const translationKey = `${contentType}-${entityId}-${language}`;
+
   useEffect(() => {
-    if (needsTranslation && !translateMutation.isPending && !hasTriggeredRef.current) {
-      hasTriggeredRef.current = true;
+    if (needsTranslation && !translateMutation.isPending && lastTranslationKeyRef.current !== translationKey) {
+      lastTranslationKeyRef.current = translationKey;
       translateMutation.mutate({
         contentType,
         entityId,
@@ -102,11 +104,7 @@ export function useTranslatedContent({
         targetLanguage: language,
       });
     }
-  }, [needsTranslation, translateMutation.isPending, contentType, entityId, fieldsToTranslate, language]);
-
-  useEffect(() => {
-    hasTriggeredRef.current = false;
-  }, [entityId, language]);
+  }, [needsTranslation, translateMutation.isPending, contentType, entityId, fieldsToTranslate, language, translationKey]);
 
   const getTranslatedFields = (): TranslatedFieldsMap => {
     if (language === 'es') {
