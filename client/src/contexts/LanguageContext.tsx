@@ -8,7 +8,7 @@ interface LanguageContextType {
 }
 
 const STORAGE_KEY = "vwb_language";
-const DEFAULT_LANGUAGE: Language = "es";
+const DEFAULT_LANGUAGE: Language = "en";
 
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
 
