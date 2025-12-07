@@ -17,6 +17,7 @@ import News from "@/pages/News";
 import Contact from "@/pages/Contact";
 import About from "@/pages/About";
 import Careers from "@/pages/Careers";
+import Interns from "@/pages/Interns";
 import Experience from "@/pages/Experience";
 import PrivacyPolicy from "@/pages/PrivacyPolicy";
 import Terms from "@/pages/Terms";
@@ -26,6 +27,7 @@ import DiversityInclusion from "@/pages/DiversityInclusion";
 import ProBono from "@/pages/ProBono";
 import GermanDesk from "@/pages/GermanDesk";
 import Articles from "@/pages/Articles";
+import Newsletter from "@/pages/Newsletter";
 import AdminLogin from "@/pages/admin/AdminLogin";
 import AdminDashboard from "@/pages/admin/AdminDashboard";
 import AdminPosts from "@/pages/admin/AdminPosts";
@@ -83,6 +85,7 @@ function Router() {
       <Route path="/news/:slug" component={NewsDetail} />
       <Route path="/contact" component={Contact} />
       <Route path="/careers" component={Careers} />
+      <Route path="/careers/interns" component={Interns} />
       <Route path="/experience" component={Experience} />
       <Route path="/privacy-policy" component={PrivacyPolicy} />
       <Route path="/terms" component={Terms} />
@@ -92,6 +95,7 @@ function Router() {
       <Route path="/pro-bono" component={ProBono} />
       <Route path="/german-desk" component={GermanDesk} />
       <Route path="/articles" component={Articles} />
+      <Route path="/newsletter" component={Newsletter} />
       <Route path="/admin/login" component={AdminLogin} />
       <Route path="/admin/dashboard" component={AdminDashboard} />
       <Route path="/admin/posts" component={AdminPosts} />

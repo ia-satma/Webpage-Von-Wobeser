@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { Mail, Send, Loader2, CheckCircle, Bell, FileText, Calendar, Briefcase } from "lucide-react";
+import { Mail, Send, Loader2, CheckCircle, Bell, FileText, Calendar, Briefcase, Archive, ExternalLink } from "lucide-react";
 import { useMutation } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -97,6 +97,19 @@ export default function Newsletter() {
     en: {
       title: "Newsletter",
       subtitle: "Stay informed with the latest legal insights and firm updates",
+      archivesTitle: "Past Newsletters",
+      archivesSubtitle: "Access our previous editions and stay updated on our legal coverage.",
+      archiveItem1Title: "Q4 2024 Legal Update",
+      archiveItem1Date: "December 2024",
+      archiveItem1Description: "Year-end review of significant legal developments in Mexico and key regulatory changes.",
+      archiveItem2Title: "Q3 2024 Legal Update",
+      archiveItem2Date: "September 2024",
+      archiveItem2Description: "Analysis of tax reforms and corporate law amendments affecting businesses in Mexico.",
+      archiveItem3Title: "Q2 2024 Legal Update",
+      archiveItem3Date: "June 2024",
+      archiveItem3Description: "Overview of energy sector regulations and environmental compliance requirements.",
+      viewArchive: "View Newsletter",
+      comingSoon: "Full archive coming soon",
       formTitle: "Subscribe to Our Newsletter",
       formSubtitle: "Join our mailing list to receive exclusive legal updates, industry insights, and firm news directly to your inbox.",
       emailLabel: "Email Address",
@@ -121,8 +134,21 @@ export default function Newsletter() {
       frequencyDescription: "Our newsletter is sent monthly, with occasional special editions for urgent legal developments.",
     },
     es: {
-      title: "Boletín Informativo",
+      title: "Boletines",
       subtitle: "Manténgase informado con los últimos insights legales y actualizaciones de la firma",
+      archivesTitle: "Boletines Anteriores",
+      archivesSubtitle: "Acceda a nuestras ediciones anteriores y manténgase informado sobre nuestra cobertura legal.",
+      archiveItem1Title: "Actualización Legal Q4 2024",
+      archiveItem1Date: "Diciembre 2024",
+      archiveItem1Description: "Revisión de fin de año de los desarrollos legales significativos en México y cambios regulatorios clave.",
+      archiveItem2Title: "Actualización Legal Q3 2024",
+      archiveItem2Date: "Septiembre 2024",
+      archiveItem2Description: "Análisis de reformas fiscales y enmiendas de derecho corporativo que afectan a empresas en México.",
+      archiveItem3Title: "Actualización Legal Q2 2024",
+      archiveItem3Date: "Junio 2024",
+      archiveItem3Description: "Visión general de regulaciones del sector energético y requisitos de cumplimiento ambiental.",
+      viewArchive: "Ver Boletín",
+      comingSoon: "Archivo completo próximamente",
       formTitle: "Suscríbase a Nuestro Boletín",
       formSubtitle: "Únase a nuestra lista de correo para recibir actualizaciones legales exclusivas, insights de la industria y noticias de la firma directamente en su bandeja de entrada.",
       emailLabel: "Correo Electrónico",
@@ -403,6 +429,91 @@ export default function Newsletter() {
               </div>
             </motion.div>
           </div>
+
+          <motion.section
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.5 }}
+            className="mt-16"
+            data-testid="section-newsletter-archives"
+          >
+            <div className="text-center mb-10">
+              <div className="flex items-center justify-center gap-3 mb-4">
+                <Archive className="w-8 h-8 text-primary" />
+                <h2 
+                  className="text-2xl font-heading font-light text-[#AC162C] dark:text-white"
+                  data-testid="text-archives-title"
+                >
+                  {t.archivesTitle}
+                </h2>
+              </div>
+              <p 
+                className="text-gray-600 dark:text-gray-400 max-w-2xl mx-auto"
+                data-testid="text-archives-subtitle"
+              >
+                {t.archivesSubtitle}
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {[
+                { title: t.archiveItem1Title, date: t.archiveItem1Date, description: t.archiveItem1Description },
+                { title: t.archiveItem2Title, date: t.archiveItem2Date, description: t.archiveItem2Description },
+                { title: t.archiveItem3Title, date: t.archiveItem3Date, description: t.archiveItem3Description },
+              ].map((archive, index) => (
+                <motion.div
+                  key={index}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.6, delay: 0.6 + index * 0.1 }}
+                >
+                  <Card 
+                    className="rounded-md border border-gray-200 dark:border-gray-700 h-full"
+                    data-testid={`card-archive-${index}`}
+                  >
+                    <CardContent className="p-6">
+                      <div className="flex items-center gap-2 mb-3">
+                        <FileText className="w-4 h-4 text-primary" />
+                        <span 
+                          className="text-sm text-primary font-medium"
+                          data-testid={`text-archive-date-${index}`}
+                        >
+                          {archive.date}
+                        </span>
+                      </div>
+                      <h3 
+                        className="font-semibold text-gray-800 dark:text-white mb-2"
+                        data-testid={`text-archive-title-${index}`}
+                      >
+                        {archive.title}
+                      </h3>
+                      <p 
+                        className="text-sm text-gray-600 dark:text-gray-400 mb-4"
+                        data-testid={`text-archive-description-${index}`}
+                      >
+                        {archive.description}
+                      </p>
+                      <button 
+                        className="inline-flex items-center gap-2 text-sm text-primary hover:text-[#841A1A] transition-colors cursor-not-allowed opacity-50"
+                        disabled
+                        data-testid={`button-archive-view-${index}`}
+                      >
+                        <ExternalLink className="w-4 h-4" />
+                        {t.viewArchive}
+                      </button>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              ))}
+            </div>
+
+            <p 
+              className="text-center text-sm text-gray-500 dark:text-gray-400 mt-8"
+              data-testid="text-archives-coming-soon"
+            >
+              {t.comingSoon}
+            </p>
+          </motion.section>
         </div>
       </main>
 

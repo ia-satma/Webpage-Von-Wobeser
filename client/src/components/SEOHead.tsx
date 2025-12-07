@@ -214,6 +214,17 @@ const seoConfig: Record<string, SEOConfig> = {
     },
     path: "/newsletter",
   },
+  interns: {
+    title: {
+      en: "Internship Program | Von Wobeser y Sierra",
+      es: "Programa de Pasantes | Von Wobeser y Sierra",
+    },
+    description: {
+      en: "Launch your legal career with Von Wobeser y Sierra's internship program. Summer and permanent internships available for law students. Gain hands-on experience at one of Mexico's leading law firms.",
+      es: "Inicia tu carrera legal con el programa de pasantías de Von Wobeser y Sierra. Pasantías de verano y permanentes disponibles para estudiantes de derecho. Obtén experiencia práctica en una de las firmas líderes de México.",
+    },
+    path: "/careers/interns",
+  },
 };
 
 interface SEOHeadProps {
