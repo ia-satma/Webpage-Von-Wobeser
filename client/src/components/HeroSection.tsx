@@ -1,9 +1,8 @@
 import { useEffect, useState } from "react";
-import { ChevronDown, Phone, Calendar } from "lucide-react";
+import { ChevronDown } from "lucide-react";
 import { motion } from "framer-motion";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "wouter";
-import { Button } from "@/components/ui/button";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useTranslatedContent } from "@/hooks/useTranslatedContent";
 import type { SiteContent, News, LanguageCode } from "@shared/schema";
@@ -426,36 +425,6 @@ export default function HeroSection({ language }: HeroSectionProps) {
         >
           {subheadline}
         </motion.p>
-
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={isVisible ? { opacity: 1, y: 0 } : {}}
-          transition={{ duration: 0.6, delay: 0.8 }}
-          className="flex flex-col sm:flex-row gap-4 justify-center mt-10 w-full sm:w-auto px-4 sm:px-0"
-          data-testid="hero-cta-buttons"
-        >
-          <Link href="/contact" className="w-full sm:w-auto">
-            <Button
-              size="lg"
-              className="w-full sm:w-auto bg-[#AC162C] hover:bg-[#841A1A] text-white px-8 py-6 text-base font-medium tracking-wide uppercase"
-              data-testid="button-hero-contact"
-            >
-              <Phone className="w-5 h-5 mr-2" />
-              {t.ctaContact}
-            </Button>
-          </Link>
-          <Link href="/contact" className="w-full sm:w-auto">
-            <Button
-              size="lg"
-              variant="outline"
-              className="w-full sm:w-auto border-2 border-white text-white hover:bg-white/10 px-8 py-6 text-base font-medium tracking-wide uppercase backdrop-blur-sm"
-              data-testid="button-hero-consult"
-            >
-              <Calendar className="w-5 h-5 mr-2" />
-              {t.ctaConsult}
-            </Button>
-          </Link>
-        </motion.div>
       </div>
 
       <motion.button
