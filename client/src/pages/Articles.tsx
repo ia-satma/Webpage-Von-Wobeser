@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link } from "wouter";
 import { motion } from "framer-motion";
-import { AlertCircle, Calendar, ArrowRight, Search, FileText } from "lucide-react";
+import { AlertCircle, Calendar, ArrowRight, Search, FileText, Loader2 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -10,6 +10,8 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import SEOHead from "@/components/SEOHead";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useTranslatedContent } from "@/hooks/useTranslatedContent";
+import { isNativeLanguage } from "@/lib/translationUtils";
 import { type News } from "@shared/schema";
 
 function ArticleImageWithFallback({ 
