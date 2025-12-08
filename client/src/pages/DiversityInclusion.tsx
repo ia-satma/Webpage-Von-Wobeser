@@ -559,7 +559,7 @@ export default function DiversityInclusion() {
     },
   };
 
-  const t = content[displayLanguage] || content.en;
+  const t = content[language as keyof typeof content] || content.en;
 
   const containerVariants = {
     hidden: { opacity: 0 },

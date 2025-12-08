@@ -2445,7 +2445,7 @@ Sito web: www.vonwobeser.com`
     }
   };
 
-  const t = content[displayLanguage as SupportedLanguage] || content.en;
+  const t = content[language as SupportedLanguage] || content.en;
 
   const containerVariants = {
     hidden: { opacity: 0 },

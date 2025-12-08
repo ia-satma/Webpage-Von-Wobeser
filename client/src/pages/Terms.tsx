@@ -1974,7 +1974,7 @@ Escluse le festività federali messicane`
     }
   };
 
-  const t = content[displayLanguage as SupportedLanguage] || content.en;
+  const t = content[language as SupportedLanguage] || content.en;
 
   const containerVariants = {
     hidden: { opacity: 0 },

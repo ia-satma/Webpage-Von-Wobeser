@@ -7,7 +7,7 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 
 export default function NotFound() {
-  const { displayLanguage } = useLanguage();
+  const { language } = useLanguage();
 
   const content = {
     en: {
@@ -72,8 +72,8 @@ export default function NotFound() {
     }
   };
 
-  const t = content[displayLanguage];
-  const isRTL = displayLanguage === "ar";
+  const t = content[language as keyof typeof content] || content.en;
+  const isRTL = language === "ar";
 
   return (
     <div className="min-h-screen bg-white dark:bg-gray-900 flex flex-col" dir={isRTL ? "rtl" : "ltr"} data-testid="page-not-found">

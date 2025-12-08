@@ -228,7 +228,7 @@ export default function Careers() {
       apply: "Aplicar Ahora",
     },
     de: {
-      heroTitle: "Karriere",
+      heroTitle: "Gestalten Sie Ihre Karriere bei uns",
       heroSubtitle: "Werden Sie Teil eines der führenden Anwaltskanzleien Mexikos und gehören Sie zu einem Team, das Exzellenz, Integrität und berufliches Wachstum schätzt.",
       whyJoinTitle: "Warum bei uns arbeiten?",
       whyJoinSubtitle: "Entdecken Sie, was uns zu einem großartigen Arbeitsplatz macht",
@@ -326,7 +326,7 @@ export default function Careers() {
       apply: "Jetzt bewerben",
     },
     zh: {
-      heroTitle: "职业发展",
+      heroTitle: "与我们共创事业",
       heroSubtitle: "加入墨西哥领先的律师事务所之一，成为重视卓越、诚信和职业发展的团队的一员。",
       whyJoinTitle: "为什么加入我们?",
       whyJoinSubtitle: "了解是什么让我们成为一个理想的工作场所",
@@ -424,7 +424,7 @@ export default function Careers() {
       apply: "立即申请",
     },
     ko: {
-      heroTitle: "커리어",
+      heroTitle: "우리와 함께 경력을 쌓으세요",
       heroSubtitle: "멕시코 최고의 로펌 중 하나에 합류하여 탁월함, 정직성 및 전문적 성장을 중시하는 팀의 일원이 되세요.",
       whyJoinTitle: "왜 우리와 함께해야 할까요?",
       whyJoinSubtitle: "우리가 훌륭한 직장인 이유를 알아보세요",
@@ -522,7 +522,7 @@ export default function Careers() {
       apply: "지금 지원하기",
     },
     ja: {
-      heroTitle: "キャリア",
+      heroTitle: "私たちと一緒にキャリアを築きましょう",
       heroSubtitle: "メキシコを代表する法律事務所の一つに参加し、卓越性、誠実さ、そしてプロフェッショナルな成長を重視するチームの一員になりませんか。",
       whyJoinTitle: "なぜ私たちと働くべきか",
       whyJoinSubtitle: "私たちが素晴らしい職場である理由をご覧ください",
@@ -620,7 +620,7 @@ export default function Careers() {
       apply: "今すぐ応募",
     },
     ar: {
-      heroTitle: "الوظائف",
+      heroTitle: "ابنِ مسيرتك المهنية معنا",
       heroSubtitle: "انضم إلى واحدة من أبرز شركات المحاماة في المكسيك وكن جزءًا من فريق يقدر التميز والنزاهة والنمو المهني.",
       whyJoinTitle: "لماذا تعمل معنا؟",
       whyJoinSubtitle: "اكتشف ما يجعلنا مكان عمل رائع",
@@ -718,7 +718,7 @@ export default function Careers() {
       apply: "قدم الآن",
     },
     ru: {
-      heroTitle: "Карьера",
+      heroTitle: "Постройте свою карьеру вместе с нами",
       heroSubtitle: "Присоединяйтесь к одной из ведущих юридических фирм Мексики и станьте частью команды, которая ценит совершенство, честность и профессиональный рост.",
       whyJoinTitle: "Почему стоит работать у нас?",
       whyJoinSubtitle: "Узнайте, что делает нас отличным местом для работы",
@@ -816,7 +816,7 @@ export default function Careers() {
       apply: "Подать заявку",
     },
     fr: {
-      heroTitle: "Carrières",
+      heroTitle: "Construisez votre carrière avec nous",
       heroSubtitle: "Rejoignez l'un des principaux cabinets d'avocats du Mexique et faites partie d'une équipe qui valorise l'excellence, l'intégrité et le développement professionnel.",
       whyJoinTitle: "Pourquoi nous rejoindre?",
       whyJoinSubtitle: "Découvrez ce qui fait de nous un excellent lieu de travail",
@@ -914,7 +914,7 @@ export default function Careers() {
       apply: "Postuler Maintenant",
     },
     it: {
-      heroTitle: "Carriere",
+      heroTitle: "Costruisci la tua carriera con noi",
       heroSubtitle: "Unisciti a uno dei principali studi legali del Messico e fai parte di un team che valorizza l'eccellenza, l'integrità e la crescita professionale.",
       whyJoinTitle: "Perché lavorare con noi?",
       whyJoinSubtitle: "Scopri cosa ci rende un ottimo posto di lavoro",
@@ -1013,7 +1013,7 @@ export default function Careers() {
     },
   };
 
-  const t = content[displayLanguage] || content.en;
+  const t = content[language as keyof typeof content] || content.en;
 
   const containerVariants = {
     hidden: { opacity: 0 },
