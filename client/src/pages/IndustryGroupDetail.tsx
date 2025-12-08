@@ -174,7 +174,7 @@ export default function IndustryGroupDetail() {
               className="prose prose-lg dark:prose-invert max-w-none mb-16"
               data-testid="container-industry-group-description"
             >
-              <p className="text-lg text-gray-700 dark:text-gray-300 leading-relaxed">
+              <p className="text-lg text-gray-700 dark:text-gray-300 leading-relaxed text-justify sm:text-left">
                 {displayDescription}
               </p>
             </div>

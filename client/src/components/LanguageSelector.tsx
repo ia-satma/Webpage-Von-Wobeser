@@ -13,12 +13,14 @@ import { cn } from "@/lib/utils";
 interface LanguageSelectorProps {
   isScrolled?: boolean;
   isMobile?: boolean;
+  compact?: boolean;
   className?: string;
 }
 
 export default function LanguageSelector({ 
   isScrolled = false, 
   isMobile = false,
+  compact = false,
   className 
 }: LanguageSelectorProps) {
   const { language, setLanguage, getLanguageInfo } = useLanguage();
@@ -28,12 +30,20 @@ export default function LanguageSelector({
     setLanguage(value as LanguageCode);
   };
 
+  const getDisplayName = () => {
+    if (compact) {
+      return language.toUpperCase();
+    }
+    return currentLangInfo.nameNative;
+  };
+
   return (
     <Select value={language} onValueChange={handleLanguageChange}>
       <SelectTrigger 
         className={cn(
-          "gap-2 min-w-0 w-auto min-h-[44px] touch-manipulation rounded-md px-3 py-2 font-medium transition-all",
+          "gap-2 min-w-0 w-auto min-h-[44px] touch-manipulation rounded-md font-medium transition-all",
           "focus:ring-2 focus:ring-offset-2 focus:ring-primary/50",
+          compact ? "px-2 py-2" : "px-3 py-2",
           isMobile 
             ? "bg-white/20 backdrop-blur-sm border border-white/30 text-white hover:bg-white/30" 
             : isScrolled 
@@ -46,9 +56,9 @@ export default function LanguageSelector({
       >
         <Globe className="w-4 h-4 shrink-0" aria-hidden="true" data-testid="icon-globe" />
         <SelectValue data-testid="text-current-language">
-          {currentLangInfo.nameNative}
+          {getDisplayName()}
         </SelectValue>
-        <ChevronDown className="w-4 h-4 shrink-0 opacity-70" aria-hidden="true" />
+        {!compact && <ChevronDown className="w-4 h-4 shrink-0 opacity-70" aria-hidden="true" />}
       </SelectTrigger>
       <SelectContent 
         data-testid="select-language-content"

@@ -424,7 +424,8 @@ export default function Header() {
 
             {isScrolled && <ThemeToggle />}
 
-            <LanguageSelector isScrolled={isScrolled} />
+            <LanguageSelector isScrolled={isScrolled} className="hidden sm:flex" />
+            <LanguageSelector isScrolled={isScrolled} compact className="flex sm:hidden" />
 
             <Button
               variant="ghost"

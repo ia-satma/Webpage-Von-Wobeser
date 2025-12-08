@@ -329,7 +329,7 @@ export default function NewsDetail() {
               {displayContent?.split('\n').map((paragraph, index) => (
                 <p 
                   key={index} 
-                  className="text-lg text-gray-700 dark:text-gray-300 leading-relaxed mb-6"
+                  className="text-lg text-gray-700 dark:text-gray-300 leading-relaxed mb-6 text-justify sm:text-left"
                 >
                   {paragraph}
                 </p>
