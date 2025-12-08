@@ -1379,5 +1379,13 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
     }
   });
 
+  // Agent system routes
+  const agentRoutes = await import('./agents/api/agentRoutes');
+  app.use('/api/agents', agentRoutes.default);
+
+  // Initialize agents on server start
+  const { initializeAgents } = await import('./agents');
+  initializeAgents().catch(err => console.error('[Agents] Initialization error:', err));
+
   return httpServer;
 }

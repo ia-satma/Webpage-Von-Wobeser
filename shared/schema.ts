@@ -535,11 +535,12 @@ export const translationCache = pgTable("translation_cache", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   contentType: text("content_type").notNull(), // 'team_member', 'practice_group', 'industry_group', 'news', 'site_content'
   entityId: varchar("entity_id").notNull(), // ID of the entity being translated
-  field: text("field").notNull(), // 'title', 'bio', 'description', etc.
-  sourceLanguage: text("source_language").notNull().default("en"), // Source language code
+  field: text("field"), // 'title', 'bio', 'description', etc. - optional when using translations JSONB
+  sourceLanguage: text("source_language").default("en"), // Source language code
   targetLanguage: text("target_language").notNull(), // Target language code
-  sourceText: text("source_text").notNull(), // Original text
-  translatedText: text("translated_text").notNull(), // Translated text
+  sourceText: text("source_text"), // Original text - optional when using translations JSONB
+  translatedText: text("translated_text"), // Translated text - optional when using translations JSONB
+  translations: jsonb("translations"), // JSONB for storing multiple translations at once { title, excerpt, content }
   isApproved: boolean("is_approved").default(false), // Whether translation has been reviewed
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
@@ -564,3 +565,100 @@ export const SUPPORTED_LANGUAGES = [
 
 export type LanguageCode = typeof SUPPORTED_LANGUAGES[number]["code"];
 export type SupportedLanguage = typeof SUPPORTED_LANGUAGES[number];
+
+// ============================================
+// AI AGENT SYSTEM TABLES
+// ============================================
+
+// Agent jobs queue
+export const agentJobs = pgTable("agent_jobs", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  agentType: text("agent_type").notNull(),
+  status: text("status").notNull().default("pending"), // pending, in_progress, completed, failed, cancelled
+  priority: text("priority").notNull().default("normal"), // low, normal, high, critical
+  payload: jsonb("payload").notNull(),
+  result: jsonb("result"),
+  error: text("error"),
+  retryCount: integer("retry_count").default(0),
+  maxRetries: integer("max_retries").default(3),
+  parentJobId: varchar("parent_job_id"),
+  createdAt: timestamp("created_at").defaultNow(),
+  startedAt: timestamp("started_at"),
+  completedAt: timestamp("completed_at"),
+});
+
+export const insertAgentJobSchema = createInsertSchema(agentJobs).omit({ id: true, createdAt: true });
+export type InsertAgentJob = z.infer<typeof insertAgentJobSchema>;
+export type AgentJob = typeof agentJobs.$inferSelect;
+
+// Agent events log
+export const agentEvents = pgTable("agent_events", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  jobId: varchar("job_id").notNull(),
+  agentType: text("agent_type").notNull(),
+  eventType: text("event_type").notNull(), // start, progress, complete, error, learning, evolution_proposal
+  message: text("message").notNull(),
+  data: jsonb("data"),
+  timestamp: timestamp("timestamp").defaultNow(),
+});
+
+export const insertAgentEventSchema = createInsertSchema(agentEvents).omit({ id: true, timestamp: true });
+export type InsertAgentEvent = z.infer<typeof insertAgentEventSchema>;
+export type AgentEvent = typeof agentEvents.$inferSelect;
+
+// Agent knowledge documents
+export const agentKnowledge = pgTable("agent_knowledge", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  agentType: text("agent_type").notNull(),
+  category: text("category").notNull(),
+  title: text("title").notNull(),
+  content: text("content").notNull(),
+  metadata: jsonb("metadata"),
+  usageCount: integer("usage_count").default(0),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const insertAgentKnowledgeSchema = createInsertSchema(agentKnowledge).omit({ id: true, createdAt: true, updatedAt: true, usageCount: true });
+export type InsertAgentKnowledge = z.infer<typeof insertAgentKnowledgeSchema>;
+export type AgentKnowledge = typeof agentKnowledge.$inferSelect;
+
+// Agent skills tracking
+export const agentSkills = pgTable("agent_skills", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  agentType: text("agent_type").notNull(),
+  name: text("name").notNull(),
+  description: text("description"),
+  expertise: integer("expertise").default(50), // 0-100
+  usageCount: integer("usage_count").default(0),
+  successRate: integer("success_rate").default(100), // 0-100
+  learnings: jsonb("learnings"), // Array of skill learnings
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const insertAgentSkillSchema = createInsertSchema(agentSkills).omit({ id: true, createdAt: true, updatedAt: true });
+export type InsertAgentSkill = z.infer<typeof insertAgentSkillSchema>;
+export type AgentSkill = typeof agentSkills.$inferSelect;
+
+// Evolution proposals from agents
+export const agentEvolutionProposals = pgTable("agent_evolution_proposals", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  agentType: text("agent_type").notNull(),
+  proposalType: text("proposal_type").notNull(), // skill_improvement, new_skill, config_change, knowledge_update
+  title: text("title").notNull(),
+  description: text("description").notNull(),
+  rationale: text("rationale"),
+  impact: text("impact").notNull().default("medium"), // low, medium, high
+  status: text("status").notNull().default("pending"), // pending, approved, rejected, implemented
+  proposedChanges: jsonb("proposed_changes"),
+  metricsBefore: jsonb("metrics_before"),
+  metricsAfter: jsonb("metrics_after"),
+  createdAt: timestamp("created_at").defaultNow(),
+  reviewedAt: timestamp("reviewed_at"),
+  implementedAt: timestamp("implemented_at"),
+});
+
+export const insertAgentEvolutionProposalSchema = createInsertSchema(agentEvolutionProposals).omit({ id: true, createdAt: true });
+export type InsertAgentEvolutionProposal = z.infer<typeof insertAgentEvolutionProposalSchema>;
+export type AgentEvolutionProposal = typeof agentEvolutionProposals.$inferSelect;

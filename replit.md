@@ -45,6 +45,51 @@ While a user schema is defined, authentication and authorization are not yet imp
 ### Design System
 The color scheme uses `#AC162C` (deep red) as the primary brand color, with accents, a white background, and gray text. Dark mode is supported via CSS variables. Typography utilizes Optima/Segoe UI for headings and body text, and Georgia/Times New Roman for long-form content. Consistent shadow systems, border radii, and spacing are applied across components.
 
+### AI Agent System (Self-Evolving Backend)
+The backend has been transformed from a static brochure into a self-evolving system with autonomous AI agents that continuously improve content quality, translations, SEO, and metadata linking. The system is inspired by the brujer.ia project architecture.
+
+**Architecture:**
+- **Knowledge Layer**: Stores agent learnings, legal glossaries, and insights in `agent_knowledge` table and pCloud
+- **Skills Layer**: Tracks agent capabilities, expertise levels, and success rates in `agent_skills` table
+- **Evolution Layer**: Agents propose improvements tracked in `agent_evolution_proposals` table
+
+**Specialized Agents:**
+1. **FormatterAgent**: Cleans PDF-extracted articles, fixes broken line breaks, normalizes paragraphs, removes boilerplate
+2. **MetadataLinkerAgent**: Analyzes content to link articles with authors, practice areas, and industry groups
+3. **PolyglotTranslatorAgent**: Translates to 10 languages using legal term glossary with smart caching
+4. **ContentAuditorAgent**: Scans database for content gaps (missing translations, authors, formatting issues)
+5. **SEOOptimizerAgent**: Improves titles, meta descriptions, slugs, and keywords for search engines
+
+**Orchestration:**
+- Central orchestrator (`AgentOrchestrator`) manages job queue, agent coordination, and pipeline execution
+- Pipeline execution: article → format → link metadata → translate → SEO optimize
+- Job queue with priority support (critical, high, normal, low)
+
+**Cloud Persistence (pCloud):**
+- Agent knowledge and evolution data syncs to pCloud for persistence across sessions
+- Configured via `PCLOUD_USERNAME` and `PCLOUD_PASSWORD` secrets
+
+**Database Tables:**
+- `agent_jobs`: Job queue with status, payload, results, retry logic
+- `agent_events`: Event log for all agent activities
+- `agent_knowledge`: Stored learnings and glossary entries
+- `agent_skills`: Skill tracking with expertise and success rates
+- `agent_evolution_proposals`: Self-improvement proposals pending review
+
+**API Endpoints:**
+- `GET /api/agents/status`: System status, queue length, registered agents
+- `POST /api/agents/run/:agentType`: Run specific agent with payload
+- `POST /api/agents/pipeline/:articleId`: Run full pipeline on article
+- `POST /api/agents/audit`: Run content audit across all articles
+- `POST /api/agents/evolution/learning-cycle`: Analyze and generate improvement proposals
+- `POST /api/agents/pcloud/sync`: Sync knowledge to cloud storage
+
+**Admin Dashboard:**
+- Located at `/admin/agents`
+- Monitor agent status, view evolution proposals, run audits
+- Approve/reject evolution proposals
+- Start/stop job processing
+
 ## External Dependencies
 
 ### Third-Party Services
