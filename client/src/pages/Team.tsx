@@ -23,7 +23,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import type { TeamMember, PracticeGroup, IndustryGroup } from "@shared/schema";
 
 export default function Team() {
-  const { language, displayLanguage } = useLanguage();
+  const { language } = useLanguage();
   const [searchQuery, setSearchQuery] = useState("");
   const [filterSeniority, setFilterSeniority] = useState<string>("all");
   const [filterPractice, setFilterPractice] = useState<string>("all");
@@ -41,7 +41,33 @@ export default function Team() {
     queryKey: ["/api/industry-groups"],
   });
 
-  const content = {
+  const content: Record<string, {
+    title: string;
+    subtitle: string;
+    errorMessage: string;
+    allMembers: string;
+    partnersOnly: string;
+    ofCounsel: string;
+    associates: string;
+    viewProfile: string;
+    downloadVCard: string;
+    searchPlaceholder: string;
+    filterBy: string;
+    seniority: string;
+    practiceArea: string;
+    alphabetic: string;
+    all: string;
+    clearFilters: string;
+    noResults: string;
+    teamMembers: string;
+    positions: {
+      foundingPartner: string;
+      partner: string;
+      ofCounsel: string;
+      seniorAssociate: string;
+      associate: string;
+    };
+  }> = {
     en: {
       title: "Our Team",
       subtitle: "Meet the experienced attorneys who make our firm a leader in legal excellence",
@@ -61,6 +87,13 @@ export default function Team() {
       clearFilters: "Clear filters",
       noResults: "No team members match your criteria",
       teamMembers: "team members",
+      positions: {
+        foundingPartner: "Founding Partner",
+        partner: "Partner",
+        ofCounsel: "Of Counsel",
+        seniorAssociate: "Senior Associate",
+        associate: "Associate",
+      },
     },
     es: {
       title: "Nuestro Equipo",
@@ -81,23 +114,233 @@ export default function Team() {
       clearFilters: "Limpiar filtros",
       noResults: "No hay miembros que coincidan con los criterios",
       teamMembers: "miembros del equipo",
+      positions: {
+        foundingPartner: "Socio Fundador",
+        partner: "Socio",
+        ofCounsel: "Of Counsel",
+        seniorAssociate: "Asociado Senior",
+        associate: "Asociado",
+      },
+    },
+    de: {
+      title: "Unser Team",
+      subtitle: "Lernen Sie unsere Experten kennen",
+      errorMessage: "Teammitglieder konnten nicht geladen werden",
+      allMembers: "Alle",
+      partnersOnly: "Partner",
+      ofCounsel: "Of Counsel",
+      associates: "Associates",
+      viewProfile: "Profil anzeigen",
+      downloadVCard: "vCard herunterladen",
+      searchPlaceholder: "Suchen...",
+      filterBy: "Filtern nach",
+      seniority: "Alle Positionen",
+      practiceArea: "Alle Praxisbereiche",
+      alphabetic: "Alphabetisch",
+      all: "Alle",
+      clearFilters: "Filter löschen",
+      noResults: "Keine Ergebnisse gefunden",
+      teamMembers: "Teammitglieder",
+      positions: {
+        foundingPartner: "Gründungspartner",
+        partner: "Partner",
+        ofCounsel: "Of Counsel",
+        seniorAssociate: "Senior Associate",
+        associate: "Associate",
+      },
+    },
+    zh: {
+      title: "我们的团队",
+      subtitle: "认识我们的专家",
+      errorMessage: "无法加载团队成员",
+      allMembers: "全部",
+      partnersOnly: "合伙人",
+      ofCounsel: "法律顾问",
+      associates: "律师",
+      viewProfile: "查看简介",
+      downloadVCard: "下载名片",
+      searchPlaceholder: "搜索...",
+      filterBy: "筛选",
+      seniority: "所有职位",
+      practiceArea: "所有业务领域",
+      alphabetic: "字母顺序",
+      all: "全部",
+      clearFilters: "清除筛选",
+      noResults: "未找到结果",
+      teamMembers: "团队成员",
+      positions: {
+        foundingPartner: "创始合伙人",
+        partner: "合伙人",
+        ofCounsel: "法律顾问",
+        seniorAssociate: "高级律师",
+        associate: "律师",
+      },
+    },
+    ko: {
+      title: "우리 팀",
+      subtitle: "전문가들을 만나보세요",
+      errorMessage: "팀원을 불러올 수 없습니다",
+      allMembers: "전체",
+      partnersOnly: "파트너",
+      ofCounsel: "고문",
+      associates: "어소시에이트",
+      viewProfile: "프로필 보기",
+      downloadVCard: "명함 다운로드",
+      searchPlaceholder: "검색...",
+      filterBy: "필터",
+      seniority: "모든 직위",
+      practiceArea: "모든 업무 분야",
+      alphabetic: "알파벳순",
+      all: "전체",
+      clearFilters: "필터 초기화",
+      noResults: "결과 없음",
+      teamMembers: "팀원",
+      positions: {
+        foundingPartner: "창립 파트너",
+        partner: "파트너",
+        ofCounsel: "고문",
+        seniorAssociate: "시니어 어소시에이트",
+        associate: "어소시에이트",
+      },
+    },
+    ja: {
+      title: "私たちのチーム",
+      subtitle: "専門家をご紹介します",
+      errorMessage: "チームメンバーを読み込めませんでした",
+      allMembers: "すべて",
+      partnersOnly: "パートナー",
+      ofCounsel: "オブ・カウンセル",
+      associates: "アソシエイト",
+      viewProfile: "プロフィールを見る",
+      downloadVCard: "名刺をダウンロード",
+      searchPlaceholder: "検索...",
+      filterBy: "フィルター",
+      seniority: "すべての役職",
+      practiceArea: "すべての取扱分野",
+      alphabetic: "アルファベット順",
+      all: "すべて",
+      clearFilters: "フィルターをクリア",
+      noResults: "結果が見つかりません",
+      teamMembers: "チームメンバー",
+      positions: {
+        foundingPartner: "創立パートナー",
+        partner: "パートナー",
+        ofCounsel: "オブ・カウンセル",
+        seniorAssociate: "シニアアソシエイト",
+        associate: "アソシエイト",
+      },
+    },
+    ar: {
+      title: "فريقنا",
+      subtitle: "تعرف على خبرائنا",
+      errorMessage: "فشل في تحميل أعضاء الفريق",
+      allMembers: "الكل",
+      partnersOnly: "الشركاء",
+      ofCounsel: "مستشار قانوني",
+      associates: "المحامون",
+      viewProfile: "عرض الملف الشخصي",
+      downloadVCard: "تحميل بطاقة العمل",
+      searchPlaceholder: "بحث...",
+      filterBy: "تصفية حسب",
+      seniority: "جميع المناصب",
+      practiceArea: "جميع مجالات الممارسة",
+      alphabetic: "أبجدي",
+      all: "الكل",
+      clearFilters: "مسح الفلاتر",
+      noResults: "لم يتم العثور على نتائج",
+      teamMembers: "أعضاء الفريق",
+      positions: {
+        foundingPartner: "شريك مؤسس",
+        partner: "شريك",
+        ofCounsel: "مستشار قانوني",
+        seniorAssociate: "محامي أول",
+        associate: "محامي",
+      },
+    },
+    ru: {
+      title: "Наша команда",
+      subtitle: "Познакомьтесь с нашими экспертами",
+      errorMessage: "Не удалось загрузить членов команды",
+      allMembers: "Все",
+      partnersOnly: "Партнёры",
+      ofCounsel: "Советник",
+      associates: "Юристы",
+      viewProfile: "Посмотреть профиль",
+      downloadVCard: "Скачать визитку",
+      searchPlaceholder: "Поиск...",
+      filterBy: "Фильтр",
+      seniority: "Все должности",
+      practiceArea: "Все практики",
+      alphabetic: "По алфавиту",
+      all: "Все",
+      clearFilters: "Сбросить фильтры",
+      noResults: "Результаты не найдены",
+      teamMembers: "членов команды",
+      positions: {
+        foundingPartner: "Партнёр-основатель",
+        partner: "Партнёр",
+        ofCounsel: "Советник",
+        seniorAssociate: "Старший юрист",
+        associate: "Юрист",
+      },
+    },
+    fr: {
+      title: "Notre équipe",
+      subtitle: "Rencontrez nos experts",
+      errorMessage: "Échec du chargement des membres de l'équipe",
+      allMembers: "Tous",
+      partnersOnly: "Associés",
+      ofCounsel: "Of Counsel",
+      associates: "Collaborateurs",
+      viewProfile: "Voir le profil",
+      downloadVCard: "Télécharger vCard",
+      searchPlaceholder: "Rechercher...",
+      filterBy: "Filtrer par",
+      seniority: "Tous les postes",
+      practiceArea: "Tous les domaines de pratique",
+      alphabetic: "Alphabétique",
+      all: "Tous",
+      clearFilters: "Effacer les filtres",
+      noResults: "Aucun résultat trouvé",
+      teamMembers: "membres de l'équipe",
+      positions: {
+        foundingPartner: "Associé fondateur",
+        partner: "Associé",
+        ofCounsel: "Of Counsel",
+        seniorAssociate: "Collaborateur senior",
+        associate: "Collaborateur",
+      },
+    },
+    it: {
+      title: "Il nostro team",
+      subtitle: "Conosci i nostri esperti",
+      errorMessage: "Impossibile caricare i membri del team",
+      allMembers: "Tutti",
+      partnersOnly: "Partner",
+      ofCounsel: "Of Counsel",
+      associates: "Associate",
+      viewProfile: "Vedi profilo",
+      downloadVCard: "Scarica vCard",
+      searchPlaceholder: "Cerca...",
+      filterBy: "Filtra per",
+      seniority: "Tutte le posizioni",
+      practiceArea: "Tutte le aree di pratica",
+      alphabetic: "Alfabetico",
+      all: "Tutti",
+      clearFilters: "Cancella filtri",
+      noResults: "Nessun risultato trovato",
+      teamMembers: "membri del team",
+      positions: {
+        foundingPartner: "Partner fondatore",
+        partner: "Partner",
+        ofCounsel: "Of Counsel",
+        seniorAssociate: "Senior Associate",
+        associate: "Associate",
+      },
     },
   };
 
-  const translationBannerMessages: Record<string, string> = {
-    de: "Inhalte werden in Englisch angezeigt. Klicken Sie auf ein Teammitglied für vollständige Übersetzung.",
-    zh: "内容以英语显示。点击团队成员查看完整翻译。",
-    ko: "콘텐츠가 영어로 표시됩니다. 팀원을 클릭하면 전체 번역을 볼 수 있습니다.",
-    ja: "コンテンツは英語で表示されています。チームメンバーをクリックして完全な翻訳をご覧ください。",
-    ar: "يتم عرض المحتوى باللغة الإنجليزية. انقر على عضو الفريق للترجمة الكاملة.",
-    ru: "Содержимое отображается на английском языке. Нажмите на члена команды для полного перевода.",
-    fr: "Le contenu est affiché en anglais. Cliquez sur un membre de l'équipe pour la traduction complète.",
-    it: "Il contenuto viene visualizzato in inglese. Fare clic su un membro del team per la traduzione completa.",
-  };
-
-  const t = content[displayLanguage];
-  const isNonNativeLanguage = language !== 'en' && language !== 'es';
-  const translationBanner = isNonNativeLanguage ? translationBannerMessages[language] : null;
+  const t = content[language] || content.en;
 
   const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
 
@@ -168,9 +411,9 @@ export default function Team() {
   };
 
   const getSeniorityLabel = (member: TeamMember) => {
-    if (member.isPartner) return language === "es" ? "Socio" : "Partner";
-    if (member.title === "Of Counsel") return "Of Counsel";
-    return language === "es" ? "Asociado" : "Associate";
+    if (member.isPartner) return t.positions.partner;
+    if (member.title === "Of Counsel") return t.positions.ofCounsel;
+    return t.positions.associate;
   };
 
   const getSeniorityColor = (member: TeamMember) => {
@@ -204,14 +447,6 @@ export default function Team() {
             >
               {t.subtitle}
             </p>
-            {translationBanner && (
-              <p 
-                className="mt-4 text-sm italic text-white/70 max-w-2xl mx-auto"
-                data-testid="text-translation-banner"
-              >
-                {translationBanner}
-              </p>
-            )}
           </motion.div>
         </div>
       </section>

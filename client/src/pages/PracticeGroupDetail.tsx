@@ -182,6 +182,13 @@ export default function PracticeGroupDetail() {
     successCasesSubtitle: string;
     errorMessage: string;
     loading: string;
+    overview: string;
+    keyContacts: string;
+    relatedIndustries: string;
+    relatedPractices: string;
+    representativeMatters: string;
+    featured: string;
+    client: string;
   }> = {
     en: {
       backToAll: "All Practice Groups",
@@ -202,6 +209,13 @@ export default function PracticeGroupDetail() {
       successCasesSubtitle: "Representative matters successfully handled by our practice.",
       errorMessage: "Practice group not found",
       loading: "Loading...",
+      overview: "Overview",
+      keyContacts: "Key Contacts",
+      relatedIndustries: "Related Industries",
+      relatedPractices: "Related Practice Areas",
+      representativeMatters: "Representative Matters",
+      featured: "Featured",
+      client: "Client:",
     },
     es: {
       backToAll: "Todas las Áreas de Práctica",
@@ -222,9 +236,16 @@ export default function PracticeGroupDetail() {
       successCasesSubtitle: "Casos representativos manejados exitosamente por nuestra práctica.",
       errorMessage: "Área de práctica no encontrada",
       loading: "Cargando...",
+      overview: "Resumen",
+      keyContacts: "Contactos Clave",
+      relatedIndustries: "Industrias Relacionadas",
+      relatedPractices: "Áreas de Práctica Relacionadas",
+      representativeMatters: "Casos Representativos",
+      featured: "Destacado",
+      client: "Cliente:",
     },
     de: {
-      backToAll: "Alle Praxisbereiche",
+      backToAll: "Zurück zu Praxisbereichen",
       contactUs: "Kontakt",
       contactCta: "Kontaktieren Sie unser Team",
       contactSubtitle: "Lassen Sie unsere erfahrenen Anwälte Ihnen bei Ihren rechtlichen Herausforderungen helfen.",
@@ -241,10 +262,17 @@ export default function PracticeGroupDetail() {
       successCasesTitle: "Erfolgsfälle",
       successCasesSubtitle: "Repräsentative Mandate, die von unserer Praxis erfolgreich bearbeitet wurden.",
       errorMessage: "Praxisbereich nicht gefunden",
-      loading: "Laden...",
+      loading: "Wird geladen...",
+      overview: "Übersicht",
+      keyContacts: "Hauptkontakte",
+      relatedIndustries: "Verwandte Branchen",
+      relatedPractices: "Verwandte Praxisbereiche",
+      representativeMatters: "Beispielmandate",
+      featured: "Empfohlen",
+      client: "Mandant:",
     },
     zh: {
-      backToAll: "所有业务领域",
+      backToAll: "返回业务领域",
       contactUs: "联系我们",
       contactCta: "联系我们的团队",
       contactSubtitle: "让我们经验丰富的律师帮助您应对法律挑战。",
@@ -262,9 +290,16 @@ export default function PracticeGroupDetail() {
       successCasesSubtitle: "我们业务成功处理的代表性案件。",
       errorMessage: "未找到业务领域",
       loading: "加载中...",
+      overview: "概述",
+      keyContacts: "主要联系人",
+      relatedIndustries: "相关行业",
+      relatedPractices: "相关业务领域",
+      representativeMatters: "代表性案例",
+      featured: "精选",
+      client: "客户：",
     },
     ko: {
-      backToAll: "모든 업무 분야",
+      backToAll: "업무 분야로 돌아가기",
       contactUs: "문의하기",
       contactCta: "팀에 연락하기",
       contactSubtitle: "경험 풍부한 변호사가 법적 문제 해결을 도와드립니다.",
@@ -282,15 +317,22 @@ export default function PracticeGroupDetail() {
       successCasesSubtitle: "성공적으로 처리한 대표적인 사건들입니다.",
       errorMessage: "업무 분야를 찾을 수 없습니다",
       loading: "로딩 중...",
+      overview: "개요",
+      keyContacts: "주요 연락처",
+      relatedIndustries: "관련 산업",
+      relatedPractices: "관련 업무 분야",
+      representativeMatters: "대표 사례",
+      featured: "추천",
+      client: "의뢰인:",
     },
     ja: {
-      backToAll: "すべての取扱分野",
+      backToAll: "取扱分野に戻る",
       contactUs: "お問い合わせ",
       contactCta: "チームにお問い合わせ",
       contactSubtitle: "経験豊富な弁護士が法的課題の解決をお手伝いします。",
       emailUs: "メールを送る",
       callUs: "電話する",
-      ourTeam: "チーム",
+      ourTeam: "私たちのチーム",
       partners: "パートナー",
       ofCounsel: "オブカウンセル",
       associates: "アソシエイト",
@@ -302,9 +344,16 @@ export default function PracticeGroupDetail() {
       successCasesSubtitle: "当事務所が成功裏に処理した代表的な案件です。",
       errorMessage: "取扱分野が見つかりません",
       loading: "読み込み中...",
+      overview: "概要",
+      keyContacts: "主要連絡先",
+      relatedIndustries: "関連業界",
+      relatedPractices: "関連取扱分野",
+      representativeMatters: "代表的な案件",
+      featured: "注目",
+      client: "クライアント：",
     },
     ar: {
-      backToAll: "جميع مجالات الممارسة",
+      backToAll: "العودة إلى مجالات الممارسة",
       contactUs: "اتصل بنا",
       contactCta: "تواصل مع فريقنا",
       contactSubtitle: "دع محامينا ذوي الخبرة يساعدونك في تحدياتك القانونية.",
@@ -315,16 +364,23 @@ export default function PracticeGroupDetail() {
       ofCounsel: "مستشار قانوني",
       associates: "محامون مساعدون",
       viewAll: "عرض الكل",
-      viewProfile: "عرض الملف",
+      viewProfile: "عرض الملف الشخصي",
       rankingsTitle: "التصنيفات والاعتراف",
       rankingsSubtitle: "تم الاعتراف بممارستنا من قبل أبرز الدلائل القانونية في العالم.",
       successCasesTitle: "قضايا ناجحة",
       successCasesSubtitle: "قضايا تمثيلية تمت معالجتها بنجاح.",
-      errorMessage: "لم يتم العثور على مجال الممارسة",
+      errorMessage: "مجال الممارسة غير موجود",
       loading: "جاري التحميل...",
+      overview: "نظرة عامة",
+      keyContacts: "جهات الاتصال الرئيسية",
+      relatedIndustries: "القطاعات ذات الصلة",
+      relatedPractices: "مجالات الممارسة ذات الصلة",
+      representativeMatters: "قضايا تمثيلية",
+      featured: "مميز",
+      client: "العميل:",
     },
     ru: {
-      backToAll: "Все практики",
+      backToAll: "Назад к практикам",
       contactUs: "Свяжитесь с нами",
       contactCta: "Связаться с командой",
       contactSubtitle: "Позвольте нашим опытным юристам помочь вам с вашими правовыми вопросами.",
@@ -335,16 +391,23 @@ export default function PracticeGroupDetail() {
       ofCounsel: "Of Counsel",
       associates: "Ассоциаты",
       viewAll: "Показать все",
-      viewProfile: "Профиль",
+      viewProfile: "Посмотреть профиль",
       rankingsTitle: "Рейтинги и признание",
       rankingsSubtitle: "Наша практика признана ведущими юридическими справочниками мира.",
       successCasesTitle: "Успешные дела",
       successCasesSubtitle: "Показательные дела, успешно проведённые нашей практикой.",
       errorMessage: "Практика не найдена",
       loading: "Загрузка...",
+      overview: "Обзор",
+      keyContacts: "Ключевые контакты",
+      relatedIndustries: "Связанные отрасли",
+      relatedPractices: "Связанные практики",
+      representativeMatters: "Типичные дела",
+      featured: "Рекомендовано",
+      client: "Клиент:",
     },
     fr: {
-      backToAll: "Tous les domaines",
+      backToAll: "Retour aux domaines de pratique",
       contactUs: "Contactez-nous",
       contactCta: "Contactez notre équipe",
       contactSubtitle: "Laissez nos avocats expérimentés vous aider dans vos défis juridiques.",
@@ -362,9 +425,16 @@ export default function PracticeGroupDetail() {
       successCasesSubtitle: "Affaires représentatives traitées avec succès par notre cabinet.",
       errorMessage: "Domaine de pratique non trouvé",
       loading: "Chargement...",
+      overview: "Aperçu",
+      keyContacts: "Contacts clés",
+      relatedIndustries: "Industries connexes",
+      relatedPractices: "Domaines de pratique connexes",
+      representativeMatters: "Dossiers représentatifs",
+      featured: "En vedette",
+      client: "Client :",
     },
     it: {
-      backToAll: "Tutte le aree",
+      backToAll: "Torna alle aree di pratica",
       contactUs: "Contattaci",
       contactCta: "Contatta il nostro team",
       contactSubtitle: "Lascia che i nostri avvocati esperti ti aiutino con le tue sfide legali.",
@@ -382,6 +452,13 @@ export default function PracticeGroupDetail() {
       successCasesSubtitle: "Casi rappresentativi gestiti con successo dalla nostra pratica.",
       errorMessage: "Area di pratica non trovata",
       loading: "Caricamento...",
+      overview: "Panoramica",
+      keyContacts: "Contatti principali",
+      relatedIndustries: "Settori correlati",
+      relatedPractices: "Aree di pratica correlate",
+      representativeMatters: "Casi rappresentativi",
+      featured: "In evidenza",
+      client: "Cliente:",
     },
   };
 
@@ -628,7 +705,7 @@ export default function PracticeGroupDetail() {
                               {matter.isHighlight && (
                                 <Badge className="bg-primary text-white rounded-md text-xs">
                                   <Star className="w-3 h-3 mr-1" />
-                                  Featured
+                                  {t.featured}
                                 </Badge>
                               )}
                               <Badge 
@@ -659,7 +736,7 @@ export default function PracticeGroupDetail() {
                             data-testid={`text-matter-client-${matter.id}`}
                           >
                             <span className="font-medium">
-                              {language === "es" ? "Cliente: " : "Client: "}
+                              {t.client}{" "}
                             </span>
                             {language === "es" ? (matter.clientEs || matter.client) : matter.client}
                           </p>
