@@ -70,7 +70,7 @@ function NewsCardImage({
 }
 
 export default function NewsDetail() {
-  const { language, displayLanguage } = useLanguage();
+  const { language } = useLanguage();
   const { toast } = useToast();
   const params = useParams<{ slug: string }>();
   const slug = params.slug;
@@ -418,7 +418,7 @@ export default function NewsDetail() {
             authorUrl={primaryAuthor ? `https://www.vonwobeser.com/team/${primaryAuthor.slug}` : undefined}
             imageUrl={newsArticle.imageUrl}
             url={`https://www.vonwobeser.com/news/${newsArticle.slug}`}
-            language={displayLanguage}
+            language={language}
           />
           <BreadcrumbJsonLd
             items={[
@@ -426,7 +426,7 @@ export default function NewsDetail() {
               { name: language === "es" ? "Noticias" : "News", url: "https://www.vonwobeser.com/#news" },
               { name: language === "es" ? newsArticle.titleEs : newsArticle.title, url: `https://www.vonwobeser.com/news/${newsArticle.slug}` }
             ]}
-            language={displayLanguage}
+            language={language}
           />
         </>
       )}

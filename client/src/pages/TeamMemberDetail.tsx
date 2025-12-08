@@ -48,7 +48,7 @@ function NewsImageWithFallback({
 }
 
 export default function TeamMemberDetail() {
-  const { language, displayLanguage } = useLanguage();
+  const { language } = useLanguage();
   const params = useParams<{ slug: string }>();
   const slug = params.slug;
 
@@ -749,7 +749,7 @@ export default function TeamMemberDetail() {
             education={getMemberEducation()}
             languages={member.languages as string[] | undefined}
             knowsAbout={getMemberKnowsAbout()}
-            language={displayLanguage}
+            language={language}
           />
           <BreadcrumbJsonLd
             items={[
@@ -757,7 +757,7 @@ export default function TeamMemberDetail() {
               { name: language === "es" ? "Equipo" : "Team", url: "https://www.vonwobeser.com/team" },
               { name: member.name, url: `https://www.vonwobeser.com/team/${member.slug}` }
             ]}
-            language={displayLanguage}
+            language={language}
           />
         </>
       )}

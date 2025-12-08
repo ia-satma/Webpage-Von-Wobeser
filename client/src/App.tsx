@@ -36,7 +36,7 @@ import AdminPostForm from "@/pages/admin/AdminPostForm";
 import AdminCategories from "@/pages/admin/AdminCategories";
 
 function SkipLinks() {
-  const { displayLanguage } = useLanguage();
+  const { language } = useLanguage();
   
   const labels = {
     en: {
@@ -47,9 +47,41 @@ function SkipLinks() {
       skipToMain: "Saltar al contenido principal",
       skipToNav: "Saltar a la navegación",
     },
+    de: {
+      skipToMain: "Zum Hauptinhalt springen",
+      skipToNav: "Zur Navigation springen",
+    },
+    zh: {
+      skipToMain: "跳至主要内容",
+      skipToNav: "跳至导航",
+    },
+    ko: {
+      skipToMain: "주요 콘텐츠로 건너뛰기",
+      skipToNav: "탐색으로 건너뛰기",
+    },
+    ja: {
+      skipToMain: "メインコンテンツにスキップ",
+      skipToNav: "ナビゲーションにスキップ",
+    },
+    ar: {
+      skipToMain: "انتقل إلى المحتوى الرئيسي",
+      skipToNav: "انتقل إلى التنقل",
+    },
+    ru: {
+      skipToMain: "Перейти к основному содержанию",
+      skipToNav: "Перейти к навигации",
+    },
+    fr: {
+      skipToMain: "Aller au contenu principal",
+      skipToNav: "Aller à la navigation",
+    },
+    it: {
+      skipToMain: "Vai al contenuto principale",
+      skipToNav: "Vai alla navigazione",
+    },
   };
   
-  const t = labels[displayLanguage];
+  const t = labels[language as keyof typeof labels] || labels.en;
   
   return (
     <div className="skip-links">

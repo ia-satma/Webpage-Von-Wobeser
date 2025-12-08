@@ -65,7 +65,6 @@ function NewsPanel({ language, news }: { language: LanguageCode; news: News[] })
   const displayNews = news.slice(0, 2);
   
   const t = newsPanelLabels[language] || newsPanelLabels.en;
-  const displayLang = language === "es" ? "es" : "en";
 
   return (
     <motion.div
@@ -99,7 +98,7 @@ function NewsPanel({ language, news }: { language: LanguageCode; news: News[] })
                 className="text-sm font-medium text-[#1F2937] leading-snug mb-3 italic"
                 data-testid={`text-news-title-${item.id}`}
               >
-                {displayLang === "es" ? item.titleEs : item.title}
+                {language === "es" ? item.titleEs : item.title}
               </h4>
               <Link 
                 href={`/news/${item.slug}`}

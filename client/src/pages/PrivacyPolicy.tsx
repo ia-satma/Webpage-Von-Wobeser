@@ -9,7 +9,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 type SupportedLanguage = 'en' | 'es' | 'de' | 'zh' | 'ko' | 'ja' | 'ar' | 'ru' | 'fr' | 'it';
 
 export default function PrivacyPolicy() {
-  const { language, displayLanguage } = useLanguage();
+  const { language } = useLanguage();
 
   const content: Record<SupportedLanguage, {
     title: string;
@@ -2568,7 +2568,7 @@ Sito web: www.vonwobeser.com`
               <CardContent className="p-8">
                 <Shield className="w-10 h-10 text-primary mx-auto mb-4" />
                 <p className="text-gray-700 dark:text-gray-300 mb-4">
-                  {contactText[displayLanguage as SupportedLanguage] || contactText.en}
+                  {contactText[language as keyof typeof contactText] || contactText.en}
                 </p>
                 <div className="flex flex-col sm:flex-row justify-center items-center gap-4">
                   <a 
