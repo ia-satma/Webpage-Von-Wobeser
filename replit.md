@@ -20,10 +20,13 @@ The application implements a dual translation approach supporting 10 languages (
 
 2. **Dynamic Content Translations (OpenAI)**: Used for database content (news, team bios, practice descriptions). Translations are cached in the database (`translation_caches` table) and requested on-demand via the `useTranslatedContent` hook. The backend uses OpenAI GPT-5 for high-quality legal text translation.
 
+3. **Automatic Language Detection (Geolocation)**: On first visit (when no stored preference exists), the system automatically detects the user's country via IP geolocation (`/api/detect-language` endpoint using ip-api.com) and sets the appropriate language. Supports country-to-language mapping for Spanish-speaking countries (MX, ES, AR, etc.), German-speaking (DE, AT, CH), Chinese regions (CN, TW, HK), and more. Falls back to English for unsupported countries or detection failures.
+
 Key files:
 - `client/src/i18n.ts` - i18next configuration with all 10 language resources
-- `client/src/contexts/LanguageContext.tsx` - Language state management and persistence
+- `client/src/contexts/LanguageContext.tsx` - Language state management, persistence, and geolocation detection
 - `client/src/hooks/useTranslatedContent.ts` - Dynamic translation hook for database content
+- `server/routes.ts` - `/api/detect-language` endpoint with COUNTRY_TO_LANGUAGE mapping
 - `server/openai.ts` - OpenAI translation API integration
 
 New dedicated pages for Diversity & Inclusion, Pro Bono, German Desk, Articles, Newsletter, and Internships have been added, all featuring bilingual support, SEO, and animations.
