@@ -459,11 +459,71 @@ export type InsertEvent = z.infer<typeof insertEventSchema>;
 export type Event = typeof events.$inferSelect;
 
 export const eventTypes = [
-  { value: "conference", en: "Conference", es: "Conferencia" },
-  { value: "webinar", en: "Webinar", es: "Webinar" },
-  { value: "sponsorship", en: "Sponsorship", es: "Patrocinio" },
-  { value: "speaking", en: "Speaking Engagement", es: "Ponencia" },
-  { value: "networking", en: "Networking Event", es: "Evento de Networking" },
+  { 
+    value: "conference", 
+    en: "Conference", 
+    es: "Conferencia", 
+    de: "Konferenz", 
+    zh: "会议", 
+    ko: "컨퍼런스", 
+    ja: "カンファレンス", 
+    ar: "مؤتمر", 
+    ru: "Конференция", 
+    fr: "Conférence", 
+    it: "Conferenza" 
+  },
+  { 
+    value: "webinar", 
+    en: "Webinar", 
+    es: "Webinar", 
+    de: "Webinar", 
+    zh: "网络研讨会", 
+    ko: "웨비나", 
+    ja: "ウェビナー", 
+    ar: "ندوة عبر الإنترنت", 
+    ru: "Вебинар", 
+    fr: "Webinaire", 
+    it: "Webinar" 
+  },
+  { 
+    value: "sponsorship", 
+    en: "Sponsorship", 
+    es: "Patrocinio", 
+    de: "Sponsoring", 
+    zh: "赞助", 
+    ko: "스폰서십", 
+    ja: "スポンサーシップ", 
+    ar: "رعاية", 
+    ru: "Спонсорство", 
+    fr: "Parrainage", 
+    it: "Sponsorizzazione" 
+  },
+  { 
+    value: "speaking", 
+    en: "Speaking Engagement", 
+    es: "Ponencia", 
+    de: "Vortrag", 
+    zh: "演讲活动", 
+    ko: "강연", 
+    ja: "講演", 
+    ar: "مشاركة في التحدث", 
+    ru: "Выступление", 
+    fr: "Conférence", 
+    it: "Intervento" 
+  },
+  { 
+    value: "networking", 
+    en: "Networking Event", 
+    es: "Evento de Networking", 
+    de: "Networking-Veranstaltung", 
+    zh: "社交活动", 
+    ko: "네트워킹 이벤트", 
+    ja: "ネットワーキングイベント", 
+    ar: "حدث التواصل", 
+    ru: "Нетворкинг", 
+    fr: "Événement de réseautage", 
+    it: "Evento di networking" 
+  },
 ] as const;
 
 // ============================================

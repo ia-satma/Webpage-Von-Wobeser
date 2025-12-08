@@ -27,7 +27,8 @@ const getEventTypeColor = (eventType: string): string => {
 const getEventTypeLabel = (eventType: string, language: string): string => {
   const type = eventTypes.find(t => t.value === eventType);
   if (!type) return eventType;
-  return language === "es" ? type.es : type.en;
+  const langKey = language as keyof typeof type;
+  return (type[langKey] as string) || type.en;
 };
 
 export default function EventsSection({ language }: EventsSectionProps) {

@@ -32,6 +32,7 @@ export default function MapSection({ language }: MapSectionProps) {
     viewMap: string;
     officeHours: string;
     errorMessage: string;
+    mapTitle: string;
   }> = {
     en: {
       title: siteContent?.locationTitle || "Our Location",
@@ -49,6 +50,7 @@ export default function MapSection({ language }: MapSectionProps) {
       viewMap: "View on Map",
       officeHours: "Office Hours",
       errorMessage: "Failed to load location information",
+      mapTitle: "Von Wobeser y Sierra Location",
     },
     es: {
       title: "Nuestra Ubicación",
@@ -66,6 +68,7 @@ export default function MapSection({ language }: MapSectionProps) {
       viewMap: "Ver en el mapa",
       officeHours: "Horario de atención",
       errorMessage: "Error al cargar información de ubicación",
+      mapTitle: "Ubicación de Von Wobeser y Sierra",
     },
     de: {
       title: "Unser Standort",
@@ -83,6 +86,7 @@ export default function MapSection({ language }: MapSectionProps) {
       viewMap: "Auf Karte anzeigen",
       officeHours: "Öffnungszeiten",
       errorMessage: "Standortinformationen konnten nicht geladen werden",
+      mapTitle: "Standort von Von Wobeser y Sierra",
     },
     zh: {
       title: "我们的位置",
@@ -100,6 +104,7 @@ export default function MapSection({ language }: MapSectionProps) {
       viewMap: "在地图上查看",
       officeHours: "办公时间",
       errorMessage: "无法加载位置信息",
+      mapTitle: "Von Wobeser y Sierra 位置",
     },
     ko: {
       title: "위치",
@@ -117,6 +122,7 @@ export default function MapSection({ language }: MapSectionProps) {
       viewMap: "지도에서 보기",
       officeHours: "업무 시간",
       errorMessage: "위치 정보를 불러오지 못했습니다",
+      mapTitle: "Von Wobeser y Sierra 위치",
     },
     ja: {
       title: "所在地",
@@ -134,6 +140,7 @@ export default function MapSection({ language }: MapSectionProps) {
       viewMap: "地図で見る",
       officeHours: "営業時間",
       errorMessage: "位置情報の読み込みに失敗しました",
+      mapTitle: "Von Wobeser y Sierra の所在地",
     },
     ar: {
       title: "موقعنا",
@@ -151,6 +158,7 @@ export default function MapSection({ language }: MapSectionProps) {
       viewMap: "عرض على الخريطة",
       officeHours: "ساعات العمل",
       errorMessage: "فشل في تحميل معلومات الموقع",
+      mapTitle: "موقع Von Wobeser y Sierra",
     },
     ru: {
       title: "Наше местоположение",
@@ -168,6 +176,7 @@ export default function MapSection({ language }: MapSectionProps) {
       viewMap: "Показать на карте",
       officeHours: "Часы работы",
       errorMessage: "Не удалось загрузить информацию о местоположении",
+      mapTitle: "Местоположение Von Wobeser y Sierra",
     },
     fr: {
       title: "Notre emplacement",
@@ -185,6 +194,7 @@ export default function MapSection({ language }: MapSectionProps) {
       viewMap: "Voir sur la carte",
       officeHours: "Heures d'ouverture",
       errorMessage: "Impossible de charger les informations de localisation",
+      mapTitle: "Emplacement de Von Wobeser y Sierra",
     },
     it: {
       title: "La nostra sede",
@@ -202,6 +212,7 @@ export default function MapSection({ language }: MapSectionProps) {
       viewMap: "Visualizza sulla mappa",
       officeHours: "Orari di apertura",
       errorMessage: "Impossibile caricare le informazioni sulla posizione",
+      mapTitle: "Sede di Von Wobeser y Sierra",
     },
   };
 
@@ -272,7 +283,7 @@ export default function MapSection({ language }: MapSectionProps) {
               allowFullScreen
               loading="lazy"
               referrerPolicy="no-referrer-when-downgrade"
-              title="Von Wobeser y Sierra Location"
+              title={t.mapTitle}
               data-testid="iframe-map"
             />
           </motion.div>

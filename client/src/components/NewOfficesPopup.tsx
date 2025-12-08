@@ -45,6 +45,7 @@ const content: Record<string, {
   addressLine2: string;
   addressLine3: string;
   close: string;
+  officeInterior: string;
 }> = {
   en: {
     heroTitle: "WE GO WHERE CLIENTS NEED US",
@@ -68,6 +69,7 @@ const content: Record<string, {
     addressLine2: "Access via Arquímedes N.° 10",
     addressLine3: "C.P. 11560, Ciudad de México.",
     close: "Close",
+    officeInterior: "Office interior",
   },
   es: {
     heroTitle: "VAMOS A DONDE NOS NECESITAN NUESTROS CLIENTES",
@@ -91,6 +93,7 @@ const content: Record<string, {
     addressLine2: "Acceso por Arquímedes N.° 10",
     addressLine3: "C.P. 11560, Ciudad de México.",
     close: "Cerrar",
+    officeInterior: "Interior de oficina",
   },
   de: {
     heroTitle: "WIR GEHEN DORTHIN, WO UNSERE MANDANTEN UNS BRAUCHEN",
@@ -114,6 +117,7 @@ const content: Record<string, {
     addressLine2: "Zugang über Arquímedes Nr. 10",
     addressLine3: "C.P. 11560, Mexiko-Stadt.",
     close: "Schließen",
+    officeInterior: "Büroeinrichtung",
   },
   zh: {
     heroTitle: "我们到客户需要我们的地方去",
@@ -137,6 +141,7 @@ const content: Record<string, {
     addressLine2: "通过 Arquímedes 10 号进入",
     addressLine3: "邮编 11560, 墨西哥城.",
     close: "关闭",
+    officeInterior: "办公室内部",
   },
   ko: {
     heroTitle: "고객이 필요로 하는 곳으로 갑니다",
@@ -160,6 +165,7 @@ const content: Record<string, {
     addressLine2: "Arquímedes N.° 10으로 접근",
     addressLine3: "우편번호 11560, 멕시코시티.",
     close: "닫기",
+    officeInterior: "사무실 내부",
   },
   ja: {
     heroTitle: "クライアントが必要とする場所へ",
@@ -183,6 +189,7 @@ const content: Record<string, {
     addressLine2: "Arquímedes N.° 10からアクセス",
     addressLine3: "郵便番号 11560, メキシコシティ.",
     close: "閉じる",
+    officeInterior: "オフィス内装",
   },
   ar: {
     heroTitle: "نذهب حيث يحتاجنا عملاؤنا",
@@ -206,6 +213,7 @@ const content: Record<string, {
     addressLine2: "الدخول عبر Arquímedes رقم 10",
     addressLine3: "الرمز البريدي 11560، مدينة مكسيكو.",
     close: "إغلاق",
+    officeInterior: "مناطق المكتب الداخلية",
   },
   ru: {
     heroTitle: "МЫ ИДЁМ ТУДА, ГДЕ НУЖНЫ НАШИМ КЛИЕНТАМ",
@@ -229,6 +237,7 @@ const content: Record<string, {
     addressLine2: "Вход через Arquímedes № 10",
     addressLine3: "Почтовый индекс 11560, Мехико.",
     close: "Закрыть",
+    officeInterior: "Интерьер офиса",
   },
   fr: {
     heroTitle: "NOUS ALLONS LÀ OÙ NOS CLIENTS ONT BESOIN DE NOUS",
@@ -252,6 +261,7 @@ const content: Record<string, {
     addressLine2: "Accès par Arquímedes N° 10",
     addressLine3: "C.P. 11560, Mexico.",
     close: "Fermer",
+    officeInterior: "Intérieur du bureau",
   },
   it: {
     heroTitle: "ANDIAMO DOVE I CLIENTI HANNO BISOGNO DI NOI",
@@ -275,19 +285,20 @@ const content: Record<string, {
     addressLine2: "Accesso da Arquímedes N.° 10",
     addressLine3: "C.P. 11560, Città del Messico.",
     close: "Chiudi",
+    officeInterior: "Interni dell'ufficio",
   },
 };
 
 const collageImages = [
-  { src: collage01, alt: "Office interior 1" },
-  { src: collage02, alt: "Office interior 2" },
-  { src: collage03, alt: "Office interior 3" },
-  { src: collage04, alt: "Office interior 4" },
-  { src: collage05, alt: "Office interior 5" },
-  { src: collage06, alt: "Office interior 6" },
-  { src: collage07, alt: "Office interior 7" },
-  { src: collage08, alt: "Office interior 8" },
-  { src: collage09, alt: "Office interior 9" },
+  collage01,
+  collage02,
+  collage03,
+  collage04,
+  collage05,
+  collage06,
+  collage07,
+  collage08,
+  collage09,
 ];
 
 const GOOGLE_MAPS_URL = "https://www.google.com/maps/dir//Von+Wobeser+y+Sierra,+S.C.+Campos+El%C3%ADseos+204+Polanco,+Miguel+Hidalgo+11560+Ciudad+de+M%C3%A9xico,+CDMX/@19.427554,-99.1927585,16z";
@@ -443,8 +454,8 @@ export default function NewOfficesPopup({ language }: NewOfficesPopupProps) {
                     data-testid={`img-collage-${index}`}
                   >
                     <img
-                      src={img.src}
-                      alt={img.alt}
+                      src={img}
+                      alt={`${t.officeInterior} ${index + 1}`}
                       className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
                       loading="lazy"
                     />
