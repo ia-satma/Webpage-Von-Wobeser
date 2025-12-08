@@ -1303,7 +1303,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
       }
 
       const validFieldsByContentType: Record<string, readonly string[]> = {
-        team_member: ['title', 'role', 'bio'],
+        team_member: ['title', 'role', 'bio', 'degree'],
         practice_group: ['name', 'description', 'fullDescription'],
         industry_group: ['name', 'description', 'fullDescription'],
         news: ['title', 'excerpt', 'content'],
