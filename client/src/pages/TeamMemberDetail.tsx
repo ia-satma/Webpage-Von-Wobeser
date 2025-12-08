@@ -144,6 +144,72 @@ function EducationItemTranslated({
   );
 }
 
+function PracticeGroupBadge({
+  group,
+  language,
+}: {
+  group: PracticeGroup;
+  language: LanguageCode;
+}) {
+  const { translatedFields } = useTranslatedContent({
+    contentType: 'practice_group',
+    entityId: group.id.toString(),
+    fields: { name: group.name, nameEs: group.nameEs },
+    enabled: language !== 'en' && language !== 'es',
+  });
+
+  const displayName = language === 'es'
+    ? (group.nameEs || group.name)
+    : language === 'en'
+      ? group.name
+      : (translatedFields.name || group.name);
+
+  return (
+    <Link href={`/practice-groups/${group.slug}`}>
+      <Badge 
+        variant="outline" 
+        className="rounded-md cursor-pointer py-2 px-4"
+        data-testid={`badge-practice-group-${group.slug}`}
+      >
+        {displayName}
+      </Badge>
+    </Link>
+  );
+}
+
+function IndustryGroupBadge({
+  group,
+  language,
+}: {
+  group: IndustryGroup;
+  language: LanguageCode;
+}) {
+  const { translatedFields } = useTranslatedContent({
+    contentType: 'industry_group',
+    entityId: group.id.toString(),
+    fields: { name: group.name, nameEs: group.nameEs },
+    enabled: language !== 'en' && language !== 'es',
+  });
+
+  const displayName = language === 'es'
+    ? (group.nameEs || group.name)
+    : language === 'en'
+      ? group.name
+      : (translatedFields.name || group.name);
+
+  return (
+    <Link href={`/industry-groups/${group.slug}`}>
+      <Badge 
+        variant="outline" 
+        className="rounded-md cursor-pointer py-2 px-4"
+        data-testid={`badge-industry-group-${group.slug}`}
+      >
+        {displayName}
+      </Badge>
+    </Link>
+  );
+}
+
 export default function TeamMemberDetail() {
   const { language } = useLanguage();
   const params = useParams<{ slug: string }>();
@@ -182,7 +248,7 @@ export default function TeamMemberDetail() {
       bio: member?.bio,
       bioEs: member?.bioEs,
     },
-    enabled: !!member,
+    enabled: !!member && !!member.bio && language !== 'en' && language !== 'es',
   });
 
   const content: Record<string, {
@@ -825,9 +891,23 @@ export default function TeamMemberDetail() {
     );
   }
 
-  const displayTitle = translatedFields.title || member?.title;
-  const displayRole = translatedFields.role || member?.role;
-  const displayBio = translatedFields.bio || member?.bio;
+  const displayTitle = language === 'es'
+    ? (member?.titleEs || member?.title)
+    : language === 'en'
+      ? member?.title
+      : (translatedFields.title || member?.title);
+  
+  const displayRole = language === 'es'
+    ? (member?.roleEs || member?.role)
+    : language === 'en'
+      ? member?.role
+      : (translatedFields.role || member?.role);
+  
+  const displayBio = language === 'es'
+    ? (member?.bioEs || member?.bio)
+    : language === 'en'
+      ? member?.bio
+      : (translatedFields.bio || member?.bio);
 
   return (
     <div className="min-h-screen bg-white dark:bg-gray-900" data-testid="page-team-member-detail">
@@ -1145,15 +1225,11 @@ export default function TeamMemberDetail() {
                   </h2>
                   <div className="flex flex-wrap gap-2">
                     {practiceGroups.slice(0, 8).map((group) => (
-                      <Link key={group.id} href={`/practice-groups/${group.slug}`}>
-                        <Badge 
-                          variant="outline" 
-                          className="rounded-md cursor-pointer hover:bg-primary hover:text-white hover:border-primary transition-colors py-2 px-4"
-                          data-testid={`badge-practice-group-${group.slug}`}
-                        >
-                          {language === "es" ? group.nameEs : group.name}
-                        </Badge>
-                      </Link>
+                      <PracticeGroupBadge
+                        key={group.id}
+                        group={group}
+                        language={language}
+                      />
                     ))}
                   </div>
                 </motion.section>
@@ -1175,15 +1251,11 @@ export default function TeamMemberDetail() {
                   </h2>
                   <div className="flex flex-wrap gap-2">
                     {industryGroups.slice(0, 6).map((group) => (
-                      <Link key={group.id} href={`/industry-groups/${group.slug}`}>
-                        <Badge 
-                          variant="outline" 
-                          className="rounded-md cursor-pointer hover:bg-primary hover:text-white hover:border-primary transition-colors py-2 px-4"
-                          data-testid={`badge-industry-group-${group.slug}`}
-                        >
-                          {language === "es" ? group.nameEs : group.name}
-                        </Badge>
-                      </Link>
+                      <IndustryGroupBadge
+                        key={group.id}
+                        group={group}
+                        language={language}
+                      />
                     ))}
                   </div>
                 </motion.section>
