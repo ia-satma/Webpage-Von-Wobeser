@@ -521,7 +521,7 @@ export default function GermanDesk() {
   };
 
   return (
-    <div className="min-h-screen bg-white dark:bg-gray-900" data-testid="page-german-desk">
+    <div className="min-h-screen bg-white dark:bg-gray-900 overflow-x-hidden" data-testid="page-german-desk">
       <SEOHead page="germanDesk" language={language} />
       <Header />
       
@@ -660,7 +660,7 @@ export default function GermanDesk() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.35 }}
-            className="mb-20 bg-gradient-to-br from-primary/5 to-primary/10 dark:from-primary/10 dark:to-primary/20 rounded-md p-10"
+            className="mb-20 bg-gradient-to-br from-primary/5 to-primary/10 dark:from-primary/10 dark:to-primary/20 rounded-md p-4 sm:p-6 md:p-10"
             data-testid="section-differentiator"
           >
             <div className="text-center mb-12">
