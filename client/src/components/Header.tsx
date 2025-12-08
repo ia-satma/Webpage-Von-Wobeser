@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { Link, useLocation } from "wouter";
 import { Menu, X, Search, ChevronDown } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
@@ -19,13 +20,13 @@ interface SearchResults {
 }
 
 interface SubMenuItem {
-  label: { en: string; es: string };
+  labelKey: string;
   href: string;
   id: string;
 }
 
 interface MenuItem {
-  label: { en: string; es: string };
+  labelKey: string;
   href: string;
   id: string;
   subItems?: SubMenuItem[];
@@ -33,6 +34,7 @@ interface MenuItem {
 
 export default function Header() {
   const { language, displayLanguage } = useLanguage();
+  const { t } = useTranslation();
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
@@ -74,98 +76,57 @@ export default function Header() {
     };
   }, []);
 
-  const ariaLabels = {
-    en: {
-      mainNav: "Main navigation",
-      mobileNav: "Mobile navigation",
-      search: "Search",
-      openSearch: "Open search",
-      closeSearch: "Close search",
-      openMenu: "Open menu",
-      closeMenu: "Close menu",
-      toggleLanguage: "Switch language",
-      searchPlaceholder: "Search...",
-      noResults: "No results found",
-      teamSection: "Team",
-      practiceSection: "Practice Areas",
-      industrySection: "Industries",
-      newsSection: "News",
-      expandSubmenu: "Expand submenu",
-      collapseSubmenu: "Collapse submenu",
-    },
-    es: {
-      mainNav: "Navegación principal",
-      mobileNav: "Navegación móvil",
-      search: "Buscar",
-      openSearch: "Abrir búsqueda",
-      closeSearch: "Cerrar búsqueda",
-      openMenu: "Abrir menú",
-      closeMenu: "Cerrar menú",
-      toggleLanguage: "Cambiar idioma",
-      searchPlaceholder: "Buscar...",
-      noResults: "No se encontraron resultados",
-      teamSection: "Equipo",
-      practiceSection: "Áreas de Práctica",
-      industrySection: "Industrias",
-      newsSection: "Noticias",
-      expandSubmenu: "Expandir submenú",
-      collapseSubmenu: "Contraer submenú",
-    },
-  };
-
-  const aria = ariaLabels[displayLanguage];
-
   const menuItems: MenuItem[] = [
     {
-      label: { en: "Our Firm", es: "Nuestra Firma" },
+      labelKey: "nav.ourFirm",
       href: "/about",
       id: "our-firm",
       subItems: [
-        { label: { en: "Pro Bono", es: "Pro Bono" }, href: "/pro-bono", id: "pro-bono" },
-        { label: { en: "Diversity & Inclusion", es: "Diversidad e Inclusión" }, href: "/diversity-inclusion", id: "diversity-inclusion" },
+        { labelKey: "nav.probono", href: "/pro-bono", id: "pro-bono" },
+        { labelKey: "nav.diversity", href: "/diversity-inclusion", id: "diversity-inclusion" },
       ],
     },
     {
-      label: { en: "Attorneys", es: "Profesionales" },
+      labelKey: "nav.attorneys",
       href: "/team",
       id: "attorneys",
       subItems: [
-        { label: { en: "Partners", es: "Socios" }, href: "/team?type=partners", id: "partners" },
-        { label: { en: "Of Counsel", es: "Of Counsel" }, href: "/team?type=of-counsel", id: "of-counsel" },
-        { label: { en: "Counsel", es: "Consejeros" }, href: "/team?type=counsel", id: "counsel" },
-        { label: { en: "Associates", es: "Asociados" }, href: "/team?type=associates", id: "associates" },
+        { labelKey: "nav.partners", href: "/team?type=partners", id: "partners" },
+        { labelKey: "nav.ofCounsel", href: "/team?type=of-counsel", id: "of-counsel" },
+        { labelKey: "nav.counsel", href: "/team?type=counsel", id: "counsel" },
+        { labelKey: "nav.associates", href: "/team?type=associates", id: "associates" },
       ],
     },
     {
-      label: { en: "Capabilities", es: "Capacidades" },
+      labelKey: "nav.capabilities",
       href: "/practice-groups",
       id: "capabilities",
       subItems: [
-        { label: { en: "Practices (18)", es: "Prácticas (18)" }, href: "/practice-groups", id: "practices" },
-        { label: { en: "Industry Groups (7)", es: "Grupos de Industria (7)" }, href: "/industry-groups", id: "industry-groups" },
-        { label: { en: "German Desk", es: "German Desk" }, href: "/german-desk", id: "german-desk" },
+        { labelKey: "nav.practices", href: "/practice-groups", id: "practices" },
+        { labelKey: "nav.industryGroups", href: "/industry-groups", id: "industry-groups" },
+        { labelKey: "nav.desk", href: "/german-desk", id: "german-desk" },
       ],
     },
     {
-      label: { en: "Publications", es: "Publicaciones" },
+      labelKey: "nav.publications",
       href: "/news",
       id: "publications",
       subItems: [
-        { label: { en: "News", es: "Noticias" }, href: "/news", id: "news" },
-        { label: { en: "Articles", es: "Artículos" }, href: "/articles", id: "articles" },
-        { label: { en: "Newsletter", es: "Boletines" }, href: "/newsletter", id: "newsletter" },
+        { labelKey: "nav.news", href: "/news", id: "news" },
+        { labelKey: "nav.articles", href: "/articles", id: "articles" },
+        { labelKey: "nav.newsletter", href: "/newsletter", id: "newsletter" },
       ],
     },
     {
-      label: { en: "Career at VWyS", es: "Carrera en VWyS" },
+      labelKey: "nav.career",
       href: "/careers",
       id: "careers",
       subItems: [
-        { label: { en: "Interns", es: "Pasantes" }, href: "/careers/interns", id: "interns" },
+        { labelKey: "nav.interns", href: "/careers/interns", id: "interns" },
       ],
     },
     {
-      label: { en: "Contact", es: "Contacto" },
+      labelKey: "nav.contact",
       href: "/contact",
       id: "contact",
     },
@@ -227,7 +188,7 @@ export default function Header() {
             href="/"
             className="flex items-center gap-3 flex-shrink-0"
             data-testid="link-logo"
-            aria-label={displayLanguage === "es" ? "Von Wobeser y Sierra - Inicio" : "Von Wobeser y Sierra - Home"}
+            aria-label={`Von Wobeser y Sierra - ${t('nav.home')}`}
           >
             <img
               src={logoHD}
@@ -252,7 +213,7 @@ export default function Header() {
             className="hidden lg:flex items-center gap-1"
             data-testid="nav-desktop"
             role="navigation"
-            aria-label={aria.mainNav}
+            aria-label={t('common.mainNav')}
           >
             {menuItems.map((item) => (
               <div
@@ -276,7 +237,7 @@ export default function Header() {
                   aria-haspopup={item.subItems ? "true" : undefined}
                   aria-expanded={item.subItems ? activeDropdown === item.id : undefined}
                 >
-                  {item.label[displayLanguage]}
+                  {t(item.labelKey)}
                   {item.subItems && (
                     <ChevronDown
                       className={cn(
@@ -293,7 +254,7 @@ export default function Header() {
                   <div
                     className="absolute top-full left-0 mt-1 min-w-[220px] bg-white dark:bg-gray-800 rounded-md shadow-xl border border-gray-200 dark:border-gray-700 py-2 z-50"
                     role="menu"
-                    aria-label={`${item.label[displayLanguage]} submenu`}
+                    aria-label={`${t(item.labelKey)} submenu`}
                     data-testid={`dropdown-${item.id}`}
                     onMouseEnter={() => handleDropdownEnter(item.id)}
                     onMouseLeave={handleDropdownLeave}
@@ -307,7 +268,7 @@ export default function Header() {
                         data-testid={`link-subnav-${subItem.id}`}
                         onClick={() => setActiveDropdown(null)}
                       >
-                        {subItem.label[displayLanguage]}
+                        {t(subItem.labelKey)}
                       </Link>
                     ))}
                   </div>
@@ -326,7 +287,7 @@ export default function Header() {
                 )}
                 onClick={() => setIsSearchOpen(!isSearchOpen)}
                 data-testid="button-search"
-                aria-label={isSearchOpen ? aria.closeSearch : aria.openSearch}
+                aria-label={isSearchOpen ? t('common.closeSearch') : t('common.openSearch')}
                 aria-expanded={isSearchOpen}
                 aria-controls="search-panel"
               >
@@ -339,18 +300,18 @@ export default function Header() {
                   className="absolute right-0 top-full mt-2 w-80 bg-white dark:bg-gray-800 rounded-md shadow-xl border border-gray-200 dark:border-gray-700 overflow-hidden"
                   data-testid="container-search"
                   role="search"
-                  aria-label={aria.search}
+                  aria-label={t('common.search')}
                 >
                   <div className="p-3">
                     <Input
                       type="search"
-                      placeholder={aria.searchPlaceholder}
+                      placeholder={t('common.searchPlaceholder')}
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
                       className="rounded-md"
                       autoFocus
                       data-testid="input-global-search"
-                      aria-label={aria.search}
+                      aria-label={t('common.search')}
                     />
                   </div>
 
@@ -358,12 +319,12 @@ export default function Header() {
                     <div
                       className="max-h-96 overflow-y-auto border-t border-gray-100 dark:border-gray-700"
                       role="listbox"
-                      aria-label={displayLanguage === "es" ? "Resultados de búsqueda" : "Search results"}
+                      aria-label={t('common.searchResults')}
                     >
                       {searchResults.team.length > 0 && (
-                        <div className="p-2" role="group" aria-label={aria.teamSection}>
+                        <div className="p-2" role="group" aria-label={t('team.title')}>
                           <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase px-2 mb-1" id="search-team-label">
-                            {aria.teamSection}
+                            {t('team.title')}
                           </p>
                           {searchResults.team.map((member) => (
                             <button
@@ -388,9 +349,9 @@ export default function Header() {
                       )}
 
                       {searchResults.practiceGroups.length > 0 && (
-                        <div className="p-2 border-t border-gray-100 dark:border-gray-700" role="group" aria-label={aria.practiceSection}>
+                        <div className="p-2 border-t border-gray-100 dark:border-gray-700" role="group" aria-label={t('practices.title')}>
                           <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase px-2 mb-1">
-                            {aria.practiceSection}
+                            {t('practices.title')}
                           </p>
                           {searchResults.practiceGroups.map((group) => (
                             <button
@@ -409,9 +370,9 @@ export default function Header() {
                       )}
 
                       {searchResults.industryGroups.length > 0 && (
-                        <div className="p-2 border-t border-gray-100 dark:border-gray-700" role="group" aria-label={aria.industrySection}>
+                        <div className="p-2 border-t border-gray-100 dark:border-gray-700" role="group" aria-label={t('industries.title')}>
                           <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase px-2 mb-1">
-                            {aria.industrySection}
+                            {t('industries.title')}
                           </p>
                           {searchResults.industryGroups.map((group) => (
                             <button
@@ -430,9 +391,9 @@ export default function Header() {
                       )}
 
                       {searchResults.news.length > 0 && (
-                        <div className="p-2 border-t border-gray-100 dark:border-gray-700" role="group" aria-label={aria.newsSection}>
+                        <div className="p-2 border-t border-gray-100 dark:border-gray-700" role="group" aria-label={t('news.title')}>
                           <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase px-2 mb-1">
-                            {aria.newsSection}
+                            {t('news.title')}
                           </p>
                           {searchResults.news.map((article) => (
                             <button
@@ -454,7 +415,7 @@ export default function Header() {
 
                   {searchQuery.length >= 2 && !hasResults && (
                     <div className="p-4 text-center text-sm text-gray-500 dark:text-gray-400 border-t border-gray-100 dark:border-gray-700" role="status">
-                      {aria.noResults}
+                      {t('common.noResults')}
                     </div>
                   )}
                 </div>
@@ -474,7 +435,7 @@ export default function Header() {
               )}
               onClick={() => setIsMobileMenuOpen(true)}
               data-testid="button-mobile-menu"
-              aria-label={aria.openMenu}
+              aria-label={t('common.openMenu')}
               aria-expanded={isMobileMenuOpen}
               aria-controls="mobile-menu"
             >
@@ -491,7 +452,7 @@ export default function Header() {
           data-testid="modal-mobile-menu"
           role="dialog"
           aria-modal="true"
-          aria-label={aria.mobileNav}
+          aria-label={t('common.mobileNav')}
         >
           <div className="flex flex-col h-full overflow-hidden">
             <div className="flex items-center justify-between p-4 sm:p-6">
@@ -515,7 +476,7 @@ export default function Header() {
                     setExpandedMobileMenus([]);
                   }}
                   data-testid="button-close-menu"
-                  aria-label={aria.closeMenu}
+                  aria-label={t('common.closeMenu')}
                 >
                   <X className="w-6 h-6" aria-hidden="true" />
                 </Button>
@@ -526,7 +487,7 @@ export default function Header() {
               className="flex-1 overflow-y-auto px-6 py-4"
               data-testid="nav-mobile"
               role="navigation"
-              aria-label={aria.mobileNav}
+              aria-label={t('common.mobileNav')}
             >
               <div className="space-y-2">
                 {menuItems.map((item) => (
@@ -539,9 +500,9 @@ export default function Header() {
                           data-testid={`button-mobile-nav-${item.id}`}
                           aria-expanded={expandedMobileMenus.includes(item.id)}
                           aria-controls={`mobile-submenu-${item.id}`}
-                          aria-label={`${item.label[displayLanguage]} - ${expandedMobileMenus.includes(item.id) ? aria.collapseSubmenu : aria.expandSubmenu}`}
+                          aria-label={`${t(item.labelKey)} - ${expandedMobileMenus.includes(item.id) ? t('common.collapseSubmenu') : t('common.expandSubmenu')}`}
                         >
-                          <span>{item.label[displayLanguage]}</span>
+                          <span>{t(item.labelKey)}</span>
                           <ChevronDown
                             className={cn(
                               "w-6 h-6 transition-transform duration-200",
@@ -559,7 +520,7 @@ export default function Header() {
                               : "max-h-0 opacity-0"
                           )}
                           role="menu"
-                          aria-label={`${item.label[displayLanguage]} submenu`}
+                          aria-label={`${t(item.labelKey)} submenu`}
                         >
                           <div className="pl-4 space-y-1">
                             <button
@@ -568,7 +529,7 @@ export default function Header() {
                               role="menuitem"
                               data-testid={`link-mobile-subnav-${item.id}-all`}
                             >
-                              {displayLanguage === "es" ? "Ver todo" : "View all"}
+                              {t('common.viewAll')}
                             </button>
                             {item.subItems.map((subItem) => (
                               <button
@@ -578,7 +539,7 @@ export default function Header() {
                                 role="menuitem"
                                 data-testid={`link-mobile-subnav-${subItem.id}`}
                               >
-                                {subItem.label[displayLanguage]}
+                                {t(subItem.labelKey)}
                               </button>
                             ))}
                           </div>
@@ -591,7 +552,7 @@ export default function Header() {
                         data-testid={`link-mobile-${item.id}`}
                         aria-current={location === item.href ? "page" : undefined}
                       >
-                        {item.label[displayLanguage]}
+                        {t(item.labelKey)}
                       </button>
                     )}
                   </div>

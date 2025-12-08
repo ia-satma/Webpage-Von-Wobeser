@@ -74,6 +74,14 @@ export function useTranslatedContent({
   });
 
   const lastTranslationKeyRef = useRef<string>('');
+  const previousLanguageRef = useRef<string>(language);
+
+  useEffect(() => {
+    if (previousLanguageRef.current !== language) {
+      lastTranslationKeyRef.current = '';
+      previousLanguageRef.current = language;
+    }
+  }, [language]);
 
   const fieldsToTranslate = useMemo(() => {
     const result: Record<string, string> = {};

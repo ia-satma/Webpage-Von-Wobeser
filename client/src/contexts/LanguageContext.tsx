@@ -1,4 +1,5 @@
-import { createContext, useContext, useState, useEffect, type ReactNode } from "react";
+import { createContext, useContext, useState, useEffect, useCallback, useRef, type ReactNode } from "react";
+import { useTranslation } from "react-i18next";
 import { SUPPORTED_LANGUAGES, type LanguageCode, type SupportedLanguage } from "@shared/schema";
 
 type DisplayLanguage = "en" | "es";
@@ -21,11 +22,8 @@ function isValidLanguageCode(code: string): code is LanguageCode {
   return validLanguageCodes.includes(code as LanguageCode);
 }
 
-function getInitialLanguage(): LanguageCode {
-  if (typeof window === "undefined") {
-    return DEFAULT_LANGUAGE;
-  }
-  
+function getStoredLanguage(): LanguageCode | null {
+  if (typeof window === "undefined") return null;
   try {
     const stored = localStorage.getItem(STORAGE_KEY);
     if (stored && isValidLanguageCode(stored)) {
@@ -33,8 +31,7 @@ function getInitialLanguage(): LanguageCode {
     }
   } catch {
   }
-  
-  return DEFAULT_LANGUAGE;
+  return null;
 }
 
 interface LanguageProviderProps {
@@ -60,29 +57,56 @@ const HTML_LANG_CODES: Record<LanguageCode, string> = {
 };
 
 export function LanguageProvider({ children }: LanguageProviderProps) {
-  const [language, setLanguageState] = useState<LanguageCode>(getInitialLanguage);
+  const { i18n: i18nInstance, ready } = useTranslation();
+  const initializedRef = useRef(false);
+  
+  const [language, setLanguageState] = useState<LanguageCode>(() => {
+    const stored = getStoredLanguage();
+    return stored || DEFAULT_LANGUAGE;
+  });
 
   const displayLanguage = getDisplayLanguage(language);
 
-  const setLanguage = (lang: LanguageCode) => {
+  const setLanguage = useCallback((lang: LanguageCode) => {
+    if (lang === language) return;
+    
     setLanguageState(lang);
+    
+    if (i18nInstance.language !== lang) {
+      i18nInstance.changeLanguage(lang);
+    }
+    
     try {
       localStorage.setItem(STORAGE_KEY, lang);
     } catch {
     }
-  };
+  }, [language, i18nInstance]);
 
-  const getLanguageInfo = (): SupportedLanguage => {
+  const getLanguageInfo = useCallback((): SupportedLanguage => {
     const langInfo = SUPPORTED_LANGUAGES.find(l => l.code === language);
     return langInfo || SUPPORTED_LANGUAGES[0];
-  };
+  }, [language]);
 
   useEffect(() => {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    if (stored && isValidLanguageCode(stored)) {
-      setLanguageState(stored);
+    if (!ready || initializedRef.current) return;
+    initializedRef.current = true;
+    
+    const stored = getStoredLanguage();
+    
+    if (stored) {
+      if (stored !== language) {
+        setLanguageState(stored);
+      }
+      if (i18nInstance.language !== stored) {
+        i18nInstance.changeLanguage(stored);
+      }
+    } else {
+      localStorage.setItem(STORAGE_KEY, language);
+      if (i18nInstance.language !== language) {
+        i18nInstance.changeLanguage(language);
+      }
     }
-  }, []);
+  }, [ready, i18nInstance, language]);
 
   useEffect(() => {
     const htmlElement = document.documentElement;
@@ -95,6 +119,23 @@ export function LanguageProvider({ children }: LanguageProviderProps) {
       htmlElement.setAttribute("dir", "ltr");
     }
   }, [language]);
+
+  useEffect(() => {
+    const handleLanguageChanged = (lng: string) => {
+      if (isValidLanguageCode(lng) && lng !== language) {
+        setLanguageState(lng);
+        try {
+          localStorage.setItem(STORAGE_KEY, lng);
+        } catch {
+        }
+      }
+    };
+
+    i18nInstance.on('languageChanged', handleLanguageChanged);
+    return () => {
+      i18nInstance.off('languageChanged', handleLanguageChanged);
+    };
+  }, [i18nInstance, language]);
 
   return (
     <LanguageContext.Provider value={{ language, displayLanguage, setLanguage, getLanguageInfo }}>
