@@ -35,7 +35,7 @@ export default function Home() {
         <HeroSection language={language} />
         
         {/* 3. Social Proof / Testimonials (Chambers, Legal 500, Latin Lawyer) */}
-        <SocialProofSection language={displayLanguage} />
+        <SocialProofSection />
         
         {/* 4. 18 Practices (complete list) */}
         <PracticesSection />

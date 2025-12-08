@@ -3,18 +3,149 @@ import { ArrowRight, Phone } from "lucide-react";
 import { Link } from "wouter";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Button } from "@/components/ui/button";
+import type { LanguageCode } from "@shared/schema";
 
-const industryGroups = [
-  { id: 1, nameEn: "Automotive, Mobility & Manufacturing", nameEs: "Automotriz, Movilidad y Manufactura", slug: "automotive-mobility-manufacturing" },
-  { id: 2, nameEn: "Consumer Goods", nameEs: "Bienes de Consumo", slug: "consumer-goods" },
-  { id: 3, nameEn: "Energy & Natural Resources", nameEs: "Energía y Recursos Naturales", slug: "energy-natural-resources-industry" },
-  { id: 4, nameEn: "Pharmaceutical & Life Sciences", nameEs: "Farmacéutica y Ciencias de la Salud", slug: "pharmaceutical-life-sciences" },
-  { id: 5, nameEn: "Financial Services", nameEs: "Servicios Financieros", slug: "financial-services" },
-  { id: 6, nameEn: "Real Estate", nameEs: "Inmobiliario", slug: "real-estate-industry" },
-  { id: 7, nameEn: "Technology", nameEs: "Tecnología", slug: "technology-industry" },
+type IndustryGroupNames = {
+  en: string;
+  es: string;
+  de: string;
+  zh: string;
+  ko: string;
+  ja: string;
+  ar: string;
+  ru: string;
+  fr: string;
+  it: string;
+};
+
+interface IndustryGroup {
+  id: number;
+  names: IndustryGroupNames;
+  slug: string;
+}
+
+const industryGroups: IndustryGroup[] = [
+  { 
+    id: 1, 
+    names: {
+      en: "Automotive, Mobility & Manufacturing",
+      es: "Automotriz, Movilidad y Manufactura",
+      de: "Automobil, Mobilität & Fertigung",
+      zh: "汽车、出行与制造业",
+      ko: "자동차, 모빌리티 및 제조업",
+      ja: "自動車・モビリティ・製造業",
+      ar: "السيارات والتنقل والتصنيع",
+      ru: "Автомобильная промышленность, мобильность и производство",
+      fr: "Automobile, Mobilité et Fabrication",
+      it: "Automotive, Mobilità e Manifattura",
+    },
+    slug: "automotive-mobility-manufacturing" 
+  },
+  { 
+    id: 2, 
+    names: {
+      en: "Consumer Goods",
+      es: "Bienes de Consumo",
+      de: "Konsumgüter",
+      zh: "消费品",
+      ko: "소비재",
+      ja: "消費財",
+      ar: "السلع الاستهلاكية",
+      ru: "Потребительские товары",
+      fr: "Biens de Consommation",
+      it: "Beni di Consumo",
+    },
+    slug: "consumer-goods" 
+  },
+  { 
+    id: 3, 
+    names: {
+      en: "Energy & Natural Resources",
+      es: "Energía y Recursos Naturales",
+      de: "Energie & Natürliche Ressourcen",
+      zh: "能源与自然资源",
+      ko: "에너지 및 천연자원",
+      ja: "エネルギー・天然資源",
+      ar: "الطاقة والموارد الطبيعية",
+      ru: "Энергетика и природные ресурсы",
+      fr: "Énergie et Ressources Naturelles",
+      it: "Energia e Risorse Naturali",
+    },
+    slug: "energy-natural-resources-industry" 
+  },
+  { 
+    id: 4, 
+    names: {
+      en: "Pharmaceutical & Life Sciences",
+      es: "Farmacéutica y Ciencias de la Salud",
+      de: "Pharma & Life Sciences",
+      zh: "制药与生命科学",
+      ko: "제약 및 생명과학",
+      ja: "製薬・ライフサイエンス",
+      ar: "الأدوية وعلوم الحياة",
+      ru: "Фармацевтика и науки о жизни",
+      fr: "Pharmaceutique et Sciences de la Vie",
+      it: "Farmaceutica e Scienze della Vita",
+    },
+    slug: "pharmaceutical-life-sciences" 
+  },
+  { 
+    id: 5, 
+    names: {
+      en: "Financial Services",
+      es: "Servicios Financieros",
+      de: "Finanzdienstleistungen",
+      zh: "金融服务",
+      ko: "금융 서비스",
+      ja: "金融サービス",
+      ar: "الخدمات المالية",
+      ru: "Финансовые услуги",
+      fr: "Services Financiers",
+      it: "Servizi Finanziari",
+    },
+    slug: "financial-services" 
+  },
+  { 
+    id: 6, 
+    names: {
+      en: "Real Estate",
+      es: "Inmobiliario",
+      de: "Immobilien",
+      zh: "房地产",
+      ko: "부동산",
+      ja: "不動産",
+      ar: "العقارات",
+      ru: "Недвижимость",
+      fr: "Immobilier",
+      it: "Immobiliare",
+    },
+    slug: "real-estate-industry" 
+  },
+  { 
+    id: 7, 
+    names: {
+      en: "Technology",
+      es: "Tecnología",
+      de: "Technologie",
+      zh: "科技",
+      ko: "기술",
+      ja: "テクノロジー",
+      ar: "التكنولوجيا",
+      ru: "Технологии",
+      fr: "Technologie",
+      it: "Tecnologia",
+    },
+    slug: "technology-industry" 
+  },
 ];
 
-const content = {
+type ContentItem = {
+  title: string;
+  seeMore: string;
+  ctaText: string;
+};
+
+const content: Record<LanguageCode, ContentItem> = {
   en: {
     title: "INDUSTRY GROUPS",
     seeMore: "SEE MORE",
@@ -25,11 +156,51 @@ const content = {
     seeMore: "VER MÁS",
     ctaText: "Expertise en Industrias",
   },
+  de: {
+    title: "BRANCHENGRUPPEN",
+    seeMore: "MEHR ANZEIGEN",
+    ctaText: "Branchenkompetenz",
+  },
+  zh: {
+    title: "行业组",
+    seeMore: "查看更多",
+    ctaText: "行业专长",
+  },
+  ko: {
+    title: "산업 그룹",
+    seeMore: "더 보기",
+    ctaText: "산업 전문성",
+  },
+  ja: {
+    title: "産業グループ",
+    seeMore: "もっと見る",
+    ctaText: "業界の専門知識",
+  },
+  ar: {
+    title: "مجموعات الصناعة",
+    seeMore: "عرض المزيد",
+    ctaText: "خبرة الصناعة",
+  },
+  ru: {
+    title: "ОТРАСЛЕВЫЕ ГРУППЫ",
+    seeMore: "ПОКАЗАТЬ БОЛЬШЕ",
+    ctaText: "Отраслевая экспертиза",
+  },
+  fr: {
+    title: "GROUPES INDUSTRIELS",
+    seeMore: "VOIR PLUS",
+    ctaText: "Expertise Industrielle",
+  },
+  it: {
+    title: "GRUPPI INDUSTRIALI",
+    seeMore: "VEDI DI PIÙ",
+    ctaText: "Competenza Industriale",
+  },
 };
 
 export default function IndustryGroupsSection() {
-  const { displayLanguage } = useLanguage();
-  const t = content[displayLanguage];
+  const { language } = useLanguage();
+  const t = content[language] || content.en;
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -48,6 +219,10 @@ export default function IndustryGroupsSection() {
       y: 0,
       transition: { duration: 0.4 },
     },
+  };
+
+  const getGroupName = (group: IndustryGroup): string => {
+    return group.names[language] || group.names.en;
   };
 
   return (
@@ -90,7 +265,7 @@ export default function IndustryGroupsSection() {
                   {group.id}.
                 </span>
                 <span className="text-base text-gray-700 dark:text-gray-300 group-hover:text-primary transition-colors" data-testid={`text-industry-group-name-${group.id}`}>
-                  {displayLanguage === "es" ? group.nameEs : group.nameEn}
+                  {getGroupName(group)}
                 </span>
               </Link>
             </motion.div>

@@ -17,6 +17,19 @@ interface LanguageSelectorProps {
   className?: string;
 }
 
+const ariaLabels: Record<LanguageCode, string> = {
+  en: "Select language",
+  es: "Seleccionar idioma",
+  de: "Sprache auswählen",
+  zh: "选择语言",
+  ko: "언어 선택",
+  ja: "言語を選択",
+  ar: "اختر اللغة",
+  ru: "Выбрать язык",
+  fr: "Sélectionner la langue",
+  it: "Seleziona lingua",
+};
+
 export default function LanguageSelector({ 
   isScrolled = false, 
   isMobile = false,
@@ -37,6 +50,8 @@ export default function LanguageSelector({
     return currentLangInfo.nameNative;
   };
 
+  const ariaLabel = ariaLabels[language] || ariaLabels.en;
+
   return (
     <Select value={language} onValueChange={handleLanguageChange}>
       <SelectTrigger 
@@ -52,7 +67,7 @@ export default function LanguageSelector({
           className
         )}
         data-testid="select-language-trigger"
-        aria-label="Select language"
+        aria-label={ariaLabel}
       >
         <Globe className="w-4 h-4 shrink-0" aria-hidden="true" data-testid="icon-globe" />
         <SelectValue data-testid="text-current-language">

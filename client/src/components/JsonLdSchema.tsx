@@ -54,6 +54,141 @@ const descriptions = {
     fr: "Excellence juridique pour vos affaires au Mexique",
     it: "Eccellenza legale per il tuo business in Messico",
   },
+  localBusiness: {
+    en: "Main office of Von Wobeser y Sierra, located in Torre SOMA Chapultepec, one of Mexico's most prestigious law firms.",
+    es: "Oficina principal de Von Wobeser y Sierra, ubicada en Torre SOMA Chapultepec, una de las firmas legales más prestigiosas de México.",
+    de: "Hauptbüro von Von Wobeser y Sierra im Torre SOMA Chapultepec, eine der renommiertesten Anwaltskanzleien Mexikos.",
+    zh: "Von Wobeser y Sierra主办公室，位于Torre SOMA Chapultepec，是墨西哥最负盛名的律师事务所之一。",
+    ko: "Von Wobeser y Sierra 본사 사무실, Torre SOMA Chapultepec에 위치, 멕시코에서 가장 명망 있는 로펌 중 하나입니다.",
+    ja: "Von Wobeser y Sierraの本社オフィス、Torre SOMA Chapultepecに位置し、メキシコで最も権威ある法律事務所の一つです。",
+    ar: "المكتب الرئيسي لـ Von Wobeser y Sierra، يقع في Torre SOMA Chapultepec، أحد أعرق شركات المحاماة في المكسيك.",
+    ru: "Главный офис Von Wobeser y Sierra, расположенный в Torre SOMA Chapultepec, одной из самых престижных юридических фирм Мексики.",
+    fr: "Bureau principal de Von Wobeser y Sierra, situé dans la Torre SOMA Chapultepec, l'un des cabinets d'avocats les plus prestigieux du Mexique.",
+    it: "Sede principale di Von Wobeser y Sierra, situata nella Torre SOMA Chapultepec, uno degli studi legali più prestigiosi del Messico.",
+  },
+  legalServices: {
+    en: "Legal Services",
+    es: "Servicios Legales",
+    de: "Rechtsdienstleistungen",
+    zh: "法律服务",
+    ko: "법률 서비스",
+    ja: "法律サービス",
+    ar: "الخدمات القانونية",
+    ru: "Юридические услуги",
+    fr: "Services Juridiques",
+    it: "Servizi Legali",
+  },
+  homeBreadcrumb: {
+    en: "Home",
+    es: "Inicio",
+    de: "Startseite",
+    zh: "首页",
+    ko: "홈",
+    ja: "ホーム",
+    ar: "الرئيسية",
+    ru: "Главная",
+    fr: "Accueil",
+    it: "Home",
+  },
+};
+
+const serviceNames: Record<string, Record<LanguageCode, string>> = {
+  corporateLaw: {
+    en: "Corporate Law",
+    es: "Derecho Corporativo",
+    de: "Gesellschaftsrecht",
+    zh: "公司法",
+    ko: "기업법",
+    ja: "会社法",
+    ar: "قانون الشركات",
+    ru: "Корпоративное право",
+    fr: "Droit des Sociétés",
+    it: "Diritto Societario",
+  },
+  litigationArbitration: {
+    en: "Litigation and Arbitration",
+    es: "Litigio y Arbitraje",
+    de: "Prozessführung und Schiedsverfahren",
+    zh: "诉讼与仲裁",
+    ko: "소송 및 중재",
+    ja: "訴訟・仲裁",
+    ar: "التقاضي والتحكيم",
+    ru: "Судебные разбирательства и арбитраж",
+    fr: "Contentieux et Arbitrage",
+    it: "Contenzioso e Arbitrato",
+  },
+  mergersAcquisitions: {
+    en: "Mergers and Acquisitions",
+    es: "Fusiones y Adquisiciones",
+    de: "Fusionen und Übernahmen",
+    zh: "并购",
+    ko: "인수합병",
+    ja: "M&A",
+    ar: "الاندماج والاستحواذ",
+    ru: "Слияния и поглощения",
+    fr: "Fusions et Acquisitions",
+    it: "Fusioni e Acquisizioni",
+  },
+  taxLaw: {
+    en: "Tax Law",
+    es: "Derecho Fiscal",
+    de: "Steuerrecht",
+    zh: "税法",
+    ko: "조세법",
+    ja: "税法",
+    ar: "قانون الضرائب",
+    ru: "Налоговое право",
+    fr: "Droit Fiscal",
+    it: "Diritto Tributario",
+  },
+  bankingFinance: {
+    en: "Banking and Finance",
+    es: "Bancario y Finanzas",
+    de: "Banken und Finanzen",
+    zh: "银行与金融",
+    ko: "금융",
+    ja: "銀行・金融",
+    ar: "الخدمات المصرفية والمالية",
+    ru: "Банковское дело и финансы",
+    fr: "Banque et Finance",
+    it: "Banche e Finanza",
+  },
+  intellectualProperty: {
+    en: "Intellectual Property",
+    es: "Propiedad Intelectual",
+    de: "Geistiges Eigentum",
+    zh: "知识产权",
+    ko: "지식재산권",
+    ja: "知的財産",
+    ar: "الملكية الفكرية",
+    ru: "Интеллектуальная собственность",
+    fr: "Propriété Intellectuelle",
+    it: "Proprietà Intellettuale",
+  },
+  laborLaw: {
+    en: "Labor Law",
+    es: "Derecho Laboral",
+    de: "Arbeitsrecht",
+    zh: "劳动法",
+    ko: "노동법",
+    ja: "労働法",
+    ar: "قانون العمل",
+    ru: "Трудовое право",
+    fr: "Droit du Travail",
+    it: "Diritto del Lavoro",
+  },
+  environmentalLaw: {
+    en: "Environmental Law",
+    es: "Derecho Ambiental",
+    de: "Umweltrecht",
+    zh: "环境法",
+    ko: "환경법",
+    ja: "環境法",
+    ar: "القانون البيئي",
+    ru: "Экологическое право",
+    fr: "Droit de l'Environnement",
+    it: "Diritto Ambientale",
+  },
 };
 
 export default function JsonLdSchema({ language }: JsonLdSchemaProps) {
@@ -192,62 +327,62 @@ export default function JsonLdSchema({ language }: JsonLdSchemaProps) {
     ],
     "hasOfferCatalog": {
       "@type": "OfferCatalog",
-      "name": language === "es" ? "Servicios Legales" : "Legal Services",
+      "name": descriptions.legalServices[language],
       "itemListElement": [
         {
           "@type": "Offer",
           "itemOffered": {
             "@type": "Service",
-            "name": language === "es" ? "Derecho Corporativo" : "Corporate Law"
+            "name": serviceNames.corporateLaw[language]
           }
         },
         {
           "@type": "Offer",
           "itemOffered": {
             "@type": "Service",
-            "name": language === "es" ? "Litigio y Arbitraje" : "Litigation and Arbitration"
+            "name": serviceNames.litigationArbitration[language]
           }
         },
         {
           "@type": "Offer",
           "itemOffered": {
             "@type": "Service",
-            "name": language === "es" ? "Fusiones y Adquisiciones" : "Mergers and Acquisitions"
+            "name": serviceNames.mergersAcquisitions[language]
           }
         },
         {
           "@type": "Offer",
           "itemOffered": {
             "@type": "Service",
-            "name": language === "es" ? "Derecho Fiscal" : "Tax Law"
+            "name": serviceNames.taxLaw[language]
           }
         },
         {
           "@type": "Offer",
           "itemOffered": {
             "@type": "Service",
-            "name": language === "es" ? "Bancario y Finanzas" : "Banking and Finance"
+            "name": serviceNames.bankingFinance[language]
           }
         },
         {
           "@type": "Offer",
           "itemOffered": {
             "@type": "Service",
-            "name": language === "es" ? "Propiedad Intelectual" : "Intellectual Property"
+            "name": serviceNames.intellectualProperty[language]
           }
         },
         {
           "@type": "Offer",
           "itemOffered": {
             "@type": "Service",
-            "name": language === "es" ? "Derecho Laboral" : "Labor Law"
+            "name": serviceNames.laborLaw[language]
           }
         },
         {
           "@type": "Offer",
           "itemOffered": {
             "@type": "Service",
-            "name": language === "es" ? "Derecho Ambiental" : "Environmental Law"
+            "name": serviceNames.environmentalLaw[language]
           }
         }
       ]
@@ -271,9 +406,7 @@ export default function JsonLdSchema({ language }: JsonLdSchemaProps) {
     "@type": "LocalBusiness",
     "@id": "https://www.vonwobeser.com/#localbusiness",
     "name": "Von Wobeser y Sierra, S.C.",
-    "description": language === "es"
-      ? "Oficina principal de Von Wobeser y Sierra, ubicada en Torre SOMA Chapultepec, una de las firmas legales más prestigiosas de México."
-      : "Main office of Von Wobeser y Sierra, located in Torre SOMA Chapultepec, one of Mexico's most prestigious law firms.",
+    "description": descriptions.localBusiness[language],
     "image": "https://vonwobeser.com/images/office.jpg",
     "url": "https://www.vonwobeser.com",
     "telephone": "+52 55 5258 1000",
@@ -309,8 +442,8 @@ export default function JsonLdSchema({ language }: JsonLdSchemaProps) {
     "@id": "https://www.vonwobeser.com/#website",
     "name": "Von Wobeser y Sierra",
     "url": "https://www.vonwobeser.com",
-    "inLanguage": language === "es" ? "es-MX" : "en",
-    "description": descriptions.organization,
+    "inLanguage": LANGUAGE_CODES[language],
+    "description": descriptions.organization[language],
     "publisher": {
       "@id": "https://www.vonwobeser.com/#organization"
     },
@@ -331,7 +464,7 @@ export default function JsonLdSchema({ language }: JsonLdSchemaProps) {
       {
         "@type": "ListItem",
         "position": 1,
-        "name": language === "es" ? "Inicio" : "Home",
+        "name": descriptions.homeBreadcrumb[language],
         "item": "https://www.vonwobeser.com"
       }
     ]
@@ -377,7 +510,7 @@ export function ArticleJsonLd({
   authorUrl?: string;
   imageUrl?: string | null;
   url: string;
-  language?: "es" | "en";
+  language?: LanguageCode;
 }) {
   const formatDate = (date: string | Date | null) => {
     if (!date) return new Date().toISOString();
@@ -417,7 +550,7 @@ export function ArticleJsonLd({
       "@type": "WebPage",
       "@id": url
     },
-    "inLanguage": language === "es" ? "es-MX" : "en",
+    "inLanguage": LANGUAGE_CODES[language],
     "isPartOf": {
       "@id": "https://www.vonwobeser.com/#website"
     }
@@ -454,7 +587,7 @@ export function PersonJsonLd({
   education?: Array<{ school: string; degree: string; year?: string }>;
   languages?: string[];
   knowsAbout?: string[];
-  language?: "es" | "en";
+  language?: LanguageCode;
 }) {
   const sameAs = [];
   if (linkedinUrl) sameAs.push(linkedinUrl);
@@ -516,7 +649,7 @@ export function BreadcrumbJsonLd({
   language = "en"
 }: {
   items: Array<{ name: string; url: string }>;
-  language?: "es" | "en";
+  language?: LanguageCode;
 }) {
   const schema = {
     "@context": "https://schema.org",

@@ -3,11 +3,8 @@ import { useState } from "react";
 import { X, AlertCircle } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { Skeleton } from "@/components/ui/skeleton";
-import type { OfficeImage } from "@shared/schema";
-
-interface ImageCollageProps {
-  language: "es" | "en";
-}
+import { useLanguage } from "@/contexts/LanguageContext";
+import type { OfficeImage, LanguageCode } from "@shared/schema";
 
 const fallbackImages: OfficeImage[] = [
   { id: "1", imageUrl: "https://vonwobeser.com/img/Collage/collage_01.jpg", alt: "Von Wobeser new office space with modern open floor plan", altEs: "Nuevo espacio de oficinas Von Wobeser con planta abierta moderna", order: 1 },
@@ -47,8 +44,101 @@ const getSizes = (index: number): string => {
   return "(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 250px";
 };
 
-export default function ImageCollage({ language }: ImageCollageProps) {
+type LabelContent = {
+  errorMessage: string;
+  galleryLabel: string;
+  viewFullSize: string;
+  closeModal: string;
+  loadingGallery: string;
+  selectedImage: string;
+};
+
+const labels: Record<LanguageCode, LabelContent> = {
+  en: {
+    errorMessage: "Failed to load gallery",
+    galleryLabel: "Office image gallery showcasing Von Wobeser y Sierra facilities",
+    viewFullSize: "View full size image",
+    closeModal: "Close image viewer",
+    loadingGallery: "Loading gallery",
+    selectedImage: "Selected gallery image",
+  },
+  es: {
+    errorMessage: "Error al cargar galería",
+    galleryLabel: "Galería de imágenes de las instalaciones de Von Wobeser y Sierra",
+    viewFullSize: "Ver imagen en tamaño completo",
+    closeModal: "Cerrar visor de imágenes",
+    loadingGallery: "Cargando galería",
+    selectedImage: "Imagen seleccionada de la galería",
+  },
+  de: {
+    errorMessage: "Galerie konnte nicht geladen werden",
+    galleryLabel: "Bildergalerie der Einrichtungen von Von Wobeser y Sierra",
+    viewFullSize: "Bild in voller Größe anzeigen",
+    closeModal: "Bildansicht schließen",
+    loadingGallery: "Galerie wird geladen",
+    selectedImage: "Ausgewähltes Galeriebild",
+  },
+  zh: {
+    errorMessage: "无法加载图库",
+    galleryLabel: "Von Wobeser y Sierra 办公设施图库",
+    viewFullSize: "查看完整尺寸图片",
+    closeModal: "关闭图片查看器",
+    loadingGallery: "正在加载图库",
+    selectedImage: "选中的图库图片",
+  },
+  ko: {
+    errorMessage: "갤러리를 불러올 수 없습니다",
+    galleryLabel: "Von Wobeser y Sierra 시설 이미지 갤러리",
+    viewFullSize: "전체 크기 이미지 보기",
+    closeModal: "이미지 뷰어 닫기",
+    loadingGallery: "갤러리 로딩 중",
+    selectedImage: "선택된 갤러리 이미지",
+  },
+  ja: {
+    errorMessage: "ギャラリーを読み込めませんでした",
+    galleryLabel: "Von Wobeser y Sierra 施設のイメージギャラリー",
+    viewFullSize: "フルサイズの画像を表示",
+    closeModal: "画像ビューアを閉じる",
+    loadingGallery: "ギャラリーを読み込み中",
+    selectedImage: "選択されたギャラリー画像",
+  },
+  ar: {
+    errorMessage: "فشل في تحميل المعرض",
+    galleryLabel: "معرض صور مرافق Von Wobeser y Sierra",
+    viewFullSize: "عرض الصورة بالحجم الكامل",
+    closeModal: "إغلاق عارض الصور",
+    loadingGallery: "جاري تحميل المعرض",
+    selectedImage: "صورة المعرض المحددة",
+  },
+  ru: {
+    errorMessage: "Не удалось загрузить галерею",
+    galleryLabel: "Фотогалерея офисных помещений Von Wobeser y Sierra",
+    viewFullSize: "Просмотреть изображение в полном размере",
+    closeModal: "Закрыть просмотр изображения",
+    loadingGallery: "Загрузка галереи",
+    selectedImage: "Выбранное изображение галереи",
+  },
+  fr: {
+    errorMessage: "Échec du chargement de la galerie",
+    galleryLabel: "Galerie d'images des installations de Von Wobeser y Sierra",
+    viewFullSize: "Voir l'image en taille réelle",
+    closeModal: "Fermer la visionneuse d'images",
+    loadingGallery: "Chargement de la galerie",
+    selectedImage: "Image de galerie sélectionnée",
+  },
+  it: {
+    errorMessage: "Impossibile caricare la galleria",
+    galleryLabel: "Galleria immagini delle strutture Von Wobeser y Sierra",
+    viewFullSize: "Visualizza immagine a dimensione intera",
+    closeModal: "Chiudi visualizzatore immagini",
+    loadingGallery: "Caricamento galleria",
+    selectedImage: "Immagine della galleria selezionata",
+  },
+};
+
+export default function ImageCollage() {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const { language } = useLanguage();
   
   const { data: images, isLoading, error } = useQuery<OfficeImage[]>({
     queryKey: ["/api/office-images"],
@@ -56,22 +146,7 @@ export default function ImageCollage({ language }: ImageCollageProps) {
 
   const displayImages = images && images.length >= 9 ? images : fallbackImages;
 
-  const labels = {
-    en: {
-      errorMessage: "Failed to load gallery",
-      galleryLabel: "Office image gallery showcasing Von Wobeser y Sierra facilities",
-      viewFullSize: "View full size image",
-      closeModal: "Close image viewer",
-    },
-    es: {
-      errorMessage: "Error al cargar galería",
-      galleryLabel: "Galería de imágenes de las instalaciones de Von Wobeser y Sierra",
-      viewFullSize: "Ver imagen en tamaño completo",
-      closeModal: "Cerrar visor de imágenes",
-    },
-  };
-
-  const t = labels[language];
+  const t = labels[language] || labels.en;
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -90,6 +165,11 @@ export default function ImageCollage({ language }: ImageCollageProps) {
       scale: 1,
       transition: { duration: 0.4 },
     },
+  };
+
+  const getAltText = (image: OfficeImage): string => {
+    if (language === "es") return image.altEs;
+    return image.alt;
   };
 
   if (error) {
@@ -121,7 +201,7 @@ export default function ImageCollage({ language }: ImageCollageProps) {
             <div 
               className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4"
               role="status"
-              aria-label={language === "es" ? "Cargando galería" : "Loading gallery"}
+              aria-label={t.loadingGallery}
             >
               {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((i) => (
                 <Skeleton
@@ -141,7 +221,7 @@ export default function ImageCollage({ language }: ImageCollageProps) {
               role="list"
             >
               {displayImages.map((image, index) => {
-                const altText = language === "es" ? image.altEs : image.alt;
+                const altText = getAltText(image);
                 const srcSet = generateSrcSet(image.imageUrl);
                 const sizes = getSizes(index);
                 
@@ -200,7 +280,7 @@ export default function ImageCollage({ language }: ImageCollageProps) {
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.9 }}
             src={selectedImage}
-            alt={language === "es" ? "Imagen seleccionada de la galería" : "Selected gallery image"}
+            alt={t.selectedImage}
             className="max-w-full max-h-[90vh] object-contain"
             onClick={(e) => e.stopPropagation()}
             data-testid="img-lightbox"
