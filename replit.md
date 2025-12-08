@@ -20,7 +20,7 @@ The application implements a dual translation approach supporting 10 languages (
 
 2. **Page-Specific Content Translations**: All page components use inline content objects with complete translations for all 10 languages. Pattern: `content[language as keyof typeof content] || content.en`. This covers hero sections, feature descriptions, benefit lists, and all other static page content.
 
-3. **Dynamic Content Translations (OpenAI)**: Used for database content (news, team bios, practice descriptions). Translations are cached in the database (`translation_caches` table) and requested on-demand via the `useTranslatedContent` hook. The backend uses OpenAI GPT-5 for high-quality legal text translation.
+3. **Dynamic Content Translations (OpenAI)**: Used for database content (news, team bios, practice descriptions, events). Translations are cached in the database (`translation_caches` table) and requested on-demand via the `useTranslatedContent` hook. The backend uses OpenAI GPT-5 for high-quality legal text translation. Supported content types: `team_member`, `practice_group`, `industry_group`, `news`, `event`.
 
 4. **Automatic Language Detection (Geolocation)**: On first visit (when no stored preference exists), the system automatically detects the user's country via IP geolocation (`/api/detect-language` endpoint using ip-api.com) and sets the appropriate language. Supports country-to-language mapping for Spanish-speaking countries (MX, ES, AR, etc.), German-speaking (DE, AT, CH), Chinese regions (CN, TW, HK), and more. Falls back to Spanish for unsupported countries or detection failures.
 

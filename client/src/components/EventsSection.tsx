@@ -6,7 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useQuery } from "@tanstack/react-query";
 import { Skeleton } from "@/components/ui/skeleton";
-import type { Event } from "@shared/schema";
+import { useTranslatedContent } from "@/hooks/useTranslatedContent";
+import type { Event, LanguageCode } from "@shared/schema";
 import { eventTypes } from "@shared/schema";
 
 interface EventsSectionProps {
@@ -30,6 +31,110 @@ const getEventTypeLabel = (eventType: string, language: string): string => {
   const langKey = language as keyof typeof type;
   return (type[langKey] as string) || type.en;
 };
+
+interface EventCardProps {
+  event: Event;
+  language: LanguageCode;
+  learnMoreText: string;
+  formatDate: (date: string | Date | null) => string;
+}
+
+function EventCard({ event, language, learnMoreText, formatDate }: EventCardProps) {
+  const isNativeLanguage = language === 'en' || language === 'es';
+  
+  const { translatedFields, isLoading: isTranslating } = useTranslatedContent({
+    contentType: 'event',
+    entityId: event.id,
+    fields: {
+      title: event.title || '',
+      description: event.description || '',
+      location: event.location || '',
+    },
+    enabled: !isNativeLanguage,
+  });
+
+  const getEventTitle = () => {
+    if (language === 'es') return event.titleEs || event.title;
+    if (isNativeLanguage) return event.title;
+    return translatedFields.title || event.title;
+  };
+
+  const getEventDescription = () => {
+    if (language === 'es') return event.descriptionEs || event.description;
+    if (isNativeLanguage) return event.description;
+    return translatedFields.description || event.description;
+  };
+
+  const getEventLocation = () => {
+    if (language === 'es') return event.locationEs || event.location;
+    if (isNativeLanguage) return event.location;
+    return translatedFields.location || event.location;
+  };
+
+  return (
+    <Card
+      className="group h-full overflow-hidden border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-lg transition-all duration-300 rounded-md bg-white dark:bg-gray-800"
+      data-testid={`card-event-${event.id}`}
+    >
+      <div className="p-6">
+        <div className="flex items-start justify-between gap-3 mb-4">
+          <Badge 
+            className={`${getEventTypeColor(event.eventType || 'conference')} text-white font-medium`}
+            data-testid={`badge-event-type-${event.id}`}
+          >
+            {getEventTypeLabel(event.eventType || 'conference', language)}
+          </Badge>
+        </div>
+        
+        <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400 mb-3">
+          <Calendar className="w-4 h-4 flex-shrink-0" />
+          <span data-testid={`text-event-date-${event.id}`}>
+            {formatDate(event.date)}
+          </span>
+        </div>
+        
+        <h3 
+          className={`text-xl font-semibold text-gray-800 dark:text-white mb-3 line-clamp-2 ${isTranslating ? 'opacity-50' : ''}`}
+          data-testid={`text-event-title-${event.id}`}
+        >
+          {getEventTitle()}
+        </h3>
+        
+        {(event.location || event.locationEs) && (
+          <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400 mb-3">
+            <MapPin className="w-4 h-4 flex-shrink-0" />
+            <span 
+              className={isTranslating ? 'opacity-50' : ''}
+              data-testid={`text-event-location-${event.id}`}
+            >
+              {getEventLocation()}
+            </span>
+          </div>
+        )}
+        
+        <p 
+          className={`text-gray-600 dark:text-gray-400 text-sm line-clamp-2 mb-4 ${isTranslating ? 'opacity-50' : ''}`}
+          data-testid={`text-event-description-${event.id}`}
+        >
+          {getEventDescription()}
+        </p>
+        
+        {event.externalUrl && (
+          <a
+            href={event.externalUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 text-primary font-medium text-sm hover:underline"
+            data-testid={`link-event-learn-more-${event.id}`}
+          >
+            {learnMoreText}
+            <ExternalLink className="w-4 h-4" />
+          </a>
+        )}
+      </div>
+    </Card>
+  );
+}
 
 export default function EventsSection({ language }: EventsSectionProps) {
   const { data: events, isLoading, error } = useQuery<Event[]>({
@@ -240,64 +345,12 @@ export default function EventsSection({ language }: EventsSectionProps) {
           >
             {events?.map((event) => (
               <motion.div key={event.id} variants={itemVariants}>
-                <Card
-                  className="group h-full overflow-hidden border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-lg transition-all duration-300 rounded-md bg-white dark:bg-gray-800"
-                  data-testid={`card-event-${event.id}`}
-                >
-                  <div className="p-6">
-                    <div className="flex items-start justify-between gap-3 mb-4">
-                      <Badge 
-                        className={`${getEventTypeColor(event.eventType || 'conference')} text-white font-medium`}
-                        data-testid={`badge-event-type-${event.id}`}
-                      >
-                        {getEventTypeLabel(event.eventType || 'conference', language)}
-                      </Badge>
-                    </div>
-                    
-                    <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400 mb-3">
-                      <Calendar className="w-4 h-4 flex-shrink-0" />
-                      <span data-testid={`text-event-date-${event.id}`}>
-                        {formatDate(event.date)}
-                      </span>
-                    </div>
-                    
-                    <h3 
-                      className="text-xl font-semibold text-gray-800 dark:text-white mb-3 line-clamp-2"
-                      data-testid={`text-event-title-${event.id}`}
-                    >
-                      {language === "es" ? event.titleEs : event.title}
-                    </h3>
-                    
-                    {(event.location || event.locationEs) && (
-                      <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400 mb-3">
-                        <MapPin className="w-4 h-4 flex-shrink-0" />
-                        <span data-testid={`text-event-location-${event.id}`}>
-                          {language === "es" ? (event.locationEs || event.location) : event.location}
-                        </span>
-                      </div>
-                    )}
-                    
-                    <p 
-                      className="text-gray-600 dark:text-gray-400 text-sm line-clamp-2 mb-4"
-                      data-testid={`text-event-description-${event.id}`}
-                    >
-                      {language === "es" ? event.descriptionEs : event.description}
-                    </p>
-                    
-                    {event.externalUrl && (
-                      <a
-                        href={event.externalUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-2 text-primary font-medium text-sm hover:underline"
-                        data-testid={`link-event-learn-more-${event.id}`}
-                      >
-                        {t.learnMore}
-                        <ExternalLink className="w-4 h-4" />
-                      </a>
-                    )}
-                  </div>
-                </Card>
+                <EventCard 
+                  event={event} 
+                  language={language as LanguageCode} 
+                  learnMoreText={t.learnMore}
+                  formatDate={formatDate}
+                />
               </motion.div>
             ))}
           </motion.div>

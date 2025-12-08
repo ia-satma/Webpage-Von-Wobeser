@@ -1295,7 +1295,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
         });
       }
 
-      const validContentTypes = ['team_member', 'practice_group', 'industry_group', 'news'] as const;
+      const validContentTypes = ['team_member', 'practice_group', 'industry_group', 'news', 'event'] as const;
       if (!validContentTypes.includes(contentType)) {
         return res.status(400).json({ 
           error: `Invalid contentType. Must be one of: ${validContentTypes.join(', ')}` 
@@ -1307,6 +1307,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
         practice_group: ['name', 'description', 'fullDescription'],
         industry_group: ['name', 'description', 'fullDescription'],
         news: ['title', 'excerpt', 'content'],
+        event: ['title', 'description', 'location'],
       };
 
       const validFields = validFieldsByContentType[contentType] || [];
