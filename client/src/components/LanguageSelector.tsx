@@ -1,4 +1,4 @@
-import { Globe } from "lucide-react";
+import { Globe, ChevronDown } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -32,12 +32,13 @@ export default function LanguageSelector({
     <Select value={language} onValueChange={handleLanguageChange}>
       <SelectTrigger 
         className={cn(
-          "border-0 bg-transparent focus:ring-0 focus:ring-offset-0 gap-2 min-w-0 w-auto min-h-[44px] touch-manipulation",
+          "gap-2 min-w-0 w-auto min-h-[44px] touch-manipulation rounded-md px-3 py-2 font-medium transition-all",
+          "focus:ring-2 focus:ring-offset-2 focus:ring-primary/50",
           isMobile 
-            ? "text-white/90 hover:text-white" 
+            ? "bg-white/20 backdrop-blur-sm border border-white/30 text-white hover:bg-white/30" 
             : isScrolled 
-              ? "text-gray-700 dark:text-gray-300 hover:text-primary" 
-              : "text-white/90 hover:text-white",
+              ? "bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-700" 
+              : "bg-black/30 backdrop-blur-sm border border-white/40 text-white hover:bg-black/40",
           className
         )}
         data-testid="select-language-trigger"
@@ -47,19 +48,21 @@ export default function LanguageSelector({
         <SelectValue data-testid="text-current-language">
           {currentLangInfo.nameNative}
         </SelectValue>
+        <ChevronDown className="w-4 h-4 shrink-0 opacity-70" aria-hidden="true" />
       </SelectTrigger>
       <SelectContent 
         data-testid="select-language-content"
-        className="max-h-[300px]"
+        className="max-h-[300px] z-[100]"
       >
         {SUPPORTED_LANGUAGES.map((lang) => (
           <SelectItem 
             key={lang.code} 
             value={lang.code}
             data-testid={`select-language-option-${lang.code}`}
+            className="cursor-pointer"
           >
             <span className="flex items-center gap-2">
-              <span>{lang.nameNative}</span>
+              <span className="font-medium">{lang.nameNative}</span>
               {lang.code !== "en" && lang.code !== "es" && (
                 <span className="text-xs text-muted-foreground">({lang.name})</span>
               )}
