@@ -183,7 +183,7 @@ export default function Header() {
         )}
         data-testid="header"
       >
-        <div className="max-w-7xl mx-auto px-6 lg:px-12 flex items-center justify-between gap-4">
+        <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-12 flex items-center justify-between gap-2 sm:gap-4">
           <Link
             href="/"
             className="flex items-center gap-3 flex-shrink-0"
@@ -198,8 +198,8 @@ export default function Header() {
               className={cn(
                 "transition-all duration-300 flex-shrink-0",
                 isScrolled 
-                  ? "h-8 sm:h-9 md:h-10 w-auto max-w-[160px] sm:max-w-[180px] md:max-w-[200px]" 
-                  : "h-9 sm:h-10 md:h-12 w-auto max-w-[180px] sm:max-w-[200px] md:max-w-[240px]",
+                  ? "h-7 sm:h-8 md:h-10 w-auto max-w-[120px] sm:max-w-[160px] md:max-w-[200px]" 
+                  : "h-8 sm:h-9 md:h-12 w-auto max-w-[130px] sm:max-w-[180px] md:max-w-[240px]",
                 !isScrolled && "brightness-0 invert",
                 isScrolled && "dark:brightness-0 dark:invert"
               )}
@@ -277,7 +277,7 @@ export default function Header() {
             ))}
           </nav>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1 sm:gap-2">
             <div className="relative" ref={searchRef}>
               <Button
                 variant="ghost"
