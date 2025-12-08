@@ -28,7 +28,7 @@ import SEOHead from "@/components/SEOHead";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function Careers() {
-  const { language, displayLanguage } = useLanguage();
+  const { language } = useLanguage();
 
   const content = {
     en: {

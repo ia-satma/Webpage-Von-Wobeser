@@ -30,7 +30,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { Link } from "wouter";
 
 export default function Interns() {
-  const { language, displayLanguage } = useLanguage();
+  const { language } = useLanguage();
 
   const content = {
     en: {
