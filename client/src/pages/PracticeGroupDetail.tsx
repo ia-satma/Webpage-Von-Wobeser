@@ -131,7 +131,7 @@ const practiceAreaRoleMapping: Record<string, string[]> = {
 };
 
 export default function PracticeGroupDetail() {
-  const { language, displayLanguage } = useLanguage();
+  const { language } = useLanguage();
   const params = useParams<{ slug: string }>();
   const slug = params.slug;
 

@@ -53,8 +53,8 @@ export default function Newsletter() {
   const { language } = useLanguage();
   const { toast } = useToast();
 
-  const displayLanguage = language === "es" ? "es" : "en";
-  const formSchema = getNewsletterFormSchema(displayLanguage);
+  const formLanguage = language === "es" ? "es" : "en";
+  const formSchema = getNewsletterFormSchema(formLanguage);
 
   const form = useForm<NewsletterFormData>({
     resolver: zodResolver(formSchema),

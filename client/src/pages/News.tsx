@@ -45,7 +45,7 @@ function NewsImageWithFallback({
 }
 
 export default function NewsPage() {
-  const { language, displayLanguage } = useLanguage();
+  const { language } = useLanguage();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
 

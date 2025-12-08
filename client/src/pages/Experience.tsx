@@ -21,7 +21,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import type { RepresentativeMatterDb, PracticeGroup, IndustryGroup } from "@shared/schema";
 
 export default function Experience() {
-  const { language, displayLanguage } = useLanguage();
+  const { language } = useLanguage();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedPracticeArea, setSelectedPracticeArea] = useState<string>("all");
   const [selectedIndustry, setSelectedIndustry] = useState<string>("all");

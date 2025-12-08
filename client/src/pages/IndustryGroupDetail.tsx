@@ -14,7 +14,7 @@ import { getIcon } from "@/lib/icons";
 import type { IndustryGroup, PracticeGroup } from "@shared/schema";
 
 export default function IndustryGroupDetail() {
-  const { language, displayLanguage } = useLanguage();
+  const { language } = useLanguage();
   const params = useParams<{ slug: string }>();
   const slug = params.slug;
 

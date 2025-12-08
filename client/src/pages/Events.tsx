@@ -24,14 +24,15 @@ const getEventTypeColor = (eventType: string): string => {
   return colors[eventType] || "bg-gray-600";
 };
 
-const getEventTypeLabel = (eventType: string, language: "es" | "en"): string => {
+const getEventTypeLabel = (eventType: string, language: string): string => {
   const type = eventTypes.find(t => t.value === eventType);
   if (!type) return eventType;
-  return language === "es" ? type.es : type.en;
+  const langKey = language as keyof typeof type;
+  return (type[langKey] as string) || type.en;
 };
 
 export default function EventsPage() {
-  const { language, displayLanguage } = useLanguage();
+  const { language } = useLanguage();
   const [selectedType, setSelectedType] = useState<string>("all");
 
   const { data: events, isLoading, error } = useQuery<Event[]>({
@@ -333,7 +334,7 @@ export default function EventsPage() {
                           className={`${getEventTypeColor(event.eventType || 'conference')} text-white font-medium`}
                           data-testid={`badge-event-type-${event.id}`}
                         >
-                          {getEventTypeLabel(event.eventType || 'conference', displayLanguage)}
+                          {getEventTypeLabel(event.eventType || 'conference', language)}
                         </Badge>
                         {!isUpcoming(event.date) && (
                           <Badge 

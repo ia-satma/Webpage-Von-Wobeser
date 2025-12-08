@@ -168,7 +168,7 @@ const rankedLawyers = [
 ];
 
 export default function Rankings() {
-  const { language, displayLanguage } = useLanguage();
+  const { language } = useLanguage();
 
   const { data: teamMembers } = useQuery<TeamMember[]>({
     queryKey: ["/api/team"],
