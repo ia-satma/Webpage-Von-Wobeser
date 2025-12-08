@@ -9,9 +9,11 @@ interface LanguageContextType {
   displayLanguage: DisplayLanguage;
   setLanguage: (lang: LanguageCode) => void;
   getLanguageInfo: () => SupportedLanguage;
+  isDetecting: boolean;
 }
 
 const STORAGE_KEY = "vwb_language";
+const DETECTION_KEY = "vwb_language_detected";
 const DEFAULT_LANGUAGE: LanguageCode = "en";
 
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
@@ -59,11 +61,14 @@ const HTML_LANG_CODES: Record<LanguageCode, string> = {
 export function LanguageProvider({ children }: LanguageProviderProps) {
   const { i18n: i18nInstance, ready } = useTranslation();
   const initializedRef = useRef(false);
+  const detectionRef = useRef(false);
   
   const [language, setLanguageState] = useState<LanguageCode>(() => {
     const stored = getStoredLanguage();
     return stored || DEFAULT_LANGUAGE;
   });
+  
+  const [isDetecting, setIsDetecting] = useState(false);
 
   const displayLanguage = getDisplayLanguage(language);
 
@@ -87,6 +92,43 @@ export function LanguageProvider({ children }: LanguageProviderProps) {
     return langInfo || SUPPORTED_LANGUAGES[0];
   }, [language]);
 
+  // Geolocation-based language detection (runs once on first visit)
+  useEffect(() => {
+    if (!ready || detectionRef.current) return;
+    detectionRef.current = true;
+    
+    const stored = getStoredLanguage();
+    const alreadyDetected = localStorage.getItem(DETECTION_KEY);
+    
+    // Only detect if no stored preference AND we haven't detected before
+    if (stored || alreadyDetected) return;
+    
+    const detectLanguage = async () => {
+      setIsDetecting(true);
+      try {
+        const response = await fetch("/api/detect-language");
+        if (response.ok) {
+          const data = await response.json();
+          const detectedLang = data.language as string;
+          
+          if (isValidLanguageCode(detectedLang) && detectedLang !== DEFAULT_LANGUAGE) {
+            setLanguageState(detectedLang);
+            i18nInstance.changeLanguage(detectedLang);
+            localStorage.setItem(STORAGE_KEY, detectedLang);
+          }
+        }
+      } catch {
+        // Silently fail - user can manually select language
+      } finally {
+        localStorage.setItem(DETECTION_KEY, "true");
+        setIsDetecting(false);
+      }
+    };
+    
+    detectLanguage();
+  }, [ready, i18nInstance]);
+  
+  // Standard initialization from stored preference
   useEffect(() => {
     if (!ready || initializedRef.current) return;
     initializedRef.current = true;
@@ -138,7 +180,7 @@ export function LanguageProvider({ children }: LanguageProviderProps) {
   }, [i18nInstance, language]);
 
   return (
-    <LanguageContext.Provider value={{ language, displayLanguage, setLanguage, getLanguageInfo }}>
+    <LanguageContext.Provider value={{ language, displayLanguage, setLanguage, getLanguageInfo, isDetecting }}>
       {children}
     </LanguageContext.Provider>
   );

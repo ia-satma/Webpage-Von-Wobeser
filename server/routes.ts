@@ -124,6 +124,73 @@ export async function registerRoutes(
   // Serve Of Counsel photos from attached_assets/of_counsel_photos
   app.use('/of_counsel_photos', express.static(path.join(process.cwd(), 'attached_assets', 'of_counsel_photos')));
 
+  // Geolocation endpoint for automatic language detection
+  const COUNTRY_TO_LANGUAGE: Record<string, string> = {
+    // Spanish-speaking countries
+    MX: "es", ES: "es", AR: "es", CO: "es", PE: "es", VE: "es", CL: "es", EC: "es",
+    GT: "es", CU: "es", BO: "es", DO: "es", HN: "es", PY: "es", SV: "es", NI: "es",
+    CR: "es", PA: "es", UY: "es", PR: "es",
+    // German-speaking countries
+    DE: "de", AT: "de", CH: "de", LI: "de",
+    // Chinese-speaking regions
+    CN: "zh", TW: "zh", HK: "zh", SG: "zh",
+    // Korean
+    KR: "ko", KP: "ko",
+    // Japanese
+    JP: "ja",
+    // Arabic-speaking countries
+    SA: "ar", AE: "ar", EG: "ar", IQ: "ar", MA: "ar", DZ: "ar", SD: "ar", SY: "ar",
+    TN: "ar", YE: "ar", JO: "ar", LY: "ar", LB: "ar", OM: "ar", KW: "ar", QA: "ar", BH: "ar",
+    // Russian-speaking countries
+    RU: "ru", BY: "ru", KZ: "ru", KG: "ru",
+    // French-speaking countries
+    FR: "fr", BE: "fr", CA: "fr", MC: "fr", LU: "fr", SN: "fr", CI: "fr", ML: "fr",
+    // Italian-speaking countries
+    IT: "it", SM: "it", VA: "it",
+    // English-speaking countries (default)
+    US: "en", GB: "en", AU: "en", NZ: "en", IE: "en", ZA: "en", NG: "en", GH: "en", KE: "en",
+  };
+
+  app.get("/api/detect-language", async (req, res) => {
+    try {
+      // Get client IP (handle proxies)
+      const forwardedFor = req.headers["x-forwarded-for"];
+      const clientIp = forwardedFor 
+        ? (typeof forwardedFor === "string" ? forwardedFor.split(",")[0].trim() : forwardedFor[0])
+        : req.socket.remoteAddress || req.ip;
+      
+      // Skip geolocation for localhost/private IPs
+      if (!clientIp || clientIp === "::1" || clientIp === "127.0.0.1" || clientIp.startsWith("192.168.") || clientIp.startsWith("10.")) {
+        return res.json({ language: "en", country: null, source: "default" });
+      }
+
+      // Use free IP geolocation API (ip-api.com - free for non-commercial use)
+      const geoResponse = await fetch(`http://ip-api.com/json/${clientIp}?fields=countryCode`);
+      
+      if (!geoResponse.ok) {
+        return res.json({ language: "en", country: null, source: "fallback" });
+      }
+
+      const geoData = await geoResponse.json() as { countryCode?: string; status?: string };
+      
+      if (geoData.status === "fail" || !geoData.countryCode) {
+        return res.json({ language: "en", country: null, source: "fallback" });
+      }
+
+      const countryCode = geoData.countryCode.toUpperCase();
+      const detectedLanguage = COUNTRY_TO_LANGUAGE[countryCode] || "en";
+
+      res.json({ 
+        language: detectedLanguage, 
+        country: countryCode, 
+        source: "geolocation" 
+      });
+    } catch (error) {
+      console.error("Language detection error:", error);
+      res.json({ language: "en", country: null, source: "error" });
+    }
+  });
+
   app.get("/api/news", async (_req, res) => {
     try {
       const news = await storage.getNews();
@@ -1140,7 +1207,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
     try {
       const { contentType, entityId, targetLanguage } = req.params;
 
-      const validCodes = SUPPORTED_LANGUAGES.map(l => l.code);
+      const validCodes: string[] = SUPPORTED_LANGUAGES.map(l => l.code);
       if (!validCodes.includes(targetLanguage)) {
         return res.status(400).json({ error: "Invalid target language code" });
       }
