@@ -53,7 +53,21 @@ export default function NewsPage() {
     queryKey: ["/api/news"],
   });
 
-  const content = {
+  const content: Record<string, {
+    title: string;
+    subtitle: string;
+    errorMessage: string;
+    searchPlaceholder: string;
+    readMore: string;
+    noResults: string;
+    published: string;
+    all: string;
+    press: string;
+    insights: string;
+    rankings: string;
+    events: string;
+    alerts: string;
+  }> = {
     en: {
       title: "News & Insights",
       subtitle: "Stay informed about the latest developments at Von Wobeser y Sierra",
@@ -84,6 +98,126 @@ export default function NewsPage() {
       events: "Eventos",
       alerts: "Alertas",
     },
+    de: {
+      title: "Nachrichten & Einblicke",
+      subtitle: "Bleiben Sie über die neuesten Entwicklungen bei Von Wobeser y Sierra informiert",
+      errorMessage: "Nachrichten konnten nicht geladen werden",
+      searchPlaceholder: "Nachrichten suchen...",
+      readMore: "Weiterlesen",
+      noResults: "Keine Artikel entsprechen Ihrer Suche",
+      published: "Veröffentlicht",
+      all: "Alle",
+      press: "Presse",
+      insights: "Einblicke",
+      rankings: "Rankings",
+      events: "Veranstaltungen",
+      alerts: "Mitteilungen",
+    },
+    zh: {
+      title: "新闻与洞察",
+      subtitle: "了解Von Wobeser y Sierra的最新动态",
+      errorMessage: "加载新闻失败",
+      searchPlaceholder: "搜索新闻...",
+      readMore: "阅读更多",
+      noResults: "没有符合搜索条件的文章",
+      published: "发布于",
+      all: "全部",
+      press: "新闻稿",
+      insights: "洞察",
+      rankings: "排名",
+      events: "活动",
+      alerts: "公告",
+    },
+    ko: {
+      title: "뉴스 및 인사이트",
+      subtitle: "Von Wobeser y Sierra의 최신 동향을 확인하세요",
+      errorMessage: "뉴스 로드 실패",
+      searchPlaceholder: "뉴스 검색...",
+      readMore: "더 읽기",
+      noResults: "검색 결과가 없습니다",
+      published: "게시일",
+      all: "전체",
+      press: "보도자료",
+      insights: "인사이트",
+      rankings: "순위",
+      events: "이벤트",
+      alerts: "공지",
+    },
+    ja: {
+      title: "ニュースとインサイト",
+      subtitle: "Von Wobeser y Sierraの最新情報をご覧ください",
+      errorMessage: "ニュースの読み込みに失敗しました",
+      searchPlaceholder: "ニュースを検索...",
+      readMore: "続きを読む",
+      noResults: "検索に一致する記事がありません",
+      published: "公開日",
+      all: "すべて",
+      press: "プレス",
+      insights: "インサイト",
+      rankings: "ランキング",
+      events: "イベント",
+      alerts: "お知らせ",
+    },
+    ar: {
+      title: "الأخبار والرؤى",
+      subtitle: "ابق على اطلاع بآخر التطورات في Von Wobeser y Sierra",
+      errorMessage: "فشل تحميل الأخبار",
+      searchPlaceholder: "البحث في الأخبار...",
+      readMore: "اقرأ المزيد",
+      noResults: "لا توجد مقالات تطابق بحثك",
+      published: "نُشر",
+      all: "الكل",
+      press: "صحافة",
+      insights: "رؤى",
+      rankings: "تصنيفات",
+      events: "فعاليات",
+      alerts: "تنبيهات",
+    },
+    ru: {
+      title: "Новости и аналитика",
+      subtitle: "Будьте в курсе последних событий Von Wobeser y Sierra",
+      errorMessage: "Не удалось загрузить новости",
+      searchPlaceholder: "Поиск новостей...",
+      readMore: "Читать далее",
+      noResults: "Нет статей, соответствующих вашему запросу",
+      published: "Опубликовано",
+      all: "Все",
+      press: "Пресса",
+      insights: "Аналитика",
+      rankings: "Рейтинги",
+      events: "Мероприятия",
+      alerts: "Уведомления",
+    },
+    fr: {
+      title: "Actualités et perspectives",
+      subtitle: "Restez informé des derniers développements chez Von Wobeser y Sierra",
+      errorMessage: "Échec du chargement des actualités",
+      searchPlaceholder: "Rechercher des actualités...",
+      readMore: "Lire la suite",
+      noResults: "Aucun article ne correspond à votre recherche",
+      published: "Publié",
+      all: "Tout",
+      press: "Presse",
+      insights: "Perspectives",
+      rankings: "Classements",
+      events: "Événements",
+      alerts: "Alertes",
+    },
+    it: {
+      title: "Notizie e approfondimenti",
+      subtitle: "Rimani aggiornato sugli ultimi sviluppi di Von Wobeser y Sierra",
+      errorMessage: "Impossibile caricare le notizie",
+      searchPlaceholder: "Cerca notizie...",
+      readMore: "Leggi di più",
+      noResults: "Nessun articolo corrisponde alla tua ricerca",
+      published: "Pubblicato",
+      all: "Tutto",
+      press: "Stampa",
+      insights: "Approfondimenti",
+      rankings: "Classifiche",
+      events: "Eventi",
+      alerts: "Avvisi",
+    },
   };
 
   const translationBannerMessages: Record<string, string> = {
@@ -97,7 +231,7 @@ export default function NewsPage() {
     it: "Il contenuto viene visualizzato in inglese. Fare clic su un articolo per la traduzione completa.",
   };
 
-  const t = content[displayLanguage];
+  const t = content[language] || content.en;
   const isNonNativeLanguage = language !== 'en' && language !== 'es';
   const translationBanner = isNonNativeLanguage ? translationBannerMessages[language] : null;
 

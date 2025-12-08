@@ -103,7 +103,19 @@ export default function NewsDetail() {
     enabled: !!newsArticle,
   });
 
-  const content = {
+  const content: Record<string, {
+    backToNews: string;
+    share: string;
+    relatedNews: string;
+    errorMessage: string;
+    loading: string;
+    readMore: string;
+    copyLink: string;
+    linkCopied: string;
+    shareVia: string;
+    aboutTheAuthor: string;
+    aboutTheAuthors: string;
+  }> = {
     en: {
       backToNews: "Back to News",
       share: "Share this article",
@@ -130,9 +142,113 @@ export default function NewsDetail() {
       aboutTheAuthor: "Acerca del Autor",
       aboutTheAuthors: "Acerca de los Autores",
     },
+    de: {
+      backToNews: "Zurück zu Nachrichten",
+      share: "Artikel teilen",
+      relatedNews: "Verwandte Nachrichten",
+      errorMessage: "Artikel nicht gefunden",
+      loading: "Laden...",
+      readMore: "Weiterlesen",
+      copyLink: "Link kopieren",
+      linkCopied: "Link in die Zwischenablage kopiert!",
+      shareVia: "Teilen über",
+      aboutTheAuthor: "Über den Autor",
+      aboutTheAuthors: "Über die Autoren",
+    },
+    zh: {
+      backToNews: "返回新闻",
+      share: "分享文章",
+      relatedNews: "相关新闻",
+      errorMessage: "未找到文章",
+      loading: "加载中...",
+      readMore: "阅读更多",
+      copyLink: "复制链接",
+      linkCopied: "链接已复制到剪贴板！",
+      shareVia: "分享至",
+      aboutTheAuthor: "关于作者",
+      aboutTheAuthors: "关于作者们",
+    },
+    ko: {
+      backToNews: "뉴스로 돌아가기",
+      share: "기사 공유",
+      relatedNews: "관련 뉴스",
+      errorMessage: "기사를 찾을 수 없습니다",
+      loading: "로딩 중...",
+      readMore: "더 읽기",
+      copyLink: "링크 복사",
+      linkCopied: "링크가 클립보드에 복사되었습니다!",
+      shareVia: "공유하기",
+      aboutTheAuthor: "저자 소개",
+      aboutTheAuthors: "저자들 소개",
+    },
+    ja: {
+      backToNews: "ニュースに戻る",
+      share: "記事を共有",
+      relatedNews: "関連ニュース",
+      errorMessage: "記事が見つかりません",
+      loading: "読み込み中...",
+      readMore: "続きを読む",
+      copyLink: "リンクをコピー",
+      linkCopied: "リンクがクリップボードにコピーされました！",
+      shareVia: "共有する",
+      aboutTheAuthor: "著者について",
+      aboutTheAuthors: "著者たちについて",
+    },
+    ar: {
+      backToNews: "العودة للأخبار",
+      share: "مشاركة المقال",
+      relatedNews: "أخبار ذات صلة",
+      errorMessage: "لم يتم العثور على المقال",
+      loading: "جاري التحميل...",
+      readMore: "اقرأ المزيد",
+      copyLink: "نسخ الرابط",
+      linkCopied: "تم نسخ الرابط!",
+      shareVia: "مشاركة عبر",
+      aboutTheAuthor: "عن الكاتب",
+      aboutTheAuthors: "عن الكتاب",
+    },
+    ru: {
+      backToNews: "Назад к новостям",
+      share: "Поделиться статьёй",
+      relatedNews: "Похожие новости",
+      errorMessage: "Статья не найдена",
+      loading: "Загрузка...",
+      readMore: "Читать далее",
+      copyLink: "Скопировать ссылку",
+      linkCopied: "Ссылка скопирована в буфер обмена!",
+      shareVia: "Поделиться через",
+      aboutTheAuthor: "Об авторе",
+      aboutTheAuthors: "Об авторах",
+    },
+    fr: {
+      backToNews: "Retour aux actualités",
+      share: "Partager l'article",
+      relatedNews: "Actualités connexes",
+      errorMessage: "Article non trouvé",
+      loading: "Chargement...",
+      readMore: "Lire la suite",
+      copyLink: "Copier le lien",
+      linkCopied: "Lien copié dans le presse-papiers!",
+      shareVia: "Partager via",
+      aboutTheAuthor: "À propos de l'auteur",
+      aboutTheAuthors: "À propos des auteurs",
+    },
+    it: {
+      backToNews: "Torna alle notizie",
+      share: "Condividi articolo",
+      relatedNews: "Notizie correlate",
+      errorMessage: "Articolo non trovato",
+      loading: "Caricamento...",
+      readMore: "Leggi di più",
+      copyLink: "Copia link",
+      linkCopied: "Link copiato negli appunti!",
+      shareVia: "Condividi tramite",
+      aboutTheAuthor: "Sull'autore",
+      aboutTheAuthors: "Sugli autori",
+    },
   };
 
-  const t = content[displayLanguage];
+  const t = content[language] || content.en;
 
   const formatDate = (date: Date | string | null) => {
     if (!date) return "";

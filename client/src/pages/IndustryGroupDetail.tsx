@@ -41,7 +41,17 @@ export default function IndustryGroupDetail() {
     enabled: !!industryGroup,
   });
 
-  const content = {
+  const translations: Record<string, {
+    backToAll: string;
+    contactUs: string;
+    contactCta: string;
+    contactSubtitle: string;
+    emailUs: string;
+    callUs: string;
+    relatedServices: string;
+    errorMessage: string;
+    loading: string;
+  }> = {
     en: {
       backToAll: "All Industry Groups",
       contactUs: "Contact Us",
@@ -64,9 +74,97 @@ export default function IndustryGroupDetail() {
       errorMessage: "Industria no encontrada",
       loading: "Cargando...",
     },
+    de: {
+      backToAll: "Alle Branchengruppen",
+      contactUs: "Kontakt",
+      contactCta: "Kontaktieren Sie unser Team",
+      contactSubtitle: "Lassen Sie unsere erfahrenen Anwälte Ihnen bei Ihren rechtlichen Herausforderungen in dieser Branche helfen.",
+      emailUs: "E-Mail senden",
+      callUs: "Anrufen",
+      relatedServices: "Verwandte Praxisbereiche",
+      errorMessage: "Branchengruppe nicht gefunden",
+      loading: "Laden...",
+    },
+    zh: {
+      backToAll: "所有行业组",
+      contactUs: "联系我们",
+      contactCta: "联系我们的团队",
+      contactSubtitle: "让我们经验丰富的律师帮助您应对该行业的法律挑战。",
+      emailUs: "发送邮件",
+      callUs: "致电",
+      relatedServices: "相关业务领域",
+      errorMessage: "未找到行业组",
+      loading: "加载中...",
+    },
+    ko: {
+      backToAll: "모든 산업 그룹",
+      contactUs: "문의하기",
+      contactCta: "팀에 연락하기",
+      contactSubtitle: "경험 풍부한 변호사가 이 산업의 법적 문제 해결을 도와드립니다.",
+      emailUs: "이메일 보내기",
+      callUs: "전화하기",
+      relatedServices: "관련 업무 분야",
+      errorMessage: "산업 그룹을 찾을 수 없습니다",
+      loading: "로딩 중...",
+    },
+    ja: {
+      backToAll: "すべての産業グループ",
+      contactUs: "お問い合わせ",
+      contactCta: "チームにお問い合わせ",
+      contactSubtitle: "この産業における法的課題の解決を経験豊富な弁護士がお手伝いします。",
+      emailUs: "メールを送る",
+      callUs: "電話する",
+      relatedServices: "関連業務分野",
+      errorMessage: "産業グループが見つかりません",
+      loading: "読み込み中...",
+    },
+    ar: {
+      backToAll: "جميع مجموعات الصناعة",
+      contactUs: "اتصل بنا",
+      contactCta: "تواصل مع فريقنا",
+      contactSubtitle: "دع محامينا ذوي الخبرة يساعدونك في تحدياتك القانونية في هذه الصناعة.",
+      emailUs: "راسلنا",
+      callUs: "اتصل بنا",
+      relatedServices: "مجالات الممارسة ذات الصلة",
+      errorMessage: "لم يتم العثور على مجموعة الصناعة",
+      loading: "جاري التحميل...",
+    },
+    ru: {
+      backToAll: "Все отраслевые группы",
+      contactUs: "Свяжитесь с нами",
+      contactCta: "Связаться с командой",
+      contactSubtitle: "Позвольте нашим опытным юристам помочь вам с правовыми вопросами в этой отрасли.",
+      emailUs: "Написать",
+      callUs: "Позвонить",
+      relatedServices: "Связанные практики",
+      errorMessage: "Отраслевая группа не найдена",
+      loading: "Загрузка...",
+    },
+    fr: {
+      backToAll: "Tous les groupes sectoriels",
+      contactUs: "Contactez-nous",
+      contactCta: "Contactez notre équipe",
+      contactSubtitle: "Laissez nos avocats expérimentés vous aider dans vos défis juridiques dans ce secteur.",
+      emailUs: "Envoyer un email",
+      callUs: "Appeler",
+      relatedServices: "Domaines de pratique connexes",
+      errorMessage: "Groupe sectoriel non trouvé",
+      loading: "Chargement...",
+    },
+    it: {
+      backToAll: "Tutti i gruppi industriali",
+      contactUs: "Contattaci",
+      contactCta: "Contatta il nostro team",
+      contactSubtitle: "Lascia che i nostri avvocati esperti ti aiutino con le sfide legali in questo settore.",
+      emailUs: "Invia email",
+      callUs: "Chiama",
+      relatedServices: "Aree di pratica correlate",
+      errorMessage: "Gruppo industriale non trovato",
+      loading: "Caricamento...",
+    },
   };
 
-  const t = content[displayLanguage];
+  const t = translations[language] || translations.en;
 
   if (error) {
     return (

@@ -163,7 +163,26 @@ export default function PracticeGroupDetail() {
     enabled: !!practiceGroup,
   });
 
-  const content = {
+  const translations: Record<string, {
+    backToAll: string;
+    contactUs: string;
+    contactCta: string;
+    contactSubtitle: string;
+    emailUs: string;
+    callUs: string;
+    ourTeam: string;
+    partners: string;
+    ofCounsel: string;
+    associates: string;
+    viewAll: string;
+    viewProfile: string;
+    rankingsTitle: string;
+    rankingsSubtitle: string;
+    successCasesTitle: string;
+    successCasesSubtitle: string;
+    errorMessage: string;
+    loading: string;
+  }> = {
     en: {
       backToAll: "All Practice Groups",
       contactUs: "Contact Us",
@@ -204,9 +223,169 @@ export default function PracticeGroupDetail() {
       errorMessage: "Área de práctica no encontrada",
       loading: "Cargando...",
     },
+    de: {
+      backToAll: "Alle Praxisbereiche",
+      contactUs: "Kontakt",
+      contactCta: "Kontaktieren Sie unser Team",
+      contactSubtitle: "Lassen Sie unsere erfahrenen Anwälte Ihnen bei Ihren rechtlichen Herausforderungen helfen.",
+      emailUs: "E-Mail senden",
+      callUs: "Anrufen",
+      ourTeam: "Unser Team",
+      partners: "Partner",
+      ofCounsel: "Of Counsel",
+      associates: "Associates",
+      viewAll: "Alle anzeigen",
+      viewProfile: "Profil anzeigen",
+      rankingsTitle: "Rankings & Anerkennung",
+      rankingsSubtitle: "Unsere Praxis wurde von führenden Rechtsverzeichnissen weltweit anerkannt.",
+      successCasesTitle: "Erfolgsfälle",
+      successCasesSubtitle: "Repräsentative Mandate, die von unserer Praxis erfolgreich bearbeitet wurden.",
+      errorMessage: "Praxisbereich nicht gefunden",
+      loading: "Laden...",
+    },
+    zh: {
+      backToAll: "所有业务领域",
+      contactUs: "联系我们",
+      contactCta: "联系我们的团队",
+      contactSubtitle: "让我们经验丰富的律师帮助您应对法律挑战。",
+      emailUs: "发送邮件",
+      callUs: "致电",
+      ourTeam: "我们的团队",
+      partners: "合伙人",
+      ofCounsel: "顾问律师",
+      associates: "律师助理",
+      viewAll: "查看全部",
+      viewProfile: "查看简介",
+      rankingsTitle: "排名与认可",
+      rankingsSubtitle: "我们的业务获得了全球领先法律目录的认可。",
+      successCasesTitle: "成功案例",
+      successCasesSubtitle: "我们业务成功处理的代表性案件。",
+      errorMessage: "未找到业务领域",
+      loading: "加载中...",
+    },
+    ko: {
+      backToAll: "모든 업무 분야",
+      contactUs: "문의하기",
+      contactCta: "팀에 연락하기",
+      contactSubtitle: "경험 풍부한 변호사가 법적 문제 해결을 도와드립니다.",
+      emailUs: "이메일 보내기",
+      callUs: "전화하기",
+      ourTeam: "우리 팀",
+      partners: "파트너",
+      ofCounsel: "고문 변호사",
+      associates: "어소시에이트",
+      viewAll: "모두 보기",
+      viewProfile: "프로필 보기",
+      rankingsTitle: "순위 및 인정",
+      rankingsSubtitle: "세계 주요 법률 디렉토리에서 인정받은 업무 분야입니다.",
+      successCasesTitle: "성공 사례",
+      successCasesSubtitle: "성공적으로 처리한 대표적인 사건들입니다.",
+      errorMessage: "업무 분야를 찾을 수 없습니다",
+      loading: "로딩 중...",
+    },
+    ja: {
+      backToAll: "すべての取扱分野",
+      contactUs: "お問い合わせ",
+      contactCta: "チームにお問い合わせ",
+      contactSubtitle: "経験豊富な弁護士が法的課題の解決をお手伝いします。",
+      emailUs: "メールを送る",
+      callUs: "電話する",
+      ourTeam: "チーム",
+      partners: "パートナー",
+      ofCounsel: "オブカウンセル",
+      associates: "アソシエイト",
+      viewAll: "すべて表示",
+      viewProfile: "プロフィールを見る",
+      rankingsTitle: "ランキングと評価",
+      rankingsSubtitle: "当事務所の業務は世界の主要な法律ディレクトリで評価されています。",
+      successCasesTitle: "成功事例",
+      successCasesSubtitle: "当事務所が成功裏に処理した代表的な案件です。",
+      errorMessage: "取扱分野が見つかりません",
+      loading: "読み込み中...",
+    },
+    ar: {
+      backToAll: "جميع مجالات الممارسة",
+      contactUs: "اتصل بنا",
+      contactCta: "تواصل مع فريقنا",
+      contactSubtitle: "دع محامينا ذوي الخبرة يساعدونك في تحدياتك القانونية.",
+      emailUs: "راسلنا",
+      callUs: "اتصل بنا",
+      ourTeam: "فريقنا",
+      partners: "الشركاء",
+      ofCounsel: "مستشار قانوني",
+      associates: "محامون مساعدون",
+      viewAll: "عرض الكل",
+      viewProfile: "عرض الملف",
+      rankingsTitle: "التصنيفات والاعتراف",
+      rankingsSubtitle: "تم الاعتراف بممارستنا من قبل أبرز الدلائل القانونية في العالم.",
+      successCasesTitle: "قضايا ناجحة",
+      successCasesSubtitle: "قضايا تمثيلية تمت معالجتها بنجاح.",
+      errorMessage: "لم يتم العثور على مجال الممارسة",
+      loading: "جاري التحميل...",
+    },
+    ru: {
+      backToAll: "Все практики",
+      contactUs: "Свяжитесь с нами",
+      contactCta: "Связаться с командой",
+      contactSubtitle: "Позвольте нашим опытным юристам помочь вам с вашими правовыми вопросами.",
+      emailUs: "Написать",
+      callUs: "Позвонить",
+      ourTeam: "Наша команда",
+      partners: "Партнёры",
+      ofCounsel: "Of Counsel",
+      associates: "Ассоциаты",
+      viewAll: "Показать все",
+      viewProfile: "Профиль",
+      rankingsTitle: "Рейтинги и признание",
+      rankingsSubtitle: "Наша практика признана ведущими юридическими справочниками мира.",
+      successCasesTitle: "Успешные дела",
+      successCasesSubtitle: "Показательные дела, успешно проведённые нашей практикой.",
+      errorMessage: "Практика не найдена",
+      loading: "Загрузка...",
+    },
+    fr: {
+      backToAll: "Tous les domaines",
+      contactUs: "Contactez-nous",
+      contactCta: "Contactez notre équipe",
+      contactSubtitle: "Laissez nos avocats expérimentés vous aider dans vos défis juridiques.",
+      emailUs: "Envoyer un email",
+      callUs: "Appeler",
+      ourTeam: "Notre équipe",
+      partners: "Associés",
+      ofCounsel: "Of Counsel",
+      associates: "Collaborateurs",
+      viewAll: "Voir tout",
+      viewProfile: "Voir le profil",
+      rankingsTitle: "Classements et reconnaissance",
+      rankingsSubtitle: "Notre pratique a été reconnue par les principaux annuaires juridiques mondiaux.",
+      successCasesTitle: "Affaires réussies",
+      successCasesSubtitle: "Affaires représentatives traitées avec succès par notre cabinet.",
+      errorMessage: "Domaine de pratique non trouvé",
+      loading: "Chargement...",
+    },
+    it: {
+      backToAll: "Tutte le aree",
+      contactUs: "Contattaci",
+      contactCta: "Contatta il nostro team",
+      contactSubtitle: "Lascia che i nostri avvocati esperti ti aiutino con le tue sfide legali.",
+      emailUs: "Invia email",
+      callUs: "Chiama",
+      ourTeam: "Il nostro team",
+      partners: "Soci",
+      ofCounsel: "Of Counsel",
+      associates: "Associati",
+      viewAll: "Vedi tutto",
+      viewProfile: "Vedi profilo",
+      rankingsTitle: "Classifiche e riconoscimenti",
+      rankingsSubtitle: "La nostra pratica è stata riconosciuta dalle principali directory legali a livello mondiale.",
+      successCasesTitle: "Casi di successo",
+      successCasesSubtitle: "Casi rappresentativi gestiti con successo dalla nostra pratica.",
+      errorMessage: "Area di pratica non trovata",
+      loading: "Caricamento...",
+    },
   };
 
-  const t = content[displayLanguage];
+  const t = translations[language] || translations.en;
 
   const filteredAndGroupedMembers = useMemo(() => {
     if (!allTeamMembers || !slug) return { partners: [], ofCounsel: [], associates: [] };

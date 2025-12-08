@@ -12,13 +12,13 @@ import { getIcon } from "@/lib/icons";
 import type { IndustryGroup } from "@shared/schema";
 
 export default function IndustryGroups() {
-  const { language, displayLanguage } = useLanguage();
+  const { language } = useLanguage();
 
   const { data: industryGroups, isLoading, error } = useQuery<IndustryGroup[]>({
     queryKey: ["/api/industry-groups"],
   });
 
-  const content = {
+  const content: Record<string, { title: string; subtitle: string; errorMessage: string; learnMore: string }> = {
     en: {
       title: "Industry Groups",
       subtitle: "Delivering specialized legal expertise across key industry sectors to address your unique business challenges",
@@ -31,22 +31,57 @@ export default function IndustryGroups() {
       errorMessage: "Error al cargar las industrias",
       learnMore: "Más Información",
     },
+    de: {
+      title: "Branchengruppen",
+      subtitle: "Spezialisierte juristische Expertise für wichtige Industriesektoren",
+      errorMessage: "Fehler beim Laden der Branchengruppen",
+      learnMore: "Mehr erfahren",
+    },
+    zh: {
+      title: "行业组",
+      subtitle: "为关键行业提供专业法律服务",
+      errorMessage: "加载行业组失败",
+      learnMore: "了解更多",
+    },
+    ko: {
+      title: "산업 그룹",
+      subtitle: "주요 산업 분야에 전문화된 법률 서비스 제공",
+      errorMessage: "산업 그룹 로드 실패",
+      learnMore: "자세히 알아보기",
+    },
+    ja: {
+      title: "産業グループ",
+      subtitle: "主要産業分野に特化した法的サービスを提供",
+      errorMessage: "産業グループの読み込みに失敗しました",
+      learnMore: "詳しく見る",
+    },
+    ar: {
+      title: "مجموعات الصناعة",
+      subtitle: "خبرة قانونية متخصصة في القطاعات الصناعية الرئيسية",
+      errorMessage: "فشل تحميل مجموعات الصناعة",
+      learnMore: "اعرف المزيد",
+    },
+    ru: {
+      title: "Отраслевые группы",
+      subtitle: "Специализированная юридическая экспертиза в ключевых отраслях",
+      errorMessage: "Не удалось загрузить отраслевые группы",
+      learnMore: "Подробнее",
+    },
+    fr: {
+      title: "Groupes sectoriels",
+      subtitle: "Expertise juridique spécialisée dans les secteurs industriels clés",
+      errorMessage: "Échec du chargement des groupes sectoriels",
+      learnMore: "En savoir plus",
+    },
+    it: {
+      title: "Gruppi industriali",
+      subtitle: "Competenza legale specializzata nei principali settori industriali",
+      errorMessage: "Impossibile caricare i gruppi industriali",
+      learnMore: "Scopri di più",
+    },
   };
 
-  const translationBannerMessages: Record<string, string> = {
-    de: "Inhalte werden in Englisch angezeigt. Klicken Sie auf eine Branche für vollständige Übersetzung.",
-    zh: "内容以英语显示。点击行业领域查看完整翻译。",
-    ko: "콘텐츠가 영어로 표시됩니다. 산업 분야를 클릭하면 전체 번역을 볼 수 있습니다.",
-    ja: "コンテンツは英語で表示されています。業界をクリックして完全な翻訳をご覧ください。",
-    ar: "يتم عرض المحتوى باللغة الإنجليزية. انقر على قطاع صناعي للترجمة الكاملة.",
-    ru: "Содержимое отображается на английском языке. Нажмите на отрасль для полного перевода.",
-    fr: "Le contenu est affiché en anglais. Cliquez sur un secteur d'activité pour la traduction complète.",
-    it: "Il contenuto viene visualizzato in inglese. Fare clic su un settore industriale per la traduzione completa.",
-  };
-
-  const t = content[displayLanguage];
-  const isNonNativeLanguage = language !== 'en' && language !== 'es';
-  const translationBanner = isNonNativeLanguage ? translationBannerMessages[language] : null;
+  const t = content[language] || content.en;
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -92,14 +127,6 @@ export default function IndustryGroups() {
             >
               {t.subtitle}
             </p>
-            {translationBanner && (
-              <p 
-                className="mt-4 text-sm italic text-white/70 max-w-2xl mx-auto"
-                data-testid="text-translation-banner"
-              >
-                {translationBanner}
-              </p>
-            )}
           </motion.div>
         </div>
       </section>

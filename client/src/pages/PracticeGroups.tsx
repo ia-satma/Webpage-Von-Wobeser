@@ -12,13 +12,13 @@ import { getIcon } from "@/lib/icons";
 import type { PracticeGroup } from "@shared/schema";
 
 export default function PracticeGroups() {
-  const { language, displayLanguage } = useLanguage();
+  const { language } = useLanguage();
 
   const { data: practiceGroups, isLoading, error } = useQuery<PracticeGroup[]>({
     queryKey: ["/api/practice-groups"],
   });
 
-  const content = {
+  const content: Record<string, { title: string; subtitle: string; errorMessage: string; learnMore: string }> = {
     en: {
       title: "Practice Groups",
       subtitle: "Our specialized legal teams provide comprehensive solutions across all major practice areas",
@@ -31,22 +31,57 @@ export default function PracticeGroups() {
       errorMessage: "Error al cargar las áreas de práctica",
       learnMore: "Más Información",
     },
+    de: {
+      title: "Praxisbereiche",
+      subtitle: "Unsere spezialisierten Anwaltsteams bieten umfassende Lösungen in allen wichtigen Praxisbereichen",
+      errorMessage: "Fehler beim Laden der Praxisbereiche",
+      learnMore: "Mehr erfahren",
+    },
+    zh: {
+      title: "业务领域",
+      subtitle: "我们的专业法律团队在所有主要业务领域提供全面的解决方案",
+      errorMessage: "加载业务领域失败",
+      learnMore: "了解更多",
+    },
+    ko: {
+      title: "업무 분야",
+      subtitle: "전문 법률 팀이 모든 주요 업무 분야에서 종합적인 솔루션을 제공합니다",
+      errorMessage: "업무 분야 로드 실패",
+      learnMore: "자세히 알아보기",
+    },
+    ja: {
+      title: "取扱分野",
+      subtitle: "専門の法律チームが主要なすべての業務分野で包括的なソリューションを提供します",
+      errorMessage: "取扱分野の読み込みに失敗しました",
+      learnMore: "詳しく見る",
+    },
+    ar: {
+      title: "مجالات الممارسة",
+      subtitle: "توفر فرقنا القانونية المتخصصة حلولاً شاملة في جميع مجالات الممارسة الرئيسية",
+      errorMessage: "فشل تحميل مجالات الممارسة",
+      learnMore: "اعرف المزيد",
+    },
+    ru: {
+      title: "Практики",
+      subtitle: "Наши специализированные юридические команды предоставляют комплексные решения во всех основных областях практики",
+      errorMessage: "Не удалось загрузить практики",
+      learnMore: "Подробнее",
+    },
+    fr: {
+      title: "Domaines de pratique",
+      subtitle: "Nos équipes juridiques spécialisées fournissent des solutions complètes dans tous les principaux domaines de pratique",
+      errorMessage: "Échec du chargement des domaines de pratique",
+      learnMore: "En savoir plus",
+    },
+    it: {
+      title: "Aree di pratica",
+      subtitle: "I nostri team legali specializzati forniscono soluzioni complete in tutte le principali aree di pratica",
+      errorMessage: "Impossibile caricare le aree di pratica",
+      learnMore: "Scopri di più",
+    },
   };
 
-  const translationBannerMessages: Record<string, string> = {
-    de: "Inhalte werden in Englisch angezeigt. Klicken Sie auf einen Praxisbereich für vollständige Übersetzung.",
-    zh: "内容以英语显示。点击业务领域查看完整翻译。",
-    ko: "콘텐츠가 영어로 표시됩니다. 업무 분야를 클릭하면 전체 번역을 볼 수 있습니다.",
-    ja: "コンテンツは英語で表示されています。業務分野をクリックして完全な翻訳をご覧ください。",
-    ar: "يتم عرض المحتوى باللغة الإنجليزية. انقر على مجال الممارسة للترجمة الكاملة.",
-    ru: "Содержимое отображается на английском языке. Нажмите на практику для полного перевода.",
-    fr: "Le contenu est affiché en anglais. Cliquez sur un domaine de pratique pour la traduction complète.",
-    it: "Il contenuto viene visualizzato in inglese. Fare clic su un'area di pratica per la traduzione completa.",
-  };
-
-  const t = content[displayLanguage];
-  const isNonNativeLanguage = language !== 'en' && language !== 'es';
-  const translationBanner = isNonNativeLanguage ? translationBannerMessages[language] : null;
+  const t = content[language] || content.en;
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -92,14 +127,6 @@ export default function PracticeGroups() {
             >
               {t.subtitle}
             </p>
-            {translationBanner && (
-              <p 
-                className="mt-4 text-sm italic text-white/70 max-w-2xl mx-auto"
-                data-testid="text-translation-banner"
-              >
-                {translationBanner}
-              </p>
-            )}
           </motion.div>
         </div>
       </section>
