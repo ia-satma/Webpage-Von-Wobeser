@@ -158,7 +158,7 @@ export default function DiversityInclusion() {
 
   return (
     <div className="min-h-screen bg-white dark:bg-gray-900" data-testid="page-diversity-inclusion">
-      <SEOHead page="diversityInclusion" language={displayLanguage} />
+      <SEOHead page="diversityInclusion" language={language} />
       <Header />
 
       <section className="pt-32 pb-12 bg-[#AC162C]" data-testid="section-diversity-hero">

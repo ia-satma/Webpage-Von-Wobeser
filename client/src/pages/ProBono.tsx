@@ -205,7 +205,7 @@ export default function ProBono() {
 
   return (
     <div className="min-h-screen bg-white dark:bg-gray-900" data-testid="page-pro-bono">
-      <SEOHead page="proBono" language={displayLanguage} />
+      <SEOHead page="proBono" language={language} />
       <Header />
       
       <section className="pt-32 pb-12 bg-primary" data-testid="section-pro-bono-hero">

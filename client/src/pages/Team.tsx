@@ -181,7 +181,7 @@ export default function Team() {
 
   return (
     <div className="min-h-screen bg-white dark:bg-gray-900" data-testid="page-team">
-      <SEOHead page="team" language={displayLanguage} />
+      <SEOHead page="team" language={language} />
       <Header />
       
       <section className="pt-32 pb-12 bg-primary" data-testid="section-team-hero">

@@ -118,7 +118,7 @@ export default function ArticlesPage() {
 
   return (
     <div className="min-h-screen bg-white dark:bg-gray-900" data-testid="page-articles">
-      <SEOHead page="articles" language={displayLanguage} />
+      <SEOHead page="articles" language={language} />
       <Header />
       
       <section className="pt-32 pb-12 bg-primary" data-testid="section-articles-hero">

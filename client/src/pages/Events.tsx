@@ -111,7 +111,7 @@ export default function EventsPage() {
 
   return (
     <div className="min-h-screen bg-white dark:bg-gray-900" data-testid="page-events">
-      <SEOHead page="events" language={displayLanguage} />
+      <SEOHead page="events" language={language} />
       <Header />
       
       <section className="pt-32 pb-12 bg-primary" data-testid="section-events-hero">
@@ -222,7 +222,7 @@ export default function EventsPage() {
                           className={`${getEventTypeColor(event.eventType || 'conference')} text-white font-medium`}
                           data-testid={`badge-event-type-${event.id}`}
                         >
-                          {getEventTypeLabel(event.eventType || 'conference', language)}
+                          {getEventTypeLabel(event.eventType || 'conference', displayLanguage)}
                         </Badge>
                         {!isUpcoming(event.date) && (
                           <Badge 

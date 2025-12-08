@@ -69,7 +69,7 @@ export default function IndustryGroups() {
 
   return (
     <div className="min-h-screen bg-white dark:bg-gray-900" data-testid="page-industry-groups">
-      <SEOHead page="industryGroups" language={displayLanguage} />
+      <SEOHead page="industryGroups" language={language} />
       <Header />
       
       <section className="pt-32 pb-12 bg-primary" data-testid="section-industry-groups-hero">

@@ -153,7 +153,7 @@ export default function NewsPage() {
 
   return (
     <div className="min-h-screen bg-white dark:bg-gray-900" data-testid="page-news">
-      <SEOHead page="news" language={displayLanguage} />
+      <SEOHead page="news" language={language} />
       <Header />
       
       <section className="pt-32 pb-12 bg-primary" data-testid="section-news-hero">

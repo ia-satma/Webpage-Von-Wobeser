@@ -136,7 +136,7 @@ export default function Experience() {
 
   return (
     <div className="min-h-screen bg-white dark:bg-gray-900" data-testid="page-experience">
-      <SEOHead page="experience" language={displayLanguage} />
+      <SEOHead page="experience" language={language} />
       <Header />
       
       <section className="pt-32 pb-16 bg-primary" data-testid="section-experience-hero">

@@ -178,7 +178,7 @@ export default function GermanDesk() {
 
   return (
     <div className="min-h-screen bg-white dark:bg-gray-900" data-testid="page-german-desk">
-      <SEOHead page="germanDesk" language={displayLanguage} />
+      <SEOHead page="germanDesk" language={language} />
       <Header />
       
       <section className="pt-32 pb-12 bg-primary" data-testid="section-german-desk-hero">

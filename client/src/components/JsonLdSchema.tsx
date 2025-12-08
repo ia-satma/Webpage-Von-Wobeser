@@ -1,15 +1,65 @@
+import type { LanguageCode } from "@shared/schema";
+
 interface JsonLdSchemaProps {
-  language: "es" | "en";
+  language: LanguageCode;
 }
 
+const LANGUAGE_CODES: Record<LanguageCode, string> = {
+  en: "en",
+  es: "es-MX",
+  de: "de",
+  zh: "zh-CN",
+  ko: "ko",
+  ja: "ja",
+  ar: "ar",
+  ru: "ru",
+  fr: "fr",
+  it: "it",
+};
+
+const descriptions = {
+  legalService: {
+    en: "Von Wobeser y Sierra, S.C. is a leading law firm in Mexico, specializing in corporate legal services, litigation, arbitration, tax law, mergers and acquisitions, and more. Founded in 1986, it is recognized by Chambers, Legal 500 and other international directories.",
+    es: "Von Wobeser y Sierra, S.C. es una firma de abogados líder en México, especializada en servicios legales corporativos, litigio, arbitraje, derecho fiscal, fusiones y adquisiciones, y más. Fundada en 1986, es reconocida por Chambers, Legal 500 y otros directorios internacionales.",
+    de: "Von Wobeser y Sierra, S.C. ist eine führende Anwaltskanzlei in Mexiko, spezialisiert auf Unternehmensrecht, Prozessführung, Schiedsverfahren, Steuerrecht, Fusionen und Übernahmen und mehr. Gegründet 1986, anerkannt von Chambers, Legal 500 und anderen internationalen Verzeichnissen.",
+    zh: "Von Wobeser y Sierra, S.C.是墨西哥领先的律师事务所，专门从事公司法律服务、诉讼、仲裁、税法、并购等。成立于1986年，获得Chambers、Legal 500等国际目录认可。",
+    ko: "Von Wobeser y Sierra, S.C.는 멕시코의 선도적인 로펌으로, 기업 법률 서비스, 소송, 중재, 조세법, 인수합병 등을 전문으로 합니다. 1986년 설립, Chambers, Legal 500 등 국제 디렉토리에서 인정받고 있습니다.",
+    ja: "Von Wobeser y Sierra, S.C.はメキシコの主要法律事務所であり、企業法務、訴訟、仲裁、税法、M&Aなどを専門としています。1986年設立、Chambers、Legal 500などの国際ディレクトリで認められています。",
+    ar: "Von Wobeser y Sierra, S.C. هي شركة محاماة رائدة في المكسيك، متخصصة في الخدمات القانونية للشركات والتقاضي والتحكيم وقانون الضرائب وعمليات الاندماج والاستحواذ. تأسست عام 1986، ومعترف بها من قبل Chambers و Legal 500.",
+    ru: "Von Wobeser y Sierra, S.C. — ведущая юридическая фирма в Мексике, специализирующаяся на корпоративных юридических услугах, судебных разбирательствах, арбитраже, налоговом праве, слияниях и поглощениях. Основана в 1986 году, признана Chambers, Legal 500.",
+    fr: "Von Wobeser y Sierra, S.C. est un cabinet d'avocats leader au Mexique, spécialisé dans les services juridiques aux entreprises, le contentieux, l'arbitrage, le droit fiscal, les fusions et acquisitions. Fondé en 1986, reconnu par Chambers, Legal 500.",
+    it: "Von Wobeser y Sierra, S.C. è uno studio legale leader in Messico, specializzato in servizi legali aziendali, contenzioso, arbitrato, diritto tributario, fusioni e acquisizioni. Fondato nel 1986, riconosciuto da Chambers, Legal 500.",
+  },
+  organization: {
+    en: "Von Wobeser y Sierra, S.C. is one of Mexico's most prestigious law firms, with over 150 attorneys specializing in corporate law, litigation, arbitration, mergers and acquisitions, tax law, banking and finance, intellectual property, labor and environmental law.",
+    es: "Von Wobeser y Sierra, S.C. es una de las firmas legales más prestigiosas de México, con más de 150 abogados especializados en derecho corporativo, litigio, arbitraje, fusiones y adquisiciones, derecho fiscal, bancario y financiero, propiedad intelectual, laboral y ambiental.",
+    de: "Von Wobeser y Sierra, S.C. ist eine der renommiertesten Kanzleien Mexikos mit über 150 Anwälten, spezialisiert auf Gesellschaftsrecht, Prozessführung, Schiedsverfahren, M&A, Steuerrecht, Banken und Finanzen, geistiges Eigentum, Arbeits- und Umweltrecht.",
+    zh: "Von Wobeser y Sierra, S.C.是墨西哥最负盛名的律师事务所之一，拥有150多名律师，专门从事公司法、诉讼、仲裁、并购、税法、银行和金融、知识产权、劳动和环境法。",
+    ko: "Von Wobeser y Sierra, S.C.는 멕시코에서 가장 명망 있는 로펌 중 하나로, 150명 이상의 변호사가 기업법, 소송, 중재, M&A, 조세법, 금융, 지식재산권, 노동 및 환경법을 전문으로 합니다.",
+    ja: "Von Wobeser y Sierra, S.C.はメキシコで最も権威ある法律事務所の一つであり、150名以上の弁護士が会社法、訴訟、仲裁、M&A、税法、銀行・金融、知的財産、労働・環境法を専門としています。",
+    ar: "Von Wobeser y Sierra, S.C. هي واحدة من أعرق شركات المحاماة في المكسيك، مع أكثر من 150 محامياً متخصصين في قانون الشركات والتقاضي والتحكيم والاندماج والاستحواذ وقانون الضرائب والخدمات المصرفية والملكية الفكرية.",
+    ru: "Von Wobeser y Sierra, S.C. — одна из самых престижных юридических фирм Мексики, насчитывающая более 150 юристов, специализирующихся на корпоративном праве, судебных разбирательствах, арбитраже, M&A, налоговом праве, банковском деле, интеллектуальной собственности.",
+    fr: "Von Wobeser y Sierra, S.C. est l'un des cabinets d'avocats les plus prestigieux du Mexique, avec plus de 150 avocats spécialisés en droit des sociétés, contentieux, arbitrage, M&A, droit fiscal, banque et finance, propriété intellectuelle, droit du travail et environnemental.",
+    it: "Von Wobeser y Sierra, S.C. è uno degli studi legali più prestigiosi del Messico, con oltre 150 avvocati specializzati in diritto societario, contenzioso, arbitrato, M&A, diritto tributario, banche e finanza, proprietà intellettuale, diritto del lavoro e ambientale.",
+  },
+  slogan: {
+    en: "Legal excellence for your business in Mexico",
+    es: "Excelencia legal para sus negocios en México",
+    de: "Rechtliche Exzellenz für Ihr Geschäft in Mexiko",
+    zh: "为您在墨西哥的业务提供卓越的法律服务",
+    ko: "멕시코 비즈니스를 위한 법률적 탁월함",
+    ja: "メキシコでのビジネスのための法的卓越性",
+    ar: "التميز القانوني لأعمالك في المكسيك",
+    ru: "Юридическое превосходство для вашего бизнеса в Мексике",
+    fr: "Excellence juridique pour vos affaires au Mexique",
+    it: "Eccellenza legale per il tuo business in Messico",
+  },
+};
+
 export default function JsonLdSchema({ language }: JsonLdSchemaProps) {
-  const descriptions = {
-    legalService: language === "es"
-      ? "Von Wobeser y Sierra, S.C. es una firma de abogados líder en México, especializada en servicios legales corporativos, litigio, arbitraje, derecho fiscal, fusiones y adquisiciones, y más. Fundada en 1986, es reconocida por Chambers, Legal 500 y otros directorios internacionales."
-      : "Von Wobeser y Sierra, S.C. is a leading law firm in Mexico, specializing in corporate legal services, litigation, arbitration, tax law, mergers and acquisitions, and more. Founded in 1986, it is recognized by Chambers, Legal 500 and other international directories.",
-    organization: language === "es"
-      ? "Von Wobeser y Sierra, S.C. es una de las firmas legales más prestigiosas de México, con más de 150 abogados especializados en derecho corporativo, litigio, arbitraje, fusiones y adquisiciones, derecho fiscal, bancario y financiero, propiedad intelectual, laboral y ambiental."
-      : "Von Wobeser y Sierra, S.C. is one of Mexico's most prestigious law firms, with over 150 attorneys specializing in corporate law, litigation, arbitration, mergers and acquisitions, tax law, banking and finance, intellectual property, labor and environmental law.",
+  const langDescriptions = {
+    legalService: descriptions.legalService[language],
+    organization: descriptions.organization[language],
   };
 
   const organizationSchema = {
@@ -27,7 +77,7 @@ export default function JsonLdSchema({ language }: JsonLdSchemaProps) {
       "height": "60"
     },
     "image": "https://vonwobeser.com/images/vonwobeser_2025.png",
-    "description": descriptions.organization,
+    "description": langDescriptions.organization,
     "foundingDate": "1986",
     "foundingLocation": {
       "@type": "Place",
@@ -41,9 +91,7 @@ export default function JsonLdSchema({ language }: JsonLdSchemaProps) {
       "@type": "QuantitativeValue",
       "value": "150+"
     },
-    "slogan": language === "es" 
-      ? "Excelencia legal para sus negocios en México" 
-      : "Legal excellence for your business in Mexico",
+    "slogan": descriptions.slogan[language],
     "address": {
       "@type": "PostalAddress",
       "streetAddress": "Torre SOMA Chapultepec Piso 18, Campos Elíseos 204",
@@ -102,7 +150,7 @@ export default function JsonLdSchema({ language }: JsonLdSchemaProps) {
     "url": "https://www.vonwobeser.com",
     "logo": "https://vonwobeser.com/images/vonwobeser_2025.png",
     "image": "https://vonwobeser.com/images/vonwobeser_2025.png",
-    "description": descriptions.legalService,
+    "description": langDescriptions.legalService,
     "priceRange": "$$$",
     "currenciesAccepted": "MXN, USD",
     "paymentAccepted": "Bank Transfer, Wire Transfer",

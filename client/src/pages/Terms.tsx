@@ -571,7 +571,7 @@ Para consultas relacionadas con posible representación legal, comuníquese con 
 
   return (
     <div className="min-h-screen bg-white dark:bg-gray-900" data-testid="page-terms">
-      <SEOHead page="terms" language={displayLanguage} />
+      <SEOHead page="terms" language={language} />
       <Header />
       
       <section className="pt-32 pb-12 bg-primary" data-testid="section-terms-hero">

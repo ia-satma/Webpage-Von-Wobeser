@@ -234,7 +234,7 @@ export default function Rankings() {
 
   return (
     <div className="min-h-screen bg-white dark:bg-gray-900" data-testid="page-rankings">
-      <SEOHead page="rankings" language={displayLanguage} />
+      <SEOHead page="rankings" language={language} />
       <Header />
 
       <section className="pt-32 pb-16 bg-primary" data-testid="section-rankings-hero">

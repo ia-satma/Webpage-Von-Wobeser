@@ -69,7 +69,7 @@ export default function PracticeGroups() {
 
   return (
     <div className="min-h-screen bg-white dark:bg-gray-900" data-testid="page-practice-groups">
-      <SEOHead page="practiceGroups" language={displayLanguage} />
+      <SEOHead page="practiceGroups" language={language} />
       <Header />
       
       <section className="pt-32 pb-12 bg-primary" data-testid="section-practice-groups-hero">

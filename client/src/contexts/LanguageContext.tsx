@@ -46,6 +46,19 @@ function getDisplayLanguage(lang: LanguageCode): DisplayLanguage {
   return "en";
 }
 
+const HTML_LANG_CODES: Record<LanguageCode, string> = {
+  en: "en",
+  es: "es-MX",
+  de: "de",
+  zh: "zh-CN",
+  ko: "ko",
+  ja: "ja",
+  ar: "ar",
+  ru: "ru",
+  fr: "fr",
+  it: "it",
+};
+
 export function LanguageProvider({ children }: LanguageProviderProps) {
   const [language, setLanguageState] = useState<LanguageCode>(getInitialLanguage);
 
@@ -70,6 +83,18 @@ export function LanguageProvider({ children }: LanguageProviderProps) {
       setLanguageState(stored);
     }
   }, []);
+
+  useEffect(() => {
+    const htmlElement = document.documentElement;
+    const langCode = HTML_LANG_CODES[language] || language;
+    htmlElement.setAttribute("lang", langCode);
+    
+    if (language === "ar") {
+      htmlElement.setAttribute("dir", "rtl");
+    } else {
+      htmlElement.setAttribute("dir", "ltr");
+    }
+  }, [language]);
 
   return (
     <LanguageContext.Provider value={{ language, displayLanguage, setLanguage, getLanguageInfo }}>

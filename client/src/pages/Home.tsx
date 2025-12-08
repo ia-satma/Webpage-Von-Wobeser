@@ -24,8 +24,8 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-white" data-testid="page-home">
-      <SEOHead page="home" language={displayLanguage} />
-      <JsonLdSchema language={displayLanguage} />
+      <SEOHead page="home" language={language} />
+      <JsonLdSchema language={language} />
       
       {/* 1. Header/Nav with deep menu */}
       <Header />

@@ -201,7 +201,7 @@ export default function Newsletter() {
 
   return (
     <div className="min-h-screen bg-white dark:bg-gray-900" data-testid="page-newsletter">
-      <SEOHead page="newsletter" language={displayLanguage} />
+      <SEOHead page="newsletter" language={language} />
       <Header />
       
       <section className="pt-32 pb-12 bg-primary" data-testid="section-newsletter-hero">

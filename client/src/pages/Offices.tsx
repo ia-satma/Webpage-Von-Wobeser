@@ -183,7 +183,7 @@ export default function Offices() {
 
   return (
     <div className="min-h-screen bg-white dark:bg-gray-900" data-testid="page-offices">
-      <SEOHead page="offices" language={displayLanguage} />
+      <SEOHead page="offices" language={language} />
       <Header />
       
       <section className="pt-32 pb-12 bg-primary" data-testid="section-offices-hero">

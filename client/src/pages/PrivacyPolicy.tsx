@@ -595,7 +595,7 @@ Sitio web: www.vonwobeser.com`
 
   return (
     <div className="min-h-screen bg-white dark:bg-gray-900" data-testid="page-privacy-policy">
-      <SEOHead page="privacyPolicy" language={displayLanguage} />
+      <SEOHead page="privacyPolicy" language={language} />
       <Header />
       
       <section className="pt-32 pb-12 bg-primary" data-testid="section-privacy-hero">

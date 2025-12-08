@@ -252,7 +252,7 @@ export default function Careers() {
 
   return (
     <div className="min-h-screen bg-white dark:bg-gray-900" data-testid="page-careers">
-      <SEOHead page="careers" language={displayLanguage} />
+      <SEOHead page="careers" language={language} />
       <Header />
       
       <section className="pt-32 pb-16 bg-primary" data-testid="section-careers-hero">

@@ -194,7 +194,7 @@ export default function Interns() {
 
   return (
     <div className="min-h-screen bg-white dark:bg-gray-900" data-testid="page-interns">
-      <SEOHead page="interns" language={displayLanguage} />
+      <SEOHead page="interns" language={language} />
       <Header />
       
       <section className="pt-32 pb-16 bg-primary" data-testid="section-interns-hero">

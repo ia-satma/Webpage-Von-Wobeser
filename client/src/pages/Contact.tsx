@@ -205,7 +205,7 @@ export default function Contact() {
 
   return (
     <div className="min-h-screen bg-white dark:bg-gray-900" data-testid="page-contact">
-      <SEOHead page="contact" language={displayLanguage} />
+      <SEOHead page="contact" language={language} />
       <Header />
       
       <section className="pt-32 pb-12 bg-primary" data-testid="section-contact-hero">

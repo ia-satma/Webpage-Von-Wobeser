@@ -283,7 +283,7 @@ export default function About() {
 
   return (
     <div className="min-h-screen bg-white dark:bg-gray-900" data-testid="page-about">
-      <SEOHead page="about" language={displayLanguage} />
+      <SEOHead page="about" language={language} />
       <Header />
       
       <section className="pt-32 pb-12 bg-primary" data-testid="section-about-hero">
