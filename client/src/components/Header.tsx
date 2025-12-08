@@ -9,7 +9,8 @@ import { cn } from "@/lib/utils";
 import ThemeToggle from "./ThemeToggle";
 import LanguageSelector from "./LanguageSelector";
 import { useLanguage } from "@/contexts/LanguageContext";
-import type { TeamMember, PracticeGroup, IndustryGroup, News } from "@shared/schema";
+import { useTranslatedContent } from "@/hooks/useTranslatedContent";
+import type { TeamMember, PracticeGroup, IndustryGroup, News, LanguageCode } from "@shared/schema";
 import logoHD from "@assets/vonwobeser_logo_2025_full.png";
 
 interface SearchResults {
@@ -30,6 +31,156 @@ interface MenuItem {
   href: string;
   id: string;
   subItems?: SubMenuItem[];
+}
+
+function SearchResultTeamMember({
+  member,
+  language,
+  onSelect,
+}: {
+  member: TeamMember;
+  language: LanguageCode;
+  onSelect: (href: string) => void;
+}) {
+  const { translatedFields } = useTranslatedContent({
+    contentType: 'team_member',
+    entityId: member.id.toString(),
+    fields: { title: member.title, titleEs: member.titleEs },
+    enabled: language !== 'en' && language !== 'es',
+  });
+
+  const displayTitle = language === 'es'
+    ? member.titleEs
+    : language === 'en'
+      ? member.title
+      : (translatedFields.title || member.title);
+
+  return (
+    <button
+      onClick={() => onSelect(`/team/${member.slug}`)}
+      className="w-full text-left px-2 py-2 rounded hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-3"
+      data-testid={`search-result-team-${member.slug}`}
+      role="option"
+    >
+      <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary text-xs font-medium" aria-hidden="true">
+        {member.name.split(' ').map(n => n[0]).join('').slice(0, 2)}
+      </div>
+      <div>
+        <p className="text-sm font-medium text-gray-800 dark:text-white">{member.name}</p>
+        <p className="text-xs text-gray-500 dark:text-gray-400">
+          {displayTitle}
+        </p>
+      </div>
+    </button>
+  );
+}
+
+function SearchResultPracticeGroup({
+  group,
+  language,
+  onSelect,
+}: {
+  group: PracticeGroup;
+  language: LanguageCode;
+  onSelect: (href: string) => void;
+}) {
+  const { translatedFields } = useTranslatedContent({
+    contentType: 'practice_group',
+    entityId: group.id.toString(),
+    fields: { name: group.name, nameEs: group.nameEs },
+    enabled: language !== 'en' && language !== 'es',
+  });
+
+  const displayName = language === 'es'
+    ? group.nameEs
+    : language === 'en'
+      ? group.name
+      : (translatedFields.name || group.name);
+
+  return (
+    <button
+      onClick={() => onSelect(`/practice-groups/${group.slug}`)}
+      className="w-full text-left px-2 py-2 rounded hover:bg-gray-100 dark:hover:bg-gray-700"
+      data-testid={`search-result-practice-${group.slug}`}
+      role="option"
+    >
+      <p className="text-sm font-medium text-gray-800 dark:text-white">
+        {displayName}
+      </p>
+    </button>
+  );
+}
+
+function SearchResultIndustryGroup({
+  group,
+  language,
+  onSelect,
+}: {
+  group: IndustryGroup;
+  language: LanguageCode;
+  onSelect: (href: string) => void;
+}) {
+  const { translatedFields } = useTranslatedContent({
+    contentType: 'industry_group',
+    entityId: group.id.toString(),
+    fields: { name: group.name, nameEs: group.nameEs },
+    enabled: language !== 'en' && language !== 'es',
+  });
+
+  const displayName = language === 'es'
+    ? group.nameEs
+    : language === 'en'
+      ? group.name
+      : (translatedFields.name || group.name);
+
+  return (
+    <button
+      onClick={() => onSelect(`/industry-groups/${group.slug}`)}
+      className="w-full text-left px-2 py-2 rounded hover:bg-gray-100 dark:hover:bg-gray-700"
+      data-testid={`search-result-industry-${group.slug}`}
+      role="option"
+    >
+      <p className="text-sm font-medium text-gray-800 dark:text-white">
+        {displayName}
+      </p>
+    </button>
+  );
+}
+
+function SearchResultNews({
+  article,
+  language,
+  onSelect,
+}: {
+  article: News;
+  language: LanguageCode;
+  onSelect: (href: string) => void;
+}) {
+  const { translatedFields } = useTranslatedContent({
+    contentType: 'news',
+    entityId: article.id.toString(),
+    fields: { title: article.title, titleEs: article.titleEs },
+    enabled: language !== 'en' && language !== 'es',
+  });
+
+  const displayTitle = language === 'es'
+    ? article.titleEs
+    : language === 'en'
+      ? article.title
+      : (translatedFields.title || article.title);
+
+  return (
+    <button
+      onClick={() => onSelect(`/news/${article.slug}`)}
+      className="w-full text-left px-2 py-2 rounded hover:bg-gray-100 dark:hover:bg-gray-700"
+      data-testid={`search-result-news-${article.slug}`}
+      role="option"
+    >
+      <p className="text-sm font-medium text-gray-800 dark:text-white line-clamp-1">
+        {displayTitle}
+      </p>
+    </button>
+  );
 }
 
 export default function Header() {
@@ -327,23 +478,12 @@ export default function Header() {
                             {t('team.title')}
                           </p>
                           {searchResults.team.map((member) => (
-                            <button
+                            <SearchResultTeamMember
                               key={member.id}
-                              onClick={() => handleSearchSelect(`/team/${member.slug}`)}
-                              className="w-full text-left px-2 py-2 rounded hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-3"
-                              data-testid={`search-result-team-${member.slug}`}
-                              role="option"
-                            >
-                              <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary text-xs font-medium" aria-hidden="true">
-                                {member.name.split(' ').map(n => n[0]).join('').slice(0, 2)}
-                              </div>
-                              <div>
-                                <p className="text-sm font-medium text-gray-800 dark:text-white">{member.name}</p>
-                                <p className="text-xs text-gray-500 dark:text-gray-400">
-                                  {language === "es" ? member.titleEs : member.title}
-                                </p>
-                              </div>
-                            </button>
+                              member={member}
+                              language={language as LanguageCode}
+                              onSelect={handleSearchSelect}
+                            />
                           ))}
                         </div>
                       )}
@@ -354,17 +494,12 @@ export default function Header() {
                             {t('practices.title')}
                           </p>
                           {searchResults.practiceGroups.map((group) => (
-                            <button
+                            <SearchResultPracticeGroup
                               key={group.id}
-                              onClick={() => handleSearchSelect(`/practice-groups/${group.slug}`)}
-                              className="w-full text-left px-2 py-2 rounded hover:bg-gray-100 dark:hover:bg-gray-700"
-                              data-testid={`search-result-practice-${group.slug}`}
-                              role="option"
-                            >
-                              <p className="text-sm font-medium text-gray-800 dark:text-white">
-                                {language === "es" ? group.nameEs : group.name}
-                              </p>
-                            </button>
+                              group={group}
+                              language={language as LanguageCode}
+                              onSelect={handleSearchSelect}
+                            />
                           ))}
                         </div>
                       )}
@@ -375,17 +510,12 @@ export default function Header() {
                             {t('industries.title')}
                           </p>
                           {searchResults.industryGroups.map((group) => (
-                            <button
+                            <SearchResultIndustryGroup
                               key={group.id}
-                              onClick={() => handleSearchSelect(`/industry-groups/${group.slug}`)}
-                              className="w-full text-left px-2 py-2 rounded hover:bg-gray-100 dark:hover:bg-gray-700"
-                              data-testid={`search-result-industry-${group.slug}`}
-                              role="option"
-                            >
-                              <p className="text-sm font-medium text-gray-800 dark:text-white">
-                                {language === "es" ? group.nameEs : group.name}
-                              </p>
-                            </button>
+                              group={group}
+                              language={language as LanguageCode}
+                              onSelect={handleSearchSelect}
+                            />
                           ))}
                         </div>
                       )}
@@ -396,17 +526,12 @@ export default function Header() {
                             {t('news.title')}
                           </p>
                           {searchResults.news.map((article) => (
-                            <button
+                            <SearchResultNews
                               key={article.id}
-                              onClick={() => handleSearchSelect(`/news/${article.slug}`)}
-                              className="w-full text-left px-2 py-2 rounded hover:bg-gray-100 dark:hover:bg-gray-700"
-                              data-testid={`search-result-news-${article.slug}`}
-                              role="option"
-                            >
-                              <p className="text-sm font-medium text-gray-800 dark:text-white line-clamp-1">
-                                {language === "es" ? article.titleEs : article.title}
-                              </p>
-                            </button>
+                              article={article}
+                              language={language as LanguageCode}
+                              onSelect={handleSearchSelect}
+                            />
                           ))}
                         </div>
                       )}

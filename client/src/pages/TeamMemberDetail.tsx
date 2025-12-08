@@ -14,7 +14,7 @@ import Footer from "@/components/Footer";
 import { PersonJsonLd, BreadcrumbJsonLd } from "@/components/JsonLdSchema";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useTranslatedContent } from "@/hooks/useTranslatedContent";
-import type { TeamMember, PracticeGroup, IndustryGroup, Education, Affiliation, Ranking, Publication, RepresentativeMatter, BarAdmission, News } from "@shared/schema";
+import type { TeamMember, PracticeGroup, IndustryGroup, Education, Affiliation, Ranking, Publication, RepresentativeMatter, BarAdmission, News, LanguageCode } from "@shared/schema";
 
 function NewsImageWithFallback({ 
   src, 
@@ -44,6 +44,103 @@ function NewsImageWithFallback({
       className={className}
       onError={() => setHasError(true)}
     />
+  );
+}
+
+function RelatedTeamMemberCard({
+  relatedMember,
+  language,
+  getInitials,
+}: {
+  relatedMember: TeamMember;
+  language: LanguageCode;
+  getInitials: (name: string) => string;
+}) {
+  const { translatedFields } = useTranslatedContent({
+    contentType: 'team_member',
+    entityId: relatedMember.id.toString(),
+    fields: { title: relatedMember.title, titleEs: relatedMember.titleEs },
+    enabled: language !== 'en' && language !== 'es',
+  });
+
+  const displayTitle = language === 'es'
+    ? relatedMember.titleEs
+    : language === 'en'
+      ? relatedMember.title
+      : (translatedFields.title || relatedMember.title);
+
+  return (
+    <Link href={`/team/${relatedMember.slug}`}>
+      <Card 
+        className="rounded-md border border-gray-200 dark:border-gray-700 hover:shadow-md transition-all cursor-pointer"
+        data-testid={`card-related-member-${relatedMember.slug}`}
+      >
+        <CardContent className="p-4 flex items-center gap-3">
+          <Avatar className="w-12 h-12">
+            <AvatarImage 
+              src={relatedMember.imageUrl || undefined} 
+              alt={relatedMember.name}
+            />
+            <AvatarFallback className="bg-primary/10 text-primary text-sm">
+              {getInitials(relatedMember.name)}
+            </AvatarFallback>
+          </Avatar>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-medium text-gray-800 dark:text-white truncate">
+              {relatedMember.name}
+            </p>
+            <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
+              {displayTitle}
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+    </Link>
+  );
+}
+
+function EducationItemTranslated({
+  edu,
+  index,
+  language,
+  memberId,
+}: {
+  edu: Education;
+  index: number;
+  language: LanguageCode;
+  memberId: string;
+}) {
+  const { translatedFields } = useTranslatedContent({
+    contentType: 'team_member',
+    entityId: `${memberId}_edu_${index}`,
+    fields: { 
+      degree: edu.degree,
+      degreeEs: edu.degreeEs,
+    },
+    enabled: language !== 'en' && language !== 'es',
+  });
+
+  const displayDegree = language === 'es' && edu.degreeEs
+    ? edu.degreeEs
+    : language === 'en'
+      ? edu.degree
+      : (translatedFields.degree || edu.degree);
+
+  const displaySchool = language === 'es' && edu.schoolEs ? edu.schoolEs : edu.school;
+
+  return (
+    <div 
+      className="border-l-2 border-primary/30 pl-4 py-1"
+      data-testid={`item-education-${index}`}
+    >
+      <p className="text-lg font-medium text-gray-800 dark:text-white">
+        {displayDegree}
+      </p>
+      <p className="text-gray-600 dark:text-gray-400">
+        {displaySchool}
+        {edu.year && <span className="ml-2 text-sm">({edu.year})</span>}
+      </p>
+    </div>
   );
 }
 
@@ -1108,19 +1205,13 @@ export default function TeamMemberDetail() {
                   </h2>
                   <div className="space-y-4">
                     {(member.education as Education[]).map((edu, index) => (
-                      <div 
-                        key={index} 
-                        className="border-l-2 border-primary/30 pl-4 py-1"
-                        data-testid={`item-education-${index}`}
-                      >
-                        <p className="text-lg font-medium text-gray-800 dark:text-white">
-                          {language === "es" && edu.degreeEs ? edu.degreeEs : edu.degree}
-                        </p>
-                        <p className="text-gray-600 dark:text-gray-400">
-                          {language === "es" && edu.schoolEs ? edu.schoolEs : edu.school}
-                          {edu.year && <span className="ml-2 text-sm">({edu.year})</span>}
-                        </p>
-                      </div>
+                      <EducationItemTranslated
+                        key={index}
+                        edu={edu}
+                        index={index}
+                        language={language}
+                        memberId={member.id.toString()}
+                      />
                     ))}
                   </div>
                 </motion.section>
@@ -1473,32 +1564,12 @@ export default function TeamMemberDetail() {
                   </h2>
                   <div className="space-y-3">
                     {relatedMembers.map((relatedMember) => (
-                      <Link key={relatedMember.id} href={`/team/${relatedMember.slug}`}>
-                        <Card 
-                          className="rounded-md border border-gray-200 dark:border-gray-700 hover:shadow-md transition-all cursor-pointer"
-                          data-testid={`card-related-member-${relatedMember.slug}`}
-                        >
-                          <CardContent className="p-4 flex items-center gap-3">
-                            <Avatar className="w-12 h-12">
-                              <AvatarImage 
-                                src={relatedMember.imageUrl || undefined} 
-                                alt={relatedMember.name}
-                              />
-                              <AvatarFallback className="bg-primary/10 text-primary text-sm">
-                                {getInitials(relatedMember.name)}
-                              </AvatarFallback>
-                            </Avatar>
-                            <div className="flex-1 min-w-0">
-                              <p className="text-sm font-medium text-gray-800 dark:text-white truncate">
-                                {relatedMember.name}
-                              </p>
-                              <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
-                                {language === "es" ? relatedMember.titleEs : relatedMember.title}
-                              </p>
-                            </div>
-                          </CardContent>
-                        </Card>
-                      </Link>
+                      <RelatedTeamMemberCard
+                        key={relatedMember.id}
+                        relatedMember={relatedMember}
+                        language={language}
+                        getInitials={getInitials}
+                      />
                     ))}
                   </div>
                 </motion.section>

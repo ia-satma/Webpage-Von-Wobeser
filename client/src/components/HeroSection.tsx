@@ -5,6 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useTranslatedContent } from "@/hooks/useTranslatedContent";
 import type { SiteContent, News, LanguageCode } from "@shared/schema";
 import heroVideo from "@assets/dron_1764710361340.mp4";
 import heroImage from "@assets/hero_office.jpg";
@@ -61,6 +62,59 @@ const newsPanelLabels: Record<LanguageCode, NewsPanelLabels> = {
   },
 };
 
+function NewsItemTranslated({ 
+  item, 
+  language, 
+  index, 
+  seeMoreText 
+}: { 
+  item: News; 
+  language: LanguageCode; 
+  index: number; 
+  seeMoreText: string;
+}) {
+  const { translatedFields } = useTranslatedContent({
+    contentType: 'news',
+    entityId: item.id,
+    fields: { 
+      title: item.title, 
+      titleEs: item.titleEs,
+    },
+    enabled: language !== 'en' && language !== 'es',
+  });
+
+  const displayTitle = language === 'es' 
+    ? item.titleEs 
+    : language === 'en' 
+      ? item.title 
+      : (translatedFields.title || item.title);
+
+  return (
+    <motion.div
+      key={item.id}
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5, delay: 1 + index * 0.15 }}
+      className={`group ${index === 0 ? 'border-r border-[#E5E7EB] pr-4' : 'pl-2'}`}
+      data-testid={`card-news-${item.id}`}
+    >
+      <h4 
+        className="text-sm font-medium text-[#1F2937] leading-snug mb-3 italic"
+        data-testid={`text-news-title-${item.id}`}
+      >
+        {displayTitle}
+      </h4>
+      <Link 
+        href={`/news/${item.slug}`}
+        className="inline-flex items-center text-xs font-medium tracking-wider text-[#AC162C] hover:text-[#841A1A] transition-colors"
+        data-testid={`link-news-seemore-${item.id}`}
+      >
+        {seeMoreText}
+      </Link>
+    </motion.div>
+  );
+}
+
 function NewsPanel({ language, news }: { language: LanguageCode; news: News[] }) {
   const displayNews = news.slice(0, 2);
   
@@ -86,28 +140,13 @@ function NewsPanel({ language, news }: { language: LanguageCode; news: News[] })
 
         <div className="grid grid-cols-2 gap-4">
           {displayNews.map((item, index) => (
-            <motion.div
+            <NewsItemTranslated
               key={item.id}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 1 + index * 0.15 }}
-              className={`group ${index === 0 ? 'border-r border-[#E5E7EB] pr-4' : 'pl-2'}`}
-              data-testid={`card-news-${item.id}`}
-            >
-              <h4 
-                className="text-sm font-medium text-[#1F2937] leading-snug mb-3 italic"
-                data-testid={`text-news-title-${item.id}`}
-              >
-                {language === "es" ? item.titleEs : item.title}
-              </h4>
-              <Link 
-                href={`/news/${item.slug}`}
-                className="inline-flex items-center text-xs font-medium tracking-wider text-[#AC162C] hover:text-[#841A1A] transition-colors"
-                data-testid={`link-news-seemore-${item.id}`}
-              >
-                {t.seeMore}
-              </Link>
-            </motion.div>
+              item={item}
+              language={language}
+              index={index}
+              seeMoreText={t.seeMore}
+            />
           ))}
         </div>
       </div>
