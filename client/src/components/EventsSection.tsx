@@ -10,7 +10,7 @@ import type { Event } from "@shared/schema";
 import { eventTypes } from "@shared/schema";
 
 interface EventsSectionProps {
-  language: "es" | "en";
+  language: "en" | "es" | "de" | "zh" | "ko" | "ja" | "ar" | "ru" | "fr" | "it";
 }
 
 const getEventTypeColor = (eventType: string): string => {
@@ -24,7 +24,7 @@ const getEventTypeColor = (eventType: string): string => {
   return colors[eventType] || "bg-gray-600";
 };
 
-const getEventTypeLabel = (eventType: string, language: "es" | "en"): string => {
+const getEventTypeLabel = (eventType: string, language: string): string => {
   const type = eventTypes.find(t => t.value === eventType);
   if (!type) return eventType;
   return language === "es" ? type.es : type.en;
@@ -35,7 +35,13 @@ export default function EventsSection({ language }: EventsSectionProps) {
     queryKey: ["/api/events/upcoming?limit=4"],
   });
 
-  const content = {
+  const content: Record<string, {
+    title: string;
+    viewAll: string;
+    learnMore: string;
+    errorMessage: string;
+    noEvents: string;
+  }> = {
     en: {
       title: "Upcoming Events",
       viewAll: "View All Events",
@@ -50,14 +56,82 @@ export default function EventsSection({ language }: EventsSectionProps) {
       errorMessage: "Error al cargar eventos",
       noEvents: "No hay eventos próximos",
     },
+    de: {
+      title: "Kommende Veranstaltungen",
+      viewAll: "Alle anzeigen",
+      learnMore: "Mehr erfahren",
+      errorMessage: "Fehler beim Laden der Veranstaltungen",
+      noEvents: "Keine Veranstaltungen geplant",
+    },
+    zh: {
+      title: "即将举行的活动",
+      viewAll: "查看全部",
+      learnMore: "了解更多",
+      errorMessage: "加载活动失败",
+      noEvents: "暂无活动",
+    },
+    ko: {
+      title: "예정된 이벤트",
+      viewAll: "모두 보기",
+      learnMore: "자세히 알아보기",
+      errorMessage: "이벤트를 불러오는 데 실패했습니다",
+      noEvents: "예정된 이벤트 없음",
+    },
+    ja: {
+      title: "今後のイベント",
+      viewAll: "すべて見る",
+      learnMore: "詳しく見る",
+      errorMessage: "イベントの読み込みに失敗しました",
+      noEvents: "予定されているイベントはありません",
+    },
+    ar: {
+      title: "الفعاليات القادمة",
+      viewAll: "عرض الكل",
+      learnMore: "اعرف المزيد",
+      errorMessage: "فشل في تحميل الفعاليات",
+      noEvents: "لا توجد فعاليات مجدولة",
+    },
+    ru: {
+      title: "Предстоящие мероприятия",
+      viewAll: "Смотреть все",
+      learnMore: "Подробнее",
+      errorMessage: "Не удалось загрузить мероприятия",
+      noEvents: "Нет запланированных мероприятий",
+    },
+    fr: {
+      title: "Événements à venir",
+      viewAll: "Voir tout",
+      learnMore: "En savoir plus",
+      errorMessage: "Échec du chargement des événements",
+      noEvents: "Aucun événement prévu",
+    },
+    it: {
+      title: "Prossimi eventi",
+      viewAll: "Vedi tutti",
+      learnMore: "Scopri di più",
+      errorMessage: "Errore nel caricamento degli eventi",
+      noEvents: "Nessun evento in programma",
+    },
   };
 
-  const t = content[language];
+  const t = content[language] || content.en;
 
   const formatDate = (date: string | Date | null) => {
     if (!date) return '';
     const d = new Date(date);
-    return d.toLocaleDateString(language === "es" ? 'es-MX' : 'en-US', {
+    const localeMap: Record<string, string> = {
+      en: 'en-US',
+      es: 'es-MX',
+      de: 'de-DE',
+      zh: 'zh-CN',
+      ko: 'ko-KR',
+      ja: 'ja-JP',
+      ar: 'ar-SA',
+      ru: 'ru-RU',
+      fr: 'fr-FR',
+      it: 'it-IT',
+    };
+    return d.toLocaleDateString(localeMap[language] || 'en-US', {
       year: 'numeric',
       month: 'long',
       day: 'numeric'

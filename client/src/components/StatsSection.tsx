@@ -5,7 +5,7 @@ import { AlertCircle } from "lucide-react";
 import type { Stat } from "@shared/schema";
 
 interface StatsSectionProps {
-  language: "es" | "en";
+  language: "es" | "en" | "de" | "zh" | "ko" | "ja" | "ar" | "ru" | "fr" | "it";
 }
 
 export default function StatsSection({ language }: StatsSectionProps) {
@@ -13,7 +13,13 @@ export default function StatsSection({ language }: StatsSectionProps) {
     queryKey: ["/api/stats"],
   });
 
-  const content = {
+  const content: Record<string, {
+    title: string;
+    subtitle: string;
+    description: string;
+    capacity: string;
+    errorMessage: string;
+  }> = {
     en: {
       title: "Collaboration, technology and well-being",
       subtitle: "Designed by Gensler, one of the most influential architecture and design firms worldwide, the new offices cover more than 5,300 square meters distributed over six levels.",
@@ -22,15 +28,199 @@ export default function StatsSection({ language }: StatsSectionProps) {
       errorMessage: "Failed to load statistics",
     },
     es: {
-      title: "Colaboraci\u00f3n, tecnolog\u00eda y bienestar",
-      subtitle: "Dise\u00f1adas por Gensler, una de las firmas de arquitectura y dise\u00f1o m\u00e1s influyentes del mundo, las nuevas oficinas abarcan m\u00e1s de 5,300 metros cuadrados distribuidos en seis niveles.",
-      description: "El dise\u00f1o est\u00e1 concebido para maximizar la colaboraci\u00f3n entre nuestros 18 grupos de pr\u00e1ctica legal y 7 grupos industriales.",
-      capacity: "En su etapa inicial, las instalaciones ofrecen capacidad para m\u00e1s de 300 estaciones de trabajo, 16 salas de juntas, espacios flexibles para actividades sociales y acad\u00e9micas con capacidad para 250 personas, y una terraza panor\u00e1mica con vistas privilegiadas de lugares emblem\u00e1ticos de la Ciudad de M\u00e9xico como el Bosque de Chapultepec y el Campo Militar Marte.",
-      errorMessage: "Error al cargar estad\u00edsticas",
+      title: "Colaboración, tecnología y bienestar",
+      subtitle: "Diseñadas por Gensler, una de las firmas de arquitectura y diseño más influyentes del mundo, las nuevas oficinas abarcan más de 5,300 metros cuadrados distribuidos en seis niveles.",
+      description: "El diseño está concebido para maximizar la colaboración entre nuestros 18 grupos de práctica legal y 7 grupos industriales.",
+      capacity: "En su etapa inicial, las instalaciones ofrecen capacidad para más de 300 estaciones de trabajo, 16 salas de juntas, espacios flexibles para actividades sociales y académicas con capacidad para 250 personas, y una terraza panorámica con vistas privilegiadas de lugares emblemáticos de la Ciudad de México como el Bosque de Chapultepec y el Campo Militar Marte.",
+      errorMessage: "Error al cargar estadísticas",
+    },
+    de: {
+      title: "Zusammenarbeit, Technologie und Wohlbefinden",
+      subtitle: "Die neuen Büros wurden von Gensler, einem der einflussreichsten Architektur- und Designbüros weltweit, entworfen und erstrecken sich über mehr als 5.300 Quadratmeter auf sechs Etagen.",
+      description: "Das Design ist darauf ausgelegt, die Zusammenarbeit zwischen unseren 18 Rechtspraxisgruppen und 7 Branchengruppen zu maximieren.",
+      capacity: "In der ersten Phase bieten die Einrichtungen Platz für mehr als 300 Arbeitsplätze, 16 Besprechungsräume, flexible Räume für soziale und akademische Aktivitäten mit einer Kapazität von 250 Personen und eine Panoramaterrasse mit privilegiertem Blick auf ikonische Wahrzeichen von Mexiko-Stadt wie den Chapultepec-Wald und das Campo Militar Marte.",
+      errorMessage: "Fehler beim Laden der Statistiken",
+    },
+    zh: {
+      title: "协作、技术与福祉",
+      subtitle: "新办公室由全球最具影响力的建筑设计公司之一Gensler设计，占地面积超过5,300平方米，分布在六个楼层。",
+      description: "设计旨在最大化我们18个法律执业团队和7个行业团队之间的协作。",
+      capacity: "在初期阶段，设施可容纳300多个工作站、16间会议室、可容纳250人的社交和学术活动灵活空间，以及可俯瞰墨西哥城标志性地标（如查普尔特佩克森林和马尔特军事基地）的全景露台。",
+      errorMessage: "加载统计数据失败",
+    },
+    ko: {
+      title: "협업, 기술 그리고 웰빙",
+      subtitle: "세계에서 가장 영향력 있는 건축 및 디자인 회사 중 하나인 Gensler가 설계한 새 사무실은 6개 층에 걸쳐 5,300제곱미터 이상을 차지합니다.",
+      description: "이 디자인은 18개의 법률 실무 그룹과 7개의 산업 그룹 간의 협업을 극대화하도록 구상되었습니다.",
+      capacity: "초기 단계에서 시설은 300개 이상의 워크스테이션, 16개의 회의실, 250명 수용 가능한 사회적 및 학술 활동을 위한 유연한 공간, 그리고 차풀테펙 숲과 캄포 밀리타르 마르테와 같은 멕시코시티의 상징적인 랜드마크를 조망할 수 있는 파노라마 테라스를 제공합니다.",
+      errorMessage: "통계 로드 실패",
+    },
+    ja: {
+      title: "コラボレーション、テクノロジー、そしてウェルビーイング",
+      subtitle: "世界で最も影響力のある建築・デザイン事務所の一つであるGenslerが設計した新オフィスは、6フロアにわたる5,300平方メートル以上の広さを誇ります。",
+      description: "このデザインは、18の法務プラクティスグループと7の業界グループ間のコラボレーションを最大化するように構想されています。",
+      capacity: "初期段階では、300以上のワークステーション、16の会議室、250人収容可能な社会的・学術的活動のための柔軟なスペース、そしてチャプルテペックの森やカンポ・ミリタール・マルテなどメキシコシティの象徴的なランドマークを望む特権的な眺望を持つパノラマテラスを備えています。",
+      errorMessage: "統計の読み込みに失敗しました",
+    },
+    ar: {
+      title: "التعاون والتكنولوجيا والرفاهية",
+      subtitle: "صُممت المكاتب الجديدة من قبل Gensler، إحدى أكثر شركات الهندسة المعمارية والتصميم تأثيراً في العالم، وتغطي أكثر من 5,300 متر مربع موزعة على ستة طوابق.",
+      description: "تم تصميم المساحة لتحقيق أقصى قدر من التعاون بين مجموعات الممارسة القانونية الـ 18 ومجموعات الصناعة السبع لدينا.",
+      capacity: "في مرحلتها الأولية، توفر المرافق سعة لأكثر من 300 محطة عمل، و16 غرفة اجتماعات، ومساحات مرنة للأنشطة الاجتماعية والأكاديمية تتسع لـ 250 شخصاً، وشرفة بانورامية بإطلالات مميزة على معالم مكسيكو سيتي الشهيرة مثل غابة تشابولتيبيك وكامبو ميليتار مارتي.",
+      errorMessage: "فشل في تحميل الإحصائيات",
+    },
+    ru: {
+      title: "Сотрудничество, технологии и благополучие",
+      subtitle: "Новые офисы, спроектированные Gensler, одной из самых влиятельных архитектурных и дизайнерских фирм в мире, занимают более 5 300 квадратных метров на шести этажах.",
+      description: "Дизайн разработан для максимального сотрудничества между нашими 18 практическими группами и 7 отраслевыми группами.",
+      capacity: "На начальном этапе объект предлагает более 300 рабочих мест, 16 переговорных комнат, гибкие пространства для социальных и академических мероприятий вместимостью 250 человек, а также панорамную террасу с привилегированным видом на знаковые достопримечательности Мехико, такие как лес Чапультепек и Кампо Милитар Марте.",
+      errorMessage: "Не удалось загрузить статистику",
+    },
+    fr: {
+      title: "Collaboration, technologie et bien-être",
+      subtitle: "Conçus par Gensler, l'un des cabinets d'architecture et de design les plus influents au monde, les nouveaux bureaux couvrent plus de 5 300 mètres carrés répartis sur six niveaux.",
+      description: "Le design est conçu pour maximiser la collaboration entre nos 18 groupes de pratique juridique et 7 groupes sectoriels.",
+      capacity: "Dans sa phase initiale, les installations offrent une capacité de plus de 300 postes de travail, 16 salles de réunion, des espaces flexibles pour des activités sociales et académiques pouvant accueillir 250 personnes, et une terrasse panoramique avec des vues privilégiées sur des sites emblématiques de Mexico comme la forêt de Chapultepec et le Campo Militar Marte.",
+      errorMessage: "Échec du chargement des statistiques",
+    },
+    it: {
+      title: "Collaborazione, tecnologia e benessere",
+      subtitle: "Progettati da Gensler, uno degli studi di architettura e design più influenti al mondo, i nuovi uffici coprono più di 5.300 metri quadrati distribuiti su sei livelli.",
+      description: "Il design è concepito per massimizzare la collaborazione tra i nostri 18 gruppi di pratica legale e 7 gruppi industriali.",
+      capacity: "Nella sua fase iniziale, le strutture offrono una capacità di oltre 300 postazioni di lavoro, 16 sale riunioni, spazi flessibili per attività sociali e accademiche con capacità di 250 persone e una terrazza panoramica con viste privilegiate su luoghi iconici di Città del Messico come il Bosco di Chapultepec e il Campo Militar Marte.",
+      errorMessage: "Impossibile caricare le statistiche",
     },
   };
 
-  const t = content[language];
+  const t = content[language] || content.en;
+
+  const statLabelTranslations: Record<string, Record<string, string>> = {
+    en: {
+      "Years of Experience": "Years of Experience",
+      "Lawyers": "Lawyers",
+      "Clients": "Clients",
+      "Partners": "Partners",
+      "Offices": "Offices",
+      "Practice Areas": "Practice Areas",
+      "Industry Groups": "Industry Groups",
+      "Countries": "Countries",
+      "Team Members": "Team Members",
+      "Success Rate": "Success Rate",
+    },
+    es: {
+      "Years of Experience": "Años de Experiencia",
+      "Lawyers": "Abogados",
+      "Clients": "Clientes",
+      "Partners": "Socios",
+      "Offices": "Oficinas",
+      "Practice Areas": "Áreas de Práctica",
+      "Industry Groups": "Grupos Industriales",
+      "Countries": "Países",
+      "Team Members": "Miembros del Equipo",
+      "Success Rate": "Tasa de Éxito",
+    },
+    de: {
+      "Years of Experience": "Jahre Erfahrung",
+      "Lawyers": "Anwälte",
+      "Clients": "Mandanten",
+      "Partners": "Partner",
+      "Offices": "Büros",
+      "Practice Areas": "Praxisbereiche",
+      "Industry Groups": "Branchengruppen",
+      "Countries": "Länder",
+      "Team Members": "Teammitglieder",
+      "Success Rate": "Erfolgsquote",
+    },
+    zh: {
+      "Years of Experience": "年经验",
+      "Lawyers": "律师",
+      "Clients": "客户",
+      "Partners": "合伙人",
+      "Offices": "办公室",
+      "Practice Areas": "业务领域",
+      "Industry Groups": "行业团队",
+      "Countries": "国家",
+      "Team Members": "团队成员",
+      "Success Rate": "成功率",
+    },
+    ko: {
+      "Years of Experience": "년 경력",
+      "Lawyers": "변호사",
+      "Clients": "고객",
+      "Partners": "파트너",
+      "Offices": "사무소",
+      "Practice Areas": "업무 분야",
+      "Industry Groups": "산업 그룹",
+      "Countries": "국가",
+      "Team Members": "팀원",
+      "Success Rate": "성공률",
+    },
+    ja: {
+      "Years of Experience": "年の経験",
+      "Lawyers": "弁護士",
+      "Clients": "クライアント",
+      "Partners": "パートナー",
+      "Offices": "オフィス",
+      "Practice Areas": "取扱分野",
+      "Industry Groups": "業界グループ",
+      "Countries": "国",
+      "Team Members": "チームメンバー",
+      "Success Rate": "成功率",
+    },
+    ar: {
+      "Years of Experience": "سنوات من الخبرة",
+      "Lawyers": "محامون",
+      "Clients": "عملاء",
+      "Partners": "شركاء",
+      "Offices": "مكاتب",
+      "Practice Areas": "مجالات الممارسة",
+      "Industry Groups": "مجموعات الصناعة",
+      "Countries": "دول",
+      "Team Members": "أعضاء الفريق",
+      "Success Rate": "معدل النجاح",
+    },
+    ru: {
+      "Years of Experience": "лет опыта",
+      "Lawyers": "юристов",
+      "Clients": "клиентов",
+      "Partners": "партнёров",
+      "Offices": "офисов",
+      "Practice Areas": "практик",
+      "Industry Groups": "отраслевых групп",
+      "Countries": "стран",
+      "Team Members": "членов команды",
+      "Success Rate": "успешных дел",
+    },
+    fr: {
+      "Years of Experience": "ans d'expérience",
+      "Lawyers": "avocats",
+      "Clients": "clients",
+      "Partners": "associés",
+      "Offices": "bureaux",
+      "Practice Areas": "domaines de pratique",
+      "Industry Groups": "groupes sectoriels",
+      "Countries": "pays",
+      "Team Members": "membres de l'équipe",
+      "Success Rate": "taux de réussite",
+    },
+    it: {
+      "Years of Experience": "anni di esperienza",
+      "Lawyers": "avvocati",
+      "Clients": "clienti",
+      "Partners": "partner",
+      "Offices": "uffici",
+      "Practice Areas": "aree di pratica",
+      "Industry Groups": "gruppi industriali",
+      "Countries": "paesi",
+      "Team Members": "membri del team",
+      "Success Rate": "tasso di successo",
+    },
+  };
+
+  const getTranslatedLabel = (englishLabel: string): string => {
+    const langTranslations = statLabelTranslations[language] || statLabelTranslations.en;
+    return langTranslations[englishLabel] || englishLabel;
+  };
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -132,7 +322,7 @@ export default function StatsSection({ language }: StatsSectionProps) {
                   className="text-xs sm:text-sm md:text-base text-gray-500 dark:text-gray-400 uppercase tracking-wider leading-tight"
                   data-testid={`text-stat-label-${index}`}
                 >
-                  {language === "es" ? stat.labelEs : stat.label}
+                  {getTranslatedLabel(stat.label)}
                 </div>
               </motion.div>
             ))}
