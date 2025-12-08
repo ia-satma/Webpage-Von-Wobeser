@@ -1,0 +1,377 @@
+MODO AGENTE AUTÓNOMO - IMPLEMENTACIÓN GEOLOCALIZACIÓN + 10 IDIOMAS
+
+Implementar detección automática de país/idioma del usuario. Si el idioma no está disponible, mostrar en inglés (fallback).
+
+<TOON>
+
+[IDIOMAS SOPORTADOS - 10 TOTAL]
+
+1. ES - Español
+1. EN - English (fallback default)
+1. DE - Deutsch
+1. FR - Français
+1. IT - Italiano
+1. ZH - 中文
+1. JA - 日本語
+1. KO - 한국어
+1. RU - Русский
+1. AR - العربية
+
+NO HAY PORTUGUÉS. Brasil y Portugal → mostrar en INGLÉS.
+
+[TAREA 1: CREAR ESTRUCTURA DE ARCHIVOS]
+
+```bash
+mkdir -p src/locales/{es,en,de,fr,it,zh,ja,ko,ru,ar}
+mkdir -p src/services
+mkdir -p src/styles
+
+touch src/locales/es/common.json
+touch src/locales/en/common.json
+touch src/locales/de/common.json
+touch src/locales/fr/common.json
+touch src/locales/it/common.json
+touch src/locales/zh/common.json
+touch src/locales/ja/common.json
+touch src/locales/ko/common.json
+touch src/locales/ru/common.json
+touch src/locales/ar/common.json
+touch src/services/geolocation.js
+touch src/styles/rtl.css
+```
+
+[TAREA 2: CREAR SERVICIO DE GEOLOCALIZACIÓN]
+
+Crear src/services/geolocation.js:
+
+```javascript
+const SUPPORTED_LANGUAGES = ['es', 'en', 'de', 'fr', 'it', 'zh', 'ja', 'ko', 'ru', 'ar'];
+const DEFAULT_LANGUAGE = 'en';
+
+const countryToLanguage = {
+  // Español
+  MX: 'es', ES: 'es', AR: 'es', CO: 'es', PE: 'es', CL: 'es', 
+  EC: 'es', VE: 'es', GT: 'es', CU: 'es', BO: 'es', DO: 'es',
+  HN: 'es', PY: 'es', SV: 'es', NI: 'es', CR: 'es', PA: 'es', UY: 'es',
+  
+  // English (incluye países sin idioma soportado)
+  US: 'en', GB: 'en', AU: 'en', CA: 'en', NZ: 'en', IE: 'en',
+  ZA: 'en', SG: 'en', PH: 'en', IN: 'en', PK: 'en', NG: 'en',
+  BR: 'en', PT: 'en', // Brasil y Portugal → English (NO hay portugués)
+  
+  // Deutsch
+  DE: 'de', AT: 'de', CH: 'de', LI: 'de', LU: 'de',
+  
+  // Français
+  FR: 'fr', BE: 'fr', MC: 'fr', SN: 'fr', CI: 'fr', ML: 'fr',
+  
+  // Italiano
+  IT: 'it', SM: 'it', VA: 'it',
+  
+  // 中文 Chinese
+  CN: 'zh', TW: 'zh', HK: 'zh', MO: 'zh',
+  
+  // 日本語 Japanese
+  JP: 'ja',
+  
+  // 한국어 Korean
+  KR: 'ko',
+  
+  // Русский Russian
+  RU: 'ru', BY: 'ru', KZ: 'ru', UA: 'ru',
+  
+  // العربية Arabic
+  AE: 'ar', SA: 'ar', EG: 'ar', IQ: 'ar', JO: 'ar', KW: 'ar',
+  LB: 'ar', LY: 'ar', MA: 'ar', OM: 'ar', QA: 'ar', SY: 'ar',
+  TN: 'ar', YE: 'ar', BH: 'ar', DZ: 'ar', SD: 'ar', PS: 'ar'
+};
+
+export const detectUserLanguage = async () => {
+  const savedLanguage = localStorage.getItem('userLanguage');
+  if (savedLanguage && SUPPORTED_LANGUAGES.includes(savedLanguage)) {
+    return savedLanguage;
+  }
+
+  try {
+    const response = await fetch('https://ipapi.co/json/');
+    const data = await response.json();
+    const countryCode = data.country_code;
+    
+    if (countryCode && countryToLanguage[countryCode]) {
+      return countryToLanguage[countryCode];
+    }
+  } catch (error) {
+    console.warn('Geolocation failed, using browser language');
+  }
+
+  const browserLang = navigator.language?.split('-')[0];
+  if (browserLang && SUPPORTED_LANGUAGES.includes(browserLang)) {
+    return browserLang;
+  }
+
+  return DEFAULT_LANGUAGE;
+};
+
+export const isRTL = (languageCode) => {
+  return languageCode === 'ar';
+};
+```
+
+[TAREA 3: INSTALAR DEPENDENCIAS]
+
+```bash
+npm install i18next react-i18next
+```
+
+[TAREA 4: CREAR CONFIGURACIÓN i18n]
+
+Crear src/i18n.js:
+
+```javascript
+import i18n from 'i18next';
+import { initReactI18next } from 'react-i18next';
+import { detectUserLanguage, isRTL } from './services/geolocation';
+
+import esTranslations from './locales/es/common.json';
+import enTranslations from './locales/en/common.json';
+import deTranslations from './locales/de/common.json';
+import frTranslations from './locales/fr/common.json';
+import itTranslations from './locales/it/common.json';
+import zhTranslations from './locales/zh/common.json';
+import jaTranslations from './locales/ja/common.json';
+import koTranslations from './locales/ko/common.json';
+import ruTranslations from './locales/ru/common.json';
+import arTranslations from './locales/ar/common.json';
+
+const resources = {
+  es: { translation: esTranslations },
+  en: { translation: enTranslations },
+  de: { translation: deTranslations },
+  fr: { translation: frTranslations },
+  it: { translation: itTranslations },
+  zh: { translation: zhTranslations },
+  ja: { translation: jaTranslations },
+  ko: { translation: koTranslations },
+  ru: { translation: ruTranslations },
+  ar: { translation: arTranslations }
+};
+
+export const initI18n = async () => {
+  const detectedLanguage = await detectUserLanguage();
+  
+  await i18n
+    .use(initReactI18next)
+    .init({
+      resources,
+      lng: detectedLanguage,
+      fallbackLng: 'en',
+      supportedLngs: ['es', 'en', 'de', 'fr', 'it', 'zh', 'ja', 'ko', 'ru', 'ar'],
+      interpolation: { escapeValue: false }
+    });
+
+  document.documentElement.lang = detectedLanguage;
+  document.documentElement.dir = isRTL(detectedLanguage) ? 'rtl' : 'ltr';
+  
+  return i18n;
+};
+
+export { isRTL };
+export default i18n;
+```
+
+[TAREA 5: CREAR 10 ARCHIVOS DE TRADUCCIÓN]
+
+Crear src/locales/es/common.json:
+
+```json
+{"nav":{"ourFirm":"Nuestra Firma","attorneys":"Abogados","capabilities":"Capacidades","publications":"Publicaciones","career":"Carrera en VWyS","contact":"Contacto","probono":"Pro Bono","diversity":"Diversidad e Inclusión","partners":"Socios","ofCounsel":"Of Counsel","counsel":"Consejeros","associates":"Asociados","practices":"Prácticas","industryGroups":"Grupos de Industria","desk":"German Desk","news":"Noticias","articles":"Artículos","newsletter":"Boletines","interns":"Pasantes"},"home":{"heroTagline":"VAMOS A DONDE NUESTROS CLIENTES NOS NECESITAN","seeMore":"Ver Más","experienceBanner":"Von Wobeser y Sierra, S.C. cuenta con más de tres décadas de experiencia","teamStats":"Equipo de más de 150 abogados (22 socios, 6 of counsel, 12 consejeros...)","recognitionsTitle":"RECOGNITIONS","recognitionsIntro":"Von Wobeser y Sierra, S.C. ha sido reconocida a nivel internacional por diversas instituciones incluyendo","recognitionsList":"Chambers & Partners Global, Chambers & Partners Latin America, Legal 500, Latin Lawyer 250, Global Arbitration Review (GAR 100), Global Competition Review (GCR 100), Global Investigations Review (GIR 100), Global Restructuring Review (GCR), Lexology Index, Latin America Corporate Counsel Association (LACCA) e IFLR 1000, Best Lawyers, Benchmark Litigation entre otros."},"practices":{"title":"Prácticas","1":"Arbitraje","2":"Bancario y Financiero","3":"Concursos Mercantiles y Reestructuración","4":"Competencia Económica","5":"Corporativo, Fusiones y Adquisiciones","6":"Energía y Recursos Naturales","7":"Ambiental","8":"ESG","9":"Migración y Movilidad Global","10":"Propiedad Industrial e Intelectual","11":"Comercio Exterior y Aduanas","12":"Investigaciones, Anticorrupción y Cumplimiento","13":"Laboral, Compensaciones Ejecutivas y Beneficios","14":"Litigio","15":"Proyectos e Infraestructura","16":"Inmobiliario","17":"Fiscal","18":"Telecomunicaciones, Medios y Tecnología"},"industries":{"title":"Grupos de Industria","1":"Automotriz, Movilidad y Manufactura","2":"Bienes de Consumo","3":"Energía y Recursos Naturales","4":"Servicios Financieros","5":"Farmacéutica y Ciencias de la Salud","6":"Inmobiliario","7":"Tecnología"},"germanDesk":{"title":"German Desk","description":"Por más de 34 años, Von Wobeser y Sierra ha trabajado con empresas alemanas..."},"about":{"title":"Acerca de Nosotros","vision":"Visión","mission":"Misión","values":"Valores","integrity":"Integridad","excellence":"Excelencia","commitment":"Compromiso","agility":"Agilidad","diversityValue":"Diversidad"},"footer":{"address":"Torre SOMA Chapultepec, Campos Elíseos 204, Polanco, 11560, CDMX","privacyNotice":"Aviso de Privacidad","copyright":"© 2025 Von Wobeser y Sierra, S.C. Todos los derechos reservados."},"cta":{"seeMore":"Ver Más","contact":"Contactar","readMore":"Leer Más"}}
+```
+
+Crear src/locales/en/common.json:
+
+```json
+{"nav":{"ourFirm":"Our Firm","attorneys":"Attorneys","capabilities":"Capabilities","publications":"Publications","career":"Career at VWyS","contact":"Contact","probono":"Pro Bono","diversity":"Diversity & Inclusion","partners":"Partners","ofCounsel":"Of Counsel","counsel":"Counsel","associates":"Associates","practices":"Practices","industryGroups":"Industry Groups","desk":"German Desk","news":"News","articles":"Articles","newsletter":"Newsletter","interns":"Interns"},"home":{"heroTagline":"WE GO WHERE CLIENTS NEED US","seeMore":"See More","experienceBanner":"Von Wobeser y Sierra, S.C. has more than three decades of experience","teamStats":"Team of more than 150 lawyers (22 partners, 6 of counsel, 12 counsel...)","recognitionsTitle":"RECOGNITIONS","recognitionsIntro":"Von Wobeser y Sierra, S.C. has been recognized on an international level by various institutions including","recognitionsList":"Chambers & Partners Global, Chambers & Partners Latin America, Legal 500, Latin Lawyer 250, Global Arbitration Review (GAR 100), Global Competition Review (GCR 100), Global Investigations Review (GIR 100), Global Restructuring Review (GCR), Lexology Index, Latin America Corporate Counsel Association (LACCA) and IFLR 1000, Best Lawyers, Benchmark Litigation among others."},"practices":{"title":"Practices","1":"Arbitration","2":"Banking & Finance","3":"Bankruptcy & Restructuring","4":"Competition & Antitrust","5":"Corporate, Mergers & Acquisitions","6":"Energy & Natural Resources","7":"Environmental","8":"ESG","9":"Immigration & Global Mobility","10":"Industrial & Intellectual Property","11":"International Trade & Customs","12":"Investigations, Anti-corruption & Compliance","13":"Labor, Executive Compensations & Benefits","14":"Litigation","15":"Projects & Infrastructure","16":"Real Estate","17":"Tax","18":"Telecommunications, Media & Technology"},"industries":{"title":"Industry Groups","1":"Automotive, Mobility & Manufacturing","2":"Consumer Goods","3":"Energy & Natural Resources","4":"Financial Services","5":"Pharmaceutical & Life Sciences","6":"Real Estate","7":"Technology"},"germanDesk":{"title":"German Desk","description":"For more than 34 years, Von Wobeser y Sierra has worked with German companies..."},"about":{"title":"About Us","vision":"Vision","mission":"Mission","values":"Values","integrity":"Integrity","excellence":"Excellence","commitment":"Commitment","agility":"Agility","diversityValue":"Diversity"},"footer":{"address":"Torre SOMA Chapultepec, Campos Elíseos 204, Polanco, 11560, CDMX","privacyNotice":"Privacy Notice","copyright":"© 2025 Von Wobeser y Sierra, S.C. All rights reserved."},"cta":{"seeMore":"See More","contact":"Contact","readMore":"Read More"}}
+```
+
+Crear src/locales/de/common.json:
+
+```json
+{"nav":{"ourFirm":"Unsere Kanzlei","attorneys":"Anwälte","capabilities":"Kompetenzen","publications":"Publikationen","career":"Karriere bei VWyS","contact":"Kontakt","probono":"Pro Bono","diversity":"Vielfalt & Inklusion","partners":"Partner","ofCounsel":"Of Counsel","counsel":"Counsel","associates":"Associates","practices":"Praxisbereiche","industryGroups":"Branchengruppen","desk":"German Desk","news":"Nachrichten","articles":"Artikel","newsletter":"Newsletter","interns":"Praktikanten"},"home":{"heroTagline":"WIR GEHEN DORTHIN, WO UNSERE MANDANTEN UNS BRAUCHEN","seeMore":"Mehr erfahren","experienceBanner":"Von Wobeser y Sierra, S.C. verfügt über mehr als drei Jahrzehnte Erfahrung","teamStats":"Team von mehr als 150 Anwälten (22 Partner, 6 Of Counsel, 12 Counsel...)","recognitionsTitle":"RECOGNITIONS","recognitionsIntro":"Von Wobeser y Sierra, S.C. wurde international von verschiedenen Institutionen anerkannt, darunter","recognitionsList":"Chambers & Partners Global, Chambers & Partners Latin America, Legal 500, Latin Lawyer 250, Global Arbitration Review (GAR 100), Global Competition Review (GCR 100), Global Investigations Review (GIR 100), Global Restructuring Review (GCR), Lexology Index, Latin America Corporate Counsel Association (LACCA) und IFLR 1000, Best Lawyers, Benchmark Litigation und andere."},"practices":{"title":"Praxisbereiche","1":"Schiedsgerichtsbarkeit","2":"Bank- und Finanzrecht","3":"Insolvenz und Restrukturierung","4":"Wettbewerbs- und Kartellrecht","5":"Gesellschaftsrecht, Fusionen und Übernahmen","6":"Energie und natürliche Ressourcen","7":"Umweltrecht","8":"ESG","9":"Einwanderung und globale Mobilität","10":"Gewerblicher Rechtsschutz und geistiges Eigentum","11":"Internationaler Handel und Zoll","12":"Ermittlungen, Antikorruption und Compliance","13":"Arbeitsrecht, Vergütung und Sozialleistungen","14":"Prozessführung","15":"Projekte und Infrastruktur","16":"Immobilienrecht","17":"Steuerrecht","18":"Telekommunikation, Medien und Technologie"},"industries":{"title":"Branchengruppen","1":"Automobil, Mobilität und Fertigung","2":"Konsumgüter","3":"Energie und natürliche Ressourcen","4":"Finanzdienstleistungen","5":"Pharma und Biowissenschaften","6":"Immobilien","7":"Technologie"},"germanDesk":{"title":"German Desk","description":"Seit mehr als 34 Jahren arbeitet Von Wobeser y Sierra mit deutschen Unternehmen zusammen..."},"about":{"title":"Über uns","vision":"Vision","mission":"Mission","values":"Werte","integrity":"Integrität","excellence":"Exzellenz","commitment":"Engagement","agility":"Agilität","diversityValue":"Vielfalt"},"footer":{"address":"Torre SOMA Chapultepec, Campos Elíseos 204, Polanco, 11560, CDMX","privacyNotice":"Datenschutzhinweis","copyright":"© 2025 Von Wobeser y Sierra, S.C. Alle Rechte vorbehalten."},"cta":{"seeMore":"Mehr erfahren","contact":"Kontakt","readMore":"Weiterlesen"}}
+```
+
+Crear src/locales/fr/common.json:
+
+```json
+{"nav":{"ourFirm":"Notre Cabinet","attorneys":"Avocats","capabilities":"Compétences","publications":"Publications","career":"Carrière chez VWyS","contact":"Contact","probono":"Pro Bono","diversity":"Diversité & Inclusion","partners":"Associés","ofCounsel":"Of Counsel","counsel":"Counsel","associates":"Collaborateurs","practices":"Domaines de pratique","industryGroups":"Groupes sectoriels","desk":"German Desk","news":"Actualités","articles":"Articles","newsletter":"Newsletter","interns":"Stagiaires"},"home":{"heroTagline":"NOUS ALLONS LÀ OÙ NOS CLIENTS ONT BESOIN DE NOUS","seeMore":"En savoir plus","experienceBanner":"Von Wobeser y Sierra, S.C. possède plus de trois décennies d'expérience","teamStats":"Équipe de plus de 150 avocats (22 associés, 6 of counsel, 12 counsel...)","recognitionsTitle":"RECOGNITIONS","recognitionsIntro":"Von Wobeser y Sierra, S.C. a été reconnue au niveau international par diverses institutions, notamment","recognitionsList":"Chambers & Partners Global, Chambers & Partners Latin America, Legal 500, Latin Lawyer 250, Global Arbitration Review (GAR 100), Global Competition Review (GCR 100), Global Investigations Review (GIR 100), Global Restructuring Review (GCR), Lexology Index, Latin America Corporate Counsel Association (LACCA) et IFLR 1000, Best Lawyers, Benchmark Litigation entre autres."},"practices":{"title":"Domaines de pratique","1":"Arbitrage","2":"Banque et Finance","3":"Faillite et Restructuration","4":"Concurrence et Antitrust","5":"Droit des sociétés, Fusions et Acquisitions","6":"Énergie et Ressources naturelles","7":"Environnement","8":"ESG","9":"Immigration et Mobilité mondiale","10":"Propriété industrielle et intellectuelle","11":"Commerce international et Douanes","12":"Enquêtes, Anti-corruption et Conformité","13":"Droit du travail, Rémunération et Avantages","14":"Contentieux","15":"Projets et Infrastructure","16":"Immobilier","17":"Fiscalité","18":"Télécommunications, Médias et Technologie"},"industries":{"title":"Groupes sectoriels","1":"Automobile, Mobilité et Industrie","2":"Biens de consommation","3":"Énergie et Ressources naturelles","4":"Services financiers","5":"Pharmacie et Sciences de la vie","6":"Immobilier","7":"Technologie"},"germanDesk":{"title":"German Desk","description":"Depuis plus de 34 ans, Von Wobeser y Sierra travaille avec des entreprises allemandes..."},"about":{"title":"À propos","vision":"Vision","mission":"Mission","values":"Valeurs","integrity":"Intégrité","excellence":"Excellence","commitment":"Engagement","agility":"Agilité","diversityValue":"Diversité"},"footer":{"address":"Torre SOMA Chapultepec, Campos Elíseos 204, Polanco, 11560, CDMX","privacyNotice":"Politique de confidentialité","copyright":"© 2025 Von Wobeser y Sierra, S.C. Tous droits réservés."},"cta":{"seeMore":"En savoir plus","contact":"Contact","readMore":"Lire la suite"}}
+```
+
+Crear src/locales/it/common.json:
+
+```json
+{"nav":{"ourFirm":"Il Nostro Studio","attorneys":"Avvocati","capabilities":"Competenze","publications":"Pubblicazioni","career":"Carriera presso VWyS","contact":"Contatto","probono":"Pro Bono","diversity":"Diversità e Inclusione","partners":"Soci","ofCounsel":"Of Counsel","counsel":"Counsel","associates":"Associati","practices":"Aree di pratica","industryGroups":"Gruppi di settore","desk":"German Desk","news":"Notizie","articles":"Articoli","newsletter":"Newsletter","interns":"Stagisti"},"home":{"heroTagline":"ANDIAMO DOVE I NOSTRI CLIENTI HANNO BISOGNO DI NOI","seeMore":"Scopri di più","experienceBanner":"Von Wobeser y Sierra, S.C. ha più di tre decenni di esperienza","teamStats":"Team di oltre 150 avvocati (22 soci, 6 of counsel, 12 counsel...)","recognitionsTitle":"RECOGNITIONS","recognitionsIntro":"Von Wobeser y Sierra, S.C. è stata riconosciuta a livello internazionale da varie istituzioni tra cui","recognitionsList":"Chambers & Partners Global, Chambers & Partners Latin America, Legal 500, Latin Lawyer 250, Global Arbitration Review (GAR 100), Global Competition Review (GCR 100), Global Investigations Review (GIR 100), Global Restructuring Review (GCR), Lexology Index, Latin America Corporate Counsel Association (LACCA) e IFLR 1000, Best Lawyers, Benchmark Litigation tra gli altri."},"practices":{"title":"Aree di pratica","1":"Arbitrato","2":"Banca e Finanza","3":"Fallimento e Ristrutturazione","4":"Concorrenza e Antitrust","5":"Diritto societario, Fusioni e Acquisizioni","6":"Energia e Risorse naturali","7":"Ambiente","8":"ESG","9":"Immigrazione e Mobilità globale","10":"Proprietà industriale e intellettuale","11":"Commercio internazionale e Dogane","12":"Indagini, Anticorruzione e Compliance","13":"Lavoro, Compensi e Benefit","14":"Contenzioso","15":"Progetti e Infrastrutture","16":"Immobiliare","17":"Fiscale","18":"Telecomunicazioni, Media e Tecnologia"},"industries":{"title":"Gruppi di settore","1":"Automotive, Mobilità e Manifattura","2":"Beni di consumo","3":"Energia e Risorse naturali","4":"Servizi finanziari","5":"Farmaceutica e Scienze della vita","6":"Immobiliare","7":"Tecnologia"},"germanDesk":{"title":"German Desk","description":"Da oltre 34 anni, Von Wobeser y Sierra lavora con aziende tedesche..."},"about":{"title":"Chi siamo","vision":"Visione","mission":"Missione","values":"Valori","integrity":"Integrità","excellence":"Eccellenza","commitment":"Impegno","agility":"Agilità","diversityValue":"Diversità"},"footer":{"address":"Torre SOMA Chapultepec, Campos Elíseos 204, Polanco, 11560, CDMX","privacyNotice":"Informativa sulla privacy","copyright":"© 2025 Von Wobeser y Sierra, S.C. Tutti i diritti riservati."},"cta":{"seeMore":"Scopri di più","contact":"Contatto","readMore":"Leggi tutto"}}
+```
+
+Crear src/locales/zh/common.json:
+
+```json
+{"nav":{"ourFirm":"关于我们","attorneys":"律师团队","capabilities":"业务能力","publications":"出版物","career":"加入VWyS","contact":"联系我们","probono":"公益服务","diversity":"多元与包容","partners":"合伙人","ofCounsel":"顾问律师","counsel":"法律顾问","associates":"律师","practices":"业务领域","industryGroups":"行业组","desk":"德国业务","news":"新闻","articles":"文章","newsletter":"通讯","interns":"实习生"},"home":{"heroTagline":"我们随时为客户提供服务","seeMore":"了解更多","experienceBanner":"Von Wobeser y Sierra, S.C. 拥有超过三十年的经验","teamStats":"团队拥有150多名律师（22名合伙人、6名顾问律师、12名法律顾问...）","recognitionsTitle":"RECOGNITIONS","recognitionsIntro":"Von Wobeser y Sierra, S.C. 已获得多家国际机构的认可，包括","recognitionsList":"Chambers & Partners Global、Chambers & Partners Latin America、Legal 500、Latin Lawyer 250、Global Arbitration Review (GAR 100)、Global Competition Review (GCR 100)、Global Investigations Review (GIR 100)、Global Restructuring Review (GCR)、Lexology Index、Latin America Corporate Counsel Association (LACCA) 和 IFLR 1000、Best Lawyers、Benchmark Litigation等。"},"practices":{"title":"业务领域","1":"仲裁","2":"银行与金融","3":"破产与重组","4":"竞争与反垄断","5":"公司、并购","6":"能源与自然资源","7":"环境","8":"ESG","9":"移民与全球流动","10":"工业与知识产权","11":"国际贸易与海关","12":"调查、反腐败与合规","13":"劳动、高管薪酬与福利","14":"诉讼","15":"项目与基础设施","16":"房地产","17":"税务","18":"电信、媒体与科技"},"industries":{"title":"行业组","1":"汽车、出行与制造","2":"消费品","3":"能源与自然资源","4":"金融服务","5":"制药与生命科学","6":"房地产","7":"科技"},"germanDesk":{"title":"德国业务","description":"三十多年来，Von Wobeser y Sierra一直与德国企业合作..."},"about":{"title":"关于我们","vision":"愿景","mission":"使命","values":"价值观","integrity":"诚信","excellence":"卓越","commitment":"承诺","agility":"敏捷","diversityValue":"多元"},"footer":{"address":"Torre SOMA Chapultepec, Campos Elíseos 204, Polanco, 11560, CDMX","privacyNotice":"隐私声明","copyright":"© 2025 Von Wobeser y Sierra, S.C. 版权所有。"},"cta":{"seeMore":"了解更多","contact":"联系我们","readMore":"阅读更多"}}
+```
+
+Crear src/locales/ja/common.json:
+
+```json
+{"nav":{"ourFirm":"事務所概要","attorneys":"弁護士","capabilities":"業務分野","publications":"出版物","career":"採用情報","contact":"お問い合わせ","probono":"プロボノ","diversity":"ダイバーシティ＆インクルージョン","partners":"パートナー","ofCounsel":"オブカウンセル","counsel":"カウンセル","associates":"アソシエイト","practices":"業務分野","industryGroups":"業界グループ","desk":"ジャーマンデスク","news":"ニュース","articles":"記事","newsletter":"ニュースレター","interns":"インターン"},"home":{"heroTagline":"クライアントが必要とする場所へ","seeMore":"詳細を見る","experienceBanner":"Von Wobeser y Sierra, S.C.は30年以上の経験を持っています","teamStats":"150名以上の弁護士チーム（パートナー22名、オブカウンセル6名、カウンセル12名...）","recognitionsTitle":"RECOGNITIONS","recognitionsIntro":"Von Wobeser y Sierra, S.C.は、以下を含む様々な国際機関から認められています","recognitionsList":"Chambers & Partners Global、Chambers & Partners Latin America、Legal 500、Latin Lawyer 250、Global Arbitration Review (GAR 100)、Global Competition Review (GCR 100)、Global Investigations Review (GIR 100)、Global Restructuring Review (GCR)、Lexology Index、Latin America Corporate Counsel Association (LACCA)、IFLR 1000、Best Lawyers、Benchmark Litigationなど。"},"practices":{"title":"業務分野","1":"仲裁","2":"銀行・金融","3":"倒産・事業再生","4":"競争法・独占禁止法","5":"会社法・M&A","6":"エネルギー・天然資源","7":"環境","8":"ESG","9":"入国管理・グローバルモビリティ","10":"産業財産権・知的財産権","11":"国際貿易・関税","12":"調査・腐敗防止・コンプライアンス","13":"労働・役員報酬・福利厚生","14":"訴訟","15":"プロジェクト・インフラ","16":"不動産","17":"税務","18":"通信・メディア・テクノロジー"},"industries":{"title":"業界グループ","1":"自動車・モビリティ・製造","2":"消費財","3":"エネルギー・天然資源","4":"金融サービス","5":"製薬・ライフサイエンス","6":"不動産","7":"テクノロジー"},"germanDesk":{"title":"ジャーマンデスク","description":"Von Wobeser y Sierraは34年以上にわたりドイツ企業と協力してきました..."},"about":{"title":"事務所概要","vision":"ビジョン","mission":"ミッション","values":"バリュー","integrity":"誠実","excellence":"卓越","commitment":"コミットメント","agility":"俊敏性","diversityValue":"多様性"},"footer":{"address":"Torre SOMA Chapultepec, Campos Elíseos 204, Polanco, 11560, CDMX","privacyNotice":"プライバシーポリシー","copyright":"© 2025 Von Wobeser y Sierra, S.C. All rights reserved."},"cta":{"seeMore":"詳細を見る","contact":"お問い合わせ","readMore":"続きを読む"}}
+```
+
+Crear src/locales/ko/common.json:
+
+```json
+{"nav":{"ourFirm":"회사 소개","attorneys":"변호사","capabilities":"업무 분야","publications":"출판물","career":"채용","contact":"연락처","probono":"프로보노","diversity":"다양성과 포용","partners":"파트너","ofCounsel":"오브카운슬","counsel":"카운슬","associates":"어소시에이트","practices":"업무 분야","industryGroups":"산업 그룹","desk":"저먼 데스크","news":"뉴스","articles":"기사","newsletter":"뉴스레터","interns":"인턴"},"home":{"heroTagline":"고객이 필요로 하는 곳으로 갑니다","seeMore":"더 보기","experienceBanner":"Von Wobeser y Sierra, S.C.는 30년 이상의 경험을 보유하고 있습니다","teamStats":"150명 이상의 변호사 팀 (파트너 22명, 오브카운슬 6명, 카운슬 12명...)","recognitionsTitle":"RECOGNITIONS","recognitionsIntro":"Von Wobeser y Sierra, S.C.는 다음을 포함한 여러 국제 기관으로부터 인정받았습니다","recognitionsList":"Chambers & Partners Global, Chambers & Partners Latin America, Legal 500, Latin Lawyer 250, Global Arbitration Review (GAR 100), Global Competition Review (GCR 100), Global Investigations Review (GIR 100), Global Restructuring Review (GCR), Lexology Index, Latin America Corporate Counsel Association (LACCA) 및 IFLR 1000, Best Lawyers, Benchmark Litigation 등."},"practices":{"title":"업무 분야","1":"중재","2":"은행 및 금융","3":"파산 및 구조조정","4":"경쟁 및 독점금지","5":"회사법, 인수합병","6":"에너지 및 천연자원","7":"환경","8":"ESG","9":"이민 및 글로벌 모빌리티","10":"산업재산권 및 지식재산권","11":"국제무역 및 관세","12":"조사, 반부패 및 컴플라이언스","13":"노동, 임원 보상 및 복리후생","14":"소송","15":"프로젝트 및 인프라","16":"부동산","17":"세무","18":"통신, 미디어 및 기술"},"industries":{"title":"산업 그룹","1":"자동차, 모빌리티 및 제조","2":"소비재","3":"에너지 및 천연자원","4":"금융 서비스","5":"제약 및 생명과학","6":"부동산","7":"기술"},"germanDesk":{"title":"저먼 데스크","description":"Von Wobeser y Sierra는 34년 이상 독일 기업들과 협력해 왔습니다..."},"about":{"title":"회사 소개","vision":"비전","mission":"미션","values":"가치","integrity":"정직","excellence":"탁월함","commitment":"헌신","agility":"민첩성","diversityValue":"다양성"},"footer":{"address":"Torre SOMA Chapultepec, Campos Elíseos 204, Polanco, 11560, CDMX","privacyNotice":"개인정보 보호정책","copyright":"© 2025 Von Wobeser y Sierra, S.C. All rights reserved."},"cta":{"seeMore":"더 보기","contact":"연락하기","readMore":"더 읽기"}}
+```
+
+Crear src/locales/ru/common.json:
+
+```json
+{"nav":{"ourFirm":"О компании","attorneys":"Юристы","capabilities":"Компетенции","publications":"Публикации","career":"Карьера в VWyS","contact":"Контакты","probono":"Pro Bono","diversity":"Разнообразие и инклюзивность","partners":"Партнеры","ofCounsel":"Of Counsel","counsel":"Советники","associates":"Юристы","practices":"Практики","industryGroups":"Отраслевые группы","desk":"Немецкий отдел","news":"Новости","articles":"Статьи","newsletter":"Рассылка","interns":"Стажеры"},"home":{"heroTagline":"МЫ ИДЁМ ТУДА, ГДЕ МЫ НУЖНЫ НАШИМ КЛИЕНТАМ","seeMore":"Подробнее","experienceBanner":"Von Wobeser y Sierra, S.C. имеет более чем тридцатилетний опыт","teamStats":"Команда из более чем 150 юристов (22 партнера, 6 of counsel, 12 советников...)","recognitionsTitle":"RECOGNITIONS","recognitionsIntro":"Von Wobeser y Sierra, S.C. получила международное признание от различных институтов, включая","recognitionsList":"Chambers & Partners Global, Chambers & Partners Latin America, Legal 500, Latin Lawyer 250, Global Arbitration Review (GAR 100), Global Competition Review (GCR 100), Global Investigations Review (GIR 100), Global Restructuring Review (GCR), Lexology Index, Latin America Corporate Counsel Association (LACCA) и IFLR 1000, Best Lawyers, Benchmark Litigation и другие."},"practices":{"title":"Практики","1":"Арбитраж","2":"Банковское и финансовое право","3":"Банкротство и реструктуризация","4":"Конкуренция и антимонопольное право","5":"Корпоративное право, слияния и поглощения","6":"Энергетика и природные ресурсы","7":"Экологическое право","8":"ESG","9":"Иммиграция и глобальная мобильность","10":"Промышленная и интеллектуальная собственность","11":"Международная торговля и таможня","12":"Расследования, противодействие коррупции и комплаенс","13":"Трудовое право, компенсации и льготы","14":"Судебные споры","15":"Проекты и инфраструктура","16":"Недвижимость","17":"Налоговое право","18":"Телекоммуникации, медиа и технологии"},"industries":{"title":"Отраслевые группы","1":"Автомобильная промышленность, мобильность и производство","2":"Потребительские товары","3":"Энергетика и природные ресурсы","4":"Финансовые услуги","5":"Фармацевтика и науки о жизни","6":"Недвижимость","7":"Технологии"},"germanDesk":{"title":"Немецкий отдел","description":"Более 34 лет Von Wobeser y Sierra работает с немецкими компаниями..."},"about":{"title":"О нас","vision":"Видение","mission":"Миссия","values":"Ценности","integrity":"Честность","excellence":"Превосходство","commitment":"Приверженность","agility":"Гибкость","diversityValue":"Разнообразие"},"footer":{"address":"Torre SOMA Chapultepec, Campos Elíseos 204, Polanco, 11560, CDMX","privacyNotice":"Политика конфиденциальности","copyright":"© 2025 Von Wobeser y Sierra, S.C. Все права защищены."},"cta":{"seeMore":"Подробнее","contact":"Связаться","readMore":"Читать далее"}}
+```
+
+Crear src/locales/ar/common.json:
+
+```json
+{"nav":{"ourFirm":"شركتنا","attorneys":"المحامون","capabilities":"القدرات","publications":"المنشورات","career":"الوظائف","contact":"اتصل بنا","probono":"العمل التطوعي","diversity":"التنوع والشمول","partners":"الشركاء","ofCounsel":"مستشار قانوني","counsel":"مستشار","associates":"المحامون المساعدون","practices":"مجالات الممارسة","industryGroups":"مجموعات الصناعة","desk":"المكتب الألماني","news":"الأخبار","articles":"المقالات","newsletter":"النشرة الإخبارية","interns":"المتدربون"},"home":{"heroTagline":"نذهب حيث يحتاجنا عملاؤنا","seeMore":"اقرأ المزيد","experienceBanner":"تمتلك Von Wobeser y Sierra, S.C. أكثر من ثلاثة عقود من الخبرة","teamStats":"فريق من أكثر من 150 محامياً (22 شريكاً، 6 مستشارين، 12 مستشاراً قانونياً...)","recognitionsTitle":"RECOGNITIONS","recognitionsIntro":"حصلت Von Wobeser y Sierra, S.C. على اعتراف دولي من مؤسسات متعددة بما في ذلك","recognitionsList":"Chambers & Partners Global، Chambers & Partners Latin America، Legal 500، Latin Lawyer 250، Global Arbitration Review (GAR 100)، Global Competition Review (GCR 100)، Global Investigations Review (GIR 100)، Global Restructuring Review (GCR)، Lexology Index، Latin America Corporate Counsel Association (LACCA) و IFLR 1000، Best Lawyers، Benchmark Litigation وغيرها."},"practices":{"title":"مجالات الممارسة","1":"التحكيم","2":"البنوك والتمويل","3":"الإفلاس وإعادة الهيكلة","4":"المنافسة ومكافحة الاحتكار","5":"الشركات والاندماج والاستحواذ","6":"الطاقة والموارد الطبيعية","7":"البيئة","8":"ESG","9":"الهجرة والتنقل العالمي","10":"الملكية الصناعية والفكرية","11":"التجارة الدولية والجمارك","12":"التحقيقات ومكافحة الفساد والامتثال","13":"العمل والتعويضات التنفيذية والمزايا","14":"التقاضي","15":"المشاريع والبنية التحتية","16":"العقارات","17":"الضرائب","18":"الاتصالات والإعلام والتكنولوجيا"},"industries":{"title":"مجموعات الصناعة","1":"السيارات والتنقل والتصنيع","2":"السلع الاستهلاكية","3":"الطاقة والموارد الطبيعية","4":"الخدمات المالية","5":"الأدوية وعلوم الحياة","6":"العقارات","7":"التكنولوجيا"},"germanDesk":{"title":"المكتب الألماني","description":"لأكثر من 34 عاماً، عملت Von Wobeser y Sierra مع الشركات الألمانية..."},"about":{"title":"من نحن","vision":"الرؤية","mission":"المهمة","values":"القيم","integrity":"النزاهة","excellence":"التميز","commitment":"الالتزام","agility":"المرونة","diversityValue":"التنوع"},"footer":{"address":"Torre SOMA Chapultepec, Campos Elíseos 204, Polanco, 11560, CDMX","privacyNotice":"سياسة الخصوصية","copyright":"© 2025 Von Wobeser y Sierra, S.C. جميع الحقوق محفوظة."},"cta":{"seeMore":"اقرأ المزيد","contact":"اتصل بنا","readMore":"اقرأ المزيد"}}
+```
+
+[TAREA 6: CREAR ESTILOS RTL PARA ÁRABE]
+
+Crear src/styles/rtl.css:
+
+```css
+[dir="rtl"]{text-align:right}
+[dir="rtl"] .nav-menu{flex-direction:row-reverse}
+[dir="rtl"] .language-switcher{left:20px;right:auto}
+[dir="rtl"] ul,[dir="rtl"] ol{padding-right:20px;padding-left:0}
+[dir="rtl"] .card{text-align:right}
+[lang="ar"]{font-family:'Noto Sans Arabic',Arial,sans-serif;line-height:1.8}
+```
+
+[TAREA 7: CREAR LANGUAGE SWITCHER]
+
+Crear src/components/LanguageSwitcher.jsx:
+
+```jsx
+import React from 'react';
+import { useTranslation } from 'react-i18next';
+import { isRTL } from '../services/geolocation';
+
+const languages = [
+  { code: 'es', name: 'Español', flag: '🇲🇽' },
+  { code: 'en', name: 'English', flag: '🇺🇸' },
+  { code: 'de', name: 'Deutsch', flag: '🇩🇪' },
+  { code: 'fr', name: 'Français', flag: '🇫🇷' },
+  { code: 'it', name: 'Italiano', flag: '🇮🇹' },
+  { code: 'zh', name: '中文', flag: '🇨🇳' },
+  { code: 'ja', name: '日本語', flag: '🇯🇵' },
+  { code: 'ko', name: '한국어', flag: '🇰🇷' },
+  { code: 'ru', name: 'Русский', flag: '🇷🇺' },
+  { code: 'ar', name: 'العربية', flag: '🇦🇪' }
+];
+
+const LanguageSwitcher = () => {
+  const { i18n } = useTranslation();
+  const changeLanguage = (langCode) => {
+    i18n.changeLanguage(langCode);
+    localStorage.setItem('userLanguage', langCode);
+    document.documentElement.lang = langCode;
+    document.documentElement.dir = isRTL(langCode) ? 'rtl' : 'ltr';
+  };
+  return (
+    <select value={i18n.language} onChange={(e) => changeLanguage(e.target.value)} aria-label="Select language">
+      {languages.map((lang) => (
+        <option key={lang.code} value={lang.code}>{lang.flag} {lang.name}</option>
+      ))}
+    </select>
+  );
+};
+
+export default LanguageSwitcher;
+```
+
+[TAREA 8: MODIFICAR APP.JS]
+
+En src/App.js agregar al inicio:
+
+```jsx
+import React, { useState, useEffect } from 'react';
+import { initI18n } from './i18n';
+import './styles/rtl.css';
+
+const App = () => {
+  const [ready, setReady] = useState(false);
+  useEffect(() => { initI18n().then(() => setReady(true)); }, []);
+  if (!ready) return <div>Loading...</div>;
+  return (/* resto del app */);
+};
+```
+
+[TAREA 9: AGREGAR FONT ÁRABE EN index.html]
+
+En public/index.html dentro de <head>:
+
+```html
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@400;700&display=swap" rel="stylesheet">
+```
+
+[TAREA 10: MODIFICAR TODOS LOS COMPONENTES]
+
+En CADA componente con texto, cambiar:
+ANTES: <h1>Nuestra Firma</h1>
+DESPUÉS:
+
+```jsx
+import { useTranslation } from 'react-i18next';
+const Component = () => {
+  const { t } = useTranslation();
+  return <h1>{t('nav.ourFirm')}</h1>;
+};
+```
+
+[COMPORTAMIENTO ESPERADO]
+
+|País                     |Idioma mostrado           |
+|-------------------------|--------------------------|
+|México, España, Argentina|Español                   |
+|USA, UK, Australia       |English                   |
+|Alemania, Austria        |Deutsch                   |
+|Francia                  |Français                  |
+|Italia                   |Italiano                  |
+|China, Taiwán            |中文                        |
+|Japón                    |日本語                       |
+|Corea del Sur            |한국어                       |
+|Rusia                    |Русский                   |
+|Emiratos, Arabia Saudita |العربية (RTL)             |
+|Brasil, Portugal         |English (NO hay portugués)|
+|Cualquier otro país      |English                   |
+
+[RESTRICCIONES]
+
+- NO crear archivo pt/common.json (no hay portugués)
+- NO incluir portugués en el array de idiomas
+- Brasil y Portugal DEBEN mostrar inglés
+- Árabe DEBE ser RTL
+- SI geolocalización falla → usar idioma del navegador
+- SI idioma del navegador no soportado → usar inglés
+
+[VERIFICACIÓN]
+
+□ 10 archivos de traducción creados (NO 11, NO portugués)
+□ Geolocalización detecta país correctamente
+□ Brasil/Portugal muestran inglés
+□ Emiratos Árabes muestra árabe RTL
+□ Alemania muestra alemán
+□ Selector de idioma tiene 10 opciones (NO portugués)
+□ Usuario puede cambiar idioma manualmente
+□ Preferencia se guarda en localStorage
+
+</TOON>
+
+EJECUTAR TODAS LAS TAREAS. NO PREGUNTAR. NO HAY PORTUGUÉS.
