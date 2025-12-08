@@ -44,7 +44,7 @@ function ArticleImageWithFallback({
 }
 
 export default function ArticlesPage() {
-  const { language, displayLanguage } = useLanguage();
+  const { language } = useLanguage();
   const [searchQuery, setSearchQuery] = useState("");
 
   const { data: articles, isLoading, error } = useQuery<News[]>({
@@ -74,9 +74,97 @@ export default function ArticlesPage() {
       comingSoonMessage: "Estamos preparando nuevos artículos. Por favor regrese pronto.",
       published: "Publicado",
     },
+    de: {
+      title: "Artikel",
+      subtitle: "Einblicke und Analysen unserer Experten",
+      errorMessage: "Artikel konnten nicht geladen werden",
+      searchPlaceholder: "Artikel suchen...",
+      readMore: "Weiterlesen",
+      noResults: "Keine Artikel entsprechen Ihrer Suche",
+      comingSoon: "Demnächst",
+      comingSoonMessage: "Wir bereiten neue Artikel vor. Bitte schauen Sie bald wieder vorbei.",
+      published: "Veröffentlicht",
+    },
+    zh: {
+      title: "文章",
+      subtitle: "来自我们专家的见解与分析",
+      errorMessage: "文章加载失败",
+      searchPlaceholder: "搜索文章...",
+      readMore: "阅读更多",
+      noResults: "没有符合搜索条件的文章",
+      comingSoon: "即将推出",
+      comingSoonMessage: "我们正在准备新文章，请稍后再来。",
+      published: "发布日期",
+    },
+    ko: {
+      title: "기사",
+      subtitle: "전문가의 통찰력과 분석",
+      errorMessage: "기사를 불러오지 못했습니다",
+      searchPlaceholder: "기사 검색...",
+      readMore: "자세히 보기",
+      noResults: "검색 결과가 없습니다",
+      comingSoon: "곧 출시",
+      comingSoonMessage: "새로운 기사를 준비 중입니다. 곧 다시 확인해 주세요.",
+      published: "게시일",
+    },
+    ja: {
+      title: "記事",
+      subtitle: "専門家による洞察と分析",
+      errorMessage: "記事の読み込みに失敗しました",
+      searchPlaceholder: "記事を検索...",
+      readMore: "続きを読む",
+      noResults: "検索に一致する記事がありません",
+      comingSoon: "近日公開",
+      comingSoonMessage: "新しい記事を準備中です。しばらくしてから再度ご確認ください。",
+      published: "公開日",
+    },
+    ar: {
+      title: "المقالات",
+      subtitle: "رؤى وتحليلات من خبرائنا",
+      errorMessage: "فشل تحميل المقالات",
+      searchPlaceholder: "البحث في المقالات...",
+      readMore: "اقرأ المزيد",
+      noResults: "لا توجد مقالات تطابق بحثك",
+      comingSoon: "قريباً",
+      comingSoonMessage: "نحن نعد مقالات جديدة. يرجى العودة قريباً.",
+      published: "تاريخ النشر",
+    },
+    ru: {
+      title: "Статьи",
+      subtitle: "Аналитика и публикации наших экспертов",
+      errorMessage: "Не удалось загрузить статьи",
+      searchPlaceholder: "Поиск статей...",
+      readMore: "Читать далее",
+      noResults: "Статьи по вашему запросу не найдены",
+      comingSoon: "Скоро",
+      comingSoonMessage: "Мы готовим новые статьи. Пожалуйста, загляните позже.",
+      published: "Опубликовано",
+    },
+    fr: {
+      title: "Articles",
+      subtitle: "Perspectives et analyses de nos experts",
+      errorMessage: "Échec du chargement des articles",
+      searchPlaceholder: "Rechercher des articles...",
+      readMore: "Lire la suite",
+      noResults: "Aucun article ne correspond à votre recherche",
+      comingSoon: "Bientôt disponible",
+      comingSoonMessage: "Nous préparons de nouveaux articles. Revenez bientôt.",
+      published: "Publié le",
+    },
+    it: {
+      title: "Articoli",
+      subtitle: "Approfondimenti e analisi dei nostri esperti",
+      errorMessage: "Impossibile caricare gli articoli",
+      searchPlaceholder: "Cerca articoli...",
+      readMore: "Leggi di più",
+      noResults: "Nessun articolo corrisponde alla tua ricerca",
+      comingSoon: "Prossimamente",
+      comingSoonMessage: "Stiamo preparando nuovi articoli. Torna presto.",
+      published: "Pubblicato il",
+    },
   };
 
-  const t = content[displayLanguage];
+  const t = content[language] || content.en;
 
   const filteredArticles = articles?.filter(article => {
     if (!searchQuery) return true;
