@@ -340,7 +340,7 @@ export default function Header() {
                               <div>
                                 <p className="text-sm font-medium text-gray-800 dark:text-white">{member.name}</p>
                                 <p className="text-xs text-gray-500 dark:text-gray-400">
-                                  {displayLanguage === "es" ? member.titleEs : member.title}
+                                  {language === "es" ? member.titleEs : member.title}
                                 </p>
                               </div>
                             </button>
@@ -362,7 +362,7 @@ export default function Header() {
                               role="option"
                             >
                               <p className="text-sm font-medium text-gray-800 dark:text-white">
-                                {displayLanguage === "es" ? group.nameEs : group.name}
+                                {language === "es" ? group.nameEs : group.name}
                               </p>
                             </button>
                           ))}
@@ -383,7 +383,7 @@ export default function Header() {
                               role="option"
                             >
                               <p className="text-sm font-medium text-gray-800 dark:text-white">
-                                {displayLanguage === "es" ? group.nameEs : group.name}
+                                {language === "es" ? group.nameEs : group.name}
                               </p>
                             </button>
                           ))}
@@ -404,7 +404,7 @@ export default function Header() {
                               role="option"
                             >
                               <p className="text-sm font-medium text-gray-800 dark:text-white line-clamp-1">
-                                {displayLanguage === "es" ? article.titleEs : article.title}
+                                {language === "es" ? article.titleEs : article.title}
                               </p>
                             </button>
                           ))}

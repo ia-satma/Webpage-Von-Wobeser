@@ -20,7 +20,7 @@ import SEOHead from "@/components/SEOHead";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function Home() {
-  const { language, displayLanguage } = useLanguage();
+  const { language } = useLanguage();
 
   return (
     <div className="min-h-screen bg-white" data-testid="page-home">
@@ -47,13 +47,13 @@ export default function Home() {
         <IndustryGroupsSection />
         
         {/* 7. Stats / Team (150 lawyers...) */}
-        <StatsSection language={displayLanguage} />
+        <StatsSection language={language} />
         
         {/* Upcoming Events */}
-        <EventsSection language={displayLanguage} />
+        <EventsSection language={language} />
         
         {/* 8. German Desk (complete section with text + member lists) */}
-        <WorldMapSection language={displayLanguage} />
+        <WorldMapSection language={language} />
         
         {/* 9. RECOGNITIONS (badges, intro, institutions) */}
         <RankingsSection />
@@ -68,15 +68,15 @@ export default function Home() {
         <AboutUsSection />
         
         {/* 13. Map / Location */}
-        <MapSection language={displayLanguage} />
+        <MapSection language={language} />
       </main>
       
       {/* 14. Footer */}
       <Footer />
       
       {/* Popups and Banners */}
-      <NewOfficesPopup language={displayLanguage} />
-      <CookieBanner language={displayLanguage} />
+      <NewOfficesPopup language={language} />
+      <CookieBanner language={language} />
     </div>
   );
 }

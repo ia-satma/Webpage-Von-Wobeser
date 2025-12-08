@@ -114,7 +114,7 @@ const dateLocales: Record<LanguageCode, string> = {
 };
 
 export default function NewsSection() {
-  const { language, displayLanguage } = useLanguage();
+  const { language } = useLanguage();
   const { data: newsItems, isLoading, error } = useQuery<News[]>({
     queryKey: ["/api/news"],
   });
@@ -216,7 +216,7 @@ export default function NewsSection() {
                     <div className="aspect-[16/10] overflow-hidden">
                       <NewsImageWithFallback
                         src={item.imageUrl || ""}
-                        alt={displayLanguage === "es" ? item.titleEs : item.title}
+                        alt={language === "es" ? item.titleEs : item.title}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                       />
                     </div>
@@ -231,7 +231,7 @@ export default function NewsSection() {
                         className="text-lg font-serif text-gray-800 dark:text-white leading-relaxed mb-4 line-clamp-3"
                         data-testid={`text-news-title-${item.id}`}
                       >
-                        {displayLanguage === "es" ? item.titleEs : item.title}
+                        {language === "es" ? item.titleEs : item.title}
                       </h3>
                       <span
                         className="inline-flex items-center gap-2 text-sm font-medium text-primary hover:text-primary/80 transition-colors group/link"
