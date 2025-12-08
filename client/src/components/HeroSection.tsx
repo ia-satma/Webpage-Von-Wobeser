@@ -5,29 +5,67 @@ import { useQuery } from "@tanstack/react-query";
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { useIsMobile } from "@/hooks/use-mobile";
-import type { SiteContent, News } from "@shared/schema";
+import type { SiteContent, News, LanguageCode } from "@shared/schema";
 import heroVideo from "@assets/dron_1764710361340.mp4";
 import heroImage from "@assets/hero_office.jpg";
 
 interface HeroSectionProps {
-  language: "es" | "en";
+  language: LanguageCode;
 }
 
-function NewsPanel({ language, news }: { language: "es" | "en"; news: News[] }) {
+type NewsPanelLabels = {
+  news: string;
+  seeMore: string;
+};
+
+const newsPanelLabels: Record<LanguageCode, NewsPanelLabels> = {
+  en: {
+    news: "News",
+    seeMore: "SEE MORE",
+  },
+  es: {
+    news: "Noticias",
+    seeMore: "VER MÁS",
+  },
+  de: {
+    news: "Nachrichten",
+    seeMore: "MEHR SEHEN",
+  },
+  zh: {
+    news: "新闻",
+    seeMore: "查看更多",
+  },
+  ko: {
+    news: "뉴스",
+    seeMore: "더 보기",
+  },
+  ja: {
+    news: "ニュース",
+    seeMore: "もっと見る",
+  },
+  ar: {
+    news: "أخبار",
+    seeMore: "شاهد المزيد",
+  },
+  ru: {
+    news: "Новости",
+    seeMore: "ПОДРОБНЕЕ",
+  },
+  fr: {
+    news: "Actualités",
+    seeMore: "VOIR PLUS",
+  },
+  it: {
+    news: "Notizie",
+    seeMore: "VEDI DI PIÙ",
+  },
+};
+
+function NewsPanel({ language, news }: { language: LanguageCode; news: News[] }) {
   const displayNews = news.slice(0, 2);
   
-  const labels = {
-    en: {
-      news: "News",
-      seeMore: "SEE MORE",
-    },
-    es: {
-      news: "Noticias",
-      seeMore: "VER MÁS",
-    },
-  };
-
-  const t = labels[language];
+  const t = newsPanelLabels[language] || newsPanelLabels.en;
+  const displayLang = language === "es" ? "es" : "en";
 
   return (
     <motion.div
@@ -61,7 +99,7 @@ function NewsPanel({ language, news }: { language: "es" | "en"; news: News[] }) 
                 className="text-sm font-medium text-[#1F2937] leading-snug mb-3 italic"
                 data-testid={`text-news-title-${item.id}`}
               >
-                {language === "es" ? item.titleEs : item.title}
+                {displayLang === "es" ? item.titleEs : item.title}
               </h4>
               <Link 
                 href={`/news/${item.slug}`}
@@ -77,6 +115,155 @@ function NewsPanel({ language, news }: { language: "es" | "en"; news: News[] }) 
     </motion.div>
   );
 }
+
+type HeroContent = {
+  tagline: string;
+  headline: string;
+  subheadline: string;
+  scroll: string;
+  ctaContact: string;
+  ctaConsult: string;
+  heroVideoLabel: string;
+  heroImageLabel: string;
+  ariaLabel: string;
+  videoFallback: string;
+};
+
+const heroContent: Record<LanguageCode, HeroContent> = {
+  en: {
+    tagline: "LEADING LAW FIRM IN MEXICO",
+    headline: "VON WOBESER Y SIERRA",
+    subheadline: "Corporate Legal Excellence Since 1986",
+    scroll: "scroll",
+    ctaContact: "CONTACT US",
+    ctaConsult: "SCHEDULE CONSULTATION",
+    heroVideoLabel: "Aerial view of Von Wobeser y Sierra offices in Mexico City",
+    heroImageLabel: "Von Wobeser y Sierra headquarters building",
+    ariaLabel: "Main welcome section",
+    videoFallback: "Your browser does not support the video element.",
+  },
+  es: {
+    tagline: "FIRMA LÍDER DE ABOGADOS EN MÉXICO",
+    headline: "VON WOBESER Y SIERRA",
+    subheadline: "Excelencia Legal Corporativa Desde 1986",
+    scroll: "scroll",
+    ctaContact: "CONTÁCTENOS",
+    ctaConsult: "AGENDAR CONSULTA",
+    heroVideoLabel: "Vista aérea de las oficinas de Von Wobeser y Sierra en Ciudad de México",
+    heroImageLabel: "Edificio de la sede de Von Wobeser y Sierra",
+    ariaLabel: "Sección principal de bienvenida",
+    videoFallback: "Tu navegador no soporta el elemento de video.",
+  },
+  de: {
+    tagline: "FÜHRENDE ANWALTSKANZLEI IN MEXIKO",
+    headline: "VON WOBESER Y SIERRA",
+    subheadline: "Erstklassige Unternehmensrechtsberatung seit 1986",
+    scroll: "scrollen",
+    ctaContact: "KONTAKT",
+    ctaConsult: "BERATUNG VEREINBAREN",
+    heroVideoLabel: "Luftaufnahme der Büros von Von Wobeser y Sierra in Mexiko-Stadt",
+    heroImageLabel: "Hauptgebäude von Von Wobeser y Sierra",
+    ariaLabel: "Hauptbegrüßungsbereich",
+    videoFallback: "Ihr Browser unterstützt das Video-Element nicht.",
+  },
+  zh: {
+    tagline: "墨西哥领先律师事务所",
+    headline: "VON WOBESER Y SIERRA",
+    subheadline: "自1986年以来的卓越企业法律服务",
+    scroll: "滚动",
+    ctaContact: "联系我们",
+    ctaConsult: "预约咨询",
+    heroVideoLabel: "Von Wobeser y Sierra 墨西哥城办公室鸟瞰图",
+    heroImageLabel: "Von Wobeser y Sierra 总部大楼",
+    ariaLabel: "主要欢迎区域",
+    videoFallback: "您的浏览器不支持视频元素。",
+  },
+  ko: {
+    tagline: "멕시코 최고의 로펌",
+    headline: "VON WOBESER Y SIERRA",
+    subheadline: "1986년부터 이어온 기업 법률 서비스의 우수성",
+    scroll: "스크롤",
+    ctaContact: "문의하기",
+    ctaConsult: "상담 예약",
+    heroVideoLabel: "멕시코시티 Von Wobeser y Sierra 사무실 항공 전경",
+    heroImageLabel: "Von Wobeser y Sierra 본사 건물",
+    ariaLabel: "메인 환영 섹션",
+    videoFallback: "브라우저가 비디오 요소를 지원하지 않습니다.",
+  },
+  ja: {
+    tagline: "メキシコをリードする法律事務所",
+    headline: "VON WOBESER Y SIERRA",
+    subheadline: "1986年以来の企業法務における卓越性",
+    scroll: "スクロール",
+    ctaContact: "お問い合わせ",
+    ctaConsult: "相談を予約する",
+    heroVideoLabel: "メキシコシティにあるVon Wobeser y Sierraオフィスの空撮映像",
+    heroImageLabel: "Von Wobeser y Sierra 本社ビル",
+    ariaLabel: "メインウェルカムセクション",
+    videoFallback: "お使いのブラウザはビデオ要素をサポートしていません。",
+  },
+  ar: {
+    tagline: "شركة محاماة رائدة في المكسيك",
+    headline: "VON WOBESER Y SIERRA",
+    subheadline: "التميز القانوني للشركات منذ عام 1986",
+    scroll: "تمرير",
+    ctaContact: "اتصل بنا",
+    ctaConsult: "حجز استشارة",
+    heroVideoLabel: "منظر جوي لمكاتب Von Wobeser y Sierra في مدينة مكسيكو",
+    heroImageLabel: "مبنى المقر الرئيسي لـ Von Wobeser y Sierra",
+    ariaLabel: "قسم الترحيب الرئيسي",
+    videoFallback: "متصفحك لا يدعم عنصر الفيديو.",
+  },
+  ru: {
+    tagline: "ВЕДУЩАЯ ЮРИДИЧЕСКАЯ ФИРМА В МЕКСИКЕ",
+    headline: "VON WOBESER Y SIERRA",
+    subheadline: "Высочайший уровень корпоративного права с 1986 года",
+    scroll: "прокрутка",
+    ctaContact: "СВЯЗАТЬСЯ С НАМИ",
+    ctaConsult: "ЗАПИСАТЬСЯ НА КОНСУЛЬТАЦИЮ",
+    heroVideoLabel: "Аэросъёмка офисов Von Wobeser y Sierra в Мехико",
+    heroImageLabel: "Здание штаб-квартиры Von Wobeser y Sierra",
+    ariaLabel: "Главный приветственный раздел",
+    videoFallback: "Ваш браузер не поддерживает видео элемент.",
+  },
+  fr: {
+    tagline: "CABINET D'AVOCATS DE PREMIER PLAN AU MEXIQUE",
+    headline: "VON WOBESER Y SIERRA",
+    subheadline: "Excellence juridique d'entreprise depuis 1986",
+    scroll: "défiler",
+    ctaContact: "CONTACTEZ-NOUS",
+    ctaConsult: "PRENDRE RENDEZ-VOUS",
+    heroVideoLabel: "Vue aérienne des bureaux de Von Wobeser y Sierra à Mexico",
+    heroImageLabel: "Bâtiment du siège de Von Wobeser y Sierra",
+    ariaLabel: "Section d'accueil principale",
+    videoFallback: "Votre navigateur ne prend pas en charge l'élément vidéo.",
+  },
+  it: {
+    tagline: "STUDIO LEGALE LEADER IN MESSICO",
+    headline: "VON WOBESER Y SIERRA",
+    subheadline: "Eccellenza legale aziendale dal 1986",
+    scroll: "scorri",
+    ctaContact: "CONTATTACI",
+    ctaConsult: "PRENOTA UNA CONSULENZA",
+    heroVideoLabel: "Vista aerea degli uffici di Von Wobeser y Sierra a Città del Messico",
+    heroImageLabel: "Edificio della sede di Von Wobeser y Sierra",
+    ariaLabel: "Sezione di benvenuto principale",
+    videoFallback: "Il tuo browser non supporta l'elemento video.",
+  },
+};
+
+const scrollAriaLabels: Record<LanguageCode, string> = {
+  en: "Scroll down to news section",
+  es: "Desplazar hacia abajo a la sección de noticias",
+  de: "Nach unten zum Nachrichtenbereich scrollen",
+  zh: "向下滚动到新闻部分",
+  ko: "뉴스 섹션으로 스크롤",
+  ja: "ニュースセクションまでスクロール",
+  ar: "انتقل إلى قسم الأخبار",
+  ru: "Прокрутить вниз к разделу новостей",
+  fr: "Faire défiler vers la section actualités",
+  it: "Scorri verso il basso alla sezione notizie",
+};
 
 export default function HeroSection({ language }: HeroSectionProps) {
   const [isVisible, setIsVisible] = useState(false);
@@ -101,37 +288,19 @@ export default function HeroSection({ language }: HeroSectionProps) {
     }
   };
 
-  const content = {
-    en: {
-      tagline: "Leading Law Firm in Mexico",
-      headline: "VON WOBESER Y SIERRA",
-      subheadline: siteContent?.heroSubtitle || "Corporate Legal Excellence Since 1986",
-      scroll: "scroll",
-      ctaContact: "Contact Us",
-      ctaConsult: "Schedule Consultation",
-      heroVideoLabel: "Aerial view of Von Wobeser y Sierra offices in Mexico City",
-      heroImageLabel: "Von Wobeser y Sierra headquarters building",
-    },
-    es: {
-      tagline: "Firma Líder de Abogados en México",
-      headline: "VON WOBESER Y SIERRA",
-      subheadline: "Excelencia Legal Corporativa Desde 1986",
-      scroll: "scroll",
-      ctaContact: "Contáctenos",
-      ctaConsult: "Agendar Consulta",
-      heroVideoLabel: "Vista aérea de las oficinas de Von Wobeser y Sierra en Ciudad de México",
-      heroImageLabel: "Edificio de la sede de Von Wobeser y Sierra",
-    },
-  };
-
-  const t = content[language];
+  const t = heroContent[language] || heroContent.en;
+  const scrollAriaLabel = scrollAriaLabels[language] || scrollAriaLabels.en;
+  
+  const subheadline = (language === "en" && siteContent?.heroSubtitle) 
+    ? siteContent.heroSubtitle 
+    : t.subheadline;
 
   return (
     <section
       id="hero"
       className="relative min-h-screen flex items-center justify-center overflow-hidden"
       data-testid="section-hero"
-      aria-label={language === "es" ? "Sección principal de bienvenida" : "Main welcome section"}
+      aria-label={t.ariaLabel}
     >
       <div className="absolute inset-0 z-0">
         <div 
@@ -177,9 +346,7 @@ export default function HeroSection({ language }: HeroSectionProps) {
               alt={t.heroImageLabel}
               className="absolute inset-0 w-full h-full object-cover"
             />
-            {language === "es" 
-              ? "Tu navegador no soporta el elemento de video." 
-              : "Your browser does not support the video element."}
+            {t.videoFallback}
           </video>
         )}
         
@@ -219,7 +386,7 @@ export default function HeroSection({ language }: HeroSectionProps) {
           className="text-white/90 text-lg md:text-xl font-serif max-w-2xl mx-auto"
           data-testid="text-hero-subheadline"
         >
-          {t.subheadline}
+          {subheadline}
         </motion.p>
 
         <motion.div
@@ -260,7 +427,7 @@ export default function HeroSection({ language }: HeroSectionProps) {
         onClick={scrollToNews}
         className="absolute bottom-12 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-white/85 hover:text-white transition-colors cursor-pointer min-h-[44px] min-w-[44px] touch-manipulation p-2"
         data-testid="button-scroll-down"
-        aria-label={language === "es" ? "Desplazar hacia abajo a la sección de noticias" : "Scroll down to news section"}
+        aria-label={scrollAriaLabel}
       >
         <span className="text-xs tracking-[0.2em] uppercase" data-testid="text-scroll">{t.scroll}</span>
         <motion.div

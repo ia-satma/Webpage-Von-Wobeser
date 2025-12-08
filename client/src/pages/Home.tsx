@@ -32,7 +32,7 @@ export default function Home() {
       
       <main id="main-content">
         {/* 2. Hero Section with news overlay */}
-        <HeroSection language={displayLanguage} />
+        <HeroSection language={language} />
         
         {/* 3. Social Proof / Testimonials (Chambers, Legal 500, Latin Lawyer) */}
         <SocialProofSection language={displayLanguage} />
