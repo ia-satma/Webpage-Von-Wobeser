@@ -1,24 +1,63 @@
 import { motion } from "framer-motion";
+import { useLanguage } from "@/contexts/LanguageContext";
 import chambersGlobal from "@assets/Agosto156x156_chambers_global25-1_1764817346699.png";
 import chambersLatam from "@assets/Agosto156x156_chambers_LATAM26_1764817346699.png";
 import latinLawyer from "@assets/156x156_chambers_LL250png_1764817346699.png";
 import legal500 from "@assets/LatAm_2026_156px_1764817346700.png";
+import type { LanguageCode } from "@shared/schema";
 
-interface RankingsSectionProps {
-  language: "es" | "en";
+interface RankingsContent {
+  title: string;
+  intro: string;
 }
 
-export default function RankingsSection({ language }: RankingsSectionProps) {
-  const content = {
-    en: {
-      intro: "Von Wobeser y Sierra, S.C. has been recognized on an international level by various institutions including",
-    },
-    es: {
-      intro: "Von Wobeser y Sierra, S.C. ha sido reconocido a nivel internacional por diversas instituciones incluyendo",
-    },
-  };
+const content: Record<LanguageCode, RankingsContent> = {
+  en: {
+    title: "RECOGNITIONS",
+    intro: "Von Wobeser y Sierra, S.C. has been recognized on an international level by various institutions including",
+  },
+  es: {
+    title: "RECONOCIMIENTOS",
+    intro: "Von Wobeser y Sierra, S.C. ha sido reconocido a nivel internacional por diversas instituciones incluyendo",
+  },
+  de: {
+    title: "AUSZEICHNUNGEN",
+    intro: "Von Wobeser y Sierra, S.C. wurde auf internationaler Ebene von verschiedenen Institutionen anerkannt, darunter",
+  },
+  zh: {
+    title: "荣誉认可",
+    intro: "Von Wobeser y Sierra, S.C. 已获得多个国际机构的认可，包括",
+  },
+  ko: {
+    title: "수상 및 인정",
+    intro: "Von Wobeser y Sierra, S.C.는 다음을 포함한 다양한 기관으로부터 국제적으로 인정받았습니다",
+  },
+  ja: {
+    title: "受賞・評価",
+    intro: "Von Wobeser y Sierra, S.C.は、以下を含む様々な機関から国際的に認められています",
+  },
+  ar: {
+    title: "التقديرات",
+    intro: "تم الاعتراف بـ Von Wobeser y Sierra, S.C. على المستوى الدولي من قبل مؤسسات مختلفة بما في ذلك",
+  },
+  ru: {
+    title: "ПРИЗНАНИЕ",
+    intro: "Von Wobeser y Sierra, S.C. получила международное признание различных организаций, включая",
+  },
+  fr: {
+    title: "RECONNAISSANCES",
+    intro: "Von Wobeser y Sierra, S.C. a été reconnu au niveau international par diverses institutions, notamment",
+  },
+  it: {
+    title: "RICONOSCIMENTI",
+    intro: "Von Wobeser y Sierra, S.C. è stata riconosciuta a livello internazionale da varie istituzioni tra cui",
+  },
+};
 
-  const t = content[language];
+export default function RankingsSection() {
+  const { language } = useLanguage();
+
+  const t = content[language] || content.en;
 
   const institutionsList = "Chambers & Partners Global, Chambers & Partners Latin America, Legal 500, Latin Lawyer 250, Global Arbitration Review (GAR 100), Global Competition Review (GCR 100), Global Investigations Review (GIR 100), Global Restructuring Review (GCR), Lexology Index, Latin America Corporate Counsel Association (LACCA) and IFLR 1000, Best Lawyers, Benchmark Litigation among others.";
 
@@ -67,7 +106,7 @@ export default function RankingsSection({ language }: RankingsSectionProps) {
             style={{ color: '#8B0000', letterSpacing: '0.3em' }}
             data-testid="text-rankings-title"
           >
-            RECOGNITIONS
+            {t.title}
           </h2>
         </motion.div>
 

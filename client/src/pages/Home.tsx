@@ -56,7 +56,7 @@ export default function Home() {
         <WorldMapSection language={displayLanguage} />
         
         {/* 9. RECOGNITIONS (badges, intro, institutions) */}
-        <RankingsSection language={displayLanguage} />
+        <RankingsSection />
         
         {/* 10. Diversity & Inclusion */}
         <DiversityInclusionSection />

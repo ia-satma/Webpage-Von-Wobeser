@@ -5,7 +5,8 @@ import { Link } from "wouter";
 import { Card } from "@/components/ui/card";
 import { useQuery } from "@tanstack/react-query";
 import { Skeleton } from "@/components/ui/skeleton";
-import type { News } from "@shared/schema";
+import { useLanguage } from "@/contexts/LanguageContext";
+import type { News, LanguageCode } from "@shared/schema";
 
 function NewsImageWithFallback({ 
   src, 
@@ -40,29 +41,86 @@ function NewsImageWithFallback({
   );
 }
 
-interface NewsSectionProps {
-  language: "es" | "en";
+interface NewsContent {
+  title: string;
+  seeMore: string;
+  errorMessage: string;
 }
 
-export default function NewsSection({ language }: NewsSectionProps) {
+const content: Record<LanguageCode, NewsContent> = {
+  en: {
+    title: "news",
+    seeMore: "SEE MORE",
+    errorMessage: "Failed to load news",
+  },
+  es: {
+    title: "noticias",
+    seeMore: "VER MÁS",
+    errorMessage: "Error al cargar noticias",
+  },
+  de: {
+    title: "Neuigkeiten",
+    seeMore: "MEHR ANZEIGEN",
+    errorMessage: "Nachrichten konnten nicht geladen werden",
+  },
+  zh: {
+    title: "新闻",
+    seeMore: "查看更多",
+    errorMessage: "新闻加载失败",
+  },
+  ko: {
+    title: "뉴스",
+    seeMore: "더 보기",
+    errorMessage: "뉴스를 불러오지 못했습니다",
+  },
+  ja: {
+    title: "ニュース",
+    seeMore: "もっと見る",
+    errorMessage: "ニュースの読み込みに失敗しました",
+  },
+  ar: {
+    title: "الأخبار",
+    seeMore: "عرض المزيد",
+    errorMessage: "فشل في تحميل الأخبار",
+  },
+  ru: {
+    title: "новости",
+    seeMore: "СМОТРЕТЬ ВСЕ",
+    errorMessage: "Не удалось загрузить новости",
+  },
+  fr: {
+    title: "actualités",
+    seeMore: "VOIR PLUS",
+    errorMessage: "Échec du chargement des actualités",
+  },
+  it: {
+    title: "notizie",
+    seeMore: "VEDI ALTRO",
+    errorMessage: "Impossibile caricare le notizie",
+  },
+};
+
+const dateLocales: Record<LanguageCode, string> = {
+  en: "en-US",
+  es: "es-MX",
+  de: "de-DE",
+  zh: "zh-CN",
+  ko: "ko-KR",
+  ja: "ja-JP",
+  ar: "ar-SA",
+  ru: "ru-RU",
+  fr: "fr-FR",
+  it: "it-IT",
+};
+
+export default function NewsSection() {
+  const { language, displayLanguage } = useLanguage();
   const { data: newsItems, isLoading, error } = useQuery<News[]>({
     queryKey: ["/api/news"],
   });
 
-  const content = {
-    en: {
-      title: "news",
-      seeMore: "SEE MORE",
-      errorMessage: "Failed to load news",
-    },
-    es: {
-      title: "noticias",
-      seeMore: "VER M\u00c1S",
-      errorMessage: "Error al cargar noticias",
-    },
-  };
-
-  const t = content[language];
+  const t = content[language] || content.en;
+  const dateLocale = dateLocales[language] || dateLocales.en;
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -158,14 +216,14 @@ export default function NewsSection({ language }: NewsSectionProps) {
                     <div className="aspect-[16/10] overflow-hidden">
                       <NewsImageWithFallback
                         src={item.imageUrl || ""}
-                        alt={language === "es" ? item.titleEs : item.title}
+                        alt={displayLanguage === "es" ? item.titleEs : item.title}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                       />
                     </div>
                     <div className="p-6">
                       <p className="text-xs text-gray-400 uppercase tracking-wider mb-3" data-testid={`text-news-date-${item.id}`}>
                         {item.date ? new Date(item.date).toLocaleDateString(
-                          language === "es" ? "es-MX" : "en-US",
+                          dateLocale,
                           { year: "numeric", month: "long", day: "numeric" }
                         ) : ""}
                       </p>
@@ -173,7 +231,7 @@ export default function NewsSection({ language }: NewsSectionProps) {
                         className="text-lg font-serif text-gray-800 dark:text-white leading-relaxed mb-4 line-clamp-3"
                         data-testid={`text-news-title-${item.id}`}
                       >
-                        {language === "es" ? item.titleEs : item.title}
+                        {displayLanguage === "es" ? item.titleEs : item.title}
                       </h3>
                       <span
                         className="inline-flex items-center gap-2 text-sm font-medium text-primary hover:text-primary/80 transition-colors group/link"

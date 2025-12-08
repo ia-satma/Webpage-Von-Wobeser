@@ -1,37 +1,128 @@
 import { motion } from "framer-motion";
 import { useLanguage } from "@/contexts/LanguageContext";
+import type { LanguageCode } from "@shared/schema";
 
-const values = [
-  { en: "Integrity", es: "Integridad" },
-  { en: "Excellence", es: "Excelencia" },
-  { en: "Commitment", es: "Compromiso" },
-  { en: "Agility", es: "Agilidad" },
-  { en: "Diversity", es: "Diversidad" },
+interface ValueItem {
+  en: string;
+  es: string;
+  de: string;
+  zh: string;
+  ko: string;
+  ja: string;
+  ar: string;
+  ru: string;
+  fr: string;
+  it: string;
+}
+
+const values: ValueItem[] = [
+  { en: "Integrity", es: "Integridad", de: "Integrität", zh: "诚信", ko: "진실성", ja: "誠実さ", ar: "النزاهة", ru: "Честность", fr: "Intégrité", it: "Integrità" },
+  { en: "Excellence", es: "Excelencia", de: "Exzellenz", zh: "卓越", ko: "탁월함", ja: "卓越性", ar: "التميز", ru: "Совершенство", fr: "Excellence", it: "Eccellenza" },
+  { en: "Commitment", es: "Compromiso", de: "Engagement", zh: "承诺", ko: "헌신", ja: "コミットメント", ar: "الالتزام", ru: "Приверженность", fr: "Engagement", it: "Impegno" },
+  { en: "Agility", es: "Agilidad", de: "Agilität", zh: "敏捷", ko: "민첩성", ja: "機敏性", ar: "المرونة", ru: "Гибкость", fr: "Agilité", it: "Agilità" },
+  { en: "Diversity", es: "Diversidad", de: "Vielfalt", zh: "多样性", ko: "다양성", ja: "多様性", ar: "التنوع", ru: "Разнообразие", fr: "Diversité", it: "Diversità" },
 ];
 
+interface AboutUsContent {
+  sectionTitle: string;
+  visionTitle: string;
+  visionText: string;
+  missionTitle: string;
+  missionText: string;
+  valuesTitle: string;
+}
+
+const content: Record<LanguageCode, AboutUsContent> = {
+  en: {
+    sectionTitle: "ABOUT US",
+    visionTitle: "Vision",
+    visionText: "To be the leading law firm in Mexico, recognized for delivering exceptional legal services, fostering talent, and making a positive impact in our community.",
+    missionTitle: "Mission",
+    missionText: "To provide our clients with the highest quality legal counsel, combining deep expertise with innovative solutions and an unwavering commitment to their success.",
+    valuesTitle: "Values",
+  },
+  es: {
+    sectionTitle: "ACERCA DE NOSOTROS",
+    visionTitle: "Visión",
+    visionText: "Ser la firma de abogados líder en México, reconocida por brindar servicios legales excepcionales, fomentar el talento y generar un impacto positivo en nuestra comunidad.",
+    missionTitle: "Misión",
+    missionText: "Proporcionar a nuestros clientes asesoría legal de la más alta calidad, combinando profunda experiencia con soluciones innovadoras y un compromiso inquebrantable con su éxito.",
+    valuesTitle: "Valores",
+  },
+  de: {
+    sectionTitle: "ÜBER UNS",
+    visionTitle: "Vision",
+    visionText: "Die führende Anwaltskanzlei in Mexiko zu sein, anerkannt für die Bereitstellung außergewöhnlicher Rechtsdienstleistungen, die Förderung von Talenten und einen positiven Einfluss auf unsere Gemeinschaft.",
+    missionTitle: "Mission",
+    missionText: "Unseren Mandanten Rechtsberatung höchster Qualität zu bieten, die tiefgreifende Expertise mit innovativen Lösungen und einem unerschütterlichen Engagement für ihren Erfolg verbindet.",
+    valuesTitle: "Werte",
+  },
+  zh: {
+    sectionTitle: "关于我们",
+    visionTitle: "愿景",
+    visionText: "成为墨西哥领先的律师事务所，以提供卓越的法律服务、培养人才和对社区产生积极影响而闻名。",
+    missionTitle: "使命",
+    missionText: "为客户提供最高质量的法律顾问服务，将深厚的专业知识与创新解决方案相结合，坚定不移地致力于客户的成功。",
+    valuesTitle: "价值观",
+  },
+  ko: {
+    sectionTitle: "회사 소개",
+    visionTitle: "비전",
+    visionText: "탁월한 법률 서비스 제공, 인재 육성, 지역사회에 긍정적인 영향을 미치는 것으로 인정받는 멕시코 최고의 법률 사무소가 되는 것입니다.",
+    missionTitle: "미션",
+    missionText: "깊은 전문성과 혁신적인 솔루션, 그리고 고객의 성공에 대한 확고한 헌신을 결합하여 최고 품질의 법률 자문을 제공합니다.",
+    valuesTitle: "가치",
+  },
+  ja: {
+    sectionTitle: "私たちについて",
+    visionTitle: "ビジョン",
+    visionText: "卓越した法的サービスの提供、才能の育成、コミュニティへの積極的な貢献で認められる、メキシコを代表する法律事務所になること。",
+    missionTitle: "ミッション",
+    missionText: "深い専門知識と革新的なソリューション、そしてクライアントの成功への揺るぎないコミットメントを組み合わせた最高品質の法的助言をクライアントに提供すること。",
+    valuesTitle: "価値観",
+  },
+  ar: {
+    sectionTitle: "من نحن",
+    visionTitle: "الرؤية",
+    visionText: "أن نكون شركة المحاماة الرائدة في المكسيك، معترف بها لتقديم خدمات قانونية استثنائية، وتعزيز المواهب، وإحداث تأثير إيجابي في مجتمعنا.",
+    missionTitle: "المهمة",
+    missionText: "تزويد عملائنا بأعلى جودة من الاستشارات القانونية، مع الجمع بين الخبرة العميقة والحلول المبتكرة والالتزام الراسخ بنجاحهم.",
+    valuesTitle: "القيم",
+  },
+  ru: {
+    sectionTitle: "О НАС",
+    visionTitle: "Видение",
+    visionText: "Быть ведущей юридической фирмой в Мексике, признанной за предоставление исключительных юридических услуг, развитие талантов и положительное влияние на наше сообщество.",
+    missionTitle: "Миссия",
+    missionText: "Предоставлять нашим клиентам юридические консультации высочайшего качества, сочетая глубокую экспертизу с инновационными решениями и непоколебимую приверженность их успеху.",
+    valuesTitle: "Ценности",
+  },
+  fr: {
+    sectionTitle: "À PROPOS DE NOUS",
+    visionTitle: "Vision",
+    visionText: "Être le cabinet d'avocats leader au Mexique, reconnu pour fournir des services juridiques exceptionnels, favoriser les talents et avoir un impact positif dans notre communauté.",
+    missionTitle: "Mission",
+    missionText: "Fournir à nos clients des conseils juridiques de la plus haute qualité, combinant une expertise approfondie avec des solutions innovantes et un engagement indéfectible envers leur succès.",
+    valuesTitle: "Valeurs",
+  },
+  it: {
+    sectionTitle: "CHI SIAMO",
+    visionTitle: "Visione",
+    visionText: "Essere lo studio legale leader in Messico, riconosciuto per la fornitura di servizi legali eccezionali, la promozione dei talenti e un impatto positivo nella nostra comunità.",
+    missionTitle: "Missione",
+    missionText: "Fornire ai nostri clienti consulenza legale della massima qualità, combinando profonda competenza con soluzioni innovative e un impegno incrollabile per il loro successo.",
+    valuesTitle: "Valori",
+  },
+};
+
 export default function AboutUsSection() {
-  const { displayLanguage } = useLanguage();
+  const { language } = useLanguage();
 
-  const content = {
-    en: {
-      sectionTitle: "ABOUT US",
-      visionTitle: "Vision",
-      visionText: "To be the leading law firm in Mexico, recognized for delivering exceptional legal services, fostering talent, and making a positive impact in our community.",
-      missionTitle: "Mission",
-      missionText: "To provide our clients with the highest quality legal counsel, combining deep expertise with innovative solutions and an unwavering commitment to their success.",
-      valuesTitle: "Values",
-    },
-    es: {
-      sectionTitle: "ACERCA DE NOSOTROS",
-      visionTitle: "Visión",
-      visionText: "Ser la firma de abogados líder en México, reconocida por brindar servicios legales excepcionales, fomentar el talento y generar un impacto positivo en nuestra comunidad.",
-      missionTitle: "Misión",
-      missionText: "Proporcionar a nuestros clientes asesoría legal de la más alta calidad, combinando profunda experiencia con soluciones innovadoras y un compromiso inquebrantable con su éxito.",
-      valuesTitle: "Valores",
-    },
+  const t = content[language] || content.en;
+
+  const getValueText = (value: ValueItem): string => {
+    return value[language] || value.en;
   };
-
-  const t = content[displayLanguage];
 
   return (
     <section
@@ -137,7 +228,7 @@ export default function AboutUsSection() {
                   className="text-base md:text-lg font-heading text-gray-700 dark:text-gray-200"
                   data-testid={`text-value-${index}`}
                 >
-                  {displayLanguage === "en" ? value.en : value.es}
+                  {getValueText(value)}
                 </span>
               </motion.div>
             ))}

@@ -38,7 +38,18 @@ export default function EventsPage() {
     queryKey: ["/api/events"],
   });
 
-  const content = {
+  const content: Record<string, {
+    title: string;
+    subtitle: string;
+    errorMessage: string;
+    noResults: string;
+    learnMore: string;
+    all: string;
+    upcoming: string;
+    past: string;
+    register: string;
+    noEvents: string;
+  }> = {
     en: {
       title: "Events",
       subtitle: "Join us at conferences, webinars, and networking events",
@@ -48,6 +59,8 @@ export default function EventsPage() {
       all: "All",
       upcoming: "Upcoming",
       past: "Past",
+      register: "Register",
+      noEvents: "No events scheduled",
     },
     es: {
       title: "Eventos",
@@ -58,10 +71,108 @@ export default function EventsPage() {
       all: "Todos",
       upcoming: "Próximos",
       past: "Pasados",
+      register: "Registrarse",
+      noEvents: "No hay eventos programados",
+    },
+    de: {
+      title: "Veranstaltungen",
+      subtitle: "Kommende und vergangene Veranstaltungen",
+      errorMessage: "Fehler beim Laden der Veranstaltungen",
+      noResults: "Keine Veranstaltungen entsprechen Ihrem Filter",
+      learnMore: "Mehr erfahren",
+      all: "Alle",
+      upcoming: "Kommende Veranstaltungen",
+      past: "Vergangene Veranstaltungen",
+      register: "Anmelden",
+      noEvents: "Keine Veranstaltungen geplant",
+    },
+    zh: {
+      title: "活动",
+      subtitle: "即将举行和过去的活动",
+      errorMessage: "加载活动失败",
+      noResults: "没有符合筛选条件的活动",
+      learnMore: "了解更多",
+      all: "全部",
+      upcoming: "即将举行的活动",
+      past: "过往活动",
+      register: "注册",
+      noEvents: "暂无活动",
+    },
+    ko: {
+      title: "이벤트",
+      subtitle: "컨퍼런스, 웨비나 및 네트워킹 이벤트",
+      errorMessage: "이벤트 로드 실패",
+      noResults: "필터와 일치하는 이벤트가 없습니다",
+      learnMore: "자세히 보기",
+      all: "전체",
+      upcoming: "예정된 이벤트",
+      past: "지난 이벤트",
+      register: "등록",
+      noEvents: "예정된 이벤트가 없습니다",
+    },
+    ja: {
+      title: "イベント",
+      subtitle: "カンファレンス、ウェビナー、ネットワーキングイベント",
+      errorMessage: "イベントの読み込みに失敗しました",
+      noResults: "フィルターに一致するイベントがありません",
+      learnMore: "詳細を見る",
+      all: "すべて",
+      upcoming: "今後のイベント",
+      past: "過去のイベント",
+      register: "登録",
+      noEvents: "予定されているイベントはありません",
+    },
+    ar: {
+      title: "الفعاليات",
+      subtitle: "الفعاليات القادمة والسابقة",
+      errorMessage: "فشل في تحميل الفعاليات",
+      noResults: "لا توجد فعاليات تطابق الفلتر",
+      learnMore: "اعرف المزيد",
+      all: "الكل",
+      upcoming: "الفعاليات القادمة",
+      past: "الفعاليات السابقة",
+      register: "سجّل",
+      noEvents: "لا توجد فعاليات مجدولة",
+    },
+    ru: {
+      title: "Мероприятия",
+      subtitle: "Предстоящие и прошедшие мероприятия",
+      errorMessage: "Не удалось загрузить мероприятия",
+      noResults: "Нет мероприятий, соответствующих фильтру",
+      learnMore: "Подробнее",
+      all: "Все",
+      upcoming: "Предстоящие",
+      past: "Прошедшие",
+      register: "Зарегистрироваться",
+      noEvents: "Нет мероприятий",
+    },
+    fr: {
+      title: "Événements",
+      subtitle: "Événements à venir et passés",
+      errorMessage: "Échec du chargement des événements",
+      noResults: "Aucun événement ne correspond à votre filtre",
+      learnMore: "En savoir plus",
+      all: "Tous",
+      upcoming: "À venir",
+      past: "Passés",
+      register: "S'inscrire",
+      noEvents: "Aucun événement prévu",
+    },
+    it: {
+      title: "Eventi",
+      subtitle: "Eventi in programma e passati",
+      errorMessage: "Impossibile caricare gli eventi",
+      noResults: "Nessun evento corrisponde al filtro",
+      learnMore: "Scopri di più",
+      all: "Tutti",
+      upcoming: "Prossimi eventi",
+      past: "Eventi passati",
+      register: "Registrati",
+      noEvents: "Nessun evento",
     },
   };
 
-  const t = content[displayLanguage];
+  const t = content[language] || content.en;
 
   const typeFilters = [
     { value: "all", en: "All", es: "Todos" },
