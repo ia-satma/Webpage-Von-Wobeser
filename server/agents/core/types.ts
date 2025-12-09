@@ -8,6 +8,7 @@ export type AgentType =
   | 'seo_optimizer'
   | 'content_analyzer'
   | 'image_suggestion'
+  | 'category_agent'
   | 'orchestrator';
 
 export type JobStatus = 'pending' | 'in_progress' | 'completed' | 'failed' | 'cancelled';
