@@ -35,18 +35,41 @@ export abstract class BaseAgent {
     messages: { role: 'system' | 'user' | 'assistant'; content: string }[],
     options?: { temperature?: number; maxTokens?: number; jsonMode?: boolean }
   ): Promise<string> {
-    const response = await openai.chat.completions.create({
-      model: this.config.model || 'gpt-4o',
-      messages: [
-        { role: 'system', content: this.config.systemPrompt },
-        ...messages
-      ],
-      temperature: options?.temperature ?? this.config.temperature ?? 0.7,
-      max_tokens: options?.maxTokens ?? this.config.maxTokens ?? 4096,
-      response_format: options?.jsonMode ? { type: 'json_object' } : undefined,
-    });
+    const primaryModel = this.config.model || 'gpt-4o';
+    const fallbackModels = ['gpt-4o-mini', 'gpt-3.5-turbo'];
+    const allModels = [primaryModel, ...fallbackModels.filter(m => m !== primaryModel)];
+    
+    let lastError: Error | null = null;
+    
+    for (const model of allModels) {
+      try {
+        const response = await openai.chat.completions.create({
+          model,
+          messages: [
+            { role: 'system', content: this.config.systemPrompt },
+            ...messages
+          ],
+          temperature: options?.temperature ?? this.config.temperature ?? 0.7,
+          max_tokens: options?.maxTokens ?? this.config.maxTokens ?? 4096,
+          response_format: options?.jsonMode ? { type: 'json_object' } : undefined,
+        });
 
-    return response.choices[0]?.message?.content || '';
+        return response.choices[0]?.message?.content || '';
+      } catch (error: any) {
+        lastError = error;
+        const isQuotaError = error?.status === 429 || 
+                            error?.message?.includes('quota') || 
+                            error?.message?.includes('rate limit');
+        
+        if (isQuotaError && model !== allModels[allModels.length - 1]) {
+          console.log(`[${this.name}] Model ${model} quota exceeded, trying fallback...`);
+          continue;
+        }
+        throw error;
+      }
+    }
+    
+    throw lastError || new Error('All models failed');
   }
 
   protected async analyzeForLearnings(
