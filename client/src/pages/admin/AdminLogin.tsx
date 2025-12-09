@@ -13,12 +13,15 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { LogIn, AlertCircle } from "lucide-react";
 
-const loginSchema = z.object({
-  username: z.string().min(1, "Username is required"),
-  password: z.string().min(6, "Password must be at least 6 characters"),
-});
+type LoginFormData = {
+  username: string;
+  password: string;
+};
 
-type LoginFormData = z.infer<typeof loginSchema>;
+const createLoginSchema = (t: { emailRequired: string; passwordMin: string }) => z.object({
+  username: z.string().min(1, t.emailRequired),
+  password: z.string().min(6, t.passwordMin),
+});
 
 const translations = {
   en: {
@@ -33,6 +36,8 @@ const translations = {
     loginSuccess: "Login successful",
     loginError: "Login failed",
     invalidCredentials: "Invalid email or password",
+    emailRequired: "Email is required",
+    passwordMin: "Password must be at least 6 characters",
   },
   es: {
     title: "Inicio de Sesión Admin",
@@ -46,6 +51,8 @@ const translations = {
     loginSuccess: "Inicio de sesión exitoso",
     loginError: "Error al iniciar sesión",
     invalidCredentials: "Correo electrónico o contraseña inválidos",
+    emailRequired: "El correo electrónico es obligatorio",
+    passwordMin: "La contraseña debe tener al menos 6 caracteres",
   },
   de: {
     title: "Admin-Anmeldung",
@@ -59,6 +66,8 @@ const translations = {
     loginSuccess: "Anmeldung erfolgreich",
     loginError: "Anmeldung fehlgeschlagen",
     invalidCredentials: "Ungültige E-Mail oder Passwort",
+    emailRequired: "E-Mail ist erforderlich",
+    passwordMin: "Das Passwort muss mindestens 6 Zeichen haben",
   },
   zh: {
     title: "管理员登录",
@@ -72,6 +81,8 @@ const translations = {
     loginSuccess: "登录成功",
     loginError: "登录失败",
     invalidCredentials: "电子邮件或密码无效",
+    emailRequired: "电子邮件是必填项",
+    passwordMin: "密码必须至少6个字符",
   },
   ko: {
     title: "관리자 로그인",
@@ -85,6 +96,8 @@ const translations = {
     loginSuccess: "로그인 성공",
     loginError: "로그인 실패",
     invalidCredentials: "잘못된 이메일 또는 비밀번호",
+    emailRequired: "이메일은 필수입니다",
+    passwordMin: "비밀번호는 최소 6자 이상이어야 합니다",
   },
   ja: {
     title: "管理者ログイン",
@@ -98,6 +111,8 @@ const translations = {
     loginSuccess: "ログイン成功",
     loginError: "ログイン失敗",
     invalidCredentials: "メールアドレスまたはパスワードが無効です",
+    emailRequired: "メールアドレスは必須です",
+    passwordMin: "パスワードは6文字以上必要です",
   },
   ar: {
     title: "تسجيل دخول المسؤول",
@@ -111,6 +126,8 @@ const translations = {
     loginSuccess: "تم تسجيل الدخول بنجاح",
     loginError: "فشل تسجيل الدخول",
     invalidCredentials: "البريد الإلكتروني أو كلمة المرور غير صالحة",
+    emailRequired: "البريد الإلكتروني مطلوب",
+    passwordMin: "يجب أن تكون كلمة المرور 6 أحرف على الأقل",
   },
   ru: {
     title: "Вход администратора",
@@ -124,6 +141,8 @@ const translations = {
     loginSuccess: "Вход выполнен успешно",
     loginError: "Ошибка входа",
     invalidCredentials: "Неверная электронная почта или пароль",
+    emailRequired: "Электронная почта обязательна",
+    passwordMin: "Пароль должен содержать не менее 6 символов",
   },
   fr: {
     title: "Connexion Admin",
@@ -137,6 +156,8 @@ const translations = {
     loginSuccess: "Connexion réussie",
     loginError: "Échec de la connexion",
     invalidCredentials: "Email ou mot de passe invalide",
+    emailRequired: "L'email est requis",
+    passwordMin: "Le mot de passe doit contenir au moins 6 caractères",
   },
   it: {
     title: "Login Admin",
@@ -150,6 +171,8 @@ const translations = {
     loginSuccess: "Accesso effettuato con successo",
     loginError: "Accesso fallito",
     invalidCredentials: "Email o password non validi",
+    emailRequired: "L'email è obbligatoria",
+    passwordMin: "La password deve contenere almeno 6 caratteri",
   },
 };
 
@@ -158,6 +181,11 @@ export default function AdminLogin() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const t = translations[language as keyof typeof translations] || translations.en;
+  
+  const loginSchema = createLoginSchema({ 
+    emailRequired: t.emailRequired, 
+    passwordMin: t.passwordMin 
+  });
 
   useEffect(() => {
     if (isAuthenticated()) {
