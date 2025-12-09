@@ -75,6 +75,9 @@ const AGENT_ICONS: Record<string, any> = {
   polyglot_translator: Globe,
   content_auditor: Search,
   seo_optimizer: TrendingUp,
+  website_auditor: AlertTriangle,
+  image_suggestion: Sparkles,
+  category_agent: Zap,
   orchestrator: Bot,
 };
 
@@ -84,6 +87,9 @@ const AGENT_NAMES: Record<string, string> = {
   polyglot_translator: "Polyglot Translator",
   content_auditor: "Content Auditor",
   seo_optimizer: "SEO Optimizer",
+  website_auditor: "Website Auditor",
+  image_suggestion: "Image Suggestion",
+  category_agent: "Category Agent",
   orchestrator: "Orchestrator",
 };
 
@@ -124,11 +130,14 @@ export default function AdminAgents() {
 
   const runAuditMutation = useMutation({
     mutationFn: async () => {
-      const res = await apiRequest("POST", "/api/agents/audit", {});
+      const res = await apiRequest("POST", "/api/audits/run", { runType: 'full' });
       return res.json();
     },
     onSuccess: (data: any) => {
-      toast({ title: "Audit completed", description: `Found ${data?.data?.totalGaps || 0} gaps` });
+      toast({ 
+        title: "Website audit started", 
+        description: data?.message || "Audit job queued successfully" 
+      });
       queryClient.invalidateQueries({ queryKey: ["/api/agents/status"] });
     },
     onError: (error) => {
