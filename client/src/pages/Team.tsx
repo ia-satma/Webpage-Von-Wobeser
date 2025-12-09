@@ -346,16 +346,28 @@ export default function Team() {
     if (!allTeamMembers) return [];
     
     return allTeamMembers.filter(member => {
+      // Apply search filter
       if (searchQuery && !member.name.toLowerCase().includes(searchQuery.toLowerCase())) {
         return false;
       }
       
+      // Apply seniority filter
       if (filterSeniority !== "all") {
-        if (filterSeniority === "partners" && !member.isPartner) return false;
-        if (filterSeniority === "ofcounsel" && member.title !== "Of Counsel") return false;
-        if (filterSeniority === "associates" && !member.title.includes("Associate")) return false;
+        const titleLower = member.title.toLowerCase();
+        switch(filterSeniority) {
+          case "partners":
+            if (!member.isPartner) return false;
+            break;
+          case "ofcounsel":
+            if (titleLower !== "of counsel") return false;
+            break;
+          case "associates":
+            if (!titleLower.includes("associate")) return false;
+            break;
+        }
       }
       
+      // Apply alphabetic filter
       if (filterLetter !== "all") {
         if (!member.name.toUpperCase().startsWith(filterLetter)) return false;
       }
