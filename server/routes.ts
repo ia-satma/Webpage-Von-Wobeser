@@ -13,6 +13,7 @@ import {
   insertBlogPostSchema,
   insertBlogCategorySchema,
   insertBlogTagSchema,
+  insertNewsSchema,
 } from "@shared/schema";
 import {
   SUPPORTED_LANGUAGES,
@@ -998,6 +999,130 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
     } catch (error) {
       console.error("Delete tag error:", error);
       res.status(500).json({ error: "Failed to delete tag" });
+    }
+  });
+
+  // =============================================
+  // ADMIN NEWS CRUD
+  // =============================================
+
+  // Get all news with pagination/search
+  app.get("/api/admin/news", authMiddleware, async (req: Request, res: Response) => {
+    try {
+      const page = parseInt(req.query.page as string) || 1;
+      const limit = parseInt(req.query.limit as string) || 20;
+      const search = (req.query.search as string) || "";
+      const category = (req.query.category as string) || "";
+
+      let allNews = await storage.getNews();
+
+      // Filter by search term
+      if (search) {
+        const searchLower = search.toLowerCase();
+        allNews = allNews.filter(n => 
+          n.title.toLowerCase().includes(searchLower) ||
+          n.titleEs.toLowerCase().includes(searchLower) ||
+          n.excerpt.toLowerCase().includes(searchLower) ||
+          n.excerptEs.toLowerCase().includes(searchLower)
+        );
+      }
+
+      // Filter by category
+      if (category && category !== "all") {
+        allNews = allNews.filter(n => n.category === category);
+      }
+
+      const total = allNews.length;
+      const totalPages = Math.ceil(total / limit);
+      const offset = (page - 1) * limit;
+      const paginatedNews = allNews.slice(offset, offset + limit);
+
+      res.json({
+        news: paginatedNews,
+        total,
+        page,
+        totalPages,
+      });
+    } catch (error) {
+      console.error("Get admin news error:", error);
+      res.status(500).json({ error: "Failed to fetch news" });
+    }
+  });
+
+  // Get news stats
+  app.get("/api/admin/news/stats", authMiddleware, async (_req: Request, res: Response) => {
+    try {
+      const allNews = await storage.getNews();
+      const total = allNews.length;
+      const published = allNews.filter(n => n.published).length;
+      const unpublished = total - published;
+
+      res.json({ total, published, unpublished });
+    } catch (error) {
+      console.error("Get news stats error:", error);
+      res.status(500).json({ error: "Failed to fetch news stats" });
+    }
+  });
+
+  // Get single news by ID
+  app.get("/api/admin/news/:id", authMiddleware, async (req: Request, res: Response) => {
+    try {
+      const newsItem = await storage.getNewsById(req.params.id);
+      if (!newsItem) {
+        return res.status(404).json({ error: "News not found" });
+      }
+      res.json(newsItem);
+    } catch (error) {
+      console.error("Get news error:", error);
+      res.status(500).json({ error: "Failed to fetch news" });
+    }
+  });
+
+  // Create news
+  app.post("/api/admin/news", authMiddleware, async (req: Request, res: Response) => {
+    try {
+      const validation = insertNewsSchema.safeParse(req.body);
+      
+      if (!validation.success) {
+        return res.status(400).json({ 
+          error: "Validation failed", 
+          details: validation.error.errors 
+        });
+      }
+
+      const newsItem = await storage.createNews(validation.data);
+      res.status(201).json(newsItem);
+    } catch (error) {
+      console.error("Create news error:", error);
+      res.status(500).json({ error: "Failed to create news" });
+    }
+  });
+
+  // Update news
+  app.put("/api/admin/news/:id", authMiddleware, async (req: Request, res: Response) => {
+    try {
+      const newsItem = await storage.updateNews(req.params.id, req.body);
+      if (!newsItem) {
+        return res.status(404).json({ error: "News not found" });
+      }
+      res.json(newsItem);
+    } catch (error) {
+      console.error("Update news error:", error);
+      res.status(500).json({ error: "Failed to update news" });
+    }
+  });
+
+  // Delete news
+  app.delete("/api/admin/news/:id", authMiddleware, async (req: Request, res: Response) => {
+    try {
+      const deleted = await storage.deleteNews(req.params.id);
+      if (!deleted) {
+        return res.status(404).json({ error: "News not found" });
+      }
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Delete news error:", error);
+      res.status(500).json({ error: "Failed to delete news" });
     }
   });
 

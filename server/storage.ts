@@ -60,6 +60,8 @@ export interface IStorage {
   getNewsById(id: string): Promise<News | undefined>;
   getNewsBySlug(slug: string): Promise<News | undefined>;
   createNews(news: InsertNews): Promise<News>;
+  updateNews(id: string, data: Partial<InsertNews>): Promise<News | undefined>;
+  deleteNews(id: string): Promise<boolean>;
   getOfficeImages(): Promise<OfficeImage[]>;
   getSiteContent(): SiteContent;
   getStats(): Stat[];
@@ -190,6 +192,23 @@ export class DatabaseStorage implements IStorage {
   async createNews(insertNews: InsertNews): Promise<News> {
     const [item] = await db.insert(news).values(insertNews).returning();
     return item;
+  }
+
+  async updateNews(id: string, data: Partial<InsertNews>): Promise<News | undefined> {
+    const [item] = await db
+      .update(news)
+      .set(data)
+      .where(eq(news.id, id))
+      .returning();
+    return item;
+  }
+
+  async deleteNews(id: string): Promise<boolean> {
+    // First delete related newsTeamMembers entries
+    await db.delete(newsTeamMembers).where(eq(newsTeamMembers.newsId, id));
+    // Then delete the news item
+    const result = await db.delete(news).where(eq(news.id, id)).returning();
+    return result.length > 0;
   }
 
   async getOfficeImages(): Promise<OfficeImage[]> {

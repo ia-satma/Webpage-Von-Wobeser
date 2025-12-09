@@ -15,7 +15,8 @@ import {
   LogOut,
   LayoutDashboard,
   Bot,
-  Globe
+  Globe,
+  Newspaper
 } from "lucide-react";
 import type { BlogPost } from "@shared/schema";
 
@@ -33,6 +34,7 @@ const translations = {
     newPost: "New Post",
     manageCategories: "Manage Categories",
     allPosts: "All Posts",
+    newsArticles: "News Articles",
     aiAgents: "AI Agents",
     translations: "Translations",
     logout: "Logout",
@@ -53,6 +55,7 @@ const translations = {
     newPost: "Nuevo Post",
     manageCategories: "Gestionar Categorías",
     allPosts: "Todos los Posts",
+    newsArticles: "Artículos de Noticias",
     aiAgents: "Agentes IA",
     translations: "Traducciones",
     logout: "Cerrar Sesión",
@@ -73,6 +76,7 @@ const translations = {
     newPost: "Neuer Beitrag",
     manageCategories: "Kategorien verwalten",
     allPosts: "Alle Beiträge",
+    newsArticles: "Nachrichtenartikel",
     aiAgents: "KI-Agenten",
     translations: "Übersetzungen",
     logout: "Abmelden",
@@ -93,6 +97,7 @@ const translations = {
     newPost: "新建文章",
     manageCategories: "管理分类",
     allPosts: "所有文章",
+    newsArticles: "新闻文章",
     aiAgents: "AI 代理",
     translations: "翻译",
     logout: "退出登录",
@@ -113,6 +118,7 @@ const translations = {
     newPost: "새 게시물",
     manageCategories: "카테고리 관리",
     allPosts: "모든 게시물",
+    newsArticles: "뉴스 기사",
     aiAgents: "AI 에이전트",
     translations: "번역",
     logout: "로그아웃",
@@ -133,6 +139,7 @@ const translations = {
     newPost: "新しい記事",
     manageCategories: "カテゴリを管理",
     allPosts: "すべての記事",
+    newsArticles: "ニュース記事",
     aiAgents: "AIエージェント",
     translations: "翻訳",
     logout: "ログアウト",
@@ -153,6 +160,7 @@ const translations = {
     newPost: "مقالة جديدة",
     manageCategories: "إدارة الفئات",
     allPosts: "جميع المقالات",
+    newsArticles: "مقالات الأخبار",
     aiAgents: "وكلاء الذكاء الاصطناعي",
     translations: "الترجمات",
     logout: "تسجيل الخروج",
@@ -173,6 +181,7 @@ const translations = {
     newPost: "Новая запись",
     manageCategories: "Управление категориями",
     allPosts: "Все записи",
+    newsArticles: "Новостные статьи",
     aiAgents: "ИИ-агенты",
     translations: "Переводы",
     logout: "Выйти",
@@ -193,6 +202,7 @@ const translations = {
     newPost: "Nouvel article",
     manageCategories: "Gérer les catégories",
     allPosts: "Tous les articles",
+    newsArticles: "Articles d'actualités",
     aiAgents: "Agents IA",
     translations: "Traductions",
     logout: "Déconnexion",
@@ -213,6 +223,7 @@ const translations = {
     newPost: "Nuovo articolo",
     manageCategories: "Gestisci categorie",
     allPosts: "Tutti gli articoli",
+    newsArticles: "Articoli di notizie",
     aiAgents: "Agenti IA",
     translations: "Traduzioni",
     logout: "Esci",
@@ -429,6 +440,12 @@ export default function AdminDashboard() {
                 <Button variant="outline" className="w-full justify-start" data-testid="button-all-posts">
                   <FileText className="mr-2 h-4 w-4" />
                   {t.allPosts}
+                </Button>
+              </Link>
+              <Link href="/admin/news">
+                <Button variant="outline" className="w-full justify-start" data-testid="button-news-articles">
+                  <Newspaper className="mr-2 h-4 w-4" />
+                  {t.newsArticles}
                 </Button>
               </Link>
               <Link href="/admin/agents">

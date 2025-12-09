@@ -34,6 +34,7 @@ import AdminDashboard from "@/pages/admin/AdminDashboard";
 import AdminPosts from "@/pages/admin/AdminPosts";
 import AdminPostForm from "@/pages/admin/AdminPostForm";
 import AdminCategories from "@/pages/admin/AdminCategories";
+import AdminNews from "@/pages/admin/AdminNews";
 import AdminAgents from "@/pages/AdminAgents";
 
 function SkipLinks() {
@@ -137,6 +138,7 @@ function Router() {
       <Route path="/admin/posts/new" component={AdminPostForm} />
       <Route path="/admin/posts/:id/edit" component={AdminPostForm} />
       <Route path="/admin/categories" component={AdminCategories} />
+      <Route path="/admin/news" component={AdminNews} />
       <Route path="/admin/agents" component={AdminAgents} />
       <Route component={NotFound} />
     </Switch>
