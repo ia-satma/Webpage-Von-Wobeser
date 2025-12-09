@@ -70,8 +70,15 @@ The backend has been transformed from a static brochure into a self-evolving sys
 
 **Orchestration:**
 - Central orchestrator (`AgentOrchestrator`) manages job queue, agent coordination, and pipeline execution
-- Pipeline execution: article → format → link metadata → translate → SEO optimize
+- Pipeline execution: article → format → categorize → link metadata → SEO optimize → translate (9 languages) → image (optional)
 - Job queue with priority support (critical, high, normal, low)
+
+**Real-Time Pipeline Progress (WebSocket):**
+- WebSocket server at `/ws/pipeline` broadcasts pipeline progress to connected clients
+- Frontend hook `usePipelineProgress` provides singleton WebSocket manager with automatic reconnection
+- `PipelineProgressModal` component displays real-time step-by-step progress with status indicators
+- Progress events include: step name, status (running/completed/error), progress percentage, and messages
+- Heartbeat/ping mechanism detects and cleans up stale connections every 30 seconds
 
 **Cloud Persistence (pCloud):**
 - Agent knowledge and evolution data syncs to pCloud for persistence across sessions

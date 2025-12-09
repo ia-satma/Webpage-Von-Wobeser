@@ -105,5 +105,5 @@ integrations = ["javascript_openai:1.0.0"]
 [userenv]
 
 [userenv.shared]
-ADMIN_EMAIL = "santiago@satma.mx"
-ADMIN_PASSWORD_HASH = "$2b$10$vHFyQSHsFb6Fd47pIaNZyOt/R53oWfUamILO4VB5FhthJmj0W1BS2"
+ADMIN_EMAIL = "admin@vonwobeser.com"
+ADMIN_PASSWORD_HASH = "$2b$10$YjjklWJgO3RtE3iBZ2oKwek00bTZ/6oc0YppsuqItCx5mEAJqaQJu"

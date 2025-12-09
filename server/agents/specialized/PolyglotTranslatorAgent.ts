@@ -74,13 +74,18 @@ export class PolyglotTranslatorAgent extends BaseAgent {
       return { success: false, error: `Article not found: ${articleId}` };
     }
 
+    // Source content - prioritize Spanish (Es) fields as source since most articles are in Spanish
     const sourceContent = {
-      title: article.title || article.titleEs,
-      excerpt: article.excerpt || article.excerptEs,
-      content: article.content || article.contentEs || '',
+      title: article.titleEs || article.title || '',
+      excerpt: article.excerptEs || article.excerpt || '',
+      content: article.contentEs || article.content || '',
     };
 
-    const sourceLanguage = article.title ? 'en' : 'es';
+    // Default source is Spanish - articles are primarily in Spanish
+    // Only consider English as source if content is clearly only in English fields
+    const sourceLanguage: Language = 'es';
+    
+    // Target all 10 languages including English (en) since source is Spanish
     const languages = targetLanguages || LANGUAGES.filter(l => l !== sourceLanguage);
 
     const glossaryDocs = await knowledgeStore.searchDocuments('polyglot_translator', 'glossary', { limit: 50 });

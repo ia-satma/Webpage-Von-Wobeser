@@ -10,6 +10,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
+import { PipelineProgressModal } from "@/components/PipelineProgressModal";
 import { 
   ArrowLeft,
   Cog,
@@ -273,6 +274,8 @@ export default function AdminArticleProcessing() {
   const t = translations[language as keyof typeof translations] || translations.en;
 
   const [processingArticleId, setProcessingArticleId] = useState<string | null>(null);
+  const [progressModalOpen, setProgressModalOpen] = useState(false);
+  const [progressArticleTitle, setProgressArticleTitle] = useState<string>("");
 
   useEffect(() => {
     if (!authLoading) {
@@ -327,8 +330,10 @@ export default function AdminArticleProcessing() {
   });
 
   const processArticleMutation = useMutation({
-    mutationFn: async (articleId: string) => {
+    mutationFn: async ({ articleId, title }: { articleId: string; title: string }) => {
       setProcessingArticleId(articleId);
+      setProgressArticleTitle(title);
+      setProgressModalOpen(true);
       const res = await adminApiRequest("POST", `/api/agents/pipeline/${articleId}`, {
         stages: ["formatter", "seo_optimizer", "polyglot_translator"]
       });
@@ -344,6 +349,7 @@ export default function AdminArticleProcessing() {
     onError: () => {
       toast({ title: t.processError, variant: "destructive" });
       setProcessingArticleId(null);
+      setProgressModalOpen(false);
     },
   });
 
@@ -529,7 +535,10 @@ export default function AdminArticleProcessing() {
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => processArticleMutation.mutate(article.id)}
+                          onClick={() => processArticleMutation.mutate({ 
+                            articleId: article.id, 
+                            title: (language === "es" ? article.titleEs : article.title) || "Article" 
+                          })}
                           disabled={processingArticleId === article.id || processAllMutation.isPending}
                           data-testid={`button-process-${article.id}`}
                         >
@@ -554,6 +563,13 @@ export default function AdminArticleProcessing() {
           </CardContent>
         </Card>
       </main>
+
+      <PipelineProgressModal
+        open={progressModalOpen}
+        onOpenChange={setProgressModalOpen}
+        articleId={processingArticleId}
+        articleTitle={progressArticleTitle}
+      />
     </div>
   );
 }

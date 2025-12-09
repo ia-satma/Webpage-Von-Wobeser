@@ -1,5 +1,6 @@
 import type { Express, Request, Response } from "express";
 import { createServer, type Server } from "http";
+import { WebSocketServer, WebSocket } from "ws";
 import { storage } from "./storage";
 import { seed } from "./seed";
 import express from "express";
@@ -7,6 +8,27 @@ import path from "path";
 import fs from "fs";
 import crypto from "crypto";
 import multer from "multer";
+
+// Global WebSocket clients map for pipeline progress updates
+const pipelineClients: Map<string, WebSocket> = new Map();
+
+export function broadcastPipelineProgress(articleId: string, data: {
+  step: string;
+  status: 'running' | 'completed' | 'error';
+  language?: string;
+  progress?: number;
+  message?: string;
+  data?: any;
+}) {
+  const payload = JSON.stringify({ articleId, ...data, timestamp: new Date().toISOString() });
+  
+  // Broadcast to all connected clients
+  pipelineClients.forEach((client, clientId) => {
+    if (client.readyState === WebSocket.OPEN) {
+      client.send(payload);
+    }
+  });
+}
 import { 
   contactFormSchema, 
   adminLoginSchema, 
@@ -115,6 +137,51 @@ export async function registerRoutes(
   app: Express
 ): Promise<Server> {
   await seed();
+
+  // Setup WebSocket server for pipeline progress updates
+  const wss = new WebSocketServer({ server: httpServer, path: '/ws/pipeline' });
+  
+  // Heartbeat to detect stale connections
+  const heartbeatInterval = setInterval(() => {
+    pipelineClients.forEach((ws, clientId) => {
+      if (ws.readyState !== WebSocket.OPEN) {
+        pipelineClients.delete(clientId);
+        return;
+      }
+      try {
+        ws.ping();
+      } catch {
+        pipelineClients.delete(clientId);
+      }
+    });
+  }, 30000);
+
+  wss.on('close', () => {
+    clearInterval(heartbeatInterval);
+  });
+  
+  wss.on('connection', (ws, req) => {
+    const clientId = crypto.randomBytes(8).toString('hex');
+    pipelineClients.set(clientId, ws);
+    console.log(`[WebSocket] Pipeline client connected: ${clientId}`);
+    
+    ws.on('close', () => {
+      pipelineClients.delete(clientId);
+      console.log(`[WebSocket] Pipeline client disconnected: ${clientId}`);
+    });
+    
+    ws.on('error', (error) => {
+      console.error(`[WebSocket] Client error ${clientId}:`, error);
+      pipelineClients.delete(clientId);
+    });
+
+    ws.on('pong', () => {
+      // Client is alive, nothing to do
+    });
+    
+    // Send initial connection confirmation
+    ws.send(JSON.stringify({ type: 'connected', clientId }));
+  });
 
   // Serve partner photos from attached_assets/partner_photos
   app.use('/partner_photos', express.static(path.join(process.cwd(), 'attached_assets', 'partner_photos')));
@@ -1725,8 +1792,29 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
         errors: [],
       };
 
+      const totalSteps = generateImage ? 6 : 5;
+      const completedSteps = new Set<string>();
+
+      // Helper to broadcast progress - only count unique step completions
+      const emitProgress = (step: string, status: 'running' | 'completed' | 'error', language?: string, message?: string) => {
+        let progress = 0;
+        if (status === 'completed' && !completedSteps.has(step)) {
+          completedSteps.add(step);
+        }
+        progress = Math.round((completedSteps.size / totalSteps) * 100);
+        
+        broadcastPipelineProgress(articleId, {
+          step,
+          status,
+          language,
+          progress,
+          message,
+        });
+      };
+
       // Step 1: FORMAT - Clean and structure the article text
       console.log(`[Pipeline] Step 1: Formatting article ${articleId}`);
+      emitProgress('format', 'running', undefined, 'Cleaning article text...');
       try {
         const formatResult = await formatterAgent.execute(
           createContext('formatter'),
@@ -1737,13 +1825,16 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
           data: formatResult.data,
           error: formatResult.error 
         };
+        emitProgress('format', formatResult.success ? 'completed' : 'error', undefined, formatResult.success ? 'Article formatted' : formatResult.error);
       } catch (err: any) {
         pipelineResults.steps.format = { success: false, error: err.message };
         pipelineResults.errors.push(`Format: ${err.message}`);
+        emitProgress('format', 'error', undefined, err.message);
       }
 
       // Step 2: CATEGORIZE - Automatically categorize for SEO
       console.log(`[Pipeline] Step 2: Categorizing article ${articleId}`);
+      emitProgress('categorize', 'running', undefined, 'Categorizing article...');
       try {
         const categoryResult = await categoryAgent.execute(
           createContext('category_agent'),
@@ -1754,13 +1845,17 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
           data: categoryResult.data,
           error: categoryResult.error 
         };
+        emitProgress('categorize', categoryResult.success ? 'completed' : 'error', undefined, 
+          categoryResult.success ? `Category: ${(categoryResult.data as any)?.primaryCategory || 'assigned'}` : categoryResult.error);
       } catch (err: any) {
         pipelineResults.steps.categorize = { success: false, error: err.message };
         pipelineResults.errors.push(`Categorize: ${err.message}`);
+        emitProgress('categorize', 'error', undefined, err.message);
       }
 
       // Step 3: LINK METADATA - Connect to authors, practice areas, industries
       console.log(`[Pipeline] Step 3: Linking metadata for article ${articleId}`);
+      emitProgress('metadata', 'running', undefined, 'Linking authors and practice areas...');
       try {
         const metadataResult = await metadataLinkerAgent.execute(
           createContext('metadata_linker'),
@@ -1771,13 +1866,17 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
           data: metadataResult.data,
           error: metadataResult.error 
         };
+        emitProgress('metadata', metadataResult.success ? 'completed' : 'error', undefined, 
+          metadataResult.success ? 'Metadata linked' : metadataResult.error);
       } catch (err: any) {
         pipelineResults.steps.metadata = { success: false, error: err.message };
         pipelineResults.errors.push(`Metadata: ${err.message}`);
+        emitProgress('metadata', 'error', undefined, err.message);
       }
 
       // Step 4: SEO OPTIMIZE - Improve titles, descriptions, slugs
       console.log(`[Pipeline] Step 4: SEO optimizing article ${articleId}`);
+      emitProgress('seo', 'running', undefined, 'Optimizing for SEO...');
       try {
         const seoResult = await seoOptimizerAgent.execute(
           createContext('seo_optimizer'),
@@ -1788,13 +1887,19 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
           data: seoResult.data,
           error: seoResult.error 
         };
+        emitProgress('seo', seoResult.success ? 'completed' : 'error', undefined, 
+          seoResult.success ? 'SEO optimized' : seoResult.error);
       } catch (err: any) {
         pipelineResults.steps.seo = { success: false, error: err.message };
         pipelineResults.errors.push(`SEO: ${err.message}`);
+        emitProgress('seo', 'error', undefined, err.message);
       }
 
-      // Step 5: TRANSLATE - Translate to all 10 languages
-      console.log(`[Pipeline] Step 5: Translating article ${articleId} to all languages`);
+      // Step 5: TRANSLATE - Translate to all 9 target languages (source is Spanish)
+      const targetLanguages = ['en', 'de', 'zh', 'ko', 'ja', 'ar', 'ru', 'fr', 'it'];
+      console.log(`[Pipeline] Step 5: Translating article ${articleId} to ${targetLanguages.length} languages`);
+      emitProgress('translate', 'running', undefined, `Translating to ${targetLanguages.length} languages...`);
+      
       try {
         const translateResult = await polyglotTranslatorAgent.execute(
           createContext('polyglot_translator'),
@@ -1805,14 +1910,23 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
           data: translateResult.data,
           error: translateResult.error 
         };
+        
+        const translatedCount = (translateResult.data as any)?.translatedCount || 0;
+        const cachedCount = (translateResult.data as any)?.cachedCount || 0;
+        emitProgress('translate', translateResult.success ? 'completed' : 'error', undefined, 
+          translateResult.success 
+            ? `Translated: ${translatedCount} new, ${cachedCount} cached` 
+            : translateResult.error);
       } catch (err: any) {
         pipelineResults.steps.translate = { success: false, error: err.message };
         pipelineResults.errors.push(`Translate: ${err.message}`);
+        emitProgress('translate', 'error', undefined, err.message);
       }
 
       // Step 6: GENERATE IMAGE (optional)
       if (generateImage) {
         console.log(`[Pipeline] Step 6: Generating image for article ${articleId}`);
+        emitProgress('image', 'running', undefined, 'Generating article image with DALL-E...');
         try {
           const imageResult = await imageSuggestionAgent.execute(
             createContext('image_suggestion'),
@@ -1823,9 +1937,12 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
             data: imageResult.data,
             error: imageResult.error 
           };
+          emitProgress('image', imageResult.success ? 'completed' : 'error', undefined, 
+            imageResult.success ? 'Image generated' : imageResult.error);
         } catch (err: any) {
           pipelineResults.steps.image = { success: false, error: err.message };
           pipelineResults.errors.push(`Image: ${err.message}`);
+          emitProgress('image', 'error', undefined, err.message);
         }
       }
 
@@ -1837,6 +1954,15 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
       pipelineResults.success = successfulSteps === stepResults.length;
 
       console.log(`[Pipeline] Completed: ${successfulSteps}/${stepResults.length} steps successful`);
+      
+      // Broadcast completion
+      broadcastPipelineProgress(articleId, {
+        step: 'complete',
+        status: 'completed',
+        progress: 100,
+        message: `Pipeline complete: ${successfulSteps}/${stepResults.length} steps successful`,
+        data: pipelineResults,
+      });
 
       res.json(pipelineResults);
     } catch (error: any) {
