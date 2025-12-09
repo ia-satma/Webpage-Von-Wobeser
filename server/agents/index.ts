@@ -11,6 +11,7 @@ export { metadataLinkerAgent } from './specialized/MetadataLinkerAgent';
 export { polyglotTranslatorAgent } from './specialized/PolyglotTranslatorAgent';
 export { contentAuditorAgent } from './specialized/ContentAuditorAgent';
 export { seoOptimizerAgent } from './specialized/SEOOptimizerAgent';
+export { imageSuggestionAgent } from './specialized/ImageSuggestionAgent';
 
 import { orchestrator } from './core/AgentOrchestrator';
 import { formatterAgent } from './specialized/FormatterAgent';
@@ -18,6 +19,7 @@ import { metadataLinkerAgent } from './specialized/MetadataLinkerAgent';
 import { polyglotTranslatorAgent } from './specialized/PolyglotTranslatorAgent';
 import { contentAuditorAgent } from './specialized/ContentAuditorAgent';
 import { seoOptimizerAgent } from './specialized/SEOOptimizerAgent';
+import { imageSuggestionAgent } from './specialized/ImageSuggestionAgent';
 
 export async function initializeAgents(): Promise<void> {
   console.log('[Agents] Initializing agent system...');
@@ -29,6 +31,7 @@ export async function initializeAgents(): Promise<void> {
   orchestrator.registerAgent(polyglotTranslatorAgent);
   orchestrator.registerAgent(contentAuditorAgent);
   orchestrator.registerAgent(seoOptimizerAgent);
+  orchestrator.registerAgent(imageSuggestionAgent);
   
   console.log('[Agents] All agents registered and ready');
 }

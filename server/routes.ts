@@ -1655,6 +1655,41 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
   // ARTICLE PROCESSING PIPELINE (AI Translation)
   // =============================================
 
+  // Generate image for article
+  app.post("/api/agents/generate-image/:articleId", authMiddleware, async (req: Request, res: Response) => {
+    try {
+      const { articleId } = req.params;
+      
+      const article = await storage.getNewsById(articleId);
+      if (!article) {
+        return res.status(404).json({ error: "Article not found" });
+      }
+
+      // Use ImageSuggestionAgent
+      const { imageSuggestionAgent } = await import('./agents');
+      const context = {
+        jobId: `img-${articleId}-${Date.now()}`,
+        agentType: 'image_suggestion' as any,
+        startTime: new Date(),
+        metadata: { articleId },
+      };
+
+      const result = await imageSuggestionAgent.execute(context, { articleId });
+
+      if (result.success && result.data) {
+        res.json({
+          success: true,
+          ...result.data,
+        });
+      } else {
+        res.status(500).json({ error: result.error || "Failed to generate image" });
+      }
+    } catch (error) {
+      console.error("Image generation error:", error);
+      res.status(500).json({ error: "Failed to generate image" });
+    }
+  });
+
   // Process single article - translate to all 10 languages
   app.post("/api/agents/pipeline/:articleId", authMiddleware, async (req: Request, res: Response) => {
     try {
