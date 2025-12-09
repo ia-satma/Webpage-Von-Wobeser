@@ -16,7 +16,8 @@ import {
   LayoutDashboard,
   Bot,
   Globe,
-  Newspaper
+  Newspaper,
+  Cog
 } from "lucide-react";
 import type { BlogPost } from "@shared/schema";
 
@@ -36,6 +37,7 @@ const translations = {
     allPosts: "All Posts",
     newsArticles: "News Articles",
     aiAgents: "AI Agents",
+    articleProcessing: "Article Processing",
     translations: "Translations",
     logout: "Logout",
     loading: "Loading...",
@@ -57,6 +59,7 @@ const translations = {
     allPosts: "Todos los Posts",
     newsArticles: "Artículos de Noticias",
     aiAgents: "Agentes IA",
+    articleProcessing: "Procesamiento de Artículos",
     translations: "Traducciones",
     logout: "Cerrar Sesión",
     loading: "Cargando...",
@@ -78,6 +81,7 @@ const translations = {
     allPosts: "Alle Beiträge",
     newsArticles: "Nachrichtenartikel",
     aiAgents: "KI-Agenten",
+    articleProcessing: "Artikelverarbeitung",
     translations: "Übersetzungen",
     logout: "Abmelden",
     loading: "Wird geladen...",
@@ -99,6 +103,7 @@ const translations = {
     allPosts: "所有文章",
     newsArticles: "新闻文章",
     aiAgents: "AI 代理",
+    articleProcessing: "文章处理",
     translations: "翻译",
     logout: "退出登录",
     loading: "加载中...",
@@ -120,6 +125,7 @@ const translations = {
     allPosts: "모든 게시물",
     newsArticles: "뉴스 기사",
     aiAgents: "AI 에이전트",
+    articleProcessing: "기사 처리",
     translations: "번역",
     logout: "로그아웃",
     loading: "로딩 중...",
@@ -141,6 +147,7 @@ const translations = {
     allPosts: "すべての記事",
     newsArticles: "ニュース記事",
     aiAgents: "AIエージェント",
+    articleProcessing: "記事処理",
     translations: "翻訳",
     logout: "ログアウト",
     loading: "読み込み中...",
@@ -162,6 +169,7 @@ const translations = {
     allPosts: "جميع المقالات",
     newsArticles: "مقالات الأخبار",
     aiAgents: "وكلاء الذكاء الاصطناعي",
+    articleProcessing: "معالجة المقالات",
     translations: "الترجمات",
     logout: "تسجيل الخروج",
     loading: "جاري التحميل...",
@@ -183,6 +191,7 @@ const translations = {
     allPosts: "Все записи",
     newsArticles: "Новостные статьи",
     aiAgents: "ИИ-агенты",
+    articleProcessing: "Обработка статей",
     translations: "Переводы",
     logout: "Выйти",
     loading: "Загрузка...",
@@ -204,6 +213,7 @@ const translations = {
     allPosts: "Tous les articles",
     newsArticles: "Articles d'actualités",
     aiAgents: "Agents IA",
+    articleProcessing: "Traitement des articles",
     translations: "Traductions",
     logout: "Déconnexion",
     loading: "Chargement...",
@@ -225,6 +235,7 @@ const translations = {
     allPosts: "Tutti gli articoli",
     newsArticles: "Articoli di notizie",
     aiAgents: "Agenti IA",
+    articleProcessing: "Elaborazione articoli",
     translations: "Traduzioni",
     logout: "Esci",
     loading: "Caricamento...",
@@ -452,6 +463,12 @@ export default function AdminDashboard() {
                 <Button variant="outline" className="w-full justify-start" data-testid="button-ai-agents">
                   <Bot className="mr-2 h-4 w-4" />
                   {t.aiAgents}
+                </Button>
+              </Link>
+              <Link href="/admin/processing">
+                <Button variant="outline" className="w-full justify-start" data-testid="button-article-processing">
+                  <Cog className="mr-2 h-4 w-4" />
+                  {t.articleProcessing}
                 </Button>
               </Link>
             </CardContent>

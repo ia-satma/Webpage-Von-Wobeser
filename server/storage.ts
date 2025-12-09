@@ -141,6 +141,7 @@ export interface IStorage {
   // News translations
   getNewsTranslations(newsId: string): Promise<NewsTranslation[]>;
   getNewsTranslation(newsId: string, language: string): Promise<NewsTranslation | undefined>;
+  getNewsTranslationCounts(): Promise<Record<string, number>>;
   upsertNewsTranslation(data: InsertNewsTranslation): Promise<NewsTranslation>;
   deleteNewsTranslations(newsId: string): Promise<boolean>;
   getNewsWithTranslations(newsId: string): Promise<{ news: News; translations: NewsTranslation[] } | undefined>;
@@ -616,6 +617,15 @@ export class DatabaseStorage implements IStorage {
       .select()
       .from(newsTranslations)
       .where(eq(newsTranslations.newsId, newsId));
+  }
+
+  async getNewsTranslationCounts(): Promise<Record<string, number>> {
+    const allTranslations = await db.select().from(newsTranslations);
+    const counts: Record<string, number> = {};
+    for (const translation of allTranslations) {
+      counts[translation.newsId] = (counts[translation.newsId] || 0) + 1;
+    }
+    return counts;
   }
 
   async getNewsTranslation(newsId: string, language: string): Promise<NewsTranslation | undefined> {

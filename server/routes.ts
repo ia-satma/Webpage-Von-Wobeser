@@ -1064,6 +1064,29 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
     }
   });
 
+  // Get translation counts for all news articles
+  app.get("/api/admin/news/translation-counts", authMiddleware, async (_req: Request, res: Response) => {
+    try {
+      const counts = await storage.getNewsTranslationCounts();
+      res.json(counts);
+    } catch (error) {
+      console.error("Get translation counts error:", error);
+      res.status(500).json({ error: "Failed to fetch translation counts" });
+    }
+  });
+
+  // Get translations for a specific news article
+  app.get("/api/admin/news/:id/translations", authMiddleware, async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+      const translations = await storage.getNewsTranslations(id);
+      res.json(translations);
+    } catch (error) {
+      console.error("Get news translations error:", error);
+      res.status(500).json({ error: "Failed to fetch translations" });
+    }
+  });
+
   // Get single news by ID
   app.get("/api/admin/news/:id", authMiddleware, async (req: Request, res: Response) => {
     try {
