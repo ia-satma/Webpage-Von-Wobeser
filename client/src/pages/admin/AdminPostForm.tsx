@@ -16,7 +16,11 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft, Save, Send, Sparkles, Loader2, Globe } from "lucide-react";
+import { ArrowLeft, Save, Send, Sparkles, Loader2, Globe, Search, CheckCircle, AlertTriangle, X } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Badge } from "@/components/ui/badge";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Separator } from "@/components/ui/separator";
 import type { BlogPost, BlogCategory } from "@shared/schema";
 
 const translations = {
@@ -64,6 +68,28 @@ const translations = {
     translatingAll: "Translating...",
     translateAllSuccess: "Translation to all languages initiated successfully",
     translateAllError: "Failed to translate to all languages",
+    analyzeContent: "Analyze Content",
+    analyzing: "Analyzing...",
+    analyzeSuccess: "Content analysis completed",
+    analyzeError: "Failed to analyze content",
+    analysisResults: "Content Analysis Results",
+    seoRecommendations: "SEO Recommendations",
+    keywords: "Keywords",
+    titleSuggestion: "Title Suggestion",
+    metaDescSuggestion: "Meta Description",
+    headingImprovements: "Heading Improvements",
+    contentGaps: "Content Gaps",
+    categories: "Categories",
+    primaryCategory: "Primary",
+    secondaryCategories: "Secondary",
+    spellingGrammar: "Spelling & Grammar",
+    noIssuesFound: "No issues found",
+    lawyersMentioned: "Lawyers Mentioned",
+    noLawyersFound: "No lawyers mentioned",
+    legalBranches: "Legal Branches",
+    industries: "Industries",
+    qualityScore: "Quality Score",
+    closeAnalysis: "Close",
   },
   es: {
     createTitle: "Crear Nuevo Post",
@@ -109,6 +135,28 @@ const translations = {
     translatingAll: "Traduciendo...",
     translateAllSuccess: "Traducción a todos los idiomas iniciada exitosamente",
     translateAllError: "Error al traducir a todos los idiomas",
+    analyzeContent: "Analizar Contenido",
+    analyzing: "Analizando...",
+    analyzeSuccess: "Análisis de contenido completado",
+    analyzeError: "Error al analizar contenido",
+    analysisResults: "Resultados del Análisis",
+    seoRecommendations: "Recomendaciones SEO",
+    keywords: "Palabras Clave",
+    titleSuggestion: "Sugerencia de Título",
+    metaDescSuggestion: "Meta Descripción",
+    headingImprovements: "Mejoras de Encabezados",
+    contentGaps: "Brechas de Contenido",
+    categories: "Categorías",
+    primaryCategory: "Principal",
+    secondaryCategories: "Secundarias",
+    spellingGrammar: "Ortografía y Gramática",
+    noIssuesFound: "Sin problemas encontrados",
+    lawyersMentioned: "Abogados Mencionados",
+    noLawyersFound: "Sin abogados mencionados",
+    legalBranches: "Ramas Legales",
+    industries: "Industrias",
+    qualityScore: "Puntuación de Calidad",
+    closeAnalysis: "Cerrar",
   },
   de: {
     createTitle: "Neuen Beitrag erstellen",
@@ -154,6 +202,28 @@ const translations = {
     translatingAll: "Übersetzen...",
     translateAllSuccess: "Übersetzung in alle Sprachen erfolgreich gestartet",
     translateAllError: "Fehler beim Übersetzen in alle Sprachen",
+    analyzeContent: "Inhalt analysieren",
+    analyzing: "Analysiere...",
+    analyzeSuccess: "Inhaltsanalyse abgeschlossen",
+    analyzeError: "Analyse fehlgeschlagen",
+    analysisResults: "Analyseergebnisse",
+    seoRecommendations: "SEO-Empfehlungen",
+    keywords: "Schlüsselwörter",
+    titleSuggestion: "Titelvorschlag",
+    metaDescSuggestion: "Meta-Beschreibung",
+    headingImprovements: "Überschriftenverbesserungen",
+    contentGaps: "Inhaltslücken",
+    categories: "Kategorien",
+    primaryCategory: "Primär",
+    secondaryCategories: "Sekundär",
+    spellingGrammar: "Rechtschreibung & Grammatik",
+    noIssuesFound: "Keine Probleme gefunden",
+    lawyersMentioned: "Erwähnte Anwälte",
+    noLawyersFound: "Keine Anwälte erwähnt",
+    legalBranches: "Rechtsbereiche",
+    industries: "Branchen",
+    qualityScore: "Qualitätsbewertung",
+    closeAnalysis: "Schließen",
   },
   zh: {
     createTitle: "创建新文章",
@@ -199,6 +269,28 @@ const translations = {
     translatingAll: "翻译中...",
     translateAllSuccess: "已成功启动所有语言翻译",
     translateAllError: "翻译到所有语言失败",
+    analyzeContent: "分析内容",
+    analyzing: "分析中...",
+    analyzeSuccess: "内容分析完成",
+    analyzeError: "分析失败",
+    analysisResults: "分析结果",
+    seoRecommendations: "SEO建议",
+    keywords: "关键词",
+    titleSuggestion: "标题建议",
+    metaDescSuggestion: "元描述",
+    headingImprovements: "标题改进",
+    contentGaps: "内容缺口",
+    categories: "分类",
+    primaryCategory: "主要",
+    secondaryCategories: "次要",
+    spellingGrammar: "拼写和语法",
+    noIssuesFound: "未发现问题",
+    lawyersMentioned: "提到的律师",
+    noLawyersFound: "未提到律师",
+    legalBranches: "法律领域",
+    industries: "行业",
+    qualityScore: "质量评分",
+    closeAnalysis: "关闭",
   },
   ko: {
     createTitle: "새 게시물 작성",
@@ -244,6 +336,28 @@ const translations = {
     translatingAll: "번역 중...",
     translateAllSuccess: "모든 언어로 번역이 성공적으로 시작되었습니다",
     translateAllError: "모든 언어로 번역 실패",
+    analyzeContent: "콘텐츠 분석",
+    analyzing: "분석 중...",
+    analyzeSuccess: "콘텐츠 분석 완료",
+    analyzeError: "분석 실패",
+    analysisResults: "분석 결과",
+    seoRecommendations: "SEO 권장사항",
+    keywords: "키워드",
+    titleSuggestion: "제목 제안",
+    metaDescSuggestion: "메타 설명",
+    headingImprovements: "제목 개선",
+    contentGaps: "콘텐츠 격차",
+    categories: "카테고리",
+    primaryCategory: "주요",
+    secondaryCategories: "부수적",
+    spellingGrammar: "맞춤법 및 문법",
+    noIssuesFound: "문제 없음",
+    lawyersMentioned: "언급된 변호사",
+    noLawyersFound: "언급된 변호사 없음",
+    legalBranches: "법률 분야",
+    industries: "산업",
+    qualityScore: "품질 점수",
+    closeAnalysis: "닫기",
   },
   ja: {
     createTitle: "新しい記事を作成",
@@ -289,6 +403,28 @@ const translations = {
     translatingAll: "翻訳中...",
     translateAllSuccess: "すべての言語への翻訳が正常に開始されました",
     translateAllError: "すべての言語への翻訳に失敗しました",
+    analyzeContent: "コンテンツを分析",
+    analyzing: "分析中...",
+    analyzeSuccess: "コンテンツ分析完了",
+    analyzeError: "分析に失敗しました",
+    analysisResults: "分析結果",
+    seoRecommendations: "SEO推奨事項",
+    keywords: "キーワード",
+    titleSuggestion: "タイトル提案",
+    metaDescSuggestion: "メタ説明",
+    headingImprovements: "見出しの改善",
+    contentGaps: "コンテンツのギャップ",
+    categories: "カテゴリ",
+    primaryCategory: "主要",
+    secondaryCategories: "副次的",
+    spellingGrammar: "スペルと文法",
+    noIssuesFound: "問題なし",
+    lawyersMentioned: "言及された弁護士",
+    noLawyersFound: "弁護士の言及なし",
+    legalBranches: "法律分野",
+    industries: "業界",
+    qualityScore: "品質スコア",
+    closeAnalysis: "閉じる",
   },
   ar: {
     createTitle: "إنشاء مقالة جديدة",
@@ -334,6 +470,28 @@ const translations = {
     translatingAll: "جاري الترجمة...",
     translateAllSuccess: "تم بدء الترجمة إلى جميع اللغات بنجاح",
     translateAllError: "فشل في الترجمة إلى جميع اللغات",
+    analyzeContent: "تحليل المحتوى",
+    analyzing: "جاري التحليل...",
+    analyzeSuccess: "اكتمل تحليل المحتوى",
+    analyzeError: "فشل التحليل",
+    analysisResults: "نتائج التحليل",
+    seoRecommendations: "توصيات SEO",
+    keywords: "الكلمات المفتاحية",
+    titleSuggestion: "اقتراح العنوان",
+    metaDescSuggestion: "الوصف التعريفي",
+    headingImprovements: "تحسينات العناوين",
+    contentGaps: "فجوات المحتوى",
+    categories: "الفئات",
+    primaryCategory: "أساسي",
+    secondaryCategories: "ثانوي",
+    spellingGrammar: "الإملاء والقواعد",
+    noIssuesFound: "لم يتم العثور على مشاكل",
+    lawyersMentioned: "المحامون المذكورون",
+    noLawyersFound: "لم يذكر محامون",
+    legalBranches: "الفروع القانونية",
+    industries: "الصناعات",
+    qualityScore: "درجة الجودة",
+    closeAnalysis: "إغلاق",
   },
   ru: {
     createTitle: "Создать новую запись",
@@ -379,6 +537,28 @@ const translations = {
     translatingAll: "Перевод...",
     translateAllSuccess: "Перевод на все языки успешно запущен",
     translateAllError: "Не удалось перевести на все языки",
+    analyzeContent: "Анализировать контент",
+    analyzing: "Анализ...",
+    analyzeSuccess: "Анализ контента завершен",
+    analyzeError: "Ошибка анализа",
+    analysisResults: "Результаты анализа",
+    seoRecommendations: "Рекомендации SEO",
+    keywords: "Ключевые слова",
+    titleSuggestion: "Предложение заголовка",
+    metaDescSuggestion: "Мета-описание",
+    headingImprovements: "Улучшения заголовков",
+    contentGaps: "Пробелы в контенте",
+    categories: "Категории",
+    primaryCategory: "Основная",
+    secondaryCategories: "Вторичные",
+    spellingGrammar: "Орфография и грамматика",
+    noIssuesFound: "Проблем не найдено",
+    lawyersMentioned: "Упомянутые юристы",
+    noLawyersFound: "Юристы не упомянуты",
+    legalBranches: "Области права",
+    industries: "Отрасли",
+    qualityScore: "Оценка качества",
+    closeAnalysis: "Закрыть",
   },
   fr: {
     createTitle: "Créer un nouvel article",
@@ -424,6 +604,28 @@ const translations = {
     translatingAll: "Traduction...",
     translateAllSuccess: "Traduction vers toutes les langues lancée avec succès",
     translateAllError: "Échec de la traduction vers toutes les langues",
+    analyzeContent: "Analyser le contenu",
+    analyzing: "Analyse...",
+    analyzeSuccess: "Analyse du contenu terminée",
+    analyzeError: "Échec de l'analyse",
+    analysisResults: "Résultats de l'analyse",
+    seoRecommendations: "Recommandations SEO",
+    keywords: "Mots-clés",
+    titleSuggestion: "Suggestion de titre",
+    metaDescSuggestion: "Méta description",
+    headingImprovements: "Améliorations des titres",
+    contentGaps: "Lacunes de contenu",
+    categories: "Catégories",
+    primaryCategory: "Principale",
+    secondaryCategories: "Secondaires",
+    spellingGrammar: "Orthographe et grammaire",
+    noIssuesFound: "Aucun problème trouvé",
+    lawyersMentioned: "Avocats mentionnés",
+    noLawyersFound: "Aucun avocat mentionné",
+    legalBranches: "Branches juridiques",
+    industries: "Industries",
+    qualityScore: "Score de qualité",
+    closeAnalysis: "Fermer",
   },
   it: {
     createTitle: "Crea nuovo articolo",
@@ -469,6 +671,28 @@ const translations = {
     translatingAll: "Traduzione...",
     translateAllSuccess: "Traduzione in tutte le lingue avviata con successo",
     translateAllError: "Impossibile tradurre in tutte le lingue",
+    analyzeContent: "Analizza contenuto",
+    analyzing: "Analisi...",
+    analyzeSuccess: "Analisi del contenuto completata",
+    analyzeError: "Analisi fallita",
+    analysisResults: "Risultati dell'analisi",
+    seoRecommendations: "Raccomandazioni SEO",
+    keywords: "Parole chiave",
+    titleSuggestion: "Suggerimento titolo",
+    metaDescSuggestion: "Meta descrizione",
+    headingImprovements: "Miglioramenti intestazioni",
+    contentGaps: "Lacune di contenuto",
+    categories: "Categorie",
+    primaryCategory: "Principale",
+    secondaryCategories: "Secondarie",
+    spellingGrammar: "Ortografia e grammatica",
+    noIssuesFound: "Nessun problema trovato",
+    lawyersMentioned: "Avvocati menzionati",
+    noLawyersFound: "Nessun avvocato menzionato",
+    legalBranches: "Rami legali",
+    industries: "Industrie",
+    qualityScore: "Punteggio qualità",
+    closeAnalysis: "Chiudi",
   },
 };
 
@@ -518,6 +742,9 @@ export default function AdminPostForm() {
   });
 
   const [isTranslatingAll, setIsTranslatingAll] = useState(false);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [analysisResult, setAnalysisResult] = useState<any>(null);
+  const [showAnalysisDialog, setShowAnalysisDialog] = useState(false);
 
   useEffect(() => {
     if (!authLoading) {
@@ -652,6 +879,37 @@ export default function AdminPostForm() {
     },
   });
 
+  const analyzeMutation = useMutation({
+    mutationFn: async () => {
+      const res = await adminApiRequest("POST", `/api/agents/analyze/${id}`, {});
+      if (!res.ok) {
+        const error = await res.text();
+        throw new Error(error || "Failed to analyze");
+      }
+      return res.json();
+    },
+    onMutate: () => {
+      setIsAnalyzing(true);
+    },
+    onSuccess: (data) => {
+      toast({ title: t.analyzeSuccess });
+      if (data.success && data.data?.analysis) {
+        setAnalysisResult(data.data.analysis);
+        setShowAnalysisDialog(true);
+      }
+    },
+    onError: (error: Error) => {
+      toast({
+        title: t.analyzeError,
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+    onSettled: () => {
+      setIsAnalyzing(false);
+    },
+  });
+
   const handleTitleChange = (value: string) => {
     form.setValue("title", value);
     if (!isEditing && !form.getValues("slug")) {
@@ -756,19 +1014,34 @@ export default function AdminPostForm() {
             </div>
             <div className="flex gap-2">
               {isEditing && (
-                <Button
-                  variant="outline"
-                  onClick={() => translateAllMutation.mutate()}
-                  disabled={isTranslatingAll || saveMutation.isPending}
-                  data-testid="button-translate-all"
-                >
-                  {isTranslatingAll ? (
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  ) : (
-                    <Globe className="mr-2 h-4 w-4" />
-                  )}
-                  {isTranslatingAll ? t.translatingAll : t.translateAllLanguages}
-                </Button>
+                <>
+                  <Button
+                    variant="outline"
+                    onClick={() => analyzeMutation.mutate()}
+                    disabled={isAnalyzing || saveMutation.isPending}
+                    data-testid="button-analyze-content"
+                  >
+                    {isAnalyzing ? (
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    ) : (
+                      <Search className="mr-2 h-4 w-4" />
+                    )}
+                    {isAnalyzing ? t.analyzing : t.analyzeContent}
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => translateAllMutation.mutate()}
+                    disabled={isTranslatingAll || saveMutation.isPending}
+                    data-testid="button-translate-all"
+                  >
+                    {isTranslatingAll ? (
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    ) : (
+                      <Globe className="mr-2 h-4 w-4" />
+                    )}
+                    {isTranslatingAll ? t.translatingAll : t.translateAllLanguages}
+                  </Button>
+                </>
               )}
               <Button
                 variant="outline"
@@ -1174,6 +1447,169 @@ export default function AdminPostForm() {
           </form>
         </Form>
       </main>
+
+      <Dialog open={showAnalysisDialog} onOpenChange={setShowAnalysisDialog}>
+        <DialogContent className="max-w-4xl max-h-[90vh]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Search className="h-5 w-5" />
+              {t.analysisResults}
+              {analysisResult?.qualityScore !== undefined && (
+                <Badge 
+                  variant={analysisResult.qualityScore >= 70 ? "default" : "destructive"}
+                  className="ml-2"
+                >
+                  {t.qualityScore}: {analysisResult.qualityScore}/100
+                </Badge>
+              )}
+            </DialogTitle>
+            <DialogDescription>
+              {analysisResult?.analysisTimestamp && new Date(analysisResult.analysisTimestamp).toLocaleString()}
+            </DialogDescription>
+          </DialogHeader>
+          
+          <ScrollArea className="max-h-[70vh] pr-4">
+            {analysisResult && (
+              <div className="space-y-6">
+                <div>
+                  <h3 className="font-semibold text-lg mb-3 flex items-center gap-2">
+                    <CheckCircle className="h-4 w-4 text-green-600" />
+                    {t.seoRecommendations}
+                  </h3>
+                  <div className="space-y-3 bg-gray-50 dark:bg-gray-800 p-4 rounded-none">
+                    <div>
+                      <span className="font-medium">{t.keywords}:</span>
+                      <div className="flex flex-wrap gap-1 mt-1">
+                        {analysisResult.seoRecommendations?.keywords?.map((kw: string, i: number) => (
+                          <Badge key={i} variant="secondary">{kw}</Badge>
+                        ))}
+                      </div>
+                    </div>
+                    {analysisResult.seoRecommendations?.titleSuggestion && (
+                      <div>
+                        <span className="font-medium">{t.titleSuggestion}:</span>
+                        <p className="text-sm mt-1">{analysisResult.seoRecommendations.titleSuggestion}</p>
+                      </div>
+                    )}
+                    {analysisResult.seoRecommendations?.metaDescription && (
+                      <div>
+                        <span className="font-medium">{t.metaDescSuggestion}:</span>
+                        <p className="text-sm mt-1">{analysisResult.seoRecommendations.metaDescription}</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <Separator />
+
+                <div>
+                  <h3 className="font-semibold text-lg mb-3">{t.categories}</h3>
+                  <div className="space-y-2">
+                    <div>
+                      <span className="font-medium">{t.primaryCategory}:</span>
+                      <Badge className="ml-2">{analysisResult.categories?.primary}</Badge>
+                    </div>
+                    {analysisResult.categories?.secondary?.length > 0 && (
+                      <div>
+                        <span className="font-medium">{t.secondaryCategories}:</span>
+                        <div className="flex flex-wrap gap-1 mt-1">
+                          {analysisResult.categories.secondary.map((cat: string, i: number) => (
+                            <Badge key={i} variant="outline">{cat}</Badge>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <Separator />
+
+                <div>
+                  <h3 className="font-semibold text-lg mb-3 flex items-center gap-2">
+                    {analysisResult.spellingGrammar?.length > 0 ? (
+                      <AlertTriangle className="h-4 w-4 text-yellow-600" />
+                    ) : (
+                      <CheckCircle className="h-4 w-4 text-green-600" />
+                    )}
+                    {t.spellingGrammar}
+                  </h3>
+                  {analysisResult.spellingGrammar?.length > 0 ? (
+                    <div className="space-y-2">
+                      {analysisResult.spellingGrammar.map((issue: any, i: number) => (
+                        <div key={i} className="bg-yellow-50 dark:bg-yellow-900/20 p-3 rounded-none">
+                          <div className="flex items-center gap-2">
+                            <Badge variant="outline">{issue.type}</Badge>
+                            <span className="line-through text-red-500">{issue.original}</span>
+                            <span className="mx-2">→</span>
+                            <span className="text-green-600">{issue.correction}</span>
+                          </div>
+                          <p className="text-sm text-muted-foreground mt-1">{issue.explanation}</p>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-green-600">{t.noIssuesFound}</p>
+                  )}
+                </div>
+
+                <Separator />
+
+                <div>
+                  <h3 className="font-semibold text-lg mb-3">{t.lawyersMentioned}</h3>
+                  {analysisResult.lawyersMentioned?.length > 0 ? (
+                    <div className="space-y-2">
+                      {analysisResult.lawyersMentioned.map((lawyer: any, i: number) => (
+                        <div key={i} className="flex items-center gap-2">
+                          <Badge>{lawyer.name}</Badge>
+                          {lawyer.role && <span className="text-sm text-muted-foreground">({lawyer.role})</span>}
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-muted-foreground">{t.noLawyersFound}</p>
+                  )}
+                </div>
+
+                <Separator />
+
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div>
+                    <h3 className="font-semibold text-lg mb-3">{t.legalBranches}</h3>
+                    <div className="space-y-2">
+                      {analysisResult.legalBranches?.primary?.map((branch: string, i: number) => (
+                        <Badge key={i} className="mr-1">{branch}</Badge>
+                      ))}
+                      {analysisResult.legalBranches?.secondary?.map((branch: string, i: number) => (
+                        <Badge key={i} variant="outline" className="mr-1">{branch}</Badge>
+                      ))}
+                    </div>
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-lg mb-3">{t.industries}</h3>
+                    <div className="space-y-2">
+                      <Badge>{analysisResult.industries?.primary}</Badge>
+                      {analysisResult.industries?.secondary?.map((ind: string, i: number) => (
+                        <Badge key={i} variant="outline" className="ml-1">{ind}</Badge>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+          </ScrollArea>
+
+          <div className="flex justify-end mt-4">
+            <Button 
+              variant="outline" 
+              onClick={() => setShowAnalysisDialog(false)}
+              data-testid="button-close-analysis"
+            >
+              <X className="mr-2 h-4 w-4" />
+              {t.closeAnalysis}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

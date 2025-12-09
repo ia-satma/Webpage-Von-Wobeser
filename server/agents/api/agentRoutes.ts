@@ -9,6 +9,7 @@ import { metadataLinkerAgent } from '../specialized/MetadataLinkerAgent';
 import { polyglotTranslatorAgent } from '../specialized/PolyglotTranslatorAgent';
 import { contentAuditorAgent } from '../specialized/ContentAuditorAgent';
 import { seoOptimizerAgent } from '../specialized/SEOOptimizerAgent';
+import { contentAnalyzerAgent } from '../specialized/ContentAnalyzerAgent';
 import { AgentType, ExecutionContext } from '../core/types';
 import { db } from '../../db';
 import { news } from '../../../shared/schema';
@@ -107,6 +108,9 @@ router.post('/run/:agentType', async (req: Request, res: Response) => {
         break;
       case 'seo_optimizer':
         result = await seoOptimizerAgent.execute(context, payload);
+        break;
+      case 'content_analyzer':
+        result = await contentAnalyzerAgent.execute(context, payload);
         break;
       default:
         return res.status(400).json({ error: `Unknown agent type: ${agentType}` });
@@ -308,6 +312,39 @@ router.post('/processing/stop', async (req: Request, res: Response) => {
   try {
     orchestrator.stopProcessing();
     res.json({ message: 'Job processing stopped' });
+  } catch (error) {
+    res.status(500).json({ error: String(error) });
+  }
+});
+
+router.post('/analyze/:articleId', async (req: Request, res: Response) => {
+  try {
+    const { articleId } = req.params;
+    
+    const context: ExecutionContext = {
+      jobId: `analyze-${Date.now()}`,
+      agentType: 'content_analyzer',
+      startTime: new Date(),
+      metadata: { source: 'api' },
+    };
+
+    const result = await contentAnalyzerAgent.execute(context, { articleId });
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ error: String(error) });
+  }
+});
+
+router.get('/analyze/:articleId', async (req: Request, res: Response) => {
+  try {
+    const { articleId } = req.params;
+    const analysis = await contentAnalyzerAgent.getAnalysis(articleId);
+    
+    if (!analysis) {
+      return res.status(404).json({ error: 'No analysis found for this article' });
+    }
+
+    res.json(analysis);
   } catch (error) {
     res.status(500).json({ error: String(error) });
   }

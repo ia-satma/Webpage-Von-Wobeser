@@ -567,6 +567,67 @@ export type LanguageCode = typeof SUPPORTED_LANGUAGES[number]["code"];
 export type SupportedLanguage = typeof SUPPORTED_LANGUAGES[number];
 
 // ============================================
+// CONTENT ANALYSIS RESULTS
+// ============================================
+
+export interface SEORecommendation {
+  keywords: string[];
+  titleSuggestion: string;
+  metaDescription: string;
+  headingImprovements: string[];
+  contentGaps: string[];
+  internalLinkOpportunities: string[];
+}
+
+export interface SpellingGrammarIssue {
+  original: string;
+  correction: string;
+  type: 'spelling' | 'grammar' | 'terminology' | 'style';
+  explanation: string;
+}
+
+export interface LawyerMention {
+  name: string;
+  role: string;
+  context: string;
+}
+
+export interface ContentAnalysisResult {
+  seoRecommendations: SEORecommendation;
+  categories: {
+    primary: string;
+    secondary: string[];
+  };
+  spellingGrammar: SpellingGrammarIssue[];
+  lawyersMentioned: LawyerMention[];
+  legalBranches: {
+    primary: string[];
+    secondary: string[];
+  };
+  industries: {
+    primary: string;
+    secondary: string[];
+  };
+  qualityScore: number;
+  analysisTimestamp: string;
+}
+
+export const contentAnalysis = pgTable("content_analysis", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  articleId: varchar("article_id").notNull(),
+  analysisResult: jsonb("analysis_result").$type<ContentAnalysisResult>().notNull(),
+  qualityScore: integer("quality_score").default(0),
+  issuesCount: integer("issues_count").default(0),
+  status: text("status").default("completed"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const insertContentAnalysisSchema = createInsertSchema(contentAnalysis).omit({ id: true, createdAt: true, updatedAt: true });
+export type InsertContentAnalysis = z.infer<typeof insertContentAnalysisSchema>;
+export type ContentAnalysis = typeof contentAnalysis.$inferSelect;
+
+// ============================================
 // AI AGENT SYSTEM TABLES
 // ============================================
 

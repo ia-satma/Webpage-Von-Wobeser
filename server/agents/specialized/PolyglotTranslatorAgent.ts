@@ -77,7 +77,7 @@ export class PolyglotTranslatorAgent extends BaseAgent {
     const sourceContent = {
       title: article.title || article.titleEs,
       excerpt: article.excerpt || article.excerptEs,
-      content: article.content || article.contentEs,
+      content: article.content || article.contentEs || '',
     };
 
     const sourceLanguage = article.title ? 'en' : 'es';
