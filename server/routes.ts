@@ -1651,6 +1651,209 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
     }
   });
 
+  // =============================================
+  // ARTICLE PROCESSING PIPELINE (AI Translation)
+  // =============================================
+
+  // Process single article - translate to all 10 languages
+  app.post("/api/agents/pipeline/:articleId", authMiddleware, async (req: Request, res: Response) => {
+    try {
+      const { articleId } = req.params;
+      
+      // Get the article
+      const article = await storage.getNewsById(articleId);
+      if (!article) {
+        return res.status(404).json({ error: "Article not found" });
+      }
+
+      const targetLanguages = ["en", "es", "de", "zh", "ko", "ja", "ar", "ru", "fr", "it"] as const;
+      const sourceLanguage = "es"; // Articles are in Spanish by default
+      
+      let successCount = 0;
+      const translations: Record<string, Record<string, string>> = {};
+
+      // Translate to all target languages
+      for (const targetLang of targetLanguages) {
+        if (targetLang === sourceLanguage) continue; // Skip source language
+
+        try {
+          const langTranslations: Record<string, string> = {};
+
+          // Translate title
+          if (article.titleEs) {
+            const titleTrans = await translateLegalText(
+              article.titleEs,
+              sourceLanguage,
+              targetLang as LanguageCode
+            );
+            await storage.saveTranslation({
+              contentType: "news",
+              entityId: articleId,
+              field: "title",
+              sourceLanguage,
+              targetLanguage: targetLang,
+              sourceText: article.titleEs,
+              translatedText: titleTrans,
+            });
+            langTranslations.title = titleTrans;
+          }
+
+          // Translate excerpt
+          if (article.excerptEs) {
+            const excerptTrans = await translateLegalText(
+              article.excerptEs,
+              sourceLanguage,
+              targetLang as LanguageCode
+            );
+            await storage.saveTranslation({
+              contentType: "news",
+              entityId: articleId,
+              field: "excerpt",
+              sourceLanguage,
+              targetLanguage: targetLang,
+              sourceText: article.excerptEs,
+              translatedText: excerptTrans,
+            });
+            langTranslations.excerpt = excerptTrans;
+          }
+
+          // Translate content
+          if (article.contentEs) {
+            const contentTrans = await translateLegalText(
+              article.contentEs,
+              sourceLanguage,
+              targetLang as LanguageCode
+            );
+            await storage.saveTranslation({
+              contentType: "news",
+              entityId: articleId,
+              field: "content",
+              sourceLanguage,
+              targetLanguage: targetLang,
+              sourceText: article.contentEs,
+              translatedText: contentTrans,
+            });
+            langTranslations.content = contentTrans;
+          }
+
+          if (Object.keys(langTranslations).length > 0) {
+            translations[targetLang] = langTranslations;
+            successCount++;
+          }
+        } catch (error) {
+          console.error(`Error translating to ${targetLang}:`, error);
+        }
+      }
+
+      res.json({
+        success: true,
+        articleId,
+        translatedLanguages: successCount,
+        totalLanguages: targetLanguages.length - 1,
+        translations,
+      });
+    } catch (error) {
+      console.error("Article processing error:", error);
+      res.status(500).json({ error: "Failed to process article" });
+    }
+  });
+
+  // Process all articles - translate all to all 10 languages
+  app.post("/api/agents/pipeline/process-all", authMiddleware, async (req: Request, res: Response) => {
+    try {
+      const allNews = await storage.getAllNews();
+      
+      if (!allNews || allNews.length === 0) {
+        return res.json({ success: true, total: 0, successful: 0, message: "No articles to process" });
+      }
+
+      const targetLanguages = ["en", "es", "de", "zh", "ko", "ja", "ar", "ru", "fr", "it"] as const;
+      const sourceLanguage = "es";
+      let successfulCount = 0;
+
+      // Process each article
+      for (const article of allNews) {
+        try {
+          // Translate to all target languages
+          for (const targetLang of targetLanguages) {
+            if (targetLang === sourceLanguage) continue;
+
+            try {
+              // Translate title
+              if (article.titleEs) {
+                const titleTrans = await translateLegalText(
+                  article.titleEs,
+                  sourceLanguage,
+                  targetLang as LanguageCode
+                );
+                await storage.saveTranslation({
+                  contentType: "news",
+                  entityId: article.id,
+                  field: "title",
+                  sourceLanguage,
+                  targetLanguage: targetLang,
+                  sourceText: article.titleEs,
+                  translatedText: titleTrans,
+                });
+              }
+
+              // Translate excerpt
+              if (article.excerptEs) {
+                const excerptTrans = await translateLegalText(
+                  article.excerptEs,
+                  sourceLanguage,
+                  targetLang as LanguageCode
+                );
+                await storage.saveTranslation({
+                  contentType: "news",
+                  entityId: article.id,
+                  field: "excerpt",
+                  sourceLanguage,
+                  targetLanguage: targetLang,
+                  sourceText: article.excerptEs,
+                  translatedText: excerptTrans,
+                });
+              }
+
+              // Translate content
+              if (article.contentEs) {
+                const contentTrans = await translateLegalText(
+                  article.contentEs,
+                  sourceLanguage,
+                  targetLang as LanguageCode
+                );
+                await storage.saveTranslation({
+                  contentType: "news",
+                  entityId: article.id,
+                  field: "content",
+                  sourceLanguage,
+                  targetLanguage: targetLang,
+                  sourceText: article.contentEs,
+                  translatedText: contentTrans,
+                });
+              }
+            } catch (error) {
+              console.error(`Error translating article ${article.id} to ${targetLang}:`, error);
+            }
+          }
+          successfulCount++;
+        } catch (error) {
+          console.error(`Error processing article ${article.id}:`, error);
+        }
+      }
+
+      res.json({
+        success: true,
+        total: allNews.length,
+        successful: successfulCount,
+        message: `Processed ${successfulCount} of ${allNews.length} articles`,
+      });
+    } catch (error) {
+      console.error("Batch processing error:", error);
+      res.status(500).json({ error: "Failed to process articles" });
+    }
+  });
+
   // Agent system routes
   const agentRoutes = await import('./agents/api/agentRoutes');
   app.use('/api/agents', agentRoutes.default);
