@@ -353,7 +353,7 @@ export default function Team() {
       if (filterSeniority !== "all") {
         if (filterSeniority === "partners" && !member.isPartner) return false;
         if (filterSeniority === "ofcounsel" && member.title !== "Of Counsel") return false;
-        if (filterSeniority === "associates" && member.title !== "Associate") return false;
+        if (filterSeniority === "associates" && !member.title.includes("Associate")) return false;
       }
       
       if (filterLetter !== "all") {
