@@ -132,6 +132,7 @@ Categorize this article and return JSON with primaryCategory, categorySlug, prac
       } else {
         const [newCategory] = await db.insert(blogCategories).values({
           name: categorization.primaryCategory,
+          nameEs: categorization.primaryCategory,
           slug: categorization.categorySlug || this.slugify(categorization.primaryCategory),
         }).returning();
         categoryId = newCategory.id;

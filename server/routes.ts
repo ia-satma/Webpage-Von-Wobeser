@@ -1690,110 +1690,165 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
     }
   });
 
-  // Process single article - translate to all 10 languages
+  // Process single article - FULL RAG AGENTIC PIPELINE
+  // Runs ALL agents in sequence: Format → Categorize → Link Metadata → SEO → Translate → Image
   app.post("/api/agents/pipeline/:articleId", authMiddleware, async (req: Request, res: Response) => {
     try {
       const { articleId } = req.params;
+      const { generateImage = false } = req.body;
       
-      // Get the article
       const article = await storage.getNewsById(articleId);
       if (!article) {
         return res.status(404).json({ error: "Article not found" });
       }
 
-      const targetLanguages = ["en", "es", "de", "zh", "ko", "ja", "ar", "ru", "fr", "it"] as const;
-      const sourceLanguage = "es"; // Articles are in Spanish by default
-      
-      let successCount = 0;
-      const translations: Record<string, Record<string, string>> = {};
+      const { 
+        formatterAgent, 
+        categoryAgent, 
+        metadataLinkerAgent, 
+        seoOptimizerAgent, 
+        polyglotTranslatorAgent,
+        imageSuggestionAgent 
+      } = await import('./agents');
 
-      // Translate to all target languages
-      for (const targetLang of targetLanguages) {
-        if (targetLang === sourceLanguage) continue; // Skip source language
+      const createContext = (agentType: string) => ({
+        jobId: `${agentType}-${articleId}-${Date.now()}`,
+        agentType: agentType as any,
+        startTime: new Date(),
+        metadata: { articleId },
+      });
 
+      const pipelineResults: Record<string, any> = {
+        articleId,
+        steps: {},
+        success: true,
+        errors: [],
+      };
+
+      // Step 1: FORMAT - Clean and structure the article text
+      console.log(`[Pipeline] Step 1: Formatting article ${articleId}`);
+      try {
+        const formatResult = await formatterAgent.execute(
+          createContext('formatter'),
+          { articleId }
+        );
+        pipelineResults.steps.format = { 
+          success: formatResult.success, 
+          data: formatResult.data,
+          error: formatResult.error 
+        };
+      } catch (err: any) {
+        pipelineResults.steps.format = { success: false, error: err.message };
+        pipelineResults.errors.push(`Format: ${err.message}`);
+      }
+
+      // Step 2: CATEGORIZE - Automatically categorize for SEO
+      console.log(`[Pipeline] Step 2: Categorizing article ${articleId}`);
+      try {
+        const categoryResult = await categoryAgent.execute(
+          createContext('category_agent'),
+          { articleId }
+        );
+        pipelineResults.steps.categorize = { 
+          success: categoryResult.success, 
+          data: categoryResult.data,
+          error: categoryResult.error 
+        };
+      } catch (err: any) {
+        pipelineResults.steps.categorize = { success: false, error: err.message };
+        pipelineResults.errors.push(`Categorize: ${err.message}`);
+      }
+
+      // Step 3: LINK METADATA - Connect to authors, practice areas, industries
+      console.log(`[Pipeline] Step 3: Linking metadata for article ${articleId}`);
+      try {
+        const metadataResult = await metadataLinkerAgent.execute(
+          createContext('metadata_linker'),
+          { articleId }
+        );
+        pipelineResults.steps.metadata = { 
+          success: metadataResult.success, 
+          data: metadataResult.data,
+          error: metadataResult.error 
+        };
+      } catch (err: any) {
+        pipelineResults.steps.metadata = { success: false, error: err.message };
+        pipelineResults.errors.push(`Metadata: ${err.message}`);
+      }
+
+      // Step 4: SEO OPTIMIZE - Improve titles, descriptions, slugs
+      console.log(`[Pipeline] Step 4: SEO optimizing article ${articleId}`);
+      try {
+        const seoResult = await seoOptimizerAgent.execute(
+          createContext('seo_optimizer'),
+          { articleId }
+        );
+        pipelineResults.steps.seo = { 
+          success: seoResult.success, 
+          data: seoResult.data,
+          error: seoResult.error 
+        };
+      } catch (err: any) {
+        pipelineResults.steps.seo = { success: false, error: err.message };
+        pipelineResults.errors.push(`SEO: ${err.message}`);
+      }
+
+      // Step 5: TRANSLATE - Translate to all 10 languages
+      console.log(`[Pipeline] Step 5: Translating article ${articleId} to all languages`);
+      try {
+        const translateResult = await polyglotTranslatorAgent.execute(
+          createContext('polyglot_translator'),
+          { articleId }
+        );
+        pipelineResults.steps.translate = { 
+          success: translateResult.success, 
+          data: translateResult.data,
+          error: translateResult.error 
+        };
+      } catch (err: any) {
+        pipelineResults.steps.translate = { success: false, error: err.message };
+        pipelineResults.errors.push(`Translate: ${err.message}`);
+      }
+
+      // Step 6: GENERATE IMAGE (optional)
+      if (generateImage) {
+        console.log(`[Pipeline] Step 6: Generating image for article ${articleId}`);
         try {
-          const langTranslations: Record<string, string> = {};
-
-          // Translate title
-          if (article.titleEs) {
-            const titleTrans = await translateLegalText(
-              article.titleEs,
-              sourceLanguage,
-              targetLang as LanguageCode
-            );
-            await storage.saveTranslation({
-              contentType: "news",
-              entityId: articleId,
-              field: "title",
-              sourceLanguage,
-              targetLanguage: targetLang,
-              sourceText: article.titleEs,
-              translatedText: titleTrans,
-            });
-            langTranslations.title = titleTrans;
-          }
-
-          // Translate excerpt
-          if (article.excerptEs) {
-            const excerptTrans = await translateLegalText(
-              article.excerptEs,
-              sourceLanguage,
-              targetLang as LanguageCode
-            );
-            await storage.saveTranslation({
-              contentType: "news",
-              entityId: articleId,
-              field: "excerpt",
-              sourceLanguage,
-              targetLanguage: targetLang,
-              sourceText: article.excerptEs,
-              translatedText: excerptTrans,
-            });
-            langTranslations.excerpt = excerptTrans;
-          }
-
-          // Translate content
-          if (article.contentEs) {
-            const contentTrans = await translateLegalText(
-              article.contentEs,
-              sourceLanguage,
-              targetLang as LanguageCode
-            );
-            await storage.saveTranslation({
-              contentType: "news",
-              entityId: articleId,
-              field: "content",
-              sourceLanguage,
-              targetLanguage: targetLang,
-              sourceText: article.contentEs,
-              translatedText: contentTrans,
-            });
-            langTranslations.content = contentTrans;
-          }
-
-          if (Object.keys(langTranslations).length > 0) {
-            translations[targetLang] = langTranslations;
-            successCount++;
-          }
-        } catch (error) {
-          console.error(`Error translating to ${targetLang}:`, error);
+          const imageResult = await imageSuggestionAgent.execute(
+            createContext('image_suggestion'),
+            { articleId }
+          );
+          pipelineResults.steps.image = { 
+            success: imageResult.success, 
+            data: imageResult.data,
+            error: imageResult.error 
+          };
+        } catch (err: any) {
+          pipelineResults.steps.image = { success: false, error: err.message };
+          pipelineResults.errors.push(`Image: ${err.message}`);
         }
       }
 
-      res.json({
-        success: true,
-        articleId,
-        translatedLanguages: successCount,
-        totalLanguages: targetLanguages.length - 1,
-        translations,
+      // Calculate overall success
+      const stepResults = Object.values(pipelineResults.steps) as any[];
+      const successfulSteps = stepResults.filter(s => s.success).length;
+      pipelineResults.successfulSteps = successfulSteps;
+      pipelineResults.totalSteps = stepResults.length;
+      pipelineResults.success = successfulSteps === stepResults.length;
+
+      console.log(`[Pipeline] Completed: ${successfulSteps}/${stepResults.length} steps successful`);
+
+      res.json(pipelineResults);
+    } catch (error: any) {
+      console.error("Pipeline error:", error);
+      res.status(500).json({ 
+        success: false, 
+        error: error.message || "Failed to process article pipeline" 
       });
-    } catch (error) {
-      console.error("Article processing error:", error);
-      res.status(500).json({ error: "Failed to process article" });
     }
   });
 
-  // Process all articles - translate all to all 10 languages
+  // Process all articles - FULL RAG AGENTIC PIPELINE for all articles
   app.post("/api/agents/pipeline/process-all", authMiddleware, async (req: Request, res: Response) => {
     try {
       const allNews = await storage.getAllNews();
@@ -1802,79 +1857,99 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
         return res.json({ success: true, total: 0, successful: 0, message: "No articles to process" });
       }
 
-      const targetLanguages = ["en", "es", "de", "zh", "ko", "ja", "ar", "ru", "fr", "it"] as const;
-      const sourceLanguage = "es";
+      const { generateImage = false } = req.body;
+      const { 
+        formatterAgent, 
+        categoryAgent, 
+        metadataLinkerAgent, 
+        seoOptimizerAgent, 
+        polyglotTranslatorAgent,
+        imageSuggestionAgent 
+      } = await import('./agents');
+
+      const createContext = (agentType: string, articleId: string) => ({
+        jobId: `${agentType}-${articleId}-${Date.now()}`,
+        agentType: agentType as any,
+        startTime: new Date(),
+        metadata: { articleId },
+      });
+
       let successfulCount = 0;
+      const results: Record<string, any>[] = [];
 
-      // Process each article
       for (const article of allNews) {
+        console.log(`[Pipeline] Processing article ${article.id}: ${article.titleEs?.substring(0, 50)}...`);
+        const articleResult: Record<string, any> = { 
+          articleId: article.id, 
+          title: article.titleEs,
+          steps: {},
+          success: false 
+        };
+
         try {
-          // Translate to all target languages
-          for (const targetLang of targetLanguages) {
-            if (targetLang === sourceLanguage) continue;
+          // Step 1: FORMAT
+          try {
+            const formatResult = await formatterAgent.execute(
+              createContext('formatter', article.id),
+              { articleId: article.id }
+            );
+            articleResult.steps.format = { success: formatResult.success };
+          } catch {}
 
+          // Step 2: CATEGORIZE
+          try {
+            const categoryResult = await categoryAgent.execute(
+              createContext('category_agent', article.id),
+              { articleId: article.id }
+            );
+            articleResult.steps.categorize = { success: categoryResult.success };
+          } catch {}
+
+          // Step 3: METADATA
+          try {
+            const metadataResult = await metadataLinkerAgent.execute(
+              createContext('metadata_linker', article.id),
+              { articleId: article.id }
+            );
+            articleResult.steps.metadata = { success: metadataResult.success };
+          } catch {}
+
+          // Step 4: SEO
+          try {
+            const seoResult = await seoOptimizerAgent.execute(
+              createContext('seo_optimizer', article.id),
+              { articleId: article.id }
+            );
+            articleResult.steps.seo = { success: seoResult.success };
+          } catch {}
+
+          // Step 5: TRANSLATE
+          try {
+            const translateResult = await polyglotTranslatorAgent.execute(
+              createContext('polyglot_translator', article.id),
+              { articleId: article.id }
+            );
+            articleResult.steps.translate = { success: translateResult.success };
+          } catch {}
+
+          // Step 6: IMAGE (optional)
+          if (generateImage) {
             try {
-              // Translate title
-              if (article.titleEs) {
-                const titleTrans = await translateLegalText(
-                  article.titleEs,
-                  sourceLanguage,
-                  targetLang as LanguageCode
-                );
-                await storage.saveTranslation({
-                  contentType: "news",
-                  entityId: article.id,
-                  field: "title",
-                  sourceLanguage,
-                  targetLanguage: targetLang,
-                  sourceText: article.titleEs,
-                  translatedText: titleTrans,
-                });
-              }
-
-              // Translate excerpt
-              if (article.excerptEs) {
-                const excerptTrans = await translateLegalText(
-                  article.excerptEs,
-                  sourceLanguage,
-                  targetLang as LanguageCode
-                );
-                await storage.saveTranslation({
-                  contentType: "news",
-                  entityId: article.id,
-                  field: "excerpt",
-                  sourceLanguage,
-                  targetLanguage: targetLang,
-                  sourceText: article.excerptEs,
-                  translatedText: excerptTrans,
-                });
-              }
-
-              // Translate content
-              if (article.contentEs) {
-                const contentTrans = await translateLegalText(
-                  article.contentEs,
-                  sourceLanguage,
-                  targetLang as LanguageCode
-                );
-                await storage.saveTranslation({
-                  contentType: "news",
-                  entityId: article.id,
-                  field: "content",
-                  sourceLanguage,
-                  targetLanguage: targetLang,
-                  sourceText: article.contentEs,
-                  translatedText: contentTrans,
-                });
-              }
-            } catch (error) {
-              console.error(`Error translating article ${article.id} to ${targetLang}:`, error);
-            }
+              const imageResult = await imageSuggestionAgent.execute(
+                createContext('image_suggestion', article.id),
+                { articleId: article.id }
+              );
+              articleResult.steps.image = { success: imageResult.success };
+            } catch {}
           }
+
+          articleResult.success = true;
           successfulCount++;
         } catch (error) {
           console.error(`Error processing article ${article.id}:`, error);
         }
+
+        results.push(articleResult);
       }
 
       res.json({
