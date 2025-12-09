@@ -1,4 +1,3 @@
-import OpenAI from 'openai';
 import { 
   AgentType, 
   AgentConfig, 
@@ -9,8 +8,7 @@ import {
   EvolutionProposal,
   KnowledgeDocument
 } from './types';
-
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+import { openai } from '../../openai';
 
 export abstract class BaseAgent {
   protected config: AgentConfig;

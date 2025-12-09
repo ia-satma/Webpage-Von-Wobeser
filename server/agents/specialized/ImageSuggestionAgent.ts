@@ -1,11 +1,9 @@
 import { BaseAgent } from '../core/BaseAgent';
 import { AgentConfig, AgentResult, ExecutionContext } from '../core/types';
-import OpenAI from 'openai';
+import { openai } from '../../openai';
 import { db } from '../../db';
 import { news } from '../../../shared/schema';
 import { eq } from 'drizzle-orm';
-
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 const IMAGE_CONFIG: AgentConfig = {
   agentType: 'image_suggestion' as any,
@@ -83,7 +81,7 @@ export class ImageSuggestionAgent extends BaseAgent {
           quality: 'standard',
         });
 
-        const imageUrl = image.data[0]?.url;
+        const imageUrl = image.data?.[0]?.url;
 
         return {
           success: true,
