@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -7,6 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Progress } from "@/components/ui/progress";
 import { useToast } from "@/hooks/use-toast";
+import { useAdminAuth } from "@/lib/adminAuth";
 import { 
   Bot, 
   Activity, 
@@ -28,9 +30,10 @@ import {
   CloudOff,
   Lightbulb,
   TrendingUp,
-  ArrowLeft
+  ArrowLeft,
+  Loader2
 } from "lucide-react";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 
 interface AgentStats {
   agentType: string;
@@ -97,6 +100,14 @@ const STATUS_COLORS: Record<string, string> = {
 
 export default function AdminAgents() {
   const { toast } = useToast();
+  const [, setLocation] = useLocation();
+  const { isAuthenticated, isLoading: authLoading } = useAdminAuth();
+
+  useEffect(() => {
+    if (!authLoading && !isAuthenticated) {
+      setLocation("/admin/login");
+    }
+  }, [authLoading, isAuthenticated, setLocation]);
 
   const { data: status, isLoading: statusLoading, refetch: refetchStatus } = useQuery<{
     orchestrator: OrchestratorStatus;
@@ -184,6 +195,17 @@ export default function AdminAgents() {
       queryClient.invalidateQueries({ queryKey: ["/api/agents/evolution/proposals"] });
     },
   });
+
+  if (authLoading || !isAuthenticated) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4 text-primary" />
+          <p className="text-muted-foreground">Checking authentication...</p>
+        </div>
+      </div>
+    );
+  }
 
   if (statusLoading) {
     return (
