@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { motion } from "framer-motion";
 import { AlertCircle, Users, Search, X } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
@@ -20,12 +20,55 @@ import TeamMemberCard from "@/components/TeamMemberCard";
 import { useLanguage } from "@/contexts/LanguageContext";
 import type { TeamMember, PracticeGroup, IndustryGroup } from "@shared/schema";
 
+// Map URL parameters to filter values
+const urlTypeToFilter: Record<string, string> = {
+  "partners": "partners",
+  "of-counsel": "ofcounsel",
+  "counsel": "ofcounsel",
+  "associates": "associates",
+};
+
+// Helper to get filter from URL search params
+function getFilterFromURL(): string {
+  if (typeof window === "undefined") return "all";
+  const urlParams = new URLSearchParams(window.location.search);
+  const typeParam = urlParams.get("type");
+  if (typeParam && urlTypeToFilter[typeParam]) {
+    return urlTypeToFilter[typeParam];
+  }
+  return "all";
+}
+
 export default function Team() {
   const { language } = useLanguage();
   const [searchQuery, setSearchQuery] = useState("");
-  const [filterSeniority, setFilterSeniority] = useState<string>("all");
+  // Initialize filter directly from URL to avoid flash of unfiltered content
+  const [filterSeniority, setFilterSeniority] = useState<string>(() => getFilterFromURL());
   const [filterPractice, setFilterPractice] = useState<string>("all");
   const [filterLetter, setFilterLetter] = useState<string>("all");
+  
+  // Listen for URL changes to update filter (for SPA navigation)
+  useEffect(() => {
+    const handleUrlChange = () => {
+      setFilterSeniority(getFilterFromURL());
+    };
+    
+    window.addEventListener("popstate", handleUrlChange);
+    
+    // Poll for URL changes (for SPA navigation that doesn't trigger popstate)
+    let lastSearch = window.location.search;
+    const checkUrlChange = setInterval(() => {
+      if (window.location.search !== lastSearch) {
+        lastSearch = window.location.search;
+        setFilterSeniority(getFilterFromURL());
+      }
+    }, 100);
+    
+    return () => {
+      window.removeEventListener("popstate", handleUrlChange);
+      clearInterval(checkUrlChange);
+    };
+  }, []);
 
   const { data: allTeamMembers, isLoading: isLoadingAll, error: errorAll } = useQuery<TeamMember[]>({
     queryKey: ["/api/team"],
