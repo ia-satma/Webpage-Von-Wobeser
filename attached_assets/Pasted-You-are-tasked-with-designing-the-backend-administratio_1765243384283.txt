@@ -1,0 +1,44 @@
+You are tasked with designing the backend administration section for a website. You will analyze the requirements and create a comprehensive design that addresses all the specified functionality needs. Your design should be practical, user-friendly, and secure.
+
+First, review the website description:
+<website_description>
+{$WEBSITE_DESCRIPTION}
+</website_description>
+
+Now, review the specific requirements for the backend administration section:
+<task_description>
+{$TASK_DESCRIPTION}
+</task_description>
+
+Please analyze these requirements and design a backend administration section that fulfills all the specified needs. Your response should include:
+
+1. Begin with a <requirements_analysis> section where you identify and organize all the key requirements from the task description. Make sure to translate any non-English requirements if necessary.
+
+2. In a <ui_design> section, describe the user interface for the backend administration section, including:
+   - Main dashboard layout
+   - Navigation structure
+   - Key screens and their components
+   - User flows for common tasks
+
+3. In a <functionality_design> section, detail how each required function will work:
+   - Content management capabilities
+   - User/administrator management
+   - AI image generation functionality
+   - Any other features mentioned in the requirements
+
+4. In an <implementation_recommendations> section, suggest:
+   - Technologies that would be appropriate for implementing this backend
+   - Integration approaches for AI image generation
+   - Data storage considerations
+   - Performance optimization strategies
+
+5. In a <security_considerations> section, outline:
+   - Authentication and authorization mechanisms
+   - Data protection measures
+   - Security best practices for the admin backend
+
+Your design should be coherent with the existing website's purpose and aesthetic. Make practical recommendations that balance functionality, usability, and security. If any requirements seem unclear or contradictory, propose reasonable interpretations or alternatives.
+
+Format your response with clear headings, bullet points where appropriate, and concise explanations. Include mockups or diagrams if they would help illustrate your design concepts (you can describe these in text).
+
+Begin your response now with the requirements analysis section.

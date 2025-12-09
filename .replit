@@ -106,4 +106,4 @@ integrations = ["javascript_openai:1.0.0"]
 
 [userenv.shared]
 ADMIN_EMAIL = "santiago@satma.mx"
-ADMIN_PASSWORD_HASH = "$2b$10$Ugj083mB6HFwyB7FOxXfn.C0X1NxtlwC3IRY7ehbUwBhru7D5mDvK"
+ADMIN_PASSWORD_HASH = "$2b$10$vHFyQSHsFb6Fd47pIaNZyOt/R53oWfUamILO4VB5FhthJmj0W1BS2"
