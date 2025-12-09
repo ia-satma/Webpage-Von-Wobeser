@@ -37,6 +37,7 @@ import AdminCategories from "@/pages/admin/AdminCategories";
 import AdminNews from "@/pages/admin/AdminNews";
 import AdminAgents from "@/pages/AdminAgents";
 import AdminArticleProcessing from "@/pages/admin/AdminArticleProcessing";
+import AdminAudits from "@/pages/admin/AdminAudits";
 
 function SkipLinks() {
   const { language } = useLanguage();
@@ -142,6 +143,7 @@ function Router() {
       <Route path="/admin/news" component={AdminNews} />
       <Route path="/admin/agents" component={AdminAgents} />
       <Route path="/admin/processing" component={AdminArticleProcessing} />
+      <Route path="/admin/audits" component={AdminAudits} />
       <Route component={NotFound} />
     </Switch>
   );

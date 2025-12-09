@@ -742,3 +742,79 @@ export const agentEvolutionProposals = pgTable("agent_evolution_proposals", {
 export const insertAgentEvolutionProposalSchema = createInsertSchema(agentEvolutionProposals).omit({ id: true, createdAt: true });
 export type InsertAgentEvolutionProposal = z.infer<typeof insertAgentEvolutionProposalSchema>;
 export type AgentEvolutionProposal = typeof agentEvolutionProposals.$inferSelect;
+
+// Website Audits - Summary of audit runs
+export const websiteAudits = pgTable("website_audits", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  runType: text("run_type").notNull().default("full"), // full, delta, links_only, translations_only, seo_only, content_only
+  status: text("status").notNull().default("pending"), // pending, running, completed, failed
+  startedAt: timestamp("started_at").defaultNow(),
+  completedAt: timestamp("completed_at"),
+  pagesScanned: integer("pages_scanned").default(0),
+  linksChecked: integer("links_checked").default(0),
+  translationsChecked: integer("translations_checked").default(0),
+  issuesFound: integer("issues_found").default(0),
+  criticalCount: integer("critical_count").default(0),
+  highCount: integer("high_count").default(0),
+  mediumCount: integer("medium_count").default(0),
+  lowCount: integer("low_count").default(0),
+  metrics: jsonb("metrics"), // Performance metrics, load times, etc.
+  triggeredBy: text("triggered_by").default("manual"), // manual, scheduled, webhook
+});
+
+export const insertWebsiteAuditSchema = createInsertSchema(websiteAudits).omit({ id: true, startedAt: true });
+export type InsertWebsiteAudit = z.infer<typeof insertWebsiteAuditSchema>;
+export type WebsiteAudit = typeof websiteAudits.$inferSelect;
+
+// Website Audit Findings - Individual issues found during audits
+export const websiteAuditFindings = pgTable("website_audit_findings", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  auditId: varchar("audit_id").notNull().references(() => websiteAudits.id, { onDelete: "cascade" }),
+  category: text("category").notNull(), // links, navigation, translations, performance, seo, content
+  issueType: text("issue_type").notNull(), // broken_link, missing_translation, incomplete_profile, slow_load, missing_meta, etc.
+  severity: text("severity").notNull().default("medium"), // critical, high, medium, low
+  status: text("status").notNull().default("open"), // open, in_progress, resolved, ignored, wont_fix
+  entityType: text("entity_type"), // team_member, news, practice_group, industry_group, page, link
+  entityId: varchar("entity_id"), // ID of the affected entity
+  language: varchar("language", { length: 5 }), // For translation issues: en, es, de, zh, ko, ja, ar, ru, fr, it
+  url: text("url"), // URL where the issue was found
+  details: jsonb("details").notNull(), // Detailed issue information
+  recommendation: text("recommendation"), // Suggested fix
+  ownerAgent: text("owner_agent"), // Agent responsible for fixing: polyglot_translator, seo_optimizer, metadata_linker
+  reportedAt: timestamp("reported_at").defaultNow(),
+  resolvedAt: timestamp("resolved_at"),
+  resolvedBy: text("resolved_by"), // agent or manual
+  remediationJobId: varchar("remediation_job_id"), // If an agent job was created to fix this
+});
+
+export const insertWebsiteAuditFindingSchema = createInsertSchema(websiteAuditFindings).omit({ id: true, reportedAt: true });
+export type InsertWebsiteAuditFinding = z.infer<typeof insertWebsiteAuditFindingSchema>;
+export type WebsiteAuditFinding = typeof websiteAuditFindings.$inferSelect;
+
+// Audit finding categories and issue types for reference
+export const auditCategories = {
+  links: {
+    issueTypes: ['broken_link', 'redirect_chain', 'external_link_broken', 'anchor_missing'],
+    severity: 'critical'
+  },
+  navigation: {
+    issueTypes: ['wrong_destination', 'dead_end', 'orphan_page', 'circular_navigation'],
+    severity: 'high'
+  },
+  translations: {
+    issueTypes: ['missing_translation', 'partial_translation', 'untranslated_field', 'language_mismatch'],
+    severity: 'high'
+  },
+  performance: {
+    issueTypes: ['slow_page_load', 'large_image', 'unoptimized_asset', 'render_blocking'],
+    severity: 'medium'
+  },
+  seo: {
+    issueTypes: ['missing_title', 'missing_description', 'missing_og_tags', 'missing_hreflang', 'duplicate_content', 'missing_alt_text'],
+    severity: 'medium'
+  },
+  content: {
+    issueTypes: ['incomplete_profile', 'missing_bio', 'missing_photo', 'empty_section', 'outdated_content', 'missing_practice_areas'],
+    severity: 'high'
+  }
+} as const;

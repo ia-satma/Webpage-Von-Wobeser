@@ -20,6 +20,14 @@ export class AgentOrchestrator {
   private processingInterval: NodeJS.Timeout | null = null;
   private isProcessingCycle: boolean = false;
 
+  isProcessing(): boolean {
+    return this.isRunning;
+  }
+
+  start(intervalMs: number = 1000): void {
+    this.startProcessing(intervalMs);
+  }
+
   async initialize(): Promise<void> {
     console.log('[Orchestrator] Initializing agent system...');
     await knowledgeStore.initialize();

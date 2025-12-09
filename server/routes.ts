@@ -2090,6 +2090,124 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
     }
   });
 
+  // Website Audit API routes
+  app.get("/api/audits", authMiddleware, async (req: Request, res: Response) => {
+    try {
+      const limit = parseInt(req.query.limit as string) || 20;
+      const audits = await storage.getWebsiteAudits(limit);
+      res.json({ success: true, audits });
+    } catch (error) {
+      console.error("Failed to get audits:", error);
+      res.status(500).json({ error: "Failed to fetch audits" });
+    }
+  });
+
+  app.get("/api/audits/latest", authMiddleware, async (req: Request, res: Response) => {
+    try {
+      const audit = await storage.getLatestWebsiteAudit();
+      if (!audit) {
+        return res.json({ success: true, audit: null });
+      }
+      const findings = await storage.getWebsiteAuditFindings(audit.id);
+      res.json({ success: true, audit, findings });
+    } catch (error) {
+      console.error("Failed to get latest audit:", error);
+      res.status(500).json({ error: "Failed to fetch latest audit" });
+    }
+  });
+
+  app.get("/api/audits/:id", authMiddleware, async (req: Request, res: Response) => {
+    try {
+      const audit = await storage.getWebsiteAudit(req.params.id);
+      if (!audit) {
+        return res.status(404).json({ error: "Audit not found" });
+      }
+      const findings = await storage.getWebsiteAuditFindings(audit.id);
+      res.json({ success: true, audit, findings });
+    } catch (error) {
+      console.error("Failed to get audit:", error);
+      res.status(500).json({ error: "Failed to fetch audit" });
+    }
+  });
+
+  app.get("/api/audits/:id/findings", authMiddleware, async (req: Request, res: Response) => {
+    try {
+      const { category, severity } = req.query;
+      let findings;
+      
+      if (category) {
+        findings = await storage.getWebsiteAuditFindingsByCategory(req.params.id, category as string);
+      } else if (severity) {
+        findings = await storage.getWebsiteAuditFindingsBySeverity(req.params.id, severity as string);
+      } else {
+        findings = await storage.getWebsiteAuditFindings(req.params.id);
+      }
+      
+      res.json({ success: true, findings });
+    } catch (error) {
+      console.error("Failed to get audit findings:", error);
+      res.status(500).json({ error: "Failed to fetch findings" });
+    }
+  });
+
+  app.post("/api/audits/run", authMiddleware, async (req: Request, res: Response) => {
+    try {
+      const { runType = 'full', skipModules } = req.body;
+      
+      const { orchestrator } = await import('./agents');
+      
+      const job = await orchestrator.enqueueJob(
+        'website_auditor',
+        {
+          runType,
+          skipModules,
+          triggeredBy: 'manual',
+        },
+        { priority: 'high' }
+      );
+      
+      if (!orchestrator.isProcessing()) {
+        orchestrator.start();
+      }
+      
+      res.json({ 
+        success: true, 
+        jobId: job.id,
+        message: 'Audit job queued successfully. Check audit history for results.',
+      });
+    } catch (error) {
+      console.error("Failed to run audit:", error);
+      res.status(500).json({ error: "Failed to run audit" });
+    }
+  });
+
+  app.get("/api/audits/findings/open", authMiddleware, async (req: Request, res: Response) => {
+    try {
+      const findings = await storage.getOpenFindings();
+      res.json({ success: true, findings });
+    } catch (error) {
+      console.error("Failed to get open findings:", error);
+      res.status(500).json({ error: "Failed to fetch open findings" });
+    }
+  });
+
+  app.patch("/api/audits/findings/:id", authMiddleware, async (req: Request, res: Response) => {
+    try {
+      const { status, resolvedBy } = req.body;
+      
+      if (status === 'resolved') {
+        const finding = await storage.resolveWebsiteAuditFinding(req.params.id, resolvedBy || 'manual');
+        return res.json({ success: true, finding });
+      }
+      
+      const finding = await storage.updateWebsiteAuditFinding(req.params.id, { status });
+      res.json({ success: true, finding });
+    } catch (error) {
+      console.error("Failed to update finding:", error);
+      res.status(500).json({ error: "Failed to update finding" });
+    }
+  });
+
   // Agent system routes
   const agentRoutes = await import('./agents/api/agentRoutes');
   app.use('/api/agents', agentRoutes.default);
