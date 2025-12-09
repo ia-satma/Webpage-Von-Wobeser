@@ -1103,12 +1103,9 @@ export default function Contact() {
                       data-testid="button-website"
                     >
                       <a 
-                        href="/"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          window.scrollTo({ top: 0, behavior: 'smooth' });
-                          window.location.href = '/';
-                        }}
+                        href="https://www.vonwobeser.com"
+                        target="_blank"
+                        rel="noopener noreferrer"
                       >
                         <ExternalLink className="w-4 h-4 mr-3" />
                         {t.websiteText}
