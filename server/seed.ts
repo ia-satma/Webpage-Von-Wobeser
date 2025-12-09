@@ -1,4 +1,5 @@
 import { db } from "./db";
+import { eq } from "drizzle-orm";
 import { news, officeImages, practiceGroups, industryGroups, teamMembers, representativeMatters, adminUsers, events } from "@shared/schema";
 import { hashPassword } from "./auth";
 
@@ -1191,19 +1192,26 @@ export async function seed() {
     await db.insert(representativeMatters).values(representativeMattersData);
   }
 
-  // Seed default admin user
-  const existingAdminUsers = await db.select().from(adminUsers);
-  if (existingAdminUsers.length === 0) {
-    console.log("Seeding default admin user...");
-    const passwordHash = await hashPassword("Admin123!");
-    await db.insert(adminUsers).values({
-      username: "admin",
-      email: "admin@vonwobeser.com",
-      passwordHash,
-      role: "super_admin",
-      isActive: true,
-    });
-    console.log("Default admin user created: username='admin', password='Admin123!'");
+  // Seed admin user from environment variables (secure approach)
+  const adminEmail = process.env.ADMIN_EMAIL;
+  const adminPasswordHash = process.env.ADMIN_PASSWORD_HASH;
+  
+  if (adminEmail && adminPasswordHash) {
+    const existingAdmin = await db.select().from(adminUsers).where(
+      eq(adminUsers.email, adminEmail)
+    );
+    
+    if (existingAdmin.length === 0) {
+      console.log("Creating admin user from environment variables...");
+      await db.insert(adminUsers).values({
+        username: adminEmail.split('@')[0],
+        email: adminEmail,
+        passwordHash: adminPasswordHash,
+        role: "super_admin",
+        isActive: true,
+      });
+      console.log(`Admin user created: ${adminEmail}`);
+    }
   }
 
   // Seed events

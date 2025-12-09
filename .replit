@@ -101,3 +101,9 @@ waitForPort = 5000
 
 [agent]
 integrations = ["javascript_openai:1.0.0"]
+
+[userenv]
+
+[userenv.shared]
+ADMIN_EMAIL = "santiago@satma.mx"
+ADMIN_PASSWORD_HASH = "$2b$10$Ugj083mB6HFwyB7FOxXfn.C0X1NxtlwC3IRY7ehbUwBhru7D5mDvK"

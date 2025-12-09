@@ -1,5 +1,5 @@
 import { Link } from "wouter";
-import { MapPin, Phone, Mail, Linkedin, ExternalLink, AlertCircle, Building2, Twitter } from "lucide-react";
+import { MapPin, Phone, Mail, Linkedin, ExternalLink, AlertCircle, Building2, Twitter, Settings } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -768,6 +768,14 @@ export default function Footer() {
               >
                 {t.cookies}
               </button>
+              <Link
+                href="/admin/login"
+                className="inline-flex items-center min-h-[44px] px-2 text-gray-600 hover:text-gray-400 transition-colors touch-manipulation opacity-30 hover:opacity-60"
+                data-testid="link-admin"
+                aria-label="Admin"
+              >
+                <Settings className="h-3 w-3" />
+              </Link>
             </nav>
           </div>
         </div>

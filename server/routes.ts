@@ -662,8 +662,11 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
 
       const { username, password } = validation.data;
 
-      // Find user
-      const user = await storage.getAdminUserByUsername(username);
+      // Find user by email or username
+      let user = await storage.getAdminUserByEmail(username);
+      if (!user) {
+        user = await storage.getAdminUserByUsername(username);
+      }
       if (!user) {
         recordLoginAttempt(ip, false);
         return res.status(401).json({ error: "Invalid credentials" });
