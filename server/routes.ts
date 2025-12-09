@@ -1064,6 +1064,56 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
     }
   });
 
+  // Get comprehensive CMS stats for admin dashboard
+  app.get("/api/admin/cms-stats", authMiddleware, async (_req: Request, res: Response) => {
+    try {
+      const allNews = await storage.getNews();
+      const totalArticles = allNews.length;
+      
+      // Get all translations and count by language
+      const translationsByLanguage: Record<string, number> = {};
+      const articlesWithTranslationsSet = new Set<string>();
+      let totalTranslations = 0;
+      
+      // Fetch translations for all news articles
+      for (const newsItem of allNews) {
+        const translations = await storage.getNewsTranslations(newsItem.id);
+        if (translations.length > 0) {
+          articlesWithTranslationsSet.add(newsItem.id);
+        }
+        for (const translation of translations) {
+          totalTranslations++;
+          translationsByLanguage[translation.language] = 
+            (translationsByLanguage[translation.language] || 0) + 1;
+        }
+      }
+      
+      // Get recent articles (last 5)
+      const recentArticles = allNews.slice(0, 5).map(n => ({
+        id: n.id,
+        title: n.title,
+        titleEs: n.titleEs,
+        slug: n.slug,
+        date: n.date,
+        category: n.category,
+        published: n.published,
+      }));
+      
+      res.json({
+        totalArticles,
+        articlesWithTranslations: articlesWithTranslationsSet.size,
+        totalTranslations,
+        translationsByLanguage,
+        recentArticles,
+        languagesSupported: 10,
+        processingStatus: "idle", // Could be connected to actual processing status
+      });
+    } catch (error) {
+      console.error("Get CMS stats error:", error);
+      res.status(500).json({ error: "Failed to fetch CMS stats" });
+    }
+  });
+
   // Get translation counts for all news articles
   app.get("/api/admin/news/translation-counts", authMiddleware, async (_req: Request, res: Response) => {
     try {
@@ -1367,7 +1417,9 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
       
       const translationsMap: Record<string, string> = {};
       for (const t of translations) {
-        translationsMap[t.field] = t.translatedText;
+        if (t.field && t.translatedText) {
+          translationsMap[t.field] = t.translatedText;
+        }
       }
 
       res.json({ translations: translationsMap, contentType, entityId, targetLanguage });
@@ -1483,7 +1535,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
         if (!text || typeof text !== 'string' || !text.trim()) continue;
 
         const existingTranslation = await storage.getTranslation(contentType, entityId, fieldName, targetLanguage);
-        if (existingTranslation && existingTranslation.sourceText === text) {
+        if (existingTranslation && existingTranslation.sourceText === text && existingTranslation.translatedText) {
           cachedTranslations[fieldName] = existingTranslation.translatedText;
         } else {
           fieldsToTranslate.push({ key: fieldName, text });

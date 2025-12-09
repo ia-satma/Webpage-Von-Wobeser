@@ -6,6 +6,8 @@ import { useAdminAuth, adminApiRequest } from "@/lib/adminAuth";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
 import { 
   FileText, 
   FilePenLine, 
@@ -17,9 +19,13 @@ import {
   Bot,
   Globe,
   Newspaper,
-  Cog
+  Cog,
+  Languages,
+  Activity,
+  Clock,
+  BarChart3,
+  Loader2
 } from "lucide-react";
-import type { BlogPost } from "@shared/schema";
 
 const translations = {
   en: {
@@ -43,6 +49,22 @@ const translations = {
     loading: "Loading...",
     draft: "Draft",
     publishedStatus: "Published",
+    cmsOverview: "CMS Overview",
+    translationCoverage: "Translation Coverage",
+    articlesTranslated: "articles translated",
+    outOf: "out of",
+    complete: "complete",
+    languageDistribution: "Language Distribution",
+    noTranslations: "No translations yet",
+    recentActivity: "Recent Activity",
+    noRecentActivity: "No recent activity",
+    totalArticles: "Total Articles",
+    totalTranslations: "Total Translations",
+    languagesSupported: "Languages Supported",
+    processingStatus: "Processing Status",
+    idle: "Idle",
+    processing: "Processing",
+    viewAll: "View All",
   },
   es: {
     title: "Panel de Administración",
@@ -65,6 +87,22 @@ const translations = {
     loading: "Cargando...",
     draft: "Borrador",
     publishedStatus: "Publicado",
+    cmsOverview: "Resumen del CMS",
+    translationCoverage: "Cobertura de Traducción",
+    articlesTranslated: "artículos traducidos",
+    outOf: "de",
+    complete: "completo",
+    languageDistribution: "Distribución por Idioma",
+    noTranslations: "Sin traducciones aún",
+    recentActivity: "Actividad Reciente",
+    noRecentActivity: "Sin actividad reciente",
+    totalArticles: "Total de Artículos",
+    totalTranslations: "Total de Traducciones",
+    languagesSupported: "Idiomas Soportados",
+    processingStatus: "Estado del Proceso",
+    idle: "Inactivo",
+    processing: "Procesando",
+    viewAll: "Ver Todo",
   },
   de: {
     title: "Admin-Dashboard",
@@ -87,6 +125,22 @@ const translations = {
     loading: "Wird geladen...",
     draft: "Entwurf",
     publishedStatus: "Veröffentlicht",
+    cmsOverview: "CMS-Übersicht",
+    translationCoverage: "Übersetzungsabdeckung",
+    articlesTranslated: "Artikel übersetzt",
+    outOf: "von",
+    complete: "abgeschlossen",
+    languageDistribution: "Sprachverteilung",
+    noTranslations: "Noch keine Übersetzungen",
+    recentActivity: "Letzte Aktivität",
+    noRecentActivity: "Keine aktuelle Aktivität",
+    totalArticles: "Gesamte Artikel",
+    totalTranslations: "Gesamte Übersetzungen",
+    languagesSupported: "Unterstützte Sprachen",
+    processingStatus: "Verarbeitungsstatus",
+    idle: "Inaktiv",
+    processing: "Verarbeitung",
+    viewAll: "Alle anzeigen",
   },
   zh: {
     title: "管理仪表板",
@@ -109,6 +163,22 @@ const translations = {
     loading: "加载中...",
     draft: "草稿",
     publishedStatus: "已发布",
+    cmsOverview: "CMS 概览",
+    translationCoverage: "翻译覆盖率",
+    articlesTranslated: "篇文章已翻译",
+    outOf: "共",
+    complete: "完成",
+    languageDistribution: "语言分布",
+    noTranslations: "暂无翻译",
+    recentActivity: "最近活动",
+    noRecentActivity: "暂无活动",
+    totalArticles: "文章总数",
+    totalTranslations: "翻译总数",
+    languagesSupported: "支持语言",
+    processingStatus: "处理状态",
+    idle: "空闲",
+    processing: "处理中",
+    viewAll: "查看全部",
   },
   ko: {
     title: "관리자 대시보드",
@@ -131,6 +201,22 @@ const translations = {
     loading: "로딩 중...",
     draft: "임시 저장",
     publishedStatus: "게시됨",
+    cmsOverview: "CMS 개요",
+    translationCoverage: "번역 커버리지",
+    articlesTranslated: "개 기사 번역됨",
+    outOf: "중",
+    complete: "완료",
+    languageDistribution: "언어 분포",
+    noTranslations: "아직 번역이 없습니다",
+    recentActivity: "최근 활동",
+    noRecentActivity: "최근 활동이 없습니다",
+    totalArticles: "전체 기사",
+    totalTranslations: "전체 번역",
+    languagesSupported: "지원 언어",
+    processingStatus: "처리 상태",
+    idle: "대기 중",
+    processing: "처리 중",
+    viewAll: "모두 보기",
   },
   ja: {
     title: "管理ダッシュボード",
@@ -153,6 +239,22 @@ const translations = {
     loading: "読み込み中...",
     draft: "下書き",
     publishedStatus: "公開済み",
+    cmsOverview: "CMS概要",
+    translationCoverage: "翻訳カバレッジ",
+    articlesTranslated: "記事が翻訳済み",
+    outOf: "件中",
+    complete: "完了",
+    languageDistribution: "言語分布",
+    noTranslations: "まだ翻訳がありません",
+    recentActivity: "最近のアクティビティ",
+    noRecentActivity: "最近のアクティビティはありません",
+    totalArticles: "記事総数",
+    totalTranslations: "翻訳総数",
+    languagesSupported: "対応言語",
+    processingStatus: "処理状態",
+    idle: "待機中",
+    processing: "処理中",
+    viewAll: "すべて表示",
   },
   ar: {
     title: "لوحة التحكم",
@@ -175,6 +277,22 @@ const translations = {
     loading: "جاري التحميل...",
     draft: "مسودة",
     publishedStatus: "منشور",
+    cmsOverview: "نظرة عامة على CMS",
+    translationCoverage: "تغطية الترجمة",
+    articlesTranslated: "مقالات مترجمة",
+    outOf: "من",
+    complete: "مكتمل",
+    languageDistribution: "توزيع اللغات",
+    noTranslations: "لا توجد ترجمات بعد",
+    recentActivity: "النشاط الأخير",
+    noRecentActivity: "لا يوجد نشاط حديث",
+    totalArticles: "إجمالي المقالات",
+    totalTranslations: "إجمالي الترجمات",
+    languagesSupported: "اللغات المدعومة",
+    processingStatus: "حالة المعالجة",
+    idle: "خامل",
+    processing: "قيد المعالجة",
+    viewAll: "عرض الكل",
   },
   ru: {
     title: "Панель управления",
@@ -197,6 +315,22 @@ const translations = {
     loading: "Загрузка...",
     draft: "Черновик",
     publishedStatus: "Опубликовано",
+    cmsOverview: "Обзор CMS",
+    translationCoverage: "Покрытие переводов",
+    articlesTranslated: "статей переведено",
+    outOf: "из",
+    complete: "завершено",
+    languageDistribution: "Распределение по языкам",
+    noTranslations: "Переводов пока нет",
+    recentActivity: "Последняя активность",
+    noRecentActivity: "Нет недавней активности",
+    totalArticles: "Всего статей",
+    totalTranslations: "Всего переводов",
+    languagesSupported: "Поддерживаемые языки",
+    processingStatus: "Статус обработки",
+    idle: "Ожидание",
+    processing: "Обработка",
+    viewAll: "Показать все",
   },
   fr: {
     title: "Tableau de bord admin",
@@ -219,6 +353,22 @@ const translations = {
     loading: "Chargement...",
     draft: "Brouillon",
     publishedStatus: "Publié",
+    cmsOverview: "Aperçu du CMS",
+    translationCoverage: "Couverture des traductions",
+    articlesTranslated: "articles traduits",
+    outOf: "sur",
+    complete: "terminé",
+    languageDistribution: "Distribution des langues",
+    noTranslations: "Pas encore de traductions",
+    recentActivity: "Activité récente",
+    noRecentActivity: "Aucune activité récente",
+    totalArticles: "Total des articles",
+    totalTranslations: "Total des traductions",
+    languagesSupported: "Langues supportées",
+    processingStatus: "État du traitement",
+    idle: "Inactif",
+    processing: "En cours",
+    viewAll: "Voir tout",
   },
   it: {
     title: "Dashboard Admin",
@@ -241,13 +391,105 @@ const translations = {
     loading: "Caricamento...",
     draft: "Bozza",
     publishedStatus: "Pubblicato",
+    cmsOverview: "Panoramica CMS",
+    translationCoverage: "Copertura traduzioni",
+    articlesTranslated: "articoli tradotti",
+    outOf: "su",
+    complete: "completato",
+    languageDistribution: "Distribuzione lingue",
+    noTranslations: "Nessuna traduzione ancora",
+    recentActivity: "Attività recente",
+    noRecentActivity: "Nessuna attività recente",
+    totalArticles: "Totale articoli",
+    totalTranslations: "Totale traduzioni",
+    languagesSupported: "Lingue supportate",
+    processingStatus: "Stato elaborazione",
+    idle: "Inattivo",
+    processing: "In elaborazione",
+    viewAll: "Vedi tutto",
+  },
+  pt: {
+    title: "Painel de Admin",
+    welcome: "Bem-vindo ao sistema de gerenciamento do blog",
+    totalPosts: "Total de Posts",
+    drafts: "Rascunhos",
+    published: "Publicados",
+    recentPosts: "Posts Recentes",
+    noRecentPosts: "Nenhum post ainda",
+    editPost: "Editar",
+    quickActions: "Ações Rápidas",
+    newPost: "Novo Post",
+    manageCategories: "Gerenciar Categorias",
+    allPosts: "Todos os Posts",
+    newsArticles: "Artigos de Notícias",
+    aiAgents: "Agentes IA",
+    articleProcessing: "Processamento de Artigos",
+    translations: "Traduções",
+    logout: "Sair",
+    loading: "Carregando...",
+    draft: "Rascunho",
+    publishedStatus: "Publicado",
+    cmsOverview: "Visão Geral do CMS",
+    translationCoverage: "Cobertura de Tradução",
+    articlesTranslated: "artigos traduzidos",
+    outOf: "de",
+    complete: "completo",
+    languageDistribution: "Distribuição de Idiomas",
+    noTranslations: "Sem traduções ainda",
+    recentActivity: "Atividade Recente",
+    noRecentActivity: "Sem atividade recente",
+    totalArticles: "Total de Artigos",
+    totalTranslations: "Total de Traduções",
+    languagesSupported: "Idiomas Suportados",
+    processingStatus: "Status do Processo",
+    idle: "Inativo",
+    processing: "Processando",
+    viewAll: "Ver Todos",
   },
 };
 
-interface DashboardStats {
-  total: number;
-  drafts: number;
-  published: number;
+const languageNames: Record<string, string> = {
+  en: "English",
+  es: "Español",
+  de: "Deutsch",
+  zh: "中文",
+  ko: "한국어",
+  ja: "日本語",
+  ar: "العربية",
+  ru: "Русский",
+  fr: "Français",
+  it: "Italiano",
+};
+
+const languageColors: Record<string, string> = {
+  en: "bg-blue-500",
+  es: "bg-orange-500",
+  de: "bg-yellow-600",
+  zh: "bg-red-500",
+  ko: "bg-purple-500",
+  ja: "bg-pink-500",
+  ar: "bg-green-500",
+  ru: "bg-indigo-500",
+  fr: "bg-cyan-500",
+  it: "bg-emerald-500",
+};
+
+interface CMSStats {
+  totalArticles: number;
+  articlesWithTranslations: number;
+  totalTranslations: number;
+  translationsByLanguage: Record<string, number>;
+  recentArticles: Array<{
+    id: string;
+    title: string;
+    titleEs: string;
+    slug: string;
+    date: string;
+    category: string;
+    published: boolean;
+  }>;
+  languagesSupported: number;
+  processingStatus: "idle" | "processing";
 }
 
 export default function AdminDashboard() {
@@ -261,23 +503,12 @@ export default function AdminDashboard() {
     }
   }, [authLoading, requireAuth]);
 
-  const statsQuery = useQuery<DashboardStats>({
-    queryKey: ["/api/admin/posts/stats"],
+  const cmsStatsQuery = useQuery<CMSStats>({
+    queryKey: ["/api/admin/cms-stats"],
     queryFn: async () => {
-      const res = await adminApiRequest("GET", "/api/admin/posts/stats");
-      if (!res.ok) throw new Error("Failed to fetch stats");
+      const res = await adminApiRequest("GET", "/api/admin/cms-stats");
+      if (!res.ok) throw new Error("Failed to fetch CMS stats");
       return res.json();
-    },
-    enabled: isAuthenticated,
-  });
-
-  const recentPostsQuery = useQuery<BlogPost[]>({
-    queryKey: ["/api/admin/posts", { limit: 5 }],
-    queryFn: async () => {
-      const res = await adminApiRequest("GET", "/api/admin/posts?limit=5");
-      if (!res.ok) throw new Error("Failed to fetch posts");
-      const data = await res.json();
-      return data.posts || [];
     },
     enabled: isAuthenticated,
   });
@@ -294,8 +525,14 @@ export default function AdminDashboard() {
     return null;
   }
 
-  const stats = statsQuery.data || { total: 0, drafts: 0, published: 0 };
-  const recentPosts = recentPostsQuery.data || [];
+  const cmsStats = cmsStatsQuery.data;
+  const translationPercentage = cmsStats 
+    ? Math.round((cmsStats.articlesWithTranslations / Math.max(cmsStats.totalArticles, 1)) * 100) 
+    : 0;
+
+  const maxTranslationsPerLang = cmsStats 
+    ? Math.max(...Object.values(cmsStats.translationsByLanguage), 1) 
+    : 1;
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
@@ -321,54 +558,183 @@ export default function AdminDashboard() {
       </header>
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <p className="text-muted-foreground mb-8" data-testid="text-welcome">
-          {t.welcome}
-        </p>
+        <div className="flex items-center justify-between mb-8">
+          <p className="text-muted-foreground" data-testid="text-welcome">
+            {t.welcome}
+          </p>
+          <Badge 
+            variant={cmsStats?.processingStatus === "processing" ? "default" : "secondary"}
+            className="flex items-center gap-1"
+            data-testid="badge-processing-status"
+          >
+            {cmsStats?.processingStatus === "processing" ? (
+              <>
+                <Loader2 className="h-3 w-3 animate-spin" />
+                {t.processing}
+              </>
+            ) : (
+              <>
+                <Activity className="h-3 w-3" />
+                {t.idle}
+              </>
+            )}
+          </Badge>
+        </div>
 
-        <div className="grid gap-6 md:grid-cols-3 mb-8">
-          <Card data-testid="card-stats-total">
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 mb-8">
+          <Card data-testid="card-stats-total-articles">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 gap-2">
-              <CardTitle className="text-sm font-medium">{t.totalPosts}</CardTitle>
-              <FileText className="h-4 w-4 text-muted-foreground" />
+              <CardTitle className="text-sm font-medium">{t.totalArticles}</CardTitle>
+              <Newspaper className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              {statsQuery.isLoading ? (
+              {cmsStatsQuery.isLoading ? (
                 <Skeleton className="h-8 w-16" />
               ) : (
-                <div className="text-2xl font-bold" data-testid="text-stats-total">
-                  {stats.total}
+                <div className="text-2xl font-bold" data-testid="text-stats-total-articles">
+                  {cmsStats?.totalArticles || 0}
                 </div>
               )}
             </CardContent>
           </Card>
 
-          <Card data-testid="card-stats-drafts">
+          <Card data-testid="card-stats-total-translations">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 gap-2">
-              <CardTitle className="text-sm font-medium">{t.drafts}</CardTitle>
-              <FilePenLine className="h-4 w-4 text-muted-foreground" />
+              <CardTitle className="text-sm font-medium">{t.totalTranslations}</CardTitle>
+              <Languages className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              {statsQuery.isLoading ? (
+              {cmsStatsQuery.isLoading ? (
                 <Skeleton className="h-8 w-16" />
               ) : (
-                <div className="text-2xl font-bold" data-testid="text-stats-drafts">
-                  {stats.drafts}
+                <div className="text-2xl font-bold" data-testid="text-stats-total-translations">
+                  {cmsStats?.totalTranslations || 0}
                 </div>
               )}
             </CardContent>
           </Card>
 
-          <Card data-testid="card-stats-published">
+          <Card data-testid="card-stats-languages">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 gap-2">
-              <CardTitle className="text-sm font-medium">{t.published}</CardTitle>
-              <CheckCircle className="h-4 w-4 text-muted-foreground" />
+              <CardTitle className="text-sm font-medium">{t.languagesSupported}</CardTitle>
+              <Globe className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              {statsQuery.isLoading ? (
+              {cmsStatsQuery.isLoading ? (
                 <Skeleton className="h-8 w-16" />
               ) : (
-                <div className="text-2xl font-bold" data-testid="text-stats-published">
-                  {stats.published}
+                <div className="text-2xl font-bold" data-testid="text-stats-languages">
+                  {cmsStats?.languagesSupported || 10}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          <Card data-testid="card-stats-processing">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 gap-2">
+              <CardTitle className="text-sm font-medium">{t.processingStatus}</CardTitle>
+              <Cog className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              {cmsStatsQuery.isLoading ? (
+                <Skeleton className="h-8 w-16" />
+              ) : (
+                <div className="flex items-center gap-2">
+                  {cmsStats?.processingStatus === "processing" ? (
+                    <>
+                      <Loader2 className="h-5 w-5 animate-spin text-primary" />
+                      <span className="text-lg font-medium text-primary">{t.processing}</span>
+                    </>
+                  ) : (
+                    <>
+                      <CheckCircle className="h-5 w-5 text-green-500" />
+                      <span className="text-lg font-medium text-green-600 dark:text-green-400">{t.idle}</span>
+                    </>
+                  )}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+
+        <div className="grid gap-6 lg:grid-cols-3 mb-8">
+          <Card className="lg:col-span-1" data-testid="card-translation-coverage">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <BarChart3 className="h-5 w-5" />
+                {t.translationCoverage}
+              </CardTitle>
+              <CardDescription>
+                {cmsStats ? (
+                  <>
+                    {cmsStats.articlesWithTranslations} {t.outOf} {cmsStats.totalArticles} {t.articlesTranslated}
+                  </>
+                ) : (
+                  <Skeleton className="h-4 w-32" />
+                )}
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {cmsStatsQuery.isLoading ? (
+                <div className="space-y-3">
+                  <Skeleton className="h-4 w-full" />
+                  <Skeleton className="h-8 w-24" />
+                </div>
+              ) : (
+                <>
+                  <Progress 
+                    value={translationPercentage} 
+                    className="h-3 mb-4"
+                    data-testid="progress-translation-coverage"
+                  />
+                  <div className="text-3xl font-bold text-primary" data-testid="text-translation-percentage">
+                    {translationPercentage}% {t.complete}
+                  </div>
+                </>
+              )}
+            </CardContent>
+          </Card>
+
+          <Card className="lg:col-span-2" data-testid="card-language-distribution">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Languages className="h-5 w-5" />
+                {t.languageDistribution}
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {cmsStatsQuery.isLoading ? (
+                <div className="space-y-3">
+                  {[1, 2, 3, 4, 5].map((i) => (
+                    <div key={i} className="flex items-center gap-3">
+                      <Skeleton className="h-4 w-16" />
+                      <Skeleton className="h-4 flex-1" />
+                      <Skeleton className="h-4 w-8" />
+                    </div>
+                  ))}
+                </div>
+              ) : Object.keys(cmsStats?.translationsByLanguage || {}).length === 0 ? (
+                <p className="text-muted-foreground text-sm" data-testid="text-no-translations">
+                  {t.noTranslations}
+                </p>
+              ) : (
+                <div className="space-y-3">
+                  {Object.entries(languageNames).map(([code, name]) => {
+                    const count = cmsStats?.translationsByLanguage[code] || 0;
+                    const percentage = (count / maxTranslationsPerLang) * 100;
+                    return (
+                      <div key={code} className="flex items-center gap-3" data-testid={`row-language-${code}`}>
+                        <span className="text-sm font-medium w-20 truncate">{name}</span>
+                        <div className="flex-1 h-4 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
+                          <div 
+                            className={`h-full ${languageColors[code]} transition-all duration-300`}
+                            style={{ width: `${percentage}%` }}
+                          />
+                        </div>
+                        <span className="text-sm font-medium w-8 text-right">{count}</span>
+                      </div>
+                    );
+                  })}
                 </div>
               )}
             </CardContent>
@@ -376,49 +742,57 @@ export default function AdminDashboard() {
         </div>
 
         <div className="grid gap-6 lg:grid-cols-3">
-          <Card className="lg:col-span-2" data-testid="card-recent-posts">
+          <Card className="lg:col-span-2" data-testid="card-recent-activity">
             <CardHeader>
-              <CardTitle>{t.recentPosts}</CardTitle>
-              <CardDescription>
-                <Link href="/admin/posts">
-                  <Button variant="ghost" size="sm" data-testid="link-view-all-posts">
-                    {t.allPosts}
+              <div className="flex items-center justify-between">
+                <CardTitle className="flex items-center gap-2">
+                  <Clock className="h-5 w-5" />
+                  {t.recentActivity}
+                </CardTitle>
+                <Link href="/admin/news">
+                  <Button variant="ghost" size="sm" data-testid="button-view-all-news">
+                    {t.viewAll}
                   </Button>
                 </Link>
-              </CardDescription>
+              </div>
             </CardHeader>
             <CardContent>
-              {recentPostsQuery.isLoading ? (
+              {cmsStatsQuery.isLoading ? (
                 <div className="space-y-3">
-                  {[1, 2, 3].map((i) => (
-                    <Skeleton key={i} className="h-12 w-full" />
+                  {[1, 2, 3, 4, 5].map((i) => (
+                    <Skeleton key={i} className="h-14 w-full" />
                   ))}
                 </div>
-              ) : recentPosts.length === 0 ? (
-                <p className="text-muted-foreground text-sm" data-testid="text-no-posts">
-                  {t.noRecentPosts}
+              ) : !cmsStats?.recentArticles?.length ? (
+                <p className="text-muted-foreground text-sm" data-testid="text-no-activity">
+                  {t.noRecentActivity}
                 </p>
               ) : (
                 <div className="space-y-3">
-                  {recentPosts.map((post) => (
+                  {cmsStats.recentArticles.map((article) => (
                     <div
-                      key={post.id}
+                      key={article.id}
                       className="flex items-center justify-between p-3 rounded-md border"
-                      data-testid={`row-post-${post.id}`}
+                      data-testid={`row-article-${article.id}`}
                     >
                       <div className="flex-1 min-w-0">
-                        <p className="font-medium truncate" data-testid={`text-post-title-${post.id}`}>
-                          {language === "es" ? post.titleEs : post.title}
+                        <p className="font-medium truncate" data-testid={`text-article-title-${article.id}`}>
+                          {language === "es" ? article.titleEs : article.title}
                         </p>
-                        <p className="text-sm text-muted-foreground">
-                          {post.status === "draft" ? t.draft : t.publishedStatus}
-                        </p>
+                        <div className="flex items-center gap-2 mt-1">
+                          <Badge variant="outline" className="text-xs">
+                            {article.category}
+                          </Badge>
+                          <span className="text-xs text-muted-foreground">
+                            {article.date ? new Date(article.date).toLocaleDateString() : ""}
+                          </span>
+                        </div>
                       </div>
-                      <Link href={`/admin/posts/${post.id}/edit`}>
+                      <Link href={`/admin/news`}>
                         <Button 
                           variant="ghost" 
                           size="sm"
-                          data-testid={`button-edit-post-${post.id}`}
+                          data-testid={`button-view-article-${article.id}`}
                         >
                           {t.editPost}
                         </Button>

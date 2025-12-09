@@ -586,6 +586,9 @@ export class DatabaseStorage implements IStorage {
   }
 
   async saveTranslation(translation: InsertTranslationCache): Promise<TranslationCache> {
+    if (!translation.field) {
+      throw new Error("Field is required for translation");
+    }
     const existing = await this.getTranslation(
       translation.contentType,
       translation.entityId,
