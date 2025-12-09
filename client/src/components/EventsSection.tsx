@@ -40,35 +40,35 @@ interface EventCardProps {
 }
 
 function EventCard({ event, language, learnMoreText, formatDate }: EventCardProps) {
-  const isNativeLanguage = language === 'en' || language === 'es';
+  const isSpanish = language === 'es';
   
   const { translatedFields, isLoading: isTranslating } = useTranslatedContent({
     contentType: 'event',
     entityId: event.id,
     fields: {
-      title: event.title || '',
-      description: event.description || '',
-      location: event.location || '',
+      title: event.titleEs || event.title || '',
+      description: event.descriptionEs || event.description || '',
+      location: event.locationEs || event.location || '',
     },
-    enabled: !isNativeLanguage,
+    enabled: !isSpanish,
   });
 
   const getEventTitle = () => {
     if (language === 'es') return event.titleEs || event.title;
-    if (isNativeLanguage) return event.title;
-    return translatedFields.title || event.title;
+    if (translatedFields.title) return translatedFields.title;
+    return event.titleEs || event.title;
   };
 
   const getEventDescription = () => {
     if (language === 'es') return event.descriptionEs || event.description;
-    if (isNativeLanguage) return event.description;
-    return translatedFields.description || event.description;
+    if (translatedFields.description) return translatedFields.description;
+    return event.descriptionEs || event.description;
   };
 
   const getEventLocation = () => {
     if (language === 'es') return event.locationEs || event.location;
-    if (isNativeLanguage) return event.location;
-    return translatedFields.location || event.location;
+    if (translatedFields.location) return translatedFields.location;
+    return event.locationEs || event.location;
   };
 
   return (

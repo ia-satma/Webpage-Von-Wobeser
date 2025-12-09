@@ -806,14 +806,14 @@ export default function Newsletter() {
                       >
                         {archive.description}
                       </p>
-                      <button 
-                        className="inline-flex items-center gap-2 text-sm text-primary hover:text-[#8A1525] transition-colors cursor-not-allowed opacity-50"
-                        disabled
+                      <a 
+                        href={`mailto:info@vonwobeser.com?subject=${encodeURIComponent(language === 'es' ? `Solicitud de Newsletter: ${archive.title}` : `Newsletter Request: ${archive.title}`)}`}
+                        className="inline-flex items-center gap-2 text-sm text-primary hover:text-[#8A1525] transition-colors"
                         data-testid={`button-archive-view-${index}`}
                       >
                         <ExternalLink className="w-4 h-4" />
                         {t.viewArchive}
-                      </button>
+                      </a>
                     </CardContent>
                   </Card>
                 </motion.div>

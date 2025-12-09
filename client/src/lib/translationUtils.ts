@@ -34,11 +34,11 @@ export function getTranslatableFields(contentType: ContentType): readonly string
 }
 
 export function isNativeLanguage(langCode: string): boolean {
-  return langCode === 'en' || langCode === 'es';
+  return langCode === 'es';
 }
 
 export function getSourceLanguageForContent(): 'en' | 'es' {
-  return 'en';
+  return 'es';
 }
 
 export interface TranslatedFieldsMap {
@@ -54,10 +54,6 @@ export function getFieldValue(
   if (language === 'es') {
     const esFieldName = `${fieldName}Es`;
     return fields[esFieldName] ?? fields[fieldName];
-  }
-  
-  if (language === 'en') {
-    return fields[fieldName];
   }
   
   if (translations && translations[fieldName]) {

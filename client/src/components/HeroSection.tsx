@@ -76,17 +76,15 @@ function NewsItemTranslated({
     contentType: 'news',
     entityId: item.id,
     fields: { 
-      title: item.title, 
+      title: item.titleEs || item.title, 
       titleEs: item.titleEs,
     },
-    enabled: language !== 'en' && language !== 'es',
+    enabled: language !== 'es',
   });
 
   const displayTitle = language === 'es' 
     ? item.titleEs 
-    : language === 'en' 
-      ? item.title 
-      : (translatedFields.title || item.title);
+    : (translatedFields.title || item.titleEs || item.title);
 
   return (
     <motion.div

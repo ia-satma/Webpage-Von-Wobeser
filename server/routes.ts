@@ -1977,7 +1977,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
   // Process all articles - FULL RAG AGENTIC PIPELINE for all articles
   app.post("/api/agents/pipeline/process-all", authMiddleware, async (req: Request, res: Response) => {
     try {
-      const allNews = await storage.getAllNews();
+      const allNews = await storage.getNews();
       
       if (!allNews || allNews.length === 0) {
         return res.json({ success: true, total: 0, successful: 0, message: "No articles to process" });

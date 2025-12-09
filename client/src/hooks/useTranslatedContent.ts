@@ -108,7 +108,7 @@ export function useTranslatedContent({
         contentType,
         entityId,
         fields: fieldsToTranslate,
-        sourceLanguage: 'en',
+        sourceLanguage: 'es',
         targetLanguage: language,
       });
     }
@@ -129,6 +129,18 @@ export function useTranslatedContent({
     }
 
     if (language === 'en') {
+      const translations = cachedTranslations?.translations || translateMutation.data?.translations;
+      
+      if (translations && Object.keys(translations).length > 0) {
+        const translatedFields: TranslatedFieldsMap = {};
+        for (const [key, value] of Object.entries(fields)) {
+          if (!key.endsWith('Es')) {
+            translatedFields[key] = translations[key] ?? value;
+          }
+        }
+        return translatedFields;
+      }
+      
       const enFields: TranslatedFieldsMap = {};
       for (const [key, value] of Object.entries(fields)) {
         if (!key.endsWith('Es')) {

@@ -65,21 +65,26 @@ interface ArticleCardProps {
 
 function ArticleCard({ article, readMoreText }: ArticleCardProps) {
   const { language } = useLanguage();
+  const isSpanish = language === 'es';
   
   const { translatedFields, isLoading, isTranslating } = useTranslatedContent({
     contentType: 'news',
     entityId: String(article.id),
     fields: {
-      title: article.title,
+      title: article.titleEs || article.title,
       titleEs: article.titleEs,
-      excerpt: article.excerpt,
+      excerpt: article.excerptEs || article.excerpt,
       excerptEs: article.excerptEs,
     },
-    enabled: !isNativeLanguage(language),
+    enabled: !isSpanish,
   });
 
-  const displayTitle = translatedFields.title || article.title;
-  const displayExcerpt = translatedFields.excerpt || article.excerpt;
+  const displayTitle = isSpanish 
+    ? (article.titleEs || article.title)
+    : (translatedFields.title || article.titleEs || article.title);
+  const displayExcerpt = isSpanish
+    ? (article.excerptEs || article.excerpt)
+    : (translatedFields.excerpt || article.excerptEs || article.excerpt);
   
   const formatDate = (date: string | Date | null) => {
     if (!date) return '';
@@ -277,8 +282,8 @@ export default function ArticlesPage() {
   };
 
   const t = content[language] || content.en;
-  const isNonNativeLanguage = language !== 'en' && language !== 'es';
-  const translationBanner = isNonNativeLanguage ? translationBannerMessages[language] : null;
+  const isNonNativeLanguage = language !== 'es';
+  const translationBanner = isNonNativeLanguage ? (translationBannerMessages[language] || (language === 'en' ? "Content is automatically translated from Spanish." : null)) : null;
 
   const filteredArticles = articles?.filter(article => {
     if (!searchQuery) return true;

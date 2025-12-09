@@ -45,15 +45,13 @@ function SearchResultTeamMember({
   const { translatedFields } = useTranslatedContent({
     contentType: 'team_member',
     entityId: member.id.toString(),
-    fields: { title: member.title, titleEs: member.titleEs },
-    enabled: language !== 'en' && language !== 'es',
+    fields: { title: member.titleEs || member.title, titleEs: member.titleEs },
+    enabled: language !== 'es',
   });
 
   const displayTitle = language === 'es'
     ? member.titleEs
-    : language === 'en'
-      ? member.title
-      : (translatedFields.title || member.title);
+    : (translatedFields.title || member.titleEs || member.title);
 
   return (
     <button
@@ -87,15 +85,13 @@ function SearchResultPracticeGroup({
   const { translatedFields } = useTranslatedContent({
     contentType: 'practice_group',
     entityId: group.id.toString(),
-    fields: { name: group.name, nameEs: group.nameEs },
-    enabled: language !== 'en' && language !== 'es',
+    fields: { name: group.nameEs || group.name, nameEs: group.nameEs },
+    enabled: language !== 'es',
   });
 
   const displayName = language === 'es'
     ? group.nameEs
-    : language === 'en'
-      ? group.name
-      : (translatedFields.name || group.name);
+    : (translatedFields.name || group.nameEs || group.name);
 
   return (
     <button
@@ -123,15 +119,13 @@ function SearchResultIndustryGroup({
   const { translatedFields } = useTranslatedContent({
     contentType: 'industry_group',
     entityId: group.id.toString(),
-    fields: { name: group.name, nameEs: group.nameEs },
-    enabled: language !== 'en' && language !== 'es',
+    fields: { name: group.nameEs || group.name, nameEs: group.nameEs },
+    enabled: language !== 'es',
   });
 
   const displayName = language === 'es'
     ? group.nameEs
-    : language === 'en'
-      ? group.name
-      : (translatedFields.name || group.name);
+    : (translatedFields.name || group.nameEs || group.name);
 
   return (
     <button
@@ -159,15 +153,13 @@ function SearchResultNews({
   const { translatedFields } = useTranslatedContent({
     contentType: 'news',
     entityId: article.id.toString(),
-    fields: { title: article.title, titleEs: article.titleEs },
-    enabled: language !== 'en' && language !== 'es',
+    fields: { title: article.titleEs || article.title, titleEs: article.titleEs },
+    enabled: language !== 'es',
   });
 
   const displayTitle = language === 'es'
     ? article.titleEs
-    : language === 'en'
-      ? article.title
-      : (translatedFields.title || article.title);
+    : (translatedFields.title || article.titleEs || article.title);
 
   return (
     <button

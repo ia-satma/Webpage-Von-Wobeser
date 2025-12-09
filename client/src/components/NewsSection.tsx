@@ -122,30 +122,30 @@ interface NewsCardTranslatedProps {
 }
 
 function NewsCardTranslated({ item, language, dateLocale, seeMoreText }: NewsCardTranslatedProps) {
-  const isNativeLanguage = language === 'en' || language === 'es';
+  const isSpanish = language === 'es';
   
   const { translatedFields, isLoading: isTranslating } = useTranslatedContent({
     contentType: 'news',
     entityId: item.id,
     fields: {
-      title: item.title || '',
+      title: item.titleEs || item.title || '',
       titleEs: item.titleEs || '',
-      excerpt: item.excerpt || '',
+      excerpt: item.excerptEs || item.excerpt || '',
       excerptEs: item.excerptEs || '',
     },
-    enabled: !isNativeLanguage,
+    enabled: !isSpanish,
   });
 
   const getNewsTitle = () => {
     if (language === 'es') return item.titleEs || item.title;
-    if (language === 'en') return item.title;
-    return translatedFields.title || item.title;
+    if (translatedFields.title) return translatedFields.title;
+    return item.titleEs || item.title;
   };
 
   const getNewsExcerpt = () => {
     if (language === 'es') return item.excerptEs || item.excerpt;
-    if (language === 'en') return item.excerpt;
-    return translatedFields.excerpt || item.excerpt;
+    if (translatedFields.excerpt) return translatedFields.excerpt;
+    return item.excerptEs || item.excerpt;
   };
 
   const displayTitle = getNewsTitle();

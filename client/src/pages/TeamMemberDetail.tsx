@@ -59,15 +59,13 @@ function RelatedTeamMemberCard({
   const { translatedFields } = useTranslatedContent({
     contentType: 'team_member',
     entityId: relatedMember.id.toString(),
-    fields: { title: relatedMember.title, titleEs: relatedMember.titleEs },
-    enabled: language !== 'en' && language !== 'es',
+    fields: { title: relatedMember.titleEs || relatedMember.title, titleEs: relatedMember.titleEs },
+    enabled: language !== 'es',
   });
 
   const displayTitle = language === 'es'
     ? relatedMember.titleEs
-    : language === 'en'
-      ? relatedMember.title
-      : (translatedFields.title || relatedMember.title);
+    : (translatedFields.title || relatedMember.titleEs || relatedMember.title);
 
   return (
     <Link href={`/team/${relatedMember.slug}`}>
@@ -114,17 +112,15 @@ function EducationItemTranslated({
     contentType: 'team_member',
     entityId: `${memberId}_edu_${index}`,
     fields: { 
-      degree: edu.degree,
+      degree: edu.degreeEs || edu.degree,
       degreeEs: edu.degreeEs,
     },
-    enabled: language !== 'en' && language !== 'es',
+    enabled: language !== 'es',
   });
 
   const displayDegree = language === 'es' && edu.degreeEs
     ? edu.degreeEs
-    : language === 'en'
-      ? edu.degree
-      : (translatedFields.degree || edu.degree);
+    : (translatedFields.degree || edu.degreeEs || edu.degree);
 
   const displaySchool = language === 'es' && edu.schoolEs ? edu.schoolEs : edu.school;
 
@@ -154,15 +150,13 @@ function PracticeGroupBadge({
   const { translatedFields } = useTranslatedContent({
     contentType: 'practice_group',
     entityId: group.id.toString(),
-    fields: { name: group.name, nameEs: group.nameEs },
-    enabled: language !== 'en' && language !== 'es',
+    fields: { name: group.nameEs || group.name, nameEs: group.nameEs },
+    enabled: language !== 'es',
   });
 
   const displayName = language === 'es'
     ? (group.nameEs || group.name)
-    : language === 'en'
-      ? group.name
-      : (translatedFields.name || group.name);
+    : (translatedFields.name || group.nameEs || group.name);
 
   return (
     <Link href={`/practice-groups/${group.slug}`}>
@@ -187,15 +181,13 @@ function IndustryGroupBadge({
   const { translatedFields } = useTranslatedContent({
     contentType: 'industry_group',
     entityId: group.id.toString(),
-    fields: { name: group.name, nameEs: group.nameEs },
-    enabled: language !== 'en' && language !== 'es',
+    fields: { name: group.nameEs || group.name, nameEs: group.nameEs },
+    enabled: language !== 'es',
   });
 
   const displayName = language === 'es'
     ? (group.nameEs || group.name)
-    : language === 'en'
-      ? group.name
-      : (translatedFields.name || group.name);
+    : (translatedFields.name || group.nameEs || group.name);
 
   return (
     <Link href={`/industry-groups/${group.slug}`}>
@@ -229,25 +221,21 @@ function RankingItemTranslated({
     contentType: 'team_member',
     entityId: `${memberId}_ranking_${index}`,
     fields: { 
-      ranking: ranking.ranking,
+      ranking: ranking.rankingEs || ranking.ranking,
       rankingEs: ranking.rankingEs,
-      area: ranking.area,
+      area: ranking.areaEs || ranking.area,
       areaEs: ranking.areaEs,
     },
-    enabled: language !== 'en' && language !== 'es',
+    enabled: language !== 'es',
   });
 
   const displayRanking = language === 'es' && ranking.rankingEs
     ? ranking.rankingEs
-    : language === 'en'
-      ? ranking.ranking
-      : (translatedFields.ranking || ranking.ranking);
+    : (translatedFields.ranking || ranking.rankingEs || ranking.ranking);
 
   const displayArea = language === 'es' && ranking.areaEs
     ? ranking.areaEs
-    : language === 'en'
-      ? ranking.area
-      : (translatedFields.area || ranking.area);
+    : (translatedFields.area || ranking.areaEs || ranking.area);
 
   if (isTiered) {
     return (
@@ -331,17 +319,15 @@ function PublicationItemTranslated({
     contentType: 'team_member',
     entityId: `${memberId}_pub_${index}`,
     fields: { 
-      title: pub.title,
+      title: pub.titleEs || pub.title,
       titleEs: pub.titleEs,
     },
-    enabled: language !== 'en' && language !== 'es',
+    enabled: language !== 'es',
   });
 
   const displayTitle = language === 'es' && pub.titleEs
     ? pub.titleEs
-    : language === 'en'
-      ? pub.title
-      : (translatedFields.title || pub.title);
+    : (translatedFields.title || pub.titleEs || pub.title);
 
   return (
     <div 
@@ -384,26 +370,22 @@ function AffiliationItemTranslated({
     contentType: 'team_member',
     entityId: `${memberId}_affil_${index}`,
     fields: { 
-      organization: affiliation.organization,
+      organization: affiliation.organizationEs || affiliation.organization,
       organizationEs: affiliation.organizationEs,
-      role: affiliation.role,
+      role: affiliation.roleEs || affiliation.role,
       roleEs: affiliation.roleEs,
     },
-    enabled: language !== 'en' && language !== 'es',
+    enabled: language !== 'es',
   });
 
   const displayOrganization = language === 'es' && affiliation.organizationEs
     ? affiliation.organizationEs
-    : language === 'en'
-      ? affiliation.organization
-      : (translatedFields.organization || affiliation.organization);
+    : (translatedFields.organization || affiliation.organizationEs || affiliation.organization);
 
   const displayRole = affiliation.role
     ? (language === 'es' && affiliation.roleEs
         ? affiliation.roleEs
-        : language === 'en'
-          ? affiliation.role
-          : (translatedFields.role || affiliation.role))
+        : (translatedFields.role || affiliation.roleEs || affiliation.role))
     : null;
 
   return (
@@ -441,17 +423,15 @@ function BarAdmissionItemTranslated({
     contentType: 'team_member',
     entityId: `${memberId}_bar_${index}`,
     fields: { 
-      jurisdiction: admission.jurisdiction,
+      jurisdiction: admission.jurisdictionEs || admission.jurisdiction,
       jurisdictionEs: admission.jurisdictionEs,
     },
-    enabled: language !== 'en' && language !== 'es',
+    enabled: language !== 'es',
   });
 
   const displayJurisdiction = language === 'es' && admission.jurisdictionEs
     ? admission.jurisdictionEs
-    : language === 'en'
-      ? admission.jurisdiction
-      : (translatedFields.jurisdiction || admission.jurisdiction);
+    : (translatedFields.jurisdiction || admission.jurisdictionEs || admission.jurisdiction);
 
   return (
     <Badge 
@@ -482,10 +462,10 @@ function LanguageItemTranslated({
     fields: { 
       language: lang,
     },
-    enabled: language !== 'en' && language !== 'es',
+    enabled: language !== 'es',
   });
 
-  const displayLanguage = language === 'en' || language === 'es'
+  const displayLanguage = language === 'es'
     ? lang
     : (translatedFields.language || lang);
 
@@ -515,17 +495,15 @@ function RepresentativeMatterTranslated({
     contentType: 'team_member',
     entityId: `${memberId}_matter_${index}`,
     fields: { 
-      description: matter.description,
+      description: matter.descriptionEs || matter.description,
       descriptionEs: matter.descriptionEs,
     },
-    enabled: language !== 'en' && language !== 'es',
+    enabled: language !== 'es',
   });
 
   const displayDescription = language === 'es' && matter.descriptionEs
     ? matter.descriptionEs
-    : language === 'en'
-      ? matter.description
-      : (translatedFields.description || matter.description);
+    : (translatedFields.description || matter.descriptionEs || matter.description);
 
   return (
     <div 
@@ -580,14 +558,14 @@ export default function TeamMemberDetail() {
     contentType: 'team_member',
     entityId: member?.id?.toString() || '',
     fields: { 
-      title: member?.title, 
+      title: member?.titleEs || member?.title, 
       titleEs: member?.titleEs,
-      role: member?.role, 
+      role: member?.roleEs || member?.role, 
       roleEs: member?.roleEs,
-      bio: member?.bio,
+      bio: member?.bioEs || member?.bio,
       bioEs: member?.bioEs,
     },
-    enabled: !!member && !!member.bio && language !== 'en' && language !== 'es',
+    enabled: !!member && !!member.bio && language !== 'es',
   });
 
   const content: Record<string, {
