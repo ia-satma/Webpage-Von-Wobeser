@@ -259,14 +259,14 @@ export default function NewsSection() {
           >
             {t.title}
           </h2>
-          <a
-            href="#"
+          <Link
+            href="/news"
             className="hidden md:flex items-center gap-2 text-sm font-medium text-primary hover:text-primary/80 transition-colors group"
             data-testid="link-news-see-more"
           >
             {t.seeMore}
             <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-          </a>
+          </Link>
         </motion.div>
 
         {isLoading ? (
@@ -305,14 +305,14 @@ export default function NewsSection() {
         )}
 
         <div className="mt-10 text-center md:hidden">
-          <a
-            href="#"
+          <Link
+            href="/news"
             className="inline-flex items-center justify-center gap-2 min-h-[44px] px-4 py-2 text-sm font-medium text-primary touch-manipulation"
             data-testid="link-news-see-more-mobile"
           >
             {t.seeMore}
             <ArrowRight className="w-4 h-4" />
-          </a>
+          </Link>
         </div>
       </div>
     </section>
