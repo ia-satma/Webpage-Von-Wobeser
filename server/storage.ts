@@ -5,6 +5,8 @@ import {
   type InsertUser,
   type News,
   type InsertNews,
+  type NewsTranslation,
+  type InsertNewsTranslation,
   type OfficeImage,
   type InsertOfficeImage,
   type PracticeGroup,
@@ -35,6 +37,7 @@ import {
   type InsertTranslationCache,
   users,
   news,
+  newsTranslations,
   officeImages,
   practiceGroups,
   industryGroups,
@@ -134,6 +137,13 @@ export interface IStorage {
   getTranslation(contentType: string, entityId: string, field: string, targetLanguage: string): Promise<TranslationCache | undefined>;
   getTranslations(contentType: string, entityId: string, targetLanguage: string): Promise<TranslationCache[]>;
   saveTranslation(translation: InsertTranslationCache): Promise<TranslationCache>;
+  
+  // News translations
+  getNewsTranslations(newsId: string): Promise<NewsTranslation[]>;
+  getNewsTranslation(newsId: string, language: string): Promise<NewsTranslation | undefined>;
+  upsertNewsTranslation(data: InsertNewsTranslation): Promise<NewsTranslation>;
+  deleteNewsTranslations(newsId: string): Promise<boolean>;
+  getNewsWithTranslations(newsId: string): Promise<{ news: News; translations: NewsTranslation[] } | undefined>;
 }
 
 const siteContent: SiteContent = {
@@ -598,6 +608,71 @@ export class DatabaseStorage implements IStorage {
 
     const [item] = await db.insert(translationCache).values(translation).returning();
     return item;
+  }
+
+  // News Translations
+  async getNewsTranslations(newsId: string): Promise<NewsTranslation[]> {
+    return db
+      .select()
+      .from(newsTranslations)
+      .where(eq(newsTranslations.newsId, newsId));
+  }
+
+  async getNewsTranslation(newsId: string, language: string): Promise<NewsTranslation | undefined> {
+    const [translation] = await db
+      .select()
+      .from(newsTranslations)
+      .where(
+        and(
+          eq(newsTranslations.newsId, newsId),
+          eq(newsTranslations.language, language)
+        )
+      );
+    return translation;
+  }
+
+  async upsertNewsTranslation(data: InsertNewsTranslation): Promise<NewsTranslation> {
+    const existing = await this.getNewsTranslation(data.newsId, data.language);
+
+    if (existing) {
+      const [updated] = await db
+        .update(newsTranslations)
+        .set({
+          title: data.title,
+          excerpt: data.excerpt,
+          content: data.content,
+          category: data.category,
+          seoTitle: data.seoTitle,
+          seoDescription: data.seoDescription,
+          seoKeywords: data.seoKeywords,
+          translatedBy: data.translatedBy,
+          translatedAt: new Date(),
+        })
+        .where(eq(newsTranslations.id, existing.id))
+        .returning();
+      return updated;
+    }
+
+    const [item] = await db.insert(newsTranslations).values(data).returning();
+    return item;
+  }
+
+  async deleteNewsTranslations(newsId: string): Promise<boolean> {
+    const result = await db
+      .delete(newsTranslations)
+      .where(eq(newsTranslations.newsId, newsId))
+      .returning();
+    return result.length > 0;
+  }
+
+  async getNewsWithTranslations(newsId: string): Promise<{ news: News; translations: NewsTranslation[] } | undefined> {
+    const newsItem = await this.getNewsById(newsId);
+    if (!newsItem) {
+      return undefined;
+    }
+
+    const translations = await this.getNewsTranslations(newsId);
+    return { news: newsItem, translations };
   }
 }
 

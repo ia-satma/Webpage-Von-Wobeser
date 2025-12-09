@@ -100,6 +100,25 @@ export const insertNewsSchema = createInsertSchema(news).omit({ id: true, date: 
 export type InsertNews = z.infer<typeof insertNewsSchema>;
 export type News = typeof news.$inferSelect;
 
+export const newsTranslations = pgTable("news_translations", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  newsId: varchar("news_id").notNull().references(() => news.id, { onDelete: "cascade" }),
+  language: varchar("language", { length: 5 }).notNull(), // en, es, de, zh, ko, ja, ar, ru, fr, it
+  title: text("title").notNull(),
+  excerpt: text("excerpt").notNull(),
+  content: text("content"),
+  category: text("category"),
+  seoTitle: text("seo_title"),
+  seoDescription: text("seo_description"),
+  seoKeywords: text("seo_keywords").array(),
+  translatedAt: timestamp("translated_at").defaultNow(),
+  translatedBy: varchar("translated_by").default("ai"), // "ai" or "manual"
+});
+
+export const insertNewsTranslationSchema = createInsertSchema(newsTranslations).omit({ id: true, translatedAt: true });
+export type InsertNewsTranslation = z.infer<typeof insertNewsTranslationSchema>;
+export type NewsTranslation = typeof newsTranslations.$inferSelect;
+
 export const officeImages = pgTable("office_images", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   imageUrl: text("image_url").notNull(),
