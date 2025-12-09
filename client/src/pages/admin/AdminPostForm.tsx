@@ -16,7 +16,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft, Save, Send, Sparkles, Loader2 } from "lucide-react";
+import { ArrowLeft, Save, Send, Sparkles, Loader2, Globe } from "lucide-react";
 import type { BlogPost, BlogCategory } from "@shared/schema";
 
 const translations = {
@@ -60,6 +60,10 @@ const translations = {
     translationSuccess: "Translation suggested with {confidence}% confidence",
     translationError: "Failed to suggest translation",
     noEnglishText: "Enter English text first",
+    translateAllLanguages: "Translate to All Languages",
+    translatingAll: "Translating...",
+    translateAllSuccess: "Translation to all languages initiated successfully",
+    translateAllError: "Failed to translate to all languages",
   },
   es: {
     createTitle: "Crear Nuevo Post",
@@ -101,6 +105,10 @@ const translations = {
     translationSuccess: "Traducción sugerida con {confidence}% de confianza",
     translationError: "Error al sugerir traducción",
     noEnglishText: "Ingrese texto en inglés primero",
+    translateAllLanguages: "Traducir a Todos los Idiomas",
+    translatingAll: "Traduciendo...",
+    translateAllSuccess: "Traducción a todos los idiomas iniciada exitosamente",
+    translateAllError: "Error al traducir a todos los idiomas",
   },
   de: {
     createTitle: "Neuen Beitrag erstellen",
@@ -142,6 +150,10 @@ const translations = {
     translationSuccess: "Übersetzung mit {confidence}% Konfidenz vorgeschlagen",
     translationError: "Fehler beim Vorschlagen der Übersetzung",
     noEnglishText: "Geben Sie zuerst englischen Text ein",
+    translateAllLanguages: "In alle Sprachen übersetzen",
+    translatingAll: "Übersetzen...",
+    translateAllSuccess: "Übersetzung in alle Sprachen erfolgreich gestartet",
+    translateAllError: "Fehler beim Übersetzen in alle Sprachen",
   },
   zh: {
     createTitle: "创建新文章",
@@ -183,6 +195,10 @@ const translations = {
     translationSuccess: "翻译建议置信度为 {confidence}%",
     translationError: "翻译建议失败",
     noEnglishText: "请先输入英文文本",
+    translateAllLanguages: "翻译成所有语言",
+    translatingAll: "翻译中...",
+    translateAllSuccess: "已成功启动所有语言翻译",
+    translateAllError: "翻译到所有语言失败",
   },
   ko: {
     createTitle: "새 게시물 작성",
@@ -224,6 +240,10 @@ const translations = {
     translationSuccess: "{confidence}% 신뢰도로 번역이 제안되었습니다",
     translationError: "번역 제안 실패",
     noEnglishText: "먼저 영어 텍스트를 입력하세요",
+    translateAllLanguages: "모든 언어로 번역",
+    translatingAll: "번역 중...",
+    translateAllSuccess: "모든 언어로 번역이 성공적으로 시작되었습니다",
+    translateAllError: "모든 언어로 번역 실패",
   },
   ja: {
     createTitle: "新しい記事を作成",
@@ -265,6 +285,10 @@ const translations = {
     translationSuccess: "{confidence}%の信頼度で翻訳が提案されました",
     translationError: "翻訳の提案に失敗しました",
     noEnglishText: "まず英語のテキストを入力してください",
+    translateAllLanguages: "すべての言語に翻訳",
+    translatingAll: "翻訳中...",
+    translateAllSuccess: "すべての言語への翻訳が正常に開始されました",
+    translateAllError: "すべての言語への翻訳に失敗しました",
   },
   ar: {
     createTitle: "إنشاء مقالة جديدة",
@@ -306,6 +330,10 @@ const translations = {
     translationSuccess: "تم اقتراح الترجمة بثقة {confidence}%",
     translationError: "فشل في اقتراح الترجمة",
     noEnglishText: "أدخل النص الإنجليزي أولاً",
+    translateAllLanguages: "ترجمة إلى جميع اللغات",
+    translatingAll: "جاري الترجمة...",
+    translateAllSuccess: "تم بدء الترجمة إلى جميع اللغات بنجاح",
+    translateAllError: "فشل في الترجمة إلى جميع اللغات",
   },
   ru: {
     createTitle: "Создать новую запись",
@@ -347,6 +375,10 @@ const translations = {
     translationSuccess: "Перевод предложен с уверенностью {confidence}%",
     translationError: "Не удалось предложить перевод",
     noEnglishText: "Сначала введите текст на английском",
+    translateAllLanguages: "Перевести на все языки",
+    translatingAll: "Перевод...",
+    translateAllSuccess: "Перевод на все языки успешно запущен",
+    translateAllError: "Не удалось перевести на все языки",
   },
   fr: {
     createTitle: "Créer un nouvel article",
@@ -388,6 +420,10 @@ const translations = {
     translationSuccess: "Traduction suggérée avec {confidence}% de confiance",
     translationError: "Échec de la suggestion de traduction",
     noEnglishText: "Entrez d'abord le texte en anglais",
+    translateAllLanguages: "Traduire dans toutes les langues",
+    translatingAll: "Traduction...",
+    translateAllSuccess: "Traduction vers toutes les langues lancée avec succès",
+    translateAllError: "Échec de la traduction vers toutes les langues",
   },
   it: {
     createTitle: "Crea nuovo articolo",
@@ -429,6 +465,10 @@ const translations = {
     translationSuccess: "Traduzione suggerita con {confidence}% di affidabilità",
     translationError: "Impossibile suggerire la traduzione",
     noEnglishText: "Inserisci prima il testo in inglese",
+    translateAllLanguages: "Traduci in tutte le lingue",
+    translatingAll: "Traduzione...",
+    translateAllSuccess: "Traduzione in tutte le lingue avviata con successo",
+    translateAllError: "Impossibile tradurre in tutte le lingue",
   },
 };
 
@@ -476,6 +516,8 @@ export default function AdminPostForm() {
     excerpt: false,
     content: false,
   });
+
+  const [isTranslatingAll, setIsTranslatingAll] = useState(false);
 
   useEffect(() => {
     if (!authLoading) {
@@ -577,6 +619,38 @@ export default function AdminPostForm() {
       saveMutation.mutate({ ...data, status });
     })();
   };
+
+  const translateAllMutation = useMutation({
+    mutationFn: async () => {
+      const res = await adminApiRequest("POST", "/api/agents/run/polyglot_translator", {
+        contentType: "blog_post",
+        entityId: id,
+        fields: ["title", "content", "excerpt"],
+      });
+      if (!res.ok) {
+        const error = await res.text();
+        throw new Error(error || "Failed to translate");
+      }
+      return res.json();
+    },
+    onMutate: () => {
+      setIsTranslatingAll(true);
+    },
+    onSuccess: () => {
+      toast({ title: t.translateAllSuccess });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/posts", id] });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: t.translateAllError,
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+    onSettled: () => {
+      setIsTranslatingAll(false);
+    },
+  });
 
   const handleTitleChange = (value: string) => {
     form.setValue("title", value);
@@ -681,6 +755,21 @@ export default function AdminPostForm() {
               </h1>
             </div>
             <div className="flex gap-2">
+              {isEditing && (
+                <Button
+                  variant="outline"
+                  onClick={() => translateAllMutation.mutate()}
+                  disabled={isTranslatingAll || saveMutation.isPending}
+                  data-testid="button-translate-all"
+                >
+                  {isTranslatingAll ? (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  ) : (
+                    <Globe className="mr-2 h-4 w-4" />
+                  )}
+                  {isTranslatingAll ? t.translatingAll : t.translateAllLanguages}
+                </Button>
+              )}
               <Button
                 variant="outline"
                 onClick={() => handleSave("draft")}

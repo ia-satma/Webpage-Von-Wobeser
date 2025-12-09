@@ -13,7 +13,9 @@ import {
   PlusCircle, 
   FolderOpen, 
   LogOut,
-  LayoutDashboard
+  LayoutDashboard,
+  Bot,
+  Globe
 } from "lucide-react";
 import type { BlogPost } from "@shared/schema";
 
@@ -31,6 +33,8 @@ const translations = {
     newPost: "New Post",
     manageCategories: "Manage Categories",
     allPosts: "All Posts",
+    aiAgents: "AI Agents",
+    translations: "Translations",
     logout: "Logout",
     loading: "Loading...",
     draft: "Draft",
@@ -49,6 +53,8 @@ const translations = {
     newPost: "Nuevo Post",
     manageCategories: "Gestionar Categorías",
     allPosts: "Todos los Posts",
+    aiAgents: "Agentes IA",
+    translations: "Traducciones",
     logout: "Cerrar Sesión",
     loading: "Cargando...",
     draft: "Borrador",
@@ -67,6 +73,8 @@ const translations = {
     newPost: "Neuer Beitrag",
     manageCategories: "Kategorien verwalten",
     allPosts: "Alle Beiträge",
+    aiAgents: "KI-Agenten",
+    translations: "Übersetzungen",
     logout: "Abmelden",
     loading: "Wird geladen...",
     draft: "Entwurf",
@@ -85,6 +93,8 @@ const translations = {
     newPost: "新建文章",
     manageCategories: "管理分类",
     allPosts: "所有文章",
+    aiAgents: "AI 代理",
+    translations: "翻译",
     logout: "退出登录",
     loading: "加载中...",
     draft: "草稿",
@@ -103,6 +113,8 @@ const translations = {
     newPost: "새 게시물",
     manageCategories: "카테고리 관리",
     allPosts: "모든 게시물",
+    aiAgents: "AI 에이전트",
+    translations: "번역",
     logout: "로그아웃",
     loading: "로딩 중...",
     draft: "임시 저장",
@@ -121,6 +133,8 @@ const translations = {
     newPost: "新しい記事",
     manageCategories: "カテゴリを管理",
     allPosts: "すべての記事",
+    aiAgents: "AIエージェント",
+    translations: "翻訳",
     logout: "ログアウト",
     loading: "読み込み中...",
     draft: "下書き",
@@ -139,6 +153,8 @@ const translations = {
     newPost: "مقالة جديدة",
     manageCategories: "إدارة الفئات",
     allPosts: "جميع المقالات",
+    aiAgents: "وكلاء الذكاء الاصطناعي",
+    translations: "الترجمات",
     logout: "تسجيل الخروج",
     loading: "جاري التحميل...",
     draft: "مسودة",
@@ -157,6 +173,8 @@ const translations = {
     newPost: "Новая запись",
     manageCategories: "Управление категориями",
     allPosts: "Все записи",
+    aiAgents: "ИИ-агенты",
+    translations: "Переводы",
     logout: "Выйти",
     loading: "Загрузка...",
     draft: "Черновик",
@@ -175,6 +193,8 @@ const translations = {
     newPost: "Nouvel article",
     manageCategories: "Gérer les catégories",
     allPosts: "Tous les articles",
+    aiAgents: "Agents IA",
+    translations: "Traductions",
     logout: "Déconnexion",
     loading: "Chargement...",
     draft: "Brouillon",
@@ -193,6 +213,8 @@ const translations = {
     newPost: "Nuovo articolo",
     manageCategories: "Gestisci categorie",
     allPosts: "Tutti gli articoli",
+    aiAgents: "Agenti IA",
+    translations: "Traduzioni",
     logout: "Esci",
     loading: "Caricamento...",
     draft: "Bozza",
@@ -407,6 +429,12 @@ export default function AdminDashboard() {
                 <Button variant="outline" className="w-full justify-start" data-testid="button-all-posts">
                   <FileText className="mr-2 h-4 w-4" />
                   {t.allPosts}
+                </Button>
+              </Link>
+              <Link href="/admin/agents">
+                <Button variant="outline" className="w-full justify-start" data-testid="button-ai-agents">
+                  <Bot className="mr-2 h-4 w-4" />
+                  {t.aiAgents}
                 </Button>
               </Link>
             </CardContent>
