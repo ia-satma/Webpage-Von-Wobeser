@@ -637,6 +637,51 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
   // ADMIN ROUTES
   // =============================================
 
+  // Admin Initialization (create first admin user)
+  app.post("/api/admin/init", async (req: Request, res: Response) => {
+    try {
+      // Validate input
+      const validation = adminLoginSchema.safeParse(req.body);
+      if (!validation.success) {
+        return res.status(400).json({ 
+          error: "Invalid input", 
+          details: validation.error.errors 
+        });
+      }
+
+      const { username, password } = validation.data;
+      const passwordHash = await hashPassword(password);
+
+      // Check if user with this email already exists
+      const existingUser = await storage.getAdminUserByEmail(username);
+      if (existingUser) {
+        return res.status(403).json({ error: "Admin user with this email already exists" });
+      }
+
+      // Create the first admin user
+      const user = await storage.createAdminUser({
+        username: username.split('@')[0],
+        email: username,
+        passwordHash,
+        role: "super_admin",
+        isActive: true,
+      });
+
+      res.json({
+        success: true,
+        message: "Admin user created successfully",
+        user: {
+          id: user.id,
+          email: user.email,
+          role: user.role,
+        },
+      });
+    } catch (error) {
+      console.error("Init error:", error);
+      res.status(500).json({ error: "Initialization failed" });
+    }
+  });
+
   // Admin Login
   app.post("/api/admin/login", async (req: Request, res: Response) => {
     try {
