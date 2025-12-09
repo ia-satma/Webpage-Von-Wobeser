@@ -158,6 +158,46 @@ router.post('/pipeline/batch', async (req: Request, res: Response) => {
   }
 });
 
+router.post('/pipeline/process-all', async (req: Request, res: Response) => {
+  try {
+    const { stages, limit } = req.body;
+    
+    const allNews = await db.select({ id: news.id, title: news.title }).from(news);
+    const articleIds = limit ? allNews.slice(0, limit).map(n => n.id) : allNews.map(n => n.id);
+    
+    console.log(`[Pipeline] Processing ${articleIds.length} articles...`);
+    
+    const results: Record<string, any> = {};
+    let processed = 0;
+    let successful = 0;
+    let failed = 0;
+    
+    for (const articleId of articleIds) {
+      try {
+        console.log(`[Pipeline] Processing article ${++processed}/${articleIds.length}: ${articleId}`);
+        const result = await orchestrator.runPipeline(articleId, stages);
+        results[articleId] = result;
+        if (result.success) successful++;
+        else failed++;
+      } catch (error) {
+        results[articleId] = { success: false, error: String(error) };
+        failed++;
+      }
+    }
+
+    console.log(`[Pipeline] Completed: ${successful} successful, ${failed} failed`);
+    
+    res.json({ 
+      total: articleIds.length,
+      successful,
+      failed,
+      results 
+    });
+  } catch (error) {
+    res.status(500).json({ error: String(error) });
+  }
+});
+
 router.post('/audit', async (req: Request, res: Response) => {
   try {
     const { scanType } = req.body;

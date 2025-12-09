@@ -2,7 +2,7 @@ import { BaseAgent } from '../core/BaseAgent';
 import { AgentConfig, AgentResult, ExecutionContext } from '../core/types';
 import { knowledgeStore } from '../core/AgentKnowledge';
 import { db } from '../../db';
-import { news, translationCache } from '../../../shared/schema';
+import { news, translationCache, newsTranslations } from '../../../shared/schema';
 import { eq, and } from 'drizzle-orm';
 
 const LANGUAGES = ['en', 'es', 'de', 'zh', 'ko', 'ja', 'ar', 'ru', 'fr', 'it'] as const;
@@ -230,6 +230,34 @@ Return JSON with translated title, excerpt, and content.`;
         entityId: articleId,
         targetLanguage: language,
         translations: translation,
+      });
+    }
+
+    // Also save to news_translations table for direct access
+    const existingNewsTranslation = await db.select()
+      .from(newsTranslations)
+      .where(and(
+        eq(newsTranslations.newsId, articleId),
+        eq(newsTranslations.language, language)
+      ));
+
+    if (existingNewsTranslation.length > 0) {
+      await db.update(newsTranslations)
+        .set({
+          title: translation.title,
+          excerpt: translation.excerpt,
+          content: translation.content,
+          translatedAt: new Date(),
+        })
+        .where(eq(newsTranslations.id, existingNewsTranslation[0].id));
+    } else {
+      await db.insert(newsTranslations).values({
+        newsId: articleId,
+        language: language,
+        title: translation.title,
+        excerpt: translation.excerpt,
+        content: translation.content,
+        translatedBy: 'ai',
       });
     }
   }
