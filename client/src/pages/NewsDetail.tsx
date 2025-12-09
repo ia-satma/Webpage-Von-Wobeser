@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 import { ArrowLeft, Calendar, Share2, Linkedin, Twitter, Mail, LinkIcon, AlertCircle, MessageCircle, Loader2 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
-import { es, enUS } from "date-fns/locale";
+import { es, enUS, de, zhCN, ko, ja, arSA, ru, fr, it } from "date-fns/locale";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -15,6 +15,7 @@ import Footer from "@/components/Footer";
 import { ArticleJsonLd, BreadcrumbJsonLd } from "@/components/JsonLdSchema";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useTranslatedContent } from "@/hooks/useTranslatedContent";
+import { isNativeLanguage } from "@/lib/translationUtils";
 import type { News, TeamMember } from "@shared/schema";
 
 function NewsHeroImage({ 
@@ -66,6 +67,83 @@ function NewsCardImage({
       className={className}
       onError={() => setHasError(true)}
     />
+  );
+}
+
+function AuthorCard({ 
+  author, 
+  getInitials, 
+  truncateBio 
+}: { 
+  author: TeamMember; 
+  getInitials: (name: string) => string;
+  truncateBio: (bio: string | null | undefined, maxLength?: number) => string;
+}) {
+  const { language } = useLanguage();
+  
+  const { translatedFields, isTranslating } = useTranslatedContent({
+    contentType: 'team_member',
+    entityId: author.id.toString(),
+    fields: {
+      title: author.title,
+      titleEs: author.titleEs,
+      bio: author.bio,
+      bioEs: author.bioEs,
+    },
+    enabled: !isNativeLanguage(language),
+  });
+
+  const displayTitle = translatedFields.title || author.title;
+  const displayBio = translatedFields.bio || author.bio;
+  
+  return (
+    <Link 
+      href={`/team/${author.slug}`}
+      className="block"
+    >
+      <Card
+        className="group overflow-visible border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-lg transition-all duration-300 rounded-md bg-white dark:bg-gray-800 hover-elevate"
+        data-testid={`card-author-${author.slug}`}
+      >
+        <CardContent className="p-6">
+          <div className="flex items-start gap-4">
+            <Avatar className="w-16 h-16 flex-shrink-0 border-2 border-gray-100 dark:border-gray-700" data-testid={`avatar-author-${author.slug}`}>
+              <AvatarImage 
+                src={author.imageUrl || undefined} 
+                alt={author.name}
+                className="object-cover"
+              />
+              <AvatarFallback className="bg-primary/10 text-primary text-lg font-medium">
+                {getInitials(author.name)}
+              </AvatarFallback>
+            </Avatar>
+            <div className="flex-1 min-w-0">
+              <h3 
+                className="text-lg font-medium text-gray-800 dark:text-white group-hover:text-primary transition-colors"
+                data-testid={`text-author-name-${author.slug}`}
+              >
+                {author.name}
+              </h3>
+              <p 
+                className="text-sm text-primary font-medium mb-2"
+                data-testid={`text-author-title-${author.slug}`}
+              >
+                {displayTitle}
+                {isTranslating && (
+                  <Loader2 className="inline-block w-3 h-3 ml-2 animate-spin text-primary/60" />
+                )}
+              </p>
+              <p 
+                className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed line-clamp-3"
+                data-testid={`text-author-bio-${author.slug}`}
+              >
+                {truncateBio(displayBio)}
+              </p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    </Link>
   );
 }
 
@@ -294,24 +372,56 @@ export default function NewsDetail() {
 
   const t = content[language] || content.en;
 
+  const getDateLocale = () => {
+    const localeMap: Record<string, typeof enUS> = {
+      en: enUS,
+      es: es,
+      de: de,
+      zh: zhCN,
+      ko: ko,
+      ja: ja,
+      ar: arSA,
+      ru: ru,
+      fr: fr,
+      it: it,
+    };
+    return localeMap[language] || enUS;
+  };
+
+  const getDateFormatPattern = () => {
+    const formatMap: Record<string, string> = {
+      en: "MMMM d, yyyy",
+      es: "d 'de' MMMM, yyyy",
+      de: "d. MMMM yyyy",
+      zh: "yyyy'年'M'月'd'日'",
+      ko: "yyyy'년' M'월' d'일'",
+      ja: "yyyy'年'M'月'd'日'",
+      ar: "d MMMM yyyy",
+      ru: "d MMMM yyyy 'г.'",
+      fr: "d MMMM yyyy",
+      it: "d MMMM yyyy",
+    };
+    return formatMap[language] || "MMMM d, yyyy";
+  };
+
   const formatDate = (date: Date | string | null) => {
     if (!date) return "";
     const dateObj = typeof date === "string" ? new Date(date) : date;
-    return format(dateObj, "d 'de' MMMM, yyyy", {
-      locale: language === "es" ? es : enUS,
+    return format(dateObj, getDateFormatPattern(), {
+      locale: getDateLocale(),
     });
   };
 
   const handleShare = (platform: "linkedin" | "twitter" | "whatsapp" | "email") => {
     const url = window.location.href;
-    const title = language === "es" ? newsArticle?.titleEs : newsArticle?.title;
-    const excerpt = language === "es" ? newsArticle?.excerptEs : newsArticle?.excerpt;
+    const shareTitle = translatedFields.title || newsArticle?.title;
+    const shareExcerpt = translatedFields.excerpt || newsArticle?.excerpt;
     
     const shareUrls = {
       linkedin: `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}`,
-      twitter: `https://twitter.com/intent/tweet?url=${encodeURIComponent(url)}&text=${encodeURIComponent(title || "")}`,
-      whatsapp: `https://wa.me/?text=${encodeURIComponent(`${title} - ${url}`)}`,
-      email: `mailto:?subject=${encodeURIComponent(title || "")}&body=${encodeURIComponent(`${excerpt || ""}\n\n${url}`)}`,
+      twitter: `https://twitter.com/intent/tweet?url=${encodeURIComponent(url)}&text=${encodeURIComponent(shareTitle || "")}`,
+      whatsapp: `https://wa.me/?text=${encodeURIComponent(`${shareTitle} - ${url}`)}`,
+      email: `mailto:?subject=${encodeURIComponent(shareTitle || "")}&body=${encodeURIComponent(`${shareExcerpt || ""}\n\n${url}`)}`,
     };
     
     if (platform === "email") {
@@ -483,17 +593,31 @@ export default function NewsDetail() {
             transition={{ duration: 0.6, delay: 0.2 }}
           >
             <div 
-              className="prose prose-lg dark:prose-invert max-w-none mb-12"
+              className="prose prose-lg dark:prose-invert max-w-none mb-12 relative"
               data-testid="container-news-content"
             >
+              {isTranslating && !displayContent && (
+                <div className="space-y-4">
+                  <Skeleton className="h-6 w-full" />
+                  <Skeleton className="h-6 w-full" />
+                  <Skeleton className="h-6 w-5/6" />
+                  <Skeleton className="h-6 w-full" />
+                  <Skeleton className="h-6 w-4/5" />
+                </div>
+              )}
               {displayContent?.split('\n').map((paragraph, index) => (
                 <p 
                   key={index} 
-                  className="text-lg text-gray-700 dark:text-gray-300 leading-relaxed mb-6 text-justify sm:text-left"
+                  className={`text-lg text-gray-700 dark:text-gray-300 leading-relaxed mb-6 text-justify sm:text-left ${isTranslating ? 'opacity-70' : ''}`}
                 >
                   {paragraph}
                 </p>
               ))}
+              {isTranslating && displayContent && (
+                <div className="absolute top-0 right-0">
+                  <Loader2 className="w-4 h-4 animate-spin text-primary/60" />
+                </div>
+              )}
             </div>
 
             <div 
@@ -577,51 +701,12 @@ export default function NewsDetail() {
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {relatedAuthors.map((author) => (
-                  <Link 
-                    key={author.id} 
-                    href={`/team/${author.slug}`}
-                    className="block"
-                  >
-                    <Card
-                      className="group overflow-visible border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-lg transition-all duration-300 rounded-md bg-white dark:bg-gray-800 hover-elevate"
-                      data-testid={`card-author-${author.slug}`}
-                    >
-                      <CardContent className="p-6">
-                        <div className="flex items-start gap-4">
-                          <Avatar className="w-16 h-16 flex-shrink-0 border-2 border-gray-100 dark:border-gray-700" data-testid={`avatar-author-${author.slug}`}>
-                            <AvatarImage 
-                              src={author.imageUrl || undefined} 
-                              alt={author.name}
-                              className="object-cover"
-                            />
-                            <AvatarFallback className="bg-primary/10 text-primary text-lg font-medium">
-                              {getInitials(author.name)}
-                            </AvatarFallback>
-                          </Avatar>
-                          <div className="flex-1 min-w-0">
-                            <h3 
-                              className="text-lg font-medium text-gray-800 dark:text-white group-hover:text-primary transition-colors"
-                              data-testid={`text-author-name-${author.slug}`}
-                            >
-                              {author.name}
-                            </h3>
-                            <p 
-                              className="text-sm text-primary font-medium mb-2"
-                              data-testid={`text-author-title-${author.slug}`}
-                            >
-                              {language === "es" ? author.titleEs : author.title}
-                            </p>
-                            <p 
-                              className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed line-clamp-3"
-                              data-testid={`text-author-bio-${author.slug}`}
-                            >
-                              {truncateBio(language === "es" ? author.bioEs : author.bio)}
-                            </p>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </Link>
+                  <AuthorCard 
+                    key={author.id}
+                    author={author}
+                    getInitials={getInitials}
+                    truncateBio={truncateBio}
+                  />
                 ))}
               </div>
             </motion.section>

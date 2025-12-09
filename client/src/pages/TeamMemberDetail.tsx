@@ -210,6 +210,345 @@ function IndustryGroupBadge({
   );
 }
 
+function RankingItemTranslated({
+  ranking,
+  index,
+  language,
+  memberId,
+  isTiered,
+  getPublicationIcon,
+}: {
+  ranking: Ranking;
+  index: number;
+  language: LanguageCode;
+  memberId: string;
+  isTiered: boolean;
+  getPublicationIcon: (publication: string) => JSX.Element;
+}) {
+  const { translatedFields } = useTranslatedContent({
+    contentType: 'team_member',
+    entityId: `${memberId}_ranking_${index}`,
+    fields: { 
+      ranking: ranking.ranking,
+      rankingEs: ranking.rankingEs,
+      area: ranking.area,
+      areaEs: ranking.areaEs,
+    },
+    enabled: language !== 'en' && language !== 'es',
+  });
+
+  const displayRanking = language === 'es' && ranking.rankingEs
+    ? ranking.rankingEs
+    : language === 'en'
+      ? ranking.ranking
+      : (translatedFields.ranking || ranking.ranking);
+
+  const displayArea = language === 'es' && ranking.areaEs
+    ? ranking.areaEs
+    : language === 'en'
+      ? ranking.area
+      : (translatedFields.area || ranking.area);
+
+  if (isTiered) {
+    return (
+      <Card 
+        className="border border-amber-200/50 dark:border-amber-700/30 bg-white dark:bg-gray-800/50 rounded-md overflow-visible"
+        data-testid={`card-ranking-tiered-${index}`}
+      >
+        <CardContent className="p-4">
+          <div className="flex items-start gap-3">
+            <div className="flex-shrink-0 mt-0.5">
+              {getPublicationIcon(ranking.publication)}
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="font-medium text-gray-800 dark:text-white">
+                {ranking.publication}
+              </p>
+              <div className="flex flex-wrap items-center gap-2 mt-2">
+                <Badge 
+                  className="bg-amber-500 text-white rounded-md border-0"
+                  data-testid={`badge-ranking-band-${index}`}
+                >
+                  {displayRanking}
+                </Badge>
+                {ranking.year && (
+                  <Badge 
+                    variant="outline" 
+                    className="rounded-md border-amber-300 dark:border-amber-600"
+                  >
+                    {ranking.year}
+                  </Badge>
+                )}
+              </div>
+              {displayArea && (
+                <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
+                  {displayArea}
+                </p>
+              )}
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <div
+      className="flex items-center gap-3 p-3 bg-white dark:bg-gray-800/50 rounded-md border border-amber-200/30 dark:border-amber-700/20"
+      data-testid={`item-ranking-simple-${index}`}
+    >
+      <div className="flex-shrink-0">
+        {getPublicationIcon(ranking.publication)}
+      </div>
+      <div className="flex-1 min-w-0">
+        <p className="text-sm font-medium text-gray-800 dark:text-white truncate">
+          {ranking.publication}
+        </p>
+        {ranking.year && (
+          <p className="text-xs text-gray-500 dark:text-gray-400">
+            {ranking.year}
+          </p>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function PublicationItemTranslated({
+  pub,
+  index,
+  language,
+  memberId,
+  viewPublicationText,
+}: {
+  pub: Publication;
+  index: number;
+  language: LanguageCode;
+  memberId: string;
+  viewPublicationText: string;
+}) {
+  const { translatedFields } = useTranslatedContent({
+    contentType: 'team_member',
+    entityId: `${memberId}_pub_${index}`,
+    fields: { 
+      title: pub.title,
+      titleEs: pub.titleEs,
+    },
+    enabled: language !== 'en' && language !== 'es',
+  });
+
+  const displayTitle = language === 'es' && pub.titleEs
+    ? pub.titleEs
+    : language === 'en'
+      ? pub.title
+      : (translatedFields.title || pub.title);
+
+  return (
+    <div 
+      className="border-l-2 border-primary/30 pl-4 py-1"
+      data-testid={`item-publication-${index}`}
+    >
+      <p className="text-gray-800 dark:text-white font-medium">
+        {displayTitle}
+      </p>
+      <div className="flex flex-wrap items-center gap-2 mt-1 text-sm text-gray-500 dark:text-gray-400">
+        {pub.journal && <span>{pub.journal}</span>}
+        {pub.year && <span>• {pub.year}</span>}
+        {pub.url && (
+          <a 
+            href={pub.url} 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="text-primary hover:underline"
+          >
+            {viewPublicationText}
+          </a>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function AffiliationItemTranslated({
+  affiliation,
+  index,
+  language,
+  memberId,
+}: {
+  affiliation: Affiliation;
+  index: number;
+  language: LanguageCode;
+  memberId: string;
+}) {
+  const { translatedFields } = useTranslatedContent({
+    contentType: 'team_member',
+    entityId: `${memberId}_affil_${index}`,
+    fields: { 
+      organization: affiliation.organization,
+      organizationEs: affiliation.organizationEs,
+      role: affiliation.role,
+      roleEs: affiliation.roleEs,
+    },
+    enabled: language !== 'en' && language !== 'es',
+  });
+
+  const displayOrganization = language === 'es' && affiliation.organizationEs
+    ? affiliation.organizationEs
+    : language === 'en'
+      ? affiliation.organization
+      : (translatedFields.organization || affiliation.organization);
+
+  const displayRole = affiliation.role
+    ? (language === 'es' && affiliation.roleEs
+        ? affiliation.roleEs
+        : language === 'en'
+          ? affiliation.role
+          : (translatedFields.role || affiliation.role))
+    : null;
+
+  return (
+    <div 
+      className="flex items-start gap-3"
+      data-testid={`item-affiliation-${index}`}
+    >
+      <div className="w-2 h-2 rounded-full bg-primary mt-2 flex-shrink-0" />
+      <div>
+        <p className="text-gray-800 dark:text-white">
+          {displayOrganization}
+        </p>
+        {displayRole && (
+          <p className="text-sm text-gray-500 dark:text-gray-400">
+            {displayRole}
+          </p>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function BarAdmissionItemTranslated({
+  admission,
+  index,
+  language,
+  memberId,
+}: {
+  admission: BarAdmission;
+  index: number;
+  language: LanguageCode;
+  memberId: string;
+}) {
+  const { translatedFields } = useTranslatedContent({
+    contentType: 'team_member',
+    entityId: `${memberId}_bar_${index}`,
+    fields: { 
+      jurisdiction: admission.jurisdiction,
+      jurisdictionEs: admission.jurisdictionEs,
+    },
+    enabled: language !== 'en' && language !== 'es',
+  });
+
+  const displayJurisdiction = language === 'es' && admission.jurisdictionEs
+    ? admission.jurisdictionEs
+    : language === 'en'
+      ? admission.jurisdiction
+      : (translatedFields.jurisdiction || admission.jurisdiction);
+
+  return (
+    <Badge 
+      variant="secondary"
+      className="rounded-md py-2 px-4"
+      data-testid={`badge-bar-admission-${index}`}
+    >
+      {displayJurisdiction}
+      {admission.year && <span className="ml-1 opacity-70">({admission.year})</span>}
+    </Badge>
+  );
+}
+
+function LanguageItemTranslated({
+  lang,
+  index,
+  language,
+  memberId,
+}: {
+  lang: string;
+  index: number;
+  language: LanguageCode;
+  memberId: string;
+}) {
+  const { translatedFields } = useTranslatedContent({
+    contentType: 'team_member',
+    entityId: `${memberId}_lang_${index}`,
+    fields: { 
+      language: lang,
+    },
+    enabled: language !== 'en' && language !== 'es',
+  });
+
+  const displayLanguage = language === 'en' || language === 'es'
+    ? lang
+    : (translatedFields.language || lang);
+
+  return (
+    <Badge 
+      variant="outline"
+      className="rounded-md py-2 px-4"
+      data-testid={`badge-language-${index}`}
+    >
+      {displayLanguage}
+    </Badge>
+  );
+}
+
+function RepresentativeMatterTranslated({
+  matter,
+  index,
+  language,
+  memberId,
+}: {
+  matter: RepresentativeMatter;
+  index: number;
+  language: LanguageCode;
+  memberId: string;
+}) {
+  const { translatedFields } = useTranslatedContent({
+    contentType: 'team_member',
+    entityId: `${memberId}_matter_${index}`,
+    fields: { 
+      description: matter.description,
+      descriptionEs: matter.descriptionEs,
+    },
+    enabled: language !== 'en' && language !== 'es',
+  });
+
+  const displayDescription = language === 'es' && matter.descriptionEs
+    ? matter.descriptionEs
+    : language === 'en'
+      ? matter.description
+      : (translatedFields.description || matter.description);
+
+  return (
+    <div 
+      className="flex items-start gap-3"
+      data-testid={`item-representative-matter-${index}`}
+    >
+      <div className="w-2 h-2 rounded-full bg-primary mt-2 flex-shrink-0" />
+      <div>
+        <p className="text-gray-800 dark:text-white">
+          {displayDescription}
+        </p>
+        {(matter.client || matter.year) && (
+          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+            {matter.client && <span>{matter.client}</span>}
+            {matter.client && matter.year && <span> • </span>}
+            {matter.year && <span>{matter.year}</span>}
+          </p>
+        )}
+      </div>
+    </div>
+  );
+}
+
 export default function TeamMemberDetail() {
   const { language } = useLanguage();
   const params = useParams<{ slug: string }>();
@@ -285,6 +624,7 @@ export default function TeamMemberDetail() {
     tieredRankings: string;
     otherRecognitions: string;
     band: string;
+    viewPublication: string;
     positions: {
       foundingPartner: string;
       partner: string;
@@ -327,6 +667,7 @@ export default function TeamMemberDetail() {
       tieredRankings: "Tiered Rankings",
       otherRecognitions: "Other Recognitions",
       band: "Band",
+      viewPublication: "View Publication",
       positions: {
         foundingPartner: "Founding Partner",
         partner: "Partner",
@@ -369,6 +710,7 @@ export default function TeamMemberDetail() {
       tieredRankings: "Rankings por Nivel",
       otherRecognitions: "Otros Reconocimientos",
       band: "Banda",
+      viewPublication: "Ver Publicación",
       positions: {
         foundingPartner: "Socio Fundador",
         partner: "Socio",
@@ -411,6 +753,7 @@ export default function TeamMemberDetail() {
       tieredRankings: "Ranking-Einstufungen",
       otherRecognitions: "Weitere Auszeichnungen",
       band: "Band",
+      viewPublication: "Publikation ansehen",
       positions: {
         foundingPartner: "Gründungspartner",
         partner: "Partner",
@@ -453,6 +796,7 @@ export default function TeamMemberDetail() {
       tieredRankings: "分级排名",
       otherRecognitions: "其他认可",
       band: "等级",
+      viewPublication: "查看出版物",
       positions: {
         foundingPartner: "创始合伙人",
         partner: "合伙人",
@@ -495,6 +839,7 @@ export default function TeamMemberDetail() {
       tieredRankings: "등급별 순위",
       otherRecognitions: "기타 인정",
       band: "등급",
+      viewPublication: "출판물 보기",
       positions: {
         foundingPartner: "창립 파트너",
         partner: "파트너",
@@ -537,6 +882,7 @@ export default function TeamMemberDetail() {
       tieredRankings: "段階別ランキング",
       otherRecognitions: "その他の評価",
       band: "バンド",
+      viewPublication: "出版物を見る",
       positions: {
         foundingPartner: "創立パートナー",
         partner: "パートナー",
@@ -579,6 +925,7 @@ export default function TeamMemberDetail() {
       tieredRankings: "التصنيفات حسب المستوى",
       otherRecognitions: "تقديرات أخرى",
       band: "الفئة",
+      viewPublication: "عرض المنشور",
       positions: {
         foundingPartner: "شريك مؤسس",
         partner: "شريك",
@@ -621,6 +968,7 @@ export default function TeamMemberDetail() {
       tieredRankings: "Уровневые рейтинги",
       otherRecognitions: "Другие признания",
       band: "Уровень",
+      viewPublication: "Смотреть публикацию",
       positions: {
         foundingPartner: "Учредитель",
         partner: "Партнёр",
@@ -663,6 +1011,7 @@ export default function TeamMemberDetail() {
       tieredRankings: "Classements par niveau",
       otherRecognitions: "Autres distinctions",
       band: "Bande",
+      viewPublication: "Voir la publication",
       positions: {
         foundingPartner: "Associé fondateur",
         partner: "Associé",
@@ -705,6 +1054,7 @@ export default function TeamMemberDetail() {
       tieredRankings: "Classifiche per livello",
       otherRecognitions: "Altri riconoscimenti",
       band: "Fascia",
+      viewPublication: "Vedi pubblicazione",
       positions: {
         foundingPartner: "Partner fondatore",
         partner: "Partner",
@@ -1125,48 +1475,15 @@ export default function TeamMemberDetail() {
                         </h3>
                         <div className="space-y-3">
                           {processedRankings.tieredRankings.map((ranking, index) => (
-                            <Card 
+                            <RankingItemTranslated
                               key={index}
-                              className="border border-amber-200/50 dark:border-amber-700/30 bg-white dark:bg-gray-800/50 rounded-md overflow-visible"
-                              data-testid={`card-ranking-tiered-${index}`}
-                            >
-                              <CardContent className="p-4">
-                                <div className="flex items-start gap-3">
-                                  <div className="flex-shrink-0 mt-0.5">
-                                    {getPublicationIcon(ranking.publication)}
-                                  </div>
-                                  <div className="flex-1 min-w-0">
-                                    <p className="font-medium text-gray-800 dark:text-white">
-                                      {ranking.publication}
-                                    </p>
-                                    <div className="flex flex-wrap items-center gap-2 mt-2">
-                                      <Badge 
-                                        className="bg-amber-500 text-white rounded-md border-0"
-                                        data-testid={`badge-ranking-band-${index}`}
-                                      >
-                                        {language === "es" && ranking.rankingEs 
-                                          ? ranking.rankingEs 
-                                          : ranking.ranking
-                                        }
-                                      </Badge>
-                                      {ranking.year && (
-                                        <Badge 
-                                          variant="outline" 
-                                          className="rounded-md border-amber-300 dark:border-amber-600"
-                                        >
-                                          {ranking.year}
-                                        </Badge>
-                                      )}
-                                    </div>
-                                    {ranking.area && (
-                                      <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
-                                        {language === "es" && ranking.areaEs ? ranking.areaEs : ranking.area}
-                                      </p>
-                                    )}
-                                  </div>
-                                </div>
-                              </CardContent>
-                            </Card>
+                              ranking={ranking}
+                              index={index}
+                              language={language}
+                              memberId={member?.id?.toString() || ''}
+                              isTiered={true}
+                              getPublicationIcon={getPublicationIcon}
+                            />
                           ))}
                         </div>
                       </div>
@@ -1182,25 +1499,15 @@ export default function TeamMemberDetail() {
                         )}
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                           {processedRankings.simpleRankings.map((ranking, index) => (
-                            <div
+                            <RankingItemTranslated
                               key={index}
-                              className="flex items-center gap-3 p-3 bg-white dark:bg-gray-800/50 rounded-md border border-amber-200/30 dark:border-amber-700/20"
-                              data-testid={`item-ranking-simple-${index}`}
-                            >
-                              <div className="flex-shrink-0">
-                                {getPublicationIcon(ranking.publication)}
-                              </div>
-                              <div className="flex-1 min-w-0">
-                                <p className="text-sm font-medium text-gray-800 dark:text-white truncate">
-                                  {ranking.publication}
-                                </p>
-                                {ranking.year && (
-                                  <p className="text-xs text-gray-500 dark:text-gray-400">
-                                    {ranking.year}
-                                  </p>
-                                )}
-                              </div>
-                            </div>
+                              ranking={ranking}
+                              index={processedRankings.tieredRankings.length + index}
+                              language={language}
+                              memberId={member?.id?.toString() || ''}
+                              isTiered={false}
+                              getPublicationIcon={getPublicationIcon}
+                            />
                           ))}
                         </div>
                       </div>
@@ -1305,15 +1612,13 @@ export default function TeamMemberDetail() {
                   </h2>
                   <div className="flex flex-wrap gap-3">
                     {(member.barAdmissions as BarAdmission[]).map((admission, index) => (
-                      <Badge 
+                      <BarAdmissionItemTranslated
                         key={index}
-                        variant="secondary"
-                        className="rounded-md py-2 px-4"
-                        data-testid={`badge-bar-admission-${index}`}
-                      >
-                        {language === "es" && admission.jurisdictionEs ? admission.jurisdictionEs : admission.jurisdiction}
-                        {admission.year && <span className="ml-1 opacity-70">({admission.year})</span>}
-                      </Badge>
+                        admission={admission}
+                        index={index}
+                        language={language}
+                        memberId={member.id.toString()}
+                      />
                     ))}
                   </div>
                 </motion.section>
@@ -1335,14 +1640,13 @@ export default function TeamMemberDetail() {
                   </h2>
                   <div className="flex flex-wrap gap-3">
                     {(member.languages as string[]).map((lang, index) => (
-                      <Badge 
+                      <LanguageItemTranslated
                         key={index}
-                        variant="outline"
-                        className="rounded-md py-2 px-4"
-                        data-testid={`badge-language-${index}`}
-                      >
-                        {lang}
-                      </Badge>
+                        lang={lang}
+                        index={index}
+                        language={language}
+                        memberId={member.id.toString()}
+                      />
                     ))}
                   </div>
                 </motion.section>
@@ -1364,23 +1668,13 @@ export default function TeamMemberDetail() {
                   </h2>
                   <div className="space-y-3">
                     {(member.affiliations as Affiliation[]).map((affiliation, index) => (
-                      <div 
+                      <AffiliationItemTranslated
                         key={index}
-                        className="flex items-start gap-3"
-                        data-testid={`item-affiliation-${index}`}
-                      >
-                        <div className="w-2 h-2 rounded-full bg-primary mt-2 flex-shrink-0" />
-                        <div>
-                          <p className="text-gray-800 dark:text-white">
-                            {language === "es" && affiliation.organizationEs ? affiliation.organizationEs : affiliation.organization}
-                          </p>
-                          {affiliation.role && (
-                            <p className="text-sm text-gray-500 dark:text-gray-400">
-                              {language === "es" && affiliation.roleEs ? affiliation.roleEs : affiliation.role}
-                            </p>
-                          )}
-                        </div>
-                      </div>
+                        affiliation={affiliation}
+                        index={index}
+                        language={language}
+                        memberId={member.id.toString()}
+                      />
                     ))}
                   </div>
                 </motion.section>
@@ -1402,29 +1696,14 @@ export default function TeamMemberDetail() {
                   </h2>
                   <div className="space-y-4">
                     {(member.publications as Publication[]).map((pub, index) => (
-                      <div 
+                      <PublicationItemTranslated
                         key={index}
-                        className="border-l-2 border-primary/30 pl-4 py-1"
-                        data-testid={`item-publication-${index}`}
-                      >
-                        <p className="text-gray-800 dark:text-white font-medium">
-                          {language === "es" && pub.titleEs ? pub.titleEs : pub.title}
-                        </p>
-                        <div className="flex flex-wrap items-center gap-2 mt-1 text-sm text-gray-500 dark:text-gray-400">
-                          {pub.journal && <span>{pub.journal}</span>}
-                          {pub.year && <span>• {pub.year}</span>}
-                          {pub.url && (
-                            <a 
-                              href={pub.url} 
-                              target="_blank" 
-                              rel="noopener noreferrer"
-                              className="text-primary hover:underline"
-                            >
-                              View Publication
-                            </a>
-                          )}
-                        </div>
-                      </div>
+                        pub={pub}
+                        index={index}
+                        language={language}
+                        memberId={member.id.toString()}
+                        viewPublicationText={t.viewPublication}
+                      />
                     ))}
                   </div>
                 </motion.section>
@@ -1446,25 +1725,13 @@ export default function TeamMemberDetail() {
                   </h2>
                   <div className="space-y-3">
                     {(member.representativeMatters as RepresentativeMatter[]).map((matter, index) => (
-                      <div 
+                      <RepresentativeMatterTranslated
                         key={index}
-                        className="flex items-start gap-3"
-                        data-testid={`item-representative-matter-${index}`}
-                      >
-                        <div className="w-2 h-2 rounded-full bg-primary mt-2 flex-shrink-0" />
-                        <div>
-                          <p className="text-gray-800 dark:text-white">
-                            {language === "es" && matter.descriptionEs ? matter.descriptionEs : matter.description}
-                          </p>
-                          {(matter.client || matter.year) && (
-                            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                              {matter.client && <span>{matter.client}</span>}
-                              {matter.client && matter.year && <span> • </span>}
-                              {matter.year && <span>{matter.year}</span>}
-                            </p>
-                          )}
-                        </div>
-                      </div>
+                        matter={matter}
+                        index={index}
+                        language={language}
+                        memberId={member.id.toString()}
+                      />
                     ))}
                   </div>
                 </motion.section>

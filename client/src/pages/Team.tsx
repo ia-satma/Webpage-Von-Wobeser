@@ -1,14 +1,11 @@
 import { useState, useMemo } from "react";
-import { Link } from "wouter";
 import { motion } from "framer-motion";
-import { AlertCircle, Users, Crown, Download, Search, Filter, X, Briefcase } from "lucide-react";
+import { AlertCircle, Users, Search, X } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
 import {
   Select,
   SelectContent,
@@ -19,6 +16,7 @@ import {
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import SEOHead from "@/components/SEOHead";
+import TeamMemberCard from "@/components/TeamMemberCard";
 import { useLanguage } from "@/contexts/LanguageContext";
 import type { TeamMember, PracticeGroup, IndustryGroup } from "@shared/schema";
 
@@ -381,12 +379,6 @@ export default function Team() {
     setFilterLetter("all");
   };
 
-  const handleDownloadVCard = (e: React.MouseEvent, member: TeamMember) => {
-    e.preventDefault();
-    e.stopPropagation();
-    window.location.href = `/api/team/${member.slug}/vcard?lang=${language}`;
-  };
-
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
@@ -404,22 +396,6 @@ export default function Team() {
       y: 0,
       transition: { duration: 0.3 },
     },
-  };
-
-  const getInitials = (name: string) => {
-    return name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase();
-  };
-
-  const getSeniorityLabel = (member: TeamMember) => {
-    if (member.isPartner) return t.positions.partner;
-    if (member.title === "Of Counsel") return t.positions.ofCounsel;
-    return t.positions.associate;
-  };
-
-  const getSeniorityColor = (member: TeamMember) => {
-    if (member.isPartner) return "bg-primary text-white";
-    if (member.title === "Of Counsel") return "bg-amber-600 text-white";
-    return "bg-gray-600 text-white";
   };
 
   return (
@@ -570,70 +546,11 @@ export default function Team() {
             >
               {filteredMembers.map((member) => (
                 <motion.div key={member.id} variants={itemVariants}>
-                  <Card
-                    className="group h-full rounded-md border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-lg transition-all duration-300 bg-white dark:bg-gray-800"
-                    data-testid={`card-team-member-${member.slug}`}
-                  >
-                    <CardContent className="p-6 text-center">
-                      <Link href={`/team/${member.slug}`}>
-                        <div className="cursor-pointer">
-                          <div className="relative mb-4 mx-auto w-fit">
-                            <Avatar className="w-24 h-24 mx-auto border-2 border-gray-100 dark:border-gray-700">
-                              <AvatarImage 
-                                src={member.imageUrl || undefined} 
-                                alt={member.name}
-                                className="object-cover"
-                              />
-                              <AvatarFallback className="bg-primary/10 text-primary text-xl font-medium">
-                                {getInitials(member.name)}
-                              </AvatarFallback>
-                            </Avatar>
-                          </div>
-                          <h3 
-                            className="text-lg font-semibold text-gray-800 dark:text-white mb-2 group-hover:text-primary transition-colors"
-                            data-testid={`text-team-member-name-${member.slug}`}
-                          >
-                            {member.name}
-                          </h3>
-                          <Badge 
-                            className={`mb-2 rounded-md text-xs ${getSeniorityColor(member)}`}
-                            data-testid={`badge-seniority-${member.slug}`}
-                          >
-                            {getSeniorityLabel(member)}
-                          </Badge>
-                          <p 
-                            className="text-sm text-gray-600 dark:text-gray-400"
-                            data-testid={`text-team-member-role-${member.slug}`}
-                          >
-                            {language === "es" ? member.roleEs : member.role}
-                          </p>
-                        </div>
-                      </Link>
-                      <div className="mt-4 pt-4 border-t border-gray-100 dark:border-gray-700 flex justify-center gap-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="gap-1 rounded-md text-xs"
-                          onClick={(e) => handleDownloadVCard(e, member)}
-                          data-testid={`button-download-vcard-${member.slug}`}
-                        >
-                          <Download className="w-3 h-3" />
-                          vCard
-                        </Button>
-                        <Link href={`/team/${member.slug}`}>
-                          <Button
-                            variant="default"
-                            size="sm"
-                            className="gap-1 rounded-md text-xs"
-                            data-testid={`button-view-profile-${member.slug}`}
-                          >
-                            <Briefcase className="w-3 h-3" />
-                            {t.viewProfile}
-                          </Button>
-                        </Link>
-                      </div>
-                    </CardContent>
-                  </Card>
+                  <TeamMemberCard
+                    member={member}
+                    viewProfileLabel={t.viewProfile}
+                    positions={t.positions}
+                  />
                 </motion.div>
               ))}
             </motion.div>

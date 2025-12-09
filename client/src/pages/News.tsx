@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link } from "wouter";
 import { motion } from "framer-motion";
-import { AlertCircle, Calendar, ArrowRight, Search, Newspaper } from "lucide-react";
+import { AlertCircle, Calendar, ArrowRight, Search, Newspaper, Loader2 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -11,6 +11,8 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import SEOHead from "@/components/SEOHead";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useTranslatedContent } from "@/hooks/useTranslatedContent";
+import { isNativeLanguage } from "@/lib/translationUtils";
 import { newsCategories, type News } from "@shared/schema";
 
 function NewsImageWithFallback({ 
@@ -41,6 +43,121 @@ function NewsImageWithFallback({
       className={className}
       onError={() => setHasError(true)}
     />
+  );
+}
+
+const languageToLocale: Record<string, string> = {
+  en: 'en-US',
+  es: 'es-MX',
+  de: 'de-DE',
+  zh: 'zh-CN',
+  ko: 'ko-KR',
+  ja: 'ja-JP',
+  ar: 'ar-SA',
+  ru: 'ru-RU',
+  fr: 'fr-FR',
+  it: 'it-IT',
+};
+
+interface NewsCardProps {
+  article: News;
+  readMoreText: string;
+}
+
+function NewsCard({ article, readMoreText }: NewsCardProps) {
+  const { language } = useLanguage();
+  
+  const { translatedFields, isLoading, isTranslating } = useTranslatedContent({
+    contentType: 'news',
+    entityId: String(article.id),
+    fields: {
+      title: article.title,
+      titleEs: article.titleEs,
+      excerpt: article.excerpt,
+      excerptEs: article.excerptEs,
+    },
+    enabled: !isNativeLanguage(language),
+  });
+
+  const displayTitle = translatedFields.title || article.title;
+  const displayExcerpt = translatedFields.excerpt || article.excerpt;
+  
+  const formatDate = (date: string | Date | null) => {
+    if (!date) return '';
+    const d = new Date(date);
+    const locale = languageToLocale[language] || 'en-US';
+    return d.toLocaleDateString(locale, {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+  };
+
+  const getCategoryLabel = () => {
+    if (!article.category) return null;
+    if (language === "es" && article.categoryEs) {
+      return article.categoryEs;
+    }
+    return article.category.charAt(0).toUpperCase() + article.category.slice(1);
+  };
+
+  const showTranslatingIndicator = isLoading || isTranslating;
+
+  return (
+    <Link href={`/news/${article.slug}`}>
+      <Card
+        className="group h-full rounded-md overflow-hidden border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-lg transition-all duration-300 cursor-pointer bg-white dark:bg-gray-800"
+        data-testid={`card-news-${article.slug}`}
+      >
+        <div className="relative h-48 overflow-hidden bg-gray-100 dark:bg-gray-700">
+          <NewsImageWithFallback
+            src={article.imageUrl || ""}
+            alt={displayTitle}
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
+          {article.category && (
+            <span 
+              className="absolute top-3 left-3 px-2 py-1 text-xs font-medium bg-primary text-white rounded"
+              data-testid={`badge-category-${article.slug}`}
+            >
+              {getCategoryLabel()}
+            </span>
+          )}
+          {showTranslatingIndicator && (
+            <div className="absolute top-3 right-3">
+              <div className="flex items-center gap-1 px-2 py-1 bg-black/50 rounded text-xs text-white">
+                <Loader2 className="w-3 h-3 animate-spin" />
+              </div>
+            </div>
+          )}
+        </div>
+        <CardContent className="p-6">
+          <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400 mb-3">
+            <Calendar className="w-4 h-4" />
+            <span data-testid={`text-news-date-${article.slug}`}>
+              {formatDate(article.date)}
+            </span>
+          </div>
+          <h3 
+            className="text-xl font-semibold text-gray-800 dark:text-white mb-3 group-hover:text-primary transition-colors line-clamp-2"
+            data-testid={`text-news-title-${article.slug}`}
+          >
+            {displayTitle}
+          </h3>
+          <p 
+            className="text-gray-600 dark:text-gray-400 text-sm line-clamp-3 mb-4"
+            data-testid={`text-news-excerpt-${article.slug}`}
+          >
+            {displayExcerpt}
+          </p>
+          <div className="flex items-center gap-2 text-primary font-medium text-sm group-hover:gap-3 transition-all">
+            {readMoreText}
+            <ArrowRight className="w-4 h-4" />
+          </div>
+        </CardContent>
+      </Card>
+    </Link>
   );
 }
 
@@ -254,14 +371,14 @@ export default function NewsPage() {
   };
 
   const translationBannerMessages: Record<string, string> = {
-    de: "Inhalte werden in Englisch angezeigt. Klicken Sie auf einen Artikel für vollständige Übersetzung.",
-    zh: "内容以英语显示。点击文章查看完整翻译。",
-    ko: "콘텐츠가 영어로 표시됩니다. 기사를 클릭하면 전체 번역을 볼 수 있습니다.",
-    ja: "コンテンツは英語で表示されています。記事をクリックして完全な翻訳をご覧ください。",
-    ar: "يتم عرض المحتوى باللغة الإنجليزية. انقر على مقال للترجمة الكاملة.",
-    ru: "Содержимое отображается на английском языке. Нажмите на статью для полного перевода.",
-    fr: "Le contenu est affiché en anglais. Cliquez sur un article pour la traduction complète.",
-    it: "Il contenuto viene visualizzato in inglese. Fare clic su un articolo per la traduzione completa.",
+    de: "Inhalte werden automatisch übersetzt.",
+    zh: "内容正在自动翻译中。",
+    ko: "콘텐츠가 자동으로 번역됩니다.",
+    ja: "コンテンツは自動翻訳されています。",
+    ar: "يتم ترجمة المحتوى تلقائياً.",
+    ru: "Содержимое автоматически переводится.",
+    fr: "Le contenu est traduit automatiquement.",
+    it: "Il contenuto viene tradotto automaticamente.",
   };
 
   const t = content[language] || content.en;
@@ -288,16 +405,6 @@ export default function NewsPage() {
     
     return matchesCategory && matchesSearch;
   });
-
-  const formatDate = (date: string | Date | null) => {
-    if (!date) return '';
-    const d = new Date(date);
-    return d.toLocaleDateString(language === "es" ? 'es-MX' : 'en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    });
-  };
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -436,53 +543,7 @@ export default function NewsPage() {
             >
               {filteredNews?.map((article) => (
                 <motion.div key={article.id} variants={itemVariants}>
-                  <Link href={`/news/${article.slug}`}>
-                    <Card
-                      className="group h-full rounded-md overflow-hidden border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-lg transition-all duration-300 cursor-pointer bg-white dark:bg-gray-800"
-                      data-testid={`card-news-${article.slug}`}
-                    >
-                      <div className="relative h-48 overflow-hidden bg-gray-100 dark:bg-gray-700">
-                        <NewsImageWithFallback
-                          src={article.imageUrl || ""}
-                          alt={language === "es" ? article.titleEs : article.title}
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                        />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
-                        {article.category && (
-                          <span 
-                            className="absolute top-3 left-3 px-2 py-1 text-xs font-medium bg-primary text-white rounded"
-                            data-testid={`badge-category-${article.slug}`}
-                          >
-                            {language === "es" ? article.categoryEs : article.category?.charAt(0).toUpperCase() + article.category?.slice(1)}
-                          </span>
-                        )}
-                      </div>
-                      <CardContent className="p-6">
-                        <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400 mb-3">
-                          <Calendar className="w-4 h-4" />
-                          <span data-testid={`text-news-date-${article.slug}`}>
-                            {formatDate(article.date)}
-                          </span>
-                        </div>
-                        <h3 
-                          className="text-xl font-semibold text-gray-800 dark:text-white mb-3 group-hover:text-primary transition-colors line-clamp-2"
-                          data-testid={`text-news-title-${article.slug}`}
-                        >
-                          {language === "es" ? article.titleEs : article.title}
-                        </h3>
-                        <p 
-                          className="text-gray-600 dark:text-gray-400 text-sm line-clamp-3 mb-4"
-                          data-testid={`text-news-excerpt-${article.slug}`}
-                        >
-                          {language === "es" ? article.excerptEs : article.excerpt}
-                        </p>
-                        <div className="flex items-center gap-2 text-primary font-medium text-sm group-hover:gap-3 transition-all">
-                          {t.readMore}
-                          <ArrowRight className="w-4 h-4" />
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </Link>
+                  <NewsCard article={article} readMoreText={t.readMore} />
                 </motion.div>
               ))}
             </motion.div>

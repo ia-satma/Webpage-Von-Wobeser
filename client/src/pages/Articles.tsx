@@ -14,6 +14,19 @@ import { useTranslatedContent } from "@/hooks/useTranslatedContent";
 import { isNativeLanguage } from "@/lib/translationUtils";
 import { type News } from "@shared/schema";
 
+const languageToLocale: Record<string, string> = {
+  en: 'en-US',
+  es: 'es-MX',
+  de: 'de-DE',
+  zh: 'zh-CN',
+  ko: 'ko-KR',
+  ja: 'ja-JP',
+  ar: 'ar-SA',
+  ru: 'ru-RU',
+  fr: 'fr-FR',
+  it: 'it-IT',
+};
+
 function ArticleImageWithFallback({ 
   src, 
   alt, 
@@ -42,6 +55,92 @@ function ArticleImageWithFallback({
       className={className}
       onError={() => setHasError(true)}
     />
+  );
+}
+
+interface ArticleCardProps {
+  article: News;
+  readMoreText: string;
+}
+
+function ArticleCard({ article, readMoreText }: ArticleCardProps) {
+  const { language } = useLanguage();
+  
+  const { translatedFields, isLoading, isTranslating } = useTranslatedContent({
+    contentType: 'news',
+    entityId: String(article.id),
+    fields: {
+      title: article.title,
+      titleEs: article.titleEs,
+      excerpt: article.excerpt,
+      excerptEs: article.excerptEs,
+    },
+    enabled: !isNativeLanguage(language),
+  });
+
+  const displayTitle = translatedFields.title || article.title;
+  const displayExcerpt = translatedFields.excerpt || article.excerpt;
+  
+  const formatDate = (date: string | Date | null) => {
+    if (!date) return '';
+    const d = new Date(date);
+    const locale = languageToLocale[language] || 'en-US';
+    return d.toLocaleDateString(locale, {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+  };
+
+  const showTranslatingIndicator = isLoading || isTranslating;
+
+  return (
+    <Link href={`/news/${article.slug}`}>
+      <Card
+        className="group h-full rounded-md overflow-hidden border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-lg transition-all duration-300 cursor-pointer bg-white dark:bg-gray-800"
+        data-testid={`card-article-${article.slug}`}
+      >
+        <div className="relative h-48 overflow-hidden bg-gray-100 dark:bg-gray-700">
+          <ArticleImageWithFallback
+            src={article.imageUrl || ""}
+            alt={displayTitle}
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
+          {showTranslatingIndicator && (
+            <div className="absolute top-3 right-3">
+              <div className="flex items-center gap-1 px-2 py-1 bg-black/50 rounded text-xs text-white">
+                <Loader2 className="w-3 h-3 animate-spin" />
+              </div>
+            </div>
+          )}
+        </div>
+        <CardContent className="p-6">
+          <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400 mb-3">
+            <Calendar className="w-4 h-4" />
+            <span data-testid={`text-article-date-${article.slug}`}>
+              {formatDate(article.date)}
+            </span>
+          </div>
+          <h3 
+            className="text-xl font-semibold text-gray-800 dark:text-white mb-3 group-hover:text-primary transition-colors line-clamp-2"
+            data-testid={`text-article-title-${article.slug}`}
+          >
+            {displayTitle}
+          </h3>
+          <p 
+            className="text-gray-600 dark:text-gray-400 text-sm line-clamp-3 mb-4"
+            data-testid={`text-article-excerpt-${article.slug}`}
+          >
+            {displayExcerpt}
+          </p>
+          <div className="flex items-center gap-2 text-primary font-medium text-sm group-hover:gap-3 transition-all">
+            {readMoreText}
+            <ArrowRight className="w-4 h-4" />
+          </div>
+        </CardContent>
+      </Card>
+    </Link>
   );
 }
 
@@ -166,7 +265,20 @@ export default function ArticlesPage() {
     },
   };
 
+  const translationBannerMessages: Record<string, string> = {
+    de: "Inhalte werden automatisch übersetzt.",
+    zh: "内容正在自动翻译中。",
+    ko: "콘텐츠가 자동으로 번역됩니다.",
+    ja: "コンテンツは自動翻訳されています。",
+    ar: "يتم ترجمة المحتوى تلقائياً.",
+    ru: "Содержимое автоматически переводится.",
+    fr: "Le contenu est traduit automatiquement.",
+    it: "Il contenuto viene tradotto automaticamente.",
+  };
+
   const t = content[language] || content.en;
+  const isNonNativeLanguage = language !== 'en' && language !== 'es';
+  const translationBanner = isNonNativeLanguage ? translationBannerMessages[language] : null;
 
   const filteredArticles = articles?.filter(article => {
     if (!searchQuery) return true;
@@ -176,16 +288,6 @@ export default function ArticlesPage() {
     const excerpt = language === "es" ? article.excerptEs : article.excerpt;
     return title.toLowerCase().includes(query) || excerpt.toLowerCase().includes(query);
   });
-
-  const formatDate = (date: string | Date | null) => {
-    if (!date) return '';
-    const d = new Date(date);
-    return d.toLocaleDateString(language === "es" ? 'es-MX' : 'en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    });
-  };
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -231,6 +333,14 @@ export default function ArticlesPage() {
             >
               {t.subtitle}
             </p>
+            {translationBanner && (
+              <p 
+                className="mt-4 text-sm italic text-white/70 max-w-2xl mx-auto"
+                data-testid="text-translation-banner"
+              >
+                {translationBanner}
+              </p>
+            )}
           </motion.div>
         </div>
       </section>
@@ -322,45 +432,7 @@ export default function ArticlesPage() {
             >
               {filteredArticles?.map((article) => (
                 <motion.div key={article.id} variants={itemVariants}>
-                  <Link href={`/news/${article.slug}`}>
-                    <Card
-                      className="group h-full rounded-md overflow-hidden border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-lg transition-all duration-300 cursor-pointer bg-white dark:bg-gray-800"
-                      data-testid={`card-article-${article.slug}`}
-                    >
-                      <div className="relative h-48 overflow-hidden bg-gray-100 dark:bg-gray-700">
-                        <ArticleImageWithFallback
-                          src={article.imageUrl || ""}
-                          alt={language === "es" ? article.titleEs : article.title}
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                        />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
-                      </div>
-                      <CardContent className="p-6">
-                        <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400 mb-3">
-                          <Calendar className="w-4 h-4" />
-                          <span data-testid={`text-article-date-${article.slug}`}>
-                            {formatDate(article.date)}
-                          </span>
-                        </div>
-                        <h3 
-                          className="text-xl font-semibold text-gray-800 dark:text-white mb-3 group-hover:text-primary transition-colors line-clamp-2"
-                          data-testid={`text-article-title-${article.slug}`}
-                        >
-                          {language === "es" ? article.titleEs : article.title}
-                        </h3>
-                        <p 
-                          className="text-gray-600 dark:text-gray-400 text-sm line-clamp-3 mb-4"
-                          data-testid={`text-article-excerpt-${article.slug}`}
-                        >
-                          {language === "es" ? article.excerptEs : article.excerpt}
-                        </p>
-                        <div className="flex items-center gap-2 text-primary font-medium text-sm group-hover:gap-3 transition-all">
-                          {t.readMore}
-                          <ArrowRight className="w-4 h-4" />
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </Link>
+                  <ArticleCard article={article} readMoreText={t.readMore} />
                 </motion.div>
               ))}
             </motion.div>

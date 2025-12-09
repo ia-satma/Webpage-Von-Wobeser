@@ -6,6 +6,7 @@ import { Card } from "@/components/ui/card";
 import { useQuery } from "@tanstack/react-query";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useTranslatedContent } from "@/hooks/useTranslatedContent";
 import type { News, LanguageCode } from "@shared/schema";
 
 function NewsImageWithFallback({ 
@@ -113,6 +114,90 @@ const dateLocales: Record<LanguageCode, string> = {
   it: "it-IT",
 };
 
+interface NewsCardTranslatedProps {
+  item: News;
+  language: LanguageCode;
+  dateLocale: string;
+  seeMoreText: string;
+}
+
+function NewsCardTranslated({ item, language, dateLocale, seeMoreText }: NewsCardTranslatedProps) {
+  const isNativeLanguage = language === 'en' || language === 'es';
+  
+  const { translatedFields, isLoading: isTranslating } = useTranslatedContent({
+    contentType: 'news',
+    entityId: item.id,
+    fields: {
+      title: item.title || '',
+      titleEs: item.titleEs || '',
+      excerpt: item.excerpt || '',
+      excerptEs: item.excerptEs || '',
+    },
+    enabled: !isNativeLanguage,
+  });
+
+  const getNewsTitle = () => {
+    if (language === 'es') return item.titleEs || item.title;
+    if (language === 'en') return item.title;
+    return translatedFields.title || item.title;
+  };
+
+  const getNewsExcerpt = () => {
+    if (language === 'es') return item.excerptEs || item.excerpt;
+    if (language === 'en') return item.excerpt;
+    return translatedFields.excerpt || item.excerpt;
+  };
+
+  const displayTitle = getNewsTitle();
+  const displayExcerpt = getNewsExcerpt();
+
+  return (
+    <Link href={`/news/${item.slug}`} className="block">
+      <Card
+        className="group overflow-hidden border-0 shadow-sm hover:shadow-lg transition-all duration-300 rounded-none bg-white dark:bg-gray-900"
+        data-testid={`card-news-${item.id}`}
+      >
+        <div className="aspect-[16/10] overflow-hidden">
+          <NewsImageWithFallback
+            src={item.imageUrl || ""}
+            alt={displayTitle}
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+          />
+        </div>
+        <div className="p-6">
+          <p className="text-xs text-gray-400 uppercase tracking-wider mb-3" data-testid={`text-news-date-${item.id}`}>
+            {item.date ? new Date(item.date).toLocaleDateString(
+              dateLocale,
+              { year: "numeric", month: "long", day: "numeric" }
+            ) : ""}
+          </p>
+          <h3 
+            className={`text-lg font-serif text-gray-800 dark:text-white leading-relaxed mb-3 line-clamp-2 ${isTranslating ? 'opacity-50' : ''}`}
+            data-testid={`text-news-title-${item.id}`}
+          >
+            {displayTitle}
+          </h3>
+          {displayExcerpt && (
+            <p 
+              className={`text-sm text-gray-600 dark:text-gray-400 line-clamp-2 mb-4 ${isTranslating ? 'opacity-50' : ''}`}
+              data-testid={`text-news-excerpt-${item.id}`}
+            >
+              {displayExcerpt}
+            </p>
+          )}
+          <span
+            className="inline-flex items-center gap-2 text-sm font-medium text-primary hover:text-primary/80 transition-colors group/link"
+            data-testid={`link-news-read-${item.id}`}
+          >
+            {seeMoreText}
+            <ArrowRight className="w-3 h-3 group-hover/link:translate-x-1 transition-transform" />
+          </span>
+        </div>
+      </Card>
+    </Link>
+  );
+}
+
 export default function NewsSection() {
   const { language } = useLanguage();
   const { data: newsItems, isLoading, error } = useQuery<News[]>({
@@ -208,41 +293,12 @@ export default function NewsSection() {
           >
             {newsItems?.map((item) => (
               <motion.div key={item.id} variants={itemVariants}>
-                <Link href={`/news/${item.slug}`} className="block">
-                  <Card
-                    className="group overflow-hidden border-0 shadow-sm hover:shadow-lg transition-all duration-300 rounded-none bg-white dark:bg-gray-900"
-                    data-testid={`card-news-${item.id}`}
-                  >
-                    <div className="aspect-[16/10] overflow-hidden">
-                      <NewsImageWithFallback
-                        src={item.imageUrl || ""}
-                        alt={language === "es" ? item.titleEs : item.title}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                      />
-                    </div>
-                    <div className="p-6">
-                      <p className="text-xs text-gray-400 uppercase tracking-wider mb-3" data-testid={`text-news-date-${item.id}`}>
-                        {item.date ? new Date(item.date).toLocaleDateString(
-                          dateLocale,
-                          { year: "numeric", month: "long", day: "numeric" }
-                        ) : ""}
-                      </p>
-                      <h3 
-                        className="text-lg font-serif text-gray-800 dark:text-white leading-relaxed mb-4 line-clamp-3"
-                        data-testid={`text-news-title-${item.id}`}
-                      >
-                        {language === "es" ? item.titleEs : item.title}
-                      </h3>
-                      <span
-                        className="inline-flex items-center gap-2 text-sm font-medium text-primary hover:text-primary/80 transition-colors group/link"
-                        data-testid={`link-news-read-${item.id}`}
-                      >
-                        {t.seeMore}
-                        <ArrowRight className="w-3 h-3 group-hover/link:translate-x-1 transition-transform" />
-                      </span>
-                    </div>
-                  </Card>
-                </Link>
+                <NewsCardTranslated
+                  item={item}
+                  language={language}
+                  dateLocale={dateLocale}
+                  seeMoreText={t.seeMore}
+                />
               </motion.div>
             ))}
           </motion.div>

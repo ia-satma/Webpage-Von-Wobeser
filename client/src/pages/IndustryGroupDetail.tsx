@@ -3,15 +3,46 @@ import { motion } from "framer-motion";
 import { ArrowLeft, Mail, Phone, AlertCircle, Loader2 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useTranslatedContent } from "@/hooks/useTranslatedContent";
+import { isNativeLanguage } from "@/lib/translationUtils";
 import { getIcon } from "@/lib/icons";
 import type { IndustryGroup, PracticeGroup } from "@shared/schema";
+
+interface TranslatedPracticeGroupBadgeProps {
+  practiceGroup: PracticeGroup;
+  language: string;
+}
+
+function TranslatedPracticeGroupBadge({ practiceGroup, language }: TranslatedPracticeGroupBadgeProps) {
+  const { translatedFields } = useTranslatedContent({
+    contentType: 'practice_group',
+    entityId: practiceGroup.id.toString(),
+    fields: {
+      name: practiceGroup.name,
+      nameEs: practiceGroup.nameEs,
+    },
+    enabled: !isNativeLanguage(language),
+  });
+
+  const displayName = translatedFields.name || practiceGroup.name;
+
+  return (
+    <Link href={`/practice-groups/${practiceGroup.slug}`}>
+      <Badge 
+        variant="secondary"
+        className="cursor-pointer text-sm px-4 py-2 rounded-md"
+        data-testid={`badge-related-practice-${practiceGroup.slug}`}
+      >
+        {displayName}
+      </Badge>
+    </Link>
+  );
+}
 
 export default function IndustryGroupDetail() {
   const { language } = useLanguage();
@@ -382,15 +413,11 @@ export default function IndustryGroupDetail() {
               </h2>
               <div className="flex flex-wrap gap-3">
                 {relatedPracticeGroups.map((practiceGroup) => (
-                  <Link key={practiceGroup.id} href={`/practice-groups/${practiceGroup.slug}`}>
-                    <Badge 
-                      variant="secondary"
-                      className="cursor-pointer text-sm px-4 py-2 rounded-md"
-                      data-testid={`badge-related-practice-${practiceGroup.slug}`}
-                    >
-                      {language === "es" ? practiceGroup.nameEs : practiceGroup.name}
-                    </Badge>
-                  </Link>
+                  <TranslatedPracticeGroupBadge 
+                    key={practiceGroup.id}
+                    practiceGroup={practiceGroup}
+                    language={language}
+                  />
                 ))}
               </div>
             </motion.section>

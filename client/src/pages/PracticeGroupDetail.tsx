@@ -13,6 +13,7 @@ import Footer from "@/components/Footer";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useTranslatedContent } from "@/hooks/useTranslatedContent";
 import { getIcon } from "@/lib/icons";
+import { isNativeLanguage } from "@/lib/translationUtils";
 import type { PracticeGroup, TeamMember, RepresentativeMatterDb } from "@shared/schema";
 
 interface PracticeRanking {
@@ -129,6 +130,87 @@ const practiceAreaRoleMapping: Record<string, string[]> = {
   "administrative-law": ["Administrative Law"],
   "german-desk": ["German Desk"],
 };
+
+interface TranslatedMatterCardProps {
+  matter: RepresentativeMatterDb;
+  language: string;
+  t: {
+    featured: string;
+    client: string;
+  };
+}
+
+function TranslatedMatterCard({ matter, language, t }: TranslatedMatterCardProps) {
+  const { translatedFields } = useTranslatedContent({
+    contentType: 'representative_matter',
+    entityId: matter.id.toString(),
+    fields: {
+      title: matter.title,
+      titleEs: matter.titleEs,
+      description: matter.description,
+      descriptionEs: matter.descriptionEs,
+      client: matter.client,
+      clientEs: matter.clientEs,
+    },
+    enabled: !isNativeLanguage(language),
+  });
+
+  const displayTitle = translatedFields.title || matter.title;
+  const displayDescription = translatedFields.description || matter.description;
+  const displayClient = translatedFields.client || matter.client;
+
+  return (
+    <Card 
+      className={`rounded-md border ${matter.isHighlight ? 'border-primary/30 bg-primary/5 dark:bg-primary/10' : 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800'}`}
+      data-testid={`card-matter-${matter.id}`}
+    >
+      <CardContent className="p-6">
+        <div className="flex items-start justify-between gap-4 mb-3">
+          <div className="flex-1">
+            <div className="flex items-center gap-2 mb-2">
+              {matter.isHighlight && (
+                <Badge className="bg-primary text-white rounded-md text-xs">
+                  <Star className="w-3 h-3 mr-1" />
+                  {t.featured}
+                </Badge>
+              )}
+              <Badge 
+                variant="outline" 
+                className="rounded-md text-xs"
+                data-testid={`badge-matter-year-${matter.id}`}
+              >
+                {matter.year}
+              </Badge>
+            </div>
+            <h3 
+              className="font-semibold text-gray-800 dark:text-white text-lg"
+              data-testid={`text-matter-title-${matter.id}`}
+            >
+              {displayTitle}
+            </h3>
+          </div>
+        </div>
+        <p 
+          className="text-gray-600 dark:text-gray-400 mb-3"
+          data-testid={`text-matter-description-${matter.id}`}
+        >
+          {displayDescription}
+        </p>
+        {displayClient && (
+          <p 
+            className="text-sm text-gray-500 dark:text-gray-500"
+            data-testid={`text-matter-client-${matter.id}`}
+          >
+            <span className="font-medium">
+              {t.client}{" "}
+            </span>
+            {displayClient}
+          </p>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
 
 export default function PracticeGroupDetail() {
   const { language } = useLanguage();
@@ -693,56 +775,12 @@ export default function PracticeGroupDetail() {
                     return b.year - a.year;
                   })
                   .map((matter) => (
-                    <Card 
-                      key={matter.id}
-                      className={`rounded-md border ${matter.isHighlight ? 'border-primary/30 bg-primary/5 dark:bg-primary/10' : 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800'}`}
-                      data-testid={`card-matter-${matter.id}`}
-                    >
-                      <CardContent className="p-6">
-                        <div className="flex items-start justify-between gap-4 mb-3">
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2 mb-2">
-                              {matter.isHighlight && (
-                                <Badge className="bg-primary text-white rounded-md text-xs">
-                                  <Star className="w-3 h-3 mr-1" />
-                                  {t.featured}
-                                </Badge>
-                              )}
-                              <Badge 
-                                variant="outline" 
-                                className="rounded-md text-xs"
-                                data-testid={`badge-matter-year-${matter.id}`}
-                              >
-                                {matter.year}
-                              </Badge>
-                            </div>
-                            <h3 
-                              className="font-semibold text-gray-800 dark:text-white text-lg"
-                              data-testid={`text-matter-title-${matter.id}`}
-                            >
-                              {language === "es" ? matter.titleEs : matter.title}
-                            </h3>
-                          </div>
-                        </div>
-                        <p 
-                          className="text-gray-600 dark:text-gray-400 mb-3"
-                          data-testid={`text-matter-description-${matter.id}`}
-                        >
-                          {language === "es" ? matter.descriptionEs : matter.description}
-                        </p>
-                        {matter.client && (
-                          <p 
-                            className="text-sm text-gray-500 dark:text-gray-500"
-                            data-testid={`text-matter-client-${matter.id}`}
-                          >
-                            <span className="font-medium">
-                              {t.client}{" "}
-                            </span>
-                            {language === "es" ? (matter.clientEs || matter.client) : matter.client}
-                          </p>
-                        )}
-                      </CardContent>
-                    </Card>
+                    <TranslatedMatterCard 
+                      key={matter.id} 
+                      matter={matter} 
+                      language={language} 
+                      t={{ featured: t.featured, client: t.client }} 
+                    />
                   ))}
               </div>
             </motion.section>

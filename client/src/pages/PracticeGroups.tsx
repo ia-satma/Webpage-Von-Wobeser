@@ -1,6 +1,6 @@
 import { Link } from "wouter";
 import { motion } from "framer-motion";
-import { ArrowRight, AlertCircle } from "lucide-react";
+import { ArrowRight, AlertCircle, Loader2 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -8,8 +8,77 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import SEOHead from "@/components/SEOHead";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useTranslatedContent } from "@/hooks/useTranslatedContent";
+import { isNativeLanguage } from "@/lib/translationUtils";
 import { getIcon } from "@/lib/icons";
 import type { PracticeGroup } from "@shared/schema";
+
+interface PracticeGroupCardProps {
+  group: PracticeGroup;
+  learnMoreText: string;
+}
+
+function PracticeGroupCard({ group, learnMoreText }: PracticeGroupCardProps) {
+  const { language } = useLanguage();
+  const IconComponent = getIcon(group.iconName);
+
+  const { translatedFields, isLoading, isTranslating } = useTranslatedContent({
+    contentType: 'practice_group',
+    entityId: String(group.id),
+    fields: {
+      name: group.name,
+      nameEs: group.nameEs,
+      description: group.description,
+      descriptionEs: group.descriptionEs,
+    },
+    enabled: !isNativeLanguage(language),
+  });
+
+  const displayName = translatedFields.name || group.name;
+  const displayDescription = translatedFields.description || group.description;
+  const showTranslatingIndicator = isLoading || isTranslating;
+
+  return (
+    <Link href={`/practice-groups/${group.slug}`}>
+      <Card
+        className="group h-full rounded-md border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-lg transition-all duration-300 cursor-pointer bg-white dark:bg-gray-800"
+        data-testid={`card-practice-group-${group.slug}`}
+      >
+        <CardContent className="p-6">
+          <div className="flex items-start justify-between mb-4">
+            <div className="w-12 h-12 rounded-md bg-primary/10 dark:bg-primary/20 flex items-center justify-center">
+              <IconComponent className="w-6 h-6 text-primary" data-testid={`icon-practice-group-${group.slug}`} />
+            </div>
+            {showTranslatingIndicator && (
+              <div className="flex items-center gap-1 px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded text-xs text-gray-500 dark:text-gray-400">
+                <Loader2 className="w-3 h-3 animate-spin" />
+              </div>
+            )}
+          </div>
+          <h3 
+            className="text-lg font-semibold text-gray-800 dark:text-white mb-2 group-hover:text-primary transition-colors"
+            data-testid={`text-practice-group-name-${group.slug}`}
+          >
+            {displayName}
+          </h3>
+          <p 
+            className="text-sm text-gray-600 dark:text-gray-400 mb-4 line-clamp-3"
+            data-testid={`text-practice-group-desc-${group.slug}`}
+          >
+            {displayDescription}
+          </p>
+          <span 
+            className="inline-flex items-center gap-1 text-sm font-medium text-primary group-hover:gap-2 transition-all"
+            data-testid={`link-practice-group-${group.slug}`}
+          >
+            {learnMoreText}
+            <ArrowRight className="w-4 h-4" />
+          </span>
+        </CardContent>
+      </Card>
+    </Link>
+  );
+}
 
 export default function PracticeGroups() {
   const { language } = useLanguage();
@@ -195,44 +264,11 @@ export default function PracticeGroups() {
               animate="visible"
               className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8"
             >
-              {practiceGroups?.map((group) => {
-                const IconComponent = getIcon(group.iconName);
-                return (
-                  <motion.div key={group.id} variants={itemVariants}>
-                    <Link href={`/practice-groups/${group.slug}`}>
-                      <Card
-                        className="group h-full rounded-md border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-lg transition-all duration-300 cursor-pointer bg-white dark:bg-gray-800"
-                        data-testid={`card-practice-group-${group.slug}`}
-                      >
-                        <CardContent className="p-6">
-                          <div className="w-12 h-12 rounded-md bg-primary/10 dark:bg-primary/20 flex items-center justify-center mb-4">
-                            <IconComponent className="w-6 h-6 text-primary" data-testid={`icon-practice-group-${group.slug}`} />
-                          </div>
-                          <h3 
-                            className="text-lg font-semibold text-gray-800 dark:text-white mb-2 group-hover:text-primary transition-colors"
-                            data-testid={`text-practice-group-name-${group.slug}`}
-                          >
-                            {language === "es" ? group.nameEs : group.name}
-                          </h3>
-                          <p 
-                            className="text-sm text-gray-600 dark:text-gray-400 mb-4 line-clamp-3"
-                            data-testid={`text-practice-group-desc-${group.slug}`}
-                          >
-                            {language === "es" ? group.descriptionEs : group.description}
-                          </p>
-                          <span 
-                            className="inline-flex items-center gap-1 text-sm font-medium text-primary group-hover:gap-2 transition-all"
-                            data-testid={`link-practice-group-${group.slug}`}
-                          >
-                            {t.learnMore}
-                            <ArrowRight className="w-4 h-4" />
-                          </span>
-                        </CardContent>
-                      </Card>
-                    </Link>
-                  </motion.div>
-                );
-              })}
+              {practiceGroups?.map((group) => (
+                <motion.div key={group.id} variants={itemVariants}>
+                  <PracticeGroupCard group={group} learnMoreText={t.learnMore} />
+                </motion.div>
+              ))}
             </motion.div>
           )}
         </div>

@@ -1413,6 +1413,29 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
         return res.status(400).json({ error: "Invalid target language code" });
       }
 
+      // For news content, first check the newsTranslations table
+      if (contentType === 'news') {
+        const newsTranslation = await storage.getNewsTranslation(entityId, targetLanguage);
+        if (newsTranslation) {
+          const translationsMap: Record<string, string> = {};
+          if (newsTranslation.title) {
+            translationsMap.title = newsTranslation.title;
+          }
+          if (newsTranslation.excerpt) {
+            translationsMap.excerpt = newsTranslation.excerpt;
+          }
+          if (newsTranslation.content) {
+            translationsMap.content = newsTranslation.content;
+          }
+          
+          // Return if we found any translations
+          if (Object.keys(translationsMap).length > 0) {
+            return res.json({ translations: translationsMap, contentType, entityId, targetLanguage });
+          }
+        }
+      }
+
+      // Fall back to translationCache lookup
       const translations = await storage.getTranslations(contentType, entityId, targetLanguage);
       
       const translationsMap: Record<string, string> = {};
@@ -1498,7 +1521,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
         });
       }
 
-      const validContentTypes = ['team_member', 'practice_group', 'industry_group', 'news', 'event'] as const;
+      const validContentTypes = ['team_member', 'practice_group', 'industry_group', 'news', 'event', 'representative_matter'] as const;
       if (!validContentTypes.includes(contentType)) {
         return res.status(400).json({ 
           error: `Invalid contentType. Must be one of: ${validContentTypes.join(', ')}` 
@@ -1511,6 +1534,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
         industry_group: ['name', 'description', 'fullDescription'],
         news: ['title', 'excerpt', 'content'],
         event: ['title', 'description', 'location'],
+        representative_matter: ['title', 'description', 'client'],
       };
 
       const validFields = validFieldsByContentType[contentType] || [];
