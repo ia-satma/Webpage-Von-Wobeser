@@ -59,6 +59,14 @@ The backend has been transformed from a static brochure into a self-evolving sys
 3. **PolyglotTranslatorAgent**: Translates to 10 languages using legal term glossary with smart caching
 4. **ContentAuditorAgent**: Scans database for content gaps (missing translations, authors, formatting issues)
 5. **SEOOptimizerAgent**: Improves titles, meta descriptions, slugs, and keywords for search engines
+6. **ContentAnalyzerAgent**: Comprehensive article analysis using GPT-4o providing:
+   - SEO recommendations (keywords, title suggestions, meta descriptions)
+   - Article categorization (primary/secondary categories)
+   - Spelling & grammar review with corrections
+   - Lawyer identification within content
+   - Legal branch classification (Corporate, M&A, Banking, etc.)
+   - Industry detection (Financial Services, Energy, Technology, etc.)
+   Results stored in `content_analysis` table with quality scores (0-100)
 
 **Orchestration:**
 - Central orchestrator (`AgentOrchestrator`) manages job queue, agent coordination, and pipeline execution

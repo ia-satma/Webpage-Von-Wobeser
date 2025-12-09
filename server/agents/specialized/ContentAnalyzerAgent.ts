@@ -94,17 +94,31 @@ export class ContentAnalyzerAgent extends BaseAgent {
 
     // Try blog_posts first, then news table
     let article: any;
+    let source = '';
+    
+    console.log(`[ContentAnalyzerAgent] Looking up articleId: ${articleId}`);
+    
     const [blogPost] = await db.select().from(blogPosts).where(eq(blogPosts.id, articleId));
+    console.log(`[ContentAnalyzerAgent] blog_posts result:`, blogPost ? 'FOUND' : 'NOT FOUND');
+    
     if (blogPost) {
       article = blogPost;
+      source = 'blog_posts';
     } else {
       const [newsArticle] = await db.select().from(news).where(eq(news.id, articleId));
-      article = newsArticle;
+      console.log(`[ContentAnalyzerAgent] news result:`, newsArticle ? 'FOUND' : 'NOT FOUND');
+      if (newsArticle) {
+        article = newsArticle;
+        source = 'news';
+      }
     }
     
     if (!article) {
+      console.error(`[ContentAnalyzerAgent] Article not found in either table: ${articleId}`);
       return { success: false, error: `Article not found: ${articleId}` };
     }
+    
+    console.log(`[ContentAnalyzerAgent] Found article in ${source}: ${article.title || article.titleEs}`)
 
     const allLawyers = await db.select().from(teamMembers);
     const allPracticeGroups = await db.select().from(practiceGroups);
