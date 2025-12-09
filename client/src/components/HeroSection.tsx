@@ -105,7 +105,7 @@ function NewsItemTranslated({
       </h4>
       <Link 
         href={`/news/${item.slug}`}
-        className="inline-flex items-center text-xs font-medium tracking-wider text-[#AC162C] hover:text-[#841A1A] transition-colors"
+        className="inline-flex items-center text-xs font-medium tracking-wider text-[#AA1A2E] hover:text-[#8A1525] transition-colors"
         data-testid={`link-news-seemore-${item.id}`}
       >
         {seeMoreText}

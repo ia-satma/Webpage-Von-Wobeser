@@ -1,159 +1,174 @@
 # Design Guidelines: Von Wobeser y Sierra Corporate Website
 
-## Design Approach
-**Reference-Based:** Drawing inspiration from premium law firm websites (Baker McKenzie, Latham & Watkins) with a focus on professional credibility, sophisticated layouts, and content-rich presentations. The design emphasizes trust, expertise, and modern professionalism.
+## Manual de Identidad Corporativa (Junio 2022)
+Este documento sigue las especificaciones oficiales del Manual de Identidad Corporativa de Von Wobeser y Sierra.
 
-## Core Design Principles
-- **Professional Sophistication:** Clean, corporate aesthetic that conveys authority and expertise
-- **Content Hierarchy:** Clear visual organization prioritizing key information and calls-to-action
-- **Spatial Elegance:** Generous whitespace balanced with information density
-- **Conservative Animations:** Minimal, purposeful motion that doesn't distract from content
+---
 
-## Typography System
+## 1. Colores Corporativos
 
-**Font Families (Web-Safe Alternatives):**
-- Primary/Headings: 'Optima', 'Segoe UI', sans-serif
-- Body Text: 'Optima', 'Segoe UI', sans-serif  
-- Paragraphs/Long-form: 'Georgia', 'Times New Roman', serif
+### Color Principal
+| Referencia | Valor | Uso |
+|------------|-------|-----|
+| PANTONE 187 | **#AA1A2E** | Logotipo, líneas de apoyo, CTAs principales |
+| RGB | 170, 26, 46 | |
+| HSL | 352° 73% 38% | |
 
-**Scale & Hierarchy:**
-- Hero Headline (H1): 48px (desktop) / 32px (mobile), line-height: 1.2, letter-spacing: -0.02em
-- Section Headers (H2): 36px (desktop) / 24px (mobile), line-height: 1.3, font-weight: 300
-- Subsection Headers (H3): 24px, line-height: 1.4
-- Body Text: 18px, line-height: 1.7
-- Small Text/Captions: 14px, line-height: 1.5
+### Colores Secundarios (Grises)
+| Nombre | HEX | Uso |
+|--------|-----|-----|
+| Cool Gray 1 | **#D9D8D7** | Fondos web, elementos gráficos de apoyo |
+| Cool Gray 4 | **#BBBBBB** | Fondos, elementos gráficos, textos secundarios |
+| Cool Gray 8 | **#878A8E** | Fondos, elementos gráficos, textos |
+| Cool Gray 11 | **#54565B** | Texto principal, elementos gráficos |
+| Negro | **#1D1D1B** | Elementos gráficos de apoyo |
 
-## Layout System
+### Uso del Color
+- **Fondos:** Blanco (#FFFFFF) primario, grises corporativos para secciones alternas
+- **Texto:** Cool Gray 11 (#54565B) para cuerpo, #1D1D1B para headlines
+- **Acentos:** Rojo (#AA1A2E) para CTAs y elementos importantes - usar con moderación
+- **Bordes/Divisores:** Cool Gray 1 (#D9D8D7)
 
-**Spacing Primitives:** Use Tailwind units of 4, 6, 8, 12, 16, 20, 24 for consistent rhythm
+---
 
-**Container Strategy:**
-- Maximum width: 1400px (max-w-7xl)
-- Section padding: py-20 (desktop) / py-12 (mobile)
-- Horizontal padding: px-6 (mobile) / px-12 (desktop)
+## 2. Tipografías
 
-**Grid Patterns:**
-- News cards: 3-column grid (lg:grid-cols-3, md:grid-cols-2, base: grid-cols-1)
-- Image collage: Masonry-style asymmetric grid with varying heights
-- Statistics: 4-column layout for metrics (md:grid-cols-4)
+### Tipografías Corporativas (Diseño profesional)
+| Fuente | Uso |
+|--------|-----|
+| **Publico** | Títulos, subtítulos, citas de desempeño |
+| **Optima** | Texto corrido en documentos, dirección de la firma |
+| **Geomanist** | Textos de apoyo, nombres de secciones, firmas |
 
-## Component Library
+### Tipografías Web (Alternativas disponibles)
+| Alternativa | Reemplaza a | Uso |
+|-------------|-------------|-----|
+| **Georgia** | Publico | Títulos, subtítulos, introducciones |
+| **Calibri** | Optima | Texto corrido |
+| **Century Gothic** | Geomanist | Textos de apoyo, labels |
 
-**Navigation:**
-- Fixed header with transparent-to-solid transition on scroll
-- Logo left-aligned, menu right-aligned
-- Language switcher (ESP/ENG) in top-right corner
-- Mobile: Hamburger menu opening full-screen overlay
-- Zero border radius throughout
+### Variables CSS Implementadas
+```css
+--font-heading: 'Georgia', 'Publico', 'Times New Roman', serif;
+--font-sans: 'Calibri', 'Optima', 'Segoe UI', sans-serif;
+--font-support: 'Century Gothic', 'Geomanist', 'Segoe UI', sans-serif;
+```
 
-**Hero Section:**
-- Full-viewport height (min-h-screen) with subtle scroll indicator
-- Large hero image showing office/cityscape with dark overlay (opacity-40)
-- Centered headline with animated word reveal on load
-- Blurred background on CTA button (backdrop-blur-md bg-white/10)
+### Reglas de Uso
+- **NO usar versión itálica** excepto para: palabras en otro idioma, citas textuales, o mensajes cortos a destacar
+- La fuente del logotipo NO se usa en comunicados
 
-**News Cards:**
-- Vertical card design with image thumbnail
-- Title, date, and "SEE MORE" link
-- Hover: subtle scale transform (1.02) with shadow increase
-- Sharp corners (rounded-none)
+---
 
-**Map Section:**
-- Embedded Google Maps (iframe) with custom styling if possible
-- Side-by-side layout: Map (60%) + Address/Info (40%)
-- Contact details and directions CTA
+## 3. Elementos Gráficos de Apoyo
 
-**Image Collage:**
-- Asymmetric grid with images of varying aspect ratios
-- 3 rows with mixed 1-column and 2-column spans
-- Lightbox functionality on click
-- Lazy loading for performance
+### Líneas
+- ✅ **Líneas rojas horizontales** - Permitido
+- ❌ **Líneas rojas verticales** - PROHIBIDO
 
-**Stats Display:**
-- Large numbers (64px, font-weight: 300)
-- Descriptive labels below
-- Centered alignment
-- Minimal dividers between items
+### Fondos
+- Fondos rojos (para secciones destacadas)
+- Fondos en gris claro (Cool Gray 1)
+- Franjas y recuadros grises
 
-**Quote Section:**
-- Centered block quote with increased font size (24px)
-- Attribution with name and title
-- Subtle background treatment (bg-gray-50)
+---
 
-**Buttons:**
-- Primary: bg-[#AC162C], text-white, px-8 py-4, sharp corners
-- Secondary: border-2 border-gray-400, text-gray-700, px-8 py-4
-- Hover states: opacity-90 for primary, bg-gray-50 for secondary
-- No hover/active states on hero buttons with blurred backgrounds
+## 4. Logotipo
 
-**Footer:**
-- Multi-column layout: Address | Quick Links | Social
-- Copyright and legal disclaimers
-- bg-gray-900 with white text
+### Uso Principal
+- Logotipo en color rojo corporativo (#AA1A2E) sobre fondo blanco
+- Esta es la aplicación principal y preferida
 
-## Color Application
+### Monograma "VW"
+- Uso exclusivo en internet
+- No usar en materiales impresos
 
-**Exact Brand Colors (provided):**
-- Primary Red: #AC162C (main CTAs, accents, links)
-- Dark Red: #841A1A (hover states, secondary accents)
-- Background: #FFFFFF
-- Text Primary: #5E5E5E
-- Neutral Gray for borders: #CCCCCC
+### Área de Seguridad
+- Reservar espacio "1X" alrededor del logotipo (X = altura de la letra "V")
+- Esta zona no debe invadirse con ningún elemento gráfico
 
-**Usage Rules:**
-- Backgrounds: White primary, light gray (#F9FAFB) for alternate sections
-- Text: #5E5E5E for body, #1F2937 for headlines
-- Accents: Red (#AC162C) sparingly for CTAs and important elements
-- Dividers/Borders: #E5E7EB
+### Versión Diversidad
+- Única versión permitida con colores alternativos
+- Solo para publicaciones del área de Diversidad
+- Usa colores de la bandera LGBTQ+
 
-## Imagery Guidelines
+---
 
-**Hero Section:**
-- Large hero image: Modern office building or Mexico City skyline
-- Professional photography of office interiors
-- Dark overlay (bg-black/40) for text legibility
+## 5. Layout y Componentes
 
-**Office Collage:**
-- 9+ professional photographs showing:
-  - Open collaborative workspaces
-  - Meeting rooms with city views
-  - Reception and common areas
-  - Terrace views
-  - Architectural details
-- Mix of wide and detail shots
+### Border Radius
+- **Política:** Esquinas rectas en todo el sitio (rounded-none)
+- Excepto: Avatares y elementos circulares
 
-**Icons:**
-- Use Heroicons via CDN (outline style)
-- 24px size for navigation, 32px for feature highlights
-- Stroke width: 1.5px
+### Espaciado
+- Unidades Tailwind: 4, 6, 8, 12, 16, 20, 24
+- Contenedor máximo: 1400px (max-w-7xl)
+- Padding secciones: py-20 (desktop) / py-12 (mobile)
 
-## Animation Guidelines
+### Grid Patterns
+- News cards: 3 columnas (lg:grid-cols-3, md:grid-cols-2)
+- Estadísticas: 4 columnas (md:grid-cols-4)
+- Galería: Grid asimétrico masonry
 
-**Conservative Motion:**
-- Page load: Fade-in for hero text (duration-700)
-- Scroll: Subtle parallax on hero background (translateY by 30%)
-- Cards: Scale on hover (transform scale-105, duration-200)
-- Navigation: Smooth height transition on scroll
-- NO: Excessive scroll-triggered animations, autoplay carousels, or distracting effects
+---
 
-## Accessibility & Polish
+## 6. Navegación
 
-- Focus states: 2px red outline (ring-2 ring-red-600)
-- Minimum touch target: 44px × 44px
-- Contrast ratio: Minimum 4.5:1 for all text
-- Alt text for all images
-- Keyboard navigation support throughout
+### Header
+- Fixed header con transición transparente-a-sólido en scroll
+- Logo alineado a la izquierda
+- Menú alineado a la derecha
+- Selector de idioma en esquina superior derecha
+- Sin border radius
 
-## Page Structure
+### Footer
+- Layout multi-columna: Dirección | Enlaces | Social
+- Fondo gris oscuro con texto blanco
+- Copyright y disclaimers legales
 
-1. **Fixed Navigation Bar**
-2. **Hero Section:** Full-screen with image, headline, scroll indicator
-3. **News Highlights:** 3-column card grid with latest updates
-4. **Office Vision:** Text section with key messaging
-5. **Location Map:** Interactive map with address details
-6. **Office Stats:** 4-column metrics showcase
-7. **Image Collage:** Asymmetric grid gallery
-8. **Testimonial Quote:** Featured statement from partner
-9. **Footer:** Multi-column with contact info
+---
 
-This design creates a sophisticated, trustworthy corporate presence that reflects the firm's professional stature while maintaining modern web standards.
+## 7. Hero Section
+
+### Imagen
+- Full-viewport (min-h-screen)
+- Overlay oscuro para legibilidad (bg-black/40)
+- Indicador de scroll sutil
+
+### Contenido
+- Headline centrado con animación
+- Botón CTA con fondo difuminado (backdrop-blur-md bg-white/10)
+
+---
+
+## 8. Animaciones
+
+### Principio: Movimiento Conservador
+- Page load: Fade-in para texto hero (duration-700)
+- Scroll: Parallax sutil (translateY 30%)
+- Cards: Scale en hover (1.02-1.05, duration-200)
+- Navegación: Transición suave de altura
+
+### Prohibido
+- Animaciones excesivas trigger por scroll
+- Carruseles con autoplay
+- Efectos distrayentes
+
+---
+
+## 9. Accesibilidad
+
+- Focus states: 2px red outline (ring-2 ring-primary)
+- Touch target mínimo: 44px × 44px
+- Contrast ratio: Mínimo 4.5:1 para todo texto
+- Alt text obligatorio para imágenes
+- Soporte de navegación por teclado
+
+---
+
+## 10. Dark Mode
+
+En modo oscuro:
+- El rojo primario se aclara ligeramente a HSL(352, 73%, 42%)
+- Los grises se invierten manteniendo la jerarquía
+- Mantener contraste adecuado en todos los textos

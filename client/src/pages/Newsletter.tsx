@@ -558,7 +558,7 @@ export default function Newsletter() {
                         <Mail className="w-6 h-6 text-primary" />
                       </div>
                       <h2 
-                        className="text-2xl font-heading font-light text-[#AC162C] dark:text-white"
+                        className="text-2xl font-heading font-light text-[#AA1A2E] dark:text-white"
                         data-testid="text-form-title"
                       >
                         {t.formTitle}
@@ -633,7 +633,7 @@ export default function Newsletter() {
 
                       <Button 
                         type="submit" 
-                        className="w-full rounded-md bg-[#AC162C] hover:bg-[#841A1A]"
+                        className="w-full rounded-md bg-[#AA1A2E] hover:bg-[#8A1525]"
                         disabled={newsletterMutation.isPending}
                         data-testid="button-subscribe"
                       >
@@ -696,7 +696,7 @@ export default function Newsletter() {
               className="space-y-6"
             >
               <h2 
-                className="text-2xl font-heading font-light text-[#AC162C] dark:text-white mb-6"
+                className="text-2xl font-heading font-light text-[#AA1A2E] dark:text-white mb-6"
                 data-testid="text-benefits-title"
               >
                 {t.whatYouReceive}
@@ -754,7 +754,7 @@ export default function Newsletter() {
               <div className="flex items-center justify-center gap-3 mb-4">
                 <Archive className="w-8 h-8 text-primary" />
                 <h2 
-                  className="text-2xl font-heading font-light text-[#AC162C] dark:text-white"
+                  className="text-2xl font-heading font-light text-[#AA1A2E] dark:text-white"
                   data-testid="text-archives-title"
                 >
                   {t.archivesTitle}
@@ -807,7 +807,7 @@ export default function Newsletter() {
                         {archive.description}
                       </p>
                       <button 
-                        className="inline-flex items-center gap-2 text-sm text-primary hover:text-[#841A1A] transition-colors cursor-not-allowed opacity-50"
+                        className="inline-flex items-center gap-2 text-sm text-primary hover:text-[#8A1525] transition-colors cursor-not-allowed opacity-50"
                         disabled
                         data-testid={`button-archive-view-${index}`}
                       >

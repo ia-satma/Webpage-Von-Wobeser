@@ -79,7 +79,7 @@ export default function ProBonoSection() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
-          className="text-2xl md:text-3xl font-heading font-light uppercase tracking-wide text-[#AC162C] mb-8"
+          className="text-2xl md:text-3xl font-heading font-light uppercase tracking-wide text-[#AA1A2E] mb-8"
           data-testid="text-pro-bono-title"
         >
           {t.title}
@@ -105,7 +105,7 @@ export default function ProBonoSection() {
           <Link href="/pro-bono">
             <Button
               size="lg"
-              className="px-8 py-4 bg-[#AC162C] hover:bg-[#841A1A] text-white uppercase tracking-wide"
+              className="px-8 py-4 bg-[#AA1A2E] hover:bg-[#8A1525] text-white uppercase tracking-wide"
               data-testid="button-pro-bono-see-more"
             >
               {t.buttonText}

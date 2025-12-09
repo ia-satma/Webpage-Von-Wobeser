@@ -154,7 +154,7 @@ export default function PracticesSection() {
           className="mb-12"
         >
           <h2
-            className="text-3xl md:text-4xl font-heading font-light text-[#AC162C] tracking-wide"
+            className="text-3xl md:text-4xl font-heading font-light text-[#AA1A2E] tracking-wide"
             data-testid="text-practices-title"
           >
             {t.title}
@@ -204,7 +204,7 @@ export default function PracticesSection() {
           <Link href="/contact">
             <Button
               size="lg"
-              className="bg-[#AC162C] hover:bg-[#841A1A] text-white uppercase tracking-wide"
+              className="bg-[#AA1A2E] hover:bg-[#8A1525] text-white uppercase tracking-wide"
               data-testid="button-practices-contact"
             >
               <Phone className="w-4 h-4 mr-2" />

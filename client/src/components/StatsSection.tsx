@@ -349,7 +349,7 @@ export default function StatsSection({ language }: StatsSectionProps) {
           className="text-center mb-16"
         >
           <h2
-            className="text-3xl md:text-4xl lg:text-5xl font-heading font-light text-[#AC162C] leading-tight mb-8"
+            className="text-3xl md:text-4xl lg:text-5xl font-heading font-light text-[#AA1A2E] leading-tight mb-8"
             data-testid="text-stats-title"
           >
             {t.title}

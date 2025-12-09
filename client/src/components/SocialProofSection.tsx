@@ -145,13 +145,13 @@ export default function SocialProofSection() {
           className="text-center mb-16"
         >
           <h2
-            className="text-2xl md:text-3xl lg:text-4xl font-heading font-light text-[#AC162C]"
+            className="text-2xl md:text-3xl lg:text-4xl font-heading font-light text-[#AA1A2E]"
             data-testid="text-social-proof-title"
           >
             {t.title}
           </h2>
           <div
-            className="w-16 h-0.5 bg-[#AC162C] mx-auto mt-6"
+            className="w-16 h-0.5 bg-[#AA1A2E] mx-auto mt-6"
             data-testid="divider-social-proof"
           />
         </motion.div>
@@ -172,7 +172,7 @@ export default function SocialProofSection() {
               data-testid={`card-quote-${quote.id}`}
             >
               <div
-                className="w-8 h-8 mb-6 text-[#AC162C] opacity-30"
+                className="w-8 h-8 mb-6 text-[#AA1A2E] opacity-30"
                 data-testid={`icon-quote-${quote.id}`}
               >
                 <svg
@@ -193,7 +193,7 @@ export default function SocialProofSection() {
 
               <div className="mt-auto">
                 <div
-                  className="w-12 h-px bg-[#AC162C] mx-auto mb-4"
+                  className="w-12 h-px bg-[#AA1A2E] mx-auto mb-4"
                   data-testid={`divider-quote-${quote.id}`}
                 />
                 <p

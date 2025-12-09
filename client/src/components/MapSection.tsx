@@ -261,7 +261,7 @@ export default function MapSection({ language }: MapSectionProps) {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
-          className="text-3xl md:text-4xl font-heading font-light text-[#AC162C] tracking-wide text-center mb-12"
+          className="text-3xl md:text-4xl font-heading font-light text-[#AA1A2E] tracking-wide text-center mb-12"
           data-testid="text-location-title"
         >
           {t.title}

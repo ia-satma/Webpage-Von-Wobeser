@@ -300,7 +300,7 @@ export default function ArticlesPage() {
                 <FileText className="w-16 h-16 text-primary/40 mx-auto mb-6" />
                 <h2 
                   className="text-3xl font-heading font-light mb-4"
-                  style={{ color: "#AC162C" }}
+                  style={{ color: "#AA1A2E" }}
                   data-testid="text-coming-soon-title"
                 >
                   {t.comingSoon}

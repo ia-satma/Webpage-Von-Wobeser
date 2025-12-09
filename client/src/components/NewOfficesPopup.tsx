@@ -433,7 +433,7 @@ export default function NewOfficesPopup({ language }: NewOfficesPopupProps) {
                 {t.collabText2}
               </p>
               <div className="flex flex-col items-center mb-8">
-                <span className="text-5xl md:text-6xl font-heading font-light text-[#AC162C]">
+                <span className="text-5xl md:text-6xl font-heading font-light text-[#AA1A2E]">
                   {t.workplacesNum}
                 </span>
                 <span className="text-sm text-gray-500 uppercase tracking-wider mt-2">
@@ -465,7 +465,7 @@ export default function NewOfficesPopup({ language }: NewOfficesPopupProps) {
             </section>
 
             <section className="max-w-3xl mx-auto text-center py-8 border-t border-b border-gray-200" data-testid="section-quote">
-              <div className="text-4xl text-[#AC162C] opacity-30 mb-4">"</div>
+              <div className="text-4xl text-[#AA1A2E] opacity-30 mb-4">"</div>
               <blockquote className="text-xl md:text-2xl font-serif italic text-gray-700 leading-relaxed mb-6">
                 "{t.quoteText}"
               </blockquote>
@@ -483,10 +483,10 @@ export default function NewOfficesPopup({ language }: NewOfficesPopupProps) {
                 href={GOOGLE_MAPS_URL}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex flex-col items-center gap-2 min-h-[44px] p-4 text-gray-600 hover:text-[#AC162C] transition-colors group touch-manipulation"
+                className="inline-flex flex-col items-center gap-2 min-h-[44px] p-4 text-gray-600 hover:text-[#AA1A2E] transition-colors group touch-manipulation"
                 data-testid="link-popup-address"
               >
-                <MapPin className="w-8 h-8 text-[#AC162C] group-hover:scale-110 transition-transform" />
+                <MapPin className="w-8 h-8 text-[#AA1A2E] group-hover:scale-110 transition-transform" />
                 <div className="leading-relaxed">
                   <p>{t.addressLine1}</p>
                   <p>{t.addressLine2}</p>
@@ -497,7 +497,7 @@ export default function NewOfficesPopup({ language }: NewOfficesPopupProps) {
           </div>
         </div>
 
-        <div className="bg-[#AC162C] p-4 flex-shrink-0">
+        <div className="bg-[#AA1A2E] p-4 flex-shrink-0">
           <Button
             onClick={handleClose}
             variant="ghost"

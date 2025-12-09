@@ -860,7 +860,7 @@ export default function ProBono() {
             className="mb-20"
             data-testid="section-commitment"
           >
-            <h2 className="text-3xl font-heading font-light text-[#AC162C] mb-6">
+            <h2 className="text-3xl font-heading font-light text-[#AA1A2E] mb-6">
               {t.commitmentTitle}
             </h2>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -881,7 +881,7 @@ export default function ProBono() {
             data-testid="section-areas"
           >
             <div className="text-center mb-12">
-              <h2 className="text-3xl font-heading font-light text-[#AC162C] mb-4">
+              <h2 className="text-3xl font-heading font-light text-[#AA1A2E] mb-4">
                 {t.areasTitle}
               </h2>
               <p className="text-lg text-gray-600 dark:text-gray-400" data-testid="text-areas-subtitle">
@@ -926,7 +926,7 @@ export default function ProBono() {
             className="mb-20 bg-gray-50 dark:bg-gray-800 rounded-md p-10"
             data-testid="section-stats"
           >
-            <h2 className="text-3xl font-heading font-light text-[#AC162C] mb-8 text-center">
+            <h2 className="text-3xl font-heading font-light text-[#AA1A2E] mb-8 text-center">
               {t.statsTitle}
             </h2>
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-8">
@@ -956,7 +956,7 @@ export default function ProBono() {
             data-testid="section-participation"
           >
             <div className="text-center mb-12">
-              <h2 className="text-3xl font-heading font-light text-[#AC162C] mb-4">
+              <h2 className="text-3xl font-heading font-light text-[#AA1A2E] mb-4">
                 {t.participationTitle}
               </h2>
               <p className="text-lg text-primary font-medium mb-4" data-testid="text-participation-subtitle">

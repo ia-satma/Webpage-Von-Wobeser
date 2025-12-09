@@ -585,7 +585,7 @@ export default function DiversityInclusion() {
       <SEOHead page="diversityInclusion" language={language} />
       <Header />
 
-      <section className="pt-32 pb-12 bg-[#AC162C]" data-testid="section-diversity-hero">
+      <section className="pt-32 pb-12 bg-[#AA1A2E]" data-testid="section-diversity-hero">
         <div className="max-w-7xl mx-auto px-6 lg:px-12">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -621,7 +621,7 @@ export default function DiversityInclusion() {
             className="mb-20"
             data-testid="section-founding"
           >
-            <h2 className="text-3xl font-heading font-light text-[#AC162C] mb-6">
+            <h2 className="text-3xl font-heading font-light text-[#AA1A2E] mb-6">
               {t.foundingTitle}
             </h2>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -641,7 +641,7 @@ export default function DiversityInclusion() {
             className="mb-20"
             data-testid="section-stats"
           >
-            <h2 className="text-3xl font-heading font-light text-[#AC162C] mb-8 text-center">
+            <h2 className="text-3xl font-heading font-light text-[#AA1A2E] mb-8 text-center">
               {t.statsTitle}
             </h2>
             <motion.div
@@ -654,13 +654,13 @@ export default function DiversityInclusion() {
                 <motion.div
                   key={index}
                   variants={itemVariants}
-                  className="text-center bg-gradient-to-br from-[#AC162C]/5 to-[#AC162C]/10 dark:from-[#AC162C]/10 dark:to-[#AC162C]/20 rounded-md p-6"
+                  className="text-center bg-gradient-to-br from-[#AA1A2E]/5 to-[#AA1A2E]/10 dark:from-[#AA1A2E]/10 dark:to-[#AA1A2E]/20 rounded-md p-6"
                   data-testid={`stat-diversity-${index}`}
                 >
-                  <div className="w-12 h-12 rounded-full bg-[#AC162C]/10 flex items-center justify-center mx-auto mb-3">
-                    <stat.icon className="w-6 h-6 text-[#AC162C]" />
+                  <div className="w-12 h-12 rounded-full bg-[#AA1A2E]/10 flex items-center justify-center mx-auto mb-3">
+                    <stat.icon className="w-6 h-6 text-[#AA1A2E]" />
                   </div>
-                  <div className="text-4xl font-light text-[#AC162C] mb-2">
+                  <div className="text-4xl font-light text-[#AA1A2E] mb-2">
                     {stat.value}
                   </div>
                   <div className="text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -678,7 +678,7 @@ export default function DiversityInclusion() {
             className="mb-20"
             data-testid="section-values"
           >
-            <h2 className="text-3xl font-heading font-light text-[#AC162C] mb-8 text-center">
+            <h2 className="text-3xl font-heading font-light text-[#AA1A2E] mb-8 text-center">
               {t.valuesTitle}
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -686,8 +686,8 @@ export default function DiversityInclusion() {
                 <motion.div key={index} variants={itemVariants}>
                   <Card className="h-full rounded-md border border-gray-200 dark:border-gray-700 text-center" data-testid={`card-value-${index}`}>
                     <CardContent className="p-6">
-                      <div className="w-14 h-14 rounded-full bg-[#AC162C]/10 flex items-center justify-center mx-auto mb-4">
-                        <value.icon className="w-7 h-7 text-[#AC162C]" />
+                      <div className="w-14 h-14 rounded-full bg-[#AA1A2E]/10 flex items-center justify-center mx-auto mb-4">
+                        <value.icon className="w-7 h-7 text-[#AA1A2E]" />
                       </div>
                       <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-2">
                         {value.title}
@@ -710,7 +710,7 @@ export default function DiversityInclusion() {
             data-testid="section-initiatives"
           >
             <div className="text-center mb-12">
-              <h2 className="text-3xl font-heading font-light text-[#AC162C] mb-4">
+              <h2 className="text-3xl font-heading font-light text-[#AA1A2E] mb-4">
                 {t.initiativesTitle}
               </h2>
               <p className="text-lg text-gray-600 dark:text-gray-400" data-testid="text-initiatives-subtitle">
@@ -729,8 +729,8 @@ export default function DiversityInclusion() {
                   <Card className="h-full rounded-md border border-gray-200 dark:border-gray-700" data-testid={`card-initiative-${index}`}>
                     <CardContent className="p-6">
                       <div className="flex items-start gap-4">
-                        <div className="w-12 h-12 rounded-full bg-[#AC162C]/10 flex items-center justify-center flex-shrink-0">
-                          <initiative.icon className="w-6 h-6 text-[#AC162C]" />
+                        <div className="w-12 h-12 rounded-full bg-[#AA1A2E]/10 flex items-center justify-center flex-shrink-0">
+                          <initiative.icon className="w-6 h-6 text-[#AA1A2E]" />
                         </div>
                         <div>
                           <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-2">
@@ -755,11 +755,11 @@ export default function DiversityInclusion() {
             className="mb-20"
             data-testid="section-probono"
           >
-            <Card className="rounded-md border border-gray-200 dark:border-gray-700 bg-gradient-to-br from-[#AC162C]/5 to-[#AC162C]/10 dark:from-[#AC162C]/10 dark:to-[#AC162C]/20">
+            <Card className="rounded-md border border-gray-200 dark:border-gray-700 bg-gradient-to-br from-[#AA1A2E]/5 to-[#AA1A2E]/10 dark:from-[#AA1A2E]/10 dark:to-[#AA1A2E]/20">
               <CardContent className="p-8">
                 <div className="flex items-center gap-3 mb-4">
-                  <HeartHandshake className="w-8 h-8 text-[#AC162C]" />
-                  <h2 className="text-2xl font-heading font-light text-[#AC162C]">
+                  <HeartHandshake className="w-8 h-8 text-[#AA1A2E]" />
+                  <h2 className="text-2xl font-heading font-light text-[#AA1A2E]">
                     {t.proBonoTitle}
                   </h2>
                 </div>
@@ -769,7 +769,7 @@ export default function DiversityInclusion() {
                 <Link href="/about">
                   <Button
                     variant="outline"
-                    className="border-[#AC162C] text-[#AC162C] hover:bg-[#AC162C] hover:text-white"
+                    className="border-[#AA1A2E] text-[#AA1A2E] hover:bg-[#AA1A2E] hover:text-white"
                     data-testid="button-probono-learn-more"
                   >
                     {t.proBonoButton}
@@ -787,7 +787,7 @@ export default function DiversityInclusion() {
             className="mb-20 text-center"
             data-testid="section-commitment"
           >
-            <h2 className="text-3xl font-heading font-light text-[#AC162C] mb-6">
+            <h2 className="text-3xl font-heading font-light text-[#AA1A2E] mb-6">
               {t.commitmentTitle}
             </h2>
             <p className="text-lg text-gray-700 dark:text-gray-300 leading-relaxed max-w-4xl mx-auto">
@@ -799,7 +799,7 @@ export default function DiversityInclusion() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.45 }}
-            className="bg-[#AC162C] rounded-md p-10 text-center"
+            className="bg-[#AA1A2E] rounded-md p-10 text-center"
             data-testid="section-join"
           >
             <h2 className="text-3xl font-heading font-light text-white mb-4">
@@ -811,7 +811,7 @@ export default function DiversityInclusion() {
             <Link href="/careers">
               <Button
                 size="lg"
-                className="bg-white text-[#AC162C] hover:bg-gray-100"
+                className="bg-white text-[#AA1A2E] hover:bg-gray-100"
                 data-testid="button-join-careers"
               >
                 {t.joinButton}
