@@ -3066,6 +3066,60 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
     }
   });
 
+  // System Chronicler API - Nerve Center data
+  app.get("/api/system/chronicler", async (req: Request, res: Response) => {
+    try {
+      const { systemChronicler } = await import('./agents/SystemChronicler');
+      
+      const agents = systemChronicler.getAllAgents();
+      const timeline = systemChronicler.getEvolutionTimeline();
+      const stats = systemChronicler.getSystemStats();
+      
+      res.json({
+        success: true,
+        agents,
+        timeline,
+        stats,
+        categories: {
+          brain: systemChronicler.getAgentsByCategory("brain"),
+          hands: systemChronicler.getAgentsByCategory("hands"),
+          shield: systemChronicler.getAgentsByCategory("shield")
+        }
+      });
+    } catch (error: any) {
+      console.error('[SystemChronicler] Error:', error);
+      res.status(500).json({ success: false, error: error.message });
+    }
+  });
+
+  // Record evolution event (admin only)
+  app.post("/api/system/chronicler/evolution", authMiddleware, async (req: Request, res: Response) => {
+    try {
+      const { systemChronicler } = await import('./agents/SystemChronicler');
+      const { title, description, agentId, impact, category } = req.body;
+      
+      if (!title || !description || !impact || !category) {
+        return res.status(400).json({ 
+          success: false, 
+          error: 'Missing required fields: title, description, impact, category' 
+        });
+      }
+      
+      systemChronicler.recordEvolution({
+        title,
+        description,
+        agentId,
+        impact,
+        category
+      });
+      
+      res.json({ success: true, message: 'Evolution recorded' });
+    } catch (error: any) {
+      console.error('[SystemChronicler] Error recording evolution:', error);
+      res.status(500).json({ success: false, error: error.message });
+    }
+  });
+
   // Website Audit API routes
   app.get("/api/audits", authMiddleware, async (req: Request, res: Response) => {
     try {
