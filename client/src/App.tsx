@@ -53,6 +53,11 @@ import AdminTeam from "@/pages/admin/AdminTeam";
 import AdminTeamForm from "@/pages/admin/AdminTeamForm";
 import AdminGuide from "@/pages/admin/AdminGuide";
 import AdminPerformance from "@/pages/admin/AdminPerformance";
+import AdminPracticeGroups from "@/pages/admin/AdminPracticeGroups";
+import AdminIndustryGroups from "@/pages/admin/AdminIndustryGroups";
+import AdminKnowledge from "@/pages/admin/AdminKnowledge";
+import AdminTranslations from "@/pages/admin/AdminTranslations";
+import AdminEvents from "@/pages/admin/AdminEvents";
 
 function SkipLinks() {
   const { language } = useLanguage();
@@ -164,6 +169,11 @@ function Router() {
       <Route path="/admin/team/:id/edit" component={AdminTeamForm} />
       <Route path="/admin/guide" component={AdminGuide} />
       <Route path="/admin/performance" component={AdminPerformance} />
+      <Route path="/admin/practice-groups" component={AdminPracticeGroups} />
+      <Route path="/admin/industry-groups" component={AdminIndustryGroups} />
+      <Route path="/admin/knowledge" component={AdminKnowledge} />
+      <Route path="/admin/translations" component={AdminTranslations} />
+      <Route path="/admin/events" component={AdminEvents} />
       <Route component={NotFound} />
     </Switch>
   );

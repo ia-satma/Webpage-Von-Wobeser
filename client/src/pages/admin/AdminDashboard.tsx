@@ -25,7 +25,12 @@ import {
   Clock,
   BarChart3,
   Loader2,
-  Users
+  Users,
+  Briefcase,
+  Building2,
+  Calendar,
+  BookOpen,
+  ChevronRight
 } from "lucide-react";
 
 const translations = {
@@ -47,6 +52,11 @@ const translations = {
     articleProcessing: "Article Processing",
     teamMembers: "Team Members",
     translations: "Translations",
+    practiceGroups: "Practice Areas",
+    industryGroups: "Industry Sectors",
+    events: "Events",
+    knowledgeBase: "Knowledge Base",
+    translationsDashboard: "Translation Coverage",
     logout: "Logout",
     loading: "Loading...",
     draft: "Draft",
@@ -86,6 +96,11 @@ const translations = {
     articleProcessing: "Procesamiento de Artículos",
     teamMembers: "Miembros del Equipo",
     translations: "Traducciones",
+    practiceGroups: "Áreas de Práctica",
+    industryGroups: "Sectores Industriales",
+    events: "Eventos",
+    knowledgeBase: "Base de Conocimiento",
+    translationsDashboard: "Cobertura de Traducción",
     logout: "Cerrar Sesión",
     loading: "Cargando...",
     draft: "Borrador",
@@ -125,6 +140,11 @@ const translations = {
     articleProcessing: "Artikelverarbeitung",
     teamMembers: "Teammitglieder",
     translations: "Übersetzungen",
+    practiceGroups: "Praxisbereiche",
+    industryGroups: "Industriesektoren",
+    events: "Veranstaltungen",
+    knowledgeBase: "Wissensdatenbank",
+    translationsDashboard: "Übersetzungsabdeckung",
     logout: "Abmelden",
     loading: "Wird geladen...",
     draft: "Entwurf",
@@ -164,6 +184,11 @@ const translations = {
     articleProcessing: "文章处理",
     teamMembers: "团队成员",
     translations: "翻译",
+    practiceGroups: "执业领域",
+    industryGroups: "行业领域",
+    events: "活动",
+    knowledgeBase: "知识库",
+    translationsDashboard: "翻译覆盖率",
     logout: "退出登录",
     loading: "加载中...",
     draft: "草稿",
@@ -203,6 +228,11 @@ const translations = {
     articleProcessing: "기사 처리",
     teamMembers: "팀 구성원",
     translations: "번역",
+    practiceGroups: "업무 분야",
+    industryGroups: "산업 분야",
+    events: "이벤트",
+    knowledgeBase: "지식 베이스",
+    translationsDashboard: "번역 커버리지",
     logout: "로그아웃",
     loading: "로딩 중...",
     draft: "임시 저장",
@@ -242,6 +272,11 @@ const translations = {
     articleProcessing: "記事処理",
     teamMembers: "チームメンバー",
     translations: "翻訳",
+    practiceGroups: "業務分野",
+    industryGroups: "産業分野",
+    events: "イベント",
+    knowledgeBase: "ナレッジベース",
+    translationsDashboard: "翻訳カバレッジ",
     logout: "ログアウト",
     loading: "読み込み中...",
     draft: "下書き",
@@ -281,6 +316,11 @@ const translations = {
     articleProcessing: "معالجة المقالات",
     teamMembers: "أعضاء الفريق",
     translations: "الترجمات",
+    practiceGroups: "مجالات الممارسة",
+    industryGroups: "القطاعات الصناعية",
+    events: "الفعاليات",
+    knowledgeBase: "قاعدة المعرفة",
+    translationsDashboard: "تغطية الترجمة",
     logout: "تسجيل الخروج",
     loading: "جاري التحميل...",
     draft: "مسودة",
@@ -320,6 +360,11 @@ const translations = {
     articleProcessing: "Обработка статей",
     teamMembers: "Члены команды",
     translations: "Переводы",
+    practiceGroups: "Области практики",
+    industryGroups: "Отраслевые группы",
+    events: "Мероприятия",
+    knowledgeBase: "База знаний",
+    translationsDashboard: "Охват переводов",
     logout: "Выйти",
     loading: "Загрузка...",
     draft: "Черновик",
@@ -359,6 +404,11 @@ const translations = {
     articleProcessing: "Traitement des articles",
     teamMembers: "Membres de l'équipe",
     translations: "Traductions",
+    practiceGroups: "Domaines de pratique",
+    industryGroups: "Secteurs industriels",
+    events: "Événements",
+    knowledgeBase: "Base de connaissances",
+    translationsDashboard: "Couverture des traductions",
     logout: "Déconnexion",
     loading: "Chargement...",
     draft: "Brouillon",
@@ -398,6 +448,11 @@ const translations = {
     articleProcessing: "Elaborazione articoli",
     teamMembers: "Membri del team",
     translations: "Traduzioni",
+    practiceGroups: "Aree di pratica",
+    industryGroups: "Settori industriali",
+    events: "Eventi",
+    knowledgeBase: "Base di conoscenza",
+    translationsDashboard: "Copertura traduzioni",
     logout: "Esci",
     loading: "Caricamento...",
     draft: "Bozza",
@@ -437,6 +492,11 @@ const translations = {
     articleProcessing: "Processamento de Artigos",
     teamMembers: "Membros da Equipe",
     translations: "Traduções",
+    practiceGroups: "Áreas de Prática",
+    industryGroups: "Setores Industriais",
+    events: "Eventos",
+    knowledgeBase: "Base de Conhecimento",
+    translationsDashboard: "Cobertura de Tradução",
     logout: "Sair",
     loading: "Carregando...",
     draft: "Rascunho",
@@ -861,6 +921,36 @@ export default function AdminDashboard() {
                 <Button variant="outline" className="w-full justify-start" data-testid="button-team-members">
                   <Users className="mr-2 h-4 w-4" />
                   {t.teamMembers || "Team Members"}
+                </Button>
+              </Link>
+              <Link href="/admin/practice-groups">
+                <Button variant="outline" className="w-full justify-start" data-testid="button-practice-groups">
+                  <Briefcase className="mr-2 h-4 w-4" />
+                  {t.practiceGroups || "Practice Areas"}
+                </Button>
+              </Link>
+              <Link href="/admin/industry-groups">
+                <Button variant="outline" className="w-full justify-start" data-testid="button-industry-groups">
+                  <Building2 className="mr-2 h-4 w-4" />
+                  {t.industryGroups || "Industry Sectors"}
+                </Button>
+              </Link>
+              <Link href="/admin/events">
+                <Button variant="outline" className="w-full justify-start" data-testid="button-events">
+                  <Calendar className="mr-2 h-4 w-4" />
+                  {t.events || "Events"}
+                </Button>
+              </Link>
+              <Link href="/admin/translations">
+                <Button variant="outline" className="w-full justify-start" data-testid="button-translations-dashboard">
+                  <Languages className="mr-2 h-4 w-4" />
+                  {t.translationsDashboard || "Translation Coverage"}
+                </Button>
+              </Link>
+              <Link href="/admin/knowledge">
+                <Button variant="outline" className="w-full justify-start" data-testid="button-knowledge-base">
+                  <BookOpen className="mr-2 h-4 w-4" />
+                  {t.knowledgeBase || "Knowledge Base"}
                 </Button>
               </Link>
             </CardContent>
