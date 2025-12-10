@@ -1840,6 +1840,156 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
   });
 
   // =============================================
+  // ADMIN OFFICES CRUD
+  // =============================================
+  
+  app.get("/api/admin/offices", authMiddleware, async (_req: Request, res: Response) => {
+    try {
+      const officesList = await storage.getOffices();
+      res.json(officesList);
+    } catch (error) {
+      console.error("Get offices error:", error);
+      res.status(500).json({ error: "Failed to fetch offices" });
+    }
+  });
+
+  app.post("/api/admin/offices", authMiddleware, async (req: Request, res: Response) => {
+    try {
+      const office = await storage.createOffice(req.body);
+      res.json(office);
+    } catch (error) {
+      console.error("Create office error:", error);
+      res.status(500).json({ error: "Failed to create office" });
+    }
+  });
+
+  app.put("/api/admin/offices/:id", authMiddleware, async (req: Request, res: Response) => {
+    try {
+      const updated = await storage.updateOffice(req.params.id, req.body);
+      if (!updated) {
+        return res.status(404).json({ error: "Office not found" });
+      }
+      res.json(updated);
+    } catch (error) {
+      console.error("Update office error:", error);
+      res.status(500).json({ error: "Failed to update office" });
+    }
+  });
+
+  app.delete("/api/admin/offices/:id", authMiddleware, async (req: Request, res: Response) => {
+    try {
+      const deleted = await storage.deleteOffice(req.params.id);
+      if (!deleted) {
+        return res.status(404).json({ error: "Office not found" });
+      }
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Delete office error:", error);
+      res.status(500).json({ error: "Failed to delete office" });
+    }
+  });
+
+  // =============================================
+  // ADMIN ALLIANCES CRUD
+  // =============================================
+  
+  app.get("/api/admin/alliances", authMiddleware, async (_req: Request, res: Response) => {
+    try {
+      const alliancesList = await storage.getAlliances();
+      res.json(alliancesList);
+    } catch (error) {
+      console.error("Get alliances error:", error);
+      res.status(500).json({ error: "Failed to fetch alliances" });
+    }
+  });
+
+  app.post("/api/admin/alliances", authMiddleware, async (req: Request, res: Response) => {
+    try {
+      const alliance = await storage.createAlliance(req.body);
+      res.json(alliance);
+    } catch (error) {
+      console.error("Create alliance error:", error);
+      res.status(500).json({ error: "Failed to create alliance" });
+    }
+  });
+
+  app.put("/api/admin/alliances/:id", authMiddleware, async (req: Request, res: Response) => {
+    try {
+      const updated = await storage.updateAlliance(req.params.id, req.body);
+      if (!updated) {
+        return res.status(404).json({ error: "Alliance not found" });
+      }
+      res.json(updated);
+    } catch (error) {
+      console.error("Update alliance error:", error);
+      res.status(500).json({ error: "Failed to update alliance" });
+    }
+  });
+
+  app.delete("/api/admin/alliances/:id", authMiddleware, async (req: Request, res: Response) => {
+    try {
+      const deleted = await storage.deleteAlliance(req.params.id);
+      if (!deleted) {
+        return res.status(404).json({ error: "Alliance not found" });
+      }
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Delete alliance error:", error);
+      res.status(500).json({ error: "Failed to delete alliance" });
+    }
+  });
+
+  // =============================================
+  // ADMIN SPECIALIZED DESKS CRUD
+  // =============================================
+  
+  app.get("/api/admin/desks", authMiddleware, async (_req: Request, res: Response) => {
+    try {
+      const desksList = await storage.getSpecializedDesks();
+      res.json(desksList);
+    } catch (error) {
+      console.error("Get desks error:", error);
+      res.status(500).json({ error: "Failed to fetch desks" });
+    }
+  });
+
+  app.post("/api/admin/desks", authMiddleware, async (req: Request, res: Response) => {
+    try {
+      const desk = await storage.createSpecializedDesk(req.body);
+      res.json(desk);
+    } catch (error) {
+      console.error("Create desk error:", error);
+      res.status(500).json({ error: "Failed to create desk" });
+    }
+  });
+
+  app.put("/api/admin/desks/:id", authMiddleware, async (req: Request, res: Response) => {
+    try {
+      const updated = await storage.updateSpecializedDesk(req.params.id, req.body);
+      if (!updated) {
+        return res.status(404).json({ error: "Desk not found" });
+      }
+      res.json(updated);
+    } catch (error) {
+      console.error("Update desk error:", error);
+      res.status(500).json({ error: "Failed to update desk" });
+    }
+  });
+
+  app.delete("/api/admin/desks/:id", authMiddleware, async (req: Request, res: Response) => {
+    try {
+      const deleted = await storage.deleteSpecializedDesk(req.params.id);
+      if (!deleted) {
+        return res.status(404).json({ error: "Desk not found" });
+      }
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Delete desk error:", error);
+      res.status(500).json({ error: "Failed to delete desk" });
+    }
+  });
+
+  // =============================================
   // MEDIA ITEMS CRUD
   // =============================================
 

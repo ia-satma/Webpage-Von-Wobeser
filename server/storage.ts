@@ -49,6 +49,12 @@ import {
   type InsertTestimonial,
   type JobOpening,
   type InsertJobOpening,
+  type Office,
+  type InsertOffice,
+  type Alliance,
+  type InsertAlliance,
+  type SpecializedDesk,
+  type InsertSpecializedDesk,
   users,
   news,
   newsTranslations,
@@ -74,6 +80,9 @@ import {
   representativeClients,
   testimonials,
   jobOpenings,
+  offices,
+  alliances,
+  specializedDesks,
 } from "@shared/schema";
 
 export interface IStorage {
@@ -196,6 +205,27 @@ export interface IStorage {
   createJobOpening(job: InsertJobOpening): Promise<JobOpening>;
   updateJobOpening(id: string, job: Partial<InsertJobOpening>): Promise<JobOpening | undefined>;
   deleteJobOpening(id: string): Promise<boolean>;
+  
+  // Offices CRUD
+  getOffices(): Promise<Office[]>;
+  getOfficeById(id: string): Promise<Office | undefined>;
+  createOffice(office: InsertOffice): Promise<Office>;
+  updateOffice(id: string, office: Partial<InsertOffice>): Promise<Office | undefined>;
+  deleteOffice(id: string): Promise<boolean>;
+  
+  // Alliances CRUD
+  getAlliances(): Promise<Alliance[]>;
+  getAllianceById(id: string): Promise<Alliance | undefined>;
+  createAlliance(alliance: InsertAlliance): Promise<Alliance>;
+  updateAlliance(id: string, alliance: Partial<InsertAlliance>): Promise<Alliance | undefined>;
+  deleteAlliance(id: string): Promise<boolean>;
+  
+  // Specialized Desks CRUD
+  getSpecializedDesks(): Promise<SpecializedDesk[]>;
+  getSpecializedDeskById(id: string): Promise<SpecializedDesk | undefined>;
+  createSpecializedDesk(desk: InsertSpecializedDesk): Promise<SpecializedDesk>;
+  updateSpecializedDesk(id: string, desk: Partial<InsertSpecializedDesk>): Promise<SpecializedDesk | undefined>;
+  deleteSpecializedDesk(id: string): Promise<boolean>;
   
   // Translation Cache
   getTranslation(contentType: string, entityId: string, field: string, targetLanguage: string): Promise<TranslationCache | undefined>;
@@ -813,6 +843,81 @@ export class DatabaseStorage implements IStorage {
 
   async deleteJobOpening(id: string): Promise<boolean> {
     const result = await db.delete(jobOpenings).where(eq(jobOpenings.id, id));
+    return (result.rowCount ?? 0) > 0;
+  }
+
+  // Offices CRUD
+  async getOffices(): Promise<Office[]> {
+    return db.select().from(offices).orderBy(asc(offices.order));
+  }
+
+  async getOfficeById(id: string): Promise<Office | undefined> {
+    const [office] = await db.select().from(offices).where(eq(offices.id, id));
+    return office;
+  }
+
+  async createOffice(office: InsertOffice): Promise<Office> {
+    const [item] = await db.insert(offices).values(office).returning();
+    return item;
+  }
+
+  async updateOffice(id: string, officeData: Partial<InsertOffice>): Promise<Office | undefined> {
+    const [updated] = await db.update(offices).set(officeData).where(eq(offices.id, id)).returning();
+    return updated;
+  }
+
+  async deleteOffice(id: string): Promise<boolean> {
+    const result = await db.delete(offices).where(eq(offices.id, id));
+    return (result.rowCount ?? 0) > 0;
+  }
+
+  // Alliances CRUD
+  async getAlliances(): Promise<Alliance[]> {
+    return db.select().from(alliances).orderBy(asc(alliances.order));
+  }
+
+  async getAllianceById(id: string): Promise<Alliance | undefined> {
+    const [alliance] = await db.select().from(alliances).where(eq(alliances.id, id));
+    return alliance;
+  }
+
+  async createAlliance(alliance: InsertAlliance): Promise<Alliance> {
+    const [item] = await db.insert(alliances).values(alliance).returning();
+    return item;
+  }
+
+  async updateAlliance(id: string, allianceData: Partial<InsertAlliance>): Promise<Alliance | undefined> {
+    const [updated] = await db.update(alliances).set(allianceData).where(eq(alliances.id, id)).returning();
+    return updated;
+  }
+
+  async deleteAlliance(id: string): Promise<boolean> {
+    const result = await db.delete(alliances).where(eq(alliances.id, id));
+    return (result.rowCount ?? 0) > 0;
+  }
+
+  // Specialized Desks CRUD
+  async getSpecializedDesks(): Promise<SpecializedDesk[]> {
+    return db.select().from(specializedDesks).orderBy(asc(specializedDesks.order));
+  }
+
+  async getSpecializedDeskById(id: string): Promise<SpecializedDesk | undefined> {
+    const [desk] = await db.select().from(specializedDesks).where(eq(specializedDesks.id, id));
+    return desk;
+  }
+
+  async createSpecializedDesk(desk: InsertSpecializedDesk): Promise<SpecializedDesk> {
+    const [item] = await db.insert(specializedDesks).values(desk).returning();
+    return item;
+  }
+
+  async updateSpecializedDesk(id: string, deskData: Partial<InsertSpecializedDesk>): Promise<SpecializedDesk | undefined> {
+    const [updated] = await db.update(specializedDesks).set(deskData).where(eq(specializedDesks.id, id)).returning();
+    return updated;
+  }
+
+  async deleteSpecializedDesk(id: string): Promise<boolean> {
+    const result = await db.delete(specializedDesks).where(eq(specializedDesks.id, id));
     return (result.rowCount ?? 0) > 0;
   }
 
