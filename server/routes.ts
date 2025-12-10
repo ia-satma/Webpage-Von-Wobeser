@@ -2910,7 +2910,10 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
               { articleId: article.id }
             );
             articleResult.steps.format = { success: formatResult.success };
-          } catch {}
+          } catch (err: any) {
+            console.error(`[Pipeline] Format error for ${article.id}:`, err.message);
+            articleResult.steps.format = { success: false, error: err.message };
+          }
 
           // Step 2: CATEGORIZE
           try {
@@ -2919,7 +2922,10 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
               { articleId: article.id }
             );
             articleResult.steps.categorize = { success: categoryResult.success };
-          } catch {}
+          } catch (err: any) {
+            console.error(`[Pipeline] Categorize error for ${article.id}:`, err.message);
+            articleResult.steps.categorize = { success: false, error: err.message };
+          }
 
           // Step 3: METADATA
           try {
@@ -2928,7 +2934,10 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
               { articleId: article.id }
             );
             articleResult.steps.metadata = { success: metadataResult.success };
-          } catch {}
+          } catch (err: any) {
+            console.error(`[Pipeline] Metadata error for ${article.id}:`, err.message);
+            articleResult.steps.metadata = { success: false, error: err.message };
+          }
 
           // Step 4: SEO
           try {
@@ -2937,7 +2946,10 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
               { articleId: article.id }
             );
             articleResult.steps.seo = { success: seoResult.success };
-          } catch {}
+          } catch (err: any) {
+            console.error(`[Pipeline] SEO error for ${article.id}:`, err.message);
+            articleResult.steps.seo = { success: false, error: err.message };
+          }
 
           // Step 5: TRANSLATE
           try {
@@ -2946,17 +2958,25 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
               { articleId: article.id }
             );
             articleResult.steps.translate = { success: translateResult.success };
-          } catch {}
+          } catch (err: any) {
+            console.error(`[Pipeline] Translate error for ${article.id}:`, err.message);
+            articleResult.steps.translate = { success: false, error: err.message };
+          }
 
           // Step 6: IMAGE (optional)
           if (generateImage) {
             try {
+              console.log(`[Pipeline] Starting image generation for ${article.id}...`);
               const imageResult = await imageSuggestionAgent.execute(
                 createContext('image_suggestion', article.id),
                 { articleId: article.id }
               );
-              articleResult.steps.image = { success: imageResult.success };
-            } catch {}
+              console.log(`[Pipeline] Image result for ${article.id}:`, imageResult.success ? 'SUCCESS' : imageResult.error);
+              articleResult.steps.image = { success: imageResult.success, error: imageResult.error };
+            } catch (err: any) {
+              console.error(`[Pipeline] Image generation error for ${article.id}:`, err.message);
+              articleResult.steps.image = { success: false, error: err.message };
+            }
           }
 
           articleResult.success = true;

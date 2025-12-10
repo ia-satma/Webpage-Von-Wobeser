@@ -165,7 +165,8 @@ export class ImageSuggestionAgent extends BaseAgent {
         return { success: false, error: 'Article has no content' };
       }
 
-      console.log(`[ImageSuggestionAgent] Analyzing article: ${title.substring(0, 50)}...`);
+      console.log(`[ImageSuggestionAgent] Starting image generation for article: ${articleId}`);
+      console.log(`[ImageSuggestionAgent] Article title: ${title.substring(0, 50)}...`);
 
       const analysisResult = await this.callLLM(
         [
@@ -182,6 +183,7 @@ export class ImageSuggestionAgent extends BaseAgent {
       const brandEnhancedPrompt = `${analysis.imagePrompt}. Style: Professional corporate legal, color scheme featuring deep burgundy red (#AA1A2E) with white and dark gray accents. Sharp geometric edges, no rounded corners. Sophisticated and elegant composition suitable for a prestigious law firm.`;
 
       console.log(`[ImageSuggestionAgent] Generated prompt: ${brandEnhancedPrompt.substring(0, 100)}...`);
+      console.log(`[ImageSuggestionAgent] Calling DALL-E 3 API...`);
 
       try {
         const image = await openai.images.generate({
@@ -237,7 +239,13 @@ export class ImageSuggestionAgent extends BaseAgent {
           },
         };
       } catch (imageError: any) {
-        console.error('[ImageSuggestionAgent] DALL-E 3 generation error:', imageError);
+        console.error('[ImageSuggestionAgent] DALL-E 3 generation error:', imageError?.message || imageError);
+        console.error('[ImageSuggestionAgent] Error details:', JSON.stringify({
+          code: imageError?.code,
+          status: imageError?.status,
+          type: imageError?.type,
+          message: imageError?.message
+        }));
         
         let errorMessage = 'Image generation failed';
         if (imageError.code === 'billing_hard_limit_reached') {
