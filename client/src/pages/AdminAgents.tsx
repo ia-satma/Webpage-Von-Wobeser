@@ -60,6 +60,13 @@ interface EvolutionProposal {
   createdAt: string;
 }
 
+interface JobStats {
+  total: number;
+  completed: number;
+  failed: number;
+  pending: number;
+}
+
 interface OrchestratorStatus {
   isRunning: boolean;
   queueLength: number;
@@ -67,6 +74,25 @@ interface OrchestratorStatus {
   registeredAgents: string[];
   recentJobs: any[];
   recentEvents: any[];
+  jobStatsByAgent: Record<string, JobStats>;
+}
+
+interface KnowledgeStats {
+  totalDocuments: number;
+  byAgent: Record<string, number>;
+  byCategory?: Record<string, number>;
+}
+
+interface EvolutionSummary {
+  totalProposals: number;
+  byStatus: Record<string, number>;
+  recentCycles: any[];
+}
+
+interface DatabaseStats {
+  recentJobs: number;
+  failedJobs: number;
+  recentEvents: number;
 }
 
 const AGENT_ICONS: Record<string, any> = {
@@ -74,6 +100,7 @@ const AGENT_ICONS: Record<string, any> = {
   metadata_linker: Users,
   polyglot_translator: Globe,
   content_auditor: Search,
+  content_analyzer: Brain,
   seo_optimizer: TrendingUp,
   website_auditor: AlertTriangle,
   image_suggestion: Sparkles,
@@ -86,6 +113,7 @@ const AGENT_NAMES: Record<string, string> = {
   metadata_linker: "Metadata Linker",
   polyglot_translator: "Polyglot Translator",
   content_auditor: "Content Auditor",
+  content_analyzer: "Content Analyzer",
   seo_optimizer: "SEO Optimizer",
   website_auditor: "Website Auditor",
   image_suggestion: "Image Suggestion",
@@ -115,10 +143,11 @@ export default function AdminAgents() {
     }
   }, [authLoading, isAuthenticated, setLocation]);
 
-  const { data: status, isLoading: statusLoading, refetch: refetchStatus } = useQuery<{
+  const { data: status, isLoading: statusLoading, error: statusError, refetch: refetchStatus } = useQuery<{
     orchestrator: OrchestratorStatus;
-    evolution: { totalProposals: number; byStatus: Record<string, number>; recentCycles: any[] };
-    knowledge: { totalDocuments: number; byAgent: Record<string, number> };
+    evolution: EvolutionSummary;
+    knowledge: KnowledgeStats;
+    database: DatabaseStats;
   }>({
     queryKey: ["/api/agents/status"],
     queryFn: async () => {
@@ -282,13 +311,24 @@ export default function AdminAgents() {
           </div>
         </div>
 
+        {statusError && (
+          <Card className="mb-4 border-red-200 bg-red-50 dark:border-red-900 dark:bg-red-950">
+            <CardContent className="pt-4">
+              <div className="flex items-center gap-2 text-red-600 dark:text-red-400">
+                <AlertTriangle className="w-5 h-5" />
+                <span>Error loading agent status: {String(statusError)}</span>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         <div className="grid gap-4 md:grid-cols-4 mb-8">
           <Card>
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-muted-foreground">System Status</p>
-                  <p className="text-2xl font-bold flex items-center gap-2">
+                  <p className="text-2xl font-bold flex items-center gap-2" data-testid="text-system-status">
                     {status?.orchestrator?.isRunning ? (
                       <>
                         <Activity className="w-5 h-5 text-green-500" />
@@ -320,11 +360,11 @@ export default function AdminAgents() {
           <Card>
             <CardContent className="pt-6">
               <p className="text-sm text-muted-foreground">Registered Agents</p>
-              <p className="text-2xl font-bold">{status?.orchestrator?.registeredAgents?.length || 0}</p>
-              <div className="flex gap-1 mt-2">
-                {status?.orchestrator?.registeredAgents?.slice(0, 5).map((agent) => {
+              <p className="text-2xl font-bold" data-testid="text-agent-count">{status?.orchestrator?.registeredAgents?.length || 0}</p>
+              <div className="flex gap-1 mt-2 flex-wrap">
+                {status?.orchestrator?.registeredAgents?.map((agent) => {
                   const Icon = AGENT_ICONS[agent] || Bot;
-                  return <Icon key={agent} className="w-4 h-4 text-muted-foreground" />;
+                  return <Icon key={agent} className="w-4 h-4 text-muted-foreground" title={AGENT_NAMES[agent] || agent} />;
                 })}
               </div>
             </CardContent>
@@ -332,20 +372,24 @@ export default function AdminAgents() {
 
           <Card>
             <CardContent className="pt-6">
-              <p className="text-sm text-muted-foreground">Queue Length</p>
-              <p className="text-2xl font-bold">{status?.orchestrator?.queueLength || 0}</p>
+              <p className="text-sm text-muted-foreground">Queue / Active</p>
+              <p className="text-2xl font-bold" data-testid="text-queue-length">
+                {status?.orchestrator?.queueLength || 0} / {status?.orchestrator?.activeJobs || 0}
+              </p>
               <p className="text-xs text-muted-foreground mt-1">
-                {status?.orchestrator?.activeJobs || 0} active
+                {status?.database?.recentJobs || 0} recent jobs
               </p>
             </CardContent>
           </Card>
 
           <Card>
             <CardContent className="pt-6">
-              <p className="text-sm text-muted-foreground">Knowledge Docs</p>
-              <p className="text-2xl font-bold">{status?.knowledge?.totalDocuments || 0}</p>
+              <p className="text-sm text-muted-foreground">Knowledge / Proposals</p>
+              <p className="text-2xl font-bold" data-testid="text-knowledge-count">
+                {status?.knowledge?.totalDocuments || 0} / {status?.evolution?.totalProposals || 0}
+              </p>
               <p className="text-xs text-muted-foreground mt-1">
-                {status?.evolution?.totalProposals || 0} proposals
+                {status?.database?.failedJobs || 0} failed jobs
               </p>
             </CardContent>
           </Card>
@@ -365,6 +409,12 @@ export default function AdminAgents() {
                 const Icon = AGENT_ICONS[agentType] || Bot;
                 const name = AGENT_NAMES[agentType] || agentType;
                 const docs = status?.knowledge?.byAgent?.[agentType] || 0;
+                const jobStats = status?.orchestrator?.jobStatsByAgent?.[agentType];
+                const totalJobs = jobStats?.total || 0;
+                const completedJobs = jobStats?.completed || 0;
+                const failedJobs = jobStats?.failed || 0;
+                const pendingJobs = jobStats?.pending || 0;
+                const successRate = totalJobs > 0 ? Math.round((completedJobs / totalJobs) * 100) : 0;
                 
                 return (
                   <Card key={agentType} data-testid={`card-agent-${agentType}`}>
@@ -375,16 +425,54 @@ export default function AdminAgents() {
                       </CardTitle>
                     </CardHeader>
                     <CardContent>
-                      <div className="space-y-2 text-sm">
+                      <div className="space-y-3 text-sm">
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Total Jobs</span>
+                          <span className="font-medium">{totalJobs}</span>
+                        </div>
+                        {totalJobs > 0 && (
+                          <>
+                            <div className="flex justify-between items-center">
+                              <span className="text-muted-foreground">Success Rate</span>
+                              <div className="flex items-center gap-2">
+                                <Progress value={successRate} className="w-16 h-2" />
+                                <span className="font-medium text-xs">{successRate}%</span>
+                              </div>
+                            </div>
+                            <div className="flex justify-between gap-2">
+                              <div className="flex items-center gap-1">
+                                <CheckCircle className="w-3 h-3 text-green-500" />
+                                <span className="text-xs text-muted-foreground">{completedJobs}</span>
+                              </div>
+                              <div className="flex items-center gap-1">
+                                <XCircle className="w-3 h-3 text-red-500" />
+                                <span className="text-xs text-muted-foreground">{failedJobs}</span>
+                              </div>
+                              <div className="flex items-center gap-1">
+                                <Clock className="w-3 h-3 text-yellow-500" />
+                                <span className="text-xs text-muted-foreground">{pendingJobs}</span>
+                              </div>
+                            </div>
+                          </>
+                        )}
                         <div className="flex justify-between">
                           <span className="text-muted-foreground">Knowledge Docs</span>
                           <span className="font-medium">{docs}</span>
                         </div>
                         <div className="flex justify-between">
                           <span className="text-muted-foreground">Status</span>
-                          <Badge variant="outline" className="text-green-600">
-                            <CheckCircle className="w-3 h-3 mr-1" />
-                            Ready
+                          <Badge variant="outline" className={pendingJobs > 0 ? "text-blue-600" : "text-green-600"}>
+                            {pendingJobs > 0 ? (
+                              <>
+                                <RefreshCw className="w-3 h-3 mr-1 animate-spin" />
+                                Working
+                              </>
+                            ) : (
+                              <>
+                                <CheckCircle className="w-3 h-3 mr-1" />
+                                Ready
+                              </>
+                            )}
                           </Badge>
                         </div>
                       </div>
@@ -393,6 +481,27 @@ export default function AdminAgents() {
                 );
               })}
             </div>
+
+            {status?.knowledge?.byCategory && Object.keys(status.knowledge.byCategory).length > 0 && (
+              <Card className="mt-6">
+                <CardHeader>
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <FileText className="w-5 h-5 text-primary" />
+                    Knowledge by Category
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid gap-2 md:grid-cols-4">
+                    {Object.entries(status.knowledge.byCategory).map(([category, count]) => (
+                      <div key={category} className="flex justify-between items-center p-2 bg-muted/50">
+                        <span className="text-sm capitalize">{category.replace(/_/g, ' ')}</span>
+                        <Badge variant="secondary">{count as number}</Badge>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
           </TabsContent>
 
           <TabsContent value="evolution" className="space-y-4">
@@ -476,47 +585,117 @@ export default function AdminAgents() {
           </TabsContent>
 
           <TabsContent value="jobs" className="space-y-4">
-            <h3 className="text-lg font-semibold flex items-center gap-2">
-              <Activity className="w-5 h-5" />
-              Recent Jobs
-            </h3>
+            <div className="grid gap-6 md:grid-cols-2">
+              <div>
+                <h3 className="text-lg font-semibold flex items-center gap-2 mb-4">
+                  <Activity className="w-5 h-5" />
+                  Recent Jobs
+                  {status?.database?.recentJobs ? (
+                    <Badge variant="secondary" className="ml-2">{status.database.recentJobs}</Badge>
+                  ) : null}
+                </h3>
 
-            <ScrollArea className="h-[500px]">
-              <div className="space-y-2">
-                {status?.orchestrator?.recentJobs?.slice().reverse().map((job: any) => (
-                  <Card key={job.id} className="p-3" data-testid={`job-${job.id}`}>
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <Badge className={STATUS_COLORS[job.status]}>{job.status}</Badge>
-                        <span className="font-medium">{AGENT_NAMES[job.agentType]}</span>
-                      </div>
-                      <div className="text-sm text-muted-foreground">
-                        {job.completedAt ? (
-                          <span className="flex items-center gap-1">
-                            <Clock className="w-3 h-3" />
-                            {new Date(job.completedAt).toLocaleTimeString()}
-                          </span>
-                        ) : (
-                          <span className="flex items-center gap-1">
-                            <RefreshCw className="w-3 h-3 animate-spin" />
-                            Running
-                          </span>
+                <ScrollArea className="h-[400px]">
+                  <div className="space-y-2">
+                    {status?.orchestrator?.recentJobs?.slice().reverse().map((job: any, idx: number) => (
+                      <Card key={job.id || idx} className="p-3" data-testid={`job-${job.id || idx}`}>
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            <Badge className={STATUS_COLORS[job.status] || "bg-gray-500"}>{job.status}</Badge>
+                            <span className="font-medium text-sm">{AGENT_NAMES[job.agentType] || job.agentType}</span>
+                          </div>
+                          <div className="text-sm text-muted-foreground">
+                            {job.completedAt ? (
+                              <span className="flex items-center gap-1">
+                                <Clock className="w-3 h-3" />
+                                {new Date(job.completedAt).toLocaleTimeString()}
+                              </span>
+                            ) : job.startedAt ? (
+                              <span className="flex items-center gap-1">
+                                <RefreshCw className="w-3 h-3 animate-spin" />
+                                Running
+                              </span>
+                            ) : (
+                              <span className="flex items-center gap-1">
+                                <Clock className="w-3 h-3" />
+                                Queued
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                        {job.error && (
+                          <p className="text-sm text-red-500 mt-2 truncate" title={job.error}>{job.error}</p>
                         )}
+                        {job.result && typeof job.result === 'object' && job.result.success !== undefined && (
+                          <p className="text-xs text-muted-foreground mt-1">
+                            Result: {job.result.success ? 'Success' : 'Failed'}
+                          </p>
+                        )}
+                      </Card>
+                    ))}
+                    {(!status?.orchestrator?.recentJobs || status.orchestrator.recentJobs.length === 0) && (
+                      <div className="text-center py-8 text-muted-foreground">
+                        <Activity className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                        <p>No jobs executed yet</p>
                       </div>
-                    </div>
-                    {job.error && (
-                      <p className="text-sm text-red-500 mt-2">{job.error}</p>
                     )}
-                  </Card>
-                ))}
-                {(!status?.orchestrator?.recentJobs || status.orchestrator.recentJobs.length === 0) && (
-                  <div className="text-center py-8 text-muted-foreground">
-                    <Activity className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                    <p>No jobs executed yet</p>
                   </div>
-                )}
+                </ScrollArea>
               </div>
-            </ScrollArea>
+
+              <div>
+                <h3 className="text-lg font-semibold flex items-center gap-2 mb-4">
+                  <Zap className="w-5 h-5" />
+                  Recent Events
+                  {status?.database?.recentEvents ? (
+                    <Badge variant="secondary" className="ml-2">{status.database.recentEvents}</Badge>
+                  ) : null}
+                </h3>
+
+                <ScrollArea className="h-[400px]">
+                  <div className="space-y-2">
+                    {status?.orchestrator?.recentEvents?.slice().reverse().map((event: any, idx: number) => (
+                      <Card key={event.id || idx} className="p-3" data-testid={`event-${event.id || idx}`}>
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2 flex-1 min-w-0">
+                            <Badge variant="outline" className="shrink-0">{event.type || event.eventType}</Badge>
+                            <span className="text-sm truncate">{AGENT_NAMES[event.agentType] || event.agentType}</span>
+                          </div>
+                          <div className="text-xs text-muted-foreground shrink-0">
+                            {event.createdAt && new Date(event.createdAt).toLocaleTimeString()}
+                          </div>
+                        </div>
+                        {event.message && (
+                          <p className="text-xs text-muted-foreground mt-1 truncate" title={event.message}>{event.message}</p>
+                        )}
+                      </Card>
+                    ))}
+                    {(!status?.orchestrator?.recentEvents || status.orchestrator.recentEvents.length === 0) && (
+                      <div className="text-center py-8 text-muted-foreground">
+                        <Zap className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                        <p>No events recorded yet</p>
+                      </div>
+                    )}
+                  </div>
+                </ScrollArea>
+              </div>
+            </div>
+
+            {status?.database?.failedJobs && status.database.failedJobs > 0 && (
+              <Card className="mt-4 border-red-200 dark:border-red-900">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-base flex items-center gap-2 text-red-600 dark:text-red-400">
+                    <XCircle className="w-4 h-4" />
+                    Failed Jobs: {status.database.failedJobs}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm text-muted-foreground">
+                    There are failed jobs that may need attention. Check the job history for details.
+                  </p>
+                </CardContent>
+              </Card>
+            )}
           </TabsContent>
 
           <TabsContent value="actions" className="space-y-4">

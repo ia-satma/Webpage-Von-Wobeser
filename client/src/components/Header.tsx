@@ -372,7 +372,8 @@ export default function Header() {
                     isScrolled
                       ? "text-gray-700 dark:text-gray-300 hover:text-primary"
                       : "text-white/90 hover:text-white",
-                    location === item.href && "text-primary"
+                    location === item.href && "text-primary",
+                    activeDropdown === item.id && (isScrolled ? "text-primary" : "text-white")
                   )}
                   data-testid={`link-nav-${item.id}`}
                   aria-current={location === item.href ? "page" : undefined}

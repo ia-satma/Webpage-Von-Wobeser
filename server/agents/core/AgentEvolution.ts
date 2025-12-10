@@ -1,9 +1,11 @@
 import { EvolutionProposal, AgentType, AgentStats } from './types';
 import { dbPersistence } from '../storage/DatabasePersistence';
 
+type LearningCycleEntry = { timestamp: Date; insights: string[]; improvements: string[] };
+
 export class AgentEvolutionTracker {
   private agentStats: Map<AgentType, AgentStats> = new Map();
-  private learningCycleHistory: { timestamp: Date; insights: string[]; improvements: string[] }[] = [];
+  private learningCycleHistory: LearningCycleEntry[] = [];
   private initialized: boolean = false;
 
   async initialize(): Promise<void> {
@@ -77,7 +79,7 @@ export class AgentEvolutionTracker {
 
     console.log(`[Evolution] New proposal: ${dbProposal.title} (${dbProposal.agentType})`);
     
-    return {
+    const result: EvolutionProposal = {
       id: dbProposal.id,
       agentType: dbProposal.agentType as AgentType,
       proposalType: dbProposal.proposalType as EvolutionProposal['proposalType'],
@@ -87,14 +89,17 @@ export class AgentEvolutionTracker {
       impact: dbProposal.impact as EvolutionProposal['impact'],
       status: dbProposal.status as EvolutionProposal['status'],
       proposedChanges: dbProposal.proposedChanges as Record<string, unknown>,
-      metrics: {
-        before: dbProposal.metricsBefore as Record<string, number> | undefined,
-        after: dbProposal.metricsAfter as Record<string, number> | undefined,
-      },
       createdAt: dbProposal.createdAt || new Date(),
       reviewedAt: dbProposal.reviewedAt || undefined,
       implementedAt: dbProposal.implementedAt || undefined,
     };
+    if (dbProposal.metricsBefore) {
+      result.metrics = {
+        before: dbProposal.metricsBefore as Record<string, number>,
+        after: dbProposal.metricsAfter as Record<string, number> | undefined,
+      };
+    }
+    return result;
   }
 
   async getProposals(options?: {
@@ -108,24 +113,29 @@ export class AgentEvolutionTracker {
       limit: options?.limit,
     });
 
-    return dbProposals.map(p => ({
-      id: p.id,
-      agentType: p.agentType as AgentType,
-      proposalType: p.proposalType as EvolutionProposal['proposalType'],
-      title: p.title,
-      description: p.description,
-      rationale: p.rationale || '',
-      impact: p.impact as EvolutionProposal['impact'],
-      status: p.status as EvolutionProposal['status'],
-      proposedChanges: p.proposedChanges as Record<string, unknown>,
-      metrics: {
-        before: p.metricsBefore as Record<string, number> | undefined,
-        after: p.metricsAfter as Record<string, number> | undefined,
-      },
-      createdAt: p.createdAt || new Date(),
-      reviewedAt: p.reviewedAt || undefined,
-      implementedAt: p.implementedAt || undefined,
-    }));
+    return dbProposals.map(p => {
+      const proposal: EvolutionProposal = {
+        id: p.id,
+        agentType: p.agentType as AgentType,
+        proposalType: p.proposalType as EvolutionProposal['proposalType'],
+        title: p.title,
+        description: p.description,
+        rationale: p.rationale || '',
+        impact: p.impact as EvolutionProposal['impact'],
+        status: p.status as EvolutionProposal['status'],
+        proposedChanges: p.proposedChanges as Record<string, unknown>,
+        createdAt: p.createdAt || new Date(),
+        reviewedAt: p.reviewedAt || undefined,
+        implementedAt: p.implementedAt || undefined,
+      };
+      if (p.metricsBefore) {
+        proposal.metrics = {
+          before: p.metricsBefore as Record<string, number>,
+          after: p.metricsAfter as Record<string, number> | undefined,
+        };
+      }
+      return proposal;
+    });
   }
 
   async updateProposalStatus(
@@ -149,7 +159,7 @@ export class AgentEvolutionTracker {
     const dbProposal = await dbPersistence.updateProposal(id, updates);
     if (!dbProposal) return null;
 
-    return {
+    const result: EvolutionProposal = {
       id: dbProposal.id,
       agentType: dbProposal.agentType as AgentType,
       proposalType: dbProposal.proposalType as EvolutionProposal['proposalType'],
@@ -159,14 +169,17 @@ export class AgentEvolutionTracker {
       impact: dbProposal.impact as EvolutionProposal['impact'],
       status: dbProposal.status as EvolutionProposal['status'],
       proposedChanges: dbProposal.proposedChanges as Record<string, unknown>,
-      metrics: {
-        before: dbProposal.metricsBefore as Record<string, number> | undefined,
-        after: dbProposal.metricsAfter as Record<string, number> | undefined,
-      },
       createdAt: dbProposal.createdAt || new Date(),
       reviewedAt: dbProposal.reviewedAt || undefined,
       implementedAt: dbProposal.implementedAt || undefined,
     };
+    if (dbProposal.metricsBefore) {
+      result.metrics = {
+        before: dbProposal.metricsBefore as Record<string, number>,
+        after: dbProposal.metricsAfter as Record<string, number> | undefined,
+      };
+    }
+    return result;
   }
 
   updateAgentStats(agentType: AgentType, stats: Partial<AgentStats>): void {
@@ -270,7 +283,7 @@ export class AgentEvolutionTracker {
     totalProposals: number;
     byStatus: Record<string, number>;
     byImpact: Record<string, number>;
-    recentCycles: typeof this.learningCycleHistory;
+    recentCycles: LearningCycleEntry[];
   }> {
     const proposals = await this.getProposals({ limit: 1000 });
     
@@ -290,7 +303,7 @@ export class AgentEvolutionTracker {
     };
   }
 
-  async toJSON(): Promise<{ proposals: EvolutionProposal[]; stats: AgentStats[]; history: typeof this.learningCycleHistory }> {
+  async toJSON(): Promise<{ proposals: EvolutionProposal[]; stats: AgentStats[]; history: LearningCycleEntry[] }> {
     const proposals = await this.getProposals({ limit: 1000 });
     return {
       proposals,
