@@ -10,6 +10,7 @@ interface PipelineProgressModalProps {
   onOpenChange: (open: boolean) => void;
   articleId: string | null;
   articleTitle?: string;
+  includeImage?: boolean;
 }
 
 const STEP_ICONS: Record<string, typeof FileText> = {
@@ -36,7 +37,8 @@ export function PipelineProgressModal({
   open, 
   onOpenChange, 
   articleId, 
-  articleTitle 
+  articleTitle,
+  includeImage = false
 }: PipelineProgressModalProps) {
   const [steps, setSteps] = useState<Record<string, PipelineProgressEvent>>({});
   const [overallProgress, setOverallProgress] = useState(0);
@@ -81,7 +83,9 @@ export function PipelineProgressModal({
     }
   }, [open]);
 
-  const stepOrder = ['format', 'categorize', 'metadata', 'seo', 'translate', 'image'];
+  const stepOrder = includeImage 
+    ? ['format', 'categorize', 'metadata', 'seo', 'translate', 'image']
+    : ['format', 'categorize', 'metadata', 'seo', 'translate'];
 
   const getStatusIcon = (step: string) => {
     const event = steps[step];

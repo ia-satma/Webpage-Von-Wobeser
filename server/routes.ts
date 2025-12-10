@@ -205,6 +205,9 @@ export async function registerRoutes(
   // Serve Of Counsel photos from attached_assets/of_counsel_photos
   app.use('/of_counsel_photos', express.static(path.join(process.cwd(), 'attached_assets', 'of_counsel_photos')));
 
+  // Serve AI-generated images with Von Wobeser branding
+  app.use('/generated-images', express.static(path.join(process.cwd(), 'public', 'generated-images')));
+
   // Geolocation endpoint for automatic language detection
   const COUNTRY_TO_LANGUAGE: Record<string, string> = {
     // Spanish-speaking countries

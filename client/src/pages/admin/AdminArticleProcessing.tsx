@@ -11,6 +11,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { PipelineProgressModal } from "@/components/PipelineProgressModal";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 import { 
   ArrowLeft,
   Cog,
@@ -20,7 +22,8 @@ import {
   Globe,
   Loader2,
   CheckCircle2,
-  Languages
+  Languages,
+  ImageIcon
 } from "lucide-react";
 import type { News, NewsTranslation } from "@shared/schema";
 
@@ -47,6 +50,8 @@ const translations = {
     loading: "Loading...",
     ready: "Ready",
     complete: "Complete",
+    generateImages: "Generate Corporate Images",
+    generateImagesDesc: "AI-generated images with VW logo overlay",
   },
   es: {
     title: "Procesamiento de Artículos",
@@ -70,6 +75,8 @@ const translations = {
     loading: "Cargando...",
     ready: "Listo",
     complete: "Completo",
+    generateImages: "Generar Imágenes Corporativas",
+    generateImagesDesc: "Imágenes con IA y logo VW superpuesto",
   },
   de: {
     title: "Artikelverarbeitung",
@@ -93,6 +100,8 @@ const translations = {
     loading: "Wird geladen...",
     ready: "Bereit",
     complete: "Fertig",
+    generateImages: "Unternehmensbilder generieren",
+    generateImagesDesc: "KI-Bilder mit VW-Logo-Overlay",
   },
   zh: {
     title: "文章处理",
@@ -116,6 +125,8 @@ const translations = {
     loading: "加载中...",
     ready: "就绪",
     complete: "完成",
+    generateImages: "生成企业图片",
+    generateImagesDesc: "带VW标志的AI生成图片",
   },
   ko: {
     title: "기사 처리",
@@ -139,6 +150,8 @@ const translations = {
     loading: "로딩 중...",
     ready: "준비됨",
     complete: "완료",
+    generateImages: "기업 이미지 생성",
+    generateImagesDesc: "VW 로고 오버레이 AI 이미지",
   },
   ja: {
     title: "記事処理",
@@ -162,6 +175,8 @@ const translations = {
     loading: "読み込み中...",
     ready: "準備完了",
     complete: "完了",
+    generateImages: "企業画像を生成",
+    generateImagesDesc: "VWロゴオーバーレイ付きAI画像",
   },
   ar: {
     title: "معالجة المقالات",
@@ -185,6 +200,8 @@ const translations = {
     loading: "جاري التحميل...",
     ready: "جاهز",
     complete: "مكتمل",
+    generateImages: "إنشاء صور الشركة",
+    generateImagesDesc: "صور AI مع شعار VW",
   },
   ru: {
     title: "Обработка статей",
@@ -208,6 +225,8 @@ const translations = {
     loading: "Загрузка...",
     ready: "Готово",
     complete: "Завершено",
+    generateImages: "Создать корпоративные изображения",
+    generateImagesDesc: "AI-изображения с логотипом VW",
   },
   fr: {
     title: "Traitement des articles",
@@ -231,6 +250,8 @@ const translations = {
     loading: "Chargement...",
     ready: "Prêt",
     complete: "Terminé",
+    generateImages: "Générer des images corporatives",
+    generateImagesDesc: "Images IA avec logo VW",
   },
   it: {
     title: "Elaborazione articoli",
@@ -254,6 +275,8 @@ const translations = {
     loading: "Caricamento...",
     ready: "Pronto",
     complete: "Completato",
+    generateImages: "Genera immagini aziendali",
+    generateImagesDesc: "Immagini AI con logo VW",
   },
 };
 
@@ -276,6 +299,7 @@ export default function AdminArticleProcessing() {
   const [processingArticleId, setProcessingArticleId] = useState<string | null>(null);
   const [progressModalOpen, setProgressModalOpen] = useState(false);
   const [progressArticleTitle, setProgressArticleTitle] = useState<string>("");
+  const [generateImages, setGenerateImages] = useState(false);
 
   useEffect(() => {
     if (!authLoading) {
@@ -311,7 +335,7 @@ export default function AdminArticleProcessing() {
   const processAllMutation = useMutation({
     mutationFn: async () => {
       const res = await adminApiRequest("POST", "/api/agents/pipeline/process-all", {
-        stages: ["formatter", "seo_optimizer", "polyglot_translator"]
+        generateImage: generateImages
       });
       if (!res.ok) throw new Error("Failed to process articles");
       return res.json();
@@ -335,7 +359,7 @@ export default function AdminArticleProcessing() {
       setProgressArticleTitle(title);
       setProgressModalOpen(true);
       const res = await adminApiRequest("POST", `/api/agents/pipeline/${articleId}`, {
-        stages: ["formatter", "seo_optimizer", "polyglot_translator"]
+        generateImage: generateImages
       });
       if (!res.ok) throw new Error("Failed to process article");
       return res.json();
@@ -415,33 +439,50 @@ export default function AdminArticleProcessing() {
                 </h1>
               </div>
             </div>
-            <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                onClick={handleRefresh}
-                disabled={newsQuery.isLoading || translationCountsQuery.isLoading}
-                data-testid="button-refresh"
-              >
-                <RefreshCw className="mr-2 h-4 w-4" />
-                {t.refresh}
-              </Button>
-              <Button
-                onClick={() => processAllMutation.mutate()}
-                disabled={processAllMutation.isPending}
-                data-testid="button-process-all"
-              >
-                {processAllMutation.isPending ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    {t.processing}
-                  </>
-                ) : (
-                  <>
-                    <Play className="mr-2 h-4 w-4" />
-                    {t.processAll}
-                  </>
-                )}
-              </Button>
+            <div className="flex items-center gap-4 flex-wrap">
+              <div className="flex items-center gap-2 px-3 py-2 rounded-md border bg-muted/50">
+                <ImageIcon className="h-4 w-4 text-muted-foreground" />
+                <div className="flex flex-col">
+                  <Label htmlFor="generate-images" className="text-xs font-medium cursor-pointer">
+                    {t.generateImages}
+                  </Label>
+                  <span className="text-[10px] text-muted-foreground">{t.generateImagesDesc}</span>
+                </div>
+                <Switch
+                  id="generate-images"
+                  checked={generateImages}
+                  onCheckedChange={setGenerateImages}
+                  data-testid="switch-generate-images"
+                />
+              </div>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  onClick={handleRefresh}
+                  disabled={newsQuery.isLoading || translationCountsQuery.isLoading}
+                  data-testid="button-refresh"
+                >
+                  <RefreshCw className="mr-2 h-4 w-4" />
+                  {t.refresh}
+                </Button>
+                <Button
+                  onClick={() => processAllMutation.mutate()}
+                  disabled={processAllMutation.isPending}
+                  data-testid="button-process-all"
+                >
+                  {processAllMutation.isPending ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      {t.processing}
+                    </>
+                  ) : (
+                    <>
+                      <Play className="mr-2 h-4 w-4" />
+                      {t.processAll}
+                    </>
+                  )}
+                </Button>
+              </div>
             </div>
           </div>
         </div>
@@ -569,6 +610,7 @@ export default function AdminArticleProcessing() {
         onOpenChange={setProgressModalOpen}
         articleId={processingArticleId}
         articleTitle={progressArticleTitle}
+        includeImage={generateImages}
       />
     </div>
   );
