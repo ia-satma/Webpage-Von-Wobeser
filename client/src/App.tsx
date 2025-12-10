@@ -50,6 +50,7 @@ import AdminAgents from "@/pages/AdminAgents";
 import AdminArticleProcessing from "@/pages/admin/AdminArticleProcessing";
 import AdminAudits from "@/pages/admin/AdminAudits";
 import AdminTeam from "@/pages/admin/AdminTeam";
+import AdminTeamForm from "@/pages/admin/AdminTeamForm";
 import AdminGuide from "@/pages/admin/AdminGuide";
 import AdminPerformance from "@/pages/admin/AdminPerformance";
 
@@ -159,6 +160,8 @@ function Router() {
       <Route path="/admin/processing" component={AdminArticleProcessing} />
       <Route path="/admin/audits" component={AdminAudits} />
       <Route path="/admin/team" component={AdminTeam} />
+      <Route path="/admin/team/new" component={AdminTeamForm} />
+      <Route path="/admin/team/:id/edit" component={AdminTeamForm} />
       <Route path="/admin/guide" component={AdminGuide} />
       <Route path="/admin/performance" component={AdminPerformance} />
       <Route component={NotFound} />
