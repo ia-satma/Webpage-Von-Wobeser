@@ -4,10 +4,7 @@ import { openai } from '../../openai';
 import { db } from '../../db';
 import { news } from '../../../shared/schema';
 import { eq } from 'drizzle-orm';
-import sharp from 'sharp';
-import * as fs from 'fs';
-import * as path from 'path';
-import * as https from 'https';
+import { smartImageGenerator } from '../../services/SmartImageGenerator';
 
 const VON_WOBESER_BRAND = {
   primaryColor: '#AA1A2E',
@@ -165,7 +162,7 @@ export class ImageSuggestionAgent extends BaseAgent {
         return { success: false, error: 'Article has no content' };
       }
 
-      console.log(`[ImageSuggestionAgent] Starting image generation for article: ${articleId}`);
+      console.log(`[ImageSuggestionAgent] Starting SMART image generation for article: ${articleId}`);
       console.log(`[ImageSuggestionAgent] Article title: ${title.substring(0, 50)}...`);
 
       const analysisResult = await this.callLLM(
@@ -180,131 +177,59 @@ export class ImageSuggestionAgent extends BaseAgent {
 
       const analysis = JSON.parse(analysisResult);
       
-      const brandEnhancedPrompt = `${analysis.imagePrompt}. Style: Professional corporate legal, color scheme featuring deep burgundy red (#AA1A2E) with white and dark gray accents. Sharp geometric edges, no rounded corners. Sophisticated and elegant composition suitable for a prestigious law firm.`;
-
-      console.log(`[ImageSuggestionAgent] Generated prompt: ${brandEnhancedPrompt.substring(0, 100)}...`);
-      console.log(`[ImageSuggestionAgent] Calling DALL-E 3 API...`);
-
-      // Helper function to generate image with retry logic
-      const generateImageWithRetry = async (prompt: string, maxRetries: number = 1): Promise<{ imageUrl?: string; error?: string }> => {
-        let lastError: any = null;
-        
-        for (let attempt = 0; attempt <= maxRetries; attempt++) {
-          try {
-            if (attempt > 0) {
-              console.log(`[ImageSuggestionAgent] Retry attempt ${attempt} after 2s delay...`);
-              await new Promise(resolve => setTimeout(resolve, 2000)); // 2 second delay before retry
-            }
-            
-            const image = await openai.images.generate({
-              model: 'dall-e-3',
-              prompt,
-              n: 1,
-              size: '1024x1024',
-              quality: 'standard',
-            });
-
-            const imageUrl = image.data?.[0]?.url;
-            if (imageUrl) {
-              return { imageUrl };
-            }
-            lastError = new Error('No image URL returned from DALL-E');
-          } catch (err: any) {
-            lastError = err;
-            console.error(`[ImageSuggestionAgent] Attempt ${attempt + 1} failed:`, err?.message || err);
-            
-            // Don't retry on billing or policy errors
-            if (err?.code === 'billing_hard_limit_reached' || err?.code === 'content_policy_violation') {
-              break;
-            }
-          }
-        }
-        
-        // Build error message
-        let errorMessage = 'Image generation failed';
-        if (lastError?.code === 'billing_hard_limit_reached') {
-          errorMessage = 'OpenAI billing limit reached - please check your API credits';
-        } else if (lastError?.code === 'content_policy_violation') {
-          errorMessage = 'Content policy violation - prompt needs adjustment';
-        } else if (lastError?.status === 429) {
-          errorMessage = 'Rate limit exceeded after retries';
-        } else if (lastError?.message) {
-          errorMessage = lastError.message;
-        }
-        
-        return { error: errorMessage };
-      };
-
-      // Try to generate image with retry
-      const imageResult = await generateImageWithRetry(brandEnhancedPrompt, 1);
+      console.log(`[ImageSuggestionAgent] Delegating to SmartImageGenerator with cascade fallback...`);
       
-      // SANDBOXED: If image generation fails, return success=true with warning
-      // This ensures text/SEO work is preserved even if image fails
-      if (imageResult.error || !imageResult.imageUrl) {
-        console.warn(`[ImageSuggestionAgent] Image generation failed but article content preserved: ${imageResult.error}`);
-        
-        return {
-          success: true, // SUCCESS despite image failure - preserves other work
-          data: {
-            articleId,
-            imagePrompt: brandEnhancedPrompt,
-            themes: analysis.themes || [],
-            style: analysis.style || 'Von Wobeser corporate',
-            imageGenerated: false,
-            warning: imageResult.error || 'Image generation failed',
-            note: 'Article processed successfully but image generation failed. Existing image preserved.',
-          },
-        };
-      }
+      const imageResult = await smartImageGenerator.generateImage(
+        analysis.imagePrompt || `Professional legal article image for: ${title}`,
+        articleId
+      );
 
-      console.log(`[ImageSuggestionAgent] DALL-E image generated, downloading and adding logo overlay...`);
-
-      try {
-        const imageBuffer = await downloadImage(imageResult.imageUrl);
-        
-        const filename = `article-${articleId}-${Date.now()}.png`;
-        const outputPath = path.join(OUTPUT_DIR, filename);
-        
-        const savedPath = await overlayLogo(imageBuffer, outputPath);
-        const publicUrl = `/generated-images/${filename}`;
-
-        console.log(`[ImageSuggestionAgent] Image saved with logo overlay: ${publicUrl}`);
-
+      if (imageResult.success && imageResult.imageUrl) {
         await db.update(news)
-          .set({ imageUrl: publicUrl })
+          .set({ 
+            imageUrl: imageResult.imageUrl,
+            processingStatus: imageResult.engine === 'placeholder' ? 'partial_success' : 'ready',
+            lastError: imageResult.engine === 'placeholder' ? imageResult.errorMessage : null,
+            lastProcessedAt: new Date()
+          })
           .where(eq(news.id, articleId));
+
+        const engineMessage = imageResult.promptWasSanitized
+          ? `${imageResult.engine.toUpperCase()} (prompt sanitized for safety filters)`
+          : imageResult.engine.toUpperCase();
+
+        console.log(`[ImageSuggestionAgent] SUCCESS via ${engineMessage}: ${imageResult.imageUrl}`);
 
         return {
           success: true,
           data: {
             articleId,
-            imageUrl: publicUrl,
-            originalDalleUrl: imageResult.imageUrl,
-            imagePrompt: brandEnhancedPrompt,
+            imageUrl: imageResult.imageUrl,
+            engine: imageResult.engine,
+            imagePrompt: imageResult.originalPrompt,
+            sanitizedPrompt: imageResult.sanitizedPrompt,
+            promptWasSanitized: imageResult.promptWasSanitized,
             themes: analysis.themes || [],
             style: analysis.style || 'Von Wobeser corporate',
             brandCompliant: true,
-            logoOverlay: true,
-            imageGenerated: true,
-          },
-        };
-      } catch (downloadError: any) {
-        // Image download or processing failed - still return success with warning
-        console.error('[ImageSuggestionAgent] Image download/processing error:', downloadError?.message);
-        
-        return {
-          success: true, // SUCCESS despite download failure
-          data: {
-            articleId,
-            imagePrompt: brandEnhancedPrompt,
-            themes: analysis.themes || [],
-            style: analysis.style || 'Von Wobeser corporate',
-            imageGenerated: false,
-            warning: `Image processing failed: ${downloadError?.message || 'Unknown error'}`,
-            note: 'Article processed but image could not be saved. Existing image preserved.',
+            logoOverlay: imageResult.engine !== 'placeholder',
+            imageGenerated: imageResult.engine !== 'placeholder',
+            retryCount: imageResult.retryCount,
+            transparencyLog: imageResult.transparencyLog,
           },
         };
       }
+
+      return {
+        success: false,
+        error: imageResult.errorMessage || 'All image generation engines failed',
+        data: {
+          articleId,
+          errorCode: imageResult.errorCode,
+          retryCount: imageResult.retryCount,
+          transparencyLog: imageResult.transparencyLog,
+        },
+      };
     } catch (error: any) {
       console.error('[ImageSuggestionAgent] Error:', error);
       return {
