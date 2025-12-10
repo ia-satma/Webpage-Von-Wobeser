@@ -31,6 +31,7 @@ interface UseTranslatedContentReturn {
   translatedFields: TranslatedFieldsMap;
   isLoading: boolean;
   isTranslating: boolean;
+  isTranslationPending: boolean;
   error: Error | null;
 }
 
@@ -156,25 +157,28 @@ export function useTranslatedContent({
       const translatedFields: TranslatedFieldsMap = {};
       for (const [key, value] of Object.entries(fields)) {
         if (!key.endsWith('Es')) {
-          translatedFields[key] = translations[key] ?? value;
+          translatedFields[key] = translations[key] || null;
         }
       }
       return translatedFields;
     }
 
-    const fallbackFields: TranslatedFieldsMap = {};
-    for (const [key, value] of Object.entries(fields)) {
+    const pendingFields: TranslatedFieldsMap = {};
+    for (const [key] of Object.entries(fields)) {
       if (!key.endsWith('Es')) {
-        fallbackFields[key] = value;
+        pendingFields[key] = null;
       }
     }
-    return fallbackFields;
+    return pendingFields;
   };
+
+  const isTranslationPending = !isNative && (isLoading || translateMutation.isPending || needsTranslation);
 
   return {
     translatedFields: getTranslatedFields(),
     isLoading,
     isTranslating: translateMutation.isPending,
+    isTranslationPending,
     error: translateMutation.error as Error | null,
   };
 }

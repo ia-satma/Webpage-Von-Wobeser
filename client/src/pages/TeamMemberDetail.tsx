@@ -1223,19 +1223,19 @@ export default function TeamMemberDetail() {
     ? (member?.titleEs || member?.title)
     : language === 'en'
       ? member?.title
-      : (translatedFields.title || member?.title);
+      : (translatedFields.title || null);
   
   const displayRole = language === 'es'
     ? (member?.roleEs || member?.role)
     : language === 'en'
       ? member?.role
-      : (translatedFields.role || member?.role);
+      : (translatedFields.role || null);
   
   const displayBio = language === 'es'
     ? (member?.bioEs || member?.bio)
     : language === 'en'
       ? member?.bio
-      : (translatedFields.bio || member?.bio);
+      : (translatedFields.bio || null);
 
   return (
     <div className="min-h-screen bg-white dark:bg-gray-900" data-testid="page-team-member-detail">
@@ -1396,7 +1396,7 @@ export default function TeamMemberDetail() {
         <div className="max-w-6xl mx-auto px-6 lg:px-12">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
             <div className="lg:col-span-2 space-y-12">
-              {displayBio && (
+              {(displayBio || (member?.bioEs && isTranslating)) && (
                 <motion.section
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -1409,14 +1409,34 @@ export default function TeamMemberDetail() {
                   >
                     <FileText className="w-6 h-6 text-primary" />
                     {t.biography}
+                    {isTranslating && (
+                      <Loader2 className="w-4 h-4 animate-spin text-primary/60" />
+                    )}
                   </h2>
                   <div 
                     className="prose prose-lg dark:prose-invert max-w-none"
                     data-testid="container-biography"
                   >
-                    <p className="text-lg text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-wrap">
-                      {displayBio}
-                    </p>
+                    {displayBio ? (
+                      <p className="text-lg text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-wrap">
+                        {displayBio}
+                      </p>
+                    ) : (
+                      <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400 italic">
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        <span data-testid="text-translation-pending">
+                          {language === 'de' ? 'Übersetzung lädt...' :
+                           language === 'zh' ? '翻译加载中...' :
+                           language === 'ko' ? '번역 로딩 중...' :
+                           language === 'ja' ? '翻訳を読み込み中...' :
+                           language === 'ar' ? 'جاري تحميل الترجمة...' :
+                           language === 'ru' ? 'Загрузка перевода...' :
+                           language === 'fr' ? 'Traduction en cours...' :
+                           language === 'it' ? 'Caricamento traduzione...' :
+                           'Loading translation...'}
+                        </span>
+                      </div>
+                    )}
                   </div>
                 </motion.section>
               )}

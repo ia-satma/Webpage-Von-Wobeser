@@ -647,8 +647,16 @@ export default function PracticeGroupDetail() {
   }
 
   const IconComponent = practiceGroup ? getIcon(practiceGroup.iconName) : null;
-  const displayName = translatedFields.name || practiceGroup?.name;
-  const displayDescription = translatedFields.fullDescription || translatedFields.description || practiceGroup?.fullDescription || practiceGroup?.description;
+  const displayName = language === 'es' 
+    ? (practiceGroup?.nameEs || practiceGroup?.name)
+    : language === 'en'
+      ? practiceGroup?.name
+      : (translatedFields.name || null);
+  const displayDescription = language === 'es'
+    ? (practiceGroup?.fullDescriptionEs || practiceGroup?.descriptionEs || practiceGroup?.fullDescription || practiceGroup?.description)
+    : language === 'en'
+      ? (practiceGroup?.fullDescription || practiceGroup?.description)
+      : (translatedFields.fullDescription || translatedFields.description || null);
 
   const MAX_ASSOCIATES_DISPLAY = 6;
   const displayedAssociates = filteredAndGroupedMembers.associates.slice(0, MAX_ASSOCIATES_DISPLAY);
@@ -717,8 +725,12 @@ export default function PracticeGroupDetail() {
                 className="text-3xl md:text-4xl lg:text-5xl font-heading font-light text-white"
                 data-testid="text-practice-group-title"
               >
-                {displayName}
-                {isTranslating && (
+                {displayName || (isTranslating ? (
+                  <span className="flex items-center gap-2">
+                    <Loader2 className="w-5 h-5 animate-spin text-white/60" />
+                  </span>
+                ) : practiceGroup?.name)}
+                {displayName && isTranslating && (
                   <Loader2 className="inline-block w-5 h-5 ml-3 animate-spin text-white/60" />
                 )}
               </h1>
@@ -738,9 +750,26 @@ export default function PracticeGroupDetail() {
               className="prose prose-lg dark:prose-invert max-w-none mb-16"
               data-testid="container-practice-group-description"
             >
-              <p className="text-lg text-gray-700 dark:text-gray-300 leading-relaxed text-justify sm:text-left">
-                {displayDescription}
-              </p>
+              {displayDescription ? (
+                <p className="text-lg text-gray-700 dark:text-gray-300 leading-relaxed text-justify sm:text-left">
+                  {displayDescription}
+                </p>
+              ) : (practiceGroup?.descriptionEs || practiceGroup?.description) && isTranslating ? (
+                <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400 italic">
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <span data-testid="text-translation-pending">
+                    {language === 'de' ? 'Übersetzung lädt...' :
+                     language === 'zh' ? '翻译加载中...' :
+                     language === 'ko' ? '번역 로딩 중...' :
+                     language === 'ja' ? '翻訳を読み込み中...' :
+                     language === 'ar' ? 'جاري تحميل الترجمة...' :
+                     language === 'ru' ? 'Загрузка перевода...' :
+                     language === 'fr' ? 'Traduction en cours...' :
+                     language === 'it' ? 'Caricamento traduzione...' :
+                     'Loading translation...'}
+                  </span>
+                </div>
+              ) : null}
             </div>
           </motion.div>
 
