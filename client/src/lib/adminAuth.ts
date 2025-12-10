@@ -59,6 +59,14 @@ export async function adminApiRequest(
     credentials: "include",
   });
   
+  // Handle expired/invalid session - clear token and redirect to login
+  if (res.status === 401) {
+    clearToken();
+    if (typeof window !== "undefined" && !window.location.pathname.includes("/admin/login")) {
+      window.location.href = "/admin/login";
+    }
+  }
+  
   return res;
 }
 

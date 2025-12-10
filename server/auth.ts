@@ -165,9 +165,11 @@ export async function authMiddleware(
 // Clean up expired entries periodically (every hour)
 setInterval(() => {
   const now = Date.now();
-  for (const [key, entry] of loginAttempts.entries()) {
-    if (now - entry.lastAttempt > WINDOW_MS && entry.blockedUntil < now) {
+  const keys = Array.from(loginAttempts.keys());
+  keys.forEach(key => {
+    const entry = loginAttempts.get(key);
+    if (entry && now - entry.lastAttempt > WINDOW_MS && entry.blockedUntil < now) {
       loginAttempts.delete(key);
     }
-  }
+  });
 }, 60 * 60 * 1000);
