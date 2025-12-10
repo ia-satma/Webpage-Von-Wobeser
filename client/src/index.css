@@ -902,3 +902,22 @@ html, body {
     line-height: 1.7;
   }
 }
+
+/* Agent Network Animations - Live Nerve Center */
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 5px rgba(170, 26, 46, 0.3); }
+  50% { box-shadow: 0 0 20px rgba(170, 26, 46, 0.6); }
+}
+
+@keyframes breathing {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.02); }
+}
+
+.agent-pulse {
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+.agent-breathing {
+  animation: breathing 3s ease-in-out infinite;
+}
