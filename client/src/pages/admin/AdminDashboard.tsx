@@ -57,6 +57,7 @@ const translations = {
     events: "Events",
     knowledgeBase: "Knowledge Base",
     translationsDashboard: "Translation Coverage",
+    platformGuide: "Platform Guide",
     logout: "Logout",
     loading: "Loading...",
     draft: "Draft",
@@ -101,6 +102,7 @@ const translations = {
     events: "Eventos",
     knowledgeBase: "Base de Conocimiento",
     translationsDashboard: "Cobertura de Traducción",
+    platformGuide: "Guía de la Plataforma",
     logout: "Cerrar Sesión",
     loading: "Cargando...",
     draft: "Borrador",
@@ -951,6 +953,12 @@ export default function AdminDashboard() {
                 <Button variant="outline" className="w-full justify-start" data-testid="button-knowledge-base">
                   <BookOpen className="mr-2 h-4 w-4" />
                   {t.knowledgeBase || "Knowledge Base"}
+                </Button>
+              </Link>
+              <Link href="/admin/guide">
+                <Button variant="outline" className="w-full justify-start bg-primary/5 border-primary/20" data-testid="button-platform-guide">
+                  <Bot className="mr-2 h-4 w-4 text-primary" />
+                  {t.platformGuide || "Platform Guide"}
                 </Button>
               </Link>
             </CardContent>
