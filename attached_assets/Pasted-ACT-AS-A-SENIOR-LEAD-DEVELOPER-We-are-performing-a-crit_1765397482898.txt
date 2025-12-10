@@ -1,0 +1,34 @@
+ACT AS A SENIOR LEAD DEVELOPER. We are performing a critical QA audit.
+You need to fix several systemic issues in the project. DO NOT fix these issues individually or hardcode solutions for specific names. You must write SCALABLE code that iterates through all data entries.
+
+Here is the strict execute list. Confirm completion of each section:
+
+### 1. SYSTEMIC LOCALIZATION FIX (CRITICAL)
+The language switching logic is failing. Content is leaking across languages.
+* **Target:** `Team/Bio` Section and `Practices` Section.
+* **The Bug:** Biographies and Practice descriptions are appearing in Spanish even when the selected language is German, Chinese, Arabic, etc.
+* **The Fix:**
+    * Review the data structure for ALL lawyers (Team Members).
+    * Implement a fallback/translation logic: Ensure that the UI fetches the field corresponding to the `currentLanguage` state (e.g., `bio_de`, `bio_zh`).
+    * **Action:** If the translation does not exist in the data, you must either auto-translate it using an available API or insert a "Translation Pending" placeholder. **UNDER NO CIRCUMSTANCES** should the Spanish text be displayed in the Non-Spanish views.
+    * **Scope:** Apply this loop to ALL team members (Partners, Associates, Of Counsel) and ALL Practice Areas.
+
+### 2. ENGLISH SECTION CLEANUP
+* **News & Insights:** Titles are in English but the *body* content is currently loading in Spanish. Force the `NewsDetail` component to load the English content field.
+* **Professional Affiliations:** This section is currently showing Spanish text (e.g., "Miembro", "Copresidente"). Map these terms to a dictionary object to render "Member", "Co-Chair", etc., when `lang === 'en'`.
+
+### 3. NAVIGATION & BROKEN LINKS (FUNCTIONAL FIXES)
+* **Contact Page:** The "Visit our website" button is creating a loop/reload. Update the `href` to point to the correct homepage URL or external link provided in the config.
+* **Careers Page:** The "Apply Now" and "Send Application" buttons are unresponsive. Connect these buttons to the `mailto:reclutamiento@vwys.com.mx` logic or the corresponding modal form.
+* **External Events:** The "More Information" (Más información) links on Event cards are hitting 404/DNS errors. Verify the URLs or add error handling to prevent the app from crashing on bad links.
+
+### 4. RTL LAYOUT (ARABIC)
+* When `Language === Arabic`, the entire layout must flip.
+* Ensure the `dir="rtl"` attribute is applied to the main container.
+* Verify that the "Contact Us" form labels and inputs align correctly to the right.
+
+### 5. DYNAMIC ASSETS (NEWS IMAGES)
+* Currently, news articles use generic or repeated images.
+* Create a helper function `getNewsImage(category)` that assigns a specific, relevant cover image based on the article's tag (e.g., Energy, Tax, Labor, ESG). Do not use the same image for everything.
+
+**EXECUTION RULE:** Do not ask me for clarification on *which* profile to fix. Fix the code logic so it applies to the entire database automatically. Report back only when the logic handles all cases.
