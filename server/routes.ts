@@ -36,7 +36,20 @@ import {
   insertBlogCategorySchema,
   insertBlogTagSchema,
   insertNewsSchema,
+  insertTeamMemberSchema,
+  insertPracticeGroupSchema,
+  insertIndustryGroupSchema,
+  insertEventSchema,
+  insertRankingSchema,
+  insertAwardSchema,
+  insertRepresentativeClientSchema,
+  insertTestimonialSchema,
+  insertJobOpeningSchema,
+  insertOfficeSchema,
+  insertAllianceSchema,
+  insertSpecializedDeskSchema,
 } from "@shared/schema";
+import { ZodError } from "zod";
 import {
   SUPPORTED_LANGUAGES,
   translateLegalText,
@@ -1373,9 +1386,13 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
   // Create team member
   app.post("/api/admin/team", authMiddleware, async (req: Request, res: Response) => {
     try {
-      const member = await storage.createTeamMember(req.body);
+      const validatedData = insertTeamMemberSchema.parse(req.body);
+      const member = await storage.createTeamMember(validatedData);
       res.status(201).json(member);
     } catch (error) {
+      if (error instanceof ZodError) {
+        return res.status(400).json({ error: "Validation failed", details: error.errors });
+      }
       console.error("Create team member error:", error);
       res.status(500).json({ error: "Failed to create team member" });
     }
@@ -1384,12 +1401,16 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
   // Update team member
   app.put("/api/admin/team/:id", authMiddleware, async (req: Request, res: Response) => {
     try {
-      const member = await storage.updateTeamMember(req.params.id, req.body);
+      const validatedData = insertTeamMemberSchema.partial().parse(req.body);
+      const member = await storage.updateTeamMember(req.params.id, validatedData);
       if (!member) {
         return res.status(404).json({ error: "Team member not found" });
       }
       res.json(member);
     } catch (error) {
+      if (error instanceof ZodError) {
+        return res.status(400).json({ error: "Validation failed", details: error.errors });
+      }
       console.error("Update team member error:", error);
       res.status(500).json({ error: "Failed to update team member" });
     }
@@ -1449,9 +1470,13 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
   // Create practice group
   app.post("/api/admin/practice-groups", authMiddleware, async (req: Request, res: Response) => {
     try {
-      const group = await storage.createPracticeGroup(req.body);
+      const validatedData = insertPracticeGroupSchema.parse(req.body);
+      const group = await storage.createPracticeGroup(validatedData);
       res.status(201).json(group);
     } catch (error) {
+      if (error instanceof ZodError) {
+        return res.status(400).json({ error: "Validation failed", details: error.errors });
+      }
       console.error("Create practice group error:", error);
       res.status(500).json({ error: "Failed to create practice group" });
     }
@@ -1460,12 +1485,16 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
   // Update practice group
   app.put("/api/admin/practice-groups/:id", authMiddleware, async (req: Request, res: Response) => {
     try {
-      const group = await storage.updatePracticeGroup(req.params.id, req.body);
+      const validatedData = insertPracticeGroupSchema.partial().parse(req.body);
+      const group = await storage.updatePracticeGroup(req.params.id, validatedData);
       if (!group) {
         return res.status(404).json({ error: "Practice group not found" });
       }
       res.json(group);
     } catch (error) {
+      if (error instanceof ZodError) {
+        return res.status(400).json({ error: "Validation failed", details: error.errors });
+      }
       console.error("Update practice group error:", error);
       res.status(500).json({ error: "Failed to update practice group" });
     }
@@ -1503,9 +1532,13 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
   // Create industry group
   app.post("/api/admin/industry-groups", authMiddleware, async (req: Request, res: Response) => {
     try {
-      const group = await storage.createIndustryGroup(req.body);
+      const validatedData = insertIndustryGroupSchema.parse(req.body);
+      const group = await storage.createIndustryGroup(validatedData);
       res.status(201).json(group);
     } catch (error) {
+      if (error instanceof ZodError) {
+        return res.status(400).json({ error: "Validation failed", details: error.errors });
+      }
       console.error("Create industry group error:", error);
       res.status(500).json({ error: "Failed to create industry group" });
     }
@@ -1514,12 +1547,16 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
   // Update industry group
   app.put("/api/admin/industry-groups/:id", authMiddleware, async (req: Request, res: Response) => {
     try {
-      const group = await storage.updateIndustryGroup(req.params.id, req.body);
+      const validatedData = insertIndustryGroupSchema.partial().parse(req.body);
+      const group = await storage.updateIndustryGroup(req.params.id, validatedData);
       if (!group) {
         return res.status(404).json({ error: "Industry group not found" });
       }
       res.json(group);
     } catch (error) {
+      if (error instanceof ZodError) {
+        return res.status(400).json({ error: "Validation failed", details: error.errors });
+      }
       console.error("Update industry group error:", error);
       res.status(500).json({ error: "Failed to update industry group" });
     }
@@ -1555,9 +1592,13 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
 
   app.post("/api/admin/events", authMiddleware, async (req: Request, res: Response) => {
     try {
-      const event = await storage.createEvent(req.body);
+      const validatedData = insertEventSchema.parse(req.body);
+      const event = await storage.createEvent(validatedData);
       res.json(event);
     } catch (error) {
+      if (error instanceof ZodError) {
+        return res.status(400).json({ error: "Validation failed", details: error.errors });
+      }
       console.error("Create event error:", error);
       res.status(500).json({ error: "Failed to create event" });
     }
@@ -1565,12 +1606,16 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
 
   app.put("/api/admin/events/:id", authMiddleware, async (req: Request, res: Response) => {
     try {
-      const updated = await storage.updateEvent(req.params.id, req.body);
+      const validatedData = insertEventSchema.partial().parse(req.body);
+      const updated = await storage.updateEvent(req.params.id, validatedData);
       if (!updated) {
         return res.status(404).json({ error: "Event not found" });
       }
       res.json(updated);
     } catch (error) {
+      if (error instanceof ZodError) {
+        return res.status(400).json({ error: "Validation failed", details: error.errors });
+      }
       console.error("Update event error:", error);
       res.status(500).json({ error: "Failed to update event" });
     }
@@ -1605,9 +1650,13 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
 
   app.post("/api/admin/rankings", authMiddleware, async (req: Request, res: Response) => {
     try {
-      const ranking = await storage.createRanking(req.body);
+      const validatedData = insertRankingSchema.parse(req.body);
+      const ranking = await storage.createRanking(validatedData);
       res.json(ranking);
     } catch (error) {
+      if (error instanceof ZodError) {
+        return res.status(400).json({ error: "Validation failed", details: error.errors });
+      }
       console.error("Create ranking error:", error);
       res.status(500).json({ error: "Failed to create ranking" });
     }
@@ -1615,12 +1664,16 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
 
   app.put("/api/admin/rankings/:id", authMiddleware, async (req: Request, res: Response) => {
     try {
-      const updated = await storage.updateRanking(req.params.id, req.body);
+      const validatedData = insertRankingSchema.partial().parse(req.body);
+      const updated = await storage.updateRanking(req.params.id, validatedData);
       if (!updated) {
         return res.status(404).json({ error: "Ranking not found" });
       }
       res.json(updated);
     } catch (error) {
+      if (error instanceof ZodError) {
+        return res.status(400).json({ error: "Validation failed", details: error.errors });
+      }
       console.error("Update ranking error:", error);
       res.status(500).json({ error: "Failed to update ranking" });
     }
@@ -1655,9 +1708,13 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
 
   app.post("/api/admin/awards", authMiddleware, async (req: Request, res: Response) => {
     try {
-      const award = await storage.createAward(req.body);
+      const validatedData = insertAwardSchema.parse(req.body);
+      const award = await storage.createAward(validatedData);
       res.json(award);
     } catch (error) {
+      if (error instanceof ZodError) {
+        return res.status(400).json({ error: "Validation failed", details: error.errors });
+      }
       console.error("Create award error:", error);
       res.status(500).json({ error: "Failed to create award" });
     }
@@ -1665,12 +1722,16 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
 
   app.put("/api/admin/awards/:id", authMiddleware, async (req: Request, res: Response) => {
     try {
-      const updated = await storage.updateAward(req.params.id, req.body);
+      const validatedData = insertAwardSchema.partial().parse(req.body);
+      const updated = await storage.updateAward(req.params.id, validatedData);
       if (!updated) {
         return res.status(404).json({ error: "Award not found" });
       }
       res.json(updated);
     } catch (error) {
+      if (error instanceof ZodError) {
+        return res.status(400).json({ error: "Validation failed", details: error.errors });
+      }
       console.error("Update award error:", error);
       res.status(500).json({ error: "Failed to update award" });
     }
@@ -1705,9 +1766,13 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
 
   app.post("/api/admin/clients", authMiddleware, async (req: Request, res: Response) => {
     try {
-      const client = await storage.createRepresentativeClient(req.body);
+      const validatedData = insertRepresentativeClientSchema.parse(req.body);
+      const client = await storage.createRepresentativeClient(validatedData);
       res.json(client);
     } catch (error) {
+      if (error instanceof ZodError) {
+        return res.status(400).json({ error: "Validation failed", details: error.errors });
+      }
       console.error("Create client error:", error);
       res.status(500).json({ error: "Failed to create client" });
     }
@@ -1715,12 +1780,16 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
 
   app.put("/api/admin/clients/:id", authMiddleware, async (req: Request, res: Response) => {
     try {
-      const updated = await storage.updateRepresentativeClient(req.params.id, req.body);
+      const validatedData = insertRepresentativeClientSchema.partial().parse(req.body);
+      const updated = await storage.updateRepresentativeClient(req.params.id, validatedData);
       if (!updated) {
         return res.status(404).json({ error: "Client not found" });
       }
       res.json(updated);
     } catch (error) {
+      if (error instanceof ZodError) {
+        return res.status(400).json({ error: "Validation failed", details: error.errors });
+      }
       console.error("Update client error:", error);
       res.status(500).json({ error: "Failed to update client" });
     }
@@ -1755,9 +1824,13 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
 
   app.post("/api/admin/testimonials", authMiddleware, async (req: Request, res: Response) => {
     try {
-      const testimonial = await storage.createTestimonial(req.body);
+      const validatedData = insertTestimonialSchema.parse(req.body);
+      const testimonial = await storage.createTestimonial(validatedData);
       res.json(testimonial);
     } catch (error) {
+      if (error instanceof ZodError) {
+        return res.status(400).json({ error: "Validation failed", details: error.errors });
+      }
       console.error("Create testimonial error:", error);
       res.status(500).json({ error: "Failed to create testimonial" });
     }
@@ -1765,12 +1838,16 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
 
   app.put("/api/admin/testimonials/:id", authMiddleware, async (req: Request, res: Response) => {
     try {
-      const updated = await storage.updateTestimonial(req.params.id, req.body);
+      const validatedData = insertTestimonialSchema.partial().parse(req.body);
+      const updated = await storage.updateTestimonial(req.params.id, validatedData);
       if (!updated) {
         return res.status(404).json({ error: "Testimonial not found" });
       }
       res.json(updated);
     } catch (error) {
+      if (error instanceof ZodError) {
+        return res.status(400).json({ error: "Validation failed", details: error.errors });
+      }
       console.error("Update testimonial error:", error);
       res.status(500).json({ error: "Failed to update testimonial" });
     }
@@ -1805,9 +1882,13 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
 
   app.post("/api/admin/jobs", authMiddleware, async (req: Request, res: Response) => {
     try {
-      const job = await storage.createJobOpening(req.body);
+      const validatedData = insertJobOpeningSchema.parse(req.body);
+      const job = await storage.createJobOpening(validatedData);
       res.json(job);
     } catch (error) {
+      if (error instanceof ZodError) {
+        return res.status(400).json({ error: "Validation failed", details: error.errors });
+      }
       console.error("Create job error:", error);
       res.status(500).json({ error: "Failed to create job" });
     }
@@ -1815,12 +1896,16 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
 
   app.put("/api/admin/jobs/:id", authMiddleware, async (req: Request, res: Response) => {
     try {
-      const updated = await storage.updateJobOpening(req.params.id, req.body);
+      const validatedData = insertJobOpeningSchema.partial().parse(req.body);
+      const updated = await storage.updateJobOpening(req.params.id, validatedData);
       if (!updated) {
         return res.status(404).json({ error: "Job not found" });
       }
       res.json(updated);
     } catch (error) {
+      if (error instanceof ZodError) {
+        return res.status(400).json({ error: "Validation failed", details: error.errors });
+      }
       console.error("Update job error:", error);
       res.status(500).json({ error: "Failed to update job" });
     }
@@ -1855,9 +1940,13 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
 
   app.post("/api/admin/offices", authMiddleware, async (req: Request, res: Response) => {
     try {
-      const office = await storage.createOffice(req.body);
+      const validatedData = insertOfficeSchema.parse(req.body);
+      const office = await storage.createOffice(validatedData);
       res.json(office);
     } catch (error) {
+      if (error instanceof ZodError) {
+        return res.status(400).json({ error: "Validation failed", details: error.errors });
+      }
       console.error("Create office error:", error);
       res.status(500).json({ error: "Failed to create office" });
     }
@@ -1865,12 +1954,16 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
 
   app.put("/api/admin/offices/:id", authMiddleware, async (req: Request, res: Response) => {
     try {
-      const updated = await storage.updateOffice(req.params.id, req.body);
+      const validatedData = insertOfficeSchema.partial().parse(req.body);
+      const updated = await storage.updateOffice(req.params.id, validatedData);
       if (!updated) {
         return res.status(404).json({ error: "Office not found" });
       }
       res.json(updated);
     } catch (error) {
+      if (error instanceof ZodError) {
+        return res.status(400).json({ error: "Validation failed", details: error.errors });
+      }
       console.error("Update office error:", error);
       res.status(500).json({ error: "Failed to update office" });
     }
@@ -1905,9 +1998,13 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
 
   app.post("/api/admin/alliances", authMiddleware, async (req: Request, res: Response) => {
     try {
-      const alliance = await storage.createAlliance(req.body);
+      const validatedData = insertAllianceSchema.parse(req.body);
+      const alliance = await storage.createAlliance(validatedData);
       res.json(alliance);
     } catch (error) {
+      if (error instanceof ZodError) {
+        return res.status(400).json({ error: "Validation failed", details: error.errors });
+      }
       console.error("Create alliance error:", error);
       res.status(500).json({ error: "Failed to create alliance" });
     }
@@ -1915,12 +2012,16 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
 
   app.put("/api/admin/alliances/:id", authMiddleware, async (req: Request, res: Response) => {
     try {
-      const updated = await storage.updateAlliance(req.params.id, req.body);
+      const validatedData = insertAllianceSchema.partial().parse(req.body);
+      const updated = await storage.updateAlliance(req.params.id, validatedData);
       if (!updated) {
         return res.status(404).json({ error: "Alliance not found" });
       }
       res.json(updated);
     } catch (error) {
+      if (error instanceof ZodError) {
+        return res.status(400).json({ error: "Validation failed", details: error.errors });
+      }
       console.error("Update alliance error:", error);
       res.status(500).json({ error: "Failed to update alliance" });
     }
@@ -1955,9 +2056,13 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
 
   app.post("/api/admin/desks", authMiddleware, async (req: Request, res: Response) => {
     try {
-      const desk = await storage.createSpecializedDesk(req.body);
+      const validatedData = insertSpecializedDeskSchema.parse(req.body);
+      const desk = await storage.createSpecializedDesk(validatedData);
       res.json(desk);
     } catch (error) {
+      if (error instanceof ZodError) {
+        return res.status(400).json({ error: "Validation failed", details: error.errors });
+      }
       console.error("Create desk error:", error);
       res.status(500).json({ error: "Failed to create desk" });
     }
@@ -1965,12 +2070,16 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
 
   app.put("/api/admin/desks/:id", authMiddleware, async (req: Request, res: Response) => {
     try {
-      const updated = await storage.updateSpecializedDesk(req.params.id, req.body);
+      const validatedData = insertSpecializedDeskSchema.partial().parse(req.body);
+      const updated = await storage.updateSpecializedDesk(req.params.id, validatedData);
       if (!updated) {
         return res.status(404).json({ error: "Desk not found" });
       }
       res.json(updated);
     } catch (error) {
+      if (error instanceof ZodError) {
+        return res.status(400).json({ error: "Validation failed", details: error.errors });
+      }
       console.error("Update desk error:", error);
       res.status(500).json({ error: "Failed to update desk" });
     }
