@@ -13,6 +13,8 @@ interface PCloudResponse {
   };
   auth?: string;
   fileids?: number[];
+  hosts?: string[];
+  path?: string;
 }
 
 export class PCloudStorage {

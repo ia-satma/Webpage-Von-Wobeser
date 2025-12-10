@@ -87,6 +87,12 @@ export interface IStorage {
   getTeamMemberBySlug(slug: string): Promise<TeamMember | undefined>;
   getPartners(): Promise<TeamMember[]>;
   createTeamMember(member: InsertTeamMember): Promise<TeamMember>;
+  updateTeamMember(id: string, member: Partial<InsertTeamMember>): Promise<TeamMember | undefined>;
+  deleteTeamMember(id: string): Promise<boolean>;
+  updatePracticeGroup(id: string, group: Partial<InsertPracticeGroup>): Promise<PracticeGroup | undefined>;
+  deletePracticeGroup(id: string): Promise<boolean>;
+  updateIndustryGroup(id: string, group: Partial<InsertIndustryGroup>): Promise<IndustryGroup | undefined>;
+  deleteIndustryGroup(id: string): Promise<boolean>;
   getRepresentativeMatters(): Promise<RepresentativeMatterDb[]>;
   createRepresentativeMatter(matter: InsertRepresentativeMatter): Promise<RepresentativeMatterDb>;
   
@@ -316,6 +322,59 @@ export class DatabaseStorage implements IStorage {
   async createTeamMember(member: InsertTeamMember): Promise<TeamMember> {
     const [item] = await db.insert(teamMembers).values(member).returning();
     return item;
+  }
+
+  async updateTeamMember(id: string, member: Partial<InsertTeamMember>): Promise<TeamMember | undefined> {
+    const [item] = await db
+      .update(teamMembers)
+      .set(member)
+      .where(eq(teamMembers.id, id))
+      .returning();
+    return item;
+  }
+
+  async deleteTeamMember(id: string): Promise<boolean> {
+    const result = await db
+      .delete(teamMembers)
+      .where(eq(teamMembers.id, id))
+      .returning();
+    return result.length > 0;
+  }
+
+  // Practice Group update/delete
+  async updatePracticeGroup(id: string, group: Partial<InsertPracticeGroup>): Promise<PracticeGroup | undefined> {
+    const [item] = await db
+      .update(practiceGroups)
+      .set(group)
+      .where(eq(practiceGroups.id, id))
+      .returning();
+    return item;
+  }
+
+  async deletePracticeGroup(id: string): Promise<boolean> {
+    const result = await db
+      .delete(practiceGroups)
+      .where(eq(practiceGroups.id, id))
+      .returning();
+    return result.length > 0;
+  }
+
+  // Industry Group update/delete
+  async updateIndustryGroup(id: string, group: Partial<InsertIndustryGroup>): Promise<IndustryGroup | undefined> {
+    const [item] = await db
+      .update(industryGroups)
+      .set(group)
+      .where(eq(industryGroups.id, id))
+      .returning();
+    return item;
+  }
+
+  async deleteIndustryGroup(id: string): Promise<boolean> {
+    const result = await db
+      .delete(industryGroups)
+      .where(eq(industryGroups.id, id))
+      .returning();
+    return result.length > 0;
   }
 
   async getRepresentativeMatters(): Promise<RepresentativeMatterDb[]> {

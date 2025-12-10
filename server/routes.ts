@@ -1312,6 +1312,234 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
   });
 
   // =============================================
+  // ADMIN TEAM MEMBERS CRUD
+  // =============================================
+
+  // Get all team members (admin)
+  app.get("/api/admin/team", authMiddleware, async (req: Request, res: Response) => {
+    try {
+      const page = parseInt(req.query.page as string) || 1;
+      const limit = parseInt(req.query.limit as string) || 20;
+      const search = (req.query.search as string) || "";
+      const role = (req.query.role as string) || "";
+
+      let members = await storage.getTeamMembers();
+
+      // Filter by search term
+      if (search) {
+        const searchLower = search.toLowerCase();
+        members = members.filter(m => 
+          m.name.toLowerCase().includes(searchLower) ||
+          (m.email && m.email.toLowerCase().includes(searchLower))
+        );
+      }
+
+      // Filter by role/title
+      if (role && role !== "all") {
+        members = members.filter(m => m.title.toLowerCase().includes(role.toLowerCase()));
+      }
+
+      const total = members.length;
+      const totalPages = Math.ceil(total / limit);
+      const offset = (page - 1) * limit;
+      const paginatedMembers = members.slice(offset, offset + limit);
+
+      res.json({
+        members: paginatedMembers,
+        total,
+        page,
+        totalPages,
+      });
+    } catch (error) {
+      console.error("Get admin team members error:", error);
+      res.status(500).json({ error: "Failed to fetch team members" });
+    }
+  });
+
+  // Get single team member (admin)
+  app.get("/api/admin/team/:id", authMiddleware, async (req: Request, res: Response) => {
+    try {
+      const member = await storage.getTeamMemberById(req.params.id);
+      if (!member) {
+        return res.status(404).json({ error: "Team member not found" });
+      }
+      res.json(member);
+    } catch (error) {
+      console.error("Get team member error:", error);
+      res.status(500).json({ error: "Failed to fetch team member" });
+    }
+  });
+
+  // Create team member
+  app.post("/api/admin/team", authMiddleware, async (req: Request, res: Response) => {
+    try {
+      const member = await storage.createTeamMember(req.body);
+      res.status(201).json(member);
+    } catch (error) {
+      console.error("Create team member error:", error);
+      res.status(500).json({ error: "Failed to create team member" });
+    }
+  });
+
+  // Update team member
+  app.put("/api/admin/team/:id", authMiddleware, async (req: Request, res: Response) => {
+    try {
+      const member = await storage.updateTeamMember(req.params.id, req.body);
+      if (!member) {
+        return res.status(404).json({ error: "Team member not found" });
+      }
+      res.json(member);
+    } catch (error) {
+      console.error("Update team member error:", error);
+      res.status(500).json({ error: "Failed to update team member" });
+    }
+  });
+
+  // Delete team member
+  app.delete("/api/admin/team/:id", authMiddleware, async (req: Request, res: Response) => {
+    try {
+      const deleted = await storage.deleteTeamMember(req.params.id);
+      if (!deleted) {
+        return res.status(404).json({ error: "Team member not found" });
+      }
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Delete team member error:", error);
+      res.status(500).json({ error: "Failed to delete team member" });
+    }
+  });
+
+  // Get team stats
+  app.get("/api/admin/team/stats", authMiddleware, async (_req: Request, res: Response) => {
+    try {
+      const members = await storage.getTeamMembers();
+      const partners = members.filter(m => m.title.toLowerCase().includes("partner") || m.isPartner);
+      const ofCounsel = members.filter(m => m.title.toLowerCase().includes("of counsel"));
+      const counsel = members.filter(m => m.title.toLowerCase() === "counsel");
+      const associates = members.filter(m => m.title.toLowerCase().includes("associate"));
+
+      res.json({
+        total: members.length,
+        partners: partners.length,
+        ofCounsel: ofCounsel.length,
+        counsel: counsel.length,
+        associates: associates.length,
+      });
+    } catch (error) {
+      console.error("Get team stats error:", error);
+      res.status(500).json({ error: "Failed to fetch team stats" });
+    }
+  });
+
+  // =============================================
+  // ADMIN PRACTICE GROUPS CRUD
+  // =============================================
+
+  // Get all practice groups (admin)
+  app.get("/api/admin/practice-groups", authMiddleware, async (_req: Request, res: Response) => {
+    try {
+      const groups = await storage.getPracticeGroups();
+      res.json(groups);
+    } catch (error) {
+      console.error("Get practice groups error:", error);
+      res.status(500).json({ error: "Failed to fetch practice groups" });
+    }
+  });
+
+  // Create practice group
+  app.post("/api/admin/practice-groups", authMiddleware, async (req: Request, res: Response) => {
+    try {
+      const group = await storage.createPracticeGroup(req.body);
+      res.status(201).json(group);
+    } catch (error) {
+      console.error("Create practice group error:", error);
+      res.status(500).json({ error: "Failed to create practice group" });
+    }
+  });
+
+  // Update practice group
+  app.put("/api/admin/practice-groups/:id", authMiddleware, async (req: Request, res: Response) => {
+    try {
+      const group = await storage.updatePracticeGroup(req.params.id, req.body);
+      if (!group) {
+        return res.status(404).json({ error: "Practice group not found" });
+      }
+      res.json(group);
+    } catch (error) {
+      console.error("Update practice group error:", error);
+      res.status(500).json({ error: "Failed to update practice group" });
+    }
+  });
+
+  // Delete practice group
+  app.delete("/api/admin/practice-groups/:id", authMiddleware, async (req: Request, res: Response) => {
+    try {
+      const deleted = await storage.deletePracticeGroup(req.params.id);
+      if (!deleted) {
+        return res.status(404).json({ error: "Practice group not found" });
+      }
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Delete practice group error:", error);
+      res.status(500).json({ error: "Failed to delete practice group" });
+    }
+  });
+
+  // =============================================
+  // ADMIN INDUSTRY GROUPS CRUD
+  // =============================================
+
+  // Get all industry groups (admin)
+  app.get("/api/admin/industry-groups", authMiddleware, async (_req: Request, res: Response) => {
+    try {
+      const groups = await storage.getIndustryGroups();
+      res.json(groups);
+    } catch (error) {
+      console.error("Get industry groups error:", error);
+      res.status(500).json({ error: "Failed to fetch industry groups" });
+    }
+  });
+
+  // Create industry group
+  app.post("/api/admin/industry-groups", authMiddleware, async (req: Request, res: Response) => {
+    try {
+      const group = await storage.createIndustryGroup(req.body);
+      res.status(201).json(group);
+    } catch (error) {
+      console.error("Create industry group error:", error);
+      res.status(500).json({ error: "Failed to create industry group" });
+    }
+  });
+
+  // Update industry group
+  app.put("/api/admin/industry-groups/:id", authMiddleware, async (req: Request, res: Response) => {
+    try {
+      const group = await storage.updateIndustryGroup(req.params.id, req.body);
+      if (!group) {
+        return res.status(404).json({ error: "Industry group not found" });
+      }
+      res.json(group);
+    } catch (error) {
+      console.error("Update industry group error:", error);
+      res.status(500).json({ error: "Failed to update industry group" });
+    }
+  });
+
+  // Delete industry group
+  app.delete("/api/admin/industry-groups/:id", authMiddleware, async (req: Request, res: Response) => {
+    try {
+      const deleted = await storage.deleteIndustryGroup(req.params.id);
+      if (!deleted) {
+        return res.status(404).json({ error: "Industry group not found" });
+      }
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Delete industry group error:", error);
+      res.status(500).json({ error: "Failed to delete industry group" });
+    }
+  });
+
+  // =============================================
   // MEDIA ITEMS CRUD
   // =============================================
 

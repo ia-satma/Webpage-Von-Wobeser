@@ -24,7 +24,8 @@ import {
   Activity,
   Clock,
   BarChart3,
-  Loader2
+  Loader2,
+  Users
 } from "lucide-react";
 
 const translations = {
@@ -44,6 +45,7 @@ const translations = {
     newsArticles: "News Articles",
     aiAgents: "AI Agents",
     articleProcessing: "Article Processing",
+    teamMembers: "Team Members",
     translations: "Translations",
     logout: "Logout",
     loading: "Loading...",
@@ -82,6 +84,7 @@ const translations = {
     newsArticles: "Artículos de Noticias",
     aiAgents: "Agentes IA",
     articleProcessing: "Procesamiento de Artículos",
+    teamMembers: "Miembros del Equipo",
     translations: "Traducciones",
     logout: "Cerrar Sesión",
     loading: "Cargando...",
@@ -120,6 +123,7 @@ const translations = {
     newsArticles: "Nachrichtenartikel",
     aiAgents: "KI-Agenten",
     articleProcessing: "Artikelverarbeitung",
+    teamMembers: "Teammitglieder",
     translations: "Übersetzungen",
     logout: "Abmelden",
     loading: "Wird geladen...",
@@ -158,6 +162,7 @@ const translations = {
     newsArticles: "新闻文章",
     aiAgents: "AI 代理",
     articleProcessing: "文章处理",
+    teamMembers: "团队成员",
     translations: "翻译",
     logout: "退出登录",
     loading: "加载中...",
@@ -196,6 +201,7 @@ const translations = {
     newsArticles: "뉴스 기사",
     aiAgents: "AI 에이전트",
     articleProcessing: "기사 처리",
+    teamMembers: "팀 구성원",
     translations: "번역",
     logout: "로그아웃",
     loading: "로딩 중...",
@@ -234,6 +240,7 @@ const translations = {
     newsArticles: "ニュース記事",
     aiAgents: "AIエージェント",
     articleProcessing: "記事処理",
+    teamMembers: "チームメンバー",
     translations: "翻訳",
     logout: "ログアウト",
     loading: "読み込み中...",
@@ -272,6 +279,7 @@ const translations = {
     newsArticles: "مقالات الأخبار",
     aiAgents: "وكلاء الذكاء الاصطناعي",
     articleProcessing: "معالجة المقالات",
+    teamMembers: "أعضاء الفريق",
     translations: "الترجمات",
     logout: "تسجيل الخروج",
     loading: "جاري التحميل...",
@@ -310,6 +318,7 @@ const translations = {
     newsArticles: "Новостные статьи",
     aiAgents: "ИИ-агенты",
     articleProcessing: "Обработка статей",
+    teamMembers: "Члены команды",
     translations: "Переводы",
     logout: "Выйти",
     loading: "Загрузка...",
@@ -348,6 +357,7 @@ const translations = {
     newsArticles: "Articles d'actualités",
     aiAgents: "Agents IA",
     articleProcessing: "Traitement des articles",
+    teamMembers: "Membres de l'équipe",
     translations: "Traductions",
     logout: "Déconnexion",
     loading: "Chargement...",
@@ -386,6 +396,7 @@ const translations = {
     newsArticles: "Articoli di notizie",
     aiAgents: "Agenti IA",
     articleProcessing: "Elaborazione articoli",
+    teamMembers: "Membri del team",
     translations: "Traduzioni",
     logout: "Esci",
     loading: "Caricamento...",
@@ -424,6 +435,7 @@ const translations = {
     newsArticles: "Artigos de Notícias",
     aiAgents: "Agentes IA",
     articleProcessing: "Processamento de Artigos",
+    teamMembers: "Membros da Equipe",
     translations: "Traduções",
     logout: "Sair",
     loading: "Carregando...",
@@ -843,6 +855,12 @@ export default function AdminDashboard() {
                 <Button variant="outline" className="w-full justify-start" data-testid="button-article-processing">
                   <Cog className="mr-2 h-4 w-4" />
                   {t.articleProcessing}
+                </Button>
+              </Link>
+              <Link href="/admin/team">
+                <Button variant="outline" className="w-full justify-start" data-testid="button-team-members">
+                  <Users className="mr-2 h-4 w-4" />
+                  {t.teamMembers || "Team Members"}
                 </Button>
               </Link>
             </CardContent>
