@@ -51,6 +51,7 @@ import AdminArticleProcessing from "@/pages/admin/AdminArticleProcessing";
 import AdminAudits from "@/pages/admin/AdminAudits";
 import AdminTeam from "@/pages/admin/AdminTeam";
 import AdminGuide from "@/pages/admin/AdminGuide";
+import AdminPerformance from "@/pages/admin/AdminPerformance";
 
 function SkipLinks() {
   const { language } = useLanguage();
@@ -159,6 +160,7 @@ function Router() {
       <Route path="/admin/audits" component={AdminAudits} />
       <Route path="/admin/team" component={AdminTeam} />
       <Route path="/admin/guide" component={AdminGuide} />
+      <Route path="/admin/performance" component={AdminPerformance} />
       <Route component={NotFound} />
     </Switch>
   );
