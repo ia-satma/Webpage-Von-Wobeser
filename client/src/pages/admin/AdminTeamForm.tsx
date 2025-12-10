@@ -4,88 +4,183 @@ import { Link, useParams, useLocation } from "wouter";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { motion, AnimatePresence } from "framer-motion";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useAdminAuth, adminApiRequest } from "@/lib/adminAuth";
 import { queryClient } from "@/lib/queryClient";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { ArrowLeft, Save, User, Loader2 } from "lucide-react";
+import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { 
+  ArrowLeft, 
+  Save, 
+  User, 
+  Loader2, 
+  Briefcase, 
+  Mail, 
+  Phone, 
+  Linkedin, 
+  Image, 
+  FileText, 
+  Settings, 
+  ChevronRight,
+  Sparkles,
+  Globe,
+  Award,
+  CheckCircle2
+} from "lucide-react";
 import type { TeamMember } from "@shared/schema";
 
 const translations = {
   en: {
     createTitle: "Create Team Member",
     editTitle: "Edit Team Member",
+    createSubtitle: "Add a new lawyer or professional to the firm",
+    editSubtitle: "Update lawyer information and biography",
     back: "Back to Team",
-    save: "Save",
+    save: "Save Changes",
     saving: "Saving...",
-    create: "Create",
+    create: "Create Member",
     creating: "Creating...",
+    cancel: "Cancel",
     basicInfo: "Basic Information",
-    contactInfo: "Contact Information",
+    basicInfoDesc: "Name, position and profile details",
+    contactInfo: "Contact",
+    contactInfoDesc: "Email, phone and social profiles",
     biography: "Biography",
+    biographyDesc: "Professional background in both languages",
     settings: "Settings",
+    settingsDesc: "Display options and ordering",
     name: "Full Name",
-    slug: "URL Slug",
-    slugHint: "Used in URLs (e.g., 'john-doe')",
-    title: "Title (English)",
-    titleEs: "Title (Spanish)",
-    role: "Role (English)",
-    roleEs: "Role (Spanish)",
-    email: "Email",
-    phone: "Phone",
-    linkedinUrl: "LinkedIn URL",
-    imageUrl: "Profile Image URL",
+    nameHint: "As it appears on business cards",
+    slug: "URL Identifier",
+    slugHint: "Auto-generated from name (e.g., 'maria-garcia')",
+    title: "Professional Title",
+    titleHint: "E.g., 'Partner - Corporate & M&A'",
+    titleEs: "Professional Title (Spanish)",
+    role: "Position",
+    roleEs: "Position (Spanish)",
+    email: "Email Address",
+    phone: "Phone Number",
+    phoneHint: "Include country code (+52)",
+    linkedinUrl: "LinkedIn Profile",
+    linkedinHint: "Full URL to LinkedIn profile",
+    imageUrl: "Profile Photo URL",
+    imageHint: "Square image, minimum 400x400px",
     bio: "Biography (English)",
+    bioHint: "Professional background, education, notable cases",
     bioEs: "Biography (Spanish)",
-    isPartner: "Is Partner",
+    isPartner: "Partner Status",
+    isPartnerDesc: "Mark this person as a Partner of the firm",
     order: "Display Order",
+    orderHint: "Lower numbers appear first",
     createSuccess: "Team member created successfully",
     updateSuccess: "Team member updated successfully",
     error: "An error occurred",
-    requiredField: "This field is required",
+    requiredField: "Required",
     loading: "Loading...",
+    preview: "Preview",
+    noImage: "No image",
+    tabs: {
+      general: "General",
+      contact: "Contact",
+      bio: "Biography",
+      settings: "Settings"
+    },
+    roles: {
+      partner: "Partner",
+      ofCounsel: "Of Counsel",
+      counsel: "Counsel",
+      seniorAssociate: "Senior Associate",
+      associate: "Associate"
+    },
+    rolesEs: {
+      partner: "Socio",
+      ofCounsel: "Of Counsel",
+      counsel: "Counsel",
+      seniorAssociate: "Asociado Senior",
+      associate: "Asociado"
+    }
   },
   es: {
     createTitle: "Crear Miembro del Equipo",
     editTitle: "Editar Miembro del Equipo",
+    createSubtitle: "Agregar un nuevo abogado o profesional al despacho",
+    editSubtitle: "Actualizar información y biografía del abogado",
     back: "Volver al Equipo",
-    save: "Guardar",
+    save: "Guardar Cambios",
     saving: "Guardando...",
-    create: "Crear",
+    create: "Crear Miembro",
     creating: "Creando...",
+    cancel: "Cancelar",
     basicInfo: "Información Básica",
-    contactInfo: "Información de Contacto",
+    basicInfoDesc: "Nombre, puesto y detalles del perfil",
+    contactInfo: "Contacto",
+    contactInfoDesc: "Correo, teléfono y redes sociales",
     biography: "Biografía",
+    biographyDesc: "Trayectoria profesional en ambos idiomas",
     settings: "Configuración",
+    settingsDesc: "Opciones de visualización y orden",
     name: "Nombre Completo",
-    slug: "URL Slug",
-    slugHint: "Usado en URLs (ej. 'juan-perez')",
-    title: "Título (Inglés)",
-    titleEs: "Título (Español)",
-    role: "Rol (Inglés)",
-    roleEs: "Rol (Español)",
+    nameHint: "Como aparece en tarjetas de presentación",
+    slug: "Identificador URL",
+    slugHint: "Generado automáticamente del nombre (ej. 'maria-garcia')",
+    title: "Título Profesional",
+    titleHint: "Ej. 'Socio - Corporativo & Fusiones'",
+    titleEs: "Título Profesional (Español)",
+    role: "Posición",
+    roleEs: "Posición (Español)",
     email: "Correo Electrónico",
-    phone: "Teléfono",
-    linkedinUrl: "URL de LinkedIn",
-    imageUrl: "URL de Imagen de Perfil",
+    phone: "Número Telefónico",
+    phoneHint: "Incluir código de país (+52)",
+    linkedinUrl: "Perfil de LinkedIn",
+    linkedinHint: "URL completa del perfil de LinkedIn",
+    imageUrl: "URL de Foto de Perfil",
+    imageHint: "Imagen cuadrada, mínimo 400x400px",
     bio: "Biografía (Inglés)",
+    bioHint: "Trayectoria profesional, educación, casos notables",
     bioEs: "Biografía (Español)",
-    isPartner: "Es Socio",
+    isPartner: "Estatus de Socio",
+    isPartnerDesc: "Marcar a esta persona como Socio del despacho",
     order: "Orden de Visualización",
+    orderHint: "Números menores aparecen primero",
     createSuccess: "Miembro del equipo creado exitosamente",
     updateSuccess: "Miembro del equipo actualizado exitosamente",
     error: "Ocurrió un error",
-    requiredField: "Este campo es requerido",
+    requiredField: "Requerido",
     loading: "Cargando...",
+    preview: "Vista Previa",
+    noImage: "Sin imagen",
+    tabs: {
+      general: "General",
+      contact: "Contacto",
+      bio: "Biografía",
+      settings: "Configuración"
+    },
+    roles: {
+      partner: "Partner",
+      ofCounsel: "Of Counsel",
+      counsel: "Counsel",
+      seniorAssociate: "Senior Associate",
+      associate: "Associate"
+    },
+    rolesEs: {
+      partner: "Socio",
+      ofCounsel: "Of Counsel",
+      counsel: "Counsel",
+      seniorAssociate: "Asociado Senior",
+      associate: "Asociado"
+    }
   },
 };
 
@@ -114,6 +209,7 @@ export default function AdminTeamForm() {
   const { toast } = useToast();
   const params = useParams<{ id: string }>();
   const [, navigate] = useLocation();
+  const [activeTab, setActiveTab] = useState("general");
   const isEditMode = !!params.id;
 
   const t = translations[language as keyof typeof translations] || translations.en;
@@ -137,6 +233,10 @@ export default function AdminTeamForm() {
       order: 0,
     },
   });
+
+  const watchedValues = form.watch();
+  const imageUrl = form.watch("imageUrl");
+  const name = form.watch("name");
 
   const { data: member, isLoading: memberLoading, isError: memberError } = useQuery<TeamMember>({
     queryKey: ["/api/admin/team", params.id],
@@ -260,12 +360,24 @@ export default function AdminTeamForm() {
     }
   };
 
+  const getInitials = (name: string) => {
+    return name
+      .split(" ")
+      .map((n) => n[0])
+      .join("")
+      .toUpperCase()
+      .slice(0, 2);
+  };
+
   const isPending = createMutation.isPending || updateMutation.isPending;
 
   if (authLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" />
+      <div className="flex items-center justify-center min-h-screen bg-[#F8F8F8]">
+        <div className="flex flex-col items-center gap-4">
+          <div className="animate-spin w-10 h-10 border-4 border-[#AA1A2E] border-t-transparent rounded-full" />
+          <p className="text-[#54565B] font-medium">{t.loading}</p>
+        </div>
       </div>
     );
   }
@@ -276,12 +388,19 @@ export default function AdminTeamForm() {
 
   if (isEditMode && memberLoading) {
     return (
-      <div className="min-h-screen bg-background">
-        <div className="container mx-auto px-4 py-8 max-w-4xl">
-          <Skeleton className="h-12 w-64 mb-8" />
-          <div className="space-y-6">
-            <Skeleton className="h-40 w-full" />
-            <Skeleton className="h-40 w-full" />
+      <div className="min-h-screen bg-[#F8F8F8]">
+        <div className="container mx-auto px-6 py-8 max-w-6xl">
+          <div className="flex items-center gap-4 mb-8">
+            <Skeleton className="h-10 w-10 rounded-none" />
+            <Skeleton className="h-10 w-64" />
+          </div>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div className="lg:col-span-2 space-y-6">
+              <Skeleton className="h-[400px] w-full rounded-none" />
+            </div>
+            <div>
+              <Skeleton className="h-[300px] w-full rounded-none" />
+            </div>
           </div>
         </div>
       </div>
@@ -289,312 +408,62 @@ export default function AdminTeamForm() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="container mx-auto px-4 py-8 max-w-4xl">
-        <div className="flex items-center gap-4 mb-8">
-          <Link href="/admin/team">
-            <Button variant="ghost" size="icon" data-testid="button-back">
-              <ArrowLeft className="w-5 h-5" />
-            </Button>
-          </Link>
-          <div className="flex items-center gap-3">
-            <User className="w-8 h-8 text-primary" />
-            <h1 className="text-3xl font-bold">
-              {isEditMode ? t.editTitle : t.createTitle}
-            </h1>
-          </div>
-        </div>
-
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>{t.basicInfo}</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <FormField
-                    control={form.control}
-                    name="name"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>{t.name}</FormLabel>
-                        <FormControl>
-                          <Input
-                            {...field}
-                            onBlur={() => {
-                              field.onBlur();
-                              if (!form.getValues("slug")) {
-                                generateSlug();
-                              }
-                            }}
-                            data-testid="input-name"
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="slug"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>{t.slug}</FormLabel>
-                        <FormControl>
-                          <Input {...field} data-testid="input-slug" />
-                        </FormControl>
-                        <p className="text-sm text-muted-foreground">{t.slugHint}</p>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <FormField
-                    control={form.control}
-                    name="title"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>{t.title}</FormLabel>
-                        <FormControl>
-                          <Input {...field} data-testid="input-title" />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="titleEs"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>{t.titleEs}</FormLabel>
-                        <FormControl>
-                          <Input {...field} data-testid="input-title-es" />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <FormField
-                    control={form.control}
-                    name="role"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>{t.role}</FormLabel>
-                        <Select onValueChange={field.onChange} value={field.value}>
-                          <FormControl>
-                            <SelectTrigger data-testid="select-role">
-                              <SelectValue />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectItem value="Partner">Partner</SelectItem>
-                            <SelectItem value="Of Counsel">Of Counsel</SelectItem>
-                            <SelectItem value="Counsel">Counsel</SelectItem>
-                            <SelectItem value="Senior Associate">Senior Associate</SelectItem>
-                            <SelectItem value="Associate">Associate</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="roleEs"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>{t.roleEs}</FormLabel>
-                        <Select onValueChange={field.onChange} value={field.value}>
-                          <FormControl>
-                            <SelectTrigger data-testid="select-role-es">
-                              <SelectValue />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectItem value="Socio">Socio</SelectItem>
-                            <SelectItem value="Of Counsel">Of Counsel</SelectItem>
-                            <SelectItem value="Counsel">Counsel</SelectItem>
-                            <SelectItem value="Asociado Senior">Asociado Senior</SelectItem>
-                            <SelectItem value="Asociado">Asociado</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>{t.contactInfo}</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <FormField
-                    control={form.control}
-                    name="email"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>{t.email}</FormLabel>
-                        <FormControl>
-                          <Input type="email" {...field} data-testid="input-email" />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="phone"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>{t.phone}</FormLabel>
-                        <FormControl>
-                          <Input {...field} data-testid="input-phone" />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <FormField
-                    control={form.control}
-                    name="linkedinUrl"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>{t.linkedinUrl}</FormLabel>
-                        <FormControl>
-                          <Input {...field} data-testid="input-linkedin" />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="imageUrl"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>{t.imageUrl}</FormLabel>
-                        <FormControl>
-                          <Input {...field} data-testid="input-image" />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>{t.biography}</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <FormField
-                  control={form.control}
-                  name="bio"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>{t.bio}</FormLabel>
-                      <FormControl>
-                        <Textarea
-                          {...field}
-                          rows={6}
-                          className="resize-none"
-                          data-testid="textarea-bio"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="bioEs"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>{t.bioEs}</FormLabel>
-                      <FormControl>
-                        <Textarea
-                          {...field}
-                          rows={6}
-                          className="resize-none"
-                          data-testid="textarea-bio-es"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>{t.settings}</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <FormField
-                    control={form.control}
-                    name="isPartner"
-                    render={({ field }) => (
-                      <FormItem className="flex items-center justify-between rounded-lg border p-4">
-                        <div className="space-y-0.5">
-                          <FormLabel className="text-base">{t.isPartner}</FormLabel>
-                        </div>
-                        <FormControl>
-                          <Switch
-                            checked={field.value}
-                            onCheckedChange={field.onChange}
-                            data-testid="switch-partner"
-                          />
-                        </FormControl>
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="order"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>{t.order}</FormLabel>
-                        <FormControl>
-                          <Input
-                            type="number"
-                            {...field}
-                            onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
-                            data-testid="input-order"
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-              </CardContent>
-            </Card>
-
-            <div className="flex justify-end gap-4">
+    <div className="min-h-screen bg-[#F8F8F8]">
+      {/* Header */}
+      <div className="bg-white border-b border-[#D9D8D7] sticky top-0 z-10">
+        <div className="container mx-auto px-6 py-4 max-w-6xl">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
               <Link href="/admin/team">
-                <Button type="button" variant="outline" data-testid="button-cancel">
-                  {t.back}
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  className="rounded-none hover:bg-[#F8F8F8]"
+                  data-testid="button-back"
+                >
+                  <ArrowLeft className="w-5 h-5 text-[#54565B]" />
                 </Button>
               </Link>
-              <Button type="submit" disabled={isPending} data-testid="button-submit">
+              
+              {/* Breadcrumb */}
+              <nav className="flex items-center gap-2 text-sm">
+                <Link href="/admin/dashboard">
+                  <span className="text-[#878A8E] hover:text-[#54565B] transition-colors cursor-pointer">
+                    Admin
+                  </span>
+                </Link>
+                <ChevronRight className="w-4 h-4 text-[#BBBBBB]" />
+                <Link href="/admin/team">
+                  <span className="text-[#878A8E] hover:text-[#54565B] transition-colors cursor-pointer">
+                    {language === "es" ? "Equipo" : "Team"}
+                  </span>
+                </Link>
+                <ChevronRight className="w-4 h-4 text-[#BBBBBB]" />
+                <span className="text-[#1D1D1B] font-medium">
+                  {isEditMode ? (member?.name || t.editTitle) : t.createTitle}
+                </span>
+              </nav>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex items-center gap-3">
+              <Link href="/admin/team">
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  className="rounded-none border-[#D9D8D7] text-[#54565B] hover:bg-[#F8F8F8]"
+                  data-testid="button-cancel"
+                >
+                  {t.cancel}
+                </Button>
+              </Link>
+              <Button 
+                type="submit"
+                form="team-member-form"
+                disabled={isPending}
+                className="rounded-none bg-[#AA1A2E] hover:bg-[#8a1525] text-white min-w-[140px]"
+                data-testid="button-submit"
+              >
                 {isPending ? (
                   <>
                     <Loader2 className="w-4 h-4 mr-2 animate-spin" />
@@ -608,8 +477,621 @@ export default function AdminTeamForm() {
                 )}
               </Button>
             </div>
-          </form>
-        </Form>
+          </div>
+        </div>
+      </div>
+
+      {/* Main Content */}
+      <div className="container mx-auto px-6 py-8 max-w-6xl">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Form Section */}
+          <div className="lg:col-span-2">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3 }}
+            >
+              <Form {...form}>
+                <form 
+                  id="team-member-form"
+                  onSubmit={form.handleSubmit(onSubmit)} 
+                  className="space-y-6"
+                >
+                  <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+                    <TabsList className="w-full justify-start bg-white border border-[#D9D8D7] rounded-none p-1 h-auto">
+                      <TabsTrigger 
+                        value="general" 
+                        className="rounded-none data-[state=active]:bg-[#AA1A2E] data-[state=active]:text-white px-6 py-2.5"
+                      >
+                        <User className="w-4 h-4 mr-2" />
+                        {t.tabs.general}
+                      </TabsTrigger>
+                      <TabsTrigger 
+                        value="contact"
+                        className="rounded-none data-[state=active]:bg-[#AA1A2E] data-[state=active]:text-white px-6 py-2.5"
+                      >
+                        <Mail className="w-4 h-4 mr-2" />
+                        {t.tabs.contact}
+                      </TabsTrigger>
+                      <TabsTrigger 
+                        value="bio"
+                        className="rounded-none data-[state=active]:bg-[#AA1A2E] data-[state=active]:text-white px-6 py-2.5"
+                      >
+                        <FileText className="w-4 h-4 mr-2" />
+                        {t.tabs.bio}
+                      </TabsTrigger>
+                      <TabsTrigger 
+                        value="settings"
+                        className="rounded-none data-[state=active]:bg-[#AA1A2E] data-[state=active]:text-white px-6 py-2.5"
+                      >
+                        <Settings className="w-4 h-4 mr-2" />
+                        {t.tabs.settings}
+                      </TabsTrigger>
+                    </TabsList>
+
+                    {/* General Tab */}
+                    <TabsContent value="general" className="mt-6">
+                      <Card className="rounded-none border-[#D9D8D7]">
+                        <CardHeader className="border-b border-[#D9D8D7] bg-[#FAFAFA]">
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 bg-[#AA1A2E]/10 flex items-center justify-center">
+                              <User className="w-5 h-5 text-[#AA1A2E]" />
+                            </div>
+                            <div>
+                              <CardTitle className="text-lg text-[#1D1D1B]">{t.basicInfo}</CardTitle>
+                              <CardDescription className="text-[#878A8E]">{t.basicInfoDesc}</CardDescription>
+                            </div>
+                          </div>
+                        </CardHeader>
+                        <CardContent className="p-6 space-y-6">
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <FormField
+                              control={form.control}
+                              name="name"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel className="text-[#1D1D1B] font-medium flex items-center gap-2">
+                                    {t.name}
+                                    <Badge variant="destructive" className="rounded-none text-[10px] px-1.5 py-0">
+                                      {t.requiredField}
+                                    </Badge>
+                                  </FormLabel>
+                                  <FormControl>
+                                    <Input
+                                      {...field}
+                                      className="rounded-none border-[#D9D8D7] focus:border-[#AA1A2E] focus:ring-[#AA1A2E]"
+                                      placeholder="María García López"
+                                      onBlur={() => {
+                                        field.onBlur();
+                                        if (!form.getValues("slug")) {
+                                          generateSlug();
+                                        }
+                                      }}
+                                      data-testid="input-name"
+                                    />
+                                  </FormControl>
+                                  <FormDescription className="text-[#878A8E] text-xs">
+                                    {t.nameHint}
+                                  </FormDescription>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                            <FormField
+                              control={form.control}
+                              name="slug"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel className="text-[#1D1D1B] font-medium flex items-center gap-2">
+                                    {t.slug}
+                                    <Badge variant="destructive" className="rounded-none text-[10px] px-1.5 py-0">
+                                      {t.requiredField}
+                                    </Badge>
+                                  </FormLabel>
+                                  <FormControl>
+                                    <Input 
+                                      {...field} 
+                                      className="rounded-none border-[#D9D8D7] focus:border-[#AA1A2E] focus:ring-[#AA1A2E] font-mono text-sm"
+                                      data-testid="input-slug" 
+                                    />
+                                  </FormControl>
+                                  <FormDescription className="text-[#878A8E] text-xs">
+                                    {t.slugHint}
+                                  </FormDescription>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                          </div>
+
+                          <Separator className="bg-[#D9D8D7]" />
+
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <FormField
+                              control={form.control}
+                              name="title"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel className="text-[#1D1D1B] font-medium flex items-center gap-2">
+                                    <Globe className="w-4 h-4 text-[#878A8E]" />
+                                    {t.title}
+                                    <Badge variant="destructive" className="rounded-none text-[10px] px-1.5 py-0">
+                                      {t.requiredField}
+                                    </Badge>
+                                  </FormLabel>
+                                  <FormControl>
+                                    <Input 
+                                      {...field} 
+                                      className="rounded-none border-[#D9D8D7] focus:border-[#AA1A2E] focus:ring-[#AA1A2E]"
+                                      placeholder="Partner - Corporate & M&A"
+                                      data-testid="input-title" 
+                                    />
+                                  </FormControl>
+                                  <FormDescription className="text-[#878A8E] text-xs">
+                                    {t.titleHint}
+                                  </FormDescription>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                            <FormField
+                              control={form.control}
+                              name="titleEs"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel className="text-[#1D1D1B] font-medium flex items-center gap-2">
+                                    <Globe className="w-4 h-4 text-[#878A8E]" />
+                                    {t.titleEs}
+                                    <Badge variant="destructive" className="rounded-none text-[10px] px-1.5 py-0">
+                                      {t.requiredField}
+                                    </Badge>
+                                  </FormLabel>
+                                  <FormControl>
+                                    <Input 
+                                      {...field} 
+                                      className="rounded-none border-[#D9D8D7] focus:border-[#AA1A2E] focus:ring-[#AA1A2E]"
+                                      placeholder="Socio - Corporativo & Fusiones"
+                                      data-testid="input-title-es" 
+                                    />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                          </div>
+
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <FormField
+                              control={form.control}
+                              name="role"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel className="text-[#1D1D1B] font-medium flex items-center gap-2">
+                                    <Briefcase className="w-4 h-4 text-[#878A8E]" />
+                                    {t.role}
+                                    <Badge variant="destructive" className="rounded-none text-[10px] px-1.5 py-0">
+                                      {t.requiredField}
+                                    </Badge>
+                                  </FormLabel>
+                                  <Select onValueChange={field.onChange} value={field.value}>
+                                    <FormControl>
+                                      <SelectTrigger className="rounded-none border-[#D9D8D7]" data-testid="select-role">
+                                        <SelectValue placeholder={language === "es" ? "Seleccionar..." : "Select..."} />
+                                      </SelectTrigger>
+                                    </FormControl>
+                                    <SelectContent className="rounded-none">
+                                      <SelectItem value="Partner">{t.roles.partner}</SelectItem>
+                                      <SelectItem value="Of Counsel">{t.roles.ofCounsel}</SelectItem>
+                                      <SelectItem value="Counsel">{t.roles.counsel}</SelectItem>
+                                      <SelectItem value="Senior Associate">{t.roles.seniorAssociate}</SelectItem>
+                                      <SelectItem value="Associate">{t.roles.associate}</SelectItem>
+                                    </SelectContent>
+                                  </Select>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                            <FormField
+                              control={form.control}
+                              name="roleEs"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel className="text-[#1D1D1B] font-medium flex items-center gap-2">
+                                    <Briefcase className="w-4 h-4 text-[#878A8E]" />
+                                    {t.roleEs}
+                                    <Badge variant="destructive" className="rounded-none text-[10px] px-1.5 py-0">
+                                      {t.requiredField}
+                                    </Badge>
+                                  </FormLabel>
+                                  <Select onValueChange={field.onChange} value={field.value}>
+                                    <FormControl>
+                                      <SelectTrigger className="rounded-none border-[#D9D8D7]" data-testid="select-role-es">
+                                        <SelectValue placeholder={language === "es" ? "Seleccionar..." : "Select..."} />
+                                      </SelectTrigger>
+                                    </FormControl>
+                                    <SelectContent className="rounded-none">
+                                      <SelectItem value="Socio">{t.rolesEs.partner}</SelectItem>
+                                      <SelectItem value="Of Counsel">{t.rolesEs.ofCounsel}</SelectItem>
+                                      <SelectItem value="Counsel">{t.rolesEs.counsel}</SelectItem>
+                                      <SelectItem value="Asociado Senior">{t.rolesEs.seniorAssociate}</SelectItem>
+                                      <SelectItem value="Asociado">{t.rolesEs.associate}</SelectItem>
+                                    </SelectContent>
+                                  </Select>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </TabsContent>
+
+                    {/* Contact Tab */}
+                    <TabsContent value="contact" className="mt-6">
+                      <Card className="rounded-none border-[#D9D8D7]">
+                        <CardHeader className="border-b border-[#D9D8D7] bg-[#FAFAFA]">
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 bg-[#AA1A2E]/10 flex items-center justify-center">
+                              <Mail className="w-5 h-5 text-[#AA1A2E]" />
+                            </div>
+                            <div>
+                              <CardTitle className="text-lg text-[#1D1D1B]">{t.contactInfo}</CardTitle>
+                              <CardDescription className="text-[#878A8E]">{t.contactInfoDesc}</CardDescription>
+                            </div>
+                          </div>
+                        </CardHeader>
+                        <CardContent className="p-6 space-y-6">
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <FormField
+                              control={form.control}
+                              name="email"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel className="text-[#1D1D1B] font-medium flex items-center gap-2">
+                                    <Mail className="w-4 h-4 text-[#878A8E]" />
+                                    {t.email}
+                                  </FormLabel>
+                                  <FormControl>
+                                    <Input 
+                                      type="email" 
+                                      {...field} 
+                                      className="rounded-none border-[#D9D8D7] focus:border-[#AA1A2E] focus:ring-[#AA1A2E]"
+                                      placeholder="mgarcia@vfrlaw.com"
+                                      data-testid="input-email" 
+                                    />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                            <FormField
+                              control={form.control}
+                              name="phone"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel className="text-[#1D1D1B] font-medium flex items-center gap-2">
+                                    <Phone className="w-4 h-4 text-[#878A8E]" />
+                                    {t.phone}
+                                  </FormLabel>
+                                  <FormControl>
+                                    <Input 
+                                      {...field} 
+                                      className="rounded-none border-[#D9D8D7] focus:border-[#AA1A2E] focus:ring-[#AA1A2E]"
+                                      placeholder="+52 55 1234 5678"
+                                      data-testid="input-phone" 
+                                    />
+                                  </FormControl>
+                                  <FormDescription className="text-[#878A8E] text-xs">
+                                    {t.phoneHint}
+                                  </FormDescription>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                          </div>
+
+                          <Separator className="bg-[#D9D8D7]" />
+
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <FormField
+                              control={form.control}
+                              name="linkedinUrl"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel className="text-[#1D1D1B] font-medium flex items-center gap-2">
+                                    <Linkedin className="w-4 h-4 text-[#878A8E]" />
+                                    {t.linkedinUrl}
+                                  </FormLabel>
+                                  <FormControl>
+                                    <Input 
+                                      {...field} 
+                                      className="rounded-none border-[#D9D8D7] focus:border-[#AA1A2E] focus:ring-[#AA1A2E]"
+                                      placeholder="https://linkedin.com/in/..."
+                                      data-testid="input-linkedin" 
+                                    />
+                                  </FormControl>
+                                  <FormDescription className="text-[#878A8E] text-xs">
+                                    {t.linkedinHint}
+                                  </FormDescription>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                            <FormField
+                              control={form.control}
+                              name="imageUrl"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel className="text-[#1D1D1B] font-medium flex items-center gap-2">
+                                    <Image className="w-4 h-4 text-[#878A8E]" />
+                                    {t.imageUrl}
+                                  </FormLabel>
+                                  <FormControl>
+                                    <Input 
+                                      {...field} 
+                                      className="rounded-none border-[#D9D8D7] focus:border-[#AA1A2E] focus:ring-[#AA1A2E]"
+                                      placeholder="https://example.com/photo.jpg"
+                                      data-testid="input-image" 
+                                    />
+                                  </FormControl>
+                                  <FormDescription className="text-[#878A8E] text-xs">
+                                    {t.imageHint}
+                                  </FormDescription>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </TabsContent>
+
+                    {/* Biography Tab */}
+                    <TabsContent value="bio" className="mt-6">
+                      <Card className="rounded-none border-[#D9D8D7]">
+                        <CardHeader className="border-b border-[#D9D8D7] bg-[#FAFAFA]">
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 bg-[#AA1A2E]/10 flex items-center justify-center">
+                              <FileText className="w-5 h-5 text-[#AA1A2E]" />
+                            </div>
+                            <div>
+                              <CardTitle className="text-lg text-[#1D1D1B]">{t.biography}</CardTitle>
+                              <CardDescription className="text-[#878A8E]">{t.biographyDesc}</CardDescription>
+                            </div>
+                          </div>
+                        </CardHeader>
+                        <CardContent className="p-6 space-y-6">
+                          <FormField
+                            control={form.control}
+                            name="bio"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel className="text-[#1D1D1B] font-medium flex items-center gap-2">
+                                  <Globe className="w-4 h-4 text-[#878A8E]" />
+                                  {t.bio}
+                                </FormLabel>
+                                <FormControl>
+                                  <Textarea
+                                    {...field}
+                                    rows={8}
+                                    className="rounded-none border-[#D9D8D7] focus:border-[#AA1A2E] focus:ring-[#AA1A2E] resize-none"
+                                    placeholder="Professional experience, education, notable cases..."
+                                    data-testid="textarea-bio"
+                                  />
+                                </FormControl>
+                                <FormDescription className="text-[#878A8E] text-xs">
+                                  {t.bioHint}
+                                </FormDescription>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+
+                          <Separator className="bg-[#D9D8D7]" />
+
+                          <FormField
+                            control={form.control}
+                            name="bioEs"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel className="text-[#1D1D1B] font-medium flex items-center gap-2">
+                                  <Globe className="w-4 h-4 text-[#878A8E]" />
+                                  {t.bioEs}
+                                </FormLabel>
+                                <FormControl>
+                                  <Textarea
+                                    {...field}
+                                    rows={8}
+                                    className="rounded-none border-[#D9D8D7] focus:border-[#AA1A2E] focus:ring-[#AA1A2E] resize-none"
+                                    placeholder="Experiencia profesional, educación, casos notables..."
+                                    data-testid="textarea-bio-es"
+                                  />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+
+                          {/* AI Translation hint */}
+                          <div className="flex items-center gap-3 p-4 bg-[#F0F7FF] border border-[#CCE0FF]">
+                            <Sparkles className="w-5 h-5 text-blue-600" />
+                            <p className="text-sm text-blue-800">
+                              {language === "es" 
+                                ? "Consejo: Nuestros agentes de IA pueden traducir automáticamente las biografías a los 10 idiomas soportados."
+                                : "Tip: Our AI agents can automatically translate biographies to all 10 supported languages."}
+                            </p>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </TabsContent>
+
+                    {/* Settings Tab */}
+                    <TabsContent value="settings" className="mt-6">
+                      <Card className="rounded-none border-[#D9D8D7]">
+                        <CardHeader className="border-b border-[#D9D8D7] bg-[#FAFAFA]">
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 bg-[#AA1A2E]/10 flex items-center justify-center">
+                              <Settings className="w-5 h-5 text-[#AA1A2E]" />
+                            </div>
+                            <div>
+                              <CardTitle className="text-lg text-[#1D1D1B]">{t.settings}</CardTitle>
+                              <CardDescription className="text-[#878A8E]">{t.settingsDesc}</CardDescription>
+                            </div>
+                          </div>
+                        </CardHeader>
+                        <CardContent className="p-6 space-y-6">
+                          <FormField
+                            control={form.control}
+                            name="isPartner"
+                            render={({ field }) => (
+                              <FormItem className="flex items-center justify-between p-4 border border-[#D9D8D7] bg-white">
+                                <div className="space-y-1">
+                                  <FormLabel className="text-[#1D1D1B] font-medium flex items-center gap-2">
+                                    <Award className="w-4 h-4 text-[#AA1A2E]" />
+                                    {t.isPartner}
+                                  </FormLabel>
+                                  <FormDescription className="text-[#878A8E] text-sm">
+                                    {t.isPartnerDesc}
+                                  </FormDescription>
+                                </div>
+                                <FormControl>
+                                  <Switch
+                                    checked={field.value}
+                                    onCheckedChange={field.onChange}
+                                    className="data-[state=checked]:bg-[#AA1A2E]"
+                                    data-testid="switch-partner"
+                                  />
+                                </FormControl>
+                              </FormItem>
+                            )}
+                          />
+
+                          <FormField
+                            control={form.control}
+                            name="order"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel className="text-[#1D1D1B] font-medium">{t.order}</FormLabel>
+                                <FormControl>
+                                  <Input
+                                    type="number"
+                                    {...field}
+                                    onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                                    className="rounded-none border-[#D9D8D7] focus:border-[#AA1A2E] focus:ring-[#AA1A2E] w-32"
+                                    data-testid="input-order"
+                                  />
+                                </FormControl>
+                                <FormDescription className="text-[#878A8E] text-xs">
+                                  {t.orderHint}
+                                </FormDescription>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        </CardContent>
+                      </Card>
+                    </TabsContent>
+                  </Tabs>
+                </form>
+              </Form>
+            </motion.div>
+          </div>
+
+          {/* Sidebar - Preview */}
+          <div className="lg:col-span-1">
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.3, delay: 0.1 }}
+              className="sticky top-24"
+            >
+              <Card className="rounded-none border-[#D9D8D7] overflow-hidden">
+                <CardHeader className="border-b border-[#D9D8D7] bg-[#FAFAFA] py-4">
+                  <CardTitle className="text-sm font-medium text-[#878A8E] uppercase tracking-wide">
+                    {t.preview}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="p-0">
+                  {/* Profile Preview */}
+                  <div className="p-6 text-center border-b border-[#D9D8D7]">
+                    <Avatar className="w-28 h-28 mx-auto mb-4 rounded-none">
+                      <AvatarImage src={imageUrl || undefined} alt={name} className="object-cover" />
+                      <AvatarFallback className="rounded-none bg-[#AA1A2E] text-white text-2xl font-bold">
+                        {name ? getInitials(name) : <User className="w-10 h-10" />}
+                      </AvatarFallback>
+                    </Avatar>
+                    <h3 className="text-xl font-bold text-[#1D1D1B] mb-1">
+                      {watchedValues.name || (language === "es" ? "Nombre del Abogado" : "Lawyer Name")}
+                    </h3>
+                    <p className="text-[#AA1A2E] font-medium mb-1">
+                      {language === "es" ? watchedValues.titleEs : watchedValues.title}
+                    </p>
+                    <p className="text-[#878A8E] text-sm">
+                      {language === "es" ? watchedValues.roleEs : watchedValues.role}
+                    </p>
+                    
+                    {watchedValues.isPartner && (
+                      <Badge className="mt-3 rounded-none bg-[#AA1A2E] text-white">
+                        <Award className="w-3 h-3 mr-1" />
+                        {language === "es" ? "Socio" : "Partner"}
+                      </Badge>
+                    )}
+                  </div>
+
+                  {/* Contact Preview */}
+                  <div className="p-4 space-y-3">
+                    {watchedValues.email && (
+                      <div className="flex items-center gap-3 text-sm">
+                        <Mail className="w-4 h-4 text-[#878A8E]" />
+                        <span className="text-[#54565B] truncate">{watchedValues.email}</span>
+                      </div>
+                    )}
+                    {watchedValues.phone && (
+                      <div className="flex items-center gap-3 text-sm">
+                        <Phone className="w-4 h-4 text-[#878A8E]" />
+                        <span className="text-[#54565B]">{watchedValues.phone}</span>
+                      </div>
+                    )}
+                    {watchedValues.linkedinUrl && (
+                      <div className="flex items-center gap-3 text-sm">
+                        <Linkedin className="w-4 h-4 text-[#878A8E]" />
+                        <span className="text-[#54565B] truncate">LinkedIn Profile</span>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Completion Status */}
+                  <div className="p-4 bg-[#FAFAFA] border-t border-[#D9D8D7]">
+                    <div className="flex items-center gap-2 mb-2">
+                      <CheckCircle2 className="w-4 h-4 text-green-600" />
+                      <span className="text-sm font-medium text-[#54565B]">
+                        {language === "es" ? "Progreso del perfil" : "Profile Progress"}
+                      </span>
+                    </div>
+                    <div className="w-full bg-[#D9D8D7] h-2">
+                      <div 
+                        className="bg-[#AA1A2E] h-2 transition-all duration-300"
+                        style={{ 
+                          width: `${Math.min(100, 
+                            (watchedValues.name ? 15 : 0) +
+                            (watchedValues.title ? 15 : 0) +
+                            (watchedValues.titleEs ? 10 : 0) +
+                            (watchedValues.role ? 10 : 0) +
+                            (watchedValues.roleEs ? 10 : 0) +
+                            (watchedValues.email ? 10 : 0) +
+                            (watchedValues.imageUrl ? 10 : 0) +
+                            (watchedValues.bio ? 10 : 0) +
+                            (watchedValues.bioEs ? 10 : 0)
+                          )}%` 
+                        }}
+                      />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
+          </div>
+        </div>
       </div>
     </div>
   );
