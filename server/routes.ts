@@ -1540,6 +1540,306 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
   });
 
   // =============================================
+  // ADMIN EVENTS CRUD
+  // =============================================
+  
+  app.get("/api/admin/events", authMiddleware, async (_req: Request, res: Response) => {
+    try {
+      const eventsList = await storage.getEvents();
+      res.json(eventsList);
+    } catch (error) {
+      console.error("Get events error:", error);
+      res.status(500).json({ error: "Failed to fetch events" });
+    }
+  });
+
+  app.post("/api/admin/events", authMiddleware, async (req: Request, res: Response) => {
+    try {
+      const event = await storage.createEvent(req.body);
+      res.json(event);
+    } catch (error) {
+      console.error("Create event error:", error);
+      res.status(500).json({ error: "Failed to create event" });
+    }
+  });
+
+  app.put("/api/admin/events/:id", authMiddleware, async (req: Request, res: Response) => {
+    try {
+      const updated = await storage.updateEvent(req.params.id, req.body);
+      if (!updated) {
+        return res.status(404).json({ error: "Event not found" });
+      }
+      res.json(updated);
+    } catch (error) {
+      console.error("Update event error:", error);
+      res.status(500).json({ error: "Failed to update event" });
+    }
+  });
+
+  app.delete("/api/admin/events/:id", authMiddleware, async (req: Request, res: Response) => {
+    try {
+      const deleted = await storage.deleteEvent(req.params.id);
+      if (!deleted) {
+        return res.status(404).json({ error: "Event not found" });
+      }
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Delete event error:", error);
+      res.status(500).json({ error: "Failed to delete event" });
+    }
+  });
+
+  // =============================================
+  // ADMIN RANKINGS CRUD
+  // =============================================
+  
+  app.get("/api/admin/rankings", authMiddleware, async (_req: Request, res: Response) => {
+    try {
+      const rankingsList = await storage.getRankings();
+      res.json(rankingsList);
+    } catch (error) {
+      console.error("Get rankings error:", error);
+      res.status(500).json({ error: "Failed to fetch rankings" });
+    }
+  });
+
+  app.post("/api/admin/rankings", authMiddleware, async (req: Request, res: Response) => {
+    try {
+      const ranking = await storage.createRanking(req.body);
+      res.json(ranking);
+    } catch (error) {
+      console.error("Create ranking error:", error);
+      res.status(500).json({ error: "Failed to create ranking" });
+    }
+  });
+
+  app.put("/api/admin/rankings/:id", authMiddleware, async (req: Request, res: Response) => {
+    try {
+      const updated = await storage.updateRanking(req.params.id, req.body);
+      if (!updated) {
+        return res.status(404).json({ error: "Ranking not found" });
+      }
+      res.json(updated);
+    } catch (error) {
+      console.error("Update ranking error:", error);
+      res.status(500).json({ error: "Failed to update ranking" });
+    }
+  });
+
+  app.delete("/api/admin/rankings/:id", authMiddleware, async (req: Request, res: Response) => {
+    try {
+      const deleted = await storage.deleteRanking(req.params.id);
+      if (!deleted) {
+        return res.status(404).json({ error: "Ranking not found" });
+      }
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Delete ranking error:", error);
+      res.status(500).json({ error: "Failed to delete ranking" });
+    }
+  });
+
+  // =============================================
+  // ADMIN AWARDS CRUD
+  // =============================================
+  
+  app.get("/api/admin/awards", authMiddleware, async (_req: Request, res: Response) => {
+    try {
+      const awardsList = await storage.getAwards();
+      res.json(awardsList);
+    } catch (error) {
+      console.error("Get awards error:", error);
+      res.status(500).json({ error: "Failed to fetch awards" });
+    }
+  });
+
+  app.post("/api/admin/awards", authMiddleware, async (req: Request, res: Response) => {
+    try {
+      const award = await storage.createAward(req.body);
+      res.json(award);
+    } catch (error) {
+      console.error("Create award error:", error);
+      res.status(500).json({ error: "Failed to create award" });
+    }
+  });
+
+  app.put("/api/admin/awards/:id", authMiddleware, async (req: Request, res: Response) => {
+    try {
+      const updated = await storage.updateAward(req.params.id, req.body);
+      if (!updated) {
+        return res.status(404).json({ error: "Award not found" });
+      }
+      res.json(updated);
+    } catch (error) {
+      console.error("Update award error:", error);
+      res.status(500).json({ error: "Failed to update award" });
+    }
+  });
+
+  app.delete("/api/admin/awards/:id", authMiddleware, async (req: Request, res: Response) => {
+    try {
+      const deleted = await storage.deleteAward(req.params.id);
+      if (!deleted) {
+        return res.status(404).json({ error: "Award not found" });
+      }
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Delete award error:", error);
+      res.status(500).json({ error: "Failed to delete award" });
+    }
+  });
+
+  // =============================================
+  // ADMIN REPRESENTATIVE CLIENTS CRUD
+  // =============================================
+  
+  app.get("/api/admin/clients", authMiddleware, async (_req: Request, res: Response) => {
+    try {
+      const clientsList = await storage.getRepresentativeClients();
+      res.json(clientsList);
+    } catch (error) {
+      console.error("Get clients error:", error);
+      res.status(500).json({ error: "Failed to fetch clients" });
+    }
+  });
+
+  app.post("/api/admin/clients", authMiddleware, async (req: Request, res: Response) => {
+    try {
+      const client = await storage.createRepresentativeClient(req.body);
+      res.json(client);
+    } catch (error) {
+      console.error("Create client error:", error);
+      res.status(500).json({ error: "Failed to create client" });
+    }
+  });
+
+  app.put("/api/admin/clients/:id", authMiddleware, async (req: Request, res: Response) => {
+    try {
+      const updated = await storage.updateRepresentativeClient(req.params.id, req.body);
+      if (!updated) {
+        return res.status(404).json({ error: "Client not found" });
+      }
+      res.json(updated);
+    } catch (error) {
+      console.error("Update client error:", error);
+      res.status(500).json({ error: "Failed to update client" });
+    }
+  });
+
+  app.delete("/api/admin/clients/:id", authMiddleware, async (req: Request, res: Response) => {
+    try {
+      const deleted = await storage.deleteRepresentativeClient(req.params.id);
+      if (!deleted) {
+        return res.status(404).json({ error: "Client not found" });
+      }
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Delete client error:", error);
+      res.status(500).json({ error: "Failed to delete client" });
+    }
+  });
+
+  // =============================================
+  // ADMIN TESTIMONIALS CRUD
+  // =============================================
+  
+  app.get("/api/admin/testimonials", authMiddleware, async (_req: Request, res: Response) => {
+    try {
+      const testimonialsList = await storage.getTestimonials();
+      res.json(testimonialsList);
+    } catch (error) {
+      console.error("Get testimonials error:", error);
+      res.status(500).json({ error: "Failed to fetch testimonials" });
+    }
+  });
+
+  app.post("/api/admin/testimonials", authMiddleware, async (req: Request, res: Response) => {
+    try {
+      const testimonial = await storage.createTestimonial(req.body);
+      res.json(testimonial);
+    } catch (error) {
+      console.error("Create testimonial error:", error);
+      res.status(500).json({ error: "Failed to create testimonial" });
+    }
+  });
+
+  app.put("/api/admin/testimonials/:id", authMiddleware, async (req: Request, res: Response) => {
+    try {
+      const updated = await storage.updateTestimonial(req.params.id, req.body);
+      if (!updated) {
+        return res.status(404).json({ error: "Testimonial not found" });
+      }
+      res.json(updated);
+    } catch (error) {
+      console.error("Update testimonial error:", error);
+      res.status(500).json({ error: "Failed to update testimonial" });
+    }
+  });
+
+  app.delete("/api/admin/testimonials/:id", authMiddleware, async (req: Request, res: Response) => {
+    try {
+      const deleted = await storage.deleteTestimonial(req.params.id);
+      if (!deleted) {
+        return res.status(404).json({ error: "Testimonial not found" });
+      }
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Delete testimonial error:", error);
+      res.status(500).json({ error: "Failed to delete testimonial" });
+    }
+  });
+
+  // =============================================
+  // ADMIN JOB OPENINGS CRUD
+  // =============================================
+  
+  app.get("/api/admin/jobs", authMiddleware, async (_req: Request, res: Response) => {
+    try {
+      const jobsList = await storage.getJobOpenings();
+      res.json(jobsList);
+    } catch (error) {
+      console.error("Get jobs error:", error);
+      res.status(500).json({ error: "Failed to fetch jobs" });
+    }
+  });
+
+  app.post("/api/admin/jobs", authMiddleware, async (req: Request, res: Response) => {
+    try {
+      const job = await storage.createJobOpening(req.body);
+      res.json(job);
+    } catch (error) {
+      console.error("Create job error:", error);
+      res.status(500).json({ error: "Failed to create job" });
+    }
+  });
+
+  app.put("/api/admin/jobs/:id", authMiddleware, async (req: Request, res: Response) => {
+    try {
+      const updated = await storage.updateJobOpening(req.params.id, req.body);
+      if (!updated) {
+        return res.status(404).json({ error: "Job not found" });
+      }
+      res.json(updated);
+    } catch (error) {
+      console.error("Update job error:", error);
+      res.status(500).json({ error: "Failed to update job" });
+    }
+  });
+
+  app.delete("/api/admin/jobs/:id", authMiddleware, async (req: Request, res: Response) => {
+    try {
+      const deleted = await storage.deleteJobOpening(req.params.id);
+      if (!deleted) {
+        return res.status(404).json({ error: "Job not found" });
+      }
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Delete job error:", error);
+      res.status(500).json({ error: "Failed to delete job" });
+    }
+  });
+
+  // =============================================
   // MEDIA ITEMS CRUD
   // =============================================
 

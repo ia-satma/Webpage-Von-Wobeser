@@ -39,6 +39,16 @@ import {
   type InsertWebsiteAudit,
   type WebsiteAuditFinding,
   type InsertWebsiteAuditFinding,
+  type FirmRanking,
+  type InsertRanking,
+  type Award,
+  type InsertAward,
+  type RepresentativeClient,
+  type InsertRepresentativeClient,
+  type Testimonial,
+  type InsertTestimonial,
+  type JobOpening,
+  type InsertJobOpening,
   users,
   news,
   newsTranslations,
@@ -59,6 +69,11 @@ import {
   translationCache,
   websiteAudits,
   websiteAuditFindings,
+  rankings,
+  awards,
+  representativeClients,
+  testimonials,
+  jobOpenings,
 } from "@shared/schema";
 
 export interface IStorage {
@@ -144,6 +159,43 @@ export interface IStorage {
   getEventById(id: string): Promise<Event | undefined>;
   getUpcomingEvents(limit?: number): Promise<Event[]>;
   createEvent(event: InsertEvent): Promise<Event>;
+  updateEvent(id: string, event: Partial<InsertEvent>): Promise<Event | undefined>;
+  deleteEvent(id: string): Promise<boolean>;
+  
+  // Rankings CRUD
+  getRankings(): Promise<FirmRanking[]>;
+  getRankingById(id: string): Promise<FirmRanking | undefined>;
+  createRanking(ranking: InsertRanking): Promise<FirmRanking>;
+  updateRanking(id: string, ranking: Partial<InsertRanking>): Promise<FirmRanking | undefined>;
+  deleteRanking(id: string): Promise<boolean>;
+  
+  // Awards CRUD
+  getAwards(): Promise<Award[]>;
+  getAwardById(id: string): Promise<Award | undefined>;
+  createAward(award: InsertAward): Promise<Award>;
+  updateAward(id: string, award: Partial<InsertAward>): Promise<Award | undefined>;
+  deleteAward(id: string): Promise<boolean>;
+  
+  // Representative Clients CRUD
+  getRepresentativeClients(): Promise<RepresentativeClient[]>;
+  getRepresentativeClientById(id: string): Promise<RepresentativeClient | undefined>;
+  createRepresentativeClient(client: InsertRepresentativeClient): Promise<RepresentativeClient>;
+  updateRepresentativeClient(id: string, client: Partial<InsertRepresentativeClient>): Promise<RepresentativeClient | undefined>;
+  deleteRepresentativeClient(id: string): Promise<boolean>;
+  
+  // Testimonials CRUD
+  getTestimonials(): Promise<Testimonial[]>;
+  getTestimonialById(id: string): Promise<Testimonial | undefined>;
+  createTestimonial(testimonial: InsertTestimonial): Promise<Testimonial>;
+  updateTestimonial(id: string, testimonial: Partial<InsertTestimonial>): Promise<Testimonial | undefined>;
+  deleteTestimonial(id: string): Promise<boolean>;
+  
+  // Job Openings CRUD
+  getJobOpenings(): Promise<JobOpening[]>;
+  getJobOpeningById(id: string): Promise<JobOpening | undefined>;
+  createJobOpening(job: InsertJobOpening): Promise<JobOpening>;
+  updateJobOpening(id: string, job: Partial<InsertJobOpening>): Promise<JobOpening | undefined>;
+  deleteJobOpening(id: string): Promise<boolean>;
   
   // Translation Cache
   getTranslation(contentType: string, entityId: string, field: string, targetLanguage: string): Promise<TranslationCache | undefined>;
@@ -627,6 +679,141 @@ export class DatabaseStorage implements IStorage {
   async createEvent(event: InsertEvent): Promise<Event> {
     const [item] = await db.insert(events).values(event).returning();
     return item;
+  }
+
+  async updateEvent(id: string, eventData: Partial<InsertEvent>): Promise<Event | undefined> {
+    const [updated] = await db.update(events).set(eventData).where(eq(events.id, id)).returning();
+    return updated;
+  }
+
+  async deleteEvent(id: string): Promise<boolean> {
+    const result = await db.delete(events).where(eq(events.id, id));
+    return (result.rowCount ?? 0) > 0;
+  }
+
+  // Rankings CRUD
+  async getRankings(): Promise<FirmRanking[]> {
+    return db.select().from(rankings).orderBy(desc(rankings.year), asc(rankings.order));
+  }
+
+  async getRankingById(id: string): Promise<FirmRanking | undefined> {
+    const [ranking] = await db.select().from(rankings).where(eq(rankings.id, id));
+    return ranking;
+  }
+
+  async createRanking(ranking: InsertRanking): Promise<FirmRanking> {
+    const [item] = await db.insert(rankings).values(ranking).returning();
+    return item;
+  }
+
+  async updateRanking(id: string, rankingData: Partial<InsertRanking>): Promise<FirmRanking | undefined> {
+    const [updated] = await db.update(rankings).set(rankingData).where(eq(rankings.id, id)).returning();
+    return updated;
+  }
+
+  async deleteRanking(id: string): Promise<boolean> {
+    const result = await db.delete(rankings).where(eq(rankings.id, id));
+    return (result.rowCount ?? 0) > 0;
+  }
+
+  // Awards CRUD
+  async getAwards(): Promise<Award[]> {
+    return db.select().from(awards).orderBy(desc(awards.year), asc(awards.order));
+  }
+
+  async getAwardById(id: string): Promise<Award | undefined> {
+    const [award] = await db.select().from(awards).where(eq(awards.id, id));
+    return award;
+  }
+
+  async createAward(award: InsertAward): Promise<Award> {
+    const [item] = await db.insert(awards).values(award).returning();
+    return item;
+  }
+
+  async updateAward(id: string, awardData: Partial<InsertAward>): Promise<Award | undefined> {
+    const [updated] = await db.update(awards).set(awardData).where(eq(awards.id, id)).returning();
+    return updated;
+  }
+
+  async deleteAward(id: string): Promise<boolean> {
+    const result = await db.delete(awards).where(eq(awards.id, id));
+    return (result.rowCount ?? 0) > 0;
+  }
+
+  // Representative Clients CRUD
+  async getRepresentativeClients(): Promise<RepresentativeClient[]> {
+    return db.select().from(representativeClients).orderBy(asc(representativeClients.order));
+  }
+
+  async getRepresentativeClientById(id: string): Promise<RepresentativeClient | undefined> {
+    const [client] = await db.select().from(representativeClients).where(eq(representativeClients.id, id));
+    return client;
+  }
+
+  async createRepresentativeClient(client: InsertRepresentativeClient): Promise<RepresentativeClient> {
+    const [item] = await db.insert(representativeClients).values(client).returning();
+    return item;
+  }
+
+  async updateRepresentativeClient(id: string, clientData: Partial<InsertRepresentativeClient>): Promise<RepresentativeClient | undefined> {
+    const [updated] = await db.update(representativeClients).set(clientData).where(eq(representativeClients.id, id)).returning();
+    return updated;
+  }
+
+  async deleteRepresentativeClient(id: string): Promise<boolean> {
+    const result = await db.delete(representativeClients).where(eq(representativeClients.id, id));
+    return (result.rowCount ?? 0) > 0;
+  }
+
+  // Testimonials CRUD
+  async getTestimonials(): Promise<Testimonial[]> {
+    return db.select().from(testimonials).orderBy(asc(testimonials.order));
+  }
+
+  async getTestimonialById(id: string): Promise<Testimonial | undefined> {
+    const [testimonial] = await db.select().from(testimonials).where(eq(testimonials.id, id));
+    return testimonial;
+  }
+
+  async createTestimonial(testimonial: InsertTestimonial): Promise<Testimonial> {
+    const [item] = await db.insert(testimonials).values(testimonial).returning();
+    return item;
+  }
+
+  async updateTestimonial(id: string, testimonialData: Partial<InsertTestimonial>): Promise<Testimonial | undefined> {
+    const [updated] = await db.update(testimonials).set(testimonialData).where(eq(testimonials.id, id)).returning();
+    return updated;
+  }
+
+  async deleteTestimonial(id: string): Promise<boolean> {
+    const result = await db.delete(testimonials).where(eq(testimonials.id, id));
+    return (result.rowCount ?? 0) > 0;
+  }
+
+  // Job Openings CRUD
+  async getJobOpenings(): Promise<JobOpening[]> {
+    return db.select().from(jobOpenings).orderBy(desc(jobOpenings.createdAt));
+  }
+
+  async getJobOpeningById(id: string): Promise<JobOpening | undefined> {
+    const [job] = await db.select().from(jobOpenings).where(eq(jobOpenings.id, id));
+    return job;
+  }
+
+  async createJobOpening(job: InsertJobOpening): Promise<JobOpening> {
+    const [item] = await db.insert(jobOpenings).values(job).returning();
+    return item;
+  }
+
+  async updateJobOpening(id: string, jobData: Partial<InsertJobOpening>): Promise<JobOpening | undefined> {
+    const [updated] = await db.update(jobOpenings).set(jobData).where(eq(jobOpenings.id, id)).returning();
+    return updated;
+  }
+
+  async deleteJobOpening(id: string): Promise<boolean> {
+    const result = await db.delete(jobOpenings).where(eq(jobOpenings.id, id));
+    return (result.rowCount ?? 0) > 0;
   }
 
   // Translation Cache
