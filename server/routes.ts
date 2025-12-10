@@ -3101,6 +3101,39 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
     }
   });
 
+  // System Health Check - Deep Audit API
+  // NOTE: Health check is intentionally public (read-only diagnostic).
+  // Destructive operations like reset-zombies require auth.
+  app.get("/api/health-check/run", async (req: Request, res: Response) => {
+    try {
+      const { systemHealthCheck } = await import('./agents/SystemHealthCheck');
+      const report = await systemHealthCheck.runDeepAudit();
+      res.json({ 
+        success: true, 
+        report,
+        humanReadable: systemHealthCheck.generateHumanReport(report),
+      });
+    } catch (error: any) {
+      console.error("Health check failed:", error);
+      res.status(500).json({ error: error.message || "Failed to run health check" });
+    }
+  });
+
+  app.post("/api/health-check/reset-zombies", authMiddleware, async (req: Request, res: Response) => {
+    try {
+      const { systemHealthCheck } = await import('./agents/SystemHealthCheck');
+      const resetCount = await systemHealthCheck.resetZombieJobs();
+      res.json({ 
+        success: true, 
+        message: `Reset ${resetCount} zombie jobs`,
+        resetCount,
+      });
+    } catch (error: any) {
+      console.error("Failed to reset zombies:", error);
+      res.status(500).json({ error: error.message || "Failed to reset zombie jobs" });
+    }
+  });
+
   app.patch("/api/audits/findings/:id", authMiddleware, async (req: Request, res: Response) => {
     try {
       const { status, resolvedBy } = req.body;

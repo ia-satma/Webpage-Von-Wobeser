@@ -1,0 +1,28 @@
+ACT AS A LEAD SYSTEMS ARCHITECT.
+The previous update FAILED in production. Look at the metrics: 27 processed, 16 FAILED.
+This proves that the "Sandboxing" logic is cosmetic only. The system is still marking items as 'failed' when the image generation errors out, instead of accepting the Text/SEO work as valid.
+
+We need true AGENTIC SELF-HEALING. Do not just "tweak" the code. Implement these 3 non-negotiable logic changes:
+
+### 1. FORCE "PARTIAL SUCCESS" STATE (CRITICAL)
+* **Current Behavior:** If `generateImage` throws an error -> `catch` block runs -> returns `status: 'error'`.
+* **Required Behavior:** If `generateImage` throws an error -> `catch` block runs -> **Log the error** -> **Assign a placeholder image** -> **RETURN `status: 'completed_warning'` (or `success: true`)**.
+* **Logic:** The Batch Processor MUST count an article as "Success" if the translation and SEO are finished. Never fail a batch due to DALL-E/Midjourney timeouts.
+
+### 2. IMPLEMENT "AUTO-RECOVERY AGENT"
+Create a new function `recoverFailedItems()` that acts as a cleanup agent.
+* It must query the database for all items from the last batch with `status === 'failed'`.
+* It must analyze *which* step failed.
+* **Smart Retry:**
+    * If the fail was "Image Generation", it retries ONLY the image generation.
+    * If the fail was "Translation", it retries the translation.
+* **Automation:** Bind this function to a "Reparar Errores" button in the UI next to the "16 fallidos" label.
+
+### 3. DIAGNOSTIC LOGGING
+* Why did 16 items fail? Was it rate limiting (429) or a server timeout (504)?
+* Update the batch logger to save the **exact error code** into a `lastError` field in the database for each article, so we can see it in the UI tooltip.
+
+**EXECUTION:**
+1. Modify the return boolean in the pipeline so image failures = Success (with warning).
+2. Implement the `recoverFailedItems` logic.
+3. Run a query/script immediately to "Un-Fail" those 16 items: if they have text content, manually update their status to 'ready' and give them a placeholder image so the user can use them.

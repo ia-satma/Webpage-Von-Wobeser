@@ -57,6 +57,7 @@ const translations = {
     events: "Events",
     knowledgeBase: "Knowledge Base",
     translationsDashboard: "Translation Coverage",
+    healthCheck: "System Health Check",
     platformGuide: "Platform Guide",
     logout: "Logout",
     loading: "Loading...",
@@ -102,6 +103,7 @@ const translations = {
     events: "Eventos",
     knowledgeBase: "Base de Conocimiento",
     translationsDashboard: "Cobertura de Traducción",
+    healthCheck: "Verificación del Sistema",
     platformGuide: "Guía de la Plataforma",
     logout: "Cerrar Sesión",
     loading: "Cargando...",
@@ -147,6 +149,7 @@ const translations = {
     events: "Veranstaltungen",
     knowledgeBase: "Wissensdatenbank",
     translationsDashboard: "Übersetzungsabdeckung",
+    healthCheck: "Systemprüfung",
     platformGuide: "Plattform-Leitfaden",
     logout: "Abmelden",
     loading: "Wird geladen...",
@@ -192,6 +195,7 @@ const translations = {
     events: "活动",
     knowledgeBase: "知识库",
     translationsDashboard: "翻译覆盖率",
+    healthCheck: "系统健康检查",
     platformGuide: "平台指南",
     logout: "退出登录",
     loading: "加载中...",
@@ -237,6 +241,7 @@ const translations = {
     events: "이벤트",
     knowledgeBase: "지식 베이스",
     translationsDashboard: "번역 커버리지",
+    healthCheck: "시스템 상태 점검",
     platformGuide: "플랫폼 가이드",
     logout: "로그아웃",
     loading: "로딩 중...",
@@ -282,6 +287,7 @@ const translations = {
     events: "イベント",
     knowledgeBase: "ナレッジベース",
     translationsDashboard: "翻訳カバレッジ",
+    healthCheck: "システム健全性チェック",
     platformGuide: "プラットフォームガイド",
     logout: "ログアウト",
     loading: "読み込み中...",
@@ -327,6 +333,7 @@ const translations = {
     events: "الفعاليات",
     knowledgeBase: "قاعدة المعرفة",
     translationsDashboard: "تغطية الترجمة",
+    healthCheck: "فحص صحة النظام",
     platformGuide: "دليل المنصة",
     logout: "تسجيل الخروج",
     loading: "جاري التحميل...",
@@ -372,6 +379,7 @@ const translations = {
     events: "Мероприятия",
     knowledgeBase: "База знаний",
     translationsDashboard: "Охват переводов",
+    healthCheck: "Проверка системы",
     platformGuide: "Руководство платформы",
     logout: "Выйти",
     loading: "Загрузка...",
@@ -417,6 +425,7 @@ const translations = {
     events: "Événements",
     knowledgeBase: "Base de connaissances",
     translationsDashboard: "Couverture des traductions",
+    healthCheck: "Vérification du système",
     platformGuide: "Guide de la plateforme",
     logout: "Déconnexion",
     loading: "Chargement...",
@@ -462,6 +471,7 @@ const translations = {
     events: "Eventi",
     knowledgeBase: "Base di conoscenza",
     translationsDashboard: "Copertura traduzioni",
+    healthCheck: "Controllo del sistema",
     platformGuide: "Guida della piattaforma",
     logout: "Esci",
     loading: "Caricamento...",
@@ -962,6 +972,12 @@ export default function AdminDashboard() {
                 <Button variant="outline" className="w-full justify-start" data-testid="button-knowledge-base">
                   <BookOpen className="mr-2 h-4 w-4" />
                   {t.knowledgeBase || "Knowledge Base"}
+                </Button>
+              </Link>
+              <Link href="/admin/health-check">
+                <Button variant="outline" className="w-full justify-start bg-red-50 dark:bg-red-950/20 border-red-200 dark:border-red-800" data-testid="button-health-check">
+                  <Activity className="mr-2 h-4 w-4 text-red-500" />
+                  {t.healthCheck || "System Health Check"}
                 </Button>
               </Link>
               <Link href="/admin/guide">
