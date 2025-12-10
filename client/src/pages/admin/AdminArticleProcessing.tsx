@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Link } from "wouter";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
 import { useToast } from "@/hooks/use-toast";
 import { PipelineProgressModal } from "@/components/PipelineProgressModal";
 import { Switch } from "@/components/ui/switch";
@@ -23,9 +24,14 @@ import {
   Loader2,
   CheckCircle2,
   Languages,
-  ImageIcon
+  ImageIcon,
+  AlertCircle,
+  StopCircle
 } from "lucide-react";
 import type { News, NewsTranslation } from "@shared/schema";
+
+// Concurrency limit for batch processing (max 3 parallel requests)
+const BATCH_CONCURRENCY_LIMIT = 3;
 
 const translations = {
   en: {
@@ -45,13 +51,19 @@ const translations = {
     process: "Process",
     languages: "languages",
     processSuccess: "Article processing started",
-    processAllSuccess: "Batch processing started",
+    processAllSuccess: "Batch processing completed",
     processError: "Failed to start processing",
     loading: "Loading...",
     ready: "Ready",
     complete: "Complete",
     generateImages: "Generate Corporate Images",
     generateImagesDesc: "AI-generated images with VW logo overlay",
+    batchProgress: "Processing articles",
+    batchOf: "of",
+    batchComplete: "completed",
+    batchFailed: "failed",
+    stopProcessing: "Stop Processing",
+    imageWarning: "Image generation failed, article saved without image",
   },
   es: {
     title: "Procesamiento de Artículos",
@@ -70,13 +82,19 @@ const translations = {
     process: "Procesar",
     languages: "idiomas",
     processSuccess: "Procesamiento de artículo iniciado",
-    processAllSuccess: "Procesamiento por lotes iniciado",
+    processAllSuccess: "Procesamiento por lotes completado",
     processError: "Error al iniciar el procesamiento",
     loading: "Cargando...",
     ready: "Listo",
     complete: "Completo",
     generateImages: "Generar Imágenes Corporativas",
     generateImagesDesc: "Imágenes con IA y logo VW superpuesto",
+    batchProgress: "Procesando artículos",
+    batchOf: "de",
+    batchComplete: "completados",
+    batchFailed: "fallidos",
+    stopProcessing: "Detener Procesamiento",
+    imageWarning: "Generación de imagen falló, artículo guardado sin imagen",
   },
   de: {
     title: "Artikelverarbeitung",
@@ -95,13 +113,19 @@ const translations = {
     process: "Verarbeiten",
     languages: "Sprachen",
     processSuccess: "Artikelverarbeitung gestartet",
-    processAllSuccess: "Stapelverarbeitung gestartet",
+    processAllSuccess: "Stapelverarbeitung abgeschlossen",
     processError: "Verarbeitung konnte nicht gestartet werden",
     loading: "Wird geladen...",
     ready: "Bereit",
     complete: "Fertig",
     generateImages: "Unternehmensbilder generieren",
     generateImagesDesc: "KI-Bilder mit VW-Logo-Overlay",
+    batchProgress: "Artikel werden verarbeitet",
+    batchOf: "von",
+    batchComplete: "abgeschlossen",
+    batchFailed: "fehlgeschlagen",
+    stopProcessing: "Verarbeitung stoppen",
+    imageWarning: "Bildgenerierung fehlgeschlagen, Artikel ohne Bild gespeichert",
   },
   zh: {
     title: "文章处理",
@@ -120,13 +144,19 @@ const translations = {
     process: "处理",
     languages: "种语言",
     processSuccess: "文章处理已开始",
-    processAllSuccess: "批量处理已开始",
+    processAllSuccess: "批量处理已完成",
     processError: "无法开始处理",
     loading: "加载中...",
     ready: "就绪",
     complete: "完成",
     generateImages: "生成企业图片",
     generateImagesDesc: "带VW标志的AI生成图片",
+    batchProgress: "正在处理文章",
+    batchOf: "共",
+    batchComplete: "已完成",
+    batchFailed: "失败",
+    stopProcessing: "停止处理",
+    imageWarning: "图片生成失败，文章已保存但无图片",
   },
   ko: {
     title: "기사 처리",
@@ -145,13 +175,19 @@ const translations = {
     process: "처리",
     languages: "개 언어",
     processSuccess: "기사 처리가 시작되었습니다",
-    processAllSuccess: "일괄 처리가 시작되었습니다",
+    processAllSuccess: "일괄 처리가 완료되었습니다",
     processError: "처리를 시작할 수 없습니다",
     loading: "로딩 중...",
     ready: "준비됨",
     complete: "완료",
     generateImages: "기업 이미지 생성",
     generateImagesDesc: "VW 로고 오버레이 AI 이미지",
+    batchProgress: "기사 처리 중",
+    batchOf: "중",
+    batchComplete: "완료됨",
+    batchFailed: "실패",
+    stopProcessing: "처리 중지",
+    imageWarning: "이미지 생성 실패, 이미지 없이 기사 저장됨",
   },
   ja: {
     title: "記事処理",
@@ -170,13 +206,19 @@ const translations = {
     process: "処理",
     languages: "言語",
     processSuccess: "記事の処理が開始されました",
-    processAllSuccess: "バッチ処理が開始されました",
+    processAllSuccess: "バッチ処理が完了しました",
     processError: "処理を開始できませんでした",
     loading: "読み込み中...",
     ready: "準備完了",
     complete: "完了",
     generateImages: "企業画像を生成",
     generateImagesDesc: "VWロゴオーバーレイ付きAI画像",
+    batchProgress: "記事を処理中",
+    batchOf: "中",
+    batchComplete: "完了",
+    batchFailed: "失敗",
+    stopProcessing: "処理を停止",
+    imageWarning: "画像生成に失敗、画像なしで記事を保存",
   },
   ar: {
     title: "معالجة المقالات",
@@ -195,13 +237,19 @@ const translations = {
     process: "معالجة",
     languages: "لغات",
     processSuccess: "بدأت معالجة المقالة",
-    processAllSuccess: "بدأت المعالجة الدفعية",
+    processAllSuccess: "اكتملت المعالجة الدفعية",
     processError: "فشل بدء المعالجة",
     loading: "جاري التحميل...",
     ready: "جاهز",
     complete: "مكتمل",
     generateImages: "إنشاء صور الشركة",
     generateImagesDesc: "صور AI مع شعار VW",
+    batchProgress: "معالجة المقالات",
+    batchOf: "من",
+    batchComplete: "مكتملة",
+    batchFailed: "فاشلة",
+    stopProcessing: "إيقاف المعالجة",
+    imageWarning: "فشل إنشاء الصورة، تم حفظ المقالة بدون صورة",
   },
   ru: {
     title: "Обработка статей",
@@ -220,13 +268,19 @@ const translations = {
     process: "Обработать",
     languages: "языков",
     processSuccess: "Обработка статьи начата",
-    processAllSuccess: "Пакетная обработка начата",
+    processAllSuccess: "Пакетная обработка завершена",
     processError: "Не удалось начать обработку",
     loading: "Загрузка...",
     ready: "Готово",
     complete: "Завершено",
     generateImages: "Создать корпоративные изображения",
     generateImagesDesc: "AI-изображения с логотипом VW",
+    batchProgress: "Обработка статей",
+    batchOf: "из",
+    batchComplete: "завершено",
+    batchFailed: "неудачно",
+    stopProcessing: "Остановить обработку",
+    imageWarning: "Генерация изображения не удалась, статья сохранена без изображения",
   },
   fr: {
     title: "Traitement des articles",
@@ -245,13 +299,19 @@ const translations = {
     process: "Traiter",
     languages: "langues",
     processSuccess: "Traitement de l'article démarré",
-    processAllSuccess: "Traitement par lots démarré",
+    processAllSuccess: "Traitement par lots terminé",
     processError: "Échec du démarrage du traitement",
     loading: "Chargement...",
     ready: "Prêt",
     complete: "Terminé",
     generateImages: "Générer des images corporatives",
     generateImagesDesc: "Images IA avec logo VW",
+    batchProgress: "Traitement des articles",
+    batchOf: "sur",
+    batchComplete: "terminés",
+    batchFailed: "échoués",
+    stopProcessing: "Arrêter le traitement",
+    imageWarning: "Échec de la génération d'image, article enregistré sans image",
   },
   it: {
     title: "Elaborazione articoli",
@@ -270,13 +330,19 @@ const translations = {
     process: "Elabora",
     languages: "lingue",
     processSuccess: "Elaborazione articolo avviata",
-    processAllSuccess: "Elaborazione batch avviata",
+    processAllSuccess: "Elaborazione batch completata",
     processError: "Impossibile avviare l'elaborazione",
     loading: "Caricamento...",
     ready: "Pronto",
     complete: "Completato",
     generateImages: "Genera immagini aziendali",
     generateImagesDesc: "Immagini AI con logo VW",
+    batchProgress: "Elaborazione articoli",
+    batchOf: "di",
+    batchComplete: "completati",
+    batchFailed: "falliti",
+    stopProcessing: "Interrompi elaborazione",
+    imageWarning: "Generazione immagine fallita, articolo salvato senza immagine",
   },
 };
 
@@ -290,6 +356,18 @@ interface ArticleWithTranslations extends News {
   translationCount: number;
 }
 
+// Batch processing state interface
+interface BatchProgress {
+  isProcessing: boolean;
+  total: number;
+  processed: number;
+  successful: number;
+  failed: number;
+  currentBatch: number;
+  totalBatches: number;
+  errors: Array<{ articleId: string; title: string; error: string }>;
+}
+
 export default function AdminArticleProcessing() {
   const { language } = useLanguage();
   const { isAuthenticated, isLoading: authLoading, requireAuth } = useAdminAuth();
@@ -300,6 +378,19 @@ export default function AdminArticleProcessing() {
   const [progressModalOpen, setProgressModalOpen] = useState(false);
   const [progressArticleTitle, setProgressArticleTitle] = useState<string>("");
   const [generateImages, setGenerateImages] = useState(false);
+  
+  // Batch processing state
+  const [batchProgress, setBatchProgress] = useState<BatchProgress>({
+    isProcessing: false,
+    total: 0,
+    processed: 0,
+    successful: 0,
+    failed: 0,
+    currentBatch: 0,
+    totalBatches: 0,
+    errors: [],
+  });
+  const cancelBatchRef = useRef(false);
 
   useEffect(() => {
     if (!authLoading) {
@@ -332,26 +423,177 @@ export default function AdminArticleProcessing() {
     enabled: isAuthenticated,
   });
 
-  const processAllMutation = useMutation({
-    mutationFn: async () => {
-      const res = await adminApiRequest("POST", "/api/agents/pipeline/process-all", {
+  // Process a single article with retry logic and detailed error extraction
+  const processSingleArticle = useCallback(async (article: News): Promise<{ success: boolean; error?: string; imageWarning?: boolean }> => {
+    try {
+      const res = await adminApiRequest("POST", `/api/agents/pipeline/${article.id}`, {
         generateImage: generateImages
       });
-      if (!res.ok) throw new Error("Failed to process articles");
-      return res.json();
-    },
-    onSuccess: (data) => {
-      toast({ 
-        title: t.processAllSuccess,
-        description: `${data.successful}/${data.total} articles processed successfully`
+      
+      if (!res.ok) {
+        // Extract specific error message from response
+        let errorMessage = "Processing failed";
+        try {
+          const errorData = await res.json();
+          errorMessage = errorData.error || errorData.message || `HTTP ${res.status}`;
+        } catch {
+          errorMessage = `HTTP ${res.status}: ${res.statusText}`;
+        }
+        return { success: false, error: errorMessage };
+      }
+      
+      const result = await res.json();
+      // Check if image generation had a warning (processed but image failed)
+      const imageWarning = result.steps?.image?.success === false && result.success === true;
+      return { success: true, imageWarning };
+    } catch (err: any) {
+      // Handle specific error types
+      let errorMessage = err.message || "Unknown error";
+      if (err.message?.includes("429") || err.message?.includes("rate limit")) {
+        errorMessage = "Rate limit exceeded - will retry";
+      } else if (err.message?.includes("timeout") || err.message?.includes("ETIMEDOUT")) {
+        errorMessage = "Request timeout";
+      }
+      return { success: false, error: errorMessage };
+    }
+  }, [generateImages]);
+
+  // Batch processing function with concurrency limit
+  const processBatch = useCallback(async (articles: News[]) => {
+    cancelBatchRef.current = false;
+    const total = articles.length;
+    const totalBatches = Math.ceil(total / BATCH_CONCURRENCY_LIMIT);
+    const errors: Array<{ articleId: string; title: string; error: string }> = [];
+    let successful = 0;
+    let failed = 0;
+    let processed = 0;
+    let imageWarnings = 0;
+
+    setBatchProgress({
+      isProcessing: true,
+      total,
+      processed: 0,
+      successful: 0,
+      failed: 0,
+      currentBatch: 0,
+      totalBatches,
+      errors: [],
+    });
+
+    // Process in batches of BATCH_CONCURRENCY_LIMIT (3)
+    for (let batchIndex = 0; batchIndex < totalBatches; batchIndex++) {
+      if (cancelBatchRef.current) {
+        console.log('[BatchProcessor] Processing cancelled by user');
+        break;
+      }
+
+      const start = batchIndex * BATCH_CONCURRENCY_LIMIT;
+      const end = Math.min(start + BATCH_CONCURRENCY_LIMIT, total);
+      const batch = articles.slice(start, end);
+
+      console.log(`[BatchProcessor] Processing batch ${batchIndex + 1}/${totalBatches} (articles ${start + 1}-${end})`);
+      
+      setBatchProgress(prev => ({
+        ...prev,
+        currentBatch: batchIndex + 1,
+      }));
+
+      // Process batch articles in parallel (max 3 concurrent)
+      const batchResults = await Promise.allSettled(
+        batch.map(article => processSingleArticle(article))
+      );
+
+      // Process batch results
+      batchResults.forEach((result, idx) => {
+        const article = batch[idx];
+        processed++;
+        
+        if (result.status === 'fulfilled' && result.value.success) {
+          successful++;
+          if (result.value.imageWarning) {
+            imageWarnings++;
+          }
+        } else {
+          failed++;
+          const error = result.status === 'fulfilled' 
+            ? result.value.error || 'Unknown error'
+            : result.reason?.message || 'Promise rejected';
+          errors.push({
+            articleId: article.id,
+            title: article.titleEs || article.title || 'Untitled',
+            error,
+          });
+        }
+
+        setBatchProgress(prev => ({
+          ...prev,
+          processed,
+          successful,
+          failed,
+          errors: [...errors],
+        }));
       });
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/news/translation-counts"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/news"] });
-    },
-    onError: () => {
-      toast({ title: t.processError, variant: "destructive" });
-    },
-  });
+
+      // Small delay between batches to avoid overwhelming the server
+      if (batchIndex < totalBatches - 1 && !cancelBatchRef.current) {
+        await new Promise(resolve => setTimeout(resolve, 500));
+      }
+    }
+
+    setBatchProgress(prev => ({
+      ...prev,
+      isProcessing: false,
+    }));
+
+    // Show completion toast with error summary
+    const wasCancelled = cancelBatchRef.current;
+    let description = `${successful}/${processed} ${t.batchComplete}`;
+    if (failed > 0) {
+      description += `, ${failed} ${t.batchFailed}`;
+      const errorSummary = errors.slice(0, 3).map(e => `${e.title}: ${e.error}`).join('; ');
+      if (errorSummary) {
+        description += ` - ${errorSummary}`;
+        if (errors.length > 3) {
+          description += `... (+${errors.length - 3} more)`;
+        }
+      }
+    }
+    if (imageWarnings > 0) {
+      description += ` (${imageWarnings} ${t.imageWarning})`;
+    }
+    
+    toast({
+      title: wasCancelled ? t.stopProcessing : t.processAllSuccess,
+      description,
+      variant: failed > 0 ? "destructive" : "default",
+    });
+
+    // Reset cancel flag after completion
+    cancelBatchRef.current = false;
+
+    // Invalidate queries to refresh the data
+    queryClient.invalidateQueries({ queryKey: ["/api/admin/news/translation-counts"] });
+    queryClient.invalidateQueries({ queryKey: ["/api/news"] });
+  }, [processSingleArticle, t, toast]);
+
+  // Stop batch processing
+  const handleStopBatch = useCallback(() => {
+    cancelBatchRef.current = true;
+    toast({
+      title: t.stopProcessing,
+      description: `${batchProgress.processed}/${batchProgress.total} ${t.batchComplete}`,
+    });
+  }, [batchProgress, t, toast]);
+
+  // Start batch processing
+  const handleProcessAll = useCallback(() => {
+    const articles = newsQuery.data || [];
+    if (articles.length === 0) {
+      toast({ title: t.noArticles, variant: "destructive" });
+      return;
+    }
+    processBatch(articles);
+  }, [newsQuery.data, processBatch, t, toast]);
 
   const processArticleMutation = useMutation({
     mutationFn: async ({ articleId, title }: { articleId: string; title: string }) => {
@@ -370,8 +612,13 @@ export default function AdminArticleProcessing() {
       queryClient.invalidateQueries({ queryKey: ["/api/news"] });
       setProcessingArticleId(null);
     },
-    onError: () => {
-      toast({ title: t.processError, variant: "destructive" });
+    onError: (error: any) => {
+      const errorMessage = error?.message || error?.error || t.processError;
+      toast({ 
+        title: t.processError, 
+        description: errorMessage,
+        variant: "destructive" 
+      });
       setProcessingArticleId(null);
       setProgressModalOpen(false);
     },
@@ -465,23 +712,25 @@ export default function AdminArticleProcessing() {
                   <RefreshCw className="mr-2 h-4 w-4" />
                   {t.refresh}
                 </Button>
-                <Button
-                  onClick={() => processAllMutation.mutate()}
-                  disabled={processAllMutation.isPending}
-                  data-testid="button-process-all"
-                >
-                  {processAllMutation.isPending ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      {t.processing}
-                    </>
-                  ) : (
-                    <>
-                      <Play className="mr-2 h-4 w-4" />
-                      {t.processAll}
-                    </>
-                  )}
-                </Button>
+                {batchProgress.isProcessing ? (
+                  <Button
+                    onClick={handleStopBatch}
+                    variant="destructive"
+                    data-testid="button-stop-batch"
+                  >
+                    <StopCircle className="mr-2 h-4 w-4" />
+                    {t.stopProcessing}
+                  </Button>
+                ) : (
+                  <Button
+                    onClick={handleProcessAll}
+                    disabled={batchProgress.isProcessing}
+                    data-testid="button-process-all"
+                  >
+                    <Play className="mr-2 h-4 w-4" />
+                    {t.processAll}
+                  </Button>
+                )}
               </div>
             </div>
           </div>
@@ -529,8 +778,19 @@ export default function AdminArticleProcessing() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold" data-testid="text-processing-status">
-                {processAllMutation.isPending ? t.processing : t.ready}
+                {batchProgress.isProcessing ? t.processing : t.ready}
               </div>
+              {batchProgress.isProcessing && (
+                <div className="mt-2 space-y-1">
+                  <Progress value={(batchProgress.processed / batchProgress.total) * 100} className="h-2" />
+                  <p className="text-xs text-muted-foreground">
+                    {t.batchProgress}: {batchProgress.processed} {t.batchOf} {batchProgress.total}
+                    {batchProgress.failed > 0 && (
+                      <span className="text-destructive ml-2">({batchProgress.failed} {t.batchFailed})</span>
+                    )}
+                  </p>
+                </div>
+              )}
             </CardContent>
           </Card>
         </div>
@@ -580,7 +840,7 @@ export default function AdminArticleProcessing() {
                             articleId: article.id, 
                             title: (language === "es" ? article.titleEs : article.title) || "Article" 
                           })}
-                          disabled={processingArticleId === article.id || processAllMutation.isPending}
+                          disabled={processingArticleId === article.id || batchProgress.isProcessing}
                           data-testid={`button-process-${article.id}`}
                         >
                           {processingArticleId === article.id ? (

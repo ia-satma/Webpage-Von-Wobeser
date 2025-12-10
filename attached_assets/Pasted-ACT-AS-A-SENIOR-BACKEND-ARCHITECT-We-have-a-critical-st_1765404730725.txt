@@ -1,0 +1,32 @@
+ACT AS A SENIOR BACKEND ARCHITECT.
+We have a critical stability issue in the `ArticleBatchProcessor` and `ImageGeneration` services.
+The current implementation creates a race condition/timeout when processing multiple articles, and the Image Generation step is causing the entire pipeline to fail.
+
+YOU MUST IMPLEMENT A CONCURRENCY QUEUE AND ROBUST ERROR HANDLING. DO NOT JUST "FIX" SYNTAX.
+
+### 1. FIX THE BATCH PROCESSOR (CONCURRENCY LIMIT)
+* **The Problem:** The "Process All" button triggers all requests simultaneously. This causes server timeouts and API Rate Limits (429 errors), leading to the generic "Error al iniciar el procesamiento" toast.
+* **The Solution:** Implement a **Concurrency Limit** (Batch Chunking).
+    * Modify the frontend/service logic handling the "Procesar Todos" action.
+    * Use a library like `p-limit` or write a recursive function to process items **in groups of maximum 3 at a time**.
+    * Wait for the batch of 3 to finish (or error out) before starting the next 3.
+    * Update the UI Progress Bar to reflect the *total* progress based on these chunks.
+
+### 2. ISOLATE IMAGE GENERATION FAILURES (SANDBOXING)
+* **The Problem:** As seen in the logs, if `Generating Image` fails, the pipeline throws an error and potentially discards the translation/SEO work.
+* **The Solution:** Wrap the Image Generation step in a dedicated `try/catch` block within the pipeline.
+    * **Retry Logic:** If image generation fails, attempt 1 retry after a 2-second delay.
+    * **Fallback:** If it fails again, **DO NOT FAIL THE PIPELINE**. Instead, assign a `placeholder_image.jpg` or keep the existing image, log the specific API error to the console (for debugging), and mark the step as "Completed with Warning".
+    * The user must be able to save the text/SEO work even if the image fails.
+
+### 3. INCREASE SERVER TIMEOUTS
+* Image generation APIs are slow (10-15 seconds per request).
+* Verify the backend route handler for `/api/process-article` (or equivalent).
+* Ensure the request timeout is increased to at least **60 seconds** to accommodate the AI latency.
+
+### 4. DEBUGGING & LOGGING
+* The current error "Error al iniciar el procesamiento" is useless.
+* Update the `catch` block in the frontend to capture the **specific response message** from the server and display it in the toast (e.g., "Error: OpenAI Rate Limit" instead of just "Error").
+
+**EXECUTION INSTRUCTION:**
+First, analyze the `batchProcessing` function and the `generateImage` backend controller. Then, rewrite the concurrency logic to process strictly 3 items at a time. Confirm when the queue logic is implemented.

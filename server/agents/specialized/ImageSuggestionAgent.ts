@@ -185,33 +185,82 @@ export class ImageSuggestionAgent extends BaseAgent {
       console.log(`[ImageSuggestionAgent] Generated prompt: ${brandEnhancedPrompt.substring(0, 100)}...`);
       console.log(`[ImageSuggestionAgent] Calling DALL-E 3 API...`);
 
-      try {
-        const image = await openai.images.generate({
-          model: 'dall-e-3',
-          prompt: brandEnhancedPrompt,
-          n: 1,
-          size: '1024x1024',
-          quality: 'standard',
-        });
+      // Helper function to generate image with retry logic
+      const generateImageWithRetry = async (prompt: string, maxRetries: number = 1): Promise<{ imageUrl?: string; error?: string }> => {
+        let lastError: any = null;
+        
+        for (let attempt = 0; attempt <= maxRetries; attempt++) {
+          try {
+            if (attempt > 0) {
+              console.log(`[ImageSuggestionAgent] Retry attempt ${attempt} after 2s delay...`);
+              await new Promise(resolve => setTimeout(resolve, 2000)); // 2 second delay before retry
+            }
+            
+            const image = await openai.images.generate({
+              model: 'dall-e-3',
+              prompt,
+              n: 1,
+              size: '1024x1024',
+              quality: 'standard',
+            });
 
-        const imageUrl = image.data?.[0]?.url;
-
-        if (!imageUrl) {
-          return {
-            success: true,
-            data: {
-              articleId,
-              imagePrompt: brandEnhancedPrompt,
-              themes: analysis.themes || [],
-              style: analysis.style || 'Von Wobeser corporate',
-              note: 'No image URL returned from DALL-E',
-            },
-          };
+            const imageUrl = image.data?.[0]?.url;
+            if (imageUrl) {
+              return { imageUrl };
+            }
+            lastError = new Error('No image URL returned from DALL-E');
+          } catch (err: any) {
+            lastError = err;
+            console.error(`[ImageSuggestionAgent] Attempt ${attempt + 1} failed:`, err?.message || err);
+            
+            // Don't retry on billing or policy errors
+            if (err?.code === 'billing_hard_limit_reached' || err?.code === 'content_policy_violation') {
+              break;
+            }
+          }
         }
+        
+        // Build error message
+        let errorMessage = 'Image generation failed';
+        if (lastError?.code === 'billing_hard_limit_reached') {
+          errorMessage = 'OpenAI billing limit reached - please check your API credits';
+        } else if (lastError?.code === 'content_policy_violation') {
+          errorMessage = 'Content policy violation - prompt needs adjustment';
+        } else if (lastError?.status === 429) {
+          errorMessage = 'Rate limit exceeded after retries';
+        } else if (lastError?.message) {
+          errorMessage = lastError.message;
+        }
+        
+        return { error: errorMessage };
+      };
 
-        console.log(`[ImageSuggestionAgent] DALL-E image generated, downloading and adding logo overlay...`);
+      // Try to generate image with retry
+      const imageResult = await generateImageWithRetry(brandEnhancedPrompt, 1);
+      
+      // SANDBOXED: If image generation fails, return success=true with warning
+      // This ensures text/SEO work is preserved even if image fails
+      if (imageResult.error || !imageResult.imageUrl) {
+        console.warn(`[ImageSuggestionAgent] Image generation failed but article content preserved: ${imageResult.error}`);
+        
+        return {
+          success: true, // SUCCESS despite image failure - preserves other work
+          data: {
+            articleId,
+            imagePrompt: brandEnhancedPrompt,
+            themes: analysis.themes || [],
+            style: analysis.style || 'Von Wobeser corporate',
+            imageGenerated: false,
+            warning: imageResult.error || 'Image generation failed',
+            note: 'Article processed successfully but image generation failed. Existing image preserved.',
+          },
+        };
+      }
 
-        const imageBuffer = await downloadImage(imageUrl);
+      console.log(`[ImageSuggestionAgent] DALL-E image generated, downloading and adding logo overlay...`);
+
+      try {
+        const imageBuffer = await downloadImage(imageResult.imageUrl);
         
         const filename = `article-${articleId}-${Date.now()}.png`;
         const outputPath = path.join(OUTPUT_DIR, filename);
@@ -230,40 +279,29 @@ export class ImageSuggestionAgent extends BaseAgent {
           data: {
             articleId,
             imageUrl: publicUrl,
-            originalDalleUrl: imageUrl,
+            originalDalleUrl: imageResult.imageUrl,
             imagePrompt: brandEnhancedPrompt,
             themes: analysis.themes || [],
             style: analysis.style || 'Von Wobeser corporate',
             brandCompliant: true,
             logoOverlay: true,
+            imageGenerated: true,
           },
         };
-      } catch (imageError: any) {
-        console.error('[ImageSuggestionAgent] DALL-E 3 generation error:', imageError?.message || imageError);
-        console.error('[ImageSuggestionAgent] Error details:', JSON.stringify({
-          code: imageError?.code,
-          status: imageError?.status,
-          type: imageError?.type,
-          message: imageError?.message
-        }));
+      } catch (downloadError: any) {
+        // Image download or processing failed - still return success with warning
+        console.error('[ImageSuggestionAgent] Image download/processing error:', downloadError?.message);
         
-        let errorMessage = 'Image generation failed';
-        if (imageError.code === 'billing_hard_limit_reached') {
-          errorMessage = 'OpenAI billing limit reached - please check your API credits';
-        } else if (imageError.code === 'content_policy_violation') {
-          errorMessage = 'Content policy violation - prompt needs adjustment';
-        } else if (imageError.status === 429) {
-          errorMessage = 'Rate limit exceeded - please try again later';
-        }
-
         return {
-          success: false,
-          error: errorMessage,
+          success: true, // SUCCESS despite download failure
           data: {
             articleId,
             imagePrompt: brandEnhancedPrompt,
             themes: analysis.themes || [],
             style: analysis.style || 'Von Wobeser corporate',
+            imageGenerated: false,
+            warning: `Image processing failed: ${downloadError?.message || 'Unknown error'}`,
+            note: 'Article processed but image could not be saved. Existing image preserved.',
           },
         };
       }
