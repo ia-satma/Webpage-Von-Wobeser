@@ -2,6 +2,7 @@ import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { serveStatic } from "./static";
 import { createServer } from "http";
+import { orchestrator } from "./agents/core/AgentOrchestrator";
 
 const app = express();
 const httpServer = createServer(app);
@@ -91,8 +92,17 @@ app.use((req, res, next) => {
       host: "0.0.0.0",
       reusePort: true,
     },
-    () => {
+    async () => {
       log(`serving on port ${port}`);
+      
+      // Initialize and start the agent orchestrator
+      try {
+        await orchestrator.initialize();
+        orchestrator.start(2000); // Process jobs every 2 seconds
+        log("Agent orchestrator initialized and started", "agents");
+      } catch (error) {
+        log(`Failed to initialize agent orchestrator: ${error}`, "agents");
+      }
     },
   );
 })();

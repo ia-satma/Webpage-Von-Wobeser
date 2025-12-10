@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { queryClient, apiRequest } from "@/lib/queryClient";
+import { queryClient } from "@/lib/queryClient";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -8,7 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Progress } from "@/components/ui/progress";
 import { useToast } from "@/hooks/use-toast";
-import { useAdminAuth } from "@/lib/adminAuth";
+import { useAdminAuth, adminApiRequest, getAuthHeaders } from "@/lib/adminAuth";
 import { 
   Bot, 
   Activity, 
@@ -107,7 +107,7 @@ const STATUS_COLORS: Record<string, string> = {
 export default function AdminAgents() {
   const { toast } = useToast();
   const [, setLocation] = useLocation();
-  const { isAuthenticated, isLoading: authLoading } = useAdminAuth();
+  const { isAuthenticated, isLoading: authLoading, token } = useAdminAuth();
 
   useEffect(() => {
     if (!authLoading && !isAuthenticated) {
@@ -121,16 +121,26 @@ export default function AdminAgents() {
     knowledge: { totalDocuments: number; byAgent: Record<string, number> };
   }>({
     queryKey: ["/api/agents/status"],
+    queryFn: async () => {
+      const res = await adminApiRequest("GET", "/api/agents/status");
+      return res.json();
+    },
     refetchInterval: 5000,
+    enabled: isAuthenticated && !!token,
   });
 
   const { data: proposals } = useQuery<EvolutionProposal[]>({
     queryKey: ["/api/agents/evolution/proposals"],
+    queryFn: async () => {
+      const res = await adminApiRequest("GET", "/api/agents/evolution/proposals");
+      return res.json();
+    },
+    enabled: isAuthenticated && !!token,
   });
 
   const runAuditMutation = useMutation({
     mutationFn: async () => {
-      const res = await apiRequest("POST", "/api/audits/run", { runType: 'full' });
+      const res = await adminApiRequest("POST", "/api/audits/run", { runType: 'full' });
       return res.json();
     },
     onSuccess: (data: any) => {
@@ -147,7 +157,7 @@ export default function AdminAgents() {
 
   const runLearningCycleMutation = useMutation({
     mutationFn: async () => {
-      const res = await apiRequest("POST", "/api/agents/evolution/learning-cycle");
+      const res = await adminApiRequest("POST", "/api/agents/evolution/learning-cycle");
       return res.json();
     },
     onSuccess: (data: any) => {
@@ -158,7 +168,7 @@ export default function AdminAgents() {
 
   const syncPCloudMutation = useMutation({
     mutationFn: async () => {
-      const res = await apiRequest("POST", "/api/agents/pcloud/sync");
+      const res = await adminApiRequest("POST", "/api/agents/pcloud/sync");
       return res.json();
     },
     onSuccess: (data: { knowledge: boolean; evolution: boolean }) => {
@@ -174,7 +184,7 @@ export default function AdminAgents() {
 
   const startProcessingMutation = useMutation({
     mutationFn: async () => {
-      const res = await apiRequest("POST", "/api/agents/processing/start");
+      const res = await adminApiRequest("POST", "/api/agents/processing/start");
       return res.json();
     },
     onSuccess: () => {
@@ -185,7 +195,7 @@ export default function AdminAgents() {
 
   const stopProcessingMutation = useMutation({
     mutationFn: async () => {
-      const res = await apiRequest("POST", "/api/agents/processing/stop");
+      const res = await adminApiRequest("POST", "/api/agents/processing/stop");
       return res.json();
     },
     onSuccess: () => {
@@ -196,7 +206,7 @@ export default function AdminAgents() {
 
   const updateProposalMutation = useMutation({
     mutationFn: async ({ id, status }: { id: string; status: string }) => {
-      const res = await apiRequest("POST", `/api/agents/evolution/proposals/${id}/status`, { status });
+      const res = await adminApiRequest("POST", `/api/agents/evolution/proposals/${id}/status`, { status });
       return res.json();
     },
     onSuccess: () => {

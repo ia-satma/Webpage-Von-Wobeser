@@ -36,7 +36,7 @@ const translations = {
     all: "All",
     partner: "Partner",
     ofCounsel: "Of Counsel",
-    counsel: "Counsel",
+
     associate: "Associate",
     name: "Name",
     role: "Role",
@@ -66,7 +66,7 @@ const translations = {
     all: "Todos",
     partner: "Socio",
     ofCounsel: "Of Counsel",
-    counsel: "Counsel",
+
     associate: "Asociado",
     name: "Nombre",
     role: "Rol",
@@ -96,7 +96,7 @@ const translations = {
     all: "Alle",
     partner: "Partner",
     ofCounsel: "Of Counsel",
-    counsel: "Counsel",
+
     associate: "Associate",
     name: "Name",
     role: "Rolle",
@@ -126,7 +126,6 @@ const translations = {
     all: "全部",
     partner: "合伙人",
     ofCounsel: "顾问律师",
-    counsel: "律师",
     associate: "助理律师",
     name: "姓名",
     role: "职位",
@@ -156,7 +155,7 @@ const translations = {
     all: "전체",
     partner: "파트너",
     ofCounsel: "Of Counsel",
-    counsel: "Counsel",
+
     associate: "어소시에이트",
     name: "이름",
     role: "직위",
@@ -186,7 +185,6 @@ const translations = {
     all: "すべて",
     partner: "パートナー",
     ofCounsel: "オブカウンセル",
-    counsel: "カウンセル",
     associate: "アソシエイト",
     name: "名前",
     role: "役職",
@@ -216,7 +214,6 @@ const translations = {
     all: "الكل",
     partner: "شريك",
     ofCounsel: "مستشار",
-    counsel: "محامٍ",
     associate: "محامٍ مساعد",
     name: "الاسم",
     role: "الدور",
@@ -246,7 +243,7 @@ const translations = {
     all: "Все",
     partner: "Партнёр",
     ofCounsel: "Of Counsel",
-    counsel: "Counsel",
+
     associate: "Ассоциат",
     name: "Имя",
     role: "Должность",
@@ -276,7 +273,7 @@ const translations = {
     all: "Tous",
     partner: "Associé",
     ofCounsel: "Of Counsel",
-    counsel: "Counsel",
+
     associate: "Collaborateur",
     name: "Nom",
     role: "Rôle",
@@ -306,7 +303,7 @@ const translations = {
     all: "Tutti",
     partner: "Partner",
     ofCounsel: "Of Counsel",
-    counsel: "Counsel",
+
     associate: "Associato",
     name: "Nome",
     role: "Ruolo",
@@ -341,7 +338,6 @@ interface TeamStats {
   total: number;
   partners: number;
   ofCounsel: number;
-  counsel: number;
   associates: number;
 }
 
@@ -474,12 +470,6 @@ export default function AdminTeam() {
             </Card>
             <Card>
               <CardContent className="p-4 text-center">
-                <div className="text-3xl font-bold text-primary">{stats.counsel}</div>
-                <div className="text-sm text-muted-foreground">Counsel</div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="p-4 text-center">
                 <div className="text-3xl font-bold text-primary">{stats.associates}</div>
                 <div className="text-sm text-muted-foreground">{t.associates}</div>
               </CardContent>
@@ -517,7 +507,6 @@ export default function AdminTeam() {
                   <SelectItem value="all">{t.all}</SelectItem>
                   <SelectItem value="partner">{t.partner}</SelectItem>
                   <SelectItem value="of counsel">{t.ofCounsel}</SelectItem>
-                  <SelectItem value="counsel">{t.counsel}</SelectItem>
                   <SelectItem value="associate">{t.associate}</SelectItem>
                 </SelectContent>
               </Select>

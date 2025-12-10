@@ -236,7 +236,6 @@ export default function Header() {
       subItems: [
         { labelKey: "nav.partners", href: "/team?type=partners", id: "partners" },
         { labelKey: "nav.ofCounsel", href: "/team?type=of-counsel", id: "of-counsel" },
-        { labelKey: "nav.counsel", href: "/team?type=counsel", id: "counsel" },
         { labelKey: "nav.associates", href: "/team?type=associates", id: "associates" },
       ],
     },

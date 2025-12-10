@@ -1436,14 +1436,12 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
       const members = await storage.getTeamMembers();
       const partners = members.filter(m => m.title.toLowerCase().includes("partner") || m.isPartner);
       const ofCounsel = members.filter(m => m.title.toLowerCase().includes("of counsel"));
-      const counsel = members.filter(m => m.title.toLowerCase() === "counsel");
       const associates = members.filter(m => m.title.toLowerCase().includes("associate"));
 
       res.json({
         total: members.length,
         partners: partners.length,
         ofCounsel: ofCounsel.length,
-        counsel: counsel.length,
         associates: associates.length,
       });
     } catch (error) {

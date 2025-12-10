@@ -3,6 +3,16 @@ import { pgTable, text, varchar, timestamp, integer, boolean, jsonb } from "driz
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
+// Canonical team member categories - source of truth for role taxonomy
+// DO NOT duplicate or modify these categories elsewhere
+export const TEAM_MEMBER_CATEGORIES = [
+  { value: "partner", en: "Partner", es: "Socio" },
+  { value: "of-counsel", en: "Of Counsel", es: "Of Counsel" },
+  { value: "associate", en: "Associate", es: "Asociado" },
+] as const;
+
+export type TeamMemberCategory = typeof TEAM_MEMBER_CATEGORIES[number]["value"];
+
 // Types for team member structured data
 export interface Education {
   school: string;
