@@ -76,13 +76,16 @@ async function overlayLogo(imageBuffer: Buffer, outputPath: string): Promise<str
   const width = metadata.width || 1024;
   const height = metadata.height || 1024;
 
-  const logoSize = Math.round(width * 0.15);
-  const margin = Math.round(width * 0.03);
+  // Brand guideline: Fixed 150px logo width on white background with padding
+  const LOGO_WIDTH = 150;
+  const PADDING = 12;
+  const MARGIN = 20;
 
   let logoBuffer: Buffer;
   try {
+    // Resize logo to fixed 150px width
     logoBuffer = await sharp(LOGO_PATH)
-      .resize(logoSize, null, { fit: 'inside' })
+      .resize(LOGO_WIDTH, null, { fit: 'inside' })
       .toBuffer();
   } catch (logoError) {
     console.warn('[ImageSuggestionAgent] Logo file not found, saving image without overlay');
@@ -91,19 +94,49 @@ async function overlayLogo(imageBuffer: Buffer, outputPath: string): Promise<str
   }
 
   const logoMetadata = await sharp(logoBuffer).metadata();
-  const logoWidth = logoMetadata.width || logoSize;
-  const logoHeight = logoMetadata.height || logoSize;
+  const logoWidth = logoMetadata.width || LOGO_WIDTH;
+  const logoHeight = logoMetadata.height || Math.round(LOGO_WIDTH * 0.5);
 
-  await baseImage
+  // Create white background with padding
+  const bgWidth = logoWidth + (PADDING * 2);
+  const bgHeight = logoHeight + (PADDING * 2);
+  
+  const whiteBg = await sharp({
+    create: {
+      width: bgWidth,
+      height: bgHeight,
+      channels: 4,
+      background: { r: 255, g: 255, b: 255, alpha: 1 },
+    },
+  })
+    .png()
+    .toBuffer();
+
+  // Composite logo directly on white background (logo is already visible, white bg provides contrast)
+  // Note: Sharp doesn't have simple opacity, so we use the logo directly on white background
+  // The white background itself provides the branding visibility against any image
+  const logoOnWhite = await sharp(whiteBg)
     .composite([
       {
         input: logoBuffer,
-        top: height - logoHeight - margin,
-        left: width - logoWidth - margin,
+        top: PADDING,
+        left: PADDING,
+      },
+    ])
+    .toBuffer();
+
+  // Final composite: position in bottom-right corner
+  await baseImage
+    .composite([
+      {
+        input: logoOnWhite,
+        top: height - bgHeight - MARGIN,
+        left: width - bgWidth - MARGIN,
       },
     ])
     .toFile(outputPath);
 
+  console.log(`[ImageSuggestionAgent] Logo overlay applied: ${LOGO_WIDTH}px width, white background with ${PADDING}px padding`);
   return outputPath;
 }
 
