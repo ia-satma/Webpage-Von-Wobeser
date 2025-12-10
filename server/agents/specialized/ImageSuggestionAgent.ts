@@ -1,6 +1,5 @@
 import { BaseAgent } from '../core/BaseAgent';
 import { AgentConfig, AgentResult, ExecutionContext } from '../core/types';
-import { openai } from '../../openai';
 import { db } from '../../db';
 import { news } from '../../../shared/schema';
 import { eq } from 'drizzle-orm';
@@ -48,94 +47,6 @@ Return JSON format:
   concurrency: 2,
   retryPolicy: { maxRetries: 2, backoffMs: 1000, backoffMultiplier: 2 },
 };
-
-const LOGO_PATH = path.join(process.cwd(), 'attached_assets', 'vonwobeser_logo_hd.png');
-const OUTPUT_DIR = path.join(process.cwd(), 'public', 'generated-images');
-
-async function downloadImage(url: string): Promise<Buffer> {
-  return new Promise((resolve, reject) => {
-    https.get(url, (response) => {
-      const chunks: Buffer[] = [];
-      response.on('data', (chunk) => chunks.push(chunk));
-      response.on('end', () => resolve(Buffer.concat(chunks)));
-      response.on('error', reject);
-    }).on('error', reject);
-  });
-}
-
-async function overlayLogo(imageBuffer: Buffer, outputPath: string): Promise<string> {
-  if (!fs.existsSync(OUTPUT_DIR)) {
-    fs.mkdirSync(OUTPUT_DIR, { recursive: true });
-  }
-
-  const baseImage = sharp(imageBuffer);
-  const metadata = await baseImage.metadata();
-  const width = metadata.width || 1024;
-  const height = metadata.height || 1024;
-
-  // Brand guideline: Fixed 150px logo width on white background with padding
-  const LOGO_WIDTH = 150;
-  const PADDING = 12;
-  const MARGIN = 20;
-
-  let logoBuffer: Buffer;
-  try {
-    // Resize logo to fixed 150px width
-    logoBuffer = await sharp(LOGO_PATH)
-      .resize(LOGO_WIDTH, null, { fit: 'inside' })
-      .toBuffer();
-  } catch (logoError) {
-    console.warn('[ImageSuggestionAgent] Logo file not found, saving image without overlay');
-    await baseImage.toFile(outputPath);
-    return outputPath;
-  }
-
-  const logoMetadata = await sharp(logoBuffer).metadata();
-  const logoWidth = logoMetadata.width || LOGO_WIDTH;
-  const logoHeight = logoMetadata.height || Math.round(LOGO_WIDTH * 0.5);
-
-  // Create white background with padding
-  const bgWidth = logoWidth + (PADDING * 2);
-  const bgHeight = logoHeight + (PADDING * 2);
-  
-  const whiteBg = await sharp({
-    create: {
-      width: bgWidth,
-      height: bgHeight,
-      channels: 4,
-      background: { r: 255, g: 255, b: 255, alpha: 1 },
-    },
-  })
-    .png()
-    .toBuffer();
-
-  // Composite logo directly on white background (logo is already visible, white bg provides contrast)
-  // Note: Sharp doesn't have simple opacity, so we use the logo directly on white background
-  // The white background itself provides the branding visibility against any image
-  const logoOnWhite = await sharp(whiteBg)
-    .composite([
-      {
-        input: logoBuffer,
-        top: PADDING,
-        left: PADDING,
-      },
-    ])
-    .toBuffer();
-
-  // Final composite: position in bottom-right corner
-  await baseImage
-    .composite([
-      {
-        input: logoOnWhite,
-        top: height - bgHeight - MARGIN,
-        left: width - bgWidth - MARGIN,
-      },
-    ])
-    .toFile(outputPath);
-
-  console.log(`[ImageSuggestionAgent] Logo overlay applied: ${LOGO_WIDTH}px width, white background with ${PADDING}px padding`);
-  return outputPath;
-}
 
 export class ImageSuggestionAgent extends BaseAgent {
   constructor() {

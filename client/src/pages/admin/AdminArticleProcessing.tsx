@@ -26,7 +26,8 @@ import {
   Languages,
   ImageIcon,
   AlertCircle,
-  StopCircle
+  StopCircle,
+  Wrench
 } from "lucide-react";
 import type { News, NewsTranslation } from "@shared/schema";
 
@@ -64,6 +65,10 @@ const translations = {
     batchFailed: "failed",
     stopProcessing: "Stop Processing",
     imageWarning: "Image generation failed, article saved without image",
+    repairErrors: "Repair Errors",
+    repairing: "Repairing...",
+    repairSuccess: "Recovery complete",
+    repairNoErrors: "No failed articles to repair",
   },
   es: {
     title: "Procesamiento de Artículos",
@@ -95,6 +100,10 @@ const translations = {
     batchFailed: "fallidos",
     stopProcessing: "Detener Procesamiento",
     imageWarning: "Generación de imagen falló, artículo guardado sin imagen",
+    repairErrors: "Reparar Errores",
+    repairing: "Reparando...",
+    repairSuccess: "Recuperación completa",
+    repairNoErrors: "No hay artículos fallidos",
   },
   de: {
     title: "Artikelverarbeitung",
@@ -126,6 +135,10 @@ const translations = {
     batchFailed: "fehlgeschlagen",
     stopProcessing: "Verarbeitung stoppen",
     imageWarning: "Bildgenerierung fehlgeschlagen, Artikel ohne Bild gespeichert",
+    repairErrors: "Fehler reparieren",
+    repairing: "Repariere...",
+    repairSuccess: "Wiederherstellung abgeschlossen",
+    repairNoErrors: "Keine fehlgeschlagenen Artikel",
   },
   zh: {
     title: "文章处理",
@@ -157,6 +170,10 @@ const translations = {
     batchFailed: "失败",
     stopProcessing: "停止处理",
     imageWarning: "图片生成失败，文章已保存但无图片",
+    repairErrors: "修复错误",
+    repairing: "修复中...",
+    repairSuccess: "恢复完成",
+    repairNoErrors: "没有失败的文章",
   },
   ko: {
     title: "기사 처리",
@@ -188,6 +205,10 @@ const translations = {
     batchFailed: "실패",
     stopProcessing: "처리 중지",
     imageWarning: "이미지 생성 실패, 이미지 없이 기사 저장됨",
+    repairErrors: "오류 복구",
+    repairing: "복구 중...",
+    repairSuccess: "복구 완료",
+    repairNoErrors: "실패한 기사 없음",
   },
   ja: {
     title: "記事処理",
@@ -219,6 +240,10 @@ const translations = {
     batchFailed: "失敗",
     stopProcessing: "処理を停止",
     imageWarning: "画像生成に失敗、画像なしで記事を保存",
+    repairErrors: "エラー修復",
+    repairing: "修復中...",
+    repairSuccess: "回復完了",
+    repairNoErrors: "失敗した記事はありません",
   },
   ar: {
     title: "معالجة المقالات",
@@ -250,6 +275,10 @@ const translations = {
     batchFailed: "فاشلة",
     stopProcessing: "إيقاف المعالجة",
     imageWarning: "فشل إنشاء الصورة، تم حفظ المقالة بدون صورة",
+    repairErrors: "إصلاح الأخطاء",
+    repairing: "جاري الإصلاح...",
+    repairSuccess: "اكتمل الاسترداد",
+    repairNoErrors: "لا توجد مقالات فاشلة",
   },
   ru: {
     title: "Обработка статей",
@@ -281,6 +310,10 @@ const translations = {
     batchFailed: "неудачно",
     stopProcessing: "Остановить обработку",
     imageWarning: "Генерация изображения не удалась, статья сохранена без изображения",
+    repairErrors: "Исправить ошибки",
+    repairing: "Исправление...",
+    repairSuccess: "Восстановление завершено",
+    repairNoErrors: "Нет неудачных статей",
   },
   fr: {
     title: "Traitement des articles",
@@ -312,6 +345,10 @@ const translations = {
     batchFailed: "échoués",
     stopProcessing: "Arrêter le traitement",
     imageWarning: "Échec de la génération d'image, article enregistré sans image",
+    repairErrors: "Réparer les erreurs",
+    repairing: "Réparation...",
+    repairSuccess: "Récupération terminée",
+    repairNoErrors: "Aucun article échoué",
   },
   it: {
     title: "Elaborazione articoli",
@@ -343,6 +380,10 @@ const translations = {
     batchFailed: "falliti",
     stopProcessing: "Interrompi elaborazione",
     imageWarning: "Generazione immagine fallita, articolo salvato senza immagine",
+    repairErrors: "Ripara errori",
+    repairing: "Riparazione...",
+    repairSuccess: "Recupero completato",
+    repairNoErrors: "Nessun articolo fallito",
   },
 };
 
@@ -391,6 +432,7 @@ export default function AdminArticleProcessing() {
     errors: [],
   });
   const cancelBatchRef = useRef(false);
+  const [isRecovering, setIsRecovering] = useState(false);
 
   useEffect(() => {
     if (!authLoading) {
@@ -457,6 +499,36 @@ export default function AdminArticleProcessing() {
       return { success: false, error: errorMessage };
     }
   }, [generateImages]);
+
+  const recoverMutation = useMutation({
+    mutationFn: async () => {
+      const res = await adminApiRequest("POST", "/api/agents/recover");
+      if (!res.ok) {
+        const error = await res.json();
+        throw new Error(error.error || "Recovery failed");
+      }
+      return res.json();
+    },
+    onMutate: () => {
+      setIsRecovering(true);
+    },
+    onSuccess: (data) => {
+      setIsRecovering(false);
+      toast({
+        title: t.repairSuccess,
+        description: `${data.recovered} articles recovered`,
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/news"] });
+    },
+    onError: (error: any) => {
+      setIsRecovering(false);
+      toast({
+        title: t.processError,
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
 
   // Batch processing function with concurrency limit
   const processBatch = useCallback(async (articles: News[]) => {
@@ -738,7 +810,7 @@ export default function AdminArticleProcessing() {
       </header>
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between gap-2 space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">{t.totalArticles}</CardTitle>
@@ -791,6 +863,36 @@ export default function AdminArticleProcessing() {
                   </p>
                 </div>
               )}
+            </CardContent>
+          </Card>
+
+          {/* Recovery Actions Card */}
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between gap-2 space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Auto-Recovery</CardTitle>
+              <Wrench className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => recoverMutation.mutate()}
+                disabled={isRecovering || batchProgress.isProcessing}
+                data-testid="button-repair-errors"
+                className="w-full"
+              >
+                {isRecovering ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    {t.repairing}
+                  </>
+                ) : (
+                  <>
+                    <Wrench className="mr-2 h-4 w-4" />
+                    {t.repairErrors}
+                  </>
+                )}
+              </Button>
             </CardContent>
           </Card>
         </div>

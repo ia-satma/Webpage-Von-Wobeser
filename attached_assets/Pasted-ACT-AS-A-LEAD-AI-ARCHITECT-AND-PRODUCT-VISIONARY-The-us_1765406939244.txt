@@ -1,0 +1,45 @@
+ACT AS A LEAD AI ARCHITECT AND PRODUCT VISIONARY.
+The user demands a paradigm shift. The "Platform Guide" page is currently too static.
+This project is NOT a website redesign; it is a **Complex Autonomous Agentic Network**.
+
+We need a **"Meta-Agent" (The System Chronicler)** whose sole job is to document the growth and functionality of the other agents. The documentation must be SELF-WRITING and impress the user by showing the system's complexity in a simple way.
+
+### 1. IMPLEMENT THE "SYSTEM CHRONICLER" AGENT
+Create a background service/hook called `SystemChronicler`.
+* **Trigger:** Whenever a new feature/agent is registered in the codebase or config.
+* **Action:** It automatically generates a "Capability Card" for the Platform Guide.
+* **The "Translation" Layer:** It must take technical names (e.g., `BatchQueueService`) and translate them into Business Value (e.g., *"Orquestador de Procesamiento Masivo con protección anti-caídas"*).
+
+### 2. REFACTOR THE "PLATFORM GUIDE" INTO A "LIVE NERVE CENTER"
+Do not render a static list. Build a "Living System Architecture" view.
+* **Visual Metaphor:** Use a visual layout (Grid or Network nodes) that represents the Agents as active nodes.
+* **Dynamic Sections:**
+    * **The Brain (Orchestration):** Shows the Central Logic, Routing, and Auditors.
+    * **The Hands (Execution):** Shows Translation, Formatting, Image Generation.
+    * **The Shield (Security):** Shows the new "Sanitization" and "Self-Healing" agents.
+* **Live Pulse:** If possible, add a subtle CSS animation ("breathing" or "pulsing") to agents that are currently active or healthy. This visually proves "It is not a static CMS."
+
+### 3. AUTOMATED "CHANGE LOG" WITH VALUE PROPOSITION
+Add a section called **"System Evolution Timeline"**.
+Instead of a git log, this agent must generate a narrative timeline:
+* *Example Entry:* "Dec 10 - **Visual Intelligence Upgrade**: The Image Agent learned to bypass censorship filters by abstracting legal concepts, ensuring 100% cover image availability."
+* *Mechanism:* Use a simple JSON file `system_evolution.json` that the agents append to when they complete major upgrades.
+
+### 4. CONTENT INJECTION (EXECUTE NOW)
+To demonstrate this power immediately, populate the new "Nerve Center" with the sophisticated logic we just built. Use this exact phrasing to impress the client:
+
+* **Agent: The Self-Healing Auditor**
+    * *Role:* "Guardian of Integrity"
+    * *Description:* "Unlike standard websites, this agent proactively scans for 'zombie processes' and incomplete data 24/7. It autonomously repairs broken links and retries failed translations without human intervention."
+* **Agent: The Polyglot Neural Network**
+    * *Role:* "Global Voice"
+    * *Description:* "An advanced linguistic engine that doesn't just translate, but 'localizes' legal terminology, ensuring that a German bio never leaks Spanish text."
+* **Agent: The Smart Visualizer (Fallback Engine)**
+    * *Role:* "Creative Director"
+    * *Description:* "A multi-engine generative system. If OpenAI refuses a prompt due to sensitivity, this agent instantly rewrites the concept or switches to Stable Diffusion to guarantee visual assets."
+
+**EXECUTION:**
+1. Structure the `SystemChronicler` logic.
+2. Redesign the "Guide" page to look like a "System Dashboard" (High-tech, clean, professional).
+3. Insert the descriptions above.
+4. Show me the result.

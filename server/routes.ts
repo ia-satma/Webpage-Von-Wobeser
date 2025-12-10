@@ -3018,6 +3018,54 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
     }
   });
 
+  // Auto-Recovery Agent - Repairs failed articles with smart retry logic
+  app.post("/api/agents/recover", authMiddleware, async (req: Request, res: Response) => {
+    try {
+      console.log('[Recovery] Starting auto-recovery for failed articles...');
+      const { recoverFailedItems, getFailedArticlesSummary } = await import('./agents/AutoRecoveryAgent');
+      
+      const summary = await getFailedArticlesSummary();
+      console.log(`[Recovery] Found ${summary.total} failed articles`);
+      
+      if (summary.total === 0) {
+        return res.json({
+          success: true,
+          message: 'No failed articles to recover',
+          recovered: 0,
+          stillFailed: 0
+        });
+      }
+      
+      const report = await recoverFailedItems();
+      
+      res.json({
+        success: true,
+        message: `Recovery complete: ${report.totalRecovered}/${report.totalFailed} articles recovered`,
+        recovered: report.totalRecovered,
+        stillFailed: report.totalStillFailed,
+        results: report.results
+      });
+    } catch (error: any) {
+      console.error('[Recovery] Error:', error);
+      res.status(500).json({ 
+        success: false, 
+        error: error.message || 'Recovery failed' 
+      });
+    }
+  });
+
+  // Get failed articles summary for diagnostics
+  app.get("/api/agents/failed-summary", authMiddleware, async (req: Request, res: Response) => {
+    try {
+      const { getFailedArticlesSummary } = await import('./agents/AutoRecoveryAgent');
+      const summary = await getFailedArticlesSummary();
+      res.json({ success: true, ...summary });
+    } catch (error: any) {
+      console.error('[FailedSummary] Error:', error);
+      res.status(500).json({ success: false, error: error.message });
+    }
+  });
+
   // Website Audit API routes
   app.get("/api/audits", authMiddleware, async (req: Request, res: Response) => {
     try {
