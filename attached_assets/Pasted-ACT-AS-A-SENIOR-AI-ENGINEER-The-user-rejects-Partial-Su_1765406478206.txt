@@ -1,0 +1,44 @@
+ACT AS A SENIOR AI ENGINEER.
+The user rejects "Partial Success". The goal is 100% Image Generation Success.
+We suspect DALL-E is failing due to strict Content Policy filters (sensitive legal topics like "harassment" or "corruption") or Rate Limits.
+
+YOU MUST IMPLEMENT A "SMART CASCADE" IMAGE GENERATOR (`SmartImageGenerator` Service).
+
+### 1. INTELLIGENT ERROR DIAGNOSIS & HANDLING
+Refactor the `generateImage` function to catch specific error types and react differently:
+
+* **Case A: Content Policy Violation (The most likely cause for Legal topics)**
+    * *Trigger:* Error code `content_policy_violation` or 400 from OpenAI.
+    * *Action:* **Sanitize the Prompt.** Automatically rewrite the prompt to be abstract and safe.
+    * *Example:* Change "Sexual harassment investigation in office" to "Abstract concept of corporate justice, scales of justice in a modern office, dark blue tones, professional style." (Remove trigger words).
+    * *Retry:* Attempt generation again with the sanitized prompt.
+
+* **Case B: Rate Limit (429) or Overloaded**
+    * *Action:* Implement **Exponential Backoff**. Wait 5 seconds, then 10 seconds.
+    * *Retry:* Attempt up to 3 times.
+
+### 2. MULTI-ENGINE FALLBACK (THE "ENGINE SWITCH")
+If DALL-E 3 fails after retries (or times out), the system must **AUTOMATICALLY SWITCH ENGINES** instead of giving up.
+
+* **Primary Engine:** DALL-E 3 (OpenAI).
+* **Secondary Engine (Fallback):** Use **Stable Diffusion** (via Replit Model Farm or Stability AI API).
+    * Stable Diffusion is much less restrictive with prompts and has no rate limits on Replit's side.
+* **Logic:**
+    ```javascript
+    try {
+       return await callDalle3(prompt);
+    } catch (error) {
+       logError("DALL-E failed: " + error.message);
+       console.log("Switching to Stable Diffusion Fallback...");
+       return await callStableDiffusion(prompt);
+    }
+    ```
+
+### 3. TRANSPARENCY REPORTING
+Update the UI/Logs to tell the user EXACTLY what happened.
+* Instead of just "Error", the log should say: *"DALL-E blocked prompt due to safety filters. Switched to Abstract Prompt. Generated successfully."* or *"OpenAI Timeout. Generated using Stable Diffusion."*
+
+**EXECUTION:**
+1. Implement the `SmartImageGenerator` class with the Fallback logic.
+2. Implement the "Prompt Sanitizer" for legal topics.
+3. Rerun the failed articles.

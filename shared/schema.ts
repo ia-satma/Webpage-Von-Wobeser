@@ -96,6 +96,11 @@ export const news = pgTable("news", {
   category: text("category").default("press"),
   categoryEs: text("category_es").default("Prensa"),
   authorId: varchar("author_id"),
+  // Processing status tracking
+  processingStatus: text("processing_status").default("pending"), // pending, processing, ready, failed, partial_success
+  lastError: text("last_error"), // Stores the last error message/code for diagnostics
+  lastProcessedAt: timestamp("last_processed_at"),
+  failedStep: text("failed_step"), // Which step failed: format, categorize, metadata, seo, translate, image
 });
 
 export const newsCategories = [

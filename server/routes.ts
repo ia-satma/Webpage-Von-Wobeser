@@ -2836,14 +2836,32 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
         }
       }
 
-      // Calculate overall success
+      // Calculate overall success - IMAGE FAILURES DO NOT FAIL THE PIPELINE
+      // Core steps: format, categorize, metadata, seo, translate
+      // Optional step: image (failure = warning, not error)
+      const coreStepKeys = ['format', 'categorize', 'metadata', 'seo', 'translate'];
+      const coreSteps = coreStepKeys
+        .filter(key => pipelineResults.steps[key])
+        .map(key => ({ key, ...pipelineResults.steps[key] }));
+      
+      const successfulCoreSteps = coreSteps.filter(s => s.success).length;
+      const totalCoreSteps = coreSteps.length;
+      
+      // Image is optional - its failure is a warning, not an error
+      const imageStep = pipelineResults.steps.image;
+      const imageWarning = imageStep && !imageStep.success;
+      
       const stepResults = Object.values(pipelineResults.steps) as any[];
       const successfulSteps = stepResults.filter(s => s.success).length;
       pipelineResults.successfulSteps = successfulSteps;
       pipelineResults.totalSteps = stepResults.length;
-      pipelineResults.success = successfulSteps === stepResults.length;
+      
+      // SUCCESS = all core steps passed (image failure is acceptable)
+      pipelineResults.success = successfulCoreSteps === totalCoreSteps;
+      pipelineResults.partialSuccess = pipelineResults.success && imageWarning;
+      pipelineResults.imageWarning = imageWarning ? (imageStep?.error || 'Image generation failed') : null;
 
-      console.log(`[Pipeline] Completed: ${successfulSteps}/${stepResults.length} steps successful`);
+      console.log(`[Pipeline] Completed: ${successfulCoreSteps}/${totalCoreSteps} core steps successful${imageWarning ? ' (image warning)' : ''}`);
       
       // Broadcast completion
       broadcastPipelineProgress(articleId, {
