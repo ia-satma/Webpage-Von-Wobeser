@@ -1245,14 +1245,16 @@ export function getTranslations(language: string): SystemManifestTranslations {
 }
 
 export function getSystemStats() {
+  const all = getAllFeatures();
   return {
     totalAgents: AI_AGENTS.length,
     totalPublicModules: PUBLIC_MODULES.length,
     totalAdminModules: ADMIN_MODULES.length,
-    totalInfrastructure: INFRASTRUCTURE.length,
-    totalFeatures: getAllFeatures().length,
-    productionFeatures: getAllFeatures().filter(f => f.status === 'production').length,
-    betaFeatures: getAllFeatures().filter(f => f.status === 'beta').length,
+    totalInfrastructure: all.filter(f => f.category === 'infrastructure').length,
+    totalSecurity: all.filter(f => f.category === 'security').length,
+    totalFeatures: all.length,
+    productionFeatures: all.filter(f => f.status === 'production').length,
+    betaFeatures: all.filter(f => f.status === 'beta').length,
   };
 }
 
