@@ -1,0 +1,35 @@
+ACT AS A QA LEAD & FRONTEND ARCHITECT.
+**CRITICAL ISSUE:** We have a Data Integrity Failure.
+The documentation text claims "15 Agents", but the code/manifest likely lists only 11.
+The Client is seeing inconsistent numbers. This is unacceptable.
+
+**MISSION:** Synchronize the "Physical Reality" (Code) with the "Visible Reality" (UI).
+
+### STEP 1: THE PHYSICAL HEADCOUNT (No Hallucinations)
+Scan the directory `/services/agents` and `/services/core` (or wherever agent logic lives).
+**LIST THE FILES.**
+*Actual Count:* How many functional agents actually exist? (e.g., Scholar, Risk, Brand, Image, Polyglot, SEO, Auditor, etc.).
+*If we are short of 15, accept the REAL number (e.g., 13) and update the text. Do not lie.*
+
+### STEP 2: SINGLE SOURCE OF TRUTH (`systemManifest.ts`)
+Regenerate the `systemManifest` array based **strictly** on the physical files found in Step 1.
+* **Rule:** If the code exists, it goes in the Manifest. If it doesn't exist, remove it.
+* **Content:** Use the "High-End Corporate Spanish" descriptions we generated previously for each valid entry.
+
+### STEP 3: FRONTEND BINDING CHECK (`AdminGuide.tsx` / `NerveCenter.tsx`)
+I need to ensure the UI is **reading** from this manifest, not using hardcoded text.
+* Check the React Component that displays the "Platform Guide" or "Agent Status".
+* **Verify:** Is it doing `import { systemManifest } from ...`?
+* **Fix:** If it uses hardcoded `<div>`s or a separate array, **REFACTOR IT** to map directly through `systemManifest`.
+    * *Code pattern:* `systemManifest.map(agent => <AgentCard data={agent} />)`
+
+### STEP 4: VISUAL PROOF (Dynamic Badge)
+In the Dashboard Header or the Guide Section, add a Dynamic Counter Badge:
+* **Code:** `{systemManifest.length} Agentes Activos`
+* **Why:** This proves to me that the number I see on screen is mathematically tied to the data array.
+
+**EXECUTE:**
+1. List the real agents found.
+2. Fix the Manifest array.
+3. Bind the Frontend to the Manifest.
+4. Confirm the final count displayed on the UI.

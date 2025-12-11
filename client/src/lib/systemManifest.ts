@@ -196,7 +196,7 @@ export const AI_BRAIN_AGENTS: SystemFeature[] = [
 ];
 
 // ════════════════════════════════════════════════════════════════════════════════
-// 🤲 LAS MANOS - AGENTES DE EJECUCIÓN OPERATIVA (5 Agentes)
+// 🤲 LAS MANOS - AGENTES DE EJECUCIÓN OPERATIVA (4 Agentes)
 // ════════════════════════════════════════════════════════════════════════════════
 
 export const AI_HANDS_AGENTS: SystemFeature[] = [
@@ -285,22 +285,6 @@ export const AI_HANDS_AGENTS: SystemFeature[] = [
       model: 'gpt-4o',
       temperature: 0.2,
     },
-  },
-  {
-    id: 'vcard_generator',
-    category: 'ai_hands',
-    name: 'Generador de Tarjetas de Contacto Digital',
-    technicalName: 'VCardGenerator',
-    technicalDetail: 'Generación de vCards VCF 3.0 con nombre completo, organización (Von Wobeser y Sierra, S.C.), título profesional, email corporativo, teléfono, dirección (Torre SOMA Chapultepec), LinkedIn profile, foto URI. Etiquetas de descarga en 10 idiomas.',
-    userBenefit: 'Tarjetas de contacto profesionales descargables en un clic. Facilita el networking de los socios y establece presencia digital profesional instantánea.',
-    status: 'production',
-    keyCapabilities: [
-      'Formato VCF 3.0 estándar',
-      'Integración LinkedIn',
-      'Foto de perfil embebida',
-      'Descarga en 10 idiomas',
-      'Dirección corporativa oficial',
-    ],
   },
 ];
 
