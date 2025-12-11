@@ -1,20 +1,25 @@
 /**
- * SYSTEM MANIFEST - Living Documentation for Von Wobeser y Sierra Platform
- * 
- * This file contains the complete technical inventory of the AI-powered legal portal,
- * structured for the System Explorer UI in the Admin Dashboard.
- * 
- * Last Updated: December 2024
+ * ╔══════════════════════════════════════════════════════════════════════════════╗
+ * ║  SYSTEM MANIFEST - PLATAFORMA LEGAL INTELIGENTE VON WOBESER Y SIERRA        ║
+ * ║  "El Portal Jurídico más Avanzado de México" - Powered by AI Agents         ║
+ * ╠══════════════════════════════════════════════════════════════════════════════╣
+ * ║  Este documento contiene el inventario técnico completo del ecosistema       ║
+ * ║  de agentes autónomos, infraestructura de seguridad, y módulos públicos      ║
+ * ║  que conforman la plataforma digital de la Firma.                            ║
+ * ║                                                                               ║
+ * ║  Última Actualización: Diciembre 2024                                         ║
+ * ║  Versión del Manifest: 3.0 - "Sistema Nervioso Digital"                      ║
+ * ╚══════════════════════════════════════════════════════════════════════════════╝
  */
 
 export type SystemCategory = 
-  | 'ai_brain' 
-  | 'ai_hands' 
-  | 'ai_shield' 
-  | 'public_site' 
-  | 'admin_system' 
-  | 'security' 
-  | 'infrastructure';
+  | 'ai_brain'        // El Cerebro - Agentes de Decisión Estratégica
+  | 'ai_hands'        // Las Manos - Agentes de Ejecución Operativa
+  | 'ai_shield'       // El Escudo - Agentes de Protección y Auditoría
+  | 'infrastructure'  // Columna Vertebral - Infraestructura Crítica
+  | 'security'        // Bóveda Digital - Seguridad y Cumplimiento
+  | 'public_site'     // Vitrina Institucional - Portal Público
+  | 'admin_system';   // Centro de Mando - Administración Empresarial
 
 export type SystemStatus = 'production' | 'beta' | 'development';
 
@@ -60,65 +65,69 @@ export interface SystemManifestTranslations {
   };
 }
 
-// ============================================================================
-// AI AGENTS (13 Total)
-// ============================================================================
+// ════════════════════════════════════════════════════════════════════════════════
+// 🧠 EL CEREBRO - AGENTES DE DECISIÓN ESTRATÉGICA (6 Agentes)
+// ════════════════════════════════════════════════════════════════════════════════
 
-export const AI_AGENTS: SystemFeature[] = [
+export const AI_BRAIN_AGENTS: SystemFeature[] = [
   {
     id: 'orchestrator',
     category: 'ai_brain',
-    name: 'Central Orchestrator',
+    name: 'Centro Neuronal de Orquestación',
     technicalName: 'AgentOrchestrator',
-    technicalDetail: 'Priority queue management (Critical/High/Normal/Low), In-memory job queue with database persistence, Parallel agent execution coordination, Exponential backoff retry (2s base × 2 multiplier), Database sync on startup with resetInProgressJobsToPending()',
-    userBenefit: 'The central nervous system that prevents job conflicts, guarantees no lost work during server restarts, and enables 24/7 autonomous operation without human intervention.',
+    technicalDetail: 'Sistema nervioso central con cola de prioridad cuádruple (Crítico/Alto/Normal/Bajo), persistencia híbrida memoria-base de datos, coordinación paralela de agentes, reintento exponencial (2s × 2 multiplicador), recuperación automática de trabajos con resetInProgressJobsToPending() al reinicio.',
+    userBenefit: 'Operación autónoma 24/7 sin intervención humana. Garantiza cero pérdida de trabajos durante mantenimiento y previene conflictos entre agentes. El corazón que late incansablemente.',
     status: 'production',
     keyCapabilities: [
-      'Priority-based job scheduling',
-      'Automatic job recovery on restart',
-      'Parallel agent coordination',
-      'Real-time queue monitoring',
+      'Programación con prioridad cuádruple',
+      'Recuperación automática tras reinicio',
+      'Coordinación paralela de multi-agentes',
+      'Monitoreo en tiempo real de la cola',
+      'Sincronización bidireccional BD-Memoria',
     ],
     technicalSpecs: {
       processingInterval: '1000ms',
       priorityLevels: 4,
       retryPolicy: '2s base × 2 multiplier',
+      persistence: 'hybrid',
     },
   },
   {
-    id: 'polyglot_translator',
+    id: 'legal_council',
     category: 'ai_brain',
-    name: 'Polyglot Translator',
-    technicalName: 'PolyglotTranslatorAgent',
-    technicalDetail: 'GPT-4o with temperature 0.3, 10-language support (EN/ES/DE/ZH/KO/JA/AR/RU/FR/IT), Legal glossary injection from agentKnowledge table (500+ terms), Source language detection (Spanish priority), Translation caching in translationCache table',
-    userBenefit: 'Eliminates "Spanglish" by ensuring 100% translation coverage across all 10 languages. Reduces API costs by 90% via intelligent caching while maintaining legal precision.',
+    name: 'Consejo de Gobernanza Digital',
+    technicalName: 'LegalCouncilService',
+    technicalDetail: 'Protocolo de Arbitraje Algorítmico Asíncrono. Tres redes neuronales especializadas (Erudito Legal, Analista de Riesgo, Guardián de Marca) auditan cada contenido con Promise.allSettled para aislamiento a prueba de fallos. Esquema VoteResult con puntuación 0-100, inyección de Abstención Sistémica para agentes fallidos.',
+    userBenefit: 'Garantiza la **Soberanía Humana Total** mediante validación por pares algorítmicos. Cada artículo pasa por un tribunal de 3 jueces de IA antes de publicación, protegiendo la reputación institucional.',
     status: 'production',
     keyCapabilities: [
-      '10-language translation',
-      'Legal glossary with 500+ terms',
-      '90% cost reduction via caching',
-      'Legal terminology precision',
+      'Consejo de 3 agentes evaluadores',
+      'Puntuación de riesgo institucional',
+      'Votos individuales con razonamiento',
+      'Feedback consolidado para editores',
+      'Aislamiento a prueba de fallos',
     ],
     technicalSpecs: {
-      model: 'gpt-4o',
+      model: 'gpt-4o-mini',
       temperature: 0.3,
-      concurrency: 2,
-      languages: ['en', 'es', 'de', 'zh', 'ko', 'ja', 'ar', 'ru', 'fr', 'it'],
+      concurrency: 3,
+      agents: ['Legal Scholar', 'Risk Analyst', 'Brand Guardian'],
     },
   },
   {
     id: 'content_analyzer',
     category: 'ai_brain',
-    name: 'Content Analyzer',
+    name: 'Analizador de Inteligencia de Contenido',
     technicalName: 'ContentAnalyzerAgent',
-    technicalDetail: 'GPT-4o with JSON mode, Analyzes 18 legal branches + 15 industries, Spelling/grammar review with SpellingGrammarIssue schema, Lawyer mention extraction with context, SEO recommendations (keywords/title/meta/headings), Quality score 0-100',
-    userBenefit: 'Deep content intelligence enables SEO optimization, automatic categorization saves editor time, and quality scoring helps prioritize editorial work.',
+    technicalDetail: 'GPT-4o con modo JSON, análisis de 18 ramas jurídicas + 15 industrias, revisión ortográfica/gramatical con esquema SpellingGrammarIssue, extracción de menciones de abogados con contexto, recomendaciones SEO (keywords/título/meta/encabezados), puntuación de calidad 0-100.',
+    userBenefit: 'Inteligencia profunda que permite optimización SEO automática, categorización sin intervención editorial, y priorización de trabajo basada en puntuación de calidad. Reduce 80% del tiempo de clasificación manual.',
     status: 'production',
     keyCapabilities: [
-      'SEO keyword extraction',
-      '18 legal branch classification',
-      'Spelling & grammar review',
-      'Quality scoring (0-100)',
+      'Extracción de keywords SEO',
+      'Clasificación en 18 ramas jurídicas',
+      'Revisión ortográfica y gramatical',
+      'Puntuación de calidad (0-100)',
+      'Detección de menciones de abogados',
     ],
     technicalSpecs: {
       model: 'gpt-4o',
@@ -130,16 +139,17 @@ export const AI_AGENTS: SystemFeature[] = [
   {
     id: 'category_agent',
     category: 'ai_brain',
-    name: 'Category Agent',
+    name: 'Agente de Taxonomía Inteligente',
     technicalName: 'CategoryAgent',
-    technicalDetail: 'GPT-4o-mini with JSON mode, Maps to existing practiceGroups/industryGroups/blogCategories, 16 practice areas + 7 industry sectors, Tag generation (5 tags per article), Confidence scoring, Automatic category creation if needed',
-    userBenefit: 'Eliminates manual tagging work, ensures consistent taxonomy across all content, and improves content discoverability through intelligent categorization.',
+    technicalDetail: 'GPT-4o-mini con modo JSON, mapeo a practiceGroups/industryGroups/blogCategories existentes, 16 áreas de práctica + 7 sectores industriales, generación de 5 tags por artículo, puntuación de confianza, creación automática de categorías nuevas.',
+    userBenefit: 'Elimina el trabajo manual de etiquetado, asegura taxonomía consistente en todo el contenido, y mejora la descubribilidad mediante categorización inteligente basada en contexto legal.',
     status: 'production',
     keyCapabilities: [
-      'Auto-categorization',
-      '16 practice areas mapping',
-      '7 industry sectors mapping',
-      '5 SEO tags per article',
+      'Auto-categorización contextual',
+      'Mapeo a 16 áreas de práctica',
+      'Mapeo a 7 sectores industriales',
+      '5 tags SEO por artículo',
+      'Creación dinámica de categorías',
     ],
     technicalSpecs: {
       model: 'gpt-4o-mini',
@@ -150,16 +160,17 @@ export const AI_AGENTS: SystemFeature[] = [
   {
     id: 'metadata_linker',
     category: 'ai_brain',
-    name: 'Metadata Linker',
+    name: 'Vinculador de Metadatos Relacionales',
     technicalName: 'MetadataLinkerAgent',
-    technicalDetail: 'GPT-4o, Author pattern extraction → lastName fuzzy match via ilike, Practice area slug matching, Industry group slug matching, Relationship creation in newsTeamMembers junction table',
-    userBenefit: 'Automatic content-to-author attribution, cross-links articles to practice areas, enhances internal linking for improved SEO performance.',
+    technicalDetail: 'GPT-4o, extracción de patrones de autor → coincidencia fuzzy por apellido vía ilike, matching de slugs de áreas de práctica, matching de slugs de grupos industriales, creación de relaciones en tabla de unión newsTeamMembers.',
+    userBenefit: 'Atribución automática contenido-autor, enlaces cruzados entre artículos y áreas de práctica, mejora del SEO mediante internal linking inteligente. Los socios aparecen vinculados automáticamente a sus publicaciones.',
     status: 'production',
     keyCapabilities: [
-      'Author auto-detection',
-      'Practice area linking',
-      'Industry group linking',
-      'SEO internal linking',
+      'Auto-detección de autores',
+      'Vinculación a áreas de práctica',
+      'Vinculación a grupos industriales',
+      'Internal linking para SEO',
+      'Matching fuzzy de nombres',
     ],
     technicalSpecs: {
       model: 'gpt-4o',
@@ -167,39 +178,87 @@ export const AI_AGENTS: SystemFeature[] = [
     },
   },
   {
-    id: 'image_suggestion',
-    category: 'ai_hands',
-    name: 'Smart Image Generator',
-    technicalName: 'ImageSuggestionAgent + SmartImageGenerator',
-    technicalDetail: 'DALL-E 3 primary → Gemini 2.5 Flash fallback → Placeholder guarantee, Content policy sanitization (28 sensitive legal terms → abstract replacements), Brand color injection (#AA1A2E), Logo overlay with Sharp library (150px logo on white bg, bottom-right)',
-    userBenefit: 'Prevents article publication blocks from AI censorship, ensures 100% visual asset uptime with multi-engine fallback, and maintains brand consistency automatically.',
+    id: 'system_chronicler',
+    category: 'ai_brain',
+    name: 'Cronista del Sistema Evolutivo',
+    technicalName: 'SystemChronicler',
+    technicalDetail: 'Meta-agente con registro de 14 tarjetas de capacidad, agrupación por categoría (cerebro/manos/escudo), tracking de nivel de evolución (1-5), monitoreo de estado (activo/dormido/evolucionando), persistencia JSON (system_evolution.json).',
+    userBenefit: 'Sistema auto-documentado que habilita la visualización del Centro Nervioso en Vivo y rastrea la historia de evolución de agentes para insights de mejora continua.',
     status: 'production',
     keyCapabilities: [
-      '3-tier engine fallback',
-      '28-term content sanitization',
-      'Brand logo overlay',
-      '100% image guarantee',
+      'Registro de 14 agentes',
+      'Tracking de evolución (1-5)',
+      'Monitoreo de estado en tiempo real',
+      'Persistencia de historia',
+      'Auto-documentación del sistema',
+    ],
+  },
+];
+
+// ════════════════════════════════════════════════════════════════════════════════
+// 🤲 LAS MANOS - AGENTES DE EJECUCIÓN OPERATIVA (5 Agentes)
+// ════════════════════════════════════════════════════════════════════════════════
+
+export const AI_HANDS_AGENTS: SystemFeature[] = [
+  {
+    id: 'polyglot_translator',
+    category: 'ai_hands',
+    name: 'Motor Neuronal de Localización Semántica',
+    technicalName: 'PolyglotTranslatorAgent',
+    technicalDetail: 'GPT-4o con temperatura 0.3, soporte para 10 jurisdicciones lingüísticas (EN/ES/DE/ZH/KO/JA/AR/RU/FR/IT), inyección de glosario jurídico desde tabla agentKnowledge (500+ términos), detección de idioma fuente (prioridad español), caché de traducciones en tabla translationCache.',
+    userBenefit: 'Barreras de contención anti-"Spanglish" que garantizan 100% de cobertura en los 10 idiomas. Reduce costos de API 90% vía caché inteligente mientras mantiene precisión jurídica impecable.',
+    status: 'production',
+    keyCapabilities: [
+      'Traducción a 10 jurisdicciones',
+      'Glosario legal con 500+ términos',
+      'Reducción de costos 90% vía caché',
+      'Precisión terminológica jurídica',
+      'Detección automática de idioma fuente',
+    ],
+    technicalSpecs: {
+      model: 'gpt-4o',
+      temperature: 0.3,
+      concurrency: 2,
+      languages: ['en', 'es', 'de', 'zh', 'ko', 'ja', 'ar', 'ru', 'fr', 'it'],
+    },
+  },
+  {
+    id: 'smart_image_generator',
+    category: 'ai_hands',
+    name: 'Sintetizador Visual con Escudo Legal',
+    technicalName: 'SmartImageGenerator + ImageSuggestionAgent',
+    technicalDetail: 'DALL-E 3 primario → Gemini 2.5 Flash fallback → Placeholder garantizado. Sanitización de políticas de contenido (28 términos legales sensibles → reemplazos abstractos), inyección de color de marca (#AA1A2E), overlay de logo con Sharp (150px sobre fondo blanco, esquina inferior derecha).',
+    userBenefit: 'Generación gráfica con "Sanitización Legal" que reinterpreta conceptos sensibles para asegurar integridad institucional. Previene bloqueos de publicación por censura de IA y garantiza 100% de uptime visual.',
+    status: 'production',
+    keyCapabilities: [
+      'Fallback de 3 motores de imagen',
+      'Sanitización de 28 términos sensibles',
+      'Overlay automático de logo VWS',
+      'Garantía 100% de generación',
+      'Inyección de paleta corporativa',
     ],
     technicalSpecs: {
       primaryEngine: 'DALL-E 3',
       fallbackEngine: 'Gemini 2.5 Flash',
       sanitizedTerms: 28,
       logoSize: '150px',
+      brandColor: '#AA1A2E',
     },
   },
   {
     id: 'seo_optimizer',
     category: 'ai_hands',
-    name: 'SEO Optimizer',
+    name: 'Agente de Posicionamiento Orgánico',
     technicalName: 'SEOOptimizerAgent',
-    technicalDetail: 'GPT-4o, Title optimization (50-60 chars), Meta description generation (150-160 chars), Slug suggestion (3-5 keywords), Bilingual keyword extraction (EN/ES), SEO score calculation with improvement delta',
-    userBenefit: 'Search engine visibility optimization with measurable SEO improvement per article. Bilingual keyword strategy ensures visibility in both English and Spanish searches.',
+    technicalDetail: 'GPT-4o, optimización de título (50-60 caracteres), generación de meta descripción (150-160 caracteres), sugerencia de slug (3-5 keywords), extracción de keywords bilingüe (EN/ES), cálculo de puntuación SEO con delta de mejora.',
+    userBenefit: 'Visibilidad de mercado maximizada mediante optimización automática para motores de búsqueda. Estrategia bilingüe de keywords asegura visibilidad en búsquedas en inglés y español.',
     status: 'production',
     keyCapabilities: [
-      'Title optimization (50-60 chars)',
+      'Optimización de título (50-60 chars)',
       'Meta descriptions (150-160 chars)',
-      'Bilingual keywords',
-      'SEO score tracking',
+      'Keywords bilingües EN/ES',
+      'Tracking de puntuación SEO',
+      'Sugerencia de slugs semánticos',
     ],
     technicalSpecs: {
       model: 'gpt-4o',
@@ -210,16 +269,17 @@ export const AI_AGENTS: SystemFeature[] = [
   {
     id: 'formatter',
     category: 'ai_hands',
-    name: 'Article Formatter',
+    name: 'Formateador de Contenido Jurídico',
     technicalName: 'FormatterAgent',
-    technicalDetail: 'GPT-4o with temperature 0.2, PDF artifact removal (page markers, footers, boilerplate), Pre-clean regex (Von Wobeser address, page numbers), Paragraph merge/split logic, Excerpt extraction (first 2-3 sentences)',
-    userBenefit: 'Transforms raw PDF extracts into publication-ready content, eliminates manual formatting work, and preserves legal accuracy while improving readability.',
+    technicalDetail: 'GPT-4o con temperatura 0.2, eliminación de artefactos PDF (marcadores de página, pies, boilerplate), pre-limpieza regex (dirección Von Wobeser, números de página), lógica de merge/split de párrafos, extracción de excerpt (primeras 2-3 oraciones).',
+    userBenefit: 'Transforma extractos crudos de PDF en contenido listo para publicación, elimina trabajo manual de formateo, y preserva precisión legal mientras mejora legibilidad.',
     status: 'production',
     keyCapabilities: [
-      'PDF artifact removal',
-      'Paragraph restructuring',
-      'Excerpt generation',
-      'Boilerplate cleaning',
+      'Eliminación de artefactos PDF',
+      'Reestructuración de párrafos',
+      'Generación automática de excerpt',
+      'Limpieza de boilerplate',
+      'Preservación de precisión legal',
     ],
     technicalSpecs: {
       model: 'gpt-4o',
@@ -227,37 +287,62 @@ export const AI_AGENTS: SystemFeature[] = [
     },
   },
   {
-    id: 'auto_recovery',
-    category: 'ai_shield',
-    name: 'Auto-Recovery System',
-    technicalName: 'AutoRecoveryAgent',
-    technicalDetail: 'Scans for processingStatus=failed|error, Detects failedStep field (image/translate/seo/metadata/format), Autonomous retry with agent delegation, Placeholder assignment for irrecoverable items, Recovery audit trail in RecoveryResult objects',
-    userBenefit: 'Self-healing system reduces manual intervention to zero. Prevents content from being stuck indefinitely, guaranteeing no zombie articles in the pipeline.',
+    id: 'vcard_generator',
+    category: 'ai_hands',
+    name: 'Generador de Tarjetas de Contacto Digital',
+    technicalName: 'VCardGenerator',
+    technicalDetail: 'Generación de vCards VCF 3.0 con nombre completo, organización (Von Wobeser y Sierra, S.C.), título profesional, email corporativo, teléfono, dirección (Torre SOMA Chapultepec), LinkedIn profile, foto URI. Etiquetas de descarga en 10 idiomas.',
+    userBenefit: 'Tarjetas de contacto profesionales descargables en un clic. Facilita el networking de los socios y establece presencia digital profesional instantánea.',
     status: 'production',
     keyCapabilities: [
-      'Failed article detection',
-      'Autonomous retry logic',
-      'Placeholder fallback',
-      'Recovery audit trail',
+      'Formato VCF 3.0 estándar',
+      'Integración LinkedIn',
+      'Foto de perfil embebida',
+      'Descarga en 10 idiomas',
+      'Dirección corporativa oficial',
+    ],
+  },
+];
+
+// ════════════════════════════════════════════════════════════════════════════════
+// 🛡️ EL ESCUDO - AGENTES DE PROTECCIÓN Y AUDITORÍA (4 Agentes)
+// ════════════════════════════════════════════════════════════════════════════════
+
+export const AI_SHIELD_AGENTS: SystemFeature[] = [
+  {
+    id: 'auto_recovery',
+    category: 'ai_shield',
+    name: 'Arquitectura de Auto-Curación (Self-Healing)',
+    technicalName: 'AutoRecoveryAgent',
+    technicalDetail: 'Escaneo de processingStatus=failed|error, detección de campo failedStep (image/translate/seo/metadata/format), reintento autónomo con delegación a agente especializado, asignación de placeholder para ítems irrecuperables, registro de auditoría en objetos RecoveryResult.',
+    userBenefit: 'Resiliencia operativa que reduce intervención manual a cero. Previene contenido estancado indefinidamente, garantizando cero artículos zombie en el pipeline.',
+    status: 'production',
+    keyCapabilities: [
+      'Detección de artículos fallidos',
+      'Lógica de reintento autónomo',
+      'Fallback a placeholders',
+      'Registro de auditoría de recuperación',
+      'Delegación inteligente a agentes',
     ],
     technicalSpecs: {
       scanInterval: 'On-demand',
-      failedSteps: ['image', 'translate', 'seo', 'metadata', 'format'],
+      failedSteps: ['image', 'translate', 'seo', 'metadata', 'format', 'council'],
     },
   },
   {
     id: 'system_health',
     category: 'ai_shield',
-    name: 'System Health Monitor',
+    name: 'Monitor de Salud Sistémica',
     technicalName: 'SystemHealthCheck',
-    technicalDetail: 'Deep audit across 5 issue types (zombie_process/incomplete_success/localization_leakage/orphaned_asset/missing_translation), Language detection via regex density scoring, Zombie detection: jobs stuck >10min in in_progress, Weighted health score (critical=10, high=5, medium=2, low=1)',
-    userBenefit: 'Real-time system integrity monitoring with proactive issue detection before user impact. Quantified health score enables SLA reporting and system confidence metrics.',
+    technicalDetail: 'Auditoría profunda de 5 tipos de issue (zombie_process/incomplete_success/localization_leakage/orphaned_asset/missing_translation), detección de idioma vía scoring de densidad regex, detección zombie: trabajos >10min en in_progress, puntuación de salud ponderada (critical=10, high=5, medium=2, low=1).',
+    userBenefit: 'Telemetría operativa en tiempo real con detección proactiva de issues antes de impacto al usuario. Puntuación de salud cuantificada habilita reportes SLA y métricas de confianza del sistema.',
     status: 'production',
     keyCapabilities: [
-      'Zombie process detection (>10min)',
-      'Localization leakage scanning',
-      'Orphaned asset detection',
-      'Health score calculation',
+      'Detección de procesos zombie (>10min)',
+      'Escaneo de contaminación de idiomas',
+      'Detección de assets huérfanos',
+      'Cálculo de puntuación de salud',
+      '5 tipos de diagnóstico',
     ],
     technicalSpecs: {
       issueTypes: 5,
@@ -268,16 +353,17 @@ export const AI_AGENTS: SystemFeature[] = [
   {
     id: 'content_auditor',
     category: 'ai_shield',
-    name: 'Content Auditor',
+    name: 'Auditor de Completitud de Contenido',
     technicalName: 'ContentAuditorAgent',
-    technicalDetail: 'Full database scan for content gaps, 5 gap types (missing_translation/missing_author/poor_formatting/missing_excerpt/short_content), Severity prioritization (high→medium→low), Task suggestion generation for remediation',
-    userBenefit: 'Content completeness guarantee that identifies editorial gaps before publication and generates actionable remediation tasks automatically.',
+    technicalDetail: 'Escaneo completo de base de datos para gaps de contenido, 5 tipos de gap (missing_translation/missing_author/poor_formatting/missing_excerpt/short_content), priorización por severidad (high→medium→low), generación de tareas de remediación.',
+    userBenefit: 'Garantía de completitud de contenido que identifica gaps editoriales antes de publicación y genera tareas de remediación accionables automáticamente.',
     status: 'production',
     keyCapabilities: [
-      '5 gap type detection',
-      'Translation coverage audit',
-      'Author linkage audit',
-      'Task generation',
+      'Detección de 5 tipos de gap',
+      'Auditoría de cobertura de traducción',
+      'Auditoría de vinculación de autores',
+      'Generación de tareas',
+      'Priorización por severidad',
     ],
     technicalSpecs: {
       model: 'gpt-4o',
@@ -288,753 +374,817 @@ export const AI_AGENTS: SystemFeature[] = [
   {
     id: 'website_auditor',
     category: 'ai_shield',
-    name: 'Website Auditor',
+    name: 'Auditor de Calidad Web Integral',
     technicalName: 'WebsiteAuditorAgent',
-    technicalDetail: '6 audit modules (links/navigation/translations/performance/seo/content), Multi-entity scanning (team_members/news/practice_groups/industry_groups), Severity classification (critical/high/medium/low), Findings persistence with remediation job linking',
-    userBenefit: 'Comprehensive website quality assurance that replaces manual testing. Automated QA with issue-to-fix pipeline automation.',
+    technicalDetail: '6 módulos de auditoría (links/navigation/translations/performance/seo/content), escaneo multi-entidad (team_members/news/practice_groups/industry_groups), clasificación de severidad (critical/high/medium/low), persistencia de hallazgos con vinculación a jobs de remediación.',
+    userBenefit: 'Aseguramiento de calidad web comprehensivo que reemplaza testing manual. QA automatizado con pipeline de issue-to-fix integrado.',
     status: 'production',
     keyCapabilities: [
-      '6 audit modules',
-      'Multi-entity scanning',
-      'Severity classification',
-      'Remediation linking',
+      '6 módulos de auditoría',
+      'Escaneo multi-entidad',
+      'Clasificación de severidad',
+      'Vinculación a remediación',
+      'Persistencia de hallazgos',
     ],
   },
+];
+
+// ════════════════════════════════════════════════════════════════════════════════
+// 🔐 BÓVEDA DIGITAL - INFRAESTRUCTURA DE SEGURIDAD (7 Módulos)
+// ════════════════════════════════════════════════════════════════════════════════
+
+export const SECURITY_INFRASTRUCTURE: SystemFeature[] = [
   {
-    id: 'system_chronicler',
-    category: 'ai_brain',
-    name: 'System Chronicler',
-    technicalName: 'SystemChronicler',
-    technicalDetail: 'Meta-agent registry with 11 capability cards, Category grouping (brain/hands/shield), Evolution level tracking (1-5), Status tracking (active/dormant/evolving), JSON file persistence (system_evolution.json)',
-    userBenefit: 'Self-documenting system that enables the Live Nerve Center visualization and tracks agent evolution history for continuous improvement insights.',
+    id: 'rate_limiter',
+    category: 'security',
+    name: 'Guardián de Tasa de Peticiones',
+    technicalName: 'RateLimitMiddleware',
+    technicalDetail: 'Rate limiting por IP/identifier con ventana de 15 minutos (WINDOW_MS), máximo 5 intentos (MAX_ATTEMPTS), bloqueo de 30 minutos (BLOCK_DURATION_MS), limpieza automática de entradas expiradas cada hora, registro de intentos con timestamp.',
+    userBenefit: 'Protección contra ataques de fuerza bruta y abuso de endpoints. Garantiza disponibilidad del servicio y protege credenciales de usuarios.',
     status: 'production',
     keyCapabilities: [
-      'Agent registry',
-      'Evolution tracking',
-      'Status monitoring',
-      'History persistence',
-    ],
-  },
-  {
-    id: 'legal_council',
-    category: 'ai_brain',
-    name: 'Legal Council',
-    technicalName: 'LegalCouncilService',
-    technicalDetail: '3-agent council (Legal Scholar, Risk Analyst, Brand Guardian), Promise.allSettled for fail-safe isolation, VoteResult schema with score 0-100, System Abstention injection for failed agents, CouncilVerdict with overallStatus/riskFlag/consolidatedFeedback',
-    userBenefit: 'Human-in-the-loop quality control ensuring every article passes multi-agent review before publication. Provides risk scoring and actionable feedback for editors.',
-    status: 'production',
-    keyCapabilities: [
-      '3-agent evaluation council',
-      'Fail-safe vote handling',
-      'Risk flag classification',
-      'Consolidated feedback generation',
+      'Ventana de 15 minutos',
+      'Máximo 5 intentos',
+      'Bloqueo automático 30 minutos',
+      'Limpieza horaria de entradas',
+      'Tracking por identificador',
     ],
     technicalSpecs: {
-      model: 'gpt-4o-mini',
-      temperature: 0.3,
-      concurrency: 3,
-      agents: ['Legal Scholar', 'Risk Analyst', 'Brand Guardian'],
+      windowMs: 900000,
+      maxAttempts: 5,
+      blockDurationMs: 1800000,
+      cleanupInterval: 3600000,
+    },
+  },
+  {
+    id: 'auth_system',
+    category: 'security',
+    name: 'Bastión de Autenticación Empresarial',
+    technicalName: 'AuthMiddleware + SessionManager',
+    technicalDetail: 'Hashing bcrypt con 12 rondas de sal (SALT_ROUNDS), tokens de sesión de 32 bytes (TOKEN_BYTES), duración de sesión 24 horas, validación Bearer token, verificación de expiración, attach de usuario a request, logout automático de sesiones inválidas.',
+    userBenefit: 'Seguridad de grado empresarial para protección de acceso administrativo. Tokens criptográficamente seguros y sesiones con expiración automática.',
+    status: 'production',
+    keyCapabilities: [
+      'Bcrypt 12 rondas de sal',
+      'Tokens de 256 bits',
+      'Sesiones de 24 horas',
+      'Validación Bearer estándar',
+      'Limpieza automática de sesiones',
+    ],
+    technicalSpecs: {
+      saltRounds: 12,
+      tokenBytes: 32,
+      sessionDurationHours: 24,
+    },
+  },
+  {
+    id: 'zod_validation',
+    category: 'security',
+    name: 'Bóveda de Integridad de Datos',
+    technicalName: 'ZodSchemaValidation',
+    technicalDetail: 'Validación estricta de esquemas con Zod + drizzle-zod, 45+ schemas de inserción (insertNewsSchema, insertTeamMemberSchema, etc.), validación de tipos en runtime, mensajes de error estructurados, integración con formularios react-hook-form.',
+    userBenefit: 'Validación estricta de esquemas que previene datos malformados. Protección contra inyección de datos maliciosos y garantía de integridad de base de datos.',
+    status: 'production',
+    keyCapabilities: [
+      '45+ schemas de validación',
+      'Validación en runtime',
+      'Mensajes de error estructurados',
+      'Integración con formularios',
+      'Type-safety end-to-end',
+    ],
+    technicalSpecs: {
+      schemas: 45,
+      integration: 'drizzle-zod',
+    },
+  },
+  {
+    id: 'multer_security',
+    category: 'security',
+    name: 'Centinela de Carga de Archivos',
+    technicalName: 'MulterSecurityMiddleware',
+    technicalDetail: 'Límite de 10MB por archivo, filtro de MIME types permitidos (image/jpeg, image/png, image/gif, image/webp, image/svg+xml, application/pdf), nombrado único con crypto.randomBytes(8), almacenamiento en directorio uploads con creación automática.',
+    userBenefit: 'Protección contra carga de archivos maliciosos. Previene ataques de upload y garantiza que solo archivos seguros ingresen al sistema.',
+    status: 'production',
+    keyCapabilities: [
+      'Límite 10MB por archivo',
+      '6 MIME types permitidos',
+      'Nombrado criptográfico único',
+      'Validación de tipo de archivo',
+      'Directorio seguro de uploads',
+    ],
+    technicalSpecs: {
+      maxFileSize: '10MB',
+      allowedTypes: ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml', 'application/pdf'],
+    },
+  },
+  {
+    id: 'websocket_security',
+    category: 'security',
+    name: 'Canal Seguro de Comunicación en Tiempo Real',
+    technicalName: 'WebSocketSecurityLayer',
+    technicalDetail: 'WebSocket server en /ws/pipeline, heartbeat cada 30 segundos para detección de conexiones obsoletas, limpieza automática de clientes desconectados, broadcast a todos los clientes conectados, confirmación de conexión con clientId único.',
+    userBenefit: 'Comunicación bidireccional segura para actualizaciones de progreso de pipeline en tiempo real. Experiencia de usuario fluida sin polling.',
+    status: 'production',
+    keyCapabilities: [
+      'Heartbeat cada 30 segundos',
+      'Limpieza automática de stale',
+      'Broadcast a múltiples clientes',
+      'ClientId único por conexión',
+      'Detección de desconexión',
+    ],
+    technicalSpecs: {
+      path: '/ws/pipeline',
+      heartbeatInterval: 30000,
+    },
+  },
+  {
+    id: 'content_sanitizer',
+    category: 'security',
+    name: 'Escudo de Sanitización de Contenido',
+    technicalName: 'ContentSanitizationLayer',
+    technicalDetail: 'Sanitización de 28 términos legales sensibles para generación de imágenes (harassment, corruption, violence, etc.), reemplazos abstractos ("corruption" → "transparency and corporate governance"), inyección de contexto profesional positivo.',
+    userBenefit: 'Protección de la imagen institucional mediante filtrado inteligente de conceptos que podrían generar visuales inapropiados. Preserva la elegancia corporativa.',
+    status: 'production',
+    keyCapabilities: [
+      '28 términos sensibles filtrados',
+      'Reemplazos semánticos abstractos',
+      'Contexto corporativo positivo',
+      'Log de cambios transparente',
+      'Preservación de intención legal',
+    ],
+    technicalSpecs: {
+      sensitiveTerms: 28,
+      replacements: 14,
+    },
+  },
+  {
+    id: 'database_persistence',
+    category: 'security',
+    name: 'Persistencia de Datos con Tolerancia a Fallos',
+    technicalName: 'DatabasePersistence + DrizzleORM',
+    technicalDetail: 'PostgreSQL serverless (Neon), Drizzle ORM con type-safety completo, JSONB para estructuras flexibles (councilVerdict, metadata), timestamps automáticos, foreign keys con cascade delete, índices optimizados.',
+    userBenefit: 'Almacenamiento empresarial con cero pérdida de datos. Escalabilidad automática y backups transparentes. Base sólida para operación crítica.',
+    status: 'production',
+    keyCapabilities: [
+      'PostgreSQL serverless',
+      'Type-safety con Drizzle',
+      'JSONB para estructuras flexibles',
+      'Cascade delete automático',
+      'Índices optimizados',
+    ],
+    technicalSpecs: {
+      provider: 'Neon',
+      orm: 'Drizzle',
     },
   },
 ];
 
-// ============================================================================
-// PUBLIC SITE MODULES (27 Total)
-// ============================================================================
+// ════════════════════════════════════════════════════════════════════════════════
+// 🏗️ COLUMNA VERTEBRAL - INFRAESTRUCTURA CRÍTICA (8 Módulos)
+// ════════════════════════════════════════════════════════════════════════════════
+
+export const CORE_INFRASTRUCTURE: SystemFeature[] = [
+  {
+    id: 'agent_knowledge_store',
+    category: 'infrastructure',
+    name: 'Repositorio de Conocimiento Institucional',
+    technicalName: 'AgentKnowledgeStore',
+    technicalDetail: 'Almacenamiento persistente de conocimiento de agentes en tabla agentKnowledge, glosario legal con 500+ términos, búsqueda por agentType/category/query, contador de uso para ranking de relevancia, metadata JSONB para extensibilidad.',
+    userBenefit: 'Memoria institucional compartida entre todos los agentes. El conocimiento legal se acumula y mejora con cada uso, creando ventaja competitiva creciente.',
+    status: 'production',
+    keyCapabilities: [
+      'Glosario legal 500+ términos',
+      'Búsqueda por categoría/query',
+      'Contador de uso',
+      'Metadata extensible',
+      'Memoria compartida inter-agente',
+    ],
+  },
+  {
+    id: 'pcloud_sync',
+    category: 'infrastructure',
+    name: 'Sincronización en la Nube Persistente',
+    technicalName: 'PCloudStorage',
+    technicalDetail: 'Autenticación OAuth con pCloud, sincronización bidireccional de conocimiento y evolución, path base /VonWobeser/agents, upload multipart, listado de archivos con metadata, tolerancia a fallos de red.',
+    userBenefit: 'Persistencia de conocimiento de agentes a través de sesiones y reinicios. El aprendizaje nunca se pierde.',
+    status: 'production',
+    keyCapabilities: [
+      'Autenticación OAuth',
+      'Sync bidireccional',
+      'Upload multipart',
+      'Tolerancia a fallos',
+      'Persistencia cross-session',
+    ],
+    technicalSpecs: {
+      basePath: '/VonWobeser/agents',
+      provider: 'pCloud',
+    },
+  },
+  {
+    id: 'translation_cache',
+    category: 'infrastructure',
+    name: 'Acelerador de Entrega de Traducciones',
+    technicalName: 'TranslationCacheLayer',
+    technicalDetail: 'Caché de traducciones en tabla translationCache con clave única (contentType, entityId, targetLanguage), invalidación selectiva por entidad, reducción 90% de llamadas API, hook useTranslatedContent con fallback a API, persistencia permanente.',
+    userBenefit: 'Latencia cero para traducciones previamente generadas. Reduce costos de API 90% y acelera experiencia de usuario dramáticamente.',
+    status: 'production',
+    keyCapabilities: [
+      'Caché por entidad/idioma',
+      'Reducción 90% llamadas API',
+      'Invalidación selectiva',
+      'Persistencia permanente',
+      'Fallback automático a API',
+    ],
+    technicalSpecs: {
+      cacheHitRate: '90%',
+      keyFormat: 'contentType:entityId:language',
+    },
+  },
+  {
+    id: 'job_queue',
+    category: 'infrastructure',
+    name: 'Orquestador de Procesos en Lote',
+    technicalName: 'AgentJobQueue',
+    technicalDetail: 'Gestión de carga masiva mediante hilos de ejecución aislados (Sandboxing), cola de prioridad cuádruple, persistencia en tabla agentJobs, status tracking (pending/in_progress/completed/failed), retry automático con backoff exponencial, parent-child job linking.',
+    userBenefit: 'Procesamiento simultáneo de altos volúmenes de datos sin comprometer la latencia. Cada trabajo está aislado para prevenir efectos cascada.',
+    status: 'production',
+    keyCapabilities: [
+      'Cola de prioridad cuádruple',
+      'Sandboxing de ejecución',
+      'Retry con backoff exponencial',
+      'Parent-child job linking',
+      'Status tracking en tiempo real',
+    ],
+    technicalSpecs: {
+      priorities: ['critical', 'high', 'normal', 'low'],
+      maxRetries: 3,
+      backoffBase: 2000,
+    },
+  },
+  {
+    id: 'evolution_tracker',
+    category: 'infrastructure',
+    name: 'Sistema de Evolución de Agentes',
+    technicalName: 'AgentEvolutionTracker',
+    technicalDetail: 'Tracking de skills por agente con expertise level (1-5), success rate percentage, last used timestamp, propuestas de evolución en tabla agentEvolutionProposals con status (pending/approved/rejected), aprendizaje de patrones de éxito.',
+    userBenefit: 'Los agentes mejoran continuamente basándose en su rendimiento histórico. Sistema de propuestas permite validación humana de cambios evolutivos.',
+    status: 'production',
+    keyCapabilities: [
+      'Tracking de expertise (1-5)',
+      'Success rate por skill',
+      'Propuestas de evolución',
+      'Validación humana',
+      'Aprendizaje de patrones',
+    ],
+  },
+  {
+    id: 'geolocation_detector',
+    category: 'infrastructure',
+    name: 'Detector Geográfico de Idioma',
+    technicalName: 'GeolocationLanguageDetector',
+    technicalDetail: 'Endpoint /api/detect-language con ip-api.com, mapeo país→idioma para 40+ países (MX→es, DE→de, CN→zh, etc.), fallback a español para países no mapeados, localStorage persistence (vwb_language), HTML lang attribute update.',
+    userBenefit: 'Experiencia personalizada desde el primer visit. Visitantes ven contenido en su idioma sin configuración manual.',
+    status: 'production',
+    keyCapabilities: [
+      'Detección IP automática',
+      'Mapeo 40+ países',
+      'Fallback inteligente',
+      'Persistencia en localStorage',
+      'Update de lang attribute',
+    ],
+    technicalSpecs: {
+      provider: 'ip-api.com',
+      countries: 40,
+      fallback: 'es',
+    },
+  },
+  {
+    id: 'static_asset_server',
+    category: 'infrastructure',
+    name: 'Servidor de Assets Estáticos Optimizado',
+    technicalName: 'StaticAssetMiddleware',
+    technicalDetail: 'Rutas estáticas para /partner_photos, /associate_photos, /of_counsel_photos, /generated-images, servicio desde attached_assets y public, generación de rutas con path.join seguro.',
+    userBenefit: 'Entrega rápida de imágenes de equipo y assets generados. Estructura organizada por categoría de miembro.',
+    status: 'production',
+    keyCapabilities: [
+      '4 rutas de fotos',
+      'Imágenes generadas por IA',
+      'Path seguro',
+      'Estructura categorizada',
+      'Entrega optimizada',
+    ],
+  },
+  {
+    id: 'pipeline_broadcaster',
+    category: 'infrastructure',
+    name: 'Difusor de Progreso de Pipeline',
+    technicalName: 'PipelineProgressBroadcaster',
+    technicalDetail: 'WebSocket broadcast en tiempo real a todos los clientes conectados, payload estructurado (articleId, step, status, language, progress, message), timestamp automático, map de clientes activos con limpieza.',
+    userBenefit: 'Visibilidad total del progreso de procesamiento de artículos. Los editores ven cada paso del pipeline en vivo.',
+    status: 'production',
+    keyCapabilities: [
+      'Broadcast en tiempo real',
+      'Payload estructurado',
+      'Tracking por artículo',
+      'Múltiples clientes simultáneos',
+      'Limpieza automática',
+    ],
+  },
+];
+
+// ════════════════════════════════════════════════════════════════════════════════
+// 🌐 VITRINA INSTITUCIONAL - MÓDULOS PÚBLICOS (27 Módulos)
+// ════════════════════════════════════════════════════════════════════════════════
 
 export const PUBLIC_MODULES: SystemFeature[] = [
   {
-    id: 'team_directory',
+    id: 'multi_language_system',
     category: 'public_site',
-    name: 'Team Directory',
-    technicalName: 'Team.tsx + TeamMemberDetail.tsx',
-    technicalDetail: 'Dynamic filtering by practice/industry, vCard generation with 10-language download labels, Cross-linking to related news articles, Education/Affiliation/Ranking/Publication sections, Representative matters display, Avatar with initials fallback',
-    userBenefit: 'Complete lawyer profiles with professional credentials, downloadable contact cards, and automatic cross-references to their work. Builds trust with potential clients.',
+    name: 'Sistema Multilingüe de Jurisdicciones',
+    technicalName: 'LanguageContext + i18n + useTranslatedContent',
+    technicalDetail: '10 jurisdicciones lingüísticas (EN/ES/DE/ZH/KO/JA/AR/RU/FR/IT), hook useTranslatedContent con ciclo cache/mutation, verificación isNativeLanguage() (ES = nativo), detección IP geolocation, persistencia localStorage, integración i18next, RTL para árabe.',
+    userBenefit: 'Cobertura 100% sin "Spanglish". Detección automática de idioma por ubicación. Experiencia fluida para clientes internacionales de cualquier jurisdicción.',
     status: 'production',
     keyCapabilities: [
-      'Practice/industry filtering',
-      'vCard generation (10 languages)',
-      'Related news cross-linking',
-      'Avatar fallback system',
+      '10 idiomas soportados',
+      'Detección IP automática',
+      'RTL para árabe',
+      'Caché inteligente',
+      'Prioridad nativa español',
+    ],
+  },
+  {
+    id: 'team_directory',
+    category: 'public_site',
+    name: 'Directorio de Talento Legal',
+    technicalName: 'Team.tsx + TeamMemberDetail.tsx',
+    technicalDetail: 'Filtrado dinámico por práctica/industria, generación vCard con etiquetas en 10 idiomas, cross-linking a artículos relacionados, secciones Educación/Afiliaciones/Rankings/Publicaciones, materias representativas, avatar con fallback a iniciales.',
+    userBenefit: 'Perfiles completos de abogados con credenciales profesionales, tarjetas de contacto descargables, y referencias cruzadas automáticas. Construye confianza con clientes potenciales.',
+    status: 'production',
+    keyCapabilities: [
+      'Filtrado práctica/industria',
+      'vCard en 10 idiomas',
+      'Cross-linking a noticias',
+      'Avatar con fallback',
+      '6 secciones de perfil',
     ],
   },
   {
     id: 'news_system',
     category: 'public_site',
-    name: 'News & Articles',
+    name: 'Centro de Noticias y Publicaciones',
     technicalName: 'News.tsx + NewsDetail.tsx + Articles.tsx',
-    technicalDetail: 'Infinite scroll pagination, Dynamic translation via useTranslatedContent hook, News image fallback with VWS branding, Date formatting per locale, Category/author filtering, SEO-optimized slugs',
-    userBenefit: 'Real-time legal news in 10 languages with intelligent content loading. Establishes the firm as a thought leader in Mexican legal matters.',
+    technicalDetail: 'Scroll infinito con paginación, traducción dinámica vía useTranslatedContent, fallback de imagen con branding VWS, formateo de fecha por locale, filtrado categoría/autor, slugs optimizados para SEO.',
+    userBenefit: 'Noticias legales en tiempo real en 10 idiomas con carga inteligente. Posiciona la Firma como líder de pensamiento en asuntos legales mexicanos.',
     status: 'production',
     keyCapabilities: [
-      'Infinite scroll',
-      'Dynamic translation',
-      'Category filtering',
-      'SEO-optimized URLs',
+      'Scroll infinito',
+      'Traducción dinámica',
+      'Filtrado por categoría',
+      'URLs SEO-optimizadas',
+      'Branding automático',
     ],
   },
   {
-    id: 'events_system',
+    id: 'events_calendar',
     category: 'public_site',
-    name: 'Events Calendar',
+    name: 'Calendario de Eventos Institucionales',
     technicalName: 'Events.tsx',
-    technicalDetail: '5 event types with color coding (conference/webinar/sponsorship/speaking/networking), Upcoming vs past event segregation, External URL linking, Date range display, Location with MapPin icon',
-    userBenefit: 'Professional event showcase demonstrating firm activity and industry engagement. Helps clients discover speaking engagements and networking opportunities.',
+    technicalDetail: '5 tipos de evento con color coding (conference/webinar/sponsorship/speaking/networking), segregación upcoming vs past, linking a URLs externas, display de rango de fechas, ubicación con ícono MapPin.',
+    userBenefit: 'Showcase profesional de actividad y engagement de la Firma. Ayuda a clientes a descubrir speaking engagements y oportunidades de networking.',
     status: 'production',
     keyCapabilities: [
-      '5 event types',
-      'Color-coded display',
-      'Past/upcoming filter',
-      'External URL linking',
-    ],
-  },
-  {
-    id: 'multi_language',
-    category: 'public_site',
-    name: 'Multi-Language System',
-    technicalName: 'LanguageContext + i18n.ts + useTranslatedContent',
-    technicalDetail: '10 languages (EN/ES/DE/ZH/KO/JA/AR/RU/FR/IT), useTranslatedContent hook with cache/mutation cycle, isNativeLanguage() check (ES = native), IP geolocation language detection (/api/detect-language), localStorage persistence (vwb_language), i18next integration',
-    userBenefit: '100% translation coverage with zero "Spanglish". Automatic language detection based on visitor location. Seamless experience for international clients.',
-    status: 'production',
-    keyCapabilities: [
-      '10 language support',
-      'IP-based auto-detection',
-      'Translation caching',
-      'Native Spanish priority',
-    ],
-  },
-  {
-    id: 'rtl_architecture',
-    category: 'public_site',
-    name: 'RTL Layout Support',
-    technicalName: 'LanguageContext + dir="rtl"',
-    technicalDetail: 'Complete layout mirroring for Arabic (dir="rtl"), Language detection in LanguageContext, HTML lang attribute update, Automatic text alignment adjustment',
-    userBenefit: 'Professional Arabic experience with proper right-to-left text flow. Demonstrates respect for Middle Eastern clients and their reading conventions.',
-    status: 'production',
-    keyCapabilities: [
-      'Automatic RTL detection',
-      'Layout mirroring',
-      'Text alignment',
-      'HTML lang updates',
+      '5 tipos de evento',
+      'Color coding visual',
+      'Filtro pasado/próximo',
+      'Links externos',
+      'Display de ubicación',
     ],
   },
   {
     id: 'practice_groups',
     category: 'public_site',
-    name: 'Practice Areas',
+    name: 'Áreas de Práctica Legal',
     technicalName: 'PracticeGroups.tsx + PracticeGroupDetail.tsx',
-    technicalDetail: '18 practice areas, Full description pages, Team member linking, News cross-referencing, SEO meta tags',
-    userBenefit: 'Comprehensive practice area showcase with expert lawyers and related news. Helps clients find the right expertise for their legal needs.',
+    technicalDetail: '18 áreas de práctica, páginas de descripción completa, vinculación de team members, cross-referencing de noticias, meta tags SEO.',
+    userBenefit: 'Showcase comprehensivo de expertise por área. Ayuda a clientes a encontrar la especialidad correcta para sus necesidades legales.',
     status: 'production',
     keyCapabilities: [
-      '18 practice areas',
-      'Expert lawyer linking',
-      'Related news',
-      'SEO optimization',
+      '18 áreas de práctica',
+      'Vinculación de expertos',
+      'Noticias relacionadas',
+      'Optimización SEO',
+      'Descripciones completas',
     ],
   },
   {
     id: 'industry_groups',
     category: 'public_site',
-    name: 'Industry Focus',
+    name: 'Sectores Industriales',
     technicalName: 'IndustryGroups.tsx + IndustryGroupDetail.tsx',
-    technicalDetail: '7 industry sectors, Related practice areas, Team member expertise display',
-    userBenefit: 'Industry-specific expertise showcase demonstrating deep sector knowledge. Attracts clients seeking specialized industry experience.',
+    technicalDetail: '7 sectores industriales, áreas de práctica relacionadas, display de expertise del equipo.',
+    userBenefit: 'Showcase de conocimiento profundo por industria. Atrae clientes que buscan experiencia especializada en su sector.',
     status: 'production',
     keyCapabilities: [
-      '7 industry sectors',
-      'Practice area linking',
-      'Expert team display',
+      '7 sectores industriales',
+      'Vinculación a prácticas',
+      'Display de equipo experto',
+      'Navegación por sector',
     ],
   },
   {
     id: 'german_desk',
     category: 'public_site',
-    name: 'German Desk',
+    name: 'German Desk - Puente Europa-México',
     technicalName: 'GermanDesk.tsx',
-    technicalDetail: 'Dedicated landing for German clients, World map visualization, DE/EN toggle emphasis, Cultural bridge content',
-    userBenefit: 'Specialized service for German companies entering the Mexican market. Demonstrates cultural understanding and bilingual capability.',
+    technicalDetail: 'Landing dedicado para clientes alemanes, visualización de mapa mundial, énfasis en toggle DE/EN, contenido de puente cultural, estadísticas de comercio bilateral.',
+    userBenefit: 'Servicio especializado para empresas alemanas entrando al mercado mexicano. Demuestra comprensión cultural y capacidad bilingüe.',
     status: 'production',
     keyCapabilities: [
-      'German market focus',
-      'World map visualization',
-      'Bilingual content',
+      'Enfoque mercado alemán',
+      'Mapa mundial visual',
+      'Contenido bilingüe',
+      'Estadísticas comerciales',
+      'Puente cultural',
     ],
   },
   {
-    id: 'careers',
+    id: 'careers_portal',
     category: 'public_site',
-    name: 'Careers Portal',
+    name: 'Portal de Talento y Carreras',
     technicalName: 'Careers.tsx',
-    technicalDetail: 'Culture section, Core values with icons (4 values), Benefits grid (6 items), Open positions listing, Internship program details, Full 10-language content',
-    userBenefit: 'Professional recruitment portal showcasing firm culture and opportunities. Attracts top legal talent to the firm.',
+    technicalDetail: 'Sección de cultura, valores core con íconos (4 valores), grid de beneficios (6 items), listado de posiciones abiertas, detalles de programa de pasantías, contenido completo en 10 idiomas.',
+    userBenefit: 'Portal de reclutamiento profesional que muestra cultura y oportunidades. Atrae talento legal de primer nivel.',
     status: 'production',
     keyCapabilities: [
-      'Culture showcase',
-      'Benefits display',
-      'Open positions',
-      '10-language support',
+      'Showcase de cultura',
+      'Display de beneficios',
+      'Posiciones abiertas',
+      '10 idiomas completos',
+      'Programa de pasantías',
     ],
   },
   {
     id: 'diversity_inclusion',
     category: 'public_site',
-    name: 'Diversity & Inclusion',
+    name: 'Diversidad e Inclusión',
     technicalName: 'DiversityInclusion.tsx',
-    technicalDetail: 'Corporate values display, Team diversity statistics, Initiatives showcase',
-    userBenefit: 'Demonstrates firm commitment to diversity and inclusive practices. Important for ESG-conscious clients and talent.',
+    technicalDetail: 'Display de valores corporativos, estadísticas de diversidad del equipo, showcase de iniciativas.',
+    userBenefit: 'Demuestra compromiso con diversidad y prácticas inclusivas. Importante para clientes con conciencia ESG y talento.',
     status: 'production',
     keyCapabilities: [
-      'Values showcase',
-      'Statistics display',
-      'Initiative highlights',
+      'Showcase de valores',
+      'Estadísticas de diversidad',
+      'Highlights de iniciativas',
+      'Compromiso ESG',
     ],
   },
   {
     id: 'pro_bono',
     category: 'public_site',
-    name: 'Pro Bono Program',
+    name: 'Programa Pro Bono',
     technicalName: 'ProBono.tsx',
-    technicalDetail: 'Pro bono program description, Case highlights, Partner organizations',
-    userBenefit: 'Showcases firm social responsibility and community impact. Builds trust with socially conscious clients.',
+    technicalDetail: 'Descripción de programa pro bono, highlights de casos, organizaciones partner.',
+    userBenefit: 'Muestra responsabilidad social e impacto comunitario. Construye confianza con clientes socialmente conscientes.',
     status: 'production',
     keyCapabilities: [
-      'Program overview',
-      'Case highlights',
-      'Partner organizations',
+      'Overview de programa',
+      'Highlights de casos',
+      'Organizaciones partner',
+      'Impacto social',
     ],
   },
   {
-    id: 'rankings',
+    id: 'rankings_page',
     category: 'public_site',
-    name: 'Rankings & Recognition',
+    name: 'Rankings y Reconocimientos',
     technicalName: 'Rankings.tsx',
-    technicalDetail: 'Legal directory rankings (Chambers, Legal500), Award badges, Recognition timeline',
-    userBenefit: 'Third-party validation of firm excellence. Builds credibility with prospective clients seeking top-tier representation.',
+    technicalDetail: 'Rankings de directorios legales (Chambers, Legal500), badges de premios, timeline de reconocimientos.',
+    userBenefit: 'Validación de terceros de excelencia de la Firma. Construye credibilidad con clientes prospecto que buscan representación de primer nivel.',
     status: 'production',
     keyCapabilities: [
-      'Chambers rankings',
-      'Legal500 rankings',
-      'Award display',
+      'Rankings Chambers',
+      'Rankings Legal500',
+      'Display de premios',
+      'Timeline de logros',
     ],
   },
   {
-    id: 'contact',
+    id: 'contact_page',
     category: 'public_site',
-    name: 'Contact Page',
+    name: 'Página de Contacto',
     technicalName: 'Contact.tsx',
-    technicalDetail: 'Office locations, Contact form, Map integration, Direct phone/email links',
-    userBenefit: 'Easy contact access with multiple communication options. Reduces friction for potential clients reaching out.',
+    technicalDetail: 'Ubicaciones de oficina, formulario de contacto, integración de mapa, links directos teléfono/email.',
+    userBenefit: 'Acceso fácil al contacto con múltiples opciones de comunicación. Reduce fricción para clientes potenciales.',
     status: 'production',
     keyCapabilities: [
-      'Office locations',
-      'Contact form',
-      'Map integration',
+      'Ubicaciones de oficina',
+      'Formulario de contacto',
+      'Integración de mapa',
+      'Links directos',
     ],
   },
   {
-    id: 'offices',
+    id: 'office_showcase',
     category: 'public_site',
-    name: 'Office Showcase',
+    name: 'Showcase de Oficinas Premium',
     technicalName: 'Experience.tsx + Offices.tsx + NewOfficesPopup.tsx',
-    technicalDetail: 'Office photo gallery, New offices popup, Tower SOMA showcase',
-    userBenefit: 'Visual tour of premium office spaces. Demonstrates firm stability and investment in client experience.',
+    technicalDetail: 'Galería fotográfica de oficinas, popup de nuevas oficinas, showcase Torre SOMA.',
+    userBenefit: 'Tour visual de espacios premium. Demuestra estabilidad e inversión en experiencia del cliente.',
     status: 'production',
     keyCapabilities: [
-      'Photo gallery',
-      'New office popup',
-      'Location showcase',
+      'Galería fotográfica',
+      'Popup nuevas oficinas',
+      'Showcase de ubicación',
+      'Tour virtual',
     ],
   },
   {
     id: 'hero_section',
     category: 'public_site',
-    name: 'Hero Section',
+    name: 'Sección Hero Cinematográfica',
     technicalName: 'HeroSection.tsx',
-    technicalDetail: 'Video background, Animated text overlay, CTA buttons',
-    userBenefit: 'Impactful first impression with professional video and clear call-to-action. Captures visitor attention immediately.',
+    technicalDetail: 'Fondo de video, overlay de texto animado, botones CTA.',
+    userBenefit: 'Primera impresión impactante con video profesional y call-to-action claro. Captura atención del visitante inmediatamente.',
     status: 'production',
     keyCapabilities: [
-      'Video background',
-      'Animated text',
-      'CTA buttons',
+      'Fondo de video',
+      'Texto animado',
+      'Botones CTA',
+      'Impacto visual',
     ],
   },
   {
     id: 'stats_section',
     category: 'public_site',
-    name: 'Statistics Display',
+    name: 'Estadísticas Institucionales',
     technicalName: 'StatsSection.tsx',
-    technicalDetail: 'Firm statistics display, Animated counters',
-    userBenefit: 'Quantified firm achievements that build credibility. Numbers speak louder than words.',
+    technicalDetail: 'Display de estadísticas de la Firma, contadores animados, métricas de oficina.',
+    userBenefit: 'Comunicación visual de escala y capacidad. Números que impresionan y generan confianza.',
     status: 'production',
     keyCapabilities: [
-      'Animated counters',
-      'Key metrics display',
-    ],
-  },
-  {
-    id: 'seo_system',
-    category: 'public_site',
-    name: 'SEO System',
-    technicalName: 'SEOHead.tsx + JsonLdSchema.tsx',
-    technicalDetail: 'Dynamic meta tags, Open Graph, Twitter cards, JSON-LD for Person/Breadcrumb/Organization',
-    userBenefit: 'Search engine visibility optimization and rich social media previews. Drives organic traffic to the site.',
-    status: 'production',
-    keyCapabilities: [
-      'Dynamic meta tags',
-      'JSON-LD schemas',
-      'Social media cards',
-    ],
-  },
-  {
-    id: 'cookie_banner',
-    category: 'public_site',
-    name: 'Cookie Consent',
-    technicalName: 'CookieBanner.tsx',
-    technicalDetail: 'GDPR compliance, Consent management',
-    userBenefit: 'Legal compliance with privacy regulations. Protects the firm from regulatory issues.',
-    status: 'production',
-    keyCapabilities: [
-      'GDPR compliance',
-      'Consent tracking',
+      'Contadores animados',
+      'Métricas de escala',
+      'Display visual',
+      'Datos actualizados',
     ],
   },
 ];
 
-// ============================================================================
-// ADMIN SYSTEM MODULES
-// ============================================================================
+// ════════════════════════════════════════════════════════════════════════════════
+// 💼 CENTRO DE MANDO - SISTEMA DE ADMINISTRACIÓN (12 Módulos)
+// ════════════════════════════════════════════════════════════════════════════════
 
 export const ADMIN_MODULES: SystemFeature[] = [
   {
     id: 'admin_dashboard',
     category: 'admin_system',
-    name: 'Admin Dashboard',
-    technicalName: 'AdminDashboard.tsx + 19 admin pages',
-    technicalDetail: '19 admin pages: Dashboard, News, Team, Events, Categories, Practice Groups, Industry Groups, Posts, PostForm, TeamForm, ArticleProcessing, Agents, Audits, HealthCheck, Knowledge, Performance, Translations, Guide, Login',
-    userBenefit: 'Complete content management system with WordPress-like ease of use. Enables non-technical staff to manage all website content.',
+    name: 'Tablero de Control Ejecutivo',
+    technicalName: 'AdminDashboard.tsx',
+    technicalDetail: 'Vista general de métricas, conteos de contenido, estadísticas de pipeline, accesos rápidos a funciones principales.',
+    userBenefit: 'Visión ejecutiva de toda la operación digital en una sola pantalla. Toma de decisiones informada.',
     status: 'production',
     keyCapabilities: [
-      '19 management pages',
-      'Content CRUD operations',
-      'Media management',
-      'Translation management',
+      'Métricas en tiempo real',
+      'Conteos de contenido',
+      'Estadísticas de pipeline',
+      'Accesos rápidos',
     ],
   },
   {
-    id: 'nerve_center',
+    id: 'article_management',
     category: 'admin_system',
-    name: 'Live Nerve Center',
-    technicalName: 'AdminGuide.tsx + NerveCenter.tsx',
-    technicalDetail: 'Real-time agent visualization, 3 category groupings (Brain/Hands/Shield), Evolution dots (1-5 levels), Status indicators with pulse animation, Evolution timeline component, 30-second auto-refresh',
-    userBenefit: 'Visual dashboard showing the AI ecosystem in action. Demonstrates platform sophistication to stakeholders and builds confidence in the technology.',
+    name: 'Gestor de Artículos con IA',
+    technicalName: 'AdminNews.tsx + AdminArticleDetail.tsx',
+    technicalDetail: 'CRUD completo de artículos, integración de Legal Council, botón de validación y publicación, vista de veredicto de agentes, progreso de pipeline en tiempo real.',
+    userBenefit: 'Gestión de contenido con supervisión de IA integrada. Cada artículo pasa por validación automática antes de publicación.',
     status: 'production',
     keyCapabilities: [
-      'Real-time visualization',
-      'Agent status monitoring',
-      'Evolution tracking',
-      '30s auto-refresh',
+      'CRUD completo',
+      'Integración Legal Council',
+      'Validación con un clic',
+      'Progreso en tiempo real',
+      'Vista de veredicto',
     ],
   },
   {
-    id: 'pipeline_modal',
+    id: 'team_management',
     category: 'admin_system',
-    name: 'Pipeline Progress',
-    technicalName: 'PipelineProgressModal.tsx + usePipelineProgress.ts',
-    technicalDetail: 'WebSocket real-time updates, Step-by-step progress (format→categorize→metadata→seo→translate→image), Progress bar, Status badges (running/completed/error)',
-    userBenefit: 'Real-time visibility into article processing. Shows exactly what the AI is doing at each step, building trust in the automation.',
+    name: 'Gestión de Equipo Legal',
+    technicalName: 'AdminTeam.tsx',
+    technicalDetail: 'CRUD de miembros del equipo, categorización (Partner/Of Counsel/Associate), gestión de fotos, vinculación a áreas de práctica.',
+    userBenefit: 'Administración centralizada del directorio de abogados. Perfiles siempre actualizados.',
     status: 'production',
     keyCapabilities: [
-      'WebSocket updates',
-      '6-step progress',
-      'Status badges',
-      'Error display',
+      'CRUD de miembros',
+      'Categorización por rol',
+      'Gestión de fotos',
+      'Vinculación a prácticas',
     ],
   },
   {
-    id: 'admin_translations',
+    id: 'practice_management',
     category: 'admin_system',
-    name: 'Admin Localization',
-    technicalName: 'adminTranslations.ts (1194 lines)',
-    technicalDetail: '10-language admin translations, Agent names, Status labels, Impact labels, Common admin phrases, getAgentName()/getStatusLabel()/getImpactLabel() helpers',
-    userBenefit: 'Zero "Spanglish" in admin interface. International administrators can work in their native language.',
+    name: 'Gestión de Áreas de Práctica',
+    technicalName: 'AdminPracticeGroups.tsx',
+    technicalDetail: 'CRUD de 18 áreas de práctica, descripciones bilingües, vinculación de team members.',
+    userBenefit: 'Control total sobre taxonomía de servicios legales. Estructura siempre alineada con oferta real.',
     status: 'production',
     keyCapabilities: [
-      '1194 lines of translations',
-      '10 language support',
-      'Helper functions',
-      'Full admin coverage',
+      'CRUD de 18 áreas',
+      'Descripciones bilingües',
+      'Vinculación de expertos',
+    ],
+  },
+  {
+    id: 'agent_nerve_center',
+    category: 'admin_system',
+    name: 'Centro Nervioso de Agentes en Vivo',
+    technicalName: 'NerveCenter.tsx + EvolutionTimeline.tsx',
+    technicalDetail: 'Visualización de ecosistema de 14 agentes con refresh automático cada 30 segundos, organización en 3 categorías (Cerebro/Manos/Escudo), nivel de evolución (1-5 puntos), estado de cada agente, timeline narrativo de mejoras con niveles de impacto.',
+    userBenefit: 'Visibilidad total del "sistema nervioso digital". Demuestra la sofisticación tecnológica a stakeholders.',
+    status: 'production',
+    keyCapabilities: [
+      'Visualización de 14 agentes',
+      'Refresh cada 30 segundos',
+      '3 categorías visuales',
+      'Niveles de evolución',
+      'Timeline de mejoras',
+    ],
+  },
+  {
+    id: 'system_explorer',
+    category: 'admin_system',
+    name: 'Explorador del Sistema',
+    technicalName: 'SystemExplorer.tsx',
+    technicalDetail: 'Documentación técnica navegable, búsqueda por categoría, exportación de reportes, especificaciones técnicas de cada módulo.',
+    userBenefit: 'Documentación viva del sistema completo. Facilita onboarding y auditorías técnicas.',
+    status: 'production',
+    keyCapabilities: [
+      'Documentación navegable',
+      'Búsqueda por categoría',
+      'Exportación de reportes',
+      'Especificaciones técnicas',
+    ],
+  },
+  {
+    id: 'pipeline_processor',
+    category: 'admin_system',
+    name: 'Procesador de Pipeline de Artículos',
+    technicalName: 'ArticleProcessor + PipelineProgressModal',
+    technicalDetail: 'Pipeline de 9 pasos (format→categorize→metadata→seo→translate×9→image), WebSocket para progreso en tiempo real, modal de visualización paso a paso, reintentos automáticos.',
+    userBenefit: 'Procesamiento automatizado completo de artículos. De PDF crudo a publicación multilingüe en un clic.',
+    status: 'production',
+    keyCapabilities: [
+      'Pipeline de 9 pasos',
+      'Progreso en tiempo real',
+      'Modal de visualización',
+      'Reintentos automáticos',
+      'Traducción a 9 idiomas',
+    ],
+  },
+  {
+    id: 'council_safety_card',
+    category: 'admin_system',
+    name: 'Tarjeta de Seguridad del Consejo',
+    technicalName: 'CouncilSafetyCard.tsx',
+    technicalDetail: 'Visualización de veredicto de Legal Council, votos individuales de 3 agentes con puntuación y razonamiento, badges de estado (aprobado/rechazado/revisión), nivel de riesgo, feedback consolidado, botón de validación para admin.',
+    userBenefit: 'Visibilidad total de la evaluación de IA de cada artículo. Decisión informada antes de publicar.',
+    status: 'production',
+    keyCapabilities: [
+      'Votos de 3 agentes',
+      'Puntuación 0-100',
+      'Badges de estado',
+      'Nivel de riesgo',
+      'Feedback consolidado',
+    ],
+  },
+  {
+    id: 'events_management',
+    category: 'admin_system',
+    name: 'Gestión de Eventos',
+    technicalName: 'AdminEvents.tsx',
+    technicalDetail: 'CRUD de eventos, 5 tipos de evento, fechas de inicio/fin, URLs externas, publicación selectiva.',
+    userBenefit: 'Control completo del calendario de eventos institucionales.',
+    status: 'production',
+    keyCapabilities: [
+      'CRUD de eventos',
+      '5 tipos de evento',
+      'Gestión de fechas',
+      'URLs externas',
+    ],
+  },
+  {
+    id: 'media_library',
+    category: 'admin_system',
+    name: 'Biblioteca de Medios',
+    technicalName: 'AdminMedia.tsx',
+    technicalDetail: 'Upload de archivos con validación de tipo, gestión de imágenes, límite 10MB, nombrado único.',
+    userBenefit: 'Repositorio centralizado de assets visuales. Fácil reutilización de imágenes.',
+    status: 'production',
+    keyCapabilities: [
+      'Upload con validación',
+      'Gestión de imágenes',
+      'Límite 10MB',
+      'Nombrado único',
+    ],
+  },
+  {
+    id: 'admin_auth',
+    category: 'admin_system',
+    name: 'Portal de Acceso Seguro',
+    technicalName: 'AdminLogin.tsx + AuthMiddleware',
+    technicalDetail: 'Login con bcrypt, sesiones de 24 horas, rate limiting 5 intentos, bloqueo 30 minutos, roles (super_admin/admin/editor).',
+    userBenefit: 'Acceso seguro con protección contra ataques. Roles diferenciados para control granular.',
+    status: 'production',
+    keyCapabilities: [
+      'Login seguro',
+      'Sesiones 24h',
+      'Rate limiting',
+      '3 niveles de rol',
+      'Bloqueo automático',
+    ],
+  },
+  {
+    id: 'audit_dashboard',
+    category: 'admin_system',
+    name: 'Panel de Auditorías',
+    technicalName: 'AdminAgents.tsx',
+    technicalDetail: 'Vista de propuestas de evolución, aprobación/rechazo de mejoras, ejecución de auditorías bajo demanda, estadísticas de agentes.',
+    userBenefit: 'Gobernanza humana sobre la evolución de IA. Control total sobre cambios propuestos por los agentes.',
+    status: 'production',
+    keyCapabilities: [
+      'Propuestas de evolución',
+      'Aprobación/rechazo',
+      'Auditorías on-demand',
+      'Estadísticas de agentes',
     ],
   },
 ];
 
-// ============================================================================
-// SECURITY & INFRASTRUCTURE (22 Total)
-// ============================================================================
+// ════════════════════════════════════════════════════════════════════════════════
+// COMBINED EXPORTS
+// ════════════════════════════════════════════════════════════════════════════════
 
-export const INFRASTRUCTURE: SystemFeature[] = [
-  {
-    id: 'rate_limiting',
-    category: 'security',
-    name: 'Rate Limiting',
-    technicalName: 'server/auth.ts checkRateLimit()',
-    technicalDetail: 'In-memory Map tracking by identifier, 5 attempts per 15-minute window, 30-minute block after threshold, checkRateLimit() + recordLoginAttempt() functions',
-    userBenefit: 'Protection against brute force attacks and account enumeration. Keeps the admin system secure from unauthorized access attempts.',
-    status: 'production',
-    keyCapabilities: [
-      '5 attempts/15 minutes',
-      '30-minute lockout',
-      'Per-identifier tracking',
-    ],
-  },
-  {
-    id: 'password_security',
-    category: 'security',
-    name: 'Password Security',
-    technicalName: 'bcrypt with 12 salt rounds',
-    technicalDetail: 'bcrypt with 12 salt rounds, hashPassword() + comparePassword() async functions',
-    userBenefit: 'Industry-standard password protection. Even if the database is compromised, passwords remain secure.',
-    status: 'production',
-    keyCapabilities: [
-      'bcrypt hashing',
-      '12 salt rounds',
-      'Async operations',
-    ],
-  },
-  {
-    id: 'session_management',
-    category: 'security',
-    name: 'Session Management',
-    technicalName: 'authMiddleware() + 24h sessions',
-    technicalDetail: '32-byte crypto random tokens, 24-hour expiry (SESSION_DURATION_HOURS), Bearer token validation in authMiddleware(), Session cleanup on expiry',
-    userBenefit: 'Secure session handling that prevents unauthorized access while providing convenient 24-hour login persistence.',
-    status: 'production',
-    keyCapabilities: [
-      '32-byte tokens',
-      '24-hour sessions',
-      'Auto-expiry cleanup',
-    ],
-  },
-  {
-    id: 'content_sanitizer',
-    category: 'security',
-    name: 'Content Policy Sanitizer',
-    technicalName: 'SmartImageGenerator SENSITIVE_LEGAL_TERMS',
-    technicalDetail: '28 sensitive legal terms array (SENSITIVE_LEGAL_TERMS), Abstract replacement mapping (ABSTRACT_REPLACEMENTS), Regex-based term detection, Brand-safe prompt reconstruction',
-    userBenefit: 'Prevents AI image generation from being blocked by content policies. Ensures articles never go without images due to legal terminology.',
-    status: 'production',
-    keyCapabilities: [
-      '28 sensitive terms',
-      'Abstract replacements',
-      'Policy compliance',
-    ],
-  },
-  {
-    id: 'image_fallback',
-    category: 'infrastructure',
-    name: 'Image Fallback Cascade',
-    technicalName: 'SmartImageGenerator 3-tier fallback',
-    technicalDetail: 'DALL-E 3 → Gemini 2.5 Flash → Placeholder cascade, OpenAI error parsing (content_policy/rate_limit/timeout/billing), Exponential backoff (0/5/10/20s), Download timeout (30s)',
-    userBenefit: '100% image generation guarantee. No article ever publishes without a visual, even during API outages.',
-    status: 'production',
-    keyCapabilities: [
-      '3-tier fallback',
-      'Error type parsing',
-      'Exponential backoff',
-      '30s timeout',
-    ],
-  },
-  {
-    id: 'logo_overlay',
-    category: 'infrastructure',
-    name: 'Logo Overlay Service',
-    technicalName: 'Sharp library integration',
-    technicalDetail: 'Sharp library for image processing, 150px logo resize, White background padding (12px), Bottom-right positioning (20px margin), Graceful fallback if logo missing',
-    userBenefit: 'Automatic brand watermarking on all generated images. Ensures consistent brand presence across visual content.',
-    status: 'production',
-    keyCapabilities: [
-      '150px logo',
-      'Auto-positioning',
-      'White background',
-    ],
-  },
-  {
-    id: 'database_persistence',
-    category: 'infrastructure',
-    name: 'Database Persistence',
-    technicalName: 'DatabasePersistence.ts',
-    technicalDetail: 'Job CRUD (create/update/get), Event logging, Knowledge storage, Skill tracking, Proposal management, Stats aggregation by agent type, Failed job recovery queries',
-    userBenefit: 'Reliable data storage that survives server restarts. All agent work and learnings are permanently preserved.',
-    status: 'production',
-    keyCapabilities: [
-      'Job persistence',
-      'Event logging',
-      'Knowledge storage',
-      'Stats aggregation',
-    ],
-  },
-  {
-    id: 'cloud_backup',
-    category: 'infrastructure',
-    name: 'Cloud Backup (pCloud)',
-    technicalName: 'PCloudStorage.ts',
-    technicalDetail: 'HTTPS API integration, Username/password authentication, File upload via multipart form, Directory creation, Agent knowledge sync, /VonWobeser/agents base path',
-    userBenefit: 'Off-site backup of agent knowledge and evolution data. Disaster recovery capability for critical AI learnings.',
-    status: 'production',
-    keyCapabilities: [
-      'pCloud integration',
-      'Knowledge sync',
-      'Disaster recovery',
-    ],
-  },
-  {
-    id: 'knowledge_store',
-    category: 'infrastructure',
-    name: 'Knowledge Store',
-    technicalName: 'AgentKnowledge.ts',
-    technicalDetail: 'Document CRUD with category/title/content, Usage count tracking, Search with limit option, Legal glossary initialization (500+ terms), Agent-specific document retrieval',
-    userBenefit: 'Persistent AI learning that improves translation quality over time. Legal glossary ensures consistent terminology.',
-    status: 'production',
-    keyCapabilities: [
-      'Document CRUD',
-      '500+ legal terms',
-      'Usage tracking',
-      'Search capability',
-    ],
-  },
-  {
-    id: 'evolution_tracker',
-    category: 'infrastructure',
-    name: 'Evolution Tracker',
-    technicalName: 'AgentEvolution.ts',
-    technicalDetail: 'Per-agent stats tracking (jobs/success rate/skills/docs), Proposal lifecycle management (pending→approved→implemented), Learning cycle history, Database-backed persistence',
-    userBenefit: 'Self-improving AI system that tracks and learns from its own performance. Enables continuous quality improvement.',
-    status: 'production',
-    keyCapabilities: [
-      'Success rate tracking',
-      'Proposal management',
-      'Learning history',
-    ],
-  },
-  {
-    id: 'zombie_detection',
-    category: 'infrastructure',
-    name: 'Zombie Process Detection',
-    technicalName: 'SystemHealthCheck.checkZombieProcesses()',
-    technicalDetail: 'Jobs stuck >10min in in_progress status, lt() timestamp comparison, Critical severity assignment, Suggested action generation',
-    userBenefit: 'Automatic detection of stuck processes before they cause problems. Prevents operational deadlocks.',
-    status: 'production',
-    keyCapabilities: [
-      '>10min detection',
-      'Critical alerts',
-      'Action suggestions',
-    ],
-  },
-  {
-    id: 'localization_leakage',
-    category: 'infrastructure',
-    name: 'Localization Leakage Detection',
-    technicalName: 'SystemHealthCheck language detection',
-    technicalDetail: 'Spanish/German indicator regex patterns (articles, accented chars, legal terms), Density scoring algorithm, Cross-language field validation',
-    userBenefit: 'Prevents mixed-language content from reaching users. Ensures professional, consistent language experience.',
-    status: 'production',
-    keyCapabilities: [
-      'Language detection',
-      'Density scoring',
-      'Field validation',
-    ],
-  },
-  {
-    id: 'websocket_pipeline',
-    category: 'infrastructure',
-    name: 'WebSocket Pipeline',
-    technicalName: 'usePipelineProgress.ts',
-    technicalDetail: 'Singleton WebSocket manager class, Auto-reconnect on disconnect, Event buffering (last 100 events), Current progress tracking by articleId, Connection state subscription',
-    userBenefit: 'Real-time updates without page refresh. Users see live progress of article processing.',
-    status: 'production',
-    keyCapabilities: [
-      'Auto-reconnect',
-      'Event buffering',
-      'Progress tracking',
-    ],
-  },
-  {
-    id: 'translation_cache',
-    category: 'infrastructure',
-    name: 'Translation Cache',
-    technicalName: 'translationCache database table',
-    technicalDetail: 'JSONB for multi-field storage, Source/target language tracking, Approval status flag, Entity type + entity ID indexing',
-    userBenefit: '90% reduction in translation API costs. Faster page loads for translated content.',
-    status: 'production',
-    keyCapabilities: [
-      'JSONB storage',
-      'Language tracking',
-      '90% cost reduction',
-    ],
-  },
-  {
-    id: 'query_client',
-    category: 'infrastructure',
-    name: 'Query Client',
-    technicalName: 'queryClient.ts TanStack Query v5',
-    technicalDetail: 'TanStack Query v5 configuration, Default fetcher setup, apiRequest() utility for mutations, Cache invalidation patterns',
-    userBenefit: 'Optimized data fetching with automatic caching. Faster UI responses and reduced server load.',
-    status: 'production',
-    keyCapabilities: [
-      'TanStack Query v5',
-      'Auto caching',
-      'Cache invalidation',
-    ],
-  },
-  {
-    id: 'file_upload_security',
-    category: 'security',
-    name: 'File Upload Security',
-    technicalName: 'multer middleware configuration',
-    technicalDetail: 'Multer disk storage with crypto-random filenames, 10MB file size limit, MIME type whitelist (jpeg/png/gif/webp/svg/pdf), Automatic uploads directory creation',
-    userBenefit: 'Secure file handling that prevents malicious uploads. Only safe file types accepted with size limits.',
-    status: 'production',
-    keyCapabilities: [
-      'MIME type filtering',
-      '10MB limit',
-      'Secure filenames',
-    ],
-  },
-  {
-    id: 'geolocation_service',
-    category: 'infrastructure',
-    name: 'Geolocation Service',
-    technicalName: '/api/detect-language endpoint',
-    technicalDetail: 'IP-based country detection via ip-api.com, COUNTRY_TO_LANGUAGE mapping (40+ countries), X-Forwarded-For proxy header support, Graceful fallback for localhost/private IPs',
-    userBenefit: 'Automatic language detection for international visitors. First-time users see content in their native language.',
-    status: 'production',
-    keyCapabilities: [
-      'IP geolocation',
-      '40+ country mappings',
-      'Proxy support',
-    ],
-  },
-  {
-    id: 'auto_recovery',
-    category: 'infrastructure',
-    name: 'Auto Recovery System',
-    technicalName: 'AutoRecoveryAgent.ts',
-    technicalDetail: 'Failed article detection (status=failed/error), Step-specific recovery (format/category/link/seo/translate/image), Partial success marking, Recovery report generation with statistics',
-    userBenefit: 'Self-healing system that automatically retries failed operations. No manual intervention needed for transient failures.',
-    status: 'production',
-    keyCapabilities: [
-      'Auto retry failed jobs',
-      'Step-specific recovery',
-      'Recovery reporting',
-    ],
-  },
-  {
-    id: 'system_health_audit',
-    category: 'infrastructure',
-    name: 'System Health Audit',
-    technicalName: 'SystemHealthCheck.ts',
-    technicalDetail: 'Deep audit with 5 issue types (zombie/incomplete/leakage/orphan/missing), Health score 0-100, Language detection algorithm with density scoring, Automatic zombie job reset',
-    userBenefit: 'Proactive issue detection before they affect users. Comprehensive system health monitoring.',
-    status: 'production',
-    keyCapabilities: [
-      '5 issue type detection',
-      'Health scoring 0-100',
-      'Zombie auto-reset',
-    ],
-  },
-  {
-    id: 'openai_integration',
-    category: 'infrastructure',
-    name: 'OpenAI Integration',
-    technicalName: 'server/openai.ts',
-    technicalDetail: 'Replit AI Integrations service, OpenAI-compatible API access, GPT-5 model configuration, Legal text translation function, 10-language support array',
-    userBenefit: 'Enterprise-grade AI capabilities without managing API keys. Seamless integration with billing.',
-    status: 'production',
-    keyCapabilities: [
-      'GPT-5 access',
-      'Auto key management',
-      'Legal translation',
-    ],
-  },
-  {
-    id: 'drizzle_orm',
-    category: 'infrastructure',
-    name: 'Drizzle ORM Layer',
-    technicalName: 'server/db.ts + shared/schema.ts',
-    technicalDetail: 'Neon PostgreSQL serverless connection, Type-safe schema definitions with Zod validation, Drizzle-zod insert schemas, Automatic type inference for selects',
-    userBenefit: 'Type-safe database operations prevent runtime errors. Schema changes are validated at compile time.',
-    status: 'production',
-    keyCapabilities: [
-      'Neon serverless',
-      'Type-safe queries',
-      'Zod validation',
-    ],
-  },
-  {
-    id: 'static_file_serving',
-    category: 'infrastructure',
-    name: 'Static File Serving',
-    technicalName: 'express.static middleware',
-    technicalDetail: 'Dedicated routes for /generated-images, /uploads, /partner_photos directories, Automatic MIME type detection, Cache headers for performance, Secure path traversal prevention',
-    userBenefit: 'Fast, reliable delivery of images and files. Optimized caching reduces load times for returning visitors.',
-    status: 'production',
-    keyCapabilities: [
-      'Multiple asset routes',
-      'MIME type detection',
-      'Cache optimization',
-    ],
-  },
+export const AI_AGENTS: SystemFeature[] = [
+  ...AI_BRAIN_AGENTS,
+  ...AI_HANDS_AGENTS,
+  ...AI_SHIELD_AGENTS,
 ];
 
-// ============================================================================
-// TRANSLATIONS (10 Languages)
-// ============================================================================
+export const INFRASTRUCTURE_FEATURES: SystemFeature[] = [
+  ...SECURITY_INFRASTRUCTURE,
+  ...CORE_INFRASTRUCTURE,
+];
+
+export const ALL_FEATURES: SystemFeature[] = [
+  ...AI_AGENTS,
+  ...INFRASTRUCTURE_FEATURES,
+  ...PUBLIC_MODULES,
+  ...ADMIN_MODULES,
+];
+
+// ════════════════════════════════════════════════════════════════════════════════
+// SYSTEM STATISTICS
+// ════════════════════════════════════════════════════════════════════════════════
+
+export const SYSTEM_STATS = {
+  totalAgents: AI_AGENTS.length,
+  brainAgents: AI_BRAIN_AGENTS.length,
+  handsAgents: AI_HANDS_AGENTS.length,
+  shieldAgents: AI_SHIELD_AGENTS.length,
+  securityModules: SECURITY_INFRASTRUCTURE.length,
+  infrastructureModules: CORE_INFRASTRUCTURE.length,
+  publicModules: PUBLIC_MODULES.length,
+  adminModules: ADMIN_MODULES.length,
+  totalFeatures: ALL_FEATURES.length,
+  supportedLanguages: 10,
+  practiceAreas: 18,
+  industrySectors: 7,
+  sensitiveTermsSanitized: 28,
+  legalGlossaryTerms: 500,
+  version: '3.0',
+  codename: 'Sistema Nervioso Digital',
+  totalPublicModules: PUBLIC_MODULES.length,
+  totalAdminModules: ADMIN_MODULES.length,
+  totalInfrastructure: SECURITY_INFRASTRUCTURE.length + CORE_INFRASTRUCTURE.length,
+  productionFeatures: ALL_FEATURES.filter(f => f.status === 'production').length,
+};
+
+// ════════════════════════════════════════════════════════════════════════════════
+// TRANSLATIONS (10 LANGUAGES)
+// ════════════════════════════════════════════════════════════════════════════════
 
 export const MANIFEST_TRANSLATIONS: Record<string, SystemManifestTranslations> = {
-  en: {
-    categories: {
-      ai_brain: { title: 'The Brain', description: 'Central intelligence and decision-making agents' },
-      ai_hands: { title: 'The Hands', description: 'Content creation and optimization agents' },
-      ai_shield: { title: 'The Shield', description: 'Quality assurance and self-healing agents' },
-      public_site: { title: 'Public Website', description: 'User-facing pages and features' },
-      admin_system: { title: 'Admin System', description: 'Content management and monitoring' },
-      security: { title: 'Security', description: 'Authentication and access control' },
-      infrastructure: { title: 'Infrastructure', description: 'Core platform services' },
-    },
-    statuses: {
-      production: 'Production',
-      beta: 'Beta',
-      development: 'Development',
-    },
-    features: {},
-    ui: {
-      searchPlaceholder: 'Search features, agents, modules...',
-      exportReport: 'Export Technical Report',
-      exportSuccess: 'Report downloaded successfully',
-      technicalDetails: 'Technical Details',
-      capabilities: 'Key Capabilities',
-      status: 'Status',
-      noResults: 'No features found matching your search',
-      allCategories: 'All Categories',
-      totalAgents: 'AI Agents',
-      totalModules: 'Site Modules',
-      totalInfrastructure: 'Infrastructure',
-      generatedOn: 'Generated on',
-      systemOverview: 'System Overview',
-      reportTitle: 'Von Wobeser Platform Technical Report',
-      reportSubtitle: 'Complete System Documentation',
-    },
-  },
   es: {
     categories: {
-      ai_brain: { title: 'El Cerebro', description: 'Agentes centrales de inteligencia y toma de decisiones' },
-      ai_hands: { title: 'Las Manos', description: 'Agentes de creación y optimización de contenido' },
-      ai_shield: { title: 'El Escudo', description: 'Agentes de control de calidad y auto-reparación' },
-      public_site: { title: 'Sitio Público', description: 'Páginas y funciones para usuarios' },
-      admin_system: { title: 'Sistema Admin', description: 'Gestión de contenido y monitoreo' },
-      security: { title: 'Seguridad', description: 'Autenticación y control de acceso' },
-      infrastructure: { title: 'Infraestructura', description: 'Servicios centrales de la plataforma' },
+      ai_brain: { title: 'El Cerebro', description: 'Agentes de decisión estratégica y análisis profundo' },
+      ai_hands: { title: 'Las Manos', description: 'Agentes de ejecución operativa y transformación' },
+      ai_shield: { title: 'El Escudo', description: 'Agentes de protección, auditoría y auto-curación' },
+      infrastructure: { title: 'Columna Vertebral', description: 'Infraestructura crítica y persistencia' },
+      security: { title: 'Bóveda Digital', description: 'Seguridad, autenticación y validación' },
+      public_site: { title: 'Vitrina Institucional', description: 'Portal público y experiencia del visitante' },
+      admin_system: { title: 'Centro de Mando', description: 'Administración y control empresarial' },
     },
     statuses: {
       production: 'Producción',
@@ -1043,32 +1193,66 @@ export const MANIFEST_TRANSLATIONS: Record<string, SystemManifestTranslations> =
     },
     features: {},
     ui: {
-      searchPlaceholder: 'Buscar funciones, agentes, módulos...',
-      exportReport: 'Exportar Reporte Técnico',
-      exportSuccess: 'Reporte descargado exitosamente',
+      searchPlaceholder: 'Buscar módulos, agentes o capacidades...',
+      exportReport: 'Exportar Reporte',
+      exportSuccess: 'Reporte exportado exitosamente',
       technicalDetails: 'Detalles Técnicos',
       capabilities: 'Capacidades Clave',
       status: 'Estado',
-      noResults: 'No se encontraron funciones que coincidan con su búsqueda',
+      noResults: 'No se encontraron resultados',
       allCategories: 'Todas las Categorías',
-      totalAgents: 'Agentes IA',
-      totalModules: 'Módulos del Sitio',
+      totalAgents: 'Total de Agentes IA',
+      totalModules: 'Módulos Públicos',
       totalInfrastructure: 'Infraestructura',
       generatedOn: 'Generado el',
-      systemOverview: 'Resumen del Sistema',
-      reportTitle: 'Reporte Técnico de la Plataforma Von Wobeser',
-      reportSubtitle: 'Documentación Completa del Sistema',
+      systemOverview: 'Panorama del Sistema',
+      reportTitle: 'Manifest del Sistema',
+      reportSubtitle: 'Plataforma Legal Inteligente Von Wobeser y Sierra',
+    },
+  },
+  en: {
+    categories: {
+      ai_brain: { title: 'The Brain', description: 'Strategic decision agents and deep analysis' },
+      ai_hands: { title: 'The Hands', description: 'Operational execution and transformation agents' },
+      ai_shield: { title: 'The Shield', description: 'Protection, audit, and self-healing agents' },
+      infrastructure: { title: 'The Backbone', description: 'Critical infrastructure and persistence' },
+      security: { title: 'Digital Vault', description: 'Security, authentication, and validation' },
+      public_site: { title: 'Institutional Showcase', description: 'Public portal and visitor experience' },
+      admin_system: { title: 'Command Center', description: 'Administration and enterprise control' },
+    },
+    statuses: {
+      production: 'Production',
+      beta: 'Beta',
+      development: 'Development',
+    },
+    features: {},
+    ui: {
+      searchPlaceholder: 'Search modules, agents, or capabilities...',
+      exportReport: 'Export Report',
+      exportSuccess: 'Report exported successfully',
+      technicalDetails: 'Technical Details',
+      capabilities: 'Key Capabilities',
+      status: 'Status',
+      noResults: 'No results found',
+      allCategories: 'All Categories',
+      totalAgents: 'Total AI Agents',
+      totalModules: 'Public Modules',
+      totalInfrastructure: 'Infrastructure',
+      generatedOn: 'Generated on',
+      systemOverview: 'System Overview',
+      reportTitle: 'System Manifest',
+      reportSubtitle: 'Von Wobeser y Sierra Intelligent Legal Platform',
     },
   },
   de: {
     categories: {
-      ai_brain: { title: 'Das Gehirn', description: 'Zentrale Intelligenz- und Entscheidungsagenten' },
-      ai_hands: { title: 'Die Hände', description: 'Inhaltserstellung und Optimierungsagenten' },
-      ai_shield: { title: 'Der Schild', description: 'Qualitätssicherung und Selbstheilungsagenten' },
-      public_site: { title: 'Öffentliche Website', description: 'Benutzerorientierte Seiten und Funktionen' },
-      admin_system: { title: 'Admin-System', description: 'Content-Management und Überwachung' },
-      security: { title: 'Sicherheit', description: 'Authentifizierung und Zugriffskontrolle' },
-      infrastructure: { title: 'Infrastruktur', description: 'Kernplattformdienste' },
+      ai_brain: { title: 'Das Gehirn', description: 'Strategische Entscheidungsagenten und Tiefenanalyse' },
+      ai_hands: { title: 'Die Hände', description: 'Operative Ausführung und Transformationsagenten' },
+      ai_shield: { title: 'Der Schild', description: 'Schutz-, Audit- und Selbstheilungsagenten' },
+      infrastructure: { title: 'Das Rückgrat', description: 'Kritische Infrastruktur und Persistenz' },
+      security: { title: 'Digitaler Tresor', description: 'Sicherheit, Authentifizierung und Validierung' },
+      public_site: { title: 'Institutionelles Schaufenster', description: 'Öffentliches Portal und Besuchererlebnis' },
+      admin_system: { title: 'Kommandozentrale', description: 'Verwaltung und Unternehmenskontrolle' },
     },
     statuses: {
       production: 'Produktion',
@@ -1077,32 +1261,32 @@ export const MANIFEST_TRANSLATIONS: Record<string, SystemManifestTranslations> =
     },
     features: {},
     ui: {
-      searchPlaceholder: 'Funktionen, Agenten, Module suchen...',
-      exportReport: 'Technischen Bericht exportieren',
-      exportSuccess: 'Bericht erfolgreich heruntergeladen',
+      searchPlaceholder: 'Module, Agenten oder Fähigkeiten suchen...',
+      exportReport: 'Bericht exportieren',
+      exportSuccess: 'Bericht erfolgreich exportiert',
       technicalDetails: 'Technische Details',
       capabilities: 'Schlüsselfähigkeiten',
       status: 'Status',
-      noResults: 'Keine Funktionen gefunden, die Ihrer Suche entsprechen',
+      noResults: 'Keine Ergebnisse gefunden',
       allCategories: 'Alle Kategorien',
-      totalAgents: 'KI-Agenten',
-      totalModules: 'Website-Module',
+      totalAgents: 'Gesamt KI-Agenten',
+      totalModules: 'Öffentliche Module',
       totalInfrastructure: 'Infrastruktur',
-      generatedOn: 'Erstellt am',
+      generatedOn: 'Generiert am',
       systemOverview: 'Systemübersicht',
-      reportTitle: 'Technischer Bericht der Von Wobeser Plattform',
-      reportSubtitle: 'Vollständige Systemdokumentation',
+      reportTitle: 'Systemmanifest',
+      reportSubtitle: 'Von Wobeser y Sierra Intelligente Rechtsplattform',
     },
   },
   zh: {
     categories: {
-      ai_brain: { title: '大脑', description: '中央智能和决策代理' },
-      ai_hands: { title: '双手', description: '内容创建和优化代理' },
-      ai_shield: { title: '盾牌', description: '质量保证和自我修复代理' },
-      public_site: { title: '公共网站', description: '面向用户的页面和功能' },
-      admin_system: { title: '管理系统', description: '内容管理和监控' },
-      security: { title: '安全', description: '身份验证和访问控制' },
-      infrastructure: { title: '基础设施', description: '核心平台服务' },
+      ai_brain: { title: '大脑', description: '战略决策代理和深度分析' },
+      ai_hands: { title: '双手', description: '运营执行和转型代理' },
+      ai_shield: { title: '盾牌', description: '保护、审计和自愈代理' },
+      infrastructure: { title: '骨干', description: '关键基础设施和持久化' },
+      security: { title: '数字保险库', description: '安全、认证和验证' },
+      public_site: { title: '机构展示', description: '公共门户和访客体验' },
+      admin_system: { title: '指挥中心', description: '管理和企业控制' },
     },
     statuses: {
       production: '生产',
@@ -1111,32 +1295,32 @@ export const MANIFEST_TRANSLATIONS: Record<string, SystemManifestTranslations> =
     },
     features: {},
     ui: {
-      searchPlaceholder: '搜索功能、代理、模块...',
-      exportReport: '导出技术报告',
-      exportSuccess: '报告下载成功',
+      searchPlaceholder: '搜索模块、代理或功能...',
+      exportReport: '导出报告',
+      exportSuccess: '报告导出成功',
       technicalDetails: '技术详情',
-      capabilities: '核心能力',
+      capabilities: '关键能力',
       status: '状态',
-      noResults: '未找到与您搜索匹配的功能',
+      noResults: '未找到结果',
       allCategories: '所有类别',
-      totalAgents: 'AI代理',
-      totalModules: '网站模块',
+      totalAgents: 'AI代理总数',
+      totalModules: '公共模块',
       totalInfrastructure: '基础设施',
       generatedOn: '生成于',
-      systemOverview: '系统概述',
-      reportTitle: 'Von Wobeser平台技术报告',
-      reportSubtitle: '完整系统文档',
+      systemOverview: '系统概览',
+      reportTitle: '系统清单',
+      reportSubtitle: 'Von Wobeser y Sierra 智能法律平台',
     },
   },
   ko: {
     categories: {
-      ai_brain: { title: '두뇌', description: '중앙 지능 및 의사 결정 에이전트' },
-      ai_hands: { title: '손', description: '콘텐츠 생성 및 최적화 에이전트' },
-      ai_shield: { title: '방패', description: '품질 보증 및 자가 복구 에이전트' },
-      public_site: { title: '공개 웹사이트', description: '사용자 대면 페이지 및 기능' },
-      admin_system: { title: '관리 시스템', description: '콘텐츠 관리 및 모니터링' },
-      security: { title: '보안', description: '인증 및 접근 제어' },
-      infrastructure: { title: '인프라', description: '핵심 플랫폼 서비스' },
+      ai_brain: { title: '두뇌', description: '전략적 결정 에이전트 및 심층 분석' },
+      ai_hands: { title: '손', description: '운영 실행 및 변환 에이전트' },
+      ai_shield: { title: '방패', description: '보호, 감사 및 자가 치유 에이전트' },
+      infrastructure: { title: '백본', description: '핵심 인프라 및 지속성' },
+      security: { title: '디지털 금고', description: '보안, 인증 및 검증' },
+      public_site: { title: '기관 쇼케이스', description: '공개 포털 및 방문자 경험' },
+      admin_system: { title: '지휘 센터', description: '관리 및 기업 통제' },
     },
     statuses: {
       production: '프로덕션',
@@ -1145,32 +1329,32 @@ export const MANIFEST_TRANSLATIONS: Record<string, SystemManifestTranslations> =
     },
     features: {},
     ui: {
-      searchPlaceholder: '기능, 에이전트, 모듈 검색...',
-      exportReport: '기술 보고서 내보내기',
-      exportSuccess: '보고서 다운로드 완료',
-      technicalDetails: '기술 세부 사항',
-      capabilities: '핵심 역량',
+      searchPlaceholder: '모듈, 에이전트 또는 기능 검색...',
+      exportReport: '보고서 내보내기',
+      exportSuccess: '보고서가 성공적으로 내보내졌습니다',
+      technicalDetails: '기술 세부사항',
+      capabilities: '핵심 기능',
       status: '상태',
-      noResults: '검색과 일치하는 기능을 찾을 수 없습니다',
+      noResults: '결과를 찾을 수 없습니다',
       allCategories: '모든 카테고리',
-      totalAgents: 'AI 에이전트',
-      totalModules: '사이트 모듈',
+      totalAgents: 'AI 에이전트 총계',
+      totalModules: '공개 모듈',
       totalInfrastructure: '인프라',
       generatedOn: '생성일',
       systemOverview: '시스템 개요',
-      reportTitle: 'Von Wobeser 플랫폼 기술 보고서',
-      reportSubtitle: '전체 시스템 문서',
+      reportTitle: '시스템 매니페스트',
+      reportSubtitle: 'Von Wobeser y Sierra 지능형 법률 플랫폼',
     },
   },
   ja: {
     categories: {
-      ai_brain: { title: '脳', description: '中央知能と意思決定エージェント' },
-      ai_hands: { title: '手', description: 'コンテンツ作成と最適化エージェント' },
-      ai_shield: { title: '盾', description: '品質保証と自己修復エージェント' },
-      public_site: { title: '公開サイト', description: 'ユーザー向けページと機能' },
-      admin_system: { title: '管理システム', description: 'コンテンツ管理とモニタリング' },
-      security: { title: 'セキュリティ', description: '認証とアクセス制御' },
-      infrastructure: { title: 'インフラ', description: 'コアプラットフォームサービス' },
+      ai_brain: { title: '脳', description: '戦略的意思決定エージェントと深層分析' },
+      ai_hands: { title: '手', description: '運用実行と変革エージェント' },
+      ai_shield: { title: '盾', description: '保護、監査、自己修復エージェント' },
+      infrastructure: { title: 'バックボーン', description: '重要なインフラストラクチャと永続性' },
+      security: { title: 'デジタル金庫', description: 'セキュリティ、認証、検証' },
+      public_site: { title: '機関ショーケース', description: '公開ポータルと訪問者体験' },
+      admin_system: { title: 'コマンドセンター', description: '管理と企業統制' },
     },
     statuses: {
       production: '本番',
@@ -1179,66 +1363,66 @@ export const MANIFEST_TRANSLATIONS: Record<string, SystemManifestTranslations> =
     },
     features: {},
     ui: {
-      searchPlaceholder: '機能、エージェント、モジュールを検索...',
-      exportReport: '技術レポートをエクスポート',
-      exportSuccess: 'レポートのダウンロード完了',
+      searchPlaceholder: 'モジュール、エージェント、機能を検索...',
+      exportReport: 'レポートをエクスポート',
+      exportSuccess: 'レポートが正常にエクスポートされました',
       technicalDetails: '技術詳細',
       capabilities: '主要機能',
       status: 'ステータス',
-      noResults: '検索に一致する機能が見つかりません',
+      noResults: '結果が見つかりません',
       allCategories: 'すべてのカテゴリ',
-      totalAgents: 'AIエージェント',
-      totalModules: 'サイトモジュール',
-      totalInfrastructure: 'インフラ',
+      totalAgents: 'AIエージェント合計',
+      totalModules: '公開モジュール',
+      totalInfrastructure: 'インフラストラクチャ',
       generatedOn: '生成日',
       systemOverview: 'システム概要',
-      reportTitle: 'Von Wobeserプラットフォーム技術レポート',
-      reportSubtitle: '完全なシステムドキュメント',
+      reportTitle: 'システムマニフェスト',
+      reportSubtitle: 'Von Wobeser y Sierra インテリジェント法律プラットフォーム',
     },
   },
   ar: {
     categories: {
-      ai_brain: { title: 'الدماغ', description: 'وكلاء الذكاء المركزي واتخاذ القرار' },
-      ai_hands: { title: 'الأيدي', description: 'وكلاء إنشاء المحتوى والتحسين' },
-      ai_shield: { title: 'الدرع', description: 'وكلاء ضمان الجودة والإصلاح الذاتي' },
-      public_site: { title: 'الموقع العام', description: 'صفحات وميزات للمستخدمين' },
-      admin_system: { title: 'نظام الإدارة', description: 'إدارة المحتوى والمراقبة' },
-      security: { title: 'الأمان', description: 'المصادقة والتحكم في الوصول' },
-      infrastructure: { title: 'البنية التحتية', description: 'خدمات المنصة الأساسية' },
+      ai_brain: { title: 'الدماغ', description: 'وكلاء القرار الاستراتيجي والتحليل العميق' },
+      ai_hands: { title: 'الأيدي', description: 'وكلاء التنفيذ التشغيلي والتحويل' },
+      ai_shield: { title: 'الدرع', description: 'وكلاء الحماية والتدقيق والشفاء الذاتي' },
+      infrastructure: { title: 'العمود الفقري', description: 'البنية التحتية الحرجة والاستمرارية' },
+      security: { title: 'الخزنة الرقمية', description: 'الأمان والمصادقة والتحقق' },
+      public_site: { title: 'واجهة المؤسسة', description: 'البوابة العامة وتجربة الزائر' },
+      admin_system: { title: 'مركز القيادة', description: 'الإدارة والتحكم المؤسسي' },
     },
     statuses: {
-      production: 'إنتاج',
-      beta: 'تجريبي',
-      development: 'قيد التطوير',
+      production: 'الإنتاج',
+      beta: 'بيتا',
+      development: 'التطوير',
     },
     features: {},
     ui: {
-      searchPlaceholder: 'البحث عن الميزات والوكلاء والوحدات...',
-      exportReport: 'تصدير التقرير الفني',
-      exportSuccess: 'تم تنزيل التقرير بنجاح',
-      technicalDetails: 'التفاصيل الفنية',
+      searchPlaceholder: 'البحث في الوحدات أو الوكلاء أو القدرات...',
+      exportReport: 'تصدير التقرير',
+      exportSuccess: 'تم تصدير التقرير بنجاح',
+      technicalDetails: 'التفاصيل التقنية',
       capabilities: 'القدرات الرئيسية',
       status: 'الحالة',
-      noResults: 'لم يتم العثور على ميزات تطابق بحثك',
+      noResults: 'لم يتم العثور على نتائج',
       allCategories: 'جميع الفئات',
-      totalAgents: 'وكلاء الذكاء الاصطناعي',
-      totalModules: 'وحدات الموقع',
+      totalAgents: 'إجمالي وكلاء الذكاء الاصطناعي',
+      totalModules: 'الوحدات العامة',
       totalInfrastructure: 'البنية التحتية',
-      generatedOn: 'أنشئ في',
+      generatedOn: 'تم الإنشاء في',
       systemOverview: 'نظرة عامة على النظام',
-      reportTitle: 'التقرير الفني لمنصة Von Wobeser',
-      reportSubtitle: 'وثائق النظام الكاملة',
+      reportTitle: 'بيان النظام',
+      reportSubtitle: 'منصة فون ووبيسر وسييرا القانونية الذكية',
     },
   },
   ru: {
     categories: {
-      ai_brain: { title: 'Мозг', description: 'Агенты центрального интеллекта и принятия решений' },
-      ai_hands: { title: 'Руки', description: 'Агенты создания и оптимизации контента' },
-      ai_shield: { title: 'Щит', description: 'Агенты контроля качества и самовосстановления' },
-      public_site: { title: 'Публичный сайт', description: 'Страницы и функции для пользователей' },
-      admin_system: { title: 'Система администрирования', description: 'Управление контентом и мониторинг' },
-      security: { title: 'Безопасность', description: 'Аутентификация и контроль доступа' },
-      infrastructure: { title: 'Инфраструктура', description: 'Основные сервисы платформы' },
+      ai_brain: { title: 'Мозг', description: 'Агенты стратегических решений и глубокого анализа' },
+      ai_hands: { title: 'Руки', description: 'Агенты операционного выполнения и трансформации' },
+      ai_shield: { title: 'Щит', description: 'Агенты защиты, аудита и самовосстановления' },
+      infrastructure: { title: 'Основа', description: 'Критическая инфраструктура и постоянство' },
+      security: { title: 'Цифровое хранилище', description: 'Безопасность, аутентификация и валидация' },
+      public_site: { title: 'Институциональная витрина', description: 'Публичный портал и опыт посетителей' },
+      admin_system: { title: 'Командный центр', description: 'Администрирование и корпоративный контроль' },
     },
     statuses: {
       production: 'Продакшн',
@@ -1247,32 +1431,32 @@ export const MANIFEST_TRANSLATIONS: Record<string, SystemManifestTranslations> =
     },
     features: {},
     ui: {
-      searchPlaceholder: 'Поиск функций, агентов, модулей...',
-      exportReport: 'Экспорт технического отчета',
-      exportSuccess: 'Отчет успешно загружен',
+      searchPlaceholder: 'Поиск модулей, агентов или возможностей...',
+      exportReport: 'Экспорт отчета',
+      exportSuccess: 'Отчет успешно экспортирован',
       technicalDetails: 'Технические детали',
       capabilities: 'Ключевые возможности',
       status: 'Статус',
-      noResults: 'Функции, соответствующие вашему запросу, не найдены',
+      noResults: 'Результаты не найдены',
       allCategories: 'Все категории',
-      totalAgents: 'ИИ-агенты',
-      totalModules: 'Модули сайта',
+      totalAgents: 'Всего ИИ-агентов',
+      totalModules: 'Публичные модули',
       totalInfrastructure: 'Инфраструктура',
       generatedOn: 'Создано',
       systemOverview: 'Обзор системы',
-      reportTitle: 'Технический отчет платформы Von Wobeser',
-      reportSubtitle: 'Полная документация системы',
+      reportTitle: 'Манифест системы',
+      reportSubtitle: 'Интеллектуальная юридическая платформа Von Wobeser y Sierra',
     },
   },
   fr: {
     categories: {
-      ai_brain: { title: 'Le Cerveau', description: 'Agents d\'intelligence centrale et de prise de décision' },
-      ai_hands: { title: 'Les Mains', description: 'Agents de création et d\'optimisation de contenu' },
-      ai_shield: { title: 'Le Bouclier', description: 'Agents d\'assurance qualité et d\'auto-réparation' },
-      public_site: { title: 'Site Public', description: 'Pages et fonctionnalités utilisateur' },
-      admin_system: { title: 'Système Admin', description: 'Gestion de contenu et surveillance' },
-      security: { title: 'Sécurité', description: 'Authentification et contrôle d\'accès' },
-      infrastructure: { title: 'Infrastructure', description: 'Services de plateforme de base' },
+      ai_brain: { title: 'Le Cerveau', description: 'Agents de décision stratégique et analyse approfondie' },
+      ai_hands: { title: 'Les Mains', description: 'Agents d\'exécution opérationnelle et de transformation' },
+      ai_shield: { title: 'Le Bouclier', description: 'Agents de protection, d\'audit et d\'auto-guérison' },
+      infrastructure: { title: 'L\'Épine Dorsale', description: 'Infrastructure critique et persistance' },
+      security: { title: 'Coffre-fort Numérique', description: 'Sécurité, authentification et validation' },
+      public_site: { title: 'Vitrine Institutionnelle', description: 'Portail public et expérience visiteur' },
+      admin_system: { title: 'Centre de Commande', description: 'Administration et contrôle d\'entreprise' },
     },
     statuses: {
       production: 'Production',
@@ -1281,32 +1465,32 @@ export const MANIFEST_TRANSLATIONS: Record<string, SystemManifestTranslations> =
     },
     features: {},
     ui: {
-      searchPlaceholder: 'Rechercher fonctionnalités, agents, modules...',
-      exportReport: 'Exporter le rapport technique',
-      exportSuccess: 'Rapport téléchargé avec succès',
+      searchPlaceholder: 'Rechercher des modules, agents ou capacités...',
+      exportReport: 'Exporter le rapport',
+      exportSuccess: 'Rapport exporté avec succès',
       technicalDetails: 'Détails techniques',
       capabilities: 'Capacités clés',
       status: 'Statut',
-      noResults: 'Aucune fonctionnalité correspondant à votre recherche',
+      noResults: 'Aucun résultat trouvé',
       allCategories: 'Toutes les catégories',
-      totalAgents: 'Agents IA',
-      totalModules: 'Modules du site',
+      totalAgents: 'Total des agents IA',
+      totalModules: 'Modules publics',
       totalInfrastructure: 'Infrastructure',
       generatedOn: 'Généré le',
       systemOverview: 'Aperçu du système',
-      reportTitle: 'Rapport technique de la plateforme Von Wobeser',
-      reportSubtitle: 'Documentation complète du système',
+      reportTitle: 'Manifeste du système',
+      reportSubtitle: 'Plateforme juridique intelligente Von Wobeser y Sierra',
     },
   },
   it: {
     categories: {
-      ai_brain: { title: 'Il Cervello', description: 'Agenti di intelligenza centrale e decisionale' },
-      ai_hands: { title: 'Le Mani', description: 'Agenti di creazione e ottimizzazione contenuti' },
-      ai_shield: { title: 'Lo Scudo', description: 'Agenti di garanzia qualità e auto-riparazione' },
-      public_site: { title: 'Sito Pubblico', description: 'Pagine e funzionalità utente' },
-      admin_system: { title: 'Sistema Admin', description: 'Gestione contenuti e monitoraggio' },
-      security: { title: 'Sicurezza', description: 'Autenticazione e controllo accessi' },
-      infrastructure: { title: 'Infrastruttura', description: 'Servizi core della piattaforma' },
+      ai_brain: { title: 'Il Cervello', description: 'Agenti decisionali strategici e analisi approfondita' },
+      ai_hands: { title: 'Le Mani', description: 'Agenti di esecuzione operativa e trasformazione' },
+      ai_shield: { title: 'Lo Scudo', description: 'Agenti di protezione, audit e auto-guarigione' },
+      infrastructure: { title: 'La Spina Dorsale', description: 'Infrastruttura critica e persistenza' },
+      security: { title: 'Caveau Digitale', description: 'Sicurezza, autenticazione e validazione' },
+      public_site: { title: 'Vetrina Istituzionale', description: 'Portale pubblico ed esperienza del visitatore' },
+      admin_system: { title: 'Centro di Comando', description: 'Amministrazione e controllo aziendale' },
     },
     statuses: {
       production: 'Produzione',
@@ -1315,115 +1499,105 @@ export const MANIFEST_TRANSLATIONS: Record<string, SystemManifestTranslations> =
     },
     features: {},
     ui: {
-      searchPlaceholder: 'Cerca funzionalità, agenti, moduli...',
-      exportReport: 'Esporta rapporto tecnico',
-      exportSuccess: 'Rapporto scaricato con successo',
+      searchPlaceholder: 'Cerca moduli, agenti o capacità...',
+      exportReport: 'Esporta rapporto',
+      exportSuccess: 'Rapporto esportato con successo',
       technicalDetails: 'Dettagli tecnici',
       capabilities: 'Capacità chiave',
       status: 'Stato',
-      noResults: 'Nessuna funzionalità trovata corrispondente alla ricerca',
+      noResults: 'Nessun risultato trovato',
       allCategories: 'Tutte le categorie',
-      totalAgents: 'Agenti IA',
-      totalModules: 'Moduli del sito',
+      totalAgents: 'Totale agenti IA',
+      totalModules: 'Moduli pubblici',
       totalInfrastructure: 'Infrastruttura',
       generatedOn: 'Generato il',
       systemOverview: 'Panoramica del sistema',
-      reportTitle: 'Rapporto tecnico della piattaforma Von Wobeser',
-      reportSubtitle: 'Documentazione completa del sistema',
+      reportTitle: 'Manifesto del sistema',
+      reportSubtitle: 'Piattaforma legale intelligente Von Wobeser y Sierra',
     },
   },
 };
 
-// ============================================================================
-// UTILITY FUNCTIONS
-// ============================================================================
+// ════════════════════════════════════════════════════════════════════════════════
+// BACKWARDS COMPATIBILITY ALIASES
+// ════════════════════════════════════════════════════════════════════════════════
 
-export function getAllFeatures(): SystemFeature[] {
-  return [...AI_AGENTS, ...PUBLIC_MODULES, ...ADMIN_MODULES, ...INFRASTRUCTURE];
+export const INFRASTRUCTURE: SystemFeature[] = INFRASTRUCTURE_FEATURES;
+
+// ════════════════════════════════════════════════════════════════════════════════
+// HELPER FUNCTIONS
+// ════════════════════════════════════════════════════════════════════════════════
+
+export function getManifestTranslations(language: string): SystemManifestTranslations {
+  return MANIFEST_TRANSLATIONS[language] || MANIFEST_TRANSLATIONS.es;
 }
 
-export function getFeaturesByCategory(category: SystemCategory): SystemFeature[] {
-  return getAllFeatures().filter(f => f.category === category);
+export function getAllFeatures(): SystemFeature[] {
+  return ALL_FEATURES;
 }
 
 export function searchFeatures(query: string): SystemFeature[] {
-  const normalizedQuery = query.toLowerCase().trim();
-  if (!normalizedQuery) return getAllFeatures();
+  if (!query.trim()) return ALL_FEATURES;
   
-  return getAllFeatures().filter(feature => 
-    feature.name.toLowerCase().includes(normalizedQuery) ||
-    feature.technicalName.toLowerCase().includes(normalizedQuery) ||
-    feature.technicalDetail.toLowerCase().includes(normalizedQuery) ||
-    feature.userBenefit.toLowerCase().includes(normalizedQuery) ||
-    feature.keyCapabilities.some(cap => cap.toLowerCase().includes(normalizedQuery))
+  const lowerQuery = query.toLowerCase();
+  return ALL_FEATURES.filter(feature => 
+    feature.name.toLowerCase().includes(lowerQuery) ||
+    feature.technicalName.toLowerCase().includes(lowerQuery) ||
+    feature.technicalDetail.toLowerCase().includes(lowerQuery) ||
+    feature.userBenefit.toLowerCase().includes(lowerQuery) ||
+    feature.keyCapabilities.some(cap => cap.toLowerCase().includes(lowerQuery))
   );
 }
 
+export function getFeaturesByCategory(category: SystemCategory | 'all'): SystemFeature[] {
+  if (category === 'all') return ALL_FEATURES;
+  return ALL_FEATURES.filter(feature => feature.category === category);
+}
+
 export function getTranslations(language: string): SystemManifestTranslations {
-  return MANIFEST_TRANSLATIONS[language] || MANIFEST_TRANSLATIONS.en;
+  return MANIFEST_TRANSLATIONS[language] || MANIFEST_TRANSLATIONS.es;
 }
 
 export function getSystemStats() {
-  const all = getAllFeatures();
-  return {
-    totalAgents: AI_AGENTS.length,
-    totalPublicModules: PUBLIC_MODULES.length,
-    totalAdminModules: ADMIN_MODULES.length,
-    totalInfrastructure: all.filter(f => f.category === 'infrastructure').length,
-    totalSecurity: all.filter(f => f.category === 'security').length,
-    totalFeatures: all.length,
-    productionFeatures: all.filter(f => f.status === 'production').length,
-    betaFeatures: all.filter(f => f.status === 'beta').length,
-  };
+  return SYSTEM_STATS;
 }
 
-export function generateMarkdownReport(language: string = 'en'): string {
+export function generateMarkdownReport(language: string = 'es'): string {
   const t = getTranslations(language);
   const stats = getSystemStats();
-  const date = new Date().toLocaleDateString(language === 'es' ? 'es-MX' : 'en-US', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-  });
+  const now = new Date().toLocaleDateString(language === 'es' ? 'es-ES' : language === 'en' ? 'en-US' : language);
   
-  let md = `# ${t.ui.reportTitle}\n\n`;
-  md += `**${t.ui.reportSubtitle}**\n\n`;
-  md += `${t.ui.generatedOn}: ${date}\n\n`;
-  md += `---\n\n`;
+  let report = `# ${t.ui.reportTitle}\n\n`;
+  report += `## ${t.ui.reportSubtitle}\n\n`;
+  report += `**${t.ui.generatedOn}:** ${now}\n\n`;
+  report += `---\n\n`;
   
-  md += `## ${t.ui.systemOverview}\n\n`;
-  md += `| Metric | Count |\n`;
-  md += `|--------|-------|\n`;
-  md += `| ${t.ui.totalAgents} | ${stats.totalAgents} |\n`;
-  md += `| ${t.ui.totalModules} | ${stats.totalPublicModules + stats.totalAdminModules} |\n`;
-  md += `| ${t.ui.totalInfrastructure} | ${stats.totalInfrastructure} |\n`;
-  md += `| Total Features | ${stats.totalFeatures} |\n\n`;
+  report += `## ${t.ui.systemOverview}\n\n`;
+  report += `- **${t.ui.totalAgents}:** ${stats.totalAgents}\n`;
+  report += `- **${t.ui.totalModules}:** ${stats.publicModules}\n`;
+  report += `- **${t.ui.totalInfrastructure}:** ${stats.infrastructureModules + stats.securityModules}\n\n`;
   
-  const categories: SystemCategory[] = ['ai_brain', 'ai_hands', 'ai_shield', 'public_site', 'admin_system', 'security', 'infrastructure'];
+  const categories: SystemCategory[] = ['ai_brain', 'ai_hands', 'ai_shield', 'infrastructure', 'security', 'public_site', 'admin_system'];
   
   for (const category of categories) {
-    const features = getFeaturesByCategory(category);
-    if (features.length === 0) continue;
+    const categoryFeatures = getFeaturesByCategory(category);
+    if (categoryFeatures.length === 0) continue;
     
-    const catInfo = t.categories[category];
-    md += `## ${catInfo.title}\n\n`;
-    md += `*${catInfo.description}*\n\n`;
+    const categoryInfo = t.categories[category];
+    report += `## ${categoryInfo.title}\n\n`;
+    report += `*${categoryInfo.description}*\n\n`;
     
-    for (const feature of features) {
-      md += `### ${feature.name}\n\n`;
-      md += `**Technical Name:** \`${feature.technicalName}\`\n\n`;
-      md += `**${t.ui.status}:** ${t.statuses[feature.status]}\n\n`;
-      md += `**${t.ui.technicalDetails}:**\n${feature.technicalDetail}\n\n`;
-      md += `**Business Value:**\n${feature.userBenefit}\n\n`;
-      md += `**${t.ui.capabilities}:**\n`;
+    for (const feature of categoryFeatures) {
+      report += `### ${feature.name}\n\n`;
+      report += `**${feature.technicalName}**\n\n`;
+      report += `${feature.technicalDetail}\n\n`;
+      report += `**${t.ui.capabilities}:**\n`;
       for (const cap of feature.keyCapabilities) {
-        md += `- ${cap}\n`;
+        report += `- ${cap}\n`;
       }
-      md += `\n---\n\n`;
+      report += `\n`;
     }
   }
   
-  md += `\n---\n\n*This report was automatically generated by the Von Wobeser Platform Documentation System.*\n`;
-  
-  return md;
+  return report;
 }
