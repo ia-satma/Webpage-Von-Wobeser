@@ -3,7 +3,7 @@
     "date": "2025-12-10",
     "title": "Visual Intelligence Upgrade",
     "description": "The Image Agent learned to bypass content policy filters by abstracting legal concepts into professional imagery, ensuring 100% cover image availability.",
-    "agentId": "smart-visualizer",
+    "agentId": "smart_image_generator",
     "impact": "major",
     "category": "intelligence"
   },
@@ -11,7 +11,7 @@
     "date": "2025-12-10",
     "title": "Self-Healing Architecture Deployed",
     "description": "Introduced the AutoRecoveryAgent that autonomously diagnoses and repairs failed processing jobs without human intervention.",
-    "agentId": "self-healer",
+    "agentId": "auto_recovery",
     "impact": "critical",
     "category": "security"
   },
@@ -19,7 +19,7 @@
     "date": "2025-12-09",
     "title": "Multi-Engine Fallback System",
     "description": "SmartImageGenerator now seamlessly falls back from DALL-E 3 to Gemini 2.5 when primary generation fails, guaranteeing visual content.",
-    "agentId": "smart-visualizer",
+    "agentId": "smart_image_generator",
     "impact": "major",
     "category": "capability"
   },
@@ -27,7 +27,7 @@
     "date": "2025-12-08",
     "title": "Legal Glossary Expansion",
     "description": "The Polyglot Neural Network integrated 200+ new legal terms across all 10 supported languages, improving translation accuracy by 15%.",
-    "agentId": "polyglot",
+    "agentId": "polyglot_translator",
     "impact": "minor",
     "category": "intelligence"
   },
@@ -43,7 +43,7 @@
     "date": "2025-12-05",
     "title": "Content Analysis Engine",
     "description": "Deep Reader agent now provides comprehensive GPT-4o analysis with quality scoring, spelling review, and legal classification.",
-    "agentId": "content-analyzer",
+    "agentId": "content_analyzer",
     "impact": "major",
     "category": "intelligence"
   }

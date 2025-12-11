@@ -108,16 +108,30 @@ The backend has been transformed from a static brochure into a self-evolving sys
 **Live Nerve Center Dashboard:**
 - Located at `/admin/guide`
 - Real-time visualization of the AI agent ecosystem with 30-second auto-refresh
-- Displays 11 specialized agents organized into 3 categories:
-  - **The Brain**: Central Neural Hub (Orchestrator), Content Analyzer, Category Agent, Metadata Linker
-  - **The Hands**: Polyglot Translator, Smart Visualizer, Formatter, SEO Optimizer
-  - **The Shield**: Self-Healing Auditor, Content Auditor, Website Auditor
+- Displays **14 specialized agents** organized into 3 categories:
+  - **The Brain (6 agents)**: Orchestrator, Legal Council, Content Analyzer, Category Agent, Metadata Linker, System Chronicler
+  - **The Hands (4 agents)**: Polyglot Translator, Smart Image Generator, SEO Optimizer, Formatter
+  - **The Shield (4 agents)**: Auto Recovery, System Health, Content Auditor, Website Auditor
 - Each agent card shows: business name, role, description, capabilities, evolution level (1-5 dots), status
 - Pulsing CSS animations on active agents to demonstrate "living, breathing" system
 - System Evolution Timeline showing narrative history of improvements with impact levels (critical/major/minor)
 - Full 10-language support matching all other pages
+
+**Agent Inventory - Single Source of Truth (Auditor-Level Precision):**
+- Shared constants file: `shared/agentConstants.ts`
+- Contains canonical `AGENT_IDS` typed constants, `AGENT_CATEGORY_MAP`, and derived category arrays
+- `BRAIN_AGENT_IDS`, `HANDS_AGENT_IDS`, `SHIELD_AGENT_IDS` - computed from AGENT_CATEGORY_MAP (not manually maintained)
+- Frontend manifest uses typed constants: `id: AGENT_IDS.ORCHESTRATOR` (no literal strings)
+- Both frontend and backend **throw errors on startup** if inventory mismatches shared constants
+- Runtime validation: SystemChronicler.validateInventory() and validateManifestAgentInventory()
+- Category membership verification: ensures brain IDs in BRAIN_AGENT_IDS, etc.
+- All agent IDs use underscore format (e.g., `content_analyzer`, `polyglot_translator`)
+- Expected counts: 6 brain + 4 hands + 4 shield = 14 total agents
+
 - Key files:
+  - `shared/agentConstants.ts` - Single source of truth for agent inventory
   - `server/agents/SystemChronicler.ts` - Meta-agent that auto-documents all agents
+  - `client/src/lib/systemManifest.ts` - Frontend technical documentation manifest
   - `client/src/components/admin/NerveCenter.tsx` - Agent network visualization
   - `client/src/components/admin/EvolutionTimeline.tsx` - Timeline component
   - `system_evolution.json` - Persisted evolution history

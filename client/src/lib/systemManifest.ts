@@ -12,6 +12,15 @@
  * ╚══════════════════════════════════════════════════════════════════════════════╝
  */
 
+import { 
+  AGENT_IDS, 
+  EXPECTED_AGENT_COUNTS,
+  ALL_AGENT_IDS,
+  BRAIN_AGENT_IDS,
+  HANDS_AGENT_IDS,
+  SHIELD_AGENT_IDS,
+} from '@shared/agentConstants';
+
 export type SystemCategory = 
   | 'ai_brain'        // El Cerebro - Agentes de Decisión Estratégica
   | 'ai_hands'        // Las Manos - Agentes de Ejecución Operativa
@@ -71,7 +80,7 @@ export interface SystemManifestTranslations {
 
 export const AI_BRAIN_AGENTS: SystemFeature[] = [
   {
-    id: 'orchestrator',
+    id: AGENT_IDS.ORCHESTRATOR,
     category: 'ai_brain',
     name: 'Centro Neuronal de Orquestación',
     technicalName: 'AgentOrchestrator',
@@ -93,7 +102,7 @@ export const AI_BRAIN_AGENTS: SystemFeature[] = [
     },
   },
   {
-    id: 'legal_council',
+    id: AGENT_IDS.LEGAL_COUNCIL,
     category: 'ai_brain',
     name: 'Consejo de Gobernanza Digital',
     technicalName: 'LegalCouncilService',
@@ -115,7 +124,7 @@ export const AI_BRAIN_AGENTS: SystemFeature[] = [
     },
   },
   {
-    id: 'content_analyzer',
+    id: AGENT_IDS.CONTENT_ANALYZER,
     category: 'ai_brain',
     name: 'Analizador de Inteligencia de Contenido',
     technicalName: 'ContentAnalyzerAgent',
@@ -137,7 +146,7 @@ export const AI_BRAIN_AGENTS: SystemFeature[] = [
     },
   },
   {
-    id: 'category_agent',
+    id: AGENT_IDS.CATEGORY_AGENT,
     category: 'ai_brain',
     name: 'Agente de Taxonomía Inteligente',
     technicalName: 'CategoryAgent',
@@ -158,7 +167,7 @@ export const AI_BRAIN_AGENTS: SystemFeature[] = [
     },
   },
   {
-    id: 'metadata_linker',
+    id: AGENT_IDS.METADATA_LINKER,
     category: 'ai_brain',
     name: 'Vinculador de Metadatos Relacionales',
     technicalName: 'MetadataLinkerAgent',
@@ -178,7 +187,7 @@ export const AI_BRAIN_AGENTS: SystemFeature[] = [
     },
   },
   {
-    id: 'system_chronicler',
+    id: AGENT_IDS.SYSTEM_CHRONICLER,
     category: 'ai_brain',
     name: 'Cronista del Sistema Evolutivo',
     technicalName: 'SystemChronicler',
@@ -201,7 +210,7 @@ export const AI_BRAIN_AGENTS: SystemFeature[] = [
 
 export const AI_HANDS_AGENTS: SystemFeature[] = [
   {
-    id: 'polyglot_translator',
+    id: AGENT_IDS.POLYGLOT_TRANSLATOR,
     category: 'ai_hands',
     name: 'Motor Neuronal de Localización Semántica',
     technicalName: 'PolyglotTranslatorAgent',
@@ -223,7 +232,7 @@ export const AI_HANDS_AGENTS: SystemFeature[] = [
     },
   },
   {
-    id: 'smart_image_generator',
+    id: AGENT_IDS.SMART_IMAGE_GENERATOR,
     category: 'ai_hands',
     name: 'Sintetizador Visual con Escudo Legal',
     technicalName: 'SmartImageGenerator + ImageSuggestionAgent',
@@ -246,7 +255,7 @@ export const AI_HANDS_AGENTS: SystemFeature[] = [
     },
   },
   {
-    id: 'seo_optimizer',
+    id: AGENT_IDS.SEO_OPTIMIZER,
     category: 'ai_hands',
     name: 'Agente de Posicionamiento Orgánico',
     technicalName: 'SEOOptimizerAgent',
@@ -267,7 +276,7 @@ export const AI_HANDS_AGENTS: SystemFeature[] = [
     },
   },
   {
-    id: 'formatter',
+    id: AGENT_IDS.FORMATTER,
     category: 'ai_hands',
     name: 'Formateador de Contenido Jurídico',
     technicalName: 'FormatterAgent',
@@ -294,7 +303,7 @@ export const AI_HANDS_AGENTS: SystemFeature[] = [
 
 export const AI_SHIELD_AGENTS: SystemFeature[] = [
   {
-    id: 'auto_recovery',
+    id: AGENT_IDS.AUTO_RECOVERY,
     category: 'ai_shield',
     name: 'Arquitectura de Auto-Curación (Self-Healing)',
     technicalName: 'AutoRecoveryAgent',
@@ -314,7 +323,7 @@ export const AI_SHIELD_AGENTS: SystemFeature[] = [
     },
   },
   {
-    id: 'system_health',
+    id: AGENT_IDS.SYSTEM_HEALTH,
     category: 'ai_shield',
     name: 'Monitor de Salud Sistémica',
     technicalName: 'SystemHealthCheck',
@@ -335,7 +344,7 @@ export const AI_SHIELD_AGENTS: SystemFeature[] = [
     },
   },
   {
-    id: 'content_auditor',
+    id: AGENT_IDS.CONTENT_AUDITOR,
     category: 'ai_shield',
     name: 'Auditor de Completitud de Contenido',
     technicalName: 'ContentAuditorAgent',
@@ -356,7 +365,7 @@ export const AI_SHIELD_AGENTS: SystemFeature[] = [
     },
   },
   {
-    id: 'website_auditor',
+    id: AGENT_IDS.WEBSITE_AUDITOR,
     category: 'ai_shield',
     name: 'Auditor de Calidad Web Integral',
     technicalName: 'WebsiteAuditorAgent',
@@ -1584,4 +1593,83 @@ export function generateMarkdownReport(language: string = 'es'): string {
   }
   
   return report;
+}
+
+/**
+ * Validates that the manifest agent inventory matches the shared constants.
+ * This ensures the frontend and backend sources of truth are synchronized.
+ * 
+ * Validation includes:
+ * - Count verification per category
+ * - ID existence verification (all shared constant IDs must have metadata)
+ * - Category membership verification (brain IDs in brain array, etc.)
+ */
+export function validateManifestAgentInventory(): { valid: boolean; errors: string[] } {
+  const errors: string[] = [];
+  
+  const brainIds = AI_BRAIN_AGENTS.map(a => a.id);
+  const handsIds = AI_HANDS_AGENTS.map(a => a.id);
+  const shieldIds = AI_SHIELD_AGENTS.map(a => a.id);
+  const allManifestIds = [...brainIds, ...handsIds, ...shieldIds];
+  
+  // Count validation
+  if (brainIds.length !== EXPECTED_AGENT_COUNTS.brain) {
+    errors.push(`Brain: expected ${EXPECTED_AGENT_COUNTS.brain}, got ${brainIds.length}`);
+  }
+  if (handsIds.length !== EXPECTED_AGENT_COUNTS.hands) {
+    errors.push(`Hands: expected ${EXPECTED_AGENT_COUNTS.hands}, got ${handsIds.length}`);
+  }
+  if (shieldIds.length !== EXPECTED_AGENT_COUNTS.shield) {
+    errors.push(`Shield: expected ${EXPECTED_AGENT_COUNTS.shield}, got ${shieldIds.length}`);
+  }
+  if (allManifestIds.length !== EXPECTED_AGENT_COUNTS.TOTAL) {
+    errors.push(`Total: expected ${EXPECTED_AGENT_COUNTS.TOTAL}, got ${allManifestIds.length}`);
+  }
+  
+  // All shared constant IDs must have corresponding metadata
+  for (const expectedId of ALL_AGENT_IDS) {
+    if (!allManifestIds.includes(expectedId)) {
+      errors.push(`Missing agent in manifest: ${expectedId}`);
+    }
+  }
+  
+  // No unknown IDs in manifest
+  for (const manifestId of allManifestIds) {
+    if (!ALL_AGENT_IDS.includes(manifestId as any)) {
+      errors.push(`Unknown agent in manifest: ${manifestId}`);
+    }
+  }
+  
+  // Category membership validation using derived arrays from shared constants
+  for (const brainId of brainIds) {
+    if (!BRAIN_AGENT_IDS.includes(brainId as any)) {
+      errors.push(`Agent ${brainId} in AI_BRAIN_AGENTS but not in shared BRAIN_AGENT_IDS`);
+    }
+  }
+  for (const handsId of handsIds) {
+    if (!HANDS_AGENT_IDS.includes(handsId as any)) {
+      errors.push(`Agent ${handsId} in AI_HANDS_AGENTS but not in shared HANDS_AGENT_IDS`);
+    }
+  }
+  for (const shieldId of shieldIds) {
+    if (!SHIELD_AGENT_IDS.includes(shieldId as any)) {
+      errors.push(`Agent ${shieldId} in AI_SHIELD_AGENTS but not in shared SHIELD_AGENT_IDS`);
+    }
+  }
+  
+  if (errors.length > 0) {
+    console.error('[SystemManifest] AGENT INVENTORY VALIDATION FAILED:', errors);
+  } else {
+    console.log(`[SystemManifest] Agent inventory validated: ${allManifestIds.length} agents match shared constants`);
+  }
+  
+  return { valid: errors.length === 0, errors };
+}
+
+// Run validation at module initialization to catch drift immediately
+const _manifestValidationResult = validateManifestAgentInventory();
+if (!_manifestValidationResult.valid) {
+  const errorMsg = `[SystemManifest] CRITICAL: Agent inventory mismatch detected! Errors: ${_manifestValidationResult.errors.join('; ')}`;
+  console.error(errorMsg);
+  throw new Error(errorMsg);
 }

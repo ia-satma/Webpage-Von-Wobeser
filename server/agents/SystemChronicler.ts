@@ -3,6 +3,13 @@ import { agentKnowledge } from "@shared/schema";
 import { eq } from "drizzle-orm";
 import * as fs from "fs";
 import * as path from "path";
+import { 
+  AGENT_CATEGORIES, 
+  AGENT_IDS, 
+  EXPECTED_AGENT_COUNTS,
+  validateAgentInventory,
+  type AgentCategory 
+} from "@shared/agentConstants";
 
 export interface AgentCapabilityCard {
   id: string;
@@ -46,7 +53,7 @@ const AGENT_REGISTRY: AgentCapabilityCard[] = [
     evolutionLevel: 3
   },
   {
-    id: "self-healer",
+    id: "auto_recovery",
     technicalName: "AutoRecoveryAgent",
     businessName: "The Self-Healing Auditor",
     role: "Guardian of Integrity",
@@ -63,7 +70,7 @@ const AGENT_REGISTRY: AgentCapabilityCard[] = [
     evolutionLevel: 2
   },
   {
-    id: "polyglot",
+    id: "polyglot_translator",
     technicalName: "PolyglotTranslatorAgent",
     businessName: "The Polyglot Neural Network",
     role: "Global Voice",
@@ -80,7 +87,7 @@ const AGENT_REGISTRY: AgentCapabilityCard[] = [
     evolutionLevel: 4
   },
   {
-    id: "smart-visualizer",
+    id: "smart_image_generator",
     technicalName: "SmartImageGenerator",
     businessName: "The Smart Visualizer",
     role: "Creative Director",
@@ -114,7 +121,7 @@ const AGENT_REGISTRY: AgentCapabilityCard[] = [
     evolutionLevel: 2
   },
   {
-    id: "categorizer",
+    id: "category_agent",
     technicalName: "CategoryAgent",
     businessName: "The Legal Taxonomist",
     role: "Classification Oracle",
@@ -131,7 +138,7 @@ const AGENT_REGISTRY: AgentCapabilityCard[] = [
     evolutionLevel: 2
   },
   {
-    id: "metadata-linker",
+    id: "metadata_linker",
     technicalName: "MetadataLinkerAgent",
     businessName: "The Connection Architect",
     role: "Relationship Mapper",
@@ -148,7 +155,7 @@ const AGENT_REGISTRY: AgentCapabilityCard[] = [
     evolutionLevel: 2
   },
   {
-    id: "seo-optimizer",
+    id: "seo_optimizer",
     technicalName: "SEOOptimizerAgent",
     businessName: "The Visibility Enhancer",
     role: "Search Strategist",
@@ -165,7 +172,7 @@ const AGENT_REGISTRY: AgentCapabilityCard[] = [
     evolutionLevel: 2
   },
   {
-    id: "content-auditor",
+    id: "content_auditor",
     technicalName: "ContentAuditorAgent",
     businessName: "The Quality Inspector",
     role: "Content Guardian",
@@ -182,7 +189,7 @@ const AGENT_REGISTRY: AgentCapabilityCard[] = [
     evolutionLevel: 2
   },
   {
-    id: "website-auditor",
+    id: "website_auditor",
     technicalName: "WebsiteAuditorAgent",
     businessName: "The Site Sentinel",
     role: "Zero-Error Guardian",
@@ -199,7 +206,7 @@ const AGENT_REGISTRY: AgentCapabilityCard[] = [
     evolutionLevel: 2
   },
   {
-    id: "content-analyzer",
+    id: "content_analyzer",
     technicalName: "ContentAnalyzerAgent",
     businessName: "The Deep Reader",
     role: "Content Intelligence",
@@ -214,6 +221,57 @@ const AGENT_REGISTRY: AgentCapabilityCard[] = [
     ],
     status: "active",
     evolutionLevel: 3
+  },
+  {
+    id: "legal_council",
+    technicalName: "LegalCouncilService",
+    businessName: "The Digital Governance Council",
+    role: "Quality Arbiter",
+    category: "brain",
+    description: "A tribunal of three specialized AI agents (Legal Scholar, Risk Analyst, Brand Guardian) that evaluate every article before publication. Uses Promise.allSettled for fault-isolated voting with score 0-100 and majority consensus.",
+    capabilities: [
+      "3-agent evaluation council",
+      "Institutional risk scoring",
+      "Individual votes with reasoning",
+      "Consolidated editor feedback",
+      "Fault-tolerant isolation"
+    ],
+    status: "active",
+    evolutionLevel: 3
+  },
+  {
+    id: "system_chronicler",
+    technicalName: "SystemChronicler",
+    businessName: "The Evolution Chronicler",
+    role: "System Historian",
+    category: "brain",
+    description: "Meta-agent that documents the entire agent ecosystem. Tracks 14 capability cards, groups by category, monitors evolution levels (1-5), and persists the system's evolutionary history to JSON.",
+    capabilities: [
+      "14 agent capability registry",
+      "Evolution level tracking (1-5)",
+      "Real-time status monitoring",
+      "History persistence",
+      "Self-documenting system"
+    ],
+    status: "active",
+    evolutionLevel: 2
+  },
+  {
+    id: "system_health",
+    technicalName: "SystemHealthCheck",
+    businessName: "The System Physician",
+    role: "Health Monitor",
+    category: "shield",
+    description: "Deep audit across 5 issue types: zombie processes, incomplete successes, localization leakage, orphaned assets, missing translations. Calculates weighted health score and detects jobs stuck >10min.",
+    capabilities: [
+      "Zombie process detection (>10min)",
+      "Language contamination scanning",
+      "Orphaned asset detection",
+      "Health score calculation",
+      "5 diagnostic types"
+    ],
+    status: "active",
+    evolutionLevel: 2
   }
 ];
 
@@ -229,6 +287,7 @@ export class SystemChronicler {
       this.agentRegistry.set(agent.id, agent);
     });
     this.loadEvolutionTimeline();
+    this.validateInventory();
   }
 
   static getInstance(): SystemChronicler {
@@ -259,7 +318,7 @@ export class SystemChronicler {
         date: "2025-12-10",
         title: "Visual Intelligence Upgrade",
         description: "The Image Agent learned to bypass content policy filters by abstracting legal concepts into professional imagery, ensuring 100% cover image availability.",
-        agentId: "smart-visualizer",
+        agentId: "smart_image_generator",
         impact: "major",
         category: "intelligence"
       },
@@ -267,7 +326,7 @@ export class SystemChronicler {
         date: "2025-12-10",
         title: "Self-Healing Architecture Deployed",
         description: "Introduced the AutoRecoveryAgent that autonomously diagnoses and repairs failed processing jobs without human intervention.",
-        agentId: "self-healer",
+        agentId: "auto_recovery",
         impact: "critical",
         category: "security"
       },
@@ -275,7 +334,7 @@ export class SystemChronicler {
         date: "2025-12-09",
         title: "Multi-Engine Fallback System",
         description: "SmartImageGenerator now seamlessly falls back from DALL-E 3 to Gemini 2.5 when primary generation fails, guaranteeing visual content.",
-        agentId: "smart-visualizer",
+        agentId: "smart_image_generator",
         impact: "major",
         category: "capability"
       },
@@ -283,7 +342,7 @@ export class SystemChronicler {
         date: "2025-12-08",
         title: "Legal Glossary Expansion",
         description: "The Polyglot Neural Network integrated 200+ new legal terms across all 10 supported languages, improving translation accuracy by 15%.",
-        agentId: "polyglot",
+        agentId: "polyglot_translator",
         impact: "minor",
         category: "intelligence"
       },
@@ -299,7 +358,7 @@ export class SystemChronicler {
         date: "2025-12-05",
         title: "Content Analysis Engine",
         description: "Deep Reader agent now provides comprehensive GPT-4o analysis with quality scoring, spelling review, and legal classification.",
-        agentId: "content-analyzer",
+        agentId: "content_analyzer",
         impact: "major",
         category: "intelligence"
       }
@@ -362,11 +421,26 @@ export class SystemChronicler {
     return {
       totalAgents: agents.length,
       activeAgents: agents.filter(a => a.status === "active").length,
-      brainAgents: agents.filter(a => a.category === "brain").length,
-      handsAgents: agents.filter(a => a.category === "hands").length,
-      shieldAgents: agents.filter(a => a.category === "shield").length,
+      brainAgents: agents.filter(a => a.category === AGENT_CATEGORIES.BRAIN).length,
+      handsAgents: agents.filter(a => a.category === AGENT_CATEGORIES.HANDS).length,
+      shieldAgents: agents.filter(a => a.category === AGENT_CATEGORIES.SHIELD).length,
       averageEvolutionLevel: agents.reduce((sum, a) => sum + a.evolutionLevel, 0) / agents.length
     };
+  }
+
+  validateInventory(): { valid: boolean; errors: string[] } {
+    const agents = this.getAllAgents().map(a => ({ id: a.id, category: a.category }));
+    const result = validateAgentInventory(agents);
+    
+    if (!result.valid) {
+      const errorMsg = `[SystemChronicler] AGENT INVENTORY VALIDATION FAILED: ${result.errors.join('; ')}`;
+      console.error(errorMsg);
+      throw new Error(errorMsg);
+    } else {
+      console.log(`[SystemChronicler] Inventory validated: ${EXPECTED_AGENT_COUNTS.TOTAL} agents (${EXPECTED_AGENT_COUNTS[AGENT_CATEGORIES.BRAIN]} brain, ${EXPECTED_AGENT_COUNTS[AGENT_CATEGORIES.HANDS]} hands, ${EXPECTED_AGENT_COUNTS[AGENT_CATEGORIES.SHIELD]} shield)`);
+    }
+    
+    return result;
   }
 
   translateTechnicalToBusiness(technicalName: string): string {
