@@ -59,6 +59,7 @@ import AdminKnowledge from "@/pages/admin/AdminKnowledge";
 import AdminTranslations from "@/pages/admin/AdminTranslations";
 import AdminEvents from "@/pages/admin/AdminEvents";
 import AdminHealthCheck from "@/pages/admin/AdminHealthCheck";
+import SystemExplorer from "@/pages/admin/SystemExplorer";
 
 function SkipLinks() {
   const { language } = useLanguage();
@@ -176,6 +177,7 @@ function Router() {
       <Route path="/admin/translations" component={AdminTranslations} />
       <Route path="/admin/events" component={AdminEvents} />
       <Route path="/admin/health-check" component={AdminHealthCheck} />
+      <Route path="/admin/explorer" component={SystemExplorer} />
       <Route component={NotFound} />
     </Switch>
   );

@@ -30,7 +30,8 @@ import {
   Building2,
   Calendar,
   BookOpen,
-  ChevronRight
+  ChevronRight,
+  Layers
 } from "lucide-react";
 
 const translations = {
@@ -59,6 +60,7 @@ const translations = {
     translationsDashboard: "Translation Coverage",
     healthCheck: "System Health Check",
     platformGuide: "Platform Guide",
+    systemExplorer: "System Explorer",
     logout: "Logout",
     loading: "Loading...",
     draft: "Draft",
@@ -105,6 +107,7 @@ const translations = {
     translationsDashboard: "Cobertura de Traducción",
     healthCheck: "Verificación del Sistema",
     platformGuide: "Guía de la Plataforma",
+    systemExplorer: "Explorador del Sistema",
     logout: "Cerrar Sesión",
     loading: "Cargando...",
     draft: "Borrador",
@@ -151,6 +154,7 @@ const translations = {
     translationsDashboard: "Übersetzungsabdeckung",
     healthCheck: "Systemprüfung",
     platformGuide: "Plattform-Leitfaden",
+    systemExplorer: "System-Explorer",
     logout: "Abmelden",
     loading: "Wird geladen...",
     draft: "Entwurf",
@@ -197,6 +201,7 @@ const translations = {
     translationsDashboard: "翻译覆盖率",
     healthCheck: "系统健康检查",
     platformGuide: "平台指南",
+    systemExplorer: "系统探索器",
     logout: "退出登录",
     loading: "加载中...",
     draft: "草稿",
@@ -243,6 +248,7 @@ const translations = {
     translationsDashboard: "번역 커버리지",
     healthCheck: "시스템 상태 점검",
     platformGuide: "플랫폼 가이드",
+    systemExplorer: "시스템 탐색기",
     logout: "로그아웃",
     loading: "로딩 중...",
     draft: "임시 저장",
@@ -289,6 +295,7 @@ const translations = {
     translationsDashboard: "翻訳カバレッジ",
     healthCheck: "システム健全性チェック",
     platformGuide: "プラットフォームガイド",
+    systemExplorer: "システムエクスプローラー",
     logout: "ログアウト",
     loading: "読み込み中...",
     draft: "下書き",
@@ -335,6 +342,7 @@ const translations = {
     translationsDashboard: "تغطية الترجمة",
     healthCheck: "فحص صحة النظام",
     platformGuide: "دليل المنصة",
+    systemExplorer: "مستكشف النظام",
     logout: "تسجيل الخروج",
     loading: "جاري التحميل...",
     draft: "مسودة",
@@ -381,6 +389,7 @@ const translations = {
     translationsDashboard: "Охват переводов",
     healthCheck: "Проверка системы",
     platformGuide: "Руководство платформы",
+    systemExplorer: "Обозреватель системы",
     logout: "Выйти",
     loading: "Загрузка...",
     draft: "Черновик",
@@ -427,6 +436,7 @@ const translations = {
     translationsDashboard: "Couverture des traductions",
     healthCheck: "Vérification du système",
     platformGuide: "Guide de la plateforme",
+    systemExplorer: "Explorateur du système",
     logout: "Déconnexion",
     loading: "Chargement...",
     draft: "Brouillon",
@@ -473,6 +483,7 @@ const translations = {
     translationsDashboard: "Copertura traduzioni",
     healthCheck: "Controllo del sistema",
     platformGuide: "Guida della piattaforma",
+    systemExplorer: "Esplora Sistema",
     logout: "Esci",
     loading: "Caricamento...",
     draft: "Bozza",
@@ -984,6 +995,12 @@ export default function AdminDashboard() {
                 <Button variant="outline" className="w-full justify-start bg-primary/5 border-primary/20" data-testid="button-platform-guide">
                   <Bot className="mr-2 h-4 w-4 text-primary" />
                   {t.platformGuide || "Platform Guide"}
+                </Button>
+              </Link>
+              <Link href="/admin/explorer">
+                <Button variant="outline" className="w-full justify-start bg-blue-50 dark:bg-blue-950/20 border-blue-200 dark:border-blue-800" data-testid="button-system-explorer">
+                  <Layers className="mr-2 h-4 w-4 text-blue-500" />
+                  {t.systemExplorer || "System Explorer"}
                 </Button>
               </Link>
             </CardContent>
