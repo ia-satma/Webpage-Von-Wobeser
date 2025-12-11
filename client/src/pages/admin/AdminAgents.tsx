@@ -8,7 +8,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Progress } from "@/components/ui/progress";
 import { useToast } from "@/hooks/use-toast";
-import { useAdminAuth, adminApiRequest, getAuthHeaders } from "@/lib/adminAuth";
+import { useAdminAuth, adminApiRequest } from "@/lib/adminAuth";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { getAgentName, getStatusLabel, getImpactLabel, getAdminCommonTranslations } from "@/lib/adminTranslations";
 import { 
   Bot, 
   Activity, 
@@ -27,26 +29,12 @@ import {
   Search,
   Zap,
   Cloud,
-  CloudOff,
   Lightbulb,
   TrendingUp,
   ArrowLeft,
   Loader2
 } from "lucide-react";
 import { Link, useLocation } from "wouter";
-
-interface AgentStats {
-  agentType: string;
-  totalJobs: number;
-  completedJobs: number;
-  failedJobs: number;
-  averageExecutionTime: number;
-  successRate: number;
-  skillCount: number;
-  knowledgeDocuments: number;
-  evolutionProposals: number;
-  lastActive?: string;
-}
 
 interface EvolutionProposal {
   id: string;
@@ -108,19 +96,6 @@ const AGENT_ICONS: Record<string, any> = {
   orchestrator: Bot,
 };
 
-const AGENT_NAMES: Record<string, string> = {
-  formatter: "Article Formatter",
-  metadata_linker: "Metadata Linker",
-  polyglot_translator: "Polyglot Translator",
-  content_auditor: "Content Auditor",
-  content_analyzer: "Content Analyzer",
-  seo_optimizer: "SEO Optimizer",
-  website_auditor: "Website Auditor",
-  image_suggestion: "Image Suggestion",
-  category_agent: "Category Agent",
-  orchestrator: "Orchestrator",
-};
-
 const STATUS_COLORS: Record<string, string> = {
   pending: "bg-yellow-500",
   in_progress: "bg-blue-500",
@@ -136,6 +111,8 @@ export default function AdminAgents() {
   const { toast } = useToast();
   const [, setLocation] = useLocation();
   const { isAuthenticated, isLoading: authLoading, token } = useAdminAuth();
+  const { language } = useLanguage();
+  const t = getAdminCommonTranslations(language);
 
   useEffect(() => {
     if (!authLoading && !isAuthenticated) {
@@ -174,13 +151,13 @@ export default function AdminAgents() {
     },
     onSuccess: (data: any) => {
       toast({ 
-        title: "Website audit started", 
-        description: data?.message || "Audit job queued successfully" 
+        title: t.auditStarted, 
+        description: data?.message || t.auditQueued 
       });
       queryClient.invalidateQueries({ queryKey: ["/api/agents/status"] });
     },
     onError: (error) => {
-      toast({ title: "Audit failed", description: String(error), variant: "destructive" });
+      toast({ title: t.auditFailed, description: String(error), variant: "destructive" });
     },
   });
 
@@ -190,7 +167,7 @@ export default function AdminAgents() {
       return res.json();
     },
     onSuccess: (data: any) => {
-      toast({ title: "Learning cycle completed", description: `${data?.insights?.length || 0} insights generated` });
+      toast({ title: t.learningCycleCompleted, description: `${data?.insights?.length || 0} ${t.insightsGenerated}` });
       queryClient.invalidateQueries({ queryKey: ["/api/agents/status"] });
     },
   });
@@ -201,13 +178,15 @@ export default function AdminAgents() {
       return res.json();
     },
     onSuccess: (data: { knowledge: boolean; evolution: boolean }) => {
+      const knowledgeStatus = data.knowledge ? t.knowledgeOk : t.knowledgeFailed;
+      const evolutionStatus = data.evolution ? t.evolutionOk : t.evolutionFailed;
       toast({ 
-        title: "Sync completed", 
-        description: `Knowledge: ${data.knowledge ? 'OK' : 'Failed'}, Evolution: ${data.evolution ? 'OK' : 'Failed'}` 
+        title: t.syncCompleted, 
+        description: `${knowledgeStatus}, ${evolutionStatus}` 
       });
     },
     onError: () => {
-      toast({ title: "Sync failed", variant: "destructive" });
+      toast({ title: t.syncFailed, variant: "destructive" });
     },
   });
 
@@ -217,7 +196,7 @@ export default function AdminAgents() {
       return res.json();
     },
     onSuccess: () => {
-      toast({ title: "Processing started" });
+      toast({ title: t.processingStarted });
       queryClient.invalidateQueries({ queryKey: ["/api/agents/status"] });
     },
   });
@@ -228,7 +207,7 @@ export default function AdminAgents() {
       return res.json();
     },
     onSuccess: () => {
-      toast({ title: "Processing stopped" });
+      toast({ title: t.processingStopped });
       queryClient.invalidateQueries({ queryKey: ["/api/agents/status"] });
     },
   });
@@ -239,7 +218,7 @@ export default function AdminAgents() {
       return res.json();
     },
     onSuccess: () => {
-      toast({ title: "Proposal updated" });
+      toast({ title: t.proposalUpdated });
       queryClient.invalidateQueries({ queryKey: ["/api/agents/evolution/proposals"] });
     },
   });
@@ -249,7 +228,7 @@ export default function AdminAgents() {
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
           <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4 text-primary" />
-          <p className="text-muted-foreground">Checking authentication...</p>
+          <p className="text-muted-foreground">{t.checkingAuth}</p>
         </div>
       </div>
     );
@@ -260,7 +239,7 @@ export default function AdminAgents() {
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
           <RefreshCw className="w-8 h-8 animate-spin mx-auto mb-4 text-primary" />
-          <p className="text-muted-foreground">Loading agent system...</p>
+          <p className="text-muted-foreground">{t.loadingAgentSystem}</p>
         </div>
       </div>
     );
@@ -279,9 +258,9 @@ export default function AdminAgents() {
             <div>
               <h1 className="text-3xl font-bold flex items-center gap-3">
                 <Bot className="w-8 h-8 text-primary" />
-                AI Agent System
+                {t.aiAgentSystem}
               </h1>
-              <p className="text-muted-foreground">Monitor and control autonomous content improvement agents</p>
+              <p className="text-muted-foreground">{t.agentSystemDescription}</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
@@ -292,7 +271,7 @@ export default function AdminAgents() {
               data-testid="button-refresh-status"
             >
               <RefreshCw className="w-4 h-4 mr-2" />
-              Refresh
+              {t.refresh}
             </Button>
             <Button
               variant="outline"
@@ -306,7 +285,7 @@ export default function AdminAgents() {
               ) : (
                 <Cloud className="w-4 h-4 mr-2" />
               )}
-              Sync to Cloud
+              {t.syncToCloud}
             </Button>
           </div>
         </div>
@@ -316,7 +295,7 @@ export default function AdminAgents() {
             <CardContent className="pt-4">
               <div className="flex items-center gap-2 text-red-600 dark:text-red-400">
                 <AlertTriangle className="w-5 h-5" />
-                <span>Error loading agent status: {String(statusError)}</span>
+                <span>{t.errorLoadingStatus}: {String(statusError)}</span>
               </div>
             </CardContent>
           </Card>
@@ -327,17 +306,17 @@ export default function AdminAgents() {
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-muted-foreground">System Status</p>
+                  <p className="text-sm text-muted-foreground">{t.systemStatus}</p>
                   <p className="text-2xl font-bold flex items-center gap-2" data-testid="text-system-status">
                     {status?.orchestrator?.isRunning ? (
                       <>
                         <Activity className="w-5 h-5 text-green-500" />
-                        Active
+                        {t.active}
                       </>
                     ) : (
                       <>
                         <Pause className="w-5 h-5 text-yellow-500" />
-                        Paused
+                        {t.paused}
                       </>
                     )}
                   </p>
@@ -359,12 +338,12 @@ export default function AdminAgents() {
 
           <Card>
             <CardContent className="pt-6">
-              <p className="text-sm text-muted-foreground">Registered Agents</p>
+              <p className="text-sm text-muted-foreground">{t.registeredAgents}</p>
               <p className="text-2xl font-bold" data-testid="text-agent-count">{status?.orchestrator?.registeredAgents?.length || 0}</p>
               <div className="flex gap-1 mt-2 flex-wrap">
                 {status?.orchestrator?.registeredAgents?.map((agent) => {
                   const Icon = AGENT_ICONS[agent] || Bot;
-                  return <Icon key={agent} className="w-4 h-4 text-muted-foreground" title={AGENT_NAMES[agent] || agent} />;
+                  return <Icon key={agent} className="w-4 h-4 text-muted-foreground" title={getAgentName(agent, language)} />;
                 })}
               </div>
             </CardContent>
@@ -372,24 +351,24 @@ export default function AdminAgents() {
 
           <Card>
             <CardContent className="pt-6">
-              <p className="text-sm text-muted-foreground">Queue / Active</p>
+              <p className="text-sm text-muted-foreground">{t.queueActive}</p>
               <p className="text-2xl font-bold" data-testid="text-queue-length">
                 {status?.orchestrator?.queueLength || 0} / {status?.orchestrator?.activeJobs || 0}
               </p>
               <p className="text-xs text-muted-foreground mt-1">
-                {status?.database?.recentJobs || 0} recent jobs
+                {status?.database?.recentJobs || 0} {t.recentJobs}
               </p>
             </CardContent>
           </Card>
 
           <Card>
             <CardContent className="pt-6">
-              <p className="text-sm text-muted-foreground">Knowledge / Proposals</p>
+              <p className="text-sm text-muted-foreground">{t.knowledgeProposals}</p>
               <p className="text-2xl font-bold" data-testid="text-knowledge-count">
                 {status?.knowledge?.totalDocuments || 0} / {status?.evolution?.totalProposals || 0}
               </p>
               <p className="text-xs text-muted-foreground mt-1">
-                {status?.database?.failedJobs || 0} failed jobs
+                {status?.database?.failedJobs || 0} {t.failedJobs}
               </p>
             </CardContent>
           </Card>
@@ -397,17 +376,17 @@ export default function AdminAgents() {
 
         <Tabs defaultValue="agents" className="space-y-4">
           <TabsList data-testid="tabs-agent-sections">
-            <TabsTrigger value="agents" data-testid="tab-agents">Agents</TabsTrigger>
-            <TabsTrigger value="evolution" data-testid="tab-evolution">Evolution</TabsTrigger>
-            <TabsTrigger value="jobs" data-testid="tab-jobs">Jobs</TabsTrigger>
-            <TabsTrigger value="actions" data-testid="tab-actions">Actions</TabsTrigger>
+            <TabsTrigger value="agents" data-testid="tab-agents">{t.agents}</TabsTrigger>
+            <TabsTrigger value="evolution" data-testid="tab-evolution">{t.evolution}</TabsTrigger>
+            <TabsTrigger value="jobs" data-testid="tab-jobs">{t.jobs}</TabsTrigger>
+            <TabsTrigger value="actions" data-testid="tab-actions">{t.actions}</TabsTrigger>
           </TabsList>
 
           <TabsContent value="agents" className="space-y-4">
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
               {status?.orchestrator?.registeredAgents?.map((agentType) => {
                 const Icon = AGENT_ICONS[agentType] || Bot;
-                const name = AGENT_NAMES[agentType] || agentType;
+                const name = getAgentName(agentType, language);
                 const docs = status?.knowledge?.byAgent?.[agentType] || 0;
                 const jobStats = status?.orchestrator?.jobStatsByAgent?.[agentType];
                 const totalJobs = jobStats?.total || 0;
@@ -427,13 +406,13 @@ export default function AdminAgents() {
                     <CardContent>
                       <div className="space-y-3 text-sm">
                         <div className="flex justify-between">
-                          <span className="text-muted-foreground">Total Jobs</span>
+                          <span className="text-muted-foreground">{t.totalJobs}</span>
                           <span className="font-medium">{totalJobs}</span>
                         </div>
                         {totalJobs > 0 && (
                           <>
                             <div className="flex justify-between items-center">
-                              <span className="text-muted-foreground">Success Rate</span>
+                              <span className="text-muted-foreground">{t.successRate}</span>
                               <div className="flex items-center gap-2">
                                 <Progress value={successRate} className="w-16 h-2" />
                                 <span className="font-medium text-xs">{successRate}%</span>
@@ -456,21 +435,21 @@ export default function AdminAgents() {
                           </>
                         )}
                         <div className="flex justify-between">
-                          <span className="text-muted-foreground">Knowledge Docs</span>
+                          <span className="text-muted-foreground">{t.knowledgeDocs}</span>
                           <span className="font-medium">{docs}</span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-muted-foreground">Status</span>
+                          <span className="text-muted-foreground">{t.status}</span>
                           <Badge variant="outline" className={pendingJobs > 0 ? "text-blue-600" : "text-green-600"}>
                             {pendingJobs > 0 ? (
                               <>
                                 <RefreshCw className="w-3 h-3 mr-1 animate-spin" />
-                                Working
+                                {t.working}
                               </>
                             ) : (
                               <>
                                 <CheckCircle className="w-3 h-3 mr-1" />
-                                Ready
+                                {t.ready}
                               </>
                             )}
                           </Badge>
@@ -487,7 +466,7 @@ export default function AdminAgents() {
                 <CardHeader>
                   <CardTitle className="text-lg flex items-center gap-2">
                     <FileText className="w-5 h-5 text-primary" />
-                    Knowledge by Category
+                    {t.knowledgeByCategory}
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -508,7 +487,7 @@ export default function AdminAgents() {
             <div className="flex justify-between items-center">
               <h3 className="text-lg font-semibold flex items-center gap-2">
                 <Lightbulb className="w-5 h-5 text-yellow-500" />
-                Evolution Proposals
+                {t.evolutionProposals}
               </h3>
               <Button 
                 variant="outline" 
@@ -517,7 +496,7 @@ export default function AdminAgents() {
                 data-testid="button-run-learning-cycle"
               >
                 <Brain className="w-4 h-4 mr-2" />
-                Run Learning Cycle
+                {t.runLearningCycle}
               </Button>
             </div>
 
@@ -526,7 +505,7 @@ export default function AdminAgents() {
                 <Card key={statusKey}>
                   <CardContent className="pt-4">
                     <div className="flex items-center justify-between">
-                      <Badge className={STATUS_COLORS[statusKey]}>{statusKey}</Badge>
+                      <Badge className={STATUS_COLORS[statusKey]}>{getStatusLabel(statusKey, language)}</Badge>
                       <span className="text-2xl font-bold">{count as number}</span>
                     </div>
                   </CardContent>
@@ -542,9 +521,9 @@ export default function AdminAgents() {
                       <div className="flex items-start justify-between gap-4">
                         <div className="flex-1">
                           <div className="flex items-center gap-2 mb-2">
-                            <Badge className={STATUS_COLORS[proposal.status]}>{proposal.status}</Badge>
-                            <Badge variant="outline">{proposal.impact} impact</Badge>
-                            <Badge variant="secondary">{AGENT_NAMES[proposal.agentType]}</Badge>
+                            <Badge className={STATUS_COLORS[proposal.status]}>{getStatusLabel(proposal.status, language)}</Badge>
+                            <Badge variant="outline">{getImpactLabel(proposal.impact, language)} {t.impact}</Badge>
+                            <Badge variant="secondary">{getAgentName(proposal.agentType, language)}</Badge>
                           </div>
                           <h4 className="font-medium">{proposal.title}</h4>
                           <p className="text-sm text-muted-foreground mt-1">{proposal.description}</p>
@@ -576,8 +555,8 @@ export default function AdminAgents() {
                 {(!proposals || proposals.length === 0) && (
                   <div className="text-center py-8 text-muted-foreground">
                     <Lightbulb className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                    <p>No evolution proposals yet</p>
-                    <p className="text-sm">Run a learning cycle to generate proposals</p>
+                    <p>{t.noProposalsYet}</p>
+                    <p className="text-sm">{t.runCycleToGenerate}</p>
                   </div>
                 )}
               </div>
@@ -589,7 +568,7 @@ export default function AdminAgents() {
               <div>
                 <h3 className="text-lg font-semibold flex items-center gap-2 mb-4">
                   <Activity className="w-5 h-5" />
-                  Recent Jobs
+                  {t.jobs}
                   {status?.database?.recentJobs ? (
                     <Badge variant="secondary" className="ml-2">{status.database.recentJobs}</Badge>
                   ) : null}
@@ -601,8 +580,8 @@ export default function AdminAgents() {
                       <Card key={job.id || idx} className="p-3" data-testid={`job-${job.id || idx}`}>
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-3">
-                            <Badge className={STATUS_COLORS[job.status] || "bg-gray-500"}>{job.status}</Badge>
-                            <span className="font-medium text-sm">{AGENT_NAMES[job.agentType] || job.agentType}</span>
+                            <Badge className={STATUS_COLORS[job.status] || "bg-gray-500"}>{getStatusLabel(job.status, language)}</Badge>
+                            <span className="font-medium text-sm">{getAgentName(job.agentType, language)}</span>
                           </div>
                           <div className="text-sm text-muted-foreground">
                             {job.completedAt ? (
@@ -613,12 +592,12 @@ export default function AdminAgents() {
                             ) : job.startedAt ? (
                               <span className="flex items-center gap-1">
                                 <RefreshCw className="w-3 h-3 animate-spin" />
-                                Running
+                                {t.running}
                               </span>
                             ) : (
                               <span className="flex items-center gap-1">
                                 <Clock className="w-3 h-3" />
-                                Queued
+                                {t.queued}
                               </span>
                             )}
                           </div>
@@ -628,7 +607,7 @@ export default function AdminAgents() {
                         )}
                         {job.result && typeof job.result === 'object' && job.result.success !== undefined && (
                           <p className="text-xs text-muted-foreground mt-1">
-                            Result: {job.result.success ? 'Success' : 'Failed'}
+                            {job.result.success ? t.resultSuccess : t.resultFailed}
                           </p>
                         )}
                       </Card>
@@ -636,7 +615,7 @@ export default function AdminAgents() {
                     {(!status?.orchestrator?.recentJobs || status.orchestrator.recentJobs.length === 0) && (
                       <div className="text-center py-8 text-muted-foreground">
                         <Activity className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                        <p>No jobs executed yet</p>
+                        <p>{t.noJobsYet}</p>
                       </div>
                     )}
                   </div>
@@ -646,7 +625,7 @@ export default function AdminAgents() {
               <div>
                 <h3 className="text-lg font-semibold flex items-center gap-2 mb-4">
                   <Zap className="w-5 h-5" />
-                  Recent Events
+                  {t.recentEvents}
                   {status?.database?.recentEvents ? (
                     <Badge variant="secondary" className="ml-2">{status.database.recentEvents}</Badge>
                   ) : null}
@@ -659,7 +638,7 @@ export default function AdminAgents() {
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-2 flex-1 min-w-0">
                             <Badge variant="outline" className="shrink-0">{event.type || event.eventType}</Badge>
-                            <span className="text-sm truncate">{AGENT_NAMES[event.agentType] || event.agentType}</span>
+                            <span className="text-sm truncate">{getAgentName(event.agentType, language)}</span>
                           </div>
                           <div className="text-xs text-muted-foreground shrink-0">
                             {event.createdAt && new Date(event.createdAt).toLocaleTimeString()}
@@ -673,7 +652,7 @@ export default function AdminAgents() {
                     {(!status?.orchestrator?.recentEvents || status.orchestrator.recentEvents.length === 0) && (
                       <div className="text-center py-8 text-muted-foreground">
                         <Zap className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                        <p>No events recorded yet</p>
+                        <p>{t.noEventsYet}</p>
                       </div>
                     )}
                   </div>
@@ -686,12 +665,12 @@ export default function AdminAgents() {
                 <CardHeader className="pb-2">
                   <CardTitle className="text-base flex items-center gap-2 text-red-600 dark:text-red-400">
                     <XCircle className="w-4 h-4" />
-                    Failed Jobs: {status.database.failedJobs}
+                    {t.failedJobsTitle}: {status.database.failedJobs}
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <p className="text-sm text-muted-foreground">
-                    There are failed jobs that may need attention. Check the job history for details.
+                    {t.failedJobsMessage}
                   </p>
                 </CardContent>
               </Card>
@@ -704,10 +683,10 @@ export default function AdminAgents() {
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <Search className="w-5 h-5" />
-                    Content Audit
+                    {t.contentAudit}
                   </CardTitle>
                   <CardDescription>
-                    Scan all articles for missing translations, authors, and formatting issues
+                    {t.contentAuditDesc}
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -722,7 +701,7 @@ export default function AdminAgents() {
                     ) : (
                       <Zap className="w-4 h-4 mr-2" />
                     )}
-                    Run Full Audit
+                    {t.runFullAudit}
                   </Button>
                 </CardContent>
               </Card>
@@ -731,10 +710,10 @@ export default function AdminAgents() {
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <Brain className="w-5 h-5" />
-                    Learning Cycle
+                    {t.learningCycle}
                   </CardTitle>
                   <CardDescription>
-                    Analyze agent performance and generate improvement proposals
+                    {t.learningCycleDesc}
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -750,7 +729,7 @@ export default function AdminAgents() {
                     ) : (
                       <Sparkles className="w-4 h-4 mr-2" />
                     )}
-                    Start Learning
+                    {t.startLearning}
                   </Button>
                 </CardContent>
               </Card>
@@ -759,10 +738,10 @@ export default function AdminAgents() {
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <Cloud className="w-5 h-5" />
-                    Cloud Sync
+                    {t.cloudSync}
                   </CardTitle>
                   <CardDescription>
-                    Sync knowledge and evolution data to pCloud for persistence
+                    {t.cloudSyncDesc}
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -778,7 +757,7 @@ export default function AdminAgents() {
                     ) : (
                       <Cloud className="w-4 h-4 mr-2" />
                     )}
-                    Sync to pCloud
+                    {t.syncToPcloud}
                   </Button>
                 </CardContent>
               </Card>
@@ -787,17 +766,17 @@ export default function AdminAgents() {
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <FileText className="w-5 h-5" />
-                    Process Articles
+                    {t.processArticles}
                   </CardTitle>
                   <CardDescription>
-                    Run the full pipeline on all articles (format, link, translate, optimize)
+                    {t.processArticlesDesc}
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
                   <Link href="/admin/agents/pipeline">
                     <Button className="w-full" data-testid="button-go-pipeline">
                       <Play className="w-4 h-4 mr-2" />
-                      Go to Pipeline
+                      {t.goToPipeline}
                     </Button>
                   </Link>
                 </CardContent>

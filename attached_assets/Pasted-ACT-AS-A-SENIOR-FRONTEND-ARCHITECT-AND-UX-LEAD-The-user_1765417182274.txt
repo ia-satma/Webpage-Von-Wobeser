@@ -1,0 +1,40 @@
+ACT AS A SENIOR FRONTEND ARCHITECT AND UX LEAD.
+The user is reporting a critical UX failure: The Admin Dashboard looks like a "cheap template" because of mixed languages.
+When the interface language is set to SPANISH, there are still English labels, statuses, and headers visible.
+
+**Goal:** Achieve 100% Localization Consistency in the Admin Panel. No "Spanglish".
+
+YOU MUST EXECUTE A DEEP UI AUDIT AND FIX THE FOLLOWING 3 LAYERS:
+
+### 1. DATA STATUS MAPPING (THE "READY" PROBLEM)
+* **The Issue:** Database statuses (`status: 'ready'`, `status: 'processing'`, `agent: 'seo_optimizer'`) are being rendered directly to the UI.
+* **The Fix:** Create a `StatusBadge` and `AgentName` component with a translation map.
+    * `ready` -> "Listo" / "Completado"
+    * `processing` -> "Procesando"
+    * `failed` -> "Fallido"
+    * `completed_warning` -> "Completado (con alertas)"
+    * `seo_optimizer` -> "Optimizador SEO"
+* **Action:** Refactor the "Article Processing" table and "Agent System" dashboard to use these mapped labels immediately.
+
+### 2. COMPONENT TEXT AUDIT (HARDCODED STRINGS)
+* Scan the Admin Sidebar, Top Navigation, and Action Buttons.
+* **Remove all English string literals.**
+* **Bad:** `<button>Process All</button>`
+* **Good:** `<button>{t('admin.actions.process_all')}</button>`
+* **Specific Targets:**
+    * "Dashboard" -> "Panel de Control"
+    * "Bulk Upload" -> "Carga Masiva"
+    * "Add Document" -> "Nuevo Documento"
+    * "Refresh" -> "Actualizar"
+    * "System Health Check" -> "Diagnóstico del Sistema"
+    * "Zombie Processes" -> "Procesos Estancados"
+
+### 3. CONTEXTUAL CONSISTENCY
+* Ensure that dynamic messages (Toasts/Notifications) respect the admin's language preference.
+* If the user is in Spanish mode, the "Batch Started" toast must say "Lote iniciado correctamente", not "Batch started successfully".
+
+**EXECUTION INSTRUCTION:**
+1. Review the `AdminLayout`, `DashboardView`, and `AgentStatusCard` components.
+2. Implement the translation maps for Statuses and Agent Names.
+3. Verify that the "Guide/Documentation" page headers are also localized.
+4. Confirm when the UI is "100% Spanish" compliant.
