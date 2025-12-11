@@ -30,8 +30,8 @@ interface SystemEvolutionEntry {
 
 interface ChroniclerResponse {
   agents: AgentCapabilityCard[];
-  evolutionTimeline: SystemEvolutionEntry[];
-  systemStats: {
+  timeline: SystemEvolutionEntry[];
+  stats: {
     totalAgents: number;
     activeAgents: number;
     averageEvolutionLevel: number;
@@ -450,7 +450,7 @@ export default function AdminGuide() {
     );
   }
 
-  const { agents, evolutionTimeline, systemStats } = data;
+  const { agents, timeline: evolutionTimeline, stats: systemStats } = data;
 
   return (
     <div className="p-6 space-y-8" data-testid="admin-nerve-center">
