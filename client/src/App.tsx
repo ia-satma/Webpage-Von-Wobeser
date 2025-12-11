@@ -60,6 +60,7 @@ import AdminTranslations from "@/pages/admin/AdminTranslations";
 import AdminEvents from "@/pages/admin/AdminEvents";
 import AdminHealthCheck from "@/pages/admin/AdminHealthCheck";
 import SystemExplorer from "@/pages/admin/SystemExplorer";
+import AdminArticleDetail from "@/pages/admin/AdminArticleDetail";
 
 function SkipLinks() {
   const { language } = useLanguage();
@@ -163,6 +164,7 @@ function Router() {
       <Route path="/admin/posts/:id/edit" component={AdminPostForm} />
       <Route path="/admin/categories" component={AdminCategories} />
       <Route path="/admin/news" component={AdminNews} />
+      <Route path="/admin/news/:id" component={AdminArticleDetail} />
       <Route path="/admin/agents" component={AdminAgents} />
       <Route path="/admin/processing" component={AdminArticleProcessing} />
       <Route path="/admin/audits" component={AdminAudits} />

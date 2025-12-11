@@ -57,10 +57,22 @@ export const RiskFlag = z.enum([
 
 export type RiskFlag = z.infer<typeof RiskFlag>;
 
+export const AgentVoteSchema = z.object({
+  agentName: z.string(),
+  role: z.string(),
+  score: z.number().min(0).max(100),
+  decision: VoteDecision,
+  reasoning: z.string().max(2000),
+});
+
+export type AgentVote = z.infer<typeof AgentVoteSchema>;
+
 export const CouncilVerdictSchema = z.object({
   overallStatus: OverallStatus,
   riskFlag: RiskFlag,
   consolidatedFeedback: z.string().min(1).max(5000),
+  agentVotes: z.array(AgentVoteSchema).optional(),
+  averageScore: z.number().min(0).max(100).optional(),
 });
 
 export type CouncilVerdict = z.infer<typeof CouncilVerdictSchema>;

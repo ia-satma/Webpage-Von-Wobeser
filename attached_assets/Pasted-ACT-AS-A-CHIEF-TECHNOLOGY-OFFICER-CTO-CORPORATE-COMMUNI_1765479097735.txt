@@ -1,0 +1,44 @@
+ACT AS A CHIEF TECHNOLOGY OFFICER (CTO) & CORPORATE COMMUNICATIONS DIRECTOR.
+We are finalizing the "Platform Guide" for a Tier-1 Law Firm (Von Wobeser y Sierra).
+The user feels we might be omitting hidden features.
+
+**THE PRIME DIRECTIVE:**
+You must generate the FINAL `systemManifest.ts` containing **ABSOLUTELY EVERYTHING** in the codebase.
+**DO NOT** limit yourself to the features I list below. You must scan `/services`, `/utils`, `/workers`, `/middleware`, and `/db` to find "Hidden Gems" (e.g., Caching layers, Rate Limiters, Compression scripts) and include them.
+
+**THE TONE (CRITICAL):**
+Use **"High-End Corporate Spanish"**.
+Transform every technical task into a **Strategic Business Value**.
+* *Bad:* "Translates text."
+* *Good:* "Motor Neuronal de Localización Semántica con Precisión Jurídica."
+* *Bad:* "Fixes bugs automatically."
+* *Good:* "Arquitectura de Resiliencia Operativa y Auto-Curación (Self-Healing)."
+
+### STEP 1: MANDATORY INCLUSIONS (The Known Features)
+Ensure these Core Modules are documented with this EXACT phrasing:
+
+1.  **Consejo de Gobernanza Digital (Legal Council):** "Protocolo de Arbitraje Algorítmico Asíncrono. Tres redes neuronales (Erudito, Riesgo, Marca) auditan cada contenido. Garantiza la **Soberanía Humana Total** mediante validación por pares."
+2.  **Sintetizador Visual (SmartImage Shield):** "Generación gráfica con 'Sanitización Legal'. Filtros de cumplimiento que reinterpretan conceptos sensibles para asegurar la integridad institucional."
+3.  **Motor Políglota (Polyglot Engine):** "Localización contextual a 10 jurisdicciones lingüísticas. Incluye barreras de contención para evitar la contaminación cruzada de idiomas."
+4.  **Orquestador de Procesos (Batch Queue):** "Gestión de carga masiva mediante hilos de ejecución aislados (Sandboxing). Permite el procesamiento simultáneo de altos volúmenes de datos sin comprometer la latencia."
+
+### STEP 2: THE "DEEP SCAN" (Find What I Missed)
+Scan the code for these common patterns. If found, ADD THEM to the manifest with "High-End" descriptions:
+* **Caching/Redis:** Document it as *"Acelerador de Entrega de Contenido (Edge Caching)"* -> Value: "Latencia cero."
+* **Security/Zod:** Document it as *"Bóveda de Integridad de Datos"* -> Value: "Validación estricta de esquemas."
+* **SEO Utils:** Document it as *"Agente de Posicionamiento Orgánico"* -> Value: "Visibilidad de mercado."
+* **Analytics/Logs:** Document it as *"Telemetría Operativa en Tiempo Real"*.
+
+### STEP 3: EXECUTION
+Overwrite `systemManifest.ts` with the complete list.
+**Structure for each entry:**
+```typescript
+{
+  id: "unique_id",
+  title: "Nombre Rimbombante (High-End Name)",
+  agent_responsible: "Nombre Técnico del Agente/Servicio",
+  technical_function: "Explicación técnica breve.",
+  business_value: "EL ARGUMENTO DE VENTA (¿Por qué le importa al socio?)",
+  category: "Core / Security / Experience / Infrastructure",
+  status: "Active"
+}

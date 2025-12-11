@@ -315,6 +315,27 @@ export const AI_AGENTS: SystemFeature[] = [
       'History persistence',
     ],
   },
+  {
+    id: 'legal_council',
+    category: 'ai_brain',
+    name: 'Legal Council',
+    technicalName: 'LegalCouncilService',
+    technicalDetail: '3-agent council (Legal Scholar, Risk Analyst, Brand Guardian), Promise.allSettled for fail-safe isolation, VoteResult schema with score 0-100, System Abstention injection for failed agents, CouncilVerdict with overallStatus/riskFlag/consolidatedFeedback',
+    userBenefit: 'Human-in-the-loop quality control ensuring every article passes multi-agent review before publication. Provides risk scoring and actionable feedback for editors.',
+    status: 'production',
+    keyCapabilities: [
+      '3-agent evaluation council',
+      'Fail-safe vote handling',
+      'Risk flag classification',
+      'Consolidated feedback generation',
+    ],
+    technicalSpecs: {
+      model: 'gpt-4o-mini',
+      temperature: 0.3,
+      concurrency: 3,
+      agents: ['Legal Scholar', 'Risk Analyst', 'Brand Guardian'],
+    },
+  },
 ];
 
 // ============================================================================

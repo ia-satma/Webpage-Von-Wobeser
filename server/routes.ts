@@ -2306,6 +2306,93 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
   });
 
   // =============================================
+  // LEGAL COUNCIL API (Human-in-the-Loop)
+  // =============================================
+
+  // POST /api/news/:id/validate - Validate and publish article
+  app.post("/api/news/:id/validate", authMiddleware, async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+      const newsItem = await storage.getNewsById(id);
+      
+      if (!newsItem) {
+        return res.status(404).json({ error: "News article not found" });
+      }
+
+      // Only allow validation if ready_for_approval
+      if (newsItem.processingStatus !== 'ready_for_approval') {
+        return res.status(400).json({ 
+          error: "Article must be ready for approval before validation",
+          currentStatus: newsItem.processingStatus 
+        });
+      }
+
+      // Check council verdict exists and is approved
+      const verdict = newsItem.councilVerdict as any;
+      if (!verdict || verdict.overallStatus === 'rejected') {
+        return res.status(400).json({ 
+          error: "Article was rejected by the Legal Council",
+          verdict 
+        });
+      }
+
+      // Update status to ready (published)
+      await storage.updateNews(id, {
+        processingStatus: 'ready',
+        published: true,
+        lastProcessedAt: new Date(),
+      });
+
+      res.json({ 
+        success: true, 
+        message: "Article validated and published successfully",
+        newStatus: 'ready'
+      });
+    } catch (error) {
+      console.error("Validate article error:", error);
+      res.status(500).json({ error: "Failed to validate article" });
+    }
+  });
+
+  // POST /api/news/:id/council-review - Re-run council review
+  app.post("/api/news/:id/council-review", authMiddleware, async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+      const newsItem = await storage.getNewsById(id);
+      
+      if (!newsItem) {
+        return res.status(404).json({ error: "News article not found" });
+      }
+
+      if (!newsItem.content) {
+        return res.status(400).json({ error: "Article has no content to review" });
+      }
+
+      // Import and run Legal Council
+      const { legalCouncilService } = await import('../services/agents/LegalCouncilService');
+      const verdict = await legalCouncilService.evaluateArticle(newsItem.content);
+
+      // Update article with new verdict
+      const newStatus = verdict.overallStatus === 'rejected' ? 'failed' : 'ready_for_approval';
+      await storage.updateNews(id, {
+        councilVerdict: verdict,
+        processingStatus: newStatus,
+        lastProcessedAt: new Date(),
+        failedStep: verdict.overallStatus === 'rejected' ? 'council' : null,
+      });
+
+      res.json({ 
+        success: true, 
+        verdict,
+        newStatus
+      });
+    } catch (error) {
+      console.error("Council review error:", error);
+      res.status(500).json({ error: "Failed to run council review" });
+    }
+  });
+
+  // =============================================
   // TRANSLATION API (AI-powered)
   // =============================================
 

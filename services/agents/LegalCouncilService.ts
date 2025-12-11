@@ -11,6 +11,7 @@ import {
   VoteDecision,
   OverallStatus,
   RiskFlag,
+  AgentVote,
 } from '../../types/council';
 
 interface AgentConfig {
@@ -161,11 +162,26 @@ export class LegalCouncilService {
   }
 
   private calculateVerdict(validVotes: VoteResult[], allVotes: Map<string, VoteResult>): CouncilVerdict {
+    const agentVotes: AgentVote[] = [];
+    
+    Array.from(allVotes.entries()).forEach(([agentId, vote], agentIndex) => {
+      const agent = COUNCIL_AGENTS[agentIndex];
+      agentVotes.push({
+        agentName: agent?.name || 'Unknown Agent',
+        role: agent?.role || 'content_auditor',
+        score: vote.score,
+        decision: vote.decision,
+        reasoning: vote.reasoning,
+      });
+    });
+
     if (validVotes.length === 0) {
       return {
         overallStatus: 'deadlocked',
         riskFlag: 'medium',
         consolidatedFeedback: 'All council members abstained or were unavailable. Manual review required.',
+        agentVotes,
+        averageScore: 50,
       };
     }
 
@@ -224,6 +240,8 @@ export class LegalCouncilService {
       overallStatus,
       riskFlag,
       consolidatedFeedback,
+      agentVotes,
+      averageScore: avgScore,
     };
 
     const validation = CouncilVerdictSchema.safeParse(verdict);
