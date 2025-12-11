@@ -105,6 +105,23 @@ The backend has been transformed from a static brochure into a self-evolving sys
 - Approve/reject evolution proposals
 - Start/stop job processing
 
+**Live Nerve Center Dashboard:**
+- Located at `/admin/guide`
+- Real-time visualization of the AI agent ecosystem with 30-second auto-refresh
+- Displays 11 specialized agents organized into 3 categories:
+  - **The Brain**: Central Neural Hub (Orchestrator), Content Analyzer, Category Agent, Metadata Linker
+  - **The Hands**: Polyglot Translator, Smart Visualizer, Formatter, SEO Optimizer
+  - **The Shield**: Self-Healing Auditor, Content Auditor, Website Auditor
+- Each agent card shows: business name, role, description, capabilities, evolution level (1-5 dots), status
+- Pulsing CSS animations on active agents to demonstrate "living, breathing" system
+- System Evolution Timeline showing narrative history of improvements with impact levels (critical/major/minor)
+- Full 10-language support matching all other pages
+- Key files:
+  - `server/agents/SystemChronicler.ts` - Meta-agent that auto-documents all agents
+  - `client/src/components/admin/NerveCenter.tsx` - Agent network visualization
+  - `client/src/components/admin/EvolutionTimeline.tsx` - Timeline component
+  - `system_evolution.json` - Persisted evolution history
+
 ## External Dependencies
 
 ### Third-Party Services
