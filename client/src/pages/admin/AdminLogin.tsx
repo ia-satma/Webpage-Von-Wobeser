@@ -211,8 +211,7 @@ export default function AdminLogin() {
       });
       
       if (!res.ok) {
-        const error = await res.text();
-        throw new Error(error || t.invalidCredentials);
+        throw new Error(t.invalidCredentials);
       }
       
       return res.json();
