@@ -1,0 +1,33 @@
+ACT AS A FULL STACK LEAD DEVELOPER.
+The `LegalCouncilService` is robust and ready. Now we must **WIRE IT UP** to the main application and make it visible in the UI.
+
+**MISSION:** Integrate the Council into the Pipeline and update the Admin Dashboard to reflect the "Human-in-the-Loop" workflow.
+
+### 1. MODIFY THE PIPELINE (`ArticleProcessor.ts`)
+* **Inject the Step:** Inside the `processArticle` workflow, call `legalCouncil.evaluateArticle()` *immediately after* the translation/formatting steps are done.
+* **Update Status Logic:**
+    * **OLD:** `status = 'ready'` (This implied "Done").
+    * **NEW:** `status = 'ready_for_approval'`.
+* **Save Data:** Ensure the `CouncilVerdict` JSON (score, risk flags, comments) is saved to the article's record (e.g., in a `metadata` or `audit_log` JSONB column).
+
+### 2. UPDATE THE DATABASE SCHEMA (If needed)
+* Check if the `articles` table has a field to store the Council Verdict.
+* If not, add a migration or update the schema to include `council_verdict` (JSONB) and update the `status` enum to include `'ready_for_approval'`.
+
+### 3. UI UPGRADE: THE "APPROVAL COCKPIT" (`ArticleDetail.tsx`)
+This is what the client sees. It must look professional and secure.
+* **The "Safety Card":** At the top of the article view, render a summary card:
+    * **Score:** Display the Overall Score (e.g., "92/100"). Color code it (Green > 80, Yellow < 80).
+    * **Badges:** Show badges for "Risk Check: Passed", "Brand Check: Passed".
+    * **Feedback:** Show a collapsible "Council Notes" section with the consolidated comments.
+* **The "God Button":** Replace the standard "Save" button with a primary action button labeled **"VALIDATE & PUBLISH"** (Validar y Publicar).
+    * This button should only be active if the user is a human admin.
+
+### 4. DOCUMENTATION SYNC
+* Update `systemManifest.ts` to explicitly list "Legal Council" as an active agent, so it appears in the "Platform Guide" we built earlier.
+
+**EXECUTE:**
+1. Wire the Pipeline.
+2. Update the DB Schema.
+3. Build the UI "Safety Card".
+4. Confirm when the "Human-in-the-Loop" flow is live.

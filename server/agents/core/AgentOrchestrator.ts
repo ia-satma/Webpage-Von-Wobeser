@@ -11,6 +11,10 @@ import {
 import { knowledgeStore } from './AgentKnowledge';
 import { evolutionTracker } from './AgentEvolution';
 import { dbPersistence } from '../storage/DatabasePersistence';
+import { legalCouncilService } from '../../../services/agents/LegalCouncilService';
+import { db } from '../../db';
+import { news } from '@shared/schema';
+import { eq } from 'drizzle-orm';
 
 export class AgentOrchestrator {
   private agents: Map<AgentType, BaseAgent> = new Map();
@@ -310,6 +314,54 @@ export class AgentOrchestrator {
     }
 
     console.log(`[Orchestrator] Pipeline completed for article ${articleId}`);
+    
+    // Run Legal Council evaluation after pipeline completes
+    try {
+      console.log(`[Orchestrator] Running Legal Council evaluation for article ${articleId}...`);
+      
+      // Get article content for evaluation
+      const [article] = await db.select().from(news).where(eq(news.id, articleId));
+      
+      if (article && article.content) {
+        const verdict = await legalCouncilService.evaluateArticle(article.content);
+        
+        // Determine final status based on council verdict
+        const newStatus = verdict.overallStatus === 'approved' ? 'ready_for_approval' : 
+                          verdict.overallStatus === 'rejected' ? 'failed' : 'ready_for_approval';
+        
+        // Save verdict and update status
+        await db.update(news)
+          .set({
+            councilVerdict: verdict,
+            processingStatus: newStatus,
+            lastProcessedAt: new Date(),
+            failedStep: verdict.overallStatus === 'rejected' ? 'council' : null,
+          })
+          .where(eq(news.id, articleId));
+        
+        console.log(`[Orchestrator] Legal Council verdict: ${verdict.overallStatus}, Risk: ${verdict.riskFlag}`);
+        
+        results['legal_council'] = {
+          success: verdict.overallStatus !== 'rejected',
+          data: verdict as unknown as Record<string, unknown>,
+        };
+      }
+    } catch (councilError) {
+      console.error(`[Orchestrator] Legal Council evaluation failed:`, councilError);
+      // Fail-safe: still allow article through with warning
+      await db.update(news)
+        .set({
+          processingStatus: 'ready_for_approval',
+          lastProcessedAt: new Date(),
+          councilVerdict: {
+            overallStatus: 'escalated',
+            riskFlag: 'medium',
+            consolidatedFeedback: 'Council evaluation failed. Manual review required.',
+          },
+        })
+        .where(eq(news.id, articleId));
+    }
+    
     return { success: true, results: results as Record<AgentType, AgentResult> };
   }
 
