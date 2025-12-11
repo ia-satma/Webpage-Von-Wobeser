@@ -26,10 +26,10 @@ import { format } from "date-fns";
 import type { Event } from "@shared/schema";
 
 const eventTypeOptions = [
-  { value: "seminar", en: "Seminar", es: "Seminario" },
-  { value: "conference", en: "Conference", es: "Conferencia" },
-  { value: "webinar", en: "Webinar", es: "Webinar" },
-  { value: "workshop", en: "Workshop", es: "Taller" },
+  { value: "seminar", labelKey: "seminar" as const },
+  { value: "conference", labelKey: "conference" as const },
+  { value: "webinar", labelKey: "webinar" as const },
+  { value: "workshop", labelKey: "workshop" as const },
 ] as const;
 
 const translations = {
@@ -944,7 +944,7 @@ export default function AdminEvents() {
                           <SelectContent>
                             {eventTypeOptions.map((option) => (
                               <SelectItem key={option.value} value={option.value}>
-                                {language === "es" ? option.es : option.en}
+                                {t[option.labelKey]}
                               </SelectItem>
                             ))}
                           </SelectContent>
@@ -1219,7 +1219,7 @@ export default function AdminEvents() {
                   <SelectItem value="all">{t.allTypes}</SelectItem>
                   {eventTypeOptions.map((option) => (
                     <SelectItem key={option.value} value={option.value}>
-                      {language === "es" ? option.es : option.en}
+                      {t[option.labelKey]}
                     </SelectItem>
                   ))}
                 </SelectContent>

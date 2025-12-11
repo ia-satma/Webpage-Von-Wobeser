@@ -90,6 +90,12 @@ const translations = {
     industries: "Industries",
     qualityScore: "Quality Score",
     closeAnalysis: "Close",
+    labelEN: "(EN)",
+    labelES: "(ES)",
+    validationTitleRequired: "Title is required",
+    validationSpanishTitleRequired: "Spanish title is required",
+    validationSlugRequired: "Slug is required",
+    validationSlugFormat: "Only lowercase letters, numbers, and hyphens",
   },
   es: {
     createTitle: "Crear Nuevo Post",
@@ -157,6 +163,12 @@ const translations = {
     industries: "Industrias",
     qualityScore: "Puntuación de Calidad",
     closeAnalysis: "Cerrar",
+    labelEN: "(EN)",
+    labelES: "(ES)",
+    validationTitleRequired: "El título es requerido",
+    validationSpanishTitleRequired: "El título en español es requerido",
+    validationSlugRequired: "El slug es requerido",
+    validationSlugFormat: "Solo letras minúsculas, números y guiones",
   },
   de: {
     createTitle: "Neuen Beitrag erstellen",
@@ -224,6 +236,12 @@ const translations = {
     industries: "Branchen",
     qualityScore: "Qualitätsbewertung",
     closeAnalysis: "Schließen",
+    labelEN: "(EN)",
+    labelES: "(ES)",
+    validationTitleRequired: "Titel ist erforderlich",
+    validationSpanishTitleRequired: "Spanischer Titel ist erforderlich",
+    validationSlugRequired: "Slug ist erforderlich",
+    validationSlugFormat: "Nur Kleinbuchstaben, Zahlen und Bindestriche",
   },
   zh: {
     createTitle: "创建新文章",
@@ -291,6 +309,12 @@ const translations = {
     industries: "行业",
     qualityScore: "质量评分",
     closeAnalysis: "关闭",
+    labelEN: "(英文)",
+    labelES: "(西班牙文)",
+    validationTitleRequired: "标题为必填项",
+    validationSpanishTitleRequired: "西班牙语标题为必填项",
+    validationSlugRequired: "网址标识为必填项",
+    validationSlugFormat: "仅允许小写字母、数字和连字符",
   },
   ko: {
     createTitle: "새 게시물 작성",
@@ -358,6 +382,12 @@ const translations = {
     industries: "산업",
     qualityScore: "품질 점수",
     closeAnalysis: "닫기",
+    labelEN: "(영어)",
+    labelES: "(스페인어)",
+    validationTitleRequired: "제목은 필수입니다",
+    validationSpanishTitleRequired: "스페인어 제목은 필수입니다",
+    validationSlugRequired: "슬러그는 필수입니다",
+    validationSlugFormat: "소문자, 숫자, 하이픈만 허용됩니다",
   },
   ja: {
     createTitle: "新しい記事を作成",
@@ -425,6 +455,12 @@ const translations = {
     industries: "業界",
     qualityScore: "品質スコア",
     closeAnalysis: "閉じる",
+    labelEN: "(英語)",
+    labelES: "(スペイン語)",
+    validationTitleRequired: "タイトルは必須です",
+    validationSpanishTitleRequired: "スペイン語タイトルは必須です",
+    validationSlugRequired: "スラッグは必須です",
+    validationSlugFormat: "小文字、数字、ハイフンのみ",
   },
   ar: {
     createTitle: "إنشاء مقالة جديدة",
@@ -492,6 +528,12 @@ const translations = {
     industries: "الصناعات",
     qualityScore: "درجة الجودة",
     closeAnalysis: "إغلاق",
+    labelEN: "(الإنجليزية)",
+    labelES: "(الإسبانية)",
+    validationTitleRequired: "العنوان مطلوب",
+    validationSpanishTitleRequired: "العنوان بالإسبانية مطلوب",
+    validationSlugRequired: "الرابط المختصر مطلوب",
+    validationSlugFormat: "الأحرف الصغيرة والأرقام والشرطات فقط",
   },
   ru: {
     createTitle: "Создать новую запись",
@@ -559,6 +601,12 @@ const translations = {
     industries: "Отрасли",
     qualityScore: "Оценка качества",
     closeAnalysis: "Закрыть",
+    labelEN: "(EN)",
+    labelES: "(ES)",
+    validationTitleRequired: "Заголовок обязателен",
+    validationSpanishTitleRequired: "Заголовок на испанском обязателен",
+    validationSlugRequired: "Слаг обязателен",
+    validationSlugFormat: "Только строчные буквы, цифры и дефисы",
   },
   fr: {
     createTitle: "Créer un nouvel article",
@@ -626,6 +674,12 @@ const translations = {
     industries: "Industries",
     qualityScore: "Score de qualité",
     closeAnalysis: "Fermer",
+    labelEN: "(EN)",
+    labelES: "(ES)",
+    validationTitleRequired: "Le titre est requis",
+    validationSpanishTitleRequired: "Le titre en espagnol est requis",
+    validationSlugRequired: "Le slug est requis",
+    validationSlugFormat: "Uniquement lettres minuscules, chiffres et tirets",
   },
   it: {
     createTitle: "Crea nuovo articolo",
@@ -693,6 +747,12 @@ const translations = {
     industries: "Industrie",
     qualityScore: "Punteggio qualità",
     closeAnalysis: "Chiudi",
+    labelEN: "(EN)",
+    labelES: "(ES)",
+    validationTitleRequired: "Il titolo è obbligatorio",
+    validationSpanishTitleRequired: "Il titolo in spagnolo è obbligatorio",
+    validationSlugRequired: "Lo slug è obbligatorio",
+    validationSlugFormat: "Solo lettere minuscole, numeri e trattini",
   },
 };
 
@@ -1365,7 +1425,7 @@ export default function AdminPostForm() {
                         name="metaTitle"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>{t.metaTitleLabel} (EN)</FormLabel>
+                            <FormLabel>{t.metaTitleLabel} {t.labelEN}</FormLabel>
                             <FormControl>
                               <Input
                                 {...field}
@@ -1384,7 +1444,7 @@ export default function AdminPostForm() {
                         name="metaTitleEs"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>{t.metaTitleLabel} (ES)</FormLabel>
+                            <FormLabel>{t.metaTitleLabel} {t.labelES}</FormLabel>
                             <FormControl>
                               <Input
                                 {...field}
@@ -1405,7 +1465,7 @@ export default function AdminPostForm() {
                         name="metaDescription"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>{t.metaDescriptionLabel} (EN)</FormLabel>
+                            <FormLabel>{t.metaDescriptionLabel} {t.labelEN}</FormLabel>
                             <FormControl>
                               <Textarea
                                 {...field}
@@ -1425,7 +1485,7 @@ export default function AdminPostForm() {
                         name="metaDescriptionEs"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>{t.metaDescriptionLabel} (ES)</FormLabel>
+                            <FormLabel>{t.metaDescriptionLabel} {t.labelES}</FormLabel>
                             <FormControl>
                               <Textarea
                                 {...field}

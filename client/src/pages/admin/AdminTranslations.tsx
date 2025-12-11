@@ -41,11 +41,11 @@ const LANGUAGE_NAMES: Record<string, { en: string; native: string }> = {
 };
 
 const CONTENT_TYPES = [
-  { value: "all", label: { en: "All Content", es: "Todo el Contenido" } },
-  { value: "news", label: { en: "News", es: "Noticias" } },
-  { value: "practice_groups", label: { en: "Practice Groups", es: "Áreas de Práctica" } },
-  { value: "team_members", label: { en: "Team Members", es: "Miembros del Equipo" } },
-  { value: "industry_groups", label: { en: "Industry Groups", es: "Grupos de Industria" } },
+  { value: "all", label: { en: "All Content", es: "Todo el Contenido", de: "Alle Inhalte", zh: "所有内容", ko: "모든 콘텐츠", ja: "すべてのコンテンツ", ar: "جميع المحتوى", ru: "Весь контент", fr: "Tout le Contenu", it: "Tutti i Contenuti" } },
+  { value: "news", label: { en: "News", es: "Noticias", de: "Nachrichten", zh: "新闻", ko: "뉴스", ja: "ニュース", ar: "الأخبار", ru: "Новости", fr: "Actualités", it: "Notizie" } },
+  { value: "practice_groups", label: { en: "Practice Groups", es: "Áreas de Práctica", de: "Fachbereiche", zh: "业务领域", ko: "업무 분야", ja: "業務分野", ar: "مجالات الممارسة", ru: "Практики", fr: "Domaines de Pratique", it: "Aree di Pratica" } },
+  { value: "team_members", label: { en: "Team Members", es: "Miembros del Equipo", de: "Teammitglieder", zh: "团队成员", ko: "팀 구성원", ja: "チームメンバー", ar: "أعضاء الفريق", ru: "Члены команды", fr: "Membres de l'Équipe", it: "Membri del Team" } },
+  { value: "industry_groups", label: { en: "Industry Groups", es: "Grupos de Industria", de: "Branchengruppen", zh: "行业组", ko: "산업 그룹", ja: "業界グループ", ar: "مجموعات الصناعة", ru: "Отраслевые группы", fr: "Groupes Industriels", it: "Gruppi Industriali" } },
 ];
 
 const translations = {
@@ -86,6 +86,8 @@ const translations = {
     translateError: "Failed to start translation job",
     selectLanguages: "Select languages to translate",
     missingLanguages: "Missing translations",
+    languageCoverageDescription: "Translation progress for each supported language",
+    recentJobsDescription: "Translation jobs triggered from this dashboard",
   },
   es: {
     title: "Cobertura de Traducción",
@@ -124,6 +126,8 @@ const translations = {
     translateError: "Error al iniciar el trabajo de traducción",
     selectLanguages: "Seleccionar idiomas a traducir",
     missingLanguages: "Traducciones faltantes",
+    languageCoverageDescription: "Progreso de traducción para cada idioma soportado",
+    recentJobsDescription: "Trabajos de traducción iniciados desde este panel",
   },
   de: {
     title: "Übersetzungsabdeckung",
@@ -162,6 +166,8 @@ const translations = {
     translateError: "Übersetzungsauftrag konnte nicht gestartet werden",
     selectLanguages: "Sprachen zum Übersetzen auswählen",
     missingLanguages: "Fehlende Übersetzungen",
+    languageCoverageDescription: "Übersetzungsfortschritt für jede unterstützte Sprache",
+    recentJobsDescription: "Von diesem Dashboard gestartete Übersetzungsaufträge",
   },
   zh: {
     title: "翻译覆盖率",
@@ -200,6 +206,8 @@ const translations = {
     translateError: "启动翻译任务失败",
     selectLanguages: "选择要翻译的语言",
     missingLanguages: "缺失翻译",
+    languageCoverageDescription: "每种支持语言的翻译进度",
+    recentJobsDescription: "从此仪表板触发的翻译任务",
   },
   ko: {
     title: "번역 커버리지",
@@ -238,6 +246,8 @@ const translations = {
     translateError: "번역 작업 시작 실패",
     selectLanguages: "번역할 언어 선택",
     missingLanguages: "누락된 번역",
+    languageCoverageDescription: "지원되는 각 언어의 번역 진행률",
+    recentJobsDescription: "이 대시보드에서 시작된 번역 작업",
   },
   ja: {
     title: "翻訳カバレッジ",
@@ -276,6 +286,8 @@ const translations = {
     translateError: "翻訳ジョブの開始に失敗しました",
     selectLanguages: "翻訳する言語を選択",
     missingLanguages: "不足している翻訳",
+    languageCoverageDescription: "各対応言語の翻訳進捗状況",
+    recentJobsDescription: "このダッシュボードから開始された翻訳ジョブ",
   },
   ar: {
     title: "تغطية الترجمة",
@@ -314,6 +326,8 @@ const translations = {
     translateError: "فشل في بدء مهمة الترجمة",
     selectLanguages: "اختر اللغات للترجمة",
     missingLanguages: "الترجمات المفقودة",
+    languageCoverageDescription: "تقدم الترجمة لكل لغة مدعومة",
+    recentJobsDescription: "مهام الترجمة التي تم تشغيلها من لوحة التحكم هذه",
   },
   ru: {
     title: "Охват переводов",
@@ -352,6 +366,8 @@ const translations = {
     translateError: "Не удалось запустить задачу перевода",
     selectLanguages: "Выберите языки для перевода",
     missingLanguages: "Отсутствующие переводы",
+    languageCoverageDescription: "Прогресс перевода для каждого поддерживаемого языка",
+    recentJobsDescription: "Задачи перевода, запущенные с этой панели",
   },
   fr: {
     title: "Couverture de Traduction",
@@ -390,6 +406,8 @@ const translations = {
     translateError: "Échec du démarrage de la tâche de traduction",
     selectLanguages: "Sélectionner les langues à traduire",
     missingLanguages: "Traductions manquantes",
+    languageCoverageDescription: "Progression de la traduction pour chaque langue prise en charge",
+    recentJobsDescription: "Tâches de traduction lancées depuis ce tableau de bord",
   },
   it: {
     title: "Copertura Traduzioni",
@@ -428,6 +446,8 @@ const translations = {
     translateError: "Impossibile avviare il lavoro di traduzione",
     selectLanguages: "Seleziona le lingue da tradurre",
     missingLanguages: "Traduzioni mancanti",
+    languageCoverageDescription: "Avanzamento della traduzione per ogni lingua supportata",
+    recentJobsDescription: "Lavori di traduzione avviati da questa dashboard",
   },
 };
 
@@ -708,7 +728,7 @@ export default function AdminTranslations() {
                   {t.languageCoverage}
                 </CardTitle>
                 <CardDescription>
-                  Translation progress for each supported language
+                  {t.languageCoverageDescription}
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -763,7 +783,7 @@ export default function AdminTranslations() {
                     <SelectContent>
                       {CONTENT_TYPES.map((type) => (
                         <SelectItem key={type.value} value={type.value} data-testid={`option-type-${type.value}`}>
-                          {language === "es" ? type.label.es : type.label.en}
+                          {type.label[language as keyof typeof type.label] || type.label.en}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -866,7 +886,7 @@ export default function AdminTranslations() {
                   {t.recentJobs}
                 </CardTitle>
                 <CardDescription>
-                  Translation jobs triggered from this dashboard
+                  {t.recentJobsDescription}
                 </CardDescription>
               </CardHeader>
               <CardContent>

@@ -465,7 +465,7 @@ export default function AdminTeam() {
             <Card>
               <CardContent className="p-4 text-center">
                 <div className="text-3xl font-bold text-primary">{stats.ofCounsel}</div>
-                <div className="text-sm text-muted-foreground">Of Counsel</div>
+                <div className="text-sm text-muted-foreground">{t.ofCounsel}</div>
               </CardContent>
             </Card>
             <Card>

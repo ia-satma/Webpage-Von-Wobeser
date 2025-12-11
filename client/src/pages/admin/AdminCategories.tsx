@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useQuery, useMutation } from "@tanstack/react-query";
@@ -51,6 +51,10 @@ const translations = {
     deleteSuccess: "Category deleted successfully",
     deleteError: "Failed to delete category",
     loading: "Loading...",
+    validationNameEnRequired: "English name is required",
+    validationNameEsRequired: "Spanish name is required",
+    validationSlugRequired: "Slug is required",
+    validationSlugFormat: "Only lowercase letters, numbers, and hyphens",
   },
   es: {
     title: "Categorías",
@@ -83,6 +87,10 @@ const translations = {
     deleteSuccess: "Categoría eliminada exitosamente",
     deleteError: "Error al eliminar la categoría",
     loading: "Cargando...",
+    validationNameEnRequired: "El nombre en inglés es requerido",
+    validationNameEsRequired: "El nombre en español es requerido",
+    validationSlugRequired: "El slug es requerido",
+    validationSlugFormat: "Solo letras minúsculas, números y guiones",
   },
   de: {
     title: "Kategorien",
@@ -115,6 +123,10 @@ const translations = {
     deleteSuccess: "Kategorie erfolgreich gelöscht",
     deleteError: "Fehler beim Löschen der Kategorie",
     loading: "Wird geladen...",
+    validationNameEnRequired: "Englischer Name ist erforderlich",
+    validationNameEsRequired: "Spanischer Name ist erforderlich",
+    validationSlugRequired: "Slug ist erforderlich",
+    validationSlugFormat: "Nur Kleinbuchstaben, Zahlen und Bindestriche",
   },
   zh: {
     title: "分类",
@@ -147,6 +159,10 @@ const translations = {
     deleteSuccess: "分类删除成功",
     deleteError: "删除分类失败",
     loading: "加载中...",
+    validationNameEnRequired: "英文名称必填",
+    validationNameEsRequired: "西班牙文名称必填",
+    validationSlugRequired: "Slug必填",
+    validationSlugFormat: "仅限小写字母、数字和连字符",
   },
   ko: {
     title: "카테고리",
@@ -179,6 +195,10 @@ const translations = {
     deleteSuccess: "카테고리가 성공적으로 삭제되었습니다",
     deleteError: "카테고리 삭제 실패",
     loading: "로딩 중...",
+    validationNameEnRequired: "영어 이름은 필수입니다",
+    validationNameEsRequired: "스페인어 이름은 필수입니다",
+    validationSlugRequired: "슬러그는 필수입니다",
+    validationSlugFormat: "소문자, 숫자 및 하이픈만 가능",
   },
   ja: {
     title: "カテゴリ",
@@ -211,6 +231,10 @@ const translations = {
     deleteSuccess: "カテゴリが正常に削除されました",
     deleteError: "カテゴリの削除に失敗しました",
     loading: "読み込み中...",
+    validationNameEnRequired: "英語名は必須です",
+    validationNameEsRequired: "スペイン語名は必須です",
+    validationSlugRequired: "スラッグは必須です",
+    validationSlugFormat: "小文字、数字、ハイフンのみ",
   },
   ar: {
     title: "الفئات",
@@ -243,6 +267,10 @@ const translations = {
     deleteSuccess: "تم حذف الفئة بنجاح",
     deleteError: "فشل في حذف الفئة",
     loading: "جاري التحميل...",
+    validationNameEnRequired: "الاسم بالإنجليزية مطلوب",
+    validationNameEsRequired: "الاسم بالإسبانية مطلوب",
+    validationSlugRequired: "الرابط المختصر مطلوب",
+    validationSlugFormat: "أحرف صغيرة وأرقام وشرطات فقط",
   },
   ru: {
     title: "Категории",
@@ -275,6 +303,10 @@ const translations = {
     deleteSuccess: "Категория успешно удалена",
     deleteError: "Не удалось удалить категорию",
     loading: "Загрузка...",
+    validationNameEnRequired: "Английское название обязательно",
+    validationNameEsRequired: "Испанское название обязательно",
+    validationSlugRequired: "Slug обязателен",
+    validationSlugFormat: "Только строчные буквы, цифры и дефисы",
   },
   fr: {
     title: "Catégories",
@@ -307,6 +339,10 @@ const translations = {
     deleteSuccess: "Catégorie supprimée avec succès",
     deleteError: "Échec de la suppression de la catégorie",
     loading: "Chargement...",
+    validationNameEnRequired: "Le nom en anglais est requis",
+    validationNameEsRequired: "Le nom en espagnol est requis",
+    validationSlugRequired: "Le slug est requis",
+    validationSlugFormat: "Lettres minuscules, chiffres et tirets uniquement",
   },
   it: {
     title: "Categorie",
@@ -339,18 +375,24 @@ const translations = {
     deleteSuccess: "Categoria eliminata con successo",
     deleteError: "Impossibile eliminare la categoria",
     loading: "Caricamento...",
+    validationNameEnRequired: "Il nome in inglese è obbligatorio",
+    validationNameEsRequired: "Il nome in spagnolo è obbligatorio",
+    validationSlugRequired: "Lo slug è obbligatorio",
+    validationSlugFormat: "Solo lettere minuscole, numeri e trattini",
   },
 };
 
-const categorySchema = z.object({
-  name: z.string().min(1, "English name is required").max(100),
-  nameEs: z.string().min(1, "Spanish name is required").max(100),
-  slug: z.string().min(1, "Slug is required").max(100).regex(/^[a-z0-9-]+$/, "Only lowercase letters, numbers, and hyphens"),
-  description: z.string().max(500).optional(),
-  descriptionEs: z.string().max(500).optional(),
-});
+function createCategorySchema(t: typeof translations.en) {
+  return z.object({
+    name: z.string().min(1, t.validationNameEnRequired).max(100),
+    nameEs: z.string().min(1, t.validationNameEsRequired).max(100),
+    slug: z.string().min(1, t.validationSlugRequired).max(100).regex(/^[a-z0-9-]+$/, t.validationSlugFormat),
+    description: z.string().max(500).optional(),
+    descriptionEs: z.string().max(500).optional(),
+  });
+}
 
-type CategoryFormData = z.infer<typeof categorySchema>;
+type CategoryFormData = z.infer<ReturnType<typeof createCategorySchema>>;
 
 function generateSlug(name: string): string {
   return name
@@ -369,6 +411,8 @@ export default function AdminCategories() {
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingCategory, setEditingCategory] = useState<BlogCategory | null>(null);
+
+  const categorySchema = useMemo(() => createCategorySchema(t), [t]);
 
   useEffect(() => {
     if (!authLoading) {

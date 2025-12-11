@@ -68,6 +68,13 @@ const translations = {
     loading: "Loading...",
     totalGroups: "Total Practice Groups",
     featuredGroups: "Featured",
+    validationNameEnRequired: "English name is required",
+    validationNameEsRequired: "Spanish name is required",
+    validationSlugRequired: "Slug is required",
+    validationSlugFormat: "Only lowercase letters, numbers, and hyphens",
+    validationDescriptionEnRequired: "English description is required",
+    validationDescriptionEsRequired: "Spanish description is required",
+    fetchError: "Failed to fetch practice groups",
   },
   es: {
     title: "Áreas de Práctica",
@@ -115,6 +122,13 @@ const translations = {
     loading: "Cargando...",
     totalGroups: "Total Áreas de Práctica",
     featuredGroups: "Destacadas",
+    validationNameEnRequired: "El nombre en inglés es obligatorio",
+    validationNameEsRequired: "El nombre en español es obligatorio",
+    validationSlugRequired: "El slug es obligatorio",
+    validationSlugFormat: "Solo letras minúsculas, números y guiones",
+    validationDescriptionEnRequired: "La descripción en inglés es obligatoria",
+    validationDescriptionEsRequired: "La descripción en español es obligatoria",
+    fetchError: "Error al cargar las áreas de práctica",
   },
   de: {
     title: "Praxisgruppen",
@@ -162,6 +176,13 @@ const translations = {
     loading: "Wird geladen...",
     totalGroups: "Gesamt Praxisgruppen",
     featuredGroups: "Hervorgehoben",
+    validationNameEnRequired: "Englischer Name ist erforderlich",
+    validationNameEsRequired: "Spanischer Name ist erforderlich",
+    validationSlugRequired: "Slug ist erforderlich",
+    validationSlugFormat: "Nur Kleinbuchstaben, Zahlen und Bindestriche",
+    validationDescriptionEnRequired: "Englische Beschreibung ist erforderlich",
+    validationDescriptionEsRequired: "Spanische Beschreibung ist erforderlich",
+    fetchError: "Fehler beim Laden der Praxisgruppen",
   },
   zh: {
     title: "业务领域",
@@ -209,6 +230,13 @@ const translations = {
     loading: "加载中...",
     totalGroups: "业务领域总数",
     featuredGroups: "精选",
+    validationNameEnRequired: "英文名称为必填项",
+    validationNameEsRequired: "西班牙文名称为必填项",
+    validationSlugRequired: "Slug为必填项",
+    validationSlugFormat: "仅限小写字母、数字和连字符",
+    validationDescriptionEnRequired: "英文描述为必填项",
+    validationDescriptionEsRequired: "西班牙文描述为必填项",
+    fetchError: "加载业务领域失败",
   },
   ko: {
     title: "업무 분야",
@@ -256,6 +284,13 @@ const translations = {
     loading: "로딩 중...",
     totalGroups: "전체 업무 분야",
     featuredGroups: "주요",
+    validationNameEnRequired: "영어 이름은 필수입니다",
+    validationNameEsRequired: "스페인어 이름은 필수입니다",
+    validationSlugRequired: "슬러그는 필수입니다",
+    validationSlugFormat: "소문자, 숫자 및 하이픈만 사용 가능",
+    validationDescriptionEnRequired: "영어 설명은 필수입니다",
+    validationDescriptionEsRequired: "스페인어 설명은 필수입니다",
+    fetchError: "업무 분야 로드 실패",
   },
   ja: {
     title: "業務分野",
@@ -303,6 +338,13 @@ const translations = {
     loading: "読み込み中...",
     totalGroups: "業務分野の総数",
     featuredGroups: "注目",
+    validationNameEnRequired: "英語名は必須です",
+    validationNameEsRequired: "スペイン語名は必須です",
+    validationSlugRequired: "スラッグは必須です",
+    validationSlugFormat: "小文字、数字、ハイフンのみ使用可能",
+    validationDescriptionEnRequired: "英語の説明は必須です",
+    validationDescriptionEsRequired: "スペイン語の説明は必須です",
+    fetchError: "業務分野の読み込みに失敗しました",
   },
   ar: {
     title: "مجالات الممارسة",
@@ -350,6 +392,13 @@ const translations = {
     loading: "جاري التحميل...",
     totalGroups: "إجمالي مجالات الممارسة",
     featuredGroups: "المميزة",
+    validationNameEnRequired: "الاسم بالإنجليزية مطلوب",
+    validationNameEsRequired: "الاسم بالإسبانية مطلوب",
+    validationSlugRequired: "الرابط المختصر مطلوب",
+    validationSlugFormat: "أحرف صغيرة وأرقام وشرطات فقط",
+    validationDescriptionEnRequired: "الوصف بالإنجليزية مطلوب",
+    validationDescriptionEsRequired: "الوصف بالإسبانية مطلوب",
+    fetchError: "فشل في تحميل مجالات الممارسة",
   },
   ru: {
     title: "Практики",
@@ -397,6 +446,13 @@ const translations = {
     loading: "Загрузка...",
     totalGroups: "Всего практик",
     featuredGroups: "Избранные",
+    validationNameEnRequired: "Название на английском обязательно",
+    validationNameEsRequired: "Название на испанском обязательно",
+    validationSlugRequired: "Slug обязателен",
+    validationSlugFormat: "Только строчные буквы, цифры и дефисы",
+    validationDescriptionEnRequired: "Описание на английском обязательно",
+    validationDescriptionEsRequired: "Описание на испанском обязательно",
+    fetchError: "Не удалось загрузить практики",
   },
   fr: {
     title: "Domaines de pratique",
@@ -444,6 +500,13 @@ const translations = {
     loading: "Chargement...",
     totalGroups: "Total domaines de pratique",
     featuredGroups: "En vedette",
+    validationNameEnRequired: "Le nom en anglais est requis",
+    validationNameEsRequired: "Le nom en espagnol est requis",
+    validationSlugRequired: "Le slug est requis",
+    validationSlugFormat: "Lettres minuscules, chiffres et tirets uniquement",
+    validationDescriptionEnRequired: "La description en anglais est requise",
+    validationDescriptionEsRequired: "La description en espagnol est requise",
+    fetchError: "Échec du chargement des domaines de pratique",
   },
   it: {
     title: "Aree di pratica",
@@ -491,15 +554,22 @@ const translations = {
     loading: "Caricamento...",
     totalGroups: "Totale aree di pratica",
     featuredGroups: "In evidenza",
+    validationNameEnRequired: "Il nome in inglese è obbligatorio",
+    validationNameEsRequired: "Il nome in spagnolo è obbligatorio",
+    validationSlugRequired: "Lo slug è obbligatorio",
+    validationSlugFormat: "Solo lettere minuscole, numeri e trattini",
+    validationDescriptionEnRequired: "La descrizione in inglese è obbligatoria",
+    validationDescriptionEsRequired: "La descrizione in spagnolo è obbligatoria",
+    fetchError: "Impossibile caricare le aree di pratica",
   },
 };
 
-const practiceGroupSchema = z.object({
-  name: z.string().min(1, "English name is required").max(200),
-  nameEs: z.string().min(1, "Spanish name is required").max(200),
-  slug: z.string().min(1, "Slug is required").max(100).regex(/^[a-z0-9-]+$/, "Only lowercase letters, numbers, and hyphens"),
-  description: z.string().min(1, "English description is required").max(500),
-  descriptionEs: z.string().min(1, "Spanish description is required").max(500),
+const createPracticeGroupSchema = (t: typeof translations.en) => z.object({
+  name: z.string().min(1, t.validationNameEnRequired).max(200),
+  nameEs: z.string().min(1, t.validationNameEsRequired).max(200),
+  slug: z.string().min(1, t.validationSlugRequired).max(100).regex(/^[a-z0-9-]+$/, t.validationSlugFormat),
+  description: z.string().min(1, t.validationDescriptionEnRequired).max(500),
+  descriptionEs: z.string().min(1, t.validationDescriptionEsRequired).max(500),
   fullDescription: z.string().max(5000).optional(),
   fullDescriptionEs: z.string().max(5000).optional(),
   iconName: z.string().max(50).optional(),
@@ -507,7 +577,7 @@ const practiceGroupSchema = z.object({
   imageUrl: z.string().max(500).optional(),
 });
 
-type PracticeGroupFormData = z.infer<typeof practiceGroupSchema>;
+type PracticeGroupFormData = z.infer<ReturnType<typeof createPracticeGroupSchema>>;
 
 function generateSlug(name: string): string {
   return name
@@ -533,6 +603,8 @@ export default function AdminPracticeGroups() {
     }
   }, [authLoading, requireAuth]);
 
+  const practiceGroupSchema = createPracticeGroupSchema(t);
+  
   const form = useForm<PracticeGroupFormData>({
     resolver: zodResolver(practiceGroupSchema),
     defaultValues: {
@@ -553,7 +625,7 @@ export default function AdminPracticeGroups() {
     queryKey: ["/api/admin/practice-groups"],
     queryFn: async () => {
       const res = await adminApiRequest("GET", "/api/admin/practice-groups");
-      if (!res.ok) throw new Error("Failed to fetch practice groups");
+      if (!res.ok) throw new Error(t.fetchError);
       return res.json();
     },
     enabled: isAuthenticated,
@@ -569,7 +641,7 @@ export default function AdminPracticeGroups() {
       const res = await adminApiRequest(method, url, data);
       if (!res.ok) {
         const error = await res.text();
-        throw new Error(error || "Failed to save practice group");
+        throw new Error(error || t.saveError);
       }
       return res.json();
     },
@@ -593,7 +665,7 @@ export default function AdminPracticeGroups() {
   const deleteMutation = useMutation({
     mutationFn: async (groupId: string) => {
       const res = await adminApiRequest("DELETE", `/api/admin/practice-groups/${groupId}`);
-      if (!res.ok) throw new Error("Failed to delete practice group");
+      if (!res.ok) throw new Error(t.deleteError);
       return res.json();
     },
     onSuccess: () => {

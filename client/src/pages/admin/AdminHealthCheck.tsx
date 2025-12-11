@@ -5,7 +5,6 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Separator } from '@/components/ui/separator';
 import { 
   Activity, 
   AlertTriangle, 
@@ -21,6 +20,8 @@ import {
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest, queryClient } from '@/lib/queryClient';
+import { useLanguage } from '@/contexts/LanguageContext';
+import { getImpactLabel } from '@/lib/adminTranslations';
 
 interface HealthIssue {
   id: string;
@@ -60,6 +61,359 @@ interface HealthCheckResponse {
   humanReadable: string;
 }
 
+const translations: Record<string, Record<string, string>> = {
+  en: {
+    pageTitle: "System Health Check",
+    pageDescription: "Deep audit of database integrity, translations, and content quality",
+    runAudit: "Run Deep Audit",
+    runningAudit: "Running Audit...",
+    zombiesReset: "Zombies Reset",
+    resetZombies: "Reset Zombies",
+    runningInitialCheck: "Running initial health check...",
+    healthScore: "Health Score",
+    totalIssues: "Total Issues",
+    auditDuration: "Audit Duration",
+    lastRun: "Last Run",
+    issues: "Issues",
+    clearFilter: "Clear Filter",
+    filterDescription: "Click on issue category cards above to filter",
+    zombieProcesses: "Zombie Processes",
+    incompleteSuccess: "Incomplete Success",
+    localizationLeakage: "Localization Leakage",
+    orphanedAssets: "Orphaned Assets",
+    missingTranslations: "Missing Translations",
+    zombieProcess: "Zombie Process",
+    incomplete: "Incomplete",
+    orphanedAsset: "Orphaned Asset",
+    missingTranslation: "Missing Translation",
+    suggestedAction: "Action",
+    noIssuesFound: "No issues found",
+    systemHealthy: "System is healthy!",
+    noTypeIssues: "No {type} issues found",
+    critical: "Critical",
+    high: "High",
+    medium: "Medium",
+    low: "Low",
+    error: "Error",
+    failedToResetZombies: "Failed to reset zombie jobs",
+  },
+  es: {
+    pageTitle: "Verificación del Sistema",
+    pageDescription: "Auditoría profunda de integridad de base de datos, traducciones y calidad de contenido",
+    runAudit: "Ejecutar Auditoría",
+    runningAudit: "Ejecutando Auditoría...",
+    zombiesReset: "Zombies Reiniciados",
+    resetZombies: "Reiniciar Zombies",
+    runningInitialCheck: "Ejecutando verificación inicial...",
+    healthScore: "Puntuación de Salud",
+    totalIssues: "Problemas Totales",
+    auditDuration: "Duración de Auditoría",
+    lastRun: "Última Ejecución",
+    issues: "Problemas",
+    clearFilter: "Limpiar Filtro",
+    filterDescription: "Haga clic en las tarjetas de categoría para filtrar",
+    zombieProcesses: "Procesos Zombie",
+    incompleteSuccess: "Éxito Incompleto",
+    localizationLeakage: "Fuga de Localización",
+    orphanedAssets: "Recursos Huérfanos",
+    missingTranslations: "Traducciones Faltantes",
+    zombieProcess: "Proceso Zombie",
+    incomplete: "Incompleto",
+    orphanedAsset: "Recurso Huérfano",
+    missingTranslation: "Traducción Faltante",
+    suggestedAction: "Acción",
+    noIssuesFound: "No se encontraron problemas",
+    systemHealthy: "¡El sistema está saludable!",
+    noTypeIssues: "No se encontraron problemas de {type}",
+    critical: "Crítico",
+    high: "Alto",
+    medium: "Medio",
+    low: "Bajo",
+    error: "Error",
+    failedToResetZombies: "Error al reiniciar trabajos zombie",
+  },
+  de: {
+    pageTitle: "Systemzustandsprüfung",
+    pageDescription: "Tiefenprüfung der Datenbankintegrität, Übersetzungen und Inhaltsqualität",
+    runAudit: "Tiefenprüfung starten",
+    runningAudit: "Prüfung läuft...",
+    zombiesReset: "Zombies zurückgesetzt",
+    resetZombies: "Zombies zurücksetzen",
+    runningInitialCheck: "Erstprüfung wird ausgeführt...",
+    healthScore: "Gesundheitswert",
+    totalIssues: "Gesamtprobleme",
+    auditDuration: "Prüfdauer",
+    lastRun: "Letzte Ausführung",
+    issues: "Probleme",
+    clearFilter: "Filter löschen",
+    filterDescription: "Klicken Sie auf die Kategoriekarten, um zu filtern",
+    zombieProcesses: "Zombie-Prozesse",
+    incompleteSuccess: "Unvollständiger Erfolg",
+    localizationLeakage: "Lokalisierungsleck",
+    orphanedAssets: "Verwaiste Ressourcen",
+    missingTranslations: "Fehlende Übersetzungen",
+    zombieProcess: "Zombie-Prozess",
+    incomplete: "Unvollständig",
+    orphanedAsset: "Verwaiste Ressource",
+    missingTranslation: "Fehlende Übersetzung",
+    suggestedAction: "Aktion",
+    noIssuesFound: "Keine Probleme gefunden",
+    systemHealthy: "System ist gesund!",
+    noTypeIssues: "Keine {type}-Probleme gefunden",
+    critical: "Kritisch",
+    high: "Hoch",
+    medium: "Mittel",
+    low: "Niedrig",
+    error: "Fehler",
+    failedToResetZombies: "Fehler beim Zurücksetzen der Zombie-Jobs",
+  },
+  zh: {
+    pageTitle: "系统健康检查",
+    pageDescription: "数据库完整性、翻译和内容质量深度审计",
+    runAudit: "运行深度审计",
+    runningAudit: "正在运行审计...",
+    zombiesReset: "僵尸进程已重置",
+    resetZombies: "重置僵尸进程",
+    runningInitialCheck: "正在运行初始健康检查...",
+    healthScore: "健康评分",
+    totalIssues: "问题总数",
+    auditDuration: "审计时长",
+    lastRun: "上次运行",
+    issues: "问题",
+    clearFilter: "清除筛选",
+    filterDescription: "点击上方的类别卡片进行筛选",
+    zombieProcesses: "僵尸进程",
+    incompleteSuccess: "不完整成功",
+    localizationLeakage: "本地化泄漏",
+    orphanedAssets: "孤立资源",
+    missingTranslations: "缺失翻译",
+    zombieProcess: "僵尸进程",
+    incomplete: "不完整",
+    orphanedAsset: "孤立资源",
+    missingTranslation: "缺失翻译",
+    suggestedAction: "建议操作",
+    noIssuesFound: "未发现问题",
+    systemHealthy: "系统健康！",
+    noTypeIssues: "未发现{type}问题",
+    critical: "严重",
+    high: "高",
+    medium: "中",
+    low: "低",
+    error: "错误",
+    failedToResetZombies: "重置僵尸任务失败",
+  },
+  ko: {
+    pageTitle: "시스템 상태 점검",
+    pageDescription: "데이터베이스 무결성, 번역 및 콘텐츠 품질 심층 감사",
+    runAudit: "심층 감사 실행",
+    runningAudit: "감사 실행 중...",
+    zombiesReset: "좀비 재설정됨",
+    resetZombies: "좀비 재설정",
+    runningInitialCheck: "초기 상태 점검 실행 중...",
+    healthScore: "상태 점수",
+    totalIssues: "전체 문제",
+    auditDuration: "감사 소요 시간",
+    lastRun: "마지막 실행",
+    issues: "문제",
+    clearFilter: "필터 지우기",
+    filterDescription: "필터링하려면 위의 카테고리 카드를 클릭하세요",
+    zombieProcesses: "좀비 프로세스",
+    incompleteSuccess: "불완전한 성공",
+    localizationLeakage: "로컬라이제이션 누출",
+    orphanedAssets: "고아 자산",
+    missingTranslations: "누락된 번역",
+    zombieProcess: "좀비 프로세스",
+    incomplete: "불완전",
+    orphanedAsset: "고아 자산",
+    missingTranslation: "누락된 번역",
+    suggestedAction: "조치",
+    noIssuesFound: "문제가 발견되지 않음",
+    systemHealthy: "시스템이 정상입니다!",
+    noTypeIssues: "{type} 문제가 발견되지 않음",
+    critical: "심각",
+    high: "높음",
+    medium: "중간",
+    low: "낮음",
+    error: "오류",
+    failedToResetZombies: "좀비 작업 재설정 실패",
+  },
+  ja: {
+    pageTitle: "システムヘルスチェック",
+    pageDescription: "データベース整合性、翻訳、コンテンツ品質の詳細監査",
+    runAudit: "詳細監査を実行",
+    runningAudit: "監査実行中...",
+    zombiesReset: "ゾンビがリセットされました",
+    resetZombies: "ゾンビをリセット",
+    runningInitialCheck: "初期ヘルスチェック実行中...",
+    healthScore: "ヘルススコア",
+    totalIssues: "問題の合計",
+    auditDuration: "監査時間",
+    lastRun: "最終実行",
+    issues: "問題",
+    clearFilter: "フィルターをクリア",
+    filterDescription: "フィルタリングするには上のカテゴリカードをクリック",
+    zombieProcesses: "ゾンビプロセス",
+    incompleteSuccess: "不完全な成功",
+    localizationLeakage: "ローカライゼーション漏れ",
+    orphanedAssets: "孤立アセット",
+    missingTranslations: "不足している翻訳",
+    zombieProcess: "ゾンビプロセス",
+    incomplete: "不完全",
+    orphanedAsset: "孤立アセット",
+    missingTranslation: "不足翻訳",
+    suggestedAction: "アクション",
+    noIssuesFound: "問題は見つかりませんでした",
+    systemHealthy: "システムは正常です！",
+    noTypeIssues: "{type}の問題は見つかりませんでした",
+    critical: "重大",
+    high: "高",
+    medium: "中",
+    low: "低",
+    error: "エラー",
+    failedToResetZombies: "ゾンビジョブのリセットに失敗しました",
+  },
+  ar: {
+    pageTitle: "فحص صحة النظام",
+    pageDescription: "تدقيق عميق لسلامة قاعدة البيانات والترجمات وجودة المحتوى",
+    runAudit: "تشغيل التدقيق العميق",
+    runningAudit: "جاري التدقيق...",
+    zombiesReset: "تم إعادة تعيين الزومبي",
+    resetZombies: "إعادة تعيين الزومبي",
+    runningInitialCheck: "جاري تشغيل الفحص الأولي...",
+    healthScore: "درجة الصحة",
+    totalIssues: "إجمالي المشاكل",
+    auditDuration: "مدة التدقيق",
+    lastRun: "آخر تشغيل",
+    issues: "المشاكل",
+    clearFilter: "مسح الفلتر",
+    filterDescription: "انقر على بطاقات الفئات أعلاه للتصفية",
+    zombieProcesses: "عمليات الزومبي",
+    incompleteSuccess: "نجاح غير مكتمل",
+    localizationLeakage: "تسرب الترجمة",
+    orphanedAssets: "موارد يتيمة",
+    missingTranslations: "ترجمات مفقودة",
+    zombieProcess: "عملية زومبي",
+    incomplete: "غير مكتمل",
+    orphanedAsset: "مورد يتيم",
+    missingTranslation: "ترجمة مفقودة",
+    suggestedAction: "الإجراء",
+    noIssuesFound: "لم يتم العثور على مشاكل",
+    systemHealthy: "النظام سليم!",
+    noTypeIssues: "لم يتم العثور على مشاكل {type}",
+    critical: "حرج",
+    high: "عالي",
+    medium: "متوسط",
+    low: "منخفض",
+    error: "خطأ",
+    failedToResetZombies: "فشل في إعادة تعيين وظائف الزومبي",
+  },
+  ru: {
+    pageTitle: "Проверка состояния системы",
+    pageDescription: "Глубокий аудит целостности базы данных, переводов и качества контента",
+    runAudit: "Запустить глубокий аудит",
+    runningAudit: "Выполняется аудит...",
+    zombiesReset: "Зомби сброшены",
+    resetZombies: "Сбросить зомби",
+    runningInitialCheck: "Выполняется первичная проверка...",
+    healthScore: "Оценка здоровья",
+    totalIssues: "Всего проблем",
+    auditDuration: "Длительность аудита",
+    lastRun: "Последний запуск",
+    issues: "Проблемы",
+    clearFilter: "Очистить фильтр",
+    filterDescription: "Нажмите на карточки категорий выше для фильтрации",
+    zombieProcesses: "Зомби-процессы",
+    incompleteSuccess: "Неполный успех",
+    localizationLeakage: "Утечка локализации",
+    orphanedAssets: "Осиротевшие ресурсы",
+    missingTranslations: "Отсутствующие переводы",
+    zombieProcess: "Зомби-процесс",
+    incomplete: "Неполный",
+    orphanedAsset: "Осиротевший ресурс",
+    missingTranslation: "Отсутствующий перевод",
+    suggestedAction: "Действие",
+    noIssuesFound: "Проблем не обнаружено",
+    systemHealthy: "Система здорова!",
+    noTypeIssues: "Проблем типа {type} не обнаружено",
+    critical: "Критический",
+    high: "Высокий",
+    medium: "Средний",
+    low: "Низкий",
+    error: "Ошибка",
+    failedToResetZombies: "Не удалось сбросить зомби-задачи",
+  },
+  fr: {
+    pageTitle: "Vérification de l'état du système",
+    pageDescription: "Audit approfondi de l'intégrité de la base de données, des traductions et de la qualité du contenu",
+    runAudit: "Lancer l'audit approfondi",
+    runningAudit: "Audit en cours...",
+    zombiesReset: "Zombies réinitialisés",
+    resetZombies: "Réinitialiser les zombies",
+    runningInitialCheck: "Vérification initiale en cours...",
+    healthScore: "Score de santé",
+    totalIssues: "Total des problèmes",
+    auditDuration: "Durée de l'audit",
+    lastRun: "Dernière exécution",
+    issues: "Problèmes",
+    clearFilter: "Effacer le filtre",
+    filterDescription: "Cliquez sur les cartes de catégorie ci-dessus pour filtrer",
+    zombieProcesses: "Processus zombies",
+    incompleteSuccess: "Succès incomplet",
+    localizationLeakage: "Fuite de localisation",
+    orphanedAssets: "Ressources orphelines",
+    missingTranslations: "Traductions manquantes",
+    zombieProcess: "Processus zombie",
+    incomplete: "Incomplet",
+    orphanedAsset: "Ressource orpheline",
+    missingTranslation: "Traduction manquante",
+    suggestedAction: "Action",
+    noIssuesFound: "Aucun problème trouvé",
+    systemHealthy: "Le système est sain !",
+    noTypeIssues: "Aucun problème de type {type} trouvé",
+    critical: "Critique",
+    high: "Élevé",
+    medium: "Moyen",
+    low: "Faible",
+    error: "Erreur",
+    failedToResetZombies: "Échec de la réinitialisation des tâches zombies",
+  },
+  it: {
+    pageTitle: "Controllo stato del sistema",
+    pageDescription: "Audit approfondito dell'integrità del database, traduzioni e qualità dei contenuti",
+    runAudit: "Esegui audit approfondito",
+    runningAudit: "Audit in corso...",
+    zombiesReset: "Zombie reimpostati",
+    resetZombies: "Reimposta zombie",
+    runningInitialCheck: "Esecuzione controllo iniziale...",
+    healthScore: "Punteggio salute",
+    totalIssues: "Problemi totali",
+    auditDuration: "Durata audit",
+    lastRun: "Ultima esecuzione",
+    issues: "Problemi",
+    clearFilter: "Cancella filtro",
+    filterDescription: "Clicca sulle schede categoria sopra per filtrare",
+    zombieProcesses: "Processi zombie",
+    incompleteSuccess: "Successo incompleto",
+    localizationLeakage: "Perdita localizzazione",
+    orphanedAssets: "Risorse orfane",
+    missingTranslations: "Traduzioni mancanti",
+    zombieProcess: "Processo zombie",
+    incomplete: "Incompleto",
+    orphanedAsset: "Risorsa orfana",
+    missingTranslation: "Traduzione mancante",
+    suggestedAction: "Azione",
+    noIssuesFound: "Nessun problema trovato",
+    systemHealthy: "Il sistema è sano!",
+    noTypeIssues: "Nessun problema di tipo {type} trovato",
+    critical: "Critico",
+    high: "Alto",
+    medium: "Medio",
+    low: "Basso",
+    error: "Errore",
+    failedToResetZombies: "Impossibile reimpostare i lavori zombie",
+  },
+};
+
 const severityColors = {
   critical: 'bg-red-600 text-white',
   high: 'bg-orange-500 text-white',
@@ -75,16 +429,33 @@ const typeIcons = {
   missing_translation: Languages,
 };
 
-const typeLabels = {
-  zombie_process: 'Zombie Process',
-  incomplete_success: 'Incomplete',
-  localization_leakage: 'Localization Leakage',
-  orphaned_asset: 'Orphaned Asset',
-  missing_translation: 'Missing Translation',
-};
+function getTypeLabel(type: string, lang: string): string {
+  const t = translations[lang] || translations.en;
+  const typeMap: Record<string, string> = {
+    zombie_process: t.zombieProcess,
+    incomplete_success: t.incomplete,
+    localization_leakage: t.localizationLeakage,
+    orphaned_asset: t.orphanedAsset,
+    missing_translation: t.missingTranslation,
+  };
+  return typeMap[type] || type;
+}
+
+function getSeverityLabel(severity: string, lang: string): string {
+  const t = translations[lang] || translations.en;
+  const severityMap: Record<string, string> = {
+    critical: t.critical,
+    high: t.high,
+    medium: t.medium,
+    low: t.low,
+  };
+  return severityMap[severity] || severity;
+}
 
 export default function AdminHealthCheck() {
   const { toast } = useToast();
+  const { language } = useLanguage();
+  const t = translations[language] || translations.en;
   const [selectedType, setSelectedType] = useState<string | null>(null);
 
   const { data: healthData, isLoading, refetch, isFetching } = useQuery<HealthCheckResponse>({
@@ -100,15 +471,15 @@ export default function AdminHealthCheck() {
     },
     onSuccess: (data) => {
       toast({
-        title: 'Zombies Reset',
+        title: t.zombiesReset,
         description: data.message,
       });
       refetch();
     },
     onError: (error: any) => {
       toast({
-        title: 'Error',
-        description: error.message || 'Failed to reset zombie jobs',
+        title: t.error,
+        description: error.message || t.failedToResetZombies,
         variant: 'destructive',
       });
     },
@@ -135,9 +506,9 @@ export default function AdminHealthCheck() {
     <div className="p-6 space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold" data-testid="text-page-title">System Health Check</h1>
+          <h1 className="text-2xl font-bold" data-testid="text-page-title">{t.pageTitle}</h1>
           <p className="text-muted-foreground">
-            Deep audit of database integrity, translations, and content quality
+            {t.pageDescription}
           </p>
         </div>
         <div className="flex gap-2">
@@ -151,7 +522,7 @@ export default function AdminHealthCheck() {
             ) : (
               <RefreshCw className="h-4 w-4 mr-2" />
             )}
-            {isFetching ? 'Running Audit...' : 'Run Deep Audit'}
+            {isFetching ? t.runningAudit : t.runAudit}
           </Button>
           {report && report.summary.zombieProcesses > 0 && (
             <Button 
@@ -161,7 +532,7 @@ export default function AdminHealthCheck() {
               data-testid="button-reset-zombies"
             >
               <Skull className="h-4 w-4 mr-2" />
-              Reset {report.summary.zombieProcesses} Zombies
+              {t.resetZombies} ({report.summary.zombieProcesses})
             </Button>
           )}
         </div>
@@ -171,7 +542,7 @@ export default function AdminHealthCheck() {
         <Card>
           <CardContent className="flex items-center justify-center py-12">
             <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-            <span className="ml-3 text-muted-foreground">Running initial health check...</span>
+            <span className="ml-3 text-muted-foreground">{t.runningInitialCheck}</span>
           </CardContent>
         </Card>
       )}
@@ -182,7 +553,7 @@ export default function AdminHealthCheck() {
             <Card>
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm font-medium text-muted-foreground">
-                  Health Score
+                  {t.healthScore}
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -202,7 +573,7 @@ export default function AdminHealthCheck() {
             <Card>
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm font-medium text-muted-foreground">
-                  Total Issues
+                  {t.totalIssues}
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -215,12 +586,12 @@ export default function AdminHealthCheck() {
                 <div className="flex gap-1 mt-3">
                   {report.summary.criticalCount > 0 && (
                     <Badge variant="destructive" className="text-xs">
-                      {report.summary.criticalCount} Critical
+                      {report.summary.criticalCount} {t.critical}
                     </Badge>
                   )}
                   {report.summary.highCount > 0 && (
                     <Badge className="bg-orange-500 text-xs">
-                      {report.summary.highCount} High
+                      {report.summary.highCount} {t.high}
                     </Badge>
                   )}
                 </div>
@@ -230,7 +601,7 @@ export default function AdminHealthCheck() {
             <Card>
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm font-medium text-muted-foreground">
-                  Audit Duration
+                  {t.auditDuration}
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -249,7 +620,7 @@ export default function AdminHealthCheck() {
             <Card>
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm font-medium text-muted-foreground">
-                  Last Run
+                  {t.lastRun}
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -275,7 +646,7 @@ export default function AdminHealthCheck() {
               <CardContent className="pt-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-xs text-muted-foreground">Zombie Processes</p>
+                    <p className="text-xs text-muted-foreground">{t.zombieProcesses}</p>
                     <p className="text-2xl font-bold">{report.summary.zombieProcesses}</p>
                   </div>
                   <Skull className="h-6 w-6 text-muted-foreground" />
@@ -291,7 +662,7 @@ export default function AdminHealthCheck() {
               <CardContent className="pt-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-xs text-muted-foreground">Incomplete Success</p>
+                    <p className="text-xs text-muted-foreground">{t.incompleteSuccess}</p>
                     <p className="text-2xl font-bold">{report.summary.incompleteSuccess}</p>
                   </div>
                   <FileWarning className="h-6 w-6 text-muted-foreground" />
@@ -307,7 +678,7 @@ export default function AdminHealthCheck() {
               <CardContent className="pt-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-xs text-muted-foreground">Localization Leakage</p>
+                    <p className="text-xs text-muted-foreground">{t.localizationLeakage}</p>
                     <p className="text-2xl font-bold">{report.summary.localizationLeakage}</p>
                   </div>
                   <Languages className="h-6 w-6 text-muted-foreground" />
@@ -323,7 +694,7 @@ export default function AdminHealthCheck() {
               <CardContent className="pt-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-xs text-muted-foreground">Orphaned Assets</p>
+                    <p className="text-xs text-muted-foreground">{t.orphanedAssets}</p>
                     <p className="text-2xl font-bold">{report.summary.orphanedAssets}</p>
                   </div>
                   <Trash2 className="h-6 w-6 text-muted-foreground" />
@@ -339,7 +710,7 @@ export default function AdminHealthCheck() {
               <CardContent className="pt-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-xs text-muted-foreground">Missing Translations</p>
+                    <p className="text-xs text-muted-foreground">{t.missingTranslations}</p>
                     <p className="text-2xl font-bold">{report.summary.missingTranslations}</p>
                   </div>
                   <Image className="h-6 w-6 text-muted-foreground" />
@@ -351,15 +722,15 @@ export default function AdminHealthCheck() {
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center justify-between">
-                <span>Issues ({filteredIssues.length})</span>
+                <span>{t.issues} ({filteredIssues.length})</span>
                 {selectedType && (
                   <Button variant="ghost" size="sm" onClick={() => setSelectedType(null)}>
-                    Clear Filter
+                    {t.clearFilter}
                   </Button>
                 )}
               </CardTitle>
               <CardDescription>
-                Click on issue category cards above to filter
+                {t.filterDescription}
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -381,10 +752,10 @@ export default function AdminHealthCheck() {
                             <div className="space-y-1">
                               <div className="flex items-center gap-2">
                                 <Badge className={severityColors[issue.severity]}>
-                                  {issue.severity.toUpperCase()}
+                                  {getSeverityLabel(issue.severity, language).toUpperCase()}
                                 </Badge>
                                 <Badge variant="outline">
-                                  {typeLabels[issue.type]}
+                                  {getTypeLabel(issue.type, language)}
                                 </Badge>
                                 <Badge variant="secondary">
                                   {issue.entityType}
@@ -395,7 +766,7 @@ export default function AdminHealthCheck() {
                                 {issue.details}
                               </p>
                               <p className="text-sm text-blue-600 dark:text-blue-400">
-                                Action: {issue.suggestedAction}
+                                {t.suggestedAction}: {issue.suggestedAction}
                               </p>
                             </div>
                           </div>
@@ -406,8 +777,8 @@ export default function AdminHealthCheck() {
                   {filteredIssues.length === 0 && (
                     <div className="text-center py-12 text-muted-foreground">
                       {selectedType 
-                        ? `No ${typeLabels[selectedType as keyof typeof typeLabels]} issues found`
-                        : 'No issues found. System is healthy!'}
+                        ? t.noTypeIssues.replace('{type}', getTypeLabel(selectedType, language))
+                        : `${t.noIssuesFound}. ${t.systemHealthy}`}
                     </div>
                   )}
                 </div>

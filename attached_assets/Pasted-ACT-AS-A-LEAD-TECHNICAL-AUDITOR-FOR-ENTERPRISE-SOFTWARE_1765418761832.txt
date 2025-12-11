@@ -1,0 +1,52 @@
+ACT AS A LEAD TECHNICAL AUDITOR FOR ENTERPRISE SOFTWARE.
+We are finalizing the commercial proposal for a Tier-1 Law Firm.
+**RISK WARNING:** A generic summary is unacceptable. We cannot omit "invisible" features (backend logic, security middlewares, cron jobs) nor can we hallucinate features that don't exist.
+
+**MISSION:** Perform a DEEP RECURSIVE SCAN of the entire codebase (Frontend, Backend, Database, Assets, Configs) and generate a **"Forensic Technical Inventory"**.
+
+**STRICT RULE:** For every feature listed, you must internally verify that the code exists. If a feature is partially implemented, label it as "[BETA]". If it works fully, label it as "[PROD]".
+
+Structure the report into these 6 High-Value Commercial Modules:
+
+### 1. THE "AI AGENTIC ECOSYSTEM" (The Core Value)
+*Scan `/services/agents`, `/workers`, and queue logic.*
+* **The Visual Intelligence Agent:** Detail the DALL-E 3 integration + Stable Diffusion Fallback + The "Legal Prompt Sanitizer" logic (anti-censorship).
+* **The Polyglot Neural Agent:** Detail the translation engine, the language-locking logic (preventing Spanish bleed into German profiles), and terminology validation.
+* **The Self-Healing Auditor:** Detail the script that detects "zombie processes" (stuck batches), fixes broken links, and auto-retries failed jobs.
+* **The Batch Orchestrator:** Explain the concurrency logic (processing 3 items at a time) and error sandboxing (partial success states).
+
+### 2. PUBLIC DIGITAL EXPERIENCE (Frontend Modules)
+*Scan `/client/src/pages`, `/components`, and routing.*
+* **Legal Team Engine:** Dynamic profiles, vCard generation, practice area linking.
+* **Knowledge Center:** News/Insights CMS with automated image injection.
+* **Global Architecture:** The specific implementation of RTL (Right-to-Left) for Arabic and the 10-language toggle system.
+* **Talent Portal:** The Careers section, application forms, and email routing integration.
+* **Events Module:** Webinar registration logic and calendar integration.
+
+### 3. THE "NERVE CENTER" (Administrative Control)
+*Scan `/admin`, `/dashboard` views.*
+* **Live System Dashboard:** The visual interface showing agent status and system health.
+* **Bulk Operations Center:** The UI for mass-processing 50+ articles.
+* **Platform Guide (Dynamic):** The "System Chronicler" module that auto-documents features.
+* **Localization Guards:** The admin interface badges and strict language mapping (No "Spanglish" in UI).
+
+### 4. INVISIBLE INFRASTRUCTURE & SECURITY (Crucial for Law Firms)
+*Scan `/middleware`, `/utils`, `/db`.*
+* **Security:** Input sanitization (SQL/XSS prevention), Rate Limiting (API protection).
+* **Performance:** Caching strategies (if any), Image optimization scripts.
+* **Resilience:** Error boundaries (React) and Backend Try/Catch strategies that prevent site crashes.
+
+### 5. DATA ARCHITECTURE
+*Scan `schema.prisma` or DB models.*
+* **Relational Mapping:** How Lawyers are linked to Practices, Industries, and News. (Explain the complexity).
+* **Taxonomy:** The tag/category system organization.
+
+### 6. INTEGRATIONS & EXTERNAL SERVICES
+* List every external API we are connecting to (OpenAI, Replit AI, Email Services, etc.).
+
+**OUTPUT FORMAT:**
+Provide a structured, bulleted list.
+* **Format:** `[Status] Feature Name: Technical Description -> Business Value`
+* *Example:* `[PROD] SmartImageFallback: Implements try/catch switch between DALL-E and Stable Diffusion -> Ensures 100% uptime for article covers.`
+
+**EXECUTE NOW. DO NOT SUMMARIZE. BE EXHAUSTIVE.**
