@@ -1,0 +1,36 @@
+ACT AS A LEAD TECHNICAL WRITER AND UX SPECIALIST.
+The user wants to solve the #1 problem in tech projects: **Lack of Documentation.**
+We have the "RAW INVENTORY" of agents and modules (from the previous step), but raw tables are boring.
+
+**MISSION:**
+Transform the technical inventory into a **"Living Documentation Module"** inside the Admin Dashboard (under the "Platform Guide" section).
+You must take the technical data we just generated and implement it as a structured, interactive User Guide.
+
+### 1. DATA STRUCTURE: THE "SYSTEM MANIFEST"
+Create a centralized config file (e.g., `systemManifest.ts`) that stores the inventory we just found. Structure it like this:
+* **Category:** (e.g., "AI Brain", "Public Site", "Security")
+* **Feature Name:** (e.g., "Smart Image Generator")
+* **Technical Detail:** (The raw logic: "DALL-E 3 + Fallback")
+* **User Benefit:** (The business value: "Ensures no article goes without an image")
+* **Status:** (Prod/Beta)
+
+### 2. UI IMPLEMENTATION: THE "EXPLORER" INTERFACE
+Refactor the "Platform Guide" page (`AdminGuide.tsx` or similar). Instead of static text, build a dynamic **"System Explorer"**:
+* **The "Capability Cards":** Render a card for each agent/module found in the inventory.
+* **Interactive Tooltips:** When hovering over "Batch Queue", show a tooltip saying: *"Processes 3 articles at a time to prevent crashes."*
+* **Searchable:** Add a search bar so the admin can type "Images" and find the "SmartImageAgent" documentation instantly.
+
+### 3. CONTENT INJECTION (POPULATE NOW)
+Inject the SPECIFIC high-value details we discovered into this new system immediately. Do not use generic placeholders.
+* **Add the "Sanitization" Logic:** Explicitly document under the Image Agent that it cleans prompts for legal safety.
+* **Add the "Zombie Killer":** Document the Auto-Recovery Agent so the user knows why processes don't get stuck.
+* **Add the "RTL Architecture":** Explain under "Global Settings" that the system handles Arabic mirroring automatically.
+
+### 4. THE "ONE-CLICK" REPORT
+Add a button in this section called **"Export Technical Report"**.
+* When clicked, it should generate a clean PDF or Markdown summary of this current system state (useful for the client to show their stakeholders what they are paying for).
+
+**EXECUTION:**
+1. Create the `systemManifest` with the data from the recent audit.
+2. Build the "System Explorer" UI in the Admin Dashboard.
+3. Verify that all 13 Agents and 27 Modules are listed and explained in plain business language.
