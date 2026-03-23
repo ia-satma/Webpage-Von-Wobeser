@@ -566,11 +566,11 @@ export default function AdminTranslations() {
     const total = stats.totalNews || 0;
     const translationCounts = Object.values(stats.translationsByLanguage || {});
     const avgTranslated = translationCounts.length > 0
-      ? Math.round(translationCounts.reduce((a, b) => a + b, 0) / translationCounts.length)
+      ? translationCounts.reduce((a, b) => a + b, 0) / translationCounts.length
       : 0;
     const coverage = total > 0 ? Math.round((avgTranslated / total) * 100) : 0;
 
-    return { total, translated: avgTranslated, coverage, languages: SUPPORTED_LANGUAGES.length };
+    return { total, translated: Math.floor(avgTranslated), coverage, languages: SUPPORTED_LANGUAGES.length };
   };
 
   const getFilteredArticles = () => {
