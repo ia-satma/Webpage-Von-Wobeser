@@ -1,0 +1,161 @@
+## PROMPT 8: Performance — Cache Headers + N+1 Queries + Admin Init Race (BAJO)
+
+```
+CONTEXTO: Este proyecto es el website de Von Wobeser y Sierra, una firma de abogados mexicana. Tiene assets estaticos servidos por Express, queries de base de datos en el orquestador de agentes, y un proceso de inicializacion del admin user.
+
+PROBLEMA: 5 issues de performance e infraestructura:
+
+1. SIN CACHE HEADERS: Los assets estaticos (imagenes, fonts, CSS, JS) se sirven sin headers de cache. Cada visita descarga todo de nuevo.
+
+2. N+1 QUERIES en AgentOrchestrator: En `server/agents/core/AgentOrchestrator.ts` lineas 46-89, al cargar jobs pendientes de la DB, cada job se inserta en un array con `findIndex` + `splice` para mantener orden de prioridad. Con muchos jobs, esto es O(n²).
+
+3. SIN CONTENT SCHEDULING: No hay forma de programar publicacion de articulos a una hora futura.
+
+4. SIN CRON/SCHEDULER: Los agentes solo corren cuando se les triggerea manualmente o por el orquestador cada 2 segundos. No hay jobs programados (cleanup, reportes, etc.).
+
+5. ADMIN INIT RACE CONDITION: Si dos requests llegan al mismo tiempo al inicio y ambos detectan que no hay admin user, podrian crear dos admin users.
+
+SOLUCION:
+
+PASO 1 — Cache headers para assets estaticos (`server/index.ts` o `server/static.ts`):
+
+Busca donde se sirven los archivos estaticos (probablemente con `express.static` o en un archivo `static.ts`). Agrega opciones de cache:
+
+```typescript
+// Para assets inmutables (JS, CSS con hash en nombre):
+app.use('/assets', express.static(path.join(process.cwd(), 'dist', 'assets'), {
+  maxAge: '1y',
+  immutable: true,
+}));
+
+// Para imagenes y otros assets:
+app.use('/images', express.static(path.join(process.cwd(), 'public', 'images'), {
+  maxAge: '7d',
+}));
+
+// Para photos de equipo:
+app.use('/partner_photos', express.static(path.join(process.cwd(), 'attached_assets', 'partner_photos'), {
+  maxAge: '7d',
+}));
+
+// Para generated-images:
+app.use('/generated-images', express.static(path.join(process.cwd(), 'public', 'generated-images'), {
+  maxAge: '1d',
+}));
+```
+
+Si los static middlewares ya estan definidos en `server/routes.ts`, agrega las opciones `maxAge` ahi.
+
+PASO 2 — Optimizar carga de jobs en `server/agents/core/AgentOrchestrator.ts`:
+
+Reemplaza el metodo `loadPendingJobsFromDatabase` para que ordene los jobs en una sola operacion en vez de hacer inserciones individuales O(n²):
+
+```typescript
+private async loadPendingJobsFromDatabase(): Promise<void> {
+  try {
+    const resetCount = await dbPersistence.resetInProgressJobsToPending();
+    if (resetCount > 0) {
+      console.log(`[Orchestrator] Reset ${resetCount} in_progress jobs to pending for retry`);
+    }
+
+    const pendingJobs = await dbPersistence.getPendingJobs();
+    console.log(`[Orchestrator] Loading ${pendingJobs.length} pending jobs from database`);
+
+    const priorityOrder: Record<string, number> = {
+      critical: 0,
+      high: 1,
+      normal: 2,
+      low: 3,
+    };
+
+    // Map all DB jobs to AgentJob objects
+    const jobs: AgentJob[] = pendingJobs.map(dbJob => ({
+      id: dbJob.id,
+      agentType: dbJob.agentType as AgentType,
+      status: dbJob.status as JobStatus,
+      priority: (dbJob.priority || 'normal') as JobPriority,
+      payload: dbJob.payload as Record<string, unknown>,
+      result: dbJob.result as Record<string, unknown> | undefined,
+      error: dbJob.error || undefined,
+      retryCount: dbJob.retryCount || 0,
+      maxRetries: dbJob.maxRetries || 3,
+      createdAt: dbJob.createdAt || new Date(),
+      startedAt: dbJob.startedAt || undefined,
+      completedAt: dbJob.completedAt || undefined,
+      parentJobId: dbJob.parentJobId || undefined,
+    }));
+
+    // Sort once, then assign — O(n log n) instead of O(n²)
+    jobs.sort((a, b) => (priorityOrder[a.priority] ?? 2) - (priorityOrder[b.priority] ?? 2));
+    this.jobQueue.push(...jobs);
+  } catch (error) {
+    console.error('[Orchestrator] Error loading pending jobs:', error);
+  }
+}
+```
+
+PASO 3 — Admin init race condition:
+Busca donde se crea el admin user inicial (probablemente en `server/seed.ts` o al inicio del servidor). Agrega un check con una query de conteo antes de insertar:
+
+```typescript
+// ANTES de crear admin user:
+const existingAdmins = await storage.getAdminUsers?.() || [];
+if (existingAdmins.length > 0) {
+  console.log('[Seed] Admin user already exists, skipping creation');
+  return;
+}
+// Crear admin user...
+```
+
+O mejor, usa un INSERT ... ON CONFLICT DO NOTHING con un unique constraint en el username/email.
+
+PASO 4 — Content scheduling (basico):
+En `shared/schema.ts`, en la tabla `news`, agrega un campo:
+```typescript
+publishAt: timestamp("publish_at"), // null = published immediately
+```
+
+En el endpoint GET `/api/news`, filtra articulos cuyo `publishAt` es null o ya paso:
+```typescript
+const now = new Date();
+const publishedNews = news.filter(n => !n.publishAt || new Date(n.publishAt) <= now);
+```
+
+PASO 5 — Scheduler basico para agentes:
+En `server/index.ts`, despues de iniciar el orquestador, agrega un interval para cleanup:
+
+```typescript
+// Cleanup expired sessions and old data every hour
+setInterval(async () => {
+  try {
+    console.log('[Scheduler] Running hourly cleanup...');
+    // Clean expired admin sessions
+    await storage.cleanExpiredSessions?.();
+    // Clean old geolocation cache entries
+    // (if geoCache is accessible here)
+  } catch (error) {
+    console.error('[Scheduler] Cleanup error:', error);
+  }
+}, 60 * 60 * 1000);
+```
+
+ARCHIVOS A MODIFICAR:
+- `server/routes.ts` o `server/static.ts` — cache headers en static assets
+- `server/agents/core/AgentOrchestrator.ts` — optimizar loadPendingJobsFromDatabase
+- `server/seed.ts` — race condition en admin init
+- `shared/schema.ts` — campo publishAt en news (opcional)
+- `server/index.ts` — scheduler basico (opcional)
+
+RESULTADO ESPERADO:
+1. Browser cachea assets estaticos (verificar con DevTools Network tab — Status 304 o "from cache")
+2. Job loading es O(n log n) en vez de O(n²) — importa cuando hay >50 jobs pendientes
+3. No se pueden crear admin users duplicados en startup
+4. (Opcional) Articulos pueden programarse para publicacion futura
+5. (Opcional) Limpieza automatica de sessions expiradas
+
+RESTRICCIONES:
+- NO modifiques la logica de procesamiento de jobs — solo la carga inicial
+- NO elimines los static middlewares existentes — solo agrega las opciones de cache
+- El content scheduling es OPCIONAL — si no hay tiempo, omitelo
+- El scheduler es OPCIONAL — si complica la arquitectura, omitelo
+```
