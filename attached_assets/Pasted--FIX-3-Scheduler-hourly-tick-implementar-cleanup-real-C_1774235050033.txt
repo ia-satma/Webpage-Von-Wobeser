@@ -1,0 +1,76 @@
+## FIX 3: Scheduler hourly tick — implementar cleanup real
+
+```
+CONTEXTO: En `server/index.ts` líneas 115-122, hay un setInterval que corre cada hora como "placeholder for future cleanup tasks". Actualmente solo hace un console.log y no limpia nada.
+
+El sistema tiene una tabla `admin_sessions` con campo `expires_at` (timestamp). Las sesiones expiradas se validan al usarlas (en auth middleware) pero nunca se borran de la base de datos, así que se acumulan indefinidamente.
+
+También hay un Map de rate limiting en `server/auth.ts` (línea 36: `const loginAttempts`) que ya tiene su propio cleanup cada hora (líneas 166-175 de auth.ts), así que no necesita limpieza adicional.
+
+PROBLEMA: El scheduler placeholder en `server/index.ts`:
+```typescript
+setInterval(() => {
+  try {
+    log("[Scheduler] Hourly tick", "scheduler");
+  } catch (err) {
+    log(`[Scheduler] Error during hourly tick: ${err}`, "scheduler");
+  }
+}, 60 * 60 * 1000);
+```
+
+No hace nada útil.
+
+SOLUCIÓN: Reemplaza el setInterval placeholder con cleanup real de sesiones expiradas.
+
+PASO 1 — Agregar método de cleanup en `server/storage.ts`:
+En la interfaz IStorage, agrega:
+```typescript
+cleanExpiredSessions(): Promise<number>;
+```
+
+En la clase DatabaseStorage, implementa:
+```typescript
+async cleanExpiredSessions(): Promise<number> {
+  const result = await db.delete(adminSessions)
+    .where(sql`${adminSessions.expiresAt} < NOW()`)
+    .returning({ id: adminSessions.id });
+  return result.length;
+}
+```
+
+Asegúrate de importar `sql` de `drizzle-orm` si no está importado ya (probablemente ya lo está).
+
+PASO 2 — Actualizar el scheduler en `server/index.ts`:
+Reemplaza el setInterval (líneas 115-122) con:
+```typescript
+// Hourly maintenance — clean expired sessions
+setInterval(async () => {
+  try {
+    const { storage } = await import("./storage");
+    const cleaned = await storage.cleanExpiredSessions();
+    if (cleaned > 0) {
+      log(`[Scheduler] Cleaned ${cleaned} expired sessions`, "scheduler");
+    }
+  } catch (err) {
+    log(`[Scheduler] Cleanup error: ${err}`, "scheduler");
+  }
+}, 60 * 60 * 1000);
+```
+
+Nota: uso `await import("./storage")` para evitar problemas de import circular. Si `storage` ya está importado en el archivo, úsalo directamente.
+
+ARCHIVOS A MODIFICAR:
+- `server/storage.ts` — agregar cleanExpiredSessions a interfaz e implementación
+- `server/index.ts` — reemplazar placeholder con cleanup real
+
+RESULTADO ESPERADO:
+- Cada hora, las sesiones admin expiradas se eliminan de la tabla `admin_sessions`
+- El log muestra cuántas sesiones se limpiaron (solo si hay alguna)
+- La tabla no crece indefinidamente
+
+RESTRICCIONES:
+- NO modifiques el cleanup de loginAttempts que ya existe en auth.ts — ese funciona bien
+- NO agregues más tareas de cleanup por ahora — solo sesiones expiradas
+- NO cambies el intervalo de 1 hora
+- Asegúrate de que el import de storage no cause un import circular
+```

@@ -1,0 +1,62 @@
+# FIX 1: Brasil y Portugal mapeados al idioma incorrecto
+
+```
+CONTEXTO: En el archivo `server/routes.ts` hay un objeto COUNTRY_TO_LANGUAGE que mapea códigos de país a códigos de idioma para detección automática. El sitio soporta 10 idiomas: es, en, de, zh, ko, ja, ar, ru, fr, it — pero NO soporta portugués ("pt") como idioma de la UI.
+
+PROBLEMA: Brasil (BR) está mapeado a "es" (español) en la línea 255 y Portugal (PT) está mapeado a "en" (inglés) en la línea 275. Ambos son incorrectos — Brasil habla portugués y Portugal habla portugués.
+
+PERO hay una complicación: el sitio no tiene portugués como idioma soportado en la UI. Mira la línea 284:
+```typescript
+const supported = ["es", "en", "de", "zh", "ko", "ja", "ar", "ru", "fr", "it"];
+```
+No incluye "pt". Por lo tanto, aunque mapear BR/PT a "pt" sería técnicamente correcto, el frontend no tendría traducciones para "pt" y fallaría o mostraría contenido vacío.
+
+SOLUCIÓN en 2 pasos:
+
+PASO 1 — Verificar si el sitio tiene soporte de portugués:
+Busca en el frontend si existe portugués como idioma. Revisa:
+- `client/src/lib/i18n.ts` o archivos de traducción
+- `client/src/components/LanguageSwitcher.tsx`
+- Busca "pt" o "portuguese" o "português" en archivos de traducción
+
+SI el sitio YA tiene traducciones en portugués:
+- Agrega "pt" al array `supported` en la línea 284
+- Crea una sección portuguesa en COUNTRY_TO_LANGUAGE:
+  ```typescript
+  // Portuguese-speaking countries
+  BR: "pt", PT: "pt", AO: "pt", MZ: "pt",
+  ```
+- Elimina BR de la línea 255 (sección española) y PT de la línea 275 (sección inglesa)
+
+SI el sitio NO tiene traducciones en portugués:
+- Mapea BR a "es" (español es el idioma más cercano para usuarios brasileños — ya está así)
+- Mapea PT a "en" (inglés es mejor que español para usuarios portugueses en contexto legal internacional — ya está así)
+- Agrega un comentario explicativo:
+  ```typescript
+  // Note: BR→es and PT→en because "pt" is not yet a supported UI language
+  // When Portuguese UI translations are added, remap to "pt"
+  ```
+- Actualiza el comentario en la línea 252 que actualmente dice "(+ BR mapped to es — closest supported language)" para que sea más claro:
+  ```typescript
+  // Spanish-speaking countries (BR→es as fallback — Portuguese UI not yet supported)
+  ```
+
+PASO 2 — Si decides agregar portugués como idioma soportado:
+- Agrega traducciones de portugués en todos los componentes de admin que tienen objetos de traducción (AdminDashboard.tsx, AdminArticleDetail.tsx, AdminArticleProcessing.tsx)
+- Agrega "pt" al LanguageSwitcher
+- Agrega "pt" a la constante SUPPORTED_LANGUAGES si existe
+
+ARCHIVOS A MODIFICAR:
+- `server/routes.ts` — líneas 252-255 (comentario + mapeo BR) y línea 275 (mapeo PT) y línea 284 (array supported)
+- SI agregas portugués: archivos de traducción del frontend
+
+RESULTADO ESPERADO:
+- Un usuario de Brasil ve el sitio en el idioma más apropiado disponible
+- Un usuario de Portugal ve el sitio en el idioma más apropiado disponible
+- El comentario en el código explica la decisión
+
+RESTRICCIONES:
+- NO rompas el frontend enviando un código de idioma que no tiene traducciones
+- SI decides no agregar portugués, el mapeo actual (BR→es, PT→en) es aceptable con comentario explicativo
+- NO modifiques la lógica del cache ni del Accept-Language — solo el mapeo y comentarios
+```
