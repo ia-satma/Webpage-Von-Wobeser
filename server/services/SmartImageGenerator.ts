@@ -61,6 +61,7 @@ export interface ImageGenerationResult {
   errorCode?: string;
   errorMessage?: string;
   transparencyLog: string[];
+  fallbackUsed?: boolean;
 }
 
 export class SmartImageGenerator {
@@ -363,15 +364,18 @@ export class SmartImageGenerator {
       this.log('All engines failed. Assigning placeholder image.');
       result.engine = 'placeholder';
       result.imageUrl = '/placeholder-article.svg';
-      result.success = true;
+      result.success = false;
+      result.fallbackUsed = true;
       result.errorMessage = dalleResult.error || 'All image generation engines failed';
     }
 
     result.transparencyLog = [...this.transparencyLog];
     
-    const summaryLog = result.success 
+    const summaryLog = result.success
       ? `Image generated using ${result.engine.toUpperCase()}${result.promptWasSanitized ? ' (prompt sanitized for safety)' : ''}`
-      : `Image generation failed: ${result.errorMessage}`;
+      : result.fallbackUsed
+        ? `Image generation failed, placeholder assigned: ${result.errorMessage}`
+        : `Image generation failed: ${result.errorMessage}`;
     
     this.log(summaryLog);
     
