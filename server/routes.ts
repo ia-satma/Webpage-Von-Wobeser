@@ -468,26 +468,32 @@ export async function registerRoutes(
   app.post("/api/contact", async (req, res) => {
     try {
       const validationResult = contactFormSchema.safeParse(req.body);
-      
+
       if (!validationResult.success) {
-        return res.status(400).json({ 
-          error: "Validation failed", 
-          details: validationResult.error.errors 
+        return res.status(400).json({
+          error: "Validation failed",
+          details: validationResult.error.errors
         });
       }
-      
+
       const contactData = validationResult.data;
-      
-      console.log("=== New Contact Form Submission ===");
-      console.log("Full Name:", contactData.fullName);
-      console.log("Email:", contactData.email);
-      console.log("Phone:", contactData.phone || "Not provided");
-      console.log("Company:", contactData.company || "Not provided");
-      console.log("Practice Area:", contactData.practiceArea || "Not specified");
-      console.log("Message:", contactData.message);
-      console.log("Submitted at:", new Date().toISOString());
-      console.log("===================================");
-      
+
+      const sanitize = (str: string) => str.replace(/<[^>]*>/g, '').trim();
+
+      const sanitizedData = {
+        fullName: sanitize(contactData.fullName),
+        email: contactData.email.trim().toLowerCase(),
+        phone: contactData.phone ? sanitize(contactData.phone) : undefined,
+        company: contactData.company ? sanitize(contactData.company) : undefined,
+        practiceArea: contactData.practiceArea ? sanitize(contactData.practiceArea) : undefined,
+        message: sanitize(contactData.message),
+        ipAddress: (req.headers["x-forwarded-for"] as string)?.split(",")[0]?.trim() || req.ip || null,
+      };
+
+      const submission = await storage.createContactSubmission(sanitizedData);
+
+      console.log(`[Contact] New submission from ${sanitizedData.fullName} <${sanitizedData.email}> saved with id ${submission.id}`);
+
       res.json({ success: true, message: "Contact form submitted successfully" });
     } catch (error) {
       console.error("Contact form error:", error);
@@ -2038,6 +2044,30 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
     } catch (error) {
       console.error("Delete alliance error:", error);
       res.status(500).json({ error: "Failed to delete alliance" });
+    }
+  });
+
+  // =============================================
+  // ADMIN CONTACT SUBMISSIONS
+  // =============================================
+
+  app.get("/api/admin/contact-submissions", authMiddleware, async (_req: Request, res: Response) => {
+    try {
+      const submissions = await storage.getContactSubmissions();
+      res.json(submissions);
+    } catch (error) {
+      console.error("Get contact submissions error:", error);
+      res.status(500).json({ error: "Failed to fetch contact submissions" });
+    }
+  });
+
+  app.patch("/api/admin/contact-submissions/:id/read", authMiddleware, async (req: Request, res: Response) => {
+    try {
+      await storage.markContactSubmissionRead(req.params.id);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Mark contact submission read error:", error);
+      res.status(500).json({ error: "Failed to update submission" });
     }
   });
 

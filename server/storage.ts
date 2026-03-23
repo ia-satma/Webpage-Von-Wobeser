@@ -55,6 +55,9 @@ import {
   type InsertAlliance,
   type SpecializedDesk,
   type InsertSpecializedDesk,
+  type ContactSubmission,
+  type InsertContactSubmission,
+  contactSubmissions,
   users,
   news,
   newsTranslations,
@@ -256,6 +259,11 @@ export interface IStorage {
   getOpenFindings(): Promise<WebsiteAuditFinding[]>;
   updateWebsiteAuditFinding(id: string, data: Partial<InsertWebsiteAuditFinding>): Promise<WebsiteAuditFinding | undefined>;
   resolveWebsiteAuditFinding(id: string, resolvedBy: string): Promise<WebsiteAuditFinding | undefined>;
+
+  // Contact Submissions
+  createContactSubmission(data: InsertContactSubmission): Promise<ContactSubmission>;
+  getContactSubmissions(): Promise<ContactSubmission[]>;
+  markContactSubmissionRead(id: string): Promise<void>;
 }
 
 const siteContent: SiteContent = {
@@ -1138,6 +1146,19 @@ export class DatabaseStorage implements IStorage {
       resolvedBy
     }).where(eq(websiteAuditFindings.id, id)).returning();
     return item;
+  }
+
+  async createContactSubmission(data: InsertContactSubmission): Promise<ContactSubmission> {
+    const [submission] = await db.insert(contactSubmissions).values(data).returning();
+    return submission;
+  }
+
+  async getContactSubmissions(): Promise<ContactSubmission[]> {
+    return db.select().from(contactSubmissions).orderBy(desc(contactSubmissions.submittedAt));
+  }
+
+  async markContactSubmissionRead(id: string): Promise<void> {
+    await db.update(contactSubmissions).set({ read: true }).where(eq(contactSubmissions.id, id));
   }
 }
 

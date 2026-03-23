@@ -297,6 +297,23 @@ export const contactFormSchema = z.object({
 
 export type ContactFormData = z.infer<typeof contactFormSchema>;
 
+export const contactSubmissions = pgTable("contact_submissions", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  fullName: text("full_name").notNull(),
+  email: text("email").notNull(),
+  phone: text("phone"),
+  company: text("company"),
+  practiceArea: text("practice_area"),
+  message: text("message").notNull(),
+  ipAddress: text("ip_address"),
+  submittedAt: timestamp("submitted_at").defaultNow(),
+  read: boolean("read").default(false),
+});
+
+export const insertContactSubmissionSchema = createInsertSchema(contactSubmissions).omit({ id: true, submittedAt: true, read: true });
+export type InsertContactSubmission = z.infer<typeof insertContactSubmissionSchema>;
+export type ContactSubmission = typeof contactSubmissions.$inferSelect;
+
 // Practice areas list for contact form
 export const practiceAreas = [
   { value: "corporate-ma", en: "Corporate, Mergers & Acquisitions", es: "Corporativo, Fusiones y Adquisiciones" },
