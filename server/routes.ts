@@ -272,11 +272,10 @@ export async function registerRoutes(
     FR: "fr", BE: "fr", MC: "fr", LU: "fr", SN: "fr", CI: "fr", ML: "fr",
     // Italian-speaking countries
     IT: "it", SM: "it", VA: "it",
-    // English-speaking countries (CA corrected from fr → en).
-    // PT→en is a deliberate fallback: Portuguese ("pt") is not yet a supported UI language.
-    // When Portuguese translations are added, remap PT (and AO, MZ) to "pt".
+    // English-speaking countries (CA corrected from fr → en)
     US: "en", GB: "en", AU: "en", NZ: "en", IE: "en", ZA: "en", NG: "en", GH: "en", KE: "en",
-    CA: "en", IN: "en", PH: "en", SG: "en", MY: "en", PT: "en",
+    CA: "en", IN: "en", PH: "en", SG: "en", MY: "en",
+    PT: "en", // PT→en fallback: "pt" is not yet a supported UI language; remap when Portuguese translations are added
   };
 
   // In-memory cache for geolocation results (TTL: 1 hour)
