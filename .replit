@@ -47,3 +47,7 @@ integrations = ["javascript_openai:1.0.0", "javascript_openai_ai_integrations:1.
 [userenv.shared]
 ADMIN_EMAIL = "admin@vonwobeser.com"
 ADMIN_PASSWORD_HASH = "$2b$10$YjjklWJgO3RtE3iBZ2oKwek00bTZ/6oc0YppsuqItCx5mEAJqaQJu"
+
+[postMerge]
+path = "scripts/post-merge.sh"
+timeoutMs = 90000

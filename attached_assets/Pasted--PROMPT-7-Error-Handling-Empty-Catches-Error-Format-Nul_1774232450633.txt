@@ -1,0 +1,136 @@
+## PROMPT 7: Error Handling — Empty Catches + Error Format + Null Guards (MEDIO)
+
+```
+CONTEXTO: Este proyecto es el website de Von Wobeser y Sierra, una firma de abogados mexicana. Tiene multiples agentes AI y un API REST. Hay problemas sistemicos de manejo de errores que ocultan bugs y hacen dificil debuggear en produccion.
+
+PROBLEMA: 5 issues de manejo de errores:
+
+1. EMPTY CATCH BLOCKS: Los agentes PolyglotTranslatorAgent y WebsiteAuditorAgent (y posiblemente otros) tienen bloques catch vacios que tragan errores silenciosamente:
+```typescript
+} catch (error) {
+  // silencio absoluto
+}
+```
+
+2. ERROR FORMAT INCONSISTENTE: Algunos endpoints devuelven `{ error: "message" }`, otros `{ message: "message" }`, y otros `{ error: "message", details: [...] }`. No hay formato estandar.
+
+3. SIN AUDIT LOGGING: Los cambios en el admin panel (crear/editar/eliminar articulos, cambiar traducciones, modificar team members) no se registran en ningun log de auditoria.
+
+4. pCLOUD FALLA SILENCIOSAMENTE: El servicio de almacenamiento pCloud no reporta errores cuando las credenciales no estan configuradas. Simplemente falla en silencio.
+
+5. NULL GUARD EN NAME EXTRACTION: En `server/routes.ts` linea 110-112, la extraccion de nombre para vCards asume que `member.name` siempre existe y tiene al menos un espacio:
+```typescript
+const nameParts = member.name.split(' ');
+const firstName = nameParts[0] || '';
+const lastName = nameParts.slice(1).join(' ') || '';
+```
+Si `member.name` es null/undefined, esto crashea.
+
+SOLUCION:
+
+PASO 1 — Arreglar empty catch blocks:
+Busca en TODOS los archivos de `server/agents/specialized/` por bloques `catch` vacios o que solo tengan un comentario. Reemplaza cada uno con logging real:
+
+```typescript
+// ANTES (malo):
+} catch (error) {
+}
+
+// DESPUES (correcto):
+} catch (error: any) {
+  console.error(`[${this.config.name}] Error during execution:`, error.message || error);
+}
+```
+
+Los archivos a revisar son:
+- `server/agents/specialized/PolyglotTranslatorAgent.ts`
+- `server/agents/specialized/WebsiteAuditorAgent.ts`
+- `server/agents/specialized/ContentAuditorAgent.ts`
+- `server/agents/specialized/FormatterAgent.ts`
+- `server/agents/specialized/MetadataLinkerAgent.ts`
+- `server/agents/specialized/SEOOptimizerAgent.ts`
+- `server/agents/specialized/ImageSuggestionAgent.ts`
+- `server/agents/specialized/CategoryAgent.ts`
+
+PASO 2 — Estandarizar formato de error en API:
+Crea un helper de error al inicio de `server/routes.ts` o en un archivo separado:
+
+```typescript
+function apiError(res: Response, status: number, message: string, details?: any) {
+  const body: { error: string; details?: any } = { error: message };
+  if (details) body.details = details;
+  return res.status(status).json(body);
+}
+```
+
+Usa este helper en los endpoints que devuelven errores con formato `{ message: "..." }` para que siempre sea `{ error: "..." }`. En particular, revisa el error handler global en `server/index.ts` linea 66-71:
+
+```typescript
+// ANTES:
+res.status(status).json({ message });
+
+// DESPUES:
+res.status(status).json({ error: message });
+```
+
+PASO 3 — Agregar audit logging basico:
+Crea una funcion simple de audit log. No necesita tabla en DB — con un archivo de texto o console.log estructurado es suficiente:
+
+```typescript
+function auditLog(action: string, resource: string, resourceId: string, userId: string, details?: any) {
+  const entry = {
+    timestamp: new Date().toISOString(),
+    action,
+    resource,
+    resourceId,
+    userId,
+    details
+  };
+  console.log(`[AUDIT] ${JSON.stringify(entry)}`);
+}
+```
+
+Agrega llamadas a `auditLog` en los endpoints admin de crear/editar/eliminar. Por ejemplo:
+```typescript
+// En POST /api/admin/news:
+auditLog("create", "news", newArticle.id, req.adminUser?.id || "unknown");
+
+// En PUT /api/admin/news/:id:
+auditLog("update", "news", req.params.id, req.adminUser?.id || "unknown");
+
+// En DELETE /api/admin/news/:id:
+auditLog("delete", "news", req.params.id, req.adminUser?.id || "unknown");
+```
+
+PASO 4 — Null guard en vCard name extraction (`server/routes.ts` linea 110):
+Reemplaza:
+```typescript
+const nameParts = member.name.split(' ');
+const firstName = nameParts[0] || '';
+const lastName = nameParts.slice(1).join(' ') || '';
+```
+Con:
+```typescript
+const fullName = member.name || member.slug?.replace(/-/g, ' ') || 'Unknown';
+const nameParts = fullName.trim().split(/\s+/);
+const firstName = nameParts[0] || '';
+const lastName = nameParts.length > 1 ? nameParts.slice(1).join(' ') : '';
+```
+
+ARCHIVOS A MODIFICAR:
+- `server/agents/specialized/*.ts` — todos los archivos con empty catch blocks
+- `server/routes.ts` — apiError helper + null guard en vCard + audit log calls
+- `server/index.ts` — error format en global error handler
+
+RESULTADO ESPERADO:
+1. Ningun error se traga silenciosamente — todos se loggean
+2. Todos los endpoints devuelven errores en formato `{ error: "message" }`
+3. Los cambios admin quedan registrados en console con timestamp y usuario
+4. vCard generation no crashea si member.name es null
+5. pCloud reporta errores en vez de fallar silenciosamente
+
+RESTRICCIONES:
+- NO cambies la logica de negocio de los agentes — solo agrega logging en los catch blocks
+- NO crees una tabla de audit en la DB (es overkill para ahora) — console.log estructurado es suficiente
+- NO rompas los endpoints existentes — el formato de error estandarizado debe ser compatible con el frontend
+```
