@@ -263,7 +263,7 @@ export interface IStorage {
   // Contact Submissions
   createContactSubmission(data: InsertContactSubmission): Promise<ContactSubmission>;
   getContactSubmissions(): Promise<ContactSubmission[]>;
-  markContactSubmissionRead(id: string): Promise<void>;
+  markContactSubmissionRead(id: string): Promise<boolean>;
 }
 
 const siteContent: SiteContent = {
@@ -1157,8 +1157,9 @@ export class DatabaseStorage implements IStorage {
     return db.select().from(contactSubmissions).orderBy(desc(contactSubmissions.submittedAt));
   }
 
-  async markContactSubmissionRead(id: string): Promise<void> {
-    await db.update(contactSubmissions).set({ read: true }).where(eq(contactSubmissions.id, id));
+  async markContactSubmissionRead(id: string): Promise<boolean> {
+    const result = await db.update(contactSubmissions).set({ read: true }).where(eq(contactSubmissions.id, id)).returning({ id: contactSubmissions.id });
+    return result.length > 0;
   }
 }
 

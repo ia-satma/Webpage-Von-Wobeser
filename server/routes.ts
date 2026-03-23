@@ -487,7 +487,11 @@ export async function registerRoutes(
         company: contactData.company ? sanitize(contactData.company) : undefined,
         practiceArea: contactData.practiceArea ? sanitize(contactData.practiceArea) : undefined,
         message: sanitize(contactData.message),
-        ipAddress: (req.headers["x-forwarded-for"] as string)?.split(",")[0]?.trim() || req.ip || null,
+        ipAddress: (() => {
+          const fwd = req.headers["x-forwarded-for"];
+          const raw = Array.isArray(fwd) ? fwd[0] : fwd;
+          return raw?.split(",")[0]?.trim() || req.ip || null;
+        })(),
       };
 
       const submission = await storage.createContactSubmission(sanitizedData);
@@ -2063,7 +2067,10 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
 
   app.patch("/api/admin/contact-submissions/:id/read", authMiddleware, async (req: Request, res: Response) => {
     try {
-      await storage.markContactSubmissionRead(req.params.id);
+      const found = await storage.markContactSubmissionRead(req.params.id);
+      if (!found) {
+        return res.status(404).json({ error: "Submission not found" });
+      }
       res.json({ success: true });
     } catch (error) {
       console.error("Mark contact submission read error:", error);
