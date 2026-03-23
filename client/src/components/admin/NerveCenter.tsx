@@ -157,7 +157,7 @@ function AgentCard({
               variant="secondary"
               className="text-xs"
             >
-              {capability.length > 35 ? capability.substring(0, 35) + "…" : capability}
+              {capability.length > 30 ? capability.substring(0, 30) + "..." : capability}
             </Badge>
           ))}
           {displayCapabilities.length > 3 && (

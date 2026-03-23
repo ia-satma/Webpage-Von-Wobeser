@@ -1898,7 +1898,7 @@ export const AGENT_CARD_TRANSLATIONS: Record<string, Record<string, AgentCardTra
     de: {
       businessName: "Der Digitale Governance-Rat",
       role: "Qualitäts-Schiedsrichter",
-      description: "Ein Tribunal aus drei spezialisierten KI-Agenten (Rechtswissenschaftler, Risikoanalyst, Markenw??chter), die jeden Artikel vor der Veröffentlichung bewerten. Verwendet Promise.allSettled für fehlertolerantes Abstimmen mit Score 0-100 und Mehrheitskonsens.",
+      description: "Ein Tribunal aus drei spezialisierten KI-Agenten (Rechtswissenschaftler, Risikoanalyst, Markenwächter), die jeden Artikel vor der Veröffentlichung bewerten. Verwendet Promise.allSettled für fehlertolerantes Abstimmen mit Score 0-100 und Mehrheitskonsens.",
       capabilities: ["Bewertungsrat mit 3 Agenten", "Institutionelle Risikobewertung", "Einzelstimmen mit Begründung", "Konsolidiertes Redakteursfeedback", "Fehlertolerante Isolierung"],
     },
     zh: {
