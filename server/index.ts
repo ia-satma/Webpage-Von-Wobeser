@@ -111,6 +111,15 @@ app.use((req, res, next) => {
       } catch (error) {
         log(`Failed to initialize agent orchestrator: ${error}`, "agents");
       }
+
+      // Hourly maintenance tick — placeholder for future cleanup tasks
+      setInterval(() => {
+        try {
+          log("[Scheduler] Hourly tick", "scheduler");
+        } catch (err) {
+          log(`[Scheduler] Error during hourly tick: ${err}`, "scheduler");
+        }
+      }, 60 * 60 * 1000);
     },
   );
 })();

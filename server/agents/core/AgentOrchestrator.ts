@@ -60,33 +60,24 @@ export class AgentOrchestrator {
         low: 3,
       };
 
-      for (const dbJob of pendingJobs) {
-        const job: AgentJob = {
-          id: dbJob.id,
-          agentType: dbJob.agentType as AgentType,
-          status: dbJob.status as JobStatus,
-          priority: (dbJob.priority || 'normal') as JobPriority,
-          payload: dbJob.payload as Record<string, unknown>,
-          result: dbJob.result as Record<string, unknown> | undefined,
-          error: dbJob.error || undefined,
-          retryCount: dbJob.retryCount || 0,
-          maxRetries: dbJob.maxRetries || 3,
-          createdAt: dbJob.createdAt || new Date(),
-          startedAt: dbJob.startedAt || undefined,
-          completedAt: dbJob.completedAt || undefined,
-          parentJobId: dbJob.parentJobId || undefined,
-        };
+      const jobs: AgentJob[] = pendingJobs.map(dbJob => ({
+        id: dbJob.id,
+        agentType: dbJob.agentType as AgentType,
+        status: dbJob.status as JobStatus,
+        priority: (dbJob.priority || 'normal') as JobPriority,
+        payload: dbJob.payload as Record<string, unknown>,
+        result: dbJob.result as Record<string, unknown> | undefined,
+        error: dbJob.error || undefined,
+        retryCount: dbJob.retryCount || 0,
+        maxRetries: dbJob.maxRetries || 3,
+        createdAt: dbJob.createdAt || new Date(),
+        startedAt: dbJob.startedAt || undefined,
+        completedAt: dbJob.completedAt || undefined,
+        parentJobId: dbJob.parentJobId || undefined,
+      }));
 
-        const insertIndex = this.jobQueue.findIndex(
-          j => priorityOrder[j.priority] > priorityOrder[job.priority]
-        );
-
-        if (insertIndex === -1) {
-          this.jobQueue.push(job);
-        } else {
-          this.jobQueue.splice(insertIndex, 0, job);
-        }
-      }
+      jobs.sort((a, b) => (priorityOrder[a.priority] ?? 2) - (priorityOrder[b.priority] ?? 2));
+      this.jobQueue.push(...jobs);
       
       const failedJobs = await dbPersistence.getFailedJobs(20);
       if (failedJobs.length > 0) {

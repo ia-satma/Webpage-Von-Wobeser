@@ -101,6 +101,8 @@ export const news = pgTable("news", {
   lastError: text("last_error"), // Stores the last error message/code for diagnostics
   lastProcessedAt: timestamp("last_processed_at"),
   failedStep: text("failed_step"), // Which step failed: format, categorize, metadata, seo, translate, image, council
+  // Content scheduling: articles with a future publishAt are hidden from public routes
+  publishAt: timestamp("publish_at"),
   // Legal Council AI evaluation
   councilVerdict: jsonb("council_verdict"), // Stores CouncilVerdict: { overallStatus, riskFlag, consolidatedFeedback }
 });

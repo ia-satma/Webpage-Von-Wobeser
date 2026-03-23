@@ -10,6 +10,15 @@ export function serveStatic(app: Express) {
     );
   }
 
+  // Hashed JS/CSS bundles are immutable — cache for 1 year
+  const assetsPath = path.join(distPath, "assets");
+  if (fs.existsSync(assetsPath)) {
+    app.use("/assets", express.static(assetsPath, {
+      maxAge: "1y",
+      immutable: true,
+    }));
+  }
+
   app.use(express.static(distPath));
 
   // fall through to index.html if the file doesn't exist

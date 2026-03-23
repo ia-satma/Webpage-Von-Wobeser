@@ -1209,7 +1209,7 @@ export async function seed() {
         passwordHash: adminPasswordHash,
         role: "super_admin",
         isActive: true,
-      });
+      }).onConflictDoNothing();
       console.log(`Admin user created: ${adminEmail}`);
     }
   }
