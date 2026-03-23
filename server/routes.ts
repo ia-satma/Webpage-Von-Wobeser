@@ -210,16 +210,16 @@ export async function registerRoutes(
 
   // Geolocation endpoint for automatic language detection
   const COUNTRY_TO_LANGUAGE: Record<string, string> = {
-    // Spanish-speaking countries
+    // Spanish-speaking countries (+ BR mapped to es — closest supported language)
     MX: "es", ES: "es", AR: "es", CO: "es", PE: "es", VE: "es", CL: "es", EC: "es",
     GT: "es", CU: "es", BO: "es", DO: "es", HN: "es", PY: "es", SV: "es", NI: "es",
-    CR: "es", PA: "es", UY: "es", PR: "es",
+    CR: "es", PA: "es", UY: "es", PR: "es", BR: "es",
     // German-speaking countries
     DE: "de", AT: "de", CH: "de", LI: "de",
     // Chinese-speaking regions
-    CN: "zh", TW: "zh", HK: "zh", SG: "zh",
+    CN: "zh", TW: "zh", HK: "zh",
     // Korean
-    KR: "ko", KP: "ko",
+    KR: "ko",
     // Japanese
     JP: "ja",
     // Arabic-speaking countries
@@ -228,50 +228,77 @@ export async function registerRoutes(
     // Russian-speaking countries
     RU: "ru", BY: "ru", KZ: "ru", KG: "ru",
     // French-speaking countries
-    FR: "fr", BE: "fr", CA: "fr", MC: "fr", LU: "fr", SN: "fr", CI: "fr", ML: "fr",
+    FR: "fr", BE: "fr", MC: "fr", LU: "fr", SN: "fr", CI: "fr", ML: "fr",
     // Italian-speaking countries
     IT: "it", SM: "it", VA: "it",
-    // English-speaking countries (default)
+    // English-speaking countries (CA corrected from fr → en)
     US: "en", GB: "en", AU: "en", NZ: "en", IE: "en", ZA: "en", NG: "en", GH: "en", KE: "en",
+    CA: "en", IN: "en", PH: "en", SG: "en", MY: "en", PT: "en",
   };
+
+  // In-memory cache for geolocation results (TTL: 1 hour)
+  const geoCache = new Map<string, { language: string; country: string; timestamp: number }>();
+  const GEO_CACHE_TTL = 60 * 60 * 1000;
+
+  function parseAcceptLanguage(header: string | undefined): string | null {
+    if (!header) return null;
+    const supported = ["es", "en", "de", "zh", "ko", "ja", "ar", "ru", "fr", "it"];
+    const languages = header.split(",").map(part => {
+      const [lang, q] = part.trim().split(";q=");
+      return { lang: lang.split("-")[0].toLowerCase(), q: q ? parseFloat(q) : 1.0 };
+    }).sort((a, b) => b.q - a.q);
+    for (const { lang } of languages) {
+      if (supported.includes(lang)) return lang;
+    }
+    return null;
+  }
 
   app.get("/api/detect-language", async (req, res) => {
     try {
-      // Get client IP (handle proxies)
       const forwardedFor = req.headers["x-forwarded-for"];
-      const clientIp = forwardedFor 
-        ? (typeof forwardedFor === "string" ? forwardedFor.split(",")[0].trim() : forwardedFor[0])
+      const clientIp = forwardedFor
+        ? (Array.isArray(forwardedFor) ? forwardedFor[0] : forwardedFor.split(",")[0].trim())
         : req.socket.remoteAddress || req.ip;
-      
-      // Skip geolocation for localhost/private IPs
+
+      // Skip geolocation for localhost/private IPs — use Accept-Language
       if (!clientIp || clientIp === "::1" || clientIp === "127.0.0.1" || clientIp.startsWith("192.168.") || clientIp.startsWith("10.")) {
-        return res.json({ language: "en", country: null, source: "default" });
+        const fromHeader = parseAcceptLanguage(req.headers["accept-language"]);
+        return res.json({ language: fromHeader || "es", country: null, source: fromHeader ? "accept-language" : "default" });
       }
 
-      // Use free IP geolocation API (ip-api.com - free for non-commercial use)
-      const geoResponse = await fetch(`http://ip-api.com/json/${clientIp}?fields=countryCode`);
-      
-      if (!geoResponse.ok) {
-        return res.json({ language: "en", country: null, source: "fallback" });
+      // Check cache first
+      const cached = geoCache.get(clientIp);
+      if (cached && Date.now() - cached.timestamp < GEO_CACHE_TTL) {
+        return res.json({ language: cached.language, country: cached.country, source: "cache" });
       }
 
-      const geoData = await geoResponse.json() as { countryCode?: string; status?: string };
-      
-      if (geoData.status === "fail" || !geoData.countryCode) {
-        return res.json({ language: "en", country: null, source: "fallback" });
-      }
-
-      const countryCode = geoData.countryCode.toUpperCase();
-      const detectedLanguage = COUNTRY_TO_LANGUAGE[countryCode] || "en";
-
-      res.json({ 
-        language: detectedLanguage, 
-        country: countryCode, 
-        source: "geolocation" 
+      // HTTPS geolocation via ipapi.co (free tier, no key required)
+      const geoResponse = await fetch(`https://ipapi.co/${clientIp}/json/`, {
+        signal: AbortSignal.timeout(3000),
       });
+
+      if (!geoResponse.ok) {
+        const fromHeader = parseAcceptLanguage(req.headers["accept-language"]);
+        return res.json({ language: fromHeader || "es", country: null, source: fromHeader ? "accept-language" : "fallback" });
+      }
+
+      const geoData = await geoResponse.json() as { country_code?: string; error?: boolean };
+
+      if (geoData.error || !geoData.country_code) {
+        const fromHeader = parseAcceptLanguage(req.headers["accept-language"]);
+        return res.json({ language: fromHeader || "es", country: null, source: fromHeader ? "accept-language" : "fallback" });
+      }
+
+      const countryCode = geoData.country_code.toUpperCase();
+      const detectedLanguage = COUNTRY_TO_LANGUAGE[countryCode] || "es";
+
+      geoCache.set(clientIp, { language: detectedLanguage, country: countryCode, timestamp: Date.now() });
+
+      res.json({ language: detectedLanguage, country: countryCode, source: "geolocation" });
     } catch (error) {
       console.error("Language detection error:", error);
-      res.json({ language: "en", country: null, source: "error" });
+      const fromHeader = parseAcceptLanguage(req.headers["accept-language"]);
+      res.json({ language: fromHeader || "es", country: null, source: fromHeader ? "accept-language" : "error" });
     }
   });
 
