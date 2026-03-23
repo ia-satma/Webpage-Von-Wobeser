@@ -253,6 +253,21 @@ export async function registerRoutes(
     return null;
   }
 
+  function isPrivateIp(ip: string): boolean {
+    return (
+      ip === "::1" ||
+      ip === "127.0.0.1" ||
+      ip.startsWith("192.168.") ||
+      ip.startsWith("10.") ||
+      ip.startsWith("172.16.") || ip.startsWith("172.17.") || ip.startsWith("172.18.") ||
+      ip.startsWith("172.19.") || ip.startsWith("172.20.") || ip.startsWith("172.21.") ||
+      ip.startsWith("172.22.") || ip.startsWith("172.23.") || ip.startsWith("172.24.") ||
+      ip.startsWith("172.25.") || ip.startsWith("172.26.") || ip.startsWith("172.27.") ||
+      ip.startsWith("172.28.") || ip.startsWith("172.29.") || ip.startsWith("172.30.") ||
+      ip.startsWith("172.31.")
+    );
+  }
+
   app.get("/api/detect-language", async (req, res) => {
     try {
       const forwardedFor = req.headers["x-forwarded-for"];
@@ -260,10 +275,10 @@ export async function registerRoutes(
         ? (Array.isArray(forwardedFor) ? forwardedFor[0] : forwardedFor.split(",")[0].trim())
         : req.socket.remoteAddress || req.ip;
 
-      // Skip geolocation for localhost/private IPs — use Accept-Language
-      if (!clientIp || clientIp === "::1" || clientIp === "127.0.0.1" || clientIp.startsWith("192.168.") || clientIp.startsWith("10.")) {
+      // Skip geolocation for localhost/private IPs — use Accept-Language then English
+      if (!clientIp || isPrivateIp(clientIp)) {
         const fromHeader = parseAcceptLanguage(req.headers["accept-language"]);
-        return res.json({ language: fromHeader || "es", country: null, source: fromHeader ? "accept-language" : "default" });
+        return res.json({ language: fromHeader || "en", country: null, source: fromHeader ? "accept-language" : "fallback" });
       }
 
       // Check cache first
@@ -279,26 +294,31 @@ export async function registerRoutes(
 
       if (!geoResponse.ok) {
         const fromHeader = parseAcceptLanguage(req.headers["accept-language"]);
-        return res.json({ language: fromHeader || "es", country: null, source: fromHeader ? "accept-language" : "fallback" });
+        return res.json({ language: fromHeader || "en", country: null, source: fromHeader ? "accept-language" : "fallback" });
       }
 
       const geoData = await geoResponse.json() as { country_code?: string; error?: boolean };
 
       if (geoData.error || !geoData.country_code) {
         const fromHeader = parseAcceptLanguage(req.headers["accept-language"]);
-        return res.json({ language: fromHeader || "es", country: null, source: fromHeader ? "accept-language" : "fallback" });
+        return res.json({ language: fromHeader || "en", country: null, source: fromHeader ? "accept-language" : "fallback" });
       }
 
       const countryCode = geoData.country_code.toUpperCase();
-      const detectedLanguage = COUNTRY_TO_LANGUAGE[countryCode] || "es";
+      const mapped = COUNTRY_TO_LANGUAGE[countryCode];
+      if (!mapped) {
+        // Unknown country — fall back to Accept-Language then English
+        const fromHeader = parseAcceptLanguage(req.headers["accept-language"]);
+        return res.json({ language: fromHeader || "en", country: countryCode, source: fromHeader ? "accept-language" : "fallback" });
+      }
 
-      geoCache.set(clientIp, { language: detectedLanguage, country: countryCode, timestamp: Date.now() });
+      geoCache.set(clientIp, { language: mapped, country: countryCode, timestamp: Date.now() });
 
-      res.json({ language: detectedLanguage, country: countryCode, source: "geolocation" });
+      res.json({ language: mapped, country: countryCode, source: "geolocation" });
     } catch (error) {
       console.error("Language detection error:", error);
       const fromHeader = parseAcceptLanguage(req.headers["accept-language"]);
-      res.json({ language: fromHeader || "es", country: null, source: fromHeader ? "accept-language" : "error" });
+      res.json({ language: fromHeader || "en", country: null, source: fromHeader ? "accept-language" : "error" });
     }
   });
 
