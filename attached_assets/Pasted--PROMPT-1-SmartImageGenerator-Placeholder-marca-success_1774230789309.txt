@@ -1,0 +1,56 @@
+# PROMPT 1: SmartImageGenerator — Placeholder marca `success: true` (CRITICO)
+
+```
+CONTEXTO: Este proyecto es el website de Von Wobeser y Sierra, una firma de abogados mexicana. Usa Express + React + TypeScript. El sistema tiene un generador de imagenes AI (SmartImageGenerator) que intenta DALL-E primero, luego Gemini como fallback.
+
+PROBLEMA: En el archivo `server/services/SmartImageGenerator.ts`, cuando AMBOS motores de generacion de imagenes fallan (DALL-E y Gemini), el sistema asigna un placeholder SVG pero marca el resultado como `success: true` (linea 366). Esto es incorrecto — los callers creen que la imagen se genero exitosamente cuando en realidad es un placeholder generico. Esto oculta errores y previene la recuperacion adecuada.
+
+El codigo problematico esta entre las lineas 362-368:
+```typescript
+if (!result.success) {
+  this.log('All engines failed. Assigning placeholder image.');
+  result.engine = 'placeholder';
+  result.imageUrl = '/placeholder-article.svg';
+  result.success = true;  // <-- BUG: esto deberia ser false
+  result.errorMessage = dalleResult.error || 'All image generation engines failed';
+}
+```
+
+SOLUCION: Modifica `server/services/SmartImageGenerator.ts`:
+
+1. En la linea 366, cambia `result.success = true` a `result.success = false`
+2. Agrega un campo `result.fallbackUsed = true` para que los callers sepan que hay un placeholder disponible aunque la generacion fallo
+3. Actualiza el log de resumen (lineas 372-374) para manejar el caso de fallback:
+
+El bloque corregido debe quedar asi:
+```typescript
+if (!result.success) {
+  this.log('All engines failed. Assigning placeholder image.');
+  result.engine = 'placeholder';
+  result.imageUrl = '/placeholder-article.svg';
+  result.success = false;
+  result.fallbackUsed = true;
+  result.errorMessage = dalleResult.error || 'All image generation engines failed';
+}
+
+result.transparencyLog = [...this.transparencyLog];
+
+const summaryLog = result.success
+  ? `Image generated using ${result.engine.toUpperCase()}${result.promptWasSanitized ? ' (prompt sanitized for safety)' : ''}`
+  : result.fallbackUsed
+    ? `Image generation failed, placeholder assigned: ${result.errorMessage}`
+    : `Image generation failed: ${result.errorMessage}`;
+```
+
+4. Actualiza la interfaz/tipo de ImageGenerationResult (busca donde se define, probablemente en el mismo archivo o en un types file) para incluir `fallbackUsed?: boolean`
+
+ARCHIVOS A MODIFICAR:
+- `server/services/SmartImageGenerator.ts` — lineas 362-376
+
+RESULTADO ESPERADO: Cuando DALL-E y Gemini fallan, `result.success` es `false` y `result.fallbackUsed` es `true`. El placeholder SVG sigue asignandose (la imagen no se rompe visualmente) pero los callers saben que no es una imagen real.
+
+RESTRICCIONES:
+- NO modifiques la logica de DALL-E ni Gemini (las primeras 360 lineas)
+- NO elimines el placeholder — sigue siendo necesario como fallback visual
+- El campo imageUrl DEBE seguir teniendo el placeholder para que la UI no se rompa
+```
