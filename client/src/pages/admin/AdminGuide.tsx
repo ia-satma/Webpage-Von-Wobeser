@@ -498,6 +498,7 @@ export default function AdminGuide() {
 
       <NerveCenter
         agents={agents}
+        language={language}
         translations={{
           brainTitle: t.brainTitle,
           brainDesc: t.brainDesc,

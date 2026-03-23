@@ -1,6 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Brain, Cpu, Shield, Circle } from "lucide-react";
+import { getAgentCardTranslation } from "@/lib/adminTranslations";
 
 interface AgentCapabilityCard {
   id: string;
@@ -16,6 +17,7 @@ interface AgentCapabilityCard {
 
 interface NerveCenterProps {
   agents: AgentCapabilityCard[];
+  language: string;
   translations: {
     brainTitle: string;
     brainDesc: string;
@@ -104,9 +106,23 @@ function StatusIndicator({ status, translations }: { status: string; translation
   );
 }
 
-function AgentCard({ agent, translations }: { agent: AgentCapabilityCard; translations: NerveCenterProps["translations"] }) {
+function AgentCard({
+  agent,
+  language,
+  translations,
+}: {
+  agent: AgentCapabilityCard;
+  language: string;
+  translations: NerveCenterProps["translations"];
+}) {
   const isActive = agent.status === "active";
-  
+  const localizedCard = getAgentCardTranslation(agent.id, language);
+
+  const displayName = localizedCard?.businessName ?? agent.businessName;
+  const displayRole = localizedCard?.role ?? agent.role;
+  const displayDescription = localizedCard?.description ?? agent.description;
+  const displayCapabilities = localizedCard?.capabilities ?? agent.capabilities;
+
   return (
     <Card
       className={`relative overflow-visible transition-all duration-300 ${
@@ -118,10 +134,10 @@ function AgentCard({ agent, translations }: { agent: AgentCapabilityCard; transl
         <div className="flex items-start justify-between gap-2">
           <div className="flex-1 min-w-0">
             <CardTitle className="text-lg font-bold leading-tight" data-testid={`agent-name-${agent.id}`}>
-              {agent.businessName}
+              {displayName}
             </CardTitle>
             <p className="text-sm text-primary font-medium mt-1" data-testid={`agent-role-${agent.id}`}>
-              {agent.role}
+              {displayRole}
             </p>
           </div>
           <div className="flex-shrink-0 p-2 rounded-md bg-primary/10 text-primary">
@@ -131,22 +147,22 @@ function AgentCard({ agent, translations }: { agent: AgentCapabilityCard; transl
       </CardHeader>
       <CardContent className="space-y-4">
         <p className="text-sm text-muted-foreground leading-relaxed" data-testid={`agent-desc-${agent.id}`}>
-          {agent.description}
+          {displayDescription}
         </p>
-        
+
         <div className="flex flex-wrap gap-1" data-testid={`agent-capabilities-${agent.id}`}>
-          {agent.capabilities.slice(0, 3).map((capability, idx) => (
+          {displayCapabilities.slice(0, 3).map((capability, idx) => (
             <Badge
               key={idx}
               variant="secondary"
               className="text-xs"
             >
-              {capability.length > 30 ? capability.substring(0, 30) + "..." : capability}
+              {capability.length > 35 ? capability.substring(0, 35) + "…" : capability}
             </Badge>
           ))}
-          {agent.capabilities.length > 3 && (
+          {displayCapabilities.length > 3 && (
             <Badge variant="outline" className="text-xs">
-              +{agent.capabilities.length - 3}
+              +{displayCapabilities.length - 3}
             </Badge>
           )}
         </div>
@@ -168,12 +184,14 @@ function CategorySection({
   title,
   description,
   agents,
+  language,
   translations,
 }: {
   category: "brain" | "hands" | "shield";
   title: string;
   description: string;
   agents: AgentCapabilityCard[];
+  language: string;
   translations: NerveCenterProps["translations"];
 }) {
   const categoryAgents = agents.filter((a) => a.category === category);
@@ -221,14 +239,14 @@ function CategorySection({
       </div>
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {categoryAgents.map((agent) => (
-          <AgentCard key={agent.id} agent={agent} translations={translations} />
+          <AgentCard key={agent.id} agent={agent} language={language} translations={translations} />
         ))}
       </div>
     </section>
   );
 }
 
-export function NerveCenter({ agents, translations }: NerveCenterProps) {
+export function NerveCenter({ agents, language, translations }: NerveCenterProps) {
   return (
     <div className="space-y-8" data-testid="nerve-center">
       <CategorySection
@@ -236,6 +254,7 @@ export function NerveCenter({ agents, translations }: NerveCenterProps) {
         title={translations.brainTitle}
         description={translations.brainDesc}
         agents={agents}
+        language={language}
         translations={translations}
       />
       <CategorySection
@@ -243,6 +262,7 @@ export function NerveCenter({ agents, translations }: NerveCenterProps) {
         title={translations.handsTitle}
         description={translations.handsDesc}
         agents={agents}
+        language={language}
         translations={translations}
       />
       <CategorySection
@@ -250,6 +270,7 @@ export function NerveCenter({ agents, translations }: NerveCenterProps) {
         title={translations.shieldTitle}
         description={translations.shieldDesc}
         agents={agents}
+        language={language}
         translations={translations}
       />
     </div>
