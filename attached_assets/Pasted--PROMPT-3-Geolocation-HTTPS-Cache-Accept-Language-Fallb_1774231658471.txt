@@ -1,0 +1,162 @@
+## PROMPT 3: Geolocation HTTPS + Cache + Accept-Language Fallback (ALTO)
+
+```
+CONTEXTO: Este proyecto es el website de Von Wobeser y Sierra, una firma de abogados mexicana. Soporta 10 idiomas con deteccion automatica de idioma basada en la ubicacion del usuario. El endpoint GET `/api/detect-language` usa la API de ip-api.com para detectar el pais del usuario.
+
+PROBLEMA: Hay 3 issues en el sistema de deteccion de idioma:
+
+1. SEGURIDAD: La llamada a ip-api.com usa HTTP en vez de HTTPS (linea 252 de server/routes.ts): `fetch('http://ip-api.com/json/...')`. Esto expone la IP del usuario en texto plano.
+
+2. PERFORMANCE: Cada request hace una llamada externa a ip-api.com sin ningun cache. ip-api.com tiene rate limit de 45 requests/minuto en el tier gratuito. En una demo con multiples tabs abiertas, esto puede causar rate limiting y que el idioma no se detecte.
+
+3. MAPEO INCOMPLETO: Canada (CA) esta mapeado a Frances (fr) pero la mayoria de Canada habla Ingles. No hay fallback a Accept-Language header cuando geolocation falla o no esta disponible. Paises como Brasil, Portugal, India no estan mapeados.
+
+Codigo actual (server/routes.ts lineas 211-276):
+```typescript
+const COUNTRY_TO_LANGUAGE: Record<string, string> = {
+  // ... mapeo actual ...
+  CA: "fr",  // <-- incorrecto, Canada es mayoritariamente ingles
+  // faltan: BR, PT (portugues), IN (ingles/hindi), PH (ingles), etc.
+};
+
+app.get("/api/detect-language", async (req, res) => {
+  // ... obtiene IP ...
+  const geoResponse = await fetch(`http://ip-api.com/json/${clientIp}?fields=countryCode`);
+  // ... sin cache, sin fallback a Accept-Language ...
+});
+```
+
+SOLUCION:
+
+PASO 1 — Corregir el mapeo de paises (reemplazar el objeto COUNTRY_TO_LANGUAGE completo):
+```typescript
+const COUNTRY_TO_LANGUAGE: Record<string, string> = {
+  // Spanish-speaking
+  MX: "es", ES: "es", AR: "es", CO: "es", PE: "es", VE: "es", CL: "es", EC: "es",
+  GT: "es", CU: "es", BO: "es", DO: "es", HN: "es", PY: "es", SV: "es", NI: "es",
+  CR: "es", PA: "es", UY: "es", PR: "es",
+  // Portuguese-speaking
+  BR: "pt", PT: "pt", AO: "pt", MZ: "pt",
+  // German-speaking
+  DE: "de", AT: "de", CH: "de", LI: "de",
+  // Chinese-speaking
+  CN: "zh", TW: "zh", HK: "zh",
+  // Korean
+  KR: "ko",
+  // Japanese
+  JP: "ja",
+  // Arabic-speaking
+  SA: "ar", AE: "ar", EG: "ar", IQ: "ar", MA: "ar", DZ: "ar", SD: "ar", SY: "ar",
+  TN: "ar", YE: "ar", JO: "ar", LY: "ar", LB: "ar", OM: "ar", KW: "ar", QA: "ar", BH: "ar",
+  // Russian-speaking
+  RU: "ru", BY: "ru", KZ: "ru", KG: "ru",
+  // French-speaking
+  FR: "fr", MC: "fr", LU: "fr", SN: "fr", CI: "fr", ML: "fr",
+  // Italian-speaking
+  IT: "it", SM: "it", VA: "it",
+  // English-speaking (explicit)
+  US: "en", GB: "en", AU: "en", NZ: "en", IE: "en", ZA: "en", NG: "en", GH: "en", KE: "en",
+  CA: "en", IN: "en", PH: "en", SG: "en", MY: "en",
+  // Belgium and Switzerland are multilingual — default to most common
+  BE: "fr",
+};
+```
+
+PASO 2 — Agregar cache en memoria y fallback a Accept-Language. Reemplaza el endpoint completo:
+
+Antes del endpoint, agrega el cache:
+```typescript
+// In-memory cache for geolocation results (TTL: 1 hour)
+const geoCache = new Map<string, { language: string; country: string; timestamp: number }>();
+const GEO_CACHE_TTL = 60 * 60 * 1000; // 1 hour
+
+function parseAcceptLanguage(header: string | undefined): string | null {
+  if (!header) return null;
+  const supported = ["es", "en", "de", "zh", "ko", "ja", "ar", "ru", "fr", "it", "pt"];
+  const languages = header.split(",").map(part => {
+    const [lang, q] = part.trim().split(";q=");
+    return { lang: lang.split("-")[0].toLowerCase(), q: q ? parseFloat(q) : 1.0 };
+  }).sort((a, b) => b.q - a.q);
+
+  for (const { lang } of languages) {
+    if (supported.includes(lang)) return lang;
+  }
+  return null;
+}
+```
+
+Reemplaza el endpoint:
+```typescript
+app.get("/api/detect-language", async (req, res) => {
+  try {
+    const forwardedFor = req.headers["x-forwarded-for"];
+    const clientIp = forwardedFor
+      ? (typeof forwardedFor === "string" ? forwardedFor.split(",")[0].trim() : forwardedFor[0])
+      : req.socket.remoteAddress || req.ip;
+
+    // Skip geolocation for localhost/private IPs — use Accept-Language
+    if (!clientIp || clientIp === "::1" || clientIp === "127.0.0.1" || clientIp.startsWith("192.168.") || clientIp.startsWith("10.")) {
+      const fromHeader = parseAcceptLanguage(req.headers["accept-language"]);
+      return res.json({ language: fromHeader || "en", country: null, source: fromHeader ? "accept-language" : "default" });
+    }
+
+    // Check cache first
+    const cached = geoCache.get(clientIp);
+    if (cached && Date.now() - cached.timestamp < GEO_CACHE_TTL) {
+      return res.json({ language: cached.language, country: cached.country, source: "cache" });
+    }
+
+    // Use HTTPS endpoint (ip-api.com pro or alternative)
+    // Note: ip-api.com free tier only supports HTTP. For HTTPS, use their pro plan or switch to ipapi.co
+    const geoResponse = await fetch(`https://ipapi.co/${clientIp}/json/`, {
+      signal: AbortSignal.timeout(3000), // 3 second timeout
+    });
+
+    if (!geoResponse.ok) {
+      const fromHeader = parseAcceptLanguage(req.headers["accept-language"]);
+      return res.json({ language: fromHeader || "en", country: null, source: fromHeader ? "accept-language" : "fallback" });
+    }
+
+    const geoData = await geoResponse.json() as { country_code?: string; error?: boolean };
+
+    if (geoData.error || !geoData.country_code) {
+      const fromHeader = parseAcceptLanguage(req.headers["accept-language"]);
+      return res.json({ language: fromHeader || "en", country: null, source: fromHeader ? "accept-language" : "fallback" });
+    }
+
+    const countryCode = geoData.country_code.toUpperCase();
+    const detectedLanguage = COUNTRY_TO_LANGUAGE[countryCode] || "en";
+
+    // Cache the result
+    geoCache.set(clientIp, { language: detectedLanguage, country: countryCode, timestamp: Date.now() });
+
+    res.json({
+      language: detectedLanguage,
+      country: countryCode,
+      source: "geolocation"
+    });
+  } catch (error) {
+    console.error("Language detection error:", error);
+    const fromHeader = parseAcceptLanguage(req.headers["accept-language"]);
+    res.json({ language: fromHeader || "en", country: null, source: fromHeader ? "accept-language" : "error" });
+  }
+});
+```
+
+NOTA IMPORTANTE SOBRE LA API: ipapi.co ofrece HTTPS gratis (hasta 1000 requests/dia) y devuelve `country_code` en vez de `countryCode`. Si prefieres seguir con ip-api.com, su endpoint HTTPS requiere plan de pago. La alternativa ipapi.co es gratuita para este volumen. El campo de respuesta cambia de `countryCode` a `country_code`.
+
+ARCHIVOS A MODIFICAR:
+- `server/routes.ts` — lineas 211-276 (COUNTRY_TO_LANGUAGE + endpoint /api/detect-language)
+
+RESULTADO ESPERADO:
+1. Geolocation usa HTTPS (no expone IPs en texto plano)
+2. Resultados se cachean 1 hora por IP (evita rate limiting)
+3. Si geolocation falla, usa Accept-Language header como fallback
+4. Canada detecta como ingles (no frances)
+5. Brasil/Portugal detectan como portugues
+
+RESTRICCIONES:
+- NO modifiques el frontend (el cliente ya consume la respuesta { language, country, source })
+- NO cambies los idiomas soportados — solo el mapeo pais→idioma y el mecanismo de deteccion
+- Mantene la misma estructura de respuesta JSON
+```
