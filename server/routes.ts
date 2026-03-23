@@ -200,21 +200,25 @@ export async function registerRoutes(
   // Serve partner photos from attached_assets/partner_photos
   app.use('/partner_photos', express.static(path.join(process.cwd(), 'attached_assets', 'partner_photos'), {
     maxAge: '7d',
+    immutable: true,
   }));
   
   // Serve associate photos from attached_assets/associate_photos
   app.use('/associate_photos', express.static(path.join(process.cwd(), 'attached_assets', 'associate_photos'), {
     maxAge: '7d',
+    immutable: true,
   }));
   
   // Serve Of Counsel photos from attached_assets/of_counsel_photos
   app.use('/of_counsel_photos', express.static(path.join(process.cwd(), 'attached_assets', 'of_counsel_photos'), {
     maxAge: '7d',
+    immutable: true,
   }));
 
   // Serve AI-generated images with Von Wobeser branding
   app.use('/generated-images', express.static(path.join(process.cwd(), 'public', 'generated-images'), {
     maxAge: '1d',
+    immutable: true,
   }));
 
   // Geolocation endpoint for automatic language detection
@@ -343,6 +347,17 @@ export async function registerRoutes(
       res.json(news);
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch news" });
+    }
+  });
+
+  app.get("/api/news/published", async (_req, res) => {
+    try {
+      const allNews = await storage.getNews();
+      const now = new Date();
+      const news = allNews.filter(n => n.published && (!n.publishAt || new Date(n.publishAt) <= now));
+      res.json(news);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch published news" });
     }
   });
 
@@ -789,6 +804,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
   // Serve uploaded files
   app.use('/uploads', express.static(uploadsDir, {
     maxAge: '1d',
+    immutable: true,
   }));
 
   // =============================================
