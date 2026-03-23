@@ -1,0 +1,106 @@
+## PROMPT 4: Agent System — Registrar ContentAnalyzer + Limpiar Conteo (ALTO)
+
+```
+CONTEXTO: Este proyecto es el website de Von Wobeser y Sierra, una firma de abogados mexicana. Tiene un sistema de agentes AI que procesan articulos automaticamente (formateo, traduccion, SEO, imagenes, etc.). Los agentes se registran en un orquestador central.
+
+PROBLEMA: Hay 3 issues relacionados en el sistema de agentes:
+
+1. AGENTE FANTASMA: El archivo `server/agents/specialized/ContentAnalyzerAgent.ts` existe (332 lineas de codigo funcional) pero NO esta registrado en `server/agents/index.ts`. El agente nunca se ejecuta.
+
+2. CONTEO INCORRECTO: El marketing/documentacion dice "14 agentes AI" pero solo hay 8 registrados en el orquestador. Con ContentAnalyzer serian 9. La UI del dashboard de agentes y el system manifest (`client/src/lib/systemManifest.ts`) pueden mostrar conteos que no coinciden con la realidad.
+
+3. LEGALCOUNCIL DESCONECTADO: Hay un servicio LegalCouncilService referenciado en el orquestador y en SystemChronicler, pero funciona fuera del sistema de agentes (no hereda de BaseAgent, no se registra en el orquestador). Esto no es un bug per se, pero la documentacion deberia reflejarlo.
+
+SOLUCION:
+
+PASO 1 — Registrar ContentAnalyzerAgent en `server/agents/index.ts`:
+
+El archivo actual tiene 8 agentes importados y registrados. Agrega ContentAnalyzerAgent:
+
+```typescript
+// Agregar al inicio con los otros imports:
+import { contentAnalyzerAgent } from './specialized/ContentAnalyzerAgent';
+
+// Agregar al final del export list (antes de la linea que cierra los exports):
+export { contentAnalyzerAgent } from './specialized/ContentAnalyzerAgent';
+
+// Agregar en la funcion initializeAgents(), despues de websiteAuditorAgent:
+orchestrator.registerAgent(contentAnalyzerAgent);
+```
+
+El archivo completo debe quedar:
+```typescript
+export * from './core/types';
+export * from './core/BaseAgent';
+export { knowledgeStore } from './core/AgentKnowledge';
+export { evolutionTracker } from './core/AgentEvolution';
+export { orchestrator } from './core/AgentOrchestrator';
+export { pcloudStorage } from './storage/PCloudStorage';
+export { dbPersistence } from './storage/DatabasePersistence';
+
+export { formatterAgent } from './specialized/FormatterAgent';
+export { metadataLinkerAgent } from './specialized/MetadataLinkerAgent';
+export { polyglotTranslatorAgent } from './specialized/PolyglotTranslatorAgent';
+export { contentAuditorAgent } from './specialized/ContentAuditorAgent';
+export { seoOptimizerAgent } from './specialized/SEOOptimizerAgent';
+export { imageSuggestionAgent } from './specialized/ImageSuggestionAgent';
+export { categoryAgent } from './specialized/CategoryAgent';
+export { websiteAuditorAgent } from './specialized/WebsiteAuditorAgent';
+export { contentAnalyzerAgent } from './specialized/ContentAnalyzerAgent';
+
+import { orchestrator } from './core/AgentOrchestrator';
+import { formatterAgent } from './specialized/FormatterAgent';
+import { metadataLinkerAgent } from './specialized/MetadataLinkerAgent';
+import { polyglotTranslatorAgent } from './specialized/PolyglotTranslatorAgent';
+import { contentAuditorAgent } from './specialized/ContentAuditorAgent';
+import { seoOptimizerAgent } from './specialized/SEOOptimizerAgent';
+import { imageSuggestionAgent } from './specialized/ImageSuggestionAgent';
+import { categoryAgent } from './specialized/CategoryAgent';
+import { websiteAuditorAgent } from './specialized/WebsiteAuditorAgent';
+import { contentAnalyzerAgent } from './specialized/ContentAnalyzerAgent';
+
+export async function initializeAgents(): Promise<void> {
+  console.log('[Agents] Initializing agent system...');
+
+  await orchestrator.initialize();
+
+  orchestrator.registerAgent(formatterAgent);
+  orchestrator.registerAgent(metadataLinkerAgent);
+  orchestrator.registerAgent(polyglotTranslatorAgent);
+  orchestrator.registerAgent(contentAuditorAgent);
+  orchestrator.registerAgent(seoOptimizerAgent);
+  orchestrator.registerAgent(imageSuggestionAgent);
+  orchestrator.registerAgent(categoryAgent);
+  orchestrator.registerAgent(websiteAuditorAgent);
+  orchestrator.registerAgent(contentAnalyzerAgent);
+
+  console.log('[Agents] All 9 agents registered and ready');
+}
+```
+
+PASO 2 — Actualizar el system manifest (`client/src/lib/systemManifest.ts`):
+Busca cualquier referencia a "14 agents" o "14 agentes" y cambialo a "9 specialized agents" o "9 agentes especializados". Si el manifest lista agentes individualmente, asegurate de que ContentAnalyzerAgent aparezca en la lista.
+
+PASO 3 — Verificar que ContentAnalyzerAgent exporta correctamente:
+Abre `server/agents/specialized/ContentAnalyzerAgent.ts` y verifica que al final del archivo hay un export. Deberia tener algo como:
+```typescript
+export const contentAnalyzerAgent = new ContentAnalyzerAgent();
+```
+Si no existe, agregalo al final del archivo.
+
+ARCHIVOS A MODIFICAR:
+- `server/agents/index.ts` — agregar import, export y registro de ContentAnalyzerAgent
+- `client/src/lib/systemManifest.ts` — corregir conteo de agentes
+- `server/agents/specialized/ContentAnalyzerAgent.ts` — verificar que el export existe
+
+RESULTADO ESPERADO:
+1. ContentAnalyzerAgent se registra en el orquestador y puede procesar articulos
+2. El log de inicio dice "9 agents registered" (no 8)
+3. El system manifest refleja el numero correcto de agentes
+4. El dashboard de agentes muestra ContentAnalyzerAgent en la lista
+
+RESTRICCIONES:
+- NO modifiques la logica interna de ContentAnalyzerAgent — solo asegurate de que esta registrado
+- NO inventes agentes que no existen — el conteo real es 9 (8 anteriores + ContentAnalyzer)
+- NO elimines LegalCouncilService — funciona como servicio separado, no como agente registrado
+```

@@ -254,17 +254,21 @@ export async function registerRoutes(
   }
 
   function isPrivateIp(ip: string): boolean {
+    // Normalize IPv6-mapped IPv4 addresses (e.g. ::ffff:127.0.0.1 → 127.0.0.1)
+    const normalized = ip.startsWith("::ffff:") ? ip.slice(7) : ip;
     return (
-      ip === "::1" ||
-      ip === "127.0.0.1" ||
-      ip.startsWith("192.168.") ||
-      ip.startsWith("10.") ||
-      ip.startsWith("172.16.") || ip.startsWith("172.17.") || ip.startsWith("172.18.") ||
-      ip.startsWith("172.19.") || ip.startsWith("172.20.") || ip.startsWith("172.21.") ||
-      ip.startsWith("172.22.") || ip.startsWith("172.23.") || ip.startsWith("172.24.") ||
-      ip.startsWith("172.25.") || ip.startsWith("172.26.") || ip.startsWith("172.27.") ||
-      ip.startsWith("172.28.") || ip.startsWith("172.29.") || ip.startsWith("172.30.") ||
-      ip.startsWith("172.31.")
+      normalized === "::1" ||
+      normalized === "127.0.0.1" ||
+      normalized.startsWith("192.168.") ||
+      normalized.startsWith("10.") ||
+      normalized.startsWith("172.16.") || normalized.startsWith("172.17.") || normalized.startsWith("172.18.") ||
+      normalized.startsWith("172.19.") || normalized.startsWith("172.20.") || normalized.startsWith("172.21.") ||
+      normalized.startsWith("172.22.") || normalized.startsWith("172.23.") || normalized.startsWith("172.24.") ||
+      normalized.startsWith("172.25.") || normalized.startsWith("172.26.") || normalized.startsWith("172.27.") ||
+      normalized.startsWith("172.28.") || normalized.startsWith("172.29.") || normalized.startsWith("172.30.") ||
+      normalized.startsWith("172.31.") ||
+      normalized.startsWith("fe80:") || // IPv6 link-local
+      normalized === "::1"              // IPv6 loopback (explicit for normalized form)
     );
   }
 
