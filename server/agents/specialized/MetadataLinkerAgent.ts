@@ -158,6 +158,7 @@ Return JSON with practiceAreas (array of slugs), industries (array of slugs), an
         },
       };
     } catch (error) {
+      console.error('[MetadataLinkerAgent] Linking failed:', error);
       return { success: false, error: `Linking failed: ${error}` };
     }
   }

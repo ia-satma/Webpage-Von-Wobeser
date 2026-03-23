@@ -114,6 +114,7 @@ Analyze and provide optimized versions. Return JSON with optimizedTitle, optimiz
         },
       };
     } catch (error) {
+      console.error('[SEOOptimizerAgent] SEO optimization failed:', error);
       return { success: false, error: `SEO optimization failed: ${error}` };
     }
   }

@@ -68,6 +68,30 @@ import {
   requireRole,
 } from "./auth";
 
+function apiError(res: Response, status: number, message: string, details?: unknown): void {
+  const body: Record<string, unknown> = { error: message };
+  if (details !== undefined) body.details = details;
+  res.status(status).json(body);
+}
+
+function auditLog(
+  action: "create" | "update" | "delete",
+  resource: string,
+  resourceId: string | null,
+  userId: string,
+  details?: Record<string, unknown>
+): void {
+  const entry: Record<string, unknown> = {
+    timestamp: new Date().toISOString(),
+    action,
+    resource,
+    resourceId,
+    userId,
+  };
+  if (details) entry.details = details;
+  console.log("[AUDIT]", JSON.stringify(entry));
+}
+
 const uploadsDir = path.join(process.cwd(), "uploads");
 if (!fs.existsSync(uploadsDir)) {
   fs.mkdirSync(uploadsDir, { recursive: true });
@@ -108,14 +132,15 @@ function generateVCard(member: any, language: "es" | "en" = "es"): string {
   const title = language === "es" ? member.titleEs : member.title;
   const role = language === "es" ? member.roleEs : member.role;
   
-  const nameParts = member.name.split(' ');
+  const safeName = member.name || member.slug?.replace(/-/g, ' ') || 'Unknown';
+  const nameParts = safeName.split(/\s+/);
   const firstName = nameParts[0] || '';
   const lastName = nameParts.slice(1).join(' ') || '';
   
   const lines = [
     'BEGIN:VCARD',
     'VERSION:3.0',
-    `FN:${member.name}`,
+    `FN:${safeName}`,
     `N:${lastName};${firstName};;;`,
     `ORG:Von Wobeser y Sierra, S.C.`,
     `TITLE:${title}`,
@@ -164,7 +189,8 @@ export async function registerRoutes(
       }
       try {
         ws.ping();
-      } catch {
+      } catch (error) {
+        console.error('[WebSocket] Heartbeat ping failed for client:', clientId, error);
         pipelineClients.delete(clientId);
       }
     });
@@ -1377,17 +1403,15 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
       const validation = insertNewsSchema.safeParse(req.body);
       
       if (!validation.success) {
-        return res.status(400).json({ 
-          error: "Validation failed", 
-          details: validation.error.errors 
-        });
+        return apiError(res, 400, "Validation failed", validation.error.errors);
       }
 
       const newsItem = await storage.createNews(validation.data);
+      auditLog("create", "news", newsItem.id, (req as any).adminUser?.id || "unknown");
       res.status(201).json(newsItem);
     } catch (error) {
       console.error("Create news error:", error);
-      res.status(500).json({ error: "Failed to create news" });
+      return apiError(res, 500, "Failed to create news");
     }
   });
 
@@ -1396,12 +1420,13 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
     try {
       const newsItem = await storage.updateNews(req.params.id, req.body);
       if (!newsItem) {
-        return res.status(404).json({ error: "News not found" });
+        return apiError(res, 404, "News not found");
       }
+      auditLog("update", "news", req.params.id, (req as any).adminUser?.id || "unknown");
       res.json(newsItem);
     } catch (error) {
       console.error("Update news error:", error);
-      res.status(500).json({ error: "Failed to update news" });
+      return apiError(res, 500, "Failed to update news");
     }
   });
 
@@ -1410,12 +1435,13 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
     try {
       const deleted = await storage.deleteNews(req.params.id);
       if (!deleted) {
-        return res.status(404).json({ error: "News not found" });
+        return apiError(res, 404, "News not found");
       }
+      auditLog("delete", "news", req.params.id, (req as any).adminUser?.id || "unknown");
       res.json({ success: true });
     } catch (error) {
       console.error("Delete news error:", error);
-      res.status(500).json({ error: "Failed to delete news" });
+      return apiError(res, 500, "Failed to delete news");
     }
   });
 
@@ -1483,13 +1509,14 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
     try {
       const validatedData = insertTeamMemberSchema.parse(req.body);
       const member = await storage.createTeamMember(validatedData);
+      auditLog("create", "team", member.id, (req as any).adminUser?.id || "unknown");
       res.status(201).json(member);
     } catch (error) {
       if (error instanceof ZodError) {
-        return res.status(400).json({ error: "Validation failed", details: error.errors });
+        return apiError(res, 400, "Validation failed", error.errors);
       }
       console.error("Create team member error:", error);
-      res.status(500).json({ error: "Failed to create team member" });
+      return apiError(res, 500, "Failed to create team member");
     }
   });
 
@@ -1499,15 +1526,16 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
       const validatedData = insertTeamMemberSchema.partial().parse(req.body);
       const member = await storage.updateTeamMember(req.params.id, validatedData);
       if (!member) {
-        return res.status(404).json({ error: "Team member not found" });
+        return apiError(res, 404, "Team member not found");
       }
+      auditLog("update", "team", req.params.id, (req as any).adminUser?.id || "unknown");
       res.json(member);
     } catch (error) {
       if (error instanceof ZodError) {
-        return res.status(400).json({ error: "Validation failed", details: error.errors });
+        return apiError(res, 400, "Validation failed", error.errors);
       }
       console.error("Update team member error:", error);
-      res.status(500).json({ error: "Failed to update team member" });
+      return apiError(res, 500, "Failed to update team member");
     }
   });
 
@@ -1516,12 +1544,13 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
     try {
       const deleted = await storage.deleteTeamMember(req.params.id);
       if (!deleted) {
-        return res.status(404).json({ error: "Team member not found" });
+        return apiError(res, 404, "Team member not found");
       }
+      auditLog("delete", "team", req.params.id, (req as any).adminUser?.id || "unknown");
       res.json({ success: true });
     } catch (error) {
       console.error("Delete team member error:", error);
-      res.status(500).json({ error: "Failed to delete team member" });
+      return apiError(res, 500, "Failed to delete team member");
     }
   });
 

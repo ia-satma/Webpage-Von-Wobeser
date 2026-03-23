@@ -164,6 +164,7 @@ CONTENT (ES): ${article.contentEs || ''}
         },
       };
     } catch (error) {
+      console.error('[ContentAnalyzerAgent] Analysis failed:', error);
       return { success: false, error: String(error) };
     }
   }

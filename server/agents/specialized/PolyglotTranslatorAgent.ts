@@ -95,7 +95,9 @@ export class PolyglotTranslatorAgent extends BaseAgent {
       try {
         const translations = JSON.parse(doc.content);
         glossary[doc.title] = translations;
-      } catch {}
+      } catch (error) {
+        console.error('[PolyglotTranslatorAgent] Failed to parse glossary entry:', doc.title, error);
+      }
     }
 
     const results: Record<string, { title: string; excerpt: string; content: string }> = {};
@@ -128,6 +130,7 @@ export class PolyglotTranslatorAgent extends BaseAgent {
 
         await this.cacheTranslation(articleId, lang, translation);
       } catch (error) {
+        console.error(`[PolyglotTranslatorAgent] Translation failed for language ${lang}:`, error);
         errors.push(`${lang}: ${error}`);
       }
     }

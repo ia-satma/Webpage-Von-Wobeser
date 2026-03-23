@@ -102,6 +102,7 @@ export class ContentAuditorAgent extends BaseAgent {
         },
       };
     } catch (error) {
+      console.error('[ContentAuditorAgent] Audit failed:', error);
       return { success: false, error: `Audit failed: ${error}` };
     }
   }

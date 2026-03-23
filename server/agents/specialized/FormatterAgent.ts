@@ -114,6 +114,7 @@ Return JSON with cleaned title, content, and excerpt.`;
         metrics,
       };
     } catch (error) {
+      console.error('[FormatterAgent] Formatting failed:', error);
       return { success: false, error: `Formatting failed: ${error}` };
     }
   }

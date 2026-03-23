@@ -643,6 +643,7 @@ Be thorough but prioritize critical issues that directly impact users.`,
 
       return false;
     } catch (error) {
+      console.error('[WebsiteAuditorAgent] Error checking image URL:', url, error);
       return false;
     }
   }
