@@ -65,6 +65,7 @@ import {
   checkRateLimit,
   recordLoginAttempt,
   authMiddleware,
+  requireRole,
 } from "./auth";
 
 const uploadsDir = path.join(process.cwd(), "uploads");
@@ -480,7 +481,8 @@ export async function registerRoutes(
   app.get("/api/team/:idOrSlug/vcard", async (req, res) => {
     try {
       const param = req.params.idOrSlug;
-      const language = (req.query.lang as "es" | "en") || "es";
+      const langParam = req.query.lang as string;
+      const language: "es" | "en" = langParam === "en" ? "en" : "es";
       
       let member = await storage.getTeamMemberBySlug(param);
       if (!member) {
@@ -858,6 +860,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
         user = await storage.getAdminUserByUsername(username);
       }
       if (!user) {
+        await comparePassword(password, "$2b$12$InvalidHashToPreventTimingAttackXXXXXXXXXXXX");
         recordLoginAttempt(ip, false);
         return res.status(401).json({ error: "Invalid credentials" });
       }
@@ -999,7 +1002,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
   });
 
   // Create blog post
-  app.post("/api/admin/posts", authMiddleware, async (req: Request, res: Response) => {
+  app.post("/api/admin/posts", authMiddleware, requireRole("editor", "admin"), async (req: Request, res: Response) => {
     try {
       const validation = insertBlogPostSchema.safeParse({
         ...req.body,
@@ -1028,7 +1031,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
   });
 
   // Update blog post
-  app.put("/api/admin/posts/:id", authMiddleware, async (req: Request, res: Response) => {
+  app.put("/api/admin/posts/:id", authMiddleware, requireRole("editor", "admin"), async (req: Request, res: Response) => {
     try {
       const existingPost = await storage.getBlogPostById(req.params.id);
       if (!existingPost) {
@@ -1052,7 +1055,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
   });
 
   // Delete blog post (soft delete)
-  app.delete("/api/admin/posts/:id", authMiddleware, async (req: Request, res: Response) => {
+  app.delete("/api/admin/posts/:id", authMiddleware, requireRole("editor", "admin"), async (req: Request, res: Response) => {
     try {
       const deleted = await storage.deleteBlogPost(req.params.id);
       if (!deleted) {
@@ -1095,7 +1098,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
   });
 
   // Create category
-  app.post("/api/admin/categories", authMiddleware, async (req: Request, res: Response) => {
+  app.post("/api/admin/categories", authMiddleware, requireRole("editor", "admin"), async (req: Request, res: Response) => {
     try {
       const validation = insertBlogCategorySchema.safeParse(req.body);
       
@@ -1115,7 +1118,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
   });
 
   // Update category
-  app.put("/api/admin/categories/:id", authMiddleware, async (req: Request, res: Response) => {
+  app.put("/api/admin/categories/:id", authMiddleware, requireRole("editor", "admin"), async (req: Request, res: Response) => {
     try {
       const category = await storage.updateBlogCategory(req.params.id, req.body);
       if (!category) {
@@ -1129,7 +1132,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
   });
 
   // Delete category
-  app.delete("/api/admin/categories/:id", authMiddleware, async (req: Request, res: Response) => {
+  app.delete("/api/admin/categories/:id", authMiddleware, requireRole("editor", "admin"), async (req: Request, res: Response) => {
     try {
       const deleted = await storage.deleteBlogCategory(req.params.id);
       if (!deleted) {
@@ -1158,7 +1161,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
   });
 
   // Create tag
-  app.post("/api/admin/tags", authMiddleware, async (req: Request, res: Response) => {
+  app.post("/api/admin/tags", authMiddleware, requireRole("editor", "admin"), async (req: Request, res: Response) => {
     try {
       const validation = insertBlogTagSchema.safeParse(req.body);
       
@@ -1178,7 +1181,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
   });
 
   // Delete tag
-  app.delete("/api/admin/tags/:id", authMiddleware, async (req: Request, res: Response) => {
+  app.delete("/api/admin/tags/:id", authMiddleware, requireRole("editor", "admin"), async (req: Request, res: Response) => {
     try {
       const deleted = await storage.deleteBlogTag(req.params.id);
       if (!deleted) {
@@ -1341,7 +1344,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
   });
 
   // Create news
-  app.post("/api/admin/news", authMiddleware, async (req: Request, res: Response) => {
+  app.post("/api/admin/news", authMiddleware, requireRole("editor", "admin"), async (req: Request, res: Response) => {
     try {
       const validation = insertNewsSchema.safeParse(req.body);
       
@@ -1361,7 +1364,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
   });
 
   // Update news
-  app.put("/api/admin/news/:id", authMiddleware, async (req: Request, res: Response) => {
+  app.put("/api/admin/news/:id", authMiddleware, requireRole("editor", "admin"), async (req: Request, res: Response) => {
     try {
       const newsItem = await storage.updateNews(req.params.id, req.body);
       if (!newsItem) {
@@ -1375,7 +1378,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
   });
 
   // Delete news
-  app.delete("/api/admin/news/:id", authMiddleware, async (req: Request, res: Response) => {
+  app.delete("/api/admin/news/:id", authMiddleware, requireRole("editor", "admin"), async (req: Request, res: Response) => {
     try {
       const deleted = await storage.deleteNews(req.params.id);
       if (!deleted) {
@@ -1448,7 +1451,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
   });
 
   // Create team member
-  app.post("/api/admin/team", authMiddleware, async (req: Request, res: Response) => {
+  app.post("/api/admin/team", authMiddleware, requireRole("editor", "admin"), async (req: Request, res: Response) => {
     try {
       const validatedData = insertTeamMemberSchema.parse(req.body);
       const member = await storage.createTeamMember(validatedData);
@@ -1463,7 +1466,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
   });
 
   // Update team member
-  app.put("/api/admin/team/:id", authMiddleware, async (req: Request, res: Response) => {
+  app.put("/api/admin/team/:id", authMiddleware, requireRole("editor", "admin"), async (req: Request, res: Response) => {
     try {
       const validatedData = insertTeamMemberSchema.partial().parse(req.body);
       const member = await storage.updateTeamMember(req.params.id, validatedData);
@@ -1481,7 +1484,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
   });
 
   // Delete team member
-  app.delete("/api/admin/team/:id", authMiddleware, async (req: Request, res: Response) => {
+  app.delete("/api/admin/team/:id", authMiddleware, requireRole("editor", "admin"), async (req: Request, res: Response) => {
     try {
       const deleted = await storage.deleteTeamMember(req.params.id);
       if (!deleted) {
@@ -1530,7 +1533,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
   });
 
   // Create practice group
-  app.post("/api/admin/practice-groups", authMiddleware, async (req: Request, res: Response) => {
+  app.post("/api/admin/practice-groups", authMiddleware, requireRole("editor", "admin"), async (req: Request, res: Response) => {
     try {
       const validatedData = insertPracticeGroupSchema.parse(req.body);
       const group = await storage.createPracticeGroup(validatedData);
@@ -1545,7 +1548,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
   });
 
   // Update practice group
-  app.put("/api/admin/practice-groups/:id", authMiddleware, async (req: Request, res: Response) => {
+  app.put("/api/admin/practice-groups/:id", authMiddleware, requireRole("editor", "admin"), async (req: Request, res: Response) => {
     try {
       const validatedData = insertPracticeGroupSchema.partial().parse(req.body);
       const group = await storage.updatePracticeGroup(req.params.id, validatedData);
@@ -1563,7 +1566,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
   });
 
   // Delete practice group
-  app.delete("/api/admin/practice-groups/:id", authMiddleware, async (req: Request, res: Response) => {
+  app.delete("/api/admin/practice-groups/:id", authMiddleware, requireRole("editor", "admin"), async (req: Request, res: Response) => {
     try {
       const deleted = await storage.deletePracticeGroup(req.params.id);
       if (!deleted) {
@@ -1592,7 +1595,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
   });
 
   // Create industry group
-  app.post("/api/admin/industry-groups", authMiddleware, async (req: Request, res: Response) => {
+  app.post("/api/admin/industry-groups", authMiddleware, requireRole("editor", "admin"), async (req: Request, res: Response) => {
     try {
       const validatedData = insertIndustryGroupSchema.parse(req.body);
       const group = await storage.createIndustryGroup(validatedData);
@@ -1607,7 +1610,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
   });
 
   // Update industry group
-  app.put("/api/admin/industry-groups/:id", authMiddleware, async (req: Request, res: Response) => {
+  app.put("/api/admin/industry-groups/:id", authMiddleware, requireRole("editor", "admin"), async (req: Request, res: Response) => {
     try {
       const validatedData = insertIndustryGroupSchema.partial().parse(req.body);
       const group = await storage.updateIndustryGroup(req.params.id, validatedData);
@@ -1625,7 +1628,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
   });
 
   // Delete industry group
-  app.delete("/api/admin/industry-groups/:id", authMiddleware, async (req: Request, res: Response) => {
+  app.delete("/api/admin/industry-groups/:id", authMiddleware, requireRole("editor", "admin"), async (req: Request, res: Response) => {
     try {
       const deleted = await storage.deleteIndustryGroup(req.params.id);
       if (!deleted) {
@@ -1652,7 +1655,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
     }
   });
 
-  app.post("/api/admin/events", authMiddleware, async (req: Request, res: Response) => {
+  app.post("/api/admin/events", authMiddleware, requireRole("editor", "admin"), async (req: Request, res: Response) => {
     try {
       const validatedData = insertEventSchema.parse(req.body);
       const event = await storage.createEvent(validatedData);
@@ -1666,7 +1669,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
     }
   });
 
-  app.put("/api/admin/events/:id", authMiddleware, async (req: Request, res: Response) => {
+  app.put("/api/admin/events/:id", authMiddleware, requireRole("editor", "admin"), async (req: Request, res: Response) => {
     try {
       const validatedData = insertEventSchema.partial().parse(req.body);
       const updated = await storage.updateEvent(req.params.id, validatedData);
@@ -1683,7 +1686,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
     }
   });
 
-  app.delete("/api/admin/events/:id", authMiddleware, async (req: Request, res: Response) => {
+  app.delete("/api/admin/events/:id", authMiddleware, requireRole("editor", "admin"), async (req: Request, res: Response) => {
     try {
       const deleted = await storage.deleteEvent(req.params.id);
       if (!deleted) {
@@ -1710,7 +1713,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
     }
   });
 
-  app.post("/api/admin/rankings", authMiddleware, async (req: Request, res: Response) => {
+  app.post("/api/admin/rankings", authMiddleware, requireRole("editor", "admin"), async (req: Request, res: Response) => {
     try {
       const validatedData = insertRankingSchema.parse(req.body);
       const ranking = await storage.createRanking(validatedData);
@@ -1724,7 +1727,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
     }
   });
 
-  app.put("/api/admin/rankings/:id", authMiddleware, async (req: Request, res: Response) => {
+  app.put("/api/admin/rankings/:id", authMiddleware, requireRole("editor", "admin"), async (req: Request, res: Response) => {
     try {
       const validatedData = insertRankingSchema.partial().parse(req.body);
       const updated = await storage.updateRanking(req.params.id, validatedData);
@@ -1741,7 +1744,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
     }
   });
 
-  app.delete("/api/admin/rankings/:id", authMiddleware, async (req: Request, res: Response) => {
+  app.delete("/api/admin/rankings/:id", authMiddleware, requireRole("editor", "admin"), async (req: Request, res: Response) => {
     try {
       const deleted = await storage.deleteRanking(req.params.id);
       if (!deleted) {
@@ -1768,7 +1771,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
     }
   });
 
-  app.post("/api/admin/awards", authMiddleware, async (req: Request, res: Response) => {
+  app.post("/api/admin/awards", authMiddleware, requireRole("editor", "admin"), async (req: Request, res: Response) => {
     try {
       const validatedData = insertAwardSchema.parse(req.body);
       const award = await storage.createAward(validatedData);
@@ -1782,7 +1785,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
     }
   });
 
-  app.put("/api/admin/awards/:id", authMiddleware, async (req: Request, res: Response) => {
+  app.put("/api/admin/awards/:id", authMiddleware, requireRole("editor", "admin"), async (req: Request, res: Response) => {
     try {
       const validatedData = insertAwardSchema.partial().parse(req.body);
       const updated = await storage.updateAward(req.params.id, validatedData);
@@ -1799,7 +1802,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
     }
   });
 
-  app.delete("/api/admin/awards/:id", authMiddleware, async (req: Request, res: Response) => {
+  app.delete("/api/admin/awards/:id", authMiddleware, requireRole("editor", "admin"), async (req: Request, res: Response) => {
     try {
       const deleted = await storage.deleteAward(req.params.id);
       if (!deleted) {
@@ -1826,7 +1829,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
     }
   });
 
-  app.post("/api/admin/clients", authMiddleware, async (req: Request, res: Response) => {
+  app.post("/api/admin/clients", authMiddleware, requireRole("editor", "admin"), async (req: Request, res: Response) => {
     try {
       const validatedData = insertRepresentativeClientSchema.parse(req.body);
       const client = await storage.createRepresentativeClient(validatedData);
@@ -1840,7 +1843,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
     }
   });
 
-  app.put("/api/admin/clients/:id", authMiddleware, async (req: Request, res: Response) => {
+  app.put("/api/admin/clients/:id", authMiddleware, requireRole("editor", "admin"), async (req: Request, res: Response) => {
     try {
       const validatedData = insertRepresentativeClientSchema.partial().parse(req.body);
       const updated = await storage.updateRepresentativeClient(req.params.id, validatedData);
@@ -1857,7 +1860,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
     }
   });
 
-  app.delete("/api/admin/clients/:id", authMiddleware, async (req: Request, res: Response) => {
+  app.delete("/api/admin/clients/:id", authMiddleware, requireRole("editor", "admin"), async (req: Request, res: Response) => {
     try {
       const deleted = await storage.deleteRepresentativeClient(req.params.id);
       if (!deleted) {
@@ -1884,7 +1887,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
     }
   });
 
-  app.post("/api/admin/testimonials", authMiddleware, async (req: Request, res: Response) => {
+  app.post("/api/admin/testimonials", authMiddleware, requireRole("editor", "admin"), async (req: Request, res: Response) => {
     try {
       const validatedData = insertTestimonialSchema.parse(req.body);
       const testimonial = await storage.createTestimonial(validatedData);
@@ -1898,7 +1901,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
     }
   });
 
-  app.put("/api/admin/testimonials/:id", authMiddleware, async (req: Request, res: Response) => {
+  app.put("/api/admin/testimonials/:id", authMiddleware, requireRole("editor", "admin"), async (req: Request, res: Response) => {
     try {
       const validatedData = insertTestimonialSchema.partial().parse(req.body);
       const updated = await storage.updateTestimonial(req.params.id, validatedData);
@@ -1915,7 +1918,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
     }
   });
 
-  app.delete("/api/admin/testimonials/:id", authMiddleware, async (req: Request, res: Response) => {
+  app.delete("/api/admin/testimonials/:id", authMiddleware, requireRole("editor", "admin"), async (req: Request, res: Response) => {
     try {
       const deleted = await storage.deleteTestimonial(req.params.id);
       if (!deleted) {
@@ -1942,7 +1945,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
     }
   });
 
-  app.post("/api/admin/jobs", authMiddleware, async (req: Request, res: Response) => {
+  app.post("/api/admin/jobs", authMiddleware, requireRole("editor", "admin"), async (req: Request, res: Response) => {
     try {
       const validatedData = insertJobOpeningSchema.parse(req.body);
       const job = await storage.createJobOpening(validatedData);
@@ -1956,7 +1959,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
     }
   });
 
-  app.put("/api/admin/jobs/:id", authMiddleware, async (req: Request, res: Response) => {
+  app.put("/api/admin/jobs/:id", authMiddleware, requireRole("editor", "admin"), async (req: Request, res: Response) => {
     try {
       const validatedData = insertJobOpeningSchema.partial().parse(req.body);
       const updated = await storage.updateJobOpening(req.params.id, validatedData);
@@ -1973,7 +1976,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
     }
   });
 
-  app.delete("/api/admin/jobs/:id", authMiddleware, async (req: Request, res: Response) => {
+  app.delete("/api/admin/jobs/:id", authMiddleware, requireRole("editor", "admin"), async (req: Request, res: Response) => {
     try {
       const deleted = await storage.deleteJobOpening(req.params.id);
       if (!deleted) {
@@ -2000,7 +2003,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
     }
   });
 
-  app.post("/api/admin/offices", authMiddleware, async (req: Request, res: Response) => {
+  app.post("/api/admin/offices", authMiddleware, requireRole("editor", "admin"), async (req: Request, res: Response) => {
     try {
       const validatedData = insertOfficeSchema.parse(req.body);
       const office = await storage.createOffice(validatedData);
@@ -2014,7 +2017,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
     }
   });
 
-  app.put("/api/admin/offices/:id", authMiddleware, async (req: Request, res: Response) => {
+  app.put("/api/admin/offices/:id", authMiddleware, requireRole("editor", "admin"), async (req: Request, res: Response) => {
     try {
       const validatedData = insertOfficeSchema.partial().parse(req.body);
       const updated = await storage.updateOffice(req.params.id, validatedData);
@@ -2031,7 +2034,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
     }
   });
 
-  app.delete("/api/admin/offices/:id", authMiddleware, async (req: Request, res: Response) => {
+  app.delete("/api/admin/offices/:id", authMiddleware, requireRole("editor", "admin"), async (req: Request, res: Response) => {
     try {
       const deleted = await storage.deleteOffice(req.params.id);
       if (!deleted) {
@@ -2058,7 +2061,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
     }
   });
 
-  app.post("/api/admin/alliances", authMiddleware, async (req: Request, res: Response) => {
+  app.post("/api/admin/alliances", authMiddleware, requireRole("editor", "admin"), async (req: Request, res: Response) => {
     try {
       const validatedData = insertAllianceSchema.parse(req.body);
       const alliance = await storage.createAlliance(validatedData);
@@ -2072,7 +2075,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
     }
   });
 
-  app.put("/api/admin/alliances/:id", authMiddleware, async (req: Request, res: Response) => {
+  app.put("/api/admin/alliances/:id", authMiddleware, requireRole("editor", "admin"), async (req: Request, res: Response) => {
     try {
       const validatedData = insertAllianceSchema.partial().parse(req.body);
       const updated = await storage.updateAlliance(req.params.id, validatedData);
@@ -2089,7 +2092,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
     }
   });
 
-  app.delete("/api/admin/alliances/:id", authMiddleware, async (req: Request, res: Response) => {
+  app.delete("/api/admin/alliances/:id", authMiddleware, requireRole("editor", "admin"), async (req: Request, res: Response) => {
     try {
       const deleted = await storage.deleteAlliance(req.params.id);
       if (!deleted) {
@@ -2116,7 +2119,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
     }
   });
 
-  app.patch("/api/admin/contact-submissions/:id/read", authMiddleware, async (req: Request, res: Response) => {
+  app.patch("/api/admin/contact-submissions/:id/read", authMiddleware, requireRole("editor", "admin"), async (req: Request, res: Response) => {
     try {
       const found = await storage.markContactSubmissionRead(req.params.id);
       if (!found) {
@@ -2143,7 +2146,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
     }
   });
 
-  app.post("/api/admin/desks", authMiddleware, async (req: Request, res: Response) => {
+  app.post("/api/admin/desks", authMiddleware, requireRole("editor", "admin"), async (req: Request, res: Response) => {
     try {
       const validatedData = insertSpecializedDeskSchema.parse(req.body);
       const desk = await storage.createSpecializedDesk(validatedData);
@@ -2157,7 +2160,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
     }
   });
 
-  app.put("/api/admin/desks/:id", authMiddleware, async (req: Request, res: Response) => {
+  app.put("/api/admin/desks/:id", authMiddleware, requireRole("editor", "admin"), async (req: Request, res: Response) => {
     try {
       const validatedData = insertSpecializedDeskSchema.partial().parse(req.body);
       const updated = await storage.updateSpecializedDesk(req.params.id, validatedData);
@@ -2174,7 +2177,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
     }
   });
 
-  app.delete("/api/admin/desks/:id", authMiddleware, async (req: Request, res: Response) => {
+  app.delete("/api/admin/desks/:id", authMiddleware, requireRole("editor", "admin"), async (req: Request, res: Response) => {
     try {
       const deleted = await storage.deleteSpecializedDesk(req.params.id);
       if (!deleted) {
@@ -2202,7 +2205,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
     }
   });
 
-  app.post("/api/admin/knowledge", authMiddleware, async (req: Request, res: Response) => {
+  app.post("/api/admin/knowledge", authMiddleware, requireRole("editor", "admin"), async (req: Request, res: Response) => {
     try {
       const { category, title, content, agentType, metadata } = req.body;
       if (!category || !title || !content || !agentType) {
@@ -2223,7 +2226,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
     }
   });
 
-  app.put("/api/admin/knowledge/:id", authMiddleware, async (req: Request, res: Response) => {
+  app.put("/api/admin/knowledge/:id", authMiddleware, requireRole("editor", "admin"), async (req: Request, res: Response) => {
     try {
       const { id } = req.params;
       const { category, title, content, agentType, metadata } = req.body;
@@ -2246,7 +2249,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
     }
   });
 
-  app.delete("/api/admin/knowledge/:id", authMiddleware, async (req: Request, res: Response) => {
+  app.delete("/api/admin/knowledge/:id", authMiddleware, requireRole("editor", "admin"), async (req: Request, res: Response) => {
     try {
       const { id } = req.params;
       const { dbPersistence } = await import('./agents/storage/DatabasePersistence');
@@ -2262,7 +2265,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
     }
   });
 
-  app.post("/api/admin/knowledge/bulk", authMiddleware, async (req: Request, res: Response) => {
+  app.post("/api/admin/knowledge/bulk", authMiddleware, requireRole("editor", "admin"), async (req: Request, res: Response) => {
     try {
       const { items } = req.body;
       if (!Array.isArray(items) || items.length === 0) {
@@ -2305,7 +2308,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
   });
 
   // Upload media
-  app.post("/api/admin/media/upload", authMiddleware, upload.single("file"), async (req: Request, res: Response) => {
+  app.post("/api/admin/media/upload", authMiddleware, requireRole("editor", "admin"), upload.single("file"), async (req: Request, res: Response) => {
     try {
       if (!req.file) {
         return res.status(400).json({ error: "No file uploaded" });
@@ -2330,7 +2333,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
   });
 
   // Delete media item
-  app.delete("/api/admin/media/:id", authMiddleware, async (req: Request, res: Response) => {
+  app.delete("/api/admin/media/:id", authMiddleware, requireRole("editor", "admin"), async (req: Request, res: Response) => {
     try {
       const deleted = await storage.deleteMediaItem(req.params.id);
       if (!deleted) {
@@ -2348,7 +2351,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
   // =============================================
 
   // Add a team member to a news article
-  app.post("/api/news/:id/team-members", authMiddleware, async (req: Request, res: Response) => {
+  app.post("/api/news/:id/team-members", authMiddleware, requireRole("editor", "admin"), async (req: Request, res: Response) => {
     try {
       const newsId = req.params.id;
       const { teamMemberId } = req.body;
@@ -2376,7 +2379,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
   });
 
   // Remove a team member from a news article
-  app.delete("/api/news/:id/team-members/:teamMemberId", authMiddleware, async (req: Request, res: Response) => {
+  app.delete("/api/news/:id/team-members/:teamMemberId", authMiddleware, requireRole("editor", "admin"), async (req: Request, res: Response) => {
     try {
       const { id: newsId, teamMemberId } = req.params;
 
@@ -2398,7 +2401,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
   // =============================================
 
   // POST /api/news/:id/validate - Validate and publish article
-  app.post("/api/news/:id/validate", authMiddleware, async (req: Request, res: Response) => {
+  app.post("/api/news/:id/validate", authMiddleware, requireRole("editor", "admin"), async (req: Request, res: Response) => {
     try {
       const { id } = req.params;
       const newsItem = await storage.getNewsById(id);
@@ -2443,7 +2446,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
   });
 
   // POST /api/news/:id/council-review - Re-run council review
-  app.post("/api/news/:id/council-review", authMiddleware, async (req: Request, res: Response) => {
+  app.post("/api/news/:id/council-review", authMiddleware, requireRole("editor", "admin"), async (req: Request, res: Response) => {
     try {
       const { id } = req.params;
       const newsItem = await storage.getNewsById(id);

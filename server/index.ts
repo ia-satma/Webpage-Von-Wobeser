@@ -1,4 +1,5 @@
 import express, { type Request, Response, NextFunction } from "express";
+import cors from "cors";
 import { registerRoutes } from "./routes";
 import { serveStatic } from "./static";
 import { createServer } from "http";
@@ -6,6 +7,13 @@ import { orchestrator } from "./agents/core/AgentOrchestrator";
 
 const app = express();
 const httpServer = createServer(app);
+
+app.use(cors({
+  origin: process.env.CORS_ORIGIN || true,
+  credentials: true,
+  methods: ["GET", "HEAD", "PUT", "PATCH", "POST", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+}));
 
 declare module "http" {
   interface IncomingMessage {

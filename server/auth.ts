@@ -162,6 +162,20 @@ export async function authMiddleware(
   }
 }
 
+export function requireRole(...roles: string[]) {
+  return (req: Request, res: Response, next: NextFunction): void => {
+    if (!req.adminUser) {
+      res.status(401).json({ error: "Authentication required" });
+      return;
+    }
+    if (!roles.includes(req.adminUser.role)) {
+      res.status(403).json({ error: "Insufficient permissions" });
+      return;
+    }
+    next();
+  };
+}
+
 // Clean up expired entries periodically (every hour)
 setInterval(() => {
   const now = Date.now();
