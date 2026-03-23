@@ -195,7 +195,7 @@ export const AI_BRAIN_AGENTS: SystemFeature[] = [
     userBenefit: 'Sistema auto-documentado que habilita la visualización del Centro Nervioso en Vivo y rastrea la historia de evolución de agentes para insights de mejora continua.',
     status: 'production',
     keyCapabilities: [
-      'Registro de 14 agentes',
+      'Registro de 9 agentes',
       'Tracking de evolución (1-5)',
       'Monitoreo de estado en tiempo real',
       'Persistencia de historia',
@@ -994,11 +994,11 @@ export const ADMIN_MODULES: SystemFeature[] = [
     category: 'admin_system',
     name: 'Centro Nervioso de Agentes en Vivo',
     technicalName: 'NerveCenter.tsx + EvolutionTimeline.tsx',
-    technicalDetail: 'Visualización de ecosistema de 14 agentes con refresh automático cada 30 segundos, organización en 3 categorías (Cerebro/Manos/Escudo), nivel de evolución (1-5 puntos), estado de cada agente, timeline narrativo de mejoras con niveles de impacto.',
+    technicalDetail: 'Visualización de ecosistema de 9 agentes con refresh automático cada 30 segundos, organización en 3 categorías (Cerebro/Manos/Escudo), nivel de evolución (1-5 puntos), estado de cada agente, timeline narrativo de mejoras con niveles de impacto.',
     userBenefit: 'Visibilidad total del "sistema nervioso digital". Demuestra la sofisticación tecnológica a stakeholders.',
     status: 'production',
     keyCapabilities: [
-      'Visualización de 14 agentes',
+      'Visualización de 9 agentes',
       'Refresh cada 30 segundos',
       '3 categorías visuales',
       'Niveles de evolución',
