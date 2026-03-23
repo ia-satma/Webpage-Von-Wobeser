@@ -1,0 +1,100 @@
+## PROMPT 6: Security Hardening — CORS + Timing Attack + Lang Validation (MEDIO)
+
+```
+CONTEXTO: Este proyecto es el website de Von Wobeser y Sierra, una firma de abogados mexicana. Usa Express en el backend. No tiene CORS configurado, el login de admin es vulnerable a timing attacks, y el parametro de idioma no se valida.
+
+PROBLEMA: 4 issues de seguridad:
+
+1. SIN CORS: `server/index.ts` no configura CORS middleware. Cualquier dominio puede hacer requests a la API.
+
+2. TIMING ATTACK EN LOGIN: En `server/auth.ts` lineas 75-106, la funcion `recordLoginAttempt` no es el problema real — el timing attack esta en que la respuesta del endpoint de login (en routes.ts) tarda diferente tiempo si el usuario existe vs. no existe, porque `comparePassword` (bcrypt) solo se ejecuta si el usuario se encontro.
+
+3. PARAMETRO LANG SIN VALIDAR: En `server/routes.ts` linea 432, `req.query.lang` se castea como `"es" | "en"` sin validar que realmente sea uno de esos valores: `const language = (req.query.lang as "es" | "en") || "es"`. Un atacante podria enviar valores arbitrarios.
+
+4. SIN RBAC BASICO: Todos los admin users tienen acceso completo. No hay distincion entre admin/editor/viewer.
+
+SOLUCION:
+
+PASO 1 — Agregar CORS en `server/index.ts`:
+Despues de `const app = express();` (linea 7), agrega:
+
+```typescript
+import cors from "cors";
+
+// Antes de otros middlewares
+app.use(cors({
+  origin: process.env.CORS_ORIGIN || true, // In production, set CORS_ORIGIN to your domain
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+}));
+```
+
+Si el paquete `cors` no esta instalado, instala con: `npm install cors` y `npm install -D @types/cors`
+
+PASO 2 — Mitigar timing attack en login (`server/routes.ts`):
+Busca el endpoint POST `/api/admin/login`. Antes de responder "User not found", haz un bcrypt compare con un hash dummy para que el tiempo de respuesta sea constante:
+
+```typescript
+// En el endpoint de login, cuando el usuario no se encuentra:
+if (!adminUser) {
+  // Constant-time: always run bcrypt even if user doesn't exist
+  await comparePassword(password, "$2b$12$InvalidHashToPreventTimingAttackXXXXXXXXXXXX");
+  recordLoginAttempt(identifier, false);
+  return res.status(401).json({ error: "Invalid credentials" });
+}
+```
+
+Esto asegura que la respuesta tarde el mismo tiempo (~250ms de bcrypt) independientemente de si el usuario existe o no.
+
+PASO 3 — Validar parametro `lang` (`server/routes.ts` linea 432):
+Reemplaza:
+```typescript
+const language = (req.query.lang as "es" | "en") || "es";
+```
+Con:
+```typescript
+const langParam = req.query.lang as string;
+const language: "es" | "en" = langParam === "en" ? "en" : "es";
+```
+
+Haz lo mismo en CUALQUIER otro endpoint que use `req.query.lang` — busca en todo el archivo.
+
+PASO 4 — RBAC basico (opcional, si hay tiempo):
+En `shared/schema.ts`, busca la tabla `adminUsers` y agrega un campo `role`:
+```typescript
+role: text("role").default("editor"), // "admin" | "editor" | "viewer"
+```
+
+En `server/auth.ts`, agrega un middleware de roles:
+```typescript
+export function requireRole(...roles: string[]) {
+  return (req: Request, res: Response, next: NextFunction) => {
+    if (!req.adminUser) {
+      return res.status(401).json({ error: "Authentication required" });
+    }
+    if (!roles.includes(req.adminUser.role || "editor")) {
+      return res.status(403).json({ error: "Insufficient permissions" });
+    }
+    next();
+  };
+}
+```
+
+ARCHIVOS A MODIFICAR:
+- `server/index.ts` — agregar CORS middleware
+- `server/routes.ts` — timing attack mitigation en login + validacion de lang
+- `server/auth.ts` — agregar requireRole middleware (opcional)
+- `shared/schema.ts` — agregar campo role a adminUsers (opcional)
+
+RESULTADO ESPERADO:
+1. CORS headers presentes en todas las respuestas de la API
+2. Login tarda el mismo tiempo si el usuario existe o no (mitigacion de timing attack)
+3. Parametro `lang` solo acepta "es" o "en", cualquier otro valor defaultea a "es"
+4. (Opcional) Diferentes niveles de acceso admin
+
+RESTRICCIONES:
+- NO cambies la logica de autenticacion existente (tokens, sessions) — solo agrega las mitigaciones
+- NO bloquees CORS completamente — el frontend necesita hacer requests a la API
+- El RBAC es opcional — solo implementar si no afecta la demo del 23 de marzo
+```
