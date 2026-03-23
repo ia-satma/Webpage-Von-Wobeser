@@ -4,6 +4,7 @@ import { registerRoutes } from "./routes";
 import { serveStatic } from "./static";
 import { createServer } from "http";
 import { orchestrator } from "./agents/core/AgentOrchestrator";
+import { storage } from "./storage";
 
 const app = express();
 const httpServer = createServer(app);
@@ -112,10 +113,13 @@ app.use((req, res, next) => {
         log(`Failed to initialize agent orchestrator: ${error}`, "agents");
       }
 
-      // Hourly maintenance tick — placeholder for future cleanup tasks
-      setInterval(() => {
+      // Hourly maintenance tick — clean expired admin sessions
+      setInterval(async () => {
         try {
-          log("[Scheduler] Hourly tick", "scheduler");
+          const count = await storage.cleanExpiredSessions();
+          if (count > 0) {
+            log(`[Scheduler] Cleaned ${count} expired sessions`, "scheduler");
+          }
         } catch (err) {
           log(`[Scheduler] Error during hourly tick: ${err}`, "scheduler");
         }

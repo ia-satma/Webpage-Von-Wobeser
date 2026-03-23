@@ -1,4 +1,4 @@
-import { eq, desc, asc, and, isNull, gte } from "drizzle-orm";
+import { eq, desc, asc, and, isNull, gte, sql } from "drizzle-orm";
 import { db } from "./db";
 import {
   type User,
@@ -159,6 +159,7 @@ export interface IStorage {
   createAdminSession(session: InsertAdminSession): Promise<AdminSession>;
   getAdminSession(token: string): Promise<AdminSession | undefined>;
   deleteAdminSession(token: string): Promise<boolean>;
+  cleanExpiredSessions(): Promise<number>;
   
   // News Team Members (many-to-many relationship)
   getNewsByTeamMemberId(teamMemberId: string): Promise<News[]>;
@@ -628,6 +629,14 @@ export class DatabaseStorage implements IStorage {
   async deleteAdminSession(token: string): Promise<boolean> {
     const result = await db.delete(adminSessions).where(eq(adminSessions.token, token)).returning();
     return result.length > 0;
+  }
+
+  async cleanExpiredSessions(): Promise<number> {
+    const result = await db
+      .delete(adminSessions)
+      .where(sql`${adminSessions.expiresAt} < NOW()`)
+      .returning();
+    return result.length;
   }
 
   // News Team Members (many-to-many relationship)
