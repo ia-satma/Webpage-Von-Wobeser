@@ -191,7 +191,7 @@ export const AI_BRAIN_AGENTS: SystemFeature[] = [
     category: 'ai_brain',
     name: 'Cronista del Sistema Evolutivo',
     technicalName: 'SystemChronicler',
-    technicalDetail: 'Meta-agente con registro de 14 tarjetas de capacidad, agrupación por categoría (cerebro/manos/escudo), tracking de nivel de evolución (1-5), monitoreo de estado (activo/dormido/evolucionando), persistencia JSON (system_evolution.json).',
+    technicalDetail: 'Meta-agente con registro de 9 tarjetas de capacidad, agrupación por categoría (cerebro/manos/escudo), tracking de nivel de evolución (1-5), monitoreo de estado (activo/dormido/evolucionando), persistencia JSON (system_evolution.json).',
     userBenefit: 'Sistema auto-documentado que habilita la visualización del Centro Nervioso en Vivo y rastrea la historia de evolución de agentes para insights de mejora continua.',
     status: 'production',
     keyCapabilities: [
