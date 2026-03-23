@@ -1,0 +1,161 @@
+## PROMPT 2: Contact Form — Persistencia en DB + Sanitizacion (CRITICO)
+
+```
+CONTEXTO: Este proyecto es el website de Von Wobeser y Sierra, una firma de abogados mexicana. Usa Express + React + TypeScript + Drizzle ORM + PostgreSQL. El contact form del sitio publico permite a potenciales clientes enviar consultas a la firma.
+
+PROBLEMA: El endpoint POST `/api/contact` en `server/routes.ts` (lineas 468-496) recibe submissions del contact form pero SOLO hace console.log — nunca guarda los datos en la base de datos. Si alguien envia una consulta, los datos se pierden cuando el servidor se reinicia. Ademas, los inputs del formulario no se sanitizan contra XSS.
+
+Codigo actual problematico (server/routes.ts lineas 468-496):
+```typescript
+app.post("/api/contact", async (req, res) => {
+  try {
+    const validationResult = contactFormSchema.safeParse(req.body);
+    if (!validationResult.success) {
+      return res.status(400).json({ error: "Validation failed", details: validationResult.error.errors });
+    }
+    const contactData = validationResult.data;
+    console.log("=== New Contact Form Submission ===");
+    console.log("Full Name:", contactData.fullName);
+    // ... mas console.logs ...
+    res.json({ success: true, message: "Contact form submitted successfully" });
+  } catch (error) {
+    console.error("Contact form error:", error);
+    res.status(500).json({ error: "Failed to process contact form" });
+  }
+});
+```
+
+SOLUCION: Implementar en 3 pasos:
+
+PASO 1 — Crear tabla en el schema (`shared/schema.ts`):
+Despues de la definicion de `contactFormSchema` (alrededor de la linea 296), agrega una tabla de base de datos:
+
+```typescript
+export const contactSubmissions = pgTable("contact_submissions", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  fullName: text("full_name").notNull(),
+  email: text("email").notNull(),
+  phone: text("phone"),
+  company: text("company"),
+  practiceArea: text("practice_area"),
+  message: text("message").notNull(),
+  ipAddress: text("ip_address"),
+  submittedAt: timestamp("submitted_at").defaultNow(),
+  read: boolean("read").default(false),
+});
+
+export const insertContactSubmissionSchema = createInsertSchema(contactSubmissions).omit({ id: true, submittedAt: true, read: true });
+export type InsertContactSubmission = z.infer<typeof insertContactSubmissionSchema>;
+export type ContactSubmission = typeof contactSubmissions.$inferSelect;
+```
+
+PASO 2 — Agregar metodos de storage (`server/storage.ts`):
+Agrega estos metodos a la interfaz IStorage y a la clase DatabaseStorage:
+
+En la interfaz IStorage, agrega:
+```typescript
+createContactSubmission(data: InsertContactSubmission): Promise<ContactSubmission>;
+getContactSubmissions(): Promise<ContactSubmission[]>;
+markContactSubmissionRead(id: string): Promise<void>;
+```
+
+En la clase DatabaseStorage, implementa:
+```typescript
+async createContactSubmission(data: InsertContactSubmission): Promise<ContactSubmission> {
+  const [submission] = await db.insert(contactSubmissions).values(data).returning();
+  return submission;
+}
+
+async getContactSubmissions(): Promise<ContactSubmission[]> {
+  return db.select().from(contactSubmissions).orderBy(desc(contactSubmissions.submittedAt));
+}
+
+async markContactSubmissionRead(id: string): Promise<void> {
+  await db.update(contactSubmissions).set({ read: true }).where(eq(contactSubmissions.id, id));
+}
+```
+
+No olvides importar `contactSubmissions` y `InsertContactSubmission` de `@shared/schema` al inicio del archivo.
+
+PASO 3 — Actualizar el endpoint en `server/routes.ts`:
+Reemplaza el endpoint POST `/api/contact` (lineas 468-496) con:
+
+```typescript
+app.post("/api/contact", async (req, res) => {
+  try {
+    const validationResult = contactFormSchema.safeParse(req.body);
+
+    if (!validationResult.success) {
+      return res.status(400).json({
+        error: "Validation failed",
+        details: validationResult.error.errors
+      });
+    }
+
+    const contactData = validationResult.data;
+
+    // Sanitize text inputs — strip HTML tags
+    const sanitize = (str: string) => str.replace(/<[^>]*>/g, '').trim();
+
+    const sanitizedData = {
+      fullName: sanitize(contactData.fullName),
+      email: contactData.email.trim().toLowerCase(),
+      phone: contactData.phone ? sanitize(contactData.phone) : undefined,
+      company: contactData.company ? sanitize(contactData.company) : undefined,
+      practiceArea: contactData.practiceArea ? sanitize(contactData.practiceArea) : undefined,
+      message: sanitize(contactData.message),
+      ipAddress: (req.headers["x-forwarded-for"] as string)?.split(",")[0]?.trim() || req.ip || null,
+    };
+
+    const submission = await storage.createContactSubmission(sanitizedData);
+
+    console.log(`[Contact] New submission from ${sanitizedData.fullName} <${sanitizedData.email}> saved with id ${submission.id}`);
+
+    res.json({ success: true, message: "Contact form submitted successfully" });
+  } catch (error) {
+    console.error("Contact form error:", error);
+    res.status(500).json({ error: "Failed to process contact form" });
+  }
+});
+```
+
+PASO 4 — Agregar endpoint admin para ver submissions (en la seccion de rutas admin autenticadas):
+```typescript
+app.get("/api/admin/contact-submissions", authMiddleware, async (_req, res) => {
+  try {
+    const submissions = await storage.getContactSubmissions();
+    res.json(submissions);
+  } catch (error) {
+    res.status(500).json({ error: "Failed to fetch contact submissions" });
+  }
+});
+
+app.patch("/api/admin/contact-submissions/:id/read", authMiddleware, async (req, res) => {
+  try {
+    await storage.markContactSubmissionRead(req.params.id);
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ error: "Failed to update submission" });
+  }
+});
+```
+
+PASO 5 — Correr la migracion de base de datos:
+Despues de hacer los cambios, ejecuta `npx drizzle-kit push` para crear la tabla en la base de datos.
+
+ARCHIVOS A MODIFICAR:
+- `shared/schema.ts` — agregar tabla contactSubmissions
+- `server/storage.ts` — agregar metodos createContactSubmission, getContactSubmissions, markContactSubmissionRead
+- `server/routes.ts` — reemplazar endpoint POST /api/contact + agregar endpoints admin
+
+RESULTADO ESPERADO:
+1. Enviar el contact form guarda los datos en la tabla `contact_submissions` de PostgreSQL
+2. Los inputs se sanitizan (sin HTML tags)
+3. Un admin puede ver las submissions en GET /api/admin/contact-submissions
+4. Los datos sobreviven reinicios del servidor
+
+RESTRICCIONES:
+- NO modifiques el contactFormSchema (la validacion de Zod existente esta bien)
+- NO modifiques el frontend del contact form — solo el backend
+- Mantene el console.log como respaldo pero el dato primario va a la DB
+```
