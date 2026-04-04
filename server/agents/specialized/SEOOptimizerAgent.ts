@@ -85,12 +85,25 @@ Analyze and provide optimized versions. Return JSON with optimizedTitle, optimiz
 
       if (applyChanges && optimization.seoScore > currentSeoScore) {
         const updates: Record<string, unknown> = {};
-        
+
         if (optimization.optimizedTitle && optimization.optimizedTitle !== article.title) {
           updates.title = optimization.optimizedTitle;
         }
         if (optimization.optimizedTitleEs && optimization.optimizedTitleEs !== article.titleEs) {
           updates.titleEs = optimization.optimizedTitleEs;
+        }
+        if (optimization.suggestedSlug && optimization.suggestedSlug !== article.slug) {
+          const [existing] = await db.select({ id: news.id }).from(news)
+            .where(eq(news.slug, optimization.suggestedSlug));
+          if (!existing || existing.id === articleId) {
+            updates.slug = optimization.suggestedSlug;
+          }
+        }
+        if (optimization.metaDescription && optimization.metaDescription !== article.excerpt) {
+          updates.excerpt = optimization.metaDescription;
+        }
+        if (optimization.metaDescriptionEs && optimization.metaDescriptionEs !== article.excerptEs) {
+          updates.excerptEs = optimization.metaDescriptionEs;
         }
 
         if (Object.keys(updates).length > 0) {

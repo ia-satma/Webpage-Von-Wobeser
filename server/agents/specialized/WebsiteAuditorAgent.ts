@@ -633,14 +633,23 @@ Be thorough but prioritize critical issues that directly impact users.`,
 
   private async checkImageUrl(url: string): Promise<boolean> {
     try {
-      if (url.startsWith('/')) {
-        return true;
-      }
-
+      if (url.startsWith('/')) return true;
       if (url.startsWith('http://') || url.startsWith('https://')) {
-        return true;
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 5000);
+        try {
+          const response = await fetch(url, {
+            method: 'HEAD',
+            signal: controller.signal,
+            redirect: 'follow',
+          });
+          clearTimeout(timeout);
+          return response.ok;
+        } catch {
+          clearTimeout(timeout);
+          return false;
+        }
       }
-
       return false;
     } catch (error) {
       console.error('[WebsiteAuditorAgent] Error checking image URL:', url, error);

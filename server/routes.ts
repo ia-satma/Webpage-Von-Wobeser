@@ -242,7 +242,21 @@ export async function registerRoutes(
   }));
 
   // Serve AI-generated images with Von Wobeser branding
-  app.use('/generated-images', express.static(path.join(process.cwd(), 'public', 'generated-images'), {
+  const generatedImagesDir = path.join(process.cwd(), 'public', 'generated-images');
+  if (!fs.existsSync(generatedImagesDir)) {
+    fs.mkdirSync(generatedImagesDir, { recursive: true });
+  }
+
+  // Explicit route handler — belt-and-suspenders vs SPA catch-all
+  app.get('/generated-images/:filename', (req, res) => {
+    const filePath = path.join(generatedImagesDir, req.params.filename);
+    if (fs.existsSync(filePath)) {
+      return res.sendFile(filePath);
+    }
+    res.status(404).json({ error: 'Image not found' });
+  });
+
+  app.use('/generated-images', express.static(generatedImagesDir, {
     maxAge: '1d',
     immutable: true,
   }));

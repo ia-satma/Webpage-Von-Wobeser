@@ -291,94 +291,74 @@ export class SmartImageGenerator {
 
     const brandEnhancedPrompt = `${originalPrompt}. Style: Professional corporate legal, color scheme featuring deep burgundy red (#AA1A2E) with white and dark gray accents. Sharp geometric edges, no rounded corners. Sophisticated and elegant composition suitable for a prestigious law firm.`;
 
-    this.log('Step 1: Attempting DALL-E 3 with original prompt...');
-    let dalleResult = await this.callDalle3(brandEnhancedPrompt);
+    // Step 1: Gemini (primary)
+    this.log('Step 1: Attempting Gemini image generation (primary)...');
+    const geminiResult = await this.callGeminiImageGen(brandEnhancedPrompt);
     result.retryCount++;
 
-    if (dalleResult.errorCode === 'content_policy_violation') {
-      this.log('DALL-E blocked prompt due to safety filters. Sanitizing prompt...');
-      
-      const { sanitized, wasSanitized, changes } = this.sanitizePromptForContentPolicy(originalPrompt);
-      result.sanitizedPrompt = sanitized;
-      result.promptWasSanitized = wasSanitized;
-      
-      if (wasSanitized) {
-        this.log(`Prompt sanitized. Changes: ${changes.join(', ')}`);
-        
-        const sanitizedBrandPrompt = `${sanitized}. Style: Professional corporate legal, color scheme featuring deep burgundy red (#AA1A2E) with white and dark gray accents. Sharp geometric edges, sophisticated composition.`;
-        
-        this.log('Step 2: Retrying DALL-E 3 with sanitized prompt...');
-        dalleResult = await this.callDalle3(sanitizedBrandPrompt);
-        result.retryCount++;
-      }
-    }
-
-    if (dalleResult.url) {
+    if (geminiResult.buffer) {
       try {
-        const imageBuffer = await this.downloadImage(dalleResult.url);
-        const filename = `article-${articleId}-${Date.now()}.png`;
+        const filename = `article-${articleId}-gemini-${Date.now()}.png`;
         const outputPath = path.join(OUTPUT_DIR, filename);
-        
-        await this.overlayLogo(imageBuffer, outputPath);
-        
+
+        await this.overlayLogo(geminiResult.buffer, outputPath);
+
         result.success = true;
-        result.engine = 'dalle3';
+        result.engine = 'gemini';
         result.imageUrl = `/generated-images/${filename}`;
-        this.log(`SUCCESS: DALL-E 3 image saved with logo overlay: ${result.imageUrl}`);
-      } catch (downloadErr: any) {
-        this.log(`DALL-E image download failed: ${downloadErr.message}`);
-        dalleResult = { error: downloadErr.message, errorCode: 'download_failed' };
+        this.log(`SUCCESS: Gemini image saved with logo overlay: ${result.imageUrl}`);
+      } catch (saveErr: any) {
+        this.log(`Gemini image save failed: ${saveErr.message}`);
       }
-    }
+    } else {
+      this.log(`Gemini failed: ${geminiResult.error}. Trying with sanitized prompt...`);
 
-    if (!result.success) {
-      this.log('Step 3: DALL-E failed. Switching to Gemini fallback...');
-      
-      const geminiPrompt = result.sanitizedPrompt || brandEnhancedPrompt;
-      const geminiResult = await this.callGeminiImageGen(geminiPrompt);
-      result.retryCount++;
+      const { sanitized, wasSanitized, changes } = this.sanitizePromptForContentPolicy(originalPrompt);
+      if (wasSanitized) {
+        result.sanitizedPrompt = sanitized;
+        result.promptWasSanitized = true;
+        this.log(`Prompt sanitized. Changes: ${changes.join(', ')}`);
 
-      if (geminiResult.buffer) {
-        try {
-          const filename = `article-${articleId}-gemini-${Date.now()}.png`;
-          const outputPath = path.join(OUTPUT_DIR, filename);
-          
-          await this.overlayLogo(geminiResult.buffer, outputPath);
-          
-          result.success = true;
-          result.engine = 'gemini';
-          result.imageUrl = `/generated-images/${filename}`;
-          this.log(`SUCCESS: Gemini image saved with logo overlay: ${result.imageUrl}`);
-        } catch (saveErr: any) {
-          this.log(`Gemini image save failed: ${saveErr.message}`);
-          result.errorMessage = saveErr.message;
-          result.errorCode = 'save_failed';
+        const sanitizedBrandPrompt = `${sanitized}. Style: Professional corporate legal, color scheme featuring deep burgundy red (#AA1A2E) with white and dark gray accents. Sharp geometric edges, sophisticated composition.`;
+        const sanitizedResult = await this.callGeminiImageGen(sanitizedBrandPrompt);
+        result.retryCount++;
+
+        if (sanitizedResult.buffer) {
+          try {
+            const filename = `article-${articleId}-gemini-${Date.now()}.png`;
+            const outputPath = path.join(OUTPUT_DIR, filename);
+
+            await this.overlayLogo(sanitizedResult.buffer, outputPath);
+
+            result.success = true;
+            result.engine = 'gemini';
+            result.imageUrl = `/generated-images/${filename}`;
+            this.log(`SUCCESS: Gemini image (sanitized) saved: ${result.imageUrl}`);
+          } catch (saveErr: any) {
+            this.log(`Gemini sanitized image save failed: ${saveErr.message}`);
+          }
         }
-      } else {
-        result.errorMessage = geminiResult.error;
-        result.errorCode = geminiResult.errorCode;
       }
     }
 
+    // Step 2: Placeholder SVG fallback
     if (!result.success) {
-      this.log('All engines failed. Assigning placeholder image.');
+      this.log('Step 2: Gemini failed. Assigning placeholder image.');
       result.engine = 'placeholder';
       result.imageUrl = '/placeholder-article.svg';
-      result.success = false;
+      result.success = true;
       result.fallbackUsed = true;
-      result.errorMessage = dalleResult.error || 'All image generation engines failed';
+      result.errorMessage = geminiResult.error || 'All image generation engines failed';
     }
 
     result.transparencyLog = [...this.transparencyLog];
-    
-    const summaryLog = result.success
+
+    const summaryLog = result.success && result.engine !== 'placeholder'
       ? `Image generated using ${result.engine.toUpperCase()}${result.promptWasSanitized ? ' (prompt sanitized for safety)' : ''}`
-      : result.fallbackUsed
-        ? `Image generation failed, placeholder assigned: ${result.errorMessage}`
-        : `Image generation failed: ${result.errorMessage}`;
-    
+      : `Image generation failed, placeholder assigned: ${result.errorMessage}`;
+
     this.log(summaryLog);
-    
+
     return result;
   }
 }
