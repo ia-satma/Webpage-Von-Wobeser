@@ -250,7 +250,7 @@ export class SmartImageGenerator {
 
   private async callGeminiImageGen(prompt: string): Promise<{ buffer?: Buffer; error?: string; errorCode?: string }> {
     try {
-      this.log('Attempting Gemini image generation as fallback...');
+      this.log('Attempting Gemini image generation...');
       
       const response = await geminiAI.models.generateContent({
         model: "gemini-2.5-flash-image",
