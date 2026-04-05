@@ -1,5 +1,5 @@
 import { Switch, Route, useLocation } from "wouter";
-import { useEffect } from "react";
+import { useEffect, lazy, Suspense } from "react";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
@@ -15,52 +15,54 @@ function ScrollToTop() {
   
   return null;
 }
-import NotFound from "@/pages/not-found";
+
 import Home from "@/pages/Home";
-import PracticeGroups from "@/pages/PracticeGroups";
-import PracticeGroupDetail from "@/pages/PracticeGroupDetail";
-import IndustryGroups from "@/pages/IndustryGroups";
-import IndustryGroupDetail from "@/pages/IndustryGroupDetail";
-import Team from "@/pages/Team";
-import TeamMemberDetail from "@/pages/TeamMemberDetail";
-import NewsDetail from "@/pages/NewsDetail";
-import News from "@/pages/News";
-import Contact from "@/pages/Contact";
-import About from "@/pages/About";
-import Careers from "@/pages/Careers";
-import Interns from "@/pages/Interns";
-import Experience from "@/pages/Experience";
-import PrivacyPolicy from "@/pages/PrivacyPolicy";
-import Terms from "@/pages/Terms";
-import Rankings from "@/pages/Rankings";
-import Offices from "@/pages/Offices";
-import DiversityInclusion from "@/pages/DiversityInclusion";
-import ProBono from "@/pages/ProBono";
-import GermanDesk from "@/pages/GermanDesk";
-import Articles from "@/pages/Articles";
-import Newsletter from "@/pages/Newsletter";
-import Events from "@/pages/Events";
-import AdminLogin from "@/pages/admin/AdminLogin";
-import AdminDashboard from "@/pages/admin/AdminDashboard";
-import AdminPosts from "@/pages/admin/AdminPosts";
-import AdminPostForm from "@/pages/admin/AdminPostForm";
-import AdminCategories from "@/pages/admin/AdminCategories";
-import AdminNews from "@/pages/admin/AdminNews";
-import AdminAgents from "@/pages/AdminAgents";
-import AdminArticleProcessing from "@/pages/admin/AdminArticleProcessing";
-import AdminAudits from "@/pages/admin/AdminAudits";
-import AdminTeam from "@/pages/admin/AdminTeam";
-import AdminTeamForm from "@/pages/admin/AdminTeamForm";
-import AdminGuide from "@/pages/admin/AdminGuide";
-import AdminPerformance from "@/pages/admin/AdminPerformance";
-import AdminPracticeGroups from "@/pages/admin/AdminPracticeGroups";
-import AdminIndustryGroups from "@/pages/admin/AdminIndustryGroups";
-import AdminKnowledge from "@/pages/admin/AdminKnowledge";
-import AdminTranslations from "@/pages/admin/AdminTranslations";
-import AdminEvents from "@/pages/admin/AdminEvents";
-import AdminHealthCheck from "@/pages/admin/AdminHealthCheck";
-import SystemExplorer from "@/pages/admin/SystemExplorer";
-import AdminArticleDetail from "@/pages/admin/AdminArticleDetail";
+import NotFound from "@/pages/not-found";
+
+const PracticeGroups = lazy(() => import("@/pages/PracticeGroups"));
+const PracticeGroupDetail = lazy(() => import("@/pages/PracticeGroupDetail"));
+const IndustryGroups = lazy(() => import("@/pages/IndustryGroups"));
+const IndustryGroupDetail = lazy(() => import("@/pages/IndustryGroupDetail"));
+const Team = lazy(() => import("@/pages/Team"));
+const TeamMemberDetail = lazy(() => import("@/pages/TeamMemberDetail"));
+const NewsDetail = lazy(() => import("@/pages/NewsDetail"));
+const News = lazy(() => import("@/pages/News"));
+const Contact = lazy(() => import("@/pages/Contact"));
+const About = lazy(() => import("@/pages/About"));
+const Careers = lazy(() => import("@/pages/Careers"));
+const Interns = lazy(() => import("@/pages/Interns"));
+const Experience = lazy(() => import("@/pages/Experience"));
+const PrivacyPolicy = lazy(() => import("@/pages/PrivacyPolicy"));
+const Terms = lazy(() => import("@/pages/Terms"));
+const Rankings = lazy(() => import("@/pages/Rankings"));
+const Offices = lazy(() => import("@/pages/Offices"));
+const DiversityInclusion = lazy(() => import("@/pages/DiversityInclusion"));
+const ProBono = lazy(() => import("@/pages/ProBono"));
+const GermanDesk = lazy(() => import("@/pages/GermanDesk"));
+const Articles = lazy(() => import("@/pages/Articles"));
+const Newsletter = lazy(() => import("@/pages/Newsletter"));
+const Events = lazy(() => import("@/pages/Events"));
+const AdminLogin = lazy(() => import("@/pages/admin/AdminLogin"));
+const AdminDashboard = lazy(() => import("@/pages/admin/AdminDashboard"));
+const AdminPosts = lazy(() => import("@/pages/admin/AdminPosts"));
+const AdminPostForm = lazy(() => import("@/pages/admin/AdminPostForm"));
+const AdminCategories = lazy(() => import("@/pages/admin/AdminCategories"));
+const AdminNews = lazy(() => import("@/pages/admin/AdminNews"));
+const AdminAgents = lazy(() => import("@/pages/AdminAgents"));
+const AdminArticleProcessing = lazy(() => import("@/pages/admin/AdminArticleProcessing"));
+const AdminAudits = lazy(() => import("@/pages/admin/AdminAudits"));
+const AdminTeam = lazy(() => import("@/pages/admin/AdminTeam"));
+const AdminTeamForm = lazy(() => import("@/pages/admin/AdminTeamForm"));
+const AdminGuide = lazy(() => import("@/pages/admin/AdminGuide"));
+const AdminPerformance = lazy(() => import("@/pages/admin/AdminPerformance"));
+const AdminPracticeGroups = lazy(() => import("@/pages/admin/AdminPracticeGroups"));
+const AdminIndustryGroups = lazy(() => import("@/pages/admin/AdminIndustryGroups"));
+const AdminKnowledge = lazy(() => import("@/pages/admin/AdminKnowledge"));
+const AdminTranslations = lazy(() => import("@/pages/admin/AdminTranslations"));
+const AdminEvents = lazy(() => import("@/pages/admin/AdminEvents"));
+const AdminHealthCheck = lazy(() => import("@/pages/admin/AdminHealthCheck"));
+const SystemExplorer = lazy(() => import("@/pages/admin/SystemExplorer"));
+const AdminArticleDetail = lazy(() => import("@/pages/admin/AdminArticleDetail"));
 
 function SkipLinks() {
   const { language } = useLanguage();
@@ -132,56 +134,58 @@ function SkipLinks() {
 
 function Router() {
   return (
-    <Switch>
-      <Route path="/" component={Home} />
-      <Route path="/about" component={About} />
-      <Route path="/practice-groups" component={PracticeGroups} />
-      <Route path="/practice-groups/:slug" component={PracticeGroupDetail} />
-      <Route path="/industry-groups" component={IndustryGroups} />
-      <Route path="/industry-groups/:slug" component={IndustryGroupDetail} />
-      <Route path="/team" component={Team} />
-      <Route path="/team/:slug" component={TeamMemberDetail} />
-      <Route path="/news" component={News} />
-      <Route path="/news/:slug" component={NewsDetail} />
-      <Route path="/contact" component={Contact} />
-      <Route path="/careers" component={Careers} />
-      <Route path="/careers/interns" component={Interns} />
-      <Route path="/experience" component={Experience} />
-      <Route path="/privacy-policy" component={PrivacyPolicy} />
-      <Route path="/terms" component={Terms} />
-      <Route path="/rankings" component={Rankings} />
-      <Route path="/offices" component={Offices} />
-      <Route path="/diversity-inclusion" component={DiversityInclusion} />
-      <Route path="/pro-bono" component={ProBono} />
-      <Route path="/german-desk" component={GermanDesk} />
-      <Route path="/articles" component={Articles} />
-      <Route path="/newsletter" component={Newsletter} />
-      <Route path="/events" component={Events} />
-      <Route path="/admin/login" component={AdminLogin} />
-      <Route path="/admin/dashboard" component={AdminDashboard} />
-      <Route path="/admin/posts" component={AdminPosts} />
-      <Route path="/admin/posts/new" component={AdminPostForm} />
-      <Route path="/admin/posts/:id/edit" component={AdminPostForm} />
-      <Route path="/admin/categories" component={AdminCategories} />
-      <Route path="/admin/news" component={AdminNews} />
-      <Route path="/admin/news/:id" component={AdminArticleDetail} />
-      <Route path="/admin/agents" component={AdminAgents} />
-      <Route path="/admin/processing" component={AdminArticleProcessing} />
-      <Route path="/admin/audits" component={AdminAudits} />
-      <Route path="/admin/team" component={AdminTeam} />
-      <Route path="/admin/team/new" component={AdminTeamForm} />
-      <Route path="/admin/team/:id/edit" component={AdminTeamForm} />
-      <Route path="/admin/guide" component={AdminGuide} />
-      <Route path="/admin/performance" component={AdminPerformance} />
-      <Route path="/admin/practice-groups" component={AdminPracticeGroups} />
-      <Route path="/admin/industry-groups" component={AdminIndustryGroups} />
-      <Route path="/admin/knowledge" component={AdminKnowledge} />
-      <Route path="/admin/translations" component={AdminTranslations} />
-      <Route path="/admin/events" component={AdminEvents} />
-      <Route path="/admin/health-check" component={AdminHealthCheck} />
-      <Route path="/admin/explorer" component={SystemExplorer} />
-      <Route component={NotFound} />
-    </Switch>
+    <Suspense fallback={null}>
+      <Switch>
+        <Route path="/" component={Home} />
+        <Route path="/about" component={About} />
+        <Route path="/practice-groups" component={PracticeGroups} />
+        <Route path="/practice-groups/:slug" component={PracticeGroupDetail} />
+        <Route path="/industry-groups" component={IndustryGroups} />
+        <Route path="/industry-groups/:slug" component={IndustryGroupDetail} />
+        <Route path="/team" component={Team} />
+        <Route path="/team/:slug" component={TeamMemberDetail} />
+        <Route path="/news" component={News} />
+        <Route path="/news/:slug" component={NewsDetail} />
+        <Route path="/contact" component={Contact} />
+        <Route path="/careers" component={Careers} />
+        <Route path="/careers/interns" component={Interns} />
+        <Route path="/experience" component={Experience} />
+        <Route path="/privacy-policy" component={PrivacyPolicy} />
+        <Route path="/terms" component={Terms} />
+        <Route path="/rankings" component={Rankings} />
+        <Route path="/offices" component={Offices} />
+        <Route path="/diversity-inclusion" component={DiversityInclusion} />
+        <Route path="/pro-bono" component={ProBono} />
+        <Route path="/german-desk" component={GermanDesk} />
+        <Route path="/articles" component={Articles} />
+        <Route path="/newsletter" component={Newsletter} />
+        <Route path="/events" component={Events} />
+        <Route path="/admin/login" component={AdminLogin} />
+        <Route path="/admin/dashboard" component={AdminDashboard} />
+        <Route path="/admin/posts" component={AdminPosts} />
+        <Route path="/admin/posts/new" component={AdminPostForm} />
+        <Route path="/admin/posts/:id/edit" component={AdminPostForm} />
+        <Route path="/admin/categories" component={AdminCategories} />
+        <Route path="/admin/news" component={AdminNews} />
+        <Route path="/admin/news/:id" component={AdminArticleDetail} />
+        <Route path="/admin/agents" component={AdminAgents} />
+        <Route path="/admin/processing" component={AdminArticleProcessing} />
+        <Route path="/admin/audits" component={AdminAudits} />
+        <Route path="/admin/team" component={AdminTeam} />
+        <Route path="/admin/team/new" component={AdminTeamForm} />
+        <Route path="/admin/team/:id/edit" component={AdminTeamForm} />
+        <Route path="/admin/guide" component={AdminGuide} />
+        <Route path="/admin/performance" component={AdminPerformance} />
+        <Route path="/admin/practice-groups" component={AdminPracticeGroups} />
+        <Route path="/admin/industry-groups" component={AdminIndustryGroups} />
+        <Route path="/admin/knowledge" component={AdminKnowledge} />
+        <Route path="/admin/translations" component={AdminTranslations} />
+        <Route path="/admin/events" component={AdminEvents} />
+        <Route path="/admin/health-check" component={AdminHealthCheck} />
+        <Route path="/admin/explorer" component={SystemExplorer} />
+        <Route component={NotFound} />
+      </Switch>
+    </Suspense>
   );
 }
 

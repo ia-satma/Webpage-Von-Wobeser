@@ -251,13 +251,14 @@ export async function registerRoutes(
   app.get('/generated-images/:filename', (req, res) => {
     const filePath = path.join(generatedImagesDir, req.params.filename);
     if (fs.existsSync(filePath)) {
+      res.set('Cache-Control', 'public, max-age=31536000, immutable');
       return res.sendFile(filePath);
     }
     res.status(404).json({ error: 'Image not found' });
   });
 
   app.use('/generated-images', express.static(generatedImagesDir, {
-    maxAge: '1d',
+    maxAge: '365d',
     immutable: true,
   }));
 
@@ -398,6 +399,7 @@ export async function registerRoutes(
       const allNews = await storage.getNews();
       const now = new Date();
       const news = allNews.filter(n => n.published && (!n.publishAt || new Date(n.publishAt) <= now));
+      res.set("Cache-Control", "public, max-age=60");
       res.json(news);
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch published news" });
@@ -465,6 +467,7 @@ export async function registerRoutes(
   app.get("/api/practice-groups", async (_req, res) => {
     try {
       const groups = await storage.getPracticeGroups();
+      res.set("Cache-Control", "public, max-age=60");
       res.json(groups);
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch practice groups" });
@@ -490,6 +493,7 @@ export async function registerRoutes(
   app.get("/api/industry-groups", async (_req, res) => {
     try {
       const groups = await storage.getIndustryGroups();
+      res.set("Cache-Control", "public, max-age=60");
       res.json(groups);
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch industry groups" });
@@ -515,6 +519,7 @@ export async function registerRoutes(
   app.get("/api/team", async (_req, res) => {
     try {
       const members = await storage.getTeamMembers();
+      res.set("Cache-Control", "public, max-age=60");
       res.json(members);
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch team members" });
@@ -524,6 +529,7 @@ export async function registerRoutes(
   app.get("/api/team/partners", async (_req, res) => {
     try {
       const partners = await storage.getPartners();
+      res.set("Cache-Control", "public, max-age=60");
       res.json(partners);
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch partners" });
