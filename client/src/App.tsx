@@ -17,7 +17,7 @@ function ScrollToTop() {
 }
 
 import Home from "@/pages/Home";
-import NotFound from "@/pages/not-found";
+const NotFound = lazy(() => import("@/pages/not-found"));
 
 const PracticeGroups = lazy(() => import("@/pages/PracticeGroups"));
 const PracticeGroupDetail = lazy(() => import("@/pages/PracticeGroupDetail"));
