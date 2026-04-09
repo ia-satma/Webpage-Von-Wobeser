@@ -521,7 +521,7 @@ export default function GermanDesk() {
   };
 
   return (
-    <div className="min-h-screen bg-white dark:bg-gray-900 overflow-x-hidden" data-testid="page-german-desk">
+    <div className="min-h-screen bg-background overflow-x-hidden" data-testid="page-german-desk">
       <SEOHead page="germanDesk" language={language} />
       <Header />
       
@@ -562,10 +562,10 @@ export default function GermanDesk() {
               {t.experienceTitle}
             </h2>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              <p className="text-lg text-gray-700 dark:text-gray-300 leading-relaxed" data-testid="text-experience-1">
+              <p className="text-lg text-foreground leading-relaxed" data-testid="text-experience-1">
                 {t.experienceText1}
               </p>
-              <p className="text-lg text-gray-700 dark:text-gray-300 leading-relaxed" data-testid="text-experience-2">
+              <p className="text-lg text-foreground leading-relaxed" data-testid="text-experience-2">
                 {t.experienceText2}
               </p>
             </div>
@@ -585,7 +585,7 @@ export default function GermanDesk() {
               <p className="text-lg text-primary font-medium mb-4" data-testid="text-team-subtitle">
                 {t.teamSubtitle}
               </p>
-              <p className="text-lg text-gray-700 dark:text-gray-300 leading-relaxed max-w-4xl mx-auto" data-testid="text-team-intro">
+              <p className="text-lg text-foreground leading-relaxed max-w-4xl mx-auto" data-testid="text-team-intro">
                 {t.teamIntro}
               </p>
             </div>
@@ -598,17 +598,17 @@ export default function GermanDesk() {
             >
               {t.teamHighlights.map((highlight, index) => (
                 <motion.div key={index} variants={itemVariants}>
-                  <Card className="h-full rounded-md border border-gray-200 dark:border-gray-700" data-testid={`card-team-highlight-${index}`}>
+                  <Card className="h-full rounded-md border border-border" data-testid={`card-team-highlight-${index}`}>
                     <CardContent className="p-6">
                       <div className="flex items-start gap-4">
                         <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
                           <highlight.icon className="w-6 h-6 text-primary" />
                         </div>
                         <div>
-                          <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-2">
+                          <h3 className="text-lg font-semibold text-foreground mb-2">
                             {highlight.title}
                           </h3>
-                          <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
+                          <p className="text-sm text-muted-foreground leading-relaxed">
                             {highlight.text}
                           </p>
                         </div>
@@ -631,22 +631,22 @@ export default function GermanDesk() {
               <h2 className="text-2xl font-heading font-light text-[#AA1A2E] mb-4 uppercase tracking-[0.12em]" data-testid="text-services-title">
                 {t.servicesTitle}
               </h2>
-              <p className="text-lg text-gray-600 dark:text-gray-400" data-testid="text-services-subtitle">
+              <p className="text-lg text-muted-foreground" data-testid="text-services-subtitle">
                 {t.servicesSubtitle}
               </p>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {t.services.map((service, index) => (
                 <motion.div key={index} variants={itemVariants}>
-                  <Card className="h-full rounded-md border border-gray-200 dark:border-gray-700 text-center" data-testid={`card-service-${index}`}>
+                  <Card className="h-full rounded-md border border-border text-center" data-testid={`card-service-${index}`}>
                     <CardContent className="p-6">
                       <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
                         <service.icon className="w-7 h-7 text-primary" />
                       </div>
-                      <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-2">
+                      <h3 className="text-lg font-semibold text-foreground mb-2">
                         {service.title}
                       </h3>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">
+                      <p className="text-sm text-muted-foreground">
                         {service.text}
                       </p>
                     </CardContent>
@@ -673,7 +673,7 @@ export default function GermanDesk() {
               <p className="text-lg text-primary font-medium mb-4" data-testid="text-differentiator-subtitle">
                 {t.differentiatorSubtitle}
               </p>
-              <p className="text-lg text-gray-700 dark:text-gray-300 leading-relaxed max-w-4xl mx-auto" data-testid="text-differentiator-intro">
+              <p className="text-lg text-foreground leading-relaxed max-w-4xl mx-auto" data-testid="text-differentiator-intro">
                 {t.differentiatorIntro}
               </p>
             </div>
@@ -683,16 +683,16 @@ export default function GermanDesk() {
                 <motion.div 
                   key={index} 
                   variants={itemVariants}
-                  className="text-center bg-white dark:bg-gray-800 rounded-md p-6 shadow-sm"
+                  className="text-center bg-card rounded-md p-6 shadow-sm"
                   data-testid={`card-differentiator-${index}`}
                 >
                   <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-3">
                     <point.icon className="w-6 h-6 text-primary" />
                   </div>
-                  <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-2">
+                  <h3 className="text-lg font-semibold text-foreground mb-2">
                     {point.title}
                   </h3>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                  <p className="text-sm text-muted-foreground">
                     {point.text}
                   </p>
                 </motion.div>
@@ -721,7 +721,7 @@ export default function GermanDesk() {
                   <div className="text-4xl md:text-5xl font-light text-primary mb-2">
                     {stat.value}
                   </div>
-                  <div className="text-sm text-gray-600 dark:text-gray-400">
+                  <div className="text-sm text-muted-foreground">
                     {stat.label}
                   </div>
                 </motion.div>
@@ -736,12 +736,12 @@ export default function GermanDesk() {
             className="mb-10"
             data-testid="section-cta"
           >
-            <Card className="rounded-md border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800">
+            <Card className="rounded-md border border-border bg-muted">
               <CardContent className="p-8 text-center">
                 <h2 className="text-xl font-heading font-light text-[#AA1A2E] mb-4 uppercase tracking-[0.12em]" data-testid="text-cta-title">
                   {t.ctaTitle}
                 </h2>
-                <p className="text-lg text-gray-700 dark:text-gray-300 mb-8 max-w-2xl mx-auto" data-testid="text-cta-description">
+                <p className="text-lg text-foreground mb-8 max-w-2xl mx-auto" data-testid="text-cta-description">
                   {t.ctaText}
                 </p>
                 <div className="flex flex-col sm:flex-row gap-4 justify-center">

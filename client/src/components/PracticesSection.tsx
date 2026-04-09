@@ -142,7 +142,7 @@ export default function PracticesSection() {
   return (
     <section
       id="practices"
-      className="py-20 lg:py-28 bg-white dark:bg-gray-900"
+      className="py-20 lg:py-28 bg-background"
       data-testid="section-practices"
     >
       <div className="max-w-7xl mx-auto px-6 lg:px-12">
@@ -178,7 +178,7 @@ export default function PracticesSection() {
                 <span className="text-sm font-medium text-primary min-w-[24px]" data-testid={`text-practice-number-${area.id}`}>
                   {area.id}.
                 </span>
-                <span className="text-base text-gray-700 dark:text-gray-300 group-hover:text-primary transition-colors" data-testid={`text-practice-name-${area.id}`}>
+                <span className="text-base text-foreground group-hover:text-primary transition-colors" data-testid={`text-practice-name-${area.id}`}>
                   {getPracticeAreaName(area, language)}
                 </span>
               </Link>

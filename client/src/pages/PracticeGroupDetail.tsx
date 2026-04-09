@@ -161,7 +161,7 @@ function TranslatedMatterCard({ matter, language, t }: TranslatedMatterCardProps
 
   return (
     <Card 
-      className={`rounded-md border ${matter.isHighlight ? 'border-primary/30 bg-primary/5 dark:bg-primary/10' : 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800'}`}
+      className={`rounded-md border ${matter.isHighlight ? 'border-primary/30 bg-primary/5 dark:bg-primary/10' : 'border-border bg-card'}`}
       data-testid={`card-matter-${matter.id}`}
     >
       <CardContent className="p-6">
@@ -183,7 +183,7 @@ function TranslatedMatterCard({ matter, language, t }: TranslatedMatterCardProps
               </Badge>
             </div>
             <h3 
-              className="font-semibold text-gray-800 dark:text-white text-lg"
+              className="font-semibold text-foreground text-lg"
               data-testid={`text-matter-title-${matter.id}`}
             >
               {displayTitle}
@@ -191,7 +191,7 @@ function TranslatedMatterCard({ matter, language, t }: TranslatedMatterCardProps
           </div>
         </div>
         <p 
-          className="text-gray-600 dark:text-gray-400 mb-3"
+          className="text-muted-foreground mb-3"
           data-testid={`text-matter-description-${matter.id}`}
         >
           {displayDescription}
@@ -599,12 +599,12 @@ export default function PracticeGroupDetail() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-white dark:bg-gray-900" data-testid="page-practice-group-error">
+      <div className="min-h-screen bg-background" data-testid="page-practice-group-error">
         <Header />
         <div className="pt-32 pb-20">
           <div className="max-w-7xl mx-auto px-6 lg:px-12 text-center">
             <AlertCircle className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-            <h2 className="text-2xl font-heading text-gray-800 dark:text-white mb-4" data-testid="text-error-title">
+            <h2 className="text-2xl font-heading text-foreground mb-4" data-testid="text-error-title">
               {t.errorMessage}
             </h2>
             <Link href="/practice-groups">
@@ -622,14 +622,14 @@ export default function PracticeGroupDetail() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-white dark:bg-gray-900" data-testid="page-practice-group-loading">
+      <div className="min-h-screen bg-background" data-testid="page-practice-group-loading">
         <Header />
         <section className="pt-32 pb-12 bg-primary">
           <div className="max-w-7xl mx-auto px-6 lg:px-12">
-            <Skeleton className="h-5 w-48 bg-white/20 mb-6" />
+            <Skeleton className="h-5 w-48 bg-card/20 mb-6" />
             <div className="flex items-center gap-4">
-              <Skeleton className="h-16 w-16 rounded-md bg-white/20" />
-              <Skeleton className="h-12 w-64 bg-white/20" />
+              <Skeleton className="h-16 w-16 rounded-md bg-card/20" />
+              <Skeleton className="h-12 w-64 bg-card/20" />
             </div>
           </div>
         </section>
@@ -665,7 +665,7 @@ export default function PracticeGroupDetail() {
   const renderMemberCard = (member: TeamMember) => (
     <Link key={member.id} href={`/team/${member.slug}`}>
       <Card 
-        className="rounded-md border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:shadow-md transition-shadow cursor-pointer"
+        className="rounded-md border border-border bg-card hover:shadow-md transition-shadow cursor-pointer"
         data-testid={`card-team-member-${member.slug}`}
       >
         <CardContent className="p-4 flex items-center gap-4">
@@ -677,13 +677,13 @@ export default function PracticeGroupDetail() {
           </Avatar>
           <div className="flex-1 min-w-0">
             <h3 
-              className="font-semibold text-gray-800 dark:text-white truncate"
+              className="font-semibold text-foreground truncate"
               data-testid={`text-team-member-name-${member.slug}`}
             >
               {member.name}
             </h3>
             <p 
-              className="text-sm text-gray-600 dark:text-gray-400 truncate"
+              className="text-sm text-muted-foreground truncate"
               data-testid={`text-team-member-role-${member.slug}`}
             >
               {language === "es" ? member.roleEs : member.role}
@@ -696,7 +696,7 @@ export default function PracticeGroupDetail() {
   );
 
   return (
-    <div className="min-h-screen bg-white dark:bg-gray-900" data-testid="page-practice-group-detail">
+    <div className="min-h-screen bg-background" data-testid="page-practice-group-detail">
       <Header />
       
       <section className="pt-32 pb-12 bg-primary" data-testid="section-practice-group-hero">
@@ -717,7 +717,7 @@ export default function PracticeGroupDetail() {
             </Link>
             <div className="flex items-center gap-4">
               {IconComponent && (
-                <div className="w-16 h-16 rounded-md bg-white/10 flex items-center justify-center">
+                <div className="w-16 h-16 rounded-md bg-card/10 flex items-center justify-center">
                   <IconComponent className="w-8 h-8 text-white" data-testid="icon-practice-group-detail" />
                 </div>
               )}
@@ -751,11 +751,11 @@ export default function PracticeGroupDetail() {
               data-testid="container-practice-group-description"
             >
               {displayDescription ? (
-                <p className="text-lg text-gray-700 dark:text-gray-300 leading-relaxed text-justify sm:text-left">
+                <p className="text-lg text-foreground leading-relaxed text-justify sm:text-left">
                   {displayDescription}
                 </p>
               ) : (practiceGroup?.descriptionEs || practiceGroup?.description) && isTranslating ? (
-                <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400 italic">
+                <div className="flex items-center gap-2 text-muted-foreground italic">
                   <Loader2 className="w-4 h-4 animate-spin" />
                   <span data-testid="text-translation-pending">
                     {language === 'de' ? 'Übersetzung lädt...' :
@@ -784,14 +784,14 @@ export default function PracticeGroupDetail() {
               <div className="flex items-center gap-3 mb-4">
                 <Trophy className="w-6 h-6 text-primary" />
                 <h2 
-                  className="text-xl font-heading font-light text-gray-800 dark:text-white uppercase tracking-[0.12em]"
+                  className="text-xl font-heading font-light text-foreground uppercase tracking-[0.12em]"
                   data-testid="text-success-cases-title"
                 >
                   {t.successCasesTitle}
                 </h2>
               </div>
               <p 
-                className="text-gray-600 dark:text-gray-400 mb-6"
+                className="text-muted-foreground mb-6"
                 data-testid="text-success-cases-subtitle"
               >
                 {t.successCasesSubtitle}
@@ -826,14 +826,14 @@ export default function PracticeGroupDetail() {
               <div className="flex items-center gap-3 mb-4">
                 <Award className="w-6 h-6 text-primary" />
                 <h2 
-                  className="text-xl font-heading font-light text-gray-800 dark:text-white uppercase tracking-[0.12em]"
+                  className="text-xl font-heading font-light text-foreground uppercase tracking-[0.12em]"
                   data-testid="text-rankings-title"
                 >
                   {t.rankingsTitle}
                 </h2>
               </div>
               <p 
-                className="text-gray-600 dark:text-gray-400 mb-6"
+                className="text-muted-foreground mb-6"
                 data-testid="text-rankings-subtitle"
               >
                 {t.rankingsSubtitle}
@@ -842,19 +842,19 @@ export default function PracticeGroupDetail() {
                 {practiceRankings.map((ranking, index) => (
                   <Card 
                     key={index}
-                    className="rounded-md border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800"
+                    className="rounded-md border border-border bg-card"
                     data-testid={`card-ranking-${index}`}
                   >
                     <CardContent className="p-4 flex items-center justify-between gap-4">
                       <div className="flex-1 min-w-0">
                         <p 
-                          className="font-medium text-gray-800 dark:text-white"
+                          className="font-medium text-foreground"
                           data-testid={`text-ranking-publication-${index}`}
                         >
                           {ranking.publication}
                         </p>
                         <p 
-                          className="text-sm text-gray-500 dark:text-gray-400"
+                          className="text-sm text-muted-foreground"
                           data-testid={`text-ranking-year-${index}`}
                         >
                           {ranking.year}
@@ -885,7 +885,7 @@ export default function PracticeGroupDetail() {
               data-testid="section-team-members"
             >
               <h2 
-                className="text-xl font-heading font-light text-gray-800 dark:text-white mb-8 uppercase tracking-[0.12em]"
+                className="text-xl font-heading font-light text-foreground mb-8 uppercase tracking-[0.12em]"
                 data-testid="text-our-team-title"
               >
                 {t.ourTeam}
@@ -894,7 +894,7 @@ export default function PracticeGroupDetail() {
               {filteredAndGroupedMembers.partners.length > 0 && (
                 <div className="mb-8" data-testid="section-partners">
                   <h3 
-                    className="text-lg font-semibold text-gray-700 dark:text-gray-300 mb-4 flex items-center gap-2"
+                    className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2"
                     data-testid="text-partners-title"
                   >
                     <Badge className="bg-primary text-white rounded-md text-xs">
@@ -911,7 +911,7 @@ export default function PracticeGroupDetail() {
               {filteredAndGroupedMembers.ofCounsel.length > 0 && (
                 <div className="mb-8" data-testid="section-of-counsel">
                   <h3 
-                    className="text-lg font-semibold text-gray-700 dark:text-gray-300 mb-4 flex items-center gap-2"
+                    className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2"
                     data-testid="text-of-counsel-title"
                   >
                     <Badge className="bg-amber-600 text-white rounded-md text-xs">
@@ -928,7 +928,7 @@ export default function PracticeGroupDetail() {
               {displayedAssociates.length > 0 && (
                 <div data-testid="section-associates">
                   <h3 
-                    className="text-lg font-semibold text-gray-700 dark:text-gray-300 mb-4 flex items-center gap-2"
+                    className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2"
                     data-testid="text-associates-title"
                   >
                     <Badge className="bg-gray-600 text-white rounded-md text-xs">
@@ -962,17 +962,17 @@ export default function PracticeGroupDetail() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.4 }}
-            className="bg-gray-50 dark:bg-gray-800 rounded-md p-8 lg:p-12"
+            className="bg-muted rounded-md p-8 lg:p-12"
             data-testid="section-contact-cta"
           >
             <h2 
-              className="text-xl font-heading font-light text-gray-800 dark:text-white mb-3 uppercase tracking-[0.12em]"
+              className="text-xl font-heading font-light text-foreground mb-3 uppercase tracking-[0.12em]"
               data-testid="text-contact-cta-title"
             >
               {t.contactCta}
             </h2>
             <p 
-              className="text-gray-600 dark:text-gray-400 mb-6"
+              className="text-muted-foreground mb-6"
               data-testid="text-contact-cta-subtitle"
             >
               {t.contactSubtitle}

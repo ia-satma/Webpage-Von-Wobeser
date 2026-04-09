@@ -340,7 +340,7 @@ export default function NewOfficesPopup({ language }: NewOfficesPopupProps) {
           <DialogTitle>{t.heroTitle}</DialogTitle>
           <DialogDescription>{t.heroSubtitle}</DialogDescription>
         </VisuallyHidden>
-        <div className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between flex-shrink-0">
+        <div className="bg-background border-b border-border px-6 py-4 flex items-center justify-between flex-shrink-0">
           <img
             src={logoHD}
             alt="Von Wobeser"
@@ -403,7 +403,7 @@ export default function NewOfficesPopup({ language }: NewOfficesPopupProps) {
             </div>
           </div>
 
-          <div className="bg-white px-6 md:px-12 py-12 space-y-12">
+          <div className="bg-background px-6 md:px-12 py-12 space-y-12">
             <section className="max-w-3xl mx-auto text-center" data-testid="section-vision">
               <h3 className="text-xl md:text-2xl font-heading font-light text-gray-800 mb-6 uppercase tracking-[0.12em]">
                 {t.visionTitle}

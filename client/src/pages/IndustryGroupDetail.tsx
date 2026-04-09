@@ -287,12 +287,12 @@ export default function IndustryGroupDetail() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-white dark:bg-gray-900" data-testid="page-industry-group-error">
+      <div className="min-h-screen bg-background" data-testid="page-industry-group-error">
         <Header />
         <div className="pt-32 pb-20">
           <div className="max-w-7xl mx-auto px-6 lg:px-12 text-center">
             <AlertCircle className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-            <h2 className="text-2xl font-heading text-gray-800 dark:text-white mb-4" data-testid="text-error-title">
+            <h2 className="text-2xl font-heading text-foreground mb-4" data-testid="text-error-title">
               {t.errorMessage}
             </h2>
             <Link href="/industry-groups">
@@ -310,14 +310,14 @@ export default function IndustryGroupDetail() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-white dark:bg-gray-900" data-testid="page-industry-group-loading">
+      <div className="min-h-screen bg-background" data-testid="page-industry-group-loading">
         <Header />
         <section className="pt-32 pb-12 bg-primary">
           <div className="max-w-7xl mx-auto px-6 lg:px-12">
-            <Skeleton className="h-5 w-48 bg-white/20 mb-6" />
+            <Skeleton className="h-5 w-48 bg-card/20 mb-6" />
             <div className="flex items-center gap-4">
-              <Skeleton className="h-16 w-16 rounded-md bg-white/20" />
-              <Skeleton className="h-12 w-64 bg-white/20" />
+              <Skeleton className="h-16 w-16 rounded-md bg-card/20" />
+              <Skeleton className="h-12 w-64 bg-card/20" />
             </div>
           </div>
         </section>
@@ -341,7 +341,7 @@ export default function IndustryGroupDetail() {
   const relatedPracticeGroups = practiceGroups?.slice(0, 4);
 
   return (
-    <div className="min-h-screen bg-white dark:bg-gray-900" data-testid="page-industry-group-detail">
+    <div className="min-h-screen bg-background" data-testid="page-industry-group-detail">
       <Header />
       
       <section className="pt-32 pb-12 bg-primary" data-testid="section-industry-group-hero">
@@ -362,7 +362,7 @@ export default function IndustryGroupDetail() {
             </Link>
             <div className="flex items-center gap-4">
               {IconComponent && (
-                <div className="w-16 h-16 rounded-md bg-white/10 flex items-center justify-center">
+                <div className="w-16 h-16 rounded-md bg-card/10 flex items-center justify-center">
                   <IconComponent className="w-8 h-8 text-white" data-testid="icon-industry-group-detail" />
                 </div>
               )}
@@ -391,7 +391,7 @@ export default function IndustryGroupDetail() {
               className="prose prose-lg dark:prose-invert max-w-none mb-16"
               data-testid="container-industry-group-description"
             >
-              <p className="text-lg text-gray-700 dark:text-gray-300 leading-relaxed text-justify sm:text-left">
+              <p className="text-lg text-foreground leading-relaxed text-justify sm:text-left">
                 {displayDescription}
               </p>
             </div>
@@ -406,7 +406,7 @@ export default function IndustryGroupDetail() {
               data-testid="section-related-services"
             >
               <h2 
-                className="text-xl font-heading font-light text-gray-800 dark:text-white mb-6 uppercase tracking-[0.12em]"
+                className="text-xl font-heading font-light text-foreground mb-6 uppercase tracking-[0.12em]"
                 data-testid="text-related-services-title"
               >
                 {t.relatedServices}
@@ -427,17 +427,17 @@ export default function IndustryGroupDetail() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.4 }}
-            className="bg-gray-50 dark:bg-gray-800 rounded-md p-8 lg:p-12"
+            className="bg-muted rounded-md p-8 lg:p-12"
             data-testid="section-contact-cta"
           >
             <h2 
-              className="text-xl font-heading font-light text-gray-800 dark:text-white mb-3 uppercase tracking-[0.12em]"
+              className="text-xl font-heading font-light text-foreground mb-3 uppercase tracking-[0.12em]"
               data-testid="text-contact-cta-title"
             >
               {t.contactCta}
             </h2>
             <p 
-              className="text-gray-600 dark:text-gray-400 mb-6"
+              className="text-muted-foreground mb-6"
               data-testid="text-contact-cta-subtitle"
             >
               {t.contactSubtitle}

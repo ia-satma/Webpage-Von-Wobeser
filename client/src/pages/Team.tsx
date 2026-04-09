@@ -454,7 +454,7 @@ export default function Team() {
   };
 
   return (
-    <div className="min-h-screen bg-white dark:bg-gray-900" data-testid="page-team">
+    <div className="min-h-screen bg-background" data-testid="page-team">
       <SEOHead page="team" language={language} />
       <Header />
       
@@ -544,7 +544,7 @@ export default function Team() {
             </div>
 
             <div className="flex items-center justify-between">
-              <p className="text-sm text-gray-500 dark:text-gray-400" data-testid="text-results-count">
+              <p className="text-sm text-muted-foreground" data-testid="text-results-count">
                 {filteredMembers.length} {t.teamMembers}
               </p>
             </div>
@@ -552,8 +552,8 @@ export default function Team() {
 
           {errorAll ? (
             <div className="text-center py-12" data-testid="container-team-error">
-              <AlertCircle className="w-12 h-12 text-gray-400 dark:text-gray-500 mx-auto mb-4" />
-              <p className="text-gray-500 dark:text-gray-400" data-testid="text-team-error">
+              <AlertCircle className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+              <p className="text-muted-foreground" data-testid="text-team-error">
                 {t.errorMessage}
               </p>
             </div>
@@ -562,7 +562,7 @@ export default function Team() {
               {Array.from({ length: 12 }).map((_, i) => (
                 <Card 
                   key={i} 
-                  className="rounded-md border-0 shadow-sm bg-gray-50 dark:bg-gray-800"
+                  className="rounded-md border-0 shadow-sm bg-muted"
                   data-testid={`skeleton-team-member-${i}`}
                 >
                   <CardContent className="p-6 text-center">
@@ -576,8 +576,8 @@ export default function Team() {
             </div>
           ) : filteredMembers.length === 0 ? (
             <div className="text-center py-12" data-testid="container-team-empty">
-              <Users className="w-12 h-12 text-gray-400 dark:text-gray-500 mx-auto mb-4" />
-              <p className="text-gray-500 dark:text-gray-400">
+              <Users className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+              <p className="text-muted-foreground">
                 {t.noResults}
               </p>
               {hasActiveFilters && (

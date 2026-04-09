@@ -498,7 +498,7 @@ export default function AdminTeamForm() {
                   className="space-y-6"
                 >
                   <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                    <TabsList className="w-full justify-start bg-white border border-[#D9D8D7] rounded-none p-1 h-auto">
+                    <TabsList className="w-full justify-start bg-card border border-[#D9D8D7] rounded-none p-1 h-auto">
                       <TabsTrigger 
                         value="general" 
                         className="rounded-none data-[state=active]:bg-[#AA1A2E] data-[state=active]:text-white px-6 py-2.5"
@@ -944,7 +944,7 @@ export default function AdminTeamForm() {
                             control={form.control}
                             name="isPartner"
                             render={({ field }) => (
-                              <FormItem className="flex items-center justify-between p-4 border border-[#D9D8D7] bg-white">
+                              <FormItem className="flex items-center justify-between p-4 border border-[#D9D8D7] bg-card">
                                 <div className="space-y-1">
                                   <FormLabel className="text-[#1D1D1B] font-medium flex items-center gap-2">
                                     <Award className="w-4 h-4 text-[#AA1A2E]" />

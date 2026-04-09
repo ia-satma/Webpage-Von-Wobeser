@@ -70,7 +70,7 @@ function RelatedTeamMemberCard({
   return (
     <Link href={`/team/${relatedMember.slug}`}>
       <Card 
-        className="rounded-md border border-gray-200 dark:border-gray-700 hover:shadow-md transition-all cursor-pointer"
+        className="rounded-md border border-border hover:shadow-md transition-all cursor-pointer"
         data-testid={`card-related-member-${relatedMember.slug}`}
       >
         <CardContent className="p-4 flex items-center gap-3">
@@ -84,10 +84,10 @@ function RelatedTeamMemberCard({
             </AvatarFallback>
           </Avatar>
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium text-gray-800 dark:text-white truncate">
+            <p className="text-sm font-medium text-foreground truncate">
               {relatedMember.name}
             </p>
-            <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
+            <p className="text-xs text-muted-foreground truncate">
               {displayTitle}
             </p>
           </div>
@@ -129,10 +129,10 @@ function EducationItemTranslated({
       className="border-l-2 border-primary/30 pl-4 py-1"
       data-testid={`item-education-${index}`}
     >
-      <p className="text-lg font-medium text-gray-800 dark:text-white">
+      <p className="text-lg font-medium text-foreground">
         {displayDegree}
       </p>
-      <p className="text-gray-600 dark:text-gray-400">
+      <p className="text-muted-foreground">
         {displaySchool}
         {edu.year && <span className="ml-2 text-sm">({edu.year})</span>}
       </p>
@@ -240,7 +240,7 @@ function RankingItemTranslated({
   if (isTiered) {
     return (
       <Card 
-        className="border border-amber-200/50 dark:border-amber-700/30 bg-white dark:bg-gray-800/50 rounded-md overflow-visible"
+        className="border border-amber-200/50 dark:border-amber-700/30 bg-card/50 rounded-md overflow-visible"
         data-testid={`card-ranking-tiered-${index}`}
       >
         <CardContent className="p-4">
@@ -249,7 +249,7 @@ function RankingItemTranslated({
               {getPublicationIcon(ranking.publication)}
             </div>
             <div className="flex-1 min-w-0">
-              <p className="font-medium text-gray-800 dark:text-white">
+              <p className="font-medium text-foreground">
                 {ranking.publication}
               </p>
               <div className="flex flex-wrap items-center gap-2 mt-2">
@@ -269,7 +269,7 @@ function RankingItemTranslated({
                 )}
               </div>
               {displayArea && (
-                <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
+                <p className="text-sm text-muted-foreground mt-2">
                   {displayArea}
                 </p>
               )}
@@ -282,18 +282,18 @@ function RankingItemTranslated({
 
   return (
     <div
-      className="flex items-center gap-3 p-3 bg-white dark:bg-gray-800/50 rounded-md border border-amber-200/30 dark:border-amber-700/20"
+      className="flex items-center gap-3 p-3 bg-card/50 rounded-md border border-amber-200/30 dark:border-amber-700/20"
       data-testid={`item-ranking-simple-${index}`}
     >
       <div className="flex-shrink-0">
         {getPublicationIcon(ranking.publication)}
       </div>
       <div className="flex-1 min-w-0">
-        <p className="text-sm font-medium text-gray-800 dark:text-white truncate">
+        <p className="text-sm font-medium text-foreground truncate">
           {ranking.publication}
         </p>
         {ranking.year && (
-          <p className="text-xs text-gray-500 dark:text-gray-400">
+          <p className="text-xs text-muted-foreground">
             {ranking.year}
           </p>
         )}
@@ -334,10 +334,10 @@ function PublicationItemTranslated({
       className="border-l-2 border-primary/30 pl-4 py-1"
       data-testid={`item-publication-${index}`}
     >
-      <p className="text-gray-800 dark:text-white font-medium">
+      <p className="text-foreground font-medium">
         {displayTitle}
       </p>
-      <div className="flex flex-wrap items-center gap-2 mt-1 text-sm text-gray-500 dark:text-gray-400">
+      <div className="flex flex-wrap items-center gap-2 mt-1 text-sm text-muted-foreground">
         {pub.journal && <span>{pub.journal}</span>}
         {pub.year && <span>• {pub.year}</span>}
         {pub.url && (
@@ -395,11 +395,11 @@ function AffiliationItemTranslated({
     >
       <div className="w-2 h-2 rounded-full bg-primary mt-2 flex-shrink-0" />
       <div>
-        <p className="text-gray-800 dark:text-white">
+        <p className="text-foreground">
           {displayOrganization}
         </p>
         {displayRole && (
-          <p className="text-sm text-gray-500 dark:text-gray-400">
+          <p className="text-sm text-muted-foreground">
             {displayRole}
           </p>
         )}
@@ -512,11 +512,11 @@ function RepresentativeMatterTranslated({
     >
       <div className="w-2 h-2 rounded-full bg-primary mt-2 flex-shrink-0" />
       <div>
-        <p className="text-gray-800 dark:text-white">
+        <p className="text-foreground">
           {displayDescription}
         </p>
         {(matter.client || matter.year) && (
-          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+          <p className="text-sm text-muted-foreground mt-1">
             {matter.client && <span>{matter.client}</span>}
             {matter.client && matter.year && <span> • </span>}
             {matter.year && <span>{matter.year}</span>}
@@ -1168,12 +1168,12 @@ export default function TeamMemberDetail() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-white dark:bg-gray-900" data-testid="page-team-member-error">
+      <div className="min-h-screen bg-background" data-testid="page-team-member-error">
         <Header />
         <div className="pt-32 pb-20">
           <div className="max-w-7xl mx-auto px-6 lg:px-12 text-center">
             <AlertCircle className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-            <h2 className="text-2xl font-heading text-gray-800 dark:text-white mb-4" data-testid="text-error-title">
+            <h2 className="text-2xl font-heading text-foreground mb-4" data-testid="text-error-title">
               {t.errorMessage}
             </h2>
             <Link href="/team">
@@ -1191,17 +1191,17 @@ export default function TeamMemberDetail() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-white dark:bg-gray-900" data-testid="page-team-member-loading">
+      <div className="min-h-screen bg-background" data-testid="page-team-member-loading">
         <Header />
         <section className="pt-32 pb-12 bg-primary">
           <div className="max-w-7xl mx-auto px-6 lg:px-12">
-            <Skeleton className="h-5 w-48 bg-white/20 mb-6" />
+            <Skeleton className="h-5 w-48 bg-card/20 mb-6" />
             <div className="flex flex-col md:flex-row items-center md:items-start gap-6">
-              <Skeleton className="h-32 w-32 rounded-full bg-white/20" />
+              <Skeleton className="h-32 w-32 rounded-full bg-card/20" />
               <div className="text-center md:text-left">
-                <Skeleton className="h-10 w-64 bg-white/20 mb-3" />
-                <Skeleton className="h-6 w-48 bg-white/20 mb-2" />
-                <Skeleton className="h-5 w-32 bg-white/20" />
+                <Skeleton className="h-10 w-64 bg-card/20 mb-3" />
+                <Skeleton className="h-6 w-48 bg-card/20 mb-2" />
+                <Skeleton className="h-5 w-32 bg-card/20" />
               </div>
             </div>
           </div>
@@ -1238,7 +1238,7 @@ export default function TeamMemberDetail() {
       : (translatedFields.bio || null);
 
   return (
-    <div className="min-h-screen bg-white dark:bg-gray-900" data-testid="page-team-member-detail">
+    <div className="min-h-screen bg-background" data-testid="page-team-member-detail">
       <Header />
       
       {member && (
@@ -1297,7 +1297,7 @@ export default function TeamMemberDetail() {
                 </Avatar>
                 {member?.isPartner && (
                   <div 
-                    className="absolute -bottom-2 -right-2 w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-lg"
+                    className="absolute -bottom-2 -right-2 w-10 h-10 bg-card rounded-full flex items-center justify-center shadow-lg"
                     title={t.partner}
                   >
                     <Crown className="w-5 h-5 text-primary" />
@@ -1340,7 +1340,7 @@ export default function TeamMemberDetail() {
                   {member?.email && (
                     <Button 
                       variant="secondary"
-                      className="rounded-md bg-white/20 hover:bg-white/30 text-white border-0"
+                      className="rounded-md bg-card/20 hover:bg-white/30 text-white border-0"
                       asChild
                       data-testid="button-email"
                     >
@@ -1353,7 +1353,7 @@ export default function TeamMemberDetail() {
                   {member?.phone && (
                     <Button 
                       variant="secondary"
-                      className="rounded-md bg-white/20 hover:bg-white/30 text-white border-0"
+                      className="rounded-md bg-card/20 hover:bg-white/30 text-white border-0"
                       asChild
                       data-testid="button-phone"
                     >
@@ -1367,7 +1367,7 @@ export default function TeamMemberDetail() {
                     <Button 
                       variant="secondary"
                       size="icon"
-                      className="rounded-md bg-white/20 hover:bg-white/30 text-white border-0"
+                      className="rounded-md bg-card/20 hover:bg-white/30 text-white border-0"
                       asChild
                       data-testid="button-linkedin"
                     >
@@ -1378,7 +1378,7 @@ export default function TeamMemberDetail() {
                   )}
                   <Button 
                     variant="secondary"
-                    className="rounded-md bg-white text-primary hover:bg-white/90"
+                    className="rounded-md bg-card text-primary hover:bg-white/90"
                     onClick={handleDownloadVCard}
                     data-testid="button-download-vcard"
                   >
@@ -1404,7 +1404,7 @@ export default function TeamMemberDetail() {
                   data-testid="section-biography"
                 >
                   <h2 
-                    className="text-xl font-heading font-light text-gray-800 dark:text-white mb-6 flex items-center gap-3 uppercase tracking-[0.12em]"
+                    className="text-xl font-heading font-light text-foreground mb-6 flex items-center gap-3 uppercase tracking-[0.12em]"
                     data-testid="text-biography-title"
                   >
                     <FileText className="w-6 h-6 text-primary" />
@@ -1418,11 +1418,11 @@ export default function TeamMemberDetail() {
                     data-testid="container-biography"
                   >
                     {displayBio ? (
-                      <p className="text-lg text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-wrap">
+                      <p className="text-lg text-foreground leading-relaxed whitespace-pre-wrap">
                         {displayBio}
                       </p>
                     ) : (
-                      <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400 italic">
+                      <div className="flex items-center gap-2 text-muted-foreground italic">
                         <Loader2 className="w-4 h-4 animate-spin" />
                         <span data-testid="text-translation-pending">
                           {language === 'de' ? 'Übersetzung lädt...' :
@@ -1450,7 +1450,7 @@ export default function TeamMemberDetail() {
                 >
                   <div className="bg-gradient-to-r from-amber-50 to-amber-100/50 dark:from-amber-900/20 dark:to-amber-800/10 rounded-md p-6 border border-amber-200/50 dark:border-amber-700/30">
                     <h2 
-                      className="text-xl font-heading font-light text-gray-800 dark:text-white mb-6 flex items-center gap-3 uppercase tracking-[0.12em]"
+                      className="text-xl font-heading font-light text-foreground mb-6 flex items-center gap-3 uppercase tracking-[0.12em]"
                       data-testid="text-rankings-title"
                     >
                       <div className="p-2 bg-amber-500/20 rounded-md">
@@ -1522,7 +1522,7 @@ export default function TeamMemberDetail() {
                   data-testid="section-practice-areas"
                 >
                   <h2 
-                    className="text-xl font-heading font-light text-gray-800 dark:text-white mb-6 flex items-center gap-3 uppercase tracking-[0.12em]"
+                    className="text-xl font-heading font-light text-foreground mb-6 flex items-center gap-3 uppercase tracking-[0.12em]"
                     data-testid="text-practice-areas-title"
                   >
                     <Briefcase className="w-6 h-6 text-primary" />
@@ -1548,7 +1548,7 @@ export default function TeamMemberDetail() {
                   data-testid="section-industry-groups"
                 >
                   <h2 
-                    className="text-xl font-heading font-light text-gray-800 dark:text-white mb-6 flex items-center gap-3 uppercase tracking-[0.12em]"
+                    className="text-xl font-heading font-light text-foreground mb-6 flex items-center gap-3 uppercase tracking-[0.12em]"
                     data-testid="text-industry-groups-title"
                   >
                     <Globe2 className="w-6 h-6 text-primary" />
@@ -1574,7 +1574,7 @@ export default function TeamMemberDetail() {
                   data-testid="section-education"
                 >
                   <h2 
-                    className="text-xl font-heading font-light text-gray-800 dark:text-white mb-6 flex items-center gap-3 uppercase tracking-[0.12em]"
+                    className="text-xl font-heading font-light text-foreground mb-6 flex items-center gap-3 uppercase tracking-[0.12em]"
                     data-testid="text-education-title"
                   >
                     <GraduationCap className="w-6 h-6 text-primary" />
@@ -1602,7 +1602,7 @@ export default function TeamMemberDetail() {
                   data-testid="section-bar-admissions"
                 >
                   <h2 
-                    className="text-xl font-heading font-light text-gray-800 dark:text-white mb-6 flex items-center gap-3 uppercase tracking-[0.12em]"
+                    className="text-xl font-heading font-light text-foreground mb-6 flex items-center gap-3 uppercase tracking-[0.12em]"
                     data-testid="text-bar-admissions-title"
                   >
                     <Scale className="w-6 h-6 text-primary" />
@@ -1630,7 +1630,7 @@ export default function TeamMemberDetail() {
                   data-testid="section-languages"
                 >
                   <h2 
-                    className="text-xl font-heading font-light text-gray-800 dark:text-white mb-6 flex items-center gap-3 uppercase tracking-[0.12em]"
+                    className="text-xl font-heading font-light text-foreground mb-6 flex items-center gap-3 uppercase tracking-[0.12em]"
                     data-testid="text-languages-title"
                   >
                     <Languages className="w-6 h-6 text-primary" />
@@ -1658,7 +1658,7 @@ export default function TeamMemberDetail() {
                   data-testid="section-affiliations"
                 >
                   <h2 
-                    className="text-xl font-heading font-light text-gray-800 dark:text-white mb-6 flex items-center gap-3 uppercase tracking-[0.12em]"
+                    className="text-xl font-heading font-light text-foreground mb-6 flex items-center gap-3 uppercase tracking-[0.12em]"
                     data-testid="text-affiliations-title"
                   >
                     <Users className="w-6 h-6 text-primary" />
@@ -1686,7 +1686,7 @@ export default function TeamMemberDetail() {
                   data-testid="section-publications"
                 >
                   <h2 
-                    className="text-xl font-heading font-light text-gray-800 dark:text-white mb-6 flex items-center gap-3 uppercase tracking-[0.12em]"
+                    className="text-xl font-heading font-light text-foreground mb-6 flex items-center gap-3 uppercase tracking-[0.12em]"
                     data-testid="text-publications-title"
                   >
                     <BookOpen className="w-6 h-6 text-primary" />
@@ -1715,7 +1715,7 @@ export default function TeamMemberDetail() {
                   data-testid="section-representative-matters"
                 >
                   <h2 
-                    className="text-xl font-heading font-light text-gray-800 dark:text-white mb-6 flex items-center gap-3 uppercase tracking-[0.12em]"
+                    className="text-xl font-heading font-light text-foreground mb-6 flex items-center gap-3 uppercase tracking-[0.12em]"
                     data-testid="text-representative-matters-title"
                   >
                     <Briefcase className="w-6 h-6 text-primary" />
@@ -1743,7 +1743,7 @@ export default function TeamMemberDetail() {
                   data-testid="section-experience"
                 >
                   <h2 
-                    className="text-xl font-heading font-light text-gray-800 dark:text-white mb-6 flex items-center gap-3 uppercase tracking-[0.12em]"
+                    className="text-xl font-heading font-light text-foreground mb-6 flex items-center gap-3 uppercase tracking-[0.12em]"
                     data-testid="text-experience-title"
                   >
                     <Building2 className="w-6 h-6 text-primary" />
@@ -1756,10 +1756,10 @@ export default function TeamMemberDetail() {
                         className="border-l-2 border-primary/30 pl-4 py-1"
                         data-testid={`item-experience-${index}`}
                       >
-                        <p className="text-lg font-medium text-gray-800 dark:text-white">
+                        <p className="text-lg font-medium text-foreground">
                           {language === "es" && exp.positionEs ? exp.positionEs : exp.position}
                         </p>
-                        <p className="text-gray-600 dark:text-gray-400">
+                        <p className="text-muted-foreground">
                           {exp.company}
                           {(exp.startYear || exp.endYear) && (
                             <span className="ml-2 text-sm">
@@ -1788,7 +1788,7 @@ export default function TeamMemberDetail() {
                       <Trophy className="w-5 h-5 text-white" />
                     </div>
                     <h2 
-                      className="text-lg font-heading font-medium text-gray-800 dark:text-white"
+                      className="text-lg font-heading font-medium text-foreground"
                       data-testid="text-featured-recognition-title"
                     >
                       {t.featuredRecognition}
@@ -1802,7 +1802,7 @@ export default function TeamMemberDetail() {
                     >
                       {processedRankings.totalCount}
                     </span>
-                    <span className="text-sm text-gray-600 dark:text-gray-400">
+                    <span className="text-sm text-muted-foreground">
                       {t.totalRecognitions}
                     </span>
                   </div>
@@ -1816,7 +1816,7 @@ export default function TeamMemberDetail() {
                         {processedRankings.topPublications.map((pub, index) => (
                           <div 
                             key={index}
-                            className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300"
+                            className="flex items-center gap-2 text-sm text-foreground"
                             data-testid={`item-top-publication-${index}`}
                           >
                             {getPublicationIcon(pub)}
@@ -1833,17 +1833,17 @@ export default function TeamMemberDetail() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: 0.4 }}
-                className="bg-gray-50 dark:bg-gray-800 rounded-md p-6"
+                className="bg-muted rounded-md p-6"
                 data-testid="section-contact-cta"
               >
                 <h2 
-                  className="text-xl font-heading font-light text-gray-800 dark:text-white mb-3"
+                  className="text-xl font-heading font-light text-foreground mb-3"
                   data-testid="text-contact-cta-title"
                 >
                   {t.contactCta}
                 </h2>
                 <p 
-                  className="text-sm text-gray-600 dark:text-gray-400 mb-6"
+                  className="text-sm text-muted-foreground mb-6"
                   data-testid="text-contact-cta-subtitle"
                 >
                   {t.contactSubtitle}
@@ -1894,7 +1894,7 @@ export default function TeamMemberDetail() {
                   data-testid="section-related-team"
                 >
                   <h2 
-                    className="text-xl font-heading font-light text-gray-800 dark:text-white mb-4"
+                    className="text-xl font-heading font-light text-foreground mb-4"
                     data-testid="text-related-team-title"
                   >
                     {t.relatedTeam}
@@ -1920,12 +1920,12 @@ export default function TeamMemberDetail() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.8 }}
-            className="mt-16 pt-12 border-t border-gray-200 dark:border-gray-700"
+            className="mt-16 pt-12 border-t border-border"
             data-testid="section-related-news"
           >
             <div className="max-w-6xl mx-auto">
               <h2 
-                className="text-xl font-heading font-light text-gray-800 dark:text-white mb-8 flex items-center gap-3 uppercase tracking-[0.12em]"
+                className="text-xl font-heading font-light text-foreground mb-8 flex items-center gap-3 uppercase tracking-[0.12em]"
                 data-testid="text-related-news-title"
               >
                 <Newspaper className="w-6 h-6 text-primary" />
@@ -1941,10 +1941,10 @@ export default function TeamMemberDetail() {
                   >
                     <Link href={`/news/${article.slug}`}>
                       <Card
-                        className="group h-full rounded-md overflow-hidden border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-lg transition-all duration-300 cursor-pointer bg-white dark:bg-gray-800"
+                        className="group h-full rounded-md overflow-hidden border border-border shadow-sm hover:shadow-lg transition-all duration-300 cursor-pointer bg-card"
                         data-testid={`card-related-news-${article.slug}`}
                       >
-                        <div className="relative h-48 overflow-hidden bg-gray-100 dark:bg-gray-700">
+                        <div className="relative h-48 overflow-hidden bg-muted">
                           <NewsImageWithFallback
                             src={article.imageUrl || ""}
                             alt={language === "es" ? article.titleEs : article.title}
@@ -1961,20 +1961,20 @@ export default function TeamMemberDetail() {
                           )}
                         </div>
                         <CardContent className="p-6">
-                          <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400 mb-3">
+                          <div className="flex items-center gap-2 text-sm text-muted-foreground mb-3">
                             <Calendar className="w-4 h-4" />
                             <span data-testid={`text-news-date-${article.slug}`}>
                               {formatDate(article.date)}
                             </span>
                           </div>
                           <h3 
-                            className="text-xl font-semibold text-gray-800 dark:text-white mb-3 group-hover:text-primary transition-colors line-clamp-2"
+                            className="text-xl font-semibold text-foreground mb-3 group-hover:text-primary transition-colors line-clamp-2"
                             data-testid={`text-news-title-${article.slug}`}
                           >
                             {language === "es" ? article.titleEs : article.title}
                           </h3>
                           <p 
-                            className="text-gray-600 dark:text-gray-400 text-sm line-clamp-3 mb-4"
+                            className="text-muted-foreground text-sm line-clamp-3 mb-4"
                             data-testid={`text-news-excerpt-${article.slug}`}
                           >
                             {language === "es" ? article.excerptEs : article.excerpt}

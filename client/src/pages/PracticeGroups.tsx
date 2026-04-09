@@ -41,7 +41,7 @@ function PracticeGroupCard({ group, learnMoreText }: PracticeGroupCardProps) {
   return (
     <Link href={`/practice-groups/${group.slug}`}>
       <Card
-        className="group h-full rounded-md border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-lg transition-all duration-300 cursor-pointer bg-white dark:bg-gray-800"
+        className="group h-full rounded-md border border-border shadow-sm hover:shadow-lg transition-all duration-300 cursor-pointer bg-card"
         data-testid={`card-practice-group-${group.slug}`}
       >
         <CardContent className="p-6">
@@ -50,19 +50,19 @@ function PracticeGroupCard({ group, learnMoreText }: PracticeGroupCardProps) {
               <IconComponent className="w-6 h-6 text-primary" data-testid={`icon-practice-group-${group.slug}`} />
             </div>
             {showTranslatingIndicator && (
-              <div className="flex items-center gap-1 px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded text-xs text-gray-500 dark:text-gray-400">
+              <div className="flex items-center gap-1 px-2 py-1 bg-muted rounded text-xs text-muted-foreground">
                 <Loader2 className="w-3 h-3 animate-spin" />
               </div>
             )}
           </div>
           <h3 
-            className="text-lg font-semibold text-gray-800 dark:text-white mb-2 group-hover:text-primary transition-colors"
+            className="text-lg font-semibold text-foreground mb-2 group-hover:text-primary transition-colors"
             data-testid={`text-practice-group-name-${group.slug}`}
           >
             {displayName}
           </h3>
           <p 
-            className="text-sm text-gray-600 dark:text-gray-400 mb-4 line-clamp-3"
+            className="text-sm text-muted-foreground mb-4 line-clamp-3"
             data-testid={`text-practice-group-desc-${group.slug}`}
           >
             {displayDescription}
@@ -202,7 +202,7 @@ export default function PracticeGroups() {
   };
 
   return (
-    <div className="min-h-screen bg-white dark:bg-gray-900" data-testid="page-practice-groups">
+    <div className="min-h-screen bg-background" data-testid="page-practice-groups">
       <SEOHead page="practiceGroups" language={language} />
       <Header />
       
@@ -234,8 +234,8 @@ export default function PracticeGroups() {
         <div className="max-w-7xl mx-auto px-6 lg:px-12">
           {error ? (
             <div className="text-center py-12" data-testid="container-practice-groups-error">
-              <AlertCircle className="w-12 h-12 text-gray-400 dark:text-gray-500 mx-auto mb-4" />
-              <p className="text-gray-500 dark:text-gray-400" data-testid="text-practice-groups-error">
+              <AlertCircle className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+              <p className="text-muted-foreground" data-testid="text-practice-groups-error">
                 {t.errorMessage}
               </p>
             </div>
@@ -244,7 +244,7 @@ export default function PracticeGroups() {
               {Array.from({ length: 9 }).map((_, i) => (
                 <Card 
                   key={i} 
-                  className="rounded-md border-0 shadow-sm bg-gray-50 dark:bg-gray-800"
+                  className="rounded-md border-0 shadow-sm bg-muted"
                   data-testid={`skeleton-practice-group-${i}`}
                 >
                   <CardContent className="p-6">

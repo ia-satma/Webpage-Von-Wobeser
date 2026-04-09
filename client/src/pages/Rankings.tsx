@@ -429,7 +429,7 @@ export default function Rankings() {
   };
 
   return (
-    <div className="min-h-screen bg-white dark:bg-gray-900" data-testid="page-rankings">
+    <div className="min-h-screen bg-background" data-testid="page-rankings">
       <SEOHead page="rankings" language={language} />
       <Header />
 
@@ -469,14 +469,14 @@ export default function Rankings() {
             className="mb-20"
             data-testid="section-rankings-overview"
           >
-            <h2 className="text-2xl font-heading font-light text-gray-800 dark:text-white mb-6 uppercase tracking-[0.12em]">
+            <h2 className="text-2xl font-heading font-light text-foreground mb-6 uppercase tracking-[0.12em]">
               {t.overviewTitle}
             </h2>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              <p className="text-lg text-gray-700 dark:text-gray-300 leading-relaxed">
+              <p className="text-lg text-foreground leading-relaxed">
                 {t.overviewText1}
               </p>
-              <p className="text-lg text-gray-700 dark:text-gray-300 leading-relaxed">
+              <p className="text-lg text-foreground leading-relaxed">
                 {t.overviewText2}
               </p>
             </div>
@@ -491,10 +491,10 @@ export default function Rankings() {
             data-testid="section-directories"
           >
             <div className="text-center mb-12">
-              <h2 className="text-2xl font-heading font-light text-gray-800 dark:text-white mb-4 uppercase tracking-[0.12em]">
+              <h2 className="text-2xl font-heading font-light text-foreground mb-4 uppercase tracking-[0.12em]">
                 {t.directoriesTitle}
               </h2>
-              <p className="text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
+              <p className="text-muted-foreground max-w-2xl mx-auto">
                 {t.directoriesSubtitle}
               </p>
             </div>
@@ -511,13 +511,13 @@ export default function Rankings() {
                         <directory.icon className="w-6 h-6" />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <CardTitle className="text-lg font-medium text-gray-800 dark:text-white">
+                        <CardTitle className="text-lg font-medium text-foreground">
                           {language === "es" ? directory.nameEs : directory.name}
                         </CardTitle>
                       </div>
                     </CardHeader>
                     <CardContent className="space-y-4">
-                      <p className="text-sm text-gray-600 dark:text-gray-400">
+                      <p className="text-sm text-muted-foreground">
                         {language === "es" ? directory.descriptionEs : directory.description}
                       </p>
                       <div className="flex flex-wrap gap-2">
@@ -548,10 +548,10 @@ export default function Rankings() {
             data-testid="section-awards"
           >
             <div className="text-center mb-12">
-              <h2 className="text-2xl font-heading font-light text-gray-800 dark:text-white mb-4 uppercase tracking-[0.12em]">
+              <h2 className="text-2xl font-heading font-light text-foreground mb-4 uppercase tracking-[0.12em]">
                 {t.awardsTitle}
               </h2>
-              <p className="text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
+              <p className="text-muted-foreground max-w-2xl mx-auto">
                 {t.awardsSubtitle}
               </p>
             </div>
@@ -568,7 +568,7 @@ export default function Rankings() {
                         <Medal className="w-6 h-6" />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <CardTitle className="text-lg font-medium text-gray-800 dark:text-white">
+                        <CardTitle className="text-lg font-medium text-foreground">
                           {language === "es" ? award.titleEs : award.title}
                         </CardTitle>
                         {award.years && (
@@ -587,7 +587,7 @@ export default function Rankings() {
                       </div>
                     </CardHeader>
                     <CardContent>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">
+                      <p className="text-sm text-muted-foreground">
                         {language === "es" ? award.descriptionEs : award.description}
                       </p>
                     </CardContent>
@@ -602,12 +602,12 @@ export default function Rankings() {
             whileInView={{ opacity: 1 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
-            className="mb-20 py-12 px-8 bg-gray-50 dark:bg-gray-800 rounded-md"
+            className="mb-20 py-12 px-8 bg-muted rounded-md"
             data-testid="section-rankings-quote"
           >
             <div className="max-w-4xl mx-auto text-center">
               <Quote className="w-12 h-12 text-primary/30 mx-auto mb-6" />
-              <blockquote className="text-xl md:text-2xl font-heading font-light text-gray-800 dark:text-white italic mb-6">
+              <blockquote className="text-xl md:text-2xl font-heading font-light text-foreground italic mb-6">
                 "{t.quoteText}"
               </blockquote>
               <cite className="text-primary font-medium not-italic">
@@ -625,10 +625,10 @@ export default function Rankings() {
             data-testid="section-ranked-lawyers"
           >
             <div className="text-center mb-12">
-              <h2 className="text-2xl font-heading font-light text-gray-800 dark:text-white mb-4 uppercase tracking-[0.12em]">
+              <h2 className="text-2xl font-heading font-light text-foreground mb-4 uppercase tracking-[0.12em]">
                 {t.lawyersTitle}
               </h2>
-              <p className="text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
+              <p className="text-muted-foreground max-w-2xl mx-auto">
                 {t.lawyersSubtitle}
               </p>
             </div>
@@ -655,10 +655,10 @@ export default function Rankings() {
                               .slice(0, 2)}
                           </div>
                           <div className="flex-1 min-w-0">
-                            <h3 className="font-medium text-gray-800 dark:text-white group-hover:text-primary transition-colors">
+                            <h3 className="font-medium text-foreground group-hover:text-primary transition-colors">
                               {lawyer.name}
                             </h3>
-                            <p className="text-sm text-gray-500 dark:text-gray-400">
+                            <p className="text-sm text-muted-foreground">
                               {language === "es" ? lawyer.titleEs : lawyer.title}
                             </p>
                           </div>

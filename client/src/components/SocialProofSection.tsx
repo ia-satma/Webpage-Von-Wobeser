@@ -133,7 +133,7 @@ export default function SocialProofSection() {
   return (
     <section
       id="social-proof"
-      className="py-20 lg:py-28 bg-gray-50 dark:bg-gray-800"
+      className="py-20 lg:py-28 bg-muted"
       data-testid="section-social-proof"
     >
       <div className="max-w-7xl mx-auto px-6 lg:px-12">
@@ -185,7 +185,7 @@ export default function SocialProofSection() {
               </div>
 
               <blockquote
-                className="font-serif italic text-lg lg:text-xl text-gray-600 dark:text-gray-300 leading-relaxed mb-8"
+                className="font-serif italic text-lg lg:text-xl text-muted-foreground leading-relaxed mb-8"
                 data-testid={`text-quote-${quote.id}`}
               >
                 "{getQuoteText(quote)}"
@@ -197,14 +197,14 @@ export default function SocialProofSection() {
                   data-testid={`divider-quote-${quote.id}`}
                 />
                 <p
-                  className="text-sm font-medium text-gray-800 dark:text-white uppercase tracking-wider"
+                  className="text-sm font-medium text-foreground uppercase tracking-wider"
                   data-testid={`text-source-${quote.id}`}
                 >
                   {quote.source}
                 </p>
                 {quote.year && (
                   <p
-                    className="text-xs text-gray-500 dark:text-gray-400 mt-1"
+                    className="text-xs text-muted-foreground mt-1"
                     data-testid={`text-year-${quote.id}`}
                   >
                     {quote.year}

@@ -70,7 +70,7 @@ export default function ProBonoSection() {
 
   return (
     <section
-      className="py-20 lg:py-32 bg-gray-50 dark:bg-gray-800"
+      className="py-20 lg:py-32 bg-muted"
       data-testid="section-pro-bono"
     >
       <div className="max-w-4xl mx-auto px-6 lg:px-12 text-center">
@@ -90,7 +90,7 @@ export default function ProBonoSection() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6, delay: 0.2 }}
-          className="text-lg md:text-xl font-serif text-gray-600 dark:text-gray-300 leading-relaxed mb-10"
+          className="text-lg md:text-xl font-serif text-muted-foreground leading-relaxed mb-10"
           data-testid="text-pro-bono-description"
         >
           {t.text}

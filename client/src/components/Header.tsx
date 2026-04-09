@@ -169,7 +169,7 @@ function SearchResultNews({
       data-testid={`search-result-news-${article.slug}`}
       role="option"
     >
-      <p className="text-sm font-medium text-gray-800 dark:text-white line-clamp-1">
+      <p className="text-sm font-medium text-foreground line-clamp-1">
         {displayTitle}
       </p>
     </button>

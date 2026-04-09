@@ -224,10 +224,10 @@ export default function MapSection({ language }: MapSectionProps) {
 
   if (error) {
     return (
-      <section id="location" className="py-20 lg:py-28 bg-gray-50 dark:bg-gray-800" data-testid="section-location">
+      <section id="location" className="py-20 lg:py-28 bg-muted" data-testid="section-location">
         <div className="max-w-7xl mx-auto px-6 lg:px-12 text-center">
           <AlertCircle className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-          <p className="text-gray-500 dark:text-gray-400" data-testid="text-location-error">{t.errorMessage}</p>
+          <p className="text-muted-foreground" data-testid="text-location-error">{t.errorMessage}</p>
         </div>
       </section>
     );
@@ -235,7 +235,7 @@ export default function MapSection({ language }: MapSectionProps) {
 
   if (isLoading) {
     return (
-      <section id="location" className="py-20 lg:py-28 bg-gray-50 dark:bg-gray-800" data-testid="section-location">
+      <section id="location" className="py-20 lg:py-28 bg-muted" data-testid="section-location">
         <div className="max-w-7xl mx-auto px-6 lg:px-12">
           <Skeleton className="h-10 w-64 mx-auto mb-12" data-testid="skeleton-location-title" />
           <div className="grid grid-cols-1 lg:grid-cols-5 gap-8 lg:gap-12">
@@ -252,7 +252,7 @@ export default function MapSection({ language }: MapSectionProps) {
   return (
     <section
       id="location"
-      className="py-20 lg:py-28 bg-gray-50 dark:bg-gray-800"
+      className="py-20 lg:py-28 bg-muted"
       data-testid="section-location"
     >
       <div className="max-w-7xl mx-auto px-6 lg:px-12">
@@ -295,14 +295,14 @@ export default function MapSection({ language }: MapSectionProps) {
             transition={{ duration: 0.6, delay: 0.2 }}
             className="lg:col-span-2 flex flex-col justify-center"
           >
-            <div className="bg-white dark:bg-gray-900 p-8 lg:p-10 shadow-sm" data-testid="card-contact-info">
+            <div className="bg-background p-8 lg:p-10 shadow-sm" data-testid="card-contact-info">
               <div className="flex items-start gap-4 mb-8">
                 <MapPin className="w-6 h-6 text-primary flex-shrink-0 mt-1" data-testid="icon-location" />
                 <div data-testid="text-address">
-                  <p className="font-medium text-gray-800 dark:text-white mb-1">{t.building}</p>
-                  <p className="text-gray-600 dark:text-gray-300">{t.street}</p>
-                  <p className="text-gray-600 dark:text-gray-300">{t.access}</p>
-                  <p className="text-gray-600 dark:text-gray-300">{t.city}</p>
+                  <p className="font-medium text-foreground mb-1">{t.building}</p>
+                  <p className="text-muted-foreground">{t.street}</p>
+                  <p className="text-muted-foreground">{t.access}</p>
+                  <p className="text-muted-foreground">{t.city}</p>
                 </div>
               </div>
 
@@ -310,7 +310,7 @@ export default function MapSection({ language }: MapSectionProps) {
                 <Phone className="w-5 h-5 text-primary flex-shrink-0" data-testid="icon-phone" />
                 <a
                   href={`tel:${t.phone.replace(/\s/g, "")}`}
-                  className="text-gray-600 dark:text-gray-300 hover:text-primary transition-colors"
+                  className="text-muted-foreground hover:text-primary transition-colors"
                   data-testid="link-phone"
                 >
                   {t.phone}
@@ -321,7 +321,7 @@ export default function MapSection({ language }: MapSectionProps) {
                 <Mail className="w-5 h-5 text-primary flex-shrink-0" data-testid="icon-email" />
                 <a
                   href={`mailto:${t.email}`}
-                  className="text-gray-600 dark:text-gray-300 hover:text-primary transition-colors"
+                  className="text-muted-foreground hover:text-primary transition-colors"
                   data-testid="link-email"
                 >
                   {t.email}
@@ -343,7 +343,7 @@ export default function MapSection({ language }: MapSectionProps) {
                 <Button
                   asChild
                   variant="outline"
-                  className="w-full rounded-none border-gray-300 dark:border-gray-600"
+                  className="w-full rounded-none border-border"
                   data-testid="button-view-map"
                 >
                   <a href={googleMapsUrl} target="_blank" rel="noopener noreferrer">

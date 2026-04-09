@@ -581,7 +581,7 @@ export default function DiversityInclusion() {
   };
 
   return (
-    <div className="min-h-screen bg-white dark:bg-gray-900" data-testid="page-diversity-inclusion">
+    <div className="min-h-screen bg-background" data-testid="page-diversity-inclusion">
       <SEOHead page="diversityInclusion" language={language} />
       <Header />
 
@@ -625,10 +625,10 @@ export default function DiversityInclusion() {
               {t.foundingTitle}
             </h2>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              <p className="text-lg text-gray-700 dark:text-gray-300 leading-relaxed">
+              <p className="text-lg text-foreground leading-relaxed">
                 {t.foundingText1}
               </p>
-              <p className="text-lg text-gray-700 dark:text-gray-300 leading-relaxed">
+              <p className="text-lg text-foreground leading-relaxed">
                 {t.foundingText2}
               </p>
             </div>
@@ -663,7 +663,7 @@ export default function DiversityInclusion() {
                   <div className="text-4xl font-light text-[#AA1A2E] mb-2">
                     {stat.value}
                   </div>
-                  <div className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                  <div className="text-sm font-medium text-foreground">
                     {stat.label}
                   </div>
                 </motion.div>
@@ -684,15 +684,15 @@ export default function DiversityInclusion() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               {t.values.map((value, index) => (
                 <motion.div key={index} variants={itemVariants}>
-                  <Card className="h-full rounded-md border border-gray-200 dark:border-gray-700 text-center" data-testid={`card-value-${index}`}>
+                  <Card className="h-full rounded-md border border-border text-center" data-testid={`card-value-${index}`}>
                     <CardContent className="p-6">
                       <div className="w-14 h-14 rounded-full bg-[#AA1A2E]/10 flex items-center justify-center mx-auto mb-4">
                         <value.icon className="w-7 h-7 text-[#AA1A2E]" />
                       </div>
-                      <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-2">
+                      <h3 className="text-lg font-semibold text-foreground mb-2">
                         {value.title}
                       </h3>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">
+                      <p className="text-sm text-muted-foreground">
                         {value.text}
                       </p>
                     </CardContent>
@@ -713,7 +713,7 @@ export default function DiversityInclusion() {
               <h2 className="text-2xl font-heading font-light text-[#AA1A2E] mb-4 uppercase tracking-[0.12em]">
                 {t.initiativesTitle}
               </h2>
-              <p className="text-lg text-gray-600 dark:text-gray-400" data-testid="text-initiatives-subtitle">
+              <p className="text-lg text-muted-foreground" data-testid="text-initiatives-subtitle">
                 {t.initiativesSubtitle}
               </p>
             </div>
@@ -726,17 +726,17 @@ export default function DiversityInclusion() {
             >
               {t.initiatives.map((initiative, index) => (
                 <motion.div key={index} variants={itemVariants}>
-                  <Card className="h-full rounded-md border border-gray-200 dark:border-gray-700" data-testid={`card-initiative-${index}`}>
+                  <Card className="h-full rounded-md border border-border" data-testid={`card-initiative-${index}`}>
                     <CardContent className="p-6">
                       <div className="flex items-start gap-4">
                         <div className="w-12 h-12 rounded-full bg-[#AA1A2E]/10 flex items-center justify-center flex-shrink-0">
                           <initiative.icon className="w-6 h-6 text-[#AA1A2E]" />
                         </div>
                         <div>
-                          <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-2">
+                          <h3 className="text-lg font-semibold text-foreground mb-2">
                             {initiative.title}
                           </h3>
-                          <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
+                          <p className="text-sm text-muted-foreground leading-relaxed">
                             {initiative.text}
                           </p>
                         </div>
@@ -755,7 +755,7 @@ export default function DiversityInclusion() {
             className="mb-20"
             data-testid="section-probono"
           >
-            <Card className="rounded-md border border-gray-200 dark:border-gray-700 bg-gradient-to-br from-[#AA1A2E]/5 to-[#AA1A2E]/10 dark:from-[#AA1A2E]/10 dark:to-[#AA1A2E]/20">
+            <Card className="rounded-md border border-border bg-gradient-to-br from-[#AA1A2E]/5 to-[#AA1A2E]/10 dark:from-[#AA1A2E]/10 dark:to-[#AA1A2E]/20">
               <CardContent className="p-8">
                 <div className="flex items-center gap-3 mb-4">
                   <HeartHandshake className="w-8 h-8 text-[#AA1A2E]" />
@@ -763,7 +763,7 @@ export default function DiversityInclusion() {
                     {t.proBonoTitle}
                   </h2>
                 </div>
-                <p className="text-lg text-gray-700 dark:text-gray-300 leading-relaxed mb-6">
+                <p className="text-lg text-foreground leading-relaxed mb-6">
                   {t.proBonoText}
                 </p>
                 <Link href="/about">
@@ -790,7 +790,7 @@ export default function DiversityInclusion() {
             <h2 className="text-2xl font-heading font-light text-[#AA1A2E] mb-6 uppercase tracking-[0.12em]">
               {t.commitmentTitle}
             </h2>
-            <p className="text-lg text-gray-700 dark:text-gray-300 leading-relaxed max-w-4xl mx-auto">
+            <p className="text-lg text-foreground leading-relaxed max-w-4xl mx-auto">
               {t.commitmentText}
             </p>
           </motion.section>
@@ -811,7 +811,7 @@ export default function DiversityInclusion() {
             <Link href="/careers">
               <Button
                 size="lg"
-                className="bg-white text-[#AA1A2E] hover:bg-gray-100"
+                className="bg-background text-[#AA1A2E] hover:bg-muted"
                 data-testid="button-join-careers"
               >
                 {t.joinButton}

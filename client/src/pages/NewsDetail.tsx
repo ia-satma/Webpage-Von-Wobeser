@@ -102,12 +102,12 @@ function AuthorCard({
       className="block"
     >
       <Card
-        className="group overflow-visible border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-lg transition-all duration-300 rounded-md bg-white dark:bg-gray-800 hover-elevate"
+        className="group overflow-visible border border-border shadow-sm hover:shadow-lg transition-all duration-300 rounded-md bg-card hover-elevate"
         data-testid={`card-author-${author.slug}`}
       >
         <CardContent className="p-6">
           <div className="flex items-start gap-4">
-            <Avatar className="w-16 h-16 flex-shrink-0 border-2 border-gray-100 dark:border-gray-700" data-testid={`avatar-author-${author.slug}`}>
+            <Avatar className="w-16 h-16 flex-shrink-0 border-2 border-border" data-testid={`avatar-author-${author.slug}`}>
               <AvatarImage 
                 src={author.imageUrl || undefined} 
                 alt={author.name}
@@ -119,7 +119,7 @@ function AuthorCard({
             </Avatar>
             <div className="flex-1 min-w-0">
               <h3 
-                className="text-lg font-medium text-gray-800 dark:text-white group-hover:text-primary transition-colors"
+                className="text-lg font-medium text-foreground group-hover:text-primary transition-colors"
                 data-testid={`text-author-name-${author.slug}`}
               >
                 {author.name}
@@ -134,7 +134,7 @@ function AuthorCard({
                 )}
               </p>
               <p 
-                className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed line-clamp-3"
+                className="text-sm text-muted-foreground leading-relaxed line-clamp-3"
                 data-testid={`text-author-bio-${author.slug}`}
               >
                 {truncateBio(displayBio)}
@@ -461,12 +461,12 @@ export default function NewsDetail() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-white dark:bg-gray-900" data-testid="page-news-error">
+      <div className="min-h-screen bg-background" data-testid="page-news-error">
         <Header />
         <div className="pt-32 pb-20">
           <div className="max-w-7xl mx-auto px-6 lg:px-12 text-center">
             <AlertCircle className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-            <h2 className="text-2xl font-heading text-gray-800 dark:text-white mb-4" data-testid="text-error-title">
+            <h2 className="text-2xl font-heading text-foreground mb-4" data-testid="text-error-title">
               {t.errorMessage}
             </h2>
             <Button 
@@ -486,7 +486,7 @@ export default function NewsDetail() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-white dark:bg-gray-900" data-testid="page-news-loading">
+      <div className="min-h-screen bg-background" data-testid="page-news-loading">
         <Header />
         <section className="pt-24 relative">
           <Skeleton className="w-full h-[50vh] min-h-[400px]" />
@@ -514,7 +514,7 @@ export default function NewsDetail() {
   const primaryAuthor = relatedAuthors && relatedAuthors.length > 0 ? relatedAuthors[0] : null;
 
   return (
-    <div className="min-h-screen bg-white dark:bg-gray-900" data-testid="page-news-detail">
+    <div className="min-h-screen bg-background" data-testid="page-news-detail">
       <Header />
       
       {newsArticle && (
@@ -608,7 +608,7 @@ export default function NewsDetail() {
               {displayContent?.split('\n').map((paragraph, index) => (
                 <p 
                   key={index} 
-                  className={`text-lg text-gray-700 dark:text-gray-300 leading-relaxed mb-6 text-justify sm:text-left ${isTranslating ? 'opacity-70' : ''}`}
+                  className={`text-lg text-foreground leading-relaxed mb-6 text-justify sm:text-left ${isTranslating ? 'opacity-70' : ''}`}
                 >
                   {paragraph}
                 </p>
@@ -621,11 +621,11 @@ export default function NewsDetail() {
             </div>
 
             <div 
-              className="border-t border-gray-200 dark:border-gray-700 pt-8 mb-16"
+              className="border-t border-border pt-8 mb-16"
               data-testid="section-share"
             >
               <div className="flex flex-wrap items-center gap-4">
-                <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
+                <div className="flex items-center gap-2 text-muted-foreground">
                   <Share2 className="w-4 h-4" />
                   <span className="text-sm font-medium">{t.share}</span>
                 </div>
@@ -694,7 +694,7 @@ export default function NewsDetail() {
               data-testid="section-related-authors"
             >
               <h2 
-                className="text-xl font-heading font-light text-gray-800 dark:text-white mb-8 uppercase tracking-[0.12em]"
+                className="text-xl font-heading font-light text-foreground mb-8 uppercase tracking-[0.12em]"
                 data-testid="text-authors-title"
               >
                 {relatedAuthors.length === 1 ? t.aboutTheAuthor : t.aboutTheAuthors}
@@ -720,7 +720,7 @@ export default function NewsDetail() {
               data-testid="section-related-news"
             >
               <h2 
-                className="text-xl font-heading font-light text-gray-800 dark:text-white mb-8 uppercase tracking-[0.12em]"
+                className="text-xl font-heading font-light text-foreground mb-8 uppercase tracking-[0.12em]"
                 data-testid="text-related-news-title"
               >
                 {t.relatedNews}
@@ -733,7 +733,7 @@ export default function NewsDetail() {
                     className="block"
                   >
                     <Card
-                      className="group overflow-hidden border-0 shadow-sm hover:shadow-lg transition-all duration-300 rounded-none bg-white dark:bg-gray-800 hover-elevate"
+                      className="group overflow-hidden border-0 shadow-sm hover:shadow-lg transition-all duration-300 rounded-none bg-card hover-elevate"
                       data-testid={`card-related-news-${item.id}`}
                     >
                       <div className="aspect-[16/10] overflow-hidden">
@@ -748,7 +748,7 @@ export default function NewsDetail() {
                           {formatDate(item.date)}
                         </p>
                         <h3 
-                          className="text-base font-serif text-gray-800 dark:text-white leading-relaxed line-clamp-2"
+                          className="text-base font-serif text-foreground leading-relaxed line-clamp-2"
                           data-testid={`text-related-news-title-${item.id}`}
                         >
                           {language === "es" ? item.titleEs : item.title}

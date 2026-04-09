@@ -820,7 +820,7 @@ export default function ProBono() {
   };
 
   return (
-    <div className="min-h-screen bg-white dark:bg-gray-900" data-testid="page-pro-bono">
+    <div className="min-h-screen bg-background" data-testid="page-pro-bono">
       <SEOHead page="proBono" language={language} />
       <Header />
       
@@ -864,10 +864,10 @@ export default function ProBono() {
               {t.commitmentTitle}
             </h2>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              <p className="text-lg text-gray-700 dark:text-gray-300 leading-relaxed">
+              <p className="text-lg text-foreground leading-relaxed">
                 {t.commitmentText1}
               </p>
-              <p className="text-lg text-gray-700 dark:text-gray-300 leading-relaxed">
+              <p className="text-lg text-foreground leading-relaxed">
                 {t.commitmentText2}
               </p>
             </div>
@@ -884,7 +884,7 @@ export default function ProBono() {
               <h2 className="text-2xl font-heading font-light text-[#AA1A2E] mb-4 uppercase tracking-[0.12em]">
                 {t.areasTitle}
               </h2>
-              <p className="text-lg text-gray-600 dark:text-gray-400" data-testid="text-areas-subtitle">
+              <p className="text-lg text-muted-foreground" data-testid="text-areas-subtitle">
                 {t.areasSubtitle}
               </p>
             </div>
@@ -897,17 +897,17 @@ export default function ProBono() {
             >
               {t.areas.map((area, index) => (
                 <motion.div key={index} variants={itemVariants}>
-                  <Card className="h-full rounded-md border border-gray-200 dark:border-gray-700" data-testid={`card-area-${index}`}>
+                  <Card className="h-full rounded-md border border-border" data-testid={`card-area-${index}`}>
                     <CardContent className="p-6">
                       <div className="flex items-start gap-4">
                         <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
                           <area.icon className="w-6 h-6 text-primary" />
                         </div>
                         <div>
-                          <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-2">
+                          <h3 className="text-lg font-semibold text-foreground mb-2">
                             {area.title}
                           </h3>
-                          <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
+                          <p className="text-sm text-muted-foreground leading-relaxed">
                             {area.text}
                           </p>
                         </div>
@@ -923,7 +923,7 @@ export default function ProBono() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.4 }}
-            className="mb-20 bg-gray-50 dark:bg-gray-800 rounded-md p-10"
+            className="mb-20 bg-muted rounded-md p-10"
             data-testid="section-stats"
           >
             <h2 className="text-2xl font-heading font-light text-[#AA1A2E] mb-8 text-center uppercase tracking-[0.12em]">
@@ -940,7 +940,7 @@ export default function ProBono() {
                   <p className="text-4xl lg:text-5xl font-heading text-primary mb-2">
                     {stat.value}
                   </p>
-                  <p className="text-sm text-gray-600 dark:text-gray-400 uppercase tracking-wider">
+                  <p className="text-sm text-muted-foreground uppercase tracking-wider">
                     {stat.label}
                   </p>
                 </motion.div>
@@ -962,7 +962,7 @@ export default function ProBono() {
               <p className="text-lg text-primary font-medium mb-4" data-testid="text-participation-subtitle">
                 {t.participationSubtitle}
               </p>
-              <p className="text-lg text-gray-700 dark:text-gray-300 leading-relaxed max-w-4xl mx-auto" data-testid="text-participation-intro">
+              <p className="text-lg text-foreground leading-relaxed max-w-4xl mx-auto" data-testid="text-participation-intro">
                 {t.participationIntro}
               </p>
             </div>
@@ -975,17 +975,17 @@ export default function ProBono() {
             >
               {t.participationAspects.map((aspect, index) => (
                 <motion.div key={index} variants={itemVariants}>
-                  <Card className="h-full rounded-md border border-gray-200 dark:border-gray-700" data-testid={`card-participation-${index}`}>
+                  <Card className="h-full rounded-md border border-border" data-testid={`card-participation-${index}`}>
                     <CardContent className="p-6">
                       <div className="flex items-start gap-4">
                         <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
                           <aspect.icon className="w-6 h-6 text-primary" />
                         </div>
                         <div>
-                          <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-2">
+                          <h3 className="text-lg font-semibold text-foreground mb-2">
                             {aspect.title}
                           </h3>
-                          <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
+                          <p className="text-sm text-muted-foreground leading-relaxed">
                             {aspect.text}
                           </p>
                         </div>
@@ -1004,15 +1004,15 @@ export default function ProBono() {
             className="mb-16"
             data-testid="section-cta"
           >
-            <Card className="rounded-md border border-gray-200 dark:border-gray-700 bg-gradient-to-br from-primary/5 to-primary/10 dark:from-primary/10 dark:to-primary/20">
+            <Card className="rounded-md border border-border bg-gradient-to-br from-primary/5 to-primary/10 dark:from-primary/10 dark:to-primary/20">
               <CardContent className="p-10 text-center">
                 <div className="flex items-center justify-center gap-3 mb-4">
                   <Scale className="w-8 h-8 text-primary" />
-                  <h2 className="text-xl font-heading font-light text-gray-800 dark:text-white uppercase tracking-[0.12em]">
+                  <h2 className="text-xl font-heading font-light text-foreground uppercase tracking-[0.12em]">
                     {t.ctaTitle}
                   </h2>
                 </div>
-                <p className="text-lg text-gray-700 dark:text-gray-300 leading-relaxed max-w-3xl mx-auto mb-8" data-testid="text-cta-description">
+                <p className="text-lg text-foreground leading-relaxed max-w-3xl mx-auto mb-8" data-testid="text-cta-description">
                   {t.ctaText}
                 </p>
                 <div className="flex flex-col sm:flex-row justify-center gap-4">

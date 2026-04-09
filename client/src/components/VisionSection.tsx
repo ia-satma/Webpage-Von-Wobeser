@@ -99,10 +99,10 @@ export default function VisionSection() {
 
   if (error) {
     return (
-      <section id="vision" className="py-20 lg:py-32 bg-white dark:bg-gray-900" data-testid="section-vision">
+      <section id="vision" className="py-20 lg:py-32 bg-background" data-testid="section-vision">
         <div className="max-w-4xl mx-auto px-6 lg:px-12 text-center">
           <AlertCircle className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-          <p className="text-gray-500 dark:text-gray-400" data-testid="text-vision-error">{t.errorMessage}</p>
+          <p className="text-muted-foreground" data-testid="text-vision-error">{t.errorMessage}</p>
         </div>
       </section>
     );
@@ -110,7 +110,7 @@ export default function VisionSection() {
 
   if (isLoading) {
     return (
-      <section id="vision" className="py-20 lg:py-32 bg-white dark:bg-gray-900" data-testid="section-vision">
+      <section id="vision" className="py-20 lg:py-32 bg-background" data-testid="section-vision">
         <div className="max-w-4xl mx-auto px-6 lg:px-12 text-center">
           <Skeleton className="h-12 w-3/4 mx-auto mb-10" data-testid="skeleton-vision-title" />
           <Skeleton className="h-6 w-full mb-3" />
@@ -127,7 +127,7 @@ export default function VisionSection() {
   return (
     <section
       id="vision"
-      className="py-20 lg:py-32 bg-white dark:bg-gray-900"
+      className="py-20 lg:py-32 bg-background"
       data-testid="section-vision"
     >
       <div className="max-w-4xl mx-auto px-6 lg:px-12 text-center">
@@ -136,7 +136,7 @@ export default function VisionSection() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
-          className="text-2xl md:text-3xl lg:text-4xl font-heading font-light text-gray-800 dark:text-white leading-tight mb-10 uppercase tracking-[0.12em]"
+          className="text-2xl md:text-3xl lg:text-4xl font-heading font-light text-foreground leading-tight mb-10 uppercase tracking-[0.12em]"
           data-testid="text-vision-title"
         >
           {title}
@@ -147,7 +147,7 @@ export default function VisionSection() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6, delay: 0.2 }}
-          className="text-lg md:text-xl font-serif text-gray-600 dark:text-gray-300 leading-relaxed mb-16"
+          className="text-lg md:text-xl font-serif text-muted-foreground leading-relaxed mb-16"
           data-testid="text-vision-description"
         >
           {t.text}
@@ -167,7 +167,7 @@ export default function VisionSection() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6, delay: 0.5 }}
-          className="text-lg md:text-xl font-heading font-light text-gray-800 dark:text-white mb-8 uppercase tracking-[0.12em]"
+          className="text-lg md:text-xl font-heading font-light text-foreground mb-8 uppercase tracking-[0.12em]"
           data-testid="text-vision-subtitle"
         >
           {t.subtitle}
@@ -178,7 +178,7 @@ export default function VisionSection() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6, delay: 0.6 }}
-          className="text-lg font-serif text-gray-600 dark:text-gray-300 leading-relaxed"
+          className="text-lg font-serif text-muted-foreground leading-relaxed"
           data-testid="text-vision-subtext"
         >
           {t.subtext}

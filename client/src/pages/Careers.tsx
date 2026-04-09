@@ -1035,7 +1035,7 @@ export default function Careers() {
   };
 
   return (
-    <div className="min-h-screen bg-white dark:bg-gray-900" data-testid="page-careers">
+    <div className="min-h-screen bg-background" data-testid="page-careers">
       <SEOHead page="careers" language={language} />
       <Header />
       
@@ -1087,49 +1087,49 @@ export default function Careers() {
           >
             <div className="text-center mb-12">
               <h2 
-                className="text-2xl md:text-3xl font-heading font-light text-gray-800 dark:text-white mb-4 uppercase tracking-[0.12em]"
+                className="text-2xl md:text-3xl font-heading font-light text-foreground mb-4 uppercase tracking-[0.12em]"
                 data-testid="text-why-join-title"
               >
                 {t.whyJoinTitle}
               </h2>
-              <p className="text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
+              <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
                 {t.whyJoinSubtitle}
               </p>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
-              <Card className="rounded-md border border-gray-200 dark:border-gray-700" data-testid="card-culture">
+              <Card className="rounded-md border border-border" data-testid="card-culture">
                 <CardHeader>
-                  <CardTitle className="flex items-center gap-3 text-lg font-heading font-light text-gray-800 dark:text-white uppercase tracking-[0.1em]">
+                  <CardTitle className="flex items-center gap-3 text-lg font-heading font-light text-foreground uppercase tracking-[0.1em]">
                     <Building2 className="w-6 h-6 text-primary" />
                     {t.cultureTitle}
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-gray-600 dark:text-gray-400 leading-relaxed">
+                  <p className="text-muted-foreground leading-relaxed">
                     {t.cultureText}
                   </p>
                 </CardContent>
               </Card>
 
-              <Card className="rounded-md border border-gray-200 dark:border-gray-700" data-testid="card-environment">
+              <Card className="rounded-md border border-border" data-testid="card-environment">
                 <CardHeader>
-                  <CardTitle className="flex items-center gap-3 text-lg font-heading font-light text-gray-800 dark:text-white uppercase tracking-[0.1em]">
+                  <CardTitle className="flex items-center gap-3 text-lg font-heading font-light text-foreground uppercase tracking-[0.1em]">
                     <Target className="w-6 h-6 text-primary" />
                     {t.environmentTitle}
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-gray-600 dark:text-gray-400 leading-relaxed">
+                  <p className="text-muted-foreground leading-relaxed">
                     {t.environmentText}
                   </p>
                 </CardContent>
               </Card>
             </div>
 
-            <Card className="rounded-md border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800" data-testid="card-values">
+            <Card className="rounded-md border border-border bg-muted" data-testid="card-values">
               <CardHeader>
-                <CardTitle className="text-lg font-heading font-light text-gray-800 dark:text-white text-center uppercase tracking-[0.1em]">
+                <CardTitle className="text-lg font-heading font-light text-foreground text-center uppercase tracking-[0.1em]">
                   {t.valuesTitle}
                 </CardTitle>
               </CardHeader>
@@ -1151,10 +1151,10 @@ export default function Careers() {
                       <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
                         <value.icon className="w-7 h-7 text-primary" />
                       </div>
-                      <h3 className="font-semibold text-gray-800 dark:text-white mb-2">
+                      <h3 className="font-semibold text-foreground mb-2">
                         {value.title}
                       </h3>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">
+                      <p className="text-sm text-muted-foreground">
                         {value.text}
                       </p>
                     </motion.div>
@@ -1174,12 +1174,12 @@ export default function Careers() {
           >
             <div className="text-center mb-12">
               <h2 
-                className="text-2xl md:text-3xl font-heading font-light text-gray-800 dark:text-white mb-4 uppercase tracking-[0.12em]"
+                className="text-2xl md:text-3xl font-heading font-light text-foreground mb-4 uppercase tracking-[0.12em]"
                 data-testid="text-benefits-title"
               >
                 {t.benefitsTitle}
               </h2>
-              <p className="text-lg text-gray-600 dark:text-gray-400">
+              <p className="text-lg text-muted-foreground">
                 {t.benefitsSubtitle}
               </p>
             </div>
@@ -1194,7 +1194,7 @@ export default function Careers() {
               {t.benefits.map((benefit, index) => (
                 <motion.div key={index} variants={itemVariants}>
                   <Card 
-                    className="rounded-md border border-gray-200 dark:border-gray-700 h-full"
+                    className="rounded-md border border-border h-full"
                     data-testid={`card-benefit-${index}`}
                   >
                     <CardContent className="p-6">
@@ -1203,10 +1203,10 @@ export default function Careers() {
                           <benefit.icon className="w-6 h-6 text-primary" />
                         </div>
                         <div>
-                          <h3 className="font-semibold text-gray-800 dark:text-white mb-2">
+                          <h3 className="font-semibold text-foreground mb-2">
                             {benefit.title}
                           </h3>
-                          <p className="text-sm text-gray-600 dark:text-gray-400">
+                          <p className="text-sm text-muted-foreground">
                             {benefit.text}
                           </p>
                         </div>
@@ -1228,12 +1228,12 @@ export default function Careers() {
           >
             <div className="text-center mb-12">
               <h2 
-                className="text-2xl md:text-3xl font-heading font-light text-gray-800 dark:text-white mb-4 uppercase tracking-[0.12em]"
+                className="text-2xl md:text-3xl font-heading font-light text-foreground mb-4 uppercase tracking-[0.12em]"
                 data-testid="text-positions-title"
               >
                 {t.positionsTitle}
               </h2>
-              <p className="text-lg text-gray-600 dark:text-gray-400">
+              <p className="text-lg text-muted-foreground">
                 {t.positionsSubtitle}
               </p>
             </div>
@@ -1248,21 +1248,21 @@ export default function Careers() {
               {t.positions.map((position, index) => (
                 <motion.div key={index} variants={itemVariants}>
                   <Card 
-                    className="rounded-md border border-gray-200 dark:border-gray-700"
+                    className="rounded-md border border-border"
                     data-testid={`card-position-${index}`}
                   >
                     <CardContent className="p-6">
                       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
                         <div className="flex-1">
                           <div className="flex flex-wrap items-center gap-3 mb-3">
-                            <h3 className="text-xl font-semibold text-gray-800 dark:text-white">
+                            <h3 className="text-xl font-semibold text-foreground">
                               {language === "es" ? position.titleEs : position.title}
                             </h3>
                             <Badge variant="secondary" className="text-xs">
                               {language === "es" ? position.typeEs : position.type}
                             </Badge>
                           </div>
-                          <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600 dark:text-gray-400 mb-3">
+                          <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground mb-3">
                             <span className="flex items-center gap-1">
                               <Briefcase className="w-4 h-4" />
                               {language === "es" ? position.departmentEs : position.department}
@@ -1272,7 +1272,7 @@ export default function Careers() {
                               {language === "es" ? position.locationEs : position.location}
                             </span>
                           </div>
-                          <p className="text-gray-600 dark:text-gray-400">
+                          <p className="text-muted-foreground">
                             {language === "es" ? position.descriptionEs : position.description}
                           </p>
                         </div>
@@ -1306,35 +1306,35 @@ export default function Careers() {
           >
             <div className="text-center mb-12">
               <h2 
-                className="text-2xl md:text-3xl font-heading font-light text-gray-800 dark:text-white mb-4 uppercase tracking-[0.12em]"
+                className="text-2xl md:text-3xl font-heading font-light text-foreground mb-4 uppercase tracking-[0.12em]"
                 data-testid="text-internship-title"
               >
                 {t.internshipTitle}
               </h2>
-              <p className="text-lg text-gray-600 dark:text-gray-400">
+              <p className="text-lg text-muted-foreground">
                 {t.internshipSubtitle}
               </p>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
               <Card 
-                className="rounded-md border border-gray-200 dark:border-gray-700 lg:col-span-2"
+                className="rounded-md border border-border lg:col-span-2"
                 data-testid="card-internship-overview"
               >
                 <CardHeader>
-                  <CardTitle className="flex items-center gap-3 text-lg font-heading font-light text-gray-800 dark:text-white uppercase tracking-[0.1em]">
+                  <CardTitle className="flex items-center gap-3 text-lg font-heading font-light text-foreground uppercase tracking-[0.1em]">
                     <GraduationCap className="w-6 h-6 text-primary" />
                     {t.internshipOverviewTitle}
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-gray-600 dark:text-gray-400 leading-relaxed mb-6">
+                  <p className="text-muted-foreground leading-relaxed mb-6">
                     {t.internshipOverviewText}
                   </p>
                   
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
-                      <h4 className="font-semibold text-gray-800 dark:text-white mb-3 flex items-center gap-2">
+                      <h4 className="font-semibold text-foreground mb-3 flex items-center gap-2">
                         <Calendar className="w-5 h-5 text-primary" />
                         {t.internshipDurationTitle}
                       </h4>
@@ -1342,7 +1342,7 @@ export default function Careers() {
                         {t.internshipDuration.map((item, index) => (
                           <li 
                             key={index} 
-                            className="text-sm text-gray-600 dark:text-gray-400 flex items-start gap-2"
+                            className="text-sm text-muted-foreground flex items-start gap-2"
                           >
                             <span className="w-1.5 h-1.5 rounded-full bg-primary mt-2 flex-shrink-0" />
                             {item}
@@ -1352,7 +1352,7 @@ export default function Careers() {
                     </div>
                     
                     <div>
-                      <h4 className="font-semibold text-gray-800 dark:text-white mb-3 flex items-center gap-2">
+                      <h4 className="font-semibold text-foreground mb-3 flex items-center gap-2">
                         <Award className="w-5 h-5 text-primary" />
                         {t.internshipLearningTitle}
                       </h4>
@@ -1360,7 +1360,7 @@ export default function Careers() {
                         {t.internshipLearning.map((item, index) => (
                           <li 
                             key={index} 
-                            className="text-sm text-gray-600 dark:text-gray-400 flex items-start gap-2"
+                            className="text-sm text-muted-foreground flex items-start gap-2"
                           >
                             <span className="w-1.5 h-1.5 rounded-full bg-primary mt-2 flex-shrink-0" />
                             {item}
@@ -1373,7 +1373,7 @@ export default function Careers() {
               </Card>
 
               <Card 
-                className="rounded-md border border-gray-200 dark:border-gray-700 bg-primary text-white"
+                className="rounded-md border border-border bg-primary text-white"
                 data-testid="card-internship-cta"
               >
                 <CardContent className="p-8 flex flex-col justify-center h-full">
@@ -1414,17 +1414,17 @@ export default function Careers() {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
               <div className="lg:col-span-2">
                 <h2 
-                  className="text-2xl md:text-3xl font-heading font-light text-gray-800 dark:text-white mb-4 uppercase tracking-[0.12em]"
+                  className="text-2xl md:text-3xl font-heading font-light text-foreground mb-4 uppercase tracking-[0.12em]"
                   data-testid="text-apply-title"
                 >
                   {t.applyTitle}
                 </h2>
-                <p className="text-lg text-gray-600 dark:text-gray-400 mb-6">
+                <p className="text-lg text-muted-foreground mb-6">
                   {t.applySubtitle}
                 </p>
-                <Card className="rounded-md border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800" data-testid="card-apply-instructions">
+                <Card className="rounded-md border border-border bg-muted" data-testid="card-apply-instructions">
                   <CardContent className="p-8">
-                    <p className="text-gray-600 dark:text-gray-400 mb-4">
+                    <p className="text-muted-foreground mb-4">
                       {t.applyInstructions}
                     </p>
                     <a 
@@ -1435,7 +1435,7 @@ export default function Careers() {
                       <Mail className="w-5 h-5" />
                       {t.applyEmail}
                     </a>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                    <p className="text-sm text-muted-foreground">
                       {t.applyNote}
                     </p>
                   </CardContent>
@@ -1444,21 +1444,21 @@ export default function Careers() {
 
               <div>
                 <Card 
-                  className="rounded-md border border-gray-200 dark:border-gray-700 h-full"
+                  className="rounded-md border border-border h-full"
                   data-testid="card-careers-contact"
                 >
                   <CardContent className="p-8">
                     <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center mb-6">
                       <Users className="w-7 h-7 text-primary" />
                     </div>
-                    <h3 className="text-base font-heading font-light text-gray-800 dark:text-white mb-2 uppercase tracking-[0.1em]">
+                    <h3 className="text-base font-heading font-light text-foreground mb-2 uppercase tracking-[0.1em]">
                       {t.contactCardTitle}
                     </h3>
-                    <p className="text-gray-600 dark:text-gray-400 mb-6">
+                    <p className="text-muted-foreground mb-6">
                       {t.contactCardText}
                     </p>
                     <div className="space-y-3">
-                      <div className="flex items-center gap-3 text-gray-600 dark:text-gray-400">
+                      <div className="flex items-center gap-3 text-muted-foreground">
                         <Mail className="w-5 h-5 text-primary" />
                         <a 
                           href={`mailto:${t.applyEmail}`}
@@ -1468,7 +1468,7 @@ export default function Careers() {
                           {t.applyEmail}
                         </a>
                       </div>
-                      <div className="flex items-center gap-3 text-gray-600 dark:text-gray-400">
+                      <div className="flex items-center gap-3 text-muted-foreground">
                         <MapPin className="w-5 h-5 text-primary" />
                         <span>
                           {language === "es" ? "Ciudad de México" : "Mexico City"}

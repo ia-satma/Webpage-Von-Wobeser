@@ -700,7 +700,7 @@ export default function Contact() {
   const googleMapsUrl = "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3762.6610687689834!2d-99.19441!3d19.4325!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x85d1ff5f5c0c3e1b%3A0x7c0c7c7c7c7c7c7c!2sTorre%20SOMA%20Chapultepec!5e0!3m2!1sen!2smx!4v1700000000000!5m2!1sen!2smx";
 
   return (
-    <div className="min-h-screen bg-white dark:bg-gray-900" data-testid="page-contact">
+    <div className="min-h-screen bg-background" data-testid="page-contact">
       <SEOHead page="contact" language={language} />
       <Header />
       
@@ -737,17 +737,17 @@ export default function Contact() {
             className="mb-16"
             data-testid="section-contact-form"
           >
-            <Card className="rounded-md border border-gray-200 dark:border-gray-700">
+            <Card className="rounded-md border border-border">
               <CardContent className="p-8">
                 <div className="mb-8">
                   <h2 
-                    className="text-xl font-heading font-light text-gray-800 dark:text-white mb-2 uppercase tracking-[0.12em]"
+                    className="text-xl font-heading font-light text-foreground mb-2 uppercase tracking-[0.12em]"
                     data-testid="text-form-title"
                   >
                     {t.formTitle}
                   </h2>
                   <p 
-                    className="text-gray-600 dark:text-gray-400"
+                    className="text-muted-foreground"
                     data-testid="text-form-subtitle"
                   >
                     {t.formSubtitle}
@@ -911,13 +911,13 @@ export default function Contact() {
               transition={{ duration: 0.6, delay: 0.2 }}
             >
               <h2 
-                className="text-xl font-heading font-light text-gray-800 dark:text-white mb-6 uppercase tracking-[0.12em]"
+                className="text-xl font-heading font-light text-foreground mb-6 uppercase tracking-[0.12em]"
                 data-testid="text-offices-title"
               >
                 {t.officesTitle}
               </h2>
               
-              <Card className="rounded-md border border-gray-200 dark:border-gray-700 overflow-hidden" data-testid="card-main-office">
+              <Card className="rounded-md border border-border overflow-hidden" data-testid="card-main-office">
                 <div className="aspect-video w-full">
                   <iframe
                     src={googleMapsUrl}
@@ -935,10 +935,10 @@ export default function Contact() {
                   <div className="flex items-start gap-3 mb-4">
                     <Building2 className="w-5 h-5 text-primary flex-shrink-0 mt-1" />
                     <div>
-                      <h3 className="font-semibold text-gray-800 dark:text-white mb-1" data-testid="text-office-name">
+                      <h3 className="font-semibold text-foreground mb-1" data-testid="text-office-name">
                         {t.mainOffice}
                       </h3>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">
+                      <p className="text-sm text-muted-foreground">
                         {t.building}, {t.floor}
                       </p>
                     </div>
@@ -947,7 +947,7 @@ export default function Contact() {
                   <div className="space-y-3 mb-6">
                     <div className="flex items-start gap-3">
                       <MapPin className="w-4 h-4 text-primary flex-shrink-0 mt-1" />
-                      <div className="text-sm text-gray-600 dark:text-gray-400" data-testid="text-office-address">
+                      <div className="text-sm text-muted-foreground" data-testid="text-office-address">
                         <p>{t.street}</p>
                         <p>{t.colony}</p>
                         <p>{t.city}</p>
@@ -958,7 +958,7 @@ export default function Contact() {
                       <Phone className="w-4 h-4 text-primary flex-shrink-0" />
                       <a 
                         href={`tel:${t.phone.replace(/\s/g, '')}`}
-                        className="text-sm text-gray-600 dark:text-gray-400 hover:text-primary transition-colors"
+                        className="text-sm text-muted-foreground hover:text-primary transition-colors"
                         data-testid="link-office-phone"
                       >
                         {t.phone}
@@ -969,7 +969,7 @@ export default function Contact() {
                       <Mail className="w-4 h-4 text-primary flex-shrink-0" />
                       <a 
                         href={`mailto:${t.email}`}
-                        className="text-sm text-gray-600 dark:text-gray-400 hover:text-primary transition-colors"
+                        className="text-sm text-muted-foreground hover:text-primary transition-colors"
                         data-testid="link-office-email"
                       >
                         {t.email}
@@ -978,7 +978,7 @@ export default function Contact() {
                     
                     <div className="flex items-start gap-3">
                       <Clock className="w-4 h-4 text-primary flex-shrink-0 mt-0.5" />
-                      <div className="text-sm text-gray-600 dark:text-gray-400" data-testid="text-office-hours">
+                      <div className="text-sm text-muted-foreground" data-testid="text-office-hours">
                         <p className="font-medium">{t.hours}</p>
                         <p>{t.hoursDetails}</p>
                       </div>
@@ -1010,10 +1010,10 @@ export default function Contact() {
               transition={{ duration: 0.6, delay: 0.3 }}
               className="space-y-8"
             >
-              <Card className="rounded-md border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800" data-testid="card-contact-cta">
+              <Card className="rounded-md border border-border bg-muted" data-testid="card-contact-cta">
                 <CardContent className="p-8">
                   <h3 
-                    className="text-xl font-heading font-light text-gray-800 dark:text-white mb-4"
+                    className="text-xl font-heading font-light text-foreground mb-4"
                     data-testid="text-contact-cta-title"
                   >
                     {t.contactUs}
@@ -1044,21 +1044,21 @@ export default function Contact() {
                 </CardContent>
               </Card>
 
-              <Card className="rounded-md border border-gray-200 dark:border-gray-700" data-testid="card-german-desk">
+              <Card className="rounded-md border border-border" data-testid="card-german-desk">
                 <CardContent className="p-8">
                   <div className="flex items-center gap-3 mb-4">
                     <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
                       <span className="text-lg">🇩🇪</span>
                     </div>
                     <h3 
-                      className="text-xl font-heading font-light text-gray-800 dark:text-white"
+                      className="text-xl font-heading font-light text-foreground"
                       data-testid="text-german-desk-title"
                     >
                       {t.germanDesk}
                     </h3>
                   </div>
                   <p 
-                    className="text-gray-600 dark:text-gray-400 text-sm"
+                    className="text-muted-foreground text-sm"
                     data-testid="text-german-desk-info"
                   >
                     {t.germanDeskInfo}
@@ -1066,16 +1066,16 @@ export default function Contact() {
                 </CardContent>
               </Card>
 
-              <Card className="rounded-md border border-gray-200 dark:border-gray-700" data-testid="card-connect">
+              <Card className="rounded-md border border-border" data-testid="card-connect">
                 <CardContent className="p-8">
                   <h3 
-                    className="text-xl font-heading font-light text-gray-800 dark:text-white mb-2"
+                    className="text-xl font-heading font-light text-foreground mb-2"
                     data-testid="text-connect-title"
                   >
                     {t.connectTitle}
                   </h3>
                   <p 
-                    className="text-gray-600 dark:text-gray-400 text-sm mb-6"
+                    className="text-muted-foreground text-sm mb-6"
                     data-testid="text-connect-subtitle"
                   >
                     {t.connectSubtitle}

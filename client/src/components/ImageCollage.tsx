@@ -176,13 +176,13 @@ export default function ImageCollage() {
     return (
       <section 
         id="gallery" 
-        className="py-20 lg:py-28 bg-gray-50 dark:bg-gray-800" 
+        className="py-20 lg:py-28 bg-muted" 
         data-testid="section-gallery"
         aria-label={t.galleryLabel}
       >
         <div className="max-w-7xl mx-auto px-6 lg:px-12 text-center">
           <AlertCircle className="w-12 h-12 text-gray-400 mx-auto mb-4" aria-hidden="true" />
-          <p className="text-gray-500 dark:text-gray-400" data-testid="text-gallery-error" role="alert">{t.errorMessage}</p>
+          <p className="text-muted-foreground" data-testid="text-gallery-error" role="alert">{t.errorMessage}</p>
         </div>
       </section>
     );
@@ -192,7 +192,7 @@ export default function ImageCollage() {
     <>
       <section
         id="gallery"
-        className="py-20 lg:py-28 bg-gray-50 dark:bg-gray-800"
+        className="py-20 lg:py-28 bg-muted"
         data-testid="section-gallery"
         aria-label={t.galleryLabel}
       >

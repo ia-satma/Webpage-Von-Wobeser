@@ -89,10 +89,10 @@ export default function QuoteSection() {
 
   if (error) {
     return (
-      <section id="quote" className="py-20 lg:py-28 bg-gray-100 dark:bg-gray-800" data-testid="section-quote">
+      <section id="quote" className="py-20 lg:py-28 bg-muted" data-testid="section-quote">
         <div className="max-w-4xl mx-auto px-6 lg:px-12 text-center">
           <AlertCircle className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-          <p className="text-gray-500 dark:text-gray-400" data-testid="text-quote-error">{t.errorMessage}</p>
+          <p className="text-muted-foreground" data-testid="text-quote-error">{t.errorMessage}</p>
         </div>
       </section>
     );
@@ -100,7 +100,7 @@ export default function QuoteSection() {
 
   if (isLoading) {
     return (
-      <section id="quote" className="py-20 lg:py-28 bg-gray-100 dark:bg-gray-800" data-testid="section-quote">
+      <section id="quote" className="py-20 lg:py-28 bg-muted" data-testid="section-quote">
         <div className="max-w-4xl mx-auto px-6 lg:px-12 text-center">
           <Skeleton className="w-12 h-12 mx-auto mb-8 rounded-full" data-testid="skeleton-quote-icon" />
           <Skeleton className="h-8 w-full mb-3" />
@@ -117,7 +117,7 @@ export default function QuoteSection() {
   return (
     <section
       id="quote"
-      className="py-20 lg:py-28 bg-gray-100 dark:bg-gray-800"
+      className="py-20 lg:py-28 bg-muted"
       data-testid="section-quote"
     >
       <div className="max-w-4xl mx-auto px-6 lg:px-12 text-center">
@@ -139,12 +139,12 @@ export default function QuoteSection() {
           <div className="flex flex-col items-center">
             <div className="w-16 h-px bg-primary mb-6" data-testid="divider-quote" />
             <p
-              className="text-lg font-medium text-gray-800 dark:text-white"
+              className="text-lg font-medium text-foreground"
               data-testid="text-quote-author"
             >
               {author}
             </p>
-            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1" data-testid="text-quote-role">
+            <p className="text-sm text-muted-foreground mt-1" data-testid="text-quote-role">
               {role}
             </p>
           </div>

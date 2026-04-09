@@ -127,7 +127,7 @@ export default function AboutUsSection() {
   return (
     <section
       id="about-us"
-      className="py-20 lg:py-32 bg-white dark:bg-gray-900"
+      className="py-20 lg:py-32 bg-background"
       data-testid="section-about-us"
     >
       <div className="max-w-6xl mx-auto px-6 lg:px-12">
@@ -151,13 +151,13 @@ export default function AboutUsSection() {
             data-testid="subsection-vision"
           >
             <h3
-              className="text-xl md:text-2xl font-heading font-light text-gray-800 dark:text-white mb-6 uppercase tracking-[0.12em]"
+              className="text-xl md:text-2xl font-heading font-light text-foreground mb-6 uppercase tracking-[0.12em]"
               data-testid="text-vision-title"
             >
               {t.visionTitle}
             </h3>
             <p
-              className="text-lg font-serif text-gray-600 dark:text-gray-300 leading-relaxed"
+              className="text-lg font-serif text-muted-foreground leading-relaxed"
               data-testid="text-vision-content"
             >
               {t.visionText}
@@ -172,13 +172,13 @@ export default function AboutUsSection() {
             data-testid="subsection-mission"
           >
             <h3
-              className="text-xl md:text-2xl font-heading font-light text-gray-800 dark:text-white mb-6 uppercase tracking-[0.12em]"
+              className="text-xl md:text-2xl font-heading font-light text-foreground mb-6 uppercase tracking-[0.12em]"
               data-testid="text-mission-title"
             >
               {t.missionTitle}
             </h3>
             <p
-              className="text-lg font-serif text-gray-600 dark:text-gray-300 leading-relaxed"
+              className="text-lg font-serif text-muted-foreground leading-relaxed"
               data-testid="text-mission-content"
             >
               {t.missionText}
@@ -204,7 +204,7 @@ export default function AboutUsSection() {
           data-testid="subsection-values"
         >
           <h3
-            className="text-xl md:text-2xl font-heading font-light text-gray-800 dark:text-white mb-10 uppercase tracking-[0.12em]"
+            className="text-xl md:text-2xl font-heading font-light text-foreground mb-10 uppercase tracking-[0.12em]"
             data-testid="text-values-title"
           >
             {t.valuesTitle}
@@ -221,7 +221,7 @@ export default function AboutUsSection() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.4, delay: 0.5 + index * 0.1 }}
-                className="px-6 py-3 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700"
+                className="px-6 py-3 bg-muted border border-border"
                 data-testid={`value-item-${index}`}
               >
                 <span

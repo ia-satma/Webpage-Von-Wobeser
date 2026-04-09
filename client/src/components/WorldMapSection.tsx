@@ -261,14 +261,14 @@ export default function WorldMapSection({ language }: WorldMapSectionProps) {
         />
       </div>
       <h4
-        className="text-sm md:text-base font-semibold text-gray-800 dark:text-white"
+        className="text-sm md:text-base font-semibold text-foreground"
         data-testid={`text-name-${member.id}`}
       >
         {member.name}
       </h4>
       {member.title && (
         <p
-          className="text-xs text-gray-500 dark:text-gray-400 mt-1"
+          className="text-xs text-muted-foreground mt-1"
           data-testid={`text-title-${member.id}`}
         >
           {member.title}
@@ -280,7 +280,7 @@ export default function WorldMapSection({ language }: WorldMapSectionProps) {
   return (
     <section
       id="german-desk"
-      className="py-20 lg:py-28 bg-gray-50 dark:bg-gray-800"
+      className="py-20 lg:py-28 bg-muted"
       data-testid="section-german-desk"
     >
       <div className="max-w-6xl mx-auto px-6 lg:px-12">
@@ -298,13 +298,13 @@ export default function WorldMapSection({ language }: WorldMapSectionProps) {
             {t.sectionTitle}
           </p>
           <h2
-            className="text-2xl md:text-3xl font-heading font-light text-gray-800 dark:text-white mb-4 uppercase tracking-[0.12em]"
+            className="text-2xl md:text-3xl font-heading font-light text-foreground mb-4 uppercase tracking-[0.12em]"
             data-testid="text-global-reach-title"
           >
             {t.title}
           </h2>
           <p
-            className="text-lg text-gray-600 dark:text-gray-400 max-w-3xl mx-auto"
+            className="text-lg text-muted-foreground max-w-3xl mx-auto"
             data-testid="text-global-reach-subtitle"
           >
             {t.subtitle}
@@ -316,7 +316,7 @@ export default function WorldMapSection({ language }: WorldMapSectionProps) {
           whileInView={{ opacity: 1 }}
           viewport={{ once: true }}
           transition={{ duration: 0.8, delay: 0.2 }}
-          className="relative bg-white dark:bg-gray-900 rounded-md p-8 shadow-sm"
+          className="relative bg-background rounded-md p-8 shadow-sm"
           data-testid="card-map-connection"
         >
           <div className="flex flex-col md:flex-row items-center justify-center gap-8 md:gap-16">
@@ -334,12 +334,12 @@ export default function WorldMapSection({ language }: WorldMapSectionProps) {
                 </svg>
               </div>
               <h3
-                className="text-lg font-semibold text-gray-800 dark:text-white mb-1"
+                className="text-lg font-semibold text-foreground mb-1"
                 data-testid="text-mexico-label"
               >
                 {t.mexicoLabel}
               </h3>
-              <p className="text-sm text-gray-500 dark:text-gray-400">
+              <p className="text-sm text-muted-foreground">
                 {t.mexicoSubtitle}
               </p>
             </motion.div>
@@ -396,12 +396,12 @@ export default function WorldMapSection({ language }: WorldMapSectionProps) {
                 </svg>
               </div>
               <h3
-                className="text-lg font-semibold text-gray-800 dark:text-white mb-1"
+                className="text-lg font-semibold text-foreground mb-1"
                 data-testid="text-germany-label"
               >
                 {t.germanyLabel}
               </h3>
-              <p className="text-sm text-gray-500 dark:text-gray-400">
+              <p className="text-sm text-muted-foreground">
                 {t.germanySubtitle}
               </p>
             </motion.div>
@@ -412,25 +412,25 @@ export default function WorldMapSection({ language }: WorldMapSectionProps) {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.5, delay: 1 }}
-            className="mt-8 pt-8 border-t border-gray-200 dark:border-gray-700"
+            className="mt-8 pt-8 border-t border-border"
             data-testid="stats-container"
           >
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
               <div data-testid="stat-years">
                 <p className="text-2xl font-semibold text-primary mb-1">34+</p>
-                <p className="text-sm text-gray-600 dark:text-gray-400">
+                <p className="text-sm text-muted-foreground">
                   {t.yearsLabel}
                 </p>
               </div>
               <div data-testid="stat-clients">
                 <p className="text-2xl font-semibold text-primary mb-1">100+</p>
-                <p className="text-sm text-gray-600 dark:text-gray-400">
+                <p className="text-sm text-muted-foreground">
                   {t.clientsLabel}
                 </p>
               </div>
               <div data-testid="stat-languages">
                 <p className="text-2xl font-semibold text-primary mb-1">3</p>
-                <p className="text-sm text-gray-600 dark:text-gray-400">
+                <p className="text-sm text-muted-foreground">
                   {t.languagesLabel}
                 </p>
               </div>
@@ -446,9 +446,9 @@ export default function WorldMapSection({ language }: WorldMapSectionProps) {
           className="mt-12"
           data-testid="historical-text-container"
         >
-          <Card className="p-8 bg-white dark:bg-gray-900">
+          <Card className="p-8 bg-background">
             <p
-              className="text-base md:text-lg text-gray-700 dark:text-gray-300 leading-relaxed text-center font-serif"
+              className="text-base md:text-lg text-foreground leading-relaxed text-center font-serif"
               data-testid="text-historical-description"
             >
               {t.historicalText}
@@ -465,12 +465,12 @@ export default function WorldMapSection({ language }: WorldMapSectionProps) {
             data-testid="partners-section"
           >
             <h3
-              className="text-lg md:text-xl font-heading font-light text-gray-800 dark:text-white text-center mb-8 uppercase tracking-[0.12em]"
+              className="text-lg md:text-xl font-heading font-light text-foreground text-center mb-8 uppercase tracking-[0.12em]"
               data-testid="text-partners-title"
             >
               {t.partnersTitle}
             </h3>
-            <Card className="p-6 md:p-8 bg-white dark:bg-gray-900">
+            <Card className="p-6 md:p-8 bg-background">
               <div className="flex flex-wrap justify-center gap-8 md:gap-12">
                 {partners.map((member) => (
                   <TeamMemberCard key={member.id} member={member} testIdPrefix="partner" />
@@ -487,12 +487,12 @@ export default function WorldMapSection({ language }: WorldMapSectionProps) {
             data-testid="of-counsel-section"
           >
             <h3
-              className="text-lg md:text-xl font-heading font-light text-gray-800 dark:text-white text-center mb-8 uppercase tracking-[0.12em]"
+              className="text-lg md:text-xl font-heading font-light text-foreground text-center mb-8 uppercase tracking-[0.12em]"
               data-testid="text-of-counsel-title"
             >
               {t.ofCounselTitle}
             </h3>
-            <Card className="p-6 md:p-8 bg-white dark:bg-gray-900">
+            <Card className="p-6 md:p-8 bg-background">
               <div className="flex flex-wrap justify-center gap-8 md:gap-12">
                 {ofCounsel.map((member) => (
                   <TeamMemberCard key={member.id} member={member} testIdPrefix="of-counsel" />
@@ -509,12 +509,12 @@ export default function WorldMapSection({ language }: WorldMapSectionProps) {
             data-testid="associates-section"
           >
             <h3
-              className="text-lg md:text-xl font-heading font-light text-gray-800 dark:text-white text-center mb-8 uppercase tracking-[0.12em]"
+              className="text-lg md:text-xl font-heading font-light text-foreground text-center mb-8 uppercase tracking-[0.12em]"
               data-testid="text-associates-title"
             >
               {t.associatesTitle}
             </h3>
-            <Card className="p-6 md:p-8 bg-white dark:bg-gray-900">
+            <Card className="p-6 md:p-8 bg-background">
               <div className="flex flex-wrap justify-center gap-8 md:gap-12">
                 {associates.map((member) => (
                   <TeamMemberCard key={member.id} member={member} testIdPrefix="associate" />

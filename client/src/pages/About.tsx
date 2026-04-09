@@ -1152,7 +1152,7 @@ export default function About() {
   };
 
   return (
-    <div className="min-h-screen bg-white dark:bg-gray-900" data-testid="page-about">
+    <div className="min-h-screen bg-background" data-testid="page-about">
       <SEOHead page="about" language={language} />
       <Header />
       
@@ -1189,14 +1189,14 @@ export default function About() {
             className="mb-20"
             data-testid="section-history"
           >
-            <h2 className="text-2xl font-heading font-light text-gray-800 dark:text-white mb-6 uppercase tracking-[0.12em]">
+            <h2 className="text-2xl font-heading font-light text-foreground mb-6 uppercase tracking-[0.12em]">
               {t.historyTitle}
             </h2>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              <p className="text-lg text-gray-700 dark:text-gray-300 leading-relaxed">
+              <p className="text-lg text-foreground leading-relaxed">
                 {t.historyText1}
               </p>
-              <p className="text-lg text-gray-700 dark:text-gray-300 leading-relaxed">
+              <p className="text-lg text-foreground leading-relaxed">
                 {t.historyText2}
               </p>
             </div>
@@ -1209,21 +1209,21 @@ export default function About() {
             className="mb-20"
             data-testid="section-values"
           >
-            <h2 className="text-2xl font-heading font-light text-gray-800 dark:text-white mb-8 text-center uppercase tracking-[0.12em]">
+            <h2 className="text-2xl font-heading font-light text-foreground mb-8 text-center uppercase tracking-[0.12em]">
               {t.valuesTitle}
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               {t.values.map((value, index) => (
                 <motion.div key={index} variants={itemVariants}>
-                  <Card className="h-full rounded-md border border-gray-200 dark:border-gray-700 text-center" data-testid={`card-value-${index}`}>
+                  <Card className="h-full rounded-md border border-border text-center" data-testid={`card-value-${index}`}>
                     <CardContent className="p-6">
                       <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
                         <value.icon className="w-7 h-7 text-primary" />
                       </div>
-                      <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-2">
+                      <h3 className="text-lg font-semibold text-foreground mb-2">
                         {value.title}
                       </h3>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">
+                      <p className="text-sm text-muted-foreground">
                         {value.text}
                       </p>
                     </CardContent>
@@ -1241,13 +1241,13 @@ export default function About() {
             data-testid="section-culture"
           >
             <div className="text-center mb-12">
-              <h2 className="text-2xl font-heading font-light text-gray-800 dark:text-white mb-4 uppercase tracking-[0.12em]">
+              <h2 className="text-2xl font-heading font-light text-foreground mb-4 uppercase tracking-[0.12em]">
                 {t.cultureTitle}
               </h2>
               <p className="text-lg text-primary font-medium mb-4" data-testid="text-culture-subtitle">
                 {t.cultureSubtitle}
               </p>
-              <p className="text-lg text-gray-700 dark:text-gray-300 leading-relaxed max-w-4xl mx-auto" data-testid="text-culture-intro">
+              <p className="text-lg text-foreground leading-relaxed max-w-4xl mx-auto" data-testid="text-culture-intro">
                 {t.cultureIntro}
               </p>
             </div>
@@ -1260,17 +1260,17 @@ export default function About() {
             >
               {t.cultureAspects.map((aspect, index) => (
                 <motion.div key={index} variants={itemVariants}>
-                  <Card className="h-full rounded-md border border-gray-200 dark:border-gray-700" data-testid={`card-culture-${index}`}>
+                  <Card className="h-full rounded-md border border-border" data-testid={`card-culture-${index}`}>
                     <CardContent className="p-6">
                       <div className="flex items-start gap-4">
                         <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
                           <aspect.icon className="w-6 h-6 text-primary" />
                         </div>
                         <div>
-                          <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-2">
+                          <h3 className="text-lg font-semibold text-foreground mb-2">
                             {aspect.title}
                           </h3>
-                          <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
+                          <p className="text-sm text-muted-foreground leading-relaxed">
                             {aspect.text}
                           </p>
                         </div>
@@ -1292,14 +1292,14 @@ export default function About() {
             <div className="text-center mb-12">
               <div className="flex items-center justify-center gap-3 mb-4">
                 <UsersRound className="w-8 h-8 text-primary" />
-                <h2 className="text-2xl font-heading font-light text-gray-800 dark:text-white uppercase tracking-[0.12em]">
+                <h2 className="text-2xl font-heading font-light text-foreground uppercase tracking-[0.12em]">
                   {t.diversityTitle}
                 </h2>
               </div>
               <p className="text-lg text-primary font-medium mb-4" data-testid="text-diversity-subtitle">
                 {t.diversitySubtitle}
               </p>
-              <p className="text-lg text-gray-700 dark:text-gray-300 leading-relaxed max-w-4xl mx-auto" data-testid="text-diversity-intro">
+              <p className="text-lg text-foreground leading-relaxed max-w-4xl mx-auto" data-testid="text-diversity-intro">
                 {t.diversityIntro}
               </p>
             </div>
@@ -1309,7 +1309,7 @@ export default function About() {
                 <motion.div 
                   key={index} 
                   variants={itemVariants}
-                  className="text-center bg-white dark:bg-gray-800 rounded-md p-6 shadow-sm"
+                  className="text-center bg-card rounded-md p-6 shadow-sm"
                   data-testid={`stat-diversity-${index}`}
                 >
                   <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-3">
@@ -1318,7 +1318,7 @@ export default function About() {
                   <p className="text-3xl lg:text-4xl font-heading text-primary mb-2">
                     {stat.value}
                   </p>
-                  <p className="text-sm text-gray-600 dark:text-gray-400 uppercase tracking-wider">
+                  <p className="text-sm text-muted-foreground uppercase tracking-wider">
                     {stat.label}
                   </p>
                 </motion.div>
@@ -1333,17 +1333,17 @@ export default function About() {
             >
               {t.diversityInitiatives.map((initiative, index) => (
                 <motion.div key={index} variants={itemVariants}>
-                  <Card className="h-full rounded-md border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800" data-testid={`card-diversity-initiative-${index}`}>
+                  <Card className="h-full rounded-md border border-border bg-card" data-testid={`card-diversity-initiative-${index}`}>
                     <CardContent className="p-6">
                       <div className="flex items-start gap-4">
                         <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
                           <initiative.icon className="w-6 h-6 text-primary" />
                         </div>
                         <div>
-                          <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-2">
+                          <h3 className="text-lg font-semibold text-foreground mb-2">
                             {initiative.title}
                           </h3>
-                          <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
+                          <p className="text-sm text-muted-foreground leading-relaxed">
                             {initiative.text}
                           </p>
                         </div>
@@ -1355,7 +1355,7 @@ export default function About() {
             </motion.div>
 
             <div className="text-center">
-              <p className="text-base text-gray-700 dark:text-gray-300 leading-relaxed max-w-3xl mx-auto italic" data-testid="text-diversity-commitment">
+              <p className="text-base text-foreground leading-relaxed max-w-3xl mx-auto italic" data-testid="text-diversity-commitment">
                 {t.diversityCommitment}
               </p>
             </div>
@@ -1365,10 +1365,10 @@ export default function About() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.4 }}
-            className="mb-20 bg-gray-50 dark:bg-gray-800 rounded-md p-10"
+            className="mb-20 bg-muted rounded-md p-10"
             data-testid="section-stats"
           >
-            <h2 className="text-2xl font-heading font-light text-gray-800 dark:text-white mb-8 text-center uppercase tracking-[0.12em]">
+            <h2 className="text-2xl font-heading font-light text-foreground mb-8 text-center uppercase tracking-[0.12em]">
               {t.statsTitle}
             </h2>
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-8">
@@ -1377,7 +1377,7 @@ export default function About() {
                   <p className="text-4xl lg:text-5xl font-heading text-primary mb-2">
                     {stat.value}
                   </p>
-                  <p className="text-sm text-gray-600 dark:text-gray-400 uppercase tracking-wider">
+                  <p className="text-sm text-muted-foreground uppercase tracking-wider">
                     {stat.label}
                   </p>
                 </div>
@@ -1396,16 +1396,16 @@ export default function About() {
               <div>
                 <div className="flex items-center gap-3 mb-4">
                   <Award className="w-8 h-8 text-primary" />
-                  <h2 className="text-2xl font-heading font-light text-gray-800 dark:text-white uppercase tracking-[0.12em]">
+                  <h2 className="text-2xl font-heading font-light text-foreground uppercase tracking-[0.12em]">
                     {t.rankingsTitle}
                   </h2>
                 </div>
-                <p className="text-lg text-gray-700 dark:text-gray-300 leading-relaxed mb-6">
+                <p className="text-lg text-foreground leading-relaxed mb-6">
                   {t.rankingsText}
                 </p>
                 <ul className="space-y-3">
                   {t.rankings.map((ranking, index) => (
-                    <li key={index} className="flex items-center gap-3 text-gray-700 dark:text-gray-300" data-testid={`text-ranking-${index}`}>
+                    <li key={index} className="flex items-center gap-3 text-foreground" data-testid={`text-ranking-${index}`}>
                       <div className="w-2 h-2 rounded-full bg-primary flex-shrink-0" />
                       {ranking}
                     </li>
@@ -1433,15 +1433,15 @@ export default function About() {
               transition={{ duration: 0.6, delay: 0.6 }}
               data-testid="section-pro-bono"
             >
-              <Card className="h-full rounded-md border border-gray-200 dark:border-gray-700">
+              <Card className="h-full rounded-md border border-border">
                 <CardContent className="p-8">
                   <div className="flex items-center gap-3 mb-4">
                     <Heart className="w-8 h-8 text-primary" />
-                    <h2 className="text-xl font-heading font-light text-gray-800 dark:text-white uppercase tracking-[0.12em]">
+                    <h2 className="text-xl font-heading font-light text-foreground uppercase tracking-[0.12em]">
                       {t.proBonoTitle}
                     </h2>
                   </div>
-                  <p className="text-gray-700 dark:text-gray-300 leading-relaxed" data-testid="text-pro-bono">
+                  <p className="text-foreground leading-relaxed" data-testid="text-pro-bono">
                     {t.proBonoText}
                   </p>
                 </CardContent>
@@ -1454,7 +1454,7 @@ export default function About() {
               transition={{ duration: 0.6, delay: 0.7 }}
               data-testid="section-careers"
             >
-              <Card className="h-full rounded-md border border-gray-200 dark:border-gray-700 bg-primary text-white">
+              <Card className="h-full rounded-md border border-border bg-primary text-white">
                 <CardContent className="p-8">
                   <div className="flex items-center gap-3 mb-4">
                     <Briefcase className="w-8 h-8 text-white" />
@@ -1467,7 +1467,7 @@ export default function About() {
                   </p>
                   <Button 
                     variant="secondary"
-                    className="rounded-md bg-white text-primary hover:bg-white/90"
+                    className="rounded-md bg-card text-primary hover:bg-white/90"
                     asChild
                     data-testid="button-careers"
                   >

@@ -154,7 +154,7 @@ function NewsCardTranslated({ item, language, dateLocale, seeMoreText }: NewsCar
   return (
     <Link href={`/news/${item.slug}`} className="block">
       <Card
-        className="group overflow-hidden border-0 rounded-none bg-[#F4F3F2] dark:bg-gray-900 transition-all duration-300"
+        className="group overflow-hidden border-0 rounded-none bg-card transition-all duration-300"
         style={{ boxShadow: '0 15px 35px rgba(0,0,0,0.05)' }}
         data-testid={`card-news-${item.id}`}
       >
@@ -180,7 +180,7 @@ function NewsCardTranslated({ item, language, dateLocale, seeMoreText }: NewsCar
           </h3>
           {displayExcerpt && (
             <p 
-              className={`text-sm text-gray-600 dark:text-gray-400 line-clamp-2 mb-4 ${isTranslating ? 'opacity-50' : ''}`}
+              className={`text-sm text-muted-foreground line-clamp-2 mb-4 ${isTranslating ? 'opacity-50' : ''}`}
               data-testid={`text-news-excerpt-${item.id}`}
             >
               {displayExcerpt}
@@ -229,11 +229,11 @@ export default function NewsSection() {
 
   if (error) {
     return (
-      <section id="news" className="py-20 lg:py-28 bg-gray-50 dark:bg-gray-800" data-testid="section-news">
+      <section id="news" className="py-20 lg:py-28 bg-muted" data-testid="section-news">
         <div className="max-w-7xl mx-auto px-6 lg:px-12">
           <div className="text-center py-12">
-            <AlertCircle className="w-12 h-12 text-gray-400 dark:text-gray-500 mx-auto mb-4" />
-            <p className="text-gray-500 dark:text-gray-400" data-testid="text-news-error">{t.errorMessage}</p>
+            <AlertCircle className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+            <p className="text-muted-foreground" data-testid="text-news-error">{t.errorMessage}</p>
           </div>
         </div>
       </section>
@@ -243,7 +243,7 @@ export default function NewsSection() {
   return (
     <section
       id="news"
-      className="py-20 lg:py-28 bg-gray-50 dark:bg-gray-800"
+      className="py-20 lg:py-28 bg-muted"
       data-testid="section-news"
     >
       <div className="max-w-7xl mx-auto px-6 lg:px-12">
@@ -278,7 +278,7 @@ export default function NewsSection() {
         {isLoading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
             {[1, 2, 3].map((i) => (
-              <Card key={i} className="overflow-hidden border-0 rounded-none bg-[#F4F3F2] dark:bg-gray-900" style={{ boxShadow: '0 15px 35px rgba(0,0,0,0.05)' }} data-testid={`skeleton-news-${i}`}>
+              <Card key={i} className="overflow-hidden border-0 rounded-none bg-card" style={{ boxShadow: '0 15px 35px rgba(0,0,0,0.05)' }} data-testid={`skeleton-news-${i}`}>
                 <Skeleton className="aspect-[16/10] w-full" />
                 <div className="p-6">
                   <Skeleton className="h-3 w-24 mb-3" />

@@ -23,7 +23,7 @@ export default function Home() {
   const { language } = useLanguage();
 
   return (
-    <div className="min-h-screen bg-white" data-testid="page-home">
+    <div className="min-h-screen bg-card" data-testid="page-home">
       <SEOHead page="home" language={language} />
       <JsonLdSchema language={language} />
       

@@ -63,14 +63,14 @@ export default function TeamMemberCard({ member, viewProfileLabel, positions }: 
 
   return (
     <Card
-      className="group h-full rounded-md border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-lg transition-all duration-300 bg-white dark:bg-gray-800"
+      className="group h-full rounded-md border border-border shadow-sm hover:shadow-lg transition-all duration-300 bg-card"
       data-testid={`card-team-member-${member.slug}`}
     >
       <CardContent className="p-6 text-center">
         <Link href={`/team/${member.slug}`}>
           <div className="cursor-pointer">
             <div className="relative mb-4 mx-auto w-fit">
-              <Avatar className="w-24 h-24 mx-auto border-2 border-gray-100 dark:border-gray-700">
+              <Avatar className="w-24 h-24 mx-auto border-2 border-border">
                 <AvatarImage 
                   src={member.imageUrl || undefined} 
                   alt={member.name}
@@ -82,7 +82,7 @@ export default function TeamMemberCard({ member, viewProfileLabel, positions }: 
               </Avatar>
             </div>
             <h3 
-              className="text-lg font-semibold text-gray-800 dark:text-white mb-2 group-hover:text-primary transition-colors"
+              className="text-lg font-semibold text-foreground mb-2 group-hover:text-primary transition-colors"
               data-testid={`text-team-member-name-${member.slug}`}
             >
               {member.name}
@@ -100,7 +100,7 @@ export default function TeamMemberCard({ member, viewProfileLabel, positions }: 
                 </div>
               ) : (
                 <p 
-                  className="text-sm text-gray-600 dark:text-gray-400"
+                  className="text-sm text-muted-foreground"
                   data-testid={`text-team-member-role-${member.slug}`}
                 >
                   {displayRole}
@@ -109,7 +109,7 @@ export default function TeamMemberCard({ member, viewProfileLabel, positions }: 
             </div>
           </div>
         </Link>
-        <div className="mt-4 pt-4 border-t border-gray-100 dark:border-gray-700 flex justify-center gap-2">
+        <div className="mt-4 pt-4 border-t border-border flex justify-center gap-2">
           <Button
             variant="outline"
             size="sm"

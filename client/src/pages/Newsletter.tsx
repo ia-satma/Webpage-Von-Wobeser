@@ -513,7 +513,7 @@ export default function Newsletter() {
   ];
 
   return (
-    <div className="min-h-screen bg-white dark:bg-gray-900" data-testid="page-newsletter">
+    <div className="min-h-screen bg-background" data-testid="page-newsletter">
       <SEOHead page="newsletter" language={language} />
       <Header />
       
@@ -550,7 +550,7 @@ export default function Newsletter() {
               transition={{ duration: 0.6, delay: 0.1 }}
               data-testid="section-newsletter-form"
             >
-              <Card className="rounded-md border border-gray-200 dark:border-gray-700">
+              <Card className="rounded-md border border-border">
                 <CardContent className="p-8">
                   <div className="mb-8">
                     <div className="flex items-center gap-3 mb-4">
@@ -565,7 +565,7 @@ export default function Newsletter() {
                       </h2>
                     </div>
                     <p 
-                      className="text-gray-600 dark:text-gray-400"
+                      className="text-muted-foreground"
                       data-testid="text-form-subtitle"
                     >
                       {t.formSubtitle}
@@ -651,7 +651,7 @@ export default function Newsletter() {
                       </Button>
 
                       <p 
-                        className="text-sm text-gray-500 dark:text-gray-400 text-center"
+                        className="text-sm text-muted-foreground text-center"
                         data-testid="text-privacy-note"
                       >
                         {t.privacyNote}
@@ -667,19 +667,19 @@ export default function Newsletter() {
                 transition={{ duration: 0.6, delay: 0.3 }}
                 className="mt-8"
               >
-                <Card className="rounded-md border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800" data-testid="card-frequency">
+                <Card className="rounded-md border border-border bg-muted" data-testid="card-frequency">
                   <CardContent className="p-6">
                     <div className="flex items-center gap-3 mb-2">
                       <Calendar className="w-5 h-5 text-primary" />
                       <h3 
-                        className="text-lg font-heading font-light text-gray-800 dark:text-white"
+                        className="text-lg font-heading font-light text-foreground"
                         data-testid="text-frequency-title"
                       >
                         {t.frequency}
                       </h3>
                     </div>
                     <p 
-                      className="text-sm text-gray-600 dark:text-gray-400"
+                      className="text-sm text-muted-foreground"
                       data-testid="text-frequency-description"
                     >
                       {t.frequencyDescription}
@@ -711,7 +711,7 @@ export default function Newsletter() {
                     transition={{ duration: 0.6, delay: 0.3 + index * 0.1 }}
                   >
                     <Card 
-                      className="rounded-md border border-gray-200 dark:border-gray-700"
+                      className="rounded-md border border-border"
                       data-testid={`card-benefit-${index}`}
                     >
                       <CardContent className="p-6">
@@ -721,13 +721,13 @@ export default function Newsletter() {
                           </div>
                           <div>
                             <h3 
-                              className="font-semibold text-gray-800 dark:text-white mb-1"
+                              className="font-semibold text-foreground mb-1"
                               data-testid={`text-benefit-title-${index}`}
                             >
                               {benefit.title}
                             </h3>
                             <p 
-                              className="text-sm text-gray-600 dark:text-gray-400"
+                              className="text-sm text-muted-foreground"
                               data-testid={`text-benefit-description-${index}`}
                             >
                               {benefit.description}
@@ -761,7 +761,7 @@ export default function Newsletter() {
                 </h2>
               </div>
               <p 
-                className="text-gray-600 dark:text-gray-400 max-w-2xl mx-auto"
+                className="text-muted-foreground max-w-2xl mx-auto"
                 data-testid="text-archives-subtitle"
               >
                 {t.archivesSubtitle}
@@ -781,7 +781,7 @@ export default function Newsletter() {
                   transition={{ duration: 0.6, delay: 0.6 + index * 0.1 }}
                 >
                   <Card 
-                    className="rounded-md border border-gray-200 dark:border-gray-700 h-full"
+                    className="rounded-md border border-border h-full"
                     data-testid={`card-archive-${index}`}
                   >
                     <CardContent className="p-6">
@@ -795,13 +795,13 @@ export default function Newsletter() {
                         </span>
                       </div>
                       <h3 
-                        className="font-semibold text-gray-800 dark:text-white mb-2"
+                        className="font-semibold text-foreground mb-2"
                         data-testid={`text-archive-title-${index}`}
                       >
                         {archive.title}
                       </h3>
                       <p 
-                        className="text-sm text-gray-600 dark:text-gray-400 mb-4"
+                        className="text-sm text-muted-foreground mb-4"
                         data-testid={`text-archive-description-${index}`}
                       >
                         {archive.description}
@@ -821,7 +821,7 @@ export default function Newsletter() {
             </div>
 
             <p 
-              className="text-center text-sm text-gray-500 dark:text-gray-400 mt-8"
+              className="text-center text-sm text-muted-foreground mt-8"
               data-testid="text-archives-coming-soon"
             >
               {t.comingSoon}

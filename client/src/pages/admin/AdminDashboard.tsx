@@ -639,8 +639,8 @@ export default function AdminDashboard() {
     : 1;
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      <header className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+    <div className="min-h-screen bg-muted dark:bg-gray-900">
+      <header className="bg-card border-b border-border">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
@@ -829,7 +829,7 @@ export default function AdminDashboard() {
                     return (
                       <div key={code} className="flex items-center gap-3" data-testid={`row-language-${code}`}>
                         <span className="text-sm font-medium w-20 truncate">{name}</span>
-                        <div className="flex-1 h-4 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
+                        <div className="flex-1 h-4 bg-muted rounded-full overflow-hidden">
                           <div 
                             className={`h-full ${languageColors[code]} transition-all duration-300`}
                             style={{ width: `${percentage}%` }}

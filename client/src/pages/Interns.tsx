@@ -737,7 +737,7 @@ export default function Interns() {
   };
 
   return (
-    <div className="min-h-screen bg-white dark:bg-gray-900" data-testid="page-interns">
+    <div className="min-h-screen bg-background" data-testid="page-interns">
       <SEOHead page="interns" language={language} />
       <Header />
       
@@ -794,21 +794,21 @@ export default function Interns() {
               >
                 {t.programOverviewTitle}
               </h2>
-              <p className="text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
+              <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
                 {t.programOverviewSubtitle}
               </p>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              <Card className="rounded-md border border-gray-200 dark:border-gray-700" data-testid="card-summer-program">
+              <Card className="rounded-md border border-border" data-testid="card-summer-program">
                 <CardHeader>
-                  <CardTitle className="flex items-center gap-3 text-xl font-heading font-light text-gray-800 dark:text-white">
+                  <CardTitle className="flex items-center gap-3 text-xl font-heading font-light text-foreground">
                     <Calendar className="w-6 h-6 text-primary" />
                     {t.summerProgramTitle}
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-gray-600 dark:text-gray-400 leading-relaxed mb-4">
+                  <p className="text-muted-foreground leading-relaxed mb-4">
                     {t.summerProgramDescription}
                   </p>
                   <Badge variant="secondary" className="text-sm">
@@ -818,15 +818,15 @@ export default function Interns() {
                 </CardContent>
               </Card>
 
-              <Card className="rounded-md border border-gray-200 dark:border-gray-700" data-testid="card-permanent-program">
+              <Card className="rounded-md border border-border" data-testid="card-permanent-program">
                 <CardHeader>
-                  <CardTitle className="flex items-center gap-3 text-xl font-heading font-light text-gray-800 dark:text-white">
+                  <CardTitle className="flex items-center gap-3 text-xl font-heading font-light text-foreground">
                     <Briefcase className="w-6 h-6 text-primary" />
                     {t.permanentProgramTitle}
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-gray-600 dark:text-gray-400 leading-relaxed mb-4">
+                  <p className="text-muted-foreground leading-relaxed mb-4">
                     {t.permanentProgramDescription}
                   </p>
                   <Badge variant="secondary" className="text-sm">
@@ -853,7 +853,7 @@ export default function Interns() {
               >
                 {t.whatYouLearnTitle}
               </h2>
-              <p className="text-lg text-gray-600 dark:text-gray-400">
+              <p className="text-lg text-muted-foreground">
                 {t.whatYouLearnSubtitle}
               </p>
             </div>
@@ -868,7 +868,7 @@ export default function Interns() {
               {t.learningAreas.map((area, index) => (
                 <motion.div key={index} variants={itemVariants}>
                   <Card 
-                    className="rounded-md border border-gray-200 dark:border-gray-700 h-full"
+                    className="rounded-md border border-border h-full"
                     data-testid={`card-learning-${index}`}
                   >
                     <CardContent className="p-6">
@@ -877,10 +877,10 @@ export default function Interns() {
                           <area.icon className="w-6 h-6 text-primary" />
                         </div>
                         <div>
-                          <h3 className="font-semibold text-gray-800 dark:text-white mb-2">
+                          <h3 className="font-semibold text-foreground mb-2">
                             {area.title}
                           </h3>
-                          <p className="text-sm text-gray-600 dark:text-gray-400">
+                          <p className="text-sm text-muted-foreground">
                             {area.text}
                           </p>
                         </div>
@@ -907,12 +907,12 @@ export default function Interns() {
               >
                 {t.requirementsTitle}
               </h2>
-              <p className="text-lg text-gray-600 dark:text-gray-400">
+              <p className="text-lg text-muted-foreground">
                 {t.requirementsSubtitle}
               </p>
             </div>
 
-            <Card className="rounded-md border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800" data-testid="card-requirements">
+            <Card className="rounded-md border border-border bg-muted" data-testid="card-requirements">
               <CardContent className="p-8">
                 <motion.ul 
                   className="grid grid-cols-1 md:grid-cols-2 gap-4"
@@ -929,7 +929,7 @@ export default function Interns() {
                       data-testid={`requirement-${index}`}
                     >
                       <CheckCircle2 className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
-                      <span className="text-gray-700 dark:text-gray-300">{requirement}</span>
+                      <span className="text-foreground">{requirement}</span>
                     </motion.li>
                   ))}
                 </motion.ul>
@@ -952,7 +952,7 @@ export default function Interns() {
               >
                 {t.applicationProcessTitle}
               </h2>
-              <p className="text-lg text-gray-600 dark:text-gray-400">
+              <p className="text-lg text-muted-foreground">
                 {t.applicationProcessSubtitle}
               </p>
             </div>
@@ -967,17 +967,17 @@ export default function Interns() {
               {t.applicationSteps.map((step, index) => (
                 <motion.div key={index} variants={itemVariants}>
                   <Card 
-                    className="rounded-md border border-gray-200 dark:border-gray-700 h-full text-center"
+                    className="rounded-md border border-border h-full text-center"
                     data-testid={`card-step-${index}`}
                   >
                     <CardContent className="p-6">
                       <div className="w-12 h-12 rounded-full bg-primary text-white text-xl font-bold flex items-center justify-center mx-auto mb-4">
                         {step.step}
                       </div>
-                      <h3 className="font-semibold text-gray-800 dark:text-white mb-2">
+                      <h3 className="font-semibold text-foreground mb-2">
                         {step.title}
                       </h3>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">
+                      <p className="text-sm text-muted-foreground">
                         {step.text}
                       </p>
                     </CardContent>
@@ -1002,7 +1002,7 @@ export default function Interns() {
               >
                 {t.benefitsTitle}
               </h2>
-              <p className="text-lg text-gray-600 dark:text-gray-400">
+              <p className="text-lg text-muted-foreground">
                 {t.benefitsSubtitle}
               </p>
             </div>
@@ -1017,7 +1017,7 @@ export default function Interns() {
               {t.benefits.map((benefit, index) => (
                 <motion.div key={index} variants={itemVariants}>
                   <Card 
-                    className="rounded-md border border-gray-200 dark:border-gray-700 h-full"
+                    className="rounded-md border border-border h-full"
                     data-testid={`card-benefit-${index}`}
                   >
                     <CardContent className="p-6">
@@ -1026,10 +1026,10 @@ export default function Interns() {
                           <benefit.icon className="w-6 h-6 text-primary" />
                         </div>
                         <div>
-                          <h3 className="font-semibold text-gray-800 dark:text-white mb-2">
+                          <h3 className="font-semibold text-foreground mb-2">
                             {benefit.title}
                           </h3>
-                          <p className="text-sm text-gray-600 dark:text-gray-400">
+                          <p className="text-sm text-muted-foreground">
                             {benefit.text}
                           </p>
                         </div>
@@ -1049,7 +1049,7 @@ export default function Interns() {
             className="mb-12"
             data-testid="section-cta"
           >
-            <Card className="rounded-md border border-gray-200 dark:border-gray-700 bg-primary text-white overflow-hidden">
+            <Card className="rounded-md border border-border bg-primary text-white overflow-hidden">
               <CardContent className="p-8 lg:p-12 text-center">
                 <h2 
                   className="text-xl md:text-2xl font-heading font-light mb-4 uppercase tracking-[0.12em]"
@@ -1085,7 +1085,7 @@ export default function Interns() {
                   <Button 
                     variant="outline"
                     size="lg"
-                    className="rounded-md bg-white/10 border-white/20 text-white hover:bg-white/20"
+                    className="rounded-md bg-card/10 border-white/20 text-white hover:bg-white/20"
                     asChild
                     data-testid="button-view-careers"
                   >
@@ -1106,13 +1106,13 @@ export default function Interns() {
             transition={{ duration: 0.6 }}
             data-testid="section-contact"
           >
-            <Card className="rounded-md border border-gray-200 dark:border-gray-700" data-testid="card-contact">
+            <Card className="rounded-md border border-border" data-testid="card-contact">
               <CardContent className="p-6 flex flex-col md:flex-row items-center justify-between gap-4">
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-1">
+                  <h3 className="text-lg font-semibold text-foreground mb-1">
                     {t.contactTitle}
                   </h3>
-                  <p className="text-gray-600 dark:text-gray-400">
+                  <p className="text-muted-foreground">
                     {t.contactText}
                   </p>
                 </div>

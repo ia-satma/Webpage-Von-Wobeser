@@ -1045,7 +1045,7 @@ export default function AdminPostForm() {
 
   if (isEditing && postQuery.isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-8">
+      <div className="min-h-screen bg-muted dark:bg-gray-900 p-8">
         <div className="max-w-4xl mx-auto space-y-6">
           <Skeleton className="h-12 w-64" />
           <Skeleton className="h-96 w-full" />
@@ -1057,8 +1057,8 @@ export default function AdminPostForm() {
   const categories = categoriesQuery.data || [];
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      <header className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+    <div className="min-h-screen bg-muted dark:bg-gray-900">
+      <header className="bg-card border-b border-border">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
@@ -1536,7 +1536,7 @@ export default function AdminPostForm() {
                     <CheckCircle className="h-4 w-4 text-green-600" />
                     {t.seoRecommendations}
                   </h3>
-                  <div className="space-y-3 bg-gray-50 dark:bg-gray-800 p-4 rounded-none">
+                  <div className="space-y-3 bg-muted p-4 rounded-none">
                     <div>
                       <span className="font-medium">{t.keywords}:</span>
                       <div className="flex flex-wrap gap-1 mt-1">

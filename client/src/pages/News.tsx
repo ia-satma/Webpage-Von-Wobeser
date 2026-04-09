@@ -111,10 +111,10 @@ function NewsCard({ article, readMoreText }: NewsCardProps) {
   return (
     <Link href={`/news/${article.slug}`}>
       <Card
-        className="group h-full rounded-md overflow-hidden border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-lg transition-all duration-300 cursor-pointer bg-white dark:bg-gray-800"
+        className="group h-full rounded-md overflow-hidden border border-border shadow-sm hover:shadow-lg transition-all duration-300 cursor-pointer bg-card"
         data-testid={`card-news-${article.slug}`}
       >
-        <div className="relative h-48 overflow-hidden bg-gray-100 dark:bg-gray-700">
+        <div className="relative h-48 overflow-hidden bg-muted">
           <NewsImageWithFallback
             src={article.imageUrl || ""}
             alt={displayTitle}
@@ -138,20 +138,20 @@ function NewsCard({ article, readMoreText }: NewsCardProps) {
           )}
         </div>
         <CardContent className="p-6">
-          <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400 mb-3">
+          <div className="flex items-center gap-2 text-sm text-muted-foreground mb-3">
             <Calendar className="w-4 h-4" />
             <span data-testid={`text-news-date-${article.slug}`}>
               {formatDate(article.date)}
             </span>
           </div>
           <h3 
-            className="text-xl font-semibold text-gray-800 dark:text-white mb-3 group-hover:text-primary transition-colors line-clamp-2"
+            className="text-xl font-semibold text-foreground mb-3 group-hover:text-primary transition-colors line-clamp-2"
             data-testid={`text-news-title-${article.slug}`}
           >
             {displayTitle}
           </h3>
           <p 
-            className="text-gray-600 dark:text-gray-400 text-sm line-clamp-3 mb-4"
+            className="text-muted-foreground text-sm line-clamp-3 mb-4"
             data-testid={`text-news-excerpt-${article.slug}`}
           >
             {displayExcerpt}
@@ -431,7 +431,7 @@ export default function NewsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-white dark:bg-gray-900" data-testid="page-news">
+    <div className="min-h-screen bg-background" data-testid="page-news">
       <SEOHead page="news" language={language} />
       <Header />
       
@@ -485,7 +485,7 @@ export default function NewsPage() {
                   className={`transition-all ${
                     selectedCategory === cat.value 
                       ? "bg-primary text-white" 
-                      : "text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
+                      : "text-muted-foreground hover:bg-muted"
                   }`}
                   data-testid={`button-filter-${cat.value}`}
                 >
@@ -509,8 +509,8 @@ export default function NewsPage() {
 
           {error ? (
             <div className="text-center py-12" data-testid="container-news-error">
-              <AlertCircle className="w-12 h-12 text-gray-400 dark:text-gray-500 mx-auto mb-4" />
-              <p className="text-gray-500 dark:text-gray-400" data-testid="text-news-error">
+              <AlertCircle className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+              <p className="text-muted-foreground" data-testid="text-news-error">
                 {t.errorMessage}
               </p>
             </div>
@@ -534,8 +534,8 @@ export default function NewsPage() {
             </div>
           ) : filteredNews && filteredNews.length === 0 ? (
             <div className="text-center py-12" data-testid="container-news-empty">
-              <Newspaper className="w-12 h-12 text-gray-400 dark:text-gray-500 mx-auto mb-4" />
-              <p className="text-gray-500 dark:text-gray-400">
+              <Newspaper className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+              <p className="text-muted-foreground">
                 {t.noResults}
               </p>
             </div>

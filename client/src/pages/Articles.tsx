@@ -102,10 +102,10 @@ function ArticleCard({ article, readMoreText }: ArticleCardProps) {
   return (
     <Link href={`/news/${article.slug}`}>
       <Card
-        className="group h-full rounded-md overflow-hidden border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-lg transition-all duration-300 cursor-pointer bg-white dark:bg-gray-800"
+        className="group h-full rounded-md overflow-hidden border border-border shadow-sm hover:shadow-lg transition-all duration-300 cursor-pointer bg-card"
         data-testid={`card-article-${article.slug}`}
       >
-        <div className="relative h-48 overflow-hidden bg-gray-100 dark:bg-gray-700">
+        <div className="relative h-48 overflow-hidden bg-muted">
           <ArticleImageWithFallback
             src={article.imageUrl || ""}
             alt={displayTitle}
@@ -121,20 +121,20 @@ function ArticleCard({ article, readMoreText }: ArticleCardProps) {
           )}
         </div>
         <CardContent className="p-6">
-          <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400 mb-3">
+          <div className="flex items-center gap-2 text-sm text-muted-foreground mb-3">
             <Calendar className="w-4 h-4" />
             <span data-testid={`text-article-date-${article.slug}`}>
               {formatDate(article.date)}
             </span>
           </div>
           <h3 
-            className="text-xl font-semibold text-gray-800 dark:text-white mb-3 group-hover:text-primary transition-colors line-clamp-2"
+            className="text-xl font-semibold text-foreground mb-3 group-hover:text-primary transition-colors line-clamp-2"
             data-testid={`text-article-title-${article.slug}`}
           >
             {displayTitle}
           </h3>
           <p 
-            className="text-gray-600 dark:text-gray-400 text-sm line-clamp-3 mb-4"
+            className="text-muted-foreground text-sm line-clamp-3 mb-4"
             data-testid={`text-article-excerpt-${article.slug}`}
           >
             {displayExcerpt}
@@ -314,7 +314,7 @@ export default function ArticlesPage() {
   };
 
   return (
-    <div className="min-h-screen bg-white dark:bg-gray-900" data-testid="page-articles">
+    <div className="min-h-screen bg-background" data-testid="page-articles">
       <SEOHead page="articles" language={language} />
       <Header />
       
@@ -373,8 +373,8 @@ export default function ArticlesPage() {
 
           {error ? (
             <div className="text-center py-12" data-testid="container-articles-error">
-              <AlertCircle className="w-12 h-12 text-gray-400 dark:text-gray-500 mx-auto mb-4" />
-              <p className="text-gray-500 dark:text-gray-400" data-testid="text-articles-error">
+              <AlertCircle className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+              <p className="text-muted-foreground" data-testid="text-articles-error">
                 {t.errorMessage}
               </p>
             </div>
@@ -399,8 +399,8 @@ export default function ArticlesPage() {
           ) : !filteredArticles || filteredArticles.length === 0 ? (
             searchQuery ? (
               <div className="text-center py-12" data-testid="container-articles-empty">
-                <FileText className="w-12 h-12 text-gray-400 dark:text-gray-500 mx-auto mb-4" />
-                <p className="text-gray-500 dark:text-gray-400">
+                <FileText className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+                <p className="text-muted-foreground">
                   {t.noResults}
                 </p>
               </div>
@@ -421,7 +421,7 @@ export default function ArticlesPage() {
                   {t.comingSoon}
                 </h2>
                 <p 
-                  className="text-gray-600 dark:text-gray-400 max-w-md mx-auto"
+                  className="text-muted-foreground max-w-md mx-auto"
                   data-testid="text-coming-soon-message"
                 >
                   {t.comingSoonMessage}

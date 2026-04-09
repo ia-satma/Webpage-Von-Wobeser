@@ -69,7 +69,7 @@ const CATEGORY_COLORS: Record<SystemCategory, string> = {
   public_site: 'bg-orange-500/10 text-orange-600 dark:text-orange-400 border-orange-500/20',
   admin_system: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/20',
   security: 'bg-red-500/10 text-red-600 dark:text-red-400 border-red-500/20',
-  infrastructure: 'bg-gray-500/10 text-gray-600 dark:text-gray-400 border-gray-500/20',
+  infrastructure: 'bg-gray-500/10 text-muted-foreground border-gray-500/20',
 };
 
 function FeatureCard({ feature, t, isExpanded, onToggle }: { 
@@ -100,7 +100,7 @@ function FeatureCard({ feature, t, isExpanded, onToggle }: {
         );
       default:
         return (
-          <Badge variant="outline" className="bg-gray-500/10 text-gray-600 dark:text-gray-400 border-gray-500/30">
+          <Badge variant="outline" className="bg-gray-500/10 text-muted-foreground border-gray-500/30">
             {t.statuses.development}
           </Badge>
         );

@@ -73,7 +73,7 @@ function EventCard({ event, language, learnMoreText, formatDate }: EventCardProp
 
   return (
     <Card
-      className="group h-full overflow-hidden border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-lg transition-all duration-300 rounded-md bg-white dark:bg-gray-800"
+      className="group h-full overflow-hidden border border-border shadow-sm hover:shadow-lg transition-all duration-300 rounded-md bg-card"
       data-testid={`card-event-${event.id}`}
     >
       <div className="p-6">
@@ -86,7 +86,7 @@ function EventCard({ event, language, learnMoreText, formatDate }: EventCardProp
           </Badge>
         </div>
         
-        <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400 mb-3">
+        <div className="flex items-center gap-2 text-sm text-muted-foreground mb-3">
           <Calendar className="w-4 h-4 flex-shrink-0" />
           <span data-testid={`text-event-date-${event.id}`}>
             {formatDate(event.date)}
@@ -94,14 +94,14 @@ function EventCard({ event, language, learnMoreText, formatDate }: EventCardProp
         </div>
         
         <h3 
-          className={`text-xl font-semibold text-gray-800 dark:text-white mb-3 line-clamp-2 ${isTranslating ? 'opacity-50' : ''}`}
+          className={`text-xl font-semibold text-foreground mb-3 line-clamp-2 ${isTranslating ? 'opacity-50' : ''}`}
           data-testid={`text-event-title-${event.id}`}
         >
           {getEventTitle()}
         </h3>
         
         {(event.location || event.locationEs) && (
-          <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400 mb-3">
+          <div className="flex items-center gap-2 text-sm text-muted-foreground mb-3">
             <MapPin className="w-4 h-4 flex-shrink-0" />
             <span 
               className={isTranslating ? 'opacity-50' : ''}
@@ -113,7 +113,7 @@ function EventCard({ event, language, learnMoreText, formatDate }: EventCardProp
         )}
         
         <p 
-          className={`text-gray-600 dark:text-gray-400 text-sm line-clamp-2 mb-4 ${isTranslating ? 'opacity-50' : ''}`}
+          className={`text-muted-foreground text-sm line-clamp-2 mb-4 ${isTranslating ? 'opacity-50' : ''}`}
           data-testid={`text-event-description-${event.id}`}
         >
           {getEventDescription()}
@@ -265,11 +265,11 @@ export default function EventsSection({ language }: EventsSectionProps) {
 
   if (error) {
     return (
-      <section id="events" className="py-20 lg:py-28 bg-white dark:bg-gray-900" data-testid="section-events">
+      <section id="events" className="py-20 lg:py-28 bg-background" data-testid="section-events">
         <div className="max-w-7xl mx-auto px-6 lg:px-12">
           <div className="text-center py-12">
-            <AlertCircle className="w-12 h-12 text-gray-400 dark:text-gray-500 mx-auto mb-4" />
-            <p className="text-gray-500 dark:text-gray-400" data-testid="text-events-error">{t.errorMessage}</p>
+            <AlertCircle className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+            <p className="text-muted-foreground" data-testid="text-events-error">{t.errorMessage}</p>
           </div>
         </div>
       </section>
@@ -279,7 +279,7 @@ export default function EventsSection({ language }: EventsSectionProps) {
   return (
     <section
       id="events"
-      className="py-20 lg:py-28 bg-white dark:bg-gray-900"
+      className="py-20 lg:py-28 bg-background"
       data-testid="section-events"
     >
       <div className="max-w-7xl mx-auto px-6 lg:px-12">
@@ -291,7 +291,7 @@ export default function EventsSection({ language }: EventsSectionProps) {
           className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-12"
         >
           <h2
-            className="text-2xl md:text-3xl font-heading font-light text-gray-800 dark:text-white uppercase tracking-[0.15em]"
+            className="text-2xl md:text-3xl font-heading font-light text-foreground uppercase tracking-[0.15em]"
             data-testid="text-events-title"
           >
             {t.title}
@@ -313,7 +313,7 @@ export default function EventsSection({ language }: EventsSectionProps) {
             {[1, 2, 3, 4].map((i) => (
               <Card 
                 key={i} 
-                className="overflow-hidden border border-gray-200 dark:border-gray-700 shadow-sm rounded-md bg-white dark:bg-gray-800" 
+                className="overflow-hidden border border-border shadow-sm rounded-md bg-card" 
                 data-testid={`skeleton-event-${i}`}
               >
                 <div className="p-6">
@@ -330,8 +330,8 @@ export default function EventsSection({ language }: EventsSectionProps) {
           </div>
         ) : events && events.length === 0 ? (
           <div className="text-center py-12" data-testid="container-events-empty">
-            <Calendar className="w-12 h-12 text-gray-400 dark:text-gray-500 mx-auto mb-4" />
-            <p className="text-gray-500 dark:text-gray-400">
+            <Calendar className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+            <p className="text-muted-foreground">
               {t.noEvents}
             </p>
           </div>

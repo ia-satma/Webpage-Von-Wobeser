@@ -228,7 +228,7 @@ export default function IndustryGroupsSection() {
   return (
     <section
       id="industry-groups"
-      className="py-20 lg:py-28 bg-gray-50 dark:bg-gray-800"
+      className="py-20 lg:py-28 bg-muted"
       data-testid="section-industry-groups"
     >
       <div className="max-w-7xl mx-auto px-6 lg:px-12">
@@ -264,7 +264,7 @@ export default function IndustryGroupsSection() {
                 <span className="text-sm font-medium text-primary min-w-[24px]" data-testid={`text-industry-group-number-${group.id}`}>
                   {group.id}.
                 </span>
-                <span className="text-base text-gray-700 dark:text-gray-300 group-hover:text-primary transition-colors" data-testid={`text-industry-group-name-${group.id}`}>
+                <span className="text-base text-foreground group-hover:text-primary transition-colors" data-testid={`text-industry-group-name-${group.id}`}>
                   {getGroupName(group)}
                 </span>
               </Link>

@@ -65,9 +65,9 @@ function EventCard({ event, language, isUpcoming, formatDate, t }: EventCardProp
 
   return (
     <Card
-      className={`group h-full rounded-md overflow-hidden border shadow-sm hover:shadow-lg transition-all duration-300 cursor-pointer bg-white dark:bg-gray-800 ${
+      className={`group h-full rounded-md overflow-hidden border shadow-sm hover:shadow-lg transition-all duration-300 cursor-pointer bg-card ${
         isUpcoming 
-          ? 'border-gray-200 dark:border-gray-700' 
+          ? 'border-border' 
           : 'border-gray-100 dark:border-gray-800 opacity-80'
       }`}
       data-testid={`card-event-${event.id}`}
@@ -91,7 +91,7 @@ function EventCard({ event, language, isUpcoming, formatDate, t }: EventCardProp
           )}
         </div>
         
-        <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400 mb-3">
+        <div className="flex items-center gap-2 text-sm text-muted-foreground mb-3">
           <Calendar className="w-4 h-4 flex-shrink-0" />
           <span data-testid={`text-event-date-${event.id}`}>
             {formatDate(event.date)}
@@ -99,14 +99,14 @@ function EventCard({ event, language, isUpcoming, formatDate, t }: EventCardProp
         </div>
         
         <h3 
-          className={`text-xl font-semibold text-gray-800 dark:text-white mb-3 group-hover:text-primary transition-colors line-clamp-2 ${isTranslating ? 'opacity-70' : ''}`}
+          className={`text-xl font-semibold text-foreground mb-3 group-hover:text-primary transition-colors line-clamp-2 ${isTranslating ? 'opacity-70' : ''}`}
           data-testid={`text-event-title-${event.id}`}
         >
           {displayTitle}
         </h3>
         
         {displayLocation && (
-          <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400 mb-3">
+          <div className="flex items-center gap-2 text-sm text-muted-foreground mb-3">
             <MapPin className="w-4 h-4 flex-shrink-0" />
             <span data-testid={`text-event-location-${event.id}`}>
               {displayLocation}
@@ -115,7 +115,7 @@ function EventCard({ event, language, isUpcoming, formatDate, t }: EventCardProp
         )}
         
         <p 
-          className={`text-gray-600 dark:text-gray-400 text-sm line-clamp-3 mb-4 ${isTranslating ? 'opacity-70' : ''}`}
+          className={`text-muted-foreground text-sm line-clamp-3 mb-4 ${isTranslating ? 'opacity-70' : ''}`}
           data-testid={`text-event-description-${event.id}`}
         >
           {displayDescription}
@@ -341,7 +341,7 @@ export default function EventsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-white dark:bg-gray-900" data-testid="page-events">
+    <div className="min-h-screen bg-background" data-testid="page-events">
       <SEOHead page="events" language={language} />
       <Header />
       
@@ -387,7 +387,7 @@ export default function EventsPage() {
                   className={`transition-all ${
                     selectedType === type.value 
                       ? "bg-primary text-white" 
-                      : "text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
+                      : "text-muted-foreground hover:bg-muted"
                   }`}
                   data-testid={`button-filter-${type.value}`}
                 >
@@ -399,8 +399,8 @@ export default function EventsPage() {
 
           {error ? (
             <div className="text-center py-12" data-testid="container-events-error">
-              <AlertCircle className="w-12 h-12 text-gray-400 dark:text-gray-500 mx-auto mb-4" />
-              <p className="text-gray-500 dark:text-gray-400" data-testid="text-events-error">
+              <AlertCircle className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+              <p className="text-muted-foreground" data-testid="text-events-error">
                 {t.errorMessage}
               </p>
             </div>
@@ -425,8 +425,8 @@ export default function EventsPage() {
             </div>
           ) : filteredEvents && filteredEvents.length === 0 ? (
             <div className="text-center py-12" data-testid="container-events-empty">
-              <CalendarDays className="w-12 h-12 text-gray-400 dark:text-gray-500 mx-auto mb-4" />
-              <p className="text-gray-500 dark:text-gray-400">
+              <CalendarDays className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+              <p className="text-muted-foreground">
                 {t.noResults}
               </p>
             </div>

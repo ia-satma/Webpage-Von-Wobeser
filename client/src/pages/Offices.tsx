@@ -722,7 +722,7 @@ export default function Offices() {
   };
 
   return (
-    <div className="min-h-screen bg-white dark:bg-gray-900" data-testid="page-offices">
+    <div className="min-h-screen bg-background" data-testid="page-offices">
       <SEOHead page="offices" language={language} />
       <Header />
       
@@ -759,30 +759,30 @@ export default function Offices() {
             className="mb-20"
             data-testid="section-main-office"
           >
-            <h2 className="text-2xl font-heading font-light text-gray-800 dark:text-white mb-8 text-center uppercase tracking-[0.12em]">
+            <h2 className="text-2xl font-heading font-light text-foreground mb-8 text-center uppercase tracking-[0.12em]">
               {t.mainOfficeTitle}
             </h2>
             
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
               <div className="order-2 lg:order-1">
-                <Card className="h-full rounded-md border border-gray-200 dark:border-gray-700" data-testid="card-office-info">
+                <Card className="h-full rounded-md border border-border" data-testid="card-office-info">
                   <CardContent className="p-6 lg:p-8 space-y-6">
                     <div className="flex items-start gap-4">
                       <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
                         <Building2 className="w-6 h-6 text-primary" />
                       </div>
                       <div>
-                        <h3 className="text-xl font-semibold text-gray-800 dark:text-white mb-1" data-testid="text-building-name">
+                        <h3 className="text-xl font-semibold text-foreground mb-1" data-testid="text-building-name">
                           {t.buildingName}
                         </h3>
-                        <p className="text-gray-600 dark:text-gray-400" data-testid="text-floor">{t.floor}</p>
+                        <p className="text-muted-foreground" data-testid="text-floor">{t.floor}</p>
                       </div>
                     </div>
 
-                    <div className="space-y-3 border-t border-gray-100 dark:border-gray-700 pt-6">
+                    <div className="space-y-3 border-t border-border pt-6">
                       <div className="flex items-start gap-3" data-testid="text-full-address">
                         <MapPin className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
-                        <div className="text-gray-700 dark:text-gray-300">
+                        <div className="text-foreground">
                           <p>{t.address}</p>
                           <p>{t.colony}</p>
                           <p>{t.postalCode}</p>
@@ -792,7 +792,7 @@ export default function Offices() {
                       
                       <div className="flex items-center gap-3">
                         <Phone className="w-5 h-5 text-primary flex-shrink-0" />
-                        <div className="text-gray-700 dark:text-gray-300">
+                        <div className="text-foreground">
                           <a 
                             href={`tel:${t.phone.replace(/\s/g, "")}`} 
                             className="hover:text-primary transition-colors"
@@ -805,7 +805,7 @@ export default function Offices() {
                       
                       <div className="flex items-center gap-3">
                         <Phone className="w-5 h-5 text-gray-400 flex-shrink-0" />
-                        <div className="text-gray-700 dark:text-gray-300">
+                        <div className="text-foreground">
                           <span className="text-sm text-gray-500">Fax: </span>
                           <span data-testid="text-fax">{t.fax}</span>
                         </div>
@@ -815,7 +815,7 @@ export default function Offices() {
                         <Mail className="w-5 h-5 text-primary flex-shrink-0" />
                         <a 
                           href={`mailto:${t.email}`}
-                          className="text-gray-700 dark:text-gray-300 hover:text-primary transition-colors"
+                          className="text-foreground hover:text-primary transition-colors"
                           data-testid="link-email"
                         >
                           {t.email}
@@ -823,24 +823,24 @@ export default function Offices() {
                       </div>
                     </div>
 
-                    <div className="border-t border-gray-100 dark:border-gray-700 pt-6">
+                    <div className="border-t border-border pt-6">
                       <div className="flex items-start gap-3 mb-2">
                         <Clock className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
                         <div>
-                          <h4 className="font-medium text-gray-800 dark:text-white mb-1">{t.officeHoursTitle}</h4>
-                          <p className="text-gray-600 dark:text-gray-400 text-sm" data-testid="text-office-hours">{t.officeHours}</p>
+                          <h4 className="font-medium text-foreground mb-1">{t.officeHoursTitle}</h4>
+                          <p className="text-muted-foreground text-sm" data-testid="text-office-hours">{t.officeHours}</p>
                           <p className="text-gray-500 dark:text-gray-500 text-sm">{t.saturdayHours}</p>
                         </div>
                       </div>
                     </div>
 
-                    <div className="border-t border-gray-100 dark:border-gray-700 pt-6">
-                      <h4 className="font-medium text-gray-800 dark:text-white mb-4">{t.amenitiesTitle}</h4>
+                    <div className="border-t border-border pt-6">
+                      <h4 className="font-medium text-foreground mb-4">{t.amenitiesTitle}</h4>
                       <div className="space-y-3">
                         {t.amenities.map((amenity, index) => (
                           <div key={index} className="flex items-center gap-3" data-testid={`amenity-${index}`}>
                             <amenity.icon className="w-5 h-5 text-primary flex-shrink-0" />
-                            <span className="text-gray-600 dark:text-gray-400 text-sm">{amenity.text}</span>
+                            <span className="text-muted-foreground text-sm">{amenity.text}</span>
                           </div>
                         ))}
                       </div>
@@ -867,7 +867,7 @@ export default function Offices() {
 
               <div className="order-1 lg:order-2">
                 <div 
-                  className="w-full h-[400px] lg:h-full min-h-[400px] rounded-md overflow-hidden border border-gray-200 dark:border-gray-700"
+                  className="w-full h-[400px] lg:h-full min-h-[400px] rounded-md overflow-hidden border border-border"
                   data-testid="container-map"
                 >
                   <iframe
@@ -890,26 +890,26 @@ export default function Offices() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.2 }}
-            className="mb-20 bg-gray-50 dark:bg-gray-800 rounded-md p-8 lg:p-12"
+            className="mb-20 bg-muted rounded-md p-8 lg:p-12"
             data-testid="section-directions"
           >
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
               <div>
-                <h3 className="text-xl font-heading font-light text-gray-800 dark:text-white mb-4 uppercase tracking-[0.12em]">
+                <h3 className="text-xl font-heading font-light text-foreground mb-4 uppercase tracking-[0.12em]">
                   {t.directionsTitle}
                 </h3>
-                <p className="text-gray-700 dark:text-gray-300 leading-relaxed mb-6">
+                <p className="text-foreground leading-relaxed mb-6">
                   {t.directionsText}
                 </p>
               </div>
               <div>
-                <h4 className="flex items-center gap-2 font-medium text-gray-800 dark:text-white mb-4">
+                <h4 className="flex items-center gap-2 font-medium text-foreground mb-4">
                   <Landmark className="w-5 h-5 text-primary" />
                   {t.landmarksTitle}
                 </h4>
                 <ul className="space-y-2">
                   {t.landmarks.map((landmark, index) => (
-                    <li key={index} className="flex items-center gap-3 text-gray-600 dark:text-gray-400" data-testid={`landmark-${index}`}>
+                    <li key={index} className="flex items-center gap-3 text-muted-foreground" data-testid={`landmark-${index}`}>
                       <div className="w-2 h-2 rounded-full bg-primary flex-shrink-0" />
                       {landmark}
                     </li>
@@ -927,10 +927,10 @@ export default function Offices() {
             data-testid="section-gallery"
           >
             <div className="text-center mb-10">
-              <h2 className="text-2xl font-heading font-light text-gray-800 dark:text-white mb-4 uppercase tracking-[0.12em]">
+              <h2 className="text-2xl font-heading font-light text-foreground mb-4 uppercase tracking-[0.12em]">
                 {t.galleryTitle}
               </h2>
-              <p className="text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
+              <p className="text-muted-foreground max-w-2xl mx-auto">
                 {t.gallerySubtitle}
               </p>
             </div>
@@ -973,27 +973,27 @@ export default function Offices() {
             data-testid="section-facilities"
           >
             <div className="text-center mb-10">
-              <h2 className="text-2xl font-heading font-light text-gray-800 dark:text-white mb-4 uppercase tracking-[0.12em]">
+              <h2 className="text-2xl font-heading font-light text-foreground mb-4 uppercase tracking-[0.12em]">
                 {t.facilitiesTitle}
               </h2>
-              <p className="text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
+              <p className="text-muted-foreground max-w-2xl mx-auto">
                 {t.facilitiesSubtitle}
               </p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <motion.div variants={itemVariants}>
-                <Card className="h-full rounded-md border border-gray-200 dark:border-gray-700" data-testid="card-meeting-rooms">
+                <Card className="h-full rounded-md border border-border" data-testid="card-meeting-rooms">
                   <CardContent className="p-6">
                     <div className="flex items-center gap-3 mb-4">
                       <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
                         <Users className="w-6 h-6 text-primary" />
                       </div>
-                      <h3 className="text-lg font-semibold text-gray-800 dark:text-white">
+                      <h3 className="text-lg font-semibold text-foreground">
                         {t.meetingRoomsTitle}
                       </h3>
                     </div>
-                    <p className="text-gray-600 dark:text-gray-400 leading-relaxed">
+                    <p className="text-muted-foreground leading-relaxed">
                       {t.meetingRoomsDesc}
                     </p>
                   </CardContent>
@@ -1001,17 +1001,17 @@ export default function Offices() {
               </motion.div>
 
               <motion.div variants={itemVariants}>
-                <Card className="h-full rounded-md border border-gray-200 dark:border-gray-700" data-testid="card-video-conferencing">
+                <Card className="h-full rounded-md border border-border" data-testid="card-video-conferencing">
                   <CardContent className="p-6">
                     <div className="flex items-center gap-3 mb-4">
                       <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
                         <Video className="w-6 h-6 text-primary" />
                       </div>
-                      <h3 className="text-lg font-semibold text-gray-800 dark:text-white">
+                      <h3 className="text-lg font-semibold text-foreground">
                         {t.videoConferencingTitle}
                       </h3>
                     </div>
-                    <p className="text-gray-600 dark:text-gray-400 leading-relaxed">
+                    <p className="text-muted-foreground leading-relaxed">
                       {t.videoConferencingDesc}
                     </p>
                   </CardContent>
@@ -1019,17 +1019,17 @@ export default function Offices() {
               </motion.div>
 
               <motion.div variants={itemVariants}>
-                <Card className="h-full rounded-md border border-gray-200 dark:border-gray-700" data-testid="card-client-hospitality">
+                <Card className="h-full rounded-md border border-border" data-testid="card-client-hospitality">
                   <CardContent className="p-6">
                     <div className="flex items-center gap-3 mb-4">
                       <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
                         <Coffee className="w-6 h-6 text-primary" />
                       </div>
-                      <h3 className="text-lg font-semibold text-gray-800 dark:text-white">
+                      <h3 className="text-lg font-semibold text-foreground">
                         {t.clientHospitalityTitle}
                       </h3>
                     </div>
-                    <p className="text-gray-600 dark:text-gray-400 leading-relaxed">
+                    <p className="text-muted-foreground leading-relaxed">
                       {t.clientHospitalityDesc}
                     </p>
                   </CardContent>
@@ -1037,17 +1037,17 @@ export default function Offices() {
               </motion.div>
 
               <motion.div variants={itemVariants}>
-                <Card className="h-full rounded-md border border-gray-200 dark:border-gray-700" data-testid="card-accessibility">
+                <Card className="h-full rounded-md border border-border" data-testid="card-accessibility">
                   <CardContent className="p-6">
                     <div className="flex items-center gap-3 mb-4">
                       <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
                         <Accessibility className="w-6 h-6 text-primary" />
                       </div>
-                      <h3 className="text-lg font-semibold text-gray-800 dark:text-white">
+                      <h3 className="text-lg font-semibold text-foreground">
                         {t.accessibilityTitle}
                       </h3>
                     </div>
-                    <p className="text-gray-600 dark:text-gray-400 leading-relaxed">
+                    <p className="text-muted-foreground leading-relaxed">
                       {t.accessibilityDesc}
                     </p>
                   </CardContent>
@@ -1064,58 +1064,58 @@ export default function Offices() {
             data-testid="section-transport"
           >
             <div className="text-center mb-10">
-              <h2 className="text-2xl font-heading font-light text-gray-800 dark:text-white mb-4 uppercase tracking-[0.12em]">
+              <h2 className="text-2xl font-heading font-light text-foreground mb-4 uppercase tracking-[0.12em]">
                 {t.transportTitle}
               </h2>
-              <p className="text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
+              <p className="text-muted-foreground max-w-2xl mx-auto">
                 {t.transportSubtitle}
               </p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <Card className="rounded-md border border-gray-200 dark:border-gray-700" data-testid="card-metro">
+              <Card className="rounded-md border border-border" data-testid="card-metro">
                 <CardContent className="p-6">
                   <div className="flex items-center gap-3 mb-4">
                     <div className="w-12 h-12 rounded-full bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center">
                       <Train className="w-6 h-6 text-orange-600" />
                     </div>
-                    <h3 className="text-lg font-semibold text-gray-800 dark:text-white">
+                    <h3 className="text-lg font-semibold text-foreground">
                       {t.metroTitle}
                     </h3>
                   </div>
-                  <p className="text-gray-600 dark:text-gray-400 text-sm leading-relaxed">
+                  <p className="text-muted-foreground text-sm leading-relaxed">
                     {t.metroDesc}
                   </p>
                 </CardContent>
               </Card>
 
-              <Card className="rounded-md border border-gray-200 dark:border-gray-700" data-testid="card-parking">
+              <Card className="rounded-md border border-border" data-testid="card-parking">
                 <CardContent className="p-6">
                   <div className="flex items-center gap-3 mb-4">
                     <div className="w-12 h-12 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
                       <ParkingCircle className="w-6 h-6 text-blue-600" />
                     </div>
-                    <h3 className="text-lg font-semibold text-gray-800 dark:text-white">
+                    <h3 className="text-lg font-semibold text-foreground">
                       {t.parkingTitle}
                     </h3>
                   </div>
-                  <p className="text-gray-600 dark:text-gray-400 text-sm leading-relaxed">
+                  <p className="text-muted-foreground text-sm leading-relaxed">
                     {t.parkingDesc}
                   </p>
                 </CardContent>
               </Card>
 
-              <Card className="rounded-md border border-gray-200 dark:border-gray-700" data-testid="card-taxi">
+              <Card className="rounded-md border border-border" data-testid="card-taxi">
                 <CardContent className="p-6">
                   <div className="flex items-center gap-3 mb-4">
                     <div className="w-12 h-12 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
                       <Car className="w-6 h-6 text-green-600" />
                     </div>
-                    <h3 className="text-lg font-semibold text-gray-800 dark:text-white">
+                    <h3 className="text-lg font-semibold text-foreground">
                       {t.taxiTitle}
                     </h3>
                   </div>
-                  <p className="text-gray-600 dark:text-gray-400 text-sm leading-relaxed">
+                  <p className="text-muted-foreground text-sm leading-relaxed">
                     {t.taxiDesc}
                   </p>
                 </CardContent>
@@ -1178,7 +1178,7 @@ export default function Offices() {
             />
             <button
               onClick={() => setSelectedImage(null)}
-              className="absolute top-4 right-4 w-10 h-10 rounded-full bg-white/10 text-white flex items-center justify-center hover:bg-white/20 transition-colors"
+              className="absolute top-4 right-4 w-10 h-10 rounded-full bg-card/10 text-white flex items-center justify-center hover:bg-white/20 transition-colors"
               data-testid="button-close-lightbox"
             >
               ×

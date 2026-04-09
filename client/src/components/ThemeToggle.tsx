@@ -50,7 +50,7 @@ export default function ThemeToggle() {
       variant="ghost"
       size="icon"
       onClick={toggleTheme}
-      className="text-gray-700 dark:text-gray-300"
+      className="text-foreground"
       data-testid="button-theme-toggle"
       aria-label={ariaLabel}
       aria-pressed={isDark}

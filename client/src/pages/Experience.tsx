@@ -309,7 +309,7 @@ export default function Experience() {
   };
 
   return (
-    <div className="min-h-screen bg-white dark:bg-gray-900" data-testid="page-experience">
+    <div className="min-h-screen bg-background" data-testid="page-experience">
       <SEOHead page="experience" language={language} />
       <Header />
       
@@ -345,14 +345,14 @@ export default function Experience() {
 
       {mattersError ? (
         <div className="text-center py-20" data-testid="container-experience-error">
-          <AlertCircle className="w-12 h-12 text-gray-400 dark:text-gray-500 mx-auto mb-4" />
-          <p className="text-gray-500 dark:text-gray-400" data-testid="text-experience-error">
+          <AlertCircle className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+          <p className="text-muted-foreground" data-testid="text-experience-error">
             {t.errorMessage}
           </p>
         </div>
       ) : (
         <>
-          <section className="py-16 bg-gray-50 dark:bg-gray-800" data-testid="section-featured-matters">
+          <section className="py-16 bg-muted" data-testid="section-featured-matters">
             <div className="max-w-7xl mx-auto px-6 lg:px-12">
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
@@ -363,13 +363,13 @@ export default function Experience() {
                 <div className="flex items-center justify-center gap-2 mb-4">
                   <Award className="w-6 h-6 text-primary" />
                   <h2 
-                    className="text-2xl font-heading font-light text-gray-900 dark:text-white uppercase tracking-[0.12em]"
+                    className="text-2xl font-heading font-light text-foreground uppercase tracking-[0.12em]"
                     data-testid="text-featured-title"
                   >
                     {t.featuredTitle}
                   </h2>
                 </div>
-                <p className="text-gray-600 dark:text-gray-400" data-testid="text-featured-subtitle">
+                <p className="text-muted-foreground" data-testid="text-featured-subtitle">
                   {t.featuredSubtitle}
                 </p>
               </motion.div>
@@ -377,7 +377,7 @@ export default function Experience() {
               {mattersLoading ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {Array.from({ length: 6 }).map((_, i) => (
-                    <Card key={i} className="rounded-md border-0 shadow-sm bg-white dark:bg-gray-700">
+                    <Card key={i} className="rounded-md border-0 shadow-sm bg-card">
                       <CardContent className="p-6">
                         <Skeleton className="h-6 w-3/4 mb-3" />
                         <Skeleton className="h-4 w-full mb-2" />
@@ -400,7 +400,7 @@ export default function Experience() {
                   {highlightedMatters.map((matter) => (
                     <motion.div key={matter.id} variants={itemVariants}>
                       <Card
-                        className="h-full rounded-md border border-gray-200 dark:border-gray-600 shadow-sm bg-white dark:bg-gray-700 hover:shadow-lg transition-shadow duration-300"
+                        className="h-full rounded-md border border-border shadow-sm bg-card hover:shadow-lg transition-shadow duration-300"
                         data-testid={`card-featured-matter-${matter.id}`}
                       >
                         <CardContent className="p-6">
@@ -409,18 +409,18 @@ export default function Experience() {
                             <span data-testid={`text-featured-year-${matter.id}`}>{matter.year}</span>
                           </div>
                           <h3 
-                            className="text-lg font-medium text-gray-900 dark:text-white mb-3 line-clamp-2"
+                            className="text-lg font-medium text-foreground mb-3 line-clamp-2"
                             data-testid={`text-featured-title-${matter.id}`}
                           >
                             {language === "es" ? matter.titleEs : matter.title}
                           </h3>
                           <p 
-                            className="text-gray-600 dark:text-gray-300 text-sm mb-4 line-clamp-3"
+                            className="text-muted-foreground text-sm mb-4 line-clamp-3"
                             data-testid={`text-featured-description-${matter.id}`}
                           >
                             {language === "es" ? matter.descriptionEs : matter.description}
                           </p>
-                          <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400 mb-4">
+                          <div className="flex items-center gap-2 text-sm text-muted-foreground mb-4">
                             <Building2 className="w-4 h-4" />
                             <span data-testid={`text-featured-client-${matter.id}`}>
                               {language === "es" 
@@ -469,7 +469,7 @@ export default function Experience() {
                 className="mb-12"
               >
                 <h2 
-                  className="text-2xl font-heading font-light text-gray-900 dark:text-white text-center mb-8 uppercase tracking-[0.12em]"
+                  className="text-2xl font-heading font-light text-foreground text-center mb-8 uppercase tracking-[0.12em]"
                   data-testid="text-all-matters-title"
                 >
                   {t.allMattersTitle}
@@ -533,7 +533,7 @@ export default function Experience() {
               {mattersLoading ? (
                 <div className="space-y-4">
                   {Array.from({ length: 6 }).map((_, i) => (
-                    <Card key={i} className="rounded-md border-0 shadow-sm bg-gray-50 dark:bg-gray-800">
+                    <Card key={i} className="rounded-md border-0 shadow-sm bg-muted">
                       <CardContent className="p-6">
                         <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
                           <div className="flex-1">
@@ -554,7 +554,7 @@ export default function Experience() {
               ) : filteredMatters.length === 0 ? (
                 <div className="text-center py-12" data-testid="container-no-results">
                   <Search className="w-12 h-12 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
-                  <p className="text-gray-500 dark:text-gray-400" data-testid="text-no-results">
+                  <p className="text-muted-foreground" data-testid="text-no-results">
                     {t.noResults}
                   </p>
                 </div>
@@ -568,7 +568,7 @@ export default function Experience() {
                   {filteredMatters.map((matter) => (
                     <motion.div key={matter.id} variants={itemVariants}>
                       <Card
-                        className="rounded-md border border-gray-200 dark:border-gray-700 shadow-sm bg-white dark:bg-gray-800 hover:shadow-md transition-shadow duration-300"
+                        className="rounded-md border border-border shadow-sm bg-card hover:shadow-md transition-shadow duration-300"
                         data-testid={`card-matter-${matter.id}`}
                       >
                         <CardContent className="p-6">
@@ -579,7 +579,7 @@ export default function Experience() {
                                   <Calendar className="w-4 h-4" />
                                   <span data-testid={`text-matter-year-${matter.id}`}>{matter.year}</span>
                                 </div>
-                                <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
+                                <div className="flex items-center gap-2 text-sm text-muted-foreground">
                                   <Building2 className="w-4 h-4" />
                                   <span data-testid={`text-matter-client-${matter.id}`}>
                                     {language === "es" 
@@ -589,13 +589,13 @@ export default function Experience() {
                                 </div>
                               </div>
                               <h3 
-                                className="text-lg font-medium text-gray-900 dark:text-white mb-2"
+                                className="text-lg font-medium text-foreground mb-2"
                                 data-testid={`text-matter-title-${matter.id}`}
                               >
                                 {language === "es" ? matter.titleEs : matter.title}
                               </h3>
                               <p 
-                                className="text-gray-600 dark:text-gray-300 text-sm"
+                                className="text-muted-foreground text-sm"
                                 data-testid={`text-matter-description-${matter.id}`}
                               >
                                 {language === "es" ? matter.descriptionEs : matter.description}

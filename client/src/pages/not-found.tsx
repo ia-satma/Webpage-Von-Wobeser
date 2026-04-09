@@ -76,11 +76,11 @@ export default function NotFound() {
   const isRTL = language === "ar";
 
   return (
-    <div className="min-h-screen bg-white dark:bg-gray-900 flex flex-col" dir={isRTL ? "rtl" : "ltr"} data-testid="page-not-found">
+    <div className="min-h-screen bg-background flex flex-col" dir={isRTL ? "rtl" : "ltr"} data-testid="page-not-found">
       <Header />
       
       <main className="flex-1 flex items-center justify-center py-20">
-        <Card className="w-full max-w-lg mx-4 rounded-md border border-gray-200 dark:border-gray-700">
+        <Card className="w-full max-w-lg mx-4 rounded-md border border-border">
           <CardContent className="pt-8 pb-8 px-8 text-center">
             <div className="flex justify-center mb-6">
               <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center">
@@ -89,14 +89,14 @@ export default function NotFound() {
             </div>
             
             <h1 
-              className="text-3xl font-heading font-medium text-gray-900 dark:text-white mb-3"
+              className="text-3xl font-heading font-medium text-foreground mb-3"
               data-testid="text-404-title"
             >
               404 - {t.title}
             </h1>
 
             <p 
-              className="text-gray-600 dark:text-gray-400 mb-8"
+              className="text-muted-foreground mb-8"
               data-testid="text-404-subtitle"
             >
               {t.subtitle}

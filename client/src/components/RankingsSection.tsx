@@ -90,7 +90,7 @@ export default function RankingsSection() {
   return (
     <section 
       id="rankings" 
-      className="py-16 bg-white dark:bg-gray-900"
+      className="py-16 bg-background"
       data-testid="section-rankings"
     >
       <div className="max-w-6xl mx-auto px-6 lg:px-12">
@@ -118,13 +118,13 @@ export default function RankingsSection() {
           className="text-center mb-8 max-w-4xl mx-auto"
         >
           <p 
-            className="font-serif italic text-gray-700 dark:text-gray-300 text-lg leading-relaxed"
+            className="font-serif italic text-foreground text-lg leading-relaxed"
             data-testid="text-recognitions-intro"
           >
             {t.intro}
           </p>
           <p 
-            className="font-serif text-gray-700 dark:text-gray-300 text-lg leading-relaxed mt-2"
+            className="font-serif text-foreground text-lg leading-relaxed mt-2"
             data-testid="text-recognitions-institutions"
           >
             {institutionsList}
@@ -166,7 +166,7 @@ export default function RankingsSection() {
               />
               {ranking.hasFirmName && (
                 <span 
-                  className="mt-2 text-[10px] sm:text-xs text-gray-600 dark:text-gray-400 font-serif text-center"
+                  className="mt-2 text-[10px] sm:text-xs text-muted-foreground font-serif text-center"
                   data-testid={`text-firm-name-${ranking.id}`}
                 >
                   Von Wobeser y Sierra, S.C.

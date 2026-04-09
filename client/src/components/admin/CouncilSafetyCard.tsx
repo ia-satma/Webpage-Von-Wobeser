@@ -427,7 +427,7 @@ export function CouncilSafetyCard({ verdict, onValidate, isValidating, isAdmin }
       <Card className="border-dashed border-2 border-gray-300 dark:border-gray-700" data-testid="card-council-empty">
         <CardContent className="py-8 text-center">
           <Shield className="w-12 h-12 mx-auto text-gray-400 mb-3" />
-          <p className="text-gray-500 dark:text-gray-400">{t.noVerdict}</p>
+          <p className="text-muted-foreground">{t.noVerdict}</p>
         </CardContent>
       </Card>
     );
@@ -452,9 +452,9 @@ export function CouncilSafetyCard({ verdict, onValidate, isValidating, isAdmin }
       <CardContent className="space-y-4">
         <div className="flex flex-wrap gap-4 items-center">
           {score !== null && (
-            <div className="flex items-center gap-2 bg-white dark:bg-gray-800 rounded-md px-4 py-2 shadow-sm">
+            <div className="flex items-center gap-2 bg-card rounded-md px-4 py-2 shadow-sm">
               <Sparkles className={`w-5 h-5 ${getScoreColor(score)}`} />
-              <span className="text-sm text-gray-600 dark:text-gray-400">{t.score}:</span>
+              <span className="text-sm text-muted-foreground">{t.score}:</span>
               <span className={`text-2xl font-bold ${getScoreColor(score)}`} data-testid="text-council-score">
                 {Math.round(score)}/100
               </span>
@@ -494,7 +494,7 @@ export function CouncilSafetyCard({ verdict, onValidate, isValidating, isAdmin }
                 <div className={`font-bold ${getScoreColor(vote.score)}`}>
                   {vote.score}/100
                 </div>
-                <p className="text-xs text-gray-600 dark:text-gray-400 flex-1 line-clamp-2">
+                <p className="text-xs text-muted-foreground flex-1 line-clamp-2">
                   {vote.reasoning}
                 </p>
               </div>
@@ -538,7 +538,7 @@ export function CouncilSafetyCard({ verdict, onValidate, isValidating, isAdmin }
           </CollapsibleTrigger>
           <CollapsibleContent>
             <div 
-              className="mt-2 p-4 bg-gray-50 dark:bg-gray-800/50 rounded-md text-sm whitespace-pre-wrap font-mono"
+              className="mt-2 p-4 bg-muted/50 rounded-md text-sm whitespace-pre-wrap font-mono"
               data-testid="text-council-feedback"
             >
               {verdict.consolidatedFeedback}

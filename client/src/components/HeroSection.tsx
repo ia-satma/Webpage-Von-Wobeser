@@ -143,7 +143,7 @@ function NewsPanel({ language, news }: { language: LanguageCode; news: News[] })
           >
             {t.news}
           </h3>
-          <div className="flex-1 h-px bg-white/10" aria-hidden="true" />
+          <div className="flex-1 h-px bg-card/10" aria-hidden="true" />
         </div>
 
         {/* News items */}

@@ -2480,7 +2480,7 @@ Sito web: www.vonwobeser.com`
   };
 
   return (
-    <div className="min-h-screen bg-white dark:bg-gray-900" data-testid="page-privacy-policy">
+    <div className="min-h-screen bg-background" data-testid="page-privacy-policy">
       <SEOHead page="privacyPolicy" language={language} />
       <Header />
       
@@ -2531,14 +2531,14 @@ Sito web: www.vonwobeser.com`
                 variants={itemVariants}
                 data-testid={`section-privacy-${section.id}`}
               >
-                <Card className="rounded-md border border-gray-200 dark:border-gray-700 overflow-hidden">
+                <Card className="rounded-md border border-border overflow-hidden">
                   <CardContent className="p-0">
-                    <div className="flex items-center gap-4 p-6 bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+                    <div className="flex items-center gap-4 p-6 bg-muted border-b border-border">
                       <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
                         <section.icon className="w-6 h-6 text-primary" />
                       </div>
                       <h2 
-                        className="text-xl font-heading font-medium text-gray-800 dark:text-white"
+                        className="text-xl font-heading font-medium text-foreground"
                         data-testid={`text-section-title-${section.id}`}
                       >
                         {section.title}
@@ -2546,7 +2546,7 @@ Sito web: www.vonwobeser.com`
                     </div>
                     <div className="p-6">
                       <div 
-                        className="text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-line"
+                        className="text-foreground leading-relaxed whitespace-pre-line"
                         data-testid={`text-section-content-${section.id}`}
                       >
                         {section.content}
@@ -2567,7 +2567,7 @@ Sito web: www.vonwobeser.com`
             <Card className="rounded-md border border-primary/20 bg-primary/5 dark:bg-primary/10">
               <CardContent className="p-8">
                 <Shield className="w-10 h-10 text-primary mx-auto mb-4" />
-                <p className="text-gray-700 dark:text-gray-300 mb-4">
+                <p className="text-foreground mb-4">
                   {contactText[language as keyof typeof contactText] || contactText.en}
                 </p>
                 <div className="flex flex-col sm:flex-row justify-center items-center gap-4">
