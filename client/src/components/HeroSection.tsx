@@ -438,7 +438,7 @@ export default function HeroSection({ language }: HeroSectionProps) {
           initial={{ opacity: 0, y: 10 }}
           animate={isVisible ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.6, delay: 0.65 }}
-          className="inline-flex items-center pl-3 border-l-2 border-[#AA1A2E] text-white/70 text-xs tracking-[0.2em] uppercase"
+          className="text-white/70 text-xs tracking-[0.2em] uppercase"
           data-testid="text-hero-subheadline"
         >
           {subheadline}
