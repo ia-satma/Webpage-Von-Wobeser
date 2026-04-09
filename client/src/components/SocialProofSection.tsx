@@ -103,13 +103,12 @@ export default function SocialProofSection() {
   return (
     <section
       id="social-proof"
-      className="py-20 lg:py-28"
-      style={{ background: "#141414" }}
+      className="py-20 lg:py-28 bg-muted"
       data-testid="section-social-proof"
     >
       <div className="max-w-7xl mx-auto px-6 lg:px-12">
 
-        {/* Heading — no red divider line */}
+        {/* Heading */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -118,7 +117,7 @@ export default function SocialProofSection() {
           className="text-center mb-16"
         >
           <h2
-            className="text-2xl md:text-3xl lg:text-4xl font-heading font-light text-white uppercase tracking-[0.12em]"
+            className="text-2xl md:text-3xl lg:text-4xl font-heading font-light text-[#AA1A2E] uppercase tracking-[0.12em]"
             data-testid="text-social-proof-title"
           >
             {t.title}
@@ -138,59 +137,55 @@ export default function SocialProofSection() {
             <motion.div
               key={quote.id}
               variants={itemVariants}
-              whileHover={{ y: -8, transition: { duration: 0.35, ease: [0.22, 1, 0.36, 1] } }}
-              className="relative rounded-2xl p-8 lg:p-10 flex flex-col overflow-hidden border border-white/10 backdrop-blur-sm"
+              whileHover={{ y: -6, transition: { duration: 0.3, ease: [0.22, 1, 0.36, 1] } }}
+              className="relative bg-card rounded-2xl p-8 lg:p-10 flex flex-col overflow-hidden"
               style={{
-                background: "rgba(255,255,255,0.05)",
-                boxShadow: "0 4px 32px -8px rgba(0,0,0,0.4)",
-                transition: "box-shadow 0.35s ease",
+                boxShadow: "0 2px 16px -4px rgba(0,0,0,0.07), 0 1px 4px -2px rgba(0,0,0,0.04)",
+                transition: "box-shadow 0.3s ease",
               }}
               onHoverStart={(e) => {
                 (e.target as HTMLElement).style.boxShadow =
-                  "0 20px 60px -12px rgba(0,0,0,0.6), 0 8px 24px -8px rgba(0,0,0,0.3)";
+                  "0 16px 48px -12px rgba(0,0,0,0.13), 0 4px 16px -4px rgba(0,0,0,0.06)";
               }}
               onHoverEnd={(e) => {
                 (e.target as HTMLElement).style.boxShadow =
-                  "0 4px 32px -8px rgba(0,0,0,0.4)";
+                  "0 2px 16px -4px rgba(0,0,0,0.07), 0 1px 4px -2px rgba(0,0,0,0.04)";
               }}
               data-testid={`card-quote-${quote.id}`}
             >
-              {/* Oversized quote mark as background texture — red, very low opacity */}
+              {/* Giant quote mark as background texture */}
               <span
                 aria-hidden="true"
-                className="absolute -top-6 -left-2 select-none pointer-events-none font-serif text-[11rem] leading-none text-[#AA1A2E]/20"
+                className="absolute -top-4 -left-1 select-none pointer-events-none font-serif text-[9rem] leading-none text-[#AA1A2E]/8"
                 style={{ fontStyle: "italic" }}
               >
                 &ldquo;
               </span>
 
-              {/* Quote text — centered, italic serif, white/70 */}
+              {/* Quote text */}
               <blockquote
-                className="relative z-10 font-serif text-base lg:text-lg leading-relaxed text-white/70 mb-8 text-center"
+                className="relative z-10 font-serif text-base lg:text-lg leading-relaxed text-foreground/60 mb-8 text-center"
                 style={{ fontStyle: "italic" }}
                 data-testid={`text-quote-${quote.id}`}
               >
                 {getQuoteText(quote)}
               </blockquote>
 
-              {/* Attribution — pushed to bottom */}
+              {/* Attribution */}
               <div className="mt-auto" data-testid={`attribution-${quote.id}`}>
-                {/* Subtle separator line */}
                 <div
-                  className="w-10 h-px mb-4 bg-white/30"
+                  className="w-10 h-px bg-[#AA1A2E] mb-4"
                   data-testid={`divider-quote-${quote.id}`}
                 />
-                {/* Institution name */}
                 <p
-                  className="font-support font-bold uppercase tracking-widest text-xs text-white/90 leading-tight"
+                  className="font-support font-bold uppercase tracking-widest text-xs text-foreground/80 leading-tight"
                   data-testid={`text-source-${quote.id}`}
                 >
                   {quote.source}
                 </p>
-                {/* Year */}
                 {quote.year && (
                   <p
-                    className="font-support font-normal text-xs mt-1 tracking-wide text-white/40"
+                    className="font-support font-normal text-xs mt-1 tracking-wide text-muted-foreground"
                     data-testid={`text-year-${quote.id}`}
                   >
                     {quote.year}
