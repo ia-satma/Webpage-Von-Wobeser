@@ -23,6 +23,11 @@
   font-style: normal !important;
 }
 
+/* Exception: blockquote testimonials */
+blockquote {
+  font-style: italic !important;
+}
+
 /* LIGHT MODE */
 :root {
   /* Von Wobeser Corporate Colors (Manual de Identidad Junio 2022) */

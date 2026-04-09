@@ -429,7 +429,7 @@ export default function HeroSection({ language }: HeroSectionProps) {
           transition={{ duration: 0.9, delay: 0.35 }}
           src={logoColor}
           alt={t.headline}
-          className="w-[88vw] max-w-[420px] sm:max-w-[640px] md:max-w-[860px] lg:max-w-[1060px] h-auto object-contain"
+          className="w-[92vw] max-w-[540px] sm:max-w-[780px] md:max-w-[1000px] lg:max-w-[1200px] h-auto object-contain"
           style={{ imageRendering: "crisp-edges" }}
           data-testid="text-hero-headline"
         />
