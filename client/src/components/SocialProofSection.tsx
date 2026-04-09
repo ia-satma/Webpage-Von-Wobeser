@@ -158,8 +158,8 @@ export default function SocialProofSection() {
               {/* Oversized quote mark as background texture — red, very low opacity */}
               <span
                 aria-hidden="true"
-                className="absolute -top-6 -left-2 select-none pointer-events-none font-serif text-[11rem] leading-none"
-                style={{ color: "rgba(170,26,46,0.18)", fontStyle: "italic" }}
+                className="absolute -top-6 -left-2 select-none pointer-events-none font-serif text-[11rem] leading-none text-[#AA1A2E]/20"
+                style={{ fontStyle: "italic" }}
               >
                 &ldquo;
               </span>
@@ -177,8 +177,7 @@ export default function SocialProofSection() {
               <div className="mt-auto" data-testid={`attribution-${quote.id}`}>
                 {/* Subtle separator line */}
                 <div
-                  className="w-10 h-px mb-4"
-                  style={{ background: "rgba(255,255,255,0.25)" }}
+                  className="w-10 h-px mb-4 bg-white/30"
                   data-testid={`divider-quote-${quote.id}`}
                 />
                 {/* Institution name */}
@@ -191,8 +190,7 @@ export default function SocialProofSection() {
                 {/* Year */}
                 {quote.year && (
                   <p
-                    className="font-support font-normal text-xs mt-1 tracking-wide"
-                    style={{ color: "rgba(255,255,255,0.40)" }}
+                    className="font-support font-normal text-xs mt-1 tracking-wide text-white/40"
                     data-testid={`text-year-${quote.id}`}
                   >
                     {quote.year}
