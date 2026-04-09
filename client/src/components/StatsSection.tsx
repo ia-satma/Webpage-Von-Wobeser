@@ -324,9 +324,9 @@ export default function StatsSection({ language }: StatsSectionProps) {
   if (error) {
     return (
       <section id="stats" className="py-20 lg:py-28 bg-background" data-testid="section-stats">
-        <div className="max-w-6xl mx-auto px-6 lg:px-12">
-          <div className="text-center py-12">
-            <AlertCircle className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+        <div className="max-w-7xl mx-auto px-6 lg:px-12">
+          <div className="py-12">
+            <AlertCircle className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
             <p className="text-muted-foreground" data-testid="text-stats-error">{t.errorMessage}</p>
           </div>
         </div>
@@ -340,40 +340,54 @@ export default function StatsSection({ language }: StatsSectionProps) {
       className="py-20 lg:py-28 bg-background"
       data-testid="section-stats"
     >
-      <div className="max-w-6xl mx-auto px-6 lg:px-12">
+      <div className="max-w-7xl mx-auto px-6 lg:px-12">
+
+        {/* ── ZONA SUPERIOR: header editorial ── */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
-          className="text-center mb-16"
+          className="mb-0"
         >
+          {/* Red rule */}
+          <div className="w-12 h-px bg-[#AA1A2E] mb-6" />
+
+          {/* Eyebrow */}
+          <p className="text-[#AA1A2E] text-[10px] tracking-[0.25em] uppercase mb-4">
+            GENSLER DESIGN
+          </p>
+
+          {/* Serif heading — dark on white bg */}
           <h2
-            className="text-2xl md:text-3xl lg:text-4xl font-heading font-light text-[#AA1A2E] leading-tight mb-8 uppercase tracking-[0.12em]"
+            className="font-heading font-light text-2xl md:text-3xl lg:text-4xl text-foreground uppercase tracking-[0.12em] leading-tight mb-8 max-w-2xl"
             data-testid="text-stats-title"
           >
             {t.title}
           </h2>
-          <p 
-            className="text-lg md:text-xl font-serif text-muted-foreground leading-relaxed max-w-3xl mx-auto mb-6"
+
+          {/* Body paragraphs — sans-serif */}
+          <p
+            className="text-sm text-muted-foreground leading-relaxed max-w-2xl mb-4"
             data-testid="text-stats-subtitle"
           >
             {t.subtitle}
           </p>
-          <p 
-            className="text-lg font-serif text-muted-foreground leading-relaxed max-w-3xl mx-auto"
+          <p
+            className="text-sm text-muted-foreground leading-relaxed max-w-2xl"
             data-testid="text-stats-description"
           >
             {t.description}
           </p>
         </motion.div>
 
+        {/* ── ZONA MEDIA: stats row con separadores ── */}
         {isLoading ? (
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 sm:gap-8 lg:gap-12 mb-16">
+          <div className="grid grid-cols-2 md:grid-cols-4 border-t border-b border-border py-12 my-14">
             {[1, 2, 3, 4].map((i) => (
-              <div key={i} className="text-center p-4" data-testid={`skeleton-stat-${i}`}>
-                <Skeleton className="h-12 sm:h-16 w-20 sm:w-24 mx-auto mb-3" />
-                <Skeleton className="h-4 w-16 sm:w-20 mx-auto" />
+              <div key={i} className={`px-6 py-2 ${i > 1 ? "border-l border-border" : ""}`} data-testid={`skeleton-stat-${i}`}>
+                <Skeleton className="h-12 w-24 mb-3" />
+                <Skeleton className="h-3 w-20" />
               </div>
             ))}
           </div>
@@ -383,23 +397,23 @@ export default function StatsSection({ language }: StatsSectionProps) {
             initial="hidden"
             whileInView="visible"
             viewport={{ once: true }}
-            className="grid grid-cols-2 md:grid-cols-4 gap-6 sm:gap-8 lg:gap-12 mb-16"
+            className="grid grid-cols-2 md:grid-cols-4 border-t border-b border-border py-12 my-14"
           >
             {stats?.map((stat, index) => (
               <motion.div
                 key={index}
                 variants={itemVariants}
-                className="text-center p-2 sm:p-4"
+                className={`px-6 py-2 ${index > 0 ? "border-l border-border" : ""}`}
                 data-testid={`stat-item-${index}`}
               >
-                <div 
-                  className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-heading font-light text-primary mb-2 sm:mb-3"
+                <div
+                  className="font-heading font-light text-4xl md:text-5xl lg:text-6xl text-[#AA1A2E] leading-none mb-3"
                   data-testid={`text-stat-value-${index}`}
                 >
                   {stat.value}
                 </div>
-                <div 
-                  className="text-xs sm:text-sm md:text-base text-muted-foreground uppercase tracking-wider leading-tight"
+                <div
+                  className="text-[10px] tracking-[0.2em] uppercase text-muted-foreground leading-tight"
                   data-testid={`text-stat-label-${index}`}
                 >
                   {getTranslatedLabel(stat.label)}
@@ -409,16 +423,18 @@ export default function StatsSection({ language }: StatsSectionProps) {
           </motion.div>
         )}
 
+        {/* ── ZONA INFERIOR: capacity text ── */}
         <motion.p
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 16 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          transition={{ duration: 0.6, delay: 0.4 }}
-          className="text-center text-lg font-serif text-muted-foreground leading-relaxed max-w-4xl mx-auto"
+          transition={{ duration: 0.6, delay: 0.2 }}
+          className="text-sm text-muted-foreground leading-relaxed max-w-4xl"
           data-testid="text-stats-capacity"
         >
           {t.capacity}
         </motion.p>
+
       </div>
     </section>
   );
