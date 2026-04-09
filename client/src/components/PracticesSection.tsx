@@ -171,13 +171,16 @@ export default function PracticesSection() {
               {/* Red rule */}
               <div className="w-12 h-px bg-[#AA1A2E] mb-6" />
 
-              {/* Section label */}
+              {/* Serif section heading — Playfair Display, matches SocialProofSection hierarchy */}
               <h2
-                className="text-[#AA1A2E] text-sm font-medium tracking-[0.2em] uppercase mb-6"
+                className="font-heading font-light text-xl md:text-2xl text-white/90 uppercase tracking-[0.12em] mb-2"
                 data-testid="text-practices-title"
               >
                 {t.title}
               </h2>
+
+              {/* Red underline accent */}
+              <div className="w-8 h-px bg-[#AA1A2E]/50 mb-6 mt-3" />
 
               {/* Decorative large number */}
               <div className="relative mb-6 select-none pointer-events-none">

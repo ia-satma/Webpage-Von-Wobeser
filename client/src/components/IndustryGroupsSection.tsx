@@ -317,7 +317,7 @@ export default function IndustryGroupsSection() {
                   transition: "opacity 0.3s ease 0.1s, transform 0.3s ease 0.1s",
                 }}
               >
-                <p className="text-white text-base font-light uppercase tracking-[0.1em] leading-snug mb-3">
+                <p className="font-heading font-light text-base uppercase tracking-[0.1em] leading-snug mb-3 text-white">
                   {name}
                 </p>
                 <div className="flex items-center gap-2 text-[#AA1A2E]">
@@ -370,13 +370,14 @@ export default function IndustryGroupsSection() {
         <div className="flex items-center gap-5">
           <div className="w-10 h-px bg-[#AA1A2E] shrink-0" />
           <div>
+            {/* Serif heading — Playfair Display, consistent with SocialProofSection hierarchy */}
             <h2
-              className="text-[#AA1A2E] text-sm font-medium tracking-[0.2em] uppercase"
+              className="font-heading font-light text-lg md:text-xl text-white/90 uppercase tracking-[0.12em]"
               data-testid="text-industry-groups-title"
             >
               {t.title}
             </h2>
-            <p className="text-white/35 text-[10px] tracking-[0.12em] uppercase mt-0.5">
+            <p className="text-[#AA1A2E] text-[10px] tracking-[0.2em] uppercase mt-1">
               {t.subtitle}
             </p>
           </div>
