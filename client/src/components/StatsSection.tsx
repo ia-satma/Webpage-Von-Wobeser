@@ -363,7 +363,7 @@ export default function StatsSection({ language }: StatsSectionProps) {
     >
       {/* ── Zone 1: Text (left) + Stats (right) ─────────────────────── */}
       <div className="max-w-7xl mx-auto px-6 lg:px-12">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-center">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center">
 
           {/* Left: editorial text */}
           <motion.div
@@ -398,7 +398,7 @@ export default function StatsSection({ language }: StatsSectionProps) {
 
           {/* Right: stats in 2×2 grid */}
           {isLoading ? (
-            <div className="grid grid-cols-2 gap-x-10 gap-y-10">
+            <div className="grid grid-cols-2 gap-x-8 gap-y-8">
               {[1, 2, 3, 4].map((i) => (
                 <div key={i} data-testid={`skeleton-stat-${i}`}>
                   <Skeleton className="h-14 w-28 mb-3" />
@@ -412,7 +412,7 @@ export default function StatsSection({ language }: StatsSectionProps) {
               initial="hidden"
               whileInView="visible"
               viewport={{ once: true }}
-              className="grid grid-cols-2 gap-x-10 gap-y-10"
+              className="grid grid-cols-2 gap-x-8 gap-y-8"
             >
               {stats?.map((stat, index) => (
                 <motion.div
@@ -493,7 +493,7 @@ export default function StatsSection({ language }: StatsSectionProps) {
                   className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                   loading="lazy"
                 />
-                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/25 transition-colors duration-300 flex items-center justify-center">
+                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-300 flex items-center justify-center">
                   <ZoomIn
                     className="text-white w-6 h-6 drop-shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300"
                   />
