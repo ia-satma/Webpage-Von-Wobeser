@@ -89,25 +89,27 @@ function NewsItemTranslated({
 
   return (
     <motion.div
-      key={item.id}
-      initial={{ opacity: 0, y: 10 }}
+      initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, delay: 1 + index * 0.15 }}
-      className={`group ${index === 0 ? 'border-r border-[#E5E7EB] pr-4' : 'pl-2'}`}
+      className="group pl-3 border-l-2 border-[#AA1A2E]"
       data-testid={`card-news-${item.id}`}
     >
       <h4 
-        className="text-sm font-publico text-[#1D1D1B] leading-snug mb-3"
+        className="text-sm font-medium text-white leading-snug mb-2 group-hover:text-white/80 transition-colors"
         data-testid={`text-news-title-${item.id}`}
       >
         {displayTitle}
       </h4>
       <Link 
         href={`/news/${item.slug}`}
-        className="inline-flex items-center text-xs font-geomanist font-bold tracking-[0.15em] uppercase text-[#AA1A2E] hover:text-[#8A1525] no-underline transition-colors"
+        className="inline-flex items-center gap-1 text-[11px] font-geomanist font-bold tracking-[0.15em] uppercase text-[#AA1A2E] hover:text-[#CC2038] no-underline transition-colors"
         data-testid={`link-news-seemore-${item.id}`}
       >
         {seeMoreText}
+        <svg width="10" height="10" viewBox="0 0 10 10" fill="none" aria-hidden="true">
+          <path d="M2 5h6M5.5 2l3 3-3 3" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
+        </svg>
       </Link>
     </motion.div>
   );
@@ -115,29 +117,37 @@ function NewsItemTranslated({
 
 function NewsPanel({ language, news }: { language: LanguageCode; news: News[] }) {
   const displayNews = news.slice(0, 2);
-  
   const t = newsPanelLabels[language] || newsPanelLabels.en;
 
   return (
     <motion.div
-      initial={{ opacity: 0, x: -30 }}
-      animate={{ opacity: 1, x: 0 }}
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.7, delay: 0.8 }}
-      className="absolute left-6 md:left-12 bottom-24 md:bottom-20 z-20 hidden md:block"
+      className="absolute left-6 md:left-12 bottom-20 md:bottom-16 z-20 hidden md:block"
       data-testid="panel-news-overlay"
     >
-      <div className="bg-white/95 backdrop-blur-sm p-6 shadow-lg" style={{ width: '420px' }}>
-        <div className="mb-4 text-center">
-          <h3 
-            className="text-sm font-geomanist tracking-[0.2em] uppercase text-[#3A3A3A] pb-2"
+      <div
+        className="backdrop-blur-md border border-white/10 p-5 flex flex-col gap-4"
+        style={{
+          width: '360px',
+          background: 'linear-gradient(135deg, rgba(0,0,0,0.72) 0%, rgba(20,20,20,0.65) 100%)',
+        }}
+      >
+        {/* Header */}
+        <div className="flex items-center gap-3">
+          <div className="w-4 h-px bg-[#AA1A2E]" aria-hidden="true" />
+          <h3
+            className="text-[10px] font-geomanist tracking-[0.3em] uppercase text-white/50"
             data-testid="text-news-header"
           >
             {t.news}
           </h3>
-          <div className="h-px w-full bg-[#AA1A2E]" aria-hidden="true" />
+          <div className="flex-1 h-px bg-white/10" aria-hidden="true" />
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
+        {/* News items */}
+        <div className="flex flex-col gap-4">
           {displayNews.map((item, index) => (
             <NewsItemTranslated
               key={item.id}
