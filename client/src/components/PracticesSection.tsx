@@ -139,9 +139,6 @@ export default function PracticesSection() {
   const { language } = useLanguage();
   const t = content[language] || content.en;
 
-  const leftColumn = practiceAreas.filter((_, i) => i % 2 === 0);
-  const rightColumn = practiceAreas.filter((_, i) => i % 2 === 1);
-
   return (
     <section
       id="practices"
@@ -169,36 +166,32 @@ export default function PracticesSection() {
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true }}
-          className="mt-8 border-t border-foreground/10 grid grid-cols-1 md:grid-cols-2 md:divide-x md:divide-foreground/10"
+          className="mt-8 border-t border-foreground/8 grid grid-cols-1 md:grid-cols-2"
         >
-          {[leftColumn, rightColumn].map((column, colIndex) => (
-            <div key={colIndex} className={colIndex === 1 ? "md:pl-0" : ""}>
-              {column.map((area) => (
-                <motion.div key={area.id} variants={itemVariants}>
-                  <Link
-                    href={`/practice-groups/${area.slug}`}
-                    className="group flex items-center gap-4 pl-4 md:pl-6 pr-4 py-5 border-b border-foreground/10 border-l-2 border-l-transparent hover:border-l-[#AA1A2E] hover:bg-muted/40 transition-colors duration-200"
-                    data-testid={`link-practice-${area.id}`}
-                  >
-                    <span
-                      className="text-xs font-mono text-muted-foreground w-7 shrink-0 tabular-nums"
-                      data-testid={`text-practice-number-${area.id}`}
-                    >
-                      {String(area.id).padStart(2, "0")}
-                    </span>
-                    <span
-                      className="flex-1 text-base font-medium text-foreground group-hover:text-[#AA1A2E] transition-colors duration-200"
-                      data-testid={`text-practice-name-${area.id}`}
-                    >
-                      {getPracticeAreaName(area, language)}
-                    </span>
-                    <ArrowRight
-                      className="w-4 h-4 text-muted-foreground group-hover:text-[#AA1A2E] group-hover:translate-x-1 transition-all duration-200 opacity-0 group-hover:opacity-100 shrink-0"
-                    />
-                  </Link>
-                </motion.div>
-              ))}
-            </div>
+          {practiceAreas.map((area) => (
+            <motion.div key={area.id} variants={itemVariants}>
+              <Link
+                href={`/practice-groups/${area.slug}`}
+                className="group flex items-center gap-4 pl-4 pr-4 md:px-6 py-5 border-b border-foreground/8 border-l-2 border-l-transparent hover:border-l-[#AA1A2E] hover:bg-muted/40 transition-all duration-200"
+                data-testid={`link-practice-${area.id}`}
+              >
+                <span
+                  className="text-xs font-mono text-muted-foreground w-7 shrink-0 tabular-nums"
+                  data-testid={`text-practice-number-${area.id}`}
+                >
+                  {String(area.id).padStart(2, "0")}
+                </span>
+                <span
+                  className="flex-1 text-base font-medium text-foreground group-hover:text-[#AA1A2E] transition-colors duration-200"
+                  data-testid={`text-practice-name-${area.id}`}
+                >
+                  {getPracticeAreaName(area, language)}
+                </span>
+                <ArrowRight
+                  className="w-4 h-4 text-muted-foreground group-hover:text-[#AA1A2E] group-hover:translate-x-1 transition-all duration-200 opacity-0 group-hover:opacity-100 shrink-0"
+                />
+              </Link>
+            </motion.div>
           ))}
         </motion.div>
 
