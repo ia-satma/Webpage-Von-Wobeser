@@ -167,7 +167,7 @@ export default function PracticesSection() {
             transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
             className="lg:w-1/3 mb-12 lg:mb-0"
           >
-            <div className="lg:sticky lg:top-24 flex flex-col">
+            <div className="flex flex-col">
               {/* Red rule */}
               <div className="w-12 h-px bg-[#AA1A2E] mb-6" />
 
@@ -222,7 +222,7 @@ export default function PracticesSection() {
             viewport={{ once: true }}
             className="lg:w-2/3 border-t border-white/10"
           >
-            {practiceAreas.map((area) => (
+            {practiceAreas.slice(0, 9).map((area) => (
               <motion.div key={area.id} variants={itemVariants}>
                 <Link
                   href={`/practice-groups/${area.slug}`}
