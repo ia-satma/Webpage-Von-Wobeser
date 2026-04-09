@@ -162,7 +162,7 @@ export default function SocialProofSection() {
 
               {/* Quote text — italic serif, medium gray */}
               <blockquote
-                className="font-serif text-base lg:text-lg leading-relaxed text-foreground/58 mb-8 flex-1"
+                className="text-base lg:text-lg leading-relaxed text-foreground/58 mb-8 flex-1"
                 style={{ fontStyle: "italic" }}
                 data-testid={`text-quote-${quote.id}`}
               >

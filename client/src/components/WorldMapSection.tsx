@@ -448,7 +448,7 @@ export default function WorldMapSection({ language }: WorldMapSectionProps) {
         >
           <Card className="p-8 bg-background">
             <p
-              className="text-base md:text-lg text-foreground leading-relaxed text-center font-serif"
+              className="text-base md:text-lg text-foreground leading-relaxed text-center"
               data-testid="text-historical-description"
             >
               {t.historicalText}

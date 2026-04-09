@@ -182,7 +182,7 @@ export default function PracticesSection() {
                   {String(area.id).padStart(2, "0")}
                 </span>
                 <span
-                  className="flex-1 text-xl font-heading font-light text-foreground group-hover:text-[#AA1A2E] transition-colors duration-200"
+                  className="flex-1 text-xl font-light text-foreground group-hover:text-[#AA1A2E] transition-colors duration-200"
                   data-testid={`text-practice-name-${area.id}`}
                 >
                   {getPracticeAreaName(area, language)}

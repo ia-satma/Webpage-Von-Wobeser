@@ -157,7 +157,7 @@ export default function AboutUsSection() {
               {t.visionTitle}
             </h3>
             <p
-              className="text-lg font-serif text-muted-foreground leading-relaxed"
+              className="text-lg text-muted-foreground leading-relaxed"
               data-testid="text-vision-content"
             >
               {t.visionText}
@@ -178,7 +178,7 @@ export default function AboutUsSection() {
               {t.missionTitle}
             </h3>
             <p
-              className="text-lg font-serif text-muted-foreground leading-relaxed"
+              className="text-lg text-muted-foreground leading-relaxed"
               data-testid="text-mission-content"
             >
               {t.missionText}
@@ -225,7 +225,7 @@ export default function AboutUsSection() {
                 data-testid={`value-item-${index}`}
               >
                 <span
-                  className="text-base md:text-lg font-heading text-gray-700 dark:text-gray-200"
+                  className="text-base md:text-lg text-gray-700 dark:text-gray-200"
                   data-testid={`text-value-${index}`}
                 >
                   {getValueText(value)}

@@ -408,7 +408,7 @@ export default function NewOfficesPopup({ language }: NewOfficesPopupProps) {
               <h3 className="text-xl md:text-2xl font-heading font-light text-gray-800 mb-6 uppercase tracking-[0.12em]">
                 {t.visionTitle}
               </h3>
-              <p className="text-gray-600 leading-relaxed font-serif">
+              <p className="text-gray-600 leading-relaxed">
                 {t.visionText}
               </p>
             </section>
@@ -417,7 +417,7 @@ export default function NewOfficesPopup({ language }: NewOfficesPopupProps) {
               <h3 className="text-xl md:text-2xl font-heading font-light text-gray-800 mb-6 uppercase tracking-[0.12em]">
                 {t.centerTitle}
               </h3>
-              <p className="text-gray-600 leading-relaxed font-serif">
+              <p className="text-gray-600 leading-relaxed">
                 {t.centerText}
               </p>
             </section>
@@ -426,10 +426,10 @@ export default function NewOfficesPopup({ language }: NewOfficesPopupProps) {
               <h3 className="text-xl md:text-2xl font-heading font-light text-gray-800 mb-6 uppercase tracking-[0.12em]">
                 {t.collabTitle}
               </h3>
-              <p className="text-gray-600 leading-relaxed font-serif mb-4">
+              <p className="text-gray-600 leading-relaxed mb-4">
                 {t.collabText}
               </p>
-              <p className="text-gray-600 leading-relaxed font-serif mb-8">
+              <p className="text-gray-600 leading-relaxed mb-8">
                 {t.collabText2}
               </p>
               <div className="flex flex-col items-center mb-8">
@@ -440,7 +440,7 @@ export default function NewOfficesPopup({ language }: NewOfficesPopupProps) {
                   {t.workplacesLabel}
                 </span>
               </div>
-              <p className="text-gray-600 leading-relaxed font-serif">
+              <p className="text-gray-600 leading-relaxed">
                 {t.capacityText}
               </p>
             </section>
@@ -466,7 +466,7 @@ export default function NewOfficesPopup({ language }: NewOfficesPopupProps) {
 
             <section className="max-w-3xl mx-auto text-center py-8 border-t border-b border-gray-200" data-testid="section-quote">
               <div className="text-4xl text-[#AA1A2E] opacity-30 mb-4">"</div>
-              <blockquote className="text-xl md:text-2xl font-serif italic text-gray-700 leading-relaxed mb-6">
+              <blockquote className="text-xl md:text-2xl text-gray-700 leading-relaxed mb-6" style={{ fontStyle: "italic" }}>
                 "{t.quoteText}"
               </blockquote>
               <div className="text-sm text-gray-500">
