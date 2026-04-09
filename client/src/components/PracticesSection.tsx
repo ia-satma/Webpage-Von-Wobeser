@@ -116,28 +116,31 @@ function getPracticeAreaName(area: PracticeArea, language: LanguageCode): string
   return nameMap[language] || area.nameEn;
 }
 
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.04,
+    },
+  },
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 16 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.35, ease: [0.22, 1, 0.36, 1] },
+  },
+};
+
 export default function PracticesSection() {
   const { language } = useLanguage();
   const t = content[language] || content.en;
 
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.05,
-      },
-    },
-  };
-
-  const itemVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: { duration: 0.4 },
-    },
-  };
+  const leftColumn = practiceAreas.filter((_, i) => i % 2 === 0);
+  const rightColumn = practiceAreas.filter((_, i) => i % 2 === 1);
 
   return (
     <section
@@ -151,7 +154,7 @@ export default function PracticesSection() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
-          className="mb-12"
+          className="mb-2"
         >
           <h2
             className="text-2xl md:text-3xl font-heading font-light text-[#AA1A2E] uppercase tracking-[0.15em]"
@@ -166,23 +169,36 @@ export default function PracticesSection() {
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true }}
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-4"
+          className="mt-8 border-t border-foreground/10 grid grid-cols-1 md:grid-cols-2 md:divide-x md:divide-foreground/10"
         >
-          {practiceAreas.map((area) => (
-            <motion.div key={area.id} variants={itemVariants}>
-              <Link
-                href={`/practice-groups/${area.slug}`}
-                className="group flex items-start gap-3 py-3 hover:text-primary transition-colors"
-                data-testid={`link-practice-${area.id}`}
-              >
-                <span className="text-sm font-medium text-primary min-w-[24px]" data-testid={`text-practice-number-${area.id}`}>
-                  {area.id}.
-                </span>
-                <span className="text-base text-foreground group-hover:text-primary transition-colors" data-testid={`text-practice-name-${area.id}`}>
-                  {getPracticeAreaName(area, language)}
-                </span>
-              </Link>
-            </motion.div>
+          {[leftColumn, rightColumn].map((column, colIndex) => (
+            <div key={colIndex} className={colIndex === 1 ? "md:pl-0" : ""}>
+              {column.map((area) => (
+                <motion.div key={area.id} variants={itemVariants}>
+                  <Link
+                    href={`/practice-groups/${area.slug}`}
+                    className="group flex items-center gap-4 pl-4 md:pl-6 pr-4 py-5 border-b border-foreground/10 border-l-2 border-l-transparent hover:border-l-[#AA1A2E] hover:bg-muted/40 transition-colors duration-200"
+                    data-testid={`link-practice-${area.id}`}
+                  >
+                    <span
+                      className="text-xs font-mono text-muted-foreground w-7 shrink-0 tabular-nums"
+                      data-testid={`text-practice-number-${area.id}`}
+                    >
+                      {String(area.id).padStart(2, "0")}
+                    </span>
+                    <span
+                      className="flex-1 text-base font-medium text-foreground group-hover:text-[#AA1A2E] transition-colors duration-200"
+                      data-testid={`text-practice-name-${area.id}`}
+                    >
+                      {getPracticeAreaName(area, language)}
+                    </span>
+                    <ArrowRight
+                      className="w-4 h-4 text-muted-foreground group-hover:text-[#AA1A2E] group-hover:translate-x-1 transition-all duration-200 opacity-0 group-hover:opacity-100 shrink-0"
+                    />
+                  </Link>
+                </motion.div>
+              ))}
+            </div>
           ))}
         </motion.div>
 
