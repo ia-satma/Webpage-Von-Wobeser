@@ -457,7 +457,7 @@ export default function StatsSection({ language }: StatsSectionProps) {
 
       {/* ── Zone 3: Full-width gallery ───────────────────────────────── */}
       {imagesLoading && (
-        <div className="mt-14 grid grid-cols-2 md:grid-cols-4" data-testid="stats-gallery-skeleton">
+        <div className="mt-14 grid grid-cols-8" data-testid="stats-gallery-skeleton">
           {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
             <Skeleton key={i} className="aspect-square" data-testid={`stats-gallery-skeleton-${i}`} />
           ))}
@@ -473,7 +473,7 @@ export default function StatsSection({ language }: StatsSectionProps) {
           className="mt-14"
         >
           <div
-            className="grid grid-cols-2 md:grid-cols-4"
+            className="grid grid-cols-8"
             data-testid="stats-gallery-grid"
           >
             {galleryImages.map((img, idx) => (
@@ -490,7 +490,7 @@ export default function StatsSection({ language }: StatsSectionProps) {
                 <img
                   src={img.imageUrl}
                   alt={img.alt || img.altEs || ""}
-                  className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                  className="absolute inset-0 w-full h-full object-cover transition-all duration-500 grayscale group-hover:grayscale-0 group-hover:scale-105"
                   loading="lazy"
                 />
                 <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-300 flex items-center justify-center">
