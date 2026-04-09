@@ -1,8 +1,9 @@
+import { useState, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
 import { useQuery } from "@tanstack/react-query";
 import { Skeleton } from "@/components/ui/skeleton";
-import { AlertCircle } from "lucide-react";
-import type { Stat } from "@shared/schema";
+import { AlertCircle, ZoomIn, X, ChevronLeft, ChevronRight } from "lucide-react";
+import type { Stat, OfficeImage } from "@shared/schema";
 
 interface StatsSectionProps {
   language: "es" | "en" | "de" | "zh" | "ko" | "ja" | "ar" | "ru" | "fr" | "it";
@@ -12,6 +13,33 @@ export default function StatsSection({ language }: StatsSectionProps) {
   const { data: stats, isLoading, error } = useQuery<Stat[]>({
     queryKey: ["/api/stats"],
   });
+
+  const { data: officeImages = [] } = useQuery<OfficeImage[]>({
+    queryKey: ["/api/office-images"],
+  });
+
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
+
+  const goPrev = useCallback(() => {
+    if (lightboxIndex === null) return;
+    setLightboxIndex((lightboxIndex - 1 + officeImages.length) % officeImages.length);
+  }, [lightboxIndex, officeImages.length]);
+
+  const goNext = useCallback(() => {
+    if (lightboxIndex === null) return;
+    setLightboxIndex((lightboxIndex + 1) % officeImages.length);
+  }, [lightboxIndex, officeImages.length]);
+
+  useEffect(() => {
+    if (lightboxIndex === null) return;
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setLightboxIndex(null);
+      if (e.key === "ArrowLeft") goPrev();
+      if (e.key === "ArrowRight") goNext();
+    };
+    window.addEventListener("keydown", handleKey);
+    return () => window.removeEventListener("keydown", handleKey);
+  }, [lightboxIndex, goPrev, goNext]);
 
   const content: Record<string, {
     title: string;
@@ -429,7 +457,97 @@ export default function StatsSection({ language }: StatsSectionProps) {
           </p>
         </motion.div>
 
+        {/* Office Photo Gallery — embedded inside this section */}
+        {officeImages.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6, delay: 0.3 }}
+            className="mt-14"
+          >
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {officeImages.map((img, idx) => (
+                <div
+                  key={img.id}
+                  className="relative h-72 overflow-hidden group cursor-pointer"
+                  onClick={() => setLightboxIndex(idx)}
+                  role="button"
+                  tabIndex={0}
+                  aria-label={img.alt || img.altEs || "Office photo"}
+                  onKeyDown={(e) => e.key === "Enter" && setLightboxIndex(idx)}
+                  data-testid={`stats-gallery-image-${img.id}`}
+                >
+                  <img
+                    src={img.imageUrl}
+                    alt={img.alt || img.altEs || ""}
+                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                    loading="lazy"
+                  />
+                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+                    <ZoomIn className="text-white w-8 h-8" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </motion.div>
+        )}
+
       </div>
+
+      {/* Lightbox */}
+      {lightboxIndex !== null && officeImages.length > 0 && (
+        <div
+          className="fixed inset-0 z-[9999] bg-black/95 flex items-center justify-center"
+          onClick={() => setLightboxIndex(null)}
+          role="dialog"
+          aria-modal="true"
+          data-testid="stats-lightbox-overlay"
+        >
+          <button
+            className="absolute top-4 right-4 text-white/80 hover:text-white p-2"
+            onClick={() => setLightboxIndex(null)}
+            aria-label="Close"
+            data-testid="stats-lightbox-close"
+          >
+            <X className="w-8 h-8" />
+          </button>
+
+          {officeImages.length > 1 && (
+            <button
+              className="absolute left-4 text-white/80 hover:text-white p-2"
+              onClick={(e) => { e.stopPropagation(); goPrev(); }}
+              aria-label="Previous"
+              data-testid="stats-lightbox-prev"
+            >
+              <ChevronLeft className="w-10 h-10 text-[#AA1A2E]" />
+            </button>
+          )}
+
+          <img
+            src={officeImages[lightboxIndex].imageUrl}
+            alt={officeImages[lightboxIndex].alt || officeImages[lightboxIndex].altEs || ""}
+            className="max-h-[85vh] max-w-[90vw] object-contain"
+            onClick={(e) => e.stopPropagation()}
+            data-testid="stats-lightbox-image"
+          />
+
+          {officeImages.length > 1 && (
+            <button
+              className="absolute right-4 text-white/80 hover:text-white p-2"
+              onClick={(e) => { e.stopPropagation(); goNext(); }}
+              aria-label="Next"
+              data-testid="stats-lightbox-next"
+            >
+              <ChevronRight className="w-10 h-10 text-[#AA1A2E]" />
+            </button>
+          )}
+
+          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 text-white/60 text-xs tracking-[0.2em] uppercase">
+            {lightboxIndex + 1} / {officeImages.length}
+          </div>
+        </div>
+      )}
     </section>
   );
 }
