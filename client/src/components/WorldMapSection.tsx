@@ -1,5 +1,5 @@
-import { motion } from "framer-motion";
-import { Card } from "@/components/ui/card";
+import { useState, useEffect, useRef } from "react";
+import { motion, useInView } from "framer-motion";
 
 import clausVonWobeserPhoto from "@assets/of_counsel_photos/claus_von_wobeser.jpg";
 import luisBurguenoPhoto from "@assets/partner_photos/luis_burgueno.jpg";
@@ -224,6 +224,77 @@ const content: Record<SupportedLanguage, ContentTranslation> = {
   },
 };
 
+// ── Coordinate constants (equirectangular 1000×500 viewBox) ──────────────────
+// Formula: x = (lon + 180) / 360 * 1000 ; y = (90 - lat) / 180 * 500
+// Mexico City  19.4°N  99.1°W  →  x≈225  y≈196
+// Germany      50.0°N   8.7°E  →  x≈524  y≈111
+const MX = { x: 225, y: 196 };
+const DE = { x: 524, y: 111 };
+const ARC = `M ${MX.x},${MX.y} Q 374,18 ${DE.x},${DE.y}`;
+
+// ── Simplified continent paths (equirectangular 1000×500) ────────────────────
+const LAND = [
+  // North America (Alaska → west coast → Mexico → Caribbean coast → east coast → Canada)
+  "M 80,72 L 162,68 L 160,90 L 158,115 L 162,148 L 166,162 L 174,178 L 180,192 L 196,210 L 220,215 L 242,208 L 260,198 L 268,210 L 278,200 L 288,182 L 296,165 L 304,148 L 308,132 L 308,118 L 302,105 L 314,98 L 335,98 L 342,108 L 320,115 L 308,108 L 298,90 L 280,76 L 260,65 L 240,58 L 215,52 L 188,55 L 160,60 L 128,62 L 100,68 Z",
+  // Greenland
+  "M 322,42 L 372,38 L 390,52 L 380,70 L 358,76 L 330,68 L 318,55 Z",
+  // South America
+  "M 242,232 L 272,228 L 324,228 L 372,255 L 372,296 L 354,328 L 320,356 L 294,382 L 274,368 L 254,335 L 248,302 L 244,268 L 248,248 Z",
+  // Europe
+  "M 450,148 L 455,138 L 462,128 L 475,118 L 488,115 L 498,108 L 508,105 L 515,100 L 522,105 L 528,100 L 530,92 L 527,82 L 535,72 L 541,64 L 537,56 L 524,50 L 514,48 L 518,42 L 536,38 L 552,42 L 568,52 L 580,62 L 596,70 L 608,78 L 615,88 L 618,98 L 610,110 L 596,122 L 584,132 L 572,142 L 560,148 L 548,158 L 542,168 L 534,162 L 526,154 L 518,147 L 510,141 L 510,131 L 518,124 L 508,118 L 497,122 L 490,128 L 481,132 L 474,140 L 467,148 L 457,152 Z",
+  // UK (island)
+  "M 488,110 L 495,102 L 500,108 L 497,118 L 491,118 Z",
+  // Iceland
+  "M 443,82 L 454,78 L 462,82 L 458,90 L 447,90 L 441,86 Z",
+  // Africa
+  "M 462,155 L 488,148 L 532,150 L 558,162 L 591,165 L 600,175 L 608,190 L 616,215 L 640,218 L 638,248 L 624,278 L 612,310 L 590,338 L 558,352 L 540,342 L 514,352 L 498,335 L 485,308 L 472,278 L 457,252 L 447,228 L 444,205 L 447,188 L 455,175 L 462,162 Z",
+  // Asia (main mass from Turkey east to Japan)
+  "M 580,138 L 598,128 L 616,120 L 641,108 L 668,98 L 700,85 L 746,72 L 800,62 L 860,60 L 912,75 L 938,95 L 930,118 L 918,132 L 903,145 L 890,158 L 878,168 L 868,180 L 855,188 L 843,198 L 828,205 L 812,215 L 797,218 L 779,215 L 763,205 L 746,205 L 728,198 L 716,188 L 708,178 L 696,175 L 691,185 L 696,198 L 703,215 L 706,232 L 703,248 L 696,258 L 690,265 L 686,259 L 683,248 L 679,235 L 675,222 L 668,208 L 660,198 L 651,188 L 638,175 L 625,162 L 616,154 L 607,147 L 596,144 L 587,138 Z",
+  // Arabian Peninsula
+  "M 592,162 L 612,158 L 638,168 L 649,185 L 658,196 L 657,210 L 643,219 L 620,225 L 604,221 L 596,210 L 589,195 L 589,178 Z",
+  // Indian subcontinent
+  "M 702,178 L 718,178 L 728,185 L 730,200 L 724,218 L 716,232 L 708,245 L 700,252 L 693,261 L 686,269 L 683,259 L 686,248 L 690,238 L 690,225 L 688,215 L 683,205 L 676,195 L 670,185 L 663,180 L 672,178 L 686,174 Z",
+  // Australia
+  "M 858,282 L 895,278 L 925,322 L 919,342 L 906,358 L 886,348 L 856,348 L 818,338 L 811,308 L 854,282 Z",
+  // Japan (Honshu simplified)
+  "M 885,148 L 892,155 L 895,162 L 890,168 L 882,162 L 881,152 Z",
+];
+
+// ── useCountUp hook ──────────────────────────────────────────────────────────
+function useCountUp(target: number, duration = 1800) {
+  const [count, setCount] = useState(0);
+  const ref = useRef<HTMLDivElement>(null);
+  const isInView = useInView(ref, { once: true, margin: "0px 0px -80px 0px" });
+
+  useEffect(() => {
+    if (!isInView) return;
+    const start = performance.now();
+    const tick = (now: number) => {
+      const t = Math.min((now - start) / duration, 1);
+      const eased = 1 - Math.pow(1 - t, 3);
+      setCount(Math.round(eased * target));
+      if (t < 1) requestAnimationFrame(tick);
+    };
+    requestAnimationFrame(tick);
+  }, [isInView, target, duration]);
+
+  return { count, ref };
+}
+
+// ── StatBlock component ──────────────────────────────────────────────────────
+function StatBlock({ target, suffix, label }: { target: number; suffix?: string; label: string }) {
+  const { count, ref } = useCountUp(target);
+  return (
+    <div ref={ref} className="text-center py-10 lg:py-12">
+      <div className="font-heading font-light text-7xl lg:text-9xl leading-none text-primary tabular-nums" data-testid="stat-value">
+        {count}{suffix}
+      </div>
+      <p className="mt-4 text-[10px] uppercase tracking-[0.22em] text-white/50">{label}</p>
+    </div>
+  );
+}
+
+// ── Main component ────────────────────────────────────────────────────────────
 export default function WorldMapSection({ language }: WorldMapSectionProps) {
   const t = content[language] || content.en;
 
@@ -280,250 +351,329 @@ export default function WorldMapSection({ language }: WorldMapSectionProps) {
   return (
     <section
       id="german-desk"
-      className="py-20 lg:py-28 bg-muted"
       data-testid="section-german-desk"
+      className="overflow-hidden"
     >
-      <div className="max-w-6xl mx-auto px-6 lg:px-12">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
-          className="text-center mb-12"
-        >
-          <p
-            className="text-sm font-semibold tracking-widest text-primary mb-4"
-            data-testid="text-section-title"
-          >
-            {t.sectionTitle}
-          </p>
-          <h2
-            className="text-2xl md:text-3xl font-heading font-light text-foreground mb-4 uppercase tracking-[0.12em]"
-            data-testid="text-global-reach-title"
-          >
-            {t.title}
-          </h2>
-          <p
-            className="text-lg text-muted-foreground max-w-3xl mx-auto"
-            data-testid="text-global-reach-subtitle"
-          >
-            {t.subtitle}
-          </p>
-        </motion.div>
+      {/* ── Dark hero block ─────────────────────────────────────────────────── */}
+      <div className="bg-slate-950">
+        <div className="max-w-7xl mx-auto px-6 lg:px-12 pt-20 lg:pt-28">
 
-        <motion.div
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.8, delay: 0.2 }}
-          className="relative bg-background rounded-md p-8 shadow-sm"
-          data-testid="card-map-connection"
-        >
-          <div className="flex flex-col md:flex-row items-center justify-center gap-8 md:gap-16">
-            <motion.div
-              initial={{ opacity: 0, x: -20 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: 0.4 }}
-              className="text-center"
-              data-testid="location-mexico"
-            >
-              <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-primary/10 flex items-center justify-center">
-                <svg viewBox="0 0 24 24" className="w-10 h-10 text-primary" fill="currentColor">
-                  <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
-                </svg>
-              </div>
-              <h3
-                className="text-lg font-semibold text-foreground mb-1"
-                data-testid="text-mexico-label"
-              >
-                {t.mexicoLabel}
-              </h3>
-              <p className="text-sm text-muted-foreground">
-                {t.mexicoSubtitle}
-              </p>
-            </motion.div>
-
-            <motion.div
-              initial={{ scaleX: 0 }}
-              whileInView={{ scaleX: 1 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6, delay: 0.6 }}
-              className="hidden md:block"
-              data-testid="connection-line-desktop"
-            >
-              <div className="flex items-center gap-2">
-                <div className="w-24 h-0.5 bg-gradient-to-r from-primary to-primary/50" />
-                <motion.div
-                  animate={{ scale: [1, 1.2, 1] }}
-                  transition={{ duration: 2, repeat: Infinity }}
-                  className="w-3 h-3 rounded-full bg-primary"
-                />
-                <div className="w-24 h-0.5 bg-gradient-to-l from-primary to-primary/50" />
-              </div>
-              <p
-                className="text-xs text-primary font-semibold tracking-widest mt-2 text-center"
-                data-testid="text-german-desk-label"
-              >
-                {t.sectionTitle}
-              </p>
-            </motion.div>
-
-            <div className="md:hidden flex flex-col items-center" data-testid="connection-line-mobile">
-              <div className="w-0.5 h-12 bg-gradient-to-b from-primary to-primary/50" />
-              <motion.div
-                animate={{ scale: [1, 1.2, 1] }}
-                transition={{ duration: 2, repeat: Infinity }}
-                className="w-3 h-3 rounded-full bg-primary my-2"
-              />
-              <div className="w-0.5 h-12 bg-gradient-to-t from-primary to-primary/50" />
-              <p className="text-xs text-primary font-semibold tracking-widest mt-2">
-                {t.sectionTitle}
-              </p>
-            </div>
-
-            <motion.div
-              initial={{ opacity: 0, x: 20 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: 0.8 }}
-              className="text-center"
-              data-testid="location-germany"
-            >
-              <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-primary/10 flex items-center justify-center">
-                <svg viewBox="0 0 24 24" className="w-10 h-10 text-primary" fill="currentColor">
-                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>
-                </svg>
-              </div>
-              <h3
-                className="text-lg font-semibold text-foreground mb-1"
-                data-testid="text-germany-label"
-              >
-                {t.germanyLabel}
-              </h3>
-              <p className="text-sm text-muted-foreground">
-                {t.germanySubtitle}
-              </p>
-            </motion.div>
-          </div>
-
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.5, delay: 1 }}
-            className="mt-8 pt-8 border-t border-border"
-            data-testid="stats-container"
-          >
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
-              <div data-testid="stat-years">
-                <p className="text-2xl font-semibold text-primary mb-1">34+</p>
-                <p className="text-sm text-muted-foreground">
-                  {t.yearsLabel}
-                </p>
-              </div>
-              <div data-testid="stat-clients">
-                <p className="text-2xl font-semibold text-primary mb-1">100+</p>
-                <p className="text-sm text-muted-foreground">
-                  {t.clientsLabel}
-                </p>
-              </div>
-              <div data-testid="stat-languages">
-                <p className="text-2xl font-semibold text-primary mb-1">3</p>
-                <p className="text-sm text-muted-foreground">
-                  {t.languagesLabel}
-                </p>
-              </div>
-            </div>
-          </motion.div>
-        </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6, delay: 0.3 }}
-          className="mt-12"
-          data-testid="historical-text-container"
-        >
-          <Card className="p-8 bg-background">
-            <p
-              className="text-base md:text-lg text-foreground leading-relaxed text-center"
-              data-testid="text-historical-description"
-            >
-              {t.historicalText}
-            </p>
-          </Card>
-        </motion.div>
-
-        <div className="mt-16 space-y-12" data-testid="team-members-container">
+          {/* Header */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
-            data-testid="partners-section"
+            className="text-center mb-12"
           >
-            <h3
-              className="text-lg md:text-xl font-heading font-light text-foreground text-center mb-8 uppercase tracking-[0.12em]"
-              data-testid="text-partners-title"
+            <div className="w-12 h-px bg-primary mx-auto mb-6" />
+            <p
+              className="text-primary text-[10px] tracking-[0.25em] uppercase mb-5"
+              data-testid="text-section-title"
             >
-              {t.partnersTitle}
-            </h3>
-            <Card className="p-6 md:p-8 bg-background">
-              <div className="flex flex-wrap justify-center gap-8 md:gap-12">
-                {partners.map((member) => (
-                  <TeamMemberCard key={member.id} member={member} testIdPrefix="partner" />
-                ))}
-              </div>
-            </Card>
+              {t.sectionTitle}
+            </p>
+            <h2
+              className="font-heading font-light uppercase tracking-[0.12em] text-2xl md:text-4xl text-white mb-6"
+              data-testid="text-global-reach-title"
+            >
+              {t.title}
+            </h2>
+            <p
+              className="text-sm text-white/60 leading-relaxed max-w-2xl mx-auto"
+              data-testid="text-global-reach-subtitle"
+            >
+              {t.subtitle}
+            </p>
           </motion.div>
 
+          {/* World Map SVG */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            viewport={{ once: true }}
+            transition={{ duration: 1.2, delay: 0.2 }}
+            className="w-full"
+            data-testid="card-map-connection"
+          >
+            <svg
+              viewBox="0 0 1000 500"
+              className="w-full"
+              style={{ aspectRatio: "1000 / 500" }}
+              aria-hidden="true"
+            >
+              {/* Latitude grid lines */}
+              {[83, 167, 250, 333, 417].map((y) => (
+                <line key={y} x1={0} y1={y} x2={1000} y2={y} stroke="rgba(255,255,255,0.04)" strokeWidth="1" />
+              ))}
+              {/* Longitude grid lines */}
+              {[167, 333, 500, 667, 833].map((x) => (
+                <line key={x} x1={x} y1={0} x2={x} y2={500} stroke="rgba(255,255,255,0.04)" strokeWidth="1" />
+              ))}
+
+              {/* Continent land masses */}
+              {LAND.map((d, i) => (
+                <path
+                  key={i}
+                  d={d}
+                  fill="rgba(255,255,255,0.07)"
+                  stroke="rgba(255,255,255,0.18)"
+                  strokeWidth="0.8"
+                  strokeLinejoin="round"
+                />
+              ))}
+
+              {/* Animated arc from Mexico to Germany */}
+              <motion.path
+                d={ARC}
+                fill="none"
+                stroke="#AA1A2E"
+                strokeWidth="1.2"
+                strokeDasharray="6 4"
+                initial={{ pathLength: 0, opacity: 0 }}
+                whileInView={{ pathLength: 1, opacity: 0.8 }}
+                viewport={{ once: true }}
+                transition={{ duration: 2.4, delay: 0.8, ease: "easeInOut" }}
+              />
+
+              {/* Mexico City pin */}
+              <g data-testid="location-mexico">
+                {/* Outer pulse rings */}
+                <motion.circle
+                  cx={MX.x} cy={MX.y} r={6}
+                  fill="none"
+                  stroke="#AA1A2E"
+                  strokeWidth="1"
+                  animate={{ r: [6, 22, 6], opacity: [0.7, 0, 0.7] }}
+                  transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
+                />
+                <motion.circle
+                  cx={MX.x} cy={MX.y} r={6}
+                  fill="none"
+                  stroke="#AA1A2E"
+                  strokeWidth="1"
+                  animate={{ r: [6, 14, 6], opacity: [0.5, 0, 0.5] }}
+                  transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut", delay: 0.6 }}
+                />
+                {/* Core dot */}
+                <circle cx={MX.x} cy={MX.y} r={4} fill="#AA1A2E" />
+                <circle cx={MX.x} cy={MX.y} r={2} fill="white" />
+                {/* Label box */}
+                <rect x={MX.x - 52} y={MX.y + 10} width={104} height={28} rx={0} fill="rgba(10,10,20,0.85)" />
+                <text
+                  x={MX.x} y={MX.y + 23}
+                  textAnchor="middle"
+                  fill="white"
+                  fontSize="7"
+                  fontFamily="system-ui, sans-serif"
+                  fontWeight="600"
+                  letterSpacing="1.5"
+                  data-testid="text-mexico-label"
+                >
+                  {t.mexicoLabel}
+                </text>
+                <text
+                  x={MX.x} y={MX.y + 33}
+                  textAnchor="middle"
+                  fill="rgba(255,255,255,0.5)"
+                  fontSize="5.5"
+                  fontFamily="system-ui, sans-serif"
+                  letterSpacing="0.8"
+                >
+                  {t.mexicoSubtitle}
+                </text>
+              </g>
+
+              {/* Germany pin */}
+              <g data-testid="location-germany">
+                {/* Outer pulse rings */}
+                <motion.circle
+                  cx={DE.x} cy={DE.y} r={6}
+                  fill="none"
+                  stroke="#AA1A2E"
+                  strokeWidth="1"
+                  animate={{ r: [6, 22, 6], opacity: [0.7, 0, 0.7] }}
+                  transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut", delay: 1.2 }}
+                />
+                <motion.circle
+                  cx={DE.x} cy={DE.y} r={6}
+                  fill="none"
+                  stroke="#AA1A2E"
+                  strokeWidth="1"
+                  animate={{ r: [6, 14, 6], opacity: [0.5, 0, 0.5] }}
+                  transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut", delay: 1.8 }}
+                />
+                {/* Core dot */}
+                <circle cx={DE.x} cy={DE.y} r={4} fill="#AA1A2E" />
+                <circle cx={DE.x} cy={DE.y} r={2} fill="white" />
+                {/* Label box — above the pin to avoid overlap with arc */}
+                <rect x={DE.x - 46} y={DE.y - 38} width={92} height={28} rx={0} fill="rgba(10,10,20,0.85)" />
+                <text
+                  x={DE.x} y={DE.y - 25}
+                  textAnchor="middle"
+                  fill="white"
+                  fontSize="7"
+                  fontFamily="system-ui, sans-serif"
+                  fontWeight="600"
+                  letterSpacing="1.5"
+                  data-testid="text-germany-label"
+                >
+                  {t.germanyLabel}
+                </text>
+                <text
+                  x={DE.x} y={DE.y - 15}
+                  textAnchor="middle"
+                  fill="rgba(255,255,255,0.5)"
+                  fontSize="5.5"
+                  fontFamily="system-ui, sans-serif"
+                  letterSpacing="0.8"
+                >
+                  {t.germanySubtitle}
+                </text>
+                {/* Connector line from label to pin */}
+                <line x1={DE.x} y1={DE.y - 10} x2={DE.x} y2={DE.y - 5} stroke="rgba(255,255,255,0.3)" strokeWidth="0.8" />
+              </g>
+
+              {/* German Desk label on arc midpoint */}
+              <motion.g
+                initial={{ opacity: 0 }}
+                whileInView={{ opacity: 1 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.8, delay: 3.0 }}
+                data-testid="text-german-desk-label"
+              >
+                <rect x={332} y={12} width={84} height={16} rx={0} fill="rgba(170,26,46,0.9)" />
+                <text
+                  x={374} y={23}
+                  textAnchor="middle"
+                  fill="white"
+                  fontSize="6"
+                  fontFamily="system-ui, sans-serif"
+                  fontWeight="700"
+                  letterSpacing="1.8"
+                >
+                  {t.sectionTitle}
+                </text>
+              </motion.g>
+            </svg>
+          </motion.div>
+
+          {/* Stats XXL */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            transition={{ duration: 0.6, delay: 0.1 }}
-            data-testid="of-counsel-section"
+            transition={{ duration: 0.6, delay: 0.3 }}
+            data-testid="stats-container"
           >
-            <h3
-              className="text-lg md:text-xl font-heading font-light text-foreground text-center mb-8 uppercase tracking-[0.12em]"
-              data-testid="text-of-counsel-title"
-            >
-              {t.ofCounselTitle}
-            </h3>
-            <Card className="p-6 md:p-8 bg-background">
-              <div className="flex flex-wrap justify-center gap-8 md:gap-12">
-                {ofCounsel.map((member) => (
-                  <TeamMemberCard key={member.id} member={member} testIdPrefix="of-counsel" />
-                ))}
+            <div className="grid grid-cols-1 md:grid-cols-3 divide-y md:divide-y-0 md:divide-x divide-white/10">
+              <div data-testid="stat-years">
+                <StatBlock target={34} suffix="+" label={t.yearsLabel} />
               </div>
-            </Card>
+              <div data-testid="stat-clients">
+                <StatBlock target={100} suffix="+" label={t.clientsLabel} />
+              </div>
+              <div data-testid="stat-languages">
+                <StatBlock target={3} label={t.languagesLabel} />
+              </div>
+            </div>
           </motion.div>
 
+          {/* Historical text */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6, delay: 0.2 }}
-            data-testid="associates-section"
+            className="pb-20 lg:pb-28"
+            data-testid="historical-text-container"
           >
-            <h3
-              className="text-lg md:text-xl font-heading font-light text-foreground text-center mb-8 uppercase tracking-[0.12em]"
-              data-testid="text-associates-title"
+            <div className="border-t border-white/10 pt-10">
+              <p
+                className="text-sm text-white/65 leading-relaxed text-justify max-w-4xl mx-auto"
+                data-testid="text-historical-description"
+              >
+                {t.historicalText}
+              </p>
+            </div>
+          </motion.div>
+
+        </div>
+      </div>
+
+      {/* ── Light team block ─────────────────────────────────────────────────── */}
+      <div className="bg-background py-16 lg:py-20">
+        <div className="max-w-7xl mx-auto px-6 lg:px-12">
+          <div className="space-y-12" data-testid="team-members-container">
+
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6 }}
+              data-testid="partners-section"
             >
-              {t.associatesTitle}
-            </h3>
-            <Card className="p-6 md:p-8 bg-background">
+              <h3
+                className="text-lg md:text-xl font-heading font-light text-foreground text-center mb-8 uppercase tracking-[0.12em]"
+                data-testid="text-partners-title"
+              >
+                {t.partnersTitle}
+              </h3>
+              <div className="flex flex-wrap justify-center gap-8 md:gap-12">
+                {partners.map((member) => (
+                  <TeamMemberCard key={member.id} member={member} testIdPrefix="partner" />
+                ))}
+              </div>
+            </motion.div>
+
+            <div className="border-t border-border" />
+
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6, delay: 0.1 }}
+              data-testid="of-counsel-section"
+            >
+              <h3
+                className="text-lg md:text-xl font-heading font-light text-foreground text-center mb-8 uppercase tracking-[0.12em]"
+                data-testid="text-of-counsel-title"
+              >
+                {t.ofCounselTitle}
+              </h3>
+              <div className="flex flex-wrap justify-center gap-8 md:gap-12">
+                {ofCounsel.map((member) => (
+                  <TeamMemberCard key={member.id} member={member} testIdPrefix="of-counsel" />
+                ))}
+              </div>
+            </motion.div>
+
+            <div className="border-t border-border" />
+
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6, delay: 0.2 }}
+              data-testid="associates-section"
+            >
+              <h3
+                className="text-lg md:text-xl font-heading font-light text-foreground text-center mb-8 uppercase tracking-[0.12em]"
+                data-testid="text-associates-title"
+              >
+                {t.associatesTitle}
+              </h3>
               <div className="flex flex-wrap justify-center gap-8 md:gap-12">
                 {associates.map((member) => (
                   <TeamMemberCard key={member.id} member={member} testIdPrefix="associate" />
                 ))}
               </div>
-            </Card>
-          </motion.div>
+            </motion.div>
+
+          </div>
         </div>
       </div>
+
     </section>
   );
 }
