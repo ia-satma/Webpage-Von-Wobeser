@@ -46,7 +46,6 @@ interface PracticesContent {
   intro: string;
   seeMore: string;
   ctaText: string;
-  areaCount: string;
 }
 
 const content: Record<LanguageCode, PracticesContent> = {
@@ -55,70 +54,60 @@ const content: Record<LanguageCode, PracticesContent> = {
     intro: "Comprehensive legal services across 18 specialized disciplines.",
     seeMore: "SEE ALL PRACTICES",
     ctaText: "Get Legal Advice",
-    areaCount: "Practice Areas",
   },
   es: {
     title: "ÁREAS DE PRÁCTICA",
     intro: "Asesoría legal integral en 18 disciplinas especializadas.",
     seeMore: "VER TODAS LAS PRÁCTICAS",
     ctaText: "Obtener Asesoría Legal",
-    areaCount: "Áreas de Práctica",
   },
   de: {
     title: "PRAXISBEREICHE",
     intro: "Umfassende Rechtsdienstleistungen in 18 spezialisierten Bereichen.",
     seeMore: "ALLE BEREICHE ANZEIGEN",
     ctaText: "Rechtsberatung Anfordern",
-    areaCount: "Praxisbereiche",
   },
   zh: {
     title: "业务领域",
     intro: "涵盖18个专业领域的综合法律服务。",
     seeMore: "查看所有业务领域",
     ctaText: "获取法律咨询",
-    areaCount: "业务领域",
   },
   ko: {
     title: "업무 분야",
     intro: "18개 전문 분야에 걸친 종합 법률 서비스.",
     seeMore: "모든 업무 분야 보기",
     ctaText: "법률 상담 받기",
-    areaCount: "업무 분야",
   },
   ja: {
     title: "プラクティス分野",
     intro: "18の専門分野にわたる包括的な法律サービス。",
     seeMore: "すべての分野を見る",
     ctaText: "法律相談を受ける",
-    areaCount: "プラクティス分野",
   },
   ar: {
     title: "مجالات الممارسة",
     intro: "خدمات قانونية شاملة في 18 تخصصاً متكاملاً.",
     seeMore: "عرض جميع المجالات",
     ctaText: "احصل على استشارة قانونية",
-    areaCount: "مجالات الممارسة",
   },
   ru: {
     title: "ПРАКТИКИ",
     intro: "Комплексные юридические услуги по 18 специализациям.",
     seeMore: "ВСЕ ПРАКТИКИ",
     ctaText: "Получить консультацию",
-    areaCount: "Направления",
   },
   fr: {
     title: "DOMAINES D'EXPERTISE",
     intro: "Services juridiques complets dans 18 disciplines spécialisées.",
     seeMore: "VOIR TOUS LES DOMAINES",
     ctaText: "Obtenir un Conseil Juridique",
-    areaCount: "Domaines d'expertise",
   },
   it: {
     title: "AREE DI PRATICA",
     intro: "Servizi legali completi in 18 discipline specializzate.",
     seeMore: "VEDI TUTTE LE AREE",
     ctaText: "Richiedi Consulenza Legale",
-    areaCount: "Aree di Pratica",
   },
 };
 
@@ -237,7 +226,7 @@ export default function PracticesSection() {
               <motion.div key={area.id} variants={itemVariants}>
                 <Link
                   href={`/practice-groups/${area.slug}`}
-                  className="group flex items-center gap-6 px-4 py-7 border-b border-white/8 border-l-2 border-l-transparent hover:border-l-[#AA1A2E] hover:bg-white/[0.03] transition-all duration-200"
+                  className="group flex items-center gap-6 px-4 py-7 border-b border-white/8 border-l-2 border-l-transparent hover:border-l-[#AA1A2E] hover:bg-white/4 transition-all duration-200"
                   data-testid={`link-practice-${area.id}`}
                 >
                   <span
@@ -261,6 +250,28 @@ export default function PracticesSection() {
           </motion.div>
 
         </div>
+
+        {/* Mobile-only CTA block — below the list */}
+        <div className="lg:hidden mt-10 flex flex-col gap-4">
+          <Link href="/contact">
+            <Button
+              className="bg-[#AA1A2E] text-white uppercase tracking-wide text-xs w-full"
+              data-testid="button-practices-contact-mobile"
+            >
+              <Phone className="w-3.5 h-3.5 mr-2" />
+              {t.ctaText}
+            </Button>
+          </Link>
+          <Link
+            href="/practice-groups"
+            className="inline-flex items-center gap-2 text-xs font-medium tracking-[0.12em] uppercase text-white/50 hover:text-white transition-colors duration-200 group"
+            data-testid="link-practices-see-more-mobile"
+          >
+            {t.seeMore}
+            <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform duration-200" />
+          </Link>
+        </div>
+
       </div>
     </section>
   );
