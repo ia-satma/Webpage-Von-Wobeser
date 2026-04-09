@@ -116,11 +116,7 @@ function NewsItemTranslated({
       className="group pl-3 border-l-2 border-[#AA1A2E]"
       data-testid={`card-news-${item.id}`}
     >
-      {index === 1 ? (
-        <div className="border border-white/15 bg-white/5 p-2 -mx-1">
-          {inner}
-        </div>
-      ) : inner}
+      {inner}
     </motion.div>
   );
 }
