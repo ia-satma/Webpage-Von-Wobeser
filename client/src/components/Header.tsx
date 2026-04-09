@@ -381,9 +381,8 @@ export default function Header() {
                   {item.subItems && (
                     <ChevronDown
                       className={cn(
-                        "w-4 h-4 transition-transform duration-200",
-                        activeDropdown === item.id && "rotate-180",
-                        isScrolled ? "text-[#AA1A2E]" : "text-white/70"
+                        "w-3.5 h-3.5 transition-transform duration-200 text-[#AA1A2E]",
+                        activeDropdown === item.id && "rotate-180"
                       )}
                       aria-hidden="true"
                       data-testid={`icon-chevron-${item.id}`}
@@ -393,7 +392,13 @@ export default function Header() {
 
                 {item.subItems && activeDropdown === item.id && (
                   <div
-                    className="absolute top-full left-0 mt-1 min-w-[220px] bg-card shadow-xl border border-border py-2 z-50"
+                    className={cn(
+                      "absolute top-full left-0 mt-2 min-w-[220px] py-1.5 z-50",
+                      "border shadow-2xl backdrop-blur-xl overflow-hidden",
+                      isScrolled
+                        ? "bg-white/92 border-black/8"
+                        : "bg-black/75 border-white/10"
+                    )}
                     role="menu"
                     aria-label={`${t(item.labelKey)} submenu`}
                     data-testid={`dropdown-${item.id}`}
@@ -404,7 +409,14 @@ export default function Header() {
                       <Link
                         key={subItem.id}
                         href={subItem.href}
-                        className="block px-4 py-2 text-sm text-foreground hover:bg-muted hover:text-primary transition-colors duration-150"
+                        className={cn(
+                          "flex items-center px-5 py-2.5 text-sm font-medium uppercase tracking-wide",
+                          "border-l-2 border-transparent transition-all duration-150",
+                          "hover:border-[#AA1A2E]",
+                          isScrolled
+                            ? "text-foreground/80 hover:text-[#AA1A2E] hover:bg-[#AA1A2E]/5"
+                            : "text-white/80 hover:text-white hover:bg-white/8"
+                        )}
                         role="menuitem"
                         data-testid={`link-subnav-${subItem.id}`}
                         onClick={() => setActiveDropdown(null)}
