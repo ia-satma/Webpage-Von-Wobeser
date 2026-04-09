@@ -395,41 +395,39 @@ export default function HeroSection({ language }: HeroSectionProps) {
         <NewsPanel language={language} news={newsData} />
       )}
 
-      {/* Tagline — pinned to upper-centre */}
-      <motion.p
-        initial={{ opacity: 0, y: -10 }}
-        animate={isVisible ? { opacity: 1, y: 0 } : {}}
-        transition={{ duration: 0.6, delay: 0.2 }}
-        className="absolute top-28 md:top-32 left-0 right-0 text-center text-white/90 text-xs sm:text-sm tracking-[0.3em] uppercase font-sans z-10"
-        data-testid="text-hero-tagline"
-      >
-        {t.tagline}
-      </motion.p>
+      {/* Hero content — all in one centred block */}
+      <div className="relative z-10 flex flex-col items-center text-center px-6 gap-4 -mt-12 md:-mt-16">
+        <motion.p
+          initial={{ opacity: 0, y: -10 }}
+          animate={isVisible ? { opacity: 1, y: 0 } : {}}
+          transition={{ duration: 0.6, delay: 0.2 }}
+          className="text-white/90 text-xs sm:text-sm tracking-[0.3em] uppercase font-sans"
+          data-testid="text-hero-tagline"
+        >
+          {t.tagline}
+        </motion.p>
 
-      {/* Logo — true vertical centre of viewport */}
-      <motion.div
-        initial={{ opacity: 0, scale: 0.95 }}
-        animate={isVisible ? { opacity: 1, scale: 1 } : {}}
-        transition={{ duration: 0.9, delay: 0.35 }}
-        className="relative z-10 flex flex-col items-center gap-6 -mt-16 md:-mt-20"
-        data-testid="text-hero-headline"
-      >
-        <img
+        <motion.img
+          initial={{ opacity: 0, scale: 0.97 }}
+          animate={isVisible ? { opacity: 1, scale: 1 } : {}}
+          transition={{ duration: 0.9, delay: 0.35 }}
           src={logoColor}
           alt={t.headline}
-          className="w-auto max-w-[260px] sm:max-w-[360px] md:max-w-[480px] lg:max-w-[580px] h-auto object-contain drop-shadow-2xl"
+          className="w-auto max-w-[320px] sm:max-w-[500px] md:max-w-[700px] lg:max-w-[900px] h-auto object-contain"
           style={{ imageRendering: "crisp-edges" }}
+          data-testid="text-hero-headline"
         />
+
         <motion.p
           initial={{ opacity: 0, y: 10 }}
           animate={isVisible ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.6, delay: 0.65 }}
-          className="text-white/85 text-sm md:text-base font-serif tracking-wide max-w-lg text-center"
+          className="text-white/85 text-sm md:text-base font-serif tracking-wide max-w-xl"
           data-testid="text-hero-subheadline"
         >
           {subheadline}
         </motion.p>
-      </motion.div>
+      </div>
 
       <motion.button
         initial={{ opacity: 0 }}
