@@ -158,15 +158,14 @@ export default function SocialProofSection() {
               {/* Watermark giant quote mark */}
               <span
                 aria-hidden="true"
-                className="absolute -top-4 left-4 select-none pointer-events-none font-serif text-[11rem] leading-none text-foreground/[0.06] dark:text-foreground/[0.07]"
-                style={{ fontStyle: "italic" }}
+                className="absolute top-4 left-5 select-none pointer-events-none font-serif text-[8rem] leading-[1] text-foreground/[0.05] dark:text-foreground/[0.06]"
               >
                 &ldquo;
               </span>
 
-              {/* Quote text — left-aligned, italic serif, medium gray */}
+              {/* Quote text — justified, italic serif, medium gray */}
               <blockquote
-                className="relative z-10 font-serif text-base lg:text-lg leading-relaxed text-foreground/60 dark:text-foreground/55 mb-8 text-left"
+                className="relative z-10 font-serif text-base lg:text-lg leading-relaxed text-foreground/60 dark:text-foreground/55 mb-8 text-justify"
                 style={{ fontStyle: "italic" }}
                 data-testid={`text-quote-${quote.id}`}
               >
