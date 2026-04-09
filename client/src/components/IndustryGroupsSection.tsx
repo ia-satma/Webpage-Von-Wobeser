@@ -347,15 +347,15 @@ export default function IndustryGroupsSection() {
         })}
       </div>
 
-      {/* Mobile: 2-column image grid */}
-      <div className="lg:hidden grid grid-cols-2 gap-px" data-testid="container-industry-mobile">
+      {/* Mobile + Tablet: 2-column (mobile) → 3-column (tablet) image grid */}
+      <div className="lg:hidden grid grid-cols-2 md:grid-cols-3 gap-px" data-testid="container-industry-mobile">
         {industryGroups.map((group) => {
           const name = getGroupName(group);
           return (
             <Link
               key={group.id}
               href={`/industry-groups/${group.slug}`}
-              className="relative h-44 overflow-hidden group block"
+              className="relative h-44 md:h-52 overflow-hidden group block"
               data-testid={`link-industry-group-mobile-${group.id}`}
               aria-label={name}
             >
