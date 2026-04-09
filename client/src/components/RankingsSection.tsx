@@ -10,65 +10,76 @@ interface RankingsContent {
   eyebrow: string;
   title: string;
   intro: string;
+  institutions: string;
 }
 
 const content: Record<LanguageCode, RankingsContent> = {
   en: {
     eyebrow: "INTERNATIONAL RECOGNITION",
     title: "RECOGNITIONS",
-    intro: "Von Wobeser y Sierra, S.C. has been recognized on an international level by various institutions including Chambers & Partners Global, Chambers & Partners Latin America, Legal 500, Latin Lawyer 250, Global Arbitration Review (GAR 100), Global Competition Review (GCR 100), Global Investigations Review (GIR 100), Global Restructuring Review (GCR), Lexology Index, Latin America Corporate Counsel Association (LACCA) and IFLR 1000, Best Lawyers, Benchmark Litigation, among others.",
+    intro: "Von Wobeser y Sierra, S.C. has been recognized on an international level by various institutions.",
+    institutions: "Chambers & Partners Global, Chambers & Partners Latin America, Legal 500, Latin Lawyer 250, Global Arbitration Review (GAR 100), Global Competition Review (GCR 100), Global Investigations Review (GIR 100), Global Restructuring Review (GCR), Lexology Index, Latin America Corporate Counsel Association (LACCA), IFLR 1000, Best Lawyers, Benchmark Litigation, among others.",
   },
   es: {
     eyebrow: "RECONOCIMIENTO INTERNACIONAL",
     title: "RECONOCIMIENTOS",
-    intro: "Von Wobeser y Sierra, S.C. ha sido reconocido a nivel internacional por diversas instituciones incluyendo Chambers & Partners Global, Chambers & Partners Latin America, Legal 500, Latin Lawyer 250, Global Arbitration Review (GAR 100), Global Competition Review (GCR 100), Global Investigations Review (GIR 100), Global Restructuring Review (GCR), Lexology Index, Latin America Corporate Counsel Association (LACCA) e IFLR 1000, Best Lawyers, Benchmark Litigation, entre otros.",
+    intro: "Von Wobeser y Sierra, S.C. ha sido reconocido a nivel internacional por diversas instituciones.",
+    institutions: "Chambers & Partners Global, Chambers & Partners Latin America, Legal 500, Latin Lawyer 250, Global Arbitration Review (GAR 100), Global Competition Review (GCR 100), Global Investigations Review (GIR 100), Global Restructuring Review (GCR), Lexology Index, Latin America Corporate Counsel Association (LACCA), IFLR 1000, Best Lawyers, Benchmark Litigation, entre otros.",
   },
   de: {
     eyebrow: "INTERNATIONALE ANERKENNUNG",
     title: "AUSZEICHNUNGEN",
-    intro: "Von Wobeser y Sierra, S.C. wurde auf internationaler Ebene von verschiedenen Institutionen anerkannt, darunter Chambers & Partners Global, Chambers & Partners Latin America, Legal 500, Latin Lawyer 250, Global Arbitration Review (GAR 100), Global Competition Review (GCR 100), Global Investigations Review (GIR 100), Global Restructuring Review (GCR), Lexology Index, Latin America Corporate Counsel Association (LACCA) und IFLR 1000, Best Lawyers, Benchmark Litigation, unter anderen.",
+    intro: "Von Wobeser y Sierra, S.C. wurde auf internationaler Ebene von verschiedenen Institutionen anerkannt.",
+    institutions: "Chambers & Partners Global, Chambers & Partners Latin America, Legal 500, Latin Lawyer 250, Global Arbitration Review (GAR 100), Global Competition Review (GCR 100), Global Investigations Review (GIR 100), Global Restructuring Review (GCR), Lexology Index, Latin America Corporate Counsel Association (LACCA), IFLR 1000, Best Lawyers, Benchmark Litigation, unter anderen.",
   },
   zh: {
     eyebrow: "国际认可",
     title: "荣誉认可",
-    intro: "Von Wobeser y Sierra, S.C. 已获得多个国际机构的认可，包括 Chambers & Partners Global、Chambers & Partners Latin America、Legal 500、Latin Lawyer 250、Global Arbitration Review (GAR 100)、Global Competition Review (GCR 100)、Global Investigations Review (GIR 100)、Global Restructuring Review (GCR)、Lexology Index、Latin America Corporate Counsel Association (LACCA)、IFLR 1000、Best Lawyers、Benchmark Litigation 等。",
+    intro: "Von Wobeser y Sierra, S.C. 已获得多个国际机构的认可。",
+    institutions: "Chambers & Partners Global、Chambers & Partners Latin America、Legal 500、Latin Lawyer 250、Global Arbitration Review (GAR 100)、Global Competition Review (GCR 100)、Global Investigations Review (GIR 100)、Global Restructuring Review (GCR)、Lexology Index、Latin America Corporate Counsel Association (LACCA)、IFLR 1000、Best Lawyers、Benchmark Litigation 等。",
   },
   ko: {
     eyebrow: "국제적 인정",
     title: "수상 및 인정",
-    intro: "Von Wobeser y Sierra, S.C.는 Chambers & Partners Global, Chambers & Partners Latin America, Legal 500, Latin Lawyer 250, Global Arbitration Review (GAR 100), Global Competition Review (GCR 100), Global Investigations Review (GIR 100), Global Restructuring Review (GCR), Lexology Index, Latin America Corporate Counsel Association (LACCA) 및 IFLR 1000, Best Lawyers, Benchmark Litigation 등 다양한 기관으로부터 국제적으로 인정받았습니다.",
+    intro: "Von Wobeser y Sierra, S.C.는 다양한 국제 기관으로부터 인정받았습니다.",
+    institutions: "Chambers & Partners Global, Chambers & Partners Latin America, Legal 500, Latin Lawyer 250, Global Arbitration Review (GAR 100), Global Competition Review (GCR 100), Global Investigations Review (GIR 100), Global Restructuring Review (GCR), Lexology Index, Latin America Corporate Counsel Association (LACCA), IFLR 1000, Best Lawyers, Benchmark Litigation 등.",
   },
   ja: {
     eyebrow: "国際的評価",
     title: "受賞・評価",
-    intro: "Von Wobeser y Sierra, S.C.は、Chambers & Partners Global、Chambers & Partners Latin America、Legal 500、Latin Lawyer 250、Global Arbitration Review (GAR 100)、Global Competition Review (GCR 100)、Global Investigations Review (GIR 100)、Global Restructuring Review (GCR)、Lexology Index、Latin America Corporate Counsel Association (LACCA) および IFLR 1000、Best Lawyers、Benchmark Litigation など、様々な機関から国際的に認められています。",
+    intro: "Von Wobeser y Sierra, S.C.は、様々な国際機関から国際的に認められています。",
+    institutions: "Chambers & Partners Global、Chambers & Partners Latin America、Legal 500、Latin Lawyer 250、Global Arbitration Review (GAR 100)、Global Competition Review (GCR 100)、Global Investigations Review (GIR 100)、Global Restructuring Review (GCR)、Lexology Index、Latin America Corporate Counsel Association (LACCA)、IFLR 1000、Best Lawyers、Benchmark Litigation など。",
   },
   ar: {
     eyebrow: "الاعتراف الدولي",
     title: "التقديرات",
-    intro: "تم الاعتراف بـ Von Wobeser y Sierra, S.C. على المستوى الدولي من قبل مؤسسات مختلفة بما في ذلك Chambers & Partners Global، وChambers & Partners Latin America، وLegal 500، وLatin Lawyer 250، وGlobal Arbitration Review (GAR 100)، وGlobal Competition Review (GCR 100)، وGlobal Investigations Review (GIR 100)، وGlobal Restructuring Review (GCR)، وLexology Index، وLatin America Corporate Counsel Association (LACCA)، وIFLR 1000، وBest Lawyers، وBenchmark Litigation، وغيرها.",
+    intro: "تم الاعتراف بـ Von Wobeser y Sierra, S.C. على المستوى الدولي من قبل مؤسسات مختلفة.",
+    institutions: "Chambers & Partners Global، وChambers & Partners Latin America، وLegal 500، وLatin Lawyer 250، وGlobal Arbitration Review (GAR 100)، وGlobal Competition Review (GCR 100)، وGlobal Investigations Review (GIR 100)، وGlobal Restructuring Review (GCR)، وLexology Index، وLatin America Corporate Counsel Association (LACCA)، وIFLR 1000، وBest Lawyers، وBenchmark Litigation، وغيرها.",
   },
   ru: {
     eyebrow: "МЕЖДУНАРОДНОЕ ПРИЗНАНИЕ",
     title: "ПРИЗНАНИЕ",
-    intro: "Von Wobeser y Sierra, S.C. получила международное признание различных организаций, включая Chambers & Partners Global, Chambers & Partners Latin America, Legal 500, Latin Lawyer 250, Global Arbitration Review (GAR 100), Global Competition Review (GCR 100), Global Investigations Review (GIR 100), Global Restructuring Review (GCR), Lexology Index, Latin America Corporate Counsel Association (LACCA) и IFLR 1000, Best Lawyers, Benchmark Litigation, среди прочих.",
+    intro: "Von Wobeser y Sierra, S.C. получила международное признание различных организаций.",
+    institutions: "Chambers & Partners Global, Chambers & Partners Latin America, Legal 500, Latin Lawyer 250, Global Arbitration Review (GAR 100), Global Competition Review (GCR 100), Global Investigations Review (GIR 100), Global Restructuring Review (GCR), Lexology Index, Latin America Corporate Counsel Association (LACCA), IFLR 1000, Best Lawyers, Benchmark Litigation, среди прочих.",
   },
   fr: {
     eyebrow: "RECONNAISSANCE INTERNATIONALE",
     title: "RECONNAISSANCES",
-    intro: "Von Wobeser y Sierra, S.C. a été reconnu au niveau international par diverses institutions, notamment Chambers & Partners Global, Chambers & Partners Latin America, Legal 500, Latin Lawyer 250, Global Arbitration Review (GAR 100), Global Competition Review (GCR 100), Global Investigations Review (GIR 100), Global Restructuring Review (GCR), Lexology Index, Latin America Corporate Counsel Association (LACCA) et IFLR 1000, Best Lawyers, Benchmark Litigation, entre autres.",
+    intro: "Von Wobeser y Sierra, S.C. a été reconnu au niveau international par diverses institutions.",
+    institutions: "Chambers & Partners Global, Chambers & Partners Latin America, Legal 500, Latin Lawyer 250, Global Arbitration Review (GAR 100), Global Competition Review (GCR 100), Global Investigations Review (GIR 100), Global Restructuring Review (GCR), Lexology Index, Latin America Corporate Counsel Association (LACCA), IFLR 1000, Best Lawyers, Benchmark Litigation, entre autres.",
   },
   it: {
     eyebrow: "RICONOSCIMENTO INTERNAZIONALE",
     title: "RICONOSCIMENTI",
-    intro: "Von Wobeser y Sierra, S.C. è stata riconosciuta a livello internazionale da varie istituzioni tra cui Chambers & Partners Global, Chambers & Partners Latin America, Legal 500, Latin Lawyer 250, Global Arbitration Review (GAR 100), Global Competition Review (GCR 100), Global Investigations Review (GIR 100), Global Restructuring Review (GCR), Lexology Index, Latin America Corporate Counsel Association (LACCA) e IFLR 1000, Best Lawyers, Benchmark Litigation, tra gli altri.",
+    intro: "Von Wobeser y Sierra, S.C. è stata riconosciuta a livello internazionale da varie istituzioni.",
+    institutions: "Chambers & Partners Global, Chambers & Partners Latin America, Legal 500, Latin Lawyer 250, Global Arbitration Review (GAR 100), Global Competition Review (GCR 100), Global Investigations Review (GIR 100), Global Restructuring Review (GCR), Lexology Index, Latin America Corporate Counsel Association (LACCA), IFLR 1000, Best Lawyers, Benchmark Litigation, tra gli altri.",
   },
 };
 
 export default function RankingsSection() {
   const { language } = useLanguage();
 
-  const t = content[language] || content.es;
+  const t = content[language] || content.en;
 
   const rankings = [
     { src: chambersGlobal, alt: "Chambers Global 2025 - Top Ranked", id: "chambers-global" },
@@ -127,13 +138,29 @@ export default function RankingsSection() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6, delay: 0.1 }}
-          className="text-center mb-10 max-w-4xl mx-auto"
+          className="text-center mb-6 max-w-4xl mx-auto"
         >
           <p
             className="text-sm text-muted-foreground leading-relaxed text-justify"
             data-testid="text-recognitions-intro"
           >
             {t.intro}
+          </p>
+        </motion.div>
+
+        {/* Institutions paragraph */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6, delay: 0.15 }}
+          className="text-center mb-10 max-w-4xl mx-auto"
+        >
+          <p
+            className="text-sm text-muted-foreground leading-relaxed text-justify"
+            data-testid="text-recognitions-institutions"
+          >
+            {t.institutions}
           </p>
         </motion.div>
 
@@ -147,7 +174,7 @@ export default function RankingsSection() {
           whileInView="visible"
           viewport={{ once: true }}
         >
-          <div className="bg-white py-10 px-8 -mx-6 lg:-mx-12">
+          <div className="bg-white py-10 px-6 -mx-6 lg:-mx-12">
             <div className="flex flex-wrap justify-center items-center gap-8 md:gap-12 lg:gap-16">
               {rankings.map((ranking) => (
                 <motion.div
