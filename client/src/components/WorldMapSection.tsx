@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { motion, useInView } from "framer-motion";
 
+import worldMapImg from "@assets/mapam_1775778532041.png";
 import clausVonWobeserPhoto from "@assets/of_counsel_photos/claus_von_wobeser.jpg";
 import luisBurguenoPhoto from "@assets/partner_photos/luis_burgueno.jpg";
 import katharinaRoehrPhoto from "@assets/partner_photos/katharina_roehr.jpg";
@@ -232,33 +233,6 @@ const MX = { x: 225, y: 196 };
 const DE = { x: 524, y: 111 };
 const ARC = `M ${MX.x},${MX.y} Q 374,18 ${DE.x},${DE.y}`;
 
-// Simplified continent paths (equirectangular 1000×500)
-const LAND = [
-  // North America (Alaska → west coast → Mexico → Caribbean coast → east coast → Canada)
-  "M 80,72 L 162,68 L 160,90 L 158,115 L 162,148 L 166,162 L 174,178 L 180,192 L 196,210 L 220,215 L 242,208 L 260,198 L 268,210 L 278,200 L 288,182 L 296,165 L 304,148 L 308,132 L 308,118 L 302,105 L 314,98 L 335,98 L 342,108 L 320,115 L 308,108 L 298,90 L 280,76 L 260,65 L 240,58 L 215,52 L 188,55 L 160,60 L 128,62 L 100,68 Z",
-  // Greenland
-  "M 322,42 L 372,38 L 390,52 L 380,70 L 358,76 L 330,68 L 318,55 Z",
-  // South America
-  "M 242,232 L 272,228 L 324,228 L 372,255 L 372,296 L 354,328 L 320,356 L 294,382 L 274,368 L 254,335 L 248,302 L 244,268 L 248,248 Z",
-  // Europe
-  "M 450,148 L 455,138 L 462,128 L 475,118 L 488,115 L 498,108 L 508,105 L 515,100 L 522,105 L 528,100 L 530,92 L 527,82 L 535,72 L 541,64 L 537,56 L 524,50 L 514,48 L 518,42 L 536,38 L 552,42 L 568,52 L 580,62 L 596,70 L 608,78 L 615,88 L 618,98 L 610,110 L 596,122 L 584,132 L 572,142 L 560,148 L 548,158 L 542,168 L 534,162 L 526,154 L 518,147 L 510,141 L 510,131 L 518,124 L 508,118 L 497,122 L 490,128 L 481,132 L 474,140 L 467,148 L 457,152 Z",
-  // UK (island)
-  "M 488,110 L 495,102 L 500,108 L 497,118 L 491,118 Z",
-  // Iceland
-  "M 443,82 L 454,78 L 462,82 L 458,90 L 447,90 L 441,86 Z",
-  // Africa
-  "M 462,155 L 488,148 L 532,150 L 558,162 L 591,165 L 600,175 L 608,190 L 616,215 L 640,218 L 638,248 L 624,278 L 612,310 L 590,338 L 558,352 L 540,342 L 514,352 L 498,335 L 485,308 L 472,278 L 457,252 L 447,228 L 444,205 L 447,188 L 455,175 L 462,162 Z",
-  // Asia (main mass from Turkey east to Japan)
-  "M 580,138 L 598,128 L 616,120 L 641,108 L 668,98 L 700,85 L 746,72 L 800,62 L 860,60 L 912,75 L 938,95 L 930,118 L 918,132 L 903,145 L 890,158 L 878,168 L 868,180 L 855,188 L 843,198 L 828,205 L 812,215 L 797,218 L 779,215 L 763,205 L 746,205 L 728,198 L 716,188 L 708,178 L 696,175 L 691,185 L 696,198 L 703,215 L 706,232 L 703,248 L 696,258 L 690,265 L 686,259 L 683,248 L 679,235 L 675,222 L 668,208 L 660,198 L 651,188 L 638,175 L 625,162 L 616,154 L 607,147 L 596,144 L 587,138 Z",
-  // Arabian Peninsula
-  "M 592,162 L 612,158 L 638,168 L 649,185 L 658,196 L 657,210 L 643,219 L 620,225 L 604,221 L 596,210 L 589,195 L 589,178 Z",
-  // Indian subcontinent
-  "M 702,178 L 718,178 L 728,185 L 730,200 L 724,218 L 716,232 L 708,245 L 700,252 L 693,261 L 686,269 L 683,259 L 686,248 L 690,238 L 690,225 L 688,215 L 683,205 L 676,195 L 670,185 L 663,180 L 672,178 L 686,174 Z",
-  // Australia
-  "M 858,282 L 895,278 L 925,322 L 919,342 L 906,358 L 886,348 L 856,348 L 818,338 L 811,308 L 854,282 Z",
-  // Japan (Honshu simplified)
-  "M 885,148 L 892,155 L 895,162 L 890,168 L 882,162 L 881,152 Z",
-];
 
 // useCountUp hook
 function useCountUp(target: number, duration = 1800) {
@@ -285,11 +259,11 @@ function useCountUp(target: number, duration = 1800) {
 function StatBlock({ target, suffix, label }: { target: number; suffix?: string; label: string }) {
   const { count, ref } = useCountUp(target);
   return (
-    <div ref={ref} className="text-center py-10 lg:py-12">
-      <div className="font-heading font-light text-7xl lg:text-9xl leading-none text-primary tabular-nums" data-testid="stat-value">
+    <div ref={ref} className="text-center py-8 lg:py-10">
+      <div className="font-heading font-light text-3xl lg:text-4xl leading-none text-primary tabular-nums" data-testid="stat-value">
         {count}{suffix}
       </div>
-      <p className="mt-4 text-xs uppercase tracking-[0.2em] text-white/50">{label}</p>
+      <p className="mt-3 text-xs uppercase tracking-[0.2em] text-muted-foreground">{label}</p>
     </div>
   );
 }
@@ -353,7 +327,7 @@ export default function WorldMapSection({ language }: WorldMapSectionProps) {
       data-testid="section-german-desk"
       className="overflow-hidden"
     >
-      <div className="bg-slate-950">
+      <div className="bg-background">
         <div className="max-w-7xl mx-auto px-6 lg:px-12 pt-20 lg:pt-28">
 
           {/* Header */}
@@ -372,13 +346,13 @@ export default function WorldMapSection({ language }: WorldMapSectionProps) {
               {t.sectionTitle}
             </p>
             <h2
-              className="font-heading font-light uppercase tracking-[0.12em] text-2xl md:text-4xl text-white mb-6"
+              className="font-heading font-light uppercase tracking-[0.12em] text-2xl md:text-4xl text-foreground mb-6"
               data-testid="text-global-reach-title"
             >
               {t.title}
             </h2>
             <p
-              className="text-sm text-white/60 leading-relaxed max-w-2xl mx-auto"
+              className="text-sm text-muted-foreground leading-relaxed max-w-2xl mx-auto"
               data-testid="text-global-reach-subtitle"
             >
               {t.subtitle}
@@ -393,46 +367,34 @@ export default function WorldMapSection({ language }: WorldMapSectionProps) {
             whileInView={{ opacity: 1 }}
             viewport={{ once: true }}
             transition={{ duration: 1.2, delay: 0.2 }}
-            className="w-full"
+            className="relative w-full"
             data-testid="card-map-connection"
           >
-            <svg
-              viewBox="0 0 1000 500"
+            {/* Map image base */}
+            <img
+              src={worldMapImg}
+              alt=""
+              aria-hidden="true"
               className="w-full"
               style={{ aspectRatio: "1000 / 500" }}
+            />
+
+            {/* SVG overlay — pins and arc only, same coordinate space */}
+            <svg
+              viewBox="0 0 1000 500"
+              className="absolute inset-0 w-full h-full"
               aria-hidden="true"
             >
-              {/* Latitude grid lines */}
-              {[83, 167, 250, 333, 417].map((y) => (
-                <line key={y} x1={0} y1={y} x2={1000} y2={y} stroke="rgba(255,255,255,0.04)" strokeWidth="1" />
-              ))}
-              {/* Longitude grid lines */}
-              {[167, 333, 500, 667, 833].map((x) => (
-                <line key={x} x1={x} y1={0} x2={x} y2={500} stroke="rgba(255,255,255,0.04)" strokeWidth="1" />
-              ))}
-
-              {/* Continent land masses */}
-              {LAND.map((d, i) => (
-                <path
-                  key={i}
-                  d={d}
-                  fill="rgba(255,255,255,0.07)"
-                  stroke="rgba(255,255,255,0.18)"
-                  strokeWidth="0.8"
-                  strokeLinejoin="round"
-                />
-              ))}
-
               {/* Animated arc from Mexico to Germany */}
               <g data-testid="connection-line-desktop">
                 <motion.path
                   d={ARC}
                   fill="none"
                   stroke="#AA1A2E"
-                  strokeWidth="1.2"
+                  strokeWidth="1.5"
                   strokeDasharray="6 4"
                   initial={{ pathLength: 0, opacity: 0 }}
-                  whileInView={{ pathLength: 1, opacity: 0.8 }}
+                  whileInView={{ pathLength: 1, opacity: 0.9 }}
                   viewport={{ once: true }}
                   transition={{ duration: 2.4, delay: 0.8, ease: "easeInOut" }}
                 />
@@ -440,13 +402,12 @@ export default function WorldMapSection({ language }: WorldMapSectionProps) {
 
               {/* Mexico City pin */}
               <g data-testid="location-mexico">
-                {/* Outer pulse rings */}
                 <motion.circle
                   cx={MX.x} cy={MX.y} r={6}
                   fill="none"
                   stroke="#AA1A2E"
                   strokeWidth="1"
-                  animate={{ r: [6, 22, 6], opacity: [0.7, 0, 0.7] }}
+                  animate={{ r: [6, 22, 6], opacity: [0.6, 0, 0.6] }}
                   transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
                 />
                 <motion.circle
@@ -454,33 +415,32 @@ export default function WorldMapSection({ language }: WorldMapSectionProps) {
                   fill="none"
                   stroke="#AA1A2E"
                   strokeWidth="1"
-                  animate={{ r: [6, 14, 6], opacity: [0.5, 0, 0.5] }}
+                  animate={{ r: [6, 14, 6], opacity: [0.4, 0, 0.4] }}
                   transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut", delay: 0.6 }}
                 />
-                {/* Core dot */}
-                <circle cx={MX.x} cy={MX.y} r={4} fill="#AA1A2E" />
-                <circle cx={MX.x} cy={MX.y} r={2} fill="white" />
-                {/* Label box */}
-                <rect x={MX.x - 52} y={MX.y + 10} width={104} height={28} rx={0} fill="rgba(10,10,20,0.85)" />
+                <circle cx={MX.x} cy={MX.y} r={5} fill="#AA1A2E" />
+                <circle cx={MX.x} cy={MX.y} r={2.5} fill="white" />
+                {/* Label box — below the pin */}
+                <rect x={MX.x - 62} y={MX.y + 10} width={124} height={36} rx={0} fill="rgba(255,255,255,0.94)" stroke="rgba(0,0,0,0.08)" strokeWidth="0.5" />
                 <text
-                  x={MX.x} y={MX.y + 23}
+                  x={MX.x} y={MX.y + 25}
                   textAnchor="middle"
-                  fill="white"
-                  fontSize="7"
+                  fill="#111111"
+                  fontSize="12"
                   fontFamily="system-ui, sans-serif"
-                  fontWeight="600"
-                  letterSpacing="1.5"
+                  fontWeight="700"
+                  letterSpacing="1.2"
                   data-testid="text-mexico-label"
                 >
                   {t.mexicoLabel}
                 </text>
                 <text
-                  x={MX.x} y={MX.y + 33}
+                  x={MX.x} y={MX.y + 39}
                   textAnchor="middle"
-                  fill="rgba(255,255,255,0.5)"
-                  fontSize="5.5"
+                  fill="#6b7280"
+                  fontSize="9"
                   fontFamily="system-ui, sans-serif"
-                  letterSpacing="0.8"
+                  letterSpacing="0.6"
                 >
                   {t.mexicoSubtitle}
                 </text>
@@ -488,13 +448,12 @@ export default function WorldMapSection({ language }: WorldMapSectionProps) {
 
               {/* Germany pin */}
               <g data-testid="location-germany">
-                {/* Outer pulse rings */}
                 <motion.circle
                   cx={DE.x} cy={DE.y} r={6}
                   fill="none"
                   stroke="#AA1A2E"
                   strokeWidth="1"
-                  animate={{ r: [6, 22, 6], opacity: [0.7, 0, 0.7] }}
+                  animate={{ r: [6, 22, 6], opacity: [0.6, 0, 0.6] }}
                   transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut", delay: 1.2 }}
                 />
                 <motion.circle
@@ -502,38 +461,36 @@ export default function WorldMapSection({ language }: WorldMapSectionProps) {
                   fill="none"
                   stroke="#AA1A2E"
                   strokeWidth="1"
-                  animate={{ r: [6, 14, 6], opacity: [0.5, 0, 0.5] }}
+                  animate={{ r: [6, 14, 6], opacity: [0.4, 0, 0.4] }}
                   transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut", delay: 1.8 }}
                 />
-                {/* Core dot */}
-                <circle cx={DE.x} cy={DE.y} r={4} fill="#AA1A2E" />
-                <circle cx={DE.x} cy={DE.y} r={2} fill="white" />
-                {/* Label box — above the pin to avoid overlap with arc */}
-                <rect x={DE.x - 46} y={DE.y - 38} width={92} height={28} rx={0} fill="rgba(10,10,20,0.85)" />
+                <circle cx={DE.x} cy={DE.y} r={5} fill="#AA1A2E" />
+                <circle cx={DE.x} cy={DE.y} r={2.5} fill="white" />
+                {/* Label box — above the pin to avoid arc overlap */}
+                <rect x={DE.x - 54} y={DE.y - 50} width={108} height={36} rx={0} fill="rgba(255,255,255,0.94)" stroke="rgba(0,0,0,0.08)" strokeWidth="0.5" />
                 <text
-                  x={DE.x} y={DE.y - 25}
+                  x={DE.x} y={DE.y - 33}
                   textAnchor="middle"
-                  fill="white"
-                  fontSize="7"
+                  fill="#111111"
+                  fontSize="12"
                   fontFamily="system-ui, sans-serif"
-                  fontWeight="600"
-                  letterSpacing="1.5"
+                  fontWeight="700"
+                  letterSpacing="1.2"
                   data-testid="text-germany-label"
                 >
                   {t.germanyLabel}
                 </text>
                 <text
-                  x={DE.x} y={DE.y - 15}
+                  x={DE.x} y={DE.y - 19}
                   textAnchor="middle"
-                  fill="rgba(255,255,255,0.5)"
-                  fontSize="5.5"
+                  fill="#6b7280"
+                  fontSize="9"
                   fontFamily="system-ui, sans-serif"
-                  letterSpacing="0.8"
+                  letterSpacing="0.6"
                 >
                   {t.germanySubtitle}
                 </text>
-                {/* Connector line from label to pin */}
-                <line x1={DE.x} y1={DE.y - 10} x2={DE.x} y2={DE.y - 5} stroke="rgba(255,255,255,0.3)" strokeWidth="0.8" />
+                <line x1={DE.x} y1={DE.y - 14} x2={DE.x} y2={DE.y - 6} stroke="rgba(0,0,0,0.2)" strokeWidth="0.8" />
               </g>
 
               {/* German Desk label on arc midpoint */}
@@ -544,12 +501,12 @@ export default function WorldMapSection({ language }: WorldMapSectionProps) {
                 transition={{ duration: 0.8, delay: 3.0 }}
                 data-testid="text-german-desk-label"
               >
-                <rect x={332} y={12} width={84} height={16} rx={0} fill="rgba(170,26,46,0.9)" />
+                <rect x={332} y={12} width={84} height={18} rx={0} fill="rgba(170,26,46,0.92)" />
                 <text
-                  x={374} y={23}
+                  x={374} y={24}
                   textAnchor="middle"
                   fill="white"
-                  fontSize="6"
+                  fontSize="7"
                   fontFamily="system-ui, sans-serif"
                   fontWeight="700"
                   letterSpacing="1.8"
@@ -568,7 +525,7 @@ export default function WorldMapSection({ language }: WorldMapSectionProps) {
             transition={{ duration: 0.6, delay: 0.3 }}
             data-testid="stats-container"
           >
-            <div className="grid grid-cols-1 md:grid-cols-3 divide-y md:divide-y-0 md:divide-x divide-white/10">
+            <div className="grid grid-cols-1 md:grid-cols-3 divide-y md:divide-y-0 md:divide-x divide-border">
               <div data-testid="stat-years">
                 <StatBlock target={34} suffix="+" label={t.yearsLabel} />
               </div>
@@ -590,9 +547,9 @@ export default function WorldMapSection({ language }: WorldMapSectionProps) {
             className="pb-20 lg:pb-28"
             data-testid="historical-text-container"
           >
-            <div className="border-t border-white/10 pt-10">
+            <div className="border-t border-border pt-10">
               <p
-                className="text-sm text-white/65 leading-relaxed text-justify max-w-4xl mx-auto"
+                className="text-sm text-muted-foreground leading-relaxed text-justify max-w-4xl mx-auto"
                 data-testid="text-historical-description"
               >
                 {t.historicalText}
