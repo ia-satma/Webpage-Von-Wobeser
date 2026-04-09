@@ -24,6 +24,7 @@ const values: ValueItem[] = [
 ];
 
 interface AboutUsContent {
+  eyebrow: string;
   sectionTitle: string;
   visionTitle: string;
   visionText: string;
@@ -34,7 +35,8 @@ interface AboutUsContent {
 
 const content: Record<LanguageCode, AboutUsContent> = {
   en: {
-    sectionTitle: "ABOUT US",
+    eyebrow: "ABOUT US",
+    sectionTitle: "WHO WE ARE",
     visionTitle: "Vision",
     visionText: "To be the leading law firm in Mexico, recognized for delivering exceptional legal services, fostering talent, and making a positive impact in our community.",
     missionTitle: "Mission",
@@ -42,7 +44,8 @@ const content: Record<LanguageCode, AboutUsContent> = {
     valuesTitle: "Values",
   },
   es: {
-    sectionTitle: "ACERCA DE NOSOTROS",
+    eyebrow: "ACERCA DE NOSOTROS",
+    sectionTitle: "QUIÉNES SOMOS",
     visionTitle: "Visión",
     visionText: "Ser la firma de abogados líder en México, reconocida por brindar servicios legales excepcionales, fomentar el talento y generar un impacto positivo en nuestra comunidad.",
     missionTitle: "Misión",
@@ -50,7 +53,8 @@ const content: Record<LanguageCode, AboutUsContent> = {
     valuesTitle: "Valores",
   },
   de: {
-    sectionTitle: "ÜBER UNS",
+    eyebrow: "ÜBER UNS",
+    sectionTitle: "WER WIR SIND",
     visionTitle: "Vision",
     visionText: "Die führende Anwaltskanzlei in Mexiko zu sein, anerkannt für die Bereitstellung außergewöhnlicher Rechtsdienstleistungen, die Förderung von Talenten und einen positiven Einfluss auf unsere Gemeinschaft.",
     missionTitle: "Mission",
@@ -58,7 +62,8 @@ const content: Record<LanguageCode, AboutUsContent> = {
     valuesTitle: "Werte",
   },
   zh: {
-    sectionTitle: "关于我们",
+    eyebrow: "关于我们",
+    sectionTitle: "我们是谁",
     visionTitle: "愿景",
     visionText: "成为墨西哥领先的律师事务所，以提供卓越的法律服务、培养人才和对社区产生积极影响而闻名。",
     missionTitle: "使命",
@@ -66,7 +71,8 @@ const content: Record<LanguageCode, AboutUsContent> = {
     valuesTitle: "价值观",
   },
   ko: {
-    sectionTitle: "회사 소개",
+    eyebrow: "회사 소개",
+    sectionTitle: "우리는 누구인가",
     visionTitle: "비전",
     visionText: "탁월한 법률 서비스 제공, 인재 육성, 지역사회에 긍정적인 영향을 미치는 것으로 인정받는 멕시코 최고의 법률 사무소가 되는 것입니다.",
     missionTitle: "미션",
@@ -74,7 +80,8 @@ const content: Record<LanguageCode, AboutUsContent> = {
     valuesTitle: "가치",
   },
   ja: {
-    sectionTitle: "私たちについて",
+    eyebrow: "私たちについて",
+    sectionTitle: "私たちは誰か",
     visionTitle: "ビジョン",
     visionText: "卓越した法的サービスの提供、才能の育成、コミュニティへの積極的な貢献で認められる、メキシコを代表する法律事務所になること。",
     missionTitle: "ミッション",
@@ -82,7 +89,8 @@ const content: Record<LanguageCode, AboutUsContent> = {
     valuesTitle: "価値観",
   },
   ar: {
-    sectionTitle: "من نحن",
+    eyebrow: "من نحن",
+    sectionTitle: "هويتنا",
     visionTitle: "الرؤية",
     visionText: "أن نكون شركة المحاماة الرائدة في المكسيك، معترف بها لتقديم خدمات قانونية استثنائية، وتعزيز المواهب، وإحداث تأثير إيجابي في مجتمعنا.",
     missionTitle: "المهمة",
@@ -90,15 +98,17 @@ const content: Record<LanguageCode, AboutUsContent> = {
     valuesTitle: "القيم",
   },
   ru: {
-    sectionTitle: "О НАС",
+    eyebrow: "О НАС",
+    sectionTitle: "КТО МЫ",
     visionTitle: "Видение",
-    visionText: "Быть ведущей юридической фирмой в Мексике, признанной за предоставление исключительных юридических услуг, развитие талантов и положительное влияние на наше сообщество.",
+    visionText: "Быть ведущей юридической фирмой в Мексике, признанной за предоставление исключительных юридических услуг, развитие талентов и положительное влияние на наше сообщество.",
     missionTitle: "Миссия",
     missionText: "Предоставлять нашим клиентам юридические консультации высочайшего качества, сочетая глубокую экспертизу с инновационными решениями и непоколебимую приверженность их успеху.",
     valuesTitle: "Ценности",
   },
   fr: {
-    sectionTitle: "À PROPOS DE NOUS",
+    eyebrow: "À PROPOS DE NOUS",
+    sectionTitle: "QUI NOUS SOMMES",
     visionTitle: "Vision",
     visionText: "Être le cabinet d'avocats leader au Mexique, reconnu pour fournir des services juridiques exceptionnels, favoriser les talents et avoir un impact positif dans notre communauté.",
     missionTitle: "Mission",
@@ -106,7 +116,8 @@ const content: Record<LanguageCode, AboutUsContent> = {
     valuesTitle: "Valeurs",
   },
   it: {
-    sectionTitle: "CHI SIAMO",
+    eyebrow: "CHI SIAMO",
+    sectionTitle: "LA NOSTRA IDENTITÀ",
     visionTitle: "Visione",
     visionText: "Essere lo studio legale leader in Messico, riconosciuto per la fornitura di servizi legali eccezionali, la promozione dei talenti e un impatto positivo nella nostra comunità.",
     missionTitle: "Missione",
@@ -127,21 +138,35 @@ export default function AboutUsSection() {
   return (
     <section
       id="about-us"
-      className="py-20 lg:py-32 bg-background"
+      className="py-20 lg:py-28 bg-background"
       data-testid="section-about-us"
     >
-      <div className="max-w-6xl mx-auto px-6 lg:px-12">
-        <motion.h2
+      <div className="max-w-7xl mx-auto px-6 lg:px-12">
+
+        {/* Section header */}
+        <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
-          className="text-2xl md:text-3xl font-heading font-light uppercase tracking-wide text-[#AA1A2E] text-center mb-16"
-          data-testid="text-about-us-title"
+          className="text-center mb-16"
         >
-          {t.sectionTitle}
-        </motion.h2>
+          <div className="w-12 h-px bg-[#AA1A2E] mb-6 mx-auto" />
+          <p
+            className="text-[#AA1A2E] text-[10px] tracking-[0.25em] uppercase mb-4"
+            data-testid="text-about-us-eyebrow"
+          >
+            {t.eyebrow}
+          </p>
+          <h2
+            className="font-heading font-light text-2xl md:text-3xl lg:text-4xl text-foreground uppercase tracking-[0.12em] leading-tight"
+            data-testid="text-about-us-title"
+          >
+            {t.sectionTitle}
+          </h2>
+        </motion.div>
 
+        {/* Vision & Mission */}
         <div className="grid md:grid-cols-2 gap-12 lg:gap-16 mb-20">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -150,14 +175,15 @@ export default function AboutUsSection() {
             transition={{ duration: 0.6, delay: 0.1 }}
             data-testid="subsection-vision"
           >
+            <div className="w-8 h-px bg-[#AA1A2E] mb-4" />
             <h3
-              className="text-xl md:text-2xl font-heading font-light text-foreground mb-6 uppercase tracking-[0.12em]"
+              className="font-heading font-light uppercase tracking-[0.08em] text-lg text-foreground mb-6"
               data-testid="text-vision-title"
             >
               {t.visionTitle}
             </h3>
             <p
-              className="text-lg text-muted-foreground leading-relaxed"
+              className="text-sm text-muted-foreground leading-relaxed text-justify"
               data-testid="text-vision-content"
             >
               {t.visionText}
@@ -171,14 +197,15 @@ export default function AboutUsSection() {
             transition={{ duration: 0.6, delay: 0.2 }}
             data-testid="subsection-mission"
           >
+            <div className="w-8 h-px bg-[#AA1A2E] mb-4" />
             <h3
-              className="text-xl md:text-2xl font-heading font-light text-foreground mb-6 uppercase tracking-[0.12em]"
+              className="font-heading font-light uppercase tracking-[0.08em] text-lg text-foreground mb-6"
               data-testid="text-mission-title"
             >
               {t.missionTitle}
             </h3>
             <p
-              className="text-lg text-muted-foreground leading-relaxed"
+              className="text-sm text-muted-foreground leading-relaxed text-justify"
               data-testid="text-mission-content"
             >
               {t.missionText}
@@ -186,15 +213,17 @@ export default function AboutUsSection() {
           </motion.div>
         </div>
 
+        {/* Divider */}
         <motion.div
           initial={{ opacity: 0 }}
           whileInView={{ opacity: 1 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6, delay: 0.3 }}
-          className="w-24 h-px bg-primary mx-auto mb-12"
+          className="w-24 h-px bg-border mx-auto mb-12"
           data-testid="divider-about-us"
         />
 
+        {/* Values */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -203,15 +232,16 @@ export default function AboutUsSection() {
           className="text-center"
           data-testid="subsection-values"
         >
+          <div className="w-8 h-px bg-[#AA1A2E] mb-4 mx-auto" />
           <h3
-            className="text-xl md:text-2xl font-heading font-light text-foreground mb-10 uppercase tracking-[0.12em]"
+            className="font-heading font-light uppercase tracking-[0.08em] text-lg text-foreground mb-10"
             data-testid="text-values-title"
           >
             {t.valuesTitle}
           </h3>
 
           <div
-            className="flex flex-wrap justify-center gap-4 md:gap-6 lg:gap-8"
+            className="flex flex-wrap justify-center gap-3 md:gap-4"
             data-testid="values-grid"
           >
             {values.map((value, index) => (
@@ -221,11 +251,11 @@ export default function AboutUsSection() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.4, delay: 0.5 + index * 0.1 }}
-                className="px-6 py-3 bg-muted border border-border"
+                className="border border-border rounded-none px-3 py-1"
                 data-testid={`value-item-${index}`}
               >
                 <span
-                  className="text-base md:text-lg text-gray-700 dark:text-gray-200"
+                  className="text-xs uppercase tracking-[0.15em] text-foreground"
                   data-testid={`text-value-${index}`}
                 >
                   {getValueText(value)}
@@ -234,6 +264,7 @@ export default function AboutUsSection() {
             ))}
           </div>
         </motion.div>
+
       </div>
     </section>
   );

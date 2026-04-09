@@ -17,6 +17,7 @@ export default function MapSection({ language }: MapSectionProps) {
   });
 
   const content: Record<SupportedLanguage, {
+    eyebrow: string;
     title: string;
     subtitle: string;
     building: string;
@@ -35,6 +36,7 @@ export default function MapSection({ language }: MapSectionProps) {
     mapTitle: string;
   }> = {
     en: {
+      eyebrow: "LOCATION",
       title: siteContent?.locationTitle || "Our Location",
       subtitle: "Visit Us",
       building: "Torre SOMA Chapultepec Floor 18",
@@ -53,6 +55,7 @@ export default function MapSection({ language }: MapSectionProps) {
       mapTitle: "Von Wobeser y Sierra Location",
     },
     es: {
+      eyebrow: "UBICACIÓN",
       title: "Nuestra Ubicación",
       subtitle: "Visítenos",
       building: "Torre SOMA Chapultepec Piso 18",
@@ -71,6 +74,7 @@ export default function MapSection({ language }: MapSectionProps) {
       mapTitle: "Ubicación de Von Wobeser y Sierra",
     },
     de: {
+      eyebrow: "STANDORT",
       title: "Unser Standort",
       subtitle: "Besuchen Sie uns",
       building: "Torre SOMA Chapultepec Etage 18",
@@ -89,6 +93,7 @@ export default function MapSection({ language }: MapSectionProps) {
       mapTitle: "Standort von Von Wobeser y Sierra",
     },
     zh: {
+      eyebrow: "位置",
       title: "我们的位置",
       subtitle: "欢迎拜访",
       building: "Torre SOMA Chapultepec 18楼",
@@ -107,6 +112,7 @@ export default function MapSection({ language }: MapSectionProps) {
       mapTitle: "Von Wobeser y Sierra 位置",
     },
     ko: {
+      eyebrow: "위치",
       title: "위치",
       subtitle: "방문해 주세요",
       building: "Torre SOMA Chapultepec 18층",
@@ -125,6 +131,7 @@ export default function MapSection({ language }: MapSectionProps) {
       mapTitle: "Von Wobeser y Sierra 위치",
     },
     ja: {
+      eyebrow: "所在地",
       title: "所在地",
       subtitle: "お越しください",
       building: "Torre SOMA Chapultepec 18階",
@@ -143,6 +150,7 @@ export default function MapSection({ language }: MapSectionProps) {
       mapTitle: "Von Wobeser y Sierra の所在地",
     },
     ar: {
+      eyebrow: "الموقع",
       title: "موقعنا",
       subtitle: "قم بزيارتنا",
       building: "Torre SOMA Chapultepec الطابق 18",
@@ -161,6 +169,7 @@ export default function MapSection({ language }: MapSectionProps) {
       mapTitle: "موقع Von Wobeser y Sierra",
     },
     ru: {
+      eyebrow: "МЕСТОПОЛОЖЕНИЕ",
       title: "Наше местоположение",
       subtitle: "Посетите нас",
       building: "Torre SOMA Chapultepec, этаж 18",
@@ -179,6 +188,7 @@ export default function MapSection({ language }: MapSectionProps) {
       mapTitle: "Местоположение Von Wobeser y Sierra",
     },
     fr: {
+      eyebrow: "LOCALISATION",
       title: "Notre emplacement",
       subtitle: "Rendez-nous visite",
       building: "Torre SOMA Chapultepec, 18e étage",
@@ -197,6 +207,7 @@ export default function MapSection({ language }: MapSectionProps) {
       mapTitle: "Emplacement de Von Wobeser y Sierra",
     },
     it: {
+      eyebrow: "SEDE",
       title: "La nostra sede",
       subtitle: "Vieni a trovarci",
       building: "Torre SOMA Chapultepec, Piano 18",
@@ -226,7 +237,7 @@ export default function MapSection({ language }: MapSectionProps) {
     return (
       <section id="location" className="py-20 lg:py-28 bg-muted" data-testid="section-location">
         <div className="max-w-7xl mx-auto px-6 lg:px-12 text-center">
-          <AlertCircle className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+          <AlertCircle className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
           <p className="text-muted-foreground" data-testid="text-location-error">{t.errorMessage}</p>
         </div>
       </section>
@@ -256,16 +267,29 @@ export default function MapSection({ language }: MapSectionProps) {
       data-testid="section-location"
     >
       <div className="max-w-7xl mx-auto px-6 lg:px-12">
-        <motion.h2
+
+        {/* Header */}
+        <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
-          className="text-2xl md:text-3xl font-heading font-light text-[#AA1A2E] tracking-[0.15em] uppercase text-center mb-12"
-          data-testid="text-location-title"
+          className="text-center mb-12"
         >
-          {t.title}
-        </motion.h2>
+          <div className="w-12 h-px bg-[#AA1A2E] mb-6 mx-auto" />
+          <p
+            className="text-[#AA1A2E] text-[10px] tracking-[0.25em] uppercase mb-4"
+            data-testid="text-location-eyebrow"
+          >
+            {t.eyebrow}
+          </p>
+          <h2
+            className="font-heading font-light text-2xl md:text-3xl lg:text-4xl text-foreground uppercase tracking-[0.12em] leading-tight"
+            data-testid="text-location-title"
+          >
+            {t.title}
+          </h2>
+        </motion.div>
 
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-8 lg:gap-12">
           <motion.div
@@ -299,10 +323,10 @@ export default function MapSection({ language }: MapSectionProps) {
               <div className="flex items-start gap-4 mb-8">
                 <MapPin className="w-6 h-6 text-primary flex-shrink-0 mt-1" data-testid="icon-location" />
                 <div data-testid="text-address">
-                  <p className="font-medium text-foreground mb-1">{t.building}</p>
-                  <p className="text-muted-foreground">{t.street}</p>
-                  <p className="text-muted-foreground">{t.access}</p>
-                  <p className="text-muted-foreground">{t.city}</p>
+                  <p className="text-sm font-medium text-foreground mb-1">{t.building}</p>
+                  <p className="text-sm text-muted-foreground">{t.street}</p>
+                  <p className="text-sm text-muted-foreground">{t.access}</p>
+                  <p className="text-sm text-muted-foreground">{t.city}</p>
                 </div>
               </div>
 
@@ -310,7 +334,7 @@ export default function MapSection({ language }: MapSectionProps) {
                 <Phone className="w-5 h-5 text-primary flex-shrink-0" data-testid="icon-phone" />
                 <a
                   href={`tel:${t.phone.replace(/\s/g, "")}`}
-                  className="text-muted-foreground hover:text-primary transition-colors"
+                  className="text-sm text-muted-foreground hover:text-primary transition-colors"
                   data-testid="link-phone"
                 >
                   {t.phone}
@@ -321,7 +345,7 @@ export default function MapSection({ language }: MapSectionProps) {
                 <Mail className="w-5 h-5 text-primary flex-shrink-0" data-testid="icon-email" />
                 <a
                   href={`mailto:${t.email}`}
-                  className="text-muted-foreground hover:text-primary transition-colors"
+                  className="text-sm text-muted-foreground hover:text-primary transition-colors"
                   data-testid="link-email"
                 >
                   {t.email}
@@ -331,7 +355,8 @@ export default function MapSection({ language }: MapSectionProps) {
               <div className="flex flex-col gap-3">
                 <Button
                   asChild
-                  className="w-full rounded-none bg-primary hover:bg-primary/90 text-white"
+                  variant="default"
+                  className="w-full rounded-none"
                   data-testid="button-directions"
                 >
                   <a href={googleMapsUrl} target="_blank" rel="noopener noreferrer">
@@ -343,7 +368,7 @@ export default function MapSection({ language }: MapSectionProps) {
                 <Button
                   asChild
                   variant="outline"
-                  className="w-full rounded-none border-border"
+                  className="w-full rounded-none"
                   data-testid="button-view-map"
                 >
                   <a href={googleMapsUrl} target="_blank" rel="noopener noreferrer">
@@ -355,6 +380,7 @@ export default function MapSection({ language }: MapSectionProps) {
             </div>
           </motion.div>
         </div>
+
       </div>
     </section>
   );
