@@ -368,10 +368,10 @@ export default function IndustryGroupsSection() {
         className="max-w-7xl mx-auto px-6 lg:px-12 py-8 flex flex-wrap items-center justify-between gap-4"
       >
         <div className="flex items-center gap-5">
-          <div className="w-8 h-px bg-[#AA1A2E] shrink-0" />
+          <div className="w-10 h-px bg-[#AA1A2E] shrink-0" />
           <div>
             <h2
-              className="text-[#AA1A2E] text-xs font-medium tracking-[0.2em] uppercase"
+              className="text-[#AA1A2E] text-sm font-medium tracking-[0.2em] uppercase"
               data-testid="text-industry-groups-title"
             >
               {t.title}
@@ -383,7 +383,7 @@ export default function IndustryGroupsSection() {
         </div>
         <Link
           href="/industry-groups"
-          className="inline-flex items-center gap-2 text-xs font-medium tracking-[0.15em] uppercase text-white/40 hover:text-white transition-colors duration-200 group"
+          className="inline-flex items-center gap-2 text-xs font-medium tracking-[0.15em] uppercase text-white/50 hover:text-white transition-colors duration-200 group"
           data-testid="link-industry-groups-see-more"
           aria-label={t.seeMoreAriaLabel}
         >
