@@ -414,7 +414,7 @@ export default function Header() {
                           "border-l-2 border-transparent transition-all duration-150",
                           "hover:border-[#AA1A2E]",
                           isScrolled
-                            ? "text-foreground hover:text-[#AA1A2E] hover:bg-[#AA1A2E]/5"
+                            ? "text-foreground hover:text-[#AA1A2E] hover:bg-muted"
                             : "text-white/80 hover:text-white hover:bg-white/8"
                         )}
                         role="menuitem"
