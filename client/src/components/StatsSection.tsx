@@ -342,7 +342,6 @@ export default function StatsSection({ language }: StatsSectionProps) {
     >
       <div className="max-w-7xl mx-auto px-6 lg:px-12">
 
-        {/* ── ZONA SUPERIOR: header editorial ── */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -350,23 +349,16 @@ export default function StatsSection({ language }: StatsSectionProps) {
           transition={{ duration: 0.6 }}
           className="mb-0"
         >
-          {/* Red rule */}
           <div className="w-12 h-px bg-[#AA1A2E] mb-6" />
-
-          {/* Eyebrow */}
           <p className="text-[#AA1A2E] text-[10px] tracking-[0.25em] uppercase mb-4">
             GENSLER DESIGN
           </p>
-
-          {/* Serif heading — dark on white bg */}
           <h2
             className="font-heading font-light text-2xl md:text-3xl lg:text-4xl text-foreground uppercase tracking-[0.12em] leading-tight mb-8 max-w-2xl"
             data-testid="text-stats-title"
           >
             {t.title}
           </h2>
-
-          {/* Body paragraphs — sans-serif */}
           <p
             className="text-sm text-muted-foreground leading-relaxed max-w-2xl mb-4"
             data-testid="text-stats-subtitle"
@@ -381,7 +373,6 @@ export default function StatsSection({ language }: StatsSectionProps) {
           </p>
         </motion.div>
 
-        {/* ── ZONA MEDIA: stats row con separadores ── */}
         {isLoading ? (
           <div className="grid grid-cols-2 md:grid-cols-4 border-t border-b border-border py-12 my-14">
             {[1, 2, 3, 4].map((i) => (
@@ -423,17 +414,20 @@ export default function StatsSection({ language }: StatsSectionProps) {
           </motion.div>
         )}
 
-        {/* ── ZONA INFERIOR: capacity text ── */}
-        <motion.p
+        <motion.div
           initial={{ opacity: 0, y: 16 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6, delay: 0.2 }}
-          className="text-sm text-muted-foreground leading-relaxed max-w-4xl"
-          data-testid="text-stats-capacity"
+          className="border-t border-border pt-10"
         >
-          {t.capacity}
-        </motion.p>
+          <p
+            className="text-sm text-muted-foreground leading-relaxed max-w-4xl"
+            data-testid="text-stats-capacity"
+          >
+            {t.capacity}
+          </p>
+        </motion.div>
 
       </div>
     </section>
