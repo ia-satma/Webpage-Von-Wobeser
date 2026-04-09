@@ -11,7 +11,8 @@ import LanguageSelector from "./LanguageSelector";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useTranslatedContent } from "@/hooks/useTranslatedContent";
 import type { TeamMember, PracticeGroup, IndustryGroup, News, LanguageCode } from "@shared/schema";
-import logoHD from "@assets/vonwobeser_logo_2025_full.png";
+import logoColor from "@assets/Artboard_1_1775695263479.png";
+import logoWhite from "@assets/Artboard_1_copy_4_1775695277034.png";
 
 interface SearchResults {
   team: TeamMember[];
@@ -333,19 +334,15 @@ export default function Header() {
             aria-label={`Von Wobeser y Sierra - ${t('nav.home')}`}
           >
             <img
-              src={logoHD}
+              src={isScrolled ? logoColor : logoWhite}
               alt="Von Wobeser y Sierra"
-              width={318}
-              height={70}
               className={cn(
-                "transition-all duration-300 flex-shrink-0",
-                isScrolled 
-                  ? "h-7 sm:h-8 md:h-10 w-auto max-w-[120px] sm:max-w-[160px] md:max-w-[200px]" 
-                  : "h-8 sm:h-9 md:h-12 w-auto max-w-[130px] sm:max-w-[180px] md:max-w-[240px]",
-                !isScrolled && "brightness-0 invert",
-                isScrolled && "dark:brightness-0 dark:invert"
+                "transition-all duration-300 flex-shrink-0 object-contain",
+                isScrolled
+                  ? "h-7 sm:h-8 md:h-9 w-auto max-w-[150px] sm:max-w-[180px] md:max-w-[220px] dark:brightness-0 dark:invert"
+                  : "h-8 sm:h-9 md:h-11 w-auto max-w-[150px] sm:max-w-[200px] md:max-w-[260px]"
               )}
-              style={{ imageRendering: "crisp-edges", objectFit: "contain" }}
+              style={{ imageRendering: "crisp-edges" }}
               data-testid="img-logo"
             />
           </Link>
@@ -575,12 +572,10 @@ export default function Header() {
           <div className="flex flex-col h-full overflow-hidden">
             <div className="flex items-center justify-between p-4 sm:p-6">
               <img
-                src={logoHD}
+                src={logoWhite}
                 alt="Von Wobeser y Sierra"
-                width={318}
-                height={70}
-                className="h-8 sm:h-10 w-auto max-w-[180px] sm:max-w-[220px] brightness-0 invert flex-shrink-0"
-                style={{ imageRendering: "crisp-edges", objectFit: "contain" }}
+                className="h-8 sm:h-10 w-auto max-w-[180px] sm:max-w-[220px] object-contain flex-shrink-0"
+                style={{ imageRendering: "crisp-edges" }}
                 data-testid="img-logo-mobile"
               />
               <div className="flex items-center gap-2">

@@ -8,6 +8,7 @@ import { useTranslatedContent } from "@/hooks/useTranslatedContent";
 import type { SiteContent, News, LanguageCode } from "@shared/schema";
 import heroVideo from "@assets/dron_1764710361340.mp4";
 import heroImage from "@assets/hero_office.jpg";
+import logoWhite from "@assets/Artboard_1_copy_4_1775695277034.png";
 
 interface HeroSectionProps {
   language: LanguageCode;
@@ -405,15 +406,20 @@ export default function HeroSection({ language }: HeroSectionProps) {
           {t.tagline}
         </motion.p>
 
-        <motion.h1
+        <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={isVisible ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.8, delay: 0.4 }}
-          className="text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-publico text-white leading-tight tracking-wide mb-8"
+          className="flex justify-center mb-8"
           data-testid="text-hero-headline"
         >
-          {t.headline}
-        </motion.h1>
+          <img
+            src={logoWhite}
+            alt={t.headline}
+            className="w-auto max-w-[340px] sm:max-w-[460px] md:max-w-[580px] lg:max-w-[700px] h-auto object-contain"
+            style={{ imageRendering: "crisp-edges" }}
+          />
+        </motion.div>
 
         <motion.p
           initial={{ opacity: 0, y: 20 }}
