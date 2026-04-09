@@ -722,7 +722,7 @@ export default function PracticeGroupDetail() {
                 </div>
               )}
               <h1 
-                className="text-3xl md:text-4xl lg:text-5xl font-heading font-light text-white"
+                className="text-2xl md:text-3xl lg:text-4xl font-heading font-light text-white uppercase tracking-[0.12em]"
                 data-testid="text-practice-group-title"
               >
                 {displayName || (isTranslating ? (
@@ -784,7 +784,7 @@ export default function PracticeGroupDetail() {
               <div className="flex items-center gap-3 mb-4">
                 <Trophy className="w-6 h-6 text-primary" />
                 <h2 
-                  className="text-2xl font-heading font-light text-gray-800 dark:text-white"
+                  className="text-xl font-heading font-light text-gray-800 dark:text-white uppercase tracking-[0.12em]"
                   data-testid="text-success-cases-title"
                 >
                   {t.successCasesTitle}
@@ -826,7 +826,7 @@ export default function PracticeGroupDetail() {
               <div className="flex items-center gap-3 mb-4">
                 <Award className="w-6 h-6 text-primary" />
                 <h2 
-                  className="text-2xl font-heading font-light text-gray-800 dark:text-white"
+                  className="text-xl font-heading font-light text-gray-800 dark:text-white uppercase tracking-[0.12em]"
                   data-testid="text-rankings-title"
                 >
                   {t.rankingsTitle}
@@ -885,7 +885,7 @@ export default function PracticeGroupDetail() {
               data-testid="section-team-members"
             >
               <h2 
-                className="text-2xl font-heading font-light text-gray-800 dark:text-white mb-8"
+                className="text-xl font-heading font-light text-gray-800 dark:text-white mb-8 uppercase tracking-[0.12em]"
                 data-testid="text-our-team-title"
               >
                 {t.ourTeam}
@@ -966,7 +966,7 @@ export default function PracticeGroupDetail() {
             data-testid="section-contact-cta"
           >
             <h2 
-              className="text-2xl font-heading font-light text-gray-800 dark:text-white mb-3"
+              className="text-xl font-heading font-light text-gray-800 dark:text-white mb-3 uppercase tracking-[0.12em]"
               data-testid="text-contact-cta-title"
             >
               {t.contactCta}

@@ -1307,7 +1307,7 @@ export default function TeamMemberDetail() {
               <div className="text-center md:text-left flex-1">
                 <div className="flex flex-col md:flex-row items-center gap-3 mb-3">
                   <h1 
-                    className="text-3xl md:text-4xl lg:text-5xl font-heading font-light text-white"
+                    className="text-2xl md:text-3xl lg:text-4xl font-heading font-light text-white uppercase tracking-[0.12em]"
                     data-testid="text-team-member-name"
                   >
                     {member?.name}
@@ -1404,7 +1404,7 @@ export default function TeamMemberDetail() {
                   data-testid="section-biography"
                 >
                   <h2 
-                    className="text-2xl font-heading font-light text-gray-800 dark:text-white mb-6 flex items-center gap-3"
+                    className="text-xl font-heading font-light text-gray-800 dark:text-white mb-6 flex items-center gap-3 uppercase tracking-[0.12em]"
                     data-testid="text-biography-title"
                   >
                     <FileText className="w-6 h-6 text-primary" />
@@ -1450,7 +1450,7 @@ export default function TeamMemberDetail() {
                 >
                   <div className="bg-gradient-to-r from-amber-50 to-amber-100/50 dark:from-amber-900/20 dark:to-amber-800/10 rounded-md p-6 border border-amber-200/50 dark:border-amber-700/30">
                     <h2 
-                      className="text-2xl font-heading font-light text-gray-800 dark:text-white mb-6 flex items-center gap-3"
+                      className="text-xl font-heading font-light text-gray-800 dark:text-white mb-6 flex items-center gap-3 uppercase tracking-[0.12em]"
                       data-testid="text-rankings-title"
                     >
                       <div className="p-2 bg-amber-500/20 rounded-md">
@@ -1522,7 +1522,7 @@ export default function TeamMemberDetail() {
                   data-testid="section-practice-areas"
                 >
                   <h2 
-                    className="text-2xl font-heading font-light text-gray-800 dark:text-white mb-6 flex items-center gap-3"
+                    className="text-xl font-heading font-light text-gray-800 dark:text-white mb-6 flex items-center gap-3 uppercase tracking-[0.12em]"
                     data-testid="text-practice-areas-title"
                   >
                     <Briefcase className="w-6 h-6 text-primary" />
@@ -1548,7 +1548,7 @@ export default function TeamMemberDetail() {
                   data-testid="section-industry-groups"
                 >
                   <h2 
-                    className="text-2xl font-heading font-light text-gray-800 dark:text-white mb-6 flex items-center gap-3"
+                    className="text-xl font-heading font-light text-gray-800 dark:text-white mb-6 flex items-center gap-3 uppercase tracking-[0.12em]"
                     data-testid="text-industry-groups-title"
                   >
                     <Globe2 className="w-6 h-6 text-primary" />
@@ -1574,7 +1574,7 @@ export default function TeamMemberDetail() {
                   data-testid="section-education"
                 >
                   <h2 
-                    className="text-2xl font-heading font-light text-gray-800 dark:text-white mb-6 flex items-center gap-3"
+                    className="text-xl font-heading font-light text-gray-800 dark:text-white mb-6 flex items-center gap-3 uppercase tracking-[0.12em]"
                     data-testid="text-education-title"
                   >
                     <GraduationCap className="w-6 h-6 text-primary" />
@@ -1602,7 +1602,7 @@ export default function TeamMemberDetail() {
                   data-testid="section-bar-admissions"
                 >
                   <h2 
-                    className="text-2xl font-heading font-light text-gray-800 dark:text-white mb-6 flex items-center gap-3"
+                    className="text-xl font-heading font-light text-gray-800 dark:text-white mb-6 flex items-center gap-3 uppercase tracking-[0.12em]"
                     data-testid="text-bar-admissions-title"
                   >
                     <Scale className="w-6 h-6 text-primary" />
@@ -1630,7 +1630,7 @@ export default function TeamMemberDetail() {
                   data-testid="section-languages"
                 >
                   <h2 
-                    className="text-2xl font-heading font-light text-gray-800 dark:text-white mb-6 flex items-center gap-3"
+                    className="text-xl font-heading font-light text-gray-800 dark:text-white mb-6 flex items-center gap-3 uppercase tracking-[0.12em]"
                     data-testid="text-languages-title"
                   >
                     <Languages className="w-6 h-6 text-primary" />
@@ -1658,7 +1658,7 @@ export default function TeamMemberDetail() {
                   data-testid="section-affiliations"
                 >
                   <h2 
-                    className="text-2xl font-heading font-light text-gray-800 dark:text-white mb-6 flex items-center gap-3"
+                    className="text-xl font-heading font-light text-gray-800 dark:text-white mb-6 flex items-center gap-3 uppercase tracking-[0.12em]"
                     data-testid="text-affiliations-title"
                   >
                     <Users className="w-6 h-6 text-primary" />
@@ -1686,7 +1686,7 @@ export default function TeamMemberDetail() {
                   data-testid="section-publications"
                 >
                   <h2 
-                    className="text-2xl font-heading font-light text-gray-800 dark:text-white mb-6 flex items-center gap-3"
+                    className="text-xl font-heading font-light text-gray-800 dark:text-white mb-6 flex items-center gap-3 uppercase tracking-[0.12em]"
                     data-testid="text-publications-title"
                   >
                     <BookOpen className="w-6 h-6 text-primary" />
@@ -1715,7 +1715,7 @@ export default function TeamMemberDetail() {
                   data-testid="section-representative-matters"
                 >
                   <h2 
-                    className="text-2xl font-heading font-light text-gray-800 dark:text-white mb-6 flex items-center gap-3"
+                    className="text-xl font-heading font-light text-gray-800 dark:text-white mb-6 flex items-center gap-3 uppercase tracking-[0.12em]"
                     data-testid="text-representative-matters-title"
                   >
                     <Briefcase className="w-6 h-6 text-primary" />
@@ -1743,7 +1743,7 @@ export default function TeamMemberDetail() {
                   data-testid="section-experience"
                 >
                   <h2 
-                    className="text-2xl font-heading font-light text-gray-800 dark:text-white mb-6 flex items-center gap-3"
+                    className="text-xl font-heading font-light text-gray-800 dark:text-white mb-6 flex items-center gap-3 uppercase tracking-[0.12em]"
                     data-testid="text-experience-title"
                   >
                     <Building2 className="w-6 h-6 text-primary" />
@@ -1925,7 +1925,7 @@ export default function TeamMemberDetail() {
           >
             <div className="max-w-6xl mx-auto">
               <h2 
-                className="text-2xl font-heading font-light text-gray-800 dark:text-white mb-8 flex items-center gap-3"
+                className="text-xl font-heading font-light text-gray-800 dark:text-white mb-8 flex items-center gap-3 uppercase tracking-[0.12em]"
                 data-testid="text-related-news-title"
               >
                 <Newspaper className="w-6 h-6 text-primary" />

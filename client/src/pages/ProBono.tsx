@@ -836,7 +836,7 @@ export default function ProBono() {
               <Heart className="w-10 h-10 text-white" />
             </div>
             <h1 
-              className="text-4xl md:text-5xl font-heading font-light text-white mb-4"
+              className="text-3xl md:text-4xl font-heading font-light text-white mb-4 uppercase tracking-[0.12em]"
               data-testid="text-pro-bono-title"
             >
               {t.title}
@@ -860,7 +860,7 @@ export default function ProBono() {
             className="mb-20"
             data-testid="section-commitment"
           >
-            <h2 className="text-3xl font-heading font-light text-[#AA1A2E] mb-6">
+            <h2 className="text-2xl font-heading font-light text-[#AA1A2E] mb-6 uppercase tracking-[0.12em]">
               {t.commitmentTitle}
             </h2>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -881,7 +881,7 @@ export default function ProBono() {
             data-testid="section-areas"
           >
             <div className="text-center mb-12">
-              <h2 className="text-3xl font-heading font-light text-[#AA1A2E] mb-4">
+              <h2 className="text-2xl font-heading font-light text-[#AA1A2E] mb-4 uppercase tracking-[0.12em]">
                 {t.areasTitle}
               </h2>
               <p className="text-lg text-gray-600 dark:text-gray-400" data-testid="text-areas-subtitle">
@@ -926,7 +926,7 @@ export default function ProBono() {
             className="mb-20 bg-gray-50 dark:bg-gray-800 rounded-md p-10"
             data-testid="section-stats"
           >
-            <h2 className="text-3xl font-heading font-light text-[#AA1A2E] mb-8 text-center">
+            <h2 className="text-2xl font-heading font-light text-[#AA1A2E] mb-8 text-center uppercase tracking-[0.12em]">
               {t.statsTitle}
             </h2>
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-8">
@@ -956,7 +956,7 @@ export default function ProBono() {
             data-testid="section-participation"
           >
             <div className="text-center mb-12">
-              <h2 className="text-3xl font-heading font-light text-[#AA1A2E] mb-4">
+              <h2 className="text-2xl font-heading font-light text-[#AA1A2E] mb-4 uppercase tracking-[0.12em]">
                 {t.participationTitle}
               </h2>
               <p className="text-lg text-primary font-medium mb-4" data-testid="text-participation-subtitle">
@@ -1008,7 +1008,7 @@ export default function ProBono() {
               <CardContent className="p-10 text-center">
                 <div className="flex items-center justify-center gap-3 mb-4">
                   <Scale className="w-8 h-8 text-primary" />
-                  <h2 className="text-3xl font-heading font-light text-gray-800 dark:text-white">
+                  <h2 className="text-xl font-heading font-light text-gray-800 dark:text-white uppercase tracking-[0.12em]">
                     {t.ctaTitle}
                   </h2>
                 </div>

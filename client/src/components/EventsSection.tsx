@@ -291,7 +291,7 @@ export default function EventsSection({ language }: EventsSectionProps) {
           className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-12"
         >
           <h2
-            className="text-3xl md:text-4xl font-heading font-light text-gray-800 dark:text-white tracking-wide"
+            className="text-2xl md:text-3xl font-heading font-light text-gray-800 dark:text-white uppercase tracking-[0.15em]"
             data-testid="text-events-title"
           >
             {t.title}

@@ -1165,7 +1165,7 @@ export default function About() {
             className="text-center"
           >
             <h1 
-              className="text-4xl md:text-5xl font-heading font-light text-white mb-4"
+              className="text-3xl md:text-4xl font-heading font-light text-white mb-4 uppercase tracking-[0.12em]"
               data-testid="text-about-title"
             >
               {t.title}
@@ -1189,7 +1189,7 @@ export default function About() {
             className="mb-20"
             data-testid="section-history"
           >
-            <h2 className="text-3xl font-heading font-light text-gray-800 dark:text-white mb-6">
+            <h2 className="text-2xl font-heading font-light text-gray-800 dark:text-white mb-6 uppercase tracking-[0.12em]">
               {t.historyTitle}
             </h2>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -1209,7 +1209,7 @@ export default function About() {
             className="mb-20"
             data-testid="section-values"
           >
-            <h2 className="text-3xl font-heading font-light text-gray-800 dark:text-white mb-8 text-center">
+            <h2 className="text-2xl font-heading font-light text-gray-800 dark:text-white mb-8 text-center uppercase tracking-[0.12em]">
               {t.valuesTitle}
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -1241,7 +1241,7 @@ export default function About() {
             data-testid="section-culture"
           >
             <div className="text-center mb-12">
-              <h2 className="text-3xl font-heading font-light text-gray-800 dark:text-white mb-4">
+              <h2 className="text-2xl font-heading font-light text-gray-800 dark:text-white mb-4 uppercase tracking-[0.12em]">
                 {t.cultureTitle}
               </h2>
               <p className="text-lg text-primary font-medium mb-4" data-testid="text-culture-subtitle">
@@ -1292,7 +1292,7 @@ export default function About() {
             <div className="text-center mb-12">
               <div className="flex items-center justify-center gap-3 mb-4">
                 <UsersRound className="w-8 h-8 text-primary" />
-                <h2 className="text-3xl font-heading font-light text-gray-800 dark:text-white">
+                <h2 className="text-2xl font-heading font-light text-gray-800 dark:text-white uppercase tracking-[0.12em]">
                   {t.diversityTitle}
                 </h2>
               </div>
@@ -1368,7 +1368,7 @@ export default function About() {
             className="mb-20 bg-gray-50 dark:bg-gray-800 rounded-md p-10"
             data-testid="section-stats"
           >
-            <h2 className="text-3xl font-heading font-light text-gray-800 dark:text-white mb-8 text-center">
+            <h2 className="text-2xl font-heading font-light text-gray-800 dark:text-white mb-8 text-center uppercase tracking-[0.12em]">
               {t.statsTitle}
             </h2>
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-8">
@@ -1396,7 +1396,7 @@ export default function About() {
               <div>
                 <div className="flex items-center gap-3 mb-4">
                   <Award className="w-8 h-8 text-primary" />
-                  <h2 className="text-3xl font-heading font-light text-gray-800 dark:text-white">
+                  <h2 className="text-2xl font-heading font-light text-gray-800 dark:text-white uppercase tracking-[0.12em]">
                     {t.rankingsTitle}
                   </h2>
                 </div>
@@ -1437,7 +1437,7 @@ export default function About() {
                 <CardContent className="p-8">
                   <div className="flex items-center gap-3 mb-4">
                     <Heart className="w-8 h-8 text-primary" />
-                    <h2 className="text-2xl font-heading font-light text-gray-800 dark:text-white">
+                    <h2 className="text-xl font-heading font-light text-gray-800 dark:text-white uppercase tracking-[0.12em]">
                       {t.proBonoTitle}
                     </h2>
                   </div>
@@ -1458,7 +1458,7 @@ export default function About() {
                 <CardContent className="p-8">
                   <div className="flex items-center gap-3 mb-4">
                     <Briefcase className="w-8 h-8 text-white" />
-                    <h2 className="text-2xl font-heading font-light">
+                    <h2 className="text-xl font-heading font-light uppercase tracking-[0.12em]">
                       {t.careersTitle}
                     </h2>
                   </div>

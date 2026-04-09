@@ -526,7 +526,7 @@ export default function Newsletter() {
             className="text-center"
           >
             <h1 
-              className="text-4xl md:text-5xl font-heading font-light text-white mb-4"
+              className="text-3xl md:text-4xl font-heading font-light text-white mb-4 uppercase tracking-[0.12em]"
               data-testid="text-newsletter-title"
             >
               {t.title}
@@ -558,7 +558,7 @@ export default function Newsletter() {
                         <Mail className="w-6 h-6 text-primary" />
                       </div>
                       <h2 
-                        className="text-2xl font-heading font-light text-[#AA1A2E] dark:text-white"
+                        className="text-xl font-heading font-light text-[#AA1A2E] dark:text-white uppercase tracking-[0.12em]"
                         data-testid="text-form-title"
                       >
                         {t.formTitle}
@@ -696,7 +696,7 @@ export default function Newsletter() {
               className="space-y-6"
             >
               <h2 
-                className="text-2xl font-heading font-light text-[#AA1A2E] dark:text-white mb-6"
+                className="text-xl font-heading font-light text-[#AA1A2E] dark:text-white mb-6 uppercase tracking-[0.12em]"
                 data-testid="text-benefits-title"
               >
                 {t.whatYouReceive}
@@ -754,7 +754,7 @@ export default function Newsletter() {
               <div className="flex items-center justify-center gap-3 mb-4">
                 <Archive className="w-8 h-8 text-primary" />
                 <h2 
-                  className="text-2xl font-heading font-light text-[#AA1A2E] dark:text-white"
+                  className="text-xl font-heading font-light text-[#AA1A2E] dark:text-white uppercase tracking-[0.12em]"
                   data-testid="text-archives-title"
                 >
                   {t.archivesTitle}

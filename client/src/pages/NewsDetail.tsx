@@ -694,7 +694,7 @@ export default function NewsDetail() {
               data-testid="section-related-authors"
             >
               <h2 
-                className="text-2xl font-heading font-light text-gray-800 dark:text-white mb-8"
+                className="text-xl font-heading font-light text-gray-800 dark:text-white mb-8 uppercase tracking-[0.12em]"
                 data-testid="text-authors-title"
               >
                 {relatedAuthors.length === 1 ? t.aboutTheAuthor : t.aboutTheAuthors}
@@ -720,7 +720,7 @@ export default function NewsDetail() {
               data-testid="section-related-news"
             >
               <h2 
-                className="text-2xl font-heading font-light text-gray-800 dark:text-white mb-8"
+                className="text-xl font-heading font-light text-gray-800 dark:text-white mb-8 uppercase tracking-[0.12em]"
                 data-testid="text-related-news-title"
               >
                 {t.relatedNews}

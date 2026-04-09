@@ -298,7 +298,7 @@ export default function WorldMapSection({ language }: WorldMapSectionProps) {
             {t.sectionTitle}
           </p>
           <h2
-            className="text-3xl md:text-4xl font-heading font-light text-gray-800 dark:text-white mb-4"
+            className="text-2xl md:text-3xl font-heading font-light text-gray-800 dark:text-white mb-4 uppercase tracking-[0.12em]"
             data-testid="text-global-reach-title"
           >
             {t.title}
@@ -465,7 +465,7 @@ export default function WorldMapSection({ language }: WorldMapSectionProps) {
             data-testid="partners-section"
           >
             <h3
-              className="text-xl md:text-2xl font-heading font-light text-gray-800 dark:text-white text-center mb-8"
+              className="text-lg md:text-xl font-heading font-light text-gray-800 dark:text-white text-center mb-8 uppercase tracking-[0.12em]"
               data-testid="text-partners-title"
             >
               {t.partnersTitle}
@@ -487,7 +487,7 @@ export default function WorldMapSection({ language }: WorldMapSectionProps) {
             data-testid="of-counsel-section"
           >
             <h3
-              className="text-xl md:text-2xl font-heading font-light text-gray-800 dark:text-white text-center mb-8"
+              className="text-lg md:text-xl font-heading font-light text-gray-800 dark:text-white text-center mb-8 uppercase tracking-[0.12em]"
               data-testid="text-of-counsel-title"
             >
               {t.ofCounselTitle}
@@ -509,7 +509,7 @@ export default function WorldMapSection({ language }: WorldMapSectionProps) {
             data-testid="associates-section"
           >
             <h3
-              className="text-xl md:text-2xl font-heading font-light text-gray-800 dark:text-white text-center mb-8"
+              className="text-lg md:text-xl font-heading font-light text-gray-800 dark:text-white text-center mb-8 uppercase tracking-[0.12em]"
               data-testid="text-associates-title"
             >
               {t.associatesTitle}

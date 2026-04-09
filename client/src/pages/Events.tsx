@@ -354,7 +354,7 @@ export default function EventsPage() {
             className="text-center"
           >
             <h1 
-              className="text-4xl md:text-5xl font-heading font-light text-white mb-4"
+              className="text-3xl md:text-4xl font-heading font-light text-white mb-4 uppercase tracking-[0.12em]"
               data-testid="text-events-title"
             >
               {t.title}

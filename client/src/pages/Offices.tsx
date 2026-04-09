@@ -735,7 +735,7 @@ export default function Offices() {
             className="text-center"
           >
             <h1 
-              className="text-4xl md:text-5xl font-heading font-light text-white mb-4"
+              className="text-3xl md:text-4xl font-heading font-light text-white mb-4 uppercase tracking-[0.12em]"
               data-testid="text-offices-title"
             >
               {t.heroTitle}
@@ -759,7 +759,7 @@ export default function Offices() {
             className="mb-20"
             data-testid="section-main-office"
           >
-            <h2 className="text-3xl font-heading font-light text-gray-800 dark:text-white mb-8 text-center">
+            <h2 className="text-2xl font-heading font-light text-gray-800 dark:text-white mb-8 text-center uppercase tracking-[0.12em]">
               {t.mainOfficeTitle}
             </h2>
             
@@ -895,7 +895,7 @@ export default function Offices() {
           >
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
               <div>
-                <h3 className="text-2xl font-heading font-light text-gray-800 dark:text-white mb-4">
+                <h3 className="text-xl font-heading font-light text-gray-800 dark:text-white mb-4 uppercase tracking-[0.12em]">
                   {t.directionsTitle}
                 </h3>
                 <p className="text-gray-700 dark:text-gray-300 leading-relaxed mb-6">
@@ -927,7 +927,7 @@ export default function Offices() {
             data-testid="section-gallery"
           >
             <div className="text-center mb-10">
-              <h2 className="text-3xl font-heading font-light text-gray-800 dark:text-white mb-4">
+              <h2 className="text-2xl font-heading font-light text-gray-800 dark:text-white mb-4 uppercase tracking-[0.12em]">
                 {t.galleryTitle}
               </h2>
               <p className="text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
@@ -973,7 +973,7 @@ export default function Offices() {
             data-testid="section-facilities"
           >
             <div className="text-center mb-10">
-              <h2 className="text-3xl font-heading font-light text-gray-800 dark:text-white mb-4">
+              <h2 className="text-2xl font-heading font-light text-gray-800 dark:text-white mb-4 uppercase tracking-[0.12em]">
                 {t.facilitiesTitle}
               </h2>
               <p className="text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
@@ -1064,7 +1064,7 @@ export default function Offices() {
             data-testid="section-transport"
           >
             <div className="text-center mb-10">
-              <h2 className="text-3xl font-heading font-light text-gray-800 dark:text-white mb-4">
+              <h2 className="text-2xl font-heading font-light text-gray-800 dark:text-white mb-4 uppercase tracking-[0.12em]">
                 {t.transportTitle}
               </h2>
               <p className="text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
@@ -1130,7 +1130,7 @@ export default function Offices() {
             className="bg-primary rounded-md p-8 lg:p-12 text-center"
             data-testid="section-contact-cta"
           >
-            <h2 className="text-3xl font-heading font-light text-white mb-4">
+            <h2 className="text-2xl font-heading font-light text-white mb-4 uppercase tracking-[0.12em]">
               {t.contactCtaTitle}
             </h2>
             <p className="text-white/90 max-w-2xl mx-auto mb-8">

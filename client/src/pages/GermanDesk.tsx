@@ -534,7 +534,7 @@ export default function GermanDesk() {
             className="text-center"
           >
             <h1 
-              className="text-4xl md:text-5xl font-heading font-light text-white mb-4"
+              className="text-3xl md:text-4xl font-heading font-light text-white mb-4 uppercase tracking-[0.12em]"
               data-testid="text-german-desk-title"
             >
               {t.title}
@@ -558,7 +558,7 @@ export default function GermanDesk() {
             className="mb-20"
             data-testid="section-experience"
           >
-            <h2 className="text-3xl font-heading font-light text-[#AA1A2E] mb-6" data-testid="text-experience-title">
+            <h2 className="text-2xl font-heading font-light text-[#AA1A2E] mb-6 uppercase tracking-[0.12em]" data-testid="text-experience-title">
               {t.experienceTitle}
             </h2>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -579,7 +579,7 @@ export default function GermanDesk() {
             data-testid="section-team"
           >
             <div className="text-center mb-12">
-              <h2 className="text-3xl font-heading font-light text-[#AA1A2E] mb-4" data-testid="text-team-title">
+              <h2 className="text-2xl font-heading font-light text-[#AA1A2E] mb-4 uppercase tracking-[0.12em]" data-testid="text-team-title">
                 {t.teamTitle}
               </h2>
               <p className="text-lg text-primary font-medium mb-4" data-testid="text-team-subtitle">
@@ -628,7 +628,7 @@ export default function GermanDesk() {
             data-testid="section-services"
           >
             <div className="text-center mb-12">
-              <h2 className="text-3xl font-heading font-light text-[#AA1A2E] mb-4" data-testid="text-services-title">
+              <h2 className="text-2xl font-heading font-light text-[#AA1A2E] mb-4 uppercase tracking-[0.12em]" data-testid="text-services-title">
                 {t.servicesTitle}
               </h2>
               <p className="text-lg text-gray-600 dark:text-gray-400" data-testid="text-services-subtitle">
@@ -666,7 +666,7 @@ export default function GermanDesk() {
             <div className="text-center mb-12">
               <div className="flex items-center justify-center gap-3 mb-4">
                 <Handshake className="w-8 h-8 text-primary" />
-                <h2 className="text-3xl font-heading font-light text-[#AA1A2E]" data-testid="text-differentiator-title">
+                <h2 className="text-2xl font-heading font-light text-[#AA1A2E] uppercase tracking-[0.12em]" data-testid="text-differentiator-title">
                   {t.differentiatorTitle}
                 </h2>
               </div>
@@ -707,7 +707,7 @@ export default function GermanDesk() {
             className="mb-20"
             data-testid="section-stats"
           >
-            <h2 className="text-3xl font-heading font-light text-[#AA1A2E] mb-8 text-center" data-testid="text-stats-title">
+            <h2 className="text-2xl font-heading font-light text-[#AA1A2E] mb-8 text-center uppercase tracking-[0.12em]" data-testid="text-stats-title">
               {t.statsTitle}
             </h2>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
@@ -738,7 +738,7 @@ export default function GermanDesk() {
           >
             <Card className="rounded-md border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800">
               <CardContent className="p-8 text-center">
-                <h2 className="text-2xl font-heading font-light text-[#AA1A2E] mb-4" data-testid="text-cta-title">
+                <h2 className="text-xl font-heading font-light text-[#AA1A2E] mb-4 uppercase tracking-[0.12em]" data-testid="text-cta-title">
                   {t.ctaTitle}
                 </h2>
                 <p className="text-lg text-gray-700 dark:text-gray-300 mb-8 max-w-2xl mx-auto" data-testid="text-cta-description">

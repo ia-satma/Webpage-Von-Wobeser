@@ -750,7 +750,7 @@ export default function Interns() {
             className="text-center"
           >
             <h1 
-              className="text-4xl md:text-5xl font-heading font-light text-white mb-4"
+              className="text-3xl md:text-4xl font-heading font-light text-white mb-4 uppercase tracking-[0.12em]"
               data-testid="text-interns-title"
             >
               {t.heroTitle}
@@ -789,7 +789,7 @@ export default function Interns() {
           >
             <div className="text-center mb-12">
               <h2 
-                className="text-3xl md:text-4xl font-heading font-light text-[#AA1A2E] mb-4"
+                className="text-2xl md:text-3xl font-heading font-light text-[#AA1A2E] mb-4 uppercase tracking-[0.12em]"
                 data-testid="text-program-overview-title"
               >
                 {t.programOverviewTitle}
@@ -848,7 +848,7 @@ export default function Interns() {
           >
             <div className="text-center mb-12">
               <h2 
-                className="text-3xl md:text-4xl font-heading font-light text-[#AA1A2E] mb-4"
+                className="text-2xl md:text-3xl font-heading font-light text-[#AA1A2E] mb-4 uppercase tracking-[0.12em]"
                 data-testid="text-what-you-learn-title"
               >
                 {t.whatYouLearnTitle}
@@ -902,7 +902,7 @@ export default function Interns() {
           >
             <div className="text-center mb-12">
               <h2 
-                className="text-3xl md:text-4xl font-heading font-light text-[#AA1A2E] mb-4"
+                className="text-2xl md:text-3xl font-heading font-light text-[#AA1A2E] mb-4 uppercase tracking-[0.12em]"
                 data-testid="text-requirements-title"
               >
                 {t.requirementsTitle}
@@ -947,7 +947,7 @@ export default function Interns() {
           >
             <div className="text-center mb-12">
               <h2 
-                className="text-3xl md:text-4xl font-heading font-light text-[#AA1A2E] mb-4"
+                className="text-2xl md:text-3xl font-heading font-light text-[#AA1A2E] mb-4 uppercase tracking-[0.12em]"
                 data-testid="text-application-process-title"
               >
                 {t.applicationProcessTitle}
@@ -997,7 +997,7 @@ export default function Interns() {
           >
             <div className="text-center mb-12">
               <h2 
-                className="text-3xl md:text-4xl font-heading font-light text-[#AA1A2E] mb-4"
+                className="text-2xl md:text-3xl font-heading font-light text-[#AA1A2E] mb-4 uppercase tracking-[0.12em]"
                 data-testid="text-benefits-title"
               >
                 {t.benefitsTitle}
@@ -1052,7 +1052,7 @@ export default function Interns() {
             <Card className="rounded-md border border-gray-200 dark:border-gray-700 bg-primary text-white overflow-hidden">
               <CardContent className="p-8 lg:p-12 text-center">
                 <h2 
-                  className="text-2xl md:text-3xl font-heading font-light mb-4"
+                  className="text-xl md:text-2xl font-heading font-light mb-4 uppercase tracking-[0.12em]"
                   data-testid="text-cta-title"
                 >
                   {t.ctaTitle}

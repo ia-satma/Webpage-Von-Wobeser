@@ -713,7 +713,7 @@ export default function Contact() {
             className="text-center"
           >
             <h1 
-              className="text-4xl md:text-5xl font-heading font-light text-white mb-4"
+              className="text-3xl md:text-4xl font-heading font-light text-white mb-4 uppercase tracking-[0.12em]"
               data-testid="text-contact-title"
             >
               {t.title}
@@ -741,7 +741,7 @@ export default function Contact() {
               <CardContent className="p-8">
                 <div className="mb-8">
                   <h2 
-                    className="text-2xl font-heading font-light text-gray-800 dark:text-white mb-2"
+                    className="text-xl font-heading font-light text-gray-800 dark:text-white mb-2 uppercase tracking-[0.12em]"
                     data-testid="text-form-title"
                   >
                     {t.formTitle}
@@ -911,7 +911,7 @@ export default function Contact() {
               transition={{ duration: 0.6, delay: 0.2 }}
             >
               <h2 
-                className="text-2xl font-heading font-light text-gray-800 dark:text-white mb-6"
+                className="text-xl font-heading font-light text-gray-800 dark:text-white mb-6 uppercase tracking-[0.12em]"
                 data-testid="text-offices-title"
               >
                 {t.officesTitle}

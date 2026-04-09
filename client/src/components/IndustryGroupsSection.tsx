@@ -240,7 +240,7 @@ export default function IndustryGroupsSection() {
           className="mb-12"
         >
           <h2
-            className="text-3xl md:text-4xl font-heading font-light text-[#AA1A2E] tracking-wide"
+            className="text-2xl md:text-3xl font-heading font-light text-[#AA1A2E] uppercase tracking-[0.15em]"
             data-testid="text-industry-groups-title"
           >
             {t.title}

@@ -367,7 +367,7 @@ export default function IndustryGroupDetail() {
                 </div>
               )}
               <h1 
-                className="text-3xl md:text-4xl lg:text-5xl font-heading font-light text-white"
+                className="text-2xl md:text-3xl lg:text-4xl font-heading font-light text-white uppercase tracking-[0.12em]"
                 data-testid="text-industry-group-title"
               >
                 {displayName}
@@ -406,7 +406,7 @@ export default function IndustryGroupDetail() {
               data-testid="section-related-services"
             >
               <h2 
-                className="text-2xl font-heading font-light text-gray-800 dark:text-white mb-6"
+                className="text-xl font-heading font-light text-gray-800 dark:text-white mb-6 uppercase tracking-[0.12em]"
                 data-testid="text-related-services-title"
               >
                 {t.relatedServices}
@@ -431,7 +431,7 @@ export default function IndustryGroupDetail() {
             data-testid="section-contact-cta"
           >
             <h2 
-              className="text-2xl font-heading font-light text-gray-800 dark:text-white mb-3"
+              className="text-xl font-heading font-light text-gray-800 dark:text-white mb-3 uppercase tracking-[0.12em]"
               data-testid="text-contact-cta-title"
             >
               {t.contactCta}

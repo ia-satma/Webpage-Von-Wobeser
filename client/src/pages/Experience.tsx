@@ -322,7 +322,7 @@ export default function Experience() {
             className="text-center"
           >
             <h1 
-              className="text-4xl md:text-5xl font-heading font-light text-white mb-4"
+              className="text-3xl md:text-4xl font-heading font-light text-white mb-4 uppercase tracking-[0.12em]"
               data-testid="text-experience-title"
             >
               {t.title}
@@ -363,7 +363,7 @@ export default function Experience() {
                 <div className="flex items-center justify-center gap-2 mb-4">
                   <Award className="w-6 h-6 text-primary" />
                   <h2 
-                    className="text-3xl font-heading font-light text-gray-900 dark:text-white"
+                    className="text-2xl font-heading font-light text-gray-900 dark:text-white uppercase tracking-[0.12em]"
                     data-testid="text-featured-title"
                   >
                     {t.featuredTitle}
@@ -469,7 +469,7 @@ export default function Experience() {
                 className="mb-12"
               >
                 <h2 
-                  className="text-3xl font-heading font-light text-gray-900 dark:text-white text-center mb-8"
+                  className="text-2xl font-heading font-light text-gray-900 dark:text-white text-center mb-8 uppercase tracking-[0.12em]"
                   data-testid="text-all-matters-title"
                 >
                   {t.allMattersTitle}

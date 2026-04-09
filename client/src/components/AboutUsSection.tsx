@@ -151,7 +151,7 @@ export default function AboutUsSection() {
             data-testid="subsection-vision"
           >
             <h3
-              className="text-2xl md:text-3xl font-heading font-light text-gray-800 dark:text-white mb-6"
+              className="text-xl md:text-2xl font-heading font-light text-gray-800 dark:text-white mb-6 uppercase tracking-[0.12em]"
               data-testid="text-vision-title"
             >
               {t.visionTitle}
@@ -172,7 +172,7 @@ export default function AboutUsSection() {
             data-testid="subsection-mission"
           >
             <h3
-              className="text-2xl md:text-3xl font-heading font-light text-gray-800 dark:text-white mb-6"
+              className="text-xl md:text-2xl font-heading font-light text-gray-800 dark:text-white mb-6 uppercase tracking-[0.12em]"
               data-testid="text-mission-title"
             >
               {t.missionTitle}
@@ -204,7 +204,7 @@ export default function AboutUsSection() {
           data-testid="subsection-values"
         >
           <h3
-            className="text-2xl md:text-3xl font-heading font-light text-gray-800 dark:text-white mb-10"
+            className="text-xl md:text-2xl font-heading font-light text-gray-800 dark:text-white mb-10 uppercase tracking-[0.12em]"
             data-testid="text-values-title"
           >
             {t.valuesTitle}

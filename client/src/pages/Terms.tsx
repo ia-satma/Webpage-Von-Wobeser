@@ -2025,7 +2025,7 @@ Escluse le festività federali messicane`
               <Scale className="w-12 h-12 text-white/90" />
             </div>
             <h1 
-              className="text-4xl md:text-5xl font-heading font-light text-white mb-4"
+              className="text-3xl md:text-4xl font-heading font-light text-white mb-4 uppercase tracking-[0.12em]"
               data-testid="text-terms-title"
             >
               {t.title}

@@ -597,7 +597,7 @@ export default function DiversityInclusion() {
               <UsersRound className="w-10 h-10 text-white" />
             </div>
             <h1
-              className="text-4xl md:text-5xl font-heading font-light text-white mb-4"
+              className="text-3xl md:text-4xl font-heading font-light text-white mb-4 uppercase tracking-[0.12em]"
               data-testid="text-diversity-title"
             >
               {t.title}
@@ -621,7 +621,7 @@ export default function DiversityInclusion() {
             className="mb-20"
             data-testid="section-founding"
           >
-            <h2 className="text-3xl font-heading font-light text-[#AA1A2E] mb-6">
+            <h2 className="text-2xl font-heading font-light text-[#AA1A2E] mb-6 uppercase tracking-[0.12em]">
               {t.foundingTitle}
             </h2>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -641,7 +641,7 @@ export default function DiversityInclusion() {
             className="mb-20"
             data-testid="section-stats"
           >
-            <h2 className="text-3xl font-heading font-light text-[#AA1A2E] mb-8 text-center">
+            <h2 className="text-2xl font-heading font-light text-[#AA1A2E] mb-8 text-center uppercase tracking-[0.12em]">
               {t.statsTitle}
             </h2>
             <motion.div
@@ -678,7 +678,7 @@ export default function DiversityInclusion() {
             className="mb-20"
             data-testid="section-values"
           >
-            <h2 className="text-3xl font-heading font-light text-[#AA1A2E] mb-8 text-center">
+            <h2 className="text-2xl font-heading font-light text-[#AA1A2E] mb-8 text-center uppercase tracking-[0.12em]">
               {t.valuesTitle}
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -710,7 +710,7 @@ export default function DiversityInclusion() {
             data-testid="section-initiatives"
           >
             <div className="text-center mb-12">
-              <h2 className="text-3xl font-heading font-light text-[#AA1A2E] mb-4">
+              <h2 className="text-2xl font-heading font-light text-[#AA1A2E] mb-4 uppercase tracking-[0.12em]">
                 {t.initiativesTitle}
               </h2>
               <p className="text-lg text-gray-600 dark:text-gray-400" data-testid="text-initiatives-subtitle">
@@ -759,7 +759,7 @@ export default function DiversityInclusion() {
               <CardContent className="p-8">
                 <div className="flex items-center gap-3 mb-4">
                   <HeartHandshake className="w-8 h-8 text-[#AA1A2E]" />
-                  <h2 className="text-2xl font-heading font-light text-[#AA1A2E]">
+                  <h2 className="text-xl font-heading font-light text-[#AA1A2E] uppercase tracking-[0.12em]">
                     {t.proBonoTitle}
                   </h2>
                 </div>
@@ -787,7 +787,7 @@ export default function DiversityInclusion() {
             className="mb-20 text-center"
             data-testid="section-commitment"
           >
-            <h2 className="text-3xl font-heading font-light text-[#AA1A2E] mb-6">
+            <h2 className="text-2xl font-heading font-light text-[#AA1A2E] mb-6 uppercase tracking-[0.12em]">
               {t.commitmentTitle}
             </h2>
             <p className="text-lg text-gray-700 dark:text-gray-300 leading-relaxed max-w-4xl mx-auto">
@@ -802,7 +802,7 @@ export default function DiversityInclusion() {
             className="bg-[#AA1A2E] rounded-md p-10 text-center"
             data-testid="section-join"
           >
-            <h2 className="text-3xl font-heading font-light text-white mb-4">
+            <h2 className="text-2xl font-heading font-light text-white mb-4 uppercase tracking-[0.12em]">
               {t.joinTitle}
             </h2>
             <p className="text-lg text-white/90 mb-6 max-w-2xl mx-auto">

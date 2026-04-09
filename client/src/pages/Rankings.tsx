@@ -445,7 +445,7 @@ export default function Rankings() {
               <Trophy className="w-10 h-10 text-white/90" />
             </div>
             <h1
-              className="text-4xl md:text-5xl font-heading font-light text-white mb-4"
+              className="text-3xl md:text-4xl font-heading font-light text-white mb-4 uppercase tracking-[0.12em]"
               data-testid="text-rankings-title"
             >
               {t.title}
@@ -469,7 +469,7 @@ export default function Rankings() {
             className="mb-20"
             data-testid="section-rankings-overview"
           >
-            <h2 className="text-3xl font-heading font-light text-gray-800 dark:text-white mb-6">
+            <h2 className="text-2xl font-heading font-light text-gray-800 dark:text-white mb-6 uppercase tracking-[0.12em]">
               {t.overviewTitle}
             </h2>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -491,7 +491,7 @@ export default function Rankings() {
             data-testid="section-directories"
           >
             <div className="text-center mb-12">
-              <h2 className="text-3xl font-heading font-light text-gray-800 dark:text-white mb-4">
+              <h2 className="text-2xl font-heading font-light text-gray-800 dark:text-white mb-4 uppercase tracking-[0.12em]">
                 {t.directoriesTitle}
               </h2>
               <p className="text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
@@ -548,7 +548,7 @@ export default function Rankings() {
             data-testid="section-awards"
           >
             <div className="text-center mb-12">
-              <h2 className="text-3xl font-heading font-light text-gray-800 dark:text-white mb-4">
+              <h2 className="text-2xl font-heading font-light text-gray-800 dark:text-white mb-4 uppercase tracking-[0.12em]">
                 {t.awardsTitle}
               </h2>
               <p className="text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
@@ -625,7 +625,7 @@ export default function Rankings() {
             data-testid="section-ranked-lawyers"
           >
             <div className="text-center mb-12">
-              <h2 className="text-3xl font-heading font-light text-gray-800 dark:text-white mb-4">
+              <h2 className="text-2xl font-heading font-light text-gray-800 dark:text-white mb-4 uppercase tracking-[0.12em]">
                 {t.lawyersTitle}
               </h2>
               <p className="text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">

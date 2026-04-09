@@ -145,7 +145,7 @@ export default function SocialProofSection() {
           className="text-center mb-16"
         >
           <h2
-            className="text-2xl md:text-3xl lg:text-4xl font-heading font-light text-[#AA1A2E]"
+            className="text-2xl md:text-3xl lg:text-4xl font-heading font-light text-[#AA1A2E] uppercase tracking-[0.12em]"
             data-testid="text-social-proof-title"
           >
             {t.title}

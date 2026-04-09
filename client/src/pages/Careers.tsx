@@ -1048,7 +1048,7 @@ export default function Careers() {
             className="text-center"
           >
             <h1 
-              className="text-4xl md:text-5xl font-heading font-light text-white mb-4"
+              className="text-3xl md:text-4xl font-heading font-light text-white mb-4 uppercase tracking-[0.12em]"
               data-testid="text-careers-title"
             >
               {t.heroTitle}
@@ -1087,7 +1087,7 @@ export default function Careers() {
           >
             <div className="text-center mb-12">
               <h2 
-                className="text-3xl md:text-4xl font-heading font-light text-gray-800 dark:text-white mb-4"
+                className="text-2xl md:text-3xl font-heading font-light text-gray-800 dark:text-white mb-4 uppercase tracking-[0.12em]"
                 data-testid="text-why-join-title"
               >
                 {t.whyJoinTitle}
@@ -1100,7 +1100,7 @@ export default function Careers() {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
               <Card className="rounded-md border border-gray-200 dark:border-gray-700" data-testid="card-culture">
                 <CardHeader>
-                  <CardTitle className="flex items-center gap-3 text-xl font-heading font-light text-gray-800 dark:text-white">
+                  <CardTitle className="flex items-center gap-3 text-lg font-heading font-light text-gray-800 dark:text-white uppercase tracking-[0.1em]">
                     <Building2 className="w-6 h-6 text-primary" />
                     {t.cultureTitle}
                   </CardTitle>
@@ -1114,7 +1114,7 @@ export default function Careers() {
 
               <Card className="rounded-md border border-gray-200 dark:border-gray-700" data-testid="card-environment">
                 <CardHeader>
-                  <CardTitle className="flex items-center gap-3 text-xl font-heading font-light text-gray-800 dark:text-white">
+                  <CardTitle className="flex items-center gap-3 text-lg font-heading font-light text-gray-800 dark:text-white uppercase tracking-[0.1em]">
                     <Target className="w-6 h-6 text-primary" />
                     {t.environmentTitle}
                   </CardTitle>
@@ -1129,7 +1129,7 @@ export default function Careers() {
 
             <Card className="rounded-md border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800" data-testid="card-values">
               <CardHeader>
-                <CardTitle className="text-xl font-heading font-light text-gray-800 dark:text-white text-center">
+                <CardTitle className="text-lg font-heading font-light text-gray-800 dark:text-white text-center uppercase tracking-[0.1em]">
                   {t.valuesTitle}
                 </CardTitle>
               </CardHeader>
@@ -1174,7 +1174,7 @@ export default function Careers() {
           >
             <div className="text-center mb-12">
               <h2 
-                className="text-3xl md:text-4xl font-heading font-light text-gray-800 dark:text-white mb-4"
+                className="text-2xl md:text-3xl font-heading font-light text-gray-800 dark:text-white mb-4 uppercase tracking-[0.12em]"
                 data-testid="text-benefits-title"
               >
                 {t.benefitsTitle}
@@ -1228,7 +1228,7 @@ export default function Careers() {
           >
             <div className="text-center mb-12">
               <h2 
-                className="text-3xl md:text-4xl font-heading font-light text-gray-800 dark:text-white mb-4"
+                className="text-2xl md:text-3xl font-heading font-light text-gray-800 dark:text-white mb-4 uppercase tracking-[0.12em]"
                 data-testid="text-positions-title"
               >
                 {t.positionsTitle}
@@ -1306,7 +1306,7 @@ export default function Careers() {
           >
             <div className="text-center mb-12">
               <h2 
-                className="text-3xl md:text-4xl font-heading font-light text-gray-800 dark:text-white mb-4"
+                className="text-2xl md:text-3xl font-heading font-light text-gray-800 dark:text-white mb-4 uppercase tracking-[0.12em]"
                 data-testid="text-internship-title"
               >
                 {t.internshipTitle}
@@ -1322,7 +1322,7 @@ export default function Careers() {
                 data-testid="card-internship-overview"
               >
                 <CardHeader>
-                  <CardTitle className="flex items-center gap-3 text-xl font-heading font-light text-gray-800 dark:text-white">
+                  <CardTitle className="flex items-center gap-3 text-lg font-heading font-light text-gray-800 dark:text-white uppercase tracking-[0.1em]">
                     <GraduationCap className="w-6 h-6 text-primary" />
                     {t.internshipOverviewTitle}
                   </CardTitle>
@@ -1414,7 +1414,7 @@ export default function Careers() {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
               <div className="lg:col-span-2">
                 <h2 
-                  className="text-3xl md:text-4xl font-heading font-light text-gray-800 dark:text-white mb-4"
+                  className="text-2xl md:text-3xl font-heading font-light text-gray-800 dark:text-white mb-4 uppercase tracking-[0.12em]"
                   data-testid="text-apply-title"
                 >
                   {t.applyTitle}
@@ -1451,7 +1451,7 @@ export default function Careers() {
                     <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center mb-6">
                       <Users className="w-7 h-7 text-primary" />
                     </div>
-                    <h3 className="text-xl font-heading font-light text-gray-800 dark:text-white mb-2">
+                    <h3 className="text-base font-heading font-light text-gray-800 dark:text-white mb-2 uppercase tracking-[0.1em]">
                       {t.contactCardTitle}
                     </h3>
                     <p className="text-gray-600 dark:text-gray-400 mb-6">

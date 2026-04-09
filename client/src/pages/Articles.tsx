@@ -327,7 +327,7 @@ export default function ArticlesPage() {
             className="text-center"
           >
             <h1 
-              className="text-4xl md:text-5xl font-heading font-light text-white mb-4"
+              className="text-3xl md:text-4xl font-heading font-light text-white mb-4 uppercase tracking-[0.12em]"
               data-testid="text-articles-title"
             >
               {t.title}
@@ -414,7 +414,7 @@ export default function ArticlesPage() {
               >
                 <FileText className="w-16 h-16 text-primary/40 mx-auto mb-6" />
                 <h2 
-                  className="text-3xl font-heading font-light mb-4"
+                  className="text-2xl font-heading font-light mb-4 uppercase tracking-[0.12em]"
                   style={{ color: "#AA1A2E" }}
                   data-testid="text-coming-soon-title"
                 >

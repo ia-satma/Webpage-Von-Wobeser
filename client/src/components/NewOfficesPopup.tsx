@@ -375,7 +375,7 @@ export default function NewOfficesPopup({ language }: NewOfficesPopupProps) {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: 0.2 }}
-                className="text-3xl md:text-4xl lg:text-5xl font-heading font-light text-white leading-tight mb-4"
+                className="text-2xl md:text-3xl lg:text-4xl font-heading font-light text-white leading-tight mb-4 uppercase tracking-[0.12em]"
                 data-testid="text-popup-hero-title"
               >
                 {t.heroTitle}
@@ -405,7 +405,7 @@ export default function NewOfficesPopup({ language }: NewOfficesPopupProps) {
 
           <div className="bg-white px-6 md:px-12 py-12 space-y-12">
             <section className="max-w-3xl mx-auto text-center" data-testid="section-vision">
-              <h3 className="text-2xl md:text-3xl font-heading font-light text-gray-800 mb-6">
+              <h3 className="text-xl md:text-2xl font-heading font-light text-gray-800 mb-6 uppercase tracking-[0.12em]">
                 {t.visionTitle}
               </h3>
               <p className="text-gray-600 leading-relaxed font-serif">
@@ -414,7 +414,7 @@ export default function NewOfficesPopup({ language }: NewOfficesPopupProps) {
             </section>
 
             <section className="max-w-3xl mx-auto text-center" data-testid="section-center">
-              <h3 className="text-2xl md:text-3xl font-heading font-light text-gray-800 mb-6">
+              <h3 className="text-xl md:text-2xl font-heading font-light text-gray-800 mb-6 uppercase tracking-[0.12em]">
                 {t.centerTitle}
               </h3>
               <p className="text-gray-600 leading-relaxed font-serif">
@@ -423,7 +423,7 @@ export default function NewOfficesPopup({ language }: NewOfficesPopupProps) {
             </section>
 
             <section className="max-w-3xl mx-auto text-center" data-testid="section-collaboration">
-              <h3 className="text-2xl md:text-3xl font-heading font-light text-gray-800 mb-6">
+              <h3 className="text-xl md:text-2xl font-heading font-light text-gray-800 mb-6 uppercase tracking-[0.12em]">
                 {t.collabTitle}
               </h3>
               <p className="text-gray-600 leading-relaxed font-serif mb-4">
@@ -476,7 +476,7 @@ export default function NewOfficesPopup({ language }: NewOfficesPopupProps) {
             </section>
 
             <section className="max-w-3xl mx-auto text-center" data-testid="section-address">
-              <h3 className="text-2xl md:text-3xl font-heading font-light text-gray-800 mb-6">
+              <h3 className="text-xl md:text-2xl font-heading font-light text-gray-800 mb-6 uppercase tracking-[0.12em]">
                 {t.addressTitle}
               </h3>
               <a
