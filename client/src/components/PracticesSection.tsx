@@ -43,60 +43,82 @@ const practiceAreas: PracticeArea[] = [
 
 interface PracticesContent {
   title: string;
+  intro: string;
   seeMore: string;
   ctaText: string;
+  areaCount: string;
 }
 
 const content: Record<LanguageCode, PracticesContent> = {
   en: {
     title: "PRACTICE AREAS",
-    seeMore: "SEE MORE",
+    intro: "Comprehensive legal services across 18 specialized disciplines.",
+    seeMore: "SEE ALL PRACTICES",
     ctaText: "Get Legal Advice",
+    areaCount: "Practice Areas",
   },
   es: {
     title: "ÁREAS DE PRÁCTICA",
-    seeMore: "VER MÁS",
+    intro: "Asesoría legal integral en 18 disciplinas especializadas.",
+    seeMore: "VER TODAS LAS PRÁCTICAS",
     ctaText: "Obtener Asesoría Legal",
+    areaCount: "Áreas de Práctica",
   },
   de: {
     title: "PRAXISBEREICHE",
-    seeMore: "MEHR ANZEIGEN",
+    intro: "Umfassende Rechtsdienstleistungen in 18 spezialisierten Bereichen.",
+    seeMore: "ALLE BEREICHE ANZEIGEN",
     ctaText: "Rechtsberatung Anfordern",
+    areaCount: "Praxisbereiche",
   },
   zh: {
     title: "业务领域",
-    seeMore: "查看更多",
+    intro: "涵盖18个专业领域的综合法律服务。",
+    seeMore: "查看所有业务领域",
     ctaText: "获取法律咨询",
+    areaCount: "业务领域",
   },
   ko: {
     title: "업무 분야",
-    seeMore: "더 보기",
+    intro: "18개 전문 분야에 걸친 종합 법률 서비스.",
+    seeMore: "모든 업무 분야 보기",
     ctaText: "법률 상담 받기",
+    areaCount: "업무 분야",
   },
   ja: {
     title: "プラクティス分野",
-    seeMore: "もっと見る",
+    intro: "18の専門分野にわたる包括的な法律サービス。",
+    seeMore: "すべての分野を見る",
     ctaText: "法律相談を受ける",
+    areaCount: "プラクティス分野",
   },
   ar: {
     title: "مجالات الممارسة",
-    seeMore: "عرض المزيد",
+    intro: "خدمات قانونية شاملة في 18 تخصصاً متكاملاً.",
+    seeMore: "عرض جميع المجالات",
     ctaText: "احصل على استشارة قانونية",
+    areaCount: "مجالات الممارسة",
   },
   ru: {
     title: "ПРАКТИКИ",
-    seeMore: "СМОТРЕТЬ ВСЕ",
-    ctaText: "Получить юридическую консультацию",
+    intro: "Комплексные юридические услуги по 18 специализациям.",
+    seeMore: "ВСЕ ПРАКТИКИ",
+    ctaText: "Получить консультацию",
+    areaCount: "Направления",
   },
   fr: {
     title: "DOMAINES D'EXPERTISE",
-    seeMore: "VOIR PLUS",
+    intro: "Services juridiques complets dans 18 disciplines spécialisées.",
+    seeMore: "VOIR TOUS LES DOMAINES",
     ctaText: "Obtenir un Conseil Juridique",
+    areaCount: "Domaines d'expertise",
   },
   it: {
     title: "AREE DI PRATICA",
-    seeMore: "VEDI ALTRO",
+    intro: "Servizi legali completi in 18 discipline specializzate.",
+    seeMore: "VEDI TUTTE LE AREE",
     ctaText: "Richiedi Consulenza Legale",
+    areaCount: "Aree di Pratica",
   },
 };
 
@@ -142,85 +164,103 @@ export default function PracticesSection() {
   return (
     <section
       id="practices"
-      className="py-20 lg:py-28 bg-background"
+      className="py-24 lg:py-32 bg-[#111110]"
       data-testid="section-practices"
     >
       <div className="max-w-7xl mx-auto px-6 lg:px-12">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
-          className="mb-2"
-        >
-          <h2
-            className="text-2xl md:text-3xl font-heading font-light text-[#AA1A2E] uppercase tracking-[0.15em]"
-            data-testid="text-practices-title"
-          >
-            {t.title}
-          </h2>
-        </motion.div>
+        <div className="flex flex-col lg:flex-row lg:gap-20">
 
-        <motion.div
-          variants={containerVariants}
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true }}
-          className="mt-8 border-t border-foreground/8 grid grid-cols-1 md:grid-cols-2"
-        >
-          {practiceAreas.map((area) => (
-            <motion.div key={area.id} variants={itemVariants}>
-              <Link
-                href={`/practice-groups/${area.slug}`}
-                className="group flex items-center gap-6 pl-4 pr-4 md:px-6 py-6 border-b border-foreground/8 border-l-2 border-l-transparent hover:border-l-[#AA1A2E] hover:bg-muted/40 transition-all duration-200"
-                data-testid={`link-practice-${area.id}`}
+          {/* Left editorial identity column */}
+          <motion.div
+            initial={{ opacity: 0, x: -24 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+            className="lg:w-1/3 mb-12 lg:mb-0"
+          >
+            <div className="lg:sticky lg:top-24 flex flex-col">
+              {/* Red rule */}
+              <div className="w-12 h-px bg-[#AA1A2E] mb-6" />
+
+              {/* Section label */}
+              <h2
+                className="text-[#AA1A2E] text-sm font-medium tracking-[0.2em] uppercase mb-6"
+                data-testid="text-practices-title"
               >
-                <span
-                  className="text-sm font-medium text-[#AA1A2E] w-8 shrink-0 tabular-nums"
-                  data-testid={`text-practice-number-${area.id}`}
-                >
-                  {String(area.id).padStart(2, "0")}
-                </span>
-                <span
-                  className="flex-1 text-xl font-light text-foreground group-hover:text-[#AA1A2E] transition-colors duration-200"
-                  data-testid={`text-practice-name-${area.id}`}
-                >
-                  {getPracticeAreaName(area, language)}
-                </span>
-                <ArrowRight
-                  className="w-4 h-4 text-muted-foreground group-hover:text-[#AA1A2E] group-hover:translate-x-1 transition-all duration-200 opacity-0 group-hover:opacity-100 shrink-0"
-                />
-              </Link>
-            </motion.div>
-          ))}
-        </motion.div>
+                {t.title}
+              </h2>
 
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6, delay: 0.3 }}
-          className="mt-12 flex flex-col sm:flex-row items-center justify-center gap-4"
-        >
-          <Link
-            href="/practice-groups"
-            className="inline-flex items-center gap-2 text-sm font-medium text-primary hover:text-primary/80 transition-colors group"
-            data-testid="link-practices-see-more"
+              {/* Decorative large number */}
+              <div className="relative mb-6 select-none pointer-events-none">
+                <span className="text-[9rem] leading-none font-heading font-light text-white/[0.04]">
+                  18
+                </span>
+              </div>
+
+              {/* Intro sentence */}
+              <p className="text-sm text-white/50 leading-relaxed mb-10 max-w-xs">
+                {t.intro}
+              </p>
+
+              {/* CTAs */}
+              <div className="flex flex-col gap-4">
+                <Link href="/contact">
+                  <Button
+                    className="bg-[#AA1A2E] text-white uppercase tracking-wide text-xs w-full sm:w-auto"
+                    data-testid="button-practices-contact"
+                  >
+                    <Phone className="w-3.5 h-3.5 mr-2" />
+                    {t.ctaText}
+                  </Button>
+                </Link>
+                <Link
+                  href="/practice-groups"
+                  className="inline-flex items-center gap-2 text-xs font-medium tracking-[0.12em] uppercase text-white/50 hover:text-white transition-colors duration-200 group"
+                  data-testid="link-practices-see-more"
+                >
+                  {t.seeMore}
+                  <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform duration-200" />
+                </Link>
+              </div>
+            </div>
+          </motion.div>
+
+          {/* Right list column */}
+          <motion.div
+            variants={containerVariants}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+            className="lg:w-2/3 border-t border-white/10"
           >
-            {t.seeMore}
-            <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-          </Link>
-          <Link href="/contact">
-            <Button
-              size="lg"
-              className="bg-[#AA1A2E] hover:bg-[#8A1525] text-white uppercase tracking-wide"
-              data-testid="button-practices-contact"
-            >
-              <Phone className="w-4 h-4 mr-2" />
-              {t.ctaText}
-            </Button>
-          </Link>
-        </motion.div>
+            {practiceAreas.map((area) => (
+              <motion.div key={area.id} variants={itemVariants}>
+                <Link
+                  href={`/practice-groups/${area.slug}`}
+                  className="group flex items-center gap-6 px-4 py-7 border-b border-white/8 border-l-2 border-l-transparent hover:border-l-[#AA1A2E] hover:bg-white/[0.03] transition-all duration-200"
+                  data-testid={`link-practice-${area.id}`}
+                >
+                  <span
+                    className="text-base font-medium text-[#AA1A2E] w-12 shrink-0 tabular-nums"
+                    data-testid={`text-practice-number-${area.id}`}
+                  >
+                    {String(area.id).padStart(2, "0")}
+                  </span>
+                  <span
+                    className="flex-1 text-2xl font-light text-white/90 group-hover:text-white transition-colors duration-200"
+                    data-testid={`text-practice-name-${area.id}`}
+                  >
+                    {getPracticeAreaName(area, language)}
+                  </span>
+                  <ArrowRight
+                    className="w-4 h-4 text-[#AA1A2E] shrink-0 opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all duration-200"
+                  />
+                </Link>
+              </motion.div>
+            ))}
+          </motion.div>
+
+        </div>
       </div>
     </section>
   );
