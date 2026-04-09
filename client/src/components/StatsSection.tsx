@@ -383,13 +383,13 @@ export default function StatsSection({ language }: StatsSectionProps) {
               {t.title}
             </h2>
             <p
-              className="text-sm text-muted-foreground leading-relaxed mb-4"
+              className="text-sm text-muted-foreground leading-relaxed mb-4 text-justify"
               data-testid="text-stats-subtitle"
             >
               {t.subtitle}
             </p>
             <p
-              className="text-sm text-muted-foreground leading-relaxed"
+              className="text-sm text-muted-foreground leading-relaxed text-justify"
               data-testid="text-stats-description"
             >
               {t.description}
@@ -447,7 +447,7 @@ export default function StatsSection({ language }: StatsSectionProps) {
           className="border-t border-border pt-10 mt-14"
         >
           <p
-            className="text-sm text-muted-foreground leading-relaxed max-w-4xl"
+            className="text-sm text-muted-foreground leading-relaxed max-w-4xl text-justify"
             data-testid="text-stats-capacity"
           >
             {t.capacity}
