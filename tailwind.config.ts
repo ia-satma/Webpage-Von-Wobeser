@@ -89,8 +89,8 @@ export default {
         support: ["var(--font-support)"],
         mono: ["var(--font-mono)"],
         publico: ["'Playfair Display'", "Georgia", "serif"],
-        optima: ["'Optima'", "Calibri", "sans-serif"],
-        geomanist: ["'Geomanist'", "'Century Gothic'", "sans-serif"],
+        optima: ["'Optima'", "'Lato'", "Calibri", "sans-serif"],
+        geomanist: ["'Geomanist'", "'Century Gothic'", "'Lato'", "sans-serif"],
       },
       keyframes: {
         "accordion-down": {

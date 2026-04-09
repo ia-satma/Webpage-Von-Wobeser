@@ -6,26 +6,17 @@
    CORPORATE IDENTITY FONTS — Manual de Identidad 2022
    ====================================================== */
 
-/* Playfair Display replaces Publico — same editorial serif, full Latin-extended support */
-/* Loaded via Google Fonts in index.html */
+/*
+  CORPORATE IDENTITY FONT STRATEGY (Manual de Identidad 2022)
+  ─────────────────────────────────────────────────────────────
+  • Playfair Display  → headlines / H1–H3  (loaded via Google Fonts, full Latin-ext)
+  • Optima            → body / running text (native on macOS/iOS; Lato as web fallback)
+  • Geomanist         → labels / menu / buttons (Century Gothic on Windows; Lato as web fallback)
 
-/* Optima — body copy, paragraphs, running text */
-@font-face {
-  font-family: 'Optima';
-  src: url('/fonts/Optima.ttf') format('truetype');
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-}
-
-/* Geomanist Regular — labels, menu items, buttons */
-@font-face {
-  font-family: 'Geomanist';
-  src: url('/fonts/Geomanist-Regular.ttf') format('truetype');
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-}
+  The broken TTF files are intentionally NOT loaded via @font-face because they
+  are missing Latin-Extended glyphs (accented Spanish characters render incorrectly).
+  System fonts handle Optima on Apple devices; Lato is the universal web fallback.
+*/
 
 /* Italic is prohibited by the Manual de Identidad */
 * {
@@ -81,10 +72,10 @@
   --chart-3: 0 0% 30%;
   --chart-4: 0 0% 45%;
   --chart-5: 351 30% 55%;
-  --font-sans: 'Optima', 'Calibri', 'Segoe UI', sans-serif;
-  --font-serif: 'Optima', 'Georgia', 'Times New Roman', serif;
+  --font-sans: 'Optima', 'Lato', 'Calibri', 'Segoe UI', sans-serif;
+  --font-serif: 'Optima', 'Lato', 'Georgia', 'Times New Roman', serif;
   --font-heading: 'Playfair Display', 'Georgia', 'Times New Roman', serif;
-  --font-support: 'Geomanist', 'Century Gothic', 'Segoe UI', sans-serif;
+  --font-support: 'Geomanist', 'Century Gothic', 'Lato', 'Segoe UI', sans-serif;
   --font-mono: Menlo, monospace;
   --radius: .5rem;
   --shadow-2xs: 0px 2px 0px 0px hsl(0 0% 0% / 0.00);
