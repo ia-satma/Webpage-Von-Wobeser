@@ -387,8 +387,8 @@ export default function HeroSection({ language }: HeroSectionProps) {
           </video>
         )}
         
-        <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/30 to-black/60" />
-        <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-black/80 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/65 via-black/50 to-black/75" />
+        <div className="absolute bottom-0 left-0 right-0 h-40 bg-gradient-to-t from-black/90 to-transparent" />
       </div>
 
       {newsData && newsData.length > 0 && (
@@ -413,7 +413,7 @@ export default function HeroSection({ language }: HeroSectionProps) {
           transition={{ duration: 0.9, delay: 0.35 }}
           src={logoColor}
           alt={t.headline}
-          className="w-auto max-w-[320px] sm:max-w-[500px] md:max-w-[700px] lg:max-w-[900px] h-auto object-contain"
+          className="w-[88vw] max-w-[420px] sm:max-w-[640px] md:max-w-[860px] lg:max-w-[1060px] h-auto object-contain"
           style={{ imageRendering: "crisp-edges" }}
           data-testid="text-hero-headline"
         />
