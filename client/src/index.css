@@ -39,46 +39,45 @@
   --opaque-button-border-intensity: -8;
   --elevate-1: rgba(0,0,0, .03);
   --elevate-2: rgba(0,0,0, .08);
-  /* Page background — off-white with the palette's warm tint */
-  --background: 37 6% 97%;
-  --foreground: 37 8% 18%;
-  /* Cards & panels — first (lighter) swatch */
-  --card: 37 6% 82%;
-  --card-foreground: 37 8% 14%;
-  --card-border: 37 5% 75%;
-  /* Borders — close to second (darker) swatch */
-  --border: 37 5% 74%;
-  /* Sidebar — between the two swatches */
-  --sidebar: 37 5% 80%;
-  --sidebar-foreground: 37 8% 14%;
-  --sidebar-border: 37 5% 73%;
+
+  /* ── PALETA LIGHT ─────────────────────────────────────────
+     Inspiración: firmas de élite global (Skadden, Freshfields,
+     Clifford Chance). Blanco casi puro con tinte frío-neutro,
+     secciones alternas en gris perla muy sutil.
+  ─────────────────────────────────────────────────────────── */
+  --background: 210 20% 98%;       /* #F8F9FB — blanco frío moderno  */
+  --foreground: 220 25% 12%;       /* #16202E — casi negro azulado    */
+  --card: 0 0% 100%;               /* #FFFFFF — blanco puro           */
+  --card-foreground: 220 25% 12%;
+  --card-border: 214 15% 91%;      /* #E4E8EF — borde muy sutil       */
+  --border: 214 15% 88%;           /* #DDE2EA                         */
+  --sidebar: 214 20% 96%;          /* #F0F3F7                         */
+  --sidebar-foreground: 220 25% 12%;
+  --sidebar-border: 214 15% 88%;
   --sidebar-primary: 352 73% 38%;
   --sidebar-primary-foreground: 0 0% 98%;
-  --sidebar-accent: 37 5% 76%;
-  --sidebar-accent-foreground: 37 8% 14%;
+  --sidebar-accent: 214 20% 93%;
+  --sidebar-accent-foreground: 220 25% 12%;
   --sidebar-ring: 352 73% 38%;
-  /* Popover — first swatch */
-  --popover: 37 6% 82%;
-  --popover-foreground: 37 8% 14%;
-  --popover-border: 37 5% 74%;
-  --primary: 352 73% 38%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 220 25% 12%;
+  --popover-border: 214 15% 88%;
+  --primary: 352 73% 38%;          /* #AA1A2E — rojo corporativo      */
   --primary-foreground: 0 0% 98%;
-  /* Secondary — second (darker) swatch */
-  --secondary: 37 5% 74%;
-  --secondary-foreground: 37 8% 14%;
-  /* Muted — first swatch */
-  --muted: 37 6% 82%;
-  --muted-foreground: 37 5% 40%;
-  --accent: 37 5% 78%;
-  --accent-foreground: 37 8% 14%;
+  --secondary: 214 20% 94%;        /* #ECF0F5 — sección alterna       */
+  --secondary-foreground: 220 25% 20%;
+  --muted: 214 20% 94%;            /* mismo que secondary             */
+  --muted-foreground: 220 15% 46%; /* #6A7A8E — texto secundario      */
+  --accent: 214 20% 92%;
+  --accent-foreground: 220 25% 12%;
   --destructive: 0 72% 45%;
   --destructive-foreground: 0 0% 98%;
-  --input: 37 5% 72%;
+  --input: 214 15% 85%;
   --ring: 352 73% 38%;
   --chart-1: 352 73% 38%;
   --chart-2: 352 50% 45%;
-  --chart-3: 0 0% 30%;
-  --chart-4: 0 0% 45%;
+  --chart-3: 220 25% 35%;
+  --chart-4: 220 15% 55%;
   --chart-5: 351 30% 55%;
   --font-sans: 'Optima', 'Lato', 'Calibri', 'Segoe UI', sans-serif;
   --font-serif: 'Optima', 'Lato', 'Georgia', 'Times New Roman', serif;
@@ -86,14 +85,14 @@
   --font-support: 'Geomanist', 'Century Gothic', 'Lato', 'Segoe UI', sans-serif;
   --font-mono: Menlo, monospace;
   --radius: .5rem;
-  --shadow-2xs: 0px 2px 0px 0px hsl(0 0% 0% / 0.00);
-  --shadow-xs: 0px 2px 0px 0px hsl(0 0% 0% / 0.00);
-  --shadow-sm: 0px 2px 0px 0px hsl(0 0% 0% / 0.00), 0px 1px 2px -1px hsl(0 0% 0% / 0.05);
-  --shadow: 0px 2px 0px 0px hsl(0 0% 0% / 0.00), 0px 1px 2px -1px hsl(0 0% 0% / 0.08);
-  --shadow-md: 0px 2px 0px 0px hsl(0 0% 0% / 0.00), 0px 2px 4px -1px hsl(0 0% 0% / 0.10);
-  --shadow-lg: 0px 2px 0px 0px hsl(0 0% 0% / 0.00), 0px 4px 6px -1px hsl(0 0% 0% / 0.12);
-  --shadow-xl: 0px 2px 0px 0px hsl(0 0% 0% / 0.00), 0px 8px 10px -1px hsl(0 0% 0% / 0.15);
-  --shadow-2xl: 0px 2px 0px 0px hsl(0 0% 0% / 0.00);
+  --shadow-2xs: 0 1px 2px 0 hsl(220 25% 12% / 0.04);
+  --shadow-xs:  0 1px 3px 0 hsl(220 25% 12% / 0.06);
+  --shadow-sm:  0 1px 3px 0 hsl(220 25% 12% / 0.08), 0 1px 2px -1px hsl(220 25% 12% / 0.06);
+  --shadow:     0 4px 6px -1px hsl(220 25% 12% / 0.08), 0 2px 4px -2px hsl(220 25% 12% / 0.06);
+  --shadow-md:  0 8px 16px -4px hsl(220 25% 12% / 0.10), 0 4px 6px -4px hsl(220 25% 12% / 0.06);
+  --shadow-lg:  0 16px 24px -6px hsl(220 25% 12% / 0.12), 0 8px 10px -6px hsl(220 25% 12% / 0.06);
+  --shadow-xl:  0 24px 40px -8px hsl(220 25% 12% / 0.14), 0 12px 16px -8px hsl(220 25% 12% / 0.06);
+  --shadow-2xl: 0 40px 64px -12px hsl(220 25% 12% / 0.18);
   --tracking-normal: 0em;
   --spacing: 0.25rem;
 
@@ -132,47 +131,44 @@
   --opaque-button-border-intensity: 9;
   --elevate-1: rgba(255,255,255, .04);
   --elevate-2: rgba(255,255,255, .09);
-  /* Page background — darkest swatch (right) #2E2E2A */
-  --background: 50 5% 17%;
-  --foreground: 37 6% 93%;
-  /* Cards & panels — slightly lighter than background */
-  --card: 50 4% 21%;
-  --card-foreground: 37 6% 93%;
-  --card-border: 220 3% 27%;
-  /* Borders — between card and secondary */
-  --border: 220 3% 29%;
-  /* Sidebar — middle swatch territory #5B5C5F */
-  --sidebar: 220 3% 22%;
-  --sidebar-foreground: 37 6% 93%;
-  --sidebar-border: 220 3% 26%;
-  --sidebar-primary: 352 73% 42%;
+
+  /* ── PALETA DARK ──────────────────────────────────────────
+     Carbón azul-gris sofisticado — como las firmas de élite
+     globales. No negro puro, sino profundidad con carácter.
+  ─────────────────────────────────────────────────────────── */
+  --background: 222 20% 10%;       /* #141924 — carbón azulado        */
+  --foreground: 210 25% 92%;       /* #E3EAF2 — blanco frío suave     */
+  --card: 222 18% 14%;             /* #1C2333 — panel oscuro          */
+  --card-foreground: 210 25% 92%;
+  --card-border: 222 15% 20%;      /* #28324A — borde sutil           */
+  --border: 222 15% 22%;           /* #2B364F                         */
+  --sidebar: 222 18% 12%;          /* #181F2E                         */
+  --sidebar-foreground: 210 25% 90%;
+  --sidebar-border: 222 15% 19%;
+  --sidebar-primary: 352 73% 45%;
   --sidebar-primary-foreground: 0 0% 98%;
-  --sidebar-accent: 220 3% 28%;
-  --sidebar-accent-foreground: 37 6% 93%;
-  --sidebar-ring: 352 73% 42%;
-  /* Popover — slightly lighter than card */
-  --popover: 220 3% 23%;
-  --popover-foreground: 37 6% 93%;
-  --popover-border: 220 3% 28%;
-  --primary: 352 73% 42%;
+  --sidebar-accent: 222 15% 18%;
+  --sidebar-accent-foreground: 210 25% 90%;
+  --sidebar-ring: 352 73% 45%;
+  --popover: 222 18% 13%;
+  --popover-foreground: 210 25% 92%;
+  --popover-border: 222 15% 21%;
+  --primary: 352 73% 45%;          /* rojo un tono más luminoso en oscuro */
   --primary-foreground: 0 0% 98%;
-  /* Secondary — middle swatch #5B5C5F at 36% lightness */
-  --secondary: 220 3% 28%;
-  --secondary-foreground: 37 6% 90%;
-  /* Muted — between bg and middle swatch */
-  --muted: 220 3% 25%;
-  /* Muted foreground — lightest dark swatch #8B8D89 */
-  --muted-foreground: 100 2% 54%;
-  --accent: 220 3% 24%;
-  --accent-foreground: 37 6% 90%;
-  --destructive: 0 70% 42%;
+  --secondary: 222 15% 19%;        /* #253049                         */
+  --secondary-foreground: 210 20% 82%;
+  --muted: 222 15% 17%;            /* #202B40                         */
+  --muted-foreground: 215 20% 56%; /* #7C92B0 — azul-gris legible     */
+  --accent: 222 15% 18%;
+  --accent-foreground: 210 25% 90%;
+  --destructive: 0 70% 45%;
   --destructive-foreground: 0 0% 98%;
-  --input: 220 3% 34%;
-  --ring: 352 73% 42%;
+  --input: 222 15% 24%;
+  --ring: 352 73% 45%;
   --chart-1: 352 73% 55%;
   --chart-2: 352 60% 65%;
-  --chart-3: 0 0% 75%;
-  --chart-4: 0 0% 65%;
+  --chart-3: 210 30% 65%;
+  --chart-4: 210 20% 50%;
   --chart-5: 351 40% 55%;
   --shadow-2xs: 0px 2px 0px 0px hsl(0 0% 0% / 0.00);
   --shadow-xs: 0px 2px 0px 0px hsl(0 0% 0% / 0.00);
