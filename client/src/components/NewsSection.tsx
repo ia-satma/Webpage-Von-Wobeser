@@ -154,7 +154,8 @@ function NewsCardTranslated({ item, language, dateLocale, seeMoreText }: NewsCar
   return (
     <Link href={`/news/${item.slug}`} className="block">
       <Card
-        className="group overflow-hidden border-0 shadow-sm hover:shadow-lg transition-all duration-300 rounded-none bg-white dark:bg-gray-900"
+        className="group overflow-hidden border-0 rounded-none bg-[#F4F3F2] dark:bg-gray-900 transition-all duration-300"
+        style={{ boxShadow: '0 15px 35px rgba(0,0,0,0.05)' }}
         data-testid={`card-news-${item.id}`}
       >
         <div className="aspect-[16/10] overflow-hidden">
@@ -172,7 +173,7 @@ function NewsCardTranslated({ item, language, dateLocale, seeMoreText }: NewsCar
             ) : ""}
           </p>
           <h3 
-            className={`text-lg font-serif text-gray-800 dark:text-white leading-relaxed mb-3 line-clamp-2 ${isTranslating ? 'opacity-50' : ''}`}
+            className={`text-lg font-publico font-bold text-[#1D1D1B] dark:text-white leading-relaxed mb-3 line-clamp-2 ${isTranslating ? 'opacity-50' : ''}`}
             data-testid={`text-news-title-${item.id}`}
           >
             {displayTitle}
@@ -186,7 +187,7 @@ function NewsCardTranslated({ item, language, dateLocale, seeMoreText }: NewsCar
             </p>
           )}
           <span
-            className="inline-flex items-center gap-2 text-sm font-medium text-primary hover:text-primary/80 transition-colors group/link"
+            className="inline-flex items-center gap-2 text-xs font-geomanist font-bold tracking-[0.15em] uppercase text-[#AA1A2E] hover:text-[#8A1525] transition-colors group/link no-underline"
             data-testid={`link-news-read-${item.id}`}
           >
             {seeMoreText}
@@ -251,28 +252,33 @@ export default function NewsSection() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
-          className="flex items-center justify-between gap-4 mb-12"
+          className="mb-12"
         >
-          <h2
-            className="text-3xl md:text-4xl font-heading font-light text-gray-800 dark:text-white tracking-wide"
-            data-testid="text-news-title"
-          >
-            {t.title}
-          </h2>
-          <Link
-            href="/news"
-            className="hidden md:flex items-center gap-2 text-sm font-medium text-primary hover:text-primary/80 transition-colors group"
-            data-testid="link-news-see-more"
-          >
-            {t.seeMore}
-            <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-          </Link>
+          <div className="flex flex-col items-center mb-2">
+            <h2
+              className="text-2xl md:text-3xl font-geomanist tracking-[0.25em] uppercase text-[#3A3A3A] dark:text-white pb-3"
+              data-testid="text-news-title"
+            >
+              {t.title}
+            </h2>
+            <div className="h-[2px] w-16 bg-[#AA1A2E]" aria-hidden="true" />
+          </div>
+          <div className="flex justify-end mt-4">
+            <Link
+              href="/news"
+              className="hidden md:flex items-center gap-2 text-xs font-geomanist font-bold tracking-[0.15em] uppercase text-[#AA1A2E] hover:text-[#8A1525] no-underline transition-colors group"
+              data-testid="link-news-see-more"
+            >
+              {t.seeMore}
+              <ArrowRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
+            </Link>
+          </div>
         </motion.div>
 
         {isLoading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
             {[1, 2, 3].map((i) => (
-              <Card key={i} className="overflow-hidden border-0 shadow-sm rounded-none bg-white dark:bg-gray-900" data-testid={`skeleton-news-${i}`}>
+              <Card key={i} className="overflow-hidden border-0 rounded-none bg-[#F4F3F2] dark:bg-gray-900" style={{ boxShadow: '0 15px 35px rgba(0,0,0,0.05)' }} data-testid={`skeleton-news-${i}`}>
                 <Skeleton className="aspect-[16/10] w-full" />
                 <div className="p-6">
                   <Skeleton className="h-3 w-24 mb-3" />
@@ -307,7 +313,7 @@ export default function NewsSection() {
         <div className="mt-10 text-center md:hidden">
           <Link
             href="/news"
-            className="inline-flex items-center justify-center gap-2 min-h-[44px] px-4 py-2 text-sm font-medium text-primary touch-manipulation"
+            className="inline-flex items-center justify-center gap-2 min-h-[44px] px-4 py-2 text-xs font-geomanist font-bold tracking-[0.15em] uppercase text-[#AA1A2E] hover:text-[#8A1525] no-underline touch-manipulation"
             data-testid="link-news-see-more-mobile"
           >
             {t.seeMore}

@@ -96,14 +96,14 @@ function NewsItemTranslated({
       data-testid={`card-news-${item.id}`}
     >
       <h4 
-        className="text-sm font-medium text-[#1F2937] leading-snug mb-3 italic"
+        className="text-sm font-publico font-bold text-[#1D1D1B] leading-snug mb-3"
         data-testid={`text-news-title-${item.id}`}
       >
         {displayTitle}
       </h4>
       <Link 
         href={`/news/${item.slug}`}
-        className="inline-flex items-center text-xs font-medium tracking-wider text-[#AA1A2E] hover:text-[#8A1525] transition-colors"
+        className="inline-flex items-center text-xs font-geomanist font-bold tracking-[0.15em] uppercase text-[#AA1A2E] hover:text-[#8A1525] no-underline transition-colors"
         data-testid={`link-news-seemore-${item.id}`}
       >
         {seeMoreText}
@@ -128,11 +128,12 @@ function NewsPanel({ language, news }: { language: LanguageCode; news: News[] })
       <div className="bg-white/95 backdrop-blur-sm p-6 shadow-lg" style={{ width: '420px' }}>
         <div className="mb-4 text-center">
           <h3 
-            className="text-sm font-medium tracking-[0.2em] uppercase text-[#5E5E5E] border-b border-[#CCCCCC] pb-2"
+            className="text-sm font-geomanist tracking-[0.2em] uppercase text-[#3A3A3A] pb-2"
             data-testid="text-news-header"
           >
             {t.news}
           </h3>
+          <div className="h-px w-full bg-[#AA1A2E]" aria-hidden="true" />
         </div>
 
         <div className="grid grid-cols-2 gap-4">
@@ -408,7 +409,7 @@ export default function HeroSection({ language }: HeroSectionProps) {
           initial={{ opacity: 0, y: 30 }}
           animate={isVisible ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.8, delay: 0.4 }}
-          className="text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-heading font-light text-white leading-tight tracking-wide mb-8"
+          className="text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-publico font-bold text-white leading-tight tracking-wide mb-8"
           data-testid="text-hero-headline"
         >
           {t.headline}

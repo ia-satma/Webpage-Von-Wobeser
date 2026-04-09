@@ -2,6 +2,43 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ======================================================
+   CORPORATE IDENTITY FONTS — Manual de Identidad 2022
+   ====================================================== */
+
+/* Publico Bold — H1, H2, H3 and all headlines */
+@font-face {
+  font-family: 'Publico';
+  src: url('/fonts/Publico-Bold.woff2') format('woff2'),
+       url('/fonts/Publico-Bold.ttf') format('truetype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Optima — body copy, paragraphs, running text */
+@font-face {
+  font-family: 'Optima';
+  src: url('/fonts/Optima.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Geomanist Regular — labels, menu items, buttons */
+@font-face {
+  font-family: 'Geomanist';
+  src: url('/fonts/Geomanist-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Italic is prohibited by the Manual de Identidad */
+* {
+  font-style: normal !important;
+}
+
 /* LIGHT MODE */
 :root {
   /* Von Wobeser Corporate Colors (Manual de Identidad Junio 2022) */
@@ -51,10 +88,10 @@
   --chart-3: 0 0% 30%;
   --chart-4: 0 0% 45%;
   --chart-5: 351 30% 55%;
-  --font-sans: 'Calibri', 'Optima', 'Segoe UI', sans-serif;
-  --font-serif: 'Georgia', 'Times New Roman', serif;
-  --font-heading: 'Georgia', 'Publico', 'Times New Roman', serif;
-  --font-support: 'Century Gothic', 'Geomanist', 'Segoe UI', sans-serif;
+  --font-sans: 'Optima', 'Calibri', 'Segoe UI', sans-serif;
+  --font-serif: 'Optima', 'Georgia', 'Times New Roman', serif;
+  --font-heading: 'Publico', 'Georgia', 'Times New Roman', serif;
+  --font-support: 'Geomanist', 'Century Gothic', 'Segoe UI', sans-serif;
   --font-mono: Menlo, monospace;
   --radius: .5rem;
   --shadow-2xs: 0px 2px 0px 0px hsl(0 0% 0% / 0.00);
