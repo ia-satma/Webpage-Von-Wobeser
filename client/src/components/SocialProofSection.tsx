@@ -136,6 +136,7 @@ export default function SocialProofSection() {
             <motion.div
               key={quote.id}
               variants={itemVariants}
+              whileHover={{ y: -5, transition: { duration: 0.3, ease: [0.22, 1, 0.36, 1] } }}
               className={[
                 "flex flex-col items-center text-center px-8 lg:px-12 py-6",
                 index < quotes.length - 1
