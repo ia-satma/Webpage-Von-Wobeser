@@ -14,7 +14,7 @@ export default function StatsSection({ language }: StatsSectionProps) {
     queryKey: ["/api/stats"],
   });
 
-  const { data: officeImages = [] } = useQuery<OfficeImage[]>({
+  const { data: officeImages = [], isLoading: imagesLoading } = useQuery<OfficeImage[]>({
     queryKey: ["/api/office-images"],
   });
 
@@ -458,7 +458,15 @@ export default function StatsSection({ language }: StatsSectionProps) {
         </motion.div>
 
         {/* Office Photo Gallery — embedded inside this section */}
-        {officeImages.length > 0 && (
+        {imagesLoading && (
+          <div className="mt-14 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {[1, 2, 3, 4, 5, 6].map((i) => (
+              <Skeleton key={i} className="h-72" data-testid={`stats-gallery-skeleton-${i}`} />
+            ))}
+          </div>
+        )}
+
+        {!imagesLoading && officeImages.length > 0 && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
