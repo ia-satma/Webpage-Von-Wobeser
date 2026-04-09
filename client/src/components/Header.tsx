@@ -57,7 +57,7 @@ function SearchResultTeamMember({
   return (
     <button
       onClick={() => onSelect(`/team/${member.slug}`)}
-      className="w-full text-left px-2 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-3"
+      className="w-full text-left px-2 py-2 hover:bg-muted flex items-center gap-3"
       data-testid={`search-result-team-${member.slug}`}
       role="option"
     >
@@ -65,8 +65,8 @@ function SearchResultTeamMember({
         {member.name.split(' ').map(n => n[0]).join('').slice(0, 2)}
       </div>
       <div>
-        <p className="text-sm font-medium text-gray-800 dark:text-white">{member.name}</p>
-        <p className="text-xs text-gray-500 dark:text-gray-400">
+        <p className="text-sm font-medium text-foreground">{member.name}</p>
+        <p className="text-xs text-muted-foreground">
           {displayTitle}
         </p>
       </div>
@@ -97,11 +97,11 @@ function SearchResultPracticeGroup({
   return (
     <button
       onClick={() => onSelect(`/practice-groups/${group.slug}`)}
-      className="w-full text-left px-2 py-2 hover:bg-gray-100 dark:hover:bg-gray-700"
+      className="w-full text-left px-2 py-2 hover:bg-muted"
       data-testid={`search-result-practice-${group.slug}`}
       role="option"
     >
-      <p className="text-sm font-medium text-gray-800 dark:text-white">
+      <p className="text-sm font-medium text-foreground">
         {displayName}
       </p>
     </button>
@@ -131,11 +131,11 @@ function SearchResultIndustryGroup({
   return (
     <button
       onClick={() => onSelect(`/industry-groups/${group.slug}`)}
-      className="w-full text-left px-2 py-2 hover:bg-gray-100 dark:hover:bg-gray-700"
+      className="w-full text-left px-2 py-2 hover:bg-muted"
       data-testid={`search-result-industry-${group.slug}`}
       role="option"
     >
-      <p className="text-sm font-medium text-gray-800 dark:text-white">
+      <p className="text-sm font-medium text-foreground">
         {displayName}
       </p>
     </button>
@@ -165,7 +165,7 @@ function SearchResultNews({
   return (
     <button
       onClick={() => onSelect(`/news/${article.slug}`)}
-      className="w-full text-left px-2 py-2 hover:bg-gray-100 dark:hover:bg-gray-700"
+      className="w-full text-left px-2 py-2 hover:bg-muted"
       data-testid={`search-result-news-${article.slug}`}
       role="option"
     >
@@ -321,7 +321,7 @@ export default function Header() {
         className={cn(
           "fixed top-0 left-0 right-0 z-50 transition-all duration-500",
           isScrolled
-            ? "bg-white/95 dark:bg-gray-900/95 backdrop-blur-md shadow-md py-3"
+            ? "bg-background/95 backdrop-blur-md shadow-md py-3"
             : "bg-transparent py-6"
         )}
         data-testid="header"
@@ -367,7 +367,7 @@ export default function Header() {
                   className={cn(
                     "flex flex-wrap items-center justify-center gap-x-1 px-3 py-2 text-sm font-medium tracking-wide uppercase transition-colors duration-200 text-center",
                     isScrolled
-                      ? "text-gray-700 dark:text-gray-300 hover:text-primary"
+                      ? "text-foreground hover:text-primary"
                       : "text-white/90 hover:text-white",
                     location === item.href && "text-primary",
                     activeDropdown === item.id && (isScrolled ? "text-primary" : "text-white")
@@ -393,7 +393,7 @@ export default function Header() {
 
                 {item.subItems && activeDropdown === item.id && (
                   <div
-                    className="absolute top-full left-0 mt-1 min-w-[220px] bg-white dark:bg-gray-800 shadow-xl border border-gray-200 dark:border-gray-700 py-2 z-50"
+                    className="absolute top-full left-0 mt-1 min-w-[220px] bg-card shadow-xl border border-border py-2 z-50"
                     role="menu"
                     aria-label={`${t(item.labelKey)} submenu`}
                     data-testid={`dropdown-${item.id}`}
@@ -404,7 +404,7 @@ export default function Header() {
                       <Link
                         key={subItem.id}
                         href={subItem.href}
-                        className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-primary transition-colors duration-150"
+                        className="block px-4 py-2 text-sm text-foreground hover:bg-muted hover:text-primary transition-colors duration-150"
                         role="menuitem"
                         data-testid={`link-subnav-${subItem.id}`}
                         onClick={() => setActiveDropdown(null)}
@@ -438,7 +438,7 @@ export default function Header() {
               {isSearchOpen && (
                 <div
                   id="search-panel"
-                  className="absolute right-0 top-full mt-2 w-80 bg-white dark:bg-gray-800 shadow-xl border border-gray-200 dark:border-gray-700 overflow-hidden"
+                  className="absolute right-0 top-full mt-2 w-80 bg-card shadow-xl border border-border overflow-hidden"
                   data-testid="container-search"
                   role="search"
                   aria-label={t('common.search')}
@@ -458,13 +458,13 @@ export default function Header() {
 
                   {searchQuery.length >= 2 && hasResults && (
                     <div
-                      className="max-h-96 overflow-y-auto border-t border-gray-100 dark:border-gray-700"
+                      className="max-h-96 overflow-y-auto border-t border-border"
                       role="listbox"
                       aria-label={t('common.searchResults')}
                     >
                       {searchResults.team.length > 0 && (
                         <div className="p-2" role="group" aria-label={t('team.title')}>
-                          <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase px-2 mb-1" id="search-team-label">
+                          <p className="text-xs font-semibold text-muted-foreground uppercase px-2 mb-1" id="search-team-label">
                             {t('team.title')}
                           </p>
                           {searchResults.team.map((member) => (
@@ -479,8 +479,8 @@ export default function Header() {
                       )}
 
                       {searchResults.practiceGroups.length > 0 && (
-                        <div className="p-2 border-t border-gray-100 dark:border-gray-700" role="group" aria-label={t('practices.title')}>
-                          <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase px-2 mb-1">
+                        <div className="p-2 border-t border-border" role="group" aria-label={t('practices.title')}>
+                          <p className="text-xs font-semibold text-muted-foreground uppercase px-2 mb-1">
                             {t('practices.title')}
                           </p>
                           {searchResults.practiceGroups.map((group) => (
@@ -495,8 +495,8 @@ export default function Header() {
                       )}
 
                       {searchResults.industryGroups.length > 0 && (
-                        <div className="p-2 border-t border-gray-100 dark:border-gray-700" role="group" aria-label={t('industries.title')}>
-                          <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase px-2 mb-1">
+                        <div className="p-2 border-t border-border" role="group" aria-label={t('industries.title')}>
+                          <p className="text-xs font-semibold text-muted-foreground uppercase px-2 mb-1">
                             {t('industries.title')}
                           </p>
                           {searchResults.industryGroups.map((group) => (
@@ -511,8 +511,8 @@ export default function Header() {
                       )}
 
                       {searchResults.news.length > 0 && (
-                        <div className="p-2 border-t border-gray-100 dark:border-gray-700" role="group" aria-label={t('news.title')}>
-                          <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase px-2 mb-1">
+                        <div className="p-2 border-t border-border" role="group" aria-label={t('news.title')}>
+                          <p className="text-xs font-semibold text-muted-foreground uppercase px-2 mb-1">
                             {t('news.title')}
                           </p>
                           {searchResults.news.map((article) => (
@@ -529,7 +529,7 @@ export default function Header() {
                   )}
 
                   {searchQuery.length >= 2 && !hasResults && (
-                    <div className="p-4 text-center text-sm text-gray-500 dark:text-gray-400 border-t border-gray-100 dark:border-gray-700" role="status">
+                    <div className="p-4 text-center text-sm text-muted-foreground border-t border-border" role="status">
                       {t('common.noResults')}
                     </div>
                   )}

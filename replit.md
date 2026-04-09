@@ -43,7 +43,7 @@ The project uses a PostgreSQL database with Drizzle ORM. Content is real, extrac
 While a user schema is defined, authentication and authorization are not yet implemented, though necessary dependencies like `express-session` and `passport` are installed, preparing for future integration.
 
 ### Design System
-The color scheme uses `#AC162C` (deep red) as the primary brand color, with accents, a white background, and gray text. Dark mode is supported via CSS variables. Typography utilizes Optima/Segoe UI for headings and body text, and Georgia/Times New Roman for long-form content. Consistent shadow systems, border radii, and spacing are applied across components.
+The color scheme uses `#AA1A2E` (brand red) as the primary color. **Light mode** uses a warm-gray palette derived from user swatches (#D5D2CD / #C0BDB8): off-white background (HSL 37 6% 97%), warm card (37 6% 82%), warm borders (37 5% 74%). **Dark mode** uses three dark swatches (#8B8D89 / #5B5C5F / #2E2E2A): background (50 5% 17%), cards (50 4% 21%), muted-foreground (100 2% 54%). All UI components use semantic CSS variable tokens (`bg-background`, `bg-card`, `text-foreground`, `border-border`, etc.) — no hardcoded `gray-*` colors. Typography uses Playfair Display for headlines, Optima/Lato for body, Geomanist/Lato for labels. Consistent `rounded-none` policy throughout (except avatar circles). ALL CAPS headings with `tracking-[0.12em]`.
 
 ### AI Agent System (Self-Evolving Backend)
 The backend has been transformed from a static brochure into a self-evolving system with autonomous AI agents that continuously improve content quality, translations, SEO, and metadata linking. The system is inspired by the brujer.ia project architecture.

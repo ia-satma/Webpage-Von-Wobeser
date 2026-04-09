@@ -27,45 +27,53 @@
 :root {
   /* Von Wobeser Corporate Colors (Manual de Identidad Junio 2022) */
   --vw-red: #AA1A2E;
-  --vw-gray-1: #D9D8D7;
-  --vw-gray-4: #BBBBBB;
-  --vw-gray-8: #878A8E;
-  --vw-gray-11: #54565B;
+  --vw-gray-1: #D5D2CD;  /* light swatch left  */
+  --vw-gray-2: #C0BDB8;  /* light swatch right */
+  --vw-gray-4: #8B8D89;  /* dark swatch left   */
+  --vw-gray-8: #5B5C5F;  /* dark swatch middle */
+  --vw-gray-11: #2E2E2A; /* dark swatch right  */
   --vw-black: #1D1D1B;
-  
+
   --button-outline: rgba(0,0,0, .10);
   --badge-outline: rgba(0,0,0, .05);
   --opaque-button-border-intensity: -8;
   --elevate-1: rgba(0,0,0, .03);
   --elevate-2: rgba(0,0,0, .08);
-  --background: 0 0% 100%;
-  --foreground: 220 5% 34%;
-  --border: 0 0% 90%;
-  --card: 0 0% 98%;
-  --card-foreground: 0 0% 20%;
-  --card-border: 0 0% 94%;
-  --sidebar: 0 0% 96%;
-  --sidebar-foreground: 0 0% 20%;
-  --sidebar-border: 0 0% 92%;
+  /* Page background — off-white with the palette's warm tint */
+  --background: 37 6% 97%;
+  --foreground: 37 8% 18%;
+  /* Cards & panels — first (lighter) swatch */
+  --card: 37 6% 82%;
+  --card-foreground: 37 8% 14%;
+  --card-border: 37 5% 75%;
+  /* Borders — close to second (darker) swatch */
+  --border: 37 5% 74%;
+  /* Sidebar — between the two swatches */
+  --sidebar: 37 5% 80%;
+  --sidebar-foreground: 37 8% 14%;
+  --sidebar-border: 37 5% 73%;
   --sidebar-primary: 352 73% 38%;
   --sidebar-primary-foreground: 0 0% 98%;
-  --sidebar-accent: 0 0% 92%;
-  --sidebar-accent-foreground: 0 0% 20%;
+  --sidebar-accent: 37 5% 76%;
+  --sidebar-accent-foreground: 37 8% 14%;
   --sidebar-ring: 352 73% 38%;
-  --popover: 0 0% 94%;
-  --popover-foreground: 0 0% 20%;
-  --popover-border: 0 0% 90%;
+  /* Popover — first swatch */
+  --popover: 37 6% 82%;
+  --popover-foreground: 37 8% 14%;
+  --popover-border: 37 5% 74%;
   --primary: 352 73% 38%;
   --primary-foreground: 0 0% 98%;
-  --secondary: 0 0% 91%;
-  --secondary-foreground: 0 0% 20%;
-  --muted: 0 0% 93%;
-  --muted-foreground: 0 0% 35%;
-  --accent: 0 2% 94%;
-  --accent-foreground: 0 0% 20%;
+  /* Secondary — second (darker) swatch */
+  --secondary: 37 5% 74%;
+  --secondary-foreground: 37 8% 14%;
+  /* Muted — first swatch */
+  --muted: 37 6% 82%;
+  --muted-foreground: 37 5% 40%;
+  --accent: 37 5% 78%;
+  --accent-foreground: 37 8% 14%;
   --destructive: 0 72% 45%;
   --destructive-foreground: 0 0% 98%;
-  --input: 0 0% 75%;
+  --input: 37 5% 72%;
   --ring: 352 73% 38%;
   --chart-1: 352 73% 38%;
   --chart-2: 352 50% 45%;
@@ -124,34 +132,42 @@
   --opaque-button-border-intensity: 9;
   --elevate-1: rgba(255,255,255, .04);
   --elevate-2: rgba(255,255,255, .09);
-  --background: 0 0% 8%;
-  --foreground: 0 0% 95%;
-  --border: 0 0% 18%;
-  --card: 0 0% 10%;
-  --card-foreground: 0 0% 95%;
-  --card-border: 0 0% 13%;
-  --sidebar: 0 0% 12%;
-  --sidebar-foreground: 0 0% 95%;
-  --sidebar-border: 0 0% 15%;
+  /* Page background — darkest swatch (right) #2E2E2A */
+  --background: 50 5% 17%;
+  --foreground: 37 6% 93%;
+  /* Cards & panels — slightly lighter than background */
+  --card: 50 4% 21%;
+  --card-foreground: 37 6% 93%;
+  --card-border: 220 3% 27%;
+  /* Borders — between card and secondary */
+  --border: 220 3% 29%;
+  /* Sidebar — middle swatch territory #5B5C5F */
+  --sidebar: 220 3% 22%;
+  --sidebar-foreground: 37 6% 93%;
+  --sidebar-border: 220 3% 26%;
   --sidebar-primary: 352 73% 42%;
   --sidebar-primary-foreground: 0 0% 98%;
-  --sidebar-accent: 0 0% 15%;
-  --sidebar-accent-foreground: 0 0% 95%;
+  --sidebar-accent: 220 3% 28%;
+  --sidebar-accent-foreground: 37 6% 93%;
   --sidebar-ring: 352 73% 42%;
-  --popover: 0 0% 14%;
-  --popover-foreground: 0 0% 95%;
-  --popover-border: 0 0% 17%;
+  /* Popover — slightly lighter than card */
+  --popover: 220 3% 23%;
+  --popover-foreground: 37 6% 93%;
+  --popover-border: 220 3% 28%;
   --primary: 352 73% 42%;
   --primary-foreground: 0 0% 98%;
-  --secondary: 0 0% 17%;
-  --secondary-foreground: 0 0% 95%;
-  --muted: 0 0% 16%;
-  --muted-foreground: 0 0% 65%;
-  --accent: 0 2% 15%;
-  --accent-foreground: 0 0% 95%;
+  /* Secondary — middle swatch #5B5C5F at 36% lightness */
+  --secondary: 220 3% 28%;
+  --secondary-foreground: 37 6% 90%;
+  /* Muted — between bg and middle swatch */
+  --muted: 220 3% 25%;
+  /* Muted foreground — lightest dark swatch #8B8D89 */
+  --muted-foreground: 100 2% 54%;
+  --accent: 220 3% 24%;
+  --accent-foreground: 37 6% 90%;
   --destructive: 0 70% 42%;
   --destructive-foreground: 0 0% 98%;
-  --input: 0 0% 30%;
+  --input: 220 3% 34%;
   --ring: 352 73% 42%;
   --chart-1: 352 73% 55%;
   --chart-2: 352 60% 65%;
