@@ -96,7 +96,7 @@ function NewsItemTranslated({
       data-testid={`card-news-${item.id}`}
     >
       <h4 
-        className="text-sm font-publico font-bold text-[#1D1D1B] leading-snug mb-3"
+        className="text-sm font-publico text-[#1D1D1B] leading-snug mb-3"
         data-testid={`text-news-title-${item.id}`}
       >
         {displayTitle}
@@ -409,7 +409,7 @@ export default function HeroSection({ language }: HeroSectionProps) {
           initial={{ opacity: 0, y: 30 }}
           animate={isVisible ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.8, delay: 0.4 }}
-          className="text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-publico font-bold text-white leading-tight tracking-wide mb-8"
+          className="text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-publico text-white leading-tight tracking-wide mb-8"
           data-testid="text-hero-headline"
         >
           {t.headline}

@@ -6,7 +6,16 @@
    CORPORATE IDENTITY FONTS — Manual de Identidad 2022
    ====================================================== */
 
-/* Publico Bold — H1, H2, H3 and all headlines */
+/* Publico Roman — H1, H2, H3 and all headlines (regular weight) */
+@font-face {
+  font-family: 'Publico';
+  src: url('/fonts/Publico-Roman.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Publico Bold — available when bold weight is explicitly needed */
 @font-face {
   font-family: 'Publico';
   src: url('/fonts/Publico-Bold.woff2') format('woff2'),

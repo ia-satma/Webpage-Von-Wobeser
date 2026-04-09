@@ -173,7 +173,7 @@ function NewsCardTranslated({ item, language, dateLocale, seeMoreText }: NewsCar
             ) : ""}
           </p>
           <h3 
-            className={`text-lg font-publico font-bold text-[#1D1D1B] dark:text-white leading-relaxed mb-3 line-clamp-2 ${isTranslating ? 'opacity-50' : ''}`}
+            className={`text-lg font-publico text-[#1D1D1B] dark:text-white leading-relaxed mb-3 line-clamp-2 ${isTranslating ? 'opacity-50' : ''}`}
             data-testid={`text-news-title-${item.id}`}
           >
             {displayTitle}
