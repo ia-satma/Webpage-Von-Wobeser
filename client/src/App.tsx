@@ -63,6 +63,7 @@ const AdminEvents = lazy(() => import("@/pages/admin/AdminEvents"));
 const AdminHealthCheck = lazy(() => import("@/pages/admin/AdminHealthCheck"));
 const SystemExplorer = lazy(() => import("@/pages/admin/SystemExplorer"));
 const AdminArticleDetail = lazy(() => import("@/pages/admin/AdminArticleDetail"));
+const GalleryAdmin = lazy(() => import("@/pages/admin/GalleryAdmin"));
 
 function SkipLinks() {
   const { language } = useLanguage();
@@ -183,6 +184,7 @@ function Router() {
         <Route path="/admin/events" component={AdminEvents} />
         <Route path="/admin/health-check" component={AdminHealthCheck} />
         <Route path="/admin/explorer" component={SystemExplorer} />
+        <Route path="/admin/gallery" component={GalleryAdmin} />
         <Route component={NotFound} />
       </Switch>
     </Suspense>

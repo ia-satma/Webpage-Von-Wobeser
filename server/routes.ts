@@ -48,6 +48,7 @@ import {
   insertOfficeSchema,
   insertAllianceSchema,
   insertSpecializedDeskSchema,
+  insertOfficeImageSchema,
 } from "@shared/schema";
 import { ZodError } from "zod";
 import {
@@ -443,6 +444,37 @@ export async function registerRoutes(
       res.json(images);
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch images" });
+    }
+  });
+
+  app.post("/api/admin/office-images", authMiddleware, requireRole("editor", "admin"), async (req: Request, res: Response) => {
+    try {
+      const parsed = insertOfficeImageSchema.safeParse(req.body);
+      if (!parsed.success) return res.status(400).json({ error: parsed.error.flatten() });
+      const image = await storage.createOfficeImage(parsed.data);
+      res.status(201).json(image);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to create office image" });
+    }
+  });
+
+  app.patch("/api/admin/office-images/:id", authMiddleware, requireRole("editor", "admin"), async (req: Request, res: Response) => {
+    try {
+      const updated = await storage.updateOfficeImage(req.params.id, req.body);
+      if (!updated) return res.status(404).json({ error: "Image not found" });
+      res.json(updated);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to update office image" });
+    }
+  });
+
+  app.delete("/api/admin/office-images/:id", authMiddleware, requireRole("editor", "admin"), async (req: Request, res: Response) => {
+    try {
+      const deleted = await storage.deleteOfficeImage(req.params.id);
+      if (!deleted) return res.status(404).json({ error: "Image not found" });
+      res.json({ success: true });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to delete office image" });
     }
   });
 

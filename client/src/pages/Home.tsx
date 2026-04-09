@@ -5,6 +5,7 @@ import PracticesSection from "@/components/PracticesSection";
 import ExperienceBanner from "@/components/ExperienceBanner";
 import IndustryGroupsSection from "@/components/IndustryGroupsSection";
 import StatsSection from "@/components/StatsSection";
+import OfficeGallery from "@/components/OfficeGallery";
 import WorldMapSection from "@/components/WorldMapSection";
 import RankingsSection from "@/components/RankingsSection";
 import DiversityInclusionSection from "@/components/DiversityInclusionSection";
@@ -48,6 +49,9 @@ export default function Home() {
         
         {/* 7. Stats / Team (150 lawyers...) */}
         <StatsSection language={language} />
+        
+        {/* 7b. Office Photo Gallery */}
+        <OfficeGallery />
         
         {/* Upcoming Events */}
         <EventsSection language={language} />

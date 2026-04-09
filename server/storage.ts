@@ -99,6 +99,9 @@ export interface IStorage {
   updateNews(id: string, data: Partial<InsertNews>): Promise<News | undefined>;
   deleteNews(id: string): Promise<boolean>;
   getOfficeImages(): Promise<OfficeImage[]>;
+  createOfficeImage(image: InsertOfficeImage): Promise<OfficeImage>;
+  updateOfficeImage(id: string, data: Partial<InsertOfficeImage>): Promise<OfficeImage | undefined>;
+  deleteOfficeImage(id: string): Promise<boolean>;
   getSiteContent(): SiteContent;
   getStats(): Stat[];
   getPracticeGroups(): Promise<PracticeGroup[]>;
@@ -344,6 +347,21 @@ export class DatabaseStorage implements IStorage {
 
   async getOfficeImages(): Promise<OfficeImage[]> {
     return db.select().from(officeImages).orderBy(asc(officeImages.order));
+  }
+
+  async createOfficeImage(image: InsertOfficeImage): Promise<OfficeImage> {
+    const [created] = await db.insert(officeImages).values(image).returning();
+    return created;
+  }
+
+  async updateOfficeImage(id: string, data: Partial<InsertOfficeImage>): Promise<OfficeImage | undefined> {
+    const [updated] = await db.update(officeImages).set(data).where(eq(officeImages.id, id)).returning();
+    return updated;
+  }
+
+  async deleteOfficeImage(id: string): Promise<boolean> {
+    const result = await db.delete(officeImages).where(eq(officeImages.id, id)).returning();
+    return result.length > 0;
   }
 
   getSiteContent(): SiteContent {

@@ -31,7 +31,8 @@ import {
   Calendar,
   BookOpen,
   ChevronRight,
-  Layers
+  Layers,
+  Images
 } from "lucide-react";
 
 const translations = {
@@ -971,6 +972,12 @@ export default function AdminDashboard() {
                 <Button variant="outline" className="w-full justify-start" data-testid="button-events">
                   <Calendar className="mr-2 h-4 w-4" />
                   {t.events || "Events"}
+                </Button>
+              </Link>
+              <Link href="/admin/gallery">
+                <Button variant="outline" className="w-full justify-start" data-testid="button-gallery">
+                  <Images className="mr-2 h-4 w-4" />
+                  Office Gallery
                 </Button>
               </Link>
               <Link href="/admin/translations">
