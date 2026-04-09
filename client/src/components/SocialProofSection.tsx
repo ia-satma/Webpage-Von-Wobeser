@@ -139,7 +139,7 @@ export default function SocialProofSection() {
               key={quote.id}
               variants={itemVariants}
               whileHover={{ y: -8, transition: { duration: 0.35, ease: [0.22, 1, 0.36, 1] } }}
-              className="relative rounded-2xl p-8 lg:p-10 flex flex-col overflow-hidden border border-foreground/[0.07] dark:border-foreground/[0.09] backdrop-blur-sm"
+              className="relative rounded-2xl pt-10 pb-8 px-8 lg:px-10 lg:pt-12 flex flex-col border border-foreground/[0.07] dark:border-foreground/[0.09] backdrop-blur-sm"
               style={{
                 background: "rgba(0,0,0,0.03)",
                 boxShadow: "0 4px 24px -4px rgba(0,0,0,0.06)",
@@ -155,17 +155,17 @@ export default function SocialProofSection() {
               }}
               data-testid={`card-quote-${quote.id}`}
             >
-              {/* Watermark giant quote mark */}
+              {/* Red floating quote mark — sits on top edge of card, never overlaps text */}
               <span
                 aria-hidden="true"
-                className="absolute top-4 left-5 select-none pointer-events-none font-serif text-[8rem] leading-[1] text-foreground/[0.05] dark:text-foreground/[0.06]"
+                className="absolute -top-5 left-6 select-none pointer-events-none font-serif text-5xl leading-none text-[#AA1A2E] drop-shadow-sm"
               >
                 &ldquo;
               </span>
 
-              {/* Quote text — justified, italic serif, medium gray */}
+              {/* Quote text — centered, italic serif, medium gray */}
               <blockquote
-                className="relative z-10 font-serif text-base lg:text-lg leading-relaxed text-foreground/60 dark:text-foreground/55 mb-8 text-justify"
+                className="relative z-10 font-serif text-base lg:text-lg leading-relaxed text-foreground/60 dark:text-foreground/55 mb-8 text-center"
                 style={{ fontStyle: "italic" }}
                 data-testid={`text-quote-${quote.id}`}
               >
