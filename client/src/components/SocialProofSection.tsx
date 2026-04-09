@@ -138,7 +138,7 @@ export default function SocialProofSection() {
               key={quote.id}
               variants={itemVariants}
               whileHover={{ y: -6, transition: { duration: 0.3, ease: [0.22, 1, 0.36, 1] } }}
-              className="relative bg-card rounded-2xl p-8 lg:p-10 flex flex-col overflow-hidden"
+              className="relative bg-card rounded-none p-8 lg:p-10 flex flex-col overflow-hidden"
               style={{
                 boxShadow: "0 2px 16px -4px rgba(0,0,0,0.07), 0 1px 4px -2px rgba(0,0,0,0.04)",
                 transition: "box-shadow 0.3s ease",
