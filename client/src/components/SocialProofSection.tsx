@@ -84,12 +84,17 @@ export default function SocialProofSection() {
 
   const containerVariants = {
     hidden: { opacity: 0 },
-    visible: { opacity: 1, transition: { staggerChildren: 0.18 } },
+    visible: { opacity: 1, transition: { staggerChildren: 0.2 } },
   };
 
   const itemVariants = {
-    hidden: { opacity: 0, y: 28 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.65, ease: "easeOut" } },
+    hidden: { opacity: 0, y: 40, scale: 0.97 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      scale: 1,
+      transition: { duration: 0.7, ease: [0.22, 1, 0.36, 1] },
+    },
   };
 
   const getQuoteText = (quote: Quote): string =>
@@ -98,7 +103,7 @@ export default function SocialProofSection() {
   return (
     <section
       id="social-proof"
-      className="py-20 lg:py-28 bg-secondary"
+      className="py-20 lg:py-28 bg-background"
       data-testid="section-social-proof"
     >
       <div className="max-w-7xl mx-auto px-6 lg:px-12">
@@ -133,16 +138,27 @@ export default function SocialProofSection() {
             <motion.div
               key={quote.id}
               variants={itemVariants}
-              className="relative bg-white dark:bg-card rounded-2xl p-8 lg:p-10 flex flex-col overflow-hidden"
+              whileHover={{ y: -8, transition: { duration: 0.35, ease: [0.22, 1, 0.36, 1] } }}
+              className="relative rounded-2xl p-8 lg:p-10 flex flex-col overflow-hidden border border-foreground/[0.07] dark:border-foreground/[0.09] backdrop-blur-sm"
               style={{
-                boxShadow: "0 20px 60px -12px rgba(0,0,0,0.10), 0 8px 24px -8px rgba(0,0,0,0.06)",
+                background: "rgba(0,0,0,0.03)",
+                boxShadow: "0 4px 24px -4px rgba(0,0,0,0.06)",
+                transition: "box-shadow 0.35s ease",
+              }}
+              onHoverStart={(e) => {
+                (e.target as HTMLElement).style.boxShadow =
+                  "0 24px 64px -12px rgba(0,0,0,0.13), 0 8px 24px -8px rgba(0,0,0,0.07)";
+              }}
+              onHoverEnd={(e) => {
+                (e.target as HTMLElement).style.boxShadow =
+                  "0 4px 24px -4px rgba(0,0,0,0.06)";
               }}
               data-testid={`card-quote-${quote.id}`}
             >
               {/* Watermark giant quote mark */}
               <span
                 aria-hidden="true"
-                className="absolute -top-4 left-4 select-none pointer-events-none font-serif text-[11rem] leading-none text-foreground/[0.04] dark:text-foreground/[0.05]"
+                className="absolute -top-4 left-4 select-none pointer-events-none font-serif text-[11rem] leading-none text-foreground/[0.06] dark:text-foreground/[0.07]"
                 style={{ fontStyle: "italic" }}
               >
                 &ldquo;
@@ -150,7 +166,7 @@ export default function SocialProofSection() {
 
               {/* Quote text — left-aligned, italic serif, medium gray */}
               <blockquote
-                className="relative z-10 font-serif text-base lg:text-lg leading-relaxed text-foreground/55 dark:text-foreground/50 mb-8 text-left"
+                className="relative z-10 font-serif text-base lg:text-lg leading-relaxed text-foreground/60 dark:text-foreground/55 mb-8 text-left"
                 style={{ fontStyle: "italic" }}
                 data-testid={`text-quote-${quote.id}`}
               >
