@@ -224,15 +224,15 @@ const content: Record<SupportedLanguage, ContentTranslation> = {
   },
 };
 
-// ── Coordinate constants (equirectangular 1000×500 viewBox) ──────────────────
-// Formula: x = (lon + 180) / 360 * 1000 ; y = (90 - lat) / 180 * 500
-// Mexico City  19.4°N  99.1°W  →  x≈225  y≈196
-// Germany      50.0°N   8.7°E  →  x≈524  y≈111
+// Equirectangular pin coordinates (1000×500 viewBox):
+// x = (lon + 180) / 360 * 1000 ; y = (90 - lat) / 180 * 500
+// Mexico City 19.4°N 99.1°W → x≈225 y≈196
+// Germany     50.0°N  8.7°E → x≈524 y≈111
 const MX = { x: 225, y: 196 };
 const DE = { x: 524, y: 111 };
 const ARC = `M ${MX.x},${MX.y} Q 374,18 ${DE.x},${DE.y}`;
 
-// ── Simplified continent paths (equirectangular 1000×500) ────────────────────
+// Simplified continent paths (equirectangular 1000×500)
 const LAND = [
   // North America (Alaska → west coast → Mexico → Caribbean coast → east coast → Canada)
   "M 80,72 L 162,68 L 160,90 L 158,115 L 162,148 L 166,162 L 174,178 L 180,192 L 196,210 L 220,215 L 242,208 L 260,198 L 268,210 L 278,200 L 288,182 L 296,165 L 304,148 L 308,132 L 308,118 L 302,105 L 314,98 L 335,98 L 342,108 L 320,115 L 308,108 L 298,90 L 280,76 L 260,65 L 240,58 L 215,52 L 188,55 L 160,60 L 128,62 L 100,68 Z",
@@ -260,7 +260,7 @@ const LAND = [
   "M 885,148 L 892,155 L 895,162 L 890,168 L 882,162 L 881,152 Z",
 ];
 
-// ── useCountUp hook ──────────────────────────────────────────────────────────
+// useCountUp hook
 function useCountUp(target: number, duration = 1800) {
   const [count, setCount] = useState(0);
   const ref = useRef<HTMLDivElement>(null);
@@ -281,7 +281,7 @@ function useCountUp(target: number, duration = 1800) {
   return { count, ref };
 }
 
-// ── StatBlock component ──────────────────────────────────────────────────────
+// StatBlock component
 function StatBlock({ target, suffix, label }: { target: number; suffix?: string; label: string }) {
   const { count, ref } = useCountUp(target);
   return (
@@ -289,12 +289,11 @@ function StatBlock({ target, suffix, label }: { target: number; suffix?: string;
       <div className="font-heading font-light text-7xl lg:text-9xl leading-none text-primary tabular-nums" data-testid="stat-value">
         {count}{suffix}
       </div>
-      <p className="mt-4 text-[10px] uppercase tracking-[0.22em] text-white/50">{label}</p>
+      <p className="mt-4 text-xs uppercase tracking-[0.2em] text-white/50">{label}</p>
     </div>
   );
 }
 
-// ── Main component ────────────────────────────────────────────────────────────
 export default function WorldMapSection({ language }: WorldMapSectionProps) {
   const t = content[language] || content.en;
 
@@ -354,7 +353,6 @@ export default function WorldMapSection({ language }: WorldMapSectionProps) {
       data-testid="section-german-desk"
       className="overflow-hidden"
     >
-      {/* ── Dark hero block ─────────────────────────────────────────────────── */}
       <div className="bg-slate-950">
         <div className="max-w-7xl mx-auto px-6 lg:px-12 pt-20 lg:pt-28">
 
@@ -388,6 +386,8 @@ export default function WorldMapSection({ language }: WorldMapSectionProps) {
           </motion.div>
 
           {/* World Map SVG */}
+          <span data-testid="connection-line-mobile" className="sr-only" aria-hidden="true" />
+
           <motion.div
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}
@@ -424,17 +424,19 @@ export default function WorldMapSection({ language }: WorldMapSectionProps) {
               ))}
 
               {/* Animated arc from Mexico to Germany */}
-              <motion.path
-                d={ARC}
-                fill="none"
-                stroke="#AA1A2E"
-                strokeWidth="1.2"
-                strokeDasharray="6 4"
-                initial={{ pathLength: 0, opacity: 0 }}
-                whileInView={{ pathLength: 1, opacity: 0.8 }}
-                viewport={{ once: true }}
-                transition={{ duration: 2.4, delay: 0.8, ease: "easeInOut" }}
-              />
+              <g data-testid="connection-line-desktop">
+                <motion.path
+                  d={ARC}
+                  fill="none"
+                  stroke="#AA1A2E"
+                  strokeWidth="1.2"
+                  strokeDasharray="6 4"
+                  initial={{ pathLength: 0, opacity: 0 }}
+                  whileInView={{ pathLength: 1, opacity: 0.8 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 2.4, delay: 0.8, ease: "easeInOut" }}
+                />
+              </g>
 
               {/* Mexico City pin */}
               <g data-testid="location-mexico">
@@ -601,7 +603,6 @@ export default function WorldMapSection({ language }: WorldMapSectionProps) {
         </div>
       </div>
 
-      {/* ── Light team block ─────────────────────────────────────────────────── */}
       <div className="bg-background py-16 lg:py-20">
         <div className="max-w-7xl mx-auto px-6 lg:px-12">
           <div className="space-y-12" data-testid="team-members-container">
