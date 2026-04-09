@@ -73,7 +73,7 @@ export default function LanguageSelector({
         <SelectValue data-testid="text-current-language">
           {getDisplayName()}
         </SelectValue>
-        {!compact && <ChevronDown className="w-4 h-4 shrink-0 opacity-70" aria-hidden="true" />}
+        {!compact && <ChevronDown className={cn("w-4 h-4 shrink-0", isScrolled || isMobile ? "text-[#AA1A2E]" : "text-white/70")} aria-hidden="true" />}
       </SelectTrigger>
       <SelectContent 
         data-testid="select-language-content"
