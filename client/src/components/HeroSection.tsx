@@ -442,7 +442,7 @@ export default function HeroSection({ language }: HeroSectionProps) {
           initial={{ opacity: 0, y: 10 }}
           animate={isVisible ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.6, delay: 0.65 }}
-          className="text-white/85 text-sm md:text-base font-serif tracking-wide max-w-xl"
+          className="inline-block text-white/85 text-sm md:text-base tracking-wide border border-white/30 px-4 py-1.5"
           data-testid="text-hero-subheadline"
         >
           {subheadline}
