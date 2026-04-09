@@ -65,78 +65,45 @@ const quotes: Quote[] = [
   },
 ];
 
-type ContentItem = {
-  title: string;
-};
-
-const content: Record<LanguageCode, ContentItem> = {
-  en: {
-    title: "What They Say About Us",
-  },
-  es: {
-    title: "Lo Que Dicen De Nosotros",
-  },
-  de: {
-    title: "Was Sie Über Uns Sagen",
-  },
-  zh: {
-    title: "客户评价",
-  },
-  ko: {
-    title: "고객 후기",
-  },
-  ja: {
-    title: "お客様の声",
-  },
-  ar: {
-    title: "ما يقولونه عنا",
-  },
-  ru: {
-    title: "Что о нас говорят",
-  },
-  fr: {
-    title: "Ce Qu'ils Disent De Nous",
-  },
-  it: {
-    title: "Cosa Dicono Di Noi",
-  },
+const content: Record<LanguageCode, { title: string }> = {
+  en: { title: "What They Say About Us" },
+  es: { title: "Lo Que Dicen De Nosotros" },
+  de: { title: "Was Sie Über Uns Sagen" },
+  zh: { title: "客户评价" },
+  ko: { title: "고객 후기" },
+  ja: { title: "お客様の声" },
+  ar: { title: "ما يقولونه عنا" },
+  ru: { title: "Что о нас говорят" },
+  fr: { title: "Ce Qu'ils Disent De Nous" },
+  it: { title: "Cosa Dicono Di Noi" },
 };
 
 export default function SocialProofSection() {
   const { language } = useLanguage();
-
   const t = content[language] || content.en;
 
   const containerVariants = {
     hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.2,
-      },
-    },
+    visible: { opacity: 1, transition: { staggerChildren: 0.18 } },
   };
 
   const itemVariants = {
-    hidden: { opacity: 0, y: 30 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: { duration: 0.6, ease: "easeOut" },
-    },
+    hidden: { opacity: 0, y: 28 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.65, ease: "easeOut" } },
   };
 
-  const getQuoteText = (quote: Quote): string => {
-    return quote.text[language] || quote.text.en;
-  };
+  const getQuoteText = (quote: Quote): string =>
+    quote.text[language] || quote.text.en;
 
   return (
     <section
       id="social-proof"
-      className="py-20 lg:py-28 bg-muted"
+      className="py-20 lg:py-28 bg-secondary"
       data-testid="section-social-proof"
     >
       <div className="max-w-7xl mx-auto px-6 lg:px-12">
+
+        {/* Heading */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -150,61 +117,64 @@ export default function SocialProofSection() {
           >
             {t.title}
           </h2>
-          <div
-            className="w-16 h-0.5 bg-[#AA1A2E] mx-auto mt-6"
-            data-testid="divider-social-proof"
-          />
+          <div className="w-16 h-0.5 bg-[#AA1A2E] mx-auto mt-6" data-testid="divider-social-proof" />
         </motion.div>
 
+        {/* Cards grid */}
         <motion.div
           variants={containerVariants}
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true }}
-          className="grid grid-cols-1 md:grid-cols-3 gap-8 lg:gap-12"
+          className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8"
           data-testid="grid-social-proof-quotes"
         >
           {quotes.map((quote) => (
             <motion.div
               key={quote.id}
               variants={itemVariants}
-              className="flex flex-col items-center text-center p-6 lg:p-8"
+              className="relative bg-white dark:bg-card rounded-2xl p-8 lg:p-10 flex flex-col overflow-hidden"
+              style={{
+                boxShadow: "0 20px 60px -12px rgba(0,0,0,0.10), 0 8px 24px -8px rgba(0,0,0,0.06)",
+              }}
               data-testid={`card-quote-${quote.id}`}
             >
-              <div
-                className="w-8 h-8 mb-6 text-[#AA1A2E] opacity-30"
-                data-testid={`icon-quote-${quote.id}`}
+              {/* Watermark giant quote mark */}
+              <span
+                aria-hidden="true"
+                className="absolute -top-4 left-4 select-none pointer-events-none font-serif text-[11rem] leading-none text-foreground/[0.04] dark:text-foreground/[0.05]"
+                style={{ fontStyle: "italic" }}
               >
-                <svg
-                  viewBox="0 0 24 24"
-                  fill="currentColor"
-                  className="w-full h-full"
-                >
-                  <path d="M4.583 17.321C3.553 16.227 3 15 3 13.011c0-3.5 2.457-6.637 6.03-8.188l.893 1.378c-3.335 1.804-3.987 4.145-4.247 5.621.537-.278 1.24-.375 1.929-.311 1.804.167 3.226 1.648 3.226 3.489a3.5 3.5 0 01-3.5 3.5c-1.073 0-2.099-.49-2.748-1.179zm10 0C13.553 16.227 13 15 13 13.011c0-3.5 2.457-6.637 6.03-8.188l.893 1.378c-3.335 1.804-3.987 4.145-4.247 5.621.537-.278 1.24-.375 1.929-.311 1.804.167 3.226 1.648 3.226 3.489a3.5 3.5 0 01-3.5 3.5c-1.073 0-2.099-.49-2.748-1.179z" />
-                </svg>
-              </div>
+                &ldquo;
+              </span>
 
+              {/* Quote text — left-aligned, italic serif, medium gray */}
               <blockquote
-                className="font-serif italic text-lg lg:text-xl text-muted-foreground leading-relaxed mb-8"
+                className="relative z-10 font-serif text-base lg:text-lg leading-relaxed text-foreground/55 dark:text-foreground/50 mb-8 text-left"
+                style={{ fontStyle: "italic" }}
                 data-testid={`text-quote-${quote.id}`}
               >
-                "{getQuoteText(quote)}"
+                {getQuoteText(quote)}
               </blockquote>
 
-              <div className="mt-auto">
+              {/* Attribution — pushed to bottom */}
+              <div className="mt-auto" data-testid={`attribution-${quote.id}`}>
+                {/* Red separator line — left-aligned */}
                 <div
-                  className="w-12 h-px bg-[#AA1A2E] mx-auto mb-4"
+                  className="w-10 h-px bg-[#AA1A2E] mb-4"
                   data-testid={`divider-quote-${quote.id}`}
                 />
+                {/* Institution name — bold, uppercase, sans-serif, dark */}
                 <p
-                  className="text-sm font-medium text-foreground uppercase tracking-wider"
+                  className="font-support font-bold uppercase tracking-widest text-xs text-foreground/80 dark:text-foreground/75 leading-tight"
                   data-testid={`text-source-${quote.id}`}
                 >
                   {quote.source}
                 </p>
+                {/* Year — regular, slightly lighter */}
                 {quote.year && (
                   <p
-                    className="text-xs text-muted-foreground mt-1"
+                    className="font-support font-normal text-xs text-muted-foreground mt-1 tracking-wide"
                     data-testid={`text-year-${quote.id}`}
                   >
                     {quote.year}
