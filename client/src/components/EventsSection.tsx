@@ -113,7 +113,7 @@ function EventCard({ event, language, learnMoreText, formatDate }: EventCardProp
             href={event.externalUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 text-[#AA1A2E] font-medium text-sm hover:underline"
+            className="inline-flex items-center gap-2 text-primary font-medium text-sm hover:underline"
             data-testid={`link-event-learn-more-${event.id}`}
           >
             {learnMoreText}
