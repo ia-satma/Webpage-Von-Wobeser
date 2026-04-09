@@ -226,11 +226,11 @@ export default function PracticesSection() {
               <motion.div key={area.id} variants={itemVariants}>
                 <Link
                   href={`/practice-groups/${area.slug}`}
-                  className="group flex items-center gap-4 px-4 py-4 border-b border-white/8 border-l-2 border-l-transparent hover:border-l-[#AA1A2E] hover:bg-white/4 transition-all duration-200 h-full"
+                  className="group flex items-center gap-6 px-4 py-4 border-b border-white/8 border-l-2 border-l-transparent hover:border-l-[#AA1A2E] hover:bg-white/4 transition-all duration-200 h-full"
                   data-testid={`link-practice-${area.id}`}
                 >
                   <span
-                    className="text-sm font-medium text-[#AA1A2E] w-8 shrink-0 tabular-nums"
+                    className="text-base font-medium text-[#AA1A2E] w-12 shrink-0 tabular-nums"
                     data-testid={`text-practice-number-${area.id}`}
                   >
                     {String(area.id).padStart(2, "0")}
@@ -242,7 +242,7 @@ export default function PracticesSection() {
                     {getPracticeAreaName(area, language)}
                   </span>
                   <ArrowRight
-                    className="w-3.5 h-3.5 text-[#AA1A2E] shrink-0 opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all duration-200"
+                    className="w-4 h-4 text-[#AA1A2E] shrink-0 opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all duration-200"
                   />
                 </Link>
               </motion.div>
