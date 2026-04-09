@@ -36,7 +36,7 @@ interface AboutUsContent {
 const content: Record<LanguageCode, AboutUsContent> = {
   en: {
     eyebrow: "ABOUT US",
-    sectionTitle: "WHO WE ARE",
+    sectionTitle: "ABOUT US",
     visionTitle: "Vision",
     visionText: "To be the leading law firm in Mexico, recognized for delivering exceptional legal services, fostering talent, and making a positive impact in our community.",
     missionTitle: "Mission",
@@ -45,7 +45,7 @@ const content: Record<LanguageCode, AboutUsContent> = {
   },
   es: {
     eyebrow: "ACERCA DE NOSOTROS",
-    sectionTitle: "QUIÉNES SOMOS",
+    sectionTitle: "ACERCA DE NOSOTROS",
     visionTitle: "Visión",
     visionText: "Ser la firma de abogados líder en México, reconocida por brindar servicios legales excepcionales, fomentar el talento y generar un impacto positivo en nuestra comunidad.",
     missionTitle: "Misión",
@@ -54,7 +54,7 @@ const content: Record<LanguageCode, AboutUsContent> = {
   },
   de: {
     eyebrow: "ÜBER UNS",
-    sectionTitle: "WER WIR SIND",
+    sectionTitle: "ÜBER UNS",
     visionTitle: "Vision",
     visionText: "Die führende Anwaltskanzlei in Mexiko zu sein, anerkannt für die Bereitstellung außergewöhnlicher Rechtsdienstleistungen, die Förderung von Talenten und einen positiven Einfluss auf unsere Gemeinschaft.",
     missionTitle: "Mission",
@@ -63,7 +63,7 @@ const content: Record<LanguageCode, AboutUsContent> = {
   },
   zh: {
     eyebrow: "关于我们",
-    sectionTitle: "我们是谁",
+    sectionTitle: "关于我们",
     visionTitle: "愿景",
     visionText: "成为墨西哥领先的律师事务所，以提供卓越的法律服务、培养人才和对社区产生积极影响而闻名。",
     missionTitle: "使命",
@@ -72,7 +72,7 @@ const content: Record<LanguageCode, AboutUsContent> = {
   },
   ko: {
     eyebrow: "회사 소개",
-    sectionTitle: "우리는 누구인가",
+    sectionTitle: "회사 소개",
     visionTitle: "비전",
     visionText: "탁월한 법률 서비스 제공, 인재 육성, 지역사회에 긍정적인 영향을 미치는 것으로 인정받는 멕시코 최고의 법률 사무소가 되는 것입니다.",
     missionTitle: "미션",
@@ -81,7 +81,7 @@ const content: Record<LanguageCode, AboutUsContent> = {
   },
   ja: {
     eyebrow: "私たちについて",
-    sectionTitle: "私たちは誰か",
+    sectionTitle: "私たちについて",
     visionTitle: "ビジョン",
     visionText: "卓越した法的サービスの提供、才能の育成、コミュニティへの積極的な貢献で認められる、メキシコを代表する法律事務所になること。",
     missionTitle: "ミッション",
@@ -90,7 +90,7 @@ const content: Record<LanguageCode, AboutUsContent> = {
   },
   ar: {
     eyebrow: "من نحن",
-    sectionTitle: "هويتنا",
+    sectionTitle: "من نحن",
     visionTitle: "الرؤية",
     visionText: "أن نكون شركة المحاماة الرائدة في المكسيك، معترف بها لتقديم خدمات قانونية استثنائية، وتعزيز المواهب، وإحداث تأثير إيجابي في مجتمعنا.",
     missionTitle: "المهمة",
@@ -99,7 +99,7 @@ const content: Record<LanguageCode, AboutUsContent> = {
   },
   ru: {
     eyebrow: "О НАС",
-    sectionTitle: "КТО МЫ",
+    sectionTitle: "О НАС",
     visionTitle: "Видение",
     visionText: "Быть ведущей юридической фирмой в Мексике, признанной за предоставление исключительных юридических услуг, развитие талентов и положительное влияние на наше сообщество.",
     missionTitle: "Миссия",
@@ -108,7 +108,7 @@ const content: Record<LanguageCode, AboutUsContent> = {
   },
   fr: {
     eyebrow: "À PROPOS DE NOUS",
-    sectionTitle: "QUI NOUS SOMMES",
+    sectionTitle: "À PROPOS DE NOUS",
     visionTitle: "Vision",
     visionText: "Être le cabinet d'avocats leader au Mexique, reconnu pour fournir des services juridiques exceptionnels, favoriser les talents et avoir un impact positif dans notre communauté.",
     missionTitle: "Mission",
@@ -117,7 +117,7 @@ const content: Record<LanguageCode, AboutUsContent> = {
   },
   it: {
     eyebrow: "CHI SIAMO",
-    sectionTitle: "LA NOSTRA IDENTITÀ",
+    sectionTitle: "CHI SIAMO",
     visionTitle: "Visione",
     visionText: "Essere lo studio legale leader in Messico, riconosciuto per la fornitura di servizi legali eccezionali, la promozione dei talenti e un impatto positivo nella nostra comunità.",
     missionTitle: "Missione",
@@ -151,9 +151,9 @@ export default function AboutUsSection() {
           transition={{ duration: 0.6 }}
           className="text-center mb-16"
         >
-          <div className="w-12 h-px bg-[#AA1A2E] mb-6 mx-auto" />
+          <div className="w-12 h-px bg-primary mb-6 mx-auto" />
           <p
-            className="text-[#AA1A2E] text-[10px] tracking-[0.25em] uppercase mb-4"
+            className="text-primary text-[10px] tracking-[0.25em] uppercase mb-4"
             data-testid="text-about-us-eyebrow"
           >
             {t.eyebrow}
@@ -175,7 +175,7 @@ export default function AboutUsSection() {
             transition={{ duration: 0.6, delay: 0.1 }}
             data-testid="subsection-vision"
           >
-            <div className="w-8 h-px bg-[#AA1A2E] mb-4" />
+            <div className="w-8 h-px bg-primary mb-4" />
             <h3
               className="font-heading font-light uppercase tracking-[0.08em] text-lg text-foreground mb-6"
               data-testid="text-vision-title"
@@ -197,7 +197,7 @@ export default function AboutUsSection() {
             transition={{ duration: 0.6, delay: 0.2 }}
             data-testid="subsection-mission"
           >
-            <div className="w-8 h-px bg-[#AA1A2E] mb-4" />
+            <div className="w-8 h-px bg-primary mb-4" />
             <h3
               className="font-heading font-light uppercase tracking-[0.08em] text-lg text-foreground mb-6"
               data-testid="text-mission-title"
@@ -232,7 +232,7 @@ export default function AboutUsSection() {
           className="text-center"
           data-testid="subsection-values"
         >
-          <div className="w-8 h-px bg-[#AA1A2E] mb-4 mx-auto" />
+          <div className="w-8 h-px bg-primary mb-4 mx-auto" />
           <h3
             className="font-heading font-light uppercase tracking-[0.08em] text-lg text-foreground mb-10"
             data-testid="text-values-title"
