@@ -84,16 +84,15 @@ export default function SocialProofSection() {
 
   const containerVariants = {
     hidden: { opacity: 0 },
-    visible: { opacity: 1, transition: { staggerChildren: 0.2 } },
+    visible: { opacity: 1, transition: { staggerChildren: 0.22 } },
   };
 
   const itemVariants = {
-    hidden: { opacity: 0, y: 40, scale: 0.97 },
+    hidden: { opacity: 0, y: 32 },
     visible: {
       opacity: 1,
       y: 0,
-      scale: 1,
-      transition: { duration: 0.7, ease: [0.22, 1, 0.36, 1] },
+      transition: { duration: 0.65, ease: [0.22, 1, 0.36, 1] },
     },
   };
 
@@ -114,7 +113,7 @@ export default function SocialProofSection() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
-          className="text-center mb-16"
+          className="text-center mb-20"
         >
           <h2
             className="text-2xl md:text-3xl lg:text-4xl font-heading font-light text-[#AA1A2E] uppercase tracking-[0.12em]"
@@ -124,47 +123,45 @@ export default function SocialProofSection() {
           </h2>
         </motion.div>
 
-        {/* Cards grid */}
+        {/* Editorial grid — no cards, open layout with vertical dividers */}
         <motion.div
           variants={containerVariants}
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true }}
-          className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8"
+          className="grid grid-cols-1 md:grid-cols-3"
           data-testid="grid-social-proof-quotes"
         >
-          {quotes.map((quote) => (
+          {quotes.map((quote, index) => (
             <motion.div
               key={quote.id}
               variants={itemVariants}
-              whileHover={{ y: -6, transition: { duration: 0.3, ease: [0.22, 1, 0.36, 1] } }}
-              className="relative bg-card rounded-none p-8 lg:p-10 flex flex-col overflow-hidden"
-              style={{
-                boxShadow: "0 2px 16px -4px rgba(0,0,0,0.07), 0 1px 4px -2px rgba(0,0,0,0.04)",
-                transition: "box-shadow 0.3s ease",
-              }}
-              onHoverStart={(e) => {
-                (e.target as HTMLElement).style.boxShadow =
-                  "0 16px 48px -12px rgba(0,0,0,0.13), 0 4px 16px -4px rgba(0,0,0,0.06)";
-              }}
-              onHoverEnd={(e) => {
-                (e.target as HTMLElement).style.boxShadow =
-                  "0 2px 16px -4px rgba(0,0,0,0.07), 0 1px 4px -2px rgba(0,0,0,0.04)";
-              }}
+              className={[
+                "flex flex-col items-center text-center px-8 lg:px-12 py-6",
+                index < quotes.length - 1
+                  ? "border-b md:border-b-0 md:border-r border-foreground/10 mb-12 pb-12 md:mb-0 md:pb-6"
+                  : "",
+              ].join(" ")}
               data-testid={`card-quote-${quote.id}`}
             >
-              {/* Giant quote mark as background texture */}
-              <span
+              {/* Large red opening quote — rises above the text block */}
+              <div
                 aria-hidden="true"
-                className="absolute -top-4 -left-1 select-none pointer-events-none font-serif text-[9rem] leading-none text-[#AA1A2E]/8"
-                style={{ fontStyle: "italic" }}
+                className="text-[#AA1A2E] font-serif select-none pointer-events-none"
+                style={{
+                  fontSize: "5.5rem",
+                  lineHeight: "0.65",
+                  fontStyle: "italic",
+                  marginBottom: "1.5rem",
+                  marginTop: "-0.75rem",
+                }}
               >
                 &ldquo;
-              </span>
+              </div>
 
-              {/* Quote text */}
+              {/* Quote text — italic serif, medium gray */}
               <blockquote
-                className="relative z-10 font-serif text-base lg:text-lg leading-relaxed text-foreground/60 mb-8 text-center"
+                className="font-serif text-base lg:text-lg leading-relaxed text-foreground/58 mb-8 flex-1"
                 style={{ fontStyle: "italic" }}
                 data-testid={`text-quote-${quote.id}`}
               >
@@ -172,7 +169,7 @@ export default function SocialProofSection() {
               </blockquote>
 
               {/* Attribution */}
-              <div className="mt-auto" data-testid={`attribution-${quote.id}`}>
+              <div className="flex flex-col items-center" data-testid={`attribution-${quote.id}`}>
                 <div
                   className="w-10 h-px bg-[#AA1A2E] mb-4"
                   data-testid={`divider-quote-${quote.id}`}
