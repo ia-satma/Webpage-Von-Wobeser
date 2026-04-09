@@ -20,15 +20,17 @@ export default function StatsSection({ language }: StatsSectionProps) {
 
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
 
+  const galleryImages = officeImages.slice(0, 8);
+
   const goPrev = useCallback(() => {
     if (lightboxIndex === null) return;
-    setLightboxIndex((lightboxIndex - 1 + officeImages.length) % officeImages.length);
-  }, [lightboxIndex, officeImages.length]);
+    setLightboxIndex((lightboxIndex - 1 + galleryImages.length) % galleryImages.length);
+  }, [lightboxIndex, galleryImages.length]);
 
   const goNext = useCallback(() => {
     if (lightboxIndex === null) return;
-    setLightboxIndex((lightboxIndex + 1) % officeImages.length);
-  }, [lightboxIndex, officeImages.length]);
+    setLightboxIndex((lightboxIndex + 1) % galleryImages.length);
+  }, [lightboxIndex, galleryImages.length]);
 
   useEffect(() => {
     if (lightboxIndex === null) return;
@@ -462,7 +464,7 @@ export default function StatsSection({ language }: StatsSectionProps) {
         </div>
       )}
 
-      {!imagesLoading && officeImages.length > 0 && (
+      {!imagesLoading && galleryImages.length > 0 && (
         <motion.div
           initial={{ opacity: 0, y: 24 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -474,7 +476,7 @@ export default function StatsSection({ language }: StatsSectionProps) {
             className="grid grid-cols-2 md:grid-cols-4"
             data-testid="stats-gallery-grid"
           >
-            {officeImages.map((img, idx) => (
+            {galleryImages.map((img, idx) => (
               <div
                 key={img.id}
                 className="relative aspect-square overflow-hidden cursor-pointer group"
@@ -503,7 +505,7 @@ export default function StatsSection({ language }: StatsSectionProps) {
       )}
 
       {/* Lightbox */}
-      {lightboxIndex !== null && officeImages.length > 0 && (
+      {lightboxIndex !== null && galleryImages.length > 0 && (
         <div
           className="fixed inset-0 z-[9999] bg-black/95 flex items-center justify-center"
           onClick={() => setLightboxIndex(null)}
@@ -520,7 +522,7 @@ export default function StatsSection({ language }: StatsSectionProps) {
             <X className="w-8 h-8" />
           </button>
 
-          {officeImages.length > 1 && (
+          {galleryImages.length > 1 && (
             <button
               className="absolute left-4 text-white/80 hover:text-white p-2"
               onClick={(e) => { e.stopPropagation(); goPrev(); }}
@@ -532,14 +534,14 @@ export default function StatsSection({ language }: StatsSectionProps) {
           )}
 
           <img
-            src={officeImages[lightboxIndex].imageUrl}
-            alt={officeImages[lightboxIndex].alt || officeImages[lightboxIndex].altEs || ""}
+            src={galleryImages[lightboxIndex].imageUrl}
+            alt={galleryImages[lightboxIndex].alt || galleryImages[lightboxIndex].altEs || ""}
             className="max-h-[85vh] max-w-[90vw] object-contain"
             onClick={(e) => e.stopPropagation()}
             data-testid="stats-lightbox-image"
           />
 
-          {officeImages.length > 1 && (
+          {galleryImages.length > 1 && (
             <button
               className="absolute right-4 text-white/80 hover:text-white p-2"
               onClick={(e) => { e.stopPropagation(); goNext(); }}
@@ -551,7 +553,7 @@ export default function StatsSection({ language }: StatsSectionProps) {
           )}
 
           <div className="absolute bottom-4 left-1/2 -translate-x-1/2 text-white/60 text-xs tracking-[0.2em] uppercase">
-            {lightboxIndex + 1} / {officeImages.length}
+            {lightboxIndex + 1} / {galleryImages.length}
           </div>
         </div>
       )}
