@@ -396,7 +396,7 @@ export default function Header() {
                       "absolute top-full left-0 mt-2 min-w-[220px] py-1.5 z-50",
                       "border shadow-2xl backdrop-blur-xl overflow-hidden",
                       isScrolled
-                        ? "bg-white/92 border-black/8"
+                        ? "bg-background border-border"
                         : "bg-black/75 border-white/10"
                     )}
                     role="menu"
@@ -414,7 +414,7 @@ export default function Header() {
                           "border-l-2 border-transparent transition-all duration-150",
                           "hover:border-[#AA1A2E]",
                           isScrolled
-                            ? "text-foreground/80 hover:text-[#AA1A2E] hover:bg-[#AA1A2E]/5"
+                            ? "text-foreground hover:text-[#AA1A2E] hover:bg-[#AA1A2E]/5"
                             : "text-white/80 hover:text-white hover:bg-white/8"
                         )}
                         role="menuitem"
