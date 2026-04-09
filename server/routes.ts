@@ -460,7 +460,10 @@ export async function registerRoutes(
 
   app.patch("/api/admin/office-images/:id", authMiddleware, requireRole("editor", "admin"), async (req: Request, res: Response) => {
     try {
-      const updated = await storage.updateOfficeImage(req.params.id, req.body);
+      const patchSchema = insertOfficeImageSchema.pick({ alt: true, altEs: true, order: true }).partial();
+      const parsed = patchSchema.safeParse(req.body);
+      if (!parsed.success) return res.status(400).json({ error: parsed.error.flatten() });
+      const updated = await storage.updateOfficeImage(req.params.id, parsed.data);
       if (!updated) return res.status(404).json({ error: "Image not found" });
       res.json(updated);
     } catch (error) {

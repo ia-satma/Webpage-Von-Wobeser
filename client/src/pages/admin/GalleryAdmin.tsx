@@ -1,8 +1,7 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Link } from "wouter";
-import { useAdminAuth, adminApiRequest } from "@/lib/adminAuth";
-import { getAuthHeaders } from "@/lib/adminAuth";
+import { useAdminAuth, adminApiRequest, getAuthHeaders } from "@/lib/adminAuth";
 import { queryClient } from "@/lib/queryClient";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -14,7 +13,11 @@ import { ArrowLeft, Upload, Trash2, Pencil, Link as LinkIcon, ChevronUp, Chevron
 import type { OfficeImage } from "@shared/schema";
 
 export default function GalleryAdmin() {
-  const { isAuthenticated, isLoading: authLoading } = useAdminAuth();
+  const { isAuthenticated, isLoading: authLoading, requireAuth } = useAdminAuth();
+
+  useEffect(() => {
+    requireAuth();
+  }, [requireAuth]);
   const { toast } = useToast();
 
   const [urlMode, setUrlMode] = useState(false);
@@ -153,6 +156,8 @@ export default function GalleryAdmin() {
       </div>
     );
   }
+
+  if (!isAuthenticated) return null;
 
   const sortedImages = [...images].sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
 
