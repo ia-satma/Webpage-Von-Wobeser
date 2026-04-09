@@ -44,7 +44,7 @@ const esCommon = {
   },
   practices: {
     title: "Prácticas",
-    subtitle: "Áreas de Especialización"
+    subtitle: "18 Disciplinas Especializadas"
   },
   industries: {
     title: "Grupos de Industria",
@@ -221,7 +221,7 @@ const enCommon = {
   },
   practices: {
     title: "Practices",
-    subtitle: "Areas of Expertise"
+    subtitle: "18 Specialized Disciplines"
   },
   industries: {
     title: "Industry Groups",
