@@ -8,7 +8,7 @@ import { useTranslatedContent } from "@/hooks/useTranslatedContent";
 import type { SiteContent, News, LanguageCode } from "@shared/schema";
 import heroVideo from "@assets/dron_1764710361340.mp4";
 import heroImage from "@assets/hero_office.jpg";
-import logoColor from "@assets/Artboard_1_1775695263479.png";
+import logoColor from "@assets/logovw_1775695774326.png";
 
 interface HeroSectionProps {
   language: LanguageCode;

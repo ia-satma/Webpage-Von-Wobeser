@@ -11,8 +11,8 @@ import LanguageSelector from "./LanguageSelector";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useTranslatedContent } from "@/hooks/useTranslatedContent";
 import type { TeamMember, PracticeGroup, IndustryGroup, News, LanguageCode } from "@shared/schema";
-import logoColor from "@assets/Artboard_1_1775695263479.png";
-import logoWhite from "@assets/Artboard_1_copy_4_1775695277034.png";
+import logoColor from "@assets/logovw_1775695774326.png";
+import logoWhite from "@assets/logovw-b_1775695826011.png";
 
 interface SearchResults {
   team: TeamMember[];
