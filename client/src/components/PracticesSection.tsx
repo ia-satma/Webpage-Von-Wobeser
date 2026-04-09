@@ -182,11 +182,6 @@ export default function PracticesSection() {
               {/* Red rule */}
               <div className="w-12 h-px bg-[#AA1A2E] mb-6" />
 
-              {/* Eyebrow label — small red uppercase, uses subtitle for unique text */}
-              <p className="text-[#AA1A2E] text-[10px] tracking-[0.25em] uppercase mb-3">
-                {t.subtitle}
-              </p>
-
               {/* Serif section heading — Playfair Display */}
               <h2
                 className="font-heading font-light text-xl md:text-2xl text-white/90 uppercase tracking-[0.12em] mb-6"
