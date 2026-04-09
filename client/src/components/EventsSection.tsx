@@ -14,17 +14,6 @@ interface EventsSectionProps {
   language: "en" | "es" | "de" | "zh" | "ko" | "ja" | "ar" | "ru" | "fr" | "it";
 }
 
-const getEventTypeColor = (eventType: string): string => {
-  const colors: Record<string, string> = {
-    conference: "bg-blue-600",
-    webinar: "bg-purple-600",
-    sponsorship: "bg-amber-600",
-    speaking: "bg-green-600",
-    networking: "bg-rose-600",
-  };
-  return colors[eventType] || "bg-gray-600";
-};
-
 const getEventTypeLabel = (eventType: string, language: string): string => {
   const type = eventTypes.find(t => t.value === eventType);
   if (!type) return eventType;
@@ -41,7 +30,7 @@ interface EventCardProps {
 
 function EventCard({ event, language, learnMoreText, formatDate }: EventCardProps) {
   const isSpanish = language === 'es';
-  
+
   const { translatedFields, isLoading: isTranslating } = useTranslatedContent({
     contentType: 'event',
     entityId: event.id,
@@ -73,37 +62,37 @@ function EventCard({ event, language, learnMoreText, formatDate }: EventCardProp
 
   return (
     <Card
-      className="group h-full overflow-hidden border border-border shadow-sm hover:shadow-lg transition-all duration-300 rounded-md bg-card"
+      className="group h-full overflow-hidden border border-border shadow-sm hover:shadow-lg transition-all duration-300 rounded-none bg-card"
       data-testid={`card-event-${event.id}`}
     >
       <div className="p-6">
         <div className="flex items-start justify-between gap-3 mb-4">
-          <Badge 
-            className={`${getEventTypeColor(event.eventType || 'conference')} text-white font-medium`}
+          <Badge
+            className="bg-[#AA1A2E] text-white font-medium rounded-none"
             data-testid={`badge-event-type-${event.id}`}
           >
             {getEventTypeLabel(event.eventType || 'conference', language)}
           </Badge>
         </div>
-        
+
         <div className="flex items-center gap-2 text-sm text-muted-foreground mb-3">
           <Calendar className="w-4 h-4 flex-shrink-0" />
           <span data-testid={`text-event-date-${event.id}`}>
             {formatDate(event.date)}
           </span>
         </div>
-        
-        <h3 
-          className={`text-xl font-semibold text-foreground mb-3 line-clamp-2 ${isTranslating ? 'opacity-50' : ''}`}
+
+        <h3
+          className={`font-heading font-light uppercase tracking-[0.08em] text-lg text-foreground mb-3 line-clamp-2 ${isTranslating ? 'opacity-50' : ''}`}
           data-testid={`text-event-title-${event.id}`}
         >
           {getEventTitle()}
         </h3>
-        
+
         {(event.location || event.locationEs) && (
           <div className="flex items-center gap-2 text-sm text-muted-foreground mb-3">
             <MapPin className="w-4 h-4 flex-shrink-0" />
-            <span 
+            <span
               className={isTranslating ? 'opacity-50' : ''}
               data-testid={`text-event-location-${event.id}`}
             >
@@ -111,20 +100,20 @@ function EventCard({ event, language, learnMoreText, formatDate }: EventCardProp
             </span>
           </div>
         )}
-        
-        <p 
-          className={`text-muted-foreground text-sm line-clamp-2 mb-4 ${isTranslating ? 'opacity-50' : ''}`}
+
+        <p
+          className={`text-sm text-muted-foreground leading-relaxed text-justify line-clamp-3 mb-4 ${isTranslating ? 'opacity-50' : ''}`}
           data-testid={`text-event-description-${event.id}`}
         >
           {getEventDescription()}
         </p>
-        
+
         {event.externalUrl && (
           <a
             href={event.externalUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 text-primary font-medium text-sm hover:underline"
+            className="inline-flex items-center gap-2 text-[#AA1A2E] font-medium text-sm hover:underline"
             data-testid={`link-event-learn-more-${event.id}`}
           >
             {learnMoreText}
@@ -142,6 +131,7 @@ export default function EventsSection({ language }: EventsSectionProps) {
   });
 
   const content: Record<string, {
+    eyebrow: string;
     title: string;
     viewAll: string;
     learnMore: string;
@@ -149,6 +139,7 @@ export default function EventsSection({ language }: EventsSectionProps) {
     noEvents: string;
   }> = {
     en: {
+      eyebrow: "FIRM ACTIVITIES",
       title: "Upcoming Events",
       viewAll: "View All Events",
       learnMore: "Learn More",
@@ -156,6 +147,7 @@ export default function EventsSection({ language }: EventsSectionProps) {
       noEvents: "No upcoming events",
     },
     es: {
+      eyebrow: "ACTIVIDADES DE LA FIRMA",
       title: "Próximos Eventos",
       viewAll: "Ver Todos los Eventos",
       learnMore: "Más Información",
@@ -163,6 +155,7 @@ export default function EventsSection({ language }: EventsSectionProps) {
       noEvents: "No hay eventos próximos",
     },
     de: {
+      eyebrow: "AKTIVITÄTEN DER KANZLEI",
       title: "Kommende Veranstaltungen",
       viewAll: "Alle anzeigen",
       learnMore: "Mehr erfahren",
@@ -170,6 +163,7 @@ export default function EventsSection({ language }: EventsSectionProps) {
       noEvents: "Keine Veranstaltungen geplant",
     },
     zh: {
+      eyebrow: "律所活动",
       title: "即将举行的活动",
       viewAll: "查看全部",
       learnMore: "了解更多",
@@ -177,6 +171,7 @@ export default function EventsSection({ language }: EventsSectionProps) {
       noEvents: "暂无活动",
     },
     ko: {
+      eyebrow: "법인 활동",
       title: "예정된 이벤트",
       viewAll: "모두 보기",
       learnMore: "자세히 알아보기",
@@ -184,6 +179,7 @@ export default function EventsSection({ language }: EventsSectionProps) {
       noEvents: "예정된 이벤트 없음",
     },
     ja: {
+      eyebrow: "事務所の活動",
       title: "今後のイベント",
       viewAll: "すべて見る",
       learnMore: "詳しく見る",
@@ -191,6 +187,7 @@ export default function EventsSection({ language }: EventsSectionProps) {
       noEvents: "予定されているイベントはありません",
     },
     ar: {
+      eyebrow: "أنشطة المكتب",
       title: "الفعاليات القادمة",
       viewAll: "عرض الكل",
       learnMore: "اعرف المزيد",
@@ -198,6 +195,7 @@ export default function EventsSection({ language }: EventsSectionProps) {
       noEvents: "لا توجد فعاليات مجدولة",
     },
     ru: {
+      eyebrow: "МЕРОПРИЯТИЯ ФИРМЫ",
       title: "Предстоящие мероприятия",
       viewAll: "Смотреть все",
       learnMore: "Подробнее",
@@ -205,6 +203,7 @@ export default function EventsSection({ language }: EventsSectionProps) {
       noEvents: "Нет запланированных мероприятий",
     },
     fr: {
+      eyebrow: "ACTIVITÉS DU CABINET",
       title: "Événements à venir",
       viewAll: "Voir tout",
       learnMore: "En savoir plus",
@@ -212,6 +211,7 @@ export default function EventsSection({ language }: EventsSectionProps) {
       noEvents: "Aucun événement prévu",
     },
     it: {
+      eyebrow: "ATTIVITÀ DELLO STUDIO",
       title: "Prossimi eventi",
       viewAll: "Vedi tutti",
       learnMore: "Scopri di più",
@@ -283,23 +283,35 @@ export default function EventsSection({ language }: EventsSectionProps) {
       data-testid="section-events"
     >
       <div className="max-w-7xl mx-auto px-6 lg:px-12">
+
+        {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
-          className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-12"
+          className="flex flex-col sm:flex-row items-start sm:items-end justify-between gap-6 mb-12"
         >
-          <h2
-            className="text-2xl md:text-3xl font-heading font-light text-foreground uppercase tracking-[0.15em]"
-            data-testid="text-events-title"
-          >
-            {t.title}
-          </h2>
+          <div>
+            <div className="w-12 h-px bg-[#AA1A2E] mb-6" />
+            <p
+              className="text-[#AA1A2E] text-[10px] tracking-[0.25em] uppercase mb-4"
+              data-testid="text-events-eyebrow"
+            >
+              {t.eyebrow}
+            </p>
+            <h2
+              className="font-heading font-light text-2xl md:text-3xl lg:text-4xl text-foreground uppercase tracking-[0.12em] leading-tight"
+              data-testid="text-events-title"
+            >
+              {t.title}
+            </h2>
+          </div>
+
           <Link href="/events">
             <Button
               variant="outline"
-              className="group"
+              className="group rounded-none shrink-0"
               data-testid="button-view-all-events"
             >
               {t.viewAll}
@@ -311,9 +323,9 @@ export default function EventsSection({ language }: EventsSectionProps) {
         {isLoading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8">
             {[1, 2, 3, 4].map((i) => (
-              <Card 
-                key={i} 
-                className="overflow-hidden border border-border shadow-sm rounded-md bg-card" 
+              <Card
+                key={i}
+                className="overflow-hidden border border-border shadow-sm rounded-none bg-card"
                 data-testid={`skeleton-event-${i}`}
               >
                 <div className="p-6">
@@ -345,9 +357,9 @@ export default function EventsSection({ language }: EventsSectionProps) {
           >
             {events?.map((event) => (
               <motion.div key={event.id} variants={itemVariants}>
-                <EventCard 
-                  event={event} 
-                  language={language as LanguageCode} 
+                <EventCard
+                  event={event}
+                  language={language as LanguageCode}
                   learnMoreText={t.learnMore}
                   formatDate={formatDate}
                 />
@@ -360,7 +372,7 @@ export default function EventsSection({ language }: EventsSectionProps) {
           <Link href="/events">
             <Button
               variant="outline"
-              className="group"
+              className="group rounded-none"
               data-testid="button-view-all-events-mobile"
             >
               {t.viewAll}
@@ -368,6 +380,7 @@ export default function EventsSection({ language }: EventsSectionProps) {
             </Button>
           </Link>
         </div>
+
       </div>
     </section>
   );
