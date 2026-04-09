@@ -181,7 +181,7 @@ export default function PracticesSection() {
 
               {/* Decorative large number */}
               <div className="relative mb-6 select-none pointer-events-none">
-                <span className="text-[9rem] leading-none font-heading font-light text-white/[0.04]">
+                <span className="text-[9rem] leading-none font-heading font-light text-white/[0.10]">
                   18
                 </span>
               </div>
@@ -220,13 +220,13 @@ export default function PracticesSection() {
             initial="hidden"
             whileInView="visible"
             viewport={{ once: true }}
-            className="lg:w-2/3 border-t border-white/10 grid grid-cols-1 lg:grid-cols-2"
+            className="lg:w-2/3 border-t border-[#AA1A2E]/25 grid grid-cols-1 lg:grid-cols-2"
           >
             {practiceAreas.map((area) => (
               <motion.div key={area.id} variants={itemVariants}>
                 <Link
                   href={`/practice-groups/${area.slug}`}
-                  className="group flex items-center gap-6 px-4 py-3 border-b border-white/8 border-l-2 border-l-transparent hover:border-l-[#AA1A2E] hover:bg-white/4 transition-all duration-200 h-full"
+                  className="group flex items-center gap-6 px-4 py-3 border-b border-[#AA1A2E]/25 border-l-2 border-l-transparent hover:border-l-[#AA1A2E] hover:bg-white/4 transition-all duration-200 h-full"
                   data-testid={`link-practice-${area.id}`}
                 >
                   <span
