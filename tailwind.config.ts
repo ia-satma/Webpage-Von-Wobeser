@@ -88,7 +88,7 @@ export default {
         heading: ["var(--font-heading)"],
         support: ["var(--font-support)"],
         mono: ["var(--font-mono)"],
-        publico: ["'Publico'", "Georgia", "serif"],
+        publico: ["'Playfair Display'", "Georgia", "serif"],
         optima: ["'Optima'", "Calibri", "sans-serif"],
         geomanist: ["'Geomanist'", "'Century Gothic'", "sans-serif"],
       },

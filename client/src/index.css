@@ -6,24 +6,8 @@
    CORPORATE IDENTITY FONTS — Manual de Identidad 2022
    ====================================================== */
 
-/* Publico Roman — H1, H2, H3 and all headlines (regular weight) */
-@font-face {
-  font-family: 'Publico';
-  src: url('/fonts/Publico-Roman.ttf') format('truetype');
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-}
-
-/* Publico Bold — available when bold weight is explicitly needed */
-@font-face {
-  font-family: 'Publico';
-  src: url('/fonts/Publico-Bold.woff2') format('woff2'),
-       url('/fonts/Publico-Bold.ttf') format('truetype');
-  font-weight: 700;
-  font-style: normal;
-  font-display: swap;
-}
+/* Playfair Display replaces Publico — same editorial serif, full Latin-extended support */
+/* Loaded via Google Fonts in index.html */
 
 /* Optima — body copy, paragraphs, running text */
 @font-face {
@@ -99,7 +83,7 @@
   --chart-5: 351 30% 55%;
   --font-sans: 'Optima', 'Calibri', 'Segoe UI', sans-serif;
   --font-serif: 'Optima', 'Georgia', 'Times New Roman', serif;
-  --font-heading: 'Publico', 'Georgia', 'Times New Roman', serif;
+  --font-heading: 'Playfair Display', 'Georgia', 'Times New Roman', serif;
   --font-support: 'Geomanist', 'Century Gothic', 'Segoe UI', sans-serif;
   --font-mono: Menlo, monospace;
   --radius: .5rem;
