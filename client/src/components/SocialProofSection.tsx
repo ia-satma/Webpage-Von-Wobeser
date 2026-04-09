@@ -158,7 +158,7 @@ export default function SocialProofSection() {
               {/* Red floating quote mark — sits on top edge of card, never overlaps text */}
               <span
                 aria-hidden="true"
-                className="absolute -top-10 left-5 select-none pointer-events-none font-serif text-[7rem] leading-none text-[#AA1A2E] drop-shadow-sm"
+                className="absolute -top-10 left-5 select-none pointer-events-none font-serif text-[7rem] leading-none text-[#AA1A2E] z-20 drop-shadow-md"
               >
                 &ldquo;
               </span>
