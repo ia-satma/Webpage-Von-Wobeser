@@ -222,11 +222,11 @@ export default function PracticesSection() {
             viewport={{ once: true }}
             className="lg:w-2/3 border-t border-white/10 grid grid-cols-1 lg:grid-cols-2"
           >
-            {practiceAreas.slice(0, 9).map((area) => (
+            {practiceAreas.map((area) => (
               <motion.div key={area.id} variants={itemVariants}>
                 <Link
                   href={`/practice-groups/${area.slug}`}
-                  className="group flex items-center gap-6 px-4 py-4 border-b border-white/8 border-l-2 border-l-transparent hover:border-l-[#AA1A2E] hover:bg-white/4 transition-all duration-200 h-full"
+                  className="group flex items-center gap-6 px-4 py-3 border-b border-white/8 border-l-2 border-l-transparent hover:border-l-[#AA1A2E] hover:bg-white/4 transition-all duration-200 h-full"
                   data-testid={`link-practice-${area.id}`}
                 >
                   <span
@@ -236,7 +236,7 @@ export default function PracticesSection() {
                     {String(area.id).padStart(2, "0")}
                   </span>
                   <span
-                    className="flex-1 text-lg font-light text-white/90 group-hover:text-white transition-colors duration-200 leading-snug"
+                    className="flex-1 text-sm font-light text-white/90 group-hover:text-white transition-colors duration-200 leading-snug"
                     data-testid={`text-practice-name-${area.id}`}
                   >
                     {getPracticeAreaName(area, language)}
