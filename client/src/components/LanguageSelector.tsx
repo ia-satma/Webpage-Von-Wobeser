@@ -62,14 +62,14 @@ export default function LanguageSelector({
           isMobile 
             ? "bg-white/20 backdrop-blur-sm border border-white/30 text-white hover:bg-white/30" 
             : isScrolled 
-              ? "bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-700" 
-              : "bg-black/30 backdrop-blur-sm border border-white/40 text-white hover:bg-black/40",
+              ? "bg-transparent border border-[#AA1A2E]/40 text-gray-800 dark:text-gray-100 hover:border-[#AA1A2E] hover:bg-[#AA1A2E]/5 dark:hover:bg-[#AA1A2E]/10" 
+              : "bg-black/30 backdrop-blur-sm border border-white/30 text-white hover:bg-black/40",
           className
         )}
         data-testid="select-language-trigger"
         aria-label={ariaLabel}
       >
-        <Globe className="w-4 h-4 shrink-0" aria-hidden="true" data-testid="icon-globe" />
+        <Globe className="w-4 h-4 shrink-0 text-[#AA1A2E]" aria-hidden="true" data-testid="icon-globe" />
         <SelectValue data-testid="text-current-language">
           {getDisplayName()}
         </SelectValue>

@@ -382,7 +382,8 @@ export default function Header() {
                     <ChevronDown
                       className={cn(
                         "w-4 h-4 transition-transform duration-200",
-                        activeDropdown === item.id && "rotate-180"
+                        activeDropdown === item.id && "rotate-180",
+                        isScrolled ? "text-[#AA1A2E]" : "text-white/70"
                       )}
                       aria-hidden="true"
                       data-testid={`icon-chevron-${item.id}`}
@@ -423,7 +424,7 @@ export default function Header() {
                 variant="ghost"
                 size="icon"
                 className={cn(
-                  isScrolled ? "text-gray-700 dark:text-gray-300" : "text-white"
+                  isScrolled ? "text-[#AA1A2E]" : "text-white/90 hover:text-white"
                 )}
                 onClick={() => setIsSearchOpen(!isSearchOpen)}
                 data-testid="button-search"
@@ -546,7 +547,7 @@ export default function Header() {
               size="icon"
               className={cn(
                 "lg:hidden",
-                isScrolled ? "text-gray-700 dark:text-gray-300" : "text-white"
+                isScrolled ? "text-[#AA1A2E]" : "text-white/90 hover:text-white"
               )}
               onClick={() => setIsMobileMenuOpen(true)}
               data-testid="button-mobile-menu"
