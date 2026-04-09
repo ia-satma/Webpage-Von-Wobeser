@@ -19,7 +19,6 @@ export default function StatsSection({ language }: StatsSectionProps) {
   });
 
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
-  const [activePanel, setActivePanel] = useState<number | null>(null);
 
   const goPrev = useCallback(() => {
     if (lightboxIndex === null) return;
@@ -331,23 +330,14 @@ export default function StatsSection({ language }: StatsSectionProps) {
     return langTranslations[englishLabel] || englishLabel;
   };
 
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1,
-      },
-    },
+  const statItemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.5 } },
   };
 
-  const itemVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: { duration: 0.5 },
-    },
+  const statsContainerVariants = {
+    hidden: { opacity: 0 },
+    visible: { opacity: 1, transition: { staggerChildren: 0.1 } },
   };
 
   if (error) {
@@ -366,15 +356,14 @@ export default function StatsSection({ language }: StatsSectionProps) {
   return (
     <section
       id="stats"
-      className="py-20 lg:py-28 bg-background"
+      className="pb-0 pt-20 lg:pt-28 bg-background"
       data-testid="section-stats"
     >
+      {/* ── Zone 1: Text (left) + Stats (right) ─────────────────────── */}
       <div className="max-w-7xl mx-auto px-6 lg:px-12">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-center">
 
-        {/* Two-column layout: text left, accordion photos right */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-stretch mb-0">
-
-          {/* Left column: editorial text */}
+          {/* Left: editorial text */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -403,169 +392,57 @@ export default function StatsSection({ language }: StatsSectionProps) {
             >
               {t.description}
             </p>
+          </motion.div>
 
-            {/* Mobile: horizontal scrollable photo strip */}
-            {!imagesLoading && officeImages.length > 0 && (
-              <div
-                className="lg:hidden overflow-x-auto flex gap-2 mt-8 -mx-6 px-6 pb-2"
-                data-testid="stats-gallery-mobile-strip"
-              >
-                {officeImages.map((img, idx) => (
+          {/* Right: stats in 2×2 grid */}
+          {isLoading ? (
+            <div className="grid grid-cols-2 gap-x-10 gap-y-10">
+              {[1, 2, 3, 4].map((i) => (
+                <div key={i} data-testid={`skeleton-stat-${i}`}>
+                  <Skeleton className="h-14 w-28 mb-3" />
+                  <Skeleton className="h-3 w-24" />
+                </div>
+              ))}
+            </div>
+          ) : (
+            <motion.div
+              variants={statsContainerVariants}
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true }}
+              className="grid grid-cols-2 gap-x-10 gap-y-10"
+            >
+              {stats?.map((stat, index) => (
+                <motion.div
+                  key={index}
+                  variants={statItemVariants}
+                  data-testid={`stat-item-${index}`}
+                >
                   <div
-                    key={img.id}
-                    className="relative flex-none w-40 h-48 overflow-hidden cursor-pointer"
-                    onClick={() => setLightboxIndex(idx)}
-                    data-testid={`stats-gallery-mobile-${img.id}`}
+                    className="font-heading font-light text-5xl lg:text-6xl xl:text-7xl text-[#AA1A2E] leading-none mb-3"
+                    data-testid={`text-stat-value-${index}`}
                   >
-                    <img
-                      src={img.imageUrl}
-                      alt={img.alt || img.altEs || ""}
-                      className="w-full h-full object-cover"
-                      loading="lazy"
-                    />
-                    <div className="absolute inset-0 bg-black/30" />
+                    {stat.value}
                   </div>
-                ))}
-              </div>
-            )}
-            {imagesLoading && (
-              <div className="lg:hidden flex gap-2 mt-8 overflow-hidden">
-                {[1, 2, 3].map((i) => (
-                  <Skeleton key={i} className="flex-none w-40 h-48" />
-                ))}
-              </div>
-            )}
-          </motion.div>
-
-          {/* Right column: accordion photo panels (desktop only) */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.8, delay: 0.2 }}
-            className="hidden lg:block"
-          >
-            {imagesLoading ? (
-              <Skeleton className="h-[380px] w-full" data-testid="stats-gallery-skeleton-desktop" />
-            ) : officeImages.length > 0 ? (
-              <div
-                className="flex h-[380px] w-full"
-                onMouseLeave={() => setActivePanel(null)}
-                data-testid="stats-gallery-accordion"
-              >
-                {officeImages.map((img, idx) => {
-                  const isActive = activePanel === idx;
-                  return (
-                    <div
-                      key={img.id}
-                      className="relative overflow-hidden cursor-pointer"
-                      style={{
-                        flex: isActive ? 3 : 1,
-                        transition: "flex 0.5s cubic-bezier(0.22, 1, 0.36, 1)",
-                        minWidth: 0,
-                      }}
-                      onMouseEnter={() => setActivePanel(idx)}
-                      onClick={() => setLightboxIndex(idx)}
-                      role="button"
-                      tabIndex={0}
-                      aria-label={img.alt || img.altEs || "Office photo"}
-                      onKeyDown={(e) => e.key === "Enter" && setLightboxIndex(idx)}
-                      data-testid={`stats-gallery-panel-${img.id}`}
-                    >
-                      {/* Photo */}
-                      <img
-                        src={img.imageUrl}
-                        alt={img.alt || img.altEs || ""}
-                        className="absolute inset-0 w-full h-full object-cover"
-                        loading="lazy"
-                        style={{
-                          transform: isActive ? "scale(1.05)" : "scale(1)",
-                          filter: isActive ? "grayscale(0%)" : "grayscale(100%)",
-                          transition: "transform 0.6s cubic-bezier(0.22, 1, 0.36, 1), filter 0.5s ease",
-                        }}
-                      />
-
-                      {/* Dark overlay */}
-                      <div
-                        className="absolute inset-0"
-                        style={{
-                          background: isActive
-                            ? "linear-gradient(to top, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.05) 60%)"
-                            : "linear-gradient(to top, rgba(0,0,0,0.5) 0%, rgba(0,0,0,0.25) 100%)",
-                          transition: "background 0.5s ease",
-                        }}
-                      />
-
-                      {/* Red vertical separator */}
-                      <div className="absolute top-0 right-0 w-px h-full bg-[#AA1A2E]/25" />
-
-                      {/* Zoom icon — visible on active */}
-                      <div
-                        className="absolute inset-0 flex items-center justify-center"
-                        style={{
-                          opacity: isActive ? 1 : 0,
-                          transition: "opacity 0.3s ease 0.1s",
-                        }}
-                      >
-                        <ZoomIn className="text-white w-6 h-6 drop-shadow-lg" />
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            ) : null}
-          </motion.div>
+                  <div
+                    className="text-[10px] tracking-[0.2em] uppercase text-muted-foreground leading-tight"
+                    data-testid={`text-stat-label-${index}`}
+                  >
+                    {getTranslatedLabel(stat.label)}
+                  </div>
+                </motion.div>
+              ))}
+            </motion.div>
+          )}
         </div>
 
-        {/* Stats grid — full width */}
-        {isLoading ? (
-          <div className="grid grid-cols-2 md:grid-cols-4 border-t border-b border-border py-12 my-14">
-            {[1, 2, 3, 4].map((i) => (
-              <div key={i} className={`px-6 py-2 ${i > 1 ? "border-l border-border" : ""}`} data-testid={`skeleton-stat-${i}`}>
-                <Skeleton className="h-12 w-24 mb-3" />
-                <Skeleton className="h-3 w-20" />
-              </div>
-            ))}
-          </div>
-        ) : (
-          <motion.div
-            variants={containerVariants}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-            className="grid grid-cols-2 md:grid-cols-4 border-t border-b border-border py-12 my-14"
-          >
-            {stats?.map((stat, index) => (
-              <motion.div
-                key={index}
-                variants={itemVariants}
-                className={`px-6 py-2 ${index > 0 ? "border-l border-border" : ""}`}
-                data-testid={`stat-item-${index}`}
-              >
-                <div
-                  className="font-heading font-light text-4xl md:text-5xl lg:text-6xl text-[#AA1A2E] leading-none mb-3"
-                  data-testid={`text-stat-value-${index}`}
-                >
-                  {stat.value}
-                </div>
-                <div
-                  className="text-[10px] tracking-[0.2em] uppercase text-muted-foreground leading-tight"
-                  data-testid={`text-stat-label-${index}`}
-                >
-                  {getTranslatedLabel(stat.label)}
-                </div>
-              </motion.div>
-            ))}
-          </motion.div>
-        )}
-
-        {/* Capacity text — full width */}
+        {/* ── Zone 2: Capacity text ─────────────────────────────────── */}
         <motion.div
           initial={{ opacity: 0, y: 16 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6, delay: 0.2 }}
-          className="border-t border-border pt-10"
+          className="border-t border-border pt-10 mt-14"
         >
           <p
             className="text-sm text-muted-foreground leading-relaxed max-w-4xl"
@@ -574,8 +451,56 @@ export default function StatsSection({ language }: StatsSectionProps) {
             {t.capacity}
           </p>
         </motion.div>
-
       </div>
+
+      {/* ── Zone 3: Full-width gallery ───────────────────────────────── */}
+      {imagesLoading && (
+        <div className="mt-14 grid grid-cols-2 md:grid-cols-4" data-testid="stats-gallery-skeleton">
+          {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
+            <Skeleton key={i} className="aspect-square" data-testid={`stats-gallery-skeleton-${i}`} />
+          ))}
+        </div>
+      )}
+
+      {!imagesLoading && officeImages.length > 0 && (
+        <motion.div
+          initial={{ opacity: 0, y: 24 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.7, delay: 0.1 }}
+          className="mt-14"
+        >
+          <div
+            className="grid grid-cols-2 md:grid-cols-4"
+            data-testid="stats-gallery-grid"
+          >
+            {officeImages.map((img, idx) => (
+              <div
+                key={img.id}
+                className="relative aspect-square overflow-hidden cursor-pointer group"
+                onClick={() => setLightboxIndex(idx)}
+                role="button"
+                tabIndex={0}
+                aria-label={img.alt || img.altEs || "Office photo"}
+                onKeyDown={(e) => e.key === "Enter" && setLightboxIndex(idx)}
+                data-testid={`stats-gallery-image-${img.id}`}
+              >
+                <img
+                  src={img.imageUrl}
+                  alt={img.alt || img.altEs || ""}
+                  className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                  loading="lazy"
+                />
+                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/25 transition-colors duration-300 flex items-center justify-center">
+                  <ZoomIn
+                    className="text-white w-6 h-6 drop-shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
+        </motion.div>
+      )}
 
       {/* Lightbox */}
       {lightboxIndex !== null && officeImages.length > 0 && (
