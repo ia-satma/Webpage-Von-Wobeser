@@ -172,17 +172,17 @@ export default function PracticesSection() {
             <motion.div key={area.id} variants={itemVariants}>
               <Link
                 href={`/practice-groups/${area.slug}`}
-                className="group flex items-center gap-4 pl-4 pr-4 md:px-6 py-5 border-b border-foreground/8 border-l-2 border-l-transparent hover:border-l-[#AA1A2E] hover:bg-muted/40 transition-all duration-200"
+                className="group flex items-center gap-6 pl-4 pr-4 md:px-6 py-6 border-b border-foreground/8 border-l-2 border-l-transparent hover:border-l-[#AA1A2E] hover:bg-muted/40 transition-all duration-200"
                 data-testid={`link-practice-${area.id}`}
               >
                 <span
-                  className="text-xs font-mono text-muted-foreground w-7 shrink-0 tabular-nums"
+                  className="text-sm font-medium text-[#AA1A2E] w-8 shrink-0 tabular-nums"
                   data-testid={`text-practice-number-${area.id}`}
                 >
                   {String(area.id).padStart(2, "0")}
                 </span>
                 <span
-                  className="flex-1 text-base font-medium text-foreground group-hover:text-[#AA1A2E] transition-colors duration-200"
+                  className="flex-1 text-xl font-heading font-light text-foreground group-hover:text-[#AA1A2E] transition-colors duration-200"
                   data-testid={`text-practice-name-${area.id}`}
                 >
                   {getPracticeAreaName(area, language)}
