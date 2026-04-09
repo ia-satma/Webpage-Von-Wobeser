@@ -455,54 +455,55 @@ export default function StatsSection({ language }: StatsSectionProps) {
         </motion.div>
       </div>
 
-      {/* ── Zone 3: Full-width gallery ───────────────────────────────── */}
-      {imagesLoading && (
-        <div className="mt-14 grid grid-cols-5" data-testid="stats-gallery-skeleton">
-          {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((i) => (
-            <Skeleton key={i} className="aspect-square" data-testid={`stats-gallery-skeleton-${i}`} />
-          ))}
-        </div>
-      )}
-
-      {!imagesLoading && galleryImages.length > 0 && (
-        <motion.div
-          initial={{ opacity: 0, y: 24 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.7, delay: 0.1 }}
-          className="mt-14"
-        >
-          <div
-            className="grid grid-cols-5"
-            data-testid="stats-gallery-grid"
-          >
-            {galleryImages.map((img, idx) => (
-              <div
-                key={img.id}
-                className="relative aspect-square overflow-hidden cursor-pointer group"
-                onClick={() => setLightboxIndex(idx)}
-                role="button"
-                tabIndex={0}
-                aria-label={img.alt || img.altEs || "Office photo"}
-                onKeyDown={(e) => e.key === "Enter" && setLightboxIndex(idx)}
-                data-testid={`stats-gallery-image-${img.id}`}
-              >
-                <img
-                  src={img.imageUrl}
-                  alt={img.alt || img.altEs || ""}
-                  className="absolute inset-0 w-full h-full object-cover transition-all duration-500 grayscale group-hover:grayscale-0 group-hover:scale-105"
-                  loading="lazy"
-                />
-                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-300 flex items-center justify-center">
-                  <ZoomIn
-                    className="text-white w-6 h-6 drop-shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                  />
-                </div>
-              </div>
+      {/* ── Zone 3: Gallery — al raz del texto ───────────────────────── */}
+      <div className="max-w-7xl mx-auto px-6 lg:px-12 mt-14">
+        {imagesLoading && (
+          <div className="grid grid-cols-5 gap-px bg-[#AA1A2E]" data-testid="stats-gallery-skeleton">
+            {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((i) => (
+              <Skeleton key={i} className="aspect-square" data-testid={`stats-gallery-skeleton-${i}`} />
             ))}
           </div>
-        </motion.div>
-      )}
+        )}
+
+        {!imagesLoading && galleryImages.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 24 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.7, delay: 0.1 }}
+          >
+            <div
+              className="grid grid-cols-5 gap-px bg-[#AA1A2E]"
+              data-testid="stats-gallery-grid"
+            >
+              {galleryImages.map((img, idx) => (
+                <div
+                  key={img.id}
+                  className="relative aspect-square overflow-hidden cursor-pointer group"
+                  onClick={() => setLightboxIndex(idx)}
+                  role="button"
+                  tabIndex={0}
+                  aria-label={img.alt || img.altEs || "Office photo"}
+                  onKeyDown={(e) => e.key === "Enter" && setLightboxIndex(idx)}
+                  data-testid={`stats-gallery-image-${img.id}`}
+                >
+                  <img
+                    src={img.imageUrl}
+                    alt={img.alt || img.altEs || ""}
+                    className="absolute inset-0 w-full h-full object-cover transition-all duration-500 grayscale brightness-50 group-hover:grayscale-0 group-hover:brightness-100 group-hover:scale-105"
+                    loading="lazy"
+                  />
+                  <div className="absolute inset-0 bg-black/30 group-hover:bg-black/0 transition-colors duration-300 flex items-center justify-center">
+                    <ZoomIn
+                      className="text-white w-6 h-6 drop-shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </motion.div>
+        )}
+      </div>
 
       {/* Lightbox */}
       {lightboxIndex !== null && galleryImages.length > 0 && (
