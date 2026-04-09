@@ -41,43 +41,42 @@
   --elevate-2: rgba(0,0,0, .08);
 
   /* ── PALETA LIGHT ─────────────────────────────────────────
-     Inspiración: firmas de élite global (Skadden, Freshfields,
-     Clifford Chance). Blanco casi puro con tinte frío-neutro,
-     secciones alternas en gris perla muy sutil.
+     Grises 100 % neutros — sin tinte azul ni cálido.
+     Inspiración: Baker McKenzie, White & Case, Hogan Lovells.
   ─────────────────────────────────────────────────────────── */
-  --background: 210 20% 98%;       /* #F8F9FB — blanco frío moderno  */
-  --foreground: 220 25% 12%;       /* #16202E — casi negro azulado    */
+  --background: 0 0% 98%;          /* #FAFAFA — blanco neutro puro    */
+  --foreground: 0 0% 9%;           /* #171717 — casi negro            */
   --card: 0 0% 100%;               /* #FFFFFF — blanco puro           */
-  --card-foreground: 220 25% 12%;
-  --card-border: 214 15% 91%;      /* #E4E8EF — borde muy sutil       */
-  --border: 214 15% 88%;           /* #DDE2EA                         */
-  --sidebar: 214 20% 96%;          /* #F0F3F7                         */
-  --sidebar-foreground: 220 25% 12%;
-  --sidebar-border: 214 15% 88%;
+  --card-foreground: 0 0% 9%;
+  --card-border: 0 0% 90%;         /* #E6E6E6 — borde sutil           */
+  --border: 0 0% 87%;              /* #DEDEDE                         */
+  --sidebar: 0 0% 96%;             /* #F5F5F5                         */
+  --sidebar-foreground: 0 0% 9%;
+  --sidebar-border: 0 0% 88%;
   --sidebar-primary: 352 73% 38%;
   --sidebar-primary-foreground: 0 0% 98%;
-  --sidebar-accent: 214 20% 93%;
-  --sidebar-accent-foreground: 220 25% 12%;
+  --sidebar-accent: 0 0% 93%;
+  --sidebar-accent-foreground: 0 0% 9%;
   --sidebar-ring: 352 73% 38%;
   --popover: 0 0% 100%;
-  --popover-foreground: 220 25% 12%;
-  --popover-border: 214 15% 88%;
+  --popover-foreground: 0 0% 9%;
+  --popover-border: 0 0% 88%;
   --primary: 352 73% 38%;          /* #AA1A2E — rojo corporativo      */
   --primary-foreground: 0 0% 98%;
-  --secondary: 214 20% 94%;        /* #ECF0F5 — sección alterna       */
-  --secondary-foreground: 220 25% 20%;
-  --muted: 214 20% 94%;            /* mismo que secondary             */
-  --muted-foreground: 220 15% 46%; /* #6A7A8E — texto secundario      */
-  --accent: 214 20% 92%;
-  --accent-foreground: 220 25% 12%;
+  --secondary: 0 0% 94%;           /* #F0F0F0 — sección alterna       */
+  --secondary-foreground: 0 0% 18%;
+  --muted: 0 0% 94%;               /* mismo que secondary             */
+  --muted-foreground: 0 0% 42%;    /* #6B6B6B — gris legible          */
+  --accent: 0 0% 92%;
+  --accent-foreground: 0 0% 9%;
   --destructive: 0 72% 45%;
   --destructive-foreground: 0 0% 98%;
-  --input: 214 15% 85%;
+  --input: 0 0% 84%;
   --ring: 352 73% 38%;
   --chart-1: 352 73% 38%;
   --chart-2: 352 50% 45%;
-  --chart-3: 220 25% 35%;
-  --chart-4: 220 15% 55%;
+  --chart-3: 0 0% 30%;
+  --chart-4: 0 0% 50%;
   --chart-5: 351 30% 55%;
   --font-sans: 'Optima', 'Lato', 'Calibri', 'Segoe UI', sans-serif;
   --font-serif: 'Optima', 'Lato', 'Georgia', 'Times New Roman', serif;
@@ -133,42 +132,42 @@
   --elevate-2: rgba(255,255,255, .09);
 
   /* ── PALETA DARK ──────────────────────────────────────────
-     Carbón azul-gris sofisticado — como las firmas de élite
-     globales. No negro puro, sino profundidad con carácter.
+     Carbón neutro profundo — sin azul, sin calidez.
+     Gris oscuro puro con jerarquía clara entre capas.
   ─────────────────────────────────────────────────────────── */
-  --background: 222 20% 10%;       /* #141924 — carbón azulado        */
-  --foreground: 210 25% 92%;       /* #E3EAF2 — blanco frío suave     */
-  --card: 222 18% 14%;             /* #1C2333 — panel oscuro          */
-  --card-foreground: 210 25% 92%;
-  --card-border: 222 15% 20%;      /* #28324A — borde sutil           */
-  --border: 222 15% 22%;           /* #2B364F                         */
-  --sidebar: 222 18% 12%;          /* #181F2E                         */
-  --sidebar-foreground: 210 25% 90%;
-  --sidebar-border: 222 15% 19%;
+  --background: 0 0% 9%;           /* #171717 — carbón profundo       */
+  --foreground: 0 0% 93%;          /* #EDEDED — blanco neutro suave   */
+  --card: 0 0% 13%;                /* #212121 — panel elevado         */
+  --card-foreground: 0 0% 93%;
+  --card-border: 0 0% 20%;         /* #333333 — borde sutil           */
+  --border: 0 0% 22%;              /* #383838                         */
+  --sidebar: 0 0% 11%;             /* #1C1C1C                         */
+  --sidebar-foreground: 0 0% 90%;
+  --sidebar-border: 0 0% 19%;
   --sidebar-primary: 352 73% 45%;
   --sidebar-primary-foreground: 0 0% 98%;
-  --sidebar-accent: 222 15% 18%;
-  --sidebar-accent-foreground: 210 25% 90%;
+  --sidebar-accent: 0 0% 18%;
+  --sidebar-accent-foreground: 0 0% 90%;
   --sidebar-ring: 352 73% 45%;
-  --popover: 222 18% 13%;
-  --popover-foreground: 210 25% 92%;
-  --popover-border: 222 15% 21%;
-  --primary: 352 73% 45%;          /* rojo un tono más luminoso en oscuro */
+  --popover: 0 0% 12%;
+  --popover-foreground: 0 0% 93%;
+  --popover-border: 0 0% 21%;
+  --primary: 352 73% 45%;          /* rojo levemente más claro en oscuro */
   --primary-foreground: 0 0% 98%;
-  --secondary: 222 15% 19%;        /* #253049                         */
-  --secondary-foreground: 210 20% 82%;
-  --muted: 222 15% 17%;            /* #202B40                         */
-  --muted-foreground: 215 20% 56%; /* #7C92B0 — azul-gris legible     */
-  --accent: 222 15% 18%;
-  --accent-foreground: 210 25% 90%;
+  --secondary: 0 0% 18%;           /* #2E2E2E — sección alterna       */
+  --secondary-foreground: 0 0% 82%;
+  --muted: 0 0% 16%;               /* #292929                         */
+  --muted-foreground: 0 0% 56%;    /* #8F8F8F — gris legible neutro   */
+  --accent: 0 0% 17%;
+  --accent-foreground: 0 0% 90%;
   --destructive: 0 70% 45%;
   --destructive-foreground: 0 0% 98%;
-  --input: 222 15% 24%;
+  --input: 0 0% 25%;
   --ring: 352 73% 45%;
   --chart-1: 352 73% 55%;
   --chart-2: 352 60% 65%;
-  --chart-3: 210 30% 65%;
-  --chart-4: 210 20% 50%;
+  --chart-3: 0 0% 65%;
+  --chart-4: 0 0% 48%;
   --chart-5: 351 40% 55%;
   --shadow-2xs: 0px 2px 0px 0px hsl(0 0% 0% / 0.00);
   --shadow-xs: 0px 2px 0px 0px hsl(0 0% 0% / 0.00);
