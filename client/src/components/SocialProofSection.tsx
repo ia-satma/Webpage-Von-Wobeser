@@ -162,7 +162,7 @@ export default function SocialProofSection() {
 
               {/* Quote text — italic serif, medium gray */}
               <blockquote
-                className="text-base lg:text-lg leading-relaxed text-foreground/58 mb-8 flex-1"
+                className="text-sm lg:text-base leading-relaxed text-foreground/58 mb-8 flex-1"
                 style={{ fontStyle: "italic" }}
                 data-testid={`text-quote-${quote.id}`}
               >
@@ -176,7 +176,7 @@ export default function SocialProofSection() {
                   data-testid={`divider-quote-${quote.id}`}
                 />
                 <p
-                  className="font-support font-bold uppercase tracking-widest text-xs text-foreground/80 leading-tight"
+                  className="font-heading font-bold uppercase tracking-widest text-xs text-foreground/80 leading-tight"
                   data-testid={`text-source-${quote.id}`}
                 >
                   {quote.source}
