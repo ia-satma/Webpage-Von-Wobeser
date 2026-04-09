@@ -102,7 +102,7 @@ export default function SocialProofSection() {
   return (
     <section
       id="social-proof"
-      className="py-20 lg:py-28 bg-[#111110]"
+      className="py-20 lg:py-28 bg-muted"
       data-testid="section-social-proof"
     >
       <div className="max-w-7xl mx-auto px-6 lg:px-12">
@@ -140,7 +140,7 @@ export default function SocialProofSection() {
               className={[
                 "flex flex-col items-center text-center px-8 lg:px-12 py-6",
                 index < quotes.length - 1
-                  ? "border-b md:border-b-0 md:border-r border-white/10 mb-12 pb-12 md:mb-0 md:pb-6"
+                  ? "border-b md:border-b-0 md:border-r border-foreground/10 mb-12 pb-12 md:mb-0 md:pb-6"
                   : "",
               ].join(" ")}
               data-testid={`card-quote-${quote.id}`}
@@ -162,7 +162,7 @@ export default function SocialProofSection() {
 
               {/* Quote text — italic serif, medium gray */}
               <blockquote
-                className="text-sm lg:text-base leading-relaxed text-white/55 mb-8 flex-1"
+                className="text-sm lg:text-base leading-relaxed text-foreground/58 mb-8 flex-1"
                 style={{ fontStyle: "italic" }}
                 data-testid={`text-quote-${quote.id}`}
               >
@@ -176,14 +176,14 @@ export default function SocialProofSection() {
                   data-testid={`divider-quote-${quote.id}`}
                 />
                 <p
-                  className="font-heading font-bold uppercase tracking-widest text-xs text-white/80 leading-tight"
+                  className="font-heading font-bold uppercase tracking-widest text-xs text-foreground/80 leading-tight"
                   data-testid={`text-source-${quote.id}`}
                 >
                   {quote.source}
                 </p>
                 {quote.year && (
                   <p
-                    className="font-support font-normal text-xs mt-1 tracking-wide text-white/50"
+                    className="font-support font-normal text-xs mt-1 tracking-wide text-muted-foreground"
                     data-testid={`text-year-${quote.id}`}
                   >
                     {quote.year}

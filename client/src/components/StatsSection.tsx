@@ -323,11 +323,11 @@ export default function StatsSection({ language }: StatsSectionProps) {
 
   if (error) {
     return (
-      <section id="stats" className="py-20 lg:py-28 bg-[#111110]" data-testid="section-stats">
+      <section id="stats" className="py-20 lg:py-28 bg-background" data-testid="section-stats">
         <div className="max-w-6xl mx-auto px-6 lg:px-12">
           <div className="text-center py-12">
-            <AlertCircle className="w-12 h-12 text-white/30 mx-auto mb-4" />
-            <p className="text-white/50" data-testid="text-stats-error">{t.errorMessage}</p>
+            <AlertCircle className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+            <p className="text-muted-foreground" data-testid="text-stats-error">{t.errorMessage}</p>
           </div>
         </div>
       </section>
@@ -337,7 +337,7 @@ export default function StatsSection({ language }: StatsSectionProps) {
   return (
     <section
       id="stats"
-      className="py-20 lg:py-28 bg-[#111110]"
+      className="py-20 lg:py-28 bg-background"
       data-testid="section-stats"
     >
       <div className="max-w-6xl mx-auto px-6 lg:px-12">
@@ -355,13 +355,13 @@ export default function StatsSection({ language }: StatsSectionProps) {
             {t.title}
           </h2>
           <p 
-            className="text-lg md:text-xl text-white/50 leading-relaxed max-w-3xl mx-auto mb-6"
+            className="text-lg md:text-xl font-serif text-muted-foreground leading-relaxed max-w-3xl mx-auto mb-6"
             data-testid="text-stats-subtitle"
           >
             {t.subtitle}
           </p>
           <p 
-            className="text-lg text-white/50 leading-relaxed max-w-3xl mx-auto"
+            className="text-lg font-serif text-muted-foreground leading-relaxed max-w-3xl mx-auto"
             data-testid="text-stats-description"
           >
             {t.description}
@@ -393,13 +393,13 @@ export default function StatsSection({ language }: StatsSectionProps) {
                 data-testid={`stat-item-${index}`}
               >
                 <div 
-                  className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-heading font-light text-white mb-2 sm:mb-3"
+                  className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-heading font-light text-primary mb-2 sm:mb-3"
                   data-testid={`text-stat-value-${index}`}
                 >
                   {stat.value}
                 </div>
                 <div 
-                  className="text-xs sm:text-sm md:text-base text-white/50 uppercase tracking-wider leading-tight"
+                  className="text-xs sm:text-sm md:text-base text-muted-foreground uppercase tracking-wider leading-tight"
                   data-testid={`text-stat-label-${index}`}
                 >
                   {getTranslatedLabel(stat.label)}
@@ -414,7 +414,7 @@ export default function StatsSection({ language }: StatsSectionProps) {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6, delay: 0.4 }}
-          className="text-center text-lg text-white/50 leading-relaxed max-w-4xl mx-auto"
+          className="text-center text-lg font-serif text-muted-foreground leading-relaxed max-w-4xl mx-auto"
           data-testid="text-stats-capacity"
         >
           {t.capacity}

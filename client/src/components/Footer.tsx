@@ -528,20 +528,20 @@ export default function Footer() {
       return (
         <div className="space-y-4" data-testid="skeleton-contact" aria-busy="true" aria-label={t.loadingLabel}>
           <div className="flex items-start gap-3">
-            <Skeleton className="w-4 h-4 rounded-full flex-shrink-0 mt-1 bg-white/10" />
+            <Skeleton className="w-4 h-4 rounded-full flex-shrink-0 mt-1 bg-gray-700" />
             <div className="space-y-1">
-              <Skeleton className="h-4 w-40 bg-white/10" />
-              <Skeleton className="h-4 w-36 bg-white/10" />
-              <Skeleton className="h-4 w-32 bg-white/10" />
+              <Skeleton className="h-4 w-40 bg-gray-700" />
+              <Skeleton className="h-4 w-36 bg-gray-700" />
+              <Skeleton className="h-4 w-32 bg-gray-700" />
             </div>
           </div>
           <div className="flex items-center gap-3">
-            <Skeleton className="w-4 h-4 rounded-full flex-shrink-0 bg-white/10" />
-            <Skeleton className="h-4 w-32 bg-white/10" />
+            <Skeleton className="w-4 h-4 rounded-full flex-shrink-0 bg-gray-700" />
+            <Skeleton className="h-4 w-32 bg-gray-700" />
           </div>
           <div className="flex items-center gap-3">
-            <Skeleton className="w-4 h-4 rounded-full flex-shrink-0 bg-white/10" />
-            <Skeleton className="h-4 w-40 bg-white/10" />
+            <Skeleton className="w-4 h-4 rounded-full flex-shrink-0 bg-gray-700" />
+            <Skeleton className="h-4 w-40 bg-gray-700" />
           </div>
         </div>
       );
@@ -549,7 +549,7 @@ export default function Footer() {
 
     if (error) {
       return (
-        <div className="flex items-center gap-3 text-white/40" data-testid="text-contact-error" role="alert">
+        <div className="flex items-center gap-3 text-gray-500" data-testid="text-contact-error" role="alert">
           <AlertCircle className="w-5 h-5" aria-hidden="true" />
           <span className="text-sm">{t.errorMessage}</span>
         </div>
@@ -561,7 +561,7 @@ export default function Footer() {
         <address className="not-italic" data-testid="text-footer-address">
           <div className="flex items-start gap-3">
             <Building2 className="w-4 h-4 text-primary flex-shrink-0 mt-1" aria-hidden="true" />
-            <div className="text-sm text-white/50">
+            <div className="text-sm text-gray-400">
               <p>{t.building}</p>
               <p>{t.street}</p>
               <p>{t.city}</p>
@@ -572,7 +572,7 @@ export default function Footer() {
           <Phone className="w-4 h-4 text-primary flex-shrink-0" aria-hidden="true" />
           <a
             href={`tel:${t.phone.replace(/\s/g, "")}`}
-            className="text-sm text-white/50 hover:text-white transition-colors"
+            className="text-sm text-gray-400 hover:text-white transition-colors"
             data-testid="link-footer-phone"
             aria-label={`${t.phoneLabel}: ${t.phone}`}
           >
@@ -583,7 +583,7 @@ export default function Footer() {
           <Mail className="w-4 h-4 text-primary flex-shrink-0" aria-hidden="true" />
           <a
             href={`mailto:${t.email}`}
-            className="text-sm text-white/50 hover:text-white transition-colors"
+            className="text-sm text-gray-400 hover:text-white transition-colors"
             data-testid="link-footer-email"
             aria-label={`${t.emailLabel}: ${t.email}`}
           >
@@ -591,13 +591,13 @@ export default function Footer() {
           </a>
         </div>
         <div className="pt-4">
-          <p className="text-xs text-white/40 uppercase tracking-wider mb-3">{t.followUs}</p>
+          <p className="text-xs text-gray-500 uppercase tracking-wider mb-3">{t.followUs}</p>
           <div className="flex items-center gap-2">
             <a
               href="https://www.linkedin.com/company/von-wobeser-y-sierra/"
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center justify-center min-w-[44px] min-h-[44px] p-2 text-white/50 hover:text-white transition-colors touch-manipulation"
+              className="flex items-center justify-center min-w-[44px] min-h-[44px] p-2 text-gray-400 hover:text-white transition-colors touch-manipulation"
               data-testid="link-linkedin"
               aria-label={t.linkedinLabel}
             >
@@ -607,7 +607,7 @@ export default function Footer() {
               href="https://twitter.com/vonwobeser"
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center justify-center min-w-[44px] min-h-[44px] p-2 text-white/50 hover:text-white transition-colors touch-manipulation"
+              className="flex items-center justify-center min-w-[44px] min-h-[44px] p-2 text-gray-400 hover:text-white transition-colors touch-manipulation"
               data-testid="link-twitter"
               aria-label={t.twitterLabel}
             >
@@ -617,7 +617,7 @@ export default function Footer() {
               href="https://www.vonwobeser.com"
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center justify-center min-w-[44px] min-h-[44px] p-2 text-white/50 hover:text-white transition-colors touch-manipulation"
+              className="flex items-center justify-center min-w-[44px] min-h-[44px] p-2 text-gray-400 hover:text-white transition-colors touch-manipulation"
               data-testid="link-website"
               aria-label={t.websiteLabel}
             >
@@ -632,7 +632,7 @@ export default function Footer() {
   return (
     <footer
       id="footer"
-      className="bg-[#111110] text-white py-16 lg:py-20"
+      className="bg-gray-900 text-white py-16 lg:py-20"
       data-testid="footer"
       role="contentinfo"
       aria-label={t.footerLabel}
@@ -646,7 +646,7 @@ export default function Footer() {
               className="h-8 mb-6"
               data-testid="img-footer-logo"
             />
-            <p className="text-white/50 text-sm leading-relaxed" data-testid="text-footer-description">
+            <p className="text-gray-400 text-sm leading-relaxed" data-testid="text-footer-description">
               {t.description}
             </p>
           </div>
@@ -660,7 +660,7 @@ export default function Footer() {
                 <li key={link.id}>
                   <Link
                     href={link.href}
-                    className="text-white/50 hover:text-white transition-colors text-sm"
+                    className="text-gray-400 hover:text-white transition-colors text-sm"
                     data-testid={`link-footer-${link.id}`}
                   >
                     {link.label}
@@ -680,7 +680,7 @@ export default function Footer() {
                   <li key={link.id}>
                     <Link
                       href={link.href}
-                      className="text-white/50 hover:text-white transition-colors text-sm"
+                      className="text-gray-400 hover:text-white transition-colors text-sm"
                       data-testid={`link-footer-${link.id}`}
                     >
                       {link.label}
@@ -689,16 +689,16 @@ export default function Footer() {
                 ))}
               </ul>
             </nav>
-            <div className="mt-6 pt-6 border-t border-white/10">
-              <div className="flex items-center gap-3 text-[#AA1A2E] mb-2" data-testid="stat-practice-groups">
+            <div className="mt-6 pt-6 border-t border-gray-800">
+              <div className="flex items-center gap-3 text-primary mb-2" data-testid="stat-practice-groups">
                 <span className="text-2xl font-heading" aria-label={`18 ${t.practiceLabel}`}>18</span>
-                <span className="text-xs text-white/50 uppercase tracking-wider">
+                <span className="text-xs text-gray-400 uppercase tracking-wider">
                   {t.practiceLabel}
                 </span>
               </div>
-              <div className="flex items-center gap-3 text-[#AA1A2E]" data-testid="stat-industry-groups">
+              <div className="flex items-center gap-3 text-primary" data-testid="stat-industry-groups">
                 <span className="text-2xl font-heading" aria-label={`7 ${t.industryLabel}`}>7</span>
-                <span className="text-xs text-white/50 uppercase tracking-wider">
+                <span className="text-xs text-gray-400 uppercase tracking-wider">
                   {t.industryLabel}
                 </span>
               </div>
@@ -714,7 +714,7 @@ export default function Footer() {
                 <li key={link.id}>
                   <Link
                     href={link.href}
-                    className="text-white/50 hover:text-white transition-colors text-sm"
+                    className="text-gray-400 hover:text-white transition-colors text-sm"
                     data-testid={`link-footer-${link.id}`}
                   >
                     {link.label}
@@ -732,10 +732,10 @@ export default function Footer() {
           </div>
         </div>
 
-        <div className="border-t border-white/10 pt-8">
+        <div className="border-t border-gray-800 pt-8">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             <div className="flex flex-wrap items-center justify-center md:justify-start gap-4 sm:gap-6">
-              <p className="text-xs text-white/40" data-testid="text-copyright">
+              <p className="text-xs text-gray-500" data-testid="text-copyright">
                 {t.legal}
               </p>
               <img 
@@ -748,21 +748,21 @@ export default function Footer() {
             <nav className="flex flex-wrap items-center gap-2 sm:gap-4" aria-label={t.legalLinksLabel}>
               <Link
                 href="/privacy-policy"
-                className="inline-flex items-center min-h-[44px] px-2 text-xs text-white/40 hover:text-white transition-colors touch-manipulation"
+                className="inline-flex items-center min-h-[44px] px-2 text-xs text-gray-500 hover:text-white transition-colors touch-manipulation"
                 data-testid="link-privacy"
               >
                 {t.privacy}
               </Link>
               <Link
                 href="/terms"
-                className="inline-flex items-center min-h-[44px] px-2 text-xs text-white/40 hover:text-white transition-colors touch-manipulation"
+                className="inline-flex items-center min-h-[44px] px-2 text-xs text-gray-500 hover:text-white transition-colors touch-manipulation"
                 data-testid="link-terms"
               >
                 {t.terms}
               </Link>
               <button
                 onClick={() => localStorage.removeItem('vwb_cookie_consent')}
-                className="inline-flex items-center min-h-[44px] px-2 text-xs text-white/40 hover:text-white transition-colors touch-manipulation"
+                className="inline-flex items-center min-h-[44px] px-2 text-xs text-gray-500 hover:text-white transition-colors touch-manipulation"
                 data-testid="button-cookies"
                 aria-label={t.cookiesLabel}
               >
@@ -770,7 +770,7 @@ export default function Footer() {
               </button>
               <Link
                 href="/admin/login"
-                className="inline-flex items-center min-h-[44px] px-2 text-white/20 hover:text-white/50 transition-colors touch-manipulation opacity-30 hover:opacity-60"
+                className="inline-flex items-center min-h-[44px] px-2 text-gray-600 hover:text-gray-400 transition-colors touch-manipulation opacity-30 hover:opacity-60"
                 data-testid="link-admin"
                 aria-label="Admin"
               >
