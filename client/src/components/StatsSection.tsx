@@ -457,7 +457,7 @@ export default function StatsSection({ language }: StatsSectionProps) {
 
       {/* ── Zone 3: Full-bleed gallery ────────────────────────────────── */}
       {imagesLoading && (
-        <div className="mt-14 grid grid-cols-5 gap-px bg-[#AA1A2E]/40" data-testid="stats-gallery-skeleton">
+        <div className="mt-14 grid grid-cols-5 gap-px bg-[#AA1A2E]" data-testid="stats-gallery-skeleton">
           {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((i) => (
             <Skeleton key={i} className="aspect-square" data-testid={`stats-gallery-skeleton-${i}`} />
           ))}
@@ -473,7 +473,7 @@ export default function StatsSection({ language }: StatsSectionProps) {
           className="mt-14"
         >
           <div
-            className="grid grid-cols-5 gap-px bg-[#AA1A2E]/40"
+            className="grid grid-cols-5 gap-px bg-[#AA1A2E]"
             data-testid="stats-gallery-grid"
           >
             {galleryImages.map((img, idx) => (
