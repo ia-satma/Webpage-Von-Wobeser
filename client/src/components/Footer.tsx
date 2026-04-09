@@ -770,7 +770,7 @@ export default function Footer() {
               </button>
               <Link
                 href="/admin/login"
-                className="inline-flex items-center min-h-[44px] px-2 text-white/20 hover:text-white/50 transition-colors touch-manipulation opacity-30 hover:opacity-60"
+                className="inline-flex items-center min-h-[44px] px-2 text-white/40 hover:text-white transition-colors touch-manipulation opacity-30 hover:opacity-60"
                 data-testid="link-admin"
                 aria-label="Admin"
               >
