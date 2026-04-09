@@ -87,14 +87,8 @@ function NewsItemTranslated({
     ? item.titleEs 
     : (translatedFields.title || item.titleEs || item.title);
 
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 8 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5, delay: 1 + index * 0.15 }}
-      className="group pl-3 border-l-2 border-[#AA1A2E]"
-      data-testid={`card-news-${item.id}`}
-    >
+  const inner = (
+    <>
       <h4 
         className="text-sm font-medium text-white leading-snug mb-2 group-hover:text-white/80 transition-colors"
         data-testid={`text-news-title-${item.id}`}
@@ -111,6 +105,22 @@ function NewsItemTranslated({
           <path d="M2 5h6M5.5 2l3 3-3 3" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
         </svg>
       </Link>
+    </>
+  );
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5, delay: 1 + index * 0.15 }}
+      className="group pl-3 border-l-2 border-[#AA1A2E]"
+      data-testid={`card-news-${item.id}`}
+    >
+      {index === 1 ? (
+        <div className="border border-white/15 bg-white/5 p-2 -mx-1">
+          {inner}
+        </div>
+      ) : inner}
     </motion.div>
   );
 }
@@ -124,13 +134,13 @@ function NewsPanel({ language, news }: { language: LanguageCode; news: News[] })
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.7, delay: 0.8 }}
-      className="absolute left-6 md:left-12 bottom-20 md:bottom-16 z-20 hidden md:block"
+      className="absolute left-6 md:left-12 bottom-6 md:bottom-8 z-20 hidden md:block"
       data-testid="panel-news-overlay"
     >
       <div
         className="backdrop-blur-md border border-white/10 p-5 flex flex-col gap-4"
         style={{
-          width: '360px',
+          width: '280px',
           background: 'linear-gradient(135deg, rgba(0,0,0,0.72) 0%, rgba(20,20,20,0.65) 100%)',
         }}
       >
