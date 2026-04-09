@@ -232,27 +232,7 @@ export default function IndustryGroupsSection() {
       className="bg-[#111110]"
       data-testid="section-industry-groups"
     >
-      {/* Section header */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true }}
-        transition={{ duration: 0.6 }}
-        className="max-w-7xl mx-auto px-6 lg:px-12 pt-16 lg:pt-20 pb-10"
-      >
-        <div className="w-10 h-px bg-[#AA1A2E] mb-5" />
-        <h2
-          className="text-[#AA1A2E] text-sm font-medium tracking-[0.2em] uppercase"
-          data-testid="text-industry-groups-title"
-        >
-          {t.title}
-        </h2>
-        <p className="text-white/40 text-xs tracking-[0.12em] uppercase mt-2">
-          {t.subtitle}
-        </p>
-      </motion.div>
-
-      {/* Desktop: 7 expanding vertical panels */}
+      {/* Desktop: 7 expanding vertical panels — starts immediately at top of section */}
       <div
         className="hidden lg:flex w-full h-[500px]"
         onMouseLeave={() => setActivePanel(null)}
@@ -275,7 +255,7 @@ export default function IndustryGroupsSection() {
               }}
               onMouseEnter={() => setActivePanel(group.id)}
             >
-              {/* Background image */}
+              {/* Background image — grayscale at rest, color on hover */}
               <img
                 src={group.image}
                 alt=""
@@ -283,7 +263,9 @@ export default function IndustryGroupsSection() {
                 className="absolute inset-0 w-full h-full object-cover"
                 style={{
                   transform: isActive ? "scale(1.04)" : "scale(1)",
-                  transition: "transform 0.6s cubic-bezier(0.22, 1, 0.36, 1)",
+                  filter: isActive ? "grayscale(0%)" : "grayscale(100%)",
+                  transition:
+                    "transform 0.6s cubic-bezier(0.22, 1, 0.36, 1), filter 0.5s ease",
                 }}
               />
 
@@ -363,7 +345,7 @@ export default function IndustryGroupsSection() {
                 src={group.image}
                 alt=""
                 aria-hidden="true"
-                className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                className="absolute inset-0 w-full h-full object-cover transition-[transform,filter] duration-500 grayscale group-hover:grayscale-0 group-hover:scale-105"
               />
               <div className="absolute inset-0 bg-black/65 group-hover:bg-black/50 transition-colors duration-300" />
               <span className="absolute top-3 left-3 text-[#AA1A2E] text-xs font-medium tabular-nums">
@@ -377,17 +359,31 @@ export default function IndustryGroupsSection() {
         })}
       </div>
 
-      {/* See more link */}
+      {/* Bottom strip: title (left) + CTA (right) */}
       <motion.div
-        initial={{ opacity: 0, y: 16 }}
+        initial={{ opacity: 0, y: 12 }}
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true }}
         transition={{ duration: 0.5 }}
-        className="max-w-7xl mx-auto px-6 lg:px-12 py-10"
+        className="max-w-7xl mx-auto px-6 lg:px-12 py-8 flex flex-wrap items-center justify-between gap-4"
       >
+        <div className="flex items-center gap-5">
+          <div className="w-8 h-px bg-[#AA1A2E] shrink-0" />
+          <div>
+            <h2
+              className="text-[#AA1A2E] text-xs font-medium tracking-[0.2em] uppercase"
+              data-testid="text-industry-groups-title"
+            >
+              {t.title}
+            </h2>
+            <p className="text-white/35 text-[10px] tracking-[0.12em] uppercase mt-0.5">
+              {t.subtitle}
+            </p>
+          </div>
+        </div>
         <Link
           href="/industry-groups"
-          className="inline-flex items-center gap-2 text-xs font-medium tracking-[0.15em] uppercase text-white/50 hover:text-white transition-colors duration-200 group"
+          className="inline-flex items-center gap-2 text-xs font-medium tracking-[0.15em] uppercase text-white/40 hover:text-white transition-colors duration-200 group"
           data-testid="link-industry-groups-see-more"
           aria-label={t.seeMoreAriaLabel}
         >
