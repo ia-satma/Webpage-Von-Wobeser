@@ -136,7 +136,7 @@ export default function VisionSection() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
-          className="text-3xl md:text-4xl lg:text-5xl font-heading font-light text-gray-800 dark:text-white leading-tight mb-10"
+          className="text-2xl md:text-3xl lg:text-4xl font-heading font-light text-gray-800 dark:text-white leading-tight mb-10 uppercase tracking-[0.12em]"
           data-testid="text-vision-title"
         >
           {title}
@@ -167,7 +167,7 @@ export default function VisionSection() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6, delay: 0.5 }}
-          className="text-2xl md:text-3xl font-heading font-light text-gray-800 dark:text-white mb-8"
+          className="text-lg md:text-xl font-heading font-light text-gray-800 dark:text-white mb-8 uppercase tracking-[0.12em]"
           data-testid="text-vision-subtitle"
         >
           {t.subtitle}

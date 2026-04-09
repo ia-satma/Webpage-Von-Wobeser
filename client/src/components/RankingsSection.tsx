@@ -102,7 +102,7 @@ export default function RankingsSection() {
           className="text-center mb-8"
         >
           <h2 
-            className="text-2xl md:text-3xl font-heading font-light"
+            className="text-2xl md:text-3xl font-heading font-light uppercase"
             style={{ color: '#8B0000', letterSpacing: '0.3em' }}
             data-testid="text-rankings-title"
           >
