@@ -8,7 +8,7 @@ import { useTranslatedContent } from "@/hooks/useTranslatedContent";
 import type { SiteContent, News, LanguageCode } from "@shared/schema";
 import heroVideo from "@assets/dron_1764710361340.mp4";
 import heroImage from "@assets/hero_office.jpg";
-import logoWhite from "@assets/Artboard_1_copy_4_1775695277034.png";
+import logoColor from "@assets/Artboard_1_1775695263479.png";
 
 interface HeroSectionProps {
   language: LanguageCode;
@@ -395,42 +395,41 @@ export default function HeroSection({ language }: HeroSectionProps) {
         <NewsPanel language={language} news={newsData} />
       )}
 
-      <div className="relative z-10 text-center px-6 max-w-5xl mx-auto">
-        <motion.p
-          initial={{ opacity: 0, y: 20 }}
-          animate={isVisible ? { opacity: 1, y: 0 } : {}}
-          transition={{ duration: 0.6, delay: 0.2 }}
-          className="text-white/90 text-sm tracking-[0.3em] uppercase mb-8 font-sans"
-          data-testid="text-hero-tagline"
-        >
-          {t.tagline}
-        </motion.p>
+      {/* Tagline — pinned to upper-centre */}
+      <motion.p
+        initial={{ opacity: 0, y: -10 }}
+        animate={isVisible ? { opacity: 1, y: 0 } : {}}
+        transition={{ duration: 0.6, delay: 0.2 }}
+        className="absolute top-28 md:top-32 left-0 right-0 text-center text-white/90 text-xs sm:text-sm tracking-[0.3em] uppercase font-sans z-10"
+        data-testid="text-hero-tagline"
+      >
+        {t.tagline}
+      </motion.p>
 
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={isVisible ? { opacity: 1, y: 0 } : {}}
-          transition={{ duration: 0.8, delay: 0.4 }}
-          className="flex justify-center mb-8"
-          data-testid="text-hero-headline"
-        >
-          <img
-            src={logoWhite}
-            alt={t.headline}
-            className="w-auto max-w-[340px] sm:max-w-[460px] md:max-w-[580px] lg:max-w-[700px] h-auto object-contain"
-            style={{ imageRendering: "crisp-edges" }}
-          />
-        </motion.div>
-
+      {/* Logo — true vertical centre of viewport */}
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={isVisible ? { opacity: 1, scale: 1 } : {}}
+        transition={{ duration: 0.9, delay: 0.35 }}
+        className="relative z-10 flex flex-col items-center gap-6 -mt-16 md:-mt-20"
+        data-testid="text-hero-headline"
+      >
+        <img
+          src={logoColor}
+          alt={t.headline}
+          className="w-auto max-w-[260px] sm:max-w-[360px] md:max-w-[480px] lg:max-w-[580px] h-auto object-contain drop-shadow-2xl"
+          style={{ imageRendering: "crisp-edges" }}
+        />
         <motion.p
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 10 }}
           animate={isVisible ? { opacity: 1, y: 0 } : {}}
-          transition={{ duration: 0.6, delay: 0.6 }}
-          className="text-white/90 text-lg md:text-xl font-serif max-w-2xl mx-auto"
+          transition={{ duration: 0.6, delay: 0.65 }}
+          className="text-white/85 text-sm md:text-base font-serif tracking-wide max-w-lg text-center"
           data-testid="text-hero-subheadline"
         >
           {subheadline}
         </motion.p>
-      </div>
+      </motion.div>
 
       <motion.button
         initial={{ opacity: 0 }}

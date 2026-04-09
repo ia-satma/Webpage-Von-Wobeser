@@ -339,8 +339,8 @@ export default function Header() {
               className={cn(
                 "transition-all duration-300 flex-shrink-0 object-contain",
                 isScrolled
-                  ? "h-7 sm:h-8 md:h-9 w-auto max-w-[150px] sm:max-w-[180px] md:max-w-[220px] dark:brightness-0 dark:invert"
-                  : "h-8 sm:h-9 md:h-11 w-auto max-w-[150px] sm:max-w-[200px] md:max-w-[260px]"
+                  ? "h-8 sm:h-9 md:h-11 w-auto max-w-[180px] sm:max-w-[220px] md:max-w-[280px] dark:brightness-0 dark:invert"
+                  : "h-9 sm:h-10 md:h-12 w-auto max-w-[180px] sm:max-w-[240px] md:max-w-[320px]"
               )}
               style={{ imageRendering: "crisp-edges" }}
               data-testid="img-logo"
