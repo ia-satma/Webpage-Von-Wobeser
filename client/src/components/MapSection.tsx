@@ -323,33 +323,40 @@ export default function MapSection({ language }: MapSectionProps) {
               <div className="flex items-start gap-4 mb-8">
                 <MapPin className="w-6 h-6 text-primary flex-shrink-0 mt-1" data-testid="icon-location" />
                 <div data-testid="text-address">
-                  <p className="text-sm font-medium text-foreground mb-1">{t.building}</p>
+                  <p className="text-sm text-foreground font-medium mb-2">{t.addressLabel}</p>
+                  <p className="text-sm text-muted-foreground">{t.building}</p>
                   <p className="text-sm text-muted-foreground">{t.street}</p>
                   <p className="text-sm text-muted-foreground">{t.access}</p>
                   <p className="text-sm text-muted-foreground">{t.city}</p>
                 </div>
               </div>
 
-              <div className="flex items-center gap-4 mb-6">
-                <Phone className="w-5 h-5 text-primary flex-shrink-0" data-testid="icon-phone" />
-                <a
-                  href={`tel:${t.phone.replace(/\s/g, "")}`}
-                  className="text-sm text-muted-foreground hover:text-primary transition-colors"
-                  data-testid="link-phone"
-                >
-                  {t.phone}
-                </a>
+              <div className="flex items-start gap-4 mb-6">
+                <Phone className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" data-testid="icon-phone" />
+                <div>
+                  <p className="text-sm text-foreground font-medium mb-1">{t.phoneLabel}</p>
+                  <a
+                    href={`tel:${t.phone.replace(/\s/g, "")}`}
+                    className="text-sm text-muted-foreground hover:text-primary transition-colors"
+                    data-testid="link-phone"
+                  >
+                    {t.phone}
+                  </a>
+                </div>
               </div>
 
-              <div className="flex items-center gap-4 mb-10">
-                <Mail className="w-5 h-5 text-primary flex-shrink-0" data-testid="icon-email" />
-                <a
-                  href={`mailto:${t.email}`}
-                  className="text-sm text-muted-foreground hover:text-primary transition-colors"
-                  data-testid="link-email"
-                >
-                  {t.email}
-                </a>
+              <div className="flex items-start gap-4 mb-10">
+                <Mail className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" data-testid="icon-email" />
+                <div>
+                  <p className="text-sm text-foreground font-medium mb-1">{t.emailLabel}</p>
+                  <a
+                    href={`mailto:${t.email}`}
+                    className="text-sm text-muted-foreground hover:text-primary transition-colors"
+                    data-testid="link-email"
+                  >
+                    {t.email}
+                  </a>
+                </div>
               </div>
 
               <div className="flex flex-col gap-3">
