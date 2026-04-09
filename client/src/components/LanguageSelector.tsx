@@ -56,7 +56,7 @@ export default function LanguageSelector({
     <Select value={language} onValueChange={handleLanguageChange}>
       <SelectTrigger 
         className={cn(
-          "gap-2 min-w-0 w-auto min-h-[44px] touch-manipulation rounded-md font-medium transition-all",
+          "gap-2 min-w-0 w-auto min-h-[44px] touch-manipulation rounded-none font-medium transition-all",
           "focus:ring-2 focus:ring-offset-2 focus:ring-primary/50",
           compact ? "px-2 py-2" : "px-3 py-2",
           isMobile 
@@ -77,7 +77,7 @@ export default function LanguageSelector({
       </SelectTrigger>
       <SelectContent 
         data-testid="select-language-content"
-        className="max-h-[300px] z-[100]"
+        className="max-h-[300px] z-[100] rounded-none"
       >
         {SUPPORTED_LANGUAGES.map((lang) => (
           <SelectItem 

@@ -57,7 +57,7 @@ function SearchResultTeamMember({
   return (
     <button
       onClick={() => onSelect(`/team/${member.slug}`)}
-      className="w-full text-left px-2 py-2 rounded hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-3"
+      className="w-full text-left px-2 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-3"
       data-testid={`search-result-team-${member.slug}`}
       role="option"
     >
@@ -97,7 +97,7 @@ function SearchResultPracticeGroup({
   return (
     <button
       onClick={() => onSelect(`/practice-groups/${group.slug}`)}
-      className="w-full text-left px-2 py-2 rounded hover:bg-gray-100 dark:hover:bg-gray-700"
+      className="w-full text-left px-2 py-2 hover:bg-gray-100 dark:hover:bg-gray-700"
       data-testid={`search-result-practice-${group.slug}`}
       role="option"
     >
@@ -131,7 +131,7 @@ function SearchResultIndustryGroup({
   return (
     <button
       onClick={() => onSelect(`/industry-groups/${group.slug}`)}
-      className="w-full text-left px-2 py-2 rounded hover:bg-gray-100 dark:hover:bg-gray-700"
+      className="w-full text-left px-2 py-2 hover:bg-gray-100 dark:hover:bg-gray-700"
       data-testid={`search-result-industry-${group.slug}`}
       role="option"
     >
@@ -165,7 +165,7 @@ function SearchResultNews({
   return (
     <button
       onClick={() => onSelect(`/news/${article.slug}`)}
-      className="w-full text-left px-2 py-2 rounded hover:bg-gray-100 dark:hover:bg-gray-700"
+      className="w-full text-left px-2 py-2 hover:bg-gray-100 dark:hover:bg-gray-700"
       data-testid={`search-result-news-${article.slug}`}
       role="option"
     >
@@ -392,7 +392,7 @@ export default function Header() {
 
                 {item.subItems && activeDropdown === item.id && (
                   <div
-                    className="absolute top-full left-0 mt-1 min-w-[220px] bg-white dark:bg-gray-800 rounded-md shadow-xl border border-gray-200 dark:border-gray-700 py-2 z-50"
+                    className="absolute top-full left-0 mt-1 min-w-[220px] bg-white dark:bg-gray-800 shadow-xl border border-gray-200 dark:border-gray-700 py-2 z-50"
                     role="menu"
                     aria-label={`${t(item.labelKey)} submenu`}
                     data-testid={`dropdown-${item.id}`}
@@ -437,7 +437,7 @@ export default function Header() {
               {isSearchOpen && (
                 <div
                   id="search-panel"
-                  className="absolute right-0 top-full mt-2 w-80 bg-white dark:bg-gray-800 rounded-md shadow-xl border border-gray-200 dark:border-gray-700 overflow-hidden"
+                  className="absolute right-0 top-full mt-2 w-80 bg-white dark:bg-gray-800 shadow-xl border border-gray-200 dark:border-gray-700 overflow-hidden"
                   data-testid="container-search"
                   role="search"
                   aria-label={t('common.search')}
@@ -448,7 +448,7 @@ export default function Header() {
                       placeholder={t('common.searchPlaceholder')}
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
-                      className="rounded-md"
+                      className="rounded-none"
                       autoFocus
                       data-testid="input-global-search"
                       aria-label={t('common.search')}
