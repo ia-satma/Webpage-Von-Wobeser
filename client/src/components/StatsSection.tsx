@@ -372,7 +372,7 @@ export default function StatsSection({ language }: StatsSectionProps) {
       <div className="max-w-7xl mx-auto px-6 lg:px-12">
 
         {/* Two-column layout: text left, accordion photos right */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center mb-0">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-stretch mb-0">
 
           {/* Left column: editorial text */}
           <motion.div
@@ -446,10 +446,10 @@ export default function StatsSection({ language }: StatsSectionProps) {
             className="hidden lg:block"
           >
             {imagesLoading ? (
-              <Skeleton className="h-[420px] w-full" data-testid="stats-gallery-skeleton-desktop" />
+              <Skeleton className="h-[380px] w-full" data-testid="stats-gallery-skeleton-desktop" />
             ) : officeImages.length > 0 ? (
               <div
-                className="flex h-[420px] w-full"
+                className="flex h-[380px] w-full"
                 onMouseLeave={() => setActivePanel(null)}
                 data-testid="stats-gallery-accordion"
               >
@@ -480,7 +480,7 @@ export default function StatsSection({ language }: StatsSectionProps) {
                         loading="lazy"
                         style={{
                           transform: isActive ? "scale(1.05)" : "scale(1)",
-                          filter: isActive ? "grayscale(0%)" : "grayscale(80%)",
+                          filter: isActive ? "grayscale(0%)" : "grayscale(100%)",
                           transition: "transform 0.6s cubic-bezier(0.22, 1, 0.36, 1), filter 0.5s ease",
                         }}
                       />
