@@ -50,13 +50,25 @@ const stockPhotos = [
     altEs: "Espacio de colaboración en equipo con asientos flexibles",
     order: 8,
   },
+  {
+    imageUrl: "https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=800&q=80",
+    alt: "Modern law office corridor with glass partitions",
+    altEs: "Pasillo de oficina de derecho moderno con divisiones de vidrio",
+    order: 9,
+  },
+  {
+    imageUrl: "https://images.unsplash.com/photo-1497215842964-222b430dc094?w=800&q=80",
+    alt: "Executive boardroom with city skyline views",
+    altEs: "Sala de consejo ejecutivo con vistas al horizonte de la ciudad",
+    order: 10,
+  },
 ];
 
 async function main() {
   console.log("Clearing existing office images...");
   await db.delete(officeImages);
 
-  console.log("Inserting 8 stock photo placeholders...");
+  console.log("Inserting 10 stock photo placeholders...");
   const inserted = await db.insert(officeImages).values(stockPhotos).returning();
   console.log(`Done — inserted ${inserted.length} records.`);
 

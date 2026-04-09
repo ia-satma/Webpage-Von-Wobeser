@@ -20,7 +20,7 @@ export default function StatsSection({ language }: StatsSectionProps) {
 
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
 
-  const galleryImages = officeImages.slice(0, 8);
+  const galleryImages = officeImages.slice(0, 10);
 
   const goPrev = useCallback(() => {
     if (lightboxIndex === null) return;
@@ -457,8 +457,8 @@ export default function StatsSection({ language }: StatsSectionProps) {
 
       {/* ── Zone 3: Full-width gallery ───────────────────────────────── */}
       {imagesLoading && (
-        <div className="mt-14 grid grid-cols-8" data-testid="stats-gallery-skeleton">
-          {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
+        <div className="mt-14 grid grid-cols-5" data-testid="stats-gallery-skeleton">
+          {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((i) => (
             <Skeleton key={i} className="aspect-square" data-testid={`stats-gallery-skeleton-${i}`} />
           ))}
         </div>
@@ -473,7 +473,7 @@ export default function StatsSection({ language }: StatsSectionProps) {
           className="mt-14"
         >
           <div
-            className="grid grid-cols-8"
+            className="grid grid-cols-5"
             data-testid="stats-gallery-grid"
           >
             {galleryImages.map((img, idx) => (
