@@ -103,12 +103,13 @@ export default function SocialProofSection() {
   return (
     <section
       id="social-proof"
-      className="py-20 lg:py-28 bg-background"
+      className="py-20 lg:py-28"
+      style={{ background: "#141414" }}
       data-testid="section-social-proof"
     >
       <div className="max-w-7xl mx-auto px-6 lg:px-12">
 
-        {/* Heading */}
+        {/* Heading — no red divider line */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -117,12 +118,11 @@ export default function SocialProofSection() {
           className="text-center mb-16"
         >
           <h2
-            className="text-2xl md:text-3xl lg:text-4xl font-heading font-light text-[#AA1A2E] uppercase tracking-[0.12em]"
+            className="text-2xl md:text-3xl lg:text-4xl font-heading font-light text-white uppercase tracking-[0.12em]"
             data-testid="text-social-proof-title"
           >
             {t.title}
           </h2>
-          <div className="w-16 h-0.5 bg-[#AA1A2E] mx-auto mt-6" data-testid="divider-social-proof" />
         </motion.div>
 
         {/* Cards grid */}
@@ -139,33 +139,34 @@ export default function SocialProofSection() {
               key={quote.id}
               variants={itemVariants}
               whileHover={{ y: -8, transition: { duration: 0.35, ease: [0.22, 1, 0.36, 1] } }}
-              className="relative rounded-2xl pt-10 pb-8 px-8 lg:px-10 lg:pt-12 flex flex-col border border-foreground/[0.07] dark:border-foreground/[0.09] backdrop-blur-sm"
+              className="relative rounded-2xl p-8 lg:p-10 flex flex-col overflow-hidden border border-white/10 backdrop-blur-sm"
               style={{
-                background: "rgba(0,0,0,0.03)",
-                boxShadow: "0 4px 24px -4px rgba(0,0,0,0.06)",
+                background: "rgba(255,255,255,0.05)",
+                boxShadow: "0 4px 32px -8px rgba(0,0,0,0.4)",
                 transition: "box-shadow 0.35s ease",
               }}
               onHoverStart={(e) => {
                 (e.target as HTMLElement).style.boxShadow =
-                  "0 24px 64px -12px rgba(0,0,0,0.13), 0 8px 24px -8px rgba(0,0,0,0.07)";
+                  "0 20px 60px -12px rgba(0,0,0,0.6), 0 8px 24px -8px rgba(0,0,0,0.3)";
               }}
               onHoverEnd={(e) => {
                 (e.target as HTMLElement).style.boxShadow =
-                  "0 4px 24px -4px rgba(0,0,0,0.06)";
+                  "0 4px 32px -8px rgba(0,0,0,0.4)";
               }}
               data-testid={`card-quote-${quote.id}`}
             >
-              {/* Red floating quote mark — sits on top edge of card, never overlaps text */}
+              {/* Oversized quote mark as background texture — red, very low opacity */}
               <span
                 aria-hidden="true"
-                className="absolute -top-10 left-5 select-none pointer-events-none font-serif text-[7rem] leading-none text-[#AA1A2E] z-20 drop-shadow-md"
+                className="absolute -top-6 -left-2 select-none pointer-events-none font-serif text-[11rem] leading-none"
+                style={{ color: "rgba(170,26,46,0.18)", fontStyle: "italic" }}
               >
                 &ldquo;
               </span>
 
-              {/* Quote text — centered, italic serif, medium gray */}
+              {/* Quote text — centered, italic serif, white/70 */}
               <blockquote
-                className="relative z-10 font-serif text-base lg:text-lg leading-relaxed text-foreground/60 dark:text-foreground/55 mb-8 text-center"
+                className="relative z-10 font-serif text-base lg:text-lg leading-relaxed text-white/70 mb-8 text-center"
                 style={{ fontStyle: "italic" }}
                 data-testid={`text-quote-${quote.id}`}
               >
@@ -174,22 +175,24 @@ export default function SocialProofSection() {
 
               {/* Attribution — pushed to bottom */}
               <div className="mt-auto" data-testid={`attribution-${quote.id}`}>
-                {/* Red separator line — left-aligned */}
+                {/* Subtle separator line */}
                 <div
-                  className="w-10 h-px bg-[#AA1A2E] mb-4"
+                  className="w-10 h-px mb-4"
+                  style={{ background: "rgba(255,255,255,0.25)" }}
                   data-testid={`divider-quote-${quote.id}`}
                 />
-                {/* Institution name — bold, uppercase, sans-serif, dark */}
+                {/* Institution name */}
                 <p
-                  className="font-support font-bold uppercase tracking-widest text-xs text-foreground/80 dark:text-foreground/75 leading-tight"
+                  className="font-support font-bold uppercase tracking-widest text-xs text-white/90 leading-tight"
                   data-testid={`text-source-${quote.id}`}
                 >
                   {quote.source}
                 </p>
-                {/* Year — regular, slightly lighter */}
+                {/* Year */}
                 {quote.year && (
                   <p
-                    className="font-support font-normal text-xs text-muted-foreground mt-1 tracking-wide"
+                    className="font-support font-normal text-xs mt-1 tracking-wide"
+                    style={{ color: "rgba(255,255,255,0.40)" }}
                     data-testid={`text-year-${quote.id}`}
                   >
                     {quote.year}
