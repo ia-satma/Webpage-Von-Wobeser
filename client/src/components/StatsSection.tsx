@@ -459,9 +459,9 @@ export default function StatsSection({ language }: StatsSectionProps) {
 
         {/* Office Photo Gallery — embedded inside this section */}
         {imagesLoading && (
-          <div className="mt-14 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {[1, 2, 3, 4, 5, 6].map((i) => (
-              <Skeleton key={i} className="h-72" data-testid={`stats-gallery-skeleton-${i}`} />
+          <div className="mt-14 grid grid-cols-2 md:grid-cols-4 gap-3">
+            {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
+              <Skeleton key={i} className="h-48" data-testid={`stats-gallery-skeleton-${i}`} />
             ))}
           </div>
         )}
@@ -474,11 +474,11 @@ export default function StatsSection({ language }: StatsSectionProps) {
             transition={{ duration: 0.6, delay: 0.3 }}
             className="mt-14"
           >
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
               {officeImages.map((img, idx) => (
                 <div
                   key={img.id}
-                  className="relative h-72 overflow-hidden group cursor-pointer"
+                  className="relative h-48 overflow-hidden group cursor-pointer"
                   onClick={() => setLightboxIndex(idx)}
                   role="button"
                   tabIndex={0}
