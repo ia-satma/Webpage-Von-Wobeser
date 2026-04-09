@@ -370,16 +370,17 @@ export default function IndustryGroupsSection() {
         <div className="flex items-center gap-5">
           <div className="w-10 h-px bg-[#AA1A2E] shrink-0" />
           <div>
-            {/* Serif heading — Playfair Display, consistent with SocialProofSection hierarchy */}
+            {/* Eyebrow label — small red uppercase, comes first */}
+            <p className="text-[#AA1A2E] text-[10px] tracking-[0.25em] uppercase mb-1">
+              {t.subtitle}
+            </p>
+            {/* Serif section heading — Playfair Display */}
             <h2
-              className="font-heading font-light text-lg md:text-xl text-white/90 uppercase tracking-[0.12em]"
+              className="font-heading font-light text-xl md:text-2xl text-white/90 uppercase tracking-[0.12em]"
               data-testid="text-industry-groups-title"
             >
               {t.title}
             </h2>
-            <p className="text-[#AA1A2E] text-[10px] tracking-[0.2em] uppercase mt-1">
-              {t.subtitle}
-            </p>
           </div>
         </div>
         <Link
