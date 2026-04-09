@@ -365,7 +365,7 @@ export default function Header() {
                 <Link
                   href={item.href}
                   className={cn(
-                    "flex flex-wrap items-center justify-center gap-x-1 px-3 py-2 text-sm font-medium tracking-wide uppercase transition-colors duration-200 text-center",
+                    "inline-flex items-center gap-1 px-3 py-2 text-sm font-medium tracking-wide uppercase whitespace-nowrap transition-colors duration-200",
                     isScrolled
                       ? "text-foreground hover:text-primary"
                       : "text-white/90 hover:text-white",

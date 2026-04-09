@@ -1,4 +1,4 @@
-import { Globe, ChevronDown } from "lucide-react";
+import { Globe } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -56,13 +56,13 @@ export default function LanguageSelector({
     <Select value={language} onValueChange={handleLanguageChange}>
       <SelectTrigger 
         className={cn(
-          "gap-2 min-w-0 w-auto min-h-[44px] touch-manipulation rounded-none font-medium transition-all",
+          "gap-2 min-w-0 w-auto min-h-[36px] touch-manipulation rounded-none font-medium transition-all",
           "focus:ring-2 focus:ring-offset-2 focus:ring-primary/50",
-          compact ? "px-2 py-2" : "px-3 py-2",
+          compact ? "px-2 py-1" : "px-3 py-1.5",
           isMobile 
             ? "bg-white/20 backdrop-blur-sm border border-white/30 text-white hover:bg-white/30" 
             : isScrolled 
-              ? "bg-transparent border border-[#AA1A2E]/40 text-gray-800 dark:text-gray-100 hover:border-[#AA1A2E] hover:bg-[#AA1A2E]/5 dark:hover:bg-[#AA1A2E]/10" 
+              ? "bg-transparent border border-[#AA1A2E]/40 text-foreground hover:border-[#AA1A2E] hover:bg-[#AA1A2E]/5 dark:hover:bg-[#AA1A2E]/10" 
               : "bg-black/30 backdrop-blur-sm border border-white/30 text-white hover:bg-black/40",
           className
         )}
@@ -73,7 +73,6 @@ export default function LanguageSelector({
         <SelectValue data-testid="text-current-language">
           {getDisplayName()}
         </SelectValue>
-        {!compact && <ChevronDown className={cn("w-4 h-4 shrink-0", isScrolled || isMobile ? "text-[#AA1A2E]" : "text-white/70")} aria-hidden="true" />}
       </SelectTrigger>
       <SelectContent 
         data-testid="select-language-content"
