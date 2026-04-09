@@ -43,6 +43,7 @@ const practiceAreas: PracticeArea[] = [
 
 interface PracticesContent {
   title: string;
+  subtitle: string;
   intro: string;
   seeMore: string;
   ctaText: string;
@@ -51,60 +52,70 @@ interface PracticesContent {
 const content: Record<LanguageCode, PracticesContent> = {
   en: {
     title: "PRACTICE AREAS",
+    subtitle: "18 SPECIALIZED DISCIPLINES",
     intro: "Comprehensive legal services across 18 specialized disciplines.",
     seeMore: "SEE ALL PRACTICES",
     ctaText: "Get Legal Advice",
   },
   es: {
     title: "ÁREAS DE PRÁCTICA",
+    subtitle: "18 DISCIPLINAS ESPECIALIZADAS",
     intro: "Asesoría legal integral en 18 disciplinas especializadas.",
     seeMore: "VER TODAS LAS PRÁCTICAS",
     ctaText: "Obtener Asesoría Legal",
   },
   de: {
     title: "PRAXISBEREICHE",
+    subtitle: "18 SPEZIALISIERTE BEREICHE",
     intro: "Umfassende Rechtsdienstleistungen in 18 spezialisierten Bereichen.",
     seeMore: "ALLE BEREICHE ANZEIGEN",
     ctaText: "Rechtsberatung Anfordern",
   },
   zh: {
     title: "业务领域",
+    subtitle: "18个专业领域",
     intro: "涵盖18个专业领域的综合法律服务。",
     seeMore: "查看所有业务领域",
     ctaText: "获取法律咨询",
   },
   ko: {
     title: "업무 분야",
+    subtitle: "18개 전문 분야",
     intro: "18개 전문 분야에 걸친 종합 법률 서비스.",
     seeMore: "모든 업무 분야 보기",
     ctaText: "법률 상담 받기",
   },
   ja: {
     title: "プラクティス分野",
+    subtitle: "18の専門分野",
     intro: "18の専門分野にわたる包括的な法律サービス。",
     seeMore: "すべての分野を見る",
     ctaText: "法律相談を受ける",
   },
   ar: {
     title: "مجالات الممارسة",
+    subtitle: "18 تخصصاً متكاملاً",
     intro: "خدمات قانونية شاملة في 18 تخصصاً متكاملاً.",
     seeMore: "عرض جميع المجالات",
     ctaText: "احصل على استشارة قانونية",
   },
   ru: {
     title: "ПРАКТИКИ",
+    subtitle: "18 СПЕЦИАЛИЗАЦИЙ",
     intro: "Комплексные юридические услуги по 18 специализациям.",
     seeMore: "ВСЕ ПРАКТИКИ",
     ctaText: "Получить консультацию",
   },
   fr: {
     title: "DOMAINES D'EXPERTISE",
+    subtitle: "18 DISCIPLINES SPÉCIALISÉES",
     intro: "Services juridiques complets dans 18 disciplines spécialisées.",
     seeMore: "VOIR TOUS LES DOMAINES",
     ctaText: "Obtenir un Conseil Juridique",
   },
   it: {
     title: "AREE DI PRATICA",
+    subtitle: "18 DISCIPLINE SPECIALIZZATE",
     intro: "Servizi legali completi in 18 discipline specializzate.",
     seeMore: "VEDI TUTTE LE AREE",
     ctaText: "Richiedi Consulenza Legale",
