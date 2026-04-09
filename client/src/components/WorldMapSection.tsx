@@ -423,10 +423,10 @@ export default function WorldMapSection({ language }: WorldMapSectionProps) {
                 {/* Label box — below the pin */}
                 <rect x={MX.x - 62} y={MX.y + 10} width={124} height={36} rx={0} fill="rgba(255,255,255,0.94)" stroke="rgba(0,0,0,0.08)" strokeWidth="0.5" />
                 <text
-                  x={MX.x} y={MX.y + 25}
+                  x={MX.x} y={MX.y + 27}
                   textAnchor="middle"
                   fill="#111111"
-                  fontSize="12"
+                  fontSize="14"
                   fontFamily="system-ui, sans-serif"
                   fontWeight="700"
                   letterSpacing="1.2"
@@ -435,10 +435,10 @@ export default function WorldMapSection({ language }: WorldMapSectionProps) {
                   {t.mexicoLabel}
                 </text>
                 <text
-                  x={MX.x} y={MX.y + 39}
+                  x={MX.x} y={MX.y + 41}
                   textAnchor="middle"
                   fill="#6b7280"
-                  fontSize="9"
+                  fontSize="11"
                   fontFamily="system-ui, sans-serif"
                   letterSpacing="0.6"
                 >
@@ -469,10 +469,10 @@ export default function WorldMapSection({ language }: WorldMapSectionProps) {
                 {/* Label box — above the pin to avoid arc overlap */}
                 <rect x={DE.x - 54} y={DE.y - 50} width={108} height={36} rx={0} fill="rgba(255,255,255,0.94)" stroke="rgba(0,0,0,0.08)" strokeWidth="0.5" />
                 <text
-                  x={DE.x} y={DE.y - 33}
+                  x={DE.x} y={DE.y - 31}
                   textAnchor="middle"
                   fill="#111111"
-                  fontSize="12"
+                  fontSize="14"
                   fontFamily="system-ui, sans-serif"
                   fontWeight="700"
                   letterSpacing="1.2"
@@ -481,10 +481,10 @@ export default function WorldMapSection({ language }: WorldMapSectionProps) {
                   {t.germanyLabel}
                 </text>
                 <text
-                  x={DE.x} y={DE.y - 19}
+                  x={DE.x} y={DE.y - 17}
                   textAnchor="middle"
                   fill="#6b7280"
-                  fontSize="9"
+                  fontSize="11"
                   fontFamily="system-ui, sans-serif"
                   letterSpacing="0.6"
                 >
