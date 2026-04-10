@@ -435,14 +435,14 @@ export default function WorldMapSection({ language }: WorldMapSectionProps) {
             style={{ left: "22.5%", top: "41%", transform: "translate(-50%, 12px)" }}
           >
             <div className="w-px h-3 bg-primary/40 mx-auto" />
-            <div className="px-2 py-1 text-center">
+            <div className="bg-background/75 backdrop-blur-[2px] px-3 py-1.5 text-center">
               <p
-                className="text-[11px] font-heading font-semibold tracking-[0.2em] uppercase text-foreground leading-none mb-0.5 drop-shadow-sm"
+                className="text-[11px] font-heading font-semibold tracking-[0.2em] uppercase text-foreground leading-none mb-0.5"
                 data-testid="text-mexico-label"
               >
                 {t.mexicoLabel}
               </p>
-              <p className="text-[9px] text-muted-foreground tracking-[0.1em] leading-none drop-shadow-sm">
+              <p className="text-[9px] text-muted-foreground tracking-[0.1em] leading-none">
                 {t.mexicoSubtitle}
               </p>
             </div>
@@ -453,14 +453,14 @@ export default function WorldMapSection({ language }: WorldMapSectionProps) {
             className="absolute pointer-events-none"
             style={{ left: "52.4%", top: "19.5%", transform: "translate(-50%, calc(-100% - 4px))" }}
           >
-            <div className="px-2 py-1 text-center">
+            <div className="bg-background/75 backdrop-blur-[2px] px-3 py-1.5 text-center">
               <p
-                className="text-[11px] font-heading font-semibold tracking-[0.2em] uppercase text-foreground leading-none mb-0.5 drop-shadow-sm"
+                className="text-[11px] font-heading font-semibold tracking-[0.2em] uppercase text-foreground leading-none mb-0.5"
                 data-testid="text-germany-label"
               >
                 {t.germanyLabel}
               </p>
-              <p className="text-[9px] text-muted-foreground tracking-[0.1em] leading-none drop-shadow-sm">
+              <p className="text-[9px] text-muted-foreground tracking-[0.1em] leading-none">
                 {t.germanySubtitle}
               </p>
             </div>
