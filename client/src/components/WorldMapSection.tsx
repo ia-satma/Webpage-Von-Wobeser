@@ -434,25 +434,25 @@ export default function WorldMapSection({ language }: WorldMapSectionProps) {
             {/* GERMAN DESK pill — centered on arc peak (x≈547, y≈82) */}
             <motion.g
               data-testid="text-german-desk-label"
-              style={{ transformBox: "fill-box", transformOrigin: "center" }}
+              style={{ transformOrigin: "547px 59px" }}
               initial={{ opacity: 0, scale: 0.85 }}
               whileInView={{ opacity: 1, scale: 1 }}
               viewport={{ once: true }}
               transition={{ duration: 0.5, delay: 2.0 }}
             >
-              <rect x={422} y={42} width={250} height={26} fill="#AA1A2E" />
+              <rect x={407} y={42} width={280} height={34} fill="#AA1A2E" />
               <text
                 x={547}
-                y={60}
+                y={66}
                 textAnchor="middle"
                 fill="white"
-                fontSize="8"
+                fontSize="9"
                 fontWeight="bold"
                 style={{ letterSpacing: "3px", textTransform: "uppercase" }}
               >
                 {t.sectionTitle}
               </text>
-              <line x1={547} y1={68} x2={547} y2={82} stroke="#AA1A2E" strokeWidth="1" opacity="0.6" />
+              <line x1={547} y1={76} x2={547} y2={82} stroke="#AA1A2E" strokeWidth="1" opacity="0.6" />
             </motion.g>
 
             {/* Mexico City label — to the right of pin, same SVG coordinate space */}
