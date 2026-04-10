@@ -295,26 +295,26 @@ export default function WorldMapSection({ language }: WorldMapSectionProps) {
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
       transition={{ duration: 0.4 }}
-      className="flex flex-col items-center text-center"
+      className="group flex flex-col items-center text-center"
       data-testid={`${testIdPrefix}-${member.id}`}
     >
-      <div className="w-24 h-24 md:w-28 md:h-28 rounded-full overflow-hidden mb-3 border-2 border-primary/20">
+      <div className="w-24 h-24 md:w-28 md:h-28 rounded-full overflow-hidden mb-4 border-2 border-white/20">
         <img
           src={member.photo}
           alt={member.name}
-          className="w-full h-full object-cover"
+          className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-500"
           data-testid={`img-${testIdPrefix}-${member.id}`}
         />
       </div>
       <h4
-        className="text-sm md:text-base font-semibold text-foreground"
+        className="text-sm md:text-base font-semibold text-white tracking-[0.04em]"
         data-testid={`text-name-${member.id}`}
       >
         {member.name}
       </h4>
       {member.title && (
         <p
-          className="text-xs text-muted-foreground mt-1"
+          className="text-[10px] text-[#AA1A2E] mt-1 uppercase tracking-[0.08em]"
           data-testid={`text-title-${member.id}`}
         >
           {member.title}
@@ -558,9 +558,9 @@ export default function WorldMapSection({ language }: WorldMapSectionProps) {
 
       </div>
 
-      <div className="bg-background py-16 lg:py-20">
+      <div className="bg-[#111110] border-t border-[#AA1A2E]/20 py-16 lg:py-24">
         <div className="max-w-7xl mx-auto px-6 lg:px-12">
-          <div className="space-y-12" data-testid="team-members-container">
+          <div className="space-y-16" data-testid="team-members-container">
 
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -569,20 +569,23 @@ export default function WorldMapSection({ language }: WorldMapSectionProps) {
               transition={{ duration: 0.6 }}
               data-testid="partners-section"
             >
-              <h3
-                className="text-lg md:text-xl font-heading font-light text-foreground text-center mb-8 uppercase tracking-[0.12em]"
-                data-testid="text-partners-title"
-              >
-                {t.partnersTitle}
-              </h3>
-              <div className="flex flex-wrap justify-center gap-8 md:gap-12">
+              <div className="text-center mb-10">
+                <div className="w-12 h-px bg-[#AA1A2E] mx-auto mb-5" />
+                <h3
+                  className="text-base md:text-lg font-heading font-light text-white/90 uppercase tracking-[0.12em]"
+                  data-testid="text-partners-title"
+                >
+                  {t.partnersTitle}
+                </h3>
+              </div>
+              <div className="flex flex-wrap justify-center gap-10 md:gap-16">
                 {partners.map((member) => (
                   <TeamMemberCard key={member.id} member={member} testIdPrefix="partner" />
                 ))}
               </div>
             </motion.div>
 
-            <div className="border-t border-border" />
+            <div className="border-t border-white/10" />
 
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -591,20 +594,23 @@ export default function WorldMapSection({ language }: WorldMapSectionProps) {
               transition={{ duration: 0.6, delay: 0.1 }}
               data-testid="of-counsel-section"
             >
-              <h3
-                className="text-lg md:text-xl font-heading font-light text-foreground text-center mb-8 uppercase tracking-[0.12em]"
-                data-testid="text-of-counsel-title"
-              >
-                {t.ofCounselTitle}
-              </h3>
-              <div className="flex flex-wrap justify-center gap-8 md:gap-12">
+              <div className="text-center mb-10">
+                <div className="w-12 h-px bg-[#AA1A2E] mx-auto mb-5" />
+                <h3
+                  className="text-base md:text-lg font-heading font-light text-white/90 uppercase tracking-[0.12em]"
+                  data-testid="text-of-counsel-title"
+                >
+                  {t.ofCounselTitle}
+                </h3>
+              </div>
+              <div className="flex flex-wrap justify-center gap-10 md:gap-16">
                 {ofCounsel.map((member) => (
                   <TeamMemberCard key={member.id} member={member} testIdPrefix="of-counsel" />
                 ))}
               </div>
             </motion.div>
 
-            <div className="border-t border-border" />
+            <div className="border-t border-white/10" />
 
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -613,13 +619,16 @@ export default function WorldMapSection({ language }: WorldMapSectionProps) {
               transition={{ duration: 0.6, delay: 0.2 }}
               data-testid="associates-section"
             >
-              <h3
-                className="text-lg md:text-xl font-heading font-light text-foreground text-center mb-8 uppercase tracking-[0.12em]"
-                data-testid="text-associates-title"
-              >
-                {t.associatesTitle}
-              </h3>
-              <div className="flex flex-wrap justify-center gap-8 md:gap-12">
+              <div className="text-center mb-10">
+                <div className="w-12 h-px bg-[#AA1A2E] mx-auto mb-5" />
+                <h3
+                  className="text-base md:text-lg font-heading font-light text-white/90 uppercase tracking-[0.12em]"
+                  data-testid="text-associates-title"
+                >
+                  {t.associatesTitle}
+                </h3>
+              </div>
+              <div className="flex flex-wrap justify-center gap-10 md:gap-16">
                 {associates.map((member) => (
                   <TeamMemberCard key={member.id} member={member} testIdPrefix="associate" />
                 ))}
