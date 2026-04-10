@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { motion, useInView } from "framer-motion";
 
-import worldMapImg from "@assets/mapa_1775779566981.png";
+import worldMapImg from "@assets/mapa_1775780643811.png";
 import clausVonWobeserPhoto from "@assets/of_counsel_photos/claus_von_wobeser.jpg";
 import luisBurguenoPhoto from "@assets/partner_photos/luis_burgueno.jpg";
 import katharinaRoehrPhoto from "@assets/partner_photos/katharina_roehr.jpg";
@@ -225,13 +225,13 @@ const content: Record<SupportedLanguage, ContentTranslation> = {
   },
 };
 
-// Pin coordinates for mapa_1775779566981.png (4410×2828 px, ratio 1.559:1)
-// SVG viewBox: 0 0 1000 641. Equirectangular approx (lon/lat range 78°N–65°S)
-// Mexico City 19.4°N 99.1°W → x=225 y=263 (22.5% / 41%)
-// Germany     50.0°N  8.7°E → x=524 y=125 (52.4% / 19.5%)
-const MX = { x: 225, y: 263 };
-const DE = { x: 524, y: 125 };
-const ARC = `M ${MX.x},${MX.y} Q 374,30 ${DE.x},${DE.y}`;
+// Pin coordinates for mapa_1775780643811.png (4410×2828 px, ratio 1.559:1)
+// SVG viewBox: 0 0 1000 641. Calibrated from reference image.
+// Mexico City → x=220, y=404 (22% / 63%)
+// Germany     → x=650, y=179 (65% / 28%)
+const MX = { x: 220, y: 404 };
+const DE = { x: 650, y: 179 };
+const ARC = `M ${MX.x},${MX.y} Q 400,50 ${DE.x},${DE.y}`;
 
 
 // useCountUp hook
@@ -429,56 +429,54 @@ export default function WorldMapSection({ language }: WorldMapSectionProps) {
             </g>
           </svg>
 
-          {/* HTML label: Mexico City — below pin, using real brand fonts */}
+          {/* HTML label: Mexico City — to the right of pin */}
           <div
             className="absolute pointer-events-none"
-            style={{ left: "22.5%", top: "41%", transform: "translate(-50%, 12px)" }}
+            style={{ left: "24%", top: "63%", transform: "translate(12px, -50%)" }}
           >
-            <div className="w-px h-3 bg-primary/40 mx-auto" />
-            <div className="bg-background/75 backdrop-blur-[2px] px-3 py-1.5 text-center">
+            <div className="px-1">
               <p
-                className="text-[11px] font-heading font-semibold tracking-[0.2em] uppercase text-foreground leading-none mb-0.5"
+                className="text-sm font-heading font-bold tracking-[0.15em] uppercase text-foreground leading-tight"
                 data-testid="text-mexico-label"
               >
                 {t.mexicoLabel}
               </p>
-              <p className="text-[9px] text-muted-foreground tracking-[0.1em] leading-none">
+              <p className="text-xs text-muted-foreground tracking-[0.08em] leading-tight">
                 {t.mexicoSubtitle}
               </p>
             </div>
           </div>
 
-          {/* HTML label: Germany — above pin, using real brand fonts */}
+          {/* HTML label: Germany — to the right of pin */}
           <div
             className="absolute pointer-events-none"
-            style={{ left: "52.4%", top: "19.5%", transform: "translate(-50%, calc(-100% - 4px))" }}
+            style={{ left: "67%", top: "28%", transform: "translate(12px, -50%)" }}
           >
-            <div className="bg-background/75 backdrop-blur-[2px] px-3 py-1.5 text-center">
+            <div className="px-1">
               <p
-                className="text-[11px] font-heading font-semibold tracking-[0.2em] uppercase text-foreground leading-none mb-0.5"
+                className="text-sm font-heading font-bold tracking-[0.15em] uppercase text-foreground leading-tight"
                 data-testid="text-germany-label"
               >
                 {t.germanyLabel}
               </p>
-              <p className="text-[9px] text-muted-foreground tracking-[0.1em] leading-none">
+              <p className="text-xs text-muted-foreground tracking-[0.08em] leading-tight">
                 {t.germanySubtitle}
               </p>
             </div>
-            <div className="w-px h-3 bg-primary/40 mx-auto" />
           </div>
 
           {/* HTML label: GERMAN DESK on arc — animated */}
           <motion.div
             className="absolute pointer-events-none"
-            style={{ left: "38%", top: "5%", transform: "translate(-50%, 0)" }}
+            style={{ left: "43%", top: "15%", transform: "translate(-50%, 0)" }}
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}
             viewport={{ once: true }}
             transition={{ duration: 0.8, delay: 3.0 }}
             data-testid="text-german-desk-label"
           >
-            <div className="bg-primary px-3 py-1">
-              <span className="text-[9px] font-bold tracking-[0.25em] uppercase text-white whitespace-nowrap">
+            <div className="bg-primary px-4 py-2">
+              <span className="text-[11px] font-bold tracking-[0.3em] uppercase text-white whitespace-nowrap">
                 {t.sectionTitle}
               </span>
             </div>
