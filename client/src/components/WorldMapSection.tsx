@@ -4,6 +4,7 @@ import { Link } from "wouter";
 import { ArrowRight } from "lucide-react";
 
 import worldMapImg from "@assets/mapa_1775780643811.png";
+import worldMapDarkImg from "@assets/mapa-dark_1775834776471.png";
 import clausVonWobeserPhoto from "@assets/of_counsel_photos/claus_von_wobeser.jpg";
 import luisBurguenoPhoto from "@assets/partner_photos/luis_burgueno.jpg";
 import katharinaRoehrPhoto from "@assets/partner_photos/katharina_roehr.jpg";
@@ -367,12 +368,18 @@ export default function WorldMapSection({ language }: WorldMapSectionProps) {
           className="relative w-full"
           data-testid="card-map-connection"
         >
-          {/* Map image base — natural aspect ratio, full width */}
+          {/* Map image base — light/dark variants */}
           <img
             src={worldMapImg}
             alt=""
             aria-hidden="true"
-            className="w-full h-auto block"
+            className="w-full h-auto block dark:hidden"
+          />
+          <img
+            src={worldMapDarkImg}
+            alt=""
+            aria-hidden="true"
+            className="w-full h-auto hidden dark:block"
           />
 
           {/* SVG — unified coordinate system for arc, pins, labels, and pill */}
