@@ -300,6 +300,7 @@ interface GDMember {
 
 export default function WorldMapSection({ language }: WorldMapSectionProps) {
   const t = content[language] || content.en;
+  const [activePanel, setActivePanel] = useState<string | null>(null);
 
   const gdSocios: GDMember[] = [
     { id: "claus-von-wobeser", name: "Claus von Wobeser", photo: clausVonWobeserPhoto,       category: t.foundingPartner, slug: "claus-von-wobeser", number: "01" },
@@ -388,8 +389,7 @@ export default function WorldMapSection({ language }: WorldMapSectionProps) {
                 d={ARC}
                 fill="none"
                 stroke="#AA1A2E"
-                strokeWidth="1.5"
-                strokeDasharray="6 4"
+                strokeWidth="2"
                 initial={{ pathLength: 0, opacity: 0 }}
                 whileInView={{ pathLength: 1, opacity: 0.9 }}
                 viewport={{ once: true }}
@@ -554,156 +554,154 @@ export default function WorldMapSection({ language }: WorldMapSectionProps) {
 
       </div>
 
-      {/* German Desk Team — portrait card grid */}
+      {/* German Desk Team — 3 groups by cargo */}
       <div className="bg-[#111110]" data-testid="team-members-container">
 
         {/* ─── SOCIOS ──────────────────────────────────────────── */}
-        <div className="border-b border-[#AA1A2E]/10 px-6 lg:px-12 pt-12 lg:pt-16 pb-10 lg:pb-14">
-          <div className="max-w-7xl mx-auto">
-            <div className="flex items-center gap-3 mb-8">
-              <div className="w-8 h-px bg-[#AA1A2E] shrink-0" />
-              <h3 className="text-[#AA1A2E] text-[10px] tracking-[0.25em] uppercase">{t.partnersTitle}</h3>
-            </div>
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              {gdSocios.map((member) => (
+        <div className="border-b border-[#AA1A2E]/10">
+          {/* Desktop: expanding panels */}
+          <div className="hidden lg:flex w-full h-[420px]" onMouseLeave={() => setActivePanel(null)}>
+            {gdSocios.map((member) => {
+              const isActive = activePanel === member.id;
+              return (
                 <Link
                   key={member.id}
                   href={`/team/${member.slug}`}
                   data-testid={`card-gdm-${member.slug}`}
                   aria-label={member.name}
-                  className="group relative block"
+                  className="relative overflow-hidden cursor-pointer block"
+                  style={{ flex: isActive ? 3 : 1, transition: "flex 0.5s cubic-bezier(0.22, 1, 0.36, 1)", minWidth: 0 }}
+                  onMouseEnter={() => setActivePanel(member.id)}
                 >
-                  <div className="relative w-full aspect-[3/4] overflow-hidden">
-                    <img
-                      src={member.photo}
-                      alt=""
-                      aria-hidden="true"
-                      className="absolute inset-0 w-full h-full object-cover object-[50%_20%] grayscale group-hover:grayscale-0 transition-[filter] duration-500"
-                      data-testid={`img-gdm-${member.slug}`}
-                    />
-                    <div className="absolute inset-0" style={{ background: "linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.1) 55%, transparent 100%)" }} />
-                    <div
-                      className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
-                      style={{ background: "linear-gradient(to top, rgba(170,26,46,0.85) 0%, transparent 60%)" }}
-                    />
-                    <div className="absolute bottom-0 left-0 right-0 p-4 lg:p-5">
-                      <p
-                        className="font-serif font-light text-sm uppercase tracking-[0.12em] leading-snug text-white mb-1"
-                        data-testid={`text-name-gdm-${member.slug}`}
-                      >
-                        {member.name}
-                      </p>
-                      <p
-                        className="text-sm text-white/70 uppercase tracking-[0.18em]"
-                        data-testid={`text-category-gdm-${member.slug}`}
-                      >
-                        {member.category}
-                      </p>
-                    </div>
+                  <img src={member.photo} alt="" aria-hidden="true" className="absolute inset-0 w-full h-full object-cover object-[50%_20%]" style={{ transform: isActive ? "scale(1.04)" : "scale(1)", filter: isActive ? "grayscale(0%)" : "grayscale(100%)", transition: "transform 0.6s cubic-bezier(0.22, 1, 0.36, 1), filter 0.5s ease" }} data-testid={`img-gdm-${member.slug}`} />
+                  <div className="absolute inset-0" style={{ background: isActive ? "linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.4) 50%, rgba(0,0,0,0.3) 100%)" : "linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.7) 100%)", transition: "background 0.5s ease" }} />
+                  <div className="absolute top-0 right-0 w-px h-full bg-[#AA1A2E]/20" />
+
+                  <div className="absolute bottom-5 left-3 right-3" style={{ opacity: isActive ? 0 : 1, transition: "opacity 0.25s ease" }}>
+                    <p className="text-white/70 text-[9px] uppercase tracking-[0.12em] font-light truncate" data-testid={`text-name-gdm-${member.slug}`}>{member.name}</p>
+                  </div>
+                  <div className="absolute bottom-6 left-5 right-5" style={{ opacity: isActive ? 1 : 0, transform: isActive ? "translateY(0)" : "translateY(8px)", transition: "opacity 0.3s ease 0.1s, transform 0.3s ease 0.1s" }}>
+                    <p className="font-heading font-light text-base uppercase tracking-[0.1em] leading-snug mb-1 text-white">{member.name}</p>
+                    <p className="text-xs text-[#AA1A2E] uppercase tracking-[0.08em] mb-3" data-testid={`text-category-gdm-${member.slug}`}>{member.category}</p>
+                    <div className="flex items-center gap-2 text-[#AA1A2E]"><ArrowRight className="w-4 h-4" /></div>
                   </div>
                 </Link>
-              ))}
-            </div>
+              );
+            })}
+          </div>
+          {/* Mobile: 2-col grid */}
+          <div className="lg:hidden grid grid-cols-2 gap-px">
+            {gdSocios.map((member) => (
+              <Link key={member.id} href={`/team/${member.slug}`} className="relative h-44 overflow-hidden group block" data-testid={`card-gdm-mobile-${member.slug}`} aria-label={member.name}>
+                <img src={member.photo} alt="" aria-hidden="true" className="absolute inset-0 w-full h-full object-cover object-top transition-[transform,filter] duration-500 grayscale group-hover:grayscale-0 group-hover:scale-105" />
+                <div className="absolute inset-0 bg-black/65 group-hover:bg-black/50 transition-colors duration-300" />
+
+                <div className="absolute bottom-3 left-3 right-3">
+                  <p className="text-[#AA1A2E] text-[9px] uppercase tracking-[0.08em] mb-0.5">{member.category}</p>
+                  <p className="text-white/90 text-xs uppercase tracking-[0.1em] leading-snug font-light">{member.name}</p>
+                </div>
+              </Link>
+            ))}
           </div>
         </div>
 
         {/* ─── OF COUNSEL ──────────────────────────────────────── */}
-        <div className="bg-[#0d0d0c] border-b border-[#AA1A2E]/10 px-6 lg:px-12 pt-12 lg:pt-16 pb-10 lg:pb-14">
-          <div className="max-w-7xl mx-auto">
-            <div className="flex items-center gap-3 mb-8">
-              <div className="w-8 h-px bg-[#AA1A2E] shrink-0" />
-              <h3 className="text-[#AA1A2E] text-[10px] tracking-[0.25em] uppercase">{t.ofCounselTitle}</h3>
-            </div>
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              {gdOfCounsel.map((member) => (
+        <div className="bg-[#0d0d0c] border-b border-[#AA1A2E]/10">
+          <div className="px-6 lg:px-12 pt-8 pb-4 flex items-center gap-3">
+            <div className="w-8 h-px bg-[#AA1A2E] shrink-0" />
+            <p className="text-[#AA1A2E] text-[10px] tracking-[0.25em] uppercase">{t.ofCounselTitle}</p>
+          </div>
+          <div className="hidden lg:flex w-full h-[380px]" onMouseLeave={() => setActivePanel(null)}>
+            {gdOfCounsel.map((member) => {
+              const isActive = activePanel === member.id;
+              return (
                 <Link
                   key={member.id}
                   href={`/team/${member.slug}`}
                   data-testid={`card-gdm-${member.slug}`}
                   aria-label={member.name}
-                  className="group relative block"
+                  className="relative overflow-hidden cursor-pointer block"
+                  style={{ flex: isActive ? 3 : 1, transition: "flex 0.5s cubic-bezier(0.22, 1, 0.36, 1)", minWidth: 0 }}
+                  onMouseEnter={() => setActivePanel(member.id)}
                 >
-                  <div className="relative w-full aspect-[3/4] overflow-hidden">
-                    <img
-                      src={member.photo}
-                      alt=""
-                      aria-hidden="true"
-                      className="absolute inset-0 w-full h-full object-cover object-[50%_20%] grayscale group-hover:grayscale-0 transition-[filter] duration-500"
-                      data-testid={`img-gdm-${member.slug}`}
-                    />
-                    <div className="absolute inset-0" style={{ background: "linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.1) 55%, transparent 100%)" }} />
-                    <div
-                      className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
-                      style={{ background: "linear-gradient(to top, rgba(170,26,46,0.85) 0%, transparent 60%)" }}
-                    />
-                    <div className="absolute bottom-0 left-0 right-0 p-4 lg:p-5">
-                      <p
-                        className="font-serif font-light text-sm uppercase tracking-[0.12em] leading-snug text-white mb-1"
-                        data-testid={`text-name-gdm-${member.slug}`}
-                      >
-                        {member.name}
-                      </p>
-                      <p
-                        className="text-sm text-white/70 uppercase tracking-[0.18em]"
-                        data-testid={`text-category-gdm-${member.slug}`}
-                      >
-                        {member.category}
-                      </p>
-                    </div>
+                  <img src={member.photo} alt="" aria-hidden="true" className="absolute inset-0 w-full h-full object-cover object-[50%_20%]" style={{ transform: isActive ? "scale(1.04)" : "scale(1)", filter: isActive ? "grayscale(0%)" : "grayscale(100%)", transition: "transform 0.6s cubic-bezier(0.22, 1, 0.36, 1), filter 0.5s ease" }} data-testid={`img-gdm-${member.slug}`} />
+                  <div className="absolute inset-0" style={{ background: isActive ? "linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.4) 50%, rgba(0,0,0,0.3) 100%)" : "linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.7) 100%)", transition: "background 0.5s ease" }} />
+                  <div className="absolute top-0 right-0 w-px h-full bg-[#AA1A2E]/20" />
+
+                  <div className="absolute bottom-5 left-3 right-3" style={{ opacity: isActive ? 0 : 1, transition: "opacity 0.25s ease" }}>
+                    <p className="text-white/70 text-[9px] uppercase tracking-[0.12em] font-light truncate" data-testid={`text-name-gdm-${member.slug}`}>{member.name}</p>
+                  </div>
+                  <div className="absolute bottom-6 left-5 right-5" style={{ opacity: isActive ? 1 : 0, transform: isActive ? "translateY(0)" : "translateY(8px)", transition: "opacity 0.3s ease 0.1s, transform 0.3s ease 0.1s" }}>
+                    <p className="font-heading font-light text-base uppercase tracking-[0.1em] leading-snug mb-1 text-white">{member.name}</p>
+                    <p className="text-xs text-[#AA1A2E] uppercase tracking-[0.08em] mb-3" data-testid={`text-category-gdm-${member.slug}`}>{member.category}</p>
+                    <div className="flex items-center gap-2 text-[#AA1A2E]"><ArrowRight className="w-4 h-4" /></div>
                   </div>
                 </Link>
-              ))}
-            </div>
+              );
+            })}
+          </div>
+          <div className="lg:hidden grid grid-cols-2 gap-px">
+            {gdOfCounsel.map((member) => (
+              <Link key={member.id} href={`/team/${member.slug}`} className="relative h-44 overflow-hidden group block" data-testid={`card-gdm-mobile-${member.slug}`} aria-label={member.name}>
+                <img src={member.photo} alt="" aria-hidden="true" className="absolute inset-0 w-full h-full object-cover object-top transition-[transform,filter] duration-500 grayscale group-hover:grayscale-0 group-hover:scale-105" />
+                <div className="absolute inset-0 bg-black/65 group-hover:bg-black/50 transition-colors duration-300" />
+
+                <div className="absolute bottom-3 left-3 right-3">
+                  <p className="text-[#AA1A2E] text-[9px] uppercase tracking-[0.08em] mb-0.5">{member.category}</p>
+                  <p className="text-white/90 text-xs uppercase tracking-[0.1em] leading-snug font-light">{member.name}</p>
+                </div>
+              </Link>
+            ))}
           </div>
         </div>
 
         {/* ─── ASOCIADOS ───────────────────────────────────────── */}
-        <div className="px-6 lg:px-12 pt-12 lg:pt-16 pb-10 lg:pb-14">
-          <div className="max-w-7xl mx-auto">
-            <div className="flex items-center gap-3 mb-8">
-              <div className="w-8 h-px bg-[#AA1A2E] shrink-0" />
-              <h3 className="text-[#AA1A2E] text-[10px] tracking-[0.25em] uppercase">{t.associatesTitle}</h3>
-            </div>
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              {gdAssociates.map((member) => (
+        <div>
+          <div className="px-6 lg:px-12 pt-8 pb-4 flex items-center gap-3">
+            <div className="w-8 h-px bg-[#AA1A2E] shrink-0" />
+            <p className="text-[#AA1A2E] text-[10px] tracking-[0.25em] uppercase">{t.associatesTitle}</p>
+          </div>
+          <div className="hidden lg:flex w-full h-[380px]" onMouseLeave={() => setActivePanel(null)}>
+            {gdAssociates.map((member) => {
+              const isActive = activePanel === member.id;
+              return (
                 <Link
                   key={member.id}
                   href={`/team/${member.slug}`}
                   data-testid={`card-gdm-${member.slug}`}
                   aria-label={member.name}
-                  className="group relative block"
+                  className="relative overflow-hidden cursor-pointer block"
+                  style={{ flex: isActive ? 3 : 1, transition: "flex 0.5s cubic-bezier(0.22, 1, 0.36, 1)", minWidth: 0 }}
+                  onMouseEnter={() => setActivePanel(member.id)}
                 >
-                  <div className="relative w-full aspect-[3/4] overflow-hidden">
-                    <img
-                      src={member.photo}
-                      alt=""
-                      aria-hidden="true"
-                      className="absolute inset-0 w-full h-full object-cover object-[50%_20%] grayscale group-hover:grayscale-0 transition-[filter] duration-500"
-                      data-testid={`img-gdm-${member.slug}`}
-                    />
-                    <div className="absolute inset-0" style={{ background: "linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.1) 55%, transparent 100%)" }} />
-                    <div
-                      className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
-                      style={{ background: "linear-gradient(to top, rgba(170,26,46,0.85) 0%, transparent 60%)" }}
-                    />
-                    <div className="absolute bottom-0 left-0 right-0 p-4 lg:p-5">
-                      <p
-                        className="font-serif font-light text-sm uppercase tracking-[0.12em] leading-snug text-white mb-1"
-                        data-testid={`text-name-gdm-${member.slug}`}
-                      >
-                        {member.name}
-                      </p>
-                      <p
-                        className="text-sm text-white/70 uppercase tracking-[0.18em]"
-                        data-testid={`text-category-gdm-${member.slug}`}
-                      >
-                        {member.category}
-                      </p>
-                    </div>
+                  <img src={member.photo} alt="" aria-hidden="true" className="absolute inset-0 w-full h-full object-cover object-[50%_20%]" style={{ transform: isActive ? "scale(1.04)" : "scale(1)", filter: isActive ? "grayscale(0%)" : "grayscale(100%)", transition: "transform 0.6s cubic-bezier(0.22, 1, 0.36, 1), filter 0.5s ease" }} data-testid={`img-gdm-${member.slug}`} />
+                  <div className="absolute inset-0" style={{ background: isActive ? "linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.4) 50%, rgba(0,0,0,0.3) 100%)" : "linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.7) 100%)", transition: "background 0.5s ease" }} />
+                  <div className="absolute top-0 right-0 w-px h-full bg-[#AA1A2E]/20" />
+
+                  <div className="absolute bottom-5 left-3 right-3" style={{ opacity: isActive ? 0 : 1, transition: "opacity 0.25s ease" }}>
+                    <p className="text-white/70 text-[9px] uppercase tracking-[0.12em] font-light truncate" data-testid={`text-name-gdm-${member.slug}`}>{member.name}</p>
+                  </div>
+                  <div className="absolute bottom-6 left-5 right-5" style={{ opacity: isActive ? 1 : 0, transform: isActive ? "translateY(0)" : "translateY(8px)", transition: "opacity 0.3s ease 0.1s, transform 0.3s ease 0.1s" }}>
+                    <p className="font-heading font-light text-base uppercase tracking-[0.1em] leading-snug mb-1 text-white">{member.name}</p>
+                    <p className="text-xs text-[#AA1A2E] uppercase tracking-[0.08em] mb-3" data-testid={`text-category-gdm-${member.slug}`}>{member.category}</p>
+                    <div className="flex items-center gap-2 text-[#AA1A2E]"><ArrowRight className="w-4 h-4" /></div>
                   </div>
                 </Link>
-              ))}
-            </div>
+              );
+            })}
+          </div>
+          <div className="lg:hidden grid grid-cols-2 gap-px">
+            {gdAssociates.map((member) => (
+              <Link key={member.id} href={`/team/${member.slug}`} className="relative h-44 overflow-hidden group block" data-testid={`card-gdm-mobile-${member.slug}`} aria-label={member.name}>
+                <img src={member.photo} alt="" aria-hidden="true" className="absolute inset-0 w-full h-full object-cover object-top transition-[transform,filter] duration-500 grayscale group-hover:grayscale-0 group-hover:scale-105" />
+                <div className="absolute inset-0 bg-black/65 group-hover:bg-black/50 transition-colors duration-300" />
+
+                <div className="absolute bottom-3 left-3 right-3">
+                  <p className="text-[#AA1A2E] text-[9px] uppercase tracking-[0.08em] mb-0.5">{member.category}</p>
+                  <p className="text-white/90 text-xs uppercase tracking-[0.1em] leading-snug font-light">{member.name}</p>
+                </div>
+              </Link>
+            ))}
           </div>
         </div>
 
