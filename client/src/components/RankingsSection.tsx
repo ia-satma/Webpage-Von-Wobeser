@@ -104,7 +104,7 @@ export default function RankingsSection() {
   return (
     <section
       id="rankings"
-      className="py-20 lg:py-28 bg-background"
+      className="py-20 lg:py-28 bg-muted border-t border-border"
       data-testid="section-rankings"
     >
       <div className="max-w-7xl mx-auto px-6 lg:px-12">

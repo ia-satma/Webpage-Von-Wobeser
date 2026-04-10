@@ -317,7 +317,7 @@ export default function WorldMapSection({ language }: WorldMapSectionProps) {
       data-testid="section-german-desk"
       className="overflow-hidden"
     >
-      <div className="bg-background">
+      <div className="bg-card">
 
         {/* Header — stays in max-w container */}
         <div className="max-w-7xl mx-auto px-6 lg:px-12 pt-20 lg:pt-28">

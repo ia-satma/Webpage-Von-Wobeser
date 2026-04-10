@@ -265,7 +265,7 @@ export default function EventsSection({ language }: EventsSectionProps) {
 
   if (error) {
     return (
-      <section id="events" className="py-20 lg:py-28 bg-background" data-testid="section-events">
+      <section id="events" className="py-20 lg:py-28 bg-muted border-t border-border" data-testid="section-events">
         <div className="max-w-7xl mx-auto px-6 lg:px-12">
           <div className="text-center py-12">
             <AlertCircle className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
@@ -279,7 +279,7 @@ export default function EventsSection({ language }: EventsSectionProps) {
   return (
     <section
       id="events"
-      className="py-20 lg:py-28 bg-background"
+      className="py-20 lg:py-28 bg-muted border-t border-border"
       data-testid="section-events"
     >
       <div className="max-w-7xl mx-auto px-6 lg:px-12">
