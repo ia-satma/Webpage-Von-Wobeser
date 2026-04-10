@@ -431,12 +431,12 @@ export default function WorldMapSection({ language }: WorldMapSectionProps) {
             </g>
           </svg>
 
-          {/* HTML label: Mexico City — animated, to the right of pin */}
+          {/* HTML label: Mexico City — opacity-only fade-in (keeps style.transform safe) */}
           <motion.div
             className="absolute pointer-events-none"
             style={{ left: "21%", top: "70%", transform: "translate(12px, -50%)" }}
-            initial={{ opacity: 0, y: 4 }}
-            whileInView={{ opacity: 1, y: 0 }}
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
             viewport={{ once: true }}
             transition={{ duration: 0.5, delay: 3.2 }}
           >
@@ -453,12 +453,12 @@ export default function WorldMapSection({ language }: WorldMapSectionProps) {
             </div>
           </motion.div>
 
-          {/* HTML label: Germany — animated, to the right of pin */}
+          {/* HTML label: Germany — opacity-only fade-in (keeps style.transform safe) */}
           <motion.div
             className="absolute pointer-events-none"
             style={{ left: "71%", top: "24%", transform: "translate(12px, -50%)" }}
-            initial={{ opacity: 0, y: 4 }}
-            whileInView={{ opacity: 1, y: 0 }}
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
             viewport={{ once: true }}
             transition={{ duration: 0.5, delay: 3.5 }}
           >
@@ -475,12 +475,12 @@ export default function WorldMapSection({ language }: WorldMapSectionProps) {
             </div>
           </motion.div>
 
-          {/* HTML label: GERMAN DESK — appears as arc reaches its peak */}
+          {/* HTML label: GERMAN DESK — scale+opacity, x expressed as Framer value (no style.transform) */}
           <motion.div
             className="absolute pointer-events-none"
-            style={{ left: "44%", top: "9%", transform: "translate(-50%, 0)" }}
-            initial={{ opacity: 0, scale: 0.85 }}
-            whileInView={{ opacity: 1, scale: 1 }}
+            style={{ left: "44%", top: "9%" }}
+            initial={{ opacity: 0, scale: 0.85, x: "-50%" }}
+            whileInView={{ opacity: 1, scale: 1, x: "-50%" }}
             viewport={{ once: true }}
             transition={{ duration: 0.5, delay: 2.0 }}
             data-testid="text-german-desk-label"
