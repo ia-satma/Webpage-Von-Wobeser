@@ -4,7 +4,7 @@ import { Link } from "wouter";
 import { ArrowRight } from "lucide-react";
 
 import worldMapImg from "@assets/mapa_1775780643811.png";
-import worldMapDarkImg from "@assets/mapa-dark_1775834776471.png";
+import worldMapDarkImg from "@assets/mapa-dark_1775838972648.png";
 import clausVonWobeserPhoto from "@assets/of_counsel_photos/claus_von_wobeser.jpg";
 import luisBurguenoPhoto from "@assets/partner_photos/luis_burgueno.jpg";
 import katharinaRoehrPhoto from "@assets/partner_photos/katharina_roehr.jpg";
@@ -324,7 +324,7 @@ export default function WorldMapSection({ language }: WorldMapSectionProps) {
       data-testid="section-german-desk"
       className="overflow-hidden"
     >
-      <div className="bg-card">
+      <div className="bg-card dark:bg-[#1a1a18]">
 
         {/* Header — stays in max-w container */}
         <div className="max-w-7xl mx-auto px-6 lg:px-12 pt-20 lg:pt-28">
