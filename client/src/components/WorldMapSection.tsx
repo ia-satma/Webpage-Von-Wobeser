@@ -381,11 +381,12 @@ export default function WorldMapSection({ language }: WorldMapSectionProps) {
             className="w-full h-auto block"
           />
 
-          {/* SVG overlay — arc and pin dots only (viewBox matches image ratio 1000:641) */}
+          {/* SVG — unified coordinate system for arc, pins, labels, and pill */}
           <svg
             viewBox="0 0 1000 641"
             className="absolute inset-0 w-full h-full"
-            aria-hidden="true"
+            role="img"
+            aria-label={`German Desk — ${t.mexicoLabel} · ${t.germanyLabel}`}
           >
             {/* Animated arc from Mexico to Germany */}
             <g data-testid="connection-line-desktop">
@@ -402,7 +403,7 @@ export default function WorldMapSection({ language }: WorldMapSectionProps) {
               />
             </g>
 
-            {/* Mexico City — pin dot only */}
+            {/* Mexico City — pin dot with pulse */}
             <g data-testid="location-mexico">
               <motion.circle cx={MX.x} cy={MX.y} r={6} fill="none" stroke="#AA1A2E" strokeWidth="1"
                 animate={{ r: [6, 24, 6], opacity: [0.6, 0, 0.6] }}
@@ -416,7 +417,7 @@ export default function WorldMapSection({ language }: WorldMapSectionProps) {
               <circle cx={MX.x} cy={MX.y} r={2.5} fill="white" />
             </g>
 
-            {/* Germany — pin dot only */}
+            {/* Germany — pin dot with pulse */}
             <g data-testid="location-germany">
               <motion.circle cx={DE.x} cy={DE.y} r={6} fill="none" stroke="#AA1A2E" strokeWidth="1"
                 animate={{ r: [6, 24, 6], opacity: [0.6, 0, 0.6] }}
@@ -429,75 +430,89 @@ export default function WorldMapSection({ language }: WorldMapSectionProps) {
               <circle cx={DE.x} cy={DE.y} r={5} fill="#AA1A2E" />
               <circle cx={DE.x} cy={DE.y} r={2.5} fill="white" />
             </g>
-          </svg>
 
-          {/* HTML label: Mexico City — outer div positions, inner motion.div animates (no conflict) */}
-          <div
-            className="absolute pointer-events-none"
-            style={{ left: "21%", top: "70%", transform: "translate(12px, -50%)" }}
-          >
-            <motion.div
-              initial={{ opacity: 0, y: 4 }}
-              whileInView={{ opacity: 1, y: 0 }}
+            {/* GERMAN DESK pill — centered on arc peak (x≈547, y≈82) */}
+            <motion.g
+              data-testid="text-german-desk-label"
+              style={{ transformBox: "fill-box", transformOrigin: "center" }}
+              initial={{ opacity: 0, scale: 0.85 }}
+              whileInView={{ opacity: 1, scale: 1 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5, delay: 2.0 }}
+            >
+              <rect x={422} y={42} width={250} height={26} fill="#AA1A2E" />
+              <text
+                x={547}
+                y={60}
+                textAnchor="middle"
+                fill="white"
+                fontSize="8"
+                fontWeight="bold"
+                style={{ letterSpacing: "3px", textTransform: "uppercase" }}
+              >
+                {t.sectionTitle}
+              </text>
+              <line x1={547} y1={68} x2={547} y2={82} stroke="#AA1A2E" strokeWidth="1" opacity="0.6" />
+            </motion.g>
+
+            {/* Mexico City label — to the right of pin, same SVG coordinate space */}
+            <motion.g
+              initial={{ opacity: 0 }}
+              whileInView={{ opacity: 1 }}
               viewport={{ once: true }}
               transition={{ duration: 0.5, delay: 3.2 }}
             >
-              <div className="px-1">
-                <p
-                  className="text-sm font-heading font-bold tracking-[0.15em] uppercase leading-tight text-[#1a1a1a]"
-                  data-testid="text-mexico-label"
-                >
-                  {t.mexicoLabel}
-                </p>
-                <p className="text-xs tracking-[0.08em] leading-tight text-[#777777]">
-                  {t.mexicoSubtitle}
-                </p>
-              </div>
-            </motion.div>
-          </div>
+              <text
+                x={205}
+                y={447}
+                fill="#1a1a1a"
+                fontSize="11"
+                fontWeight="bold"
+                style={{ letterSpacing: "2px", textTransform: "uppercase" }}
+                data-testid="text-mexico-label"
+              >
+                {t.mexicoLabel}
+              </text>
+              <text
+                x={205}
+                y={460}
+                fill="#777777"
+                fontSize="8"
+                style={{ letterSpacing: "1px" }}
+              >
+                {t.mexicoSubtitle}
+              </text>
+            </motion.g>
 
-          {/* HTML label: Germany — outer div positions, inner motion.div animates (no conflict) */}
-          <div
-            className="absolute pointer-events-none"
-            style={{ left: "71%", top: "24%", transform: "translate(12px, -50%)" }}
-          >
-            <motion.div
-              initial={{ opacity: 0, y: 4 }}
-              whileInView={{ opacity: 1, y: 0 }}
+            {/* Germany label — to the right of pin, same SVG coordinate space */}
+            <motion.g
+              initial={{ opacity: 0 }}
+              whileInView={{ opacity: 1 }}
               viewport={{ once: true }}
               transition={{ duration: 0.5, delay: 3.5 }}
             >
-              <div className="px-1">
-                <p
-                  className="text-sm font-heading font-bold tracking-[0.15em] uppercase leading-tight text-[#1a1a1a]"
-                  data-testid="text-germany-label"
-                >
-                  {t.germanyLabel}
-                </p>
-                <p className="text-xs tracking-[0.08em] leading-tight text-[#777777]">
-                  {t.germanySubtitle}
-                </p>
-              </div>
-            </motion.div>
-          </div>
-
-          {/* HTML label: GERMAN DESK — scale+opacity, x expressed as Framer value (no style.transform) */}
-          <motion.div
-            className="absolute pointer-events-none"
-            style={{ left: "44%", top: "9%" }}
-            initial={{ opacity: 0, scale: 0.85, x: "-50%" }}
-            whileInView={{ opacity: 1, scale: 1, x: "-50%" }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.5, delay: 2.0 }}
-            data-testid="text-german-desk-label"
-          >
-            <div className="bg-primary px-4 py-2">
-              <span className="text-[11px] font-bold tracking-[0.3em] uppercase text-white whitespace-nowrap">
-                {t.sectionTitle}
-              </span>
-            </div>
-            <div className="w-px h-3 bg-primary mx-auto" />
-          </motion.div>
+              <text
+                x={705}
+                y={152}
+                fill="#1a1a1a"
+                fontSize="11"
+                fontWeight="bold"
+                style={{ letterSpacing: "2px", textTransform: "uppercase" }}
+                data-testid="text-germany-label"
+              >
+                {t.germanyLabel}
+              </text>
+              <text
+                x={705}
+                y={165}
+                fill="#777777"
+                fontSize="8"
+                style={{ letterSpacing: "1px" }}
+              >
+                {t.germanySubtitle}
+              </text>
+            </motion.g>
+          </svg>
         </motion.div>
 
         {/* Stats + historical text — back in max-w container */}
