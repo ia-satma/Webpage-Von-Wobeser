@@ -431,49 +431,55 @@ export default function WorldMapSection({ language }: WorldMapSectionProps) {
             </g>
           </svg>
 
-          {/* HTML label: Mexico City — opacity-only fade-in (keeps style.transform safe) */}
-          <motion.div
+          {/* HTML label: Mexico City — outer div positions, inner motion.div animates (no conflict) */}
+          <div
             className="absolute pointer-events-none"
             style={{ left: "21%", top: "70%", transform: "translate(12px, -50%)" }}
-            initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.5, delay: 3.2 }}
           >
-            <div className="px-1">
-              <p
-                className="text-sm font-heading font-bold tracking-[0.15em] uppercase leading-tight text-[#1a1a1a]"
-                data-testid="text-mexico-label"
-              >
-                {t.mexicoLabel}
-              </p>
-              <p className="text-xs tracking-[0.08em] leading-tight text-[#777777]">
-                {t.mexicoSubtitle}
-              </p>
-            </div>
-          </motion.div>
+            <motion.div
+              initial={{ opacity: 0, y: 4 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5, delay: 3.2 }}
+            >
+              <div className="px-1">
+                <p
+                  className="text-sm font-heading font-bold tracking-[0.15em] uppercase leading-tight text-[#1a1a1a]"
+                  data-testid="text-mexico-label"
+                >
+                  {t.mexicoLabel}
+                </p>
+                <p className="text-xs tracking-[0.08em] leading-tight text-[#777777]">
+                  {t.mexicoSubtitle}
+                </p>
+              </div>
+            </motion.div>
+          </div>
 
-          {/* HTML label: Germany — opacity-only fade-in (keeps style.transform safe) */}
-          <motion.div
+          {/* HTML label: Germany — outer div positions, inner motion.div animates (no conflict) */}
+          <div
             className="absolute pointer-events-none"
             style={{ left: "71%", top: "24%", transform: "translate(12px, -50%)" }}
-            initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.5, delay: 3.5 }}
           >
-            <div className="px-1">
-              <p
-                className="text-sm font-heading font-bold tracking-[0.15em] uppercase leading-tight text-[#1a1a1a]"
-                data-testid="text-germany-label"
-              >
-                {t.germanyLabel}
-              </p>
-              <p className="text-xs tracking-[0.08em] leading-tight text-[#777777]">
-                {t.germanySubtitle}
-              </p>
-            </div>
-          </motion.div>
+            <motion.div
+              initial={{ opacity: 0, y: 4 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5, delay: 3.5 }}
+            >
+              <div className="px-1">
+                <p
+                  className="text-sm font-heading font-bold tracking-[0.15em] uppercase leading-tight text-[#1a1a1a]"
+                  data-testid="text-germany-label"
+                >
+                  {t.germanyLabel}
+                </p>
+                <p className="text-xs tracking-[0.08em] leading-tight text-[#777777]">
+                  {t.germanySubtitle}
+                </p>
+              </div>
+            </motion.div>
+          </div>
 
           {/* HTML label: GERMAN DESK — scale+opacity, x expressed as Framer value (no style.transform) */}
           <motion.div
