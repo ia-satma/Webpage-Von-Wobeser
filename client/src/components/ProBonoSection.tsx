@@ -237,7 +237,7 @@ export default function ProBonoSection() {
             src={officePhoto}
             alt=""
             aria-hidden="true"
-            className="absolute inset-0 w-full h-full object-cover object-center"
+            className="absolute inset-0 w-full h-full object-cover object-center grayscale"
           />
           {/* Dark overlay */}
           <div className="absolute inset-0 bg-black/60" />
