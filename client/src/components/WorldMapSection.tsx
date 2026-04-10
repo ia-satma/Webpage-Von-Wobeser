@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { motion, useInView } from "framer-motion";
 
-import worldMapImg from "@assets/mapam_1775778532041.png";
+import worldMapImg from "@assets/mapa_1775779566981.png";
 import clausVonWobeserPhoto from "@assets/of_counsel_photos/claus_von_wobeser.jpg";
 import luisBurguenoPhoto from "@assets/partner_photos/luis_burgueno.jpg";
 import katharinaRoehrPhoto from "@assets/partner_photos/katharina_roehr.jpg";
