@@ -324,7 +324,7 @@ export default function WorldMapSection({ language }: WorldMapSectionProps) {
       data-testid="section-german-desk"
       className="overflow-hidden"
     >
-      <div className="bg-card dark:bg-[#1c1c1a]">
+      <div className="bg-card dark:bg-[#111110]">
 
         {/* Header — stays in max-w container */}
         <div className="max-w-7xl mx-auto px-6 lg:px-12 pt-20 lg:pt-28">
@@ -560,7 +560,7 @@ export default function WorldMapSection({ language }: WorldMapSectionProps) {
       </div>
 
       {/* German Desk Team — 3 groups by cargo */}
-      <div className="bg-[#111110] border-t border-[#AA1A2E]/20" data-testid="team-members-container">
+      <div className="bg-[#111110]" data-testid="team-members-container">
 
         {/* ─── SOCIOS ──────────────────────────────────────────── */}
         <div className="border-b border-[#AA1A2E]/10">
