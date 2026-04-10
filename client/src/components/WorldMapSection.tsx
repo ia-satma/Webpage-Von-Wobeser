@@ -716,28 +716,14 @@ export default function WorldMapSection({ language }: WorldMapSectionProps) {
           </div>
         </div>
 
-        {/* Bottom strip: section title (left) + CTA link (right) */}
+        {/* Bottom strip: CTA link only */}
         <motion.div
           initial={{ opacity: 0, y: 12 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.5 }}
-          className="max-w-7xl mx-auto px-6 lg:px-12 py-8 flex flex-wrap items-center justify-between gap-4 border-t border-[#AA1A2E]/10"
+          className="max-w-7xl mx-auto px-6 lg:px-12 py-8 flex justify-end border-t border-[#AA1A2E]/10"
         >
-          <div className="flex items-center gap-5">
-            <div className="w-10 h-px bg-[#AA1A2E] shrink-0" />
-            <div>
-              <p className="text-[#AA1A2E] text-[10px] tracking-[0.25em] uppercase mb-1">
-                {t.sectionTitle}
-              </p>
-              <h2
-                className="font-heading font-light text-xl md:text-2xl text-white/90 uppercase tracking-[0.12em]"
-                data-testid="text-team-title"
-              >
-                {t.teamTitle}
-              </h2>
-            </div>
-          </div>
           <Link
             href="/german-desk"
             className="inline-flex items-center gap-2 text-xs font-medium tracking-[0.15em] uppercase text-white/50 hover:text-white transition-colors duration-200 group"
