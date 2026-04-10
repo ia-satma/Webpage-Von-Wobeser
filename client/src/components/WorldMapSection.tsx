@@ -225,13 +225,13 @@ const content: Record<SupportedLanguage, ContentTranslation> = {
   },
 };
 
-// Equirectangular pin coordinates (1000×500 viewBox):
-// x = (lon + 180) / 360 * 1000 ; y = (90 - lat) / 180 * 500
-// Mexico City 19.4°N 99.1°W → x≈225 y≈196
-// Germany     50.0°N  8.7°E → x≈524 y≈111
-const MX = { x: 225, y: 196 };
-const DE = { x: 524, y: 111 };
-const ARC = `M ${MX.x},${MX.y} Q 374,18 ${DE.x},${DE.y}`;
+// Pin coordinates for mapa_1775779566981.png (4410×2828 px, ratio 1.559:1)
+// SVG viewBox: 0 0 1000 641. Equirectangular approx (lon/lat range 78°N–65°S)
+// Mexico City 19.4°N 99.1°W → x=225 y=263 (22.5% / 41%)
+// Germany     50.0°N  8.7°E → x=524 y=125 (52.4% / 19.5%)
+const MX = { x: 225, y: 263 };
+const DE = { x: 524, y: 125 };
+const ARC = `M ${MX.x},${MX.y} Q 374,30 ${DE.x},${DE.y}`;
 
 
 // useCountUp hook
@@ -328,9 +328,9 @@ export default function WorldMapSection({ language }: WorldMapSectionProps) {
       className="overflow-hidden"
     >
       <div className="bg-background">
-        <div className="max-w-7xl mx-auto px-6 lg:px-12 pt-20 lg:pt-28">
 
-          {/* Header */}
+        {/* Header — stays in max-w container */}
+        <div className="max-w-7xl mx-auto px-6 lg:px-12 pt-20 lg:pt-28">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -358,166 +358,135 @@ export default function WorldMapSection({ language }: WorldMapSectionProps) {
               {t.subtitle}
             </p>
           </motion.div>
+        </div>
 
-          {/* World Map SVG */}
-          <span data-testid="connection-line-mobile" className="sr-only" aria-hidden="true" />
+        {/* World Map — full-bleed, outside max-w container */}
+        <span data-testid="connection-line-mobile" className="sr-only" aria-hidden="true" />
 
+        <motion.div
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
+          viewport={{ once: true }}
+          transition={{ duration: 1.2, delay: 0.2 }}
+          className="relative w-full"
+          data-testid="card-map-connection"
+        >
+          {/* Map image base — natural aspect ratio, full width */}
+          <img
+            src={worldMapImg}
+            alt=""
+            aria-hidden="true"
+            className="w-full h-auto block"
+          />
+
+          {/* SVG overlay — arc and pin dots only (viewBox matches image ratio 1000:641) */}
+          <svg
+            viewBox="0 0 1000 641"
+            className="absolute inset-0 w-full h-full"
+            aria-hidden="true"
+          >
+            {/* Animated arc from Mexico to Germany */}
+            <g data-testid="connection-line-desktop">
+              <motion.path
+                d={ARC}
+                fill="none"
+                stroke="#AA1A2E"
+                strokeWidth="1.5"
+                strokeDasharray="6 4"
+                initial={{ pathLength: 0, opacity: 0 }}
+                whileInView={{ pathLength: 1, opacity: 0.9 }}
+                viewport={{ once: true }}
+                transition={{ duration: 2.4, delay: 0.8, ease: "easeInOut" }}
+              />
+            </g>
+
+            {/* Mexico City — pin dot only */}
+            <g data-testid="location-mexico">
+              <motion.circle cx={MX.x} cy={MX.y} r={6} fill="none" stroke="#AA1A2E" strokeWidth="1"
+                animate={{ r: [6, 24, 6], opacity: [0.6, 0, 0.6] }}
+                transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
+              />
+              <motion.circle cx={MX.x} cy={MX.y} r={6} fill="none" stroke="#AA1A2E" strokeWidth="1"
+                animate={{ r: [6, 14, 6], opacity: [0.4, 0, 0.4] }}
+                transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut", delay: 0.6 }}
+              />
+              <circle cx={MX.x} cy={MX.y} r={5} fill="#AA1A2E" />
+              <circle cx={MX.x} cy={MX.y} r={2.5} fill="white" />
+            </g>
+
+            {/* Germany — pin dot only */}
+            <g data-testid="location-germany">
+              <motion.circle cx={DE.x} cy={DE.y} r={6} fill="none" stroke="#AA1A2E" strokeWidth="1"
+                animate={{ r: [6, 24, 6], opacity: [0.6, 0, 0.6] }}
+                transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut", delay: 1.2 }}
+              />
+              <motion.circle cx={DE.x} cy={DE.y} r={6} fill="none" stroke="#AA1A2E" strokeWidth="1"
+                animate={{ r: [6, 14, 6], opacity: [0.4, 0, 0.4] }}
+                transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut", delay: 1.8 }}
+              />
+              <circle cx={DE.x} cy={DE.y} r={5} fill="#AA1A2E" />
+              <circle cx={DE.x} cy={DE.y} r={2.5} fill="white" />
+            </g>
+          </svg>
+
+          {/* HTML label: Mexico City — below pin, using real brand fonts */}
+          <div
+            className="absolute pointer-events-none"
+            style={{ left: "22.5%", top: "43%", transform: "translate(-50%, 0)" }}
+          >
+            <div className="w-px h-3 bg-primary/30 mx-auto" />
+            <div className="bg-white/92 backdrop-blur-sm border border-black/8 px-3 py-1.5 text-center">
+              <p
+                className="text-[10px] font-semibold tracking-[0.2em] uppercase text-foreground leading-none mb-1"
+                data-testid="text-mexico-label"
+              >
+                {t.mexicoLabel}
+              </p>
+              <p className="text-[8px] text-muted-foreground tracking-[0.1em] leading-none">
+                {t.mexicoSubtitle}
+              </p>
+            </div>
+          </div>
+
+          {/* HTML label: Germany — above pin, using real brand fonts */}
+          <div
+            className="absolute pointer-events-none"
+            style={{ left: "52.4%", top: "19.5%", transform: "translate(-50%, calc(-100% - 4px))" }}
+          >
+            <div className="bg-white/92 backdrop-blur-sm border border-black/8 px-3 py-1.5 text-center">
+              <p
+                className="text-[10px] font-semibold tracking-[0.2em] uppercase text-foreground leading-none mb-1"
+                data-testid="text-germany-label"
+              >
+                {t.germanyLabel}
+              </p>
+              <p className="text-[8px] text-muted-foreground tracking-[0.1em] leading-none">
+                {t.germanySubtitle}
+              </p>
+            </div>
+            <div className="w-px h-3 bg-primary/30 mx-auto" />
+          </div>
+
+          {/* HTML label: GERMAN DESK on arc — animated */}
           <motion.div
+            className="absolute pointer-events-none"
+            style={{ left: "38%", top: "5%", transform: "translate(-50%, 0)" }}
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}
             viewport={{ once: true }}
-            transition={{ duration: 1.2, delay: 0.2 }}
-            className="relative w-full"
-            data-testid="card-map-connection"
+            transition={{ duration: 0.8, delay: 3.0 }}
+            data-testid="text-german-desk-label"
           >
-            {/* Map image base */}
-            <img
-              src={worldMapImg}
-              alt=""
-              aria-hidden="true"
-              className="w-full"
-              style={{ aspectRatio: "1000 / 500" }}
-            />
-
-            {/* SVG overlay — pins and arc only, same coordinate space */}
-            <svg
-              viewBox="0 0 1000 500"
-              className="absolute inset-0 w-full h-full"
-              aria-hidden="true"
-            >
-              {/* Animated arc from Mexico to Germany */}
-              <g data-testid="connection-line-desktop">
-                <motion.path
-                  d={ARC}
-                  fill="none"
-                  stroke="#AA1A2E"
-                  strokeWidth="1.5"
-                  strokeDasharray="6 4"
-                  initial={{ pathLength: 0, opacity: 0 }}
-                  whileInView={{ pathLength: 1, opacity: 0.9 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 2.4, delay: 0.8, ease: "easeInOut" }}
-                />
-              </g>
-
-              {/* Mexico City pin */}
-              <g data-testid="location-mexico">
-                <motion.circle
-                  cx={MX.x} cy={MX.y} r={6}
-                  fill="none"
-                  stroke="#AA1A2E"
-                  strokeWidth="1"
-                  animate={{ r: [6, 22, 6], opacity: [0.6, 0, 0.6] }}
-                  transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
-                />
-                <motion.circle
-                  cx={MX.x} cy={MX.y} r={6}
-                  fill="none"
-                  stroke="#AA1A2E"
-                  strokeWidth="1"
-                  animate={{ r: [6, 14, 6], opacity: [0.4, 0, 0.4] }}
-                  transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut", delay: 0.6 }}
-                />
-                <circle cx={MX.x} cy={MX.y} r={5} fill="#AA1A2E" />
-                <circle cx={MX.x} cy={MX.y} r={2.5} fill="white" />
-                {/* Label box — below the pin */}
-                <rect x={MX.x - 62} y={MX.y + 10} width={124} height={36} rx={0} fill="rgba(255,255,255,0.94)" stroke="rgba(0,0,0,0.08)" strokeWidth="0.5" />
-                <text
-                  x={MX.x} y={MX.y + 27}
-                  textAnchor="middle"
-                  fill="#111111"
-                  fontSize="14"
-                  fontFamily="system-ui, sans-serif"
-                  fontWeight="700"
-                  letterSpacing="1.2"
-                  data-testid="text-mexico-label"
-                >
-                  {t.mexicoLabel}
-                </text>
-                <text
-                  x={MX.x} y={MX.y + 41}
-                  textAnchor="middle"
-                  fill="#6b7280"
-                  fontSize="11"
-                  fontFamily="system-ui, sans-serif"
-                  letterSpacing="0.6"
-                >
-                  {t.mexicoSubtitle}
-                </text>
-              </g>
-
-              {/* Germany pin */}
-              <g data-testid="location-germany">
-                <motion.circle
-                  cx={DE.x} cy={DE.y} r={6}
-                  fill="none"
-                  stroke="#AA1A2E"
-                  strokeWidth="1"
-                  animate={{ r: [6, 22, 6], opacity: [0.6, 0, 0.6] }}
-                  transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut", delay: 1.2 }}
-                />
-                <motion.circle
-                  cx={DE.x} cy={DE.y} r={6}
-                  fill="none"
-                  stroke="#AA1A2E"
-                  strokeWidth="1"
-                  animate={{ r: [6, 14, 6], opacity: [0.4, 0, 0.4] }}
-                  transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut", delay: 1.8 }}
-                />
-                <circle cx={DE.x} cy={DE.y} r={5} fill="#AA1A2E" />
-                <circle cx={DE.x} cy={DE.y} r={2.5} fill="white" />
-                {/* Label box — above the pin to avoid arc overlap */}
-                <rect x={DE.x - 54} y={DE.y - 50} width={108} height={36} rx={0} fill="rgba(255,255,255,0.94)" stroke="rgba(0,0,0,0.08)" strokeWidth="0.5" />
-                <text
-                  x={DE.x} y={DE.y - 31}
-                  textAnchor="middle"
-                  fill="#111111"
-                  fontSize="14"
-                  fontFamily="system-ui, sans-serif"
-                  fontWeight="700"
-                  letterSpacing="1.2"
-                  data-testid="text-germany-label"
-                >
-                  {t.germanyLabel}
-                </text>
-                <text
-                  x={DE.x} y={DE.y - 17}
-                  textAnchor="middle"
-                  fill="#6b7280"
-                  fontSize="11"
-                  fontFamily="system-ui, sans-serif"
-                  letterSpacing="0.6"
-                >
-                  {t.germanySubtitle}
-                </text>
-                <line x1={DE.x} y1={DE.y - 14} x2={DE.x} y2={DE.y - 6} stroke="rgba(0,0,0,0.2)" strokeWidth="0.8" />
-              </g>
-
-              {/* German Desk label on arc midpoint */}
-              <motion.g
-                initial={{ opacity: 0 }}
-                whileInView={{ opacity: 1 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.8, delay: 3.0 }}
-                data-testid="text-german-desk-label"
-              >
-                <rect x={332} y={12} width={84} height={18} rx={0} fill="rgba(170,26,46,0.92)" />
-                <text
-                  x={374} y={24}
-                  textAnchor="middle"
-                  fill="white"
-                  fontSize="7"
-                  fontFamily="system-ui, sans-serif"
-                  fontWeight="700"
-                  letterSpacing="1.8"
-                >
-                  {t.sectionTitle}
-                </text>
-              </motion.g>
-            </svg>
+            <div className="bg-primary px-3 py-1">
+              <span className="text-[9px] font-bold tracking-[0.25em] uppercase text-white whitespace-nowrap">
+                {t.sectionTitle}
+              </span>
+            </div>
           </motion.div>
+        </motion.div>
 
-          {/* Stats XXL */}
+        {/* Stats + historical text — back in max-w container */}
+        <div className="max-w-7xl mx-auto px-6 lg:px-12">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -538,7 +507,6 @@ export default function WorldMapSection({ language }: WorldMapSectionProps) {
             </div>
           </motion.div>
 
-          {/* Historical text */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -556,8 +524,8 @@ export default function WorldMapSection({ language }: WorldMapSectionProps) {
               </p>
             </div>
           </motion.div>
-
         </div>
+
       </div>
 
       <div className="bg-background py-16 lg:py-20">
