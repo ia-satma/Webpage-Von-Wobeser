@@ -481,7 +481,7 @@ export default function Team() {
         </div>
       </section>
 
-      <main id="main-content" className="py-16 lg:py-20">
+      <main id="main-content" className="py-16 lg:py-20 bg-background">
         <div className="max-w-7xl mx-auto px-6 lg:px-12">
           <motion.div
             initial={{ opacity: 0, y: 10 }}
@@ -498,14 +498,14 @@ export default function Team() {
                   placeholder={t.searchPlaceholder}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10 rounded-md"
+                  className="pl-10"
                   data-testid="input-search"
                 />
               </div>
               
               <div className="flex flex-wrap gap-3">
                 <Select value={filterSeniority} onValueChange={setFilterSeniority}>
-                  <SelectTrigger className="w-40 rounded-md" data-testid="select-seniority">
+                  <SelectTrigger className="w-40" data-testid="select-seniority">
                     <SelectValue placeholder={t.seniority} />
                   </SelectTrigger>
                   <SelectContent>
@@ -517,7 +517,7 @@ export default function Team() {
                 </Select>
 
                 <Select value={filterLetter} onValueChange={setFilterLetter}>
-                  <SelectTrigger className="w-32 rounded-md" data-testid="select-alphabetic">
+                  <SelectTrigger className="w-32" data-testid="select-alphabetic">
                     <SelectValue placeholder={t.alphabetic} />
                   </SelectTrigger>
                   <SelectContent>
@@ -533,7 +533,7 @@ export default function Team() {
                     variant="outline"
                     size="default"
                     onClick={clearFilters}
-                    className="gap-2 rounded-md"
+                    className="gap-2"
                     data-testid="button-clear-filters"
                   >
                     <X className="w-4 h-4" />
@@ -580,7 +580,7 @@ export default function Team() {
                 <Button
                   variant="outline"
                   onClick={clearFilters}
-                  className="mt-4 gap-2 rounded-md"
+                  className="mt-4 gap-2"
                   data-testid="button-clear-empty"
                 >
                   <X className="w-4 h-4" />
