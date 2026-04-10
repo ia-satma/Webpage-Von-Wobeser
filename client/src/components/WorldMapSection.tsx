@@ -432,10 +432,10 @@ export default function WorldMapSection({ language }: WorldMapSectionProps) {
           {/* HTML label: Mexico City — below pin, using real brand fonts */}
           <div
             className="absolute pointer-events-none"
-            style={{ left: "22.5%", top: "43%", transform: "translate(-50%, 0)" }}
+            style={{ left: "22.5%", top: "41%", transform: "translate(-50%, 12px)" }}
           >
             <div className="w-px h-3 bg-primary/30 mx-auto" />
-            <div className="bg-white/92 backdrop-blur-sm border border-black/8 px-3 py-1.5 text-center">
+            <div className="bg-white/95 backdrop-blur-sm border border-border/20 shadow-sm px-3 py-1.5 text-center">
               <p
                 className="text-[10px] font-semibold tracking-[0.2em] uppercase text-foreground leading-none mb-1"
                 data-testid="text-mexico-label"
@@ -453,7 +453,7 @@ export default function WorldMapSection({ language }: WorldMapSectionProps) {
             className="absolute pointer-events-none"
             style={{ left: "52.4%", top: "19.5%", transform: "translate(-50%, calc(-100% - 4px))" }}
           >
-            <div className="bg-white/92 backdrop-blur-sm border border-black/8 px-3 py-1.5 text-center">
+            <div className="bg-white/95 backdrop-blur-sm border border-border/20 shadow-sm px-3 py-1.5 text-center">
               <p
                 className="text-[10px] font-semibold tracking-[0.2em] uppercase text-foreground leading-none mb-1"
                 data-testid="text-germany-label"
