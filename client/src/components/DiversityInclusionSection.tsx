@@ -3,6 +3,7 @@ import { Link } from "wouter";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Button } from "@/components/ui/button";
 import type { LanguageCode } from "@shared/schema";
+import officePhoto from "@assets/collage_06.jpg";
 
 type Pillar = { label: string; desc: string };
 
@@ -142,36 +143,55 @@ export default function DiversityInclusionSection() {
 
   return (
     <section
-      className="bg-background border-t border-border overflow-hidden"
+      className="bg-muted border-t border-border overflow-hidden"
       data-testid="section-diversity-inclusion"
     >
-      <div className="flex flex-col lg:flex-row lg:min-h-[480px]">
+      <div className="flex flex-col lg:flex-row lg:min-h-[400px]">
 
-        {/* Red panel — mobile: top banner, desktop: left 40% */}
+        {/* Photo panel — mobile: top banner h-[220px], desktop: left 40% */}
         <motion.div
           initial={{ opacity: 0 }}
           whileInView={{ opacity: 1 }}
           viewport={{ once: true }}
-          transition={{ duration: 0.7 }}
-          className="bg-[#AA1A2E] flex items-center justify-center px-10 py-14 lg:py-0 h-[180px] lg:h-auto lg:w-2/5 shrink-0"
-          data-testid="panel-diversity-red"
+          transition={{ duration: 0.8 }}
+          className="relative h-[220px] lg:h-auto lg:w-2/5 shrink-0 overflow-hidden"
+          data-testid="panel-diversity-photo"
         >
-          <h2
-            className="font-heading font-light text-3xl lg:text-4xl xl:text-5xl text-white uppercase tracking-[0.12em] leading-tight text-center"
-            data-testid="text-diversity-inclusion-title"
-          >
-            {t.title}
-          </h2>
+          {/* Photo */}
+          <img
+            src={officePhoto}
+            alt=""
+            aria-hidden="true"
+            className="absolute inset-0 w-full h-full object-cover object-center"
+          />
+          {/* Dark overlay */}
+          <div className="absolute inset-0 bg-black/60" />
+          {/* Red tint gradient from bottom */}
+          <div
+            className="absolute inset-0"
+            style={{ background: "linear-gradient(to top, rgba(170,26,46,0.45) 0%, rgba(170,26,46,0.1) 50%, transparent 100%)" }}
+          />
+          {/* Title on photo */}
+          <div className="absolute inset-0 flex flex-col items-center justify-center px-8 text-center">
+            <div className="w-8 h-px bg-white/60 mb-4" />
+            <h2
+              className="font-heading font-light text-2xl lg:text-3xl xl:text-4xl text-white uppercase tracking-[0.12em] leading-tight"
+              data-testid="text-diversity-inclusion-title"
+            >
+              {t.title}
+            </h2>
+            <div className="w-8 h-px bg-[#AA1A2E]/80 mt-4" />
+          </div>
         </motion.div>
 
         {/* Content panel — desktop: right 60% */}
-        <div className="flex flex-col justify-center px-8 lg:px-16 xl:px-20 py-14 lg:py-16 lg:w-3/5">
+        <div className="flex flex-col justify-center px-8 lg:px-16 xl:px-20 py-12 lg:py-14 lg:w-3/5">
 
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            transition={{ duration: 0.6, delay: 0.1 }}
+            transition={{ duration: 0.6, delay: 0.15 }}
             className="mb-6"
           >
             <div className="w-8 h-px bg-[#AA1A2E] mb-5" />
@@ -195,7 +215,7 @@ export default function DiversityInclusionSection() {
             initial="hidden"
             whileInView="visible"
             viewport={{ once: true }}
-            className="mb-8 space-y-0"
+            className="mb-8"
           >
             {t.pillars.map((pillar, i) => (
               <motion.div
