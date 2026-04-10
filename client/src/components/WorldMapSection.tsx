@@ -301,14 +301,20 @@ export default function WorldMapSection({ language }: WorldMapSectionProps) {
   const t = content[language] || content.en;
   const [activePanel, setActivePanel] = useState<string | null>(null);
 
-  const gdMembers: GDMember[] = [
-    { id: "claus-von-wobeser",      name: "Claus von Wobeser",      photo: clausVonWobeserPhoto,        category: t.foundingPartner,  slug: "claus-von-wobeser",      number: "01" },
-    { id: "luis-burgueno",           name: "Luis Burgueño",           photo: luisBurguenoPhoto,            category: t.partner,           slug: "luis-burgueno",           number: "02" },
-    { id: "katharina-roehr",         name: "Katharina Roehr",         photo: katharinaRoehrPhoto,          category: t.ofCounselTitle,    slug: "katharina-roehr",         number: "03" },
-    { id: "rupert-huttler",          name: "Rupert Hüttler",          photo: rupertHuttlerPhoto,           category: t.ofCounselTitle,    slug: "rupert-huttler",          number: "04" },
-    { id: "anna-maria-brandstadter", name: "Anna Maria Brandstädter", photo: annaMariaBrandstadterPhoto,  category: t.associatesTitle,   slug: "anna-maria-brandstadter", number: "05" },
-    { id: "michael-schreiber",       name: "Michael Schreiber",       photo: michaelSchreiberPhoto,        category: t.associatesTitle,   slug: "michael-schreiber",       number: "06" },
-    { id: "alexander-barnes",        name: "Alexander Barnes",        photo: alexanderBarnesPhoto,         category: t.associatesTitle,   slug: "alexander-barnes",        number: "07" },
+  const gdSocios: GDMember[] = [
+    { id: "claus-von-wobeser", name: "Claus von Wobeser", photo: clausVonWobeserPhoto,       category: t.foundingPartner, slug: "claus-von-wobeser", number: "01" },
+    { id: "luis-burgueno",     name: "Luis Burgueño",     photo: luisBurguenoPhoto,           category: t.partner,         slug: "luis-burgueno",     number: "02" },
+  ];
+
+  const gdOfCounsel: GDMember[] = [
+    { id: "katharina-roehr", name: "Katharina Roehr",  photo: katharinaRoehrPhoto, category: t.ofCounselTitle, slug: "katharina-roehr", number: "01" },
+    { id: "rupert-huttler",  name: "Rupert Hüttler",   photo: rupertHuttlerPhoto,  category: t.ofCounselTitle, slug: "rupert-huttler",  number: "02" },
+  ];
+
+  const gdAssociates: GDMember[] = [
+    { id: "anna-maria-brandstadter", name: "Anna Maria Brandstädter", photo: annaMariaBrandstadterPhoto, category: t.associatesTitle, slug: "anna-maria-brandstadter", number: "01" },
+    { id: "michael-schreiber",       name: "Michael Schreiber",       photo: michaelSchreiberPhoto,       category: t.associatesTitle, slug: "michael-schreiber",       number: "02" },
+    { id: "alexander-barnes",        name: "Alexander Barnes",        photo: alexanderBarnesPhoto,         category: t.associatesTitle, slug: "alexander-barnes",        number: "03" },
   ];
 
   return (
@@ -546,139 +552,159 @@ export default function WorldMapSection({ language }: WorldMapSectionProps) {
 
       </div>
 
-      {/* German Desk Team — expanding panels (desktop) + grid (mobile) */}
+      {/* German Desk Team — 3 groups by cargo */}
       <div className="bg-[#111110] border-t border-[#AA1A2E]/20" data-testid="team-members-container">
 
-        {/* Desktop: 7 expanding vertical panels */}
-        <div
-          className="hidden lg:flex w-full h-[520px]"
-          onMouseLeave={() => setActivePanel(null)}
-        >
-          {gdMembers.map((member) => {
-            const isActive = activePanel === member.id;
-            return (
-              <Link
-                key={member.id}
-                href={`/team/${member.slug}`}
-                data-testid={`card-gdm-${member.slug}`}
-                aria-label={member.name}
-                className="relative overflow-hidden cursor-pointer block"
-                style={{
-                  flex: isActive ? 3 : 1,
-                  transition: "flex 0.5s cubic-bezier(0.22, 1, 0.36, 1)",
-                  minWidth: 0,
-                }}
-                onMouseEnter={() => setActivePanel(member.id)}
-              >
-                {/* Background photo — grayscale at rest, color on hover */}
-                <img
-                  src={member.photo}
-                  alt=""
-                  aria-hidden="true"
-                  className="absolute inset-0 w-full h-full object-cover object-top"
-                  style={{
-                    transform: isActive ? "scale(1.04)" : "scale(1)",
-                    filter: isActive ? "grayscale(0%)" : "grayscale(100%)",
-                    transition: "transform 0.6s cubic-bezier(0.22, 1, 0.36, 1), filter 0.5s ease",
-                  }}
-                  data-testid={`img-gdm-${member.slug}`}
-                />
-
-                {/* Dark overlay */}
-                <div
-                  className="absolute inset-0"
-                  style={{
-                    background: isActive
-                      ? "linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.4) 50%, rgba(0,0,0,0.3) 100%)"
-                      : "linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.7) 100%)",
-                    transition: "background 0.5s ease",
-                  }}
-                />
-
-                {/* Red vertical separator */}
-                <div className="absolute top-0 right-0 w-px h-full bg-[#AA1A2E]/20" />
-
-                {/* Number — top left */}
-                <span className="absolute top-5 left-4 text-[#AA1A2E] text-xs font-medium tabular-nums tracking-wider">
-                  {member.number}
-                </span>
-
-                {/* Vertical name — visible when panel is narrow */}
-                <div
-                  className="absolute bottom-10 left-0 right-0 flex justify-center"
-                  style={{
-                    opacity: isActive ? 0 : 1,
-                    transition: "opacity 0.25s ease",
-                  }}
+        {/* ─── SOCIOS ──────────────────────────────────────────── */}
+        <div className="border-b border-[#AA1A2E]/10">
+          <div className="px-6 lg:px-12 pt-8 pb-4 flex items-center gap-3">
+            <div className="w-8 h-px bg-[#AA1A2E] shrink-0" />
+            <p className="text-[#AA1A2E] text-[10px] tracking-[0.25em] uppercase">{t.partnersTitle}</p>
+          </div>
+          {/* Desktop: expanding panels */}
+          <div className="hidden lg:flex w-full h-[440px]" onMouseLeave={() => setActivePanel(null)}>
+            {gdSocios.map((member) => {
+              const isActive = activePanel === member.id;
+              return (
+                <Link
+                  key={member.id}
+                  href={`/team/${member.slug}`}
+                  data-testid={`card-gdm-${member.slug}`}
+                  aria-label={member.name}
+                  className="relative overflow-hidden cursor-pointer block"
+                  style={{ flex: isActive ? 3 : 1, transition: "flex 0.5s cubic-bezier(0.22, 1, 0.36, 1)", minWidth: 0 }}
+                  onMouseEnter={() => setActivePanel(member.id)}
                 >
-                  <span
-                    className="text-white/70 text-[10px] uppercase tracking-[0.18em] font-light whitespace-nowrap"
-                    style={{ writingMode: "vertical-rl", transform: "rotate(180deg)" }}
-                    data-testid={`text-name-gdm-${member.slug}`}
-                  >
-                    {member.name}
-                  </span>
-                </div>
-
-                {/* Horizontal name + category + arrow — visible when expanded */}
-                <div
-                  className="absolute bottom-6 left-5 right-5"
-                  style={{
-                    opacity: isActive ? 1 : 0,
-                    transform: isActive ? "translateY(0)" : "translateY(8px)",
-                    transition: "opacity 0.3s ease 0.1s, transform 0.3s ease 0.1s",
-                  }}
-                >
-                  <p
-                    className="font-heading font-light text-base uppercase tracking-[0.1em] leading-snug mb-1 text-white"
-                  >
-                    {member.name}
-                  </p>
-                  <p
-                    className="text-xs text-[#AA1A2E] uppercase tracking-[0.08em] mb-3"
-                    data-testid={`text-category-gdm-${member.slug}`}
-                  >
-                    {member.category}
-                  </p>
-                  <div className="flex items-center gap-2 text-[#AA1A2E]">
-                    <ArrowRight className="w-4 h-4" />
+                  <img src={member.photo} alt="" aria-hidden="true" className="absolute inset-0 w-full h-full object-cover object-top" style={{ transform: isActive ? "scale(1.04)" : "scale(1)", filter: isActive ? "grayscale(0%)" : "grayscale(100%)", transition: "transform 0.6s cubic-bezier(0.22, 1, 0.36, 1), filter 0.5s ease" }} data-testid={`img-gdm-${member.slug}`} />
+                  <div className="absolute inset-0" style={{ background: isActive ? "linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.4) 50%, rgba(0,0,0,0.3) 100%)" : "linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.7) 100%)", transition: "background 0.5s ease" }} />
+                  <div className="absolute top-0 right-0 w-px h-full bg-[#AA1A2E]/20" />
+                  <span className="absolute top-5 left-4 text-[#AA1A2E] text-xs font-medium tabular-nums tracking-wider">{member.number}</span>
+                  <div className="absolute bottom-10 left-0 right-0 flex justify-center" style={{ opacity: isActive ? 0 : 1, transition: "opacity 0.25s ease" }}>
+                    <span className="text-white/70 text-[10px] uppercase tracking-[0.18em] font-light whitespace-nowrap" style={{ writingMode: "vertical-rl", transform: "rotate(180deg)" }} data-testid={`text-name-gdm-${member.slug}`}>{member.name}</span>
                   </div>
+                  <div className="absolute bottom-6 left-5 right-5" style={{ opacity: isActive ? 1 : 0, transform: isActive ? "translateY(0)" : "translateY(8px)", transition: "opacity 0.3s ease 0.1s, transform 0.3s ease 0.1s" }}>
+                    <p className="font-heading font-light text-base uppercase tracking-[0.1em] leading-snug mb-1 text-white">{member.name}</p>
+                    <p className="text-xs text-[#AA1A2E] uppercase tracking-[0.08em] mb-3" data-testid={`text-category-gdm-${member.slug}`}>{member.category}</p>
+                    <div className="flex items-center gap-2 text-[#AA1A2E]"><ArrowRight className="w-4 h-4" /></div>
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
+          {/* Mobile: 2-col grid */}
+          <div className="lg:hidden grid grid-cols-2 gap-px">
+            {gdSocios.map((member) => (
+              <Link key={member.id} href={`/team/${member.slug}`} className="relative h-44 overflow-hidden group block" data-testid={`card-gdm-mobile-${member.slug}`} aria-label={member.name}>
+                <img src={member.photo} alt="" aria-hidden="true" className="absolute inset-0 w-full h-full object-cover object-top transition-[transform,filter] duration-500 grayscale group-hover:grayscale-0 group-hover:scale-105" />
+                <div className="absolute inset-0 bg-black/65 group-hover:bg-black/50 transition-colors duration-300" />
+                <span className="absolute top-3 left-3 text-[#AA1A2E] text-xs font-medium tabular-nums">{member.number}</span>
+                <div className="absolute bottom-3 left-3 right-3">
+                  <p className="text-[#AA1A2E] text-[9px] uppercase tracking-[0.08em] mb-0.5">{member.category}</p>
+                  <p className="text-white/90 text-xs uppercase tracking-[0.1em] leading-snug font-light">{member.name}</p>
                 </div>
               </Link>
-            );
-          })}
+            ))}
+          </div>
         </div>
 
-        {/* Mobile + Tablet: 2-column (md: 3-column) image grid */}
-        <div className="lg:hidden grid grid-cols-2 md:grid-cols-3 gap-px">
-          {gdMembers.map((member) => (
-            <Link
-              key={member.id}
-              href={`/team/${member.slug}`}
-              className="relative h-44 overflow-hidden group block"
-              data-testid={`card-gdm-mobile-${member.slug}`}
-              aria-label={member.name}
-            >
-              <img
-                src={member.photo}
-                alt=""
-                aria-hidden="true"
-                className="absolute inset-0 w-full h-full object-cover object-top transition-[transform,filter] duration-500 grayscale group-hover:grayscale-0 group-hover:scale-105"
-              />
-              <div className="absolute inset-0 bg-black/65 group-hover:bg-black/50 transition-colors duration-300" />
-              <span className="absolute top-3 left-3 text-[#AA1A2E] text-xs font-medium tabular-nums">
-                {member.number}
-              </span>
-              <div className="absolute bottom-3 left-3 right-3">
-                <p className="text-[#AA1A2E] text-[9px] uppercase tracking-[0.08em] mb-0.5">
-                  {member.category}
-                </p>
-                <p className="text-white/90 text-xs uppercase tracking-[0.1em] leading-snug font-light">
-                  {member.name}
-                </p>
-              </div>
-            </Link>
-          ))}
+        {/* ─── OF COUNSEL ──────────────────────────────────────── */}
+        <div className="bg-[#0d0d0c] border-b border-[#AA1A2E]/10">
+          <div className="px-6 lg:px-12 pt-8 pb-4 flex items-center gap-3">
+            <div className="w-8 h-px bg-[#AA1A2E] shrink-0" />
+            <p className="text-[#AA1A2E] text-[10px] tracking-[0.25em] uppercase">{t.ofCounselTitle}</p>
+          </div>
+          <div className="hidden lg:flex w-full h-[380px]" onMouseLeave={() => setActivePanel(null)}>
+            {gdOfCounsel.map((member) => {
+              const isActive = activePanel === member.id;
+              return (
+                <Link
+                  key={member.id}
+                  href={`/team/${member.slug}`}
+                  data-testid={`card-gdm-${member.slug}`}
+                  aria-label={member.name}
+                  className="relative overflow-hidden cursor-pointer block"
+                  style={{ flex: isActive ? 3 : 1, transition: "flex 0.5s cubic-bezier(0.22, 1, 0.36, 1)", minWidth: 0 }}
+                  onMouseEnter={() => setActivePanel(member.id)}
+                >
+                  <img src={member.photo} alt="" aria-hidden="true" className="absolute inset-0 w-full h-full object-cover object-top" style={{ transform: isActive ? "scale(1.04)" : "scale(1)", filter: isActive ? "grayscale(0%)" : "grayscale(100%)", transition: "transform 0.6s cubic-bezier(0.22, 1, 0.36, 1), filter 0.5s ease" }} data-testid={`img-gdm-${member.slug}`} />
+                  <div className="absolute inset-0" style={{ background: isActive ? "linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.4) 50%, rgba(0,0,0,0.3) 100%)" : "linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.7) 100%)", transition: "background 0.5s ease" }} />
+                  <div className="absolute top-0 right-0 w-px h-full bg-[#AA1A2E]/20" />
+                  <span className="absolute top-5 left-4 text-[#AA1A2E] text-xs font-medium tabular-nums tracking-wider">{member.number}</span>
+                  <div className="absolute bottom-10 left-0 right-0 flex justify-center" style={{ opacity: isActive ? 0 : 1, transition: "opacity 0.25s ease" }}>
+                    <span className="text-white/70 text-[10px] uppercase tracking-[0.18em] font-light whitespace-nowrap" style={{ writingMode: "vertical-rl", transform: "rotate(180deg)" }} data-testid={`text-name-gdm-${member.slug}`}>{member.name}</span>
+                  </div>
+                  <div className="absolute bottom-6 left-5 right-5" style={{ opacity: isActive ? 1 : 0, transform: isActive ? "translateY(0)" : "translateY(8px)", transition: "opacity 0.3s ease 0.1s, transform 0.3s ease 0.1s" }}>
+                    <p className="font-heading font-light text-base uppercase tracking-[0.1em] leading-snug mb-1 text-white">{member.name}</p>
+                    <p className="text-xs text-[#AA1A2E] uppercase tracking-[0.08em] mb-3" data-testid={`text-category-gdm-${member.slug}`}>{member.category}</p>
+                    <div className="flex items-center gap-2 text-[#AA1A2E]"><ArrowRight className="w-4 h-4" /></div>
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
+          <div className="lg:hidden grid grid-cols-2 gap-px">
+            {gdOfCounsel.map((member) => (
+              <Link key={member.id} href={`/team/${member.slug}`} className="relative h-44 overflow-hidden group block" data-testid={`card-gdm-mobile-${member.slug}`} aria-label={member.name}>
+                <img src={member.photo} alt="" aria-hidden="true" className="absolute inset-0 w-full h-full object-cover object-top transition-[transform,filter] duration-500 grayscale group-hover:grayscale-0 group-hover:scale-105" />
+                <div className="absolute inset-0 bg-black/65 group-hover:bg-black/50 transition-colors duration-300" />
+                <span className="absolute top-3 left-3 text-[#AA1A2E] text-xs font-medium tabular-nums">{member.number}</span>
+                <div className="absolute bottom-3 left-3 right-3">
+                  <p className="text-[#AA1A2E] text-[9px] uppercase tracking-[0.08em] mb-0.5">{member.category}</p>
+                  <p className="text-white/90 text-xs uppercase tracking-[0.1em] leading-snug font-light">{member.name}</p>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </div>
+
+        {/* ─── ASOCIADOS ───────────────────────────────────────── */}
+        <div>
+          <div className="px-6 lg:px-12 pt-8 pb-4 flex items-center gap-3">
+            <div className="w-8 h-px bg-[#AA1A2E] shrink-0" />
+            <p className="text-[#AA1A2E] text-[10px] tracking-[0.25em] uppercase">{t.associatesTitle}</p>
+          </div>
+          <div className="hidden lg:flex w-full h-[380px]" onMouseLeave={() => setActivePanel(null)}>
+            {gdAssociates.map((member) => {
+              const isActive = activePanel === member.id;
+              return (
+                <Link
+                  key={member.id}
+                  href={`/team/${member.slug}`}
+                  data-testid={`card-gdm-${member.slug}`}
+                  aria-label={member.name}
+                  className="relative overflow-hidden cursor-pointer block"
+                  style={{ flex: isActive ? 3 : 1, transition: "flex 0.5s cubic-bezier(0.22, 1, 0.36, 1)", minWidth: 0 }}
+                  onMouseEnter={() => setActivePanel(member.id)}
+                >
+                  <img src={member.photo} alt="" aria-hidden="true" className="absolute inset-0 w-full h-full object-cover object-top" style={{ transform: isActive ? "scale(1.04)" : "scale(1)", filter: isActive ? "grayscale(0%)" : "grayscale(100%)", transition: "transform 0.6s cubic-bezier(0.22, 1, 0.36, 1), filter 0.5s ease" }} data-testid={`img-gdm-${member.slug}`} />
+                  <div className="absolute inset-0" style={{ background: isActive ? "linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.4) 50%, rgba(0,0,0,0.3) 100%)" : "linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.7) 100%)", transition: "background 0.5s ease" }} />
+                  <div className="absolute top-0 right-0 w-px h-full bg-[#AA1A2E]/20" />
+                  <span className="absolute top-5 left-4 text-[#AA1A2E] text-xs font-medium tabular-nums tracking-wider">{member.number}</span>
+                  <div className="absolute bottom-10 left-0 right-0 flex justify-center" style={{ opacity: isActive ? 0 : 1, transition: "opacity 0.25s ease" }}>
+                    <span className="text-white/70 text-[10px] uppercase tracking-[0.18em] font-light whitespace-nowrap" style={{ writingMode: "vertical-rl", transform: "rotate(180deg)" }} data-testid={`text-name-gdm-${member.slug}`}>{member.name}</span>
+                  </div>
+                  <div className="absolute bottom-6 left-5 right-5" style={{ opacity: isActive ? 1 : 0, transform: isActive ? "translateY(0)" : "translateY(8px)", transition: "opacity 0.3s ease 0.1s, transform 0.3s ease 0.1s" }}>
+                    <p className="font-heading font-light text-base uppercase tracking-[0.1em] leading-snug mb-1 text-white">{member.name}</p>
+                    <p className="text-xs text-[#AA1A2E] uppercase tracking-[0.08em] mb-3" data-testid={`text-category-gdm-${member.slug}`}>{member.category}</p>
+                    <div className="flex items-center gap-2 text-[#AA1A2E]"><ArrowRight className="w-4 h-4" /></div>
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
+          <div className="lg:hidden grid grid-cols-2 gap-px">
+            {gdAssociates.map((member) => (
+              <Link key={member.id} href={`/team/${member.slug}`} className="relative h-44 overflow-hidden group block" data-testid={`card-gdm-mobile-${member.slug}`} aria-label={member.name}>
+                <img src={member.photo} alt="" aria-hidden="true" className="absolute inset-0 w-full h-full object-cover object-top transition-[transform,filter] duration-500 grayscale group-hover:grayscale-0 group-hover:scale-105" />
+                <div className="absolute inset-0 bg-black/65 group-hover:bg-black/50 transition-colors duration-300" />
+                <span className="absolute top-3 left-3 text-[#AA1A2E] text-xs font-medium tabular-nums">{member.number}</span>
+                <div className="absolute bottom-3 left-3 right-3">
+                  <p className="text-[#AA1A2E] text-[9px] uppercase tracking-[0.08em] mb-0.5">{member.category}</p>
+                  <p className="text-white/90 text-xs uppercase tracking-[0.1em] leading-snug font-light">{member.name}</p>
+                </div>
+              </Link>
+            ))}
+          </div>
         </div>
 
         {/* Bottom strip: section title (left) + CTA link (right) */}
@@ -687,7 +713,7 @@ export default function WorldMapSection({ language }: WorldMapSectionProps) {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.5 }}
-          className="max-w-7xl mx-auto px-6 lg:px-12 py-8 flex flex-wrap items-center justify-between gap-4"
+          className="max-w-7xl mx-auto px-6 lg:px-12 py-8 flex flex-wrap items-center justify-between gap-4 border-t border-[#AA1A2E]/10"
         >
           <div className="flex items-center gap-5">
             <div className="w-10 h-px bg-[#AA1A2E] shrink-0" />

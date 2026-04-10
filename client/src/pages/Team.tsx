@@ -1,6 +1,7 @@
 import { useState, useMemo, useEffect } from "react";
 import { motion } from "framer-motion";
-import { AlertCircle, Users, Search, X } from "lucide-react";
+import { AlertCircle, Users, Search, X, ArrowRight } from "lucide-react";
+import { Link } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -15,7 +16,6 @@ import {
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import SEOHead from "@/components/SEOHead";
-import TeamMemberCard from "@/components/TeamMemberCard";
 import { useLanguage } from "@/contexts/LanguageContext";
 import type { TeamMember, PracticeGroup, IndustryGroup } from "@shared/schema";
 
@@ -45,6 +45,7 @@ export default function Team() {
   const [filterSeniority, setFilterSeniority] = useState<string>(() => getFilterFromURL());
   const [filterPractice, setFilterPractice] = useState<string>("all");
   const [filterLetter, setFilterLetter] = useState<string>("all");
+  const [activePanel, setActivePanel] = useState<string | null>(null);
   
   // Listen for URL changes to update filter (for SPA navigation)
   useEffect(() => {
@@ -384,45 +385,37 @@ export default function Team() {
 
   const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
 
-  const filteredMembers = useMemo(() => {
-    if (!allTeamMembers) return [];
-    
-    return allTeamMembers.filter(member => {
-      // Apply search filter
-      if (searchQuery && !member.name.toLowerCase().includes(searchQuery.toLowerCase())) {
-        return false;
-      }
-      
-      // Apply seniority filter
-      if (filterSeniority !== "all") {
-        const titleLower = member.title.toLowerCase();
-        switch(filterSeniority) {
-          case "partners":
-            if (!member.isPartner) return false;
-            break;
-          case "ofcounsel":
-            if (titleLower !== "of counsel") return false;
-            break;
-          case "associates":
-            if (!titleLower.includes("associate")) return false;
-            break;
-        }
-      }
-      
-      // Apply alphabetic filter
-      if (filterLetter !== "all") {
-        if (!member.name.toUpperCase().startsWith(filterLetter)) return false;
-      }
-      
-      return true;
-    }).sort((a, b) => {
-      if (a.isPartner && !b.isPartner) return -1;
-      if (!a.isPartner && b.isPartner) return 1;
-      if (a.title === "Of Counsel" && b.title === "Associate") return -1;
-      if (a.title === "Associate" && b.title === "Of Counsel") return 1;
-      return a.name.localeCompare(b.name);
-    });
-  }, [allTeamMembers, searchQuery, filterSeniority, filterLetter]);
+  const groupedMembers = useMemo(() => {
+    if (!allTeamMembers) return { partners: [], ofCounsel: [], associates: [] };
+
+    const applyTextFilters = (members: TeamMember[]) =>
+      members.filter(m => {
+        if (searchQuery && !m.name.toLowerCase().includes(searchQuery.toLowerCase())) return false;
+        if (filterLetter !== "all" && !m.name.toUpperCase().startsWith(filterLetter)) return false;
+        return true;
+      });
+
+    const byName = (a: TeamMember, b: TeamMember) => a.name.localeCompare(b.name);
+
+    const allPartners  = [...allTeamMembers.filter(m => m.isPartner)].sort(byName);
+    const allOfCounsel = [...allTeamMembers.filter(m => !m.isPartner && m.title === "Of Counsel")].sort(byName);
+    const allAssociates = [...allTeamMembers.filter(m => !m.isPartner && m.title !== "Of Counsel")].sort(byName);
+
+    return {
+      partners:   applyTextFilters(allPartners),
+      ofCounsel:  applyTextFilters(allOfCounsel),
+      associates: applyTextFilters(allAssociates),
+    };
+  }, [allTeamMembers, searchQuery, filterLetter]);
+
+  const showPartners   = filterSeniority === "all" || filterSeniority === "partners";
+  const showOfCounsel  = filterSeniority === "all" || filterSeniority === "ofcounsel";
+  const showAssociates = filterSeniority === "all" || filterSeniority === "associates";
+
+  const totalVisible =
+    (showPartners   ? groupedMembers.partners.length   : 0) +
+    (showOfCounsel  ? groupedMembers.ofCounsel.length  : 0) +
+    (showAssociates ? groupedMembers.associates.length : 0);
 
   const hasActiveFilters = searchQuery || filterSeniority !== "all" || filterLetter !== "all" || filterPractice !== "all";
 
@@ -433,27 +426,11 @@ export default function Team() {
     setFilterLetter("all");
   };
 
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.04,
-      },
-    },
-  };
-
-  const itemVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: { duration: 0.3 },
-    },
-  };
+  const getInitials = (name: string) =>
+    name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase();
 
   return (
-    <div className="min-h-screen bg-background" data-testid="page-team">
+    <div className="min-h-screen bg-[#111110]" data-testid="page-team">
       <SEOHead page="team" language={language} />
       <Header />
       
@@ -481,132 +458,223 @@ export default function Team() {
         </div>
       </section>
 
-      <main id="main-content" className="py-16 lg:py-20 bg-background">
-        <div className="max-w-7xl mx-auto px-6 lg:px-12">
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4 }}
-            className="mb-10"
-          >
-            <div className="w-12 h-px bg-primary mb-6" />
-            <div className="flex flex-col lg:flex-row gap-4 mb-6">
-              <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                <Input
-                  type="text"
-                  placeholder={t.searchPlaceholder}
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10 rounded-none"
-                  data-testid="input-search"
-                />
-              </div>
-              
-              <div className="flex flex-wrap gap-3">
-                <Select value={filterSeniority} onValueChange={setFilterSeniority}>
-                  <SelectTrigger className="w-40 rounded-none" data-testid="select-seniority">
-                    <SelectValue placeholder={t.seniority} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">{t.all}</SelectItem>
-                    <SelectItem value="partners">{t.partnersOnly}</SelectItem>
-                    <SelectItem value="ofcounsel">{t.ofCounsel}</SelectItem>
-                    <SelectItem value="associates">{t.associates}</SelectItem>
-                  </SelectContent>
-                </Select>
-
-                <Select value={filterLetter} onValueChange={setFilterLetter}>
-                  <SelectTrigger className="w-32 rounded-none" data-testid="select-alphabetic">
-                    <SelectValue placeholder={t.alphabetic} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">{t.all}</SelectItem>
-                    {alphabet.map(letter => (
-                      <SelectItem key={letter} value={letter}>{letter}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-
-                {hasActiveFilters && (
-                  <Button
-                    variant="outline"
-                    size="default"
-                    onClick={clearFilters}
-                    className="gap-2 rounded-none"
-                    data-testid="button-clear-filters"
-                  >
-                    <X className="w-4 h-4" />
-                    {t.clearFilters}
-                  </Button>
-                )}
-              </div>
+      {/* Filter bar */}
+      <div className="bg-[#0a0a09] border-b border-[#AA1A2E]/15 sticky top-0 z-40">
+        <div className="max-w-7xl mx-auto px-6 lg:px-12 py-4">
+          <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30" />
+              <Input
+                type="text"
+                placeholder={t.searchPlaceholder}
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-9 rounded-none bg-white/5 border-white/10 text-white placeholder:text-white/30 focus-visible:ring-[#AA1A2E]/40 focus-visible:border-[#AA1A2E]/40"
+                data-testid="input-search"
+              />
             </div>
-
-            <div className="flex items-center justify-between">
-              <p className="text-sm text-muted-foreground" data-testid="text-results-count">
-                {filteredMembers.length} {t.teamMembers}
-              </p>
-            </div>
-          </motion.div>
-
-          {errorAll ? (
-            <div className="text-center py-12" data-testid="container-team-error">
-              <AlertCircle className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-              <p className="text-muted-foreground" data-testid="text-team-error">
-                {t.errorMessage}
-              </p>
-            </div>
-          ) : isLoadingAll ? (
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-              {Array.from({ length: 15 }).map((_, i) => (
-                <div
-                  key={i}
-                  className="w-full bg-muted"
-                  style={{ aspectRatio: "3/4" }}
-                  data-testid={`skeleton-team-member-${i}`}
-                >
-                  <Skeleton className="w-full h-full" />
-                </div>
-              ))}
-            </div>
-          ) : filteredMembers.length === 0 ? (
-            <div className="text-center py-12" data-testid="container-team-empty">
-              <Users className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-              <p className="text-muted-foreground">
-                {t.noResults}
-              </p>
+            <div className="flex flex-wrap gap-2 items-center">
+              <Select value={filterSeniority} onValueChange={setFilterSeniority}>
+                <SelectTrigger className="w-36 rounded-none bg-white/5 border-white/10 text-white/80 text-xs" data-testid="select-seniority">
+                  <SelectValue placeholder={t.seniority} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">{t.all}</SelectItem>
+                  <SelectItem value="partners">{t.partnersOnly}</SelectItem>
+                  <SelectItem value="ofcounsel">{t.ofCounsel}</SelectItem>
+                  <SelectItem value="associates">{t.associates}</SelectItem>
+                </SelectContent>
+              </Select>
+              <Select value={filterLetter} onValueChange={setFilterLetter}>
+                <SelectTrigger className="w-28 rounded-none bg-white/5 border-white/10 text-white/80 text-xs" data-testid="select-alphabetic">
+                  <SelectValue placeholder={t.alphabetic} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">{t.all}</SelectItem>
+                  {alphabet.map(letter => (
+                    <SelectItem key={letter} value={letter}>{letter}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
               {hasActiveFilters && (
-                <Button
-                  variant="outline"
-                  onClick={clearFilters}
-                  className="mt-4 gap-2 rounded-none"
-                  data-testid="button-clear-empty"
-                >
-                  <X className="w-4 h-4" />
+                <Button variant="ghost" size="default" onClick={clearFilters} className="gap-1.5 rounded-none text-white/50 hover:text-white text-xs" data-testid="button-clear-filters">
+                  <X className="w-3.5 h-3.5" />
                   {t.clearFilters}
                 </Button>
               )}
+              <span className="text-white/30 text-xs ml-2 hidden sm:inline" data-testid="text-results-count">{totalVisible} {t.teamMembers}</span>
             </div>
-          ) : (
-            <motion.div
-              variants={containerVariants}
-              initial="hidden"
-              animate="visible"
-              className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4"
-            >
-              {filteredMembers.map((member) => (
-                <motion.div key={member.id} variants={itemVariants}>
-                  <TeamMemberCard
-                    member={member}
-                    viewProfileLabel={t.viewProfile}
-                    positions={t.positions}
-                  />
-                </motion.div>
-              ))}
-            </motion.div>
-          )}
+          </div>
         </div>
+      </div>
+
+      <main id="main-content" data-testid="section-team-main">
+
+        {errorAll ? (
+          <div className="text-center py-24" data-testid="container-team-error">
+            <AlertCircle className="w-12 h-12 text-white/30 mx-auto mb-4" />
+            <p className="text-white/50" data-testid="text-team-error">{t.errorMessage}</p>
+          </div>
+        ) : isLoadingAll ? (
+          <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-7 gap-px">
+            {Array.from({ length: 21 }).map((_, i) => (
+              <div key={i} className="bg-[#1a1a18]" style={{ aspectRatio: "3/4" }} data-testid={`skeleton-team-member-${i}`}>
+                <Skeleton className="w-full h-full bg-white/5" />
+              </div>
+            ))}
+          </div>
+        ) : totalVisible === 0 ? (
+          <div className="text-center py-24" data-testid="container-team-empty">
+            <Users className="w-12 h-12 text-white/20 mx-auto mb-4" />
+            <p className="text-white/40">{t.noResults}</p>
+            {hasActiveFilters && (
+              <Button variant="ghost" onClick={clearFilters} className="mt-4 gap-2 rounded-none text-white/50" data-testid="button-clear-empty">
+                <X className="w-4 h-4" />{t.clearFilters}
+              </Button>
+            )}
+          </div>
+        ) : (
+          <>
+            {/* ─── SOCIOS ──────────────────────────────────────── */}
+            {showPartners && groupedMembers.partners.length > 0 && (
+              <section className="bg-[#111110] border-b border-[#AA1A2E]/10" data-testid="section-partners">
+                <div className="px-6 lg:px-12 pt-10 pb-5 flex items-center gap-3">
+                  <div className="w-8 h-px bg-[#AA1A2E] shrink-0" />
+                  <p className="text-[#AA1A2E] text-[10px] tracking-[0.25em] uppercase">{t.partnersOnly}</p>
+                  <span className="text-white/20 text-[9px] tracking-wider ml-1">— {groupedMembers.partners.length}</span>
+                </div>
+                <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 gap-px">
+                  {groupedMembers.partners.map((member, idx) => (
+                    <Link
+                      key={member.id}
+                      href={`/team/${member.slug}`}
+                      className="relative overflow-hidden group block cursor-pointer"
+                      style={{ aspectRatio: "3/4" }}
+                      data-testid={`card-team-member-${member.slug}`}
+                      aria-label={member.name}
+                    >
+                      {member.imageUrl ? (
+                        <img src={member.imageUrl} alt="" aria-hidden="true" className="absolute inset-0 w-full h-full object-cover object-top transition-[transform,filter] duration-500 grayscale group-hover:grayscale-0 group-hover:scale-105" />
+                      ) : (
+                        <div className="absolute inset-0 bg-[#1a1a18] flex items-center justify-center">
+                          <span className="text-3xl font-heading font-bold text-[#AA1A2E]/60 select-none">{getInitials(member.name)}</span>
+                        </div>
+                      )}
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-black/10 group-hover:from-black/80 transition-all duration-500" />
+                      <span className="absolute top-2 left-2 text-[#AA1A2E] text-[9px] font-medium tabular-nums opacity-70">{String(idx + 1).padStart(2, '0')}</span>
+                      <div className="absolute bottom-0 left-0 right-0 p-3 translate-y-1 group-hover:translate-y-0 transition-transform duration-300">
+                        <p className="text-white text-[9px] uppercase tracking-[0.06em] leading-snug font-light line-clamp-2">{member.name}</p>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              </section>
+            )}
+
+            {/* ─── OF COUNSEL ──────────────────────────────────── */}
+            {showOfCounsel && groupedMembers.ofCounsel.length > 0 && (
+              <section className="bg-[#0d0d0c] border-b border-[#AA1A2E]/10" data-testid="section-ofcounsel">
+                <div className="px-6 lg:px-12 pt-10 pb-5 flex items-center gap-3">
+                  <div className="w-8 h-px bg-[#AA1A2E] shrink-0" />
+                  <p className="text-[#AA1A2E] text-[10px] tracking-[0.25em] uppercase">{t.ofCounsel}</p>
+                  <span className="text-white/20 text-[9px] tracking-wider ml-1">— {groupedMembers.ofCounsel.length}</span>
+                </div>
+                {/* Desktop: expanding panels (3 members) */}
+                <div className="hidden lg:flex w-full h-[420px]" onMouseLeave={() => setActivePanel(null)}>
+                  {groupedMembers.ofCounsel.map((member, idx) => {
+                    const isActive = activePanel === `oc-${member.id}`;
+                    return (
+                      <Link
+                        key={member.id}
+                        href={`/team/${member.slug}`}
+                        data-testid={`card-team-member-${member.slug}`}
+                        aria-label={member.name}
+                        className="relative overflow-hidden cursor-pointer block"
+                        style={{ flex: isActive ? 3 : 1, transition: "flex 0.5s cubic-bezier(0.22, 1, 0.36, 1)", minWidth: 0 }}
+                        onMouseEnter={() => setActivePanel(`oc-${member.id}`)}
+                      >
+                        {member.imageUrl ? (
+                          <img src={member.imageUrl} alt="" aria-hidden="true" className="absolute inset-0 w-full h-full object-cover object-top" style={{ transform: isActive ? "scale(1.04)" : "scale(1)", filter: isActive ? "grayscale(0%)" : "grayscale(100%)", transition: "transform 0.6s cubic-bezier(0.22, 1, 0.36, 1), filter 0.5s ease" }} />
+                        ) : (
+                          <div className="absolute inset-0 bg-[#1a1a18] flex items-center justify-center">
+                            <span className="text-4xl font-heading font-bold text-[#AA1A2E]/40 select-none">{getInitials(member.name)}</span>
+                          </div>
+                        )}
+                        <div className="absolute inset-0" style={{ background: isActive ? "linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.4) 50%, rgba(0,0,0,0.3) 100%)" : "linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.7) 100%)", transition: "background 0.5s ease" }} />
+                        <div className="absolute top-0 right-0 w-px h-full bg-[#AA1A2E]/20" />
+                        <span className="absolute top-5 left-4 text-[#AA1A2E] text-xs font-medium tabular-nums tracking-wider">{String(idx + 1).padStart(2, '0')}</span>
+                        <div className="absolute bottom-10 left-0 right-0 flex justify-center" style={{ opacity: isActive ? 0 : 1, transition: "opacity 0.25s ease" }}>
+                          <span className="text-white/70 text-[10px] uppercase tracking-[0.18em] font-light whitespace-nowrap" style={{ writingMode: "vertical-rl", transform: "rotate(180deg)" }}>{member.name}</span>
+                        </div>
+                        <div className="absolute bottom-6 left-5 right-5" style={{ opacity: isActive ? 1 : 0, transform: isActive ? "translateY(0)" : "translateY(8px)", transition: "opacity 0.3s ease 0.1s, transform 0.3s ease 0.1s" }}>
+                          <p className="font-heading font-light text-base uppercase tracking-[0.1em] leading-snug mb-1 text-white">{member.name}</p>
+                          <p className="text-xs text-[#AA1A2E] uppercase tracking-[0.08em] mb-3">{member.title}</p>
+                          <div className="flex items-center gap-2 text-[#AA1A2E]"><ArrowRight className="w-4 h-4" /></div>
+                        </div>
+                      </Link>
+                    );
+                  })}
+                </div>
+                {/* Mobile: grid */}
+                <div className="lg:hidden grid grid-cols-2 sm:grid-cols-3 gap-px">
+                  {groupedMembers.ofCounsel.map((member, idx) => (
+                    <Link key={member.id} href={`/team/${member.slug}`} className="relative overflow-hidden group block cursor-pointer" style={{ aspectRatio: "3/4" }} data-testid={`card-team-member-mob-${member.slug}`} aria-label={member.name}>
+                      {member.imageUrl ? (
+                        <img src={member.imageUrl} alt="" aria-hidden="true" className="absolute inset-0 w-full h-full object-cover object-top transition-[transform,filter] duration-500 grayscale group-hover:grayscale-0 group-hover:scale-105" />
+                      ) : (
+                        <div className="absolute inset-0 bg-[#1a1a18] flex items-center justify-center">
+                          <span className="text-3xl font-heading font-bold text-[#AA1A2E]/60 select-none">{getInitials(member.name)}</span>
+                        </div>
+                      )}
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-transparent" />
+                      <span className="absolute top-2 left-2 text-[#AA1A2E] text-[9px] font-medium tabular-nums">{String(idx + 1).padStart(2, '0')}</span>
+                      <div className="absolute bottom-0 left-0 right-0 p-3">
+                        <p className="text-[#AA1A2E] text-[8px] uppercase tracking-[0.1em] mb-0.5">{member.title}</p>
+                        <p className="text-white text-[9px] uppercase tracking-[0.06em] leading-snug font-light">{member.name}</p>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              </section>
+            )}
+
+            {/* ─── ASOCIADOS ───────────────────────────────────── */}
+            {showAssociates && groupedMembers.associates.length > 0 && (
+              <section className="bg-[#111110]" data-testid="section-associates">
+                <div className="px-6 lg:px-12 pt-10 pb-5 flex items-center gap-3">
+                  <div className="w-8 h-px bg-[#AA1A2E] shrink-0" />
+                  <p className="text-[#AA1A2E] text-[10px] tracking-[0.25em] uppercase">{t.associates}</p>
+                  <span className="text-white/20 text-[9px] tracking-wider ml-1">— {groupedMembers.associates.length}</span>
+                </div>
+                <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-8 gap-px">
+                  {groupedMembers.associates.map((member, idx) => (
+                    <Link
+                      key={member.id}
+                      href={`/team/${member.slug}`}
+                      className="relative overflow-hidden group block cursor-pointer"
+                      style={{ aspectRatio: "3/4" }}
+                      data-testid={`card-team-member-${member.slug}`}
+                      aria-label={member.name}
+                    >
+                      {member.imageUrl ? (
+                        <img src={member.imageUrl} alt="" aria-hidden="true" className="absolute inset-0 w-full h-full object-cover object-top transition-[transform,filter] duration-500 grayscale group-hover:grayscale-0 group-hover:scale-105" />
+                      ) : (
+                        <div className="absolute inset-0 bg-[#1a1a18] flex items-center justify-center">
+                          <span className="text-2xl font-heading font-bold text-[#AA1A2E]/40 select-none">{getInitials(member.name)}</span>
+                        </div>
+                      )}
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent group-hover:from-black/80 transition-all duration-500" />
+                      <span className="absolute top-1.5 left-1.5 text-[#AA1A2E] text-[8px] font-medium tabular-nums opacity-60">{String(idx + 1).padStart(2, '0')}</span>
+                      <div className="absolute bottom-0 left-0 right-0 p-2 translate-y-1 group-hover:translate-y-0 transition-transform duration-300">
+                        <p className="text-white text-[8px] uppercase tracking-[0.05em] leading-snug font-light line-clamp-2">{member.name}</p>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              </section>
+            )}
+          </>
+        )}
       </main>
 
       <Footer />
