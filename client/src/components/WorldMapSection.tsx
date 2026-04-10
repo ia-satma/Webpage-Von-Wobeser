@@ -564,7 +564,7 @@ export default function WorldMapSection({ language }: WorldMapSectionProps) {
               <div className="w-8 h-px bg-[#AA1A2E] shrink-0" />
               <p className="text-[#AA1A2E] text-[10px] tracking-[0.25em] uppercase">{t.partnersTitle}</p>
             </div>
-            <div className="grid grid-cols-2 gap-4 lg:gap-6 max-w-lg">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               {gdSocios.map((member) => (
                 <Link
                   key={member.id}
@@ -578,13 +578,13 @@ export default function WorldMapSection({ language }: WorldMapSectionProps) {
                       src={member.photo}
                       alt=""
                       aria-hidden="true"
-                      className="absolute inset-0 w-full h-full object-cover object-[50%_15%] grayscale group-hover:grayscale-0 transition-[filter] duration-500"
+                      className="absolute inset-0 w-full h-full object-cover object-[50%_20%] grayscale group-hover:grayscale-0 transition-[filter] duration-500"
                       data-testid={`img-gdm-${member.slug}`}
                     />
                     <div className="absolute inset-0" style={{ background: "linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.1) 55%, transparent 100%)" }} />
                     <div
                       className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
-                      style={{ background: "linear-gradient(to top, rgba(170,26,46,0.82) 0%, rgba(0,0,0,0.05) 55%, transparent 100%)" }}
+                      style={{ background: "linear-gradient(to top, rgba(170,26,46,0.85) 0%, transparent 60%)" }}
                     />
                     <div className="absolute bottom-0 left-0 right-0 p-4 lg:p-5">
                       <p
@@ -614,7 +614,7 @@ export default function WorldMapSection({ language }: WorldMapSectionProps) {
               <div className="w-8 h-px bg-[#AA1A2E] shrink-0" />
               <p className="text-[#AA1A2E] text-[10px] tracking-[0.25em] uppercase">{t.ofCounselTitle}</p>
             </div>
-            <div className="grid grid-cols-2 gap-4 lg:gap-6 max-w-lg">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               {gdOfCounsel.map((member) => (
                 <Link
                   key={member.id}
@@ -628,13 +628,13 @@ export default function WorldMapSection({ language }: WorldMapSectionProps) {
                       src={member.photo}
                       alt=""
                       aria-hidden="true"
-                      className="absolute inset-0 w-full h-full object-cover object-[50%_15%] grayscale group-hover:grayscale-0 transition-[filter] duration-500"
+                      className="absolute inset-0 w-full h-full object-cover object-[50%_20%] grayscale group-hover:grayscale-0 transition-[filter] duration-500"
                       data-testid={`img-gdm-${member.slug}`}
                     />
                     <div className="absolute inset-0" style={{ background: "linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.1) 55%, transparent 100%)" }} />
                     <div
                       className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
-                      style={{ background: "linear-gradient(to top, rgba(170,26,46,0.82) 0%, rgba(0,0,0,0.05) 55%, transparent 100%)" }}
+                      style={{ background: "linear-gradient(to top, rgba(170,26,46,0.85) 0%, transparent 60%)" }}
                     />
                     <div className="absolute bottom-0 left-0 right-0 p-4 lg:p-5">
                       <p
@@ -664,7 +664,7 @@ export default function WorldMapSection({ language }: WorldMapSectionProps) {
               <div className="w-8 h-px bg-[#AA1A2E] shrink-0" />
               <p className="text-[#AA1A2E] text-[10px] tracking-[0.25em] uppercase">{t.associatesTitle}</p>
             </div>
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 lg:gap-6 max-w-2xl">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               {gdAssociates.map((member) => (
                 <Link
                   key={member.id}
@@ -678,13 +678,13 @@ export default function WorldMapSection({ language }: WorldMapSectionProps) {
                       src={member.photo}
                       alt=""
                       aria-hidden="true"
-                      className="absolute inset-0 w-full h-full object-cover object-[50%_15%] grayscale group-hover:grayscale-0 transition-[filter] duration-500"
+                      className="absolute inset-0 w-full h-full object-cover object-[50%_20%] grayscale group-hover:grayscale-0 transition-[filter] duration-500"
                       data-testid={`img-gdm-${member.slug}`}
                     />
                     <div className="absolute inset-0" style={{ background: "linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.1) 55%, transparent 100%)" }} />
                     <div
                       className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
-                      style={{ background: "linear-gradient(to top, rgba(170,26,46,0.82) 0%, rgba(0,0,0,0.05) 55%, transparent 100%)" }}
+                      style={{ background: "linear-gradient(to top, rgba(170,26,46,0.85) 0%, transparent 60%)" }}
                     />
                     <div className="absolute bottom-0 left-0 right-0 p-4 lg:p-5">
                       <p
