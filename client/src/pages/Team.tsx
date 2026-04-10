@@ -429,6 +429,9 @@ export default function Team() {
   const getInitials = (name: string) =>
     name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase();
 
+  const getPhotoSrc = (member: TeamMember) =>
+    member.imageUrl || `/partner_photos/${member.slug}.jpg`;
+
   return (
     <div className="min-h-screen bg-[#111110]" data-testid="page-team">
       <SEOHead page="team" language={language} />
@@ -442,6 +445,11 @@ export default function Team() {
             transition={{ duration: 0.6 }}
             className="text-center"
           >
+            <div className="flex items-center justify-center gap-3 mb-4">
+              <div className="w-8 h-px bg-[#AA1A2E]" />
+              <p className="text-[#AA1A2E] text-[10px] tracking-[0.3em] uppercase font-medium">Von Wobeser y Sierra</p>
+              <div className="w-8 h-px bg-[#AA1A2E]" />
+            </div>
             <h1 
               className="text-3xl md:text-4xl font-heading font-light text-white mb-4 uppercase tracking-[0.12em]"
               data-testid="text-team-title"
@@ -449,7 +457,7 @@ export default function Team() {
               {t.title}
             </h1>
             <p 
-              className="text-sm text-white/90 max-w-2xl mx-auto uppercase tracking-[0.08em]"
+              className="text-sm text-white/70 max-w-2xl mx-auto uppercase tracking-[0.08em]"
               data-testid="text-team-subtitle"
             >
               {t.subtitle}
@@ -553,17 +561,18 @@ export default function Team() {
                       data-testid={`card-team-member-${member.slug}`}
                       aria-label={member.name}
                     >
-                      {member.imageUrl ? (
-                        <img src={member.imageUrl} alt="" aria-hidden="true" className="absolute inset-0 w-full h-full object-cover object-top transition-[transform,filter] duration-500 grayscale group-hover:grayscale-0 group-hover:scale-105" />
-                      ) : (
-                        <div className="absolute inset-0 bg-[#1a1a18] flex items-center justify-center">
-                          <span className="text-3xl font-heading font-bold text-[#AA1A2E]/60 select-none">{getInitials(member.name)}</span>
+                      <img src={getPhotoSrc(member)} alt="" aria-hidden="true" className="absolute inset-0 w-full h-full object-cover object-top transition-[transform,filter] duration-500 grayscale group-hover:grayscale-0 group-hover:scale-[1.03]" onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }} />
+                      <div className="absolute inset-0 bg-[#1a1a18] -z-10 flex items-center justify-center">
+                        <span className="text-3xl font-heading font-bold text-[#AA1A2E]/50 select-none">{getInitials(member.name)}</span>
+                      </div>
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/40 to-transparent transition-all duration-500" />
+                      <span className="absolute top-2 left-2 text-[#AA1A2E] text-[8px] font-medium tabular-nums opacity-60">{String(idx + 1).padStart(2, '0')}</span>
+                      <div className="absolute bottom-0 left-0 right-0 px-2.5 pb-2.5 pt-1">
+                        <p className="text-white text-[8px] uppercase tracking-[0.07em] leading-snug font-light line-clamp-2 mb-0.5">{member.name}</p>
+                        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                          <span className="text-[#AA1A2E] text-[7px] uppercase tracking-[0.1em]">{t.viewProfile}</span>
+                          <ArrowRight className="w-2.5 h-2.5 text-[#AA1A2E]" />
                         </div>
-                      )}
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-black/10 group-hover:from-black/80 transition-all duration-500" />
-                      <span className="absolute top-2 left-2 text-[#AA1A2E] text-[9px] font-medium tabular-nums opacity-70">{String(idx + 1).padStart(2, '0')}</span>
-                      <div className="absolute bottom-0 left-0 right-0 p-3 translate-y-1 group-hover:translate-y-0 transition-transform duration-300">
-                        <p className="text-white text-[9px] uppercase tracking-[0.06em] leading-snug font-light line-clamp-2">{member.name}</p>
                       </div>
                     </Link>
                   ))}
@@ -593,13 +602,10 @@ export default function Team() {
                         style={{ flex: isActive ? 3 : 1, transition: "flex 0.5s cubic-bezier(0.22, 1, 0.36, 1)", minWidth: 0 }}
                         onMouseEnter={() => setActivePanel(`oc-${member.id}`)}
                       >
-                        {member.imageUrl ? (
-                          <img src={member.imageUrl} alt="" aria-hidden="true" className="absolute inset-0 w-full h-full object-cover object-top" style={{ transform: isActive ? "scale(1.04)" : "scale(1)", filter: isActive ? "grayscale(0%)" : "grayscale(100%)", transition: "transform 0.6s cubic-bezier(0.22, 1, 0.36, 1), filter 0.5s ease" }} />
-                        ) : (
-                          <div className="absolute inset-0 bg-[#1a1a18] flex items-center justify-center">
-                            <span className="text-4xl font-heading font-bold text-[#AA1A2E]/40 select-none">{getInitials(member.name)}</span>
-                          </div>
-                        )}
+                        <img src={getPhotoSrc(member)} alt="" aria-hidden="true" className="absolute inset-0 w-full h-full object-cover object-top" style={{ transform: isActive ? "scale(1.04)" : "scale(1)", filter: isActive ? "grayscale(0%)" : "grayscale(100%)", transition: "transform 0.6s cubic-bezier(0.22, 1, 0.36, 1), filter 0.5s ease" }} onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }} />
+                        <div className="absolute inset-0 bg-[#1a1a18] -z-10 flex items-center justify-center">
+                          <span className="text-4xl font-heading font-bold text-[#AA1A2E]/40 select-none">{getInitials(member.name)}</span>
+                        </div>
                         <div className="absolute inset-0" style={{ background: isActive ? "linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.4) 50%, rgba(0,0,0,0.3) 100%)" : "linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.7) 100%)", transition: "background 0.5s ease" }} />
                         <div className="absolute top-0 right-0 w-px h-full bg-[#AA1A2E]/20" />
                         <span className="absolute top-5 left-4 text-[#AA1A2E] text-xs font-medium tabular-nums tracking-wider">{String(idx + 1).padStart(2, '0')}</span>
@@ -619,13 +625,10 @@ export default function Team() {
                 <div className="lg:hidden grid grid-cols-2 sm:grid-cols-3 gap-px">
                   {groupedMembers.ofCounsel.map((member, idx) => (
                     <Link key={member.id} href={`/team/${member.slug}`} className="relative overflow-hidden group block cursor-pointer" style={{ aspectRatio: "3/4" }} data-testid={`card-team-member-mob-${member.slug}`} aria-label={member.name}>
-                      {member.imageUrl ? (
-                        <img src={member.imageUrl} alt="" aria-hidden="true" className="absolute inset-0 w-full h-full object-cover object-top transition-[transform,filter] duration-500 grayscale group-hover:grayscale-0 group-hover:scale-105" />
-                      ) : (
-                        <div className="absolute inset-0 bg-[#1a1a18] flex items-center justify-center">
-                          <span className="text-3xl font-heading font-bold text-[#AA1A2E]/60 select-none">{getInitials(member.name)}</span>
-                        </div>
-                      )}
+                      <img src={getPhotoSrc(member)} alt="" aria-hidden="true" className="absolute inset-0 w-full h-full object-cover object-top transition-[transform,filter] duration-500 grayscale group-hover:grayscale-0 group-hover:scale-105" onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }} />
+                      <div className="absolute inset-0 bg-[#1a1a18] -z-10 flex items-center justify-center">
+                        <span className="text-3xl font-heading font-bold text-[#AA1A2E]/60 select-none">{getInitials(member.name)}</span>
+                      </div>
                       <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-transparent" />
                       <span className="absolute top-2 left-2 text-[#AA1A2E] text-[9px] font-medium tabular-nums">{String(idx + 1).padStart(2, '0')}</span>
                       <div className="absolute bottom-0 left-0 right-0 p-3">
@@ -656,17 +659,14 @@ export default function Team() {
                       data-testid={`card-team-member-${member.slug}`}
                       aria-label={member.name}
                     >
-                      {member.imageUrl ? (
-                        <img src={member.imageUrl} alt="" aria-hidden="true" className="absolute inset-0 w-full h-full object-cover object-top transition-[transform,filter] duration-500 grayscale group-hover:grayscale-0 group-hover:scale-105" />
-                      ) : (
-                        <div className="absolute inset-0 bg-[#1a1a18] flex items-center justify-center">
-                          <span className="text-2xl font-heading font-bold text-[#AA1A2E]/40 select-none">{getInitials(member.name)}</span>
-                        </div>
-                      )}
+                      <img src={getPhotoSrc(member)} alt="" aria-hidden="true" className="absolute inset-0 w-full h-full object-cover object-top transition-[transform,filter] duration-500 grayscale group-hover:grayscale-0 group-hover:scale-105" onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }} />
+                      <div className="absolute inset-0 bg-[#1a1a18] -z-10 flex items-center justify-center">
+                        <span className="text-2xl font-heading font-bold text-[#AA1A2E]/40 select-none">{getInitials(member.name)}</span>
+                      </div>
                       <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent group-hover:from-black/80 transition-all duration-500" />
                       <span className="absolute top-1.5 left-1.5 text-[#AA1A2E] text-[8px] font-medium tabular-nums opacity-60">{String(idx + 1).padStart(2, '0')}</span>
-                      <div className="absolute bottom-0 left-0 right-0 p-2 translate-y-1 group-hover:translate-y-0 transition-transform duration-300">
-                        <p className="text-white text-[8px] uppercase tracking-[0.05em] leading-snug font-light line-clamp-2">{member.name}</p>
+                      <div className="absolute bottom-0 left-0 right-0 px-2 pb-2">
+                        <p className="text-white text-[7px] uppercase tracking-[0.05em] leading-snug font-light line-clamp-2">{member.name}</p>
                       </div>
                     </Link>
                   ))}
