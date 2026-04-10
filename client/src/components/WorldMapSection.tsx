@@ -231,7 +231,9 @@ const content: Record<SupportedLanguage, ContentTranslation> = {
 // Germany     → x=690, y=154 (69% / 24%)
 const MX = { x: 190, y: 449 };
 const DE = { x: 690, y: 154 };
-const ARC = `M ${MX.x},${MX.y} Q 380,20 ${DE.x},${DE.y}`;
+// Cubic bezier: two control points both at y=30, pulling arc high near the poles.
+// Peak falls at ~x=440, y=97 (44% / 15%) — aligns with GERMAN DESK pill position.
+const ARC = `M ${MX.x},${MX.y} C 190,30 690,30 ${DE.x},${DE.y}`;
 
 
 // useCountUp hook
@@ -429,10 +431,14 @@ export default function WorldMapSection({ language }: WorldMapSectionProps) {
             </g>
           </svg>
 
-          {/* HTML label: Mexico City — to the right of pin */}
-          <div
+          {/* HTML label: Mexico City — animated, to the right of pin */}
+          <motion.div
             className="absolute pointer-events-none"
             style={{ left: "21%", top: "70%", transform: "translate(12px, -50%)" }}
+            initial={{ opacity: 0, y: 4 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5, delay: 3.2 }}
           >
             <div className="px-1">
               <p
@@ -445,12 +451,16 @@ export default function WorldMapSection({ language }: WorldMapSectionProps) {
                 {t.mexicoSubtitle}
               </p>
             </div>
-          </div>
+          </motion.div>
 
-          {/* HTML label: Germany — to the right of pin */}
-          <div
+          {/* HTML label: Germany — animated, to the right of pin */}
+          <motion.div
             className="absolute pointer-events-none"
             style={{ left: "71%", top: "24%", transform: "translate(12px, -50%)" }}
+            initial={{ opacity: 0, y: 4 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5, delay: 3.5 }}
           >
             <div className="px-1">
               <p
@@ -463,16 +473,16 @@ export default function WorldMapSection({ language }: WorldMapSectionProps) {
                 {t.germanySubtitle}
               </p>
             </div>
-          </div>
+          </motion.div>
 
-          {/* HTML label: GERMAN DESK on arc — animated */}
+          {/* HTML label: GERMAN DESK — appears as arc reaches its peak */}
           <motion.div
             className="absolute pointer-events-none"
-            style={{ left: "38%", top: "10%", transform: "translate(-50%, 0)" }}
-            initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
+            style={{ left: "44%", top: "9%", transform: "translate(-50%, 0)" }}
+            initial={{ opacity: 0, scale: 0.85 }}
+            whileInView={{ opacity: 1, scale: 1 }}
             viewport={{ once: true }}
-            transition={{ duration: 0.8, delay: 3.0 }}
+            transition={{ duration: 0.5, delay: 2.0 }}
             data-testid="text-german-desk-label"
           >
             <div className="bg-primary px-4 py-2">
@@ -480,6 +490,7 @@ export default function WorldMapSection({ language }: WorldMapSectionProps) {
                 {t.sectionTitle}
               </span>
             </div>
+            <div className="w-px h-3 bg-primary mx-auto" />
           </motion.div>
         </motion.div>
 
