@@ -525,14 +525,16 @@ export default function WorldMapSection({ language }: WorldMapSectionProps) {
             transition={{ duration: 0.6, delay: 0.3 }}
             data-testid="stats-container"
           >
-            <div className="grid grid-cols-1 md:grid-cols-3 divide-y md:divide-y-0 md:divide-x divide-border">
-              <div data-testid="stat-years">
+            <div className="flex flex-col md:flex-row">
+              <div className="flex-1 border-b md:border-b-0 border-border/40" data-testid="stat-years">
                 <StatBlock target={34} suffix="+" label={t.yearsLabel} />
               </div>
-              <div data-testid="stat-clients">
+              <div className="hidden md:block w-px my-8 bg-border/40 shrink-0" aria-hidden="true" />
+              <div className="flex-1 border-b md:border-b-0 border-border/40" data-testid="stat-clients">
                 <StatBlock target={100} suffix="+" label={t.clientsLabel} />
               </div>
-              <div data-testid="stat-languages">
+              <div className="hidden md:block w-px my-8 bg-border/40 shrink-0" aria-hidden="true" />
+              <div className="flex-1" data-testid="stat-languages">
                 <StatBlock target={3} label={t.languagesLabel} />
               </div>
             </div>
