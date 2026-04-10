@@ -562,7 +562,7 @@ export default function WorldMapSection({ language }: WorldMapSectionProps) {
           <div className="max-w-7xl mx-auto">
             <div className="flex items-center gap-3 mb-8">
               <div className="w-8 h-px bg-[#AA1A2E] shrink-0" />
-              <p className="text-[#AA1A2E] text-[10px] tracking-[0.25em] uppercase">{t.partnersTitle}</p>
+              <h3 className="text-[#AA1A2E] text-[10px] tracking-[0.25em] uppercase">{t.partnersTitle}</h3>
             </div>
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               {gdSocios.map((member) => (
@@ -588,13 +588,13 @@ export default function WorldMapSection({ language }: WorldMapSectionProps) {
                     />
                     <div className="absolute bottom-0 left-0 right-0 p-4 lg:p-5">
                       <p
-                        className="font-heading font-light text-xs lg:text-sm uppercase tracking-[0.12em] leading-snug text-white mb-1"
+                        className="font-serif font-light text-sm uppercase tracking-[0.12em] leading-snug text-white mb-1"
                         data-testid={`text-name-gdm-${member.slug}`}
                       >
                         {member.name}
                       </p>
                       <p
-                        className="text-[9px] text-white/40 group-hover:text-white/80 uppercase tracking-[0.18em] transition-colors duration-300"
+                        className="text-sm text-white/70 uppercase tracking-[0.18em]"
                         data-testid={`text-category-gdm-${member.slug}`}
                       >
                         {member.category}
@@ -612,7 +612,7 @@ export default function WorldMapSection({ language }: WorldMapSectionProps) {
           <div className="max-w-7xl mx-auto">
             <div className="flex items-center gap-3 mb-8">
               <div className="w-8 h-px bg-[#AA1A2E] shrink-0" />
-              <p className="text-[#AA1A2E] text-[10px] tracking-[0.25em] uppercase">{t.ofCounselTitle}</p>
+              <h3 className="text-[#AA1A2E] text-[10px] tracking-[0.25em] uppercase">{t.ofCounselTitle}</h3>
             </div>
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               {gdOfCounsel.map((member) => (
@@ -638,13 +638,13 @@ export default function WorldMapSection({ language }: WorldMapSectionProps) {
                     />
                     <div className="absolute bottom-0 left-0 right-0 p-4 lg:p-5">
                       <p
-                        className="font-heading font-light text-xs lg:text-sm uppercase tracking-[0.12em] leading-snug text-white mb-1"
+                        className="font-serif font-light text-sm uppercase tracking-[0.12em] leading-snug text-white mb-1"
                         data-testid={`text-name-gdm-${member.slug}`}
                       >
                         {member.name}
                       </p>
                       <p
-                        className="text-[9px] text-white/40 group-hover:text-white/80 uppercase tracking-[0.18em] transition-colors duration-300"
+                        className="text-sm text-white/70 uppercase tracking-[0.18em]"
                         data-testid={`text-category-gdm-${member.slug}`}
                       >
                         {member.category}
@@ -662,7 +662,7 @@ export default function WorldMapSection({ language }: WorldMapSectionProps) {
           <div className="max-w-7xl mx-auto">
             <div className="flex items-center gap-3 mb-8">
               <div className="w-8 h-px bg-[#AA1A2E] shrink-0" />
-              <p className="text-[#AA1A2E] text-[10px] tracking-[0.25em] uppercase">{t.associatesTitle}</p>
+              <h3 className="text-[#AA1A2E] text-[10px] tracking-[0.25em] uppercase">{t.associatesTitle}</h3>
             </div>
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               {gdAssociates.map((member) => (
@@ -688,13 +688,13 @@ export default function WorldMapSection({ language }: WorldMapSectionProps) {
                     />
                     <div className="absolute bottom-0 left-0 right-0 p-4 lg:p-5">
                       <p
-                        className="font-heading font-light text-xs lg:text-sm uppercase tracking-[0.12em] leading-snug text-white mb-1"
+                        className="font-serif font-light text-sm uppercase tracking-[0.12em] leading-snug text-white mb-1"
                         data-testid={`text-name-gdm-${member.slug}`}
                       >
                         {member.name}
                       </p>
                       <p
-                        className="text-[9px] text-white/40 group-hover:text-white/80 uppercase tracking-[0.18em] transition-colors duration-300"
+                        className="text-sm text-white/70 uppercase tracking-[0.18em]"
                         data-testid={`text-category-gdm-${member.slug}`}
                       >
                         {member.category}
