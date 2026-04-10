@@ -579,8 +579,8 @@ export default function WorldMapSection({ language }: WorldMapSectionProps) {
                   <div className="absolute inset-0" style={{ background: isActive ? "linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.4) 50%, rgba(0,0,0,0.3) 100%)" : "linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.7) 100%)", transition: "background 0.5s ease" }} />
                   <div className="absolute top-0 right-0 w-px h-full bg-[#AA1A2E]/20" />
                   <span className="absolute top-5 left-4 text-[#AA1A2E] text-xs font-medium tabular-nums tracking-wider">{member.number}</span>
-                  <div className="absolute bottom-10 left-0 right-0 flex justify-center" style={{ opacity: isActive ? 0 : 1, transition: "opacity 0.25s ease" }}>
-                    <span className="text-white/70 text-[10px] uppercase tracking-[0.18em] font-light whitespace-nowrap" style={{ writingMode: "vertical-rl", transform: "rotate(180deg)" }} data-testid={`text-name-gdm-${member.slug}`}>{member.name}</span>
+                  <div className="absolute bottom-5 left-3 right-3" style={{ opacity: isActive ? 0 : 1, transition: "opacity 0.25s ease" }}>
+                    <p className="text-white/70 text-[9px] uppercase tracking-[0.12em] font-light truncate" data-testid={`text-name-gdm-${member.slug}`}>{member.name}</p>
                   </div>
                   <div className="absolute bottom-6 left-5 right-5" style={{ opacity: isActive ? 1 : 0, transform: isActive ? "translateY(0)" : "translateY(8px)", transition: "opacity 0.3s ease 0.1s, transform 0.3s ease 0.1s" }}>
                     <p className="font-heading font-light text-base uppercase tracking-[0.1em] leading-snug mb-1 text-white">{member.name}</p>
@@ -630,8 +630,8 @@ export default function WorldMapSection({ language }: WorldMapSectionProps) {
                   <div className="absolute inset-0" style={{ background: isActive ? "linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.4) 50%, rgba(0,0,0,0.3) 100%)" : "linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.7) 100%)", transition: "background 0.5s ease" }} />
                   <div className="absolute top-0 right-0 w-px h-full bg-[#AA1A2E]/20" />
                   <span className="absolute top-5 left-4 text-[#AA1A2E] text-xs font-medium tabular-nums tracking-wider">{member.number}</span>
-                  <div className="absolute bottom-10 left-0 right-0 flex justify-center" style={{ opacity: isActive ? 0 : 1, transition: "opacity 0.25s ease" }}>
-                    <span className="text-white/70 text-[10px] uppercase tracking-[0.18em] font-light whitespace-nowrap" style={{ writingMode: "vertical-rl", transform: "rotate(180deg)" }} data-testid={`text-name-gdm-${member.slug}`}>{member.name}</span>
+                  <div className="absolute bottom-5 left-3 right-3" style={{ opacity: isActive ? 0 : 1, transition: "opacity 0.25s ease" }}>
+                    <p className="text-white/70 text-[9px] uppercase tracking-[0.12em] font-light truncate" data-testid={`text-name-gdm-${member.slug}`}>{member.name}</p>
                   </div>
                   <div className="absolute bottom-6 left-5 right-5" style={{ opacity: isActive ? 1 : 0, transform: isActive ? "translateY(0)" : "translateY(8px)", transition: "opacity 0.3s ease 0.1s, transform 0.3s ease 0.1s" }}>
                     <p className="font-heading font-light text-base uppercase tracking-[0.1em] leading-snug mb-1 text-white">{member.name}</p>
@@ -680,8 +680,8 @@ export default function WorldMapSection({ language }: WorldMapSectionProps) {
                   <div className="absolute inset-0" style={{ background: isActive ? "linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.4) 50%, rgba(0,0,0,0.3) 100%)" : "linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.7) 100%)", transition: "background 0.5s ease" }} />
                   <div className="absolute top-0 right-0 w-px h-full bg-[#AA1A2E]/20" />
                   <span className="absolute top-5 left-4 text-[#AA1A2E] text-xs font-medium tabular-nums tracking-wider">{member.number}</span>
-                  <div className="absolute bottom-10 left-0 right-0 flex justify-center" style={{ opacity: isActive ? 0 : 1, transition: "opacity 0.25s ease" }}>
-                    <span className="text-white/70 text-[10px] uppercase tracking-[0.18em] font-light whitespace-nowrap" style={{ writingMode: "vertical-rl", transform: "rotate(180deg)" }} data-testid={`text-name-gdm-${member.slug}`}>{member.name}</span>
+                  <div className="absolute bottom-5 left-3 right-3" style={{ opacity: isActive ? 0 : 1, transition: "opacity 0.25s ease" }}>
+                    <p className="text-white/70 text-[9px] uppercase tracking-[0.12em] font-light truncate" data-testid={`text-name-gdm-${member.slug}`}>{member.name}</p>
                   </div>
                   <div className="absolute bottom-6 left-5 right-5" style={{ opacity: isActive ? 1 : 0, transform: isActive ? "translateY(0)" : "translateY(8px)", transition: "opacity 0.3s ease 0.1s, transform 0.3s ease 0.1s" }}>
                     <p className="font-heading font-light text-base uppercase tracking-[0.1em] leading-snug mb-1 text-white">{member.name}</p>
