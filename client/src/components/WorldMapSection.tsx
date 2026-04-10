@@ -1,5 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { motion, useInView } from "framer-motion";
+import { Link } from "wouter";
+import { ArrowRight } from "lucide-react";
 
 import worldMapImg from "@assets/mapa_1775780643811.png";
 import clausVonWobeserPhoto from "@assets/of_counsel_photos/claus_von_wobeser.jpg";
@@ -16,12 +18,6 @@ interface WorldMapSectionProps {
   language: SupportedLanguage;
 }
 
-interface TeamMember {
-  id: string;
-  name: string;
-  photo: string;
-  title?: string;
-}
 
 interface ContentTranslation {
   sectionTitle: string;
@@ -40,6 +36,8 @@ interface ContentTranslation {
   languagesLabel: string;
   foundingPartner: string;
   partner: string;
+  teamTitle: string;
+  seeMore: string;
 }
 
 const content: Record<SupportedLanguage, ContentTranslation> = {
@@ -60,6 +58,8 @@ const content: Record<SupportedLanguage, ContentTranslation> = {
     languagesLabel: "Languages (ES/EN/DE)",
     foundingPartner: "Founding Partner",
     partner: "Partner",
+    teamTitle: "German Desk Team",
+    seeMore: "Meet the full team",
   },
   es: {
     sectionTitle: "GERMAN DESK",
@@ -78,6 +78,8 @@ const content: Record<SupportedLanguage, ContentTranslation> = {
     languagesLabel: "Idiomas (ES/EN/DE)",
     foundingPartner: "Socio Fundador",
     partner: "Socio",
+    teamTitle: "Equipo German Desk",
+    seeMore: "Ver equipo completo",
   },
   de: {
     sectionTitle: "GERMAN DESK",
@@ -96,6 +98,8 @@ const content: Record<SupportedLanguage, ContentTranslation> = {
     languagesLabel: "Sprachen (ES/EN/DE)",
     foundingPartner: "Gründungspartner",
     partner: "Partner",
+    teamTitle: "German Desk Team",
+    seeMore: "Vollständiges Team",
   },
   zh: {
     sectionTitle: "德国业务部",
@@ -114,6 +118,8 @@ const content: Record<SupportedLanguage, ContentTranslation> = {
     languagesLabel: "语言 (ES/EN/DE)",
     foundingPartner: "创始合伙人",
     partner: "合伙人",
+    teamTitle: "德国业务部团队",
+    seeMore: "查看完整团队",
   },
   ko: {
     sectionTitle: "GERMAN DESK",
@@ -132,6 +138,8 @@ const content: Record<SupportedLanguage, ContentTranslation> = {
     languagesLabel: "언어 (ES/EN/DE)",
     foundingPartner: "창립 파트너",
     partner: "파트너",
+    teamTitle: "German Desk 팀",
+    seeMore: "전체 팀 보기",
   },
   ja: {
     sectionTitle: "GERMAN DESK",
@@ -150,6 +158,8 @@ const content: Record<SupportedLanguage, ContentTranslation> = {
     languagesLabel: "言語 (ES/EN/DE)",
     foundingPartner: "創設パートナー",
     partner: "パートナー",
+    teamTitle: "German Desk チーム",
+    seeMore: "チーム全員を見る",
   },
   ar: {
     sectionTitle: "المكتب الألماني",
@@ -168,6 +178,8 @@ const content: Record<SupportedLanguage, ContentTranslation> = {
     languagesLabel: "اللغات (ES/EN/DE)",
     foundingPartner: "شريك مؤسس",
     partner: "شريك",
+    teamTitle: "فريق المكتب الألماني",
+    seeMore: "عرض الفريق كاملاً",
   },
   ru: {
     sectionTitle: "GERMAN DESK",
@@ -186,6 +198,8 @@ const content: Record<SupportedLanguage, ContentTranslation> = {
     languagesLabel: "Языки (ES/EN/DE)",
     foundingPartner: "Партнёр-основатель",
     partner: "Партнёр",
+    teamTitle: "Команда German Desk",
+    seeMore: "Весь состав команды",
   },
   fr: {
     sectionTitle: "GERMAN DESK",
@@ -204,6 +218,8 @@ const content: Record<SupportedLanguage, ContentTranslation> = {
     languagesLabel: "Langues (ES/EN/DE)",
     foundingPartner: "Associé Fondateur",
     partner: "Associé",
+    teamTitle: "Équipe German Desk",
+    seeMore: "Voir l'équipe complète",
   },
   it: {
     sectionTitle: "GERMAN DESK",
@@ -222,6 +238,8 @@ const content: Record<SupportedLanguage, ContentTranslation> = {
     languagesLabel: "Lingue (ES/EN/DE)",
     foundingPartner: "Socio Fondatore",
     partner: "Socio",
+    teamTitle: "Team German Desk",
+    seeMore: "Scopri il team completo",
   },
 };
 
@@ -270,58 +288,28 @@ function StatBlock({ target, suffix, label }: { target: number; suffix?: string;
   );
 }
 
+interface GDMember {
+  id: string;
+  name: string;
+  photo: string;
+  category: string;
+  slug: string;
+  number: string;
+}
+
 export default function WorldMapSection({ language }: WorldMapSectionProps) {
   const t = content[language] || content.en;
+  const [activePanel, setActivePanel] = useState<string | null>(null);
 
-  const partners: TeamMember[] = [
-    { id: "claus-von-wobeser", name: "Claus von Wobeser", photo: clausVonWobeserPhoto, title: t.foundingPartner },
-    { id: "luis-burgueno", name: "Luis Burgueño", photo: luisBurguenoPhoto, title: t.partner },
+  const gdMembers: GDMember[] = [
+    { id: "claus-von-wobeser",      name: "Claus von Wobeser",      photo: clausVonWobeserPhoto,        category: t.foundingPartner,  slug: "claus-von-wobeser",      number: "01" },
+    { id: "luis-burgueno",           name: "Luis Burgueño",           photo: luisBurguenoPhoto,            category: t.partner,           slug: "luis-burgueno",           number: "02" },
+    { id: "katharina-roehr",         name: "Katharina Roehr",         photo: katharinaRoehrPhoto,          category: t.ofCounselTitle,    slug: "katharina-roehr",         number: "03" },
+    { id: "rupert-huttler",          name: "Rupert Hüttler",          photo: rupertHuttlerPhoto,           category: t.ofCounselTitle,    slug: "rupert-huttler",          number: "04" },
+    { id: "anna-maria-brandstadter", name: "Anna Maria Brandstädter", photo: annaMariaBrandstadterPhoto,  category: t.associatesTitle,   slug: "anna-maria-brandstadter", number: "05" },
+    { id: "michael-schreiber",       name: "Michael Schreiber",       photo: michaelSchreiberPhoto,        category: t.associatesTitle,   slug: "michael-schreiber",       number: "06" },
+    { id: "alexander-barnes",        name: "Alexander Barnes",        photo: alexanderBarnesPhoto,         category: t.associatesTitle,   slug: "alexander-barnes",        number: "07" },
   ];
-
-  const ofCounsel: TeamMember[] = [
-    { id: "katharina-roehr", name: "Katharina Roehr", photo: katharinaRoehrPhoto },
-    { id: "rupert-huttler", name: "Rupert Hüttler", photo: rupertHuttlerPhoto },
-  ];
-
-  const associates: TeamMember[] = [
-    { id: "anna-maria-brandstadter", name: "Anna Maria Brandstädter", photo: annaMariaBrandstadterPhoto },
-    { id: "michael-schreiber", name: "Michael Schreiber", photo: michaelSchreiberPhoto },
-    { id: "alexander-barnes", name: "Alexander Barnes", photo: alexanderBarnesPhoto },
-  ];
-
-  const TeamMemberCard = ({ member, testIdPrefix }: { member: TeamMember; testIdPrefix: string }) => (
-    <motion.div
-      initial={{ opacity: 0, y: 10 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true }}
-      transition={{ duration: 0.4 }}
-      className="group flex flex-col items-center text-center"
-      data-testid={`${testIdPrefix}-${member.id}`}
-    >
-      <div className="w-24 h-24 md:w-28 md:h-28 rounded-full overflow-hidden mb-4 border-2 border-white/20">
-        <img
-          src={member.photo}
-          alt={member.name}
-          className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-500"
-          data-testid={`img-${testIdPrefix}-${member.id}`}
-        />
-      </div>
-      <h4
-        className="text-sm md:text-base font-semibold text-white tracking-[0.04em]"
-        data-testid={`text-name-${member.id}`}
-      >
-        {member.name}
-      </h4>
-      {member.title && (
-        <p
-          className="text-xs text-[#AA1A2E] mt-1 uppercase tracking-[0.08em]"
-          data-testid={`text-title-${member.id}`}
-        >
-          {member.title}
-        </p>
-      )}
-    </motion.div>
-  );
 
   return (
     <section
@@ -558,85 +546,173 @@ export default function WorldMapSection({ language }: WorldMapSectionProps) {
 
       </div>
 
-      <div className="bg-[#111110] border-t border-[#AA1A2E]/20 py-16 lg:py-24">
-        <div className="max-w-7xl mx-auto px-6 lg:px-12">
-          <div className="space-y-16" data-testid="team-members-container">
+      {/* German Desk Team — expanding panels (desktop) + grid (mobile) */}
+      <div className="bg-[#111110] border-t border-[#AA1A2E]/20" data-testid="team-members-container">
 
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6 }}
-              data-testid="partners-section"
-            >
-              <div className="text-center mb-10">
-                <div className="w-12 h-px bg-[#AA1A2E] mx-auto mb-4" />
-                <h3
-                  className="text-base md:text-lg font-heading font-light text-white/90 uppercase tracking-[0.12em]"
-                  data-testid="text-partners-title"
+        {/* Desktop: 7 expanding vertical panels */}
+        <div
+          className="hidden lg:flex w-full h-[520px]"
+          onMouseLeave={() => setActivePanel(null)}
+        >
+          {gdMembers.map((member) => {
+            const isActive = activePanel === member.id;
+            return (
+              <Link
+                key={member.id}
+                href={`/team/${member.slug}`}
+                data-testid={`card-gdm-${member.slug}`}
+                aria-label={member.name}
+                className="relative overflow-hidden cursor-pointer block"
+                style={{
+                  flex: isActive ? 3 : 1,
+                  transition: "flex 0.5s cubic-bezier(0.22, 1, 0.36, 1)",
+                  minWidth: 0,
+                }}
+                onMouseEnter={() => setActivePanel(member.id)}
+              >
+                {/* Background photo — grayscale at rest, color on hover */}
+                <img
+                  src={member.photo}
+                  alt=""
+                  aria-hidden="true"
+                  className="absolute inset-0 w-full h-full object-cover object-top"
+                  style={{
+                    transform: isActive ? "scale(1.04)" : "scale(1)",
+                    filter: isActive ? "grayscale(0%)" : "grayscale(100%)",
+                    transition: "transform 0.6s cubic-bezier(0.22, 1, 0.36, 1), filter 0.5s ease",
+                  }}
+                  data-testid={`img-gdm-${member.slug}`}
+                />
+
+                {/* Dark overlay */}
+                <div
+                  className="absolute inset-0"
+                  style={{
+                    background: isActive
+                      ? "linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.4) 50%, rgba(0,0,0,0.3) 100%)"
+                      : "linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.7) 100%)",
+                    transition: "background 0.5s ease",
+                  }}
+                />
+
+                {/* Red vertical separator */}
+                <div className="absolute top-0 right-0 w-px h-full bg-[#AA1A2E]/20" />
+
+                {/* Number — top left */}
+                <span className="absolute top-5 left-4 text-[#AA1A2E] text-xs font-medium tabular-nums tracking-wider">
+                  {member.number}
+                </span>
+
+                {/* Vertical name — visible when panel is narrow */}
+                <div
+                  className="absolute bottom-10 left-0 right-0 flex justify-center"
+                  style={{
+                    opacity: isActive ? 0 : 1,
+                    transition: "opacity 0.25s ease",
+                  }}
                 >
-                  {t.partnersTitle}
-                </h3>
-              </div>
-              <div className="flex flex-wrap justify-center gap-10 md:gap-16">
-                {partners.map((member) => (
-                  <TeamMemberCard key={member.id} member={member} testIdPrefix="partner" />
-                ))}
-              </div>
-            </motion.div>
+                  <span
+                    className="text-white/70 text-[10px] uppercase tracking-[0.18em] font-light whitespace-nowrap"
+                    style={{ writingMode: "vertical-rl", transform: "rotate(180deg)" }}
+                    data-testid={`text-name-gdm-${member.slug}`}
+                  >
+                    {member.name}
+                  </span>
+                </div>
 
-            <div className="border-t border-white/10" />
-
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6, delay: 0.1 }}
-              data-testid="of-counsel-section"
-            >
-              <div className="text-center mb-10">
-                <div className="w-12 h-px bg-[#AA1A2E] mx-auto mb-4" />
-                <h3
-                  className="text-base md:text-lg font-heading font-light text-white/90 uppercase tracking-[0.12em]"
-                  data-testid="text-of-counsel-title"
+                {/* Horizontal name + category + arrow — visible when expanded */}
+                <div
+                  className="absolute bottom-6 left-5 right-5"
+                  style={{
+                    opacity: isActive ? 1 : 0,
+                    transform: isActive ? "translateY(0)" : "translateY(8px)",
+                    transition: "opacity 0.3s ease 0.1s, transform 0.3s ease 0.1s",
+                  }}
                 >
-                  {t.ofCounselTitle}
-                </h3>
-              </div>
-              <div className="flex flex-wrap justify-center gap-10 md:gap-16">
-                {ofCounsel.map((member) => (
-                  <TeamMemberCard key={member.id} member={member} testIdPrefix="of-counsel" />
-                ))}
-              </div>
-            </motion.div>
-
-            <div className="border-t border-white/10" />
-
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6, delay: 0.2 }}
-              data-testid="associates-section"
-            >
-              <div className="text-center mb-10">
-                <div className="w-12 h-px bg-[#AA1A2E] mx-auto mb-4" />
-                <h3
-                  className="text-base md:text-lg font-heading font-light text-white/90 uppercase tracking-[0.12em]"
-                  data-testid="text-associates-title"
-                >
-                  {t.associatesTitle}
-                </h3>
-              </div>
-              <div className="flex flex-wrap justify-center gap-10 md:gap-16">
-                {associates.map((member) => (
-                  <TeamMemberCard key={member.id} member={member} testIdPrefix="associate" />
-                ))}
-              </div>
-            </motion.div>
-
-          </div>
+                  <p
+                    className="font-heading font-light text-base uppercase tracking-[0.1em] leading-snug mb-1 text-white"
+                  >
+                    {member.name}
+                  </p>
+                  <p
+                    className="text-xs text-[#AA1A2E] uppercase tracking-[0.08em] mb-3"
+                    data-testid={`text-category-gdm-${member.slug}`}
+                  >
+                    {member.category}
+                  </p>
+                  <div className="flex items-center gap-2 text-[#AA1A2E]">
+                    <ArrowRight className="w-4 h-4" />
+                  </div>
+                </div>
+              </Link>
+            );
+          })}
         </div>
+
+        {/* Mobile + Tablet: 2-column (md: 3-column) image grid */}
+        <div className="lg:hidden grid grid-cols-2 md:grid-cols-3 gap-px">
+          {gdMembers.map((member) => (
+            <Link
+              key={member.id}
+              href={`/team/${member.slug}`}
+              className="relative h-44 overflow-hidden group block"
+              data-testid={`card-gdm-mobile-${member.slug}`}
+              aria-label={member.name}
+            >
+              <img
+                src={member.photo}
+                alt=""
+                aria-hidden="true"
+                className="absolute inset-0 w-full h-full object-cover object-top transition-[transform,filter] duration-500 grayscale group-hover:grayscale-0 group-hover:scale-105"
+              />
+              <div className="absolute inset-0 bg-black/65 group-hover:bg-black/50 transition-colors duration-300" />
+              <span className="absolute top-3 left-3 text-[#AA1A2E] text-xs font-medium tabular-nums">
+                {member.number}
+              </span>
+              <div className="absolute bottom-3 left-3 right-3">
+                <p className="text-[#AA1A2E] text-[9px] uppercase tracking-[0.08em] mb-0.5">
+                  {member.category}
+                </p>
+                <p className="text-white/90 text-xs uppercase tracking-[0.1em] leading-snug font-light">
+                  {member.name}
+                </p>
+              </div>
+            </Link>
+          ))}
+        </div>
+
+        {/* Bottom strip: section title (left) + CTA link (right) */}
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.5 }}
+          className="max-w-7xl mx-auto px-6 lg:px-12 py-8 flex flex-wrap items-center justify-between gap-4"
+        >
+          <div className="flex items-center gap-5">
+            <div className="w-10 h-px bg-[#AA1A2E] shrink-0" />
+            <div>
+              <p className="text-[#AA1A2E] text-[10px] tracking-[0.25em] uppercase mb-1">
+                {t.sectionTitle}
+              </p>
+              <h2
+                className="font-heading font-light text-xl md:text-2xl text-white/90 uppercase tracking-[0.12em]"
+                data-testid="text-team-title"
+              >
+                {t.teamTitle}
+              </h2>
+            </div>
+          </div>
+          <Link
+            href="/german-desk"
+            className="inline-flex items-center gap-2 text-xs font-medium tracking-[0.15em] uppercase text-white/50 hover:text-white transition-colors duration-200 group"
+            data-testid="link-gdm-see-more"
+          >
+            {t.seeMore}
+            <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform duration-200" />
+          </Link>
+        </motion.div>
+
       </div>
 
     </section>
