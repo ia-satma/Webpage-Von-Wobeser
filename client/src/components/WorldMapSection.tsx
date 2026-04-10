@@ -314,7 +314,7 @@ export default function WorldMapSection({ language }: WorldMapSectionProps) {
       </h4>
       {member.title && (
         <p
-          className="text-[10px] text-[#AA1A2E] mt-1 uppercase tracking-[0.08em]"
+          className="text-xs text-[#AA1A2E] mt-1 uppercase tracking-[0.08em]"
           data-testid={`text-title-${member.id}`}
         >
           {member.title}
@@ -570,7 +570,7 @@ export default function WorldMapSection({ language }: WorldMapSectionProps) {
               data-testid="partners-section"
             >
               <div className="text-center mb-10">
-                <div className="w-12 h-px bg-[#AA1A2E] mx-auto mb-5" />
+                <div className="w-12 h-px bg-[#AA1A2E] mx-auto mb-4" />
                 <h3
                   className="text-base md:text-lg font-heading font-light text-white/90 uppercase tracking-[0.12em]"
                   data-testid="text-partners-title"
@@ -595,7 +595,7 @@ export default function WorldMapSection({ language }: WorldMapSectionProps) {
               data-testid="of-counsel-section"
             >
               <div className="text-center mb-10">
-                <div className="w-12 h-px bg-[#AA1A2E] mx-auto mb-5" />
+                <div className="w-12 h-px bg-[#AA1A2E] mx-auto mb-4" />
                 <h3
                   className="text-base md:text-lg font-heading font-light text-white/90 uppercase tracking-[0.12em]"
                   data-testid="text-of-counsel-title"
@@ -620,7 +620,7 @@ export default function WorldMapSection({ language }: WorldMapSectionProps) {
               data-testid="associates-section"
             >
               <div className="text-center mb-10">
-                <div className="w-12 h-px bg-[#AA1A2E] mx-auto mb-5" />
+                <div className="w-12 h-px bg-[#AA1A2E] mx-auto mb-4" />
                 <h3
                   className="text-base md:text-lg font-heading font-light text-white/90 uppercase tracking-[0.12em]"
                   data-testid="text-associates-title"
