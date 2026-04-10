@@ -390,8 +390,10 @@ export default function WorldMapSection({ language }: WorldMapSectionProps) {
                 fill="none"
                 stroke="#AA1A2E"
                 strokeWidth="2"
-                initial={{ pathLength: 0, opacity: 0 }}
-                whileInView={{ pathLength: 1, opacity: 0.9 }}
+                strokeLinecap="round"
+                strokeDasharray="1400"
+                initial={{ strokeDashoffset: 1400, opacity: 0 }}
+                whileInView={{ strokeDashoffset: 0, opacity: 0.9 }}
                 viewport={{ once: true }}
                 transition={{ duration: 2.4, delay: 0.8, ease: "easeInOut" }}
               />
