@@ -225,13 +225,13 @@ const content: Record<SupportedLanguage, ContentTranslation> = {
   },
 };
 
-// Pin coordinates for mapa_1775780643811.png (4410×2828 px, ratio 1.559:1)
-// SVG viewBox: 0 0 1000 641. Calibrated from reference image.
-// Mexico City → x=220, y=404 (22% / 63%)
-// Germany     → x=650, y=179 (65% / 28%)
-const MX = { x: 220, y: 404 };
-const DE = { x: 650, y: 179 };
-const ARC = `M ${MX.x},${MX.y} Q 400,50 ${DE.x},${DE.y}`;
+// Pin coordinates for mapa_1775780643811.png — calibrated from reference image
+// SVG viewBox: 0 0 1000 641.
+// Mexico City → x=190, y=449 (19% / 70%)
+// Germany     → x=690, y=154 (69% / 24%)
+const MX = { x: 190, y: 449 };
+const DE = { x: 690, y: 154 };
+const ARC = `M ${MX.x},${MX.y} Q 380,20 ${DE.x},${DE.y}`;
 
 
 // useCountUp hook
@@ -432,16 +432,16 @@ export default function WorldMapSection({ language }: WorldMapSectionProps) {
           {/* HTML label: Mexico City — to the right of pin */}
           <div
             className="absolute pointer-events-none"
-            style={{ left: "24%", top: "63%", transform: "translate(12px, -50%)" }}
+            style={{ left: "21%", top: "70%", transform: "translate(12px, -50%)" }}
           >
             <div className="px-1">
               <p
-                className="text-sm font-heading font-bold tracking-[0.15em] uppercase text-foreground leading-tight"
+                className="text-sm font-heading font-bold tracking-[0.15em] uppercase leading-tight text-[#1a1a1a]"
                 data-testid="text-mexico-label"
               >
                 {t.mexicoLabel}
               </p>
-              <p className="text-xs text-muted-foreground tracking-[0.08em] leading-tight">
+              <p className="text-xs tracking-[0.08em] leading-tight text-[#777777]">
                 {t.mexicoSubtitle}
               </p>
             </div>
@@ -450,16 +450,16 @@ export default function WorldMapSection({ language }: WorldMapSectionProps) {
           {/* HTML label: Germany — to the right of pin */}
           <div
             className="absolute pointer-events-none"
-            style={{ left: "67%", top: "28%", transform: "translate(12px, -50%)" }}
+            style={{ left: "71%", top: "24%", transform: "translate(12px, -50%)" }}
           >
             <div className="px-1">
               <p
-                className="text-sm font-heading font-bold tracking-[0.15em] uppercase text-foreground leading-tight"
+                className="text-sm font-heading font-bold tracking-[0.15em] uppercase leading-tight text-[#1a1a1a]"
                 data-testid="text-germany-label"
               >
                 {t.germanyLabel}
               </p>
-              <p className="text-xs text-muted-foreground tracking-[0.08em] leading-tight">
+              <p className="text-xs tracking-[0.08em] leading-tight text-[#777777]">
                 {t.germanySubtitle}
               </p>
             </div>
@@ -468,7 +468,7 @@ export default function WorldMapSection({ language }: WorldMapSectionProps) {
           {/* HTML label: GERMAN DESK on arc — animated */}
           <motion.div
             className="absolute pointer-events-none"
-            style={{ left: "43%", top: "15%", transform: "translate(-50%, 0)" }}
+            style={{ left: "38%", top: "10%", transform: "translate(-50%, 0)" }}
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}
             viewport={{ once: true }}
