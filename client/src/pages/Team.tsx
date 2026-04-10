@@ -55,6 +55,8 @@ export default function Team() {
   const [filterPractice, setFilterPractice] = useState<string>("all");
   const [filterLetter, setFilterLetter] = useState<string>("all");
   const [activePanel, setActivePanel] = useState<string | null>(null);
+  const [partnerPanels, setPartnerPanels] = useState<Record<number, string | null>>({});
+  const [assocPanels, setAssocPanels] = useState<Record<number, string | null>>({});
   
   // Listen for URL changes to update filter (for SPA navigation)
   useEffect(() => {
@@ -572,11 +574,11 @@ export default function Team() {
                     <div
                       key={rowIdx}
                       className="flex w-full h-[440px]"
-                      onMouseLeave={() => setActivePanel(null)}
+                      onMouseLeave={() => setPartnerPanels(prev => ({ ...prev, [rowIdx]: null }))}
                     >
                       {row.map((member, colIdx) => {
                         const idx = rowIdx * 8 + colIdx;
-                        const isActive = activePanel === `p-${member.id}`;
+                        const isActive = partnerPanels[rowIdx] === `p-${member.id}`;
                         return (
                           <Link
                             key={member.id}
@@ -585,7 +587,7 @@ export default function Team() {
                             aria-label={member.name}
                             className="relative overflow-hidden cursor-pointer block"
                             style={{ flex: isActive ? 4 : 1, transition: "flex 0.5s cubic-bezier(0.22, 1, 0.36, 1)", minWidth: 0 }}
-                            onMouseEnter={() => setActivePanel(`p-${member.id}`)}
+                            onMouseEnter={() => setPartnerPanels(prev => ({ ...prev, [rowIdx]: `p-${member.id}` }))}
                           >
                             <div className="absolute inset-0 bg-[#1a1a18] flex items-center justify-center">
                               <span className="text-2xl font-heading font-bold text-[#AA1A2E]/50 select-none">{getInitials(member.name)}</span>
@@ -719,11 +721,11 @@ export default function Team() {
                     <div
                       key={rowIdx}
                       className="flex w-full h-[400px]"
-                      onMouseLeave={() => setActivePanel(null)}
+                      onMouseLeave={() => setAssocPanels(prev => ({ ...prev, [rowIdx]: null }))}
                     >
                       {row.map((member, colIdx) => {
                         const idx = rowIdx * 9 + colIdx;
-                        const isActive = activePanel === `a-${member.id}`;
+                        const isActive = assocPanels[rowIdx] === `a-${member.id}`;
                         return (
                           <Link
                             key={member.id}
@@ -732,7 +734,7 @@ export default function Team() {
                             aria-label={member.name}
                             className="relative overflow-hidden cursor-pointer block"
                             style={{ flex: isActive ? 4 : 1, transition: "flex 0.45s cubic-bezier(0.22, 1, 0.36, 1)", minWidth: 0 }}
-                            onMouseEnter={() => setActivePanel(`a-${member.id}`)}
+                            onMouseEnter={() => setAssocPanels(prev => ({ ...prev, [rowIdx]: `a-${member.id}` }))}
                           >
                             <div className="absolute inset-0 bg-[#1a1a18] flex items-center justify-center">
                               <span className="text-xl font-heading font-bold text-[#AA1A2E]/40 select-none">{getInitials(member.name)}</span>
