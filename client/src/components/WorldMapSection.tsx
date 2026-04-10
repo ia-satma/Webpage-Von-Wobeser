@@ -562,7 +562,7 @@ export default function WorldMapSection({ language }: WorldMapSectionProps) {
             <p className="text-[#AA1A2E] text-[10px] tracking-[0.25em] uppercase">{t.partnersTitle}</p>
           </div>
           {/* Desktop: expanding panels */}
-          <div className="hidden lg:flex w-full h-[440px]" onMouseLeave={() => setActivePanel(null)}>
+          <div className="hidden lg:flex w-full h-[420px]" onMouseLeave={() => setActivePanel(null)}>
             {gdSocios.map((member) => {
               const isActive = activePanel === member.id;
               return (

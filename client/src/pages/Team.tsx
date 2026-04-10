@@ -549,7 +549,7 @@ export default function Team() {
                 <div className="px-6 lg:px-12 pt-10 pb-4">
                   <div className="flex items-center gap-3 mb-1">
                     <div className="w-8 h-px bg-[#AA1A2E] shrink-0" />
-                    <p className="text-[#AA1A2E] text-[10px] tracking-[0.3em] uppercase font-medium">{t.partnersOnly}</p>
+                    <p className="text-[#AA1A2E] text-[10px] tracking-[0.3em] uppercase font-medium">NUESTRO EQUIPO</p>
                     <span className="text-white/20 text-[9px] tracking-wider ml-1">— {groupedMembers.partners.length}</span>
                   </div>
                   <h2 className="font-heading font-light text-xl uppercase tracking-[0.12em] text-white/90">
@@ -558,7 +558,7 @@ export default function Team() {
                 </div>
                 {/* Desktop: expanding panels with horizontal scroll */}
                 <div
-                  className="hidden lg:flex w-full h-[480px] overflow-x-auto"
+                  className="hidden lg:flex w-full h-[440px] overflow-x-auto"
                   style={{ scrollbarWidth: "none" }}
                   onMouseLeave={() => setActivePanel(null)}
                 >
@@ -596,8 +596,8 @@ export default function Team() {
                     );
                   })}
                 </div>
-                {/* Mobile: portrait grid */}
-                <div className="lg:hidden grid grid-cols-3 sm:grid-cols-4 gap-px">
+                {/* Mobile: 2-column portrait grid */}
+                <div className="lg:hidden grid grid-cols-2 gap-px">
                   {groupedMembers.partners.map((member, idx) => (
                     <Link key={member.id} href={`/team/${member.slug}`} className="relative overflow-hidden group block cursor-pointer" style={{ aspectRatio: "3/4" }} data-testid={`card-team-member-mob-${member.slug}`} aria-label={member.name}>
                       <img src={getPhotoSrc(member)} alt="" aria-hidden="true" className="absolute inset-0 w-full h-full object-cover object-top transition-[transform,filter] duration-500 grayscale group-hover:grayscale-0 group-hover:scale-105" onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }} />
@@ -605,9 +605,10 @@ export default function Team() {
                         <span className="text-2xl font-heading font-bold text-[#AA1A2E]/50 select-none">{getInitials(member.name)}</span>
                       </div>
                       <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent" />
-                      <span className="absolute top-2 left-2 text-[#AA1A2E] text-[8px] font-medium tabular-nums">{String(idx + 1).padStart(2, '0')}</span>
-                      <div className="absolute bottom-0 left-0 right-0 px-2 pb-2">
-                        <p className="text-white text-[8px] uppercase tracking-[0.06em] leading-snug font-light line-clamp-2">{member.name}</p>
+                      <span className="absolute top-2 left-2 text-[#AA1A2E] text-[9px] font-medium tabular-nums">{String(idx + 1).padStart(2, '0')}</span>
+                      <div className="absolute bottom-0 left-0 right-0 px-3 pb-3">
+                        <p className="text-[#AA1A2E] text-[8px] uppercase tracking-[0.1em] mb-0.5">{t.partnersOnly}</p>
+                        <p className="text-white text-[9px] uppercase tracking-[0.06em] leading-snug font-light line-clamp-2">{member.name}</p>
                       </div>
                     </Link>
                   ))}
@@ -629,7 +630,7 @@ export default function Team() {
                   </h2>
                 </div>
                 {/* Desktop: expanding panels */}
-                <div className="hidden lg:flex w-full h-[420px]" onMouseLeave={() => setActivePanel(null)}>
+                <div className="hidden lg:flex w-full h-[380px]" onMouseLeave={() => setActivePanel(null)}>
                   {groupedMembers.ofCounsel.map((member, idx) => {
                     const isActive = activePanel === `oc-${member.id}`;
                     return (
@@ -664,8 +665,8 @@ export default function Team() {
                     );
                   })}
                 </div>
-                {/* Mobile: grid */}
-                <div className="lg:hidden grid grid-cols-2 sm:grid-cols-3 gap-px">
+                {/* Mobile: 2-column grid */}
+                <div className="lg:hidden grid grid-cols-2 gap-px">
                   {groupedMembers.ofCounsel.map((member, idx) => (
                     <Link key={member.id} href={`/team/${member.slug}`} className="relative overflow-hidden group block cursor-pointer" style={{ aspectRatio: "3/4" }} data-testid={`card-team-member-mob-${member.slug}`} aria-label={member.name}>
                       <img src={getPhotoSrc(member)} alt="" aria-hidden="true" className="absolute inset-0 w-full h-full object-cover object-top transition-[transform,filter] duration-500 grayscale group-hover:grayscale-0 group-hover:scale-105" onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }} />
@@ -674,7 +675,7 @@ export default function Team() {
                       </div>
                       <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-transparent" />
                       <span className="absolute top-2 left-2 text-[#AA1A2E] text-[9px] font-medium tabular-nums">{String(idx + 1).padStart(2, '0')}</span>
-                      <div className="absolute bottom-0 left-0 right-0 p-3">
+                      <div className="absolute bottom-0 left-0 right-0 px-3 pb-3">
                         <p className="text-[#AA1A2E] text-[8px] uppercase tracking-[0.1em] mb-0.5">{member.title}</p>
                         <p className="text-white text-[9px] uppercase tracking-[0.06em] leading-snug font-light">{member.name}</p>
                       </div>
@@ -699,7 +700,7 @@ export default function Team() {
                 </div>
                 {/* Desktop: expanding panels with horizontal scroll */}
                 <div
-                  className="hidden lg:flex w-full h-[380px] overflow-x-auto"
+                  className="hidden lg:flex w-full h-[400px] overflow-x-auto"
                   style={{ scrollbarWidth: "none" }}
                   onMouseLeave={() => setActivePanel(null)}
                 >
@@ -724,8 +725,12 @@ export default function Team() {
                         <div className="absolute bottom-6 left-0 right-0 flex justify-center" style={{ opacity: isActive ? 0 : 1, transition: "opacity 0.2s ease" }}>
                           <span className="text-white/50 text-[8px] uppercase tracking-[0.12em] font-light whitespace-nowrap" style={{ writingMode: "vertical-rl", transform: "rotate(180deg)" }}>{member.name}</span>
                         </div>
+                        <div className="absolute top-4 left-3" style={{ opacity: isActive ? 1 : 0, transition: "opacity 0.25s ease 0.05s" }}>
+                          <span className="text-[#AA1A2E] text-[9px] font-medium tabular-nums tracking-wider">{String(idx + 1).padStart(2, '0')}</span>
+                        </div>
                         <div className="absolute bottom-4 left-3 right-3" style={{ opacity: isActive ? 1 : 0, transform: isActive ? "translateY(0)" : "translateY(6px)", transition: "opacity 0.3s ease 0.1s, transform 0.3s ease 0.1s" }}>
-                          <p className="font-heading font-light text-sm uppercase tracking-[0.08em] leading-snug mb-1 text-white whitespace-nowrap overflow-hidden text-ellipsis">{member.name}</p>
+                          <p className="font-heading font-light text-sm uppercase tracking-[0.08em] leading-snug mb-0.5 text-white whitespace-nowrap overflow-hidden text-ellipsis">{member.name}</p>
+                          <p className="text-[9px] text-[#AA1A2E] uppercase tracking-[0.08em] mb-2">{t.associates}</p>
                           <div className="flex items-center gap-1.5 text-[#AA1A2E]">
                             <span className="text-[9px] uppercase tracking-[0.1em]">{t.viewProfile}</span>
                             <ArrowRight className="w-3 h-3" />
@@ -735,8 +740,8 @@ export default function Team() {
                     );
                   })}
                 </div>
-                {/* Mobile: portrait grid */}
-                <div className="lg:hidden grid grid-cols-3 sm:grid-cols-4 gap-px">
+                {/* Mobile: 2-column portrait grid */}
+                <div className="lg:hidden grid grid-cols-2 gap-px">
                   {groupedMembers.associates.map((member, idx) => (
                     <Link key={member.id} href={`/team/${member.slug}`} className="relative overflow-hidden group block cursor-pointer" style={{ aspectRatio: "3/4" }} data-testid={`card-team-member-mob-${member.slug}`} aria-label={member.name}>
                       <img src={getPhotoSrc(member)} alt="" aria-hidden="true" className="absolute inset-0 w-full h-full object-cover object-top transition-[transform,filter] duration-500 grayscale group-hover:grayscale-0 group-hover:scale-105" onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }} />
@@ -744,8 +749,10 @@ export default function Team() {
                         <span className="text-xl font-heading font-bold text-[#AA1A2E]/40 select-none">{getInitials(member.name)}</span>
                       </div>
                       <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent" />
-                      <div className="absolute bottom-0 left-0 right-0 px-2 pb-2">
-                        <p className="text-white text-[7px] uppercase tracking-[0.05em] leading-snug font-light line-clamp-2">{member.name}</p>
+                      <span className="absolute top-2 left-2 text-[#AA1A2E] text-[8px] font-medium tabular-nums">{String(idx + 1).padStart(2, '0')}</span>
+                      <div className="absolute bottom-0 left-0 right-0 px-2.5 pb-2.5">
+                        <p className="text-[#AA1A2E] text-[7px] uppercase tracking-[0.08em] mb-0.5">{t.associates}</p>
+                        <p className="text-white text-[8px] uppercase tracking-[0.05em] leading-snug font-light line-clamp-2">{member.name}</p>
                       </div>
                     </Link>
                   ))}
