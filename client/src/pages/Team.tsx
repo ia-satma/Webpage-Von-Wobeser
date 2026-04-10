@@ -2,7 +2,6 @@ import { useState, useMemo, useEffect } from "react";
 import { motion } from "framer-motion";
 import { AlertCircle, Users, Search, X } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
-import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Input } from "@/components/ui/input";
@@ -490,6 +489,7 @@ export default function Team() {
             transition={{ duration: 0.4 }}
             className="mb-10"
           >
+            <div className="w-12 h-px bg-primary mb-6" />
             <div className="flex flex-col lg:flex-row gap-4 mb-6">
               <div className="relative flex-1">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
@@ -558,20 +558,16 @@ export default function Team() {
               </p>
             </div>
           ) : isLoadingAll ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-              {Array.from({ length: 12 }).map((_, i) => (
-                <Card 
-                  key={i} 
-                  className="rounded-md border-0 shadow-sm bg-muted"
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+              {Array.from({ length: 15 }).map((_, i) => (
+                <div
+                  key={i}
+                  className="w-full bg-muted"
+                  style={{ aspectRatio: "3/4" }}
                   data-testid={`skeleton-team-member-${i}`}
                 >
-                  <CardContent className="p-6 text-center">
-                    <Skeleton className="h-24 w-24 rounded-full mx-auto mb-4" />
-                    <Skeleton className="h-5 w-3/4 mx-auto mb-2" />
-                    <Skeleton className="h-4 w-1/2 mx-auto mb-1" />
-                    <Skeleton className="h-4 w-2/3 mx-auto" />
-                  </CardContent>
-                </Card>
+                  <Skeleton className="w-full h-full" />
+                </div>
               ))}
             </div>
           ) : filteredMembers.length === 0 ? (
@@ -597,7 +593,7 @@ export default function Team() {
               variants={containerVariants}
               initial="hidden"
               animate="visible"
-              className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6"
+              className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4"
             >
               {filteredMembers.map((member) => (
                 <motion.div key={member.id} variants={itemVariants}>
