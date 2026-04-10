@@ -177,7 +177,7 @@ export default function RankingsSection() {
         whileInView="visible"
         viewport={{ once: true }}
       >
-        <div className="bg-white w-full py-10 px-6">
+        <div className="bg-white w-full py-10">
           <div className="flex flex-wrap justify-center items-center gap-8 md:gap-12 lg:gap-16">
             {rankings.map((ranking) => (
               <motion.div
