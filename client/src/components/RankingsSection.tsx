@@ -104,9 +104,10 @@ export default function RankingsSection() {
   return (
     <section
       id="rankings"
-      className="py-20 lg:py-28 bg-muted border-t border-border"
+      className="pt-20 lg:pt-28 pb-0 bg-muted border-t border-border"
       data-testid="section-rankings"
     >
+      {/* Text content — constrained width */}
       <div className="max-w-7xl mx-auto px-6 lg:px-12">
 
         {/* Header */}
@@ -167,34 +168,35 @@ export default function RankingsSection() {
         {/* Divider */}
         <div className="w-full max-w-2xl mx-auto border-t border-border mb-10" data-testid="divider-recognitions" />
 
-        {/* Logos — white background so PNG badges don't show their backgrounds */}
-        <motion.div
-          variants={logoVariants}
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true }}
-        >
-          <div className="bg-white py-10 px-6 -mx-6 lg:-mx-12">
-            <div className="flex flex-wrap justify-center items-center gap-8 md:gap-12 lg:gap-16">
-              {rankings.map((ranking) => (
-                <motion.div
-                  key={ranking.id}
-                  variants={logoItem}
-                  className="flex items-center justify-center"
-                >
-                  <img
-                    src={ranking.src}
-                    alt={ranking.alt}
-                    className="h-20 sm:h-24 md:h-28 lg:h-32 w-auto max-w-full object-contain grayscale hover:grayscale-0 transition-all duration-300"
-                    data-testid={`img-ranking-${ranking.id}`}
-                  />
-                </motion.div>
-              ))}
-            </div>
-          </div>
-        </motion.div>
-
       </div>
+
+      {/* Logos — full-width white band, outside the max-w container */}
+      <motion.div
+        variants={logoVariants}
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true }}
+      >
+        <div className="bg-white w-full py-10 px-6">
+          <div className="flex flex-wrap justify-center items-center gap-8 md:gap-12 lg:gap-16">
+            {rankings.map((ranking) => (
+              <motion.div
+                key={ranking.id}
+                variants={logoItem}
+                className="flex items-center justify-center"
+              >
+                <img
+                  src={ranking.src}
+                  alt={ranking.alt}
+                  className="h-20 sm:h-24 md:h-28 lg:h-32 w-auto max-w-full object-contain grayscale hover:grayscale-0 transition-all duration-300"
+                  data-testid={`img-ranking-${ranking.id}`}
+                />
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </motion.div>
+
     </section>
   );
 }
