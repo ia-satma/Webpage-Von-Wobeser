@@ -4,7 +4,7 @@ import { Link } from "wouter";
 import { ArrowRight } from "lucide-react";
 
 import worldMapImg from "@assets/mapa_1775780643811.png";
-import worldMapDarkImg from "@assets/mapa-dark_1775838972648.png";
+import worldMapDarkImg from "@assets/mapa-dark_1775840419694.png";
 import clausVonWobeserPhoto from "@assets/of_counsel_photos/claus_von_wobeser.jpg";
 import luisBurguenoPhoto from "@assets/partner_photos/luis_burgueno.jpg";
 import katharinaRoehrPhoto from "@assets/partner_photos/katharina_roehr.jpg";
