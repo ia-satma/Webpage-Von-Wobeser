@@ -40,7 +40,7 @@ const content: Record<LanguageCode, ContentItem> = {
   de: {
     eyebrow: "SOZIALE VERANTWORTUNG",
     title: "PRO BONO",
-    text: "Von Wobeser y Sierra setzt sich dafür ein, Rechtsdienstleistungen für diejenigen bereitzustellen, die sie am meisten benötigen. Unser Pro-Bono-Programm ermöglicht es uns, der Gemeinschaft etwas zurückzugeben.",
+    text: "Von Wobeser y Sierra setzt sich dafür ein, Rechtsdienstleistungen für diejenigen bereitzustellen, die sie am meisten benötigen. Unser Pro-Bono-Programm ermöglicht es uns, der Gemeinschaft etwas zurückzugeben und Organisationen sowie Einzelpersonen zu unterstützen, die sich keine rechtliche Vertretung leisten können.",
     buttonText: "MEHR ERFAHREN",
     pillars: [
       { label: "Zugang zur Justiz", desc: "Rechtliche Vertretung für diejenigen, die sie am meisten benötigen." },
@@ -95,7 +95,7 @@ const content: Record<LanguageCode, ContentItem> = {
   ru: {
     eyebrow: "СОЦИАЛЬНАЯ ОТВЕТСТВЕННОСТЬ",
     title: "ПРО БОНО",
-    text: "Von Wobeser y Sierra стремится предоставлять юридические услуги тем, кто в них больше всего нуждается. Наша программа pro bono позволяет нам отдавать долг обществу и поддерживать организации и частных лиц.",
+    text: "Von Wobeser y Sierra стремится предоставлять юридические услуги тем, кто в них больше всего нуждается. Наша программа pro bono позволяет нам отдавать долг обществу и поддерживать организации и частных лиц, которые не могут позволить себе юридическое представительство.",
     buttonText: "ПОДРОБНЕЕ",
     pillars: [
       { label: "Доступ к Правосудию", desc: "Юридическое представительство для тех, кто нуждается в нём больше всего." },
@@ -106,7 +106,7 @@ const content: Record<LanguageCode, ContentItem> = {
   fr: {
     eyebrow: "RESPONSABILITÉ SOCIALE",
     title: "PRO BONO",
-    text: "Von Wobeser y Sierra s'engage à fournir des services juridiques à ceux qui en ont le plus besoin. Notre programme pro bono nous permet de redonner à la communauté et de soutenir les organisations et les individus.",
+    text: "Von Wobeser y Sierra s'engage à fournir des services juridiques à ceux qui en ont le plus besoin. Notre programme pro bono nous permet de redonner à la communauté et de soutenir les organisations et les individus qui ne peuvent pas se permettre une représentation juridique.",
     buttonText: "EN SAVOIR PLUS",
     pillars: [
       { label: "Accès à la Justice", desc: "Représentation juridique pour ceux qui en ont le plus besoin." },
@@ -153,7 +153,7 @@ export default function ProBonoSection() {
           whileInView={{ opacity: 1 }}
           viewport={{ once: true }}
           transition={{ duration: 0.7 }}
-          className="bg-[#AA1A2E] flex items-center justify-center px-10 py-14 lg:py-0 h-44 lg:h-auto lg:w-2/5 shrink-0 order-first lg:order-last"
+          className="bg-[#AA1A2E] flex items-center justify-center px-10 py-14 lg:py-0 h-[180px] lg:h-auto lg:w-2/5 shrink-0 order-first lg:order-last"
           data-testid="panel-probono-red"
         >
           <h2
@@ -176,11 +176,17 @@ export default function ProBonoSection() {
           >
             <div className="w-8 h-px bg-[#AA1A2E] mb-5" />
             <p
-              className="text-[#AA1A2E] text-[10px] tracking-[0.25em] uppercase mb-5"
+              className="text-[#AA1A2E] text-[10px] tracking-[0.25em] uppercase mb-4"
               data-testid="text-pro-bono-eyebrow"
             >
               {t.eyebrow}
             </p>
+            <h2
+              className="font-heading font-light text-2xl md:text-3xl lg:text-4xl text-foreground uppercase tracking-[0.12em] leading-tight mb-5"
+              data-testid="text-pro-bono-title-content"
+            >
+              {t.title}
+            </h2>
             <p
               className="text-sm text-muted-foreground leading-relaxed"
               data-testid="text-pro-bono-description"

@@ -153,7 +153,7 @@ export default function DiversityInclusionSection() {
           whileInView={{ opacity: 1 }}
           viewport={{ once: true }}
           transition={{ duration: 0.7 }}
-          className="bg-[#AA1A2E] flex items-center justify-center px-10 py-14 lg:py-0 h-44 lg:h-auto lg:w-2/5 shrink-0"
+          className="bg-[#AA1A2E] flex items-center justify-center px-10 py-14 lg:py-0 h-[180px] lg:h-auto lg:w-2/5 shrink-0"
           data-testid="panel-diversity-red"
         >
           <h2
