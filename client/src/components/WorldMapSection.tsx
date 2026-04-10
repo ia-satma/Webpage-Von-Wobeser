@@ -260,7 +260,7 @@ function StatBlock({ target, suffix, label }: { target: number; suffix?: string;
   const { count, ref } = useCountUp(target);
   return (
     <div ref={ref} className="text-center py-8 lg:py-10">
-      <div className="font-heading font-light text-3xl lg:text-4xl leading-none text-primary tabular-nums" data-testid="stat-value">
+      <div className="font-heading font-light text-5xl lg:text-6xl xl:text-7xl leading-none text-primary tabular-nums" data-testid="stat-value">
         {count}{suffix}
       </div>
       <p className="mt-3 text-xs uppercase tracking-[0.2em] text-muted-foreground">{label}</p>
@@ -434,15 +434,15 @@ export default function WorldMapSection({ language }: WorldMapSectionProps) {
             className="absolute pointer-events-none"
             style={{ left: "22.5%", top: "41%", transform: "translate(-50%, 12px)" }}
           >
-            <div className="w-px h-3 bg-primary/30 mx-auto" />
-            <div className="bg-white/95 backdrop-blur-sm border border-border/20 shadow-sm px-3 py-1.5 text-center">
+            <div className="w-px h-3 bg-primary/40 mx-auto" />
+            <div className="px-2 py-1 text-center">
               <p
-                className="text-[10px] font-semibold tracking-[0.2em] uppercase text-foreground leading-none mb-1"
+                className="text-[11px] font-heading font-semibold tracking-[0.2em] uppercase text-foreground leading-none mb-0.5 drop-shadow-sm"
                 data-testid="text-mexico-label"
               >
                 {t.mexicoLabel}
               </p>
-              <p className="text-[8px] text-muted-foreground tracking-[0.1em] leading-none">
+              <p className="text-[9px] text-muted-foreground tracking-[0.1em] leading-none drop-shadow-sm">
                 {t.mexicoSubtitle}
               </p>
             </div>
@@ -453,18 +453,18 @@ export default function WorldMapSection({ language }: WorldMapSectionProps) {
             className="absolute pointer-events-none"
             style={{ left: "52.4%", top: "19.5%", transform: "translate(-50%, calc(-100% - 4px))" }}
           >
-            <div className="bg-white/95 backdrop-blur-sm border border-border/20 shadow-sm px-3 py-1.5 text-center">
+            <div className="px-2 py-1 text-center">
               <p
-                className="text-[10px] font-semibold tracking-[0.2em] uppercase text-foreground leading-none mb-1"
+                className="text-[11px] font-heading font-semibold tracking-[0.2em] uppercase text-foreground leading-none mb-0.5 drop-shadow-sm"
                 data-testid="text-germany-label"
               >
                 {t.germanyLabel}
               </p>
-              <p className="text-[8px] text-muted-foreground tracking-[0.1em] leading-none">
+              <p className="text-[9px] text-muted-foreground tracking-[0.1em] leading-none drop-shadow-sm">
                 {t.germanySubtitle}
               </p>
             </div>
-            <div className="w-px h-3 bg-primary/30 mx-auto" />
+            <div className="w-px h-3 bg-primary/40 mx-auto" />
           </div>
 
           {/* HTML label: GERMAN DESK on arc — animated */}
