@@ -276,12 +276,12 @@ export default function AboutUsSection() {
             <motion.div
               key={testId}
               variants={cardVariants}
-              className="group bg-card border border-border p-8 lg:p-10 flex flex-col gap-6"
+              className="group bg-card border border-border rounded-none p-8 lg:p-10 flex flex-col gap-6"
               data-testid={testId}
             >
               {/* Icon circle */}
               <div className="flex items-start gap-5">
-                <div className="flex-shrink-0 w-14 h-14 bg-primary/10 flex items-center justify-center transition-transform duration-300 group-hover:-translate-y-1">
+                <div className="flex-shrink-0 w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center transition-transform duration-300 group-hover:-translate-y-1">
                   <Icon className="w-6 h-6 text-primary" strokeWidth={1.5} />
                 </div>
                 <div className="flex flex-col justify-center pt-1">
@@ -340,7 +340,7 @@ export default function AboutUsSection() {
                 initial="hidden"
                 whileInView="visible"
                 viewport={{ once: true }}
-                className="group bg-muted p-6 flex flex-col items-center text-center gap-3"
+                className="group bg-muted rounded-none p-6 flex flex-col items-center text-center gap-3"
                 data-testid={`value-item-${i}`}
               >
                 <div className="w-12 h-12 bg-background flex items-center justify-center mb-1 transition-transform duration-300 group-hover:scale-110">
