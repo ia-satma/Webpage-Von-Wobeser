@@ -823,26 +823,39 @@ export default function ProBono() {
     <div className="min-h-screen bg-background" data-testid="page-pro-bono">
       <SEOHead page="proBono" language={language} />
       <Header />
-      
-      <section className="pt-32 pb-12 bg-primary" data-testid="section-pro-bono-hero">
-        <div className="max-w-7xl mx-auto px-6 lg:px-12">
+
+      <section className="relative pt-36 pb-20 bg-gradient-to-b from-primary via-primary/95 to-primary/85 overflow-hidden" data-testid="section-pro-bono-hero">
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(255,255,255,0.08)_0%,transparent_60%)]" />
+        <div className="absolute bottom-0 left-0 right-0 h-px bg-white/10" />
+        <div className="max-w-7xl mx-auto px-6 lg:px-12 relative z-10">
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
+            transition={{ duration: 0.7 }}
             className="text-center"
           >
-            <div className="flex items-center justify-center gap-3 mb-4">
-              <Heart className="w-10 h-10 text-white" />
-            </div>
-            <h1 
-              className="text-3xl md:text-4xl font-heading font-light text-white mb-4 uppercase tracking-[0.12em]"
+            <motion.div
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.5, delay: 0.2 }}
+              className="flex items-center justify-center gap-3 mb-6"
+            >
+              <Heart className="w-10 h-10 text-white/90" />
+            </motion.div>
+            <motion.div
+              initial={{ width: 0 }}
+              animate={{ width: "3rem" }}
+              transition={{ duration: 0.6, delay: 0.3 }}
+              className="h-0.5 bg-white/40 mx-auto mb-6"
+            />
+            <h1
+              className="text-4xl md:text-5xl lg:text-6xl font-heading font-light text-white mb-6 uppercase tracking-[0.15em]"
               data-testid="text-pro-bono-title"
             >
               {t.title}
             </h1>
-            <p 
-              className="text-lg text-white/90 max-w-2xl mx-auto"
+            <p
+              className="text-lg md:text-xl text-white/85 max-w-3xl mx-auto font-light leading-relaxed"
               data-testid="text-pro-bono-subtitle"
             >
               {t.subtitle}
@@ -851,60 +864,68 @@ export default function ProBono() {
         </div>
       </section>
 
-      <main id="main-content" className="py-16 lg:py-20">
-        <div className="max-w-7xl mx-auto px-6 lg:px-12">
-          <motion.section
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.2 }}
-            className="mb-20"
-            data-testid="section-commitment"
-          >
-            <h2 className="text-2xl font-heading font-light text-[#AA1A2E] mb-6 uppercase tracking-[0.12em]">
-              {t.commitmentTitle}
-            </h2>
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              <p className="text-lg text-foreground leading-relaxed">
-                {t.commitmentText1}
-              </p>
-              <p className="text-lg text-foreground leading-relaxed">
-                {t.commitmentText2}
-              </p>
-            </div>
-          </motion.section>
+      <main id="main-content">
+        <section className="py-20 lg:py-24" data-testid="section-commitment">
+          <div className="max-w-7xl mx-auto px-6 lg:px-12">
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6 }}
+            >
+              <div className="flex items-center gap-4 mb-8">
+                <div className="h-0.5 w-8 bg-primary" />
+                <h2 className="text-2xl md:text-3xl font-heading font-light text-foreground uppercase tracking-[0.12em]">
+                  {t.commitmentTitle}
+                </h2>
+              </div>
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <p className="text-lg text-foreground leading-relaxed">
+                  {t.commitmentText1}
+                </p>
+                <p className="text-lg text-muted-foreground leading-relaxed">
+                  {t.commitmentText2}
+                </p>
+              </div>
+            </motion.div>
+          </div>
+        </section>
 
-          <motion.section
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.3 }}
-            className="mb-20"
-            data-testid="section-areas"
-          >
-            <div className="text-center mb-12">
-              <h2 className="text-2xl font-heading font-light text-[#AA1A2E] mb-4 uppercase tracking-[0.12em]">
-                {t.areasTitle}
-              </h2>
-              <p className="text-lg text-muted-foreground" data-testid="text-areas-subtitle">
+        <section className="py-20 lg:py-24 bg-secondary/50" data-testid="section-areas">
+          <div className="max-w-7xl mx-auto px-6 lg:px-12">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6 }}
+              className="text-center mb-16"
+            >
+              <p className="font-support text-xs uppercase tracking-[0.2em] text-primary mb-4" data-testid="text-areas-subtitle">
                 {t.areasSubtitle}
               </p>
-            </div>
-            
-            <motion.div 
+              <h2 className="text-2xl md:text-3xl font-heading font-light text-foreground uppercase tracking-[0.12em] mb-4">
+                {t.areasTitle}
+              </h2>
+              <div className="h-0.5 w-12 bg-primary mx-auto" />
+            </motion.div>
+
+            <motion.div
               variants={containerVariants}
               initial="hidden"
-              animate="visible"
+              whileInView="visible"
+              viewport={{ once: true }}
               className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
             >
               {t.areas.map((area, index) => (
                 <motion.div key={index} variants={itemVariants}>
-                  <Card className="h-full rounded-none border border-border" data-testid={`card-area-${index}`}>
+                  <Card className="h-full rounded-none border border-border hover-elevate transition-all duration-300" data-testid={`card-area-${index}`}>
                     <CardContent className="p-6">
                       <div className="flex items-start gap-4">
-                        <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                        <div className="w-12 h-12 rounded-none bg-primary/10 flex items-center justify-center flex-shrink-0">
                           <area.icon className="w-6 h-6 text-primary" />
                         </div>
                         <div>
-                          <h3 className="text-lg font-semibold text-foreground mb-2">
+                          <h3 className="text-lg font-medium text-foreground mb-2">
                             {area.title}
                           </h3>
                           <p className="text-sm text-muted-foreground leading-relaxed">
@@ -917,72 +938,87 @@ export default function ProBono() {
                 </motion.div>
               ))}
             </motion.div>
-          </motion.section>
+          </div>
+        </section>
 
-          <motion.section
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.4 }}
-            className="mb-20 bg-muted rounded-none p-10"
-            data-testid="section-stats"
-          >
-            <h2 className="text-2xl font-heading font-light text-[#AA1A2E] mb-8 text-center uppercase tracking-[0.12em]">
-              {t.statsTitle}
-            </h2>
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-8">
+        <section className="bg-primary py-16 lg:py-20" data-testid="section-stats">
+          <div className="max-w-7xl mx-auto px-6 lg:px-12">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6 }}
+              className="text-center mb-12"
+            >
+              <h2 className="text-2xl md:text-3xl font-heading font-light text-white uppercase tracking-[0.15em]">
+                {t.statsTitle}
+              </h2>
+              <div className="h-0.5 w-12 bg-white/40 mx-auto mt-4" />
+            </motion.div>
+            <motion.div
+              variants={containerVariants}
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true }}
+              className="grid grid-cols-2 lg:grid-cols-4 gap-8"
+            >
               {t.stats.map((stat, index) => (
-                <motion.div 
-                  key={index} 
+                <motion.div
+                  key={index}
                   variants={itemVariants}
-                  className="text-center" 
+                  className="text-center"
                   data-testid={`stat-${index}`}
                 >
-                  <p className="text-4xl lg:text-5xl font-heading text-primary mb-2">
+                  <p className="text-4xl lg:text-5xl font-heading text-white mb-2">
                     {stat.value}
                   </p>
-                  <p className="text-sm text-muted-foreground uppercase tracking-wider">
+                  <p className="text-sm text-white/70 uppercase tracking-wider font-support">
                     {stat.label}
                   </p>
                 </motion.div>
               ))}
-            </div>
-          </motion.section>
+            </motion.div>
+          </div>
+        </section>
 
-          <motion.section
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.5 }}
-            className="mb-20"
-            data-testid="section-participation"
-          >
-            <div className="text-center mb-12">
-              <h2 className="text-2xl font-heading font-light text-[#AA1A2E] mb-4 uppercase tracking-[0.12em]">
+        <section className="py-20 lg:py-24" data-testid="section-participation">
+          <div className="max-w-7xl mx-auto px-6 lg:px-12">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6 }}
+              className="text-center mb-16"
+            >
+              <h2 className="text-2xl md:text-3xl font-heading font-light text-foreground mb-4 uppercase tracking-[0.12em]">
                 {t.participationTitle}
               </h2>
+              <div className="h-0.5 w-12 bg-primary mx-auto mb-6" />
               <p className="text-lg text-primary font-medium mb-4" data-testid="text-participation-subtitle">
                 {t.participationSubtitle}
               </p>
-              <p className="text-lg text-foreground leading-relaxed max-w-4xl mx-auto" data-testid="text-participation-intro">
+              <p className="text-lg text-muted-foreground leading-relaxed max-w-4xl mx-auto" data-testid="text-participation-intro">
                 {t.participationIntro}
               </p>
-            </div>
-            
-            <motion.div 
+            </motion.div>
+
+            <motion.div
               variants={containerVariants}
               initial="hidden"
-              animate="visible"
+              whileInView="visible"
+              viewport={{ once: true }}
               className="grid grid-cols-1 md:grid-cols-2 gap-6"
             >
               {t.participationAspects.map((aspect, index) => (
                 <motion.div key={index} variants={itemVariants}>
-                  <Card className="h-full rounded-none border border-border" data-testid={`card-participation-${index}`}>
+                  <Card className="h-full rounded-none border border-border hover-elevate transition-all duration-300" data-testid={`card-participation-${index}`}>
                     <CardContent className="p-6">
                       <div className="flex items-start gap-4">
-                        <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                        <div className="w-12 h-12 rounded-none bg-primary/10 flex items-center justify-center flex-shrink-0">
                           <aspect.icon className="w-6 h-6 text-primary" />
                         </div>
                         <div>
-                          <h3 className="text-lg font-semibold text-foreground mb-2">
+                          <h3 className="text-lg font-medium text-foreground mb-2">
                             {aspect.title}
                           </h3>
                           <p className="text-sm text-muted-foreground leading-relaxed">
@@ -995,44 +1031,43 @@ export default function ProBono() {
                 </motion.div>
               ))}
             </motion.div>
-          </motion.section>
+          </div>
+        </section>
 
-          <motion.section
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.6 }}
-            className="mb-16"
-            data-testid="section-cta"
-          >
-            <Card className="rounded-none border border-border bg-gradient-to-br from-primary/5 to-primary/10 dark:from-primary/10 dark:to-primary/20">
-              <CardContent className="p-10 text-center">
-                <div className="flex items-center justify-center gap-3 mb-4">
-                  <Scale className="w-8 h-8 text-primary" />
-                  <h2 className="text-xl font-heading font-light text-foreground uppercase tracking-[0.12em]">
-                    {t.ctaTitle}
-                  </h2>
-                </div>
-                <p className="text-lg text-foreground leading-relaxed max-w-3xl mx-auto mb-8" data-testid="text-cta-description">
-                  {t.ctaText}
-                </p>
-                <div className="flex flex-col sm:flex-row justify-center gap-4">
-                  <Link href="/contact">
-                    <Button className="rounded-none" data-testid="button-contact">
-                      <Heart className="w-4 h-4 mr-2" />
-                      {t.contactButton}
-                    </Button>
-                  </Link>
-                  <Link href="/about">
-                    <Button variant="outline" className="rounded-none" data-testid="button-learn-more">
-                      {t.learnMoreAbout}
-                      <ArrowRight className="w-4 h-4 ml-2" />
-                    </Button>
-                  </Link>
-                </div>
-              </CardContent>
-            </Card>
-          </motion.section>
-        </div>
+        <section className="py-20 lg:py-24 bg-gradient-to-b from-primary/5 via-primary/10 to-primary/5 dark:from-primary/10 dark:via-primary/15 dark:to-primary/10" data-testid="section-cta">
+          <div className="max-w-7xl mx-auto px-6 lg:px-12">
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6 }}
+              className="text-center max-w-3xl mx-auto"
+            >
+              <Scale className="w-10 h-10 text-primary mx-auto mb-6" />
+              <h2 className="text-2xl md:text-3xl font-heading font-light text-foreground uppercase tracking-[0.12em] mb-4">
+                {t.ctaTitle}
+              </h2>
+              <div className="h-0.5 w-12 bg-primary mx-auto mb-8" />
+              <p className="text-lg text-muted-foreground leading-relaxed mb-10" data-testid="text-cta-description">
+                {t.ctaText}
+              </p>
+              <div className="flex flex-col sm:flex-row justify-center gap-4">
+                <Link href="/contact">
+                  <Button size="lg" className="rounded-none" data-testid="button-contact">
+                    <Heart className="w-4 h-4 mr-2" />
+                    {t.contactButton}
+                  </Button>
+                </Link>
+                <Link href="/about">
+                  <Button variant="outline" size="lg" className="rounded-none" data-testid="button-learn-more">
+                    {t.learnMoreAbout}
+                    <ArrowRight className="w-4 h-4 ml-2" />
+                  </Button>
+                </Link>
+              </div>
+            </motion.div>
+          </div>
+        </section>
       </main>
 
       <Footer />

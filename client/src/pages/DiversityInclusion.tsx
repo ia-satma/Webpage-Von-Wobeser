@@ -585,25 +585,38 @@ export default function DiversityInclusion() {
       <SEOHead page="diversityInclusion" language={language} />
       <Header />
 
-      <section className="pt-32 pb-12 bg-[#AA1A2E]" data-testid="section-diversity-hero">
-        <div className="max-w-7xl mx-auto px-6 lg:px-12">
+      <section className="relative pt-36 pb-20 bg-gradient-to-b from-primary via-primary/95 to-primary/85 overflow-hidden" data-testid="section-diversity-hero">
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_left,rgba(255,255,255,0.08)_0%,transparent_60%)]" />
+        <div className="absolute bottom-0 left-0 right-0 h-px bg-white/10" />
+        <div className="max-w-7xl mx-auto px-6 lg:px-12 relative z-10">
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
+            transition={{ duration: 0.7 }}
             className="text-center"
           >
-            <div className="flex items-center justify-center gap-3 mb-4">
-              <UsersRound className="w-10 h-10 text-white" />
-            </div>
+            <motion.div
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.5, delay: 0.2 }}
+              className="flex items-center justify-center gap-3 mb-6"
+            >
+              <UsersRound className="w-10 h-10 text-white/90" />
+            </motion.div>
+            <motion.div
+              initial={{ width: 0 }}
+              animate={{ width: "3rem" }}
+              transition={{ duration: 0.6, delay: 0.3 }}
+              className="h-0.5 bg-white/40 mx-auto mb-6"
+            />
             <h1
-              className="text-3xl md:text-4xl font-heading font-light text-white mb-4 uppercase tracking-[0.12em]"
+              className="text-4xl md:text-5xl lg:text-6xl font-heading font-light text-white mb-6 uppercase tracking-[0.15em]"
               data-testid="text-diversity-title"
             >
               {t.title}
             </h1>
             <p
-              className="text-lg text-white/90 max-w-2xl mx-auto"
+              className="text-lg md:text-xl text-white/85 max-w-3xl mx-auto font-light leading-relaxed"
               data-testid="text-diversity-subtitle"
             >
               {t.subtitle}
@@ -612,84 +625,105 @@ export default function DiversityInclusion() {
         </div>
       </section>
 
-      <main id="main-content" className="py-16 lg:py-20">
-        <div className="max-w-7xl mx-auto px-6 lg:px-12">
-          <motion.section
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.2 }}
-            className="mb-20"
-            data-testid="section-founding"
-          >
-            <h2 className="text-2xl font-heading font-light text-[#AA1A2E] mb-6 uppercase tracking-[0.12em]">
-              {t.foundingTitle}
-            </h2>
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              <p className="text-lg text-foreground leading-relaxed">
-                {t.foundingText1}
-              </p>
-              <p className="text-lg text-foreground leading-relaxed">
-                {t.foundingText2}
-              </p>
-            </div>
-          </motion.section>
+      <main id="main-content">
+        <section className="py-20 lg:py-24" data-testid="section-founding">
+          <div className="max-w-7xl mx-auto px-6 lg:px-12">
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6 }}
+            >
+              <div className="flex items-center gap-4 mb-8">
+                <div className="h-0.5 w-8 bg-primary" />
+                <h2 className="text-2xl md:text-3xl font-heading font-light text-foreground uppercase tracking-[0.12em]">
+                  {t.foundingTitle}
+                </h2>
+              </div>
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <p className="text-lg text-foreground leading-relaxed">
+                  {t.foundingText1}
+                </p>
+                <p className="text-lg text-muted-foreground leading-relaxed">
+                  {t.foundingText2}
+                </p>
+              </div>
+            </motion.div>
+          </div>
+        </section>
 
-          <motion.section
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.25 }}
-            className="mb-20"
-            data-testid="section-stats"
-          >
-            <h2 className="text-2xl font-heading font-light text-[#AA1A2E] mb-8 text-center uppercase tracking-[0.12em]">
-              {t.statsTitle}
-            </h2>
+        <section className="bg-primary py-16 lg:py-20" data-testid="section-stats">
+          <div className="max-w-7xl mx-auto px-6 lg:px-12">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6 }}
+              className="text-center mb-12"
+            >
+              <h2 className="text-2xl md:text-3xl font-heading font-light text-white uppercase tracking-[0.15em]">
+                {t.statsTitle}
+              </h2>
+              <div className="h-0.5 w-12 bg-white/40 mx-auto mt-4" />
+            </motion.div>
             <motion.div
               variants={containerVariants}
               initial="hidden"
-              animate="visible"
+              whileInView="visible"
+              viewport={{ once: true }}
               className="grid grid-cols-2 lg:grid-cols-4 gap-6"
             >
               {t.stats.map((stat, index) => (
                 <motion.div
                   key={index}
                   variants={itemVariants}
-                  className="text-center bg-gradient-to-br from-[#AA1A2E]/5 to-[#AA1A2E]/10 dark:from-[#AA1A2E]/10 dark:to-[#AA1A2E]/20 rounded-none p-6"
+                  className="text-center"
                   data-testid={`stat-diversity-${index}`}
                 >
-                  <div className="w-12 h-12 rounded-full bg-[#AA1A2E]/10 flex items-center justify-center mx-auto mb-3">
-                    <stat.icon className="w-6 h-6 text-[#AA1A2E]" />
+                  <div className="w-12 h-12 rounded-none bg-white/10 flex items-center justify-center mx-auto mb-3">
+                    <stat.icon className="w-6 h-6 text-white/90" />
                   </div>
-                  <div className="text-4xl font-light text-[#AA1A2E] mb-2">
+                  <div className="text-4xl lg:text-5xl font-heading text-white mb-2">
                     {stat.value}
                   </div>
-                  <div className="text-sm font-medium text-foreground">
+                  <div className="text-sm text-white/70 font-support uppercase tracking-wider">
                     {stat.label}
                   </div>
                 </motion.div>
               ))}
             </motion.div>
-          </motion.section>
+          </div>
+        </section>
 
-          <motion.section
-            variants={containerVariants}
-            initial="hidden"
-            animate="visible"
-            className="mb-20"
-            data-testid="section-values"
-          >
-            <h2 className="text-2xl font-heading font-light text-[#AA1A2E] mb-8 text-center uppercase tracking-[0.12em]">
-              {t.valuesTitle}
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <section className="py-20 lg:py-24" data-testid="section-values">
+          <div className="max-w-7xl mx-auto px-6 lg:px-12">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6 }}
+              className="text-center mb-16"
+            >
+              <h2 className="text-2xl md:text-3xl font-heading font-light text-foreground uppercase tracking-[0.12em] mb-4">
+                {t.valuesTitle}
+              </h2>
+              <div className="h-0.5 w-12 bg-primary mx-auto" />
+            </motion.div>
+            <motion.div
+              variants={containerVariants}
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true }}
+              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"
+            >
               {t.values.map((value, index) => (
                 <motion.div key={index} variants={itemVariants}>
-                  <Card className="h-full rounded-none border border-border text-center" data-testid={`card-value-${index}`}>
+                  <Card className="h-full rounded-none border border-border text-center hover-elevate transition-all duration-300" data-testid={`card-value-${index}`}>
                     <CardContent className="p-6">
-                      <div className="w-14 h-14 rounded-full bg-[#AA1A2E]/10 flex items-center justify-center mx-auto mb-4">
-                        <value.icon className="w-7 h-7 text-[#AA1A2E]" />
+                      <div className="w-14 h-14 rounded-none bg-primary/10 flex items-center justify-center mx-auto mb-4">
+                        <value.icon className="w-7 h-7 text-primary" />
                       </div>
-                      <h3 className="text-lg font-semibold text-foreground mb-2">
+                      <h3 className="text-lg font-medium text-foreground mb-2">
                         {value.title}
                       </h3>
                       <p className="text-sm text-muted-foreground">
@@ -699,41 +733,45 @@ export default function DiversityInclusion() {
                   </Card>
                 </motion.div>
               ))}
-            </div>
-          </motion.section>
+            </motion.div>
+          </div>
+        </section>
 
-          <motion.section
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.3 }}
-            className="mb-20"
-            data-testid="section-initiatives"
-          >
-            <div className="text-center mb-12">
-              <h2 className="text-2xl font-heading font-light text-[#AA1A2E] mb-4 uppercase tracking-[0.12em]">
-                {t.initiativesTitle}
-              </h2>
-              <p className="text-lg text-muted-foreground" data-testid="text-initiatives-subtitle">
+        <section className="py-20 lg:py-24 bg-secondary/50" data-testid="section-initiatives">
+          <div className="max-w-7xl mx-auto px-6 lg:px-12">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6 }}
+              className="text-center mb-16"
+            >
+              <p className="font-support text-xs uppercase tracking-[0.2em] text-primary mb-4" data-testid="text-initiatives-subtitle">
                 {t.initiativesSubtitle}
               </p>
-            </div>
+              <h2 className="text-2xl md:text-3xl font-heading font-light text-foreground uppercase tracking-[0.12em] mb-4">
+                {t.initiativesTitle}
+              </h2>
+              <div className="h-0.5 w-12 bg-primary mx-auto" />
+            </motion.div>
 
             <motion.div
               variants={containerVariants}
               initial="hidden"
-              animate="visible"
+              whileInView="visible"
+              viewport={{ once: true }}
               className="grid grid-cols-1 md:grid-cols-2 gap-6"
             >
               {t.initiatives.map((initiative, index) => (
                 <motion.div key={index} variants={itemVariants}>
-                  <Card className="h-full rounded-none border border-border" data-testid={`card-initiative-${index}`}>
+                  <Card className="h-full rounded-none border border-border hover-elevate transition-all duration-300" data-testid={`card-initiative-${index}`}>
                     <CardContent className="p-6">
                       <div className="flex items-start gap-4">
-                        <div className="w-12 h-12 rounded-full bg-[#AA1A2E]/10 flex items-center justify-center flex-shrink-0">
-                          <initiative.icon className="w-6 h-6 text-[#AA1A2E]" />
+                        <div className="w-12 h-12 rounded-none bg-primary/10 flex items-center justify-center flex-shrink-0">
+                          <initiative.icon className="w-6 h-6 text-primary" />
                         </div>
                         <div>
-                          <h3 className="text-lg font-semibold text-foreground mb-2">
+                          <h3 className="text-lg font-medium text-foreground mb-2">
                             {initiative.title}
                           </h3>
                           <p className="text-sm text-muted-foreground leading-relaxed">
@@ -746,80 +784,95 @@ export default function DiversityInclusion() {
                 </motion.div>
               ))}
             </motion.div>
-          </motion.section>
+          </div>
+        </section>
 
-          <motion.section
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.35 }}
-            className="mb-20"
-            data-testid="section-probono"
-          >
-            <Card className="rounded-none border border-border bg-gradient-to-br from-[#AA1A2E]/5 to-[#AA1A2E]/10 dark:from-[#AA1A2E]/10 dark:to-[#AA1A2E]/20">
-              <CardContent className="p-8">
-                <div className="flex items-center gap-3 mb-4">
-                  <HeartHandshake className="w-8 h-8 text-[#AA1A2E]" />
-                  <h2 className="text-xl font-heading font-light text-[#AA1A2E] uppercase tracking-[0.12em]">
-                    {t.proBonoTitle}
-                  </h2>
-                </div>
-                <p className="text-lg text-foreground leading-relaxed mb-6">
-                  {t.proBonoText}
-                </p>
-                <Link href="/about">
-                  <Button
-                    variant="outline"
-                    className="border-[#AA1A2E] text-[#AA1A2E] hover:bg-[#AA1A2E] hover:text-white"
-                    data-testid="button-probono-learn-more"
-                  >
-                    {t.proBonoButton}
-                    <ArrowRight className="w-4 h-4 ml-2" />
-                  </Button>
-                </Link>
-              </CardContent>
-            </Card>
-          </motion.section>
+        <section className="py-20 lg:py-24" data-testid="section-probono">
+          <div className="max-w-7xl mx-auto px-6 lg:px-12">
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6 }}
+            >
+              <Card className="rounded-none border border-border bg-gradient-to-br from-primary/5 to-primary/10 dark:from-primary/10 dark:to-primary/20">
+                <CardContent className="p-8 md:p-10">
+                  <div className="flex items-center gap-3 mb-6">
+                    <HeartHandshake className="w-8 h-8 text-primary" />
+                    <h2 className="text-xl md:text-2xl font-heading font-light text-foreground uppercase tracking-[0.12em]">
+                      {t.proBonoTitle}
+                    </h2>
+                  </div>
+                  <p className="text-lg text-muted-foreground leading-relaxed mb-8">
+                    {t.proBonoText}
+                  </p>
+                  <Link href="/pro-bono">
+                    <Button
+                      variant="outline"
+                      size="lg"
+                      className="rounded-none"
+                      data-testid="button-probono-learn-more"
+                    >
+                      {t.proBonoButton}
+                      <ArrowRight className="w-4 h-4 ml-2" />
+                    </Button>
+                  </Link>
+                </CardContent>
+              </Card>
+            </motion.div>
+          </div>
+        </section>
 
-          <motion.section
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.4 }}
-            className="mb-20 text-center"
-            data-testid="section-commitment"
-          >
-            <h2 className="text-2xl font-heading font-light text-[#AA1A2E] mb-6 uppercase tracking-[0.12em]">
-              {t.commitmentTitle}
-            </h2>
-            <p className="text-lg text-foreground leading-relaxed max-w-4xl mx-auto">
-              {t.commitmentText}
-            </p>
-          </motion.section>
+        <section className="py-20 lg:py-24 bg-secondary/50" data-testid="section-commitment">
+          <div className="max-w-7xl mx-auto px-6 lg:px-12">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6 }}
+              className="text-center max-w-4xl mx-auto"
+            >
+              <h2 className="text-2xl md:text-3xl font-heading font-light text-foreground mb-4 uppercase tracking-[0.12em]">
+                {t.commitmentTitle}
+              </h2>
+              <div className="h-0.5 w-12 bg-primary mx-auto mb-8" />
+              <p className="text-lg text-muted-foreground leading-relaxed">
+                {t.commitmentText}
+              </p>
+            </motion.div>
+          </div>
+        </section>
 
-          <motion.section
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.45 }}
-            className="bg-[#AA1A2E] rounded-none p-10 text-center"
-            data-testid="section-join"
-          >
-            <h2 className="text-2xl font-heading font-light text-white mb-4 uppercase tracking-[0.12em]">
-              {t.joinTitle}
-            </h2>
-            <p className="text-lg text-white/90 mb-6 max-w-2xl mx-auto">
-              {t.joinText}
-            </p>
-            <Link href="/careers">
-              <Button
-                size="lg"
-                className="bg-background text-[#AA1A2E] hover:bg-muted"
-                data-testid="button-join-careers"
-              >
-                {t.joinButton}
-                <ArrowRight className="w-4 h-4 ml-2" />
-              </Button>
-            </Link>
-          </motion.section>
-        </div>
+        <section className="bg-gradient-to-b from-primary via-primary/95 to-primary/90 py-20 lg:py-24" data-testid="section-join">
+          <div className="max-w-7xl mx-auto px-6 lg:px-12">
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6 }}
+              className="text-center max-w-3xl mx-auto"
+            >
+              <h2 className="text-2xl md:text-3xl font-heading font-light text-white mb-4 uppercase tracking-[0.15em]">
+                {t.joinTitle}
+              </h2>
+              <div className="h-0.5 w-12 bg-white/40 mx-auto mb-8" />
+              <p className="text-lg text-white/85 mb-10 leading-relaxed">
+                {t.joinText}
+              </p>
+              <Link href="/careers">
+                <Button
+                  size="lg"
+                  variant="secondary"
+                  className="rounded-none"
+                  data-testid="button-join-careers"
+                >
+                  {t.joinButton}
+                  <ArrowRight className="w-4 h-4 ml-2" />
+                </Button>
+              </Link>
+            </motion.div>
+          </div>
+        </section>
       </main>
 
       <Footer />
