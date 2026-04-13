@@ -315,15 +315,15 @@ function GlobeCanvas() {
       phi: 0,
       theta: 0.25,
       dark: 1,
-      diffuse: 1.2,
-      mapSamples: 16000,
-      mapBrightness: 2,
-      baseColor: [0.15, 0.15, 0.14],
+      diffuse: 3,
+      mapSamples: 24000,
+      mapBrightness: 8,
+      baseColor: [0.4, 0.4, 0.38],
       markerColor: [0.67, 0.1, 0.18],
-      glowColor: [0.15, 0.15, 0.15],
+      glowColor: [0.08, 0.08, 0.08],
       markers: [
-        { location: [19.4326, -99.1332], size: 0.08 },
-        { location: [51.1657, 10.4515], size: 0.08 },
+        { location: [19.4326, -99.1332], size: 0.1 },
+        { location: [51.1657, 10.4515], size: 0.1 },
       ],
       onRender: (state) => {
         if (pointerInteracting.current === null) {
