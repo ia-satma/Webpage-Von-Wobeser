@@ -431,7 +431,7 @@ export default function WorldMapSection({ language }: WorldMapSectionProps) {
                 viewport={{ once: true }}
                 transition={{ duration: 0.6, delay: 0.2 }}
                 onClick={() => setShowMexicoModal(true)}
-                className="w-full md:w-auto md:flex-1 md:max-w-[280px] bg-card border border-border p-6 shadow-sm hover-elevate cursor-pointer text-left group"
+                className="w-full md:w-auto md:flex-1 md:max-w-[280px] bg-card border border-border p-6 shadow-sm hover-elevate cursor-pointer text-left group rounded-none"
                 data-testid="location-mexico"
               >
                 <div className="flex items-center gap-4 mb-4">
@@ -473,6 +473,7 @@ export default function WorldMapSection({ language }: WorldMapSectionProps) {
                       strokeWidth="1.5"
                       strokeDasharray="6 4"
                       fill="none"
+                      className="german-desk-connector-line"
                     />
                     <circle cx="0" cy="40" r="3" fill="hsl(var(--primary))" />
                     <circle cx="200" cy="40" r="3" fill="hsl(var(--primary))" />
@@ -480,16 +481,17 @@ export default function WorldMapSection({ language }: WorldMapSectionProps) {
                 </div>
                 {/* Mobile vertical connector */}
                 <div className="md:hidden flex flex-col items-center py-3">
-                  <svg viewBox="0 0 40 60" className="w-10 h-14" fill="none">
+                  <svg viewBox="0 0 40 80" className="w-10 h-16" fill="none">
                     <path
-                      d="M 20 0 L 20 60"
+                      d="M 20 0 C 35 20, 5 60, 20 80"
                       stroke="hsl(var(--primary))"
                       strokeWidth="1.5"
                       strokeDasharray="4 3"
                       fill="none"
+                      className="german-desk-connector-line"
                     />
                     <circle cx="20" cy="0" r="3" fill="hsl(var(--primary))" />
-                    <circle cx="20" cy="60" r="3" fill="hsl(var(--primary))" />
+                    <circle cx="20" cy="80" r="3" fill="hsl(var(--primary))" />
                   </svg>
                 </div>
                 {/* GERMAN DESK Pill — overlaid on connector */}
@@ -514,7 +516,7 @@ export default function WorldMapSection({ language }: WorldMapSectionProps) {
                 viewport={{ once: true }}
                 transition={{ duration: 0.6, delay: 0.4 }}
                 onClick={() => setShowGermanyModal(true)}
-                className="w-full md:w-auto md:flex-1 md:max-w-[280px] bg-card border border-border p-6 shadow-sm hover-elevate cursor-pointer text-left group"
+                className="w-full md:w-auto md:flex-1 md:max-w-[280px] bg-card border border-border p-6 shadow-sm hover-elevate cursor-pointer text-left group rounded-none"
                 data-testid="location-germany"
               >
                 <div className="flex items-center gap-4 mb-4">
@@ -545,7 +547,7 @@ export default function WorldMapSection({ language }: WorldMapSectionProps) {
 
         {/* Location Modals */}
         <Dialog open={showMexicoModal} onOpenChange={setShowMexicoModal}>
-          <DialogContent className="max-w-md p-0 overflow-hidden" data-testid="modal-mexico">
+          <DialogContent className="max-w-md p-0 overflow-hidden rounded-none" data-testid="modal-mexico">
             <img
               src={collage01}
               alt="Torre SOMA Chapultepec"
@@ -577,7 +579,7 @@ export default function WorldMapSection({ language }: WorldMapSectionProps) {
               <div className="mt-6">
                 <Button
                   asChild
-                  className="w-full uppercase tracking-[0.12em] text-xs"
+                  className="w-full uppercase tracking-[0.12em] text-xs rounded-none"
                   data-testid="button-contact-mexico"
                 >
                   <a href="mailto:info@vonwobeser.com">
@@ -591,7 +593,7 @@ export default function WorldMapSection({ language }: WorldMapSectionProps) {
         </Dialog>
 
         <Dialog open={showGermanyModal} onOpenChange={setShowGermanyModal}>
-          <DialogContent className="max-w-md p-0 overflow-hidden" data-testid="modal-germany">
+          <DialogContent className="max-w-md p-0 overflow-hidden rounded-none" data-testid="modal-germany">
             <img
               src={collage03}
               alt="German Desk"
@@ -610,7 +612,7 @@ export default function WorldMapSection({ language }: WorldMapSectionProps) {
               <div className="mt-6">
                 <Button
                   asChild
-                  className="w-full uppercase tracking-[0.12em] text-xs"
+                  className="w-full uppercase tracking-[0.12em] text-xs rounded-none"
                   data-testid="button-contact-germany"
                 >
                   <a href="mailto:info@vonwobeser.com">
