@@ -512,6 +512,7 @@ export default function WorldMapSection({ language }: WorldMapSectionProps) {
                   viewport={{ once: true }}
                   transition={{ duration: 0.4, delay: 0.8 }}
                   className="bg-primary px-5 py-2 my-1"
+                  data-testid="text-german-desk-label-mobile"
                 >
                   <span className="text-white text-[9px] font-bold tracking-[0.2em] uppercase">{t.sectionTitle}</span>
                 </motion.div>
