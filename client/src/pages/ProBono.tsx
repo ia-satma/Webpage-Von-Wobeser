@@ -920,7 +920,7 @@ export default function ProBono() {
                           <area.icon className="w-6 h-6 text-primary" />
                         </div>
                         <div>
-                          <h3 className="text-lg font-medium text-foreground mb-2">
+                          <h3 className="text-lg font-light text-foreground uppercase tracking-[0.12em] mb-2">
                             {area.title}
                           </h3>
                           <p className="text-sm text-muted-foreground leading-relaxed">
@@ -1013,7 +1013,7 @@ export default function ProBono() {
                           <aspect.icon className="w-6 h-6 text-primary" />
                         </div>
                         <div>
-                          <h3 className="text-lg font-medium text-foreground mb-2">
+                          <h3 className="text-lg font-light text-foreground uppercase tracking-[0.12em] mb-2">
                             {aspect.title}
                           </h3>
                           <p className="text-sm text-muted-foreground leading-relaxed">
@@ -1029,7 +1029,7 @@ export default function ProBono() {
           </div>
         </section>
 
-        <section className="py-20 lg:py-24 bg-gradient-to-b from-primary/5 via-primary/10 to-primary/5 dark:from-primary/10 dark:via-primary/15 dark:to-primary/10" data-testid="section-cta">
+        <section className="py-20 lg:py-24 bg-[#1a1a19]" data-testid="section-cta">
           <div className="max-w-7xl mx-auto px-6 lg:px-12">
             <motion.div
               initial={{ opacity: 0, y: 30 }}
@@ -1039,11 +1039,11 @@ export default function ProBono() {
               className="text-center max-w-3xl mx-auto"
             >
               <Scale className="w-10 h-10 text-primary mx-auto mb-6" />
-              <h2 className="text-2xl md:text-3xl font-heading font-light text-foreground uppercase tracking-[0.12em] mb-4">
+              <h2 className="text-2xl md:text-3xl font-heading font-light text-white uppercase tracking-[0.12em] mb-4">
                 {t.ctaTitle}
               </h2>
               <div className="h-0.5 w-12 bg-primary mx-auto mb-8" />
-              <p className="text-lg text-muted-foreground leading-relaxed mb-10" data-testid="text-cta-description">
+              <p className="text-lg text-white/60 leading-relaxed mb-10" data-testid="text-cta-description">
                 {t.ctaText}
               </p>
               <div className="flex flex-col sm:flex-row justify-center gap-4">
@@ -1054,7 +1054,7 @@ export default function ProBono() {
                   </Button>
                 </Link>
                 <Link href="/about">
-                  <Button variant="outline" size="lg" className="rounded-none" data-testid="button-learn-more">
+                  <Button variant="outline" size="lg" className="rounded-none border-white/20 text-white hover:bg-white/10" data-testid="button-learn-more">
                     {t.learnMoreAbout}
                     <ArrowRight className="w-4 h-4 ml-2" />
                   </Button>
