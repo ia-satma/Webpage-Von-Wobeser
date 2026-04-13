@@ -431,7 +431,7 @@ export default function WorldMapSection({ language }: WorldMapSectionProps) {
                 whileInView={{ opacity: 1, x: 0, scale: 1 }}
                 viewport={{ once: true }}
                 transition={{ type: "spring", stiffness: 80, damping: 15, delay: 0.2 }}
-                whileHover={{ scale: 1.03, y: -4 }}
+                whileHover={{ scale: 1.03, y: -4, transition: { type: "spring", stiffness: 300, damping: 20, delay: 0 } }}
                 onClick={() => setShowMexicoModal(true)}
                 className="w-full md:w-auto md:flex-1 md:max-w-[280px] bg-[#1a1a19] border border-white/10 p-6 shadow-sm hover-elevate cursor-pointer text-left group rounded-none"
                 data-testid="location-mexico"
@@ -517,7 +517,7 @@ export default function WorldMapSection({ language }: WorldMapSectionProps) {
                 whileInView={{ opacity: 1, x: 0, scale: 1 }}
                 viewport={{ once: true }}
                 transition={{ type: "spring", stiffness: 80, damping: 15, delay: 0.4 }}
-                whileHover={{ scale: 1.03, y: -4 }}
+                whileHover={{ scale: 1.03, y: -4, transition: { type: "spring", stiffness: 300, damping: 20, delay: 0 } }}
                 onClick={() => setShowGermanyModal(true)}
                 className="w-full md:w-auto md:flex-1 md:max-w-[280px] bg-[#1a1a19] border border-white/10 p-6 shadow-sm hover-elevate cursor-pointer text-left group rounded-none"
                 data-testid="location-germany"
