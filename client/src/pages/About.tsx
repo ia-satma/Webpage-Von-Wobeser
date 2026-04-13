@@ -1156,22 +1156,23 @@ export default function About() {
       <SEOHead page="about" language={language} />
       <Header />
       
-      <section className="pt-32 pb-12 bg-primary" data-testid="section-about-hero">
+      <section className="pt-36 pb-20 bg-[#1a1a19]" data-testid="section-about-hero">
         <div className="max-w-7xl mx-auto px-6 lg:px-12">
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
+            transition={{ duration: 0.7 }}
             className="text-center"
           >
+            <div className="h-0.5 w-12 bg-primary mx-auto mb-6" />
             <h1 
-              className="text-3xl md:text-4xl font-heading font-light text-white mb-4 uppercase tracking-[0.12em]"
+              className="text-4xl md:text-5xl font-heading font-light text-white mb-5 uppercase tracking-[0.15em]"
               data-testid="text-about-title"
             >
               {t.title}
             </h1>
             <p 
-              className="text-lg text-white/90 max-w-2xl mx-auto"
+              className="text-base text-white/60 max-w-2xl mx-auto"
               data-testid="text-about-subtitle"
             >
               {t.subtitle}
@@ -1355,7 +1356,7 @@ export default function About() {
             </motion.div>
 
             <div className="text-center">
-              <p className="text-base text-foreground leading-relaxed max-w-3xl mx-auto italic" data-testid="text-diversity-commitment">
+              <p className="text-base text-foreground leading-relaxed max-w-3xl mx-auto" data-testid="text-diversity-commitment">
                 {t.diversityCommitment}
               </p>
             </div>
@@ -1365,19 +1366,20 @@ export default function About() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.4 }}
-            className="mb-20 bg-muted rounded-none p-10"
+            className="mb-20 bg-[#1a1a19] rounded-none p-10 lg:p-14"
             data-testid="section-stats"
           >
-            <h2 className="text-2xl font-heading font-light text-foreground mb-8 text-center uppercase tracking-[0.12em]">
+            <h2 className="text-2xl font-heading font-light text-white mb-4 text-center uppercase tracking-[0.12em]">
               {t.statsTitle}
             </h2>
+            <div className="h-0.5 w-12 bg-primary mx-auto mb-10" />
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-8">
               {t.stats.map((stat, index) => (
                 <div key={index} className="text-center" data-testid={`stat-${index}`}>
                   <p className="text-4xl lg:text-5xl font-heading text-primary mb-2">
                     {stat.value}
                   </p>
-                  <p className="text-sm text-muted-foreground uppercase tracking-wider">
+                  <p className="text-sm text-white/60 uppercase tracking-wider">
                     {stat.label}
                   </p>
                 </div>
@@ -1454,20 +1456,20 @@ export default function About() {
               transition={{ duration: 0.6, delay: 0.7 }}
               data-testid="section-careers"
             >
-              <Card className="h-full rounded-none border border-border bg-primary text-white">
+              <Card className="h-full rounded-none border border-border bg-[#1a1a19]">
                 <CardContent className="p-8">
                   <div className="flex items-center gap-3 mb-4">
-                    <Briefcase className="w-8 h-8 text-white" />
-                    <h2 className="text-xl font-heading font-light uppercase tracking-[0.12em]">
+                    <Briefcase className="w-8 h-8 text-primary" />
+                    <h2 className="text-xl font-heading font-light text-white uppercase tracking-[0.12em]">
                       {t.careersTitle}
                     </h2>
                   </div>
-                  <p className="text-white/90 leading-relaxed mb-6" data-testid="text-careers">
+                  <p className="text-white/60 leading-relaxed mb-6" data-testid="text-careers">
                     {t.careersText}
                   </p>
                   <Button 
-                    variant="secondary"
-                    className="rounded-none bg-card text-primary hover:bg-white/90"
+                    variant="default"
+                    className="rounded-none"
                     asChild
                     data-testid="button-careers"
                   >

@@ -313,28 +313,29 @@ export default function Experience() {
       <SEOHead page="experience" language={language} />
       <Header />
       
-      <section className="pt-32 pb-16 bg-primary" data-testid="section-experience-hero">
+      <section className="pt-36 pb-20 bg-[#1a1a19]" data-testid="section-experience-hero">
         <div className="max-w-7xl mx-auto px-6 lg:px-12">
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
+            transition={{ duration: 0.7 }}
             className="text-center"
           >
+            <div className="h-0.5 w-12 bg-primary mx-auto mb-6" />
             <h1 
-              className="text-3xl md:text-4xl font-heading font-light text-white mb-4 uppercase tracking-[0.12em]"
+              className="text-4xl md:text-5xl font-heading font-light text-white mb-5 uppercase tracking-[0.15em]"
               data-testid="text-experience-title"
             >
               {t.title}
             </h1>
             <p 
-              className="text-lg text-white/90 max-w-2xl mx-auto mb-6"
+              className="text-base text-white/60 max-w-2xl mx-auto mb-6"
               data-testid="text-experience-subtitle"
             >
               {t.subtitle}
             </p>
             <p 
-              className="text-base text-white/80 max-w-3xl mx-auto"
+              className="text-sm text-white/50 max-w-3xl mx-auto"
               data-testid="text-experience-description"
             >
               {t.heroDescription}

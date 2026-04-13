@@ -433,25 +433,26 @@ export default function Rankings() {
       <SEOHead page="rankings" language={language} />
       <Header />
 
-      <section className="pt-32 pb-16 bg-primary" data-testid="section-rankings-hero">
+      <section className="pt-36 pb-20 bg-[#1a1a19]" data-testid="section-rankings-hero">
         <div className="max-w-7xl mx-auto px-6 lg:px-12">
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
+            transition={{ duration: 0.7 }}
             className="text-center"
           >
             <div className="flex items-center justify-center gap-3 mb-6">
-              <Trophy className="w-10 h-10 text-white/90" />
+              <Trophy className="w-10 h-10 text-primary" />
             </div>
+            <div className="h-0.5 w-12 bg-primary mx-auto mb-6" />
             <h1
-              className="text-3xl md:text-4xl font-heading font-light text-white mb-4 uppercase tracking-[0.12em]"
+              className="text-4xl md:text-5xl font-heading font-light text-white mb-5 uppercase tracking-[0.15em]"
               data-testid="text-rankings-title"
             >
               {t.title}
             </h1>
             <p
-              className="text-lg text-white/90 max-w-3xl mx-auto"
+              className="text-base text-white/60 max-w-3xl mx-auto"
               data-testid="text-rankings-subtitle"
             >
               {t.subtitle}

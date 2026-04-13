@@ -624,12 +624,12 @@ export default function PracticeGroupDetail() {
     return (
       <div className="min-h-screen bg-background" data-testid="page-practice-group-loading">
         <Header />
-        <section className="pt-32 pb-12 bg-primary">
+        <section className="pt-36 pb-20 bg-[#1a1a19]">
           <div className="max-w-7xl mx-auto px-6 lg:px-12">
-            <Skeleton className="h-5 w-48 bg-card/20 mb-6" />
+            <Skeleton className="h-5 w-48 bg-white/10 mb-6" />
             <div className="flex items-center gap-4">
-              <Skeleton className="h-16 w-16 rounded-none bg-card/20" />
-              <Skeleton className="h-12 w-64 bg-card/20" />
+              <Skeleton className="h-16 w-16 rounded-none bg-white/10" />
+              <Skeleton className="h-12 w-64 bg-white/10" />
             </div>
           </div>
         </section>
@@ -699,16 +699,16 @@ export default function PracticeGroupDetail() {
     <div className="min-h-screen bg-background" data-testid="page-practice-group-detail">
       <Header />
       
-      <section className="pt-32 pb-12 bg-primary" data-testid="section-practice-group-hero">
+      <section className="pt-36 pb-20 bg-[#1a1a19]" data-testid="section-practice-group-hero">
         <div className="max-w-7xl mx-auto px-6 lg:px-12">
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
+            transition={{ duration: 0.7 }}
           >
             <Link href="/practice-groups">
               <span 
-                className="inline-flex items-center gap-2 text-white/80 hover:text-white transition-colors mb-6 cursor-pointer text-sm"
+                className="inline-flex items-center gap-2 text-white/60 hover:text-white transition-colors mb-6 cursor-pointer text-sm"
                 data-testid="link-back-to-practice-groups"
               >
                 <ArrowLeft className="w-4 h-4" />
@@ -717,12 +717,12 @@ export default function PracticeGroupDetail() {
             </Link>
             <div className="flex items-center gap-4">
               {IconComponent && (
-                <div className="w-16 h-16 rounded-none bg-card/10 flex items-center justify-center">
-                  <IconComponent className="w-8 h-8 text-white" data-testid="icon-practice-group-detail" />
+                <div className="w-16 h-16 rounded-none bg-white/5 flex items-center justify-center">
+                  <IconComponent className="w-8 h-8 text-primary" data-testid="icon-practice-group-detail" />
                 </div>
               )}
               <h1 
-                className="text-2xl md:text-3xl lg:text-4xl font-heading font-light text-white uppercase tracking-[0.12em]"
+                className="text-2xl md:text-3xl lg:text-4xl font-heading font-light text-white uppercase tracking-[0.15em]"
                 data-testid="text-practice-group-title"
               >
                 {displayName || (isTranslating ? (

@@ -1193,15 +1193,15 @@ export default function TeamMemberDetail() {
     return (
       <div className="min-h-screen bg-background" data-testid="page-team-member-loading">
         <Header />
-        <section className="pt-32 pb-12 bg-primary">
+        <section className="pt-36 pb-20 bg-[#1a1a19]">
           <div className="max-w-7xl mx-auto px-6 lg:px-12">
-            <Skeleton className="h-5 w-48 bg-card/20 mb-6" />
+            <Skeleton className="h-5 w-48 bg-white/10 mb-6" />
             <div className="flex flex-col md:flex-row items-center md:items-start gap-6">
-              <Skeleton className="h-32 w-32 rounded-full bg-card/20" />
+              <Skeleton className="h-32 w-32 rounded-full bg-white/10" />
               <div className="text-center md:text-left">
-                <Skeleton className="h-10 w-64 bg-card/20 mb-3" />
-                <Skeleton className="h-6 w-48 bg-card/20 mb-2" />
-                <Skeleton className="h-5 w-32 bg-card/20" />
+                <Skeleton className="h-10 w-64 bg-white/10 mb-3" />
+                <Skeleton className="h-6 w-48 bg-white/10 mb-2" />
+                <Skeleton className="h-5 w-32 bg-white/10" />
               </div>
             </div>
           </div>
@@ -1267,16 +1267,16 @@ export default function TeamMemberDetail() {
         </>
       )}
       
-      <section className="pt-32 pb-12 bg-primary" data-testid="section-team-member-hero">
+      <section className="pt-36 pb-20 bg-[#1a1a19]" data-testid="section-team-member-hero">
         <div className="max-w-7xl mx-auto px-6 lg:px-12">
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
+            transition={{ duration: 0.7 }}
           >
             <Link href="/team">
               <span 
-                className="inline-flex items-center gap-2 text-white/90 hover:text-white transition-colors mb-6 cursor-pointer text-sm"
+                className="inline-flex items-center gap-2 text-white/60 hover:text-white transition-colors mb-6 cursor-pointer text-sm"
                 data-testid="link-back-to-team"
               >
                 <ArrowLeft className="w-4 h-4" />

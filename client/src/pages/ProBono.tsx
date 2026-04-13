@@ -824,12 +824,10 @@ export default function ProBono() {
       <SEOHead page="proBono" language={language} />
       <Header />
 
-      <section className="relative pt-36 pb-20 bg-gradient-to-b from-primary via-primary/95 to-primary/85 overflow-hidden" data-testid="section-pro-bono-hero">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(255,255,255,0.08)_0%,transparent_60%)]" />
-        <div className="absolute bottom-0 left-0 right-0 h-px bg-white/10" />
-        <div className="max-w-7xl mx-auto px-6 lg:px-12 relative z-10">
+      <section className="pt-36 pb-20 bg-[#1a1a19]" data-testid="section-pro-bono-hero">
+        <div className="max-w-7xl mx-auto px-6 lg:px-12">
           <motion.div
-            initial={{ opacity: 0, y: 30 }}
+            initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.7 }}
             className="text-center"
@@ -840,14 +838,9 @@ export default function ProBono() {
               transition={{ duration: 0.5, delay: 0.2 }}
               className="flex items-center justify-center gap-3 mb-6"
             >
-              <Heart className="w-10 h-10 text-white/90" />
+              <Heart className="w-10 h-10 text-primary" />
             </motion.div>
-            <motion.div
-              initial={{ width: 0 }}
-              animate={{ width: "3rem" }}
-              transition={{ duration: 0.6, delay: 0.3 }}
-              className="h-0.5 bg-white/40 mx-auto mb-6"
-            />
+            <div className="h-0.5 w-12 bg-primary mx-auto mb-6" />
             <h1
               className="text-4xl md:text-5xl lg:text-6xl font-heading font-light text-white mb-6 uppercase tracking-[0.15em]"
               data-testid="text-pro-bono-title"
@@ -855,7 +848,7 @@ export default function ProBono() {
               {t.title}
             </h1>
             <p
-              className="text-lg md:text-xl text-white/85 max-w-3xl mx-auto font-light leading-relaxed"
+              className="text-base md:text-lg text-white/60 max-w-3xl mx-auto font-light leading-relaxed"
               data-testid="text-pro-bono-subtitle"
             >
               {t.subtitle}
@@ -941,7 +934,7 @@ export default function ProBono() {
           </div>
         </section>
 
-        <section className="bg-primary py-16 lg:py-20" data-testid="section-stats">
+        <section className="bg-[#1a1a19] py-16 lg:py-20" data-testid="section-stats">
           <div className="max-w-7xl mx-auto px-6 lg:px-12">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -950,10 +943,10 @@ export default function ProBono() {
               transition={{ duration: 0.6 }}
               className="text-center mb-12"
             >
-              <h2 className="text-2xl md:text-3xl font-heading font-light text-white uppercase tracking-[0.15em]">
+              <h2 className="text-2xl md:text-3xl font-heading font-light text-white uppercase tracking-[0.12em]">
                 {t.statsTitle}
               </h2>
-              <div className="h-0.5 w-12 bg-white/40 mx-auto mt-4" />
+              <div className="h-0.5 w-12 bg-primary mx-auto mt-4" />
             </motion.div>
             <motion.div
               variants={containerVariants}
@@ -969,10 +962,10 @@ export default function ProBono() {
                   className="text-center"
                   data-testid={`stat-${index}`}
                 >
-                  <p className="text-4xl lg:text-5xl font-heading text-white mb-2">
+                  <p className="text-4xl lg:text-5xl font-heading text-primary mb-2">
                     {stat.value}
                   </p>
-                  <p className="text-sm text-white/70 uppercase tracking-wider font-support">
+                  <p className="text-sm text-white/60 uppercase tracking-wider font-support">
                     {stat.label}
                   </p>
                 </motion.div>
