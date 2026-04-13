@@ -379,20 +379,20 @@ export default function WorldMapSection({ language }: WorldMapSectionProps) {
 
         {/* Heading + Connected Cards — single container with map watermark */}
         <div
-          className="relative w-full bg-card dark:bg-[#111110] pt-20 lg:pt-28 pb-16 lg:pb-20 overflow-hidden"
+          className="relative w-full bg-card dark:bg-[#111110] pt-24 lg:pt-32 pb-20 lg:pb-28 overflow-hidden"
           data-testid="card-map-connection"
         >
           <img
             src={worldMapImg}
             alt=""
             aria-hidden="true"
-            className="absolute inset-0 w-full h-full object-contain opacity-[0.18] dark:hidden pointer-events-none select-none"
+            className="absolute inset-0 w-full h-full object-cover opacity-[0.18] dark:hidden pointer-events-none select-none"
           />
           <img
             src={worldMapDarkImg}
             alt=""
             aria-hidden="true"
-            className="absolute inset-0 w-full h-full object-contain hidden dark:block opacity-[0.10] pointer-events-none select-none"
+            className="absolute inset-0 w-full h-full object-cover hidden dark:block opacity-[0.10] pointer-events-none select-none"
           />
 
           <div className="relative z-10">
@@ -403,7 +403,7 @@ export default function WorldMapSection({ language }: WorldMapSectionProps) {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.6 }}
-                className="text-center mb-12"
+                className="text-center mb-16 lg:mb-20"
               >
                 <div className="w-12 h-px bg-primary mx-auto mb-6" />
                 <h2
@@ -422,8 +422,8 @@ export default function WorldMapSection({ language }: WorldMapSectionProps) {
             </div>
 
             {/* Cards + Connector */}
-            <div className="max-w-5xl mx-auto px-6 lg:px-12">
-              <div className="flex flex-col md:flex-row items-center justify-center gap-0">
+            <div className="mx-auto px-6 lg:px-16 xl:px-24 max-w-[1400px]">
+              <div className="flex flex-col md:flex-row items-center md:justify-between gap-0">
 
               {/* Mexico City Card */}
               <motion.button
@@ -433,28 +433,28 @@ export default function WorldMapSection({ language }: WorldMapSectionProps) {
                 transition={{ type: "spring", stiffness: 80, damping: 15, delay: 0.2 }}
                 whileHover={{ scale: 1.03, y: -4, transition: { type: "spring", stiffness: 300, damping: 20, delay: 0 } }}
                 onClick={() => setShowMexicoModal(true)}
-                className="w-full md:w-auto md:flex-1 md:max-w-[280px] bg-[#1a1a19] border border-white/10 p-6 shadow-sm hover-elevate cursor-pointer text-left group rounded-none"
+                className="w-full md:w-[340px] lg:w-[380px] flex-shrink-0 bg-[#1a1a19] border border-white/10 p-8 lg:p-10 shadow-lg hover-elevate cursor-pointer text-left group rounded-none"
                 data-testid="location-mexico"
               >
-                <div className="flex items-center gap-4 mb-4">
-                  <div className="w-12 h-12 bg-primary/15 rounded-full flex items-center justify-center flex-shrink-0">
-                    <MapPin className="w-5 h-5 text-primary" strokeWidth={1.5} />
+                <div className="flex items-center gap-4 mb-5">
+                  <div className="w-14 h-14 bg-primary/15 rounded-full flex items-center justify-center flex-shrink-0">
+                    <MapPin className="w-6 h-6 text-primary" strokeWidth={1.5} />
                   </div>
                   <div>
                     <p
-                      className="font-heading font-light text-sm uppercase tracking-[0.12em] text-white/90 leading-tight"
+                      className="font-heading font-light text-base md:text-lg uppercase tracking-[0.12em] text-white/90 leading-tight"
                       data-testid="text-mexico-label"
                     >
                       {t.mexicoLabel}
                     </p>
-                    <p className="text-[11px] text-white/50 mt-0.5">{t.mexicoSubtitle}</p>
+                    <p className="text-xs text-white/50 mt-1">{t.mexicoSubtitle}</p>
                   </div>
                 </div>
-                <p className="text-xs text-white/50 leading-relaxed">
+                <p className="text-sm text-white/50 leading-relaxed">
                   Torre SOMA Chapultepec Piso 18, Campos Elíseos 204, Polanco
                 </p>
-                <span className="inline-flex items-center gap-1 mt-3 text-[10px] text-primary uppercase tracking-[0.12em] font-medium group-hover:gap-2 transition-all">
-                  {t.viewDetails} <ArrowRight className="w-3 h-3" />
+                <span className="inline-flex items-center gap-1.5 mt-4 text-xs text-primary uppercase tracking-[0.12em] font-medium group-hover:gap-2.5 transition-all">
+                  {t.viewDetails} <ArrowRight className="w-3.5 h-3.5" />
                 </span>
               </motion.button>
 
@@ -464,10 +464,10 @@ export default function WorldMapSection({ language }: WorldMapSectionProps) {
                 whileInView={{ opacity: 1, scale: 1 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.6, delay: 0.5 }}
-                className="relative flex-shrink-0 flex items-center justify-center"
+                className="relative flex-1 min-w-0 flex items-center justify-center"
               >
                 {/* Desktop horizontal connector */}
-                <div className="hidden md:flex items-center" style={{ width: "clamp(80px, 12vw, 200px)" }}>
+                <div className="hidden md:flex items-center w-full">
                   <svg viewBox="0 0 200 20" preserveAspectRatio="none" className="w-full h-5" fill="none">
                     <path
                       d="M 0 10 L 200 10"
@@ -501,10 +501,10 @@ export default function WorldMapSection({ language }: WorldMapSectionProps) {
                   className="absolute inset-0 flex items-center justify-center pointer-events-none"
                 >
                   <div
-                    className="bg-primary px-4 py-1.5 shadow-md pointer-events-auto"
+                    className="bg-primary px-5 py-2 shadow-md pointer-events-auto"
                     data-testid="text-german-desk-label"
                   >
-                    <span className="text-white text-[9px] font-bold tracking-[0.2em] uppercase whitespace-nowrap">
+                    <span className="text-white text-[10px] font-bold tracking-[0.2em] uppercase whitespace-nowrap">
                       {t.sectionTitle}
                     </span>
                   </div>
@@ -519,28 +519,28 @@ export default function WorldMapSection({ language }: WorldMapSectionProps) {
                 transition={{ type: "spring", stiffness: 80, damping: 15, delay: 0.4 }}
                 whileHover={{ scale: 1.03, y: -4, transition: { type: "spring", stiffness: 300, damping: 20, delay: 0 } }}
                 onClick={() => setShowGermanyModal(true)}
-                className="w-full md:w-auto md:flex-1 md:max-w-[280px] bg-[#1a1a19] border border-white/10 p-6 shadow-sm hover-elevate cursor-pointer text-left group rounded-none"
+                className="w-full md:w-[340px] lg:w-[380px] flex-shrink-0 bg-[#1a1a19] border border-white/10 p-8 lg:p-10 shadow-lg hover-elevate cursor-pointer text-left group rounded-none"
                 data-testid="location-germany"
               >
-                <div className="flex items-center gap-4 mb-4">
-                  <div className="w-12 h-12 bg-primary/15 rounded-full flex items-center justify-center flex-shrink-0">
-                    <MapPin className="w-5 h-5 text-primary" strokeWidth={1.5} />
+                <div className="flex items-center gap-4 mb-5">
+                  <div className="w-14 h-14 bg-primary/15 rounded-full flex items-center justify-center flex-shrink-0">
+                    <MapPin className="w-6 h-6 text-primary" strokeWidth={1.5} />
                   </div>
                   <div>
                     <p
-                      className="font-heading font-light text-sm uppercase tracking-[0.12em] text-white/90 leading-tight"
+                      className="font-heading font-light text-base md:text-lg uppercase tracking-[0.12em] text-white/90 leading-tight"
                       data-testid="text-germany-label"
                     >
                       {t.germanyLabel}
                     </p>
-                    <p className="text-[11px] text-white/50 mt-0.5">{t.germanySubtitle}</p>
+                    <p className="text-xs text-white/50 mt-1">{t.germanySubtitle}</p>
                   </div>
                 </div>
-                <p className="text-xs text-white/50 leading-relaxed">
+                <p className="text-sm text-white/50 leading-relaxed">
                   {t.germanDeskDescription}
                 </p>
-                <span className="inline-flex items-center gap-1 mt-3 text-[10px] text-primary uppercase tracking-[0.12em] font-medium group-hover:gap-2 transition-all">
-                  {t.viewDetails} <ArrowRight className="w-3 h-3" />
+                <span className="inline-flex items-center gap-1.5 mt-4 text-xs text-primary uppercase tracking-[0.12em] font-medium group-hover:gap-2.5 transition-all">
+                  {t.viewDetails} <ArrowRight className="w-3.5 h-3.5" />
                 </span>
               </motion.button>
 
