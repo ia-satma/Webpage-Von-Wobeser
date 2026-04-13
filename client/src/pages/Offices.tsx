@@ -730,7 +730,8 @@ export default function Offices() {
         <div className="max-w-7xl mx-auto px-6 lg:px-12">
           <motion.div
             initial={{ opacity: 0, y: 24 }}
-            animate={{ opacity: 1, y: 0 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
             transition={{ duration: 0.7 }}
             className="text-center"
           >
@@ -951,7 +952,8 @@ export default function Offices() {
                   <motion.div
                     key={image.id}
                     initial={{ opacity: 0, scale: 0.95 }}
-                    animate={{ opacity: 1, scale: 1 }}
+                    whileInView={{ opacity: 1, scale: 1 }}
+                    viewport={{ once: true }}
                     transition={{ duration: 0.4, delay: index * 0.05 }}
                     className="aspect-[4/3] rounded-none overflow-hidden cursor-pointer group"
                     onClick={() => setSelectedImage(image)}

@@ -1160,7 +1160,8 @@ export default function About() {
         <div className="max-w-7xl mx-auto px-6 lg:px-12">
           <motion.div
             initial={{ opacity: 0, y: 24 }}
-            animate={{ opacity: 1, y: 0 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
             transition={{ duration: 0.7 }}
             className="text-center"
           >
@@ -1185,7 +1186,8 @@ export default function About() {
         <div className="max-w-7xl mx-auto px-6 lg:px-12">
           <motion.section
             initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
             transition={{ duration: 0.6, delay: 0.2 }}
             className="mb-20"
             data-testid="section-history"
@@ -1236,7 +1238,8 @@ export default function About() {
 
           <motion.section
             initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
             transition={{ duration: 0.6, delay: 0.3 }}
             className="mb-20"
             data-testid="section-culture"
@@ -1285,7 +1288,8 @@ export default function About() {
 
           <motion.section
             initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
             transition={{ duration: 0.6, delay: 0.35 }}
             className="mb-20 bg-gradient-to-br from-primary/5 to-primary/10 dark:from-primary/10 dark:to-primary/20 rounded-none p-10"
             data-testid="section-diversity"
@@ -1364,7 +1368,8 @@ export default function About() {
 
           <motion.section
             initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
             transition={{ duration: 0.6, delay: 0.4 }}
             className="mb-20 bg-[#1a1a19] rounded-none p-10 lg:p-14"
             data-testid="section-stats"
@@ -1389,7 +1394,8 @@ export default function About() {
 
           <motion.section
             initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
             transition={{ duration: 0.6, delay: 0.5 }}
             className="mb-20"
             data-testid="section-rankings"
@@ -1431,7 +1437,8 @@ export default function About() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-16">
             <motion.section
               initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
               transition={{ duration: 0.6, delay: 0.6 }}
               data-testid="section-pro-bono"
             >
@@ -1452,7 +1459,8 @@ export default function About() {
 
             <motion.section
               initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
               transition={{ duration: 0.6, delay: 0.7 }}
               data-testid="section-careers"
             >
@@ -1485,7 +1493,8 @@ export default function About() {
 
           <motion.div
             initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
             transition={{ duration: 0.6, delay: 0.8 }}
             className="flex flex-col sm:flex-row justify-center gap-4"
           >
