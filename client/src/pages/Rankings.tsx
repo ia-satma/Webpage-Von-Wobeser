@@ -610,10 +610,10 @@ export default function Rankings() {
           >
             <div className="max-w-4xl mx-auto text-center">
               <Quote className="w-12 h-12 text-primary/30 mx-auto mb-6" />
-              <blockquote className="text-xl md:text-2xl font-heading font-light text-foreground italic mb-6">
+              <blockquote className="text-xl md:text-2xl font-heading font-light text-foreground mb-6">
                 "{t.quoteText}"
               </blockquote>
-              <cite className="text-primary font-medium not-italic">
+              <cite className="text-primary font-medium">
                 — {t.quoteSource}
               </cite>
             </div>
