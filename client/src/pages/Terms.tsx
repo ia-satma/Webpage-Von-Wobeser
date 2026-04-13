@@ -2053,7 +2053,8 @@ Escluse le festività federali messicane`
           <motion.div
             variants={containerVariants}
             initial="hidden"
-            animate="visible"
+            whileInView="visible"
+            viewport={{ once: true }}
             className="space-y-8"
           >
             {t.sections.map((section) => (

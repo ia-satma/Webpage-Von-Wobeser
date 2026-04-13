@@ -1154,7 +1154,7 @@ export default function Careers() {
                       <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
                         <value.icon className="w-7 h-7 text-primary" />
                       </div>
-                      <h3 className="font-semibold text-foreground mb-2">
+                      <h3 className="font-light uppercase tracking-[0.12em] text-foreground mb-2">
                         {value.title}
                       </h3>
                       <p className="text-sm text-muted-foreground">
@@ -1206,7 +1206,7 @@ export default function Careers() {
                           <benefit.icon className="w-6 h-6 text-primary" />
                         </div>
                         <div>
-                          <h3 className="font-semibold text-foreground mb-2">
+                          <h3 className="font-light uppercase tracking-[0.12em] text-foreground mb-2">
                             {benefit.title}
                           </h3>
                           <p className="text-sm text-muted-foreground">
@@ -1258,7 +1258,7 @@ export default function Careers() {
                       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
                         <div className="flex-1">
                           <div className="flex flex-wrap items-center gap-3 mb-3">
-                            <h3 className="text-xl font-semibold text-foreground">
+                            <h3 className="text-xl font-light uppercase tracking-[0.12em] text-foreground">
                               {language === "es" ? position.titleEs : position.title}
                             </h3>
                             <Badge variant="secondary" className="text-xs">

@@ -2524,7 +2524,8 @@ Sito web: www.vonwobeser.com`
           <motion.div
             variants={containerVariants}
             initial="hidden"
-            animate="visible"
+            whileInView="visible"
+            viewport={{ once: true }}
             className="space-y-8"
           >
             {t.sections.map((section) => (

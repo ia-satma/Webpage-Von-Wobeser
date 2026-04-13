@@ -775,7 +775,7 @@ export default function Offices() {
                         <Building2 className="w-6 h-6 text-primary" />
                       </div>
                       <div>
-                        <h3 className="text-xl font-semibold text-foreground mb-1" data-testid="text-building-name">
+                        <h3 className="text-xl font-light uppercase tracking-[0.12em] text-foreground mb-1" data-testid="text-building-name">
                           {t.buildingName}
                         </h3>
                         <p className="text-muted-foreground" data-testid="text-floor">{t.floor}</p>
@@ -974,7 +974,8 @@ export default function Offices() {
           <motion.section
             variants={containerVariants}
             initial="hidden"
-            animate="visible"
+            whileInView="visible"
+            viewport={{ once: true }}
             className="mb-20"
             data-testid="section-facilities"
           >
@@ -995,7 +996,7 @@ export default function Offices() {
                       <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
                         <Users className="w-6 h-6 text-primary" />
                       </div>
-                      <h3 className="text-lg font-semibold text-foreground">
+                      <h3 className="text-lg font-light uppercase tracking-[0.12em] text-foreground">
                         {t.meetingRoomsTitle}
                       </h3>
                     </div>
@@ -1013,7 +1014,7 @@ export default function Offices() {
                       <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
                         <Video className="w-6 h-6 text-primary" />
                       </div>
-                      <h3 className="text-lg font-semibold text-foreground">
+                      <h3 className="text-lg font-light uppercase tracking-[0.12em] text-foreground">
                         {t.videoConferencingTitle}
                       </h3>
                     </div>
@@ -1031,7 +1032,7 @@ export default function Offices() {
                       <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
                         <Coffee className="w-6 h-6 text-primary" />
                       </div>
-                      <h3 className="text-lg font-semibold text-foreground">
+                      <h3 className="text-lg font-light uppercase tracking-[0.12em] text-foreground">
                         {t.clientHospitalityTitle}
                       </h3>
                     </div>
@@ -1049,7 +1050,7 @@ export default function Offices() {
                       <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
                         <Accessibility className="w-6 h-6 text-primary" />
                       </div>
-                      <h3 className="text-lg font-semibold text-foreground">
+                      <h3 className="text-lg font-light uppercase tracking-[0.12em] text-foreground">
                         {t.accessibilityTitle}
                       </h3>
                     </div>
@@ -1086,7 +1087,7 @@ export default function Offices() {
                     <div className="w-12 h-12 rounded-full bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center">
                       <Train className="w-6 h-6 text-orange-600" />
                     </div>
-                    <h3 className="text-lg font-semibold text-foreground">
+                    <h3 className="text-lg font-light uppercase tracking-[0.12em] text-foreground">
                       {t.metroTitle}
                     </h3>
                   </div>
@@ -1102,7 +1103,7 @@ export default function Offices() {
                     <div className="w-12 h-12 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
                       <ParkingCircle className="w-6 h-6 text-blue-600" />
                     </div>
-                    <h3 className="text-lg font-semibold text-foreground">
+                    <h3 className="text-lg font-light uppercase tracking-[0.12em] text-foreground">
                       {t.parkingTitle}
                     </h3>
                   </div>
@@ -1118,7 +1119,7 @@ export default function Offices() {
                     <div className="w-12 h-12 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
                       <Car className="w-6 h-6 text-green-600" />
                     </div>
-                    <h3 className="text-lg font-semibold text-foreground">
+                    <h3 className="text-lg font-light uppercase tracking-[0.12em] text-foreground">
                       {t.taxiTitle}
                     </h3>
                   </div>

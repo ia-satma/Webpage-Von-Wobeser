@@ -597,7 +597,8 @@ export default function GermanDesk() {
             <motion.div 
               variants={containerVariants}
               initial="hidden"
-              animate="visible"
+              whileInView="visible"
+            viewport={{ once: true }}
               className="grid grid-cols-1 md:grid-cols-2 gap-6"
             >
               {t.teamHighlights.map((highlight, index) => (
@@ -609,7 +610,7 @@ export default function GermanDesk() {
                           <highlight.icon className="w-6 h-6 text-primary" />
                         </div>
                         <div>
-                          <h3 className="text-lg font-semibold text-foreground mb-2">
+                          <h3 className="text-lg font-light uppercase tracking-[0.12em] text-foreground mb-2">
                             {highlight.title}
                           </h3>
                           <p className="text-sm text-muted-foreground leading-relaxed">
@@ -627,7 +628,8 @@ export default function GermanDesk() {
           <motion.section
             variants={containerVariants}
             initial="hidden"
-            animate="visible"
+            whileInView="visible"
+            viewport={{ once: true }}
             className="mb-20"
             data-testid="section-services"
           >
@@ -647,7 +649,7 @@ export default function GermanDesk() {
                       <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
                         <service.icon className="w-7 h-7 text-primary" />
                       </div>
-                      <h3 className="text-lg font-semibold text-foreground mb-2">
+                      <h3 className="text-lg font-light uppercase tracking-[0.12em] text-foreground mb-2">
                         {service.title}
                       </h3>
                       <p className="text-sm text-muted-foreground">
@@ -694,7 +696,7 @@ export default function GermanDesk() {
                   <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-3">
                     <point.icon className="w-6 h-6 text-primary" />
                   </div>
-                  <h3 className="text-lg font-semibold text-foreground mb-2">
+                  <h3 className="text-lg font-light uppercase tracking-[0.12em] text-foreground mb-2">
                     {point.title}
                   </h3>
                   <p className="text-sm text-muted-foreground">

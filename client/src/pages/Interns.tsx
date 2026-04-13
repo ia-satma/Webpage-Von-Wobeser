@@ -880,7 +880,7 @@ export default function Interns() {
                           <area.icon className="w-6 h-6 text-primary" />
                         </div>
                         <div>
-                          <h3 className="font-semibold text-foreground mb-2">
+                          <h3 className="font-light uppercase tracking-[0.12em] text-foreground mb-2">
                             {area.title}
                           </h3>
                           <p className="text-sm text-muted-foreground">
@@ -977,7 +977,7 @@ export default function Interns() {
                       <div className="w-12 h-12 rounded-full bg-primary text-white text-xl font-bold flex items-center justify-center mx-auto mb-4">
                         {step.step}
                       </div>
-                      <h3 className="font-semibold text-foreground mb-2">
+                      <h3 className="font-light uppercase tracking-[0.12em] text-foreground mb-2">
                         {step.title}
                       </h3>
                       <p className="text-sm text-muted-foreground">
@@ -1029,7 +1029,7 @@ export default function Interns() {
                           <benefit.icon className="w-6 h-6 text-primary" />
                         </div>
                         <div>
-                          <h3 className="font-semibold text-foreground mb-2">
+                          <h3 className="font-light uppercase tracking-[0.12em] text-foreground mb-2">
                             {benefit.title}
                           </h3>
                           <p className="text-sm text-muted-foreground">
@@ -1113,7 +1113,7 @@ export default function Interns() {
             <Card className="rounded-none border border-border" data-testid="card-contact">
               <CardContent className="p-6 flex flex-col md:flex-row items-center justify-between gap-4">
                 <div>
-                  <h3 className="text-lg font-semibold text-foreground mb-1">
+                  <h3 className="text-lg font-light uppercase tracking-[0.12em] text-foreground mb-1">
                     {t.contactTitle}
                   </h3>
                   <p className="text-muted-foreground">

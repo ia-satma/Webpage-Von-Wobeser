@@ -939,7 +939,7 @@ export default function Contact() {
                   <div className="flex items-start gap-3 mb-4">
                     <Building2 className="w-5 h-5 text-primary flex-shrink-0 mt-1" />
                     <div>
-                      <h3 className="font-semibold text-foreground mb-1" data-testid="text-office-name">
+                      <h3 className="font-light uppercase tracking-[0.12em] text-foreground mb-1" data-testid="text-office-name">
                         {t.mainOffice}
                       </h3>
                       <p className="text-sm text-muted-foreground">

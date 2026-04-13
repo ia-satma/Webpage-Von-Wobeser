@@ -1208,7 +1208,8 @@ export default function About() {
           <motion.section
             variants={containerVariants}
             initial="hidden"
-            animate="visible"
+            whileInView="visible"
+            viewport={{ once: true }}
             className="mb-20"
             data-testid="section-values"
           >
@@ -1223,7 +1224,7 @@ export default function About() {
                       <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
                         <value.icon className="w-7 h-7 text-primary" />
                       </div>
-                      <h3 className="text-lg font-semibold text-foreground mb-2">
+                      <h3 className="text-lg font-light text-foreground uppercase tracking-[0.12em] mb-2">
                         {value.title}
                       </h3>
                       <p className="text-sm text-muted-foreground">
@@ -1259,7 +1260,8 @@ export default function About() {
             <motion.div 
               variants={containerVariants}
               initial="hidden"
-              animate="visible"
+              whileInView="visible"
+            viewport={{ once: true }}
               className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
             >
               {t.cultureAspects.map((aspect, index) => (
@@ -1271,7 +1273,7 @@ export default function About() {
                           <aspect.icon className="w-6 h-6 text-primary" />
                         </div>
                         <div>
-                          <h3 className="text-lg font-semibold text-foreground mb-2">
+                          <h3 className="text-lg font-light text-foreground uppercase tracking-[0.12em] mb-2">
                             {aspect.title}
                           </h3>
                           <p className="text-sm text-muted-foreground leading-relaxed">
@@ -1333,7 +1335,8 @@ export default function About() {
             <motion.div 
               variants={containerVariants}
               initial="hidden"
-              animate="visible"
+              whileInView="visible"
+            viewport={{ once: true }}
               className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10"
             >
               {t.diversityInitiatives.map((initiative, index) => (
@@ -1345,7 +1348,7 @@ export default function About() {
                           <initiative.icon className="w-6 h-6 text-primary" />
                         </div>
                         <div>
-                          <h3 className="text-lg font-semibold text-foreground mb-2">
+                          <h3 className="text-lg font-light text-foreground uppercase tracking-[0.12em] mb-2">
                             {initiative.title}
                           </h3>
                           <p className="text-sm text-muted-foreground leading-relaxed">
