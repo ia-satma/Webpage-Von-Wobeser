@@ -209,10 +209,10 @@ const cardVariants = {
 };
 
 const valueVariants = {
-  hidden: { opacity: 0, y: 20 },
+  hidden: { opacity: 0, y: 24, scale: 0.95 },
   visible: (i: number) => ({
-    opacity: 1, y: 0,
-    transition: { duration: 0.45, delay: i * 0.07, ease: "easeOut" },
+    opacity: 1, y: 0, scale: 1,
+    transition: { duration: 0.5, delay: i * 0.08, ease: "easeOut" },
   }),
 };
 
@@ -314,7 +314,7 @@ export default function AboutUsSection() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.5 }}
-          className="text-center mb-10"
+          className="text-center mb-12"
           data-testid="subsection-values"
         >
           <div className="w-6 h-px bg-primary mb-4 mx-auto" />
@@ -327,7 +327,7 @@ export default function AboutUsSection() {
         </motion.div>
 
         <div
-          className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4"
+          className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-5 lg:gap-6"
           data-testid="values-grid"
         >
           {values.map((value, i) => {
@@ -340,21 +340,23 @@ export default function AboutUsSection() {
                 initial="hidden"
                 whileInView="visible"
                 viewport={{ once: true }}
-                className="group bg-muted rounded-none p-6 flex flex-col items-center text-center gap-3"
+                whileHover={{ y: -6, transition: { type: "spring", stiffness: 300, damping: 20, delay: 0 } }}
+                className="group relative bg-[#1a1a19] dark:bg-card rounded-none p-8 flex flex-col items-center text-center gap-4 overflow-visible cursor-default"
                 data-testid={`value-item-${i}`}
               >
-                <div className="w-12 h-12 bg-background flex items-center justify-center mb-1 transition-transform duration-300 group-hover:scale-110">
-                  <Icon className="w-5 h-5 text-primary" strokeWidth={1.5} />
+                <div className="absolute top-0 left-0 w-full h-1 bg-primary group-hover:h-1.5 transition-all duration-300" />
+                <div className="w-16 h-16 rounded-full bg-primary/15 flex items-center justify-center mt-2 transition-transform duration-300 group-hover:scale-110">
+                  <Icon className="w-7 h-7 text-primary" strokeWidth={1.5} />
                 </div>
-                <div className="w-4 h-px bg-primary/50" />
+                <div className="w-5 h-px bg-primary/40 group-hover:w-8 transition-all duration-500" />
                 <span
-                  className="text-[10px] font-medium uppercase tracking-[0.18em] text-foreground leading-tight"
+                  className="text-xs md:text-sm font-medium uppercase tracking-[0.14em] text-white/90 dark:text-foreground leading-tight"
                   data-testid={`text-value-${i}`}
                 >
                   {getValueName(value)}
                 </span>
                 <p
-                  className="text-[11px] text-muted-foreground leading-relaxed"
+                  className="text-xs text-white/60 dark:text-muted-foreground leading-relaxed"
                   data-testid={`text-value-desc-${i}`}
                 >
                   {getValueDesc(value)}
