@@ -350,7 +350,7 @@ export default function AboutUsSection() {
                 </div>
                 <div className="w-5 h-px bg-primary/40 group-hover:w-8 transition-all duration-500" />
                 <span
-                  className="text-xs md:text-sm font-medium uppercase tracking-[0.14em] text-white/90 dark:text-foreground leading-tight"
+                  className="text-xs md:text-sm font-medium uppercase tracking-[0.12em] text-white/90 dark:text-foreground leading-tight"
                   data-testid={`text-value-${i}`}
                 >
                   {getValueName(value)}
