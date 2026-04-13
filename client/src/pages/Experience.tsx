@@ -357,7 +357,8 @@ export default function Experience() {
             <div className="max-w-7xl mx-auto px-6 lg:px-12">
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
                 transition={{ duration: 0.6, delay: 0.2 }}
                 className="text-center mb-12"
               >
@@ -465,7 +466,8 @@ export default function Experience() {
             <div className="max-w-7xl mx-auto px-6 lg:px-12">
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
                 transition={{ duration: 0.6, delay: 0.3 }}
                 className="mb-12"
               >

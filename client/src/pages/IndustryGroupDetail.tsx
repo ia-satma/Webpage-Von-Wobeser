@@ -384,7 +384,8 @@ export default function IndustryGroupDetail() {
         <div className="max-w-4xl mx-auto px-6 lg:px-12">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
             transition={{ duration: 0.6, delay: 0.2 }}
           >
             <div 
@@ -400,7 +401,8 @@ export default function IndustryGroupDetail() {
           {relatedPracticeGroups && relatedPracticeGroups.length > 0 && (
             <motion.section
               initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
               transition={{ duration: 0.6, delay: 0.3 }}
               className="mb-16"
               data-testid="section-related-services"
@@ -425,7 +427,8 @@ export default function IndustryGroupDetail() {
 
           <motion.section
             initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
             transition={{ duration: 0.6, delay: 0.4 }}
             className="bg-muted rounded-none p-8 lg:p-12"
             data-testid="section-contact-cta"

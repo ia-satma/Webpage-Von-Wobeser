@@ -355,7 +355,8 @@ export default function ArticlesPage() {
         <div className="max-w-7xl mx-auto px-6 lg:px-12">
           <motion.div
             initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
             transition={{ duration: 0.4 }}
             className="mb-10"
           >
@@ -408,7 +409,8 @@ export default function ArticlesPage() {
             ) : (
               <motion.div 
                 initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
                 transition={{ duration: 0.5 }}
                 className="text-center py-16" 
                 data-testid="container-articles-coming-soon"

@@ -554,7 +554,8 @@ export default function GermanDesk() {
         <div className="max-w-7xl mx-auto px-6 lg:px-12">
           <motion.section
             initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
             transition={{ duration: 0.6, delay: 0.2 }}
             className="mb-20"
             data-testid="section-experience"
@@ -574,7 +575,8 @@ export default function GermanDesk() {
 
           <motion.section
             initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
             transition={{ duration: 0.6, delay: 0.3 }}
             className="mb-20"
             data-testid="section-team"
@@ -659,7 +661,8 @@ export default function GermanDesk() {
 
           <motion.section
             initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
             transition={{ duration: 0.6, delay: 0.35 }}
             className="mb-20 bg-gradient-to-br from-primary/5 to-primary/10 dark:from-primary/10 dark:to-primary/20 rounded-none p-4 sm:p-6 md:p-10"
             data-testid="section-differentiator"
@@ -703,7 +706,8 @@ export default function GermanDesk() {
 
           <motion.section
             initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
             transition={{ duration: 0.6, delay: 0.4 }}
             className="mb-20"
             data-testid="section-stats"
@@ -732,7 +736,8 @@ export default function GermanDesk() {
 
           <motion.section
             initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
             transition={{ duration: 0.6, delay: 0.45 }}
             className="mb-10"
             data-testid="section-cta"

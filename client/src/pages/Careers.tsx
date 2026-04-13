@@ -1081,7 +1081,8 @@ export default function Careers() {
           
           <motion.section
             initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
             transition={{ duration: 0.6, delay: 0.1 }}
             className="mb-20"
             data-testid="section-why-join"

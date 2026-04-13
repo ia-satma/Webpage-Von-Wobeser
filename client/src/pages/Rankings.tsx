@@ -465,7 +465,8 @@ export default function Rankings() {
         <div className="max-w-7xl mx-auto px-6 lg:px-12">
           <motion.section
             initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
             transition={{ duration: 0.6, delay: 0.2 }}
             className="mb-20"
             data-testid="section-rankings-overview"

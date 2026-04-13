@@ -743,7 +743,8 @@ export default function PracticeGroupDetail() {
         <div className="max-w-4xl mx-auto px-6 lg:px-12">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
             transition={{ duration: 0.6, delay: 0.2 }}
           >
             <div 
@@ -776,7 +777,8 @@ export default function PracticeGroupDetail() {
           {representativeMatters && representativeMatters.length > 0 && (
             <motion.section
               initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
               transition={{ duration: 0.6, delay: 0.22 }}
               className="mb-16"
               data-testid="section-representative-matters"
@@ -818,7 +820,8 @@ export default function PracticeGroupDetail() {
           {practiceRankings.length > 0 && (
             <motion.section
               initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
               transition={{ duration: 0.6, delay: 0.25 }}
               className="mb-16"
               data-testid="section-rankings"
@@ -879,7 +882,8 @@ export default function PracticeGroupDetail() {
             filteredAndGroupedMembers.associates.length > 0) && (
             <motion.section
               initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
               transition={{ duration: 0.6, delay: 0.3 }}
               className="mb-16"
               data-testid="section-team-members"
@@ -960,7 +964,8 @@ export default function PracticeGroupDetail() {
 
           <motion.section
             initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
             transition={{ duration: 0.6, delay: 0.4 }}
             className="bg-muted rounded-none p-8 lg:p-12"
             data-testid="section-contact-cta"

@@ -1399,7 +1399,8 @@ export default function TeamMemberDetail() {
               {(displayBio || (member?.bioEs && isTranslating)) && (
                 <motion.section
                   initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
                   transition={{ duration: 0.6, delay: 0.2 }}
                   data-testid="section-biography"
                 >
@@ -1444,7 +1445,8 @@ export default function TeamMemberDetail() {
               {processedRankings && (
                 <motion.section
                   initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
                   transition={{ duration: 0.6, delay: 0.25 }}
                   data-testid="section-rankings"
                 >
@@ -1517,7 +1519,8 @@ export default function TeamMemberDetail() {
               {practiceGroups && practiceGroups.length > 0 && (
                 <motion.section
                   initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
                   transition={{ duration: 0.6, delay: 0.3 }}
                   data-testid="section-practice-areas"
                 >
@@ -1543,7 +1546,8 @@ export default function TeamMemberDetail() {
               {industryGroups && industryGroups.length > 0 && (
                 <motion.section
                   initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
                   transition={{ duration: 0.6, delay: 0.35 }}
                   data-testid="section-industry-groups"
                 >
@@ -1569,7 +1573,8 @@ export default function TeamMemberDetail() {
               {member?.education && member.education.length > 0 && (
                 <motion.section
                   initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
                   transition={{ duration: 0.6, delay: 0.4 }}
                   data-testid="section-education"
                 >
@@ -1597,7 +1602,8 @@ export default function TeamMemberDetail() {
               {member?.barAdmissions && member.barAdmissions.length > 0 && (
                 <motion.section
                   initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
                   transition={{ duration: 0.6, delay: 0.45 }}
                   data-testid="section-bar-admissions"
                 >
@@ -1625,7 +1631,8 @@ export default function TeamMemberDetail() {
               {member?.languages && member.languages.length > 0 && (
                 <motion.section
                   initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
                   transition={{ duration: 0.6, delay: 0.5 }}
                   data-testid="section-languages"
                 >
@@ -1653,7 +1660,8 @@ export default function TeamMemberDetail() {
               {member?.affiliations && member.affiliations.length > 0 && (
                 <motion.section
                   initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
                   transition={{ duration: 0.6, delay: 0.55 }}
                   data-testid="section-affiliations"
                 >
@@ -1681,7 +1689,8 @@ export default function TeamMemberDetail() {
               {member?.publications && member.publications.length > 0 && (
                 <motion.section
                   initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
                   transition={{ duration: 0.6, delay: 0.65 }}
                   data-testid="section-publications"
                 >
@@ -1710,7 +1719,8 @@ export default function TeamMemberDetail() {
               {member?.representativeMatters && member.representativeMatters.length > 0 && (
                 <motion.section
                   initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
                   transition={{ duration: 0.6, delay: 0.7 }}
                   data-testid="section-representative-matters"
                 >
@@ -1738,7 +1748,8 @@ export default function TeamMemberDetail() {
               {member?.experience && member.experience.length > 0 && (
                 <motion.section
                   initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
                   transition={{ duration: 0.6, delay: 0.75 }}
                   data-testid="section-experience"
                 >
@@ -1778,7 +1789,8 @@ export default function TeamMemberDetail() {
               {processedRankings && (
                 <motion.section
                   initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
                   transition={{ duration: 0.6, delay: 0.35 }}
                   className="bg-gradient-to-br from-amber-100 to-amber-50 dark:from-amber-900/30 dark:to-amber-800/20 rounded-none p-6 border border-amber-200/50 dark:border-amber-700/30"
                   data-testid="section-featured-recognition"
@@ -1831,7 +1843,8 @@ export default function TeamMemberDetail() {
 
               <motion.section
                 initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
                 transition={{ duration: 0.6, delay: 0.4 }}
                 className="bg-muted rounded-none p-6"
                 data-testid="section-contact-cta"
@@ -1889,7 +1902,8 @@ export default function TeamMemberDetail() {
               {relatedMembers && relatedMembers.length > 0 && (
                 <motion.section
                   initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
                   transition={{ duration: 0.6, delay: 0.5 }}
                   data-testid="section-related-team"
                 >
@@ -1918,7 +1932,8 @@ export default function TeamMemberDetail() {
         {relatedNews && relatedNews.length > 0 && (
           <motion.section
             initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
             transition={{ duration: 0.6, delay: 0.8 }}
             className="mt-16 pt-12 border-t border-border"
             data-testid="section-related-news"
@@ -1936,7 +1951,8 @@ export default function TeamMemberDetail() {
                   <motion.div 
                     key={article.id}
                     initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
                     transition={{ duration: 0.4 }}
                   >
                     <Link href={`/news/${article.slug}`}>
