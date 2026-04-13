@@ -96,10 +96,10 @@ const content: Record<SupportedLanguage, ContentTranslation> = {
     partner: "Socio",
     teamTitle: "Equipo German Desk",
     seeMore: "Ver equipo completo",
-    addressLabel: "Direccion",
-    phoneLabel: "Telefono",
+    addressLabel: "Dirección",
+    phoneLabel: "Teléfono",
     contactButton: "Contacto",
-    germanDeskDescription: "Servicios legales especializados para clientes de habla alemana que invierten en Mexico y America Latina.",
+    germanDeskDescription: "Servicios legales especializados para clientes de habla alemana que invierten en México y América Latina.",
     viewDetails: "Ver Detalles",
   },
   de: {
@@ -124,7 +124,7 @@ const content: Record<SupportedLanguage, ContentTranslation> = {
     addressLabel: "Adresse",
     phoneLabel: "Telefon",
     contactButton: "Kontakt",
-    germanDeskDescription: "Spezialisierte Rechtsdienstleistungen fur deutschsprachige Mandanten, die in Mexiko und Lateinamerika investieren.",
+    germanDeskDescription: "Spezialisierte Rechtsdienstleistungen für deutschsprachige Mandanten, die in Mexiko und Lateinamerika investieren.",
     viewDetails: "Details ansehen",
   },
   zh: {
@@ -272,10 +272,10 @@ const content: Record<SupportedLanguage, ContentTranslation> = {
     teamTitle: "Équipe German Desk",
     seeMore: "Voir l'équipe complète",
     addressLabel: "Adresse",
-    phoneLabel: "Telephone",
+    phoneLabel: "Téléphone",
     contactButton: "Contact",
-    germanDeskDescription: "Services juridiques specialises pour les clients germanophones investissant au Mexique et en Amerique latine.",
-    viewDetails: "Voir les details",
+    germanDeskDescription: "Services juridiques spécialisés pour les clients germanophones investissant au Mexique et en Amérique latine.",
+    viewDetails: "Voir les détails",
   },
   it: {
     sectionTitle: "GERMAN DESK",
@@ -449,7 +449,7 @@ export default function WorldMapSection({ language }: WorldMapSectionProps) {
                   </div>
                 </div>
                 <p className="text-xs text-muted-foreground leading-relaxed">
-                  Torre SOMA Chapultepec Piso 18, Campos Eliseos 204, Polanco
+                  Torre SOMA Chapultepec Piso 18, Campos Elíseos 204, Polanco
                 </p>
                 <span className="inline-flex items-center gap-1 mt-3 text-[10px] text-primary uppercase tracking-[0.12em] font-medium group-hover:gap-2 transition-all">
                   {t.viewDetails} <ArrowRight className="w-3 h-3" />
@@ -565,7 +565,7 @@ export default function WorldMapSection({ language }: WorldMapSectionProps) {
                   <MapPin className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" strokeWidth={1.5} />
                   <div>
                     <p className="text-[10px] text-muted-foreground uppercase tracking-[0.1em] mb-0.5">{t.addressLabel}</p>
-                    <p className="text-sm text-foreground">Torre SOMA Chapultepec Piso 18, Campos Eliseos 204, Polanco, C.P. 11560, Ciudad de Mexico</p>
+                    <p className="text-sm text-foreground">Torre SOMA Chapultepec Piso 18, Campos Elíseos 204, Polanco, C.P. 11560, Ciudad de México</p>
                   </div>
                 </div>
                 <div className="flex items-start gap-3">
