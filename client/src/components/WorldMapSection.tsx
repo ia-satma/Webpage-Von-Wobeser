@@ -5,8 +5,8 @@ import { ArrowRight, MapPin, Phone, Mail } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 
-import worldMapImg from "@assets/mapa_1775780643811.png";
-import worldMapDarkImg from "@assets/mapa-dark_1775840604915.png";
+import worldMapImg from "@assets/mapa_1776101215471.png";
+import worldMapDarkImg from "@assets/mapa-dark_1776101215469.png";
 import collage01 from "@assets/collage_01.jpg";
 import collage03 from "@assets/collage_03.jpg";
 
@@ -404,20 +404,20 @@ export default function WorldMapSection({ language }: WorldMapSectionProps) {
 
         {/* Connected Cards with decorative map background */}
         <div
-          className="relative w-full bg-muted py-16 lg:py-20 overflow-hidden"
+          className="relative w-full bg-card dark:bg-[#111110] py-16 lg:py-20 overflow-hidden"
           data-testid="card-map-connection"
         >
           <img
             src={worldMapImg}
             alt=""
             aria-hidden="true"
-            className="absolute inset-0 w-full h-full object-cover opacity-[0.06] dark:hidden pointer-events-none select-none"
+            className="absolute inset-0 w-full h-full object-cover opacity-[0.18] dark:hidden pointer-events-none select-none"
           />
           <img
             src={worldMapDarkImg}
             alt=""
             aria-hidden="true"
-            className="absolute inset-0 w-full h-full object-cover hidden dark:block opacity-[0.04] pointer-events-none select-none"
+            className="absolute inset-0 w-full h-full object-cover hidden dark:block opacity-[0.10] pointer-events-none select-none"
           />
 
           <div className="relative z-10 max-w-5xl mx-auto px-6 lg:px-12">
@@ -431,24 +431,24 @@ export default function WorldMapSection({ language }: WorldMapSectionProps) {
                 viewport={{ once: true }}
                 transition={{ duration: 0.6, delay: 0.2 }}
                 onClick={() => setShowMexicoModal(true)}
-                className="w-full md:w-auto md:flex-1 md:max-w-[280px] bg-card border border-border p-6 shadow-sm hover-elevate cursor-pointer text-left group rounded-none"
+                className="w-full md:w-auto md:flex-1 md:max-w-[280px] bg-[#1a1a19] border border-white/10 p-6 shadow-sm hover-elevate cursor-pointer text-left group rounded-none"
                 data-testid="location-mexico"
               >
                 <div className="flex items-center gap-4 mb-4">
-                  <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center flex-shrink-0">
+                  <div className="w-12 h-12 bg-primary/15 rounded-full flex items-center justify-center flex-shrink-0">
                     <MapPin className="w-5 h-5 text-primary" strokeWidth={1.5} />
                   </div>
                   <div>
                     <p
-                      className="font-heading font-light text-sm uppercase tracking-[0.12em] text-foreground leading-tight"
+                      className="font-heading font-light text-sm uppercase tracking-[0.12em] text-white/90 leading-tight"
                       data-testid="text-mexico-label"
                     >
                       {t.mexicoLabel}
                     </p>
-                    <p className="text-[11px] text-muted-foreground mt-0.5">{t.mexicoSubtitle}</p>
+                    <p className="text-[11px] text-white/50 mt-0.5">{t.mexicoSubtitle}</p>
                   </div>
                 </div>
-                <p className="text-xs text-muted-foreground leading-relaxed">
+                <p className="text-xs text-white/50 leading-relaxed">
                   Torre SOMA Chapultepec Piso 18, Campos Elíseos 204, Polanco
                 </p>
                 <span className="inline-flex items-center gap-1 mt-3 text-[10px] text-primary uppercase tracking-[0.12em] font-medium group-hover:gap-2 transition-all">
@@ -516,24 +516,24 @@ export default function WorldMapSection({ language }: WorldMapSectionProps) {
                 viewport={{ once: true }}
                 transition={{ duration: 0.6, delay: 0.4 }}
                 onClick={() => setShowGermanyModal(true)}
-                className="w-full md:w-auto md:flex-1 md:max-w-[280px] bg-card border border-border p-6 shadow-sm hover-elevate cursor-pointer text-left group rounded-none"
+                className="w-full md:w-auto md:flex-1 md:max-w-[280px] bg-[#1a1a19] border border-white/10 p-6 shadow-sm hover-elevate cursor-pointer text-left group rounded-none"
                 data-testid="location-germany"
               >
                 <div className="flex items-center gap-4 mb-4">
-                  <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center flex-shrink-0">
+                  <div className="w-12 h-12 bg-primary/15 rounded-full flex items-center justify-center flex-shrink-0">
                     <MapPin className="w-5 h-5 text-primary" strokeWidth={1.5} />
                   </div>
                   <div>
                     <p
-                      className="font-heading font-light text-sm uppercase tracking-[0.12em] text-foreground leading-tight"
+                      className="font-heading font-light text-sm uppercase tracking-[0.12em] text-white/90 leading-tight"
                       data-testid="text-germany-label"
                     >
                       {t.germanyLabel}
                     </p>
-                    <p className="text-[11px] text-muted-foreground mt-0.5">{t.germanySubtitle}</p>
+                    <p className="text-[11px] text-white/50 mt-0.5">{t.germanySubtitle}</p>
                   </div>
                 </div>
-                <p className="text-xs text-muted-foreground leading-relaxed">
+                <p className="text-xs text-white/50 leading-relaxed">
                   {t.germanDeskDescription}
                 </p>
                 <span className="inline-flex items-center gap-1 mt-3 text-[10px] text-primary uppercase tracking-[0.12em] font-medium group-hover:gap-2 transition-all">
