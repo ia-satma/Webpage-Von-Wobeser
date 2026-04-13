@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { motion, useInView } from "framer-motion";
 import { Link } from "wouter";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, MapPin } from "lucide-react";
 
 import worldMapImg from "@assets/mapa_1775780643811.png";
 import worldMapDarkImg from "@assets/mapa-dark_1775840604915.png";
@@ -244,17 +244,6 @@ const content: Record<SupportedLanguage, ContentTranslation> = {
   },
 };
 
-// Pin coordinates for mapa_1775780643811.png — calibrated from reference image
-// SVG viewBox: 0 0 1000 641.
-// Mexico City (~99°W, 19°N) → x=190, y=449 (19% / 70%)
-// Germany (~10°E, 51°N) → x=510, y=195 (51% / 30%) — Central Europe
-const MX = { x: 190, y: 449 };
-const DE = { x: 510, y: 195 };
-// Cubic bezier: two control points pulled high to create an arc over the North Atlantic.
-// Peak at t=0.5 falls at ~x=350, y=110.
-const ARC = `M ${MX.x},${MX.y} C 200,40 500,40 ${DE.x},${DE.y}`;
-
-
 // useCountUp hook
 function useCountUp(target: number, duration = 1800) {
   const [count, setCount] = useState(0);
@@ -351,165 +340,220 @@ export default function WorldMapSection({ language }: WorldMapSectionProps) {
           </motion.div>
         </div>
 
-        {/* World Map — full-bleed, outside max-w container */}
-        <span data-testid="connection-line-mobile" className="sr-only" aria-hidden="true" />
-
-        <motion.div
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          viewport={{ once: true }}
-          transition={{ duration: 1.2, delay: 0.2 }}
-          className="relative w-full"
+        {/* Connection Cards — abstract CDMX ↔ Germany layout */}
+        <div
+          className="relative w-full py-16 lg:py-20"
           data-testid="card-map-connection"
         >
-          {/* Map image base — light/dark variants */}
+          {/* Decorative map background */}
           <img
             src={worldMapImg}
             alt=""
             aria-hidden="true"
-            className="w-full h-auto block dark:hidden"
+            className="absolute inset-0 w-full h-full object-cover opacity-[0.06] dark:hidden pointer-events-none"
           />
           <img
             src={worldMapDarkImg}
             alt=""
             aria-hidden="true"
-            className="w-full h-auto hidden dark:block"
+            className="absolute inset-0 w-full h-full object-cover hidden dark:block opacity-[0.04] pointer-events-none"
           />
 
-          {/* SVG — unified coordinate system for arc, pins, labels, and pill */}
-          <svg
-            viewBox="0 0 1000 641"
-            className="absolute inset-0 w-full h-full"
-            role="img"
-            aria-label={`German Desk — ${t.mexicoLabel} · ${t.germanyLabel}`}
-          >
-            {/* Animated arc from Mexico to Germany */}
-            <g data-testid="connection-line-desktop">
-              <motion.path
-                d={ARC}
-                fill="none"
-                stroke="#AA1A2E"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeDasharray="1400"
-                initial={{ strokeDashoffset: 1400, opacity: 0 }}
-                whileInView={{ strokeDashoffset: 0, opacity: 0.9 }}
+          <div className="relative z-10 max-w-5xl mx-auto px-6 lg:px-12">
+
+            {/* Desktop: horizontal layout */}
+            <div className="hidden md:flex items-center gap-0" data-testid="connection-line-desktop">
+              {/* Mexico City node */}
+              <motion.div
+                initial={{ opacity: 0, x: -30 }}
+                whileInView={{ opacity: 1, x: 0 }}
                 viewport={{ once: true }}
-                transition={{ duration: 2.4, delay: 0.8, ease: "easeInOut" }}
-              />
-            </g>
-
-            {/* Mexico City — pin dot with pulse */}
-            <g data-testid="location-mexico">
-              <motion.circle cx={MX.x} cy={MX.y} r={6} fill="none" stroke="#AA1A2E" strokeWidth="1"
-                animate={{ r: [6, 24, 6], opacity: [0.6, 0, 0.6] }}
-                transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
-              />
-              <motion.circle cx={MX.x} cy={MX.y} r={6} fill="none" stroke="#AA1A2E" strokeWidth="1"
-                animate={{ r: [6, 14, 6], opacity: [0.4, 0, 0.4] }}
-                transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut", delay: 0.6 }}
-              />
-              <circle cx={MX.x} cy={MX.y} r={5} fill="#AA1A2E" />
-              <circle cx={MX.x} cy={MX.y} r={2.5} fill="white" />
-            </g>
-
-            {/* Germany — pin dot with pulse */}
-            <g data-testid="location-germany">
-              <motion.circle cx={DE.x} cy={DE.y} r={6} fill="none" stroke="#AA1A2E" strokeWidth="1"
-                animate={{ r: [6, 24, 6], opacity: [0.6, 0, 0.6] }}
-                transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut", delay: 1.2 }}
-              />
-              <motion.circle cx={DE.x} cy={DE.y} r={6} fill="none" stroke="#AA1A2E" strokeWidth="1"
-                animate={{ r: [6, 14, 6], opacity: [0.4, 0, 0.4] }}
-                transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut", delay: 1.8 }}
-              />
-              <circle cx={DE.x} cy={DE.y} r={5} fill="#AA1A2E" />
-              <circle cx={DE.x} cy={DE.y} r={2.5} fill="white" />
-            </g>
-
-            {/* GERMAN DESK pill — centered on arc peak (x≈350, y≈110) */}
-            <motion.g
-              data-testid="text-german-desk-label"
-              style={{ transformOrigin: "350px 77px" }}
-              initial={{ opacity: 0, scale: 0.85 }}
-              whileInView={{ opacity: 1, scale: 1 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: 2.0 }}
-            >
-              <rect x={210} y={60} width={280} height={34} fill="#AA1A2E" />
-              <text
-                x={350}
-                y={84}
-                textAnchor="middle"
-                fill="white"
-                fontSize="9"
-                fontWeight="bold"
-                style={{ letterSpacing: "3px", textTransform: "uppercase" }}
+                transition={{ duration: 0.6, delay: 0.2 }}
+                className="flex-shrink-0 flex items-center gap-4"
+                data-testid="location-mexico"
               >
-                {t.sectionTitle}
-              </text>
-              <line x1={350} y1={94} x2={350} y2={105} stroke="#AA1A2E" strokeWidth="1" opacity="0.6" />
-            </motion.g>
+                <div className="w-12 h-12 bg-primary/10 flex items-center justify-center flex-shrink-0">
+                  <MapPin className="w-5 h-5 text-primary" strokeWidth={1.5} />
+                </div>
+                <div>
+                  <p
+                    className="font-heading font-light text-sm uppercase tracking-[0.12em] text-foreground leading-tight"
+                    data-testid="text-mexico-label"
+                  >
+                    {t.mexicoLabel}
+                  </p>
+                  <p className="text-[11px] text-muted-foreground mt-0.5">{t.mexicoSubtitle}</p>
+                </div>
+              </motion.div>
 
-            {/* Mexico City label — to the right of pin, same SVG coordinate space */}
-            <motion.g
-              initial={{ opacity: 0 }}
-              whileInView={{ opacity: 1 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: 3.2 }}
-            >
-              <text
-                x={205}
-                y={447}
-                fill="#1a1a1a"
-                fontSize="11"
-                fontWeight="bold"
-                style={{ letterSpacing: "2px", textTransform: "uppercase" }}
-                data-testid="text-mexico-label"
-              >
-                {t.mexicoLabel}
-              </text>
-              <text
-                x={205}
-                y={460}
-                fill="#777777"
-                fontSize="8"
-                style={{ letterSpacing: "1px" }}
-              >
-                {t.mexicoSubtitle}
-              </text>
-            </motion.g>
+              {/* Animated connection line with pill */}
+              <div className="flex-1 flex items-center mx-4 lg:mx-6 relative">
+                {/* Left pulse dot */}
+                <div className="relative flex-shrink-0">
+                  <div className="w-3 h-3 bg-primary" />
+                  <motion.div
+                    className="absolute inset-0 w-3 h-3 bg-primary"
+                    animate={{ scale: [1, 2.5, 1], opacity: [0.6, 0, 0.6] }}
+                    transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
+                  />
+                </div>
 
-            {/* Germany label — to the right of pin, same SVG coordinate space */}
-            <motion.g
-              initial={{ opacity: 0 }}
-              whileInView={{ opacity: 1 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: 3.5 }}
-            >
-              <text
-                x={525}
-                y={193}
-                fill="#1a1a1a"
-                fontSize="11"
-                fontWeight="bold"
-                style={{ letterSpacing: "2px", textTransform: "uppercase" }}
-                data-testid="text-germany-label"
+                {/* Line segments + pill */}
+                <div className="flex-1 flex items-center">
+                  <motion.div
+                    className="flex-1 h-px bg-primary/40"
+                    initial={{ scaleX: 0 }}
+                    whileInView={{ scaleX: 1 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 1.2, delay: 0.6, ease: "easeInOut" }}
+                    style={{ transformOrigin: "left" }}
+                  />
+
+                  {/* GERMAN DESK pill */}
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.85 }}
+                    whileInView={{ opacity: 1, scale: 1 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.5, delay: 1.4 }}
+                    className="flex-shrink-0 bg-primary px-5 py-2 mx-1"
+                    data-testid="text-german-desk-label"
+                  >
+                    <span className="text-white text-[10px] font-bold tracking-[0.2em] uppercase whitespace-nowrap">
+                      {t.sectionTitle}
+                    </span>
+                  </motion.div>
+
+                  <motion.div
+                    className="flex-1 h-px bg-primary/40"
+                    initial={{ scaleX: 0 }}
+                    whileInView={{ scaleX: 1 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 1.2, delay: 0.9, ease: "easeInOut" }}
+                    style={{ transformOrigin: "right" }}
+                  />
+                </div>
+
+                {/* Right pulse dot */}
+                <div className="relative flex-shrink-0">
+                  <div className="w-3 h-3 bg-primary" />
+                  <motion.div
+                    className="absolute inset-0 w-3 h-3 bg-primary"
+                    animate={{ scale: [1, 2.5, 1], opacity: [0.6, 0, 0.6] }}
+                    transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut", delay: 1.2 }}
+                  />
+                </div>
+              </div>
+
+              {/* Germany node */}
+              <motion.div
+                initial={{ opacity: 0, x: 30 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.6, delay: 0.4 }}
+                className="flex-shrink-0 flex items-center gap-4"
+                data-testid="location-germany"
               >
-                {t.germanyLabel}
-              </text>
-              <text
-                x={525}
-                y={206}
-                fill="#777777"
-                fontSize="8"
-                style={{ letterSpacing: "1px" }}
+                <div>
+                  <p
+                    className="font-heading font-light text-sm uppercase tracking-[0.12em] text-foreground leading-tight text-right"
+                    data-testid="text-germany-label"
+                  >
+                    {t.germanyLabel}
+                  </p>
+                  <p className="text-[11px] text-muted-foreground mt-0.5 text-right">{t.germanySubtitle}</p>
+                </div>
+                <div className="w-12 h-12 bg-primary/10 flex items-center justify-center flex-shrink-0">
+                  <MapPin className="w-5 h-5 text-primary" strokeWidth={1.5} />
+                </div>
+              </motion.div>
+            </div>
+
+            {/* Mobile: vertical stacked layout */}
+            <div className="md:hidden flex flex-col items-center gap-0" data-testid="connection-line-mobile">
+              {/* Mexico City node */}
+              <motion.div
+                initial={{ opacity: 0, y: -20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: 0.2 }}
+                className="flex items-center gap-3 mb-4"
+                data-testid="location-mexico-mobile"
               >
-                {t.germanySubtitle}
-              </text>
-            </motion.g>
-          </svg>
-        </motion.div>
+                <div className="w-10 h-10 bg-primary/10 flex items-center justify-center flex-shrink-0">
+                  <MapPin className="w-4 h-4 text-primary" strokeWidth={1.5} />
+                </div>
+                <div>
+                  <p className="font-heading font-light text-xs uppercase tracking-[0.12em] text-foreground">{t.mexicoLabel}</p>
+                  <p className="text-[10px] text-muted-foreground">{t.mexicoSubtitle}</p>
+                </div>
+              </motion.div>
+
+              {/* Vertical line + pulse + pill */}
+              <div className="flex flex-col items-center">
+                <div className="relative">
+                  <div className="w-2.5 h-2.5 bg-primary" />
+                  <motion.div
+                    className="absolute inset-0 w-2.5 h-2.5 bg-primary"
+                    animate={{ scale: [1, 2.5, 1], opacity: [0.6, 0, 0.6] }}
+                    transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
+                  />
+                </div>
+                <motion.div
+                  className="w-px h-8 bg-primary/40"
+                  initial={{ scaleY: 0 }}
+                  whileInView={{ scaleY: 1 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.6, delay: 0.5 }}
+                  style={{ transformOrigin: "top" }}
+                />
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.85 }}
+                  whileInView={{ opacity: 1, scale: 1 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.4, delay: 0.8 }}
+                  className="bg-primary px-5 py-2 my-1"
+                >
+                  <span className="text-white text-[9px] font-bold tracking-[0.2em] uppercase">{t.sectionTitle}</span>
+                </motion.div>
+                <motion.div
+                  className="w-px h-8 bg-primary/40"
+                  initial={{ scaleY: 0 }}
+                  whileInView={{ scaleY: 1 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.6, delay: 0.7 }}
+                  style={{ transformOrigin: "bottom" }}
+                />
+                <div className="relative">
+                  <div className="w-2.5 h-2.5 bg-primary" />
+                  <motion.div
+                    className="absolute inset-0 w-2.5 h-2.5 bg-primary"
+                    animate={{ scale: [1, 2.5, 1], opacity: [0.6, 0, 0.6] }}
+                    transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut", delay: 1.2 }}
+                  />
+                </div>
+              </div>
+
+              {/* Germany node */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: 0.6 }}
+                className="flex items-center gap-3 mt-4"
+                data-testid="location-germany-mobile"
+              >
+                <div className="w-10 h-10 bg-primary/10 flex items-center justify-center flex-shrink-0">
+                  <MapPin className="w-4 h-4 text-primary" strokeWidth={1.5} />
+                </div>
+                <div>
+                  <p className="font-heading font-light text-xs uppercase tracking-[0.12em] text-foreground">{t.germanyLabel}</p>
+                  <p className="text-[10px] text-muted-foreground">{t.germanySubtitle}</p>
+                </div>
+              </motion.div>
+            </div>
+
+          </div>
+        </div>
 
         {/* Stats + historical text — back in max-w container */}
         <div className="max-w-7xl mx-auto px-6 lg:px-12">
