@@ -1,0 +1,39 @@
+Aquí tienes el prompt unificado y completo, redactado con instrucciones técnicas muy precisas para que el agente de Replit entienda exactamente qué hacer sin margen de error.
+
+Copia y pega todo este texto de una sola vez en Replit:
+
+"El diseño actual con fondo oscuro y el globo 3D no funciona; rompe la armonía visual de la página con la sección blanca de estadísticas que está debajo y el 3D no se renderiza. Vamos a rehacer esta sección desde cero usando un enfoque 'Light Mode', corporativo, limpio y 100% responsivo.
+
+Por favor, implementa exactamente lo siguiente:
+
+1. Fondo y Base:
+
+Cambia el fondo de toda la sección a blanco (#FFFFFF) o gris ultra claro (#F8F9FA) para que fluya hacia la sección de abajo.
+
+Coloca de fondo un mapa del mundo en SVG muy sutil (estilo marca de agua, en gris muy claro). No uses mapas con coordenadas rígidas, solo úsalo como fondo decorativo.
+
+2. Diseño de Tarjetas (Cards):
+
+Sobre el mapa, coloca dos tarjetas elegantes: una para 'Ciudad de México' y otra para 'Alemania (German Desk)'.
+
+Dales un fondo blanco, sombra suave (box-shadow sutil), y un diseño limpio.
+
+Dispón las tarjetas usando Flexbox: separadas a los lados en escritorio, y apiladas verticalmente en móvil.
+
+3. La Curva Dinámica (REQUISITO CRÍTICO):
+
+Conecta ambas tarjetas con una línea curva o flecha en el color rojo de la marca.
+
+PROHIBIDO: No uses coordenadas fijas (top, left, x, y) ni posiciones absolutas que intenten atinarle a un punto geográfico, ya que eso se rompe al redimensionar.
+
+SOLUCIÓN: Usa una librería como react-xarrows para trazar la línea automáticamente entre el DOM de la tarjeta 1 y la tarjeta 2, o coloca un SVG flexible (flex-grow) en medio de ambas tarjetas que simplemente ocupe el espacio disponible y escale su viewBox. La línea debe ser elástica y jamás despegarse de las tarjetas al cambiar el tamaño de la ventana.
+
+4. Interactividad (Modales):
+
+Haz que las tarjetas (o sus iconos de ubicación) sean botones clickeables.
+
+Al hacer clic en 'Ciudad de México', debe abrirse un Modal elegante (con overlay oscuro y botón de cerrar). Dentro del modal, pon una imagen de placeholder (que luego cambiaré por la foto de la Torre SOMA), la dirección de la oficina y un botón de contacto.
+
+Aplica la misma lógica de Modal para 'Alemania' con su propia imagen de prueba.
+
+Asegúrate de que todo el código sea robusto, libre de errores y enfocado en verse premium.
