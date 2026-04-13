@@ -1128,19 +1128,20 @@ export default function Offices() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.5 }}
-            className="bg-primary rounded-none p-8 lg:p-12 text-center"
+            className="bg-[#1a1a19] rounded-none p-8 lg:p-12 text-center"
             data-testid="section-contact-cta"
           >
+            <div className="h-0.5 w-12 bg-primary mx-auto mb-6" />
             <h2 className="text-2xl font-heading font-light text-white mb-4 uppercase tracking-[0.12em]">
               {t.contactCtaTitle}
             </h2>
-            <p className="text-white/90 max-w-2xl mx-auto mb-8">
+            <p className="text-white/60 max-w-2xl mx-auto mb-8">
               {t.contactCtaSubtitle}
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link href="/contact">
                 <Button 
-                  variant="secondary" 
+                  variant="default" 
                   size="lg" 
                   className="rounded-none gap-2"
                   data-testid="button-contact"
@@ -1153,7 +1154,7 @@ export default function Offices() {
                 <Button 
                   variant="outline" 
                   size="lg" 
-                  className="rounded-none gap-2 border-white text-white hover:bg-white/10"
+                  className="rounded-none gap-2 border-white/20 text-white"
                   data-testid="button-schedule"
                 >
                   {t.scheduleButton}

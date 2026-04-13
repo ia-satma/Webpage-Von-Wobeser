@@ -1050,29 +1050,30 @@ export default function Interns() {
             className="mb-12"
             data-testid="section-cta"
           >
-            <Card className="rounded-none border border-border bg-primary text-white overflow-hidden">
+            <Card className="rounded-none border border-white/10 bg-[#1a1a19] text-white overflow-hidden">
               <CardContent className="p-8 lg:p-12 text-center">
+                <div className="h-0.5 w-12 bg-primary mx-auto mb-6" />
                 <h2 
                   className="text-xl md:text-2xl font-heading font-light mb-4 uppercase tracking-[0.12em]"
                   data-testid="text-cta-title"
                 >
                   {t.ctaTitle}
                 </h2>
-                <p className="text-lg text-white/90 max-w-2xl mx-auto mb-6">
+                <p className="text-base text-white/60 max-w-2xl mx-auto mb-6">
                   {t.ctaSubtitle}
                 </p>
-                <p className="text-white/80 mb-2">
+                <p className="text-white/60 mb-2">
                   {t.ctaInstructions}
                 </p>
-                <p className="text-xl font-semibold mb-6">
+                <p className="text-xl font-light text-primary mb-6">
                   {t.applyEmail}
                 </p>
-                <p className="text-sm text-white/70 max-w-2xl mx-auto mb-8">
+                <p className="text-sm text-white/50 max-w-2xl mx-auto mb-8">
                   {t.ctaNote}
                 </p>
                 <div className="flex flex-col sm:flex-row gap-4 justify-center">
                   <Button 
-                    variant="secondary"
+                    variant="default"
                     size="lg"
                     className="rounded-none"
                     asChild
@@ -1086,7 +1087,7 @@ export default function Interns() {
                   <Button 
                     variant="outline"
                     size="lg"
-                    className="rounded-none bg-card/10 border-white/20 text-white hover:bg-white/20"
+                    className="rounded-none border-white/20 text-white"
                     asChild
                     data-testid="button-view-careers"
                   >

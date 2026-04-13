@@ -1374,22 +1374,22 @@ export default function Careers() {
               </Card>
 
               <Card 
-                className="rounded-none border border-border bg-primary text-white"
+                className="rounded-none border border-white/10 bg-[#1a1a19] text-white"
                 data-testid="card-internship-cta"
               >
                 <CardContent className="p-8 flex flex-col justify-center h-full">
-                  <GraduationCap className="w-12 h-12 mb-6" />
+                  <GraduationCap className="w-12 h-12 mb-6 text-primary" />
                   <h3 className="text-xl font-heading font-light mb-4">
                     {language === "es" ? "¿Listo para comenzar?" : "Ready to get started?"}
                   </h3>
-                  <p className="text-white/90 mb-6">
+                  <p className="text-white/60 mb-6">
                     {language === "es" 
                       ? "Aplica a nuestro programa de pasantías y da el primer paso en tu carrera legal."
                       : "Apply to our internship program and take the first step in your legal career."
                     }
                   </p>
                   <Button 
-                    variant="secondary"
+                    variant="default"
                     className="rounded-none w-full"
                     asChild
                     data-testid="button-internship-apply"
