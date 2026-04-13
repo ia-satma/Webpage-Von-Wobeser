@@ -291,7 +291,7 @@ export default function AdminLogin() {
 
               {loginMutation.isError && (
                 <div 
-                  className="flex items-center gap-2 p-3 bg-destructive/10 text-destructive rounded-md text-sm"
+                  className="flex items-center gap-2 p-3 bg-destructive/10 text-destructive rounded-none text-sm"
                   data-testid="error-login-message"
                 >
                   <AlertCircle className="h-4 w-4" />

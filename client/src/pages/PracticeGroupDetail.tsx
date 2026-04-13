@@ -161,7 +161,7 @@ function TranslatedMatterCard({ matter, language, t }: TranslatedMatterCardProps
 
   return (
     <Card 
-      className={`rounded-md border ${matter.isHighlight ? 'border-primary/30 bg-primary/5 dark:bg-primary/10' : 'border-border bg-card'}`}
+      className={`rounded-none border ${matter.isHighlight ? 'border-primary/30 bg-primary/5 dark:bg-primary/10' : 'border-border bg-card'}`}
       data-testid={`card-matter-${matter.id}`}
     >
       <CardContent className="p-6">
@@ -169,14 +169,14 @@ function TranslatedMatterCard({ matter, language, t }: TranslatedMatterCardProps
           <div className="flex-1">
             <div className="flex items-center gap-2 mb-2">
               {matter.isHighlight && (
-                <Badge className="bg-primary text-white rounded-md text-xs">
+                <Badge className="bg-primary text-white rounded-none text-xs">
                   <Star className="w-3 h-3 mr-1" />
                   {t.featured}
                 </Badge>
               )}
               <Badge 
                 variant="outline" 
-                className="rounded-md text-xs"
+                className="rounded-none text-xs"
                 data-testid={`badge-matter-year-${matter.id}`}
               >
                 {matter.year}
@@ -628,7 +628,7 @@ export default function PracticeGroupDetail() {
           <div className="max-w-7xl mx-auto px-6 lg:px-12">
             <Skeleton className="h-5 w-48 bg-card/20 mb-6" />
             <div className="flex items-center gap-4">
-              <Skeleton className="h-16 w-16 rounded-md bg-card/20" />
+              <Skeleton className="h-16 w-16 rounded-none bg-card/20" />
               <Skeleton className="h-12 w-64 bg-card/20" />
             </div>
           </div>
@@ -665,7 +665,7 @@ export default function PracticeGroupDetail() {
   const renderMemberCard = (member: TeamMember) => (
     <Link key={member.id} href={`/team/${member.slug}`}>
       <Card 
-        className="rounded-md border border-border bg-card hover:shadow-md transition-shadow cursor-pointer"
+        className="rounded-none border border-border bg-card hover:shadow-md transition-shadow cursor-pointer"
         data-testid={`card-team-member-${member.slug}`}
       >
         <CardContent className="p-4 flex items-center gap-4">
@@ -717,7 +717,7 @@ export default function PracticeGroupDetail() {
             </Link>
             <div className="flex items-center gap-4">
               {IconComponent && (
-                <div className="w-16 h-16 rounded-md bg-card/10 flex items-center justify-center">
+                <div className="w-16 h-16 rounded-none bg-card/10 flex items-center justify-center">
                   <IconComponent className="w-8 h-8 text-white" data-testid="icon-practice-group-detail" />
                 </div>
               )}
@@ -842,7 +842,7 @@ export default function PracticeGroupDetail() {
                 {practiceRankings.map((ranking, index) => (
                   <Card 
                     key={index}
-                    className="rounded-md border border-border bg-card"
+                    className="rounded-none border border-border bg-card"
                     data-testid={`card-ranking-${index}`}
                   >
                     <CardContent className="p-4 flex items-center justify-between gap-4">
@@ -861,7 +861,7 @@ export default function PracticeGroupDetail() {
                         </p>
                       </div>
                       <Badge 
-                        className={`rounded-md text-xs flex items-center ${getBadgeStyles(ranking.badgeType)}`}
+                        className={`rounded-none text-xs flex items-center ${getBadgeStyles(ranking.badgeType)}`}
                         data-testid={`badge-ranking-${index}`}
                       >
                         {getBadgeIcon(ranking.badgeType)}
@@ -897,7 +897,7 @@ export default function PracticeGroupDetail() {
                     className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2"
                     data-testid="text-partners-title"
                   >
-                    <Badge className="bg-primary text-white rounded-md text-xs">
+                    <Badge className="bg-primary text-white rounded-none text-xs">
                       {filteredAndGroupedMembers.partners.length}
                     </Badge>
                     {t.partners}
@@ -914,7 +914,7 @@ export default function PracticeGroupDetail() {
                     className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2"
                     data-testid="text-of-counsel-title"
                   >
-                    <Badge className="bg-amber-600 text-white rounded-md text-xs">
+                    <Badge className="bg-amber-600 text-white rounded-none text-xs">
                       {filteredAndGroupedMembers.ofCounsel.length}
                     </Badge>
                     {t.ofCounsel}
@@ -931,7 +931,7 @@ export default function PracticeGroupDetail() {
                     className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2"
                     data-testid="text-associates-title"
                   >
-                    <Badge className="bg-gray-600 text-white rounded-md text-xs">
+                    <Badge className="bg-gray-600 text-white rounded-none text-xs">
                       {filteredAndGroupedMembers.associates.length}
                     </Badge>
                     {t.associates}
@@ -944,7 +944,7 @@ export default function PracticeGroupDetail() {
                       <Link href={`/team?practice=${slug}`}>
                         <Button 
                           variant="outline" 
-                          className="rounded-md gap-2"
+                          className="rounded-none gap-2"
                           data-testid="button-view-all-associates"
                         >
                           {t.viewAll} ({filteredAndGroupedMembers.associates.length})
@@ -962,7 +962,7 @@ export default function PracticeGroupDetail() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.4 }}
-            className="bg-muted rounded-md p-8 lg:p-12"
+            className="bg-muted rounded-none p-8 lg:p-12"
             data-testid="section-contact-cta"
           >
             <h2 
@@ -980,7 +980,7 @@ export default function PracticeGroupDetail() {
             <div className="flex flex-col sm:flex-row gap-4">
               <Link href="/contact">
                 <Button 
-                  className="rounded-md"
+                  className="rounded-none"
                   data-testid="button-email-us"
                 >
                   <Mail className="w-4 h-4 mr-2" />
@@ -989,7 +989,7 @@ export default function PracticeGroupDetail() {
               </Link>
               <Button 
                 variant="outline"
-                className="rounded-md"
+                className="rounded-none"
                 data-testid="button-call-us"
                 onClick={() => window.location.href = "tel:+525552581000"}
               >

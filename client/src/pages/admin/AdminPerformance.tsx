@@ -599,7 +599,7 @@ export default function AdminPerformance() {
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-4 gap-4">
-                <div className="flex items-center gap-3 p-4 bg-muted/50 rounded-lg">
+                <div className="flex items-center gap-3 p-4 bg-muted/50 rounded-none">
                   <div className="p-2 bg-yellow-100 dark:bg-yellow-900 rounded-full">
                     <Clock className="w-5 h-5 text-yellow-600" />
                   </div>
@@ -608,7 +608,7 @@ export default function AdminPerformance() {
                     <p className="text-sm text-muted-foreground">{t.pending}</p>
                   </div>
                 </div>
-                <div className="flex items-center gap-3 p-4 bg-muted/50 rounded-lg">
+                <div className="flex items-center gap-3 p-4 bg-muted/50 rounded-none">
                   <div className="p-2 bg-blue-100 dark:bg-blue-900 rounded-full">
                     <RefreshCw className="w-5 h-5 text-blue-600" />
                   </div>
@@ -617,7 +617,7 @@ export default function AdminPerformance() {
                     <p className="text-sm text-muted-foreground">{t.processing}</p>
                   </div>
                 </div>
-                <div className="flex items-center gap-3 p-4 bg-muted/50 rounded-lg">
+                <div className="flex items-center gap-3 p-4 bg-muted/50 rounded-none">
                   <div className="p-2 bg-green-100 dark:bg-green-900 rounded-full">
                     <CheckCircle2 className="w-5 h-5 text-green-600" />
                   </div>
@@ -626,7 +626,7 @@ export default function AdminPerformance() {
                     <p className="text-sm text-muted-foreground">{t.completed}</p>
                   </div>
                 </div>
-                <div className="flex items-center gap-3 p-4 bg-muted/50 rounded-lg">
+                <div className="flex items-center gap-3 p-4 bg-muted/50 rounded-none">
                   <div className="p-2 bg-red-100 dark:bg-red-900 rounded-full">
                     <XCircle className="w-5 h-5 text-red-600" />
                   </div>

@@ -377,7 +377,7 @@ export default function Experience() {
               {mattersLoading ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {Array.from({ length: 6 }).map((_, i) => (
-                    <Card key={i} className="rounded-md border-0 shadow-sm bg-card">
+                    <Card key={i} className="rounded-none border-0 shadow-sm bg-card">
                       <CardContent className="p-6">
                         <Skeleton className="h-6 w-3/4 mb-3" />
                         <Skeleton className="h-4 w-full mb-2" />
@@ -400,7 +400,7 @@ export default function Experience() {
                   {highlightedMatters.map((matter) => (
                     <motion.div key={matter.id} variants={itemVariants}>
                       <Card
-                        className="h-full rounded-md border border-border shadow-sm bg-card hover:shadow-lg transition-shadow duration-300"
+                        className="h-full rounded-none border border-border shadow-sm bg-card hover:shadow-lg transition-shadow duration-300"
                         data-testid={`card-featured-matter-${matter.id}`}
                       >
                         <CardContent className="p-6">
@@ -533,7 +533,7 @@ export default function Experience() {
               {mattersLoading ? (
                 <div className="space-y-4">
                   {Array.from({ length: 6 }).map((_, i) => (
-                    <Card key={i} className="rounded-md border-0 shadow-sm bg-muted">
+                    <Card key={i} className="rounded-none border-0 shadow-sm bg-muted">
                       <CardContent className="p-6">
                         <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
                           <div className="flex-1">
@@ -568,7 +568,7 @@ export default function Experience() {
                   {filteredMatters.map((matter) => (
                     <motion.div key={matter.id} variants={itemVariants}>
                       <Card
-                        className="rounded-md border border-border shadow-sm bg-card hover:shadow-md transition-shadow duration-300"
+                        className="rounded-none border border-border shadow-sm bg-card hover:shadow-md transition-shadow duration-300"
                         data-testid={`card-matter-${matter.id}`}
                       >
                         <CardContent className="p-6">

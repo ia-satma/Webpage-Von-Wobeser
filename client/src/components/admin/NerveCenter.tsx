@@ -140,7 +140,7 @@ function AgentCard({
               {displayRole}
             </p>
           </div>
-          <div className="flex-shrink-0 p-2 rounded-md bg-primary/10 text-primary">
+          <div className="flex-shrink-0 p-2 rounded-none bg-primary/10 text-primary">
             {getCategoryIcon(agent.category)}
           </div>
         </div>
@@ -227,7 +227,7 @@ function CategorySection({
   return (
     <section className="space-y-4" data-testid={`category-section-${category}`}>
       <div className="flex items-center gap-3">
-        <div className={`p-3 rounded-lg ${getBgColor()}`}>
+        <div className={`p-3 rounded-none ${getBgColor()}`}>
           <span className={getIconColor()}>
             {getCategoryIcon(category)}
           </span>

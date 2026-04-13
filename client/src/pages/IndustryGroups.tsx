@@ -41,12 +41,12 @@ function IndustryGroupCard({ group, learnMoreText }: IndustryGroupCardProps) {
   return (
     <Link href={`/industry-groups/${group.slug}`}>
       <Card
-        className="group h-full rounded-md border border-border shadow-sm hover:shadow-lg transition-all duration-300 cursor-pointer bg-card"
+        className="group h-full rounded-none border border-border shadow-sm hover:shadow-lg transition-all duration-300 cursor-pointer bg-card"
         data-testid={`card-industry-group-${group.slug}`}
       >
         <CardContent className="p-6">
           <div className="flex items-start justify-between mb-4">
-            <div className="w-12 h-12 rounded-md bg-primary/10 dark:bg-primary/20 flex items-center justify-center">
+            <div className="w-12 h-12 rounded-none bg-primary/10 dark:bg-primary/20 flex items-center justify-center">
               <IconComponent className="w-6 h-6 text-primary" data-testid={`icon-industry-group-${group.slug}`} />
             </div>
             {showTranslatingIndicator && (
@@ -244,11 +244,11 @@ export default function IndustryGroups() {
               {Array.from({ length: 7 }).map((_, i) => (
                 <Card 
                   key={i} 
-                  className="rounded-md border-0 shadow-sm bg-muted"
+                  className="rounded-none border-0 shadow-sm bg-muted"
                   data-testid={`skeleton-industry-group-${i}`}
                 >
                   <CardContent className="p-6">
-                    <Skeleton className="h-10 w-10 rounded-md mb-4" />
+                    <Skeleton className="h-10 w-10 rounded-none mb-4" />
                     <Skeleton className="h-6 w-3/4 mb-3" />
                     <Skeleton className="h-4 w-full mb-2" />
                     <Skeleton className="h-4 w-5/6 mb-4" />

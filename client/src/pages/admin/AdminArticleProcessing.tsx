@@ -759,7 +759,7 @@ export default function AdminArticleProcessing() {
               </div>
             </div>
             <div className="flex items-center gap-4 flex-wrap">
-              <div className="flex items-center gap-2 px-3 py-2 rounded-md border bg-muted/50">
+              <div className="flex items-center gap-2 px-3 py-2 rounded-none border bg-muted/50">
                 <ImageIcon className="h-4 w-4 text-muted-foreground" />
                 <div className="flex flex-col">
                   <Label htmlFor="generate-images" className="text-xs font-medium cursor-pointer">

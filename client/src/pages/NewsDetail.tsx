@@ -102,7 +102,7 @@ function AuthorCard({
       className="block"
     >
       <Card
-        className="group overflow-visible border border-border shadow-sm hover:shadow-lg transition-all duration-300 rounded-md bg-card hover-elevate"
+        className="group overflow-visible border border-border shadow-sm hover:shadow-lg transition-all duration-300 rounded-none bg-card hover-elevate"
         data-testid={`card-author-${author.slug}`}
       >
         <CardContent className="p-6">
@@ -633,7 +633,7 @@ export default function NewsDetail() {
                   <Button
                     variant="outline"
                     size="icon"
-                    className="rounded-md"
+                    className="rounded-none"
                     onClick={() => handleShare("linkedin")}
                     data-testid="button-share-linkedin"
                     title="LinkedIn"
@@ -643,7 +643,7 @@ export default function NewsDetail() {
                   <Button
                     variant="outline"
                     size="icon"
-                    className="rounded-md"
+                    className="rounded-none"
                     onClick={() => handleShare("twitter")}
                     data-testid="button-share-twitter"
                     title="Twitter/X"
@@ -653,7 +653,7 @@ export default function NewsDetail() {
                   <Button
                     variant="outline"
                     size="icon"
-                    className="rounded-md"
+                    className="rounded-none"
                     onClick={() => handleShare("whatsapp")}
                     data-testid="button-share-whatsapp"
                     title="WhatsApp"
@@ -663,7 +663,7 @@ export default function NewsDetail() {
                   <Button
                     variant="outline"
                     size="icon"
-                    className="rounded-md"
+                    className="rounded-none"
                     onClick={() => handleShare("email")}
                     data-testid="button-share-email"
                     title="Email"
@@ -673,7 +673,7 @@ export default function NewsDetail() {
                   <Button
                     variant="outline"
                     size="icon"
-                    className="rounded-md"
+                    className="rounded-none"
                     onClick={handleCopyLink}
                     data-testid="button-share-copy-link"
                     title={t.copyLink}

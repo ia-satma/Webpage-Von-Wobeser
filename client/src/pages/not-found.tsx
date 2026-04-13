@@ -80,7 +80,7 @@ export default function NotFound() {
       <Header />
       
       <main className="flex-1 flex items-center justify-center py-20">
-        <Card className="w-full max-w-lg mx-4 rounded-md border border-border">
+        <Card className="w-full max-w-lg mx-4 rounded-none border border-border">
           <CardContent className="pt-8 pb-8 px-8 text-center">
             <div className="flex justify-center mb-6">
               <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center">

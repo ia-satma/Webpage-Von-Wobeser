@@ -897,7 +897,7 @@ export default function ProBono() {
             >
               {t.areas.map((area, index) => (
                 <motion.div key={index} variants={itemVariants}>
-                  <Card className="h-full rounded-md border border-border" data-testid={`card-area-${index}`}>
+                  <Card className="h-full rounded-none border border-border" data-testid={`card-area-${index}`}>
                     <CardContent className="p-6">
                       <div className="flex items-start gap-4">
                         <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
@@ -923,7 +923,7 @@ export default function ProBono() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.4 }}
-            className="mb-20 bg-muted rounded-md p-10"
+            className="mb-20 bg-muted rounded-none p-10"
             data-testid="section-stats"
           >
             <h2 className="text-2xl font-heading font-light text-[#AA1A2E] mb-8 text-center uppercase tracking-[0.12em]">
@@ -975,7 +975,7 @@ export default function ProBono() {
             >
               {t.participationAspects.map((aspect, index) => (
                 <motion.div key={index} variants={itemVariants}>
-                  <Card className="h-full rounded-md border border-border" data-testid={`card-participation-${index}`}>
+                  <Card className="h-full rounded-none border border-border" data-testid={`card-participation-${index}`}>
                     <CardContent className="p-6">
                       <div className="flex items-start gap-4">
                         <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
@@ -1004,7 +1004,7 @@ export default function ProBono() {
             className="mb-16"
             data-testid="section-cta"
           >
-            <Card className="rounded-md border border-border bg-gradient-to-br from-primary/5 to-primary/10 dark:from-primary/10 dark:to-primary/20">
+            <Card className="rounded-none border border-border bg-gradient-to-br from-primary/5 to-primary/10 dark:from-primary/10 dark:to-primary/20">
               <CardContent className="p-10 text-center">
                 <div className="flex items-center justify-center gap-3 mb-4">
                   <Scale className="w-8 h-8 text-primary" />
@@ -1017,13 +1017,13 @@ export default function ProBono() {
                 </p>
                 <div className="flex flex-col sm:flex-row justify-center gap-4">
                   <Link href="/contact">
-                    <Button className="rounded-md" data-testid="button-contact">
+                    <Button className="rounded-none" data-testid="button-contact">
                       <Heart className="w-4 h-4 mr-2" />
                       {t.contactButton}
                     </Button>
                   </Link>
                   <Link href="/about">
-                    <Button variant="outline" className="rounded-md" data-testid="button-learn-more">
+                    <Button variant="outline" className="rounded-none" data-testid="button-learn-more">
                       {t.learnMoreAbout}
                       <ArrowRight className="w-4 h-4 ml-2" />
                     </Button>

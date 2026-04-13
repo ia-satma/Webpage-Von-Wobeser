@@ -360,12 +360,12 @@ function LoadingSkeleton() {
       </div>
       <div className="grid gap-4 md:grid-cols-3">
         {[1, 2, 3].map((i) => (
-          <Skeleton key={i} className="h-32 rounded-lg" />
+          <Skeleton key={i} className="h-32 rounded-none" />
         ))}
       </div>
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {[1, 2, 3, 4, 5, 6].map((i) => (
-          <Skeleton key={i} className="h-48 rounded-lg" />
+          <Skeleton key={i} className="h-48 rounded-none" />
         ))}
       </div>
     </div>
@@ -397,7 +397,7 @@ function StatsCard({
   return (
     <Card data-testid={`stats-card-${title.toLowerCase().replace(/\s+/g, '-')}`}>
       <CardContent className="flex items-center gap-4 p-4">
-        <div className={`p-3 rounded-lg ${getBgColor()}`}>
+        <div className={`p-3 rounded-none ${getBgColor()}`}>
           <Icon className="w-5 h-5" />
         </div>
         <div>
@@ -456,7 +456,7 @@ export default function AdminGuide() {
     <div className="p-6 space-y-8" data-testid="admin-nerve-center">
       <header className="space-y-2">
         <div className="flex items-center gap-3">
-          <div className="p-2 rounded-lg bg-primary/10">
+          <div className="p-2 rounded-none bg-primary/10">
             <Brain className="w-8 h-8 text-primary" />
           </div>
           <div>

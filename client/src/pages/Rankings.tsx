@@ -507,7 +507,7 @@ export default function Rankings() {
                     data-testid={`card-directory-${directory.id}`}
                   >
                     <CardHeader className="flex flex-row items-start gap-4 pb-4">
-                      <div className="p-3 rounded-md bg-primary/10 text-primary flex-shrink-0">
+                      <div className="p-3 rounded-none bg-primary/10 text-primary flex-shrink-0">
                         <directory.icon className="w-6 h-6" />
                       </div>
                       <div className="flex-1 min-w-0">
@@ -564,7 +564,7 @@ export default function Rankings() {
                     data-testid={`card-award-${award.id}`}
                   >
                     <CardHeader className="flex flex-row items-start gap-4 pb-4">
-                      <div className="p-3 rounded-md bg-primary/10 text-primary flex-shrink-0">
+                      <div className="p-3 rounded-none bg-primary/10 text-primary flex-shrink-0">
                         <Medal className="w-6 h-6" />
                       </div>
                       <div className="flex-1 min-w-0">
@@ -602,7 +602,7 @@ export default function Rankings() {
             whileInView={{ opacity: 1 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
-            className="mb-20 py-12 px-8 bg-muted rounded-md"
+            className="mb-20 py-12 px-8 bg-muted rounded-none"
             data-testid="section-rankings-quote"
           >
             <div className="max-w-4xl mx-auto text-center">

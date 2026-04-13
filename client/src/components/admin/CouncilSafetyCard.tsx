@@ -452,7 +452,7 @@ export function CouncilSafetyCard({ verdict, onValidate, isValidating, isAdmin }
       <CardContent className="space-y-4">
         <div className="flex flex-wrap gap-4 items-center">
           {score !== null && (
-            <div className="flex items-center gap-2 bg-card rounded-md px-4 py-2 shadow-sm">
+            <div className="flex items-center gap-2 bg-card rounded-none px-4 py-2 shadow-sm">
               <Sparkles className={`w-5 h-5 ${getScoreColor(score)}`} />
               <span className="text-sm text-muted-foreground">{t.score}:</span>
               <span className={`text-2xl font-bold ${getScoreColor(score)}`} data-testid="text-council-score">
@@ -478,7 +478,7 @@ export function CouncilSafetyCard({ verdict, onValidate, isValidating, isAdmin }
             {verdict.agentVotes.map((vote, index) => (
               <div 
                 key={index}
-                className={`flex items-start gap-3 p-3 rounded-md ${getScoreBgColor(vote.score)}`}
+                className={`flex items-start gap-3 p-3 rounded-none ${getScoreBgColor(vote.score)}`}
                 data-testid={`agent-vote-${index}`}
               >
                 <div className="flex items-center gap-2 min-w-[140px]">
@@ -538,7 +538,7 @@ export function CouncilSafetyCard({ verdict, onValidate, isValidating, isAdmin }
           </CollapsibleTrigger>
           <CollapsibleContent>
             <div 
-              className="mt-2 p-4 bg-muted/50 rounded-md text-sm whitespace-pre-wrap font-mono"
+              className="mt-2 p-4 bg-muted/50 rounded-none text-sm whitespace-pre-wrap font-mono"
               data-testid="text-council-feedback"
             >
               {verdict.consolidatedFeedback}

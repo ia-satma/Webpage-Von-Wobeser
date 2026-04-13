@@ -762,7 +762,7 @@ export default function Interns() {
               {t.heroSubtitle}
             </p>
             <Button 
-              className="rounded-md"
+              className="rounded-none"
               variant="secondary"
               size="lg"
               asChild
@@ -800,7 +800,7 @@ export default function Interns() {
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              <Card className="rounded-md border border-border" data-testid="card-summer-program">
+              <Card className="rounded-none border border-border" data-testid="card-summer-program">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-3 text-xl font-heading font-light text-foreground">
                     <Calendar className="w-6 h-6 text-primary" />
@@ -818,7 +818,7 @@ export default function Interns() {
                 </CardContent>
               </Card>
 
-              <Card className="rounded-md border border-border" data-testid="card-permanent-program">
+              <Card className="rounded-none border border-border" data-testid="card-permanent-program">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-3 text-xl font-heading font-light text-foreground">
                     <Briefcase className="w-6 h-6 text-primary" />
@@ -868,12 +868,12 @@ export default function Interns() {
               {t.learningAreas.map((area, index) => (
                 <motion.div key={index} variants={itemVariants}>
                   <Card 
-                    className="rounded-md border border-border h-full"
+                    className="rounded-none border border-border h-full"
                     data-testid={`card-learning-${index}`}
                   >
                     <CardContent className="p-6">
                       <div className="flex items-start gap-4">
-                        <div className="w-12 h-12 rounded-md bg-primary/10 flex items-center justify-center flex-shrink-0">
+                        <div className="w-12 h-12 rounded-none bg-primary/10 flex items-center justify-center flex-shrink-0">
                           <area.icon className="w-6 h-6 text-primary" />
                         </div>
                         <div>
@@ -912,7 +912,7 @@ export default function Interns() {
               </p>
             </div>
 
-            <Card className="rounded-md border border-border bg-muted" data-testid="card-requirements">
+            <Card className="rounded-none border border-border bg-muted" data-testid="card-requirements">
               <CardContent className="p-8">
                 <motion.ul 
                   className="grid grid-cols-1 md:grid-cols-2 gap-4"
@@ -967,7 +967,7 @@ export default function Interns() {
               {t.applicationSteps.map((step, index) => (
                 <motion.div key={index} variants={itemVariants}>
                   <Card 
-                    className="rounded-md border border-border h-full text-center"
+                    className="rounded-none border border-border h-full text-center"
                     data-testid={`card-step-${index}`}
                   >
                     <CardContent className="p-6">
@@ -1017,12 +1017,12 @@ export default function Interns() {
               {t.benefits.map((benefit, index) => (
                 <motion.div key={index} variants={itemVariants}>
                   <Card 
-                    className="rounded-md border border-border h-full"
+                    className="rounded-none border border-border h-full"
                     data-testid={`card-benefit-${index}`}
                   >
                     <CardContent className="p-6">
                       <div className="flex items-start gap-4">
-                        <div className="w-12 h-12 rounded-md bg-primary/10 flex items-center justify-center flex-shrink-0">
+                        <div className="w-12 h-12 rounded-none bg-primary/10 flex items-center justify-center flex-shrink-0">
                           <benefit.icon className="w-6 h-6 text-primary" />
                         </div>
                         <div>
@@ -1049,7 +1049,7 @@ export default function Interns() {
             className="mb-12"
             data-testid="section-cta"
           >
-            <Card className="rounded-md border border-border bg-primary text-white overflow-hidden">
+            <Card className="rounded-none border border-border bg-primary text-white overflow-hidden">
               <CardContent className="p-8 lg:p-12 text-center">
                 <h2 
                   className="text-xl md:text-2xl font-heading font-light mb-4 uppercase tracking-[0.12em]"
@@ -1073,7 +1073,7 @@ export default function Interns() {
                   <Button 
                     variant="secondary"
                     size="lg"
-                    className="rounded-md"
+                    className="rounded-none"
                     asChild
                     data-testid="button-cta-apply"
                   >
@@ -1085,7 +1085,7 @@ export default function Interns() {
                   <Button 
                     variant="outline"
                     size="lg"
-                    className="rounded-md bg-card/10 border-white/20 text-white hover:bg-white/20"
+                    className="rounded-none bg-card/10 border-white/20 text-white hover:bg-white/20"
                     asChild
                     data-testid="button-view-careers"
                   >
@@ -1106,7 +1106,7 @@ export default function Interns() {
             transition={{ duration: 0.6 }}
             data-testid="section-contact"
           >
-            <Card className="rounded-md border border-border" data-testid="card-contact">
+            <Card className="rounded-none border border-border" data-testid="card-contact">
               <CardContent className="p-6 flex flex-col md:flex-row items-center justify-between gap-4">
                 <div>
                   <h3 className="text-lg font-semibold text-foreground mb-1">
@@ -1117,7 +1117,7 @@ export default function Interns() {
                   </p>
                 </div>
                 <Button 
-                  className="rounded-md whitespace-nowrap"
+                  className="rounded-none whitespace-nowrap"
                   asChild
                   data-testid="button-contact-email"
                 >

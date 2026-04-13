@@ -654,7 +654,7 @@ export default function DiversityInclusion() {
                 <motion.div
                   key={index}
                   variants={itemVariants}
-                  className="text-center bg-gradient-to-br from-[#AA1A2E]/5 to-[#AA1A2E]/10 dark:from-[#AA1A2E]/10 dark:to-[#AA1A2E]/20 rounded-md p-6"
+                  className="text-center bg-gradient-to-br from-[#AA1A2E]/5 to-[#AA1A2E]/10 dark:from-[#AA1A2E]/10 dark:to-[#AA1A2E]/20 rounded-none p-6"
                   data-testid={`stat-diversity-${index}`}
                 >
                   <div className="w-12 h-12 rounded-full bg-[#AA1A2E]/10 flex items-center justify-center mx-auto mb-3">
@@ -684,7 +684,7 @@ export default function DiversityInclusion() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               {t.values.map((value, index) => (
                 <motion.div key={index} variants={itemVariants}>
-                  <Card className="h-full rounded-md border border-border text-center" data-testid={`card-value-${index}`}>
+                  <Card className="h-full rounded-none border border-border text-center" data-testid={`card-value-${index}`}>
                     <CardContent className="p-6">
                       <div className="w-14 h-14 rounded-full bg-[#AA1A2E]/10 flex items-center justify-center mx-auto mb-4">
                         <value.icon className="w-7 h-7 text-[#AA1A2E]" />
@@ -726,7 +726,7 @@ export default function DiversityInclusion() {
             >
               {t.initiatives.map((initiative, index) => (
                 <motion.div key={index} variants={itemVariants}>
-                  <Card className="h-full rounded-md border border-border" data-testid={`card-initiative-${index}`}>
+                  <Card className="h-full rounded-none border border-border" data-testid={`card-initiative-${index}`}>
                     <CardContent className="p-6">
                       <div className="flex items-start gap-4">
                         <div className="w-12 h-12 rounded-full bg-[#AA1A2E]/10 flex items-center justify-center flex-shrink-0">
@@ -755,7 +755,7 @@ export default function DiversityInclusion() {
             className="mb-20"
             data-testid="section-probono"
           >
-            <Card className="rounded-md border border-border bg-gradient-to-br from-[#AA1A2E]/5 to-[#AA1A2E]/10 dark:from-[#AA1A2E]/10 dark:to-[#AA1A2E]/20">
+            <Card className="rounded-none border border-border bg-gradient-to-br from-[#AA1A2E]/5 to-[#AA1A2E]/10 dark:from-[#AA1A2E]/10 dark:to-[#AA1A2E]/20">
               <CardContent className="p-8">
                 <div className="flex items-center gap-3 mb-4">
                   <HeartHandshake className="w-8 h-8 text-[#AA1A2E]" />
@@ -799,7 +799,7 @@ export default function DiversityInclusion() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.45 }}
-            className="bg-[#AA1A2E] rounded-md p-10 text-center"
+            className="bg-[#AA1A2E] rounded-none p-10 text-center"
             data-testid="section-join"
           >
             <h2 className="text-2xl font-heading font-light text-white mb-4 uppercase tracking-[0.12em]">

@@ -741,7 +741,7 @@ export default function AdminHealthCheck() {
                     return (
                       <div 
                         key={issue.id}
-                        className="p-4 rounded-md border bg-card"
+                        className="p-4 rounded-none border bg-card"
                         data-testid={`issue-row-${index}`}
                       >
                         <div className="flex items-start justify-between gap-4">

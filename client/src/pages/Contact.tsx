@@ -737,7 +737,7 @@ export default function Contact() {
             className="mb-16"
             data-testid="section-contact-form"
           >
-            <Card className="rounded-md border border-border">
+            <Card className="rounded-none border border-border">
               <CardContent className="p-8">
                 <div className="mb-8">
                   <h2 
@@ -882,7 +882,7 @@ export default function Contact() {
 
                     <Button 
                       type="submit" 
-                      className="w-full md:w-auto rounded-md"
+                      className="w-full md:w-auto rounded-none"
                       disabled={contactMutation.isPending}
                       data-testid="button-submit-contact"
                     >
@@ -917,7 +917,7 @@ export default function Contact() {
                 {t.officesTitle}
               </h2>
               
-              <Card className="rounded-md border border-border overflow-hidden" data-testid="card-main-office">
+              <Card className="rounded-none border border-border overflow-hidden" data-testid="card-main-office">
                 <div className="aspect-video w-full">
                   <iframe
                     src={googleMapsUrl}
@@ -987,7 +987,7 @@ export default function Contact() {
                   
                   <Button 
                     variant="outline"
-                    className="w-full rounded-md"
+                    className="w-full rounded-none"
                     asChild
                     data-testid="button-get-directions"
                   >
@@ -1010,7 +1010,7 @@ export default function Contact() {
               transition={{ duration: 0.6, delay: 0.3 }}
               className="space-y-8"
             >
-              <Card className="rounded-md border border-border bg-muted" data-testid="card-contact-cta">
+              <Card className="rounded-none border border-border bg-muted" data-testid="card-contact-cta">
                 <CardContent className="p-8">
                   <h3 
                     className="text-xl font-heading font-light text-foreground mb-4"
@@ -1020,7 +1020,7 @@ export default function Contact() {
                   </h3>
                   <div className="flex flex-col gap-3">
                     <Button 
-                      className="w-full rounded-md"
+                      className="w-full rounded-none"
                       asChild
                       data-testid="button-send-email"
                     >
@@ -1031,7 +1031,7 @@ export default function Contact() {
                     </Button>
                     <Button 
                       variant="outline"
-                      className="w-full rounded-md"
+                      className="w-full rounded-none"
                       asChild
                       data-testid="button-call-us"
                     >
@@ -1044,7 +1044,7 @@ export default function Contact() {
                 </CardContent>
               </Card>
 
-              <Card className="rounded-md border border-border" data-testid="card-german-desk">
+              <Card className="rounded-none border border-border" data-testid="card-german-desk">
                 <CardContent className="p-8">
                   <div className="flex items-center gap-3 mb-4">
                     <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
@@ -1066,7 +1066,7 @@ export default function Contact() {
                 </CardContent>
               </Card>
 
-              <Card className="rounded-md border border-border" data-testid="card-connect">
+              <Card className="rounded-none border border-border" data-testid="card-connect">
                 <CardContent className="p-8">
                   <h3 
                     className="text-xl font-heading font-light text-foreground mb-2"
@@ -1083,7 +1083,7 @@ export default function Contact() {
                   <div className="flex flex-col gap-3">
                     <Button 
                       variant="outline"
-                      className="w-full rounded-md justify-start"
+                      className="w-full rounded-none justify-start"
                       asChild
                       data-testid="button-linkedin"
                     >
@@ -1098,7 +1098,7 @@ export default function Contact() {
                     </Button>
                     <Button 
                       variant="outline"
-                      className="w-full rounded-md justify-start"
+                      className="w-full rounded-none justify-start"
                       asChild
                       data-testid="button-website"
                     >

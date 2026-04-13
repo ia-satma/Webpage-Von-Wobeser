@@ -96,7 +96,7 @@ export function EvolutionTimeline({ entries, translations }: EvolutionTimelinePr
             <div className="absolute left-0 top-1 flex items-center justify-center w-8 h-8 rounded-full bg-card border border-border">
               <span className="text-primary">{getCategoryIcon(entry.category)}</span>
             </div>
-            <div className="bg-card rounded-lg border border-card-border p-4 space-y-2">
+            <div className="bg-card rounded-none border border-card-border p-4 space-y-2">
               <div className="flex flex-wrap items-center gap-2">
                 <time className="text-xs text-muted-foreground font-medium">
                   {formatDate(entry.date)}

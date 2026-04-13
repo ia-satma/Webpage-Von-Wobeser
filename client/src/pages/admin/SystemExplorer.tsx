@@ -118,7 +118,7 @@ function FeatureCard({ feature, t, isExpanded, onToggle }: {
           <div className="flex items-center gap-3">
             <Tooltip>
               <TooltipTrigger asChild>
-                <div className={`p-2 rounded-lg ${colorClass}`}>
+                <div className={`p-2 rounded-none ${colorClass}`}>
                   <Icon className="w-5 h-5" />
                 </div>
               </TooltipTrigger>
@@ -186,7 +186,7 @@ function FeatureCard({ feature, t, isExpanded, onToggle }: {
                 <Info className="w-4 h-4 text-primary" />
                 {t.ui.technicalDetails}
               </h4>
-              <p className="text-xs text-muted-foreground bg-muted/50 p-3 rounded-lg font-mono leading-relaxed">
+              <p className="text-xs text-muted-foreground bg-muted/50 p-3 rounded-none font-mono leading-relaxed">
                 {feature.technicalDetail}
               </p>
             </div>
@@ -297,7 +297,7 @@ export default function SystemExplorer() {
       <header className="space-y-4">
         <div className="flex items-center justify-between gap-4 flex-wrap">
           <div className="flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-primary/10">
+            <div className="p-2 rounded-none bg-primary/10">
               <FileText className="w-8 h-8 text-primary" />
             </div>
             <div>

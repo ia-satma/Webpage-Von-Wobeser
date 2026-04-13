@@ -598,7 +598,7 @@ export default function GermanDesk() {
             >
               {t.teamHighlights.map((highlight, index) => (
                 <motion.div key={index} variants={itemVariants}>
-                  <Card className="h-full rounded-md border border-border" data-testid={`card-team-highlight-${index}`}>
+                  <Card className="h-full rounded-none border border-border" data-testid={`card-team-highlight-${index}`}>
                     <CardContent className="p-6">
                       <div className="flex items-start gap-4">
                         <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
@@ -638,7 +638,7 @@ export default function GermanDesk() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {t.services.map((service, index) => (
                 <motion.div key={index} variants={itemVariants}>
-                  <Card className="h-full rounded-md border border-border text-center" data-testid={`card-service-${index}`}>
+                  <Card className="h-full rounded-none border border-border text-center" data-testid={`card-service-${index}`}>
                     <CardContent className="p-6">
                       <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
                         <service.icon className="w-7 h-7 text-primary" />
@@ -660,7 +660,7 @@ export default function GermanDesk() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.35 }}
-            className="mb-20 bg-gradient-to-br from-primary/5 to-primary/10 dark:from-primary/10 dark:to-primary/20 rounded-md p-4 sm:p-6 md:p-10"
+            className="mb-20 bg-gradient-to-br from-primary/5 to-primary/10 dark:from-primary/10 dark:to-primary/20 rounded-none p-4 sm:p-6 md:p-10"
             data-testid="section-differentiator"
           >
             <div className="text-center mb-12">
@@ -683,7 +683,7 @@ export default function GermanDesk() {
                 <motion.div 
                   key={index} 
                   variants={itemVariants}
-                  className="text-center bg-card rounded-md p-6 shadow-sm"
+                  className="text-center bg-card rounded-none p-6 shadow-sm"
                   data-testid={`card-differentiator-${index}`}
                 >
                   <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-3">
@@ -736,7 +736,7 @@ export default function GermanDesk() {
             className="mb-10"
             data-testid="section-cta"
           >
-            <Card className="rounded-md border border-border bg-muted">
+            <Card className="rounded-none border border-border bg-muted">
               <CardContent className="p-8 text-center">
                 <h2 className="text-xl font-heading font-light text-[#AA1A2E] mb-4 uppercase tracking-[0.12em]" data-testid="text-cta-title">
                   {t.ctaTitle}

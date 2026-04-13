@@ -156,7 +156,7 @@ export function PipelineProgressModal({
               return (
                 <div 
                   key={step}
-                  className={`flex items-center justify-between p-3 rounded-md border ${
+                  className={`flex items-center justify-between p-3 rounded-none border ${
                     event?.status === 'running' ? 'bg-blue-50 dark:bg-blue-950 border-blue-200 dark:border-blue-800' :
                     event?.status === 'completed' ? 'bg-green-50 dark:bg-green-950 border-green-200 dark:border-green-800' :
                     event?.status === 'error' ? 'bg-red-50 dark:bg-red-950 border-red-200 dark:border-red-800' :

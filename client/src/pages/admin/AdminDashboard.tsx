@@ -877,7 +877,7 @@ export default function AdminDashboard() {
                   {cmsStats.recentArticles.map((article) => (
                     <div
                       key={article.id}
-                      className="flex items-center justify-between p-3 rounded-md border"
+                      className="flex items-center justify-between p-3 rounded-none border"
                       data-testid={`row-article-${article.id}`}
                     >
                       <div className="flex-1 min-w-0">

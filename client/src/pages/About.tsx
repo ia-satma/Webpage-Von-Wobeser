@@ -1215,7 +1215,7 @@ export default function About() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               {t.values.map((value, index) => (
                 <motion.div key={index} variants={itemVariants}>
-                  <Card className="h-full rounded-md border border-border text-center" data-testid={`card-value-${index}`}>
+                  <Card className="h-full rounded-none border border-border text-center" data-testid={`card-value-${index}`}>
                     <CardContent className="p-6">
                       <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
                         <value.icon className="w-7 h-7 text-primary" />
@@ -1260,7 +1260,7 @@ export default function About() {
             >
               {t.cultureAspects.map((aspect, index) => (
                 <motion.div key={index} variants={itemVariants}>
-                  <Card className="h-full rounded-md border border-border" data-testid={`card-culture-${index}`}>
+                  <Card className="h-full rounded-none border border-border" data-testid={`card-culture-${index}`}>
                     <CardContent className="p-6">
                       <div className="flex items-start gap-4">
                         <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
@@ -1286,7 +1286,7 @@ export default function About() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.35 }}
-            className="mb-20 bg-gradient-to-br from-primary/5 to-primary/10 dark:from-primary/10 dark:to-primary/20 rounded-md p-10"
+            className="mb-20 bg-gradient-to-br from-primary/5 to-primary/10 dark:from-primary/10 dark:to-primary/20 rounded-none p-10"
             data-testid="section-diversity"
           >
             <div className="text-center mb-12">
@@ -1309,7 +1309,7 @@ export default function About() {
                 <motion.div 
                   key={index} 
                   variants={itemVariants}
-                  className="text-center bg-card rounded-md p-6 shadow-sm"
+                  className="text-center bg-card rounded-none p-6 shadow-sm"
                   data-testid={`stat-diversity-${index}`}
                 >
                   <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-3">
@@ -1333,7 +1333,7 @@ export default function About() {
             >
               {t.diversityInitiatives.map((initiative, index) => (
                 <motion.div key={index} variants={itemVariants}>
-                  <Card className="h-full rounded-md border border-border bg-card" data-testid={`card-diversity-initiative-${index}`}>
+                  <Card className="h-full rounded-none border border-border bg-card" data-testid={`card-diversity-initiative-${index}`}>
                     <CardContent className="p-6">
                       <div className="flex items-start gap-4">
                         <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
@@ -1365,7 +1365,7 @@ export default function About() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.4 }}
-            className="mb-20 bg-muted rounded-md p-10"
+            className="mb-20 bg-muted rounded-none p-10"
             data-testid="section-stats"
           >
             <h2 className="text-2xl font-heading font-light text-foreground mb-8 text-center uppercase tracking-[0.12em]">
@@ -1433,7 +1433,7 @@ export default function About() {
               transition={{ duration: 0.6, delay: 0.6 }}
               data-testid="section-pro-bono"
             >
-              <Card className="h-full rounded-md border border-border">
+              <Card className="h-full rounded-none border border-border">
                 <CardContent className="p-8">
                   <div className="flex items-center gap-3 mb-4">
                     <Heart className="w-8 h-8 text-primary" />
@@ -1454,7 +1454,7 @@ export default function About() {
               transition={{ duration: 0.6, delay: 0.7 }}
               data-testid="section-careers"
             >
-              <Card className="h-full rounded-md border border-border bg-primary text-white">
+              <Card className="h-full rounded-none border border-border bg-primary text-white">
                 <CardContent className="p-8">
                   <div className="flex items-center gap-3 mb-4">
                     <Briefcase className="w-8 h-8 text-white" />
@@ -1467,7 +1467,7 @@ export default function About() {
                   </p>
                   <Button 
                     variant="secondary"
-                    className="rounded-md bg-card text-primary hover:bg-white/90"
+                    className="rounded-none bg-card text-primary hover:bg-white/90"
                     asChild
                     data-testid="button-careers"
                   >
@@ -1488,13 +1488,13 @@ export default function About() {
             className="flex flex-col sm:flex-row justify-center gap-4"
           >
             <Link href="/team">
-              <Button className="rounded-md" data-testid="button-view-team">
+              <Button className="rounded-none" data-testid="button-view-team">
                 <Users className="w-4 h-4 mr-2" />
                 {t.viewTeam}
               </Button>
             </Link>
             <Link href="/practice-groups">
-              <Button variant="outline" className="rounded-md" data-testid="button-view-practices">
+              <Button variant="outline" className="rounded-none" data-testid="button-view-practices">
                 <Briefcase className="w-4 h-4 mr-2" />
                 {t.viewPractices}
               </Button>
