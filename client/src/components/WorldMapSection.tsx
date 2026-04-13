@@ -2,9 +2,8 @@ import { useState, useEffect, useRef } from "react";
 import { motion, useInView } from "framer-motion";
 import { Link } from "wouter";
 import { ArrowRight, MapPin } from "lucide-react";
+import createGlobe from "cobe";
 
-import worldMapImg from "@assets/mapa_1775780643811.png";
-import worldMapDarkImg from "@assets/mapa-dark_1775840604915.png";
 import clausVonWobeserPhoto from "@assets/of_counsel_photos/claus_von_wobeser.jpg";
 import luisBurguenoPhoto from "@assets/partner_photos/luis_burgueno.jpg";
 import katharinaRoehrPhoto from "@assets/partner_photos/katharina_roehr.jpg";
@@ -287,6 +286,105 @@ interface GDMember {
   number: string;
 }
 
+const DRAG_SENSITIVITY = 0.005;
+
+function GlobeCanvas() {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const pointerInteracting = useRef<number | null>(null);
+  const pointerInteractionMovement = useRef(0);
+  const phiRef = useRef(0);
+
+  useEffect(() => {
+    let width = 0;
+    let fadeTimer: ReturnType<typeof setTimeout>;
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const onResize = () => {
+      if (canvas) {
+        width = canvas.offsetWidth;
+      }
+    };
+    window.addEventListener("resize", onResize);
+    onResize();
+
+    const globe = createGlobe(canvas, {
+      devicePixelRatio: 2,
+      width: width * 2,
+      height: width * 2,
+      phi: 0,
+      theta: 0.25,
+      dark: 1,
+      diffuse: 1.2,
+      mapSamples: 16000,
+      mapBrightness: 2,
+      baseColor: [0.15, 0.15, 0.14],
+      markerColor: [0.67, 0.1, 0.18],
+      glowColor: [0.15, 0.15, 0.15],
+      markers: [
+        { location: [19.4326, -99.1332], size: 0.08 },
+        { location: [51.1657, 10.4515], size: 0.08 },
+      ],
+      onRender: (state) => {
+        if (pointerInteracting.current === null) {
+          phiRef.current += 0.003;
+        }
+        state.phi = phiRef.current;
+        state.width = width * 2;
+        state.height = width * 2;
+      },
+    });
+
+    fadeTimer = setTimeout(() => {
+      if (canvas) canvas.style.opacity = "1";
+    });
+
+    return () => {
+      clearTimeout(fadeTimer);
+      globe.destroy();
+      window.removeEventListener("resize", onResize);
+    };
+  }, []);
+
+  return (
+    <canvas
+      ref={canvasRef}
+      className="w-full h-full"
+      style={{
+        contain: "layout paint size",
+        opacity: 0,
+        transition: "opacity 1s ease",
+        cursor: "grab",
+      }}
+      onPointerDown={(e) => {
+        pointerInteracting.current = e.clientX;
+        if (canvasRef.current) canvasRef.current.style.cursor = "grabbing";
+      }}
+      onPointerUp={() => {
+        pointerInteracting.current = null;
+        if (canvasRef.current) canvasRef.current.style.cursor = "grab";
+      }}
+      onPointerOut={() => {
+        pointerInteracting.current = null;
+        if (canvasRef.current) canvasRef.current.style.cursor = "grab";
+      }}
+      onPointerCancel={() => {
+        pointerInteracting.current = null;
+        if (canvasRef.current) canvasRef.current.style.cursor = "grab";
+      }}
+      onPointerMove={(e) => {
+        if (pointerInteracting.current !== null) {
+          const delta = e.clientX - pointerInteracting.current;
+          pointerInteractionMovement.current = delta * DRAG_SENSITIVITY;
+          pointerInteracting.current = e.clientX;
+          phiRef.current += pointerInteractionMovement.current;
+        }
+      }}
+      data-testid="globe-canvas"
+    />
+  );
+}
+
 export default function WorldMapSection({ language }: WorldMapSectionProps) {
   const t = content[language] || content.en;
   const [activePanel, setActivePanel] = useState<string | null>(null);
@@ -340,217 +438,94 @@ export default function WorldMapSection({ language }: WorldMapSectionProps) {
           </motion.div>
         </div>
 
-        {/* Connection Cards — abstract CDMX ↔ Germany layout */}
+        {/* 3D Globe + Location Cards */}
         <div
-          className="relative w-full py-16 lg:py-20"
+          className="relative w-full bg-[#111110] py-12 lg:py-16"
           data-testid="card-map-connection"
         >
-          {/* Decorative map background */}
-          <img
-            src={worldMapImg}
-            alt=""
-            aria-hidden="true"
-            className="absolute inset-0 w-full h-full object-cover opacity-[0.06] dark:hidden pointer-events-none"
-          />
-          <img
-            src={worldMapDarkImg}
-            alt=""
-            aria-hidden="true"
-            className="absolute inset-0 w-full h-full object-cover hidden dark:block opacity-[0.04] pointer-events-none"
-          />
+          <div className="max-w-5xl mx-auto px-6 lg:px-12">
 
-          <div className="relative z-10 max-w-5xl mx-auto px-6 lg:px-12">
+            {/* Globe */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              whileInView={{ opacity: 1 }}
+              viewport={{ once: true }}
+              transition={{ duration: 1.2, delay: 0.2 }}
+              className="relative w-full max-w-[320px] md:max-w-[440px] lg:max-w-[500px] mx-auto aspect-square mb-10"
+              data-testid="globe-container"
+            >
+              <GlobeCanvas />
+            </motion.div>
 
-            {/* Desktop: horizontal layout */}
-            <div className="hidden md:flex items-center gap-0" data-testid="connection-line-desktop">
-              {/* Mexico City node */}
-              <motion.div
-                initial={{ opacity: 0, x: -30 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.6, delay: 0.2 }}
-                className="flex-shrink-0 flex items-center gap-4"
-                data-testid="location-mexico"
-              >
-                <div className="w-12 h-12 bg-primary/10 flex items-center justify-center flex-shrink-0">
-                  <MapPin className="w-5 h-5 text-primary" strokeWidth={1.5} />
-                </div>
-                <div>
-                  <p
-                    className="font-heading font-light text-sm uppercase tracking-[0.12em] text-foreground leading-tight"
-                    data-testid="text-mexico-label"
-                  >
-                    {t.mexicoLabel}
-                  </p>
-                  <p className="text-[11px] text-muted-foreground mt-0.5">{t.mexicoSubtitle}</p>
-                </div>
-              </motion.div>
+            {/* Location cards + pill */}
+            <div className="flex flex-col md:flex-row items-center justify-center gap-4 md:gap-6" data-testid="connection-line-desktop">
 
-              {/* Animated connection line with pill */}
-              <div className="flex-1 flex items-center mx-4 lg:mx-6 relative">
-                {/* Left pulse dot */}
-                <div className="relative flex-shrink-0">
-                  <div className="w-3 h-3 bg-primary" />
-                  <motion.div
-                    className="absolute inset-0 w-3 h-3 bg-primary"
-                    animate={{ scale: [1, 2.5, 1], opacity: [0.6, 0, 0.6] }}
-                    transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
-                  />
-                </div>
-
-                {/* Line segments + pill */}
-                <div className="flex-1 flex items-center">
-                  <motion.div
-                    className="flex-1 h-px bg-primary/40"
-                    initial={{ scaleX: 0 }}
-                    whileInView={{ scaleX: 1 }}
-                    viewport={{ once: true }}
-                    transition={{ duration: 1.2, delay: 0.6, ease: "easeInOut" }}
-                    style={{ transformOrigin: "left" }}
-                  />
-
-                  {/* GERMAN DESK pill */}
-                  <motion.div
-                    initial={{ opacity: 0, scale: 0.85 }}
-                    whileInView={{ opacity: 1, scale: 1 }}
-                    viewport={{ once: true }}
-                    transition={{ duration: 0.5, delay: 1.4 }}
-                    className="flex-shrink-0 bg-primary px-5 py-2 mx-1"
-                    data-testid="text-german-desk-label"
-                  >
-                    <span className="text-white text-[10px] font-bold tracking-[0.2em] uppercase whitespace-nowrap">
-                      {t.sectionTitle}
-                    </span>
-                  </motion.div>
-
-                  <motion.div
-                    className="flex-1 h-px bg-primary/40"
-                    initial={{ scaleX: 0 }}
-                    whileInView={{ scaleX: 1 }}
-                    viewport={{ once: true }}
-                    transition={{ duration: 1.2, delay: 0.9, ease: "easeInOut" }}
-                    style={{ transformOrigin: "right" }}
-                  />
-                </div>
-
-                {/* Right pulse dot */}
-                <div className="relative flex-shrink-0">
-                  <div className="w-3 h-3 bg-primary" />
-                  <motion.div
-                    className="absolute inset-0 w-3 h-3 bg-primary"
-                    animate={{ scale: [1, 2.5, 1], opacity: [0.6, 0, 0.6] }}
-                    transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut", delay: 1.2 }}
-                  />
-                </div>
-              </div>
-
-              {/* Germany node */}
-              <motion.div
-                initial={{ opacity: 0, x: 30 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.6, delay: 0.4 }}
-                className="flex-shrink-0 flex items-center gap-4"
-                data-testid="location-germany"
-              >
-                <div>
-                  <p
-                    className="font-heading font-light text-sm uppercase tracking-[0.12em] text-foreground leading-tight text-right"
-                    data-testid="text-germany-label"
-                  >
-                    {t.germanyLabel}
-                  </p>
-                  <p className="text-[11px] text-muted-foreground mt-0.5 text-right">{t.germanySubtitle}</p>
-                </div>
-                <div className="w-12 h-12 bg-primary/10 flex items-center justify-center flex-shrink-0">
-                  <MapPin className="w-5 h-5 text-primary" strokeWidth={1.5} />
-                </div>
-              </motion.div>
-            </div>
-
-            {/* Mobile: vertical stacked layout */}
-            <div className="md:hidden flex flex-col items-center gap-0" data-testid="connection-line-mobile">
-              {/* Mexico City node */}
-              <motion.div
-                initial={{ opacity: 0, y: -20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.5, delay: 0.2 }}
-                className="flex items-center gap-3 mb-4"
-                data-testid="location-mexico-mobile"
-              >
-                <div className="w-10 h-10 bg-primary/10 flex items-center justify-center flex-shrink-0">
-                  <MapPin className="w-4 h-4 text-primary" strokeWidth={1.5} />
-                </div>
-                <div>
-                  <p className="font-heading font-light text-xs uppercase tracking-[0.12em] text-foreground">{t.mexicoLabel}</p>
-                  <p className="text-[10px] text-muted-foreground">{t.mexicoSubtitle}</p>
-                </div>
-              </motion.div>
-
-              {/* Vertical line + pulse + pill */}
-              <div className="flex flex-col items-center">
-                <div className="relative">
-                  <div className="w-2.5 h-2.5 bg-primary" />
-                  <motion.div
-                    className="absolute inset-0 w-2.5 h-2.5 bg-primary"
-                    animate={{ scale: [1, 2.5, 1], opacity: [0.6, 0, 0.6] }}
-                    transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
-                  />
-                </div>
-                <motion.div
-                  className="w-px h-8 bg-primary/40"
-                  initial={{ scaleY: 0 }}
-                  whileInView={{ scaleY: 1 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.6, delay: 0.5 }}
-                  style={{ transformOrigin: "top" }}
-                />
-                <motion.div
-                  initial={{ opacity: 0, scale: 0.85 }}
-                  whileInView={{ opacity: 1, scale: 1 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.4, delay: 0.8 }}
-                  className="bg-primary px-5 py-2 my-1"
-                  data-testid="text-german-desk-label-mobile"
-                >
-                  <span className="text-white text-[9px] font-bold tracking-[0.2em] uppercase">{t.sectionTitle}</span>
-                </motion.div>
-                <motion.div
-                  className="w-px h-8 bg-primary/40"
-                  initial={{ scaleY: 0 }}
-                  whileInView={{ scaleY: 1 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.6, delay: 0.7 }}
-                  style={{ transformOrigin: "bottom" }}
-                />
-                <div className="relative">
-                  <div className="w-2.5 h-2.5 bg-primary" />
-                  <motion.div
-                    className="absolute inset-0 w-2.5 h-2.5 bg-primary"
-                    animate={{ scale: [1, 2.5, 1], opacity: [0.6, 0, 0.6] }}
-                    transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut", delay: 1.2 }}
-                  />
-                </div>
-              </div>
-
-              {/* Germany node */}
+              {/* Mexico City card */}
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                transition={{ duration: 0.5, delay: 0.6 }}
-                className="flex items-center gap-3 mt-4"
-                data-testid="location-germany-mobile"
+                transition={{ duration: 0.5, delay: 0.3 }}
+                className="flex items-center gap-3 bg-[#1a1a19] border border-white/10 px-5 py-4"
+                data-testid="location-mexico"
               >
-                <div className="w-10 h-10 bg-primary/10 flex items-center justify-center flex-shrink-0">
+                <div className="w-10 h-10 bg-primary/15 flex items-center justify-center flex-shrink-0">
                   <MapPin className="w-4 h-4 text-primary" strokeWidth={1.5} />
                 </div>
                 <div>
-                  <p className="font-heading font-light text-xs uppercase tracking-[0.12em] text-foreground">{t.germanyLabel}</p>
-                  <p className="text-[10px] text-muted-foreground">{t.germanySubtitle}</p>
+                  <p
+                    className="font-heading font-light text-xs uppercase tracking-[0.12em] text-white/90 leading-tight"
+                    data-testid="text-mexico-label"
+                  >
+                    {t.mexicoLabel}
+                  </p>
+                  <p className="text-[10px] text-white/40 mt-0.5">{t.mexicoSubtitle}</p>
                 </div>
               </motion.div>
+
+              {/* Connector + pill */}
+              <motion.div
+                initial={{ opacity: 0, scale: 0.85 }}
+                whileInView={{ opacity: 1, scale: 1 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: 0.5 }}
+                className="flex items-center gap-2"
+              >
+                <div className="hidden md:block w-8 h-px bg-primary/40" />
+                <div
+                  className="bg-primary px-5 py-2"
+                  data-testid="text-german-desk-label"
+                >
+                  <span className="text-white text-[10px] font-bold tracking-[0.2em] uppercase whitespace-nowrap">
+                    {t.sectionTitle}
+                  </span>
+                </div>
+                <div className="hidden md:block w-8 h-px bg-primary/40" />
+              </motion.div>
+
+              {/* Germany card */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: 0.7 }}
+                className="flex items-center gap-3 bg-[#1a1a19] border border-white/10 px-5 py-4"
+                data-testid="location-germany"
+              >
+                <div className="w-10 h-10 bg-primary/15 flex items-center justify-center flex-shrink-0">
+                  <MapPin className="w-4 h-4 text-primary" strokeWidth={1.5} />
+                </div>
+                <div>
+                  <p
+                    className="font-heading font-light text-xs uppercase tracking-[0.12em] text-white/90 leading-tight"
+                    data-testid="text-germany-label"
+                  >
+                    {t.germanyLabel}
+                  </p>
+                  <p className="text-[10px] text-white/40 mt-0.5">{t.germanySubtitle}</p>
+                </div>
+              </motion.div>
+
             </div>
 
           </div>
