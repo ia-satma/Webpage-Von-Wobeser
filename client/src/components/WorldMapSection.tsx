@@ -1,8 +1,14 @@
 import { useState, useEffect, useRef } from "react";
 import { motion, useInView } from "framer-motion";
 import { Link } from "wouter";
-import { ArrowRight, MapPin } from "lucide-react";
-import createGlobe from "cobe";
+import { ArrowRight, MapPin, Phone, Mail } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+
+import worldMapImg from "@assets/mapa_1775780643811.png";
+import worldMapDarkImg from "@assets/mapa-dark_1775840604915.png";
+import collage01 from "@assets/collage_01.jpg";
+import collage03 from "@assets/collage_03.jpg";
 
 import clausVonWobeserPhoto from "@assets/of_counsel_photos/claus_von_wobeser.jpg";
 import luisBurguenoPhoto from "@assets/partner_photos/luis_burgueno.jpg";
@@ -38,6 +44,11 @@ interface ContentTranslation {
   partner: string;
   teamTitle: string;
   seeMore: string;
+  addressLabel: string;
+  phoneLabel: string;
+  contactButton: string;
+  germanDeskDescription: string;
+  viewDetails: string;
 }
 
 const content: Record<SupportedLanguage, ContentTranslation> = {
@@ -60,6 +71,11 @@ const content: Record<SupportedLanguage, ContentTranslation> = {
     partner: "Partner",
     teamTitle: "German Desk Team",
     seeMore: "Meet the full team",
+    addressLabel: "Address",
+    phoneLabel: "Phone",
+    contactButton: "Contact",
+    germanDeskDescription: "Specialized legal services for German-speaking clients investing in Mexico and Latin America.",
+    viewDetails: "View Details",
   },
   es: {
     sectionTitle: "GERMAN DESK",
@@ -80,6 +96,11 @@ const content: Record<SupportedLanguage, ContentTranslation> = {
     partner: "Socio",
     teamTitle: "Equipo German Desk",
     seeMore: "Ver equipo completo",
+    addressLabel: "Direccion",
+    phoneLabel: "Telefono",
+    contactButton: "Contacto",
+    germanDeskDescription: "Servicios legales especializados para clientes de habla alemana que invierten en Mexico y America Latina.",
+    viewDetails: "Ver Detalles",
   },
   de: {
     sectionTitle: "GERMAN DESK",
@@ -100,6 +121,11 @@ const content: Record<SupportedLanguage, ContentTranslation> = {
     partner: "Partner",
     teamTitle: "German Desk Team",
     seeMore: "Vollständiges Team",
+    addressLabel: "Adresse",
+    phoneLabel: "Telefon",
+    contactButton: "Kontakt",
+    germanDeskDescription: "Spezialisierte Rechtsdienstleistungen fur deutschsprachige Mandanten, die in Mexiko und Lateinamerika investieren.",
+    viewDetails: "Details ansehen",
   },
   zh: {
     sectionTitle: "德国业务部",
@@ -120,6 +146,11 @@ const content: Record<SupportedLanguage, ContentTranslation> = {
     partner: "合伙人",
     teamTitle: "德国业务部团队",
     seeMore: "查看完整团队",
+    addressLabel: "地址",
+    phoneLabel: "电话",
+    contactButton: "联系我们",
+    germanDeskDescription: "为在墨西哥和拉丁美洲投资的德语客户提供专业法律服务。",
+    viewDetails: "查看详情",
   },
   ko: {
     sectionTitle: "GERMAN DESK",
@@ -140,6 +171,11 @@ const content: Record<SupportedLanguage, ContentTranslation> = {
     partner: "파트너",
     teamTitle: "German Desk 팀",
     seeMore: "전체 팀 보기",
+    addressLabel: "주소",
+    phoneLabel: "전화",
+    contactButton: "문의하기",
+    germanDeskDescription: "멕시코와 라틴 아메리카에 투자하는 독일어권 고객을 위한 전문 법률 서비스.",
+    viewDetails: "상세 보기",
   },
   ja: {
     sectionTitle: "GERMAN DESK",
@@ -160,6 +196,11 @@ const content: Record<SupportedLanguage, ContentTranslation> = {
     partner: "パートナー",
     teamTitle: "German Desk チーム",
     seeMore: "チーム全員を見る",
+    addressLabel: "住所",
+    phoneLabel: "電話番号",
+    contactButton: "お問い合わせ",
+    germanDeskDescription: "メキシコおよびラテンアメリカへの投資を行うドイツ語圏のクライアント向け専門法律サービス。",
+    viewDetails: "詳細を見る",
   },
   ar: {
     sectionTitle: "المكتب الألماني",
@@ -180,6 +221,11 @@ const content: Record<SupportedLanguage, ContentTranslation> = {
     partner: "شريك",
     teamTitle: "فريق المكتب الألماني",
     seeMore: "عرض الفريق كاملاً",
+    addressLabel: "العنوان",
+    phoneLabel: "الهاتف",
+    contactButton: "اتصل بنا",
+    germanDeskDescription: "خدمات قانونية متخصصة للعملاء الناطقين بالألمانية الذين يستثمرون في المكسيك وأمريكا اللاتينية.",
+    viewDetails: "عرض التفاصيل",
   },
   ru: {
     sectionTitle: "GERMAN DESK",
@@ -200,6 +246,11 @@ const content: Record<SupportedLanguage, ContentTranslation> = {
     partner: "Партнёр",
     teamTitle: "Команда German Desk",
     seeMore: "Весь состав команды",
+    addressLabel: "Адрес",
+    phoneLabel: "Телефон",
+    contactButton: "Связаться",
+    germanDeskDescription: "Специализированные юридические услуги для немецкоязычных клиентов, инвестирующих в Мексику и Латинскую Америку.",
+    viewDetails: "Подробнее",
   },
   fr: {
     sectionTitle: "GERMAN DESK",
@@ -220,6 +271,11 @@ const content: Record<SupportedLanguage, ContentTranslation> = {
     partner: "Associé",
     teamTitle: "Équipe German Desk",
     seeMore: "Voir l'équipe complète",
+    addressLabel: "Adresse",
+    phoneLabel: "Telephone",
+    contactButton: "Contact",
+    germanDeskDescription: "Services juridiques specialises pour les clients germanophones investissant au Mexique et en Amerique latine.",
+    viewDetails: "Voir les details",
   },
   it: {
     sectionTitle: "GERMAN DESK",
@@ -240,6 +296,11 @@ const content: Record<SupportedLanguage, ContentTranslation> = {
     partner: "Socio",
     teamTitle: "Team German Desk",
     seeMore: "Scopri il team completo",
+    addressLabel: "Indirizzo",
+    phoneLabel: "Telefono",
+    contactButton: "Contatto",
+    germanDeskDescription: "Servizi legali specializzati per clienti di lingua tedesca che investono in Messico e in America Latina.",
+    viewDetails: "Vedi dettagli",
   },
 };
 
@@ -286,108 +347,11 @@ interface GDMember {
   number: string;
 }
 
-const DRAG_SENSITIVITY = 0.005;
-
-function GlobeCanvas() {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const pointerInteracting = useRef<number | null>(null);
-  const pointerInteractionMovement = useRef(0);
-  const phiRef = useRef(0);
-
-  useEffect(() => {
-    let width = 0;
-    let fadeTimer: ReturnType<typeof setTimeout>;
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-
-    const onResize = () => {
-      if (canvas) {
-        width = canvas.offsetWidth;
-      }
-    };
-    window.addEventListener("resize", onResize);
-    onResize();
-
-    const globe = createGlobe(canvas, {
-      devicePixelRatio: 2,
-      width: width * 2,
-      height: width * 2,
-      phi: 0,
-      theta: 0.25,
-      dark: 1,
-      diffuse: 1.2,
-      mapSamples: 16000,
-      mapBrightness: 6,
-      baseColor: [0.3, 0.3, 0.3],
-      markerColor: [0.67, 0.1, 0.18],
-      glowColor: [0.1, 0.1, 0.1],
-      markers: [
-        { location: [19.4326, -99.1332], size: 0.1 },
-        { location: [51.1657, 10.4515], size: 0.1 },
-      ],
-      onRender: (state) => {
-        if (pointerInteracting.current === null) {
-          phiRef.current += 0.003;
-        }
-        state.phi = phiRef.current;
-        state.width = width * 2;
-        state.height = width * 2;
-      },
-    });
-
-    fadeTimer = setTimeout(() => {
-      if (canvas) canvas.style.opacity = "1";
-    });
-
-    return () => {
-      clearTimeout(fadeTimer);
-      globe.destroy();
-      window.removeEventListener("resize", onResize);
-    };
-  }, []);
-
-  return (
-    <canvas
-      ref={canvasRef}
-      className="w-full h-full"
-      style={{
-        contain: "layout paint size",
-        opacity: 0,
-        transition: "opacity 1s ease",
-        cursor: "grab",
-      }}
-      onPointerDown={(e) => {
-        pointerInteracting.current = e.clientX;
-        if (canvasRef.current) canvasRef.current.style.cursor = "grabbing";
-      }}
-      onPointerUp={() => {
-        pointerInteracting.current = null;
-        if (canvasRef.current) canvasRef.current.style.cursor = "grab";
-      }}
-      onPointerOut={() => {
-        pointerInteracting.current = null;
-        if (canvasRef.current) canvasRef.current.style.cursor = "grab";
-      }}
-      onPointerCancel={() => {
-        pointerInteracting.current = null;
-        if (canvasRef.current) canvasRef.current.style.cursor = "grab";
-      }}
-      onPointerMove={(e) => {
-        if (pointerInteracting.current !== null) {
-          const delta = e.clientX - pointerInteracting.current;
-          pointerInteractionMovement.current = delta * DRAG_SENSITIVITY;
-          pointerInteracting.current = e.clientX;
-          phiRef.current += pointerInteractionMovement.current;
-        }
-      }}
-      data-testid="globe-canvas"
-    />
-  );
-}
-
 export default function WorldMapSection({ language }: WorldMapSectionProps) {
   const t = content[language] || content.en;
   const [activePanel, setActivePanel] = useState<string | null>(null);
+  const [showMexicoModal, setShowMexicoModal] = useState(false);
+  const [showGermanyModal, setShowGermanyModal] = useState(false);
 
   const gdSocios: GDMember[] = [
     { id: "claus-von-wobeser", name: "Claus von Wobeser", photo: clausVonWobeserPhoto,       category: t.foundingPartner, slug: "claus-von-wobeser", number: "01" },
@@ -438,98 +402,226 @@ export default function WorldMapSection({ language }: WorldMapSectionProps) {
           </motion.div>
         </div>
 
-        {/* 3D Globe + Location Cards */}
+        {/* Connected Cards with decorative map background */}
         <div
-          className="relative w-full bg-[#111110] py-12 lg:py-16"
+          className="relative w-full bg-muted py-16 lg:py-20 overflow-hidden"
           data-testid="card-map-connection"
         >
-          <div className="max-w-5xl mx-auto px-6 lg:px-12">
+          <img
+            src={worldMapImg}
+            alt=""
+            aria-hidden="true"
+            className="absolute inset-0 w-full h-full object-cover opacity-[0.06] dark:hidden pointer-events-none select-none"
+          />
+          <img
+            src={worldMapDarkImg}
+            alt=""
+            aria-hidden="true"
+            className="absolute inset-0 w-full h-full object-cover hidden dark:block opacity-[0.04] pointer-events-none select-none"
+          />
 
-            {/* Globe */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              whileInView={{ opacity: 1 }}
-              viewport={{ once: true }}
-              transition={{ duration: 1.2, delay: 0.2 }}
-              className="relative w-full max-w-[320px] md:max-w-[440px] lg:max-w-[500px] mx-auto aspect-square mb-10"
-              data-testid="globe-container"
-            >
-              <GlobeCanvas />
-            </motion.div>
+          <div className="relative z-10 max-w-5xl mx-auto px-6 lg:px-12">
 
-            {/* Location cards + pill */}
-            <div className="flex flex-col md:flex-row items-center justify-center gap-4 md:gap-6" data-testid="connection-line-desktop">
+            <div className="flex flex-col md:flex-row items-center justify-center gap-0">
 
-              {/* Mexico City card */}
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
+              {/* Mexico City Card */}
+              <motion.button
+                initial={{ opacity: 0, x: -30 }}
+                whileInView={{ opacity: 1, x: 0 }}
                 viewport={{ once: true }}
-                transition={{ duration: 0.5, delay: 0.3 }}
-                className="flex items-center gap-3 bg-[#1a1a19] border border-white/10 px-5 py-4"
+                transition={{ duration: 0.6, delay: 0.2 }}
+                onClick={() => setShowMexicoModal(true)}
+                className="w-full md:w-auto md:flex-1 md:max-w-[280px] bg-card border border-border p-6 shadow-sm hover-elevate cursor-pointer text-left group"
                 data-testid="location-mexico"
               >
-                <div className="w-10 h-10 bg-primary/15 flex items-center justify-center flex-shrink-0">
-                  <MapPin className="w-4 h-4 text-primary" strokeWidth={1.5} />
+                <div className="flex items-center gap-4 mb-4">
+                  <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center flex-shrink-0">
+                    <MapPin className="w-5 h-5 text-primary" strokeWidth={1.5} />
+                  </div>
+                  <div>
+                    <p
+                      className="font-heading font-light text-sm uppercase tracking-[0.12em] text-foreground leading-tight"
+                      data-testid="text-mexico-label"
+                    >
+                      {t.mexicoLabel}
+                    </p>
+                    <p className="text-[11px] text-muted-foreground mt-0.5">{t.mexicoSubtitle}</p>
+                  </div>
                 </div>
-                <div>
-                  <p
-                    className="font-heading font-light text-xs uppercase tracking-[0.12em] text-white/90 leading-tight"
-                    data-testid="text-mexico-label"
-                  >
-                    {t.mexicoLabel}
-                  </p>
-                  <p className="text-[10px] text-white/40 mt-0.5">{t.mexicoSubtitle}</p>
-                </div>
-              </motion.div>
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  Torre SOMA Chapultepec Piso 18, Campos Eliseos 204, Polanco
+                </p>
+                <span className="inline-flex items-center gap-1 mt-3 text-[10px] text-primary uppercase tracking-[0.12em] font-medium group-hover:gap-2 transition-all">
+                  {t.viewDetails} <ArrowRight className="w-3 h-3" />
+                </span>
+              </motion.button>
 
-              {/* Connector + pill */}
+              {/* SVG Connector — desktop: horizontal curve, mobile: vertical */}
               <motion.div
                 initial={{ opacity: 0, scale: 0.85 }}
                 whileInView={{ opacity: 1, scale: 1 }}
                 viewport={{ once: true }}
-                transition={{ duration: 0.5, delay: 0.5 }}
-                className="flex items-center gap-2"
+                transition={{ duration: 0.6, delay: 0.5 }}
+                className="relative flex-shrink-0 flex items-center justify-center"
               >
-                <div className="hidden md:block w-8 h-px bg-primary/40" />
-                <div
-                  className="bg-primary px-5 py-2"
-                  data-testid="text-german-desk-label"
-                >
-                  <span className="text-white text-[10px] font-bold tracking-[0.2em] uppercase whitespace-nowrap">
-                    {t.sectionTitle}
-                  </span>
+                {/* Desktop horizontal connector */}
+                <div className="hidden md:flex items-center" style={{ width: "clamp(80px, 12vw, 200px)" }}>
+                  <svg viewBox="0 0 200 80" preserveAspectRatio="none" className="w-full h-20" fill="none">
+                    <path
+                      d="M 0 40 C 60 40, 60 10, 100 10 C 140 10, 140 40, 200 40"
+                      stroke="hsl(var(--primary))"
+                      strokeWidth="1.5"
+                      strokeDasharray="6 4"
+                      fill="none"
+                    />
+                    <circle cx="0" cy="40" r="3" fill="hsl(var(--primary))" />
+                    <circle cx="200" cy="40" r="3" fill="hsl(var(--primary))" />
+                  </svg>
                 </div>
-                <div className="hidden md:block w-8 h-px bg-primary/40" />
+                {/* Mobile vertical connector */}
+                <div className="md:hidden flex flex-col items-center py-3">
+                  <svg viewBox="0 0 40 60" className="w-10 h-14" fill="none">
+                    <path
+                      d="M 20 0 L 20 60"
+                      stroke="hsl(var(--primary))"
+                      strokeWidth="1.5"
+                      strokeDasharray="4 3"
+                      fill="none"
+                    />
+                    <circle cx="20" cy="0" r="3" fill="hsl(var(--primary))" />
+                    <circle cx="20" cy="60" r="3" fill="hsl(var(--primary))" />
+                  </svg>
+                </div>
+                {/* GERMAN DESK Pill — overlaid on connector */}
+                <div
+                  className="absolute inset-0 flex items-center justify-center pointer-events-none"
+                >
+                  <div
+                    className="bg-primary px-4 py-1.5 shadow-md pointer-events-auto"
+                    data-testid="text-german-desk-label"
+                  >
+                    <span className="text-white text-[9px] font-bold tracking-[0.2em] uppercase whitespace-nowrap">
+                      {t.sectionTitle}
+                    </span>
+                  </div>
+                </div>
               </motion.div>
 
-              {/* Germany card */}
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
+              {/* Germany Card */}
+              <motion.button
+                initial={{ opacity: 0, x: 30 }}
+                whileInView={{ opacity: 1, x: 0 }}
                 viewport={{ once: true }}
-                transition={{ duration: 0.5, delay: 0.7 }}
-                className="flex items-center gap-3 bg-[#1a1a19] border border-white/10 px-5 py-4"
+                transition={{ duration: 0.6, delay: 0.4 }}
+                onClick={() => setShowGermanyModal(true)}
+                className="w-full md:w-auto md:flex-1 md:max-w-[280px] bg-card border border-border p-6 shadow-sm hover-elevate cursor-pointer text-left group"
                 data-testid="location-germany"
               >
-                <div className="w-10 h-10 bg-primary/15 flex items-center justify-center flex-shrink-0">
-                  <MapPin className="w-4 h-4 text-primary" strokeWidth={1.5} />
+                <div className="flex items-center gap-4 mb-4">
+                  <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center flex-shrink-0">
+                    <MapPin className="w-5 h-5 text-primary" strokeWidth={1.5} />
+                  </div>
+                  <div>
+                    <p
+                      className="font-heading font-light text-sm uppercase tracking-[0.12em] text-foreground leading-tight"
+                      data-testid="text-germany-label"
+                    >
+                      {t.germanyLabel}
+                    </p>
+                    <p className="text-[11px] text-muted-foreground mt-0.5">{t.germanySubtitle}</p>
+                  </div>
                 </div>
-                <div>
-                  <p
-                    className="font-heading font-light text-xs uppercase tracking-[0.12em] text-white/90 leading-tight"
-                    data-testid="text-germany-label"
-                  >
-                    {t.germanyLabel}
-                  </p>
-                  <p className="text-[10px] text-white/40 mt-0.5">{t.germanySubtitle}</p>
-                </div>
-              </motion.div>
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  {t.germanDeskDescription}
+                </p>
+                <span className="inline-flex items-center gap-1 mt-3 text-[10px] text-primary uppercase tracking-[0.12em] font-medium group-hover:gap-2 transition-all">
+                  {t.viewDetails} <ArrowRight className="w-3 h-3" />
+                </span>
+              </motion.button>
 
             </div>
-
           </div>
         </div>
+
+        {/* Location Modals */}
+        <Dialog open={showMexicoModal} onOpenChange={setShowMexicoModal}>
+          <DialogContent className="max-w-md p-0 overflow-hidden" data-testid="modal-mexico">
+            <img
+              src={collage01}
+              alt="Torre SOMA Chapultepec"
+              className="w-full h-48 object-cover"
+              data-testid="img-modal-mexico"
+            />
+            <div className="p-6">
+              <DialogHeader>
+                <DialogTitle className="font-heading font-light text-lg uppercase tracking-[0.12em] text-foreground">
+                  {t.mexicoLabel}
+                </DialogTitle>
+              </DialogHeader>
+              <div className="mt-4 space-y-3">
+                <div className="flex items-start gap-3">
+                  <MapPin className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" strokeWidth={1.5} />
+                  <div>
+                    <p className="text-[10px] text-muted-foreground uppercase tracking-[0.1em] mb-0.5">{t.addressLabel}</p>
+                    <p className="text-sm text-foreground">Torre SOMA Chapultepec Piso 18, Campos Eliseos 204, Polanco, C.P. 11560, Ciudad de Mexico</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3">
+                  <Phone className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" strokeWidth={1.5} />
+                  <div>
+                    <p className="text-[10px] text-muted-foreground uppercase tracking-[0.1em] mb-0.5">{t.phoneLabel}</p>
+                    <p className="text-sm text-foreground">+52 55 5258 1000</p>
+                  </div>
+                </div>
+              </div>
+              <div className="mt-6">
+                <Button
+                  asChild
+                  className="w-full uppercase tracking-[0.12em] text-xs"
+                  data-testid="button-contact-mexico"
+                >
+                  <a href="mailto:info@vonwobeser.com">
+                    <Mail className="w-4 h-4 mr-2" />
+                    {t.contactButton}
+                  </a>
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        <Dialog open={showGermanyModal} onOpenChange={setShowGermanyModal}>
+          <DialogContent className="max-w-md p-0 overflow-hidden" data-testid="modal-germany">
+            <img
+              src={collage03}
+              alt="German Desk"
+              className="w-full h-48 object-cover"
+              data-testid="img-modal-germany"
+            />
+            <div className="p-6">
+              <DialogHeader>
+                <DialogTitle className="font-heading font-light text-lg uppercase tracking-[0.12em] text-foreground">
+                  {t.germanyLabel} — GERMAN DESK
+                </DialogTitle>
+              </DialogHeader>
+              <p className="mt-4 text-sm text-muted-foreground leading-relaxed">
+                {t.germanDeskDescription}
+              </p>
+              <div className="mt-6">
+                <Button
+                  asChild
+                  className="w-full uppercase tracking-[0.12em] text-xs"
+                  data-testid="button-contact-germany"
+                >
+                  <a href="mailto:info@vonwobeser.com">
+                    <Mail className="w-4 h-4 mr-2" />
+                    {t.contactButton}
+                  </a>
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
 
         {/* Stats + historical text — back in max-w container */}
         <div className="max-w-7xl mx-auto px-6 lg:px-12">
