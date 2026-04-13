@@ -377,59 +377,61 @@ export default function WorldMapSection({ language }: WorldMapSectionProps) {
     >
       <div className="bg-card dark:bg-[#111110]">
 
-        {/* Header — stays in max-w container */}
-        <div className="max-w-7xl mx-auto px-6 lg:px-12 pt-20 lg:pt-28">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
-            className="text-center mb-12"
-          >
-            <div className="w-12 h-px bg-primary mx-auto mb-6" />
-            <h2
-              className="font-heading font-light uppercase tracking-[0.12em] text-2xl md:text-4xl text-foreground mb-6"
-              data-testid="text-global-reach-title"
-            >
-              {t.title}
-            </h2>
-            <p
-              className="text-sm text-muted-foreground leading-relaxed max-w-2xl mx-auto"
-              data-testid="text-global-reach-subtitle"
-            >
-              {t.subtitle}
-            </p>
-          </motion.div>
-        </div>
-
-        {/* Connected Cards with decorative map background */}
+        {/* Heading + Connected Cards — single container with map watermark */}
         <div
-          className="relative w-full bg-card dark:bg-[#111110] py-16 lg:py-20 overflow-hidden"
+          className="relative w-full bg-card dark:bg-[#111110] pt-20 lg:pt-28 pb-16 lg:pb-20 overflow-hidden"
           data-testid="card-map-connection"
         >
           <img
             src={worldMapImg}
             alt=""
             aria-hidden="true"
-            className="absolute inset-0 w-full h-full object-cover opacity-[0.18] dark:hidden pointer-events-none select-none"
+            className="absolute inset-0 w-full h-full object-contain opacity-[0.18] dark:hidden pointer-events-none select-none"
           />
           <img
             src={worldMapDarkImg}
             alt=""
             aria-hidden="true"
-            className="absolute inset-0 w-full h-full object-cover hidden dark:block opacity-[0.10] pointer-events-none select-none"
+            className="absolute inset-0 w-full h-full object-contain hidden dark:block opacity-[0.10] pointer-events-none select-none"
           />
 
-          <div className="relative z-10 max-w-5xl mx-auto px-6 lg:px-12">
+          <div className="relative z-10">
+            {/* Header */}
+            <div className="max-w-7xl mx-auto px-6 lg:px-12">
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.6 }}
+                className="text-center mb-12"
+              >
+                <div className="w-12 h-px bg-primary mx-auto mb-6" />
+                <h2
+                  className="font-heading font-light uppercase tracking-[0.12em] text-2xl md:text-4xl text-foreground mb-6"
+                  data-testid="text-global-reach-title"
+                >
+                  {t.title}
+                </h2>
+                <p
+                  className="text-sm text-muted-foreground leading-relaxed max-w-2xl mx-auto"
+                  data-testid="text-global-reach-subtitle"
+                >
+                  {t.subtitle}
+                </p>
+              </motion.div>
+            </div>
 
-            <div className="flex flex-col md:flex-row items-center justify-center gap-0">
+            {/* Cards + Connector */}
+            <div className="max-w-5xl mx-auto px-6 lg:px-12">
+              <div className="flex flex-col md:flex-row items-center justify-center gap-0">
 
               {/* Mexico City Card */}
               <motion.button
-                initial={{ opacity: 0, x: -30 }}
-                whileInView={{ opacity: 1, x: 0 }}
+                initial={{ opacity: 0, x: -50, scale: 0.9 }}
+                whileInView={{ opacity: 1, x: 0, scale: 1 }}
                 viewport={{ once: true }}
-                transition={{ duration: 0.6, delay: 0.2 }}
+                transition={{ type: "spring", stiffness: 80, damping: 15, delay: 0.2 }}
+                whileHover={{ scale: 1.03, y: -4 }}
                 onClick={() => setShowMexicoModal(true)}
                 className="w-full md:w-auto md:flex-1 md:max-w-[280px] bg-[#1a1a19] border border-white/10 p-6 shadow-sm hover-elevate cursor-pointer text-left group rounded-none"
                 data-testid="location-mexico"
@@ -456,7 +458,7 @@ export default function WorldMapSection({ language }: WorldMapSectionProps) {
                 </span>
               </motion.button>
 
-              {/* SVG Connector — desktop: horizontal curve, mobile: vertical */}
+              {/* SVG Connector — desktop: horizontal, mobile: vertical */}
               <motion.div
                 initial={{ opacity: 0, scale: 0.85 }}
                 whileInView={{ opacity: 1, scale: 1 }}
@@ -466,24 +468,24 @@ export default function WorldMapSection({ language }: WorldMapSectionProps) {
               >
                 {/* Desktop horizontal connector */}
                 <div className="hidden md:flex items-center" style={{ width: "clamp(80px, 12vw, 200px)" }}>
-                  <svg viewBox="0 0 200 80" preserveAspectRatio="none" className="w-full h-20" fill="none">
+                  <svg viewBox="0 0 200 20" preserveAspectRatio="none" className="w-full h-5" fill="none">
                     <path
-                      d="M 0 40 C 60 40, 60 10, 100 10 C 140 10, 140 40, 200 40"
+                      d="M 0 10 L 200 10"
                       stroke="hsl(var(--primary))"
                       strokeWidth="1.5"
                       strokeDasharray="6 4"
                       fill="none"
                       className="german-desk-connector-line"
                     />
-                    <circle cx="0" cy="40" r="3" fill="hsl(var(--primary))" />
-                    <circle cx="200" cy="40" r="3" fill="hsl(var(--primary))" />
+                    <circle cx="0" cy="10" r="3" fill="hsl(var(--primary))" />
+                    <circle cx="200" cy="10" r="3" fill="hsl(var(--primary))" />
                   </svg>
                 </div>
                 {/* Mobile vertical connector */}
                 <div className="md:hidden flex flex-col items-center py-3">
                   <svg viewBox="0 0 40 80" className="w-10 h-16" fill="none">
                     <path
-                      d="M 20 0 C 35 20, 5 60, 20 80"
+                      d="M 20 0 L 20 80"
                       stroke="hsl(var(--primary))"
                       strokeWidth="1.5"
                       strokeDasharray="4 3"
@@ -511,10 +513,11 @@ export default function WorldMapSection({ language }: WorldMapSectionProps) {
 
               {/* Germany Card */}
               <motion.button
-                initial={{ opacity: 0, x: 30 }}
-                whileInView={{ opacity: 1, x: 0 }}
+                initial={{ opacity: 0, x: 50, scale: 0.9 }}
+                whileInView={{ opacity: 1, x: 0, scale: 1 }}
                 viewport={{ once: true }}
-                transition={{ duration: 0.6, delay: 0.4 }}
+                transition={{ type: "spring", stiffness: 80, damping: 15, delay: 0.4 }}
+                whileHover={{ scale: 1.03, y: -4 }}
                 onClick={() => setShowGermanyModal(true)}
                 className="w-full md:w-auto md:flex-1 md:max-w-[280px] bg-[#1a1a19] border border-white/10 p-6 shadow-sm hover-elevate cursor-pointer text-left group rounded-none"
                 data-testid="location-germany"
@@ -541,6 +544,7 @@ export default function WorldMapSection({ language }: WorldMapSectionProps) {
                 </span>
               </motion.button>
 
+              </div>
             </div>
           </div>
         </div>
