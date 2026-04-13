@@ -605,7 +605,7 @@ export default function Rankings() {
             whileInView={{ opacity: 1 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
-            className="mb-20 py-12 px-8 bg-muted rounded-none"
+            className="mb-20 py-12 px-8"
             data-testid="section-rankings-quote"
           >
             <div className="max-w-4xl mx-auto text-center">
