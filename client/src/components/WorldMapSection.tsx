@@ -246,13 +246,13 @@ const content: Record<SupportedLanguage, ContentTranslation> = {
 
 // Pin coordinates for mapa_1775780643811.png — calibrated from reference image
 // SVG viewBox: 0 0 1000 641.
-// Mexico City → x=190, y=449 (19% / 70%)
-// Germany     → x=690, y=154 (69% / 24%)
+// Mexico City (~99°W, 19°N) → x=190, y=449 (19% / 70%)
+// Germany (~10°E, 51°N) → x=510, y=195 (51% / 30%) — Central Europe
 const MX = { x: 190, y: 449 };
-const DE = { x: 690, y: 154 };
-// Cubic bezier: two control points both at y=30, pulling arc high near the poles.
-// Peak falls at ~x=440, y=97 (44% / 15%) — aligns with GERMAN DESK pill position.
-const ARC = `M ${MX.x},${MX.y} C 190,30 690,30 ${DE.x},${DE.y}`;
+const DE = { x: 510, y: 195 };
+// Cubic bezier: two control points pulled high to create an arc over the North Atlantic.
+// Peak at t=0.5 falls at ~x=350, y=110.
+const ARC = `M ${MX.x},${MX.y} C 200,40 500,40 ${DE.x},${DE.y}`;
 
 
 // useCountUp hook
@@ -427,19 +427,19 @@ export default function WorldMapSection({ language }: WorldMapSectionProps) {
               <circle cx={DE.x} cy={DE.y} r={2.5} fill="white" />
             </g>
 
-            {/* GERMAN DESK pill — centered on arc peak (x≈547, y≈82) */}
+            {/* GERMAN DESK pill — centered on arc peak (x≈350, y≈110) */}
             <motion.g
               data-testid="text-german-desk-label"
-              style={{ transformOrigin: "547px 59px" }}
+              style={{ transformOrigin: "350px 77px" }}
               initial={{ opacity: 0, scale: 0.85 }}
               whileInView={{ opacity: 1, scale: 1 }}
               viewport={{ once: true }}
               transition={{ duration: 0.5, delay: 2.0 }}
             >
-              <rect x={407} y={42} width={280} height={34} fill="#AA1A2E" />
+              <rect x={210} y={60} width={280} height={34} fill="#AA1A2E" />
               <text
-                x={547}
-                y={66}
+                x={350}
+                y={84}
                 textAnchor="middle"
                 fill="white"
                 fontSize="9"
@@ -448,7 +448,7 @@ export default function WorldMapSection({ language }: WorldMapSectionProps) {
               >
                 {t.sectionTitle}
               </text>
-              <line x1={547} y1={76} x2={547} y2={82} stroke="#AA1A2E" strokeWidth="1" opacity="0.6" />
+              <line x1={350} y1={94} x2={350} y2={105} stroke="#AA1A2E" strokeWidth="1" opacity="0.6" />
             </motion.g>
 
             {/* Mexico City label — to the right of pin, same SVG coordinate space */}
@@ -488,8 +488,8 @@ export default function WorldMapSection({ language }: WorldMapSectionProps) {
               transition={{ duration: 0.5, delay: 3.5 }}
             >
               <text
-                x={705}
-                y={152}
+                x={525}
+                y={193}
                 fill="#1a1a1a"
                 fontSize="11"
                 fontWeight="bold"
@@ -499,8 +499,8 @@ export default function WorldMapSection({ language }: WorldMapSectionProps) {
                 {t.germanyLabel}
               </text>
               <text
-                x={705}
-                y={165}
+                x={525}
+                y={206}
                 fill="#777777"
                 fontSize="8"
                 style={{ letterSpacing: "1px" }}
