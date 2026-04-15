@@ -176,7 +176,7 @@ function SearchResultNews({
   );
 }
 
-export default function Header({ lightHero = false }: { lightHero?: boolean }) {
+export default function Header() {
   const { language, displayLanguage } = useLanguage();
   const { t } = useTranslation();
   const [isScrolled, setIsScrolled] = useState(false);
@@ -320,7 +320,7 @@ export default function Header({ lightHero = false }: { lightHero?: boolean }) {
       <header
         className={cn(
           "fixed top-0 left-0 right-0 z-50 transition-all duration-500",
-          (isScrolled || lightHero)
+          isScrolled
             ? "bg-background/95 backdrop-blur-md shadow-md py-3"
             : "bg-transparent py-6"
         )}
@@ -334,11 +334,11 @@ export default function Header({ lightHero = false }: { lightHero?: boolean }) {
             aria-label={`Von Wobeser y Sierra - ${t('nav.home')}`}
           >
             <img
-              src={(isScrolled || lightHero) ? logoColor : logoWhite}
+              src={isScrolled ? logoColor : logoWhite}
               alt="Von Wobeser y Sierra"
               className={cn(
                 "transition-all duration-300 flex-shrink-0 object-contain",
-                (isScrolled || lightHero)
+                isScrolled
                   ? "h-8 sm:h-9 md:h-11 w-auto max-w-[180px] sm:max-w-[220px] md:max-w-[280px] dark:brightness-0 dark:invert"
                   : "h-9 sm:h-10 md:h-12 w-auto max-w-[180px] sm:max-w-[240px] md:max-w-[320px]"
               )}
@@ -366,11 +366,11 @@ export default function Header({ lightHero = false }: { lightHero?: boolean }) {
                   href={item.href}
                   className={cn(
                     "inline-flex items-center gap-1 px-3 py-2 text-sm font-medium tracking-wide uppercase whitespace-nowrap transition-colors duration-200",
-                    (isScrolled || lightHero)
+                    isScrolled
                       ? "text-foreground hover:text-primary"
                       : "text-white/90 hover:text-white",
                     location === item.href && "text-primary",
-                    activeDropdown === item.id && ((isScrolled || lightHero) ? "text-primary" : "text-white")
+                    activeDropdown === item.id && (isScrolled ? "text-primary" : "text-white")
                   )}
                   data-testid={`link-nav-${item.id}`}
                   aria-current={location === item.href ? "page" : undefined}
@@ -395,7 +395,7 @@ export default function Header({ lightHero = false }: { lightHero?: boolean }) {
                     className={cn(
                       "absolute top-full left-0 mt-2 min-w-[220px] py-1.5 z-50",
                       "border shadow-2xl backdrop-blur-xl overflow-hidden",
-                      (isScrolled || lightHero)
+                      isScrolled
                         ? "bg-background border-border"
                         : "bg-black/75 border-white/10"
                     )}
@@ -413,7 +413,7 @@ export default function Header({ lightHero = false }: { lightHero?: boolean }) {
                           "flex items-center px-5 py-2.5 text-sm font-medium uppercase tracking-wide",
                           "border-l-2 border-transparent transition-all duration-150",
                           "hover:border-[#AA1A2E]",
-                          (isScrolled || lightHero)
+                          isScrolled
                             ? "text-foreground hover:text-[#AA1A2E] hover:bg-muted"
                             : "text-white/80 hover:text-white hover:bg-white/8"
                         )}
@@ -436,7 +436,7 @@ export default function Header({ lightHero = false }: { lightHero?: boolean }) {
                 variant="ghost"
                 size="icon"
                 className={cn(
-                  (isScrolled || lightHero) ? "text-[#AA1A2E]" : "text-white/90 hover:text-white"
+                  isScrolled ? "text-[#AA1A2E]" : "text-white/90 hover:text-white"
                 )}
                 onClick={() => setIsSearchOpen(!isSearchOpen)}
                 data-testid="button-search"
@@ -549,17 +549,17 @@ export default function Header({ lightHero = false }: { lightHero?: boolean }) {
               )}
             </div>
 
-            {(isScrolled || lightHero) && <ThemeToggle />}
+            {isScrolled && <ThemeToggle />}
 
-            <LanguageSelector isScrolled={isScrolled || lightHero} className="hidden sm:flex" />
-            <LanguageSelector isScrolled={isScrolled || lightHero} compact className="flex sm:hidden" />
+            <LanguageSelector isScrolled={isScrolled} className="hidden sm:flex" />
+            <LanguageSelector isScrolled={isScrolled} compact className="flex sm:hidden" />
 
             <Button
               variant="ghost"
               size="icon"
               className={cn(
                 "lg:hidden",
-                (isScrolled || lightHero) ? "text-[#AA1A2E]" : "text-white/90 hover:text-white"
+                isScrolled ? "text-[#AA1A2E]" : "text-white/90 hover:text-white"
               )}
               onClick={() => setIsMobileMenuOpen(true)}
               data-testid="button-mobile-menu"

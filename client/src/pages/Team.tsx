@@ -447,9 +447,9 @@ export default function Team() {
   return (
     <div className="min-h-screen bg-background" data-testid="page-team">
       <SEOHead page="team" language={language} />
-      <Header lightHero />
+      <Header />
       
-      <section className="pt-36 pb-20 bg-background" data-testid="section-team-hero">
+      <section className="pt-36 pb-20 bg-[#1a1a19]" data-testid="section-team-hero">
         <div className="max-w-7xl mx-auto px-6 lg:px-12">
           <motion.div
             initial={{ opacity: 0, y: 24 }}
@@ -460,13 +460,13 @@ export default function Team() {
           >
             <div className="h-0.5 w-12 bg-primary mx-auto mb-6" />
             <h1 
-              className="text-4xl md:text-5xl font-heading font-light text-foreground mb-5 uppercase tracking-[0.15em]"
+              className="text-4xl md:text-5xl font-heading font-light text-white mb-5 uppercase tracking-[0.15em]"
               data-testid="text-team-title"
             >
               {t.title}
             </h1>
             <p 
-              className="text-base text-muted-foreground max-w-2xl mx-auto"
+              className="text-base text-white/60 max-w-2xl mx-auto"
               data-testid="text-team-subtitle"
             >
               {t.subtitle}
