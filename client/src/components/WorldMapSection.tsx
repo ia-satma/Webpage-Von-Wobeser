@@ -746,7 +746,7 @@ export default function WorldMapSection({ language }: WorldMapSectionProps) {
                 >
                   <img src={member.photo} alt="" aria-hidden="true" className="absolute inset-0 w-full h-full object-cover object-[50%_20%]" style={{ transform: isActive ? "scale(1.04)" : "scale(1)", filter: isActive ? "grayscale(0%)" : "grayscale(100%)", transition: "transform 0.6s cubic-bezier(0.22, 1, 0.36, 1), filter 0.5s ease" }} data-testid={`img-gdm-${member.slug}`} />
                   <div className="absolute inset-0" style={{ background: isActive ? "linear-gradient(to top, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.2) 50%, rgba(0,0,0,0.1) 100%)" : "linear-gradient(to top, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.3) 100%)", transition: "background 0.5s ease" }} />
-                  <div className="absolute top-0 right-0 w-px h-full bg-border" />
+                  <div className="absolute top-0 right-0 w-px h-full bg-[#AA1A2E]/20" />
 
                   <div className="absolute bottom-5 left-3 right-3" style={{ opacity: isActive ? 0 : 1, transition: "opacity 0.25s ease" }}>
                     <p className="text-white/90 text-[9px] uppercase tracking-[0.12em] font-light truncate" data-testid={`text-name-gdm-${member.slug}`}>{member.name}</p>
@@ -796,7 +796,7 @@ export default function WorldMapSection({ language }: WorldMapSectionProps) {
                 >
                   <img src={member.photo} alt="" aria-hidden="true" className="absolute inset-0 w-full h-full object-cover object-[50%_20%]" style={{ transform: isActive ? "scale(1.04)" : "scale(1)", filter: isActive ? "grayscale(0%)" : "grayscale(100%)", transition: "transform 0.6s cubic-bezier(0.22, 1, 0.36, 1), filter 0.5s ease" }} data-testid={`img-gdm-${member.slug}`} />
                   <div className="absolute inset-0" style={{ background: isActive ? "linear-gradient(to top, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.2) 50%, rgba(0,0,0,0.1) 100%)" : "linear-gradient(to top, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.3) 100%)", transition: "background 0.5s ease" }} />
-                  <div className="absolute top-0 right-0 w-px h-full bg-border" />
+                  <div className="absolute top-0 right-0 w-px h-full bg-[#AA1A2E]/20" />
 
                   <div className="absolute bottom-5 left-3 right-3" style={{ opacity: isActive ? 0 : 1, transition: "opacity 0.25s ease" }}>
                     <p className="text-white/90 text-[9px] uppercase tracking-[0.12em] font-light truncate" data-testid={`text-name-gdm-${member.slug}`}>{member.name}</p>
