@@ -726,7 +726,7 @@ export default function WorldMapSection({ language }: WorldMapSectionProps) {
         </div>
 
         {/* ─── OF COUNSEL ──────────────────────────────────────── */}
-        <div className="bg-background border-b border-border">
+        <div className="bg-background border-b border-[#AA1A2E]/10">
           <div className="px-6 lg:px-12 pt-8 pb-4 flex items-center gap-3">
             <div className="w-8 h-px bg-[#AA1A2E] shrink-0" />
             <p className="text-[#AA1A2E] text-[10px] tracking-[0.25em] uppercase">{t.ofCounselTitle}</p>
@@ -831,7 +831,7 @@ export default function WorldMapSection({ language }: WorldMapSectionProps) {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.5 }}
-          className="max-w-7xl mx-auto px-6 lg:px-12 py-8 flex flex-wrap items-center justify-between gap-4 border-t border-border"
+          className="max-w-7xl mx-auto px-6 lg:px-12 py-8 flex flex-wrap items-center justify-between gap-4 border-t border-[#AA1A2E]/10"
         >
           <div className="flex items-center gap-5">
             <div className="w-10 h-px bg-[#AA1A2E] shrink-0" />
