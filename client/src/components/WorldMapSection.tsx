@@ -840,7 +840,7 @@ export default function WorldMapSection({ language }: WorldMapSectionProps) {
                 {t.sectionTitle}
               </p>
               <h2
-                className="font-heading font-light text-xl md:text-2xl text-foreground uppercase tracking-[0.12em]"
+                className="font-heading font-light text-xl md:text-2xl text-white/90 uppercase tracking-[0.12em]"
                 data-testid="text-team-title"
               >
                 {t.teamTitle}
@@ -849,7 +849,7 @@ export default function WorldMapSection({ language }: WorldMapSectionProps) {
           </div>
           <Link
             href="/german-desk"
-            className="inline-flex items-center gap-2 text-xs font-medium tracking-[0.15em] uppercase text-muted-foreground hover:text-foreground transition-colors duration-200 group"
+            className="inline-flex items-center gap-2 text-xs font-medium tracking-[0.15em] uppercase text-white/50 hover:text-white transition-colors duration-200 group"
             data-testid="link-gdm-see-more"
           >
             {t.seeMore}
