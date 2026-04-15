@@ -10,17 +10,16 @@ import SEOHead from "@/components/SEOHead";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useTranslatedContent } from "@/hooks/useTranslatedContent";
 import { isNativeLanguage } from "@/lib/translationUtils";
-import { getIcon } from "@/lib/icons";
 import type { IndustryGroup } from "@shared/schema";
 
 interface IndustryGroupCardProps {
   group: IndustryGroup;
+  index: number;
   learnMoreText: string;
 }
 
-function IndustryGroupCard({ group, learnMoreText }: IndustryGroupCardProps) {
+function IndustryGroupCard({ group, index, learnMoreText }: IndustryGroupCardProps) {
   const { language } = useLanguage();
-  const IconComponent = getIcon(group.iconName);
 
   const { translatedFields, isLoading, isTranslating } = useTranslatedContent({
     contentType: 'industry_group',
@@ -37,37 +36,39 @@ function IndustryGroupCard({ group, learnMoreText }: IndustryGroupCardProps) {
   const displayName = translatedFields.name || group.name;
   const displayDescription = translatedFields.description || group.description;
   const showTranslatingIndicator = isLoading || isTranslating;
+  const numberLabel = String(index + 1).padStart(2, "0");
 
   return (
     <Link href={`/industry-groups/${group.slug}`}>
       <Card
-        className="group h-full rounded-none border border-border shadow-sm hover:shadow-lg transition-all duration-300 cursor-pointer bg-card"
+        className="group h-full rounded-none border-0 border-l-2 border-l-primary bg-card shadow-sm hover:shadow-lg transition-all duration-300 cursor-pointer hover:-translate-y-0.5"
         data-testid={`card-industry-group-${group.slug}`}
       >
-        <CardContent className="p-6">
-          <div className="flex items-start justify-between mb-4">
-            <div className="w-12 h-12 rounded-none bg-primary/10 dark:bg-primary/20 flex items-center justify-center">
-              <IconComponent className="w-6 h-6 text-primary" data-testid={`icon-industry-group-${group.slug}`} />
-            </div>
+        <CardContent className="p-6 lg:p-8 flex flex-col h-full">
+          <div className="flex items-start justify-between mb-5">
+            <span className="text-3xl font-heading font-light text-primary/30" data-testid={`number-industry-group-${group.slug}`}>
+              {numberLabel}
+            </span>
             {showTranslatingIndicator && (
-              <div className="flex items-center gap-1 px-2 py-1 bg-muted rounded text-xs text-muted-foreground">
+              <div className="flex items-center gap-1 px-2 py-1 bg-muted text-xs text-muted-foreground">
                 <Loader2 className="w-3 h-3 animate-spin" />
               </div>
             )}
           </div>
-          <h3 
-            className="text-lg font-semibold text-foreground mb-2 group-hover:text-primary transition-colors"
+          <div className="w-8 h-px bg-primary mb-5" />
+          <h3
+            className="text-base font-medium text-foreground mb-3 uppercase tracking-[0.08em] group-hover:text-primary transition-colors"
             data-testid={`text-industry-group-name-${group.slug}`}
           >
             {displayName}
           </h3>
-          <p 
-            className="text-sm text-muted-foreground mb-4 line-clamp-3"
+          <p
+            className="text-sm text-muted-foreground mb-6 line-clamp-3 flex-1"
             data-testid={`text-industry-group-desc-${group.slug}`}
           >
             {displayDescription}
           </p>
-          <span 
+          <span
             className="inline-flex items-center gap-1 text-sm font-medium text-primary group-hover:gap-2 transition-all"
             data-testid={`link-industry-group-${group.slug}`}
           >
@@ -267,9 +268,9 @@ export default function IndustryGroups() {
             viewport={{ once: true }}
               className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8"
             >
-              {industryGroups?.map((group) => (
+              {industryGroups?.map((group, idx) => (
                 <motion.div key={group.id} variants={itemVariants}>
-                  <IndustryGroupCard group={group} learnMoreText={t.learnMore} />
+                  <IndustryGroupCard group={group} index={idx} learnMoreText={t.learnMore} />
                 </motion.div>
               ))}
             </motion.div>

@@ -675,9 +675,6 @@ export default function DiversityInclusion() {
                   className="text-center"
                   data-testid={`stat-diversity-${index}`}
                 >
-                  <div className="w-12 h-12 rounded-full bg-primary/15 flex items-center justify-center mx-auto mb-3">
-                    <stat.icon className="w-6 h-6 text-primary" />
-                  </div>
                   <div className="text-4xl lg:text-5xl font-heading text-primary mb-2">
                     {stat.value}
                   </div>
@@ -713,12 +710,11 @@ export default function DiversityInclusion() {
             >
               {t.values.map((value, index) => (
                 <motion.div key={index} variants={itemVariants}>
-                  <Card className="h-full rounded-none border border-border text-center hover-elevate transition-all duration-300" data-testid={`card-value-${index}`}>
+                  <Card className="h-full rounded-none border-0 border-l-2 border-l-primary hover:-translate-y-0.5 transition-all duration-300" data-testid={`card-value-${index}`}>
                     <CardContent className="p-6">
-                      <div className="w-14 h-14 rounded-none bg-primary/10 flex items-center justify-center mx-auto mb-4">
-                        <value.icon className="w-7 h-7 text-primary" />
-                      </div>
-                      <h3 className="text-lg font-medium text-foreground mb-2">
+                      <span className="text-3xl font-light text-primary/30">{String(index + 1).padStart(2, '0')}</span>
+                      <div className="w-8 h-px bg-primary my-3" />
+                      <h3 className="text-lg font-light text-foreground uppercase tracking-[0.08em] mb-2">
                         {value.title}
                       </h3>
                       <p className="text-sm text-muted-foreground">
@@ -759,21 +755,16 @@ export default function DiversityInclusion() {
             >
               {t.initiatives.map((initiative, index) => (
                 <motion.div key={index} variants={itemVariants}>
-                  <Card className="h-full rounded-none border border-border hover-elevate transition-all duration-300" data-testid={`card-initiative-${index}`}>
+                  <Card className="h-full rounded-none border-0 border-l-2 border-l-primary hover:-translate-y-0.5 transition-all duration-300" data-testid={`card-initiative-${index}`}>
                     <CardContent className="p-6">
-                      <div className="flex items-start gap-4">
-                        <div className="w-12 h-12 rounded-none bg-primary/10 flex items-center justify-center flex-shrink-0">
-                          <initiative.icon className="w-6 h-6 text-primary" />
-                        </div>
-                        <div>
-                          <h3 className="text-lg font-medium text-foreground mb-2">
-                            {initiative.title}
-                          </h3>
-                          <p className="text-sm text-muted-foreground leading-relaxed">
-                            {initiative.text}
-                          </p>
-                        </div>
-                      </div>
+                      <span className="text-3xl font-light text-primary/30">{String(index + 1).padStart(2, '0')}</span>
+                      <div className="w-8 h-px bg-primary my-3" />
+                      <h3 className="text-lg font-light text-foreground uppercase tracking-[0.08em] mb-2">
+                        {initiative.title}
+                      </h3>
+                      <p className="text-sm text-muted-foreground leading-relaxed">
+                        {initiative.text}
+                      </p>
                     </CardContent>
                   </Card>
                 </motion.div>

@@ -506,20 +506,15 @@ export default function Rankings() {
               {directories.map((directory) => (
                 <motion.div key={directory.id} variants={itemVariants}>
                   <Card
-                    className="h-full hover-elevate transition-all duration-300"
+                    className="h-full rounded-none border-0 border-l-2 border-l-primary hover:-translate-y-0.5 transition-all duration-300"
                     data-testid={`card-directory-${directory.id}`}
                   >
-                    <CardHeader className="flex flex-row items-start gap-4 pb-4">
-                      <div className="p-3 rounded-none bg-primary/10 text-primary flex-shrink-0">
-                        <directory.icon className="w-6 h-6" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <CardTitle className="text-lg font-medium text-foreground">
-                          {language === "es" ? directory.nameEs : directory.name}
-                        </CardTitle>
-                      </div>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
+                    <CardContent className="p-6 space-y-4">
+                      <span className="text-3xl font-light text-primary/30">{String(directories.indexOf(directory) + 1).padStart(2, '0')}</span>
+                      <div className="w-8 h-px bg-primary my-3" />
+                      <h3 className="text-lg font-light uppercase tracking-[0.08em] text-foreground mb-2">
+                        {language === "es" ? directory.nameEs : directory.name}
+                      </h3>
                       <p className="text-sm text-muted-foreground">
                         {language === "es" ? directory.descriptionEs : directory.description}
                       </p>
@@ -563,33 +558,28 @@ export default function Rankings() {
               {awards.map((award) => (
                 <motion.div key={award.id} variants={itemVariants}>
                   <Card
-                    className="h-full hover-elevate transition-all duration-300"
+                    className="h-full rounded-none border-0 border-l-2 border-l-primary hover:-translate-y-0.5 transition-all duration-300"
                     data-testid={`card-award-${award.id}`}
                   >
-                    <CardHeader className="flex flex-row items-start gap-4 pb-4">
-                      <div className="p-3 rounded-none bg-primary/10 text-primary flex-shrink-0">
-                        <Medal className="w-6 h-6" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <CardTitle className="text-lg font-medium text-foreground">
-                          {language === "es" ? award.titleEs : award.title}
-                        </CardTitle>
-                        {award.years && (
-                          <div className="flex flex-wrap gap-2 mt-2">
-                            {award.years.map((year) => (
-                              <Badge
-                                key={year}
-                                variant="outline"
-                                className="text-xs"
-                              >
-                                {year}
-                              </Badge>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                    </CardHeader>
-                    <CardContent>
+                    <CardContent className="p-6">
+                      <span className="text-3xl font-light text-primary/30">{String(awards.indexOf(award) + 1).padStart(2, '0')}</span>
+                      <div className="w-8 h-px bg-primary my-3" />
+                      <h3 className="text-lg font-light uppercase tracking-[0.08em] text-foreground mb-2">
+                        {language === "es" ? award.titleEs : award.title}
+                      </h3>
+                      {award.years && (
+                        <div className="flex flex-wrap gap-2 mb-3">
+                          {award.years.map((year) => (
+                            <Badge
+                              key={year}
+                              variant="outline"
+                              className="text-xs"
+                            >
+                              {year}
+                            </Badge>
+                          ))}
+                        </div>
+                      )}
                       <p className="text-sm text-muted-foreground">
                         {language === "es" ? award.descriptionEs : award.description}
                       </p>

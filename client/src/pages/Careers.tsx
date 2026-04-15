@@ -1147,19 +1147,21 @@ export default function Careers() {
                   {t.values.map((value, index) => (
                     <motion.div
                       key={index}
-                      className="text-center"
                       variants={itemVariants}
                       data-testid={`card-value-${index}`}
                     >
-                      <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
-                        <value.icon className="w-7 h-7 text-primary" />
-                      </div>
-                      <h3 className="font-light uppercase tracking-[0.12em] text-foreground mb-2">
-                        {value.title}
-                      </h3>
-                      <p className="text-sm text-muted-foreground">
-                        {value.text}
-                      </p>
+                      <Card className="h-full rounded-none border-0 border-l-2 border-l-primary hover:-translate-y-0.5 transition-all duration-300">
+                        <CardContent className="p-6">
+                          <span className="text-3xl font-light text-primary/30">{String(index + 1).padStart(2, '0')}</span>
+                          <div className="w-8 h-px bg-primary my-3" />
+                          <h3 className="font-light uppercase tracking-[0.08em] text-foreground mb-2">
+                            {value.title}
+                          </h3>
+                          <p className="text-sm text-muted-foreground">
+                            {value.text}
+                          </p>
+                        </CardContent>
+                      </Card>
                     </motion.div>
                   ))}
                 </motion.div>
@@ -1197,23 +1199,18 @@ export default function Careers() {
               {t.benefits.map((benefit, index) => (
                 <motion.div key={index} variants={itemVariants}>
                   <Card 
-                    className="rounded-none border border-border h-full"
+                    className="rounded-none border-0 border-l-2 border-l-primary h-full hover:-translate-y-0.5 transition-all duration-300"
                     data-testid={`card-benefit-${index}`}
                   >
                     <CardContent className="p-6">
-                      <div className="flex items-start gap-4">
-                        <div className="w-12 h-12 rounded-none bg-primary/10 flex items-center justify-center flex-shrink-0">
-                          <benefit.icon className="w-6 h-6 text-primary" />
-                        </div>
-                        <div>
-                          <h3 className="font-light uppercase tracking-[0.12em] text-foreground mb-2">
-                            {benefit.title}
-                          </h3>
-                          <p className="text-sm text-muted-foreground">
-                            {benefit.text}
-                          </p>
-                        </div>
-                      </div>
+                      <span className="text-3xl font-light text-primary/30">{String(index + 1).padStart(2, '0')}</span>
+                      <div className="w-8 h-px bg-primary my-3" />
+                      <h3 className="font-light uppercase tracking-[0.08em] text-foreground mb-2">
+                        {benefit.title}
+                      </h3>
+                      <p className="text-sm text-muted-foreground">
+                        {benefit.text}
+                      </p>
                     </CardContent>
                   </Card>
                 </motion.div>
@@ -1451,9 +1448,6 @@ export default function Careers() {
                   data-testid="card-careers-contact"
                 >
                   <CardContent className="p-8">
-                    <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center mb-6">
-                      <Users className="w-7 h-7 text-primary" />
-                    </div>
                     <h3 className="text-base font-heading font-light text-foreground mb-2 uppercase tracking-[0.1em]">
                       {t.contactCardTitle}
                     </h3>

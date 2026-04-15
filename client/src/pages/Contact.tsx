@@ -1051,17 +1051,12 @@ export default function Contact() {
 
               <Card className="rounded-none border border-border" data-testid="card-german-desk">
                 <CardContent className="p-8">
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-                      <span className="text-lg">🇩🇪</span>
-                    </div>
-                    <h3 
-                      className="text-xl font-heading font-light text-foreground"
-                      data-testid="text-german-desk-title"
-                    >
-                      {t.germanDesk}
-                    </h3>
-                  </div>
+                  <h3 
+                    className="text-xl font-heading font-light text-foreground mb-4"
+                    data-testid="text-german-desk-title"
+                  >
+                    {t.germanDesk}
+                  </h3>
                   <p 
                     className="text-muted-foreground text-sm"
                     data-testid="text-german-desk-info"

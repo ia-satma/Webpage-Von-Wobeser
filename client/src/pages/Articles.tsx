@@ -418,8 +418,7 @@ export default function ArticlesPage() {
               >
                 <FileText className="w-16 h-16 text-primary/40 mx-auto mb-6" />
                 <h2 
-                  className="text-2xl font-heading font-light mb-4 uppercase tracking-[0.12em]"
-                  style={{ color: "#AA1A2E" }}
+                  className="text-2xl font-heading font-light mb-4 uppercase tracking-[0.12em] text-foreground"
                   data-testid="text-coming-soon-title"
                 >
                   {t.comingSoon}

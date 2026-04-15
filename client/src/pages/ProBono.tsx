@@ -913,21 +913,16 @@ export default function ProBono() {
             >
               {t.areas.map((area, index) => (
                 <motion.div key={index} variants={itemVariants}>
-                  <Card className="h-full rounded-none border border-border hover-elevate transition-all duration-300" data-testid={`card-area-${index}`}>
+                  <Card className="h-full rounded-none border-0 border-l-2 border-l-primary hover:-translate-y-0.5 transition-all duration-300" data-testid={`card-area-${index}`}>
                     <CardContent className="p-6">
-                      <div className="flex items-start gap-4">
-                        <div className="w-12 h-12 rounded-none bg-primary/10 flex items-center justify-center flex-shrink-0">
-                          <area.icon className="w-6 h-6 text-primary" />
-                        </div>
-                        <div>
-                          <h3 className="text-lg font-light text-foreground uppercase tracking-[0.12em] mb-2">
-                            {area.title}
-                          </h3>
-                          <p className="text-sm text-muted-foreground leading-relaxed">
-                            {area.text}
-                          </p>
-                        </div>
-                      </div>
+                      <span className="text-3xl font-light text-primary/30">{String(index + 1).padStart(2, '0')}</span>
+                      <div className="w-8 h-px bg-primary my-3" />
+                      <h3 className="text-lg font-light text-foreground uppercase tracking-[0.08em] mb-2">
+                        {area.title}
+                      </h3>
+                      <p className="text-sm text-muted-foreground leading-relaxed">
+                        {area.text}
+                      </p>
                     </CardContent>
                   </Card>
                 </motion.div>
@@ -1006,21 +1001,16 @@ export default function ProBono() {
             >
               {t.participationAspects.map((aspect, index) => (
                 <motion.div key={index} variants={itemVariants}>
-                  <Card className="h-full rounded-none border border-border hover-elevate transition-all duration-300" data-testid={`card-participation-${index}`}>
+                  <Card className="h-full rounded-none border-0 border-l-2 border-l-primary hover:-translate-y-0.5 transition-all duration-300" data-testid={`card-participation-${index}`}>
                     <CardContent className="p-6">
-                      <div className="flex items-start gap-4">
-                        <div className="w-12 h-12 rounded-none bg-primary/10 flex items-center justify-center flex-shrink-0">
-                          <aspect.icon className="w-6 h-6 text-primary" />
-                        </div>
-                        <div>
-                          <h3 className="text-lg font-light text-foreground uppercase tracking-[0.12em] mb-2">
-                            {aspect.title}
-                          </h3>
-                          <p className="text-sm text-muted-foreground leading-relaxed">
-                            {aspect.text}
-                          </p>
-                        </div>
-                      </div>
+                      <span className="text-3xl font-light text-primary/30">{String(index + 1).padStart(2, '0')}</span>
+                      <div className="w-8 h-px bg-primary my-3" />
+                      <h3 className="text-lg font-light text-foreground uppercase tracking-[0.08em] mb-2">
+                        {aspect.title}
+                      </h3>
+                      <p className="text-sm text-muted-foreground leading-relaxed">
+                        {aspect.text}
+                      </p>
                     </CardContent>
                   </Card>
                 </motion.div>
