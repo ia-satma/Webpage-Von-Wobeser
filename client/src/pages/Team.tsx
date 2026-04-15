@@ -529,23 +529,23 @@ export default function Team() {
 
         {errorAll ? (
           <div className="text-center py-24" data-testid="container-team-error">
-            <AlertCircle className="w-12 h-12 text-white/30 mx-auto mb-4" />
-            <p className="text-white/50" data-testid="text-team-error">{t.errorMessage}</p>
+            <AlertCircle className="w-12 h-12 text-muted-foreground/40 mx-auto mb-4" />
+            <p className="text-muted-foreground" data-testid="text-team-error">{t.errorMessage}</p>
           </div>
         ) : isLoadingAll ? (
           <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-7 gap-px">
             {Array.from({ length: 21 }).map((_, i) => (
-              <div key={i} className="bg-[#1a1a18]" style={{ aspectRatio: "3/4" }} data-testid={`skeleton-team-member-${i}`}>
-                <Skeleton className="w-full h-full bg-white/5" />
+              <div key={i} className="bg-muted" style={{ aspectRatio: "3/4" }} data-testid={`skeleton-team-member-${i}`}>
+                <Skeleton className="w-full h-full" />
               </div>
             ))}
           </div>
         ) : totalVisible === 0 ? (
           <div className="text-center py-24" data-testid="container-team-empty">
-            <Users className="w-12 h-12 text-white/20 mx-auto mb-4" />
-            <p className="text-white/40">{t.noResults}</p>
+            <Users className="w-12 h-12 text-muted-foreground/30 mx-auto mb-4" />
+            <p className="text-muted-foreground">{t.noResults}</p>
             {hasActiveFilters && (
-              <Button variant="ghost" onClick={clearFilters} className="mt-4 gap-2 rounded-none text-white/50" data-testid="button-clear-empty">
+              <Button variant="ghost" onClick={clearFilters} className="mt-4 gap-2 rounded-none" data-testid="button-clear-empty">
                 <X className="w-4 h-4" />{t.clearFilters}
               </Button>
             )}
@@ -554,14 +554,14 @@ export default function Team() {
           <>
             {/* ─── SOCIOS ──────────────────────────────────────── */}
             {showPartners && groupedMembers.partners.length > 0 && (
-              <section className="bg-[#111110] border-b border-[#AA1A2E]/10" data-testid="section-partners">
+              <section className="border-b border-border" data-testid="section-partners">
                 <div className="px-6 lg:px-12 pt-10 pb-4">
                   <div className="flex items-center gap-3 mb-1">
                     <div className="w-8 h-px bg-[#AA1A2E] shrink-0" />
                     <p className="text-[#AA1A2E] text-[10px] tracking-[0.3em] uppercase font-medium">NUESTRO EQUIPO</p>
-                    <span className="text-white/20 text-[9px] tracking-wider ml-1">— {groupedMembers.partners.length}</span>
+                    <span className="text-muted-foreground text-[9px] tracking-wider ml-1">— {groupedMembers.partners.length}</span>
                   </div>
-                  <h2 className="font-heading font-light text-xl uppercase tracking-[0.12em] text-white/90">
+                  <h2 className="font-heading font-light text-xl uppercase tracking-[0.12em] text-foreground">
                     {t.partnersOnly}
                   </h2>
                 </div>
@@ -586,7 +586,7 @@ export default function Team() {
                             style={{ flex: isActive ? 4 : 1, transition: "flex 0.5s cubic-bezier(0.22, 1, 0.36, 1)", minWidth: 0 }}
                             onMouseEnter={() => setPartnerPanels(prev => ({ ...prev, [rowIdx]: `p-${member.id}` }))}
                           >
-                            <div className="absolute inset-0 bg-[#1a1a18] flex items-center justify-center">
+                            <div className="absolute inset-0 bg-muted flex items-center justify-center">
                               <span className="text-2xl font-heading font-bold text-[#AA1A2E]/50 select-none">{getInitials(member.name)}</span>
                             </div>
                             <img src={getPhotoSrc(member)} alt="" aria-hidden="true" className="absolute inset-0 w-full h-full object-cover object-top" style={{ transform: isActive ? "scale(1.03)" : "scale(1)", filter: isActive ? "grayscale(0%)" : "grayscale(100%)", transition: "transform 0.6s cubic-bezier(0.22, 1, 0.36, 1), filter 0.5s ease" }} onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }} />
@@ -613,7 +613,7 @@ export default function Team() {
                 <div className="lg:hidden grid grid-cols-2 gap-px">
                   {groupedMembers.partners.map((member, idx) => (
                     <Link key={member.id} href={`/team/${member.slug}`} className="relative overflow-hidden group block cursor-pointer" style={{ aspectRatio: "3/4" }} data-testid={`card-team-member-mob-${member.slug}`} aria-label={member.name}>
-                      <div className="absolute inset-0 bg-[#1a1a18] flex items-center justify-center">
+                      <div className="absolute inset-0 bg-muted flex items-center justify-center">
                         <span className="text-2xl font-heading font-bold text-[#AA1A2E]/50 select-none">{getInitials(member.name)}</span>
                       </div>
                       <img src={getPhotoSrc(member)} alt="" aria-hidden="true" className="absolute inset-0 w-full h-full object-cover object-top transition-[transform,filter] duration-500 grayscale group-hover:grayscale-0 group-hover:scale-105" onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }} />
@@ -630,14 +630,14 @@ export default function Team() {
 
             {/* ─── OF COUNSEL ──────────────────────────────────── */}
             {showOfCounsel && groupedMembers.ofCounsel.length > 0 && (
-              <section className="bg-[#0d0d0c] border-b border-[#AA1A2E]/10" data-testid="section-ofcounsel">
+              <section className="border-b border-border" data-testid="section-ofcounsel">
                 <div className="px-6 lg:px-12 pt-10 pb-4">
                   <div className="flex items-center gap-3 mb-1">
                     <div className="w-8 h-px bg-[#AA1A2E] shrink-0" />
                     <p className="text-[#AA1A2E] text-[10px] tracking-[0.3em] uppercase font-medium">{t.ofCounsel}</p>
-                    <span className="text-white/20 text-[9px] tracking-wider ml-1">— {groupedMembers.ofCounsel.length}</span>
+                    <span className="text-muted-foreground text-[9px] tracking-wider ml-1">— {groupedMembers.ofCounsel.length}</span>
                   </div>
-                  <h2 className="font-heading font-light text-xl uppercase tracking-[0.12em] text-white/90">
+                  <h2 className="font-heading font-light text-xl uppercase tracking-[0.12em] text-foreground">
                     {t.ofCounsel}
                   </h2>
                 </div>
@@ -655,7 +655,7 @@ export default function Team() {
                         style={{ flex: isActive ? 3 : 1, transition: "flex 0.5s cubic-bezier(0.22, 1, 0.36, 1)", minWidth: 0 }}
                         onMouseEnter={() => setActivePanel(`oc-${member.id}`)}
                       >
-                        <div className="absolute inset-0 bg-[#1a1a18] flex items-center justify-center">
+                        <div className="absolute inset-0 bg-muted flex items-center justify-center">
                           <span className="text-4xl font-heading font-bold text-[#AA1A2E]/40 select-none">{getInitials(member.name)}</span>
                         </div>
                         <img src={getPhotoSrc(member)} alt="" aria-hidden="true" className="absolute inset-0 w-full h-full object-cover object-top" style={{ transform: isActive ? "scale(1.04)" : "scale(1)", filter: isActive ? "grayscale(0%)" : "grayscale(100%)", transition: "transform 0.6s cubic-bezier(0.22, 1, 0.36, 1), filter 0.5s ease" }} onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }} />
@@ -680,7 +680,7 @@ export default function Team() {
                 <div className="lg:hidden grid grid-cols-2 gap-px">
                   {groupedMembers.ofCounsel.map((member, idx) => (
                     <Link key={member.id} href={`/team/${member.slug}`} className="relative overflow-hidden group block cursor-pointer" style={{ aspectRatio: "3/4" }} data-testid={`card-team-member-mob-${member.slug}`} aria-label={member.name}>
-                      <div className="absolute inset-0 bg-[#1a1a18] flex items-center justify-center">
+                      <div className="absolute inset-0 bg-muted flex items-center justify-center">
                         <span className="text-3xl font-heading font-bold text-[#AA1A2E]/60 select-none">{getInitials(member.name)}</span>
                       </div>
                       <img src={getPhotoSrc(member)} alt="" aria-hidden="true" className="absolute inset-0 w-full h-full object-cover object-top transition-[transform,filter] duration-500 grayscale group-hover:grayscale-0 group-hover:scale-105" onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }} />
@@ -697,14 +697,14 @@ export default function Team() {
 
             {/* ─── ASOCIADOS ───────────────────────────────────── */}
             {showAssociates && groupedMembers.associates.length > 0 && (
-              <section className="bg-[#111110]" data-testid="section-associates">
+              <section data-testid="section-associates">
                 <div className="px-6 lg:px-12 pt-10 pb-4">
                   <div className="flex items-center gap-3 mb-1">
                     <div className="w-8 h-px bg-[#AA1A2E] shrink-0" />
                     <p className="text-[#AA1A2E] text-[10px] tracking-[0.3em] uppercase font-medium">{t.associates}</p>
-                    <span className="text-white/20 text-[9px] tracking-wider ml-1">— {groupedMembers.associates.length}</span>
+                    <span className="text-muted-foreground text-[9px] tracking-wider ml-1">— {groupedMembers.associates.length}</span>
                   </div>
-                  <h2 className="font-heading font-light text-xl uppercase tracking-[0.12em] text-white/90">
+                  <h2 className="font-heading font-light text-xl uppercase tracking-[0.12em] text-foreground">
                     {t.associates}
                   </h2>
                 </div>
@@ -729,7 +729,7 @@ export default function Team() {
                             style={{ flex: isActive ? 4 : 1, transition: "flex 0.45s cubic-bezier(0.22, 1, 0.36, 1)", minWidth: 0 }}
                             onMouseEnter={() => setAssocPanels(prev => ({ ...prev, [rowIdx]: `a-${member.id}` }))}
                           >
-                            <div className="absolute inset-0 bg-[#1a1a18] flex items-center justify-center">
+                            <div className="absolute inset-0 bg-muted flex items-center justify-center">
                               <span className="text-xl font-heading font-bold text-[#AA1A2E]/40 select-none">{getInitials(member.name)}</span>
                             </div>
                             <img src={getPhotoSrc(member)} alt="" aria-hidden="true" className="absolute inset-0 w-full h-full object-cover object-top" style={{ transform: isActive ? "scale(1.03)" : "scale(1)", filter: isActive ? "grayscale(0%)" : "grayscale(100%)", transition: "transform 0.6s cubic-bezier(0.22, 1, 0.36, 1), filter 0.5s ease" }} onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }} />
@@ -756,7 +756,7 @@ export default function Team() {
                 <div className="lg:hidden grid grid-cols-2 gap-px">
                   {groupedMembers.associates.map((member, idx) => (
                     <Link key={member.id} href={`/team/${member.slug}`} className="relative overflow-hidden group block cursor-pointer" style={{ aspectRatio: "3/4" }} data-testid={`card-team-member-mob-${member.slug}`} aria-label={member.name}>
-                      <div className="absolute inset-0 bg-[#1a1a18] flex items-center justify-center">
+                      <div className="absolute inset-0 bg-muted flex items-center justify-center">
                         <span className="text-xl font-heading font-bold text-[#AA1A2E]/40 select-none">{getInitials(member.name)}</span>
                       </div>
                       <img src={getPhotoSrc(member)} alt="" aria-hidden="true" className="absolute inset-0 w-full h-full object-cover object-top transition-[transform,filter] duration-500 grayscale group-hover:grayscale-0 group-hover:scale-105" onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }} />
