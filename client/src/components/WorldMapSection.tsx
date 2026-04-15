@@ -726,7 +726,7 @@ export default function WorldMapSection({ language }: WorldMapSectionProps) {
         </div>
 
         {/* ─── OF COUNSEL ──────────────────────────────────────── */}
-        <div className="bg-[#0d0d0c] border-b border-[#AA1A2E]/10">
+        <div className="bg-background border-b border-border">
           <div className="px-6 lg:px-12 pt-8 pb-4 flex items-center gap-3">
             <div className="w-8 h-px bg-[#AA1A2E] shrink-0" />
             <p className="text-[#AA1A2E] text-[10px] tracking-[0.25em] uppercase">{t.ofCounselTitle}</p>
@@ -776,7 +776,7 @@ export default function WorldMapSection({ language }: WorldMapSectionProps) {
         </div>
 
         {/* ─── ASOCIADOS ───────────────────────────────────────── */}
-        <div>
+        <div className="bg-background">
           <div className="px-6 lg:px-12 pt-8 pb-4 flex items-center gap-3">
             <div className="w-8 h-px bg-[#AA1A2E] shrink-0" />
             <p className="text-[#AA1A2E] text-[10px] tracking-[0.25em] uppercase">{t.associatesTitle}</p>
@@ -831,7 +831,7 @@ export default function WorldMapSection({ language }: WorldMapSectionProps) {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.5 }}
-          className="max-w-7xl mx-auto px-6 lg:px-12 py-8 flex flex-wrap items-center justify-between gap-4 border-t border-[#AA1A2E]/10"
+          className="max-w-7xl mx-auto px-6 lg:px-12 py-8 flex flex-wrap items-center justify-between gap-4 border-t border-border"
         >
           <div className="flex items-center gap-5">
             <div className="w-10 h-px bg-[#AA1A2E] shrink-0" />
@@ -840,7 +840,7 @@ export default function WorldMapSection({ language }: WorldMapSectionProps) {
                 {t.sectionTitle}
               </p>
               <h2
-                className="font-heading font-light text-xl md:text-2xl text-white/90 uppercase tracking-[0.12em]"
+                className="font-heading font-light text-xl md:text-2xl text-foreground uppercase tracking-[0.12em]"
                 data-testid="text-team-title"
               >
                 {t.teamTitle}
@@ -849,7 +849,7 @@ export default function WorldMapSection({ language }: WorldMapSectionProps) {
           </div>
           <Link
             href="/german-desk"
-            className="inline-flex items-center gap-2 text-xs font-medium tracking-[0.15em] uppercase text-white/50 hover:text-white transition-colors duration-200 group"
+            className="inline-flex items-center gap-2 text-xs font-medium tracking-[0.15em] uppercase text-muted-foreground hover:text-foreground transition-colors duration-200 group"
             data-testid="link-gdm-see-more"
           >
             {t.seeMore}
