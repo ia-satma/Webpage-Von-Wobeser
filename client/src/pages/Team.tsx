@@ -445,7 +445,7 @@ export default function Team() {
     member.imageUrl || `/partner_photos/${member.slug}.jpg`;
 
   return (
-    <div className="min-h-screen bg-[#111110]" data-testid="page-team">
+    <div className="min-h-screen bg-background" data-testid="page-team">
       <SEOHead page="team" language={language} />
       <Header />
       
