@@ -745,11 +745,11 @@ export default function WorldMapSection({ language }: WorldMapSectionProps) {
                   onMouseEnter={() => setActivePanel(member.id)}
                 >
                   <img src={member.photo} alt="" aria-hidden="true" className="absolute inset-0 w-full h-full object-cover object-[50%_20%]" style={{ transform: isActive ? "scale(1.04)" : "scale(1)", filter: isActive ? "grayscale(0%)" : "grayscale(100%)", transition: "transform 0.6s cubic-bezier(0.22, 1, 0.36, 1), filter 0.5s ease" }} data-testid={`img-gdm-${member.slug}`} />
-                  <div className="absolute inset-0" style={{ background: isActive ? "linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.4) 50%, rgba(0,0,0,0.3) 100%)" : "linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.7) 100%)", transition: "background 0.5s ease" }} />
-                  <div className="absolute top-0 right-0 w-px h-full bg-[#AA1A2E]/20" />
+                  <div className="absolute inset-0" style={{ background: isActive ? "linear-gradient(to top, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.2) 50%, rgba(0,0,0,0.1) 100%)" : "linear-gradient(to top, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.3) 100%)", transition: "background 0.5s ease" }} />
+                  <div className="absolute top-0 right-0 w-px h-full bg-border" />
 
                   <div className="absolute bottom-5 left-3 right-3" style={{ opacity: isActive ? 0 : 1, transition: "opacity 0.25s ease" }}>
-                    <p className="text-white/70 text-[9px] uppercase tracking-[0.12em] font-light truncate" data-testid={`text-name-gdm-${member.slug}`}>{member.name}</p>
+                    <p className="text-white/90 text-[9px] uppercase tracking-[0.12em] font-light truncate" data-testid={`text-name-gdm-${member.slug}`}>{member.name}</p>
                   </div>
                   <div className="absolute bottom-6 left-5 right-5" style={{ opacity: isActive ? 1 : 0, transform: isActive ? "translateY(0)" : "translateY(8px)", transition: "opacity 0.3s ease 0.1s, transform 0.3s ease 0.1s" }}>
                     <p className="font-heading font-light text-base uppercase tracking-[0.1em] leading-snug mb-1 text-white">{member.name}</p>
@@ -760,15 +760,15 @@ export default function WorldMapSection({ language }: WorldMapSectionProps) {
               );
             })}
           </div>
-          <div className="lg:hidden grid grid-cols-2 gap-px">
+          <div className="lg:hidden grid grid-cols-2 gap-px bg-background">
             {gdOfCounsel.map((member) => (
               <Link key={member.id} href={`/team/${member.slug}`} className="relative h-44 overflow-hidden group block" data-testid={`card-gdm-mobile-${member.slug}`} aria-label={member.name}>
                 <img src={member.photo} alt="" aria-hidden="true" className="absolute inset-0 w-full h-full object-cover object-top transition-[transform,filter] duration-500 grayscale group-hover:grayscale-0 group-hover:scale-105" />
-                <div className="absolute inset-0 bg-black/65 group-hover:bg-black/50 transition-colors duration-300" />
+                <div className="absolute inset-0 bg-black/45 group-hover:bg-black/30 transition-colors duration-300" />
 
                 <div className="absolute bottom-3 left-3 right-3">
                   <p className="text-[#AA1A2E] text-[9px] uppercase tracking-[0.08em] mb-0.5">{member.category}</p>
-                  <p className="text-white/90 text-xs uppercase tracking-[0.1em] leading-snug font-light">{member.name}</p>
+                  <p className="text-white text-xs uppercase tracking-[0.1em] leading-snug font-light">{member.name}</p>
                 </div>
               </Link>
             ))}
@@ -795,11 +795,11 @@ export default function WorldMapSection({ language }: WorldMapSectionProps) {
                   onMouseEnter={() => setActivePanel(member.id)}
                 >
                   <img src={member.photo} alt="" aria-hidden="true" className="absolute inset-0 w-full h-full object-cover object-[50%_20%]" style={{ transform: isActive ? "scale(1.04)" : "scale(1)", filter: isActive ? "grayscale(0%)" : "grayscale(100%)", transition: "transform 0.6s cubic-bezier(0.22, 1, 0.36, 1), filter 0.5s ease" }} data-testid={`img-gdm-${member.slug}`} />
-                  <div className="absolute inset-0" style={{ background: isActive ? "linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.4) 50%, rgba(0,0,0,0.3) 100%)" : "linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.7) 100%)", transition: "background 0.5s ease" }} />
-                  <div className="absolute top-0 right-0 w-px h-full bg-[#AA1A2E]/20" />
+                  <div className="absolute inset-0" style={{ background: isActive ? "linear-gradient(to top, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.2) 50%, rgba(0,0,0,0.1) 100%)" : "linear-gradient(to top, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.3) 100%)", transition: "background 0.5s ease" }} />
+                  <div className="absolute top-0 right-0 w-px h-full bg-border" />
 
                   <div className="absolute bottom-5 left-3 right-3" style={{ opacity: isActive ? 0 : 1, transition: "opacity 0.25s ease" }}>
-                    <p className="text-white/70 text-[9px] uppercase tracking-[0.12em] font-light truncate" data-testid={`text-name-gdm-${member.slug}`}>{member.name}</p>
+                    <p className="text-white/90 text-[9px] uppercase tracking-[0.12em] font-light truncate" data-testid={`text-name-gdm-${member.slug}`}>{member.name}</p>
                   </div>
                   <div className="absolute bottom-6 left-5 right-5" style={{ opacity: isActive ? 1 : 0, transform: isActive ? "translateY(0)" : "translateY(8px)", transition: "opacity 0.3s ease 0.1s, transform 0.3s ease 0.1s" }}>
                     <p className="font-heading font-light text-base uppercase tracking-[0.1em] leading-snug mb-1 text-white">{member.name}</p>
@@ -810,15 +810,15 @@ export default function WorldMapSection({ language }: WorldMapSectionProps) {
               );
             })}
           </div>
-          <div className="lg:hidden grid grid-cols-2 gap-px">
+          <div className="lg:hidden grid grid-cols-2 gap-px bg-background">
             {gdAssociates.map((member) => (
               <Link key={member.id} href={`/team/${member.slug}`} className="relative h-44 overflow-hidden group block" data-testid={`card-gdm-mobile-${member.slug}`} aria-label={member.name}>
                 <img src={member.photo} alt="" aria-hidden="true" className="absolute inset-0 w-full h-full object-cover object-top transition-[transform,filter] duration-500 grayscale group-hover:grayscale-0 group-hover:scale-105" />
-                <div className="absolute inset-0 bg-black/65 group-hover:bg-black/50 transition-colors duration-300" />
+                <div className="absolute inset-0 bg-black/45 group-hover:bg-black/30 transition-colors duration-300" />
 
                 <div className="absolute bottom-3 left-3 right-3">
                   <p className="text-[#AA1A2E] text-[9px] uppercase tracking-[0.08em] mb-0.5">{member.category}</p>
-                  <p className="text-white/90 text-xs uppercase tracking-[0.1em] leading-snug font-light">{member.name}</p>
+                  <p className="text-white text-xs uppercase tracking-[0.1em] leading-snug font-light">{member.name}</p>
                 </div>
               </Link>
             ))}
