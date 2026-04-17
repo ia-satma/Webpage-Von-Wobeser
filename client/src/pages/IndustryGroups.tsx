@@ -22,6 +22,7 @@ interface IndustryGroupCardProps {
 
 function IndustryGroupCard({ group, index, learnMoreText }: IndustryGroupCardProps) {
   const { language } = useLanguage();
+  const [isHover, setIsHover] = useState(false);
 
   const { translatedFields, isLoading, isTranslating } = useTranslatedContent({
     contentType: 'industry_group',
