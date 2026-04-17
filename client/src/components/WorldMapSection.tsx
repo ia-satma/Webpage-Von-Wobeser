@@ -9,6 +9,7 @@ import worldMapImg from "@assets/mapa_1776101215471.png";
 import worldMapDarkImg from "@assets/mapa-dark_1776101215469.png";
 import collage01 from "@assets/collage_01.jpg";
 import collage03 from "@assets/collage_03.jpg";
+import torreSomaImg from "@assets/hyatt-park-scaled_1776460775865.jpeg";
 
 import clausVonWobeserPhoto from "@assets/of_counsel_photos/claus_von_wobeser.jpg";
 import luisBurguenoPhoto from "@assets/partner_photos/luis_burgueno.jpg";
@@ -549,82 +550,112 @@ export default function WorldMapSection({ language }: WorldMapSectionProps) {
           </div>
         </div>
 
-        {/* Location Modals */}
+        {/* Location Modals — premium editorial treatment */}
         <Dialog open={showMexicoModal} onOpenChange={setShowMexicoModal}>
-          <DialogContent className="max-w-md p-0 overflow-hidden rounded-none" data-testid="modal-mexico">
-            <img
-              src={collage01}
-              alt="Torre SOMA Chapultepec"
-              className="w-full h-48 object-cover"
-              data-testid="img-modal-mexico"
-            />
-            <div className="p-6">
-              <DialogHeader>
-                <DialogTitle className="font-heading font-light text-lg uppercase tracking-[0.12em] text-foreground">
-                  {t.mexicoLabel}
-                </DialogTitle>
-              </DialogHeader>
-              <div className="mt-4 space-y-3">
-                <div className="flex items-start gap-3">
-                  <MapPin className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" strokeWidth={1.5} />
-                  <div>
-                    <p className="text-[10px] text-muted-foreground uppercase tracking-[0.1em] mb-0.5">{t.addressLabel}</p>
-                    <p className="text-sm text-foreground">Torre SOMA Chapultepec Piso 18, Campos Elíseos 204, Polanco, C.P. 11560, Ciudad de México</p>
-                  </div>
-                </div>
-                <div className="flex items-start gap-3">
-                  <Phone className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" strokeWidth={1.5} />
-                  <div>
-                    <p className="text-[10px] text-muted-foreground uppercase tracking-[0.1em] mb-0.5">{t.phoneLabel}</p>
-                    <p className="text-sm text-foreground">+52 55 5258 1000</p>
-                  </div>
+          <DialogContent
+            className="max-w-md p-0 gap-0 overflow-hidden rounded-none border-0 bg-background [&>button]:top-3 [&>button]:right-3 [&>button]:bg-white/90 [&>button]:text-black [&>button]:hover:bg-white [&>button]:p-1.5 [&>button]:rounded-none [&>button]:opacity-100 [&>button]:shadow-md"
+            data-testid="modal-mexico"
+          >
+            {/* Hero with overlaid title */}
+            <div className="relative h-72 md:h-80 overflow-hidden">
+              <img
+                src={torreSomaImg}
+                alt="Torre SOMA Chapultepec"
+                className="w-full h-full object-cover"
+                data-testid="img-modal-mexico"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-black/10 pointer-events-none" />
+              <div className="absolute inset-x-0 bottom-0 p-6">
+                <div className="w-10 h-px bg-[#AA1A2E] mb-3" />
+                <p className="text-[10px] tracking-[0.25em] uppercase text-[#AA1A2E] mb-2 font-medium">
+                  {t.mexicoSubtitle}
+                </p>
+                <DialogHeader className="text-left space-y-0">
+                  <DialogTitle className="font-heading font-light text-2xl uppercase tracking-[0.12em] text-white leading-tight">
+                    {t.mexicoLabel}
+                  </DialogTitle>
+                </DialogHeader>
+              </div>
+            </div>
+
+            {/* Info body */}
+            <div className="p-6 md:p-8 space-y-5">
+              <div className="flex items-start gap-4">
+                <MapPin className="w-4 h-4 text-[#AA1A2E] mt-0.5 flex-shrink-0" strokeWidth={1.5} />
+                <div>
+                  <p className="text-[10px] text-muted-foreground uppercase tracking-[0.2em] mb-1.5 font-medium">
+                    {t.addressLabel}
+                  </p>
+                  <p className="text-sm text-foreground leading-relaxed">
+                    Torre SOMA Chapultepec Piso 18, Campos Elíseos 204, Polanco, C.P. 11560, Ciudad de México
+                  </p>
                 </div>
               </div>
-              <div className="mt-6">
-                <Button
-                  asChild
-                  className="w-full uppercase tracking-[0.12em] text-xs rounded-none"
-                  data-testid="button-contact-mexico"
-                >
-                  <a href="mailto:info@vonwobeser.com">
-                    <Mail className="w-4 h-4 mr-2" />
-                    {t.contactButton}
-                  </a>
-                </Button>
+              <div className="flex items-start gap-4">
+                <Phone className="w-4 h-4 text-[#AA1A2E] mt-0.5 flex-shrink-0" strokeWidth={1.5} />
+                <div>
+                  <p className="text-[10px] text-muted-foreground uppercase tracking-[0.2em] mb-1.5 font-medium">
+                    {t.phoneLabel}
+                  </p>
+                  <p className="text-sm text-foreground">+52 55 5258 1000</p>
+                </div>
               </div>
+              <Button
+                asChild
+                className="w-full uppercase tracking-[0.12em] text-xs rounded-none mt-2"
+                data-testid="button-contact-mexico"
+              >
+                <a href="mailto:info@vonwobeser.com">
+                  <Mail className="w-4 h-4 mr-2" />
+                  {t.contactButton}
+                </a>
+              </Button>
             </div>
           </DialogContent>
         </Dialog>
 
         <Dialog open={showGermanyModal} onOpenChange={setShowGermanyModal}>
-          <DialogContent className="max-w-md p-0 overflow-hidden rounded-none" data-testid="modal-germany">
-            <img
-              src={collage03}
-              alt="German Desk"
-              className="w-full h-48 object-cover"
-              data-testid="img-modal-germany"
-            />
-            <div className="p-6">
-              <DialogHeader>
-                <DialogTitle className="font-heading font-light text-lg uppercase tracking-[0.12em] text-foreground">
-                  {t.germanyLabel} — GERMAN DESK
-                </DialogTitle>
-              </DialogHeader>
-              <p className="mt-4 text-sm text-muted-foreground leading-relaxed">
+          <DialogContent
+            className="max-w-md p-0 gap-0 overflow-hidden rounded-none border-0 bg-background [&>button]:top-3 [&>button]:right-3 [&>button]:bg-white/90 [&>button]:text-black [&>button]:hover:bg-white [&>button]:p-1.5 [&>button]:rounded-none [&>button]:opacity-100 [&>button]:shadow-md"
+            data-testid="modal-germany"
+          >
+            {/* Hero with overlaid title */}
+            <div className="relative h-72 md:h-80 overflow-hidden">
+              <img
+                src={collage03}
+                alt="German Desk"
+                className="w-full h-full object-cover"
+                data-testid="img-modal-germany"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-black/10 pointer-events-none" />
+              <div className="absolute inset-x-0 bottom-0 p-6">
+                <div className="w-10 h-px bg-[#AA1A2E] mb-3" />
+                <p className="text-[10px] tracking-[0.25em] uppercase text-[#AA1A2E] mb-2 font-medium">
+                  {t.germanySubtitle}
+                </p>
+                <DialogHeader className="text-left space-y-0">
+                  <DialogTitle className="font-heading font-light text-2xl uppercase tracking-[0.12em] text-white leading-tight">
+                    {t.germanyLabel}
+                  </DialogTitle>
+                </DialogHeader>
+              </div>
+            </div>
+
+            {/* Info body */}
+            <div className="p-6 md:p-8 space-y-5">
+              <p className="text-sm text-muted-foreground leading-relaxed">
                 {t.germanDeskDescription}
               </p>
-              <div className="mt-6">
-                <Button
-                  asChild
-                  className="w-full uppercase tracking-[0.12em] text-xs rounded-none"
-                  data-testid="button-contact-germany"
-                >
-                  <a href="mailto:info@vonwobeser.com">
-                    <Mail className="w-4 h-4 mr-2" />
-                    {t.contactButton}
-                  </a>
-                </Button>
-              </div>
+              <Button
+                asChild
+                className="w-full uppercase tracking-[0.12em] text-xs rounded-none mt-2"
+                data-testid="button-contact-germany"
+              >
+                <a href="mailto:info@vonwobeser.com">
+                  <Mail className="w-4 h-4 mr-2" />
+                  {t.contactButton}
+                </a>
+              </Button>
             </div>
           </DialogContent>
         </Dialog>
