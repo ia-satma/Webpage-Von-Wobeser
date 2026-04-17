@@ -47,22 +47,49 @@ function PracticeGroupCard({ group, index, learnMoreText }: PracticeGroupCardPro
         className="group relative h-full overflow-hidden rounded-none bg-[#1a1a19] border-l-2 border-l-primary hover:border-l-4 transition-all duration-500 cursor-pointer aspect-[4/5]"
         data-testid={`card-practice-group-${group.slug}`}
       >
-        {/* Background image */}
+        {/* Background image — grayscale at rest, color on hover (matches home pattern) */}
         <img
           src={imageUrl}
           alt=""
           loading="lazy"
           aria-hidden="true"
-          className="absolute inset-0 w-full h-full object-cover grayscale-[20%] group-hover:grayscale-0 group-hover:scale-105 transition-all duration-600 ease-out"
+          className="absolute inset-0 w-full h-full object-cover"
+          style={{
+            filter: "grayscale(100%)",
+            transform: "scale(1)",
+            transition:
+              "transform 0.6s cubic-bezier(0.22, 1, 0.36, 1), filter 0.5s ease",
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.filter = "grayscale(0%)";
+            e.currentTarget.style.transform = "scale(1.04)";
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.filter = "grayscale(100%)";
+            e.currentTarget.style.transform = "scale(1)";
+          }}
           onError={(e) => {
             (e.currentTarget as HTMLImageElement).style.display = "none";
           }}
         />
 
-        {/* Dark gradient overlay — transparent top → near-opaque bottom */}
+        {/* Dark overlay — base (rest) */}
         <div
           aria-hidden="true"
-          className="absolute inset-0 bg-gradient-to-t from-[#1a1a19] via-[#1a1a19]/80 to-[#1a1a19]/10 group-hover:from-[#1a1a19] group-hover:via-[#1a1a19]/85 transition-all duration-500"
+          className="absolute inset-0 transition-opacity duration-500 group-hover:opacity-0"
+          style={{
+            background:
+              "linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.7) 100%)",
+          }}
+        />
+        {/* Dark overlay — hover */}
+        <div
+          aria-hidden="true"
+          className="absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100"
+          style={{
+            background:
+              "linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.4) 50%, rgba(0,0,0,0.3) 100%)",
+          }}
         />
 
         {/* Translation indicator — top right */}
