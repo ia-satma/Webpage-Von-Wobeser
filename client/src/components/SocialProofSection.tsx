@@ -9,6 +9,7 @@ interface Quote {
   source: string;
   year?: string;
   text: QuoteText;
+  sourceUrl?: string;
 }
 
 const quotes: Quote[] = [
@@ -16,6 +17,7 @@ const quotes: Quote[] = [
     id: "chambers",
     source: "Chambers & Partners",
     year: "2025",
+    sourceUrl: "https://chambers.com/law-firm/von-wobeser-y-sierra-sc-latin-america-7:113:11856398",
     text: {
       en: "Von Wobeser y Sierra is a leading full-service law firm with deep expertise across all practice areas and industries.",
       es: "Von Wobeser y Sierra es una firma de abogados líder en servicio completo con profunda experiencia en todas las áreas de práctica e industrias.",
@@ -33,6 +35,7 @@ const quotes: Quote[] = [
     id: "legal500",
     source: "Legal 500",
     year: "2026",
+    sourceUrl: "https://www.legal500.com/firms/14641-von-wobeser-y-sierra-sc/14887-mexico-city-mexico/",
     text: {
       en: "The team is highly regarded for its sophisticated handling of complex cross-border transactions and disputes.",
       es: "El equipo es altamente reconocido por su manejo sofisticado de transacciones transfronterizas complejas y disputas.",
@@ -50,6 +53,7 @@ const quotes: Quote[] = [
     id: "latinlawyer",
     source: "Latin Lawyer",
     year: "2026",
+    sourceUrl: "https://latinlawyer.com/rankings/latin-lawyer-250/2024/firm/von-wobeser-y-sierra-sc",
     text: {
       en: "A market-leading firm that consistently delivers exceptional results for clients in the most demanding matters.",
       es: "Una firma líder en el mercado que constantemente entrega resultados excepcionales para clientes en los asuntos más exigentes.",
@@ -65,17 +69,17 @@ const quotes: Quote[] = [
   },
 ];
 
-const content: Record<LanguageCode, { title: string }> = {
-  en: { title: "What They Say About Us" },
-  es: { title: "Lo Que Dicen De Nosotros" },
-  de: { title: "Was Sie Über Uns Sagen" },
-  zh: { title: "客户评价" },
-  ko: { title: "고객 후기" },
-  ja: { title: "お客様の声" },
-  ar: { title: "ما يقولونه عنا" },
-  ru: { title: "Что о нас говорят" },
-  fr: { title: "Ce Qu'ils Disent De Nous" },
-  it: { title: "Cosa Dicono Di Noi" },
+const content: Record<LanguageCode, { title: string; readOn: string }> = {
+  en: { title: "What They Say About Us", readOn: "Read on" },
+  es: { title: "Lo Que Dicen De Nosotros", readOn: "Leer en" },
+  de: { title: "Was Sie Über Uns Sagen", readOn: "Lesen Sie auf" },
+  zh: { title: "客户评价", readOn: "阅读来源" },
+  ko: { title: "고객 후기", readOn: "출처 보기" },
+  ja: { title: "お客様の声", readOn: "出典を読む" },
+  ar: { title: "ما يقولونه عنا", readOn: "اقرأ على" },
+  ru: { title: "Что о нас говорят", readOn: "Читать на" },
+  fr: { title: "Ce Qu'ils Disent De Nous", readOn: "Lire sur" },
+  it: { title: "Cosa Dicono Di Noi", readOn: "Leggi su" },
 };
 
 export default function SocialProofSection() {
@@ -204,6 +208,19 @@ export default function SocialProofSection() {
                     {quote.year}
                   </p>
                 )}
+                <div className="h-5 mt-3 flex items-center justify-center">
+                  {quote.sourceUrl && (
+                    <a
+                      href={quote.sourceUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="font-support text-xs uppercase tracking-[0.12em] text-[#AA1A2E] hover:underline"
+                      data-testid={`link-source-${quote.id}`}
+                    >
+                      {t.readOn} {quote.source} →
+                    </a>
+                  )}
+                </div>
               </div>
             </motion.div>
           ))}
