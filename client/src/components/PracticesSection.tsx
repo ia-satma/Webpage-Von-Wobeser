@@ -241,7 +241,7 @@ export default function PracticesSection() {
                   data-testid={`link-practice-${area.id}`}
                 >
                   <span
-                    className="text-base font-medium text-[#AA1A2E] w-12 shrink-0 tabular-nums"
+                    className="font-serif text-lg font-normal text-[#AA1A2E] w-12 shrink-0 tabular-nums"
                     data-testid={`text-practice-number-${area.id}`}
                   >
                     {String(area.id).padStart(2, "0")}
