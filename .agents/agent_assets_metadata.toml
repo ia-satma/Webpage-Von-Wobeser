@@ -151,31 +151,7 @@ type = "image"
 title = "VWyS Practice: German Desk"
 
 [[outputs]]
-id = "_sxuNGFSvFeSevTC39Ja0"
-uri = "file://attached_assets/stock_images/frankfurt-skyline_1.jpg"
-type = "image"
-title = "Frankfurt Germany skyline skyscrapers"
-
-[[outputs]]
-id = "PCQknduZLJqnqD0falgZV"
-uri = "file://attached_assets/stock_images/frankfurt-skyline_2.jpg"
-type = "image"
-title = "Frankfurt Germany skyline skyscrapers"
-
-[[outputs]]
-id = "uOQx3MMD5mwV1tePECQm-"
-uri = "file://attached_assets/stock_images/frankfurt-skyline_3.jpg"
-type = "image"
-title = "Frankfurt Germany skyline skyscrapers"
-
-[[outputs]]
 id = "u4BfM5WneZqc077TXRjA8"
 uri = "file://attached_assets/stock_images/frankfurt-skyline_4.jpg"
-type = "image"
-title = "Frankfurt Germany skyline skyscrapers"
-
-[[outputs]]
-id = "MhOlbk0w5GsXPpXTT7Xk-"
-uri = "file://attached_assets/stock_images/frankfurt-skyline_5.jpg"
 type = "image"
 title = "Frankfurt Germany skyline skyscrapers"
