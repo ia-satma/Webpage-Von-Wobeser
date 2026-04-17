@@ -161,7 +161,7 @@ function TranslatedMatterCard({ matter, language, t }: TranslatedMatterCardProps
 
   return (
     <Card
-      className="rounded-none border border-white/10 bg-[#222220] relative shadow-none"
+      className="rounded-none border border-white/[0.08] bg-[#222220] relative shadow-none"
       data-testid={`card-matter-${matter.id}`}
     >
       {matter.isHighlight && (
@@ -206,10 +206,10 @@ function TranslatedMatterCard({ matter, language, t }: TranslatedMatterCardProps
         </p>
         {displayClient && (
           <p
-            className="text-xs uppercase tracking-[0.2em] text-white/70"
+            className="text-[10px] uppercase tracking-[0.25em] text-white/40"
             data-testid={`text-matter-client-${matter.id}`}
           >
-            <span className="text-white/90">
+            <span className="text-white/60">
               {t.client}{" "}
             </span>
             {displayClient}
@@ -904,7 +904,7 @@ export default function PracticeGroupDetail() {
                 {filteredAndGroupedMembers.partners.length > 0 && (
                   <div className="mb-8" data-testid="section-partners">
                     <h3
-                      className="text-sm font-heading font-light text-white mb-4 flex items-center gap-3 uppercase tracking-[0.18em]"
+                      className="text-sm font-heading font-light text-white mb-4 flex items-center gap-3 uppercase tracking-[0.12em]"
                       data-testid="text-partners-title"
                     >
                       <Badge variant="outline" className="rounded-none text-xs uppercase tracking-[0.15em] border-[#AA1A2E] text-[#AA1A2E] bg-transparent">
@@ -921,7 +921,7 @@ export default function PracticeGroupDetail() {
                 {filteredAndGroupedMembers.ofCounsel.length > 0 && (
                   <div className="mb-8" data-testid="section-of-counsel">
                     <h3
-                      className="text-sm font-heading font-light text-white mb-4 flex items-center gap-3 uppercase tracking-[0.18em]"
+                      className="text-sm font-heading font-light text-white mb-4 flex items-center gap-3 uppercase tracking-[0.12em]"
                       data-testid="text-of-counsel-title"
                     >
                       <Badge variant="outline" className="rounded-none text-xs uppercase tracking-[0.15em] border-white/30 text-white/70 bg-transparent">
@@ -938,7 +938,7 @@ export default function PracticeGroupDetail() {
                 {displayedAssociates.length > 0 && (
                   <div data-testid="section-associates">
                     <h3
-                      className="text-sm font-heading font-light text-white mb-4 flex items-center gap-3 uppercase tracking-[0.18em]"
+                      className="text-sm font-heading font-light text-white mb-4 flex items-center gap-3 uppercase tracking-[0.12em]"
                       data-testid="text-associates-title"
                     >
                       <Badge variant="outline" className="rounded-none text-xs uppercase tracking-[0.15em] border-white/30 text-white/70 bg-transparent">

@@ -381,90 +381,104 @@ export default function IndustryGroupDetail() {
         </div>
       </section>
 
-      <main id="main-content" className="py-16 lg:py-20">
-        <div className="max-w-4xl mx-auto px-6 lg:px-12">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6, delay: 0.2 }}
-          >
-            <div 
-              className="prose prose-lg dark:prose-invert max-w-none mb-16"
-              data-testid="container-industry-group-description"
+      <main id="main-content">
+        {/* Description — light band */}
+        <section className="bg-background py-16 lg:py-20">
+          <div className="max-w-4xl mx-auto px-6 lg:px-12">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6, delay: 0.2 }}
             >
-              <p className="text-lg text-foreground leading-relaxed text-justify sm:text-left">
-                {displayDescription}
-              </p>
-            </div>
-          </motion.div>
+              <div
+                className="prose prose-lg dark:prose-invert max-w-none"
+                data-testid="container-industry-group-description"
+              >
+                <p className="text-lg text-foreground leading-relaxed text-justify sm:text-left">
+                  {displayDescription}
+                </p>
+              </div>
+            </motion.div>
+          </div>
+        </section>
 
-          {relatedPracticeGroups && relatedPracticeGroups.length > 0 && (
+        {/* Related practice areas — dark band (parity with PracticeGroupDetail dark sections) */}
+        {relatedPracticeGroups && relatedPracticeGroups.length > 0 && (
+          <section className="bg-[#1a1a19] py-20 lg:py-24" data-testid="section-related-services">
+            <div className="max-w-4xl mx-auto px-6 lg:px-12">
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.6, delay: 0.3 }}
+              >
+                <div className="mb-6">
+                  <div className="h-px w-10 bg-[#AA1A2E] mb-4" aria-hidden="true" />
+                  <h2
+                    className="text-xl font-heading font-light text-white uppercase tracking-[0.12em]"
+                    data-testid="text-related-services-title"
+                  >
+                    {t.relatedServices}
+                  </h2>
+                </div>
+                <div className="flex flex-wrap gap-3">
+                  {relatedPracticeGroups.map((practiceGroup) => (
+                    <TranslatedPracticeGroupBadge
+                      key={practiceGroup.id}
+                      practiceGroup={practiceGroup}
+                      language={language}
+                    />
+                  ))}
+                </div>
+              </motion.div>
+            </div>
+          </section>
+        )}
+
+        {/* Contact CTA — light band */}
+        <section className="bg-background py-16 lg:py-20">
+          <div className="max-w-4xl mx-auto px-6 lg:px-12">
             <motion.section
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              transition={{ duration: 0.6, delay: 0.3 }}
-              className="mb-16"
-              data-testid="section-related-services"
+              transition={{ duration: 0.6, delay: 0.4 }}
+              className="bg-muted rounded-none p-8 lg:p-12"
+              data-testid="section-contact-cta"
             >
-              <h2 
-                className="text-xl font-heading font-light text-foreground mb-6 uppercase tracking-[0.12em]"
-                data-testid="text-related-services-title"
+              <h2
+                className="text-xl font-heading font-light text-foreground mb-3 uppercase tracking-[0.12em]"
+                data-testid="text-contact-cta-title"
               >
-                {t.relatedServices}
+                {t.contactCta}
               </h2>
-              <div className="flex flex-wrap gap-3">
-                {relatedPracticeGroups.map((practiceGroup) => (
-                  <TranslatedPracticeGroupBadge 
-                    key={practiceGroup.id}
-                    practiceGroup={practiceGroup}
-                    language={language}
-                  />
-                ))}
+              <p
+                className="text-muted-foreground mb-6"
+                data-testid="text-contact-cta-subtitle"
+              >
+                {t.contactSubtitle}
+              </p>
+              <div className="flex flex-col sm:flex-row gap-4">
+                <Button
+                  className="rounded-none"
+                  data-testid="button-email-us"
+                >
+                  <Mail className="w-4 h-4 mr-2" />
+                  {t.emailUs}
+                </Button>
+                <Button
+                  variant="outline"
+                  className="rounded-none"
+                  data-testid="button-call-us"
+                >
+                  <Phone className="w-4 h-4 mr-2" />
+                  {t.callUs}
+                </Button>
               </div>
             </motion.section>
-          )}
-
-          <motion.section
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6, delay: 0.4 }}
-            className="bg-muted rounded-none p-8 lg:p-12"
-            data-testid="section-contact-cta"
-          >
-            <h2 
-              className="text-xl font-heading font-light text-foreground mb-3 uppercase tracking-[0.12em]"
-              data-testid="text-contact-cta-title"
-            >
-              {t.contactCta}
-            </h2>
-            <p 
-              className="text-muted-foreground mb-6"
-              data-testid="text-contact-cta-subtitle"
-            >
-              {t.contactSubtitle}
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4">
-              <Button 
-                className="rounded-none"
-                data-testid="button-email-us"
-              >
-                <Mail className="w-4 h-4 mr-2" />
-                {t.emailUs}
-              </Button>
-              <Button 
-                variant="outline"
-                className="rounded-none"
-                data-testid="button-call-us"
-              >
-                <Phone className="w-4 h-4 mr-2" />
-                {t.callUs}
-              </Button>
-            </div>
-          </motion.section>
-        </div>
+          </div>
+        </section>
       </main>
 
       <Footer />
