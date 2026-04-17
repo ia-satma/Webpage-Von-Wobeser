@@ -566,6 +566,16 @@ export default function NewsDetail() {
                   {t.backToNews}
                 </button>
                 
+                <div
+                  className="flex items-center gap-3 mb-4"
+                  data-testid="eyebrow-news"
+                >
+                  <div className="h-px w-10 bg-[#AA1A2E]" aria-hidden="true" />
+                  <span className="text-[10px] tracking-[0.3em] uppercase text-white/90 font-medium">
+                    {language === 'es' ? 'Noticia' : language === 'de' ? 'Nachrichten' : language === 'fr' ? 'Actualité' : language === 'it' ? 'Notizie' : 'News'}
+                  </span>
+                </div>
+
                 <div className="flex items-center gap-2 text-white/85 text-sm mb-4">
                   <Calendar className="w-4 h-4" />
                   <span data-testid="text-news-date">{formatDate(newsArticle?.date || null)}</span>

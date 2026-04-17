@@ -803,7 +803,7 @@ export default function PracticeGroupDetail() {
 
         {/* Casos de Éxito — light band, dark cards */}
         {representativeMatters && representativeMatters.length > 0 && (
-          <section className="bg-background py-16 lg:py-20" data-testid="section-representative-matters">
+          <section className="bg-muted/40 py-16 lg:py-20" data-testid="section-representative-matters">
             <div className="max-w-4xl mx-auto px-6 lg:px-12">
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
@@ -849,7 +849,7 @@ export default function PracticeGroupDetail() {
 
         {/* Rankings — muted band, refined hairline list */}
         {practiceRankings.length > 0 && (
-          <section className="bg-muted/40 py-16 lg:py-20" data-testid="section-rankings">
+          <section className="bg-background py-16 lg:py-20" data-testid="section-rankings">
             <div className="max-w-4xl mx-auto px-6 lg:px-12">
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
@@ -886,7 +886,7 @@ export default function PracticeGroupDetail() {
         {(filteredAndGroupedMembers.partners.length > 0 ||
           filteredAndGroupedMembers.ofCounsel.length > 0 ||
           filteredAndGroupedMembers.associates.length > 0) && (
-          <section className="bg-background py-16 lg:py-20" data-testid="section-team-members">
+          <section className="bg-muted/40 py-16 lg:py-20" data-testid="section-team-members">
             <div className="max-w-4xl mx-auto px-6 lg:px-12">
               <motion.div
                 initial={{ opacity: 0, y: 20 }}

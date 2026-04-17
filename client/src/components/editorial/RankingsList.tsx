@@ -12,8 +12,8 @@ export interface RankingItem {
 interface RankingsListProps {
   items: RankingItem[];
   language: string;
-  getBadgeStyles?: (badgeType: any) => string;
-  getBadgeIcon?: (badgeType: any) => ReactNode;
+  getBadgeStyles?: (badgeType: string) => string;
+  getBadgeIcon?: (badgeType: string) => ReactNode;
   testIdPrefix?: string;
 }
 
@@ -33,7 +33,7 @@ export function RankingsList({
           <li
             key={index}
             className="flex items-center justify-between gap-4 py-4 px-1 hover-elevate"
-            data-testid={`${testIdPrefix}-${index}`}
+            data-testid={`card-${testIdPrefix}-${index}`}
           >
             <div className="flex items-center gap-4 min-w-0 flex-1">
               <div
@@ -57,11 +57,11 @@ export function RankingsList({
             </div>
             <Badge
               className={`rounded-none text-xs flex items-center gap-1 shrink-0 ${
-                getBadgeStyles ? getBadgeStyles(item.badgeType) : "bg-[#AA1A2E] text-white border-0"
+                getBadgeStyles ? getBadgeStyles(item.badgeType ?? "") : "bg-[#AA1A2E] text-white border-0"
               }`}
               data-testid={`badge-${testIdPrefix}-${index}`}
             >
-              {getBadgeIcon && getBadgeIcon(item.badgeType)}
+              {getBadgeIcon && getBadgeIcon(item.badgeType ?? "")}
               {displayRanking}
             </Badge>
           </li>

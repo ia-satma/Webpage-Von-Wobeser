@@ -33,15 +33,22 @@ function TranslatedPracticeGroupBadge({ practiceGroup, language }: TranslatedPra
   const displayName = translatedFields.name || practiceGroup.name;
 
   return (
-    <Link href={`/practice-groups/${practiceGroup.slug}`}>
-      <Badge 
-        variant="outline"
-        className="cursor-pointer text-xs px-4 py-2 rounded-none uppercase tracking-[0.15em]"
-        data-testid={`badge-related-practice-${practiceGroup.slug}`}
+    <li data-testid={`badge-related-practice-${practiceGroup.slug}`}>
+      <Link
+        href={`/practice-groups/${practiceGroup.slug}`}
+        className="flex items-center justify-between gap-4 py-4 px-1 hover-elevate cursor-pointer"
       >
-        {displayName}
-      </Badge>
-    </Link>
+        <div className="flex items-center gap-4 min-w-0">
+          <div className="w-2 h-2 bg-[#AA1A2E] shrink-0" aria-hidden="true" />
+          <span className="text-foreground font-medium uppercase tracking-[0.12em] text-sm">
+            {displayName}
+          </span>
+        </div>
+        <span className="text-[10px] text-muted-foreground tracking-[0.2em] uppercase shrink-0">
+          {language === 'es' ? 'Ver' : 'View'} →
+        </span>
+      </Link>
+    </li>
   );
 }
 
@@ -429,7 +436,7 @@ export default function IndustryGroupDetail() {
                     {t.relatedServices}
                   </h2>
                 </div>
-                <div className="flex flex-wrap gap-3">
+                <ul className="divide-y divide-border border-y border-border" data-testid="list-related-practices">
                   {relatedPracticeGroups.map((practiceGroup) => (
                     <TranslatedPracticeGroupBadge
                       key={practiceGroup.id}
@@ -437,7 +444,7 @@ export default function IndustryGroupDetail() {
                       language={language}
                     />
                   ))}
-                </div>
+                </ul>
               </motion.div>
             </div>
           </section>
