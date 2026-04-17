@@ -16,6 +16,7 @@ import { ArticleJsonLd, BreadcrumbJsonLd } from "@/components/JsonLdSchema";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useTranslatedContent } from "@/hooks/useTranslatedContent";
 import { isNativeLanguage } from "@/lib/translationUtils";
+import { LeadParagraph } from "@/components/editorial";
 import type { News, TeamMember } from "@shared/schema";
 
 function NewsHeroImage({ 
@@ -592,8 +593,8 @@ export default function NewsDetail() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.2 }}
           >
-            <div 
-              className="prose prose-lg dark:prose-invert max-w-none mb-12 relative"
+            <div
+              className="mb-12 relative"
               data-testid="container-news-content"
             >
               {isTranslating && !displayContent && (
@@ -605,14 +606,22 @@ export default function NewsDetail() {
                   <Skeleton className="h-6 w-4/5" />
                 </div>
               )}
-              {displayContent?.split('\n').map((paragraph, index) => (
-                <p 
-                  key={index} 
-                  className={`text-lg text-foreground leading-relaxed mb-6 text-justify sm:text-left ${isTranslating ? 'opacity-70' : ''}`}
-                >
-                  {paragraph}
-                </p>
-              ))}
+              {displayContent && (() => {
+                const paragraphs = displayContent.split('\n');
+                const firstIdx = paragraphs.findIndex((p) => p.trim().length > 0);
+                if (firstIdx === -1) return null;
+                const first = paragraphs[firstIdx];
+                const rest = paragraphs.slice(firstIdx + 1);
+                return (
+                  <div className={isTranslating ? "opacity-70" : ""}>
+                    <LeadParagraph
+                      firstParagraph={first}
+                      restParagraphs={rest}
+                      testId="lead-news-content"
+                    />
+                  </div>
+                );
+              })()}
               {isTranslating && displayContent && (
                 <div className="absolute top-0 right-0">
                   <Loader2 className="w-4 h-4 animate-spin text-primary/60" />

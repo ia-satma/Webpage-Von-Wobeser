@@ -11,6 +11,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { useTranslatedContent } from "@/hooks/useTranslatedContent";
 import { isNativeLanguage } from "@/lib/translationUtils";
 import { getIcon } from "@/lib/icons";
+import { Eyebrow, LeadParagraph } from "@/components/editorial";
 import type { IndustryGroup, PracticeGroup } from "@shared/schema";
 
 interface TranslatedPracticeGroupBadgeProps {
@@ -382,7 +383,7 @@ export default function IndustryGroupDetail() {
       </section>
 
       <main id="main-content">
-        {/* Description — light band */}
+        {/* Description — light band with editorial lead paragraph */}
         <section className="bg-background py-16 lg:py-20">
           <div className="max-w-4xl mx-auto px-6 lg:px-12">
             <motion.div
@@ -391,21 +392,27 @@ export default function IndustryGroupDetail() {
               viewport={{ once: true }}
               transition={{ duration: 0.6, delay: 0.2 }}
             >
-              <div
-                className="prose prose-lg dark:prose-invert max-w-none"
-                data-testid="container-industry-group-description"
-              >
-                <p className="text-lg text-foreground leading-relaxed text-justify sm:text-left">
-                  {displayDescription}
-                </p>
+              <div data-testid="container-industry-group-description">
+                {displayDescription && (() => {
+                  const paragraphs = displayDescription.split(/\n\s*\n/).filter(Boolean);
+                  const [first, ...rest] = paragraphs.length ? paragraphs : [displayDescription];
+                  return (
+                    <LeadParagraph
+                      eyebrow={t.aboutIndustry}
+                      firstParagraph={first}
+                      restParagraphs={rest}
+                      testId="lead-industry-group"
+                    />
+                  );
+                })()}
               </div>
             </motion.div>
           </div>
         </section>
 
-        {/* Related practice areas — light band */}
+        {/* Related practice areas — muted band */}
         {relatedPracticeGroups && relatedPracticeGroups.length > 0 && (
-          <section className="bg-background py-16 lg:py-20" data-testid="section-related-services">
+          <section className="bg-muted/40 py-16 lg:py-20" data-testid="section-related-services">
             <div className="max-w-4xl mx-auto px-6 lg:px-12">
               <motion.div
                 initial={{ opacity: 0, y: 20 }}

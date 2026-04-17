@@ -14,6 +14,7 @@ import Footer from "@/components/Footer";
 import { PersonJsonLd, BreadcrumbJsonLd } from "@/components/JsonLdSchema";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useTranslatedContent } from "@/hooks/useTranslatedContent";
+import { LeadParagraph } from "@/components/editorial";
 import type { TeamMember, PracticeGroup, IndustryGroup, Education, Affiliation, Ranking, Publication, RepresentativeMatter, BarAdmission, News, LanguageCode } from "@shared/schema";
 
 function NewsImageWithFallback({ 
@@ -1407,7 +1408,7 @@ export default function TeamMemberDetail() {
         <div className="max-w-6xl mx-auto px-6 lg:px-12">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
             <div className="lg:col-span-2 space-y-12">
-              {(displayBio || (member?.bioEs && isTranslating)) && (
+              {(displayBio || ((member?.bio || member?.bioEs) && isTranslating)) && (
                 <motion.section
                   initial={{ opacity: 0, y: 20 }}
                   whileInView={{ opacity: 1, y: 0 }}
@@ -1425,15 +1426,18 @@ export default function TeamMemberDetail() {
                       <Loader2 className="w-4 h-4 animate-spin text-primary/60" />
                     )}
                   </h2>
-                  <div 
-                    className="prose prose-lg dark:prose-invert max-w-none"
-                    data-testid="container-biography"
-                  >
-                    {displayBio ? (
-                      <p className="text-lg text-foreground leading-relaxed whitespace-pre-wrap">
-                        {displayBio}
-                      </p>
-                    ) : (
+                  <div data-testid="container-biography">
+                    {displayBio ? (() => {
+                      const paragraphs = displayBio.split(/\n\s*\n/).map((p: string) => p.trim()).filter(Boolean);
+                      const [first, ...rest] = paragraphs.length ? paragraphs : [displayBio];
+                      return (
+                        <LeadParagraph
+                          firstParagraph={first}
+                          restParagraphs={rest}
+                          testId="lead-biography"
+                        />
+                      );
+                    })() : (
                       <div className="flex items-center gap-2 text-muted-foreground italic">
                         <Loader2 className="w-4 h-4 animate-spin" />
                         <span data-testid="text-translation-pending">

@@ -13,6 +13,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { useTranslatedContent } from "@/hooks/useTranslatedContent";
 import { getIcon } from "@/lib/icons";
 import { isNativeLanguage } from "@/lib/translationUtils";
+import { Eyebrow, LeadParagraph, RankingsList, type RankingItem } from "@/components/editorial";
 import type { PracticeGroup, TeamMember, RepresentativeMatterDb } from "@shared/schema";
 
 interface PracticeRanking {
@@ -758,7 +759,7 @@ export default function PracticeGroupDetail() {
       </section>
 
       <main id="main-content">
-        {/* Description — light band */}
+        {/* Description — light band with editorial lead paragraph */}
         <section className="bg-background py-16 lg:py-20">
           <div className="max-w-4xl mx-auto px-6 lg:px-12">
             <motion.div
@@ -767,15 +768,19 @@ export default function PracticeGroupDetail() {
               viewport={{ once: true }}
               transition={{ duration: 0.6, delay: 0.2 }}
             >
-              <div
-                className="prose prose-lg dark:prose-invert max-w-none"
-                data-testid="container-practice-group-description"
-              >
-                {displayDescription ? (
-                  <p className="text-lg text-foreground leading-relaxed text-justify sm:text-left">
-                    {displayDescription}
-                  </p>
-                ) : (practiceGroup?.descriptionEs || practiceGroup?.description) && isTranslating ? (
+              <div data-testid="container-practice-group-description">
+                {displayDescription ? (() => {
+                  const paragraphs = displayDescription.split(/\n\s*\n/).filter(Boolean);
+                  const [first, ...rest] = paragraphs.length ? paragraphs : [displayDescription];
+                  return (
+                    <LeadParagraph
+                      eyebrow={t.overview}
+                      firstParagraph={first}
+                      restParagraphs={rest}
+                      testId="lead-practice-group"
+                    />
+                  );
+                })() : (practiceGroup?.descriptionEs || practiceGroup?.description) && isTranslating ? (
                   <div className="flex items-center gap-2 text-muted-foreground italic">
                     <Loader2 className="w-4 h-4 animate-spin" />
                     <span data-testid="text-translation-pending">
@@ -842,9 +847,9 @@ export default function PracticeGroupDetail() {
           </section>
         )}
 
-        {/* Rankings — light band */}
+        {/* Rankings — muted band, refined hairline list */}
         {practiceRankings.length > 0 && (
-          <section className="bg-background py-16 lg:py-20" data-testid="section-rankings">
+          <section className="bg-muted/40 py-16 lg:py-20" data-testid="section-rankings">
             <div className="max-w-4xl mx-auto px-6 lg:px-12">
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
@@ -852,54 +857,26 @@ export default function PracticeGroupDetail() {
                 viewport={{ once: true }}
                 transition={{ duration: 0.6, delay: 0.25 }}
               >
-                <div className="mb-4">
-                  <div className="h-px w-10 bg-[#AA1A2E] mb-4" aria-hidden="true" />
-                  <h2
-                    className="text-xl font-heading font-light text-foreground uppercase tracking-[0.12em]"
-                    data-testid="text-rankings-title"
-                  >
-                    {t.rankingsTitle}
-                  </h2>
-                </div>
+                <Eyebrow label={t.rankingsTitle} className="mb-6" testId="eyebrow-rankings" />
+                <h2
+                  className="text-2xl md:text-3xl font-heading font-light text-foreground uppercase tracking-[0.12em] mb-3"
+                  data-testid="text-rankings-title"
+                >
+                  {t.rankingsTitle}
+                </h2>
                 <p
-                  className="text-muted-foreground mb-6"
+                  className="text-muted-foreground mb-8 max-w-2xl"
                   data-testid="text-rankings-subtitle"
                 >
                   {t.rankingsSubtitle}
                 </p>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {practiceRankings.map((ranking, index) => (
-                    <Card
-                      key={index}
-                      className="rounded-none border border-border bg-card"
-                      data-testid={`card-ranking-${index}`}
-                    >
-                      <CardContent className="p-4 flex items-center justify-between gap-4">
-                        <div className="flex-1 min-w-0">
-                          <p
-                            className="font-medium text-foreground"
-                            data-testid={`text-ranking-publication-${index}`}
-                          >
-                            {ranking.publication}
-                          </p>
-                          <p
-                            className="text-sm text-muted-foreground"
-                            data-testid={`text-ranking-year-${index}`}
-                          >
-                            {ranking.year}
-                          </p>
-                        </div>
-                        <Badge
-                          className={`rounded-none text-xs flex items-center ${getBadgeStyles(ranking.badgeType)}`}
-                          data-testid={`badge-ranking-${index}`}
-                        >
-                          {getBadgeIcon(ranking.badgeType)}
-                          {language === "es" ? ranking.rankingEs : ranking.ranking}
-                        </Badge>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
+                <RankingsList
+                  items={practiceRankings as RankingItem[]}
+                  language={language}
+                  getBadgeStyles={getBadgeStyles}
+                  getBadgeIcon={getBadgeIcon}
+                  testIdPrefix="ranking"
+                />
               </motion.div>
             </div>
           </section>
