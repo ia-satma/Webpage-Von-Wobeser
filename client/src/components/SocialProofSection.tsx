@@ -175,19 +175,27 @@ export default function SocialProofSection() {
                   className="w-10 h-px bg-[#AA1A2E] mb-4"
                   data-testid={`divider-quote-${quote.id}`}
                 />
-                <img
-                  src={
-                    quote.id === "chambers"
-                      ? "/logos/chambers.png"
-                      : quote.id === "legal500"
-                      ? "/logos/legal500.png"
-                      : "/logos/latin-lawyer.png"
-                  }
-                  alt={quote.source}
-                  loading="lazy"
-                  className="h-8 md:h-9 w-auto object-contain dark:brightness-0 dark:invert"
-                  data-testid={`text-source-${quote.id}`}
-                />
+                <div className="h-12 md:h-14 flex items-center justify-center">
+                  <img
+                    src={
+                      quote.id === "chambers"
+                        ? "/logos/chambers.png"
+                        : quote.id === "legal500"
+                        ? "/logos/legal500.png"
+                        : "/logos/latin-lawyer.png"
+                    }
+                    alt={quote.source}
+                    loading="lazy"
+                    className={`w-auto object-contain dark:brightness-0 dark:invert ${
+                      quote.id === "chambers"
+                        ? "h-12 md:h-14 max-w-[150px] md:max-w-[170px]"
+                        : quote.id === "legal500"
+                        ? "h-7 md:h-8 max-w-[130px] md:max-w-[150px]"
+                        : "h-5 md:h-6 max-w-[150px] md:max-w-[170px]"
+                    }`}
+                    data-testid={`text-source-${quote.id}`}
+                  />
+                </div>
                 {quote.year && (
                   <p
                     className="font-support font-normal text-xs mt-1 tracking-wide text-muted-foreground"
