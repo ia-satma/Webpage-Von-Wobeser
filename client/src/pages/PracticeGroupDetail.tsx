@@ -656,31 +656,44 @@ export default function PracticeGroupDetail() {
   const renderMemberCard = (member: TeamMember) => (
     <Link key={member.id} href={`/team/${member.slug}`}>
       <Card
-        className="rounded-none border border-white/[0.08] bg-[#222220] cursor-pointer hover-elevate shadow-none"
+        className="rounded-none border border-white/[0.08] bg-[#222220] cursor-pointer hover-elevate shadow-none overflow-hidden"
         data-testid={`card-team-member-${member.slug}`}
       >
-        <CardContent className="p-4 flex items-center gap-4">
-          <Avatar className="w-14 h-14">
-            <AvatarImage src={member.imageUrl || undefined} alt={member.name} />
-            <AvatarFallback className="bg-white/10 text-white text-lg font-medium">
-              {getInitials(member.name)}
-            </AvatarFallback>
-          </Avatar>
-          <div className="flex-1 min-w-0">
-            <h3
-              className="font-semibold text-white truncate"
-              data-testid={`text-team-member-name-${member.slug}`}
-            >
-              {member.name}
-            </h3>
-            <p
-              className="text-sm text-white/60 truncate"
-              data-testid={`text-team-member-role-${member.slug}`}
-            >
-              {language === "es" ? member.roleEs : member.role}
-            </p>
+        <CardContent className="p-0 flex items-stretch gap-0">
+          <div
+            className="relative aspect-square w-28 sm:w-32 shrink-0 bg-white/[0.04]"
+            data-testid={`img-team-member-${member.slug}`}
+          >
+            {member.imageUrl ? (
+              <img
+                src={member.imageUrl}
+                alt={member.name}
+                loading="lazy"
+                className="absolute inset-0 h-full w-full object-cover"
+              />
+            ) : (
+              <div className="absolute inset-0 flex items-center justify-center bg-white/10 text-white text-2xl font-medium">
+                {getInitials(member.name)}
+              </div>
+            )}
           </div>
-          <ChevronRight className="w-5 h-5 text-white/40" />
+          <div className="flex-1 min-w-0 flex items-center gap-3 px-4 py-4">
+            <div className="flex-1 min-w-0">
+              <h3
+                className="font-semibold text-white truncate"
+                data-testid={`text-team-member-name-${member.slug}`}
+              >
+                {member.name}
+              </h3>
+              <p
+                className="text-sm text-white/60 truncate"
+                data-testid={`text-team-member-role-${member.slug}`}
+              >
+                {language === "es" ? member.roleEs : member.role}
+              </p>
+            </div>
+            <ChevronRight className="w-5 h-5 text-white/40 shrink-0" />
+          </div>
         </CardContent>
       </Card>
     </Link>
