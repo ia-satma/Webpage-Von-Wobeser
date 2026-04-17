@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 
 import worldMapImg from "@assets/mapa_1776101215471.png";
 import worldMapDarkImg from "@assets/mapa-dark_1776101215469.png";
-import collage03 from "@assets/collage_03.jpg";
+import frankfurtSkyline from "@assets/stock_images/frankfurt-skyline_4.jpg";
 import torreSomaImg from "@assets/hyatt-park-scaled_1776460775865.jpeg";
 
 import clausVonWobeserPhoto from "@assets/of_counsel_photos/claus_von_wobeser.jpg";
@@ -621,9 +621,9 @@ export default function WorldMapSection({ language }: WorldMapSectionProps) {
             {/* Hero with overlaid title */}
             <div className="relative h-72 md:h-80 overflow-hidden">
               <img
-                src={collage03}
+                src={frankfurtSkyline}
                 alt="German Desk"
-                className="w-full h-full object-cover"
+                className="w-full h-full object-cover object-center"
                 data-testid="img-modal-germany"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-black/10 pointer-events-none" />
