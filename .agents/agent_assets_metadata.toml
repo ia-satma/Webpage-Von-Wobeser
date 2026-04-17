@@ -1,0 +1,152 @@
+uploads = []
+outputs = []
+
+[[generated]]
+id = "wL9LiRt3zkjoL-IX6Q7GY"
+uri = "file://attached_assets/vwys_branded/i-automotive-mobility-manufacturing.png"
+type = "image"
+title = "VWyS Industry: Automotive, Mobility & Manufacturing"
+
+[[generated]]
+id = "wQUsZmF2Qr3g4SCHAp2Ah"
+uri = "file://attached_assets/vwys_branded/i-consumer-goods.png"
+type = "image"
+title = "VWyS Industry: Consumer Goods"
+
+[[generated]]
+id = "Q-AE9vz4qLWok2z7AaJZ6"
+uri = "file://attached_assets/vwys_branded/i-energy-natural-resources-industry.png"
+type = "image"
+title = "VWyS Industry: Energy & Natural Resources"
+
+[[generated]]
+id = "wJKoU0hYrtm6Zzg5IFlOI"
+uri = "file://attached_assets/vwys_branded/i-pharmaceutical-life-sciences.png"
+type = "image"
+title = "VWyS Industry: Pharmaceutical & Life Sciences"
+
+[[generated]]
+id = "uLAOVXy1WiNdronWO-WOb"
+uri = "file://attached_assets/vwys_branded/i-financial-services.png"
+type = "image"
+title = "VWyS Industry: Financial Services"
+
+[[generated]]
+id = "ebzpefIRfOhohOO1MbN3P"
+uri = "file://attached_assets/vwys_branded/i-real-estate-industry.png"
+type = "image"
+title = "VWyS Industry: Real Estate"
+
+[[generated]]
+id = "MLkfJ6TsQ9PWUiMABA_wX"
+uri = "file://attached_assets/vwys_branded/i-technology-industry.png"
+type = "image"
+title = "VWyS Industry: Technology"
+
+[[generated]]
+id = "4V9ZtjRj9GJM822nTnpnw"
+uri = "file://attached_assets/vwys_branded/p-corporate-ma.png"
+type = "image"
+title = "VWyS Practice: Corporate, Mergers & Acquisitions"
+
+[[generated]]
+id = "z2viLjhY_tnPBS-85OkRP"
+uri = "file://attached_assets/vwys_branded/p-antitrust-competition.png"
+type = "image"
+title = "VWyS Practice: Antitrust & Competition"
+
+[[generated]]
+id = "Q7eK56FGFWX8QL7dj2IO6"
+uri = "file://attached_assets/vwys_branded/p-arbitration.png"
+type = "image"
+title = "VWyS Practice: Arbitration"
+
+[[generated]]
+id = "DsGr3hV1okln6dSidwht-"
+uri = "file://attached_assets/vwys_branded/p-litigation.png"
+type = "image"
+title = "VWyS Practice: Litigation"
+
+[[generated]]
+id = "OcdB95djmChmdpyJSpwpC"
+uri = "file://attached_assets/vwys_branded/p-investigations-anticorruption.png"
+type = "image"
+title = "VWyS Practice: Investigations, Anti-corruption & Compliance"
+
+[[generated]]
+id = "jN6-ndnNK_u8nZVMtfxgX"
+uri = "file://attached_assets/vwys_branded/p-bankruptcy-restructuring.png"
+type = "image"
+title = "VWyS Practice: Bankruptcy & Restructuring"
+
+[[generated]]
+id = "bpDttiUY_hF0yOnqMh7KY"
+uri = "file://attached_assets/vwys_branded/p-banking-finance.png"
+type = "image"
+title = "VWyS Practice: Banking & Finance"
+
+[[generated]]
+id = "kgRkAwq1AtJS1dKa7w4du"
+uri = "file://attached_assets/vwys_branded/p-energy-natural-resources.png"
+type = "image"
+title = "VWyS Practice: Energy & Natural Resources"
+
+[[generated]]
+id = "lXf3bG00Tw70-BBz3uKhf"
+uri = "file://attached_assets/vwys_branded/p-esg.png"
+type = "image"
+title = "VWyS Practice: ESG"
+
+[[generated]]
+id = "AA3jp2skRWyTCyXNosBQu"
+uri = "file://attached_assets/vwys_branded/p-real-estate.png"
+type = "image"
+title = "VWyS Practice: Real Estate"
+
+[[generated]]
+id = "nmyQxY-4-QoGTDHFonkyJ"
+uri = "file://attached_assets/vwys_branded/p-intellectual-property.png"
+type = "image"
+title = "VWyS Practice: Intellectual Property"
+
+[[generated]]
+id = "09RsONdVOdcMvYiWyYr5z"
+uri = "file://attached_assets/vwys_branded/p-labor-employment.png"
+type = "image"
+title = "VWyS Practice: Labor & Employment"
+
+[[generated]]
+id = "IE9hnYUH5t_-FrLVdwAof"
+uri = "file://attached_assets/vwys_branded/p-tax.png"
+type = "image"
+title = "VWyS Practice: Tax"
+
+[[generated]]
+id = "9JtRSJIzwj-FMAjSew8KZ"
+uri = "file://attached_assets/vwys_branded/p-international-trade.png"
+type = "image"
+title = "VWyS Practice: International Trade"
+
+[[generated]]
+id = "_f3_t0SKGnPdPn8QnBcRz"
+uri = "file://attached_assets/vwys_branded/p-telecommunications-media-technology.png"
+type = "image"
+title = "VWyS Practice: Telecommunications, Media & Technology"
+
+[[generated]]
+id = "SxUv1MgancDw4uwBO_T1S"
+uri = "file://attached_assets/vwys_branded/p-environmental.png"
+type = "image"
+title = "VWyS Practice: Environmental"
+
+[[generated]]
+id = "6M6Z9SSp4dcOX_W1QZvK2"
+uri = "file://attached_assets/vwys_branded/p-administrative-law.png"
+type = "image"
+title = "VWyS Practice: Administrative Law"
+
+[[generated]]
+id = "h3hOFJJTnZBQZWWGjxCCa"
+uri = "file://attached_assets/vwys_branded/p-german-desk.png"
+type = "image"
+title = "VWyS Practice: German Desk"

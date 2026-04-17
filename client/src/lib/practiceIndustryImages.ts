@@ -1,42 +1,65 @@
-const UNSPLASH_PARAMS = "w=1200&h=900&fit=crop&q=80&auto=format";
+import pCorporateMa from "@assets/vwys_branded/p-corporate-ma.png";
+import pAntitrust from "@assets/vwys_branded/p-antitrust-competition.png";
+import pArbitration from "@assets/vwys_branded/p-arbitration.png";
+import pLitigation from "@assets/vwys_branded/p-litigation.png";
+import pInvestigations from "@assets/vwys_branded/p-investigations-anticorruption.png";
+import pBankruptcy from "@assets/vwys_branded/p-bankruptcy-restructuring.png";
+import pBanking from "@assets/vwys_branded/p-banking-finance.png";
+import pEnergy from "@assets/vwys_branded/p-energy-natural-resources.png";
+import pEsg from "@assets/vwys_branded/p-esg.png";
+import pRealEstate from "@assets/vwys_branded/p-real-estate.png";
+import pIp from "@assets/vwys_branded/p-intellectual-property.png";
+import pLabor from "@assets/vwys_branded/p-labor-employment.png";
+import pTax from "@assets/vwys_branded/p-tax.png";
+import pIntlTrade from "@assets/vwys_branded/p-international-trade.png";
+import pTmt from "@assets/vwys_branded/p-telecommunications-media-technology.png";
+import pEnvironmental from "@assets/vwys_branded/p-environmental.png";
+import pAdministrative from "@assets/vwys_branded/p-administrative-law.png";
+import pGermanDesk from "@assets/vwys_branded/p-german-desk.png";
 
-const u = (id: string) => `https://images.unsplash.com/${id}?${UNSPLASH_PARAMS}`;
+import iAutomotive from "@assets/vwys_branded/i-automotive-mobility-manufacturing.png";
+import iConsumer from "@assets/vwys_branded/i-consumer-goods.png";
+import iEnergyInd from "@assets/vwys_branded/i-energy-natural-resources-industry.png";
+import iPharma from "@assets/vwys_branded/i-pharmaceutical-life-sciences.png";
+import iFinancial from "@assets/vwys_branded/i-financial-services.png";
+import iRealEstateInd from "@assets/vwys_branded/i-real-estate-industry.png";
+import iTech from "@assets/vwys_branded/i-technology-industry.png";
 
 export const PRACTICE_IMAGES: Record<string, string> = {
-  "corporate-ma": u("photo-1486406146926-c627a92ad1ab"),
-  "antitrust-competition": u("photo-1521791136064-7986c2920216"),
-  "arbitration": u("photo-1589994965851-a8f479c573a9"),
-  "litigation": u("photo-1505664194779-8beaceb93744"),
-  "investigations-anticorruption": u("photo-1450101499163-c8848c66ca85"),
-  "bankruptcy-restructuring": u("photo-1554224155-6726b3ff858f"),
-  "banking-finance": u("photo-1554224154-26032ffc0d07"),
-  "energy-natural-resources": u("photo-1466611653911-95081537e5b7"),
-  "esg": u("photo-1542601906990-b4d3fb778b09"),
-  "real-estate": u("photo-1486325212027-8081e485255e"),
-  "intellectual-property": u("photo-1532153975070-2e9ab71f1b14"),
-  "labor-employment": u("photo-1521737604893-d14cc237f11d"),
-  "tax": u("photo-1554224155-8d04cb21cd6c"),
-  "international-trade": u("photo-1493946740644-2d8a1f1a6aff"),
-  "telecommunications-media-technology": u("photo-1518770660439-4636190af475"),
-  "environmental": u("photo-1441829266145-6d4bfb7a3d1e"),
-  "administrative-law": u("photo-1505664194779-8beaceb93744"),
-  "german-desk": u("photo-1528728329032-2972f65dfb3f"),
+  "corporate-ma": pCorporateMa,
+  "antitrust-competition": pAntitrust,
+  "arbitration": pArbitration,
+  "litigation": pLitigation,
+  "investigations-anticorruption": pInvestigations,
+  "bankruptcy-restructuring": pBankruptcy,
+  "banking-finance": pBanking,
+  "energy-natural-resources": pEnergy,
+  "esg": pEsg,
+  "real-estate": pRealEstate,
+  "intellectual-property": pIp,
+  "labor-employment": pLabor,
+  "tax": pTax,
+  "international-trade": pIntlTrade,
+  "telecommunications-media-technology": pTmt,
+  "environmental": pEnvironmental,
+  "administrative-law": pAdministrative,
+  "german-desk": pGermanDesk,
 };
 
 export const INDUSTRY_IMAGES: Record<string, string> = {
-  "automotive-mobility-manufacturing": u("photo-1492144534655-ae79c964c9d7"),
-  "consumer-goods": u("photo-1556742049-0cfed4f6a45d"),
-  "energy-natural-resources-industry": u("photo-1466611653911-95081537e5b7"),
-  "energy-natural-resources": u("photo-1466611653911-95081537e5b7"),
-  "pharmaceutical-life-sciences": u("photo-1576091160399-112ba8d25d1d"),
-  "financial-services": u("photo-1611974789855-9c2a0a7236a3"),
-  "real-estate-industry": u("photo-1486325212027-8081e485255e"),
-  "real-estate": u("photo-1486325212027-8081e485255e"),
-  "technology-industry": u("photo-1518770660439-4636190af475"),
-  "technology": u("photo-1518770660439-4636190af475"),
+  "automotive-mobility-manufacturing": iAutomotive,
+  "consumer-goods": iConsumer,
+  "energy-natural-resources-industry": iEnergyInd,
+  "energy-natural-resources": iEnergyInd,
+  "pharmaceutical-life-sciences": iPharma,
+  "financial-services": iFinancial,
+  "real-estate-industry": iRealEstateInd,
+  "real-estate": iRealEstateInd,
+  "technology-industry": iTech,
+  "technology": iTech,
 };
 
-const FALLBACK_IMAGE = u("photo-1450101499163-c8848c66ca85");
+const FALLBACK_IMAGE = pCorporateMa;
 
 export function getPracticeImage(slug: string, override?: string | null): string {
   if (override && override.trim().length > 0) return override;
