@@ -10,6 +10,7 @@ import SEOHead from "@/components/SEOHead";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useTranslatedContent } from "@/hooks/useTranslatedContent";
 import { isNativeLanguage } from "@/lib/translationUtils";
+import { getPracticeImage } from "@/lib/practiceIndustryImages";
 import type { PracticeGroup } from "@shared/schema";
 
 interface PracticeGroupCardProps {
@@ -38,45 +39,71 @@ function PracticeGroupCard({ group, index, learnMoreText }: PracticeGroupCardPro
   const showTranslatingIndicator = isLoading || isTranslating;
   const numberLabel = String(index + 1).padStart(2, "0");
 
+  const imageUrl = getPracticeImage(group.slug, group.imageUrl);
+
   return (
     <Link href={`/practice-groups/${group.slug}`}>
-      <Card
-        className="group h-full rounded-none border-0 border-l-2 border-l-primary bg-card shadow-sm hover:shadow-lg transition-all duration-300 cursor-pointer hover:-translate-y-0.5"
+      <article
+        className="group relative h-full overflow-hidden rounded-none bg-[#1a1a19] border-l-2 border-l-primary hover:border-l-4 transition-all duration-500 cursor-pointer aspect-[4/5]"
         data-testid={`card-practice-group-${group.slug}`}
       >
-        <CardContent className="p-6 lg:p-8 flex flex-col h-full">
-          <div className="flex items-start justify-between mb-5">
-            <span className="text-3xl font-heading font-light text-primary/30" data-testid={`number-practice-group-${group.slug}`}>
-              {numberLabel}
-            </span>
-            {showTranslatingIndicator && (
-              <div className="flex items-center gap-1 px-2 py-1 bg-muted text-xs text-muted-foreground">
-                <Loader2 className="w-3 h-3 animate-spin" />
-              </div>
-            )}
+        {/* Background image */}
+        <img
+          src={imageUrl}
+          alt=""
+          loading="lazy"
+          aria-hidden="true"
+          className="absolute inset-0 w-full h-full object-cover grayscale-[20%] group-hover:grayscale-0 group-hover:scale-105 transition-all duration-700 ease-out"
+          onError={(e) => {
+            (e.currentTarget as HTMLImageElement).style.display = "none";
+          }}
+        />
+
+        {/* Dark gradient overlay — transparent top → near-opaque bottom */}
+        <div
+          aria-hidden="true"
+          className="absolute inset-0 bg-gradient-to-t from-[#0f0f0e] via-[#0f0f0e]/80 to-[#0f0f0e]/10 group-hover:from-[#0f0f0e] group-hover:via-[#0f0f0e]/85 transition-all duration-500"
+        />
+
+        {/* Translation indicator — top right */}
+        {showTranslatingIndicator && (
+          <div className="absolute top-4 right-4 z-10 flex items-center gap-1 px-2 py-1 bg-black/60 backdrop-blur-sm text-xs text-white/80">
+            <Loader2 className="w-3 h-3 animate-spin" />
           </div>
-          <div className="w-8 h-px bg-primary mb-5" />
+        )}
+
+        {/* Decorative number — top left, large translucent */}
+        <span
+          className="absolute top-5 left-6 text-5xl font-heading font-light text-white/20 select-none pointer-events-none tabular-nums"
+          data-testid={`number-practice-group-${group.slug}`}
+        >
+          {numberLabel}
+        </span>
+
+        {/* Content overlay — bottom */}
+        <div className="absolute inset-x-0 bottom-0 p-6 lg:p-7 flex flex-col">
+          <div className="w-8 h-px bg-primary mb-4" />
           <h3
-            className="text-base font-medium text-foreground mb-3 uppercase tracking-[0.08em] group-hover:text-primary transition-colors"
+            className="text-base lg:text-lg font-medium text-white mb-3 uppercase tracking-[0.12em] leading-snug"
             data-testid={`text-practice-group-name-${group.slug}`}
           >
             {displayName}
           </h3>
           <p
-            className="text-sm text-muted-foreground mb-6 line-clamp-3 flex-1"
+            className="text-sm text-white/70 mb-5 line-clamp-2"
             data-testid={`text-practice-group-desc-${group.slug}`}
           >
             {displayDescription}
           </p>
           <span
-            className="inline-flex items-center gap-1 text-sm font-medium text-primary group-hover:gap-2 transition-all"
+            className="inline-flex items-center gap-1.5 text-xs font-medium uppercase tracking-[0.12em] text-primary group-hover:gap-2.5 transition-all"
             data-testid={`link-practice-group-${group.slug}`}
           >
             {learnMoreText}
-            <ArrowRight className="w-4 h-4" />
+            <ArrowRight className="w-3.5 h-3.5" />
           </span>
-        </CardContent>
-      </Card>
+        </div>
+      </article>
     </Link>
   );
 }
