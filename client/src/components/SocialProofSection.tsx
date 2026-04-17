@@ -186,7 +186,7 @@ export default function SocialProofSection() {
                   alt={quote.source}
                   loading="lazy"
                   className="h-8 md:h-9 w-auto object-contain dark:brightness-0 dark:invert"
-                  data-testid={`logo-source-${quote.id}`}
+                  data-testid={`text-source-${quote.id}`}
                 />
                 {quote.year && (
                   <p
