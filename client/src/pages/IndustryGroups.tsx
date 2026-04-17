@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Link } from "wouter";
 import { motion } from "framer-motion";
 import { ArrowRight, AlertCircle, Loader2 } from "lucide-react";
@@ -46,6 +47,8 @@ function IndustryGroupCard({ group, index, learnMoreText }: IndustryGroupCardPro
       <article
         className="group relative h-full overflow-hidden rounded-none bg-[#1a1a19] border-l-2 border-l-primary hover:border-l-4 transition-all duration-500 cursor-pointer aspect-[4/5]"
         data-testid={`card-industry-group-${group.slug}`}
+        onMouseEnter={() => setIsHover(true)}
+        onMouseLeave={() => setIsHover(false)}
       >
         {/* Background image — grayscale at rest, color on hover (matches home pattern) */}
         <img
@@ -53,42 +56,27 @@ function IndustryGroupCard({ group, index, learnMoreText }: IndustryGroupCardPro
           alt=""
           loading="lazy"
           aria-hidden="true"
-          className="absolute inset-0 w-full h-full object-cover"
+          className="absolute inset-0 w-full h-full object-cover pointer-events-none"
           style={{
-            filter: "grayscale(100%)",
-            transform: "scale(1)",
+            filter: isHover ? "grayscale(0%)" : "grayscale(100%)",
+            transform: isHover ? "scale(1.04)" : "scale(1)",
             transition:
               "transform 0.6s cubic-bezier(0.22, 1, 0.36, 1), filter 0.5s ease",
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.filter = "grayscale(0%)";
-            e.currentTarget.style.transform = "scale(1.04)";
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.filter = "grayscale(100%)";
-            e.currentTarget.style.transform = "scale(1)";
           }}
           onError={(e) => {
             (e.currentTarget as HTMLImageElement).style.display = "none";
           }}
         />
 
-        {/* Dark overlay — base (rest) */}
+        {/* Dark overlay — crossfade between rest and hover gradient */}
         <div
           aria-hidden="true"
-          className="absolute inset-0 transition-opacity duration-500 group-hover:opacity-0"
+          className="absolute inset-0 pointer-events-none"
           style={{
-            background:
-              "linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.7) 100%)",
-          }}
-        />
-        {/* Dark overlay — hover */}
-        <div
-          aria-hidden="true"
-          className="absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100"
-          style={{
-            background:
-              "linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.4) 50%, rgba(0,0,0,0.3) 100%)",
+            background: isHover
+              ? "linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.4) 50%, rgba(0,0,0,0.3) 100%)"
+              : "linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.7) 100%)",
+            transition: "background 0.5s ease",
           }}
         />
 
