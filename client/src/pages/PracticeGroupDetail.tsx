@@ -770,9 +770,9 @@ export default function PracticeGroupDetail() {
           </div>
         </section>
 
-        {/* Casos de Éxito — dark band */}
+        {/* Casos de Éxito — light band, dark cards */}
         {representativeMatters && representativeMatters.length > 0 && (
-          <section className="bg-[#1a1a19] py-20 lg:py-24" data-testid="section-representative-matters">
+          <section className="bg-background py-16 lg:py-20" data-testid="section-representative-matters">
             <div className="max-w-4xl mx-auto px-6 lg:px-12">
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
@@ -783,14 +783,14 @@ export default function PracticeGroupDetail() {
                 <div className="mb-4">
                   <div className="h-px w-10 bg-[#AA1A2E] mb-4" aria-hidden="true" />
                   <h2
-                    className="text-xl font-heading font-light text-white uppercase tracking-[0.12em]"
+                    className="text-xl font-heading font-light text-foreground uppercase tracking-[0.12em]"
                     data-testid="text-success-cases-title"
                   >
                     {t.successCasesTitle}
                   </h2>
                 </div>
                 <p
-                  className="text-white/60 mb-6"
+                  className="text-muted-foreground mb-6"
                   data-testid="text-success-cases-subtitle"
                 >
                   {t.successCasesSubtitle}
@@ -879,11 +879,11 @@ export default function PracticeGroupDetail() {
           </section>
         )}
 
-        {/* Nuestro Equipo — dark band */}
+        {/* Nuestro Equipo — light band, dark cards */}
         {(filteredAndGroupedMembers.partners.length > 0 ||
           filteredAndGroupedMembers.ofCounsel.length > 0 ||
           filteredAndGroupedMembers.associates.length > 0) && (
-          <section className="bg-[#1a1a19] py-20 lg:py-24" data-testid="section-team-members">
+          <section className="bg-background py-16 lg:py-20" data-testid="section-team-members">
             <div className="max-w-4xl mx-auto px-6 lg:px-12">
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
@@ -894,7 +894,7 @@ export default function PracticeGroupDetail() {
                 <div className="mb-8">
                   <div className="h-px w-10 bg-[#AA1A2E] mb-4" aria-hidden="true" />
                   <h2
-                    className="text-xl font-heading font-light text-white uppercase tracking-[0.12em]"
+                    className="text-xl font-heading font-light text-foreground uppercase tracking-[0.12em]"
                     data-testid="text-our-team-title"
                   >
                     {t.ourTeam}
@@ -904,7 +904,7 @@ export default function PracticeGroupDetail() {
                 {filteredAndGroupedMembers.partners.length > 0 && (
                   <div className="mb-8" data-testid="section-partners">
                     <h3
-                      className="text-sm font-heading font-light text-white mb-4 flex items-center gap-3 uppercase tracking-[0.12em]"
+                      className="text-sm font-heading font-light text-foreground mb-4 flex items-center gap-3 uppercase tracking-[0.12em]"
                       data-testid="text-partners-title"
                     >
                       <Badge variant="outline" className="rounded-none text-xs uppercase tracking-[0.15em] border-[#AA1A2E] text-[#AA1A2E] bg-transparent">
@@ -921,10 +921,10 @@ export default function PracticeGroupDetail() {
                 {filteredAndGroupedMembers.ofCounsel.length > 0 && (
                   <div className="mb-8" data-testid="section-of-counsel">
                     <h3
-                      className="text-sm font-heading font-light text-white mb-4 flex items-center gap-3 uppercase tracking-[0.12em]"
+                      className="text-sm font-heading font-light text-foreground mb-4 flex items-center gap-3 uppercase tracking-[0.12em]"
                       data-testid="text-of-counsel-title"
                     >
-                      <Badge variant="outline" className="rounded-none text-xs uppercase tracking-[0.15em] border-white/30 text-white/70 bg-transparent">
+                      <Badge variant="outline" className="rounded-none text-xs uppercase tracking-[0.15em] border-border text-muted-foreground bg-transparent">
                         {filteredAndGroupedMembers.ofCounsel.length}
                       </Badge>
                       {t.ofCounsel}
@@ -938,10 +938,10 @@ export default function PracticeGroupDetail() {
                 {displayedAssociates.length > 0 && (
                   <div data-testid="section-associates">
                     <h3
-                      className="text-sm font-heading font-light text-white mb-4 flex items-center gap-3 uppercase tracking-[0.12em]"
+                      className="text-sm font-heading font-light text-foreground mb-4 flex items-center gap-3 uppercase tracking-[0.12em]"
                       data-testid="text-associates-title"
                     >
-                      <Badge variant="outline" className="rounded-none text-xs uppercase tracking-[0.15em] border-white/30 text-white/70 bg-transparent">
+                      <Badge variant="outline" className="rounded-none text-xs uppercase tracking-[0.15em] border-border text-muted-foreground bg-transparent">
                         {filteredAndGroupedMembers.associates.length}
                       </Badge>
                       {t.associates}
@@ -954,7 +954,7 @@ export default function PracticeGroupDetail() {
                         <Link href={`/team?practice=${slug}`}>
                           <Button
                             variant="outline"
-                            className="rounded-none gap-2 border-white/30 text-white bg-transparent hover:bg-white/10 hover:text-white"
+                            className="rounded-none gap-2"
                             data-testid="button-view-all-associates"
                           >
                             {t.viewAll} ({filteredAndGroupedMembers.associates.length})

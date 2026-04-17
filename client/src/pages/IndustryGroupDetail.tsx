@@ -403,9 +403,9 @@ export default function IndustryGroupDetail() {
           </div>
         </section>
 
-        {/* Related practice areas — dark band (parity with PracticeGroupDetail dark sections) */}
+        {/* Related practice areas — light band */}
         {relatedPracticeGroups && relatedPracticeGroups.length > 0 && (
-          <section className="bg-[#1a1a19] py-20 lg:py-24" data-testid="section-related-services">
+          <section className="bg-background py-16 lg:py-20" data-testid="section-related-services">
             <div className="max-w-4xl mx-auto px-6 lg:px-12">
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
@@ -416,7 +416,7 @@ export default function IndustryGroupDetail() {
                 <div className="mb-6">
                   <div className="h-px w-10 bg-[#AA1A2E] mb-4" aria-hidden="true" />
                   <h2
-                    className="text-xl font-heading font-light text-white uppercase tracking-[0.12em]"
+                    className="text-xl font-heading font-light text-foreground uppercase tracking-[0.12em]"
                     data-testid="text-related-services-title"
                   >
                     {t.relatedServices}
