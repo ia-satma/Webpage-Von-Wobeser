@@ -155,3 +155,33 @@ id = "u4BfM5WneZqc077TXRjA8"
 uri = "file://attached_assets/stock_images/frankfurt-skyline_4.jpg"
 type = "image"
 title = "Frankfurt Germany skyline skyscrapers"
+
+[[outputs]]
+id = "8Xq77NRX9_rjMmDgsfakO"
+uri = "file://attached_assets/stock_images/frankfurt_dusk_1.jpg"
+type = "image"
+title = "Frankfurt skyline twilight blue hour"
+
+[[outputs]]
+id = "57eyijtI0C4ytnAX3YZUH"
+uri = "file://attached_assets/stock_images/frankfurt_dusk_2.jpg"
+type = "image"
+title = "Frankfurt skyline twilight blue hour"
+
+[[outputs]]
+id = "uVjZUJS_zrZTwEYvD8j1i"
+uri = "file://attached_assets/stock_images/frankfurt_dusk_3.jpg"
+type = "image"
+title = "Frankfurt skyline twilight blue hour"
+
+[[outputs]]
+id = "IBcKe3kDHGNJflXRKR-EU"
+uri = "file://attached_assets/stock_images/frankfurt_dusk_4.jpg"
+type = "image"
+title = "Frankfurt skyline twilight blue hour"
+
+[[outputs]]
+id = "w7afad8SW0aoF3psWFNyL"
+uri = "file://attached_assets/stock_images/frankfurt_dusk_5.jpg"
+type = "image"
+title = "Frankfurt skyline twilight blue hour"
