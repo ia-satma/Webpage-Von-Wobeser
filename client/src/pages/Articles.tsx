@@ -40,8 +40,8 @@ function ArticleImageWithFallback({
   
   if (hasError || !src) {
     return (
-      <div className={`bg-gradient-to-br from-primary/10 to-primary/5 flex items-center justify-center ${className}`}>
-        <span className="text-4xl font-heading font-bold text-primary/30 tracking-wider">
+      <div className={`bg-muted flex items-center justify-center ${className}`}>
+        <span className="text-4xl font-heading font-light text-muted-foreground/60 tracking-[0.18em]">
           VWS
         </span>
       </div>
@@ -362,7 +362,7 @@ export default function ArticlesPage() {
             className="mb-10"
           >
             <div className="relative max-w-md">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
               <Input
                 type="text"
                 placeholder={t.searchPlaceholder}

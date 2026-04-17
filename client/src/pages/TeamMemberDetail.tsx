@@ -29,8 +29,8 @@ function NewsImageWithFallback({
   
   if (hasError || !src) {
     return (
-      <div className={`bg-gradient-to-br from-primary/10 to-primary/5 flex items-center justify-center ${className}`}>
-        <span className="text-4xl font-heading font-bold text-primary/30 tracking-wider">
+      <div className={`bg-muted flex items-center justify-center ${className}`}>
+        <span className="text-4xl font-heading font-light text-muted-foreground/60 tracking-[0.18em]">
           VWS
         </span>
       </div>
@@ -79,7 +79,7 @@ function RelatedTeamMemberCard({
               src={relatedMember.imageUrl || undefined} 
               alt={relatedMember.name}
             />
-            <AvatarFallback className="bg-primary/10 text-primary text-sm">
+            <AvatarFallback className="bg-muted text-foreground text-sm">
               {getInitials(relatedMember.name)}
             </AvatarFallback>
           </Avatar>
@@ -240,7 +240,7 @@ function RankingItemTranslated({
   if (isTiered) {
     return (
       <Card 
-        className="border border-amber-200/50 dark:border-amber-700/30 bg-card/50 rounded-none overflow-visible"
+        className="border border-border bg-card rounded-none overflow-visible"
         data-testid={`card-ranking-tiered-${index}`}
       >
         <CardContent className="p-4">
@@ -254,7 +254,8 @@ function RankingItemTranslated({
               </p>
               <div className="flex flex-wrap items-center gap-2 mt-2">
                 <Badge 
-                  className="bg-amber-500 text-white rounded-none border-0"
+                  variant="outline"
+                  className="rounded-none text-[10px] uppercase tracking-[0.18em] border-[#AA1A2E] text-[#AA1A2E]"
                   data-testid={`badge-ranking-band-${index}`}
                 >
                   {displayRanking}
@@ -262,7 +263,7 @@ function RankingItemTranslated({
                 {ranking.year && (
                   <Badge 
                     variant="outline" 
-                    className="rounded-none border-amber-300 dark:border-amber-600"
+                    className="rounded-none text-[10px] uppercase tracking-[0.18em]"
                   >
                     {ranking.year}
                   </Badge>
@@ -282,7 +283,7 @@ function RankingItemTranslated({
 
   return (
     <div
-      className="flex items-center gap-3 p-3 bg-card/50 rounded-none border border-amber-200/30 dark:border-amber-700/20"
+      className="flex items-center gap-3 p-3 bg-card rounded-none border border-border"
       data-testid={`item-ranking-simple-${index}`}
     >
       <div className="flex-shrink-0">
@@ -1089,22 +1090,12 @@ export default function TeamMemberDetail() {
      (m.title === member?.title))
   ).slice(0, 4);
 
-  const getPublicationIcon = (publication: string) => {
-    const pubLower = publication.toLowerCase();
-    if (pubLower.includes("chambers")) {
-      return <Trophy className="w-5 h-5 text-amber-500" />;
-    }
-    if (pubLower.includes("legal 500")) {
-      return <Award className="w-5 h-5 text-amber-500" />;
-    }
-    if (pubLower.includes("who's who") || pubLower.includes("whos who")) {
-      return <Star className="w-5 h-5 text-amber-500" />;
-    }
-    if (pubLower.includes("iflr") || pubLower.includes("benchmark")) {
-      return <Trophy className="w-5 h-5 text-amber-500" />;
-    }
-    return <Award className="w-5 h-5 text-amber-500" />;
-  };
+  const getPublicationIcon = (_publication: string) => (
+    <span
+      aria-hidden="true"
+      className="inline-block w-1.5 h-1.5 bg-[#AA1A2E] mt-1.5"
+    />
+  );
 
   const getPublicationPriority = (publication: string): number => {
     const pubLower = publication.toLowerCase();
@@ -1172,7 +1163,7 @@ export default function TeamMemberDetail() {
         <Header />
         <div className="pt-32 pb-20">
           <div className="max-w-7xl mx-auto px-6 lg:px-12 text-center">
-            <AlertCircle className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+            <AlertCircle className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
             <h2 className="text-2xl font-heading text-foreground mb-4" data-testid="text-error-title">
               {t.errorMessage}
             </h2>
@@ -1451,27 +1442,27 @@ export default function TeamMemberDetail() {
                   transition={{ duration: 0.6, delay: 0.25 }}
                   data-testid="section-rankings"
                 >
-                  <div className="bg-gradient-to-r from-amber-50 to-amber-100/50 dark:from-amber-900/20 dark:to-amber-800/10 rounded-none p-6 border border-amber-200/50 dark:border-amber-700/30">
-                    <h2 
-                      className="text-xl font-heading font-light text-foreground mb-6 flex items-center gap-3 uppercase tracking-[0.12em]"
-                      data-testid="text-rankings-title"
-                    >
-                      <div className="p-2 bg-amber-500/20 rounded-none">
-                        <Trophy className="w-6 h-6 text-amber-600 dark:text-amber-400" />
-                      </div>
-                      <span>{t.rankings}</span>
-                      <Badge 
-                        className="ml-auto bg-amber-500 text-white rounded-none border-0"
-                        data-testid="badge-rankings-count"
+                  <div className="rounded-none p-6 border border-border bg-card">
+                    <div className="mb-6">
+                      <div className="h-px w-10 bg-[#AA1A2E] mb-4" aria-hidden="true" />
+                      <h2
+                        className="text-xl font-heading font-light text-foreground flex items-center gap-3 uppercase tracking-[0.12em]"
+                        data-testid="text-rankings-title"
                       >
-                        {processedRankings.totalCount}
-                      </Badge>
-                    </h2>
+                        <span>{t.rankings}</span>
+                        <Badge
+                          variant="outline"
+                          className="ml-auto rounded-none text-xs uppercase tracking-[0.15em] border-[#AA1A2E] text-[#AA1A2E]"
+                          data-testid="badge-rankings-count"
+                        >
+                          {processedRankings.totalCount}
+                        </Badge>
+                      </h2>
+                    </div>
 
                     {processedRankings.tieredRankings.length > 0 && (
                       <div className="mb-6" data-testid="container-tiered-rankings">
-                        <h3 className="text-sm font-semibold text-amber-700 dark:text-amber-400 uppercase tracking-wider mb-4 flex items-center gap-2">
-                          <Star className="w-4 h-4" />
+                        <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-[0.18em] mb-4">
                           {t.tieredRankings}
                         </h3>
                         <div className="space-y-3">
@@ -1493,8 +1484,7 @@ export default function TeamMemberDetail() {
                     {processedRankings.simpleRankings.length > 0 && (
                       <div data-testid="container-simple-rankings">
                         {processedRankings.tieredRankings.length > 0 && (
-                          <h3 className="text-sm font-semibold text-amber-700 dark:text-amber-400 uppercase tracking-wider mb-4 flex items-center gap-2">
-                            <Award className="w-4 h-4" />
+                          <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-[0.18em] mb-4">
                             {t.otherRecognitions}
                           </h3>
                         )}
@@ -1793,24 +1783,23 @@ export default function TeamMemberDetail() {
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ duration: 0.6, delay: 0.35 }}
-                  className="bg-gradient-to-br from-amber-100 to-amber-50 dark:from-amber-900/30 dark:to-amber-800/20 rounded-none p-6 border border-amber-200/50 dark:border-amber-700/30"
+                  className="rounded-none p-6 border border-border bg-card"
                   data-testid="section-featured-recognition"
                 >
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="p-2 bg-amber-500 rounded-none">
-                      <Trophy className="w-5 h-5 text-white" />
-                    </div>
+                  <div className="mb-4">
+                    <div className="h-px w-10 bg-[#AA1A2E] mb-4" aria-hidden="true" />
                     <h2 
-                      className="text-lg font-heading font-medium text-foreground"
+                      className="text-lg font-heading font-light text-foreground uppercase tracking-[0.12em]"
                       data-testid="text-featured-recognition-title"
                     >
                       {t.featuredRecognition}
                     </h2>
                   </div>
                   
-                  <div className="flex items-center gap-2 mb-4">
+                  <div className="flex items-baseline gap-2 mb-4">
                     <span 
-                      className="text-3xl font-bold text-amber-600 dark:text-amber-400"
+                      className="text-4xl font-heading font-light text-[#AA1A2E]"
+                      style={{ fontFeatureSettings: '"lnum"' }}
                       data-testid="text-total-recognitions-count"
                     >
                       {processedRankings.totalCount}
@@ -1822,7 +1811,7 @@ export default function TeamMemberDetail() {
                   
                   {processedRankings.topPublications.length > 0 && (
                     <div data-testid="container-top-publications">
-                      <p className="text-xs font-semibold text-amber-700 dark:text-amber-400 uppercase tracking-wider mb-2">
+                      <p className="text-xs font-semibold text-muted-foreground uppercase tracking-[0.18em] mb-2">
                         {t.topPublications}
                       </p>
                       <div className="space-y-2">

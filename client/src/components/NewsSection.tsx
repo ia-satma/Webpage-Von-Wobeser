@@ -22,9 +22,9 @@ function NewsImageWithFallback({
   
   if (hasError || !src) {
     return (
-      <div className={`bg-gradient-to-br from-primary/10 to-primary/5 flex items-center justify-center ${className}`}>
+      <div className={`bg-muted flex items-center justify-center ${className}`}>
         <div className="text-center">
-          <span className="text-4xl md:text-5xl font-heading font-bold text-primary/30 tracking-wider">
+          <span className="text-4xl md:text-5xl font-heading font-light text-muted-foreground/60 tracking-[0.18em]">
             VWS
           </span>
         </div>
@@ -166,7 +166,7 @@ function NewsCardTranslated({ item, language, dateLocale, seeMoreText }: NewsCar
           />
         </div>
         <div className="p-6">
-          <p className="text-xs text-gray-400 uppercase tracking-wider mb-3" data-testid={`text-news-date-${item.id}`}>
+          <p className="text-xs text-muted-foreground uppercase tracking-wider mb-3" data-testid={`text-news-date-${item.id}`}>
             {item.date ? new Date(item.date).toLocaleDateString(
               dateLocale,
               { year: "numeric", month: "long", day: "numeric" }

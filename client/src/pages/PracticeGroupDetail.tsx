@@ -161,29 +161,37 @@ function TranslatedMatterCard({ matter, language, t }: TranslatedMatterCardProps
 
   return (
     <Card 
-      className={`rounded-none border ${matter.isHighlight ? 'border-primary/30 bg-primary/5 dark:bg-primary/10' : 'border-border bg-card'}`}
+      className="rounded-none border border-border bg-card relative"
       data-testid={`card-matter-${matter.id}`}
     >
+      {matter.isHighlight && (
+        <span
+          aria-hidden="true"
+          className="absolute left-0 top-0 bottom-0 w-[2px] bg-[#AA1A2E]"
+        />
+      )}
       <CardContent className="p-6">
         <div className="flex items-start justify-between gap-4 mb-3">
           <div className="flex-1">
-            <div className="flex items-center gap-2 mb-2">
+            <div className="flex items-center gap-2 mb-3">
               {matter.isHighlight && (
-                <Badge className="bg-primary text-white rounded-none text-xs">
-                  <Star className="w-3 h-3 mr-1" />
+                <Badge
+                  variant="outline"
+                  className="rounded-none text-[10px] uppercase tracking-[0.18em] border-[#AA1A2E] text-[#AA1A2E]"
+                >
                   {t.featured}
                 </Badge>
               )}
               <Badge 
                 variant="outline" 
-                className="rounded-none text-xs"
+                className="rounded-none text-[10px] uppercase tracking-[0.18em]"
                 data-testid={`badge-matter-year-${matter.id}`}
               >
                 {matter.year}
               </Badge>
             </div>
             <h3 
-              className="font-semibold text-foreground text-lg"
+              className="font-heading font-light text-foreground text-lg leading-snug"
               data-testid={`text-matter-title-${matter.id}`}
             >
               {displayTitle}
@@ -191,17 +199,17 @@ function TranslatedMatterCard({ matter, language, t }: TranslatedMatterCardProps
           </div>
         </div>
         <p 
-          className="text-muted-foreground mb-3"
+          className="text-muted-foreground mb-3 leading-relaxed"
           data-testid={`text-matter-description-${matter.id}`}
         >
           {displayDescription}
         </p>
         {displayClient && (
           <p 
-            className="text-sm text-gray-500 dark:text-gray-500"
+            className="text-xs uppercase tracking-[0.15em] text-muted-foreground"
             data-testid={`text-matter-client-${matter.id}`}
           >
-            <span className="font-medium">
+            <span className="text-foreground/70">
               {t.client}{" "}
             </span>
             {displayClient}
@@ -572,30 +580,13 @@ export default function PracticeGroupDetail() {
   };
 
   const getBadgeStyles = (badgeType: string) => {
-    switch (badgeType) {
-      case "band":
-        return "bg-primary text-white";
-      case "tier":
-        return "bg-amber-600 text-white";
-      case "star":
-        return "bg-emerald-600 text-white";
-      default:
-        return "bg-gray-600 text-white";
+    if (badgeType === "band" || badgeType === "tier" || badgeType === "star") {
+      return "border border-[#AA1A2E] text-[#AA1A2E] bg-transparent uppercase tracking-[0.18em]";
     }
+    return "border border-border text-foreground bg-transparent uppercase tracking-[0.18em]";
   };
 
-  const getBadgeIcon = (badgeType: string) => {
-    switch (badgeType) {
-      case "band":
-        return <Award className="w-3 h-3 mr-1" />;
-      case "tier":
-        return <Trophy className="w-3 h-3 mr-1" />;
-      case "star":
-        return <Star className="w-3 h-3 mr-1" />;
-      default:
-        return null;
-    }
-  };
+  const getBadgeIcon = (_badgeType: string) => null;
 
   if (error) {
     return (
@@ -603,7 +594,7 @@ export default function PracticeGroupDetail() {
         <Header />
         <div className="pt-32 pb-20">
           <div className="max-w-7xl mx-auto px-6 lg:px-12 text-center">
-            <AlertCircle className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+            <AlertCircle className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
             <h2 className="text-2xl font-heading text-foreground mb-4" data-testid="text-error-title">
               {t.errorMessage}
             </h2>
@@ -671,7 +662,7 @@ export default function PracticeGroupDetail() {
         <CardContent className="p-4 flex items-center gap-4">
           <Avatar className="w-14 h-14">
             <AvatarImage src={member.imageUrl || undefined} alt={member.name} />
-            <AvatarFallback className="bg-primary/10 text-primary text-lg font-medium">
+            <AvatarFallback className="bg-muted text-foreground text-lg font-medium">
               {getInitials(member.name)}
             </AvatarFallback>
           </Avatar>
@@ -689,7 +680,7 @@ export default function PracticeGroupDetail() {
               {language === "es" ? member.roleEs : member.role}
             </p>
           </div>
-          <ChevronRight className="w-5 h-5 text-gray-400" />
+          <ChevronRight className="w-5 h-5 text-muted-foreground" />
         </CardContent>
       </Card>
     </Link>
@@ -784,8 +775,8 @@ export default function PracticeGroupDetail() {
               className="mb-16"
               data-testid="section-representative-matters"
             >
-              <div className="flex items-center gap-3 mb-4">
-                <Trophy className="w-6 h-6 text-primary" />
+              <div className="mb-4">
+                <div className="h-px w-10 bg-[#AA1A2E] mb-4" aria-hidden="true" />
                 <h2 
                   className="text-xl font-heading font-light text-foreground uppercase tracking-[0.12em]"
                   data-testid="text-success-cases-title"
@@ -827,8 +818,8 @@ export default function PracticeGroupDetail() {
               className="mb-16"
               data-testid="section-rankings"
             >
-              <div className="flex items-center gap-3 mb-4">
-                <Award className="w-6 h-6 text-primary" />
+              <div className="mb-4">
+                <div className="h-px w-10 bg-[#AA1A2E] mb-4" aria-hidden="true" />
                 <h2 
                   className="text-xl font-heading font-light text-foreground uppercase tracking-[0.12em]"
                   data-testid="text-rankings-title"
@@ -902,7 +893,7 @@ export default function PracticeGroupDetail() {
                     className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2"
                     data-testid="text-partners-title"
                   >
-                    <Badge className="bg-primary text-white rounded-none text-xs">
+                    <Badge variant="outline" className="rounded-none text-xs uppercase tracking-[0.15em] border-[#AA1A2E] text-[#AA1A2E]">
                       {filteredAndGroupedMembers.partners.length}
                     </Badge>
                     {t.partners}
@@ -919,7 +910,7 @@ export default function PracticeGroupDetail() {
                     className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2"
                     data-testid="text-of-counsel-title"
                   >
-                    <Badge className="bg-amber-600 text-white rounded-none text-xs">
+                    <Badge variant="outline" className="rounded-none text-xs uppercase tracking-[0.15em]">
                       {filteredAndGroupedMembers.ofCounsel.length}
                     </Badge>
                     {t.ofCounsel}
@@ -936,7 +927,7 @@ export default function PracticeGroupDetail() {
                     className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2"
                     data-testid="text-associates-title"
                   >
-                    <Badge className="bg-gray-600 text-white rounded-none text-xs">
+                    <Badge variant="outline" className="rounded-none text-xs uppercase tracking-[0.15em]">
                       {filteredAndGroupedMembers.associates.length}
                     </Badge>
                     {t.associates}

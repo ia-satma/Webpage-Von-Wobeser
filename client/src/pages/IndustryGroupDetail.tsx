@@ -34,8 +34,8 @@ function TranslatedPracticeGroupBadge({ practiceGroup, language }: TranslatedPra
   return (
     <Link href={`/practice-groups/${practiceGroup.slug}`}>
       <Badge 
-        variant="secondary"
-        className="cursor-pointer text-sm px-4 py-2 rounded-none"
+        variant="outline"
+        className="cursor-pointer text-xs px-4 py-2 rounded-none uppercase tracking-[0.15em]"
         data-testid={`badge-related-practice-${practiceGroup.slug}`}
       >
         {displayName}
@@ -291,7 +291,7 @@ export default function IndustryGroupDetail() {
         <Header />
         <div className="pt-32 pb-20">
           <div className="max-w-7xl mx-auto px-6 lg:px-12 text-center">
-            <AlertCircle className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+            <AlertCircle className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
             <h2 className="text-2xl font-heading text-foreground mb-4" data-testid="text-error-title">
               {t.errorMessage}
             </h2>
