@@ -1275,7 +1275,7 @@ export default function TeamMemberDetail() {
                 {t.backToAll}
               </span>
             </Link>
-            <div className="flex flex-col md:flex-row items-stretch gap-0 bg-[#222220]">
+            <div className="flex flex-col md:flex-row items-stretch gap-0">
               <div
                 className="relative aspect-square w-full md:w-[280px] lg:w-[320px] shrink-0 overflow-hidden"
                 data-testid="container-profile-photo"
@@ -1290,11 +1290,11 @@ export default function TeamMemberDetail() {
                     />
                     <div
                       aria-hidden="true"
-                      className="absolute inset-0 bg-gradient-to-r from-transparent via-[#222220]/10 to-[#222220]/70"
+                      className="absolute inset-0 bg-gradient-to-r from-transparent via-[#1a1a19]/10 to-[#1a1a19]/70"
                     />
                     <div
                       aria-hidden="true"
-                      className="absolute inset-0 bg-gradient-to-b from-transparent to-[#222220]/40"
+                      className="absolute inset-0 bg-gradient-to-b from-transparent to-[#1a1a19]/40"
                     />
                   </>
                 ) : (
@@ -1308,11 +1308,11 @@ export default function TeamMemberDetail() {
               </div>
               <div
                 aria-hidden="true"
-                className="hidden md:block w-[2px] shrink-0 bg-[#AA1A2E]"
+                className="hidden md:block w-px shrink-0 bg-[#AA1A2E]/20"
               />
               <div
                 aria-hidden="true"
-                className="md:hidden h-[2px] w-full bg-[#AA1A2E]"
+                className="md:hidden h-px w-full bg-[#AA1A2E]/20"
               />
               <div className="flex-1 min-w-0 text-center md:text-left px-6 py-8 md:px-10 md:py-10">
                 <div className="h-px w-10 bg-[#AA1A2E] mb-4 mx-auto md:mx-0" aria-hidden="true" />
