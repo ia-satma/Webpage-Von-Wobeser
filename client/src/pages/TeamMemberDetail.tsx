@@ -126,7 +126,7 @@ function EducationItemTranslated({
 
   return (
     <div 
-      className="border-l-2 border-primary/30 pl-4 py-1"
+      className="border-l-2 border-[#AA1A2E] pl-4 py-1"
       data-testid={`item-education-${index}`}
     >
       <p className="text-lg font-medium text-foreground">
@@ -332,7 +332,7 @@ function PublicationItemTranslated({
 
   return (
     <div 
-      className="border-l-2 border-primary/30 pl-4 py-1"
+      className="border-l-2 border-[#AA1A2E] pl-4 py-1"
       data-testid={`item-publication-${index}`}
     >
       <p className="text-foreground font-medium">
@@ -1755,7 +1755,7 @@ export default function TeamMemberDetail() {
                     {(member.experience as any[]).map((exp, index) => (
                       <div 
                         key={index}
-                        className="border-l-2 border-primary/30 pl-4 py-1"
+                        className="border-l-2 border-[#AA1A2E] pl-4 py-1"
                         data-testid={`item-experience-${index}`}
                       >
                         <p className="text-lg font-medium text-foreground">
