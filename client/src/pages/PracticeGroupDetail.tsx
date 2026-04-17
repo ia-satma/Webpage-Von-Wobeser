@@ -656,7 +656,7 @@ export default function PracticeGroupDetail() {
   const renderMemberCard = (member: TeamMember) => (
     <Link key={member.id} href={`/team/${member.slug}`}>
       <Card
-        className="rounded-none border border-white/10 bg-[#222220] cursor-pointer hover-elevate shadow-none"
+        className="rounded-none border border-white/[0.08] bg-[#222220] cursor-pointer hover-elevate shadow-none"
         data-testid={`card-team-member-${member.slug}`}
       >
         <CardContent className="p-4 flex items-center gap-4">
