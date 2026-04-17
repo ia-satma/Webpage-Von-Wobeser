@@ -53,7 +53,7 @@ function PracticeGroupCard({ group, index, learnMoreText }: PracticeGroupCardPro
           alt=""
           loading="lazy"
           aria-hidden="true"
-          className="absolute inset-0 w-full h-full object-cover grayscale-[20%] group-hover:grayscale-0 group-hover:scale-105 transition-all duration-700 ease-out"
+          className="absolute inset-0 w-full h-full object-cover grayscale-[20%] group-hover:grayscale-0 group-hover:scale-105 transition-all duration-600 ease-out"
           onError={(e) => {
             (e.currentTarget as HTMLImageElement).style.display = "none";
           }}
@@ -62,7 +62,7 @@ function PracticeGroupCard({ group, index, learnMoreText }: PracticeGroupCardPro
         {/* Dark gradient overlay — transparent top → near-opaque bottom */}
         <div
           aria-hidden="true"
-          className="absolute inset-0 bg-gradient-to-t from-[#0f0f0e] via-[#0f0f0e]/80 to-[#0f0f0e]/10 group-hover:from-[#0f0f0e] group-hover:via-[#0f0f0e]/85 transition-all duration-500"
+          className="absolute inset-0 bg-gradient-to-t from-[#1a1a19] via-[#1a1a19]/80 to-[#1a1a19]/10 group-hover:from-[#1a1a19] group-hover:via-[#1a1a19]/85 transition-all duration-500"
         />
 
         {/* Translation indicator — top right */}
