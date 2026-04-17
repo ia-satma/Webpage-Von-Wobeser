@@ -660,16 +660,26 @@ export default function PracticeGroupDetail() {
       >
         <CardContent className="p-0 flex items-stretch gap-0">
           <div
-            className="relative aspect-square w-28 sm:w-32 shrink-0 bg-white/[0.04]"
+            className="relative aspect-square w-28 sm:w-32 shrink-0 overflow-hidden"
             data-testid={`img-team-member-${member.slug}`}
           >
             {member.imageUrl ? (
-              <img
-                src={member.imageUrl}
-                alt={member.name}
-                loading="lazy"
-                className="absolute inset-0 h-full w-full object-cover"
-              />
+              <>
+                <img
+                  src={member.imageUrl}
+                  alt={member.name}
+                  loading="lazy"
+                  className="absolute inset-0 h-full w-full object-cover object-top"
+                />
+                <div
+                  aria-hidden="true"
+                  className="absolute inset-0 bg-gradient-to-r from-transparent via-[#222220]/10 to-[#222220]/70"
+                />
+                <div
+                  aria-hidden="true"
+                  className="absolute inset-0 bg-gradient-to-b from-transparent to-[#222220]/40"
+                />
+              </>
             ) : (
               <div className="absolute inset-0 flex items-center justify-center bg-white/10 text-white text-2xl font-medium">
                 {getInitials(member.name)}
