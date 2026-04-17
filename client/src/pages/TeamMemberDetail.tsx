@@ -1,7 +1,7 @@
 import { useState, useMemo } from "react";
 import { Link, useParams } from "wouter";
 import { motion } from "framer-motion";
-import { ArrowLeft, Mail, Phone, Linkedin, AlertCircle, Crown, Download, GraduationCap, Globe2, Award, FileText, Briefcase, Scale, Users, BookOpen, Building2, Languages, Newspaper, Calendar, ArrowRight, Trophy, Star, Loader2 } from "lucide-react";
+import { ArrowLeft, Mail, Phone, Linkedin, AlertCircle, Download, GraduationCap, Globe2, Award, FileText, Briefcase, Scale, Users, BookOpen, Building2, Languages, Newspaper, Calendar, ArrowRight, Trophy, Star, Loader2 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -1275,28 +1275,47 @@ export default function TeamMemberDetail() {
                 {t.backToAll}
               </span>
             </Link>
-            <div className="flex flex-col md:flex-row items-center md:items-start gap-8">
-              <div className="relative flex-shrink-0">
-                <Avatar className="w-40 h-40 border-4 border-white/20" data-testid="avatar-profile">
-                  <AvatarImage 
-                    src={member?.imageUrl || undefined} 
-                    alt={member?.name}
-                    data-testid="img-profile-photo"
-                  />
-                  <AvatarFallback className="bg-white/10 text-white text-4xl font-light" data-testid="avatar-fallback">
-                    {member?.name ? getInitials(member.name) : ''}
-                  </AvatarFallback>
-                </Avatar>
-                {member?.isPartner && (
-                  <div 
-                    className="absolute -bottom-2 -right-2 w-10 h-10 bg-card rounded-full flex items-center justify-center shadow-lg"
-                    title={t.partner}
+            <div className="flex flex-col md:flex-row items-stretch gap-0 bg-[#222220]">
+              <div
+                className="relative aspect-square w-full md:w-[280px] lg:w-[320px] shrink-0 overflow-hidden"
+                data-testid="container-profile-photo"
+              >
+                {member?.imageUrl ? (
+                  <>
+                    <img
+                      src={member.imageUrl}
+                      alt={member?.name}
+                      className="absolute inset-0 h-full w-full object-cover object-top"
+                      data-testid="img-profile-photo"
+                    />
+                    <div
+                      aria-hidden="true"
+                      className="absolute inset-0 bg-gradient-to-r from-transparent via-[#222220]/10 to-[#222220]/70"
+                    />
+                    <div
+                      aria-hidden="true"
+                      className="absolute inset-0 bg-gradient-to-b from-transparent to-[#222220]/40"
+                    />
+                  </>
+                ) : (
+                  <div
+                    className="absolute inset-0 flex items-center justify-center bg-white/10 text-white text-6xl font-light"
+                    data-testid="avatar-fallback"
                   >
-                    <Crown className="w-5 h-5 text-primary" />
+                    {member?.name ? getInitials(member.name) : ''}
                   </div>
                 )}
               </div>
-              <div className="text-center md:text-left flex-1">
+              <div
+                aria-hidden="true"
+                className="hidden md:block w-[2px] shrink-0 bg-[#AA1A2E]"
+              />
+              <div
+                aria-hidden="true"
+                className="md:hidden h-[2px] w-full bg-[#AA1A2E]"
+              />
+              <div className="flex-1 min-w-0 text-center md:text-left px-6 py-8 md:px-10 md:py-10">
+                <div className="h-px w-10 bg-[#AA1A2E] mb-4 mx-auto md:mx-0" aria-hidden="true" />
                 <div className="flex flex-col md:flex-row items-center gap-3 mb-3">
                   <h1 
                     className="text-2xl md:text-3xl lg:text-4xl font-heading font-light text-white uppercase tracking-[0.12em]"

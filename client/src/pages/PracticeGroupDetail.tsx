@@ -655,7 +655,7 @@ export default function PracticeGroupDetail() {
   const renderMemberCard = (member: TeamMember) => (
     <Link key={member.id} href={`/team/${member.slug}`}>
       <Card
-        className="rounded-none border border-white/[0.08] bg-[#222220] cursor-pointer hover-elevate shadow-none overflow-hidden"
+        className="rounded-none border-0 bg-[#222220] cursor-pointer hover-elevate shadow-none overflow-hidden"
         data-testid={`card-team-member-${member.slug}`}
       >
         <CardContent className="p-0 flex items-stretch gap-0">
@@ -686,6 +686,10 @@ export default function PracticeGroupDetail() {
               </div>
             )}
           </div>
+          <div
+            aria-hidden="true"
+            className="w-[2px] shrink-0 bg-[#AA1A2E]"
+          />
           <div className="flex-1 min-w-0 flex items-center gap-3 px-4 py-4">
             <div className="flex-1 min-w-0">
               <h3
@@ -701,7 +705,7 @@ export default function PracticeGroupDetail() {
                 {language === "es" ? member.roleEs : member.role}
               </p>
             </div>
-            <ChevronRight className="w-5 h-5 text-white/40 shrink-0" />
+            <ChevronRight className="w-5 h-5 text-[#AA1A2E] shrink-0" />
           </div>
         </CardContent>
       </Card>
