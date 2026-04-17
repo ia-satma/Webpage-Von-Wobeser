@@ -7,7 +7,6 @@ import { Button } from "@/components/ui/button";
 
 import worldMapImg from "@assets/mapa_1776101215471.png";
 import worldMapDarkImg from "@assets/mapa-dark_1776101215469.png";
-import collage01 from "@assets/collage_01.jpg";
 import collage03 from "@assets/collage_03.jpg";
 import torreSomaImg from "@assets/hyatt-park-scaled_1776460775865.jpeg";
 
