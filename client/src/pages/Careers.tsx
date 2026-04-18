@@ -1110,7 +1110,7 @@ export default function Careers() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-muted-foreground leading-relaxed">
+                  <p className="text-muted-foreground leading-relaxed text-justify hyphens-auto">
                     {t.cultureText}
                   </p>
                 </CardContent>
@@ -1124,7 +1124,7 @@ export default function Careers() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-muted-foreground leading-relaxed">
+                  <p className="text-muted-foreground leading-relaxed text-justify hyphens-auto">
                     {t.environmentText}
                   </p>
                 </CardContent>
@@ -1315,7 +1315,7 @@ export default function Careers() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-muted-foreground leading-relaxed mb-6">
+                  <p className="text-muted-foreground leading-relaxed mb-6 text-justify hyphens-auto">
                     {t.internshipOverviewText}
                   </p>
                   

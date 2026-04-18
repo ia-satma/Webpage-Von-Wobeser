@@ -637,10 +637,10 @@ export default function DiversityInclusion() {
                 </h2>
               </div>
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                <p className="text-lg text-foreground leading-relaxed">
+                <p className="text-lg text-foreground leading-relaxed text-justify hyphens-auto">
                   {t.foundingText1}
                 </p>
-                <p className="text-lg text-muted-foreground leading-relaxed">
+                <p className="text-lg text-muted-foreground leading-relaxed text-justify hyphens-auto">
                   {t.foundingText2}
                 </p>
               </div>
@@ -780,7 +780,7 @@ export default function DiversityInclusion() {
                       {t.proBonoTitle}
                     </h2>
                   </div>
-                  <p className="text-lg text-muted-foreground leading-relaxed mb-8">
+                  <p className="text-lg text-muted-foreground leading-relaxed text-justify hyphens-auto mb-8">
                     {t.proBonoText}
                   </p>
                   <Link href="/pro-bono">
@@ -813,7 +813,7 @@ export default function DiversityInclusion() {
                 {t.commitmentTitle}
               </h2>
               <div className="h-0.5 w-12 bg-primary mx-auto mb-8" />
-              <p className="text-lg text-muted-foreground leading-relaxed">
+              <p className="text-lg text-muted-foreground leading-relaxed text-justify hyphens-auto">
                 {t.commitmentText}
               </p>
             </motion.div>
