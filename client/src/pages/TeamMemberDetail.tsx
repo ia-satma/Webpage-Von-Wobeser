@@ -1925,7 +1925,7 @@ export default function TeamMemberDetail() {
                   <div className="mb-6">
                     <span
                       aria-hidden="true"
-                      className="block w-10 h-[2px] bg-primary mb-3"
+                      className="block w-2.5 h-[2px] bg-primary mb-3"
                     />
                     <h2
                       className="text-xs font-medium text-foreground uppercase tracking-[0.12em]"
