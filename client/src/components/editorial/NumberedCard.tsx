@@ -27,9 +27,9 @@ export function NumberedCard({
       className={`group relative h-full flex flex-col bg-card border border-border rounded-none p-6 hover-elevate ${className}`}
       data-testid={dataTestid}
     >
-      <div className="grid grid-cols-[auto,1fr] gap-x-5 sm:gap-x-6 h-full">
+      <div className="grid grid-cols-[auto,1fr] gap-x-4 sm:gap-x-5 h-full">
         <div className="flex items-start">
-          <span className="font-serif font-light text-primary text-5xl sm:text-6xl leading-none tabular-nums tracking-tight">
+          <span className="font-serif font-light text-primary text-3xl sm:text-4xl leading-none tabular-nums tracking-tight">
             {padded}
           </span>
         </div>
