@@ -876,10 +876,10 @@ export default function ProBono() {
                 </h2>
               </div>
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                <p className="text-lg text-foreground leading-relaxed text-justify hyphens-auto">
+                <p className="text-lg text-foreground leading-relaxed text-justify">
                   {t.commitmentText1}
                 </p>
-                <p className="text-lg text-muted-foreground leading-relaxed text-justify hyphens-auto">
+                <p className="text-lg text-muted-foreground leading-relaxed text-justify">
                   {t.commitmentText2}
                 </p>
               </div>
@@ -983,7 +983,7 @@ export default function ProBono() {
               <p className="text-lg text-primary font-medium mb-4" data-testid="text-participation-subtitle">
                 {t.participationSubtitle}
               </p>
-              <p className="text-lg text-muted-foreground leading-relaxed text-justify hyphens-auto max-w-4xl mx-auto" data-testid="text-participation-intro">
+              <p className="text-lg text-muted-foreground leading-relaxed text-justify max-w-4xl mx-auto" data-testid="text-participation-intro">
                 {t.participationIntro}
               </p>
             </motion.div>

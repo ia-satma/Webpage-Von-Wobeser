@@ -1197,10 +1197,10 @@ export default function About() {
               {t.historyTitle}
             </h2>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              <p className="text-lg text-foreground leading-relaxed text-justify hyphens-auto">
+              <p className="text-lg text-foreground leading-relaxed text-justify">
                 {t.historyText1}
               </p>
-              <p className="text-lg text-foreground leading-relaxed text-justify hyphens-auto">
+              <p className="text-lg text-foreground leading-relaxed text-justify">
                 {t.historyText2}
               </p>
             </div>
@@ -1247,7 +1247,7 @@ export default function About() {
               <p className="text-lg text-primary font-medium mb-4" data-testid="text-culture-subtitle">
                 {t.cultureSubtitle}
               </p>
-              <p className="text-lg text-foreground leading-relaxed text-justify hyphens-auto max-w-4xl mx-auto" data-testid="text-culture-intro">
+              <p className="text-lg text-foreground leading-relaxed text-justify max-w-4xl mx-auto" data-testid="text-culture-intro">
                 {t.cultureIntro}
               </p>
             </div>
@@ -1291,7 +1291,7 @@ export default function About() {
               <p className="text-lg text-primary font-medium mb-4" data-testid="text-diversity-subtitle">
                 {t.diversitySubtitle}
               </p>
-              <p className="text-lg text-foreground leading-relaxed text-justify hyphens-auto max-w-4xl mx-auto" data-testid="text-diversity-intro">
+              <p className="text-lg text-foreground leading-relaxed text-justify max-w-4xl mx-auto" data-testid="text-diversity-intro">
                 {t.diversityIntro}
               </p>
             </div>
@@ -1383,7 +1383,7 @@ export default function About() {
                     {t.rankingsTitle}
                   </h2>
                 </div>
-                <p className="text-lg text-foreground leading-relaxed text-justify hyphens-auto mb-6">
+                <p className="text-lg text-foreground leading-relaxed text-justify mb-6">
                   {t.rankingsText}
                 </p>
                 <ul className="space-y-3">

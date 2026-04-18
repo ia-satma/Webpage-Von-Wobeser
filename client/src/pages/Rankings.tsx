@@ -477,10 +477,10 @@ export default function Rankings() {
               {t.overviewTitle}
             </h2>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              <p className="text-lg text-foreground leading-relaxed text-justify hyphens-auto">
+              <p className="text-lg text-foreground leading-relaxed text-justify">
                 {t.overviewText1}
               </p>
-              <p className="text-lg text-foreground leading-relaxed text-justify hyphens-auto">
+              <p className="text-lg text-foreground leading-relaxed text-justify">
                 {t.overviewText2}
               </p>
             </div>

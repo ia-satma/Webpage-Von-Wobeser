@@ -566,10 +566,10 @@ export default function GermanDesk() {
               {t.experienceTitle}
             </h2>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              <p className="text-lg text-foreground leading-relaxed text-justify hyphens-auto" data-testid="text-experience-1">
+              <p className="text-lg text-foreground leading-relaxed text-justify" data-testid="text-experience-1">
                 {t.experienceText1}
               </p>
-              <p className="text-lg text-foreground leading-relaxed text-justify hyphens-auto" data-testid="text-experience-2">
+              <p className="text-lg text-foreground leading-relaxed text-justify" data-testid="text-experience-2">
                 {t.experienceText2}
               </p>
             </div>
@@ -590,7 +590,7 @@ export default function GermanDesk() {
               <p className="text-lg text-primary font-medium mb-4" data-testid="text-team-subtitle">
                 {t.teamSubtitle}
               </p>
-              <p className="text-lg text-foreground leading-relaxed text-justify hyphens-auto max-w-4xl mx-auto" data-testid="text-team-intro">
+              <p className="text-lg text-foreground leading-relaxed text-justify max-w-4xl mx-auto" data-testid="text-team-intro">
                 {t.teamIntro}
               </p>
             </div>
@@ -665,7 +665,7 @@ export default function GermanDesk() {
               <p className="text-lg text-primary font-medium mb-4" data-testid="text-differentiator-subtitle">
                 {t.differentiatorSubtitle}
               </p>
-              <p className="text-lg text-foreground leading-relaxed text-justify hyphens-auto max-w-4xl mx-auto" data-testid="text-differentiator-intro">
+              <p className="text-lg text-foreground leading-relaxed text-justify max-w-4xl mx-auto" data-testid="text-differentiator-intro">
                 {t.differentiatorIntro}
               </p>
             </div>
