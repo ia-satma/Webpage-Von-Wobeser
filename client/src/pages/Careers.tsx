@@ -1155,6 +1155,7 @@ export default function Careers() {
                         index={index}
                         title={value.title}
                         body={value.text}
+                        icon={value.icon}
                       />
                     </motion.div>
                   ))}
@@ -1196,6 +1197,7 @@ export default function Careers() {
                     index={index}
                     title={benefit.title}
                     body={benefit.text}
+                    icon={benefit.icon}
                     dataTestid={`card-benefit-${index}`}
                   />
                 </motion.div>

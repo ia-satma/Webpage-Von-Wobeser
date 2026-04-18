@@ -1224,6 +1224,7 @@ export default function About() {
                     index={index}
                     title={value.title}
                     body={value.text}
+                    icon={value.icon}
                     dataTestid={`card-value-${index}`}
                   />
                 </motion.div>
@@ -1264,6 +1265,7 @@ export default function About() {
                     index={index}
                     title={aspect.title}
                     body={aspect.text}
+                    icon={aspect.icon}
                     dataTestid={`card-culture-${index}`}
                   />
                 </motion.div>
@@ -1325,6 +1327,7 @@ export default function About() {
                     index={index}
                     title={initiative.title}
                     body={initiative.text}
+                    icon={initiative.icon}
                     dataTestid={`card-diversity-initiative-${index}`}
                   />
                 </motion.div>

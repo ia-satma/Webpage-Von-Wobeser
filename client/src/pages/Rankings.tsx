@@ -510,6 +510,7 @@ export default function Rankings() {
                     index={directories.indexOf(directory)}
                     title={language === "es" ? directory.nameEs : directory.name}
                     body={language === "es" ? directory.descriptionEs : directory.description}
+                    icon={directory.icon}
                     dataTestid={`card-directory-${directory.id}`}
                   >
                     <div className="mt-4 space-y-2">

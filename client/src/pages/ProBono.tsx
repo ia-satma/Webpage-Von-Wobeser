@@ -918,6 +918,7 @@ export default function ProBono() {
                     index={index}
                     title={area.title}
                     body={area.text}
+                    icon={area.icon}
                     dataTestid={`card-area-${index}`}
                   />
                 </motion.div>
@@ -1000,6 +1001,7 @@ export default function ProBono() {
                     index={index}
                     title={aspect.title}
                     body={aspect.text}
+                    icon={aspect.icon}
                     dataTestid={`card-participation-${index}`}
                   />
                 </motion.div>

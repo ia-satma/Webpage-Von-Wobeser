@@ -715,6 +715,7 @@ export default function DiversityInclusion() {
                     index={index}
                     title={value.title}
                     body={value.text}
+                    icon={value.icon}
                     dataTestid={`card-value-${index}`}
                   />
                 </motion.div>
@@ -754,6 +755,7 @@ export default function DiversityInclusion() {
                     index={index}
                     title={initiative.title}
                     body={initiative.text}
+                    icon={initiative.icon}
                     dataTestid={`card-initiative-${index}`}
                   />
                 </motion.div>

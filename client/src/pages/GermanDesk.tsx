@@ -608,6 +608,7 @@ export default function GermanDesk() {
                     index={index}
                     title={highlight.title}
                     body={highlight.text}
+                    icon={highlight.icon}
                     dataTestid={`card-team-highlight-${index}`}
                   />
                 </motion.div>
@@ -638,6 +639,7 @@ export default function GermanDesk() {
                     index={index}
                     title={service.title}
                     body={service.text}
+                    icon={service.icon}
                     dataTestid={`card-service-${index}`}
                   />
                 </motion.div>
@@ -675,6 +677,7 @@ export default function GermanDesk() {
                     index={index}
                     title={point.title}
                     body={point.text}
+                    icon={point.icon}
                     dataTestid={`card-differentiator-${index}`}
                   />
                 </motion.div>
