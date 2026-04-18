@@ -24,7 +24,7 @@ export function NumberedCard({
 
   return (
     <article
-      className={`group relative h-full bg-card border border-border rounded-none p-6 hover-elevate ${className}`}
+      className={`group relative h-full flex flex-col bg-card border border-border rounded-none p-6 hover-elevate ${className}`}
       data-testid={dataTestid}
     >
       <div className="grid grid-cols-[auto,1fr] gap-x-5 sm:gap-x-6 h-full">
