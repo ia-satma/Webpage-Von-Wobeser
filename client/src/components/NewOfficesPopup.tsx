@@ -448,12 +448,12 @@ export default function NewOfficesPopup({ language }: NewOfficesPopupProps) {
               </p>
             </section>
 
-            <section className="py-8" data-testid="section-collage">
+            <section className="py-8 space-y-2 md:space-y-3" data-testid="section-collage">
               <div className="grid grid-cols-2 md:grid-cols-3 gap-2 md:gap-3">
                 {collageImages.map((img, index) => (
                   <div
                     key={index}
-                    className={`overflow-hidden group ${index === 0 || index === 5 ? "row-span-2" : ""}`}
+                    className="aspect-square overflow-hidden group"
                     data-testid={`img-collage-${index}`}
                   >
                     <img
@@ -464,6 +464,17 @@ export default function NewOfficesPopup({ language }: NewOfficesPopupProps) {
                     />
                   </div>
                 ))}
+              </div>
+              <div
+                className="aspect-[21/9] overflow-hidden group"
+                data-testid="img-collage-panorama"
+              >
+                <img
+                  src={heroOffice}
+                  alt={`${t.officeInterior} ${collageImages.length + 1}`}
+                  className="w-full h-full object-cover transition-all duration-500 grayscale brightness-90 group-hover:grayscale-0 group-hover:brightness-100 group-hover:scale-105"
+                  loading="lazy"
+                />
               </div>
             </section>
 
