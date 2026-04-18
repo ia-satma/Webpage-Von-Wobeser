@@ -1334,15 +1334,31 @@ export default function TeamMemberDetail() {
                     {getSeniorityLabel()}
                   </Badge>
                 </div>
-                <p 
-                  className="text-xl text-white/90 font-medium mb-2"
-                  data-testid="text-team-member-title"
-                >
-                  {displayTitle}
-                  {isTranslating && (
-                    <Loader2 className="inline-block w-4 h-4 ml-2 animate-spin text-white/60" />
-                  )}
-                </p>
+                {(() => {
+                  const normalize = (s: string) =>
+                    s
+                      .normalize("NFD")
+                      .replace(/[\u0300-\u036f]/g, "")
+                      .trim()
+                      .toLowerCase();
+                  const seniorityLabel = getSeniorityLabel();
+                  const titleMatchesSeniority =
+                    displayTitle &&
+                    seniorityLabel &&
+                    normalize(displayTitle) === normalize(seniorityLabel);
+                  if (titleMatchesSeniority) return null;
+                  return (
+                    <p
+                      className="text-xl text-white/90 font-medium mb-2"
+                      data-testid="text-team-member-title"
+                    >
+                      {displayTitle}
+                      {isTranslating && (
+                        <Loader2 className="inline-block w-4 h-4 ml-2 animate-spin text-white/60" />
+                      )}
+                    </p>
+                  );
+                })()}
                 <p 
                   className="text-lg text-white/85 mb-6"
                   data-testid="text-team-member-role"
