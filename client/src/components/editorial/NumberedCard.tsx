@@ -24,15 +24,14 @@ export function NumberedCard({
       className={`group relative h-full flex flex-col bg-card border border-border rounded-none p-6 hover-elevate ${className}`}
       data-testid={dataTestid}
     >
-      <div className="flex items-center gap-3 mb-5">
-        <span className="text-[11px] font-mono text-primary tracking-[0.16em] tabular-nums">
+      <h3 className="text-primary uppercase tracking-[0.12em] text-sm font-light leading-snug">
+        <span className="tabular-nums font-mono text-[11px] tracking-[0.16em] me-3">
           {padded}
         </span>
-        <span className="h-px flex-1 bg-primary/60 transition-colors duration-300 group-hover:bg-primary" />
-      </div>
-      <h3 className="text-base font-light text-foreground uppercase tracking-[0.12em] mb-3 leading-snug">
-        {title}
+        <span className="me-2">—</span>
+        <span>{title}</span>
       </h3>
+      <span className="block h-px w-10 bg-primary mt-3 mb-4 transition-all duration-300 group-hover:w-16" />
       {body && (
         <p className="text-sm text-muted-foreground leading-relaxed">{body}</p>
       )}
