@@ -26,6 +26,7 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import SEOHead from "@/components/SEOHead";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { NumberedCard } from "@/components/editorial";
 
 export default function Careers() {
   const { language } = useLanguage();
@@ -1150,18 +1151,11 @@ export default function Careers() {
                       variants={itemVariants}
                       data-testid={`card-value-${index}`}
                     >
-                      <Card className="h-full rounded-none border-0 border-l-2 border-l-primary hover:-translate-y-0.5 transition-all duration-300">
-                        <CardContent className="p-6">
-                          <span className="text-3xl font-light text-primary/30">{String(index + 1).padStart(2, '0')}</span>
-                          <div className="w-8 h-px bg-primary my-3" />
-                          <h3 className="font-light uppercase tracking-[0.08em] text-foreground mb-2">
-                            {value.title}
-                          </h3>
-                          <p className="text-sm text-muted-foreground">
-                            {value.text}
-                          </p>
-                        </CardContent>
-                      </Card>
+                      <NumberedCard
+                        index={index}
+                        title={value.title}
+                        body={value.text}
+                      />
                     </motion.div>
                   ))}
                 </motion.div>
@@ -1198,21 +1192,12 @@ export default function Careers() {
             >
               {t.benefits.map((benefit, index) => (
                 <motion.div key={index} variants={itemVariants}>
-                  <Card 
-                    className="rounded-none border-0 border-l-2 border-l-primary h-full hover:-translate-y-0.5 transition-all duration-300"
-                    data-testid={`card-benefit-${index}`}
-                  >
-                    <CardContent className="p-6">
-                      <span className="text-3xl font-light text-primary/30">{String(index + 1).padStart(2, '0')}</span>
-                      <div className="w-8 h-px bg-primary my-3" />
-                      <h3 className="font-light uppercase tracking-[0.08em] text-foreground mb-2">
-                        {benefit.title}
-                      </h3>
-                      <p className="text-sm text-muted-foreground">
-                        {benefit.text}
-                      </p>
-                    </CardContent>
-                  </Card>
+                  <NumberedCard
+                    index={index}
+                    title={benefit.title}
+                    body={benefit.text}
+                    dataTestid={`card-benefit-${index}`}
+                  />
                 </motion.div>
               ))}
             </motion.div>

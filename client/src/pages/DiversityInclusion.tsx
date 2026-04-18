@@ -22,6 +22,7 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import SEOHead from "@/components/SEOHead";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { NumberedCard } from "@/components/editorial";
 
 export default function DiversityInclusion() {
   const { language } = useLanguage();
@@ -710,18 +711,12 @@ export default function DiversityInclusion() {
             >
               {t.values.map((value, index) => (
                 <motion.div key={index} variants={itemVariants}>
-                  <Card className="h-full rounded-none border-0 border-l-2 border-l-primary hover:-translate-y-0.5 transition-all duration-300" data-testid={`card-value-${index}`}>
-                    <CardContent className="p-6">
-                      <span className="text-3xl font-light text-primary/30">{String(index + 1).padStart(2, '0')}</span>
-                      <div className="w-8 h-px bg-primary my-3" />
-                      <h3 className="text-lg font-light text-foreground uppercase tracking-[0.08em] mb-2">
-                        {value.title}
-                      </h3>
-                      <p className="text-sm text-muted-foreground">
-                        {value.text}
-                      </p>
-                    </CardContent>
-                  </Card>
+                  <NumberedCard
+                    index={index}
+                    title={value.title}
+                    body={value.text}
+                    dataTestid={`card-value-${index}`}
+                  />
                 </motion.div>
               ))}
             </motion.div>
@@ -755,18 +750,12 @@ export default function DiversityInclusion() {
             >
               {t.initiatives.map((initiative, index) => (
                 <motion.div key={index} variants={itemVariants}>
-                  <Card className="h-full rounded-none border-0 border-l-2 border-l-primary hover:-translate-y-0.5 transition-all duration-300" data-testid={`card-initiative-${index}`}>
-                    <CardContent className="p-6">
-                      <span className="text-3xl font-light text-primary/30">{String(index + 1).padStart(2, '0')}</span>
-                      <div className="w-8 h-px bg-primary my-3" />
-                      <h3 className="text-lg font-light text-foreground uppercase tracking-[0.08em] mb-2">
-                        {initiative.title}
-                      </h3>
-                      <p className="text-sm text-muted-foreground leading-relaxed">
-                        {initiative.text}
-                      </p>
-                    </CardContent>
-                  </Card>
+                  <NumberedCard
+                    index={index}
+                    title={initiative.title}
+                    body={initiative.text}
+                    dataTestid={`card-initiative-${index}`}
+                  />
                 </motion.div>
               ))}
             </motion.div>

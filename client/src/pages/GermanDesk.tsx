@@ -22,6 +22,7 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import SEOHead from "@/components/SEOHead";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { NumberedCard } from "@/components/editorial";
 
 export default function GermanDesk() {
   const { language } = useLanguage();
@@ -603,18 +604,12 @@ export default function GermanDesk() {
             >
               {t.teamHighlights.map((highlight, index) => (
                 <motion.div key={index} variants={itemVariants}>
-                  <Card className="h-full rounded-none border-0 border-l-2 border-l-primary hover:-translate-y-0.5 transition-all duration-300" data-testid={`card-team-highlight-${index}`}>
-                    <CardContent className="p-6">
-                      <span className="text-3xl font-light text-primary/30">{String(index + 1).padStart(2, '0')}</span>
-                      <div className="w-8 h-px bg-primary my-3" />
-                      <h3 className="text-lg font-light uppercase tracking-[0.08em] text-foreground mb-2">
-                        {highlight.title}
-                      </h3>
-                      <p className="text-sm text-muted-foreground leading-relaxed">
-                        {highlight.text}
-                      </p>
-                    </CardContent>
-                  </Card>
+                  <NumberedCard
+                    index={index}
+                    title={highlight.title}
+                    body={highlight.text}
+                    dataTestid={`card-team-highlight-${index}`}
+                  />
                 </motion.div>
               ))}
             </motion.div>
@@ -639,18 +634,12 @@ export default function GermanDesk() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {t.services.map((service, index) => (
                 <motion.div key={index} variants={itemVariants}>
-                  <Card className="h-full rounded-none border-0 border-l-2 border-l-primary hover:-translate-y-0.5 transition-all duration-300" data-testid={`card-service-${index}`}>
-                    <CardContent className="p-6">
-                      <span className="text-3xl font-light text-primary/30">{String(index + 1).padStart(2, '0')}</span>
-                      <div className="w-8 h-px bg-primary my-3" />
-                      <h3 className="text-lg font-light uppercase tracking-[0.08em] text-foreground mb-2">
-                        {service.title}
-                      </h3>
-                      <p className="text-sm text-muted-foreground">
-                        {service.text}
-                      </p>
-                    </CardContent>
-                  </Card>
+                  <NumberedCard
+                    index={index}
+                    title={service.title}
+                    body={service.text}
+                    dataTestid={`card-service-${index}`}
+                  />
                 </motion.div>
               ))}
             </div>
@@ -681,20 +670,13 @@ export default function GermanDesk() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               {t.differentiatorPoints.map((point, index) => (
-                <motion.div 
-                  key={index} 
-                  variants={itemVariants}
-                  className="text-center bg-card rounded-none p-6 shadow-sm"
-                  data-testid={`card-differentiator-${index}`}
-                >
-                  <span className="text-3xl font-light text-primary/30">{String(index + 1).padStart(2, '0')}</span>
-                  <div className="w-8 h-px bg-primary my-3" />
-                  <h3 className="text-lg font-light uppercase tracking-[0.08em] text-foreground mb-2">
-                    {point.title}
-                  </h3>
-                  <p className="text-sm text-muted-foreground">
-                    {point.text}
-                  </p>
+                <motion.div key={index} variants={itemVariants}>
+                  <NumberedCard
+                    index={index}
+                    title={point.title}
+                    body={point.text}
+                    dataTestid={`card-differentiator-${index}`}
+                  />
                 </motion.div>
               ))}
             </div>

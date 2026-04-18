@@ -21,6 +21,7 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import SEOHead from "@/components/SEOHead";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { NumberedCard } from "@/components/editorial";
 
 export default function ProBono() {
   const { language } = useLanguage();
@@ -913,18 +914,12 @@ export default function ProBono() {
             >
               {t.areas.map((area, index) => (
                 <motion.div key={index} variants={itemVariants}>
-                  <Card className="h-full rounded-none border-0 border-l-2 border-l-primary hover:-translate-y-0.5 transition-all duration-300" data-testid={`card-area-${index}`}>
-                    <CardContent className="p-6">
-                      <span className="text-3xl font-light text-primary/30">{String(index + 1).padStart(2, '0')}</span>
-                      <div className="w-8 h-px bg-primary my-3" />
-                      <h3 className="text-lg font-light text-foreground uppercase tracking-[0.08em] mb-2">
-                        {area.title}
-                      </h3>
-                      <p className="text-sm text-muted-foreground leading-relaxed">
-                        {area.text}
-                      </p>
-                    </CardContent>
-                  </Card>
+                  <NumberedCard
+                    index={index}
+                    title={area.title}
+                    body={area.text}
+                    dataTestid={`card-area-${index}`}
+                  />
                 </motion.div>
               ))}
             </motion.div>
@@ -1001,18 +996,12 @@ export default function ProBono() {
             >
               {t.participationAspects.map((aspect, index) => (
                 <motion.div key={index} variants={itemVariants}>
-                  <Card className="h-full rounded-none border-0 border-l-2 border-l-primary hover:-translate-y-0.5 transition-all duration-300" data-testid={`card-participation-${index}`}>
-                    <CardContent className="p-6">
-                      <span className="text-3xl font-light text-primary/30">{String(index + 1).padStart(2, '0')}</span>
-                      <div className="w-8 h-px bg-primary my-3" />
-                      <h3 className="text-lg font-light text-foreground uppercase tracking-[0.08em] mb-2">
-                        {aspect.title}
-                      </h3>
-                      <p className="text-sm text-muted-foreground leading-relaxed">
-                        {aspect.text}
-                      </p>
-                    </CardContent>
-                  </Card>
+                  <NumberedCard
+                    index={index}
+                    title={aspect.title}
+                    body={aspect.text}
+                    dataTestid={`card-participation-${index}`}
+                  />
                 </motion.div>
               ))}
             </motion.div>

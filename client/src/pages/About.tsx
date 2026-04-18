@@ -29,6 +29,7 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import SEOHead from "@/components/SEOHead";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { NumberedCard } from "@/components/editorial";
 import type { TeamMember, PracticeGroup, IndustryGroup, LanguageCode } from "@shared/schema";
 import logoHD from "@assets/vonwobeser_logo_2025_full.png";
 
@@ -1219,18 +1220,12 @@ export default function About() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               {t.values.map((value, index) => (
                 <motion.div key={index} variants={itemVariants}>
-                  <Card className="h-full rounded-none border-0 border-l-2 border-l-primary hover:-translate-y-0.5 transition-all duration-300" data-testid={`card-value-${index}`}>
-                    <CardContent className="p-6">
-                      <span className="text-3xl font-light text-primary/30">{String(index + 1).padStart(2, '0')}</span>
-                      <div className="w-8 h-px bg-primary my-3" />
-                      <h3 className="text-lg font-light text-foreground uppercase tracking-[0.08em] mb-2">
-                        {value.title}
-                      </h3>
-                      <p className="text-sm text-muted-foreground">
-                        {value.text}
-                      </p>
-                    </CardContent>
-                  </Card>
+                  <NumberedCard
+                    index={index}
+                    title={value.title}
+                    body={value.text}
+                    dataTestid={`card-value-${index}`}
+                  />
                 </motion.div>
               ))}
             </div>
@@ -1265,18 +1260,12 @@ export default function About() {
             >
               {t.cultureAspects.map((aspect, index) => (
                 <motion.div key={index} variants={itemVariants}>
-                  <Card className="h-full rounded-none border-0 border-l-2 border-l-primary hover:-translate-y-0.5 transition-all duration-300" data-testid={`card-culture-${index}`}>
-                    <CardContent className="p-6">
-                      <span className="text-3xl font-light text-primary/30">{String(index + 1).padStart(2, '0')}</span>
-                      <div className="w-8 h-px bg-primary my-3" />
-                      <h3 className="text-lg font-light text-foreground uppercase tracking-[0.08em] mb-2">
-                        {aspect.title}
-                      </h3>
-                      <p className="text-sm text-muted-foreground leading-relaxed">
-                        {aspect.text}
-                      </p>
-                    </CardContent>
-                  </Card>
+                  <NumberedCard
+                    index={index}
+                    title={aspect.title}
+                    body={aspect.text}
+                    dataTestid={`card-culture-${index}`}
+                  />
                 </motion.div>
               ))}
             </motion.div>
@@ -1332,18 +1321,12 @@ export default function About() {
             >
               {t.diversityInitiatives.map((initiative, index) => (
                 <motion.div key={index} variants={itemVariants}>
-                  <Card className="h-full rounded-none border-0 border-l-2 border-l-primary hover:-translate-y-0.5 transition-all duration-300 bg-card" data-testid={`card-diversity-initiative-${index}`}>
-                    <CardContent className="p-6">
-                      <span className="text-3xl font-light text-primary/30">{String(index + 1).padStart(2, '0')}</span>
-                      <div className="w-8 h-px bg-primary my-3" />
-                      <h3 className="text-lg font-light text-foreground uppercase tracking-[0.08em] mb-2">
-                        {initiative.title}
-                      </h3>
-                      <p className="text-sm text-muted-foreground leading-relaxed">
-                        {initiative.text}
-                      </p>
-                    </CardContent>
-                  </Card>
+                  <NumberedCard
+                    index={index}
+                    title={initiative.title}
+                    body={initiative.text}
+                    dataTestid={`card-diversity-initiative-${index}`}
+                  />
                 </motion.div>
               ))}
             </motion.div>
