@@ -70,30 +70,32 @@ function RelatedTeamMemberCard({
 
   return (
     <Link href={`/team/${relatedMember.slug}`}>
-      <Card 
-        className="rounded-none border border-border hover:shadow-md transition-all cursor-pointer"
+      <div
+        className="group relative flex items-center gap-4 py-4 px-3 cursor-pointer hover-elevate"
         data-testid={`card-related-member-${relatedMember.slug}`}
       >
-        <CardContent className="p-4 flex items-center gap-3">
-          <Avatar className="w-12 h-12">
-            <AvatarImage 
-              src={relatedMember.imageUrl || undefined} 
-              alt={relatedMember.name}
-            />
-            <AvatarFallback className="bg-muted text-foreground text-sm">
-              {getInitials(relatedMember.name)}
-            </AvatarFallback>
-          </Avatar>
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium text-foreground truncate">
-              {relatedMember.name}
-            </p>
-            <p className="text-xs text-muted-foreground truncate">
-              {displayTitle}
-            </p>
-          </div>
-        </CardContent>
-      </Card>
+        <span
+          aria-hidden="true"
+          className="absolute start-0 top-1/2 -translate-y-1/2 w-[2px] h-0 bg-primary transition-all duration-200 group-hover:h-8"
+        />
+        <Avatar className="w-12 h-12 shrink-0">
+          <AvatarImage
+            src={relatedMember.imageUrl || undefined}
+            alt={relatedMember.name}
+          />
+          <AvatarFallback className="bg-muted text-foreground text-sm">
+            {getInitials(relatedMember.name)}
+          </AvatarFallback>
+        </Avatar>
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-medium text-foreground truncate">
+            {relatedMember.name}
+          </p>
+          <p className="text-xs text-muted-foreground truncate uppercase tracking-[0.12em]">
+            {displayTitle}
+          </p>
+        </div>
+      </div>
     </Link>
   );
 }
@@ -161,9 +163,9 @@ function PracticeGroupBadge({
 
   return (
     <Link href={`/practice-groups/${group.slug}`}>
-      <Badge 
-        variant="outline" 
-        className="rounded-none cursor-pointer py-2 px-4"
+      <Badge
+        variant="outline"
+        className="rounded-none cursor-pointer py-2 px-4 no-default-hover-elevate no-default-active-elevate transition-colors duration-200 hover:bg-primary hover:text-primary-foreground hover:border-primary"
         data-testid={`badge-practice-group-${group.slug}`}
       >
         {displayName}
@@ -192,9 +194,9 @@ function IndustryGroupBadge({
 
   return (
     <Link href={`/industry-groups/${group.slug}`}>
-      <Badge 
-        variant="outline" 
-        className="rounded-none cursor-pointer py-2 px-4"
+      <Badge
+        variant="outline"
+        className="rounded-none cursor-pointer py-2 px-4 no-default-hover-elevate no-default-active-elevate transition-colors duration-200 hover:bg-primary hover:text-primary-foreground hover:border-primary"
         data-testid={`badge-industry-group-${group.slug}`}
       >
         {displayName}
@@ -1920,13 +1922,19 @@ export default function TeamMemberDetail() {
                   transition={{ duration: 0.6, delay: 0.5 }}
                   data-testid="section-related-team"
                 >
-                  <h2 
-                    className="text-xl font-heading font-light text-foreground mb-4"
-                    data-testid="text-related-team-title"
-                  >
-                    {t.relatedTeam}
-                  </h2>
-                  <div className="space-y-3">
+                  <div className="mb-6">
+                    <span
+                      aria-hidden="true"
+                      className="block w-10 h-[2px] bg-primary mb-3"
+                    />
+                    <h2
+                      className="text-xs font-medium text-foreground uppercase tracking-[0.12em]"
+                      data-testid="text-related-team-title"
+                    >
+                      {t.relatedTeam}
+                    </h2>
+                  </div>
+                  <div className="divide-y border-y border-border">
                     {relatedMembers.map((relatedMember) => (
                       <RelatedTeamMemberCard
                         key={relatedMember.id}
