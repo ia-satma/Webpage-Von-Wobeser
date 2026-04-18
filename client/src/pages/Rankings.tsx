@@ -555,23 +555,28 @@ export default function Rankings() {
                   <NumberedCard
                     index={awards.indexOf(award)}
                     title={language === "es" ? award.titleEs : award.title}
-                    body={language === "es" ? award.descriptionEs : award.description}
+                    body={
+                      <>
+                        {award.years && (
+                          <span className="flex flex-wrap gap-2 mb-3">
+                            {award.years.map((year) => (
+                              <Badge
+                                key={year}
+                                variant="outline"
+                                className="text-xs"
+                              >
+                                {year}
+                              </Badge>
+                            ))}
+                          </span>
+                        )}
+                        <span className="block">
+                          {language === "es" ? award.descriptionEs : award.description}
+                        </span>
+                      </>
+                    }
                     dataTestid={`card-award-${award.id}`}
-                  >
-                    {award.years && (
-                      <div className="flex flex-wrap gap-2 mt-4">
-                        {award.years.map((year) => (
-                          <Badge
-                            key={year}
-                            variant="outline"
-                            className="text-xs"
-                          >
-                            {year}
-                          </Badge>
-                        ))}
-                      </div>
-                    )}
-                  </NumberedCard>
+                  />
                 </motion.div>
               ))}
             </div>
