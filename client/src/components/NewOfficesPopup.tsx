@@ -350,7 +350,7 @@ export default function NewOfficesPopup({ language }: NewOfficesPopupProps) {
             style={{ imageRendering: "crisp-edges" }}
             data-testid="img-popup-logo"
           />
-          <span className="text-xs text-gray-500 uppercase tracking-wider">
+          <span className="text-[10px] text-muted-foreground uppercase tracking-[0.25em]">
             {language.toUpperCase()}
           </span>
         </div>
@@ -397,7 +397,7 @@ export default function NewOfficesPopup({ language }: NewOfficesPopupProps) {
                 className="mt-8 flex flex-col items-center gap-1 text-white/80 hover:text-white transition-colors mx-auto cursor-pointer min-h-[44px] min-w-[44px] p-2 touch-manipulation"
                 data-testid="button-popup-scroll"
               >
-                <span className="text-xs tracking-widest uppercase">{t.scroll}</span>
+                <span className="text-[10px] tracking-[0.25em] uppercase">{t.scroll}</span>
                 <ChevronDown className="w-5 h-5 animate-bounce" />
               </motion.button>
             </div>
@@ -405,42 +405,45 @@ export default function NewOfficesPopup({ language }: NewOfficesPopupProps) {
 
           <div className="bg-background px-6 md:px-12 py-12 space-y-12">
             <section className="max-w-3xl mx-auto text-center" data-testid="section-vision">
-              <h3 className="text-xl md:text-2xl font-heading font-light text-gray-800 mb-6 uppercase tracking-[0.12em]">
+              <div className="w-12 h-px bg-[#AA1A2E] mb-6 mx-auto" />
+              <h3 className="text-xl md:text-2xl font-heading font-light text-foreground mb-6 uppercase tracking-[0.12em]">
                 {t.visionTitle}
               </h3>
-              <p className="text-gray-600 leading-relaxed">
+              <p className="text-sm text-muted-foreground leading-relaxed text-justify hyphens-none">
                 {t.visionText}
               </p>
             </section>
 
             <section className="max-w-3xl mx-auto text-center" data-testid="section-center">
-              <h3 className="text-xl md:text-2xl font-heading font-light text-gray-800 mb-6 uppercase tracking-[0.12em]">
+              <div className="w-12 h-px bg-[#AA1A2E] mb-6 mx-auto" />
+              <h3 className="text-xl md:text-2xl font-heading font-light text-foreground mb-6 uppercase tracking-[0.12em]">
                 {t.centerTitle}
               </h3>
-              <p className="text-gray-600 leading-relaxed">
+              <p className="text-sm text-muted-foreground leading-relaxed text-justify hyphens-none">
                 {t.centerText}
               </p>
             </section>
 
             <section className="max-w-3xl mx-auto text-center" data-testid="section-collaboration">
-              <h3 className="text-xl md:text-2xl font-heading font-light text-gray-800 mb-6 uppercase tracking-[0.12em]">
+              <div className="w-12 h-px bg-[#AA1A2E] mb-6 mx-auto" />
+              <h3 className="text-xl md:text-2xl font-heading font-light text-foreground mb-6 uppercase tracking-[0.12em]">
                 {t.collabTitle}
               </h3>
-              <p className="text-gray-600 leading-relaxed mb-4">
+              <p className="text-sm text-muted-foreground leading-relaxed mb-4 text-justify hyphens-none">
                 {t.collabText}
               </p>
-              <p className="text-gray-600 leading-relaxed mb-8">
+              <p className="text-sm text-muted-foreground leading-relaxed mb-8 text-justify hyphens-none">
                 {t.collabText2}
               </p>
               <div className="flex flex-col items-center mb-8">
-                <span className="text-5xl md:text-6xl font-heading font-light text-[#AA1A2E]">
+                <span className="text-5xl md:text-6xl font-heading font-light text-[#AA1A2E] leading-none">
                   {t.workplacesNum}
                 </span>
-                <span className="text-sm text-gray-500 uppercase tracking-wider mt-2">
+                <span className="text-[10px] text-muted-foreground uppercase tracking-[0.25em] mt-3">
                   {t.workplacesLabel}
                 </span>
               </div>
-              <p className="text-gray-600 leading-relaxed">
+              <p className="text-sm text-muted-foreground leading-relaxed text-justify hyphens-none">
                 {t.capacityText}
               </p>
             </section>
@@ -450,13 +453,13 @@ export default function NewOfficesPopup({ language }: NewOfficesPopupProps) {
                 {collageImages.map((img, index) => (
                   <div
                     key={index}
-                    className={`overflow-hidden ${index === 0 || index === 5 ? "row-span-2" : ""}`}
+                    className={`overflow-hidden group ${index === 0 || index === 5 ? "row-span-2" : ""}`}
                     data-testid={`img-collage-${index}`}
                   >
                     <img
                       src={img}
                       alt={`${t.officeInterior} ${index + 1}`}
-                      className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
+                      className="w-full h-full object-cover transition-all duration-500 grayscale brightness-90 group-hover:grayscale-0 group-hover:brightness-100 group-hover:scale-105"
                       loading="lazy"
                     />
                   </div>
@@ -464,30 +467,30 @@ export default function NewOfficesPopup({ language }: NewOfficesPopupProps) {
               </div>
             </section>
 
-            <section className="max-w-3xl mx-auto text-center py-8 border-t border-b border-gray-200" data-testid="section-quote">
-              <div className="text-4xl text-[#AA1A2E] opacity-30 mb-4">"</div>
-              <blockquote className="text-xl md:text-2xl text-gray-700 leading-relaxed mb-6" style={{ fontStyle: "italic" }}>
-                "{t.quoteText}"
+            <section className="max-w-3xl mx-auto text-center py-10 border-t border-b border-border" data-testid="section-quote">
+              <div className="font-heading text-6xl text-[#AA1A2E] opacity-40 mb-4 leading-none">&ldquo;</div>
+              <blockquote className="font-heading font-light text-lg md:text-xl text-foreground leading-relaxed mb-8 not-italic" style={{ fontStyle: "normal" }}>
+                {t.quoteText}
               </blockquote>
-              <div className="text-sm text-gray-500">
-                <p className="font-medium text-gray-700">– {t.quoteAuthor}</p>
-                <p>{t.quoteRole}</p>
-              </div>
+              <div className="w-12 h-px bg-[#AA1A2E] mx-auto mb-4" />
+              <p className="text-xs text-foreground uppercase tracking-[0.2em] mb-1">{t.quoteAuthor}</p>
+              <p className="text-[10px] text-muted-foreground uppercase tracking-[0.25em]">{t.quoteRole}</p>
             </section>
 
             <section className="max-w-3xl mx-auto text-center" data-testid="section-address">
-              <h3 className="text-xl md:text-2xl font-heading font-light text-gray-800 mb-6 uppercase tracking-[0.12em]">
+              <div className="w-12 h-px bg-[#AA1A2E] mb-6 mx-auto" />
+              <h3 className="text-xl md:text-2xl font-heading font-light text-foreground mb-6 uppercase tracking-[0.12em]">
                 {t.addressTitle}
               </h3>
               <a
                 href={GOOGLE_MAPS_URL}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex flex-col items-center gap-2 min-h-[44px] p-4 text-gray-600 hover:text-[#AA1A2E] transition-colors group touch-manipulation"
+                className="inline-flex flex-col items-center gap-3 min-h-[44px] p-4 text-muted-foreground hover:text-[#AA1A2E] transition-colors group touch-manipulation"
                 data-testid="link-popup-address"
               >
                 <MapPin className="w-8 h-8 text-[#AA1A2E] group-hover:scale-110 transition-transform" />
-                <div className="leading-relaxed">
+                <div className="text-sm leading-relaxed">
                   <p>{t.addressLine1}</p>
                   <p>{t.addressLine2}</p>
                   <p>{t.addressLine3}</p>
@@ -501,7 +504,7 @@ export default function NewOfficesPopup({ language }: NewOfficesPopupProps) {
           <Button
             onClick={handleClose}
             variant="ghost"
-            className="w-full text-white hover:text-white hover:bg-white/10 text-base font-medium tracking-wider uppercase"
+            className="w-full text-white hover:text-white hover:bg-white/10 text-xs tracking-[0.25em] uppercase"
             data-testid="button-close-popup"
           >
             {t.close}

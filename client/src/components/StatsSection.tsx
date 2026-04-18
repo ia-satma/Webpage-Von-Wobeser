@@ -3,24 +3,42 @@ import { motion } from "framer-motion";
 import { useQuery } from "@tanstack/react-query";
 import { Skeleton } from "@/components/ui/skeleton";
 import { AlertCircle, ZoomIn, X, ChevronLeft, ChevronRight } from "lucide-react";
-import type { Stat, OfficeImage } from "@shared/schema";
+import type { Stat } from "@shared/schema";
+
+import collage01 from "@assets/collage_01.jpg";
+import collage02 from "@assets/collage_02.jpg";
+import collage03 from "@assets/collage_03.jpg";
+import collage04 from "@assets/collage_04.jpg";
+import collage05 from "@assets/collage_05.jpg";
+import collage06 from "@assets/collage_06.jpg";
+import collage07 from "@assets/collage_07.jpg";
+import collage08 from "@assets/collage_08.jpg";
+import collage09 from "@assets/collage_09.jpg";
+import heroOffice from "@assets/hero_office.jpg";
 
 interface StatsSectionProps {
   language: "es" | "en" | "de" | "zh" | "ko" | "ja" | "ar" | "ru" | "fr" | "it";
 }
+
+const galleryImages: { id: string; src: string; alt: string; altEs: string }[] = [
+  { id: "office-01", src: collage01, alt: "Reception area at the new Von Wobeser y Sierra offices", altEs: "Área de recepción de las nuevas oficinas de Von Wobeser y Sierra" },
+  { id: "office-02", src: collage02, alt: "Collaborative workspace at the new offices", altEs: "Espacio de trabajo colaborativo en las nuevas oficinas" },
+  { id: "office-03", src: collage03, alt: "Meeting room at the new offices", altEs: "Sala de juntas en las nuevas oficinas" },
+  { id: "office-04", src: collage04, alt: "Open lounge area at the new offices", altEs: "Área lounge abierta en las nuevas oficinas" },
+  { id: "office-05", src: collage05, alt: "Private office at the new offices", altEs: "Oficina privada en las nuevas oficinas" },
+  { id: "office-hero", src: heroOffice, alt: "Panoramic view of the new Von Wobeser y Sierra offices", altEs: "Vista panorámica de las nuevas oficinas de Von Wobeser y Sierra" },
+  { id: "office-06", src: collage06, alt: "Conference room at the new offices", altEs: "Sala de conferencias en las nuevas oficinas" },
+  { id: "office-07", src: collage07, alt: "Lobby detail at the new offices", altEs: "Detalle del lobby en las nuevas oficinas" },
+  { id: "office-08", src: collage08, alt: "Panoramic terrace at the new offices", altEs: "Terraza panorámica en las nuevas oficinas" },
+  { id: "office-09", src: collage09, alt: "Library and reading area at the new offices", altEs: "Biblioteca y área de lectura en las nuevas oficinas" },
+];
 
 export default function StatsSection({ language }: StatsSectionProps) {
   const { data: stats, isLoading, error } = useQuery<Stat[]>({
     queryKey: ["/api/stats"],
   });
 
-  const { data: officeImages = [], isLoading: imagesLoading } = useQuery<OfficeImage[]>({
-    queryKey: ["/api/office-images"],
-  });
-
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
-
-  const galleryImages = officeImages.slice(0, 10);
 
   const goPrev = useCallback(() => {
     if (lightboxIndex === null) return;
@@ -456,40 +474,33 @@ export default function StatsSection({ language }: StatsSectionProps) {
       </div>
 
       {/* ── Zone 3: Full-bleed gallery ────────────────────────────────── */}
-      {imagesLoading && (
-        <div className="mt-14 grid grid-cols-5" data-testid="stats-gallery-skeleton">
-          {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((i) => (
-            <Skeleton key={i} className="aspect-square" data-testid={`stats-gallery-skeleton-${i}`} />
-          ))}
-        </div>
-      )}
-
-      {!imagesLoading && galleryImages.length > 0 && (
-        <motion.div
-          initial={{ opacity: 0, y: 24 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.7, delay: 0.1 }}
-          className="mt-14"
+      <motion.div
+        initial={{ opacity: 0, y: 24 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.7, delay: 0.1 }}
+        className="mt-14"
+      >
+        <div
+          className="grid grid-cols-5"
+          data-testid="stats-gallery-grid"
         >
-          <div
-            className="grid grid-cols-5"
-            data-testid="stats-gallery-grid"
-          >
-            {galleryImages.map((img, idx) => (
+          {galleryImages.map((img, idx) => {
+            const altText = language === "es" ? img.altEs : img.alt;
+            return (
               <div
                 key={img.id}
                 className="relative aspect-square overflow-hidden cursor-pointer group"
                 onClick={() => setLightboxIndex(idx)}
                 role="button"
                 tabIndex={0}
-                aria-label={img.alt || img.altEs || "Office photo"}
+                aria-label={altText}
                 onKeyDown={(e) => e.key === "Enter" && setLightboxIndex(idx)}
                 data-testid={`stats-gallery-image-${img.id}`}
               >
                 <img
-                  src={img.imageUrl}
-                  alt={img.alt || img.altEs || ""}
+                  src={img.src}
+                  alt={altText}
                   className="absolute inset-0 w-full h-full object-cover transition-all duration-500 grayscale brightness-50 group-hover:grayscale-0 group-hover:brightness-100 group-hover:scale-105"
                   loading="lazy"
                 />
@@ -499,10 +510,10 @@ export default function StatsSection({ language }: StatsSectionProps) {
                   />
                 </div>
               </div>
-            ))}
-          </div>
-        </motion.div>
-      )}
+            );
+          })}
+        </div>
+      </motion.div>
 
       {/* Lightbox */}
       {lightboxIndex !== null && galleryImages.length > 0 && (
@@ -534,8 +545,8 @@ export default function StatsSection({ language }: StatsSectionProps) {
           )}
 
           <img
-            src={galleryImages[lightboxIndex].imageUrl}
-            alt={galleryImages[lightboxIndex].alt || galleryImages[lightboxIndex].altEs || ""}
+            src={galleryImages[lightboxIndex].src}
+            alt={language === "es" ? galleryImages[lightboxIndex].altEs : galleryImages[lightboxIndex].alt}
             className="max-h-[85vh] max-w-[90vw] object-contain"
             onClick={(e) => e.stopPropagation()}
             data-testid="stats-lightbox-image"
