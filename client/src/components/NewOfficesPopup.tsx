@@ -453,7 +453,9 @@ export default function NewOfficesPopup({ language }: NewOfficesPopupProps) {
                 {collageImages.map((img, index) => (
                   <div
                     key={index}
-                    className="aspect-square overflow-hidden group"
+                    className={`aspect-square overflow-hidden group ${
+                      index === collageImages.length - 1 ? "col-span-2 md:col-span-1 aspect-[2/1] md:aspect-square" : ""
+                    }`}
                     data-testid={`img-collage-${index}`}
                   >
                     <img
