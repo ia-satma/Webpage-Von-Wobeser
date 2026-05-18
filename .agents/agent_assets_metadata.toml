@@ -185,3 +185,9 @@ id = "w7afad8SW0aoF3psWFNyL"
 uri = "file://attached_assets/stock_images/frankfurt_dusk_5.jpg"
 type = "image"
 title = "Frankfurt skyline twilight blue hour"
+
+[[outputs]]
+id = "Q6Us4DNWrg8-MxKNAa20a"
+uri = "file://exports/vonwobeser-build.zip"
+type = "unspecified"
+title = "Von Wobeser y Sierra — build de producción"
