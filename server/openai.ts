@@ -1,4 +1,5 @@
 import OpenAI from "openai";
+import { callClaude } from "./llm";
 
 // En Replit, las AI Integrations inyectan AI_INTEGRATIONS_OPENAI_BASE_URL/_API_KEY
 // y el modelo por defecto es "gpt-5". En local se admite OPENAI_API_KEY estándar
@@ -61,13 +62,9 @@ export async function translateLegalText(
     return text;
   }
 
-  const response = await openai.chat.completions.create({
-    model: TRANSLATE_MODEL,
-    messages: [
-      {
-        role: "system",
-        content: `You are a professional legal translator specializing in corporate law, M&A, litigation, arbitration, and regulatory matters. Translate the following text from ${sourceLanguage} to ${targetLanguage}. 
-        
+  const raw = await callClaude({
+    system: `You are a professional legal translator specializing in corporate law, M&A, litigation, arbitration, and regulatory matters. Translate the following text from ${sourceLanguage} to ${targetLanguage}.
+
 IMPORTANT GUIDELINES:
 - Use proper legal terminology and jargon appropriate for the target language
 - Maintain formal, professional tone suitable for a top-tier law firm
@@ -77,17 +74,12 @@ IMPORTANT GUIDELINES:
 - Do not add explanatory notes or brackets - provide clean translated text only
 
 Respond with JSON in this format: { "translation": "translated text here" }`,
-      },
-      {
-        role: "user",
-        content: text,
-      },
-    ],
-    response_format: { type: "json_object" },
-    max_completion_tokens: 4096,
+    messages: [{ role: "user", content: text }],
+    maxTokens: 4096,
+    json: true,
   });
 
-  const result = JSON.parse(response.choices[0].message.content || "{}");
+  const result = JSON.parse(raw || "{}");
   return result.translation || text;
 }
 
@@ -102,25 +94,16 @@ export async function translateMultipleTexts(
 
   const textsForTranslation = texts.map(({ key, text }) => `${key}: ${text}`).join("\n---\n");
 
-  const response = await openai.chat.completions.create({
-    model: TRANSLATE_MODEL,
-    messages: [
-      {
-        role: "system",
-        content: `You are a professional legal translator. Translate all the following texts from ${sourceLanguage} to ${targetLanguage}. Each text is prefixed with a key followed by a colon. Maintain proper legal terminology.
+  const raw = await callClaude({
+    system: `You are a professional legal translator. Translate all the following texts from ${sourceLanguage} to ${targetLanguage}. Each text is prefixed with a key followed by a colon. Maintain proper legal terminology.
 
 Respond with JSON where keys are the original keys and values are the translations: { "key1": "translation1", "key2": "translation2" }`,
-      },
-      {
-        role: "user",
-        content: textsForTranslation,
-      },
-    ],
-    response_format: { type: "json_object" },
-    max_completion_tokens: 8192,
+    messages: [{ role: "user", content: textsForTranslation }],
+    maxTokens: 8192,
+    json: true,
   });
 
-  return JSON.parse(response.choices[0].message.content || "{}");
+  return JSON.parse(raw || "{}");
 }
 
 export async function suggestTranslation(
@@ -133,26 +116,22 @@ export async function suggestTranslation(
     .map(([lang, text]) => `${lang}: ${text}`)
     .join("\n");
 
-  const response = await openai.chat.completions.create({
-    model: TRANSLATE_MODEL,
-    messages: [
-      {
-        role: "system",
-        content: `You are a professional legal translator for a top law firm. Based on the provided original text and any existing translations, suggest a translation to ${targetLanguage}.
+  const raw = await callClaude({
+    system: `You are a professional legal translator for a top law firm. Based on the provided original text and any existing translations, suggest a translation to ${targetLanguage}.
 
 Use proper legal terminology appropriate for the target language's legal system.
 
 Respond with JSON: { "translation": "your translation", "confidence": 0.95 }
 Confidence should be between 0 and 1, where 1 means highly confident.`,
-      },
+    messages: [
       {
         role: "user",
         content: `Original text:\n${originalText}\n\nExisting translations:\n${existingLanguages || "None available"}`,
       },
     ],
-    response_format: { type: "json_object" },
-    max_completion_tokens: 4096,
+    maxTokens: 4096,
+    json: true,
   });
 
-  return JSON.parse(response.choices[0].message.content || '{"translation": "", "confidence": 0}');
+  return JSON.parse(raw || '{"translation": "", "confidence": 0}');
 }

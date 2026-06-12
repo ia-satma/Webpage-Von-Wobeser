@@ -8,7 +8,7 @@ import {
   EvolutionProposal,
   KnowledgeDocument
 } from './types';
-import { openai } from '../../openai';
+import { callClaude } from '../../llm';
 
 export abstract class BaseAgent {
   protected config: AgentConfig;
@@ -33,41 +33,23 @@ export abstract class BaseAgent {
     messages: { role: 'system' | 'user' | 'assistant'; content: string }[],
     options?: { temperature?: number; maxTokens?: number; jsonMode?: boolean }
   ): Promise<string> {
-    const primaryModel = this.config.model || 'gpt-4o';
-    const fallbackModels = ['gpt-4o-mini', 'gpt-3.5-turbo'];
-    const allModels = [primaryModel, ...fallbackModels.filter(m => m !== primaryModel)];
-    
-    let lastError: Error | null = null;
-    
-    for (const model of allModels) {
-      try {
-        const response = await openai.chat.completions.create({
-          model,
-          messages: [
-            { role: 'system', content: this.config.systemPrompt },
-            ...messages
-          ],
-          temperature: options?.temperature ?? this.config.temperature ?? 0.7,
-          max_tokens: options?.maxTokens ?? this.config.maxTokens ?? 4096,
-          response_format: options?.jsonMode ? { type: 'json_object' } : undefined,
-        });
+    // Migrado a Claude. Los mensajes con role 'system' del array se combinan con el
+    // systemPrompt del agente (Claude separa el system del resto de la conversación).
+    const systemParts = [
+      this.config.systemPrompt,
+      ...messages.filter(m => m.role === 'system').map(m => m.content),
+    ].filter(Boolean) as string[];
 
-        return response.choices[0]?.message?.content || '';
-      } catch (error: any) {
-        lastError = error;
-        const isQuotaError = error?.status === 429 || 
-                            error?.message?.includes('quota') || 
-                            error?.message?.includes('rate limit');
-        
-        if (isQuotaError && model !== allModels[allModels.length - 1]) {
-          console.log(`[${this.name}] Model ${model} quota exceeded, trying fallback...`);
-          continue;
-        }
-        throw error;
-      }
-    }
-    
-    throw lastError || new Error('All models failed');
+    const conversation = messages
+      .filter(m => m.role !== 'system')
+      .map(m => ({ role: m.role as 'user' | 'assistant', content: m.content }));
+
+    return callClaude({
+      system: systemParts.join('\n\n'),
+      messages: conversation,
+      maxTokens: options?.maxTokens ?? this.config.maxTokens ?? 4096,
+      json: options?.jsonMode,
+    });
   }
 
   protected async analyzeForLearnings(
