@@ -390,8 +390,8 @@ export default function StatsSection({ language }: StatsSectionProps) {
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
           >
-            <div className="w-12 h-px bg-[#AA1A2E] mb-6" />
-            <p className="text-[#AA1A2E] text-[10px] tracking-[0.25em] uppercase mb-4">
+            <div className="w-12 h-px bg-primary mb-6" />
+            <p className="text-primary text-[10px] tracking-[0.25em] uppercase mb-4">
               GENSLER DESIGN
             </p>
             <h2
@@ -439,7 +439,7 @@ export default function StatsSection({ language }: StatsSectionProps) {
                   data-testid={`stat-item-${index}`}
                 >
                   <div
-                    className="font-heading font-light text-5xl lg:text-6xl xl:text-7xl text-[#AA1A2E] leading-none mb-3"
+                    className="font-heading font-light text-5xl lg:text-6xl xl:text-7xl text-primary leading-none mb-3"
                     data-testid={`text-stat-value-${index}`}
                   >
                     {stat.value}
@@ -540,7 +540,7 @@ export default function StatsSection({ language }: StatsSectionProps) {
               aria-label="Previous"
               data-testid="stats-lightbox-prev"
             >
-              <ChevronLeft className="w-10 h-10 text-[#AA1A2E]" />
+              <ChevronLeft className="w-10 h-10 text-primary" />
             </button>
           )}
 
@@ -559,7 +559,7 @@ export default function StatsSection({ language }: StatsSectionProps) {
               aria-label="Next"
               data-testid="stats-lightbox-next"
             >
-              <ChevronRight className="w-10 h-10 text-[#AA1A2E]" />
+              <ChevronRight className="w-10 h-10 text-primary" />
             </button>
           )}
 

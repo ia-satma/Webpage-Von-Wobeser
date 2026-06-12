@@ -118,9 +118,9 @@ export default function RankingsSection() {
           transition={{ duration: 0.6 }}
           className="text-center mb-10"
         >
-          <div className="w-12 h-px bg-[#AA1A2E] mb-6 mx-auto" />
+          <div className="w-12 h-px bg-primary mb-6 mx-auto" />
           <p
-            className="text-[#AA1A2E] text-[10px] tracking-[0.25em] uppercase mb-4"
+            className="text-primary text-[10px] tracking-[0.25em] uppercase mb-4"
             data-testid="text-rankings-eyebrow"
           >
             {t.eyebrow}

@@ -405,7 +405,7 @@ export default function NewOfficesPopup({ language }: NewOfficesPopupProps) {
 
           <div className="bg-background px-6 md:px-12 py-12 space-y-12">
             <section className="max-w-3xl mx-auto text-center" data-testid="section-vision">
-              <div className="w-12 h-px bg-[#AA1A2E] mb-6 mx-auto" />
+              <div className="w-12 h-px bg-primary mb-6 mx-auto" />
               <h3 className="text-xl md:text-2xl font-heading font-light text-foreground mb-6 uppercase tracking-[0.12em]">
                 {t.visionTitle}
               </h3>
@@ -415,7 +415,7 @@ export default function NewOfficesPopup({ language }: NewOfficesPopupProps) {
             </section>
 
             <section className="max-w-3xl mx-auto text-center" data-testid="section-center">
-              <div className="w-12 h-px bg-[#AA1A2E] mb-6 mx-auto" />
+              <div className="w-12 h-px bg-primary mb-6 mx-auto" />
               <h3 className="text-xl md:text-2xl font-heading font-light text-foreground mb-6 uppercase tracking-[0.12em]">
                 {t.centerTitle}
               </h3>
@@ -425,7 +425,7 @@ export default function NewOfficesPopup({ language }: NewOfficesPopupProps) {
             </section>
 
             <section className="max-w-3xl mx-auto text-center" data-testid="section-collaboration">
-              <div className="w-12 h-px bg-[#AA1A2E] mb-6 mx-auto" />
+              <div className="w-12 h-px bg-primary mb-6 mx-auto" />
               <h3 className="text-xl md:text-2xl font-heading font-light text-foreground mb-6 uppercase tracking-[0.12em]">
                 {t.collabTitle}
               </h3>
@@ -436,7 +436,7 @@ export default function NewOfficesPopup({ language }: NewOfficesPopupProps) {
                 {t.collabText2}
               </p>
               <div className="flex flex-col items-center mb-8">
-                <span className="text-5xl md:text-6xl font-heading font-light text-[#AA1A2E] leading-none">
+                <span className="text-5xl md:text-6xl font-heading font-light text-primary leading-none">
                   {t.workplacesNum}
                 </span>
                 <span className="text-[10px] text-muted-foreground uppercase tracking-[0.25em] mt-3">
@@ -481,17 +481,17 @@ export default function NewOfficesPopup({ language }: NewOfficesPopupProps) {
             </section>
 
             <section className="max-w-3xl mx-auto text-center py-10 border-t border-b border-border" data-testid="section-quote">
-              <div className="font-heading text-6xl text-[#AA1A2E] opacity-40 mb-4 leading-none">&ldquo;</div>
+              <div className="font-heading text-6xl text-primary opacity-40 mb-4 leading-none">&ldquo;</div>
               <blockquote className="font-heading font-light text-lg md:text-xl text-foreground leading-relaxed mb-8 not-italic" style={{ fontStyle: "normal" }}>
                 {t.quoteText}
               </blockquote>
-              <div className="w-12 h-px bg-[#AA1A2E] mx-auto mb-4" />
+              <div className="w-12 h-px bg-primary mx-auto mb-4" />
               <p className="text-xs text-foreground uppercase tracking-[0.2em] mb-1">{t.quoteAuthor}</p>
               <p className="text-[10px] text-muted-foreground uppercase tracking-[0.25em]">{t.quoteRole}</p>
             </section>
 
             <section className="max-w-3xl mx-auto text-center" data-testid="section-address">
-              <div className="w-12 h-px bg-[#AA1A2E] mb-6 mx-auto" />
+              <div className="w-12 h-px bg-primary mb-6 mx-auto" />
               <h3 className="text-xl md:text-2xl font-heading font-light text-foreground mb-6 uppercase tracking-[0.12em]">
                 {t.addressTitle}
               </h3>
@@ -499,10 +499,10 @@ export default function NewOfficesPopup({ language }: NewOfficesPopupProps) {
                 href={GOOGLE_MAPS_URL}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex flex-col items-center gap-3 min-h-[44px] p-4 text-muted-foreground hover:text-[#AA1A2E] transition-colors group touch-manipulation"
+                className="inline-flex flex-col items-center gap-3 min-h-[44px] p-4 text-muted-foreground hover:text-primary transition-colors group touch-manipulation"
                 data-testid="link-popup-address"
               >
-                <MapPin className="w-8 h-8 text-[#AA1A2E] group-hover:scale-110 transition-transform" />
+                <MapPin className="w-8 h-8 text-primary group-hover:scale-110 transition-transform" />
                 <div className="text-sm leading-relaxed">
                   <p>{t.addressLine1}</p>
                   <p>{t.addressLine2}</p>
@@ -513,7 +513,7 @@ export default function NewOfficesPopup({ language }: NewOfficesPopupProps) {
           </div>
         </div>
 
-        <div className="bg-[#AA1A2E] p-4 flex-shrink-0">
+        <div className="bg-primary p-4 flex-shrink-0">
           <Button
             onClick={handleClose}
             variant="ghost"

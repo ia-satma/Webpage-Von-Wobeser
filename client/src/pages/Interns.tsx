@@ -792,7 +792,7 @@ export default function Interns() {
           >
             <div className="text-center mb-12">
               <h2 
-                className="text-2xl md:text-3xl font-heading font-light text-[#AA1A2E] mb-4 uppercase tracking-[0.12em]"
+                className="text-2xl md:text-3xl font-heading font-light text-primary mb-4 uppercase tracking-[0.12em]"
                 data-testid="text-program-overview-title"
               >
                 {t.programOverviewTitle}
@@ -851,7 +851,7 @@ export default function Interns() {
           >
             <div className="text-center mb-12">
               <h2 
-                className="text-2xl md:text-3xl font-heading font-light text-[#AA1A2E] mb-4 uppercase tracking-[0.12em]"
+                className="text-2xl md:text-3xl font-heading font-light text-primary mb-4 uppercase tracking-[0.12em]"
                 data-testid="text-what-you-learn-title"
               >
                 {t.whatYouLearnTitle}
@@ -905,7 +905,7 @@ export default function Interns() {
           >
             <div className="text-center mb-12">
               <h2 
-                className="text-2xl md:text-3xl font-heading font-light text-[#AA1A2E] mb-4 uppercase tracking-[0.12em]"
+                className="text-2xl md:text-3xl font-heading font-light text-primary mb-4 uppercase tracking-[0.12em]"
                 data-testid="text-requirements-title"
               >
                 {t.requirementsTitle}
@@ -950,7 +950,7 @@ export default function Interns() {
           >
             <div className="text-center mb-12">
               <h2 
-                className="text-2xl md:text-3xl font-heading font-light text-[#AA1A2E] mb-4 uppercase tracking-[0.12em]"
+                className="text-2xl md:text-3xl font-heading font-light text-primary mb-4 uppercase tracking-[0.12em]"
                 data-testid="text-application-process-title"
               >
                 {t.applicationProcessTitle}
@@ -1000,7 +1000,7 @@ export default function Interns() {
           >
             <div className="text-center mb-12">
               <h2 
-                className="text-2xl md:text-3xl font-heading font-light text-[#AA1A2E] mb-4 uppercase tracking-[0.12em]"
+                className="text-2xl md:text-3xl font-heading font-light text-primary mb-4 uppercase tracking-[0.12em]"
                 data-testid="text-benefits-title"
               >
                 {t.benefitsTitle}

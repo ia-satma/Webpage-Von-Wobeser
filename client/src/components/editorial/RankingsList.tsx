@@ -37,7 +37,7 @@ export function RankingsList({
           >
             <div className="flex items-center gap-4 min-w-0 flex-1">
               <div
-                className="w-2 h-2 bg-[#AA1A2E] shrink-0"
+                className="w-2 h-2 bg-primary shrink-0"
                 aria-hidden="true"
               />
               <p
@@ -57,7 +57,7 @@ export function RankingsList({
             </div>
             <Badge
               className={`rounded-none text-xs flex items-center gap-1 shrink-0 ${
-                getBadgeStyles ? getBadgeStyles(item.badgeType ?? "") : "bg-[#AA1A2E] text-white border-0"
+                getBadgeStyles ? getBadgeStyles(item.badgeType ?? "") : "bg-primary text-white border-0"
               }`}
               data-testid={`badge-${testIdPrefix}-${index}`}
             >

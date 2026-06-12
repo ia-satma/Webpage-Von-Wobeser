@@ -39,7 +39,7 @@ function TranslatedPracticeGroupBadge({ practiceGroup, language }: TranslatedPra
         className="flex items-center justify-between gap-4 py-4 px-1 hover-elevate cursor-pointer"
       >
         <div className="flex items-center gap-4 min-w-0">
-          <div className="w-2 h-2 bg-[#AA1A2E] shrink-0" aria-hidden="true" />
+          <div className="w-2 h-2 bg-primary shrink-0" aria-hidden="true" />
           <span className="text-foreground font-medium uppercase tracking-[0.12em] text-sm">
             {displayName}
           </span>
@@ -428,7 +428,7 @@ export default function IndustryGroupDetail() {
                 transition={{ duration: 0.6, delay: 0.3 }}
               >
                 <div className="mb-6">
-                  <div className="h-px w-10 bg-[#AA1A2E] mb-4" aria-hidden="true" />
+                  <div className="h-px w-10 bg-primary mb-4" aria-hidden="true" />
                   <h2
                     className="text-xl font-heading font-light text-foreground uppercase tracking-[0.12em]"
                     data-testid="text-related-services-title"

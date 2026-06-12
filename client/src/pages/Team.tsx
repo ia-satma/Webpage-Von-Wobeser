@@ -476,7 +476,7 @@ export default function Team() {
       </section>
 
       {/* Filter bar */}
-      <div className="bg-[#0a0a09] border-b border-[#AA1A2E]/15 sticky top-0 z-40">
+      <div className="bg-[#0a0a09] border-b border-primary/15 sticky top-0 z-40">
         <div className="max-w-7xl mx-auto px-6 lg:px-12 py-4">
           <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center">
             <div className="relative flex-1">
@@ -486,7 +486,7 @@ export default function Team() {
                 placeholder={t.searchPlaceholder}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-9 rounded-none bg-white/5 border-white/10 text-white placeholder:text-white/30 focus-visible:ring-[#AA1A2E]/40 focus-visible:border-[#AA1A2E]/40"
+                className="pl-9 rounded-none bg-white/5 border-white/10 text-white placeholder:text-white/30 focus-visible:ring-primary/40 focus-visible:border-primary/40"
                 data-testid="input-search"
               />
             </div>
@@ -557,8 +557,8 @@ export default function Team() {
               <section className="border-b border-border" data-testid="section-partners">
                 <div className="px-6 lg:px-12 pt-10 pb-4">
                   <div className="flex items-center gap-3 mb-1">
-                    <div className="w-8 h-px bg-[#AA1A2E] shrink-0" />
-                    <p className="text-[#AA1A2E] text-[10px] tracking-[0.3em] uppercase font-medium">NUESTRO EQUIPO</p>
+                    <div className="w-8 h-px bg-primary shrink-0" />
+                    <p className="text-primary text-[10px] tracking-[0.3em] uppercase font-medium">NUESTRO EQUIPO</p>
                     <span className="text-muted-foreground text-[9px] tracking-wider ml-1">— {groupedMembers.partners.length}</span>
                   </div>
                   <h2 className="font-heading font-light text-xl uppercase tracking-[0.12em] text-foreground">
@@ -587,18 +587,18 @@ export default function Team() {
                             onMouseEnter={() => setPartnerPanels(prev => ({ ...prev, [rowIdx]: `p-${member.id}` }))}
                           >
                             <div className="absolute inset-0 bg-muted flex items-center justify-center">
-                              <span className="text-2xl font-heading font-bold text-[#AA1A2E]/50 select-none">{getInitials(member.name)}</span>
+                              <span className="text-2xl font-heading font-bold text-primary/50 select-none">{getInitials(member.name)}</span>
                             </div>
                             <img src={getPhotoSrc(member)} alt="" aria-hidden="true" className="absolute inset-0 w-full h-full object-cover object-top" style={{ transform: isActive ? "scale(1.03)" : "scale(1)", filter: isActive ? "grayscale(0%)" : "grayscale(100%)", transition: "transform 0.6s cubic-bezier(0.22, 1, 0.36, 1), filter 0.5s ease" }} onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }} />
                             <div className="absolute inset-0" style={{ background: isActive ? "linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.4) 50%, rgba(0,0,0,0.2) 100%)" : "linear-gradient(to top, rgba(0,0,0,0.92) 0%, rgba(0,0,0,0.7) 100%)", transition: "background 0.5s ease" }} />
-                            <div className="absolute top-0 right-0 w-px h-full bg-[#AA1A2E]/15" />
+                            <div className="absolute top-0 right-0 w-px h-full bg-primary/15" />
                             <div className="absolute bottom-5 left-3 right-3" style={{ opacity: isActive ? 0 : 1, transition: "opacity 0.2s ease" }}>
                               <p className="text-white/60 text-[9px] uppercase tracking-[0.12em] font-light truncate">{member.name}</p>
                             </div>
                             <div className="absolute bottom-5 left-4 right-4" style={{ opacity: isActive ? 1 : 0, transform: isActive ? "translateY(0)" : "translateY(6px)", transition: "opacity 0.3s ease 0.1s, transform 0.3s ease 0.1s" }}>
                               <p className="font-heading font-light text-sm uppercase tracking-[0.1em] leading-snug mb-1 text-white whitespace-nowrap overflow-hidden text-ellipsis">{member.name}</p>
-                              <p className="text-[10px] text-[#AA1A2E] uppercase tracking-[0.08em] mb-3">{t.partnersOnly}</p>
-                              <div className="flex items-center gap-2 text-[#AA1A2E]">
+                              <p className="text-[10px] text-primary uppercase tracking-[0.08em] mb-3">{t.partnersOnly}</p>
+                              <div className="flex items-center gap-2 text-primary">
                                 <span className="text-[9px] uppercase tracking-[0.1em]">{t.viewProfile}</span>
                                 <ArrowRight className="w-3.5 h-3.5" />
                               </div>
@@ -614,12 +614,12 @@ export default function Team() {
                   {groupedMembers.partners.map((member, idx) => (
                     <Link key={member.id} href={`/team/${member.slug}`} className="relative overflow-hidden group block cursor-pointer" style={{ aspectRatio: "3/4" }} data-testid={`card-team-member-mob-${member.slug}`} aria-label={member.name}>
                       <div className="absolute inset-0 bg-muted flex items-center justify-center">
-                        <span className="text-2xl font-heading font-bold text-[#AA1A2E]/50 select-none">{getInitials(member.name)}</span>
+                        <span className="text-2xl font-heading font-bold text-primary/50 select-none">{getInitials(member.name)}</span>
                       </div>
                       <img src={getPhotoSrc(member)} alt="" aria-hidden="true" className="absolute inset-0 w-full h-full object-cover object-top transition-[transform,filter] duration-500 grayscale group-hover:grayscale-0 group-hover:scale-105" onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }} />
                       <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent" />
                       <div className="absolute bottom-0 left-0 right-0 px-3 pb-3">
-                        <p className="text-[#AA1A2E] text-[8px] uppercase tracking-[0.1em] mb-0.5">{t.partnersOnly}</p>
+                        <p className="text-primary text-[8px] uppercase tracking-[0.1em] mb-0.5">{t.partnersOnly}</p>
                         <p className="text-white text-[9px] uppercase tracking-[0.06em] leading-snug font-light line-clamp-2">{member.name}</p>
                       </div>
                     </Link>
@@ -633,8 +633,8 @@ export default function Team() {
               <section className="border-b border-border" data-testid="section-ofcounsel">
                 <div className="px-6 lg:px-12 pt-10 pb-4">
                   <div className="flex items-center gap-3 mb-1">
-                    <div className="w-8 h-px bg-[#AA1A2E] shrink-0" />
-                    <p className="text-[#AA1A2E] text-[10px] tracking-[0.3em] uppercase font-medium">{t.ofCounsel}</p>
+                    <div className="w-8 h-px bg-primary shrink-0" />
+                    <p className="text-primary text-[10px] tracking-[0.3em] uppercase font-medium">{t.ofCounsel}</p>
                     <span className="text-muted-foreground text-[9px] tracking-wider ml-1">— {groupedMembers.ofCounsel.length}</span>
                   </div>
                   <h2 className="font-heading font-light text-xl uppercase tracking-[0.12em] text-foreground">
@@ -656,18 +656,18 @@ export default function Team() {
                         onMouseEnter={() => setActivePanel(`oc-${member.id}`)}
                       >
                         <div className="absolute inset-0 bg-muted flex items-center justify-center">
-                          <span className="text-4xl font-heading font-bold text-[#AA1A2E]/40 select-none">{getInitials(member.name)}</span>
+                          <span className="text-4xl font-heading font-bold text-primary/40 select-none">{getInitials(member.name)}</span>
                         </div>
                         <img src={getPhotoSrc(member)} alt="" aria-hidden="true" className="absolute inset-0 w-full h-full object-cover object-top" style={{ transform: isActive ? "scale(1.04)" : "scale(1)", filter: isActive ? "grayscale(0%)" : "grayscale(100%)", transition: "transform 0.6s cubic-bezier(0.22, 1, 0.36, 1), filter 0.5s ease" }} onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }} />
                         <div className="absolute inset-0" style={{ background: isActive ? "linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.4) 50%, rgba(0,0,0,0.3) 100%)" : "linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.7) 100%)", transition: "background 0.5s ease" }} />
-                        <div className="absolute top-0 right-0 w-px h-full bg-[#AA1A2E]/20" />
+                        <div className="absolute top-0 right-0 w-px h-full bg-primary/20" />
                         <div className="absolute bottom-6 left-4 right-4" style={{ opacity: isActive ? 0 : 1, transition: "opacity 0.25s ease" }}>
                           <p className="text-white/70 text-[9px] uppercase tracking-[0.12em] font-light truncate">{member.name}</p>
                         </div>
                         <div className="absolute bottom-6 left-5 right-5" style={{ opacity: isActive ? 1 : 0, transform: isActive ? "translateY(0)" : "translateY(8px)", transition: "opacity 0.3s ease 0.1s, transform 0.3s ease 0.1s" }}>
                           <p className="font-heading font-light text-base uppercase tracking-[0.1em] leading-snug mb-1 text-white">{member.name}</p>
-                          <p className="text-xs text-[#AA1A2E] uppercase tracking-[0.08em] mb-3">{member.title}</p>
-                          <div className="flex items-center gap-2 text-[#AA1A2E]">
+                          <p className="text-xs text-primary uppercase tracking-[0.08em] mb-3">{member.title}</p>
+                          <div className="flex items-center gap-2 text-primary">
                             <span className="text-[9px] uppercase tracking-[0.1em]">{t.viewProfile}</span>
                             <ArrowRight className="w-4 h-4" />
                           </div>
@@ -681,12 +681,12 @@ export default function Team() {
                   {groupedMembers.ofCounsel.map((member, idx) => (
                     <Link key={member.id} href={`/team/${member.slug}`} className="relative overflow-hidden group block cursor-pointer" style={{ aspectRatio: "3/4" }} data-testid={`card-team-member-mob-${member.slug}`} aria-label={member.name}>
                       <div className="absolute inset-0 bg-muted flex items-center justify-center">
-                        <span className="text-3xl font-heading font-bold text-[#AA1A2E]/60 select-none">{getInitials(member.name)}</span>
+                        <span className="text-3xl font-heading font-bold text-primary/60 select-none">{getInitials(member.name)}</span>
                       </div>
                       <img src={getPhotoSrc(member)} alt="" aria-hidden="true" className="absolute inset-0 w-full h-full object-cover object-top transition-[transform,filter] duration-500 grayscale group-hover:grayscale-0 group-hover:scale-105" onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }} />
                       <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-transparent" />
                       <div className="absolute bottom-0 left-0 right-0 px-3 pb-3">
-                        <p className="text-[#AA1A2E] text-[8px] uppercase tracking-[0.1em] mb-0.5">{member.title}</p>
+                        <p className="text-primary text-[8px] uppercase tracking-[0.1em] mb-0.5">{member.title}</p>
                         <p className="text-white text-[9px] uppercase tracking-[0.06em] leading-snug font-light">{member.name}</p>
                       </div>
                     </Link>
@@ -700,8 +700,8 @@ export default function Team() {
               <section data-testid="section-associates">
                 <div className="px-6 lg:px-12 pt-10 pb-4">
                   <div className="flex items-center gap-3 mb-1">
-                    <div className="w-8 h-px bg-[#AA1A2E] shrink-0" />
-                    <p className="text-[#AA1A2E] text-[10px] tracking-[0.3em] uppercase font-medium">{t.associates}</p>
+                    <div className="w-8 h-px bg-primary shrink-0" />
+                    <p className="text-primary text-[10px] tracking-[0.3em] uppercase font-medium">{t.associates}</p>
                     <span className="text-muted-foreground text-[9px] tracking-wider ml-1">— {groupedMembers.associates.length}</span>
                   </div>
                   <h2 className="font-heading font-light text-xl uppercase tracking-[0.12em] text-foreground">
@@ -730,18 +730,18 @@ export default function Team() {
                             onMouseEnter={() => setAssocPanels(prev => ({ ...prev, [rowIdx]: `a-${member.id}` }))}
                           >
                             <div className="absolute inset-0 bg-muted flex items-center justify-center">
-                              <span className="text-xl font-heading font-bold text-[#AA1A2E]/40 select-none">{getInitials(member.name)}</span>
+                              <span className="text-xl font-heading font-bold text-primary/40 select-none">{getInitials(member.name)}</span>
                             </div>
                             <img src={getPhotoSrc(member)} alt="" aria-hidden="true" className="absolute inset-0 w-full h-full object-cover object-top" style={{ transform: isActive ? "scale(1.03)" : "scale(1)", filter: isActive ? "grayscale(0%)" : "grayscale(100%)", transition: "transform 0.6s cubic-bezier(0.22, 1, 0.36, 1), filter 0.5s ease" }} onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }} />
                             <div className="absolute inset-0" style={{ background: isActive ? "linear-gradient(to top, rgba(0,0,0,0.88) 0%, rgba(0,0,0,0.4) 50%, rgba(0,0,0,0.2) 100%)" : "linear-gradient(to top, rgba(0,0,0,0.93) 0%, rgba(0,0,0,0.75) 100%)", transition: "background 0.5s ease" }} />
-                            <div className="absolute top-0 right-0 w-px h-full bg-[#AA1A2E]/10" />
+                            <div className="absolute top-0 right-0 w-px h-full bg-primary/10" />
                             <div className="absolute bottom-4 left-3 right-3" style={{ opacity: isActive ? 0 : 1, transition: "opacity 0.2s ease" }}>
                               <p className="text-white/50 text-[8px] uppercase tracking-[0.1em] font-light truncate">{member.name}</p>
                             </div>
                             <div className="absolute bottom-4 left-3 right-3" style={{ opacity: isActive ? 1 : 0, transform: isActive ? "translateY(0)" : "translateY(6px)", transition: "opacity 0.3s ease 0.1s, transform 0.3s ease 0.1s" }}>
                               <p className="font-heading font-light text-sm uppercase tracking-[0.08em] leading-snug mb-0.5 text-white whitespace-nowrap overflow-hidden text-ellipsis">{member.name}</p>
-                              <p className="text-[9px] text-[#AA1A2E] uppercase tracking-[0.08em] mb-2">{t.associates}</p>
-                              <div className="flex items-center gap-1.5 text-[#AA1A2E]">
+                              <p className="text-[9px] text-primary uppercase tracking-[0.08em] mb-2">{t.associates}</p>
+                              <div className="flex items-center gap-1.5 text-primary">
                                 <span className="text-[9px] uppercase tracking-[0.1em]">{t.viewProfile}</span>
                                 <ArrowRight className="w-3 h-3" />
                               </div>
@@ -757,12 +757,12 @@ export default function Team() {
                   {groupedMembers.associates.map((member, idx) => (
                     <Link key={member.id} href={`/team/${member.slug}`} className="relative overflow-hidden group block cursor-pointer" style={{ aspectRatio: "3/4" }} data-testid={`card-team-member-mob-${member.slug}`} aria-label={member.name}>
                       <div className="absolute inset-0 bg-muted flex items-center justify-center">
-                        <span className="text-xl font-heading font-bold text-[#AA1A2E]/40 select-none">{getInitials(member.name)}</span>
+                        <span className="text-xl font-heading font-bold text-primary/40 select-none">{getInitials(member.name)}</span>
                       </div>
                       <img src={getPhotoSrc(member)} alt="" aria-hidden="true" className="absolute inset-0 w-full h-full object-cover object-top transition-[transform,filter] duration-500 grayscale group-hover:grayscale-0 group-hover:scale-105" onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }} />
                       <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent" />
                       <div className="absolute bottom-0 left-0 right-0 px-2.5 pb-2.5">
-                        <p className="text-[#AA1A2E] text-[7px] uppercase tracking-[0.08em] mb-0.5">{t.associates}</p>
+                        <p className="text-primary text-[7px] uppercase tracking-[0.08em] mb-0.5">{t.associates}</p>
                         <p className="text-white text-[8px] uppercase tracking-[0.05em] leading-snug font-light line-clamp-2">{member.name}</p>
                       </div>
                     </Link>

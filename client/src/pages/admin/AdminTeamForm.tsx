@@ -375,7 +375,7 @@ export default function AdminTeamForm() {
     return (
       <div className="flex items-center justify-center min-h-screen bg-[#F8F8F8]">
         <div className="flex flex-col items-center gap-4">
-          <div className="animate-spin w-10 h-10 border-4 border-[#AA1A2E] border-t-transparent rounded-full" />
+          <div className="animate-spin w-10 h-10 border-4 border-primary border-t-transparent rounded-full" />
           <p className="text-[#54565B] font-medium">{t.loading}</p>
         </div>
       </div>
@@ -461,7 +461,7 @@ export default function AdminTeamForm() {
                 type="submit"
                 form="team-member-form"
                 disabled={isPending}
-                className="rounded-none bg-[#AA1A2E] hover:bg-[#8a1525] text-white min-w-[140px]"
+                className="rounded-none bg-primary hover:bg-[#8a1525] text-white min-w-[140px]"
                 data-testid="button-submit"
               >
                 {isPending ? (
@@ -501,28 +501,28 @@ export default function AdminTeamForm() {
                     <TabsList className="w-full justify-start bg-card border border-[#D9D8D7] rounded-none p-1 h-auto">
                       <TabsTrigger 
                         value="general" 
-                        className="rounded-none data-[state=active]:bg-[#AA1A2E] data-[state=active]:text-white px-6 py-2.5"
+                        className="rounded-none data-[state=active]:bg-primary data-[state=active]:text-white px-6 py-2.5"
                       >
                         <User className="w-4 h-4 mr-2" />
                         {t.tabs.general}
                       </TabsTrigger>
                       <TabsTrigger 
                         value="contact"
-                        className="rounded-none data-[state=active]:bg-[#AA1A2E] data-[state=active]:text-white px-6 py-2.5"
+                        className="rounded-none data-[state=active]:bg-primary data-[state=active]:text-white px-6 py-2.5"
                       >
                         <Mail className="w-4 h-4 mr-2" />
                         {t.tabs.contact}
                       </TabsTrigger>
                       <TabsTrigger 
                         value="bio"
-                        className="rounded-none data-[state=active]:bg-[#AA1A2E] data-[state=active]:text-white px-6 py-2.5"
+                        className="rounded-none data-[state=active]:bg-primary data-[state=active]:text-white px-6 py-2.5"
                       >
                         <FileText className="w-4 h-4 mr-2" />
                         {t.tabs.bio}
                       </TabsTrigger>
                       <TabsTrigger 
                         value="settings"
-                        className="rounded-none data-[state=active]:bg-[#AA1A2E] data-[state=active]:text-white px-6 py-2.5"
+                        className="rounded-none data-[state=active]:bg-primary data-[state=active]:text-white px-6 py-2.5"
                       >
                         <Settings className="w-4 h-4 mr-2" />
                         {t.tabs.settings}
@@ -534,8 +534,8 @@ export default function AdminTeamForm() {
                       <Card className="rounded-none border-[#D9D8D7]">
                         <CardHeader className="border-b border-[#D9D8D7] bg-[#FAFAFA]">
                           <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 bg-[#AA1A2E]/10 flex items-center justify-center">
-                              <User className="w-5 h-5 text-[#AA1A2E]" />
+                            <div className="w-10 h-10 bg-primary/10 flex items-center justify-center">
+                              <User className="w-5 h-5 text-primary" />
                             </div>
                             <div>
                               <CardTitle className="text-lg text-[#1D1D1B]">{t.basicInfo}</CardTitle>
@@ -559,7 +559,7 @@ export default function AdminTeamForm() {
                                   <FormControl>
                                     <Input
                                       {...field}
-                                      className="rounded-none border-[#D9D8D7] focus:border-[#AA1A2E] focus:ring-[#AA1A2E]"
+                                      className="rounded-none border-[#D9D8D7] focus:border-primary focus:ring-primary"
                                       placeholder="María García López"
                                       onBlur={() => {
                                         field.onBlur();
@@ -591,7 +591,7 @@ export default function AdminTeamForm() {
                                   <FormControl>
                                     <Input 
                                       {...field} 
-                                      className="rounded-none border-[#D9D8D7] focus:border-[#AA1A2E] focus:ring-[#AA1A2E] font-mono text-sm"
+                                      className="rounded-none border-[#D9D8D7] focus:border-primary focus:ring-primary font-mono text-sm"
                                       data-testid="input-slug" 
                                     />
                                   </FormControl>
@@ -622,7 +622,7 @@ export default function AdminTeamForm() {
                                   <FormControl>
                                     <Input 
                                       {...field} 
-                                      className="rounded-none border-[#D9D8D7] focus:border-[#AA1A2E] focus:ring-[#AA1A2E]"
+                                      className="rounded-none border-[#D9D8D7] focus:border-primary focus:ring-primary"
                                       placeholder="Partner - Corporate & M&A"
                                       data-testid="input-title" 
                                     />
@@ -649,7 +649,7 @@ export default function AdminTeamForm() {
                                   <FormControl>
                                     <Input 
                                       {...field} 
-                                      className="rounded-none border-[#D9D8D7] focus:border-[#AA1A2E] focus:ring-[#AA1A2E]"
+                                      className="rounded-none border-[#D9D8D7] focus:border-primary focus:ring-primary"
                                       placeholder="Socio - Corporativo & Fusiones"
                                       data-testid="input-title-es" 
                                     />
@@ -731,8 +731,8 @@ export default function AdminTeamForm() {
                       <Card className="rounded-none border-[#D9D8D7]">
                         <CardHeader className="border-b border-[#D9D8D7] bg-[#FAFAFA]">
                           <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 bg-[#AA1A2E]/10 flex items-center justify-center">
-                              <Mail className="w-5 h-5 text-[#AA1A2E]" />
+                            <div className="w-10 h-10 bg-primary/10 flex items-center justify-center">
+                              <Mail className="w-5 h-5 text-primary" />
                             </div>
                             <div>
                               <CardTitle className="text-lg text-[#1D1D1B]">{t.contactInfo}</CardTitle>
@@ -755,7 +755,7 @@ export default function AdminTeamForm() {
                                     <Input 
                                       type="email" 
                                       {...field} 
-                                      className="rounded-none border-[#D9D8D7] focus:border-[#AA1A2E] focus:ring-[#AA1A2E]"
+                                      className="rounded-none border-[#D9D8D7] focus:border-primary focus:ring-primary"
                                       placeholder="mgarcia@vfrlaw.com"
                                       data-testid="input-email" 
                                     />
@@ -776,7 +776,7 @@ export default function AdminTeamForm() {
                                   <FormControl>
                                     <Input 
                                       {...field} 
-                                      className="rounded-none border-[#D9D8D7] focus:border-[#AA1A2E] focus:ring-[#AA1A2E]"
+                                      className="rounded-none border-[#D9D8D7] focus:border-primary focus:ring-primary"
                                       placeholder="+52 55 1234 5678"
                                       data-testid="input-phone" 
                                     />
@@ -805,7 +805,7 @@ export default function AdminTeamForm() {
                                   <FormControl>
                                     <Input 
                                       {...field} 
-                                      className="rounded-none border-[#D9D8D7] focus:border-[#AA1A2E] focus:ring-[#AA1A2E]"
+                                      className="rounded-none border-[#D9D8D7] focus:border-primary focus:ring-primary"
                                       placeholder="https://linkedin.com/in/..."
                                       data-testid="input-linkedin" 
                                     />
@@ -829,7 +829,7 @@ export default function AdminTeamForm() {
                                   <FormControl>
                                     <Input 
                                       {...field} 
-                                      className="rounded-none border-[#D9D8D7] focus:border-[#AA1A2E] focus:ring-[#AA1A2E]"
+                                      className="rounded-none border-[#D9D8D7] focus:border-primary focus:ring-primary"
                                       placeholder="https://example.com/photo.jpg"
                                       data-testid="input-image" 
                                     />
@@ -851,8 +851,8 @@ export default function AdminTeamForm() {
                       <Card className="rounded-none border-[#D9D8D7]">
                         <CardHeader className="border-b border-[#D9D8D7] bg-[#FAFAFA]">
                           <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 bg-[#AA1A2E]/10 flex items-center justify-center">
-                              <FileText className="w-5 h-5 text-[#AA1A2E]" />
+                            <div className="w-10 h-10 bg-primary/10 flex items-center justify-center">
+                              <FileText className="w-5 h-5 text-primary" />
                             </div>
                             <div>
                               <CardTitle className="text-lg text-[#1D1D1B]">{t.biography}</CardTitle>
@@ -874,7 +874,7 @@ export default function AdminTeamForm() {
                                   <Textarea
                                     {...field}
                                     rows={8}
-                                    className="rounded-none border-[#D9D8D7] focus:border-[#AA1A2E] focus:ring-[#AA1A2E] resize-none"
+                                    className="rounded-none border-[#D9D8D7] focus:border-primary focus:ring-primary resize-none"
                                     placeholder="Professional experience, education, notable cases..."
                                     data-testid="textarea-bio"
                                   />
@@ -902,7 +902,7 @@ export default function AdminTeamForm() {
                                   <Textarea
                                     {...field}
                                     rows={8}
-                                    className="rounded-none border-[#D9D8D7] focus:border-[#AA1A2E] focus:ring-[#AA1A2E] resize-none"
+                                    className="rounded-none border-[#D9D8D7] focus:border-primary focus:ring-primary resize-none"
                                     placeholder="Experiencia profesional, educación, casos notables..."
                                     data-testid="textarea-bio-es"
                                   />
@@ -930,8 +930,8 @@ export default function AdminTeamForm() {
                       <Card className="rounded-none border-[#D9D8D7]">
                         <CardHeader className="border-b border-[#D9D8D7] bg-[#FAFAFA]">
                           <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 bg-[#AA1A2E]/10 flex items-center justify-center">
-                              <Settings className="w-5 h-5 text-[#AA1A2E]" />
+                            <div className="w-10 h-10 bg-primary/10 flex items-center justify-center">
+                              <Settings className="w-5 h-5 text-primary" />
                             </div>
                             <div>
                               <CardTitle className="text-lg text-[#1D1D1B]">{t.settings}</CardTitle>
@@ -947,7 +947,7 @@ export default function AdminTeamForm() {
                               <FormItem className="flex items-center justify-between p-4 border border-[#D9D8D7] bg-card">
                                 <div className="space-y-1">
                                   <FormLabel className="text-[#1D1D1B] font-medium flex items-center gap-2">
-                                    <Award className="w-4 h-4 text-[#AA1A2E]" />
+                                    <Award className="w-4 h-4 text-primary" />
                                     {t.isPartner}
                                   </FormLabel>
                                   <FormDescription className="text-[#878A8E] text-sm">
@@ -958,7 +958,7 @@ export default function AdminTeamForm() {
                                   <Switch
                                     checked={field.value}
                                     onCheckedChange={field.onChange}
-                                    className="data-[state=checked]:bg-[#AA1A2E]"
+                                    className="data-[state=checked]:bg-primary"
                                     data-testid="switch-partner"
                                   />
                                 </FormControl>
@@ -977,7 +977,7 @@ export default function AdminTeamForm() {
                                     type="number"
                                     {...field}
                                     onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
-                                    className="rounded-none border-[#D9D8D7] focus:border-[#AA1A2E] focus:ring-[#AA1A2E] w-32"
+                                    className="rounded-none border-[#D9D8D7] focus:border-primary focus:ring-primary w-32"
                                     data-testid="input-order"
                                   />
                                 </FormControl>
@@ -1016,14 +1016,14 @@ export default function AdminTeamForm() {
                   <div className="p-6 text-center border-b border-[#D9D8D7]">
                     <Avatar className="w-28 h-28 mx-auto mb-4 rounded-none">
                       <AvatarImage src={imageUrl || undefined} alt={name} className="object-cover" />
-                      <AvatarFallback className="rounded-none bg-[#AA1A2E] text-white text-2xl font-bold">
+                      <AvatarFallback className="rounded-none bg-primary text-white text-2xl font-bold">
                         {name ? getInitials(name) : <User className="w-10 h-10" />}
                       </AvatarFallback>
                     </Avatar>
                     <h3 className="text-xl font-bold text-[#1D1D1B] mb-1">
                       {watchedValues.name || (language === "es" ? "Nombre del Abogado" : "Lawyer Name")}
                     </h3>
-                    <p className="text-[#AA1A2E] font-medium mb-1">
+                    <p className="text-primary font-medium mb-1">
                       {language === "es" ? watchedValues.titleEs : watchedValues.title}
                     </p>
                     <p className="text-[#878A8E] text-sm">
@@ -1031,7 +1031,7 @@ export default function AdminTeamForm() {
                     </p>
                     
                     {watchedValues.isPartner && (
-                      <Badge className="mt-3 rounded-none bg-[#AA1A2E] text-white">
+                      <Badge className="mt-3 rounded-none bg-primary text-white">
                         <Award className="w-3 h-3 mr-1" />
                         {language === "es" ? "Socio" : "Partner"}
                       </Badge>
@@ -1070,7 +1070,7 @@ export default function AdminTeamForm() {
                     </div>
                     <div className="w-full bg-[#D9D8D7] h-2">
                       <div 
-                        className="bg-[#AA1A2E] h-2 transition-all duration-300"
+                        className="bg-primary h-2 transition-all duration-300"
                         style={{ 
                           width: `${Math.min(100, 
                             (watchedValues.name ? 15 : 0) +

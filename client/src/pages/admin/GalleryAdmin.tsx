@@ -172,7 +172,7 @@ export default function GalleryAdmin() {
               Back to Dashboard
             </a>
           </Link>
-          <div className="w-12 h-px bg-[#AA1A2E] mb-3" />
+          <div className="w-12 h-px bg-primary mb-3" />
           <h1 className="font-heading font-light text-foreground text-3xl uppercase tracking-[0.12em]">
             OFFICE GALLERY
           </h1>
@@ -185,7 +185,7 @@ export default function GalleryAdmin() {
         <Card className="mb-8">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-sm uppercase tracking-[0.1em]">
-              <PlusCircle className="w-4 h-4 text-[#AA1A2E]" />
+              <PlusCircle className="w-4 h-4 text-primary" />
               Add New Image
             </CardTitle>
           </CardHeader>

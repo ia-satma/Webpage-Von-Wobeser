@@ -399,7 +399,7 @@ export default function CookieBanner({ language }: CookieBannerProps) {
           animate={{ y: 0, opacity: 1 }}
           exit={{ y: 100, opacity: 0 }}
           transition={{ duration: 0.4, ease: "easeOut" }}
-          className="fixed bottom-0 left-0 w-full bg-[#1a1a1a] text-white p-6 z-[60] border-t border-[#AA1A2E] shadow-2xl"
+          className="fixed bottom-0 left-0 w-full bg-[#1a1a1a] text-white p-6 z-[60] border-t border-primary shadow-2xl"
           data-testid="banner-cookie-consent"
         >
           <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
@@ -408,7 +408,7 @@ export default function CookieBanner({ language }: CookieBannerProps) {
                 {t.message}
                 <a 
                   href="/privacy-policy" 
-                  className="underline text-[#AA1A2E] ml-1 hover:text-white transition-colors"
+                  className="underline text-primary ml-1 hover:text-white transition-colors"
                   data-testid="link-privacy-policy"
                 >
                   {t.privacy}
@@ -425,7 +425,7 @@ export default function CookieBanner({ language }: CookieBannerProps) {
               </button>
               <button 
                 onClick={acceptAll}
-                className="min-h-[44px] px-6 py-2 text-sm bg-[#AA1A2E] text-white font-medium hover:bg-[#8A1525] transition-colors touch-manipulation"
+                className="min-h-[44px] px-6 py-2 text-sm bg-primary text-white font-medium hover:bg-[#8A1525] transition-colors touch-manipulation"
                 data-testid="button-cookie-accept"
               >
                 {t.accept}
@@ -450,7 +450,7 @@ export default function CookieBanner({ language }: CookieBannerProps) {
             animate={{ scale: 1, opacity: 1, y: 0 }}
             exit={{ scale: 0.95, opacity: 0, y: 20 }}
             transition={{ duration: 0.3, ease: "easeOut" }}
-            className="bg-[#1a1a1a] text-white w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col shadow-2xl border border-[#AA1A2E]/30"
+            className="bg-[#1a1a1a] text-white w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col shadow-2xl border border-primary/30"
             data-testid="modal-cookie-preferences"
             onClick={(e) => e.stopPropagation()}
           >
@@ -483,7 +483,7 @@ export default function CookieBanner({ language }: CookieBannerProps) {
                       data-testid={`card-cookie-${key}`}
                     >
                       <div className="flex items-start gap-4">
-                        <div className="shrink-0 w-10 h-10 flex items-center justify-center bg-[#AA1A2E]/20 text-[#AA1A2E]">
+                        <div className="shrink-0 w-10 h-10 flex items-center justify-center bg-primary/20 text-primary">
                           <Icon className="w-5 h-5" />
                         </div>
                         <div className="flex-1 min-w-0">
@@ -494,7 +494,7 @@ export default function CookieBanner({ language }: CookieBannerProps) {
                             <div className="shrink-0 flex items-center gap-2">
                               {disabled ? (
                                 <span 
-                                  className="text-xs text-[#AA1A2E] font-medium"
+                                  className="text-xs text-primary font-medium"
                                   data-testid={`text-cookie-always-on-${key}`}
                                 >
                                   {(category as typeof t.categories.essential).alwaysOn}
@@ -505,7 +505,7 @@ export default function CookieBanner({ language }: CookieBannerProps) {
                                   onCheckedChange={() => togglePreference(key)}
                                   disabled={disabled}
                                   data-testid={`switch-cookie-${key}`}
-                                  className="data-[state=checked]:bg-[#AA1A2E]"
+                                  className="data-[state=checked]:bg-primary"
                                 />
                               )}
                             </div>
@@ -534,7 +534,7 @@ export default function CookieBanner({ language }: CookieBannerProps) {
               </button>
               <button
                 onClick={acceptAll}
-                className="flex-1 min-h-[44px] px-6 py-3 text-sm bg-[#AA1A2E] text-white font-medium hover:bg-[#8A1525] transition-colors touch-manipulation"
+                className="flex-1 min-h-[44px] px-6 py-3 text-sm bg-primary text-white font-medium hover:bg-[#8A1525] transition-colors touch-manipulation"
                 data-testid="button-accept-all-preferences"
               >
                 {t.acceptAllButton}

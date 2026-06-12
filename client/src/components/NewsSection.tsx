@@ -187,7 +187,7 @@ function NewsCardTranslated({ item, language, dateLocale, seeMoreText }: NewsCar
             </p>
           )}
           <span
-            className="inline-flex items-center gap-2 text-xs font-geomanist font-bold tracking-[0.15em] uppercase text-[#AA1A2E] hover:text-[#8A1525] transition-colors group/link no-underline"
+            className="inline-flex items-center gap-2 text-xs font-geomanist font-bold tracking-[0.15em] uppercase text-primary hover:text-[#8A1525] transition-colors group/link no-underline"
             data-testid={`link-news-read-${item.id}`}
           >
             {seeMoreText}
@@ -261,12 +261,12 @@ export default function NewsSection() {
             >
               {t.title}
             </h2>
-            <div className="h-[2px] w-16 bg-[#AA1A2E]" aria-hidden="true" />
+            <div className="h-[2px] w-16 bg-primary" aria-hidden="true" />
           </div>
           <div className="flex justify-end mt-4">
             <Link
               href="/news"
-              className="hidden md:flex items-center gap-2 text-xs font-geomanist font-bold tracking-[0.15em] uppercase text-[#AA1A2E] hover:text-[#8A1525] no-underline transition-colors group"
+              className="hidden md:flex items-center gap-2 text-xs font-geomanist font-bold tracking-[0.15em] uppercase text-primary hover:text-[#8A1525] no-underline transition-colors group"
               data-testid="link-news-see-more"
             >
               {t.seeMore}
@@ -313,7 +313,7 @@ export default function NewsSection() {
         <div className="mt-10 text-center md:hidden">
           <Link
             href="/news"
-            className="inline-flex items-center justify-center gap-2 min-h-[44px] px-4 py-2 text-xs font-geomanist font-bold tracking-[0.15em] uppercase text-[#AA1A2E] hover:text-[#8A1525] no-underline touch-manipulation"
+            className="inline-flex items-center justify-center gap-2 min-h-[44px] px-4 py-2 text-xs font-geomanist font-bold tracking-[0.15em] uppercase text-primary hover:text-[#8A1525] no-underline touch-manipulation"
             data-testid="link-news-see-more-mobile"
           >
             {t.seeMore}

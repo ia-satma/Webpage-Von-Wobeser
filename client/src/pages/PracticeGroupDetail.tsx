@@ -167,7 +167,7 @@ function TranslatedMatterCard({ matter, language, t }: TranslatedMatterCardProps
       {matter.isHighlight && (
         <span
           aria-hidden="true"
-          className="absolute left-0 top-0 bottom-0 w-[2px] bg-[#AA1A2E]"
+          className="absolute left-0 top-0 bottom-0 w-[2px] bg-primary"
         />
       )}
       <CardContent className="p-6">
@@ -177,7 +177,7 @@ function TranslatedMatterCard({ matter, language, t }: TranslatedMatterCardProps
               {matter.isHighlight && (
                 <Badge
                   variant="outline"
-                  className="rounded-none text-[10px] uppercase tracking-[0.18em] border-[#AA1A2E] text-[#AA1A2E] bg-transparent"
+                  className="rounded-none text-[10px] uppercase tracking-[0.18em] border-primary text-primary bg-transparent"
                 >
                   {t.featured}
                 </Badge>
@@ -581,7 +581,7 @@ export default function PracticeGroupDetail() {
 
   const getBadgeStyles = (badgeType: string) => {
     if (badgeType === "band" || badgeType === "tier" || badgeType === "star") {
-      return "border border-[#AA1A2E] text-[#AA1A2E] bg-transparent uppercase tracking-[0.18em]";
+      return "border border-primary text-primary bg-transparent uppercase tracking-[0.18em]";
     }
     return "border border-border text-foreground bg-transparent uppercase tracking-[0.18em]";
   };
@@ -689,7 +689,7 @@ export default function PracticeGroupDetail() {
           </div>
           <div
             aria-hidden="true"
-            className="w-px shrink-0 bg-[#AA1A2E]/30"
+            className="w-px shrink-0 bg-primary/30"
           />
           <div className="flex-1 min-w-0 flex items-center gap-3 px-4 py-4">
             <div className="flex-1 min-w-0">
@@ -706,7 +706,7 @@ export default function PracticeGroupDetail() {
                 {language === "es" ? member.roleEs : member.role}
               </p>
             </div>
-            <ChevronRight className="w-5 h-5 text-[#AA1A2E] shrink-0" />
+            <ChevronRight className="w-5 h-5 text-primary shrink-0" />
           </div>
         </CardContent>
       </Card>
@@ -812,7 +812,7 @@ export default function PracticeGroupDetail() {
                 transition={{ duration: 0.6, delay: 0.22 }}
               >
                 <div className="mb-4">
-                  <div className="h-px w-10 bg-[#AA1A2E] mb-4" aria-hidden="true" />
+                  <div className="h-px w-10 bg-primary mb-4" aria-hidden="true" />
                   <h2
                     className="text-xl font-heading font-light text-foreground uppercase tracking-[0.12em]"
                     data-testid="text-success-cases-title"
@@ -895,7 +895,7 @@ export default function PracticeGroupDetail() {
                 transition={{ duration: 0.6, delay: 0.3 }}
               >
                 <div className="mb-8">
-                  <div className="h-px w-10 bg-[#AA1A2E] mb-4" aria-hidden="true" />
+                  <div className="h-px w-10 bg-primary mb-4" aria-hidden="true" />
                   <h2
                     className="text-xl font-heading font-light text-foreground uppercase tracking-[0.12em]"
                     data-testid="text-our-team-title"
@@ -910,7 +910,7 @@ export default function PracticeGroupDetail() {
                       className="text-sm font-heading font-light text-foreground mb-4 flex items-center gap-3 uppercase tracking-[0.12em]"
                       data-testid="text-partners-title"
                     >
-                      <Badge variant="outline" className="rounded-none text-xs uppercase tracking-[0.15em] border-[#AA1A2E] text-[#AA1A2E] bg-transparent">
+                      <Badge variant="outline" className="rounded-none text-xs uppercase tracking-[0.15em] border-primary text-primary bg-transparent">
                         {filteredAndGroupedMembers.partners.length}
                       </Badge>
                       {t.partners}

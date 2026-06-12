@@ -45,7 +45,7 @@ export default function ExperienceBanner() {
 
   return (
     <section
-      className="py-16 lg:py-20 bg-[#AA1A2E]"
+      className="py-16 lg:py-20 bg-primary"
       data-testid="section-experience-banner"
     >
       <div className="max-w-5xl mx-auto px-6 lg:px-12">

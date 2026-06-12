@@ -97,7 +97,7 @@ function NewsItemTranslated({
       </h4>
       <Link 
         href={`/news/${item.slug}`}
-        className="inline-flex items-center gap-1 text-[11px] font-geomanist font-bold tracking-[0.15em] uppercase text-[#AA1A2E] hover:text-[#CC2038] no-underline transition-colors"
+        className="inline-flex items-center gap-1 text-[11px] font-geomanist font-bold tracking-[0.15em] uppercase text-primary hover:text-[#CC2038] no-underline transition-colors"
         data-testid={`link-news-seemore-${item.id}`}
       >
         {seeMoreText}
@@ -113,7 +113,7 @@ function NewsItemTranslated({
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, delay: 1 + index * 0.15 }}
-      className="group pl-3 border-l-2 border-[#AA1A2E]"
+      className="group pl-3 border-l-2 border-primary"
       data-testid={`card-news-${item.id}`}
     >
       {inner}
@@ -142,7 +142,7 @@ function NewsPanel({ language, news }: { language: LanguageCode; news: News[] })
       >
         {/* Header */}
         <div className="flex items-center gap-3">
-          <div className="w-4 h-px bg-[#AA1A2E]" aria-hidden="true" />
+          <div className="w-4 h-px bg-primary" aria-hidden="true" />
           <h3
             className="text-[10px] font-geomanist tracking-[0.3em] uppercase text-white/50"
             data-testid="text-news-header"

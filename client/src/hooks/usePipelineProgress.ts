@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback, useRef, useSyncExternalStore } from 'react';
+import { logger } from '@/lib/logger';
 
 export interface PipelineProgressEvent {
   articleId: string;
@@ -79,7 +80,7 @@ class PipelineWebSocketManager {
     this.ws.onopen = () => {
       this._isConnected = true;
       this.notifyConnectionChange();
-      console.log('[Pipeline WS] Connected');
+      logger.log('[Pipeline WS] Connected');
     };
 
     this.ws.onmessage = (event) => {
@@ -111,7 +112,7 @@ class PipelineWebSocketManager {
     this.ws.onclose = () => {
       this._isConnected = false;
       this.notifyConnectionChange();
-      console.log('[Pipeline WS] Disconnected');
+      logger.log('[Pipeline WS] Disconnected');
       if (this.listeners.size > 0) {
         this.scheduleReconnect();
       }

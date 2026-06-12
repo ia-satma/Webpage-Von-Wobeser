@@ -570,7 +570,7 @@ export default function NewsDetail() {
                   className="flex items-center gap-3 mb-4"
                   data-testid="eyebrow-news"
                 >
-                  <div className="h-px w-10 bg-[#AA1A2E]" aria-hidden="true" />
+                  <div className="h-px w-10 bg-primary" aria-hidden="true" />
                   <span className="text-[10px] tracking-[0.3em] uppercase text-white/90 font-medium">
                     {language === 'es' ? 'Noticia' : language === 'de' ? 'Nachrichten' : language === 'fr' ? 'Actualité' : language === 'it' ? 'Notizie' : 'News'}
                   </span>

@@ -129,7 +129,7 @@ function EducationItemTranslated({
 
   return (
     <div 
-      className="border-l-2 border-[#AA1A2E] pl-4 py-1"
+      className="border-l-2 border-primary pl-4 py-1"
       data-testid={`item-education-${index}`}
     >
       <p className="text-lg font-medium text-foreground">
@@ -258,7 +258,7 @@ function RankingItemTranslated({
               <div className="flex flex-wrap items-center gap-2 mt-2">
                 <Badge 
                   variant="outline"
-                  className="rounded-none text-[10px] uppercase tracking-[0.18em] border-[#AA1A2E] text-[#AA1A2E]"
+                  className="rounded-none text-[10px] uppercase tracking-[0.18em] border-primary text-primary"
                   data-testid={`badge-ranking-band-${index}`}
                 >
                   {displayRanking}
@@ -335,7 +335,7 @@ function PublicationItemTranslated({
 
   return (
     <div 
-      className="border-l-2 border-[#AA1A2E] pl-4 py-1"
+      className="border-l-2 border-primary pl-4 py-1"
       data-testid={`item-publication-${index}`}
     >
       <p className="text-foreground font-medium">
@@ -1096,7 +1096,7 @@ export default function TeamMemberDetail() {
   const getPublicationIcon = (_publication: string) => (
     <span
       aria-hidden="true"
-      className="inline-block w-1.5 h-1.5 bg-[#AA1A2E] mt-1.5"
+      className="inline-block w-1.5 h-1.5 bg-primary mt-1.5"
     />
   );
 
@@ -1311,14 +1311,14 @@ export default function TeamMemberDetail() {
               </div>
               <div
                 aria-hidden="true"
-                className="hidden md:block w-px shrink-0 bg-[#AA1A2E]/20"
+                className="hidden md:block w-px shrink-0 bg-primary/20"
               />
               <div
                 aria-hidden="true"
-                className="md:hidden h-px w-full bg-[#AA1A2E]/20"
+                className="md:hidden h-px w-full bg-primary/20"
               />
               <div className="flex-1 min-w-0 text-center md:text-left px-6 py-8 md:px-10 md:py-10">
-                <div className="h-px w-10 bg-[#AA1A2E] mb-4 mx-auto md:mx-0" aria-hidden="true" />
+                <div className="h-px w-10 bg-primary mb-4 mx-auto md:mx-0" aria-hidden="true" />
                 <div className="flex flex-col md:flex-row items-center gap-3 mb-3">
                   <h1 
                     className="text-2xl md:text-3xl lg:text-4xl font-heading font-light text-white uppercase tracking-[0.12em]"
@@ -1485,7 +1485,7 @@ export default function TeamMemberDetail() {
                 >
                   <div className="rounded-none p-6 border border-border bg-card">
                     <div className="mb-6">
-                      <div className="h-px w-10 bg-[#AA1A2E] mb-4" aria-hidden="true" />
+                      <div className="h-px w-10 bg-primary mb-4" aria-hidden="true" />
                       <h2
                         className="text-xl font-heading font-light text-foreground flex items-center gap-3 uppercase tracking-[0.12em]"
                         data-testid="text-rankings-title"
@@ -1493,7 +1493,7 @@ export default function TeamMemberDetail() {
                         <span>{t.rankings}</span>
                         <Badge
                           variant="outline"
-                          className="ml-auto rounded-none text-xs uppercase tracking-[0.15em] border-[#AA1A2E] text-[#AA1A2E]"
+                          className="ml-auto rounded-none text-xs uppercase tracking-[0.15em] border-primary text-primary"
                           data-testid="badge-rankings-count"
                         >
                           {processedRankings.totalCount}
@@ -1796,7 +1796,7 @@ export default function TeamMemberDetail() {
                     {(member.experience as any[]).map((exp, index) => (
                       <div 
                         key={index}
-                        className="border-l-2 border-[#AA1A2E] pl-4 py-1"
+                        className="border-l-2 border-primary pl-4 py-1"
                         data-testid={`item-experience-${index}`}
                       >
                         <p className="text-lg font-medium text-foreground">
@@ -1828,7 +1828,7 @@ export default function TeamMemberDetail() {
                   data-testid="section-featured-recognition"
                 >
                   <div className="mb-4">
-                    <div className="h-px w-10 bg-[#AA1A2E] mb-4" aria-hidden="true" />
+                    <div className="h-px w-10 bg-primary mb-4" aria-hidden="true" />
                     <h2 
                       className="text-lg font-heading font-light text-foreground uppercase tracking-[0.12em]"
                       data-testid="text-featured-recognition-title"
@@ -1839,7 +1839,7 @@ export default function TeamMemberDetail() {
                   
                   <div className="flex items-baseline gap-2 mb-4">
                     <span 
-                      className="text-4xl font-heading font-light text-[#AA1A2E]"
+                      className="text-4xl font-heading font-light text-primary"
                       style={{ fontFeatureSettings: '"lnum"' }}
                       data-testid="text-total-recognitions-count"
                     >

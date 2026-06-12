@@ -12,6 +12,7 @@ import { seoOptimizerAgent } from '../specialized/SEOOptimizerAgent';
 import { contentAnalyzerAgent } from '../specialized/ContentAnalyzerAgent';
 import { imageSuggestionAgent } from '../specialized/ImageSuggestionAgent';
 import { categoryAgent } from '../specialized/CategoryAgent';
+import { websiteAuditorAgent } from '../specialized/WebsiteAuditorAgent';
 import { AgentType, ExecutionContext } from '../core/types';
 import { db } from '../../db';
 import { news } from '../../../shared/schema';
@@ -132,6 +133,9 @@ router.post('/run/:agentType', async (req: Request, res: Response) => {
         break;
       case 'category_agent':
         result = await categoryAgent.execute(context, payload);
+        break;
+      case 'website_auditor':
+        result = await websiteAuditorAgent.execute(context, payload);
         break;
       default:
         return res.status(400).json({ error: `Unknown agent type: ${agentType}` });

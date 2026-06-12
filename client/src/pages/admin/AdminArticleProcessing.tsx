@@ -4,6 +4,7 @@ import { Link } from "wouter";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useAdminAuth, adminApiRequest } from "@/lib/adminAuth";
 import { queryClient } from "@/lib/queryClient";
+import { logger } from "@/lib/logger";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -555,7 +556,7 @@ export default function AdminArticleProcessing() {
     // Process in batches of BATCH_CONCURRENCY_LIMIT (3)
     for (let batchIndex = 0; batchIndex < totalBatches; batchIndex++) {
       if (cancelBatchRef.current) {
-        console.log('[BatchProcessor] Processing cancelled by user');
+        logger.log('[BatchProcessor] Processing cancelled by user');
         break;
       }
 
@@ -563,7 +564,7 @@ export default function AdminArticleProcessing() {
       const end = Math.min(start + BATCH_CONCURRENCY_LIMIT, total);
       const batch = articles.slice(start, end);
 
-      console.log(`[BatchProcessor] Processing batch ${batchIndex + 1}/${totalBatches} (articles ${start + 1}-${end})`);
+      logger.log(`[BatchProcessor] Processing batch ${batchIndex + 1}/${totalBatches} (articles ${start + 1}-${end})`);
       
       setBatchProgress(prev => ({
         ...prev,

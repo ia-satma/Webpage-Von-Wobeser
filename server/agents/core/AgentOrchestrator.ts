@@ -23,6 +23,7 @@ export class AgentOrchestrator {
   private isRunning: boolean = false;
   private processingInterval: NodeJS.Timeout | null = null;
   private isProcessingCycle: boolean = false;
+  private initialized: boolean = false;
 
   isProcessing(): boolean {
     return this.isRunning;
@@ -33,6 +34,13 @@ export class AgentOrchestrator {
   }
 
   async initialize(): Promise<void> {
+    // Idempotente: el boot llamaba a initialize() dos veces (initializeAgents en
+    // registerRoutes y de nuevo en el callback de listen), recargando jobs por duplicado.
+    if (this.initialized) {
+      console.log('[Orchestrator] Already initialized, skipping');
+      return;
+    }
+    this.initialized = true;
     console.log('[Orchestrator] Initializing agent system...');
     await knowledgeStore.initialize();
     await knowledgeStore.addLegalGlossary();

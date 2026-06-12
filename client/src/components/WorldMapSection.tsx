@@ -565,8 +565,8 @@ export default function WorldMapSection({ language }: WorldMapSectionProps) {
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-black/10 pointer-events-none" />
               <div className="absolute inset-x-0 bottom-0 p-6">
-                <div className="w-10 h-px bg-[#AA1A2E] mb-3" />
-                <p className="text-[10px] tracking-[0.25em] uppercase text-[#AA1A2E] mb-2 font-medium">
+                <div className="w-10 h-px bg-primary mb-3" />
+                <p className="text-[10px] tracking-[0.25em] uppercase text-primary mb-2 font-medium">
                   {t.mexicoSubtitle}
                 </p>
                 <DialogHeader className="text-left space-y-0">
@@ -580,7 +580,7 @@ export default function WorldMapSection({ language }: WorldMapSectionProps) {
             {/* Info body */}
             <div className="p-6 md:p-8 space-y-5">
               <div className="flex items-start gap-4">
-                <MapPin className="w-4 h-4 text-[#AA1A2E] mt-0.5 flex-shrink-0" strokeWidth={1.5} />
+                <MapPin className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" strokeWidth={1.5} />
                 <div>
                   <p className="text-[10px] text-muted-foreground uppercase tracking-[0.2em] mb-1.5 font-medium">
                     {t.addressLabel}
@@ -591,7 +591,7 @@ export default function WorldMapSection({ language }: WorldMapSectionProps) {
                 </div>
               </div>
               <div className="flex items-start gap-4">
-                <Phone className="w-4 h-4 text-[#AA1A2E] mt-0.5 flex-shrink-0" strokeWidth={1.5} />
+                <Phone className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" strokeWidth={1.5} />
                 <div>
                   <p className="text-[10px] text-muted-foreground uppercase tracking-[0.2em] mb-1.5 font-medium">
                     {t.phoneLabel}
@@ -628,8 +628,8 @@ export default function WorldMapSection({ language }: WorldMapSectionProps) {
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-black/10 pointer-events-none" />
               <div className="absolute inset-x-0 bottom-0 p-6">
-                <div className="w-10 h-px bg-[#AA1A2E] mb-3" />
-                <p className="text-[10px] tracking-[0.25em] uppercase text-[#AA1A2E] mb-2 font-medium">
+                <div className="w-10 h-px bg-primary mb-3" />
+                <p className="text-[10px] tracking-[0.25em] uppercase text-primary mb-2 font-medium">
                   {t.germanySubtitle}
                 </p>
                 <DialogHeader className="text-left space-y-0">
@@ -708,7 +708,7 @@ export default function WorldMapSection({ language }: WorldMapSectionProps) {
       <div className="bg-[#111110]" data-testid="team-members-container">
 
         {/* ─── SOCIOS ──────────────────────────────────────────── */}
-        <div className="border-b border-[#AA1A2E]/10">
+        <div className="border-b border-primary/10">
           {/* Desktop: expanding panels */}
           <div className="hidden lg:flex w-full h-[420px]" onMouseLeave={() => setActivePanel(null)}>
             {gdSocios.map((member) => {
@@ -725,15 +725,15 @@ export default function WorldMapSection({ language }: WorldMapSectionProps) {
                 >
                   <img src={member.photo} alt="" aria-hidden="true" className="absolute inset-0 w-full h-full object-cover object-[50%_20%]" style={{ transform: isActive ? "scale(1.04)" : "scale(1)", filter: isActive ? "grayscale(0%)" : "grayscale(100%)", transition: "transform 0.6s cubic-bezier(0.22, 1, 0.36, 1), filter 0.5s ease" }} data-testid={`img-gdm-${member.slug}`} />
                   <div className="absolute inset-0" style={{ background: isActive ? "linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.4) 50%, rgba(0,0,0,0.3) 100%)" : "linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.7) 100%)", transition: "background 0.5s ease" }} />
-                  <div className="absolute top-0 right-0 w-px h-full bg-[#AA1A2E]/20" />
+                  <div className="absolute top-0 right-0 w-px h-full bg-primary/20" />
 
                   <div className="absolute bottom-5 left-3 right-3" style={{ opacity: isActive ? 0 : 1, transition: "opacity 0.25s ease" }}>
                     <p className="text-white/70 text-[9px] uppercase tracking-[0.12em] font-light truncate" data-testid={`text-name-gdm-${member.slug}`}>{member.name}</p>
                   </div>
                   <div className="absolute bottom-6 left-5 right-5" style={{ opacity: isActive ? 1 : 0, transform: isActive ? "translateY(0)" : "translateY(8px)", transition: "opacity 0.3s ease 0.1s, transform 0.3s ease 0.1s" }}>
                     <p className="font-heading font-light text-base uppercase tracking-[0.1em] leading-snug mb-1 text-white">{member.name}</p>
-                    <p className="text-xs text-[#AA1A2E] uppercase tracking-[0.08em] mb-3" data-testid={`text-category-gdm-${member.slug}`}>{member.category}</p>
-                    <div className="flex items-center gap-2 text-[#AA1A2E]"><ArrowRight className="w-4 h-4" /></div>
+                    <p className="text-xs text-primary uppercase tracking-[0.08em] mb-3" data-testid={`text-category-gdm-${member.slug}`}>{member.category}</p>
+                    <div className="flex items-center gap-2 text-primary"><ArrowRight className="w-4 h-4" /></div>
                   </div>
                 </Link>
               );
@@ -747,7 +747,7 @@ export default function WorldMapSection({ language }: WorldMapSectionProps) {
                 <div className="absolute inset-0 bg-black/65 group-hover:bg-black/50 transition-colors duration-300" />
 
                 <div className="absolute bottom-3 left-3 right-3">
-                  <p className="text-[#AA1A2E] text-[9px] uppercase tracking-[0.08em] mb-0.5">{member.category}</p>
+                  <p className="text-primary text-[9px] uppercase tracking-[0.08em] mb-0.5">{member.category}</p>
                   <p className="text-white/90 text-xs uppercase tracking-[0.1em] leading-snug font-light">{member.name}</p>
                 </div>
               </Link>
@@ -756,10 +756,10 @@ export default function WorldMapSection({ language }: WorldMapSectionProps) {
         </div>
 
         {/* ─── OF COUNSEL ──────────────────────────────────────── */}
-        <div className="bg-background border-b border-[#AA1A2E]/10">
+        <div className="bg-background border-b border-primary/10">
           <div className="px-6 lg:px-12 pt-8 pb-4 flex items-center gap-3">
-            <div className="w-8 h-px bg-[#AA1A2E] shrink-0" />
-            <p className="text-[#AA1A2E] text-[10px] tracking-[0.25em] uppercase">{t.ofCounselTitle}</p>
+            <div className="w-8 h-px bg-primary shrink-0" />
+            <p className="text-primary text-[10px] tracking-[0.25em] uppercase">{t.ofCounselTitle}</p>
           </div>
           <div className="hidden lg:flex w-full h-[380px]" onMouseLeave={() => setActivePanel(null)}>
             {gdOfCounsel.map((member) => {
@@ -776,15 +776,15 @@ export default function WorldMapSection({ language }: WorldMapSectionProps) {
                 >
                   <img src={member.photo} alt="" aria-hidden="true" className="absolute inset-0 w-full h-full object-cover object-[50%_20%]" style={{ transform: isActive ? "scale(1.04)" : "scale(1)", filter: isActive ? "grayscale(0%)" : "grayscale(100%)", transition: "transform 0.6s cubic-bezier(0.22, 1, 0.36, 1), filter 0.5s ease" }} data-testid={`img-gdm-${member.slug}`} />
                   <div className="absolute inset-0" style={{ background: isActive ? "linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.4) 50%, rgba(0,0,0,0.3) 100%)" : "linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.7) 100%)", transition: "background 0.5s ease" }} />
-                  <div className="absolute top-0 right-0 w-px h-full bg-[#AA1A2E]/20" />
+                  <div className="absolute top-0 right-0 w-px h-full bg-primary/20" />
 
                   <div className="absolute bottom-5 left-3 right-3" style={{ opacity: isActive ? 0 : 1, transition: "opacity 0.25s ease" }}>
                     <p className="text-white/70 text-[9px] uppercase tracking-[0.12em] font-light truncate" data-testid={`text-name-gdm-${member.slug}`}>{member.name}</p>
                   </div>
                   <div className="absolute bottom-6 left-5 right-5" style={{ opacity: isActive ? 1 : 0, transform: isActive ? "translateY(0)" : "translateY(8px)", transition: "opacity 0.3s ease 0.1s, transform 0.3s ease 0.1s" }}>
                     <p className="font-heading font-light text-base uppercase tracking-[0.1em] leading-snug mb-1 text-white">{member.name}</p>
-                    <p className="text-xs text-[#AA1A2E] uppercase tracking-[0.08em] mb-3" data-testid={`text-category-gdm-${member.slug}`}>{member.category}</p>
-                    <div className="flex items-center gap-2 text-[#AA1A2E]"><ArrowRight className="w-4 h-4" /></div>
+                    <p className="text-xs text-primary uppercase tracking-[0.08em] mb-3" data-testid={`text-category-gdm-${member.slug}`}>{member.category}</p>
+                    <div className="flex items-center gap-2 text-primary"><ArrowRight className="w-4 h-4" /></div>
                   </div>
                 </Link>
               );
@@ -797,7 +797,7 @@ export default function WorldMapSection({ language }: WorldMapSectionProps) {
                 <div className="absolute inset-0 bg-black/65 group-hover:bg-black/50 transition-colors duration-300" />
 
                 <div className="absolute bottom-3 left-3 right-3">
-                  <p className="text-[#AA1A2E] text-[9px] uppercase tracking-[0.08em] mb-0.5">{member.category}</p>
+                  <p className="text-primary text-[9px] uppercase tracking-[0.08em] mb-0.5">{member.category}</p>
                   <p className="text-white/90 text-xs uppercase tracking-[0.1em] leading-snug font-light">{member.name}</p>
                 </div>
               </Link>
@@ -808,8 +808,8 @@ export default function WorldMapSection({ language }: WorldMapSectionProps) {
         {/* ─── ASOCIADOS ───────────────────────────────────────── */}
         <div className="bg-background">
           <div className="px-6 lg:px-12 pt-8 pb-4 flex items-center gap-3">
-            <div className="w-8 h-px bg-[#AA1A2E] shrink-0" />
-            <p className="text-[#AA1A2E] text-[10px] tracking-[0.25em] uppercase">{t.associatesTitle}</p>
+            <div className="w-8 h-px bg-primary shrink-0" />
+            <p className="text-primary text-[10px] tracking-[0.25em] uppercase">{t.associatesTitle}</p>
           </div>
           <div className="hidden lg:flex w-full h-[380px]" onMouseLeave={() => setActivePanel(null)}>
             {gdAssociates.map((member) => {
@@ -826,15 +826,15 @@ export default function WorldMapSection({ language }: WorldMapSectionProps) {
                 >
                   <img src={member.photo} alt="" aria-hidden="true" className="absolute inset-0 w-full h-full object-cover object-[50%_20%]" style={{ transform: isActive ? "scale(1.04)" : "scale(1)", filter: isActive ? "grayscale(0%)" : "grayscale(100%)", transition: "transform 0.6s cubic-bezier(0.22, 1, 0.36, 1), filter 0.5s ease" }} data-testid={`img-gdm-${member.slug}`} />
                   <div className="absolute inset-0" style={{ background: isActive ? "linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.4) 50%, rgba(0,0,0,0.3) 100%)" : "linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.7) 100%)", transition: "background 0.5s ease" }} />
-                  <div className="absolute top-0 right-0 w-px h-full bg-[#AA1A2E]/20" />
+                  <div className="absolute top-0 right-0 w-px h-full bg-primary/20" />
 
                   <div className="absolute bottom-5 left-3 right-3" style={{ opacity: isActive ? 0 : 1, transition: "opacity 0.25s ease" }}>
                     <p className="text-white/70 text-[9px] uppercase tracking-[0.12em] font-light truncate" data-testid={`text-name-gdm-${member.slug}`}>{member.name}</p>
                   </div>
                   <div className="absolute bottom-6 left-5 right-5" style={{ opacity: isActive ? 1 : 0, transform: isActive ? "translateY(0)" : "translateY(8px)", transition: "opacity 0.3s ease 0.1s, transform 0.3s ease 0.1s" }}>
                     <p className="font-heading font-light text-base uppercase tracking-[0.1em] leading-snug mb-1 text-white">{member.name}</p>
-                    <p className="text-xs text-[#AA1A2E] uppercase tracking-[0.08em] mb-3" data-testid={`text-category-gdm-${member.slug}`}>{member.category}</p>
-                    <div className="flex items-center gap-2 text-[#AA1A2E]"><ArrowRight className="w-4 h-4" /></div>
+                    <p className="text-xs text-primary uppercase tracking-[0.08em] mb-3" data-testid={`text-category-gdm-${member.slug}`}>{member.category}</p>
+                    <div className="flex items-center gap-2 text-primary"><ArrowRight className="w-4 h-4" /></div>
                   </div>
                 </Link>
               );
@@ -847,7 +847,7 @@ export default function WorldMapSection({ language }: WorldMapSectionProps) {
                 <div className="absolute inset-0 bg-black/65 group-hover:bg-black/50 transition-colors duration-300" />
 
                 <div className="absolute bottom-3 left-3 right-3">
-                  <p className="text-[#AA1A2E] text-[9px] uppercase tracking-[0.08em] mb-0.5">{member.category}</p>
+                  <p className="text-primary text-[9px] uppercase tracking-[0.08em] mb-0.5">{member.category}</p>
                   <p className="text-white/90 text-xs uppercase tracking-[0.1em] leading-snug font-light">{member.name}</p>
                 </div>
               </Link>
@@ -861,12 +861,12 @@ export default function WorldMapSection({ language }: WorldMapSectionProps) {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.5 }}
-          className="max-w-7xl mx-auto px-6 lg:px-12 py-8 flex flex-wrap items-center justify-between gap-4 border-t border-[#AA1A2E]/10"
+          className="max-w-7xl mx-auto px-6 lg:px-12 py-8 flex flex-wrap items-center justify-between gap-4 border-t border-primary/10"
         >
           <div className="flex items-center gap-5">
-            <div className="w-10 h-px bg-[#AA1A2E] shrink-0" />
+            <div className="w-10 h-px bg-primary shrink-0" />
             <div>
-              <p className="text-[#AA1A2E] text-[10px] tracking-[0.25em] uppercase mb-1">
+              <p className="text-primary text-[10px] tracking-[0.25em] uppercase mb-1">
                 {t.sectionTitle}
               </p>
               <h2

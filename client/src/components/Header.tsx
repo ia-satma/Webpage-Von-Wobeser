@@ -381,7 +381,7 @@ export default function Header() {
                   {item.subItems && (
                     <ChevronDown
                       className={cn(
-                        "w-3.5 h-3.5 transition-transform duration-200 text-[#AA1A2E]",
+                        "w-3.5 h-3.5 transition-transform duration-200 text-primary",
                         activeDropdown === item.id && "rotate-180"
                       )}
                       aria-hidden="true"
@@ -412,9 +412,9 @@ export default function Header() {
                         className={cn(
                           "flex items-center px-5 py-2.5 text-sm font-medium uppercase tracking-wide",
                           "border-l-2 border-transparent transition-all duration-150",
-                          "hover:border-[#AA1A2E]",
+                          "hover:border-primary",
                           isScrolled
-                            ? "text-foreground hover:text-[#AA1A2E] hover:bg-muted"
+                            ? "text-foreground hover:text-primary hover:bg-muted"
                             : "text-white/80 hover:text-white hover:bg-white/8"
                         )}
                         role="menuitem"
@@ -436,7 +436,7 @@ export default function Header() {
                 variant="ghost"
                 size="icon"
                 className={cn(
-                  isScrolled ? "text-[#AA1A2E]" : "text-white/90 hover:text-white"
+                  isScrolled ? "text-primary" : "text-white/90 hover:text-white"
                 )}
                 onClick={() => setIsSearchOpen(!isSearchOpen)}
                 data-testid="button-search"
@@ -559,7 +559,7 @@ export default function Header() {
               size="icon"
               className={cn(
                 "lg:hidden",
-                isScrolled ? "text-[#AA1A2E]" : "text-white/90 hover:text-white"
+                isScrolled ? "text-primary" : "text-white/90 hover:text-white"
               )}
               onClick={() => setIsMobileMenuOpen(true)}
               data-testid="button-mobile-menu"

@@ -180,7 +180,7 @@ export default function PracticesSection() {
           >
             <div className="flex flex-col">
               {/* Red rule */}
-              <div className="w-12 h-px bg-[#AA1A2E] mb-6" />
+              <div className="w-12 h-px bg-primary mb-6" />
 
               {/* Serif section heading — Playfair Display */}
               <h2
@@ -206,7 +206,7 @@ export default function PracticesSection() {
               <div className="flex flex-col gap-4">
                 <Link href="/contact">
                   <Button
-                    className="bg-[#AA1A2E] text-white uppercase tracking-wide text-xs w-full sm:w-auto"
+                    className="bg-primary text-white uppercase tracking-wide text-xs w-full sm:w-auto"
                     data-testid="button-practices-contact"
                   >
                     <Phone className="w-3.5 h-3.5 mr-2" />
@@ -231,17 +231,17 @@ export default function PracticesSection() {
             initial="hidden"
             whileInView="visible"
             viewport={{ once: true }}
-            className="lg:w-2/3 border-t border-[#AA1A2E]/25 grid grid-cols-1 lg:grid-cols-2"
+            className="lg:w-2/3 border-t border-primary/25 grid grid-cols-1 lg:grid-cols-2"
           >
             {practiceAreas.map((area) => (
               <motion.div key={area.id} variants={itemVariants}>
                 <Link
                   href={`/practice-groups/${area.slug}`}
-                  className="group flex items-center gap-6 px-4 py-3 border-b border-[#AA1A2E]/25 border-l-2 border-l-transparent hover:border-l-[#AA1A2E] hover:bg-white/4 transition-all duration-200 h-full"
+                  className="group flex items-center gap-6 px-4 py-3 border-b border-primary/25 border-l-2 border-l-transparent hover:border-l-primary hover:bg-white/4 transition-all duration-200 h-full"
                   data-testid={`link-practice-${area.id}`}
                 >
                   <span
-                    className="font-serif text-lg font-normal text-[#AA1A2E] w-12 shrink-0 tabular-nums"
+                    className="font-serif text-lg font-normal text-primary w-12 shrink-0 tabular-nums"
                     data-testid={`text-practice-number-${area.id}`}
                   >
                     {String(area.id).padStart(2, "0")}
@@ -253,7 +253,7 @@ export default function PracticesSection() {
                     {getPracticeAreaName(area, language)}
                   </span>
                   <ArrowRight
-                    className="w-4 h-4 text-[#AA1A2E] shrink-0 opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all duration-200"
+                    className="w-4 h-4 text-primary shrink-0 opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all duration-200"
                   />
                 </Link>
               </motion.div>
@@ -266,7 +266,7 @@ export default function PracticesSection() {
         <div className="lg:hidden mt-10 flex flex-col gap-4">
           <Link href="/contact">
             <Button
-              className="bg-[#AA1A2E] text-white uppercase tracking-wide text-xs w-full"
+              className="bg-primary text-white uppercase tracking-wide text-xs w-full"
               data-testid="button-practices-contact-mobile"
             >
               <Phone className="w-3.5 h-3.5 mr-2" />

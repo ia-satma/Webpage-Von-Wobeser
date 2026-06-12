@@ -3373,21 +3373,56 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
   app.get("/api/system/chronicler", async (req: Request, res: Response) => {
     try {
       const { systemChronicler } = await import('./agents/SystemChronicler');
-      
-      const agents = systemChronicler.getAllAgents();
+      const { dbPersistence } = await import('./agents/storage/DatabasePersistence');
+
+      // El estado de cada agente se deriva de su ACTIVIDAD REAL en la base (jobs y eventos),
+      // no del "active" hardcodeado del registro. Un agente sin actividad reciente aparece
+      // "dormant"; uno con fallos dominantes, "evolving". Así el dashboard deja de mentir.
+      const baseAgents = systemChronicler.getAllAgents();
+      const jobStats = await dbPersistence.getJobStatsByAgentType();
+      const recentEvents = await dbPersistence.getRecentEvents(200);
+
+      const lastActiveByAgent: Record<string, Date> = {};
+      for (const ev of recentEvents as any[]) {
+        const at = ev.agentType;
+        const ts = ev.createdAt || ev.timestamp;
+        if (at && ts && !lastActiveByAgent[at]) lastActiveByAgent[at] = new Date(ts);
+      }
+      const RECENT_MS = 24 * 60 * 60 * 1000;
+      const now = Date.now();
+
+      const agents = baseAgents.map((a) => {
+        const js = jobStats[a.id] || { total: 0, completed: 0, failed: 0, pending: 0 };
+        const lastActive = lastActiveByAgent[a.id];
+        const recentlyActive = lastActive ? now - lastActive.getTime() < RECENT_MS : false;
+        let status: "active" | "dormant" | "evolving";
+        if (js.pending > 0 || recentlyActive) status = "active";
+        else if (js.failed > 0 && js.failed >= js.completed) status = "evolving";
+        else if (js.total > 0) status = "active";
+        else status = "dormant";
+        return {
+          ...a,
+          status,
+          successRate: js.total > 0 ? Math.round((js.completed / js.total) * 100) / 100 : a.successRate,
+          lastActive: lastActive || a.lastActive,
+          jobsTotal: js.total,
+          jobsCompleted: js.completed,
+          jobsFailed: js.failed,
+        };
+      });
+
       const timeline = systemChronicler.getEvolutionTimeline();
-      const stats = systemChronicler.getSystemStats();
-      
+      const baseStats = systemChronicler.getSystemStats();
+      const activeAgents = agents.filter((a) => a.status === "active").length;
+      const stats = { ...baseStats, totalAgents: agents.length, activeAgents };
+      const byCat = (c: string) => agents.filter((a) => a.category === c);
+
       res.json({
         success: true,
         agents,
         timeline,
         stats,
-        categories: {
-          brain: systemChronicler.getAgentsByCategory("brain"),
-          hands: systemChronicler.getAgentsByCategory("hands"),
-          shield: systemChronicler.getAgentsByCategory("shield")
-        }
+        categories: { brain: byCat("brain"), hands: byCat("hands"), shield: byCat("shield") },
       });
     } catch (error: any) {
       console.error('[SystemChronicler] Error:', error);

@@ -56,8 +56,8 @@ export default function OfficeGallery() {
       <div className="max-w-7xl mx-auto px-6">
         {/* Editorial header */}
         <div className="mb-12">
-          <div className="w-12 h-px bg-[#AA1A2E] mb-4" />
-          <p className="text-[#AA1A2E] text-[10px] tracking-[0.25em] uppercase mb-3">
+          <div className="w-12 h-px bg-primary mb-4" />
+          <p className="text-primary text-[10px] tracking-[0.25em] uppercase mb-3">
             {t.eyebrow}
           </p>
           <h2 className="font-heading font-light text-foreground text-3xl md:text-4xl uppercase tracking-[0.12em]">
@@ -144,7 +144,7 @@ export default function OfficeGallery() {
               aria-label="Previous"
               data-testid="lightbox-prev"
             >
-              <ChevronLeft className="w-10 h-10 text-[#AA1A2E]" />
+              <ChevronLeft className="w-10 h-10 text-primary" />
             </button>
           )}
 
@@ -165,7 +165,7 @@ export default function OfficeGallery() {
               aria-label="Next"
               data-testid="lightbox-next"
             >
-              <ChevronRight className="w-10 h-10 text-[#AA1A2E]" />
+              <ChevronRight className="w-10 h-10 text-primary" />
             </button>
           )}
 

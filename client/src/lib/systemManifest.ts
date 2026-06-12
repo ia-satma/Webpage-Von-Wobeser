@@ -20,6 +20,7 @@ import {
   HANDS_AGENT_IDS,
   SHIELD_AGENT_IDS,
 } from '@shared/agentConstants';
+import { logger } from '@/lib/logger';
 
 export type SystemCategory = 
   | 'ai_brain'        // El Cerebro - Agentes de Decisión Estratégica
@@ -1660,7 +1661,7 @@ export function validateManifestAgentInventory(): { valid: boolean; errors: stri
   if (errors.length > 0) {
     console.error('[SystemManifest] AGENT INVENTORY VALIDATION FAILED:', errors);
   } else {
-    console.log(`[SystemManifest] Agent inventory validated: ${allManifestIds.length} agents match shared constants`);
+    logger.log(`[SystemManifest] Agent inventory validated: ${allManifestIds.length} agents match shared constants`);
   }
   
   return { valid: errors.length === 0, errors };
