@@ -1,6 +1,6 @@
 import { db } from "./db";
 import { eq } from "drizzle-orm";
-import { news, officeImages, practiceGroups, industryGroups, teamMembers, representativeMatters, adminUsers, events } from "@shared/schema";
+import { news, officeImages, practiceGroups, industryGroups, teamMembers, representativeMatters, adminUsers, events, faqs, proBonoProjects, diversityInitiatives } from "@shared/schema";
 import { hashPassword } from "./auth";
 
 const practiceGroupsData = [
@@ -1153,6 +1153,209 @@ const eventsData = [
   },
 ];
 
+const faqsData = [
+  {
+    question: "In which areas of law does Von Wobeser y Sierra practice?",
+    questionEs: "¿En qué áreas del derecho ejerce Von Wobeser y Sierra?",
+    answer: "Von Wobeser y Sierra is a full-service firm covering corporate and M&A, antitrust and competition, arbitration, litigation, anti-corruption and compliance, bankruptcy and restructuring, banking and finance, energy, ESG, real estate, intellectual property, labor, tax, international trade, telecommunications, environmental and administrative law, among others.",
+    answerEs: "Von Wobeser y Sierra es una firma de servicio completo que cubre corporativo y fusiones y adquisiciones, competencia económica, arbitraje, litigio, anticorrupción y cumplimiento, concursos mercantiles y reestructuración, bancario y financiero, energía, ESG, inmobiliario, propiedad intelectual, laboral, fiscal, comercio exterior, telecomunicaciones, ambiental y derecho administrativo, entre otras.",
+    category: "Firm",
+    categoryEs: "Firma",
+    order: 1,
+  },
+  {
+    question: "Where are the firm's offices located?",
+    questionEs: "¿Dónde se ubican las oficinas de la firma?",
+    answer: "Our offices are located in Torre SOMA, Campos Elíseos 204, Floor 18, in the Polanco area of Mexico City. From there we serve clients throughout Mexico and internationally.",
+    answerEs: "Nuestras oficinas se encuentran en Torre SOMA, Campos Elíseos 204, Piso 18, en la zona de Polanco de la Ciudad de México. Desde ahí atendemos a clientes en todo México y a nivel internacional.",
+    category: "Contact",
+    categoryEs: "Contacto",
+    order: 2,
+  },
+  {
+    question: "Does the firm advise foreign companies investing in Mexico?",
+    questionEs: "¿La firma asesora a empresas extranjeras que invierten en México?",
+    answer: "Yes. A significant portion of our clients are multinational companies and foreign investors. Our lawyers are admitted in multiple jurisdictions and we operate specialized desks, including a German Desk, to support cross-border matters and foreign direct investment in Mexico.",
+    answerEs: "Sí. Una parte significativa de nuestros clientes son empresas multinacionales e inversionistas extranjeros. Nuestros abogados están admitidos en múltiples jurisdicciones y operamos mesas especializadas, incluyendo un German Desk, para apoyar asuntos transfronterizos y la inversión extranjera directa en México.",
+    category: "Services",
+    categoryEs: "Servicios",
+    order: 3,
+  },
+  {
+    question: "How can I request a consultation or propose a matter?",
+    questionEs: "¿Cómo puedo solicitar una consulta o proponer un asunto?",
+    answer: "You can reach us through the contact form on this website, by email at info@vonwobeser.com, or by phone at +52 55 5258 1000. A member of the relevant practice group will respond to assess your matter.",
+    answerEs: "Puede contactarnos a través del formulario de contacto en este sitio web, por correo electrónico en info@vonwobeser.com, o por teléfono al +52 55 5258 1000. Un miembro del grupo de práctica correspondiente le responderá para evaluar su asunto.",
+    category: "Contact",
+    categoryEs: "Contacto",
+    order: 4,
+  },
+  {
+    question: "Does the firm offer internships or career opportunities for law students?",
+    questionEs: "¿La firma ofrece programas de prácticas u oportunidades para estudiantes de derecho?",
+    answer: "Yes. We have structured internship and associate programs aimed at outstanding students and recent graduates from leading law schools in Mexico and abroad. Open positions are published in the Careers and Interns sections of this website.",
+    answerEs: "Sí. Contamos con programas estructurados de prácticas y de asociados dirigidos a estudiantes destacados y recién egresados de las mejores escuelas de derecho de México y del extranjero. Las vacantes disponibles se publican en las secciones de Carreras y Becarios de este sitio web.",
+    category: "Careers",
+    categoryEs: "Carreras",
+    order: 5,
+  },
+  {
+    question: "Is the firm recognized by international legal directories?",
+    questionEs: "¿La firma es reconocida por directorios legales internacionales?",
+    answer: "Von Wobeser y Sierra is consistently ranked in the highest tiers by Chambers and Partners, The Legal 500, IFLR1000 and Global Investigations Review, among other recognized international legal directories.",
+    answerEs: "Von Wobeser y Sierra es reconocida de forma consistente en las categorías más altas por Chambers and Partners, The Legal 500, IFLR1000 y Global Investigations Review, entre otros directorios legales internacionales reconocidos.",
+    category: "Recognition",
+    categoryEs: "Reconocimientos",
+    order: 6,
+  },
+];
+
+const proBonoProjectsData = [
+  {
+    title: "Legal support for civil society organizations",
+    titleEs: "Apoyo legal a organizaciones de la sociedad civil",
+    organization: "Multiple non-profit organizations",
+    organizationEs: "Diversas organizaciones sin fines de lucro",
+    description: "Comprehensive corporate, governance and tax advice to non-profit organizations so they can operate in full compliance with Mexican law and focus their resources on their social mission.",
+    descriptionEs: "Asesoría integral en materia corporativa, de gobierno corporativo y fiscal a organizaciones sin fines de lucro para que puedan operar en pleno cumplimiento de la legislación mexicana y enfocar sus recursos en su misión social.",
+    impact: "Dozens of organizations strengthened in their legal structure and compliance.",
+    impactEs: "Decenas de organizaciones fortalecidas en su estructura legal y cumplimiento.",
+    year: 2024,
+    category: "Civil Society",
+    categoryEs: "Sociedad Civil",
+    isFeatured: true,
+    order: 1,
+  },
+  {
+    title: "Defense of fundamental rights",
+    titleEs: "Defensa de derechos fundamentales",
+    organization: "Human rights organizations",
+    organizationEs: "Organizaciones de derechos humanos",
+    description: "Representation in strategic litigation and amparo proceedings involving the protection of fundamental rights of vulnerable populations, in collaboration with specialized human rights organizations.",
+    descriptionEs: "Representación en litigio estratégico y juicios de amparo relacionados con la protección de derechos fundamentales de poblaciones vulnerables, en colaboración con organizaciones especializadas en derechos humanos.",
+    impact: "Precedents that benefit access to justice for vulnerable groups.",
+    impactEs: "Precedentes que benefician el acceso a la justicia de grupos vulnerables.",
+    year: 2023,
+    category: "Human Rights",
+    categoryEs: "Derechos Humanos",
+    isFeatured: true,
+    order: 2,
+  },
+  {
+    title: "Legal structuring of social enterprises",
+    titleEs: "Estructuración legal de empresas sociales",
+    organization: "Foundations and social enterprises",
+    organizationEs: "Fundaciones y empresas sociales",
+    description: "Advice on legal structuring, contracts and regulatory compliance for foundations and social enterprises seeking to maximize their positive impact on Mexican communities.",
+    descriptionEs: "Asesoría en estructuración legal, contratos y cumplimiento regulatorio para fundaciones y empresas sociales que buscan maximizar su impacto positivo en las comunidades mexicanas.",
+    impact: "Social projects launched with solid and sustainable legal foundations.",
+    impactEs: "Proyectos sociales lanzados con bases legales sólidas y sostenibles.",
+    year: 2024,
+    category: "Social Impact",
+    categoryEs: "Impacto Social",
+    isFeatured: false,
+    order: 3,
+  },
+  {
+    title: "Environmental and conservation advisory",
+    titleEs: "Asesoría ambiental y de conservación",
+    organization: "Environmental organizations",
+    organizationEs: "Organizaciones ambientales",
+    description: "Pro bono advice to environmental organizations on regulatory matters, conservation initiatives and sustainability projects that benefit communities and ecosystems in Mexico.",
+    descriptionEs: "Asesoría pro bono a organizaciones ambientales en materia regulatoria, iniciativas de conservación y proyectos de sustentabilidad que benefician a comunidades y ecosistemas en México.",
+    impact: "Conservation initiatives supported with specialized legal advice.",
+    impactEs: "Iniciativas de conservación apoyadas con asesoría legal especializada.",
+    year: 2023,
+    category: "Environment",
+    categoryEs: "Medio Ambiente",
+    isFeatured: false,
+    order: 4,
+  },
+  {
+    title: "Access to justice clinics with universities",
+    titleEs: "Clínicas de acceso a la justicia con universidades",
+    organization: "Universities and legal aid clinics",
+    organizationEs: "Universidades y clínicas de asistencia legal",
+    description: "Collaboration with universities and legal aid clinics to provide free legal representation to individuals who could not otherwise afford it, while training the next generation of socially committed lawyers.",
+    descriptionEs: "Colaboración con universidades y clínicas de asistencia legal para brindar representación jurídica gratuita a personas que de otra forma no podrían costearla, formando al mismo tiempo a la siguiente generación de abogados socialmente comprometidos.",
+    impact: "Hundreds of hours of free legal representation provided each year.",
+    impactEs: "Cientos de horas de representación legal gratuita brindadas cada año.",
+    year: 2024,
+    category: "Access to Justice",
+    categoryEs: "Acceso a la Justicia",
+    isFeatured: true,
+    order: 5,
+  },
+];
+
+const diversityInitiativesData = [
+  {
+    title: "Gender equality and women's advancement",
+    titleEs: "Igualdad de género y avance de las mujeres",
+    description: "Programs that actively promote gender equality at all levels of the organization, supporting the advancement of women into leadership and partnership positions and ensuring equitable compensation and growth opportunities.",
+    descriptionEs: "Programas que promueven activamente la igualdad de género en todos los niveles de la organización, apoyando el avance de las mujeres hacia posiciones de liderazgo y de socias, y garantizando una compensación equitativa y oportunidades de crecimiento.",
+    category: "gender",
+    categoryEs: "Género",
+    impact: "Sustained increase in women in leadership and decision-making positions.",
+    impactEs: "Incremento sostenido de mujeres en posiciones de liderazgo y toma de decisiones.",
+    year: 2024,
+    isFeatured: true,
+    order: 1,
+  },
+  {
+    title: "Mentorship and professional development programs",
+    titleEs: "Programas de mentoría y desarrollo profesional",
+    description: "Structured mentorship programs that pair junior attorneys with experienced partners, fostering professional growth and ensuring that knowledge and opportunities are shared equitably across all levels of the firm.",
+    descriptionEs: "Programas estructurados de mentoría que vinculan a abogados junior con socios experimentados, fomentando el crecimiento profesional y asegurando que el conocimiento y las oportunidades se compartan de forma equitativa en todos los niveles de la firma.",
+    category: "culture",
+    categoryEs: "Cultura",
+    impact: "Stronger talent retention and equitable career progression.",
+    impactEs: "Mayor retención de talento y progresión profesional equitativa.",
+    year: 2024,
+    isFeatured: true,
+    order: 2,
+  },
+  {
+    title: "Inclusion of persons with disabilities",
+    titleEs: "Inclusión de personas con discapacidad",
+    description: "Initiatives to ensure accessible facilities, inclusive recruitment practices and reasonable accommodations, so that persons with disabilities can fully develop their professional careers at the firm.",
+    descriptionEs: "Iniciativas para asegurar instalaciones accesibles, prácticas de reclutamiento inclusivas y ajustes razonables, de modo que las personas con discapacidad puedan desarrollar plenamente su carrera profesional en la firma.",
+    category: "disability",
+    categoryEs: "Discapacidad",
+    impact: "More accessible and inclusive workplace for all team members.",
+    impactEs: "Un lugar de trabajo más accesible e inclusivo para todos los miembros del equipo.",
+    year: 2023,
+    isFeatured: false,
+    order: 3,
+  },
+  {
+    title: "LGBTQ+ inclusion and respect",
+    titleEs: "Inclusión y respeto LGBTQ+",
+    description: "Policies and awareness initiatives that promote a respectful and inclusive environment for LGBTQ+ team members, reinforcing a culture of equality and non-discrimination throughout the firm.",
+    descriptionEs: "Políticas e iniciativas de sensibilización que promueven un entorno respetuoso e inclusivo para los miembros del equipo LGBTQ+, reforzando una cultura de igualdad y no discriminación en toda la firma.",
+    category: "lgbtq",
+    categoryEs: "LGBTQ+",
+    impact: "A culture of respect and belonging recognized by the team.",
+    impactEs: "Una cultura de respeto y pertenencia reconocida por el equipo.",
+    year: 2024,
+    isFeatured: false,
+    order: 4,
+  },
+  {
+    title: "Intergenerational collaboration and knowledge transfer",
+    titleEs: "Colaboración intergeneracional y transferencia de conocimiento",
+    description: "Programs that bring together attorneys across generations to transfer institutional knowledge, balance experience with new perspectives and build a cohesive, multigenerational professional community.",
+    descriptionEs: "Programas que reúnen a abogados de distintas generaciones para transferir conocimiento institucional, equilibrar la experiencia con nuevas perspectivas y construir una comunidad profesional cohesionada y multigeneracional.",
+    category: "age",
+    categoryEs: "Edad",
+    impact: "Continuity of expertise and a stronger, more collaborative culture.",
+    impactEs: "Continuidad de la experiencia y una cultura más sólida y colaborativa.",
+    year: 2023,
+    isFeatured: false,
+    order: 5,
+  },
+];
+
 export async function seed() {
   console.log("Seeding database with real Von Wobeser y Sierra content...");
 
@@ -1221,6 +1424,27 @@ export async function seed() {
   if (existingEvents.length === 0) {
     console.log("Seeding events...");
     await db.insert(events).values(eventsData).onConflictDoNothing();
+  }
+
+  // Seed FAQs
+  const existingFaqs = await db.select().from(faqs);
+  if (existingFaqs.length === 0) {
+    console.log("Seeding FAQs...");
+    await db.insert(faqs).values(faqsData).onConflictDoNothing();
+  }
+
+  // Seed pro bono projects
+  const existingProBono = await db.select().from(proBonoProjects);
+  if (existingProBono.length === 0) {
+    console.log("Seeding pro bono projects...");
+    await db.insert(proBonoProjects).values(proBonoProjectsData).onConflictDoNothing();
+  }
+
+  // Seed diversity initiatives
+  const existingDiversity = await db.select().from(diversityInitiatives);
+  if (existingDiversity.length === 0) {
+    console.log("Seeding diversity initiatives...");
+    await db.insert(diversityInitiatives).values(diversityInitiativesData).onConflictDoNothing();
   }
 
   console.log("Database seeded successfully with real Von Wobeser y Sierra content!");

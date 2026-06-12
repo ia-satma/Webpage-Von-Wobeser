@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
 import { Link } from "wouter";
+import { useQuery } from "@tanstack/react-query";
 import { 
   Heart, 
   Scale, 
@@ -22,6 +23,21 @@ import Footer from "@/components/Footer";
 import SEOHead from "@/components/SEOHead";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { NumberedCard } from "@/components/editorial";
+
+interface ProBonoProjectItem {
+  id: string;
+  title: string;
+  titleEs: string;
+  organization?: string | null;
+  organizationEs?: string | null;
+  description: string;
+  descriptionEs: string;
+  impact?: string | null;
+  impactEs?: string | null;
+  year?: number | null;
+  category?: string | null;
+  categoryEs?: string | null;
+}
 
 export default function ProBono() {
   const { language } = useLanguage();
@@ -820,6 +836,24 @@ export default function ProBono() {
     },
   };
 
+  const isSpanish = language === "es";
+
+  const { data: featuredProjects = [] } = useQuery<ProBonoProjectItem[]>({
+    queryKey: ["/api/pro-bono"],
+  });
+
+  const projectsSectionLabels = {
+    en: {
+      subtitle: "Selected matters that reflect our commitment",
+      title: "Featured Pro Bono Projects",
+    },
+    es: {
+      subtitle: "Asuntos seleccionados que reflejan nuestro compromiso",
+      title: "Proyectos Pro Bono Destacados",
+    },
+  };
+  const pl = isSpanish ? projectsSectionLabels.es : projectsSectionLabels.en;
+
   return (
     <div className="min-h-screen bg-background" data-testid="page-pro-bono">
       <SEOHead page="proBono" language={language} />
@@ -926,6 +960,72 @@ export default function ProBono() {
             </motion.div>
           </div>
         </section>
+
+        {featuredProjects.length > 0 && (
+          <section className="py-20 lg:py-24 bg-muted/30" data-testid="section-featured-projects">
+            <div className="max-w-7xl mx-auto px-6 lg:px-12">
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.6 }}
+                className="text-center mb-16"
+              >
+                <p className="font-support text-xs uppercase tracking-[0.2em] text-primary mb-4" data-testid="text-featured-projects-subtitle">
+                  {pl.subtitle}
+                </p>
+                <h2 className="text-2xl md:text-3xl font-heading font-light text-foreground uppercase tracking-[0.12em] mb-4">
+                  {pl.title}
+                </h2>
+                <div className="h-0.5 w-12 bg-primary mx-auto" />
+              </motion.div>
+
+              <motion.div
+                variants={containerVariants}
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: true }}
+                className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+              >
+                {featuredProjects.map((project, index) => (
+                  <motion.div key={project.id} variants={itemVariants}>
+                    <Card className="h-full border-border/60" data-testid={`card-featured-project-${index}`}>
+                      <CardContent className="p-6 flex flex-col h-full">
+                        <div className="flex items-center justify-between mb-4">
+                          {(isSpanish ? project.categoryEs : project.category) && (
+                            <span className="font-support text-xs uppercase tracking-[0.16em] text-primary">
+                              {isSpanish ? project.categoryEs : project.category}
+                            </span>
+                          )}
+                          {project.year && (
+                            <span className="font-support text-xs text-muted-foreground">{project.year}</span>
+                          )}
+                        </div>
+                        <h3 className="text-lg font-heading font-light text-foreground mb-2" data-testid={`text-featured-project-title-${index}`}>
+                          {isSpanish ? project.titleEs : project.title}
+                        </h3>
+                        {(isSpanish ? project.organizationEs : project.organization) && (
+                          <p className="text-sm text-primary/80 mb-3">
+                            {isSpanish ? project.organizationEs : project.organization}
+                          </p>
+                        )}
+                        <p className="text-sm text-muted-foreground leading-relaxed text-justify mb-4">
+                          {isSpanish ? project.descriptionEs : project.description}
+                        </p>
+                        {(isSpanish ? project.impactEs : project.impact) && (
+                          <p className="mt-auto pt-4 border-t border-border/60 text-sm text-foreground/80">
+                            <span className="font-medium text-primary">{isSpanish ? "Impacto: " : "Impact: "}</span>
+                            {isSpanish ? project.impactEs : project.impact}
+                          </p>
+                        )}
+                      </CardContent>
+                    </Card>
+                  </motion.div>
+                ))}
+              </motion.div>
+            </div>
+          </section>
+        )}
 
         <section className="bg-[#1a1a19] py-16 lg:py-20" data-testid="section-stats">
           <div className="max-w-7xl mx-auto px-6 lg:px-12">

@@ -57,6 +57,14 @@ import {
   type InsertSpecializedDesk,
   type ContactSubmission,
   type InsertContactSubmission,
+  type NewsletterSubscriber,
+  type InsertNewsletterSubscriber,
+  type Faq,
+  type InsertFaq,
+  type ProBonoProject,
+  type InsertProBonoProject,
+  type DiversityInitiative,
+  type InsertDiversityInitiative,
   contactSubmissions,
   users,
   news,
@@ -86,6 +94,10 @@ import {
   offices,
   alliances,
   specializedDesks,
+  newsletterSubscribers,
+  faqs,
+  proBonoProjects,
+  diversityInitiatives,
 } from "@shared/schema";
 
 export interface IStorage {
@@ -268,6 +280,34 @@ export interface IStorage {
   createContactSubmission(data: InsertContactSubmission): Promise<ContactSubmission>;
   getContactSubmissions(): Promise<ContactSubmission[]>;
   markContactSubmissionRead(id: string): Promise<boolean>;
+
+  // Newsletter Subscribers
+  createNewsletterSubscriber(data: InsertNewsletterSubscriber): Promise<{ subscriber: NewsletterSubscriber; created: boolean }>;
+  getNewsletterSubscribers(): Promise<NewsletterSubscriber[]>;
+
+  // FAQs
+  getFaqs(): Promise<Faq[]>;
+  getAllFaqs(): Promise<Faq[]>;
+  getFaqById(id: string): Promise<Faq | undefined>;
+  createFaq(faq: InsertFaq): Promise<Faq>;
+  updateFaq(id: string, data: Partial<InsertFaq>): Promise<Faq | undefined>;
+  deleteFaq(id: string): Promise<boolean>;
+
+  // Pro Bono Projects
+  getProBonoProjects(): Promise<ProBonoProject[]>;
+  getAllProBonoProjects(): Promise<ProBonoProject[]>;
+  getProBonoProjectById(id: string): Promise<ProBonoProject | undefined>;
+  createProBonoProject(project: InsertProBonoProject): Promise<ProBonoProject>;
+  updateProBonoProject(id: string, data: Partial<InsertProBonoProject>): Promise<ProBonoProject | undefined>;
+  deleteProBonoProject(id: string): Promise<boolean>;
+
+  // Diversity Initiatives
+  getDiversityInitiatives(): Promise<DiversityInitiative[]>;
+  getAllDiversityInitiatives(): Promise<DiversityInitiative[]>;
+  getDiversityInitiativeById(id: string): Promise<DiversityInitiative | undefined>;
+  createDiversityInitiative(initiative: InsertDiversityInitiative): Promise<DiversityInitiative>;
+  updateDiversityInitiative(id: string, data: Partial<InsertDiversityInitiative>): Promise<DiversityInitiative | undefined>;
+  deleteDiversityInitiative(id: string): Promise<boolean>;
 }
 
 const siteContent: SiteContent = {
@@ -1189,6 +1229,118 @@ export class DatabaseStorage implements IStorage {
   async markContactSubmissionRead(id: string): Promise<boolean> {
     const result = await db.update(contactSubmissions).set({ read: true }).where(eq(contactSubmissions.id, id)).returning({ id: contactSubmissions.id });
     return result.length > 0;
+  }
+
+  // Newsletter Subscribers
+  async createNewsletterSubscriber(data: InsertNewsletterSubscriber): Promise<{ subscriber: NewsletterSubscriber; created: boolean }> {
+    // Insert; if the email already exists (unique constraint) do nothing and
+    // return the existing record so the caller can report a friendly "already subscribed".
+    const [inserted] = await db
+      .insert(newsletterSubscribers)
+      .values(data)
+      .onConflictDoNothing({ target: newsletterSubscribers.email })
+      .returning();
+
+    if (inserted) {
+      return { subscriber: inserted, created: true };
+    }
+
+    const [existing] = await db
+      .select()
+      .from(newsletterSubscribers)
+      .where(eq(newsletterSubscribers.email, data.email));
+    return { subscriber: existing, created: false };
+  }
+
+  async getNewsletterSubscribers(): Promise<NewsletterSubscriber[]> {
+    return db.select().from(newsletterSubscribers).orderBy(desc(newsletterSubscribers.subscribedAt));
+  }
+
+  // FAQs
+  async getFaqs(): Promise<Faq[]> {
+    return db.select().from(faqs).where(eq(faqs.published, true)).orderBy(asc(faqs.order));
+  }
+
+  async getAllFaqs(): Promise<Faq[]> {
+    return db.select().from(faqs).orderBy(asc(faqs.order));
+  }
+
+  async getFaqById(id: string): Promise<Faq | undefined> {
+    const [faq] = await db.select().from(faqs).where(eq(faqs.id, id));
+    return faq;
+  }
+
+  async createFaq(faq: InsertFaq): Promise<Faq> {
+    const [item] = await db.insert(faqs).values(faq).returning();
+    return item;
+  }
+
+  async updateFaq(id: string, data: Partial<InsertFaq>): Promise<Faq | undefined> {
+    const [updated] = await db.update(faqs).set(data).where(eq(faqs.id, id)).returning();
+    return updated;
+  }
+
+  async deleteFaq(id: string): Promise<boolean> {
+    const result = await db.delete(faqs).where(eq(faqs.id, id));
+    return (result.rowCount ?? 0) > 0;
+  }
+
+  // Pro Bono Projects
+  async getProBonoProjects(): Promise<ProBonoProject[]> {
+    return db.select().from(proBonoProjects).where(eq(proBonoProjects.published, true)).orderBy(asc(proBonoProjects.order));
+  }
+
+  async getAllProBonoProjects(): Promise<ProBonoProject[]> {
+    return db.select().from(proBonoProjects).orderBy(asc(proBonoProjects.order));
+  }
+
+  async getProBonoProjectById(id: string): Promise<ProBonoProject | undefined> {
+    const [project] = await db.select().from(proBonoProjects).where(eq(proBonoProjects.id, id));
+    return project;
+  }
+
+  async createProBonoProject(project: InsertProBonoProject): Promise<ProBonoProject> {
+    const [item] = await db.insert(proBonoProjects).values(project).returning();
+    return item;
+  }
+
+  async updateProBonoProject(id: string, data: Partial<InsertProBonoProject>): Promise<ProBonoProject | undefined> {
+    const [updated] = await db.update(proBonoProjects).set(data).where(eq(proBonoProjects.id, id)).returning();
+    return updated;
+  }
+
+  async deleteProBonoProject(id: string): Promise<boolean> {
+    const result = await db.delete(proBonoProjects).where(eq(proBonoProjects.id, id));
+    return (result.rowCount ?? 0) > 0;
+  }
+
+  // Diversity Initiatives
+  async getDiversityInitiatives(): Promise<DiversityInitiative[]> {
+    return db.select().from(diversityInitiatives).where(eq(diversityInitiatives.published, true)).orderBy(asc(diversityInitiatives.order));
+  }
+
+  async getAllDiversityInitiatives(): Promise<DiversityInitiative[]> {
+    return db.select().from(diversityInitiatives).orderBy(asc(diversityInitiatives.order));
+  }
+
+  async getDiversityInitiativeById(id: string): Promise<DiversityInitiative | undefined> {
+    const [initiative] = await db.select().from(diversityInitiatives).where(eq(diversityInitiatives.id, id));
+    return initiative;
+  }
+
+  async createDiversityInitiative(initiative: InsertDiversityInitiative): Promise<DiversityInitiative> {
+    const [item] = await db.insert(diversityInitiatives).values(initiative).returning();
+    return item;
+  }
+
+  async updateDiversityInitiative(id: string, data: Partial<InsertDiversityInitiative>): Promise<DiversityInitiative | undefined> {
+    const [updated] = await db.update(diversityInitiatives).set(data).where(eq(diversityInitiatives.id, id)).returning();
+    return updated;
+  }
+
+  async deleteDiversityInitiative(id: string): Promise<boolean> {
+    const result = await db.delete(diversityInitiatives).where(eq(diversityInitiatives.id, id));
+    return (result.rowCount ?? 0) > 0;
   }
 }
 

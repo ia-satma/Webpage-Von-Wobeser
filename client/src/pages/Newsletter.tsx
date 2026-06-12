@@ -68,13 +68,23 @@ export default function Newsletter() {
   const newsletterMutation = useMutation({
     mutationFn: async (data: NewsletterFormData) => {
       const response = await apiRequest("POST", "/api/newsletter", data);
-      return response.json();
+      return response.json() as Promise<{ success: boolean; duplicate?: boolean; message?: string }>;
     },
-    onSuccess: () => {
+    onSuccess: (result) => {
+      if (result?.duplicate) {
+        toast({
+          title: language === "es" ? "Ya estás suscrito" : "Already subscribed",
+          description: language === "es"
+            ? "Este correo ya se encuentra registrado en nuestro boletín."
+            : "This email is already subscribed to our newsletter.",
+        });
+        form.reset();
+        return;
+      }
       toast({
         title: language === "es" ? "¡Suscripción exitosa!" : "Successfully subscribed!",
-        description: language === "es" 
-          ? "Gracias por suscribirse a nuestro boletín." 
+        description: language === "es"
+          ? "Gracias por suscribirse a nuestro boletín."
           : "Thank you for subscribing to our newsletter.",
       });
       form.reset();

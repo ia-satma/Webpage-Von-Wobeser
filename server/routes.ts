@@ -49,6 +49,10 @@ import {
   insertAllianceSchema,
   insertSpecializedDeskSchema,
   insertOfficeImageSchema,
+  insertNewsletterSubscriberSchema,
+  insertFaqSchema,
+  insertProBonoProjectSchema,
+  insertDiversityInitiativeSchema,
 } from "@shared/schema";
 import { ZodError } from "zod";
 import {
@@ -738,6 +742,112 @@ export async function registerRoutes(
       res.json(event);
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch event" });
+    }
+  });
+
+  // =============================================
+  // NEWSLETTER (public subscribe + public-facing)
+  // =============================================
+
+  app.post("/api/newsletter", async (req: Request, res: Response) => {
+    try {
+      // Client sends { email, firstName?, lastName? }. The schema stores a single
+      // `name` column, so collapse the optional name parts into it.
+      const firstName = typeof req.body?.firstName === "string" ? req.body.firstName.trim() : "";
+      const lastName = typeof req.body?.lastName === "string" ? req.body.lastName.trim() : "";
+      const composedName = [firstName, lastName].filter(Boolean).join(" ").trim();
+
+      const validatedData = insertNewsletterSubscriberSchema.parse({
+        email: typeof req.body?.email === "string" ? req.body.email.trim().toLowerCase() : req.body?.email,
+        name: composedName.length > 0 ? composedName : (req.body?.name ?? null),
+      });
+
+      const { created } = await storage.createNewsletterSubscriber(validatedData);
+
+      if (!created) {
+        return res.status(200).json({
+          success: true,
+          duplicate: true,
+          message: "This email is already subscribed",
+        });
+      }
+
+      console.log("[Newsletter] New subscriber saved");
+      res.status(201).json({ success: true, duplicate: false, message: "Subscribed successfully" });
+    } catch (error) {
+      if (error instanceof ZodError) {
+        return res.status(400).json({ error: "Validation failed", details: error.errors });
+      }
+      console.error("Newsletter subscribe error:", error);
+      res.status(500).json({ error: "Failed to subscribe" });
+    }
+  });
+
+  // Alias kept for clarity / external callers
+  app.post("/api/newsletter/subscribe", async (req: Request, res: Response) => {
+    try {
+      const firstName = typeof req.body?.firstName === "string" ? req.body.firstName.trim() : "";
+      const lastName = typeof req.body?.lastName === "string" ? req.body.lastName.trim() : "";
+      const composedName = [firstName, lastName].filter(Boolean).join(" ").trim();
+
+      const validatedData = insertNewsletterSubscriberSchema.parse({
+        email: typeof req.body?.email === "string" ? req.body.email.trim().toLowerCase() : req.body?.email,
+        name: composedName.length > 0 ? composedName : (req.body?.name ?? null),
+      });
+
+      const { created } = await storage.createNewsletterSubscriber(validatedData);
+
+      if (!created) {
+        return res.status(200).json({ success: true, duplicate: true, message: "This email is already subscribed" });
+      }
+
+      console.log("[Newsletter] New subscriber saved");
+      res.status(201).json({ success: true, duplicate: false, message: "Subscribed successfully" });
+    } catch (error) {
+      if (error instanceof ZodError) {
+        return res.status(400).json({ error: "Validation failed", details: error.errors });
+      }
+      console.error("Newsletter subscribe error:", error);
+      res.status(500).json({ error: "Failed to subscribe" });
+    }
+  });
+
+  // =============================================
+  // FAQS (public read)
+  // =============================================
+
+  app.get("/api/faqs", async (_req: Request, res: Response) => {
+    try {
+      const list = await storage.getFaqs();
+      res.json(list);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch FAQs" });
+    }
+  });
+
+  // =============================================
+  // PRO BONO (public read)
+  // =============================================
+
+  app.get("/api/pro-bono", async (_req: Request, res: Response) => {
+    try {
+      const list = await storage.getProBonoProjects();
+      res.json(list);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch pro bono projects" });
+    }
+  });
+
+  // =============================================
+  // DIVERSITY (public read)
+  // =============================================
+
+  app.get("/api/diversity", async (_req: Request, res: Response) => {
+    try {
+      const list = await storage.getDiversityInitiatives();
+      res.json(list);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch diversity initiatives" });
     }
   });
 
@@ -2266,6 +2376,194 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
     } catch (error) {
       console.error("Mark contact submission read error:", error);
       res.status(500).json({ error: "Failed to update submission" });
+    }
+  });
+
+  // =============================================
+  // ADMIN NEWSLETTER SUBSCRIBERS
+  // =============================================
+
+  app.get("/api/admin/newsletter/subscribers", authMiddleware, requireRole("super_admin", "editor", "admin"), async (_req: Request, res: Response) => {
+    try {
+      const subscribers = await storage.getNewsletterSubscribers();
+      res.json(subscribers);
+    } catch (error) {
+      console.error("Get newsletter subscribers error:", error);
+      res.status(500).json({ error: "Failed to fetch newsletter subscribers" });
+    }
+  });
+
+  // =============================================
+  // ADMIN FAQS CRUD
+  // =============================================
+
+  app.get("/api/admin/faqs", authMiddleware, async (_req: Request, res: Response) => {
+    try {
+      const list = await storage.getAllFaqs();
+      res.json(list);
+    } catch (error) {
+      console.error("Get FAQs error:", error);
+      res.status(500).json({ error: "Failed to fetch FAQs" });
+    }
+  });
+
+  app.post("/api/admin/faqs", authMiddleware, requireRole("super_admin", "editor", "admin"), async (req: Request, res: Response) => {
+    try {
+      const validatedData = insertFaqSchema.parse(req.body);
+      const faq = await storage.createFaq(validatedData);
+      res.json(faq);
+    } catch (error) {
+      if (error instanceof ZodError) {
+        return res.status(400).json({ error: "Validation failed", details: error.errors });
+      }
+      console.error("Create FAQ error:", error);
+      res.status(500).json({ error: "Failed to create FAQ" });
+    }
+  });
+
+  app.put("/api/admin/faqs/:id", authMiddleware, requireRole("super_admin", "editor", "admin"), async (req: Request, res: Response) => {
+    try {
+      const validatedData = insertFaqSchema.partial().parse(req.body);
+      const updated = await storage.updateFaq(req.params.id, validatedData);
+      if (!updated) {
+        return res.status(404).json({ error: "FAQ not found" });
+      }
+      res.json(updated);
+    } catch (error) {
+      if (error instanceof ZodError) {
+        return res.status(400).json({ error: "Validation failed", details: error.errors });
+      }
+      console.error("Update FAQ error:", error);
+      res.status(500).json({ error: "Failed to update FAQ" });
+    }
+  });
+
+  app.delete("/api/admin/faqs/:id", authMiddleware, requireRole("super_admin", "editor", "admin"), async (req: Request, res: Response) => {
+    try {
+      const deleted = await storage.deleteFaq(req.params.id);
+      if (!deleted) {
+        return res.status(404).json({ error: "FAQ not found" });
+      }
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Delete FAQ error:", error);
+      res.status(500).json({ error: "Failed to delete FAQ" });
+    }
+  });
+
+  // =============================================
+  // ADMIN PRO BONO CRUD
+  // =============================================
+
+  app.get("/api/admin/pro-bono", authMiddleware, async (_req: Request, res: Response) => {
+    try {
+      const list = await storage.getAllProBonoProjects();
+      res.json(list);
+    } catch (error) {
+      console.error("Get pro bono projects error:", error);
+      res.status(500).json({ error: "Failed to fetch pro bono projects" });
+    }
+  });
+
+  app.post("/api/admin/pro-bono", authMiddleware, requireRole("super_admin", "editor", "admin"), async (req: Request, res: Response) => {
+    try {
+      const validatedData = insertProBonoProjectSchema.parse(req.body);
+      const project = await storage.createProBonoProject(validatedData);
+      res.json(project);
+    } catch (error) {
+      if (error instanceof ZodError) {
+        return res.status(400).json({ error: "Validation failed", details: error.errors });
+      }
+      console.error("Create pro bono project error:", error);
+      res.status(500).json({ error: "Failed to create pro bono project" });
+    }
+  });
+
+  app.put("/api/admin/pro-bono/:id", authMiddleware, requireRole("super_admin", "editor", "admin"), async (req: Request, res: Response) => {
+    try {
+      const validatedData = insertProBonoProjectSchema.partial().parse(req.body);
+      const updated = await storage.updateProBonoProject(req.params.id, validatedData);
+      if (!updated) {
+        return res.status(404).json({ error: "Pro bono project not found" });
+      }
+      res.json(updated);
+    } catch (error) {
+      if (error instanceof ZodError) {
+        return res.status(400).json({ error: "Validation failed", details: error.errors });
+      }
+      console.error("Update pro bono project error:", error);
+      res.status(500).json({ error: "Failed to update pro bono project" });
+    }
+  });
+
+  app.delete("/api/admin/pro-bono/:id", authMiddleware, requireRole("super_admin", "editor", "admin"), async (req: Request, res: Response) => {
+    try {
+      const deleted = await storage.deleteProBonoProject(req.params.id);
+      if (!deleted) {
+        return res.status(404).json({ error: "Pro bono project not found" });
+      }
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Delete pro bono project error:", error);
+      res.status(500).json({ error: "Failed to delete pro bono project" });
+    }
+  });
+
+  // =============================================
+  // ADMIN DIVERSITY CRUD
+  // =============================================
+
+  app.get("/api/admin/diversity", authMiddleware, async (_req: Request, res: Response) => {
+    try {
+      const list = await storage.getAllDiversityInitiatives();
+      res.json(list);
+    } catch (error) {
+      console.error("Get diversity initiatives error:", error);
+      res.status(500).json({ error: "Failed to fetch diversity initiatives" });
+    }
+  });
+
+  app.post("/api/admin/diversity", authMiddleware, requireRole("super_admin", "editor", "admin"), async (req: Request, res: Response) => {
+    try {
+      const validatedData = insertDiversityInitiativeSchema.parse(req.body);
+      const initiative = await storage.createDiversityInitiative(validatedData);
+      res.json(initiative);
+    } catch (error) {
+      if (error instanceof ZodError) {
+        return res.status(400).json({ error: "Validation failed", details: error.errors });
+      }
+      console.error("Create diversity initiative error:", error);
+      res.status(500).json({ error: "Failed to create diversity initiative" });
+    }
+  });
+
+  app.put("/api/admin/diversity/:id", authMiddleware, requireRole("super_admin", "editor", "admin"), async (req: Request, res: Response) => {
+    try {
+      const validatedData = insertDiversityInitiativeSchema.partial().parse(req.body);
+      const updated = await storage.updateDiversityInitiative(req.params.id, validatedData);
+      if (!updated) {
+        return res.status(404).json({ error: "Diversity initiative not found" });
+      }
+      res.json(updated);
+    } catch (error) {
+      if (error instanceof ZodError) {
+        return res.status(400).json({ error: "Validation failed", details: error.errors });
+      }
+      console.error("Update diversity initiative error:", error);
+      res.status(500).json({ error: "Failed to update diversity initiative" });
+    }
+  });
+
+  app.delete("/api/admin/diversity/:id", authMiddleware, requireRole("super_admin", "editor", "admin"), async (req: Request, res: Response) => {
+    try {
+      const deleted = await storage.deleteDiversityInitiative(req.params.id);
+      if (!deleted) {
+        return res.status(404).json({ error: "Diversity initiative not found" });
+      }
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Delete diversity initiative error:", error);
+      res.status(500).json({ error: "Failed to delete diversity initiative" });
     }
   });
 

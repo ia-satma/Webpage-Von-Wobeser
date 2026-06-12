@@ -1,5 +1,6 @@
 import { Link } from "wouter";
 import { motion } from "framer-motion";
+import { useQuery } from "@tanstack/react-query";
 import {
   Users,
   Heart,
@@ -23,6 +24,19 @@ import Footer from "@/components/Footer";
 import SEOHead from "@/components/SEOHead";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { NumberedCard } from "@/components/editorial";
+
+interface DiversityInitiativeItem {
+  id: string;
+  title: string;
+  titleEs: string;
+  description: string;
+  descriptionEs: string;
+  category?: string | null;
+  categoryEs?: string | null;
+  impact?: string | null;
+  impactEs?: string | null;
+  year?: number | null;
+}
 
 export default function DiversityInclusion() {
   const { language } = useLanguage();
@@ -581,6 +595,24 @@ export default function DiversityInclusion() {
     },
   };
 
+  const isSpanish = language === "es";
+
+  const { data: liveInitiatives = [] } = useQuery<DiversityInitiativeItem[]>({
+    queryKey: ["/api/diversity"],
+  });
+
+  const liveSectionLabels = {
+    en: {
+      subtitle: "Programs currently driving change at the firm",
+      title: "Diversity Initiatives in Action",
+    },
+    es: {
+      subtitle: "Programas que actualmente impulsan el cambio en la firma",
+      title: "Iniciativas de Diversidad en Acción",
+    },
+  };
+  const dl = isSpanish ? liveSectionLabels.es : liveSectionLabels.en;
+
   return (
     <div className="min-h-screen bg-background" data-testid="page-diversity-inclusion">
       <SEOHead page="diversityInclusion" language={language} />
@@ -763,6 +795,67 @@ export default function DiversityInclusion() {
             </motion.div>
           </div>
         </section>
+
+        {liveInitiatives.length > 0 && (
+          <section className="py-20 lg:py-24" data-testid="section-live-initiatives">
+            <div className="max-w-7xl mx-auto px-6 lg:px-12">
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.6 }}
+                className="text-center mb-16"
+              >
+                <p className="font-support text-xs uppercase tracking-[0.2em] text-primary mb-4" data-testid="text-live-initiatives-subtitle">
+                  {dl.subtitle}
+                </p>
+                <h2 className="text-2xl md:text-3xl font-heading font-light text-foreground uppercase tracking-[0.12em] mb-4">
+                  {dl.title}
+                </h2>
+                <div className="h-0.5 w-12 bg-primary mx-auto" />
+              </motion.div>
+
+              <motion.div
+                variants={containerVariants}
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: true }}
+                className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+              >
+                {liveInitiatives.map((initiative, index) => (
+                  <motion.div key={initiative.id} variants={itemVariants}>
+                    <Card className="h-full border-border/60" data-testid={`card-live-initiative-${index}`}>
+                      <CardContent className="p-6 flex flex-col h-full">
+                        <div className="flex items-center justify-between mb-4">
+                          {(isSpanish ? initiative.categoryEs : initiative.category) && (
+                            <span className="font-support text-xs uppercase tracking-[0.16em] text-primary">
+                              {isSpanish ? initiative.categoryEs : initiative.category}
+                            </span>
+                          )}
+                          {initiative.year && (
+                            <span className="font-support text-xs text-muted-foreground">{initiative.year}</span>
+                          )}
+                        </div>
+                        <h3 className="text-lg font-heading font-light text-foreground mb-3" data-testid={`text-live-initiative-title-${index}`}>
+                          {isSpanish ? initiative.titleEs : initiative.title}
+                        </h3>
+                        <p className="text-sm text-muted-foreground leading-relaxed text-justify mb-4">
+                          {isSpanish ? initiative.descriptionEs : initiative.description}
+                        </p>
+                        {(isSpanish ? initiative.impactEs : initiative.impact) && (
+                          <p className="mt-auto pt-4 border-t border-border/60 text-sm text-foreground/80">
+                            <span className="font-medium text-primary">{isSpanish ? "Impacto: " : "Impact: "}</span>
+                            {isSpanish ? initiative.impactEs : initiative.impact}
+                          </p>
+                        )}
+                      </CardContent>
+                    </Card>
+                  </motion.div>
+                ))}
+              </motion.div>
+            </div>
+          </section>
+        )}
 
         <section className="py-20 lg:py-24" data-testid="section-probono">
           <div className="max-w-7xl mx-auto px-6 lg:px-12">
