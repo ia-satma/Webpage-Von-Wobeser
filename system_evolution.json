@@ -1,50 +1,40 @@
 [
   {
-    "date": "2025-12-10",
-    "title": "Visual Intelligence Upgrade",
-    "description": "The Image Agent learned to bypass content policy filters by abstracting legal concepts into professional imagery, ensuring 100% cover image availability.",
-    "agentId": "smart_image_generator",
-    "impact": "major",
-    "category": "intelligence"
-  },
-  {
-    "date": "2025-12-10",
-    "title": "Self-Healing Architecture Deployed",
-    "description": "Introduced the AutoRecoveryAgent that autonomously diagnoses and repairs failed processing jobs without human intervention.",
-    "agentId": "auto_recovery",
+    "date": "2026-06-12",
+    "title": "Endurecimiento de seguridad de la API",
+    "description": "Se cerró el acceso anónimo a los 22 endpoints del sistema de agentes, que estaban abiertos a internet. Ahora exigen sesión válida y control de rol. Se añadió rate limiting a los endpoints de traducción (consumo de IA) y al formulario de contacto.",
+    "agentId": "orchestrator",
     "impact": "critical",
     "category": "security"
   },
   {
-    "date": "2025-12-09",
-    "title": "Multi-Engine Fallback System",
-    "description": "SmartImageGenerator now seamlessly falls back from DALL-E 3 to Gemini 2.5 when primary generation fails, guaranteeing visual content.",
-    "agentId": "smart_image_generator",
+    "date": "2026-06-12",
+    "title": "Corrección del control de acceso del panel",
+    "description": "Se reparó la verificación de roles que devolvía error 403 en todo el panel de administración al único usuario real (super_admin), restaurando el acceso legítimo sin debilitar la autorización.",
+    "impact": "critical",
+    "category": "security"
+  },
+  {
+    "date": "2026-06-12",
+    "title": "Telemetría real del tablero de agentes",
+    "description": "El tablero dejó de reportar estados fijos. El estado, la tasa de éxito y la última actividad de cada agente se derivan ahora de los datos reales de la base (trabajos y eventos): un agente sin actividad aparece inactivo en lugar de fingir estar operando.",
+    "agentId": "system_chronicler",
+    "impact": "major",
+    "category": "intelligence"
+  },
+  {
+    "date": "2026-06-12",
+    "title": "Integridad referencial de datos",
+    "description": "Se añadieron llaves foráneas con cascadas a las tablas de relación que carecían de ellas, evitando datos huérfanos, y el sembrado de la base se hizo idempotente.",
     "impact": "major",
     "category": "capability"
   },
   {
-    "date": "2025-12-08",
-    "title": "Legal Glossary Expansion",
-    "description": "The Polyglot Neural Network integrated 200+ new legal terms across all 10 supported languages, improving translation accuracy by 15%.",
-    "agentId": "polyglot_translator",
-    "impact": "minor",
-    "category": "intelligence"
-  },
-  {
-    "date": "2025-12-07",
-    "title": "Real-Time Pipeline Monitoring",
-    "description": "WebSocket-based progress broadcasting enables live tracking of article processing across all pipeline stages.",
+    "date": "2026-06-12",
+    "title": "Portabilidad de ejecución",
+    "description": "El acceso a base de datos detecta el entorno y elige el driver adecuado (Neon en producción, PostgreSQL local en desarrollo), habilitando verificación local sin afectar el despliegue.",
     "agentId": "orchestrator",
-    "impact": "major",
+    "impact": "minor",
     "category": "performance"
-  },
-  {
-    "date": "2025-12-05",
-    "title": "Content Analysis Engine",
-    "description": "Deep Reader agent now provides comprehensive GPT-4o analysis with quality scoring, spelling review, and legal classification.",
-    "agentId": "content_analyzer",
-    "impact": "major",
-    "category": "intelligence"
   }
 ]

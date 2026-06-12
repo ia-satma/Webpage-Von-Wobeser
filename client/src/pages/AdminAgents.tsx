@@ -31,7 +31,8 @@ import {
   Lightbulb,
   TrendingUp,
   ArrowLeft,
-  Loader2
+  Loader2,
+  type LucideIcon
 } from "lucide-react";
 import { Link, useLocation } from "wouter";
 
@@ -67,13 +68,41 @@ interface JobStats {
   pending: number;
 }
 
+interface AgentJob {
+  id: string;
+  agentType: string;
+  status: string;
+  priority?: number;
+  payload?: unknown;
+  result?: { success?: boolean; [key: string]: unknown } | null;
+  error?: string | null;
+  retryCount?: number;
+  maxRetries?: number;
+  createdAt?: string | Date;
+  startedAt?: string | Date | null;
+  completedAt?: string | Date | null;
+  parentJobId?: string | null;
+}
+
+interface AgentEvent {
+  id: string;
+  jobId?: string;
+  agentType: string;
+  eventType?: string;
+  type?: string;
+  message?: string;
+  data?: unknown;
+  createdAt?: string | Date;
+  timestamp?: string | Date;
+}
+
 interface OrchestratorStatus {
   isRunning: boolean;
   queueLength: number;
   activeJobs: number;
   registeredAgents: string[];
-  recentJobs: any[];
-  recentEvents: any[];
+  recentJobs: AgentJob[];
+  recentEvents: AgentEvent[];
   jobStatsByAgent: Record<string, JobStats>;
 }
 
@@ -83,10 +112,16 @@ interface KnowledgeStats {
   byCategory?: Record<string, number>;
 }
 
+interface EvolutionCycle {
+  id: string;
+  status: string;
+  createdAt?: string | Date;
+}
+
 interface EvolutionSummary {
   totalProposals: number;
   byStatus: Record<string, number>;
-  recentCycles: any[];
+  recentCycles: EvolutionCycle[];
 }
 
 interface DatabaseStats {
@@ -95,7 +130,7 @@ interface DatabaseStats {
   recentEvents: number;
 }
 
-const AGENT_ICONS: Record<string, any> = {
+const AGENT_ICONS: Record<string, LucideIcon> = {
   formatter: FileText,
   metadata_linker: Users,
   polyglot_translator: Globe,
@@ -172,10 +207,10 @@ export default function AdminAgents() {
       const res = await adminApiRequest("POST", "/api/audits/run", { runType: 'full' });
       return res.json();
     },
-    onSuccess: (data: any) => {
-      toast({ 
-        title: "Website audit started", 
-        description: data?.message || "Audit job queued successfully" 
+    onSuccess: (data: { message?: string }) => {
+      toast({
+        title: "Website audit started",
+        description: data?.message || "Audit job queued successfully"
       });
       queryClient.invalidateQueries({ queryKey: ["/api/agents/status"] });
     },
@@ -189,7 +224,7 @@ export default function AdminAgents() {
       const res = await adminApiRequest("POST", "/api/agents/evolution/learning-cycle");
       return res.json();
     },
-    onSuccess: (data: any) => {
+    onSuccess: (data: { insights?: unknown[] }) => {
       toast({ title: "Learning cycle completed", description: `${data?.insights?.length || 0} insights generated` });
       queryClient.invalidateQueries({ queryKey: ["/api/agents/status"] });
     },
@@ -364,7 +399,11 @@ export default function AdminAgents() {
               <div className="flex gap-1 mt-2 flex-wrap">
                 {status?.orchestrator?.registeredAgents?.map((agent) => {
                   const Icon = AGENT_ICONS[agent] || Bot;
-                  return <Icon key={agent} className="w-4 h-4 text-muted-foreground" title={AGENT_NAMES[agent] || agent} />;
+                  return (
+                    <span key={agent} title={AGENT_NAMES[agent] || agent} className="inline-flex">
+                      <Icon className="w-4 h-4 text-muted-foreground" />
+                    </span>
+                  );
                 })}
               </div>
             </CardContent>
@@ -597,7 +636,7 @@ export default function AdminAgents() {
 
                 <ScrollArea className="h-[400px]">
                   <div className="space-y-2">
-                    {status?.orchestrator?.recentJobs?.slice().reverse().map((job: any, idx: number) => (
+                    {status?.orchestrator?.recentJobs?.slice().reverse().map((job: AgentJob, idx: number) => (
                       <Card key={job.id || idx} className="p-3" data-testid={`job-${job.id || idx}`}>
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-3">
@@ -654,7 +693,7 @@ export default function AdminAgents() {
 
                 <ScrollArea className="h-[400px]">
                   <div className="space-y-2">
-                    {status?.orchestrator?.recentEvents?.slice().reverse().map((event: any, idx: number) => (
+                    {status?.orchestrator?.recentEvents?.slice().reverse().map((event: AgentEvent, idx: number) => (
                       <Card key={event.id || idx} className="p-3" data-testid={`event-${event.id || idx}`}>
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-2 flex-1 min-w-0">

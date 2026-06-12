@@ -1156,40 +1156,42 @@ const eventsData = [
 export async function seed() {
   console.log("Seeding database with real Von Wobeser y Sierra content...");
 
+  // Block-level guard kept; onConflictDoNothing added as a per-row safety net
+  // so a partial/interrupted seed can be re-run without unique-violation errors.
   const existingNews = await db.select().from(news);
   if (existingNews.length === 0) {
     console.log("Seeding news...");
-    await db.insert(news).values(newsData);
+    await db.insert(news).values(newsData).onConflictDoNothing({ target: news.slug });
   }
 
   const existingImages = await db.select().from(officeImages);
   if (existingImages.length === 0) {
     console.log("Seeding office images...");
-    await db.insert(officeImages).values(officeImagesData);
+    await db.insert(officeImages).values(officeImagesData).onConflictDoNothing();
   }
 
   const existingPracticeGroups = await db.select().from(practiceGroups);
   if (existingPracticeGroups.length === 0) {
     console.log("Seeding practice groups...");
-    await db.insert(practiceGroups).values(practiceGroupsData);
+    await db.insert(practiceGroups).values(practiceGroupsData).onConflictDoNothing({ target: practiceGroups.slug });
   }
 
   const existingIndustryGroups = await db.select().from(industryGroups);
   if (existingIndustryGroups.length === 0) {
     console.log("Seeding industry groups...");
-    await db.insert(industryGroups).values(industryGroupsData);
+    await db.insert(industryGroups).values(industryGroupsData).onConflictDoNothing({ target: industryGroups.slug });
   }
 
   const existingTeamMembers = await db.select().from(teamMembers);
   if (existingTeamMembers.length === 0) {
     console.log("Seeding team members...");
-    await db.insert(teamMembers).values(teamMembersData);
+    await db.insert(teamMembers).values(teamMembersData).onConflictDoNothing({ target: teamMembers.slug });
   }
 
   const existingRepresentativeMatters = await db.select().from(representativeMatters);
   if (existingRepresentativeMatters.length === 0) {
     console.log("Seeding representative matters...");
-    await db.insert(representativeMatters).values(representativeMattersData);
+    await db.insert(representativeMatters).values(representativeMattersData).onConflictDoNothing();
   }
 
   // Seed admin user from environment variables (secure approach)
@@ -1218,7 +1220,7 @@ export async function seed() {
   const existingEvents = await db.select().from(events);
   if (existingEvents.length === 0) {
     console.log("Seeding events...");
-    await db.insert(events).values(eventsData);
+    await db.insert(events).values(eventsData).onConflictDoNothing();
   }
 
   console.log("Database seeded successfully with real Von Wobeser y Sierra content!");

@@ -311,6 +311,20 @@ export class AgentEvolutionTracker {
       history: this.learningCycleHistory,
     };
   }
+
+  /** Restaura el estado en memoria desde un backup (p.ej. pCloud). Las propuestas viven
+   *  en la base (fuente de verdad) y no se rehidratan aquí. */
+  async fromJSON(data: { proposals?: EvolutionProposal[]; stats?: AgentStats[]; history?: LearningCycleEntry[] }): Promise<void> {
+    if (Array.isArray(data?.stats)) {
+      this.agentStats.clear();
+      for (const s of data.stats) {
+        this.agentStats.set((s as any).agentType as AgentType, s);
+      }
+    }
+    if (Array.isArray(data?.history)) {
+      this.learningCycleHistory = data.history;
+    }
+  }
 }
 
 export const evolutionTracker = new AgentEvolutionTracker();

@@ -1,38 +1,36 @@
 import { build as esbuild } from "esbuild";
 import { build as viteBuild } from "vite";
 import { rm, readFile } from "fs/promises";
+import { execFileSync } from "child_process";
 
-// server deps to bundle to reduce openat(2) syscalls
-// which helps cold start times
+// server deps to bundle to reduce openat(2) syscalls (helps cold start times).
+// Solo se listan paquetes que el server REALMENTE importa. Se quitaron entradas muertas
+// (axios, jsonwebtoken, nodemailer, stripe, uuid, xlsx, passport*, express-session,
+// connect-pg-simple, memorystore — 0 imports) y se corrigió el nombre del SDK de Google
+// (@google/generative-ai → @google/genai, el paquete que de verdad usa SmartImageGenerator).
 const allowlist = [
-  "@google/generative-ai",
+  "@google/genai",
   "@neondatabase/serverless",
-  "axios",
-  "connect-pg-simple",
   "cors",
   "date-fns",
   "drizzle-orm",
   "drizzle-zod",
   "express",
   "express-rate-limit",
-  "express-session",
-  "jsonwebtoken",
-  "memorystore",
   "multer",
   "nanoid",
-  "nodemailer",
   "openai",
-  "passport",
-  "passport-local",
-  "stripe",
-  "uuid",
   "ws",
-  "xlsx",
   "zod",
   "zod-validation-error",
 ];
 
 async function buildAll() {
+  // Gate de typecheck: no se buildea con errores de TypeScript.
+  // execFileSync (sin shell) con comando fijo: sin riesgo de inyección.
+  console.log("typechecking...");
+  execFileSync("npx", ["tsc"], { stdio: "inherit" });
+
   await rm("dist", { recursive: true, force: true });
 
   console.log("building client...");

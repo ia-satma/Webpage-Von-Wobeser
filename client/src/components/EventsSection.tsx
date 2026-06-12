@@ -127,7 +127,16 @@ function EventCard({ event, language, learnMoreText, formatDate }: EventCardProp
 
 export default function EventsSection({ language }: EventsSectionProps) {
   const { data: events, isLoading, error } = useQuery<Event[]>({
-    queryKey: ["/api/events/upcoming?limit=4"],
+    queryKey: ["/api/events/upcoming", { limit: 4 }],
+    queryFn: async () => {
+      const res = await fetch("/api/events/upcoming?limit=4", {
+        credentials: "include",
+      });
+      if (!res.ok) {
+        throw new Error(`${res.status}: ${res.statusText}`);
+      }
+      return res.json();
+    },
   });
 
   const content: Record<string, {

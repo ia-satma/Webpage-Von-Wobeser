@@ -429,14 +429,16 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createTeamMember(member: InsertTeamMember): Promise<TeamMember> {
-    const [item] = await db.insert(teamMembers).values(member).returning();
+    // cast: el tipo Zod-inferido y el tipo de columna JSONB ($type) de Drizzle difieren
+    // estructuralmente en rankings/experience/education aunque el dato es válido en runtime.
+    const [item] = await db.insert(teamMembers).values(member as any).returning();
     return item;
   }
 
   async updateTeamMember(id: string, member: Partial<InsertTeamMember>): Promise<TeamMember | undefined> {
     const [item] = await db
       .update(teamMembers)
-      .set(member)
+      .set(member as any)
       .where(eq(teamMembers.id, id))
       .returning();
     return item;

@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { pgTable, text, varchar, timestamp, integer, boolean, jsonb } from "drizzle-orm/pg-core";
+import { pgTable, text, varchar, timestamp, integer, boolean, jsonb, index } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -95,7 +95,7 @@ export const news = pgTable("news", {
   published: boolean("published").default(true),
   category: text("category").default("press"),
   categoryEs: text("category_es").default("Prensa"),
-  authorId: varchar("author_id"),
+  authorId: varchar("author_id").references(() => adminUsers.id, { onDelete: "set null" }),
   // Processing status tracking
   processingStatus: text("processing_status").default("pending"), // pending, processing, ready, ready_for_approval, failed, partial_success
   lastError: text("last_error"), // Stores the last error message/code for diagnostics
@@ -115,7 +115,14 @@ export const newsCategories = [
   { value: "alerts", en: "Alerts", es: "Alertas" },
 ] as const;
 
-export const insertNewsSchema = createInsertSchema(news).omit({ id: true, date: true });
+export const insertNewsSchema = createInsertSchema(news).omit({ id: true, date: true }).extend({
+  title: z.string().max(500),
+  titleEs: z.string().max(500),
+  excerpt: z.string().max(2000),
+  excerptEs: z.string().max(2000),
+  content: z.string().max(50000).optional().nullable(),
+  contentEs: z.string().max(50000).optional().nullable(),
+});
 export type InsertNews = z.infer<typeof insertNewsSchema>;
 export type News = typeof news.$inferSelect;
 
@@ -132,7 +139,9 @@ export const newsTranslations = pgTable("news_translations", {
   seoKeywords: text("seo_keywords").array(),
   translatedAt: timestamp("translated_at").defaultNow(),
   translatedBy: varchar("translated_by").default("ai"), // "ai" or "manual"
-});
+}, (table) => ({
+  newsLangIdx: index("news_trans_news_lang_idx").on(table.newsId, table.language),
+}));
 
 export const insertNewsTranslationSchema = createInsertSchema(newsTranslations).omit({ id: true, translatedAt: true });
 export type InsertNewsTranslation = z.infer<typeof insertNewsTranslationSchema>;
@@ -219,21 +228,30 @@ export type TeamMember = typeof teamMembers.$inferSelect;
 
 export const teamMemberPracticeGroups = pgTable("team_member_practice_groups", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  teamMemberId: varchar("team_member_id").notNull(),
-  practiceGroupId: varchar("practice_group_id").notNull(),
-});
+  teamMemberId: varchar("team_member_id").notNull().references(() => teamMembers.id, { onDelete: "cascade" }),
+  practiceGroupId: varchar("practice_group_id").notNull().references(() => practiceGroups.id, { onDelete: "cascade" }),
+}, (table) => ({
+  teamMemberIdx: index("tmpg_team_member_idx").on(table.teamMemberId),
+  practiceGroupIdx: index("tmpg_practice_group_idx").on(table.practiceGroupId),
+}));
 
 export const teamMemberIndustryGroups = pgTable("team_member_industry_groups", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  teamMemberId: varchar("team_member_id").notNull(),
-  industryGroupId: varchar("industry_group_id").notNull(),
-});
+  teamMemberId: varchar("team_member_id").notNull().references(() => teamMembers.id, { onDelete: "cascade" }),
+  industryGroupId: varchar("industry_group_id").notNull().references(() => industryGroups.id, { onDelete: "cascade" }),
+}, (table) => ({
+  teamMemberIdx: index("tmig_team_member_idx").on(table.teamMemberId),
+  industryGroupIdx: index("tmig_industry_group_idx").on(table.industryGroupId),
+}));
 
 export const newsTeamMembers = pgTable("news_team_members", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  newsId: varchar("news_id").notNull(),
-  teamMemberId: varchar("team_member_id").notNull(),
-});
+  newsId: varchar("news_id").notNull().references(() => news.id, { onDelete: "cascade" }),
+  teamMemberId: varchar("team_member_id").notNull().references(() => teamMembers.id, { onDelete: "cascade" }),
+}, (table) => ({
+  newsIdx: index("ntm_news_idx").on(table.newsId),
+  teamMemberIdx: index("ntm_team_member_idx").on(table.teamMemberId),
+}));
 
 export const insertNewsTeamMemberSchema = createInsertSchema(newsTeamMembers).omit({ id: true });
 export type InsertNewsTeamMember = z.infer<typeof insertNewsTeamMemberSchema>;
@@ -281,20 +299,28 @@ export const representativeMatters = pgTable("representative_matters", {
   industrySlug: text("industry_slug"),
   isHighlight: boolean("is_highlight").default(false),
   order: integer("order").default(0),
-});
+}, (table) => ({
+  practiceAreaIdx: index("rep_matters_practice_area_idx").on(table.practiceAreaSlug),
+  industryIdx: index("rep_matters_industry_idx").on(table.industrySlug),
+}));
 
-export const insertRepresentativeMatterSchema = createInsertSchema(representativeMatters).omit({ id: true });
+export const insertRepresentativeMatterSchema = createInsertSchema(representativeMatters).omit({ id: true }).extend({
+  title: z.string().max(500),
+  titleEs: z.string().max(500),
+  description: z.string().max(10000),
+  descriptionEs: z.string().max(10000),
+});
 export type InsertRepresentativeMatter = z.infer<typeof insertRepresentativeMatterSchema>;
 export type RepresentativeMatterDb = typeof representativeMatters.$inferSelect;
 
 // Contact form schema
 export const contactFormSchema = z.object({
-  fullName: z.string().min(1, "Full name is required"),
-  email: z.string().min(1, "Email is required").email("Invalid email address"),
-  phone: z.string().optional(),
-  company: z.string().optional(),
-  practiceArea: z.string().optional(),
-  message: z.string().min(1, "Message is required"),
+  fullName: z.string().min(1, "Full name is required").max(200),
+  email: z.string().min(1, "Email is required").email("Invalid email address").max(320),
+  phone: z.string().max(50).optional(),
+  company: z.string().max(300).optional(),
+  practiceArea: z.string().max(200).optional(),
+  message: z.string().min(1, "Message is required").max(5000),
 });
 
 export type ContactFormData = z.infer<typeof contactFormSchema>;
@@ -312,7 +338,14 @@ export const contactSubmissions = pgTable("contact_submissions", {
   read: boolean("read").default(false),
 });
 
-export const insertContactSubmissionSchema = createInsertSchema(contactSubmissions).omit({ id: true, submittedAt: true, read: true });
+export const insertContactSubmissionSchema = createInsertSchema(contactSubmissions).omit({ id: true, submittedAt: true, read: true }).extend({
+  fullName: z.string().max(200),
+  email: z.string().max(320),
+  phone: z.string().max(50).optional().nullable(),
+  company: z.string().max(300).optional().nullable(),
+  practiceArea: z.string().max(200).optional().nullable(),
+  message: z.string().max(5000),
+});
 export type InsertContactSubmission = z.infer<typeof insertContactSubmissionSchema>;
 export type ContactSubmission = typeof contactSubmissions.$inferSelect;
 
@@ -397,8 +430,8 @@ export const blogPosts = pgTable("blog_posts", {
   excerpt: text("excerpt"),
   excerptEs: text("excerpt_es"),
   featuredImage: text("featured_image"),
-  categoryId: varchar("category_id"),
-  authorId: varchar("author_id"),
+  categoryId: varchar("category_id").references(() => blogCategories.id, { onDelete: "set null" }),
+  authorId: varchar("author_id").references(() => adminUsers.id, { onDelete: "set null" }),
   status: text("status").notNull().default("draft"), // draft, published, trash
   publishedAt: timestamp("published_at"),
   metaTitle: text("meta_title"),
@@ -417,9 +450,12 @@ export type BlogPost = typeof blogPosts.$inferSelect;
 // Blog Post Tags (pivot table)
 export const blogPostTags = pgTable("blog_post_tags", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  postId: varchar("post_id").notNull(),
-  tagId: varchar("tag_id").notNull(),
-});
+  postId: varchar("post_id").notNull().references(() => blogPosts.id, { onDelete: "cascade" }),
+  tagId: varchar("tag_id").notNull().references(() => blogTags.id, { onDelete: "cascade" }),
+}, (table) => ({
+  postIdx: index("bpt_post_idx").on(table.postId),
+  tagIdx: index("bpt_tag_idx").on(table.tagId),
+}));
 
 // Media Library
 export const mediaItems = pgTable("media_items", {
@@ -444,13 +480,15 @@ export type MediaItem = typeof mediaItems.$inferSelect;
 // Admin sessions for token-based auth
 export const adminSessions = pgTable("admin_sessions", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  userId: varchar("user_id").notNull(),
+  userId: varchar("user_id").notNull().references(() => adminUsers.id, { onDelete: "cascade" }),
   token: text("token").notNull().unique(),
   expiresAt: timestamp("expires_at").notNull(),
   createdAt: timestamp("created_at").defaultNow(),
   ipAddress: text("ip_address"),
   userAgent: text("user_agent"),
-});
+}, (table) => ({
+  userIdx: index("admin_sessions_user_idx").on(table.userId),
+}));
 
 export const insertAdminSessionSchema = createInsertSchema(adminSessions).omit({ id: true, createdAt: true });
 export type InsertAdminSession = z.infer<typeof insertAdminSessionSchema>;
@@ -507,7 +545,9 @@ export const events = pgTable("events", {
   isHighlight: boolean("is_highlight").default(false),
   published: boolean("published").default(true),
   order: integer("order").default(0),
-});
+}, (table) => ({
+  publishedDateIdx: index("events_published_date_idx").on(table.published, table.date),
+}));
 
 export const insertEventSchema = createInsertSchema(events).omit({ id: true });
 export type InsertEvent = z.infer<typeof insertEventSchema>;
@@ -669,14 +709,16 @@ export interface ContentAnalysisResult {
 
 export const contentAnalysis = pgTable("content_analysis", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  articleId: varchar("article_id").notNull(),
+  articleId: varchar("article_id").notNull().references(() => news.id, { onDelete: "cascade" }),
   analysisResult: jsonb("analysis_result").$type<ContentAnalysisResult>().notNull(),
   qualityScore: integer("quality_score").default(0),
   issuesCount: integer("issues_count").default(0),
   status: text("status").default("completed"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
-});
+}, (table) => ({
+  articleIdx: index("content_analysis_article_idx").on(table.articleId),
+}));
 
 export const insertContentAnalysisSchema = createInsertSchema(contentAnalysis).omit({ id: true, createdAt: true, updatedAt: true });
 export type InsertContentAnalysis = z.infer<typeof insertContentAnalysisSchema>;
@@ -697,11 +739,14 @@ export const agentJobs = pgTable("agent_jobs", {
   error: text("error"),
   retryCount: integer("retry_count").default(0),
   maxRetries: integer("max_retries").default(3),
-  parentJobId: varchar("parent_job_id"),
+  parentJobId: varchar("parent_job_id").references((): any => agentJobs.id, { onDelete: "set null" }),
   createdAt: timestamp("created_at").defaultNow(),
   startedAt: timestamp("started_at"),
   completedAt: timestamp("completed_at"),
-});
+}, (table) => ({
+  typeStatusIdx: index("agent_jobs_type_status_idx").on(table.agentType, table.status),
+  parentJobIdx: index("agent_jobs_parent_job_idx").on(table.parentJobId),
+}));
 
 export const insertAgentJobSchema = createInsertSchema(agentJobs).omit({ id: true, createdAt: true });
 export type InsertAgentJob = z.infer<typeof insertAgentJobSchema>;
@@ -710,13 +755,16 @@ export type AgentJob = typeof agentJobs.$inferSelect;
 // Agent events log
 export const agentEvents = pgTable("agent_events", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  jobId: varchar("job_id").notNull(),
+  jobId: varchar("job_id").notNull().references(() => agentJobs.id, { onDelete: "cascade" }),
   agentType: text("agent_type").notNull(),
   eventType: text("event_type").notNull(), // start, progress, complete, error, learning, evolution_proposal
   message: text("message").notNull(),
   data: jsonb("data"),
   timestamp: timestamp("timestamp").defaultNow(),
-});
+}, (table) => ({
+  jobIdx: index("agent_events_job_idx").on(table.jobId),
+  agentTypeIdx: index("agent_events_agent_type_idx").on(table.agentType),
+}));
 
 export const insertAgentEventSchema = createInsertSchema(agentEvents).omit({ id: true, timestamp: true });
 export type InsertAgentEvent = z.infer<typeof insertAgentEventSchema>;
@@ -733,7 +781,9 @@ export const agentKnowledge = pgTable("agent_knowledge", {
   usageCount: integer("usage_count").default(0),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
-});
+}, (table) => ({
+  agentTypeIdx: index("agent_knowledge_agent_type_idx").on(table.agentType),
+}));
 
 export const insertAgentKnowledgeSchema = createInsertSchema(agentKnowledge).omit({ id: true, createdAt: true, updatedAt: true, usageCount: true });
 export type InsertAgentKnowledge = z.infer<typeof insertAgentKnowledgeSchema>;
@@ -751,7 +801,9 @@ export const agentSkills = pgTable("agent_skills", {
   learnings: jsonb("learnings"), // Array of skill learnings
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
-});
+}, (table) => ({
+  agentTypeIdx: index("agent_skills_agent_type_idx").on(table.agentType),
+}));
 
 export const insertAgentSkillSchema = createInsertSchema(agentSkills).omit({ id: true, createdAt: true, updatedAt: true });
 export type InsertAgentSkill = z.infer<typeof insertAgentSkillSchema>;
@@ -773,7 +825,10 @@ export const agentEvolutionProposals = pgTable("agent_evolution_proposals", {
   createdAt: timestamp("created_at").defaultNow(),
   reviewedAt: timestamp("reviewed_at"),
   implementedAt: timestamp("implemented_at"),
-});
+}, (table) => ({
+  agentTypeIdx: index("agent_evolution_agent_type_idx").on(table.agentType),
+  statusIdx: index("agent_evolution_status_idx").on(table.status),
+}));
 
 export const insertAgentEvolutionProposalSchema = createInsertSchema(agentEvolutionProposals).omit({ id: true, createdAt: true });
 export type InsertAgentEvolutionProposal = z.infer<typeof insertAgentEvolutionProposalSchema>;
@@ -821,7 +876,10 @@ export const websiteAuditFindings = pgTable("website_audit_findings", {
   resolvedAt: timestamp("resolved_at"),
   resolvedBy: text("resolved_by"), // agent or manual
   remediationJobId: varchar("remediation_job_id"), // If an agent job was created to fix this
-});
+}, (table) => ({
+  auditIdx: index("findings_audit_idx").on(table.auditId),
+  entityIdx: index("findings_entity_idx").on(table.entityType, table.entityId),
+}));
 
 export const insertWebsiteAuditFindingSchema = createInsertSchema(websiteAuditFindings).omit({ id: true, reportedAt: true });
 export type InsertWebsiteAuditFinding = z.infer<typeof insertWebsiteAuditFindingSchema>;
@@ -910,15 +968,21 @@ export type Award = typeof awards.$inferSelect;
 // Link rankings/awards to team members
 export const teamMemberRankings = pgTable("team_member_rankings", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  teamMemberId: varchar("team_member_id").notNull(),
-  rankingId: varchar("ranking_id").notNull(),
-});
+  teamMemberId: varchar("team_member_id").notNull().references(() => teamMembers.id, { onDelete: "cascade" }),
+  rankingId: varchar("ranking_id").notNull().references(() => rankings.id, { onDelete: "cascade" }),
+}, (table) => ({
+  teamMemberIdx: index("tmr_team_member_idx").on(table.teamMemberId),
+  rankingIdx: index("tmr_ranking_idx").on(table.rankingId),
+}));
 
 export const teamMemberAwards = pgTable("team_member_awards", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  teamMemberId: varchar("team_member_id").notNull(),
-  awardId: varchar("award_id").notNull(),
-});
+  teamMemberId: varchar("team_member_id").notNull().references(() => teamMembers.id, { onDelete: "cascade" }),
+  awardId: varchar("award_id").notNull().references(() => awards.id, { onDelete: "cascade" }),
+}, (table) => ({
+  teamMemberIdx: index("tma_team_member_idx").on(table.teamMemberId),
+  awardIdx: index("tma_award_idx").on(table.awardId),
+}));
 
 // ============================================
 // REPRESENTATIVE CLIENTS MODULE
@@ -946,9 +1010,12 @@ export type RepresentativeClient = typeof representativeClients.$inferSelect;
 // Link clients to practice areas
 export const clientPracticeGroups = pgTable("client_practice_groups", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  clientId: varchar("client_id").notNull(),
-  practiceGroupId: varchar("practice_group_id").notNull(),
-});
+  clientId: varchar("client_id").notNull().references(() => representativeClients.id, { onDelete: "cascade" }),
+  practiceGroupId: varchar("practice_group_id").notNull().references(() => practiceGroups.id, { onDelete: "cascade" }),
+}, (table) => ({
+  clientIdx: index("cpg_client_idx").on(table.clientId),
+  practiceGroupIdx: index("cpg_practice_group_idx").on(table.practiceGroupId),
+}));
 
 // ============================================
 // TESTIMONIALS MODULE
@@ -966,12 +1033,14 @@ export const testimonials = pgTable("testimonials", {
   source: text("source"),
   sourceEs: text("source_es"),
   year: integer("year"),
-  practiceGroupId: varchar("practice_group_id"),
+  practiceGroupId: varchar("practice_group_id").references(() => practiceGroups.id, { onDelete: "set null" }),
   isFeatured: boolean("is_featured").default(false),
   published: boolean("published").default(true),
   order: integer("order").default(0),
   createdAt: timestamp("created_at").defaultNow(),
-});
+}, (table) => ({
+  practiceGroupIdx: index("testimonials_practice_group_idx").on(table.practiceGroupId),
+}));
 
 export const insertTestimonialSchema = createInsertSchema(testimonials).omit({ id: true, createdAt: true });
 export type InsertTestimonial = z.infer<typeof insertTestimonialSchema>;
@@ -1000,15 +1069,24 @@ export const jobOpenings = pgTable("job_openings", {
   salaryRange: text("salary_range"),
   applicationEmail: text("application_email"),
   applicationUrl: text("application_url"),
-  practiceGroupId: varchar("practice_group_id"),
+  practiceGroupId: varchar("practice_group_id").references(() => practiceGroups.id, { onDelete: "set null" }),
   isUrgent: boolean("is_urgent").default(false),
   published: boolean("published").default(true),
   expiresAt: timestamp("expires_at"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
-});
+}, (table) => ({
+  practiceGroupIdx: index("job_openings_practice_group_idx").on(table.practiceGroupId),
+}));
 
-export const insertJobOpeningSchema = createInsertSchema(jobOpenings).omit({ id: true, createdAt: true, updatedAt: true });
+export const insertJobOpeningSchema = createInsertSchema(jobOpenings).omit({ id: true, createdAt: true, updatedAt: true }).extend({
+  title: z.string().max(300),
+  titleEs: z.string().max(300),
+  description: z.string().max(20000),
+  descriptionEs: z.string().max(20000),
+  requirements: z.string().max(20000).optional().nullable(),
+  requirementsEs: z.string().max(20000).optional().nullable(),
+});
 export type InsertJobOpening = z.infer<typeof insertJobOpeningSchema>;
 export type JobOpening = typeof jobOpenings.$inferSelect;
 
@@ -1123,10 +1201,13 @@ export type SpecializedDesk = typeof specializedDesks.$inferSelect;
 // Link team members to specialized desks
 export const teamMemberDesks = pgTable("team_member_desks", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  teamMemberId: varchar("team_member_id").notNull(),
-  deskId: varchar("desk_id").notNull(),
+  teamMemberId: varchar("team_member_id").notNull().references(() => teamMembers.id, { onDelete: "cascade" }),
+  deskId: varchar("desk_id").notNull().references(() => specializedDesks.id, { onDelete: "cascade" }),
   role: text("role"), // lead, member
-});
+}, (table) => ({
+  teamMemberIdx: index("tmd_team_member_idx").on(table.teamMemberId),
+  deskIdx: index("tmd_desk_idx").on(table.deskId),
+}));
 
 // ============================================
 // PRO BONO & CSR MODULE
@@ -1266,7 +1347,11 @@ export const newsletterSubscribers = pgTable("newsletter_subscribers", {
   unsubscribedAt: timestamp("unsubscribed_at"),
 });
 
-export const insertNewsletterSubscriberSchema = createInsertSchema(newsletterSubscribers).omit({ id: true, subscribedAt: true });
+export const insertNewsletterSubscriberSchema = createInsertSchema(newsletterSubscribers).omit({ id: true, subscribedAt: true }).extend({
+  email: z.string().email().max(320),
+  name: z.string().max(200).optional().nullable(),
+  company: z.string().max(300).optional().nullable(),
+});
 export type InsertNewsletterSubscriber = z.infer<typeof insertNewsletterSubscriberSchema>;
 export type NewsletterSubscriber = typeof newsletterSubscribers.$inferSelect;
 

@@ -184,6 +184,25 @@ export class AgentKnowledgeStore {
       })),
     };
   }
+
+  /** Rehidrata documentos desde un backup (p.ej. pCloud) hacia la base.
+   *  Best-effort por documento: un fallo individual no aborta la restauración. */
+  async fromJSON(data: { documents?: KnowledgeDocument[] }): Promise<void> {
+    if (!Array.isArray(data?.documents)) return;
+    for (const doc of data.documents) {
+      try {
+        await this.addDocument({
+          agentType: doc.agentType,
+          category: doc.category,
+          title: doc.title,
+          content: doc.content,
+          metadata: doc.metadata,
+        });
+      } catch (err) {
+        console.error('[AgentKnowledge] fromJSON: failed to restore a document:', err);
+      }
+    }
+  }
 }
 
 export const knowledgeStore = new AgentKnowledgeStore();

@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { adminApiRequest } from "@/lib/adminAuth";
 import { 
   Activity, 
   Cpu, 
@@ -53,6 +54,7 @@ const translations = {
     justNow: "Just now",
     agentActivity: "Agent Activity",
     noActivity: "No recent activity",
+    noData: "No data",
     loading: "Loading metrics..."
   },
   es: {
@@ -87,6 +89,7 @@ const translations = {
     justNow: "Ahora mismo",
     agentActivity: "Actividad de Agentes",
     noActivity: "Sin actividad reciente",
+    noData: "Sin datos",
     loading: "Cargando métricas..."
   },
   de: {
@@ -121,6 +124,7 @@ const translations = {
     justNow: "Gerade eben",
     agentActivity: "Agentenaktivität",
     noActivity: "Keine kürzliche Aktivität",
+    noData: "Keine Daten",
     loading: "Lade Metriken..."
   },
   zh: {
@@ -155,6 +159,7 @@ const translations = {
     justNow: "刚刚",
     agentActivity: "代理活动",
     noActivity: "无最近活动",
+    noData: "无数据",
     loading: "加载指标中..."
   },
   ko: {
@@ -189,6 +194,7 @@ const translations = {
     justNow: "방금",
     agentActivity: "에이전트 활동",
     noActivity: "최근 활동 없음",
+    noData: "데이터 없음",
     loading: "지표 로딩 중..."
   },
   ja: {
@@ -223,6 +229,7 @@ const translations = {
     justNow: "たった今",
     agentActivity: "エージェント活動",
     noActivity: "最近の活動なし",
+    noData: "データなし",
     loading: "メトリクスを読み込み中..."
   },
   ar: {
@@ -257,6 +264,7 @@ const translations = {
     justNow: "الآن",
     agentActivity: "نشاط الوكلاء",
     noActivity: "لا يوجد نشاط حديث",
+    noData: "لا توجد بيانات",
     loading: "جاري تحميل المقاييس..."
   },
   ru: {
@@ -291,6 +299,7 @@ const translations = {
     justNow: "Только что",
     agentActivity: "Активность агентов",
     noActivity: "Нет недавней активности",
+    noData: "Нет данных",
     loading: "Загрузка метрик..."
   },
   fr: {
@@ -325,6 +334,7 @@ const translations = {
     justNow: "À l'instant",
     agentActivity: "Activité des agents",
     noActivity: "Aucune activité récente",
+    noData: "Aucune donnée",
     loading: "Chargement des métriques..."
   },
   it: {
@@ -359,48 +369,72 @@ const translations = {
     justNow: "Proprio ora",
     agentActivity: "Attività degli agenti",
     noActivity: "Nessuna attività recente",
+    noData: "Nessun dato",
     loading: "Caricamento metriche..."
   }
 };
 
+interface JobStats {
+  total: number;
+  completed: number;
+  failed: number;
+  pending: number;
+}
+
 interface AgentStatus {
-  queueLength: number;
-  isProcessing: boolean;
-  registeredAgents: string[];
-  totalJobsProcessed: number;
-  successRate: number;
+  orchestrator?: {
+    isRunning: boolean;
+    queueLength: number;
+    activeJobs: number;
+    registeredAgents: string[];
+    jobStatsByAgent?: Record<string, JobStats>;
+  };
+  database?: {
+    recentJobs: number;
+    failedJobs: number;
+    recentEvents: number;
+  };
 }
 
 export default function AdminPerformance() {
   const { language } = useLanguage();
   const t = translations[language as keyof typeof translations] || translations.en;
-  
+
   const { data: agentStatus, isLoading, refetch, isRefetching } = useQuery<AgentStatus>({
     queryKey: ['/api/agents/status'],
+    queryFn: async () => {
+      const res = await adminApiRequest("GET", "/api/agents/status");
+      if (!res.ok) {
+        throw new Error(`${res.status}: ${res.statusText}`);
+      }
+      return res.json();
+    },
   });
 
-  const { data: translationStats } = useQuery<{ totalCached: number }>({
-    queryKey: ['/api/translations/stats'],
-  });
+  // Derive completed jobs from per-agent stats when available; otherwise leave null (no invented numbers).
+  const jobStats = agentStatus?.orchestrator?.jobStatsByAgent;
+  const completedFromStats = jobStats
+    ? Object.values(jobStats).reduce((sum, s) => sum + (s.completed || 0), 0)
+    : null;
 
-  const { data: contentStats } = useQuery<{ totalAnalyzed: number; avgScore: number }>({
-    queryKey: ['/api/content-analysis/stats'],
-  });
-
-  const mockMetrics = {
-    pending: agentStatus?.queueLength || 0,
-    processing: agentStatus?.isProcessing ? 1 : 0,
-    completed: agentStatus?.totalJobsProcessed || 0,
-    failed: 0,
-    successRate: agentStatus?.successRate || 98.5,
-    avgTime: "2.3s",
-    cachedTranslations: translationStats?.totalCached || 1250,
-    languagesCovered: 10,
-    articlesTranslated: 156,
-    articlesAnalyzed: contentStats?.totalAnalyzed || 89,
-    avgQualityScore: contentStats?.avgScore || 87,
-    seoOptimizations: 142
+  // Only metrics that come from the real /api/agents/status response are populated.
+  // Metrics with no backing data source are null and rendered as an honest empty state.
+  const realMetrics = {
+    pending: agentStatus?.orchestrator?.queueLength ?? 0,
+    processing: agentStatus?.orchestrator?.activeJobs ?? 0,
+    completed: completedFromStats,
+    failed: agentStatus?.database?.failedJobs ?? null,
+    successRate: null as number | null,
+    avgTime: null as string | null,
+    cachedTranslations: null as number | null,
+    languagesCovered: null as number | null,
+    articlesTranslated: null as number | null,
+    articlesAnalyzed: null as number | null,
+    avgQualityScore: null as number | null,
+    seoOptimizations: null as number | null,
   };
+
+  const isOperational = agentStatus?.orchestrator?.isRunning === true;
   
   return (
     <div className="container mx-auto px-4 py-8 max-w-7xl" data-testid="admin-performance-page">
@@ -446,13 +480,20 @@ export default function AdminPerformance() {
               </CardHeader>
               <CardContent>
                 <div className="flex items-center gap-2">
-                  <Badge className="bg-green-600">
-                    <CheckCircle2 className="w-3 h-3 mr-1" />
-                    {t.operational}
-                  </Badge>
+                  {isOperational ? (
+                    <Badge className="bg-green-600">
+                      <CheckCircle2 className="w-3 h-3 mr-1" />
+                      {t.operational}
+                    </Badge>
+                  ) : (
+                    <Badge variant="secondary">
+                      <AlertTriangle className="w-3 h-3 mr-1" />
+                      {t.degraded}
+                    </Badge>
+                  )}
                 </div>
                 <p className="text-xs text-muted-foreground mt-2">
-                  {agentStatus?.registeredAgents?.length || 8} agents active
+                  {agentStatus?.orchestrator?.registeredAgents?.length ?? 0} agents active
                 </p>
               </CardContent>
             </Card>
@@ -463,9 +504,9 @@ export default function AdminPerformance() {
                 <Zap className="w-4 h-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{mockMetrics.pending}</div>
+                <div className="text-2xl font-bold">{realMetrics.pending}</div>
                 <p className="text-xs text-muted-foreground">
-                  {t.pending} • {mockMetrics.processing} {t.processing.toLowerCase()}
+                  {t.pending} • {realMetrics.processing} {t.processing.toLowerCase()}
                 </p>
               </CardContent>
             </Card>
@@ -476,8 +517,14 @@ export default function AdminPerformance() {
                 <TrendingUp className="w-4 h-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-green-600">{mockMetrics.successRate}%</div>
-                <Progress value={mockMetrics.successRate} className="mt-2" />
+                {realMetrics.successRate !== null ? (
+                  <>
+                    <div className="text-2xl font-bold text-green-600">{realMetrics.successRate}%</div>
+                    <Progress value={realMetrics.successRate} className="mt-2" />
+                  </>
+                ) : (
+                  <div className="text-2xl font-bold text-muted-foreground" title={t.noData}>—</div>
+                )}
               </CardContent>
             </Card>
             
@@ -487,8 +534,14 @@ export default function AdminPerformance() {
                 <Clock className="w-4 h-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{mockMetrics.avgTime}</div>
-                <p className="text-xs text-muted-foreground">per job</p>
+                {realMetrics.avgTime !== null ? (
+                  <>
+                    <div className="text-2xl font-bold">{realMetrics.avgTime}</div>
+                    <p className="text-xs text-muted-foreground">per job</p>
+                  </>
+                ) : (
+                  <div className="text-2xl font-bold text-muted-foreground" title={t.noData}>—</div>
+                )}
               </CardContent>
             </Card>
           </div>
@@ -505,39 +558,26 @@ export default function AdminPerformance() {
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-3 gap-4">
                   <div className="text-center">
-                    <div className="text-3xl font-bold text-blue-600">{mockMetrics.cachedTranslations}</div>
+                    <div className="text-3xl font-bold text-muted-foreground" title={t.noData}>
+                      {realMetrics.cachedTranslations ?? '—'}
+                    </div>
                     <p className="text-xs text-muted-foreground">{t.cachedTranslations}</p>
                   </div>
                   <div className="text-center">
-                    <div className="text-3xl font-bold text-green-600">{mockMetrics.languagesCovered}</div>
+                    <div className="text-3xl font-bold text-muted-foreground" title={t.noData}>
+                      {realMetrics.languagesCovered ?? '—'}
+                    </div>
                     <p className="text-xs text-muted-foreground">{t.languagesCovered}</p>
                   </div>
                   <div className="text-center">
-                    <div className="text-3xl font-bold text-purple-600">{mockMetrics.articlesTranslated}</div>
+                    <div className="text-3xl font-bold text-muted-foreground" title={t.noData}>
+                      {realMetrics.articlesTranslated ?? '—'}
+                    </div>
                     <p className="text-xs text-muted-foreground">{t.articlesTranslated}</p>
                   </div>
                 </div>
-                <div className="space-y-2">
-                  <div className="flex justify-between text-sm">
-                    <span>English</span>
-                    <span>100%</span>
-                  </div>
-                  <Progress value={100} className="h-2" />
-                  <div className="flex justify-between text-sm">
-                    <span>Spanish</span>
-                    <span>98%</span>
-                  </div>
-                  <Progress value={98} className="h-2" />
-                  <div className="flex justify-between text-sm">
-                    <span>German</span>
-                    <span>85%</span>
-                  </div>
-                  <Progress value={85} className="h-2" />
-                  <div className="flex justify-between text-sm">
-                    <span>Other Languages</span>
-                    <span>72%</span>
-                  </div>
-                  <Progress value={72} className="h-2" />
+                <div className="py-6 text-center text-sm text-muted-foreground">
+                  {t.noData}
                 </div>
               </CardContent>
             </Card>
@@ -553,36 +593,28 @@ export default function AdminPerformance() {
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-3 gap-4">
                   <div className="text-center">
-                    <div className="text-3xl font-bold text-purple-600">{mockMetrics.articlesAnalyzed}</div>
+                    <div className="text-3xl font-bold text-muted-foreground" title={t.noData}>
+                      {realMetrics.articlesAnalyzed ?? '—'}
+                    </div>
                     <p className="text-xs text-muted-foreground">{t.articlesAnalyzed}</p>
                   </div>
                   <div className="text-center">
-                    <div className="text-3xl font-bold text-green-600">{mockMetrics.avgQualityScore}</div>
+                    <div className="text-3xl font-bold text-muted-foreground" title={t.noData}>
+                      {realMetrics.avgQualityScore ?? '—'}
+                    </div>
                     <p className="text-xs text-muted-foreground">{t.avgQualityScore}</p>
                   </div>
                   <div className="text-center">
-                    <div className="text-3xl font-bold text-orange-600">{mockMetrics.seoOptimizations}</div>
+                    <div className="text-3xl font-bold text-muted-foreground" title={t.noData}>
+                      {realMetrics.seoOptimizations ?? '—'}
+                    </div>
                     <p className="text-xs text-muted-foreground">{t.seoOptimizations}</p>
                   </div>
                 </div>
                 <div className="pt-4 border-t">
                   <h4 className="text-sm font-medium mb-3">{t.agentActivity}</h4>
-                  <div className="space-y-2 text-sm">
-                    <div className="flex items-center gap-2 text-muted-foreground">
-                      <CheckCircle2 className="w-4 h-4 text-green-500" />
-                      <span>FormatterAgent processed 12 articles</span>
-                      <Badge variant="secondary" className="ml-auto">2h ago</Badge>
-                    </div>
-                    <div className="flex items-center gap-2 text-muted-foreground">
-                      <CheckCircle2 className="w-4 h-4 text-green-500" />
-                      <span>SEOOptimizerAgent optimized 8 pages</span>
-                      <Badge variant="secondary" className="ml-auto">4h ago</Badge>
-                    </div>
-                    <div className="flex items-center gap-2 text-muted-foreground">
-                      <AlertTriangle className="w-4 h-4 text-yellow-500" />
-                      <span>WebsiteAuditorAgent found 3 issues</span>
-                      <Badge variant="secondary" className="ml-auto">6h ago</Badge>
-                    </div>
+                  <div className="py-4 text-center text-sm text-muted-foreground">
+                    {t.noActivity}
                   </div>
                 </div>
               </CardContent>
@@ -593,7 +625,7 @@ export default function AdminPerformance() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <BarChart3 className="w-5 h-5 text-primary" />
-                {t.totalJobs} - {mockMetrics.completed}
+                {t.totalJobs} - {realMetrics.completed ?? '—'}
               </CardTitle>
               <CardDescription>Job completion breakdown</CardDescription>
             </CardHeader>
@@ -604,7 +636,7 @@ export default function AdminPerformance() {
                     <Clock className="w-5 h-5 text-yellow-600" />
                   </div>
                   <div>
-                    <div className="text-2xl font-bold">{mockMetrics.pending}</div>
+                    <div className="text-2xl font-bold">{realMetrics.pending}</div>
                     <p className="text-sm text-muted-foreground">{t.pending}</p>
                   </div>
                 </div>
@@ -613,7 +645,7 @@ export default function AdminPerformance() {
                     <RefreshCw className="w-5 h-5 text-blue-600" />
                   </div>
                   <div>
-                    <div className="text-2xl font-bold">{mockMetrics.processing}</div>
+                    <div className="text-2xl font-bold">{realMetrics.processing}</div>
                     <p className="text-sm text-muted-foreground">{t.processing}</p>
                   </div>
                 </div>
@@ -622,7 +654,7 @@ export default function AdminPerformance() {
                     <CheckCircle2 className="w-5 h-5 text-green-600" />
                   </div>
                   <div>
-                    <div className="text-2xl font-bold">{mockMetrics.completed}</div>
+                    <div className="text-2xl font-bold">{realMetrics.completed ?? '—'}</div>
                     <p className="text-sm text-muted-foreground">{t.completed}</p>
                   </div>
                 </div>
@@ -631,7 +663,7 @@ export default function AdminPerformance() {
                     <XCircle className="w-5 h-5 text-red-600" />
                   </div>
                   <div>
-                    <div className="text-2xl font-bold">{mockMetrics.failed}</div>
+                    <div className="text-2xl font-bold">{realMetrics.failed ?? '—'}</div>
                     <p className="text-sm text-muted-foreground">{t.failed}</p>
                   </div>
                 </div>
