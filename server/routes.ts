@@ -201,7 +201,19 @@ export async function registerRoutes(
     clearInterval(heartbeatInterval);
   });
   
-  wss.on('connection', (ws, req) => {
+  wss.on('connection', async (ws, req) => {
+    // Authenticate via admin session token in the query string before accepting.
+    try {
+      const url = new URL(req.url || '', 'http://localhost');
+      const token = url.searchParams.get('token');
+      if (!token) { ws.close(1008, 'Auth required'); return; }
+      const session = await storage.getAdminSession(token);
+      if (!session || new Date() > session.expiresAt) { ws.close(1008, 'Invalid session'); return; }
+    } catch {
+      ws.close(1011, 'Auth error');
+      return;
+    }
+
     const clientId = crypto.randomBytes(8).toString('hex');
     pipelineClients.set(clientId, ws);
     console.log(`[WebSocket] Pipeline client connected: ${clientId}`);
@@ -3370,7 +3382,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
   });
 
   // System Chronicler API - Nerve Center data
-  app.get("/api/system/chronicler", async (req: Request, res: Response) => {
+  app.get("/api/system/chronicler", authMiddleware, async (req: Request, res: Response) => {
     try {
       const { systemChronicler } = await import('./agents/SystemChronicler');
       const { dbPersistence } = await import('./agents/storage/DatabasePersistence');
@@ -3560,9 +3572,9 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
   });
 
   // System Health Check - Deep Audit API
-  // NOTE: Health check is intentionally public (read-only diagnostic).
+  // NOTE: Now admin-only — exposes internal system diagnostics.
   // Destructive operations like reset-zombies require auth.
-  app.get("/api/health-check/run", async (req: Request, res: Response) => {
+  app.get("/api/health-check/run", authMiddleware, async (req: Request, res: Response) => {
     try {
       const { systemHealthCheck } = await import('./agents/SystemHealthCheck');
       const report = await systemHealthCheck.runDeepAudit();

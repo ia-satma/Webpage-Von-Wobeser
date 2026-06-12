@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -20,6 +20,7 @@ import {
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest, queryClient } from '@/lib/queryClient';
+import { useAdminAuth, adminApiRequest } from '@/lib/adminAuth';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { getImpactLabel } from '@/lib/adminTranslations';
 
@@ -455,18 +456,33 @@ function getSeverityLabel(severity: string, lang: string): string {
 export default function AdminHealthCheck() {
   const { toast } = useToast();
   const { language } = useLanguage();
+  const { isAuthenticated, isLoading: authLoading, requireAuth } = useAdminAuth();
   const t = translations[language] || translations.en;
   const [selectedType, setSelectedType] = useState<string | null>(null);
 
+  useEffect(() => {
+    if (!authLoading) {
+      requireAuth();
+    }
+  }, [authLoading, requireAuth]);
+
   const { data: healthData, isLoading, refetch, isFetching } = useQuery<HealthCheckResponse>({
     queryKey: ['/api/health-check/run'],
+    queryFn: async () => {
+      const res = await adminApiRequest("GET", "/api/health-check/run");
+      if (!res.ok) {
+        throw new Error(`${res.status}: ${res.statusText}`);
+      }
+      return res.json();
+    },
+    enabled: isAuthenticated,
     staleTime: 0,
     refetchOnWindowFocus: false,
   });
 
   const resetZombiesMutation = useMutation({
     mutationFn: async () => {
-      const response = await apiRequest('POST', '/api/health-check/reset-zombies');
+      const response = await adminApiRequest('POST', '/api/health-check/reset-zombies');
       return response.json();
     },
     onSuccess: (data) => {
@@ -501,6 +517,10 @@ export default function AdminHealthCheck() {
     if (score >= 50) return <AlertTriangle className="h-8 w-8 text-yellow-500" />;
     return <AlertTriangle className="h-8 w-8 text-red-500" />;
   };
+
+  if (!isAuthenticated) {
+    return null;
+  }
 
   return (
     <div className="p-6 space-y-6">

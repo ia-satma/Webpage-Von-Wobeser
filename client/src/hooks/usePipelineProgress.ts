@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback, useRef, useSyncExternalStore } from 'react';
 import { logger } from '@/lib/logger';
+import { getToken } from '@/lib/adminAuth';
 
 export interface PipelineProgressEvent {
   articleId: string;
@@ -66,9 +67,16 @@ class PipelineWebSocketManager {
       this.reconnectTimeout = null;
     }
 
+    // Pipeline progress is admin-only — require a token before opening the socket.
+    const token = getToken();
+    if (!token) {
+      logger.log('[Pipeline WS] No admin token; not connecting');
+      return;
+    }
+
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    const wsUrl = `${protocol}//${window.location.host}/ws/pipeline`;
-    
+    const wsUrl = `${protocol}//${window.location.host}/ws/pipeline?token=${encodeURIComponent(token)}`;
+
     try {
       this.ws = new WebSocket(wsUrl);
     } catch (error) {

@@ -1,8 +1,10 @@
+import { useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useAdminAuth, adminApiRequest } from "@/lib/adminAuth";
 import { NerveCenter } from "@/components/admin/NerveCenter";
 import { EvolutionTimeline } from "@/components/admin/EvolutionTimeline";
 import { Brain, Cpu, Shield, Activity, Zap, TrendingUp } from "lucide-react";
@@ -411,12 +413,31 @@ function StatsCard({
 
 export default function AdminGuide() {
   const { language } = useLanguage();
+  const { isAuthenticated, isLoading: authLoading, requireAuth } = useAdminAuth();
   const t = translations[language as keyof typeof translations] || translations.en;
+
+  useEffect(() => {
+    if (!authLoading) {
+      requireAuth();
+    }
+  }, [authLoading, requireAuth]);
 
   const { data, isLoading, isError } = useQuery<ChroniclerResponse>({
     queryKey: ["/api/system/chronicler"],
+    queryFn: async () => {
+      const res = await adminApiRequest("GET", "/api/system/chronicler");
+      if (!res.ok) {
+        throw new Error(`${res.status}: ${res.statusText}`);
+      }
+      return res.json();
+    },
+    enabled: isAuthenticated,
     refetchInterval: 30000
   });
+
+  if (!isAuthenticated) {
+    return null;
+  }
 
   if (isLoading) {
     return (
