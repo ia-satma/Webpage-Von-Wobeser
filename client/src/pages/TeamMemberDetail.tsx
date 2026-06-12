@@ -607,6 +607,8 @@ export default function TeamMemberDetail() {
     otherRecognitions: string;
     band: string;
     viewPublication: string;
+    breadcrumbHome: string;
+    breadcrumbTeam: string;
     positions: {
       foundingPartner: string;
       partner: string;
@@ -650,6 +652,8 @@ export default function TeamMemberDetail() {
       otherRecognitions: "Other Recognitions",
       band: "Band",
       viewPublication: "View Publication",
+      breadcrumbHome: "Home",
+      breadcrumbTeam: "Team",
       positions: {
         foundingPartner: "Founding Partner",
         partner: "Partner",
@@ -693,6 +697,8 @@ export default function TeamMemberDetail() {
       otherRecognitions: "Otros Reconocimientos",
       band: "Banda",
       viewPublication: "Ver Publicación",
+      breadcrumbHome: "Inicio",
+      breadcrumbTeam: "Equipo",
       positions: {
         foundingPartner: "Socio Fundador",
         partner: "Socio",
@@ -736,6 +742,8 @@ export default function TeamMemberDetail() {
       otherRecognitions: "Weitere Auszeichnungen",
       band: "Band",
       viewPublication: "Publikation ansehen",
+      breadcrumbHome: "Startseite",
+      breadcrumbTeam: "Team",
       positions: {
         foundingPartner: "Gründungspartner",
         partner: "Partner",
@@ -779,6 +787,8 @@ export default function TeamMemberDetail() {
       otherRecognitions: "其他认可",
       band: "等级",
       viewPublication: "查看出版物",
+      breadcrumbHome: "首页",
+      breadcrumbTeam: "团队",
       positions: {
         foundingPartner: "创始合伙人",
         partner: "合伙人",
@@ -822,6 +832,8 @@ export default function TeamMemberDetail() {
       otherRecognitions: "기타 인정",
       band: "등급",
       viewPublication: "출판물 보기",
+      breadcrumbHome: "홈",
+      breadcrumbTeam: "팀",
       positions: {
         foundingPartner: "창립 파트너",
         partner: "파트너",
@@ -865,6 +877,8 @@ export default function TeamMemberDetail() {
       otherRecognitions: "その他の評価",
       band: "バンド",
       viewPublication: "出版物を見る",
+      breadcrumbHome: "ホーム",
+      breadcrumbTeam: "チーム",
       positions: {
         foundingPartner: "創立パートナー",
         partner: "パートナー",
@@ -908,6 +922,8 @@ export default function TeamMemberDetail() {
       otherRecognitions: "تقديرات أخرى",
       band: "الفئة",
       viewPublication: "عرض المنشور",
+      breadcrumbHome: "الرئيسية",
+      breadcrumbTeam: "الفريق",
       positions: {
         foundingPartner: "شريك مؤسس",
         partner: "شريك",
@@ -951,6 +967,8 @@ export default function TeamMemberDetail() {
       otherRecognitions: "Другие признания",
       band: "Уровень",
       viewPublication: "Смотреть публикацию",
+      breadcrumbHome: "Главная",
+      breadcrumbTeam: "Команда",
       positions: {
         foundingPartner: "Учредитель",
         partner: "Партнёр",
@@ -994,6 +1012,8 @@ export default function TeamMemberDetail() {
       otherRecognitions: "Autres distinctions",
       band: "Bande",
       viewPublication: "Voir la publication",
+      breadcrumbHome: "Accueil",
+      breadcrumbTeam: "Équipe",
       positions: {
         foundingPartner: "Associé fondateur",
         partner: "Associé",
@@ -1037,6 +1057,8 @@ export default function TeamMemberDetail() {
       otherRecognitions: "Altri riconoscimenti",
       band: "Fascia",
       viewPublication: "Vedi pubblicazione",
+      breadcrumbHome: "Home",
+      breadcrumbTeam: "Team",
       positions: {
         foundingPartner: "Partner fondatore",
         partner: "Partner",
@@ -1252,8 +1274,8 @@ export default function TeamMemberDetail() {
           />
           <BreadcrumbJsonLd
             items={[
-              { name: language === "es" ? "Inicio" : "Home", url: "https://www.vonwobeser.com" },
-              { name: language === "es" ? "Equipo" : "Team", url: "https://www.vonwobeser.com/team" },
+              { name: t.breadcrumbHome, url: "https://www.vonwobeser.com" },
+              { name: t.breadcrumbTeam, url: "https://www.vonwobeser.com/team" },
               { name: member.name, url: `https://www.vonwobeser.com/team/${member.slug}` }
             ]}
             language={language}

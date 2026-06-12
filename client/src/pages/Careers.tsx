@@ -129,6 +129,10 @@ export default function Careers() {
       sendApplication: "Send Application",
       viewDetails: "View Details",
       apply: "Apply Now",
+      internshipCtaTitle: "Ready to get started?",
+      internshipCtaText: "Apply to our internship program and take the first step in your legal career.",
+      internshipSubject: "Internship Program",
+      cityName: "Mexico City",
     },
     es: {
       heroTitle: "Construye Tu Carrera Con Nosotros",
@@ -227,6 +231,10 @@ export default function Careers() {
       sendApplication: "Enviar Solicitud",
       viewDetails: "Ver Detalles",
       apply: "Aplicar Ahora",
+      internshipCtaTitle: "¿Listo para comenzar?",
+      internshipCtaText: "Aplica a nuestro programa de pasantías y da el primer paso en tu carrera legal.",
+      internshipSubject: "Programa de Pasantías",
+      cityName: "Ciudad de México",
     },
     de: {
       heroTitle: "Gestalten Sie Ihre Karriere bei uns",
@@ -325,6 +333,10 @@ export default function Careers() {
       sendApplication: "Bewerbung senden",
       viewDetails: "Details anzeigen",
       apply: "Jetzt bewerben",
+      internshipCtaTitle: "Bereit loszulegen?",
+      internshipCtaText: "Bewerben Sie sich für unser Praktikumsprogramm und machen Sie den ersten Schritt in Ihrer juristischen Laufbahn.",
+      internshipSubject: "Praktikumsprogramm",
+      cityName: "Mexiko-Stadt",
     },
     zh: {
       heroTitle: "与我们共创事业",
@@ -423,6 +435,10 @@ export default function Careers() {
       sendApplication: "发送申请",
       viewDetails: "查看详情",
       apply: "立即申请",
+      internshipCtaTitle: "准备好开始了吗？",
+      internshipCtaText: "申请我们的实习项目，迈出您法律职业生涯的第一步。",
+      internshipSubject: "实习项目",
+      cityName: "墨西哥城",
     },
     ko: {
       heroTitle: "우리와 함께 경력을 쌓으세요",
@@ -521,6 +537,10 @@ export default function Careers() {
       sendApplication: "지원서 보내기",
       viewDetails: "상세 보기",
       apply: "지금 지원하기",
+      internshipCtaTitle: "시작할 준비가 되셨나요?",
+      internshipCtaText: "인턴십 프로그램에 지원하여 법률 커리어의 첫걸음을 내디뎌 보세요.",
+      internshipSubject: "인턴십 프로그램",
+      cityName: "멕시코시티",
     },
     ja: {
       heroTitle: "私たちと一緒にキャリアを築きましょう",
@@ -619,6 +639,10 @@ export default function Careers() {
       sendApplication: "応募書類を送信",
       viewDetails: "詳細を見る",
       apply: "今すぐ応募",
+      internshipCtaTitle: "始める準備はできましたか？",
+      internshipCtaText: "インターンシッププログラムに応募して、法律キャリアの第一歩を踏み出しましょう。",
+      internshipSubject: "インターンシッププログラム",
+      cityName: "メキシコシティ",
     },
     ar: {
       heroTitle: "ابنِ مسيرتك المهنية معنا",
@@ -717,6 +741,10 @@ export default function Careers() {
       sendApplication: "إرسال الطلب",
       viewDetails: "عرض التفاصيل",
       apply: "قدم الآن",
+      internshipCtaTitle: "هل أنت مستعد للبدء؟",
+      internshipCtaText: "قدّم على برنامج التدريب لدينا وابدأ خطوتك الأولى في مسيرتك القانونية.",
+      internshipSubject: "برنامج التدريب",
+      cityName: "مكسيكو سيتي",
     },
     ru: {
       heroTitle: "Постройте свою карьеру вместе с нами",
@@ -815,6 +843,10 @@ export default function Careers() {
       sendApplication: "Отправить заявку",
       viewDetails: "Подробнее",
       apply: "Подать заявку",
+      internshipCtaTitle: "Готовы начать?",
+      internshipCtaText: "Подайте заявку на нашу программу стажировок и сделайте первый шаг в юридической карьере.",
+      internshipSubject: "Программа стажировок",
+      cityName: "Мехико",
     },
     fr: {
       heroTitle: "Construisez votre carrière avec nous",
@@ -913,6 +945,10 @@ export default function Careers() {
       sendApplication: "Envoyer la Candidature",
       viewDetails: "Voir les Détails",
       apply: "Postuler Maintenant",
+      internshipCtaTitle: "Prêt à commencer ?",
+      internshipCtaText: "Postulez à notre programme de stage et faites le premier pas dans votre carrière juridique.",
+      internshipSubject: "Programme de stage",
+      cityName: "Mexico",
     },
     it: {
       heroTitle: "Costruisci la tua carriera con noi",
@@ -1011,6 +1047,10 @@ export default function Careers() {
       sendApplication: "Invia Candidatura",
       viewDetails: "Vedi Dettagli",
       apply: "Candidati Ora",
+      internshipCtaTitle: "Pronto a iniziare?",
+      internshipCtaText: "Candidati al nostro programma di tirocinio e fai il primo passo nella tua carriera legale.",
+      internshipSubject: "Programma di tirocinio",
+      cityName: "Città del Messico",
     },
   };
 
@@ -1366,13 +1406,10 @@ export default function Careers() {
                 <CardContent className="p-8 flex flex-col justify-center h-full">
                   <GraduationCap className="w-12 h-12 mb-6 text-primary" />
                   <h3 className="text-xl font-heading font-light mb-4">
-                    {language === "es" ? "¿Listo para comenzar?" : "Ready to get started?"}
+                    {t.internshipCtaTitle}
                   </h3>
                   <p className="text-white/60 mb-6">
-                    {language === "es" 
-                      ? "Aplica a nuestro programa de pasantías y da el primer paso en tu carrera legal."
-                      : "Apply to our internship program and take the first step in your legal career."
-                    }
+                    {t.internshipCtaText}
                   </p>
                   <Button 
                     variant="default"
@@ -1380,7 +1417,7 @@ export default function Careers() {
                     asChild
                     data-testid="button-internship-apply"
                   >
-                    <a href={`mailto:reclutamiento@vonwobeser.com?subject=${encodeURIComponent(language === "es" ? "Programa de Pasantías" : "Internship Program")}`}>
+                    <a href={`mailto:reclutamiento@vonwobeser.com?subject=${encodeURIComponent(t.internshipSubject)}`}>
                       {t.apply}
                       <ArrowRight className="w-4 h-4 ml-2" />
                     </a>
@@ -1455,7 +1492,7 @@ export default function Careers() {
                       <div className="flex items-center gap-3 text-muted-foreground">
                         <MapPin className="w-5 h-5 text-primary" />
                         <span>
-                          {language === "es" ? "Ciudad de México" : "Mexico City"}
+                          {t.cityName}
                         </span>
                       </div>
                     </div>

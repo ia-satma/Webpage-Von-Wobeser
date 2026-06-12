@@ -605,13 +605,55 @@ export default function DiversityInclusion() {
     en: {
       subtitle: "Programs currently driving change at the firm",
       title: "Diversity Initiatives in Action",
+      impact: "Impact: ",
     },
     es: {
       subtitle: "Programas que actualmente impulsan el cambio en la firma",
       title: "Iniciativas de Diversidad en Acción",
+      impact: "Impacto: ",
+    },
+    de: {
+      subtitle: "Programme, die derzeit den Wandel in der Kanzlei vorantreiben",
+      title: "Diversitätsinitiativen in Aktion",
+      impact: "Wirkung: ",
+    },
+    zh: {
+      subtitle: "目前推动律所变革的项目",
+      title: "多元化举措实践",
+      impact: "影响：",
+    },
+    ko: {
+      subtitle: "현재 회사의 변화를 이끄는 프로그램",
+      title: "실행 중인 다양성 이니셔티브",
+      impact: "영향: ",
+    },
+    ja: {
+      subtitle: "現在ファームの変革を推進しているプログラム",
+      title: "実践中のダイバーシティ施策",
+      impact: "インパクト：",
+    },
+    ar: {
+      subtitle: "برامج تقود التغيير حالياً في المكتب",
+      title: "مبادرات التنوع قيد التنفيذ",
+      impact: "الأثر: ",
+    },
+    ru: {
+      subtitle: "Программы, которые сейчас способствуют переменам в фирме",
+      title: "Инициативы по разнообразию в действии",
+      impact: "Влияние: ",
+    },
+    fr: {
+      subtitle: "Programmes qui mènent actuellement le changement au sein du cabinet",
+      title: "Initiatives de diversité en action",
+      impact: "Impact : ",
+    },
+    it: {
+      subtitle: "Programmi che attualmente guidano il cambiamento nello studio",
+      title: "Iniziative per la diversità in azione",
+      impact: "Impatto: ",
     },
   };
-  const dl = isSpanish ? liveSectionLabels.es : liveSectionLabels.en;
+  const dl = liveSectionLabels[language as keyof typeof liveSectionLabels] || liveSectionLabels.en;
 
   return (
     <div className="min-h-screen bg-background" data-testid="page-diversity-inclusion">
@@ -844,7 +886,7 @@ export default function DiversityInclusion() {
                         </p>
                         {(isSpanish ? initiative.impactEs : initiative.impact) && (
                           <p className="mt-auto pt-4 border-t border-border/60 text-sm text-foreground/80">
-                            <span className="font-medium text-primary">{isSpanish ? "Impacto: " : "Impact: "}</span>
+                            <span className="font-medium text-primary">{dl.impact}</span>
                             {isSpanish ? initiative.impactEs : initiative.impact}
                           </p>
                         )}

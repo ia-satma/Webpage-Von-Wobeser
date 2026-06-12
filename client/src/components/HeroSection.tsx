@@ -113,7 +113,7 @@ function NewsItemTranslated({
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, delay: 1 + index * 0.15 }}
-      className="group pl-3 border-l-2 border-primary"
+      className="group ps-3 border-s-2 border-primary"
       data-testid={`card-news-${item.id}`}
     >
       {inner}

@@ -391,7 +391,7 @@ export default function NewsPage() {
   const translationBanner = isNonNativeLanguage ? (translationBannerMessages[language] || (language === 'en' ? "Content is automatically translated from Spanish." : null)) : null;
 
   const categoryFilters = [
-    { value: "all", label: language === "es" ? "Todos" : "All" },
+    { value: "all", label: t.all },
     ...newsCategories.map(cat => ({
       value: cat.value,
       label: language === "es" ? cat.es : cat.en,

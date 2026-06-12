@@ -57,7 +57,7 @@ function SearchResultTeamMember({
   return (
     <button
       onClick={() => onSelect(`/team/${member.slug}`)}
-      className="w-full text-left px-2 py-2 hover:bg-muted flex items-center gap-3"
+      className="w-full text-start px-2 py-2 hover:bg-muted flex items-center gap-3"
       data-testid={`search-result-team-${member.slug}`}
       role="option"
     >
@@ -97,7 +97,7 @@ function SearchResultPracticeGroup({
   return (
     <button
       onClick={() => onSelect(`/practice-groups/${group.slug}`)}
-      className="w-full text-left px-2 py-2 hover:bg-muted"
+      className="w-full text-start px-2 py-2 hover:bg-muted"
       data-testid={`search-result-practice-${group.slug}`}
       role="option"
     >
@@ -131,7 +131,7 @@ function SearchResultIndustryGroup({
   return (
     <button
       onClick={() => onSelect(`/industry-groups/${group.slug}`)}
-      className="w-full text-left px-2 py-2 hover:bg-muted"
+      className="w-full text-start px-2 py-2 hover:bg-muted"
       data-testid={`search-result-industry-${group.slug}`}
       role="option"
     >
@@ -165,7 +165,7 @@ function SearchResultNews({
   return (
     <button
       onClick={() => onSelect(`/news/${article.slug}`)}
-      className="w-full text-left px-2 py-2 hover:bg-muted"
+      className="w-full text-start px-2 py-2 hover:bg-muted"
       data-testid={`search-result-news-${article.slug}`}
       role="option"
     >
@@ -393,7 +393,7 @@ export default function Header() {
                 {item.subItems && activeDropdown === item.id && (
                   <div
                     className={cn(
-                      "absolute top-full left-0 mt-2 min-w-[220px] py-1.5 z-50",
+                      "absolute top-full start-0 mt-2 min-w-[220px] py-1.5 z-50",
                       "border shadow-2xl backdrop-blur-xl overflow-hidden",
                       isScrolled
                         ? "bg-background border-border"
@@ -450,7 +450,7 @@ export default function Header() {
               {isSearchOpen && (
                 <div
                   id="search-panel"
-                  className="absolute right-0 top-full mt-2 w-80 bg-card shadow-xl border border-border overflow-hidden"
+                  className="absolute end-0 top-full mt-2 w-80 bg-card shadow-xl border border-border overflow-hidden"
                   data-testid="container-search"
                   role="search"
                   aria-label={t('common.search')}
@@ -648,10 +648,10 @@ export default function Header() {
                           role="menu"
                           aria-label={`${t(item.labelKey)} submenu`}
                         >
-                          <div className="pl-4 space-y-1">
+                          <div className="ps-4 space-y-1">
                             <button
                               onClick={() => handleMobileNavClick(item.href)}
-                              className="block w-full text-left min-h-[44px] py-3 text-base text-white/70 hover:text-white transition-colors"
+                              className="block w-full text-start min-h-[44px] py-3 text-base text-white/70 hover:text-white transition-colors"
                               role="menuitem"
                               data-testid={`link-mobile-subnav-${item.id}-all`}
                             >
@@ -661,7 +661,7 @@ export default function Header() {
                               <button
                                 key={subItem.id}
                                 onClick={() => handleMobileNavClick(subItem.href)}
-                                className="block w-full text-left min-h-[44px] py-3 text-base text-white/70 hover:text-white transition-colors"
+                                className="block w-full text-start min-h-[44px] py-3 text-base text-white/70 hover:text-white transition-colors"
                                 role="menuitem"
                                 data-testid={`link-mobile-subnav-${subItem.id}`}
                               >
@@ -674,7 +674,7 @@ export default function Header() {
                     ) : (
                       <button
                         onClick={() => handleMobileNavClick(item.href)}
-                        className="w-full text-left min-h-[48px] py-4 text-xl font-heading text-white/90 hover:text-white transition-colors touch-manipulation"
+                        className="w-full text-start min-h-[48px] py-4 text-xl font-heading text-white/90 hover:text-white transition-colors touch-manipulation"
                         data-testid={`link-mobile-${item.id}`}
                         aria-current={location === item.href ? "page" : undefined}
                       >

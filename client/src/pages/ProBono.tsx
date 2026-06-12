@@ -846,13 +846,55 @@ export default function ProBono() {
     en: {
       subtitle: "Selected matters that reflect our commitment",
       title: "Featured Pro Bono Projects",
+      impact: "Impact: ",
     },
     es: {
       subtitle: "Asuntos seleccionados que reflejan nuestro compromiso",
       title: "Proyectos Pro Bono Destacados",
+      impact: "Impacto: ",
+    },
+    de: {
+      subtitle: "Ausgewählte Mandate, die unser Engagement widerspiegeln",
+      title: "Ausgewählte Pro-Bono-Projekte",
+      impact: "Wirkung: ",
+    },
+    zh: {
+      subtitle: "体现我们承诺的精选案件",
+      title: "精选公益项目",
+      impact: "影响：",
+    },
+    ko: {
+      subtitle: "우리의 헌신을 반영하는 엄선된 사건들",
+      title: "주요 프로보노 프로젝트",
+      impact: "영향: ",
+    },
+    ja: {
+      subtitle: "私たちのコミットメントを反映する厳選された案件",
+      title: "注目のプロボノプロジェクト",
+      impact: "インパクト：",
+    },
+    ar: {
+      subtitle: "قضايا مختارة تعكس التزامنا",
+      title: "مشاريع العمل التطوعي البارزة",
+      impact: "الأثر: ",
+    },
+    ru: {
+      subtitle: "Избранные дела, отражающие нашу приверженность",
+      title: "Избранные проекты Pro Bono",
+      impact: "Влияние: ",
+    },
+    fr: {
+      subtitle: "Affaires sélectionnées qui reflètent notre engagement",
+      title: "Projets Pro Bono en vedette",
+      impact: "Impact : ",
+    },
+    it: {
+      subtitle: "Casi selezionati che riflettono il nostro impegno",
+      title: "Progetti Pro Bono in evidenza",
+      impact: "Impatto: ",
     },
   };
-  const pl = isSpanish ? projectsSectionLabels.es : projectsSectionLabels.en;
+  const pl = projectsSectionLabels[language as keyof typeof projectsSectionLabels] || projectsSectionLabels.en;
 
   return (
     <div className="min-h-screen bg-background" data-testid="page-pro-bono">
@@ -1014,7 +1056,7 @@ export default function ProBono() {
                         </p>
                         {(isSpanish ? project.impactEs : project.impact) && (
                           <p className="mt-auto pt-4 border-t border-border/60 text-sm text-foreground/80">
-                            <span className="font-medium text-primary">{isSpanish ? "Impacto: " : "Impact: "}</span>
+                            <span className="font-medium text-primary">{pl.impact}</span>
                             {isSpanish ? project.impactEs : project.impact}
                           </p>
                         )}

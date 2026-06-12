@@ -28,8 +28,8 @@ interface NewsletterFormData {
   lastName?: string;
 }
 
-const getNewsletterFormSchema = (language: "es" | "en") => {
-  const messages = {
+const getNewsletterFormSchema = (language: string) => {
+  const messages: Record<string, { emailRequired: string; emailInvalid: string }> = {
     en: {
       emailRequired: "Email is required",
       emailInvalid: "Please enter a valid email address",
@@ -38,9 +38,41 @@ const getNewsletterFormSchema = (language: "es" | "en") => {
       emailRequired: "El correo electrónico es requerido",
       emailInvalid: "Por favor ingrese una dirección de correo válida",
     },
+    de: {
+      emailRequired: "E-Mail-Adresse ist erforderlich",
+      emailInvalid: "Bitte geben Sie eine gültige E-Mail-Adresse ein",
+    },
+    zh: {
+      emailRequired: "电子邮件地址为必填项",
+      emailInvalid: "请输入有效的电子邮件地址",
+    },
+    ko: {
+      emailRequired: "이메일 주소는 필수입니다",
+      emailInvalid: "유효한 이메일 주소를 입력해 주세요",
+    },
+    ja: {
+      emailRequired: "メールアドレスは必須です",
+      emailInvalid: "有効なメールアドレスを入力してください",
+    },
+    ar: {
+      emailRequired: "البريد الإلكتروني مطلوب",
+      emailInvalid: "يرجى إدخال عنوان بريد إلكتروني صالح",
+    },
+    ru: {
+      emailRequired: "Требуется адрес электронной почты",
+      emailInvalid: "Пожалуйста, введите действительный адрес электронной почты",
+    },
+    fr: {
+      emailRequired: "L'adresse e-mail est requise",
+      emailInvalid: "Veuillez saisir une adresse e-mail valide",
+    },
+    it: {
+      emailRequired: "L'indirizzo e-mail è obbligatorio",
+      emailInvalid: "Inserisci un indirizzo e-mail valido",
+    },
   };
 
-  const t = messages[language];
+  const t = messages[language] || messages.en;
 
   return z.object({
     email: z.string().min(1, t.emailRequired).email(t.emailInvalid),
@@ -53,8 +85,7 @@ export default function Newsletter() {
   const { language } = useLanguage();
   const { toast } = useToast();
 
-  const formLanguage = language === "es" ? "es" : "en";
-  const formSchema = getNewsletterFormSchema(formLanguage);
+  const formSchema = getNewsletterFormSchema(language);
 
   const form = useForm<NewsletterFormData>({
     resolver: zodResolver(formSchema),
@@ -71,30 +102,26 @@ export default function Newsletter() {
       return response.json() as Promise<{ success: boolean; duplicate?: boolean; message?: string }>;
     },
     onSuccess: (result) => {
+      const tToast = content[language] || content.en;
       if (result?.duplicate) {
         toast({
-          title: language === "es" ? "Ya estás suscrito" : "Already subscribed",
-          description: language === "es"
-            ? "Este correo ya se encuentra registrado en nuestro boletín."
-            : "This email is already subscribed to our newsletter.",
+          title: tToast.toastDuplicateTitle,
+          description: tToast.toastDuplicateDescription,
         });
         form.reset();
         return;
       }
       toast({
-        title: language === "es" ? "¡Suscripción exitosa!" : "Successfully subscribed!",
-        description: language === "es"
-          ? "Gracias por suscribirse a nuestro boletín."
-          : "Thank you for subscribing to our newsletter.",
+        title: tToast.toastSuccessTitle,
+        description: tToast.toastSuccessDescription,
       });
       form.reset();
     },
     onError: () => {
+      const tToast = content[language] || content.en;
       toast({
-        title: language === "es" ? "Error" : "Error",
-        description: language === "es" 
-          ? "No se pudo completar la suscripción. Por favor intente de nuevo." 
-          : "Failed to subscribe. Please try again.",
+        title: tToast.toastErrorTitle,
+        description: tToast.toastErrorDescription,
         variant: "destructive",
       });
     },
@@ -143,6 +170,12 @@ export default function Newsletter() {
       privacyNote: "We respect your privacy. Your information will never be shared with third parties. You can unsubscribe at any time.",
       frequency: "Newsletter Frequency",
       frequencyDescription: "Our newsletter is sent monthly, with occasional special editions for urgent legal developments.",
+      toastDuplicateTitle: "Already subscribed",
+      toastDuplicateDescription: "This email is already subscribed to our newsletter.",
+      toastSuccessTitle: "Successfully subscribed!",
+      toastSuccessDescription: "Thank you for subscribing to our newsletter.",
+      toastErrorTitle: "Error",
+      toastErrorDescription: "Failed to subscribe. Please try again.",
     },
     es: {
       title: "Boletines",
@@ -182,6 +215,12 @@ export default function Newsletter() {
       privacyNote: "Respetamos su privacidad. Su información nunca será compartida con terceros. Puede darse de baja en cualquier momento.",
       frequency: "Frecuencia del Boletín",
       frequencyDescription: "Nuestro boletín se envía mensualmente, con ediciones especiales ocasionales para desarrollos legales urgentes.",
+      toastDuplicateTitle: "Ya estás suscrito",
+      toastDuplicateDescription: "Este correo ya se encuentra registrado en nuestro boletín.",
+      toastSuccessTitle: "¡Suscripción exitosa!",
+      toastSuccessDescription: "Gracias por suscribirse a nuestro boletín.",
+      toastErrorTitle: "Error",
+      toastErrorDescription: "No se pudo completar la suscripción. Por favor intente de nuevo.",
     },
     de: {
       title: "Newsletter",
@@ -221,6 +260,12 @@ export default function Newsletter() {
       privacyNote: "Wir respektieren Ihre Privatsphäre. Ihre Daten werden niemals an Dritte weitergegeben. Sie können sich jederzeit abmelden.",
       frequency: "Newsletter-Häufigkeit",
       frequencyDescription: "Unser Newsletter wird monatlich versendet, mit gelegentlichen Sonderausgaben für dringende rechtliche Entwicklungen.",
+      toastDuplicateTitle: "Bereits abonniert",
+      toastDuplicateDescription: "Diese E-Mail-Adresse ist bereits für unseren Newsletter registriert.",
+      toastSuccessTitle: "Erfolgreich abonniert!",
+      toastSuccessDescription: "Vielen Dank für Ihr Abonnement unseres Newsletters.",
+      toastErrorTitle: "Fehler",
+      toastErrorDescription: "Das Abonnement konnte nicht abgeschlossen werden. Bitte versuchen Sie es erneut.",
     },
     zh: {
       title: "电子通讯",
@@ -260,6 +305,12 @@ export default function Newsletter() {
       privacyNote: "我们尊重您的隐私。您的信息绝不会与第三方共享。您可以随时取消订阅。",
       frequency: "通讯频率",
       frequencyDescription: "我们的通讯每月发送一次，偶尔会为紧急法律发展推出特别版。",
+      toastDuplicateTitle: "您已订阅",
+      toastDuplicateDescription: "此电子邮件已订阅我们的通讯。",
+      toastSuccessTitle: "订阅成功！",
+      toastSuccessDescription: "感谢您订阅我们的通讯。",
+      toastErrorTitle: "错误",
+      toastErrorDescription: "订阅未能完成。请重试。",
     },
     ko: {
       title: "뉴스레터",
@@ -299,6 +350,12 @@ export default function Newsletter() {
       privacyNote: "귀하의 개인정보를 존중합니다. 귀하의 정보는 제3자와 절대 공유되지 않습니다. 언제든지 구독을 취소할 수 있습니다.",
       frequency: "뉴스레터 빈도",
       frequencyDescription: "뉴스레터는 매월 발송되며, 긴급한 법률 발전에 대한 특별판이 가끔 발행됩니다.",
+      toastDuplicateTitle: "이미 구독 중입니다",
+      toastDuplicateDescription: "이 이메일은 이미 뉴스레터에 등록되어 있습니다.",
+      toastSuccessTitle: "구독 완료!",
+      toastSuccessDescription: "뉴스레터를 구독해 주셔서 감사합니다.",
+      toastErrorTitle: "오류",
+      toastErrorDescription: "구독을 완료하지 못했습니다. 다시 시도해 주세요.",
     },
     ja: {
       title: "ニュースレター",
@@ -338,6 +395,12 @@ export default function Newsletter() {
       privacyNote: "プライバシーを尊重します。お客様の情報は第三者と共有されることはありません。いつでも購読解除できます。",
       frequency: "ニュースレターの頻度",
       frequencyDescription: "ニュースレターは毎月配信され、緊急の法律動向については臨時特別号を発行することがあります。",
+      toastDuplicateTitle: "すでに購読済みです",
+      toastDuplicateDescription: "このメールアドレスはすでにニュースレターに登録されています。",
+      toastSuccessTitle: "購読が完了しました！",
+      toastSuccessDescription: "ニュースレターをご購読いただきありがとうございます。",
+      toastErrorTitle: "エラー",
+      toastErrorDescription: "購読を完了できませんでした。もう一度お試しください。",
     },
     ar: {
       title: "النشرة الإخبارية",
@@ -377,6 +440,12 @@ export default function Newsletter() {
       privacyNote: "نحترم خصوصيتك. لن تتم مشاركة معلوماتك مع أطراف ثالثة أبداً. يمكنك إلغاء الاشتراك في أي وقت.",
       frequency: "تكرار النشرة الإخبارية",
       frequencyDescription: "يتم إرسال نشرتنا الإخبارية شهرياً، مع إصدارات خاصة عرضية للتطورات القانونية العاجلة.",
+      toastDuplicateTitle: "أنت مشترك بالفعل",
+      toastDuplicateDescription: "هذا البريد الإلكتروني مسجّل بالفعل في نشرتنا الإخبارية.",
+      toastSuccessTitle: "تم الاشتراك بنجاح!",
+      toastSuccessDescription: "شكراً لاشتراكك في نشرتنا الإخبارية.",
+      toastErrorTitle: "خطأ",
+      toastErrorDescription: "تعذّر إتمام الاشتراك. يرجى المحاولة مرة أخرى.",
     },
     ru: {
       title: "Рассылка",
@@ -416,6 +485,12 @@ export default function Newsletter() {
       privacyNote: "Мы уважаем вашу конфиденциальность. Ваша информация никогда не будет передана третьим лицам. Вы можете отписаться в любое время.",
       frequency: "Частота рассылки",
       frequencyDescription: "Наша рассылка отправляется ежемесячно, со случайными специальными выпусками для срочных правовых изменений.",
+      toastDuplicateTitle: "Вы уже подписаны",
+      toastDuplicateDescription: "Этот адрес электронной почты уже зарегистрирован в нашей рассылке.",
+      toastSuccessTitle: "Подписка оформлена!",
+      toastSuccessDescription: "Благодарим вас за подписку на нашу рассылку.",
+      toastErrorTitle: "Ошибка",
+      toastErrorDescription: "Не удалось оформить подписку. Пожалуйста, попробуйте снова.",
     },
     fr: {
       title: "Newsletter",
@@ -455,6 +530,12 @@ export default function Newsletter() {
       privacyNote: "Nous respectons votre vie privée. Vos informations ne seront jamais partagées avec des tiers. Vous pouvez vous désabonner à tout moment.",
       frequency: "Fréquence de la newsletter",
       frequencyDescription: "Notre newsletter est envoyée mensuellement, avec des éditions spéciales occasionnelles pour les développements juridiques urgents.",
+      toastDuplicateTitle: "Déjà abonné",
+      toastDuplicateDescription: "Cette adresse e-mail est déjà inscrite à notre newsletter.",
+      toastSuccessTitle: "Abonnement réussi !",
+      toastSuccessDescription: "Merci de vous être abonné à notre newsletter.",
+      toastErrorTitle: "Erreur",
+      toastErrorDescription: "L'abonnement n'a pas pu être effectué. Veuillez réessayer.",
     },
     it: {
       title: "Newsletter",
@@ -494,6 +575,12 @@ export default function Newsletter() {
       privacyNote: "Rispettiamo la tua privacy. Le tue informazioni non saranno mai condivise con terzi. Puoi annullare l'iscrizione in qualsiasi momento.",
       frequency: "Frequenza della newsletter",
       frequencyDescription: "La nostra newsletter viene inviata mensilmente, con edizioni speciali occasionali per sviluppi legali urgenti.",
+      toastDuplicateTitle: "Già iscritto",
+      toastDuplicateDescription: "Questa e-mail è già iscritta alla nostra newsletter.",
+      toastSuccessTitle: "Iscrizione riuscita!",
+      toastSuccessDescription: "Grazie per esserti iscritto alla nostra newsletter.",
+      toastErrorTitle: "Errore",
+      toastErrorDescription: "Non è stato possibile completare l'iscrizione. Riprova.",
     },
   };
 

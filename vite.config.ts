@@ -30,6 +30,17 @@ export default defineConfig({
   build: {
     outDir: path.resolve(import.meta.dirname, "dist/public"),
     emptyOutDir: true,
+    rollupOptions: {
+      output: {
+        // Code-splitting de vendors grandes en chunks cacheables por separado:
+        // reduce el bundle inicial y mejora el caching entre despliegues.
+        manualChunks: {
+          "react-vendor": ["react", "react-dom", "wouter"],
+          "ui-vendor": ["framer-motion", "lucide-react"],
+          "query-vendor": ["@tanstack/react-query"],
+        },
+      },
+    },
   },
   server: {
     fs: {

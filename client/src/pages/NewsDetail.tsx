@@ -198,6 +198,8 @@ export default function NewsDetail() {
     author: string;
     topics: string;
     category: string;
+    breadcrumbHome: string;
+    breadcrumbNews: string;
   }> = {
     en: {
       backToNews: "Back to News",
@@ -215,6 +217,8 @@ export default function NewsDetail() {
       author: "Author",
       topics: "Topics",
       category: "Category",
+      breadcrumbHome: "Home",
+      breadcrumbNews: "News",
     },
     es: {
       backToNews: "Volver a Noticias",
@@ -232,6 +236,8 @@ export default function NewsDetail() {
       author: "Autor",
       topics: "Temas",
       category: "Categoría",
+      breadcrumbHome: "Inicio",
+      breadcrumbNews: "Noticias",
     },
     de: {
       backToNews: "Zurück zu Nachrichten",
@@ -249,6 +255,8 @@ export default function NewsDetail() {
       author: "Autor",
       topics: "Themen",
       category: "Kategorie",
+      breadcrumbHome: "Startseite",
+      breadcrumbNews: "Nachrichten",
     },
     zh: {
       backToNews: "返回新闻",
@@ -266,6 +274,8 @@ export default function NewsDetail() {
       author: "作者",
       topics: "主题",
       category: "类别",
+      breadcrumbHome: "首页",
+      breadcrumbNews: "新闻",
     },
     ko: {
       backToNews: "뉴스로 돌아가기",
@@ -283,6 +293,8 @@ export default function NewsDetail() {
       author: "저자",
       topics: "주제",
       category: "카테고리",
+      breadcrumbHome: "홈",
+      breadcrumbNews: "뉴스",
     },
     ja: {
       backToNews: "ニュースに戻る",
@@ -300,6 +312,8 @@ export default function NewsDetail() {
       author: "著者",
       topics: "トピック",
       category: "カテゴリー",
+      breadcrumbHome: "ホーム",
+      breadcrumbNews: "ニュース",
     },
     ar: {
       backToNews: "العودة إلى الأخبار",
@@ -317,6 +331,8 @@ export default function NewsDetail() {
       author: "المؤلف",
       topics: "المواضيع",
       category: "الفئة",
+      breadcrumbHome: "الرئيسية",
+      breadcrumbNews: "الأخبار",
     },
     ru: {
       backToNews: "Назад к новостям",
@@ -334,6 +350,8 @@ export default function NewsDetail() {
       author: "Автор",
       topics: "Темы",
       category: "Категория",
+      breadcrumbHome: "Главная",
+      breadcrumbNews: "Новости",
     },
     fr: {
       backToNews: "Retour aux actualités",
@@ -351,6 +369,8 @@ export default function NewsDetail() {
       author: "Auteur",
       topics: "Sujets",
       category: "Catégorie",
+      breadcrumbHome: "Accueil",
+      breadcrumbNews: "Actualités",
     },
     it: {
       backToNews: "Torna alle notizie",
@@ -368,6 +388,8 @@ export default function NewsDetail() {
       author: "Autore",
       topics: "Argomenti",
       category: "Categoria",
+      breadcrumbHome: "Home",
+      breadcrumbNews: "Notizie",
     },
   };
 
@@ -533,8 +555,8 @@ export default function NewsDetail() {
           />
           <BreadcrumbJsonLd
             items={[
-              { name: language === "es" ? "Inicio" : "Home", url: "https://www.vonwobeser.com" },
-              { name: language === "es" ? "Noticias" : "News", url: "https://www.vonwobeser.com/#news" },
+              { name: t.breadcrumbHome, url: "https://www.vonwobeser.com" },
+              { name: t.breadcrumbNews, url: "https://www.vonwobeser.com/#news" },
               { name: language === "es" ? newsArticle.titleEs : newsArticle.title, url: `https://www.vonwobeser.com/news/${newsArticle.slug}` }
             ]}
             language={language}
