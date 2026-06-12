@@ -15,8 +15,21 @@ import { categoryAgent } from '../specialized/CategoryAgent';
 import { AgentType, ExecutionContext } from '../core/types';
 import { db } from '../../db';
 import { news } from '../../../shared/schema';
+import { authMiddleware, requireRole } from '../../auth';
 
 const router = Router();
+
+// SEGURIDAD: todo el router de agentes exige sesión válida. Antes estaba 100% abierto
+// a internet (ejecución de agentes con consumo de OpenAI, arranque/paro del procesamiento,
+// pipeline sobre todos los artículos, lectura del conocimiento interno).
+// El panel admin consume estas rutas vía adminApiRequest (envía Bearer), así que no se rompe.
+router.use(authMiddleware);
+// Las lecturas (GET) bastan con sesión; las mutaciones/ejecución requieren rol con permisos.
+// super_admin pasa siempre (ver requireRole en server/auth.ts).
+router.use((req: Request, res: Response, next) => {
+  if (req.method === 'GET') return next();
+  return requireRole('super_admin', 'editor', 'admin')(req, res, next);
+});
 
 router.get('/status', async (req: Request, res: Response) => {
   try {

@@ -2,6 +2,7 @@ import "dotenv/config";
 import express, { type Request, Response, NextFunction } from "express";
 import cors from "cors";
 import compression from "compression";
+import rateLimit from "express-rate-limit";
 import { registerRoutes } from "./routes";
 import { serveStatic } from "./static";
 import { createServer } from "http";
@@ -13,8 +14,18 @@ const httpServer = createServer(app);
 
 app.use(compression());
 
+// CORS: antes reflejaba cualquier origen (origin: true) con credentials → cualquier sitio
+// podía hacer peticiones autenticadas. Ahora usa allowlist desde CORS_ORIGIN (coma-separada).
+// El sitio sirve front + API en el mismo origen, así que las peticiones normales son
+// same-origin y NO dependen de CORS; esto solo cierra el cross-origin abusivo.
+const corsOrigin: string[] | false = process.env.CORS_ORIGIN
+  ? process.env.CORS_ORIGIN.split(",").map((s) => s.trim()).filter(Boolean)
+  : process.env.NODE_ENV === "production"
+    ? false
+    : ["http://localhost:5001", "http://localhost:5000"];
+
 app.use(cors({
-  origin: process.env.CORS_ORIGIN || true,
+  origin: corsOrigin,
   credentials: true,
   methods: ["GET", "HEAD", "PUT", "PATCH", "POST", "DELETE", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization"],
@@ -35,6 +46,32 @@ app.use(
 );
 
 app.use(express.urlencoded({ extended: false }));
+
+// Rate limiting en endpoints sensibles (antes solo existía en /api/admin/login).
+// Traducción → consume OpenAI (ataque de costo); contacto → spam; agentes → abuso autenticado.
+const translateLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 30,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: "Demasiadas solicitudes de traducción. Intenta más tarde." },
+});
+const contactLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000,
+  max: 5,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: "Demasiados envíos. Intenta más tarde." },
+});
+const agentsLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 120,
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+app.use(["/api/translate", "/api/translate-content", "/api/translate-entity"], translateLimiter);
+app.use("/api/contact", contactLimiter);
+app.use("/api/agents", agentsLimiter);
 
 export function log(message: string, source = "express") {
   const formattedTime = new Date().toLocaleTimeString("en-US", {
@@ -62,7 +99,9 @@ app.use((req, res, next) => {
     const duration = Date.now() - start;
     if (path.startsWith("/api")) {
       let logLine = `${req.method} ${path} ${res.statusCode} in ${duration}ms`;
-      if (capturedJsonResponse) {
+      // No se vuelca el cuerpo de la respuesta: antes se serializaba completo, filtrando
+      // PII y tokens a los logs. En desarrollo se puede inspeccionar con LOG_RESPONSE_BODY=1.
+      if (capturedJsonResponse && process.env.LOG_RESPONSE_BODY === "1") {
         logLine += ` :: ${JSON.stringify(capturedJsonResponse)}`;
       }
 

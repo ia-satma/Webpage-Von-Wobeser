@@ -250,7 +250,16 @@ export async function registerRoutes(
 
   // Explicit route handler — belt-and-suspenders vs SPA catch-all
   app.get('/generated-images/:filename', (req, res) => {
-    const filePath = path.join(generatedImagesDir, req.params.filename);
+    const { filename } = req.params;
+    // Anti path-traversal: solo nombres simples (sin separadores), y sin '..'.
+    if (!/^[A-Za-z0-9._-]+$/.test(filename) || filename.includes('..')) {
+      return res.status(400).json({ error: 'Invalid filename' });
+    }
+    const filePath = path.join(generatedImagesDir, filename);
+    // Defensa en profundidad: el path resuelto debe quedar dentro del directorio.
+    if (!filePath.startsWith(generatedImagesDir + path.sep)) {
+      return res.status(400).json({ error: 'Invalid path' });
+    }
     if (fs.existsSync(filePath)) {
       res.set('Cache-Control', 'public, max-age=31536000, immutable');
       return res.sendFile(filePath);
@@ -658,7 +667,8 @@ export async function registerRoutes(
 
       const submission = await storage.createContactSubmission(sanitizedData);
 
-      console.log(`[Contact] New submission from ${sanitizedData.fullName} <${sanitizedData.email}> saved with id ${submission.id}`);
+      // No se loguea nombre ni email (PII). Solo el id de la submission.
+      console.log(`[Contact] New submission saved with id ${submission.id}`);
 
       res.json({ success: true, message: "Contact form submitted successfully" });
     } catch (error) {

@@ -168,7 +168,12 @@ export function requireRole(...roles: string[]) {
       res.status(401).json({ error: "Authentication required" });
       return;
     }
-    if (!roles.includes(req.adminUser.role)) {
+    // super_admin tiene acceso total. La taxonomía válida (shared/schema.ts) es
+    // super_admin | editor | author, pero los requireRole del código piden
+    // ('editor','admin') — 'admin' no existe y 'super_admin' no estaba en ninguna lista,
+    // así que el único usuario real (super_admin) recibía 403 en TODO el panel.
+    // Este bypass repara los 61 endpoints sin tocarlos y respeta la jerarquía.
+    if (req.adminUser.role !== "super_admin" && !roles.includes(req.adminUser.role)) {
       res.status(403).json({ error: "Insufficient permissions" });
       return;
     }
