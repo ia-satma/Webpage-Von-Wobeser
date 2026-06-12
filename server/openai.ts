@@ -1,11 +1,40 @@
 import OpenAI from "openai";
 
-// Using Replit's AI Integrations service - provides OpenAI-compatible API access
-// without requiring your own OpenAI API key. Charges are billed to Replit credits.
-// the newest OpenAI model is "gpt-5" which was released August 7, 2025. do not change this unless explicitly requested by the user
-export const openai = new OpenAI({
-  baseURL: process.env.AI_INTEGRATIONS_OPENAI_BASE_URL,
-  apiKey: process.env.AI_INTEGRATIONS_OPENAI_API_KEY
+// En Replit, las AI Integrations inyectan AI_INTEGRATIONS_OPENAI_BASE_URL/_API_KEY
+// y el modelo por defecto es "gpt-5". En local se admite OPENAI_API_KEY estándar
+// (baseURL undefined → api.openai.com) y el modelo puede sobreescribirse con
+// OPENAI_TRANSLATE_MODEL para no depender de gpt-5 fuera de Replit.
+// El cliente se construye de forma diferida: el server arranca aunque falte la key;
+// solo las funciones que llaman a la API fallan, con un mensaje claro.
+const OPENAI_BASE_URL =
+  process.env.AI_INTEGRATIONS_OPENAI_BASE_URL || undefined;
+const OPENAI_API_KEY =
+  process.env.AI_INTEGRATIONS_OPENAI_API_KEY || process.env.OPENAI_API_KEY;
+export const TRANSLATE_MODEL = process.env.OPENAI_TRANSLATE_MODEL || "gpt-5";
+
+let _openai: OpenAI | null = null;
+function getOpenAI(): OpenAI {
+  if (!_openai) {
+    if (!OPENAI_API_KEY) {
+      throw new Error(
+        "Falta la API key de OpenAI (AI_INTEGRATIONS_OPENAI_API_KEY en Replit u OPENAI_API_KEY en local). Las funciones de traducción/IA están deshabilitadas hasta configurarla.",
+      );
+    }
+    _openai = new OpenAI({ baseURL: OPENAI_BASE_URL, apiKey: OPENAI_API_KEY });
+  }
+  return _openai;
+}
+
+/** True si hay credenciales de OpenAI configuradas (para degradar features con elegancia). */
+export const isOpenAIConfigured = Boolean(OPENAI_API_KEY);
+
+/** Proxy retrocompatible: el código existente sigue usando `openai.chat...`. */
+export const openai = new Proxy({} as OpenAI, {
+  get(_target, prop) {
+    const client = getOpenAI();
+    const value = (client as any)[prop];
+    return typeof value === "function" ? value.bind(client) : value;
+  },
 });
 
 export const SUPPORTED_LANGUAGES = [
@@ -33,7 +62,7 @@ export async function translateLegalText(
   }
 
   const response = await openai.chat.completions.create({
-    model: "gpt-5",
+    model: TRANSLATE_MODEL,
     messages: [
       {
         role: "system",
@@ -74,7 +103,7 @@ export async function translateMultipleTexts(
   const textsForTranslation = texts.map(({ key, text }) => `${key}: ${text}`).join("\n---\n");
 
   const response = await openai.chat.completions.create({
-    model: "gpt-5",
+    model: TRANSLATE_MODEL,
     messages: [
       {
         role: "system",
@@ -105,7 +134,7 @@ export async function suggestTranslation(
     .join("\n");
 
   const response = await openai.chat.completions.create({
-    model: "gpt-5",
+    model: TRANSLATE_MODEL,
     messages: [
       {
         role: "system",

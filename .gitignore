@@ -1,6 +1,41 @@
+# Dependencias y build
 node_modules
 dist
-.DS_Store
+build
 server/public
+
+# OS
+.DS_Store
+
+# Estado interno de herramientas (Claude Code / Replit agent)
+.local/
+.canvas/
+.agents/
+.config/
+
+# Runtime / datos locales generados
+uploads/
+multilang_audit/
+public/generated-images/
+*.log
+
+# Secrets y entorno
+.env
+.env.*
+!.env.example
 vite.config.ts.*
+
+# Artefactos pesados / exports
+exports/
 *.tar.gz
+*.zip
+
+# Screenshots de debugging en la raíz del proyecto
+/*.png
+
+# Cruft de attached_assets (no referenciado por el código)
+attached_assets/benchmarking-report_*.json
+attached_assets/Pasted--*.txt
+attached_assets/articles_extracted/
+attached_assets/*.pdf
+attached_assets/*.docx

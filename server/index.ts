@@ -1,3 +1,4 @@
+import "dotenv/config";
 import express, { type Request, Response, NextFunction } from "express";
 import cors from "cors";
 import compression from "compression";
@@ -102,7 +103,9 @@ app.use((req, res, next) => {
     {
       port,
       host: "0.0.0.0",
-      reusePort: true,
+      // SO_REUSEPORT existe en Linux (Replit) pero no en macOS/algunos BSD,
+      // donde listen() lanza ENOTSUP. Solo se habilita donde está soportado.
+      reusePort: process.platform === "linux",
     },
     async () => {
       log(`serving on port ${port}`);
