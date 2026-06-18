@@ -851,6 +851,36 @@ export async function registerRoutes(
     }
   });
 
+  // =============================================
+  // SPECIALIZED DESKS (public read)
+  // =============================================
+
+  app.get("/api/desks", async (_req: Request, res: Response) => {
+    try {
+      const desks = await storage.getSpecializedDesks();
+      const published = desks.filter(d => d.published);
+      res.set("Cache-Control", "public, max-age=60");
+      res.json(published);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch specialized desks" });
+    }
+  });
+
+  // =============================================
+  // ARTICLES (public read) — published blog posts
+  // =============================================
+
+  app.get("/api/articles", async (_req: Request, res: Response) => {
+    try {
+      const posts = await storage.getBlogPosts();
+      const published = posts.filter(p => p.status === "published");
+      res.set("Cache-Control", "public, max-age=60");
+      res.json(published);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch articles" });
+    }
+  });
+
   app.get("/api/search", async (req, res) => {
     try {
       const query = (req.query.q as string || '').toLowerCase().trim();
@@ -3926,6 +3956,37 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
   // Initialize agents on server start
   const { initializeAgents } = await import('./agents');
   initializeAgents().catch(err => console.error('[Agents] Initialization error:', err));
+
+  // =============================================
+  // LEGACY URL 301 REDIRECTS (SEO)
+  // Mapean URLs del sitio viejo (basadas en index.php) a las rutas nuevas del SPA.
+  // Se registran ANTES del catch-all del SPA (que se monta en index.ts después de
+  // registerRoutes), de modo que estas rutas viejas no caen en un 404 del front.
+  // TODO: redirect de detalle requiere legacy_id en migración (W8)
+  //   (p.ej. /index.php/lawyer?l=134 → /team/<slug> necesita mapeo old-ID→slug, no disponible aún)
+  // =============================================
+  const legacyRedirects: Array<[string[], string]> = [
+    [["/index.php/attorneys", "/index.php/abogados"], "/team"],
+    [["/index.php/our-firm", "/index.php/nuestra-firma"], "/about"],
+    [["/index.php/our-firm/diversity", "/index.php/nuestra-firma/diversidad"], "/diversity-inclusion"],
+    [["/index.php/our-firm/probono", "/index.php/nuestra-firma/probono"], "/pro-bono"],
+    [["/index.php/capabilities", "/index.php/capacidades"], "/practice-groups"],
+    [["/index.php/publications", "/index.php/publicaciones"], "/news"],
+    [["/index.php/contact", "/index.php/contacto"], "/contact"],
+    [["/index.php/careers", "/index.php/bolsa-de-trabajo"], "/careers"],
+    [["/index.php/privacy", "/index.php/aviso"], "/privacy-policy"],
+    [["/new-offices", "/nuevas-oficinas"], "/offices"],
+  ];
+
+  for (const [fromPaths, to] of legacyRedirects) {
+    for (const from of fromPaths) {
+      app.get(from, (_req: Request, res: Response) => res.redirect(301, to));
+    }
+  }
+
+  // Genérico final: cualquier otra URL vieja profunda de index.php → home (301)
+  // para no dejar 404s. Debe ir después de las rutas index.php específicas de arriba.
+  app.get(/^\/index\.php(\/.*)?$/, (_req: Request, res: Response) => res.redirect(301, "/"));
 
   return httpServer;
 }

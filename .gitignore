@@ -17,6 +17,7 @@ server/public
 uploads/
 multilang_audit/
 public/generated-images/
+client/public/partner_photos/
 *.log
 
 # Secrets y entorno

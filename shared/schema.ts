@@ -91,6 +91,7 @@ export const news = pgTable("news", {
   contentEs: text("content_es"),
   slug: text("slug").notNull().unique(),
   imageUrl: text("image_url"),
+  pdfUrl: text("pdf_url"),
   date: timestamp("date").defaultNow(),
   published: boolean("published").default(true),
   category: text("category").default("press"),
