@@ -4,6 +4,22 @@ export default {
   darkMode: ["class"],
   content: ["./client/index.html", "./client/src/**/*.{js,jsx,ts,tsx}"],
   theme: {
+    /* ── Breakpoints del sitio viejo (max-width → mobile-first reverse).
+       El mirror usa 980/800/680/480 como cortes. Los exponemos como min-width
+       para Tailwind manteniendo los defaults sm/md/lg/xl/2xl. ── */
+    screens: {
+      sm: "480px",
+      md: "680px",
+      lg: "800px",
+      xl: "980px",
+      "2xl": "1340px",
+    },
+    container: {
+      center: true,
+      screens: {
+        "2xl": "1340px",
+      },
+    },
     extend: {
       borderRadius: {
         lg: ".5625rem", /* 9px */
@@ -81,10 +97,26 @@ export default {
           busy: "rgb(239 68 68)",
           offline: "rgb(156 163 175)",
         },
+        // ── Von Wobeser OLD DESIGN tokens (mirror Joomla beez3) ──
+        "vw-red": "#ac162c",        // rojo corporativo (links/underlines)
+        "vw-gray": "#5e5e5e",       // gris oscuro / texto base / footer
+        "vw-graylight": "#c4c4c4",  // gris claro / fondo nav overlay
+        "vw-white": "#ffffff",
+        "vw-black": "#1d1d1b",
       },
       fontFamily: {
-        sans: ["var(--font-sans)"],
-        serif: ["var(--font-serif)"],
+        // OLD-DESIGN families (self-hosted .woff del mirror beez3).
+        // body / running text:
+        sans: ["'OptimaLTStd'", "'Optima'", "'Lato'", "Calibri", "sans-serif"],
+        // headings / hero:
+        serif: ["'Publico-Roman'", "Georgia", "'Times New Roman'", "serif"],
+        // labels / menu / uppercase:
+        label: ["'Geomanist-Book'", "'Century Gothic'", "'Lato'", "sans-serif"],
+        // Explicit aliases (sin ambigüedad) para los workers:
+        "publico-roman": ["'Publico-Roman'", "Georgia", "serif"],
+        "optima-old": ["'OptimaLTStd'", "'Optima'", "'Lato'", "sans-serif"],
+        "geomanist-book": ["'Geomanist-Book'", "'Century Gothic'", "'Lato'", "sans-serif"],
+        // Familias previas conservadas (compat con el design system existente):
         heading: ["var(--font-heading)"],
         support: ["var(--font-support)"],
         mono: ["var(--font-mono)"],

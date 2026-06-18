@@ -30,6 +30,9 @@ exports/
 *.tar.gz
 *.zip
 
+# Mirror estático del sitio viejo (926 MB) — SOLO referencia de diseño, nunca a git/build
+MIRROR - VON WOBESER FRONT/
+
 # Screenshots de debugging en la raíz del proyecto
 /*.png
 

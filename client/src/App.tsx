@@ -5,6 +5,7 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { LanguageProvider, useLanguage } from "@/contexts/LanguageContext";
+import Layout from "@/components/layout/Layout";
 
 function ScrollToTop() {
   const [location] = useLocation();
@@ -133,34 +134,12 @@ function SkipLinks() {
   );
 }
 
-function Router() {
+// Rutas de administración: NO reciben el header/footer público (Layout).
+// Conservan su layout propio. Se renderizan "desnudas".
+function AdminRouter() {
   return (
     <Suspense fallback={null}>
       <Switch>
-        <Route path="/" component={Home} />
-        <Route path="/about" component={About} />
-        <Route path="/practice-groups" component={PracticeGroups} />
-        <Route path="/practice-groups/:slug" component={PracticeGroupDetail} />
-        <Route path="/industry-groups" component={IndustryGroups} />
-        <Route path="/industry-groups/:slug" component={IndustryGroupDetail} />
-        <Route path="/team" component={Team} />
-        <Route path="/team/:slug" component={TeamMemberDetail} />
-        <Route path="/news" component={News} />
-        <Route path="/news/:slug" component={NewsDetail} />
-        <Route path="/contact" component={Contact} />
-        <Route path="/careers" component={Careers} />
-        <Route path="/careers/interns" component={Interns} />
-        <Route path="/experience" component={Experience} />
-        <Route path="/privacy-policy" component={PrivacyPolicy} />
-        <Route path="/terms" component={Terms} />
-        <Route path="/rankings" component={Rankings} />
-        <Route path="/offices" component={Offices} />
-        <Route path="/diversity-inclusion" component={DiversityInclusion} />
-        <Route path="/pro-bono" component={ProBono} />
-        <Route path="/german-desk" component={GermanDesk} />
-        <Route path="/articles" component={Articles} />
-        <Route path="/newsletter" component={Newsletter} />
-        <Route path="/events" component={Events} />
         <Route path="/admin/login" component={AdminLogin} />
         <Route path="/admin/dashboard" component={AdminDashboard} />
         <Route path="/admin/posts" component={AdminPosts} />
@@ -189,6 +168,49 @@ function Router() {
       </Switch>
     </Suspense>
   );
+}
+
+// Rutas públicas: envueltas con el shell nuevo (header/footer viejo via Layout).
+function PublicRouter() {
+  return (
+    <Layout>
+      <Suspense fallback={null}>
+        <Switch>
+          <Route path="/" component={Home} />
+          <Route path="/about" component={About} />
+          <Route path="/practice-groups" component={PracticeGroups} />
+          <Route path="/practice-groups/:slug" component={PracticeGroupDetail} />
+          <Route path="/industry-groups" component={IndustryGroups} />
+          <Route path="/industry-groups/:slug" component={IndustryGroupDetail} />
+          <Route path="/team" component={Team} />
+          <Route path="/team/:slug" component={TeamMemberDetail} />
+          <Route path="/news" component={News} />
+          <Route path="/news/:slug" component={NewsDetail} />
+          <Route path="/contact" component={Contact} />
+          <Route path="/careers" component={Careers} />
+          <Route path="/careers/interns" component={Interns} />
+          <Route path="/experience" component={Experience} />
+          <Route path="/privacy-policy" component={PrivacyPolicy} />
+          <Route path="/terms" component={Terms} />
+          <Route path="/rankings" component={Rankings} />
+          <Route path="/offices" component={Offices} />
+          <Route path="/diversity-inclusion" component={DiversityInclusion} />
+          <Route path="/pro-bono" component={ProBono} />
+          <Route path="/german-desk" component={GermanDesk} />
+          <Route path="/articles" component={Articles} />
+          <Route path="/newsletter" component={Newsletter} />
+          <Route path="/events" component={Events} />
+          <Route component={NotFound} />
+        </Switch>
+      </Suspense>
+    </Layout>
+  );
+}
+
+function Router() {
+  const [location] = useLocation();
+  const isAdmin = location.startsWith("/admin");
+  return isAdmin ? <AdminRouter /> : <PublicRouter />;
 }
 
 function App() {
