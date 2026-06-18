@@ -1,10 +1,7 @@
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { AlertCircle, Home, ArrowLeft } from "lucide-react";
+import { Home, ArrowLeft } from "lucide-react";
 import { Link } from "wouter";
 import { useLanguage } from "@/contexts/LanguageContext";
-import Header from "@/components/Header";
-import Footer from "@/components/Footer";
+import { Section, Label } from "@/components/firm";
 
 export default function NotFound() {
   const { language } = useLanguage();
@@ -76,53 +73,43 @@ export default function NotFound() {
   const isRTL = language === "ar";
 
   return (
-    <div className="min-h-screen bg-background flex flex-col" dir={isRTL ? "rtl" : "ltr"} data-testid="page-not-found">
-      <Header />
-      
-      <main className="flex-1 flex items-center justify-center py-20">
-        <Card className="w-full max-w-lg mx-4 rounded-none border border-border">
-          <CardContent className="pt-8 pb-8 px-8 text-center">
-            <div className="flex justify-center mb-6">
-              <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center">
-                <AlertCircle className="h-10 w-10 text-primary" />
-              </div>
-            </div>
-            
-            <h1 
-              className="text-3xl font-heading font-medium text-foreground mb-3"
-              data-testid="text-404-title"
+    <div dir={isRTL ? "rtl" : "ltr"} data-testid="page-not-found">
+      <Section tone="white" size="large" fade={false} innerClassName="text-center">
+        <Label className="mb-4 inline-block">404</Label>
+        <h1
+          className="font-serif text-4xl leading-tight text-vw-black md:text-6xl"
+          data-testid="text-404-title"
+        >
+          {t.title}
+        </h1>
+        <p
+          className="mx-auto mt-5 max-w-xl font-sans text-lg leading-relaxed text-vw-gray"
+          data-testid="text-404-subtitle"
+        >
+          {t.subtitle}
+        </p>
+
+        <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
+          <Link href="/">
+            <span
+              className="vw-label inline-flex cursor-pointer items-center gap-2 bg-vw-red px-8 py-3.5 text-xs text-white transition-colors hover:bg-vw-black"
+              data-testid="button-go-home"
             >
-              404 - {t.title}
-            </h1>
-
-            <p 
-              className="text-muted-foreground mb-8"
-              data-testid="text-404-subtitle"
-            >
-              {t.subtitle}
-            </p>
-
-            <div className="flex flex-col sm:flex-row justify-center gap-4">
-              <Button asChild data-testid="button-go-home">
-                <Link href="/">
-                  <Home className="w-4 h-4 mr-2" />
-                  {t.goHome}
-                </Link>
-              </Button>
-              <Button 
-                variant="outline" 
-                onClick={() => window.history.back()}
-                data-testid="button-go-back"
-              >
-                <ArrowLeft className="w-4 h-4 mr-2" />
-                {t.goBack}
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      </main>
-
-      <Footer />
+              <Home className="h-4 w-4" aria-hidden="true" />
+              {t.goHome}
+            </span>
+          </Link>
+          <button
+            type="button"
+            onClick={() => window.history.back()}
+            className="vw-label inline-flex cursor-pointer items-center gap-2 border border-vw-red px-8 py-3.5 text-xs text-vw-red transition-colors hover:bg-vw-red hover:text-white"
+            data-testid="button-go-back"
+          >
+            <ArrowLeft className="h-4 w-4" aria-hidden="true" />
+            {t.goBack}
+          </button>
+        </div>
+      </Section>
     </div>
   );
 }

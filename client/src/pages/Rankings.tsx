@@ -1,15 +1,10 @@
 import { Link } from "wouter";
-import { motion } from "framer-motion";
-import { Award, Star, Trophy, Medal, BookOpen, Users, Scale, Building2, Globe2, Briefcase, ChevronRight, Quote } from "lucide-react";
+import { Award, Star, BookOpen, Users, Scale, Globe2, Briefcase, ChevronRight } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import Header from "@/components/Header";
-import Footer from "@/components/Footer";
 import SEOHead from "@/components/SEOHead";
+import { PageHero, Section, SectionTitle, Label } from "@/components/firm";
+import { useFadeOnScroll } from "@/hooks/useFadeOnScroll";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { NumberedCard } from "@/components/editorial";
 import type { TeamMember } from "@shared/schema";
 
 interface DirectoryInfo {
@@ -170,6 +165,9 @@ const rankedLawyers = [
 
 export default function Rankings() {
   const { language } = useLanguage();
+  const directoriesRef = useFadeOnScroll<HTMLDivElement>();
+  const awardsRef = useFadeOnScroll<HTMLDivElement>();
+  const lawyersRef = useFadeOnScroll<HTMLDivElement>();
 
   const { data: teamMembers } = useQuery<TeamMember[]>({
     queryKey: ["/api/team"],
@@ -410,270 +408,173 @@ export default function Rankings() {
 
   const t = content[language] || content.en;
 
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1,
-      },
-    },
-  };
-
-  const itemVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: { duration: 0.4 },
-    },
-  };
-
   return (
-    <div className="min-h-screen bg-background" data-testid="page-rankings">
+    <div data-testid="page-rankings">
       <SEOHead page="rankings" language={language} />
-      <Header />
 
-      <section className="pt-36 pb-20 bg-[#1a1a19]" data-testid="section-rankings-hero">
-        <div className="max-w-7xl mx-auto px-6 lg:px-12">
-          <motion.div
-            initial={{ opacity: 0, y: 24 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.7 }}
-            className="text-center"
-          >
-            <div className="flex items-center justify-center gap-3 mb-6">
-              <Trophy className="w-10 h-10 text-primary" />
-            </div>
-            <div className="h-0.5 w-12 bg-primary mx-auto mb-6" />
-            <h1
-              className="text-4xl md:text-5xl font-heading font-light text-white mb-5 uppercase tracking-[0.15em]"
-              data-testid="text-rankings-title"
-            >
-              {t.title}
-            </h1>
-            <p
-              className="text-base text-white/60 max-w-3xl mx-auto"
-              data-testid="text-rankings-subtitle"
-            >
-              {t.subtitle}
-            </p>
-          </motion.div>
+      <PageHero
+        eyebrow={t.recognitions}
+        title={t.title}
+        subtitle={t.subtitle}
+        data-testid="section-rankings-hero"
+      />
+
+      <Section tone="white" data-testid="section-rankings-overview">
+        <SectionTitle>{t.overviewTitle}</SectionTitle>
+        <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
+          <p className="font-sans text-lg leading-relaxed text-vw-gray">
+            {t.overviewText1}
+          </p>
+          <p className="font-sans text-lg leading-relaxed text-vw-gray">
+            {t.overviewText2}
+          </p>
         </div>
-      </section>
+      </Section>
 
-      <main id="main-content" className="py-16 lg:py-20">
-        <div className="max-w-7xl mx-auto px-6 lg:px-12">
-          <motion.section
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6, delay: 0.2 }}
-            className="mb-20"
-            data-testid="section-rankings-overview"
-          >
-            <h2 className="text-2xl font-heading font-light text-foreground mb-6 uppercase tracking-[0.12em]">
-              {t.overviewTitle}
-            </h2>
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              <p className="text-lg text-foreground leading-relaxed text-justify">
-                {t.overviewText1}
-              </p>
-              <p className="text-lg text-foreground leading-relaxed text-justify">
-                {t.overviewText2}
-              </p>
-            </div>
-          </motion.section>
+      <Section tone="gray" data-testid="section-directories">
+        <Label>{t.directoriesSubtitle}</Label>
+        <SectionTitle className="mt-3">{t.directoriesTitle}</SectionTitle>
 
-          <motion.section
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-            variants={containerVariants}
-            className="mb-20"
-            data-testid="section-directories"
-          >
-            <div className="text-center mb-12">
-              <h2 className="text-2xl font-heading font-light text-foreground mb-4 uppercase tracking-[0.12em]">
-                {t.directoriesTitle}
-              </h2>
-              <p className="text-muted-foreground max-w-2xl mx-auto">
-                {t.directoriesSubtitle}
-              </p>
-            </div>
+        <div
+          ref={directoriesRef}
+          className="vw-fade grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3"
+        >
+          {directories.map((directory) => {
+            const Icon = directory.icon;
+            return (
+              <div
+                key={directory.id}
+                className="flex h-full flex-col border border-vw-graylight bg-white p-7 transition-colors hover:border-vw-red"
+                data-testid={`card-directory-${directory.id}`}
+              >
+                <Icon className="mb-4 h-7 w-7 text-vw-red" aria-hidden="true" />
+                <h3 className="mb-3 font-serif text-xl leading-snug text-vw-black">
+                  {language === "es" ? directory.nameEs : directory.name}
+                </h3>
+                <p className="mb-4 font-sans text-base leading-relaxed text-vw-gray">
+                  {language === "es" ? directory.descriptionEs : directory.description}
+                </p>
+                <div className="mt-auto flex flex-wrap gap-2">
+                  {directory.rankings.map((ranking, idx) => (
+                    <span
+                      key={idx}
+                      className="inline-block border border-vw-graylight px-3 py-1 font-sans text-xs text-vw-gray"
+                      data-testid={`badge-ranking-${directory.id}-${idx}`}
+                    >
+                      {language === "es" ? ranking.es : ranking.en}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </Section>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {directories.map((directory) => (
-                <motion.div key={directory.id} variants={itemVariants}>
-                  <NumberedCard
-                    index={directories.indexOf(directory)}
-                    title={language === "es" ? directory.nameEs : directory.name}
-                    body={language === "es" ? directory.descriptionEs : directory.description}
-                    icon={directory.icon}
-                    dataTestid={`card-directory-${directory.id}`}
-                  >
-                    <div className="mt-4 space-y-2">
-                      <div className="flex flex-wrap gap-2">
-                        {directory.rankings.map((ranking, idx) => (
-                          <Badge
-                            key={idx}
-                            variant="secondary"
-                            className="text-xs"
-                            data-testid={`badge-ranking-${directory.id}-${idx}`}
-                          >
-                            {language === "es" ? ranking.es : ranking.en}
-                          </Badge>
-                        ))}
-                      </div>
-                    </div>
-                  </NumberedCard>
-                </motion.div>
-              ))}
-            </div>
-          </motion.section>
+      <Section tone="white" data-testid="section-awards">
+        <Label>{t.awardsSubtitle}</Label>
+        <SectionTitle className="mt-3">{t.awardsTitle}</SectionTitle>
 
-          <motion.section
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-            variants={containerVariants}
-            className="mb-20"
-            data-testid="section-awards"
-          >
-            <div className="text-center mb-12">
-              <h2 className="text-2xl font-heading font-light text-foreground mb-4 uppercase tracking-[0.12em]">
-                {t.awardsTitle}
-              </h2>
-              <p className="text-muted-foreground max-w-2xl mx-auto">
-                {t.awardsSubtitle}
+        <div
+          ref={awardsRef}
+          className="vw-fade grid grid-cols-1 gap-6 md:grid-cols-2"
+        >
+          {awards.map((award) => (
+            <div
+              key={award.id}
+              className="h-full border border-vw-graylight bg-white p-7 transition-colors hover:border-vw-red"
+              data-testid={`card-award-${award.id}`}
+            >
+              <h3 className="mb-3 font-serif text-xl leading-snug text-vw-black">
+                {language === "es" ? award.titleEs : award.title}
+              </h3>
+              {award.years && (
+                <div className="mb-3 flex flex-wrap gap-2">
+                  {award.years.map((year) => (
+                    <span
+                      key={year}
+                      className="inline-block border border-vw-red px-3 py-1 font-sans text-xs text-vw-red"
+                    >
+                      {year}
+                    </span>
+                  ))}
+                </div>
+              )}
+              <p className="font-sans text-base leading-relaxed text-vw-gray">
+                {language === "es" ? award.descriptionEs : award.description}
               </p>
             </div>
+          ))}
+        </div>
+      </Section>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {awards.map((award) => (
-                <motion.div key={award.id} variants={itemVariants}>
-                  <NumberedCard
-                    index={awards.indexOf(award)}
-                    title={language === "es" ? award.titleEs : award.title}
-                    body={
-                      <>
-                        {award.years && (
-                          <span className="flex flex-wrap gap-2 mb-3">
-                            {award.years.map((year) => (
-                              <Badge
-                                key={year}
-                                variant="outline"
-                                className="text-xs"
-                              >
-                                {year}
-                              </Badge>
-                            ))}
-                          </span>
-                        )}
-                        <span className="block">
-                          {language === "es" ? award.descriptionEs : award.description}
-                        </span>
-                      </>
-                    }
-                    dataTestid={`card-award-${award.id}`}
-                  />
-                </motion.div>
-              ))}
-            </div>
-          </motion.section>
+      <Section tone="gray" fade={false} data-testid="section-rankings-quote">
+        <div className="mx-auto max-w-4xl text-center">
+          <blockquote className="font-serif text-2xl leading-snug text-vw-black md:text-3xl">
+            "{t.quoteText}"
+          </blockquote>
+          <cite className="vw-label mt-6 block text-xs not-italic text-vw-red">
+            — {t.quoteSource}
+          </cite>
+        </div>
+      </Section>
 
-          <motion.section
-            initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
-            className="mb-20 py-12 px-8"
-            data-testid="section-rankings-quote"
-          >
-            <div className="max-w-4xl mx-auto text-center">
-              <Quote className="w-12 h-12 text-primary/30 mx-auto mb-6" />
-              <blockquote className="text-xl md:text-2xl font-heading font-light text-foreground mb-6">
-                "{t.quoteText}"
-              </blockquote>
-              <cite className="text-primary font-medium">
-                — {t.quoteSource}
-              </cite>
-            </div>
-          </motion.section>
+      <Section tone="white" data-testid="section-ranked-lawyers">
+        <Label>{t.lawyersSubtitle}</Label>
+        <SectionTitle className="mt-3">{t.lawyersTitle}</SectionTitle>
 
-          <motion.section
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-            variants={containerVariants}
-            className="mb-12"
-            data-testid="section-ranked-lawyers"
-          >
-            <div className="text-center mb-12">
-              <h2 className="text-2xl font-heading font-light text-foreground mb-4 uppercase tracking-[0.12em]">
-                {t.lawyersTitle}
-              </h2>
-              <p className="text-muted-foreground max-w-2xl mx-auto">
-                {t.lawyersSubtitle}
-              </p>
-            </div>
+        <div
+          ref={lawyersRef}
+          className="vw-fade grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3"
+        >
+          {rankedLawyers.map((lawyer) => {
+            const teamMember = teamMembers?.find(
+              (m) => m.slug === lawyer.slug || m.name === lawyer.name
+            );
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {rankedLawyers.map((lawyer) => {
-                const teamMember = teamMembers?.find(
-                  (m) => m.slug === lawyer.slug || m.name === lawyer.name
-                );
-
-                return (
-                  <motion.div key={lawyer.slug} variants={itemVariants}>
-                    <Link href={teamMember ? `/team/${teamMember.slug}` : `/team/${lawyer.slug}`}>
-                      <Card
-                        className="h-full hover-elevate transition-all duration-300 cursor-pointer group"
-                        data-testid={`card-lawyer-${lawyer.slug}`}
-                      >
-                        <CardContent className="p-6 flex items-center gap-4">
-                          <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center text-primary font-medium flex-shrink-0">
-                            {lawyer.name
-                              .split(" ")
-                              .map((n) => n[0])
-                              .join("")
-                              .slice(0, 2)}
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <h3 className="font-medium text-foreground group-hover:text-primary transition-colors">
-                              {lawyer.name}
-                            </h3>
-                            <p className="text-sm text-muted-foreground">
-                              {language === "es" ? lawyer.titleEs : lawyer.title}
-                            </p>
-                          </div>
-                          <ChevronRight className="w-5 h-5 text-gray-400 group-hover:text-primary transition-colors flex-shrink-0" />
-                        </CardContent>
-                      </Card>
-                    </Link>
-                  </motion.div>
-                );
-              })}
-            </div>
-
-            <div className="text-center mt-10">
-              <Link href="/team">
-                <Button
-                  variant="outline"
-                  className="gap-2"
-                  data-testid="button-view-all-team"
+            return (
+              <Link
+                key={lawyer.slug}
+                href={teamMember ? `/team/${teamMember.slug}` : `/team/${lawyer.slug}`}
+              >
+                <div
+                  className="group flex h-full cursor-pointer items-center gap-4 border border-vw-graylight bg-white p-6 transition-colors hover:border-vw-red"
+                  data-testid={`card-lawyer-${lawyer.slug}`}
                 >
-                  {t.viewAllTeam}
-                  <ChevronRight className="w-4 h-4" />
-                </Button>
+                  <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center bg-vw-red/10 font-serif text-base text-vw-red">
+                    {lawyer.name
+                      .split(" ")
+                      .map((n) => n[0])
+                      .join("")
+                      .slice(0, 2)}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <h3 className="font-serif text-lg leading-snug text-vw-black transition-colors group-hover:text-vw-red">
+                      {lawyer.name}
+                    </h3>
+                    <p className="font-sans text-sm text-vw-gray">
+                      {language === "es" ? lawyer.titleEs : lawyer.title}
+                    </p>
+                  </div>
+                  <ChevronRight className="h-5 w-5 flex-shrink-0 text-vw-graylight transition-colors group-hover:text-vw-red" aria-hidden="true" />
+                </div>
               </Link>
-            </div>
-          </motion.section>
+            );
+          })}
         </div>
-      </main>
 
-      <Footer />
+        <div className="mt-10 text-center">
+          <Link href="/team">
+            <span
+              className="vw-label inline-flex cursor-pointer items-center gap-2 border border-vw-red px-8 py-3.5 text-xs text-vw-red transition-colors hover:bg-vw-red hover:text-white"
+              data-testid="button-view-all-team"
+            >
+              {t.viewAllTeam}
+              <ChevronRight className="h-4 w-4" aria-hidden="true" />
+            </span>
+          </Link>
+        </div>
+      </Section>
     </div>
   );
 }

@@ -1,22 +1,11 @@
 import { useState, useMemo } from "react";
-import { motion } from "framer-motion";
-import { Search, AlertCircle, Calendar, Building2, Briefcase, Award, ChevronRight } from "lucide-react";
+import { Calendar, Building2, Briefcase, ChevronRight } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "wouter";
-import { Card, CardContent } from "@/components/ui/card";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import Header from "@/components/Header";
-import Footer from "@/components/Footer";
 import SEOHead from "@/components/SEOHead";
+import { PageHero, Section, SectionTitle, Label } from "@/components/firm";
+import { FirmInput, FirmSelect } from "@/components/firm";
+import { useFadeOnScroll } from "@/hooks/useFadeOnScroll";
 import { useLanguage } from "@/contexts/LanguageContext";
 import type { RepresentativeMatterDb, PracticeGroup, IndustryGroup } from "@shared/schema";
 
@@ -25,6 +14,8 @@ export default function Experience() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedPracticeArea, setSelectedPracticeArea] = useState<string>("all");
   const [selectedIndustry, setSelectedIndustry] = useState<string>("all");
+  const featuredGridRef = useFadeOnScroll<HTMLDivElement>();
+  const allGridRef = useFadeOnScroll<HTMLDivElement>();
 
   const { data: matters, isLoading: mattersLoading, error: mattersError } = useQuery<RepresentativeMatterDb[]>({
     queryKey: ["/api/representative-matters"],
@@ -257,23 +248,23 @@ export default function Experience() {
 
   const filteredMatters = useMemo(() => {
     if (!matters) return [];
-    
+
     return matters.filter((matter) => {
       const title = language === "es" ? matter.titleEs : matter.title;
       const description = language === "es" ? matter.descriptionEs : matter.description;
       const client = language === "es" ? (matter.clientEs || matter.client) : matter.client;
-      
-      const matchesSearch = searchQuery === "" || 
+
+      const matchesSearch = searchQuery === "" ||
         title.toLowerCase().includes(searchQuery.toLowerCase()) ||
         description.toLowerCase().includes(searchQuery.toLowerCase()) ||
         (client && client.toLowerCase().includes(searchQuery.toLowerCase()));
-      
-      const matchesPractice = selectedPracticeArea === "all" || 
+
+      const matchesPractice = selectedPracticeArea === "all" ||
         matter.practiceAreaSlug === selectedPracticeArea;
-      
-      const matchesIndustry = selectedIndustry === "all" || 
+
+      const matchesIndustry = selectedIndustry === "all" ||
         matter.industrySlug === selectedIndustry;
-      
+
       return matchesSearch && matchesPractice && matchesIndustry;
     });
   }, [matters, searchQuery, selectedPracticeArea, selectedIndustry, language]);
@@ -289,362 +280,244 @@ export default function Experience() {
     return group ? (language === "es" ? group.nameEs : group.name) : slug;
   };
 
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.08,
-      },
-    },
-  };
-
-  const itemVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: { duration: 0.4 },
-    },
-  };
-
   return (
-    <div className="min-h-screen bg-background" data-testid="page-experience">
+    <div data-testid="page-experience">
       <SEOHead page="experience" language={language} />
-      <Header />
-      
-      <section className="pt-36 pb-20 bg-[#1a1a19]" data-testid="section-experience-hero">
-        <div className="max-w-7xl mx-auto px-6 lg:px-12">
-          <motion.div
-            initial={{ opacity: 0, y: 24 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.7 }}
-            className="text-center"
-          >
-            <div className="h-0.5 w-12 bg-primary mx-auto mb-6" />
-            <h1 
-              className="text-4xl md:text-5xl font-heading font-light text-white mb-5 uppercase tracking-[0.15em]"
-              data-testid="text-experience-title"
-            >
-              {t.title}
-            </h1>
-            <p 
-              className="text-base text-white/60 max-w-2xl mx-auto mb-6"
-              data-testid="text-experience-subtitle"
-            >
-              {t.subtitle}
-            </p>
-            <p 
-              className="text-sm text-white/50 max-w-3xl mx-auto"
-              data-testid="text-experience-description"
-            >
-              {t.heroDescription}
-            </p>
-          </motion.div>
-        </div>
-      </section>
+
+      <PageHero
+        title={t.title}
+        subtitle={t.subtitle}
+        data-testid="section-experience-hero"
+      />
+
+      <Section tone="white" size="compact" fade={false} data-testid="section-experience-intro">
+        <p
+          className="max-w-4xl font-sans text-lg leading-relaxed text-vw-gray"
+          data-testid="text-experience-description"
+        >
+          {t.heroDescription}
+        </p>
+      </Section>
 
       {mattersError ? (
-        <div className="text-center py-20" data-testid="container-experience-error">
-          <AlertCircle className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-          <p className="text-muted-foreground" data-testid="text-experience-error">
+        <Section tone="white" data-testid="container-experience-error">
+          <p className="py-12 text-center font-sans text-base text-vw-gray" data-testid="text-experience-error">
             {t.errorMessage}
           </p>
-        </div>
+        </Section>
       ) : (
         <>
-          <section className="py-16 bg-muted" data-testid="section-featured-matters">
-            <div className="max-w-7xl mx-auto px-6 lg:px-12">
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.6, delay: 0.2 }}
-                className="text-center mb-12"
-              >
-                <div className="flex items-center justify-center gap-2 mb-4">
-                  <Award className="w-6 h-6 text-primary" />
-                  <h2 
-                    className="text-2xl font-heading font-light text-foreground uppercase tracking-[0.12em]"
-                    data-testid="text-featured-title"
-                  >
-                    {t.featuredTitle}
-                  </h2>
-                </div>
-                <p className="text-muted-foreground" data-testid="text-featured-subtitle">
-                  {t.featuredSubtitle}
-                </p>
-              </motion.div>
+          <Section tone="gray" data-testid="section-featured-matters">
+            <Label>{t.featuredSubtitle}</Label>
+            <SectionTitle className="mt-3" data-testid="text-featured-title">
+              {t.featuredTitle}
+            </SectionTitle>
 
-              {mattersLoading ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {Array.from({ length: 6 }).map((_, i) => (
-                    <Card key={i} className="rounded-none border-0 shadow-sm bg-card">
-                      <CardContent className="p-6">
-                        <Skeleton className="h-6 w-3/4 mb-3" />
-                        <Skeleton className="h-4 w-full mb-2" />
-                        <Skeleton className="h-4 w-5/6 mb-4" />
-                        <div className="flex gap-2">
-                          <Skeleton className="h-5 w-16" />
-                          <Skeleton className="h-5 w-20" />
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              ) : (
-                <motion.div
-                  variants={containerVariants}
-                  initial="hidden"
-                  whileInView="visible"
-            viewport={{ once: true }}
-                  className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
-                >
-                  {highlightedMatters.map((matter) => (
-                    <motion.div key={matter.id} variants={itemVariants}>
-                      <Card
-                        className="h-full rounded-none border border-border shadow-sm bg-card hover:shadow-lg transition-shadow duration-300"
-                        data-testid={`card-featured-matter-${matter.id}`}
-                      >
-                        <CardContent className="p-6">
-                          <div className="flex items-center gap-2 text-sm text-primary mb-3">
-                            <Calendar className="w-4 h-4" />
-                            <span data-testid={`text-featured-year-${matter.id}`}>{matter.year}</span>
+            {mattersLoading ? (
+              <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+                {Array.from({ length: 6 }).map((_, i) => (
+                  <div key={i} className="h-56 animate-pulse border border-vw-graylight bg-white" />
+                ))}
+              </div>
+            ) : (
+              <div
+                ref={featuredGridRef}
+                className="vw-fade grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3"
+              >
+                {highlightedMatters.map((matter) => (
+                  <div
+                    key={matter.id}
+                    className="flex h-full flex-col border border-vw-graylight bg-white p-7 transition-colors hover:border-vw-red"
+                    data-testid={`card-featured-matter-${matter.id}`}
+                  >
+                    <div className="mb-3 flex items-center gap-2 font-sans text-sm text-vw-red">
+                      <Calendar className="h-4 w-4" aria-hidden="true" />
+                      <span data-testid={`text-featured-year-${matter.id}`}>{matter.year}</span>
+                    </div>
+                    <h3
+                      className="mb-3 font-serif text-lg leading-snug text-vw-black"
+                      data-testid={`text-featured-title-${matter.id}`}
+                    >
+                      {language === "es" ? matter.titleEs : matter.title}
+                    </h3>
+                    <p
+                      className="mb-4 font-sans text-base leading-relaxed text-vw-gray"
+                      data-testid={`text-featured-description-${matter.id}`}
+                    >
+                      {language === "es" ? matter.descriptionEs : matter.description}
+                    </p>
+                    <div className="mb-4 flex items-center gap-2 font-sans text-sm text-vw-gray">
+                      <Building2 className="h-4 w-4" aria-hidden="true" />
+                      <span data-testid={`text-featured-client-${matter.id}`}>
+                        {language === "es"
+                          ? (matter.clientEs || matter.client || t.confidentialClient)
+                          : (matter.client || t.confidentialClient)}
+                      </span>
+                    </div>
+                    <div className="mt-auto flex flex-wrap gap-2">
+                      <Link href={`/practice-groups/${matter.practiceAreaSlug}`}>
+                        <span
+                          className="vw-label inline-flex cursor-pointer items-center gap-1 border border-vw-graylight px-3 py-1 text-[10px] text-vw-gray transition-colors hover:border-vw-red hover:text-vw-red"
+                          data-testid={`badge-featured-practice-${matter.id}`}
+                        >
+                          <Briefcase className="h-3 w-3" aria-hidden="true" />
+                          {getPracticeAreaName(matter.practiceAreaSlug)}
+                        </span>
+                      </Link>
+                      {matter.industrySlug && (
+                        <Link href={`/industry-groups/${matter.industrySlug}`}>
+                          <span
+                            className="vw-label inline-flex cursor-pointer items-center gap-1 border border-vw-graylight px-3 py-1 text-[10px] text-vw-gray transition-colors hover:border-vw-red hover:text-vw-red"
+                            data-testid={`badge-featured-industry-${matter.id}`}
+                          >
+                            {getIndustryName(matter.industrySlug)}
+                          </span>
+                        </Link>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </Section>
+
+          <Section tone="white" data-testid="section-all-matters">
+            <SectionTitle data-testid="text-all-matters-title">
+              {t.allMattersTitle}
+            </SectionTitle>
+
+            <div className="mb-10 flex flex-col gap-4 md:flex-row md:items-center">
+              <div className="flex-1 md:max-w-md">
+                <FirmInput
+                  type="text"
+                  placeholder={t.searchPlaceholder}
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  data-testid="input-search-matters"
+                />
+              </div>
+
+              <FirmSelect
+                value={selectedPracticeArea}
+                onChange={(e) => setSelectedPracticeArea(e.target.value)}
+                className="w-full md:w-[240px]"
+                data-testid="select-practice-area"
+              >
+                <option value="all" data-testid="select-practice-all">
+                  {t.allPracticeAreas}
+                </option>
+                {practiceGroups?.map((group) => (
+                  <option
+                    key={group.slug}
+                    value={group.slug}
+                    data-testid={`select-practice-${group.slug}`}
+                  >
+                    {language === "es" ? group.nameEs : group.name}
+                  </option>
+                ))}
+              </FirmSelect>
+
+              <FirmSelect
+                value={selectedIndustry}
+                onChange={(e) => setSelectedIndustry(e.target.value)}
+                className="w-full md:w-[240px]"
+                data-testid="select-industry"
+              >
+                <option value="all" data-testid="select-industry-all">
+                  {t.allIndustries}
+                </option>
+                {industryGroups?.map((group) => (
+                  <option
+                    key={group.slug}
+                    value={group.slug}
+                    data-testid={`select-industry-${group.slug}`}
+                  >
+                    {language === "es" ? group.nameEs : group.name}
+                  </option>
+                ))}
+              </FirmSelect>
+            </div>
+
+            {mattersLoading ? (
+              <div className="space-y-4">
+                {Array.from({ length: 6 }).map((_, i) => (
+                  <div key={i} className="h-28 animate-pulse border border-vw-graylight bg-[#f4f4f4]" />
+                ))}
+              </div>
+            ) : filteredMatters.length === 0 ? (
+              <div className="py-12 text-center" data-testid="container-no-results">
+                <p className="font-sans text-base text-vw-gray" data-testid="text-no-results">
+                  {t.noResults}
+                </p>
+              </div>
+            ) : (
+              <div ref={allGridRef} className="vw-fade space-y-4">
+                {filteredMatters.map((matter) => (
+                  <div
+                    key={matter.id}
+                    className="border border-vw-graylight bg-white p-7 transition-colors hover:border-vw-red"
+                    data-testid={`card-matter-${matter.id}`}
+                  >
+                    <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+                      <div className="flex-1">
+                        <div className="mb-3 flex flex-wrap items-center gap-4">
+                          <div className="flex items-center gap-2 font-sans text-sm text-vw-red">
+                            <Calendar className="h-4 w-4" aria-hidden="true" />
+                            <span data-testid={`text-matter-year-${matter.id}`}>{matter.year}</span>
                           </div>
-                          <h3 
-                            className="text-lg font-medium text-foreground mb-3 line-clamp-2"
-                            data-testid={`text-featured-title-${matter.id}`}
-                          >
-                            {language === "es" ? matter.titleEs : matter.title}
-                          </h3>
-                          <p 
-                            className="text-muted-foreground text-sm mb-4 line-clamp-3"
-                            data-testid={`text-featured-description-${matter.id}`}
-                          >
-                            {language === "es" ? matter.descriptionEs : matter.description}
-                          </p>
-                          <div className="flex items-center gap-2 text-sm text-muted-foreground mb-4">
-                            <Building2 className="w-4 h-4" />
-                            <span data-testid={`text-featured-client-${matter.id}`}>
-                              {language === "es" 
-                                ? (matter.clientEs || matter.client || t.confidentialClient) 
+                          <div className="flex items-center gap-2 font-sans text-sm text-vw-gray">
+                            <Building2 className="h-4 w-4" aria-hidden="true" />
+                            <span data-testid={`text-matter-client-${matter.id}`}>
+                              {language === "es"
+                                ? (matter.clientEs || matter.client || t.confidentialClient)
                                 : (matter.client || t.confidentialClient)}
                             </span>
                           </div>
-                          <div className="flex flex-wrap gap-2">
-                            <Link href={`/practice-groups/${matter.practiceAreaSlug}`}>
-                              <Badge 
-                                variant="secondary" 
-                                className="text-xs cursor-pointer hover-elevate"
-                                data-testid={`badge-featured-practice-${matter.id}`}
-                              >
-                                <Briefcase className="w-3 h-3 mr-1" />
-                                {getPracticeAreaName(matter.practiceAreaSlug)}
-                              </Badge>
-                            </Link>
-                            {matter.industrySlug && (
-                              <Link href={`/industry-groups/${matter.industrySlug}`}>
-                                <Badge 
-                                  variant="outline" 
-                                  className="text-xs cursor-pointer hover-elevate"
-                                  data-testid={`badge-featured-industry-${matter.id}`}
-                                >
-                                  {getIndustryName(matter.industrySlug)}
-                                </Badge>
-                              </Link>
-                            )}
-                          </div>
-                        </CardContent>
-                      </Card>
-                    </motion.div>
-                  ))}
-                </motion.div>
-              )}
-            </div>
-          </section>
-
-          <section className="py-16" data-testid="section-all-matters">
-            <div className="max-w-7xl mx-auto px-6 lg:px-12">
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.6, delay: 0.3 }}
-                className="mb-12"
-              >
-                <h2 
-                  className="text-2xl font-heading font-light text-foreground text-center mb-8 uppercase tracking-[0.12em]"
-                  data-testid="text-all-matters-title"
-                >
-                  {t.allMattersTitle}
-                </h2>
-                
-                <div className="flex flex-col md:flex-row gap-4 items-stretch md:items-center justify-center mb-8">
-                  <div className="relative flex-1 max-w-md">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                    <Input
-                      type="text"
-                      placeholder={t.searchPlaceholder}
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      className="pl-10"
-                      data-testid="input-search-matters"
-                    />
-                  </div>
-                  
-                  <Select value={selectedPracticeArea} onValueChange={setSelectedPracticeArea}>
-                    <SelectTrigger className="w-full md:w-[220px]" data-testid="select-practice-area">
-                      <SelectValue placeholder={t.filterByPractice} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all" data-testid="select-practice-all">
-                        {t.allPracticeAreas}
-                      </SelectItem>
-                      {practiceGroups?.map((group) => (
-                        <SelectItem 
-                          key={group.slug} 
-                          value={group.slug}
-                          data-testid={`select-practice-${group.slug}`}
-                        >
-                          {language === "es" ? group.nameEs : group.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  
-                  <Select value={selectedIndustry} onValueChange={setSelectedIndustry}>
-                    <SelectTrigger className="w-full md:w-[220px]" data-testid="select-industry">
-                      <SelectValue placeholder={t.filterByIndustry} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all" data-testid="select-industry-all">
-                        {t.allIndustries}
-                      </SelectItem>
-                      {industryGroups?.map((group) => (
-                        <SelectItem 
-                          key={group.slug} 
-                          value={group.slug}
-                          data-testid={`select-industry-${group.slug}`}
-                        >
-                          {language === "es" ? group.nameEs : group.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </motion.div>
-
-              {mattersLoading ? (
-                <div className="space-y-4">
-                  {Array.from({ length: 6 }).map((_, i) => (
-                    <Card key={i} className="rounded-none border-0 shadow-sm bg-muted">
-                      <CardContent className="p-6">
-                        <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
-                          <div className="flex-1">
-                            <Skeleton className="h-5 w-24 mb-2" />
-                            <Skeleton className="h-6 w-3/4 mb-2" />
-                            <Skeleton className="h-4 w-full mb-2" />
-                            <Skeleton className="h-4 w-5/6" />
-                          </div>
-                          <div className="flex gap-2">
-                            <Skeleton className="h-5 w-20" />
-                            <Skeleton className="h-5 w-24" />
-                          </div>
                         </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              ) : filteredMatters.length === 0 ? (
-                <div className="text-center py-12" data-testid="container-no-results">
-                  <Search className="w-12 h-12 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
-                  <p className="text-muted-foreground" data-testid="text-no-results">
-                    {t.noResults}
-                  </p>
-                </div>
-              ) : (
-                <motion.div
-                  variants={containerVariants}
-                  initial="hidden"
-                  whileInView="visible"
-            viewport={{ once: true }}
-                  className="space-y-4"
-                >
-                  {filteredMatters.map((matter) => (
-                    <motion.div key={matter.id} variants={itemVariants}>
-                      <Card
-                        className="rounded-none border border-border shadow-sm bg-card hover:shadow-md transition-shadow duration-300"
-                        data-testid={`card-matter-${matter.id}`}
-                      >
-                        <CardContent className="p-6">
-                          <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
-                            <div className="flex-1">
-                              <div className="flex items-center gap-4 mb-3">
-                                <div className="flex items-center gap-2 text-sm text-primary">
-                                  <Calendar className="w-4 h-4" />
-                                  <span data-testid={`text-matter-year-${matter.id}`}>{matter.year}</span>
-                                </div>
-                                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                                  <Building2 className="w-4 h-4" />
-                                  <span data-testid={`text-matter-client-${matter.id}`}>
-                                    {language === "es" 
-                                      ? (matter.clientEs || matter.client || t.confidentialClient) 
-                                      : (matter.client || t.confidentialClient)}
-                                  </span>
-                                </div>
-                              </div>
-                              <h3 
-                                className="text-lg font-medium text-foreground mb-2"
-                                data-testid={`text-matter-title-${matter.id}`}
-                              >
-                                {language === "es" ? matter.titleEs : matter.title}
-                              </h3>
-                              <p 
-                                className="text-muted-foreground text-sm"
-                                data-testid={`text-matter-description-${matter.id}`}
-                              >
-                                {language === "es" ? matter.descriptionEs : matter.description}
-                              </p>
-                            </div>
-                            <div className="flex flex-wrap lg:flex-nowrap gap-2 lg:min-w-fit">
-                              <Link href={`/practice-groups/${matter.practiceAreaSlug}`}>
-                                <Badge 
-                                  variant="secondary" 
-                                  className="text-xs cursor-pointer hover-elevate whitespace-nowrap"
-                                  data-testid={`badge-matter-practice-${matter.id}`}
-                                >
-                                  <Briefcase className="w-3 h-3 mr-1" />
-                                  {getPracticeAreaName(matter.practiceAreaSlug)}
-                                  <ChevronRight className="w-3 h-3 ml-1" />
-                                </Badge>
-                              </Link>
-                              {matter.industrySlug && (
-                                <Link href={`/industry-groups/${matter.industrySlug}`}>
-                                  <Badge 
-                                    variant="outline" 
-                                    className="text-xs cursor-pointer hover-elevate whitespace-nowrap"
-                                    data-testid={`badge-matter-industry-${matter.id}`}
-                                  >
-                                    {getIndustryName(matter.industrySlug)}
-                                    <ChevronRight className="w-3 h-3 ml-1" />
-                                  </Badge>
-                                </Link>
-                              )}
-                            </div>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    </motion.div>
-                  ))}
-                </motion.div>
-              )}
-            </div>
-          </section>
+                        <h3
+                          className="mb-2 font-serif text-lg leading-snug text-vw-black"
+                          data-testid={`text-matter-title-${matter.id}`}
+                        >
+                          {language === "es" ? matter.titleEs : matter.title}
+                        </h3>
+                        <p
+                          className="font-sans text-base leading-relaxed text-vw-gray"
+                          data-testid={`text-matter-description-${matter.id}`}
+                        >
+                          {language === "es" ? matter.descriptionEs : matter.description}
+                        </p>
+                      </div>
+                      <div className="flex flex-wrap gap-2 lg:flex-nowrap lg:min-w-fit">
+                        <Link href={`/practice-groups/${matter.practiceAreaSlug}`}>
+                          <span
+                            className="vw-label inline-flex cursor-pointer items-center gap-1 whitespace-nowrap border border-vw-graylight px-3 py-1 text-[10px] text-vw-gray transition-colors hover:border-vw-red hover:text-vw-red"
+                            data-testid={`badge-matter-practice-${matter.id}`}
+                          >
+                            <Briefcase className="h-3 w-3" aria-hidden="true" />
+                            {getPracticeAreaName(matter.practiceAreaSlug)}
+                            <ChevronRight className="h-3 w-3" aria-hidden="true" />
+                          </span>
+                        </Link>
+                        {matter.industrySlug && (
+                          <Link href={`/industry-groups/${matter.industrySlug}`}>
+                            <span
+                              className="vw-label inline-flex cursor-pointer items-center gap-1 whitespace-nowrap border border-vw-graylight px-3 py-1 text-[10px] text-vw-gray transition-colors hover:border-vw-red hover:text-vw-red"
+                              data-testid={`badge-matter-industry-${matter.id}`}
+                            >
+                              {getIndustryName(matter.industrySlug)}
+                              <ChevronRight className="h-3 w-3" aria-hidden="true" />
+                            </span>
+                          </Link>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </Section>
         </>
       )}
-
-      <Footer />
     </div>
   );
 }
