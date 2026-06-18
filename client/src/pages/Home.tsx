@@ -1,80 +1,60 @@
-import Header from "@/components/Header";
-import HeroSection from "@/components/HeroSection";
-import SocialProofSection from "@/components/SocialProofSection";
-import PracticesSection from "@/components/PracticesSection";
-import ExperienceBanner from "@/components/ExperienceBanner";
-import IndustryGroupsSection from "@/components/IndustryGroupsSection";
-import StatsSection from "@/components/StatsSection";
-import WorldMapSection from "@/components/WorldMapSection";
-import RankingsSection from "@/components/RankingsSection";
-import DiversityInclusionSection from "@/components/DiversityInclusionSection";
-import ProBonoSection from "@/components/ProBonoSection";
-import AboutUsSection from "@/components/AboutUsSection";
-import MapSection from "@/components/MapSection";
-import EventsSection from "@/components/EventsSection";
-import Footer from "@/components/Footer";
-import NewOfficesPopup from "@/components/NewOfficesPopup";
-import JsonLdSchema from "@/components/JsonLdSchema";
-import CookieBanner from "@/components/CookieBanner";
-import SEOHead from "@/components/SEOHead";
 import { useLanguage } from "@/contexts/LanguageContext";
+import SEOHead from "@/components/SEOHead";
+import JsonLdSchema from "@/components/JsonLdSchema";
+import NewOfficesPopup from "@/components/NewOfficesPopup";
+import CookieBanner from "@/components/CookieBanner";
 
+import HeroSection from "@/components/home/HeroSection";
+import IntroSection from "@/components/home/IntroSection";
+import RedSection from "@/components/home/RedSection";
+import PracticesSlider from "@/components/home/PracticesSlider";
+import GraySection from "@/components/home/GraySection";
+import IndustriesSlider from "@/components/home/IndustriesSlider";
+import NumberedBlocks from "@/components/home/NumberedBlocks";
+import EventsBand from "@/components/home/EventsBand";
+import RecommendedSlider from "@/components/home/RecommendedSlider";
+
+/**
+ * Home — recreación del home viejo de Von Wobeser (mirror Joomla/beez3).
+ *
+ * El shell público (header + footer) lo provee <Layout> en App.tsx, por lo que
+ * esta página NO renderiza header/footer propios ni un <main> adicional.
+ *
+ * Orden de secciones (fiel al viejo):
+ *   1. Hero a pantalla completa (video) con panel de noticias + scroll.
+ *   2. Intro centrado (citas de rankings, Publico grande).
+ *   3. Banda roja corporativa (mensaje de marca / nuevas oficinas).
+ *   4. Carrusel de 18 áreas de práctica (numerado).
+ *   5. Banda gris (frase de trayectoria / equipo).
+ *   6. Carrusel de 7 grupos de industria (numerado).
+ *   7. Bloques numerados (Recognitions / Diversity / Pro Bono).
+ *   8. Próximos eventos.
+ *   9. Carrusel de reconocimientos (sellos / logos).
+ *
+ * Data preservada de la versión anterior (sin cambios en la capa de datos):
+ *   - /api/site-content  (IntroSection, GraySection)
+ *   - /api/news          (HeroSection — panel de noticias)
+ *   - /api/stats         (GraySection — conteo de equipo)
+ *   - /api/events/upcoming (EventsBand)
+ */
 export default function Home() {
   const { language } = useLanguage();
 
   return (
-    <div className="min-h-screen bg-card" data-testid="page-home">
+    <div data-testid="page-home">
       <SEOHead page="home" language={language} />
       <JsonLdSchema language={language} />
-      
-      {/* 1. Header/Nav with deep menu */}
-      <Header />
-      
-      <main id="main-content">
-        {/* 2. Hero Section with news overlay */}
-        <HeroSection language={language} />
-        
-        {/* 3. Social Proof / Testimonials (Chambers, Legal 500, Latin Lawyer) */}
-        <SocialProofSection />
-        
-        {/* 4. 18 Practices (complete list) */}
-        <PracticesSection />
-        
-        {/* 5. Experience Banner */}
-        <ExperienceBanner />
-        
-        {/* 6. 7 Industry Groups (complete list) */}
-        <IndustryGroupsSection />
-        
-        {/* 7. Stats / Team (150 lawyers...) — gallery integrated inside */}
-        <StatsSection language={language} />
-        
-        {/* Upcoming Events */}
-        <EventsSection language={language} />
-        
-        {/* 8. German Desk (complete section with text + member lists) */}
-        <WorldMapSection language={language} />
-        
-        {/* 9. RECOGNITIONS (badges, intro, institutions) */}
-        <RankingsSection />
-        
-        {/* 10. Diversity & Inclusion */}
-        <DiversityInclusionSection />
-        
-        {/* 11. Pro Bono */}
-        <ProBonoSection />
-        
-        {/* 12. About Us (Vision, Mission, Values) */}
-        <AboutUsSection />
-        
-        {/* 13. Map / Location */}
-        <MapSection language={language} />
-      </main>
-      
-      {/* 14. Footer */}
-      <Footer />
-      
-      {/* Popups and Banners */}
+
+      <HeroSection />
+      <IntroSection />
+      <RedSection />
+      <PracticesSlider />
+      <GraySection />
+      <IndustriesSlider />
+      <NumberedBlocks />
+      <EventsBand />
+      <RecommendedSlider />
+
       <NewOfficesPopup language={language} />
       <CookieBanner language={language} />
     </div>

@@ -1,12 +1,11 @@
-import { motion } from "framer-motion";
 import { Link } from "wouter";
 import { useQuery } from "@tanstack/react-query";
-import { 
-  Heart, 
-  Scale, 
-  Users, 
-  Globe2, 
-  Building2, 
+import {
+  Heart,
+  Scale,
+  Users,
+  Globe2,
+  Building2,
   HandHeart,
   Gavel,
   Shield,
@@ -16,13 +15,15 @@ import {
   BookOpen,
   ArrowRight
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import Header from "@/components/Header";
-import Footer from "@/components/Footer";
 import SEOHead from "@/components/SEOHead";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { NumberedCard } from "@/components/editorial";
+import {
+  PageHero,
+  Section,
+  SectionTitle,
+  Label,
+  FeatureCard,
+} from "@/components/firm";
 
 interface ProBonoProjectItem {
   id: string;
@@ -817,25 +818,6 @@ export default function ProBono() {
 
   const t = content[language as keyof typeof content] || content.en;
 
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1,
-      },
-    },
-  };
-
-  const itemVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: { duration: 0.4 },
-    },
-  };
-
   const isSpanish = language === "es";
 
   const { data: featuredProjects = [] } = useQuery<ProBonoProjectItem[]>({
@@ -896,299 +878,163 @@ export default function ProBono() {
   };
   const pl = projectsSectionLabels[language as keyof typeof projectsSectionLabels] || projectsSectionLabels.en;
 
-  return (
-    <div className="min-h-screen bg-background" data-testid="page-pro-bono">
-      <SEOHead page="proBono" language={language} />
-      <Header />
 
-      <section className="pt-36 pb-20 bg-[#1a1a19]" data-testid="section-pro-bono-hero">
-        <div className="max-w-7xl mx-auto px-6 lg:px-12">
-          <motion.div
-            initial={{ opacity: 0, y: 24 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.7 }}
-            className="text-center"
-          >
-            <motion.div
-              initial={{ opacity: 0, scale: 0.8 }}
-              whileInView={{ opacity: 1, scale: 1 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: 0.2 }}
-              className="flex items-center justify-center gap-3 mb-6"
+  return (
+    <div data-testid="page-pro-bono" className="vw-old">
+      <SEOHead page="proBono" language={language} />
+
+      <PageHero
+        eyebrow="Von Wobeser y Sierra"
+        title={t.title}
+        subtitle={t.subtitle}
+        data-testid="section-pro-bono-hero"
+      />
+
+      {/* Compromiso */}
+      <Section tone="white" data-testid="section-commitment">
+        <SectionTitle>{t.commitmentTitle}</SectionTitle>
+        <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
+          <p className="font-sans text-lg leading-relaxed text-vw-gray">{t.commitmentText1}</p>
+          <p className="font-sans text-lg leading-relaxed text-vw-gray">{t.commitmentText2}</p>
+        </div>
+      </Section>
+
+      {/* Áreas */}
+      <Section tone="gray" data-testid="section-areas">
+        <Label data-testid="text-areas-subtitle">{t.areasSubtitle}</Label>
+        <SectionTitle className="mt-3">{t.areasTitle}</SectionTitle>
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {t.areas.map((area, index) => (
+            <FeatureCard
+              key={index}
+              icon={area.icon}
+              title={area.title}
+              data-testid={`card-area-${index}`}
             >
-              <Heart className="w-10 h-10 text-primary" />
-            </motion.div>
-            <div className="h-0.5 w-12 bg-primary mx-auto mb-6" />
-            <h1
-              className="text-4xl md:text-5xl lg:text-6xl font-heading font-light text-white mb-6 uppercase tracking-[0.15em]"
-              data-testid="text-pro-bono-title"
-            >
-              {t.title}
-            </h1>
-            <p
-              className="text-base md:text-lg text-white/60 max-w-3xl mx-auto font-light leading-relaxed"
-              data-testid="text-pro-bono-subtitle"
-            >
-              {t.subtitle}
-            </p>
-          </motion.div>
+              {area.text}
+            </FeatureCard>
+          ))}
+        </div>
+      </Section>
+
+      {/* Proyectos destacados (/api/pro-bono) */}
+      {featuredProjects.length > 0 && (
+        <Section tone="white" data-testid="section-featured-projects">
+          <Label data-testid="text-featured-projects-subtitle">{pl.subtitle}</Label>
+          <SectionTitle className="mt-3">{pl.title}</SectionTitle>
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {featuredProjects.map((project, index) => (
+              <div
+                key={project.id}
+                className="flex h-full flex-col border border-vw-graylight bg-white p-6"
+                data-testid={`card-featured-project-${index}`}
+              >
+                <div className="mb-4 flex items-center justify-between">
+                  {(isSpanish ? project.categoryEs : project.category) && (
+                    <span className="vw-label text-[10px] text-vw-red">
+                      {isSpanish ? project.categoryEs : project.category}
+                    </span>
+                  )}
+                  {project.year && (
+                    <span className="vw-label text-[10px] text-vw-gray">{project.year}</span>
+                  )}
+                </div>
+                <h3
+                  className="mb-2 font-serif text-lg text-vw-black"
+                  data-testid={`text-featured-project-title-${index}`}
+                >
+                  {isSpanish ? project.titleEs : project.title}
+                </h3>
+                {(isSpanish ? project.organizationEs : project.organization) && (
+                  <p className="mb-3 vw-label text-[10px] text-vw-red">
+                    {isSpanish ? project.organizationEs : project.organization}
+                  </p>
+                )}
+                <p className="mb-4 font-sans text-sm leading-relaxed text-vw-gray">
+                  {isSpanish ? project.descriptionEs : project.description}
+                </p>
+                {(isSpanish ? project.impactEs : project.impact) && (
+                  <p className="mt-auto border-t border-vw-graylight pt-4 font-sans text-sm text-vw-black">
+                    <span className="vw-label text-[10px] text-vw-red">{pl.impact}</span>
+                    {isSpanish ? project.impactEs : project.impact}
+                  </p>
+                )}
+              </div>
+            ))}
+          </div>
+        </Section>
+      )}
+
+      {/* Estadísticas */}
+      <section className="bg-vw-gray py-16 md:py-20" data-testid="section-stats">
+        <div className="vw-wrap">
+          <h2 className="mb-10 text-center font-serif text-3xl text-white md:text-4xl">
+            {t.statsTitle}
+          </h2>
+          <div className="grid grid-cols-2 gap-8 lg:grid-cols-4">
+            {t.stats.map((stat, index) => (
+              <div key={index} className="text-center" data-testid={`stat-${index}`}>
+                <div className="font-serif text-4xl leading-none text-white md:text-5xl">
+                  {stat.value}
+                </div>
+                <div className="vw-label mt-3 text-[11px] text-white/70">{stat.label}</div>
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 
-      <main id="main-content">
-        <section className="py-20 lg:py-24" data-testid="section-commitment">
-          <div className="max-w-7xl mx-auto px-6 lg:px-12">
-            <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6 }}
+      {/* Participación */}
+      <Section tone="white" data-testid="section-participation">
+        <Label data-testid="text-participation-subtitle">{t.participationSubtitle}</Label>
+        <SectionTitle className="mt-3">{t.participationTitle}</SectionTitle>
+        <p className="mb-10 max-w-4xl font-sans text-lg leading-relaxed text-vw-gray" data-testid="text-participation-intro">
+          {t.participationIntro}
+        </p>
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+          {t.participationAspects.map((aspect, index) => (
+            <FeatureCard
+              key={index}
+              icon={aspect.icon}
+              title={aspect.title}
+              data-testid={`card-participation-${index}`}
             >
-              <div className="flex items-center gap-4 mb-8">
-                <div className="h-0.5 w-8 bg-primary" />
-                <h2 className="text-2xl md:text-3xl font-heading font-light text-foreground uppercase tracking-[0.12em]">
-                  {t.commitmentTitle}
-                </h2>
-              </div>
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                <p className="text-lg text-foreground leading-relaxed text-justify">
-                  {t.commitmentText1}
-                </p>
-                <p className="text-lg text-muted-foreground leading-relaxed text-justify">
-                  {t.commitmentText2}
-                </p>
-              </div>
-            </motion.div>
-          </div>
-        </section>
+              {aspect.text}
+            </FeatureCard>
+          ))}
+        </div>
+      </Section>
 
-        <section className="py-20 lg:py-24 bg-secondary/50" data-testid="section-areas">
-          <div className="max-w-7xl mx-auto px-6 lg:px-12">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6 }}
-              className="text-center mb-16"
-            >
-              <p className="font-support text-xs uppercase tracking-[0.2em] text-primary mb-4" data-testid="text-areas-subtitle">
-                {t.areasSubtitle}
-              </p>
-              <h2 className="text-2xl md:text-3xl font-heading font-light text-foreground uppercase tracking-[0.12em] mb-4">
-                {t.areasTitle}
-              </h2>
-              <div className="h-0.5 w-12 bg-primary mx-auto" />
-            </motion.div>
-
-            <motion.div
-              variants={containerVariants}
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true }}
-              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
-            >
-              {t.areas.map((area, index) => (
-                <motion.div key={index} variants={itemVariants}>
-                  <NumberedCard
-                    index={index}
-                    title={area.title}
-                    body={area.text}
-                    icon={area.icon}
-                    dataTestid={`card-area-${index}`}
-                  />
-                </motion.div>
-              ))}
-            </motion.div>
-          </div>
-        </section>
-
-        {featuredProjects.length > 0 && (
-          <section className="py-20 lg:py-24 bg-muted/30" data-testid="section-featured-projects">
-            <div className="max-w-7xl mx-auto px-6 lg:px-12">
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.6 }}
-                className="text-center mb-16"
+      {/* CTA */}
+      <section className="bg-vw-black py-16 md:py-24" data-testid="section-cta">
+        <div className="vw-wrap text-center">
+          <div className="mx-auto max-w-3xl">
+            <Scale className="mx-auto mb-6 h-9 w-9 text-vw-red" aria-hidden="true" />
+            <h2 className="mb-6 font-serif text-3xl text-white md:text-4xl">{t.ctaTitle}</h2>
+            <p className="mb-10 font-sans text-lg leading-relaxed text-white/70" data-testid="text-cta-description">
+              {t.ctaText}
+            </p>
+            <div className="flex flex-col justify-center gap-4 sm:flex-row">
+              <Link
+                href="/contact"
+                className="vw-label inline-flex items-center justify-center gap-2 rounded-none bg-vw-red px-8 py-3.5 text-xs text-white transition-colors hover:bg-white hover:text-vw-black"
+                data-testid="button-contact"
               >
-                <p className="font-support text-xs uppercase tracking-[0.2em] text-primary mb-4" data-testid="text-featured-projects-subtitle">
-                  {pl.subtitle}
-                </p>
-                <h2 className="text-2xl md:text-3xl font-heading font-light text-foreground uppercase tracking-[0.12em] mb-4">
-                  {pl.title}
-                </h2>
-                <div className="h-0.5 w-12 bg-primary mx-auto" />
-              </motion.div>
-
-              <motion.div
-                variants={containerVariants}
-                initial="hidden"
-                whileInView="visible"
-                viewport={{ once: true }}
-                className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+                <Heart className="h-4 w-4" aria-hidden="true" />
+                {t.contactButton}
+              </Link>
+              <Link
+                href="/about"
+                className="vw-label inline-flex items-center justify-center gap-2 rounded-none border border-white/40 px-8 py-3.5 text-xs text-white transition-colors hover:border-vw-red hover:text-vw-red"
+                data-testid="button-learn-more"
               >
-                {featuredProjects.map((project, index) => (
-                  <motion.div key={project.id} variants={itemVariants}>
-                    <Card className="h-full border-border/60" data-testid={`card-featured-project-${index}`}>
-                      <CardContent className="p-6 flex flex-col h-full">
-                        <div className="flex items-center justify-between mb-4">
-                          {(isSpanish ? project.categoryEs : project.category) && (
-                            <span className="font-support text-xs uppercase tracking-[0.16em] text-primary">
-                              {isSpanish ? project.categoryEs : project.category}
-                            </span>
-                          )}
-                          {project.year && (
-                            <span className="font-support text-xs text-muted-foreground">{project.year}</span>
-                          )}
-                        </div>
-                        <h3 className="text-lg font-heading font-light text-foreground mb-2" data-testid={`text-featured-project-title-${index}`}>
-                          {isSpanish ? project.titleEs : project.title}
-                        </h3>
-                        {(isSpanish ? project.organizationEs : project.organization) && (
-                          <p className="text-sm text-primary/80 mb-3">
-                            {isSpanish ? project.organizationEs : project.organization}
-                          </p>
-                        )}
-                        <p className="text-sm text-muted-foreground leading-relaxed text-justify mb-4">
-                          {isSpanish ? project.descriptionEs : project.description}
-                        </p>
-                        {(isSpanish ? project.impactEs : project.impact) && (
-                          <p className="mt-auto pt-4 border-t border-border/60 text-sm text-foreground/80">
-                            <span className="font-medium text-primary">{pl.impact}</span>
-                            {isSpanish ? project.impactEs : project.impact}
-                          </p>
-                        )}
-                      </CardContent>
-                    </Card>
-                  </motion.div>
-                ))}
-              </motion.div>
+                {t.learnMoreAbout}
+                <ArrowRight className="h-4 w-4" aria-hidden="true" />
+              </Link>
             </div>
-          </section>
-        )}
-
-        <section className="bg-[#1a1a19] py-16 lg:py-20" data-testid="section-stats">
-          <div className="max-w-7xl mx-auto px-6 lg:px-12">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6 }}
-              className="text-center mb-12"
-            >
-              <h2 className="text-2xl md:text-3xl font-heading font-light text-white uppercase tracking-[0.12em]">
-                {t.statsTitle}
-              </h2>
-              <div className="h-0.5 w-12 bg-primary mx-auto mt-4" />
-            </motion.div>
-            <motion.div
-              variants={containerVariants}
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true }}
-              className="grid grid-cols-2 lg:grid-cols-4 gap-8"
-            >
-              {t.stats.map((stat, index) => (
-                <motion.div
-                  key={index}
-                  variants={itemVariants}
-                  className="text-center"
-                  data-testid={`stat-${index}`}
-                >
-                  <p className="text-4xl lg:text-5xl font-heading text-primary mb-2">
-                    {stat.value}
-                  </p>
-                  <p className="text-sm text-white/60 uppercase tracking-wider font-support">
-                    {stat.label}
-                  </p>
-                </motion.div>
-              ))}
-            </motion.div>
           </div>
-        </section>
-
-        <section className="py-20 lg:py-24" data-testid="section-participation">
-          <div className="max-w-7xl mx-auto px-6 lg:px-12">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6 }}
-              className="text-center mb-16"
-            >
-              <h2 className="text-2xl md:text-3xl font-heading font-light text-foreground mb-4 uppercase tracking-[0.12em]">
-                {t.participationTitle}
-              </h2>
-              <div className="h-0.5 w-12 bg-primary mx-auto mb-6" />
-              <p className="text-lg text-primary font-medium mb-4" data-testid="text-participation-subtitle">
-                {t.participationSubtitle}
-              </p>
-              <p className="text-lg text-muted-foreground leading-relaxed text-justify max-w-4xl mx-auto" data-testid="text-participation-intro">
-                {t.participationIntro}
-              </p>
-            </motion.div>
-
-            <motion.div
-              variants={containerVariants}
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true }}
-              className="grid grid-cols-1 md:grid-cols-2 gap-6"
-            >
-              {t.participationAspects.map((aspect, index) => (
-                <motion.div key={index} variants={itemVariants}>
-                  <NumberedCard
-                    index={index}
-                    title={aspect.title}
-                    body={aspect.text}
-                    icon={aspect.icon}
-                    dataTestid={`card-participation-${index}`}
-                  />
-                </motion.div>
-              ))}
-            </motion.div>
-          </div>
-        </section>
-
-        <section className="py-20 lg:py-24 bg-[#1a1a19]" data-testid="section-cta">
-          <div className="max-w-7xl mx-auto px-6 lg:px-12">
-            <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6 }}
-              className="text-center max-w-3xl mx-auto"
-            >
-              <Scale className="w-10 h-10 text-primary mx-auto mb-6" />
-              <h2 className="text-2xl md:text-3xl font-heading font-light text-white uppercase tracking-[0.12em] mb-4">
-                {t.ctaTitle}
-              </h2>
-              <div className="h-0.5 w-12 bg-primary mx-auto mb-8" />
-              <p className="text-lg text-white/60 leading-relaxed mb-10" data-testid="text-cta-description">
-                {t.ctaText}
-              </p>
-              <div className="flex flex-col sm:flex-row justify-center gap-4">
-                <Link href="/contact">
-                  <Button size="lg" className="rounded-none" data-testid="button-contact">
-                    <Heart className="w-4 h-4 mr-2" />
-                    {t.contactButton}
-                  </Button>
-                </Link>
-                <Link href="/about">
-                  <Button variant="outline" size="lg" className="rounded-none border-white/20 text-white hover:bg-white/10" data-testid="button-learn-more">
-                    {t.learnMoreAbout}
-                    <ArrowRight className="w-4 h-4 ml-2" />
-                  </Button>
-                </Link>
-              </div>
-            </motion.div>
-          </div>
-        </section>
-      </main>
-
-      <Footer />
+        </div>
+      </section>
     </div>
   );
 }

@@ -1,13 +1,10 @@
-import { motion } from "framer-motion";
-import { 
-  GraduationCap, 
-  Briefcase, 
-  Clock, 
+import {
+  GraduationCap,
+  Briefcase,
+  Clock,
   Calendar,
-  Target,
   Lightbulb,
   Users,
-  Heart,
   BookOpen,
   Mail,
   ArrowRight,
@@ -17,14 +14,9 @@ import {
   HandHeart,
   Award,
   TrendingUp,
-  Shield,
-  Star
+  Shield
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import Header from "@/components/Header";
-import Footer from "@/components/Footer";
+import { PageHero, Section, SectionTitle, Label, FeatureCard } from "@/components/firm";
 import SEOHead from "@/components/SEOHead";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Link } from "wouter";
@@ -717,427 +709,218 @@ export default function Interns() {
 
   const t = content[language as keyof typeof content] || content.en;
 
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1,
-      },
-    },
-  };
-
-  const itemVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: { duration: 0.4 },
-    },
-  };
-
   return (
-    <div className="min-h-screen bg-background" data-testid="page-interns">
+    <div className="vw-old font-sans text-vw-gray" data-testid="page-interns">
       <SEOHead page="interns" language={language} />
-      <Header />
-      
-      <section className="pt-36 pb-20 bg-[#1a1a19]" data-testid="section-interns-hero">
-        <div className="max-w-7xl mx-auto px-6 lg:px-12">
-          <motion.div
-            initial={{ opacity: 0, y: 24 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.7 }}
-            className="text-center"
-          >
-            <div className="h-0.5 w-12 bg-primary mx-auto mb-6" />
-            <h1 
-              className="text-4xl md:text-5xl font-heading font-light text-white mb-5 uppercase tracking-[0.15em]"
-              data-testid="text-interns-title"
-            >
-              {t.heroTitle}
-            </h1>
-            <p 
-              className="text-base text-white/60 max-w-3xl mx-auto mb-8"
-              data-testid="text-interns-subtitle"
-            >
-              {t.heroSubtitle}
+
+      <PageHero
+        eyebrow="Von Wobeser y Sierra"
+        title={t.heroTitle}
+        subtitle={t.heroSubtitle}
+        data-testid="section-interns-hero"
+      />
+
+      <Section tone="white" size="compact">
+        <a
+          href={`mailto:${t.applyEmail}?subject=Internship Application`}
+          className="vw-label inline-flex items-center gap-2 rounded-none bg-vw-red px-8 py-3.5 text-xs text-white transition-colors hover:bg-vw-black"
+          data-testid="button-hero-apply"
+        >
+          <GraduationCap className="h-5 w-5" />
+          {t.applyNow}
+        </a>
+      </Section>
+
+      <Section tone="gray" data-testid="section-program-overview">
+        <Label>{t.programOverviewSubtitle}</Label>
+        <SectionTitle data-testid="text-program-overview-title">
+          {t.programOverviewTitle}
+        </SectionTitle>
+
+        <div className="mt-10 grid grid-cols-1 gap-8 lg:grid-cols-2">
+          <div className="border border-vw-graylight bg-white p-6" data-testid="card-summer-program">
+            <h3 className="flex items-center gap-3 font-serif text-xl text-vw-black">
+              <Calendar className="h-6 w-6 text-vw-red" />
+              {t.summerProgramTitle}
+            </h3>
+            <p className="mt-4 font-sans leading-relaxed text-vw-gray">
+              {t.summerProgramDescription}
             </p>
-            <Button 
-              className="rounded-none"
-              variant="default"
-              size="lg"
-              asChild
-              data-testid="button-hero-apply"
+            <span className="vw-label mt-4 inline-flex items-center gap-2 text-[10px] text-vw-red">
+              <Clock className="h-4 w-4" />
+              {t.summerProgramDuration}
+            </span>
+          </div>
+
+          <div className="border border-vw-graylight bg-white p-6" data-testid="card-permanent-program">
+            <h3 className="flex items-center gap-3 font-serif text-xl text-vw-black">
+              <Briefcase className="h-6 w-6 text-vw-red" />
+              {t.permanentProgramTitle}
+            </h3>
+            <p className="mt-4 font-sans leading-relaxed text-vw-gray">
+              {t.permanentProgramDescription}
+            </p>
+            <span className="vw-label mt-4 inline-flex items-center gap-2 text-[10px] text-vw-red">
+              <Clock className="h-4 w-4" />
+              {t.permanentProgramDuration}
+            </span>
+          </div>
+        </div>
+      </Section>
+
+      <Section tone="white" data-testid="section-what-you-learn">
+        <Label>{t.whatYouLearnSubtitle}</Label>
+        <SectionTitle data-testid="text-what-you-learn-title">
+          {t.whatYouLearnTitle}
+        </SectionTitle>
+
+        <div className="mt-10 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {t.learningAreas.map((area, index) => (
+            <FeatureCard
+              key={index}
+              icon={area.icon}
+              title={area.title}
+              data-testid={`card-learning-${index}`}
             >
-              <a href={`mailto:${t.applyEmail}?subject=Internship Application`}>
-                <GraduationCap className="w-5 h-5 mr-2" />
-                {t.applyNow}
-              </a>
-            </Button>
-          </motion.div>
+              {area.text}
+            </FeatureCard>
+          ))}
+        </div>
+      </Section>
+
+      <Section tone="gray" data-testid="section-requirements">
+        <Label>{t.requirementsSubtitle}</Label>
+        <SectionTitle data-testid="text-requirements-title">
+          {t.requirementsTitle}
+        </SectionTitle>
+
+        <div className="mt-10 border border-vw-graylight bg-white p-8" data-testid="card-requirements">
+          <ul className="grid grid-cols-1 gap-4 md:grid-cols-2">
+            {t.requirements.map((requirement, index) => (
+              <li
+                key={index}
+                className="flex items-start gap-3"
+                data-testid={`requirement-${index}`}
+              >
+                <CheckCircle2 className="mt-0.5 h-5 w-5 flex-shrink-0 text-vw-red" />
+                <span className="font-sans text-vw-gray">{requirement}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </Section>
+
+      <Section tone="white" data-testid="section-application-process">
+        <Label>{t.applicationProcessSubtitle}</Label>
+        <SectionTitle data-testid="text-application-process-title">
+          {t.applicationProcessTitle}
+        </SectionTitle>
+
+        <div className="mt-10 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
+          {t.applicationSteps.map((step, index) => (
+            <div
+              key={index}
+              className="h-full border border-vw-graylight bg-white p-6 text-center"
+              data-testid={`card-step-${index}`}
+            >
+              <div className="mx-auto mb-4 font-serif text-4xl text-vw-red">
+                {step.step}
+              </div>
+              <h3 className="mb-3 font-serif text-xl text-vw-black">
+                {step.title}
+              </h3>
+              <p className="font-sans text-vw-gray">
+                {step.text}
+              </p>
+            </div>
+          ))}
+        </div>
+      </Section>
+
+      <Section tone="gray" data-testid="section-benefits">
+        <Label>{t.benefitsSubtitle}</Label>
+        <SectionTitle data-testid="text-benefits-title">
+          {t.benefitsTitle}
+        </SectionTitle>
+
+        <div className="mt-10 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {t.benefits.map((benefit, index) => (
+            <FeatureCard
+              key={index}
+              icon={benefit.icon}
+              title={benefit.title}
+              data-testid={`card-benefit-${index}`}
+            >
+              {benefit.text}
+            </FeatureCard>
+          ))}
+        </div>
+      </Section>
+
+      <section className="bg-vw-black py-16 md:py-20" data-testid="section-cta">
+        <div className="vw-wrap text-center">
+          <span className="vw-label mb-4 inline-block text-xs text-vw-red md:text-sm">
+            Von Wobeser y Sierra
+          </span>
+          <h2 className="font-serif text-3xl text-white md:text-4xl" data-testid="text-cta-title">
+            {t.ctaTitle}
+          </h2>
+          <p className="mx-auto mt-5 max-w-2xl font-sans text-lg leading-relaxed text-white/70">
+            {t.ctaSubtitle}
+          </p>
+          <p className="mt-8 font-sans text-white/70">
+            {t.ctaInstructions}
+          </p>
+          <p className="mt-2 font-serif text-2xl text-vw-red">
+            {t.applyEmail}
+          </p>
+          <p className="mx-auto mt-6 max-w-2xl font-sans text-sm text-white/50">
+            {t.ctaNote}
+          </p>
+          <div className="mt-8 flex flex-col justify-center gap-4 sm:flex-row">
+            <a
+              href={`mailto:${t.applyEmail}?subject=Internship Application`}
+              className="vw-label inline-flex items-center justify-center gap-2 rounded-none bg-vw-red px-8 py-3.5 text-xs text-white transition-colors hover:bg-white hover:text-vw-black"
+              data-testid="button-cta-apply"
+            >
+              <Mail className="h-5 w-5" />
+              {t.sendApplication}
+            </a>
+            <Link
+              href="/careers"
+              className="vw-label inline-flex items-center justify-center gap-2 rounded-none border border-white/30 px-8 py-3.5 text-xs text-white transition-colors hover:border-vw-red hover:text-vw-red"
+              data-testid="button-view-careers"
+            >
+              <ArrowRight className="h-5 w-5" />
+              {t.viewCareers}
+            </Link>
+          </div>
         </div>
       </section>
 
-      <main id="main-content" className="py-16 lg:py-20">
-        <div className="max-w-7xl mx-auto px-6 lg:px-12">
-          
-          <motion.section
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6, delay: 0.1 }}
-            className="mb-20"
-            data-testid="section-program-overview"
+      <Section tone="white" size="compact" data-testid="section-contact">
+        <div
+          className="flex flex-col items-center justify-between gap-4 border border-vw-graylight bg-white p-6 md:flex-row"
+          data-testid="card-contact"
+        >
+          <div>
+            <h3 className="mb-1 font-serif text-xl text-vw-black">
+              {t.contactTitle}
+            </h3>
+            <p className="font-sans text-vw-gray">
+              {t.contactText}
+            </p>
+          </div>
+          <a
+            href={`mailto:${t.applyEmail}`}
+            className="vw-label inline-flex items-center gap-2 whitespace-nowrap rounded-none bg-vw-red px-8 py-3.5 text-xs text-white transition-colors hover:bg-vw-black"
+            data-testid="button-contact-email"
           >
-            <div className="text-center mb-12">
-              <h2 
-                className="text-2xl md:text-3xl font-heading font-light text-primary mb-4 uppercase tracking-[0.12em]"
-                data-testid="text-program-overview-title"
-              >
-                {t.programOverviewTitle}
-              </h2>
-              <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-                {t.programOverviewSubtitle}
-              </p>
-            </div>
-
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              <Card className="rounded-none border border-border" data-testid="card-summer-program">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-3 text-xl font-heading font-light text-foreground">
-                    <Calendar className="w-6 h-6 text-primary" />
-                    {t.summerProgramTitle}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-muted-foreground leading-relaxed mb-4">
-                    {t.summerProgramDescription}
-                  </p>
-                  <Badge variant="secondary" className="text-sm">
-                    <Clock className="w-4 h-4 mr-1" />
-                    {t.summerProgramDuration}
-                  </Badge>
-                </CardContent>
-              </Card>
-
-              <Card className="rounded-none border border-border" data-testid="card-permanent-program">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-3 text-xl font-heading font-light text-foreground">
-                    <Briefcase className="w-6 h-6 text-primary" />
-                    {t.permanentProgramTitle}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-muted-foreground leading-relaxed mb-4">
-                    {t.permanentProgramDescription}
-                  </p>
-                  <Badge variant="secondary" className="text-sm">
-                    <Clock className="w-4 h-4 mr-1" />
-                    {t.permanentProgramDuration}
-                  </Badge>
-                </CardContent>
-              </Card>
-            </div>
-          </motion.section>
-
-          <motion.section
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
-            className="mb-20"
-            data-testid="section-what-you-learn"
-          >
-            <div className="text-center mb-12">
-              <h2 
-                className="text-2xl md:text-3xl font-heading font-light text-primary mb-4 uppercase tracking-[0.12em]"
-                data-testid="text-what-you-learn-title"
-              >
-                {t.whatYouLearnTitle}
-              </h2>
-              <p className="text-lg text-muted-foreground">
-                {t.whatYouLearnSubtitle}
-              </p>
-            </div>
-
-            <motion.div 
-              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
-              variants={containerVariants}
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true }}
-            >
-              {t.learningAreas.map((area, index) => (
-                <motion.div key={index} variants={itemVariants}>
-                  <Card 
-                    className="rounded-none border border-border h-full"
-                    data-testid={`card-learning-${index}`}
-                  >
-                    <CardContent className="p-6">
-                      <div className="flex items-start gap-4">
-                        <div className="w-12 h-12 rounded-none bg-primary/10 flex items-center justify-center flex-shrink-0">
-                          <area.icon className="w-6 h-6 text-primary" />
-                        </div>
-                        <div>
-                          <h3 className="font-light uppercase tracking-[0.12em] text-foreground mb-2">
-                            {area.title}
-                          </h3>
-                          <p className="text-sm text-muted-foreground">
-                            {area.text}
-                          </p>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </motion.div>
-              ))}
-            </motion.div>
-          </motion.section>
-
-          <motion.section
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
-            className="mb-20"
-            data-testid="section-requirements"
-          >
-            <div className="text-center mb-12">
-              <h2 
-                className="text-2xl md:text-3xl font-heading font-light text-primary mb-4 uppercase tracking-[0.12em]"
-                data-testid="text-requirements-title"
-              >
-                {t.requirementsTitle}
-              </h2>
-              <p className="text-lg text-muted-foreground">
-                {t.requirementsSubtitle}
-              </p>
-            </div>
-
-            <Card className="rounded-none border border-border bg-muted" data-testid="card-requirements">
-              <CardContent className="p-8">
-                <motion.ul 
-                  className="grid grid-cols-1 md:grid-cols-2 gap-4"
-                  variants={containerVariants}
-                  initial="hidden"
-                  whileInView="visible"
-                  viewport={{ once: true }}
-                >
-                  {t.requirements.map((requirement, index) => (
-                    <motion.li
-                      key={index}
-                      className="flex items-start gap-3"
-                      variants={itemVariants}
-                      data-testid={`requirement-${index}`}
-                    >
-                      <CheckCircle2 className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
-                      <span className="text-foreground">{requirement}</span>
-                    </motion.li>
-                  ))}
-                </motion.ul>
-              </CardContent>
-            </Card>
-          </motion.section>
-
-          <motion.section
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
-            className="mb-20"
-            data-testid="section-application-process"
-          >
-            <div className="text-center mb-12">
-              <h2 
-                className="text-2xl md:text-3xl font-heading font-light text-primary mb-4 uppercase tracking-[0.12em]"
-                data-testid="text-application-process-title"
-              >
-                {t.applicationProcessTitle}
-              </h2>
-              <p className="text-lg text-muted-foreground">
-                {t.applicationProcessSubtitle}
-              </p>
-            </div>
-
-            <motion.div 
-              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"
-              variants={containerVariants}
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true }}
-            >
-              {t.applicationSteps.map((step, index) => (
-                <motion.div key={index} variants={itemVariants}>
-                  <Card 
-                    className="rounded-none border border-border h-full text-center"
-                    data-testid={`card-step-${index}`}
-                  >
-                    <CardContent className="p-6">
-                      <div className="w-12 h-12 rounded-full bg-primary text-white text-xl font-bold flex items-center justify-center mx-auto mb-4">
-                        {step.step}
-                      </div>
-                      <h3 className="font-light uppercase tracking-[0.12em] text-foreground mb-2">
-                        {step.title}
-                      </h3>
-                      <p className="text-sm text-muted-foreground">
-                        {step.text}
-                      </p>
-                    </CardContent>
-                  </Card>
-                </motion.div>
-              ))}
-            </motion.div>
-          </motion.section>
-
-          <motion.section
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
-            className="mb-20"
-            data-testid="section-benefits"
-          >
-            <div className="text-center mb-12">
-              <h2 
-                className="text-2xl md:text-3xl font-heading font-light text-primary mb-4 uppercase tracking-[0.12em]"
-                data-testid="text-benefits-title"
-              >
-                {t.benefitsTitle}
-              </h2>
-              <p className="text-lg text-muted-foreground">
-                {t.benefitsSubtitle}
-              </p>
-            </div>
-
-            <motion.div 
-              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
-              variants={containerVariants}
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true }}
-            >
-              {t.benefits.map((benefit, index) => (
-                <motion.div key={index} variants={itemVariants}>
-                  <Card 
-                    className="rounded-none border border-border h-full"
-                    data-testid={`card-benefit-${index}`}
-                  >
-                    <CardContent className="p-6">
-                      <div className="flex items-start gap-4">
-                        <div className="w-12 h-12 rounded-none bg-primary/10 flex items-center justify-center flex-shrink-0">
-                          <benefit.icon className="w-6 h-6 text-primary" />
-                        </div>
-                        <div>
-                          <h3 className="font-light uppercase tracking-[0.12em] text-foreground mb-2">
-                            {benefit.title}
-                          </h3>
-                          <p className="text-sm text-muted-foreground">
-                            {benefit.text}
-                          </p>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </motion.div>
-              ))}
-            </motion.div>
-          </motion.section>
-
-          <motion.section
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
-            className="mb-12"
-            data-testid="section-cta"
-          >
-            <Card className="rounded-none border border-white/10 bg-[#1a1a19] text-white overflow-hidden">
-              <CardContent className="p-8 lg:p-12 text-center">
-                <div className="h-0.5 w-12 bg-primary mx-auto mb-6" />
-                <h2 
-                  className="text-xl md:text-2xl font-heading font-light mb-4 uppercase tracking-[0.12em]"
-                  data-testid="text-cta-title"
-                >
-                  {t.ctaTitle}
-                </h2>
-                <p className="text-base text-white/60 max-w-2xl mx-auto mb-6">
-                  {t.ctaSubtitle}
-                </p>
-                <p className="text-white/60 mb-2">
-                  {t.ctaInstructions}
-                </p>
-                <p className="text-xl font-light text-primary mb-6">
-                  {t.applyEmail}
-                </p>
-                <p className="text-sm text-white/50 max-w-2xl mx-auto mb-8">
-                  {t.ctaNote}
-                </p>
-                <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                  <Button 
-                    variant="default"
-                    size="lg"
-                    className="rounded-none"
-                    asChild
-                    data-testid="button-cta-apply"
-                  >
-                    <a href={`mailto:${t.applyEmail}?subject=Internship Application`}>
-                      <Mail className="w-5 h-5 mr-2" />
-                      {t.sendApplication}
-                    </a>
-                  </Button>
-                  <Button 
-                    variant="outline"
-                    size="lg"
-                    className="rounded-none border-white/20 text-white"
-                    asChild
-                    data-testid="button-view-careers"
-                  >
-                    <Link href="/careers">
-                      <ArrowRight className="w-5 h-5 mr-2" />
-                      {t.viewCareers}
-                    </Link>
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          </motion.section>
-
-          <motion.section
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
-            data-testid="section-contact"
-          >
-            <Card className="rounded-none border border-border" data-testid="card-contact">
-              <CardContent className="p-6 flex flex-col md:flex-row items-center justify-between gap-4">
-                <div>
-                  <h3 className="text-lg font-light uppercase tracking-[0.12em] text-foreground mb-1">
-                    {t.contactTitle}
-                  </h3>
-                  <p className="text-muted-foreground">
-                    {t.contactText}
-                  </p>
-                </div>
-                <Button 
-                  className="rounded-none whitespace-nowrap"
-                  asChild
-                  data-testid="button-contact-email"
-                >
-                  <a href={`mailto:${t.applyEmail}`}>
-                    <Mail className="w-4 h-4 mr-2" />
-                    {t.applyEmail}
-                  </a>
-                </Button>
-              </CardContent>
-            </Card>
-          </motion.section>
-
+            <Mail className="h-4 w-4" />
+            {t.applyEmail}
+          </a>
         </div>
-      </main>
-
-      <Footer />
+      </Section>
     </div>
   );
 }

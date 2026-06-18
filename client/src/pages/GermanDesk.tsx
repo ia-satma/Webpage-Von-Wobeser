@@ -1,9 +1,9 @@
+import { type ReactNode } from "react";
 import { Link } from "wouter";
-import { motion } from "framer-motion";
-import { 
-  Globe2, 
-  Building2, 
-  Briefcase, 
+import {
+  Globe2,
+  Building2,
+  Briefcase,
   ArrowRight,
   Users,
   Scale,
@@ -14,16 +14,30 @@ import {
   GraduationCap,
   Award,
   MapPin,
-  Clock
+  Clock,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import Header from "@/components/Header";
-import Footer from "@/components/Footer";
 import SEOHead from "@/components/SEOHead";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { NumberedCard } from "@/components/editorial";
+import { useFadeOnScroll } from "@/hooks/useFadeOnScroll";
+import {
+  CapabilityHero,
+  SectionTitle,
+  FeatureCard,
+} from "@/components/capabilities";
 
+/**
+ * GermanDesk — página del "desk" alemán/austriaco en el look viejo.
+ *
+ * NOTA sobre datos: esta página NO consume ningún endpoint; todo su contenido
+ * es estático y multilingüe (objeto `content`, preservado íntegro). El endpoint
+ * público `/api/desks` aún no existe.
+ *
+ * TODO(W7): migrar a /api/desks cuando exista — reemplazar el objeto `content`
+ * por un `useQuery(["/api/desks", "german-desk"])` manteniendo el mismo shape
+ * y la traducción por campo (como en PracticeGroupDetail).
+ *
+ * El Header/Footer los provee <Layout> (App.tsx); aquí sólo el contenido + SEO.
+ */
 export default function GermanDesk() {
   const { language } = useLanguage();
 
@@ -502,256 +516,182 @@ export default function GermanDesk() {
 
   const t = content[language] || content.en;
 
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1,
-      },
-    },
-  };
-
-  const itemVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: { duration: 0.4 },
-    },
-  };
-
   return (
-    <div className="min-h-screen bg-background overflow-x-hidden" data-testid="page-german-desk">
+    <div data-testid="page-german-desk">
       <SEOHead page="germanDesk" language={language} />
-      <Header />
-      
-      <section className="pt-36 pb-20 bg-[#1a1a19]" data-testid="section-german-desk-hero">
-        <div className="max-w-7xl mx-auto px-6 lg:px-12">
-          <motion.div
-            initial={{ opacity: 0, y: 24 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.7 }}
-            className="text-center"
-          >
-            <div className="h-0.5 w-12 bg-primary mx-auto mb-6" />
-            <h1 
-              className="text-4xl md:text-5xl font-heading font-light text-white mb-5 uppercase tracking-[0.15em]"
-              data-testid="text-german-desk-title"
-            >
-              {t.title}
-            </h1>
-            <p 
-              className="text-base text-white/60 max-w-2xl mx-auto"
-              data-testid="text-german-desk-subtitle"
-            >
-              {t.subtitle}
+
+      <CapabilityHero
+        eyebrow="German Desk"
+        title={t.title}
+        subtitle={t.subtitle}
+        testId="section-german-desk-hero"
+      />
+
+      {/* Experiencia — dos columnas de texto introductorio */}
+      <FadeSection className="bg-white py-16 lg:py-20" testId="section-experience">
+        <div className="vw-wrap">
+          <SectionTitle className="mb-8" testId="text-experience-title">
+            {t.experienceTitle}
+          </SectionTitle>
+          <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
+            <p className="font-sans text-lg leading-relaxed text-vw-gray" data-testid="text-experience-1">
+              {t.experienceText1}
             </p>
-          </motion.div>
+            <p className="font-sans text-lg leading-relaxed text-vw-gray" data-testid="text-experience-2">
+              {t.experienceText2}
+            </p>
+          </div>
         </div>
-      </section>
+      </FadeSection>
 
-      <main id="main-content" className="py-16 lg:py-20">
-        <div className="max-w-7xl mx-auto px-6 lg:px-12">
-          <motion.section
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6, delay: 0.2 }}
-            className="mb-20"
-            data-testid="section-experience"
-          >
-            <h2 className="text-2xl font-heading font-light text-foreground mb-6 uppercase tracking-[0.12em]" data-testid="text-experience-title">
-              {t.experienceTitle}
-            </h2>
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              <p className="text-lg text-foreground leading-relaxed text-justify" data-testid="text-experience-1">
-                {t.experienceText1}
-              </p>
-              <p className="text-lg text-foreground leading-relaxed text-justify" data-testid="text-experience-2">
-                {t.experienceText2}
-              </p>
-            </div>
-          </motion.section>
+      {/* Equipo de habla alemana */}
+      <FadeSection className="bg-vw-graylight/20 py-16 lg:py-20" testId="section-team">
+        <div className="vw-wrap">
+          <SectionTitle testId="text-team-title">{t.teamTitle}</SectionTitle>
+          <p className="mt-4 font-sans text-lg font-medium text-vw-red" data-testid="text-team-subtitle">
+            {t.teamSubtitle}
+          </p>
+          <p className="mt-3 max-w-4xl font-sans text-lg leading-relaxed text-vw-gray" data-testid="text-team-intro">
+            {t.teamIntro}
+          </p>
+          <div className="mt-10 grid grid-cols-1 gap-5 md:grid-cols-2">
+            {t.teamHighlights.map((highlight, index) => (
+              <FeatureCard
+                key={index}
+                index={index}
+                title={highlight.title}
+                body={highlight.text}
+                icon={highlight.icon}
+                testId={`card-team-highlight-${index}`}
+              />
+            ))}
+          </div>
+        </div>
+      </FadeSection>
 
-          <motion.section
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6, delay: 0.3 }}
-            className="mb-20"
-            data-testid="section-team"
-          >
-            <div className="text-center mb-12">
-              <h2 className="text-2xl font-heading font-light text-foreground mb-4 uppercase tracking-[0.12em]" data-testid="text-team-title">
-                {t.teamTitle}
-              </h2>
-              <p className="text-lg text-primary font-medium mb-4" data-testid="text-team-subtitle">
-                {t.teamSubtitle}
-              </p>
-              <p className="text-lg text-foreground leading-relaxed text-justify max-w-4xl mx-auto" data-testid="text-team-intro">
-                {t.teamIntro}
-              </p>
-            </div>
-            
-            <motion.div 
-              variants={containerVariants}
-              initial="hidden"
-              whileInView="visible"
-            viewport={{ once: true }}
-              className="grid grid-cols-1 md:grid-cols-2 gap-6"
-            >
-              {t.teamHighlights.map((highlight, index) => (
-                <motion.div key={index} variants={itemVariants}>
-                  <NumberedCard
-                    index={index}
-                    title={highlight.title}
-                    body={highlight.text}
-                    icon={highlight.icon}
-                    dataTestid={`card-team-highlight-${index}`}
-                  />
-                </motion.div>
-              ))}
-            </motion.div>
-          </motion.section>
+      {/* Áreas de práctica principales */}
+      <FadeSection className="bg-white py-16 lg:py-20" testId="section-services">
+        <div className="vw-wrap">
+          <SectionTitle testId="text-services-title">{t.servicesTitle}</SectionTitle>
+          <p className="mt-4 font-sans text-lg leading-relaxed text-vw-gray" data-testid="text-services-subtitle">
+            {t.servicesSubtitle}
+          </p>
+          <div className="mt-10 grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
+            {t.services.map((service, index) => (
+              <FeatureCard
+                key={index}
+                index={index}
+                title={service.title}
+                body={service.text}
+                icon={service.icon}
+                testId={`card-service-${index}`}
+              />
+            ))}
+          </div>
+        </div>
+      </FadeSection>
 
-          <motion.section
-            variants={containerVariants}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-            className="mb-20"
-            data-testid="section-services"
-          >
-            <div className="text-center mb-12">
-              <h2 className="text-2xl font-heading font-light text-foreground mb-4 uppercase tracking-[0.12em]" data-testid="text-services-title">
-                {t.servicesTitle}
-              </h2>
-              <p className="text-lg text-muted-foreground" data-testid="text-services-subtitle">
-                {t.servicesSubtitle}
-              </p>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {t.services.map((service, index) => (
-                <motion.div key={index} variants={itemVariants}>
-                  <NumberedCard
-                    index={index}
-                    title={service.title}
-                    body={service.text}
-                    icon={service.icon}
-                    dataTestid={`card-service-${index}`}
-                  />
-                </motion.div>
-              ))}
-            </div>
-          </motion.section>
+      {/* Diferenciadores */}
+      <FadeSection className="bg-vw-graylight/20 py-16 lg:py-20" testId="section-differentiator">
+        <div className="vw-wrap">
+          <div className="flex items-center gap-3">
+            <Handshake className="h-7 w-7 text-vw-red" aria-hidden="true" />
+            <SectionTitle testId="text-differentiator-title">
+              {t.differentiatorTitle}
+            </SectionTitle>
+          </div>
+          <p className="mt-4 font-sans text-lg font-medium text-vw-red" data-testid="text-differentiator-subtitle">
+            {t.differentiatorSubtitle}
+          </p>
+          <p className="mt-3 max-w-4xl font-sans text-lg leading-relaxed text-vw-gray" data-testid="text-differentiator-intro">
+            {t.differentiatorIntro}
+          </p>
+          <div className="mt-10 grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-4">
+            {t.differentiatorPoints.map((point, index) => (
+              <FeatureCard
+                key={index}
+                index={index}
+                title={point.title}
+                body={point.text}
+                icon={point.icon}
+                testId={`card-differentiator-${index}`}
+              />
+            ))}
+          </div>
+        </div>
+      </FadeSection>
 
-          <motion.section
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6, delay: 0.35 }}
-            className="mb-20 bg-gradient-to-br from-primary/5 to-primary/10 dark:from-primary/10 dark:to-primary/20 rounded-none p-4 sm:p-6 md:p-10"
-            data-testid="section-differentiator"
-          >
-            <div className="text-center mb-12">
-              <div className="flex items-center justify-center gap-3 mb-4">
-                <Handshake className="w-8 h-8 text-primary" />
-                <h2 className="text-2xl font-heading font-light text-foreground uppercase tracking-[0.12em]" data-testid="text-differentiator-title">
-                  {t.differentiatorTitle}
-                </h2>
-              </div>
-              <p className="text-lg text-primary font-medium mb-4" data-testid="text-differentiator-subtitle">
-                {t.differentiatorSubtitle}
-              </p>
-              <p className="text-lg text-foreground leading-relaxed text-justify max-w-4xl mx-auto" data-testid="text-differentiator-intro">
-                {t.differentiatorIntro}
-              </p>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {t.differentiatorPoints.map((point, index) => (
-                <motion.div key={index} variants={itemVariants}>
-                  <NumberedCard
-                    index={index}
-                    title={point.title}
-                    body={point.text}
-                    icon={point.icon}
-                    dataTestid={`card-differentiator-${index}`}
-                  />
-                </motion.div>
-              ))}
-            </div>
-          </motion.section>
-
-          <motion.section
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6, delay: 0.4 }}
-            className="mb-20"
-            data-testid="section-stats"
-          >
-            <h2 className="text-2xl font-heading font-light text-foreground mb-8 text-center uppercase tracking-[0.12em]" data-testid="text-stats-title">
-              {t.statsTitle}
-            </h2>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-              {t.stats.map((stat, index) => (
-                <motion.div
-                  key={index}
-                  variants={itemVariants}
-                  className="text-center"
-                  data-testid={`stat-german-desk-${index}`}
-                >
-                  <div className="text-4xl md:text-5xl font-light text-primary mb-2">
-                    {stat.value}
-                  </div>
-                  <div className="text-sm text-muted-foreground">
-                    {stat.label}
-                  </div>
-                </motion.div>
-              ))}
-            </div>
-          </motion.section>
-
-          <motion.section
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6, delay: 0.45 }}
-            className="mb-10"
-            data-testid="section-cta"
-          >
-            <Card className="rounded-none border border-border bg-muted">
-              <CardContent className="p-8 text-center">
-                <h2 className="text-xl font-heading font-light text-foreground mb-4 uppercase tracking-[0.12em]" data-testid="text-cta-title">
-                  {t.ctaTitle}
-                </h2>
-                <p className="text-lg text-foreground mb-8 max-w-2xl mx-auto" data-testid="text-cta-description">
-                  {t.ctaText}
-                </p>
-                <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                  <Link href="/practice-groups/german-desk">
-                    <Button size="lg" className="gap-2" data-testid="button-view-practice">
-                      {t.viewPractice}
-                      <ArrowRight className="w-4 h-4" />
-                    </Button>
-                  </Link>
-                  <Link href="/contact">
-                    <Button variant="outline" size="lg" className="gap-2" data-testid="button-contact-us">
-                      {t.contactUs}
-                      <ArrowRight className="w-4 h-4" />
-                    </Button>
-                  </Link>
+      {/* Estadísticas */}
+      <FadeSection className="bg-white py-16 lg:py-20" testId="section-stats">
+        <div className="vw-wrap">
+          <SectionTitle className="mb-10" testId="text-stats-title">
+            {t.statsTitle}
+          </SectionTitle>
+          <div className="grid grid-cols-2 gap-8 md:grid-cols-4">
+            {t.stats.map((stat, index) => (
+              <div key={index} data-testid={`stat-german-desk-${index}`}>
+                <div className="font-serif text-4xl font-light text-vw-red md:text-5xl">
+                  {stat.value}
                 </div>
-              </CardContent>
-            </Card>
-          </motion.section>
+                <div className="mt-2 font-sans text-sm text-vw-gray">{stat.label}</div>
+              </div>
+            ))}
+          </div>
         </div>
-      </main>
+      </FadeSection>
 
-      <Footer />
+      {/* CTA final */}
+      <FadeSection className="bg-white pb-20 lg:pb-28" testId="section-cta">
+        <div className="vw-wrap">
+          <div className="border-l-2 border-l-vw-red bg-vw-graylight/30 p-8 lg:p-12">
+            <h2 className="font-serif text-2xl text-vw-black" data-testid="text-cta-title">
+              {t.ctaTitle}
+            </h2>
+            <p className="mt-3 max-w-2xl font-sans text-lg leading-relaxed text-vw-gray" data-testid="text-cta-description">
+              {t.ctaText}
+            </p>
+            <div className="mt-6 flex flex-col gap-4 sm:flex-row">
+              <Link
+                href="/practice-groups/german-desk"
+                className="inline-flex items-center justify-center gap-2 bg-vw-red px-6 py-3 vw-label text-xs text-white transition-opacity hover:opacity-90"
+                data-testid="button-view-practice"
+              >
+                {t.viewPractice}
+                <ArrowRight className="h-4 w-4" aria-hidden="true" />
+              </Link>
+              <Link
+                href="/contact"
+                className="inline-flex items-center justify-center gap-2 border border-vw-gray px-6 py-3 vw-label text-xs text-vw-gray transition-colors hover:border-vw-red hover:text-vw-red"
+                data-testid="button-contact-us"
+              >
+                {t.contactUs}
+                <ArrowRight className="h-4 w-4" aria-hidden="true" />
+              </Link>
+            </div>
+          </div>
+        </div>
+      </FadeSection>
     </div>
+  );
+}
+
+/**
+ * FadeSection — sección con aparición .fade_JS del look viejo (useFadeOnScroll).
+ * Wrapper local para no repetir el ref/clase en cada bloque del German Desk.
+ */
+function FadeSection({
+  children,
+  className = "",
+  testId,
+}: {
+  children: ReactNode;
+  className?: string;
+  testId?: string;
+}) {
+  const ref = useFadeOnScroll<HTMLElement>();
+  return (
+    <section ref={ref} className={`vw-fade ${className}`} data-testid={testId}>
+      {children}
+    </section>
   );
 }

@@ -1,272 +1,228 @@
-import { useState } from "react";
-import { Link } from "wouter";
-import { motion } from "framer-motion";
-import { AlertCircle, Calendar, ArrowRight, Search, FileText, Loader2 } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { AlertCircle } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
-import { Card, CardContent } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Skeleton } from "@/components/ui/skeleton";
-import Header from "@/components/Header";
-import Footer from "@/components/Footer";
 import SEOHead from "@/components/SEOHead";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { useTranslatedContent } from "@/hooks/useTranslatedContent";
-import { isNativeLanguage } from "@/lib/translationUtils";
 import { type News } from "@shared/schema";
+import {
+  PublicationsHero,
+  PublicationsFilters,
+  ArticleList,
+  Pagination,
+} from "@/components/insights";
 
 const languageToLocale: Record<string, string> = {
-  en: 'en-US',
-  es: 'es-MX',
-  de: 'de-DE',
-  zh: 'zh-CN',
-  ko: 'ko-KR',
-  ja: 'ja-JP',
-  ar: 'ar-SA',
-  ru: 'ru-RU',
-  fr: 'fr-FR',
-  it: 'it-IT',
+  en: "en-US",
+  es: "es-MX",
+  de: "de-DE",
+  zh: "zh-CN",
+  ko: "ko-KR",
+  ja: "ja-JP",
+  ar: "ar-SA",
+  ru: "ru-RU",
+  fr: "fr-FR",
+  it: "it-IT",
 };
 
-function ArticleImageWithFallback({ 
-  src, 
-  alt, 
-  className 
-}: { 
-  src: string; 
-  alt: string; 
-  className?: string;
-}) {
-  const [hasError, setHasError] = useState(false);
-  
-  if (hasError || !src) {
-    return (
-      <div className={`bg-muted flex items-center justify-center ${className}`}>
-        <span className="text-4xl font-heading font-light text-muted-foreground/60 tracking-[0.18em]">
-          VWS
-        </span>
-      </div>
-    );
-  }
-  
-  return (
-    <img
-      src={src}
-      alt={alt}
-      className={className}
-      onError={() => setHasError(true)}
-    />
-  );
-}
+const PAGE_SIZE = 10;
 
-interface ArticleCardProps {
-  article: News;
-  readMoreText: string;
-}
-
-function ArticleCard({ article, readMoreText }: ArticleCardProps) {
-  const { language } = useLanguage();
-  const isSpanish = language === 'es';
-  
-  const { translatedFields, isLoading, isTranslating } = useTranslatedContent({
-    contentType: 'news',
-    entityId: String(article.id),
-    fields: {
-      title: article.titleEs || article.title,
-      titleEs: article.titleEs,
-      excerpt: article.excerptEs || article.excerpt,
-      excerptEs: article.excerptEs,
-    },
-    enabled: !isSpanish,
-  });
-
-  const displayTitle = isSpanish 
-    ? (article.titleEs || article.title)
-    : (translatedFields.title || article.titleEs || article.title);
-  const displayExcerpt = isSpanish
-    ? (article.excerptEs || article.excerpt)
-    : (translatedFields.excerpt || article.excerptEs || article.excerpt);
-  
-  const formatDate = (date: string | Date | null) => {
-    if (!date) return '';
-    const d = new Date(date);
-    const locale = languageToLocale[language] || 'en-US';
-    return d.toLocaleDateString(locale, {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    });
-  };
-
-  const showTranslatingIndicator = isLoading || isTranslating;
-
-  return (
-    <Link href={`/news/${article.slug}`}>
-      <Card
-        className="group h-full rounded-none overflow-hidden border border-border shadow-sm hover:shadow-lg transition-all duration-300 cursor-pointer bg-card"
-        data-testid={`card-article-${article.slug}`}
-      >
-        <div className="relative h-48 overflow-hidden bg-muted">
-          <ArticleImageWithFallback
-            src={article.imageUrl || ""}
-            alt={displayTitle}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
-          {showTranslatingIndicator && (
-            <div className="absolute top-3 right-3">
-              <div className="flex items-center gap-1 px-2 py-1 bg-black/50 rounded text-xs text-white">
-                <Loader2 className="w-3 h-3 animate-spin" />
-              </div>
-            </div>
-          )}
-        </div>
-        <CardContent className="p-6">
-          <div className="flex items-center gap-2 text-sm text-muted-foreground mb-3">
-            <Calendar className="w-4 h-4" />
-            <span data-testid={`text-article-date-${article.slug}`}>
-              {formatDate(article.date)}
-            </span>
-          </div>
-          <h3 
-            className="text-xl font-semibold text-foreground mb-3 group-hover:text-primary transition-colors line-clamp-2"
-            data-testid={`text-article-title-${article.slug}`}
-          >
-            {displayTitle}
-          </h3>
-          <p 
-            className="text-muted-foreground text-sm line-clamp-3 mb-4"
-            data-testid={`text-article-excerpt-${article.slug}`}
-          >
-            {displayExcerpt}
-          </p>
-          <div className="flex items-center gap-2 text-primary font-medium text-sm group-hover:gap-3 transition-all">
-            {readMoreText}
-            <ArrowRight className="w-4 h-4" />
-          </div>
-        </CardContent>
-      </Card>
-    </Link>
-  );
-}
+/**
+ * Categoría usada para distinguir "artículos" de "noticias" dentro del mismo
+ * endpoint /api/news. El sitio viejo separaba /publications/news y
+ * /publications/articles; aquí (como hacía la página actual) reutilizamos
+ * /api/news. Si en el futuro hay un endpoint propio de artículos, basta con
+ * cambiar la query — la presentación (ArticleList) no cambia.
+ */
+const ARTICLE_CATEGORY = "insights";
 
 export default function ArticlesPage() {
   const { language } = useLanguage();
   const [searchQuery, setSearchQuery] = useState("");
+  const [page, setPage] = useState(1);
 
+  // --- Data preservada: mismo endpoint que la página vieja ---
   const { data: articles, isLoading, error } = useQuery<News[]>({
     queryKey: ["/api/news"],
   });
 
-  const content = {
+  const content: Record<
+    string,
+    {
+      label: string;
+      title: string;
+      subtitle: string;
+      errorMessage: string;
+      searchPlaceholder: string;
+      readMore: string;
+      noResults: string;
+      comingSoon: string;
+      comingSoonMessage: string;
+      pageStart: string;
+      pagePrev: string;
+      pageNext: string;
+      pageEnd: string;
+      pageOf: string;
+    }
+  > = {
     en: {
+      label: "Publications",
       title: "Articles",
       subtitle: "Legal insights and publications from Von Wobeser y Sierra",
       errorMessage: "Failed to load articles",
-      searchPlaceholder: "Search articles...",
-      readMore: "Read More",
+      searchPlaceholder: "Search",
+      readMore: "Read more",
       noResults: "No articles match your search",
-      comingSoon: "Coming Soon",
+      comingSoon: "Coming soon",
       comingSoonMessage: "We are preparing new articles. Please check back soon.",
-      published: "Published",
+      pageStart: "Start",
+      pagePrev: "Prev",
+      pageNext: "Next",
+      pageEnd: "End",
+      pageOf: "Page {current} of {total}",
     },
     es: {
+      label: "Publicaciones",
       title: "Artículos",
       subtitle: "Insights legales y publicaciones de Von Wobeser y Sierra",
       errorMessage: "Error al cargar los artículos",
-      searchPlaceholder: "Buscar artículos...",
-      readMore: "Leer Más",
+      searchPlaceholder: "Buscar",
+      readMore: "Leer más",
       noResults: "No hay artículos que coincidan con su búsqueda",
       comingSoon: "Próximamente",
       comingSoonMessage: "Estamos preparando nuevos artículos. Por favor regrese pronto.",
-      published: "Publicado",
+      pageStart: "Inicio",
+      pagePrev: "Anterior",
+      pageNext: "Siguiente",
+      pageEnd: "Fin",
+      pageOf: "Página {current} de {total}",
     },
     de: {
+      label: "Publikationen",
       title: "Artikel",
-      subtitle: "Einblicke und Analysen unserer Experten",
+      subtitle: "Einblicke und Analysen von Von Wobeser y Sierra",
       errorMessage: "Artikel konnten nicht geladen werden",
-      searchPlaceholder: "Artikel suchen...",
+      searchPlaceholder: "Suchen",
       readMore: "Weiterlesen",
       noResults: "Keine Artikel entsprechen Ihrer Suche",
       comingSoon: "Demnächst",
       comingSoonMessage: "Wir bereiten neue Artikel vor. Bitte schauen Sie bald wieder vorbei.",
-      published: "Veröffentlicht",
+      pageStart: "Anfang",
+      pagePrev: "Zurück",
+      pageNext: "Weiter",
+      pageEnd: "Ende",
+      pageOf: "Seite {current} von {total}",
     },
     zh: {
+      label: "出版物",
       title: "文章",
-      subtitle: "来自我们专家的见解与分析",
+      subtitle: "Von Wobeser y Sierra 的见解与分析",
       errorMessage: "文章加载失败",
-      searchPlaceholder: "搜索文章...",
+      searchPlaceholder: "搜索",
       readMore: "阅读更多",
       noResults: "没有符合搜索条件的文章",
       comingSoon: "即将推出",
       comingSoonMessage: "我们正在准备新文章，请稍后再来。",
-      published: "发布日期",
+      pageStart: "首页",
+      pagePrev: "上一页",
+      pageNext: "下一页",
+      pageEnd: "末页",
+      pageOf: "第 {current} 页 / 共 {total} 页",
     },
     ko: {
+      label: "출판물",
       title: "기사",
-      subtitle: "전문가의 통찰력과 분석",
+      subtitle: "Von Wobeser y Sierra의 통찰과 분석",
       errorMessage: "기사를 불러오지 못했습니다",
-      searchPlaceholder: "기사 검색...",
+      searchPlaceholder: "검색",
       readMore: "자세히 보기",
       noResults: "검색 결과가 없습니다",
       comingSoon: "곧 출시",
       comingSoonMessage: "새로운 기사를 준비 중입니다. 곧 다시 확인해 주세요.",
-      published: "게시일",
+      pageStart: "처음",
+      pagePrev: "이전",
+      pageNext: "다음",
+      pageEnd: "마지막",
+      pageOf: "{total} 중 {current} 페이지",
     },
     ja: {
+      label: "出版物",
       title: "記事",
-      subtitle: "専門家による洞察と分析",
+      subtitle: "Von Wobeser y Sierra の洞察と分析",
       errorMessage: "記事の読み込みに失敗しました",
-      searchPlaceholder: "記事を検索...",
+      searchPlaceholder: "検索",
       readMore: "続きを読む",
       noResults: "検索に一致する記事がありません",
       comingSoon: "近日公開",
       comingSoonMessage: "新しい記事を準備中です。しばらくしてから再度ご確認ください。",
-      published: "公開日",
+      pageStart: "最初",
+      pagePrev: "前へ",
+      pageNext: "次へ",
+      pageEnd: "最後",
+      pageOf: "{total} ページ中 {current} ページ",
     },
     ar: {
+      label: "المنشورات",
       title: "المقالات",
-      subtitle: "رؤى وتحليلات من خبرائنا",
+      subtitle: "رؤى وتحليلات من Von Wobeser y Sierra",
       errorMessage: "فشل تحميل المقالات",
-      searchPlaceholder: "البحث في المقالات...",
+      searchPlaceholder: "بحث",
       readMore: "اقرأ المزيد",
       noResults: "لا توجد مقالات تطابق بحثك",
       comingSoon: "قريباً",
       comingSoonMessage: "نحن نعد مقالات جديدة. يرجى العودة قريباً.",
-      published: "تاريخ النشر",
+      pageStart: "البداية",
+      pagePrev: "السابق",
+      pageNext: "التالي",
+      pageEnd: "النهاية",
+      pageOf: "صفحة {current} من {total}",
     },
     ru: {
+      label: "Публикации",
       title: "Статьи",
-      subtitle: "Аналитика и публикации наших экспертов",
+      subtitle: "Аналитика и публикации Von Wobeser y Sierra",
       errorMessage: "Не удалось загрузить статьи",
-      searchPlaceholder: "Поиск статей...",
+      searchPlaceholder: "Поиск",
       readMore: "Читать далее",
       noResults: "Статьи по вашему запросу не найдены",
       comingSoon: "Скоро",
       comingSoonMessage: "Мы готовим новые статьи. Пожалуйста, загляните позже.",
-      published: "Опубликовано",
+      pageStart: "Начало",
+      pagePrev: "Назад",
+      pageNext: "Далее",
+      pageEnd: "Конец",
+      pageOf: "Страница {current} из {total}",
     },
     fr: {
+      label: "Publications",
       title: "Articles",
-      subtitle: "Perspectives et analyses de nos experts",
+      subtitle: "Perspectives et analyses de Von Wobeser y Sierra",
       errorMessage: "Échec du chargement des articles",
-      searchPlaceholder: "Rechercher des articles...",
+      searchPlaceholder: "Rechercher",
       readMore: "Lire la suite",
       noResults: "Aucun article ne correspond à votre recherche",
       comingSoon: "Bientôt disponible",
       comingSoonMessage: "Nous préparons de nouveaux articles. Revenez bientôt.",
-      published: "Publié le",
+      pageStart: "Début",
+      pagePrev: "Précédent",
+      pageNext: "Suivant",
+      pageEnd: "Fin",
+      pageOf: "Page {current} sur {total}",
     },
     it: {
+      label: "Pubblicazioni",
       title: "Articoli",
-      subtitle: "Approfondimenti e analisi dei nostri esperti",
+      subtitle: "Approfondimenti e analisi di Von Wobeser y Sierra",
       errorMessage: "Impossibile caricare gli articoli",
-      searchPlaceholder: "Cerca articoli...",
+      searchPlaceholder: "Cerca",
       readMore: "Leggi di più",
       noResults: "Nessun articolo corrisponde alla tua ricerca",
       comingSoon: "Prossimamente",
       comingSoonMessage: "Stiamo preparando nuovi articoli. Torna presto.",
-      published: "Pubblicato il",
+      pageStart: "Inizio",
+      pagePrev: "Prec.",
+      pageNext: "Succ.",
+      pageEnd: "Fine",
+      pageOf: "Pagina {current} di {total}",
     },
   };
 
@@ -282,174 +238,135 @@ export default function ArticlesPage() {
   };
 
   const t = content[language] || content.en;
-  const isNonNativeLanguage = language !== 'es';
-  const translationBanner = isNonNativeLanguage ? (translationBannerMessages[language] || (language === 'en' ? "Content is automatically translated from Spanish." : null)) : null;
+  const dateLocale = languageToLocale[language] || "en-US";
+  const isNonNativeLanguage = language !== "es";
+  const translationBanner = isNonNativeLanguage
+    ? translationBannerMessages[language] ||
+      (language === "en" ? "Content is automatically translated from Spanish." : null)
+    : null;
 
-  const filteredArticles = articles?.filter(article => {
-    if (!searchQuery) return true;
-    
-    const query = searchQuery.toLowerCase();
-    const title = language === "es" ? article.titleEs : article.title;
-    const excerpt = language === "es" ? article.excerptEs : article.excerpt;
-    return title.toLowerCase().includes(query) || excerpt.toLowerCase().includes(query);
-  });
+  // --- Filtrado preservado: artículos = categoría "insights" dentro de /api/news,
+  // más la búsqueda por título/excerpt de la página vieja. ---
+  const filteredArticles = useMemo(
+    () =>
+      articles
+        ?.filter((article) => article.category === ARTICLE_CATEGORY)
+        .filter((article) => {
+          if (!searchQuery) return true;
+          const query = searchQuery.toLowerCase();
+          const title = language === "es" ? article.titleEs : article.title;
+          const excerpt = language === "es" ? article.excerptEs : article.excerpt;
+          return (
+            title.toLowerCase().includes(query) ||
+            excerpt.toLowerCase().includes(query)
+          );
+        }) ?? [],
+    [articles, searchQuery, language],
+  );
 
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1,
-      },
-    },
-  };
+  const totalPages = Math.max(1, Math.ceil(filteredArticles.length / PAGE_SIZE));
 
-  const itemVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: { duration: 0.4 },
-    },
-  };
+  useEffect(() => {
+    setPage(1);
+  }, [searchQuery, language]);
+
+  useEffect(() => {
+    if (page > totalPages) setPage(totalPages);
+  }, [page, totalPages]);
+
+  const pageItems = filteredArticles.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   return (
-    <div className="min-h-screen bg-background" data-testid="page-articles">
+    <div className="vw-old bg-white" data-testid="page-articles">
       <SEOHead page="articles" language={language} />
-      <Header />
-      
-      <section className="pt-36 pb-20 bg-[#1a1a19]" data-testid="section-articles-hero">
-        <div className="max-w-7xl mx-auto px-6 lg:px-12">
-          <motion.div
-            initial={{ opacity: 0, y: 24 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.7 }}
-            className="text-center"
-          >
-            <div className="h-0.5 w-12 bg-primary mx-auto mb-6" />
-            <h1 
-              className="text-4xl md:text-5xl font-heading font-light text-white mb-5 uppercase tracking-[0.15em]"
-              data-testid="text-articles-title"
-            >
-              {t.title}
-            </h1>
-            <p 
-              className="text-base text-white/60 max-w-2xl mx-auto"
-              data-testid="text-articles-subtitle"
-            >
-              {t.subtitle}
-            </p>
-            {translationBanner && (
-              <p 
-                className="mt-4 text-sm text-white/50 max-w-2xl mx-auto"
-                data-testid="text-translation-banner"
-              >
-                {translationBanner}
-              </p>
-            )}
-          </motion.div>
-        </div>
-      </section>
 
-      <main id="main-content" className="py-16 lg:py-20">
-        <div className="max-w-7xl mx-auto px-6 lg:px-12">
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.4 }}
-            className="mb-10"
+      <PublicationsHero
+        label={t.label}
+        title={t.title}
+        subtitle={t.subtitle}
+        translationBanner={translationBanner}
+        testId="section-articles-hero"
+      />
+
+      <section className="vw-wrap pb-24" data-testid="section-articles-archive">
+        <PublicationsFilters
+          searchQuery={searchQuery}
+          onSearchChange={setSearchQuery}
+          searchPlaceholder={t.searchPlaceholder}
+        />
+
+        {error ? (
+          <div className="py-16 text-center" data-testid="container-articles-error">
+            <AlertCircle className="mx-auto mb-4 h-10 w-10 text-vw-graylight" aria-hidden="true" />
+            <p className="text-vw-gray" data-testid="text-articles-error">
+              {t.errorMessage}
+            </p>
+          </div>
+        ) : isLoading ? (
+          <div
+            className="w-full max-w-[640px] animate-pulse min-[1081px]:ml-[100px]"
+            data-testid="container-articles-loading"
           >
-            <div className="relative max-w-md">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-              <Input
-                type="text"
-                placeholder={t.searchPlaceholder}
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 rounded-none"
-                data-testid="input-search-articles"
+            {Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} className="mb-24">
+                <div className="mb-3 h-7 w-3/4 bg-vw-graylight/40" />
+                <div className="mb-6 h-4 w-32 bg-vw-graylight/40" />
+                <div className="mb-2 h-4 w-full bg-vw-graylight/30" />
+                <div className="mb-2 h-4 w-full bg-vw-graylight/30" />
+                <div className="h-4 w-2/3 bg-vw-graylight/30" />
+              </div>
+            ))}
+          </div>
+        ) : filteredArticles.length === 0 ? (
+          searchQuery ? (
+            <div className="py-16 text-center" data-testid="container-articles-empty">
+              <p className="text-vw-gray">{t.noResults}</p>
+            </div>
+          ) : (
+            <div className="py-20 text-center" data-testid="container-articles-coming-soon">
+              <h2
+                className="vw-section-title mx-auto inline-block border-b-0 text-vw-gray"
+                data-testid="text-coming-soon-title"
+              >
+                {t.comingSoon}
+              </h2>
+              <p
+                className="mx-auto mt-4 max-w-md text-vw-gray/80"
+                data-testid="text-coming-soon-message"
+              >
+                {t.comingSoonMessage}
+              </p>
+            </div>
+          )
+        ) : (
+          <>
+            <ArticleList
+              items={pageItems}
+              readMoreText={t.readMore}
+              dateLocale={dateLocale}
+            />
+            <div className="mt-16 w-full max-w-[640px] min-[1081px]:ml-[100px]">
+              <Pagination
+                currentPage={page}
+                totalPages={totalPages}
+                onPageChange={(p) => {
+                  setPage(p);
+                  if (typeof window !== "undefined") {
+                    window.scrollTo({ top: 0, behavior: "smooth" });
+                  }
+                }}
+                labels={{
+                  start: t.pageStart,
+                  prev: t.pagePrev,
+                  next: t.pageNext,
+                  end: t.pageEnd,
+                  pageOf: t.pageOf,
+                }}
               />
             </div>
-          </motion.div>
-
-          {error ? (
-            <div className="text-center py-12" data-testid="container-articles-error">
-              <AlertCircle className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-              <p className="text-muted-foreground" data-testid="text-articles-error">
-                {t.errorMessage}
-              </p>
-            </div>
-          ) : isLoading ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {Array.from({ length: 6 }).map((_, i) => (
-                <Card 
-                  key={i} 
-                  className="rounded-none overflow-hidden border-0 shadow-sm"
-                  data-testid={`skeleton-article-${i}`}
-                >
-                  <Skeleton className="h-48 w-full" />
-                  <CardContent className="p-6">
-                    <Skeleton className="h-4 w-24 mb-3" />
-                    <Skeleton className="h-6 w-full mb-2" />
-                    <Skeleton className="h-4 w-full mb-1" />
-                    <Skeleton className="h-4 w-3/4" />
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          ) : !filteredArticles || filteredArticles.length === 0 ? (
-            searchQuery ? (
-              <div className="text-center py-12" data-testid="container-articles-empty">
-                <FileText className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-                <p className="text-muted-foreground">
-                  {t.noResults}
-                </p>
-              </div>
-            ) : (
-              <motion.div 
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.5 }}
-                className="text-center py-16" 
-                data-testid="container-articles-coming-soon"
-              >
-                <FileText className="w-16 h-16 text-primary/40 mx-auto mb-6" />
-                <h2 
-                  className="text-2xl font-heading font-light mb-4 uppercase tracking-[0.12em] text-foreground"
-                  data-testid="text-coming-soon-title"
-                >
-                  {t.comingSoon}
-                </h2>
-                <p 
-                  className="text-muted-foreground max-w-md mx-auto"
-                  data-testid="text-coming-soon-message"
-                >
-                  {t.comingSoonMessage}
-                </p>
-              </motion.div>
-            )
-          ) : (
-            <motion.div
-              variants={containerVariants}
-              initial="hidden"
-              whileInView="visible"
-            viewport={{ once: true }}
-              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
-            >
-              {filteredArticles?.map((article) => (
-                <motion.div key={article.id} variants={itemVariants}>
-                  <ArticleCard article={article} readMoreText={t.readMore} />
-                </motion.div>
-              ))}
-            </motion.div>
-          )}
-        </div>
-      </main>
-
-      <Footer />
+          </>
+        )}
+      </section>
     </div>
   );
 }

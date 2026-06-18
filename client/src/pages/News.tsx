@@ -1,377 +1,209 @@
-import { useState } from "react";
-import { Link } from "wouter";
-import { motion } from "framer-motion";
-import { AlertCircle, Calendar, ArrowRight, Search, Newspaper, Loader2 } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { AlertCircle } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
-import { Card, CardContent } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Button } from "@/components/ui/button";
-import Header from "@/components/Header";
-import Footer from "@/components/Footer";
 import SEOHead from "@/components/SEOHead";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { useTranslatedContent } from "@/hooks/useTranslatedContent";
-import { isNativeLanguage } from "@/lib/translationUtils";
 import { newsCategories, type News } from "@shared/schema";
-
-function NewsImageWithFallback({ 
-  src, 
-  alt, 
-  className 
-}: { 
-  src: string; 
-  alt: string; 
-  className?: string;
-}) {
-  const [hasError, setHasError] = useState(false);
-  
-  if (hasError || !src) {
-    return (
-      <div className={`bg-gradient-to-br from-primary/10 to-primary/5 flex items-center justify-center ${className}`}>
-        <span className="text-4xl font-heading font-bold text-primary/30 tracking-wider">
-          VWS
-        </span>
-      </div>
-    );
-  }
-  
-  return (
-    <img
-      src={src}
-      alt={alt}
-      className={className}
-      onError={() => setHasError(true)}
-    />
-  );
-}
+import {
+  PublicationsHero,
+  PublicationsFilters,
+  ArchiveList,
+  Pagination,
+} from "@/components/insights";
 
 const languageToLocale: Record<string, string> = {
-  en: 'en-US',
-  es: 'es-MX',
-  de: 'de-DE',
-  zh: 'zh-CN',
-  ko: 'ko-KR',
-  ja: 'ja-JP',
-  ar: 'ar-SA',
-  ru: 'ru-RU',
-  fr: 'fr-FR',
-  it: 'it-IT',
+  en: "en-US",
+  es: "es-MX",
+  de: "de-DE",
+  zh: "zh-CN",
+  ko: "ko-KR",
+  ja: "ja-JP",
+  ar: "ar-SA",
+  ru: "ru-RU",
+  fr: "fr-FR",
+  it: "it-IT",
 };
 
-interface NewsCardProps {
-  article: News;
-  readMoreText: string;
-}
-
-function NewsCard({ article, readMoreText }: NewsCardProps) {
-  const { language } = useLanguage();
-  const isSpanish = language === 'es';
-  
-  const { translatedFields, isLoading, isTranslating } = useTranslatedContent({
-    contentType: 'news',
-    entityId: String(article.id),
-    fields: {
-      title: article.titleEs || article.title,
-      titleEs: article.titleEs,
-      excerpt: article.excerptEs || article.excerpt,
-      excerptEs: article.excerptEs,
-    },
-    enabled: !isSpanish,
-  });
-
-  const displayTitle = isSpanish 
-    ? (article.titleEs || article.title)
-    : (translatedFields.title || article.titleEs || article.title);
-  const displayExcerpt = isSpanish
-    ? (article.excerptEs || article.excerpt)
-    : (translatedFields.excerpt || article.excerptEs || article.excerpt);
-  
-  const formatDate = (date: string | Date | null) => {
-    if (!date) return '';
-    const d = new Date(date);
-    const locale = languageToLocale[language] || 'en-US';
-    return d.toLocaleDateString(locale, {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    });
-  };
-
-  const getCategoryLabel = () => {
-    if (!article.category) return null;
-    if (language === "es" && article.categoryEs) {
-      return article.categoryEs;
-    }
-    return article.category.charAt(0).toUpperCase() + article.category.slice(1);
-  };
-
-  const showTranslatingIndicator = isLoading || isTranslating;
-
-  return (
-    <Link href={`/news/${article.slug}`}>
-      <Card
-        className="group h-full rounded-none overflow-hidden border border-border shadow-sm hover:shadow-lg transition-all duration-300 cursor-pointer bg-card"
-        data-testid={`card-news-${article.slug}`}
-      >
-        <div className="relative h-48 overflow-hidden bg-muted">
-          <NewsImageWithFallback
-            src={article.imageUrl || ""}
-            alt={displayTitle}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
-          {article.category && (
-            <span 
-              className="absolute top-3 left-3 px-2 py-1 text-xs font-medium bg-primary text-white rounded"
-              data-testid={`badge-category-${article.slug}`}
-            >
-              {getCategoryLabel()}
-            </span>
-          )}
-          {showTranslatingIndicator && (
-            <div className="absolute top-3 right-3">
-              <div className="flex items-center gap-1 px-2 py-1 bg-black/50 rounded text-xs text-white">
-                <Loader2 className="w-3 h-3 animate-spin" />
-              </div>
-            </div>
-          )}
-        </div>
-        <CardContent className="p-6">
-          <div className="flex items-center gap-2 text-sm text-muted-foreground mb-3">
-            <Calendar className="w-4 h-4" />
-            <span data-testid={`text-news-date-${article.slug}`}>
-              {formatDate(article.date)}
-            </span>
-          </div>
-          <h3 
-            className="text-xl font-semibold text-foreground mb-3 group-hover:text-primary transition-colors line-clamp-2"
-            data-testid={`text-news-title-${article.slug}`}
-          >
-            {displayTitle}
-          </h3>
-          <p 
-            className="text-muted-foreground text-sm line-clamp-3 mb-4"
-            data-testid={`text-news-excerpt-${article.slug}`}
-          >
-            {displayExcerpt}
-          </p>
-          <div className="flex items-center gap-2 text-primary font-medium text-sm group-hover:gap-3 transition-all">
-            {readMoreText}
-            <ArrowRight className="w-4 h-4" />
-          </div>
-        </CardContent>
-      </Card>
-    </Link>
-  );
-}
+const PAGE_SIZE = 10; // el archivo viejo paginaba de 10 en 10 (Display # = 10)
 
 export default function NewsPage() {
   const { language } = useLanguage();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
+  const [page, setPage] = useState(1);
 
+  // --- Data preservada: mismo endpoint que la página vieja ---
   const { data: news, isLoading, error } = useQuery<News[]>({
     queryKey: ["/api/news"],
   });
 
-  const content: Record<string, {
-    title: string;
-    subtitle: string;
-    errorMessage: string;
-    searchPlaceholder: string;
-    readMore: string;
-    noResults: string;
-    published: string;
-    all: string;
-    press: string;
-    insights: string;
-    rankings: string;
-    events: string;
-    alerts: string;
-    filterBy: string;
-    category: string;
-    allCategories: string;
-  }> = {
+  const content: Record<
+    string,
+    {
+      label: string;
+      title: string;
+      subtitle: string;
+      errorMessage: string;
+      searchPlaceholder: string;
+      readMore: string;
+      noResults: string;
+      all: string;
+      pageStart: string;
+      pagePrev: string;
+      pageNext: string;
+      pageEnd: string;
+      pageOf: string;
+    }
+  > = {
     en: {
-      title: "News & Insights",
-      subtitle: "News and insights",
+      label: "Publications",
+      title: "News",
+      subtitle: "News and insights from Von Wobeser y Sierra",
       errorMessage: "Failed to load news",
-      searchPlaceholder: "Search...",
-      readMore: "Read More",
+      searchPlaceholder: "Search",
+      readMore: "Read more",
       noResults: "No news found",
-      published: "Published",
       all: "All",
-      press: "Press",
-      insights: "Insights",
-      rankings: "Rankings",
-      events: "Events",
-      alerts: "Alerts",
-      filterBy: "Filter by",
-      category: "Category",
-      allCategories: "All Categories",
+      pageStart: "Start",
+      pagePrev: "Prev",
+      pageNext: "Next",
+      pageEnd: "End",
+      pageOf: "Page {current} of {total}",
     },
     es: {
-      title: "Noticias e Insights",
-      subtitle: "Noticias y perspectivas",
+      label: "Publicaciones",
+      title: "Noticias",
+      subtitle: "Noticias y perspectivas de Von Wobeser y Sierra",
       errorMessage: "Error al cargar las noticias",
-      searchPlaceholder: "Buscar...",
-      readMore: "Leer Más",
+      searchPlaceholder: "Buscar",
+      readMore: "Leer más",
       noResults: "No se encontraron noticias",
-      published: "Publicado",
       all: "Todos",
-      press: "Prensa",
-      insights: "Insights",
-      rankings: "Rankings",
-      events: "Eventos",
-      alerts: "Alertas",
-      filterBy: "Filtrar por",
-      category: "Categoría",
-      allCategories: "Todas las categorías",
+      pageStart: "Inicio",
+      pagePrev: "Anterior",
+      pageNext: "Siguiente",
+      pageEnd: "Fin",
+      pageOf: "Página {current} de {total}",
     },
     de: {
+      label: "Publikationen",
       title: "Nachrichten",
-      subtitle: "Neuigkeiten und Einblicke",
+      subtitle: "Neuigkeiten und Einblicke von Von Wobeser y Sierra",
       errorMessage: "Nachrichten konnten nicht geladen werden",
-      searchPlaceholder: "Suchen...",
+      searchPlaceholder: "Suchen",
       readMore: "Weiterlesen",
       noResults: "Keine Nachrichten gefunden",
-      published: "Veröffentlicht",
       all: "Alle",
-      press: "Presse",
-      insights: "Einblicke",
-      rankings: "Rankings",
-      events: "Veranstaltungen",
-      alerts: "Mitteilungen",
-      filterBy: "Filtern nach",
-      category: "Kategorie",
-      allCategories: "Alle Kategorien",
+      pageStart: "Anfang",
+      pagePrev: "Zurück",
+      pageNext: "Weiter",
+      pageEnd: "Ende",
+      pageOf: "Seite {current} von {total}",
     },
     zh: {
+      label: "出版物",
       title: "新闻",
-      subtitle: "新闻与见解",
+      subtitle: "Von Wobeser y Sierra 的新闻与见解",
       errorMessage: "加载新闻失败",
-      searchPlaceholder: "搜索...",
+      searchPlaceholder: "搜索",
       readMore: "阅读更多",
       noResults: "未找到新闻",
-      published: "发布于",
       all: "全部",
-      press: "新闻稿",
-      insights: "洞察",
-      rankings: "排名",
-      events: "活动",
-      alerts: "公告",
-      filterBy: "筛选",
-      category: "类别",
-      allCategories: "所有类别",
+      pageStart: "首页",
+      pagePrev: "上一页",
+      pageNext: "下一页",
+      pageEnd: "末页",
+      pageOf: "第 {current} 页 / 共 {total} 页",
     },
     ko: {
-      title: "뉴스 및 인사이트",
-      subtitle: "뉴스와 인사이트",
+      label: "출판물",
+      title: "뉴스",
+      subtitle: "Von Wobeser y Sierra의 뉴스와 인사이트",
       errorMessage: "뉴스 로드 실패",
-      searchPlaceholder: "검색...",
+      searchPlaceholder: "검색",
       readMore: "더 읽기",
       noResults: "뉴스를 찾을 수 없습니다",
-      published: "게시일",
       all: "전체",
-      press: "보도자료",
-      insights: "인사이트",
-      rankings: "순위",
-      events: "이벤트",
-      alerts: "공지",
-      filterBy: "필터",
-      category: "카테고리",
-      allCategories: "모든 카테고리",
+      pageStart: "처음",
+      pagePrev: "이전",
+      pageNext: "다음",
+      pageEnd: "마지막",
+      pageOf: "{total} 중 {current} 페이지",
     },
     ja: {
-      title: "ニュースとインサイト",
-      subtitle: "ニュースと洞察",
+      label: "出版物",
+      title: "ニュース",
+      subtitle: "Von Wobeser y Sierra のニュースと洞察",
       errorMessage: "ニュースの読み込みに失敗しました",
-      searchPlaceholder: "検索...",
+      searchPlaceholder: "検索",
       readMore: "続きを読む",
       noResults: "ニュースが見つかりません",
-      published: "公開日",
       all: "すべて",
-      press: "プレス",
-      insights: "インサイト",
-      rankings: "ランキング",
-      events: "イベント",
-      alerts: "お知らせ",
-      filterBy: "フィルター",
-      category: "カテゴリー",
-      allCategories: "すべてのカテゴリー",
+      pageStart: "最初",
+      pagePrev: "前へ",
+      pageNext: "次へ",
+      pageEnd: "最後",
+      pageOf: "{total} ページ中 {current} ページ",
     },
     ar: {
-      title: "الأخبار والرؤى",
-      subtitle: "الأخبار والرؤى",
+      label: "المنشورات",
+      title: "الأخبار",
+      subtitle: "الأخبار والرؤى من Von Wobeser y Sierra",
       errorMessage: "فشل تحميل الأخبار",
-      searchPlaceholder: "بحث...",
+      searchPlaceholder: "بحث",
       readMore: "اقرأ المزيد",
       noResults: "لم يتم العثور على أخبار",
-      published: "نُشر",
       all: "الكل",
-      press: "صحافة",
-      insights: "رؤى",
-      rankings: "تصنيفات",
-      events: "فعاليات",
-      alerts: "تنبيهات",
-      filterBy: "تصفية حسب",
-      category: "الفئة",
-      allCategories: "جميع الفئات",
+      pageStart: "البداية",
+      pagePrev: "السابق",
+      pageNext: "التالي",
+      pageEnd: "النهاية",
+      pageOf: "صفحة {current} من {total}",
     },
     ru: {
+      label: "Публикации",
       title: "Новости",
-      subtitle: "Новости и аналитика",
+      subtitle: "Новости и аналитика Von Wobeser y Sierra",
       errorMessage: "Не удалось загрузить новости",
-      searchPlaceholder: "Поиск...",
+      searchPlaceholder: "Поиск",
       readMore: "Читать далее",
       noResults: "Новости не найдены",
-      published: "Опубликовано",
       all: "Все",
-      press: "Пресса",
-      insights: "Аналитика",
-      rankings: "Рейтинги",
-      events: "Мероприятия",
-      alerts: "Уведомления",
-      filterBy: "Фильтр",
-      category: "Категория",
-      allCategories: "Все категории",
+      pageStart: "Начало",
+      pagePrev: "Назад",
+      pageNext: "Далее",
+      pageEnd: "Конец",
+      pageOf: "Страница {current} из {total}",
     },
     fr: {
-      title: "Actualités et perspectives",
-      subtitle: "Actualités et perspectives",
+      label: "Publications",
+      title: "Actualités",
+      subtitle: "Actualités et perspectives de Von Wobeser y Sierra",
       errorMessage: "Échec du chargement des actualités",
-      searchPlaceholder: "Rechercher...",
+      searchPlaceholder: "Rechercher",
       readMore: "Lire la suite",
       noResults: "Aucune actualité trouvée",
-      published: "Publié",
       all: "Tout",
-      press: "Presse",
-      insights: "Perspectives",
-      rankings: "Classements",
-      events: "Événements",
-      alerts: "Alertes",
-      filterBy: "Filtrer par",
-      category: "Catégorie",
-      allCategories: "Toutes les catégories",
+      pageStart: "Début",
+      pagePrev: "Précédent",
+      pageNext: "Suivant",
+      pageEnd: "Fin",
+      pageOf: "Page {current} sur {total}",
     },
     it: {
+      label: "Pubblicazioni",
       title: "Notizie",
-      subtitle: "Notizie e approfondimenti",
+      subtitle: "Notizie e approfondimenti di Von Wobeser y Sierra",
       errorMessage: "Impossibile caricare le notizie",
-      searchPlaceholder: "Cerca...",
+      searchPlaceholder: "Cerca",
       readMore: "Leggi di più",
       noResults: "Nessuna notizia trovata",
-      published: "Pubblicato",
       all: "Tutto",
-      press: "Stampa",
-      insights: "Approfondimenti",
-      rankings: "Classifiche",
-      events: "Eventi",
-      alerts: "Avvisi",
-      filterBy: "Filtra per",
-      category: "Categoria",
-      allCategories: "Tutte le categorie",
+      pageStart: "Inizio",
+      pagePrev: "Prec.",
+      pageNext: "Succ.",
+      pageEnd: "Fine",
+      pageOf: "Pagina {current} di {total}",
     },
   };
 
@@ -387,180 +219,131 @@ export default function NewsPage() {
   };
 
   const t = content[language] || content.en;
-  const isNonNativeLanguage = language !== 'es';
-  const translationBanner = isNonNativeLanguage ? (translationBannerMessages[language] || (language === 'en' ? "Content is automatically translated from Spanish." : null)) : null;
+  const dateLocale = languageToLocale[language] || "en-US";
+  const isNonNativeLanguage = language !== "es";
+  const translationBanner = isNonNativeLanguage
+    ? translationBannerMessages[language] ||
+      (language === "en" ? "Content is automatically translated from Spanish." : null)
+    : null;
 
   const categoryFilters = [
     { value: "all", label: t.all },
-    ...newsCategories.map(cat => ({
+    ...newsCategories.map((cat) => ({
       value: cat.value,
       label: language === "es" ? cat.es : cat.en,
     })),
   ];
 
-  const filteredNews = news?.filter(article => {
-    const matchesCategory = selectedCategory === "all" || article.category === selectedCategory;
-    
-    if (!searchQuery) return matchesCategory;
-    
-    const query = searchQuery.toLowerCase();
-    const title = language === "es" ? article.titleEs : article.title;
-    const excerpt = language === "es" ? article.excerptEs : article.excerpt;
-    const matchesSearch = title.toLowerCase().includes(query) || excerpt.toLowerCase().includes(query);
-    
-    return matchesCategory && matchesSearch;
-  });
+  // --- Filtrado preservado de la página vieja (categoría + búsqueda) ---
+  const filteredNews = useMemo(
+    () =>
+      news?.filter((article) => {
+        const matchesCategory =
+          selectedCategory === "all" || article.category === selectedCategory;
+        if (!searchQuery) return matchesCategory;
 
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1,
-      },
-    },
-  };
+        const query = searchQuery.toLowerCase();
+        const title = language === "es" ? article.titleEs : article.title;
+        const excerpt = language === "es" ? article.excerptEs : article.excerpt;
+        const matchesSearch =
+          title.toLowerCase().includes(query) ||
+          excerpt.toLowerCase().includes(query);
+        return matchesCategory && matchesSearch;
+      }) ?? [],
+    [news, selectedCategory, searchQuery, language],
+  );
 
-  const itemVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: { duration: 0.4 },
-    },
-  };
+  const totalPages = Math.max(1, Math.ceil(filteredNews.length / PAGE_SIZE));
+
+  // Volver a la página 1 cuando cambian los filtros / la búsqueda.
+  useEffect(() => {
+    setPage(1);
+  }, [selectedCategory, searchQuery, language]);
+
+  // Mantener `page` dentro de rango si la lista se encoge.
+  useEffect(() => {
+    if (page > totalPages) setPage(totalPages);
+  }, [page, totalPages]);
+
+  const pageItems = filteredNews.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   return (
-    <div className="min-h-screen bg-background" data-testid="page-news">
+    <div className="vw-old bg-white" data-testid="page-news">
       <SEOHead page="news" language={language} />
-      <Header />
-      
-      <section className="pt-36 pb-20 bg-[#1a1a19]" data-testid="section-news-hero">
-        <div className="max-w-7xl mx-auto px-6 lg:px-12">
-          <motion.div
-            initial={{ opacity: 0, y: 24 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.7 }}
-            className="text-center"
-          >
-            <div className="h-0.5 w-12 bg-primary mx-auto mb-6" />
-            <h1 
-              className="text-4xl md:text-5xl font-heading font-light text-white mb-5 uppercase tracking-[0.15em]"
-              data-testid="text-news-title"
-            >
-              {t.title}
-            </h1>
-            <p 
-              className="text-base text-white/60 max-w-2xl mx-auto"
-              data-testid="text-news-subtitle"
-            >
-              {t.subtitle}
+
+      <PublicationsHero
+        label={t.label}
+        title={t.title}
+        subtitle={t.subtitle}
+        translationBanner={translationBanner}
+        testId="section-news-hero"
+      />
+
+      <section className="vw-wrap pb-24" data-testid="section-news-archive">
+        <PublicationsFilters
+          searchQuery={searchQuery}
+          onSearchChange={setSearchQuery}
+          searchPlaceholder={t.searchPlaceholder}
+          categories={categoryFilters}
+          selectedCategory={selectedCategory}
+          onCategoryChange={setSelectedCategory}
+        />
+
+        {error ? (
+          <div className="py-16 text-center" data-testid="container-news-error">
+            <AlertCircle className="mx-auto mb-4 h-10 w-10 text-vw-graylight" aria-hidden="true" />
+            <p className="text-vw-gray" data-testid="text-news-error">
+              {t.errorMessage}
             </p>
-            {translationBanner && (
-              <p 
-                className="mt-4 text-sm text-white/50 max-w-2xl mx-auto"
-                data-testid="text-translation-banner"
-              >
-                {translationBanner}
-              </p>
-            )}
-          </motion.div>
-        </div>
-      </section>
-
-      <main id="main-content" className="py-16 lg:py-20">
-        <div className="max-w-7xl mx-auto px-6 lg:px-12">
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.4 }}
-            className="mb-10 space-y-6"
+          </div>
+        ) : isLoading ? (
+          <div
+            className="w-full max-w-[640px] animate-pulse min-[1081px]:ml-[100px]"
+            data-testid="container-news-loading"
           >
-            <div className="flex flex-wrap items-center gap-2" data-testid="container-category-filters">
-              {categoryFilters.map((cat) => (
-                <Button
-                  key={cat.value}
-                  variant={selectedCategory === cat.value ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setSelectedCategory(cat.value)}
-                  className={`transition-all ${
-                    selectedCategory === cat.value 
-                      ? "bg-primary text-white" 
-                      : "text-muted-foreground hover:bg-muted"
-                  }`}
-                  data-testid={`button-filter-${cat.value}`}
-                >
-                  {cat.label}
-                </Button>
-              ))}
-            </div>
-
-            <div className="relative max-w-md">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-              <Input
-                type="text"
-                placeholder={t.searchPlaceholder}
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 rounded-none"
-                data-testid="input-search-news"
+            {Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} className="mb-24">
+                <div className="mb-3 h-7 w-3/4 bg-vw-graylight/40" />
+                <div className="mb-6 h-4 w-32 bg-vw-graylight/40" />
+                <div className="mb-2 h-4 w-full bg-vw-graylight/30" />
+                <div className="mb-2 h-4 w-full bg-vw-graylight/30" />
+                <div className="h-4 w-2/3 bg-vw-graylight/30" />
+              </div>
+            ))}
+          </div>
+        ) : filteredNews.length === 0 ? (
+          <div className="py-16 text-center" data-testid="container-news-empty">
+            <p className="text-vw-gray">{t.noResults}</p>
+          </div>
+        ) : (
+          <>
+            <ArchiveList
+              items={pageItems}
+              readMoreText={t.readMore}
+              dateLocale={dateLocale}
+            />
+            <div className="mt-16 w-full max-w-[640px] min-[1081px]:ml-[100px]">
+              <Pagination
+                currentPage={page}
+                totalPages={totalPages}
+                onPageChange={(p) => {
+                  setPage(p);
+                  if (typeof window !== "undefined") {
+                    window.scrollTo({ top: 0, behavior: "smooth" });
+                  }
+                }}
+                labels={{
+                  start: t.pageStart,
+                  prev: t.pagePrev,
+                  next: t.pageNext,
+                  end: t.pageEnd,
+                  pageOf: t.pageOf,
+                }}
               />
             </div>
-          </motion.div>
-
-          {error ? (
-            <div className="text-center py-12" data-testid="container-news-error">
-              <AlertCircle className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-              <p className="text-muted-foreground" data-testid="text-news-error">
-                {t.errorMessage}
-              </p>
-            </div>
-          ) : isLoading ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {Array.from({ length: 6 }).map((_, i) => (
-                <Card 
-                  key={i} 
-                  className="rounded-none overflow-hidden border-0 shadow-sm"
-                  data-testid={`skeleton-news-${i}`}
-                >
-                  <Skeleton className="h-48 w-full" />
-                  <CardContent className="p-6">
-                    <Skeleton className="h-4 w-24 mb-3" />
-                    <Skeleton className="h-6 w-full mb-2" />
-                    <Skeleton className="h-4 w-full mb-1" />
-                    <Skeleton className="h-4 w-3/4" />
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          ) : filteredNews && filteredNews.length === 0 ? (
-            <div className="text-center py-12" data-testid="container-news-empty">
-              <Newspaper className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-              <p className="text-muted-foreground">
-                {t.noResults}
-              </p>
-            </div>
-          ) : (
-            <motion.div
-              variants={containerVariants}
-              initial="hidden"
-              whileInView="visible"
-            viewport={{ once: true }}
-              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
-            >
-              {filteredNews?.map((article) => (
-                <motion.div key={article.id} variants={itemVariants}>
-                  <NewsCard article={article} readMoreText={t.readMore} />
-                </motion.div>
-              ))}
-            </motion.div>
-          )}
-        </div>
-      </main>
-
-      <Footer />
+          </>
+        )}
+      </section>
     </div>
   );
 }

@@ -1,30 +1,25 @@
 import { Link, useParams } from "wouter";
 import { useMemo } from "react";
-import { motion } from "framer-motion";
-import { ArrowLeft, Mail, Phone, AlertCircle, Award, Star, Trophy, ChevronRight, Loader2 } from "lucide-react";
+import { ArrowLeft, AlertCircle, Loader2 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Badge } from "@/components/ui/badge";
-import Header from "@/components/Header";
-import Footer from "@/components/Footer";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useTranslatedContent } from "@/hooks/useTranslatedContent";
-import { getIcon } from "@/lib/icons";
-import { isNativeLanguage } from "@/lib/translationUtils";
-import { Eyebrow, LeadParagraph, RankingsList, type RankingItem } from "@/components/editorial";
+import {
+  CapabilityHero,
+  CapabilityProse,
+  RepresentativeMatters,
+  RelatedAttorneys,
+  CapabilityRankings,
+  CapabilityContactCta,
+  type CapabilityRankingItem,
+} from "@/components/capabilities";
 import type { PracticeGroup, TeamMember, RepresentativeMatterDb } from "@shared/schema";
 
-interface PracticeRanking {
-  publication: string;
-  ranking: string;
-  rankingEs: string;
-  year: string;
-  badgeType: "band" | "tier" | "star" | "recommended";
-}
+/* ─────────────────────────────────────────────────────────────────────────
+   Datos preservados de la implementación previa (rankings + mapeo de roles).
+   ───────────────────────────────────────────────────────────────────────── */
 
-const practiceRankingsData: Record<string, PracticeRanking[]> = {
+const practiceRankingsData: Record<string, CapabilityRankingItem[]> = {
   "corporate-ma": [
     { publication: "Chambers Latin America", ranking: "Band 1", rankingEs: "Banda 1", year: "2024", badgeType: "band" },
     { publication: "Legal 500", ranking: "Tier 1", rankingEs: "Tier 1", year: "2024", badgeType: "tier" },
@@ -131,95 +126,6 @@ const practiceAreaRoleMapping: Record<string, string[]> = {
   "german-desk": ["German Desk"],
 };
 
-interface TranslatedMatterCardProps {
-  matter: RepresentativeMatterDb;
-  language: string;
-  t: {
-    featured: string;
-    client: string;
-  };
-}
-
-function TranslatedMatterCard({ matter, language, t }: TranslatedMatterCardProps) {
-  const { translatedFields } = useTranslatedContent({
-    contentType: 'representative_matter',
-    entityId: matter.id.toString(),
-    fields: {
-      title: matter.title,
-      titleEs: matter.titleEs,
-      description: matter.description,
-      descriptionEs: matter.descriptionEs,
-      client: matter.client,
-      clientEs: matter.clientEs,
-    },
-    enabled: !isNativeLanguage(language),
-  });
-
-  const displayTitle = translatedFields.title || matter.title;
-  const displayDescription = translatedFields.description || matter.description;
-  const displayClient = translatedFields.client || matter.client;
-
-  return (
-    <Card
-      className="rounded-none border border-white/[0.08] bg-[#222220] relative shadow-none"
-      data-testid={`card-matter-${matter.id}`}
-    >
-      {matter.isHighlight && (
-        <span
-          aria-hidden="true"
-          className="absolute left-0 top-0 bottom-0 w-[2px] bg-primary"
-        />
-      )}
-      <CardContent className="p-6">
-        <div className="flex items-start justify-between gap-4 mb-3">
-          <div className="flex-1">
-            <div className="flex items-center gap-2 mb-3 flex-wrap">
-              {matter.isHighlight && (
-                <Badge
-                  variant="outline"
-                  className="rounded-none text-[10px] uppercase tracking-[0.18em] border-primary text-primary bg-transparent"
-                >
-                  {t.featured}
-                </Badge>
-              )}
-              <Badge
-                variant="outline"
-                className="rounded-none text-[10px] uppercase tracking-[0.18em] border-white/20 text-white/70 bg-transparent"
-                data-testid={`badge-matter-year-${matter.id}`}
-              >
-                {matter.year}
-              </Badge>
-            </div>
-            <h3
-              className="font-heading font-light text-white text-lg leading-snug"
-              data-testid={`text-matter-title-${matter.id}`}
-            >
-              {displayTitle}
-            </h3>
-          </div>
-        </div>
-        <p
-          className="text-white/70 mb-3 leading-relaxed"
-          data-testid={`text-matter-description-${matter.id}`}
-        >
-          {displayDescription}
-        </p>
-        {displayClient && (
-          <p
-            className="text-[10px] uppercase tracking-[0.25em] text-white/40"
-            data-testid={`text-matter-client-${matter.id}`}
-          >
-            <span className="text-white/60">
-              {t.client}{" "}
-            </span>
-            {displayClient}
-          </p>
-        )}
-      </CardContent>
-    </Card>
-  );
-}
-
 export default function PracticeGroupDetail() {
   const { language } = useLanguage();
   const params = useParams<{ slug: string }>();
@@ -235,13 +141,13 @@ export default function PracticeGroupDetail() {
   });
 
   const { data: representativeMatters } = useQuery<RepresentativeMatterDb[]>({
-    queryKey: ['/api/practice-groups', slug, 'representative-matters'],
+    queryKey: ["/api/practice-groups", slug, "representative-matters"],
     enabled: !!slug,
   });
 
   const { translatedFields, isTranslating } = useTranslatedContent({
-    contentType: 'practice_group',
-    entityId: practiceGroup?.id?.toString() || '',
+    contentType: "practice_group",
+    entityId: practiceGroup?.id?.toString() || "",
     fields: {
       name: practiceGroup?.name,
       nameEs: practiceGroup?.nameEs,
@@ -255,7 +161,6 @@ export default function PracticeGroupDetail() {
 
   const translations: Record<string, {
     backToAll: string;
-    contactUs: string;
     contactCta: string;
     contactSubtitle: string;
     emailUs: string;
@@ -265,291 +170,25 @@ export default function PracticeGroupDetail() {
     ofCounsel: string;
     associates: string;
     viewAll: string;
-    viewProfile: string;
     rankingsTitle: string;
     rankingsSubtitle: string;
     successCasesTitle: string;
     successCasesSubtitle: string;
     errorMessage: string;
-    loading: string;
     overview: string;
-    keyContacts: string;
-    relatedIndustries: string;
-    relatedPractices: string;
-    representativeMatters: string;
     featured: string;
     client: string;
   }> = {
-    en: {
-      backToAll: "All Practice Groups",
-      contactUs: "Contact Us",
-      contactCta: "Contact our team",
-      contactSubtitle: "Let our experienced attorneys help you navigate your legal challenges.",
-      emailUs: "Email Us",
-      callUs: "Call Us",
-      ourTeam: "Our Team",
-      partners: "Partners",
-      ofCounsel: "Of Counsel",
-      associates: "Associates",
-      viewAll: "View all",
-      viewProfile: "View Profile",
-      rankingsTitle: "Rankings & Recognition",
-      rankingsSubtitle: "Our practice has been recognized by leading legal directories worldwide.",
-      successCasesTitle: "Success Cases",
-      successCasesSubtitle: "Representative matters successfully handled by our practice.",
-      errorMessage: "Practice group not found",
-      loading: "Loading...",
-      overview: "Overview",
-      keyContacts: "Key Contacts",
-      relatedIndustries: "Related Industries",
-      relatedPractices: "Related Practice Areas",
-      representativeMatters: "Representative Matters",
-      featured: "Featured",
-      client: "Client:",
-    },
-    es: {
-      backToAll: "Todas las Áreas de Práctica",
-      contactUs: "Contáctenos",
-      contactCta: "Contacte a nuestro equipo",
-      contactSubtitle: "Permita que nuestros abogados experimentados le ayuden a navegar sus desafíos legales.",
-      emailUs: "Enviar Email",
-      callUs: "Llamar",
-      ourTeam: "Nuestro Equipo",
-      partners: "Socios",
-      ofCounsel: "Of Counsel",
-      associates: "Asociados",
-      viewAll: "Ver todos",
-      viewProfile: "Ver Perfil",
-      rankingsTitle: "Rankings y Reconocimientos",
-      rankingsSubtitle: "Nuestra práctica ha sido reconocida por los principales directorios legales a nivel mundial.",
-      successCasesTitle: "Casos de Éxito",
-      successCasesSubtitle: "Casos representativos manejados exitosamente por nuestra práctica.",
-      errorMessage: "Área de práctica no encontrada",
-      loading: "Cargando...",
-      overview: "Resumen",
-      keyContacts: "Contactos Clave",
-      relatedIndustries: "Industrias Relacionadas",
-      relatedPractices: "Áreas de Práctica Relacionadas",
-      representativeMatters: "Casos Representativos",
-      featured: "Destacado",
-      client: "Cliente:",
-    },
-    de: {
-      backToAll: "Zurück zu Praxisbereichen",
-      contactUs: "Kontakt",
-      contactCta: "Kontaktieren Sie unser Team",
-      contactSubtitle: "Lassen Sie unsere erfahrenen Anwälte Ihnen bei Ihren rechtlichen Herausforderungen helfen.",
-      emailUs: "E-Mail senden",
-      callUs: "Anrufen",
-      ourTeam: "Unser Team",
-      partners: "Partner",
-      ofCounsel: "Of Counsel",
-      associates: "Associates",
-      viewAll: "Alle anzeigen",
-      viewProfile: "Profil anzeigen",
-      rankingsTitle: "Rankings & Anerkennung",
-      rankingsSubtitle: "Unsere Praxis wurde von führenden Rechtsverzeichnissen weltweit anerkannt.",
-      successCasesTitle: "Erfolgsfälle",
-      successCasesSubtitle: "Repräsentative Mandate, die von unserer Praxis erfolgreich bearbeitet wurden.",
-      errorMessage: "Praxisbereich nicht gefunden",
-      loading: "Wird geladen...",
-      overview: "Übersicht",
-      keyContacts: "Hauptkontakte",
-      relatedIndustries: "Verwandte Branchen",
-      relatedPractices: "Verwandte Praxisbereiche",
-      representativeMatters: "Beispielmandate",
-      featured: "Empfohlen",
-      client: "Mandant:",
-    },
-    zh: {
-      backToAll: "返回业务领域",
-      contactUs: "联系我们",
-      contactCta: "联系我们的团队",
-      contactSubtitle: "让我们经验丰富的律师帮助您应对法律挑战。",
-      emailUs: "发送邮件",
-      callUs: "致电",
-      ourTeam: "我们的团队",
-      partners: "合伙人",
-      ofCounsel: "顾问律师",
-      associates: "律师助理",
-      viewAll: "查看全部",
-      viewProfile: "查看简介",
-      rankingsTitle: "排名与认可",
-      rankingsSubtitle: "我们的业务获得了全球领先法律目录的认可。",
-      successCasesTitle: "成功案例",
-      successCasesSubtitle: "我们业务成功处理的代表性案件。",
-      errorMessage: "未找到业务领域",
-      loading: "加载中...",
-      overview: "概述",
-      keyContacts: "主要联系人",
-      relatedIndustries: "相关行业",
-      relatedPractices: "相关业务领域",
-      representativeMatters: "代表性案例",
-      featured: "精选",
-      client: "客户：",
-    },
-    ko: {
-      backToAll: "업무 분야로 돌아가기",
-      contactUs: "문의하기",
-      contactCta: "팀에 연락하기",
-      contactSubtitle: "경험 풍부한 변호사가 법적 문제 해결을 도와드립니다.",
-      emailUs: "이메일 보내기",
-      callUs: "전화하기",
-      ourTeam: "우리 팀",
-      partners: "파트너",
-      ofCounsel: "고문 변호사",
-      associates: "어소시에이트",
-      viewAll: "모두 보기",
-      viewProfile: "프로필 보기",
-      rankingsTitle: "순위 및 인정",
-      rankingsSubtitle: "세계 주요 법률 디렉토리에서 인정받은 업무 분야입니다.",
-      successCasesTitle: "성공 사례",
-      successCasesSubtitle: "성공적으로 처리한 대표적인 사건들입니다.",
-      errorMessage: "업무 분야를 찾을 수 없습니다",
-      loading: "로딩 중...",
-      overview: "개요",
-      keyContacts: "주요 연락처",
-      relatedIndustries: "관련 산업",
-      relatedPractices: "관련 업무 분야",
-      representativeMatters: "대표 사례",
-      featured: "추천",
-      client: "의뢰인:",
-    },
-    ja: {
-      backToAll: "取扱分野に戻る",
-      contactUs: "お問い合わせ",
-      contactCta: "チームにお問い合わせ",
-      contactSubtitle: "経験豊富な弁護士が法的課題の解決をお手伝いします。",
-      emailUs: "メールを送る",
-      callUs: "電話する",
-      ourTeam: "私たちのチーム",
-      partners: "パートナー",
-      ofCounsel: "オブカウンセル",
-      associates: "アソシエイト",
-      viewAll: "すべて表示",
-      viewProfile: "プロフィールを見る",
-      rankingsTitle: "ランキングと評価",
-      rankingsSubtitle: "当事務所の業務は世界の主要な法律ディレクトリで評価されています。",
-      successCasesTitle: "成功事例",
-      successCasesSubtitle: "当事務所が成功裏に処理した代表的な案件です。",
-      errorMessage: "取扱分野が見つかりません",
-      loading: "読み込み中...",
-      overview: "概要",
-      keyContacts: "主要連絡先",
-      relatedIndustries: "関連業界",
-      relatedPractices: "関連取扱分野",
-      representativeMatters: "代表的な案件",
-      featured: "注目",
-      client: "クライアント：",
-    },
-    ar: {
-      backToAll: "العودة إلى مجالات الممارسة",
-      contactUs: "اتصل بنا",
-      contactCta: "تواصل مع فريقنا",
-      contactSubtitle: "دع محامينا ذوي الخبرة يساعدونك في تحدياتك القانونية.",
-      emailUs: "راسلنا",
-      callUs: "اتصل بنا",
-      ourTeam: "فريقنا",
-      partners: "الشركاء",
-      ofCounsel: "مستشار قانوني",
-      associates: "محامون مساعدون",
-      viewAll: "عرض الكل",
-      viewProfile: "عرض الملف الشخصي",
-      rankingsTitle: "التصنيفات والاعتراف",
-      rankingsSubtitle: "تم الاعتراف بممارستنا من قبل أبرز الدلائل القانونية في العالم.",
-      successCasesTitle: "قضايا ناجحة",
-      successCasesSubtitle: "قضايا تمثيلية تمت معالجتها بنجاح.",
-      errorMessage: "مجال الممارسة غير موجود",
-      loading: "جاري التحميل...",
-      overview: "نظرة عامة",
-      keyContacts: "جهات الاتصال الرئيسية",
-      relatedIndustries: "القطاعات ذات الصلة",
-      relatedPractices: "مجالات الممارسة ذات الصلة",
-      representativeMatters: "قضايا تمثيلية",
-      featured: "مميز",
-      client: "العميل:",
-    },
-    ru: {
-      backToAll: "Назад к практикам",
-      contactUs: "Свяжитесь с нами",
-      contactCta: "Связаться с командой",
-      contactSubtitle: "Позвольте нашим опытным юристам помочь вам с вашими правовыми вопросами.",
-      emailUs: "Написать",
-      callUs: "Позвонить",
-      ourTeam: "Наша команда",
-      partners: "Партнёры",
-      ofCounsel: "Of Counsel",
-      associates: "Ассоциаты",
-      viewAll: "Показать все",
-      viewProfile: "Посмотреть профиль",
-      rankingsTitle: "Рейтинги и признание",
-      rankingsSubtitle: "Наша практика признана ведущими юридическими справочниками мира.",
-      successCasesTitle: "Успешные дела",
-      successCasesSubtitle: "Показательные дела, успешно проведённые нашей практикой.",
-      errorMessage: "Практика не найдена",
-      loading: "Загрузка...",
-      overview: "Обзор",
-      keyContacts: "Ключевые контакты",
-      relatedIndustries: "Связанные отрасли",
-      relatedPractices: "Связанные практики",
-      representativeMatters: "Типичные дела",
-      featured: "Рекомендовано",
-      client: "Клиент:",
-    },
-    fr: {
-      backToAll: "Retour aux domaines de pratique",
-      contactUs: "Contactez-nous",
-      contactCta: "Contactez notre équipe",
-      contactSubtitle: "Laissez nos avocats expérimentés vous aider dans vos défis juridiques.",
-      emailUs: "Envoyer un email",
-      callUs: "Appeler",
-      ourTeam: "Notre équipe",
-      partners: "Associés",
-      ofCounsel: "Of Counsel",
-      associates: "Collaborateurs",
-      viewAll: "Voir tout",
-      viewProfile: "Voir le profil",
-      rankingsTitle: "Classements et reconnaissance",
-      rankingsSubtitle: "Notre pratique a été reconnue par les principaux annuaires juridiques mondiaux.",
-      successCasesTitle: "Affaires réussies",
-      successCasesSubtitle: "Affaires représentatives traitées avec succès par notre cabinet.",
-      errorMessage: "Domaine de pratique non trouvé",
-      loading: "Chargement...",
-      overview: "Aperçu",
-      keyContacts: "Contacts clés",
-      relatedIndustries: "Industries connexes",
-      relatedPractices: "Domaines de pratique connexes",
-      representativeMatters: "Dossiers représentatifs",
-      featured: "En vedette",
-      client: "Client :",
-    },
-    it: {
-      backToAll: "Torna alle aree di pratica",
-      contactUs: "Contattaci",
-      contactCta: "Contatta il nostro team",
-      contactSubtitle: "Lascia che i nostri avvocati esperti ti aiutino con le tue sfide legali.",
-      emailUs: "Invia email",
-      callUs: "Chiama",
-      ourTeam: "Il nostro team",
-      partners: "Soci",
-      ofCounsel: "Of Counsel",
-      associates: "Associati",
-      viewAll: "Vedi tutto",
-      viewProfile: "Vedi profilo",
-      rankingsTitle: "Classifiche e riconoscimenti",
-      rankingsSubtitle: "La nostra pratica è stata riconosciuta dalle principali directory legali a livello mondiale.",
-      successCasesTitle: "Casi di successo",
-      successCasesSubtitle: "Casi rappresentativi gestiti con successo dalla nostra pratica.",
-      errorMessage: "Area di pratica non trovata",
-      loading: "Caricamento...",
-      overview: "Panoramica",
-      keyContacts: "Contatti principali",
-      relatedIndustries: "Settori correlati",
-      relatedPractices: "Aree di pratica correlate",
-      representativeMatters: "Casi rappresentativi",
-      featured: "In evidenza",
-      client: "Cliente:",
-    },
+    en: { backToAll: "All Practice Groups", contactCta: "Contact our team", contactSubtitle: "Let our experienced attorneys help you navigate your legal challenges.", emailUs: "Email Us", callUs: "Call Us", ourTeam: "Our Team", partners: "Partners", ofCounsel: "Of Counsel", associates: "Associates", viewAll: "View all", rankingsTitle: "Rankings & Recognition", rankingsSubtitle: "Recognized by leading legal directories worldwide", successCasesTitle: "Success Cases", successCasesSubtitle: "Representative matters", errorMessage: "Practice group not found", overview: "Overview", featured: "Featured", client: "Client:" },
+    es: { backToAll: "Todas las Áreas de Práctica", contactCta: "Contacte a nuestro equipo", contactSubtitle: "Permita que nuestros abogados experimentados le ayuden a navegar sus desafíos legales.", emailUs: "Enviar Email", callUs: "Llamar", ourTeam: "Nuestro Equipo", partners: "Socios", ofCounsel: "Of Counsel", associates: "Asociados", viewAll: "Ver todos", rankingsTitle: "Rankings y Reconocimientos", rankingsSubtitle: "Reconocidos por los principales directorios legales del mundo", successCasesTitle: "Casos de Éxito", successCasesSubtitle: "Casos representativos", errorMessage: "Área de práctica no encontrada", overview: "Resumen", featured: "Destacado", client: "Cliente:" },
+    de: { backToAll: "Zurück zu Praxisbereichen", contactCta: "Kontaktieren Sie unser Team", contactSubtitle: "Lassen Sie unsere erfahrenen Anwälte Ihnen bei Ihren rechtlichen Herausforderungen helfen.", emailUs: "E-Mail senden", callUs: "Anrufen", ourTeam: "Unser Team", partners: "Partner", ofCounsel: "Of Counsel", associates: "Associates", viewAll: "Alle anzeigen", rankingsTitle: "Rankings & Anerkennung", rankingsSubtitle: "Von führenden Rechtsverzeichnissen weltweit anerkannt", successCasesTitle: "Erfolgsfälle", successCasesSubtitle: "Repräsentative Mandate", errorMessage: "Praxisbereich nicht gefunden", overview: "Übersicht", featured: "Empfohlen", client: "Mandant:" },
+    zh: { backToAll: "返回业务领域", contactCta: "联系我们的团队", contactSubtitle: "让我们经验丰富的律师帮助您应对法律挑战。", emailUs: "发送邮件", callUs: "致电", ourTeam: "我们的团队", partners: "合伙人", ofCounsel: "顾问律师", associates: "律师助理", viewAll: "查看全部", rankingsTitle: "排名与认可", rankingsSubtitle: "获得全球领先法律目录的认可", successCasesTitle: "成功案例", successCasesSubtitle: "代表性案件", errorMessage: "未找到业务领域", overview: "概述", featured: "精选", client: "客户：" },
+    ko: { backToAll: "업무 분야로 돌아가기", contactCta: "팀에 연락하기", contactSubtitle: "경험 풍부한 변호사가 법적 문제 해결을 도와드립니다.", emailUs: "이메일 보내기", callUs: "전화하기", ourTeam: "우리 팀", partners: "파트너", ofCounsel: "고문 변호사", associates: "어소시에이트", viewAll: "모두 보기", rankingsTitle: "순위 및 인정", rankingsSubtitle: "세계 주요 법률 디렉토리에서 인정받음", successCasesTitle: "성공 사례", successCasesSubtitle: "대표 사례", errorMessage: "업무 분야를 찾을 수 없습니다", overview: "개요", featured: "추천", client: "의뢰인:" },
+    ja: { backToAll: "取扱分野に戻る", contactCta: "チームにお問い合わせ", contactSubtitle: "経験豊富な弁護士が法的課題の解決をお手伝いします。", emailUs: "メールを送る", callUs: "電話する", ourTeam: "私たちのチーム", partners: "パートナー", ofCounsel: "オブカウンセル", associates: "アソシエイト", viewAll: "すべて表示", rankingsTitle: "ランキングと評価", rankingsSubtitle: "世界の主要な法律ディレクトリで評価されています", successCasesTitle: "成功事例", successCasesSubtitle: "代表的な案件", errorMessage: "取扱分野が見つかりません", overview: "概要", featured: "注目", client: "クライアント：" },
+    ar: { backToAll: "العودة إلى مجالات الممارسة", contactCta: "تواصل مع فريقنا", contactSubtitle: "دع محامينا ذوي الخبرة يساعدونك في تحدياتك القانونية.", emailUs: "راسلنا", callUs: "اتصل بنا", ourTeam: "فريقنا", partners: "الشركاء", ofCounsel: "مستشار قانوني", associates: "محامون مساعدون", viewAll: "عرض الكل", rankingsTitle: "التصنيفات والاعتراف", rankingsSubtitle: "معترف بها من قبل أبرز الدلائل القانونية في العالم", successCasesTitle: "قضايا ناجحة", successCasesSubtitle: "قضايا تمثيلية", errorMessage: "مجال الممارسة غير موجود", overview: "نظرة عامة", featured: "مميز", client: "العميل:" },
+    ru: { backToAll: "Назад к практикам", contactCta: "Связаться с командой", contactSubtitle: "Позвольте нашим опытным юристам помочь вам с вашими правовыми вопросами.", emailUs: "Написать", callUs: "Позвонить", ourTeam: "Наша команда", partners: "Партнёры", ofCounsel: "Of Counsel", associates: "Ассоциаты", viewAll: "Показать все", rankingsTitle: "Рейтинги и признание", rankingsSubtitle: "Признаны ведущими юридическими справочниками мира", successCasesTitle: "Успешные дела", successCasesSubtitle: "Показательные дела", errorMessage: "Практика не найдена", overview: "Обзор", featured: "Рекомендовано", client: "Клиент:" },
+    fr: { backToAll: "Retour aux domaines de pratique", contactCta: "Contactez notre équipe", contactSubtitle: "Laissez nos avocats expérimentés vous aider dans vos défis juridiques.", emailUs: "Envoyer un email", callUs: "Appeler", ourTeam: "Notre équipe", partners: "Associés", ofCounsel: "Of Counsel", associates: "Collaborateurs", viewAll: "Voir tout", rankingsTitle: "Classements et reconnaissance", rankingsSubtitle: "Reconnus par les principaux annuaires juridiques mondiaux", successCasesTitle: "Affaires réussies", successCasesSubtitle: "Affaires représentatives", errorMessage: "Domaine de pratique non trouvé", overview: "Aperçu", featured: "En vedette", client: "Client :" },
+    it: { backToAll: "Torna alle aree di pratica", contactCta: "Contatta il nostro team", contactSubtitle: "Lascia che i nostri avvocati esperti ti aiutino con le tue sfide legali.", emailUs: "Invia email", callUs: "Chiama", ourTeam: "Il nostro team", partners: "Soci", ofCounsel: "Of Counsel", associates: "Associati", viewAll: "Vedi tutto", rankingsTitle: "Classifiche e riconoscimenti", rankingsSubtitle: "Riconosciuti dalle principali directory legali a livello mondiale", successCasesTitle: "Casi di successo", successCasesSubtitle: "Casi rappresentativi", errorMessage: "Area di pratica non trovata", overview: "Panoramica", featured: "In evidenza", client: "Cliente:" },
   };
 
   const t = translations[language] || translations.en;
@@ -558,470 +197,149 @@ export default function PracticeGroupDetail() {
     if (!allTeamMembers || !slug) return { partners: [], ofCounsel: [], associates: [] };
 
     const roleMatches = practiceAreaRoleMapping[slug] || [];
-    
-    const matchingMembers = allTeamMembers.filter(member => {
-      return roleMatches.some(role => 
-        member.role.toLowerCase().includes(role.toLowerCase()) ||
-        role.toLowerCase().includes(member.role.toLowerCase())
-      );
-    });
 
-    const partners = matchingMembers.filter(m => m.isPartner);
-    const ofCounsel = matchingMembers.filter(m => m.title === "Of Counsel");
-    const associates = matchingMembers.filter(m => m.title === "Associate");
+    const matchingMembers = allTeamMembers.filter((member) =>
+      roleMatches.some(
+        (role) =>
+          member.role.toLowerCase().includes(role.toLowerCase()) ||
+          role.toLowerCase().includes(member.role.toLowerCase()),
+      ),
+    );
+
+    const partners = matchingMembers.filter((m) => m.isPartner);
+    const ofCounsel = matchingMembers.filter((m) => m.title === "Of Counsel");
+    const associates = matchingMembers.filter((m) => m.title === "Associate");
 
     return { partners, ofCounsel, associates };
   }, [allTeamMembers, slug]);
 
-  const practiceRankings = slug ? (practiceRankingsData[slug] || []) : [];
+  const practiceRankings = slug ? practiceRankingsData[slug] || [] : [];
 
-  const getInitials = (name: string) => {
-    return name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase();
-  };
-
-  const getBadgeStyles = (badgeType: string) => {
-    if (badgeType === "band" || badgeType === "tier" || badgeType === "star") {
-      return "border border-primary text-primary bg-transparent uppercase tracking-[0.18em]";
-    }
-    return "border border-border text-foreground bg-transparent uppercase tracking-[0.18em]";
-  };
-
-  const getBadgeIcon = (_badgeType: string) => null;
+  /* ── Estados de error / carga ───────────────────────────────────────── */
 
   if (error) {
     return (
-      <div className="min-h-screen bg-background" data-testid="page-practice-group-error">
-        <Header />
-        <div className="pt-32 pb-20">
-          <div className="max-w-7xl mx-auto px-6 lg:px-12 text-center">
-            <AlertCircle className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
-            <h2 className="text-2xl font-heading text-foreground mb-4" data-testid="text-error-title">
-              {t.errorMessage}
-            </h2>
-            <Link href="/practice-groups">
-              <Button variant="outline" data-testid="button-back-to-practice-groups">
-                <ArrowLeft className="w-4 h-4 mr-2" />
-                {t.backToAll}
-              </Button>
-            </Link>
-          </div>
+      <div data-testid="page-practice-group-error">
+        <div className="vw-wrap py-24 text-center">
+          <AlertCircle className="mx-auto mb-4 h-16 w-16 text-vw-graylight" />
+          <h2 className="mb-6 font-serif text-2xl text-vw-black" data-testid="text-error-title">
+            {t.errorMessage}
+          </h2>
+          <Link
+            href="/practice-groups"
+            className="inline-flex items-center gap-2 vw-label text-xs text-vw-red"
+            data-testid="button-back-to-practice-groups"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            {t.backToAll}
+          </Link>
         </div>
-        <Footer />
       </div>
     );
   }
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-background" data-testid="page-practice-group-loading">
-        <Header />
-        <section className="pt-36 pb-20 bg-[#1a1a19]">
-          <div className="max-w-7xl mx-auto px-6 lg:px-12">
-            <Skeleton className="h-5 w-48 bg-white/10 mb-6" />
-            <div className="flex items-center gap-4">
-              <Skeleton className="h-16 w-16 rounded-none bg-white/10" />
-              <Skeleton className="h-12 w-64 bg-white/10" />
-            </div>
+      <div data-testid="page-practice-group-loading">
+        <div className="vw-wrap py-24">
+          <div className="mb-6 h-5 w-48 animate-pulse bg-vw-graylight/50" />
+          <div className="h-12 w-64 animate-pulse bg-vw-graylight/50" />
+          <div className="mt-10 space-y-4">
+            <div className="h-6 w-full animate-pulse bg-vw-graylight/40" />
+            <div className="h-6 w-3/4 animate-pulse bg-vw-graylight/40" />
+            <div className="h-6 w-5/6 animate-pulse bg-vw-graylight/40" />
           </div>
-        </section>
-        <main id="main-content" className="py-16 lg:py-20">
-          <div className="max-w-4xl mx-auto px-6 lg:px-12">
-            <Skeleton className="h-6 w-full mb-4" />
-            <Skeleton className="h-6 w-full mb-4" />
-            <Skeleton className="h-6 w-3/4 mb-4" />
-            <Skeleton className="h-6 w-5/6 mb-4" />
-          </div>
-        </main>
-        <Footer />
+        </div>
       </div>
     );
   }
 
-  const IconComponent = practiceGroup ? getIcon(practiceGroup.iconName) : null;
-  const displayName = language === 'es' 
-    ? (practiceGroup?.nameEs || practiceGroup?.name)
-    : language === 'en'
-      ? practiceGroup?.name
-      : (translatedFields.name || null);
-  const displayDescription = language === 'es'
-    ? (practiceGroup?.fullDescriptionEs || practiceGroup?.descriptionEs || practiceGroup?.fullDescription || practiceGroup?.description)
-    : language === 'en'
-      ? (practiceGroup?.fullDescription || practiceGroup?.description)
-      : (translatedFields.fullDescription || translatedFields.description || null);
+  /* ── Resolución de nombre/descripción (preservada de la versión previa) ─ */
 
-  const MAX_ASSOCIATES_DISPLAY = 6;
-  const displayedAssociates = filteredAndGroupedMembers.associates.slice(0, MAX_ASSOCIATES_DISPLAY);
-  const hasMoreAssociates = filteredAndGroupedMembers.associates.length > MAX_ASSOCIATES_DISPLAY;
+  const displayName =
+    language === "es"
+      ? practiceGroup?.nameEs || practiceGroup?.name
+      : language === "en"
+        ? practiceGroup?.name
+        : translatedFields.name || null;
 
-  const renderMemberCard = (member: TeamMember) => (
-    <Link key={member.id} href={`/team/${member.slug}`}>
-      <Card
-        className="rounded-none border-0 bg-[#222220] cursor-pointer hover-elevate shadow-none overflow-hidden"
-        data-testid={`card-team-member-${member.slug}`}
-      >
-        <CardContent className="p-0 flex items-stretch gap-0">
-          <div
-            className="relative aspect-square w-28 sm:w-32 shrink-0 overflow-hidden"
-            data-testid={`img-team-member-${member.slug}`}
-          >
-            {member.imageUrl ? (
-              <>
-                <img
-                  src={member.imageUrl}
-                  alt={member.name}
-                  loading="lazy"
-                  className="absolute inset-0 h-full w-full object-cover object-top"
-                />
-                <div
-                  aria-hidden="true"
-                  className="absolute inset-0 bg-gradient-to-r from-transparent via-[#222220]/10 to-[#222220]/70"
-                />
-                <div
-                  aria-hidden="true"
-                  className="absolute inset-0 bg-gradient-to-b from-transparent to-[#222220]/40"
-                />
-              </>
-            ) : (
-              <div className="absolute inset-0 flex items-center justify-center bg-white/10 text-white text-2xl font-medium">
-                {getInitials(member.name)}
-              </div>
-            )}
-          </div>
-          <div
-            aria-hidden="true"
-            className="w-px shrink-0 bg-primary/30"
-          />
-          <div className="flex-1 min-w-0 flex items-center gap-3 px-4 py-4">
-            <div className="flex-1 min-w-0">
-              <h3
-                className="font-semibold text-white truncate"
-                data-testid={`text-team-member-name-${member.slug}`}
-              >
-                {member.name}
-              </h3>
-              <p
-                className="text-sm text-white/60 truncate"
-                data-testid={`text-team-member-role-${member.slug}`}
-              >
-                {language === "es" ? member.roleEs : member.role}
-              </p>
-            </div>
-            <ChevronRight className="w-5 h-5 text-primary shrink-0" />
-          </div>
-        </CardContent>
-      </Card>
-    </Link>
-  );
+  const displayDescription =
+    language === "es"
+      ? practiceGroup?.fullDescriptionEs || practiceGroup?.descriptionEs || practiceGroup?.fullDescription || practiceGroup?.description
+      : language === "en"
+        ? practiceGroup?.fullDescription || practiceGroup?.description
+        : translatedFields.fullDescription || translatedFields.description || null;
+
+  const hasTeam =
+    filteredAndGroupedMembers.partners.length > 0 ||
+    filteredAndGroupedMembers.ofCounsel.length > 0 ||
+    filteredAndGroupedMembers.associates.length > 0;
 
   return (
-    <div className="min-h-screen bg-background" data-testid="page-practice-group-detail">
-      <Header />
-      
-      <section className="pt-36 pb-20 bg-[#1a1a19]" data-testid="section-practice-group-hero">
-        <div className="max-w-7xl mx-auto px-6 lg:px-12">
-          <motion.div
-            initial={{ opacity: 0, y: 24 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.7 }}
-          >
-            <Link href="/practice-groups">
-              <span 
-                className="inline-flex items-center gap-2 text-white/60 hover:text-white transition-colors mb-6 cursor-pointer text-sm"
-                data-testid="link-back-to-practice-groups"
-              >
-                <ArrowLeft className="w-4 h-4" />
-                {t.backToAll}
-              </span>
-            </Link>
-            <div className="flex items-center gap-4">
-              {IconComponent && (
-                <div className="w-16 h-16 rounded-none bg-white/5 flex items-center justify-center">
-                  <IconComponent className="w-8 h-8 text-primary" data-testid="icon-practice-group-detail" />
-                </div>
-              )}
-              <h1 
-                className="text-2xl md:text-3xl lg:text-4xl font-heading font-light text-white uppercase tracking-[0.15em]"
-                data-testid="text-practice-group-title"
-              >
-                {displayName || (isTranslating ? (
-                  <span className="flex items-center gap-2">
-                    <Loader2 className="w-5 h-5 animate-spin text-white/60" />
-                  </span>
-                ) : practiceGroup?.name)}
-                {displayName && isTranslating && (
-                  <Loader2 className="inline-block w-5 h-5 ml-3 animate-spin text-white/60" />
-                )}
-              </h1>
-            </div>
-          </motion.div>
-        </div>
-      </section>
+    <div data-testid="page-practice-group-detail">
+      <CapabilityHero
+        eyebrow={t.overview}
+        title={displayName || practiceGroup?.name || ""}
+        backLabel={t.backToAll}
+        backHref="/practice-groups"
+        trailing={
+          isTranslating ? (
+            <Loader2 className="h-5 w-5 animate-spin text-vw-gray" aria-hidden="true" />
+          ) : undefined
+        }
+        testId="section-practice-group-hero"
+      />
 
-      <main id="main-content">
-        {/* Description — light band with editorial lead paragraph */}
-        <section className="bg-background py-16 lg:py-20">
-          <div className="max-w-4xl mx-auto px-6 lg:px-12">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6, delay: 0.2 }}
-            >
-              <div data-testid="container-practice-group-description">
-                {displayDescription ? (() => {
-                  const paragraphs = displayDescription.split(/\n\s*\n/).filter(Boolean);
-                  const [first, ...rest] = paragraphs.length ? paragraphs : [displayDescription];
-                  return (
-                    <LeadParagraph
-                      eyebrow={t.overview}
-                      firstParagraph={first}
-                      restParagraphs={rest}
-                      testId="lead-practice-group"
-                    />
-                  );
-                })() : (practiceGroup?.descriptionEs || practiceGroup?.description) && isTranslating ? (
-                  <div className="flex items-center gap-2 text-muted-foreground italic">
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                    <span data-testid="text-translation-pending">
-                      {language === 'de' ? 'Übersetzung lädt...' :
-                       language === 'zh' ? '翻译加载中...' :
-                       language === 'ko' ? '번역 로딩 중...' :
-                       language === 'ja' ? '翻訳を読み込み中...' :
-                       language === 'ar' ? 'جاري تحميل الترجمة...' :
-                       language === 'ru' ? 'Загрузка перевода...' :
-                       language === 'fr' ? 'Traduction en cours...' :
-                       language === 'it' ? 'Caricamento traduzione...' :
-                       'Loading translation...'}
-                    </span>
-                  </div>
-                ) : null}
-              </div>
-            </motion.div>
-          </div>
-        </section>
+      {displayDescription && (
+        <CapabilityProse
+          text={displayDescription}
+          testId="section-practice-group-description"
+        />
+      )}
 
-        {/* Casos de Éxito — light band, dark cards */}
-        {representativeMatters && representativeMatters.length > 0 && (
-          <section className="bg-muted/40 py-16 lg:py-20" data-testid="section-representative-matters">
-            <div className="max-w-4xl mx-auto px-6 lg:px-12">
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.6, delay: 0.22 }}
-              >
-                <div className="mb-4">
-                  <div className="h-px w-10 bg-primary mb-4" aria-hidden="true" />
-                  <h2
-                    className="text-xl font-heading font-light text-foreground uppercase tracking-[0.12em]"
-                    data-testid="text-success-cases-title"
-                  >
-                    {t.successCasesTitle}
-                  </h2>
-                </div>
-                <p
-                  className="text-muted-foreground mb-6"
-                  data-testid="text-success-cases-subtitle"
-                >
-                  {t.successCasesSubtitle}
-                </p>
-                <div className="grid grid-cols-1 gap-4">
-                  {representativeMatters
-                    .sort((a, b) => {
-                      if (a.isHighlight && !b.isHighlight) return -1;
-                      if (!a.isHighlight && b.isHighlight) return 1;
-                      return b.year - a.year;
-                    })
-                    .map((matter) => (
-                      <TranslatedMatterCard
-                        key={matter.id}
-                        matter={matter}
-                        language={language}
-                        t={{ featured: t.featured, client: t.client }}
-                      />
-                    ))}
-                </div>
-              </motion.div>
-            </div>
-          </section>
-        )}
+      {representativeMatters && representativeMatters.length > 0 && (
+        <RepresentativeMatters
+          matters={representativeMatters}
+          language={language}
+          t={{
+            title: t.successCasesTitle,
+            subtitle: t.successCasesSubtitle,
+            featured: t.featured,
+            client: t.client,
+          }}
+        />
+      )}
 
-        {/* Rankings — muted band, refined hairline list */}
-        {practiceRankings.length > 0 && (
-          <section className="bg-background py-16 lg:py-20" data-testid="section-rankings">
-            <div className="max-w-4xl mx-auto px-6 lg:px-12">
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.6, delay: 0.25 }}
-              >
-                <Eyebrow label={t.rankingsTitle} className="mb-6" testId="eyebrow-rankings" />
-                <h2
-                  className="text-2xl md:text-3xl font-heading font-light text-foreground uppercase tracking-[0.12em] mb-3"
-                  data-testid="text-rankings-title"
-                >
-                  {t.rankingsTitle}
-                </h2>
-                <p
-                  className="text-muted-foreground mb-8 max-w-2xl"
-                  data-testid="text-rankings-subtitle"
-                >
-                  {t.rankingsSubtitle}
-                </p>
-                <RankingsList
-                  items={practiceRankings as RankingItem[]}
-                  language={language}
-                  getBadgeStyles={getBadgeStyles}
-                  getBadgeIcon={getBadgeIcon}
-                  testIdPrefix="ranking"
-                />
-              </motion.div>
-            </div>
-          </section>
-        )}
+      {practiceRankings.length > 0 && (
+        <CapabilityRankings
+          items={practiceRankings}
+          language={language}
+          title={t.rankingsTitle}
+          subtitle={t.rankingsSubtitle}
+        />
+      )}
 
-        {/* Nuestro Equipo — light band, dark cards */}
-        {(filteredAndGroupedMembers.partners.length > 0 ||
-          filteredAndGroupedMembers.ofCounsel.length > 0 ||
-          filteredAndGroupedMembers.associates.length > 0) && (
-          <section className="bg-muted/40 py-16 lg:py-20" data-testid="section-team-members">
-            <div className="max-w-4xl mx-auto px-6 lg:px-12">
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.6, delay: 0.3 }}
-              >
-                <div className="mb-8">
-                  <div className="h-px w-10 bg-primary mb-4" aria-hidden="true" />
-                  <h2
-                    className="text-xl font-heading font-light text-foreground uppercase tracking-[0.12em]"
-                    data-testid="text-our-team-title"
-                  >
-                    {t.ourTeam}
-                  </h2>
-                </div>
+      {hasTeam && (
+        <RelatedAttorneys
+          groups={filteredAndGroupedMembers}
+          language={language}
+          practiceSlug={slug}
+          t={{
+            ourTeam: t.ourTeam,
+            partners: t.partners,
+            ofCounsel: t.ofCounsel,
+            associates: t.associates,
+            viewAll: t.viewAll,
+          }}
+        />
+      )}
 
-                {filteredAndGroupedMembers.partners.length > 0 && (
-                  <div className="mb-8" data-testid="section-partners">
-                    <h3
-                      className="text-sm font-heading font-light text-foreground mb-4 flex items-center gap-3 uppercase tracking-[0.12em]"
-                      data-testid="text-partners-title"
-                    >
-                      <Badge variant="outline" className="rounded-none text-xs uppercase tracking-[0.15em] border-primary text-primary bg-transparent">
-                        {filteredAndGroupedMembers.partners.length}
-                      </Badge>
-                      {t.partners}
-                    </h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {filteredAndGroupedMembers.partners.map(renderMemberCard)}
-                    </div>
-                  </div>
-                )}
-
-                {filteredAndGroupedMembers.ofCounsel.length > 0 && (
-                  <div className="mb-8" data-testid="section-of-counsel">
-                    <h3
-                      className="text-sm font-heading font-light text-foreground mb-4 flex items-center gap-3 uppercase tracking-[0.12em]"
-                      data-testid="text-of-counsel-title"
-                    >
-                      <Badge variant="outline" className="rounded-none text-xs uppercase tracking-[0.15em] border-border text-muted-foreground bg-transparent">
-                        {filteredAndGroupedMembers.ofCounsel.length}
-                      </Badge>
-                      {t.ofCounsel}
-                    </h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {filteredAndGroupedMembers.ofCounsel.map(renderMemberCard)}
-                    </div>
-                  </div>
-                )}
-
-                {displayedAssociates.length > 0 && (
-                  <div data-testid="section-associates">
-                    <h3
-                      className="text-sm font-heading font-light text-foreground mb-4 flex items-center gap-3 uppercase tracking-[0.12em]"
-                      data-testid="text-associates-title"
-                    >
-                      <Badge variant="outline" className="rounded-none text-xs uppercase tracking-[0.15em] border-border text-muted-foreground bg-transparent">
-                        {filteredAndGroupedMembers.associates.length}
-                      </Badge>
-                      {t.associates}
-                    </h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {displayedAssociates.map(renderMemberCard)}
-                    </div>
-                    {hasMoreAssociates && (
-                      <div className="mt-6 text-center">
-                        <Link href={`/team?practice=${slug}`}>
-                          <Button
-                            variant="outline"
-                            className="rounded-none gap-2"
-                            data-testid="button-view-all-associates"
-                          >
-                            {t.viewAll} ({filteredAndGroupedMembers.associates.length})
-                            <ChevronRight className="w-4 h-4" />
-                          </Button>
-                        </Link>
-                      </div>
-                    )}
-                  </div>
-                )}
-              </motion.div>
-            </div>
-          </section>
-        )}
-
-        {/* Contact CTA — light band */}
-        <section className="bg-background py-16 lg:py-20">
-          <div className="max-w-4xl mx-auto px-6 lg:px-12">
-            <motion.section
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6, delay: 0.4 }}
-              className="bg-muted rounded-none p-8 lg:p-12"
-              data-testid="section-contact-cta"
-            >
-              <h2
-                className="text-xl font-heading font-light text-foreground mb-3 uppercase tracking-[0.12em]"
-                data-testid="text-contact-cta-title"
-              >
-                {t.contactCta}
-              </h2>
-              <p
-                className="text-muted-foreground mb-6"
-                data-testid="text-contact-cta-subtitle"
-              >
-                {t.contactSubtitle}
-              </p>
-              <div className="flex flex-col sm:flex-row gap-4">
-                <Link href="/contact">
-                  <Button
-                    className="rounded-none"
-                    data-testid="button-email-us"
-                  >
-                    <Mail className="w-4 h-4 mr-2" />
-                    {t.emailUs}
-                  </Button>
-                </Link>
-                <Button
-                  variant="outline"
-                  className="rounded-none"
-                  data-testid="button-call-us"
-                  onClick={() => window.location.href = "tel:+525552581000"}
-                >
-                  <Phone className="w-4 h-4 mr-2" />
-                  {t.callUs}
-                </Button>
-              </div>
-            </motion.section>
-          </div>
-        </section>
-      </main>
-
-      <Footer />
+      <CapabilityContactCta
+        title={t.contactCta}
+        subtitle={t.contactSubtitle}
+        emailLabel={t.emailUs}
+        callLabel={t.callUs}
+      />
     </div>
   );
 }

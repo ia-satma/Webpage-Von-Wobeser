@@ -1,26 +1,22 @@
-import { motion } from "framer-motion";
-import { Mail, Send, Loader2, CheckCircle, Bell, FileText, Calendar, Briefcase, Archive, ExternalLink } from "lucide-react";
+import { Send, Loader2, Bell, FileText, Calendar, Briefcase, Archive, ExternalLink } from "lucide-react";
 import { useMutation } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import Header from "@/components/Header";
-import Footer from "@/components/Footer";
 import SEOHead from "@/components/SEOHead";
 import { useLanguage } from "@/contexts/LanguageContext";
+import {
+  PageHero,
+  Section,
+  SectionTitle,
+  FeatureCard,
+  FirmLabel,
+  FirmError,
+  FirmInput,
+  FirmSubmit,
+} from "@/components/firm";
 
 interface NewsletterFormData {
   email: string;
@@ -610,332 +606,167 @@ export default function Newsletter() {
   ];
 
   return (
-    <div className="min-h-screen bg-background" data-testid="page-newsletter">
+    <div data-testid="page-newsletter" className="vw-old">
       <SEOHead page="newsletter" language={language} />
-      <Header />
-      
-      <section className="pt-36 pb-20 bg-[#1a1a19]" data-testid="section-newsletter-hero">
-        <div className="max-w-7xl mx-auto px-6 lg:px-12">
-          <motion.div
-            initial={{ opacity: 0, y: 24 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.7 }}
-            className="text-center"
-          >
-            <div className="h-0.5 w-12 bg-primary mx-auto mb-6" />
-            <h1 
-              className="text-4xl md:text-5xl font-heading font-light text-white mb-5 uppercase tracking-[0.15em]"
-              data-testid="text-newsletter-title"
-            >
-              {t.title}
-            </h1>
-            <p 
-              className="text-base text-white/60 max-w-2xl mx-auto"
-              data-testid="text-newsletter-subtitle"
-            >
-              {t.subtitle}
+
+      <PageHero
+        eyebrow="Von Wobeser y Sierra"
+        title={t.title}
+        subtitle={t.subtitle}
+        data-testid="section-newsletter-hero"
+      />
+
+      {/* Formulario de suscripción + beneficios */}
+      <Section tone="white" data-testid="section-newsletter-form">
+        <div className="grid gap-12 lg:grid-cols-2">
+          <div>
+            <SectionTitle data-testid="text-form-title">{t.formTitle}</SectionTitle>
+            <p className="mb-8 font-sans text-vw-gray" data-testid="text-form-subtitle">
+              {t.formSubtitle}
             </p>
-          </motion.div>
-        </div>
-      </section>
 
-      <main id="main-content" className="py-16 lg:py-20">
-        <div className="max-w-7xl mx-auto px-6 lg:px-12">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-            <motion.div
-              initial={{ opacity: 0, x: -20 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6, delay: 0.1 }}
-              data-testid="section-newsletter-form"
-            >
-              <Card className="rounded-none border border-border">
-                <CardContent className="p-8">
-                  <div className="mb-8">
-                    <div className="flex items-center gap-3 mb-4">
-                      <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
-                        <Mail className="w-6 h-6 text-primary" />
-                      </div>
-                      <h2 
-                        className="text-xl font-heading font-light text-primary dark:text-white uppercase tracking-[0.12em]"
-                        data-testid="text-form-title"
-                      >
-                        {t.formTitle}
-                      </h2>
-                    </div>
-                    <p 
-                      className="text-muted-foreground"
-                      data-testid="text-form-subtitle"
-                    >
-                      {t.formSubtitle}
-                    </p>
-                  </div>
-
-                  <Form {...form}>
-                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6" data-testid="form-newsletter">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <FormField
-                          control={form.control}
-                          name="firstName"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel data-testid="label-firstname">{t.firstNameLabel}</FormLabel>
-                              <FormControl>
-                                <Input 
-                                  placeholder={t.firstNamePlaceholder} 
-                                  {...field} 
-                                  data-testid="input-firstname"
-                                />
-                              </FormControl>
-                              <FormMessage data-testid="error-firstname" />
-                            </FormItem>
-                          )}
-                        />
-
-                        <FormField
-                          control={form.control}
-                          name="lastName"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel data-testid="label-lastname">{t.lastNameLabel}</FormLabel>
-                              <FormControl>
-                                <Input 
-                                  placeholder={t.lastNamePlaceholder} 
-                                  {...field} 
-                                  data-testid="input-lastname"
-                                />
-                              </FormControl>
-                              <FormMessage data-testid="error-lastname" />
-                            </FormItem>
-                          )}
-                        />
-                      </div>
-
-                      <FormField
-                        control={form.control}
-                        name="email"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel data-testid="label-email">{t.emailLabel}</FormLabel>
-                            <FormControl>
-                              <Input 
-                                type="email"
-                                placeholder={t.emailPlaceholder} 
-                                {...field} 
-                                data-testid="input-email"
-                              />
-                            </FormControl>
-                            <FormMessage data-testid="error-email" />
-                          </FormItem>
-                        )}
-                      />
-
-                      <Button 
-                        type="submit" 
-                        className="w-full rounded-none bg-primary hover:bg-[#8A1525]"
-                        disabled={newsletterMutation.isPending}
-                        data-testid="button-subscribe"
-                      >
-                        {newsletterMutation.isPending ? (
-                          <>
-                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                            {t.submitting}
-                          </>
-                        ) : (
-                          <>
-                            <Send className="w-4 h-4 mr-2" />
-                            {t.submit}
-                          </>
-                        )}
-                      </Button>
-
-                      <p 
-                        className="text-sm text-muted-foreground text-center"
-                        data-testid="text-privacy-note"
-                      >
-                        {t.privacyNote}
-                      </p>
-                    </form>
-                  </Form>
-                </CardContent>
-              </Card>
-
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.6, delay: 0.3 }}
-                className="mt-8"
-              >
-                <Card className="rounded-none border border-border bg-muted" data-testid="card-frequency">
-                  <CardContent className="p-6">
-                    <div className="flex items-center gap-3 mb-2">
-                      <Calendar className="w-5 h-5 text-primary" />
-                      <h3 
-                        className="text-lg font-heading font-light text-foreground"
-                        data-testid="text-frequency-title"
-                      >
-                        {t.frequency}
-                      </h3>
-                    </div>
-                    <p 
-                      className="text-sm text-muted-foreground"
-                      data-testid="text-frequency-description"
-                    >
-                      {t.frequencyDescription}
-                    </p>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, x: 20 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6, delay: 0.2 }}
+            {/* TODO(W7): reCAPTCHA v3 — añadir token al submit cuando haya keys. */}
+            <form
+              onSubmit={form.handleSubmit(onSubmit)}
               className="space-y-6"
+              data-testid="form-newsletter"
+              noValidate
             >
-              <h2 
-                className="text-xl font-heading font-light text-primary dark:text-white mb-6 uppercase tracking-[0.12em]"
-                data-testid="text-benefits-title"
-              >
-                {t.whatYouReceive}
-              </h2>
-
-              <div className="space-y-4">
-                {benefits.map((benefit, index) => (
-                  <motion.div
-                    key={index}
-                    initial={{ opacity: 0, y: 20 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true }}
-                    transition={{ duration: 0.6, delay: 0.3 + index * 0.1 }}
-                  >
-                    <Card 
-                      className="rounded-none border border-border"
-                      data-testid={`card-benefit-${index}`}
-                    >
-                      <CardContent className="p-6">
-                        <div className="flex items-start gap-4">
-                          <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                            <benefit.icon className="w-5 h-5 text-primary" />
-                          </div>
-                          <div>
-                            <h3 
-                              className="font-semibold text-foreground mb-1"
-                              data-testid={`text-benefit-title-${index}`}
-                            >
-                              {benefit.title}
-                            </h3>
-                            <p 
-                              className="text-sm text-muted-foreground"
-                              data-testid={`text-benefit-description-${index}`}
-                            >
-                              {benefit.description}
-                            </p>
-                          </div>
-                          <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0" />
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </motion.div>
-                ))}
+              <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                <div>
+                  <FirmLabel htmlFor="nl-firstName">{t.firstNameLabel}</FirmLabel>
+                  <FirmInput
+                    id="nl-firstName"
+                    placeholder={t.firstNamePlaceholder}
+                    data-testid="input-firstname"
+                    {...form.register("firstName")}
+                  />
+                </div>
+                <div>
+                  <FirmLabel htmlFor="nl-lastName">{t.lastNameLabel}</FirmLabel>
+                  <FirmInput
+                    id="nl-lastName"
+                    placeholder={t.lastNamePlaceholder}
+                    data-testid="input-lastname"
+                    {...form.register("lastName")}
+                  />
+                </div>
               </div>
-            </motion.div>
-          </div>
 
-          <motion.section
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6, delay: 0.5 }}
-            className="mt-16"
-            data-testid="section-newsletter-archives"
-          >
-            <div className="text-center mb-10">
-              <div className="flex items-center justify-center gap-3 mb-4">
-                <Archive className="w-8 h-8 text-primary" />
-                <h2 
-                  className="text-xl font-heading font-light text-primary dark:text-white uppercase tracking-[0.12em]"
-                  data-testid="text-archives-title"
-                >
-                  {t.archivesTitle}
-                </h2>
+              <div>
+                <FirmLabel htmlFor="nl-email">{t.emailLabel}</FirmLabel>
+                <FirmInput
+                  id="nl-email"
+                  type="email"
+                  placeholder={t.emailPlaceholder}
+                  invalid={!!form.formState.errors.email}
+                  data-testid="input-email"
+                  {...form.register("email")}
+                />
+                <FirmError message={form.formState.errors.email?.message} />
               </div>
-              <p 
-                className="text-muted-foreground max-w-2xl mx-auto"
-                data-testid="text-archives-subtitle"
-              >
-                {t.archivesSubtitle}
+
+              <FirmSubmit disabled={newsletterMutation.isPending} data-testid="button-subscribe">
+                {newsletterMutation.isPending ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+                    {t.submitting}
+                  </>
+                ) : (
+                  <>
+                    <Send className="h-4 w-4" aria-hidden="true" />
+                    {t.submit}
+                  </>
+                )}
+              </FirmSubmit>
+
+              <p className="font-sans text-sm text-vw-gray" data-testid="text-privacy-note">
+                {t.privacyNote}
+              </p>
+            </form>
+
+            <div className="mt-8 border border-vw-graylight bg-white p-6" data-testid="card-frequency">
+              <div className="mb-2 flex items-center gap-3">
+                <Calendar className="h-5 w-5 text-vw-red" aria-hidden="true" />
+                <h3 className="font-serif text-lg text-vw-black" data-testid="text-frequency-title">
+                  {t.frequency}
+                </h3>
+              </div>
+              <p className="font-sans text-sm text-vw-gray" data-testid="text-frequency-description">
+                {t.frequencyDescription}
               </p>
             </div>
+          </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {[
-                { title: t.archiveItem1Title, date: t.archiveItem1Date, description: t.archiveItem1Description },
-                { title: t.archiveItem2Title, date: t.archiveItem2Date, description: t.archiveItem2Description },
-                { title: t.archiveItem3Title, date: t.archiveItem3Date, description: t.archiveItem3Description },
-              ].map((archive, index) => (
-                <motion.div
+          <div>
+            <SectionTitle data-testid="text-benefits-title">{t.whatYouReceive}</SectionTitle>
+            <div className="space-y-4">
+              {benefits.map((benefit, index) => (
+                <FeatureCard
                   key={index}
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.6, delay: 0.6 + index * 0.1 }}
+                  icon={benefit.icon}
+                  title={benefit.title}
+                  data-testid={`card-benefit-${index}`}
                 >
-                  <Card 
-                    className="rounded-none border border-border h-full"
-                    data-testid={`card-archive-${index}`}
-                  >
-                    <CardContent className="p-6">
-                      <div className="flex items-center gap-2 mb-3">
-                        <FileText className="w-4 h-4 text-primary" />
-                        <span 
-                          className="text-sm text-primary font-medium"
-                          data-testid={`text-archive-date-${index}`}
-                        >
-                          {archive.date}
-                        </span>
-                      </div>
-                      <h3 
-                        className="font-semibold text-foreground mb-2"
-                        data-testid={`text-archive-title-${index}`}
-                      >
-                        {archive.title}
-                      </h3>
-                      <p 
-                        className="text-sm text-muted-foreground mb-4"
-                        data-testid={`text-archive-description-${index}`}
-                      >
-                        {archive.description}
-                      </p>
-                      <a 
-                        href={`mailto:info@vonwobeser.com?subject=${encodeURIComponent(language === 'es' ? `Solicitud de Newsletter: ${archive.title}` : `Newsletter Request: ${archive.title}`)}`}
-                        className="inline-flex items-center gap-2 text-sm text-primary hover:text-[#8A1525] transition-colors"
-                        data-testid={`button-archive-view-${index}`}
-                      >
-                        <ExternalLink className="w-4 h-4" />
-                        {t.viewArchive}
-                      </a>
-                    </CardContent>
-                  </Card>
-                </motion.div>
+                  {benefit.description}
+                </FeatureCard>
               ))}
             </div>
-
-            <p 
-              className="text-center text-sm text-muted-foreground mt-8"
-              data-testid="text-archives-coming-soon"
-            >
-              {t.comingSoon}
-            </p>
-          </motion.section>
+          </div>
         </div>
-      </main>
+      </Section>
 
-      <Footer />
+      {/* Boletines anteriores */}
+      <Section tone="gray" data-testid="section-newsletter-archives">
+        <div className="mb-10 flex items-center gap-3">
+          <Archive className="h-7 w-7 text-vw-red" aria-hidden="true" />
+          <SectionTitle className="mb-0 border-b-0" data-testid="text-archives-title">
+            {t.archivesTitle}
+          </SectionTitle>
+        </div>
+        <p className="mb-10 max-w-2xl font-sans text-vw-gray" data-testid="text-archives-subtitle">
+          {t.archivesSubtitle}
+        </p>
+
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+          {[
+            { title: t.archiveItem1Title, date: t.archiveItem1Date, description: t.archiveItem1Description },
+            { title: t.archiveItem2Title, date: t.archiveItem2Date, description: t.archiveItem2Description },
+            { title: t.archiveItem3Title, date: t.archiveItem3Date, description: t.archiveItem3Description },
+          ].map((archive, index) => (
+            <div
+              key={index}
+              className="flex h-full flex-col border border-vw-graylight bg-white p-6"
+              data-testid={`card-archive-${index}`}
+            >
+              <div className="mb-3 flex items-center gap-2">
+                <FileText className="h-4 w-4 text-vw-red" aria-hidden="true" />
+                <span className="vw-label text-[11px] text-vw-red" data-testid={`text-archive-date-${index}`}>
+                  {archive.date}
+                </span>
+              </div>
+              <h3 className="mb-2 font-serif text-lg text-vw-black" data-testid={`text-archive-title-${index}`}>
+                {archive.title}
+              </h3>
+              <p className="mb-4 font-sans text-sm text-vw-gray" data-testid={`text-archive-description-${index}`}>
+                {archive.description}
+              </p>
+              <a
+                href={`mailto:info@vonwobeser.com?subject=${encodeURIComponent(language === "es" ? `Solicitud de Newsletter: ${archive.title}` : `Newsletter Request: ${archive.title}`)}`}
+                className="vw-label mt-auto inline-flex items-center gap-2 text-[11px] text-vw-red transition-colors hover:text-vw-black"
+                data-testid={`button-archive-view-${index}`}
+              >
+                <ExternalLink className="h-4 w-4" aria-hidden="true" />
+                {t.viewArchive}
+              </a>
+            </div>
+          ))}
+        </div>
+
+        <p className="mt-8 text-center font-sans text-sm text-vw-gray" data-testid="text-archives-coming-soon">
+          {t.comingSoon}
+        </p>
+      </Section>
     </div>
   );
 }

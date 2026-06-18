@@ -1,152 +1,21 @@
-import { useState } from "react";
 import { Link, useParams } from "wouter";
-import { motion } from "framer-motion";
-import { ArrowLeft, Calendar, Share2, Linkedin, Twitter, Mail, LinkIcon, AlertCircle, MessageCircle, Loader2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { es, enUS, de, zhCN, ko, ja, arSA, ru, fr, it } from "date-fns/locale";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { useToast } from "@/hooks/use-toast";
-import Header from "@/components/Header";
-import Footer from "@/components/Footer";
 import { ArticleJsonLd, BreadcrumbJsonLd } from "@/components/JsonLdSchema";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useTranslatedContent } from "@/hooks/useTranslatedContent";
-import { isNativeLanguage } from "@/lib/translationUtils";
-import { LeadParagraph } from "@/components/editorial";
+import { AuthorLink } from "@/components/insights";
 import type { News, TeamMember } from "@shared/schema";
 
-function NewsHeroImage({ 
-  src, 
-  alt
-}: { 
-  src: string; 
-  alt: string;
-}) {
-  const [hasError, setHasError] = useState(false);
-  const fallbackImage = "https://images.unsplash.com/photo-1497366216548-37526070297c?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80";
-  
-  return (
-    <img
-      src={hasError ? fallbackImage : src}
-      alt={alt}
-      className="w-full h-full object-cover"
-      onError={() => setHasError(true)}
-      data-testid="img-news-hero"
-    />
-  );
-}
-
-function NewsCardImage({ 
-  src, 
-  alt, 
-  className 
-}: { 
-  src: string; 
-  alt: string; 
-  className?: string;
-}) {
-  const [hasError, setHasError] = useState(false);
-  
-  if (hasError || !src) {
-    return (
-      <div className={`bg-gradient-to-br from-primary/10 to-primary/5 flex items-center justify-center ${className}`}>
-        <span className="text-3xl font-heading font-bold text-primary/30 tracking-wider">
-          VWS
-        </span>
-      </div>
-    );
-  }
-  
-  return (
-    <img
-      src={src}
-      alt={alt}
-      className={className}
-      onError={() => setHasError(true)}
-    />
-  );
-}
-
-function AuthorCard({ 
-  author, 
-  getInitials, 
-  truncateBio 
-}: { 
-  author: TeamMember; 
-  getInitials: (name: string) => string;
-  truncateBio: (bio: string | null | undefined, maxLength?: number) => string;
-}) {
-  const { language } = useLanguage();
-  
-  const { translatedFields, isTranslating } = useTranslatedContent({
-    contentType: 'team_member',
-    entityId: author.id.toString(),
-    fields: {
-      title: author.title,
-      titleEs: author.titleEs,
-      bio: author.bio,
-      bioEs: author.bioEs,
-    },
-    enabled: !isNativeLanguage(language),
-  });
-
-  const displayTitle = translatedFields.title || author.title;
-  const displayBio = translatedFields.bio || author.bio;
-  
-  return (
-    <Link 
-      href={`/team/${author.slug}`}
-      className="block"
-    >
-      <Card
-        className="group overflow-visible border border-border shadow-sm hover:shadow-lg transition-all duration-300 rounded-none bg-card hover-elevate"
-        data-testid={`card-author-${author.slug}`}
-      >
-        <CardContent className="p-6">
-          <div className="flex items-start gap-4">
-            <Avatar className="w-16 h-16 flex-shrink-0 border-2 border-border" data-testid={`avatar-author-${author.slug}`}>
-              <AvatarImage 
-                src={author.imageUrl || undefined} 
-                alt={author.name}
-                className="object-cover"
-              />
-              <AvatarFallback className="bg-primary/10 text-primary text-lg font-medium">
-                {getInitials(author.name)}
-              </AvatarFallback>
-            </Avatar>
-            <div className="flex-1 min-w-0">
-              <h3 
-                className="text-lg font-medium text-foreground group-hover:text-primary transition-colors"
-                data-testid={`text-author-name-${author.slug}`}
-              >
-                {author.name}
-              </h3>
-              <p 
-                className="text-sm text-primary font-medium mb-2"
-                data-testid={`text-author-title-${author.slug}`}
-              >
-                {displayTitle}
-                {isTranslating && (
-                  <Loader2 className="inline-block w-3 h-3 ml-2 animate-spin text-primary/60" />
-                )}
-              </p>
-              <p 
-                className="text-sm text-muted-foreground leading-relaxed line-clamp-3"
-                data-testid={`text-author-bio-${author.slug}`}
-              >
-                {truncateBio(displayBio)}
-              </p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-    </Link>
-  );
-}
+/**
+ * `pdfUrl` aún no existe en el esquema de News (lo añadirá W7). Lo leemos de
+ * forma defensiva para que, cuando el campo aparezca, el botón de descarga se
+ * muestre sin tocar este archivo.
+ */
+type NewsWithOptionalPdf = News & { pdfUrl?: string | null };
 
 export default function NewsDetail() {
   const { language } = useLanguage();
@@ -154,6 +23,7 @@ export default function NewsDetail() {
   const params = useParams<{ slug: string }>();
   const slug = params.slug;
 
+  // --- Data preservada: mismas tres queries que la página vieja ---
   const { data: newsArticle, isLoading, error } = useQuery<News>({
     queryKey: [`/api/news/${slug}`],
     enabled: !!slug,
@@ -164,13 +34,13 @@ export default function NewsDetail() {
   });
 
   const { data: relatedAuthors } = useQuery<TeamMember[]>({
-    queryKey: ['/api/news', slug, 'authors'],
+    queryKey: ["/api/news", slug, "authors"],
     enabled: !!slug,
   });
 
   const { translatedFields, isTranslating } = useTranslatedContent({
-    contentType: 'news',
-    entityId: newsArticle?.id?.toString() || '',
+    contentType: "news",
+    entityId: newsArticle?.id?.toString() || "",
     fields: {
       title: newsArticle?.title,
       titleEs: newsArticle?.titleEs,
@@ -182,212 +52,171 @@ export default function NewsDetail() {
     enabled: !!newsArticle,
   });
 
-  const content: Record<string, {
-    backToNews: string;
-    share: string;
-    relatedNews: string;
-    errorMessage: string;
-    loading: string;
-    readMore: string;
-    copyLink: string;
-    linkCopied: string;
-    shareVia: string;
-    aboutTheAuthor: string;
-    aboutTheAuthors: string;
-    publishedOn: string;
-    author: string;
-    topics: string;
-    category: string;
-    breadcrumbHome: string;
-    breadcrumbNews: string;
-  }> = {
+  const content: Record<
+    string,
+    {
+      label: string;
+      backToNews: string;
+      relatedNews: string;
+      errorMessage: string;
+      loading: string;
+      print: string;
+      share: string;
+      download: string;
+      linkCopied: string;
+      aboutTheAuthor: string;
+      aboutTheAuthors: string;
+      breadcrumbHome: string;
+      breadcrumbNews: string;
+    }
+  > = {
     en: {
+      label: "Publication",
       backToNews: "Back to News",
-      share: "Share this article",
       relatedNews: "Related News",
       errorMessage: "Article not found",
       loading: "Loading...",
-      readMore: "Read More",
-      copyLink: "Copy Link",
+      print: "Print",
+      share: "Share",
+      download: "Download",
       linkCopied: "Link copied to clipboard!",
-      shareVia: "Share via",
-      aboutTheAuthor: "About the Author",
-      aboutTheAuthors: "About the Authors",
-      publishedOn: "Published on",
-      author: "Author",
-      topics: "Topics",
-      category: "Category",
+      aboutTheAuthor: "Author",
+      aboutTheAuthors: "Authors",
       breadcrumbHome: "Home",
       breadcrumbNews: "News",
     },
     es: {
+      label: "Publicación",
       backToNews: "Volver a Noticias",
-      share: "Compartir este artículo",
       relatedNews: "Noticias Relacionadas",
       errorMessage: "Artículo no encontrado",
       loading: "Cargando...",
-      readMore: "Leer Más",
-      copyLink: "Copiar Enlace",
+      print: "Imprimir",
+      share: "Compartir",
+      download: "Descargar",
       linkCopied: "¡Enlace copiado al portapapeles!",
-      shareVia: "Compartir vía",
-      aboutTheAuthor: "Acerca del Autor",
-      aboutTheAuthors: "Acerca de los Autores",
-      publishedOn: "Publicado el",
-      author: "Autor",
-      topics: "Temas",
-      category: "Categoría",
+      aboutTheAuthor: "Autor",
+      aboutTheAuthors: "Autores",
       breadcrumbHome: "Inicio",
       breadcrumbNews: "Noticias",
     },
     de: {
+      label: "Publikation",
       backToNews: "Zurück zu Nachrichten",
-      share: "Artikel teilen",
       relatedNews: "Ähnliche Nachrichten",
       errorMessage: "Nachricht nicht gefunden",
       loading: "Wird geladen...",
-      readMore: "Weiterlesen",
-      copyLink: "Link kopieren",
+      print: "Drucken",
+      share: "Teilen",
+      download: "Herunterladen",
       linkCopied: "Link in die Zwischenablage kopiert!",
-      shareVia: "Teilen über",
-      aboutTheAuthor: "Über den Autor",
-      aboutTheAuthors: "Über die Autoren",
-      publishedOn: "Veröffentlicht am",
-      author: "Autor",
-      topics: "Themen",
-      category: "Kategorie",
+      aboutTheAuthor: "Autor",
+      aboutTheAuthors: "Autoren",
       breadcrumbHome: "Startseite",
       breadcrumbNews: "Nachrichten",
     },
     zh: {
+      label: "出版物",
       backToNews: "返回新闻",
-      share: "分享文章",
       relatedNews: "相关新闻",
       errorMessage: "未找到新闻",
       loading: "加载中...",
-      readMore: "阅读更多",
-      copyLink: "复制链接",
+      print: "打印",
+      share: "分享",
+      download: "下载",
       linkCopied: "链接已复制到剪贴板！",
-      shareVia: "分享至",
-      aboutTheAuthor: "关于作者",
-      aboutTheAuthors: "关于作者们",
-      publishedOn: "发布日期",
-      author: "作者",
-      topics: "主题",
-      category: "类别",
+      aboutTheAuthor: "作者",
+      aboutTheAuthors: "作者",
       breadcrumbHome: "首页",
       breadcrumbNews: "新闻",
     },
     ko: {
+      label: "출판물",
       backToNews: "뉴스로 돌아가기",
-      share: "기사 공유",
       relatedNews: "관련 뉴스",
       errorMessage: "뉴스를 찾을 수 없습니다",
       loading: "로딩 중...",
-      readMore: "더 읽기",
-      copyLink: "링크 복사",
+      print: "인쇄",
+      share: "공유",
+      download: "다운로드",
       linkCopied: "링크가 클립보드에 복사되었습니다!",
-      shareVia: "공유하기",
-      aboutTheAuthor: "저자 소개",
-      aboutTheAuthors: "저자들 소개",
-      publishedOn: "게시일",
-      author: "저자",
-      topics: "주제",
-      category: "카테고리",
+      aboutTheAuthor: "저자",
+      aboutTheAuthors: "저자",
       breadcrumbHome: "홈",
       breadcrumbNews: "뉴스",
     },
     ja: {
+      label: "出版物",
       backToNews: "ニュースに戻る",
-      share: "記事を共有",
       relatedNews: "関連ニュース",
       errorMessage: "ニュースが見つかりません",
       loading: "読み込み中...",
-      readMore: "続きを読む",
-      copyLink: "リンクをコピー",
+      print: "印刷",
+      share: "共有",
+      download: "ダウンロード",
       linkCopied: "リンクがクリップボードにコピーされました！",
-      shareVia: "共有する",
-      aboutTheAuthor: "著者について",
-      aboutTheAuthors: "著者たちについて",
-      publishedOn: "公開日",
-      author: "著者",
-      topics: "トピック",
-      category: "カテゴリー",
+      aboutTheAuthor: "著者",
+      aboutTheAuthors: "著者",
       breadcrumbHome: "ホーム",
       breadcrumbNews: "ニュース",
     },
     ar: {
+      label: "منشور",
       backToNews: "العودة إلى الأخبار",
-      share: "مشاركة المقال",
       relatedNews: "أخبار ذات صلة",
       errorMessage: "الخبر غير موجود",
       loading: "جاري التحميل...",
-      readMore: "اقرأ المزيد",
-      copyLink: "نسخ الرابط",
+      print: "طباعة",
+      share: "مشاركة",
+      download: "تنزيل",
       linkCopied: "تم نسخ الرابط!",
-      shareVia: "مشاركة عبر",
-      aboutTheAuthor: "عن الكاتب",
-      aboutTheAuthors: "عن الكتاب",
-      publishedOn: "نُشر في",
-      author: "المؤلف",
-      topics: "المواضيع",
-      category: "الفئة",
+      aboutTheAuthor: "المؤلف",
+      aboutTheAuthors: "المؤلفون",
       breadcrumbHome: "الرئيسية",
       breadcrumbNews: "الأخبار",
     },
     ru: {
+      label: "Публикация",
       backToNews: "Назад к новостям",
-      share: "Поделиться статьёй",
       relatedNews: "Похожие новости",
       errorMessage: "Новость не найдена",
       loading: "Загрузка...",
-      readMore: "Читать далее",
-      copyLink: "Скопировать ссылку",
+      print: "Печать",
+      share: "Поделиться",
+      download: "Скачать",
       linkCopied: "Ссылка скопирована в буфер обмена!",
-      shareVia: "Поделиться через",
-      aboutTheAuthor: "Об авторе",
-      aboutTheAuthors: "Об авторах",
-      publishedOn: "Опубликовано",
-      author: "Автор",
-      topics: "Темы",
-      category: "Категория",
+      aboutTheAuthor: "Автор",
+      aboutTheAuthors: "Авторы",
       breadcrumbHome: "Главная",
       breadcrumbNews: "Новости",
     },
     fr: {
+      label: "Publication",
       backToNews: "Retour aux actualités",
-      share: "Partager l'article",
       relatedNews: "Actualités similaires",
       errorMessage: "Actualité non trouvée",
       loading: "Chargement...",
-      readMore: "Lire la suite",
-      copyLink: "Copier le lien",
+      print: "Imprimer",
+      share: "Partager",
+      download: "Télécharger",
       linkCopied: "Lien copié dans le presse-papiers!",
-      shareVia: "Partager via",
-      aboutTheAuthor: "À propos de l'auteur",
-      aboutTheAuthors: "À propos des auteurs",
-      publishedOn: "Publié le",
-      author: "Auteur",
-      topics: "Sujets",
-      category: "Catégorie",
+      aboutTheAuthor: "Auteur",
+      aboutTheAuthors: "Auteurs",
       breadcrumbHome: "Accueil",
       breadcrumbNews: "Actualités",
     },
     it: {
+      label: "Pubblicazione",
       backToNews: "Torna alle notizie",
-      share: "Condividi articolo",
       relatedNews: "Notizie correlate",
       errorMessage: "Notizia non trovata",
       loading: "Caricamento...",
-      readMore: "Leggi di più",
-      copyLink: "Copia link",
+      print: "Stampa",
+      share: "Condividi",
+      download: "Scarica",
       linkCopied: "Link copiato negli appunti!",
-      shareVia: "Condividi tramite",
-      aboutTheAuthor: "Sull'autore",
-      aboutTheAuthors: "Sugli autori",
-      publishedOn: "Pubblicato il",
-      author: "Autore",
-      topics: "Argomenti",
-      category: "Categoria",
+      aboutTheAuthor: "Autore",
+      aboutTheAuthors: "Autori",
       breadcrumbHome: "Home",
       breadcrumbNews: "Notizie",
     },
@@ -398,148 +227,132 @@ export default function NewsDetail() {
   const getDateLocale = () => {
     const localeMap: Record<string, typeof enUS> = {
       en: enUS,
-      es: es,
-      de: de,
+      es,
+      de,
       zh: zhCN,
-      ko: ko,
-      ja: ja,
+      ko,
+      ja,
       ar: arSA,
-      ru: ru,
-      fr: fr,
-      it: it,
+      ru,
+      fr,
+      it,
     };
     return localeMap[language] || enUS;
   };
 
   const getDateFormatPattern = () => {
+    // El look viejo muestra "Month, Year" (p.ej. "June, 2026").
     const formatMap: Record<string, string> = {
-      en: "MMMM d, yyyy",
-      es: "d 'de' MMMM, yyyy",
-      de: "d. MMMM yyyy",
-      zh: "yyyy'年'M'月'd'日'",
-      ko: "yyyy'년' M'월' d'일'",
-      ja: "yyyy'年'M'月'd'日'",
-      ar: "d MMMM yyyy",
-      ru: "d MMMM yyyy 'г.'",
-      fr: "d MMMM yyyy",
-      it: "d MMMM yyyy",
+      en: "MMMM, yyyy",
+      es: "MMMM, yyyy",
+      de: "MMMM yyyy",
+      zh: "yyyy'年'M'月'",
+      ko: "yyyy'년' M'월'",
+      ja: "yyyy'年'M'月'",
+      ar: "MMMM yyyy",
+      ru: "MMMM yyyy 'г.'",
+      fr: "MMMM yyyy",
+      it: "MMMM yyyy",
     };
-    return formatMap[language] || "MMMM d, yyyy";
+    return formatMap[language] || "MMMM, yyyy";
   };
 
   const formatDate = (date: Date | string | null) => {
     if (!date) return "";
     const dateObj = typeof date === "string" ? new Date(date) : date;
-    return format(dateObj, getDateFormatPattern(), {
-      locale: getDateLocale(),
-    });
+    return format(dateObj, getDateFormatPattern(), { locale: getDateLocale() });
   };
 
-  const handleShare = (platform: "linkedin" | "twitter" | "whatsapp" | "email") => {
+  const handlePrint = () => {
+    if (typeof window !== "undefined") window.print();
+  };
+
+  const handleShare = () => {
+    if (typeof window === "undefined") return;
     const url = window.location.href;
-    const shareTitle = translatedFields.title || newsArticle?.title;
-    const shareExcerpt = translatedFields.excerpt || newsArticle?.excerpt;
-    
-    const shareUrls = {
-      linkedin: `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}`,
-      twitter: `https://twitter.com/intent/tweet?url=${encodeURIComponent(url)}&text=${encodeURIComponent(shareTitle || "")}`,
-      whatsapp: `https://wa.me/?text=${encodeURIComponent(`${shareTitle} - ${url}`)}`,
-      email: `mailto:?subject=${encodeURIComponent(shareTitle || "")}&body=${encodeURIComponent(`${shareExcerpt || ""}\n\n${url}`)}`,
-    };
-    
-    if (platform === "email") {
-      window.location.href = shareUrls[platform];
-    } else {
-      window.open(shareUrls[platform], "_blank", "width=600,height=400");
-    }
+    const shareUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}`;
+    window.open(shareUrl, "_blank", "width=600,height=400");
   };
 
   const handleCopyLink = async () => {
     try {
       await navigator.clipboard.writeText(window.location.href);
-      toast({
-        title: t.linkCopied,
-        duration: 3000,
-      });
+      toast({ title: t.linkCopied, duration: 3000 });
     } catch (err) {
       console.error("Failed to copy link:", err);
     }
   };
 
-  const scrollToNewsSection = () => {
-    window.location.href = "/#news";
-  };
+  const relatedNews = allNews
+    ?.filter((item) => item.id !== newsArticle?.id)
+    .slice(0, 3);
 
-  const relatedNews = allNews?.filter((item) => item.id !== newsArticle?.id).slice(0, 3);
+  const primaryAuthor =
+    relatedAuthors && relatedAuthors.length > 0 ? relatedAuthors[0] : null;
 
-  const getInitials = (name: string) => {
-    return name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase();
-  };
+  // pdfUrl: defensivo hasta que W7 lo añada al esquema.
+  const pdfUrl = (newsArticle as NewsWithOptionalPdf | undefined)?.pdfUrl || null;
 
-  const truncateBio = (bio: string | null | undefined, maxLength: number = 150) => {
-    if (!bio) return '';
-    if (bio.length <= maxLength) return bio;
-    return bio.slice(0, maxLength).trim() + '...';
-  };
-
+  // --- Estado de error (look viejo, sin Header/Footer: los da el Layout) ---
   if (error) {
     return (
-      <div className="min-h-screen bg-background" data-testid="page-news-error">
-        <Header />
-        <div className="pt-32 pb-20">
-          <div className="max-w-7xl mx-auto px-6 lg:px-12 text-center">
-            <AlertCircle className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-            <h2 className="text-2xl font-heading text-foreground mb-4" data-testid="text-error-title">
-              {t.errorMessage}
-            </h2>
-            <Button 
-              variant="outline" 
-              onClick={scrollToNewsSection}
-              data-testid="button-back-to-news"
-            >
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              {t.backToNews}
-            </Button>
-          </div>
+      <div className="vw-old bg-white" data-testid="page-news-error">
+        <div className="vw-wrap py-24 text-center">
+          <h1
+            className="font-serif text-[clamp(28px,4vw,40px)] text-vw-gray"
+            data-testid="text-error-title"
+          >
+            {t.errorMessage}
+          </h1>
+          <Link
+            href="/news"
+            className="vw-label mt-6 inline-block text-[15px] text-vw-gray transition-colors hover:text-vw-red"
+            data-testid="button-back-to-news"
+          >
+            {t.backToNews}
+          </Link>
         </div>
-        <Footer />
       </div>
     );
   }
 
+  // --- Estado de carga ---
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-background" data-testid="page-news-loading">
-        <Header />
-        <section className="pt-24 relative">
-          <Skeleton className="w-full h-[50vh] min-h-[400px]" />
-        </section>
-        <main id="main-content" className="py-16 lg:py-20">
-          <div className="max-w-4xl mx-auto px-6 lg:px-12">
-            <Skeleton className="h-4 w-32 mb-4" />
-            <Skeleton className="h-10 w-full mb-2" />
-            <Skeleton className="h-10 w-3/4 mb-8" />
-            <Skeleton className="h-6 w-full mb-4" />
-            <Skeleton className="h-6 w-full mb-4" />
-            <Skeleton className="h-6 w-5/6 mb-4" />
-            <Skeleton className="h-6 w-full mb-4" />
+      <div className="vw-old bg-white" data-testid="page-news-loading">
+        <div className="vw-wrap animate-pulse pt-16 pb-24">
+          <div className="flex flex-col gap-10 md:flex-row">
+            <div className="w-full bg-vw-graylight/40 p-10 md:w-2/5">
+              <div className="mb-6 h-8 w-3/4 bg-white/40" />
+              <div className="mb-3 h-4 w-1/2 bg-white/40" />
+              <div className="h-4 w-1/2 bg-white/40" />
+            </div>
+            <div className="flex-1">
+              <div className="mb-4 h-5 w-full bg-vw-graylight/30" />
+              <div className="mb-4 h-5 w-full bg-vw-graylight/30" />
+              <div className="mb-4 h-5 w-5/6 bg-vw-graylight/30" />
+              <div className="h-5 w-full bg-vw-graylight/30" />
+            </div>
           </div>
-        </main>
-        <Footer />
+        </div>
       </div>
     );
   }
 
   const displayTitle = translatedFields.title || newsArticle?.title;
-  const displayContent = translatedFields.content || translatedFields.excerpt || newsArticle?.content || newsArticle?.excerpt;
-  const heroImage = newsArticle?.imageUrl || "https://images.unsplash.com/photo-1497366216548-37526070297c?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80";
+  const displayContent =
+    translatedFields.content ||
+    translatedFields.excerpt ||
+    newsArticle?.content ||
+    newsArticle?.excerpt;
 
-  const primaryAuthor = relatedAuthors && relatedAuthors.length > 0 ? relatedAuthors[0] : null;
+  const paragraphs = (displayContent || "")
+    .split("\n")
+    .map((p) => p.trim())
+    .filter((p) => p.length > 0);
 
   return (
-    <div className="min-h-screen bg-background" data-testid="page-news-detail">
-      <Header />
-      
+    <div className="vw-old bg-white" data-testid="page-news-detail">
       {newsArticle && (
         <>
           <ArticleJsonLd
@@ -548,7 +361,11 @@ export default function NewsDetail() {
             datePublished={newsArticle.date}
             dateModified={newsArticle.date}
             authorName={primaryAuthor?.name}
-            authorUrl={primaryAuthor ? `https://www.vonwobeser.com/team/${primaryAuthor.slug}` : undefined}
+            authorUrl={
+              primaryAuthor
+                ? `https://www.vonwobeser.com/team/${primaryAuthor.slug}`
+                : undefined
+            }
             imageUrl={newsArticle.imageUrl}
             url={`https://www.vonwobeser.com/news/${newsArticle.slug}`}
             language={language}
@@ -556,255 +373,169 @@ export default function NewsDetail() {
           <BreadcrumbJsonLd
             items={[
               { name: t.breadcrumbHome, url: "https://www.vonwobeser.com" },
-              { name: t.breadcrumbNews, url: "https://www.vonwobeser.com/#news" },
-              { name: language === "es" ? newsArticle.titleEs : newsArticle.title, url: `https://www.vonwobeser.com/news/${newsArticle.slug}` }
+              { name: t.breadcrumbNews, url: "https://www.vonwobeser.com/news" },
+              {
+                name: language === "es" ? newsArticle.titleEs : newsArticle.title,
+                url: `https://www.vonwobeser.com/news/${newsArticle.slug}`,
+              },
             ]}
             language={language}
           />
         </>
       )}
-      
-      <section className="pt-24 relative" data-testid="section-news-hero">
-        <div className="relative w-full h-[50vh] min-h-[400px] overflow-hidden">
-          <NewsHeroImage
-            src={heroImage}
-            alt={displayTitle || ""}
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/40 to-black/20" />
-          
-          <div className="absolute inset-0 flex items-end">
-            <div className="max-w-4xl mx-auto px-6 lg:px-12 pb-12 w-full">
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6 }}
-              >
-                <button
-                  onClick={scrollToNewsSection}
-                  className="inline-flex items-center gap-2 text-white/90 hover:text-white transition-colors mb-6 cursor-pointer text-sm"
-                  data-testid="link-back-to-news"
-                >
-                  <ArrowLeft className="w-4 h-4" />
-                  {t.backToNews}
-                </button>
-                
-                <div
-                  className="flex items-center gap-3 mb-4"
-                  data-testid="eyebrow-news"
-                >
-                  <div className="h-px w-10 bg-primary" aria-hidden="true" />
-                  <span className="text-[10px] tracking-[0.3em] uppercase text-white/90 font-medium">
-                    {language === 'es' ? 'Noticia' : language === 'de' ? 'Nachrichten' : language === 'fr' ? 'Actualité' : language === 'it' ? 'Notizie' : 'News'}
-                  </span>
-                </div>
 
-                <div className="flex items-center gap-2 text-white/85 text-sm mb-4">
-                  <Calendar className="w-4 h-4" />
-                  <span data-testid="text-news-date">{formatDate(newsArticle?.date || null)}</span>
-                </div>
-                
-                <h1 
-                  className="text-3xl md:text-4xl lg:text-5xl font-heading font-light text-white leading-tight"
-                  data-testid="text-news-title"
+      {/* Sección "single" del look viejo: meta gris + contenido */}
+      <section className="pt-16 pb-0" data-testid="section-news-single">
+        <div className="vw-wrap flex flex-col gap-0 md:flex-row">
+          {/* Columna meta (gris, como .single__meta) */}
+          <aside
+            className="relative w-full self-stretch bg-vw-graylight px-8 py-14 md:w-2/5 md:pr-12"
+            data-testid="container-news-meta"
+          >
+            {/* Etiqueta de tipo en Geomanist uppercase */}
+            <p className="vw-label mb-6 text-[14px] text-white">{t.label}</p>
+
+            <h1
+              className="mb-8 flex items-start gap-3 font-serif text-[clamp(24px,3vw,32px)] leading-[1.2] text-white"
+              data-testid="text-news-title"
+            >
+              <span>{displayTitle}</span>
+              {isTranslating && (
+                <Loader2 className="mt-1 h-5 w-5 shrink-0 animate-spin text-white/70" aria-hidden="true" />
+              )}
+            </h1>
+
+            <p
+              className="vw-label mb-10 text-[13px] text-white/80"
+              data-testid="text-news-date"
+            >
+              {formatDate(newsArticle?.date || null)}
+            </p>
+
+            {/* Botones Print / Share / Download (look viejo) */}
+            <div className="flex flex-col gap-3" data-testid="container-news-actions">
+              <button
+                type="button"
+                onClick={handlePrint}
+                className="vw-label text-left text-[14px] text-white transition-opacity hover:opacity-70"
+                data-testid="button-print"
+              >
+                {t.print}
+              </button>
+              <button
+                type="button"
+                onClick={handleShare}
+                className="vw-label text-left text-[14px] text-white transition-opacity hover:opacity-70"
+                data-testid="button-share"
+              >
+                {t.share}
+              </button>
+              <button
+                type="button"
+                onClick={handleCopyLink}
+                className="vw-label text-left text-[14px] text-white transition-opacity hover:opacity-70"
+                data-testid="button-copy-link"
+              >
+                {t.share} URL
+              </button>
+              {/* PDF: solo si el dato lo trae (W7 lo añadirá). */}
+              {pdfUrl && (
+                <a
+                  href={pdfUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="vw-label text-left text-[14px] text-white transition-opacity hover:opacity-70"
+                  data-testid="button-download-pdf"
                 >
-                  {displayTitle}
-                  {isTranslating && (
-                    <Loader2 className="inline-block w-5 h-5 ml-3 animate-spin text-white/60" />
-                  )}
-                </h1>
-              </motion.div>
+                  {t.download} PDF
+                </a>
+              )}
+            </div>
+
+            {/* Autores enlazados */}
+            {relatedAuthors && relatedAuthors.length > 0 && (
+              <div className="mt-12" data-testid="container-news-authors">
+                <p className="vw-label mb-2 text-[12px] text-white/80">
+                  {relatedAuthors.length === 1 ? t.aboutTheAuthor : t.aboutTheAuthors}
+                </p>
+                <div className="bg-white/30 px-1">
+                  {relatedAuthors.map((author) => (
+                    <AuthorLink key={author.id} author={author} />
+                  ))}
+                </div>
+              </div>
+            )}
+          </aside>
+
+          {/* Columna de contenido (.single__content) */}
+          <div
+            className="w-full px-0 py-14 md:flex-1 md:pl-14"
+            data-testid="container-news-content"
+          >
+            {/* Imagen (si existe) */}
+            {newsArticle?.imageUrl && (
+              <img
+                src={newsArticle.imageUrl}
+                alt={displayTitle || ""}
+                className="mb-10 w-full object-cover"
+                data-testid="img-news"
+              />
+            )}
+
+            {isTranslating && paragraphs.length === 0 && (
+              <div className="space-y-4">
+                <div className="h-5 w-full bg-vw-graylight/30" />
+                <div className="h-5 w-full bg-vw-graylight/30" />
+                <div className="h-5 w-5/6 bg-vw-graylight/30" />
+              </div>
+            )}
+
+            <div className={isTranslating ? "opacity-70" : ""}>
+              {paragraphs.map((p, i) => (
+                <p
+                  key={i}
+                  className="mb-7 text-justify text-[17px] leading-relaxed text-vw-gray [hyphens:auto]"
+                  data-testid={`text-news-paragraph-${i}`}
+                >
+                  {p}
+                </p>
+              ))}
             </div>
           </div>
         </div>
       </section>
 
-      <main id="main-content" className="py-16 lg:py-20">
-        <div className="max-w-4xl mx-auto px-6 lg:px-12">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.2 }}
-          >
-            <div
-              className="mb-12 relative"
-              data-testid="container-news-content"
-            >
-              {isTranslating && !displayContent && (
-                <div className="space-y-4">
-                  <Skeleton className="h-6 w-full" />
-                  <Skeleton className="h-6 w-full" />
-                  <Skeleton className="h-6 w-5/6" />
-                  <Skeleton className="h-6 w-full" />
-                  <Skeleton className="h-6 w-4/5" />
-                </div>
-              )}
-              {displayContent && (() => {
-                const paragraphs = displayContent.split('\n');
-                const firstIdx = paragraphs.findIndex((p) => p.trim().length > 0);
-                if (firstIdx === -1) return null;
-                const first = paragraphs[firstIdx];
-                const rest = paragraphs.slice(firstIdx + 1);
-                return (
-                  <div className={isTranslating ? "opacity-70" : ""}>
-                    <LeadParagraph
-                      firstParagraph={first}
-                      restParagraphs={rest}
-                      testId="lead-news-content"
-                    />
-                  </div>
-                );
-              })()}
-              {isTranslating && displayContent && (
-                <div className="absolute top-0 right-0">
-                  <Loader2 className="w-4 h-4 animate-spin text-primary/60" />
-                </div>
-              )}
-            </div>
-
-            <div 
-              className="border-t border-border pt-8 mb-16"
-              data-testid="section-share"
-            >
-              <div className="flex flex-wrap items-center gap-4">
-                <div className="flex items-center gap-2 text-muted-foreground">
-                  <Share2 className="w-4 h-4" />
-                  <span className="text-sm font-medium">{t.share}</span>
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    className="rounded-none"
-                    onClick={() => handleShare("linkedin")}
-                    data-testid="button-share-linkedin"
-                    title="LinkedIn"
-                  >
-                    <Linkedin className="w-4 h-4" />
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    className="rounded-none"
-                    onClick={() => handleShare("twitter")}
-                    data-testid="button-share-twitter"
-                    title="Twitter/X"
-                  >
-                    <Twitter className="w-4 h-4" />
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    className="rounded-none"
-                    onClick={() => handleShare("whatsapp")}
-                    data-testid="button-share-whatsapp"
-                    title="WhatsApp"
-                  >
-                    <MessageCircle className="w-4 h-4" />
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    className="rounded-none"
-                    onClick={() => handleShare("email")}
-                    data-testid="button-share-email"
-                    title="Email"
-                  >
-                    <Mail className="w-4 h-4" />
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    className="rounded-none"
-                    onClick={handleCopyLink}
-                    data-testid="button-share-copy-link"
-                    title={t.copyLink}
-                  >
-                    <LinkIcon className="w-4 h-4" />
-                  </Button>
-                </div>
-              </div>
-            </div>
-          </motion.div>
-
-          {relatedAuthors && relatedAuthors.length > 0 && (
-            <motion.section
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.25 }}
-              className="mb-16"
-              data-testid="section-related-authors"
-            >
-              <h2 
-                className="text-xl font-heading font-light text-foreground mb-8 uppercase tracking-[0.12em]"
-                data-testid="text-authors-title"
+      {/* Noticias relacionadas (lista en estilo archivo, sin tarjetas) */}
+      {relatedNews && relatedNews.length > 0 && (
+        <section className="vw-wrap py-20" data-testid="section-related-news">
+          <h2 className="vw-section-title text-vw-gray" data-testid="text-related-news-title">
+            {t.relatedNews}
+          </h2>
+          <div className="mt-8 flex flex-col gap-8">
+            {relatedNews.map((item) => (
+              <Link
+                key={item.id}
+                href={`/news/${item.slug}`}
+                className="group block"
+                data-testid={`link-related-news-${item.id}`}
               >
-                {relatedAuthors.length === 1 ? t.aboutTheAuthor : t.aboutTheAuthors}
-              </h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {relatedAuthors.map((author) => (
-                  <AuthorCard 
-                    key={author.id}
-                    author={author}
-                    getInitials={getInitials}
-                    truncateBio={truncateBio}
-                  />
-                ))}
-              </div>
-            </motion.section>
-          )}
-
-          {relatedNews && relatedNews.length > 0 && (
-            <motion.section
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.3 }}
-              data-testid="section-related-news"
-            >
-              <h2 
-                className="text-xl font-heading font-light text-foreground mb-8 uppercase tracking-[0.12em]"
-                data-testid="text-related-news-title"
-              >
-                {t.relatedNews}
-              </h2>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                {relatedNews.map((item) => (
-                  <Link 
-                    key={item.id} 
-                    href={`/news/${item.slug}`}
-                    className="block"
-                  >
-                    <Card
-                      className="group overflow-hidden border-0 shadow-sm hover:shadow-lg transition-all duration-300 rounded-none bg-card hover-elevate"
-                      data-testid={`card-related-news-${item.id}`}
-                    >
-                      <div className="aspect-[16/10] overflow-hidden">
-                        <NewsCardImage
-                          src={item.imageUrl || ""}
-                          alt={language === "es" ? item.titleEs : item.title}
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                        />
-                      </div>
-                      <CardContent className="p-4">
-                        <p className="text-xs text-gray-400 uppercase tracking-wider mb-2" data-testid={`text-related-news-date-${item.id}`}>
-                          {formatDate(item.date)}
-                        </p>
-                        <h3 
-                          className="text-base font-serif text-foreground leading-relaxed line-clamp-2"
-                          data-testid={`text-related-news-title-${item.id}`}
-                        >
-                          {language === "es" ? item.titleEs : item.title}
-                        </h3>
-                      </CardContent>
-                    </Card>
-                  </Link>
-                ))}
-              </div>
-            </motion.section>
-          )}
-        </div>
-      </main>
-
-      <Footer />
+                <p
+                  className="vw-label mb-1 text-[13px] text-vw-gray"
+                  data-testid={`text-related-news-date-${item.id}`}
+                >
+                  {formatDate(item.date)}
+                </p>
+                <h3
+                  className="font-serif text-[21px] leading-snug text-vw-gray transition-colors duration-200 group-hover:text-vw-red"
+                  data-testid={`text-related-news-title-${item.id}`}
+                >
+                  {language === "es" ? item.titleEs : item.title}
+                </h3>
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
     </div>
   );
 }

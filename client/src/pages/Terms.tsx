@@ -1,10 +1,7 @@
-import { motion } from "framer-motion";
 import { FileText, Scale, Globe, AlertTriangle, Users, Shield, Gavel, BookOpen, Bell, Phone, Mail, Building2 } from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
-import Header from "@/components/Header";
-import Footer from "@/components/Footer";
 import SEOHead from "@/components/SEOHead";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { PageHero, Section } from "@/components/firm";
 
 type SupportedLanguage = 'en' | 'es' | 'de' | 'zh' | 'ko' | 'ja' | 'ar' | 'ru' | 'fr' | 'it';
 
@@ -1975,26 +1972,6 @@ Escluse le festività federali messicane`
   };
 
   const t = content[language as SupportedLanguage] || content.en;
-
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.08,
-      },
-    },
-  };
-
-  const itemVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: { duration: 0.4 },
-    },
-  };
-
   const contactText: Record<SupportedLanguage, string> = {
     en: "For inquiries about these terms and conditions:",
     es: "Para consultas sobre estos términos y condiciones:",
@@ -2008,127 +1985,79 @@ Escluse le festività federali messicane`
     it: "Per domande su questi termini:"
   };
 
+
   return (
-    <div className="min-h-screen bg-background" data-testid="page-terms">
+    <div data-testid="page-terms" className="vw-old">
       <SEOHead page="terms" language={language} />
-      <Header />
-      
-      <section className="pt-36 pb-20 bg-[#1a1a19]" data-testid="section-terms-hero">
-        <div className="max-w-7xl mx-auto px-6 lg:px-12">
-          <motion.div
-            initial={{ opacity: 0, y: 24 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.7 }}
-            className="text-center"
-          >
-            <div className="flex justify-center mb-4">
-              <Scale className="w-12 h-12 text-primary" />
-            </div>
-            <div className="h-0.5 w-12 bg-primary mx-auto mb-6" />
-            <h1 
-              className="text-4xl md:text-5xl font-heading font-light text-white mb-5 uppercase tracking-[0.15em]"
-              data-testid="text-terms-title"
-            >
-              {t.title}
-            </h1>
-            <p 
-              className="text-base text-white/60 max-w-2xl mx-auto mb-4"
-              data-testid="text-terms-subtitle"
-            >
-              {t.subtitle}
-            </p>
-            <p 
-              className="text-sm text-white/50"
-              data-testid="text-terms-updated"
-            >
-              {t.lastUpdated}
-            </p>
-          </motion.div>
-        </div>
-      </section>
 
-      <main id="main-content" className="py-16 lg:py-20">
-        <div className="max-w-4xl mx-auto px-6 lg:px-12">
-          <motion.div
-            variants={containerVariants}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-            className="space-y-8"
-          >
-            {t.sections.map((section) => (
-              <motion.div 
-                key={section.id} 
-                variants={itemVariants}
-                data-testid={`section-terms-${section.id}`}
-              >
-                <Card className="rounded-none border border-border overflow-hidden">
-                  <CardContent className="p-0">
-                    <div className="flex items-center gap-4 p-6 bg-muted border-b border-border">
-                      <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                        <section.icon className="w-6 h-6 text-primary" />
-                      </div>
-                      <h2 
-                        className="text-xl font-heading font-medium text-foreground"
-                        data-testid={`text-section-title-${section.id}`}
-                      >
-                        {section.title}
-                      </h2>
-                    </div>
-                    <div className="p-6">
-                      <div 
-                        className="text-foreground leading-relaxed whitespace-pre-line"
-                        data-testid={`text-section-content-${section.id}`}
-                      >
-                        {section.content}
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            ))}
-          </motion.div>
+      <PageHero
+        eyebrow="Von Wobeser y Sierra"
+        title={t.title}
+        subtitle={t.subtitle}
+        data-testid="section-terms-hero"
+      />
 
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6, delay: 0.8 }}
-            className="mt-16 text-center"
-          >
-            <Card className="rounded-none border border-primary/20 bg-primary/5 dark:bg-primary/10">
-              <CardContent className="p-8">
-                <Scale className="w-10 h-10 text-primary mx-auto mb-4" />
-                <p className="text-foreground mb-4">
-                  {contactText[language as keyof typeof contactText] || contactText.en}
-                </p>
-                <div className="flex flex-col sm:flex-row justify-center items-center gap-4">
-                  <a 
-                    href="mailto:info@vonwobeser.com"
-                    className="flex items-center gap-2 text-primary hover:underline"
-                    data-testid="link-terms-email"
-                  >
-                    <Mail className="w-4 h-4" />
-                    info@vonwobeser.com
-                  </a>
-                  <span className="hidden sm:inline text-gray-400">|</span>
-                  <a 
-                    href="tel:+525552581000"
-                    className="flex items-center gap-2 text-primary hover:underline"
-                    data-testid="link-terms-phone"
-                  >
-                    <Phone className="w-4 h-4" />
-                    +52 55 5258 1000
-                  </a>
+      <Section tone="white" size="compact" fade={false}>
+        <p className="vw-label text-[11px] text-vw-gray" data-testid="text-terms-updated">
+          {t.lastUpdated}
+        </p>
+      </Section>
+
+      <Section tone="white" fade={false} innerClassName="max-w-4xl">
+        <div className="space-y-8">
+          {t.sections.map((section) => (
+            <div
+              key={section.id}
+              className="border border-vw-graylight bg-white"
+              data-testid={`section-terms-${section.id}`}
+            >
+              <div className="flex items-center gap-4 border-b border-vw-graylight bg-[#f4f4f4] p-6">
+                <section.icon className="h-6 w-6 flex-shrink-0 text-vw-red" aria-hidden="true" />
+                <h2
+                  className="font-serif text-xl text-vw-black"
+                  data-testid={`text-section-title-${section.id}`}
+                >
+                  {section.title}
+                </h2>
+              </div>
+              <div className="p-6">
+                <div
+                  className="whitespace-pre-line font-sans leading-relaxed text-vw-gray"
+                  data-testid={`text-section-content-${section.id}`}
+                >
+                  {section.content}
                 </div>
-              </CardContent>
-            </Card>
-          </motion.div>
+              </div>
+            </div>
+          ))}
         </div>
-      </main>
 
-      <Footer />
+        <div className="mt-16 border border-vw-graylight bg-[#f4f4f4] p-8 text-center">
+          <Scale className="mx-auto mb-4 h-9 w-9 text-vw-red" aria-hidden="true" />
+          <p className="mb-4 font-sans text-vw-black">
+            {contactText[language as keyof typeof contactText] || contactText.en}
+          </p>
+          <div className="flex flex-col items-center justify-center gap-4 sm:flex-row">
+            <a
+              href="mailto:info@vonwobeser.com"
+              className="flex items-center gap-2 font-sans text-vw-red transition-colors hover:text-vw-black"
+              data-testid="link-terms-email"
+            >
+              <Mail className="h-4 w-4" aria-hidden="true" />
+              info@vonwobeser.com
+            </a>
+            <span className="hidden text-vw-graylight sm:inline">|</span>
+            <a
+              href="tel:+525552581000"
+              className="flex items-center gap-2 font-sans text-vw-red transition-colors hover:text-vw-black"
+              data-testid="link-terms-phone"
+            >
+              <Phone className="h-4 w-4" aria-hidden="true" />
+              +52 55 5258 1000
+            </a>
+          </div>
+        </div>
+      </Section>
     </div>
   );
 }

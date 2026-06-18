@@ -1,33 +1,33 @@
 import { useState } from "react";
 import { Link } from "wouter";
-import { motion } from "framer-motion";
-import { 
-  MapPin, 
-  Phone, 
-  Mail, 
-  Clock, 
-  Building2, 
-  Car, 
-  Train, 
-  Accessibility, 
-  Video, 
-  Users, 
-  Coffee, 
-  Wifi,
-  ParkingCircle,
+import {
+  MapPin,
+  Phone,
+  Mail,
+  Clock,
+  Building2,
+  Car,
+  Train,
+  Accessibility,
+  Video,
+  Users,
+  Coffee,
   Navigation,
   ExternalLink,
   ArrowRight,
-  Landmark
+  Landmark,
+  ParkingCircle,
+  Wifi,
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Skeleton } from "@/components/ui/skeleton";
-import Header from "@/components/Header";
-import Footer from "@/components/Footer";
 import SEOHead from "@/components/SEOHead";
 import { useLanguage } from "@/contexts/LanguageContext";
+import {
+  PageHero,
+  Section,
+  SectionTitle,
+  FeatureCard,
+} from "@/components/firm";
 import type { OfficeImage } from "@shared/schema";
 
 interface AmenityItem {
@@ -702,493 +702,269 @@ export default function Offices() {
   const googleMapsEmbedUrl = "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3762.661068768984!2d-99.19441!3d19.4325!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x85d1ff5f5c0c3e1b%3A0x7c0c7c7c7c7c7c7c!2sTorre%20SOMA%20Chapultepec!5e0!3m2!1ses!2smx!4v1700000000000!5m2!1ses!2smx";
   const googleMapsDirectionsUrl = "https://www.google.com/maps/dir//Torre+SOMA+Chapultepec,+Campos+El%C3%ADseos+204,+Polanco,+11560+Ciudad+de+M%C3%A9xico,+CDMX,+Mexico";
 
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1,
-      },
-    },
-  };
-
-  const itemVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: { duration: 0.4 },
-    },
-  };
-
   return (
-    <div className="min-h-screen bg-background" data-testid="page-offices">
+    <div data-testid="page-offices" className="vw-old">
       <SEOHead page="offices" language={language} />
-      <Header />
-      
-      <section className="pt-36 pb-20 bg-[#1a1a19]" data-testid="section-offices-hero">
-        <div className="max-w-7xl mx-auto px-6 lg:px-12">
-          <motion.div
-            initial={{ opacity: 0, y: 24 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.7 }}
-            className="text-center"
-          >
-            <div className="h-0.5 w-12 bg-primary mx-auto mb-6" />
-            <h1 
-              className="text-4xl md:text-5xl font-heading font-light text-white mb-5 uppercase tracking-[0.15em]"
-              data-testid="text-offices-title"
-            >
-              {t.heroTitle}
-            </h1>
-            <p 
-              className="text-base text-white/60 max-w-2xl mx-auto"
-              data-testid="text-offices-subtitle"
-            >
-              {t.heroSubtitle}
-            </p>
-          </motion.div>
-        </div>
-      </section>
 
-      <main id="main-content" className="py-16 lg:py-20">
-        <div className="max-w-7xl mx-auto px-6 lg:px-12">
-          <motion.section
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6, delay: 0.1 }}
-            className="mb-20"
-            data-testid="section-main-office"
-          >
-            <h2 className="text-2xl font-heading font-light text-foreground mb-8 text-center uppercase tracking-[0.12em]">
-              {t.mainOfficeTitle}
-            </h2>
-            
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              <div className="order-2 lg:order-1">
-                <Card className="h-full rounded-none border border-border" data-testid="card-office-info">
-                  <CardContent className="p-6 lg:p-8 space-y-6">
-                    <div className="flex items-start gap-4">
-                      <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                        <Building2 className="w-6 h-6 text-primary" />
-                      </div>
-                      <div>
-                        <h3 className="text-xl font-light uppercase tracking-[0.12em] text-foreground mb-1" data-testid="text-building-name">
-                          {t.buildingName}
-                        </h3>
-                        <p className="text-muted-foreground" data-testid="text-floor">{t.floor}</p>
-                      </div>
-                    </div>
+      <PageHero
+        eyebrow="Von Wobeser y Sierra"
+        title={t.heroTitle}
+        subtitle={t.heroSubtitle}
+        data-testid="section-offices-hero"
+      />
 
-                    <div className="space-y-3 border-t border-border pt-6">
-                      <div className="flex items-start gap-3" data-testid="text-full-address">
-                        <MapPin className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
-                        <div className="text-foreground">
-                          <p>{t.address}</p>
-                          <p>{t.colony}</p>
-                          <p>{t.postalCode}</p>
-                          <p>{t.city}</p>
-                        </div>
-                      </div>
-                      
-                      <div className="flex items-center gap-3">
-                        <Phone className="w-5 h-5 text-primary flex-shrink-0" />
-                        <div className="text-foreground">
-                          <a 
-                            href={`tel:${t.phone.replace(/\s/g, "")}`} 
-                            className="hover:text-primary transition-colors"
-                            data-testid="link-phone"
-                          >
-                            {t.phone}
-                          </a>
-                        </div>
-                      </div>
-                      
-                      <div className="flex items-center gap-3">
-                        <Phone className="w-5 h-5 text-gray-400 flex-shrink-0" />
-                        <div className="text-foreground">
-                          <span className="text-sm text-gray-500">Fax: </span>
-                          <span data-testid="text-fax">{t.fax}</span>
-                        </div>
-                      </div>
-                      
-                      <div className="flex items-center gap-3">
-                        <Mail className="w-5 h-5 text-primary flex-shrink-0" />
-                        <a 
-                          href={`mailto:${t.email}`}
-                          className="text-foreground hover:text-primary transition-colors"
-                          data-testid="link-email"
-                        >
-                          {t.email}
-                        </a>
-                      </div>
-                    </div>
-
-                    <div className="border-t border-border pt-6">
-                      <div className="flex items-start gap-3 mb-2">
-                        <Clock className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
-                        <div>
-                          <h4 className="font-medium text-foreground mb-1">{t.officeHoursTitle}</h4>
-                          <p className="text-muted-foreground text-sm" data-testid="text-office-hours">{t.officeHours}</p>
-                          <p className="text-gray-500 dark:text-gray-500 text-sm">{t.saturdayHours}</p>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="border-t border-border pt-6">
-                      <h4 className="font-medium text-foreground mb-4">{t.amenitiesTitle}</h4>
-                      <div className="space-y-3">
-                        {t.amenities.map((amenity, index) => (
-                          <div key={index} className="flex items-center gap-3" data-testid={`amenity-${index}`}>
-                            <amenity.icon className="w-5 h-5 text-primary flex-shrink-0" />
-                            <span className="text-muted-foreground text-sm">{amenity.text}</span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-
-                    <Button 
-                      className="w-full rounded-none mt-4" 
-                      asChild
-                      data-testid="button-directions"
-                    >
-                      <a 
-                        href={googleMapsDirectionsUrl} 
-                        target="_blank" 
-                        rel="noopener noreferrer"
-                      >
-                        <Navigation className="w-4 h-4 mr-2" />
-                        {t.getDirections}
-                        <ExternalLink className="w-4 h-4 ml-2" />
-                      </a>
-                    </Button>
-                  </CardContent>
-                </Card>
+      {/* Oficina principal: info + mapa */}
+      <Section tone="white" data-testid="section-main-office">
+        <SectionTitle>{t.mainOfficeTitle}</SectionTitle>
+        <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
+          <div className="order-2 border border-vw-graylight bg-white p-6 lg:order-1 lg:p-8" data-testid="card-office-info">
+            <div className="mb-6 flex items-start gap-4">
+              <Building2 className="mt-1 h-6 w-6 flex-shrink-0 text-vw-red" aria-hidden="true" />
+              <div>
+                <h3 className="font-serif text-xl text-vw-black" data-testid="text-building-name">
+                  {t.buildingName}
+                </h3>
+                <p className="font-sans text-vw-gray" data-testid="text-floor">{t.floor}</p>
               </div>
+            </div>
 
-              <div className="order-1 lg:order-2">
-                <div 
-                  className="w-full h-[400px] lg:h-full min-h-[400px] rounded-none overflow-hidden border border-border"
-                  data-testid="container-map"
+            <div className="space-y-3 border-t border-vw-graylight pt-6">
+              <div className="flex items-start gap-3" data-testid="text-full-address">
+                <MapPin className="mt-0.5 h-5 w-5 flex-shrink-0 text-vw-red" aria-hidden="true" />
+                <div className="font-sans text-vw-gray">
+                  <p>{t.address}</p>
+                  <p>{t.colony}</p>
+                  <p>{t.postalCode}</p>
+                  <p>{t.city}</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-3">
+                <Phone className="h-5 w-5 flex-shrink-0 text-vw-red" aria-hidden="true" />
+                <a
+                  href={`tel:${t.phone.replace(/\s/g, "")}`}
+                  className="font-sans text-vw-black transition-colors hover:text-vw-red"
+                  data-testid="link-phone"
                 >
-                  <iframe
-                    src={googleMapsEmbedUrl}
-                    width="100%"
-                    height="100%"
-                    style={{ border: 0 }}
-                    allowFullScreen
-                    loading="lazy"
-                    referrerPolicy="no-referrer-when-downgrade"
-                    title="Von Wobeser y Sierra Office Location"
-                    data-testid="iframe-google-maps"
-                  />
+                  {t.phone}
+                </a>
+              </div>
+              <div className="flex items-center gap-3">
+                <Phone className="h-5 w-5 flex-shrink-0 text-vw-graylight" aria-hidden="true" />
+                <span className="font-sans text-vw-gray">
+                  Fax: <span data-testid="text-fax">{t.fax}</span>
+                </span>
+              </div>
+              <div className="flex items-center gap-3">
+                <Mail className="h-5 w-5 flex-shrink-0 text-vw-red" aria-hidden="true" />
+                <a
+                  href={`mailto:${t.email}`}
+                  className="font-sans text-vw-black transition-colors hover:text-vw-red"
+                  data-testid="link-email"
+                >
+                  {t.email}
+                </a>
+              </div>
+            </div>
+
+            <div className="mt-6 border-t border-vw-graylight pt-6">
+              <div className="flex items-start gap-3">
+                <Clock className="mt-0.5 h-5 w-5 flex-shrink-0 text-vw-red" aria-hidden="true" />
+                <div className="font-sans">
+                  <p className="text-vw-black">{t.officeHoursTitle}</p>
+                  <p className="text-sm text-vw-gray" data-testid="text-office-hours">{t.officeHours}</p>
+                  <p className="text-sm text-vw-gray">{t.saturdayHours}</p>
                 </div>
               </div>
             </div>
-          </motion.section>
 
-          <motion.section
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6, delay: 0.2 }}
-            className="mb-20 bg-muted rounded-none p-8 lg:p-12"
-            data-testid="section-directions"
-          >
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
-              <div>
-                <h3 className="text-xl font-heading font-light text-foreground mb-4 uppercase tracking-[0.12em]">
-                  {t.directionsTitle}
-                </h3>
-                <p className="text-foreground leading-relaxed mb-6">
-                  {t.directionsText}
-                </p>
-              </div>
-              <div>
-                <h4 className="flex items-center gap-2 font-medium text-foreground mb-4">
-                  <Landmark className="w-5 h-5 text-primary" />
-                  {t.landmarksTitle}
-                </h4>
-                <ul className="space-y-2">
-                  {t.landmarks.map((landmark, index) => (
-                    <li key={index} className="flex items-center gap-3 text-muted-foreground" data-testid={`landmark-${index}`}>
-                      <div className="w-2 h-2 rounded-full bg-primary flex-shrink-0" />
-                      {landmark}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </div>
-          </motion.section>
-
-          <motion.section
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6, delay: 0.3 }}
-            className="mb-20"
-            data-testid="section-gallery"
-          >
-            <div className="text-center mb-10">
-              <h2 className="text-2xl font-heading font-light text-foreground mb-4 uppercase tracking-[0.12em]">
-                {t.galleryTitle}
-              </h2>
-              <p className="text-muted-foreground max-w-2xl mx-auto">
-                {t.gallerySubtitle}
-              </p>
-            </div>
-
-            {imagesLoading ? (
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4" data-testid="skeleton-gallery">
-                {Array.from({ length: 8 }).map((_, index) => (
-                  <Skeleton key={index} className="aspect-[4/3] rounded-none" />
+            <div className="mt-6 border-t border-vw-graylight pt-6">
+              <p className="vw-label mb-4 text-[11px] text-vw-gray">{t.amenitiesTitle}</p>
+              <div className="space-y-3">
+                {t.amenities.map((amenity, index) => (
+                  <div key={index} className="flex items-center gap-3" data-testid={`amenity-${index}`}>
+                    <amenity.icon className="h-5 w-5 flex-shrink-0 text-vw-red" aria-hidden="true" />
+                    <span className="font-sans text-sm text-vw-gray">{amenity.text}</span>
+                  </div>
                 ))}
               </div>
-            ) : (
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4" data-testid="grid-gallery">
-                {officeImages?.map((image, index) => (
-                  <motion.div
-                    key={image.id}
-                    initial={{ opacity: 0, scale: 0.95 }}
-                    whileInView={{ opacity: 1, scale: 1 }}
-                    viewport={{ once: true }}
-                    transition={{ duration: 0.4, delay: index * 0.05 }}
-                    className="aspect-[4/3] rounded-none overflow-hidden cursor-pointer group"
-                    onClick={() => setSelectedImage(image)}
-                    data-testid={`gallery-image-${image.id}`}
-                  >
-                    <img
-                      src={image.imageUrl}
-                      alt={language === "es" ? image.altEs : image.alt}
-                      className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-                      loading="lazy"
-                    />
-                  </motion.div>
-                ))}
-              </div>
-            )}
-          </motion.section>
-
-          <motion.section
-            variants={containerVariants}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-            className="mb-20"
-            data-testid="section-facilities"
-          >
-            <div className="text-center mb-10">
-              <h2 className="text-2xl font-heading font-light text-foreground mb-4 uppercase tracking-[0.12em]">
-                {t.facilitiesTitle}
-              </h2>
-              <p className="text-muted-foreground max-w-2xl mx-auto">
-                {t.facilitiesSubtitle}
-              </p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <motion.div variants={itemVariants}>
-                <Card className="h-full rounded-none border border-border" data-testid="card-meeting-rooms">
-                  <CardContent className="p-6">
-                    <div className="flex items-center gap-3 mb-4">
-                      <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
-                        <Users className="w-6 h-6 text-primary" />
-                      </div>
-                      <h3 className="text-lg font-light uppercase tracking-[0.12em] text-foreground">
-                        {t.meetingRoomsTitle}
-                      </h3>
-                    </div>
-                    <p className="text-muted-foreground leading-relaxed">
-                      {t.meetingRoomsDesc}
-                    </p>
-                  </CardContent>
-                </Card>
-              </motion.div>
+            <a
+              href={googleMapsDirectionsUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="vw-label mt-6 inline-flex items-center gap-2 rounded-none bg-vw-red px-8 py-3.5 text-xs text-white transition-colors hover:bg-vw-black"
+              data-testid="button-directions"
+            >
+              <Navigation className="h-4 w-4" aria-hidden="true" />
+              {t.getDirections}
+              <ExternalLink className="h-4 w-4" aria-hidden="true" />
+            </a>
+          </div>
 
-              <motion.div variants={itemVariants}>
-                <Card className="h-full rounded-none border border-border" data-testid="card-video-conferencing">
-                  <CardContent className="p-6">
-                    <div className="flex items-center gap-3 mb-4">
-                      <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
-                        <Video className="w-6 h-6 text-primary" />
-                      </div>
-                      <h3 className="text-lg font-light uppercase tracking-[0.12em] text-foreground">
-                        {t.videoConferencingTitle}
-                      </h3>
-                    </div>
-                    <p className="text-muted-foreground leading-relaxed">
-                      {t.videoConferencingDesc}
-                    </p>
-                  </CardContent>
-                </Card>
-              </motion.div>
-
-              <motion.div variants={itemVariants}>
-                <Card className="h-full rounded-none border border-border" data-testid="card-client-hospitality">
-                  <CardContent className="p-6">
-                    <div className="flex items-center gap-3 mb-4">
-                      <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
-                        <Coffee className="w-6 h-6 text-primary" />
-                      </div>
-                      <h3 className="text-lg font-light uppercase tracking-[0.12em] text-foreground">
-                        {t.clientHospitalityTitle}
-                      </h3>
-                    </div>
-                    <p className="text-muted-foreground leading-relaxed">
-                      {t.clientHospitalityDesc}
-                    </p>
-                  </CardContent>
-                </Card>
-              </motion.div>
-
-              <motion.div variants={itemVariants}>
-                <Card className="h-full rounded-none border border-border" data-testid="card-accessibility">
-                  <CardContent className="p-6">
-                    <div className="flex items-center gap-3 mb-4">
-                      <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
-                        <Accessibility className="w-6 h-6 text-primary" />
-                      </div>
-                      <h3 className="text-lg font-light uppercase tracking-[0.12em] text-foreground">
-                        {t.accessibilityTitle}
-                      </h3>
-                    </div>
-                    <p className="text-muted-foreground leading-relaxed">
-                      {t.accessibilityDesc}
-                    </p>
-                  </CardContent>
-                </Card>
-              </motion.div>
+          <div className="order-1 lg:order-2">
+            <div
+              className="h-[400px] w-full overflow-hidden border border-vw-graylight lg:h-full lg:min-h-[400px]"
+              data-testid="container-map"
+            >
+              <iframe
+                src={googleMapsEmbedUrl}
+                width="100%"
+                height="100%"
+                style={{ border: 0 }}
+                allowFullScreen
+                loading="lazy"
+                referrerPolicy="no-referrer-when-downgrade"
+                title="Von Wobeser y Sierra Office Location"
+                data-testid="iframe-google-maps"
+              />
             </div>
-          </motion.section>
-
-          <motion.section
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6, delay: 0.4 }}
-            className="mb-20"
-            data-testid="section-transport"
-          >
-            <div className="text-center mb-10">
-              <h2 className="text-2xl font-heading font-light text-foreground mb-4 uppercase tracking-[0.12em]">
-                {t.transportTitle}
-              </h2>
-              <p className="text-muted-foreground max-w-2xl mx-auto">
-                {t.transportSubtitle}
-              </p>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <Card className="rounded-none border border-border" data-testid="card-metro">
-                <CardContent className="p-6">
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="w-12 h-12 rounded-full bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center">
-                      <Train className="w-6 h-6 text-orange-600" />
-                    </div>
-                    <h3 className="text-lg font-light uppercase tracking-[0.12em] text-foreground">
-                      {t.metroTitle}
-                    </h3>
-                  </div>
-                  <p className="text-muted-foreground text-sm leading-relaxed">
-                    {t.metroDesc}
-                  </p>
-                </CardContent>
-              </Card>
-
-              <Card className="rounded-none border border-border" data-testid="card-parking">
-                <CardContent className="p-6">
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="w-12 h-12 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
-                      <ParkingCircle className="w-6 h-6 text-blue-600" />
-                    </div>
-                    <h3 className="text-lg font-light uppercase tracking-[0.12em] text-foreground">
-                      {t.parkingTitle}
-                    </h3>
-                  </div>
-                  <p className="text-muted-foreground text-sm leading-relaxed">
-                    {t.parkingDesc}
-                  </p>
-                </CardContent>
-              </Card>
-
-              <Card className="rounded-none border border-border" data-testid="card-taxi">
-                <CardContent className="p-6">
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="w-12 h-12 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
-                      <Car className="w-6 h-6 text-green-600" />
-                    </div>
-                    <h3 className="text-lg font-light uppercase tracking-[0.12em] text-foreground">
-                      {t.taxiTitle}
-                    </h3>
-                  </div>
-                  <p className="text-muted-foreground text-sm leading-relaxed">
-                    {t.taxiDesc}
-                  </p>
-                </CardContent>
-              </Card>
-            </div>
-          </motion.section>
-
-          <motion.section
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6, delay: 0.5 }}
-            className="bg-[#1a1a19] rounded-none p-8 lg:p-12 text-center"
-            data-testid="section-contact-cta"
-          >
-            <div className="h-0.5 w-12 bg-primary mx-auto mb-6" />
-            <h2 className="text-2xl font-heading font-light text-white mb-4 uppercase tracking-[0.12em]">
-              {t.contactCtaTitle}
-            </h2>
-            <p className="text-white/60 max-w-2xl mx-auto mb-8">
-              {t.contactCtaSubtitle}
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link href="/contact">
-                <Button 
-                  variant="default" 
-                  size="lg" 
-                  className="rounded-none gap-2"
-                  data-testid="button-contact"
-                >
-                  {t.contactButton}
-                  <ArrowRight className="w-4 h-4" />
-                </Button>
-              </Link>
-              <Link href="/contact">
-                <Button 
-                  variant="outline" 
-                  size="lg" 
-                  className="rounded-none gap-2 border-white/20 text-white"
-                  data-testid="button-schedule"
-                >
-                  {t.scheduleButton}
-                  <ArrowRight className="w-4 h-4" />
-                </Button>
-              </Link>
-            </div>
-          </motion.section>
+          </div>
         </div>
-      </main>
+      </Section>
 
+      {/* Cómo llegar + puntos de referencia */}
+      <Section tone="gray" data-testid="section-directions">
+        <div className="grid grid-cols-1 items-start gap-8 lg:grid-cols-2">
+          <div>
+            <SectionTitle>{t.directionsTitle}</SectionTitle>
+            <p className="font-sans text-lg leading-relaxed text-vw-gray">{t.directionsText}</p>
+          </div>
+          <div>
+            <div className="mb-4 flex items-center gap-2">
+              <Landmark className="h-5 w-5 text-vw-red" aria-hidden="true" />
+              <span className="vw-label text-[11px] text-vw-gray">{t.landmarksTitle}</span>
+            </div>
+            <ul className="space-y-2">
+              {t.landmarks.map((landmark, index) => (
+                <li
+                  key={index}
+                  className="flex items-center gap-3 font-sans text-vw-gray"
+                  data-testid={`landmark-${index}`}
+                >
+                  <span className="h-1.5 w-1.5 flex-shrink-0 rounded-full bg-vw-red" aria-hidden="true" />
+                  {landmark}
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      </Section>
+
+      {/* Galería */}
+      <Section tone="white" data-testid="section-gallery">
+        <SectionTitle>{t.galleryTitle}</SectionTitle>
+        <p className="mb-8 max-w-2xl font-sans text-vw-gray">{t.gallerySubtitle}</p>
+
+        {imagesLoading ? (
+          <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4" data-testid="skeleton-gallery">
+            {Array.from({ length: 8 }).map((_, index) => (
+              <div key={index} className="aspect-[4/3] bg-[#e8e8e8]" />
+            ))}
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4" data-testid="grid-gallery">
+            {officeImages?.map((image) => (
+              <button
+                key={image.id}
+                type="button"
+                className="group aspect-[4/3] cursor-pointer overflow-hidden"
+                onClick={() => setSelectedImage(image)}
+                data-testid={`gallery-image-${image.id}`}
+              >
+                <img
+                  src={image.imageUrl}
+                  alt={language === "es" ? image.altEs : image.alt}
+                  className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                  loading="lazy"
+                />
+              </button>
+            ))}
+          </div>
+        )}
+      </Section>
+
+      {/* Instalaciones */}
+      <Section tone="gray" data-testid="section-facilities">
+        <SectionTitle>{t.facilitiesTitle}</SectionTitle>
+        <p className="mb-8 max-w-2xl font-sans text-vw-gray">{t.facilitiesSubtitle}</p>
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+          <FeatureCard icon={Users} title={t.meetingRoomsTitle} data-testid="card-meeting-rooms">
+            {t.meetingRoomsDesc}
+          </FeatureCard>
+          <FeatureCard icon={Video} title={t.videoConferencingTitle} data-testid="card-video-conferencing">
+            {t.videoConferencingDesc}
+          </FeatureCard>
+          <FeatureCard icon={Coffee} title={t.clientHospitalityTitle} data-testid="card-client-hospitality">
+            {t.clientHospitalityDesc}
+          </FeatureCard>
+          <FeatureCard icon={Accessibility} title={t.accessibilityTitle} data-testid="card-accessibility">
+            {t.accessibilityDesc}
+          </FeatureCard>
+        </div>
+      </Section>
+
+      {/* Transporte */}
+      <Section tone="white" data-testid="section-transport">
+        <SectionTitle>{t.transportTitle}</SectionTitle>
+        <p className="mb-8 max-w-2xl font-sans text-vw-gray">{t.transportSubtitle}</p>
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+          <FeatureCard icon={Train} title={t.metroTitle} data-testid="card-metro">
+            {t.metroDesc}
+          </FeatureCard>
+          <FeatureCard icon={ParkingCircle} title={t.parkingTitle} data-testid="card-parking">
+            {t.parkingDesc}
+          </FeatureCard>
+          <FeatureCard icon={Car} title={t.taxiTitle} data-testid="card-taxi">
+            {t.taxiDesc}
+          </FeatureCard>
+        </div>
+      </Section>
+
+      {/* CTA */}
+      <section className="bg-vw-black py-16 md:py-24" data-testid="section-contact-cta">
+        <div className="vw-wrap text-center">
+          <h2 className="mb-4 font-serif text-3xl text-white md:text-4xl">{t.contactCtaTitle}</h2>
+          <p className="mx-auto mb-10 max-w-2xl font-sans text-lg leading-relaxed text-white/70">
+            {t.contactCtaSubtitle}
+          </p>
+          <div className="flex flex-col justify-center gap-4 sm:flex-row">
+            <Link
+              href="/contact"
+              className="vw-label inline-flex items-center justify-center gap-2 rounded-none bg-vw-red px-8 py-3.5 text-xs text-white transition-colors hover:bg-white hover:text-vw-black"
+              data-testid="button-contact"
+            >
+              {t.contactButton}
+              <ArrowRight className="h-4 w-4" aria-hidden="true" />
+            </Link>
+            <Link
+              href="/contact"
+              className="vw-label inline-flex items-center justify-center gap-2 rounded-none border border-white/40 px-8 py-3.5 text-xs text-white transition-colors hover:border-vw-red hover:text-vw-red"
+              data-testid="button-schedule"
+            >
+              {t.scheduleButton}
+              <ArrowRight className="h-4 w-4" aria-hidden="true" />
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* Lightbox de galería */}
       {selectedImage && (
         <div
-          className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 p-4"
           onClick={() => setSelectedImage(null)}
           data-testid="modal-image-lightbox"
         >
-          <div className="relative max-w-5xl w-full">
+          <div className="relative w-full max-w-5xl">
             <img
               src={selectedImage.imageUrl}
               alt={language === "es" ? selectedImage.altEs : selectedImage.alt}
-              className="w-full h-auto max-h-[80vh] object-contain rounded-none"
+              className="h-auto max-h-[80vh] w-full object-contain"
             />
             <button
               onClick={() => setSelectedImage(null)}
-              className="absolute top-4 right-4 w-10 h-10 rounded-full bg-card/10 text-white flex items-center justify-center hover:bg-white/20 transition-colors"
+              className="absolute right-4 top-4 flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-white transition-colors hover:bg-white/20"
               data-testid="button-close-lightbox"
             >
               ×
@@ -1196,8 +972,6 @@ export default function Offices() {
           </div>
         </div>
       )}
-
-      <Footer />
     </div>
   );
 }

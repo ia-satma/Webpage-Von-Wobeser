@@ -1,39 +1,22 @@
 import { useState, useMemo, useEffect } from "react";
-import { motion } from "framer-motion";
-import { AlertCircle, Users, Search, X, ArrowRight } from "lucide-react";
-import { Link } from "wouter";
+import { AlertCircle, Users } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
-import { Button } from "@/components/ui/button";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import Header from "@/components/Header";
-import Footer from "@/components/Footer";
 import SEOHead from "@/components/SEOHead";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useFadeOnScroll } from "@/hooks/useFadeOnScroll";
+import {
+  AttorneyFilters,
+  AttorneyGroup,
+  type AttorneyFiltersLabels,
+} from "@/components/team";
 import type { TeamMember, PracticeGroup, IndustryGroup } from "@shared/schema";
-
-// Helper to split an array into chunks of a given size
-function chunkArray<T>(arr: T[], size: number): T[][] {
-  const chunks: T[][] = [];
-  for (let i = 0; i < arr.length; i += size) {
-    chunks.push(arr.slice(i, i + size));
-  }
-  return chunks;
-}
 
 // Map URL parameters to filter values
 const urlTypeToFilter: Record<string, string> = {
-  "partners": "partners",
+  partners: "partners",
   "of-counsel": "ofcounsel",
-  "counsel": "ofcounsel",
-  "associates": "associates",
+  counsel: "ofcounsel",
+  associates: "associates",
 };
 
 // Helper to get filter from URL search params
@@ -52,20 +35,18 @@ export default function Team() {
   const [searchQuery, setSearchQuery] = useState("");
   // Initialize filter directly from URL to avoid flash of unfiltered content
   const [filterSeniority, setFilterSeniority] = useState<string>(() => getFilterFromURL());
-  const [filterPractice, setFilterPractice] = useState<string>("all");
   const [filterLetter, setFilterLetter] = useState<string>("all");
-  const [activePanel, setActivePanel] = useState<string | null>(null);
-  const [partnerPanels, setPartnerPanels] = useState<Record<number, string | null>>({});
-  const [assocPanels, setAssocPanels] = useState<Record<number, string | null>>({});
-  
+
+  const heroRef = useFadeOnScroll<HTMLDivElement>();
+
   // Listen for URL changes to update filter (for SPA navigation)
   useEffect(() => {
     const handleUrlChange = () => {
       setFilterSeniority(getFilterFromURL());
     };
-    
+
     window.addEventListener("popstate", handleUrlChange);
-    
+
     // Poll for URL changes (for SPA navigation that doesn't trigger popstate)
     let lastSearch = window.location.search;
     const checkUrlChange = setInterval(() => {
@@ -74,7 +55,7 @@ export default function Team() {
         setFilterSeniority(getFilterFromURL());
       }
     }, 100);
-    
+
     return () => {
       window.removeEventListener("popstate", handleUrlChange);
       clearInterval(checkUrlChange);
@@ -85,322 +66,195 @@ export default function Team() {
     queryKey: ["/api/team"],
   });
 
-  const { data: practiceGroups } = useQuery<PracticeGroup[]>({
-    queryKey: ["/api/practice-groups"],
-  });
-
-  const { data: industryGroups } = useQuery<IndustryGroup[]>({
-    queryKey: ["/api/industry-groups"],
-  });
+  // Preserved (parity with previous data layer): groups fetched for future use.
+  useQuery<PracticeGroup[]>({ queryKey: ["/api/practice-groups"] });
+  useQuery<IndustryGroup[]>({ queryKey: ["/api/industry-groups"] });
 
   const content: Record<string, {
     title: string;
     subtitle: string;
+    eyebrow: string;
     errorMessage: string;
-    allMembers: string;
+    all: string;
     partnersOnly: string;
     ofCounsel: string;
     associates: string;
     viewProfile: string;
-    downloadVCard: string;
     searchPlaceholder: string;
-    filterBy: string;
-    seniority: string;
-    practiceArea: string;
-    alphabetic: string;
-    all: string;
     clearFilters: string;
     noResults: string;
     teamMembers: string;
-    positions: {
-      foundingPartner: string;
-      partner: string;
-      ofCounsel: string;
-      seniorAssociate: string;
-      associate: string;
-    };
+    browseByLetter: string;
   }> = {
     en: {
-      title: "Our Team",
+      title: "Attorneys",
       subtitle: "Meet the experienced attorneys who make our firm a leader in legal excellence",
+      eyebrow: "Our Team",
       errorMessage: "Failed to load team members",
-      allMembers: "All",
+      all: "All",
       partnersOnly: "Partners",
       ofCounsel: "Of Counsel",
       associates: "Associates",
       viewProfile: "View Profile",
-      downloadVCard: "Download vCard",
       searchPlaceholder: "Search by name...",
-      filterBy: "Filter by",
-      seniority: "Seniority",
-      practiceArea: "Practice Area",
-      alphabetic: "Alphabetic",
-      all: "All",
       clearFilters: "Clear filters",
       noResults: "No team members match your criteria",
       teamMembers: "team members",
-      positions: {
-        foundingPartner: "Founding Partner",
-        partner: "Partner",
-        ofCounsel: "Of Counsel",
-        seniorAssociate: "Senior Associate",
-        associate: "Associate",
-      },
+      browseByLetter: "Browse by Last Name",
     },
     es: {
-      title: "Nuestro Equipo",
+      title: "Abogados",
       subtitle: "Conozca a los experimentados abogados que hacen de nuestra firma un líder en excelencia legal",
+      eyebrow: "Nuestro Equipo",
       errorMessage: "Error al cargar los miembros del equipo",
-      allMembers: "Todos",
+      all: "Todos",
       partnersOnly: "Socios",
       ofCounsel: "Of Counsel",
       associates: "Asociados",
       viewProfile: "Ver Perfil",
-      downloadVCard: "Descargar vCard",
       searchPlaceholder: "Buscar por nombre...",
-      filterBy: "Filtrar por",
-      seniority: "Nivel",
-      practiceArea: "Área de Práctica",
-      alphabetic: "Alfabético",
-      all: "Todos",
       clearFilters: "Limpiar filtros",
       noResults: "No hay miembros que coincidan con los criterios",
       teamMembers: "miembros del equipo",
-      positions: {
-        foundingPartner: "Socio Fundador",
-        partner: "Socio",
-        ofCounsel: "Of Counsel",
-        seniorAssociate: "Asociado Senior",
-        associate: "Asociado",
-      },
+      browseByLetter: "Buscar por Apellido",
     },
     de: {
-      title: "Unser Team",
+      title: "Anwälte",
       subtitle: "Lernen Sie unsere Experten kennen",
+      eyebrow: "Unser Team",
       errorMessage: "Teammitglieder konnten nicht geladen werden",
-      allMembers: "Alle",
+      all: "Alle",
       partnersOnly: "Partner",
       ofCounsel: "Of Counsel",
       associates: "Associates",
       viewProfile: "Profil anzeigen",
-      downloadVCard: "vCard herunterladen",
       searchPlaceholder: "Suchen...",
-      filterBy: "Filtern nach",
-      seniority: "Alle Positionen",
-      practiceArea: "Alle Praxisbereiche",
-      alphabetic: "Alphabetisch",
-      all: "Alle",
       clearFilters: "Filter löschen",
       noResults: "Keine Ergebnisse gefunden",
       teamMembers: "Teammitglieder",
-      positions: {
-        foundingPartner: "Gründungspartner",
-        partner: "Partner",
-        ofCounsel: "Of Counsel",
-        seniorAssociate: "Senior Associate",
-        associate: "Associate",
-      },
+      browseByLetter: "Nach Nachname",
     },
     zh: {
-      title: "我们的团队",
+      title: "律师",
       subtitle: "认识我们的专家",
+      eyebrow: "我们的团队",
       errorMessage: "无法加载团队成员",
-      allMembers: "全部",
+      all: "全部",
       partnersOnly: "合伙人",
       ofCounsel: "法律顾问",
       associates: "律师",
       viewProfile: "查看简介",
-      downloadVCard: "下载名片",
       searchPlaceholder: "搜索...",
-      filterBy: "筛选",
-      seniority: "所有职位",
-      practiceArea: "所有业务领域",
-      alphabetic: "字母顺序",
-      all: "全部",
       clearFilters: "清除筛选",
       noResults: "未找到结果",
       teamMembers: "团队成员",
-      positions: {
-        foundingPartner: "创始合伙人",
-        partner: "合伙人",
-        ofCounsel: "法律顾问",
-        seniorAssociate: "高级律师",
-        associate: "律师",
-      },
+      browseByLetter: "按姓氏浏览",
     },
     ko: {
-      title: "우리 팀",
+      title: "변호사",
       subtitle: "전문가들을 만나보세요",
+      eyebrow: "우리 팀",
       errorMessage: "팀원을 불러올 수 없습니다",
-      allMembers: "전체",
+      all: "전체",
       partnersOnly: "파트너",
       ofCounsel: "고문",
       associates: "어소시에이트",
       viewProfile: "프로필 보기",
-      downloadVCard: "명함 다운로드",
       searchPlaceholder: "검색...",
-      filterBy: "필터",
-      seniority: "모든 직위",
-      practiceArea: "모든 업무 분야",
-      alphabetic: "알파벳순",
-      all: "전체",
       clearFilters: "필터 초기화",
       noResults: "결과 없음",
       teamMembers: "팀원",
-      positions: {
-        foundingPartner: "창립 파트너",
-        partner: "파트너",
-        ofCounsel: "고문",
-        seniorAssociate: "시니어 어소시에이트",
-        associate: "어소시에이트",
-      },
+      browseByLetter: "성으로 찾기",
     },
     ja: {
-      title: "私たちのチーム",
+      title: "弁護士",
       subtitle: "専門家をご紹介します",
+      eyebrow: "私たちのチーム",
       errorMessage: "チームメンバーを読み込めませんでした",
-      allMembers: "すべて",
+      all: "すべて",
       partnersOnly: "パートナー",
       ofCounsel: "オブ・カウンセル",
       associates: "アソシエイト",
       viewProfile: "プロフィールを見る",
-      downloadVCard: "名刺をダウンロード",
       searchPlaceholder: "検索...",
-      filterBy: "フィルター",
-      seniority: "すべての役職",
-      practiceArea: "すべての取扱分野",
-      alphabetic: "アルファベット順",
-      all: "すべて",
       clearFilters: "フィルターをクリア",
       noResults: "結果が見つかりません",
       teamMembers: "チームメンバー",
-      positions: {
-        foundingPartner: "創立パートナー",
-        partner: "パートナー",
-        ofCounsel: "オブ・カウンセル",
-        seniorAssociate: "シニアアソシエイト",
-        associate: "アソシエイト",
-      },
+      browseByLetter: "姓で探す",
     },
     ar: {
-      title: "فريقنا",
+      title: "المحامون",
       subtitle: "تعرف على خبرائنا",
+      eyebrow: "فريقنا",
       errorMessage: "فشل في تحميل أعضاء الفريق",
-      allMembers: "الكل",
+      all: "الكل",
       partnersOnly: "الشركاء",
       ofCounsel: "مستشار قانوني",
       associates: "المحامون",
       viewProfile: "عرض الملف الشخصي",
-      downloadVCard: "تحميل بطاقة العمل",
       searchPlaceholder: "بحث...",
-      filterBy: "تصفية حسب",
-      seniority: "جميع المناصب",
-      practiceArea: "جميع مجالات الممارسة",
-      alphabetic: "أبجدي",
-      all: "الكل",
       clearFilters: "مسح الفلاتر",
       noResults: "لم يتم العثور على نتائج",
       teamMembers: "أعضاء الفريق",
-      positions: {
-        foundingPartner: "شريك مؤسس",
-        partner: "شريك",
-        ofCounsel: "مستشار قانوني",
-        seniorAssociate: "محامي أول",
-        associate: "محامي",
-      },
+      browseByLetter: "البحث بالاسم الأخير",
     },
     ru: {
-      title: "Наша команда",
+      title: "Юристы",
       subtitle: "Познакомьтесь с нашими экспертами",
+      eyebrow: "Наша команда",
       errorMessage: "Не удалось загрузить членов команды",
-      allMembers: "Все",
+      all: "Все",
       partnersOnly: "Партнёры",
       ofCounsel: "Советник",
       associates: "Юристы",
       viewProfile: "Посмотреть профиль",
-      downloadVCard: "Скачать визитку",
       searchPlaceholder: "Поиск...",
-      filterBy: "Фильтр",
-      seniority: "Все должности",
-      practiceArea: "Все практики",
-      alphabetic: "По алфавиту",
-      all: "Все",
       clearFilters: "Сбросить фильтры",
       noResults: "Результаты не найдены",
       teamMembers: "членов команды",
-      positions: {
-        foundingPartner: "Партнёр-основатель",
-        partner: "Партнёр",
-        ofCounsel: "Советник",
-        seniorAssociate: "Старший юрист",
-        associate: "Юрист",
-      },
+      browseByLetter: "По фамилии",
     },
     fr: {
-      title: "Notre équipe",
+      title: "Avocats",
       subtitle: "Rencontrez nos experts",
+      eyebrow: "Notre équipe",
       errorMessage: "Échec du chargement des membres de l'équipe",
-      allMembers: "Tous",
+      all: "Tous",
       partnersOnly: "Associés",
       ofCounsel: "Of Counsel",
       associates: "Collaborateurs",
       viewProfile: "Voir le profil",
-      downloadVCard: "Télécharger vCard",
       searchPlaceholder: "Rechercher...",
-      filterBy: "Filtrer par",
-      seniority: "Tous les postes",
-      practiceArea: "Tous les domaines de pratique",
-      alphabetic: "Alphabétique",
-      all: "Tous",
       clearFilters: "Effacer les filtres",
       noResults: "Aucun résultat trouvé",
       teamMembers: "membres de l'équipe",
-      positions: {
-        foundingPartner: "Associé fondateur",
-        partner: "Associé",
-        ofCounsel: "Of Counsel",
-        seniorAssociate: "Collaborateur senior",
-        associate: "Collaborateur",
-      },
+      browseByLetter: "Par nom de famille",
     },
     it: {
-      title: "Il nostro team",
+      title: "Avvocati",
       subtitle: "Conosci i nostri esperti",
+      eyebrow: "Il nostro team",
       errorMessage: "Impossibile caricare i membri del team",
-      allMembers: "Tutti",
+      all: "Tutti",
       partnersOnly: "Partner",
       ofCounsel: "Of Counsel",
       associates: "Associate",
       viewProfile: "Vedi profilo",
-      downloadVCard: "Scarica vCard",
       searchPlaceholder: "Cerca...",
-      filterBy: "Filtra per",
-      seniority: "Tutte le posizioni",
-      practiceArea: "Tutte le aree di pratica",
-      alphabetic: "Alfabetico",
-      all: "Tutti",
       clearFilters: "Cancella filtri",
       noResults: "Nessun risultato trovato",
       teamMembers: "membri del team",
-      positions: {
-        foundingPartner: "Partner fondatore",
-        partner: "Partner",
-        ofCounsel: "Of Counsel",
-        seniorAssociate: "Senior Associate",
-        associate: "Associate",
-      },
+      browseByLetter: "Per cognome",
     },
   };
 
   const t = content[language] || content.en;
 
-  const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
-
   const groupedMembers = useMemo(() => {
     if (!allTeamMembers) return { partners: [], ofCounsel: [], associates: [] };
 
     const applyTextFilters = (members: TeamMember[]) =>
-      members.filter(m => {
+      members.filter((m) => {
         if (searchQuery && !m.name.toLowerCase().includes(searchQuery.toLowerCase())) return false;
         if (filterLetter !== "all" && !m.name.toUpperCase().startsWith(filterLetter)) return false;
         return true;
@@ -409,372 +263,158 @@ export default function Team() {
     const byName = (a: TeamMember, b: TeamMember) => a.name.localeCompare(b.name);
 
     const isOfCounsel = (m: TeamMember) => m.title?.toLowerCase() === "of counsel";
-    const allPartners  = [...allTeamMembers.filter(m => m.isPartner)].sort(byName);
-    const allOfCounsel = [...allTeamMembers.filter(m => !m.isPartner && isOfCounsel(m))].sort(byName);
-    const allAssociates = [...allTeamMembers.filter(m => !m.isPartner && !isOfCounsel(m))].sort(byName);
+    const allPartners = [...allTeamMembers.filter((m) => m.isPartner)].sort(byName);
+    const allOfCounsel = [...allTeamMembers.filter((m) => !m.isPartner && isOfCounsel(m))].sort(byName);
+    const allAssociates = [...allTeamMembers.filter((m) => !m.isPartner && !isOfCounsel(m))].sort(byName);
 
     return {
-      partners:   applyTextFilters(allPartners),
-      ofCounsel:  applyTextFilters(allOfCounsel),
+      partners: applyTextFilters(allPartners),
+      ofCounsel: applyTextFilters(allOfCounsel),
       associates: applyTextFilters(allAssociates),
     };
   }, [allTeamMembers, searchQuery, filterLetter]);
 
-  const showPartners   = filterSeniority === "all" || filterSeniority === "partners";
-  const showOfCounsel  = filterSeniority === "all" || filterSeniority === "ofcounsel";
+  const showPartners = filterSeniority === "all" || filterSeniority === "partners";
+  const showOfCounsel = filterSeniority === "all" || filterSeniority === "ofcounsel";
   const showAssociates = filterSeniority === "all" || filterSeniority === "associates";
 
   const totalVisible =
-    (showPartners   ? groupedMembers.partners.length   : 0) +
-    (showOfCounsel  ? groupedMembers.ofCounsel.length  : 0) +
+    (showPartners ? groupedMembers.partners.length : 0) +
+    (showOfCounsel ? groupedMembers.ofCounsel.length : 0) +
     (showAssociates ? groupedMembers.associates.length : 0);
 
-  const hasActiveFilters = searchQuery || filterSeniority !== "all" || filterLetter !== "all" || filterPractice !== "all";
+  const hasActiveFilters =
+    !!searchQuery || filterSeniority !== "all" || filterLetter !== "all";
 
   const clearFilters = () => {
     setSearchQuery("");
     setFilterSeniority("all");
-    setFilterPractice("all");
     setFilterLetter("all");
   };
 
-  const getInitials = (name: string) =>
-    name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase();
-
-  const getPhotoSrc = (member: TeamMember) =>
-    member.imageUrl || `/partner_photos/${member.slug}.jpg`;
+  const filterLabels: AttorneyFiltersLabels = {
+    searchPlaceholder: t.searchPlaceholder,
+    all: t.all,
+    partnersOnly: t.partnersOnly,
+    ofCounsel: t.ofCounsel,
+    associates: t.associates,
+    clearFilters: t.clearFilters,
+    resultsLabel: t.teamMembers,
+    browseByLetter: t.browseByLetter,
+  };
 
   return (
-    <div className="min-h-screen bg-background" data-testid="page-team">
+    <div data-testid="page-team">
       <SEOHead page="team" language={language} />
-      <Header />
-      
-      <section className="pt-36 pb-20 bg-[#1a1a19]" data-testid="section-team-hero">
-        <div className="max-w-7xl mx-auto px-6 lg:px-12">
-          <motion.div
-            initial={{ opacity: 0, y: 24 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.7 }}
-            className="text-center"
+
+      {/* Hero */}
+      <section className="bg-white pt-28 pb-10">
+        <div className="vw-wrap" ref={heroRef}>
+          <span className="font-label text-[12px] uppercase tracking-[0.3em] text-vw-red">
+            {t.eyebrow}
+          </span>
+          <h1
+            className="vw-hero-title mt-3 block text-vw-gray"
+            data-testid="text-team-title"
           >
-            <div className="h-0.5 w-12 bg-primary mx-auto mb-6" />
-            <h1 
-              className="text-4xl md:text-5xl font-heading font-light text-white mb-5 uppercase tracking-[0.15em]"
-              data-testid="text-team-title"
-            >
-              {t.title}
-            </h1>
-            <p 
-              className="text-base text-white/60 max-w-2xl mx-auto"
-              data-testid="text-team-subtitle"
-            >
-              {t.subtitle}
-            </p>
-          </motion.div>
+            {t.title}
+          </h1>
+          <p
+            className="mt-4 max-w-2xl font-sans text-[16px] leading-relaxed text-vw-gray/70"
+            data-testid="text-team-subtitle"
+          >
+            {t.subtitle}
+          </p>
         </div>
       </section>
 
-      {/* Filter bar */}
-      <div className="bg-[#0a0a09] border-b border-primary/15 sticky top-0 z-40">
-        <div className="max-w-7xl mx-auto px-6 lg:px-12 py-4">
-          <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30" />
-              <Input
-                type="text"
-                placeholder={t.searchPlaceholder}
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-9 rounded-none bg-white/5 border-white/10 text-white placeholder:text-white/30 focus-visible:ring-primary/40 focus-visible:border-primary/40"
-                data-testid="input-search"
-              />
-            </div>
-            <div className="flex flex-wrap gap-2 items-center">
-              <Select value={filterSeniority} onValueChange={setFilterSeniority}>
-                <SelectTrigger className="w-36 rounded-none bg-white/5 border-white/10 text-white/80 text-xs" data-testid="select-seniority">
-                  <SelectValue placeholder={t.seniority} />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">{t.all}</SelectItem>
-                  <SelectItem value="partners">{t.partnersOnly}</SelectItem>
-                  <SelectItem value="ofcounsel">{t.ofCounsel}</SelectItem>
-                  <SelectItem value="associates">{t.associates}</SelectItem>
-                </SelectContent>
-              </Select>
-              <Select value={filterLetter} onValueChange={setFilterLetter}>
-                <SelectTrigger className="w-28 rounded-none bg-white/5 border-white/10 text-white/80 text-xs" data-testid="select-alphabetic">
-                  <SelectValue placeholder={t.alphabetic} />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">{t.all}</SelectItem>
-                  {alphabet.map(letter => (
-                    <SelectItem key={letter} value={letter}>{letter}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {hasActiveFilters && (
-                <Button variant="ghost" size="default" onClick={clearFilters} className="gap-1.5 rounded-none text-white/50 hover:text-white text-xs" data-testid="button-clear-filters">
-                  <X className="w-3.5 h-3.5" />
-                  {t.clearFilters}
-                </Button>
-              )}
-              <span className="text-white/30 text-xs ml-2 hidden sm:inline" data-testid="text-results-count">{totalVisible} {t.teamMembers}</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <main id="main-content" data-testid="section-team-main">
+      <div className="vw-wrap pb-24">
+        <AttorneyFilters
+          searchQuery={searchQuery}
+          onSearchChange={setSearchQuery}
+          filterSeniority={filterSeniority}
+          onSeniorityChange={setFilterSeniority}
+          filterLetter={filterLetter}
+          onLetterChange={setFilterLetter}
+          hasActiveFilters={hasActiveFilters}
+          onClear={clearFilters}
+          totalVisible={totalVisible}
+          labels={filterLabels}
+        />
 
         {errorAll ? (
-          <div className="text-center py-24" data-testid="container-team-error">
-            <AlertCircle className="w-12 h-12 text-muted-foreground/40 mx-auto mb-4" />
-            <p className="text-muted-foreground" data-testid="text-team-error">{t.errorMessage}</p>
+          <div className="py-24 text-center" data-testid="container-team-error">
+            <AlertCircle className="mx-auto mb-4 h-12 w-12 text-vw-gray/40" />
+            <p className="text-vw-gray" data-testid="text-team-error">
+              {t.errorMessage}
+            </p>
           </div>
         ) : isLoadingAll ? (
-          <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-7 gap-px">
-            {Array.from({ length: 21 }).map((_, i) => (
-              <div key={i} className="bg-muted" style={{ aspectRatio: "3/4" }} data-testid={`skeleton-team-member-${i}`}>
-                <Skeleton className="w-full h-full" />
+          <div className="space-y-px pt-10" data-testid="container-team-loading">
+            {Array.from({ length: 8 }).map((_, i) => (
+              <div
+                key={i}
+                className="flex items-center gap-5 border-b border-vw-graylight py-7"
+                data-testid={`skeleton-team-member-${i}`}
+              >
+                <div className="h-[92px] w-[92px] shrink-0 animate-pulse bg-vw-graylight" />
+                <div className="flex-1 space-y-3">
+                  <div className="h-5 w-48 animate-pulse bg-vw-graylight" />
+                  <div className="h-3 w-32 animate-pulse bg-vw-graylight" />
+                </div>
               </div>
             ))}
           </div>
         ) : totalVisible === 0 ? (
-          <div className="text-center py-24" data-testid="container-team-empty">
-            <Users className="w-12 h-12 text-muted-foreground/30 mx-auto mb-4" />
-            <p className="text-muted-foreground">{t.noResults}</p>
+          <div className="py-24 text-center" data-testid="container-team-empty">
+            <Users className="mx-auto mb-4 h-12 w-12 text-vw-gray/30" />
+            <p className="text-vw-gray">{t.noResults}</p>
             {hasActiveFilters && (
-              <Button variant="ghost" onClick={clearFilters} className="mt-4 gap-2 rounded-none" data-testid="button-clear-empty">
-                <X className="w-4 h-4" />{t.clearFilters}
-              </Button>
+              <button
+                type="button"
+                onClick={clearFilters}
+                className="mt-4 font-label text-[12px] uppercase tracking-[0.2em] text-vw-red hover:opacity-70"
+                data-testid="button-clear-empty"
+              >
+                {t.clearFilters}
+              </button>
             )}
           </div>
         ) : (
-          <>
-            {/* ─── SOCIOS ──────────────────────────────────────── */}
-            {showPartners && groupedMembers.partners.length > 0 && (
-              <section className="border-b border-border" data-testid="section-partners">
-                <div className="px-6 lg:px-12 pt-10 pb-4">
-                  <div className="flex items-center gap-3 mb-1">
-                    <div className="w-8 h-px bg-primary shrink-0" />
-                    <p className="text-primary text-[10px] tracking-[0.3em] uppercase font-medium">NUESTRO EQUIPO</p>
-                    <span className="text-muted-foreground text-[9px] tracking-wider ml-1">— {groupedMembers.partners.length}</span>
-                  </div>
-                  <h2 className="font-heading font-light text-xl uppercase tracking-[0.12em] text-foreground">
-                    {t.partnersOnly}
-                  </h2>
-                </div>
-                {/* Desktop: expanding panels — multiple rows of 8 */}
-                <div className="hidden lg:block">
-                  {chunkArray(groupedMembers.partners, 8).map((row, rowIdx) => (
-                    <div
-                      key={rowIdx}
-                      className="flex w-full h-[440px]"
-                      onMouseLeave={() => setPartnerPanels(prev => ({ ...prev, [rowIdx]: null }))}
-                    >
-                      {row.map((member, colIdx) => {
-                        const idx = rowIdx * 8 + colIdx;
-                        const isActive = partnerPanels[rowIdx] === `p-${member.id}`;
-                        return (
-                          <Link
-                            key={member.id}
-                            href={`/team/${member.slug}`}
-                            data-testid={`card-team-member-${member.slug}`}
-                            aria-label={member.name}
-                            className="relative overflow-hidden cursor-pointer block"
-                            style={{ flex: isActive ? 4 : 1, transition: "flex 0.5s cubic-bezier(0.22, 1, 0.36, 1)", minWidth: 0 }}
-                            onMouseEnter={() => setPartnerPanels(prev => ({ ...prev, [rowIdx]: `p-${member.id}` }))}
-                          >
-                            <div className="absolute inset-0 bg-muted flex items-center justify-center">
-                              <span className="text-2xl font-heading font-bold text-primary/50 select-none">{getInitials(member.name)}</span>
-                            </div>
-                            <img src={getPhotoSrc(member)} alt="" aria-hidden="true" className="absolute inset-0 w-full h-full object-cover object-top" style={{ transform: isActive ? "scale(1.03)" : "scale(1)", filter: isActive ? "grayscale(0%)" : "grayscale(100%)", transition: "transform 0.6s cubic-bezier(0.22, 1, 0.36, 1), filter 0.5s ease" }} onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }} />
-                            <div className="absolute inset-0" style={{ background: isActive ? "linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.4) 50%, rgba(0,0,0,0.2) 100%)" : "linear-gradient(to top, rgba(0,0,0,0.92) 0%, rgba(0,0,0,0.7) 100%)", transition: "background 0.5s ease" }} />
-                            <div className="absolute top-0 right-0 w-px h-full bg-primary/15" />
-                            <div className="absolute bottom-5 left-3 right-3" style={{ opacity: isActive ? 0 : 1, transition: "opacity 0.2s ease" }}>
-                              <p className="text-white/60 text-[9px] uppercase tracking-[0.12em] font-light truncate">{member.name}</p>
-                            </div>
-                            <div className="absolute bottom-5 left-4 right-4" style={{ opacity: isActive ? 1 : 0, transform: isActive ? "translateY(0)" : "translateY(6px)", transition: "opacity 0.3s ease 0.1s, transform 0.3s ease 0.1s" }}>
-                              <p className="font-heading font-light text-sm uppercase tracking-[0.1em] leading-snug mb-1 text-white whitespace-nowrap overflow-hidden text-ellipsis">{member.name}</p>
-                              <p className="text-[10px] text-primary uppercase tracking-[0.08em] mb-3">{t.partnersOnly}</p>
-                              <div className="flex items-center gap-2 text-primary">
-                                <span className="text-[9px] uppercase tracking-[0.1em]">{t.viewProfile}</span>
-                                <ArrowRight className="w-3.5 h-3.5" />
-                              </div>
-                            </div>
-                          </Link>
-                        );
-                      })}
-                    </div>
-                  ))}
-                </div>
-                {/* Mobile: 2-column portrait grid */}
-                <div className="lg:hidden grid grid-cols-2 gap-px">
-                  {groupedMembers.partners.map((member, idx) => (
-                    <Link key={member.id} href={`/team/${member.slug}`} className="relative overflow-hidden group block cursor-pointer" style={{ aspectRatio: "3/4" }} data-testid={`card-team-member-mob-${member.slug}`} aria-label={member.name}>
-                      <div className="absolute inset-0 bg-muted flex items-center justify-center">
-                        <span className="text-2xl font-heading font-bold text-primary/50 select-none">{getInitials(member.name)}</span>
-                      </div>
-                      <img src={getPhotoSrc(member)} alt="" aria-hidden="true" className="absolute inset-0 w-full h-full object-cover object-top transition-[transform,filter] duration-500 grayscale group-hover:grayscale-0 group-hover:scale-105" onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }} />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent" />
-                      <div className="absolute bottom-0 left-0 right-0 px-3 pb-3">
-                        <p className="text-primary text-[8px] uppercase tracking-[0.1em] mb-0.5">{t.partnersOnly}</p>
-                        <p className="text-white text-[9px] uppercase tracking-[0.06em] leading-snug font-light line-clamp-2">{member.name}</p>
-                      </div>
-                    </Link>
-                  ))}
-                </div>
-              </section>
+          <div className="pt-4">
+            {showPartners && (
+              <AttorneyGroup
+                eyebrow={t.eyebrow}
+                title={t.partnersOnly}
+                members={groupedMembers.partners}
+                language={language}
+                viewProfileLabel={t.viewProfile}
+                testId="section-partners"
+              />
             )}
-
-            {/* ─── OF COUNSEL ──────────────────────────────────── */}
-            {showOfCounsel && groupedMembers.ofCounsel.length > 0 && (
-              <section className="border-b border-border" data-testid="section-ofcounsel">
-                <div className="px-6 lg:px-12 pt-10 pb-4">
-                  <div className="flex items-center gap-3 mb-1">
-                    <div className="w-8 h-px bg-primary shrink-0" />
-                    <p className="text-primary text-[10px] tracking-[0.3em] uppercase font-medium">{t.ofCounsel}</p>
-                    <span className="text-muted-foreground text-[9px] tracking-wider ml-1">— {groupedMembers.ofCounsel.length}</span>
-                  </div>
-                  <h2 className="font-heading font-light text-xl uppercase tracking-[0.12em] text-foreground">
-                    {t.ofCounsel}
-                  </h2>
-                </div>
-                {/* Desktop: expanding panels */}
-                <div className="hidden lg:flex w-full h-[380px]" onMouseLeave={() => setActivePanel(null)}>
-                  {groupedMembers.ofCounsel.map((member, idx) => {
-                    const isActive = activePanel === `oc-${member.id}`;
-                    return (
-                      <Link
-                        key={member.id}
-                        href={`/team/${member.slug}`}
-                        data-testid={`card-team-member-${member.slug}`}
-                        aria-label={member.name}
-                        className="relative overflow-hidden cursor-pointer block"
-                        style={{ flex: isActive ? 3 : 1, transition: "flex 0.5s cubic-bezier(0.22, 1, 0.36, 1)", minWidth: 0 }}
-                        onMouseEnter={() => setActivePanel(`oc-${member.id}`)}
-                      >
-                        <div className="absolute inset-0 bg-muted flex items-center justify-center">
-                          <span className="text-4xl font-heading font-bold text-primary/40 select-none">{getInitials(member.name)}</span>
-                        </div>
-                        <img src={getPhotoSrc(member)} alt="" aria-hidden="true" className="absolute inset-0 w-full h-full object-cover object-top" style={{ transform: isActive ? "scale(1.04)" : "scale(1)", filter: isActive ? "grayscale(0%)" : "grayscale(100%)", transition: "transform 0.6s cubic-bezier(0.22, 1, 0.36, 1), filter 0.5s ease" }} onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }} />
-                        <div className="absolute inset-0" style={{ background: isActive ? "linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.4) 50%, rgba(0,0,0,0.3) 100%)" : "linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.7) 100%)", transition: "background 0.5s ease" }} />
-                        <div className="absolute top-0 right-0 w-px h-full bg-primary/20" />
-                        <div className="absolute bottom-6 left-4 right-4" style={{ opacity: isActive ? 0 : 1, transition: "opacity 0.25s ease" }}>
-                          <p className="text-white/70 text-[9px] uppercase tracking-[0.12em] font-light truncate">{member.name}</p>
-                        </div>
-                        <div className="absolute bottom-6 left-5 right-5" style={{ opacity: isActive ? 1 : 0, transform: isActive ? "translateY(0)" : "translateY(8px)", transition: "opacity 0.3s ease 0.1s, transform 0.3s ease 0.1s" }}>
-                          <p className="font-heading font-light text-base uppercase tracking-[0.1em] leading-snug mb-1 text-white">{member.name}</p>
-                          <p className="text-xs text-primary uppercase tracking-[0.08em] mb-3">{member.title}</p>
-                          <div className="flex items-center gap-2 text-primary">
-                            <span className="text-[9px] uppercase tracking-[0.1em]">{t.viewProfile}</span>
-                            <ArrowRight className="w-4 h-4" />
-                          </div>
-                        </div>
-                      </Link>
-                    );
-                  })}
-                </div>
-                {/* Mobile: 2-column grid */}
-                <div className="lg:hidden grid grid-cols-2 gap-px">
-                  {groupedMembers.ofCounsel.map((member, idx) => (
-                    <Link key={member.id} href={`/team/${member.slug}`} className="relative overflow-hidden group block cursor-pointer" style={{ aspectRatio: "3/4" }} data-testid={`card-team-member-mob-${member.slug}`} aria-label={member.name}>
-                      <div className="absolute inset-0 bg-muted flex items-center justify-center">
-                        <span className="text-3xl font-heading font-bold text-primary/60 select-none">{getInitials(member.name)}</span>
-                      </div>
-                      <img src={getPhotoSrc(member)} alt="" aria-hidden="true" className="absolute inset-0 w-full h-full object-cover object-top transition-[transform,filter] duration-500 grayscale group-hover:grayscale-0 group-hover:scale-105" onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }} />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-transparent" />
-                      <div className="absolute bottom-0 left-0 right-0 px-3 pb-3">
-                        <p className="text-primary text-[8px] uppercase tracking-[0.1em] mb-0.5">{member.title}</p>
-                        <p className="text-white text-[9px] uppercase tracking-[0.06em] leading-snug font-light">{member.name}</p>
-                      </div>
-                    </Link>
-                  ))}
-                </div>
-              </section>
+            {showOfCounsel && (
+              <AttorneyGroup
+                eyebrow={t.ofCounsel}
+                title={t.ofCounsel}
+                members={groupedMembers.ofCounsel}
+                language={language}
+                viewProfileLabel={t.viewProfile}
+                testId="section-ofcounsel"
+              />
             )}
-
-            {/* ─── ASOCIADOS ───────────────────────────────────── */}
-            {showAssociates && groupedMembers.associates.length > 0 && (
-              <section data-testid="section-associates">
-                <div className="px-6 lg:px-12 pt-10 pb-4">
-                  <div className="flex items-center gap-3 mb-1">
-                    <div className="w-8 h-px bg-primary shrink-0" />
-                    <p className="text-primary text-[10px] tracking-[0.3em] uppercase font-medium">{t.associates}</p>
-                    <span className="text-muted-foreground text-[9px] tracking-wider ml-1">— {groupedMembers.associates.length}</span>
-                  </div>
-                  <h2 className="font-heading font-light text-xl uppercase tracking-[0.12em] text-foreground">
-                    {t.associates}
-                  </h2>
-                </div>
-                {/* Desktop: expanding panels — multiple rows of 9 */}
-                <div className="hidden lg:block">
-                  {chunkArray(groupedMembers.associates, 9).map((row, rowIdx) => (
-                    <div
-                      key={rowIdx}
-                      className="flex w-full h-[400px]"
-                      onMouseLeave={() => setAssocPanels(prev => ({ ...prev, [rowIdx]: null }))}
-                    >
-                      {row.map((member, colIdx) => {
-                        const idx = rowIdx * 9 + colIdx;
-                        const isActive = assocPanels[rowIdx] === `a-${member.id}`;
-                        return (
-                          <Link
-                            key={member.id}
-                            href={`/team/${member.slug}`}
-                            data-testid={`card-team-member-${member.slug}`}
-                            aria-label={member.name}
-                            className="relative overflow-hidden cursor-pointer block"
-                            style={{ flex: isActive ? 4 : 1, transition: "flex 0.45s cubic-bezier(0.22, 1, 0.36, 1)", minWidth: 0 }}
-                            onMouseEnter={() => setAssocPanels(prev => ({ ...prev, [rowIdx]: `a-${member.id}` }))}
-                          >
-                            <div className="absolute inset-0 bg-muted flex items-center justify-center">
-                              <span className="text-xl font-heading font-bold text-primary/40 select-none">{getInitials(member.name)}</span>
-                            </div>
-                            <img src={getPhotoSrc(member)} alt="" aria-hidden="true" className="absolute inset-0 w-full h-full object-cover object-top" style={{ transform: isActive ? "scale(1.03)" : "scale(1)", filter: isActive ? "grayscale(0%)" : "grayscale(100%)", transition: "transform 0.6s cubic-bezier(0.22, 1, 0.36, 1), filter 0.5s ease" }} onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }} />
-                            <div className="absolute inset-0" style={{ background: isActive ? "linear-gradient(to top, rgba(0,0,0,0.88) 0%, rgba(0,0,0,0.4) 50%, rgba(0,0,0,0.2) 100%)" : "linear-gradient(to top, rgba(0,0,0,0.93) 0%, rgba(0,0,0,0.75) 100%)", transition: "background 0.5s ease" }} />
-                            <div className="absolute top-0 right-0 w-px h-full bg-primary/10" />
-                            <div className="absolute bottom-4 left-3 right-3" style={{ opacity: isActive ? 0 : 1, transition: "opacity 0.2s ease" }}>
-                              <p className="text-white/50 text-[8px] uppercase tracking-[0.1em] font-light truncate">{member.name}</p>
-                            </div>
-                            <div className="absolute bottom-4 left-3 right-3" style={{ opacity: isActive ? 1 : 0, transform: isActive ? "translateY(0)" : "translateY(6px)", transition: "opacity 0.3s ease 0.1s, transform 0.3s ease 0.1s" }}>
-                              <p className="font-heading font-light text-sm uppercase tracking-[0.08em] leading-snug mb-0.5 text-white whitespace-nowrap overflow-hidden text-ellipsis">{member.name}</p>
-                              <p className="text-[9px] text-primary uppercase tracking-[0.08em] mb-2">{t.associates}</p>
-                              <div className="flex items-center gap-1.5 text-primary">
-                                <span className="text-[9px] uppercase tracking-[0.1em]">{t.viewProfile}</span>
-                                <ArrowRight className="w-3 h-3" />
-                              </div>
-                            </div>
-                          </Link>
-                        );
-                      })}
-                    </div>
-                  ))}
-                </div>
-                {/* Mobile: 2-column portrait grid */}
-                <div className="lg:hidden grid grid-cols-2 gap-px">
-                  {groupedMembers.associates.map((member, idx) => (
-                    <Link key={member.id} href={`/team/${member.slug}`} className="relative overflow-hidden group block cursor-pointer" style={{ aspectRatio: "3/4" }} data-testid={`card-team-member-mob-${member.slug}`} aria-label={member.name}>
-                      <div className="absolute inset-0 bg-muted flex items-center justify-center">
-                        <span className="text-xl font-heading font-bold text-primary/40 select-none">{getInitials(member.name)}</span>
-                      </div>
-                      <img src={getPhotoSrc(member)} alt="" aria-hidden="true" className="absolute inset-0 w-full h-full object-cover object-top transition-[transform,filter] duration-500 grayscale group-hover:grayscale-0 group-hover:scale-105" onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }} />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent" />
-                      <div className="absolute bottom-0 left-0 right-0 px-2.5 pb-2.5">
-                        <p className="text-primary text-[7px] uppercase tracking-[0.08em] mb-0.5">{t.associates}</p>
-                        <p className="text-white text-[8px] uppercase tracking-[0.05em] leading-snug font-light line-clamp-2">{member.name}</p>
-                      </div>
-                    </Link>
-                  ))}
-                </div>
-              </section>
+            {showAssociates && (
+              <AttorneyGroup
+                eyebrow={t.associates}
+                title={t.associates}
+                members={groupedMembers.associates}
+                language={language}
+                viewProfileLabel={t.viewProfile}
+                testId="section-associates"
+              />
             )}
-          </>
+          </div>
         )}
-      </main>
-
-      <Footer />
+      </div>
     </div>
   );
 }

@@ -1,32 +1,26 @@
-import { motion } from "framer-motion";
-import { 
-  Users, 
-  GraduationCap, 
-  Heart, 
-  Scale, 
-  Briefcase, 
-  Clock, 
-  TrendingUp, 
-  Award, 
-  BookOpen, 
-  Building2, 
-  MapPin, 
-  Mail, 
-  ArrowRight, 
+import {
+  Users,
+  GraduationCap,
+  Heart,
+  Scale,
+  Briefcase,
+  Clock,
+  TrendingUp,
+  Award,
+  BookOpen,
+  Building2,
+  MapPin,
+  Mail,
+  ArrowRight,
   Calendar,
   Target,
   Lightbulb,
   Shield,
-  HandHeart
+  HandHeart,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import Header from "@/components/Header";
-import Footer from "@/components/Footer";
+import { PageHero, Section, SectionTitle, Label, FeatureCard } from "@/components/firm";
 import SEOHead from "@/components/SEOHead";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { NumberedCard } from "@/components/editorial";
 
 export default function Careers() {
   const { language } = useLanguage();
@@ -1056,466 +1050,284 @@ export default function Careers() {
 
   const t = content[language as keyof typeof content] || content.en;
 
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1,
-      },
-    },
-  };
-
-  const itemVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: { duration: 0.4 },
-    },
-  };
-
   return (
-    <div className="min-h-screen bg-background" data-testid="page-careers">
+    <div data-testid="page-careers" className="vw-old">
       <SEOHead page="careers" language={language} />
-      <Header />
-      
-      <section className="pt-36 pb-20 bg-[#1a1a19]" data-testid="section-careers-hero">
-        <div className="max-w-7xl mx-auto px-6 lg:px-12">
-          <motion.div
-            initial={{ opacity: 0, y: 24 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.7 }}
-            className="text-center"
+
+      <PageHero
+        eyebrow="Von Wobeser y Sierra"
+        title={t.heroTitle}
+        subtitle={t.heroSubtitle}
+        data-testid="section-careers-hero"
+      />
+
+      {/* Por qué trabajar con nosotros */}
+      <Section tone="white" data-testid="section-why-join">
+        <Label data-testid="text-why-join-subtitle">{t.whyJoinSubtitle}</Label>
+        <SectionTitle className="mt-3" data-testid="text-why-join-title">
+          {t.whyJoinTitle}
+        </SectionTitle>
+
+        <div className="mb-10 grid grid-cols-1 gap-6 lg:grid-cols-2">
+          <FeatureCard
+            icon={Building2}
+            title={t.cultureTitle}
+            data-testid="card-culture"
           >
-            <div className="h-0.5 w-12 bg-primary mx-auto mb-6" />
-            <h1 
-              className="text-4xl md:text-5xl font-heading font-light text-white mb-5 uppercase tracking-[0.15em]"
-              data-testid="text-careers-title"
-            >
-              {t.heroTitle}
-            </h1>
-            <p 
-              className="text-base text-white/60 max-w-3xl mx-auto mb-8"
-              data-testid="text-careers-subtitle"
-            >
-              {t.heroSubtitle}
-            </p>
-            <Button 
-              className="rounded-none"
-              variant="default"
-              size="lg"
-              asChild
-              data-testid="button-hero-apply"
-            >
-              <a href={`mailto:${t.applyEmail}`}>
-                <Briefcase className="w-5 h-5 mr-2" />
-                {t.apply}
-              </a>
-            </Button>
-          </motion.div>
+            <p className="text-justify">{t.cultureText}</p>
+          </FeatureCard>
+
+          <FeatureCard
+            icon={Target}
+            title={t.environmentTitle}
+            data-testid="card-environment"
+          >
+            <p className="text-justify">{t.environmentText}</p>
+          </FeatureCard>
         </div>
-      </section>
 
-      <main id="main-content" className="py-16 lg:py-20">
-        <div className="max-w-7xl mx-auto px-6 lg:px-12">
-          
-          <motion.section
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6, delay: 0.1 }}
-            className="mb-20"
-            data-testid="section-why-join"
-          >
-            <div className="text-center mb-12">
-              <h2 
-                className="text-2xl md:text-3xl font-heading font-light text-foreground mb-4 uppercase tracking-[0.12em]"
-                data-testid="text-why-join-title"
-              >
-                {t.whyJoinTitle}
-              </h2>
-              <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-                {t.whyJoinSubtitle}
-              </p>
-            </div>
-
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
-              <Card className="rounded-none border border-border" data-testid="card-culture">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-3 text-lg font-heading font-light text-foreground uppercase tracking-[0.1em]">
-                    <Building2 className="w-6 h-6 text-primary" />
-                    {t.cultureTitle}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-muted-foreground leading-relaxed text-justify">
-                    {t.cultureText}
-                  </p>
-                </CardContent>
-              </Card>
-
-              <Card className="rounded-none border border-border" data-testid="card-environment">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-3 text-lg font-heading font-light text-foreground uppercase tracking-[0.1em]">
-                    <Target className="w-6 h-6 text-primary" />
-                    {t.environmentTitle}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-muted-foreground leading-relaxed text-justify">
-                    {t.environmentText}
-                  </p>
-                </CardContent>
-              </Card>
-            </div>
-
-            <Card className="rounded-none border border-border bg-muted" data-testid="card-values">
-              <CardHeader>
-                <CardTitle className="text-lg font-heading font-light text-foreground text-center uppercase tracking-[0.1em]">
-                  {t.valuesTitle}
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <motion.div 
-                  className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"
-                  variants={containerVariants}
-                  initial="hidden"
-                  whileInView="visible"
-                  viewport={{ once: true }}
-                >
-                  {t.values.map((value, index) => (
-                    <motion.div
-                      key={index}
-                      variants={itemVariants}
-                      data-testid={`card-value-${index}`}
-                    >
-                      <NumberedCard
-                        index={index}
-                        title={value.title}
-                        body={value.text}
-                        icon={value.icon}
-                      />
-                    </motion.div>
-                  ))}
-                </motion.div>
-              </CardContent>
-            </Card>
-          </motion.section>
-
-          <motion.section
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
-            className="mb-20"
-            data-testid="section-benefits"
-          >
-            <div className="text-center mb-12">
-              <h2 
-                className="text-2xl md:text-3xl font-heading font-light text-foreground mb-4 uppercase tracking-[0.12em]"
-                data-testid="text-benefits-title"
-              >
-                {t.benefitsTitle}
-              </h2>
-              <p className="text-lg text-muted-foreground">
-                {t.benefitsSubtitle}
-              </p>
-            </div>
-
-            <motion.div 
-              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
-              variants={containerVariants}
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true }}
+        <h3 className="mb-6 text-center font-serif text-2xl text-vw-black">
+          {t.valuesTitle}
+        </h3>
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
+          {t.values.map((value, index) => (
+            <FeatureCard
+              key={index}
+              icon={value.icon}
+              title={value.title}
+              data-testid={`card-value-${index}`}
             >
-              {t.benefits.map((benefit, index) => (
-                <motion.div key={index} variants={itemVariants}>
-                  <NumberedCard
-                    index={index}
-                    title={benefit.title}
-                    body={benefit.text}
-                    icon={benefit.icon}
-                    dataTestid={`card-benefit-${index}`}
-                  />
-                </motion.div>
-              ))}
-            </motion.div>
-          </motion.section>
+              {value.text}
+            </FeatureCard>
+          ))}
+        </div>
+      </Section>
 
-          <motion.section
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
-            className="mb-20"
-            data-testid="section-positions"
-          >
-            <div className="text-center mb-12">
-              <h2 
-                className="text-2xl md:text-3xl font-heading font-light text-foreground mb-4 uppercase tracking-[0.12em]"
-                data-testid="text-positions-title"
-              >
-                {t.positionsTitle}
-              </h2>
-              <p className="text-lg text-muted-foreground">
-                {t.positionsSubtitle}
-              </p>
-            </div>
-
-            <motion.div 
-              className="space-y-6"
-              variants={containerVariants}
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true }}
+      {/* Beneficios */}
+      <Section tone="gray" data-testid="section-benefits">
+        <Label data-testid="text-benefits-subtitle">{t.benefitsSubtitle}</Label>
+        <SectionTitle className="mt-3" data-testid="text-benefits-title">
+          {t.benefitsTitle}
+        </SectionTitle>
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {t.benefits.map((benefit, index) => (
+            <FeatureCard
+              key={index}
+              icon={benefit.icon}
+              title={benefit.title}
+              data-testid={`card-benefit-${index}`}
             >
-              {t.positions.map((position, index) => (
-                <motion.div key={index} variants={itemVariants}>
-                  <Card 
-                    className="rounded-none border border-border"
-                    data-testid={`card-position-${index}`}
-                  >
-                    <CardContent className="p-6">
-                      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-                        <div className="flex-1">
-                          <div className="flex flex-wrap items-center gap-3 mb-3">
-                            <h3 className="text-xl font-light uppercase tracking-[0.12em] text-foreground">
-                              {language === "es" ? position.titleEs : position.title}
-                            </h3>
-                            <Badge variant="secondary" className="text-xs">
-                              {language === "es" ? position.typeEs : position.type}
-                            </Badge>
-                          </div>
-                          <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground mb-3">
-                            <span className="flex items-center gap-1">
-                              <Briefcase className="w-4 h-4" />
-                              {language === "es" ? position.departmentEs : position.department}
-                            </span>
-                            <span className="flex items-center gap-1">
-                              <MapPin className="w-4 h-4" />
-                              {language === "es" ? position.locationEs : position.location}
-                            </span>
-                          </div>
-                          <p className="text-muted-foreground">
-                            {language === "es" ? position.descriptionEs : position.description}
-                          </p>
-                        </div>
-                        <div className="flex-shrink-0">
-                          <Button 
-                            className="rounded-none w-full lg:w-auto"
-                            asChild
-                            data-testid={`button-apply-position-${index}`}
-                          >
-                            <a href={`mailto:reclutamiento@vonwobeser.com?subject=${encodeURIComponent(language === "es" ? position.titleEs : position.title)}`}>
-                              {t.apply}
-                              <ArrowRight className="w-4 h-4 ml-2" />
-                            </a>
-                          </Button>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </motion.div>
-              ))}
-            </motion.div>
-          </motion.section>
+              {benefit.text}
+            </FeatureCard>
+          ))}
+        </div>
+      </Section>
 
-          <motion.section
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
-            className="mb-20"
-            data-testid="section-internship"
-          >
-            <div className="text-center mb-12">
-              <h2 
-                className="text-2xl md:text-3xl font-heading font-light text-foreground mb-4 uppercase tracking-[0.12em]"
-                data-testid="text-internship-title"
-              >
-                {t.internshipTitle}
-              </h2>
-              <p className="text-lg text-muted-foreground">
-                {t.internshipSubtitle}
-              </p>
-            </div>
-
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-              <Card 
-                className="rounded-none border border-border lg:col-span-2"
-                data-testid="card-internship-overview"
-              >
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-3 text-lg font-heading font-light text-foreground uppercase tracking-[0.1em]">
-                    <GraduationCap className="w-6 h-6 text-primary" />
-                    {t.internshipOverviewTitle}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-muted-foreground leading-relaxed mb-6 text-justify">
-                    {t.internshipOverviewText}
-                  </p>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                      <h4 className="font-semibold text-foreground mb-3 flex items-center gap-2">
-                        <Calendar className="w-5 h-5 text-primary" />
-                        {t.internshipDurationTitle}
-                      </h4>
-                      <ul className="space-y-2">
-                        {t.internshipDuration.map((item, index) => (
-                          <li 
-                            key={index} 
-                            className="text-sm text-muted-foreground flex items-start gap-2"
-                          >
-                            <span className="w-1.5 h-1.5 rounded-full bg-primary mt-2 flex-shrink-0" />
-                            {item}
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                    
-                    <div>
-                      <h4 className="font-semibold text-foreground mb-3 flex items-center gap-2">
-                        <Award className="w-5 h-5 text-primary" />
-                        {t.internshipLearningTitle}
-                      </h4>
-                      <ul className="space-y-2">
-                        {t.internshipLearning.map((item, index) => (
-                          <li 
-                            key={index} 
-                            className="text-sm text-muted-foreground flex items-start gap-2"
-                          >
-                            <span className="w-1.5 h-1.5 rounded-full bg-primary mt-2 flex-shrink-0" />
-                            {item}
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
+      {/* Posiciones abiertas */}
+      <Section tone="white" data-testid="section-positions">
+        <Label data-testid="text-positions-subtitle">{t.positionsSubtitle}</Label>
+        <SectionTitle className="mt-3" data-testid="text-positions-title">
+          {t.positionsTitle}
+        </SectionTitle>
+        <div className="space-y-6">
+          {t.positions.map((position, index) => (
+            <div
+              key={index}
+              className="border border-vw-graylight bg-white p-6"
+              data-testid={`card-position-${index}`}
+            >
+              <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                <div className="flex-1">
+                  <div className="mb-3 flex flex-wrap items-center gap-3">
+                    <h3 className="font-serif text-xl text-vw-black">
+                      {language === "es" ? position.titleEs : position.title}
+                    </h3>
+                    <span className="vw-label text-[10px] text-vw-red">
+                      {language === "es" ? position.typeEs : position.type}
+                    </span>
                   </div>
-                </CardContent>
-              </Card>
-
-              <Card 
-                className="rounded-none border border-white/10 bg-[#1a1a19] text-white"
-                data-testid="card-internship-cta"
-              >
-                <CardContent className="p-8 flex flex-col justify-center h-full">
-                  <GraduationCap className="w-12 h-12 mb-6 text-primary" />
-                  <h3 className="text-xl font-heading font-light mb-4">
-                    {t.internshipCtaTitle}
-                  </h3>
-                  <p className="text-white/60 mb-6">
-                    {t.internshipCtaText}
+                  <div className="mb-3 flex flex-wrap items-center gap-4 font-sans text-sm text-vw-gray">
+                    <span className="flex items-center gap-1">
+                      <Briefcase className="h-4 w-4 text-vw-red" aria-hidden="true" />
+                      {language === "es" ? position.departmentEs : position.department}
+                    </span>
+                    <span className="flex items-center gap-1">
+                      <MapPin className="h-4 w-4 text-vw-red" aria-hidden="true" />
+                      {language === "es" ? position.locationEs : position.location}
+                    </span>
+                  </div>
+                  <p className="font-sans text-base leading-relaxed text-vw-gray">
+                    {language === "es" ? position.descriptionEs : position.description}
                   </p>
-                  <Button 
-                    variant="default"
-                    className="rounded-none w-full"
-                    asChild
-                    data-testid="button-internship-apply"
+                </div>
+                <div className="flex-shrink-0">
+                  <a
+                    href={`mailto:reclutamiento@vonwobeser.com?subject=${encodeURIComponent(language === "es" ? position.titleEs : position.title)}`}
+                    className="vw-label inline-flex w-full items-center justify-center gap-2 rounded-none bg-vw-red px-8 py-3.5 text-xs text-white transition-colors hover:bg-vw-black lg:w-auto"
+                    data-testid={`button-apply-position-${index}`}
                   >
-                    <a href={`mailto:reclutamiento@vonwobeser.com?subject=${encodeURIComponent(t.internshipSubject)}`}>
-                      {t.apply}
-                      <ArrowRight className="w-4 h-4 ml-2" />
-                    </a>
-                  </Button>
-                </CardContent>
-              </Card>
+                    {t.apply}
+                    <ArrowRight className="h-4 w-4" aria-hidden="true" />
+                  </a>
+                </div>
+              </div>
             </div>
-          </motion.section>
+          ))}
+        </div>
+      </Section>
 
-          <motion.section
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
-            className="mb-12"
-            data-testid="section-apply"
+      {/* Programa de pasantías */}
+      <Section tone="gray" data-testid="section-internship">
+        <Label data-testid="text-internship-subtitle">{t.internshipSubtitle}</Label>
+        <SectionTitle className="mt-3" data-testid="text-internship-title">
+          {t.internshipTitle}
+        </SectionTitle>
+
+        <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
+          <div
+            className="border border-vw-graylight bg-white p-7 lg:col-span-2"
+            data-testid="card-internship-overview"
           >
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-              <div className="lg:col-span-2">
-                <h2 
-                  className="text-2xl md:text-3xl font-heading font-light text-foreground mb-4 uppercase tracking-[0.12em]"
-                  data-testid="text-apply-title"
-                >
-                  {t.applyTitle}
-                </h2>
-                <p className="text-lg text-muted-foreground mb-6">
-                  {t.applySubtitle}
-                </p>
-                <Card className="rounded-none border border-border bg-muted" data-testid="card-apply-instructions">
-                  <CardContent className="p-8">
-                    <p className="text-muted-foreground mb-4">
-                      {t.applyInstructions}
-                    </p>
-                    <a 
-                      href={`mailto:${t.applyEmail}`}
-                      className="inline-flex items-center gap-2 text-xl font-semibold text-primary hover:underline mb-4"
-                      data-testid="link-apply-email"
+            <div className="mb-4 flex items-center gap-3">
+              <GraduationCap className="h-7 w-7 text-vw-red" aria-hidden="true" />
+              <h3 className="font-serif text-xl text-vw-black">
+                {t.internshipOverviewTitle}
+              </h3>
+            </div>
+            <p className="mb-6 text-justify font-sans text-base leading-relaxed text-vw-gray">
+              {t.internshipOverviewText}
+            </p>
+
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+              <div>
+                <h4 className="mb-3 flex items-center gap-2 font-serif text-lg text-vw-black">
+                  <Calendar className="h-5 w-5 text-vw-red" aria-hidden="true" />
+                  {t.internshipDurationTitle}
+                </h4>
+                <ul className="space-y-2">
+                  {t.internshipDuration.map((item, index) => (
+                    <li
+                      key={index}
+                      className="flex items-start gap-2 font-sans text-sm text-vw-gray"
                     >
-                      <Mail className="w-5 h-5" />
-                      {t.applyEmail}
-                    </a>
-                    <p className="text-sm text-muted-foreground">
-                      {t.applyNote}
-                    </p>
-                  </CardContent>
-                </Card>
+                      <span className="mt-2 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-vw-red" />
+                      {item}
+                    </li>
+                  ))}
+                </ul>
               </div>
 
               <div>
-                <Card 
-                  className="rounded-none border border-border h-full"
-                  data-testid="card-careers-contact"
-                >
-                  <CardContent className="p-8">
-                    <h3 className="text-base font-heading font-light text-foreground mb-2 uppercase tracking-[0.1em]">
-                      {t.contactCardTitle}
-                    </h3>
-                    <p className="text-muted-foreground mb-6">
-                      {t.contactCardText}
-                    </p>
-                    <div className="space-y-3">
-                      <div className="flex items-center gap-3 text-muted-foreground">
-                        <Mail className="w-5 h-5 text-primary" />
-                        <a 
-                          href={`mailto:${t.applyEmail}`}
-                          className="hover:text-primary transition-colors"
-                          data-testid="link-contact-email"
-                        >
-                          {t.applyEmail}
-                        </a>
-                      </div>
-                      <div className="flex items-center gap-3 text-muted-foreground">
-                        <MapPin className="w-5 h-5 text-primary" />
-                        <span>
-                          {t.cityName}
-                        </span>
-                      </div>
-                    </div>
-                    <Button 
-                      className="rounded-none w-full mt-6"
-                      asChild
-                      data-testid="button-send-application"
+                <h4 className="mb-3 flex items-center gap-2 font-serif text-lg text-vw-black">
+                  <Award className="h-5 w-5 text-vw-red" aria-hidden="true" />
+                  {t.internshipLearningTitle}
+                </h4>
+                <ul className="space-y-2">
+                  {t.internshipLearning.map((item, index) => (
+                    <li
+                      key={index}
+                      className="flex items-start gap-2 font-sans text-sm text-vw-gray"
                     >
-                      <a href={`mailto:${t.applyEmail}`}>
-                        <Mail className="w-4 h-4 mr-2" />
-                        {t.sendApplication}
-                      </a>
-                    </Button>
-                  </CardContent>
-                </Card>
+                      <span className="mt-2 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-vw-red" />
+                      {item}
+                    </li>
+                  ))}
+                </ul>
               </div>
             </div>
-          </motion.section>
+          </div>
 
+          <div
+            className="flex flex-col justify-center bg-vw-black p-8 text-white"
+            data-testid="card-internship-cta"
+          >
+            <GraduationCap className="mb-6 h-12 w-12 text-vw-red" aria-hidden="true" />
+            <h3 className="mb-4 font-serif text-xl text-white">
+              {t.internshipCtaTitle}
+            </h3>
+            <p className="mb-6 font-sans text-base leading-relaxed text-white/70">
+              {t.internshipCtaText}
+            </p>
+            <a
+              href={`mailto:reclutamiento@vonwobeser.com?subject=${encodeURIComponent(t.internshipSubject)}`}
+              className="vw-label inline-flex w-full items-center justify-center gap-2 rounded-none bg-vw-red px-8 py-3.5 text-xs text-white transition-colors hover:bg-white hover:text-vw-black"
+              data-testid="button-internship-apply"
+            >
+              {t.apply}
+              <ArrowRight className="h-4 w-4" aria-hidden="true" />
+            </a>
+          </div>
         </div>
-      </main>
+      </Section>
 
-      <Footer />
+      {/* Cómo aplicar */}
+      <Section tone="white" data-testid="section-apply">
+        <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
+          <div className="lg:col-span-2">
+            <SectionTitle data-testid="text-apply-title">{t.applyTitle}</SectionTitle>
+            <p className="mb-6 font-sans text-lg leading-relaxed text-vw-gray">
+              {t.applySubtitle}
+            </p>
+            <div
+              className="border border-vw-graylight bg-[#f4f4f4] p-8"
+              data-testid="card-apply-instructions"
+            >
+              <p className="mb-4 font-sans text-base leading-relaxed text-vw-gray">
+                {t.applyInstructions}
+              </p>
+              <a
+                href={`mailto:${t.applyEmail}`}
+                className="mb-4 inline-flex items-center gap-2 font-serif text-xl text-vw-red transition-colors hover:text-vw-black"
+                data-testid="link-apply-email"
+              >
+                <Mail className="h-5 w-5" aria-hidden="true" />
+                {t.applyEmail}
+              </a>
+              <p className="font-sans text-sm leading-relaxed text-vw-gray">
+                {t.applyNote}
+              </p>
+            </div>
+          </div>
+
+          <div>
+            <div
+              className="h-full border border-vw-graylight bg-white p-8"
+              data-testid="card-careers-contact"
+            >
+              <h3 className="mb-2 font-serif text-lg text-vw-black">
+                {t.contactCardTitle}
+              </h3>
+              <p className="mb-6 font-sans text-base leading-relaxed text-vw-gray">
+                {t.contactCardText}
+              </p>
+              <div className="space-y-3">
+                <div className="flex items-center gap-3 font-sans text-vw-gray">
+                  <Mail className="h-5 w-5 text-vw-red" aria-hidden="true" />
+                  <a
+                    href={`mailto:${t.applyEmail}`}
+                    className="transition-colors hover:text-vw-red"
+                    data-testid="link-contact-email"
+                  >
+                    {t.applyEmail}
+                  </a>
+                </div>
+                <div className="flex items-center gap-3 font-sans text-vw-gray">
+                  <MapPin className="h-5 w-5 text-vw-red" aria-hidden="true" />
+                  <span>{t.cityName}</span>
+                </div>
+              </div>
+              <a
+                href={`mailto:${t.applyEmail}`}
+                className="vw-label mt-6 inline-flex w-full items-center justify-center gap-2 rounded-none bg-vw-red px-8 py-3.5 text-xs text-white transition-colors hover:bg-vw-black"
+                data-testid="button-send-application"
+              >
+                <Mail className="h-4 w-4" aria-hidden="true" />
+                {t.sendApplication}
+              </a>
+            </div>
+          </div>
+        </div>
+      </Section>
     </div>
   );
 }
