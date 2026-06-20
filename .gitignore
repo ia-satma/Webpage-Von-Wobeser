@@ -31,6 +31,10 @@ exports/
 *.tar.gz
 *.zip
 
+# Artefactos de deploy (dump DB + fotos) y evidencia QA — no van a git
+deploy/
+qa-evidence/
+
 # Mirror estático del sitio viejo (926 MB) — SOLO referencia de diseño, nunca a git/build
 MIRROR - VON WOBESER FRONT/
 
