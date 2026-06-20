@@ -30,7 +30,6 @@ const practiceAreas: PracticeArea[] = [
   { id: 15, nameEn: "Telecommunications, Media & Technology", nameEs: "Telecomunicaciones, Medios y Tecnología", slug: "telecommunications-media-technology" },
   { id: 16, nameEn: "Environmental", nameEs: "Ambiental", slug: "environmental" },
   { id: 17, nameEn: "Administrative Law", nameEs: "Derecho Administrativo", slug: "administrative-law" },
-  { id: 18, nameEn: "German Desk", nameEs: "Desk Alemán", slug: "german-desk" },
 ];
 
 interface PracticesContent {

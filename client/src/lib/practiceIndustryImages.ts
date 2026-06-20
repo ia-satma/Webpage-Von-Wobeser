@@ -15,7 +15,6 @@ import pIntlTrade from "@assets/vwys_branded/p-international-trade.png";
 import pTmt from "@assets/vwys_branded/p-telecommunications-media-technology.png";
 import pEnvironmental from "@assets/vwys_branded/p-environmental.png";
 import pAdministrative from "@assets/vwys_branded/p-administrative-law.png";
-import pGermanDesk from "@assets/vwys_branded/p-german-desk.png";
 
 import iAutomotive from "@assets/vwys_branded/i-automotive-mobility-manufacturing.png";
 import iConsumer from "@assets/vwys_branded/i-consumer-goods.png";
@@ -43,7 +42,6 @@ export const PRACTICE_IMAGES: Record<string, string> = {
   "telecommunications-media-technology": pTmt,
   "environmental": pEnvironmental,
   "administrative-law": pAdministrative,
-  "german-desk": pGermanDesk,
 };
 
 export const INDUSTRY_IMAGES: Record<string, string> = {

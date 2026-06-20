@@ -787,22 +787,6 @@ export const PUBLIC_MODULES: SystemFeature[] = [
     ],
   },
   {
-    id: 'german_desk',
-    category: 'public_site',
-    name: 'German Desk - Puente Europa-México',
-    technicalName: 'GermanDesk.tsx',
-    technicalDetail: 'Landing dedicado para clientes alemanes, visualización de mapa mundial, énfasis en toggle DE/EN, contenido de puente cultural, estadísticas de comercio bilateral.',
-    userBenefit: 'Servicio especializado para empresas alemanas entrando al mercado mexicano. Demuestra comprensión cultural y capacidad bilingüe.',
-    status: 'production',
-    keyCapabilities: [
-      'Enfoque mercado alemán',
-      'Mapa mundial visual',
-      'Contenido bilingüe',
-      'Estadísticas comerciales',
-      'Puente cultural',
-    ],
-  },
-  {
     id: 'careers_portal',
     category: 'public_site',
     name: 'Portal de Talento y Carreras',

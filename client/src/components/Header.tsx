@@ -211,7 +211,6 @@ export default function Header() {
       subItems: [
         { labelKey: "nav.practices", href: "/practice-groups", id: "practices" },
         { labelKey: "nav.industryGroups", href: "/industry-groups", id: "industry-groups" },
-        { labelKey: "nav.desk", href: "/german-desk", id: "german-desk" },
       ],
     },
     {
