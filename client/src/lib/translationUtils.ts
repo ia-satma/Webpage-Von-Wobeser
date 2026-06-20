@@ -55,10 +55,46 @@ export function getFieldValue(
     const esFieldName = `${fieldName}Es`;
     return fields[esFieldName] ?? fields[fieldName];
   }
-  
+
   if (translations && translations[fieldName]) {
     return translations[fieldName];
   }
-  
+
   return fields[fieldName];
+}
+
+/**
+ * Devuelve la primera cadena no vacía (ignora null/undefined y strings en blanco).
+ */
+function firstNonEmpty(...vals: Array<string | null | undefined>): string | undefined {
+  for (const v of vals) {
+    if (typeof v === "string" && v.trim().length > 0) return v;
+  }
+  return undefined;
+}
+
+/**
+ * getDisplayValue — ÚNICA vía de i18n para CONTENIDO data-driven (EN/ES).
+ *
+ * El sitio es bilingüe estático: cada registro de la API trae el campo base
+ * (`field`, en inglés) y su variante en español (`${field}Es`). No hay traducción
+ * en runtime ni re-fetch por idioma: el componente re-renderiza al cambiar
+ * `language` (vía useLanguage) y este helper elige el campo correcto.
+ *
+ *   - es  → prefiere `${field}Es`, cae a `field`
+ *   - en  → prefiere `field`,        cae a `${field}Es`
+ *
+ * Reemplaza a useTranslatedContent (traducción LLM on-demand, frágil) y a los
+ * fallbacks ad-hoc que devolvían `*Es` aun en inglés. Si ambos campos están
+ * vacíos devuelve undefined para que el llamador pueda usar una etiqueta i18n.
+ */
+export function getDisplayValue(
+  obj: Record<string, any> | null | undefined,
+  field: string,
+  language: string,
+): string | undefined {
+  if (!obj) return undefined;
+  const base = obj[field] as string | null | undefined;
+  const es = obj[`${field}Es`] as string | null | undefined;
+  return language === "es" ? firstNonEmpty(es, base) : firstNonEmpty(base, es);
 }

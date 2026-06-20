@@ -13,6 +13,8 @@ import IndustriesSlider from "@/components/home/IndustriesSlider";
 import NumberedBlocks from "@/components/home/NumberedBlocks";
 import EventsBand from "@/components/home/EventsBand";
 import RecommendedSlider from "@/components/home/RecommendedSlider";
+import MapSection from "@/components/MapSection";
+import AboutUsSection from "@/components/AboutUsSection";
 
 /**
  * Home — recreación del home viejo de Von Wobeser (mirror Joomla/beez3).
@@ -51,9 +53,11 @@ export default function Home() {
       <PracticesSlider />
       <GraySection />
       <IndustriesSlider />
+      <MapSection language={language} />
       <NumberedBlocks />
       <EventsBand />
       <RecommendedSlider />
+      <AboutUsSection />
 
       <NewOfficesPopup language={language} />
       <CookieBanner language={language} />

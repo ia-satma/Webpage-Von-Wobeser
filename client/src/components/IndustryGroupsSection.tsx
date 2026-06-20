@@ -8,14 +8,6 @@ import type { LanguageCode } from "@shared/schema";
 type IndustryGroupNames = {
   en: string;
   es: string;
-  de: string;
-  zh: string;
-  ko: string;
-  ja: string;
-  ar: string;
-  ru: string;
-  fr: string;
-  it: string;
 };
 
 interface IndustryGroup {
@@ -31,14 +23,6 @@ const industryGroups: IndustryGroup[] = [
     names: {
       en: "Automotive, Mobility & Manufacturing",
       es: "Automotriz, Movilidad y Manufactura",
-      de: "Automobil, Mobilität & Fertigung",
-      zh: "汽车、出行与制造业",
-      ko: "자동차, 모빌리티 및 제조업",
-      ja: "自動車・モビリティ・製造業",
-      ar: "السيارات والتنقل والتصنيع",
-      ru: "Автомобильная промышленность, мобильность и производство",
-      fr: "Automobile, Mobilité et Fabrication",
-      it: "Automotive, Mobilità e Manifattura",
     },
     slug: "automotive-mobility-manufacturing",
     image: "https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?w=800&h=1200&fit=crop&q=80",
@@ -48,14 +32,6 @@ const industryGroups: IndustryGroup[] = [
     names: {
       en: "Consumer Goods",
       es: "Bienes de Consumo",
-      de: "Konsumgüter",
-      zh: "消费品",
-      ko: "소비재",
-      ja: "消費財",
-      ar: "السلع الاستهلاكية",
-      ru: "Потребительские товары",
-      fr: "Biens de Consommation",
-      it: "Beni di Consumo",
     },
     slug: "consumer-goods",
     image: "https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=800&h=1200&fit=crop&q=80",
@@ -65,14 +41,6 @@ const industryGroups: IndustryGroup[] = [
     names: {
       en: "Energy & Natural Resources",
       es: "Energía y Recursos Naturales",
-      de: "Energie & Natürliche Ressourcen",
-      zh: "能源与自然资源",
-      ko: "에너지 및 천연자원",
-      ja: "エネルギー・天然資源",
-      ar: "الطاقة والموارد الطبيعية",
-      ru: "Энергетика и природные ресурсы",
-      fr: "Énergie et Ressources Naturelles",
-      it: "Energia e Risorse Naturali",
     },
     slug: "energy-natural-resources-industry",
     image: "https://images.unsplash.com/photo-1466611653911-95081537e5b7?w=800&h=1200&fit=crop&q=80",
@@ -82,14 +50,6 @@ const industryGroups: IndustryGroup[] = [
     names: {
       en: "Pharmaceutical & Life Sciences",
       es: "Farmacéutica y Ciencias de la Salud",
-      de: "Pharma & Life Sciences",
-      zh: "制药与生命科学",
-      ko: "제약 및 생명과학",
-      ja: "製薬・ライフサイエンス",
-      ar: "الأدوية وعلوم الحياة",
-      ru: "Фармацевтика и науки о жизни",
-      fr: "Pharmaceutique et Sciences de la Vie",
-      it: "Farmaceutica e Scienze della Vita",
     },
     slug: "pharmaceutical-life-sciences",
     image: "https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=800&h=1200&fit=crop&q=80",
@@ -99,14 +59,6 @@ const industryGroups: IndustryGroup[] = [
     names: {
       en: "Financial Services",
       es: "Servicios Financieros",
-      de: "Finanzdienstleistungen",
-      zh: "金融服务",
-      ko: "금융 서비스",
-      ja: "金融サービス",
-      ar: "الخدمات المالية",
-      ru: "Финансовые услуги",
-      fr: "Services Financiers",
-      it: "Servizi Finanziari",
     },
     slug: "financial-services",
     image: "https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=800&h=1200&fit=crop&q=80",
@@ -116,14 +68,6 @@ const industryGroups: IndustryGroup[] = [
     names: {
       en: "Real Estate",
       es: "Inmobiliario",
-      de: "Immobilien",
-      zh: "房地产",
-      ko: "부동산",
-      ja: "不動産",
-      ar: "العقارات",
-      ru: "Недвижимость",
-      fr: "Immobilier",
-      it: "Immobiliare",
     },
     slug: "real-estate-industry",
     image: "https://images.unsplash.com/photo-1486325212027-8081e485255e?w=800&h=1200&fit=crop&q=80",
@@ -133,14 +77,6 @@ const industryGroups: IndustryGroup[] = [
     names: {
       en: "Technology",
       es: "Tecnología",
-      de: "Technologie",
-      zh: "科技",
-      ko: "기술",
-      ja: "テクノロジー",
-      ar: "التكنولوجيا",
-      ru: "Технологии",
-      fr: "Technologie",
-      it: "Tecnologia",
     },
     slug: "technology-industry",
     image: "https://images.unsplash.com/photo-1518770660439-4636190af475?w=800&h=1200&fit=crop&q=80",
@@ -166,54 +102,6 @@ const content: Record<LanguageCode, ContentItem> = {
     subtitle: "7 sectores estratégicos",
     seeMore: "VER TODOS LOS GRUPOS",
     seeMoreAriaLabel: "Ver todos los grupos de industria",
-  },
-  de: {
-    title: "BRANCHENGRUPPEN",
-    subtitle: "7 strategische Sektoren",
-    seeMore: "ALLE GRUPPEN ANZEIGEN",
-    seeMoreAriaLabel: "Alle Branchengruppen anzeigen",
-  },
-  zh: {
-    title: "行业组",
-    subtitle: "7个战略行业",
-    seeMore: "查看所有组别",
-    seeMoreAriaLabel: "查看所有行业组别",
-  },
-  ko: {
-    title: "산업 그룹",
-    subtitle: "7개 전략 부문",
-    seeMore: "모든 그룹 보기",
-    seeMoreAriaLabel: "모든 산업 그룹 보기",
-  },
-  ja: {
-    title: "産業グループ",
-    subtitle: "7つの戦略的セクター",
-    seeMore: "すべてのグループを見る",
-    seeMoreAriaLabel: "すべての産業グループを見る",
-  },
-  ar: {
-    title: "مجموعات الصناعة",
-    subtitle: "7 قطاعات استراتيجية",
-    seeMore: "عرض جميع المجموعات",
-    seeMoreAriaLabel: "عرض جميع مجموعات الصناعة",
-  },
-  ru: {
-    title: "ОТРАСЛЕВЫЕ ГРУППЫ",
-    subtitle: "7 стратегических секторов",
-    seeMore: "ВСЕ ГРУППЫ",
-    seeMoreAriaLabel: "Все отраслевые группы",
-  },
-  fr: {
-    title: "GROUPES INDUSTRIELS",
-    subtitle: "7 secteurs stratégiques",
-    seeMore: "VOIR TOUS LES GROUPES",
-    seeMoreAriaLabel: "Voir tous les groupes industriels",
-  },
-  it: {
-    title: "GRUPPI INDUSTRIALI",
-    subtitle: "7 settori strategici",
-    seeMore: "VEDI TUTTI I GRUPPI",
-    seeMoreAriaLabel: "Vedi tutti i gruppi industriali",
   },
 };
 

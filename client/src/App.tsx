@@ -39,7 +39,6 @@ const Rankings = lazy(() => import("@/pages/Rankings"));
 const Offices = lazy(() => import("@/pages/Offices"));
 const DiversityInclusion = lazy(() => import("@/pages/DiversityInclusion"));
 const ProBono = lazy(() => import("@/pages/ProBono"));
-const GermanDesk = lazy(() => import("@/pages/GermanDesk"));
 const Articles = lazy(() => import("@/pages/Articles"));
 const Newsletter = lazy(() => import("@/pages/Newsletter"));
 const Events = lazy(() => import("@/pages/Events"));
@@ -196,7 +195,6 @@ function PublicRouter() {
           <Route path="/offices" component={Offices} />
           <Route path="/diversity-inclusion" component={DiversityInclusion} />
           <Route path="/pro-bono" component={ProBono} />
-          <Route path="/german-desk" component={GermanDesk} />
           <Route path="/articles" component={Articles} />
           <Route path="/newsletter" component={Newsletter} />
           <Route path="/events" component={Events} />

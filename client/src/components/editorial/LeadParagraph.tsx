@@ -19,15 +19,12 @@ export function LeadParagraph({
 }: LeadParagraphProps) {
   const { language } = useLanguage();
   const useDropCap = LATIN_LANGUAGES.includes(language);
-  const isRtl = language === "ar";
 
   const dropCapClasses = useDropCap
     ? "first-letter:text-5xl md:first-letter:text-6xl first-letter:font-heading first-letter:float-left first-letter:mr-3 first-letter:mt-1 first-letter:leading-none first-letter:text-primary"
     : "";
 
-  const accentClasses = isRtl
-    ? "border-r border-primary/40 pr-6 md:pr-8"
-    : "border-l border-primary/40 pl-6 md:pl-8";
+  const accentClasses = "border-l border-primary/40 pl-6 md:pl-8";
 
   return (
     <div

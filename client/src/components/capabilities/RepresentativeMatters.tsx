@@ -1,5 +1,4 @@
-import { useTranslatedContent } from "@/hooks/useTranslatedContent";
-import { isNativeLanguage } from "@/lib/translationUtils";
+import { getDisplayValue } from "@/lib/translationUtils";
 import { useFadeOnScroll } from "@/hooks/useFadeOnScroll";
 import SectionTitle from "./SectionTitle";
 import type { RepresentativeMatterDb } from "@shared/schema";
@@ -12,7 +11,7 @@ import type { RepresentativeMatterDb } from "@shared/schema";
  * práctica del mirror Joomla.
  *
  * Preserva el data-fetching: recibe los `matters` ya cargados por la página y
- * traduce campo a campo con `useTranslatedContent` (igual que el código previo).
+ * resuelve cada campo por idioma de forma estática (EN/ES) con getDisplayValue.
  */
 
 interface MattersStrings {
@@ -29,23 +28,9 @@ interface MatterRowProps {
 }
 
 function MatterRow({ matter, language, t }: MatterRowProps) {
-  const { translatedFields } = useTranslatedContent({
-    contentType: "representative_matter",
-    entityId: matter.id.toString(),
-    fields: {
-      title: matter.title,
-      titleEs: matter.titleEs,
-      description: matter.description,
-      descriptionEs: matter.descriptionEs,
-      client: matter.client,
-      clientEs: matter.clientEs,
-    },
-    enabled: !isNativeLanguage(language),
-  });
-
-  const displayTitle = translatedFields.title || matter.title;
-  const displayDescription = translatedFields.description || matter.description;
-  const displayClient = translatedFields.client || matter.client;
+  const displayTitle = getDisplayValue(matter, "title", language) ?? "";
+  const displayDescription = getDisplayValue(matter, "description", language);
+  const displayClient = getDisplayValue(matter, "client", language);
 
   return (
     <li

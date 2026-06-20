@@ -180,7 +180,14 @@ export async function registerRoutes(
   httpServer: Server,
   app: Express
 ): Promise<Server> {
-  await seed();
+  // El seed se aísla: si la DB/seed falla, NO debe impedir que el server llegue a listen.
+  // Antes un fallo aquí abortaba registerRoutes → la IIFE de arranque nunca alcanzaba
+  // httpServer.listen() → "connection refused" → secciones vacías sin error claro.
+  try {
+    await seed();
+  } catch (err) {
+    console.error(`[seed] fallo, el server seguirá levantando: ${err instanceof Error ? err.stack ?? err.message : err}`);
+  }
 
   // Setup WebSocket server for pipeline progress updates
   const wss = new WebSocketServer({ server: httpServer, path: '/ws/pipeline' });

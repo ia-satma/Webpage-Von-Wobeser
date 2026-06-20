@@ -1,8 +1,6 @@
 import { Link } from "wouter";
-import { Loader2 } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { useTranslatedContent } from "@/hooks/useTranslatedContent";
-import { isNativeLanguage } from "@/lib/translationUtils";
+import { getDisplayValue } from "@/lib/translationUtils";
 import type { TeamMember } from "@shared/schema";
 
 /**
@@ -11,9 +9,8 @@ import type { TeamMember } from "@shared/schema";
  * El detalle viejo usaba una columna gris con tipografía Geomanist para los
  * nombres/roles de los abogados. Aquí mostramos el autor como una entrada de
  * lista enlazada a su ficha (/team/:slug): nombre en serif + cargo en
- * Geomanist uppercase, con hover rojo corporativo. Preserva la traducción del
- * cargo vía useTranslatedContent (contentType 'team_member'), tal como el
- * detalle actual.
+ * Geomanist uppercase, con hover rojo corporativo. El cargo se resuelve por
+ * idioma de forma estática (titleEs en es, title en en) vía getDisplayValue.
  */
 
 interface AuthorLinkProps {
@@ -23,17 +20,7 @@ interface AuthorLinkProps {
 export function AuthorLink({ author }: AuthorLinkProps) {
   const { language } = useLanguage();
 
-  const { translatedFields, isTranslating } = useTranslatedContent({
-    contentType: "team_member",
-    entityId: author.id.toString(),
-    fields: {
-      title: author.title,
-      titleEs: author.titleEs,
-    },
-    enabled: !isNativeLanguage(language),
-  });
-
-  const displayTitle = translatedFields.title || author.title;
+  const displayTitle = getDisplayValue(author, "title", language) ?? "";
 
   return (
     <Link
@@ -52,9 +39,6 @@ export function AuthorLink({ author }: AuthorLinkProps) {
         data-testid={`text-author-title-${author.slug}`}
       >
         {displayTitle}
-        {isTranslating && (
-          <Loader2 className="h-3 w-3 animate-spin text-vw-gray/50" aria-hidden="true" />
-        )}
       </span>
     </Link>
   );

@@ -6,12 +6,12 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useQuery } from "@tanstack/react-query";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useTranslatedContent } from "@/hooks/useTranslatedContent";
+import { getDisplayValue } from "@/lib/translationUtils";
 import type { Event, LanguageCode } from "@shared/schema";
 import { eventTypes } from "@shared/schema";
 
 interface EventsSectionProps {
-  language: "en" | "es" | "de" | "zh" | "ko" | "ja" | "ar" | "ru" | "fr" | "it";
+  language: LanguageCode;
 }
 
 const getEventTypeLabel = (eventType: string, language: string): string => {
@@ -29,36 +29,9 @@ interface EventCardProps {
 }
 
 function EventCard({ event, language, learnMoreText, formatDate }: EventCardProps) {
-  const isSpanish = language === 'es';
-
-  const { translatedFields, isLoading: isTranslating } = useTranslatedContent({
-    contentType: 'event',
-    entityId: event.id,
-    fields: {
-      title: event.titleEs || event.title || '',
-      description: event.descriptionEs || event.description || '',
-      location: event.locationEs || event.location || '',
-    },
-    enabled: !isSpanish,
-  });
-
-  const getEventTitle = () => {
-    if (language === 'es') return event.titleEs || event.title;
-    if (translatedFields.title) return translatedFields.title;
-    return event.titleEs || event.title;
-  };
-
-  const getEventDescription = () => {
-    if (language === 'es') return event.descriptionEs || event.description;
-    if (translatedFields.description) return translatedFields.description;
-    return event.descriptionEs || event.description;
-  };
-
-  const getEventLocation = () => {
-    if (language === 'es') return event.locationEs || event.location;
-    if (translatedFields.location) return translatedFields.location;
-    return event.locationEs || event.location;
-  };
+  const displayTitle = getDisplayValue(event, "title", language) ?? "";
+  const displayDescription = getDisplayValue(event, "description", language) ?? "";
+  const displayLocation = getDisplayValue(event, "location", language) ?? "";
 
   return (
     <Card
@@ -83,29 +56,26 @@ function EventCard({ event, language, learnMoreText, formatDate }: EventCardProp
         </div>
 
         <h3
-          className={`font-heading font-light uppercase tracking-[0.08em] text-lg text-foreground mb-3 line-clamp-2 ${isTranslating ? 'opacity-50' : ''}`}
+          className="font-heading font-light uppercase tracking-[0.08em] text-lg text-foreground mb-3 line-clamp-2"
           data-testid={`text-event-title-${event.id}`}
         >
-          {getEventTitle()}
+          {displayTitle}
         </h3>
 
-        {(event.location || event.locationEs) && (
+        {displayLocation && (
           <div className="flex items-center gap-2 text-sm text-muted-foreground mb-3">
             <MapPin className="w-4 h-4 flex-shrink-0" />
-            <span
-              className={isTranslating ? 'opacity-50' : ''}
-              data-testid={`text-event-location-${event.id}`}
-            >
-              {getEventLocation()}
+            <span data-testid={`text-event-location-${event.id}`}>
+              {displayLocation}
             </span>
           </div>
         )}
 
         <p
-          className={`text-sm text-muted-foreground leading-relaxed text-justify line-clamp-3 mb-4 ${isTranslating ? 'opacity-50' : ''}`}
+          className="text-sm text-muted-foreground leading-relaxed text-justify line-clamp-3 mb-4"
           data-testid={`text-event-description-${event.id}`}
         >
-          {getEventDescription()}
+          {displayDescription}
         </p>
 
         {event.externalUrl && (
@@ -162,70 +132,6 @@ export default function EventsSection({ language }: EventsSectionProps) {
       learnMore: "Más Información",
       errorMessage: "Error al cargar eventos",
       noEvents: "No hay eventos próximos",
-    },
-    de: {
-      eyebrow: "AKTIVITÄTEN DER KANZLEI",
-      title: "Kommende Veranstaltungen",
-      viewAll: "Alle anzeigen",
-      learnMore: "Mehr erfahren",
-      errorMessage: "Fehler beim Laden der Veranstaltungen",
-      noEvents: "Keine Veranstaltungen geplant",
-    },
-    zh: {
-      eyebrow: "律所活动",
-      title: "即将举行的活动",
-      viewAll: "查看全部",
-      learnMore: "了解更多",
-      errorMessage: "加载活动失败",
-      noEvents: "暂无活动",
-    },
-    ko: {
-      eyebrow: "법인 활동",
-      title: "예정된 이벤트",
-      viewAll: "모두 보기",
-      learnMore: "자세히 알아보기",
-      errorMessage: "이벤트를 불러오는 데 실패했습니다",
-      noEvents: "예정된 이벤트 없음",
-    },
-    ja: {
-      eyebrow: "事務所の活動",
-      title: "今後のイベント",
-      viewAll: "すべて見る",
-      learnMore: "詳しく見る",
-      errorMessage: "イベントの読み込みに失敗しました",
-      noEvents: "予定されているイベントはありません",
-    },
-    ar: {
-      eyebrow: "أنشطة المكتب",
-      title: "الفعاليات القادمة",
-      viewAll: "عرض الكل",
-      learnMore: "اعرف المزيد",
-      errorMessage: "فشل في تحميل الفعاليات",
-      noEvents: "لا توجد فعاليات مجدولة",
-    },
-    ru: {
-      eyebrow: "МЕРОПРИЯТИЯ ФИРМЫ",
-      title: "Предстоящие мероприятия",
-      viewAll: "Смотреть все",
-      learnMore: "Подробнее",
-      errorMessage: "Не удалось загрузить мероприятия",
-      noEvents: "Нет запланированных мероприятий",
-    },
-    fr: {
-      eyebrow: "ACTIVITÉS DU CABINET",
-      title: "Événements à venir",
-      viewAll: "Voir tout",
-      learnMore: "En savoir plus",
-      errorMessage: "Échec du chargement des événements",
-      noEvents: "Aucun événement prévu",
-    },
-    it: {
-      eyebrow: "ATTIVITÀ DELLO STUDIO",
-      title: "Prossimi eventi",
-      viewAll: "Vedi tutti",
-      learnMore: "Scopri di più",
-      errorMessage: "Errore nel caricamento degli eventi",
-      noEvents: "Nessun evento in programma",
     },
   };
 

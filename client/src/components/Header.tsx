@@ -9,7 +9,7 @@ import { cn } from "@/lib/utils";
 import ThemeToggle from "./ThemeToggle";
 import LanguageSelector from "./LanguageSelector";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { useTranslatedContent } from "@/hooks/useTranslatedContent";
+import { getDisplayValue } from "@/lib/translationUtils";
 import type { TeamMember, PracticeGroup, IndustryGroup, News, LanguageCode } from "@shared/schema";
 import logoColor from "@assets/logovw_1775695774326.png";
 import logoWhite from "@assets/logovw-b_1775695826011.png";
@@ -43,16 +43,7 @@ function SearchResultTeamMember({
   language: LanguageCode;
   onSelect: (href: string) => void;
 }) {
-  const { translatedFields } = useTranslatedContent({
-    contentType: 'team_member',
-    entityId: member.id.toString(),
-    fields: { title: member.titleEs || member.title, titleEs: member.titleEs },
-    enabled: language !== 'es',
-  });
-
-  const displayTitle = language === 'es'
-    ? member.titleEs
-    : (translatedFields.title || member.titleEs || member.title);
+  const displayTitle = getDisplayValue(member, "title", language) ?? "";
 
   return (
     <button
@@ -83,16 +74,7 @@ function SearchResultPracticeGroup({
   language: LanguageCode;
   onSelect: (href: string) => void;
 }) {
-  const { translatedFields } = useTranslatedContent({
-    contentType: 'practice_group',
-    entityId: group.id.toString(),
-    fields: { name: group.nameEs || group.name, nameEs: group.nameEs },
-    enabled: language !== 'es',
-  });
-
-  const displayName = language === 'es'
-    ? group.nameEs
-    : (translatedFields.name || group.nameEs || group.name);
+  const displayName = getDisplayValue(group, "name", language) ?? "";
 
   return (
     <button
@@ -117,16 +99,7 @@ function SearchResultIndustryGroup({
   language: LanguageCode;
   onSelect: (href: string) => void;
 }) {
-  const { translatedFields } = useTranslatedContent({
-    contentType: 'industry_group',
-    entityId: group.id.toString(),
-    fields: { name: group.nameEs || group.name, nameEs: group.nameEs },
-    enabled: language !== 'es',
-  });
-
-  const displayName = language === 'es'
-    ? group.nameEs
-    : (translatedFields.name || group.nameEs || group.name);
+  const displayName = getDisplayValue(group, "name", language) ?? "";
 
   return (
     <button
@@ -151,16 +124,7 @@ function SearchResultNews({
   language: LanguageCode;
   onSelect: (href: string) => void;
 }) {
-  const { translatedFields } = useTranslatedContent({
-    contentType: 'news',
-    entityId: article.id.toString(),
-    fields: { title: article.titleEs || article.title, titleEs: article.titleEs },
-    enabled: language !== 'es',
-  });
-
-  const displayTitle = language === 'es'
-    ? article.titleEs
-    : (translatedFields.title || article.titleEs || article.title);
+  const displayTitle = getDisplayValue(article, "title", language) ?? "";
 
   return (
     <button

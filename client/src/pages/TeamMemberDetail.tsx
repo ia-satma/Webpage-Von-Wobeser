@@ -1,10 +1,10 @@
 import { useState, useMemo } from "react";
 import { Link, useParams } from "wouter";
-import { ArrowLeft, AlertCircle, Loader2, Calendar, ArrowRight } from "lucide-react";
+import { ArrowLeft, AlertCircle, Calendar, ArrowRight } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { PersonJsonLd, BreadcrumbJsonLd } from "@/components/JsonLdSchema";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { useTranslatedContent } from "@/hooks/useTranslatedContent";
+import { getDisplayValue } from "@/lib/translationUtils";
 import { useFadeOnScroll } from "@/hooks/useFadeOnScroll";
 import { AttorneySidebar, AttorneyBio, type AttorneySidebarLabels } from "@/components/team";
 import type {
@@ -47,9 +47,9 @@ function NewsImageWithFallback({
 }
 
 /* ──────────────────────────────────────────────────────────────────────────
-   Sub-componentes de detalle con traducción on-demand.
-   La capa de datos (useTranslatedContent) se preserva intacta; solo cambia
-   la presentación a los tokens del look viejo.
+   Sub-componentes de detalle con i18n estático EN/ES.
+   Cada item de las arrays anidadas (education[], affiliations[], …) trae su
+   variante `*Es`; getDisplayValue elige el campo correcto según idioma.
    ────────────────────────────────────────────────────────────────────────── */
 function DetailSection({
   title,
@@ -80,25 +80,13 @@ function EducationItemTranslated({
   edu,
   index,
   language,
-  memberId,
 }: {
   edu: Education;
   index: number;
   language: LanguageCode;
-  memberId: string;
 }) {
-  const { translatedFields } = useTranslatedContent({
-    contentType: "team_member",
-    entityId: `${memberId}_edu_${index}`,
-    fields: { degree: edu.degreeEs || edu.degree, degreeEs: edu.degreeEs },
-    enabled: language !== "es",
-  });
-
-  const displayDegree =
-    language === "es" && edu.degreeEs
-      ? edu.degreeEs
-      : translatedFields.degree || edu.degreeEs || edu.degree;
-  const displaySchool = language === "es" && edu.schoolEs ? edu.schoolEs : edu.school;
+  const displayDegree = getDisplayValue(edu, "degree", language) ?? "";
+  const displaySchool = getDisplayValue(edu, "school", language);
 
   return (
     <li className="flex items-baseline gap-3" data-testid={`item-education-${index}`}>
@@ -116,35 +104,13 @@ function AffiliationItemTranslated({
   affiliation,
   index,
   language,
-  memberId,
 }: {
   affiliation: Affiliation;
   index: number;
   language: LanguageCode;
-  memberId: string;
 }) {
-  const { translatedFields } = useTranslatedContent({
-    contentType: "team_member",
-    entityId: `${memberId}_affil_${index}`,
-    fields: {
-      organization: affiliation.organizationEs || affiliation.organization,
-      organizationEs: affiliation.organizationEs,
-      role: affiliation.roleEs || affiliation.role,
-      roleEs: affiliation.roleEs,
-    },
-    enabled: language !== "es",
-  });
-
-  const displayOrganization =
-    language === "es" && affiliation.organizationEs
-      ? affiliation.organizationEs
-      : translatedFields.organization || affiliation.organizationEs || affiliation.organization;
-
-  const displayRole = affiliation.role
-    ? language === "es" && affiliation.roleEs
-      ? affiliation.roleEs
-      : translatedFields.role || affiliation.roleEs || affiliation.role
-    : null;
+  const displayOrganization = getDisplayValue(affiliation, "organization", language) ?? "";
+  const displayRole = getDisplayValue(affiliation, "role", language) || null;
 
   return (
     <li className="flex items-baseline gap-3" data-testid={`item-affiliation-${index}`}>
@@ -161,26 +127,14 @@ function PublicationItemTranslated({
   pub,
   index,
   language,
-  memberId,
   viewPublicationText,
 }: {
   pub: Publication;
   index: number;
   language: LanguageCode;
-  memberId: string;
   viewPublicationText: string;
 }) {
-  const { translatedFields } = useTranslatedContent({
-    contentType: "team_member",
-    entityId: `${memberId}_pub_${index}`,
-    fields: { title: pub.titleEs || pub.title, titleEs: pub.titleEs },
-    enabled: language !== "es",
-  });
-
-  const displayTitle =
-    language === "es" && pub.titleEs
-      ? pub.titleEs
-      : translatedFields.title || pub.titleEs || pub.title;
+  const displayTitle = getDisplayValue(pub, "title", language) ?? "";
 
   return (
     <li className="flex items-baseline gap-3" data-testid={`item-publication-${index}`}>
@@ -211,27 +165,12 @@ function RepresentativeMatterTranslated({
   matter,
   index,
   language,
-  memberId,
 }: {
   matter: RepresentativeMatter;
   index: number;
   language: LanguageCode;
-  memberId: string;
 }) {
-  const { translatedFields } = useTranslatedContent({
-    contentType: "team_member",
-    entityId: `${memberId}_matter_${index}`,
-    fields: {
-      description: matter.descriptionEs || matter.description,
-      descriptionEs: matter.descriptionEs,
-    },
-    enabled: language !== "es",
-  });
-
-  const displayDescription =
-    language === "es" && matter.descriptionEs
-      ? matter.descriptionEs
-      : translatedFields.description || matter.descriptionEs || matter.description;
+  const displayDescription = getDisplayValue(matter, "description", language) ?? "";
 
   return (
     <li className="flex items-baseline gap-3" data-testid={`item-representative-matter-${index}`}>
@@ -255,33 +194,13 @@ function RankingItemTranslated({
   ranking,
   index,
   language,
-  memberId,
 }: {
   ranking: Ranking;
   index: number;
   language: LanguageCode;
-  memberId: string;
 }) {
-  const { translatedFields } = useTranslatedContent({
-    contentType: "team_member",
-    entityId: `${memberId}_ranking_${index}`,
-    fields: {
-      ranking: ranking.rankingEs || ranking.ranking,
-      rankingEs: ranking.rankingEs,
-      area: ranking.areaEs || ranking.area,
-      areaEs: ranking.areaEs,
-    },
-    enabled: language !== "es",
-  });
-
-  const displayRanking =
-    language === "es" && ranking.rankingEs
-      ? ranking.rankingEs
-      : translatedFields.ranking || ranking.rankingEs || ranking.ranking;
-  const displayArea =
-    language === "es" && ranking.areaEs
-      ? ranking.areaEs
-      : translatedFields.area || ranking.areaEs || ranking.area;
+  const displayRanking = getDisplayValue(ranking, "ranking", language);
+  const displayArea = getDisplayValue(ranking, "area", language);
 
   return (
     <li className="flex items-baseline gap-3" data-testid={`item-ranking-${index}`}>
@@ -320,20 +239,6 @@ export default function TeamMemberDetail() {
   const { data: relatedNews } = useQuery<News[]>({
     queryKey: ["/api/team", slug, "news"],
     enabled: !!slug,
-  });
-
-  const { translatedFields, isTranslating } = useTranslatedContent({
-    contentType: "team_member",
-    entityId: member?.id?.toString() || "",
-    fields: {
-      title: member?.titleEs || member?.title,
-      titleEs: member?.titleEs,
-      role: member?.roleEs || member?.role,
-      roleEs: member?.roleEs,
-      bio: member?.bioEs || member?.bio,
-      bioEs: member?.bioEs,
-    },
-    enabled: !!member && !!member.bio && language !== "es",
   });
 
   const introRef = useFadeOnScroll<HTMLDivElement>();
@@ -408,199 +313,7 @@ export default function TeamMemberDetail() {
       viewPublication: "Ver Publicación",
       breadcrumbHome: "Inicio",
       breadcrumbTeam: "Abogados",
-      translationPending: "Cargando traducción...",
-    },
-    de: {
-      backToAll: "Alle Anwälte",
-      partner: "Partner",
-      ofCounsel: "Of Counsel",
-      associate: "Associate",
-      practiceAreas: "Praxisbereiche",
-      industryGroups: "Branchengruppen",
-      education: "Ausbildung & Erfahrung",
-      barAdmissions: "Zulassungen",
-      languages: "Sprachen",
-      affiliations: "Verbände & Akademische Aktivitäten",
-      rankings: "Auszeichnungen",
-      publications: "Artikel",
-      representativeMatters: "Referenzmandate",
-      experience: "Erfahrung",
-      downloadVCard: "vCard herunterladen",
-      errorMessage: "Anwalt nicht gefunden",
-      relatedNews: "Nachrichten",
-      readMore: "Mehr lesen",
-      viewPublication: "Publikation ansehen",
-      breadcrumbHome: "Startseite",
-      breadcrumbTeam: "Anwälte",
-      translationPending: "Übersetzung lädt...",
-    },
-    zh: {
-      backToAll: "所有律师",
-      partner: "合伙人",
-      ofCounsel: "法律顾问",
-      associate: "律师",
-      practiceAreas: "业务领域",
-      industryGroups: "行业领域",
-      education: "教育背景与经历",
-      barAdmissions: "执业资格",
-      languages: "语言",
-      affiliations: "专业协会与学术活动",
-      rankings: "认可",
-      publications: "文章",
-      representativeMatters: "代表案例",
-      experience: "工作经历",
-      downloadVCard: "下载名片",
-      errorMessage: "未找到律师",
-      relatedNews: "新闻",
-      readMore: "阅读更多",
-      viewPublication: "查看出版物",
-      breadcrumbHome: "首页",
-      breadcrumbTeam: "律师",
-      translationPending: "翻译加载中...",
-    },
-    ko: {
-      backToAll: "모든 변호사",
-      partner: "파트너",
-      ofCounsel: "고문",
-      associate: "어소시에이트",
-      practiceAreas: "업무 분야",
-      industryGroups: "산업 분야",
-      education: "학력 및 경력",
-      barAdmissions: "변호사 자격",
-      languages: "사용 언어",
-      affiliations: "협회 및 학술 활동",
-      rankings: "인정",
-      publications: "아티클",
-      representativeMatters: "대표 사건",
-      experience: "경력",
-      downloadVCard: "명함 다운로드",
-      errorMessage: "변호사를 찾을 수 없습니다",
-      relatedNews: "뉴스",
-      readMore: "더 읽기",
-      viewPublication: "출판물 보기",
-      breadcrumbHome: "홈",
-      breadcrumbTeam: "변호사",
-      translationPending: "번역 로딩 중...",
-    },
-    ja: {
-      backToAll: "すべての弁護士",
-      partner: "パートナー",
-      ofCounsel: "オブ・カウンセル",
-      associate: "アソシエイト",
-      practiceAreas: "取扱分野",
-      industryGroups: "業界グループ",
-      education: "学歴・経歴",
-      barAdmissions: "弁護士資格",
-      languages: "使用言語",
-      affiliations: "所属団体・学術活動",
-      rankings: "受賞歴",
-      publications: "記事",
-      representativeMatters: "代表的案件",
-      experience: "経験",
-      downloadVCard: "名刺をダウンロード",
-      errorMessage: "弁護士が見つかりません",
-      relatedNews: "ニュース",
-      readMore: "続きを読む",
-      viewPublication: "出版物を見る",
-      breadcrumbHome: "ホーム",
-      breadcrumbTeam: "弁護士",
-      translationPending: "翻訳を読み込み中...",
-    },
-    ar: {
-      backToAll: "جميع المحامين",
-      partner: "شريك",
-      ofCounsel: "مستشار قانوني",
-      associate: "محامي",
-      practiceAreas: "مجالات الممارسة",
-      industryGroups: "المجموعات الصناعية",
-      education: "التعليم والخبرة",
-      barAdmissions: "تراخيص المحاماة",
-      languages: "اللغات",
-      affiliations: "العضويات والأنشطة الأكاديمية",
-      rankings: "التقديرات",
-      publications: "المقالات",
-      representativeMatters: "القضايا التمثيلية",
-      experience: "الخبرة",
-      downloadVCard: "تحميل بطاقة العمل",
-      errorMessage: "لم يتم العثور على المحامي",
-      relatedNews: "الأخبار",
-      readMore: "اقرأ المزيد",
-      viewPublication: "عرض المنشور",
-      breadcrumbHome: "الرئيسية",
-      breadcrumbTeam: "المحامون",
-      translationPending: "جاري تحميل الترجمة...",
-    },
-    ru: {
-      backToAll: "Все юристы",
-      partner: "Партнёр",
-      ofCounsel: "Советник",
-      associate: "Юрист",
-      practiceAreas: "Области практики",
-      industryGroups: "Отраслевые группы",
-      education: "Образование и опыт",
-      barAdmissions: "Адвокатские лицензии",
-      languages: "Языки",
-      affiliations: "Ассоциации и академическая деятельность",
-      rankings: "Признание",
-      publications: "Статьи",
-      representativeMatters: "Показательные дела",
-      experience: "Опыт",
-      downloadVCard: "Скачать визитку",
-      errorMessage: "Юрист не найден",
-      relatedNews: "Новости",
-      readMore: "Читать далее",
-      viewPublication: "Смотреть публикацию",
-      breadcrumbHome: "Главная",
-      breadcrumbTeam: "Юристы",
-      translationPending: "Загрузка перевода...",
-    },
-    fr: {
-      backToAll: "Tous les avocats",
-      partner: "Associé",
-      ofCounsel: "Of Counsel",
-      associate: "Collaborateur",
-      practiceAreas: "Domaines de pratique",
-      industryGroups: "Groupes sectoriels",
-      education: "Formation et expérience",
-      barAdmissions: "Inscriptions au barreau",
-      languages: "Langues",
-      affiliations: "Affiliations et activités académiques",
-      rankings: "Distinctions",
-      publications: "Articles",
-      representativeMatters: "Affaires représentatives",
-      experience: "Expérience",
-      downloadVCard: "Télécharger vCard",
-      errorMessage: "Avocat introuvable",
-      relatedNews: "Actualités",
-      readMore: "Lire la suite",
-      viewPublication: "Voir la publication",
-      breadcrumbHome: "Accueil",
-      breadcrumbTeam: "Avocats",
-      translationPending: "Traduction en cours...",
-    },
-    it: {
-      backToAll: "Tutti gli avvocati",
-      partner: "Partner",
-      ofCounsel: "Of Counsel",
-      associate: "Associato",
-      practiceAreas: "Aree di pratica",
-      industryGroups: "Settori industriali",
-      education: "Formazione ed esperienza",
-      barAdmissions: "Iscrizioni all'albo",
-      languages: "Lingue",
-      affiliations: "Affiliazioni e attività accademiche",
-      rankings: "Riconoscimenti",
-      publications: "Articoli",
-      representativeMatters: "Casi rappresentativi",
-      experience: "Esperienza",
-      downloadVCard: "Scarica vCard",
-      errorMessage: "Avvocato non trovato",
-      relatedNews: "Notizie",
-      readMore: "Leggi di più",
-      viewPublication: "Vedi pubblicazione",
-      breadcrumbHome: "Home",
-      breadcrumbTeam: "Avvocati",
-      translationPending: "Caricamento traduzione...",
+      translationPending: "Cargando...",
     },
   };
 
@@ -612,14 +325,6 @@ export default function TeamMemberDetail() {
     const localeMap: Record<string, string> = {
       en: "en-US",
       es: "es-MX",
-      de: "de-DE",
-      zh: "zh-CN",
-      ko: "ko-KR",
-      ja: "ja-JP",
-      ar: "ar-SA",
-      ru: "ru-RU",
-      fr: "fr-FR",
-      it: "it-IT",
     };
     return d.toLocaleDateString(localeMap[language] || "en-US", {
       year: "numeric",
@@ -648,8 +353,8 @@ export default function TeamMemberDetail() {
   const getMemberEducation = () => {
     if (!member?.education || member.education.length === 0) return undefined;
     return (member.education as Education[]).map((edu) => ({
-      school: language === "es" && edu.schoolEs ? edu.schoolEs : edu.school,
-      degree: language === "es" && edu.degreeEs ? edu.degreeEs : edu.degree,
+      school: getDisplayValue(edu, "school", language) ?? "",
+      degree: getDisplayValue(edu, "degree", language) ?? "",
       year: edu.year,
     }));
   };
@@ -658,7 +363,8 @@ export default function TeamMemberDetail() {
     const areas: string[] = [];
     if (practiceGroups && member) {
       practiceGroups.forEach((pg) => {
-        areas.push(language === "es" ? pg.nameEs : pg.name);
+        const name = getDisplayValue(pg, "name", language);
+        if (name) areas.push(name);
       });
     }
     return areas.length > 0 ? areas.slice(0, 10) : undefined;
@@ -701,20 +407,9 @@ export default function TeamMemberDetail() {
     );
   }
 
-  /* ── Cargo / bio resueltos por idioma (lógica preservada) ────────────── */
-  const displayTitle =
-    language === "es"
-      ? member?.titleEs || member?.title
-      : language === "en"
-      ? member?.title
-      : translatedFields.title || null;
-
-  const displayBio =
-    language === "es"
-      ? member?.bioEs || member?.bio
-      : language === "en"
-      ? member?.bio
-      : translatedFields.bio || null;
+  /* ── Cargo / bio resueltos por idioma (i18n estático EN/ES) ──────────── */
+  const displayTitle = getDisplayValue(member, "title", language) ?? null;
+  const displayBio = getDisplayValue(member, "bio", language) ?? null;
 
   // Partición intro/cuerpo (preservada de la versión anterior).
   const bioParagraphs = displayBio
@@ -732,8 +427,6 @@ export default function TeamMemberDetail() {
     industryGroups: t.industryGroups,
     downloadVCard: t.downloadVCard,
   };
-
-  const memberId = member?.id?.toString() || "";
 
   return (
     <div data-testid="page-team-member-detail">
@@ -791,13 +484,11 @@ export default function TeamMemberDetail() {
           {/* Columna de contenido */}
           <div className="min-w-0">
             {/* Intro + biografía */}
-            {(displayBio || ((member?.bio || member?.bioEs) && isTranslating)) && (
+            {displayBio && (
               <div ref={introRef} className="vw-fade" data-testid="section-biography">
                 <AttorneyBio
                   intro={bioIntro || ""}
                   body={bioRest}
-                  isTranslating={isTranslating}
-                  translationPendingLabel={t.translationPending}
                 />
               </div>
             )}
@@ -812,7 +503,6 @@ export default function TeamMemberDetail() {
                       edu={edu}
                       index={index}
                       language={language}
-                      memberId={memberId}
                     />
                   ))}
                 </ul>
@@ -824,10 +514,7 @@ export default function TeamMemberDetail() {
               <DetailSection title={t.barAdmissions} delayIndex={1} testId="section-bar-admissions">
                 <ul className="space-y-2.5">
                   {(member.barAdmissions as BarAdmission[]).map((admission, index) => {
-                    const jurisdiction =
-                      language === "es" && admission.jurisdictionEs
-                        ? admission.jurisdictionEs
-                        : admission.jurisdiction;
+                    const jurisdiction = getDisplayValue(admission, "jurisdiction", language);
                     return (
                       <li
                         key={index}
@@ -858,7 +545,6 @@ export default function TeamMemberDetail() {
                       affiliation={affiliation}
                       index={index}
                       language={language}
-                      memberId={memberId}
                     />
                   ))}
                 </ul>
@@ -875,7 +561,6 @@ export default function TeamMemberDetail() {
                       ranking={ranking}
                       index={index}
                       language={language}
-                      memberId={memberId}
                     />
                   ))}
                 </ul>
@@ -896,7 +581,6 @@ export default function TeamMemberDetail() {
                       matter={matter}
                       index={index}
                       language={language}
-                      memberId={memberId}
                     />
                   ))}
                 </ul>
@@ -913,7 +597,6 @@ export default function TeamMemberDetail() {
                       pub={pub}
                       index={index}
                       language={language}
-                      memberId={memberId}
                       viewPublicationText={t.viewPublication}
                     />
                   ))}
@@ -934,7 +617,7 @@ export default function TeamMemberDetail() {
                       <span aria-hidden="true" className="mt-[6px] h-1 w-1 shrink-0 bg-vw-red" />
                       <span className="font-sans text-[15px] leading-relaxed text-vw-gray/90">
                         <span className="text-vw-gray">
-                          {language === "es" && exp.positionEs ? exp.positionEs : exp.position}
+                          {getDisplayValue(exp, "position", language)}
                         </span>
                         {exp.company && <span className="text-vw-gray/70">{` — ${exp.company}`}</span>}
                         {(exp.startYear || exp.endYear) && (
@@ -971,7 +654,7 @@ export default function TeamMemberDetail() {
                     <div className="relative h-48 overflow-hidden bg-vw-graylight">
                       <NewsImageWithFallback
                         src={article.imageUrl || ""}
-                        alt={language === "es" ? article.titleEs : article.title}
+                        alt={getDisplayValue(article, "title", language) ?? ""}
                         className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
                       />
                     </div>
@@ -986,7 +669,7 @@ export default function TeamMemberDetail() {
                         className="font-serif text-[20px] leading-snug text-vw-gray transition-colors group-hover:text-vw-red"
                         data-testid={`text-news-title-${article.slug}`}
                       >
-                        {language === "es" ? article.titleEs : article.title}
+                        {getDisplayValue(article, "title", language)}
                       </h3>
                       <span className="mt-3 inline-flex items-center gap-2 font-label text-[11px] uppercase tracking-[0.18em] text-vw-red">
                         {t.readMore}

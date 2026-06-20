@@ -113,24 +113,36 @@ app.use((req, res, next) => {
 });
 
 (async () => {
-  await registerRoutes(httpServer, app);
+  // El setup previo al listen (registerRoutes + vite/static) se envuelve en try-catch:
+  // antes un fallo aquí producía una promise rejection silenciosa (la IIFE no tenía
+  // manejo de errores) → el server nunca llegaba a listen y solo se veía "connection
+  // refused". Ahora cualquier fallo se loguea de forma explícita y fatal.
+  try {
+    await registerRoutes(httpServer, app);
 
-  app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
-    const status = err.status || err.statusCode || 500;
-    const message = err.message || "Internal Server Error";
+    app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
+      const status = err.status || err.statusCode || 500;
+      const message = err.message || "Internal Server Error";
 
-    res.status(status).json({ error: message });
+      res.status(status).json({ error: message });
+      throw err;
+    });
+
+    // importantly only setup vite in development and after
+    // setting up all the other routes so the catch-all route
+    // doesn't interfere with the other routes
+    if (process.env.NODE_ENV === "production") {
+      serveStatic(app);
+    } else {
+      const { setupVite } = await import("./vite");
+      await setupVite(httpServer, app);
+    }
+  } catch (err) {
+    log(
+      `[startup] error fatal durante el setup previo al listen: ${err instanceof Error ? err.stack ?? err.message : err}`,
+      "fatal",
+    );
     throw err;
-  });
-
-  // importantly only setup vite in development and after
-  // setting up all the other routes so the catch-all route
-  // doesn't interfere with the other routes
-  if (process.env.NODE_ENV === "production") {
-    serveStatic(app);
-  } else {
-    const { setupVite } = await import("./vite");
-    await setupVite(httpServer, app);
   }
 
   // ALWAYS serve the app on the port specified in the environment variable PORT

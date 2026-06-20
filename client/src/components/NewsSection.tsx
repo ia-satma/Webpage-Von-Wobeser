@@ -6,7 +6,7 @@ import { Card } from "@/components/ui/card";
 import { useQuery } from "@tanstack/react-query";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { useTranslatedContent } from "@/hooks/useTranslatedContent";
+import { getDisplayValue } from "@/lib/translationUtils";
 import type { News, LanguageCode } from "@shared/schema";
 
 function NewsImageWithFallback({ 
@@ -48,7 +48,7 @@ interface NewsContent {
   errorMessage: string;
 }
 
-const content: Record<LanguageCode, NewsContent> = {
+const content: Record<string, NewsContent> = {
   en: {
     title: "news",
     seeMore: "SEE MORE",
@@ -59,59 +59,11 @@ const content: Record<LanguageCode, NewsContent> = {
     seeMore: "VER MÁS",
     errorMessage: "Error al cargar noticias",
   },
-  de: {
-    title: "Neuigkeiten",
-    seeMore: "MEHR ANZEIGEN",
-    errorMessage: "Nachrichten konnten nicht geladen werden",
-  },
-  zh: {
-    title: "新闻",
-    seeMore: "查看更多",
-    errorMessage: "新闻加载失败",
-  },
-  ko: {
-    title: "뉴스",
-    seeMore: "더 보기",
-    errorMessage: "뉴스를 불러오지 못했습니다",
-  },
-  ja: {
-    title: "ニュース",
-    seeMore: "もっと見る",
-    errorMessage: "ニュースの読み込みに失敗しました",
-  },
-  ar: {
-    title: "الأخبار",
-    seeMore: "عرض المزيد",
-    errorMessage: "فشل في تحميل الأخبار",
-  },
-  ru: {
-    title: "новости",
-    seeMore: "СМОТРЕТЬ ВСЕ",
-    errorMessage: "Не удалось загрузить новости",
-  },
-  fr: {
-    title: "actualités",
-    seeMore: "VOIR PLUS",
-    errorMessage: "Échec du chargement des actualités",
-  },
-  it: {
-    title: "notizie",
-    seeMore: "VEDI ALTRO",
-    errorMessage: "Impossibile caricare le notizie",
-  },
 };
 
-const dateLocales: Record<LanguageCode, string> = {
+const dateLocales: Record<string, string> = {
   en: "en-US",
   es: "es-MX",
-  de: "de-DE",
-  zh: "zh-CN",
-  ko: "ko-KR",
-  ja: "ja-JP",
-  ar: "ar-SA",
-  ru: "ru-RU",
-  fr: "fr-FR",
-  it: "it-IT",
 };
 
 interface NewsCardTranslatedProps {
@@ -122,34 +74,8 @@ interface NewsCardTranslatedProps {
 }
 
 function NewsCardTranslated({ item, language, dateLocale, seeMoreText }: NewsCardTranslatedProps) {
-  const isSpanish = language === 'es';
-  
-  const { translatedFields, isLoading: isTranslating } = useTranslatedContent({
-    contentType: 'news',
-    entityId: item.id,
-    fields: {
-      title: item.titleEs || item.title || '',
-      titleEs: item.titleEs || '',
-      excerpt: item.excerptEs || item.excerpt || '',
-      excerptEs: item.excerptEs || '',
-    },
-    enabled: !isSpanish,
-  });
-
-  const getNewsTitle = () => {
-    if (language === 'es') return item.titleEs || item.title;
-    if (translatedFields.title) return translatedFields.title;
-    return item.titleEs || item.title;
-  };
-
-  const getNewsExcerpt = () => {
-    if (language === 'es') return item.excerptEs || item.excerpt;
-    if (translatedFields.excerpt) return translatedFields.excerpt;
-    return item.excerptEs || item.excerpt;
-  };
-
-  const displayTitle = getNewsTitle();
-  const displayExcerpt = getNewsExcerpt();
+  const displayTitle = getDisplayValue(item, "title", language) ?? "";
+  const displayExcerpt = getDisplayValue(item, "excerpt", language) ?? "";
 
   return (
     <Link href={`/news/${item.slug}`} className="block">
@@ -172,15 +98,15 @@ function NewsCardTranslated({ item, language, dateLocale, seeMoreText }: NewsCar
               { year: "numeric", month: "long", day: "numeric" }
             ) : ""}
           </p>
-          <h3 
-            className={`text-lg font-publico text-[#1D1D1B] dark:text-white leading-relaxed mb-3 line-clamp-2 ${isTranslating ? 'opacity-50' : ''}`}
+          <h3
+            className="text-lg font-publico text-[#1D1D1B] dark:text-white leading-relaxed mb-3 line-clamp-2"
             data-testid={`text-news-title-${item.id}`}
           >
             {displayTitle}
           </h3>
           {displayExcerpt && (
-            <p 
-              className={`text-sm text-muted-foreground line-clamp-2 mb-4 ${isTranslating ? 'opacity-50' : ''}`}
+            <p
+              className="text-sm text-muted-foreground line-clamp-2 mb-4"
               data-testid={`text-news-excerpt-${item.id}`}
             >
               {displayExcerpt}

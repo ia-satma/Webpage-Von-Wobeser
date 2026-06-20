@@ -43,7 +43,6 @@ const NAV_ITEMS: NavItem[] = [
     sublinks: [
       { href: "/practice-groups", labelKey: "nav.practices", fallback: "Prácticas" },
       { href: "/industry-groups", labelKey: "nav.industryGroups", fallback: "Industrias" },
-      { href: "/german-desk", labelKey: "nav.desk", fallback: "German Desk" },
     ],
   },
   { href: "/news", labelKey: "nav.publications", fallback: "Publicaciones" },

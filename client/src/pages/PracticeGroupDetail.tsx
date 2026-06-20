@@ -1,9 +1,9 @@
 import { Link, useParams } from "wouter";
 import { useMemo } from "react";
-import { ArrowLeft, AlertCircle, Loader2 } from "lucide-react";
+import { ArrowLeft, AlertCircle } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { useTranslatedContent } from "@/hooks/useTranslatedContent";
+import { getDisplayValue } from "@/lib/translationUtils";
 import {
   CapabilityHero,
   CapabilityProse,
@@ -145,20 +145,6 @@ export default function PracticeGroupDetail() {
     enabled: !!slug,
   });
 
-  const { translatedFields, isTranslating } = useTranslatedContent({
-    contentType: "practice_group",
-    entityId: practiceGroup?.id?.toString() || "",
-    fields: {
-      name: practiceGroup?.name,
-      nameEs: practiceGroup?.nameEs,
-      description: practiceGroup?.description,
-      descriptionEs: practiceGroup?.descriptionEs,
-      fullDescription: practiceGroup?.fullDescription,
-      fullDescriptionEs: practiceGroup?.fullDescriptionEs,
-    },
-    enabled: !!practiceGroup,
-  });
-
   const translations: Record<string, {
     backToAll: string;
     contactCta: string;
@@ -181,14 +167,6 @@ export default function PracticeGroupDetail() {
   }> = {
     en: { backToAll: "All Practice Groups", contactCta: "Contact our team", contactSubtitle: "Let our experienced attorneys help you navigate your legal challenges.", emailUs: "Email Us", callUs: "Call Us", ourTeam: "Our Team", partners: "Partners", ofCounsel: "Of Counsel", associates: "Associates", viewAll: "View all", rankingsTitle: "Rankings & Recognition", rankingsSubtitle: "Recognized by leading legal directories worldwide", successCasesTitle: "Success Cases", successCasesSubtitle: "Representative matters", errorMessage: "Practice group not found", overview: "Overview", featured: "Featured", client: "Client:" },
     es: { backToAll: "Todas las Áreas de Práctica", contactCta: "Contacte a nuestro equipo", contactSubtitle: "Permita que nuestros abogados experimentados le ayuden a navegar sus desafíos legales.", emailUs: "Enviar Email", callUs: "Llamar", ourTeam: "Nuestro Equipo", partners: "Socios", ofCounsel: "Of Counsel", associates: "Asociados", viewAll: "Ver todos", rankingsTitle: "Rankings y Reconocimientos", rankingsSubtitle: "Reconocidos por los principales directorios legales del mundo", successCasesTitle: "Casos de Éxito", successCasesSubtitle: "Casos representativos", errorMessage: "Área de práctica no encontrada", overview: "Resumen", featured: "Destacado", client: "Cliente:" },
-    de: { backToAll: "Zurück zu Praxisbereichen", contactCta: "Kontaktieren Sie unser Team", contactSubtitle: "Lassen Sie unsere erfahrenen Anwälte Ihnen bei Ihren rechtlichen Herausforderungen helfen.", emailUs: "E-Mail senden", callUs: "Anrufen", ourTeam: "Unser Team", partners: "Partner", ofCounsel: "Of Counsel", associates: "Associates", viewAll: "Alle anzeigen", rankingsTitle: "Rankings & Anerkennung", rankingsSubtitle: "Von führenden Rechtsverzeichnissen weltweit anerkannt", successCasesTitle: "Erfolgsfälle", successCasesSubtitle: "Repräsentative Mandate", errorMessage: "Praxisbereich nicht gefunden", overview: "Übersicht", featured: "Empfohlen", client: "Mandant:" },
-    zh: { backToAll: "返回业务领域", contactCta: "联系我们的团队", contactSubtitle: "让我们经验丰富的律师帮助您应对法律挑战。", emailUs: "发送邮件", callUs: "致电", ourTeam: "我们的团队", partners: "合伙人", ofCounsel: "顾问律师", associates: "律师助理", viewAll: "查看全部", rankingsTitle: "排名与认可", rankingsSubtitle: "获得全球领先法律目录的认可", successCasesTitle: "成功案例", successCasesSubtitle: "代表性案件", errorMessage: "未找到业务领域", overview: "概述", featured: "精选", client: "客户：" },
-    ko: { backToAll: "업무 분야로 돌아가기", contactCta: "팀에 연락하기", contactSubtitle: "경험 풍부한 변호사가 법적 문제 해결을 도와드립니다.", emailUs: "이메일 보내기", callUs: "전화하기", ourTeam: "우리 팀", partners: "파트너", ofCounsel: "고문 변호사", associates: "어소시에이트", viewAll: "모두 보기", rankingsTitle: "순위 및 인정", rankingsSubtitle: "세계 주요 법률 디렉토리에서 인정받음", successCasesTitle: "성공 사례", successCasesSubtitle: "대표 사례", errorMessage: "업무 분야를 찾을 수 없습니다", overview: "개요", featured: "추천", client: "의뢰인:" },
-    ja: { backToAll: "取扱分野に戻る", contactCta: "チームにお問い合わせ", contactSubtitle: "経験豊富な弁護士が法的課題の解決をお手伝いします。", emailUs: "メールを送る", callUs: "電話する", ourTeam: "私たちのチーム", partners: "パートナー", ofCounsel: "オブカウンセル", associates: "アソシエイト", viewAll: "すべて表示", rankingsTitle: "ランキングと評価", rankingsSubtitle: "世界の主要な法律ディレクトリで評価されています", successCasesTitle: "成功事例", successCasesSubtitle: "代表的な案件", errorMessage: "取扱分野が見つかりません", overview: "概要", featured: "注目", client: "クライアント：" },
-    ar: { backToAll: "العودة إلى مجالات الممارسة", contactCta: "تواصل مع فريقنا", contactSubtitle: "دع محامينا ذوي الخبرة يساعدونك في تحدياتك القانونية.", emailUs: "راسلنا", callUs: "اتصل بنا", ourTeam: "فريقنا", partners: "الشركاء", ofCounsel: "مستشار قانوني", associates: "محامون مساعدون", viewAll: "عرض الكل", rankingsTitle: "التصنيفات والاعتراف", rankingsSubtitle: "معترف بها من قبل أبرز الدلائل القانونية في العالم", successCasesTitle: "قضايا ناجحة", successCasesSubtitle: "قضايا تمثيلية", errorMessage: "مجال الممارسة غير موجود", overview: "نظرة عامة", featured: "مميز", client: "العميل:" },
-    ru: { backToAll: "Назад к практикам", contactCta: "Связаться с командой", contactSubtitle: "Позвольте нашим опытным юристам помочь вам с вашими правовыми вопросами.", emailUs: "Написать", callUs: "Позвонить", ourTeam: "Наша команда", partners: "Партнёры", ofCounsel: "Of Counsel", associates: "Ассоциаты", viewAll: "Показать все", rankingsTitle: "Рейтинги и признание", rankingsSubtitle: "Признаны ведущими юридическими справочниками мира", successCasesTitle: "Успешные дела", successCasesSubtitle: "Показательные дела", errorMessage: "Практика не найдена", overview: "Обзор", featured: "Рекомендовано", client: "Клиент:" },
-    fr: { backToAll: "Retour aux domaines de pratique", contactCta: "Contactez notre équipe", contactSubtitle: "Laissez nos avocats expérimentés vous aider dans vos défis juridiques.", emailUs: "Envoyer un email", callUs: "Appeler", ourTeam: "Notre équipe", partners: "Associés", ofCounsel: "Of Counsel", associates: "Collaborateurs", viewAll: "Voir tout", rankingsTitle: "Classements et reconnaissance", rankingsSubtitle: "Reconnus par les principaux annuaires juridiques mondiaux", successCasesTitle: "Affaires réussies", successCasesSubtitle: "Affaires représentatives", errorMessage: "Domaine de pratique non trouvé", overview: "Aperçu", featured: "En vedette", client: "Client :" },
-    it: { backToAll: "Torna alle aree di pratica", contactCta: "Contatta il nostro team", contactSubtitle: "Lascia che i nostri avvocati esperti ti aiutino con le tue sfide legali.", emailUs: "Invia email", callUs: "Chiama", ourTeam: "Il nostro team", partners: "Soci", ofCounsel: "Of Counsel", associates: "Associati", viewAll: "Vedi tutto", rankingsTitle: "Classifiche e riconoscimenti", rankingsSubtitle: "Riconosciuti dalle principali directory legali a livello mondiale", successCasesTitle: "Casi di successo", successCasesSubtitle: "Casi rappresentativi", errorMessage: "Area di pratica non trovata", overview: "Panoramica", featured: "In evidenza", client: "Cliente:" },
   };
 
   const t = translations[language] || translations.en;
@@ -254,21 +232,13 @@ export default function PracticeGroupDetail() {
     );
   }
 
-  /* ── Resolución de nombre/descripción (preservada de la versión previa) ─ */
+  /* ── Resolución de nombre/descripción (i18n estático EN/ES) ──────────── */
 
-  const displayName =
-    language === "es"
-      ? practiceGroup?.nameEs || practiceGroup?.name
-      : language === "en"
-        ? practiceGroup?.name
-        : translatedFields.name || null;
+  const displayName = getDisplayValue(practiceGroup, "name", language);
 
   const displayDescription =
-    language === "es"
-      ? practiceGroup?.fullDescriptionEs || practiceGroup?.descriptionEs || practiceGroup?.fullDescription || practiceGroup?.description
-      : language === "en"
-        ? practiceGroup?.fullDescription || practiceGroup?.description
-        : translatedFields.fullDescription || translatedFields.description || null;
+    getDisplayValue(practiceGroup, "fullDescription", language) ||
+    getDisplayValue(practiceGroup, "description", language);
 
   const hasTeam =
     filteredAndGroupedMembers.partners.length > 0 ||
@@ -282,11 +252,6 @@ export default function PracticeGroupDetail() {
         title={displayName || practiceGroup?.name || ""}
         backLabel={t.backToAll}
         backHref="/practice-groups"
-        trailing={
-          isTranslating ? (
-            <Loader2 className="h-5 w-5 animate-spin text-vw-gray" aria-hidden="true" />
-          ) : undefined
-        }
         testId="section-practice-group-hero"
       />
 

@@ -1,7 +1,6 @@
 import { Link } from "wouter";
-import { Loader2 } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { useTranslatedContent } from "@/hooks/useTranslatedContent";
+import { getDisplayValue } from "@/lib/translationUtils";
 import type { News } from "@shared/schema";
 
 /**
@@ -15,8 +14,8 @@ import type { News } from "@shared/schema";
  *   - Botón "Leer más" alineado a la derecha con línea decorativa gris
  *     (`.archive__item--btn:before`).
  *
- * Preserva el data-fetching: traduce título/excerpt vía useTranslatedContent
- * igual que la página actual (contentType 'news').
+ * i18n estático EN/ES: título/excerpt se resuelven por idioma con
+ * getDisplayValue (titleEs/excerptEs en es, title/excerpt en en).
  */
 
 interface ArchiveItemProps {
@@ -28,29 +27,9 @@ interface ArchiveItemProps {
 
 export function ArchiveItem({ article, readMoreText, dateLocale }: ArchiveItemProps) {
   const { language } = useLanguage();
-  const isSpanish = language === "es";
 
-  // Misma lógica de traducción que la página vieja (NewsCard/ArticleCard).
-  const { translatedFields, isLoading, isTranslating } = useTranslatedContent({
-    contentType: "news",
-    entityId: String(article.id),
-    fields: {
-      title: article.titleEs || article.title,
-      titleEs: article.titleEs,
-      excerpt: article.excerptEs || article.excerpt,
-      excerptEs: article.excerptEs,
-    },
-    enabled: !isSpanish,
-  });
-
-  const displayTitle = isSpanish
-    ? article.titleEs || article.title
-    : translatedFields.title || article.titleEs || article.title;
-  const displayExcerpt = isSpanish
-    ? article.excerptEs || article.excerpt
-    : translatedFields.excerpt || article.excerptEs || article.excerpt;
-
-  const showTranslating = isLoading || isTranslating;
+  const displayTitle = getDisplayValue(article, "title", language) ?? "";
+  const displayExcerpt = getDisplayValue(article, "excerpt", language) ?? "";
 
   const formatDate = (date: string | Date | null) => {
     if (!date) return "";
@@ -80,9 +59,6 @@ export function ArchiveItem({ article, readMoreText, dateLocale }: ArchiveItemPr
         data-testid={`text-archive-date-${article.slug}`}
       >
         {formatDate(article.date)}
-        {showTranslating && (
-          <Loader2 className="h-3 w-3 animate-spin text-vw-gray/60" aria-hidden="true" />
-        )}
       </div>
 
       {/* Intro/excerpt — justificado con guiones */}

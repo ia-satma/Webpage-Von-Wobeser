@@ -2,8 +2,7 @@ import { AlertCircle } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import SEOHead from "@/components/SEOHead";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { useTranslatedContent } from "@/hooks/useTranslatedContent";
-import { isNativeLanguage } from "@/lib/translationUtils";
+import { getDisplayValue } from "@/lib/translationUtils";
 import { getIndustryImage } from "@/lib/practiceIndustryImages";
 import {
   CapabilityHero,
@@ -26,20 +25,8 @@ interface IndustryCardProps {
 function IndustryCard({ group }: IndustryCardProps) {
   const { language } = useLanguage();
 
-  const { translatedFields, isLoading, isTranslating } = useTranslatedContent({
-    contentType: "industry_group",
-    entityId: String(group.id),
-    fields: {
-      name: group.name,
-      nameEs: group.nameEs,
-      description: group.description,
-      descriptionEs: group.descriptionEs,
-    },
-    enabled: !isNativeLanguage(language),
-  });
-
-  const displayName = translatedFields.name || group.name;
-  const displayDescription = translatedFields.description || group.description;
+  const displayName = getDisplayValue(group, "name", language) ?? "";
+  const displayDescription = getDisplayValue(group, "description", language) ?? "";
   const imageUrl = getIndustryImage(group.slug, group.imageUrl);
 
   return (
@@ -48,7 +35,6 @@ function IndustryCard({ group }: IndustryCardProps) {
       title={displayName}
       description={displayDescription}
       imageUrl={imageUrl}
-      isTranslating={isLoading || isTranslating}
       testId={`card-industry-group-${group.slug}`}
     />
   );
@@ -64,14 +50,6 @@ export default function IndustryGroups() {
   const content: Record<string, { eyebrow: string; title: string; subtitle: string; errorMessage: string }> = {
     en: { eyebrow: "Capabilities", title: "Industry Groups", subtitle: "Specialized industry expertise", errorMessage: "Failed to load industry groups" },
     es: { eyebrow: "Capacidades", title: "Industrias", subtitle: "Experiencia especializada en industrias", errorMessage: "Error al cargar las industrias" },
-    de: { eyebrow: "Kapazitäten", title: "Branchengruppen", subtitle: "Spezialisierte Branchenexpertise", errorMessage: "Fehler beim Laden der Branchengruppen" },
-    zh: { eyebrow: "业务能力", title: "行业领域", subtitle: "专业的行业知识", errorMessage: "加载行业领域失败" },
-    ko: { eyebrow: "역량", title: "산업 그룹", subtitle: "전문화된 산업 전문성", errorMessage: "산업 그룹 로드 실패" },
-    ja: { eyebrow: "専門領域", title: "産業グループ", subtitle: "専門的な業界知識", errorMessage: "産業グループの読み込みに失敗しました" },
-    ar: { eyebrow: "القدرات", title: "مجموعات الصناعة", subtitle: "خبرة صناعية متخصصة", errorMessage: "فشل تحميل مجموعات الصناعة" },
-    ru: { eyebrow: "Компетенции", title: "Отрасли", subtitle: "Специализированная отраслевая экспертиза", errorMessage: "Не удалось загрузить отраслевые группы" },
-    fr: { eyebrow: "Compétences", title: "Groupes sectoriels", subtitle: "Expertise sectorielle spécialisée", errorMessage: "Échec du chargement des groupes sectoriels" },
-    it: { eyebrow: "Competenze", title: "Settori industriali", subtitle: "Competenza settoriale specializzata", errorMessage: "Impossibile caricare i settori industriali" },
   };
 
   const t = content[language] || content.en;

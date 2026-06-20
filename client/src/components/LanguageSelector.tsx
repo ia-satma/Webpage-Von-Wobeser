@@ -20,14 +20,6 @@ interface LanguageSelectorProps {
 const ariaLabels: Record<LanguageCode, string> = {
   en: "Select language",
   es: "Seleccionar idioma",
-  de: "Sprache auswählen",
-  zh: "选择语言",
-  ko: "언어 선택",
-  ja: "言語を選択",
-  ar: "اختر اللغة",
-  ru: "Выбрать язык",
-  fr: "Sélectionner la langue",
-  it: "Seleziona lingua",
 };
 
 export default function LanguageSelector({ 
@@ -87,9 +79,6 @@ export default function LanguageSelector({
           >
             <span className="flex items-center gap-2">
               <span className="font-medium">{lang.nameNative}</span>
-              {lang.code !== "en" && lang.code !== "es" && (
-                <span className="text-xs text-muted-foreground">({lang.name})</span>
-              )}
             </span>
           </SelectItem>
         ))}

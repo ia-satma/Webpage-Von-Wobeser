@@ -4,14 +4,19 @@
  * Pobla la tabla `team_members` con los abogados reales del sitio viejo, parseando
  * los meta-tags de los perfiles del mirror estático. Idempotente: UPSERT por slug.
  *
- * Fuente : MIRROR - VON WOBESER FRONT/mirror/index.php/lawyer/l-*.html
- *          (meta-tags: Attorney, Position, Phone, Mail, Description, og:image)
+ * Fuente EN : MIRROR - VON WOBESER FRONT/mirror/index.php/lawyer/l-*.html
+ *             (meta-tags: Attorney, Position, Phone, Mail, Description, og:image)
+ * Fuente ES : MIRROR - VON WOBESER FRONT/mirror/index.php/abogado/l-*.html
+ *             (meta-tags: Abogado, Puesto, Descripcion) — MISMO id de archivo
+ *             `l-{N}.html` que la versión EN. Pobla bioEs / titleEs / roleEs.
  * Fotos  : copia el og:image -> client/public/partner_photos/<slug>.<ext>
  *          y setea imageUrl = '/partner_photos/<slug>.<ext>'.
  *
  * Reglas:
  *  - NO borra datos. Para registros existentes (mismo slug) solo RELLENA campos
  *    vacíos/faltantes; nunca sobrescribe datos buenos ya presentes.
+ *  - El emparejamiento EN<->ES es por id de archivo (`l-{N}`), garantizando que
+ *    la bio en español aterriza en el MISMO slug que su versión en inglés.
  *  - Idempotente: correrlo dos veces no duplica ni daña nada.
  *
  * Uso: npx tsx scripts/migrate-mirror-to-db.ts
@@ -36,6 +41,8 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const PROJECT_ROOT = join(__dirname, "..");
 const MIRROR_ROOT = join(PROJECT_ROOT, "MIRROR - VON WOBESER FRONT", "mirror");
 const LAWYER_DIR = join(MIRROR_ROOT, "index.php", "lawyer");
+// Páginas en español del mismo abogado: index.php/abogado/l-{N}.html (mismo id).
+const ABOGADO_DIR = join(MIRROR_ROOT, "index.php", "abogado");
 const PHOTO_DEST_DIR = join(PROJECT_ROOT, "client", "public", "partner_photos");
 
 // ---------------------------------------------------------------------------
@@ -73,6 +80,52 @@ function extractMeta(html: string, key: string): string {
   return ""; // todas vacías o ausentes
 }
 
+/**
+ * Limpia un texto de meta-tag para almacenarlo como bio en texto plano.
+ *
+ * Las páginas ES codifican el markup del cuerpo en el meta `Descripcion`
+ * (p.ej. `&lt;i&gt;of counsel&lt;/i&gt;`). Para que `bioEs` quede consistente
+ * con cómo se guarda `bio` (texto plano, sin tags), decodificamos las entidades
+ * HTML comunes, retiramos cualquier etiqueta resultante y colapsamos espacios.
+ * Esto es SÓLO saneo de la fuente; no agrega ni inventa contenido.
+ */
+function decodeAndStrip(raw: string): string {
+  if (!raw) return "";
+  const decoded = raw
+    .replace(/&lt;/gi, "<")
+    .replace(/&gt;/gi, ">")
+    .replace(/&quot;/gi, '"')
+    .replace(/&#0?39;/g, "'")
+    .replace(/&apos;/gi, "'")
+    .replace(/&nbsp;/gi, " ")
+    .replace(/&amp;/gi, "&"); // &amp; al final para no re-decodificar
+  return decoded
+    .replace(/<[^>]+>/g, " ") // quita tags ya decodificados (<i>, <br>, etc.)
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+/** Mapea Puesto (ES) -> { roleEs, titleEs }. Texto en español tal cual del sitio. */
+function mapPositionEs(puesto: string): { roleEs: string; titleEs: string } {
+  const p = puesto.trim();
+  const lower = p.toLowerCase();
+  switch (lower) {
+    case "socio":
+      return { roleEs: "Socio", titleEs: "Socio" };
+    case "of counsel":
+      return { roleEs: "Of Counsel", titleEs: "Of Counsel" };
+    case "consejero":
+    case "counsel":
+      return { roleEs: "Consejero", titleEs: "Consejero" };
+    case "asociado":
+    case "associate":
+      return { roleEs: "Asociado", titleEs: "Asociado" };
+    default:
+      // Puesto desconocido: lo preservamos tal cual viene del sitio ES.
+      return { roleEs: p || "Asociado", titleEs: p || "Asociado" };
+  }
+}
+
 /** Mapea Position (EN) -> { role, roleEs, isPartner }. */
 function mapPosition(position: string): { role: string; roleEs: string; isPartner: boolean } {
   const p = position.trim().toLowerCase();
@@ -102,6 +155,7 @@ function isEmpty(v: unknown): boolean {
 
 interface ParsedLawyer {
   file: string;
+  id: string; // id del archivo: "l-134" (clave de join EN<->ES)
   name: string;
   slug: string;
   position: string;
@@ -112,10 +166,67 @@ interface ParsedLawyer {
   email: string;
   description: string;
   ogImage: string; // ruta tal como aparece en el meta (ej. "/images/Socios/...jpg")
+  // --- Datos en español emparejados desde abogado/l-{N}.html (mismo id) ---
+  descriptionEs: string; // bio en español (saneada); "" si no hubo página ES
+  roleEsFromEs: string;  // roleEs derivado del Puesto ES; "" si no hubo
+  titleEsFromEs: string; // titleEs derivado del Puesto ES; "" si no hubo
+}
+
+/** Datos parseados de una página en español, keyed por id de archivo. */
+interface ParsedSpanish {
+  descriptionEs: string;
+  roleEs: string;
+  titleEs: string;
+}
+
+/**
+ * Parsea las páginas ESPAÑOLAS (index.php/abogado/l-{N}.html) y devuelve un mapa
+ * keyed por id de archivo ("l-134") con la bio/role/title en español.
+ *
+ * Si el directorio ES no existe, devuelve un mapa vacío y un aviso (no es fatal:
+ * la migración EN sigue funcionando). NUNCA inventa datos — solo lee del mirror.
+ */
+function parseSpanish(errors: string[]): Map<string, ParsedSpanish> {
+  const out = new Map<string, ParsedSpanish>();
+  if (!existsSync(ABOGADO_DIR)) {
+    errors.push(`Directorio ES ausente (${ABOGADO_DIR}) — bioEs no se poblará.`);
+    return out;
+  }
+
+  const files = readdirSync(ABOGADO_DIR)
+    .filter((f) => /^l-\d+\.html$/.test(f))
+    .sort();
+
+  for (const file of files) {
+    const id = file.replace(/\.html$/, ""); // "l-134"
+    try {
+      const html = readFileSync(join(ABOGADO_DIR, file), "utf8");
+      // Claves ES equivalentes a las EN: Abogado=Attorney, Puesto=Position,
+      // Descripcion=Description.
+      const descriptionEs = decodeAndStrip(extractMeta(html, "Descripcion"));
+      const puesto = extractMeta(html, "Puesto");
+      const { roleEs, titleEs } = mapPositionEs(puesto);
+      if (!descriptionEs && !puesto) {
+        // Página ES sin contenido útil: la registramos como vacía (no aporta).
+        continue;
+      }
+      out.set(id, {
+        descriptionEs,
+        roleEs: puesto ? roleEs : "",
+        titleEs: puesto ? titleEs : "",
+      });
+    } catch (e) {
+      errors.push(`abogado/${file}: error de parseo ES — ${(e as Error).message}`);
+    }
+  }
+
+  return out;
 }
 
 function parseLawyers(): { parsed: ParsedLawyer[]; errors: string[] } {
   const errors: string[] = [];
+  // Parseo ES primero: lo unimos por id de archivo a cada abogado EN.
+  const spanishById = parseSpanish(errors);
   const files = readdirSync(LAWYER_DIR)
     .filter((f) => /^l-\d+\.html$/.test(f))
     .sort();
@@ -146,8 +257,13 @@ function parseLawyers(): { parsed: ParsedLawyer[]; errors: string[] } {
       }
       usedSlugs.add(slug);
 
+      // Une la versión ES por id de archivo (mismo "l-{N}" en abogado/).
+      const id = file.replace(/\.html$/, "");
+      const es = spanishById.get(id);
+
       parsed.push({
         file,
+        id,
         name,
         slug,
         position,
@@ -159,6 +275,10 @@ function parseLawyers(): { parsed: ParsedLawyer[]; errors: string[] } {
         // Description multilinea: colapsamos espacios/saltos a un único espacio.
         description: extractMeta(html, "Description").replace(/\s+/g, " ").trim(),
         ogImage: extractMeta(html, "og:image"),
+        // Datos en español (vacíos si no hubo página ES emparejada).
+        descriptionEs: es?.descriptionEs ?? "",
+        roleEsFromEs: es?.roleEs ?? "",
+        titleEsFromEs: es?.titleEs ?? "",
       });
     } catch (e) {
       errors.push(`${file}: error de parseo — ${(e as Error).message}`);
@@ -215,6 +335,8 @@ async function run(): Promise<void> {
   let updated = 0;
   let skipped = 0; // existentes que ya estaban completos (nada que rellenar)
   let photosCopied = 0;
+  let bioEsFilled = 0; // cuántos registros recibieron bioEs en esta corrida
+  const spanishMatched = parsed.filter((l) => l.descriptionEs).length;
 
   // Carga existentes una sola vez (clave por slug) para el merge.
   const existingRows = await db.select().from(teamMembers);
@@ -242,13 +364,14 @@ async function run(): Promise<void> {
           // NOT NULL en el schema: usamos role/roleEs como title cuando no hay
           // otro título disponible (el mirror no expone un "title" distinto).
           title: law.role,
-          titleEs: law.roleEs,
+          // Preferimos el título/role en español de la página ES; si no hubo
+          // página ES, caemos al mapeo derivado del Position en inglés.
+          titleEs: law.titleEsFromEs || law.roleEs,
           role: law.role,
-          roleEs: law.roleEs,
+          roleEs: law.roleEsFromEs || law.roleEs,
           bio: law.description || null,
-          // El mirror solo trae bio en inglés; bioEs queda null para que otro
-          // proceso de traducción lo complete (no inventamos español).
-          bioEs: null,
+          // bioEs viene de la página ES (abogado/l-{N}.html). null si no existía.
+          bioEs: law.descriptionEs || null,
           email: law.email || null,
           phone: law.phone || null,
           imageUrl: publicPhoto, // null si no se pudo copiar
@@ -256,6 +379,7 @@ async function run(): Promise<void> {
           order: maxOrder,
         });
         inserted++;
+        if (law.descriptionEs) bioEsFilled++;
       } catch (e) {
         errors.push(`${law.slug}: fallo al insertar — ${(e as Error).message}`);
       }
@@ -266,10 +390,14 @@ async function run(): Promise<void> {
     const patch: Record<string, unknown> = {};
     if (isEmpty(existing.name) && law.name) patch.name = law.name;
     if (isEmpty(existing.title)) patch.title = law.role;
-    if (isEmpty(existing.titleEs)) patch.titleEs = law.roleEs;
+    // titleEs/roleEs: preferimos la versión de la página ES si existe; solo
+    // rellenamos cuando el registro existente está vacío (no pisamos datos buenos).
+    if (isEmpty(existing.titleEs)) patch.titleEs = law.titleEsFromEs || law.roleEs;
     if (isEmpty(existing.role)) patch.role = law.role;
-    if (isEmpty(existing.roleEs)) patch.roleEs = law.roleEs;
+    if (isEmpty(existing.roleEs)) patch.roleEs = law.roleEsFromEs || law.roleEs;
     if (isEmpty(existing.bio) && law.description) patch.bio = law.description;
+    // bioEs: SOLO se rellena si está vacío y la página ES aportó una bio.
+    if (isEmpty(existing.bioEs) && law.descriptionEs) patch.bioEs = law.descriptionEs;
     if (isEmpty(existing.email) && law.email) patch.email = law.email;
     if (isEmpty(existing.phone) && law.phone) patch.phone = law.phone;
     if (isEmpty(existing.imageUrl) && publicPhoto) patch.imageUrl = publicPhoto;
@@ -286,6 +414,7 @@ async function run(): Promise<void> {
     try {
       await db.update(teamMembers).set(patch).where(eq(teamMembers.slug, law.slug));
       updated++;
+      if ("bioEs" in patch) bioEsFilled++;
     } catch (e) {
       errors.push(`${law.slug}: fallo al actualizar — ${(e as Error).message}`);
     }
@@ -294,7 +423,11 @@ async function run(): Promise<void> {
   // -------------------------------------------------------------------------
   // Resumen
   // -------------------------------------------------------------------------
-  const finalCount = (await db.select().from(teamMembers)).length;
+  const finalRows = await db.select().from(teamMembers);
+  const finalCount = finalRows.length;
+  const finalBioEs = finalRows.filter(
+    (r) => r.bioEs !== null && r.bioEs !== undefined && r.bioEs.trim() !== "",
+  ).length;
 
   console.log("\n================ RESUMEN ================");
   console.log(`Total parseados : ${parsed.length}`);
@@ -302,12 +435,15 @@ async function run(): Promise<void> {
   console.log(`Updated         : ${updated}  (campos vacíos rellenados)`);
   console.log(`Skipped         : ${skipped}  (ya completos, sin cambios)`);
   console.log(`Fotos copiadas  : ${photosCopied}`);
+  console.log(`ES emparejados  : ${spanishMatched}  (páginas abogado/ con bio ES)`);
+  console.log(`bioEs rellenados: ${bioEsFilled}  (registros que recibieron bio ES)`);
   console.log(`Errores         : ${errors.length}`);
   if (errors.length) {
     console.log("\n--- Detalle de errores ---");
     for (const e of errors) console.log(`  • ${e}`);
   }
   console.log(`\nTotal team_members en DB (después): ${finalCount}`);
+  console.log(`bioEs no vacíos en DB (después)  : ${finalBioEs}`);
   console.log("========================================\n");
 }
 

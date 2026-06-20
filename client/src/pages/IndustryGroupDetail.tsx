@@ -1,9 +1,8 @@
 import { Link, useParams } from "wouter";
-import { ArrowLeft, AlertCircle, Loader2 } from "lucide-react";
+import { ArrowLeft, AlertCircle } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { useTranslatedContent } from "@/hooks/useTranslatedContent";
-import { isNativeLanguage } from "@/lib/translationUtils";
+import { getDisplayValue } from "@/lib/translationUtils";
 import { useFadeOnScroll } from "@/hooks/useFadeOnScroll";
 import {
   CapabilityHero,
@@ -26,17 +25,7 @@ interface RelatedPracticeRowProps {
 }
 
 function RelatedPracticeRow({ practiceGroup, language }: RelatedPracticeRowProps) {
-  const { translatedFields } = useTranslatedContent({
-    contentType: "practice_group",
-    entityId: practiceGroup.id.toString(),
-    fields: {
-      name: practiceGroup.name,
-      nameEs: practiceGroup.nameEs,
-    },
-    enabled: !isNativeLanguage(language),
-  });
-
-  const displayName = translatedFields.name || practiceGroup.name;
+  const displayName = getDisplayValue(practiceGroup, "name", language) ?? "";
 
   return (
     <li data-testid={`related-practice-${practiceGroup.slug}`}>
@@ -69,20 +58,6 @@ export default function IndustryGroupDetail() {
     queryKey: ["/api/practice-groups"],
   });
 
-  const { translatedFields, isTranslating } = useTranslatedContent({
-    contentType: "industry_group",
-    entityId: industryGroup?.id?.toString() || "",
-    fields: {
-      name: industryGroup?.name,
-      nameEs: industryGroup?.nameEs,
-      description: industryGroup?.description,
-      descriptionEs: industryGroup?.descriptionEs,
-      fullDescription: industryGroup?.fullDescription,
-      fullDescriptionEs: industryGroup?.fullDescriptionEs,
-    },
-    enabled: !!industryGroup,
-  });
-
   const relatedRef = useFadeOnScroll<HTMLDivElement>();
 
   const translations: Record<string, {
@@ -97,14 +72,6 @@ export default function IndustryGroupDetail() {
   }> = {
     en: { backToAll: "All Industry Groups", contactCta: "Contact our team", contactSubtitle: "Let our experienced attorneys help you navigate your legal challenges in this industry.", emailUs: "Email Us", callUs: "Call Us", relatedServices: "Related Practice Areas", errorMessage: "Industry group not found", aboutIndustry: "About This Industry" },
     es: { backToAll: "Todas las Industrias", contactCta: "Contacte a nuestro equipo", contactSubtitle: "Permita que nuestros abogados experimentados le ayuden a navegar los desafíos legales de esta industria.", emailUs: "Enviar Email", callUs: "Llamar", relatedServices: "Áreas de Práctica Relacionadas", errorMessage: "Industria no encontrada", aboutIndustry: "Acerca de esta Industria" },
-    de: { backToAll: "Zurück zu Branchen", contactCta: "Kontaktieren Sie unser Team", contactSubtitle: "Lassen Sie unsere erfahrenen Anwälte Ihnen bei Ihren rechtlichen Herausforderungen in dieser Branche helfen.", emailUs: "E-Mail senden", callUs: "Anrufen", relatedServices: "Verwandte Praxisbereiche", errorMessage: "Branche nicht gefunden", aboutIndustry: "Über diese Branche" },
-    zh: { backToAll: "返回行业", contactCta: "联系我们的团队", contactSubtitle: "让我们经验丰富的律师帮助您应对该行业的法律挑战。", emailUs: "发送邮件", callUs: "致电", relatedServices: "相关业务领域", errorMessage: "未找到行业", aboutIndustry: "关于该行业" },
-    ko: { backToAll: "산업으로 돌아가기", contactCta: "팀에 연락하기", contactSubtitle: "경험 풍부한 변호사가 이 산업의 법적 문제 해결을 도와드립니다.", emailUs: "이메일 보내기", callUs: "전화하기", relatedServices: "관련 업무 분야", errorMessage: "산업을 찾을 수 없습니다", aboutIndustry: "이 산업에 대해" },
-    ja: { backToAll: "業界に戻る", contactCta: "チームにお問い合わせ", contactSubtitle: "この産業における法的課題の解決を経験豊富な弁護士がお手伝いします。", emailUs: "メールを送る", callUs: "電話する", relatedServices: "関連取扱分野", errorMessage: "業界が見つかりません", aboutIndustry: "この業界について" },
-    ar: { backToAll: "العودة إلى القطاعات", contactCta: "تواصل مع فريقنا", contactSubtitle: "دع محامينا ذوي الخبرة يساعدونك في تحدياتك القانونية في هذه الصناعة.", emailUs: "راسلنا", callUs: "اتصل بنا", relatedServices: "مجالات الممارسة ذات الصلة", errorMessage: "القطاع غير موجود", aboutIndustry: "عن هذا القطاع" },
-    ru: { backToAll: "Назад к отраслям", contactCta: "Связаться с командой", contactSubtitle: "Позвольте нашим опытным юристам помочь вам с правовыми вопросами в этой отрасли.", emailUs: "Написать", callUs: "Позвонить", relatedServices: "Связанные практики", errorMessage: "Отрасль не найдена", aboutIndustry: "Об этой отрасли" },
-    fr: { backToAll: "Retour aux secteurs", contactCta: "Contactez notre équipe", contactSubtitle: "Laissez nos avocats expérimentés vous aider dans vos défis juridiques dans ce secteur.", emailUs: "Envoyer un email", callUs: "Appeler", relatedServices: "Domaines de pratique connexes", errorMessage: "Secteur non trouvé", aboutIndustry: "À propos de ce secteur" },
-    it: { backToAll: "Torna ai settori", contactCta: "Contatta il nostro team", contactSubtitle: "Lascia che i nostri avvocati esperti ti aiutino con le sfide legali in questo settore.", emailUs: "Invia email", callUs: "Chiama", relatedServices: "Aree di pratica correlate", errorMessage: "Settore non trovato", aboutIndustry: "Su questo settore" },
   };
 
   const t = translations[language] || translations.en;
@@ -146,12 +113,10 @@ export default function IndustryGroupDetail() {
     );
   }
 
-  const displayName = translatedFields.name || industryGroup?.name || "";
+  const displayName = getDisplayValue(industryGroup, "name", language) ?? "";
   const displayDescription =
-    translatedFields.fullDescription ||
-    translatedFields.description ||
-    industryGroup?.fullDescription ||
-    industryGroup?.description;
+    getDisplayValue(industryGroup, "fullDescription", language) ||
+    getDisplayValue(industryGroup, "description", language);
 
   const relatedPracticeGroups = practiceGroups?.slice(0, 4);
 
@@ -162,11 +127,6 @@ export default function IndustryGroupDetail() {
         title={displayName}
         backLabel={t.backToAll}
         backHref="/industry-groups"
-        trailing={
-          isTranslating ? (
-            <Loader2 className="h-5 w-5 animate-spin text-vw-gray" aria-hidden="true" />
-          ) : undefined
-        }
         testId="section-industry-group-hero"
       />
 

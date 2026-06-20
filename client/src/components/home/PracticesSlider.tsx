@@ -1,21 +1,24 @@
 import { type ReactNode } from "react";
 import { Link } from "wouter";
+import { useQuery } from "@tanstack/react-query";
 import Slider from "@/components/layout/Slider";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { getDisplayValue } from "@/lib/translationUtils";
+import type { PracticeGroup } from "@shared/schema";
 
 /**
- * PracticesSlider — carrusel a sangre completa de las 18 áreas de práctica
+ * PracticesSlider — carrusel a sangre completa de las áreas de práctica
  * (`.home__slider` con `practica_ipad`) del home viejo de Von Wobeser.
  *
  * Cada slide: número grande + nombre de práctica + enlace SEE MORE sobre una
  * imagen de fondo oscurecida. La primera diapositiva es el "intro" con el
- * conteo total ("18 / Practices"). Usa el <Slider> de la fundación.
+ * conteo total de prácticas. Usa el <Slider> de la fundación.
  *
- * Contenido estático (catálogo de prácticas); rutas a /practices.
+ * Datos data-driven desde la API (`/api/practice-groups`); cada slide enlaza a
+ * su detalle `/practice-groups/${slug}`. El idioma se resuelve con getDisplayValue.
  */
 
 type SliderCopy = {
-  count: string;
   countLabel: string;
   seeMore: string;
   ariaLabel: string;
@@ -23,40 +26,16 @@ type SliderCopy = {
 
 const copy: Record<string, SliderCopy> = {
   en: {
-    count: "18",
     countLabel: "Practices",
     seeMore: "SEE MORE",
     ariaLabel: "Practice areas carousel",
   },
   es: {
-    count: "18",
     countLabel: "Áreas de práctica",
     seeMore: "VER MÁS",
     ariaLabel: "Carrusel de áreas de práctica",
   },
 };
-
-/** Las 18 prácticas en el orden del home viejo. */
-const practices: { en: string; es: string }[] = [
-  { en: "Arbitration", es: "Arbitraje" },
-  { en: "Banking & Finance", es: "Bancario y Financiero" },
-  { en: "Bankruptcy & Restructuring", es: "Concursos y Reestructuras" },
-  { en: "Competition & Antitrust", es: "Competencia Económica" },
-  { en: "Corporate, Mergers & Acquisitions", es: "Corporativo, Fusiones y Adquisiciones" },
-  { en: "Energy & Natural Resources", es: "Energía y Recursos Naturales" },
-  { en: "Environmental", es: "Ambiental" },
-  { en: "ESG (Environmental, Social and Governance)", es: "ESG (Ambiental, Social y Gobernanza)" },
-  { en: "Immigration & Global Mobility", es: "Migración y Movilidad Global" },
-  { en: "Industrial & Intellectual Property", es: "Propiedad Industrial e Intelectual" },
-  { en: "International Trade & Customs", es: "Comercio Internacional y Aduanas" },
-  { en: "Investigations, Anti-corruption & Compliance", es: "Investigaciones, Anticorrupción y Cumplimiento" },
-  { en: "Labor, Executive Compensations & Benefits", es: "Laboral, Compensaciones y Beneficios" },
-  { en: "Litigation", es: "Litigio" },
-  { en: "Projects & Infrastructure", es: "Proyectos e Infraestructura" },
-  { en: "Real Estate", es: "Inmobiliario" },
-  { en: "TAX (Consultancy, Controversy & Litigation)", es: "Fiscal (Consultoría, Controversia y Litigio)" },
-  { en: "Telecommunications, Media & Technology", es: "Telecomunicaciones, Medios y Tecnología" },
-];
 
 function SlideShell({ children }: { children: ReactNode }) {
   return (
@@ -73,10 +52,17 @@ export default function PracticesSlider() {
   const { language } = useLanguage();
   const t = copy[language] || copy.en;
 
+  const { data } = useQuery<PracticeGroup[]>({
+    queryKey: ["/api/practice-groups"],
+  });
+
+  const groups = data ?? [];
+
+  // Mientras carga (sin datos), no rompemos: dejamos solo el slide intro con 0.
   const introSlide = (
     <SlideShell key="intro">
       <span className="block font-serif text-[120px] leading-none md:text-[150px]">
-        {t.count}
+        {groups.length}
       </span>
       <span className="vw-label mt-2 block text-[22px]">{t.countLabel}</span>
       <Link
@@ -89,10 +75,10 @@ export default function PracticesSlider() {
     </SlideShell>
   );
 
-  const practiceSlides = practices.map((p, i) => {
-    const name = language === "es" ? p.es : p.en;
+  const practiceSlides = groups.map((group, i) => {
+    const name = getDisplayValue(group, "name", language);
     return (
-      <SlideShell key={p.en}>
+      <SlideShell key={group.id}>
         <span className="block font-serif text-[90px] leading-none md:text-[110px]">
           {i + 1}
         </span>
@@ -100,7 +86,7 @@ export default function PracticesSlider() {
           {name}
         </span>
         <Link
-          href="/practice-groups"
+          href={`/practice-groups/${group.slug}`}
           className="vw-label mt-6 inline-block text-[13px] font-bold text-white no-underline hover:underline"
           data-testid={`link-practice-${i + 1}`}
         >

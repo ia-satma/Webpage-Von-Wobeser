@@ -1,12 +1,11 @@
 import { Link, useParams } from "wouter";
-import { Loader2 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
-import { es, enUS, de, zhCN, ko, ja, arSA, ru, fr, it } from "date-fns/locale";
+import { es, enUS } from "date-fns/locale";
 import { useToast } from "@/hooks/use-toast";
 import { ArticleJsonLd, BreadcrumbJsonLd } from "@/components/JsonLdSchema";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { useTranslatedContent } from "@/hooks/useTranslatedContent";
+import { getDisplayValue } from "@/lib/translationUtils";
 import { AuthorLink } from "@/components/insights";
 import type { News, TeamMember } from "@shared/schema";
 
@@ -36,20 +35,6 @@ export default function NewsDetail() {
   const { data: relatedAuthors } = useQuery<TeamMember[]>({
     queryKey: ["/api/news", slug, "authors"],
     enabled: !!slug,
-  });
-
-  const { translatedFields, isTranslating } = useTranslatedContent({
-    contentType: "news",
-    entityId: newsArticle?.id?.toString() || "",
-    fields: {
-      title: newsArticle?.title,
-      titleEs: newsArticle?.titleEs,
-      excerpt: newsArticle?.excerpt,
-      excerptEs: newsArticle?.excerptEs,
-      content: newsArticle?.content,
-      contentEs: newsArticle?.contentEs,
-    },
-    enabled: !!newsArticle,
   });
 
   const content: Record<
@@ -100,126 +85,6 @@ export default function NewsDetail() {
       breadcrumbHome: "Inicio",
       breadcrumbNews: "Noticias",
     },
-    de: {
-      label: "Publikation",
-      backToNews: "Zurück zu Nachrichten",
-      relatedNews: "Ähnliche Nachrichten",
-      errorMessage: "Nachricht nicht gefunden",
-      loading: "Wird geladen...",
-      print: "Drucken",
-      share: "Teilen",
-      download: "Herunterladen",
-      linkCopied: "Link in die Zwischenablage kopiert!",
-      aboutTheAuthor: "Autor",
-      aboutTheAuthors: "Autoren",
-      breadcrumbHome: "Startseite",
-      breadcrumbNews: "Nachrichten",
-    },
-    zh: {
-      label: "出版物",
-      backToNews: "返回新闻",
-      relatedNews: "相关新闻",
-      errorMessage: "未找到新闻",
-      loading: "加载中...",
-      print: "打印",
-      share: "分享",
-      download: "下载",
-      linkCopied: "链接已复制到剪贴板！",
-      aboutTheAuthor: "作者",
-      aboutTheAuthors: "作者",
-      breadcrumbHome: "首页",
-      breadcrumbNews: "新闻",
-    },
-    ko: {
-      label: "출판물",
-      backToNews: "뉴스로 돌아가기",
-      relatedNews: "관련 뉴스",
-      errorMessage: "뉴스를 찾을 수 없습니다",
-      loading: "로딩 중...",
-      print: "인쇄",
-      share: "공유",
-      download: "다운로드",
-      linkCopied: "링크가 클립보드에 복사되었습니다!",
-      aboutTheAuthor: "저자",
-      aboutTheAuthors: "저자",
-      breadcrumbHome: "홈",
-      breadcrumbNews: "뉴스",
-    },
-    ja: {
-      label: "出版物",
-      backToNews: "ニュースに戻る",
-      relatedNews: "関連ニュース",
-      errorMessage: "ニュースが見つかりません",
-      loading: "読み込み中...",
-      print: "印刷",
-      share: "共有",
-      download: "ダウンロード",
-      linkCopied: "リンクがクリップボードにコピーされました！",
-      aboutTheAuthor: "著者",
-      aboutTheAuthors: "著者",
-      breadcrumbHome: "ホーム",
-      breadcrumbNews: "ニュース",
-    },
-    ar: {
-      label: "منشور",
-      backToNews: "العودة إلى الأخبار",
-      relatedNews: "أخبار ذات صلة",
-      errorMessage: "الخبر غير موجود",
-      loading: "جاري التحميل...",
-      print: "طباعة",
-      share: "مشاركة",
-      download: "تنزيل",
-      linkCopied: "تم نسخ الرابط!",
-      aboutTheAuthor: "المؤلف",
-      aboutTheAuthors: "المؤلفون",
-      breadcrumbHome: "الرئيسية",
-      breadcrumbNews: "الأخبار",
-    },
-    ru: {
-      label: "Публикация",
-      backToNews: "Назад к новостям",
-      relatedNews: "Похожие новости",
-      errorMessage: "Новость не найдена",
-      loading: "Загрузка...",
-      print: "Печать",
-      share: "Поделиться",
-      download: "Скачать",
-      linkCopied: "Ссылка скопирована в буфер обмена!",
-      aboutTheAuthor: "Автор",
-      aboutTheAuthors: "Авторы",
-      breadcrumbHome: "Главная",
-      breadcrumbNews: "Новости",
-    },
-    fr: {
-      label: "Publication",
-      backToNews: "Retour aux actualités",
-      relatedNews: "Actualités similaires",
-      errorMessage: "Actualité non trouvée",
-      loading: "Chargement...",
-      print: "Imprimer",
-      share: "Partager",
-      download: "Télécharger",
-      linkCopied: "Lien copié dans le presse-papiers!",
-      aboutTheAuthor: "Auteur",
-      aboutTheAuthors: "Auteurs",
-      breadcrumbHome: "Accueil",
-      breadcrumbNews: "Actualités",
-    },
-    it: {
-      label: "Pubblicazione",
-      backToNews: "Torna alle notizie",
-      relatedNews: "Notizie correlate",
-      errorMessage: "Notizia non trovata",
-      loading: "Caricamento...",
-      print: "Stampa",
-      share: "Condividi",
-      download: "Scarica",
-      linkCopied: "Link copiato negli appunti!",
-      aboutTheAuthor: "Autore",
-      aboutTheAuthors: "Autori",
-      breadcrumbHome: "Home",
-      breadcrumbNews: "Notizie",
-    },
   };
 
   const t = content[language] || content.en;
@@ -228,14 +93,6 @@ export default function NewsDetail() {
     const localeMap: Record<string, typeof enUS> = {
       en: enUS,
       es,
-      de,
-      zh: zhCN,
-      ko,
-      ja,
-      ar: arSA,
-      ru,
-      fr,
-      it,
     };
     return localeMap[language] || enUS;
   };
@@ -245,14 +102,6 @@ export default function NewsDetail() {
     const formatMap: Record<string, string> = {
       en: "MMMM, yyyy",
       es: "MMMM, yyyy",
-      de: "MMMM yyyy",
-      zh: "yyyy'年'M'月'",
-      ko: "yyyy'년' M'월'",
-      ja: "yyyy'年'M'月'",
-      ar: "MMMM yyyy",
-      ru: "MMMM yyyy 'г.'",
-      fr: "MMMM yyyy",
-      it: "MMMM yyyy",
     };
     return formatMap[language] || "MMMM, yyyy";
   };
@@ -339,12 +188,10 @@ export default function NewsDetail() {
     );
   }
 
-  const displayTitle = translatedFields.title || newsArticle?.title;
+  const displayTitle = getDisplayValue(newsArticle, "title", language);
   const displayContent =
-    translatedFields.content ||
-    translatedFields.excerpt ||
-    newsArticle?.content ||
-    newsArticle?.excerpt;
+    getDisplayValue(newsArticle, "content", language) ||
+    getDisplayValue(newsArticle, "excerpt", language);
 
   const paragraphs = (displayContent || "")
     .split("\n")
@@ -356,8 +203,8 @@ export default function NewsDetail() {
       {newsArticle && (
         <>
           <ArticleJsonLd
-            headline={language === "es" ? newsArticle.titleEs : newsArticle.title}
-            description={language === "es" ? newsArticle.excerptEs : newsArticle.excerpt}
+            headline={getDisplayValue(newsArticle, "title", language) ?? ""}
+            description={getDisplayValue(newsArticle, "excerpt", language) ?? ""}
             datePublished={newsArticle.date}
             dateModified={newsArticle.date}
             authorName={primaryAuthor?.name}
@@ -375,7 +222,7 @@ export default function NewsDetail() {
               { name: t.breadcrumbHome, url: "https://www.vonwobeser.com" },
               { name: t.breadcrumbNews, url: "https://www.vonwobeser.com/news" },
               {
-                name: language === "es" ? newsArticle.titleEs : newsArticle.title,
+                name: getDisplayValue(newsArticle, "title", language) ?? "",
                 url: `https://www.vonwobeser.com/news/${newsArticle.slug}`,
               },
             ]}
@@ -400,9 +247,6 @@ export default function NewsDetail() {
               data-testid="text-news-title"
             >
               <span>{displayTitle}</span>
-              {isTranslating && (
-                <Loader2 className="mt-1 h-5 w-5 shrink-0 animate-spin text-white/70" aria-hidden="true" />
-              )}
             </h1>
 
             <p
@@ -482,15 +326,7 @@ export default function NewsDetail() {
               />
             )}
 
-            {isTranslating && paragraphs.length === 0 && (
-              <div className="space-y-4">
-                <div className="h-5 w-full bg-vw-graylight/30" />
-                <div className="h-5 w-full bg-vw-graylight/30" />
-                <div className="h-5 w-5/6 bg-vw-graylight/30" />
-              </div>
-            )}
-
-            <div className={isTranslating ? "opacity-70" : ""}>
+            <div>
               {paragraphs.map((p, i) => (
                 <p
                   key={i}
@@ -529,7 +365,7 @@ export default function NewsDetail() {
                   className="font-serif text-[21px] leading-snug text-vw-gray transition-colors duration-200 group-hover:text-vw-red"
                   data-testid={`text-related-news-title-${item.id}`}
                 >
-                  {language === "es" ? item.titleEs : item.title}
+                  {getDisplayValue(item, "title", language)}
                 </h3>
               </Link>
             ))}

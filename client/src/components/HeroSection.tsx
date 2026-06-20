@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "wouter";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { useTranslatedContent } from "@/hooks/useTranslatedContent";
+import { getDisplayValue } from "@/lib/translationUtils";
 import type { SiteContent, News, LanguageCode } from "@shared/schema";
 import heroVideo from "@assets/dron_1764710361340.mp4";
 import heroImage from "@assets/hero_office.jpg";
@@ -19,7 +19,7 @@ type NewsPanelLabels = {
   seeMore: string;
 };
 
-const newsPanelLabels: Record<LanguageCode, NewsPanelLabels> = {
+const newsPanelLabels: Record<string, NewsPanelLabels> = {
   en: {
     news: "News",
     seeMore: "SEE MORE",
@@ -28,64 +28,20 @@ const newsPanelLabels: Record<LanguageCode, NewsPanelLabels> = {
     news: "Noticias",
     seeMore: "VER MÁS",
   },
-  de: {
-    news: "Nachrichten",
-    seeMore: "MEHR SEHEN",
-  },
-  zh: {
-    news: "新闻",
-    seeMore: "查看更多",
-  },
-  ko: {
-    news: "뉴스",
-    seeMore: "더 보기",
-  },
-  ja: {
-    news: "ニュース",
-    seeMore: "もっと見る",
-  },
-  ar: {
-    news: "أخبار",
-    seeMore: "شاهد المزيد",
-  },
-  ru: {
-    news: "Новости",
-    seeMore: "ПОДРОБНЕЕ",
-  },
-  fr: {
-    news: "Actualités",
-    seeMore: "VOIR PLUS",
-  },
-  it: {
-    news: "Notizie",
-    seeMore: "VEDI DI PIÙ",
-  },
 };
 
-function NewsItemTranslated({ 
-  item, 
-  language, 
-  index, 
-  seeMoreText 
-}: { 
-  item: News; 
-  language: LanguageCode; 
-  index: number; 
+function NewsItemTranslated({
+  item,
+  language,
+  index,
+  seeMoreText
+}: {
+  item: News;
+  language: LanguageCode;
+  index: number;
   seeMoreText: string;
 }) {
-  const { translatedFields } = useTranslatedContent({
-    contentType: 'news',
-    entityId: item.id,
-    fields: { 
-      title: item.titleEs || item.title, 
-      titleEs: item.titleEs,
-    },
-    enabled: language !== 'es',
-  });
-
-  const displayTitle = language === 'es' 
-    ? item.titleEs 
-    : (translatedFields.title || item.titleEs || item.title);
+  const displayTitle = getDisplayValue(item, "title", language) ?? "";
 
   const inner = (
     <>
@@ -182,7 +138,7 @@ type HeroContent = {
   videoFallback: string;
 };
 
-const heroContent: Record<LanguageCode, HeroContent> = {
+const heroContent: Record<string, HeroContent> = {
   en: {
     tagline: "LEADING LAW FIRM IN MEXICO",
     headline: "VON WOBESER Y SIERRA",
@@ -207,115 +163,11 @@ const heroContent: Record<LanguageCode, HeroContent> = {
     ariaLabel: "Sección principal de bienvenida",
     videoFallback: "Tu navegador no soporta el elemento de video.",
   },
-  de: {
-    tagline: "FÜHRENDE ANWALTSKANZLEI IN MEXIKO",
-    headline: "VON WOBESER Y SIERRA",
-    subheadline: "Erstklassige Unternehmensrechtsberatung seit 1986",
-    scroll: "scrollen",
-    ctaContact: "KONTAKT",
-    ctaConsult: "BERATUNG VEREINBAREN",
-    heroVideoLabel: "Luftaufnahme der Büros von Von Wobeser y Sierra in Mexiko-Stadt",
-    heroImageLabel: "Hauptgebäude von Von Wobeser y Sierra",
-    ariaLabel: "Hauptbegrüßungsbereich",
-    videoFallback: "Ihr Browser unterstützt das Video-Element nicht.",
-  },
-  zh: {
-    tagline: "墨西哥领先律师事务所",
-    headline: "VON WOBESER Y SIERRA",
-    subheadline: "自1986年以来的卓越企业法律服务",
-    scroll: "滚动",
-    ctaContact: "联系我们",
-    ctaConsult: "预约咨询",
-    heroVideoLabel: "Von Wobeser y Sierra 墨西哥城办公室鸟瞰图",
-    heroImageLabel: "Von Wobeser y Sierra 总部大楼",
-    ariaLabel: "主要欢迎区域",
-    videoFallback: "您的浏览器不支持视频元素。",
-  },
-  ko: {
-    tagline: "멕시코 최고의 로펌",
-    headline: "VON WOBESER Y SIERRA",
-    subheadline: "1986년부터 이어온 기업 법률 서비스의 우수성",
-    scroll: "스크롤",
-    ctaContact: "문의하기",
-    ctaConsult: "상담 예약",
-    heroVideoLabel: "멕시코시티 Von Wobeser y Sierra 사무실 항공 전경",
-    heroImageLabel: "Von Wobeser y Sierra 본사 건물",
-    ariaLabel: "메인 환영 섹션",
-    videoFallback: "브라우저가 비디오 요소를 지원하지 않습니다.",
-  },
-  ja: {
-    tagline: "メキシコをリードする法律事務所",
-    headline: "VON WOBESER Y SIERRA",
-    subheadline: "1986年以来の企業法務における卓越性",
-    scroll: "スクロール",
-    ctaContact: "お問い合わせ",
-    ctaConsult: "相談を予約する",
-    heroVideoLabel: "メキシコシティにあるVon Wobeser y Sierraオフィスの空撮映像",
-    heroImageLabel: "Von Wobeser y Sierra 本社ビル",
-    ariaLabel: "メインウェルカムセクション",
-    videoFallback: "お使いのブラウザはビデオ要素をサポートしていません。",
-  },
-  ar: {
-    tagline: "شركة محاماة رائدة في المكسيك",
-    headline: "VON WOBESER Y SIERRA",
-    subheadline: "التميز القانوني للشركات منذ عام 1986",
-    scroll: "تمرير",
-    ctaContact: "اتصل بنا",
-    ctaConsult: "حجز استشارة",
-    heroVideoLabel: "منظر جوي لمكاتب Von Wobeser y Sierra في مدينة مكسيكو",
-    heroImageLabel: "مبنى المقر الرئيسي لـ Von Wobeser y Sierra",
-    ariaLabel: "قسم الترحيب الرئيسي",
-    videoFallback: "متصفحك لا يدعم عنصر الفيديو.",
-  },
-  ru: {
-    tagline: "ВЕДУЩАЯ ЮРИДИЧЕСКАЯ ФИРМА В МЕКСИКЕ",
-    headline: "VON WOBESER Y SIERRA",
-    subheadline: "Высочайший уровень корпоративного права с 1986 года",
-    scroll: "прокрутка",
-    ctaContact: "СВЯЗАТЬСЯ С НАМИ",
-    ctaConsult: "ЗАПИСАТЬСЯ НА КОНСУЛЬТАЦИЮ",
-    heroVideoLabel: "Аэросъёмка офисов Von Wobeser y Sierra в Мехико",
-    heroImageLabel: "Здание штаб-квартиры Von Wobeser y Sierra",
-    ariaLabel: "Главный приветственный раздел",
-    videoFallback: "Ваш браузер не поддерживает видео элемент.",
-  },
-  fr: {
-    tagline: "CABINET D'AVOCATS DE PREMIER PLAN AU MEXIQUE",
-    headline: "VON WOBESER Y SIERRA",
-    subheadline: "Excellence juridique d'entreprise depuis 1986",
-    scroll: "défiler",
-    ctaContact: "CONTACTEZ-NOUS",
-    ctaConsult: "PRENDRE RENDEZ-VOUS",
-    heroVideoLabel: "Vue aérienne des bureaux de Von Wobeser y Sierra à Mexico",
-    heroImageLabel: "Bâtiment du siège de Von Wobeser y Sierra",
-    ariaLabel: "Section d'accueil principale",
-    videoFallback: "Votre navigateur ne prend pas en charge l'élément vidéo.",
-  },
-  it: {
-    tagline: "STUDIO LEGALE LEADER IN MESSICO",
-    headline: "VON WOBESER Y SIERRA",
-    subheadline: "Eccellenza legale aziendale dal 1986",
-    scroll: "scorri",
-    ctaContact: "CONTATTACI",
-    ctaConsult: "PRENOTA UNA CONSULENZA",
-    heroVideoLabel: "Vista aerea degli uffici di Von Wobeser y Sierra a Città del Messico",
-    heroImageLabel: "Edificio della sede di Von Wobeser y Sierra",
-    ariaLabel: "Sezione di benvenuto principale",
-    videoFallback: "Il tuo browser non supporta l'elemento video.",
-  },
 };
 
-const scrollAriaLabels: Record<LanguageCode, string> = {
+const scrollAriaLabels: Record<string, string> = {
   en: "Scroll down to news section",
   es: "Desplazar hacia abajo a la sección de noticias",
-  de: "Nach unten zum Nachrichtenbereich scrollen",
-  zh: "向下滚动到新闻部分",
-  ko: "뉴스 섹션으로 스크롤",
-  ja: "ニュースセクションまでスクロール",
-  ar: "انتقل إلى قسم الأخبار",
-  ru: "Прокрутить вниз к разделу новостей",
-  fr: "Faire défiler vers la section actualités",
-  it: "Scorri verso il basso alla sezione notizie",
 };
 
 export default function HeroSection({ language }: HeroSectionProps) {

@@ -1,19 +1,21 @@
 import { type ReactNode } from "react";
 import { Link } from "wouter";
+import { useQuery } from "@tanstack/react-query";
 import Slider from "@/components/layout/Slider";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { getDisplayValue } from "@/lib/translationUtils";
+import type { IndustryGroup } from "@shared/schema";
 
 /**
  * IndustriesSlider — segundo carrusel a sangre completa del home viejo
- * (`.home__slider` con los 7 Industry Groups). Mismo patrón visual que el
- * de prácticas: slide intro con el conteo ("7 / Industry Groups") seguido de
- * los grupos numerados.
+ * (`.home__slider` con los Industry Groups). Mismo patrón visual que el
+ * de prácticas: slide intro con el conteo seguido de los grupos numerados.
  *
- * Contenido estático (catálogo de industrias); rutas a /industries.
+ * Datos data-driven desde la API (`/api/industry-groups`); cada slide enlaza a
+ * su detalle `/industry-groups/${slug}`. El idioma se resuelve con getDisplayValue.
  */
 
 type SliderCopy = {
-  count: string;
   countLabel: string;
   seeMore: string;
   ariaLabel: string;
@@ -21,28 +23,16 @@ type SliderCopy = {
 
 const copy: Record<string, SliderCopy> = {
   en: {
-    count: "7",
     countLabel: "Industry Groups",
     seeMore: "SEE MORE",
     ariaLabel: "Industry groups carousel",
   },
   es: {
-    count: "7",
     countLabel: "Grupos de Industria",
     seeMore: "VER MÁS",
     ariaLabel: "Carrusel de grupos de industria",
   },
 };
-
-const industries: { en: string; es: string }[] = [
-  { en: "Automotive & Manufacturing", es: "Automotriz y Manufactura" },
-  { en: "Consumer Goods", es: "Bienes de Consumo" },
-  { en: "Energy & Natural Resources", es: "Energía y Recursos Naturales" },
-  { en: "Financial Services", es: "Servicios Financieros" },
-  { en: "Pharmaceutical & Life Sciences", es: "Farmacéutica y Ciencias de la Vida" },
-  { en: "Real Estate", es: "Inmobiliario" },
-  { en: "Technology", es: "Tecnología" },
-];
 
 function SlideShell({ children }: { children: ReactNode }) {
   return (
@@ -59,10 +49,16 @@ export default function IndustriesSlider() {
   const { language } = useLanguage();
   const t = copy[language] || copy.en;
 
+  const { data } = useQuery<IndustryGroup[]>({
+    queryKey: ["/api/industry-groups"],
+  });
+
+  const groups = data ?? [];
+
   const introSlide = (
     <SlideShell key="intro">
       <span className="block font-serif text-[120px] leading-none md:text-[150px]">
-        {t.count}
+        {groups.length}
       </span>
       <span className="vw-label mt-2 block text-[22px]">{t.countLabel}</span>
       <Link
@@ -75,10 +71,10 @@ export default function IndustriesSlider() {
     </SlideShell>
   );
 
-  const industrySlides = industries.map((g, i) => {
-    const name = language === "es" ? g.es : g.en;
+  const industrySlides = groups.map((group, i) => {
+    const name = getDisplayValue(group, "name", language);
     return (
-      <SlideShell key={g.en}>
+      <SlideShell key={group.id}>
         <span className="block font-serif text-[90px] leading-none md:text-[110px]">
           {i + 1}
         </span>
@@ -86,7 +82,7 @@ export default function IndustriesSlider() {
           {name}
         </span>
         <Link
-          href="/industry-groups"
+          href={`/industry-groups/${group.slug}`}
           className="vw-label mt-6 inline-block text-[13px] font-bold text-white no-underline hover:underline"
           data-testid={`link-industry-${i + 1}`}
         >
