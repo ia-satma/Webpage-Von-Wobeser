@@ -46,6 +46,17 @@ async function run() {
   await expectStatus("traversal: ..%2f", "/generated-images/..%2f..%2fetc%2fpasswd", 400);
   await expectStatus("traversal: dotdot", "/generated-images/x..png", 400);
 
+  // --- Control de costo: el batch translate rechaza arreglos enormes (cap 50) ---
+  await expectStatus("cost: batch translate cap", "/api/translate/batch", 413, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      texts: Array.from({ length: 51 }, () => "x"),
+      sourceLanguage: "en",
+      targetLanguage: "es",
+    }),
+  });
+
   // --- Públicos: deben responder 200 ---
   await expectStatus("public: home", "/", 200);
   await expectStatus("public: team", "/api/team", 200);

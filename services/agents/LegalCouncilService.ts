@@ -64,6 +64,19 @@ export class LegalCouncilService {
   }
 
   async evaluateArticle(text: string): Promise<CouncilVerdict> {
+    // Opt-out de costo: con LEGAL_COUNCIL_ENABLED=false se omite la evaluación
+    // (son 3 llamadas a OpenAI por artículo) y el artículo pasa a revisión manual.
+    // Por defecto (variable ausente) el Consejo sigue activo: cambio no-disruptivo.
+    if (process.env.LEGAL_COUNCIL_ENABLED === "false") {
+      console.log("[LegalCouncil] Deshabilitado (LEGAL_COUNCIL_ENABLED=false): se omite la evaluación, sin llamadas a OpenAI.");
+      return {
+        overallStatus: "approved",
+        riskFlag: "none",
+        consolidatedFeedback:
+          "Legal Council deshabilitado por configuración (LEGAL_COUNCIL_ENABLED=false). El artículo pasa a revisión manual sin evaluación automática.",
+      };
+    }
+
     const sessionId = randomUUID();
     console.log(`[LegalCouncil] Session ${sessionId}: Starting evaluation with ${COUNCIL_AGENTS.length} agents`);
 

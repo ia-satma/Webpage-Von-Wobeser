@@ -3009,6 +3009,16 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
         return res.status(400).json({ error: "Invalid language code" });
       }
 
+      // Tope de tamaño: el endpoint es público (sin auth) y cada texto consume una
+      // llamada de traducción. Sin cap, un solo request podía disparar miles de
+      // llamadas (ataque de costo). 50 es holgado para uso legítimo del admin.
+      const MAX_BATCH_TEXTS = 50;
+      if (texts.length > MAX_BATCH_TEXTS) {
+        return res.status(413).json({
+          error: `Demasiados textos (${texts.length}). Máximo permitido: ${MAX_BATCH_TEXTS}.`,
+        });
+      }
+
       const translations = await translateMultipleTexts(
         texts,
         sourceLanguage as LanguageCode,
