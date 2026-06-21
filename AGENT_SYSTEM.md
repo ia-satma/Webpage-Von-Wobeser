@@ -1,5 +1,11 @@
 # Sistema de Agentes AI - Documentación Técnica
 
+> ⚠️ **Estado real (actualizado 2026-06-21).** Correcciones que **prevalecen** sobre el texto de abajo:
+> - **Traducción:** el sitio público es **EN/ES estático**; `PolyglotTranslatorAgent` aún apunta a 10 idiomas en su código, pero el sitio no los usa.
+> - **Pipeline real por defecto:** `formatter → metadata_linker → polyglot_translator → seo_optimizer` (4 etapas) + Consejo Legal al final (`AgentOrchestrator.runPipeline`). `ContentAnalyzer` y `WebsiteAuditor` NO van en ese pipeline (se invocan aparte o quedan dormidos).
+> - **Conteo de agentes:** se declaran **14** (6 Brain / 4 Hands / 4 Shield), pero la cola procesa ~8-9. Discrepancia conocida; `shared/agentConstants.ts` + `SystemChronicler` hacen `throw` en boot si el inventario no cuadra, por eso no se re-alineó.
+> - **LLM:** el texto lo hace **Claude** (`server/llm.ts`); el Consejo Legal usa **OpenAI**; las imágenes **Gemini**. Referencias a "GPT-5/GPT-4o/DALL·E" pueden estar desfasadas.
+
 ## Índice
 1. [Arquitectura del Sistema](#arquitectura-del-sistema)
 2. [Agentes Especializados](#agentes-especializados)

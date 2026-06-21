@@ -1,7 +1,16 @@
 # Von Wobeser y Sierra Corporate Website
 
+> ⚠️ **Estado real (actualizado 2026-06-21).** Este documento quedó desfasado respecto al código. Estas correcciones **prevalecen** sobre el texto de abajo:
+> - **Idiomas:** el sitio es **bilingüe estático EN/ES** (`getDisplayValue` + `client/src/i18n.ts`), NO 10 idiomas con traducción LLM en runtime. El hook `useTranslatedContent` quedó como legado.
+> - **Almacenamiento:** **PostgreSQL real con Drizzle** (no "in-memory/mock"); `server/seed.ts` puebla datos iniciales.
+> - **Autenticación:** **implementada** (`server/auth.ts`: bcrypt + sesiones por token + `requireRole`), no "pendiente".
+> - **German Desk:** **eliminado** (ruta, nav, página, `WorldMapSection`).
+> - **Datos:** ~**143 abogados** y **843 publicaciones** bilingües (no 25). Texto por **Claude**; Consejo Legal por **OpenAI**; imágenes por **Gemini**.
+> - **Agentes:** el catálogo declara **14**, pero el pipeline real corre ~8-9 (algunos quedan dormidos) — ver `shared/agentConstants.ts`.
+> - Documento autoritativo del estado: `HANDOFF-2026-06-20-conexion-i18n-deploy.md`.
+
 ## Overview
-This project is a corporate website for Von Wobeser y Sierra, a leading Mexican law firm. Its primary purpose is to showcase their new office and firm capabilities through a single-page application. Key features include comprehensive multi-language support (10 languages with AI-powered legal translation), dark mode, and a professional design aesthetic. The site aims to provide a sophisticated online presence, highlighting news, office vision, statistics, image galleries, and location information.
+This project is a corporate website for Von Wobeser y Sierra, a leading Mexican law firm. Its primary purpose is to showcase their new office and firm capabilities through a single-page application. Key features include bilingual support (English/Spanish, static — see the status banner above), dark mode, and a professional design aesthetic. The site aims to provide a sophisticated online presence, highlighting news, office vision, statistics, image galleries, and location information.
 
 ## User Preferences
 Preferred communication style: Simple, everyday language.
@@ -31,19 +40,19 @@ Key files:
 - `server/routes.ts` - `/api/detect-language` endpoint with COUNTRY_TO_LANGUAGE mapping
 - `server/openai.ts` - OpenAI translation API integration
 
-New dedicated pages for Diversity & Inclusion, Pro Bono, German Desk, Articles, Newsletter, and Internships have been added, all featuring bilingual support, SEO, and animations.
+New dedicated pages for Diversity & Inclusión, Pro Bono, German Desk, Articles, Newsletter, and Internships have been added, all featuring bilingual support, SEO, and animations.
 
 ### Backend
-The backend uses Express.js with TypeScript, providing RESTful API endpoints under `/api`. It currently uses an in-memory storage implementation for mock data but is designed for PostgreSQL integration. The server build uses esbuild, while the client uses Vite.
+The backend uses Express.js with TypeScript, providing RESTful API endpoints under `/api`. It uses **PostgreSQL with Drizzle ORM** for storage (`server/storage.ts` + `server/db.ts`). The server build uses esbuild, while the client uses Vite.
 
 ### Data Storage
 The project uses a PostgreSQL database with Drizzle ORM. Content is real, extracted from the firm's existing website, and includes bilingual (English/Spanish) fields. The schema defines tables for users, news, office images, practice groups, industry groups, and team members. Data models include 25 real lawyers, 18 practice groups, 7 industry groups, firm news, office images, and site content, all sourced accurately. A translation cache table stores AI-generated translations.
 
 ### Authentication & Authorization
-While a user schema is defined, authentication and authorization are not yet implemented, though necessary dependencies like `express-session` and `passport` are installed, preparing for future integration.
+Admin authentication and authorization are **implemented** in `server/auth.ts`: bcrypt password hashing, token-based sessions (24h expiry, `admin_sessions` table), login rate-limiting, and `requireRole` (super_admin > editor > author, with super_admin bypass). `express-session`/`passport` remain from earlier scaffolding.
 
 ### Design System
-The color scheme uses `#AA1A2E` (brand red) as the primary color. **Light mode** uses a warm-gray palette derived from user swatches (#D5D2CD / #C0BDB8): off-white background (HSL 37 6% 97%), warm card (37 6% 82%), warm borders (37 5% 74%). **Dark mode** uses three dark swatches (#8B8D89 / #5B5C5F / #2E2E2A): background (50 5% 17%), cards (50 4% 21%), muted-foreground (100 2% 54%). All UI components use semantic CSS variable tokens (`bg-background`, `bg-card`, `text-foreground`, `border-border`, etc.) — no hardcoded `gray-*` colors. Typography uses Playfair Display for headlines, Optima/Lato for body, Geomanist/Lato for labels. Consistent `rounded-none` policy throughout (except avatar circles). ALL CAPS headings with `tracking-[0.12em]`.
+The color scheme uses `#AA1A2E` (brand red) as the primary color. **Light mode** uses a warm-gray palette derived from user swatches (#D5D2CD / #C0BDB8): off-white background (HSL 37 6% 97%), warm card (37 6% 82%), warm borders (37 5% 74%). **Dark mode** uses three dark swatches (#8B8D89 / #5B5C5F / #2E2E2A): background (50 5% 17%), cards (50 4% 21%), muted-foreground (100 2% 54%). All UI components use semantic CSS variable tokens (`bg-background`, `bg-card`, `text-foreground`, `border-border`, etc.) — no hardcoded `gray-*` colors. Typography uses Playfair Display for headlines, Óptima/Lato for body, Geomanist/Lato for labels. Consistent `rounded-none` policy throughout (except avatar circles). ALL CAPS headings with `tracking-[0.12em]`.
 
 ### AI Agent System (Self-Evolving Backend)
 The backend has been transformed from a static brochure into a self-evolving system with autonomous AI agents that continuously improve content quality, translations, SEO, and metadata linking. The system is inspired by the brujer.ia project architecture.
@@ -55,7 +64,7 @@ The backend has been transformed from a static brochure into a self-evolving sys
 
 **Specialized Agents:**
 1. **FormatterAgent**: Cleans PDF-extracted articles, fixes broken line breaks, normalizes paragraphs, removes boilerplate
-2. **MetadataLinkerAgent**: Analyzes content to link articles with authors, practice areas, and industry groups
+2. **MetadataLinkerAgent**: Analyzes content to link articles with authors, practice áreas, and industry groups
 3. **PolyglotTranslatorAgent**: Translates to 10 languages using legal term glossary with smart caching
 4. **ContentAuditorAgent**: Scans database for content gaps (missing translations, authors, formatting issues)
 5. **SEOOptimizerAgent**: Improves titles, meta descriptions, slugs, and keywords for search engines
@@ -117,7 +126,7 @@ The backend has been transformed from a static brochure into a self-evolving sys
 - System Evolution Timeline showing narrative history of improvements with impact levels (critical/major/minor)
 - Full 10-language support matching all other pages
 
-**Agent Inventory - Single Source of Truth (Auditor-Level Precision):**
+**Agent Inventory - Single Source of Truth (Auditor-Level Precisión):**
 - Shared constants file: `shared/agentConstants.ts`
 - Contains canonical `AGENT_IDS` typed constants, `AGENT_CATEGORY_MAP`, and derived category arrays
 - `BRAIN_AGENT_IDS`, `HANDS_AGENT_IDS`, `SHIELD_AGENT_IDS` - computed from AGENT_CATEGORY_MAP (not manually maintained)
