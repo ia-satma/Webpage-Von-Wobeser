@@ -163,6 +163,14 @@ export default function SiteHeader() {
 
             <LanguageSelector isScrolled compact className="hidden sm:flex" />
 
+            {/* Sello ESR — Empresa Socialmente Responsable (presente en el original) */}
+            <img
+              src="/esr.jpg"
+              alt="Empresa Socialmente Responsable (ESR)"
+              className="hidden h-10 w-auto sm:block"
+              data-testid="img-esr"
+            />
+
             <button
               type="button"
               onClick={() => setMenuOpen(true)}

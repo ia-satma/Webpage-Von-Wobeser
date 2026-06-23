@@ -5,6 +5,7 @@ import Slider from "@/components/layout/Slider";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { getDisplayValue } from "@/lib/translationUtils";
 import type { IndustryGroup } from "@shared/schema";
+import { getIndustryImage } from "@/lib/practiceIndustryImages";
 
 /**
  * IndustriesSlider — segundo carrusel a sangre completa del home viejo
@@ -34,9 +35,12 @@ const copy: Record<string, SliderCopy> = {
   },
 };
 
-function SlideShell({ children }: { children: ReactNode }) {
+function SlideShell({ children, image }: { children: ReactNode; image?: string }) {
   return (
-    <div className="relative flex h-[60vh] min-h-[420px] w-full items-center justify-center bg-vw-gray">
+    <div
+      className="relative flex h-[60vh] min-h-[420px] w-full items-center justify-center bg-vw-gray bg-cover bg-center"
+      style={image ? { backgroundImage: `url("${image}")` } : undefined}
+    >
       <div className="absolute inset-0 bg-black/40" aria-hidden="true" />
       <div className="vw-wrap relative z-10">
         <div className="mx-auto max-w-[940px] text-center text-white">{children}</div>
@@ -73,8 +77,9 @@ export default function IndustriesSlider() {
 
   const industrySlides = groups.map((group, i) => {
     const name = getDisplayValue(group, "name", language);
+    const image = getIndustryImage(group.slug, group.imageUrl);
     return (
-      <SlideShell key={group.id}>
+      <SlideShell key={group.id} image={image}>
         <span className="block font-serif text-[90px] leading-none md:text-[110px]">
           {i + 1}
         </span>

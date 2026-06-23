@@ -44,6 +44,10 @@ export const PRACTICE_IMAGES: Record<string, string> = {
   "administrative-law": pAdministrative,
 };
 
+// Algunas industrias aparecen con DOS keys a propósito: el slug "oficial" del
+// grupo (ej. "energy-natural-resources-industry") y un alias corto sin sufijo
+// ("energy-natural-resources"), porque distintas partes del sitio piden la
+// imagen con uno u otro. Ambos apuntan a la misma imagen branded.
 export const INDUSTRY_IMAGES: Record<string, string> = {
   "automotive-mobility-manufacturing": iAutomotive,
   "consumer-goods": iConsumer,

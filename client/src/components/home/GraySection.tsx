@@ -25,6 +25,13 @@ const teamLine: Record<string, (n: string) => string> = {
     `Contamos con más de ${n} integrantes del equipo legal, además de personal administrativo al servicio de nuestros clientes.`,
 };
 
+// Texto fijo del sitio original (vonwobeser.com) — se usa cuando /api/stats no
+// trae un conteo de equipo (hoy solo trae datos de oficina). Cifras del original.
+const teamFallback: Record<string, string> = {
+  en: "We have more than 180 legal team members (including 26 partners, 6 of counsel, and 8 counsel) and legal interns, plus administrative staff.",
+  es: "Contamos con más de 180 integrantes del equipo legal (incluyendo 26 socios, 6 of counsel y 8 counsel) y becarios, además del personal administrativo.",
+};
+
 export default function GraySection() {
   const { language } = useLanguage();
   const ref = useFadeOnScroll<HTMLDivElement>();
@@ -48,7 +55,7 @@ export default function GraySection() {
   );
   const secondary = teamStat
     ? (teamLine[language] || teamLine.en)(teamStat.value)
-    : null;
+    : teamFallback[language] || teamFallback.en;
 
   return (
     <section
