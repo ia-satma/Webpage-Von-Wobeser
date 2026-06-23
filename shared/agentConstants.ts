@@ -1,9 +1,21 @@
 /**
  * SHARED AGENT CONSTANTS - Single Source of Truth
- * 
+ *
  * This file defines the canonical agent inventory and categories
  * consumed by both frontend (systemManifest.ts) and backend (SystemChronicler.ts)
  * to prevent drift between sources.
+ *
+ * ⚠️ OJO — DOS INVENTARIOS DISTINTOS:
+ *  - CATÁLOGO DECLARATIVO (este archivo) = 14 agentes, para el dashboard
+ *    "Nerve Center" (/admin/guide). Documenta todo el ecosistema.
+ *  - REGISTRO EJECUTABLE (server/agents/index.ts → initializeAgents) = 9 agentes
+ *    que de verdad procesan la cola de jobs.
+ *  Los 5 de diferencia NO se registran en la cola por diseño:
+ *    · orchestrator        → es el jefe mismo, no se ficha a sí mismo
+ *    · legal_council       → es un SERVICIO (services/agents/LegalCouncilService.ts),
+ *                            no un BaseAgent; el orquestador lo invoca directo
+ *    · system_chronicler   → meta-agente documentador
+ *    · auto_recovery / system_health → mantenimiento, corren fuera de la cola
  */
 
 export const AGENT_CATEGORIES = {

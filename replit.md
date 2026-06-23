@@ -6,7 +6,8 @@
 > - **Autenticación:** **implementada** (`server/auth.ts`: bcrypt + sesiones por token + `requireRole`), no "pendiente".
 > - **German Desk:** **eliminado** (ruta, nav, página, `WorldMapSection`).
 > - **Datos:** ~**143 abogados** y **843 publicaciones** bilingües (no 25). Texto por **Claude**; Consejo Legal por **OpenAI**; imágenes por **Gemini**.
-> - **Agentes:** el catálogo declara **14**, pero el pipeline real corre ~8-9 (algunos quedan dormidos) — ver `shared/agentConstants.ts`.
+> - **Agentes:** el catálogo declara **14** (dashboard `/admin/guide`), pero solo **9** se registran como ejecutables (`server/agents/index.ts → initializeAgents`); los otros 5 son el orquestador, el Legal Council (servicio aparte) y 3 de mantenimiento. Ver `shared/agentConstants.ts`.
+> - **`server/openai.ts`:** módulo **mixto** — sus traducciones usan Claude (`callClaude`), pero exporta un cliente OpenAI vivo que aún importan `routes.ts`, `SmartImageGenerator.ts` y `generateAssociateBios.ts`. **No** lo renombres a "claude-algo".
 > - Documento autoritativo del estado: `HANDOFF-2026-06-20-conexion-i18n-deploy.md`.
 
 ## Overview

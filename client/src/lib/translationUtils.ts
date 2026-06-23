@@ -84,8 +84,9 @@ function firstNonEmpty(...vals: Array<string | null | undefined>): string | unde
  *   - es  → prefiere `${field}Es`, cae a `field`
  *   - en  → prefiere `field`,        cae a `${field}Es`
  *
- * Reemplaza a useTranslatedContent (traducción LLM on-demand, frágil) y a los
- * fallbacks ad-hoc que devolvían `*Es` aun en inglés. Si ambos campos están
+ * Reemplazó al hook useTranslatedContent (traducción LLM on-demand, frágil, ya
+ * ELIMINADO del proyecto) y a los fallbacks ad-hoc que devolvían `*Es` aun en
+ * inglés. Si ambos campos están
  * vacíos devuelve undefined para que el llamador pueda usar una etiqueta i18n.
  */
 export function getDisplayValue(

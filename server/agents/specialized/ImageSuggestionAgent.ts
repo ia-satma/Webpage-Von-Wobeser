@@ -13,7 +13,11 @@ const VON_WOBESER_BRAND = {
 };
 
 const IMAGE_CONFIG: AgentConfig = {
-  agentType: 'image_suggestion' as any,
+  // El catálogo (shared/agentConstants.ts) llama a este agente 'smart_image_generator';
+  // el AgentType ejecutable (core/types.ts) lo registra como 'image_suggestion'. Mismo
+  // agente, dos ids. 'image_suggestion' ya está en el union AgentType, así que el cast
+  // `as any` que había aquí era innecesario.
+  agentType: 'image_suggestion',
   name: 'Image Suggestion Agent',
   description: 'Analyzes article content and generates branded images using DALL-E 3 with Von Wobeser corporate identity',
   systemPrompt: `You are an expert at creating visual content for Von Wobeser y Sierra, a prestigious Mexican law firm.
