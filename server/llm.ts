@@ -2,7 +2,18 @@ import Anthropic from "@anthropic-ai/sdk";
 
 // Capa LLM basada en Claude (Anthropic). Reemplaza a OpenAI para todas las tareas
 // de TEXTO de los agentes: análisis, traducción legal, clasificación, SEO, etc.
-// La generación de IMÁGENES no usa Claude (no genera imágenes) — eso sigue en Gemini/DALL-E.
+//
+// MAPA DE PROVEEDORES DE IA (este proyecto usa varios, a propósito — no te confíes
+// del nombre de los archivos):
+//   · Pipeline de agentes (texto) → Claude vía callClaude() [este archivo].
+//        Key: ANTHROPIC_API_KEY.
+//   · Legal Council (3 jueces)    → OpenAI gpt-4o-mini, fetch directo en
+//        services/agents/LegalCouncilService.ts. Keys: AI_INTEGRATIONS_OPENAI_* (Replit)
+//        u OPENAI_API_KEY (local).
+//   · Imágenes                    → Gemini/DALL-E (server/services/SmartImageGenerator.ts).
+//   · server/openai.ts            → MIXTO: sus funciones de traducción usan callClaude(),
+//        pero EXPORTA un cliente OpenAI (Proxy, gpt-5) que aún importan routes.ts,
+//        SmartImageGenerator.ts y scripts/generateAssociateBios.ts. No es solo-Claude.
 const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY;
 
 // Modelo configurable. Default: el más capaz (opus-4-8). Para alto volumen de
@@ -17,7 +28,14 @@ function getClient(): Anthropic {
         "Falta ANTHROPIC_API_KEY. Configúrala (Replit Secret o .env local) para habilitar los agentes de IA con Claude.",
       );
     }
-    _client = new Anthropic({ apiKey: ANTHROPIC_API_KEY });
+    // timeout/maxRetries explícitos: el default del SDK es 600000ms (10 min),
+    // demasiado para una cola de concurrencia 1 — un job colgado detiene la cola
+    // entera. 120s por intento + 2 reintentos acota el peor caso.
+    _client = new Anthropic({
+      apiKey: ANTHROPIC_API_KEY,
+      timeout: 120_000,
+      maxRetries: 2,
+    });
   }
   return _client;
 }

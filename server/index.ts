@@ -10,6 +10,10 @@ import { orchestrator } from "./agents/core/AgentOrchestrator";
 import { storage } from "./storage";
 
 const app = express();
+// Detrás del reverse-proxy de Replit (inyecta X-Forwarded-For). Sin esto req.ip es
+// la IP del proxy — igual para todos — y el rate-limiting (login + limiters) comparte
+// un único bucket: 5 fallos de un atacante bloquean a todos los usuarios.
+app.set("trust proxy", 1);
 const httpServer = createServer(app);
 
 app.use(compression());

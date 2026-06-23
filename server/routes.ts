@@ -1079,10 +1079,15 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
       const { username, password } = validation.data;
       const passwordHash = await hashPassword(password);
 
-      // Check if user with this email already exists
-      const existingUser = await storage.getAdminUserByEmail(username);
-      if (existingUser) {
-        return res.status(403).json({ error: "Admin user with this email already exists" });
+      // GUARD CRÍTICO: este endpoint es PÚBLICO (sin authMiddleware). Solo debe
+      // permitir crear el PRIMER admin. Si ya existe cualquier admin, se rechaza —
+      // antes solo comprobaba que ESE email no existiera, así que un atacante no
+      // autenticado podía crear un super_admin con un email nuevo y tomar el panel.
+      const alreadyInitialized = await storage.hasAnyAdminUser();
+      if (alreadyInitialized) {
+        return res.status(403).json({
+          error: "El sistema ya está inicializado. Los usuarios se crean desde el panel autenticado.",
+        });
       }
 
       // Create the first admin user

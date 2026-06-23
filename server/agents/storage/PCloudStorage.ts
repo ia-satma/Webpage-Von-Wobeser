@@ -201,7 +201,9 @@ export class PCloudStorage {
 
   async saveKnowledge(): Promise<boolean> {
     await this.ensureFolder('knowledge');
-    const data = JSON.stringify(knowledgeStore.toJSON(), null, 2);
+    // toJSON() es async (lee de la BD) → sin await, JSON.stringify serializa la
+    // Promise como '{}' y el backup sube vacío.
+    const data = JSON.stringify(await knowledgeStore.toJSON(), null, 2);
     return this.uploadFile('knowledge/knowledge.json', data);
   }
 
@@ -222,7 +224,8 @@ export class PCloudStorage {
 
   async saveEvolution(): Promise<boolean> {
     await this.ensureFolder('evolution');
-    const data = JSON.stringify(evolutionTracker.toJSON(), null, 2);
+    // toJSON() es async (lee de la BD) → sin await sube '{}' vacío.
+    const data = JSON.stringify(await evolutionTracker.toJSON(), null, 2);
     return this.uploadFile('evolution/evolution.json', data);
   }
 
