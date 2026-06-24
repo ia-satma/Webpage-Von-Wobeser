@@ -674,7 +674,7 @@ type EventFormData = z.infer<typeof eventSchema>;
 
 export default function AdminEvents() {
   const { language } = useLanguage();
-  const { isLoading: authLoading, requireAuth } = useAdminAuth();
+  const { isAuthenticated, isLoading: authLoading, requireAuth } = useAdminAuth();
   const { toast } = useToast();
   
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -712,6 +712,15 @@ export default function AdminEvents() {
 
   const { data: events, isLoading: eventsLoading } = useQuery<Event[]>({
     queryKey: ["/api/admin/events"],
+    // queryFn explícito: adminApiRequest adjunta el token Bearer que exige
+    // authMiddleware en /api/admin/events. Sin él, el queryFn por defecto omite
+    // el token y la ruta responde 401, por lo que la lista nunca cargaba.
+    queryFn: async () => {
+      const res = await adminApiRequest("GET", "/api/admin/events");
+      if (!res.ok) throw new Error("Failed to fetch events");
+      return res.json();
+    },
+    enabled: isAuthenticated,
   });
 
   const saveMutation = useMutation({

@@ -284,6 +284,14 @@ export default function AdminArticleDetail() {
 
   const { data: article, isLoading, error, refetch } = useQuery<ArticleWithVerdict>({
     queryKey: ['/api/news', id],
+    // queryFn explícito con el Bearer de admin: /api/news/:idOrSlug filtra los
+    // no-publicados para el público (404), así que el detalle admin (que revisa
+    // borradores / needs_manual_review) debe autenticarse o recibiría 404.
+    queryFn: async () => {
+      const res = await adminApiRequest('GET', `/api/news/${id}`);
+      if (!res.ok) throw new Error('Failed to fetch article');
+      return res.json();
+    },
     enabled: !!id && isAuthenticated,
   });
 
@@ -322,6 +330,7 @@ export default function AdminArticleDetail() {
       case 'processing': return t.processing;
       case 'ready': return t.ready;
       case 'ready_for_approval': return t.readyForApproval;
+      case 'needs_manual_review': return language === 'es' ? 'Revisión manual requerida' : 'Manual review required';
       case 'failed': return t.failed;
       case 'partial_success': return t.partialSuccess;
       default: return status || t.pending;
@@ -332,6 +341,7 @@ export default function AdminArticleDetail() {
     switch (status) {
       case 'ready': return 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400';
       case 'ready_for_approval': return 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400';
+      case 'needs_manual_review': return 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400';
       case 'processing': return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400';
       case 'failed': return 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400';
       default: return 'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-400';

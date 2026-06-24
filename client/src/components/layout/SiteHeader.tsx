@@ -69,6 +69,12 @@ export default function SiteHeader() {
   // Disparador del staggered: se activa un tick después de montar el overlay.
   const [staggerOn, setStaggerOn] = useState(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
+  // Refs para la gestión de foco del nav-overlay (a11y): contenedor del
+  // overlay, botón de cerrar (destino del foco al abrir) y el disparador
+  // hamburguesa (al que se restaura el foco al cerrar).
+  const overlayRef = useRef<HTMLDivElement>(null);
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
+  const menuTriggerRef = useRef<HTMLButtonElement>(null);
 
   // Sombra/contraste del header al hacer scroll.
   useEffect(() => {
@@ -93,14 +99,72 @@ export default function SiteHeader() {
     document.body.style.overflow = "";
   }, [menuOpen]);
 
-  // Cierra el overlay con Escape.
+  // A11y del nav-overlay (role=dialog aria-modal): cierre con Escape, traslado
+  // del foco al botón de cerrar al abrir, restauración del foco al disparador
+  // hamburguesa al cerrar y focus trap que cicla Tab/Shift+Tab dentro del
+  // overlay para no dejar escapar el foco al contenido de fondo.
   useEffect(() => {
     if (!menuOpen) return;
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setMenuOpen(false);
+
+    // Recuerda el elemento que tenía el foco para restaurarlo al cerrar
+    // (suele ser el botón hamburguesa que abrió el overlay).
+    const previouslyFocused = menuTriggerRef.current;
+
+    // Mueve el foco al botón de cerrar al abrir el overlay.
+    closeButtonRef.current?.focus();
+
+    // Selector de los elementos enfocables dentro del overlay.
+    const getFocusable = (): HTMLElement[] => {
+      const overlay = overlayRef.current;
+      if (!overlay) return [];
+      return Array.from(
+        overlay.querySelectorAll<HTMLElement>(
+          'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
+        ),
+      ).filter((el) => el.offsetParent !== null || el === document.activeElement);
     };
+
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setMenuOpen(false);
+        return;
+      }
+      if (e.key !== "Tab") return;
+
+      const focusable = getFocusable();
+      if (focusable.length === 0) {
+        // Sin enfocables: retiene el foco en el contenedor del overlay.
+        e.preventDefault();
+        overlayRef.current?.focus();
+        return;
+      }
+
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      const active = document.activeElement as HTMLElement | null;
+
+      // Si el foco escapó del overlay, lo trae de vuelta al inicio/fin.
+      if (!active || !overlayRef.current?.contains(active)) {
+        e.preventDefault();
+        (e.shiftKey ? last : first).focus();
+        return;
+      }
+
+      if (e.shiftKey && active === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && active === last) {
+        e.preventDefault();
+        first.focus();
+      }
+    };
+
     window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      // Restaura el foco al disparador al cerrar el overlay.
+      previouslyFocused?.focus();
+    };
   }, [menuOpen]);
 
   // Enfoca el input de búsqueda al abrirlo.
@@ -174,6 +238,7 @@ export default function SiteHeader() {
             />
 
             <button
+              ref={menuTriggerRef}
               type="button"
               onClick={() => setMenuOpen(true)}
               className="flex h-10 w-10 items-center justify-center rounded-none text-vw-gray transition-colors hover:text-vw-red"
@@ -214,11 +279,13 @@ export default function SiteHeader() {
       {/* ───────── NAV OVERLAY full-screen #c4c4c4 ───────── */}
       {menuOpen && (
         <div
+          ref={overlayRef}
           id="vw-nav-overlay"
           className="vw-nav-overlay"
           role="dialog"
           aria-modal="true"
           aria-label={t("nav.menu", "Menú")}
+          tabIndex={-1}
           data-testid="nav-overlay"
         >
           <div className="vw-wrap flex items-center justify-between py-8">
@@ -235,6 +302,7 @@ export default function SiteHeader() {
               />
             </Link>
             <button
+              ref={closeButtonRef}
               type="button"
               onClick={closeMenu}
               className="flex h-12 w-12 items-center justify-center text-white transition-colors hover:text-vw-red"
