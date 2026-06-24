@@ -1,12 +1,13 @@
-# Runbook de deploy a Replit — Von Wobeser (rama `feat/old-design-recreation`)
+# Runbook de deploy a Replit — Von Wobeser (rama `chore/production-hardening`)
 
-> Estado: **código pusheado a GitHub** (`ia-satma/Webpage-Von-Wobeser`, rama `feat/old-design-recreation`).
+> Estado: **código pusheado a GitHub** (`ia-satma/Webpage-Von-Wobeser`, rama `chore/production-hardening`).
+> Esta rama es la que trae el trabajo real listo para producción: robustecimiento, tests (vitest) y el **fix de seguridad crítico** que cerró el bypass de `/api/admin/init` (commit `953c02e`) más el hardening del sistema de agentes y los 3 fixes HIGH de frontend posteriores. La rama `feat/old-design-recreation` quedó **desfasada** y NO debe desplegarse.
 > Lo que sigue **debe correr en Replit** (la DB de Replit es separada y los datos viven en la DB local; el mirror NO está en Replit, así que los scripts de migración no pueden correr allá — por eso se transfiere un **dump**).
 
 ## 0. Apuntar el deploy a la rama correcta
 Replit por defecto deploya `origin/main` (viejo, ~18-may, SIN esta recreación). Hay que:
-- En el workspace de Replit: `git fetch origin && git checkout feat/old-design-recreation` (o mergear la rama a la que Replit deploya).
-- Confirmar que el deployment de Replit usa esa rama/commit (HEAD debe ser el último commit `c3585d7` o posterior).
+- En el workspace de Replit: `git fetch origin && git checkout chore/production-hardening` (o mergear la rama a la que Replit deploya).
+- Confirmar que el deployment de Replit usa esa rama/commit. **HEAD debe ser `fb5325c` o posterior** y, de forma no negociable, **debe contener el fix de seguridad `953c02e`** (cierre del bypass de `/api/admin/init` + hardening de agentes). Si el commit desplegado NO incluye `953c02e`, ABORTAR el deploy: estarías exponiendo el endpoint de init sin auth.
 
 ## 1. Variables de entorno (Replit Secrets)
 - `DATABASE_URL` → la inyecta Replit (Neon). **NO** uses la local.
