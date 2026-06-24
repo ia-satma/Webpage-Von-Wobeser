@@ -117,12 +117,13 @@ const upload = multer({
     fileSize: 10 * 1024 * 1024, // 10MB limit
   },
   fileFilter: (_req, file, cb) => {
+    // 'image/svg+xml' se EXCLUYE a propósito: un SVG puede contener <script> y al servirse
+    // estático desde el mismo origen se ejecuta → XSS almacenado. Solo formatos rasterizados + PDF.
     const allowedMimes = [
       "image/jpeg",
       "image/png",
       "image/gif",
       "image/webp",
-      "image/svg+xml",
       "application/pdf",
     ];
     if (allowedMimes.includes(file.mimetype)) {
@@ -418,9 +419,11 @@ export async function registerRoutes(
 
   app.get("/api/news", async (_req, res) => {
     try {
-      const allNews = await storage.getNews();
+      // Ruta pública: solo publicadas (filtrado en SQL) y, además, ocultando las
+      // programadas a futuro (publishAt > ahora). Antes devolvía borradores/no-publicados.
+      const publishedNews = await storage.getPublishedNews();
       const now = new Date();
-      const news = allNews.filter(n => !n.publishAt || new Date(n.publishAt) <= now);
+      const news = publishedNews.filter(n => !n.publishAt || new Date(n.publishAt) <= now);
       res.json(news);
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch news" });
@@ -447,6 +450,28 @@ export async function registerRoutes(
         news = await storage.getNewsById(param);
       }
       if (!news) {
+        return res.status(404).json({ error: "News not found" });
+      }
+
+      // Auth opcional: el panel admin consume esta misma ruta (queryKey ['/api/news', id])
+      // para revisar artículos AÚN no publicados / en revisión. Si llega un Bearer de admin
+      // válido se omite el filtro de visibilidad; si no, es petición pública.
+      let isAdmin = false;
+      const authHeader = req.headers.authorization;
+      if (authHeader?.startsWith("Bearer ")) {
+        const token = authHeader.substring(7);
+        const session = await storage.getAdminSession(token);
+        if (session && new Date() <= session.expiresAt) {
+          isAdmin = true;
+        }
+      }
+
+      // Ruta pública: no expone borradores/no-publicados ni programados a futuro.
+      // Se responde 404 (mismo resultado que si no existiera) para no filtrar su existencia.
+      const now = new Date();
+      const isVisible =
+        news.published && (!news.publishAt || new Date(news.publishAt) <= now);
+      if (!isAdmin && !isVisible) {
         return res.status(404).json({ error: "News not found" });
       }
       res.json(news);
@@ -1054,10 +1079,16 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
     }
   });
 
-  // Serve uploaded files
+  // Serve uploaded files. Se fuerza Content-Disposition: attachment y nosniff: cualquier
+  // archivo subido (incl. SVG legados ya en disco o HTML) se DESCARGA en vez de renderizarse
+  // inline en el origen del sitio → corta el vector de XSS almacenado.
   app.use('/uploads', express.static(uploadsDir, {
     maxAge: '1d',
     immutable: true,
+    setHeaders: (res) => {
+      res.setHeader('Content-Disposition', 'attachment');
+      res.setHeader('X-Content-Type-Options', 'nosniff');
+    },
   }));
 
   // =============================================
@@ -1488,32 +1519,24 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
   app.get("/api/admin/news", authMiddleware, async (req: Request, res: Response) => {
     try {
       const page = parseInt(req.query.page as string) || 1;
-      const limit = parseInt(req.query.limit as string) || 20;
+      // Capado a 100 para que coincida con el tope de storage.getNewsPage; si no,
+      // totalPages se calcularía con un limit que el storage no respeta y dejaría
+      // filas inaccesibles vía paginación.
+      const limit = Math.min(100, parseInt(req.query.limit as string) || 20);
       const search = (req.query.search as string) || "";
       const category = (req.query.category as string) || "";
 
-      let allNews = await storage.getNews();
+      // Paginación real en SQL: LIMIT/OFFSET + WHERE + count(*), proyectando solo
+      // columnas de tarjeta (sin content/contentEs). Antes se releía toda la tabla con
+      // el cuerpo completo en cada página y se filtraba/paginaba en memoria.
+      const { news: paginatedNews, total } = await storage.getNewsPage({
+        page,
+        limit,
+        search,
+        category,
+      });
 
-      // Filter by search term
-      if (search) {
-        const searchLower = search.toLowerCase();
-        allNews = allNews.filter(n => 
-          n.title.toLowerCase().includes(searchLower) ||
-          n.titleEs.toLowerCase().includes(searchLower) ||
-          n.excerpt.toLowerCase().includes(searchLower) ||
-          n.excerptEs.toLowerCase().includes(searchLower)
-        );
-      }
-
-      // Filter by category
-      if (category && category !== "all") {
-        allNews = allNews.filter(n => n.category === category);
-      }
-
-      const total = allNews.length;
       const totalPages = Math.ceil(total / limit);
-      const offset = (page - 1) * limit;
-      const paginatedNews = allNews.slice(offset, offset + limit);
 
       res.json({
         news: paginatedNews,
@@ -1547,25 +1570,14 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
     try {
       const allNews = await storage.getNews();
       const totalArticles = allNews.length;
-      
-      // Get all translations and count by language
-      const translationsByLanguage: Record<string, number> = {};
-      const articlesWithTranslationsSet = new Set<string>();
-      let totalTranslations = 0;
-      
-      // Fetch translations for all news articles
-      for (const newsItem of allNews) {
-        const translations = await storage.getNewsTranslations(newsItem.id);
-        if (translations.length > 0) {
-          articlesWithTranslationsSet.add(newsItem.id);
-        }
-        for (const translation of translations) {
-          totalTranslations++;
-          translationsByLanguage[translation.language] = 
-            (translationsByLanguage[translation.language] || 0) + 1;
-        }
-      }
-      
+
+      // Conteos de traducción en UNA query agregada (antes: ~844 queries, una por noticia).
+      const {
+        totalTranslations,
+        translationsByLanguage,
+        articlesWithTranslations,
+      } = await storage.getNewsTranslationAggregates();
+
       // Get recent articles (last 5)
       const recentArticles = allNews.slice(0, 5).map(n => ({
         id: n.id,
@@ -1579,7 +1591,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
       
       res.json({
         totalArticles,
-        articlesWithTranslations: articlesWithTranslationsSet.size,
+        articlesWithTranslations,
         totalTranslations,
         translationsByLanguage,
         recentArticles,
@@ -2953,8 +2965,11 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
       const { legalCouncilService } = await import('../services/agents/LegalCouncilService');
       const verdict = await legalCouncilService.evaluateArticle(newsItem.content);
 
-      // Update article with new verdict
-      const newStatus = verdict.overallStatus === 'rejected' ? 'failed' : 'ready_for_approval';
+      // Update article with new verdict — SIN fail-open: solo 'approved' habilita
+      // publicación (ready_for_approval). 'deadlocked'/'escalated'/'pending_revision'
+      // van a 'needs_manual_review' (no publicable por /validate) y 'rejected' a 'failed'.
+      const newStatus = verdict.overallStatus === 'approved' ? 'ready_for_approval' :
+                        verdict.overallStatus === 'rejected' ? 'failed' : 'needs_manual_review';
       await storage.updateNews(id, {
         councilVerdict: verdict,
         processingStatus: newStatus,
@@ -3560,139 +3575,178 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
     }
   });
 
-  // Process all articles - FULL RAG AGENTIC PIPELINE for all articles
-  app.post("/api/agents/pipeline/process-all", authMiddleware, async (req: Request, res: Response) => {
+  // Process all articles - FULL RAG AGENTIC PIPELINE.
+  // Trabajo ASÍNCRONO: antes este endpoint procesaba ~843 artículos con 5-14 llamadas LLM
+  // cada uno de forma SÍNCRONA dentro del request → el cliente recibía timeout mientras el
+  // server seguía corriendo el lote en segundo plano sin control. Ahora:
+  //   1. requireRole('super_admin') — solo el rol más alto puede disparar el lote.
+  //   2. acepta y CAPA un 'limit' de artículos (default 50, máx 200).
+  //   3. responde 202 de inmediato con un jobId y lanza el procesamiento en segundo plano
+  //      (fire-and-forget, secuencial). El progreso se emite por el WebSocket /ws/pipeline.
+  app.post("/api/agents/pipeline/process-all", authMiddleware, requireRole("super_admin"), async (req: Request, res: Response) => {
     try {
       const allNews = await storage.getNews();
-      
+
       if (!allNews || allNews.length === 0) {
-        return res.json({ success: true, total: 0, successful: 0, message: "No articles to process" });
+        return res.json({ success: true, total: 0, accepted: 0, message: "No articles to process" });
       }
 
       const { generateImage = false } = req.body;
-      const { 
-        formatterAgent, 
-        categoryAgent, 
-        metadataLinkerAgent, 
-        seoOptimizerAgent, 
-        polyglotTranslatorAgent,
-        imageSuggestionAgent 
-      } = await import('./agents');
+      // Cap de artículos: limit válido entre 1 y 200; por defecto 50 para no encolar
+      // miles de llamadas LLM de una sola petición.
+      const DEFAULT_LIMIT = 50;
+      const MAX_LIMIT = 200;
+      const rawLimit = parseInt(req.body?.limit, 10);
+      const limit = Number.isFinite(rawLimit)
+        ? Math.max(1, Math.min(MAX_LIMIT, rawLimit))
+        : DEFAULT_LIMIT;
 
-      const createContext = (agentType: string, articleId: string) => ({
-        jobId: `${agentType}-${articleId}-${Date.now()}`,
-        agentType: agentType as any,
-        startTime: new Date(),
-        metadata: { articleId },
+      const articlesToProcess = allNews.slice(0, limit);
+      const jobId = `process-all-${Date.now()}-${crypto.randomBytes(4).toString("hex")}`;
+
+      // Respuesta inmediata: el trabajo continúa en segundo plano.
+      res.status(202).json({
+        success: true,
+        jobId,
+        accepted: articlesToProcess.length,
+        total: allNews.length,
+        limit,
+        message: `Encolados ${articlesToProcess.length} de ${allNews.length} artículos (limit=${limit}). El procesamiento continúa en segundo plano; sigue el progreso por /ws/pipeline.`,
       });
 
-      let successfulCount = 0;
-      const results: Record<string, any>[] = [];
+      // Runner detachado (no se await dentro del request → no bloquea ni hace timeout).
+      void (async () => {
+        const {
+          formatterAgent,
+          categoryAgent,
+          metadataLinkerAgent,
+          seoOptimizerAgent,
+          polyglotTranslatorAgent,
+          imageSuggestionAgent,
+        } = await import('./agents');
 
-      for (const article of allNews) {
-        console.log(`[Pipeline] Processing article ${article.id}: ${article.titleEs?.substring(0, 50)}...`);
-        const articleResult: Record<string, any> = { 
-          articleId: article.id, 
-          title: article.titleEs,
-          steps: {},
-          success: false 
-        };
+        const createContext = (agentType: string, articleId: string) => ({
+          jobId: `${agentType}-${articleId}-${Date.now()}`,
+          agentType: agentType as any,
+          startTime: new Date(),
+          metadata: { articleId },
+        });
 
-        try {
-          // Step 1: FORMAT
+        let successfulCount = 0;
+        let index = 0;
+
+        for (const article of articlesToProcess) {
+          index++;
+          console.log(`[Pipeline:${jobId}] (${index}/${articlesToProcess.length}) Processing article ${article.id}: ${article.titleEs?.substring(0, 50)}...`);
+          const articleResult: Record<string, any> = {
+            articleId: article.id,
+            title: article.titleEs,
+            steps: {},
+            success: false,
+          };
+
           try {
-            const formatResult = await formatterAgent.execute(
-              createContext('formatter', article.id),
-              { articleId: article.id }
-            );
-            articleResult.steps.format = { success: formatResult.success };
-          } catch (err: any) {
-            console.error(`[Pipeline] Format error for ${article.id}:`, err.message);
-            articleResult.steps.format = { success: false, error: err.message };
-          }
-
-          // Step 2: CATEGORIZE
-          try {
-            const categoryResult = await categoryAgent.execute(
-              createContext('category_agent', article.id),
-              { articleId: article.id }
-            );
-            articleResult.steps.categorize = { success: categoryResult.success };
-          } catch (err: any) {
-            console.error(`[Pipeline] Categorize error for ${article.id}:`, err.message);
-            articleResult.steps.categorize = { success: false, error: err.message };
-          }
-
-          // Step 3: METADATA
-          try {
-            const metadataResult = await metadataLinkerAgent.execute(
-              createContext('metadata_linker', article.id),
-              { articleId: article.id }
-            );
-            articleResult.steps.metadata = { success: metadataResult.success };
-          } catch (err: any) {
-            console.error(`[Pipeline] Metadata error for ${article.id}:`, err.message);
-            articleResult.steps.metadata = { success: false, error: err.message };
-          }
-
-          // Step 4: SEO
-          try {
-            const seoResult = await seoOptimizerAgent.execute(
-              createContext('seo_optimizer', article.id),
-              { articleId: article.id }
-            );
-            articleResult.steps.seo = { success: seoResult.success };
-          } catch (err: any) {
-            console.error(`[Pipeline] SEO error for ${article.id}:`, err.message);
-            articleResult.steps.seo = { success: false, error: err.message };
-          }
-
-          // Step 5: TRANSLATE
-          try {
-            const translateResult = await polyglotTranslatorAgent.execute(
-              createContext('polyglot_translator', article.id),
-              { articleId: article.id }
-            );
-            articleResult.steps.translate = { success: translateResult.success };
-          } catch (err: any) {
-            console.error(`[Pipeline] Translate error for ${article.id}:`, err.message);
-            articleResult.steps.translate = { success: false, error: err.message };
-          }
-
-          // Step 6: IMAGE (optional)
-          if (generateImage) {
+            // Step 1: FORMAT
             try {
-              console.log(`[Pipeline] Starting image generation for ${article.id}...`);
-              const imageResult = await imageSuggestionAgent.execute(
-                createContext('image_suggestion', article.id),
+              const formatResult = await formatterAgent.execute(
+                createContext('formatter', article.id),
                 { articleId: article.id }
               );
-              console.log(`[Pipeline] Image result for ${article.id}:`, imageResult.success ? 'SUCCESS' : imageResult.error);
-              articleResult.steps.image = { success: imageResult.success, error: imageResult.error };
+              articleResult.steps.format = { success: formatResult.success };
             } catch (err: any) {
-              console.error(`[Pipeline] Image generation error for ${article.id}:`, err.message);
-              articleResult.steps.image = { success: false, error: err.message };
+              console.error(`[Pipeline] Format error for ${article.id}:`, err.message);
+              articleResult.steps.format = { success: false, error: err.message };
             }
+
+            // Step 2: CATEGORIZE
+            try {
+              const categoryResult = await categoryAgent.execute(
+                createContext('category_agent', article.id),
+                { articleId: article.id }
+              );
+              articleResult.steps.categorize = { success: categoryResult.success };
+            } catch (err: any) {
+              console.error(`[Pipeline] Categorize error for ${article.id}:`, err.message);
+              articleResult.steps.categorize = { success: false, error: err.message };
+            }
+
+            // Step 3: METADATA
+            try {
+              const metadataResult = await metadataLinkerAgent.execute(
+                createContext('metadata_linker', article.id),
+                { articleId: article.id }
+              );
+              articleResult.steps.metadata = { success: metadataResult.success };
+            } catch (err: any) {
+              console.error(`[Pipeline] Metadata error for ${article.id}:`, err.message);
+              articleResult.steps.metadata = { success: false, error: err.message };
+            }
+
+            // Step 4: SEO
+            try {
+              const seoResult = await seoOptimizerAgent.execute(
+                createContext('seo_optimizer', article.id),
+                { articleId: article.id }
+              );
+              articleResult.steps.seo = { success: seoResult.success };
+            } catch (err: any) {
+              console.error(`[Pipeline] SEO error for ${article.id}:`, err.message);
+              articleResult.steps.seo = { success: false, error: err.message };
+            }
+
+            // Step 5: TRANSLATE
+            try {
+              const translateResult = await polyglotTranslatorAgent.execute(
+                createContext('polyglot_translator', article.id),
+                { articleId: article.id }
+              );
+              articleResult.steps.translate = { success: translateResult.success };
+            } catch (err: any) {
+              console.error(`[Pipeline] Translate error for ${article.id}:`, err.message);
+              articleResult.steps.translate = { success: false, error: err.message };
+            }
+
+            // Step 6: IMAGE (optional)
+            if (generateImage) {
+              try {
+                console.log(`[Pipeline] Starting image generation for ${article.id}...`);
+                const imageResult = await imageSuggestionAgent.execute(
+                  createContext('image_suggestion', article.id),
+                  { articleId: article.id }
+                );
+                console.log(`[Pipeline] Image result for ${article.id}:`, imageResult.success ? 'SUCCESS' : imageResult.error);
+                articleResult.steps.image = { success: imageResult.success, error: imageResult.error };
+              } catch (err: any) {
+                console.error(`[Pipeline] Image generation error for ${article.id}:`, err.message);
+                articleResult.steps.image = { success: false, error: err.message };
+              }
+            }
+
+            articleResult.success = true;
+            successfulCount++;
+          } catch (error) {
+            console.error(`Error processing article ${article.id}:`, error);
           }
 
-          articleResult.success = true;
-          successfulCount++;
-        } catch (error) {
-          console.error(`Error processing article ${article.id}:`, error);
+          // Progreso por WebSocket para que el panel siga el lote sin sondear.
+          broadcastPipelineProgress(article.id, {
+            step: 'batch',
+            status: articleResult.success ? 'completed' : 'error',
+            progress: Math.round((index / articlesToProcess.length) * 100),
+            message: `[${jobId}] ${index}/${articlesToProcess.length} procesados`,
+            data: { jobId, articleResult },
+          });
         }
 
-        results.push(articleResult);
-      }
-
-      res.json({
-        success: true,
-        total: allNews.length,
-        successful: successfulCount,
-        message: `Processed ${successfulCount} of ${allNews.length} articles`,
+        console.log(`[Pipeline:${jobId}] Lote completado: ${successfulCount}/${articlesToProcess.length} artículos OK`);
+      })().catch((error) => {
+        console.error(`[Pipeline:${jobId}] Batch processing failed:`, error);
       });
     } catch (error) {
       console.error("Batch processing error:", error);
-      res.status(500).json({ error: "Failed to process articles" });
+      if (!res.headersSent) {
+        res.status(500).json({ error: "Failed to process articles" });
+      }
     }
   });
 

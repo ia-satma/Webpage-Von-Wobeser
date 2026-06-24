@@ -177,18 +177,19 @@ export class LegalCouncilService {
   }
 
   private normalizeDecision(decision: unknown): VoteDecision {
+    // Matching ESTRICTO contra el enum: igualdad exacta tras trim/lowercase.
+    // El matching previo por substring (includes 'pass'/'fail'/'disapprove'/'revise')
+    // malclasificaba votos — p.ej. "disapprove" contiene "approve" → se contaba como
+    // aprobación, y un razonamiento con la palabra "pass"/"fail" embebida sesgaba el voto.
+    // Cualquier valor que no coincida exactamente cae a 'abstain' (queda excluido del tally).
     const normalized = String(decision).toLowerCase().trim();
-    
+
     const validDecisions: VoteDecision[] = ['approve', 'reject', 'abstain', 'request_revision'];
-    
+
     if (validDecisions.includes(normalized as VoteDecision)) {
       return normalized as VoteDecision;
     }
-    
-    if (normalized.includes('approve') || normalized.includes('pass')) return 'approve';
-    if (normalized.includes('reject') || normalized.includes('fail')) return 'reject';
-    if (normalized.includes('revision') || normalized.includes('revise')) return 'request_revision';
-    
+
     return 'abstain';
   }
 

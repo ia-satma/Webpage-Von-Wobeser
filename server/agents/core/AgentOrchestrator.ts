@@ -24,6 +24,24 @@ export class AgentOrchestrator {
   private processingInterval: NodeJS.Timeout | null = null;
   private isProcessingCycle: boolean = false;
   private initialized: boolean = false;
+  // Backoff de reintentos: cuándo (epoch ms) puede volver a correr cada job tras un fallo.
+  // En memoria (no toca el AgentJob persistido); se limpia al completar/fallar el job.
+  private retryAfter: Map<string, number> = new Map();
+
+  // Errores NO reintetables: validación de entrada / recurso inexistente.
+  // Reintentar no los arregla → se falla de una vez en vez de quemar la cola.
+  private isNonRetryableError(message: string): boolean {
+    const m = message.toLowerCase();
+    return (
+      m.includes('not found') ||
+      m.includes('404') ||
+      m.includes('not registered') ||
+      m.includes('invalid') ||
+      m.includes('validation') ||
+      m.includes('missing required') ||
+      m.includes('no content')
+    );
+  }
 
   isProcessing(): boolean {
     return this.isRunning;
@@ -323,11 +341,16 @@ export class AgentOrchestrator {
       
       if (article && article.content) {
         const verdict = await legalCouncilService.evaluateArticle(article.content);
-        
-        // Determine final status based on council verdict
-        const newStatus = verdict.overallStatus === 'approved' ? 'ready_for_approval' : 
-                          verdict.overallStatus === 'rejected' ? 'failed' : 'ready_for_approval';
-        
+
+        // Mapeo de estado SIN fail-open: SOLO 'approved' habilita publicación
+        // (ready_for_approval, único estado que la ruta de validación deja publicar).
+        // Antes 'deadlocked'/'escalated'/'pending_revision' caían a ready_for_approval
+        // → un empate o un fallo del Consejo auto-habilitaba el artículo sin revisión.
+        // Ahora esos casos van a 'needs_manual_review' (estado que NO permite publicar:
+        // la ruta /validate exige ready_for_approval) y 'rejected' a 'failed'.
+        const newStatus = verdict.overallStatus === 'approved' ? 'ready_for_approval' :
+                          verdict.overallStatus === 'rejected' ? 'failed' : 'needs_manual_review';
+
         // Save verdict and update status
         await db.update(news)
           .set({
@@ -347,10 +370,13 @@ export class AgentOrchestrator {
       }
     } catch (councilError) {
       console.error(`[Orchestrator] Legal Council evaluation failed:`, councilError);
-      // Fail-safe: still allow article through with warning
+      // Fail-CLOSED: si el Consejo falla NO se auto-habilita la publicación.
+      // Antes esto forzaba ready_for_approval ('still allow article through') → un crash
+      // del evaluador publicaba el artículo sin revisión. Ahora queda en
+      // 'needs_manual_review' (no publicable por la ruta /validate) a la espera de un humano.
       await db.update(news)
         .set({
-          processingStatus: 'ready_for_approval',
+          processingStatus: 'needs_manual_review',
           lastProcessedAt: new Date(),
           councilVerdict: {
             overallStatus: 'escalated',
@@ -366,15 +392,25 @@ export class AgentOrchestrator {
 
   async processNextJob(): Promise<AgentJob | null> {
     let job = this.jobQueue.shift();
-    
+
     if (!job) {
       const syncedCount = await this.syncQueueWithDatabase();
       if (syncedCount > 0) {
         job = this.jobQueue.shift();
       }
     }
-    
+
     if (!job) return null;
+
+    // Respeta el backoff: si el job aún no vence su nextRetryAt, NO lo corras todavía.
+    // Se re-encola al FINAL y se devuelve null (el siguiente ciclo intentará otro job).
+    // Esto evita el hot-loop del reintento previo (re-encolaba al frente cada 2s).
+    const retryAt = this.retryAfter.get(job.id);
+    if (retryAt !== undefined && Date.now() < retryAt) {
+      this.jobQueue.push(job);
+      return null;
+    }
+    this.retryAfter.delete(job.id);
 
     const agent = this.agents.get(job.agentType);
     if (!agent) {
@@ -437,27 +473,49 @@ export class AgentOrchestrator {
       job.error = String(error);
       job.completedAt = new Date();
 
-      if (job.retryCount < job.maxRetries) {
+      const nonRetryable = this.isNonRetryableError(job.error);
+
+      if (!nonRetryable && job.retryCount < job.maxRetries) {
         job.retryCount++;
         job.status = 'pending';
-        this.jobQueue.unshift(job);
-        
+
+        // Backoff exponencial con jitter: 2s, 4s, 8s... (cap 5 min) ± jitter aleatorio.
+        // Antes se re-encolaba al FRENTE (unshift) y se reintentaba al instante cada
+        // ciclo de 2s → hot-loop que quemaba la cola con un solo job fallando.
+        // Ahora se re-encola al FINAL y se marca nextRetryAt para no correrlo antes de tiempo.
+        const baseDelayMs = 2000;
+        const maxDelayMs = 5 * 60 * 1000;
+        const expDelay = Math.min(baseDelayMs * 2 ** (job.retryCount - 1), maxDelayMs);
+        const jitter = Math.floor(Math.random() * 1000);
+        const delayMs = expDelay + jitter;
+        this.retryAfter.set(job.id, Date.now() + delayMs);
+
+        this.jobQueue.push(job);
+
         await dbPersistence.updateJob(job.id, {
           status: 'pending',
           retryCount: job.retryCount,
           error: job.error,
         });
-        
-        await this.addEvent(job.id, job.agentType, 'error', `Job failed, retrying (${job.retryCount}/${job.maxRetries})`);
+
+        await this.addEvent(job.id, job.agentType, 'error', `Job failed, retrying (${job.retryCount}/${job.maxRetries}) in ${Math.round(delayMs / 1000)}s`);
       } else {
+        // Sin más reintentos, o error no-reintetable (validación/404): falla definitivo.
+        this.retryAfter.delete(job.id);
         await dbPersistence.updateJob(job.id, {
           status: 'failed',
           error: job.error,
           completedAt: job.completedAt,
         });
-        
-        await this.addEvent(job.id, job.agentType, 'error', `Job failed permanently: ${error}`);
+
+        const reason = nonRetryable ? 'non-retryable error' : 'max retries exhausted';
+        await this.addEvent(job.id, job.agentType, 'error', `Job failed permanently (${reason}): ${error}`);
       }
+    }
+
+    // Limpia el backoff si el job terminó (completado o fallido definitivo).
+    if (job.status === 'completed' || job.status === 'failed') {
+      this.retryAfter.delete(job.id);
     }
 
     this.activeJobs.delete(job.id);

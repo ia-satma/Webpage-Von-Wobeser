@@ -1,4 +1,4 @@
-import { eq, desc, asc, and, isNull, gte, sql } from "drizzle-orm";
+import { eq, desc, asc, and, isNull, gte, sql, inArray, type SQL } from "drizzle-orm";
 import { db } from "./db";
 import {
   type User,
@@ -100,11 +100,28 @@ import {
   diversityInitiatives,
 } from "@shared/schema";
 
+// Proyección "tarjeta" de una noticia: omite las columnas pesadas content/contentEs.
+// Se usa en los listados paginados del admin, donde devolver el cuerpo completo de
+// las ~843 noticias en cada página era innecesario y costoso.
+export type NewsCard = Omit<News, "content" | "contentEs">;
+
 export interface IStorage {
   getUser(id: string): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
   getNews(): Promise<News[]>;
+  getPublishedNews(): Promise<News[]>;
+  getNewsPage(opts: {
+    page: number;
+    limit: number;
+    search?: string;
+    category?: string;
+  }): Promise<{ news: NewsCard[]; total: number }>;
+  getNewsTranslationAggregates(): Promise<{
+    totalTranslations: number;
+    translationsByLanguage: Record<string, number>;
+    articlesWithTranslations: number;
+  }>;
   getNewsById(id: string): Promise<News | undefined>;
   getNewsBySlug(slug: string): Promise<News | undefined>;
   createNews(news: InsertNews): Promise<News>;
@@ -360,6 +377,110 @@ export class DatabaseStorage implements IStorage {
 
   async getNews(): Promise<News[]> {
     return db.select().from(news).orderBy(desc(news.date));
+  }
+
+  // Solo noticias publicadas, filtradas en SQL (WHERE published = true) en vez de
+  // cargar toda la tabla y filtrar en memoria. Las rutas públicas no deben exponer
+  // borradores/no-publicados.
+  async getPublishedNews(): Promise<News[]> {
+    return db
+      .select()
+      .from(news)
+      .where(eq(news.published, true))
+      .orderBy(desc(news.date));
+  }
+
+  // Listado paginado del admin: empuja LIMIT/OFFSET, búsqueda y filtro de categoría a
+  // SQL, devuelve count(*) total y proyecta SOLO columnas de tarjeta (sin content/contentEs).
+  // Antes se releía toda la tabla con el cuerpo completo en cada página y se filtraba/paginaba
+  // en memoria.
+  async getNewsPage(opts: {
+    page: number;
+    limit: number;
+    search?: string;
+    category?: string;
+  }): Promise<{ news: NewsCard[]; total: number }> {
+    const page = Math.max(1, opts.page || 1);
+    const limit = Math.max(1, Math.min(100, opts.limit || 20));
+    const offset = (page - 1) * limit;
+
+    const filters: SQL[] = [];
+    const search = (opts.search || "").trim();
+    if (search) {
+      // ILIKE = case-insensitive; cubre los 4 campos de tarjeta como el filtro previo en memoria.
+      const pattern = `%${search}%`;
+      filters.push(
+        sql`(${news.title} ILIKE ${pattern} OR ${news.titleEs} ILIKE ${pattern} OR ${news.excerpt} ILIKE ${pattern} OR ${news.excerptEs} ILIKE ${pattern})`,
+      );
+    }
+    if (opts.category && opts.category !== "all") {
+      filters.push(eq(news.category, opts.category));
+    }
+
+    const whereClause = filters.length > 0 ? and(...filters) : undefined;
+
+    const cardColumns = {
+      id: news.id,
+      title: news.title,
+      titleEs: news.titleEs,
+      excerpt: news.excerpt,
+      excerptEs: news.excerptEs,
+      slug: news.slug,
+      imageUrl: news.imageUrl,
+      pdfUrl: news.pdfUrl,
+      date: news.date,
+      published: news.published,
+      category: news.category,
+      categoryEs: news.categoryEs,
+      authorId: news.authorId,
+      processingStatus: news.processingStatus,
+      lastError: news.lastError,
+      lastProcessedAt: news.lastProcessedAt,
+      failedStep: news.failedStep,
+      publishAt: news.publishAt,
+      councilVerdict: news.councilVerdict,
+    } as const;
+
+    const rowsQuery = db.select(cardColumns).from(news);
+    const countQuery = db.select({ count: sql<number>`count(*)::int` }).from(news);
+
+    const rows = await (whereClause
+      ? rowsQuery.where(whereClause)
+      : rowsQuery
+    )
+      .orderBy(desc(news.date))
+      .limit(limit)
+      .offset(offset);
+
+    const [{ count }] = await (whereClause ? countQuery.where(whereClause) : countQuery);
+
+    // content/contentEs no se seleccionan; el resto encaja con NewsCard.
+    return { news: rows as unknown as NewsCard[], total: count };
+  }
+
+  // Agregados de traducciones en UNA query (en vez de N+1: una por noticia).
+  // Construye los conteos por idioma y el nº de artículos con alguna traducción en memoria.
+  async getNewsTranslationAggregates(): Promise<{
+    totalTranslations: number;
+    translationsByLanguage: Record<string, number>;
+    articlesWithTranslations: number;
+  }> {
+    const rows = await db
+      .select({ newsId: newsTranslations.newsId, language: newsTranslations.language })
+      .from(newsTranslations);
+
+    const translationsByLanguage: Record<string, number> = {};
+    const articlesWith = new Set<string>();
+    for (const r of rows) {
+      translationsByLanguage[r.language] = (translationsByLanguage[r.language] || 0) + 1;
+      articlesWith.add(r.newsId);
+    }
+
+    return {
+      totalTranslations: rows.length,
+      translationsByLanguage,
+      articlesWithTranslations: articlesWith.size,
+    };
   }
 
   async getNewsById(id: string): Promise<News | undefined> {
@@ -724,17 +845,13 @@ export class DatabaseStorage implements IStorage {
       return [];
     }
     
+    // Una sola query con inArray en vez de un SELECT por noticia (antes N+1).
     const newsIds = pivotRows.map(row => row.newsId);
-    const result: News[] = [];
-    
-    for (const newsId of newsIds) {
-      const [newsItem] = await db.select().from(news).where(eq(news.id, newsId));
-      if (newsItem) {
-        result.push(newsItem);
-      }
-    }
-    
-    return result;
+    return db
+      .select()
+      .from(news)
+      .where(inArray(news.id, newsIds))
+      .orderBy(desc(news.date));
   }
 
   async getTeamMembersByNewsId(newsId: string): Promise<TeamMember[]> {
@@ -1097,9 +1214,11 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Estado de traducción por artículo, en el shape que consume el panel admin
-  // (AdminTranslations): qué idiomas tiene cada noticia y cuáles le faltan.
-  // `en`/`es` son nativos del modelo (title/titleEs, excerpt/excerptEs…), así que
-  // cuentan siempre como traducidos; los otros 8 idiomas viven en newsTranslations.
+  // (AdminTranslations). El sitio es BILINGÜE NATIVO EN/ES: cada noticia tiene
+  // sus campos en inglés (title/excerpt/content) y español (titleEs/excerptEs/
+  // contentEs, notNull), así que en/es cuentan siempre como traducidos y no hay
+  // idiomas adicionales que gestionar → missingLanguages es siempre vacío y el
+  // panel refleja cobertura bilingüe (no un flujo de traducción a más idiomas).
   async getNewsTranslationStatus(): Promise<Array<{
     articleId: string;
     title: string;
@@ -1108,41 +1227,18 @@ export class DatabaseStorage implements IStorage {
     translatedLanguages: string[];
     missingLanguages: string[];
   }>> {
-    const ALL_LANGS = ["en", "es", "de", "zh", "ko", "ja", "ar", "ru", "fr", "it"];
-    const NATIVE_LANGS = ["en", "es"];
+    const SUPPORTED = ["en", "es"];
 
     const allNews = await db.select().from(news);
-    const allTrans = await db
-      .select({ newsId: newsTranslations.newsId, language: newsTranslations.language })
-      .from(newsTranslations);
 
-    const langsByNews = new Map<string, Set<string>>();
-    for (const t of allTrans) {
-      let set = langsByNews.get(t.newsId);
-      if (!set) {
-        set = new Set<string>();
-        langsByNews.set(t.newsId, set);
-      }
-      set.add(t.language);
-    }
-
-    return allNews.map((n) => {
-      const langs = langsByNews.get(n.id) ?? new Set<string>();
-      const translatedLanguages = ALL_LANGS.filter(
-        (l) => NATIVE_LANGS.includes(l) || langs.has(l),
-      );
-      const missingLanguages = ALL_LANGS.filter(
-        (l) => !NATIVE_LANGS.includes(l) && !langs.has(l),
-      );
-      return {
-        articleId: n.id,
-        title: n.title,
-        slug: n.slug,
-        category: n.category ?? "press",
-        translatedLanguages,
-        missingLanguages,
-      };
-    });
+    return allNews.map((n) => ({
+      articleId: n.id,
+      title: n.title,
+      slug: n.slug,
+      category: n.category ?? "press",
+      translatedLanguages: [...SUPPORTED],
+      missingLanguages: [],
+    }));
   }
 
   async getNewsTranslation(newsId: string, language: string): Promise<NewsTranslation | undefined> {
