@@ -1603,6 +1603,19 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
     }
   });
 
+  // Estado de traducción por artículo (qué idiomas tiene / le faltan).
+  // Lo consume el panel AdminTranslations, que espera { news: TranslationCounts[] }.
+  // (Distinto de translation-counts, que devuelve Record<id, count> para AdminArticleProcessing.)
+  app.get("/api/admin/news/translation-status", authMiddleware, async (_req: Request, res: Response) => {
+    try {
+      const news = await storage.getNewsTranslationStatus();
+      res.json({ news });
+    } catch (error) {
+      console.error("Get translation status error:", error);
+      res.status(500).json({ error: "Failed to fetch translation status" });
+    }
+  });
+
   // Get translations for a specific news article
   app.get("/api/admin/news/:id/translations", authMiddleware, async (req: Request, res: Response) => {
     try {

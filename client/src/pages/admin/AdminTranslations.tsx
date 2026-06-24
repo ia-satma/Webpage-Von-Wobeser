@@ -504,27 +504,60 @@ export default function AdminTranslations() {
   });
 
   const translationCountsQuery = useQuery<{ news: TranslationCounts[] }>({
-    queryKey: ["/api/admin/news/translation-counts", contentTypeFilter],
+    // translation-status devuelve { news: TranslationCounts[] } (idiomas por
+    // artículo), que es lo que este panel consume. NO usar translation-counts:
+    // ese devuelve Record<id, count> y lo consume AdminArticleProcessing.
+    queryKey: ["/api/admin/news/translation-status", contentTypeFilter],
     queryFn: async () => {
-      const res = await adminApiRequest("GET", "/api/admin/news/translation-counts");
-      if (!res.ok) throw new Error("Failed to fetch translation counts");
+      const res = await adminApiRequest("GET", "/api/admin/news/translation-status");
+      if (!res.ok) throw new Error("Failed to fetch translation status");
       return res.json();
     },
     enabled: isAuthenticated,
   });
 
   const translateMutation = useMutation({
+    // No existe un endpoint admin "todo-en-uno". Cableamos a los endpoints
+    // reales: cargamos el artículo (textos fuente EN canónicos) y disparamos
+    // una traducción por idioma faltante contra /api/translate-entity.
     mutationFn: async ({ articleId, languages }: { articleId: string; languages: string[] }) => {
-      const res = await adminApiRequest("POST", "/api/admin/translate", {
-        articleId,
-        languages,
-      });
-      if (!res.ok) throw new Error("Failed to trigger translation");
-      return res.json();
+      const articleRes = await adminApiRequest("GET", `/api/admin/news/${articleId}`);
+      if (!articleRes.ok) throw new Error("Failed to load article");
+      const article = await articleRes.json();
+
+      const fields: Record<string, string> = {};
+      if (article.title?.trim()) fields.title = article.title;
+      if (article.excerpt?.trim()) fields.excerpt = article.excerpt;
+      if (article.content?.trim()) fields.content = article.content;
+      if (Object.keys(fields).length === 0) {
+        throw new Error("Article has no translatable text");
+      }
+
+      // 'en'/'es' son nativos en el modelo (title/titleEs, excerpt/excerptEs…);
+      // la tabla de traducciones cubre los demás idiomas. Source canónico: EN.
+      const targets = languages.filter((l) => l !== "en" && l !== "es");
+      let translated = 0;
+      // Secuencial a propósito: evita disparar N llamadas LLM concurrentes
+      // (rate limits) y permite fallar limpio en el primer error.
+      for (const targetLanguage of targets) {
+        const res = await adminApiRequest("POST", "/api/translate-entity", {
+          contentType: "news",
+          entityId: articleId,
+          fields,
+          sourceLanguage: "en",
+          targetLanguage,
+        });
+        if (!res.ok) {
+          const body = await res.json().catch(() => ({}));
+          throw new Error(body.error || `Translation failed for ${targetLanguage}`);
+        }
+        translated += 1;
+      }
+      return { translated };
     },
     onSuccess: () => {
       toast({ title: t.translateSuccess });
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/news/translation-counts"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/news/translation-status"] });
       setTranslatingArticleId(null);
     },
     onError: () => {
@@ -636,7 +669,7 @@ export default function AdminTranslations() {
               size="sm"
               onClick={() => {
                 queryClient.invalidateQueries({ queryKey: ["/api/admin/cms-stats"] });
-                queryClient.invalidateQueries({ queryKey: ["/api/admin/news/translation-counts"] });
+                queryClient.invalidateQueries({ queryKey: ["/api/admin/news/translation-status"] });
               }}
               data-testid="button-refresh"
             >

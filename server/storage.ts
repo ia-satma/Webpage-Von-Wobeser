@@ -256,6 +256,14 @@ export interface IStorage {
   getNewsTranslations(newsId: string): Promise<NewsTranslation[]>;
   getNewsTranslation(newsId: string, language: string): Promise<NewsTranslation | undefined>;
   getNewsTranslationCounts(): Promise<Record<string, number>>;
+  getNewsTranslationStatus(): Promise<Array<{
+    articleId: string;
+    title: string;
+    slug: string;
+    category: string;
+    translatedLanguages: string[];
+    missingLanguages: string[];
+  }>>;
   upsertNewsTranslation(data: InsertNewsTranslation): Promise<NewsTranslation>;
   deleteNewsTranslations(newsId: string): Promise<boolean>;
   getNewsWithTranslations(newsId: string): Promise<{ news: News; translations: NewsTranslation[] } | undefined>;
@@ -1086,6 +1094,55 @@ export class DatabaseStorage implements IStorage {
       counts[translation.newsId] = (counts[translation.newsId] || 0) + 1;
     }
     return counts;
+  }
+
+  // Estado de traducción por artículo, en el shape que consume el panel admin
+  // (AdminTranslations): qué idiomas tiene cada noticia y cuáles le faltan.
+  // `en`/`es` son nativos del modelo (title/titleEs, excerpt/excerptEs…), así que
+  // cuentan siempre como traducidos; los otros 8 idiomas viven en newsTranslations.
+  async getNewsTranslationStatus(): Promise<Array<{
+    articleId: string;
+    title: string;
+    slug: string;
+    category: string;
+    translatedLanguages: string[];
+    missingLanguages: string[];
+  }>> {
+    const ALL_LANGS = ["en", "es", "de", "zh", "ko", "ja", "ar", "ru", "fr", "it"];
+    const NATIVE_LANGS = ["en", "es"];
+
+    const allNews = await db.select().from(news);
+    const allTrans = await db
+      .select({ newsId: newsTranslations.newsId, language: newsTranslations.language })
+      .from(newsTranslations);
+
+    const langsByNews = new Map<string, Set<string>>();
+    for (const t of allTrans) {
+      let set = langsByNews.get(t.newsId);
+      if (!set) {
+        set = new Set<string>();
+        langsByNews.set(t.newsId, set);
+      }
+      set.add(t.language);
+    }
+
+    return allNews.map((n) => {
+      const langs = langsByNews.get(n.id) ?? new Set<string>();
+      const translatedLanguages = ALL_LANGS.filter(
+        (l) => NATIVE_LANGS.includes(l) || langs.has(l),
+      );
+      const missingLanguages = ALL_LANGS.filter(
+        (l) => !NATIVE_LANGS.includes(l) && !langs.has(l),
+      );
+      return {
+        articleId: n.id,
+        title: n.title,
+        slug: n.slug,
+        category: n.category ?? "press",
+        translatedLanguages,
+        missingLanguages,
+      };
+    });
   }
 
   async getNewsTranslation(newsId: string, language: string): Promise<NewsTranslation | undefined> {
