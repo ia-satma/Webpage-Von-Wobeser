@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import { useTranslation } from "react-i18next";
 import { Menu, X, Search } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -61,6 +61,7 @@ const NAV_ITEMS: NavItem[] = [
 
 export default function SiteHeader() {
   const { t } = useTranslation();
+  const [, setLocation] = useLocation();
   const [isScrolled, setIsScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
@@ -111,13 +112,14 @@ export default function SiteHeader() {
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // La página de resultados la implementan los workers de páginas (W2–W6).
-    // Aquí solo navegamos por hash para no acoplar el shell a una ruta aún
-    // inexistente.
+    // Navegación SPA (wouter) a Publicaciones con la búsqueda como query param.
+    // News.tsx lee `?q` y precarga el filtro de búsqueda. Evitamos
+    // `window.location.href` para no forzar una recarga dura del SPA.
     const q = searchValue.trim();
-    if (q) {
-      window.location.href = `/news?q=${encodeURIComponent(q)}`;
-    }
+    if (!q) return;
+    setLocation(`/news?q=${encodeURIComponent(q)}`);
+    setSearchOpen(false);
+    setSearchValue("");
   };
 
   return (
