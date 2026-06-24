@@ -4,8 +4,12 @@ import { useLanguage } from "@/contexts/LanguageContext";
 
 /**
  * NumberedBlocks — bloques numerados del home viejo (`.home__rec` boxes:
- * RECOGNITIONS / DIVERSITY & INCLUSION / PRO BONO). Cada bloque: número rojo
- * gigante + título con borde inferior rojo + copy + enlace SEE MORE.
+ * DIVERSITY & INCLUSION / PRO BONO). Cada bloque: número rojo gigante + título
+ * con borde inferior rojo + copy + enlace SEE MORE.
+ *
+ * Recognitions NO va aquí: el original lo presenta como la sección de logos
+ * (ver RecommendedSlider). Mantenerlo también como bloque de texto duplicaba
+ * el tema, así que solo quedan Diversity y Pro Bono.
  *
  * Contenido estático de marca; cada bloque enlaza a su sección.
  */
@@ -20,15 +24,6 @@ type Block = {
 const blocks: Block[] = [
   {
     num: "01",
-    title: { en: "Recognitions", es: "Reconocimientos" },
-    body: {
-      en: "Von Wobeser y Sierra, S.C. has been recognized at an international level by various institutions including Chambers & Partners, Legal 500, Latin Lawyer 250 and Global Arbitration Review, among others.",
-      es: "Von Wobeser y Sierra, S.C. ha sido reconocida a nivel internacional por diversas instituciones, incluyendo Chambers & Partners, Legal 500, Latin Lawyer 250 y Global Arbitration Review, entre otras.",
-    },
-    href: "/about",
-  },
-  {
-    num: "02",
     title: { en: "Diversity & Inclusion", es: "Diversidad e Inclusión" },
     body: {
       en: "Since its founding in 1986, our partners set out to create an inclusive firm committed to the promotion of diversity.",
@@ -37,7 +32,7 @@ const blocks: Block[] = [
     href: "/about",
   },
   {
-    num: "03",
+    num: "02",
     title: { en: "Pro Bono", es: "Pro Bono" },
     body: {
       en: "For more than 35 years, our firm has actively supported the Pro Bono cause across Mexico.",
@@ -83,7 +78,7 @@ export default function NumberedBlocks() {
   return (
     <section className="bg-white py-24 md:py-28" data-testid="section-numbered-blocks">
       <div className="vw-wrap">
-        <div className="grid grid-cols-1 gap-14 md:grid-cols-3 md:gap-12">
+        <div className="mx-auto grid max-w-[820px] grid-cols-1 gap-14 md:grid-cols-2 md:gap-16">
           {blocks.map((b) => (
             <NumberedBlock key={b.num} block={b} language={language} />
           ))}

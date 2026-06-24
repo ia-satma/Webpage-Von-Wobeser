@@ -2,12 +2,18 @@ import { z } from 'zod';
 
 export const CouncilRole = z.enum([
   'formatter',
-  'translator', 
+  'translator',
   'seo_optimizer',
   'metadata_linker',
   'content_auditor',
   'category_agent',
-  'image_generator'
+  'image_generator',
+  // Roles PROPIOS del Legal Council (jueces de evaluación). No confundir con los
+  // agentes del pipeline de arriba: antes los 3 jueces reusaban 'content_auditor'
+  // y 'seo_optimizer', lo que sugería falsamente que eran esos agentes.
+  'council_scholar',
+  'council_risk',
+  'council_brand',
 ]);
 
 export type CouncilRole = z.infer<typeof CouncilRole>;

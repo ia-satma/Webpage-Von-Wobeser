@@ -29,7 +29,7 @@ router.use(authMiddleware);
 // super_admin pasa siempre (ver requireRole en server/auth.ts).
 router.use((req: Request, res: Response, next) => {
   if (req.method === 'GET') return next();
-  return requireRole('super_admin', 'editor', 'admin')(req, res, next);
+  return requireRole('super_admin', 'editor')(req, res, next);
 });
 
 router.get('/status', async (req: Request, res: Response) => {

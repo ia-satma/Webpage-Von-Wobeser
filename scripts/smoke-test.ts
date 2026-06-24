@@ -46,6 +46,44 @@ async function run() {
   await expectStatus("traversal: ..%2f", "/generated-images/..%2f..%2fetc%2fpasswd", 400);
   await expectStatus("traversal: dotdot", "/generated-images/x..png", 400);
 
+  // --- Control de costo: el batch translate rechaza arreglos enormes (cap 50) ---
+  await expectStatus("cost: batch translate cap", "/api/translate/batch", 413, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      texts: Array.from({ length: 51 }, () => "x"),
+      sourceLanguage: "en",
+      targetLanguage: "es",
+    }),
+  });
+
+  // --- Anti-cascarón: el script de entrada DEBE servirse como JS, no como HTML.
+  // Si el build de prod queda mutilado (p.ej. iCloud/dataless evicta chunks de
+  // dist/public/assets), el server cae al fallback index.html y el navegador
+  // recibe HTML donde espera JS -> la app no monta -> página en blanco. Smoke con
+  // 200s en la API no lo ve; esto sí. (En dev toma el módulo de Vite; igual exige JS.)
+  try {
+    const html = await (await fetch(`${BASE}/`)).text();
+    const m =
+      html.match(/src="(\/assets\/index-[^"]+\.js)"/i) ||
+      html.match(/<script[^>]*type="module"[^>]*src="([^"]+)"/i);
+    const entry = m?.[1];
+    if (!entry) {
+      record("shell: entry script presente", false, "index.html sin <script type=module src=...>");
+    } else {
+      const res = await fetch(`${BASE}${entry}`);
+      const ct = (res.headers.get("content-type") || "").toLowerCase();
+      const body = await res.text();
+      const isJs =
+        res.status === 200 &&
+        /javascript|ecmascript/.test(ct) &&
+        !body.trimStart().startsWith("<!");
+      record("shell: entry sirve JS (no HTML)", isJs, `${entry} → ${res.status} ${ct}`);
+    }
+  } catch (err) {
+    record("shell: entry sirve JS (no HTML)", false, `error: ${String(err)}`);
+  }
+
   // --- Públicos: deben responder 200 ---
   await expectStatus("public: home", "/", 200);
   await expectStatus("public: team", "/api/team", 200);

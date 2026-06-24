@@ -10,6 +10,13 @@
  * ║  Última Actualización: Diciembre 2024                                         ║
  * ║  Versión del Manifest: 3.0 - "Sistema Nervioso Digital"                      ║
  * ╚══════════════════════════════════════════════════════════════════════════════╝
+ *
+ * ⚠️ SNAPSHOT POSIBLEMENTE DESFASADO. Es un documento de marketing técnico escrito
+ * a mano (fecha manual arriba); NO se genera desde el código. Algunas descripciones
+ * reflejan un estado anterior: el sitio público es bilingüe EN/ES estático (no 10
+ * idiomas en la UI) y el hook `useTranslatedContent` fue ELIMINADO — su reemplazo es
+ * getDisplayValue (lib/translationUtils.ts). Verifica contra el código antes de citar
+ * cualquier afirmación de este archivo.
  */
 
 import { 

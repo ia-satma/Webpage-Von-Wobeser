@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { Link } from "wouter";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useAdminAuth, adminApiRequest } from "@/lib/adminAuth";
@@ -21,11 +21,13 @@ import {
   RefreshCw,
   ArrowLeft,
   Clock,
-  AlertCircle,
-  Loader2
+  AlertCircle
 } from "lucide-react";
 
-const SUPPORTED_LANGUAGES = ["en", "es", "de", "zh", "ko", "ja", "ar", "ru", "fr", "it"] as const;
+// Sitio bilingüe nativo EN/ES (i18n estático). El backend solo soporta en/es
+// (shared/schema.ts), así que el panel refleja cobertura bilingüe, no un flujo
+// de traducción a más idiomas.
+const SUPPORTED_LANGUAGES = ["en", "es"] as const;
 
 const LANGUAGE_NAMES: Record<string, { en: string; native: string }> = {
   en: { en: "English", native: "English" },
@@ -485,7 +487,6 @@ export default function AdminTranslations() {
   const t = translations[language as keyof typeof translations] || translations.en;
 
   const [contentTypeFilter, setContentTypeFilter] = useState("all");
-  const [translatingArticleId, setTranslatingArticleId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!authLoading) {
@@ -504,73 +505,46 @@ export default function AdminTranslations() {
   });
 
   const translationCountsQuery = useQuery<{ news: TranslationCounts[] }>({
-    queryKey: ["/api/admin/news/translation-counts", contentTypeFilter],
+    // translation-status devuelve { news: TranslationCounts[] } (idiomas por
+    // artículo), que es lo que este panel consume. NO usar translation-counts:
+    // ese devuelve Record<id, count> y lo consume AdminArticleProcessing.
+    queryKey: ["/api/admin/news/translation-status", contentTypeFilter],
     queryFn: async () => {
-      const res = await adminApiRequest("GET", "/api/admin/news/translation-counts");
-      if (!res.ok) throw new Error("Failed to fetch translation counts");
+      const res = await adminApiRequest("GET", "/api/admin/news/translation-status");
+      if (!res.ok) throw new Error("Failed to fetch translation status");
       return res.json();
     },
     enabled: isAuthenticated,
   });
 
-  const translateMutation = useMutation({
-    mutationFn: async ({ articleId, languages }: { articleId: string; languages: string[] }) => {
-      const res = await adminApiRequest("POST", "/api/admin/translate", {
-        articleId,
-        languages,
-      });
-      if (!res.ok) throw new Error("Failed to trigger translation");
-      return res.json();
-    },
-    onSuccess: () => {
-      toast({ title: t.translateSuccess });
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/news/translation-counts"] });
-      setTranslatingArticleId(null);
-    },
-    onError: () => {
-      toast({ title: t.translateError, variant: "destructive" });
-      setTranslatingArticleId(null);
-    },
-  });
-
-  const handleTranslate = (articleId: string, missingLanguages: string[]) => {
-    if (missingLanguages.length === 0) return;
-    setTranslatingArticleId(articleId);
-    translateMutation.mutate({ articleId, languages: missingLanguages });
-  };
-
+  // El panel ya NO traduce a más idiomas: el contenido es bilingüe nativo EN/ES,
+  // así que no hay "idiomas faltantes" ni botón de traducción. El panel reporta
+  // cobertura bilingüe derivada de la lista real de artículos.
   const getLanguageCoverageData = () => {
-    const stats = cmsStatsQuery.data;
-    if (!stats) return [];
-
-    const totalContent = stats.totalNews || 1;
-    
+    const articles = translationCountsQuery.data?.news ?? [];
+    const total = articles.length || 1;
     return SUPPORTED_LANGUAGES.map((lang) => {
-      const translated = stats.translationsByLanguage?.[lang] || 0;
-      const coverage = Math.round((translated / totalContent) * 100);
+      const translated = articles.filter((a) => a.translatedLanguages?.includes(lang)).length;
+      const coverage = Math.round((translated / total) * 100);
       return {
         code: lang,
         name: LANGUAGE_NAMES[lang]?.en || lang,
         native: LANGUAGE_NAMES[lang]?.native || lang,
         translated,
-        total: totalContent,
+        total: articles.length,
         coverage: Math.min(coverage, 100),
       };
     });
   };
 
   const getOverallStats = () => {
-    const stats = cmsStatsQuery.data;
-    if (!stats) return { total: 0, translated: 0, coverage: 0, languages: SUPPORTED_LANGUAGES.length };
-
-    const total = stats.totalNews || 0;
-    const translationCounts = Object.values(stats.translationsByLanguage || {});
-    const avgTranslated = translationCounts.length > 0
-      ? translationCounts.reduce((a, b) => a + b, 0) / translationCounts.length
-      : 0;
-    const coverage = total > 0 ? Math.round((avgTranslated / total) * 100) : 0;
-
-    return { total, translated: Math.floor(avgTranslated), coverage, languages: SUPPORTED_LANGUAGES.length };
+    const articles = translationCountsQuery.data?.news ?? [];
+    const total = articles.length;
+    const fullyCovered = articles.filter((a) =>
+      SUPPORTED_LANGUAGES.every((l) => a.translatedLanguages?.includes(l)),
+    ).length;
+    const coverage = total > 0 ? Math.round((fullyCovered / total) * 100) : 0;
+    return { total, translated: fullyCovered, coverage, languages: SUPPORTED_LANGUAGES.length };
   };
 
   const getFilteredArticles = () => {
@@ -636,7 +610,7 @@ export default function AdminTranslations() {
               size="sm"
               onClick={() => {
                 queryClient.invalidateQueries({ queryKey: ["/api/admin/cms-stats"] });
-                queryClient.invalidateQueries({ queryKey: ["/api/admin/news/translation-counts"] });
+                queryClient.invalidateQueries({ queryKey: ["/api/admin/news/translation-status"] });
               }}
               data-testid="button-refresh"
             >
@@ -808,7 +782,6 @@ export default function AdminTranslations() {
                         <TableHead>{t.articleTitle}</TableHead>
                         <TableHead>{t.contentType}</TableHead>
                         <TableHead>{t.translationStatus}</TableHead>
-                        <TableHead className="text-right">{t.actions}</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -845,29 +818,6 @@ export default function AdminTranslations() {
                                 );
                               })}
                             </div>
-                          </TableCell>
-                          <TableCell className="text-right">
-                            {article.missingLanguages && article.missingLanguages.length > 0 && (
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={() => handleTranslate(article.articleId, article.missingLanguages)}
-                                disabled={translatingArticleId === article.articleId}
-                                data-testid={`button-translate-${article.articleId}`}
-                              >
-                                {translatingArticleId === article.articleId ? (
-                                  <>
-                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                    {t.translating}
-                                  </>
-                                ) : (
-                                  <>
-                                    <RefreshCw className="mr-2 h-4 w-4" />
-                                    {t.translateMissing} ({article.missingLanguages.length})
-                                  </>
-                                )}
-                              </Button>
-                            )}
                           </TableCell>
                         </TableRow>
                       ))}

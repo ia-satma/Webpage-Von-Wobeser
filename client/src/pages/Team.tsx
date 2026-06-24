@@ -1,4 +1,5 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useCallback } from "react";
+import { useSearch, useLocation } from "wouter";
 import { AlertCircle, Users } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import SEOHead from "@/components/SEOHead";
@@ -11,56 +12,103 @@ import {
 } from "@/components/team";
 import type { TeamMember, PracticeGroup, IndustryGroup } from "@shared/schema";
 
-// Map URL parameters to filter values
+// Mapea el valor entrante de `?type` al valor interno de seniority. Incluye
+// tanto los alias del sitio viejo ("of-counsel", "counsel") como los valores
+// canónicos internos, para que la URL que nosotros escribimos también se relea.
 const urlTypeToFilter: Record<string, string> = {
   partners: "partners",
   "of-counsel": "ofcounsel",
   counsel: "ofcounsel",
+  ofcounsel: "ofcounsel",
   associates: "associates",
 };
 
-// Helper to get filter from URL search params
-function getFilterFromURL(): string {
-  if (typeof window === "undefined") return "all";
-  const urlParams = new URLSearchParams(window.location.search);
-  const typeParam = urlParams.get("type");
+// Lee el seniority desde los params de la URL. La URL es la fuente de verdad,
+// así que esto se evalúa en cada render a partir de `useSearch`.
+function getSeniorityFromSearch(search: string): string {
+  const typeParam = new URLSearchParams(search).get("type");
   if (typeParam && urlTypeToFilter[typeParam]) {
     return urlTypeToFilter[typeParam];
   }
   return "all";
 }
 
+// Lee la letra (inicial de apellido) desde los params de la URL.
+function getLetterFromSearch(search: string): string {
+  const letterParam = new URLSearchParams(search).get("letter");
+  if (letterParam && /^[A-Z]$/.test(letterParam.toUpperCase())) {
+    return letterParam.toUpperCase();
+  }
+  return "all";
+}
+
 export default function Team() {
   const { language } = useLanguage();
-  const [searchQuery, setSearchQuery] = useState("");
-  // Initialize filter directly from URL to avoid flash of unfiltered content
-  const [filterSeniority, setFilterSeniority] = useState<string>(() => getFilterFromURL());
-  const [filterLetter, setFilterLetter] = useState<string>("all");
+
+  // --- URL como única fuente de verdad para los filtros ---
+  // `useSearch` da el query string (sin el `?`); `setLocation` lo reescribe.
+  // Patrón espejo de News.tsx (que precarga `?q`), extendido aquí a
+  // `type` (seniority) y `letter` para que el filtro sea compartible y
+  // sobreviva a la recarga.
+  const search = useSearch();
+  const [location, setLocation] = useLocation();
+
+  // Estado derivado de la URL (ambos sentidos: leer aquí, escribir abajo).
+  const filterSeniority = getSeniorityFromSearch(search);
+  const filterLetter = getLetterFromSearch(search);
+  const searchFromUrl = new URLSearchParams(search).get("q") ?? "";
+
+  // `searchQuery` se mantiene como estado local para que teclear sea fluido,
+  // pero se siembra desde `?q` y se reescribe en la URL con `replace` (sin
+  // ensuciar el history). Sigue siendo la URL la fuente compartible.
+  const [searchQuery, setSearchQuery] = useState(searchFromUrl);
 
   const heroRef = useFadeOnScroll<HTMLDivElement>();
 
-  // Listen for URL changes to update filter (for SPA navigation)
+  // Re-sincroniza el input cuando `?q` cambia desde fuera (p. ej. el buscador
+  // del header navega a /team?q=...). No interfiere con lo tecleado porque
+  // solo dispara al cambiar el query param.
   useEffect(() => {
-    const handleUrlChange = () => {
-      setFilterSeniority(getFilterFromURL());
-    };
+    setSearchQuery(searchFromUrl);
+  }, [searchFromUrl]);
 
-    window.addEventListener("popstate", handleUrlChange);
-
-    // Poll for URL changes (for SPA navigation that doesn't trigger popstate)
-    let lastSearch = window.location.search;
-    const checkUrlChange = setInterval(() => {
-      if (window.location.search !== lastSearch) {
-        lastSearch = window.location.search;
-        setFilterSeniority(getFilterFromURL());
+  // Escribe un conjunto de params en la URL preservando la ruta actual y los
+  // demás filtros. `replace` evita spam del history (útil al teclear).
+  const updateParams = useCallback(
+    (patch: Record<string, string | null>, opts?: { replace?: boolean }) => {
+      const params = new URLSearchParams(search);
+      for (const [key, value] of Object.entries(patch)) {
+        if (value === null || value === "" || value === "all") {
+          params.delete(key);
+        } else {
+          params.set(key, value);
+        }
       }
-    }, 100);
+      const qs = params.toString();
+      const path = location.split("?")[0];
+      setLocation(qs ? `${path}?${qs}` : path, { replace: opts?.replace });
+    },
+    [search, location, setLocation],
+  );
 
-    return () => {
-      window.removeEventListener("popstate", handleUrlChange);
-      clearInterval(checkUrlChange);
-    };
-  }, []);
+  // Handlers que escriben en la URL (fuente de verdad). El seniority y la letra
+  // van con push normal (son acciones de navegación deliberadas); la búsqueda
+  // tecleada va con `replace` para no inundar el history.
+  const handleSeniorityChange = useCallback(
+    (value: string) => updateParams({ type: value }),
+    [updateParams],
+  );
+  const handleLetterChange = useCallback(
+    (value: string) => updateParams({ letter: value }),
+    [updateParams],
+  );
+  const handleSearchChange = useCallback(
+    (value: string) => {
+      setSearchQuery(value);
+      updateParams({ q: value }, { replace: true });
+    },
+    [updateParams],
+  );
 
   const { data: allTeamMembers, isLoading: isLoadingAll, error: errorAll } = useQuery<TeamMember[]>({
     queryKey: ["/api/team"],
@@ -288,8 +336,9 @@ export default function Team() {
 
   const clearFilters = () => {
     setSearchQuery("");
-    setFilterSeniority("all");
-    setFilterLetter("all");
+    // Limpia los tres filtros de la URL de una sola vez (un único cambio de
+    // history). Al borrarlos, la ruta vuelve a /team sin query string.
+    updateParams({ q: null, type: null, letter: null });
   };
 
   const filterLabels: AttorneyFiltersLabels = {
@@ -331,11 +380,11 @@ export default function Team() {
       <div className="vw-wrap pb-24">
         <AttorneyFilters
           searchQuery={searchQuery}
-          onSearchChange={setSearchQuery}
+          onSearchChange={handleSearchChange}
           filterSeniority={filterSeniority}
-          onSeniorityChange={setFilterSeniority}
+          onSeniorityChange={handleSeniorityChange}
           filterLetter={filterLetter}
-          onLetterChange={setFilterLetter}
+          onLetterChange={handleLetterChange}
           hasActiveFilters={hasActiveFilters}
           onClear={clearFilters}
           totalVisible={totalVisible}

@@ -6,6 +6,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { LanguageProvider, useLanguage } from "@/contexts/LanguageContext";
 import Layout from "@/components/layout/Layout";
+import ErrorBoundary from "@/components/ErrorBoundary";
 
 function ScrollToTop() {
   const [location] = useLocation();
@@ -219,7 +220,9 @@ function App() {
           <ScrollToTop />
           <SkipLinks />
           <Toaster />
-          <Router />
+          <ErrorBoundary>
+            <Router />
+          </ErrorBoundary>
         </LanguageProvider>
       </TooltipProvider>
     </QueryClientProvider>

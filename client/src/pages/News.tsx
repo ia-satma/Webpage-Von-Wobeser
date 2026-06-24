@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useSearch } from "wouter";
 import { AlertCircle } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import SEOHead from "@/components/SEOHead";
@@ -28,9 +29,20 @@ const PAGE_SIZE = 10; // el archivo viejo paginaba de 10 en 10 (Display # = 10)
 
 export default function NewsPage() {
   const { language } = useLanguage();
-  const [searchQuery, setSearchQuery] = useState("");
+  // Búsqueda precargada desde el query param `?q` (proviene del buscador del
+  // header). new URLSearchParams ignora el `?` si no viene; useSearch lo da sin él.
+  const search = useSearch();
+  const queryParam = new URLSearchParams(search).get("q") ?? "";
+  const [searchQuery, setSearchQuery] = useState(queryParam);
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [page, setPage] = useState(1);
+
+  // Re-sincroniza cuando cambia `?q` (p. ej. buscar de nuevo desde el header
+  // estando ya en /news). No interfiere con lo que el usuario teclee en el
+  // filtro local, porque solo dispara al cambiar el query param de la URL.
+  useEffect(() => {
+    setSearchQuery(queryParam);
+  }, [queryParam]);
 
   // --- Data preservada: mismo endpoint que la página vieja ---
   const { data: news, isLoading, error } = useQuery<News[]>({

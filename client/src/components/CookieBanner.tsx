@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Switch } from '@/components/ui/switch';
 import { X, Shield, BarChart3, Settings2, Megaphone } from 'lucide-react';
@@ -25,6 +25,14 @@ export default function CookieBanner({ language }: CookieBannerProps) {
     functionality: false,
     marketing: false,
   });
+
+  // Refs para accesibilidad del modal de preferencias (a11y MED):
+  // - closeButtonRef: recibe el foco al abrir el modal.
+  // - previousFocusRef: guarda el elemento enfocado antes de abrir para restaurarlo al cerrar.
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
+  const previousFocusRef = useRef<HTMLElement | null>(null);
+  // Contenedor del modal: ámbito del focus trap (Tab/Shift+Tab).
+  const modalRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const savedPreferences = localStorage.getItem(STORAGE_KEY);
@@ -73,6 +81,68 @@ export default function CookieBanner({ language }: CookieBannerProps) {
     if (key === 'essential') return;
     setPreferences(prev => ({ ...prev, [key]: !prev[key] }));
   };
+
+  // Accesibilidad del modal de preferencias (a11y MED):
+  // mientras está abierto -> cerrar con Escape, mover el foco al botón Cerrar
+  // y bloquear el scroll del body. Al cerrar, restaurar el foco previo y el scroll.
+  useEffect(() => {
+    if (!showPreferences) return;
+
+    // Guardar el elemento enfocado para restaurarlo al cerrar.
+    previousFocusRef.current = document.activeElement as HTMLElement | null;
+
+    // Mover el foco al botón Cerrar tras montar el contenido del modal.
+    const focusTimer = setTimeout(() => {
+      closeButtonRef.current?.focus();
+    }, 0);
+
+    // Cerrar con Escape y mantener el foco dentro del modal (focus trap Tab/Shift+Tab).
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        closePreferences();
+        return;
+      }
+      if (event.key !== 'Tab') return;
+      const modal = modalRef.current;
+      if (!modal) return;
+      const focusable = Array.from(
+        modal.querySelectorAll<HTMLElement>(
+          'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
+        ),
+      ).filter((el) => el.offsetParent !== null || el === document.activeElement);
+      if (focusable.length === 0) return;
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      const active = document.activeElement as HTMLElement | null;
+      if (!active || !modal.contains(active)) {
+        event.preventDefault();
+        (event.shiftKey ? last : first).focus();
+      } else if (event.shiftKey && active === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && active === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    };
+    document.addEventListener('keydown', handleKeyDown);
+
+    // Bloquear el scroll del body mientras el modal está abierto.
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+
+    return () => {
+      clearTimeout(focusTimer);
+      document.removeEventListener('keydown', handleKeyDown);
+      document.body.style.overflow = previousOverflow;
+      // Restaurar el foco al elemento previo solo si sigue conectado al DOM: la
+      // barra que contiene el botón "configurar" se desmonta al abrir el modal,
+      // y enfocar un nodo desconectado tiraría el foco al <body>.
+      const prev = previousFocusRef.current;
+      if (prev && document.contains(prev)) prev.focus();
+    };
+  }, [showPreferences]);
 
   const content: Record<string, {
     message: string;
@@ -446,19 +516,24 @@ export default function CookieBanner({ language }: CookieBannerProps) {
           onClick={closePreferences}
         >
           <motion.div
+            ref={modalRef}
             initial={{ scale: 0.95, opacity: 0, y: 20 }}
             animate={{ scale: 1, opacity: 1, y: 0 }}
             exit={{ scale: 0.95, opacity: 0, y: 20 }}
             transition={{ duration: 0.3, ease: "easeOut" }}
             className="bg-[#1a1a1a] text-white w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col shadow-2xl border border-primary/30"
             data-testid="modal-cookie-preferences"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="cookie-preferences-title"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between p-6 border-b border-white/10">
-              <h2 className="text-xl font-semibold" data-testid="text-preferences-title">
+              <h2 id="cookie-preferences-title" className="text-xl font-semibold" data-testid="text-preferences-title">
                 {t.preferencesTitle}
               </h2>
               <button
+                ref={closeButtonRef}
                 onClick={closePreferences}
                 className="min-w-[44px] min-h-[44px] p-2 flex items-center justify-center hover:bg-white/10 transition-colors touch-manipulation"
                 data-testid="button-close-preferences"

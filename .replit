@@ -42,11 +42,10 @@ waitForPort = 5000
 [agent]
 integrations = ["javascript_openai:1.0.0", "javascript_openai_ai_integrations:1.0.0", "javascript_gemini_ai_integrations:1.0.0"]
 
-[userenv]
-
-[userenv.shared]
-ADMIN_EMAIL = "admin@vonwobeser.com"
-ADMIN_PASSWORD_HASH = "$2b$10$YjjklWJgO3RtE3iBZ2oKwek00bTZ/6oc0YppsuqItCx5mEAJqaQJu"
+# ADMIN_EMAIL y ADMIN_PASSWORD_HASH NO se versionan aquí (eran secretos del admin
+# de producción expuestos en git). Configúralos en Replit → Tools → Secrets y rota
+# la contraseña del admin tras moverlos. El seed (server/seed.ts) los lee de las
+# variables de entorno, que Replit Secrets inyecta en runtime.
 
 [postMerge]
 path = "scripts/post-merge.sh"

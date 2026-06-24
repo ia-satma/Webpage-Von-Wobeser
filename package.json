@@ -9,7 +9,8 @@
     "start": "NODE_ENV=production node dist/index.cjs",
     "check": "tsc",
     "db:push": "drizzle-kit push",
-    "smoke": "tsx scripts/smoke-test.ts"
+    "smoke": "tsx scripts/smoke-test.ts",
+    "test": "vitest run"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.104.1",
@@ -68,6 +69,7 @@
     "express-rate-limit": "^8.5.2",
     "express-session": "^1.18.1",
     "framer-motion": "^11.13.1",
+    "helmet": "^8.2.0",
     "i18next": "^25.7.1",
     "i18next-browser-languagedetector": "^8.2.0",
     "input-otp": "^1.4.2",
@@ -118,11 +120,13 @@
     "autoprefixer": "^10.4.20",
     "drizzle-kit": "^0.31.4",
     "esbuild": "^0.25.0",
+    "playwright": "^1.61.0",
     "postcss": "^8.4.47",
     "tailwindcss": "^3.4.17",
     "tsx": "^4.20.5",
     "typescript": "5.6.3",
-    "vite": "^5.4.20"
+    "vite": "^5.4.20",
+    "vitest": "^4.1.9"
   },
   "optionalDependencies": {
     "bufferutil": "^4.0.8"

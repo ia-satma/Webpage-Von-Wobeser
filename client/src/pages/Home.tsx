@@ -48,8 +48,8 @@ export default function Home() {
       <JsonLdSchema language={language} />
 
       <HeroSection />
-      <IntroSection />
       <RedSection />
+      <IntroSection />
       <PracticesSlider />
       <GraySection />
       <IndustriesSlider />

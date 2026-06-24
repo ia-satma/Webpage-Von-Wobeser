@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { useFadeOnScroll } from "@/hooks/useFadeOnScroll";
 import { useLanguage } from "@/contexts/LanguageContext";
+import Slider from "@/components/layout/Slider";
 import type { SiteContent } from "@shared/schema";
 
 /**
@@ -79,20 +80,27 @@ export default function IntroSection() {
       data-testid="section-home-intro"
     >
       <div className="vw-wrap">
-        <div
-          ref={ref}
-          className="vw-fade mx-auto flex max-w-[900px] flex-col gap-16 text-center"
-        >
-          {quotes.map((q, i) => (
-            <blockquote key={i} className="flex flex-col gap-4" data-testid={`intro-quote-${i}`}>
-              <p className="font-serif text-[25px] leading-[1.45] text-vw-gray">
-                {q.text}
-              </p>
-              <cite className="vw-label text-[13px] not-italic text-vw-red">
-                — {q.source}
-              </cite>
-            </blockquote>
-          ))}
+        <div ref={ref} className="vw-fade mx-auto max-w-[900px]">
+          <Slider
+            slides={quotes.map((q, i) => (
+              <blockquote
+                key={i}
+                className="mx-auto flex min-h-[260px] max-w-[820px] flex-col items-center justify-center gap-6 px-6 text-center"
+                data-testid={`intro-quote-${i}`}
+              >
+                <p className="font-serif text-[25px] leading-[1.45] text-vw-gray">
+                  {q.text}
+                </p>
+                <cite className="vw-label text-[13px] not-italic text-vw-red">
+                  — {q.source}
+                </cite>
+              </blockquote>
+            ))}
+            ariaLabel={language === "es" ? "Citas de rankings" : "Ranking quotes"}
+            autoplay
+            intervalMs={4500}
+            loop
+          />
         </div>
       </div>
     </section>

@@ -21,26 +21,35 @@ interface AgentConfig {
   systemPrompt: string;
 }
 
+// IDs estables por juez. Antes era randomUUID() → cambiaban en cada arranque del
+// server (no reproducibles). Son UUIDs fijos para satisfacer CouncilMemberSchema
+// (id: z.string().uuid()) y mantenerse constantes entre sesiones.
+const COUNCIL_MEMBER_IDS = {
+  scholar: 'c0000000-0000-4000-8000-000000000001',
+  risk: 'c0000000-0000-4000-8000-000000000002',
+  brand: 'c0000000-0000-4000-8000-000000000003',
+} as const;
+
 const COUNCIL_AGENTS: AgentConfig[] = [
   {
-    id: randomUUID(),
-    role: 'content_auditor',
+    id: COUNCIL_MEMBER_IDS.scholar,
+    role: 'council_scholar',
     name: 'Legal Scholar',
     systemPrompt: `You are a Legal Scholar agent evaluating article quality and accuracy.
 Analyze the text for: legal accuracy, citation quality, professional tone, factual correctness.
 Respond with JSON: { "score": 0-100, "decision": "approve|reject|abstain|request_revision", "reasoning": "explanation" }`,
   },
   {
-    id: randomUUID(),
-    role: 'content_auditor', 
+    id: COUNCIL_MEMBER_IDS.risk,
+    role: 'council_risk',
     name: 'Risk Analyst',
     systemPrompt: `You are a Risk Analyst agent evaluating content for legal and reputational risks.
 Analyze the text for: liability exposure, sensitive topics, compliance issues, potential controversies.
 Respond with JSON: { "score": 0-100, "decision": "approve|reject|abstain|request_revision", "reasoning": "explanation" }`,
   },
   {
-    id: randomUUID(),
-    role: 'seo_optimizer',
+    id: COUNCIL_MEMBER_IDS.brand,
+    role: 'council_brand',
     name: 'Brand Guardian',
     systemPrompt: `You are a Brand Guardian agent ensuring content aligns with Von Wobeser y Sierra's professional image.
 Analyze the text for: brand consistency, tone appropriateness, professional standards, client perception.
@@ -59,11 +68,30 @@ export class LegalCouncilService {
   private openaiApiKey: string;
 
   constructor() {
-    this.openaiBaseUrl = process.env.AI_INTEGRATIONS_OPENAI_BASE_URL || '';
-    this.openaiApiKey = process.env.AI_INTEGRATIONS_OPENAI_API_KEY || '';
+    // Fallback a OPENAI_API_KEY estándar (local) además de las env de Replit — es
+    // el contrato que promete server/llm.ts. Y baseUrl cae a la API pública de
+    // OpenAI si no se inyecta (antes quedaba '' → fetch relativo que lanzaba →
+    // Council deadlocked y el pipeline dejaba pasar el artículo sin evaluar).
+    this.openaiBaseUrl =
+      process.env.AI_INTEGRATIONS_OPENAI_BASE_URL || 'https://api.openai.com/v1';
+    this.openaiApiKey =
+      process.env.AI_INTEGRATIONS_OPENAI_API_KEY || process.env.OPENAI_API_KEY || '';
   }
 
   async evaluateArticle(text: string): Promise<CouncilVerdict> {
+    // Opt-out de costo: con LEGAL_COUNCIL_ENABLED=false se omite la evaluación
+    // (son 3 llamadas a OpenAI por artículo) y el artículo pasa a revisión manual.
+    // Por defecto (variable ausente) el Consejo sigue activo: cambio no-disruptivo.
+    if (process.env.LEGAL_COUNCIL_ENABLED === "false") {
+      console.log("[LegalCouncil] Deshabilitado (LEGAL_COUNCIL_ENABLED=false): se omite la evaluación, sin llamadas a OpenAI.");
+      return {
+        overallStatus: "approved",
+        riskFlag: "none",
+        consolidatedFeedback:
+          "Legal Council deshabilitado por configuración (LEGAL_COUNCIL_ENABLED=false). El artículo pasa a revisión manual sin evaluación automática.",
+      };
+    }
+
     const sessionId = randomUUID();
     console.log(`[LegalCouncil] Session ${sessionId}: Starting evaluation with ${COUNCIL_AGENTS.length} agents`);
 
@@ -109,6 +137,9 @@ export class LegalCouncilService {
 
     const response = await fetch(`${this.openaiBaseUrl}/chat/completions`, {
       method: 'POST',
+      // Sin signal, el fetch de undici (Node) cuelga indefinidamente si OpenAI no
+      // responde → los 3 jueces quedan colgados y bloquean la cola de jobs.
+      signal: AbortSignal.timeout(30_000),
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${this.openaiApiKey}`,
@@ -146,18 +177,19 @@ export class LegalCouncilService {
   }
 
   private normalizeDecision(decision: unknown): VoteDecision {
+    // Matching ESTRICTO contra el enum: igualdad exacta tras trim/lowercase.
+    // El matching previo por substring (includes 'pass'/'fail'/'disapprove'/'revise')
+    // malclasificaba votos — p.ej. "disapprove" contiene "approve" → se contaba como
+    // aprobación, y un razonamiento con la palabra "pass"/"fail" embebida sesgaba el voto.
+    // Cualquier valor que no coincida exactamente cae a 'abstain' (queda excluido del tally).
     const normalized = String(decision).toLowerCase().trim();
-    
+
     const validDecisions: VoteDecision[] = ['approve', 'reject', 'abstain', 'request_revision'];
-    
+
     if (validDecisions.includes(normalized as VoteDecision)) {
       return normalized as VoteDecision;
     }
-    
-    if (normalized.includes('approve') || normalized.includes('pass')) return 'approve';
-    if (normalized.includes('reject') || normalized.includes('fail')) return 'reject';
-    if (normalized.includes('revision') || normalized.includes('revise')) return 'request_revision';
-    
+
     return 'abstain';
   }
 

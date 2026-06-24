@@ -1,12 +1,14 @@
-import { useEffect, useRef, type RefObject } from "react";
+import { useCallback, useRef, type RefCallback } from "react";
 
 /**
  * useFadeOnScroll — replica del comportamiento `.fade_JS` / `.faded` del
  * sitio viejo de Von Wobeser (mirror Joomla beez3).
  *
- * El viejo añadía la clase `.faded` a los elementos al entrar en viewport,
- * disparando una transición de opacity + translateY. Aquí usamos un
- * IntersectionObserver y añadimos `addedClassName` (por defecto `vw-faded`).
+ * Devuelve un **callback ref**: se engancha al elemento cuando éste se monta,
+ * incluso si se renderiza más tarde (p.ej. tras cargar datos async). La versión
+ * anterior usaba useEffect+useRef y corría una sola vez al montar el componente;
+ * si el nodo se renderizaba después (bio del abogado tras el fetch), el observer
+ * nunca se enganchaba y el contenido quedaba atascado en opacity:0 ("en blanco").
  *
  * Uso:
  *   const ref = useFadeOnScroll<HTMLDivElement>();
@@ -28,7 +30,7 @@ export interface UseFadeOnScrollOptions {
 
 export function useFadeOnScroll<T extends HTMLElement = HTMLElement>(
   options: UseFadeOnScrollOptions = {},
-): RefObject<T> {
+): RefCallback<T> {
   const {
     addedClassName = "vw-faded",
     threshold = 0.15,
@@ -36,47 +38,54 @@ export function useFadeOnScroll<T extends HTMLElement = HTMLElement>(
     once = true,
   } = options;
 
-  const ref = useRef<T>(null);
+  const observerRef = useRef<IntersectionObserver | null>(null);
 
-  useEffect(() => {
-    const node = ref.current;
-    if (!node) return;
+  return useCallback(
+    (node: T | null) => {
+      // Limpia el observer previo (nodo desmontado o reemplazado).
+      if (observerRef.current) {
+        observerRef.current.disconnect();
+        observerRef.current = null;
+      }
+      if (!node) return;
 
-    // SSR / navegadores sin soporte: mostrar de inmediato.
-    if (typeof IntersectionObserver === "undefined") {
-      node.classList.add(addedClassName);
-      return;
-    }
+      // SSR / sin soporte o movimiento reducido: revela de inmediato.
+      const prefersReducedMotion =
+        typeof window !== "undefined" &&
+        window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+      if (typeof IntersectionObserver === "undefined" || prefersReducedMotion) {
+        node.classList.add(addedClassName);
+        return;
+      }
 
-    // Respeta la preferencia de movimiento reducido: revela sin animar.
-    const prefersReducedMotion =
-      typeof window !== "undefined" &&
-      window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
-    if (prefersReducedMotion) {
-      node.classList.add(addedClassName);
-      return;
-    }
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        for (const entry of entries) {
-          if (entry.isIntersecting) {
-            entry.target.classList.add(addedClassName);
-            if (once) observer.unobserve(entry.target);
-          } else if (!once) {
-            entry.target.classList.remove(addedClassName);
+      const observer = new IntersectionObserver(
+        (entries) => {
+          for (const entry of entries) {
+            if (entry.isIntersecting) {
+              entry.target.classList.add(addedClassName);
+              if (once) observer.unobserve(entry.target);
+            } else if (!once) {
+              entry.target.classList.remove(addedClassName);
+            }
           }
-        }
-      },
-      { threshold, rootMargin },
-    );
+        },
+        { threshold, rootMargin },
+      );
+      observer.observe(node);
+      observerRef.current = observer;
 
-    observer.observe(node);
-
-    return () => observer.disconnect();
-  }, [addedClassName, threshold, rootMargin, once]);
-
-  return ref;
+      // Revela de inmediato lo que YA está (parcial o totalmente) en el viewport
+      // al montar: el IntersectionObserver no siempre dispara para contenido
+      // above-the-fold en la carga inicial.
+      const rect = node.getBoundingClientRect();
+      const vh = window.innerHeight || document.documentElement.clientHeight;
+      if (rect.top < vh && rect.bottom > 0) {
+        node.classList.add(addedClassName);
+        if (once) observer.unobserve(node);
+      }
+    },
+    [addedClassName, threshold, rootMargin, once],
+  );
 }
 
 export default useFadeOnScroll;

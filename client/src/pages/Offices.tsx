@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Link } from "wouter";
 import {
   MapPin,
@@ -89,6 +89,38 @@ interface OfficeContent {
 export default function Offices() {
   const { language } = useLanguage();
   const [selectedImage, setSelectedImage] = useState<OfficeImage | null>(null);
+  // Accesibilidad del lightbox: foco al botón de cierre y restauración al cerrar
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
+  const previouslyFocusedRef = useRef<HTMLElement | null>(null);
+
+  // Cerrar el lightbox con Escape y gestionar el foco mientras hay imagen seleccionada
+  useEffect(() => {
+    if (!selectedImage) return;
+
+    // Recordar el elemento enfocado antes de abrir para restaurarlo al cerrar
+    previouslyFocusedRef.current = document.activeElement as HTMLElement | null;
+    // Mover el foco al botón de cierre al abrir
+    closeButtonRef.current?.focus();
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setSelectedImage(null);
+        return;
+      }
+      // Focus trap simple: mantener el foco dentro del modal (solo está el botón de cierre)
+      if (event.key === "Tab") {
+        event.preventDefault();
+        closeButtonRef.current?.focus();
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+      // Restaurar el foco al elemento que abrió el lightbox
+      previouslyFocusedRef.current?.focus();
+    };
+  }, [selectedImage]);
 
   const { data: officeImages, isLoading: imagesLoading } = useQuery<OfficeImage[]>({
     queryKey: ["/api/office-images"],
@@ -954,6 +986,9 @@ export default function Offices() {
         <div
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 p-4"
           onClick={() => setSelectedImage(null)}
+          role="dialog"
+          aria-modal="true"
+          aria-label={language === "es" ? selectedImage.altEs : selectedImage.alt}
           data-testid="modal-image-lightbox"
         >
           <div className="relative w-full max-w-5xl">
@@ -963,8 +998,10 @@ export default function Offices() {
               className="h-auto max-h-[80vh] w-full object-contain"
             />
             <button
+              ref={closeButtonRef}
               onClick={() => setSelectedImage(null)}
               className="absolute right-4 top-4 flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-white transition-colors hover:bg-white/20"
+              aria-label={language === "es" ? "Cerrar" : "Close"}
               data-testid="button-close-lightbox"
             >
               ×

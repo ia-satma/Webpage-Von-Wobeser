@@ -1,4 +1,6 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
+import { useLocation } from 'wouter';
+import { useAdminAuth } from "@/lib/adminAuth";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -229,7 +231,20 @@ function StatCard({ icon: Icon, label, value, color }: {
   );
 }
 
+// Guard de autenticación: esta página exponía el manifiesto interno (modelos,
+// tablas, internals del orquestador) a cualquier visitante porque su <Route> no
+// tenía guard. Igual que las demás páginas admin, ahora se cierra tras login.
 export default function SystemExplorer() {
+  const { isAuthenticated, isLoading } = useAdminAuth();
+  const [, setLocation] = useLocation();
+  useEffect(() => {
+    if (!isLoading && !isAuthenticated) setLocation("/admin/login");
+  }, [isLoading, isAuthenticated, setLocation]);
+  if (isLoading || !isAuthenticated) return null;
+  return <SystemExplorerContent />;
+}
+
+function SystemExplorerContent() {
   const { language } = useLanguage();
   const { toast } = useToast();
   const t = getTranslations(language);
