@@ -1,0 +1,255 @@
+/* links */
+.unseen {
+  display:none;
+}
+.skiplinks {
+  display:none;
+}
+
+/* banners */
+.slide-desc-bg-default{
+  background: transparent !important;
+}
+
+.slide-text p:first-child{
+  display:inline-block;
+  font-size:100px;
+  /*font-style:italic;*/
+  /*line-height:1;*/
+  font-family:"Publico-Roman",serif;
+  vertical-align:middle;
+  position: relative;
+  top: -195px;
+  left: 332px;
+  /*position: absolute;
+  top: -65px;
+  left: -32px;*/
+}
+
+/*.home__slider--item span:nth-child(0n+2){
+  font-size: 22px !important;
+  /*width: 48%;
+  width: 26%;
+}*/
+
+.home__slider--item span:nth-child(0n+2){
+  /*font-size: 22px !important;*/
+  /*font-size: 19px !important;*/
+    font-size: 18px !important;
+  width: 48%;
+}
+
+
+.home__slider--item span:nth-child(3) {
+    font-size: 17px !important;
+    margin-left: -148px;
+    position: relative;
+    top: 74px;
+    right: 122px;
+    float: right;
+}
+
+.home__slider--item span:nth-child(3) a {
+	color:#444 !important;
+}
+
+.home__slider--wrap {
+	width:100%;
+	color:#444;
+}
+
+.espacio{
+  width: 200vh;
+  position: absolute;
+  height: 14vw;
+  left: -45vw;
+  background-color: rgba(255,255,255,0.5);
+}
+
+.color_banner{
+  background-color: rgb(255,255,255);
+}
+
+.home__slider--item{
+  padding: 2% 0 !important;
+}
+
+/* Practicas */
+.text_intro_2{
+  right: 8% !important;
+  position: relative !important;
+}
+
+.text_intro_1{
+  top: -67% !important;
+  position: relative !important;
+  left: 25% !important;
+}
+
+/* Industrias */
+/* Industrias */
+.industria_intro_2{.fix_txt{
+ font-size: 18px !important;
+}
+  top: -14%;
+  right: 8% !important;
+  position: relative !important;
+}
+
+.industria_intro_1{
+  top: -87% !important;
+  position: relative !important;
+  left: 23% !important;
+}
+/*.industria_intro_2{
+  /*top: -14%;
+  right: 8% !important;
+  position: relative !important;
+  top: -14%;
+  right: 5% !important;
+  position: relative !important;
+}
+
+.industria_intro_1{
+  /*top: -87% !important;
+  position: relative !important;
+  left: 23% !important;
+  top: -87% !important;
+  position: relative !important;
+  left: 17% !important;
+}
+
+.industria_intro_3{
+  top: -87% !important;
+  position: relative !important;
+  left: 15% !important;
+}
+
+.industria_intro_4{
+  position: relative !important;
+  left: 23% !important;
+}*/
+
+/* estilo para banner : height: 521px;*/
+
+/* loader de practicas en ingles */
+/*#djslider-loader263{
+  height: 521px;
+}
+
+loader de industrias en ingles
+#djslider-loader264{
+  height: 523px;
+}
+
+loader de practicas en español
+#djslider-loader274{
+  height: 523px;
+}
+ loader de indistrias en español
+#djslider-loader275{
+  height: 523px;
+}*/
+
+/* banner logos
+#djslider-loader276{
+  height: 315px;
+  position: relative;
+  top: 55px;
+}*/
+
+
+/* Desk style*/
+
+.page_desk{
+  top: 66px;
+  position: relative;
+}
+
+
+/* Estilo de top News */
+.top_news{
+  position: relative;
+  top: 75px;
+}
+
+/* Pagination */
+.pagination{
+  width: 1131px;
+  position: fixed;
+  left: 0px;
+  margin-top: -37px;
+}
+
+/* telefono with*/
+.tel_width{
+  width: 202px !important;
+}
+
+
+/* see more / ver mas */
+.slide-desc-text-default a.readmore{
+  float: right;
+  margin-bottom: 0 !important;
+  color: #fff;
+  position: relative;
+  top: 13px;
+}
+
+
+/* SEE MORE - VER MAS */
+#cust-navigation263, #cust-navigation274, #cust-navigation275, #cust-navigation264 {
+    position: absolute;
+    top: 433px !important;
+    right: 10px;
+}
+
+.readmore{
+  color: #fff ;
+  position: relative ;
+  right: 15px;
+}
+
+.img_banner{
+	width: 114px !important;
+
+}
+
+.img_banner2{
+	width: 109px !important;
+
+}
+
+.tabs{
+	display:none;
+}
+
+.see-more{
+  position: relative;
+  float: right;
+  top: -99px;
+}
+
+.logo_cham{
+  width: 151px;
+  top: 19px;
+  position: relative;
+}
+
+.not_found{
+	width: 100%;
+	text-align: center;
+	top: 5vh;
+  height: 28vh;
+	position: relative;
+}
+
+
+/* Practicas */
+.fix-practicas{
+  top: 5% !important;
+  position: relative !important;
+  left: 1% !important;
+}
+
+
