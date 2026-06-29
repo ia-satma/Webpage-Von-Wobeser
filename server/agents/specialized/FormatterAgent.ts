@@ -27,7 +27,7 @@ Output format:
   "content": "cleaned and properly formatted content",
   "excerpt": "first 2-3 sentences as excerpt"
 }`,
-  model: 'gpt-4o',
+  model: 'claude-sonnet-4-6',
   temperature: 0.2,
   maxTokens: 8000,
   skills: ['text_cleanup', 'paragraph_detection', 'legal_formatting'],

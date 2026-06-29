@@ -1,3 +1,4 @@
+import "dotenv/config";
 import express, { type Request, Response, NextFunction } from "express";
 import cors from "cors";
 import compression from "compression";
@@ -75,6 +76,11 @@ app.use((req, res, next) => {
 (async () => {
   await registerRoutes(httpServer, app);
 
+  // Mirror frontend (original site look) wired to our backend. Registered
+  // after the API routes and before the SPA catch-all in setupVite/serveStatic.
+  const { setupMirror } = await import("./mirror");
+  await setupMirror(app);
+
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
     const status = err.status || err.statusCode || 500;
     const message = err.message || "Internal Server Error";
@@ -102,7 +108,9 @@ app.use((req, res, next) => {
     {
       port,
       host: "0.0.0.0",
-      reusePort: true,
+      // reusePort (SO_REUSEPORT) is supported on Linux (Replit) but not macOS,
+      // where it throws ENOTSUP. Enable it only where the OS supports it.
+      ...(process.platform === "linux" ? { reusePort: true } : {}),
     },
     async () => {
       log(`serving on port ${port}`);

@@ -34,7 +34,7 @@ Return JSON:
   "seoScore": 0-100,
   "improvements": ["improvement1", "improvement2"]
 }`,
-  model: 'gpt-4o',
+  model: 'claude-sonnet-4-6',
   temperature: 0.4,
   maxTokens: 2000,
   skills: ['seo_analysis', 'keyword_optimization', 'meta_generation'],

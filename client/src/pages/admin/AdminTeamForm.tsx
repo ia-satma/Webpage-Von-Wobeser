@@ -14,6 +14,15 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
+import { ImageUpload } from "@/components/admin/ImageUpload";
+import { ConfirmChangesDialog, computeChanges, type Change } from "@/components/admin/ConfirmChangesDialog";
+
+const TEAM_LABELS: Record<string, string> = {
+  name: "Nombre", slug: "Slug", title: "Cargo", titleEs: "Cargo (español)",
+  role: "Rol", roleEs: "Rol (español)", email: "Email", phone: "Teléfono",
+  imageUrl: "Foto", linkedinUrl: "LinkedIn", isPartner: "Socio",
+  published: "Visible en el sitio", bio: "Biografía", bioEs: "Biografía (español)",
+};
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
@@ -194,10 +203,11 @@ const teamMemberFormSchema = z.object({
   email: z.string().email().optional().or(z.literal("")),
   phone: z.string().optional(),
   linkedinUrl: z.string().url().optional().or(z.literal("")),
-  imageUrl: z.string().url().optional().or(z.literal("")),
+  imageUrl: z.string().optional().or(z.literal("")),
   bio: z.string().optional(),
   bioEs: z.string().optional(),
   isPartner: z.boolean().default(false),
+  published: z.boolean().default(true),
   order: z.coerce.number().min(0).default(0),
 });
 
@@ -230,6 +240,7 @@ export default function AdminTeamForm() {
       bio: "",
       bioEs: "",
       isPartner: false,
+      published: true,
       order: 0,
     },
   });
@@ -274,6 +285,7 @@ export default function AdminTeamForm() {
         bio: member.bio || "",
         bioEs: member.bioEs || "",
         isPartner: member.isPartner || false,
+        published: member.published !== false,
         order: member.order || 0,
       });
     }
@@ -329,6 +341,16 @@ export default function AdminTeamForm() {
     },
   });
 
+  const [confirm, setConfirm] = useState<{ data: any; changes: Change[] } | null>(null);
+
+  const doSave = (cleanData: any) => {
+    if (isEditMode) {
+      updateMutation.mutate(cleanData as TeamMemberFormData);
+    } else {
+      createMutation.mutate(cleanData as TeamMemberFormData);
+    }
+  };
+
   const onSubmit = (data: TeamMemberFormData) => {
     const cleanData = {
       ...data,
@@ -339,12 +361,9 @@ export default function AdminTeamForm() {
       bio: data.bio || null,
       bioEs: data.bioEs || null,
     };
-
-    if (isEditMode) {
-      updateMutation.mutate(cleanData as TeamMemberFormData);
-    } else {
-      createMutation.mutate(cleanData as TeamMemberFormData);
-    }
+    // Muestra un resumen de lo que se va a guardar antes de confirmar.
+    const changes = computeChanges(isEditMode ? (member as any) || {} : {}, cleanData, TEAM_LABELS);
+    setConfirm({ data: cleanData, changes });
   };
 
   const generateSlug = () => {
@@ -827,12 +846,7 @@ export default function AdminTeamForm() {
                                     {t.imageUrl}
                                   </FormLabel>
                                   <FormControl>
-                                    <Input 
-                                      {...field} 
-                                      className="rounded-none border-[#D9D8D7] focus:border-[#AA1A2E] focus:ring-[#AA1A2E]"
-                                      placeholder="https://example.com/photo.jpg"
-                                      data-testid="input-image" 
-                                    />
+                                    <ImageUpload value={field.value || ""} onChange={field.onChange} placeholder="https://… o pega una ruta" />
                                   </FormControl>
                                   <FormDescription className="text-[#878A8E] text-xs">
                                     {t.imageHint}
@@ -968,6 +982,31 @@ export default function AdminTeamForm() {
 
                           <FormField
                             control={form.control}
+                            name="published"
+                            render={({ field }) => (
+                              <FormItem className="flex items-center justify-between p-4 border border-[#D9D8D7] bg-card">
+                                <div className="space-y-1">
+                                  <FormLabel className="text-[#1D1D1B] font-medium">
+                                    Visible en el sitio
+                                  </FormLabel>
+                                  <FormDescription className="text-[#878A8E] text-sm">
+                                    Si lo apagas, este abogado se oculta del sitio público (sin eliminarlo).
+                                  </FormDescription>
+                                </div>
+                                <FormControl>
+                                  <Switch
+                                    checked={field.value}
+                                    onCheckedChange={field.onChange}
+                                    className="data-[state=checked]:bg-[#AA1A2E]"
+                                    data-testid="switch-published"
+                                  />
+                                </FormControl>
+                              </FormItem>
+                            )}
+                          />
+
+                          <FormField
+                            control={form.control}
                             name="order"
                             render={({ field }) => (
                               <FormItem>
@@ -1093,6 +1132,18 @@ export default function AdminTeamForm() {
           </div>
         </div>
       </div>
+
+      <ConfirmChangesDialog
+        open={!!confirm}
+        onOpenChange={(o) => !o && setConfirm(null)}
+        changes={confirm?.changes || []}
+        loading={updateMutation.isPending || createMutation.isPending}
+        title={isEditMode ? "Confirmar cambios del abogado" : "Confirmar nuevo abogado"}
+        onConfirm={() => {
+          if (confirm) doSave(confirm.data);
+          setConfirm(null);
+        }}
+      />
     </div>
   );
 }

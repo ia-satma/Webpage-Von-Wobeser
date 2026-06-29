@@ -8,7 +8,7 @@ import {
   EvolutionProposal,
   KnowledgeDocument
 } from './types';
-import { openai } from '../../openai';
+import { openai, extractJson } from '../../openai';
 
 export abstract class BaseAgent {
   protected config: AgentConfig;
@@ -33,8 +33,8 @@ export abstract class BaseAgent {
     messages: { role: 'system' | 'user' | 'assistant'; content: string }[],
     options?: { temperature?: number; maxTokens?: number; jsonMode?: boolean }
   ): Promise<string> {
-    const primaryModel = this.config.model || 'gpt-4o';
-    const fallbackModels = ['gpt-4o-mini', 'gpt-3.5-turbo'];
+    const primaryModel = this.config.model || 'claude-sonnet-4-6';
+    const fallbackModels = ['claude-haiku-4-5'];
     const allModels = [primaryModel, ...fallbackModels.filter(m => m !== primaryModel)];
     
     let lastError: Error | null = null;
@@ -45,14 +45,18 @@ export abstract class BaseAgent {
           model,
           messages: [
             { role: 'system', content: this.config.systemPrompt },
+            ...(options?.jsonMode ? [{
+              role: 'system' as const,
+              content: 'Respond with ONLY a single valid, parseable JSON value and nothing else. Escape EVERY double quote inside string values as \\" and every newline as \\n. Do not wrap the JSON in markdown code fences. Do not add any text before or after the JSON.',
+            }] : []),
             ...messages
           ],
           temperature: options?.temperature ?? this.config.temperature ?? 0.7,
           max_tokens: options?.maxTokens ?? this.config.maxTokens ?? 4096,
-          response_format: options?.jsonMode ? { type: 'json_object' } : undefined,
         });
 
-        return response.choices[0]?.message?.content || '';
+        const content = response.choices[0]?.message?.content || '';
+        return options?.jsonMode ? extractJson(content) : content;
       } catch (error: any) {
         lastError = error;
         const isQuotaError = error?.status === 429 || 

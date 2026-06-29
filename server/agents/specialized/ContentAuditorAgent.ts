@@ -27,7 +27,7 @@ const AUDITOR_CONFIG: AgentConfig = {
 4. Generate tasks for other agents to fix issues
 
 Be thorough but efficient. Focus on issues that impact user experience.`,
-  model: 'gpt-4o',
+  model: 'claude-sonnet-4-6',
   temperature: 0.2,
   maxTokens: 4000,
   skills: ['content_analysis', 'gap_detection', 'quality_assessment'],
@@ -57,15 +57,24 @@ export class ContentAuditorAgent extends BaseAgent {
       const articles = await db.select().from(news);
       stats.articlesScanned = articles.length;
 
+      // Pre-cargar traducciones y autores UNA vez (evita N+1: con miles de artículos,
+      // una query por artículo satura a Neon y provoca timeout).
+      const langsByEntity = new Map<string, Set<string>>();
+      for (const c of await db.select().from(translationCache)) {
+        if (!langsByEntity.has(c.entityId)) langsByEntity.set(c.entityId, new Set());
+        langsByEntity.get(c.entityId)!.add(c.targetLanguage);
+      }
+      const newsWithAuthors = new Set((await db.select().from(newsTeamMembers)).map(a => a.newsId));
+
       for (const article of articles) {
         if (!scanType || scanType === 'full' || scanType === 'translations') {
-          const translationGaps = await this.checkTranslations(article);
+          const translationGaps = this.checkTranslations(article, langsByEntity.get(article.id) ?? new Set());
           gaps.push(...translationGaps);
           stats.translationGaps += translationGaps.length;
         }
 
         if (!scanType || scanType === 'full' || scanType === 'metadata') {
-          const authorGaps = await this.checkAuthors(article);
+          const authorGaps = this.checkAuthors(article, newsWithAuthors.has(article.id));
           gaps.push(...authorGaps);
           stats.authorGaps += authorGaps.length;
         }
@@ -107,14 +116,8 @@ export class ContentAuditorAgent extends BaseAgent {
     }
   }
 
-  private async checkTranslations(article: typeof news.$inferSelect): Promise<ContentGap[]> {
+  private checkTranslations(article: typeof news.$inferSelect, cachedLanguages: Set<string>): ContentGap[] {
     const gaps: ContentGap[] = [];
-
-    const cached = await db.select()
-      .from(translationCache)
-      .where(eq(translationCache.entityId, article.id));
-
-    const cachedLanguages = new Set(cached.map(c => c.targetLanguage));
 
     for (const lang of LANGUAGES) {
       if (lang === 'en' || lang === 'es') continue;
@@ -134,14 +137,10 @@ export class ContentAuditorAgent extends BaseAgent {
     return gaps;
   }
 
-  private async checkAuthors(article: typeof news.$inferSelect): Promise<ContentGap[]> {
+  private checkAuthors(article: typeof news.$inferSelect, hasAuthor: boolean): ContentGap[] {
     const gaps: ContentGap[] = [];
 
-    const authors = await db.select()
-      .from(newsTeamMembers)
-      .where(eq(newsTeamMembers.newsId, article.id));
-
-    if (authors.length === 0) {
+    if (!hasAuthor) {
       gaps.push({
         articleId: article.id,
         articleTitle: article.title || article.titleEs || 'Unknown',

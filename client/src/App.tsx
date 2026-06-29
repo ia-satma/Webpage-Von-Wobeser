@@ -1,4 +1,4 @@
-import { Switch, Route, useLocation } from "wouter";
+import { Switch, Route, useLocation, Redirect } from "wouter";
 import { useEffect, lazy, Suspense } from "react";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
@@ -16,33 +16,13 @@ function ScrollToTop() {
   return null;
 }
 
-import Home from "@/pages/Home";
+// NOTE: The public site is served by the mirror frontend (Express, server/mirror).
+// This React app is the ADMIN PANEL ONLY. Public redesign pages were removed.
 const NotFound = lazy(() => import("@/pages/not-found"));
 
-const PracticeGroups = lazy(() => import("@/pages/PracticeGroups"));
-const PracticeGroupDetail = lazy(() => import("@/pages/PracticeGroupDetail"));
-const IndustryGroups = lazy(() => import("@/pages/IndustryGroups"));
-const IndustryGroupDetail = lazy(() => import("@/pages/IndustryGroupDetail"));
-const Team = lazy(() => import("@/pages/Team"));
-const TeamMemberDetail = lazy(() => import("@/pages/TeamMemberDetail"));
-const NewsDetail = lazy(() => import("@/pages/NewsDetail"));
-const News = lazy(() => import("@/pages/News"));
-const Contact = lazy(() => import("@/pages/Contact"));
-const About = lazy(() => import("@/pages/About"));
-const Careers = lazy(() => import("@/pages/Careers"));
-const Interns = lazy(() => import("@/pages/Interns"));
-const Experience = lazy(() => import("@/pages/Experience"));
-const PrivacyPolicy = lazy(() => import("@/pages/PrivacyPolicy"));
-const Terms = lazy(() => import("@/pages/Terms"));
-const Rankings = lazy(() => import("@/pages/Rankings"));
-const Offices = lazy(() => import("@/pages/Offices"));
-const DiversityInclusion = lazy(() => import("@/pages/DiversityInclusion"));
-const ProBono = lazy(() => import("@/pages/ProBono"));
-const GermanDesk = lazy(() => import("@/pages/GermanDesk"));
-const Articles = lazy(() => import("@/pages/Articles"));
-const Newsletter = lazy(() => import("@/pages/Newsletter"));
-const Events = lazy(() => import("@/pages/Events"));
 const AdminLogin = lazy(() => import("@/pages/admin/AdminLogin"));
+const AdminSiteConfig = lazy(() => import("@/pages/admin/AdminSiteConfig"));
+const AdminRecognitions = lazy(() => import("@/pages/admin/AdminRecognitions"));
 const AdminDashboard = lazy(() => import("@/pages/admin/AdminDashboard"));
 const AdminPosts = lazy(() => import("@/pages/admin/AdminPosts"));
 const AdminPostForm = lazy(() => import("@/pages/admin/AdminPostForm"));
@@ -137,32 +117,12 @@ function Router() {
   return (
     <Suspense fallback={null}>
       <Switch>
-        <Route path="/" component={Home} />
-        <Route path="/about" component={About} />
-        <Route path="/practice-groups" component={PracticeGroups} />
-        <Route path="/practice-groups/:slug" component={PracticeGroupDetail} />
-        <Route path="/industry-groups" component={IndustryGroups} />
-        <Route path="/industry-groups/:slug" component={IndustryGroupDetail} />
-        <Route path="/team" component={Team} />
-        <Route path="/team/:slug" component={TeamMemberDetail} />
-        <Route path="/news" component={News} />
-        <Route path="/news/:slug" component={NewsDetail} />
-        <Route path="/contact" component={Contact} />
-        <Route path="/careers" component={Careers} />
-        <Route path="/careers/interns" component={Interns} />
-        <Route path="/experience" component={Experience} />
-        <Route path="/privacy-policy" component={PrivacyPolicy} />
-        <Route path="/terms" component={Terms} />
-        <Route path="/rankings" component={Rankings} />
-        <Route path="/offices" component={Offices} />
-        <Route path="/diversity-inclusion" component={DiversityInclusion} />
-        <Route path="/pro-bono" component={ProBono} />
-        <Route path="/german-desk" component={GermanDesk} />
-        <Route path="/articles" component={Articles} />
-        <Route path="/newsletter" component={Newsletter} />
-        <Route path="/events" component={Events} />
+        {/* Root of the React app → admin (public site lives in the mirror). */}
+        <Route path="/"><Redirect to="/admin/login" /></Route>
         <Route path="/admin/login" component={AdminLogin} />
         <Route path="/admin/dashboard" component={AdminDashboard} />
+        <Route path="/admin/site-config" component={AdminSiteConfig} />
+        <Route path="/admin/recognitions" component={AdminRecognitions} />
         <Route path="/admin/posts" component={AdminPosts} />
         <Route path="/admin/posts/new" component={AdminPostForm} />
         <Route path="/admin/posts/:id/edit" component={AdminPostForm} />

@@ -103,6 +103,8 @@ export const news = pgTable("news", {
   failedStep: text("failed_step"), // Which step failed: format, categorize, metadata, seo, translate, image, council
   // Content scheduling: articles with a future publishAt are hidden from public routes
   publishAt: timestamp("publish_at"),
+  // ID original de la publicación en el sitio Joomla (p_id), para mapear URLs originales
+  legacyId: text("legacy_id"),
   // Legal Council AI evaluation
   councilVerdict: jsonb("council_verdict"), // Stores CouncilVerdict: { overallStatus, riskFlag, consolidatedFeedback }
 });
@@ -162,6 +164,7 @@ export const practiceGroups = pgTable("practice_groups", {
   iconName: text("icon_name"),
   imageUrl: text("image_url"),
   order: integer("order").default(0),
+  published: boolean("published").default(true),
 });
 
 export const insertPracticeGroupSchema = createInsertSchema(practiceGroups).omit({ id: true });
@@ -180,6 +183,7 @@ export const industryGroups = pgTable("industry_groups", {
   iconName: text("icon_name"),
   imageUrl: text("image_url"),
   order: integer("order").default(0),
+  published: boolean("published").default(true),
 });
 
 export const insertIndustryGroupSchema = createInsertSchema(industryGroups).omit({ id: true });
@@ -202,6 +206,7 @@ export const teamMembers = pgTable("team_members", {
   linkedinUrl: text("linkedin_url"),
   isPartner: boolean("is_partner").default(false),
   order: integer("order").default(0),
+  published: boolean("published").default(true),
   // Extended profile fields
   education: jsonb("education").$type<Education[]>(),
   barAdmissions: jsonb("bar_admissions").$type<BarAdmission[]>(),

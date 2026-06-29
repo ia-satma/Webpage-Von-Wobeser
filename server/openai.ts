@@ -2,11 +2,22 @@ import OpenAI from "openai";
 
 // Using Replit's AI Integrations service - provides OpenAI-compatible API access
 // without requiring your own OpenAI API key. Charges are billed to Replit credits.
-// the newest OpenAI model is "gpt-5" which was released August 7, 2025. do not change this unless explicitly requested by the user
+// Apuntado al endpoint compatible de Claude (Anthropic) — modelo claude-sonnet-4-6.
 export const openai = new OpenAI({
   baseURL: process.env.AI_INTEGRATIONS_OPENAI_BASE_URL,
   apiKey: process.env.AI_INTEGRATIONS_OPENAI_API_KEY
 });
+
+// El endpoint compatible de Claude no acepta response_format:json_object; los prompts
+// piden JSON y Claude lo devuelve. Este helper extrae el JSON aunque venga con fences.
+export function extractJson(s: string): string {
+  const fence = s.match(/```(?:json)?\s*([\s\S]*?)```/i);
+  if (fence) return fence[1].trim();
+  const start = s.search(/[{[]/);
+  const end = Math.max(s.lastIndexOf("}"), s.lastIndexOf("]"));
+  if (start >= 0 && end > start) return s.slice(start, end + 1);
+  return s.trim();
+}
 
 export const SUPPORTED_LANGUAGES = [
   { code: "en", name: "English", nameNative: "English" },
@@ -33,7 +44,7 @@ export async function translateLegalText(
   }
 
   const response = await openai.chat.completions.create({
-    model: "gpt-5",
+    model: "claude-sonnet-4-6",
     messages: [
       {
         role: "system",
@@ -54,11 +65,10 @@ Respond with JSON in this format: { "translation": "translated text here" }`,
         content: text,
       },
     ],
-    response_format: { type: "json_object" },
-    max_completion_tokens: 4096,
+    max_tokens: 4096,
   });
 
-  const result = JSON.parse(response.choices[0].message.content || "{}");
+  const result = JSON.parse(extractJson(response.choices[0].message.content || "{}"));
   return result.translation || text;
 }
 
@@ -74,7 +84,7 @@ export async function translateMultipleTexts(
   const textsForTranslation = texts.map(({ key, text }) => `${key}: ${text}`).join("\n---\n");
 
   const response = await openai.chat.completions.create({
-    model: "gpt-5",
+    model: "claude-sonnet-4-6",
     messages: [
       {
         role: "system",
@@ -87,11 +97,10 @@ Respond with JSON where keys are the original keys and values are the translatio
         content: textsForTranslation,
       },
     ],
-    response_format: { type: "json_object" },
-    max_completion_tokens: 8192,
+    max_tokens: 8192,
   });
 
-  return JSON.parse(response.choices[0].message.content || "{}");
+  return JSON.parse(extractJson(response.choices[0].message.content || "{}"));
 }
 
 export async function suggestTranslation(
@@ -105,7 +114,7 @@ export async function suggestTranslation(
     .join("\n");
 
   const response = await openai.chat.completions.create({
-    model: "gpt-5",
+    model: "claude-sonnet-4-6",
     messages: [
       {
         role: "system",
@@ -121,9 +130,8 @@ Confidence should be between 0 and 1, where 1 means highly confident.`,
         content: `Original text:\n${originalText}\n\nExisting translations:\n${existingLanguages || "None available"}`,
       },
     ],
-    response_format: { type: "json_object" },
-    max_completion_tokens: 4096,
+    max_tokens: 4096,
   });
 
-  return JSON.parse(response.choices[0].message.content || '{"translation": "", "confidence": 0}');
+  return JSON.parse(extractJson(response.choices[0].message.content || '{"translation": "", "confidence": 0}'));
 }

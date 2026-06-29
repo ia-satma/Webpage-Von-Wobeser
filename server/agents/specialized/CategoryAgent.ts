@@ -55,7 +55,7 @@ Return JSON format:
   "confidence": 0.95,
   "reasoning": "Brief explanation of categorization"
 }`,
-  model: 'gpt-4o-mini',
+  model: 'claude-sonnet-4-6',
   temperature: 0.3,
   maxTokens: 1000,
   skills: ['content_categorization', 'legal_analysis', 'seo_tagging'],

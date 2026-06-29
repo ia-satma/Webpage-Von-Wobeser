@@ -19,7 +19,7 @@ const ANALYZER_CONFIG: AgentConfig = {
 6. Industry Identification: Primary and secondary industries
 
 Be thorough but concise. Focus on actionable insights.`,
-  model: 'gpt-4o',
+  model: 'claude-sonnet-4-6',
   temperature: 0.3,
   maxTokens: 8000,
   skills: ['content_analysis', 'seo_optimization', 'legal_categorization', 'grammar_review'],

@@ -13,6 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
+import { ImageUpload } from "@/components/admin/ImageUpload";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -574,6 +575,7 @@ const createPracticeGroupSchema = (t: typeof translations.en) => z.object({
   fullDescriptionEs: z.string().max(5000).optional(),
   iconName: z.string().max(50).optional(),
   order: z.number().int().min(0).default(0),
+  published: z.boolean().default(true),
   imageUrl: z.string().max(500).optional(),
 });
 
@@ -617,6 +619,7 @@ export default function AdminPracticeGroups() {
       fullDescriptionEs: "",
       iconName: "",
       order: 0,
+      published: true,
       imageUrl: "",
     },
   });
@@ -690,6 +693,7 @@ export default function AdminPracticeGroups() {
       fullDescriptionEs: group.fullDescriptionEs || "",
       iconName: group.iconName || "",
       order: group.order || 0,
+      published: group.published !== false,
       imageUrl: group.imageUrl || "",
     });
     setIsDialogOpen(true);
@@ -942,6 +946,36 @@ export default function AdminPracticeGroups() {
                               />
                             </FormControl>
                             <FormDescription>{t.orderDescription}</FormDescription>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={form.control}
+                        name="published"
+                        render={({ field }) => (
+                          <FormItem className="flex items-center justify-between border p-3">
+                            <div className="space-y-0.5">
+                              <FormLabel>Visible en el sitio</FormLabel>
+                              <FormDescription>Si lo apagas, se oculta del sitio público (sin eliminarlo).</FormDescription>
+                            </div>
+                            <FormControl>
+                              <Switch checked={field.value} onCheckedChange={field.onChange} data-testid="switch-published" />
+                            </FormControl>
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={form.control}
+                        name="imageUrl"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Imagen</FormLabel>
+                            <FormControl>
+                              <ImageUpload value={field.value || ""} onChange={field.onChange} />
+                            </FormControl>
                             <FormMessage />
                           </FormItem>
                         )}

@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "wouter";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -32,7 +32,9 @@ import {
   BookOpen,
   ChevronRight,
   Layers,
-  Images
+  Images,
+  Settings,
+  Award
 } from "lucide-react";
 
 const translations = {
@@ -600,6 +602,8 @@ interface CMSStats {
 export default function AdminDashboard() {
   const { language } = useLanguage();
   const { isAuthenticated, isLoading: authLoading, logout, requireAuth } = useAdminAuth();
+  // Caja "Distribución por Idioma" colapsada por defecto (foco en ES/EN).
+  const [showLangDist, setShowLangDist] = useState(false);
   const t = translations[language as keyof typeof translations] || translations.en;
 
   useEffect(() => {
@@ -645,19 +649,28 @@ export default function AdminDashboard() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <LayoutDashboard className="h-6 w-6 text-primary" />
-              <h1 className="text-xl font-semibold" data-testid="text-dashboard-title">
+              <img src="/logo-color.png" alt="Von Wobeser y Sierra" className="h-9 w-auto" data-testid="img-admin-logo" />
+              <span className="hidden sm:inline-block h-6 w-px bg-border" />
+              <h1 className="text-lg font-heading" data-testid="text-dashboard-title">
                 {t.title}
               </h1>
             </div>
-            <Button 
-              variant="outline" 
-              onClick={logout}
-              data-testid="button-logout"
-            >
-              <LogOut className="mr-2 h-4 w-4" />
-              {t.logout}
-            </Button>
+            <div className="flex items-center gap-2">
+              <a href="/" target="_blank" rel="noopener noreferrer">
+                <Button variant="outline" data-testid="button-view-site">
+                  <Globe className="mr-2 h-4 w-4" />
+                  Ver sitio
+                </Button>
+              </a>
+              <Button
+                variant="outline"
+                onClick={logout}
+                data-testid="button-logout"
+              >
+                <LogOut className="mr-2 h-4 w-4" />
+                {t.logout}
+              </Button>
+            </div>
           </div>
         </div>
       </header>
@@ -685,6 +698,131 @@ export default function AdminDashboard() {
             )}
           </Badge>
         </div>
+
+        {/* Administración del sitio — lo más importante, primero */}
+        <Card className="mb-8" data-testid="card-quick-actions">
+          <CardHeader>
+            <CardTitle>Administración del sitio</CardTitle>
+            <CardDescription>Todo lo editable, organizado por tipo</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
+
+              {/* ── CONTENIDO DEL SITIO ── */}
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">
+                  Contenido del sitio
+                </p>
+                <div className="space-y-2">
+                  <Link href="/admin/team">
+                    <Button variant="outline" className="w-full justify-start" data-testid="button-team-members">
+                      <Users className="mr-2 h-4 w-4" /> Abogados y equipo
+                    </Button>
+                  </Link>
+                  <Link href="/admin/practice-groups">
+                    <Button variant="outline" className="w-full justify-start" data-testid="button-practice-groups">
+                      <Briefcase className="mr-2 h-4 w-4" /> Áreas de práctica
+                    </Button>
+                  </Link>
+                  <Link href="/admin/industry-groups">
+                    <Button variant="outline" className="w-full justify-start" data-testid="button-industry-groups">
+                      <Building2 className="mr-2 h-4 w-4" /> Sectores / Industrias
+                    </Button>
+                  </Link>
+                  <Link href="/admin/news">
+                    <Button variant="outline" className="w-full justify-start" data-testid="button-news-articles">
+                      <Newspaper className="mr-2 h-4 w-4" /> Noticias
+                    </Button>
+                  </Link>
+                  <Link href="/admin/events">
+                    <Button variant="outline" className="w-full justify-start" data-testid="button-events">
+                      <Calendar className="mr-2 h-4 w-4" /> Eventos
+                    </Button>
+                  </Link>
+                  <Link href="/admin/recognitions">
+                    <Button variant="outline" className="w-full justify-start" data-testid="button-recognitions">
+                      <Award className="mr-2 h-4 w-4" /> Reconocimientos
+                    </Button>
+                  </Link>
+                  <Link href="/admin/posts">
+                    <Button variant="outline" className="w-full justify-start" data-testid="button-all-posts">
+                      <FileText className="mr-2 h-4 w-4" /> Blog / Artículos
+                    </Button>
+                  </Link>
+                  <Link href="/admin/categories">
+                    <Button variant="outline" className="w-full justify-start" data-testid="button-manage-categories">
+                      <FolderOpen className="mr-2 h-4 w-4" /> Categorías
+                    </Button>
+                  </Link>
+                </div>
+              </div>
+
+              {/* ── CONFIGURACIÓN DEL SITIO ── */}
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">
+                  Configuración del sitio
+                </p>
+                <div className="space-y-2">
+                  <Link href="/admin/site-config">
+                    <Button variant="outline" className="w-full justify-start bg-primary/5 border-primary/20" data-testid="button-site-config">
+                      <Settings className="mr-2 h-4 w-4 text-primary" /> Textos, video y logos
+                    </Button>
+                  </Link>
+                  <Link href="/admin/gallery">
+                    <Button variant="outline" className="w-full justify-start" data-testid="button-gallery">
+                      <Images className="mr-2 h-4 w-4" /> Galería de imágenes
+                    </Button>
+                  </Link>
+                  <Link href="/admin/translations">
+                    <Button variant="outline" className="w-full justify-start" data-testid="button-translations-dashboard">
+                      <Languages className="mr-2 h-4 w-4" /> Traducciones
+                    </Button>
+                  </Link>
+                </div>
+              </div>
+
+              {/* ── SISTEMA E IA (AVANZADO) ── */}
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">
+                  Sistema e IA · avanzado
+                </p>
+                <div className="space-y-2">
+                  <Link href="/admin/agents">
+                    <Button variant="outline" className="w-full justify-start" data-testid="button-ai-agents">
+                      <Bot className="mr-2 h-4 w-4" /> Agentes IA
+                    </Button>
+                  </Link>
+                  <Link href="/admin/processing">
+                    <Button variant="outline" className="w-full justify-start" data-testid="button-article-processing">
+                      <Cog className="mr-2 h-4 w-4" /> Procesamiento de artículos
+                    </Button>
+                  </Link>
+                  <Link href="/admin/knowledge">
+                    <Button variant="outline" className="w-full justify-start" data-testid="button-knowledge-base">
+                      <BookOpen className="mr-2 h-4 w-4" /> Base de conocimiento
+                    </Button>
+                  </Link>
+                  <Link href="/admin/explorer">
+                    <Button variant="outline" className="w-full justify-start" data-testid="button-system-explorer">
+                      <Layers className="mr-2 h-4 w-4" /> Explorador del sistema
+                    </Button>
+                  </Link>
+                  <Link href="/admin/health-check">
+                    <Button variant="outline" className="w-full justify-start" data-testid="button-health-check">
+                      <Activity className="mr-2 h-4 w-4" /> Salud del sistema
+                    </Button>
+                  </Link>
+                  <Link href="/admin/guide">
+                    <Button variant="outline" className="w-full justify-start" data-testid="button-platform-guide">
+                      <Bot className="mr-2 h-4 w-4" /> Guía de la plataforma
+                    </Button>
+                  </Link>
+                </div>
+              </div>
+
+            </div>
+          </CardContent>
+        </Card>
 
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 mb-8">
           <Card data-testid="card-stats-total-articles">
@@ -801,12 +939,20 @@ export default function AdminDashboard() {
           </Card>
 
           <Card className="lg:col-span-2" data-testid="card-language-distribution">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Languages className="h-5 w-5" />
-                {t.languageDistribution}
+            <CardHeader
+              className="cursor-pointer select-none"
+              onClick={() => setShowLangDist((v) => !v)}
+              data-testid="toggle-language-distribution"
+            >
+              <CardTitle className="flex items-center justify-between gap-2">
+                <span className="flex items-center gap-2">
+                  <Languages className="h-5 w-5" />
+                  {t.languageDistribution}
+                </span>
+                <ChevronRight className={`h-4 w-4 transition-transform ${showLangDist ? "rotate-90" : ""}`} />
               </CardTitle>
             </CardHeader>
+            {showLangDist && (
             <CardContent>
               {cmsStatsQuery.isLoading ? (
                 <div className="space-y-3">
@@ -843,11 +989,11 @@ export default function AdminDashboard() {
                 </div>
               )}
             </CardContent>
+            )}
           </Card>
         </div>
 
-        <div className="grid gap-6 lg:grid-cols-3">
-          <Card className="lg:col-span-2" data-testid="card-recent-activity">
+        <Card data-testid="card-recent-activity">
             <CardHeader>
               <div className="flex items-center justify-between">
                 <CardTitle className="flex items-center gap-2">
@@ -909,110 +1055,6 @@ export default function AdminDashboard() {
             </CardContent>
           </Card>
 
-          <Card data-testid="card-quick-actions">
-            <CardHeader>
-              <CardTitle>{t.quickActions}</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <Link href="/admin/posts/new">
-                <Button className="w-full justify-start" data-testid="button-new-post">
-                  <PlusCircle className="mr-2 h-4 w-4" />
-                  {t.newPost}
-                </Button>
-              </Link>
-              <Link href="/admin/categories">
-                <Button variant="outline" className="w-full justify-start" data-testid="button-manage-categories">
-                  <FolderOpen className="mr-2 h-4 w-4" />
-                  {t.manageCategories}
-                </Button>
-              </Link>
-              <Link href="/admin/posts">
-                <Button variant="outline" className="w-full justify-start" data-testid="button-all-posts">
-                  <FileText className="mr-2 h-4 w-4" />
-                  {t.allPosts}
-                </Button>
-              </Link>
-              <Link href="/admin/news">
-                <Button variant="outline" className="w-full justify-start" data-testid="button-news-articles">
-                  <Newspaper className="mr-2 h-4 w-4" />
-                  {t.newsArticles}
-                </Button>
-              </Link>
-              <Link href="/admin/agents">
-                <Button variant="outline" className="w-full justify-start" data-testid="button-ai-agents">
-                  <Bot className="mr-2 h-4 w-4" />
-                  {t.aiAgents}
-                </Button>
-              </Link>
-              <Link href="/admin/processing">
-                <Button variant="outline" className="w-full justify-start" data-testid="button-article-processing">
-                  <Cog className="mr-2 h-4 w-4" />
-                  {t.articleProcessing}
-                </Button>
-              </Link>
-              <Link href="/admin/team">
-                <Button variant="outline" className="w-full justify-start" data-testid="button-team-members">
-                  <Users className="mr-2 h-4 w-4" />
-                  {t.teamMembers || "Team Members"}
-                </Button>
-              </Link>
-              <Link href="/admin/practice-groups">
-                <Button variant="outline" className="w-full justify-start" data-testid="button-practice-groups">
-                  <Briefcase className="mr-2 h-4 w-4" />
-                  {t.practiceGroups || "Practice Areas"}
-                </Button>
-              </Link>
-              <Link href="/admin/industry-groups">
-                <Button variant="outline" className="w-full justify-start" data-testid="button-industry-groups">
-                  <Building2 className="mr-2 h-4 w-4" />
-                  {t.industryGroups || "Industry Sectors"}
-                </Button>
-              </Link>
-              <Link href="/admin/events">
-                <Button variant="outline" className="w-full justify-start" data-testid="button-events">
-                  <Calendar className="mr-2 h-4 w-4" />
-                  {t.events || "Events"}
-                </Button>
-              </Link>
-              <Link href="/admin/gallery">
-                <Button variant="outline" className="w-full justify-start" data-testid="button-gallery">
-                  <Images className="mr-2 h-4 w-4" />
-                  Office Gallery
-                </Button>
-              </Link>
-              <Link href="/admin/translations">
-                <Button variant="outline" className="w-full justify-start" data-testid="button-translations-dashboard">
-                  <Languages className="mr-2 h-4 w-4" />
-                  {t.translationsDashboard || "Translation Coverage"}
-                </Button>
-              </Link>
-              <Link href="/admin/knowledge">
-                <Button variant="outline" className="w-full justify-start" data-testid="button-knowledge-base">
-                  <BookOpen className="mr-2 h-4 w-4" />
-                  {t.knowledgeBase || "Knowledge Base"}
-                </Button>
-              </Link>
-              <Link href="/admin/health-check">
-                <Button variant="outline" className="w-full justify-start bg-red-50 dark:bg-red-950/20 border-red-200 dark:border-red-800" data-testid="button-health-check">
-                  <Activity className="mr-2 h-4 w-4 text-red-500" />
-                  {t.healthCheck || "System Health Check"}
-                </Button>
-              </Link>
-              <Link href="/admin/guide">
-                <Button variant="outline" className="w-full justify-start bg-primary/5 border-primary/20" data-testid="button-platform-guide">
-                  <Bot className="mr-2 h-4 w-4 text-primary" />
-                  {t.platformGuide || "Platform Guide"}
-                </Button>
-              </Link>
-              <Link href="/admin/explorer">
-                <Button variant="outline" className="w-full justify-start bg-blue-50 dark:bg-blue-950/20 border-blue-200 dark:border-blue-800" data-testid="button-system-explorer">
-                  <Layers className="mr-2 h-4 w-4 text-blue-500" />
-                  {t.systemExplorer || "System Explorer"}
-                </Button>
-              </Link>
-            </CardContent>
-          </Card>
-        </div>
       </main>
     </div>
   );

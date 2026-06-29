@@ -39,7 +39,7 @@ Return JSON format:
   "themes": ["theme1", "theme2", "theme3"],
   "style": "description of visual style used"
 }`,
-  model: 'gpt-4o-mini',
+  model: 'claude-sonnet-4-6',
   temperature: 0.7,
   maxTokens: 600,
   skills: ['image_generation', 'content_analysis', 'visual_suggestion', 'brand_compliance'],

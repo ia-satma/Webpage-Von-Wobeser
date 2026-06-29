@@ -2,6 +2,26 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ──────────────────────────────────────────────────────────────
+   FUENTES DE MARCA REALES (servidas desde el espejo) — homologa el
+   panel admin con la tipografía exacta del sitio Von Wobeser.
+   ────────────────────────────────────────────────────────────── */
+@font-face {
+  font-family: 'Publico-Roman';
+  src: url('/templates/beez3/webfont/Publico-Roman.woff') format('woff');
+  font-weight: normal; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: 'OptimaLTStd';
+  src: url('/templates/beez3/webfont/OptimaLTStd.woff') format('woff');
+  font-weight: normal; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: 'Geomanist-Book';
+  src: url('/templates/beez3/webfont/Geomanist-Book.woff') format('woff');
+  font-weight: normal; font-style: normal; font-display: swap;
+}
+
 /* ======================================================
    CORPORATE IDENTITY FONTS — Manual de Identidad 2022
    ====================================================== */
@@ -31,7 +51,7 @@ blockquote {
 /* LIGHT MODE */
 :root {
   /* Von Wobeser Corporate Colors (Manual de Identidad Junio 2022) */
-  --vw-red: #AA1A2E;
+  --vw-red: #AC162C;
   --vw-gray-1: #D5D2CD;  /* light swatch left  */
   --vw-gray-2: #C0BDB8;  /* light swatch right */
   --vw-gray-4: #8B8D89;  /* dark swatch left   */
@@ -58,15 +78,15 @@ blockquote {
   --sidebar: 0 0% 96%;             /* #F5F5F5                         */
   --sidebar-foreground: 0 0% 9%;
   --sidebar-border: 0 0% 88%;
-  --sidebar-primary: 352 73% 38%;
+  --sidebar-primary: 351 77% 38%;
   --sidebar-primary-foreground: 0 0% 98%;
   --sidebar-accent: 0 0% 93%;
   --sidebar-accent-foreground: 0 0% 9%;
-  --sidebar-ring: 352 73% 38%;
+  --sidebar-ring: 351 77% 38%;
   --popover: 0 0% 100%;
   --popover-foreground: 0 0% 9%;
   --popover-border: 0 0% 88%;
-  --primary: 352 73% 38%;          /* #AA1A2E — rojo corporativo      */
+  --primary: 351 77% 38%;          /* #AC162C — rojo corporativo      */
   --primary-foreground: 0 0% 98%;
   --secondary: 0 0% 94%;           /* #F0F0F0 — sección alterna       */
   --secondary-foreground: 0 0% 18%;
@@ -77,18 +97,19 @@ blockquote {
   --destructive: 0 72% 45%;
   --destructive-foreground: 0 0% 98%;
   --input: 0 0% 84%;
-  --ring: 352 73% 38%;
-  --chart-1: 352 73% 38%;
+  --ring: 351 77% 38%;
+  --chart-1: 351 77% 38%;
   --chart-2: 352 50% 45%;
   --chart-3: 0 0% 30%;
   --chart-4: 0 0% 50%;
   --chart-5: 351 30% 55%;
-  --font-sans: 'Optima', 'Lato', 'Calibri', 'Segoe UI', sans-serif;
-  --font-serif: 'Optima', 'Lato', 'Georgia', 'Times New Roman', serif;
-  --font-heading: 'Playfair Display', 'Georgia', 'Times New Roman', serif;
-  --font-support: 'Geomanist', 'Century Gothic', 'Lato', 'Segoe UI', sans-serif;
+  --font-sans: 'OptimaLTStd', 'Optima', 'Lato', 'Segoe UI', sans-serif;
+  --font-serif: 'Publico-Roman', 'Georgia', 'Times New Roman', serif;
+  --font-heading: 'Publico-Roman', 'Georgia', 'Times New Roman', serif;
+  --font-support: 'Geomanist-Book', 'Geomanist', 'Century Gothic', 'Lato', sans-serif;
   --font-mono: Menlo, monospace;
-  --radius: .5rem;
+  /* Esquinas rectas — Manual de Identidad VW / look del espejo (zero-radius). */
+  --radius: 0rem;
   --shadow-2xs: 0 1px 2px 0 hsl(220 25% 12% / 0.04);
   --shadow-xs:  0 1px 3px 0 hsl(220 25% 12% / 0.06);
   --shadow-sm:  0 1px 3px 0 hsl(220 25% 12% / 0.08), 0 1px 2px -1px hsl(220 25% 12% / 0.06);
@@ -149,15 +170,15 @@ blockquote {
   --sidebar: 0 0% 11%;             /* #1C1C1C                         */
   --sidebar-foreground: 0 0% 90%;
   --sidebar-border: 0 0% 19%;
-  --sidebar-primary: 352 73% 45%;
+  --sidebar-primary: 351 77% 45%;
   --sidebar-primary-foreground: 0 0% 98%;
   --sidebar-accent: 0 0% 18%;
   --sidebar-accent-foreground: 0 0% 90%;
-  --sidebar-ring: 352 73% 45%;
+  --sidebar-ring: 351 77% 45%;
   --popover: 0 0% 12%;
   --popover-foreground: 0 0% 93%;
   --popover-border: 0 0% 21%;
-  --primary: 352 73% 45%;          /* rojo levemente más claro en oscuro */
+  --primary: 351 77% 45%;          /* rojo levemente más claro en oscuro */
   --primary-foreground: 0 0% 98%;
   --secondary: 0 0% 18%;           /* #2E2E2E — sección alterna       */
   --secondary-foreground: 0 0% 82%;
@@ -168,7 +189,7 @@ blockquote {
   --destructive: 0 70% 45%;
   --destructive-foreground: 0 0% 98%;
   --input: 0 0% 25%;
-  --ring: 352 73% 45%;
+  --ring: 351 77% 45%;
   --chart-1: 352 73% 55%;
   --chart-2: 352 60% 65%;
   --chart-3: 0 0% 65%;

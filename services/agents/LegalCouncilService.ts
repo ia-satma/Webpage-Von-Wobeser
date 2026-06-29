@@ -59,7 +59,7 @@ export class LegalCouncilService {
   private openaiApiKey: string;
 
   constructor() {
-    this.openaiBaseUrl = process.env.AI_INTEGRATIONS_OPENAI_BASE_URL || '';
+    this.openaiBaseUrl = (process.env.AI_INTEGRATIONS_OPENAI_BASE_URL || '').replace(/\/+$/, '');
     this.openaiApiKey = process.env.AI_INTEGRATIONS_OPENAI_API_KEY || '';
   }
 
@@ -114,14 +114,13 @@ export class LegalCouncilService {
         'Authorization': `Bearer ${this.openaiApiKey}`,
       },
       body: JSON.stringify({
-        model: 'gpt-4o-mini',
+        model: 'claude-sonnet-4-6',
         messages: [
           { role: 'system', content: agent.systemPrompt },
           { role: 'user', content: `Evaluate this article:\n\n${truncatedText}` },
         ],
         temperature: 0.3,
         max_tokens: 500,
-        response_format: { type: 'json_object' },
       }),
     });
 
@@ -136,7 +135,7 @@ export class LegalCouncilService {
       throw new Error('Empty response from OpenAI');
     }
 
-    const parsed = JSON.parse(content);
+    const parsed = JSON.parse(extractCouncilJson(content));
     
     return {
       score: Number(parsed.score) || 50,
@@ -272,3 +271,14 @@ export class LegalCouncilService {
 }
 
 export const legalCouncilService = new LegalCouncilService();
+
+// El endpoint compatible de Claude no acepta response_format:json_object; extrae el JSON
+// del texto (tolera fences ```json y preámbulo) antes de parsear.
+function extractCouncilJson(s: string): string {
+  const fence = s.match(/```(?:json)?\s*([\s\S]*?)```/i);
+  if (fence) return fence[1].trim();
+  const start = s.search(/[{[]/);
+  const end = Math.max(s.lastIndexOf("}"), s.lastIndexOf("]"));
+  if (start >= 0 && end > start) return s.slice(start, end + 1);
+  return s.trim();
+}

@@ -43,7 +43,7 @@ Return JSON:
   "industries": ["slug1"],
   "authorPatterns": ["name pattern 1", "name pattern 2"]
 }`,
-  model: 'gpt-4o',
+  model: 'claude-sonnet-4-6',
   temperature: 0.3,
   maxTokens: 2000,
   skills: ['legal_classification', 'entity_extraction', 'taxonomy_mapping'],

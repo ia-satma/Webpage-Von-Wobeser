@@ -44,7 +44,7 @@ Return JSON:
   "excerpt": "translated excerpt",
   "content": "translated full content"
 }`,
-  model: 'gpt-4o',
+  model: 'claude-sonnet-4-6',
   temperature: 0.3,
   maxTokens: 8000,
   skills: ['legal_translation', 'multilingual', 'terminology_management'],
@@ -180,7 +180,7 @@ Return JSON with translated title, excerpt, and content.`;
 
     const response = await this.callLLM(
       [{ role: 'user', content: prompt }],
-      { temperature: 0.3, jsonMode: true }
+      { temperature: 0.3, jsonMode: true, maxTokens: 8192 }
     );
 
     return JSON.parse(response);

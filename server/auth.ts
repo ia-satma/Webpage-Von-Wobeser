@@ -168,7 +168,8 @@ export function requireRole(...roles: string[]) {
       res.status(401).json({ error: "Authentication required" });
       return;
     }
-    if (!roles.includes(req.adminUser.role)) {
+    // super_admin sits above all role checks (full access).
+    if (req.adminUser.role !== "super_admin" && !roles.includes(req.adminUser.role)) {
       res.status(403).json({ error: "Insufficient permissions" });
       return;
     }

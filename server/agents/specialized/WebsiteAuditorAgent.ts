@@ -53,7 +53,7 @@ export class WebsiteAuditorAgent extends BaseAgent {
 Your role is to identify issues that affect user experience, SEO, and content quality.
 Focus on: broken links, missing translations, incomplete lawyer profiles, SEO gaps, and content issues.
 Be thorough but prioritize critical issues that directly impact users.`,
-      model: 'gpt-4o',
+      model: 'claude-sonnet-4-6',
       temperature: 0.3,
       maxTokens: 4096,
       skills: ['link_checking', 'translation_validation', 'content_analysis', 'seo_audit', 'performance_monitoring'],
@@ -679,7 +679,10 @@ Be thorough but prioritize critical issues that directly impact users.`,
       ownerAgent: f.ownerAgent,
     }));
 
-    await storage.createWebsiteAuditFindings(insertFindings);
+    // Insertar por lotes: con miles de hallazgos, un solo insert excede el límite de Neon.
+    for (let i = 0; i < insertFindings.length; i += 200) {
+      await storage.createWebsiteAuditFindings(insertFindings.slice(i, i + 200));
+    }
     return insertFindings;
   }
 

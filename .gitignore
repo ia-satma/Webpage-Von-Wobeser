@@ -4,3 +4,19 @@ dist
 server/public
 vite.config.ts.*
 *.tar.gz
+
+# Local environment (secrets — never commit)
+.env
+.env.local
+.env.*.local
+# Archivos con API keys (no commitear)
+CLAUDEAPI.env.rtf
+*.env.rtf
+
+# Uploads de runtime (contenido de usuario, no se commitea)
+uploads/*
+!uploads/.gitkeep
+# Basura macOS
+__MACOSX/
+._*
+.DS_Store

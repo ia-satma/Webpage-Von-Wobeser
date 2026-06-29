@@ -110,7 +110,7 @@ const upload = multer({
     },
   }),
   limits: {
-    fileSize: 10 * 1024 * 1024, // 10MB limit
+    fileSize: 200 * 1024 * 1024, // 200MB (permite videos del hero)
   },
   fileFilter: (_req, file, cb) => {
     const allowedMimes = [
@@ -120,6 +120,11 @@ const upload = multer({
       "image/webp",
       "image/svg+xml",
       "application/pdf",
+      // Videos (hero, etc.)
+      "video/mp4",
+      "video/webm",
+      "video/ogg",
+      "video/quicktime",
     ];
     if (allowedMimes.includes(file.mimetype)) {
       cb(null, true);
@@ -1549,7 +1554,9 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
   });
 
   // Get single team member (admin)
-  app.get("/api/admin/team/:id", authMiddleware, async (req: Request, res: Response) => {
+  app.get("/api/admin/team/:id", authMiddleware, async (req: Request, res: Response, next: NextFunction) => {
+    // "stats" es una subruta específica registrada después; no la trates como un id.
+    if (req.params.id === "stats") return next();
     try {
       const member = await storage.getTeamMemberById(req.params.id);
       if (!member) {
