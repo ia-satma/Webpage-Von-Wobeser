@@ -1,6 +1,7 @@
 import "dotenv/config";
 import express, { type Request, Response, NextFunction } from "express";
 import cors from "cors";
+import helmet from "helmet";
 import compression from "compression";
 import { registerRoutes } from "./routes";
 import { serveStatic } from "./static";
@@ -13,8 +14,18 @@ const httpServer = createServer(app);
 
 app.use(compression());
 
+// Security headers (CSP se afina aparte: el espejo usa inline scripts/estilos + assets externos)
+app.use(helmet({
+  contentSecurityPolicy: false,
+  crossOriginEmbedderPolicy: false,
+  crossOriginResourcePolicy: { policy: "cross-origin" },
+}));
+
+// CORS: solo orígenes en whitelist (CORS_ORIGIN, separados por coma). Sin whitelist NO
+// se refleja ningún origen cruzado (el admin se sirve same-origin, así que no se ve afectado).
+const corsOrigins = (process.env.CORS_ORIGIN || "").split(",").map((s) => s.trim()).filter(Boolean);
 app.use(cors({
-  origin: process.env.CORS_ORIGIN || true,
+  origin: corsOrigins.length ? corsOrigins : false,
   credentials: true,
   methods: ["GET", "HEAD", "PUT", "PATCH", "POST", "DELETE", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization"],
@@ -85,8 +96,8 @@ app.use((req, res, next) => {
     const status = err.status || err.statusCode || 500;
     const message = err.message || "Internal Server Error";
 
-    res.status(status).json({ error: message });
-    throw err;
+    if (!res.headersSent) res.status(status).json({ error: message });
+    console.error("[error]", status, message);
   });
 
   // importantly only setup vite in development and after

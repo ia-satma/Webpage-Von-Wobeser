@@ -1,4 +1,5 @@
 import * as cheerio from "cheerio";
+import { sanitizeCms } from "./sanitize";
 
 type Lang = "en" | "es";
 
@@ -36,7 +37,7 @@ export function renderNewsList(
 
   const cards = news.map((n) => {
     const title = esc(L(n, "title", lang));
-    const intro = L(n, "excerpt", lang); // may contain inline HTML from CMS
+    const intro = sanitizeCms(L(n, "excerpt", lang)); // HTML del CMS — sanitizado (anti-XSS)
     const href = `/news/${esc(n.slug)}${langSuffix}`;
     return (
       `<div class="archive__item"><a href="${href}">` +
@@ -75,8 +76,8 @@ export function renderNewsList(
 export function renderNewsDetail(templateHtml: string, item: any, lang: Lang = "en"): string {
   const $ = cheerio.load(templateHtml);
   const title = L(item, "title", lang);
-  const excerpt = L(item, "excerpt", lang);
-  const content = L(item, "content", lang);
+  const excerpt = sanitizeCms(L(item, "excerpt", lang)); // anti-XSS
+  const content = sanitizeCms(L(item, "content", lang)); // anti-XSS
   const date = fmtDate(item.date, lang);
 
   $(".single__meta--name").first().text(title);

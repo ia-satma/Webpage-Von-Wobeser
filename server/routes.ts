@@ -1,4 +1,4 @@
-import type { Express, Request, Response } from "express";
+import type { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
 import { WebSocketServer, WebSocket } from "ws";
 import { storage } from "./storage";
@@ -118,7 +118,7 @@ const upload = multer({
       "image/png",
       "image/gif",
       "image/webp",
-      "image/svg+xml",
+      // image/svg+xml removido: un SVG puede contener <script> y se sirve en /uploads (XSS).
       "application/pdf",
       // Videos (hero, etc.)
       "video/mp4",
@@ -129,7 +129,9 @@ const upload = multer({
     if (allowedMimes.includes(file.mimetype)) {
       cb(null, true);
     } else {
-      cb(new Error("Invalid file type"));
+      const e: any = new Error("Invalid file type");
+      e.status = 400;
+      cb(e);
     }
   },
 });
@@ -255,10 +257,14 @@ export async function registerRoutes(
 
   // Explicit route handler — belt-and-suspenders vs SPA catch-all
   app.get('/generated-images/:filename', (req, res) => {
-    const filePath = path.join(generatedImagesDir, req.params.filename);
-    if (fs.existsSync(filePath)) {
+    const resolved = path.resolve(generatedImagesDir, req.params.filename);
+    // Contención: el archivo resuelto DEBE quedar dentro del directorio (anti path-traversal).
+    if (resolved !== path.resolve(generatedImagesDir) && !resolved.startsWith(path.resolve(generatedImagesDir) + path.sep)) {
+      return res.status(403).json({ error: 'Forbidden' });
+    }
+    if (fs.existsSync(resolved) && fs.statSync(resolved).isFile()) {
       res.set('Cache-Control', 'public, max-age=31536000, immutable');
-      return res.sendFile(filePath);
+      return res.sendFile(resolved);
     }
     res.status(404).json({ error: 'Image not found' });
   });
@@ -913,9 +919,14 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
       }
 
       const { username, password } = validation.data;
-      const passwordHash = await hashPassword(password);
 
-      // Check if user with this email already exists
+      // /init es SOLO para el primer setup: si ya existe CUALQUIER admin, se bloquea
+      // (si no, cualquiera podría crear un super_admin nuevo con otro email).
+      if ((await storage.countAdminUsers()) > 0) {
+        return res.status(403).json({ error: "Initialization disabled: an admin already exists" });
+      }
+
+      const passwordHash = await hashPassword(password);
       const existingUser = await storage.getAdminUserByEmail(username);
       if (existingUser) {
         return res.status(403).json({ error: "Admin user with this email already exists" });
@@ -1481,13 +1492,17 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
   // Update news
   app.put("/api/admin/news/:id", authMiddleware, requireRole("editor", "admin"), async (req: Request, res: Response) => {
     try {
-      const newsItem = await storage.updateNews(req.params.id, req.body);
+      const validated = insertNewsSchema.partial().parse(req.body); // valida + descarta campos no permitidos (anti mass-assignment)
+      const newsItem = await storage.updateNews(req.params.id, validated);
       if (!newsItem) {
         return apiError(res, 404, "News not found");
       }
       auditLog("update", "news", req.params.id, (req as any).adminUser?.id || "unknown");
       res.json(newsItem);
     } catch (error) {
+      if (error instanceof ZodError) {
+        return apiError(res, 400, "Invalid input", error.errors);
+      }
       console.error("Update news error:", error);
       return apiError(res, 500, "Failed to update news");
     }
@@ -3571,9 +3586,9 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
     }
   });
 
-  // Agent system routes
+  // Agent system routes — PROTEGIDAS: disparar agentes/pipelines/colas requiere admin.
   const agentRoutes = await import('./agents/api/agentRoutes');
-  app.use('/api/agents', agentRoutes.default);
+  app.use('/api/agents', authMiddleware, requireRole("super_admin", "admin", "editor"), agentRoutes.default);
 
   // Initialize agents on server start
   const { initializeAgents } = await import('./agents');

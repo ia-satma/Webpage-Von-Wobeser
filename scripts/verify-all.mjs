@@ -195,7 +195,7 @@ async function checkPage(label, path, expectLang, dataSelector) {
 
   // 6) AGENTES
   section("6. Agentes (registrados + corriendo, sin disparar)");
-  const st = (await getJson("/api/agents/status")).json;
+  const st = (await getJson("/api/agents/status", { authorization: "Bearer " + token })).json;
   const EXPECTED = ["formatter", "metadata_linker", "polyglot_translator", "content_auditor", "seo_optimizer", "image_suggestion", "category_agent", "website_auditor", "content_analyzer"];
   if (st?.orchestrator?.isRunning === true) { ok("orchestrator running"); console.log("  ✅ Orquestador corriendo (isRunning=true)"); }
   else bad("Orquestador NO está corriendo (isRunning != true)");

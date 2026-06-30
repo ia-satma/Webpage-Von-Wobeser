@@ -631,26 +631,46 @@ Be thorough but prioritize critical issues that directly impact users.`,
     console.log(`[WebsiteAuditor] Checked ${this.metrics.linksChecked} links`);
   }
 
+  // Anti-SSRF: bloquea loopback, IPs privadas y el servicio de metadata (169.254.169.254).
+  private isBlockedHost(host: string): boolean {
+    const h = host.toLowerCase().replace(/^\[|\]$/g, "");
+    if (h === "localhost" || h.endsWith(".localhost") || h === "0.0.0.0" || h === "::1" || h === "169.254.169.254") return true;
+    const m = h.match(/^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/);
+    if (m) {
+      const a = +m[1], b = +m[2];
+      if (a === 127 || a === 10 || a === 0) return true;
+      if (a === 172 && b >= 16 && b <= 31) return true;
+      if (a === 192 && b === 168) return true;
+      if (a === 169 && b === 254) return true;
+    }
+    if (/^f[cd][0-9a-f]{2}:/.test(h) || /^fe80:/.test(h)) return true;
+    return false;
+  }
+
   private async checkImageUrl(url: string): Promise<boolean> {
     try {
       if (url.startsWith('/')) return true;
-      if (url.startsWith('http://') || url.startsWith('https://')) {
-        const controller = new AbortController();
-        const timeout = setTimeout(() => controller.abort(), 5000);
-        try {
-          const response = await fetch(url, {
-            method: 'HEAD',
-            signal: controller.signal,
-            redirect: 'follow',
-          });
-          clearTimeout(timeout);
-          return response.ok;
-        } catch {
-          clearTimeout(timeout);
-          return false;
-        }
+      let parsed: URL;
+      try { parsed = new URL(url); } catch { return false; }
+      if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') return false;
+      if (this.isBlockedHost(parsed.hostname)) {
+        console.warn('[WebsiteAuditorAgent] SSRF bloqueado (host privado/metadata):', parsed.hostname);
+        return false;
       }
-      return false;
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 5000);
+      try {
+        const response = await fetch(url, {
+          method: 'HEAD',
+          signal: controller.signal,
+          redirect: 'manual', // no seguir redirects (podrían apuntar a recursos internos)
+        });
+        clearTimeout(timeout);
+        return response.ok || (response.status >= 300 && response.status < 400) || response.type === 'opaqueredirect';
+      } catch {
+        clearTimeout(timeout);
+        return false;
+      }
     } catch (error) {
       console.error('[WebsiteAuditorAgent] Error checking image URL:', url, error);
       return false;
