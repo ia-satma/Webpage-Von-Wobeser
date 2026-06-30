@@ -4,6 +4,7 @@ import { eq, and } from "drizzle-orm";
 import { getMirrorDir, mirrorPath } from "./config";
 import { renderAttorney } from "./renderAttorney";
 import { renderAttorneyList, CATEGORIES } from "./renderAttorneyList";
+import { renderAttorneyResults } from "./renderAttorneyResults";
 import { renderSingle } from "./renderSingle";
 import { renderHome } from "./renderHome";
 import { renderNewsList, renderNewsDetail } from "./renderNews";
@@ -74,6 +75,14 @@ const tpl = (rel: string) => fs.readFileSync(mirrorPath(rel), "utf8");
 const pick = (t: { en: string; es: string }, lang: Lang) => tpl(lang === "es" ? t.es : t.en);
 // Español es el idioma PRINCIPAL (despacho mexicano); inglés solo con ?lang=en.
 const langOf = (req: Request): Lang => (req.query.lang === "en" ? "en" : "es");
+
+// Normaliza (sin acentos, minúsculas) para la búsqueda por apellido.
+const normalizeStr = (s: string) => (s || "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().trim();
+// Última palabra del nombre = apellido (igual criterio que el sitio real).
+const lastWord = (name: string) => {
+  const parts = (name || "").trim().split(/\s+/);
+  return parts[parts.length - 1] || "";
+};
 
 // Hace que el botón de idioma del header alterne ES⇄EN sobre la URL actual,
 // en cualquier página, sin depender de las rutas originales del espejo.
@@ -165,44 +174,64 @@ export async function setupMirror(app: Express) {
     next: NextFunction,
     query: Record<string, any> = {},
   ) => {
+    // La búsqueda ahora vive en su propia página de resultados (como el sitio
+    // real). Si llega un /attorneys?q=... (link viejo) se redirige a /buscar.
     const q = (query.q as string) || undefined;
     const position = (query.position as string) || undefined;
     const practiceSlug = (query.practice as string) || undefined;
-    const isSearch = !!(q || position || practiceSlug);
-
-    let attorneys: any[];
-    if (isSearch) {
-      const title = position && CATEGORIES[position] ? CATEGORIES[position].title : undefined;
-      let practiceGroupId: string | undefined;
-      if (practiceSlug) {
-        const group = await storage.getPracticeGroupBySlug(practiceSlug);
-        practiceGroupId = group?.id;
-      }
-      attorneys = (await storage.searchTeamMembers({ q, title, practiceGroupId })).sort(
-        (a: any, b: any) => (a.order ?? 0) - (b.order ?? 0) || a.name.localeCompare(b.name),
-      );
-    } else {
-      const cat = CATEGORIES[category];
-      if (!cat) return next();
-      const all = await storage.getTeamMembers();
-      attorneys = all
-        .filter((m: any) => m.title === cat.title && m.published !== false)
-        .sort((a: any, b: any) => (a.order ?? 0) - (b.order ?? 0) || a.name.localeCompare(b.name));
+    if (q || position || practiceSlug) {
+      const p = new URLSearchParams();
+      if (q) p.set("q", q);
+      if (position) p.set("position", position);
+      if (practiceSlug) p.set("practice", practiceSlug);
+      if (lang === "en") p.set("lang", "en");
+      return res.redirect(302, `/attorneys/buscar?${p.toString()}`);
     }
+
+    const cat = CATEGORIES[category];
+    if (!cat) return next();
+    const all = await storage.getTeamMembers();
+    const attorneys = all
+      .filter((m: any) => m.title === cat.title && m.published !== false)
+      .sort((a: any, b: any) => (a.order ?? 0) - (b.order ?? 0) || a.name.localeCompare(b.name));
 
     const practiceGroupsRaw = await storage.getPracticeGroups();
     const practiceGroups = practiceGroupsRaw
       .filter((pg: any) => pg.published !== false)
       .map((pg) => ({ slug: pg.slug, name: pg.name, nameEs: pg.nameEs }));
 
-    sendPage(
-      res,
-      renderAttorneyList(pick(TEMPLATES.list, lang), attorneys, category, lang, {
-        practiceGroups,
-        selected: { q, position, practice: practiceSlug },
-        resultCount: isSearch ? attorneys.length : undefined,
-      }),
+    sendPage(res, renderAttorneyList(pick(TEMPLATES.list, lang), attorneys, category, lang, { practiceGroups }));
+  };
+
+  // Página de resultados de búsqueda (navegación, no inline) — réplica del flujo
+  // real: por apellido (kind=letter) o por nombre/posición/práctica.
+  const serveResults = async (lang: Lang, res: Response, query: Record<string, any>) => {
+    const q = (query.q as string) || "";
+    const kind = (query.kind as string) || "";
+    const position = (query.position as string) || undefined;
+    const practiceSlug = (query.practice as string) || undefined;
+
+    let attorneys: any[];
+    if (kind === "letter" && q) {
+      const letter = normalizeStr(q);
+      const all = await storage.getTeamMembers();
+      attorneys = all.filter(
+        (m: any) => m.published !== false && normalizeStr(lastWord(m.name)).startsWith(letter),
+      );
+    } else {
+      const title = position && CATEGORIES[position] ? CATEGORIES[position].title : undefined;
+      let practiceGroupId: string | undefined;
+      if (practiceSlug) {
+        const group = await storage.getPracticeGroupBySlug(practiceSlug);
+        practiceGroupId = group?.id;
+      }
+      attorneys = await storage.searchTeamMembers({ q: q || undefined, title, practiceGroupId });
+    }
+    attorneys = attorneys.sort(
+      (a: any, b: any) => (a.order ?? 0) - (b.order ?? 0) || a.name.localeCompare(b.name),
     );
+
+    sendPage(res, renderAttorneyResults(pick(TEMPLATES.list, lang), attorneys, lang));
   };
 
   const servePractice = async (slug: string | undefined, lang: Lang, res: Response, next: NextFunction) => {
@@ -257,6 +286,9 @@ export async function setupMirror(app: Express) {
   app.get("/news", wrap((req, res) => serveNewsList(langOf(req), res, parseInt(String(req.query.page)) || 1)));
   app.get("/news/:slug", wrap((req, res, next) => serveNewsDetail(req.params.slug, langOf(req), res, next)));
   app.get("/attorneys", wrap((req, res, next) => serveList("partners", langOf(req), res, next, req.query)));
+  // Resultados de búsqueda (debe ir ANTES de /attorneys/:category para no ser
+  // tragada por el parámetro :category).
+  app.get("/attorneys/buscar", wrap((req, res) => serveResults(langOf(req), res, req.query)));
   app.get("/attorneys/:category", wrap((req, res, next) => serveList(req.params.category, langOf(req), res, next, req.query)));
   // El menú "Abogados"/"Attorneys" enlazaba a una página estática solo-buscador, sin
   // listado. Se redirige al listado dinámico, que ya trae el buscador integrado.

@@ -17,10 +17,6 @@ export const CATEGORIES: Record<string, { title: string; en: string; es: string 
 export type AttorneyListOpts = {
   /** Prácticas reales (para poblar el <select> de búsqueda). */
   practiceGroups?: { slug: string; name: string; nameEs: string }[];
-  /** Valores actuales del buscador (sticky, para reflejar la búsqueda activa). */
-  selected?: { q?: string; position?: string; practice?: string };
-  /** Si está definido, se muestra como resultado de búsqueda (con conteo / "sin resultados"). */
-  resultCount?: number;
 };
 
 /**
@@ -37,7 +33,6 @@ export function renderAttorneyList(
 ): string {
   const $ = cheerio.load(templateHtml);
   const langSuffix = lang === "en" ? "?lang=en" : "";
-  const isSearch = !!(opts.selected?.q || opts.selected?.position || opts.selected?.practice);
 
   const metaItems: string[] = [];
   const listItems: string[] = [];
@@ -80,23 +75,20 @@ export function renderAttorneyList(
     else if (/\/index\.php\/attorneys\/index\.html/.test(href)) $(el).attr("href", `/attorneys${langSuffix}`);
   });
 
-  // Buscador (posición + práctica con desplegables reales, nombre con texto libre).
+  // Buscador: nombre + posición/práctica (desplegables) + "Búsqueda por Apellido"
+  // (abecedario A-Z). TODO navega a /attorneys/buscar (página de resultados
+  // aparte), igual que el sitio real — no despliega resultados en esta página.
   if (opts.practiceGroups) {
-    const sel = opts.selected || {};
     const t = lang === "es"
-      ? { ttl: "Buscar por:", name: "Nombre:", position: "Posición:", practice: "Práctica:", all: "Todas", submit: "Buscar", noResults: "No se encontraron abogados con esos criterios." }
-      : { ttl: "Search by:", name: "Name:", position: "Position:", practice: "Practice:", all: "All", submit: "Search", noResults: "No attorneys found matching those criteria." };
+      ? { ttl: "Buscar por:", name: "Nombre:", position: "Posición:", practice: "Práctica:", all: "Todas", submit: "Buscar", byLastName: "Búsqueda por Apellido:" }
+      : { ttl: "Search by:", name: "Name:", position: "Position:", practice: "Practice:", all: "All", submit: "Search", byLastName: "Browse by Last Name:" };
 
     const positionOptions = Object.entries(CATEGORIES)
-      .map(([slug, c]) => `<option value="${esc(slug)}"${sel.position === slug ? " selected" : ""}>${esc(lang === "es" ? c.es : c.en)}</option>`)
+      .map(([slug, c]) => `<option value="${esc(slug)}">${esc(lang === "es" ? c.es : c.en)}</option>`)
       .join("");
     const practiceOptions = opts.practiceGroups
-      .map((pg) => `<option value="${esc(pg.slug)}"${sel.practice === pg.slug ? " selected" : ""}>${esc(lang === "es" ? pg.nameEs : pg.name)}</option>`)
+      .map((pg) => `<option value="${esc(pg.slug)}">${esc(lang === "es" ? pg.nameEs : pg.name)}</option>`)
       .join("");
-
-    const noResultsHtml = opts.resultCount === 0
-      ? `<p class="search__form--noresults" style="margin-top:12px;color:#AA1A2E;">${esc(t.noResults)}</p>`
-      : "";
 
     // El sitio no trae un ícono de flecha entre sus assets capturados; se usa un SVG
     // embebido (URL-encoded, sin comillas crudas) para que el <select> se note
@@ -105,26 +97,35 @@ export function renderAttorneyList(
     const arrowSvg = `data:image/svg+xml,${encodeURIComponent(arrowSvgRaw)}`;
     const selectStyle = `appearance:none;-webkit-appearance:none;-moz-appearance:none;background-color:#fff;background-image:url(${arrowSvg});background-repeat:no-repeat;background-position:right 10px center;background-size:14px;padding-right:32px;cursor:pointer;`;
 
+    // Abecedario: el sitio real navega a una página de resultados por apellido.
+    // Se usan <a> (no <form>), que es lo que estiliza el CSS base (.search__form--alpha a).
+    const langParam = lang === "en" ? "&amp;lang=en" : "";
+    const alphaLinks = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("")
+      .map((L) => `<a href="/attorneys/buscar?kind=letter&amp;q=${L.toLowerCase()}${langParam}">${L}</a>`)
+      .join("");
+
     const formHtml =
       `<div class="search__form">` +
-      `<form action="/attorneys" method="get">` +
+      `<form action="/attorneys/buscar" method="get">` +
       `<div class="search__form--ttl">${esc(t.ttl)}</div>` +
       `<label for="q" class="search__form--label">${esc(t.name)} ` +
-      `<input class="search__form--input" type="text" name="q" id="q" value="${esc(sel.q || "")}"></label>` +
+      `<input class="search__form--input" type="text" name="q" id="q"></label>` +
       `<label for="position" class="search__form--label">${esc(t.position)} ` +
       `<select class="search__form--input" name="position" id="position" style="${selectStyle}"><option value="">${esc(t.all)}</option>${positionOptions}</select></label>` +
       `<label for="practice" class="search__form--label">${esc(t.practice)} ` +
       `<select class="search__form--input" name="practice" id="practice" style="${selectStyle}"><option value="">${esc(t.all)}</option>${practiceOptions}</select></label>` +
+      `<input type="hidden" name="kind" value="lawyer">` +
       (lang === "en" ? `<input type="hidden" name="lang" value="en">` : "") +
       `<input class="search__form--submit" type="submit" value="${esc(t.submit)}">` +
-      `</form>${noResultsHtml}</div>`;
+      `</form>` +
+      `<div class="search__form--ttl">${esc(t.byLastName)}</div>` +
+      `<div class="search__form--alpha">${alphaLinks}</div>` +
+      `</div>`;
 
     $(".attorneys__meta").before(formHtml);
   }
 
-  const label = isSearch
-    ? (lang === "es" ? "Resultados de búsqueda" : "Search Results")
-    : (lang === "es" ? CATEGORIES[category]?.es : CATEGORIES[category]?.en);
+  const label = lang === "es" ? CATEGORIES[category]?.es : CATEGORIES[category]?.en;
   $("title").text(`Von Wobeser - ${label || "Attorneys"}`);
   $("html").attr("lang", lang === "es" ? "es-mx" : "en-gb");
 
