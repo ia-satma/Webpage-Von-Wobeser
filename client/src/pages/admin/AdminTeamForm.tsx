@@ -14,6 +14,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
+import { Checkbox } from "@/components/ui/checkbox";
 import { ImageUpload } from "@/components/admin/ImageUpload";
 import { ConfirmChangesDialog, computeChanges, type Change } from "@/components/admin/ConfirmChangesDialog";
 
@@ -22,6 +23,7 @@ const TEAM_LABELS: Record<string, string> = {
   role: "Rol", roleEs: "Rol (español)", email: "Email", phone: "Teléfono",
   imageUrl: "Foto", linkedinUrl: "LinkedIn", isPartner: "Socio",
   published: "Visible en el sitio", bio: "Biografía", bioEs: "Biografía (español)",
+  practiceGroupIds: "Áreas de práctica", industryGroupIds: "Industrias",
 };
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -48,7 +50,7 @@ import {
   Award,
   CheckCircle2
 } from "lucide-react";
-import type { TeamMember } from "@shared/schema";
+import type { TeamMember, PracticeGroup, IndustryGroup } from "@shared/schema";
 
 const translations = {
   en: {
@@ -209,6 +211,8 @@ const teamMemberFormSchema = z.object({
   isPartner: z.boolean().default(false),
   published: z.boolean().default(true),
   order: z.coerce.number().min(0).default(0),
+  practiceGroupIds: z.array(z.string()).default([]),
+  industryGroupIds: z.array(z.string()).default([]),
 });
 
 type TeamMemberFormData = z.infer<typeof teamMemberFormSchema>;
@@ -242,6 +246,8 @@ export default function AdminTeamForm() {
       isPartner: false,
       published: true,
       order: 0,
+      practiceGroupIds: [],
+      industryGroupIds: [],
     },
   });
 
@@ -260,6 +266,13 @@ export default function AdminTeamForm() {
     },
     enabled: isEditMode && isAuthenticated && !!token,
     retry: 1,
+  });
+
+  const { data: practiceGroups = [] } = useQuery<PracticeGroup[]>({
+    queryKey: ["/api/practice-groups"],
+  });
+  const { data: industryGroups = [] } = useQuery<IndustryGroup[]>({
+    queryKey: ["/api/industry-groups"],
   });
 
   useEffect(() => {
@@ -287,6 +300,8 @@ export default function AdminTeamForm() {
         isPartner: member.isPartner || false,
         published: member.published !== false,
         order: member.order || 0,
+        practiceGroupIds: (member as any).practiceGroupIds || [],
+        industryGroupIds: (member as any).industryGroupIds || [],
       });
     }
   }, [member, form]);
@@ -539,7 +554,14 @@ export default function AdminTeamForm() {
                         <FileText className="w-4 h-4 mr-2" />
                         {t.tabs.bio}
                       </TabsTrigger>
-                      <TabsTrigger 
+                      <TabsTrigger
+                        value="practices"
+                        className="rounded-none data-[state=active]:bg-[#AA1A2E] data-[state=active]:text-white px-6 py-2.5"
+                      >
+                        <Briefcase className="w-4 h-4 mr-2" />
+                        {language === "es" ? "Prácticas e industrias" : "Practices & Industries"}
+                      </TabsTrigger>
+                      <TabsTrigger
                         value="settings"
                         className="rounded-none data-[state=active]:bg-[#AA1A2E] data-[state=active]:text-white px-6 py-2.5"
                       >
@@ -935,6 +957,112 @@ export default function AdminTeamForm() {
                                 : "Tip: Our AI agents can automatically translate biographies to all 10 supported languages."}
                             </p>
                           </div>
+                        </CardContent>
+                      </Card>
+                    </TabsContent>
+
+                    {/* Practices & Industries Tab */}
+                    <TabsContent value="practices" className="mt-6">
+                      <Card className="rounded-none border-[#D9D8D7]">
+                        <CardHeader className="border-b border-[#D9D8D7] bg-[#FAFAFA]">
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 bg-[#AA1A2E]/10 flex items-center justify-center">
+                              <Briefcase className="w-5 h-5 text-[#AA1A2E]" />
+                            </div>
+                            <div>
+                              <CardTitle className="text-lg text-[#1D1D1B]">
+                                {language === "es" ? "Áreas de práctica e industrias" : "Practice Areas & Industries"}
+                              </CardTitle>
+                              <CardDescription className="text-[#878A8E]">
+                                {language === "es"
+                                  ? "Un abogado puede pertenecer a varias áreas de práctica e industrias."
+                                  : "A lawyer can belong to multiple practice areas and industries."}
+                              </CardDescription>
+                            </div>
+                          </div>
+                        </CardHeader>
+                        <CardContent className="p-6 space-y-8">
+                          <FormField
+                            control={form.control}
+                            name="practiceGroupIds"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel className="text-[#1D1D1B] font-medium flex items-center gap-2">
+                                  <Briefcase className="w-4 h-4 text-[#878A8E]" />
+                                  {language === "es" ? "Áreas de práctica" : "Practice Areas"}
+                                </FormLabel>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-72 overflow-y-auto border border-[#D9D8D7] p-4">
+                                  {practiceGroups.length === 0 && (
+                                    <p className="text-sm text-[#878A8E] col-span-2">
+                                      {language === "es" ? "Cargando…" : "Loading…"}
+                                    </p>
+                                  )}
+                                  {practiceGroups.map((pg) => {
+                                    const label = language === "es" ? pg.nameEs : pg.name;
+                                    const checked = field.value?.includes(pg.id) ?? false;
+                                    return (
+                                      <label key={pg.id} className="flex items-center gap-2 text-sm text-[#1D1D1B] cursor-pointer">
+                                        <Checkbox
+                                          checked={checked}
+                                          onCheckedChange={(c) => {
+                                            const current = field.value || [];
+                                            field.onChange(
+                                              c ? [...current, pg.id] : current.filter((id) => id !== pg.id)
+                                            );
+                                          }}
+                                          data-testid={`checkbox-practice-${pg.slug}`}
+                                        />
+                                        {label}
+                                      </label>
+                                    );
+                                  })}
+                                </div>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+
+                          <Separator className="bg-[#D9D8D7]" />
+
+                          <FormField
+                            control={form.control}
+                            name="industryGroupIds"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel className="text-[#1D1D1B] font-medium flex items-center gap-2">
+                                  <Globe className="w-4 h-4 text-[#878A8E]" />
+                                  {language === "es" ? "Industrias / sectores" : "Industries"}
+                                </FormLabel>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-72 overflow-y-auto border border-[#D9D8D7] p-4">
+                                  {industryGroups.length === 0 && (
+                                    <p className="text-sm text-[#878A8E] col-span-2">
+                                      {language === "es" ? "Cargando…" : "Loading…"}
+                                    </p>
+                                  )}
+                                  {industryGroups.map((ig) => {
+                                    const label = language === "es" ? ig.nameEs : ig.name;
+                                    const checked = field.value?.includes(ig.id) ?? false;
+                                    return (
+                                      <label key={ig.id} className="flex items-center gap-2 text-sm text-[#1D1D1B] cursor-pointer">
+                                        <Checkbox
+                                          checked={checked}
+                                          onCheckedChange={(c) => {
+                                            const current = field.value || [];
+                                            field.onChange(
+                                              c ? [...current, ig.id] : current.filter((id) => id !== ig.id)
+                                            );
+                                          }}
+                                          data-testid={`checkbox-industry-${ig.slug}`}
+                                        />
+                                        {label}
+                                      </label>
+                                    );
+                                  })}
+                                </div>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
                         </CardContent>
                       </Card>
                     </TabsContent>

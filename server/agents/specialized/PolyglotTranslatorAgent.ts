@@ -170,20 +170,35 @@ export class PolyglotTranslatorAgent extends BaseAgent {
 GLOSSARY (use these translations for legal terms):
 ${glossaryTerms || 'No specific glossary terms'}
 
+Return the translation using EXACTLY these three markers, each on its own line, and nothing else (no JSON, no quotes around the values, no extra commentary):
+[[TITLE]]
+<translated title here>
+[[EXCERPT]]
+<translated excerpt here>
+[[CONTENT]]
+<translated content here, may span multiple paragraphs>
+
+Source to translate:
 TITLE: ${source.title}
 
 EXCERPT: ${source.excerpt}
 
-CONTENT: ${source.content?.substring(0, 6000) || ''}
+CONTENT: ${source.content?.substring(0, 6000) || ''}`;
 
-Return JSON with translated title, excerpt, and content.`;
-
-    const response = await this.callLLM(
+    // Formato delimitado (no JSON): evita errores de parseo por comillas/saltos sin escapar
+    // en traducciones largas, que rompían JSON.parse.
+    const text = await this.callLLM(
       [{ role: 'user', content: prompt }],
-      { temperature: 0.3, jsonMode: true, maxTokens: 8192 }
+      { temperature: 0.3, maxTokens: 8192 }
     );
-
-    return JSON.parse(response);
+    const parts = text.split(/\[\[(TITLE|EXCERPT|CONTENT)\]\]/i);
+    const map: Record<string, string> = {};
+    for (let i = 1; i < parts.length; i += 2) map[parts[i].toUpperCase()] = (parts[i + 1] || '').trim();
+    return {
+      title: map.TITLE || source.title,
+      excerpt: map.EXCERPT || source.excerpt,
+      content: map.CONTENT || source.content,
+    };
   }
 
   private async getCachedTranslation(

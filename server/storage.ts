@@ -65,6 +65,8 @@ import {
   practiceGroups,
   industryGroups,
   teamMembers,
+  teamMemberPracticeGroups,
+  teamMemberIndustryGroups,
   representativeMatters,
   adminUsers,
   blogPosts,
@@ -119,6 +121,11 @@ export interface IStorage {
   createTeamMember(member: InsertTeamMember): Promise<TeamMember>;
   updateTeamMember(id: string, member: Partial<InsertTeamMember>): Promise<TeamMember | undefined>;
   deleteTeamMember(id: string): Promise<boolean>;
+  getTeamMemberPracticeGroupIds(teamMemberId: string): Promise<string[]>;
+  getTeamMemberIndustryGroupIds(teamMemberId: string): Promise<string[]>;
+  setTeamMemberPracticeGroups(teamMemberId: string, practiceGroupIds: string[]): Promise<void>;
+  setTeamMemberIndustryGroups(teamMemberId: string, industryGroupIds: string[]): Promise<void>;
+  searchTeamMembers(filters: { q?: string; title?: string; practiceGroupId?: string }): Promise<TeamMember[]>;
   updatePracticeGroup(id: string, group: Partial<InsertPracticeGroup>): Promise<PracticeGroup | undefined>;
   deletePracticeGroup(id: string): Promise<boolean>;
   updateIndustryGroup(id: string, group: Partial<InsertIndustryGroup>): Promise<IndustryGroup | undefined>;
@@ -449,6 +456,58 @@ export class DatabaseStorage implements IStorage {
       .where(eq(teamMembers.id, id))
       .returning();
     return result.length > 0;
+  }
+
+  async getTeamMemberPracticeGroupIds(teamMemberId: string): Promise<string[]> {
+    const rows = await db
+      .select({ id: teamMemberPracticeGroups.practiceGroupId })
+      .from(teamMemberPracticeGroups)
+      .where(eq(teamMemberPracticeGroups.teamMemberId, teamMemberId));
+    return rows.map((r) => r.id);
+  }
+
+  async getTeamMemberIndustryGroupIds(teamMemberId: string): Promise<string[]> {
+    const rows = await db
+      .select({ id: teamMemberIndustryGroups.industryGroupId })
+      .from(teamMemberIndustryGroups)
+      .where(eq(teamMemberIndustryGroups.teamMemberId, teamMemberId));
+    return rows.map((r) => r.id);
+  }
+
+  async setTeamMemberPracticeGroups(teamMemberId: string, practiceGroupIds: string[]): Promise<void> {
+    await db.delete(teamMemberPracticeGroups).where(eq(teamMemberPracticeGroups.teamMemberId, teamMemberId));
+    if (practiceGroupIds.length === 0) return;
+    await db.insert(teamMemberPracticeGroups).values(
+      practiceGroupIds.map((practiceGroupId) => ({ teamMemberId, practiceGroupId }))
+    );
+  }
+
+  async setTeamMemberIndustryGroups(teamMemberId: string, industryGroupIds: string[]): Promise<void> {
+    await db.delete(teamMemberIndustryGroups).where(eq(teamMemberIndustryGroups.teamMemberId, teamMemberId));
+    if (industryGroupIds.length === 0) return;
+    await db.insert(teamMemberIndustryGroups).values(
+      industryGroupIds.map((industryGroupId) => ({ teamMemberId, industryGroupId }))
+    );
+  }
+
+  async searchTeamMembers(filters: { q?: string; title?: string; practiceGroupId?: string }): Promise<TeamMember[]> {
+    let allowedIds: Set<string> | null = null;
+    if (filters.practiceGroupId) {
+      const rows = await db
+        .select({ id: teamMemberPracticeGroups.teamMemberId })
+        .from(teamMemberPracticeGroups)
+        .where(eq(teamMemberPracticeGroups.practiceGroupId, filters.practiceGroupId));
+      allowedIds = new Set(rows.map((r) => r.id));
+    }
+    const all = await db.select().from(teamMembers).orderBy(asc(teamMembers.order));
+    const qLower = filters.q?.toLowerCase().trim();
+    return all.filter((m) => {
+      if (m.published === false) return false;
+      if (filters.title && m.title !== filters.title) return false;
+      if (allowedIds && !allowedIds.has(m.id)) return false;
+      if (qLower && !m.name.toLowerCase().includes(qLower)) return false;
+      return true;
+    });
   }
 
   // Practice Group update/delete

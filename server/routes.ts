@@ -51,6 +51,7 @@ import {
   insertOfficeImageSchema,
 } from "@shared/schema";
 import { ZodError } from "zod";
+import { CATEGORIES as ATTORNEY_CATEGORIES } from "./mirror/renderAttorneyList";
 import {
   SUPPORTED_LANGUAGES,
   translateLegalText,
@@ -579,6 +580,30 @@ export async function registerRoutes(
       res.json(partners);
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch partners" });
+    }
+  });
+
+  // Búsqueda de abogados: ?q=nombre&position=partners|of-counsel|counsel|associates&practice=slug
+  app.get("/api/team/search", async (req, res) => {
+    try {
+      const q = (req.query.q as string) || undefined;
+      const position = (req.query.position as string) || undefined;
+      const practiceSlug = (req.query.practice as string) || undefined;
+
+      const title = position && ATTORNEY_CATEGORIES[position] ? ATTORNEY_CATEGORIES[position].title : undefined;
+      let practiceGroupId: string | undefined;
+      if (practiceSlug) {
+        const group = await storage.getPracticeGroupBySlug(practiceSlug);
+        practiceGroupId = group?.id;
+        if (!group) return res.json([]); // práctica inexistente: sin resultados
+      }
+
+      const members = await storage.searchTeamMembers({ q, title, practiceGroupId });
+      res.set("Cache-Control", "public, max-age=60");
+      res.json(members);
+    } catch (error) {
+      console.error("Team search error:", error);
+      res.status(500).json({ error: "Failed to search team members" });
     }
   });
 
@@ -1577,7 +1602,11 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
       if (!member) {
         return res.status(404).json({ error: "Team member not found" });
       }
-      res.json(member);
+      const [practiceGroupIds, industryGroupIds] = await Promise.all([
+        storage.getTeamMemberPracticeGroupIds(member.id),
+        storage.getTeamMemberIndustryGroupIds(member.id),
+      ]);
+      res.json({ ...member, practiceGroupIds, industryGroupIds });
     } catch (error) {
       console.error("Get team member error:", error);
       res.status(500).json({ error: "Failed to fetch team member" });
@@ -1589,8 +1618,14 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
     try {
       const validatedData = insertTeamMemberSchema.parse(req.body);
       const member = await storage.createTeamMember(validatedData);
+      const practiceGroupIds = Array.isArray(req.body.practiceGroupIds) ? req.body.practiceGroupIds : [];
+      const industryGroupIds = Array.isArray(req.body.industryGroupIds) ? req.body.industryGroupIds : [];
+      await Promise.all([
+        storage.setTeamMemberPracticeGroups(member.id, practiceGroupIds),
+        storage.setTeamMemberIndustryGroups(member.id, industryGroupIds),
+      ]);
       auditLog("create", "team", member.id, (req as any).adminUser?.id || "unknown");
-      res.status(201).json(member);
+      res.status(201).json({ ...member, practiceGroupIds, industryGroupIds });
     } catch (error) {
       if (error instanceof ZodError) {
         return apiError(res, 400, "Validation failed", error.errors);
@@ -1604,12 +1639,27 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
   app.put("/api/admin/team/:id", authMiddleware, requireRole("editor", "admin"), async (req: Request, res: Response) => {
     try {
       const validatedData = insertTeamMemberSchema.partial().parse(req.body);
-      const member = await storage.updateTeamMember(req.params.id, validatedData);
+      // Si el body solo trae practiceGroupIds/industryGroupIds (sin campos propios de
+      // teamMembers), no hay nada que actualizar en la tabla principal — Drizzle
+      // rechaza un SET vacío. Solo se llama a updateTeamMember si hay campos reales.
+      const member = Object.keys(validatedData).length > 0
+        ? await storage.updateTeamMember(req.params.id, validatedData)
+        : await storage.getTeamMemberById(req.params.id);
       if (!member) {
         return apiError(res, 404, "Team member not found");
       }
+      let practiceGroupIds: string[] | undefined;
+      let industryGroupIds: string[] | undefined;
+      if (Array.isArray(req.body.practiceGroupIds)) {
+        practiceGroupIds = req.body.practiceGroupIds;
+        await storage.setTeamMemberPracticeGroups(member.id, practiceGroupIds!);
+      }
+      if (Array.isArray(req.body.industryGroupIds)) {
+        industryGroupIds = req.body.industryGroupIds;
+        await storage.setTeamMemberIndustryGroups(member.id, industryGroupIds!);
+      }
       auditLog("update", "team", req.params.id, (req as any).adminUser?.id || "unknown");
-      res.json(member);
+      res.json({ ...member, ...(practiceGroupIds && { practiceGroupIds }), ...(industryGroupIds && { industryGroupIds }) });
     } catch (error) {
       if (error instanceof ZodError) {
         return apiError(res, 400, "Validation failed", error.errors);

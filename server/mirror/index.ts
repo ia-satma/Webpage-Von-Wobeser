@@ -158,14 +158,51 @@ export async function setupMirror(app: Express) {
     sendPage(res, renderAttorney(pick(TEMPLATES.attorney, lang), { ...member, ...groups }, lang));
   };
 
-  const serveList = async (category: string, lang: Lang, res: Response, next: NextFunction) => {
-    const cat = CATEGORIES[category];
-    if (!cat) return next();
-    const all = await storage.getTeamMembers();
-    const attorneys = all
-      .filter((m: any) => m.title === cat.title && m.published !== false)
-      .sort((a: any, b: any) => (a.order ?? 0) - (b.order ?? 0) || a.name.localeCompare(b.name));
-    sendPage(res, renderAttorneyList(pick(TEMPLATES.list, lang), attorneys, category, lang));
+  const serveList = async (
+    category: string,
+    lang: Lang,
+    res: Response,
+    next: NextFunction,
+    query: Record<string, any> = {},
+  ) => {
+    const q = (query.q as string) || undefined;
+    const position = (query.position as string) || undefined;
+    const practiceSlug = (query.practice as string) || undefined;
+    const isSearch = !!(q || position || practiceSlug);
+
+    let attorneys: any[];
+    if (isSearch) {
+      const title = position && CATEGORIES[position] ? CATEGORIES[position].title : undefined;
+      let practiceGroupId: string | undefined;
+      if (practiceSlug) {
+        const group = await storage.getPracticeGroupBySlug(practiceSlug);
+        practiceGroupId = group?.id;
+      }
+      attorneys = (await storage.searchTeamMembers({ q, title, practiceGroupId })).sort(
+        (a: any, b: any) => (a.order ?? 0) - (b.order ?? 0) || a.name.localeCompare(b.name),
+      );
+    } else {
+      const cat = CATEGORIES[category];
+      if (!cat) return next();
+      const all = await storage.getTeamMembers();
+      attorneys = all
+        .filter((m: any) => m.title === cat.title && m.published !== false)
+        .sort((a: any, b: any) => (a.order ?? 0) - (b.order ?? 0) || a.name.localeCompare(b.name));
+    }
+
+    const practiceGroupsRaw = await storage.getPracticeGroups();
+    const practiceGroups = practiceGroupsRaw
+      .filter((pg: any) => pg.published !== false)
+      .map((pg) => ({ slug: pg.slug, name: pg.name, nameEs: pg.nameEs }));
+
+    sendPage(
+      res,
+      renderAttorneyList(pick(TEMPLATES.list, lang), attorneys, category, lang, {
+        practiceGroups,
+        selected: { q, position, practice: practiceSlug },
+        resultCount: isSearch ? attorneys.length : undefined,
+      }),
+    );
   };
 
   const servePractice = async (slug: string | undefined, lang: Lang, res: Response, next: NextFunction) => {
@@ -219,8 +256,12 @@ export async function setupMirror(app: Express) {
   app.get("/home", wrap((req, res) => serveHome(langOf(req), res)));
   app.get("/news", wrap((req, res) => serveNewsList(langOf(req), res, parseInt(String(req.query.page)) || 1)));
   app.get("/news/:slug", wrap((req, res, next) => serveNewsDetail(req.params.slug, langOf(req), res, next)));
-  app.get("/attorneys", wrap((req, res, next) => serveList("partners", langOf(req), res, next)));
-  app.get("/attorneys/:category", wrap((req, res, next) => serveList(req.params.category, langOf(req), res, next)));
+  app.get("/attorneys", wrap((req, res, next) => serveList("partners", langOf(req), res, next, req.query)));
+  app.get("/attorneys/:category", wrap((req, res, next) => serveList(req.params.category, langOf(req), res, next, req.query)));
+  // El menú "Abogados"/"Attorneys" enlazaba a una página estática solo-buscador, sin
+  // listado. Se redirige al listado dinámico, que ya trae el buscador integrado.
+  app.get("/index.php/attorneys/index.html", wrap((_req, res) => { res.redirect(302, "/attorneys?lang=en"); return Promise.resolve(); }));
+  app.get("/index.php/abogados/index.html", wrap((_req, res) => { res.redirect(302, "/attorneys"); return Promise.resolve(); }));
   app.get("/lawyer/:slug", wrap((req, res, next) => serveAttorney(req.params.slug, langOf(req), res, next)));
   app.get("/abogado/:slug", wrap((req, res, next) => serveAttorney(req.params.slug, "es", res, next)));
   app.get("/practice/:slug", wrap((req, res, next) => servePractice(req.params.slug, langOf(req), res, next)));
@@ -262,10 +303,10 @@ export async function setupMirror(app: Express) {
 
   // Attorney listings (EN + ES category slugs)
   app.get("/index.php/attorneys/:category/index.html", wrap((req, res, next) =>
-    serveList(req.params.category, "en", res, next),
+    serveList(req.params.category, "en", res, next, req.query),
   ));
   app.get("/index.php/abogados/:category/index.html", wrap((req, res, next) =>
-    serveList(ES_CATEGORY[req.params.category] || req.params.category, "es", res, next),
+    serveList(ES_CATEGORY[req.params.category] || req.params.category, "es", res, next, req.query),
   ));
 
   // News detail (publication id → news slug not mapped; falls through to static
