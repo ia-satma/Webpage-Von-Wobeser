@@ -164,6 +164,43 @@ async function checkPage(label, path, expectLang, dataSelector) {
   }
   console.log(`  Institucionales: ${insOk}/${inst.length} OK`);
 
+  // Buscador de abogados (form + abecedario + página de resultados + API)
+  {
+    const { status: fs, html: fh } = await get("/attorneys");
+    const alphaLinks = (fh.match(/\/attorneys\/buscar\?kind=letter/g) || []).length;
+    if (fs === 200 && alphaLinks === 26) ok("abecedario 26 letras");
+    else bad(`/attorneys abecedario: ${alphaLinks}/26 links (HTTP ${fs})`);
+    if (/action="\/attorneys\/buscar"/.test(fh)) ok("form → /attorneys/buscar");
+    else bad(`/attorneys form no apunta a /attorneys/buscar`);
+
+    const { status: ls, html: lh } = await get("/attorneys/buscar?kind=letter&q=r");
+    const lCount = (lh.match(/archive__item/g) || []).length;
+    if (ls === 200 && lCount > 0 && /Volver al buscador/.test(lh)) ok("buscar letra R (es)");
+    else bad(`/attorneys/buscar letra R: HTTP ${ls}, ${lCount} resultados`);
+
+    const { status: es_, html: eh } = await get("/attorneys/buscar?kind=letter&q=r&lang=en");
+    if (es_ === 200 && /Back to search/.test(eh) && (eh.match(/archive__item/g) || []).length > 0) ok("buscar letra R (en)");
+    else bad(`/attorneys/buscar letra R EN falló (HTTP ${es_})`);
+
+    const { status: ps, html: ph } = await get("/attorneys/buscar?practice=litigation");
+    if (ps === 200 && (ph.match(/archive__item/g) || []).length > 0) ok("buscar por práctica");
+    else bad(`/attorneys/buscar?practice=litigation sin resultados (HTTP ${ps})`);
+
+    const { status: as_, json: aj } = await getJson("/api/team/search?practice=litigation");
+    if (as_ === 200 && Array.isArray(aj) && aj.length > 0) ok("API team/search práctica");
+    else bad(`/api/team/search?practice=litigation: HTTP ${as_}, ${Array.isArray(aj) ? aj.length : "?"} items`);
+
+    const { status: ns, json: nj } = await getJson("/api/team/search?q=zzznoexiste");
+    if (ns === 200 && Array.isArray(nj) && nj.length === 0) ok("API team/search vacía");
+    else bad(`/api/team/search?q=zzznoexiste debería dar [] (HTTP ${ns})`);
+
+    const r302 = await fetch(B + "/attorneys?q=ruiz", { redirect: "manual" });
+    const loc = r302.headers.get("location") || "";
+    if (r302.status === 302 && loc.includes("/attorneys/buscar")) ok("redirect 302 links viejos");
+    else bad(`/attorneys?q=ruiz esperaba 302→/attorneys/buscar, dio ${r302.status}→${loc}`);
+  }
+  console.log("  Buscador de abogados: checks agregados");
+
   // 4) OCULTAR (published)
   section("4. Ocultar (published) respetado");
   if (dbPubFalse > 0) {

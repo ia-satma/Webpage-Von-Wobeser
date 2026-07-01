@@ -22,14 +22,16 @@ const token = lj.token || lj.sessionToken || lj.accessToken || (lj.session && lj
 console.log("   token:", token ? token.slice(0, 18) + "…" : "(no encontrado) " + JSON.stringify(lj).slice(0, 150));
 if (!token) process.exit(1);
 
-// 3) Editar un abogado por el API admin
-const [m] = await sql`select id, slug, title from team_members where slug='rodrigo-barradas'`;
-const orig = m.title;
-const NEW = "Founding Partner (EDITADO DESDE ADMIN)";
+// 3) Editar un abogado por el API admin.
+// La página /lawyer/:slug carga en ESPAÑOL por defecto y muestra `titleEs`,
+// así que se edita ese campo (editar `title`/inglés no se vería en la página ES).
+const [m] = await sql`select id, slug, title_es from team_members where slug='rodrigo-barradas'`;
+const orig = m.title_es;
+const NEW = "Socio Fundador (EDITADO DESDE ADMIN)";
 const er = await fetch(BASE + `/api/admin/team/${m.id}`, {
   method: "PUT",
   headers: { "content-type": "application/json", authorization: "Bearer " + token },
-  body: JSON.stringify({ title: NEW }),
+  body: JSON.stringify({ titleEs: NEW }),
 });
 console.log("3) Edit HTTP", er.status, "(", orig, "→", NEW, ")");
 
@@ -43,6 +45,6 @@ console.log("   ¿Refleja la edición?", shown === NEW ? "✅ SÍ" : "❌ no");
 await fetch(BASE + `/api/admin/team/${m.id}`, {
   method: "PUT",
   headers: { "content-type": "application/json", authorization: "Bearer " + token },
-  body: JSON.stringify({ title: orig }),
+  body: JSON.stringify({ titleEs: orig }),
 });
 console.log("5) Revertido a:", orig);
