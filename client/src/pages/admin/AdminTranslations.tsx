@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { AdminPageHelp } from "@/components/admin/AdminPageHelp";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Link } from "wouter";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -12,6 +13,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
 import { 
   Languages, 
@@ -26,6 +28,12 @@ import {
 } from "lucide-react";
 
 const SUPPORTED_LANGUAGES = ["en", "es", "de", "zh", "ko", "ja", "ar", "ru", "fr", "it"] as const;
+
+// Nombres en español de cada idioma (para la selección de idiomas activos).
+const LANG_LABELS: Record<string, string> = {
+  es: "Español", en: "Inglés", de: "Alemán", zh: "Chino", ko: "Coreano",
+  ja: "Japonés", ar: "Árabe", ru: "Ruso", fr: "Francés", it: "Italiano",
+};
 
 const LANGUAGE_NAMES: Record<string, { en: string; native: string }> = {
   en: { en: "English", native: "English" },
@@ -539,6 +547,35 @@ export default function AdminTranslations() {
     translateMutation.mutate({ articleId, languages: missingLanguages });
   };
 
+  // ── Idiomas activos (config global): a qué idiomas se traduce el contenido ──
+  const [activeLangs, setActiveLangs] = useState<string[]>([]);
+  const languagesSettingsQuery = useQuery<{ activeLanguages: string[]; allLanguages: string[] }>({
+    queryKey: ["/api/admin/settings/languages"],
+    queryFn: async () => {
+      const res = await adminApiRequest("GET", "/api/admin/settings/languages");
+      return res.json();
+    },
+    enabled: isAuthenticated,
+  });
+  useEffect(() => {
+    if (languagesSettingsQuery.data?.activeLanguages) setActiveLangs(languagesSettingsQuery.data.activeLanguages);
+  }, [languagesSettingsQuery.data]);
+  const saveLanguagesMutation = useMutation({
+    mutationFn: async (languages: string[]) => {
+      const res = await adminApiRequest("POST", "/api/admin/settings/languages", { languages });
+      if (!res.ok) throw new Error("save failed");
+      return res.json();
+    },
+    onSuccess: (data: { activeLanguages?: string[] }) => {
+      if (data?.activeLanguages) setActiveLangs(data.activeLanguages);
+      toast({ title: "Idiomas activos guardados" });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/settings/languages"] });
+    },
+    onError: () => toast({ title: "No se pudieron guardar los idiomas", variant: "destructive" }),
+  });
+  const toggleLang = (code: string, on: boolean) =>
+    setActiveLangs((prev) => (on ? Array.from(new Set([...prev, code])) : prev.filter((c) => c !== code)));
+
   const getLanguageCoverageData = () => {
     const stats = cmsStatsQuery.data;
     if (!stats) return [];
@@ -646,6 +683,9 @@ export default function AdminTranslations() {
           </div>
         </div>
       </header>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6">
+        <AdminPageHelp>Traduce el contenido a otros idiomas y elige, en la pestaña Idiomas activos, a cuáles traducir.</AdminPageHelp>
+      </div>
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <Tabs defaultValue="overview" className="space-y-6">
@@ -653,7 +693,57 @@ export default function AdminTranslations() {
             <TabsTrigger value="overview" data-testid="tab-overview">{t.overview}</TabsTrigger>
             <TabsTrigger value="articles" data-testid="tab-articles">{t.articles}</TabsTrigger>
             <TabsTrigger value="jobs" data-testid="tab-jobs">{t.recentJobs}</TabsTrigger>
+            <TabsTrigger value="languages" data-testid="tab-languages">Idiomas activos</TabsTrigger>
           </TabsList>
+
+          <TabsContent value="languages" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Languages className="h-5 w-5 text-primary" /> Idiomas activos
+                </CardTitle>
+                <CardDescription>
+                  Elige a qué idiomas se traduce el contenido. El traductor generará <b>solo estos idiomas</b>
+                  (en vez de los 10 siempre), ahorrando tiempo y créditos. El <b>español</b> es el idioma base y
+                  siempre está incluido.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-5">
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
+                  {(languagesSettingsQuery.data?.allLanguages || SUPPORTED_LANGUAGES).map((code) => {
+                    const checked = activeLangs.includes(code);
+                    const isBase = code === "es";
+                    return (
+                      <label
+                        key={code}
+                        className={`flex items-center gap-2 border rounded-md p-3 cursor-pointer transition-colors ${checked ? "border-primary bg-primary/5" : "border-border"} ${isBase ? "opacity-70" : ""}`}
+                        data-testid={`lang-toggle-${code}`}
+                      >
+                        <Checkbox
+                          checked={checked}
+                          disabled={isBase}
+                          onCheckedChange={(v) => toggleLang(code, v === true)}
+                        />
+                        <span className="text-sm">{LANG_LABELS[code] || code}{isBase && " (base)"}</span>
+                      </label>
+                    );
+                  })}
+                </div>
+                <Button
+                  onClick={() => saveLanguagesMutation.mutate(activeLangs)}
+                  disabled={saveLanguagesMutation.isPending}
+                  data-testid="button-save-languages"
+                >
+                  {saveLanguagesMutation.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                  Guardar idiomas activos
+                </Button>
+                <p className="text-xs text-muted-foreground">
+                  Nota: hoy el sitio público muestra español e inglés; los demás idiomas se guardan para
+                  cuando se active su despliegue. Traducir con IA requiere créditos de Anthropic disponibles.
+                </p>
+              </CardContent>
+            </Card>
+          </TabsContent>
 
           <TabsContent value="overview" className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">

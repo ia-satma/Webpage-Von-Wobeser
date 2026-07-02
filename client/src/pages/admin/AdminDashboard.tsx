@@ -715,44 +715,28 @@ export default function AdminDashboard() {
                 </p>
                 <div className="space-y-2">
                   <Link href="/admin/team">
-                    <Button variant="outline" className="w-full justify-start" data-testid="button-team-members">
-                      <Users className="mr-2 h-4 w-4" /> Abogados y equipo
-                    </Button>
+                    <Button variant="outline" className="w-full justify-start h-auto py-2" data-testid="button-team-members"><Users className="mr-2 h-4 w-4" /><span className="flex flex-col items-start text-left leading-tight"><span>Abogados y equipo</span><span className="text-[11px] font-normal text-muted-foreground mt-0.5">Agrega y edita socios, abogados y personal.</span></span></Button>
                   </Link>
                   <Link href="/admin/practice-groups">
-                    <Button variant="outline" className="w-full justify-start" data-testid="button-practice-groups">
-                      <Briefcase className="mr-2 h-4 w-4" /> Áreas de práctica
-                    </Button>
+                    <Button variant="outline" className="w-full justify-start h-auto py-2" data-testid="button-practice-groups"><Briefcase className="mr-2 h-4 w-4" /><span className="flex flex-col items-start text-left leading-tight"><span>Áreas de práctica</span><span className="text-[11px] font-normal text-muted-foreground mt-0.5">Define las áreas de práctica legal.</span></span></Button>
                   </Link>
                   <Link href="/admin/industry-groups">
-                    <Button variant="outline" className="w-full justify-start" data-testid="button-industry-groups">
-                      <Building2 className="mr-2 h-4 w-4" /> Sectores / Industrias
-                    </Button>
+                    <Button variant="outline" className="w-full justify-start h-auto py-2" data-testid="button-industry-groups"><Building2 className="mr-2 h-4 w-4" /><span className="flex flex-col items-start text-left leading-tight"><span>Sectores / Industrias</span><span className="text-[11px] font-normal text-muted-foreground mt-0.5">Define los sectores/industrias que atiende la firma.</span></span></Button>
                   </Link>
                   <Link href="/admin/news">
-                    <Button variant="outline" className="w-full justify-start" data-testid="button-news-articles">
-                      <Newspaper className="mr-2 h-4 w-4" /> Noticias
-                    </Button>
+                    <Button variant="outline" className="w-full justify-start h-auto py-2" data-testid="button-news-articles"><Newspaper className="mr-2 h-4 w-4" /><span className="flex flex-col items-start text-left leading-tight"><span>Noticias</span><span className="text-[11px] font-normal text-muted-foreground mt-0.5">Publica y edita noticias y publicaciones.</span></span></Button>
                   </Link>
                   <Link href="/admin/events">
-                    <Button variant="outline" className="w-full justify-start" data-testid="button-events">
-                      <Calendar className="mr-2 h-4 w-4" /> Eventos
-                    </Button>
+                    <Button variant="outline" className="w-full justify-start h-auto py-2" data-testid="button-events"><Calendar className="mr-2 h-4 w-4" /><span className="flex flex-col items-start text-left leading-tight"><span>Eventos</span><span className="text-[11px] font-normal text-muted-foreground mt-0.5">Crea y administra eventos y seminarios.</span></span></Button>
                   </Link>
                   <Link href="/admin/recognitions">
-                    <Button variant="outline" className="w-full justify-start" data-testid="button-recognitions">
-                      <Award className="mr-2 h-4 w-4" /> Reconocimientos
-                    </Button>
+                    <Button variant="outline" className="w-full justify-start h-auto py-2" data-testid="button-recognitions"><Award className="mr-2 h-4 w-4" /><span className="flex flex-col items-start text-left leading-tight"><span>Reconocimientos</span><span className="text-[11px] font-normal text-muted-foreground mt-0.5">Premios y rankings de la firma (Chambers, Legal 500…).</span></span></Button>
                   </Link>
                   <Link href="/admin/posts">
-                    <Button variant="outline" className="w-full justify-start" data-testid="button-all-posts">
-                      <FileText className="mr-2 h-4 w-4" /> Blog / Artículos
-                    </Button>
+                    <Button variant="outline" className="w-full justify-start h-auto py-2" data-testid="button-all-posts"><FileText className="mr-2 h-4 w-4" /><span className="flex flex-col items-start text-left leading-tight"><span>Blog / Artículos</span><span className="text-[11px] font-normal text-muted-foreground mt-0.5">Escribe y edita entradas del blog.</span></span></Button>
                   </Link>
                   <Link href="/admin/categories">
-                    <Button variant="outline" className="w-full justify-start" data-testid="button-manage-categories">
-                      <FolderOpen className="mr-2 h-4 w-4" /> Categorías
-                    </Button>
+                    <Button variant="outline" className="w-full justify-start h-auto py-2" data-testid="button-manage-categories"><FolderOpen className="mr-2 h-4 w-4" /><span className="flex flex-col items-start text-left leading-tight"><span>Categorías</span><span className="text-[11px] font-normal text-muted-foreground mt-0.5">Organiza las categorías del contenido.</span></span></Button>
                   </Link>
                 </div>
               </div>
@@ -764,19 +748,15 @@ export default function AdminDashboard() {
                 </p>
                 <div className="space-y-2">
                   <Link href="/admin/site-config">
-                    <Button variant="outline" className="w-full justify-start bg-primary/5 border-primary/20" data-testid="button-site-config">
-                      <Settings className="mr-2 h-4 w-4 text-primary" /> Textos, video y logos
+                    <Button variant="outline" className="w-full justify-start bg-primary/5 border-primary/20 h-auto py-2" data-testid="button-site-config">
+                      <Settings className="mr-2 h-4 w-4 text-primary" /><span className="flex flex-col items-start text-left leading-tight"><span>Textos, video y logos</span><span className="text-[11px] font-normal text-muted-foreground mt-0.5">Cambia textos, video y banner de la portada.</span></span>
                     </Button>
                   </Link>
                   <Link href="/admin/gallery">
-                    <Button variant="outline" className="w-full justify-start" data-testid="button-gallery">
-                      <Images className="mr-2 h-4 w-4" /> Galería de imágenes
-                    </Button>
+                    <Button variant="outline" className="w-full justify-start h-auto py-2" data-testid="button-gallery"><Images className="mr-2 h-4 w-4" /><span className="flex flex-col items-start text-left leading-tight"><span>Galería de imágenes</span><span className="text-[11px] font-normal text-muted-foreground mt-0.5">Sube y ordena las fotos de la galería de oficinas.</span></span></Button>
                   </Link>
                   <Link href="/admin/translations">
-                    <Button variant="outline" className="w-full justify-start" data-testid="button-translations-dashboard">
-                      <Languages className="mr-2 h-4 w-4" /> Traducciones
-                    </Button>
+                    <Button variant="outline" className="w-full justify-start h-auto py-2" data-testid="button-translations-dashboard"><Languages className="mr-2 h-4 w-4" /><span className="flex flex-col items-start text-left leading-tight"><span>Traducciones</span><span className="text-[11px] font-normal text-muted-foreground mt-0.5">Traduce el contenido y elige a qué idiomas.</span></span></Button>
                   </Link>
                 </div>
               </div>
@@ -788,34 +768,22 @@ export default function AdminDashboard() {
                 </p>
                 <div className="space-y-2">
                   <Link href="/admin/agents">
-                    <Button variant="outline" className="w-full justify-start" data-testid="button-ai-agents">
-                      <Bot className="mr-2 h-4 w-4" /> Agentes IA
-                    </Button>
+                    <Button variant="outline" className="w-full justify-start h-auto py-2" data-testid="button-ai-agents"><Bot className="mr-2 h-4 w-4" /><span className="flex flex-col items-start text-left leading-tight"><span>Agentes IA</span><span className="text-[11px] font-normal text-muted-foreground mt-0.5">Los 9 agentes de IA que procesan el contenido (técnico).</span></span></Button>
                   </Link>
                   <Link href="/admin/processing">
-                    <Button variant="outline" className="w-full justify-start" data-testid="button-article-processing">
-                      <Cog className="mr-2 h-4 w-4" /> Procesamiento de artículos
-                    </Button>
+                    <Button variant="outline" className="w-full justify-start h-auto py-2" data-testid="button-article-processing"><Cog className="mr-2 h-4 w-4" /><span className="flex flex-col items-start text-left leading-tight"><span>Procesamiento de artículos</span><span className="text-[11px] font-normal text-muted-foreground mt-0.5">Corre el pipeline de IA sobre los artículos (técnico).</span></span></Button>
                   </Link>
                   <Link href="/admin/knowledge">
-                    <Button variant="outline" className="w-full justify-start" data-testid="button-knowledge-base">
-                      <BookOpen className="mr-2 h-4 w-4" /> Base de conocimiento
-                    </Button>
+                    <Button variant="outline" className="w-full justify-start h-auto py-2" data-testid="button-knowledge-base"><BookOpen className="mr-2 h-4 w-4" /><span className="flex flex-col items-start text-left leading-tight"><span>Base de conocimiento</span><span className="text-[11px] font-normal text-muted-foreground mt-0.5">Base de conocimiento de los agentes (técnico).</span></span></Button>
                   </Link>
                   <Link href="/admin/explorer">
-                    <Button variant="outline" className="w-full justify-start" data-testid="button-system-explorer">
-                      <Layers className="mr-2 h-4 w-4" /> Explorador del sistema
-                    </Button>
+                    <Button variant="outline" className="w-full justify-start h-auto py-2" data-testid="button-system-explorer"><Layers className="mr-2 h-4 w-4" /><span className="flex flex-col items-start text-left leading-tight"><span>Explorador del sistema</span><span className="text-[11px] font-normal text-muted-foreground mt-0.5">Inventario técnico del sistema (avanzado).</span></span></Button>
                   </Link>
                   <Link href="/admin/health-check">
-                    <Button variant="outline" className="w-full justify-start" data-testid="button-health-check">
-                      <Activity className="mr-2 h-4 w-4" /> Salud del sistema
-                    </Button>
+                    <Button variant="outline" className="w-full justify-start h-auto py-2" data-testid="button-health-check"><Activity className="mr-2 h-4 w-4" /><span className="flex flex-col items-start text-left leading-tight"><span>Salud del sistema</span><span className="text-[11px] font-normal text-muted-foreground mt-0.5">Diagnóstico de salud del sistema (técnico).</span></span></Button>
                   </Link>
                   <Link href="/admin/guide">
-                    <Button variant="outline" className="w-full justify-start" data-testid="button-platform-guide">
-                      <Bot className="mr-2 h-4 w-4" /> Guía de la plataforma
-                    </Button>
+                    <Button variant="outline" className="w-full justify-start h-auto py-2" data-testid="button-platform-guide"><Bot className="mr-2 h-4 w-4" /><span className="flex flex-col items-start text-left leading-tight"><span>Guía de la plataforma</span><span className="text-[11px] font-normal text-muted-foreground mt-0.5">Guía visual del ecosistema de agentes.</span></span></Button>
                   </Link>
                 </div>
               </div>

@@ -59,128 +59,37 @@ const HTML_LANG_CODES: Record<LanguageCode, string> = {
 };
 
 export function LanguageProvider({ children }: LanguageProviderProps) {
-  const { i18n: i18nInstance, ready } = useTranslation();
-  const initializedRef = useRef(false);
-  const detectionRef = useRef(false);
-  
-  const [language, setLanguageState] = useState<LanguageCode>(() => {
-    const stored = getStoredLanguage();
-    return stored || DEFAULT_LANGUAGE;
-  });
-  
-  const [isDetecting, setIsDetecting] = useState(false);
+  const { i18n: i18nInstance } = useTranslation();
 
+  // El PANEL DE ADMINISTRACIÓN es fijo en ESPAÑOL (decisión del cliente): se
+  // ignora cualquier idioma guardado o detectado y no se ofrece selector.
+  // (El sitio público usa su propio sistema server-side con ?lang=, aparte.)
+  const language: LanguageCode = "es";
   const displayLanguage = getDisplayLanguage(language);
 
-  const setLanguage = useCallback((lang: LanguageCode) => {
-    if (lang === language) return;
-    
-    setLanguageState(lang);
-    
-    if (i18nInstance.language !== lang) {
-      i18nInstance.changeLanguage(lang);
-    }
-    
+  const setLanguage = useCallback((_lang: LanguageCode) => {
+    // no-op: el admin permanece en español.
+  }, []);
+
+  const getLanguageInfo = useCallback(
+    (): SupportedLanguage => SUPPORTED_LANGUAGES.find((l) => l.code === language) || SUPPORTED_LANGUAGES[0],
+    [],
+  );
+
+  // Fija i18n y el <html lang> a español una sola vez.
+  useEffect(() => {
+    if (i18nInstance.language !== "es") i18nInstance.changeLanguage("es");
+    document.documentElement.setAttribute("lang", HTML_LANG_CODES.es);
+    document.documentElement.setAttribute("dir", "ltr");
     try {
-      localStorage.setItem(STORAGE_KEY, lang);
+      localStorage.setItem(STORAGE_KEY, "es");
     } catch {
+      /* ignore */
     }
-  }, [language, i18nInstance]);
-
-  const getLanguageInfo = useCallback((): SupportedLanguage => {
-    const langInfo = SUPPORTED_LANGUAGES.find(l => l.code === language);
-    return langInfo || SUPPORTED_LANGUAGES[0];
-  }, [language]);
-
-  // Geolocation-based language detection (runs once on first visit)
-  useEffect(() => {
-    if (!ready || detectionRef.current) return;
-    detectionRef.current = true;
-    
-    const stored = getStoredLanguage();
-    const alreadyDetected = localStorage.getItem(DETECTION_KEY);
-    
-    // Only detect if no stored preference AND we haven't detected before
-    if (stored || alreadyDetected) return;
-    
-    const detectLanguage = async () => {
-      setIsDetecting(true);
-      try {
-        const response = await fetch("/api/detect-language");
-        if (response.ok) {
-          const data = await response.json();
-          const detectedLang = data.language as string;
-          
-          if (isValidLanguageCode(detectedLang) && detectedLang !== DEFAULT_LANGUAGE) {
-            setLanguageState(detectedLang);
-            i18nInstance.changeLanguage(detectedLang);
-            localStorage.setItem(STORAGE_KEY, detectedLang);
-          }
-        }
-      } catch {
-        // Silently fail - user can manually select language
-      } finally {
-        localStorage.setItem(DETECTION_KEY, "true");
-        setIsDetecting(false);
-      }
-    };
-    
-    detectLanguage();
-  }, [ready, i18nInstance]);
-  
-  // Standard initialization from stored preference
-  useEffect(() => {
-    if (!ready || initializedRef.current) return;
-    initializedRef.current = true;
-    
-    const stored = getStoredLanguage();
-    
-    if (stored) {
-      if (stored !== language) {
-        setLanguageState(stored);
-      }
-      if (i18nInstance.language !== stored) {
-        i18nInstance.changeLanguage(stored);
-      }
-    } else {
-      localStorage.setItem(STORAGE_KEY, language);
-      if (i18nInstance.language !== language) {
-        i18nInstance.changeLanguage(language);
-      }
-    }
-  }, [ready, i18nInstance, language]);
-
-  useEffect(() => {
-    const htmlElement = document.documentElement;
-    const langCode = HTML_LANG_CODES[language] || language;
-    htmlElement.setAttribute("lang", langCode);
-    
-    if (language === "ar") {
-      htmlElement.setAttribute("dir", "rtl");
-    } else {
-      htmlElement.setAttribute("dir", "ltr");
-    }
-  }, [language]);
-
-  useEffect(() => {
-    const handleLanguageChanged = (lng: string) => {
-      if (isValidLanguageCode(lng) && lng !== language) {
-        setLanguageState(lng);
-        try {
-          localStorage.setItem(STORAGE_KEY, lng);
-        } catch {
-        }
-      }
-    };
-
-    i18nInstance.on('languageChanged', handleLanguageChanged);
-    return () => {
-      i18nInstance.off('languageChanged', handleLanguageChanged);
-    };
-  }, [i18nInstance, language]);
+  }, [i18nInstance]);
 
   return (
-    <LanguageContext.Provider value={{ language, displayLanguage, setLanguage, getLanguageInfo, isDetecting }}>
+    <LanguageContext.Provider value={{ language, displayLanguage, setLanguage, getLanguageInfo, isDetecting: false }}>
       {children}
     </LanguageContext.Provider>
   );

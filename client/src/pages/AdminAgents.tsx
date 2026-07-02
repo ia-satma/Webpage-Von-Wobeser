@@ -109,16 +109,30 @@ const AGENT_ICONS: Record<string, any> = {
 };
 
 const AGENT_NAMES: Record<string, string> = {
-  formatter: "Article Formatter",
-  metadata_linker: "Metadata Linker",
-  polyglot_translator: "Polyglot Translator",
-  content_auditor: "Content Auditor",
-  content_analyzer: "Content Analyzer",
-  seo_optimizer: "SEO Optimizer",
-  website_auditor: "Website Auditor",
-  image_suggestion: "Image Suggestion",
-  category_agent: "Category Agent",
-  orchestrator: "Orchestrator",
+  formatter: "Formateador de Artículos",
+  metadata_linker: "Enlazador de Metadatos",
+  polyglot_translator: "Traductor Multilingüe",
+  content_auditor: "Auditor de Contenido",
+  content_analyzer: "Analizador de Contenido",
+  seo_optimizer: "Optimizador SEO",
+  website_auditor: "Auditor del Sitio",
+  image_suggestion: "Sugerencia de Imágenes",
+  category_agent: "Categorizador",
+  orchestrator: "Orquestador",
+};
+
+// Descripción breve de qué hace cada agente (para facilitar el uso al equipo).
+const AGENT_DESCRIPTIONS: Record<string, string> = {
+  formatter: "Limpia y formatea el texto de artículos extraídos de PDFs: repara saltos de línea, une párrafos partidos y quita pies de página. (usa IA)",
+  metadata_linker: "Detecta a los abogados autores y vincula el artículo con ellos, sus áreas de práctica e industrias. (usa IA)",
+  polyglot_translator: "Traduce el artículo a 10 idiomas manteniendo la terminología legal consistente. (usa IA)",
+  content_auditor: "Escanea todas las noticias buscando huecos: traducciones faltantes, sin autor o mal formato, y sugiere qué agente los corrige. (sin IA)",
+  content_analyzer: "Analiza el artículo (SEO, calidad, ortografía, abogados mencionados) y le da una calificación de calidad. (usa IA)",
+  seo_optimizer: "Optimiza título, meta descripción, slug y palabras clave para buscadores; solo aplica los cambios si mejoran el puntaje. (usa IA)",
+  website_auditor: "Audita todo el sitio: traducciones faltantes, contenido incompleto, SEO e integridad de enlaces. (sin IA)",
+  image_suggestion: "Genera una imagen para el artículo en el estilo de marca de Von Wobeser. (usa IA)",
+  category_agent: "Clasifica el artículo: categoría principal, áreas de práctica, industrias y etiquetas. (usa IA)",
+  orchestrator: "Coordina la cola de trabajos y ejecuta los agentes en orden.",
 };
 
 const STATUS_COLORS: Record<string, string> = {
@@ -174,13 +188,13 @@ export default function AdminAgents() {
     },
     onSuccess: (data: any) => {
       toast({ 
-        title: "Website audit started", 
-        description: data?.message || "Audit job queued successfully" 
+        title: "Auditoría del sitio iniciada", 
+        description: data?.message || "Trabajo de auditoría encolado" 
       });
       queryClient.invalidateQueries({ queryKey: ["/api/agents/status"] });
     },
     onError: (error) => {
-      toast({ title: "Audit failed", description: String(error), variant: "destructive" });
+      toast({ title: "Falló la auditoría", description: String(error), variant: "destructive" });
     },
   });
 
@@ -190,7 +204,7 @@ export default function AdminAgents() {
       return res.json();
     },
     onSuccess: (data: any) => {
-      toast({ title: "Learning cycle completed", description: `${data?.insights?.length || 0} insights generated` });
+      toast({ title: "Ciclo de aprendizaje completado", description: `${data?.insights?.length || 0} hallazgos generados` });
       queryClient.invalidateQueries({ queryKey: ["/api/agents/status"] });
     },
   });
@@ -202,12 +216,12 @@ export default function AdminAgents() {
     },
     onSuccess: (data: { knowledge: boolean; evolution: boolean }) => {
       toast({ 
-        title: "Sync completed", 
-        description: `Knowledge: ${data.knowledge ? 'OK' : 'Failed'}, Evolution: ${data.evolution ? 'OK' : 'Failed'}` 
+        title: "Sincronización completada", 
+        description: `Conocimiento: ${data.knowledge ? 'OK' : 'Falló'}, Evolución: ${data.evolution ? 'OK' : 'Falló'}` 
       });
     },
     onError: () => {
-      toast({ title: "Sync failed", variant: "destructive" });
+      toast({ title: "Falló la sincronización", variant: "destructive" });
     },
   });
 
@@ -217,7 +231,7 @@ export default function AdminAgents() {
       return res.json();
     },
     onSuccess: () => {
-      toast({ title: "Processing started" });
+      toast({ title: "Procesamiento iniciado" });
       queryClient.invalidateQueries({ queryKey: ["/api/agents/status"] });
     },
   });
@@ -228,7 +242,7 @@ export default function AdminAgents() {
       return res.json();
     },
     onSuccess: () => {
-      toast({ title: "Processing stopped" });
+      toast({ title: "Procesamiento detenido" });
       queryClient.invalidateQueries({ queryKey: ["/api/agents/status"] });
     },
   });
@@ -239,7 +253,7 @@ export default function AdminAgents() {
       return res.json();
     },
     onSuccess: () => {
-      toast({ title: "Proposal updated" });
+      toast({ title: "Propuesta actualizada" });
       queryClient.invalidateQueries({ queryKey: ["/api/agents/evolution/proposals"] });
     },
   });
@@ -249,7 +263,7 @@ export default function AdminAgents() {
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
           <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4 text-primary" />
-          <p className="text-muted-foreground">Checking authentication...</p>
+          <p className="text-muted-foreground">Verificando autenticación...</p>
         </div>
       </div>
     );
@@ -260,7 +274,7 @@ export default function AdminAgents() {
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
           <RefreshCw className="w-8 h-8 animate-spin mx-auto mb-4 text-primary" />
-          <p className="text-muted-foreground">Loading agent system...</p>
+          <p className="text-muted-foreground">Cargando sistema de agentes...</p>
         </div>
       </div>
     );
@@ -279,9 +293,9 @@ export default function AdminAgents() {
             <div>
               <h1 className="text-3xl font-bold flex items-center gap-3">
                 <Bot className="w-8 h-8 text-primary" />
-                AI Agent System
+                Sistema de Agentes IA
               </h1>
-              <p className="text-muted-foreground">Monitor and control autonomous content improvement agents</p>
+              <p className="text-muted-foreground">Monitorea y controla los agentes de mejora de contenido</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
@@ -292,7 +306,7 @@ export default function AdminAgents() {
               data-testid="button-refresh-status"
             >
               <RefreshCw className="w-4 h-4 mr-2" />
-              Refresh
+              Actualizar
             </Button>
             <Button
               variant="outline"
@@ -306,7 +320,7 @@ export default function AdminAgents() {
               ) : (
                 <Cloud className="w-4 h-4 mr-2" />
               )}
-              Sync to Cloud
+              Sincronizar a la nube
             </Button>
           </div>
         </div>
@@ -316,7 +330,7 @@ export default function AdminAgents() {
             <CardContent className="pt-4">
               <div className="flex items-center gap-2 text-red-600 dark:text-red-400">
                 <AlertTriangle className="w-5 h-5" />
-                <span>Error loading agent status: {String(statusError)}</span>
+                <span>Error al cargar el estado de los agentes: {String(statusError)}</span>
               </div>
             </CardContent>
           </Card>
@@ -327,17 +341,17 @@ export default function AdminAgents() {
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-muted-foreground">System Status</p>
+                  <p className="text-sm text-muted-foreground">Estado del sistema</p>
                   <p className="text-2xl font-bold flex items-center gap-2" data-testid="text-system-status">
                     {status?.orchestrator?.isRunning ? (
                       <>
                         <Activity className="w-5 h-5 text-green-500" />
-                        Active
+                        Activo
                       </>
                     ) : (
                       <>
                         <Pause className="w-5 h-5 text-yellow-500" />
-                        Paused
+                        En pausa
                       </>
                     )}
                   </p>
@@ -359,7 +373,7 @@ export default function AdminAgents() {
 
           <Card>
             <CardContent className="pt-6">
-              <p className="text-sm text-muted-foreground">Registered Agents</p>
+              <p className="text-sm text-muted-foreground">Agentes registrados</p>
               <p className="text-2xl font-bold" data-testid="text-agent-count">{status?.orchestrator?.registeredAgents?.length || 0}</p>
               <div className="flex gap-1 mt-2 flex-wrap">
                 {status?.orchestrator?.registeredAgents?.map((agent) => {
@@ -372,24 +386,24 @@ export default function AdminAgents() {
 
           <Card>
             <CardContent className="pt-6">
-              <p className="text-sm text-muted-foreground">Queue / Active</p>
+              <p className="text-sm text-muted-foreground">En cola / Activos</p>
               <p className="text-2xl font-bold" data-testid="text-queue-length">
                 {status?.orchestrator?.queueLength || 0} / {status?.orchestrator?.activeJobs || 0}
               </p>
               <p className="text-xs text-muted-foreground mt-1">
-                {status?.database?.recentJobs || 0} recent jobs
+                {status?.database?.recentJobs || 0} trabajos recientes
               </p>
             </CardContent>
           </Card>
 
           <Card>
             <CardContent className="pt-6">
-              <p className="text-sm text-muted-foreground">Knowledge / Proposals</p>
+              <p className="text-sm text-muted-foreground">Conocimiento / Propuestas</p>
               <p className="text-2xl font-bold" data-testid="text-knowledge-count">
                 {status?.knowledge?.totalDocuments || 0} / {status?.evolution?.totalProposals || 0}
               </p>
               <p className="text-xs text-muted-foreground mt-1">
-                {status?.database?.failedJobs || 0} failed jobs
+                {status?.database?.failedJobs || 0} trabajos fallidos
               </p>
             </CardContent>
           </Card>
@@ -397,10 +411,10 @@ export default function AdminAgents() {
 
         <Tabs defaultValue="agents" className="space-y-4">
           <TabsList data-testid="tabs-agent-sections">
-            <TabsTrigger value="agents" data-testid="tab-agents">Agents</TabsTrigger>
-            <TabsTrigger value="evolution" data-testid="tab-evolution">Evolution</TabsTrigger>
-            <TabsTrigger value="jobs" data-testid="tab-jobs">Jobs</TabsTrigger>
-            <TabsTrigger value="actions" data-testid="tab-actions">Actions</TabsTrigger>
+            <TabsTrigger value="agents" data-testid="tab-agents">Agentes</TabsTrigger>
+            <TabsTrigger value="evolution" data-testid="tab-evolution">Evolución</TabsTrigger>
+            <TabsTrigger value="jobs" data-testid="tab-jobs">Trabajos</TabsTrigger>
+            <TabsTrigger value="actions" data-testid="tab-actions">Acciones</TabsTrigger>
           </TabsList>
 
           <TabsContent value="agents" className="space-y-4">
@@ -423,17 +437,20 @@ export default function AdminAgents() {
                         <Icon className="w-5 h-5 text-primary" />
                         {name}
                       </CardTitle>
+                      <CardDescription className="text-xs leading-snug pt-1">
+                        {AGENT_DESCRIPTIONS[agentType] || ""}
+                      </CardDescription>
                     </CardHeader>
                     <CardContent>
                       <div className="space-y-3 text-sm">
                         <div className="flex justify-between">
-                          <span className="text-muted-foreground">Total Jobs</span>
+                          <span className="text-muted-foreground">Trabajos totales</span>
                           <span className="font-medium">{totalJobs}</span>
                         </div>
                         {totalJobs > 0 && (
                           <>
                             <div className="flex justify-between items-center">
-                              <span className="text-muted-foreground">Success Rate</span>
+                              <span className="text-muted-foreground">Tasa de éxito</span>
                               <div className="flex items-center gap-2">
                                 <Progress value={successRate} className="w-16 h-2" />
                                 <span className="font-medium text-xs">{successRate}%</span>
@@ -456,21 +473,21 @@ export default function AdminAgents() {
                           </>
                         )}
                         <div className="flex justify-between">
-                          <span className="text-muted-foreground">Knowledge Docs</span>
+                          <span className="text-muted-foreground">Docs de conocimiento</span>
                           <span className="font-medium">{docs}</span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-muted-foreground">Status</span>
+                          <span className="text-muted-foreground">Estado</span>
                           <Badge variant="outline" className={pendingJobs > 0 ? "text-blue-600" : "text-green-600"}>
                             {pendingJobs > 0 ? (
                               <>
                                 <RefreshCw className="w-3 h-3 mr-1 animate-spin" />
-                                Working
+                                Trabajando
                               </>
                             ) : (
                               <>
                                 <CheckCircle className="w-3 h-3 mr-1" />
-                                Ready
+                                Listo
                               </>
                             )}
                           </Badge>
@@ -487,7 +504,7 @@ export default function AdminAgents() {
                 <CardHeader>
                   <CardTitle className="text-lg flex items-center gap-2">
                     <FileText className="w-5 h-5 text-primary" />
-                    Knowledge by Category
+                    Conocimiento por categoría
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -508,7 +525,7 @@ export default function AdminAgents() {
             <div className="flex justify-between items-center">
               <h3 className="text-lg font-semibold flex items-center gap-2">
                 <Lightbulb className="w-5 h-5 text-yellow-500" />
-                Evolution Proposals
+                Propuestas de evolución
               </h3>
               <Button 
                 variant="outline" 
@@ -517,7 +534,7 @@ export default function AdminAgents() {
                 data-testid="button-run-learning-cycle"
               >
                 <Brain className="w-4 h-4 mr-2" />
-                Run Learning Cycle
+                Correr ciclo de aprendizaje
               </Button>
             </div>
 
@@ -543,7 +560,7 @@ export default function AdminAgents() {
                         <div className="flex-1">
                           <div className="flex items-center gap-2 mb-2">
                             <Badge className={STATUS_COLORS[proposal.status]}>{proposal.status}</Badge>
-                            <Badge variant="outline">{proposal.impact} impact</Badge>
+                            <Badge variant="outline">impacto {proposal.impact}</Badge>
                             <Badge variant="secondary">{AGENT_NAMES[proposal.agentType]}</Badge>
                           </div>
                           <h4 className="font-medium">{proposal.title}</h4>
@@ -576,8 +593,8 @@ export default function AdminAgents() {
                 {(!proposals || proposals.length === 0) && (
                   <div className="text-center py-8 text-muted-foreground">
                     <Lightbulb className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                    <p>No evolution proposals yet</p>
-                    <p className="text-sm">Run a learning cycle to generate proposals</p>
+                    <p>Aún no hay propuestas de evolución</p>
+                    <p className="text-sm">Corre un ciclo de aprendizaje para generar propuestas</p>
                   </div>
                 )}
               </div>
@@ -589,7 +606,7 @@ export default function AdminAgents() {
               <div>
                 <h3 className="text-lg font-semibold flex items-center gap-2 mb-4">
                   <Activity className="w-5 h-5" />
-                  Recent Jobs
+                  Trabajos recientes
                   {status?.database?.recentJobs ? (
                     <Badge variant="secondary" className="ml-2">{status.database.recentJobs}</Badge>
                   ) : null}
@@ -613,12 +630,12 @@ export default function AdminAgents() {
                             ) : job.startedAt ? (
                               <span className="flex items-center gap-1">
                                 <RefreshCw className="w-3 h-3 animate-spin" />
-                                Running
+                                En curso
                               </span>
                             ) : (
                               <span className="flex items-center gap-1">
                                 <Clock className="w-3 h-3" />
-                                Queued
+                                En cola
                               </span>
                             )}
                           </div>
@@ -628,7 +645,7 @@ export default function AdminAgents() {
                         )}
                         {job.result && typeof job.result === 'object' && job.result.success !== undefined && (
                           <p className="text-xs text-muted-foreground mt-1">
-                            Result: {job.result.success ? 'Success' : 'Failed'}
+                            Resultado: {job.result.success ? 'Éxito' : 'Fallido'}
                           </p>
                         )}
                       </Card>
@@ -636,7 +653,7 @@ export default function AdminAgents() {
                     {(!status?.orchestrator?.recentJobs || status.orchestrator.recentJobs.length === 0) && (
                       <div className="text-center py-8 text-muted-foreground">
                         <Activity className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                        <p>No jobs executed yet</p>
+                        <p>Aún no se han ejecutado trabajos</p>
                       </div>
                     )}
                   </div>
@@ -646,7 +663,7 @@ export default function AdminAgents() {
               <div>
                 <h3 className="text-lg font-semibold flex items-center gap-2 mb-4">
                   <Zap className="w-5 h-5" />
-                  Recent Events
+                  Eventos recientes
                   {status?.database?.recentEvents ? (
                     <Badge variant="secondary" className="ml-2">{status.database.recentEvents}</Badge>
                   ) : null}
@@ -673,7 +690,7 @@ export default function AdminAgents() {
                     {(!status?.orchestrator?.recentEvents || status.orchestrator.recentEvents.length === 0) && (
                       <div className="text-center py-8 text-muted-foreground">
                         <Zap className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                        <p>No events recorded yet</p>
+                        <p>Aún no hay eventos registrados</p>
                       </div>
                     )}
                   </div>
@@ -686,12 +703,12 @@ export default function AdminAgents() {
                 <CardHeader className="pb-2">
                   <CardTitle className="text-base flex items-center gap-2 text-red-600 dark:text-red-400">
                     <XCircle className="w-4 h-4" />
-                    Failed Jobs: {status.database.failedJobs}
+                    Trabajos fallidos: {status.database.failedJobs}
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <p className="text-sm text-muted-foreground">
-                    There are failed jobs that may need attention. Check the job history for details.
+                    Hay trabajos fallidos que podrían necesitar atención. Revisa el historial de trabajos para más detalles.
                   </p>
                 </CardContent>
               </Card>
@@ -704,10 +721,10 @@ export default function AdminAgents() {
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <Search className="w-5 h-5" />
-                    Content Audit
+                    Auditoría de contenido
                   </CardTitle>
                   <CardDescription>
-                    Scan all articles for missing translations, authors, and formatting issues
+                    Escanea todos los artículos buscando traducciones faltantes, autores y problemas de formato
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -722,7 +739,7 @@ export default function AdminAgents() {
                     ) : (
                       <Zap className="w-4 h-4 mr-2" />
                     )}
-                    Run Full Audit
+                    Correr auditoría completa
                   </Button>
                 </CardContent>
               </Card>
@@ -731,10 +748,10 @@ export default function AdminAgents() {
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <Brain className="w-5 h-5" />
-                    Learning Cycle
+                    Ciclo de aprendizaje
                   </CardTitle>
                   <CardDescription>
-                    Analyze agent performance and generate improvement proposals
+                    Analiza el desempeño de los agentes y genera propuestas de mejora
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -750,7 +767,7 @@ export default function AdminAgents() {
                     ) : (
                       <Sparkles className="w-4 h-4 mr-2" />
                     )}
-                    Start Learning
+                    Iniciar aprendizaje
                   </Button>
                 </CardContent>
               </Card>
@@ -759,10 +776,10 @@ export default function AdminAgents() {
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <Cloud className="w-5 h-5" />
-                    Cloud Sync
+                    Sincronización en la nube
                   </CardTitle>
                   <CardDescription>
-                    Sync knowledge and evolution data to pCloud for persistence
+                    Sincroniza el conocimiento y la evolución a pCloud para respaldo
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -778,7 +795,7 @@ export default function AdminAgents() {
                     ) : (
                       <Cloud className="w-4 h-4 mr-2" />
                     )}
-                    Sync to pCloud
+                    Sincronizar a pCloud
                   </Button>
                 </CardContent>
               </Card>
@@ -787,17 +804,17 @@ export default function AdminAgents() {
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <FileText className="w-5 h-5" />
-                    Process Articles
+                    Procesar artículos
                   </CardTitle>
                   <CardDescription>
-                    Run the full pipeline on all articles (format, link, translate, optimize)
+                    Corre el pipeline completo sobre todos los artículos (formatear, enlazar, traducir, optimizar)
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
                   <Link href="/admin/agents/pipeline">
                     <Button className="w-full" data-testid="button-go-pipeline">
                       <Play className="w-4 h-4 mr-2" />
-                      Go to Pipeline
+                      Ir al pipeline
                     </Button>
                   </Link>
                 </CardContent>

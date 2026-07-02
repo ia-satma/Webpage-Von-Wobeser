@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { AdminPageHelp } from "@/components/admin/AdminPageHelp";
 import { useLocation, Link } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { useAdminAuth, adminApiRequest } from "@/lib/adminAuth";
@@ -78,6 +79,9 @@ export default function AdminRecognitions() {
           </div>
         </div>
       </header>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6">
+        <AdminPageHelp>Registra los premios y rankings de la firma (Chambers, Legal 500…) con su logo y año.</AdminPageHelp>
+      </div>
 
       <main className="max-w-4xl mx-auto px-6 py-8 space-y-6">
         <p className="text-muted-foreground text-sm">

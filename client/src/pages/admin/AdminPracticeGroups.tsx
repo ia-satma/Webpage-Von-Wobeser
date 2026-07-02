@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { AdminPageHelp } from "@/components/admin/AdminPageHelp";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useQuery, useMutation } from "@tanstack/react-query";
@@ -1006,6 +1007,9 @@ export default function AdminPracticeGroups() {
           </div>
         </div>
       </header>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6">
+        <AdminPageHelp>Define las áreas de práctica legal (Corporativo, Fiscal, Litigio…). Cada abogado puede pertenecer a varias.</AdminPageHelp>
+      </div>
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="grid gap-6 md:grid-cols-2 mb-8">

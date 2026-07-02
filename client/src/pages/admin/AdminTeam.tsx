@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { AdminPageHelp } from "@/components/admin/AdminPageHelp";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Link } from "wouter";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -448,6 +449,7 @@ export default function AdminTeam() {
           </Link>
         </div>
 
+        <AdminPageHelp>Aquí administras a los abogados y el equipo: agrega, edita y sube su foto. Puedes asignar a cada uno varias áreas de práctica e industrias.</AdminPageHelp>
         {stats && (
           <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
             <Card>

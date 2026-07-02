@@ -354,6 +354,46 @@ export async function setupMirror(app: Express) {
     res.json({ ok: true, key: req.params.key });
   }));
 
+  // ---------- Idiomas de traducción (config global + disparo con selección) --
+  // El cliente elige a QUÉ idiomas se traduce el contenido, en vez de siempre a los 10.
+  const ALL_LANGS = ["es", "en", "de", "zh", "ko", "ja", "ar", "ru", "fr", "it"];
+  const parseLangs = (raw: string | undefined): string[] =>
+    (raw || "es,en").split(",").map((s) => s.trim()).filter((c) => ALL_LANGS.includes(c));
+
+  // Idiomas activos (config global): a qué idiomas se traduce por defecto.
+  app.get("/api/admin/settings/languages", authMiddleware, requireRole("editor", "admin"), wrap(async (_req, res) => {
+    const map = await getConfigMap();
+    res.json({ activeLanguages: parseLangs(map.active_languages?.value), allLanguages: ALL_LANGS });
+  }));
+  app.post("/api/admin/settings/languages", authMiddleware, requireRole("editor", "admin"), wrap(async (req, res) => {
+    const langs = Array.isArray(req.body?.languages)
+      ? (req.body.languages as string[]).filter((c) => ALL_LANGS.includes(c))
+      : [];
+    if (langs.length === 0) { res.status(400).json({ error: "Selecciona al menos un idioma" }); return; }
+    if (!langs.includes("es")) langs.unshift("es"); // español = idioma fuente, siempre presente
+    const unique = Array.from(new Set(langs));
+    await upsertConfig("active_languages", unique.join(","));
+    res.json({ ok: true, activeLanguages: unique });
+  }));
+
+  // Traduce un artículo a los idiomas indicados (o a los activos globales por defecto).
+  app.post("/api/admin/translate", authMiddleware, requireRole("editor", "admin"), wrap(async (req, res) => {
+    const { articleId, languages } = req.body || {};
+    if (!articleId) { res.status(400).json({ error: "articleId requerido" }); return; }
+    const map = await getConfigMap();
+    const active = parseLangs(map.active_languages?.value);
+    const requested = Array.isArray(languages) && languages.length
+      ? (languages as string[]).filter((c) => ALL_LANGS.includes(c))
+      : active;
+    const targetLanguages = requested.filter((c) => c !== "es"); // "es" es la fuente
+    const { polyglotTranslatorAgent } = await import("../agents/specialized/PolyglotTranslatorAgent");
+    const result = await polyglotTranslatorAgent.execute(
+      { jobId: `translate-${articleId}`, agentType: "polyglot_translator", startTime: new Date(), metadata: { source: "admin" } } as any,
+      { articleId, targetLanguages },
+    );
+    res.json(result);
+  }));
+
   // ---------- Static assets (css, js, vendor, images, fonts) ------------
   app.use(express.static(mirrorDir, { index: false }));
 

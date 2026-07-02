@@ -1,4 +1,5 @@
 import { useEffect, useState, useMemo } from "react";
+import { AdminPageHelp } from "@/components/admin/AdminPageHelp";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useQuery, useMutation } from "@tanstack/react-query";
@@ -693,6 +694,9 @@ export default function AdminCategories() {
           </div>
         </div>
       </header>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6">
+        <AdminPageHelp>Organiza las categorías con las que se clasifica el contenido.</AdminPageHelp>
+      </div>
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <Card>

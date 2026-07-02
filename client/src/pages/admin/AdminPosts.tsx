@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { AdminPageHelp } from "@/components/admin/AdminPageHelp";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Link } from "wouter";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -411,6 +412,9 @@ export default function AdminPosts() {
           </div>
         </div>
       </header>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6">
+        <AdminPageHelp>Escribe y edita las entradas del blog de la firma.</AdminPageHelp>
+      </div>
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <Card>
