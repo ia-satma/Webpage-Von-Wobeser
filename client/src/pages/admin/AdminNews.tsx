@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { AdminPageHelp } from "@/components/admin/AdminPageHelp";
+import { NewsletterButton, LegalAlertButton } from "@/components/admin/AgentTools";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Link } from "wouter";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -408,12 +409,16 @@ export default function AdminNews() {
                 </h1>
               </div>
             </div>
-            <Link href="/admin/news/new">
-              <Button size="sm" data-testid="button-new-article">
-                <Plus className="mr-2 h-4 w-4" />
-                Nueva noticia
-              </Button>
-            </Link>
+            <div className="flex items-center gap-2">
+              <NewsletterButton />
+              <LegalAlertButton />
+              <Link href="/admin/news/new">
+                <Button size="sm" data-testid="button-new-article">
+                  <Plus className="mr-2 h-4 w-4" />
+                  Nueva noticia
+                </Button>
+              </Link>
+            </div>
           </div>
         </div>
       </header>

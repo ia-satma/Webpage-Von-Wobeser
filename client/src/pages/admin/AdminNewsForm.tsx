@@ -14,6 +14,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 import { ImageUpload } from "@/components/admin/ImageUpload";
 import { AdminPageHelp } from "@/components/admin/AdminPageHelp";
+import { SocialPostButton } from "@/components/admin/AgentTools";
 import { ArrowLeft, Save, Loader2 } from "lucide-react";
 import { newsCategories, type News } from "@shared/schema";
 
@@ -137,13 +138,16 @@ export default function AdminNewsForm() {
   return (
     <div className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-8 max-w-3xl">
-        <div className="flex items-center gap-4 mb-6">
-          <Link href="/admin/news">
-            <Button variant="ghost" size="icon" data-testid="button-back"><ArrowLeft className="h-5 w-5" /></Button>
-          </Link>
-          <h1 className="text-2xl font-bold" data-testid="text-page-title">
-            {isEdit ? "Editar noticia" : "Nueva noticia"}
-          </h1>
+        <div className="flex items-center justify-between gap-4 mb-6">
+          <div className="flex items-center gap-4">
+            <Link href="/admin/news">
+              <Button variant="ghost" size="icon" data-testid="button-back"><ArrowLeft className="h-5 w-5" /></Button>
+            </Link>
+            <h1 className="text-2xl font-bold" data-testid="text-page-title">
+              {isEdit ? "Editar noticia" : "Nueva noticia"}
+            </h1>
+          </div>
+          {isEdit && id && <SocialPostButton articleId={id} />}
         </div>
 
         <AdminPageHelp>

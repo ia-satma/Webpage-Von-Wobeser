@@ -15,6 +15,9 @@ export { imageSuggestionAgent } from './specialized/ImageSuggestionAgent';
 export { categoryAgent } from './specialized/CategoryAgent';
 export { websiteAuditorAgent } from './specialized/WebsiteAuditorAgent';
 export { contentAnalyzerAgent } from './specialized/ContentAnalyzerAgent';
+export { socialMediaAgent } from './specialized/SocialMediaAgent';
+export { newsletterAgent } from './specialized/NewsletterAgent';
+export { legalAlertsAgent } from './specialized/LegalAlertsAgent';
 
 import { orchestrator } from './core/AgentOrchestrator';
 import { formatterAgent } from './specialized/FormatterAgent';
@@ -26,6 +29,9 @@ import { imageSuggestionAgent } from './specialized/ImageSuggestionAgent';
 import { categoryAgent } from './specialized/CategoryAgent';
 import { websiteAuditorAgent } from './specialized/WebsiteAuditorAgent';
 import { contentAnalyzerAgent } from './specialized/ContentAnalyzerAgent';
+import { socialMediaAgent } from './specialized/SocialMediaAgent';
+import { newsletterAgent } from './specialized/NewsletterAgent';
+import { legalAlertsAgent } from './specialized/LegalAlertsAgent';
 
 export async function initializeAgents(): Promise<void> {
   console.log('[Agents] Initializing agent system...');
@@ -41,6 +47,9 @@ export async function initializeAgents(): Promise<void> {
   orchestrator.registerAgent(categoryAgent);
   orchestrator.registerAgent(websiteAuditorAgent);
   orchestrator.registerAgent(contentAnalyzerAgent);
-  
-  console.log('[Agents] All 9 agents registered and ready');
+  orchestrator.registerAgent(socialMediaAgent);
+  orchestrator.registerAgent(newsletterAgent);
+  orchestrator.registerAgent(legalAlertsAgent);
+
+  console.log('[Agents] All 12 agents registered and ready');
 }

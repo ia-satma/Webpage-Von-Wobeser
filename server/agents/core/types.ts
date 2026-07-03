@@ -10,6 +10,9 @@ export type AgentType =
   | 'image_suggestion'
   | 'category_agent'
   | 'website_auditor'
+  | 'social_media'
+  | 'newsletter'
+  | 'legal_alerts'
   | 'orchestrator';
 
 export type JobStatus = 'pending' | 'in_progress' | 'completed' | 'failed' | 'cancelled';

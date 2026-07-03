@@ -31,7 +31,10 @@ import {
   Lightbulb,
   TrendingUp,
   ArrowLeft,
-  Loader2
+  Loader2,
+  Share2,
+  Mail,
+  Bell
 } from "lucide-react";
 import { Link, useLocation } from "wouter";
 
@@ -105,6 +108,9 @@ const AGENT_ICONS: Record<string, any> = {
   website_auditor: AlertTriangle,
   image_suggestion: Sparkles,
   category_agent: Zap,
+  social_media: Share2,
+  newsletter: Mail,
+  legal_alerts: Bell,
   orchestrator: Bot,
 };
 
@@ -118,6 +124,9 @@ const AGENT_NAMES: Record<string, string> = {
   website_auditor: "Auditor del Sitio",
   image_suggestion: "Sugerencia de Imágenes",
   category_agent: "Categorizador",
+  social_media: "Redes Sociales",
+  newsletter: "Boletín / Newsletter",
+  legal_alerts: "Alertas Legales",
   orchestrator: "Orquestador",
 };
 
@@ -132,6 +141,9 @@ const AGENT_DESCRIPTIONS: Record<string, string> = {
   website_auditor: "Audita todo el sitio: traducciones faltantes, contenido incompleto, SEO e integridad de enlaces. (sin IA)",
   image_suggestion: "Genera una imagen para el artículo en el estilo de marca de Von Wobeser. (usa IA)",
   category_agent: "Clasifica el artículo: categoría principal, áreas de práctica, industrias y etiquetas. (usa IA)",
+  social_media: "Convierte una noticia en publicaciones para LinkedIn y X (Twitter), listas para copiar. (usa IA)",
+  newsletter: "Compila las noticias recientes en un boletín (asunto + cuerpo HTML) para enviar a clientes. (usa IA)",
+  legal_alerts: "A partir de una fuente oficial (DOF/SCJN) redacta un borrador de alerta legal, como noticia sin publicar para revisión. (usa IA)",
   orchestrator: "Coordina la cola de trabajos y ejecuta los agentes en orden.",
 };
 
