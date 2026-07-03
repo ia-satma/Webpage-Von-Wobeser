@@ -98,6 +98,8 @@ export interface IStorage {
   getRecentNews(limit: number): Promise<News[]>;
   getNewsPage(limit: number, offset: number): Promise<News[]>;
   getNewsCount(): Promise<number>;
+  getAdminNewsPage(opts: { limit: number; offset: number; search?: string; category?: string }): Promise<{ rows: News[]; total: number }>;
+  getTranslationStats(): Promise<{ total: number; byLanguage: Record<string, number>; articlesWithTranslations: number }>;
   searchNews(q: string, limit: number): Promise<News[]>;
   getNewsById(id: string): Promise<News | undefined>;
   getNewsBySlug(slug: string): Promise<News | undefined>;
@@ -339,6 +341,43 @@ export class DatabaseStorage implements IStorage {
   async getNewsCount(): Promise<number> {
     const [row] = await db.select({ count: sql<number>`count(*)::int` }).from(news);
     return row?.count ?? 0;
+  }
+
+  /** Página de noticias para el admin (filtro+paginado EN SQL, no trae toda la tabla). */
+  async getAdminNewsPage(opts: { limit: number; offset: number; search?: string; category?: string }): Promise<{ rows: News[]; total: number }> {
+    const conds = [] as any[];
+    const s = opts.search?.trim();
+    if (s) {
+      const like = `%${s.replace(/[%_]/g, "\\$&")}%`;
+      conds.push(or(ilike(news.title, like), ilike(news.titleEs, like), ilike(news.excerpt, like), ilike(news.excerptEs, like)));
+    }
+    if (opts.category && opts.category !== "all") conds.push(eq(news.category, opts.category));
+    const where = conds.length ? and(...conds) : undefined;
+    const [rows, countRows] = await Promise.all([
+      db.select().from(news).where(where).orderBy(desc(news.date)).limit(opts.limit).offset(opts.offset),
+      db.select({ count: sql<number>`count(*)::int` }).from(news).where(where),
+    ]);
+    return { rows, total: countRows[0]?.count ?? 0 };
+  }
+
+  /** Estadísticas de traducciones en SQL (agregado), en vez de N+1 por artículo. */
+  async getTranslationStats(): Promise<{ total: number; byLanguage: Record<string, number>; articlesWithTranslations: number }> {
+    const [byLang, distinct] = await Promise.all([
+      db.select({ language: newsTranslations.language, count: sql<number>`count(*)::int` }).from(newsTranslations).groupBy(newsTranslations.language),
+      db.select({ count: sql<number>`count(distinct ${newsTranslations.newsId})::int` }).from(newsTranslations),
+    ]);
+    const byLanguage: Record<string, number> = {};
+    let total = 0;
+    for (const r of byLang) { byLanguage[r.language] = r.count; total += r.count; }
+    return { total, byLanguage, articlesWithTranslations: distinct[0]?.count ?? 0 };
+  }
+
+  /** Conteos de noticias por estado (publicadas/no) en SQL, sin traer filas. */
+  async getNewsStatusCounts(): Promise<{ total: number; published: number; unpublished: number }> {
+    const rows = await db.select({ published: news.published, count: sql<number>`count(*)::int` }).from(news).groupBy(news.published);
+    let total = 0, published = 0;
+    for (const r of rows) { total += r.count; if (r.published) published += r.count; }
+    return { total, published, unpublished: total - published };
   }
 
   /** Búsqueda de noticias en SQL (ILIKE + LIMIT), para el buscador global. */

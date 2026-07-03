@@ -1364,34 +1364,19 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
       const search = (req.query.search as string) || "";
       const category = (req.query.category as string) || "";
 
-      let allNews = await storage.getNews();
-
-      // Filter by search term
-      if (search) {
-        const searchLower = search.toLowerCase();
-        allNews = allNews.filter(n => 
-          n.title.toLowerCase().includes(searchLower) ||
-          n.titleEs.toLowerCase().includes(searchLower) ||
-          n.excerpt.toLowerCase().includes(searchLower) ||
-          n.excerptEs.toLowerCase().includes(searchLower)
-        );
-      }
-
-      // Filter by category
-      if (category && category !== "all") {
-        allNews = allNews.filter(n => n.category === category);
-      }
-
-      const total = allNews.length;
-      const totalPages = Math.ceil(total / limit);
-      const offset = (page - 1) * limit;
-      const paginatedNews = allNews.slice(offset, offset + limit);
+      // Filtro + paginado EN SQL (antes traía las ~1.792 noticias completas → 35s).
+      const { rows, total } = await storage.getAdminNewsPage({
+        limit,
+        offset: (page - 1) * limit,
+        search,
+        category,
+      });
 
       res.json({
-        news: paginatedNews,
+        news: rows,
         total,
         page,
-        totalPages,
+        totalPages: Math.max(1, Math.ceil(total / limit)),
       });
     } catch (error) {
       console.error("Get admin news error:", error);
@@ -1402,11 +1387,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
   // Get news stats
   app.get("/api/admin/news/stats", authMiddleware, async (_req: Request, res: Response) => {
     try {
-      const allNews = await storage.getNews();
-      const total = allNews.length;
-      const published = allNews.filter(n => n.published).length;
-      const unpublished = total - published;
-
+      const { total, published, unpublished } = await storage.getNewsStatusCounts();
       res.json({ total, published, unpublished });
     } catch (error) {
       console.error("Get news stats error:", error);
@@ -1417,29 +1398,15 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
   // Get comprehensive CMS stats for admin dashboard
   app.get("/api/admin/cms-stats", authMiddleware, async (_req: Request, res: Response) => {
     try {
-      const allNews = await storage.getNews();
-      const totalArticles = allNews.length;
-      
-      // Get all translations and count by language
-      const translationsByLanguage: Record<string, number> = {};
-      const articlesWithTranslationsSet = new Set<string>();
-      let totalTranslations = 0;
-      
-      // Fetch translations for all news articles
-      for (const newsItem of allNews) {
-        const translations = await storage.getNewsTranslations(newsItem.id);
-        if (translations.length > 0) {
-          articlesWithTranslationsSet.add(newsItem.id);
-        }
-        for (const translation of translations) {
-          totalTranslations++;
-          translationsByLanguage[translation.language] = 
-            (translationsByLanguage[translation.language] || 0) + 1;
-        }
-      }
-      
-      // Get recent articles (last 5)
-      const recentArticles = allNews.slice(0, 5).map(n => ({
+      // Antes: getNews() (1.792 filas) + un getNewsTranslations() POR artículo (N+1)
+      // → timeout. Ahora: conteos/agregados en SQL + solo las 5 recientes.
+      const [totalArticles, transStats, recent] = await Promise.all([
+        storage.getNewsCount(),
+        storage.getTranslationStats(),
+        storage.getRecentNews(5),
+      ]);
+
+      const recentArticles = recent.map(n => ({
         id: n.id,
         title: n.title,
         titleEs: n.titleEs,
@@ -1448,12 +1415,12 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
         category: n.category,
         published: n.published,
       }));
-      
+
       res.json({
         totalArticles,
-        articlesWithTranslations: articlesWithTranslationsSet.size,
-        totalTranslations,
-        translationsByLanguage,
+        articlesWithTranslations: transStats.articlesWithTranslations,
+        totalTranslations: transStats.total,
+        translationsByLanguage: transStats.byLanguage,
         recentArticles,
         languagesSupported: 10,
         processingStatus: "idle", // Could be connected to actual processing status

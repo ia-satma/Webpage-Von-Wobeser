@@ -9,7 +9,7 @@ import { renderSingle } from "./renderSingle";
 import { renderHome } from "./renderHome";
 import { renderNewsList, renderNewsDetail } from "./renderNews";
 import { buildIdMaps, type IdMaps } from "./idMap";
-import { getConfigMap, seedConfigDefaults, upsertConfig } from "./siteConfig";
+import { getConfigMap, seedConfigDefaults, upsertConfig, type ConfigMap } from "./siteConfig";
 import { authMiddleware, requireRole } from "../auth";
 import { storage } from "../storage";
 import { db } from "../db";
@@ -115,13 +115,39 @@ const LANG_TOGGLE_SCRIPT = `<script>(function(){try{
   });
 }catch(e){}})();</script>`;
 
-// Inyecta el toggle de idioma antes de </body> y envía la página.
+const escHtml = (s: any) => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+
+// Inyecta los datos del pie de página (dirección, teléfono, redes) desde siteConfig
+// por reemplazo de string (sin re-parseo, muy barato). La plantilla en disco es
+// inmutable, así que los selectores/URLs originales siempre están para reemplazar.
+function injectFooterString(html: string, config: ConfigMap): string {
+  const v = (k: string) => (config[k]?.value ?? "").trim();
+  const firm = v("footer_firm"), address = v("footer_address"), phone = v("footer_phone"), website = v("footer_website");
+  if (firm || address || phone || website) {
+    const lines: string[] = [];
+    if (firm) lines.push(`<p>${escHtml(firm)}</p>`);
+    if (address) lines.push(escHtml(address).replace(/\r?\n/g, "<br>"));
+    if (phone) lines.push(escHtml(phone));
+    if (website) lines.push(escHtml(website));
+    html = html.replace(/(<div class="footer--txt">)[\s\S]*?(<\/div>)/, `$1${lines.join("<br>")}$2`);
+  }
+  const fb = v("footer_facebook"), tw = v("footer_twitter"), ln = v("footer_linkedin");
+  if (fb) html = html.replace(/href="https:\/\/(www\.)?facebook\.com[^"]*"/i, `href="${escHtml(fb)}"`);
+  if (tw) html = html.replace(/href="https:\/\/(www\.)?twitter\.com[^"]*"/i, `href="${escHtml(tw)}"`);
+  if (ln) html = html.replace(/href="https:\/\/[^"']*linkedin\.com[^"]*"/i, `href="${escHtml(ln)}"`);
+  return html;
+}
+
+// Inyecta el toggle de idioma antes de </body>, aplica el pie editable y envía.
 // Cache-Control permite que navegador/CDN reutilicen la página (contenido público
 // que cambia poco); stale-while-revalidate sirve la copia vieja mientras revalida.
-function sendPage(res: Response, html: string) {
-  const out = html.includes("</body>")
+async function sendPage(res: Response, html: string) {
+  let out = html.includes("</body>")
     ? html.replace("</body>", `${LANG_TOGGLE_SCRIPT}</body>`)
     : html + LANG_TOGGLE_SCRIPT;
+  try {
+    out = injectFooterString(out, await getConfigMap()); // getConfigMap está cacheado
+  } catch { /* si la config falla, se sirve el pie original de la plantilla */ }
   res.set("Cache-Control", "public, max-age=300, stale-while-revalidate=3600");
   res.status(200).type("html").send(out);
 }
