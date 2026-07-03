@@ -1119,7 +1119,7 @@ export default function AdminKnowledge() {
       <div className="container mx-auto p-6 max-w-7xl">
         <div className="flex items-center justify-between mb-8">
           <div className="flex items-center gap-4">
-            <Link href="/admin">
+            <Link href="/admin/dashboard">
               <Button variant="ghost" size="icon" data-testid="button-back-admin">
                 <ArrowLeft className="w-5 h-5" />
               </Button>

@@ -119,6 +119,8 @@ function Router() {
       <Switch>
         {/* Root of the React app → admin (public site lives in the mirror). */}
         <Route path="/"><Redirect to="/admin/login" /></Route>
+        {/* /admin exacto no tenía ruta y caía en NotFound (404). Redirige al dashboard. */}
+        <Route path="/admin"><Redirect to="/admin/dashboard" /></Route>
         <Route path="/admin/login" component={AdminLogin} />
         <Route path="/admin/dashboard" component={AdminDashboard} />
         <Route path="/admin/site-config" component={AdminSiteConfig} />

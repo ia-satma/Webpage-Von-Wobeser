@@ -431,7 +431,7 @@ export default function AdminTeam() {
       <div className="container mx-auto px-4 py-8">
         <div className="flex items-center justify-between mb-8">
           <div className="flex items-center gap-4">
-            <Link href="/admin">
+            <Link href="/admin/dashboard">
               <Button variant="ghost" size="icon" data-testid="button-back">
                 <ArrowLeft className="w-5 h-5" />
               </Button>
