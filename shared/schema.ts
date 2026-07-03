@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { pgTable, text, varchar, timestamp, integer, boolean, jsonb } from "drizzle-orm/pg-core";
+import { pgTable, text, varchar, timestamp, integer, boolean, jsonb, index } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -107,7 +107,10 @@ export const news = pgTable("news", {
   legacyId: text("legacy_id"),
   // Legal Council AI evaluation
   councilVerdict: jsonb("council_verdict"), // Stores CouncilVerdict: { overallStatus, riskFlag, consolidatedFeedback }
-});
+}, (t) => ({
+  // Acelera ORDER BY date DESC + LIMIT (home, listado de noticias).
+  dateIdx: index("news_date_idx").on(t.date),
+}));
 
 export const newsCategories = [
   { value: "press", en: "Press", es: "Prensa" },
@@ -134,7 +137,10 @@ export const newsTranslations = pgTable("news_translations", {
   seoKeywords: text("seo_keywords").array(),
   translatedAt: timestamp("translated_at").defaultNow(),
   translatedBy: varchar("translated_by").default("ai"), // "ai" or "manual"
-});
+}, (t) => ({
+  // Cubre el lookup exacto (newsId+language) y el GROUP BY newsId (prefijo).
+  newsIdLangIdx: index("news_translations_news_id_language_idx").on(t.newsId, t.language),
+}));
 
 export const insertNewsTranslationSchema = createInsertSchema(newsTranslations).omit({ id: true, translatedAt: true });
 export type InsertNewsTranslation = z.infer<typeof insertNewsTranslationSchema>;
@@ -216,7 +222,10 @@ export const teamMembers = pgTable("team_members", {
   publications: jsonb("publications").$type<Publication[]>(),
   representativeMatters: jsonb("representative_matters").$type<RepresentativeMatter[]>(),
   experience: jsonb("experience").$type<Experience[]>(),
-});
+}, (t) => ({
+  // WHERE published + ORDER BY order (listados de abogados, búsqueda).
+  publishedOrderIdx: index("team_members_published_order_idx").on(t.published, t.order),
+}));
 
 export const insertTeamMemberSchema = createInsertSchema(teamMembers).omit({ id: true });
 export type InsertTeamMember = z.infer<typeof insertTeamMemberSchema>;
@@ -413,7 +422,10 @@ export const blogPosts = pgTable("blog_posts", {
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
   deletedAt: timestamp("deleted_at"),
-});
+}, (t) => ({
+  // Listado de blog filtra por deletedAt IS NULL + status.
+  statusDeletedIdx: index("blog_posts_status_deleted_idx").on(t.status, t.deletedAt),
+}));
 
 export const insertBlogPostSchema = createInsertSchema(blogPosts).omit({ id: true, createdAt: true, updatedAt: true });
 export type InsertBlogPost = z.infer<typeof insertBlogPostSchema>;
@@ -512,7 +524,10 @@ export const events = pgTable("events", {
   isHighlight: boolean("is_highlight").default(false),
   published: boolean("published").default(true),
   order: integer("order").default(0),
-});
+}, (t) => ({
+  // WHERE published + ORDER BY date (listado de eventos).
+  publishedDateIdx: index("events_published_date_idx").on(t.published, t.date),
+}));
 
 export const insertEventSchema = createInsertSchema(events).omit({ id: true });
 export type InsertEvent = z.infer<typeof insertEventSchema>;
@@ -706,7 +721,11 @@ export const agentJobs = pgTable("agent_jobs", {
   createdAt: timestamp("created_at").defaultNow(),
   startedAt: timestamp("started_at"),
   completedAt: timestamp("completed_at"),
-});
+}, (t) => ({
+  // getPendingJobs/getFailedJobs: WHERE status + ORDER BY createdAt; y filtro por agentType.
+  statusCreatedIdx: index("agent_jobs_status_created_idx").on(t.status, t.createdAt),
+  agentTypeIdx: index("agent_jobs_agent_type_idx").on(t.agentType),
+}));
 
 export const insertAgentJobSchema = createInsertSchema(agentJobs).omit({ id: true, createdAt: true });
 export type InsertAgentJob = z.infer<typeof insertAgentJobSchema>;

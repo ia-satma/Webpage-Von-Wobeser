@@ -23,6 +23,11 @@ export class AgentOrchestrator {
   private isRunning: boolean = false;
   private processingInterval: NodeJS.Timeout | null = null;
   private isProcessingCycle: boolean = false;
+  // Reconciliación con la DB: los jobs encolados en-proceso ya entran a la cola
+  // local, así que solo hace falta sincronizar cada tanto (jobs externos/huérfanos),
+  // no en cada tick. Antes se pegaba a la DB cada 1–2 s aun estando en reposo.
+  private lastSyncAt: number = 0;
+  private readonly SYNC_INTERVAL_MS = 30_000;
 
   isProcessing(): boolean {
     return this.isRunning;
@@ -432,15 +437,28 @@ export class AgentOrchestrator {
       if (job.retryCount < job.maxRetries) {
         job.retryCount++;
         job.status = 'pending';
-        this.jobQueue.unshift(job);
-        
+
         await dbPersistence.updateJob(job.id, {
           status: 'pending',
           retryCount: job.retryCount,
           error: job.error,
         });
-        
-        await this.addEvent(job.id, job.agentType, 'error', `Job failed, retrying (${job.retryCount}/${job.maxRetries})`);
+
+        // Backoff exponencial antes de reencolar (2s, 4s, 8s… tope 30s): evita el
+        // bucle apretado de reintentos inmediatos ante errores transitorios.
+        const delayMs = Math.min(30_000, 2000 * 2 ** (job.retryCount - 1));
+        const retryJob = job;
+        setTimeout(() => {
+          if (
+            this.isRunning &&
+            !this.activeJobs.has(retryJob.id) &&
+            !this.jobQueue.some((j) => j.id === retryJob.id)
+          ) {
+            this.jobQueue.push(retryJob);
+          }
+        }, delayMs);
+
+        await this.addEvent(job.id, job.agentType, 'error', `Job failed, retrying (${job.retryCount}/${job.maxRetries}) in ${delayMs}ms`);
       } else {
         await dbPersistence.updateJob(job.id, {
           status: 'failed',
@@ -464,11 +482,18 @@ export class AgentOrchestrator {
     
     this.processingInterval = setInterval(async () => {
       if (this.isProcessingCycle) return;
-      
+
       this.isProcessingCycle = true;
       try {
-        await this.syncQueueWithDatabase();
-        
+        // Sincroniza con la DB solo cada SYNC_INTERVAL_MS (no en cada tick): los
+        // jobs encolados en-proceso ya están en la cola local. Si hay trabajo
+        // local pendiente, se sincroniza igual para no dejar huérfanos.
+        const now = Date.now();
+        if (now - this.lastSyncAt >= this.SYNC_INTERVAL_MS) {
+          await this.syncQueueWithDatabase();
+          this.lastSyncAt = now;
+        }
+
         if (this.jobQueue.length > 0 && this.activeJobs.size < 1) {
           await this.processNextJob();
         }

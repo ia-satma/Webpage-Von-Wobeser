@@ -19,6 +19,20 @@ export function extractJson(s: string): string {
   return s.trim();
 }
 
+/**
+ * Parseo JSON tolerante: NUNCA lanza. Devuelve null si el modelo respondió algo
+ * que no es JSON válido (prosa, vacío, JSON malformado). Evita que un
+ * `JSON.parse` sin try/catch tumbe la petición.
+ */
+export function safeParseJson<T = any>(raw: string | null | undefined): T | null {
+  if (!raw) return null;
+  try {
+    return JSON.parse(extractJson(raw)) as T;
+  } catch {
+    return null;
+  }
+}
+
 export const SUPPORTED_LANGUAGES = [
   { code: "en", name: "English", nameNative: "English" },
   { code: "es", name: "Spanish", nameNative: "Español" },
@@ -68,8 +82,8 @@ Respond with JSON in this format: { "translation": "translated text here" }`,
     max_tokens: 4096,
   });
 
-  const result = JSON.parse(extractJson(response.choices[0].message.content || "{}"));
-  return result.translation || text;
+  const result = safeParseJson<{ translation?: string }>(response.choices[0].message.content);
+  return result?.translation || text; // si el modelo no devolvió JSON, se conserva el original
 }
 
 export async function translateMultipleTexts(
@@ -100,7 +114,12 @@ Respond with JSON where keys are the original keys and values are the translatio
     max_tokens: 8192,
   });
 
-  return JSON.parse(extractJson(response.choices[0].message.content || "{}"));
+  const parsed = safeParseJson<Record<string, string>>(response.choices[0].message.content);
+  // Si el modelo no devolvió un objeto JSON, se conservan los textos originales.
+  if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
+    return texts.reduce((acc, { key, text }) => ({ ...acc, [key]: text }), {});
+  }
+  return parsed;
 }
 
 export async function suggestTranslation(
@@ -133,5 +152,9 @@ Confidence should be between 0 and 1, where 1 means highly confident.`,
     max_tokens: 4096,
   });
 
-  return JSON.parse(extractJson(response.choices[0].message.content || '{"translation": "", "confidence": 0}'));
+  const parsed = safeParseJson<{ translation?: string; confidence?: number }>(response.choices[0].message.content);
+  return {
+    translation: parsed?.translation ?? "",
+    confidence: typeof parsed?.confidence === "number" ? parsed.confidence : 0,
+  };
 }

@@ -157,8 +157,10 @@ export class SystemHealthCheck {
         );
 
       for (const job of stuckJobs) {
-        const stuckMinutes = job.startedAt 
-          ? Math.round((Date.now() - new Date(job.startedAt).getTime()) / 60000)
+        // Guarda contra fechas inválidas: new Date(basura).getTime() = NaN → 'unknown'.
+        const startedMs = job.startedAt ? new Date(job.startedAt).getTime() : NaN;
+        const stuckMinutes = Number.isFinite(startedMs)
+          ? Math.round((Date.now() - startedMs) / 60000)
           : 'unknown';
         
         this.issues.push({

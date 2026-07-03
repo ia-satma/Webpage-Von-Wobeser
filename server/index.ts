@@ -74,7 +74,16 @@ app.use((req, res, next) => {
     if (path.startsWith("/api")) {
       let logLine = `${req.method} ${path} ${res.statusCode} in ${duration}ms`;
       if (capturedJsonResponse) {
-        logLine += ` :: ${JSON.stringify(capturedJsonResponse)}`;
+        // No serializar respuestas grandes (p.ej. /api/news con ~1.792 filas) en cada
+        // request: para arrays se registra solo el conteo; los objetos, truncados.
+        let preview: string;
+        if (Array.isArray(capturedJsonResponse)) {
+          preview = `[${(capturedJsonResponse as unknown[]).length} items]`;
+        } else {
+          const s = JSON.stringify(capturedJsonResponse);
+          preview = s.length > 200 ? s.slice(0, 200) + "…" : s;
+        }
+        logLine += ` :: ${preview}`;
       }
 
       log(logLine);

@@ -1,5 +1,5 @@
 import { db } from '../../db';
-import { eq, and, desc, inArray } from 'drizzle-orm';
+import { eq, and, desc, inArray, sql } from 'drizzle-orm';
 import {
   agentJobs,
   agentEvents,
@@ -67,33 +67,35 @@ export class DatabasePersistence {
   }
 
   async getJobStatsByAgentType(): Promise<Record<string, { total: number; completed: number; failed: number; pending: number }>> {
-    const allJobs = await db.select().from(agentJobs);
+    // GROUP BY (agentType, status) en SQL en vez de traer TODOS los jobs y contar en JS.
+    const rows = await db
+      .select({ agentType: agentJobs.agentType, status: agentJobs.status, count: sql<number>`count(*)::int` })
+      .from(agentJobs)
+      .groupBy(agentJobs.agentType, agentJobs.status);
     const stats: Record<string, { total: number; completed: number; failed: number; pending: number }> = {};
-    
-    for (const job of allJobs) {
-      if (!stats[job.agentType]) {
-        stats[job.agentType] = { total: 0, completed: 0, failed: 0, pending: 0 };
-      }
-      stats[job.agentType].total++;
-      if (job.status === 'completed') stats[job.agentType].completed++;
-      else if (job.status === 'failed') stats[job.agentType].failed++;
-      else if (job.status === 'pending') stats[job.agentType].pending++;
+    for (const r of rows) {
+      if (!stats[r.agentType]) stats[r.agentType] = { total: 0, completed: 0, failed: 0, pending: 0 };
+      stats[r.agentType].total += r.count;
+      if (r.status === 'completed') stats[r.agentType].completed += r.count;
+      else if (r.status === 'failed') stats[r.agentType].failed += r.count;
+      else if (r.status === 'pending') stats[r.agentType].pending += r.count;
     }
-    
     return stats;
   }
 
   async getJobCounts(): Promise<{ pending: number; inProgress: number; completed: number; failed: number }> {
-    const allJobs = await db.select().from(agentJobs);
+    // GROUP BY status en SQL en vez de traer TODOS los jobs y contar en JS.
+    const rows = await db
+      .select({ status: agentJobs.status, count: sql<number>`count(*)::int` })
+      .from(agentJobs)
+      .groupBy(agentJobs.status);
     const counts = { pending: 0, inProgress: 0, completed: 0, failed: 0 };
-    
-    for (const job of allJobs) {
-      if (job.status === 'pending') counts.pending++;
-      else if (job.status === 'in_progress') counts.inProgress++;
-      else if (job.status === 'completed') counts.completed++;
-      else if (job.status === 'failed') counts.failed++;
+    for (const r of rows) {
+      if (r.status === 'pending') counts.pending = r.count;
+      else if (r.status === 'in_progress') counts.inProgress = r.count;
+      else if (r.status === 'completed') counts.completed = r.count;
+      else if (r.status === 'failed') counts.failed = r.count;
     }
-    
     return counts;
   }
 
@@ -184,8 +186,9 @@ export class DatabasePersistence {
   }
 
   async deleteKnowledge(id: string): Promise<boolean> {
-    const result = await db.delete(agentKnowledge).where(eq(agentKnowledge.id, id));
-    return true;
+    // Devuelve si realmente se borró algo (antes retornaba true incondicionalmente).
+    const result = await db.delete(agentKnowledge).where(eq(agentKnowledge.id, id)).returning();
+    return result.length > 0;
   }
 
   async getAllKnowledge(): Promise<DbAgentKnowledge[]> {

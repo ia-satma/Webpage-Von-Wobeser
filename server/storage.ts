@@ -1,4 +1,4 @@
-import { eq, desc, asc, and, isNull, gte, sql } from "drizzle-orm";
+import { eq, desc, asc, and, isNull, gte, sql, inArray, ilike, or } from "drizzle-orm";
 import { db } from "./db";
 import {
   type User,
@@ -95,6 +95,10 @@ export interface IStorage {
   getUserByUsername(username: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
   getNews(): Promise<News[]>;
+  getRecentNews(limit: number): Promise<News[]>;
+  getNewsPage(limit: number, offset: number): Promise<News[]>;
+  getNewsCount(): Promise<number>;
+  searchNews(q: string, limit: number): Promise<News[]>;
   getNewsById(id: string): Promise<News | undefined>;
   getNewsBySlug(slug: string): Promise<News | undefined>;
   createNews(news: InsertNews): Promise<News>;
@@ -321,6 +325,42 @@ export class DatabaseStorage implements IStorage {
     return db.select().from(news).orderBy(desc(news.date));
   }
 
+  /** Solo las N noticias más recientes (para el home): evita traer ~1.792 filas. */
+  async getRecentNews(limit: number): Promise<News[]> {
+    return db.select().from(news).orderBy(desc(news.date)).limit(limit);
+  }
+
+  /** Una página de noticias ordenadas por fecha desc (para el listado paginado). */
+  async getNewsPage(limit: number, offset: number): Promise<News[]> {
+    return db.select().from(news).orderBy(desc(news.date)).limit(limit).offset(offset);
+  }
+
+  /** Conteo total de noticias (para calcular el nº de páginas sin traer filas). */
+  async getNewsCount(): Promise<number> {
+    const [row] = await db.select({ count: sql<number>`count(*)::int` }).from(news);
+    return row?.count ?? 0;
+  }
+
+  /** Búsqueda de noticias en SQL (ILIKE + LIMIT), para el buscador global. */
+  async searchNews(q: string, limit: number): Promise<News[]> {
+    const like = `%${q.replace(/[%_]/g, "\\$&")}%`;
+    return db
+      .select()
+      .from(news)
+      .where(
+        or(
+          ilike(news.title, like),
+          ilike(news.titleEs, like),
+          ilike(news.excerpt, like),
+          ilike(news.excerptEs, like),
+          ilike(news.content, like),
+          ilike(news.contentEs, like),
+        ),
+      )
+      .orderBy(desc(news.date))
+      .limit(limit);
+  }
+
   async getNewsById(id: string): Promise<News | undefined> {
     const [item] = await db.select().from(news).where(eq(news.id, id));
     return item;
@@ -491,23 +531,24 @@ export class DatabaseStorage implements IStorage {
   }
 
   async searchTeamMembers(filters: { q?: string; title?: string; practiceGroupId?: string }): Promise<TeamMember[]> {
-    let allowedIds: Set<string> | null = null;
+    // Filtrado en SQL (WHERE/ILIKE + join) en vez de traer TODA la tabla y filtrar en JS.
+    const conds = [eq(teamMembers.published, true)];
+    if (filters.title) conds.push(eq(teamMembers.title, filters.title));
+    const q = filters.q?.trim();
+    if (q) {
+      const like = `%${q.replace(/[%_]/g, "\\$&")}%`; // escapa comodines para búsqueda literal
+      conds.push(ilike(teamMembers.name, like));
+    }
     if (filters.practiceGroupId) {
       const rows = await db
         .select({ id: teamMemberPracticeGroups.teamMemberId })
         .from(teamMemberPracticeGroups)
         .where(eq(teamMemberPracticeGroups.practiceGroupId, filters.practiceGroupId));
-      allowedIds = new Set(rows.map((r) => r.id));
+      const ids = rows.map((r) => r.id);
+      if (ids.length === 0) return [];
+      conds.push(inArray(teamMembers.id, ids));
     }
-    const all = await db.select().from(teamMembers).orderBy(asc(teamMembers.order));
-    const qLower = filters.q?.toLowerCase().trim();
-    return all.filter((m) => {
-      if (m.published === false) return false;
-      if (filters.title && m.title !== filters.title) return false;
-      if (allowedIds && !allowedIds.has(m.id)) return false;
-      if (qLower && !m.name.toLowerCase().includes(qLower)) return false;
-      return true;
-    });
+    return db.select().from(teamMembers).where(and(...conds)).orderBy(asc(teamMembers.order));
   }
 
   // Practice Group update/delete
@@ -572,8 +613,8 @@ export class DatabaseStorage implements IStorage {
   }
 
   async countAdminUsers(): Promise<number> {
-    const rows = await db.select({ id: adminUsers.id }).from(adminUsers);
-    return rows.length;
+    const [row] = await db.select({ count: sql<number>`count(*)::int` }).from(adminUsers);
+    return row?.count ?? 0;
   }
 
   async createAdminUser(user: InsertAdminUser): Promise<AdminUser> {
@@ -734,16 +775,10 @@ export class DatabaseStorage implements IStorage {
     }
     
     const newsIds = pivotRows.map(row => row.newsId);
-    const result: News[] = [];
-    
-    for (const newsId of newsIds) {
-      const [newsItem] = await db.select().from(news).where(eq(news.id, newsId));
-      if (newsItem) {
-        result.push(newsItem);
-      }
-    }
-    
-    return result;
+    // Una sola query con IN(...) en vez de N queries (una por id).
+    const rows = await db.select().from(news).where(inArray(news.id, newsIds));
+    const byId = new Map(rows.map((r) => [r.id, r]));
+    return newsIds.map((id) => byId.get(id)).filter((n): n is News => !!n);
   }
 
   async getTeamMembersByNewsId(newsId: string): Promise<TeamMember[]> {
@@ -757,16 +792,10 @@ export class DatabaseStorage implements IStorage {
     }
     
     const teamMemberIds = pivotRows.map(row => row.teamMemberId);
-    const result: TeamMember[] = [];
-    
-    for (const teamMemberId of teamMemberIds) {
-      const [member] = await db.select().from(teamMembers).where(eq(teamMembers.id, teamMemberId));
-      if (member) {
-        result.push(member);
-      }
-    }
-    
-    return result;
+    // Una sola query con IN(...) en vez de N queries (una por id).
+    const rows = await db.select().from(teamMembers).where(inArray(teamMembers.id, teamMemberIds));
+    const byId = new Map(rows.map((r) => [r.id, r]));
+    return teamMemberIds.map((id) => byId.get(id)).filter((m): m is TeamMember => !!m);
   }
 
   async addTeamMemberToNews(newsId: string, teamMemberId: string): Promise<void> {
@@ -1097,11 +1126,13 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getNewsTranslationCounts(): Promise<Record<string, number>> {
-    const allTranslations = await db.select().from(newsTranslations);
+    // COUNT(*) + GROUP BY en SQL en vez de traer todas las filas y contar en JS.
+    const rows = await db
+      .select({ newsId: newsTranslations.newsId, count: sql<number>`count(*)::int` })
+      .from(newsTranslations)
+      .groupBy(newsTranslations.newsId);
     const counts: Record<string, number> = {};
-    for (const translation of allTranslations) {
-      counts[translation.newsId] = (counts[translation.newsId] || 0) + 1;
-    }
+    for (const r of rows) counts[r.newsId] = r.count;
     return counts;
   }
 

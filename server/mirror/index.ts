@@ -71,7 +71,26 @@ const TEMPLATES = {
   newsDetail: { en: "index.php/publication/p_id-1.html",      es: "index.php/publicacion/p_id-1001.html" },
 };
 
-const tpl = (rel: string) => fs.readFileSync(mirrorPath(rel), "utf8");
+// Las plantillas del espejo (HTML capturado de 23–181 KB) viven en un volumen
+// externo LENTO y antes se leían con readFileSync EN CADA request → causa #1 de
+// lentitud. Se memoizan en RAM: la primera lectura por archivo va a disco, el
+// resto sale de memoria. warmTemplates() precarga todo al arranque.
+const templateCache = new Map<string, string>();
+const tpl = (rel: string): string => {
+  let cached = templateCache.get(rel);
+  if (cached === undefined) {
+    cached = fs.readFileSync(mirrorPath(rel), "utf8");
+    templateCache.set(rel, cached);
+  }
+  return cached;
+};
+const warmTemplates = () => {
+  for (const t of Object.values(TEMPLATES)) {
+    for (const rel of [t.en, t.es]) {
+      try { tpl(rel); } catch { /* variante ausente: se resolverá on-demand */ }
+    }
+  }
+};
 const pick = (t: { en: string; es: string }, lang: Lang) => tpl(lang === "es" ? t.es : t.en);
 // Español es el idioma PRINCIPAL (despacho mexicano); inglés solo con ?lang=en.
 const langOf = (req: Request): Lang => (req.query.lang === "en" ? "en" : "es");
@@ -97,10 +116,13 @@ const LANG_TOGGLE_SCRIPT = `<script>(function(){try{
 }catch(e){}})();</script>`;
 
 // Inyecta el toggle de idioma antes de </body> y envía la página.
+// Cache-Control permite que navegador/CDN reutilicen la página (contenido público
+// que cambia poco); stale-while-revalidate sirve la copia vieja mientras revalida.
 function sendPage(res: Response, html: string) {
   const out = html.includes("</body>")
     ? html.replace("</body>", `${LANG_TOGGLE_SCRIPT}</body>`)
     : html + LANG_TOGGLE_SCRIPT;
+  res.set("Cache-Control", "public, max-age=300, stale-while-revalidate=3600");
   res.status(200).type("html").send(out);
 }
 
@@ -128,6 +150,7 @@ export async function setupMirror(app: Express) {
   }
 
   console.log(`[mirror] Sirviendo frontend del espejo desde: ${mirrorDir}`);
+  warmTemplates(); // precarga plantillas a RAM (evita I/O de disco por request)
   try {
     await seedConfigDefaults();
   } catch (e) {
@@ -260,17 +283,19 @@ export async function setupMirror(app: Express) {
   };
 
   const serveNewsList = async (lang: Lang, res: Response, page = 1) => {
-    const all = await storage.getNews();
-    const sorted = all.slice().sort((a: any, b: any) => new Date(b.date || 0).getTime() - new Date(a.date || 0).getTime());
     const perPage = 24;
-    const totalPages = Math.max(1, Math.ceil(sorted.length / perPage));
+    // Cuenta + una sola página en SQL, en vez de traer TODAS las noticias y paginar en memoria.
+    const total = await storage.getNewsCount();
+    const totalPages = Math.max(1, Math.ceil(total / perPage));
     const p = Math.min(Math.max(1, page), totalPages);
-    const slice = sorted.slice((p - 1) * perPage, p * perPage);
+    const slice = await storage.getNewsPage(perPage, (p - 1) * perPage);
     sendPage(res, renderNewsList(pick(TEMPLATES.newsList, lang), slice, lang, { page: p, totalPages }));
   };
 
   const serveHome = async (lang: Lang, res: Response) => {
-    const [news, config] = await Promise.all([storage.getNews(), getConfigMap()]);
+    // El home solo muestra las 2 noticias más recientes (renderHome hace slice(0,2)):
+    // traer un puñado en vez de las ~1.792 filas completas.
+    const [news, config] = await Promise.all([storage.getRecentNews(6), getConfigMap()]);
     sendPage(res, renderHome(pick(TEMPLATES.home, lang), news, config, lang));
   };
 

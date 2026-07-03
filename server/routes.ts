@@ -762,14 +762,15 @@ export async function registerRoutes(
         return res.json({ team: [], practiceGroups: [], industryGroups: [], news: [] });
       }
       
-      const [team, practiceGroups, industryGroups, news] = await Promise.all([
+      // Noticias vía SQL acotado (ILIKE+LIMIT); el resto son tablas pequeñas.
+      const [team, practiceGroups, industryGroups, filteredNews] = await Promise.all([
         storage.getTeamMembers(),
         storage.getPracticeGroups(),
         storage.getIndustryGroups(),
-        storage.getNews(),
+        storage.searchNews(query, 5),
       ]);
-      
-      const filteredTeam = team.filter(m => 
+
+      const filteredTeam = team.filter(m =>
         m.name.toLowerCase().includes(query) ||
         m.title.toLowerCase().includes(query) ||
         m.titleEs.toLowerCase().includes(query) ||
@@ -791,15 +792,6 @@ export async function registerRoutes(
         g.nameEs.toLowerCase().includes(query) ||
         g.description.toLowerCase().includes(query) ||
         g.descriptionEs.toLowerCase().includes(query)
-      ).slice(0, 5);
-      
-      const filteredNews = news.filter(n =>
-        n.title.toLowerCase().includes(query) ||
-        n.titleEs.toLowerCase().includes(query) ||
-        n.excerpt.toLowerCase().includes(query) ||
-        n.excerptEs.toLowerCase().includes(query) ||
-        (n.content && n.content.toLowerCase().includes(query)) ||
-        (n.contentEs && n.contentEs.toLowerCase().includes(query))
       ).slice(0, 5);
       
       res.json({
@@ -828,8 +820,18 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
     res.send(robotsTxt);
   });
 
+  // Caché del sitemap (1 h): antes se regeneraba cargando TODAS las tablas en cada
+  // hit de crawler. TTL corto para reflejar contenido nuevo sin regenerar por request.
+  let sitemapCache: { xml: string; at: number } | null = null;
+  const SITEMAP_TTL_MS = 60 * 60 * 1000;
+
   app.get("/sitemap.xml", async (_req, res) => {
     try {
+      if (sitemapCache && Date.now() - sitemapCache.at < SITEMAP_TTL_MS) {
+        res.setHeader('Content-Type', 'application/xml; charset=utf-8');
+        res.setHeader('Cache-Control', 'public, max-age=3600');
+        return res.send(sitemapCache.xml);
+      }
       const baseUrl = 'https://www.vonwobeser.com';
       const today = new Date().toISOString().split('T')[0];
 
@@ -856,64 +858,67 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
         storage.getNews(),
       ]);
 
-      let urlEntries = '';
+      // array.join en vez de string += en bucle (evita O(n²) de concatenación).
+      const parts: string[] = [];
 
       for (const page of staticPages) {
-        urlEntries += `
+        parts.push(`
   <url>
     <loc>${baseUrl}${page.loc}</loc>
     <lastmod>${today}</lastmod>
     <changefreq>${page.changefreq}</changefreq>
     <priority>${page.priority}</priority>
-  </url>`;
+  </url>`);
       }
 
       for (const member of teamMembers) {
-        urlEntries += `
+        parts.push(`
   <url>
     <loc>${baseUrl}/team/${member.slug}</loc>
     <lastmod>${today}</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
-  </url>`;
+  </url>`);
       }
 
       for (const group of practiceGroups) {
-        urlEntries += `
+        parts.push(`
   <url>
     <loc>${baseUrl}/practice-groups/${group.slug}</loc>
     <lastmod>${today}</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
-  </url>`;
+  </url>`);
       }
 
       for (const group of industryGroups) {
-        urlEntries += `
+        parts.push(`
   <url>
     <loc>${baseUrl}/industry-groups/${group.slug}</loc>
     <lastmod>${today}</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
-  </url>`;
+  </url>`);
       }
 
       for (const newsItem of newsItems) {
         const lastmod = newsItem.date ? new Date(newsItem.date).toISOString().split('T')[0] : today;
-        urlEntries += `
+        parts.push(`
   <url>
     <loc>${baseUrl}/news/${newsItem.slug}</loc>
     <lastmod>${lastmod}</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
-  </url>`;
+  </url>`);
       }
 
       const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">${urlEntries}
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">${parts.join('')}
 </urlset>`;
 
+      sitemapCache = { xml: sitemap, at: Date.now() };
       res.setHeader('Content-Type', 'application/xml; charset=utf-8');
+      res.setHeader('Cache-Control', 'public, max-age=3600');
       res.send(sitemap);
     } catch (error) {
       console.error("Sitemap generation error:", error);

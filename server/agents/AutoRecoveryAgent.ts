@@ -251,10 +251,11 @@ export async function markAsPartialSuccess(articleIds?: string[]): Promise<numbe
         isNull(news.failedStep)
       )
     )
-  );
-  
-  console.log(`[AutoRecovery] Bulk update completed`);
-  return 0;
+  ).returning({ id: news.id });
+
+  // Devuelve cuántos artículos se actualizaron (antes retornaba 0 siempre).
+  console.log(`[AutoRecovery] Bulk update completed: ${result.length} artículos`);
+  return result.length;
 }
 
 export async function getFailedArticlesSummary(): Promise<{

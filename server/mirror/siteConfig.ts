@@ -13,11 +13,23 @@ const DEFAULTS: Array<{ key: string; value: string; valueEs?: string; type: stri
   { key: "active_languages", value: "es,en", type: "json", category: "translations", description: "Idiomas a los que se traduce el contenido (lista separada por comas). El traductor solo genera estos idiomas por defecto." },
 ];
 
-/** Returns all site-config as a {key: {value, valueEs, type}} map. */
+// Caché en memoria del site-config: antes se hacía SELECT * en CADA render del
+// espejo. Se cachea con TTL corto y se invalida al escribir (upsert/seed).
+let _configCache: { map: ConfigMap; at: number } | null = null;
+const CONFIG_TTL_MS = 60_000;
+
+/** Fuerza recargar el site-config en la próxima lectura. */
+export function invalidateConfigCache(): void {
+  _configCache = null;
+}
+
+/** Returns all site-config as a {key: {value, valueEs, type}} map (cacheada). */
 export async function getConfigMap(): Promise<ConfigMap> {
+  if (_configCache && Date.now() - _configCache.at < CONFIG_TTL_MS) return _configCache.map;
   const rows = await db.select().from(siteConfig);
   const map: ConfigMap = {};
   for (const r of rows) map[r.key] = { value: r.value ?? "", valueEs: r.valueEs ?? "", type: r.type };
+  _configCache = { map, at: Date.now() };
   return map;
 }
 
@@ -29,6 +41,7 @@ export async function seedConfigDefaults(): Promise<void> {
   await db.insert(siteConfig).values(
     missing.map((d) => ({ key: d.key, value: d.value, valueEs: d.valueEs ?? d.value, type: d.type, category: d.category, description: d.description })),
   );
+  invalidateConfigCache();
 }
 
 /** Upsert one key (used by the admin endpoint). */
@@ -39,6 +52,7 @@ export async function upsertConfig(key: string, value: string, valueEs?: string)
   } else {
     await db.insert(siteConfig).values({ key, value, valueEs: valueEs ?? value, type: "text", category: "general" });
   }
+  invalidateConfigCache();
 }
 
 export function cfg(map: ConfigMap, key: string, lang: "en" | "es"): string {
