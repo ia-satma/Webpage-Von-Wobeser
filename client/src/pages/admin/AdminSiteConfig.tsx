@@ -6,6 +6,7 @@ import { useAdminAuth, adminApiRequest } from "@/lib/adminAuth";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { ImageUpload } from "@/components/admin/ImageUpload";
@@ -15,7 +16,7 @@ import { ArrowLeft, Save, Settings, Loader2 } from "lucide-react";
 // Friendly definitions for the editable site-config keys (grouped).
 const GROUPS: Array<{
   title: string;
-  fields: Array<{ key: string; label: string; help?: string; bilingual?: boolean; media?: "image" | "video" }>;
+  fields: Array<{ key: string; label: string; help?: string; bilingual?: boolean; media?: "image" | "video"; multiline?: boolean }>;
 }> = [
   {
     title: "Portada (home)",
@@ -24,6 +25,18 @@ const GROUPS: Array<{
       { key: "hero_practice_link", label: "Enlace del hero", help: "A dónde lleva al hacer clic en el video del hero." },
       { key: "banner_title", label: "Banner — título", help: "Texto grande del banner rojo.", bilingual: true },
       { key: "banner_subtitle", label: "Banner — subtítulo", bilingual: true },
+    ],
+  },
+  {
+    title: "Pie de página (todas las páginas)",
+    fields: [
+      { key: "footer_firm", label: "Nombre de la firma", help: "Aparece en el pie de página del sitio." },
+      { key: "footer_address", label: "Dirección", help: "Una línea por renglón.", multiline: true },
+      { key: "footer_phone", label: "Teléfono" },
+      { key: "footer_website", label: "Sitio web / correo" },
+      { key: "footer_facebook", label: "Facebook (URL)" },
+      { key: "footer_twitter", label: "Twitter / X (URL)" },
+      { key: "footer_linkedin", label: "LinkedIn (URL)" },
     ],
   },
 ];
@@ -127,6 +140,13 @@ export default function AdminSiteConfig() {
                         value={draft[f.key]?.value ?? ""}
                         onChange={(v) => set(f.key, "value", v)}
                         kind={f.media}
+                      />
+                    ) : f.multiline ? (
+                      <Textarea
+                        rows={3}
+                        value={draft[f.key]?.value ?? ""}
+                        onChange={(e) => set(f.key, "value", e.target.value)}
+                        data-testid={`input-${f.key}`}
                       />
                     ) : (
                       <Input

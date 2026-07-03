@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { ImageUpload } from "@/components/admin/ImageUpload";
-import { ArrowLeft, Award, Plus, Trash2, Loader2 } from "lucide-react";
+import { ArrowLeft, Award, Plus, Trash2, Loader2, Pencil, Save, X } from "lucide-react";
 
 type Ranking = {
   id: string;
@@ -26,6 +26,7 @@ export default function AdminRecognitions() {
   const { toast } = useToast();
   const [form, setForm] = useState<typeof EMPTY>({ ...EMPTY });
   const [busy, setBusy] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null); // null = alta; id = edición
 
   useEffect(() => {
     if (!authLoading && !isAuthenticated) setLocation("/admin/login");
@@ -39,7 +40,20 @@ export default function AdminRecognitions() {
 
   const set = (k: keyof typeof EMPTY, v: string) => setForm((f) => ({ ...f, [k]: v }));
 
-  const add = async () => {
+  // Cargar un reconocimiento existente en el formulario para editarlo.
+  const edit = (r: Ranking) => {
+    setEditingId(r.id);
+    setForm({
+      name: r.name || "", nameEs: r.nameEs || "", publication: r.publication || "",
+      year: r.year || new Date().getFullYear(), category: r.category || "",
+      logoUrl: r.logoUrl || "", externalUrl: r.externalUrl || "",
+    });
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const cancelEdit = () => { setEditingId(null); setForm({ ...EMPTY }); };
+
+  const save = async () => {
     if (!form.name || !form.nameEs || !form.publication) {
       toast({ title: "Faltan datos", description: "Nombre (ES/EN) y publicación son obligatorios.", variant: "destructive" });
       return;
@@ -47,13 +61,16 @@ export default function AdminRecognitions() {
     setBusy(true);
     try {
       const payload = { ...form, year: Number(form.year) || new Date().getFullYear() };
-      const res = await adminApiRequest("POST", "/api/admin/rankings", payload);
+      const res = editingId
+        ? await adminApiRequest("PUT", `/api/admin/rankings/${editingId}`, payload)
+        : await adminApiRequest("POST", "/api/admin/rankings", payload);
       if (res.ok) {
-        toast({ title: "Reconocimiento agregado" });
+        toast({ title: editingId ? "Reconocimiento actualizado" : "Reconocimiento agregado" });
         setForm({ ...EMPTY });
+        setEditingId(null);
         refetch();
       } else {
-        toast({ title: "Error al agregar", variant: "destructive" });
+        toast({ title: editingId ? "Error al actualizar" : "Error al agregar", variant: "destructive" });
       }
     } finally {
       setBusy(false);
@@ -88,9 +105,9 @@ export default function AdminRecognitions() {
           Premios y rankings de la firma (Chambers, Legal 500, etc.). Lo que agregues aquí queda guardado en el sistema.
         </p>
 
-        {/* Alta */}
+        {/* Alta / edición */}
         <Card>
-          <CardHeader><CardTitle className="text-base">Agregar reconocimiento</CardTitle></CardHeader>
+          <CardHeader><CardTitle className="text-base">{editingId ? "Editar reconocimiento" : "Agregar reconocimiento"}</CardTitle></CardHeader>
           <CardContent className="space-y-4">
             <div className="grid sm:grid-cols-2 gap-4">
               <div className="space-y-1"><Label>Nombre (inglés) *</Label><Input value={form.name} onChange={(e) => set("name", e.target.value)} placeholder="Band 1 — Dispute Resolution" data-testid="input-name" /></div>
@@ -101,10 +118,17 @@ export default function AdminRecognitions() {
               <div className="space-y-1"><Label>Logo</Label><ImageUpload value={form.logoUrl} onChange={(v) => set("logoUrl", v)} placeholder="/logos/chambers.png" /></div>
               <div className="space-y-1 sm:col-span-2"><Label>Enlace externo</Label><Input value={form.externalUrl} onChange={(e) => set("externalUrl", e.target.value)} placeholder="https://chambers.com/..." data-testid="input-externalUrl" /></div>
             </div>
-            <Button onClick={add} disabled={busy} data-testid="button-add">
-              {busy ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : <Plus className="h-4 w-4 mr-1" />}
-              Agregar
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button onClick={save} disabled={busy} data-testid="button-save">
+                {busy ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : editingId ? <Save className="h-4 w-4 mr-1" /> : <Plus className="h-4 w-4 mr-1" />}
+                {editingId ? "Guardar cambios" : "Agregar"}
+              </Button>
+              {editingId && (
+                <Button variant="outline" onClick={cancelEdit} disabled={busy} data-testid="button-cancel-edit">
+                  <X className="h-4 w-4 mr-1" /> Cancelar
+                </Button>
+              )}
+            </div>
           </CardContent>
         </Card>
 
@@ -124,9 +148,14 @@ export default function AdminRecognitions() {
                       <p className="font-medium">{r.name}</p>
                       <p className="text-sm text-muted-foreground">{r.publication}{r.year ? ` · ${r.year}` : ""}{r.category ? ` · ${r.category}` : ""}</p>
                     </div>
-                    <Button variant="ghost" size="sm" onClick={() => remove(r.id)} data-testid={`del-${r.id}`}>
-                      <Trash2 className="h-4 w-4 text-destructive" />
-                    </Button>
+                    <div className="flex items-center gap-1">
+                      <Button variant="ghost" size="sm" onClick={() => edit(r)} data-testid={`edit-${r.id}`} title="Editar">
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                      <Button variant="ghost" size="sm" onClick={() => remove(r.id)} data-testid={`del-${r.id}`} title="Eliminar">
+                        <Trash2 className="h-4 w-4 text-destructive" />
+                      </Button>
+                    </div>
                   </li>
                 ))}
               </ul>

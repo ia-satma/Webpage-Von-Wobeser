@@ -14,10 +14,11 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { 
-  Search, 
-  Pencil, 
-  Trash2, 
+  Search,
+  Pencil,
+  Trash2,
   Eye,
+  Plus,
   ChevronLeft,
   ChevronRight,
   ArrowLeft,
@@ -407,6 +408,12 @@ export default function AdminNews() {
                 </h1>
               </div>
             </div>
+            <Link href="/admin/news/new">
+              <Button size="sm" data-testid="button-new-article">
+                <Plus className="mr-2 h-4 w-4" />
+                Nueva noticia
+              </Button>
+            </Link>
           </div>
         </div>
       </header>
@@ -494,8 +501,8 @@ export default function AdminNews() {
                           <div className="flex justify-end gap-2">
                             {newsItem.published && (
                               <Link href={`/news/${newsItem.slug}`}>
-                                <Button 
-                                  variant="ghost" 
+                                <Button
+                                  variant="ghost"
                                   size="icon"
                                   data-testid={`button-view-${newsItem.id}`}
                                   title={t.view}
@@ -504,6 +511,16 @@ export default function AdminNews() {
                                 </Button>
                               </Link>
                             )}
+                            <Link href={`/admin/news/${newsItem.id}/edit`}>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                data-testid={`button-edit-${newsItem.id}`}
+                                title={t.edit}
+                              >
+                                <Pencil className="h-4 w-4" />
+                              </Button>
+                            </Link>
                             <Button
                               variant="ghost"
                               size="icon"

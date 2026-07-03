@@ -5,6 +5,7 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { LanguageProvider, useLanguage } from "@/contexts/LanguageContext";
+import { AdminLayout } from "@/components/admin/AdminLayout";
 
 function ScrollToTop() {
   const [location] = useLocation();
@@ -28,6 +29,7 @@ const AdminPosts = lazy(() => import("@/pages/admin/AdminPosts"));
 const AdminPostForm = lazy(() => import("@/pages/admin/AdminPostForm"));
 const AdminCategories = lazy(() => import("@/pages/admin/AdminCategories"));
 const AdminNews = lazy(() => import("@/pages/admin/AdminNews"));
+const AdminNewsForm = lazy(() => import("@/pages/admin/AdminNewsForm"));
 const AdminAgents = lazy(() => import("@/pages/AdminAgents"));
 const AdminArticleProcessing = lazy(() => import("@/pages/admin/AdminArticleProcessing"));
 const AdminAudits = lazy(() => import("@/pages/admin/AdminAudits"));
@@ -114,10 +116,12 @@ function SkipLinks() {
 }
 
 function Router() {
-  return (
-    <Suspense fallback={null}>
-      <Switch>
-        {/* Root of the React app → admin (public site lives in the mirror). */}
+  const [routerLocation] = useLocation();
+  // El shell del admin (barra superior) envuelve todas las páginas /admin excepto el login.
+  const isAdminShell = routerLocation.startsWith("/admin") && routerLocation !== "/admin/login";
+  const routes = (
+    <Switch>
+      {/* Root of the React app → admin (public site lives in the mirror). */}
         <Route path="/"><Redirect to="/admin/login" /></Route>
         {/* /admin exacto no tenía ruta y caía en NotFound (404). Redirige al dashboard. */}
         <Route path="/admin"><Redirect to="/admin/dashboard" /></Route>
@@ -130,6 +134,8 @@ function Router() {
         <Route path="/admin/posts/:id/edit" component={AdminPostForm} />
         <Route path="/admin/categories" component={AdminCategories} />
         <Route path="/admin/news" component={AdminNews} />
+        <Route path="/admin/news/new" component={AdminNewsForm} />
+        <Route path="/admin/news/:id/edit" component={AdminNewsForm} />
         <Route path="/admin/news/:id" component={AdminArticleDetail} />
         <Route path="/admin/agents" component={AdminAgents} />
         <Route path="/admin/processing" component={AdminArticleProcessing} />
@@ -149,6 +155,10 @@ function Router() {
         <Route path="/admin/gallery" component={GalleryAdmin} />
         <Route component={NotFound} />
       </Switch>
+  );
+  return (
+    <Suspense fallback={null}>
+      {isAdminShell ? <AdminLayout>{routes}</AdminLayout> : routes}
     </Suspense>
   );
 }

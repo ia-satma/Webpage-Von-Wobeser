@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useAdminAuth, adminApiRequest } from "@/lib/adminAuth";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -34,8 +34,20 @@ import {
   Layers,
   Images,
   Settings,
-  Award
+  Award,
+  ArrowUpRight,
+  Database,
+  ArrowRight
 } from "lucide-react";
+
+// Navegación superior del admin (secciones más usadas).
+const NAV_ITEMS = [
+  { href: "/admin/dashboard", label: "Dashboard", icon: LayoutDashboard },
+  { href: "/admin/news", label: "Noticias", icon: Newspaper },
+  { href: "/admin/team", label: "Abogados", icon: Users },
+  { href: "/admin/posts", label: "Blog", icon: FileText },
+  { href: "/admin/site-config", label: "Configuración", icon: Settings },
+];
 
 const translations = {
   en: {
@@ -604,6 +616,9 @@ export default function AdminDashboard() {
   const { isAuthenticated, isLoading: authLoading, logout, requireAuth } = useAdminAuth();
   // Caja "Distribución por Idioma" colapsada por defecto (foco en ES/EN).
   const [showLangDist, setShowLangDist] = useState(false);
+  // Sección técnica/IA colapsada por defecto: el cliente ve primero el contenido.
+  const [showAdvanced, setShowAdvanced] = useState(false);
+  const [location] = useLocation();
   const t = translations[language as keyof typeof translations] || translations.en;
 
   useEffect(() => {
@@ -645,68 +660,58 @@ export default function AdminDashboard() {
 
   return (
     <div className="min-h-screen bg-muted dark:bg-gray-900">
-      <header className="bg-card border-b border-border">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <img src="/logo-color.png" alt="Von Wobeser y Sierra" className="h-9 w-auto" data-testid="img-admin-logo" />
-              <span className="hidden sm:inline-block h-6 w-px bg-border" />
-              <h1 className="text-lg font-heading" data-testid="text-dashboard-title">
-                {t.title}
-              </h1>
-            </div>
-            <div className="flex items-center gap-2">
-              <a href="/" target="_blank" rel="noopener noreferrer">
-                <Button variant="outline" data-testid="button-view-site">
-                  <Globe className="mr-2 h-4 w-4" />
-                  Ver sitio
-                </Button>
-              </a>
-              <Button
-                variant="outline"
-                onClick={logout}
-                data-testid="button-logout"
-              >
-                <LogOut className="mr-2 h-4 w-4" />
-                {t.logout}
-              </Button>
-            </div>
-          </div>
-        </div>
-      </header>
-
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="flex items-center justify-between mb-8">
-          <p className="text-muted-foreground" data-testid="text-welcome">
-            {t.welcome}
-          </p>
-          <Badge 
-            variant={cmsStats?.processingStatus === "processing" ? "default" : "secondary"}
-            className="flex items-center gap-1"
-            data-testid="badge-processing-status"
-          >
+        {/* ── Encabezado ── */}
+        <div className="flex flex-wrap items-end justify-between gap-3 mb-8">
+          <div>
+            <h2 className="text-2xl sm:text-3xl font-semibold tracking-tight text-foreground" data-testid="text-dashboard-title">
+              Panel de administración
+            </h2>
+            <p className="text-muted-foreground mt-1">Von Wobeser y Sierra — resumen del sitio</p>
+          </div>
+          <Badge variant="secondary" className="flex items-center gap-1.5 rounded-full px-3 py-1" data-testid="badge-processing-status">
             {cmsStats?.processingStatus === "processing" ? (
-              <>
-                <Loader2 className="h-3 w-3 animate-spin" />
-                {t.processing}
-              </>
+              <><Loader2 className="h-3 w-3 animate-spin" />{t.processing}</>
             ) : (
-              <>
-                <Activity className="h-3 w-3" />
-                {t.idle}
-              </>
+              <><span className="h-2 w-2 rounded-full bg-green-500" />{t.idle}</>
             )}
           </Badge>
         </div>
 
+        {/* ── Tarjetas de estado ── */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+          {[
+            { key: "content", label: "Contenido", icon: Newspaper, value: cmsStats?.totalArticles ?? 0, sub: "artículos publicables" },
+            { key: "translations", label: "Traducciones", icon: Languages, value: cmsStats?.totalTranslations ?? 0, sub: `${translationPercentage}% con traducción` },
+            { key: "db", label: "Base de datos", icon: Database, value: "Conectada", sub: "en línea", ok: true },
+            { key: "status", label: "Estado", icon: Activity, value: cmsStats?.processingStatus === "processing" ? t.processing : "Activo", sub: "sistema operativo", ok: true },
+          ].map((s) => {
+            const Icon = s.icon;
+            return (
+              <div key={s.key} className="rounded-2xl border border-border bg-card p-5 transition-shadow hover:shadow-sm" data-testid={`stat-${s.key}`}>
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{s.label}</span>
+                  <span className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-primary"><Icon className="h-4 w-4" /></span>
+                </div>
+                {cmsStatsQuery.isLoading ? (
+                  <Skeleton className="h-8 w-20 mt-3" />
+                ) : (
+                  <div className={`mt-3 text-2xl font-semibold tabular-nums ${s.ok ? "text-green-600 dark:text-green-400" : "text-foreground"}`}>{s.value}</div>
+                )}
+                <div className="mt-1 text-xs text-muted-foreground">{s.sub}</div>
+              </div>
+            );
+          })}
+        </div>
+
         {/* Administración del sitio — lo más importante, primero */}
-        <Card className="mb-8" data-testid="card-quick-actions">
+        <Card className="mb-8 rounded-2xl" data-testid="card-quick-actions">
           <CardHeader>
             <CardTitle>Administración del sitio</CardTitle>
             <CardDescription>Todo lo editable, organizado por tipo</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="grid gap-8 sm:grid-cols-2">
 
               {/* ── CONTENIDO DEL SITIO ── */}
               <div>
@@ -761,115 +766,55 @@ export default function AdminDashboard() {
                 </div>
               </div>
 
-              {/* ── SISTEMA E IA (AVANZADO) ── */}
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">
-                  Sistema e IA · avanzado
-                </p>
-                <div className="space-y-2">
-                  <Link href="/admin/agents">
-                    <Button variant="outline" className="w-full justify-start h-auto py-2" data-testid="button-ai-agents"><Bot className="mr-2 h-4 w-4" /><span className="flex flex-col items-start text-left leading-tight"><span>Agentes IA</span><span className="text-[11px] font-normal text-muted-foreground mt-0.5">Los 9 agentes de IA que procesan el contenido (técnico).</span></span></Button>
-                  </Link>
-                  <Link href="/admin/processing">
-                    <Button variant="outline" className="w-full justify-start h-auto py-2" data-testid="button-article-processing"><Cog className="mr-2 h-4 w-4" /><span className="flex flex-col items-start text-left leading-tight"><span>Procesamiento de artículos</span><span className="text-[11px] font-normal text-muted-foreground mt-0.5">Corre el pipeline de IA sobre los artículos (técnico).</span></span></Button>
-                  </Link>
-                  <Link href="/admin/knowledge">
-                    <Button variant="outline" className="w-full justify-start h-auto py-2" data-testid="button-knowledge-base"><BookOpen className="mr-2 h-4 w-4" /><span className="flex flex-col items-start text-left leading-tight"><span>Base de conocimiento</span><span className="text-[11px] font-normal text-muted-foreground mt-0.5">Base de conocimiento de los agentes (técnico).</span></span></Button>
-                  </Link>
-                  <Link href="/admin/explorer">
-                    <Button variant="outline" className="w-full justify-start h-auto py-2" data-testid="button-system-explorer"><Layers className="mr-2 h-4 w-4" /><span className="flex flex-col items-start text-left leading-tight"><span>Explorador del sistema</span><span className="text-[11px] font-normal text-muted-foreground mt-0.5">Inventario técnico del sistema (avanzado).</span></span></Button>
-                  </Link>
-                  <Link href="/admin/health-check">
-                    <Button variant="outline" className="w-full justify-start h-auto py-2" data-testid="button-health-check"><Activity className="mr-2 h-4 w-4" /><span className="flex flex-col items-start text-left leading-tight"><span>Salud del sistema</span><span className="text-[11px] font-normal text-muted-foreground mt-0.5">Diagnóstico de salud del sistema (técnico).</span></span></Button>
-                  </Link>
-                  <Link href="/admin/guide">
-                    <Button variant="outline" className="w-full justify-start h-auto py-2" data-testid="button-platform-guide"><Bot className="mr-2 h-4 w-4" /><span className="flex flex-col items-start text-left leading-tight"><span>Guía de la plataforma</span><span className="text-[11px] font-normal text-muted-foreground mt-0.5">Guía visual del ecosistema de agentes.</span></span></Button>
-                  </Link>
-                </div>
-              </div>
-
             </div>
           </CardContent>
         </Card>
 
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 mb-8">
-          <Card data-testid="card-stats-total-articles">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 gap-2">
-              <CardTitle className="text-sm font-medium">{t.totalArticles}</CardTitle>
-              <Newspaper className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
+        {/* ── AVANZADO · TÉCNICO — colapsable, cerrado por defecto ── */}
+        <Card className="mb-8 rounded-2xl border-dashed" data-testid="card-advanced">
+          <CardHeader className="cursor-pointer select-none" onClick={() => setShowAdvanced((v) => !v)} data-testid="button-toggle-advanced">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <CardTitle className="text-base">Avanzado · Herramientas técnicas</CardTitle>
+                <CardDescription>Herramientas para el equipo técnico. No necesitas esta sección para administrar el contenido del sitio.</CardDescription>
+              </div>
+              <ChevronRight className={`h-5 w-5 flex-shrink-0 text-muted-foreground transition-transform ${showAdvanced ? "rotate-90" : ""}`} />
+            </div>
+          </CardHeader>
+          {showAdvanced && (
             <CardContent>
-              {cmsStatsQuery.isLoading ? (
-                <Skeleton className="h-8 w-16" />
-              ) : (
-                <div className="text-2xl font-bold" data-testid="text-stats-total-articles">
-                  {cmsStats?.totalArticles || 0}
-                </div>
-              )}
+              <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                <Link href="/admin/agents">
+                  <Button variant="outline" className="w-full justify-start h-auto py-2" data-testid="button-ai-agents"><Bot className="mr-2 h-4 w-4" /><span className="flex flex-col items-start text-left leading-tight"><span>Agentes IA</span><span className="text-[11px] font-normal text-muted-foreground mt-0.5">Los 9 agentes de IA que procesan el contenido (técnico).</span></span></Button>
+                </Link>
+                <Link href="/admin/processing">
+                  <Button variant="outline" className="w-full justify-start h-auto py-2" data-testid="button-article-processing"><Cog className="mr-2 h-4 w-4" /><span className="flex flex-col items-start text-left leading-tight"><span>Procesamiento de artículos</span><span className="text-[11px] font-normal text-muted-foreground mt-0.5">Corre el pipeline de IA sobre los artículos (técnico).</span></span></Button>
+                </Link>
+                <Link href="/admin/knowledge">
+                  <Button variant="outline" className="w-full justify-start h-auto py-2" data-testid="button-knowledge-base"><BookOpen className="mr-2 h-4 w-4" /><span className="flex flex-col items-start text-left leading-tight"><span>Base de conocimiento</span><span className="text-[11px] font-normal text-muted-foreground mt-0.5">Base de conocimiento de los agentes (técnico).</span></span></Button>
+                </Link>
+                <Link href="/admin/explorer">
+                  <Button variant="outline" className="w-full justify-start h-auto py-2" data-testid="button-system-explorer"><Layers className="mr-2 h-4 w-4" /><span className="flex flex-col items-start text-left leading-tight"><span>Explorador del sistema</span><span className="text-[11px] font-normal text-muted-foreground mt-0.5">Inventario técnico del sistema (avanzado).</span></span></Button>
+                </Link>
+                <Link href="/admin/health-check">
+                  <Button variant="outline" className="w-full justify-start h-auto py-2" data-testid="button-health-check"><Activity className="mr-2 h-4 w-4" /><span className="flex flex-col items-start text-left leading-tight"><span>Salud del sistema</span><span className="text-[11px] font-normal text-muted-foreground mt-0.5">Diagnóstico de salud del sistema (técnico).</span></span></Button>
+                </Link>
+                <Link href="/admin/guide">
+                  <Button variant="outline" className="w-full justify-start h-auto py-2" data-testid="button-platform-guide"><Bot className="mr-2 h-4 w-4" /><span className="flex flex-col items-start text-left leading-tight"><span>Guía de la plataforma</span><span className="text-[11px] font-normal text-muted-foreground mt-0.5">Guía visual del ecosistema de agentes.</span></span></Button>
+                </Link>
+                <Link href="/admin/performance">
+                  <Button variant="outline" className="w-full justify-start h-auto py-2" data-testid="button-performance"><BarChart3 className="mr-2 h-4 w-4" /><span className="flex flex-col items-start text-left leading-tight"><span>Rendimiento</span><span className="text-[11px] font-normal text-muted-foreground mt-0.5">Métricas de los agentes y colas de trabajo (técnico).</span></span></Button>
+                </Link>
+                <Link href="/admin/audits">
+                  <Button variant="outline" className="w-full justify-start h-auto py-2" data-testid="button-audits"><CheckCircle className="mr-2 h-4 w-4" /><span className="flex flex-col items-start text-left leading-tight"><span>Auditorías del sitio</span><span className="text-[11px] font-normal text-muted-foreground mt-0.5">Revisiones de calidad, enlaces y SEO (técnico).</span></span></Button>
+                </Link>
+              </div>
             </CardContent>
-          </Card>
-
-          <Card data-testid="card-stats-total-translations">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 gap-2">
-              <CardTitle className="text-sm font-medium">{t.totalTranslations}</CardTitle>
-              <Languages className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              {cmsStatsQuery.isLoading ? (
-                <Skeleton className="h-8 w-16" />
-              ) : (
-                <div className="text-2xl font-bold" data-testid="text-stats-total-translations">
-                  {cmsStats?.totalTranslations || 0}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
-          <Card data-testid="card-stats-languages">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 gap-2">
-              <CardTitle className="text-sm font-medium">{t.languagesSupported}</CardTitle>
-              <Globe className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              {cmsStatsQuery.isLoading ? (
-                <Skeleton className="h-8 w-16" />
-              ) : (
-                <div className="text-2xl font-bold" data-testid="text-stats-languages">
-                  {cmsStats?.languagesSupported || 10}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
-          <Card data-testid="card-stats-processing">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 gap-2">
-              <CardTitle className="text-sm font-medium">{t.processingStatus}</CardTitle>
-              <Cog className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              {cmsStatsQuery.isLoading ? (
-                <Skeleton className="h-8 w-16" />
-              ) : (
-                <div className="flex items-center gap-2">
-                  {cmsStats?.processingStatus === "processing" ? (
-                    <>
-                      <Loader2 className="h-5 w-5 animate-spin text-primary" />
-                      <span className="text-lg font-medium text-primary">{t.processing}</span>
-                    </>
-                  ) : (
-                    <>
-                      <CheckCircle className="h-5 w-5 text-green-500" />
-                      <span className="text-lg font-medium text-green-600 dark:text-green-400">{t.idle}</span>
-                    </>
-                  )}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </div>
+          )}
+        </Card>
 
         <div className="grid gap-6 lg:grid-cols-3 mb-8">
-          <Card className="lg:col-span-1" data-testid="card-translation-coverage">
+          <Card className="lg:col-span-1 rounded-2xl" data-testid="card-translation-coverage">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <BarChart3 className="h-5 w-5" />
@@ -906,7 +851,7 @@ export default function AdminDashboard() {
             </CardContent>
           </Card>
 
-          <Card className="lg:col-span-2" data-testid="card-language-distribution">
+          <Card className="lg:col-span-2 rounded-2xl" data-testid="card-language-distribution">
             <CardHeader
               className="cursor-pointer select-none"
               onClick={() => setShowLangDist((v) => !v)}
