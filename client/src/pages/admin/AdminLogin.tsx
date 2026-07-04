@@ -5,7 +5,7 @@ import { useMutation } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import { z } from "zod";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { setToken, isAuthenticated } from "@/lib/adminAuth";
+import { setToken, setRole, isAuthenticated } from "@/lib/adminAuth";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
@@ -218,6 +218,7 @@ export default function AdminLogin() {
     },
     onSuccess: (data) => {
       setToken(data.token);
+      setRole(data.user?.role || "");
       toast({
         title: t.loginSuccess,
       });

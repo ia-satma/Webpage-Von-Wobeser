@@ -68,6 +68,9 @@ import {
   recordLoginAttempt,
   authMiddleware,
   requireRole,
+  requirePermission,
+  effectivePermissions,
+  sanitizeGrants,
 } from "./auth";
 
 function apiError(res: Response, status: number, message: string, details?: unknown): void {
@@ -459,7 +462,7 @@ export async function registerRoutes(
     }
   });
 
-  app.post("/api/admin/office-images", authMiddleware, requireRole("editor", "admin"), async (req: Request, res: Response) => {
+  app.post("/api/admin/office-images", authMiddleware, requirePermission("content"), async (req: Request, res: Response) => {
     try {
       const parsed = insertOfficeImageSchema.safeParse(req.body);
       if (!parsed.success) return res.status(400).json({ error: parsed.error.flatten() });
@@ -470,7 +473,7 @@ export async function registerRoutes(
     }
   });
 
-  app.patch("/api/admin/office-images/:id", authMiddleware, requireRole("editor", "admin"), async (req: Request, res: Response) => {
+  app.patch("/api/admin/office-images/:id", authMiddleware, requirePermission("content"), async (req: Request, res: Response) => {
     try {
       const patchSchema = insertOfficeImageSchema.pick({ alt: true, altEs: true, order: true }).partial();
       const parsed = patchSchema.safeParse(req.body);
@@ -483,7 +486,7 @@ export async function registerRoutes(
     }
   });
 
-  app.delete("/api/admin/office-images/:id", authMiddleware, requireRole("editor", "admin"), async (req: Request, res: Response) => {
+  app.delete("/api/admin/office-images/:id", authMiddleware, requirePermission("content"), async (req: Request, res: Response) => {
     try {
       const deleted = await storage.deleteOfficeImage(req.params.id);
       if (!deleted) return res.status(404).json({ error: "Image not found" });
@@ -990,13 +993,24 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
   app.post("/api/admin/login", async (req: Request, res: Response) => {
     try {
       const ip = req.ip || req.socket.remoteAddress || "unknown";
-      
+      const userAgent = req.headers["user-agent"] || null;
+
+      // Registro persistente de accesos (éxitos y fallos). NUNCA guarda contraseñas.
+      // Envuelto para que un fallo del log jamás rompa el inicio de sesión.
+      const logLogin = async (email: string, success: boolean, userId: string | null = null) => {
+        try {
+          await storage.recordLoginEvent({ userId, email: String(email).slice(0, 255), success, ipAddress: ip, userAgent });
+        } catch (e) {
+          console.error("recordLoginEvent failed:", e);
+        }
+      };
+
       // Check rate limit
       const rateCheck = checkRateLimit(ip);
       if (!rateCheck.allowed) {
-        return res.status(429).json({ 
-          error: "Too many login attempts", 
-          retryAfter: rateCheck.retryAfter 
+        return res.status(429).json({
+          error: "Too many login attempts",
+          retryAfter: rateCheck.retryAfter
         });
       }
 
@@ -1004,9 +1018,10 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
       const validation = adminLoginSchema.safeParse(req.body);
       if (!validation.success) {
         recordLoginAttempt(ip, false);
-        return res.status(400).json({ 
-          error: "Invalid input", 
-          details: validation.error.errors 
+        await logLogin(String((req.body && req.body.username) || ""), false);
+        return res.status(400).json({
+          error: "Invalid input",
+          details: validation.error.errors
         });
       }
 
@@ -1020,12 +1035,14 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
       if (!user) {
         await comparePassword(password, "$2b$12$InvalidHashToPreventTimingAttackXXXXXXXXXXXX");
         recordLoginAttempt(ip, false);
+        await logLogin(username, false);
         return res.status(401).json({ error: "Invalid credentials" });
       }
 
       // Check if user is active
       if (!user.isActive) {
         recordLoginAttempt(ip, false);
+        await logLogin(user.email, false, user.id);
         return res.status(401).json({ error: "Account is disabled" });
       }
 
@@ -1033,11 +1050,13 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
       const validPassword = await comparePassword(password, user.passwordHash);
       if (!validPassword) {
         recordLoginAttempt(ip, false);
+        await logLogin(user.email, false, user.id);
         return res.status(401).json({ error: "Invalid credentials" });
       }
 
       // Record successful attempt
       recordLoginAttempt(ip, true);
+      await logLogin(user.email, true, user.id);
 
       // Create session
       const token = generateToken();
@@ -1064,6 +1083,146 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
     } catch (error) {
       console.error("Login error:", error);
       res.status(500).json({ error: "Login failed" });
+    }
+  });
+
+  // Perfil del usuario autenticado + sus permisos EFECTIVOS (rol + concesiones extra).
+  // El front lo usa para mostrar/ocultar secciones con precisión. El backend siempre re-valida.
+  app.get("/api/admin/me", authMiddleware, async (req: Request, res: Response) => {
+    const u = (req as any).adminUser;
+    res.json({
+      id: u.id,
+      username: u.username,
+      email: u.email,
+      role: u.role,
+      permissions: Array.from(effectivePermissions(u)),
+    });
+  });
+
+  // Historial de accesos (solo admin/dueño). Nunca expone contraseñas.
+  app.get("/api/admin/login-log", authMiddleware, requireRole("super_admin", "admin"), async (req: Request, res: Response) => {
+    try {
+      const limit = Math.min(Number(req.query.limit) || 100, 500);
+      res.json(await storage.getLoginEvents(limit));
+    } catch (error) {
+      console.error("Login log error:", error);
+      return apiError(res, 500, "Failed to load login log");
+    }
+  });
+
+  // =============================================
+  // ADMIN USERS — gestión de accesos (solo admin/dueño)
+  // =============================================
+  const MANAGEABLE_ROLES = ["super_admin", "admin", "editor", "marketing", "sistemas"];
+  const isPrivileged = (r: string) => r === "super_admin" || r === "admin";
+
+  app.get("/api/admin/users", authMiddleware, requireRole("super_admin", "admin"), async (_req: Request, res: Response) => {
+    try {
+      res.json(await storage.getAdminUsers()); // nunca incluye passwordHash
+    } catch (error) {
+      console.error("List users error:", error);
+      return apiError(res, 500, "Failed to list users");
+    }
+  });
+
+  app.post("/api/admin/users", authMiddleware, requireRole("super_admin", "admin"), async (req: Request, res: Response) => {
+    try {
+      const actor = (req as any).adminUser;
+      const { username, email, password, role } = req.body || {};
+      if (!email || !password) return apiError(res, 400, "Correo y contraseña son obligatorios");
+      if (String(password).length < 8) return apiError(res, 400, "La contraseña debe tener al menos 8 caracteres");
+      const r = role || "editor";
+      if (!MANAGEABLE_ROLES.includes(r)) return apiError(res, 400, "Rol inválido");
+      if (r === "super_admin" && actor.role !== "super_admin") return apiError(res, 403, "Solo un Dueño puede crear otro Dueño");
+      // El usuario se deriva del correo si no se especifica (el registro pide correo + contraseña).
+      const finalUsername = (username && String(username).trim()) || String(email).split("@")[0].toLowerCase();
+      const passwordHash = await hashPassword(String(password));
+      const created = await storage.createAdminUser({ username: finalUsername, email, passwordHash, role: r, isActive: true } as any);
+      auditLog("create", "admin_user", created.id, actor?.id || "unknown");
+      const { passwordHash: _omit, ...safe } = created as any;
+      res.status(201).json(safe);
+    } catch (error: any) {
+      if (error?.code === "23505" || /unique|duplicate/i.test(String(error?.message))) {
+        return apiError(res, 409, "Ya existe un usuario con ese correo o nombre de usuario");
+      }
+      console.error("Create user error:", error);
+      return apiError(res, 500, "Failed to create user");
+    }
+  });
+
+  app.put("/api/admin/users/:id", authMiddleware, requireRole("super_admin", "admin"), async (req: Request, res: Response) => {
+    try {
+      const actor = (req as any).adminUser;
+      const id = req.params.id;
+      const target = await storage.getAdminUser(id);
+      if (!target) return apiError(res, 404, "Usuario no encontrado");
+      const { role, isActive } = req.body || {};
+      if ((target.role === "super_admin" || role === "super_admin") && actor.role !== "super_admin") {
+        return apiError(res, 403, "Solo un Dueño puede modificar a un Dueño o asignar ese rol");
+      }
+      if (role !== undefined && !MANAGEABLE_ROLES.includes(role)) return apiError(res, 400, "Rol inválido");
+      if (isActive === false && id === actor.id) return apiError(res, 400, "No puedes desactivar tu propia cuenta");
+      // Concesiones extra: solo claves de GRANTABLE (nunca `users` → evita escalada de privilegios).
+      const permissions = req.body?.permissions !== undefined ? sanitizeGrants(req.body.permissions) : undefined;
+      // Anti-lockout: no dejar 0 administradores/dueños activos.
+      const willLosePrivilege = (role !== undefined && !isPrivileged(role)) || isActive === false;
+      if (isPrivileged(target.role) && willLosePrivilege) {
+        const users = await storage.getAdminUsers();
+        const otherActivePriv = users.filter((u) => u.isActive && isPrivileged(u.role) && u.id !== id).length;
+        if (otherActivePriv < 1) return apiError(res, 400, "Debe quedar al menos un Administrador/Dueño activo");
+      }
+      const updated = await storage.updateAdminUser(id, {
+        ...(role !== undefined ? { role } : {}),
+        ...(isActive !== undefined ? { isActive } : {}),
+        ...(permissions !== undefined ? { permissions } : {}),
+      });
+      auditLog("update", "admin_user", id, actor?.id || "unknown");
+      const { passwordHash: _o, ...safe } = (updated as any) || {};
+      res.json(safe);
+    } catch (error) {
+      console.error("Update user error:", error);
+      return apiError(res, 500, "Failed to update user");
+    }
+  });
+
+  app.post("/api/admin/users/:id/password", authMiddleware, requireRole("super_admin", "admin"), async (req: Request, res: Response) => {
+    try {
+      const actor = (req as any).adminUser;
+      const target = await storage.getAdminUser(req.params.id);
+      if (!target) return apiError(res, 404, "Usuario no encontrado");
+      if (target.role === "super_admin" && actor.role !== "super_admin" && target.id !== actor.id) {
+        return apiError(res, 403, "Solo un Dueño puede cambiar la contraseña de un Dueño");
+      }
+      const { password } = req.body || {};
+      if (!password || String(password).length < 8) return apiError(res, 400, "La contraseña debe tener al menos 8 caracteres");
+      await storage.setAdminUserPassword(req.params.id, await hashPassword(String(password)));
+      auditLog("update", "admin_user", req.params.id, actor?.id || "unknown");
+      res.json({ ok: true });
+    } catch (error) {
+      console.error("Reset password error:", error);
+      return apiError(res, 500, "Failed to reset password");
+    }
+  });
+
+  app.delete("/api/admin/users/:id", authMiddleware, requireRole("super_admin", "admin"), async (req: Request, res: Response) => {
+    try {
+      const actor = (req as any).adminUser;
+      const id = req.params.id;
+      if (id === actor.id) return apiError(res, 400, "No puedes eliminar tu propia cuenta");
+      const target = await storage.getAdminUser(id);
+      if (!target) return apiError(res, 404, "Usuario no encontrado");
+      if (target.role === "super_admin" && actor.role !== "super_admin") return apiError(res, 403, "Solo un Dueño puede eliminar a un Dueño");
+      if (isPrivileged(target.role)) {
+        const users = await storage.getAdminUsers();
+        const otherActivePriv = users.filter((u) => u.isActive && isPrivileged(u.role) && u.id !== id).length;
+        if (otherActivePriv < 1) return apiError(res, 400, "Debe quedar al menos un Administrador/Dueño activo");
+      }
+      await storage.deleteAdminUser(id);
+      auditLog("delete", "admin_user", id, actor?.id || "unknown");
+      res.json({ ok: true });
+    } catch (error) {
+      console.error("Delete user error:", error);
+      return apiError(res, 500, "Failed to delete user");
     }
   });
 
@@ -1160,7 +1319,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
   });
 
   // Create blog post
-  app.post("/api/admin/posts", authMiddleware, requireRole("editor", "admin"), async (req: Request, res: Response) => {
+  app.post("/api/admin/posts", authMiddleware, requirePermission("content"), async (req: Request, res: Response) => {
     try {
       const validation = insertBlogPostSchema.safeParse({
         ...req.body,
@@ -1189,7 +1348,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
   });
 
   // Update blog post
-  app.put("/api/admin/posts/:id", authMiddleware, requireRole("editor", "admin"), async (req: Request, res: Response) => {
+  app.put("/api/admin/posts/:id", authMiddleware, requirePermission("content"), async (req: Request, res: Response) => {
     try {
       const existingPost = await storage.getBlogPostById(req.params.id);
       if (!existingPost) {
@@ -1213,7 +1372,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
   });
 
   // Delete blog post (soft delete)
-  app.delete("/api/admin/posts/:id", authMiddleware, requireRole("editor", "admin"), async (req: Request, res: Response) => {
+  app.delete("/api/admin/posts/:id", authMiddleware, requirePermission("content"), async (req: Request, res: Response) => {
     try {
       const deleted = await storage.deleteBlogPost(req.params.id);
       if (!deleted) {
@@ -1256,7 +1415,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
   });
 
   // Create category
-  app.post("/api/admin/categories", authMiddleware, requireRole("editor", "admin"), async (req: Request, res: Response) => {
+  app.post("/api/admin/categories", authMiddleware, requirePermission("content"), async (req: Request, res: Response) => {
     try {
       const validation = insertBlogCategorySchema.safeParse(req.body);
       
@@ -1276,7 +1435,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
   });
 
   // Update category
-  app.put("/api/admin/categories/:id", authMiddleware, requireRole("editor", "admin"), async (req: Request, res: Response) => {
+  app.put("/api/admin/categories/:id", authMiddleware, requirePermission("content"), async (req: Request, res: Response) => {
     try {
       const category = await storage.updateBlogCategory(req.params.id, req.body);
       if (!category) {
@@ -1290,7 +1449,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
   });
 
   // Delete category
-  app.delete("/api/admin/categories/:id", authMiddleware, requireRole("editor", "admin"), async (req: Request, res: Response) => {
+  app.delete("/api/admin/categories/:id", authMiddleware, requirePermission("content"), async (req: Request, res: Response) => {
     try {
       const deleted = await storage.deleteBlogCategory(req.params.id);
       if (!deleted) {
@@ -1319,7 +1478,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
   });
 
   // Create tag
-  app.post("/api/admin/tags", authMiddleware, requireRole("editor", "admin"), async (req: Request, res: Response) => {
+  app.post("/api/admin/tags", authMiddleware, requirePermission("content"), async (req: Request, res: Response) => {
     try {
       const validation = insertBlogTagSchema.safeParse(req.body);
       
@@ -1339,7 +1498,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
   });
 
   // Delete tag
-  app.delete("/api/admin/tags/:id", authMiddleware, requireRole("editor", "admin"), async (req: Request, res: Response) => {
+  app.delete("/api/admin/tags/:id", authMiddleware, requirePermission("content"), async (req: Request, res: Response) => {
     try {
       const deleted = await storage.deleteBlogTag(req.params.id);
       if (!deleted) {
@@ -1469,7 +1628,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
   });
 
   // Create news
-  app.post("/api/admin/news", authMiddleware, requireRole("editor", "admin"), async (req: Request, res: Response) => {
+  app.post("/api/admin/news", authMiddleware, requirePermission("content"), async (req: Request, res: Response) => {
     try {
       const validation = insertNewsSchema.safeParse(req.body);
       
@@ -1487,7 +1646,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
   });
 
   // Update news
-  app.put("/api/admin/news/:id", authMiddleware, requireRole("editor", "admin"), async (req: Request, res: Response) => {
+  app.put("/api/admin/news/:id", authMiddleware, requirePermission("content"), async (req: Request, res: Response) => {
     try {
       const validated = insertNewsSchema.partial().parse(req.body); // valida + descarta campos no permitidos (anti mass-assignment)
       const newsItem = await storage.updateNews(req.params.id, validated);
@@ -1506,7 +1665,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
   });
 
   // Delete news
-  app.delete("/api/admin/news/:id", authMiddleware, requireRole("editor", "admin"), async (req: Request, res: Response) => {
+  app.delete("/api/admin/news/:id", authMiddleware, requirePermission("content"), async (req: Request, res: Response) => {
     try {
       const deleted = await storage.deleteNews(req.params.id);
       if (!deleted) {
@@ -1586,7 +1745,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
   });
 
   // Create team member
-  app.post("/api/admin/team", authMiddleware, requireRole("editor", "admin"), async (req: Request, res: Response) => {
+  app.post("/api/admin/team", authMiddleware, requirePermission("content"), async (req: Request, res: Response) => {
     try {
       const validatedData = insertTeamMemberSchema.parse(req.body);
       const member = await storage.createTeamMember(validatedData);
@@ -1608,7 +1767,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
   });
 
   // Update team member
-  app.put("/api/admin/team/:id", authMiddleware, requireRole("editor", "admin"), async (req: Request, res: Response) => {
+  app.put("/api/admin/team/:id", authMiddleware, requirePermission("content"), async (req: Request, res: Response) => {
     try {
       const validatedData = insertTeamMemberSchema.partial().parse(req.body);
       // Si el body solo trae practiceGroupIds/industryGroupIds (sin campos propios de
@@ -1642,7 +1801,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
   });
 
   // Delete team member
-  app.delete("/api/admin/team/:id", authMiddleware, requireRole("editor", "admin"), async (req: Request, res: Response) => {
+  app.delete("/api/admin/team/:id", authMiddleware, requirePermission("content"), async (req: Request, res: Response) => {
     try {
       const deleted = await storage.deleteTeamMember(req.params.id);
       if (!deleted) {
@@ -1692,7 +1851,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
   });
 
   // Create practice group
-  app.post("/api/admin/practice-groups", authMiddleware, requireRole("editor", "admin"), async (req: Request, res: Response) => {
+  app.post("/api/admin/practice-groups", authMiddleware, requirePermission("content"), async (req: Request, res: Response) => {
     try {
       const validatedData = insertPracticeGroupSchema.parse(req.body);
       const group = await storage.createPracticeGroup(validatedData);
@@ -1707,7 +1866,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
   });
 
   // Update practice group
-  app.put("/api/admin/practice-groups/:id", authMiddleware, requireRole("editor", "admin"), async (req: Request, res: Response) => {
+  app.put("/api/admin/practice-groups/:id", authMiddleware, requirePermission("content"), async (req: Request, res: Response) => {
     try {
       const validatedData = insertPracticeGroupSchema.partial().parse(req.body);
       const group = await storage.updatePracticeGroup(req.params.id, validatedData);
@@ -1725,7 +1884,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
   });
 
   // Delete practice group
-  app.delete("/api/admin/practice-groups/:id", authMiddleware, requireRole("editor", "admin"), async (req: Request, res: Response) => {
+  app.delete("/api/admin/practice-groups/:id", authMiddleware, requirePermission("content"), async (req: Request, res: Response) => {
     try {
       const deleted = await storage.deletePracticeGroup(req.params.id);
       if (!deleted) {
@@ -1754,7 +1913,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
   });
 
   // Create industry group
-  app.post("/api/admin/industry-groups", authMiddleware, requireRole("editor", "admin"), async (req: Request, res: Response) => {
+  app.post("/api/admin/industry-groups", authMiddleware, requirePermission("content"), async (req: Request, res: Response) => {
     try {
       const validatedData = insertIndustryGroupSchema.parse(req.body);
       const group = await storage.createIndustryGroup(validatedData);
@@ -1769,7 +1928,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
   });
 
   // Update industry group
-  app.put("/api/admin/industry-groups/:id", authMiddleware, requireRole("editor", "admin"), async (req: Request, res: Response) => {
+  app.put("/api/admin/industry-groups/:id", authMiddleware, requirePermission("content"), async (req: Request, res: Response) => {
     try {
       const validatedData = insertIndustryGroupSchema.partial().parse(req.body);
       const group = await storage.updateIndustryGroup(req.params.id, validatedData);
@@ -1787,7 +1946,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
   });
 
   // Delete industry group
-  app.delete("/api/admin/industry-groups/:id", authMiddleware, requireRole("editor", "admin"), async (req: Request, res: Response) => {
+  app.delete("/api/admin/industry-groups/:id", authMiddleware, requirePermission("content"), async (req: Request, res: Response) => {
     try {
       const deleted = await storage.deleteIndustryGroup(req.params.id);
       if (!deleted) {
@@ -1814,7 +1973,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
     }
   });
 
-  app.post("/api/admin/events", authMiddleware, requireRole("editor", "admin"), async (req: Request, res: Response) => {
+  app.post("/api/admin/events", authMiddleware, requirePermission("content"), async (req: Request, res: Response) => {
     try {
       const validatedData = insertEventSchema.parse(req.body);
       const event = await storage.createEvent(validatedData);
@@ -1828,7 +1987,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
     }
   });
 
-  app.put("/api/admin/events/:id", authMiddleware, requireRole("editor", "admin"), async (req: Request, res: Response) => {
+  app.put("/api/admin/events/:id", authMiddleware, requirePermission("content"), async (req: Request, res: Response) => {
     try {
       const validatedData = insertEventSchema.partial().parse(req.body);
       const updated = await storage.updateEvent(req.params.id, validatedData);
@@ -1845,7 +2004,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
     }
   });
 
-  app.delete("/api/admin/events/:id", authMiddleware, requireRole("editor", "admin"), async (req: Request, res: Response) => {
+  app.delete("/api/admin/events/:id", authMiddleware, requirePermission("content"), async (req: Request, res: Response) => {
     try {
       const deleted = await storage.deleteEvent(req.params.id);
       if (!deleted) {
@@ -1872,7 +2031,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
     }
   });
 
-  app.post("/api/admin/rankings", authMiddleware, requireRole("editor", "admin"), async (req: Request, res: Response) => {
+  app.post("/api/admin/rankings", authMiddleware, requirePermission("content"), async (req: Request, res: Response) => {
     try {
       const validatedData = insertRankingSchema.parse(req.body);
       const ranking = await storage.createRanking(validatedData);
@@ -1886,7 +2045,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
     }
   });
 
-  app.put("/api/admin/rankings/:id", authMiddleware, requireRole("editor", "admin"), async (req: Request, res: Response) => {
+  app.put("/api/admin/rankings/:id", authMiddleware, requirePermission("content"), async (req: Request, res: Response) => {
     try {
       const validatedData = insertRankingSchema.partial().parse(req.body);
       const updated = await storage.updateRanking(req.params.id, validatedData);
@@ -1903,7 +2062,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
     }
   });
 
-  app.delete("/api/admin/rankings/:id", authMiddleware, requireRole("editor", "admin"), async (req: Request, res: Response) => {
+  app.delete("/api/admin/rankings/:id", authMiddleware, requirePermission("content"), async (req: Request, res: Response) => {
     try {
       const deleted = await storage.deleteRanking(req.params.id);
       if (!deleted) {
@@ -1930,7 +2089,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
     }
   });
 
-  app.post("/api/admin/awards", authMiddleware, requireRole("editor", "admin"), async (req: Request, res: Response) => {
+  app.post("/api/admin/awards", authMiddleware, requirePermission("content"), async (req: Request, res: Response) => {
     try {
       const validatedData = insertAwardSchema.parse(req.body);
       const award = await storage.createAward(validatedData);
@@ -1944,7 +2103,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
     }
   });
 
-  app.put("/api/admin/awards/:id", authMiddleware, requireRole("editor", "admin"), async (req: Request, res: Response) => {
+  app.put("/api/admin/awards/:id", authMiddleware, requirePermission("content"), async (req: Request, res: Response) => {
     try {
       const validatedData = insertAwardSchema.partial().parse(req.body);
       const updated = await storage.updateAward(req.params.id, validatedData);
@@ -1961,7 +2120,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
     }
   });
 
-  app.delete("/api/admin/awards/:id", authMiddleware, requireRole("editor", "admin"), async (req: Request, res: Response) => {
+  app.delete("/api/admin/awards/:id", authMiddleware, requirePermission("content"), async (req: Request, res: Response) => {
     try {
       const deleted = await storage.deleteAward(req.params.id);
       if (!deleted) {
@@ -1988,7 +2147,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
     }
   });
 
-  app.post("/api/admin/clients", authMiddleware, requireRole("editor", "admin"), async (req: Request, res: Response) => {
+  app.post("/api/admin/clients", authMiddleware, requirePermission("content"), async (req: Request, res: Response) => {
     try {
       const validatedData = insertRepresentativeClientSchema.parse(req.body);
       const client = await storage.createRepresentativeClient(validatedData);
@@ -2002,7 +2161,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
     }
   });
 
-  app.put("/api/admin/clients/:id", authMiddleware, requireRole("editor", "admin"), async (req: Request, res: Response) => {
+  app.put("/api/admin/clients/:id", authMiddleware, requirePermission("content"), async (req: Request, res: Response) => {
     try {
       const validatedData = insertRepresentativeClientSchema.partial().parse(req.body);
       const updated = await storage.updateRepresentativeClient(req.params.id, validatedData);
@@ -2019,7 +2178,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
     }
   });
 
-  app.delete("/api/admin/clients/:id", authMiddleware, requireRole("editor", "admin"), async (req: Request, res: Response) => {
+  app.delete("/api/admin/clients/:id", authMiddleware, requirePermission("content"), async (req: Request, res: Response) => {
     try {
       const deleted = await storage.deleteRepresentativeClient(req.params.id);
       if (!deleted) {
@@ -2046,7 +2205,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
     }
   });
 
-  app.post("/api/admin/testimonials", authMiddleware, requireRole("editor", "admin"), async (req: Request, res: Response) => {
+  app.post("/api/admin/testimonials", authMiddleware, requirePermission("content"), async (req: Request, res: Response) => {
     try {
       const validatedData = insertTestimonialSchema.parse(req.body);
       const testimonial = await storage.createTestimonial(validatedData);
@@ -2060,7 +2219,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
     }
   });
 
-  app.put("/api/admin/testimonials/:id", authMiddleware, requireRole("editor", "admin"), async (req: Request, res: Response) => {
+  app.put("/api/admin/testimonials/:id", authMiddleware, requirePermission("content"), async (req: Request, res: Response) => {
     try {
       const validatedData = insertTestimonialSchema.partial().parse(req.body);
       const updated = await storage.updateTestimonial(req.params.id, validatedData);
@@ -2077,7 +2236,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
     }
   });
 
-  app.delete("/api/admin/testimonials/:id", authMiddleware, requireRole("editor", "admin"), async (req: Request, res: Response) => {
+  app.delete("/api/admin/testimonials/:id", authMiddleware, requirePermission("content"), async (req: Request, res: Response) => {
     try {
       const deleted = await storage.deleteTestimonial(req.params.id);
       if (!deleted) {
@@ -2104,7 +2263,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
     }
   });
 
-  app.post("/api/admin/jobs", authMiddleware, requireRole("editor", "admin"), async (req: Request, res: Response) => {
+  app.post("/api/admin/jobs", authMiddleware, requirePermission("content"), async (req: Request, res: Response) => {
     try {
       const validatedData = insertJobOpeningSchema.parse(req.body);
       const job = await storage.createJobOpening(validatedData);
@@ -2118,7 +2277,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
     }
   });
 
-  app.put("/api/admin/jobs/:id", authMiddleware, requireRole("editor", "admin"), async (req: Request, res: Response) => {
+  app.put("/api/admin/jobs/:id", authMiddleware, requirePermission("content"), async (req: Request, res: Response) => {
     try {
       const validatedData = insertJobOpeningSchema.partial().parse(req.body);
       const updated = await storage.updateJobOpening(req.params.id, validatedData);
@@ -2135,7 +2294,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
     }
   });
 
-  app.delete("/api/admin/jobs/:id", authMiddleware, requireRole("editor", "admin"), async (req: Request, res: Response) => {
+  app.delete("/api/admin/jobs/:id", authMiddleware, requirePermission("content"), async (req: Request, res: Response) => {
     try {
       const deleted = await storage.deleteJobOpening(req.params.id);
       if (!deleted) {
@@ -2162,7 +2321,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
     }
   });
 
-  app.post("/api/admin/offices", authMiddleware, requireRole("editor", "admin"), async (req: Request, res: Response) => {
+  app.post("/api/admin/offices", authMiddleware, requirePermission("content"), async (req: Request, res: Response) => {
     try {
       const validatedData = insertOfficeSchema.parse(req.body);
       const office = await storage.createOffice(validatedData);
@@ -2176,7 +2335,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
     }
   });
 
-  app.put("/api/admin/offices/:id", authMiddleware, requireRole("editor", "admin"), async (req: Request, res: Response) => {
+  app.put("/api/admin/offices/:id", authMiddleware, requirePermission("content"), async (req: Request, res: Response) => {
     try {
       const validatedData = insertOfficeSchema.partial().parse(req.body);
       const updated = await storage.updateOffice(req.params.id, validatedData);
@@ -2193,7 +2352,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
     }
   });
 
-  app.delete("/api/admin/offices/:id", authMiddleware, requireRole("editor", "admin"), async (req: Request, res: Response) => {
+  app.delete("/api/admin/offices/:id", authMiddleware, requirePermission("content"), async (req: Request, res: Response) => {
     try {
       const deleted = await storage.deleteOffice(req.params.id);
       if (!deleted) {
@@ -2220,7 +2379,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
     }
   });
 
-  app.post("/api/admin/alliances", authMiddleware, requireRole("editor", "admin"), async (req: Request, res: Response) => {
+  app.post("/api/admin/alliances", authMiddleware, requirePermission("content"), async (req: Request, res: Response) => {
     try {
       const validatedData = insertAllianceSchema.parse(req.body);
       const alliance = await storage.createAlliance(validatedData);
@@ -2234,7 +2393,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
     }
   });
 
-  app.put("/api/admin/alliances/:id", authMiddleware, requireRole("editor", "admin"), async (req: Request, res: Response) => {
+  app.put("/api/admin/alliances/:id", authMiddleware, requirePermission("content"), async (req: Request, res: Response) => {
     try {
       const validatedData = insertAllianceSchema.partial().parse(req.body);
       const updated = await storage.updateAlliance(req.params.id, validatedData);
@@ -2251,7 +2410,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
     }
   });
 
-  app.delete("/api/admin/alliances/:id", authMiddleware, requireRole("editor", "admin"), async (req: Request, res: Response) => {
+  app.delete("/api/admin/alliances/:id", authMiddleware, requirePermission("content"), async (req: Request, res: Response) => {
     try {
       const deleted = await storage.deleteAlliance(req.params.id);
       if (!deleted) {
@@ -2278,7 +2437,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
     }
   });
 
-  app.patch("/api/admin/contact-submissions/:id/read", authMiddleware, requireRole("editor", "admin"), async (req: Request, res: Response) => {
+  app.patch("/api/admin/contact-submissions/:id/read", authMiddleware, requirePermission("content"), async (req: Request, res: Response) => {
     try {
       const found = await storage.markContactSubmissionRead(req.params.id);
       if (!found) {
@@ -2305,7 +2464,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
     }
   });
 
-  app.post("/api/admin/desks", authMiddleware, requireRole("editor", "admin"), async (req: Request, res: Response) => {
+  app.post("/api/admin/desks", authMiddleware, requirePermission("content"), async (req: Request, res: Response) => {
     try {
       const validatedData = insertSpecializedDeskSchema.parse(req.body);
       const desk = await storage.createSpecializedDesk(validatedData);
@@ -2319,7 +2478,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
     }
   });
 
-  app.put("/api/admin/desks/:id", authMiddleware, requireRole("editor", "admin"), async (req: Request, res: Response) => {
+  app.put("/api/admin/desks/:id", authMiddleware, requirePermission("content"), async (req: Request, res: Response) => {
     try {
       const validatedData = insertSpecializedDeskSchema.partial().parse(req.body);
       const updated = await storage.updateSpecializedDesk(req.params.id, validatedData);
@@ -2336,7 +2495,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
     }
   });
 
-  app.delete("/api/admin/desks/:id", authMiddleware, requireRole("editor", "admin"), async (req: Request, res: Response) => {
+  app.delete("/api/admin/desks/:id", authMiddleware, requirePermission("content"), async (req: Request, res: Response) => {
     try {
       const deleted = await storage.deleteSpecializedDesk(req.params.id);
       if (!deleted) {
@@ -2364,7 +2523,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
     }
   });
 
-  app.post("/api/admin/knowledge", authMiddleware, requireRole("editor", "admin"), async (req: Request, res: Response) => {
+  app.post("/api/admin/knowledge", authMiddleware, requirePermission("content"), async (req: Request, res: Response) => {
     try {
       const { category, title, content, agentType, metadata } = req.body;
       if (!category || !title || !content || !agentType) {
@@ -2385,7 +2544,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
     }
   });
 
-  app.put("/api/admin/knowledge/:id", authMiddleware, requireRole("editor", "admin"), async (req: Request, res: Response) => {
+  app.put("/api/admin/knowledge/:id", authMiddleware, requirePermission("content"), async (req: Request, res: Response) => {
     try {
       const { id } = req.params;
       const { category, title, content, agentType, metadata } = req.body;
@@ -2408,7 +2567,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
     }
   });
 
-  app.delete("/api/admin/knowledge/:id", authMiddleware, requireRole("editor", "admin"), async (req: Request, res: Response) => {
+  app.delete("/api/admin/knowledge/:id", authMiddleware, requirePermission("content"), async (req: Request, res: Response) => {
     try {
       const { id } = req.params;
       const { dbPersistence } = await import('./agents/storage/DatabasePersistence');
@@ -2424,7 +2583,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
     }
   });
 
-  app.post("/api/admin/knowledge/bulk", authMiddleware, requireRole("editor", "admin"), async (req: Request, res: Response) => {
+  app.post("/api/admin/knowledge/bulk", authMiddleware, requirePermission("content"), async (req: Request, res: Response) => {
     try {
       const { items } = req.body;
       if (!Array.isArray(items) || items.length === 0) {
@@ -2467,7 +2626,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
   });
 
   // Upload media
-  app.post("/api/admin/media/upload", authMiddleware, requireRole("editor", "admin"), upload.single("file"), async (req: Request, res: Response) => {
+  app.post("/api/admin/media/upload", authMiddleware, requirePermission("content"), upload.single("file"), async (req: Request, res: Response) => {
     try {
       if (!req.file) {
         return res.status(400).json({ error: "No file uploaded" });
@@ -2492,7 +2651,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
   });
 
   // Delete media item
-  app.delete("/api/admin/media/:id", authMiddleware, requireRole("editor", "admin"), async (req: Request, res: Response) => {
+  app.delete("/api/admin/media/:id", authMiddleware, requirePermission("content"), async (req: Request, res: Response) => {
     try {
       const deleted = await storage.deleteMediaItem(req.params.id);
       if (!deleted) {
@@ -2510,7 +2669,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
   // =============================================
 
   // Add a team member to a news article
-  app.post("/api/news/:id/team-members", authMiddleware, requireRole("editor", "admin"), async (req: Request, res: Response) => {
+  app.post("/api/news/:id/team-members", authMiddleware, requirePermission("content"), async (req: Request, res: Response) => {
     try {
       const newsId = req.params.id;
       const { teamMemberId } = req.body;
@@ -2538,7 +2697,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
   });
 
   // Remove a team member from a news article
-  app.delete("/api/news/:id/team-members/:teamMemberId", authMiddleware, requireRole("editor", "admin"), async (req: Request, res: Response) => {
+  app.delete("/api/news/:id/team-members/:teamMemberId", authMiddleware, requirePermission("content"), async (req: Request, res: Response) => {
     try {
       const { id: newsId, teamMemberId } = req.params;
 
@@ -2560,7 +2719,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
   // =============================================
 
   // POST /api/news/:id/validate - Validate and publish article
-  app.post("/api/news/:id/validate", authMiddleware, requireRole("editor", "admin"), async (req: Request, res: Response) => {
+  app.post("/api/news/:id/validate", authMiddleware, requirePermission("content"), async (req: Request, res: Response) => {
     try {
       const { id } = req.params;
       const newsItem = await storage.getNewsById(id);
@@ -2605,7 +2764,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
   });
 
   // POST /api/news/:id/council-review - Re-run council review
-  app.post("/api/news/:id/council-review", authMiddleware, requireRole("editor", "admin"), async (req: Request, res: Response) => {
+  app.post("/api/news/:id/council-review", authMiddleware, requirePermission("content"), async (req: Request, res: Response) => {
     try {
       const { id } = req.params;
       const newsItem = await storage.getNewsById(id);
@@ -3430,7 +3589,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
   });
 
   // Record evolution event (admin only)
-  app.post("/api/system/chronicler/evolution", authMiddleware, async (req: Request, res: Response) => {
+  app.post("/api/system/chronicler/evolution", authMiddleware, requirePermission("advanced"), async (req: Request, res: Response) => {
     try {
       const { systemChronicler } = await import('./agents/SystemChronicler');
       const { title, description, agentId, impact, category } = req.body;
@@ -3458,7 +3617,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
   });
 
   // Website Audit API routes
-  app.get("/api/audits", authMiddleware, async (req: Request, res: Response) => {
+  app.get("/api/audits", authMiddleware, requirePermission("advanced"), async (req: Request, res: Response) => {
     try {
       const limit = parseInt(req.query.limit as string) || 20;
       const audits = await storage.getWebsiteAudits(limit);
@@ -3469,7 +3628,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
     }
   });
 
-  app.get("/api/audits/latest", authMiddleware, async (req: Request, res: Response) => {
+  app.get("/api/audits/latest", authMiddleware, requirePermission("advanced"), async (req: Request, res: Response) => {
     try {
       const audit = await storage.getLatestWebsiteAudit();
       if (!audit) {
@@ -3483,7 +3642,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
     }
   });
 
-  app.get("/api/audits/:id", authMiddleware, async (req: Request, res: Response) => {
+  app.get("/api/audits/:id", authMiddleware, requirePermission("advanced"), async (req: Request, res: Response) => {
     try {
       const audit = await storage.getWebsiteAudit(req.params.id);
       if (!audit) {
@@ -3497,7 +3656,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
     }
   });
 
-  app.get("/api/audits/:id/findings", authMiddleware, async (req: Request, res: Response) => {
+  app.get("/api/audits/:id/findings", authMiddleware, requirePermission("advanced"), async (req: Request, res: Response) => {
     try {
       const { category, severity } = req.query;
       let findings;
@@ -3517,7 +3676,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
     }
   });
 
-  app.post("/api/audits/run", authMiddleware, async (req: Request, res: Response) => {
+  app.post("/api/audits/run", authMiddleware, requirePermission("advanced"), async (req: Request, res: Response) => {
     try {
       const { runType = 'full', skipModules } = req.body;
       
@@ -3548,7 +3707,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
     }
   });
 
-  app.get("/api/audits/findings/open", authMiddleware, async (req: Request, res: Response) => {
+  app.get("/api/audits/findings/open", authMiddleware, requirePermission("advanced"), async (req: Request, res: Response) => {
     try {
       const findings = await storage.getOpenFindings();
       res.json({ success: true, findings });
@@ -3576,7 +3735,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
     }
   });
 
-  app.post("/api/health-check/reset-zombies", authMiddleware, async (req: Request, res: Response) => {
+  app.post("/api/health-check/reset-zombies", authMiddleware, requirePermission("advanced"), async (req: Request, res: Response) => {
     try {
       const { systemHealthCheck } = await import('./agents/SystemHealthCheck');
       const resetCount = await systemHealthCheck.resetZombieJobs();
@@ -3591,7 +3750,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
     }
   });
 
-  app.patch("/api/audits/findings/:id", authMiddleware, async (req: Request, res: Response) => {
+  app.patch("/api/audits/findings/:id", authMiddleware, requirePermission("advanced"), async (req: Request, res: Response) => {
     try {
       const { status, resolvedBy } = req.body;
       
@@ -3610,7 +3769,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
 
   // Agent system routes — PROTEGIDAS: disparar agentes/pipelines/colas requiere admin.
   const agentRoutes = await import('./agents/api/agentRoutes');
-  app.use('/api/agents', authMiddleware, requireRole("super_admin", "admin", "editor"), agentRoutes.default);
+  app.use('/api/agents', authMiddleware, requirePermission("agents"), agentRoutes.default);
 
   // Initialize agents on server start
   const { initializeAgents } = await import('./agents');

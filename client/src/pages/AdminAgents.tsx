@@ -130,21 +130,21 @@ const AGENT_NAMES: Record<string, string> = {
   orchestrator: "Orquestador",
 };
 
-// Descripción breve de qué hace cada agente (para facilitar el uso al equipo).
+// Descripción tipo manual de cada agente: qué hace y DÓNDE ves el resultado.
 const AGENT_DESCRIPTIONS: Record<string, string> = {
-  formatter: "Limpia y formatea el texto de artículos extraídos de PDFs: repara saltos de línea, une párrafos partidos y quita pies de página. (usa IA)",
-  metadata_linker: "Detecta a los abogados autores y vincula el artículo con ellos, sus áreas de práctica e industrias. (usa IA)",
-  polyglot_translator: "Traduce el artículo a 10 idiomas manteniendo la terminología legal consistente. (usa IA)",
-  content_auditor: "Escanea todas las noticias buscando huecos: traducciones faltantes, sin autor o mal formato, y sugiere qué agente los corrige. (sin IA)",
-  content_analyzer: "Analiza el artículo (SEO, calidad, ortografía, abogados mencionados) y le da una calificación de calidad. (usa IA)",
-  seo_optimizer: "Optimiza título, meta descripción, slug y palabras clave para buscadores; solo aplica los cambios si mejoran el puntaje. (usa IA)",
-  website_auditor: "Audita todo el sitio: traducciones faltantes, contenido incompleto, SEO e integridad de enlaces. (sin IA)",
-  image_suggestion: "Genera una imagen para el artículo en el estilo de marca de Von Wobeser. (usa IA)",
-  category_agent: "Clasifica el artículo: categoría principal, áreas de práctica, industrias y etiquetas. (usa IA)",
-  social_media: "Convierte una noticia en publicaciones para LinkedIn y X (Twitter), listas para copiar. (usa IA)",
-  newsletter: "Compila las noticias recientes en un boletín (asunto + cuerpo HTML) para enviar a clientes. (usa IA)",
-  legal_alerts: "A partir de una fuente oficial (DOF/SCJN) redacta un borrador de alerta legal, como noticia sin publicar para revisión. (usa IA)",
-  orchestrator: "Coordina la cola de trabajos y ejecuta los agentes en orden.",
+  formatter: "Limpia y formatea el texto de un artículo (repara saltos de línea, une párrafos partidos, quita pies de página). → Dónde: los cambios se guardan en la misma noticia; los ves al editarla. (usa IA)",
+  metadata_linker: "Detecta a los abogados autores y vincula la noticia con ellos, sus áreas de práctica e industrias. → Dónde: los vínculos quedan guardados en la noticia (autor y áreas asignadas). (usa IA)",
+  polyglot_translator: "Traduce la noticia a otros idiomas manteniendo la terminología legal. → Dónde: las traducciones se guardan y se ven en la sección 'Traducciones' y en el sitio público al cambiar de idioma. (usa IA)",
+  content_auditor: "Revisa TODAS las noticias y detecta huecos (sin traducción, sin autor, mal formato). → Dónde: genera un reporte en la sección de agentes / 'Procesamiento de artículos'. (sin IA)",
+  content_analyzer: "Analiza una noticia (calidad, SEO, ortografía, abogados mencionados) y le da una calificación. → Dónde: en el detalle de la noticia (al abrirla desde la lista). (usa IA)",
+  seo_optimizer: "Optimiza título, meta descripción, slug y palabras clave; solo aplica los cambios si mejoran el puntaje. → Dónde: los cambios se guardan en la misma noticia. (usa IA)",
+  website_auditor: "Audita todo el sitio (traducciones faltantes, contenido incompleto, SEO, enlaces rotos). → Dónde: genera un reporte en la página 'Auditorías del sitio'. (sin IA)",
+  image_suggestion: "Genera una imagen de marca para la noticia. → Dónde: se asigna como imagen destacada de la noticia. (usa IA)",
+  category_agent: "Clasifica la noticia (categoría principal, áreas de práctica, industrias y etiquetas). → Dónde: la categoría se guarda en la noticia. (usa IA)",
+  social_media: "Convierte una noticia en publicaciones para LinkedIn y X (Twitter). → Dónde: en un cuadro para copiar, con el botón 'Generar post de redes' cuando EDITAS una noticia. (usa IA)",
+  newsletter: "Compila las noticias recientes en un boletín (asunto + cuerpo HTML). → Dónde: en un cuadro para copiar/enviar, con el botón 'Boletín' arriba en la página de Noticias. (usa IA)",
+  legal_alerts: "De una fuente oficial (texto pegado o URL .gob.mx) redacta un borrador de alerta. → Dónde: crea una noticia SIN PUBLICAR y te abre su editor; desde el botón 'Crear alerta' en Noticias. (usa IA)",
+  orchestrator: "Coordina la cola de trabajos y ejecuta los agentes en orden. → Dónde: su estado (cola, activos) se ve arriba en esta misma página. (sin IA)",
 };
 
 const STATUS_COLORS: Record<string, string> = {

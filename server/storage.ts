@@ -21,6 +21,8 @@ import {
   type InsertRepresentativeMatter,
   type AdminUser,
   type InsertAdminUser,
+  type AdminLoginEvent,
+  type InsertAdminLoginEvent,
   type BlogPost,
   type InsertBlogPost,
   type BlogCategory,
@@ -69,6 +71,7 @@ import {
   teamMemberIndustryGroups,
   representativeMatters,
   adminUsers,
+  adminLoginEvents,
   blogPosts,
   blogCategories,
   blogTags,
@@ -146,6 +149,12 @@ export interface IStorage {
   countAdminUsers(): Promise<number>;
   createAdminUser(user: InsertAdminUser): Promise<AdminUser>;
   updateAdminUserLogin(id: string): Promise<AdminUser | undefined>;
+  getAdminUsers(): Promise<Omit<AdminUser, "passwordHash">[]>;
+  updateAdminUser(id: string, data: Partial<Pick<AdminUser, "role" | "isActive" | "permissions">>): Promise<AdminUser | undefined>;
+  setAdminUserPassword(id: string, passwordHash: string): Promise<boolean>;
+  deleteAdminUser(id: string): Promise<boolean>;
+  recordLoginEvent(data: InsertAdminLoginEvent): Promise<void>;
+  getLoginEvents(limit?: number): Promise<AdminLoginEvent[]>;
   
   // Blog Posts CRUD
   getBlogPosts(): Promise<BlogPost[]>;
@@ -668,6 +677,54 @@ export class DatabaseStorage implements IStorage {
       .where(eq(adminUsers.id, id))
       .returning();
     return user;
+  }
+
+  /** Lista de usuarios del panel — SIN passwordHash (nunca se expone el hash). */
+  async getAdminUsers(): Promise<Omit<AdminUser, "passwordHash">[]> {
+    return db
+      .select({
+        id: adminUsers.id,
+        username: adminUsers.username,
+        email: adminUsers.email,
+        role: adminUsers.role,
+        permissions: adminUsers.permissions,
+        createdAt: adminUsers.createdAt,
+        lastLogin: adminUsers.lastLogin,
+        isActive: adminUsers.isActive,
+      })
+      .from(adminUsers)
+      .orderBy(asc(adminUsers.createdAt));
+  }
+
+  async updateAdminUser(
+    id: string,
+    data: Partial<Pick<AdminUser, "role" | "isActive" | "permissions">>,
+  ): Promise<AdminUser | undefined> {
+    const [user] = await db.update(adminUsers).set(data).where(eq(adminUsers.id, id)).returning();
+    return user;
+  }
+
+  async setAdminUserPassword(id: string, passwordHash: string): Promise<boolean> {
+    const res = await db.update(adminUsers).set({ passwordHash }).where(eq(adminUsers.id, id)).returning();
+    return res.length > 0;
+  }
+
+  async deleteAdminUser(id: string): Promise<boolean> {
+    const res = await db.delete(adminUsers).where(eq(adminUsers.id, id)).returning();
+    return res.length > 0;
+  }
+
+  // --- Historial de inicios de sesión (persistente; nunca guarda contraseñas) ---
+  async recordLoginEvent(data: InsertAdminLoginEvent): Promise<void> {
+    await db.insert(adminLoginEvents).values(data);
+  }
+
+  async getLoginEvents(limit = 100): Promise<AdminLoginEvent[]> {
+    return db
+      .select()
+      .from(adminLoginEvents)
+      .orderBy(desc(adminLoginEvents.createdAt))
+      .limit(limit);
   }
 
   // Blog Posts CRUD

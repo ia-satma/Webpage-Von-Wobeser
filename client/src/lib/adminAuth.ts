@@ -2,11 +2,21 @@ import { useState, useEffect, useCallback } from "react";
 import { useLocation } from "wouter";
 
 const TOKEN_KEY = "vwb_admin_token";
+const ROLE_KEY = "vwb_admin_role";
 
 export function getToken(): string | null {
   if (typeof window === "undefined") return null;
   try {
     return localStorage.getItem(TOKEN_KEY);
+  } catch {
+    return null;
+  }
+}
+
+export function getRole(): string | null {
+  if (typeof window === "undefined") return null;
+  try {
+    return localStorage.getItem(ROLE_KEY);
   } catch {
     return null;
   }
@@ -21,10 +31,20 @@ export function setToken(token: string): void {
   }
 }
 
+export function setRole(role: string): void {
+  if (typeof window === "undefined") return;
+  try {
+    localStorage.setItem(ROLE_KEY, role || "");
+  } catch {
+    /* ignore */
+  }
+}
+
 export function clearToken(): void {
   if (typeof window === "undefined") return;
   try {
     localStorage.removeItem(TOKEN_KEY);
+    localStorage.removeItem(ROLE_KEY);
   } catch {
     console.error("Failed to clear admin token");
   }
@@ -74,6 +94,7 @@ interface AdminAuthState {
   isAuthenticated: boolean;
   isLoading: boolean;
   token: string | null;
+  role: string | null;
 }
 
 export function useAdminAuth() {
@@ -82,6 +103,7 @@ export function useAdminAuth() {
     isAuthenticated: false,
     isLoading: true,
     token: null,
+    role: null,
   });
 
   useEffect(() => {
@@ -90,15 +112,20 @@ export function useAdminAuth() {
       isAuthenticated: !!token,
       isLoading: false,
       token,
+      role: getRole(),
     });
   }, []);
 
-  const login = useCallback((token: string) => {
+  const login = useCallback((token: string, role?: string) => {
     setToken(token);
+    if (role && typeof window !== "undefined") {
+      try { localStorage.setItem(ROLE_KEY, role); } catch { /* ignore */ }
+    }
     setState({
       isAuthenticated: true,
       isLoading: false,
       token,
+      role: role ?? getRole(),
     });
   }, []);
 
@@ -108,6 +135,7 @@ export function useAdminAuth() {
       isAuthenticated: false,
       isLoading: false,
       token: null,
+      role: null,
     });
     setLocation("/admin/login");
   }, [setLocation]);
@@ -126,4 +154,29 @@ export function useAdminAuth() {
     logout,
     requireAuth,
   };
+}
+
+// Permisos EFECTIVOS del usuario (rol + concesiones extra), leídos de /api/admin/me.
+// Se usa para mostrar/ocultar secciones del panel con precisión. FAIL-OPEN: mientras carga
+// o si falla, `has()` devuelve true (el backend siempre re-valida, así que no hay riesgo real).
+export function useMyPermissions() {
+  const [perms, setPerms] = useState<string[] | null>(null);
+  useEffect(() => {
+    if (!getToken()) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await adminApiRequest("GET", "/api/admin/me");
+        if (!res.ok) return;
+        const data = await res.json();
+        if (!cancelled) setPerms(Array.isArray(data?.permissions) ? data.permissions : null);
+      } catch {
+        /* fail-open */
+      }
+    })();
+    return () => { cancelled = true; };
+  }, []);
+  // Aún sin cargar → true (fail-open). Cargado → comprobación real.
+  const has = useCallback((perm: string) => perms === null || perms.includes(perm), [perms]);
+  return { perms, has, loaded: perms !== null };
 }

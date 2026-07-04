@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link, useLocation } from "wouter";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { useAdminAuth, adminApiRequest } from "@/lib/adminAuth";
+import { useAdminAuth, adminApiRequest, useMyPermissions } from "@/lib/adminAuth";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -37,7 +37,8 @@ import {
   Award,
   ArrowUpRight,
   Database,
-  ArrowRight
+  ArrowRight,
+  ShieldCheck
 } from "lucide-react";
 
 // Navegación superior del admin (secciones más usadas).
@@ -613,7 +614,16 @@ interface CMSStats {
 
 export default function AdminDashboard() {
   const { language } = useLanguage();
-  const { isAuthenticated, isLoading: authLoading, logout, requireAuth } = useAdminAuth();
+  const { isAuthenticated, isLoading: authLoading, logout, requireAuth, role } = useAdminAuth();
+  // Gating por PERMISOS EFECTIVOS (rol + concesiones extra) leídos de /api/admin/me.
+  // FAIL-OPEN mientras carga (has() = true); el backend siempre re-valida.
+  const { has } = useMyPermissions();
+  const isAdmin = !role || role === "admin" || role === "super_admin";
+  const canConfig = has("config");
+  const hasAgents = has("agents");
+  const hasAdvancedTools = has("advanced");
+  // La tarjeta "Avanzado" aparece si el usuario tiene herramientas técnicas O acceso a agentes.
+  const canAdvanced = hasAdvancedTools || hasAgents;
   // Caja "Distribución por Idioma" colapsada por defecto (foco en ES/EN).
   const [showLangDist, setShowLangDist] = useState(false);
   // Sección técnica/IA colapsada por defecto: el cliente ve primero el contenido.
@@ -747,6 +757,7 @@ export default function AdminDashboard() {
               </div>
 
               {/* ── CONFIGURACIÓN DEL SITIO ── */}
+              {canConfig && (
               <div>
                 <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">
                   Configuración del sitio
@@ -763,14 +774,21 @@ export default function AdminDashboard() {
                   <Link href="/admin/translations">
                     <Button variant="outline" className="w-full justify-start h-auto py-2" data-testid="button-translations-dashboard"><Languages className="mr-2 h-4 w-4" /><span className="flex flex-col items-start text-left leading-tight"><span>Traducciones</span><span className="text-[11px] font-normal text-muted-foreground mt-0.5">Traduce el contenido y elige a qué idiomas.</span></span></Button>
                   </Link>
+                  {isAdmin && (
+                  <Link href="/admin/users">
+                    <Button variant="outline" className="w-full justify-start h-auto py-2" data-testid="button-users"><ShieldCheck className="mr-2 h-4 w-4" /><span className="flex flex-col items-start text-left leading-tight"><span>Usuarios y accesos</span><span className="text-[11px] font-normal text-muted-foreground mt-0.5">Gestiona quién entra al panel y sus permisos.</span></span></Button>
+                  </Link>
+                  )}
                 </div>
               </div>
+              )}
 
             </div>
           </CardContent>
         </Card>
 
         {/* ── AVANZADO · TÉCNICO — colapsable, cerrado por defecto ── */}
+        {canAdvanced && (
         <Card className="mb-8 rounded-2xl border-dashed" data-testid="card-advanced">
           <CardHeader className="cursor-pointer select-none" onClick={() => setShowAdvanced((v) => !v)} data-testid="button-toggle-advanced">
             <div className="flex items-center justify-between gap-3">
@@ -784,9 +802,12 @@ export default function AdminDashboard() {
           {showAdvanced && (
             <CardContent>
               <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                {hasAgents && (
                 <Link href="/admin/agents">
                   <Button variant="outline" className="w-full justify-start h-auto py-2" data-testid="button-ai-agents"><Bot className="mr-2 h-4 w-4" /><span className="flex flex-col items-start text-left leading-tight"><span>Agentes IA</span><span className="text-[11px] font-normal text-muted-foreground mt-0.5">Los 9 agentes de IA que procesan el contenido (técnico).</span></span></Button>
                 </Link>
+                )}
+                {hasAdvancedTools && (<>
                 <Link href="/admin/processing">
                   <Button variant="outline" className="w-full justify-start h-auto py-2" data-testid="button-article-processing"><Cog className="mr-2 h-4 w-4" /><span className="flex flex-col items-start text-left leading-tight"><span>Procesamiento de artículos</span><span className="text-[11px] font-normal text-muted-foreground mt-0.5">Corre el pipeline de IA sobre los artículos (técnico).</span></span></Button>
                 </Link>
@@ -808,10 +829,12 @@ export default function AdminDashboard() {
                 <Link href="/admin/audits">
                   <Button variant="outline" className="w-full justify-start h-auto py-2" data-testid="button-audits"><CheckCircle className="mr-2 h-4 w-4" /><span className="flex flex-col items-start text-left leading-tight"><span>Auditorías del sitio</span><span className="text-[11px] font-normal text-muted-foreground mt-0.5">Revisiones de calidad, enlaces y SEO (técnico).</span></span></Button>
                 </Link>
+                </>)}
               </div>
             </CardContent>
           )}
         </Card>
+        )}
 
         <div className="grid gap-6 lg:grid-cols-3 mb-8">
           <Card className="lg:col-span-1 rounded-2xl" data-testid="card-translation-coverage">

@@ -10,7 +10,7 @@ import { renderHome } from "./renderHome";
 import { renderNewsList, renderNewsDetail } from "./renderNews";
 import { buildIdMaps, type IdMaps } from "./idMap";
 import { getConfigMap, seedConfigDefaults, upsertConfig, type ConfigMap } from "./siteConfig";
-import { authMiddleware, requireRole } from "../auth";
+import { authMiddleware, requireRole, requirePermission } from "../auth";
 import { storage } from "../storage";
 import { db } from "../db";
 import {
@@ -396,10 +396,10 @@ export async function setupMirror(app: Express) {
   // for legacy publications, while in-app /news/:slug links stay dynamic).
 
   // ---------- Admin: editable site config (texts, hero video, etc.) -----
-  app.get("/api/admin/site-config", authMiddleware, requireRole("editor", "admin"), wrap(async (_req, res) => {
+  app.get("/api/admin/site-config", authMiddleware, requirePermission("config"), wrap(async (_req, res) => {
     res.json(await getConfigMap());
   }));
-  app.put("/api/admin/site-config/:key", authMiddleware, requireRole("editor", "admin"), wrap(async (req, res) => {
+  app.put("/api/admin/site-config/:key", authMiddleware, requirePermission("config"), wrap(async (req, res) => {
     const { value, valueEs } = req.body || {};
     await upsertConfig(req.params.key, value ?? "", valueEs);
     res.json({ ok: true, key: req.params.key });
@@ -412,11 +412,11 @@ export async function setupMirror(app: Express) {
     (raw || "es,en").split(",").map((s) => s.trim()).filter((c) => ALL_LANGS.includes(c));
 
   // Idiomas activos (config global): a qué idiomas se traduce por defecto.
-  app.get("/api/admin/settings/languages", authMiddleware, requireRole("editor", "admin"), wrap(async (_req, res) => {
+  app.get("/api/admin/settings/languages", authMiddleware, requirePermission("config"), wrap(async (_req, res) => {
     const map = await getConfigMap();
     res.json({ activeLanguages: parseLangs(map.active_languages?.value), allLanguages: ALL_LANGS });
   }));
-  app.post("/api/admin/settings/languages", authMiddleware, requireRole("editor", "admin"), wrap(async (req, res) => {
+  app.post("/api/admin/settings/languages", authMiddleware, requirePermission("config"), wrap(async (req, res) => {
     const langs = Array.isArray(req.body?.languages)
       ? (req.body.languages as string[]).filter((c) => ALL_LANGS.includes(c))
       : [];
@@ -428,7 +428,7 @@ export async function setupMirror(app: Express) {
   }));
 
   // Traduce un artículo a los idiomas indicados (o a los activos globales por defecto).
-  app.post("/api/admin/translate", authMiddleware, requireRole("editor", "admin"), wrap(async (req, res) => {
+  app.post("/api/admin/translate", authMiddleware, requirePermission("content"), wrap(async (req, res) => {
     const { articleId, languages } = req.body || {};
     if (!articleId) { res.status(400).json({ error: "articleId requerido" }); return; }
     const map = await getConfigMap();

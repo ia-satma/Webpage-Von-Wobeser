@@ -362,15 +362,39 @@ export const adminUsers = pgTable("admin_users", {
   username: text("username").notNull().unique(),
   email: text("email").notNull().unique(),
   passwordHash: text("password_hash").notNull(),
-  role: text("role").notNull().default("editor"), // super_admin, editor, author
+  role: text("role").notNull().default("editor"), // super_admin, admin, editor, marketing, sistemas
+  // Permisos EXTRA por usuario (aditivos sobre los del rol). Solo claves de GRANTABLE (server/auth.ts).
+  permissions: jsonb("permissions").$type<string[]>().default(sql`'[]'::jsonb`),
   createdAt: timestamp("created_at").defaultNow(),
   lastLogin: timestamp("last_login"),
   isActive: boolean("is_active").default(true),
 });
 
-export const insertAdminUserSchema = createInsertSchema(adminUsers).omit({ id: true, createdAt: true, lastLogin: true });
+// `permissions` se omite del insert (default '[]' en DB; las concesiones extra se aplican con updateAdminUser).
+export const insertAdminUserSchema = createInsertSchema(adminUsers).omit({ id: true, createdAt: true, lastLogin: true, permissions: true });
 export type InsertAdminUser = z.infer<typeof insertAdminUserSchema>;
 export type AdminUser = typeof adminUsers.$inferSelect;
+
+// Historial persistente de inicios de sesión (éxitos y fallos). Nunca almacena contraseñas.
+export const adminLoginEvents = pgTable(
+  "admin_login_events",
+  {
+    id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+    userId: varchar("user_id"), // null si el intento fue sobre un usuario inexistente
+    email: text("email").notNull(), // identificador intentado (correo o usuario)
+    success: boolean("success").notNull(),
+    ipAddress: text("ip_address"),
+    userAgent: text("user_agent"),
+    createdAt: timestamp("created_at").defaultNow(),
+  },
+  (table) => ({
+    createdAtIdx: index("idx_admin_login_events_created_at").on(table.createdAt),
+  }),
+);
+
+export const insertAdminLoginEventSchema = createInsertSchema(adminLoginEvents).omit({ id: true, createdAt: true });
+export type InsertAdminLoginEvent = z.infer<typeof insertAdminLoginEventSchema>;
+export type AdminLoginEvent = typeof adminLoginEvents.$inferSelect;
 
 // Blog Categories
 export const blogCategories = pgTable("blog_categories", {
