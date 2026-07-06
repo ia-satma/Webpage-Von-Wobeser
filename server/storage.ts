@@ -99,6 +99,8 @@ export interface IStorage {
   createUser(user: InsertUser): Promise<User>;
   getNews(): Promise<News[]>;
   getRecentNews(limit: number): Promise<News[]>;
+  getRecentPublishedNews(limit: number): Promise<News[]>;
+  getFeaturedNews(limit: number): Promise<News[]>;
   getNewsPage(limit: number, offset: number): Promise<News[]>;
   getNewsCount(): Promise<number>;
   getAdminNewsPage(opts: { limit: number; offset: number; search?: string; category?: string }): Promise<{ rows: News[]; total: number }>;
@@ -339,6 +341,26 @@ export class DatabaseStorage implements IStorage {
   /** Solo las N noticias más recientes (para el home): evita traer ~1.792 filas. */
   async getRecentNews(limit: number): Promise<News[]> {
     return db.select().from(news).orderBy(desc(news.date)).limit(limit);
+  }
+
+  /** Las N noticias más recientes PUBLICADAS (relleno del hero de la home). */
+  async getRecentPublishedNews(limit: number): Promise<News[]> {
+    return db
+      .select()
+      .from(news)
+      .where(eq(news.published, true))
+      .orderBy(desc(news.date))
+      .limit(limit);
+  }
+
+  /** Noticias marcadas como destacadas en el hero (y publicadas), más recientes primero. */
+  async getFeaturedNews(limit: number): Promise<News[]> {
+    return db
+      .select()
+      .from(news)
+      .where(and(eq(news.featuredHome, true), eq(news.published, true)))
+      .orderBy(desc(news.date))
+      .limit(limit);
   }
 
   /** Una página de noticias ordenadas por fecha desc (para el listado paginado). */

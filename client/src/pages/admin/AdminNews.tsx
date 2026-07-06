@@ -500,7 +500,12 @@ export default function AdminNews() {
                           {formatDate(newsItem.date)}
                         </TableCell>
                         <TableCell data-testid={`badge-status-${newsItem.id}`}>
-                          {getStatusBadge(newsItem.published)}
+                          <div className="flex flex-wrap items-center gap-1">
+                            {getStatusBadge(newsItem.published)}
+                            {(newsItem as any).featuredHome && (
+                              <Badge variant="outline" className="text-[10px]" data-testid={`badge-featured-${newsItem.id}`}>★ En portada</Badge>
+                            )}
+                          </div>
                         </TableCell>
                         <TableCell className="text-right">
                           <div className="flex justify-end gap-2">

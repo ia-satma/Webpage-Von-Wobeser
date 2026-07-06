@@ -22,6 +22,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useToast } from "@/hooks/use-toast";
 import { ArrowLeft, PlusCircle, Pencil, Trash2, Calendar as CalendarIcon, MapPin, Video, Users, Clock, Star, ExternalLink } from "lucide-react";
+import { TranslateButton } from "@/components/admin/TranslateButton";
 import { format } from "date-fns";
 import type { Event } from "@shared/schema";
 
@@ -890,6 +891,16 @@ export default function AdminEvents() {
               </DialogHeader>
               <Form {...form}>
                 <form onSubmit={form.handleSubmit((data) => saveMutation.mutate(data))} className="space-y-4">
+                  <div className="flex justify-end">
+                    <TranslateButton
+                      getSource={() => ({ title: form.getValues("titleEs"), location: form.getValues("locationEs"), description: form.getValues("descriptionEs") })}
+                      onApply={(f) => {
+                        if (f.title != null) form.setValue("title", f.title, { shouldDirty: true });
+                        if (f.location != null) form.setValue("location", f.location, { shouldDirty: true });
+                        if (f.description != null) form.setValue("description", f.description, { shouldDirty: true });
+                      }}
+                    />
+                  </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <FormField
                       control={form.control}

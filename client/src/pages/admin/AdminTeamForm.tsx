@@ -17,6 +17,7 @@ import { Switch } from "@/components/ui/switch";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ImageUpload } from "@/components/admin/ImageUpload";
 import { ConfirmChangesDialog, computeChanges, type Change } from "@/components/admin/ConfirmChangesDialog";
+import { TranslateButton } from "@/components/admin/TranslateButton";
 
 const TEAM_LABELS: Record<string, string> = {
   name: "Nombre", slug: "Slug", title: "Cargo", titleEs: "Cargo (español)",
@@ -528,9 +529,19 @@ export default function AdminTeamForm() {
               <Form {...form}>
                 <form 
                   id="team-member-form"
-                  onSubmit={form.handleSubmit(onSubmit)} 
+                  onSubmit={form.handleSubmit(onSubmit)}
                   className="space-y-6"
                 >
+                  <div className="flex justify-end">
+                    <TranslateButton
+                      getSource={() => ({ title: form.getValues("titleEs"), role: form.getValues("roleEs"), bio: form.getValues("bioEs") })}
+                      onApply={(f) => {
+                        if (f.title != null) form.setValue("title", f.title, { shouldDirty: true });
+                        if (f.role != null) form.setValue("role", f.role, { shouldDirty: true });
+                        if (f.bio != null) form.setValue("bio", f.bio, { shouldDirty: true });
+                      }}
+                    />
+                  </div>
                   <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
                     <TabsList className="w-full justify-start bg-card border border-[#D9D8D7] rounded-none p-1 h-auto">
                       <TabsTrigger 

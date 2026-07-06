@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { ImageUpload } from "@/components/admin/ImageUpload";
 import { ArrowLeft, Award, Plus, Trash2, Loader2, Pencil, Save, X } from "lucide-react";
+import { TranslateButton } from "@/components/admin/TranslateButton";
 
 type Ranking = {
   id: string;
@@ -109,6 +110,12 @@ export default function AdminRecognitions() {
         <Card>
           <CardHeader><CardTitle className="text-base">{editingId ? "Editar reconocimiento" : "Agregar reconocimiento"}</CardTitle></CardHeader>
           <CardContent className="space-y-4">
+            <div className="flex justify-end">
+              <TranslateButton
+                getSource={() => ({ name: form.nameEs })}
+                onApply={(f) => { if (f.name != null) set("name", f.name); }}
+              />
+            </div>
             <div className="grid sm:grid-cols-2 gap-4">
               <div className="space-y-1"><Label>Nombre (inglés) *</Label><Input value={form.name} onChange={(e) => set("name", e.target.value)} placeholder="Band 1 — Dispute Resolution" data-testid="input-name" /></div>
               <div className="space-y-1"><Label>Nombre (español) *</Label><Input value={form.nameEs} onChange={(e) => set("nameEs", e.target.value)} placeholder="Banda 1 — Resolución de Disputas" data-testid="input-nameEs" /></div>

@@ -93,6 +93,8 @@ export const news = pgTable("news", {
   imageUrl: text("image_url"),
   date: timestamp("date").defaultNow(),
   published: boolean("published").default(true),
+  // Destacada en la caja de Noticias del hero de la home (curable desde el editor).
+  featuredHome: boolean("featured_home").default(false),
   category: text("category").default("press"),
   categoryEs: text("category_es").default("Prensa"),
   authorId: varchar("author_id"),

@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { ImageUpload } from "@/components/admin/ImageUpload";
 import { ConfirmChangesDialog, fmtValue, type Change } from "@/components/admin/ConfirmChangesDialog";
+import { TranslateButton } from "@/components/admin/TranslateButton";
 import { ArrowLeft, Save, Settings, Loader2 } from "lucide-react";
 
 // Friendly definitions for the editable site-config keys (grouped).
@@ -164,11 +165,17 @@ export default function AdminSiteConfig() {
                         data-testid={`input-${f.key}-es`}
                       />
                     )}
-                    <div>
+                    <div className="flex items-center gap-2">
                       <Button size="sm" onClick={() => requestSave(f)} disabled={saving === f.key} data-testid={`save-${f.key}`}>
                         {saving === f.key ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : <Save className="h-4 w-4 mr-1" />}
                         Guardar
                       </Button>
+                      {f.bilingual && (
+                        <TranslateButton
+                          getSource={() => ({ value: draft[f.key]?.valueEs ?? "" })}
+                          onApply={(t) => { if (t.value != null) set(f.key, "value", t.value); }}
+                        />
+                      )}
                     </div>
                   </div>
                 ))}

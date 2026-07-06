@@ -138,6 +138,16 @@ function injectFooterString(html: string, config: ConfigMap): string {
   return html;
 }
 
+// Enlace discreto al panel de administración: candado pequeño, opacidad baja (sube al
+// pasar el mouse), junto al copyright del pie. FontAwesome ya está cargado en toda plantilla
+// (self-hosted en _vendor/fontawesome), así que no agrega ninguna petición extra.
+const ADMIN_LINK_STYLE = '<style>.vwb-admin-link{color:#fff;opacity:.35;text-decoration:none;transition:opacity .2s;}.vwb-admin-link:hover{opacity:1;}</style>';
+const ADMIN_LINK = `${ADMIN_LINK_STYLE}<a class="vwb-admin-link" href="/admin" target="_blank" rel="noopener" title="Panel de administración" aria-label="Panel de administración">&nbsp;&nbsp;<i class="fas fa-lock" style="font-size:11px;"></i></a>`;
+
+function injectAdminLink(html: string): string {
+  return html.replace(/(<div class="footer--copy">[\s\S]*?)(<\/div>)/, (_m, inner, close) => `${inner}${ADMIN_LINK}${close}`);
+}
+
 // Inyecta el toggle de idioma antes de </body>, aplica el pie editable y envía.
 // Cache-Control permite que navegador/CDN reutilicen la página (contenido público
 // que cambia poco); stale-while-revalidate sirve la copia vieja mientras revalida.
@@ -148,6 +158,7 @@ async function sendPage(res: Response, html: string) {
   try {
     out = injectFooterString(out, await getConfigMap()); // getConfigMap está cacheado
   } catch { /* si la config falla, se sirve el pie original de la plantilla */ }
+  out = injectAdminLink(out);
   res.set("Cache-Control", "public, max-age=300, stale-while-revalidate=3600");
   res.status(200).type("html").send(out);
 }
@@ -319,10 +330,15 @@ export async function setupMirror(app: Express) {
   };
 
   const serveHome = async (lang: Lang, res: Response) => {
-    // El home solo muestra las 2 noticias más recientes (renderHome hace slice(0,2)):
-    // traer un puñado en vez de las ~1.792 filas completas.
-    const [news, config] = await Promise.all([storage.getRecentNews(6), getConfigMap()]);
-    sendPage(res, renderHome(pick(TEMPLATES.home, lang), news, config, lang));
+    // El hero muestra 2 noticias: las DESTACADAS van primero (curadas desde el admin) y, si
+    // sobran espacios, se rellenan con las publicadas más recientes → nunca se ve vacío.
+    const [featured, config] = await Promise.all([storage.getFeaturedNews(2), getConfigMap()]);
+    let heroNews = featured;
+    if (heroNews.length < 2) {
+      const recent = await storage.getRecentPublishedNews(2 + featured.length);
+      heroNews = [...featured, ...recent.filter((r) => !featured.some((f) => f.id === r.id))].slice(0, 2);
+    }
+    sendPage(res, renderHome(pick(TEMPLATES.home, lang), heroNews, config, lang));
   };
 
   const wrap = (fn: (req: Request, res: Response, next: NextFunction) => Promise<any>) => (

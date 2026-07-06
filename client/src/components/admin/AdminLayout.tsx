@@ -64,7 +64,16 @@ export function AdminLayout({ children }: { children: ReactNode }) {
                 className="hidden sm:inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors"
                 data-testid="button-view-site"
               >
-                Ver sitio <ArrowUpRight className="h-3.5 w-3.5" />
+                Ver en español <ArrowUpRight className="h-3.5 w-3.5" />
+              </a>
+              <a
+                href="/?lang=en"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hidden sm:inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors"
+                data-testid="button-view-site-en"
+              >
+                Ver en inglés <ArrowUpRight className="h-3.5 w-3.5" />
               </a>
               <Button variant="outline" size="sm" onClick={logout} data-testid="button-logout">
                 <LogOut className="mr-2 h-4 w-4" />

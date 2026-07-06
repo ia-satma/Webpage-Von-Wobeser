@@ -21,6 +21,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { ArrowLeft, PlusCircle, Pencil, Trash2, Building2, Star, GripVertical } from "lucide-react";
+import { TranslateButton } from "@/components/admin/TranslateButton";
 import type { IndustryGroup } from "@shared/schema";
 
 const translations = {
@@ -702,6 +703,16 @@ export default function AdminIndustryGroups() {
                 </DialogHeader>
                 <Form {...form}>
                   <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                    <div className="flex justify-end">
+                      <TranslateButton
+                        getSource={() => ({ name: form.getValues("nameEs"), description: form.getValues("descriptionEs"), fullDescription: form.getValues("fullDescriptionEs") })}
+                        onApply={(f) => {
+                          if (f.name != null) form.setValue("name", f.name, { shouldDirty: true });
+                          if (f.description != null) form.setValue("description", f.description, { shouldDirty: true });
+                          if (f.fullDescription != null) form.setValue("fullDescription", f.fullDescription, { shouldDirty: true });
+                        }}
+                      />
+                    </div>
                     <div className="grid gap-4 sm:grid-cols-2">
                       <FormField
                         control={form.control}

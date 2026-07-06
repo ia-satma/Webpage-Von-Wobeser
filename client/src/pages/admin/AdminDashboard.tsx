@@ -804,7 +804,7 @@ export default function AdminDashboard() {
               <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
                 {hasAgents && (
                 <Link href="/admin/agents">
-                  <Button variant="outline" className="w-full justify-start h-auto py-2" data-testid="button-ai-agents"><Bot className="mr-2 h-4 w-4" /><span className="flex flex-col items-start text-left leading-tight"><span>Agentes IA</span><span className="text-[11px] font-normal text-muted-foreground mt-0.5">Los 9 agentes de IA que procesan el contenido (técnico).</span></span></Button>
+                  <Button variant="outline" className="w-full justify-start h-auto py-2" data-testid="button-ai-agents"><Bot className="mr-2 h-4 w-4" /><span className="flex flex-col items-start text-left leading-tight"><span>Agentes IA</span><span className="text-[11px] font-normal text-muted-foreground mt-0.5">Los agentes de IA que procesan y difunden el contenido (técnico).</span></span></Button>
                 </Link>
                 )}
                 {hasAdvancedTools && (<>

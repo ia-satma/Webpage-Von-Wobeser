@@ -17,6 +17,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { ArrowLeft, Save, Send, Sparkles, Loader2, Globe, Search, CheckCircle, AlertTriangle, X } from "lucide-react";
+import { TranslateButton } from "@/components/admin/TranslateButton";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -1128,6 +1129,24 @@ export default function AdminPostForm() {
       <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <Form {...form}>
           <form className="space-y-6">
+            <div className="flex justify-end">
+              <TranslateButton
+                getSource={() => ({
+                  title: form.getValues("titleEs"),
+                  excerpt: form.getValues("excerptEs") || "",
+                  content: form.getValues("contentEs") || "",
+                  metaTitle: form.getValues("metaTitleEs") || "",
+                  metaDescription: form.getValues("metaDescriptionEs") || "",
+                })}
+                onApply={(f) => {
+                  if (f.title != null) form.setValue("title", f.title, { shouldDirty: true });
+                  if (f.excerpt != null) form.setValue("excerpt", f.excerpt, { shouldDirty: true });
+                  if (f.content != null) form.setValue("content", f.content, { shouldDirty: true });
+                  if (f.metaTitle != null) form.setValue("metaTitle", f.metaTitle, { shouldDirty: true });
+                  if (f.metaDescription != null) form.setValue("metaDescription", f.metaDescription, { shouldDirty: true });
+                }}
+              />
+            </div>
             <Card>
               <CardContent className="pt-6">
                 <div className="grid gap-4 md:grid-cols-2">

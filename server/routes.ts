@@ -2897,6 +2897,34 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
     }
   });
 
+  // POST /api/admin/translate-fields - Traduce un conjunto de campos con nombre (ej. {title, excerpt,
+  // content}) de un idioma a otro y DEVUELVE el texto traducido, SIN persistir. Lo usa el botón
+  // "Traducir al inglés con IA" del editor: el usuario revisa antes de guardar. Una sola llamada al LLM.
+  app.post("/api/admin/translate-fields", authMiddleware, requirePermission("content"), async (req: Request, res: Response) => {
+    try {
+      const { fields, from = "es", to = "en" } = req.body || {};
+      if (!fields || typeof fields !== "object" || Array.isArray(fields)) {
+        return apiError(res, 400, "Se requiere 'fields' como objeto { clave: texto }");
+      }
+      const validCodes = SUPPORTED_LANGUAGES.map((l) => l.code);
+      if (!validCodes.includes(from) || !validCodes.includes(to)) {
+        return apiError(res, 400, "Código de idioma inválido");
+      }
+      // Solo campos con texto real; los vacíos se devuelven vacíos sin gastar tokens.
+      const entries = Object.entries(fields as Record<string, unknown>)
+        .filter(([, v]) => typeof v === "string" && v.trim())
+        .map(([key, v]) => ({ key, text: String(v) }));
+      if (entries.length === 0) {
+        return res.json({ fields: {}, from, to });
+      }
+      const translated = await translateMultipleTexts(entries, from as LanguageCode, to as LanguageCode);
+      res.json({ fields: translated, from, to });
+    } catch (error) {
+      console.error("translate-fields error:", error);
+      return apiError(res, 500, "No se pudo traducir. Revisa que haya créditos de IA disponibles.");
+    }
+  });
+
   // =============================================
   // TRANSLATION CACHE API
   // =============================================

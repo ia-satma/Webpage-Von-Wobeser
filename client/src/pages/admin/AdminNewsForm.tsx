@@ -15,6 +15,7 @@ import { useToast } from "@/hooks/use-toast";
 import { ImageUpload } from "@/components/admin/ImageUpload";
 import { AdminPageHelp } from "@/components/admin/AdminPageHelp";
 import { SocialPostButton } from "@/components/admin/AgentTools";
+import { TranslateButton } from "@/components/admin/TranslateButton";
 import { ArrowLeft, Save, Loader2 } from "lucide-react";
 import { newsCategories, type News } from "@shared/schema";
 
@@ -31,7 +32,7 @@ function generateSlug(s: string): string {
 
 const EMPTY = {
   titleEs: "", title: "", excerptEs: "", excerpt: "", contentEs: "", content: "",
-  imageUrl: "", slug: "", category: "press", published: false,
+  imageUrl: "", slug: "", category: "press", published: false, featuredHome: false,
 };
 
 /**
@@ -67,7 +68,7 @@ export default function AdminNewsForm() {
       excerptEs: n.excerptEs || "", excerpt: n.excerpt || "",
       contentEs: n.contentEs || "", content: n.content || "",
       imageUrl: n.imageUrl || "", slug: n.slug || "",
-      category: n.category || "press", published: !!n.published,
+      category: n.category || "press", published: !!n.published, featuredHome: !!(n as any).featuredHome,
     });
     setSlugTouched(true); // no re-generar slug de una noticia existente
   }, [newsQuery.data]);
@@ -92,6 +93,7 @@ export default function AdminNewsForm() {
         category: form.category,
         categoryEs: catEs,
         published: form.published,
+        featuredHome: form.featuredHome,
       };
       const res = isEdit
         ? await adminApiRequest("PUT", `/api/admin/news/${id}`, payload)
@@ -151,10 +153,18 @@ export default function AdminNewsForm() {
         </div>
 
         <AdminPageHelp>
-          Llena el contenido <strong>en español</strong> (obligatorio el título y el extracto). El inglés es
-          opcional: si lo dejas vacío, se usa el español. Sube una imagen destacada, elige la categoría y activa
+          Llena el contenido <strong>en español</strong> (obligatorio el título y el extracto). Para el inglés,
+          usa el botón <strong>“Traducir al inglés con IA”</strong> y revisa el resultado; si lo dejas vacío, el
+          sitio usa el español. Sube una imagen destacada, elige la categoría y activa
           <strong> “Publicada”</strong> cuando quieras que aparezca en el sitio.
         </AdminPageHelp>
+
+        <div className="flex justify-end mb-3">
+          <TranslateButton
+            getSource={() => ({ title: form.titleEs, excerpt: form.excerptEs, content: form.contentEs })}
+            onApply={(f) => setForm((prev) => ({ ...prev, title: f.title ?? prev.title, excerpt: f.excerpt ?? prev.excerpt, content: f.content ?? prev.content }))}
+          />
+        </div>
 
         <form onSubmit={submit}>
           <Card>
@@ -219,6 +229,13 @@ export default function AdminNewsForm() {
                 <Switch id="published" checked={form.published} onCheckedChange={(v) => set("published", v)} data-testid="switch-published" />
                 <Label htmlFor="published" className="cursor-pointer">
                   Publicada <span className="text-muted-foreground text-xs font-normal">— visible en el sitio</span>
+                </Label>
+              </div>
+
+              <div className="flex items-center gap-3">
+                <Switch id="featuredHome" checked={form.featuredHome} onCheckedChange={(v) => set("featuredHome", v)} data-testid="switch-featured-home" />
+                <Label htmlFor="featuredHome" className="cursor-pointer">
+                  Mostrar en la portada <span className="text-muted-foreground text-xs font-normal">— aparece en la caja de Noticias del inicio (debe estar publicada)</span>
                 </Label>
               </div>
             </CardContent>
