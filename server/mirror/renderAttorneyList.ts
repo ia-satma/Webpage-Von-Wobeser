@@ -1,4 +1,5 @@
 import * as cheerio from "cheerio";
+import { applySeo, breadcrumbNode } from "./seo";
 
 type Lang = "en" | "es";
 
@@ -17,6 +18,8 @@ export const CATEGORIES: Record<string, { title: string; en: string; es: string 
 export type AttorneyListOpts = {
   /** Prácticas reales (para poblar el <select> de búsqueda). */
   practiceGroups?: { slug: string; name: string; nameEs: string }[];
+  /** Muestra el buscador SOLO en la página general "Abogados", no en las categorías. */
+  showSearch?: boolean;
 };
 
 /**
@@ -78,7 +81,8 @@ export function renderAttorneyList(
   // Buscador: nombre + posición/práctica (desplegables) + "Búsqueda por Apellido"
   // (abecedario A-Z). TODO navega a /attorneys/buscar (página de resultados
   // aparte), igual que el sitio real — no despliega resultados en esta página.
-  if (opts.practiceGroups) {
+  // Solo se muestra en la página general "Abogados", NO en Socios/Of Counsel/Consejeros/Asociados.
+  if (opts.showSearch && opts.practiceGroups) {
     const t = lang === "es"
       ? { ttl: "Buscar por:", name: "Nombre:", position: "Posición:", practice: "Práctica:", all: "Todas", submit: "Buscar", byLastName: "Búsqueda por Apellido:" }
       : { ttl: "Search by:", name: "Name:", position: "Position:", practice: "Practice:", all: "All", submit: "Search", byLastName: "Browse by Last Name:" };
@@ -126,8 +130,29 @@ export function renderAttorneyList(
   }
 
   const label = lang === "es" ? CATEGORIES[category]?.es : CATEGORIES[category]?.en;
-  $("title").text(`Von Wobeser - ${label || "Attorneys"}`);
   $("html").attr("lang", lang === "es" ? "es-mx" : "en-gb");
+
+  const path = `/attorneys/${category}`;
+  applySeo($, {
+    lang,
+    path,
+    title: `${label || (lang === "es" ? "Abogados" : "Attorneys")} | Von Wobeser y Sierra`,
+    description:
+      lang === "es"
+        ? `Conoce a los abogados (${label || "equipo"}) de Von Wobeser y Sierra, firma líder en México con reconocimiento internacional.`
+        : `Meet the ${label || "attorneys"} of Von Wobeser y Sierra, a leading Mexican law firm with international recognition.`,
+    type: "website",
+    jsonLd: [
+      breadcrumbNode(
+        [
+          { name: lang === "es" ? "Inicio" : "Home", path: "/" },
+          { name: lang === "es" ? "Abogados" : "Attorneys", path: "/attorneys" },
+          { name: label || (lang === "es" ? "Abogados" : "Attorneys"), path },
+        ],
+        lang,
+      ),
+    ],
+  });
 
   return $.html();
 }

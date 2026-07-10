@@ -7,9 +7,11 @@ import { renderAttorneyList, CATEGORIES } from "./renderAttorneyList";
 import { renderAttorneyResults } from "./renderAttorneyResults";
 import { renderSingle } from "./renderSingle";
 import { renderHome } from "./renderHome";
+import { renderPage } from "./renderPage";
 import { renderNewsList, renderNewsDetail } from "./renderNews";
 import { buildIdMaps, type IdMaps } from "./idMap";
 import { getConfigMap, seedConfigDefaults, upsertConfig, type ConfigMap } from "./siteConfig";
+import { setBaseUrl } from "./seo";
 import { authMiddleware, requireRole, requirePermission } from "../auth";
 import { storage } from "../storage";
 import { db } from "../db";
@@ -69,6 +71,31 @@ const TEMPLATES = {
   home:       { en: "index.html",                             es: "index.php/home/index.html" },
   newsList:   { en: "index.php/publications/news/index.html", es: "index.php/publicaciones/noticias/index.html" },
   newsDetail: { en: "index.php/publication/p_id-1.html",      es: "index.php/publicacion/p_id-1001.html" },
+  firm:       { en: "index.php/our-firm/index.html",          es: "index.php/nuestra-firma/index.html" },
+  contact:    { en: "index.php/contact/index.html",           es: "index.php/contacto/index.html" },
+  careers:    { en: "index.php/careers/index.html",           es: "index.php/bolsa-de-trabajo/index.html" },
+};
+
+// Páginas institucionales con texto editable: qué keys de siteConfig inyecta cada una,
+// + metadata SEO (ruta canónica y título por idioma).
+const PAGE_KEYS = {
+  firm:    { intro: "page_firm_intro",    body: "page_firm_body" },
+  contact: { intro: "page_contact_intro", body: "page_contact_body" },
+  careers: { intro: "page_careers_intro", body: "page_careers_body" },
+};
+const PAGE_SEO: Record<keyof typeof PAGE_KEYS, { path: { en: string; es: string }; title: { en: string; es: string } }> = {
+  firm: {
+    path: { en: "/our-firm", es: "/nuestra-firma" },
+    title: { en: "Our Firm | Von Wobeser y Sierra", es: "Nuestra Firma | Von Wobeser y Sierra" },
+  },
+  contact: {
+    path: { en: "/contact", es: "/contacto" },
+    title: { en: "Contact | Von Wobeser y Sierra", es: "Contacto | Von Wobeser y Sierra" },
+  },
+  careers: {
+    path: { en: "/careers", es: "/bolsa-de-trabajo" },
+    title: { en: "Careers | Von Wobeser y Sierra", es: "Bolsa de trabajo | Von Wobeser y Sierra" },
+  },
 };
 
 // Las plantillas del espejo (HTML capturado de 23–181 KB) viven en un volumen
@@ -190,6 +217,8 @@ export async function setupMirror(app: Express) {
   warmTemplates(); // precarga plantillas a RAM (evita I/O de disco por request)
   try {
     await seedConfigDefaults();
+    // Base URL para canonical/OG/JSON-LD: env SITE_URL o la key editable site_url.
+    setBaseUrl(process.env.SITE_URL || (await getConfigMap()).site_url?.value);
   } catch (e) {
     console.warn("[mirror] No se pudo sembrar siteConfig:", (e as Error).message);
   }
@@ -233,6 +262,7 @@ export async function setupMirror(app: Express) {
     res: Response,
     next: NextFunction,
     query: Record<string, any> = {},
+    showSearch = false,
   ) => {
     // La búsqueda ahora vive en su propia página de resultados (como el sitio
     // real). Si llega un /attorneys?q=... (link viejo) se redirige a /buscar.
@@ -260,7 +290,7 @@ export async function setupMirror(app: Express) {
       .filter((pg: any) => pg.published !== false)
       .map((pg) => ({ slug: pg.slug, name: pg.name, nameEs: pg.nameEs }));
 
-    sendPage(res, renderAttorneyList(pick(TEMPLATES.list, lang), attorneys, category, lang, { practiceGroups }));
+    sendPage(res, renderAttorneyList(pick(TEMPLATES.list, lang), attorneys, category, lang, { practiceGroups, showSearch }));
   };
 
   // Página de resultados de búsqueda (navegación, no inline) — réplica del flujo
@@ -332,13 +362,27 @@ export async function setupMirror(app: Express) {
   const serveHome = async (lang: Lang, res: Response) => {
     // El hero muestra 2 noticias: las DESTACADAS van primero (curadas desde el admin) y, si
     // sobran espacios, se rellenan con las publicadas más recientes → nunca se ve vacío.
-    const [featured, config] = await Promise.all([storage.getFeaturedNews(2), getConfigMap()]);
+    const [featured, config, rankings] = await Promise.all([storage.getFeaturedNews(2), getConfigMap(), storage.getRankings()]);
     let heroNews = featured;
     if (heroNews.length < 2) {
       const recent = await storage.getRecentPublishedNews(2 + featured.length);
       heroNews = [...featured, ...recent.filter((r) => !featured.some((f) => f.id === r.id))].slice(0, 2);
     }
-    sendPage(res, renderHome(pick(TEMPLATES.home, lang), heroNews, config, lang));
+    sendPage(res, renderHome(pick(TEMPLATES.home, lang), heroNews, config, lang, rankings));
+  };
+
+  // Páginas institucionales (Nuestra Firma, Contacto, Carrera): el texto es editable desde el
+  // panel (siteConfig); si está vacío, se muestra el texto original de la plantilla.
+  const servePage = async (which: keyof typeof PAGE_KEYS, lang: Lang, res: Response) => {
+    const config = await getConfigMap();
+    const seo = PAGE_SEO[which];
+    sendPage(
+      res,
+      renderPage(pick(TEMPLATES[which], lang), config, lang, PAGE_KEYS[which], {
+        path: seo.path[lang],
+        title: seo.title[lang],
+      }),
+    );
   };
 
   const wrap = (fn: (req: Request, res: Response, next: NextFunction) => Promise<any>) => (
@@ -352,7 +396,8 @@ export async function setupMirror(app: Express) {
   app.get("/home", wrap((req, res) => serveHome(langOf(req), res)));
   app.get("/news", wrap((req, res) => serveNewsList(langOf(req), res, parseInt(String(req.query.page)) || 1)));
   app.get("/news/:slug", wrap((req, res, next) => serveNewsDetail(req.params.slug, langOf(req), res, next)));
-  app.get("/attorneys", wrap((req, res, next) => serveList("partners", langOf(req), res, next, req.query)));
+  // Página general "Abogados" (a la que redirige el menú): ÚNICA con buscador.
+  app.get("/attorneys", wrap((req, res, next) => serveList("partners", langOf(req), res, next, req.query, true)));
   // Resultados de búsqueda (debe ir ANTES de /attorneys/:category para no ser
   // tragada por el parámetro :category).
   app.get("/attorneys/buscar", wrap((req, res) => serveResults(langOf(req), res, req.query)));
@@ -365,6 +410,22 @@ export async function setupMirror(app: Express) {
   app.get("/abogado/:slug", wrap((req, res, next) => serveAttorney(req.params.slug, "es", res, next)));
   app.get("/practice/:slug", wrap((req, res, next) => servePractice(req.params.slug, langOf(req), res, next)));
   app.get("/industry/:slug", wrap((req, res, next) => serveIndustry(req.params.slug, langOf(req), res, next)));
+
+  // ---------- Páginas institucionales (texto editable desde el panel) ----
+  // Variantes de URL del espejo: ES (nuestra-firma/contacto/bolsa-de-trabajo) y EN
+  // (our-firm/contact/careers), con y sin index.html, más atajos cortos.
+  for (const p of ["/index.php/nuestra-firma/index.html", "/index.php/nuestra-firma/", "/nuestra-firma"])
+    app.get(p, wrap((_req, res) => servePage("firm", "es", res)));
+  for (const p of ["/index.php/our-firm/index.html", "/index.php/our-firm/", "/our-firm"])
+    app.get(p, wrap((_req, res) => servePage("firm", "en", res)));
+  for (const p of ["/index.php/contacto/index.html", "/index.php/contacto/", "/contacto"])
+    app.get(p, wrap((_req, res) => servePage("contact", "es", res)));
+  for (const p of ["/index.php/contact/index.html", "/index.php/contact/", "/contact"])
+    app.get(p, wrap((_req, res) => servePage("contact", "en", res)));
+  for (const p of ["/index.php/bolsa-de-trabajo/index.html", "/index.php/bolsa-de-trabajo/", "/bolsa-de-trabajo"])
+    app.get(p, wrap((_req, res) => servePage("careers", "es", res)));
+  for (const p of ["/index.php/careers/index.html", "/index.php/careers/", "/careers"])
+    app.get(p, wrap((_req, res) => servePage("careers", "en", res)));
 
   // ---------- Original mirror URLs (SEO preserved, nav coherent) --------
   // Home (ES) + news listings
@@ -462,7 +523,20 @@ export async function setupMirror(app: Express) {
   }));
 
   // ---------- Static assets (css, js, vendor, images, fonts) ------------
-  app.use(express.static(mirrorDir, { index: false }));
+  // Antes se servían con max-age=0 → el navegador revalidaba CSS/JS/imágenes/fuentes
+  // en CADA carga. Ahora se cachean fuerte: fuentes y librerías vendor son inmutables
+  // (1 año), el resto 30 días. Gran ganancia en visitas repetidas y subrecursos.
+  app.use(
+    express.static(mirrorDir, {
+      index: false,
+      maxAge: "30d",
+      setHeaders: (res, filePath) => {
+        if (/([\\/]_vendor[\\/]|\.(?:woff2?|ttf|eot|otf))/i.test(filePath)) {
+          res.setHeader("Cache-Control", "public, max-age=31536000, immutable");
+        }
+      },
+    }),
+  );
 
   // ---------- Public catch-all: ALWAYS the mirror, never the old React --
   // The old React redesign stays reachable ONLY at /admin (the CMS). Every

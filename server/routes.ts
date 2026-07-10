@@ -823,6 +823,31 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
     res.send(robotsTxt);
   });
 
+  // llms.txt — índice legible por motores generativos (GEO). Formato llmstxt.org:
+  // describe qué es la firma y enlaza sus secciones clave para que la IA cite bien.
+  app.get('/llms.txt', (_req, res) => {
+    const base = (process.env.SITE_URL || 'https://www.vonwobeser.com').replace(/\/+$/, '');
+    const llms = `# Von Wobeser y Sierra, S.C.
+
+> Von Wobeser y Sierra es una de las firmas de abogados líderes en México, con reconocimiento internacional (Chambers, The Legal 500, Latin Lawyer). Ofrece asesoría en derecho corporativo, litigio, arbitraje, competencia económica, propiedad intelectual, laboral, fiscal, ambiental y más. Sede en Ciudad de México. Sitio bilingüe español/inglés (versión en inglés con ?lang=en).
+
+## Secciones principales
+- [Inicio](${base}/): presentación de la firma.
+- [Nuestra Firma](${base}/nuestra-firma): historia, valores y enfoque.
+- [Abogados / Socios](${base}/attorneys/partners): directorio del equipo legal.
+- [Noticias y publicaciones](${base}/news): actualizaciones legales y de la firma.
+- [Contacto](${base}/contacto): datos de contacto y ubicación.
+- [Bolsa de trabajo](${base}/bolsa-de-trabajo): oportunidades profesionales.
+
+## Recursos
+- [Mapa del sitio (sitemap.xml)](${base}/sitemap.xml)
+- Contacto: Torre SOMA, Campos Elíseos 204, Polanco, Ciudad de México — +52 55 5258 1000
+`;
+    res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+    res.setHeader('Cache-Control', 'public, max-age=86400');
+    res.send(llms);
+  });
+
   // Caché del sitemap (1 h): antes se regeneraba cargando TODAS las tablas en cada
   // hit de crawler. TTL corto para reflejar contenido nuevo sin regenerar por request.
   let sitemapCache: { xml: string; at: number } | null = null;
@@ -835,23 +860,38 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
         res.setHeader('Cache-Control', 'public, max-age=3600');
         return res.send(sitemapCache.xml);
       }
-      const baseUrl = 'https://www.vonwobeser.com';
+      const baseUrl = (process.env.SITE_URL || 'https://www.vonwobeser.com').replace(/\/+$/, '');
       const today = new Date().toISOString().split('T')[0];
+      const xmlEsc = (s: string) => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
+      // Genera una <url> con alternates hreflang ES/EN (sitio bilingüe: EN = ?lang=en).
+      // loc = ruta canónica en español (idioma principal); x-default apunta a ES.
+      const urlEntry = (loc: string, changefreq: string, priority: string, lastmod = today) => {
+        const es = `${baseUrl}${loc}`;
+        const en = `${baseUrl}${loc}${loc.includes('?') ? '&' : '?'}lang=en`;
+        return `
+  <url>
+    <loc>${xmlEsc(es)}</loc>
+    <xhtml:link rel="alternate" hreflang="es-MX" href="${xmlEsc(es)}"/>
+    <xhtml:link rel="alternate" hreflang="en" href="${xmlEsc(en)}"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="${xmlEsc(es)}"/>
+    <lastmod>${lastmod}</lastmod>
+    <changefreq>${changefreq}</changefreq>
+    <priority>${priority}</priority>
+  </url>`;
+      };
+
+      // Rutas REALES del espejo (antes apuntaba a rutas del viejo SPA que ya no existen).
       const staticPages = [
         { loc: '/', changefreq: 'weekly', priority: '1.0' },
-        { loc: '/about', changefreq: 'monthly', priority: '0.8' },
-        { loc: '/team', changefreq: 'weekly', priority: '0.9' },
-        { loc: '/practice-groups', changefreq: 'monthly', priority: '0.8' },
-        { loc: '/industry-groups', changefreq: 'monthly', priority: '0.8' },
+        { loc: '/nuestra-firma', changefreq: 'monthly', priority: '0.8' },
         { loc: '/news', changefreq: 'daily', priority: '0.9' },
-        { loc: '/contact', changefreq: 'monthly', priority: '0.7' },
-        { loc: '/careers', changefreq: 'weekly', priority: '0.7' },
-        { loc: '/rankings', changefreq: 'monthly', priority: '0.7' },
-        { loc: '/offices', changefreq: 'monthly', priority: '0.7' },
-        { loc: '/experience', changefreq: 'monthly', priority: '0.7' },
-        { loc: '/privacy-policy', changefreq: 'yearly', priority: '0.3' },
-        { loc: '/terms', changefreq: 'yearly', priority: '0.3' },
+        { loc: '/attorneys/partners', changefreq: 'weekly', priority: '0.8' },
+        { loc: '/attorneys/of-counsel', changefreq: 'weekly', priority: '0.6' },
+        { loc: '/attorneys/counsel', changefreq: 'weekly', priority: '0.6' },
+        { loc: '/attorneys/associates', changefreq: 'weekly', priority: '0.6' },
+        { loc: '/contacto', changefreq: 'monthly', priority: '0.7' },
+        { loc: '/bolsa-de-trabajo', changefreq: 'weekly', priority: '0.7' },
       ];
 
       const [teamMembers, practiceGroups, industryGroups, newsItems] = await Promise.all([
@@ -864,59 +904,27 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
       // array.join en vez de string += en bucle (evita O(n²) de concatenación).
       const parts: string[] = [];
 
-      for (const page of staticPages) {
-        parts.push(`
-  <url>
-    <loc>${baseUrl}${page.loc}</loc>
-    <lastmod>${today}</lastmod>
-    <changefreq>${page.changefreq}</changefreq>
-    <priority>${page.priority}</priority>
-  </url>`);
-      }
+      for (const page of staticPages) parts.push(urlEntry(page.loc, page.changefreq, page.priority));
 
-      for (const member of teamMembers) {
-        parts.push(`
-  <url>
-    <loc>${baseUrl}/team/${member.slug}</loc>
-    <lastmod>${today}</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
-  </url>`);
+      for (const member of teamMembers as any[]) {
+        if (member.published === false) continue;
+        parts.push(urlEntry(`/lawyer/${member.slug}`, 'monthly', '0.6'));
       }
-
-      for (const group of practiceGroups) {
-        parts.push(`
-  <url>
-    <loc>${baseUrl}/practice-groups/${group.slug}</loc>
-    <lastmod>${today}</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>`);
+      for (const group of practiceGroups as any[]) {
+        if (group.published === false) continue;
+        parts.push(urlEntry(`/practice/${group.slug}`, 'monthly', '0.7'));
       }
-
-      for (const group of industryGroups) {
-        parts.push(`
-  <url>
-    <loc>${baseUrl}/industry-groups/${group.slug}</loc>
-    <lastmod>${today}</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>`);
+      for (const group of industryGroups as any[]) {
+        if (group.published === false) continue;
+        parts.push(urlEntry(`/industry/${group.slug}`, 'monthly', '0.7'));
       }
-
-      for (const newsItem of newsItems) {
+      for (const newsItem of newsItems as any[]) {
         const lastmod = newsItem.date ? new Date(newsItem.date).toISOString().split('T')[0] : today;
-        parts.push(`
-  <url>
-    <loc>${baseUrl}/news/${newsItem.slug}</loc>
-    <lastmod>${lastmod}</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
-  </url>`);
+        parts.push(urlEntry(`/news/${newsItem.slug}`, 'monthly', '0.6', lastmod));
       }
 
       const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">${parts.join('')}
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">${parts.join('')}
 </urlset>`;
 
       sitemapCache = { xml: sitemap, at: Date.now() };

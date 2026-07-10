@@ -1,5 +1,6 @@
 import * as cheerio from "cheerio";
 import { sanitizeCms } from "./sanitize";
+import { applySeo, articleNode, breadcrumbNode, clip } from "./seo";
 
 type Lang = "en" | "es";
 
@@ -67,8 +68,26 @@ export function renderNewsList(
     );
   }
 
-  $("title").text(lang === "es" ? "Von Wobeser - Noticias" : "Von Wobeser - News");
   $("html").attr("lang", lang === "es" ? "es-mx" : "en-gb");
+  applySeo($, {
+    lang,
+    path: "/news",
+    title: lang === "es" ? "Noticias y publicaciones | Von Wobeser y Sierra" : "News & Publications | Von Wobeser y Sierra",
+    description:
+      lang === "es"
+        ? "Noticias, publicaciones y actualizaciones legales de Von Wobeser y Sierra, firma de abogados líder en México."
+        : "News, publications and legal updates from Von Wobeser y Sierra, a leading Mexican law firm.",
+    type: "website",
+    jsonLd: [
+      breadcrumbNode(
+        [
+          { name: lang === "es" ? "Inicio" : "Home", path: "/" },
+          { name: lang === "es" ? "Noticias" : "News", path: "/news" },
+        ],
+        lang,
+      ),
+    ],
+  });
   return $.html();
 }
 
@@ -86,7 +105,36 @@ export function renderNewsDetail(templateHtml: string, item: any, lang: Lang = "
   $(".single__content--intro").html(excerpt ? `<p>${excerpt}</p>` : "");
   $(".single__content--txt").html(content || (excerpt ? "" : `<p>${esc(title)}</p>`));
 
-  $("title").text(`Von Wobeser - ${title}`);
   $("html").attr("lang", lang === "es" ? "es-mx" : "en-gb");
+  const path = `/news/${item.slug}`;
+  const desc = clip(excerpt || content || title);
+  const iso = item.date ? new Date(item.date).toISOString() : undefined;
+  applySeo($, {
+    lang,
+    path,
+    title: `${title} | Von Wobeser y Sierra`,
+    description: desc,
+    image: item.imageUrl || item.image || undefined,
+    type: "article",
+    jsonLd: [
+      articleNode({
+        headline: title,
+        description: desc,
+        image: item.imageUrl || item.image || undefined,
+        path,
+        datePublished: iso,
+        dateModified: item.updatedAt ? new Date(item.updatedAt).toISOString() : iso,
+        lang,
+      }),
+      breadcrumbNode(
+        [
+          { name: lang === "es" ? "Inicio" : "Home", path: "/" },
+          { name: lang === "es" ? "Noticias" : "News", path: "/news" },
+          { name: title, path },
+        ],
+        lang,
+      ),
+    ],
+  });
   return $.html();
 }

@@ -11,6 +11,7 @@ const DEFAULTS: Array<{ key: string; value: string; valueEs?: string; type: stri
   { key: "banner_title", value: "WE GO WHERE CLIENTS NEED US", valueEs: "VAMOS DONDE EL CLIENTE NOS NECESITA", type: "text", category: "home", description: "Título del banner rojo (home)" },
   { key: "banner_subtitle", value: "New offices of Von Wobeser y Sierra", valueEs: "Nuevas oficinas de Von Wobeser y Sierra", type: "text", category: "home", description: "Subtítulo del banner rojo (home)" },
   { key: "active_languages", value: "es,en", type: "json", category: "translations", description: "Idiomas a los que se traduce el contenido (lista separada por comas). El traductor solo genera estos idiomas por defecto." },
+  { key: "site_url", value: "https://www.vonwobeser.com", type: "url", category: "seo", description: "URL pública del sitio (para canonical, Open Graph y datos estructurados). Cámbiala si el dominio final es otro." },
   // Pie de página (aparece en todas las páginas dinámicas). Editable por el cliente.
   { key: "footer_firm", value: "Von Wobeser y Sierra, S.C.", type: "text", category: "footer", description: "Nombre de la firma (pie de página)" },
   { key: "footer_address", value: "Torre SOMA Chapultepec 18th floor. Campos Elíseos 204, Polanco\nAcceso por Calle Arquímedes N.° 10, C.P. 11550, Ciudad de México", type: "text", category: "footer", description: "Dirección del pie de página (una línea por renglón)" },
@@ -19,6 +20,14 @@ const DEFAULTS: Array<{ key: string; value: string; valueEs?: string; type: stri
   { key: "footer_facebook", value: "https://www.facebook.com/Von-Wobeser-Sierra-SC-1655250134508590/about/?ref=page_internal", type: "url", category: "footer", description: "Enlace de Facebook (pie de página)" },
   { key: "footer_twitter", value: "https://twitter.com/VWySOficial", type: "url", category: "footer", description: "Enlace de Twitter/X (pie de página)" },
   { key: "footer_linkedin", value: "https://mx.linkedin.com/company/von-wobeser-y-sierra", type: "url", category: "footer", description: "Enlace de LinkedIn (pie de página)" },
+  // Páginas institucionales (texto editable). Nacen VACÍAS → el sitio muestra el texto original
+  // de la plantilla hasta que el cliente edite. valueEs = español, value = inglés.
+  { key: "page_firm_intro", value: "", valueEs: "", type: "text", category: "pages", description: "Nuestra Firma — párrafo de introducción" },
+  { key: "page_firm_body", value: "", valueEs: "", type: "text", category: "pages", description: "Nuestra Firma — cuerpo del texto" },
+  { key: "page_contact_intro", value: "", valueEs: "", type: "text", category: "pages", description: "Contacto — texto de introducción" },
+  { key: "page_contact_body", value: "", valueEs: "", type: "text", category: "pages", description: "Contacto — dirección / texto principal" },
+  { key: "page_careers_intro", value: "", valueEs: "", type: "text", category: "pages", description: "Carrera en VWyS — párrafo de introducción" },
+  { key: "page_careers_body", value: "", valueEs: "", type: "text", category: "pages", description: "Carrera en VWyS — cuerpo del texto" },
 ];
 
 // Caché en memoria del site-config: antes se hacía SELECT * en CADA render del

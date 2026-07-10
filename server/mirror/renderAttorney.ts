@@ -1,4 +1,5 @@
 import * as cheerio from "cheerio";
+import { applySeo, personNode, breadcrumbNode, clip } from "./seo";
 
 type Lang = "en" | "es";
 
@@ -136,12 +137,37 @@ export function renderAttorney(templateHtml: string, a: any, lang: Lang = "en"):
   $(".attorney__content--txt").html(textToHtml(paras.slice(1).join("\n\n") || bio));
 
   // --- Head metadata -----------------------------------------------------
-  $("title").text(`Von Wobeser - ${name}`);
   $('meta[name="Attorney"]').attr("content", name);
   $('meta[name="Position"]').attr("content", role);
   $('meta[name="Phone"]').attr("content", phone);
   $('meta[name="Mail"]').attr("content", email);
   $("html").attr("lang", lang === "es" ? "es-mx" : "en-gb");
+
+  const path = `/lawyer/${a.slug}`;
+  const desc =
+    clip(bio) ||
+    (lang === "es"
+      ? `${name}${role ? `, ${role}` : ""} en Von Wobeser y Sierra, firma de abogados líder en México.`
+      : `${name}${role ? `, ${role}` : ""} at Von Wobeser y Sierra, a leading Mexican law firm.`);
+  applySeo($, {
+    lang,
+    path,
+    title: `${name}${role ? ` — ${role}` : ""} | Von Wobeser y Sierra`,
+    description: desc,
+    image: img || undefined,
+    type: "profile",
+    jsonLd: [
+      personNode({ name, jobTitle: role, image: img || undefined, path, email, telephone: phone, description: clip(bio) || undefined, lang }),
+      breadcrumbNode(
+        [
+          { name: lang === "es" ? "Inicio" : "Home", path: "/" },
+          { name: lang === "es" ? "Abogados" : "Attorneys", path: "/attorneys" },
+          { name, path },
+        ],
+        lang,
+      ),
+    ],
+  });
 
   return $.html();
 }

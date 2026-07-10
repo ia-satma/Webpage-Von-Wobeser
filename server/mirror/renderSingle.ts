@@ -1,4 +1,5 @@
 import * as cheerio from "cheerio";
+import { applySeo, serviceNode, breadcrumbNode, clip } from "./seo";
 
 type Lang = "en" | "es";
 type Kind = "practice" | "industry";
@@ -76,8 +77,34 @@ export function renderSingle(
     // inside the accordion are already pointed at /lawyer/:slug above.
   });
 
-  $("title").text(`Von Wobeser - ${name}`);
   $("html").attr("lang", lang === "es" ? "es-mx" : "en-gb");
+
+  const path = `/${kind}/${group.slug}`;
+  const desc =
+    clip(L(group, "description", lang) || L(group, "fullDescription", lang)) ||
+    (lang === "es"
+      ? `${name} — área de práctica de Von Wobeser y Sierra, firma de abogados líder en México.`
+      : `${name} — a practice area of Von Wobeser y Sierra, a leading Mexican law firm.`);
+  const crumbLabel =
+    kind === "practice" ? (lang === "es" ? "Áreas de práctica" : "Practices") : (lang === "es" ? "Industrias" : "Industries");
+  applySeo($, {
+    lang,
+    path,
+    title: `${name} | Von Wobeser y Sierra`,
+    description: desc,
+    type: "website",
+    jsonLd: [
+      serviceNode({ name, description: desc, path, lang }),
+      breadcrumbNode(
+        [
+          { name: lang === "es" ? "Inicio" : "Home", path: "/" },
+          { name: crumbLabel, path: "/" },
+          { name, path },
+        ],
+        lang,
+      ),
+    ],
+  });
 
   return $.html();
 }

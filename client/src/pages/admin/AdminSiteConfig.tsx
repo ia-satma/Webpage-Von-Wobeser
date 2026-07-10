@@ -40,6 +40,17 @@ const GROUPS: Array<{
       { key: "footer_linkedin", label: "LinkedIn (URL)" },
     ],
   },
+  {
+    title: "Páginas del sitio (texto editable)",
+    fields: [
+      { key: "page_firm_intro", label: "Nuestra Firma — introducción", help: "Si lo dejas vacío, se muestra el texto original.", bilingual: true, multiline: true },
+      { key: "page_firm_body", label: "Nuestra Firma — cuerpo", bilingual: true, multiline: true },
+      { key: "page_contact_intro", label: "Contacto — introducción", bilingual: true, multiline: true },
+      { key: "page_contact_body", label: "Contacto — dirección / texto", bilingual: true, multiline: true },
+      { key: "page_careers_intro", label: "Carrera en VWyS — introducción", bilingual: true, multiline: true },
+      { key: "page_careers_body", label: "Carrera en VWyS — cuerpo", bilingual: true, multiline: true },
+    ],
+  },
 ];
 
 type ConfigMap = Record<string, { value: string; valueEs: string; type: string }>;
@@ -158,12 +169,22 @@ export default function AdminSiteConfig() {
                       />
                     )}
                     {f.bilingual && (
-                      <Input
-                        value={draft[f.key]?.valueEs ?? ""}
-                        onChange={(e) => set(f.key, "valueEs", e.target.value)}
-                        placeholder="Texto en español"
-                        data-testid={`input-${f.key}-es`}
-                      />
+                      f.multiline ? (
+                        <Textarea
+                          rows={3}
+                          value={draft[f.key]?.valueEs ?? ""}
+                          onChange={(e) => set(f.key, "valueEs", e.target.value)}
+                          placeholder="Texto en español"
+                          data-testid={`input-${f.key}-es`}
+                        />
+                      ) : (
+                        <Input
+                          value={draft[f.key]?.valueEs ?? ""}
+                          onChange={(e) => set(f.key, "valueEs", e.target.value)}
+                          placeholder="Texto en español"
+                          data-testid={`input-${f.key}-es`}
+                        />
+                      )
                     )}
                     <div className="flex items-center gap-2">
                       <Button size="sm" onClick={() => requestSave(f)} disabled={saving === f.key} data-testid={`save-${f.key}`}>

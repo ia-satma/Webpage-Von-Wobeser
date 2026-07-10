@@ -28,12 +28,12 @@ export function AdminLayout({ children }: { children: ReactNode }) {
     <>
       <header className="sticky top-0 z-30 border-b border-border bg-card/90 backdrop-blur supports-[backdrop-filter]:bg-card/75">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex h-16 items-center justify-between gap-4">
-            <div className="flex items-center gap-6">
+          <div className="flex h-16 items-center justify-between gap-2 sm:gap-4">
+            <div className="flex items-center gap-3 md:gap-6 min-w-0">
               <Link href="/admin/dashboard">
                 <div className="flex items-center gap-2.5 cursor-pointer" data-testid="link-admin-home">
-                  <img src="/logo-color.png" alt="Von Wobeser y Sierra" className="h-8 w-auto" />
-                  <span className="rounded-md bg-primary/10 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-primary">Admin</span>
+                  <img src="/logo-color.png" alt="Von Wobeser y Sierra" className="h-8 w-auto max-w-[130px] sm:max-w-none" />
+                  <span className="hidden sm:inline-block rounded-md bg-primary/10 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-primary">Admin</span>
                 </div>
               </Link>
               <nav className="hidden md:flex items-center gap-1" data-testid="nav-admin">
@@ -56,28 +56,32 @@ export function AdminLayout({ children }: { children: ReactNode }) {
                 })}
               </nav>
             </div>
-            <div className="flex items-center gap-3">
-              <a
-                href="/"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="hidden sm:inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors"
-                data-testid="button-view-site"
-              >
-                Ver en español <ArrowUpRight className="h-3.5 w-3.5" />
-              </a>
-              <a
-                href="/?lang=en"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="hidden sm:inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors"
-                data-testid="button-view-site-en"
-              >
-                Ver en inglés <ArrowUpRight className="h-3.5 w-3.5" />
-              </a>
-              <Button variant="outline" size="sm" onClick={logout} data-testid="button-logout">
-                <LogOut className="mr-2 h-4 w-4" />
-                Cerrar sesión
+            <div className="flex items-center gap-2 sm:gap-3">
+              {/* Envueltos en un <div> (no <a>) para que `hidden` gane en móvil:
+                  una regla global de `a` fuerza display:flex y pisaba el `hidden` de los enlaces. */}
+              <div className="hidden sm:flex items-center gap-3">
+                <a
+                  href="/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors"
+                  data-testid="button-view-site"
+                >
+                  Ver en español <ArrowUpRight className="h-3.5 w-3.5" />
+                </a>
+                <a
+                  href="/?lang=en"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors"
+                  data-testid="button-view-site-en"
+                >
+                  Ver en inglés <ArrowUpRight className="h-3.5 w-3.5" />
+                </a>
+              </div>
+              <Button variant="outline" size="sm" onClick={logout} data-testid="button-logout" title="Cerrar sesión" aria-label="Cerrar sesión">
+                <LogOut className="h-4 w-4 sm:mr-2" />
+                <span className="hidden sm:inline">Cerrar sesión</span>
               </Button>
             </div>
           </div>
