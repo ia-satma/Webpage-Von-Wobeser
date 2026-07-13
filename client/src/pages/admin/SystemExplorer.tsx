@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/select";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useToast } from "@/hooks/use-toast";
+import { AdminPageHelp } from "@/components/admin/AdminPageHelp";
 import { 
   AI_AGENTS, 
   PUBLIC_MODULES, 
@@ -62,14 +63,17 @@ const CATEGORY_ICONS: Record<SystemCategory, typeof Brain> = {
   infrastructure: Server,
 };
 
+// Colores puramente categóricos (por tipo de agente/módulo), no de severidad.
+// Se ciclan entre los 4 tokens de chart (familia burgundy/gris de marca);
+// infrastructure usa muted porque es la categoría "neutra" de base.
 const CATEGORY_COLORS: Record<SystemCategory, string> = {
-  ai_brain: 'bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/20',
-  ai_hands: 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20',
-  ai_shield: 'bg-green-500/10 text-green-600 dark:text-green-400 border-green-500/20',
-  public_site: 'bg-orange-500/10 text-orange-600 dark:text-orange-400 border-orange-500/20',
-  admin_system: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/20',
-  security: 'bg-red-500/10 text-red-600 dark:text-red-400 border-red-500/20',
-  infrastructure: 'bg-gray-500/10 text-muted-foreground border-gray-500/20',
+  ai_brain: 'bg-chart-1/10 text-chart-1 border-chart-1/20',
+  ai_hands: 'bg-chart-2/10 text-chart-2 border-chart-2/20',
+  ai_shield: 'bg-chart-3/10 text-chart-3 border-chart-3/20',
+  public_site: 'bg-chart-4/10 text-chart-4 border-chart-4/20',
+  admin_system: 'bg-chart-1/10 text-chart-1 border-chart-1/20',
+  security: 'bg-chart-2/10 text-chart-2 border-chart-2/20',
+  infrastructure: 'bg-muted text-muted-foreground border-muted-border',
 };
 
 function FeatureCard({ feature, t, isExpanded, onToggle }: { 
@@ -86,21 +90,21 @@ function FeatureCard({ feature, t, isExpanded, onToggle }: {
     switch (feature.status) {
       case 'production':
         return (
-          <Badge variant="outline" className="bg-green-500/10 text-green-600 dark:text-green-400 border-green-500/30">
+          <Badge variant="outline" className="bg-success/10 text-success border-success/30">
             <CheckCircle className="w-3 h-3 mr-1" />
             {t.statuses.production}
           </Badge>
         );
       case 'beta':
         return (
-          <Badge variant="outline" className="bg-yellow-500/10 text-yellow-600 dark:text-yellow-400 border-yellow-500/30">
+          <Badge variant="outline" className="bg-warning/10 text-warning border-warning/30">
             <AlertCircle className="w-3 h-3 mr-1" />
             {t.statuses.beta}
           </Badge>
         );
       default:
         return (
-          <Badge variant="outline" className="bg-gray-500/10 text-muted-foreground border-gray-500/30">
+          <Badge variant="outline" className="bg-muted text-muted-foreground border-muted-border">
             {t.statuses.development}
           </Badge>
         );
@@ -318,32 +322,36 @@ export default function SystemExplorer() {
         </div>
 
         <div className="grid gap-4 grid-cols-2 md:grid-cols-4">
-          <StatCard 
-            icon={Brain} 
-            label={t.ui.totalAgents} 
+          <StatCard
+            icon={Brain}
+            label={t.ui.totalAgents}
             value={stats.totalAgents}
-            color="bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/20"
+            color="bg-chart-1/10 text-chart-1 border-chart-1/20"
           />
-          <StatCard 
-            icon={Globe} 
-            label={t.ui.totalModules} 
+          <StatCard
+            icon={Globe}
+            label={t.ui.totalModules}
             value={stats.totalPublicModules + stats.totalAdminModules}
-            color="bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20"
+            color="bg-chart-2/10 text-chart-2 border-chart-2/20"
           />
-          <StatCard 
-            icon={Database} 
-            label={t.ui.totalInfrastructure} 
+          <StatCard
+            icon={Database}
+            label={t.ui.totalInfrastructure}
             value={stats.totalInfrastructure}
-            color="bg-green-500/10 text-green-600 dark:text-green-400 border-green-500/20"
+            color="bg-chart-3/10 text-chart-3 border-chart-3/20"
           />
-          <StatCard 
-            icon={Sparkles} 
-            label={t.statuses.production} 
+          <StatCard
+            icon={Sparkles}
+            label={t.statuses.production}
             value={stats.productionFeatures}
-            color="bg-orange-500/10 text-orange-600 dark:text-orange-400 border-orange-500/20"
+            color="bg-success/10 text-success border-success/20"
           />
         </div>
       </header>
+
+      <AdminPageHelp pageId="system-explorer">
+        Este panel muestra en vivo cómo están trabajando los agentes de inteligencia artificial del sistema: qué está haciendo cada uno ahora mismo.
+      </AdminPageHelp>
 
       <div className="flex flex-col sm:flex-row gap-4">
         <div className="relative flex-1">
@@ -381,7 +389,7 @@ export default function SystemExplorer() {
             <>
               <section>
                 <div className="flex items-center gap-2 mb-4">
-                  <Brain className="w-5 h-5 text-purple-500" />
+                  <Brain className="w-5 h-5 text-chart-1" />
                   <h2 className="text-xl font-semibold">{t.categories.ai_brain.title}</h2>
                   <Badge variant="secondary">{AI_AGENTS.filter(a => a.category === 'ai_brain').length}</Badge>
                 </div>
@@ -402,7 +410,7 @@ export default function SystemExplorer() {
 
               <section>
                 <div className="flex items-center gap-2 mb-4">
-                  <Cpu className="w-5 h-5 text-blue-500" />
+                  <Cpu className="w-5 h-5 text-chart-2" />
                   <h2 className="text-xl font-semibold">{t.categories.ai_hands.title}</h2>
                   <Badge variant="secondary">{AI_AGENTS.filter(a => a.category === 'ai_hands').length}</Badge>
                 </div>
@@ -423,7 +431,7 @@ export default function SystemExplorer() {
 
               <section>
                 <div className="flex items-center gap-2 mb-4">
-                  <Shield className="w-5 h-5 text-green-500" />
+                  <Shield className="w-5 h-5 text-chart-3" />
                   <h2 className="text-xl font-semibold">{t.categories.ai_shield.title}</h2>
                   <Badge variant="secondary">{AI_AGENTS.filter(a => a.category === 'ai_shield').length}</Badge>
                 </div>
@@ -444,7 +452,7 @@ export default function SystemExplorer() {
 
               <section>
                 <div className="flex items-center gap-2 mb-4">
-                  <Globe className="w-5 h-5 text-orange-500" />
+                  <Globe className="w-5 h-5 text-chart-4" />
                   <h2 className="text-xl font-semibold">{t.categories.public_site.title}</h2>
                   <Badge variant="secondary">{PUBLIC_MODULES.length}</Badge>
                 </div>
@@ -465,7 +473,7 @@ export default function SystemExplorer() {
 
               <section>
                 <div className="flex items-center gap-2 mb-4">
-                  <Settings className="w-5 h-5 text-indigo-500" />
+                  <Settings className="w-5 h-5 text-chart-1" />
                   <h2 className="text-xl font-semibold">{t.categories.admin_system.title}</h2>
                   <Badge variant="secondary">{ADMIN_MODULES.length}</Badge>
                 </div>
@@ -486,7 +494,7 @@ export default function SystemExplorer() {
 
               <section>
                 <div className="flex items-center gap-2 mb-4">
-                  <Lock className="w-5 h-5 text-red-500" />
+                  <Lock className="w-5 h-5 text-chart-2" />
                   <h2 className="text-xl font-semibold">{t.categories.security.title}</h2>
                   <Badge variant="secondary">
                     {INFRASTRUCTURE.filter(i => i.category === 'security').length}
@@ -509,7 +517,7 @@ export default function SystemExplorer() {
 
               <section>
                 <div className="flex items-center gap-2 mb-4">
-                  <Server className="w-5 h-5 text-gray-500" />
+                  <Server className="w-5 h-5 text-muted-foreground" />
                   <h2 className="text-xl font-semibold">{t.categories.infrastructure.title}</h2>
                   <Badge variant="secondary">
                     {INFRASTRUCTURE.filter(i => i.category === 'infrastructure').length}

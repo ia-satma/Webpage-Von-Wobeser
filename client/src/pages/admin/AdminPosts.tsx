@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { AdminPageHelp } from "@/components/admin/AdminPageHelp";
+import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Link } from "wouter";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -13,15 +14,14 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { 
-  PlusCircle, 
-  Search, 
-  Pencil, 
-  Trash2, 
+import {
+  PlusCircle,
+  Search,
+  Pencil,
+  Trash2,
   Eye,
   ChevronLeft,
   ChevronRight,
-  ArrowLeft,
   FileText
 } from "lucide-react";
 import type { BlogPost } from "@shared/schema";
@@ -385,38 +385,22 @@ export default function AdminPosts() {
   const data = postsQuery.data || { posts: [], total: 0, page: 1, totalPages: 1 };
 
   return (
-    <div className="min-h-screen bg-muted dark:bg-gray-900">
-      <header className="bg-card border-b border-border">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <Link href="/admin/dashboard">
-                <Button variant="ghost" size="sm" data-testid="button-back">
-                  <ArrowLeft className="mr-2 h-4 w-4" />
-                  {t.back}
-                </Button>
-              </Link>
-              <div className="flex items-center gap-2">
-                <FileText className="h-5 w-5 text-primary" />
-                <h1 className="text-xl font-semibold" data-testid="text-page-title">
-                  {t.title}
-                </h1>
-              </div>
-            </div>
+    <div className="min-h-screen bg-background">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <AdminPageHeader
+          title={t.title}
+          icon={FileText}
+          actions={
             <Link href="/admin/posts/new">
               <Button data-testid="button-new-post">
                 <PlusCircle className="mr-2 h-4 w-4" />
                 {t.newPost}
               </Button>
             </Link>
-          </div>
-        </div>
-      </header>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6">
-        <AdminPageHelp>Escribe y edita las entradas del blog de la firma.</AdminPageHelp>
-      </div>
+          }
+        />
+        <AdminPageHelp pageId="blog" manualSectionId="blog">Escribe y edita las entradas del blog de la firma.</AdminPageHelp>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <Card>
           <CardHeader>
             <div className="flex flex-col sm:flex-row gap-4">

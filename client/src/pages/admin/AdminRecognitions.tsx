@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { AdminPageHelp } from "@/components/admin/AdminPageHelp";
+import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 import { useLocation, Link } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { useAdminAuth, adminApiRequest } from "@/lib/adminAuth";
@@ -9,7 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { ImageUpload } from "@/components/admin/ImageUpload";
-import { ArrowLeft, Award, Plus, Trash2, Loader2, Pencil, Save, X } from "lucide-react";
+import { Award, Plus, Trash2, Loader2, Pencil, Save, X } from "lucide-react";
 import { TranslateButton } from "@/components/admin/TranslateButton";
 
 type Ranking = {
@@ -86,22 +87,11 @@ export default function AdminRecognitions() {
 
   return (
     <div className="min-h-screen bg-background">
-      <header className="border-b bg-card">
-        <div className="max-w-4xl mx-auto px-6 py-4 flex items-center gap-3">
-          <Link href="/admin/dashboard">
-            <Button variant="ghost" size="sm"><ArrowLeft className="h-4 w-4 mr-1" /> Dashboard</Button>
-          </Link>
-          <div className="flex items-center gap-2">
-            <Award className="h-5 w-5 text-primary" />
-            <h1 className="font-heading text-xl">Reconocimientos</h1>
-          </div>
-        </div>
-      </header>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6">
-        <AdminPageHelp>Registra los premios y rankings de la firma (Chambers, Legal 500…) con su logo y año.</AdminPageHelp>
-      </div>
-
       <main className="max-w-4xl mx-auto px-6 py-8 space-y-6">
+        <AdminPageHeader title="Reconocimientos" icon={Award} />
+
+        <AdminPageHelp pageId="reconocimientos" manualSectionId="reconocimientos">Registra los premios y rankings de la firma (Chambers, Legal 500…) con su logo y año.</AdminPageHelp>
+
         <p className="text-muted-foreground text-sm">
           Premios y rankings de la firma (Chambers, Legal 500, etc.). Lo que agregues aquí queda guardado en el sistema.
         </p>

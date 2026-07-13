@@ -30,13 +30,13 @@ import {
   CloudOff,
   Lightbulb,
   TrendingUp,
-  ArrowLeft,
   Loader2,
   Share2,
   Mail,
   Bell
 } from "lucide-react";
 import { Link, useLocation } from "wouter";
+import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 
 interface AgentStats {
   agentType: string;
@@ -294,48 +294,39 @@ export default function AdminAgents() {
 
   return (
     <div className="min-h-screen bg-background" data-testid="page-admin-agents">
-      <div className="container mx-auto p-6 max-w-7xl">
-        <div className="flex items-center justify-between mb-8">
-          <div className="flex items-center gap-4">
-            <Link href="/admin/dashboard">
-              <Button variant="ghost" size="icon" data-testid="button-back-admin">
-                <ArrowLeft className="w-5 h-5" />
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <AdminPageHeader
+          title="Sistema de Agentes IA"
+          description="Monitorea y controla los agentes de mejora de contenido"
+          icon={Bot}
+          actions={
+            <>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => refetchStatus()}
+                data-testid="button-refresh-status"
+              >
+                <RefreshCw className="w-4 h-4 mr-2" />
+                Actualizar
               </Button>
-            </Link>
-            <div>
-              <h1 className="text-3xl font-bold flex items-center gap-3">
-                <Bot className="w-8 h-8 text-primary" />
-                Sistema de Agentes IA
-              </h1>
-              <p className="text-muted-foreground">Monitorea y controla los agentes de mejora de contenido</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-2">
-            <Button 
-              variant="outline" 
-              size="sm" 
-              onClick={() => refetchStatus()}
-              data-testid="button-refresh-status"
-            >
-              <RefreshCw className="w-4 h-4 mr-2" />
-              Actualizar
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => syncPCloudMutation.mutate()}
-              disabled={syncPCloudMutation.isPending}
-              data-testid="button-sync-pcloud"
-            >
-              {syncPCloudMutation.isPending ? (
-                <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
-              ) : (
-                <Cloud className="w-4 h-4 mr-2" />
-              )}
-              Sincronizar a la nube
-            </Button>
-          </div>
-        </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => syncPCloudMutation.mutate()}
+                disabled={syncPCloudMutation.isPending}
+                data-testid="button-sync-pcloud"
+              >
+                {syncPCloudMutation.isPending ? (
+                  <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                ) : (
+                  <Cloud className="w-4 h-4 mr-2" />
+                )}
+                Sincronizar a la nube
+              </Button>
+            </>
+          }
+        />
 
         {statusError && (
           <Card className="mb-4 border-red-200 bg-red-50 dark:border-red-900 dark:bg-red-950">
@@ -834,7 +825,7 @@ export default function AdminAgents() {
             </div>
           </TabsContent>
         </Tabs>
-      </div>
+      </main>
     </div>
   );
 }

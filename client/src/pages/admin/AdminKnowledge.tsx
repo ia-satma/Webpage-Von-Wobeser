@@ -19,14 +19,13 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { 
+import {
   BookOpen,
-  Brain, 
+  Brain,
   Languages,
   Plus,
   Search,
   RefreshCw,
-  ArrowLeft,
   Loader2,
   Pencil,
   Trash2,
@@ -37,7 +36,9 @@ import {
   BarChart3,
   Filter
 } from "lucide-react";
-import { Link, useLocation } from "wouter";
+import { useLocation } from "wouter";
+import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
+import { AdminPageHelp } from "@/components/admin/AdminPageHelp";
 
 const translations = {
   en: {
@@ -1116,56 +1117,48 @@ export default function AdminKnowledge() {
 
   return (
     <div className="min-h-screen bg-background" data-testid="page-admin-knowledge">
-      <div className="container mx-auto p-6 max-w-7xl">
-        <div className="flex items-center justify-between mb-8">
-          <div className="flex items-center gap-4">
-            <Link href="/admin/dashboard">
-              <Button variant="ghost" size="icon" data-testid="button-back-admin">
-                <ArrowLeft className="w-5 h-5" />
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <AdminPageHeader
+          title={t.title}
+          description={t.subtitle}
+          icon={Brain}
+          actions={
+            <>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => refetch()}
+                data-testid="button-refresh-knowledge"
+              >
+                <RefreshCw className="w-4 h-4 mr-2" />
+                {t.refresh}
               </Button>
-            </Link>
-            <div>
-              <h1 className="text-3xl font-bold flex items-center gap-3">
-                <Brain className="w-8 h-8 text-primary" />
-                {t.title}
-              </h1>
-              <p className="text-muted-foreground">
-                {t.subtitle}
-              </p>
-            </div>
-          </div>
-          <div className="flex items-center gap-2">
-            <Button 
-              variant="outline" 
-              size="sm" 
-              onClick={() => refetch()}
-              data-testid="button-refresh-knowledge"
-            >
-              <RefreshCw className="w-4 h-4 mr-2" />
-              {t.refresh}
-            </Button>
-            <Button 
-              variant="outline" 
-              size="sm" 
-              onClick={() => setIsBulkModalOpen(true)}
-              data-testid="button-bulk-upload"
-            >
-              <Upload className="w-4 h-4 mr-2" />
-              {t.bulkUpload}
-            </Button>
-            <Button 
-              size="sm" 
-              onClick={() => {
-                form.reset();
-                setIsAddModalOpen(true);
-              }}
-              data-testid="button-add-knowledge"
-            >
-              <Plus className="w-4 h-4 mr-2" />
-              {t.addDocument}
-            </Button>
-          </div>
-        </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setIsBulkModalOpen(true)}
+                data-testid="button-bulk-upload"
+              >
+                <Upload className="w-4 h-4 mr-2" />
+                {t.bulkUpload}
+              </Button>
+              <Button
+                size="sm"
+                onClick={() => {
+                  form.reset();
+                  setIsAddModalOpen(true);
+                }}
+                data-testid="button-add-knowledge"
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                {t.addDocument}
+              </Button>
+            </>
+          }
+        />
+        <AdminPageHelp pageId="knowledge">
+          Esta sección alimenta la 'memoria' del sistema: aquí se guarda información de referencia que los agentes de IA usan para generar o revisar contenido con mayor precisión.
+        </AdminPageHelp>
 
         <div className="grid gap-4 md:grid-cols-5 mb-6">
           {documentsByCategory.map((cat) => {
@@ -1744,7 +1737,7 @@ acquisition|Adquisición: Compra de una empresa por otra`}
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
-      </div>
+      </main>
     </div>
   );
 }

@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { AdminPageHelp } from "@/components/admin/AdminPageHelp";
+import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Link } from "wouter";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -21,7 +22,6 @@ import {
   Eye,
   ChevronLeft,
   ChevronRight,
-  ArrowLeft,
   Users,
   Plus,
   UserPlus
@@ -428,28 +428,21 @@ export default function AdminTeam() {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="container mx-auto px-4 py-8">
-        <div className="flex items-center justify-between mb-8">
-          <div className="flex items-center gap-4">
-            <Link href="/admin/dashboard">
-              <Button variant="ghost" size="icon" data-testid="button-back">
-                <ArrowLeft className="w-5 h-5" />
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <AdminPageHeader
+          title={t.title}
+          icon={Users}
+          actions={
+            <Link href="/admin/team/new">
+              <Button data-testid="button-add-member">
+                <UserPlus className="w-4 h-4 mr-2" />
+                {t.addMember}
               </Button>
             </Link>
-            <div className="flex items-center gap-3">
-              <Users className="w-8 h-8 text-primary" />
-              <h1 className="text-3xl font-bold">{t.title}</h1>
-            </div>
-          </div>
-          <Link href="/admin/team/new">
-            <Button data-testid="button-add-member">
-              <UserPlus className="w-4 h-4 mr-2" />
-              {t.addMember}
-            </Button>
-          </Link>
-        </div>
+          }
+        />
 
-        <AdminPageHelp>Aquí administras a los abogados y el equipo: agrega, edita y sube su foto. Puedes asignar a cada uno varias áreas de práctica e industrias.</AdminPageHelp>
+        <AdminPageHelp pageId="equipo" manualSectionId="equipo">Aquí administras a los abogados y el equipo: agrega, edita y sube su foto. Puedes asignar a cada uno varias áreas de práctica e industrias.</AdminPageHelp>
         {stats && (
           <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
             <Card>
@@ -633,7 +626,7 @@ export default function AdminTeam() {
             )}
           </CardContent>
         </Card>
-      </div>
+      </main>
     </div>
   );
 }

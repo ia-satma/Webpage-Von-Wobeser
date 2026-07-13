@@ -22,6 +22,7 @@ import { useToast } from '@/hooks/use-toast';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { getImpactLabel } from '@/lib/adminTranslations';
+import { AdminPageHelp } from '@/components/admin/AdminPageHelp';
 
 interface HealthIssue {
   id: string;
@@ -415,10 +416,10 @@ const translations: Record<string, Record<string, string>> = {
 };
 
 const severityColors = {
-  critical: 'bg-red-600 text-white',
-  high: 'bg-orange-500 text-white',
-  medium: 'bg-yellow-500 text-black',
-  low: 'bg-blue-500 text-white',
+  critical: 'bg-destructive text-destructive-foreground',
+  high: 'bg-warning text-warning-foreground',
+  medium: 'bg-warning/70 text-warning-foreground',
+  low: 'bg-muted text-muted-foreground',
 };
 
 const typeIcons = {
@@ -491,15 +492,15 @@ export default function AdminHealthCheck() {
   ) || [];
 
   const getHealthScoreColor = (score: number) => {
-    if (score >= 80) return 'text-green-500';
-    if (score >= 50) return 'text-yellow-500';
-    return 'text-red-500';
+    if (score >= 80) return 'text-success';
+    if (score >= 50) return 'text-warning';
+    return 'text-destructive';
   };
 
   const getHealthScoreIcon = (score: number) => {
-    if (score >= 80) return <CheckCircle2 className="h-8 w-8 text-green-500" />;
-    if (score >= 50) return <AlertTriangle className="h-8 w-8 text-yellow-500" />;
-    return <AlertTriangle className="h-8 w-8 text-red-500" />;
+    if (score >= 80) return <CheckCircle2 className="h-8 w-8 text-success" />;
+    if (score >= 50) return <AlertTriangle className="h-8 w-8 text-warning" />;
+    return <AlertTriangle className="h-8 w-8 text-destructive" />;
   };
 
   return (
@@ -537,6 +538,10 @@ export default function AdminHealthCheck() {
           )}
         </div>
       </div>
+
+      <AdminPageHelp pageId="health-check">
+        Este panel revisa automáticamente que todo funcione bien: busca procesos atascados, traducciones faltantes o archivos huérfanos. Si ves algo en rojo o naranja, conviene revisarlo pronto; en gris son avisos de baja prioridad.
+      </AdminPageHelp>
 
       {isLoading && !report && (
         <Card>
@@ -590,7 +595,7 @@ export default function AdminHealthCheck() {
                     </Badge>
                   )}
                   {report.summary.highCount > 0 && (
-                    <Badge className="bg-orange-500 text-xs">
+                    <Badge className="bg-warning text-warning-foreground text-xs">
                       {report.summary.highCount} {t.high}
                     </Badge>
                   )}
@@ -765,7 +770,7 @@ export default function AdminHealthCheck() {
                               <p className="text-sm text-muted-foreground">
                                 {issue.details}
                               </p>
-                              <p className="text-sm text-blue-600 dark:text-blue-400">
+                              <p className="text-sm text-muted-foreground">
                                 {t.suggestedAction}: {issue.suggestedAction}
                               </p>
                             </div>

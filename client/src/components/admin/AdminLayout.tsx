@@ -1,93 +1,122 @@
 import type { ReactNode } from "react";
 import { Link, useLocation } from "wouter";
-import { useAdminAuth } from "@/lib/adminAuth";
+import { useAdminAuth, useMyPermissions } from "@/lib/adminAuth";
+import { ADMIN_NAV_GROUPS, canSeeNavItem, isNavItemActive } from "@/lib/adminNav";
+import {
+  SidebarProvider,
+  Sidebar,
+  SidebarHeader,
+  SidebarContent,
+  SidebarFooter,
+  SidebarGroup,
+  SidebarGroupLabel,
+  SidebarGroupContent,
+  SidebarMenu,
+  SidebarMenuItem,
+  SidebarMenuButton,
+  SidebarTrigger,
+  SidebarInset,
+} from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
-import { LayoutDashboard, Newspaper, Users, FileText, Settings, ArrowUpRight, LogOut } from "lucide-react";
-
-// Secciones más usadas del admin (barra superior compartida).
-const NAV_ITEMS = [
-  { href: "/admin/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/admin/news", label: "Noticias", icon: Newspaper },
-  { href: "/admin/team", label: "Abogados", icon: Users },
-  { href: "/admin/posts", label: "Blog", icon: FileText },
-  { href: "/admin/site-config", label: "Configuración", icon: Settings },
-];
+import ThemeToggle from "@/components/ThemeToggle";
+import { ArrowUpRight, LogOut } from "lucide-react";
 
 /**
- * Envoltura común de todas las páginas del admin: barra de navegación superior
- * consistente (logo + secciones + salir), con la sección activa resaltada.
+ * Envoltura común de todas las páginas del admin: sidebar con TODAS las secciones
+ * (agrupadas y gateadas por permiso, ver client/src/lib/adminNav.ts), colapsable a
+ * icon-only en desktop y con drawer automático en móvil (el propio componente Sidebar de
+ * shadcn ya resuelve esto — ver client/src/components/ui/sidebar.tsx).
  */
 export function AdminLayout({ children }: { children: ReactNode }) {
   const [location] = useLocation();
-  const { logout } = useAdminAuth();
-
-  const isActive = (href: string) =>
-    href === "/admin/dashboard" ? location === href : location === href || location.startsWith(href + "/");
+  const { logout, role } = useAdminAuth();
+  const { has } = useMyPermissions();
+  const isAdmin = !role || role === "admin" || role === "super_admin";
 
   return (
-    <>
-      <header className="sticky top-0 z-30 border-b border-border bg-card/90 backdrop-blur supports-[backdrop-filter]:bg-card/75">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex h-16 items-center justify-between gap-2 sm:gap-4">
-            <div className="flex items-center gap-3 md:gap-6 min-w-0">
-              <Link href="/admin/dashboard">
-                <div className="flex items-center gap-2.5 cursor-pointer" data-testid="link-admin-home">
-                  <img src="/logo-color.png" alt="Von Wobeser y Sierra" className="h-8 w-auto max-w-[130px] sm:max-w-none" />
-                  <span className="hidden sm:inline-block rounded-md bg-primary/10 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-primary">Admin</span>
-                </div>
-              </Link>
-              <nav className="hidden md:flex items-center gap-1" data-testid="nav-admin">
-                {NAV_ITEMS.map((item) => {
-                  const Icon = item.icon;
-                  const active = isActive(item.href);
-                  return (
-                    <Link key={item.href} href={item.href}>
-                      <span
-                        className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors cursor-pointer ${
-                          active ? "bg-primary/10 text-primary" : "text-muted-foreground hover:text-foreground hover:bg-muted"
-                        }`}
-                        data-testid={`nav-${item.label.toLowerCase()}`}
-                      >
-                        <Icon className="h-4 w-4" />
-                        {item.label}
-                      </span>
-                    </Link>
-                  );
-                })}
-              </nav>
-            </div>
-            <div className="flex items-center gap-2 sm:gap-3">
-              {/* Envueltos en un <div> (no <a>) para que `hidden` gane en móvil:
-                  una regla global de `a` fuerza display:flex y pisaba el `hidden` de los enlaces. */}
-              <div className="hidden sm:flex items-center gap-3">
-                <a
-                  href="/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors"
-                  data-testid="button-view-site"
-                >
-                  Ver en español <ArrowUpRight className="h-3.5 w-3.5" />
-                </a>
-                <a
-                  href="/?lang=en"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors"
-                  data-testid="button-view-site-en"
-                >
-                  Ver en inglés <ArrowUpRight className="h-3.5 w-3.5" />
-                </a>
+    <SidebarProvider>
+      <Sidebar collapsible="icon">
+        <SidebarHeader>
+          <div className="flex items-center justify-between gap-2 px-1 py-1">
+            <Link href="/admin/dashboard">
+              <div className="flex items-center gap-2 cursor-pointer" data-testid="link-admin-home">
+                <img src="/logo-color.png" alt="Von Wobeser y Sierra" className="h-7 w-auto group-data-[collapsible=icon]:hidden" />
+                <span className="hidden group-data-[collapsible=icon]:inline rounded-none bg-primary/10 px-1.5 py-0.5 text-[10px] font-semibold text-primary">VW</span>
               </div>
-              <Button variant="outline" size="sm" onClick={logout} data-testid="button-logout" title="Cerrar sesión" aria-label="Cerrar sesión">
-                <LogOut className="h-4 w-4 sm:mr-2" />
-                <span className="hidden sm:inline">Cerrar sesión</span>
-              </Button>
-            </div>
+            </Link>
+            <SidebarTrigger className="hidden md:flex" />
           </div>
-        </div>
-      </header>
-      {children}
-    </>
+        </SidebarHeader>
+
+        <SidebarContent>
+          {ADMIN_NAV_GROUPS.map((group) => {
+            const visibleItems = group.items.filter((item) => canSeeNavItem(item, { has, isAdmin }));
+            if (visibleItems.length === 0) return null;
+            return (
+              <SidebarGroup key={group.id}>
+                {group.label && <SidebarGroupLabel>{group.label}</SidebarGroupLabel>}
+                <SidebarGroupContent>
+                  <SidebarMenu>
+                    {visibleItems.map((item) => {
+                      const Icon = item.icon;
+                      const active = isNavItemActive(location, item.href);
+                      return (
+                        <SidebarMenuItem key={item.href}>
+                          <SidebarMenuButton asChild isActive={active} tooltip={item.label} data-testid={`nav-${item.href.replace(/\//g, "-")}`}>
+                            <Link href={item.href}>
+                              <Icon />
+                              <span>{item.label}</span>
+                            </Link>
+                          </SidebarMenuButton>
+                        </SidebarMenuItem>
+                      );
+                    })}
+                  </SidebarMenu>
+                </SidebarGroupContent>
+              </SidebarGroup>
+            );
+          })}
+        </SidebarContent>
+
+        <SidebarFooter>
+          <div className="flex flex-col gap-1 px-1 group-data-[collapsible=icon]:items-center">
+            <a
+              href="/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors px-1 py-1 group-data-[collapsible=icon]:hidden"
+              data-testid="button-view-site"
+            >
+              Ver en español <ArrowUpRight className="h-3 w-3" />
+            </a>
+            <a
+              href="/?lang=en"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors px-1 py-1 group-data-[collapsible=icon]:hidden"
+              data-testid="button-view-site-en"
+            >
+              Ver en inglés <ArrowUpRight className="h-3 w-3" />
+            </a>
+          </div>
+          <div className="flex items-center gap-2 group-data-[collapsible=icon]:flex-col">
+            <ThemeToggle />
+            <Button variant="outline" size="sm" onClick={logout} data-testid="button-logout" title="Cerrar sesión" aria-label="Cerrar sesión" className="flex-1 group-data-[collapsible=icon]:flex-none">
+              <LogOut className="h-4 w-4" />
+              <span className="group-data-[collapsible=icon]:hidden">Cerrar sesión</span>
+            </Button>
+          </div>
+        </SidebarFooter>
+      </Sidebar>
+
+      <SidebarInset>
+        <header className="flex items-center gap-2 border-b border-border p-3 md:hidden sticky top-0 z-30 bg-card/90 backdrop-blur">
+          <SidebarTrigger />
+          <img src="/logo-color.png" alt="Von Wobeser y Sierra" className="h-6 w-auto" />
+          <span className="rounded-none bg-primary/10 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-primary">Admin</span>
+        </header>
+        {children}
+      </SidebarInset>
+    </SidebarProvider>
   );
 }

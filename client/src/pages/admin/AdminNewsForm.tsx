@@ -204,7 +204,7 @@ export default function AdminNewsForm() {
           {isEdit && id && <SocialPostButton articleId={id} />}
         </div>
 
-        <AdminPageHelp>
+        <AdminPageHelp pageId="noticias-form" manualSectionId="noticias">
           Llena el contenido <strong>en español</strong> (obligatorio el título y el extracto). Para el inglés,
           usa el botón <strong>“Traducir al inglés con IA”</strong> y revisa el resultado; si lo dejas vacío, el
           sitio usa el español. Sube una imagen destacada, elige la categoría y activa

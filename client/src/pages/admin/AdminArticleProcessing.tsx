@@ -14,8 +14,9 @@ import { useToast } from "@/hooks/use-toast";
 import { PipelineProgressModal } from "@/components/PipelineProgressModal";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
-import { 
-  ArrowLeft,
+import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
+import { AdminPageHelp } from "@/components/admin/AdminPageHelp";
+import {
   Cog,
   RefreshCw,
   Play,
@@ -740,25 +741,13 @@ export default function AdminArticleProcessing() {
   const articlesWithTranslations = Object.values(translationCounts).filter(c => c > 0).length;
 
   return (
-    <div className="min-h-screen bg-muted dark:bg-gray-900">
-      <header className="bg-card border-b border-border">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex items-center justify-between flex-wrap gap-4">
-            <div className="flex items-center gap-4">
-              <Link href="/admin/dashboard">
-                <Button variant="ghost" size="sm" data-testid="button-back">
-                  <ArrowLeft className="mr-2 h-4 w-4" />
-                  {t.back}
-                </Button>
-              </Link>
-              <div className="flex items-center gap-2">
-                <Cog className="h-5 w-5 text-primary" />
-                <h1 className="text-xl font-semibold" data-testid="text-page-title">
-                  {t.title}
-                </h1>
-              </div>
-            </div>
-            <div className="flex items-center gap-4 flex-wrap">
+    <div className="min-h-screen bg-background">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <AdminPageHeader
+          title={t.title}
+          icon={Cog}
+          actions={
+            <>
               <div className="flex items-center gap-2 px-3 py-2 rounded-none border bg-muted/50">
                 <ImageIcon className="h-4 w-4 text-muted-foreground" />
                 <div className="flex flex-col">
@@ -774,42 +763,41 @@ export default function AdminArticleProcessing() {
                   data-testid="switch-generate-images"
                 />
               </div>
-              <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                onClick={handleRefresh}
+                disabled={newsQuery.isLoading || translationCountsQuery.isLoading}
+                data-testid="button-refresh"
+              >
+                <RefreshCw className="mr-2 h-4 w-4" />
+                {t.refresh}
+              </Button>
+              {batchProgress.isProcessing ? (
                 <Button
-                  variant="outline"
-                  onClick={handleRefresh}
-                  disabled={newsQuery.isLoading || translationCountsQuery.isLoading}
-                  data-testid="button-refresh"
+                  onClick={handleStopBatch}
+                  variant="destructive"
+                  data-testid="button-stop-batch"
                 >
-                  <RefreshCw className="mr-2 h-4 w-4" />
-                  {t.refresh}
+                  <StopCircle className="mr-2 h-4 w-4" />
+                  {t.stopProcessing}
                 </Button>
-                {batchProgress.isProcessing ? (
-                  <Button
-                    onClick={handleStopBatch}
-                    variant="destructive"
-                    data-testid="button-stop-batch"
-                  >
-                    <StopCircle className="mr-2 h-4 w-4" />
-                    {t.stopProcessing}
-                  </Button>
-                ) : (
-                  <Button
-                    onClick={handleProcessAll}
-                    disabled={batchProgress.isProcessing}
-                    data-testid="button-process-all"
-                  >
-                    <Play className="mr-2 h-4 w-4" />
-                    {t.processAll}
-                  </Button>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
-      </header>
+              ) : (
+                <Button
+                  onClick={handleProcessAll}
+                  disabled={batchProgress.isProcessing}
+                  data-testid="button-process-all"
+                >
+                  <Play className="mr-2 h-4 w-4" />
+                  {t.processAll}
+                </Button>
+              )}
+            </>
+          }
+        />
+        <AdminPageHelp pageId="article-processing">
+          Aquí sigues el proceso automático que analiza y prepara un artículo antes de publicarlo (traducción, clasificación, revisión de calidad).
+        </AdminPageHelp>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between gap-2 space-y-0 pb-2">

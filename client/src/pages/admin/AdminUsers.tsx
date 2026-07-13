@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
-import { useLocation, Link } from "wouter";
+import { useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { queryClient } from "@/lib/queryClient";
 import { useAdminAuth, adminApiRequest } from "@/lib/adminAuth";
 import { AdminPageHelp } from "@/components/admin/AdminPageHelp";
+import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,7 +16,7 @@ import { Switch } from "@/components/ui/switch";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft, UserPlus, KeyRound, Trash2, Loader2, SlidersHorizontal, History, Check, X } from "lucide-react";
+import { UserPlus, KeyRound, Trash2, Loader2, SlidersHorizontal, History, Check, X } from "lucide-react";
 
 type AdminUserRow = {
   id: string; username: string; email: string; role: string;
@@ -171,19 +172,15 @@ export default function AdminUsers() {
   const events = logQuery.data || [];
 
   return (
-    <div className="min-h-screen bg-muted/40">
-      <header className="border-b bg-card">
-        <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between gap-3">
-          <div className="flex items-center gap-3">
-            <Link href="/admin/dashboard"><Button variant="ghost" size="sm"><ArrowLeft className="h-4 w-4 mr-1" /> Dashboard</Button></Link>
-            <h1 className="font-heading text-xl">Usuarios y accesos</h1>
-          </div>
-          <Button size="sm" onClick={() => setOpenCreate(true)} data-testid="button-new-user"><UserPlus className="h-4 w-4 mr-1" /> Nuevo usuario</Button>
-        </div>
-      </header>
-
+    <div className="min-h-screen bg-background">
       <main className="max-w-6xl mx-auto px-6 py-8 space-y-6">
-        <AdminPageHelp>
+        <AdminPageHeader
+          title="Usuarios y accesos"
+          actions={
+            <Button size="sm" onClick={() => setOpenCreate(true)} data-testid="button-new-user"><UserPlus className="h-4 w-4 mr-1" /> Nuevo usuario</Button>
+          }
+        />
+        <AdminPageHelp pageId="usuarios" manualSectionId="usuarios">
           Aquí gestionas <strong>quién puede entrar al panel</strong> y qué puede hacer. Cada usuario tiene un
           correo, una contraseña y un <strong>rol</strong> (Administrador, Editor, Marketing o Sistemas). Solo los
           administradores/dueños ven esta sección.

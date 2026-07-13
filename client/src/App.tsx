@@ -48,6 +48,7 @@ const AdminHealthCheck = lazy(() => import("@/pages/admin/AdminHealthCheck"));
 const SystemExplorer = lazy(() => import("@/pages/admin/SystemExplorer"));
 const AdminArticleDetail = lazy(() => import("@/pages/admin/AdminArticleDetail"));
 const GalleryAdmin = lazy(() => import("@/pages/admin/GalleryAdmin"));
+const AdminManual = lazy(() => import("@/pages/admin/AdminManual"));
 
 function SkipLinks() {
   const { language } = useLanguage();
@@ -129,6 +130,7 @@ function Router() {
         <Route path="/admin"><Redirect to="/admin/dashboard" /></Route>
         <Route path="/admin/login" component={AdminLogin} />
         <Route path="/admin/dashboard" component={AdminDashboard} />
+        <Route path="/admin/manual" component={AdminManual} />
         <Route path="/admin/site-config" component={AdminSiteConfig} />
         <Route path="/admin/users" component={AdminUsers} />
         <Route path="/admin/submissions" component={AdminSubmissions} />

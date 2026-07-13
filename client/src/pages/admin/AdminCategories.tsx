@@ -1,5 +1,6 @@
 import { useEffect, useState, useMemo } from "react";
 import { AdminPageHelp } from "@/components/admin/AdminPageHelp";
+import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useQuery, useMutation } from "@tanstack/react-query";
@@ -17,7 +18,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft, PlusCircle, Pencil, Trash2, FolderOpen } from "lucide-react";
+import { PlusCircle, Pencil, Trash2, FolderOpen } from "lucide-react";
 import type { BlogCategory } from "@shared/schema";
 
 const translations = {
@@ -539,24 +540,12 @@ export default function AdminCategories() {
   const categories = categoriesQuery.data || [];
 
   return (
-    <div className="min-h-screen bg-muted dark:bg-gray-900">
-      <header className="bg-card border-b border-border">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <Link href="/admin/dashboard">
-                <Button variant="ghost" size="sm" data-testid="button-back">
-                  <ArrowLeft className="mr-2 h-4 w-4" />
-                  {t.back}
-                </Button>
-              </Link>
-              <div className="flex items-center gap-2">
-                <FolderOpen className="h-5 w-5 text-primary" />
-                <h1 className="text-xl font-semibold" data-testid="text-page-title">
-                  {t.title}
-                </h1>
-              </div>
-            </div>
+    <div className="min-h-screen bg-background">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <AdminPageHeader
+          title={t.title}
+          icon={FolderOpen}
+          actions={
             <Dialog open={isDialogOpen} onOpenChange={handleOpenChange}>
               <DialogTrigger asChild>
                 <Button data-testid="button-new-category">
@@ -691,14 +680,11 @@ export default function AdminCategories() {
                 </Form>
               </DialogContent>
             </Dialog>
-          </div>
-        </div>
-      </header>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6">
-        <AdminPageHelp>Organiza las categorías con las que se clasifica el contenido.</AdminPageHelp>
-      </div>
+          }
+        />
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <AdminPageHelp pageId="categorias" manualSectionId="categorias">Organiza las categorías con las que se clasifica el contenido.</AdminPageHelp>
+
         <Card>
           <CardContent className="pt-6">
             {categoriesQuery.isLoading ? (

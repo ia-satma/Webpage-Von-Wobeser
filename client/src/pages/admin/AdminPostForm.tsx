@@ -18,6 +18,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { ArrowLeft, Save, Send, Sparkles, Loader2, Globe, Search, CheckCircle, AlertTriangle, X } from "lucide-react";
 import { TranslateButton } from "@/components/admin/TranslateButton";
+import { AdminPageHelp } from "@/components/admin/AdminPageHelp";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -1127,6 +1128,9 @@ export default function AdminPostForm() {
       </header>
 
       <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <AdminPageHelp pageId="post-form" manualSectionId="blog">
+          Aquí escribes o editas una entrada del blog. Completa el título, el contenido y una imagen si aplica; puedes guardar como borrador o publicar directamente.
+        </AdminPageHelp>
         <Form {...form}>
           <form className="space-y-6">
             <div className="flex justify-end">

@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Link } from "wouter";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useAdminAuth, adminApiRequest } from "@/lib/adminAuth";
 import { useToast } from "@/hooks/use-toast";
@@ -38,12 +37,13 @@ import {
   Languages,
   FileText,
   Search,
-  ArrowLeft,
   RefreshCw,
   XCircle,
   Eye,
   Filter
 } from "lucide-react";
+import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
+import { AdminPageHelp } from "@/components/admin/AdminPageHelp";
 import type { WebsiteAudit, WebsiteAuditFinding } from "@shared/schema";
 
 const translations = {
@@ -662,13 +662,13 @@ const translations = {
 function getSeverityIcon(severity: string) {
   switch (severity) {
     case 'critical':
-      return <XCircle className="h-4 w-4 text-red-600" />;
+      return <XCircle className="h-4 w-4 text-destructive" />;
     case 'high':
-      return <AlertCircle className="h-4 w-4 text-orange-500" />;
+      return <AlertCircle className="h-4 w-4 text-warning" />;
     case 'medium':
-      return <AlertTriangle className="h-4 w-4 text-yellow-500" />;
+      return <AlertTriangle className="h-4 w-4 text-warning/70" />;
     case 'low':
-      return <Info className="h-4 w-4 text-blue-500" />;
+      return <Info className="h-4 w-4 text-muted-foreground" />;
     default:
       return <Info className="h-4 w-4" />;
   }
@@ -676,10 +676,10 @@ function getSeverityIcon(severity: string) {
 
 function getSeverityBadge(severity: string, t: typeof translations.en) {
   const variants: Record<string, string> = {
-    critical: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200',
-    high: 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200',
-    medium: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200',
-    low: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200',
+    critical: 'bg-destructive text-destructive-foreground',
+    high: 'bg-warning text-warning-foreground',
+    medium: 'bg-warning/70 text-warning-foreground',
+    low: 'bg-muted text-muted-foreground',
   };
   const labels: Record<string, string> = {
     critical: t.critical,
@@ -711,10 +711,10 @@ function getCategoryIcon(category: string) {
 
 function getStatusBadge(status: string, t: typeof translations.en) {
   const variants: Record<string, string> = {
-    open: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200',
-    in_progress: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200',
-    resolved: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200',
-    ignored: 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200',
+    open: 'bg-destructive text-destructive-foreground',
+    in_progress: 'bg-warning/70 text-warning-foreground',
+    resolved: 'bg-success text-success-foreground',
+    ignored: 'bg-muted text-muted-foreground',
   };
   const labels: Record<string, string> = {
     open: t.open,
@@ -845,64 +845,56 @@ export default function AdminAudits() {
   });
 
   return (
-    <div className="min-h-screen bg-background p-4 md:p-8" data-testid="admin-audits-page">
-      <div className="max-w-7xl mx-auto space-y-6">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Link href="/admin/dashboard">
-              <Button variant="ghost" size="sm" data-testid="button-back">
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                {t.back}
+    <div className="min-h-screen bg-background" data-testid="admin-audits-page">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+        <AdminPageHeader
+          title={t.title}
+          description={t.subtitle}
+          icon={ShieldCheck}
+          actions={
+            <>
+              <Select value={auditType} onValueChange={setAuditType}>
+                <SelectTrigger className="w-[180px]" data-testid="select-audit-type">
+                  <SelectValue placeholder={t.auditType} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="full">{t.fullAudit}</SelectItem>
+                  <SelectItem value="links_only">{t.linksOnly}</SelectItem>
+                  <SelectItem value="translations_only">{t.translationsOnly}</SelectItem>
+                  <SelectItem value="seo_only">{t.seoOnly}</SelectItem>
+                  <SelectItem value="content_only">{t.contentOnly}</SelectItem>
+                </SelectContent>
+              </Select>
+
+              <Button
+                onClick={() => runAuditMutation.mutate(auditType)}
+                disabled={runAuditMutation.isPending}
+                data-testid="button-run-audit"
+              >
+                {runAuditMutation.isPending ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    {t.runningAudit}
+                  </>
+                ) : (
+                  <>
+                    <Play className="h-4 w-4 mr-2" />
+                    {t.runAudit}
+                  </>
+                )}
               </Button>
-            </Link>
-            <div>
-              <h1 className="text-2xl font-bold flex items-center gap-2" data-testid="text-page-title">
-                <ShieldCheck className="h-6 w-6 text-primary" />
-                {t.title}
-              </h1>
-              <p className="text-muted-foreground">{t.subtitle}</p>
-            </div>
-          </div>
-          
-          <div className="flex items-center gap-2">
-            <Select value={auditType} onValueChange={setAuditType}>
-              <SelectTrigger className="w-[180px]" data-testid="select-audit-type">
-                <SelectValue placeholder={t.auditType} />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="full">{t.fullAudit}</SelectItem>
-                <SelectItem value="links_only">{t.linksOnly}</SelectItem>
-                <SelectItem value="translations_only">{t.translationsOnly}</SelectItem>
-                <SelectItem value="seo_only">{t.seoOnly}</SelectItem>
-                <SelectItem value="content_only">{t.contentOnly}</SelectItem>
-              </SelectContent>
-            </Select>
-            
-            <Button
-              onClick={() => runAuditMutation.mutate(auditType)}
-              disabled={runAuditMutation.isPending}
-              data-testid="button-run-audit"
-            >
-              {runAuditMutation.isPending ? (
-                <>
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  {t.runningAudit}
-                </>
-              ) : (
-                <>
-                  <Play className="h-4 w-4 mr-2" />
-                  {t.runAudit}
-                </>
-              )}
-            </Button>
-          </div>
-        </div>
+            </>
+          }
+        />
+        <AdminPageHelp pageId="audits">
+          Este es el registro de auditoría: guarda quién hizo qué cambio y cuándo, en todo el sitio. Úsalo si necesitas rastrear un cambio inesperado o confirmar que una acción se realizó correctamente.
+        </AdminPageHelp>
 
         <div className="grid gap-4 md:grid-cols-4">
           <Card>
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium flex items-center gap-2">
-                <XCircle className="h-4 w-4 text-red-600" />
+                <XCircle className="h-4 w-4 text-destructive" />
                 {t.critical}
               </CardTitle>
             </CardHeader>
@@ -916,7 +908,7 @@ export default function AdminAudits() {
           <Card>
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium flex items-center gap-2">
-                <AlertCircle className="h-4 w-4 text-orange-500" />
+                <AlertCircle className="h-4 w-4 text-warning" />
                 {t.high}
               </CardTitle>
             </CardHeader>
@@ -930,7 +922,7 @@ export default function AdminAudits() {
           <Card>
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium flex items-center gap-2">
-                <AlertTriangle className="h-4 w-4 text-yellow-500" />
+                <AlertTriangle className="h-4 w-4 text-warning/70" />
                 {t.medium}
               </CardTitle>
             </CardHeader>
@@ -944,7 +936,7 @@ export default function AdminAudits() {
           <Card>
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium flex items-center gap-2">
-                <Info className="h-4 w-4 text-blue-500" />
+                <Info className="h-4 w-4 text-muted-foreground" />
                 {t.low}
               </CardTitle>
             </CardHeader>
@@ -1178,7 +1170,7 @@ export default function AdminAudits() {
                   {openFindings.length === 0 ? (
                     <TableRow>
                       <TableCell colSpan={4} className="text-center py-8 text-muted-foreground">
-                        <CheckCircle2 className="h-8 w-8 mx-auto mb-2 text-green-500" />
+                        <CheckCircle2 className="h-8 w-8 mx-auto mb-2 text-success" />
                         {language === 'es' ? 'No hay problemas abiertos' : 'No open issues'}
                       </TableCell>
                     </TableRow>
@@ -1224,7 +1216,7 @@ export default function AdminAudits() {
             </Card>
           </TabsContent>
         </Tabs>
-      </div>
+      </main>
     </div>
   );
 }

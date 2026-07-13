@@ -18,6 +18,8 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { ImageUpload } from "@/components/admin/ImageUpload";
 import { ConfirmChangesDialog, computeChanges, type Change } from "@/components/admin/ConfirmChangesDialog";
 import { TranslateButton } from "@/components/admin/TranslateButton";
+import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
+import { AdminPageHelp } from "@/components/admin/AdminPageHelp";
 
 const TEAM_LABELS: Record<string, string> = {
   name: "Nombre", slug: "Slug", title: "Cargo", titleEs: "Cargo (español)",
@@ -33,19 +35,17 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { 
-  ArrowLeft, 
-  Save, 
-  User, 
-  Loader2, 
-  Briefcase, 
-  Mail, 
-  Phone, 
-  Linkedin, 
-  Image, 
-  FileText, 
-  Settings, 
-  ChevronRight,
+import {
+  Save,
+  User,
+  Loader2,
+  Briefcase,
+  Mail,
+  Phone,
+  Linkedin,
+  Image,
+  FileText,
+  Settings,
   Sparkles,
   Globe,
   Award,
@@ -443,56 +443,25 @@ export default function AdminTeamForm() {
   }
 
   return (
-    <div className="min-h-screen bg-[#F8F8F8]">
-      {/* Header */}
-      <div className="bg-white border-b border-[#D9D8D7] sticky top-0 z-10">
-        <div className="container mx-auto px-6 py-4 max-w-6xl">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
+    <div className="min-h-screen bg-background">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <AdminPageHeader
+          title={isEditMode ? (member?.name || t.editTitle) : t.createTitle}
+          description={isEditMode ? t.editSubtitle : t.createSubtitle}
+          icon={User}
+          actions={
+            <>
               <Link href="/admin/team">
-                <Button 
-                  variant="ghost" 
-                  size="icon" 
-                  className="rounded-none hover:bg-[#F8F8F8]"
-                  data-testid="button-back"
-                >
-                  <ArrowLeft className="w-5 h-5 text-[#54565B]" />
-                </Button>
-              </Link>
-              
-              {/* Breadcrumb */}
-              <nav className="flex items-center gap-2 text-sm">
-                <Link href="/admin/dashboard">
-                  <span className="text-[#878A8E] hover:text-[#54565B] transition-colors cursor-pointer">
-                    Admin
-                  </span>
-                </Link>
-                <ChevronRight className="w-4 h-4 text-[#BBBBBB]" />
-                <Link href="/admin/team">
-                  <span className="text-[#878A8E] hover:text-[#54565B] transition-colors cursor-pointer">
-                    {language === "es" ? "Equipo" : "Team"}
-                  </span>
-                </Link>
-                <ChevronRight className="w-4 h-4 text-[#BBBBBB]" />
-                <span className="text-[#1D1D1B] font-medium">
-                  {isEditMode ? (member?.name || t.editTitle) : t.createTitle}
-                </span>
-              </nav>
-            </div>
-
-            {/* Action Buttons */}
-            <div className="flex items-center gap-3">
-              <Link href="/admin/team">
-                <Button 
-                  type="button" 
-                  variant="outline" 
+                <Button
+                  type="button"
+                  variant="outline"
                   className="rounded-none border-[#D9D8D7] text-[#54565B] hover:bg-[#F8F8F8]"
                   data-testid="button-cancel"
                 >
                   {t.cancel}
                 </Button>
               </Link>
-              <Button 
+              <Button
                 type="submit"
                 form="team-member-form"
                 disabled={isPending}
@@ -511,13 +480,13 @@ export default function AdminTeamForm() {
                   </>
                 )}
               </Button>
-            </div>
-          </div>
-        </div>
-      </div>
+            </>
+          }
+        />
+        <AdminPageHelp pageId="equipo-form" manualSectionId="equipo">
+          Aquí agregas o editas la ficha de un abogado del equipo: nombre, cargo, foto, áreas de práctica y biografía.
+        </AdminPageHelp>
 
-      {/* Main Content */}
-      <div className="container mx-auto px-6 py-8 max-w-6xl">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Form Section */}
           <div className="lg:col-span-2">
@@ -1270,7 +1239,7 @@ export default function AdminTeamForm() {
             </motion.div>
           </div>
         </div>
-      </div>
+      </main>
 
       <ConfirmChangesDialog
         open={!!confirm}

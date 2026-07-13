@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { Link } from "wouter";
 import { z } from "zod";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useAdminAuth, adminApiRequest } from "@/lib/adminAuth";
@@ -21,8 +20,10 @@ import { Badge } from "@/components/ui/badge";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft, PlusCircle, Pencil, Trash2, Calendar as CalendarIcon, MapPin, Video, Users, Clock, Star, ExternalLink } from "lucide-react";
+import { PlusCircle, Pencil, Trash2, Calendar as CalendarIcon, MapPin, Video, Users, Clock, Star, ExternalLink } from "lucide-react";
 import { TranslateButton } from "@/components/admin/TranslateButton";
+import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
+import { AdminPageHelp } from "@/components/admin/AdminPageHelp";
 import { format } from "date-fns";
 import type { Event } from "@shared/schema";
 
@@ -858,31 +859,26 @@ export default function AdminEvents() {
   }
 
   return (
-    <div className="min-h-screen bg-background p-4 md:p-8" data-testid="admin-events-page">
-      <div className="max-w-7xl mx-auto space-y-6">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div className="flex items-center gap-4">
-            <Link href="/admin/dashboard">
-              <Button variant="ghost" size="icon" data-testid="button-back">
-                <ArrowLeft className="h-4 w-4" />
-              </Button>
-            </Link>
-            <h1 className="text-2xl font-bold" data-testid="text-page-title">{t.title}</h1>
-          </div>
-          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-            <DialogTrigger asChild>
-              <Button
-                onClick={() => {
-                  setEditingEvent(null);
-                  form.reset();
-                }}
-                className="bg-[#AA1A2E] hover:bg-[#8B1525] rounded-none"
-                data-testid="button-new-event"
-              >
-                <PlusCircle className="h-4 w-4 mr-2" />
-                {t.newEvent}
-              </Button>
-            </DialogTrigger>
+    <div className="min-h-screen bg-background" data-testid="admin-events-page">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+        <AdminPageHeader
+          title={t.title}
+          icon={CalendarIcon}
+          actions={
+            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+              <DialogTrigger asChild>
+                <Button
+                  onClick={() => {
+                    setEditingEvent(null);
+                    form.reset();
+                  }}
+                  className="bg-[#AA1A2E] hover:bg-[#8B1525] rounded-none"
+                  data-testid="button-new-event"
+                >
+                  <PlusCircle className="h-4 w-4 mr-2" />
+                  {t.newEvent}
+                </Button>
+              </DialogTrigger>
             <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto rounded-none">
               <DialogHeader>
                 <DialogTitle data-testid="text-dialog-title">
@@ -1191,8 +1187,12 @@ export default function AdminEvents() {
                 </form>
               </Form>
             </DialogContent>
-          </Dialog>
-        </div>
+            </Dialog>
+          }
+        />
+        <AdminPageHelp pageId="events" manualSectionId="eventos">
+          Aquí administras los eventos del despacho (conferencias, webinars, presentaciones) que se muestran en el sitio público.
+        </AdminPageHelp>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <Card className="rounded-none">
@@ -1411,7 +1411,7 @@ export default function AdminEvents() {
             </DialogFooter>
           </DialogContent>
         </Dialog>
-      </div>
+      </main>
     </div>
   );
 }

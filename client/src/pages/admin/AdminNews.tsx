@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { AdminPageHelp } from "@/components/admin/AdminPageHelp";
+import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 import { NewsletterButton, LegalAlertButton } from "@/components/admin/AgentTools";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Link } from "wouter";
@@ -22,7 +23,6 @@ import {
   Plus,
   ChevronLeft,
   ChevronRight,
-  ArrowLeft,
   Newspaper
 } from "lucide-react";
 import type { News } from "@shared/schema";
@@ -391,25 +391,13 @@ export default function AdminNews() {
   const data = newsQuery.data || { news: [], total: 0, page: 1, totalPages: 1 };
 
   return (
-    <div className="min-h-screen bg-muted dark:bg-gray-900">
-      <header className="bg-card border-b border-border">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <Link href="/admin/dashboard">
-                <Button variant="ghost" size="sm" data-testid="button-back">
-                  <ArrowLeft className="mr-2 h-4 w-4" />
-                  {t.back}
-                </Button>
-              </Link>
-              <div className="flex items-center gap-2">
-                <Newspaper className="h-5 w-5 text-primary" />
-                <h1 className="text-xl font-semibold" data-testid="text-page-title">
-                  {t.title}
-                </h1>
-              </div>
-            </div>
-            <div className="flex items-center gap-2">
+    <div className="min-h-screen bg-background">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <AdminPageHeader
+          title={t.title}
+          icon={Newspaper}
+          actions={
+            <>
               <NewsletterButton />
               <LegalAlertButton />
               <Link href="/admin/news/new">
@@ -418,15 +406,12 @@ export default function AdminNews() {
                   Nueva noticia
                 </Button>
               </Link>
-            </div>
-          </div>
-        </div>
-      </header>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6">
-        <AdminPageHelp>Aquí publicas y editas las noticias y publicaciones del sitio. Crea una, edítala como borrador y publícala cuando esté lista.</AdminPageHelp>
-      </div>
+            </>
+          }
+        />
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <AdminPageHelp pageId="noticias" manualSectionId="noticias">Aquí publicas y editas las noticias y publicaciones del sitio. Crea una, edítala como borrador y publícala cuando esté lista.</AdminPageHelp>
+
         <Card>
           <CardHeader>
             <div className="flex flex-col sm:flex-row gap-4">

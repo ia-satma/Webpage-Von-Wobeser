@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { AdminPageHelp } from "@/components/admin/AdminPageHelp";
+import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { Link } from "wouter";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useAdminAuth, adminApiRequest } from "@/lib/adminAuth";
 import { queryClient } from "@/lib/queryClient";
@@ -15,13 +15,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
-import { 
-  Languages, 
-  Globe, 
-  CheckCircle, 
-  XCircle, 
+import {
+  Languages,
+  Globe,
+  CheckCircle,
+  XCircle,
   RefreshCw,
-  ArrowLeft,
   Clock,
   AlertCircle,
   Loader2
@@ -647,27 +646,13 @@ export default function AdminTranslations() {
   const filteredArticles = getFilteredArticles();
 
   return (
-    <div className="min-h-screen bg-muted dark:bg-gray-900" data-testid="admin-translations-page">
-      <header className="bg-card border-b border-border">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <Link href="/admin/dashboard">
-                <Button variant="ghost" size="sm" data-testid="button-back">
-                  <ArrowLeft className="mr-2 h-4 w-4" />
-                  {t.back}
-                </Button>
-              </Link>
-              <div className="flex items-center gap-2">
-                <Languages className="h-5 w-5 text-primary" />
-                <div>
-                  <h1 className="text-xl font-semibold" data-testid="text-page-title">
-                    {t.title}
-                  </h1>
-                  <p className="text-sm text-muted-foreground">{t.subtitle}</p>
-                </div>
-              </div>
-            </div>
+    <div className="min-h-screen bg-background" data-testid="admin-translations-page">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <AdminPageHeader
+          title={t.title}
+          description={t.subtitle}
+          icon={Languages}
+          actions={
             <Button
               variant="outline"
               size="sm"
@@ -680,14 +665,10 @@ export default function AdminTranslations() {
               <RefreshCw className="mr-2 h-4 w-4" />
               {t.refresh}
             </Button>
-          </div>
-        </div>
-      </header>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6">
-        <AdminPageHelp>Traduce el contenido a otros idiomas y elige, en la pestaña Idiomas activos, a cuáles traducir.</AdminPageHelp>
-      </div>
+          }
+        />
+        <AdminPageHelp pageId="traducciones" manualSectionId="traducciones">Traduce el contenido a otros idiomas y elige, en la pestaña Idiomas activos, a cuáles traducir.</AdminPageHelp>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <Tabs defaultValue="overview" className="space-y-6">
           <TabsList data-testid="tabs-navigation">
             <TabsTrigger value="overview" data-testid="tab-overview">{t.overview}</TabsTrigger>

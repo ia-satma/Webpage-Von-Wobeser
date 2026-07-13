@@ -8,48 +8,29 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { 
-  FileText, 
-  FilePenLine, 
-  CheckCircle, 
-  PlusCircle, 
-  FolderOpen, 
+import { AdminPageHelp } from "@/components/admin/AdminPageHelp";
+import {
+  FileText,
+  FilePenLine,
+  CheckCircle,
+  PlusCircle,
+  FolderOpen,
   LogOut,
-  LayoutDashboard,
-  Bot,
-  Globe,
   Newspaper,
-  Cog,
   Languages,
   Activity,
   Clock,
   BarChart3,
   Loader2,
   Users,
-  Briefcase,
-  Building2,
-  Calendar,
-  BookOpen,
   ChevronRight,
-  Layers,
-  Images,
   Settings,
-  Award,
   ArrowUpRight,
   Database,
   ArrowRight,
-  ShieldCheck,
-  Mail
+  Mail,
+  HelpCircle,
 } from "lucide-react";
-
-// Navegación superior del admin (secciones más usadas).
-const NAV_ITEMS = [
-  { href: "/admin/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/admin/news", label: "Noticias", icon: Newspaper },
-  { href: "/admin/team", label: "Abogados", icon: Users },
-  { href: "/admin/posts", label: "Blog", icon: FileText },
-  { href: "/admin/site-config", label: "Configuración", icon: Settings },
-];
 
 const translations = {
   en: {
@@ -621,14 +602,8 @@ export default function AdminDashboard() {
   const { has } = useMyPermissions();
   const isAdmin = !role || role === "admin" || role === "super_admin";
   const canConfig = has("config");
-  const hasAgents = has("agents");
-  const hasAdvancedTools = has("advanced");
-  // La tarjeta "Avanzado" aparece si el usuario tiene herramientas técnicas O acceso a agentes.
-  const canAdvanced = hasAdvancedTools || hasAgents;
   // Caja "Distribución por Idioma" colapsada por defecto (foco en ES/EN).
   const [showLangDist, setShowLangDist] = useState(false);
-  // Sección técnica/IA colapsada por defecto: el cliente ve primero el contenido.
-  const [showAdvanced, setShowAdvanced] = useState(false);
   const [location] = useLocation();
   const t = translations[language as keyof typeof translations] || translations.en;
 
@@ -670,7 +645,7 @@ export default function AdminDashboard() {
     : 1;
 
   return (
-    <div className="min-h-screen bg-muted dark:bg-gray-900">
+    <div className="min-h-screen bg-background">
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* ── Encabezado ── */}
         <div className="flex flex-wrap items-end justify-between gap-3 mb-8">
@@ -688,6 +663,10 @@ export default function AdminDashboard() {
             )}
           </Badge>
         </div>
+
+        <AdminPageHelp pageId="admin-dashboard">
+          Esta es la pantalla principal del panel. Aquí ves de un vistazo cómo está el sitio: noticias recientes, actividad del equipo y accesos rápidos a las secciones más usadas.
+        </AdminPageHelp>
 
         {/* ── Tarjetas de estado ── */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
@@ -715,130 +694,47 @@ export default function AdminDashboard() {
           })}
         </div>
 
-        {/* Administración del sitio — lo más importante, primero */}
-        <Card className="mb-8 rounded-2xl" data-testid="card-quick-actions">
-          <CardHeader>
-            <CardTitle>Administración del sitio</CardTitle>
-            <CardDescription>Todo lo editable, organizado por tipo</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="grid gap-8 sm:grid-cols-2">
-
-              {/* ── CONTENIDO DEL SITIO ── */}
+        {/* ── Manual de uso — destacado, ya no escondido en "Avanzado" ── */}
+        <Card className="mb-8 rounded-2xl border-primary/30 bg-primary/5" data-testid="card-manual">
+          <CardContent className="flex flex-wrap items-center justify-between gap-4 py-5">
+            <div className="flex items-center gap-3">
+              <span className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary flex-shrink-0"><HelpCircle className="h-5 w-5" /></span>
               <div>
-                <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">
-                  Contenido del sitio
-                </p>
-                <div className="space-y-2">
-                  <Link href="/admin/team">
-                    <Button variant="outline" className="w-full justify-start h-auto py-2" data-testid="button-team-members"><Users className="mr-2 h-4 w-4" /><span className="flex flex-col items-start text-left leading-tight"><span>Abogados y equipo</span><span className="text-[11px] font-normal text-muted-foreground mt-0.5">Agrega y edita socios, abogados y personal.</span></span></Button>
-                  </Link>
-                  <Link href="/admin/practice-groups">
-                    <Button variant="outline" className="w-full justify-start h-auto py-2" data-testid="button-practice-groups"><Briefcase className="mr-2 h-4 w-4" /><span className="flex flex-col items-start text-left leading-tight"><span>Áreas de práctica</span><span className="text-[11px] font-normal text-muted-foreground mt-0.5">Define las áreas de práctica legal.</span></span></Button>
-                  </Link>
-                  <Link href="/admin/industry-groups">
-                    <Button variant="outline" className="w-full justify-start h-auto py-2" data-testid="button-industry-groups"><Building2 className="mr-2 h-4 w-4" /><span className="flex flex-col items-start text-left leading-tight"><span>Sectores / Industrias</span><span className="text-[11px] font-normal text-muted-foreground mt-0.5">Define los sectores/industrias que atiende la firma.</span></span></Button>
-                  </Link>
-                  <Link href="/admin/news">
-                    <Button variant="outline" className="w-full justify-start h-auto py-2" data-testid="button-news-articles"><Newspaper className="mr-2 h-4 w-4" /><span className="flex flex-col items-start text-left leading-tight"><span>Noticias</span><span className="text-[11px] font-normal text-muted-foreground mt-0.5">Publica y edita noticias y publicaciones.</span></span></Button>
-                  </Link>
-                  <Link href="/admin/events">
-                    <Button variant="outline" className="w-full justify-start h-auto py-2" data-testid="button-events"><Calendar className="mr-2 h-4 w-4" /><span className="flex flex-col items-start text-left leading-tight"><span>Eventos</span><span className="text-[11px] font-normal text-muted-foreground mt-0.5">Crea y administra eventos y seminarios.</span></span></Button>
-                  </Link>
-                  <Link href="/admin/recognitions">
-                    <Button variant="outline" className="w-full justify-start h-auto py-2" data-testid="button-recognitions"><Award className="mr-2 h-4 w-4" /><span className="flex flex-col items-start text-left leading-tight"><span>Reconocimientos</span><span className="text-[11px] font-normal text-muted-foreground mt-0.5">Premios y rankings de la firma (Chambers, Legal 500…).</span></span></Button>
-                  </Link>
-                  <Link href="/admin/posts">
-                    <Button variant="outline" className="w-full justify-start h-auto py-2" data-testid="button-all-posts"><FileText className="mr-2 h-4 w-4" /><span className="flex flex-col items-start text-left leading-tight"><span>Blog / Artículos</span><span className="text-[11px] font-normal text-muted-foreground mt-0.5">Escribe y edita entradas del blog.</span></span></Button>
-                  </Link>
-                  <Link href="/admin/categories">
-                    <Button variant="outline" className="w-full justify-start h-auto py-2" data-testid="button-manage-categories"><FolderOpen className="mr-2 h-4 w-4" /><span className="flex flex-col items-start text-left leading-tight"><span>Categorías</span><span className="text-[11px] font-normal text-muted-foreground mt-0.5">Organiza las categorías del contenido.</span></span></Button>
-                  </Link>
-                  <Link href="/admin/submissions">
-                    <Button variant="outline" className="w-full justify-start h-auto py-2" data-testid="button-submissions"><Mail className="mr-2 h-4 w-4" /><span className="flex flex-col items-start text-left leading-tight"><span>Solicitudes recibidas</span><span className="text-[11px] font-normal text-muted-foreground mt-0.5">Mensajes de contacto y solicitudes de pasantías.</span></span></Button>
-                  </Link>
-                </div>
+                <p className="font-semibold text-foreground">¿No sabes por dónde empezar?</p>
+                <p className="text-sm text-muted-foreground">Aprende a publicar noticias, editar el equipo y configurar el sitio paso a paso.</p>
               </div>
-
-              {/* ── CONFIGURACIÓN DEL SITIO ── */}
-              {canConfig && (
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">
-                  Configuración del sitio
-                </p>
-                <div className="space-y-2">
-                  <Link href="/admin/site-config">
-                    <Button variant="outline" className="w-full justify-start bg-primary/5 border-primary/20 h-auto py-2" data-testid="button-site-config">
-                      <Settings className="mr-2 h-4 w-4 text-primary" /><span className="flex flex-col items-start text-left leading-tight"><span>Textos, video y logos</span><span className="text-[11px] font-normal text-muted-foreground mt-0.5">Cambia textos, video y banner de la portada.</span></span>
-                    </Button>
-                  </Link>
-                  <Link href="/admin/gallery">
-                    <Button variant="outline" className="w-full justify-start h-auto py-2" data-testid="button-gallery"><Images className="mr-2 h-4 w-4" /><span className="flex flex-col items-start text-left leading-tight"><span>Galería de imágenes</span><span className="text-[11px] font-normal text-muted-foreground mt-0.5">Sube y ordena las fotos de la galería de oficinas.</span></span></Button>
-                  </Link>
-                  <Link href="/admin/translations">
-                    <Button variant="outline" className="w-full justify-start h-auto py-2" data-testid="button-translations-dashboard"><Languages className="mr-2 h-4 w-4" /><span className="flex flex-col items-start text-left leading-tight"><span>Traducciones</span><span className="text-[11px] font-normal text-muted-foreground mt-0.5">Traduce el contenido y elige a qué idiomas.</span></span></Button>
-                  </Link>
-                  {isAdmin && (
-                  <Link href="/admin/users">
-                    <Button variant="outline" className="w-full justify-start h-auto py-2" data-testid="button-users"><ShieldCheck className="mr-2 h-4 w-4" /><span className="flex flex-col items-start text-left leading-tight"><span>Usuarios y accesos</span><span className="text-[11px] font-normal text-muted-foreground mt-0.5">Gestiona quién entra al panel y sus permisos.</span></span></Button>
-                  </Link>
-                  )}
-                </div>
-              </div>
-              )}
-
             </div>
+            <Link href="/admin/manual">
+              <Button data-testid="button-open-manual">Ver el manual de uso</Button>
+            </Link>
           </CardContent>
         </Card>
 
-        {/* ── AVANZADO · TÉCNICO — colapsable, cerrado por defecto ── */}
-        {canAdvanced && (
-        <Card className="mb-8 rounded-2xl border-dashed" data-testid="card-advanced">
-          <CardHeader className="cursor-pointer select-none" onClick={() => setShowAdvanced((v) => !v)} data-testid="button-toggle-advanced">
-            <div className="flex items-center justify-between gap-3">
-              <div>
-                <CardTitle className="text-base">Avanzado · Herramientas técnicas</CardTitle>
-                <CardDescription>Herramientas para el equipo técnico. No necesitas esta sección para administrar el contenido del sitio.</CardDescription>
-              </div>
-              <ChevronRight className={`h-5 w-5 flex-shrink-0 text-muted-foreground transition-transform ${showAdvanced ? "rotate-90" : ""}`} />
-            </div>
+        {/* ── Accesos rápidos — el resto de las secciones ya viven en el sidebar ── */}
+        <Card className="mb-8 rounded-2xl" data-testid="card-quick-actions">
+          <CardHeader>
+            <CardTitle>Accesos rápidos</CardTitle>
+            <CardDescription>Las tareas más frecuentes. El resto de las secciones está en el menú lateral.</CardDescription>
           </CardHeader>
-          {showAdvanced && (
-            <CardContent>
-              <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-                {hasAgents && (
-                <Link href="/admin/agents">
-                  <Button variant="outline" className="w-full justify-start h-auto py-2" data-testid="button-ai-agents"><Bot className="mr-2 h-4 w-4" /><span className="flex flex-col items-start text-left leading-tight"><span>Agentes IA</span><span className="text-[11px] font-normal text-muted-foreground mt-0.5">Los agentes de IA que procesan y difunden el contenido (técnico).</span></span></Button>
+          <CardContent>
+            <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
+              <Link href="/admin/news/new">
+                <Button variant="outline" className="w-full justify-start h-auto py-2" data-testid="button-quick-new-news"><Newspaper className="mr-2 h-4 w-4" /><span className="flex flex-col items-start text-left leading-tight"><span>Nueva noticia</span><span className="text-[11px] font-normal text-muted-foreground mt-0.5">Publica un comunicado o artículo.</span></span></Button>
+              </Link>
+              <Link href="/admin/team/new">
+                <Button variant="outline" className="w-full justify-start h-auto py-2" data-testid="button-quick-new-team"><Users className="mr-2 h-4 w-4" /><span className="flex flex-col items-start text-left leading-tight"><span>Nuevo abogado</span><span className="text-[11px] font-normal text-muted-foreground mt-0.5">Agrega un integrante al equipo.</span></span></Button>
+              </Link>
+              {canConfig && (
+                <Link href="/admin/site-config">
+                  <Button variant="outline" className="w-full justify-start h-auto py-2" data-testid="button-quick-site-config"><Settings className="mr-2 h-4 w-4" /><span className="flex flex-col items-start text-left leading-tight"><span>Editar portada</span><span className="text-[11px] font-normal text-muted-foreground mt-0.5">Textos, video y logos del sitio.</span></span></Button>
                 </Link>
-                )}
-                {hasAdvancedTools && (<>
-                <Link href="/admin/processing">
-                  <Button variant="outline" className="w-full justify-start h-auto py-2" data-testid="button-article-processing"><Cog className="mr-2 h-4 w-4" /><span className="flex flex-col items-start text-left leading-tight"><span>Procesamiento de artículos</span><span className="text-[11px] font-normal text-muted-foreground mt-0.5">Corre el pipeline de IA sobre los artículos (técnico).</span></span></Button>
-                </Link>
-                <Link href="/admin/knowledge">
-                  <Button variant="outline" className="w-full justify-start h-auto py-2" data-testid="button-knowledge-base"><BookOpen className="mr-2 h-4 w-4" /><span className="flex flex-col items-start text-left leading-tight"><span>Base de conocimiento</span><span className="text-[11px] font-normal text-muted-foreground mt-0.5">Base de conocimiento de los agentes (técnico).</span></span></Button>
-                </Link>
-                <Link href="/admin/explorer">
-                  <Button variant="outline" className="w-full justify-start h-auto py-2" data-testid="button-system-explorer"><Layers className="mr-2 h-4 w-4" /><span className="flex flex-col items-start text-left leading-tight"><span>Explorador del sistema</span><span className="text-[11px] font-normal text-muted-foreground mt-0.5">Inventario técnico del sistema (avanzado).</span></span></Button>
-                </Link>
-                <Link href="/admin/health-check">
-                  <Button variant="outline" className="w-full justify-start h-auto py-2" data-testid="button-health-check"><Activity className="mr-2 h-4 w-4" /><span className="flex flex-col items-start text-left leading-tight"><span>Salud del sistema</span><span className="text-[11px] font-normal text-muted-foreground mt-0.5">Diagnóstico de salud del sistema (técnico).</span></span></Button>
-                </Link>
-                <Link href="/admin/guide">
-                  <Button variant="outline" className="w-full justify-start h-auto py-2" data-testid="button-platform-guide"><Bot className="mr-2 h-4 w-4" /><span className="flex flex-col items-start text-left leading-tight"><span>Guía de la plataforma</span><span className="text-[11px] font-normal text-muted-foreground mt-0.5">Guía visual del ecosistema de agentes.</span></span></Button>
-                </Link>
-                <Link href="/admin/performance">
-                  <Button variant="outline" className="w-full justify-start h-auto py-2" data-testid="button-performance"><BarChart3 className="mr-2 h-4 w-4" /><span className="flex flex-col items-start text-left leading-tight"><span>Rendimiento</span><span className="text-[11px] font-normal text-muted-foreground mt-0.5">Métricas de los agentes y colas de trabajo (técnico).</span></span></Button>
-                </Link>
-                <Link href="/admin/audits">
-                  <Button variant="outline" className="w-full justify-start h-auto py-2" data-testid="button-audits"><CheckCircle className="mr-2 h-4 w-4" /><span className="flex flex-col items-start text-left leading-tight"><span>Auditorías del sitio</span><span className="text-[11px] font-normal text-muted-foreground mt-0.5">Revisiones de calidad, enlaces y SEO (técnico).</span></span></Button>
-                </Link>
-                </>)}
-              </div>
-            </CardContent>
-          )}
+              )}
+              <Link href="/admin/submissions">
+                <Button variant="outline" className="w-full justify-start h-auto py-2" data-testid="button-quick-submissions"><Mail className="mr-2 h-4 w-4" /><span className="flex flex-col items-start text-left leading-tight"><span>Ver solicitudes</span><span className="text-[11px] font-normal text-muted-foreground mt-0.5">Mensajes de contacto y pasantías.</span></span></Button>
+              </Link>
+            </div>
+          </CardContent>
         </Card>
-        )}
 
         <div className="grid gap-6 lg:grid-cols-3 mb-8">
           <Card className="lg:col-span-1 rounded-2xl" data-testid="card-translation-coverage">

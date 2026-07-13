@@ -6,9 +6,12 @@ export default {
   theme: {
     extend: {
       borderRadius: {
-        lg: ".5625rem", /* 9px */
-        md: ".375rem", /* 6px */
-        sm: ".1875rem", /* 3px */
+        // Derivado de --radius (0rem, esquinas rectas por mandato del manual de identidad).
+        // Antes estaban fijos en rem e ignoraban la variable — la marca nunca se respetaba
+        // en botones/cards/inputs que usan rounded-lg/md/sm.
+        lg: "var(--radius)",
+        md: "var(--radius)",
+        sm: "var(--radius)",
       },
       colors: {
         // Flat / base colors (regular buttons)
@@ -50,6 +53,14 @@ export default {
           DEFAULT: "hsl(var(--destructive) / <alpha-value>)",
           foreground: "hsl(var(--destructive-foreground) / <alpha-value>)",
           border: "var(--destructive-border)",
+        },
+        success: {
+          DEFAULT: "hsl(var(--success) / <alpha-value>)",
+          foreground: "hsl(var(--success-foreground) / <alpha-value>)",
+        },
+        warning: {
+          DEFAULT: "hsl(var(--warning) / <alpha-value>)",
+          foreground: "hsl(var(--warning-foreground) / <alpha-value>)",
         },
         ring: "hsl(var(--ring) / <alpha-value>)",
         chart: {

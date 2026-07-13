@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { useLocation, Link } from "wouter";
+import { useLocation } from "wouter";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAdminAuth, adminApiRequest } from "@/lib/adminAuth";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -8,7 +8,9 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft, Mail, FileText, Download, Check } from "lucide-react";
+import { Mail, FileText, Download, Check } from "lucide-react";
+import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
+import { AdminPageHelp } from "@/components/admin/AdminPageHelp";
 
 type ContactSubmissionRow = {
   id: string; fullName: string; email: string; phone: string | null; company: string | null;
@@ -81,15 +83,15 @@ export default function AdminSubmissions() {
   if (authLoading || !isAuthenticated) return null;
 
   return (
-    <div className="min-h-screen bg-background p-6">
-      <div className="max-w-5xl mx-auto space-y-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <Link href="/admin/dashboard"><Button variant="ghost" size="sm"><ArrowLeft className="h-4 w-4 mr-1" /> Dashboard</Button></Link>
-            <h1 className="text-2xl font-semibold mt-2">Solicitudes recibidas</h1>
-            <p className="text-sm text-muted-foreground">Mensajes de contacto y solicitudes de pasantías enviadas desde el sitio.</p>
-          </div>
-        </div>
+    <div className="min-h-screen bg-background">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+        <AdminPageHeader
+          title="Solicitudes recibidas"
+          description="Mensajes de contacto y solicitudes de pasantías enviadas desde el sitio."
+        />
+        <AdminPageHelp pageId="submissions" manualSectionId="solicitudes">
+          Aquí ves los mensajes que las personas han enviado desde los formularios de contacto del sitio.
+        </AdminPageHelp>
 
         <Tabs defaultValue="contact">
           <TabsList>
@@ -199,7 +201,7 @@ export default function AdminSubmissions() {
             </Card>
           </TabsContent>
         </Tabs>
-      </div>
+      </main>
     </div>
   );
 }

@@ -12,6 +12,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { useAdminAuth, adminApiRequest } from "@/lib/adminAuth";
 import { queryClient } from "@/lib/queryClient";
 import { CouncilSafetyCard } from "@/components/admin/CouncilSafetyCard";
+import { AdminPageHelp } from "@/components/admin/AdminPageHelp";
 import type { News } from "@shared/schema";
 
 const translations = {
@@ -395,7 +396,11 @@ export default function AdminArticleDetail() {
         {article.title}
       </h1>
 
-      <CouncilSafetyCard 
+      <AdminPageHelp pageId="article-detail">
+        Aquí ves el detalle completo de un artículo o noticia: su contenido, traducciones, estado de publicación y el historial de procesamiento.
+      </AdminPageHelp>
+
+      <CouncilSafetyCard
         verdict={article.councilVerdict || null}
         onValidate={() => validateMutation.mutate()}
         isValidating={validateMutation.isPending}

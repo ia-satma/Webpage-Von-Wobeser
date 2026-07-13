@@ -19,6 +19,7 @@ import {
   RefreshCw
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { AdminPageHelp } from "@/components/admin/AdminPageHelp";
 
 const translations = {
   en: {
@@ -423,6 +424,10 @@ export default function AdminPerformance() {
         </Button>
       </div>
 
+      <AdminPageHelp pageId="performance">
+        Aquí se mide qué tan rápido y estable está funcionando el sitio (tiempos de carga, errores, uso de recursos). Sirve para detectar si algo se está poniendo lento antes de que los visitantes lo noten.
+      </AdminPageHelp>
+
       {isLoading ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
           {[1, 2, 3, 4].map((i) => (
@@ -446,7 +451,7 @@ export default function AdminPerformance() {
               </CardHeader>
               <CardContent>
                 <div className="flex items-center gap-2">
-                  <Badge className="bg-green-600">
+                  <Badge className="bg-success text-success-foreground">
                     <CheckCircle2 className="w-3 h-3 mr-1" />
                     {t.operational}
                   </Badge>
@@ -476,7 +481,7 @@ export default function AdminPerformance() {
                 <TrendingUp className="w-4 h-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-green-600">{mockMetrics.successRate}%</div>
+                <div className="text-2xl font-bold text-success">{mockMetrics.successRate}%</div>
                 <Progress value={mockMetrics.successRate} className="mt-2" />
               </CardContent>
             </Card>
@@ -497,7 +502,7 @@ export default function AdminPerformance() {
             <Card data-testid="card-translation-stats">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <Globe2 className="w-5 h-5 text-blue-500" />
+                  <Globe2 className="w-5 h-5 text-muted-foreground" />
                   {t.translationStats}
                 </CardTitle>
                 <CardDescription>PolyglotTranslatorAgent performance</CardDescription>
@@ -505,11 +510,11 @@ export default function AdminPerformance() {
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-3 gap-4">
                   <div className="text-center">
-                    <div className="text-3xl font-bold text-blue-600">{mockMetrics.cachedTranslations}</div>
+                    <div className="text-3xl font-bold text-muted-foreground">{mockMetrics.cachedTranslations}</div>
                     <p className="text-xs text-muted-foreground">{t.cachedTranslations}</p>
                   </div>
                   <div className="text-center">
-                    <div className="text-3xl font-bold text-green-600">{mockMetrics.languagesCovered}</div>
+                    <div className="text-3xl font-bold text-success">{mockMetrics.languagesCovered}</div>
                     <p className="text-xs text-muted-foreground">{t.languagesCovered}</p>
                   </div>
                   <div className="text-center">
@@ -557,11 +562,11 @@ export default function AdminPerformance() {
                     <p className="text-xs text-muted-foreground">{t.articlesAnalyzed}</p>
                   </div>
                   <div className="text-center">
-                    <div className="text-3xl font-bold text-green-600">{mockMetrics.avgQualityScore}</div>
+                    <div className="text-3xl font-bold text-success">{mockMetrics.avgQualityScore}</div>
                     <p className="text-xs text-muted-foreground">{t.avgQualityScore}</p>
                   </div>
                   <div className="text-center">
-                    <div className="text-3xl font-bold text-orange-600">{mockMetrics.seoOptimizations}</div>
+                    <div className="text-3xl font-bold text-warning">{mockMetrics.seoOptimizations}</div>
                     <p className="text-xs text-muted-foreground">{t.seoOptimizations}</p>
                   </div>
                 </div>
@@ -569,17 +574,17 @@ export default function AdminPerformance() {
                   <h4 className="text-sm font-medium mb-3">{t.agentActivity}</h4>
                   <div className="space-y-2 text-sm">
                     <div className="flex items-center gap-2 text-muted-foreground">
-                      <CheckCircle2 className="w-4 h-4 text-green-500" />
+                      <CheckCircle2 className="w-4 h-4 text-success" />
                       <span>FormatterAgent processed 12 articles</span>
                       <Badge variant="secondary" className="ml-auto">2h ago</Badge>
                     </div>
                     <div className="flex items-center gap-2 text-muted-foreground">
-                      <CheckCircle2 className="w-4 h-4 text-green-500" />
+                      <CheckCircle2 className="w-4 h-4 text-success" />
                       <span>SEOOptimizerAgent optimized 8 pages</span>
                       <Badge variant="secondary" className="ml-auto">4h ago</Badge>
                     </div>
                     <div className="flex items-center gap-2 text-muted-foreground">
-                      <AlertTriangle className="w-4 h-4 text-yellow-500" />
+                      <AlertTriangle className="w-4 h-4 text-warning" />
                       <span>WebsiteAuditorAgent found 3 issues</span>
                       <Badge variant="secondary" className="ml-auto">6h ago</Badge>
                     </div>
@@ -600,8 +605,8 @@ export default function AdminPerformance() {
             <CardContent>
               <div className="grid grid-cols-4 gap-4">
                 <div className="flex items-center gap-3 p-4 bg-muted/50 rounded-none">
-                  <div className="p-2 bg-yellow-100 dark:bg-yellow-900 rounded-full">
-                    <Clock className="w-5 h-5 text-yellow-600" />
+                  <div className="p-2 bg-warning/15 rounded-full">
+                    <Clock className="w-5 h-5 text-warning" />
                   </div>
                   <div>
                     <div className="text-2xl font-bold">{mockMetrics.pending}</div>
@@ -609,8 +614,8 @@ export default function AdminPerformance() {
                   </div>
                 </div>
                 <div className="flex items-center gap-3 p-4 bg-muted/50 rounded-none">
-                  <div className="p-2 bg-blue-100 dark:bg-blue-900 rounded-full">
-                    <RefreshCw className="w-5 h-5 text-blue-600" />
+                  <div className="p-2 bg-muted rounded-full">
+                    <RefreshCw className="w-5 h-5 text-muted-foreground" />
                   </div>
                   <div>
                     <div className="text-2xl font-bold">{mockMetrics.processing}</div>
@@ -618,8 +623,8 @@ export default function AdminPerformance() {
                   </div>
                 </div>
                 <div className="flex items-center gap-3 p-4 bg-muted/50 rounded-none">
-                  <div className="p-2 bg-green-100 dark:bg-green-900 rounded-full">
-                    <CheckCircle2 className="w-5 h-5 text-green-600" />
+                  <div className="p-2 bg-success/15 rounded-full">
+                    <CheckCircle2 className="w-5 h-5 text-success" />
                   </div>
                   <div>
                     <div className="text-2xl font-bold">{mockMetrics.completed}</div>
@@ -627,8 +632,8 @@ export default function AdminPerformance() {
                   </div>
                 </div>
                 <div className="flex items-center gap-3 p-4 bg-muted/50 rounded-none">
-                  <div className="p-2 bg-red-100 dark:bg-red-900 rounded-full">
-                    <XCircle className="w-5 h-5 text-red-600" />
+                  <div className="p-2 bg-destructive/15 rounded-full">
+                    <XCircle className="w-5 h-5 text-destructive" />
                   </div>
                   <div>
                     <div className="text-2xl font-bold">{mockMetrics.failed}</div>

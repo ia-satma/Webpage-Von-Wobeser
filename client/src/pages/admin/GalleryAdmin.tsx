@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { AdminPageHelp } from "@/components/admin/AdminPageHelp";
+import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { Link } from "wouter";
 import { useAdminAuth, adminApiRequest, getAuthHeaders } from "@/lib/adminAuth";
 import { queryClient } from "@/lib/queryClient";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft, Upload, Trash2, Pencil, Link as LinkIcon, ChevronUp, ChevronDown, PlusCircle, Image } from "lucide-react";
+import { Upload, Trash2, Pencil, Link as LinkIcon, ChevronUp, ChevronDown, PlusCircle, Image } from "lucide-react";
 import type { OfficeImage } from "@shared/schema";
 
 export default function GalleryAdmin() {
@@ -164,26 +164,14 @@ export default function GalleryAdmin() {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="max-w-6xl mx-auto px-6 py-10">
-        {/* Header */}
-        <div className="mb-8">
-          <Link href="/admin/dashboard">
-            <a className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground text-sm mb-4 transition-colors">
-              <ArrowLeft className="w-4 h-4" />
-              Volver al panel
-            </a>
-          </Link>
-          <div className="w-12 h-px bg-[#AA1A2E] mb-3" />
-          <h1 className="font-heading font-light text-foreground text-3xl uppercase tracking-[0.12em]">
-            GALERÍA DE OFICINAS
-          </h1>
-          <p className="text-muted-foreground text-sm mt-1">
-            Administra la galería de fotos de la oficina: sube, reordena y elimina imágenes.
-          </p>
-        </div>
+      <main className="max-w-6xl mx-auto px-6 py-10">
+        <AdminPageHeader
+          title="GALERÍA DE OFICINAS"
+          description="Administra la galería de fotos de la oficina: sube, reordena y elimina imágenes."
+          icon={Image}
+        />
 
-
-        <AdminPageHelp>Sube y ordena las fotos de la galería de oficinas del sitio público. Arrástralas o usa las flechas para cambiar el orden.</AdminPageHelp>
+        <AdminPageHelp pageId="galeria" manualSectionId="galeria">Sube y ordena las fotos de la galería de oficinas del sitio público. Arrástralas o usa las flechas para cambiar el orden.</AdminPageHelp>
         {/* Add Image Card */}
         <Card className="mb-8">
           <CardHeader>
@@ -392,7 +380,7 @@ export default function GalleryAdmin() {
             </div>
           )}
         </div>
-      </div>
+      </main>
 
       {/* Edit Dialog */}
       <Dialog open={!!editingImage} onOpenChange={(open) => !open && setEditingImage(null)}>
