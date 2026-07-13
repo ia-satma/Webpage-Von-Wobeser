@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -35,6 +36,8 @@ const EMPTY = {
   imageUrl: "", slug: "", category: "press", published: false, featuredHome: false,
 };
 
+type TeamMemberLite = { id: string; name: string; slug: string };
+
 /**
  * Editor de Noticias (crear / editar). El despacho llena el contenido en español;
  * el inglés es opcional (si se deja vacío, se copia del español al guardar).
@@ -46,6 +49,8 @@ export default function AdminNewsForm() {
   const { toast } = useToast();
   const [form, setForm] = useState({ ...EMPTY });
   const [slugTouched, setSlugTouched] = useState(false);
+  const [authorIds, setAuthorIds] = useState<string[]>([]);
+  const [initialAuthorIds, setInitialAuthorIds] = useState<string[]>([]);
 
   const set = (k: keyof typeof EMPTY, v: string | boolean) => setForm((f) => ({ ...f, [k]: v }));
 
@@ -72,6 +77,39 @@ export default function AdminNewsForm() {
     });
     setSlugTouched(true); // no re-generar slug de una noticia existente
   }, [newsQuery.data]);
+
+  // Todos los abogados (para el selector). Ruta pública, sin filtro de publicado.
+  const teamQuery = useQuery<TeamMemberLite[]>({
+    queryKey: ["/api/team"],
+    queryFn: async () => {
+      const res = await fetch("/api/team");
+      if (!res.ok) throw new Error("No se pudo cargar la lista de abogados");
+      return res.json();
+    },
+  });
+
+  // Abogados ya relacionados con esta noticia (solo aplica al editar, requiere el slug).
+  const slug = newsQuery.data?.slug;
+  const authorsQuery = useQuery<TeamMemberLite[]>({
+    queryKey: ["/api/news", slug, "authors"],
+    enabled: isEdit && !!slug,
+    queryFn: async () => {
+      const res = await fetch(`/api/news/${slug}/authors`);
+      if (!res.ok) throw new Error("No se pudo cargar los abogados relacionados");
+      return res.json();
+    },
+  });
+
+  useEffect(() => {
+    if (!authorsQuery.data) return;
+    const ids = authorsQuery.data.map((m) => m.id);
+    setAuthorIds(ids);
+    setInitialAuthorIds(ids);
+  }, [authorsQuery.data]);
+
+  const toggleAuthor = (memberId: string, checked: boolean) => {
+    setAuthorIds((prev) => (checked ? [...prev, memberId] : prev.filter((x) => x !== memberId)));
+  };
 
   // Auto-slug desde el título en español mientras no se edite manualmente.
   useEffect(() => {
@@ -102,7 +140,21 @@ export default function AdminNewsForm() {
         const err = await res.json().catch(() => ({}));
         throw new Error(err?.error || "No se pudo guardar");
       }
-      return res.json();
+      const saved = await res.json();
+
+      // Sincroniza los abogados relacionados (solo al editar: al crear aún no hay id disponible
+      // cuando se arma este formulario, así que esa sección no se muestra hasta la 1ª edición).
+      if (isEdit && id) {
+        const toAdd = authorIds.filter((aid) => !initialAuthorIds.includes(aid));
+        const toRemove = initialAuthorIds.filter((aid) => !authorIds.includes(aid));
+        await Promise.all([
+          ...toAdd.map((aid) => adminApiRequest("POST", `/api/news/${id}/team-members`, { teamMemberId: aid })),
+          ...toRemove.map((aid) => adminApiRequest("DELETE", `/api/news/${id}/team-members/${aid}`)),
+        ]);
+        setInitialAuthorIds(authorIds);
+      }
+
+      return saved;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/admin/news"] });
@@ -238,6 +290,34 @@ export default function AdminNewsForm() {
                   Mostrar en la portada <span className="text-muted-foreground text-xs font-normal">— aparece en la caja de Noticias del inicio (debe estar publicada)</span>
                 </Label>
               </div>
+            </CardContent>
+          </Card>
+
+          <Card className="mt-6">
+            <CardHeader><CardTitle className="text-base">Abogados relacionados</CardTitle></CardHeader>
+            <CardContent>
+              {!isEdit ? (
+                <p className="text-sm text-muted-foreground">Guarda la noticia primero para poder relacionar abogados.</p>
+              ) : (
+                <>
+                  <p className="text-xs text-muted-foreground mb-3">
+                    Aparecerán en la sección "Noticias relacionadas" del perfil público de cada abogado seleccionado.
+                  </p>
+                  <div className="grid gap-2 sm:grid-cols-2 max-h-64 overflow-y-auto border rounded-md p-3">
+                    {teamQuery.isLoading && <p className="text-sm text-muted-foreground col-span-2">Cargando…</p>}
+                    {(teamQuery.data || []).map((m) => (
+                      <label key={m.id} className="flex items-center gap-2 text-sm cursor-pointer">
+                        <Checkbox
+                          checked={authorIds.includes(m.id)}
+                          onCheckedChange={(c) => toggleAuthor(m.id, !!c)}
+                          data-testid={`checkbox-author-${m.id}`}
+                        />
+                        {m.name}
+                      </label>
+                    ))}
+                  </div>
+                </>
+              )}
             </CardContent>
           </Card>
 

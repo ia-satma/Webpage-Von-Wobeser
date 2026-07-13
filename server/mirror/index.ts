@@ -252,8 +252,16 @@ export async function setupMirror(app: Express) {
     if (!member) member = await storage.getTeamMemberById(slug);
     if (!member) return next();
     if ((member as any).published === false) return next(); // oculto
-    const groups = await getAttorneyGroups(member.id);
-    sendPage(res, renderAttorney(pick(TEMPLATES.attorney, lang), { ...member, ...groups }, lang));
+    const [groups, relatedNewsRaw] = await Promise.all([
+      getAttorneyGroups(member.id),
+      storage.getNewsByTeamMemberId(member.id).catch(() => []),
+    ]);
+    // Solo noticias publicadas, más recientes primero; se acota para no inflar el perfil.
+    const relatedNews = relatedNewsRaw
+      .filter((n: any) => n.published !== false)
+      .sort((a: any, b: any) => new Date(b.date ?? 0).getTime() - new Date(a.date ?? 0).getTime())
+      .slice(0, 10);
+    sendPage(res, renderAttorney(pick(TEMPLATES.attorney, lang), { ...member, ...groups, relatedNews }, lang));
   };
 
   const serveList = async (

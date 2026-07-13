@@ -80,6 +80,15 @@ function buildMetaList(a: any, lang: Lang): string {
   });
   section(lang === "es" ? "Artículos" : "Articles", articles);
 
+  // Noticias del sitio en las que este abogado participa (news_team_members) — distinto de
+  // "Artículos" arriba, que son publicaciones externas (journal/year). Enlaza a /news/:slug.
+  const langSuffix = lang === "en" ? "?lang=en" : "";
+  const relatedNews: string[] = (a.relatedNews || []).map((n: any) => {
+    const title = esc(L(n, "title", lang));
+    return `<a href="/news/${esc(n.slug)}${langSuffix}">${title}</a>`;
+  });
+  section(lang === "es" ? "Noticias relacionadas" : "Related News", relatedNews);
+
   const languages: string[] = a.languages || [];
   if (languages.length) {
     blocks.push(
