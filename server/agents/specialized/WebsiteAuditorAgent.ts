@@ -1,9 +1,20 @@
 import { BaseAgent } from '../core/BaseAgent';
-import { AgentResult, ExecutionContext } from '../core/types';
+import { AgentResult, ExecutionContext, AgentType } from '../core/types';
+import { orchestrator } from '../core/AgentOrchestrator';
 import { storage } from '../../storage';
-import type { InsertWebsiteAuditFinding, TeamMember, PracticeGroup, IndustryGroup, News } from '@shared/schema';
+import type { InsertWebsiteAuditFinding, WebsiteAuditFinding, TeamMember, PracticeGroup, IndustryGroup, News } from '@shared/schema';
 
 const SUPPORTED_LANGUAGES = ['en', 'es', 'de', 'zh', 'ko', 'ja', 'ar', 'ru', 'fr', 'it'];
+
+// Fallback usado en toda la app cuando una imagen no carga (server/agents/AutoRecoveryAgent.ts,
+// SmartImageGenerator.ts) — mismo asset, así el auto-fix no introduce un placeholder distinto.
+const FALLBACK_IMAGE = '/placeholder-article.svg';
+
+// polyglot_translator / seo_optimizer / metadata_linker SOLO operan sobre `news` (esperan
+// `{articleId}` y hacen `db.select().from(news)`). Los findings de team_member/practice_group/
+// industry_group traen el mismo `ownerAgent` mnemónico pero esos agentes NO los pueden procesar
+// hoy — encolarlos fallaría en silencio. Por eso el auto-encolado se limita a entityType 'news'.
+const AUTO_ENQUEUE_ENTITY_TYPE = 'news';
 
 interface AuditConfig {
   runType: 'full' | 'delta' | 'links_only' | 'translations_only' | 'seo_only' | 'content_only';
@@ -31,6 +42,9 @@ interface FindingData {
   details: Record<string, unknown>;
   recommendation?: string;
   ownerAgent?: string;
+  /** Cuando el auto-fix ya se aplicó al detectar (p.ej. imagen rota -> fallback). */
+  status?: 'open' | 'resolved';
+  resolvedBy?: string;
 }
 
 export class WebsiteAuditorAgent extends BaseAgent {
@@ -114,6 +128,7 @@ Be thorough but prioritize critical issues that directly impact users.`,
       this.metrics.executionTimeMs = this.metrics.endTime - this.metrics.startTime;
 
       const savedFindings = await this.saveFindings();
+      await this.autoEnqueueNewsFixers(savedFindings);
 
       const severityCounts = this.countBySeverity();
       await storage.updateWebsiteAudit(this.auditId, {
@@ -583,8 +598,9 @@ Be thorough but prioritize critical issues that directly impact users.`,
       if (member.imageUrl) {
         this.metrics.linksChecked++;
         const isValid = await this.checkImageUrl(member.imageUrl);
-        
+
         if (!isValid) {
+          const autoFixed = await this.tryApplyImageFallback('team_member', member.id, member.imageUrl);
           this.addFinding({
             category: 'links',
             issueType: 'broken_link',
@@ -596,8 +612,13 @@ Be thorough but prioritize critical issues that directly impact users.`,
               name: member.name,
               imageUrl: member.imageUrl,
               type: 'profile_photo',
+              autoFixed,
+              ...(autoFixed ? { appliedFallback: FALLBACK_IMAGE } : {}),
             },
-            recommendation: `Fix broken profile photo for ${member.name}`,
+            recommendation: autoFixed
+              ? `Foto de perfil rota reemplazada automáticamente por el placeholder para ${member.name}; sube una foto real cuando puedas.`
+              : `Fix broken profile photo for ${member.name}`,
+            ...(autoFixed ? { status: 'resolved', resolvedBy: 'auto' } : {}),
           });
         }
       }
@@ -608,8 +629,9 @@ Be thorough but prioritize critical issues that directly impact users.`,
       if (news.imageUrl) {
         this.metrics.linksChecked++;
         const isValid = await this.checkImageUrl(news.imageUrl);
-        
+
         if (!isValid) {
+          const autoFixed = await this.tryApplyImageFallback('news', news.id, news.imageUrl);
           this.addFinding({
             category: 'links',
             issueType: 'broken_link',
@@ -621,8 +643,13 @@ Be thorough but prioritize critical issues that directly impact users.`,
               title: news.title,
               imageUrl: news.imageUrl,
               type: 'featured_image',
+              autoFixed,
+              ...(autoFixed ? { appliedFallback: FALLBACK_IMAGE } : {}),
             },
-            recommendation: `Fix broken featured image for article "${news.title}"`,
+            recommendation: autoFixed
+              ? `Imagen destacada rota reemplazada automáticamente por el placeholder en "${news.title}"; sube una imagen real cuando puedas.`
+              : `Fix broken featured image for article "${news.title}"`,
+            ...(autoFixed ? { status: 'resolved', resolvedBy: 'auto' } : {}),
           });
         }
       }
@@ -681,15 +708,41 @@ Be thorough but prioritize critical issues that directly impact users.`,
     this.findings.push(finding);
   }
 
-  private async saveFindings(): Promise<InsertWebsiteAuditFinding[]> {
+  /**
+   * Auto-fix seguro #1: reemplaza una imagen caída (team_member/news) por el placeholder
+   * estándar de la app. Es reversible (el editor solo tiene que subir la foto real) y no
+   * requiere ningún juicio editorial, a diferencia de reescribir un enlace roto. Devuelve
+   * true si el reemplazo se aplicó.
+   */
+  private async tryApplyImageFallback(
+    entityType: 'team_member' | 'news',
+    entityId: string,
+    brokenUrl: string,
+  ): Promise<boolean> {
+    if (brokenUrl === FALLBACK_IMAGE) return false; // ya es el placeholder, nada que hacer
+    try {
+      if (entityType === 'team_member') {
+        await storage.updateTeamMember(entityId, { imageUrl: FALLBACK_IMAGE });
+      } else {
+        await storage.updateNews(entityId, { imageUrl: FALLBACK_IMAGE });
+      }
+      return true;
+    } catch (e) {
+      console.warn('[WebsiteAuditor] No se pudo aplicar el fallback de imagen', entityType, entityId, e);
+      return false;
+    }
+  }
+
+  private async saveFindings(): Promise<WebsiteAuditFinding[]> {
     if (this.findings.length === 0) return [];
 
+    const now = new Date();
     const insertFindings: InsertWebsiteAuditFinding[] = this.findings.map(f => ({
       auditId: this.auditId,
       category: f.category,
       issueType: f.issueType,
       severity: f.severity,
-      status: 'open',
+      status: f.status || 'open',
       entityType: f.entityType,
       entityId: f.entityId,
       language: f.language,
@@ -697,13 +750,46 @@ Be thorough but prioritize critical issues that directly impact users.`,
       details: f.details,
       recommendation: f.recommendation,
       ownerAgent: f.ownerAgent,
+      ...(f.status === 'resolved' ? { resolvedAt: now, resolvedBy: f.resolvedBy } : {}),
     }));
 
     // Insertar por lotes: con miles de hallazgos, un solo insert excede el límite de Neon.
+    const saved: WebsiteAuditFinding[] = [];
     for (let i = 0; i < insertFindings.length; i += 200) {
-      await storage.createWebsiteAuditFindings(insertFindings.slice(i, i + 200));
+      saved.push(...(await storage.createWebsiteAuditFindings(insertFindings.slice(i, i + 200))));
     }
-    return insertFindings;
+    return saved;
+  }
+
+  /**
+   * Auto-fix seguro #2: para findings de noticias que ya nombran al agente responsable
+   * (polyglot_translator/seo_optimizer), los encola en el orquestador existente y guarda el
+   * job id en `remediationJobId`. Se limita a entityType 'news' porque esos 3 agentes solo
+   * saben procesar noticias (esperan {articleId} y hacen SELECT sobre la tabla news) — encolar
+   * para team_member/practice_group/industry_group fallaría en silencio (no encontrarían la
+   * fila), así que esos quedan como findings manuales, igual que antes.
+   */
+  private async autoEnqueueNewsFixers(saved: WebsiteAuditFinding[]): Promise<void> {
+    const candidates = saved.filter(
+      (f) => f.entityType === AUTO_ENQUEUE_ENTITY_TYPE && f.ownerAgent && f.status === 'open' && f.entityId,
+    );
+    if (!candidates.length) return;
+
+    const jobIdByKey = new Map<string, string>();
+    for (const finding of candidates) {
+      const key = `${finding.ownerAgent}:${finding.entityId}`;
+      try {
+        let jobId = jobIdByKey.get(key);
+        if (!jobId) {
+          const job = await orchestrator.enqueueJob(finding.ownerAgent as AgentType, { articleId: finding.entityId });
+          jobId = job.id;
+          jobIdByKey.set(key, jobId);
+        }
+        await storage.updateWebsiteAuditFinding(finding.id, { remediationJobId: jobId, status: 'in_progress' });
+      } catch (e) {
+        console.warn('[WebsiteAuditor] No se pudo encolar el agente dueño', finding.ownerAgent, finding.entityId, e);
+      }
+    }
   }
 
   private countBySeverity(): { critical: number; high: number; medium: number; low: number } {

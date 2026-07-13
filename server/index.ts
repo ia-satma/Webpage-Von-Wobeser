@@ -155,6 +155,17 @@ app.use((req, res, next) => {
           log(`[Scheduler] Error during hourly tick: ${err}`, "scheduler");
         }
       }, 60 * 60 * 1000);
+
+      // Auditoría diaria del sitio — antes el "self-healing" solo corría por clic manual en
+      // /admin/audits; con esto queda realmente 24/7 sin depender de que alguien lo dispare.
+      setInterval(async () => {
+        try {
+          await orchestrator.enqueueJob("website_auditor", { runType: "full", triggeredBy: "scheduled" });
+          log("[Scheduler] Auditoría diaria del sitio encolada", "scheduler");
+        } catch (err) {
+          log(`[Scheduler] Error al encolar la auditoría diaria: ${err}`, "scheduler");
+        }
+      }, 24 * 60 * 60 * 1000);
     },
   );
 })();

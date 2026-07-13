@@ -58,7 +58,7 @@ const AGENT_REGISTRY: AgentCapabilityCard[] = [
     businessName: "The Self-Healing Auditor",
     role: "Guardian of Integrity",
     category: "shield",
-    description: "Unlike standard websites, this agent proactively scans for 'zombie processes' and incomplete data 24/7. It autonomously repairs broken links, retries failed translations, and recovers crashed pipelines without human intervention.",
+    description: "Unlike standard websites, this agent proactively scans for 'zombie processes' and incomplete data 24/7. It autonomously retries failed translations, SEO, and image generation for stuck processing jobs, and assigns a placeholder when an item truly can't be recovered — without human intervention.",
     capabilities: [
       "Continuous failed-item detection",
       "Autonomous error diagnosis with error codes",
