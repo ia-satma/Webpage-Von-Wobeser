@@ -102,7 +102,9 @@ ${excerpt}
     const parsed = safeParseJson<{ relevant?: boolean; matchedPractice?: string }>(
       response.choices[0]?.message?.content,
     );
-    return { relevant: !!parsed?.relevant, matchedPractice: parsed?.matchedPractice };
+    // Estricto === true (no !!) — un valor tipo string "false" no debe colarse como relevante
+    // por coerción de JS (!!"false" es true, ya que es un string no vacío).
+    return { relevant: parsed?.relevant === true, matchedPractice: parsed?.matchedPractice };
   } catch (err) {
     console.error('[legalAlertsScanner] Error evaluando relevancia:', err);
     return { relevant: false };
