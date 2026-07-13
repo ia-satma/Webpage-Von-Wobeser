@@ -53,7 +53,7 @@ const ABSTRACT_REPLACEMENTS: Record<string, string> = {
 export interface ImageGenerationResult {
   success: boolean;
   imageUrl?: string;
-  engine: 'dalle3' | 'gemini' | 'placeholder';
+  engine: 'cloudflare' | 'dalle3' | 'gemini' | 'placeholder';
   originalPrompt: string;
   sanitizedPrompt?: string;
   promptWasSanitized: boolean;
@@ -248,6 +248,51 @@ export class SmartImageGenerator {
     };
   }
 
+  // Motor gratuito (Cloudflare Workers AI, free tier: 10,000 Neurons/día, sin tarjeta,
+  // sin cobro automático al agotarse — las solicitudes solo fallan hasta el reinicio
+  // diario a las 00:00 UTC). Se intenta primero para minimizar el uso de Gemini/DALL-E de pago.
+  private async callCloudflareFlux(prompt: string): Promise<{ buffer?: Buffer; error?: string; errorCode?: string }> {
+    const accountId = process.env.CLOUDFLARE_ACCOUNT_ID;
+    const apiToken = process.env.CLOUDFLARE_API_TOKEN;
+    if (!accountId || !apiToken) {
+      return { error: 'Cloudflare no está configurado (faltan credenciales)', errorCode: 'cloudflare_not_configured' };
+    }
+
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 20000);
+    try {
+      const res = await fetch(
+        `https://api.cloudflare.com/client/v4/accounts/${accountId}/ai/run/@cf/black-forest-labs/flux-1-schnell`,
+        {
+          method: 'POST',
+          signal: controller.signal,
+          headers: { Authorization: `Bearer ${apiToken}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ prompt, num_steps: 4 }),
+        }
+      );
+
+      if (res.status === 429) {
+        return { error: 'Cuota diaria gratuita de Cloudflare agotada', errorCode: 'cloudflare_quota_exhausted' };
+      }
+      if (!res.ok) {
+        return { error: `Cloudflare HTTP ${res.status}`, errorCode: 'cloudflare_http_error' };
+      }
+
+      const data: any = await res.json();
+      if (!data?.success || !data?.result?.image) {
+        return { error: data?.errors?.[0]?.message || 'Cloudflare no devolvió una imagen', errorCode: 'cloudflare_no_image' };
+      }
+
+      this.log('Cloudflare Workers AI (flux-1-schnell) generó la imagen correctamente');
+      return { buffer: Buffer.from(data.result.image, 'base64') };
+    } catch (err: any) {
+      const isTimeout = err?.name === 'AbortError';
+      return { error: isTimeout ? 'Cloudflare timeout' : err.message, errorCode: isTimeout ? 'cloudflare_timeout' : 'cloudflare_error' };
+    } finally {
+      clearTimeout(timer);
+    }
+  }
+
   private async callGeminiImageGen(prompt: string): Promise<{ buffer?: Buffer; error?: string; errorCode?: string }> {
     try {
       this.log('Attempting Gemini image generation...');
@@ -291,7 +336,32 @@ export class SmartImageGenerator {
 
     const brandEnhancedPrompt = `${originalPrompt}. Style: Professional corporate legal, color scheme featuring deep burgundy red (#AA1A2E) with white and dark gray accents. Sharp geometric edges, no rounded corners. Sophisticated and elegant composition suitable for a prestigious law firm.`;
 
-    // Step 1: Gemini (primary)
+    // Step 0: Cloudflare Workers AI (gratuito — se intenta primero para no gastar Gemini/DALL-E de pago)
+    this.log('Step 0: Attempting Cloudflare Workers AI (free tier)...');
+    const cloudflareResult = await this.callCloudflareFlux(brandEnhancedPrompt);
+    result.retryCount++;
+
+    if (cloudflareResult.buffer) {
+      try {
+        const filename = `article-${articleId}-cloudflare-${Date.now()}.png`;
+        const outputPath = path.join(OUTPUT_DIR, filename);
+
+        await this.overlayLogo(cloudflareResult.buffer, outputPath);
+
+        result.success = true;
+        result.engine = 'cloudflare';
+        result.imageUrl = `/generated-images/${filename}`;
+        this.log(`SUCCESS: Cloudflare image saved with logo overlay: ${result.imageUrl}`);
+        result.transparencyLog = [...this.transparencyLog];
+        return result;
+      } catch (saveErr: any) {
+        this.log(`Cloudflare image save failed: ${saveErr.message}`);
+      }
+    } else {
+      this.log(`Cloudflare failed: ${cloudflareResult.error}. Falling back to Gemini...`);
+    }
+
+    // Step 1: Gemini (primary de pago)
     this.log('Step 1: Attempting Gemini image generation (primary)...');
     const geminiResult = await this.callGeminiImageGen(brandEnhancedPrompt);
     result.retryCount++;

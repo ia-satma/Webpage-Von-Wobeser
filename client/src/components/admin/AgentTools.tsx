@@ -67,6 +67,12 @@ export function SocialPostButton({ articleId }: { articleId: string }) {
             <p className="text-sm text-destructive py-4">{res.error}</p>
           ) : res?.data ? (
             <div className="space-y-4 max-h-[60vh] overflow-y-auto">
+              {res.data.imageUrl ? (
+                <div className="space-y-1">
+                  <Label className="text-xs uppercase tracking-wide text-muted-foreground">Imagen para el post</Label>
+                  <img src={res.data.imageUrl} alt="Imagen generada para redes" className="w-full max-h-64 object-cover rounded-none border" />
+                </div>
+              ) : null}
               <CopyBox label="LinkedIn" text={[res.data.linkedin, (res.data.linkedinHashtags || []).join(" ")].filter(Boolean).join("\n\n")} />
               <CopyBox label="X (Twitter)" text={[res.data.twitter, (res.data.twitterHashtags || []).join(" ")].filter(Boolean).join(" ")} />
             </div>

@@ -141,9 +141,9 @@ const AGENT_DESCRIPTIONS: Record<string, string> = {
   website_auditor: "Audita todo el sitio (traducciones faltantes, contenido incompleto, SEO, enlaces rotos). → Dónde: genera un reporte en la página 'Auditorías del sitio'. (sin IA)",
   image_suggestion: "Genera una imagen de marca para la noticia. → Dónde: se asigna como imagen destacada de la noticia. (usa IA)",
   category_agent: "Clasifica la noticia (categoría principal, áreas de práctica, industrias y etiquetas). → Dónde: la categoría se guarda en la noticia. (usa IA)",
-  social_media: "Convierte una noticia en publicaciones para LinkedIn y X (Twitter). → Dónde: en un cuadro para copiar, con el botón 'Generar post de redes' cuando EDITAS una noticia. (usa IA)",
+  social_media: "Convierte una noticia en publicaciones para LinkedIn y X (Twitter), con una imagen para acompañarlas. → Dónde: en un cuadro para copiar, con el botón 'Generar post de redes' cuando EDITAS una noticia. (usa IA)",
   newsletter: "Compila las noticias recientes en un boletín (asunto + cuerpo HTML). → Dónde: en un cuadro para copiar/enviar, con el botón 'Boletín' arriba en la página de Noticias. (usa IA)",
-  legal_alerts: "De una fuente oficial (texto pegado o URL .gob.mx) redacta un borrador de alerta. → Dónde: crea una noticia SIN PUBLICAR y te abre su editor; desde el botón 'Crear alerta' en Noticias. (usa IA)",
+  legal_alerts: "De una fuente oficial (texto pegado, URL .gob.mx, o automático cada 6h escaneando COFECE) redacta un borrador de alerta. → Dónde: crea una noticia SIN PUBLICAR y te abre su editor; desde el botón 'Crear alerta' en Noticias, o sola en la cola si el escaneo automático encontró algo relevante. (usa IA)",
   orchestrator: "Coordina la cola de trabajos y ejecuta los agentes en orden. → Dónde: su estado (cola, activos) se ve arriba en esta misma página. (sin IA)",
 };
 

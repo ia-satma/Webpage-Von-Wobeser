@@ -60,6 +60,12 @@ import {
   type ContactSubmission,
   type InsertContactSubmission,
   contactSubmissions,
+  type CareerApplication,
+  type InsertCareerApplication,
+  careerApplications,
+  type ProcessedOfficialSource,
+  type InsertProcessedOfficialSource,
+  processedOfficialSources,
   users,
   news,
   newsTranslations,
@@ -293,6 +299,15 @@ export interface IStorage {
   createContactSubmission(data: InsertContactSubmission): Promise<ContactSubmission>;
   getContactSubmissions(): Promise<ContactSubmission[]>;
   markContactSubmissionRead(id: string): Promise<boolean>;
+
+  // Career Applications (Pasantes)
+  createCareerApplication(data: InsertCareerApplication): Promise<CareerApplication>;
+  getCareerApplications(): Promise<CareerApplication[]>;
+  markCareerApplicationRead(id: string): Promise<boolean>;
+
+  // LegalAlertsAgent automático — deduplicación de fuentes oficiales
+  isSourceProcessed(sourceUrl: string): Promise<boolean>;
+  markSourceProcessed(data: InsertProcessedOfficialSource): Promise<ProcessedOfficialSource>;
 }
 
 const siteContent: SiteContent = {
@@ -1401,6 +1416,32 @@ export class DatabaseStorage implements IStorage {
   async markContactSubmissionRead(id: string): Promise<boolean> {
     const result = await db.update(contactSubmissions).set({ read: true }).where(eq(contactSubmissions.id, id)).returning({ id: contactSubmissions.id });
     return result.length > 0;
+  }
+
+  async createCareerApplication(data: InsertCareerApplication): Promise<CareerApplication> {
+    const [application] = await db.insert(careerApplications).values(data).returning();
+    return application;
+  }
+
+  async getCareerApplications(): Promise<CareerApplication[]> {
+    return db.select().from(careerApplications).orderBy(desc(careerApplications.submittedAt));
+  }
+
+  async markCareerApplicationRead(id: string): Promise<boolean> {
+    const result = await db.update(careerApplications).set({ read: true }).where(eq(careerApplications.id, id)).returning({ id: careerApplications.id });
+    return result.length > 0;
+  }
+
+  async isSourceProcessed(sourceUrl: string): Promise<boolean> {
+    const [existing] = await db.select({ id: processedOfficialSources.id }).from(processedOfficialSources).where(eq(processedOfficialSources.sourceUrl, sourceUrl));
+    return !!existing;
+  }
+
+  async markSourceProcessed(data: InsertProcessedOfficialSource): Promise<ProcessedOfficialSource> {
+    const [row] = await db.insert(processedOfficialSources).values(data)
+      .onConflictDoUpdate({ target: processedOfficialSources.sourceUrl, set: { status: data.status, newsId: data.newsId, sourceHash: data.sourceHash } })
+      .returning();
+    return row;
   }
 }
 

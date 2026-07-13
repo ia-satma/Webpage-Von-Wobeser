@@ -29,6 +29,7 @@ export function renderPage(
   lang: Lang,
   keys: { intro?: string; body?: string },
   meta?: { path: string; title: string; description?: string },
+  postProcess?: ($: cheerio.CheerioAPI) => void,
 ): string {
   const $ = cheerio.load(templateHtml);
 
@@ -63,5 +64,6 @@ export function renderPage(
       ],
     });
   }
+  postProcess?.($);
   return $.html();
 }

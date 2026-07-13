@@ -38,7 +38,8 @@ import {
   ArrowUpRight,
   Database,
   ArrowRight,
-  ShieldCheck
+  ShieldCheck,
+  Mail
 } from "lucide-react";
 
 // Navegación superior del admin (secciones más usadas).
@@ -752,6 +753,9 @@ export default function AdminDashboard() {
                   </Link>
                   <Link href="/admin/categories">
                     <Button variant="outline" className="w-full justify-start h-auto py-2" data-testid="button-manage-categories"><FolderOpen className="mr-2 h-4 w-4" /><span className="flex flex-col items-start text-left leading-tight"><span>Categorías</span><span className="text-[11px] font-normal text-muted-foreground mt-0.5">Organiza las categorías del contenido.</span></span></Button>
+                  </Link>
+                  <Link href="/admin/submissions">
+                    <Button variant="outline" className="w-full justify-start h-auto py-2" data-testid="button-submissions"><Mail className="mr-2 h-4 w-4" /><span className="flex flex-col items-start text-left leading-tight"><span>Solicitudes recibidas</span><span className="text-[11px] font-normal text-muted-foreground mt-0.5">Mensajes de contacto y solicitudes de pasantías.</span></span></Button>
                   </Link>
                 </div>
               </div>

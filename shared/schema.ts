@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { pgTable, text, varchar, timestamp, integer, boolean, jsonb, index } from "drizzle-orm/pg-core";
+import { pgTable, text, varchar, timestamp, integer, boolean, jsonb, index, uniqueIndex } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -331,6 +331,44 @@ export const contactSubmissions = pgTable("contact_submissions", {
 export const insertContactSubmissionSchema = createInsertSchema(contactSubmissions).omit({ id: true, submittedAt: true, read: true });
 export type InsertContactSubmission = z.infer<typeof insertContactSubmissionSchema>;
 export type ContactSubmission = typeof contactSubmissions.$inferSelect;
+
+// Solicitudes de pasantías/empleo enviadas desde el formulario público de "Pasantes"
+// (antes se perdían: el HTML capturado de Joomla tenía action="" sin backend real).
+export const careerApplications = pgTable("career_applications", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  firstName: text("first_name").notNull(),
+  lastName: text("last_name").notNull(),
+  email: text("email").notNull(),
+  phone: text("phone"),
+  address: text("address"),
+  cvPath: text("cv_path").notNull(),
+  cvOriginalName: text("cv_original_name"),
+  acceptedPrivacy: boolean("accepted_privacy").notNull().default(false),
+  ipAddress: text("ip_address"),
+  submittedAt: timestamp("submitted_at").defaultNow(),
+  read: boolean("read").default(false),
+});
+
+export const insertCareerApplicationSchema = createInsertSchema(careerApplications).omit({ id: true, submittedAt: true, read: true });
+export type InsertCareerApplication = z.infer<typeof insertCareerApplicationSchema>;
+export type CareerApplication = typeof careerApplications.$inferSelect;
+
+// Deduplicación de fuentes oficiales ya escaneadas por el LegalAlertsAgent automático
+// (evita crear el mismo borrador de alerta dos veces si el scan corre varias veces).
+export const processedOfficialSources = pgTable("processed_official_sources", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  sourceUrl: text("source_url").notNull(),
+  sourceHash: text("source_hash").notNull(),
+  status: text("status").default("skipped_not_relevant"), // 'draft_created' | 'skipped_not_relevant' | 'skipped_error'
+  newsId: varchar("news_id"),
+  processedAt: timestamp("processed_at").defaultNow(),
+}, (t) => ({
+  sourceUrlIdx: uniqueIndex("processed_official_sources_source_url_idx").on(t.sourceUrl),
+}));
+
+export const insertProcessedOfficialSourceSchema = createInsertSchema(processedOfficialSources).omit({ id: true, processedAt: true });
+export type InsertProcessedOfficialSource = z.infer<typeof insertProcessedOfficialSourceSchema>;
+export type ProcessedOfficialSource = typeof processedOfficialSources.$inferSelect;
 
 // Practice areas list for contact form
 export const practiceAreas = [

@@ -1,8 +1,59 @@
 import * as cheerio from 'cheerio';
+import * as https from 'https';
+import * as tls from 'tls';
 import { BaseAgent } from '../core/BaseAgent';
 import { AgentConfig, AgentResult, ExecutionContext } from '../core/types';
 import { storage } from '../../storage';
 import { safeParseJson } from '../../openai';
+
+// cofece.mx no envía el certificado intermedio en el handshake TLS (confirmado con
+// `openssl s_client -showcerts`: solo manda el leaf, firmado por "GeoTrust TLS RSA CA G1").
+// curl/navegadores lo toleran (encadenan vía AIA / caché del sistema), pero el fetch nativo
+// de Node no, y falla con UNABLE_TO_VERIFY_LEAF_SIGNATURE. Se agrega el intermedio faltante
+// (público, de DigiCert) como CA de confianza SOLO para este host conocido — no se debilita
+// la verificación TLS para ningún otro dominio.
+const GEOTRUST_TLS_RSA_CA_G1 = `-----BEGIN CERTIFICATE-----
+MIIEjTCCA3WgAwIBAgIQDQd4KhM/xvmlcpbhMf/ReTANBgkqhkiG9w0BAQsFADBh
+MQswCQYDVQQGEwJVUzEVMBMGA1UEChMMRGlnaUNlcnQgSW5jMRkwFwYDVQQLExB3
+d3cuZGlnaWNlcnQuY29tMSAwHgYDVQQDExdEaWdpQ2VydCBHbG9iYWwgUm9vdCBH
+MjAeFw0xNzExMDIxMjIzMzdaFw0yNzExMDIxMjIzMzdaMGAxCzAJBgNVBAYTAlVT
+MRUwEwYDVQQKEwxEaWdpQ2VydCBJbmMxGTAXBgNVBAsTEHd3dy5kaWdpY2VydC5j
+b20xHzAdBgNVBAMTFkdlb1RydXN0IFRMUyBSU0EgQ0EgRzEwggEiMA0GCSqGSIb3
+DQEBAQUAA4IBDwAwggEKAoIBAQC+F+jsvikKy/65LWEx/TMkCDIuWegh1Ngwvm4Q
+yISgP7oU5d79eoySG3vOhC3w/3jEMuipoH1fBtp7m0tTpsYbAhch4XA7rfuD6whU
+gajeErLVxoiWMPkC/DnUvbgi74BJmdBiuGHQSd7LwsuXpTEGG9fYXcbTVN5SATYq
+DfbexbYxTMwVJWoVb6lrBEgM3gBBqiiAiy800xu1Nq07JdCIQkBsNpFtZbIZhsDS
+fzlGWP4wEmBQ3O67c+ZXkFr2DcrXBEtHam80Gp2SNhou2U5U7UesDL/xgLK6/0d7
+6TnEVMSUVJkZ8VeZr+IUIlvoLrtjLbqugb0T3OYXW+CQU0kBAgMBAAGjggFAMIIB
+PDAdBgNVHQ4EFgQUlE/UXYvkpOKmgP792PkA76O+AlcwHwYDVR0jBBgwFoAUTiJU
+IBiV5uNu5g/6+rkS7QYXjzkwDgYDVR0PAQH/BAQDAgGGMB0GA1UdJQQWMBQGCCsG
+AQUFBwMBBggrBgEFBQcDAjASBgNVHRMBAf8ECDAGAQH/AgEAMDQGCCsGAQUFBwEB
+BCgwJjAkBggrBgEFBQcwAYYYaHR0cDovL29jc3AuZGlnaWNlcnQuY29tMEIGA1Ud
+HwQ7MDkwN6A1oDOGMWh0dHA6Ly9jcmwzLmRpZ2ljZXJ0LmNvbS9EaWdpQ2VydEds
+b2JhbFJvb3RHMi5jcmwwPQYDVR0gBDYwNDAyBgRVHSAAMCowKAYIKwYBBQUHAgEW
+HGh0dHBzOi8vd3d3LmRpZ2ljZXJ0LmNvbS9DUFMwDQYJKoZIhvcNAQELBQADggEB
+AIIcBDqC6cWpyGUSXAjjAcYwsK4iiGF7KweG97i1RJz1kwZhRoo6orU1JtBYnjzB
+c4+/sXmnHJk3mlPyL1xuIAt9sMeC7+vreRIF5wFBC0MCN5sbHwhNN1JzKbifNeP5
+ozpZdQFmkCo+neBiKR6HqIA+LMTMCMMuv2khGGuPHmtDze4GmEGZtYLyF8EQpa5Y
+jPuV6k2Cr/N3XxFpT3hRpt/3usU/Zb9wfKPtWpoznZ4/44c1p9rzFcZYrWkj3A+7
+TNBJE0GmP2fhXhP1D/XVfIW/h0yCJGEiV9Glm/uGOa3DXHlmbAcxSyCRraG+ZBkA
+7h4SeM6Y8l/7MBRpPCz6l8Y=
+-----END CERTIFICATE-----`;
+
+const HOSTS_WITH_INCOMPLETE_CHAIN = ['cofece.mx'];
+
+const patchedChainAgent = new https.Agent({
+  ca: [...tls.rootCertificates, GEOTRUST_TLS_RSA_CA_G1],
+});
+
+export function needsChainPatch(rawUrl: string): boolean {
+  try {
+    const h = new URL(rawUrl).hostname.toLowerCase();
+    return HOSTS_WITH_INCOMPLETE_CHAIN.some((d) => h === d || h.endsWith('.' + d));
+  } catch {
+    return false;
+  }
+}
 
 const ALERTS_CONFIG: AgentConfig = {
   agentType: 'legal_alerts' as any,
@@ -38,7 +89,7 @@ REGLAS DE SEGURIDAD (obligatorias):
 // —no se puede apuntar el agente a hosts internos/arbitrarios— y (2) limita el agente
 // a su propósito. Para cualquier otra fuente, el abogado pega el texto directamente.
 const ALLOWED_SOURCE_HOSTS = ['cofece.mx', 'cndh.org.mx'];
-function isAllowedSourceUrl(raw: string): boolean {
+export function isAllowedSourceUrl(raw: string): boolean {
   let u: URL;
   try { u = new URL(raw); } catch { return false; }
   if (u.protocol !== 'http:' && u.protocol !== 'https:') return false;
@@ -54,17 +105,43 @@ function isAllowedSourceUrl(raw: string): boolean {
   return official;
 }
 
-async function fetchReadableText(url: string): Promise<string> {
+export function getViaPatchedAgent(url: string, timeoutMs: number): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const req = https.get(
+      url,
+      { agent: patchedChainAgent, headers: { 'User-Agent': 'VonWobeserBot/1.0 (+legal-alerts)' }, timeout: timeoutMs },
+      (res) => {
+        if (res.statusCode && res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
+          getViaPatchedAgent(new URL(res.headers.location, url).toString(), timeoutMs).then(resolve, reject);
+          return;
+        }
+        if (!res.statusCode || res.statusCode >= 400) { reject(new Error(`HTTP ${res.statusCode}`)); return; }
+        let body = '';
+        res.setEncoding('utf8');
+        res.on('data', (chunk) => { body += chunk; });
+        res.on('end', () => resolve(body));
+      },
+    );
+    req.on('timeout', () => req.destroy(new Error('timeout')));
+    req.on('error', reject);
+  });
+}
+
+export async function fetchReadableText(url: string): Promise<string> {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), 8000);
   try {
-    const res = await fetch(url, {
-      redirect: 'follow',
-      signal: controller.signal,
-      headers: { 'User-Agent': 'VonWobeserBot/1.0 (+legal-alerts)' },
-    });
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const html = await res.text();
+    const html = needsChainPatch(url)
+      ? await getViaPatchedAgent(url, 8000)
+      : await (async () => {
+          const res = await fetch(url, {
+            redirect: 'follow',
+            signal: controller.signal,
+            headers: { 'User-Agent': 'VonWobeserBot/1.0 (+legal-alerts)' },
+          });
+          if (!res.ok) throw new Error(`HTTP ${res.status}`);
+          return res.text();
+        })();
     const $ = cheerio.load(html);
     $('script, style, noscript, nav, header, footer, form, iframe').remove();
     return $('body').text().replace(/\s+/g, ' ').trim().substring(0, 8000);

@@ -8,6 +8,8 @@ import { renderAttorneyResults } from "./renderAttorneyResults";
 import { renderSingle } from "./renderSingle";
 import { renderHome } from "./renderHome";
 import { renderPage } from "./renderPage";
+import { applyCareersFormFix, applyContactForm } from "./formsFix";
+import * as cheerio from "cheerio";
 import { renderNewsList, renderNewsDetail } from "./renderNews";
 import { buildIdMaps, type IdMaps } from "./idMap";
 import { getConfigMap, seedConfigDefaults, upsertConfig, type ConfigMap } from "./siteConfig";
@@ -386,10 +388,14 @@ export async function setupMirror(app: Express) {
     const seo = PAGE_SEO[which];
     sendPage(
       res,
-      renderPage(pick(TEMPLATES[which], lang), config, lang, PAGE_KEYS[which], {
-        path: seo.path[lang],
-        title: seo.title[lang],
-      }),
+      renderPage(
+        pick(TEMPLATES[which], lang),
+        config,
+        lang,
+        PAGE_KEYS[which],
+        { path: seo.path[lang], title: seo.title[lang] },
+        which === "careers" ? applyCareersFormFix : which === "contact" ? ($: cheerio.CheerioAPI) => applyContactForm($, lang) : undefined,
+      ),
     );
   };
 
@@ -434,6 +440,25 @@ export async function setupMirror(app: Express) {
     app.get(p, wrap((_req, res) => servePage("careers", "es", res)));
   for (const p of ["/index.php/careers/index.html", "/index.php/careers/", "/careers"])
     app.get(p, wrap((_req, res) => servePage("careers", "en", res)));
+
+  // Subpáginas de "Pasantes" — a diferencia de las landings de arriba, estas NO pasan por
+  // renderPage/siteConfig (no tienen texto editable), pero SÍ tienen el mismo formulario
+  // roto, así que necesitan el mismo fix. Deben registrarse ANTES del express.static de
+  // más abajo (si no, ese middleware serviría el HTML capturado tal cual, sin el fix).
+  for (const p of ["/index.php/bolsa-de-trabajo/pasantes/index.html", "/index.php/bolsa-de-trabajo/pasantes/", "/bolsa-de-trabajo/pasantes"])
+    app.get(p, wrap((_req, res) => {
+      const $ = cheerio.load(tpl("index.php/bolsa-de-trabajo/pasantes/index.html"));
+      applyCareersFormFix($);
+      sendPage(res, $.html());
+      return Promise.resolve();
+    }));
+  for (const p of ["/index.php/careers/interns/index.html", "/index.php/careers/interns/", "/careers/interns"])
+    app.get(p, wrap((_req, res) => {
+      const $ = cheerio.load(tpl("index.php/careers/interns/index.html"));
+      applyCareersFormFix($);
+      sendPage(res, $.html());
+      return Promise.resolve();
+    }));
 
   // ---------- Original mirror URLs (SEO preserved, nav coherent) --------
   // Home (ES) + news listings

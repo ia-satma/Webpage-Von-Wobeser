@@ -166,6 +166,20 @@ app.use((req, res, next) => {
           log(`[Scheduler] Error al encolar la auditoría diaria: ${err}`, "scheduler");
         }
       }, 24 * 60 * 60 * 1000);
+
+      // LegalAlertsAgent en piloto automático — antes requería que un abogado pegara
+      // manualmente texto/URL; ahora escanea periódicamente fuentes oficiales (COFECE por
+      // ahora) y encola borradores solo para publicaciones relevantes. Nunca autopublica:
+      // el borrador sigue naciendo con published:false para revisión humana.
+      setInterval(async () => {
+        try {
+          const { runScheduledLegalAlertsScan } = await import("./agents/specialized/legalAlertsScanner");
+          const { enqueued, skipped } = await runScheduledLegalAlertsScan();
+          log(`[Scheduler] Escaneo de fuentes oficiales: ${enqueued} alertas encoladas, ${skipped} descartadas`, "scheduler");
+        } catch (err) {
+          log(`[Scheduler] Error en el escaneo de fuentes oficiales: ${err}`, "scheduler");
+        }
+      }, 6 * 60 * 60 * 1000);
     },
   );
 })();

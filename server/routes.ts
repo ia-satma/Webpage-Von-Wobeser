@@ -51,7 +51,7 @@ import {
   insertSpecializedDeskSchema,
   insertOfficeImageSchema,
 } from "@shared/schema";
-import { ZodError } from "zod";
+import { ZodError, z } from "zod";
 import { CATEGORIES as ATTORNEY_CATEGORIES } from "./mirror/renderAttorneyList";
 import {
   SUPPORTED_LANGUAGES,
@@ -130,6 +130,38 @@ const upload = multer({
       "video/webm",
       "video/ogg",
       "video/quicktime",
+    ];
+    if (allowedMimes.includes(file.mimetype)) {
+      cb(null, true);
+    } else {
+      const e: any = new Error("Invalid file type");
+      e.status = 400;
+      cb(e);
+    }
+  },
+});
+
+// Multer dedicado para CVs del formulario de Pasantes — límite y tipos distintos del de
+// medios (10MB en vez de 200MB, solo PDF/DOC/DOCX en vez de imágenes/video).
+const cvUpload = multer({
+  storage: multer.diskStorage({
+    destination: (_req, _file, cb) => {
+      cb(null, uploadsDir);
+    },
+    filename: (_req, file, cb) => {
+      const uniqueSuffix = crypto.randomBytes(8).toString("hex");
+      const ext = path.extname(file.originalname);
+      cb(null, `${Date.now()}-${uniqueSuffix}${ext}`);
+    },
+  }),
+  limits: {
+    fileSize: 10 * 1024 * 1024, // 10MB basta para un CV
+  },
+  fileFilter: (_req, file, cb) => {
+    const allowedMimes = [
+      "application/pdf",
+      "application/msword",
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
     ];
     if (allowedMimes.includes(file.mimetype)) {
       cb(null, true);
@@ -704,6 +736,55 @@ export async function registerRoutes(
     } catch (error) {
       console.error("Contact form error:", error);
       res.status(500).json({ error: "Failed to process contact form" });
+    }
+  });
+
+  // Formulario de "Pasantes" — antes era HTML de Joomla con action="" (no llegaba a
+  // ningún lado). Los campos del multipart (name, l_name, mail, tel, comment, accept)
+  // vienen tal cual del HTML original capturado; se mapean a las columnas de career_applications.
+  app.post("/api/career-applications", cvUpload.single("uploaded_file"), async (req, res) => {
+    try {
+      const bodySchema = z.object({
+        name: z.string().min(1),
+        l_name: z.string().min(1),
+        mail: z.string().email(),
+        tel: z.string().optional(),
+        comment: z.string().optional(),
+        accept: z.string().optional(),
+      });
+      const validationResult = bodySchema.safeParse(req.body);
+      if (!validationResult.success) {
+        return res.status(400).json({ error: "Validation failed", details: validationResult.error.errors });
+      }
+      if (!req.file) {
+        return res.status(400).json({ error: "Adjunta tu CV (PDF, DOC o DOCX)." });
+      }
+
+      const data = validationResult.data;
+      const sanitize = (str: string) => str.replace(/<[^>]*>/g, "").trim();
+
+      const application = await storage.createCareerApplication({
+        firstName: sanitize(data.name),
+        lastName: sanitize(data.l_name),
+        email: data.mail.trim().toLowerCase(),
+        phone: data.tel ? sanitize(data.tel) : undefined,
+        address: data.comment ? sanitize(data.comment) : undefined,
+        cvPath: `/uploads/${req.file.filename}`,
+        cvOriginalName: req.file.originalname,
+        acceptedPrivacy: !!data.accept,
+        ipAddress: (() => {
+          const fwd = req.headers["x-forwarded-for"];
+          const raw = Array.isArray(fwd) ? fwd[0] : fwd;
+          return raw?.split(",")[0]?.trim() || req.ip || null;
+        })(),
+      });
+
+      console.log(`[CareerApplications] New submission from ${application.firstName} ${application.lastName} <${application.email}> saved with id ${application.id}`);
+
+      res.json({ success: true, message: "Application submitted successfully" });
+    } catch (error) {
+      console.error("Career application error:", error);
+      res.status(500).json({ error: "Failed to process career application" });
     }
   });
 
@@ -2456,6 +2537,29 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
     } catch (error) {
       console.error("Mark contact submission read error:", error);
       res.status(500).json({ error: "Failed to update submission" });
+    }
+  });
+
+  app.get("/api/admin/career-applications", authMiddleware, async (_req: Request, res: Response) => {
+    try {
+      const applications = await storage.getCareerApplications();
+      res.json(applications);
+    } catch (error) {
+      console.error("Get career applications error:", error);
+      res.status(500).json({ error: "Failed to fetch career applications" });
+    }
+  });
+
+  app.patch("/api/admin/career-applications/:id/read", authMiddleware, requirePermission("content"), async (req: Request, res: Response) => {
+    try {
+      const found = await storage.markCareerApplicationRead(req.params.id);
+      if (!found) {
+        return res.status(404).json({ error: "Application not found" });
+      }
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Mark career application read error:", error);
+      res.status(500).json({ error: "Failed to update application" });
     }
   });
 
