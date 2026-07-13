@@ -8,6 +8,7 @@ import path from "path";
 import fs from "fs";
 import crypto from "crypto";
 import multer from "multer";
+import { optimizeImageIfNeeded } from "./media/optimizeImage";
 
 // Global WebSocket clients map for pipeline progress updates
 const pipelineClients: Map<string, WebSocket> = new Map();
@@ -2640,12 +2641,18 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
         return res.status(400).json({ error: "No file uploaded" });
       }
 
+      // Imágenes pesadas (>1MB) se redimensionan/recomprimen antes de registrar el tamaño real.
+      // Video no se toca en esta ronda (requiere ffmpeg, ver server/media/optimizeVideo.ts).
+      let finalSize = req.file.size;
+      const optimizedSize = await optimizeImageIfNeeded(req.file.path, req.file.mimetype, req.file.size);
+      if (optimizedSize != null) finalSize = optimizedSize;
+
       const mediaItem = await storage.createMediaItem({
         filename: req.file.filename,
         originalName: req.file.originalname,
         path: `/uploads/${req.file.filename}`,
         mimeType: req.file.mimetype,
-        size: req.file.size,
+        size: finalSize,
         uploadedBy: req.adminUser!.id,
         alt: req.body.alt || null,
         altEs: req.body.altEs || null,
