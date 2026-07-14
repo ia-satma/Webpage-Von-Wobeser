@@ -77,9 +77,10 @@ const translations = {
     nameHint: "As it appears on business cards",
     slug: "URL Identifier",
     slugHint: "Auto-generated from name (e.g., 'maria-garcia')",
-    title: "Professional Title",
-    titleHint: "E.g., 'Partner - Corporate & M&A'",
-    titleEs: "Professional Title (Spanish)",
+    title: "Category",
+    titleHint: "Determines which listing this person appears in (Partners, Of Counsel, Counsel, Associates). Must match exactly — pick from the list.",
+    titleEs: "Displayed Title (Spanish)",
+    titleEsHint: "Free text shown on the Spanish site (e.g., 'Socio', 'Socia', 'Asociada'). Does not affect which listing they appear in — that's set by Category.",
     role: "Position",
     roleEs: "Position (Spanish)",
     email: "Email Address",
@@ -147,9 +148,10 @@ const translations = {
     nameHint: "Como aparece en tarjetas de presentación",
     slug: "Identificador URL",
     slugHint: "Generado automáticamente del nombre (ej. 'maria-garcia')",
-    title: "Título Profesional",
-    titleHint: "Ej. 'Socio - Corporativo & Fusiones'",
-    titleEs: "Título Profesional (Español)",
+    title: "Categoría",
+    titleHint: "Determina en qué listado aparece esta persona (Socios, Of Counsel, Consejeros, Asociados). Debe coincidir exacto — elígelo de la lista.",
+    titleEs: "Título mostrado (Español)",
+    titleEsHint: "Texto libre que se muestra en el sitio en español (ej. 'Socio', 'Socia', 'Asociada'). No afecta en qué listado aparece — eso lo define la Categoría.",
     role: "Posición",
     roleEs: "Posición (Español)",
     email: "Correo Electrónico",
@@ -640,14 +642,19 @@ export default function AdminTeamForm() {
                                       {t.requiredField}
                                     </Badge>
                                   </FormLabel>
-                                  <FormControl>
-                                    <Input 
-                                      {...field} 
-                                      className="rounded-none border-[#D9D8D7] focus:border-[#AA1A2E] focus:ring-[#AA1A2E]"
-                                      placeholder="Partner - Corporate & M&A"
-                                      data-testid="input-title" 
-                                    />
-                                  </FormControl>
+                                  <Select onValueChange={field.onChange} value={field.value}>
+                                    <FormControl>
+                                      <SelectTrigger className="rounded-none border-[#D9D8D7]" data-testid="input-title">
+                                        <SelectValue placeholder={language === "es" ? "Seleccionar..." : "Select..."} />
+                                      </SelectTrigger>
+                                    </FormControl>
+                                    <SelectContent className="rounded-none">
+                                      <SelectItem value="Partner">Partner</SelectItem>
+                                      <SelectItem value="Of Counsel">Of Counsel</SelectItem>
+                                      <SelectItem value="Counsel">Counsel</SelectItem>
+                                      <SelectItem value="Associate">Associate</SelectItem>
+                                    </SelectContent>
+                                  </Select>
                                   <FormDescription className="text-[#878A8E] text-xs">
                                     {t.titleHint}
                                   </FormDescription>
@@ -668,13 +675,16 @@ export default function AdminTeamForm() {
                                     </Badge>
                                   </FormLabel>
                                   <FormControl>
-                                    <Input 
-                                      {...field} 
+                                    <Input
+                                      {...field}
                                       className="rounded-none border-[#D9D8D7] focus:border-[#AA1A2E] focus:ring-[#AA1A2E]"
-                                      placeholder="Socio - Corporativo & Fusiones"
-                                      data-testid="input-title-es" 
+                                      placeholder="Socio, Socia, Asociado, Asociada, Of Counsel, Counsel…"
+                                      data-testid="input-title-es"
                                     />
                                   </FormControl>
+                                  <FormDescription className="text-[#878A8E] text-xs">
+                                    {t.titleEsHint}
+                                  </FormDescription>
                                   <FormMessage />
                                 </FormItem>
                               )}
