@@ -335,6 +335,13 @@ const stats: Stat[] = [
   { value: "6", label: "levels", labelEs: "niveles" },
 ];
 
+// Postgres pone los NULL PRIMERO en "ORDER BY ... DESC" por defecto. 616 de 1792 noticias
+// (contenido legacy migrado sin fecha) tienen date=NULL, así que dominaban la primera página
+// de "Noticias" en vez de mostrarse ahí el contenido genuinamente reciente — una noticia
+// recién creada con fecha real quedaba enterrada detrás de esos 616 registros. Se usa en
+// TODO lugar donde antes se ordenaba con `desc(news.date)`.
+const newsDateDescNullsLast = sql`${news.date} desc nulls last`;
+
 export class DatabaseStorage implements IStorage {
   async getUser(id: string): Promise<User | undefined> {
     const [user] = await db.select().from(users).where(eq(users.id, id));
@@ -352,12 +359,12 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getNews(): Promise<News[]> {
-    return db.select().from(news).orderBy(desc(news.date));
+    return db.select().from(news).orderBy(newsDateDescNullsLast);
   }
 
   /** Solo las N noticias más recientes (para el home): evita traer ~1.792 filas. */
   async getRecentNews(limit: number): Promise<News[]> {
-    return db.select().from(news).orderBy(desc(news.date)).limit(limit);
+    return db.select().from(news).orderBy(newsDateDescNullsLast).limit(limit);
   }
 
   /** Las N noticias más recientes PUBLICADAS (relleno del hero de la home). */
@@ -366,7 +373,7 @@ export class DatabaseStorage implements IStorage {
       .select()
       .from(news)
       .where(eq(news.published, true))
-      .orderBy(desc(news.date))
+      .orderBy(newsDateDescNullsLast)
       .limit(limit);
   }
 
@@ -376,13 +383,13 @@ export class DatabaseStorage implements IStorage {
       .select()
       .from(news)
       .where(and(eq(news.featuredHome, true), eq(news.published, true)))
-      .orderBy(desc(news.date))
+      .orderBy(newsDateDescNullsLast)
       .limit(limit);
   }
 
   /** Una página de noticias ordenadas por fecha desc (para el listado paginado). */
   async getNewsPage(limit: number, offset: number): Promise<News[]> {
-    return db.select().from(news).orderBy(desc(news.date)).limit(limit).offset(offset);
+    return db.select().from(news).orderBy(newsDateDescNullsLast).limit(limit).offset(offset);
   }
 
   /** Conteo total de noticias (para calcular el nº de páginas sin traer filas). */
@@ -404,7 +411,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getPublishedNewsPage(limit: number, offset: number, category?: string): Promise<News[]> {
-    return db.select().from(news).where(this.publishedNewsConditions(category)).orderBy(desc(news.date)).limit(limit).offset(offset);
+    return db.select().from(news).where(this.publishedNewsConditions(category)).orderBy(newsDateDescNullsLast).limit(limit).offset(offset);
   }
 
   async getPublishedNewsCount(category?: string): Promise<number> {
@@ -423,7 +430,7 @@ export class DatabaseStorage implements IStorage {
     if (opts.category && opts.category !== "all") conds.push(eq(news.category, opts.category));
     const where = conds.length ? and(...conds) : undefined;
     const [rows, countRows] = await Promise.all([
-      db.select().from(news).where(where).orderBy(desc(news.date)).limit(opts.limit).offset(opts.offset),
+      db.select().from(news).where(where).orderBy(newsDateDescNullsLast).limit(opts.limit).offset(opts.offset),
       db.select({ count: sql<number>`count(*)::int` }).from(news).where(where),
     ]);
     return { rows, total: countRows[0]?.count ?? 0 };
@@ -465,7 +472,7 @@ export class DatabaseStorage implements IStorage {
           ilike(news.contentEs, like),
         ),
       )
-      .orderBy(desc(news.date))
+      .orderBy(newsDateDescNullsLast)
       .limit(limit);
   }
 
