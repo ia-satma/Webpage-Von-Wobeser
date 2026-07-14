@@ -189,6 +189,43 @@ function injectAdminLink(html: string): string {
   return html.replace(/(<div class="footer--copy">[\s\S]*?)(<\/div>)/, (_m, inner, close) => `${inner}${ADMIN_LINK}${close}`);
 }
 
+// Sustituye el texto de la línea que arma la URL del video en el swap de miniaturas
+// ('/images/' + cual + '.mp4') por una que primero busca la URL editable en data-video,
+// y solo cae a la ruta original si no hay ninguna configurada.
+const DIVERSITY_SWAP_ORIGINAL = "salsa.setAttribute('src', '/images/' + cual + '.mp4');";
+const DIVERSITY_SWAP_EDITABLE =
+  "salsa.setAttribute('src', $(this).attr('data-video') || ('/images/' + cual + '.mp4'));";
+
+// Video principal + 7 miniaturas de la galería "Diversidad e Inclusión" son archivos fijos
+// en la plantilla capturada. Esto los hace editables desde el panel: reescribe el <source>
+// inicial, agrega data-video a cada miniatura, y ajusta el único punto del script inline
+// que decide qué video cargar al hacer clic (ver DIVERSITY_SWAP_ORIGINAL arriba).
+function applyDiversityVideoGallery($: cheerio.CheerioAPI, config: ConfigMap): void {
+  const v = (key: string, fallback: string) => (config[key]?.value || "").trim() || fallback;
+  const mainUrl = v("page_diversity_video_main", "/images/vw_vid_02.mp4");
+  const slots: Record<string, string> = {
+    vw_vid_02: mainUrl, // la miniatura "vw_vid_02" vuelve a mostrar el video principal
+    vid_01: v("page_diversity_video_1", "/images/vid_01.mp4"),
+    vid_02: v("page_diversity_video_2", "/images/vid_02.mp4"),
+    vid_03: v("page_diversity_video_3", "/images/vid_03.mp4"),
+    vid_04: v("page_diversity_video_4", "/images/vid_04.mp4"),
+    vid_05: v("page_diversity_video_5", "/images/vid_05.mp4"),
+    vid_06: v("page_diversity_video_6", "/images/vid_06.mp4"),
+    vid_07: v("page_diversity_video_7", "/images/vid_07.mp4"),
+  };
+  $("#videoSource").attr("src", mainUrl);
+  $(".thumb[name]").each((_, el) => {
+    const name = $(el).attr("name") || "";
+    if (slots[name]) $(el).attr("data-video", slots[name]);
+  });
+  $("script").each((_, el) => {
+    const js = $(el).html();
+    if (js && js.includes(DIVERSITY_SWAP_ORIGINAL)) {
+      $(el).text(js.replace(DIVERSITY_SWAP_ORIGINAL, DIVERSITY_SWAP_EDITABLE));
+    }
+  });
+}
+
 // Inyecta el toggle de idioma antes de </body>, aplica el pie editable y envía.
 // Cache-Control permite que navegador/CDN reutilicen la página (contenido público
 // que cambia poco); stale-while-revalidate sirve la copia vieja mientras revalida.
@@ -406,7 +443,14 @@ export async function setupMirror(app: Express) {
         lang,
         PAGE_KEYS[which],
         { path: seo.path[lang], title: seo.title[lang] },
-        which === "careers" ? applyCareersFormFix : which === "contact" ? ($: cheerio.CheerioAPI) => applyContactForm($, lang) : undefined,
+        which === "careers"
+          ? applyCareersFormFix
+          : which === "contact"
+            ? ($: cheerio.CheerioAPI) => applyContactForm($, lang)
+            : which === "diversity"
+              ? ($: cheerio.CheerioAPI) => applyDiversityVideoGallery($, config)
+              : undefined,
+        which === "diversity" ? { bodyMode: "prepend" } : undefined,
       ),
     );
   };

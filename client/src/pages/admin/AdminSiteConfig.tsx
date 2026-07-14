@@ -53,7 +53,20 @@ const GROUPS: Array<{
       { key: "page_probono_intro", label: "Pro Bono — introducción", help: "Si lo dejas vacío, se muestra el texto original.", bilingual: true, multiline: true },
       { key: "page_probono_body", label: "Pro Bono — cuerpo", bilingual: true, multiline: true },
       { key: "page_diversity_intro", label: "Diversidad e Inclusión — introducción", help: "Si lo dejas vacío, se muestra el texto original.", bilingual: true, multiline: true },
-      { key: "page_diversity_body", label: "Diversidad e Inclusión — cuerpo", bilingual: true, multiline: true },
+      { key: "page_diversity_body", label: "Diversidad e Inclusión — texto adicional", help: "Se muestra ARRIBA de la galería de video, sin borrarla. Déjalo vacío si no quieres agregar nada.", bilingual: true, multiline: true },
+    ],
+  },
+  {
+    title: "Diversidad e Inclusión — galería de video",
+    fields: [
+      { key: "page_diversity_video_main", label: "Video principal", media: "video", help: "El video que se reproduce por defecto al entrar a la página." },
+      { key: "page_diversity_video_1", label: "Video — miniatura 1", media: "video" },
+      { key: "page_diversity_video_2", label: "Video — miniatura 2", media: "video" },
+      { key: "page_diversity_video_3", label: "Video — miniatura 3", media: "video" },
+      { key: "page_diversity_video_4", label: "Video — miniatura 4", media: "video" },
+      { key: "page_diversity_video_5", label: "Video — miniatura 5", media: "video" },
+      { key: "page_diversity_video_6", label: "Video — miniatura 6", media: "video" },
+      { key: "page_diversity_video_7", label: "Video — miniatura 7", media: "video" },
     ],
   },
 ];

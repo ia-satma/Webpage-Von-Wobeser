@@ -31,7 +31,19 @@ const DEFAULTS: Array<{ key: string; value: string; valueEs?: string; type: stri
   { key: "page_probono_intro", value: "", valueEs: "", type: "text", category: "pages", description: "Pro Bono — párrafo de introducción" },
   { key: "page_probono_body", value: "", valueEs: "", type: "text", category: "pages", description: "Pro Bono — cuerpo del texto" },
   { key: "page_diversity_intro", value: "", valueEs: "", type: "text", category: "pages", description: "Diversidad e Inclusión — párrafo de introducción" },
-  { key: "page_diversity_body", value: "", valueEs: "", type: "text", category: "pages", description: "Diversidad e Inclusión — cuerpo del texto" },
+  { key: "page_diversity_body", value: "", valueEs: "", type: "text", category: "pages", description: "Diversidad e Inclusión — texto adicional (se muestra arriba de la galería de video, no la reemplaza)" },
+  // Galería de video de Diversidad e Inclusión: 1 video principal + 7 miniaturas que lo
+  // reemplazan al hacer clic. No son bilingües (es el mismo archivo para ES/EN). Los valores
+  // por defecto son las rutas originales de la plantilla capturada (algunas de las miniaturas
+  // no tienen archivo real en este espejo — igual que en la plantilla original sin editar).
+  { key: "page_diversity_video_main", value: "/images/vw_vid_02.mp4", type: "url", category: "pages", description: "Diversidad e Inclusión — video principal" },
+  { key: "page_diversity_video_1", value: "/images/vid_01.mp4", type: "url", category: "pages", description: "Diversidad e Inclusión — video miniatura 1" },
+  { key: "page_diversity_video_2", value: "/images/vid_02.mp4", type: "url", category: "pages", description: "Diversidad e Inclusión — video miniatura 2" },
+  { key: "page_diversity_video_3", value: "/images/vid_03.mp4", type: "url", category: "pages", description: "Diversidad e Inclusión — video miniatura 3" },
+  { key: "page_diversity_video_4", value: "/images/vid_04.mp4", type: "url", category: "pages", description: "Diversidad e Inclusión — video miniatura 4" },
+  { key: "page_diversity_video_5", value: "/images/vid_05.mp4", type: "url", category: "pages", description: "Diversidad e Inclusión — video miniatura 5" },
+  { key: "page_diversity_video_6", value: "/images/vid_06.mp4", type: "url", category: "pages", description: "Diversidad e Inclusión — video miniatura 6" },
+  { key: "page_diversity_video_7", value: "/images/vid_07.mp4", type: "url", category: "pages", description: "Diversidad e Inclusión — video miniatura 7" },
 ];
 
 // Caché en memoria del site-config: antes se hacía SELECT * en CADA render del
