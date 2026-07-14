@@ -495,7 +495,7 @@ export async function registerRoutes(
     }
   });
 
-  app.post("/api/admin/office-images", authMiddleware, requirePermission("content"), async (req: Request, res: Response) => {
+  app.post("/api/admin/office-images", authMiddleware, requirePermission("config"), async (req: Request, res: Response) => {
     try {
       const parsed = insertOfficeImageSchema.safeParse(req.body);
       if (!parsed.success) return res.status(400).json({ error: parsed.error.flatten() });
@@ -506,7 +506,7 @@ export async function registerRoutes(
     }
   });
 
-  app.patch("/api/admin/office-images/:id", authMiddleware, requirePermission("content"), async (req: Request, res: Response) => {
+  app.patch("/api/admin/office-images/:id", authMiddleware, requirePermission("config"), async (req: Request, res: Response) => {
     try {
       const patchSchema = insertOfficeImageSchema.pick({ alt: true, altEs: true, order: true }).partial();
       const parsed = patchSchema.safeParse(req.body);
@@ -519,7 +519,7 @@ export async function registerRoutes(
     }
   });
 
-  app.delete("/api/admin/office-images/:id", authMiddleware, requirePermission("content"), async (req: Request, res: Response) => {
+  app.delete("/api/admin/office-images/:id", authMiddleware, requirePermission("config"), async (req: Request, res: Response) => {
     try {
       const deleted = await storage.deleteOfficeImage(req.params.id);
       if (!deleted) return res.status(404).json({ error: "Image not found" });

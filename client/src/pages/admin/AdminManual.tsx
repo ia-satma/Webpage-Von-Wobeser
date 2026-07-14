@@ -8,10 +8,16 @@ import { HelpCircle, ArrowRight } from "lucide-react";
 
 export default function AdminManual() {
   useEffect(() => {
-    if (window.location.hash) {
-      const el = document.getElementById(window.location.hash.slice(1));
+    if (!window.location.hash) return;
+    const id = window.location.hash.slice(1);
+    // El ScrollToTop global (App.tsx) hace un scrollTo instantáneo al montar la ruta;
+    // si el scrollIntoView suave se dispara en el mismo frame, el navegador lo descarta.
+    // Se retrasa al siguiente frame para que corra después de que ese scroll se asiente.
+    const raf = requestAnimationFrame(() => {
+      const el = document.getElementById(id);
       if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
-    }
+    });
+    return () => cancelAnimationFrame(raf);
   }, []);
 
   return (
