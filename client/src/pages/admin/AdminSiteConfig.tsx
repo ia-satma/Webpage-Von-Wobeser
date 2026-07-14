@@ -18,7 +18,7 @@ import { Save, Settings, Loader2 } from "lucide-react";
 // Friendly definitions for the editable site-config keys (grouped).
 const GROUPS: Array<{
   title: string;
-  fields: Array<{ key: string; label: string; help?: string; bilingual?: boolean; media?: "image" | "video"; multiline?: boolean }>;
+  fields: Array<{ key: string; label: string; help?: string; bilingual?: boolean; media?: "image" | "video"; multiline?: boolean; rows?: number }>;
 }> = [
   {
     title: "Portada (home)",
@@ -55,6 +55,7 @@ const GROUPS: Array<{
       { key: "page_diversity_intro", label: "Diversidad e Inclusión — introducción", help: "Si lo dejas vacío, se muestra el texto original.", bilingual: true, multiline: true },
       { key: "page_diversity_body", label: "Diversidad e Inclusión — texto adicional", help: "Se muestra ARRIBA de la galería de video, sin borrarla. Déjalo vacío si no quieres agregar nada.", bilingual: true, multiline: true },
       { key: "page_capabilities_body", label: "Capacidades — introducción", help: "Si lo dejas vacío, se muestra el texto original.", bilingual: true, multiline: true },
+      { key: "page_privacy_body", label: "Aviso de Privacidad — texto completo", help: "Documento legal (LFPDPPP). Si lo dejas vacío, se muestra el texto original. Edítalo si cambia el domicilio, el responsable de los datos u otro dato de cumplimiento.", bilingual: true, multiline: true, rows: 14 },
     ],
   },
   {
@@ -163,7 +164,7 @@ export default function AdminSiteConfig() {
                       />
                     ) : f.multiline ? (
                       <Textarea
-                        rows={3}
+                        rows={f.rows ?? 3}
                         value={draft[f.key]?.value ?? ""}
                         onChange={(e) => set(f.key, "value", e.target.value)}
                         data-testid={`input-${f.key}`}
@@ -179,7 +180,7 @@ export default function AdminSiteConfig() {
                     {f.bilingual && (
                       f.multiline ? (
                         <Textarea
-                          rows={3}
+                          rows={f.rows ?? 3}
                           value={draft[f.key]?.valueEs ?? ""}
                           onChange={(e) => set(f.key, "valueEs", e.target.value)}
                           placeholder="Texto en español"

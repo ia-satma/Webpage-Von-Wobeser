@@ -77,6 +77,7 @@ const TEMPLATES = {
   newsDetail: { en: "index.php/publication/p_id-1.html",      es: "index.php/publicacion/p_id-1001.html" },
   articlesList: { en: "index.php/publications/articles/index.html", es: "index.php/publicaciones/articulos/index.html" },
   publications: { en: "index.php/publications/index.html",    es: "index.php/publicaciones/index.html" },
+  privacy:      { en: "index.php/privacy/index.html",         es: "index.php/aviso/index.html" },
   firm:       { en: "index.php/our-firm/index.html",          es: "index.php/nuestra-firma/index.html" },
   contact:    { en: "index.php/contact/index.html",           es: "index.php/contacto/index.html" },
   careers:    { en: "index.php/careers/index.html",           es: "index.php/bolsa-de-trabajo/index.html" },
@@ -102,6 +103,10 @@ const PAGE_KEYS = {
   // ningún texto real que editar, así que no lleva intro/body. Se conecta solo para que la
   // ruta corta funcione y tenga SEO dinámico como el resto de páginas institucionales.
   publications: {},
+  // El Aviso de Privacidad capturado usa el mismo patrón simple (solo .page__content--body,
+  // sin --intro) — texto legal completo, editable por si cambia el domicilio, el responsable
+  // de los datos, o cualquier otro dato de cumplimiento (LFPDPPP).
+  privacy: { body: "page_privacy_body" },
 };
 const PAGE_SEO: Record<keyof typeof PAGE_KEYS, { path: { en: string; es: string }; title: { en: string; es: string } }> = {
   firm: {
@@ -131,6 +136,10 @@ const PAGE_SEO: Record<keyof typeof PAGE_KEYS, { path: { en: string; es: string 
   publications: {
     path: { en: "/publications", es: "/publicaciones" },
     title: { en: "Publications | Von Wobeser y Sierra", es: "Publicaciones | Von Wobeser y Sierra" },
+  },
+  privacy: {
+    path: { en: "/privacy", es: "/aviso" },
+    title: { en: "Privacy Notice | Von Wobeser y Sierra", es: "Aviso de Privacidad | Von Wobeser y Sierra" },
   },
 };
 
@@ -648,6 +657,10 @@ export async function setupMirror(app: Express) {
     app.get(p, wrap((_req, res) => servePage("publications", "es", res)));
   for (const p of ["/index.php/publications/index.html", "/index.php/publications/", "/publications"])
     app.get(p, wrap((_req, res) => servePage("publications", "en", res)));
+  for (const p of ["/index.php/aviso/index.html", "/index.php/aviso/", "/aviso"])
+    app.get(p, wrap((_req, res) => servePage("privacy", "es", res)));
+  for (const p of ["/index.php/privacy/index.html", "/index.php/privacy/", "/privacy"])
+    app.get(p, wrap((_req, res) => servePage("privacy", "en", res)));
   for (const p of ["/index.php/capacidades/practicas/index.html", "/index.php/capacidades/practicas/", "/capacidades/practicas"])
     app.get(p, wrap((_req, res) => serveGroupList("practice", "es", res)));
   for (const p of ["/index.php/capabilities/practices/index.html", "/index.php/capabilities/practices/", "/capabilities/practices"])
