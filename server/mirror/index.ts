@@ -8,6 +8,8 @@ import { renderAttorneyResults } from "./renderAttorneyResults";
 import { renderSingle } from "./renderSingle";
 import { renderHome } from "./renderHome";
 import { renderPage } from "./renderPage";
+import { renderGroupList, type GroupListItem } from "./renderGroupList";
+import { renderDeskDetail, renderDesksMap } from "./renderDesk";
 import { applyCareersFormFix, applyContactForm } from "./formsFix";
 import * as cheerio from "cheerio";
 import { renderNewsList, renderNewsDetail } from "./renderNews";
@@ -78,6 +80,10 @@ const TEMPLATES = {
   careers:    { en: "index.php/careers/index.html",           es: "index.php/bolsa-de-trabajo/index.html" },
   proBono:    { en: "index.php/our-firm/our-firm-probono/index.html", es: "index.php/nuestra-firma/probono/index.html" },
   diversity:  { en: "index.php/our-firm/diversity/index.html",        es: "index.php/nuestra-firma/diversidad/index.html" },
+  capabilities: { en: "index.php/capabilities/index.html",          es: "index.php/capacidades/index.html" },
+  practiceList: { en: "index.php/capabilities/practices/index.html", es: "index.php/capacidades/practicas/index.html" },
+  industryList: { en: "index.php/capabilities/industries/index.html", es: "index.php/capacidades/industrias/index.html" },
+  desksList:    { en: "index.php/capabilities/capabilities-desks/index.html", es: "index.php/capacidades/desks/index.html" },
 };
 
 // Páginas institucionales con texto editable: qué keys de siteConfig inyecta cada una,
@@ -88,6 +94,7 @@ const PAGE_KEYS = {
   careers:   { intro: "page_careers_intro",   body: "page_careers_body" },
   proBono:   { intro: "page_probono_intro",   body: "page_probono_body" },
   diversity: { intro: "page_diversity_intro", body: "page_diversity_body" },
+  capabilities: { body: "page_capabilities_body" },
 };
 const PAGE_SEO: Record<keyof typeof PAGE_KEYS, { path: { en: string; es: string }; title: { en: string; es: string } }> = {
   firm: {
@@ -109,6 +116,10 @@ const PAGE_SEO: Record<keyof typeof PAGE_KEYS, { path: { en: string; es: string 
   diversity: {
     path: { en: "/our-firm/diversity", es: "/nuestra-firma/diversidad" },
     title: { en: "Diversity & Inclusion | Von Wobeser y Sierra", es: "Diversidad e Inclusión | Von Wobeser y Sierra" },
+  },
+  capabilities: {
+    path: { en: "/capabilities", es: "/capacidades" },
+    title: { en: "Capabilities | Von Wobeser y Sierra", es: "Capacidades | Von Wobeser y Sierra" },
   },
 };
 
@@ -470,6 +481,70 @@ export async function setupMirror(app: Express) {
     );
   };
 
+  // Listados "Prácticas" / "Grupos de práctica por industria": antes eran HTML estático
+  // congelado (18/19-jun-2026), desconectado de la base de datos. Ahora se generan desde
+  // storage.getPracticeGroups()/getIndustryGroups() en cada request, y enlazan a la ruta
+  // dinámica /practice|industry/:slug (no a la vieja URL numérica legacy).
+  const GROUP_LIST_SEO = {
+    practice: {
+      path: { en: "/capabilities/practices", es: "/capacidades/practicas" },
+      title: { en: "Practices | Von Wobeser y Sierra", es: "Áreas de práctica | Von Wobeser y Sierra" },
+      crumb: { en: "Practices", es: "Áreas de práctica" },
+      desc: {
+        en: "Explore the practice areas of Von Wobeser y Sierra, a full-service Mexican law firm.",
+        es: "Conoce las áreas de práctica de Von Wobeser y Sierra, despacho mexicano de servicio integral.",
+      },
+      template: TEMPLATES.practiceList,
+      linkPrefix: "/practice/" as const,
+    },
+    industry: {
+      path: { en: "/capabilities/industries", es: "/capacidades/industrias" },
+      title: { en: "Industry Groups | Von Wobeser y Sierra", es: "Grupos de práctica por industria | Von Wobeser y Sierra" },
+      crumb: { en: "Industry Groups", es: "Grupos de práctica por industria" },
+      desc: {
+        en: "Explore the industry groups of Von Wobeser y Sierra, a full-service Mexican law firm.",
+        es: "Conoce los grupos de práctica por industria de Von Wobeser y Sierra, despacho mexicano de servicio integral.",
+      },
+      template: TEMPLATES.industryList,
+      linkPrefix: "/industry/" as const,
+    },
+  } as const;
+
+  const serveGroupList = async (kind: keyof typeof GROUP_LIST_SEO, lang: Lang, res: Response) => {
+    const seo = GROUP_LIST_SEO[kind];
+    const rows = kind === "practice" ? await storage.getPracticeGroups() : await storage.getIndustryGroups();
+    const items: GroupListItem[] = rows
+      .filter((r: any) => r.published !== false)
+      .map((r: any) => ({ slug: r.slug, name: r.name, nameEs: r.nameEs, order: r.order }));
+    sendPage(
+      res,
+      renderGroupList(pick(seo.template, lang), items, seo.linkPrefix, lang, {
+        path: seo.path[lang],
+        title: seo.title[lang],
+        description: seo.desc[lang],
+        crumbLabel: seo.crumb[lang],
+      }),
+    );
+  };
+
+  // La página "Desks" del espejo es un mapa mundial interactivo (SVG), no una lista de texto —
+  // ver renderDesk.ts. serveDesksMap rellena las regiones que tengan un desk real; serveDesk
+  // sirve la página individual de cada desk, reusando el chrome de "Prácticas" (misma nav/pie
+  // que toda la plantilla capturada) porque el mapa no tiene una vista de detalle propia.
+  const serveDesksMap = async (lang: Lang, res: Response) => {
+    const desks = await storage.getSpecializedDesks();
+    sendPage(res, renderDesksMap(pick(TEMPLATES.desksList, lang), desks, lang));
+  };
+
+  const serveDesk = async (slug: string | undefined, lang: Lang, res: Response, next: NextFunction) => {
+    if (!slug) return next();
+    const desks = await storage.getSpecializedDesks();
+    const desk = desks.find((d) => d.slug === slug);
+    if (!desk) return next();
+    if ((desk as any).published === false) return next();
+    sendPage(res, renderDeskDetail(pick(TEMPLATES.practiceList, lang), desk, lang));
+  };
+
   const wrap = (fn: (req: Request, res: Response, next: NextFunction) => Promise<any>) => (
     req: Request,
     res: Response,
@@ -495,6 +570,7 @@ export async function setupMirror(app: Express) {
   app.get("/abogado/:slug", wrap((req, res, next) => serveAttorney(req.params.slug, "es", res, next)));
   app.get("/practice/:slug", wrap((req, res, next) => servePractice(req.params.slug, langOf(req), res, next)));
   app.get("/industry/:slug", wrap((req, res, next) => serveIndustry(req.params.slug, langOf(req), res, next)));
+  app.get("/desk/:slug", wrap((req, res, next) => serveDesk(req.params.slug, langOf(req), res, next)));
 
   // ---------- Páginas institucionales (texto editable desde el panel) ----
   // Variantes de URL del espejo: ES (nuestra-firma/contacto/bolsa-de-trabajo) y EN
@@ -519,6 +595,22 @@ export async function setupMirror(app: Express) {
     app.get(p, wrap((_req, res) => servePage("diversity", "es", res)));
   for (const p of ["/index.php/our-firm/diversity/index.html", "/index.php/our-firm/diversity/", "/our-firm/diversity"])
     app.get(p, wrap((_req, res) => servePage("diversity", "en", res)));
+  for (const p of ["/index.php/capacidades/index.html", "/index.php/capacidades/", "/capacidades"])
+    app.get(p, wrap((_req, res) => servePage("capabilities", "es", res)));
+  for (const p of ["/index.php/capabilities/index.html", "/index.php/capabilities/", "/capabilities"])
+    app.get(p, wrap((_req, res) => servePage("capabilities", "en", res)));
+  for (const p of ["/index.php/capacidades/practicas/index.html", "/index.php/capacidades/practicas/", "/capacidades/practicas"])
+    app.get(p, wrap((_req, res) => serveGroupList("practice", "es", res)));
+  for (const p of ["/index.php/capabilities/practices/index.html", "/index.php/capabilities/practices/", "/capabilities/practices"])
+    app.get(p, wrap((_req, res) => serveGroupList("practice", "en", res)));
+  for (const p of ["/index.php/capacidades/industrias/index.html", "/index.php/capacidades/industrias/", "/capacidades/industrias"])
+    app.get(p, wrap((_req, res) => serveGroupList("industry", "es", res)));
+  for (const p of ["/index.php/capabilities/industries/index.html", "/index.php/capabilities/industries/", "/capabilities/industries"])
+    app.get(p, wrap((_req, res) => serveGroupList("industry", "en", res)));
+  for (const p of ["/index.php/capacidades/desks/index.html", "/index.php/capacidades/desks/", "/capacidades/desks"])
+    app.get(p, wrap((_req, res) => serveDesksMap("es", res)));
+  for (const p of ["/index.php/capabilities/capabilities-desks/index.html", "/index.php/capabilities/capabilities-desks/", "/capabilities/desks"])
+    app.get(p, wrap((_req, res) => serveDesksMap("en", res)));
 
   // Subpáginas de "Pasantes" — a diferencia de las landings de arriba, estas NO pasan por
   // renderPage/siteConfig (no tienen texto editable), pero SÍ tienen el mismo formulario
@@ -565,12 +657,20 @@ export async function setupMirror(app: Express) {
     serveAttorney(ids.attorney.get(req.params.id), "es", res, next),
   ));
 
-  // Practice / industry
+  // Practice / industry (EN legacy numeric path). The ES legacy path uses the SAME numeric
+  // IDs (confirmed 1:1 against the captured mirror — p-3 is "Environmental"/"Ambiental" in
+  // both folders), so both languages share the same ids.practice/ids.industry maps.
   app.get("/index.php/practice/p-:id.html", wrap((req, res, next) =>
     servePractice(ids.practice.get(req.params.id), "en", res, next),
   ));
   app.get("/index.php/industry/p-:id.html", wrap((req, res, next) =>
     serveIndustry(ids.industry.get(req.params.id), "en", res, next),
+  ));
+  app.get("/index.php/practica/p-:id.html", wrap((req, res, next) =>
+    servePractice(ids.practice.get(req.params.id), "es", res, next),
+  ));
+  app.get("/index.php/industria/p-:id.html", wrap((req, res, next) =>
+    serveIndustry(ids.industry.get(req.params.id), "es", res, next),
   ));
 
   // Attorney listings (EN + ES category slugs)

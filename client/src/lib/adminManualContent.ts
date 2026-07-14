@@ -123,6 +123,19 @@ export const ADMIN_MANUAL_SECTIONS: AdminManualSection[] = [
     relatedHref: "/admin/recognitions",
   },
   {
+    id: "desks",
+    title: "Áreas especializadas (desks)",
+    icon: Building2,
+    whatIsIt: "Grupos de trabajo especializados que cruzan varias áreas de práctica, enfocados en un país o sector específico (ej. el Desk Alemán).",
+    whatFor: "Mostrar equipos con experiencia dedicada a un mercado o industria concreta, más allá de las áreas de práctica generales.",
+    steps: [
+      "Entra a \"Áreas especializadas (desks)\".",
+      "Agrega un desk con su nombre (ES/EN), identificador de URL, país y descripción corta y completa.",
+      "Aparece de inmediato en Capacidades → Desks del sitio público, en ambos idiomas.",
+    ],
+    relatedHref: "/admin/desks",
+  },
+  {
     id: "configuracion",
     title: "Textos, video y logos",
     icon: Settings,

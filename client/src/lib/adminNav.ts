@@ -77,6 +77,7 @@ export const ADMIN_NAV_GROUPS: AdminNavGroup[] = [
       { href: "/admin/team", label: "Abogados y equipo", icon: Users },
       { href: "/admin/practice-groups", label: "Áreas de práctica", icon: Briefcase },
       { href: "/admin/industry-groups", label: "Sectores / Industrias", icon: Building2 },
+      { href: "/admin/desks", label: "Áreas especializadas (desks)", icon: ClipboardList },
       { href: "/admin/events", label: "Eventos", icon: Calendar, comingSoon: true },
       { href: "/admin/recognitions", label: "Reconocimientos", icon: Award },
       { href: "/admin/submissions", label: "Solicitudes recibidas", icon: Mail },
@@ -101,7 +102,6 @@ export const ADMIN_NAV_GROUPS: AdminNavGroup[] = [
       { href: "/admin/coming-soon/testimonios", label: "Testimonios", icon: Quote, comingSoon: true },
       { href: "/admin/coming-soon/alianzas", label: "Alianzas", icon: Link2, comingSoon: true },
       { href: "/admin/coming-soon/oficinas", label: "Oficinas", icon: MapPin, comingSoon: true },
-      { href: "/admin/coming-soon/desks", label: "Áreas especializadas (desks)", icon: ClipboardList, comingSoon: true },
       { href: "/admin/coming-soon/vacantes", label: "Vacantes", icon: UserPlus, comingSoon: true },
     ],
   },
@@ -155,10 +155,6 @@ export const COMING_SOON_SECTIONS: ComingSoonSection[] = [
   {
     key: "oficinas", title: "Oficinas", icon: MapPin, status: "no-screen",
     description: "Ubicaciones físicas de la firma (dirección, mapa, datos de contacto por oficina), si en algún momento hay más de una sede.",
-  },
-  {
-    key: "desks", title: "Áreas especializadas (desks)", icon: ClipboardList, status: "no-screen",
-    description: "Grupos de trabajo especializados que cruzan varias áreas de práctica (ej. un \"desk\" dedicado a un país o sector específico).",
   },
   {
     key: "vacantes", title: "Vacantes", icon: UserPlus, status: "no-screen",

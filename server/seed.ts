@@ -1,6 +1,6 @@
 import { db } from "./db";
 import { eq } from "drizzle-orm";
-import { news, officeImages, practiceGroups, industryGroups, teamMembers, representativeMatters, adminUsers, events } from "@shared/schema";
+import { news, officeImages, practiceGroups, industryGroups, teamMembers, representativeMatters, adminUsers, events, specializedDesks } from "@shared/schema";
 import { hashPassword } from "./auth";
 
 const practiceGroupsData = [
@@ -1153,6 +1153,30 @@ const eventsData = [
   },
 ];
 
+// Único "desk" real capturado del sitio original (index.php/capacidades/desks e
+// index.php/capabilities/capabilities-desks) — texto completo tal cual, para que la migración
+// a la página dinámica no cambie nada visible hasta que el cliente lo edite desde el panel.
+const specializedDesksData = [
+  {
+    name: "German Desk",
+    nameEs: "Desk Alemán",
+    slug: "german-desk",
+    country: "Germany",
+    countryEs: "Alemania",
+    flagEmoji: "🇩🇪",
+    description:
+      "For thirty-four years, Von Wobeser y Sierra has worked with German international companies, many of them leaders in their industries.",
+    descriptionEs:
+      "Desde hace treinta y cuatro años, Von Wobeser y Sierra trabaja con empresas internacionales del ámbito alemán, muchas de ellas líderes en sus industrias.",
+    fullDescription:
+      "For thirty-four years, Von Wobeser y Sierra has worked with German international companies, many of them leaders in their industries. The firm offers multidisciplinary advice backed by a team of German-speaking lawyers who are familiar with German business culture.\n\nThe German Desk of Von Wobeser y Sierra includes German and Austrian attorneys with legal educations in their home countries and Mexican lawyers with broad experience. Together they form a partnership that understands German values and mentality and knows the language. This allows them to provide legal advice that is directed to the needs of the clients and assists them in planning and implementing their commercial activities in Mexico.\n\nThe members of the German Desk of the firm are specialists in the main practices and industries of the Mexican business environment and have proven knowledge of the fundamental economic factors and dynamics. Thus, they can offer quality services that align with the opportunities and challenges of the country.\n\nFor more than three decades the German Desk of Von Wobeser y Sierra has accompanied numerous German companies in the development of their business and commercial activities through specialized counseling that has served to successfully conclude multiple international transactions. In order to maximize the opportunities and minimize the risks associated with the regulatory environment of the market, we encourage the ongoing and up-to-date education of our lawyers and we actively monitor the changes to the legal framework.\n\nSince its creation, the German Desk has been a specialized communication channel and, as such, has facilitated and optimized the legal advice we provide to an essential segment of our clients. The common language and roots and the collaboration we maintain with the other members of the firm – in addition to the experience and skills of the Desk itself – allow us to guarantee top-quality multidisciplinary counsel.",
+    fullDescriptionEs:
+      "Desde hace treinta y cuatro años, Von Wobeser y Sierra trabaja con empresas internacionales del ámbito alemán, muchas de ellas líderes en sus industrias. El despacho ofrece una asesoría multidisciplinaria y cuenta con un equipo de abogados germanoparlantes que están familiarizados con la cultura de negocios alemana.\n\nEl Desk Alemán de Von Wobeser y Sierra está conformado por abogados alemanes y austriacos con formación jurídica en sus países de origen y abogados mexicanos de muy amplia experiencia. Juntos hacen una mancuerna plural que entiende los valores y la mentalidad germanos y domina el idioma. Esto les permite brindar un asesoramiento legal ajustado a las necesidades de los clientes y facilitarles la planeación y la realización de sus actividades comerciales en México.\n\nLos integrantes del Desk Alemán del despacho son especialistas en las principales prácticas e industrias del ámbito empresarial mexicano y tienen un conocimiento probado de los factores y las dinámicas económicas fundamentales. Pueden ofrecer, así, un servicio de calidad que se alinea con las oportunidades y retos propios del país.\n\nPor más de tres décadas, el Desk Alemán de Von Wobeser y Sierra ha acompañado a numerosas empresas alemanas en el desarrollo de sus negocios y actividades comerciales mediante una asesoría especializada que ha servido para llevar a buen puerto múltiples transacciones internacionales. Con el fin de maximizar las oportunidades y minimizar los riesgos asociados al entorno regulatorio del mercado, promovemos la actualización continua y puntual de nuestros abogados y vigilamos activamente los cambios al marco jurídico.\n\nDesde su creación, el Desk Alemán ha sido un canal de comunicación especializado y, como tal, ha facilitado y optimizado el asesoramiento jurídico que brindamos a una parte esencial de nuestros clientes. El idioma, las raíces comunes y la colaboración que mantenemos con los demás miembros del despacho —aunados a la experiencia y las competencias propias del Desk— nos permiten garantizar una asistencia multidisciplinar de primera calidad.",
+    published: true,
+    order: 1,
+  },
+];
+
 export async function seed() {
   console.log("Seeding database with real Von Wobeser y Sierra content...");
 
@@ -1178,6 +1202,12 @@ export async function seed() {
   if (existingIndustryGroups.length === 0) {
     console.log("Seeding industry groups...");
     await db.insert(industryGroups).values(industryGroupsData);
+  }
+
+  const existingDesks = await db.select().from(specializedDesks);
+  if (existingDesks.length === 0) {
+    console.log("Seeding specialized desks...");
+    await db.insert(specializedDesks).values(specializedDesksData);
   }
 
   const existingTeamMembers = await db.select().from(teamMembers);

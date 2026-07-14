@@ -54,6 +54,7 @@ const GROUPS: Array<{
       { key: "page_probono_body", label: "Pro Bono — cuerpo", bilingual: true, multiline: true },
       { key: "page_diversity_intro", label: "Diversidad e Inclusión — introducción", help: "Si lo dejas vacío, se muestra el texto original.", bilingual: true, multiline: true },
       { key: "page_diversity_body", label: "Diversidad e Inclusión — texto adicional", help: "Se muestra ARRIBA de la galería de video, sin borrarla. Déjalo vacío si no quieres agregar nada.", bilingual: true, multiline: true },
+      { key: "page_capabilities_body", label: "Capacidades — introducción", help: "Si lo dejas vacío, se muestra el texto original.", bilingual: true, multiline: true },
     ],
   },
   {
