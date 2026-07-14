@@ -551,7 +551,7 @@ export async function setupMirror(app: Express) {
         PAGE_KEYS[which],
         { path: seo.path[lang], title: seo.title[lang] },
         which === "careers"
-          ? applyCareersFormFix
+          ? ($: cheerio.CheerioAPI) => applyCareersFormFix($, lang)
           : which === "contact"
             ? ($: cheerio.CheerioAPI) => applyContactForm($, lang)
             : which === "diversity"
@@ -709,14 +709,14 @@ export async function setupMirror(app: Express) {
   for (const p of ["/index.php/bolsa-de-trabajo/pasantes/index.html", "/index.php/bolsa-de-trabajo/pasantes/", "/bolsa-de-trabajo/pasantes"])
     app.get(p, wrap((_req, res) => {
       const $ = cheerio.load(tpl("index.php/bolsa-de-trabajo/pasantes/index.html"));
-      applyCareersFormFix($);
+      applyCareersFormFix($, "es");
       sendPage(res, $.html());
       return Promise.resolve();
     }));
   for (const p of ["/index.php/careers/interns/index.html", "/index.php/careers/interns/", "/careers/interns"])
     app.get(p, wrap((_req, res) => {
       const $ = cheerio.load(tpl("index.php/careers/interns/index.html"));
-      applyCareersFormFix($);
+      applyCareersFormFix($, "en");
       sendPage(res, $.html());
       return Promise.resolve();
     }));

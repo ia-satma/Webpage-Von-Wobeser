@@ -16,7 +16,15 @@ function esc(s: string): string {
  * Validate ya presente en el HTML (que solo hacía form.submit()), sin depender de que
  * jQuery/jQuery Validate estén cargados ni de su orden de inicialización.
  */
-export function applyCareersFormFix($: cheerio.CheerioAPI): void {
+export function applyCareersFormFix($: cheerio.CheerioAPI, lang: "es" | "en" = "en"): void {
+  // La plantilla en inglés capturada tiene un segundo enlace a "Privacy Notice." (pie de
+  // página, fuera del formulario) que por un error del sitio original apunta al aviso en
+  // ESPAÑOL (/index.php/aviso/) en vez de al propio (/index.php/privacy/). El enlace del
+  // checkbox obligatorio ya estaba bien — este es solo el del copyright del pie.
+  if (lang === "en") {
+    $('a[href="/index.php/aviso/index.html"]').attr("href", "/index.php/privacy/index.html");
+  }
+
   const $form = $("#careersForm");
   if (!$form.length) return;
 
