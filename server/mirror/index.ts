@@ -200,18 +200,33 @@ const DIVERSITY_SWAP_EDITABLE =
 // en la plantilla capturada. Esto los hace editables desde el panel: reescribe el <source>
 // inicial, agrega data-video a cada miniatura, y ajusta el único punto del script inline
 // que decide qué video cargar al hacer clic (ver DIVERSITY_SWAP_ORIGINAL arriba).
+// Del espejo capturado solo existe vw_vid_02.mp4 en disco; vid_01..vid_07 nunca se capturaron
+// (huecos de la captura original, no de este código). Si un slot sigue apuntando a un archivo
+// LOCAL que no existe, se cae al video principal en vez de "reproducir" el HTML de error de
+// Vite (200 con content-type text/html) como si fuera un video roto. Un video ya subido desde
+// el panel (URL /uploads/...) siempre es real, así que ese chequeo no le aplica.
+const diversityLocalFileExists = (relUrl: string): boolean => {
+  if (!relUrl.startsWith("/images/")) return true;
+  try {
+    return fs.existsSync(mirrorPath(relUrl.slice(1)));
+  } catch {
+    return false;
+  }
+};
+
 function applyDiversityVideoGallery($: cheerio.CheerioAPI, config: ConfigMap): void {
   const v = (key: string, fallback: string) => (config[key]?.value || "").trim() || fallback;
   const mainUrl = v("page_diversity_video_main", "/images/vw_vid_02.mp4");
+  const resolve = (url: string) => (diversityLocalFileExists(url) ? url : mainUrl);
   const slots: Record<string, string> = {
     vw_vid_02: mainUrl, // la miniatura "vw_vid_02" vuelve a mostrar el video principal
-    vid_01: v("page_diversity_video_1", "/images/vid_01.mp4"),
-    vid_02: v("page_diversity_video_2", "/images/vid_02.mp4"),
-    vid_03: v("page_diversity_video_3", "/images/vid_03.mp4"),
-    vid_04: v("page_diversity_video_4", "/images/vid_04.mp4"),
-    vid_05: v("page_diversity_video_5", "/images/vid_05.mp4"),
-    vid_06: v("page_diversity_video_6", "/images/vid_06.mp4"),
-    vid_07: v("page_diversity_video_7", "/images/vid_07.mp4"),
+    vid_01: resolve(v("page_diversity_video_1", "/images/vid_01.mp4")),
+    vid_02: resolve(v("page_diversity_video_2", "/images/vid_02.mp4")),
+    vid_03: resolve(v("page_diversity_video_3", "/images/vid_03.mp4")),
+    vid_04: resolve(v("page_diversity_video_4", "/images/vid_04.mp4")),
+    vid_05: resolve(v("page_diversity_video_5", "/images/vid_05.mp4")),
+    vid_06: resolve(v("page_diversity_video_6", "/images/vid_06.mp4")),
+    vid_07: resolve(v("page_diversity_video_7", "/images/vid_07.mp4")),
   };
   $("#videoSource").attr("src", mainUrl);
   $(".thumb[name]").each((_, el) => {
