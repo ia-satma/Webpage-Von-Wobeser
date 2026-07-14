@@ -76,14 +76,18 @@ const TEMPLATES = {
   firm:       { en: "index.php/our-firm/index.html",          es: "index.php/nuestra-firma/index.html" },
   contact:    { en: "index.php/contact/index.html",           es: "index.php/contacto/index.html" },
   careers:    { en: "index.php/careers/index.html",           es: "index.php/bolsa-de-trabajo/index.html" },
+  proBono:    { en: "index.php/our-firm/our-firm-probono/index.html", es: "index.php/nuestra-firma/probono/index.html" },
+  diversity:  { en: "index.php/our-firm/diversity/index.html",        es: "index.php/nuestra-firma/diversidad/index.html" },
 };
 
 // Páginas institucionales con texto editable: qué keys de siteConfig inyecta cada una,
 // + metadata SEO (ruta canónica y título por idioma).
 const PAGE_KEYS = {
-  firm:    { intro: "page_firm_intro",    body: "page_firm_body" },
-  contact: { intro: "page_contact_intro", body: "page_contact_body" },
-  careers: { intro: "page_careers_intro", body: "page_careers_body" },
+  firm:      { intro: "page_firm_intro",      body: "page_firm_body" },
+  contact:   { intro: "page_contact_intro",   body: "page_contact_body" },
+  careers:   { intro: "page_careers_intro",   body: "page_careers_body" },
+  proBono:   { intro: "page_probono_intro",   body: "page_probono_body" },
+  diversity: { intro: "page_diversity_intro", body: "page_diversity_body" },
 };
 const PAGE_SEO: Record<keyof typeof PAGE_KEYS, { path: { en: string; es: string }; title: { en: string; es: string } }> = {
   firm: {
@@ -97,6 +101,14 @@ const PAGE_SEO: Record<keyof typeof PAGE_KEYS, { path: { en: string; es: string 
   careers: {
     path: { en: "/careers", es: "/bolsa-de-trabajo" },
     title: { en: "Careers | Von Wobeser y Sierra", es: "Bolsa de trabajo | Von Wobeser y Sierra" },
+  },
+  proBono: {
+    path: { en: "/our-firm/our-firm-probono", es: "/nuestra-firma/probono" },
+    title: { en: "Pro Bono | Von Wobeser y Sierra", es: "Pro Bono | Von Wobeser y Sierra" },
+  },
+  diversity: {
+    path: { en: "/our-firm/diversity", es: "/nuestra-firma/diversidad" },
+    title: { en: "Diversity & Inclusion | Von Wobeser y Sierra", es: "Diversidad e Inclusión | Von Wobeser y Sierra" },
   },
 };
 
@@ -440,6 +452,14 @@ export async function setupMirror(app: Express) {
     app.get(p, wrap((_req, res) => servePage("careers", "es", res)));
   for (const p of ["/index.php/careers/index.html", "/index.php/careers/", "/careers"])
     app.get(p, wrap((_req, res) => servePage("careers", "en", res)));
+  for (const p of ["/index.php/nuestra-firma/probono/index.html", "/index.php/nuestra-firma/probono/", "/nuestra-firma/probono"])
+    app.get(p, wrap((_req, res) => servePage("proBono", "es", res)));
+  for (const p of ["/index.php/our-firm/our-firm-probono/index.html", "/index.php/our-firm/our-firm-probono/", "/our-firm/our-firm-probono"])
+    app.get(p, wrap((_req, res) => servePage("proBono", "en", res)));
+  for (const p of ["/index.php/nuestra-firma/diversidad/index.html", "/index.php/nuestra-firma/diversidad/", "/nuestra-firma/diversidad"])
+    app.get(p, wrap((_req, res) => servePage("diversity", "es", res)));
+  for (const p of ["/index.php/our-firm/diversity/index.html", "/index.php/our-firm/diversity/", "/our-firm/diversity"])
+    app.get(p, wrap((_req, res) => servePage("diversity", "en", res)));
 
   // Subpáginas de "Pasantes" — a diferencia de las landings de arriba, estas NO pasan por
   // renderPage/siteConfig (no tienen texto editable), pero SÍ tienen el mismo formulario

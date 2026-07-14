@@ -50,6 +50,10 @@ const GROUPS: Array<{
       { key: "page_contact_body", label: "Contacto — dirección / texto", bilingual: true, multiline: true },
       { key: "page_careers_intro", label: "Carrera en VWyS — introducción", bilingual: true, multiline: true },
       { key: "page_careers_body", label: "Carrera en VWyS — cuerpo", bilingual: true, multiline: true },
+      { key: "page_probono_intro", label: "Pro Bono — introducción", help: "Si lo dejas vacío, se muestra el texto original.", bilingual: true, multiline: true },
+      { key: "page_probono_body", label: "Pro Bono — cuerpo", bilingual: true, multiline: true },
+      { key: "page_diversity_intro", label: "Diversidad e Inclusión — introducción", help: "Si lo dejas vacío, se muestra el texto original.", bilingual: true, multiline: true },
+      { key: "page_diversity_body", label: "Diversidad e Inclusión — cuerpo", bilingual: true, multiline: true },
     ],
   },
 ];

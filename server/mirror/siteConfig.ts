@@ -28,6 +28,10 @@ const DEFAULTS: Array<{ key: string; value: string; valueEs?: string; type: stri
   { key: "page_contact_body", value: "", valueEs: "", type: "text", category: "pages", description: "Contacto — dirección / texto principal" },
   { key: "page_careers_intro", value: "", valueEs: "", type: "text", category: "pages", description: "Carrera en VWyS — párrafo de introducción" },
   { key: "page_careers_body", value: "", valueEs: "", type: "text", category: "pages", description: "Carrera en VWyS — cuerpo del texto" },
+  { key: "page_probono_intro", value: "", valueEs: "", type: "text", category: "pages", description: "Pro Bono — párrafo de introducción" },
+  { key: "page_probono_body", value: "", valueEs: "", type: "text", category: "pages", description: "Pro Bono — cuerpo del texto" },
+  { key: "page_diversity_intro", value: "", valueEs: "", type: "text", category: "pages", description: "Diversidad e Inclusión — párrafo de introducción" },
+  { key: "page_diversity_body", value: "", valueEs: "", type: "text", category: "pages", description: "Diversidad e Inclusión — cuerpo del texto" },
 ];
 
 // Caché en memoria del site-config: antes se hacía SELECT * en CADA render del
