@@ -75,6 +75,8 @@ const TEMPLATES = {
   home:       { en: "index.html",                             es: "index.php/home/index.html" },
   newsList:   { en: "index.php/publications/news/index.html", es: "index.php/publicaciones/noticias/index.html" },
   newsDetail: { en: "index.php/publication/p_id-1.html",      es: "index.php/publicacion/p_id-1001.html" },
+  articlesList: { en: "index.php/publications/articles/index.html", es: "index.php/publicaciones/articulos/index.html" },
+  publications: { en: "index.php/publications/index.html",    es: "index.php/publicaciones/index.html" },
   firm:       { en: "index.php/our-firm/index.html",          es: "index.php/nuestra-firma/index.html" },
   contact:    { en: "index.php/contact/index.html",           es: "index.php/contacto/index.html" },
   careers:    { en: "index.php/careers/index.html",           es: "index.php/bolsa-de-trabajo/index.html" },
@@ -95,6 +97,11 @@ const PAGE_KEYS = {
   proBono:   { intro: "page_probono_intro",   body: "page_probono_body" },
   diversity: { intro: "page_diversity_intro", body: "page_diversity_body" },
   capabilities: { body: "page_capabilities_body" },
+  // "Publicaciones" en la plantilla capturada es solo un título + un formulario de búsqueda
+  // legacy de Joomla (POST a /index.php/results, inexistente en este backend) — no tiene
+  // ningún texto real que editar, así que no lleva intro/body. Se conecta solo para que la
+  // ruta corta funcione y tenga SEO dinámico como el resto de páginas institucionales.
+  publications: {},
 };
 const PAGE_SEO: Record<keyof typeof PAGE_KEYS, { path: { en: string; es: string }; title: { en: string; es: string } }> = {
   firm: {
@@ -120,6 +127,10 @@ const PAGE_SEO: Record<keyof typeof PAGE_KEYS, { path: { en: string; es: string 
   capabilities: {
     path: { en: "/capabilities", es: "/capacidades" },
     title: { en: "Capabilities | Von Wobeser y Sierra", es: "Capacidades | Von Wobeser y Sierra" },
+  },
+  publications: {
+    path: { en: "/publications", es: "/publicaciones" },
+    title: { en: "Publications | Von Wobeser y Sierra", es: "Publicaciones | Von Wobeser y Sierra" },
   },
 };
 
@@ -427,21 +438,54 @@ export async function setupMirror(app: Express) {
     sendPage(res, renderSingle(pick(TEMPLATES.industry, lang), group, attorneys, "industry", lang));
   };
 
+  // Un borrador (published=false) o un artículo programado a futuro (publishAt) NUNCA debe
+  // ser públicamente alcanzable — antes no se comprobaba en la ruta de detalle ni en los
+  // listados, así que una noticia sin publicar filtraba su URL con solo conocer el slug.
+  const isPubliclyVisible = (n: { published?: boolean | null; publishAt?: Date | string | null }): boolean =>
+    n.published === true && (!n.publishAt || new Date(n.publishAt) <= new Date());
+
   const serveNewsDetail = async (slug: string | undefined, lang: Lang, res: Response, next: NextFunction) => {
     if (!slug) return next();
     const item = await storage.getNewsBySlug(slug);
-    if (!item) return next();
+    if (!item || !isPubliclyVisible(item)) return next();
     sendPage(res, renderNewsDetail(pick(TEMPLATES.newsDetail, lang), item, lang));
   };
 
   const serveNewsList = async (lang: Lang, res: Response, page = 1) => {
     const perPage = 24;
     // Cuenta + una sola página en SQL, en vez de traer TODAS las noticias y paginar en memoria.
-    const total = await storage.getNewsCount();
+    const total = await storage.getPublishedNewsCount();
     const totalPages = Math.max(1, Math.ceil(total / perPage));
     const p = Math.min(Math.max(1, page), totalPages);
-    const slice = await storage.getNewsPage(perPage, (p - 1) * perPage);
+    const slice = await storage.getPublishedNewsPage(perPage, (p - 1) * perPage);
     sendPage(res, renderNewsList(pick(TEMPLATES.newsList, lang), slice, lang, { page: p, totalPages }));
+  };
+
+  // "Artículos"/"Articles": antes HTML congelado (express.static), enlazando a las mismas
+  // noticias legacy p_id-N.html que "Noticias" — resulta que en la DB ya conviven bajo la
+  // MISMA tabla `news`, distinguidas por `category` ("news" vs "articles", ~284 filas). Se
+  // reusa renderNewsList con opts distintos; Noticias sigue sin filtrar por categoría (no se
+  // le quita nada de lo que ya mostraba), así que un artículo puede aparecer en ambos listados.
+  const serveArticlesList = async (lang: Lang, res: Response, page = 1) => {
+    const perPage = 24;
+    const total = await storage.getPublishedNewsCount("articles");
+    const totalPages = Math.max(1, Math.ceil(total / perPage));
+    const p = Math.min(Math.max(1, page), totalPages);
+    const slice = await storage.getPublishedNewsPage(perPage, (p - 1) * perPage, "articles");
+    sendPage(
+      res,
+      renderNewsList(pick(TEMPLATES.articlesList, lang), slice, lang, { page: p, totalPages }, {
+        // Misma convención que "/news": una sola ruta corta, idioma por ?lang=en (no
+        // /publicaciones/articulos como ruta "limpia" — esa forma queda solo como legacy).
+        basePath: "/articles",
+        title: { en: "Articles | Von Wobeser y Sierra", es: "Artículos | Von Wobeser y Sierra" },
+        description: {
+          en: "Legal articles and opinion pieces authored by Von Wobeser y Sierra attorneys.",
+          es: "Artículos y columnas de opinión escritos por los abogados de Von Wobeser y Sierra.",
+        },
+        crumbLabel: { en: "Articles", es: "Artículos" },
+      }),
+    );
   };
 
   const serveHome = async (lang: Lang, res: Response) => {
@@ -556,6 +600,7 @@ export async function setupMirror(app: Express) {
   app.get("/home", wrap((req, res) => serveHome(langOf(req), res)));
   app.get("/news", wrap((req, res) => serveNewsList(langOf(req), res, parseInt(String(req.query.page)) || 1)));
   app.get("/news/:slug", wrap((req, res, next) => serveNewsDetail(req.params.slug, langOf(req), res, next)));
+  app.get("/articles", wrap((req, res) => serveArticlesList(langOf(req), res, parseInt(String(req.query.page)) || 1)));
   // Página general "Abogados" (a la que redirige el menú): ÚNICA con buscador.
   app.get("/attorneys", wrap((req, res, next) => serveList("partners", langOf(req), res, next, req.query, true)));
   // Resultados de búsqueda (debe ir ANTES de /attorneys/:category para no ser
@@ -599,6 +644,10 @@ export async function setupMirror(app: Express) {
     app.get(p, wrap((_req, res) => servePage("capabilities", "es", res)));
   for (const p of ["/index.php/capabilities/index.html", "/index.php/capabilities/", "/capabilities"])
     app.get(p, wrap((_req, res) => servePage("capabilities", "en", res)));
+  for (const p of ["/index.php/publicaciones/index.html", "/index.php/publicaciones/", "/publicaciones"])
+    app.get(p, wrap((_req, res) => servePage("publications", "es", res)));
+  for (const p of ["/index.php/publications/index.html", "/index.php/publications/", "/publications"])
+    app.get(p, wrap((_req, res) => servePage("publications", "en", res)));
   for (const p of ["/index.php/capacidades/practicas/index.html", "/index.php/capacidades/practicas/", "/capacidades/practicas"])
     app.get(p, wrap((_req, res) => serveGroupList("practice", "es", res)));
   for (const p of ["/index.php/capabilities/practices/index.html", "/index.php/capabilities/practices/", "/capabilities/practices"])
@@ -641,6 +690,8 @@ export async function setupMirror(app: Express) {
   app.get("/index.php/home/index.html", wrap((_req, res) => serveHome("es", res)));
   app.get("/index.php/publications/news/index.html", wrap((req, res) => serveNewsList(langOf(req), res)));
   app.get("/index.php/publicaciones/noticias/index.html", wrap((_req, res) => serveNewsList("es", res)));
+  app.get("/index.php/publications/articles/index.html", wrap((req, res) => serveArticlesList(langOf(req), res)));
+  app.get("/index.php/publicaciones/articulos/index.html", wrap((_req, res) => serveArticlesList("es", res)));
   // Detalle de publicación por URL original (p_id) → versión dinámica desde la DB.
   app.get("/index.php/publication/p_id-:id.html", wrap((req, res, next) =>
     serveNewsDetail(pubIdMap.get(req.params.id), "en", res, next),

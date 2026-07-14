@@ -455,6 +455,11 @@ export async function registerRoutes(
     }
   });
 
+  // Público (sin authMiddleware): un borrador (published=false) o programado a futuro
+  // (publishAt) no debe ser alcanzable solo conociendo su slug/id.
+  const isNewsPubliclyVisible = (n: { published?: boolean | null; publishAt?: Date | string | null }): boolean =>
+    n.published === true && (!n.publishAt || new Date(n.publishAt) <= new Date());
+
   app.get("/api/news/:idOrSlug", async (req, res) => {
     try {
       const param = req.params.idOrSlug;
@@ -462,7 +467,7 @@ export async function registerRoutes(
       if (!news) {
         news = await storage.getNewsById(param);
       }
-      if (!news) {
+      if (!news || !isNewsPubliclyVisible(news)) {
         return res.status(404).json({ error: "News not found" });
       }
       res.json(news);
@@ -476,7 +481,7 @@ export async function registerRoutes(
     try {
       const slug = req.params.slug;
       const newsItem = await storage.getNewsBySlug(slug);
-      if (!newsItem) {
+      if (!newsItem || !isNewsPubliclyVisible(newsItem)) {
         return res.status(404).json({ error: "News not found" });
       }
       const teamMembersList = await storage.getTeamMembersByNewsId(newsItem.id);

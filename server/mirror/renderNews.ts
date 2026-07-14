@@ -25,16 +25,27 @@ function fmtDate(d: any, lang: Lang): string {
   return `${MONTHS[lang][dt.getMonth()]}, ${dt.getFullYear()}`;
 }
 
-/** News listing — replaces the archive cards with DB news (paginated). */
+export type NewsListOpts = {
+  /** Ruta base (sin idioma) usada para paginación + SEO + breadcrumb. Default "/news". */
+  basePath?: string;
+  title?: { en: string; es: string };
+  description?: { en: string; es: string };
+  crumbLabel?: { en: string; es: string };
+};
+
+/** News listing — replaces the archive cards with DB news (paginated). Reused for both
+ *  "Noticias" (default opts) and "Artículos" (opts.basePath="/articles", distinto título). */
 export function renderNewsList(
   templateHtml: string,
   news: any[],
   lang: Lang = "en",
   pageInfo?: { page: number; totalPages: number },
+  opts: NewsListOpts = {},
 ): string {
   const $ = cheerio.load(templateHtml);
   const langSuffix = lang === "en" ? "?lang=en" : "";
   const readMore = lang === "es" ? "Leer más" : "Read more";
+  const basePath = opts.basePath || "/news";
 
   const cards = news.map((n) => {
     const title = esc(L(n, "title", lang));
@@ -56,7 +67,7 @@ export function renderNewsList(
   // Paginación dinámica
   if (pageInfo && pageInfo.totalPages > 1) {
     const { page, totalPages } = pageInfo;
-    const linkPage = (p: number) => `/news?page=${p}${lang === "en" ? "&lang=en" : ""}`;
+    const linkPage = (p: number) => `${basePath}?page=${p}${lang === "en" ? "&lang=en" : ""}`;
     const parts: string[] = [];
     if (page > 1) parts.push(`<a class="pagination__item" href="${linkPage(page - 1)}">‹ ${lang === "es" ? "Anterior" : "Prev"}</a>`);
     const from = Math.max(1, page - 2), to = Math.min(totalPages, page + 2);
@@ -69,20 +80,26 @@ export function renderNewsList(
   }
 
   $("html").attr("lang", lang === "es" ? "es-mx" : "en-gb");
+  const defaultTitle = { en: "News & Publications | Von Wobeser y Sierra", es: "Noticias y publicaciones | Von Wobeser y Sierra" };
+  const defaultDesc = {
+    en: "News, publications and legal updates from Von Wobeser y Sierra, a leading Mexican law firm.",
+    es: "Noticias, publicaciones y actualizaciones legales de Von Wobeser y Sierra, firma de abogados líder en México.",
+  };
+  const defaultCrumb = { en: "News", es: "Noticias" };
+  const title = opts.title || defaultTitle;
+  const description = opts.description || defaultDesc;
+  const crumbLabel = opts.crumbLabel || defaultCrumb;
   applySeo($, {
     lang,
-    path: "/news",
-    title: lang === "es" ? "Noticias y publicaciones | Von Wobeser y Sierra" : "News & Publications | Von Wobeser y Sierra",
-    description:
-      lang === "es"
-        ? "Noticias, publicaciones y actualizaciones legales de Von Wobeser y Sierra, firma de abogados líder en México."
-        : "News, publications and legal updates from Von Wobeser y Sierra, a leading Mexican law firm.",
+    path: basePath,
+    title: title[lang],
+    description: description[lang],
     type: "website",
     jsonLd: [
       breadcrumbNode(
         [
           { name: lang === "es" ? "Inicio" : "Home", path: "/" },
-          { name: lang === "es" ? "Noticias" : "News", path: "/news" },
+          { name: crumbLabel[lang], path: basePath },
         ],
         lang,
       ),

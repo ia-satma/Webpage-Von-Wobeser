@@ -1,4 +1,4 @@
-import { eq, desc, asc, and, isNull, gte, sql, inArray, ilike, or } from "drizzle-orm";
+import { eq, desc, asc, and, isNull, gte, lte, sql, inArray, ilike, or } from "drizzle-orm";
 import { db } from "./db";
 import {
   type User,
@@ -109,6 +109,8 @@ export interface IStorage {
   getFeaturedNews(limit: number): Promise<News[]>;
   getNewsPage(limit: number, offset: number): Promise<News[]>;
   getNewsCount(): Promise<number>;
+  getPublishedNewsPage(limit: number, offset: number, category?: string): Promise<News[]>;
+  getPublishedNewsCount(category?: string): Promise<number>;
   getAdminNewsPage(opts: { limit: number; offset: number; search?: string; category?: string }): Promise<{ rows: News[]; total: number }>;
   getTranslationStats(): Promise<{ total: number; byLanguage: Record<string, number>; articlesWithTranslations: number }>;
   searchNews(q: string, limit: number): Promise<News[]>;
@@ -386,6 +388,27 @@ export class DatabaseStorage implements IStorage {
   /** Conteo total de noticias (para calcular el nº de páginas sin traer filas). */
   async getNewsCount(): Promise<number> {
     const [row] = await db.select({ count: sql<number>`count(*)::int` }).from(news);
+    return row?.count ?? 0;
+  }
+
+  // getNewsPage/getNewsCount (arriba) NO filtran published/publishAt — se usan también para
+  // stats de admin, donde SÍ se quiere el total incluyendo borradores. Estas dos son las que
+  // deben usar las rutas PÚBLICAS del espejo (listado de Noticias/Artículos + detalle), para
+  // que un borrador (published=false) o un artículo programado a futuro (publishAt) no se
+  // filtre al sitio público antes de tiempo.
+  private publishedNewsConditions(category?: string) {
+    const now = new Date();
+    const conds = [eq(news.published, true), or(isNull(news.publishAt), lte(news.publishAt, now))];
+    if (category) conds.push(eq(news.category, category));
+    return and(...conds);
+  }
+
+  async getPublishedNewsPage(limit: number, offset: number, category?: string): Promise<News[]> {
+    return db.select().from(news).where(this.publishedNewsConditions(category)).orderBy(desc(news.date)).limit(limit).offset(offset);
+  }
+
+  async getPublishedNewsCount(category?: string): Promise<number> {
+    const [row] = await db.select({ count: sql<number>`count(*)::int` }).from(news).where(this.publishedNewsConditions(category));
     return row?.count ?? 0;
   }
 
