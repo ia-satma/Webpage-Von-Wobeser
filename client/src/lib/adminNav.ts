@@ -23,6 +23,13 @@ import {
   BarChart3,
   CheckCircle,
   Sparkles,
+  Trophy,
+  Handshake,
+  Quote,
+  Link2,
+  MapPin,
+  ClipboardList,
+  UserPlus,
 } from "lucide-react";
 
 /**
@@ -37,6 +44,12 @@ export interface AdminNavItem {
   label: string;
   icon: LucideIcon;
   requires?: AdminNavPermission;
+  /**
+   * Secciones editables en el panel que TODAVÍA no se muestran en el sitio público —
+   * o que directamente aún no tienen pantalla real (apuntan a /admin/coming-soon/:key).
+   * El cliente no ha autorizado que estos huecos se conecten al frontend todavía.
+   */
+  comingSoon?: boolean;
 }
 
 export interface AdminNavGroup {
@@ -59,12 +72,12 @@ export const ADMIN_NAV_GROUPS: AdminNavGroup[] = [
     label: "Contenido",
     items: [
       { href: "/admin/news", label: "Noticias", icon: Newspaper },
-      { href: "/admin/posts", label: "Blog / Artículos", icon: FileText },
+      { href: "/admin/posts", label: "Blog / Artículos", icon: FileText, comingSoon: true },
       { href: "/admin/categories", label: "Categorías", icon: FolderOpen },
       { href: "/admin/team", label: "Abogados y equipo", icon: Users },
       { href: "/admin/practice-groups", label: "Áreas de práctica", icon: Briefcase },
       { href: "/admin/industry-groups", label: "Sectores / Industrias", icon: Building2 },
-      { href: "/admin/events", label: "Eventos", icon: Calendar },
+      { href: "/admin/events", label: "Eventos", icon: Calendar, comingSoon: true },
       { href: "/admin/recognitions", label: "Reconocimientos", icon: Award },
       { href: "/admin/submissions", label: "Solicitudes recibidas", icon: Mail },
     ],
@@ -74,9 +87,22 @@ export const ADMIN_NAV_GROUPS: AdminNavGroup[] = [
     label: "Configuración",
     items: [
       { href: "/admin/site-config", label: "Textos, video y logos", icon: Settings, requires: "config" },
-      { href: "/admin/gallery", label: "Galería de imágenes", icon: Images, requires: "config" },
+      { href: "/admin/gallery", label: "Galería de imágenes", icon: Images, requires: "config", comingSoon: true },
       { href: "/admin/translations", label: "Traducciones", icon: Languages, requires: "config" },
       { href: "/admin/users", label: "Usuarios y accesos", icon: ShieldCheck, requires: "adminOnly" },
+    ],
+  },
+  {
+    id: "proximamente",
+    label: "Próximamente",
+    items: [
+      { href: "/admin/coming-soon/premios", label: "Premios", icon: Trophy, comingSoon: true },
+      { href: "/admin/coming-soon/clientes", label: "Clientes", icon: Handshake, comingSoon: true },
+      { href: "/admin/coming-soon/testimonios", label: "Testimonios", icon: Quote, comingSoon: true },
+      { href: "/admin/coming-soon/alianzas", label: "Alianzas", icon: Link2, comingSoon: true },
+      { href: "/admin/coming-soon/oficinas", label: "Oficinas", icon: MapPin, comingSoon: true },
+      { href: "/admin/coming-soon/desks", label: "Áreas especializadas (desks)", icon: ClipboardList, comingSoon: true },
+      { href: "/admin/coming-soon/vacantes", label: "Vacantes", icon: UserPlus, comingSoon: true },
     ],
   },
   {
@@ -92,6 +118,51 @@ export const ADMIN_NAV_GROUPS: AdminNavGroup[] = [
       { href: "/admin/audits", label: "Auditorías del sitio", icon: CheckCircle, requires: "advanced" },
       { href: "/admin/guide", label: "Ecosistema de Agentes (en vivo)", icon: Sparkles, requires: "advanced" },
     ],
+  },
+];
+
+export interface ComingSoonSection {
+  key: string;
+  title: string;
+  icon: LucideIcon;
+  status: "no-screen" | "not-public";
+  description: string;
+}
+
+/**
+ * Contenido de la página /admin/coming-soon/:key — una entrada por sección "en
+ * construcción" sin pantalla propia todavía (status "no-screen"). Las secciones que SÍ
+ * tienen pantalla real pero aún no se muestran en el sitio público (Galería/Eventos/Blog,
+ * status "not-public") no usan esta ruta — su propio AdminPageHeader muestra el badge.
+ */
+export const COMING_SOON_SECTIONS: ComingSoonSection[] = [
+  {
+    key: "premios", title: "Premios", icon: Trophy, status: "no-screen",
+    description: "Premios y reconocimientos individuales que ha recibido la firma o sus abogados (distinto de \"Reconocimientos\", que son rankings de publicaciones como Chambers o Legal 500).",
+  },
+  {
+    key: "clientes", title: "Clientes", icon: Handshake, status: "no-screen",
+    description: "Logos y nombres de clientes representativos de la firma, para mostrar como prueba social en el sitio.",
+  },
+  {
+    key: "testimonios", title: "Testimonios", icon: Quote, status: "no-screen",
+    description: "Citas y testimonios de clientes sobre su experiencia trabajando con la firma.",
+  },
+  {
+    key: "alianzas", title: "Alianzas", icon: Link2, status: "no-screen",
+    description: "Redes y alianzas internacionales de las que forma parte la firma (ej. asociaciones de despachos aliados).",
+  },
+  {
+    key: "oficinas", title: "Oficinas", icon: MapPin, status: "no-screen",
+    description: "Ubicaciones físicas de la firma (dirección, mapa, datos de contacto por oficina), si en algún momento hay más de una sede.",
+  },
+  {
+    key: "desks", title: "Áreas especializadas (desks)", icon: ClipboardList, status: "no-screen",
+    description: "Grupos de trabajo especializados que cruzan varias áreas de práctica (ej. un \"desk\" dedicado a un país o sector específico).",
+  },
+  {
+    key: "vacantes", title: "Vacantes", icon: UserPlus, status: "no-screen",
+    description: "Puestos de trabajo abiertos en la firma, para publicarse en la página de Carrera.",
   },
 ];
 

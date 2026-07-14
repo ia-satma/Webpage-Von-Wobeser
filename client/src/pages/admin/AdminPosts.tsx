@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { AdminPageHelp } from "@/components/admin/AdminPageHelp";
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
+import { AdminComingSoonNote } from "@/components/admin/AdminComingSoonNote";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Link } from "wouter";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -399,7 +400,8 @@ export default function AdminPosts() {
             </Link>
           }
         />
-        <AdminPageHelp pageId="blog" manualSectionId="blog">Escribe y edita las entradas del blog de la firma.</AdminPageHelp>
+        <AdminComingSoonNote />
+        <AdminPageHelp pageId="blog" manualSectionId="blog">Escribe y edita las entradas del blog de la firma. Por ahora se guardan en el panel, en cuanto se autorice se conectan a una página pública.</AdminPageHelp>
 
         <Card>
           <CardHeader>

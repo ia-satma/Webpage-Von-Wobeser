@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { AdminPageHelp } from "@/components/admin/AdminPageHelp";
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
+import { AdminComingSoonNote } from "@/components/admin/AdminComingSoonNote";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useAdminAuth, adminApiRequest, getAuthHeaders } from "@/lib/adminAuth";
 import { queryClient } from "@/lib/queryClient";
@@ -171,6 +172,7 @@ export default function GalleryAdmin() {
           icon={Image}
         />
 
+        <AdminComingSoonNote />
         <AdminPageHelp pageId="galeria" manualSectionId="galeria">Sube y ordena las fotos de la galería de oficinas del sitio público. Arrástralas o usa las flechas para cambiar el orden.</AdminPageHelp>
         {/* Add Image Card */}
         <Card className="mb-8">

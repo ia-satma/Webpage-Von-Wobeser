@@ -60,12 +60,21 @@ export function AdminLayout({ children }: { children: ReactNode }) {
                     {visibleItems.map((item) => {
                       const Icon = item.icon;
                       const active = isNavItemActive(location, item.href);
+                      const tooltip = item.comingSoon ? `${item.label} (en construcción)` : item.label;
                       return (
                         <SidebarMenuItem key={item.href}>
-                          <SidebarMenuButton asChild isActive={active} tooltip={item.label} data-testid={`nav-${item.href.replace(/\//g, "-")}`}>
+                          <SidebarMenuButton asChild isActive={active} tooltip={tooltip} data-testid={`nav-${item.href.replace(/\//g, "-")}`}>
                             <Link href={item.href}>
                               <Icon />
-                              <span>{item.label}</span>
+                              <span className="flex-1 truncate">{item.label}</span>
+                              {item.comingSoon && (
+                                <span
+                                  className="ml-auto rounded-none bg-warning/15 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-warning group-data-[collapsible=icon]:hidden"
+                                  data-testid={`badge-coming-soon-${item.href.replace(/\//g, "-")}`}
+                                >
+                                  En construcción
+                                </span>
+                              )}
                             </Link>
                           </SidebarMenuButton>
                         </SidebarMenuItem>

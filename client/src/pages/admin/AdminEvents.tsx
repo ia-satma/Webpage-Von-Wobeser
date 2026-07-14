@@ -24,6 +24,7 @@ import { PlusCircle, Pencil, Trash2, Calendar as CalendarIcon, MapPin, Video, Us
 import { TranslateButton } from "@/components/admin/TranslateButton";
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 import { AdminPageHelp } from "@/components/admin/AdminPageHelp";
+import { AdminComingSoonNote } from "@/components/admin/AdminComingSoonNote";
 import { format } from "date-fns";
 import type { Event } from "@shared/schema";
 
@@ -1190,8 +1191,9 @@ export default function AdminEvents() {
             </Dialog>
           }
         />
+        <AdminComingSoonNote />
         <AdminPageHelp pageId="events" manualSectionId="eventos">
-          Aquí administras los eventos del despacho (conferencias, webinars, presentaciones) que se muestran en el sitio público.
+          Aquí administras los eventos del despacho (conferencias, webinars, presentaciones). Por ahora se guardan en el panel, en cuanto se autorice se conectan a una página pública.
         </AdminPageHelp>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

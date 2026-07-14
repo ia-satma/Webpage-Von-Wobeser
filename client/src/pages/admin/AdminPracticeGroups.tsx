@@ -972,7 +972,10 @@ export default function AdminPracticeGroups() {
                         name="imageUrl"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Imagen</FormLabel>
+                            <FormLabel>
+                              Imagen{" "}
+                              <span className="text-warning font-normal text-xs">(en construcción — aún no se muestra en el sitio)</span>
+                            </FormLabel>
                             <FormControl>
                               <ImageUpload value={field.value || ""} onChange={field.onChange} />
                             </FormControl>
