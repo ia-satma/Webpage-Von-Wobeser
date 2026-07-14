@@ -175,14 +175,42 @@ const lastWord = (name: string) => {
   return parts[parts.length - 1] || "";
 };
 
-// Hace que el botón de idioma del header alterne ES⇄EN sobre la URL actual,
-// en cualquier página, sin depender de las rutas originales del espejo.
+// Hace que el botón de idioma del header alterne ES⇄EN sobre la URL actual, en cualquier
+// página, sin depender de las rutas originales del espejo.
+//
+// Bug real que esto corrige: la mayoría de las páginas del espejo comparten UNA sola ruta y
+// alternan idioma con ?lang=en (/news, /attorneys, /practice/:slug, /lawyer/:slug, etc.) — para
+// esas, alternar el query param en la URL actual basta. PERO las páginas institucionales
+// (Nuestra Firma, Contacto, Carrera + Pasantes, Pro Bono, Diversidad, Capacidades + sus 3
+// listados, Publicaciones, Aviso de Privacidad) usan una URL COMPLETAMENTE DISTINTA por idioma
+// y esas rutas ignoran ?lang=en — el botón las dejaba viendo la misma URL con un query param
+// inútil, sin cambiar de idioma. PAIRS mapea cada una a su URL real en el otro idioma. El
+// idioma actual se detecta con document.documentElement.lang (ya seteado server-side en TODOS
+// los renderers), no con el query string — así el botón muestra la etiqueta correcta incluso
+// en las páginas de PAIRS, que nunca traen ?lang=en.
 const LANG_TOGGLE_SCRIPT = `<script>(function(){try{
-  var isEn=new URLSearchParams(location.search).get('lang')==='en';
+  var PAIRS={
+    '/nuestra-firma':'/our-firm','/our-firm':'/nuestra-firma',
+    '/contacto':'/contact','/contact':'/contacto',
+    '/bolsa-de-trabajo':'/careers','/careers':'/bolsa-de-trabajo',
+    '/bolsa-de-trabajo/pasantes':'/careers/interns','/careers/interns':'/bolsa-de-trabajo/pasantes',
+    '/nuestra-firma/probono':'/our-firm/our-firm-probono','/our-firm/our-firm-probono':'/nuestra-firma/probono',
+    '/nuestra-firma/diversidad':'/our-firm/diversity','/our-firm/diversity':'/nuestra-firma/diversidad',
+    '/capacidades':'/capabilities','/capabilities':'/capacidades',
+    '/capacidades/practicas':'/capabilities/practices','/capabilities/practices':'/capacidades/practicas',
+    '/capacidades/industrias':'/capabilities/industries','/capabilities/industries':'/capacidades/industrias',
+    '/capacidades/desks':'/capabilities/desks','/capabilities/desks':'/capacidades/desks',
+    '/publicaciones':'/publications','/publications':'/publicaciones',
+    '/aviso':'/privacy','/privacy':'/aviso'
+  };
+  var isEn=(document.documentElement.lang||'').toLowerCase().indexOf('en')===0;
+  var path=location.pathname.replace(/\\/$/,'')||'/';
+  var mapped=PAIRS[path];
   document.querySelectorAll('.header__lang--item').forEach(function(a){
+    a.textContent=isEn?'ESP':'ENG';
+    if(mapped){a.setAttribute('href',mapped);return;}
     var u=new URL(location.href);
-    if(isEn){u.searchParams.delete('lang');a.textContent='ESP';}
-    else{u.searchParams.set('lang','en');a.textContent='ENG';}
+    if(isEn){u.searchParams.delete('lang');}else{u.searchParams.set('lang','en');}
     a.setAttribute('href',u.pathname+(u.search||''));
   });
 }catch(e){}})();</script>`;
