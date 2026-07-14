@@ -115,6 +115,11 @@ export const news = pgTable("news", {
 }));
 
 export const newsCategories = [
+  // "news"/"articles" son las categorías reales de la inmensa mayoría del contenido migrado
+  // del sitio original (1439 y 284 filas respectivamente) — antes no se podían elegir aquí,
+  // así que no había forma de crear un artículo NUEVO marcado como tal desde el panel.
+  { value: "news", en: "News", es: "Noticias" },
+  { value: "articles", en: "Articles", es: "Artículos" },
   { value: "press", en: "Press", es: "Prensa" },
   { value: "insights", en: "Insights", es: "Insights" },
   { value: "rankings", en: "Rankings", es: "Rankings" },
