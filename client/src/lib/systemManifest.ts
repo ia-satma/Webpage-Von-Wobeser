@@ -150,7 +150,7 @@ export const AI_BRAIN_AGENTS: SystemFeature[] = [
     category: 'ai_brain',
     name: 'Agente de Taxonomía Inteligente',
     technicalName: 'CategoryAgent',
-    technicalDetail: 'GPT-4o-mini con modo JSON, mapeo a practiceGroups/industryGroups/blogCategories existentes, 16 áreas de práctica + 7 sectores industriales, generación de 5 tags por artículo, puntuación de confianza, creación automática de categorías nuevas.',
+    technicalDetail: 'GPT-4o-mini con modo JSON, mapeo a practiceGroups/industryGroups existentes, 16 áreas de práctica + 7 sectores industriales, generación de 5 tags por artículo, puntuación de confianza.',
     userBenefit: 'Elimina el trabajo manual de etiquetado, asegura taxonomía consistente en todo el contenido, y mejora la descubribilidad mediante categorización inteligente basada en contexto legal.',
     status: 'production',
     keyCapabilities: [

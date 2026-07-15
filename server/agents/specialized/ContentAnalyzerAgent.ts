@@ -1,7 +1,7 @@
 import { BaseAgent } from '../core/BaseAgent';
 import { AgentConfig, AgentResult, ExecutionContext } from '../core/types';
 import { db } from '../../db';
-import { news, blogPosts, teamMembers, practiceGroups, industryGroups, contentAnalysis } from '../../../shared/schema';
+import { news, teamMembers, practiceGroups, industryGroups, contentAnalysis } from '../../../shared/schema';
 import type { ContentAnalysisResult, SEORecommendation, SpellingGrammarIssue, LawyerMention } from '../../../shared/schema';
 import { eq } from 'drizzle-orm';
 
@@ -99,33 +99,16 @@ export class ContentAnalyzerAgent extends BaseAgent {
       return { success: false, error: 'articleId is required' };
     }
 
-    // Try blog_posts first, then news table
-    let article: any;
-    let source = '';
-    
     console.log(`[ContentAnalyzerAgent] Looking up articleId: ${articleId}`);
-    
-    const [blogPost] = await db.select().from(blogPosts).where(eq(blogPosts.id, articleId));
-    console.log(`[ContentAnalyzerAgent] blog_posts result:`, blogPost ? 'FOUND' : 'NOT FOUND');
-    
-    if (blogPost) {
-      article = blogPost;
-      source = 'blog_posts';
-    } else {
-      const [newsArticle] = await db.select().from(news).where(eq(news.id, articleId));
-      console.log(`[ContentAnalyzerAgent] news result:`, newsArticle ? 'FOUND' : 'NOT FOUND');
-      if (newsArticle) {
-        article = newsArticle;
-        source = 'news';
-      }
-    }
-    
+
+    const [article] = await db.select().from(news).where(eq(news.id, articleId));
+
     if (!article) {
-      console.error(`[ContentAnalyzerAgent] Article not found in either table: ${articleId}`);
+      console.error(`[ContentAnalyzerAgent] Article not found: ${articleId}`);
       return { success: false, error: `Article not found: ${articleId}` };
     }
-    
-    console.log(`[ContentAnalyzerAgent] Found article in ${source}: ${article.title || article.titleEs}`)
+
+    console.log(`[ContentAnalyzerAgent] Found article: ${article.title || article.titleEs}`)
 
     const allLawyers = await db.select().from(teamMembers);
     const allPracticeGroups = await db.select().from(practiceGroups);

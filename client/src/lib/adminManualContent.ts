@@ -1,7 +1,7 @@
 import type { LucideIcon } from "lucide-react";
 import {
-  Newspaper, FileText, Users, FolderOpen, Briefcase, Building2, Calendar, Award,
-  Settings, Images, Languages, ShieldCheck, Mail, Bot,
+  Newspaper, FileText, Users, Briefcase, Building2, Calendar, Award,
+  Settings, Images, Languages, ShieldCheck, Mail, Bot, LineChart,
 } from "lucide-react";
 
 export interface AdminManualSection {
@@ -30,20 +30,6 @@ export const ADMIN_MANUAL_SECTIONS: AdminManualSection[] = [
     relatedHref: "/admin/news",
   },
   {
-    id: "blog",
-    title: "Blog / Artículos",
-    icon: FileText,
-    whatIsIt: "Entradas de blog y artículos de análisis legal, independientes de las noticias.",
-    whatFor: "Publicar contenido más extenso de opinión o análisis que posiciona a la firma como experta en su área.",
-    steps: [
-      "Entra a \"Blog / Artículos\" en el menú lateral.",
-      "Crea una nueva entrada o edita una existente.",
-      "Asigna una categoría para que aparezca correctamente organizada en el sitio.",
-      "Guarda como borrador o publica.",
-    ],
-    relatedHref: "/admin/posts",
-  },
-  {
     id: "equipo",
     title: "Abogados y equipo",
     icon: Users,
@@ -56,19 +42,6 @@ export const ADMIN_MANUAL_SECTIONS: AdminManualSection[] = [
       "Guarda los cambios — el perfil se actualiza de inmediato en el sitio público.",
     ],
     relatedHref: "/admin/team",
-  },
-  {
-    id: "categorias",
-    title: "Categorías",
-    icon: FolderOpen,
-    whatIsIt: "Las etiquetas que organizan las noticias y entradas de blog por tema.",
-    whatFor: "Que los visitantes puedan filtrar y encontrar contenido relacionado más fácilmente.",
-    steps: [
-      "Entra a \"Categorías\".",
-      "Crea una nueva categoría con nombre en español (y su traducción al inglés).",
-      "Asigna la categoría al crear o editar una noticia o artículo de blog.",
-    ],
-    relatedHref: "/admin/categories",
   },
   {
     id: "areas-practica",
@@ -147,6 +120,21 @@ export const ADMIN_MANUAL_SECTIONS: AdminManualSection[] = [
       "Modifica el texto o sube el nuevo archivo y guarda — el cambio se refleja de inmediato en el sitio público.",
     ],
     relatedHref: "/admin/site-config",
+  },
+  {
+    id: "seo",
+    title: "SEO — Analytics y verificación",
+    icon: LineChart,
+    whatIsIt: "La conexión del sitio con Google Analytics (GA4) y Google Search Console — las herramientas de Google para medir visitas y aparecer bien en los resultados de búsqueda.",
+    whatFor: "Saber cuánta gente visita el sitio y qué páginas ve (GA4), y confirmarle a Google que el sitio es tuyo para acceder a datos de búsqueda (Search Console).",
+    steps: [
+      "Entra a \"SEO — Analytics y verificación\".",
+      "Pega el Measurement ID de GA4 (formato G-XXXXXXX, lo da Google Analytics al crear la propiedad) y guarda.",
+      "Si Google te pidió un código de verificación por meta tag para Search Console, pégalo en el segundo campo y guarda (no hace falta si ya verificaste el dominio por DNS en GoDaddy).",
+      "A diferencia del resto del panel, estos dos campos NO se reflejan al instante — pide que se reinicie el servidor para que aparezcan en el sitio público.",
+      "Si dejas un campo vacío, no se instala nada — el sitio no manda ningún dato a Google hasta que llenes el ID.",
+    ],
+    relatedHref: "/admin/site-config/seo",
   },
   {
     id: "galeria",

@@ -220,9 +220,11 @@ async function runJsonAgent(
       return r.status === 200 && r.json?.success === true;
     },
   );
-  const catRows = await sql`select id from blog_categories where slug = ${FIXED_CATEGORY_SLUG}`;
-  if (catRows.length === 1) ok(); else bad("category_agent", "dedup_final", `esperaba exactamente 1 fila en blog_categories con slug fijo, encontró ${catRows.length}`);
-  await sql`delete from blog_categories where slug = ${FIXED_CATEGORY_SLUG}`;
+  // CategoryAgent ya no persiste en una tabla de categorías (blog_categories se eliminó
+  // junto con Blog) — ahora escribe category/categoryEs directo en el artículo. Verificamos eso.
+  const [newsRow] = await sql`select category, category_es from news where id = ${SANDBOX_ID}`;
+  if (newsRow?.category === FIXED_CATEGORY_NAME && newsRow?.category_es === FIXED_CATEGORY_NAME) ok();
+  else bad("category_agent", "writes_news_category", `esperaba news.category/category_es = "${FIXED_CATEGORY_NAME}", encontró category="${newsRow?.category}" category_es="${newsRow?.category_es}"`);
 
   // --- polyglot_translator (formato de marcadores, NO JSON) --------------
   {
