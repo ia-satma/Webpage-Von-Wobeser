@@ -3039,8 +3039,13 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
     res.json(SUPPORTED_LANGUAGES);
   });
 
+  // Estas 5 rutas llaman al LLM de traducción real (costo de API) y una de ellas escribe en
+  // la base de datos para un entityId arbitrario — no deben ser alcanzables sin sesión de
+  // admin. authMiddleware+requirePermission("content") en las 5, igual que
+  // /api/admin/translate-fields (que ya lo hacía bien).
+
   // POST /api/translate - Translate single text
-  app.post("/api/translate", async (req: Request, res: Response) => {
+  app.post("/api/translate", authMiddleware, requirePermission("content"), async (req: Request, res: Response) => {
     try {
       const { text, sourceLanguage, targetLanguage } = req.body;
 
@@ -3069,7 +3074,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
   });
 
   // POST /api/translate/batch - Translate multiple texts
-  app.post("/api/translate/batch", async (req: Request, res: Response) => {
+  app.post("/api/translate/batch", authMiddleware, requirePermission("content"), async (req: Request, res: Response) => {
     try {
       const { texts, sourceLanguage, targetLanguage } = req.body;
 
@@ -3098,7 +3103,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
   });
 
   // POST /api/translate/suggest - Suggest translation for blog post
-  app.post("/api/translate/suggest", async (req: Request, res: Response) => {
+  app.post("/api/translate/suggest", authMiddleware, requirePermission("content"), async (req: Request, res: Response) => {
     try {
       const { originalText, existingTranslations, targetLanguage } = req.body;
 
@@ -3158,8 +3163,10 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
   // TRANSLATION CACHE API
   // =============================================
 
-  // GET /api/translations/:contentType/:entityId/:targetLanguage - Get all cached translations for an entity
-  app.get("/api/translations/:contentType/:entityId/:targetLanguage", async (req: Request, res: Response) => {
+  // GET /api/translations/:contentType/:entityId/:targetLanguage - Get all cached translations for an entity.
+  // Sin login, un entityId de un borrador (published=false) sería legible en otro idioma sin
+  // pasar por el filtro de publicado — mismo patrón de fuga que el resto de la API pública.
+  app.get("/api/translations/:contentType/:entityId/:targetLanguage", authMiddleware, requirePermission("content"), async (req: Request, res: Response) => {
     try {
       const { contentType, entityId, targetLanguage } = req.params;
 
@@ -3207,8 +3214,10 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
     }
   });
 
-  // POST /api/translate-content - Translate single content and cache it
-  app.post("/api/translate-content", async (req: Request, res: Response) => {
+  // POST /api/translate-content - Translate single content and cache it. Sin login, cualquiera
+  // podía escribir en translationCache para un entityId real arbitrario (envenenamiento de
+  // caché de traducción) además de gastar la API de traducción de pago.
+  app.post("/api/translate-content", authMiddleware, requirePermission("content"), async (req: Request, res: Response) => {
     try {
       const { contentType, entityId, field, sourceText, sourceLanguage, targetLanguage } = req.body;
 
@@ -3266,7 +3275,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
   });
 
   // POST /api/translate-entity - Batch translate all translatable fields for an entity
-  app.post("/api/translate-entity", async (req: Request, res: Response) => {
+  app.post("/api/translate-entity", authMiddleware, requirePermission("content"), async (req: Request, res: Response) => {
     try {
       const { contentType, entityId, fields, sourceLanguage, targetLanguage } = req.body;
 
@@ -3977,7 +3986,10 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
   // System Health Check - Deep Audit API
   // NOTE: Health check is intentionally public (read-only diagnostic).
   // Destructive operations like reset-zombies require auth.
-  app.get("/api/health-check/run", async (req: Request, res: Response) => {
+  // Sin login exponía biografías de abogados, títulos/IDs de artículos y payloads internos de
+  // jobs a cualquiera, además de correr 5 escaneos completos de tablas en cada request. Mismo
+  // permiso que su ruta hermana /api/health-check/reset-zombies.
+  app.get("/api/health-check/run", authMiddleware, requirePermission("advanced"), async (req: Request, res: Response) => {
     try {
       const { systemHealthCheck } = await import('./agents/SystemHealthCheck');
       const report = await systemHealthCheck.runDeepAudit();

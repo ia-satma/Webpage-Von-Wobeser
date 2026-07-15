@@ -19,7 +19,8 @@ import {
   Loader2
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { apiRequest, queryClient } from '@/lib/queryClient';
+import { queryClient } from '@/lib/queryClient';
+import { adminApiRequest } from '@/lib/adminAuth';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { getImpactLabel } from '@/lib/adminTranslations';
 import { AdminPageHelp } from '@/components/admin/AdminPageHelp';
@@ -461,13 +462,18 @@ export default function AdminHealthCheck() {
 
   const { data: healthData, isLoading, refetch, isFetching } = useQuery<HealthCheckResponse>({
     queryKey: ['/api/health-check/run'],
+    queryFn: async () => {
+      const res = await adminApiRequest('GET', '/api/health-check/run');
+      if (!res.ok) throw new Error('Failed to run health check');
+      return res.json();
+    },
     staleTime: 0,
     refetchOnWindowFocus: false,
   });
 
   const resetZombiesMutation = useMutation({
     mutationFn: async () => {
-      const response = await apiRequest('POST', '/api/health-check/reset-zombies');
+      const response = await adminApiRequest('POST', '/api/health-check/reset-zombies');
       return response.json();
     },
     onSuccess: (data) => {
