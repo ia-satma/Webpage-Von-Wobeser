@@ -104,15 +104,40 @@ if (!fs.existsSync(uploadsDir)) {
   fs.mkdirSync(uploadsDir, { recursive: true });
 }
 
+// La extensión con la que se guarda cada archivo se deriva SOLO del MIME ya validado por
+// fileFilter — nunca de file.originalname (controlado por quien sube el archivo). Antes se
+// usaba path.extname(file.originalname), lo que permitía subir un archivo con Content-Type
+// "application/pdf" (aceptado) pero nombre "x.html": el archivo quedaba servido por
+// express.static en /uploads con Content-Type text/html → XSS almacenado, alcanzable sin
+// login vía el formulario público de Pasantes. Cualquier MIME no listado aquí (no debería
+// pasar fileFilter) cae a ".bin" en vez de heredar una extensión peligrosa.
+const MIME_TO_EXT: Record<string, string> = {
+  "image/jpeg": ".jpg",
+  "image/png": ".png",
+  "image/gif": ".gif",
+  "image/webp": ".webp",
+  "application/pdf": ".pdf",
+  "video/mp4": ".mp4",
+  "video/webm": ".webm",
+  "video/ogg": ".ogv",
+  "video/quicktime": ".mov",
+  "application/msword": ".doc",
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document": ".docx",
+};
+
+function safeUploadFilename(file: Express.Multer.File): string {
+  const uniqueSuffix = crypto.randomBytes(8).toString("hex");
+  const ext = MIME_TO_EXT[file.mimetype] || ".bin";
+  return `${Date.now()}-${uniqueSuffix}${ext}`;
+}
+
 const upload = multer({
   storage: multer.diskStorage({
     destination: (_req, _file, cb) => {
       cb(null, uploadsDir);
     },
     filename: (_req, file, cb) => {
-      const uniqueSuffix = crypto.randomBytes(8).toString("hex");
-      const ext = path.extname(file.originalname);
-      cb(null, `${Date.now()}-${uniqueSuffix}${ext}`);
+      cb(null, safeUploadFilename(file));
     },
   }),
   limits: {
@@ -143,16 +168,15 @@ const upload = multer({
 });
 
 // Multer dedicado para CVs del formulario de Pasantes — límite y tipos distintos del de
-// medios (10MB en vez de 200MB, solo PDF/DOC/DOCX en vez de imágenes/video).
+// medios (10MB en vez de 200MB, solo PDF/DOC/DOCX en vez de imágenes/video). Público (sin
+// login), así que el mapeo MIME→extensión de arriba es especialmente importante aquí.
 const cvUpload = multer({
   storage: multer.diskStorage({
     destination: (_req, _file, cb) => {
       cb(null, uploadsDir);
     },
     filename: (_req, file, cb) => {
-      const uniqueSuffix = crypto.randomBytes(8).toString("hex");
-      const ext = path.extname(file.originalname);
-      cb(null, `${Date.now()}-${uniqueSuffix}${ext}`);
+      cb(null, safeUploadFilename(file));
     },
   }),
   limits: {
@@ -575,9 +599,15 @@ export async function registerRoutes(
     }
   });
 
+  // Público (sin authMiddleware): un registro marcado published=false (borrador, perfil
+  // dado de baja, etc.) no debe ser alcanzable vía la API solo conociendo su id/slug, aunque
+  // el espejo público sí lo filtre correctamente al renderizar HTML. Mismo criterio que
+  // isNewsPubliclyVisible más abajo — published=true explícito, no basta con "no false".
+  const isPubliclyVisible = (e: { published?: boolean | null }): boolean => e.published === true;
+
   app.get("/api/practice-groups", async (_req, res) => {
     try {
-      const groups = await storage.getPracticeGroups();
+      const groups = (await storage.getPracticeGroups()).filter(isPubliclyVisible);
       res.set("Cache-Control", "public, max-age=60");
       res.json(groups);
     } catch (error) {
@@ -592,7 +622,7 @@ export async function registerRoutes(
       if (!group) {
         group = await storage.getPracticeGroupById(param);
       }
-      if (!group) {
+      if (!group || !isPubliclyVisible(group)) {
         return res.status(404).json({ error: "Practice group not found" });
       }
       res.json(group);
@@ -603,7 +633,7 @@ export async function registerRoutes(
 
   app.get("/api/industry-groups", async (_req, res) => {
     try {
-      const groups = await storage.getIndustryGroups();
+      const groups = (await storage.getIndustryGroups()).filter(isPubliclyVisible);
       res.set("Cache-Control", "public, max-age=60");
       res.json(groups);
     } catch (error) {
@@ -618,7 +648,7 @@ export async function registerRoutes(
       if (!group) {
         group = await storage.getIndustryGroupById(param);
       }
-      if (!group) {
+      if (!group || !isPubliclyVisible(group)) {
         return res.status(404).json({ error: "Industry group not found" });
       }
       res.json(group);
@@ -629,7 +659,7 @@ export async function registerRoutes(
 
   app.get("/api/team", async (_req, res) => {
     try {
-      const members = await storage.getTeamMembers();
+      const members = (await storage.getTeamMembers()).filter(isPubliclyVisible);
       res.set("Cache-Control", "public, max-age=60");
       res.json(members);
     } catch (error) {
@@ -639,7 +669,7 @@ export async function registerRoutes(
 
   app.get("/api/team/partners", async (_req, res) => {
     try {
-      const partners = await storage.getPartners();
+      const partners = (await storage.getPartners()).filter(isPubliclyVisible);
       res.set("Cache-Control", "public, max-age=60");
       res.json(partners);
     } catch (error) {
@@ -678,7 +708,7 @@ export async function registerRoutes(
       if (!member) {
         member = await storage.getTeamMemberById(param);
       }
-      if (!member) {
+      if (!member || !isPubliclyVisible(member)) {
         return res.status(404).json({ error: "Team member not found" });
       }
       res.json(member);
@@ -692,15 +722,15 @@ export async function registerRoutes(
       const param = req.params.idOrSlug;
       const langParam = req.query.lang as string;
       const language: "es" | "en" = langParam === "en" ? "en" : "es";
-      
+
       let member = await storage.getTeamMemberBySlug(param);
       if (!member) {
         member = await storage.getTeamMemberById(param);
       }
-      if (!member) {
+      if (!member || !isPubliclyVisible(member)) {
         return res.status(404).json({ error: "Team member not found" });
       }
-      
+
       const vcard = generateVCard(member, language);
       const filename = member.slug.replace(/[^a-z0-9-]/g, '') + '.vcf';
       
@@ -717,7 +747,7 @@ export async function registerRoutes(
     try {
       const slug = req.params.slug;
       const member = await storage.getTeamMemberBySlug(slug);
-      if (!member) {
+      if (!member || !isPubliclyVisible(member)) {
         return res.status(404).json({ error: "Team member not found" });
       }
       const newsList = await storage.getNewsByTeamMemberId(member.id);
@@ -859,7 +889,7 @@ export async function registerRoutes(
   app.get("/api/events/:id", async (req, res) => {
     try {
       const event = await storage.getEventById(req.params.id);
-      if (!event) {
+      if (!event || !isPubliclyVisible(event)) {
         return res.status(404).json({ error: "Event not found" });
       }
       res.json(event);
@@ -875,13 +905,17 @@ export async function registerRoutes(
         return res.json({ team: [], practiceGroups: [], industryGroups: [], news: [] });
       }
       
-      // Noticias vía SQL acotado (ILIKE+LIMIT); el resto son tablas pequeñas.
-      const [team, practiceGroups, industryGroups, filteredNews] = await Promise.all([
+      // Noticias vía SQL acotado (ILIKE+LIMIT); el resto son tablas pequeñas. Filtradas a
+      // published=true antes de buscar — este endpoint es público, sin authMiddleware.
+      const [teamRaw, practiceGroupsRaw, industryGroupsRaw, filteredNews] = await Promise.all([
         storage.getTeamMembers(),
         storage.getPracticeGroups(),
         storage.getIndustryGroups(),
         storage.searchNews(query, 5),
       ]);
+      const team = teamRaw.filter(isPubliclyVisible);
+      const practiceGroups = practiceGroupsRaw.filter(isPubliclyVisible);
+      const industryGroups = industryGroupsRaw.filter(isPubliclyVisible);
 
       const filteredTeam = team.filter(m =>
         m.name.toLowerCase().includes(query) ||
@@ -3332,7 +3366,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
   // =============================================
 
   // Generate image for article
-  app.post("/api/agents/generate-image/:articleId", authMiddleware, async (req: Request, res: Response) => {
+  app.post("/api/agents/generate-image/:articleId", authMiddleware, requirePermission("agents"), async (req: Request, res: Response) => {
     try {
       const { articleId } = req.params;
       
@@ -3368,7 +3402,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
 
   // Process single article - FULL RAG AGENTIC PIPELINE
   // Runs ALL agents in sequence: Format → Categorize → Link Metadata → SEO → Translate → Image
-  app.post("/api/agents/pipeline/:articleId", authMiddleware, async (req: Request, res: Response) => {
+  app.post("/api/agents/pipeline/:articleId", authMiddleware, requirePermission("agents"), async (req: Request, res: Response) => {
     try {
       const { articleId } = req.params;
       const { generateImage = false } = req.body;
@@ -3602,7 +3636,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
   });
 
   // Process all articles - FULL RAG AGENTIC PIPELINE for all articles
-  app.post("/api/agents/pipeline/process-all", authMiddleware, async (req: Request, res: Response) => {
+  app.post("/api/agents/pipeline/process-all", authMiddleware, requirePermission("agents"), async (req: Request, res: Response) => {
     try {
       const allNews = await storage.getNews();
       
@@ -3738,7 +3772,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
   });
 
   // Auto-Recovery Agent - Repairs failed articles with smart retry logic
-  app.post("/api/agents/recover", authMiddleware, async (req: Request, res: Response) => {
+  app.post("/api/agents/recover", authMiddleware, requirePermission("agents"), async (req: Request, res: Response) => {
     try {
       console.log('[Recovery] Starting auto-recovery for failed articles...');
       const { recoverFailedItems, getFailedArticlesSummary } = await import('./agents/AutoRecoveryAgent');
@@ -3774,7 +3808,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
   });
 
   // Get failed articles summary for diagnostics
-  app.get("/api/agents/failed-summary", authMiddleware, async (req: Request, res: Response) => {
+  app.get("/api/agents/failed-summary", authMiddleware, requirePermission("agents"), async (req: Request, res: Response) => {
     try {
       const { getFailedArticlesSummary } = await import('./agents/AutoRecoveryAgent');
       const summary = await getFailedArticlesSummary();
@@ -3786,7 +3820,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
   });
 
   // System Chronicler API - Nerve Center data
-  app.get("/api/system/chronicler", async (req: Request, res: Response) => {
+  app.get("/api/system/chronicler", authMiddleware, requirePermission("advanced"), async (req: Request, res: Response) => {
     try {
       const { systemChronicler } = await import('./agents/SystemChronicler');
       

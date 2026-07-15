@@ -17,6 +17,17 @@ const OPTS: sanitizeHtml.IOptions = {
   allowedStyles: { "*": { "font-size": [/^[\d.]+(px|rem|em|%)$/], "text-align": [/^(left|right|center|justify)$/], color: [/^#[0-9a-fA-F]{3,8}$/, /^rgb\(/] } },
   disallowedTagsMode: "discard",
   enforceHtmlBoundary: true,
+  // target="_blank" sin rel="noopener" permite que la pestaña abierta controle window.opener
+  // de la pestaña original (reverse tabnabbing) — se fuerza siempre, sin importar qué rel
+  // haya puesto quien escribió el HTML.
+  transformTags: {
+    a: (tagName, attribs) => {
+      if (attribs.target === "_blank") {
+        attribs.rel = "noopener noreferrer";
+      }
+      return { tagName, attribs };
+    },
+  },
 };
 
 export function sanitizeCms(html: string | null | undefined): string {
