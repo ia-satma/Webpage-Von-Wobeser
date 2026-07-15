@@ -3,9 +3,24 @@ import OpenAI from "openai";
 // Using Replit's AI Integrations service - provides OpenAI-compatible API access
 // without requiring your own OpenAI API key. Charges are billed to Replit credits.
 // Apuntado al endpoint compatible de Claude (Anthropic) — modelo claude-sonnet-4-6.
-export const openai = new OpenAI({
-  baseURL: process.env.AI_INTEGRATIONS_OPENAI_BASE_URL,
-  apiKey: process.env.AI_INTEGRATIONS_OPENAI_API_KEY
+// Lazy initialization: the AI_INTEGRATIONS_OPENAI_API_KEY env var is injected by
+// the Replit platform at runtime; we defer client creation to avoid startup crashes
+// when the env var isn't resolved yet at import time.
+let _openaiClient: OpenAI | null = null;
+export function getOpenAIClient(): OpenAI {
+  if (!_openaiClient) {
+    _openaiClient = new OpenAI({
+      baseURL: process.env.AI_INTEGRATIONS_OPENAI_BASE_URL,
+      apiKey: process.env.AI_INTEGRATIONS_OPENAI_API_KEY,
+    });
+  }
+  return _openaiClient;
+}
+// Keep `openai` export for backward compatibility with existing imports.
+export const openai: OpenAI = new Proxy({} as OpenAI, {
+  get(_target, prop) {
+    return (getOpenAIClient() as any)[prop];
+  },
 });
 
 // El endpoint compatible de Claude no acepta response_format:json_object; los prompts
