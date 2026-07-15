@@ -16,6 +16,7 @@ import { websiteAuditorAgent } from '../specialized/WebsiteAuditorAgent';
 import { socialMediaAgent } from '../specialized/SocialMediaAgent';
 import { newsletterAgent } from '../specialized/NewsletterAgent';
 import { legalAlertsAgent } from '../specialized/LegalAlertsAgent';
+import { voiceAgent } from '../specialized/VoiceAgent';
 import { AgentType, ExecutionContext } from '../core/types';
 import { db } from '../../db';
 import { news } from '../../../shared/schema';
@@ -135,6 +136,9 @@ router.post('/run/:agentType', async (req: Request, res: Response) => {
         break;
       case 'legal_alerts':
         result = await legalAlertsAgent.execute(context, payload);
+        break;
+      case 'voice_agent':
+        result = await voiceAgent.execute(context, payload);
         break;
       default:
         return res.status(400).json({ error: `Unknown agent type: ${agentType}` });

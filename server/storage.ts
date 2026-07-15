@@ -11,6 +11,8 @@ import {
   type InsertOfficeImage,
   type GeneratedImage,
   type InsertGeneratedImage,
+  type GeneratedAudio,
+  type InsertGeneratedAudio,
   type PracticeGroup,
   type InsertPracticeGroup,
   type IndustryGroup,
@@ -25,12 +27,6 @@ import {
   type InsertAdminUser,
   type AdminLoginEvent,
   type InsertAdminLoginEvent,
-  type BlogPost,
-  type InsertBlogPost,
-  type BlogCategory,
-  type InsertBlogCategory,
-  type BlogTag,
-  type InsertBlogTag,
   type MediaItem,
   type InsertMediaItem,
   type AdminSession,
@@ -73,6 +69,7 @@ import {
   newsTranslations,
   officeImages,
   generatedImages,
+  generatedAudio,
   practiceGroups,
   industryGroups,
   teamMembers,
@@ -82,12 +79,8 @@ import {
   representativeMatters,
   adminUsers,
   adminLoginEvents,
-  blogPosts,
-  blogCategories,
-  blogTags,
   mediaItems,
   adminSessions,
-  blogPostTags,
   newsTeamMembers,
   events,
   translationCache,
@@ -131,6 +124,9 @@ export interface IStorage {
   getGeneratedImages(): Promise<(GeneratedImage & { articleTitle: string | null; articleSlug: string | null })[]>;
   createGeneratedImage(image: InsertGeneratedImage): Promise<GeneratedImage>;
   deleteGeneratedImage(id: string): Promise<boolean>;
+  getGeneratedAudio(): Promise<(GeneratedAudio & { articleTitle: string | null; articleSlug: string | null })[]>;
+  createGeneratedAudio(audio: InsertGeneratedAudio): Promise<GeneratedAudio>;
+  deleteGeneratedAudio(id: string): Promise<boolean>;
   getSiteContent(): SiteContent;
   getStats(): Stat[];
   getPracticeGroups(): Promise<PracticeGroup[]>;
@@ -173,26 +169,6 @@ export interface IStorage {
   deleteAdminUser(id: string): Promise<boolean>;
   recordLoginEvent(data: InsertAdminLoginEvent): Promise<void>;
   getLoginEvents(limit?: number): Promise<AdminLoginEvent[]>;
-  
-  // Blog Posts CRUD
-  getBlogPosts(): Promise<BlogPost[]>;
-  getBlogPostById(id: string): Promise<BlogPost | undefined>;
-  getBlogPostBySlug(slug: string): Promise<BlogPost | undefined>;
-  createBlogPost(post: InsertBlogPost): Promise<BlogPost>;
-  updateBlogPost(id: string, post: Partial<InsertBlogPost>): Promise<BlogPost | undefined>;
-  deleteBlogPost(id: string): Promise<boolean>;
-  
-  // Blog Categories CRUD
-  getBlogCategories(): Promise<BlogCategory[]>;
-  getBlogCategoryById(id: string): Promise<BlogCategory | undefined>;
-  createBlogCategory(category: InsertBlogCategory): Promise<BlogCategory>;
-  updateBlogCategory(id: string, category: Partial<InsertBlogCategory>): Promise<BlogCategory | undefined>;
-  deleteBlogCategory(id: string): Promise<boolean>;
-  
-  // Blog Tags CRUD
-  getBlogTags(): Promise<BlogTag[]>;
-  createBlogTag(tag: InsertBlogTag): Promise<BlogTag>;
-  deleteBlogTag(id: string): Promise<boolean>;
   
   // Media Items CRUD
   getMediaItems(): Promise<MediaItem[]>;
@@ -586,6 +562,36 @@ export class DatabaseStorage implements IStorage {
     return result.length > 0;
   }
 
+  async getGeneratedAudio(): Promise<(GeneratedAudio & { articleTitle: string | null; articleSlug: string | null })[]> {
+    const rows = await db
+      .select({
+        id: generatedAudio.id,
+        audioUrl: generatedAudio.audioUrl,
+        sourceText: generatedAudio.sourceText,
+        voiceId: generatedAudio.voiceId,
+        engine: generatedAudio.engine,
+        sourceType: generatedAudio.sourceType,
+        articleId: generatedAudio.articleId,
+        createdAt: generatedAudio.createdAt,
+        articleTitle: news.titleEs,
+        articleSlug: news.slug,
+      })
+      .from(generatedAudio)
+      .leftJoin(news, eq(generatedAudio.articleId, news.id))
+      .orderBy(desc(generatedAudio.createdAt));
+    return rows;
+  }
+
+  async createGeneratedAudio(audio: InsertGeneratedAudio): Promise<GeneratedAudio> {
+    const [created] = await db.insert(generatedAudio).values(audio).returning();
+    return created;
+  }
+
+  async deleteGeneratedAudio(id: string): Promise<boolean> {
+    const result = await db.delete(generatedAudio).where(eq(generatedAudio.id, id)).returning();
+    return result.length > 0;
+  }
+
   async deleteOfficeImage(id: string): Promise<boolean> {
     const result = await db.delete(officeImages).where(eq(officeImages.id, id)).returning();
     return result.length > 0;
@@ -856,99 +862,6 @@ export class DatabaseStorage implements IStorage {
       .from(adminLoginEvents)
       .orderBy(desc(adminLoginEvents.createdAt))
       .limit(limit);
-  }
-
-  // Blog Posts CRUD
-  async getBlogPosts(): Promise<BlogPost[]> {
-    return db
-      .select()
-      .from(blogPosts)
-      .where(isNull(blogPosts.deletedAt))
-      .orderBy(desc(blogPosts.createdAt));
-  }
-
-  async getBlogPostById(id: string): Promise<BlogPost | undefined> {
-    const [post] = await db
-      .select()
-      .from(blogPosts)
-      .where(and(eq(blogPosts.id, id), isNull(blogPosts.deletedAt)));
-    return post;
-  }
-
-  async getBlogPostBySlug(slug: string): Promise<BlogPost | undefined> {
-    const [post] = await db
-      .select()
-      .from(blogPosts)
-      .where(and(eq(blogPosts.slug, slug), isNull(blogPosts.deletedAt)));
-    return post;
-  }
-
-  async createBlogPost(post: InsertBlogPost): Promise<BlogPost> {
-    const [item] = await db.insert(blogPosts).values(post).returning();
-    return item;
-  }
-
-  async updateBlogPost(id: string, post: Partial<InsertBlogPost>): Promise<BlogPost | undefined> {
-    const [item] = await db
-      .update(blogPosts)
-      .set({ ...post, updatedAt: new Date() })
-      .where(eq(blogPosts.id, id))
-      .returning();
-    return item;
-  }
-
-  async deleteBlogPost(id: string): Promise<boolean> {
-    const [item] = await db
-      .update(blogPosts)
-      .set({ deletedAt: new Date(), status: "trash" })
-      .where(eq(blogPosts.id, id))
-      .returning();
-    return !!item;
-  }
-
-  // Blog Categories CRUD
-  async getBlogCategories(): Promise<BlogCategory[]> {
-    return db.select().from(blogCategories).orderBy(asc(blogCategories.order));
-  }
-
-  async getBlogCategoryById(id: string): Promise<BlogCategory | undefined> {
-    const [category] = await db.select().from(blogCategories).where(eq(blogCategories.id, id));
-    return category;
-  }
-
-  async createBlogCategory(category: InsertBlogCategory): Promise<BlogCategory> {
-    const [item] = await db.insert(blogCategories).values(category).returning();
-    return item;
-  }
-
-  async updateBlogCategory(id: string, category: Partial<InsertBlogCategory>): Promise<BlogCategory | undefined> {
-    const [item] = await db
-      .update(blogCategories)
-      .set(category)
-      .where(eq(blogCategories.id, id))
-      .returning();
-    return item;
-  }
-
-  async deleteBlogCategory(id: string): Promise<boolean> {
-    const result = await db.delete(blogCategories).where(eq(blogCategories.id, id)).returning();
-    return result.length > 0;
-  }
-
-  // Blog Tags CRUD
-  async getBlogTags(): Promise<BlogTag[]> {
-    return db.select().from(blogTags).orderBy(asc(blogTags.name));
-  }
-
-  async createBlogTag(tag: InsertBlogTag): Promise<BlogTag> {
-    const [item] = await db.insert(blogTags).values(tag).returning();
-    return item;
-  }
-
-  async deleteBlogTag(id: string): Promise<boolean> {
-    await db.delete(blogPostTags).where(eq(blogPostTags.tagId, id));
-    const result = await db.delete(blogTags).where(eq(blogTags.id, id)).returning();
-    return result.length > 0;
   }
 
   // Media Items CRUD

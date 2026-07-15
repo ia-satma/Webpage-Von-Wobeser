@@ -12,6 +12,9 @@ const DEFAULTS: Array<{ key: string; value: string; valueEs?: string; type: stri
   { key: "banner_subtitle", value: "New offices of Von Wobeser y Sierra", valueEs: "Nuevas oficinas de Von Wobeser y Sierra", type: "text", category: "home", description: "Subtítulo del banner rojo (home)" },
   { key: "active_languages", value: "es,en", type: "json", category: "translations", description: "Idiomas a los que se traduce el contenido (lista separada por comas). El traductor solo genera estos idiomas por defecto." },
   { key: "site_url", value: "https://www.vonwobeser.com", type: "url", category: "seo", description: "URL pública del sitio (para canonical, Open Graph y datos estructurados). Cámbiala si el dominio final es otro." },
+  { key: "ga4_measurement_id", value: "", type: "text", category: "seo", description: "Google Analytics 4 — Measurement ID (formato G-XXXXXXX). Vacío = no se instala GA4 todavía." },
+  { key: "google_site_verification", value: "", type: "text", category: "seo", description: "Google Search Console — código de verificación por meta tag (el valor de content=\"...\" que da Google). No hace falta si verificas por DNS." },
+  { key: "tts_voice", value: "", type: "text", category: "voice", description: "Voz de marca para el agente de voz (OpenAI TTS) — boletín/redes/alertas convertidos a audio. Voces válidas: alloy, ash, ballad, coral, echo, fable, onyx, nova, sage, shimmer, verse. Vacío = usa \"alloy\" por defecto." },
   // Pie de página (aparece en todas las páginas dinámicas). Editable por el cliente.
   { key: "footer_firm", value: "Von Wobeser y Sierra, S.C.", type: "text", category: "footer", description: "Nombre de la firma (pie de página)" },
   { key: "footer_address", value: "Torre SOMA Chapultepec 18th floor. Campos Elíseos 204, Polanco\nAcceso por Calle Arquímedes N.° 10, C.P. 11550, Ciudad de México", type: "text", category: "footer", description: "Dirección del pie de página (una línea por renglón)" },

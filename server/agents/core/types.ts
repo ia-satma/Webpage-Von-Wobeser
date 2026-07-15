@@ -13,6 +13,7 @@ export type AgentType =
   | 'social_media'
   | 'newsletter'
   | 'legal_alerts'
+  | 'voice_agent'
   | 'orchestrator';
 
 export type JobStatus = 'pending' | 'in_progress' | 'completed' | 'failed' | 'cancelled';

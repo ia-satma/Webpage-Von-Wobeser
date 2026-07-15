@@ -14,9 +14,9 @@ import { useToast } from "@/hooks/use-toast";
 import { ImageUpload } from "@/components/admin/ImageUpload";
 import { ConfirmChangesDialog, fmtValue, type Change } from "@/components/admin/ConfirmChangesDialog";
 import { TranslateButton } from "@/components/admin/TranslateButton";
-import { Save, Settings, Loader2, ArrowLeft, Landmark, HeartHandshake, Sparkles, Lock, Briefcase, GraduationCap, Mail, type LucideIcon } from "lucide-react";
+import { Save, Settings, Loader2, ArrowLeft, Landmark, HeartHandshake, Sparkles, Lock, Briefcase, GraduationCap, Mail, LineChart, type LucideIcon } from "lucide-react";
 
-type Field = { key: string; label: string; help?: string; bilingual?: boolean; media?: "image" | "video"; multiline?: boolean; rows?: number };
+type Field = { key: string; label: string; help?: string; bilingual?: boolean; media?: "image" | "video"; multiline?: boolean; rows?: number; pattern?: RegExp; patternError?: string };
 type FieldGroup = { title?: string; fields: Field[] };
 type SiteConfigPage = { title: string; description: string; icon: LucideIcon; groups: FieldGroup[] };
 
@@ -52,6 +52,25 @@ const PAGES: Record<string, SiteConfigPage> = {
           { key: "footer_facebook", label: "Facebook (URL)" },
           { key: "footer_twitter", label: "Twitter / X (URL)" },
           { key: "footer_linkedin", label: "LinkedIn (URL)" },
+        ],
+      },
+      {
+        title: "Voz corporativa (OpenAI TTS)",
+        fields: [
+          { key: "tts_voice", label: "Voz de marca", help: "Voces válidas: alloy, ash, ballad, coral, echo, fable, onyx, nova, sage, shimmer, verse. Vacío = usa \"alloy\" por defecto." },
+        ],
+      },
+    ],
+  },
+  seo: {
+    title: "SEO — Analytics y verificación",
+    description: "Conecta Google Analytics (GA4) y Google Search Console. Vacío = no se instala nada todavía.",
+    icon: LineChart,
+    groups: [
+      {
+        fields: [
+          { key: "ga4_measurement_id", label: "Google Analytics (GA4) — Measurement ID", help: "Formato G-XXXXXXX, lo da Google Analytics al crear la propiedad. Vacío = no se instala GA4 todavía. Requiere reiniciar el servidor para tomar efecto.", pattern: /^G-[A-Z0-9]+$/i, patternError: "El Measurement ID debe tener el formato G-XXXXXXX (lo copias de Google Analytics, no lo inventes)." },
+          { key: "google_site_verification", label: "Google Search Console — código de verificación", help: "El valor de content=\"...\" que da Google al verificar por meta tag. No hace falta si ya verificaste por DNS en GoDaddy. Requiere reiniciar el servidor para tomar efecto." },
         ],
       },
     ],
@@ -233,7 +252,11 @@ export default function AdminSiteConfig() {
 
         <AdminPageHeader title={page.title} description={page.description} icon={page.icon} />
 
-        <AdminPageHelp pageId="configuracion" manualSectionId="configuracion">Los cambios se reflejan en el sitio al instante.</AdminPageHelp>
+        <AdminPageHelp pageId={section === "seo" ? "seo" : "configuracion"} manualSectionId={section === "seo" ? "seo" : "configuracion"}>
+          {section === "seo"
+            ? "A diferencia del resto del panel, estos dos campos NO se reflejan al instante: necesitas reiniciar el servidor después de guardarlos para que aparezcan en el sitio."
+            : "Los cambios se reflejan en el sitio al instante."}
+        </AdminPageHelp>
 
         {isLoading ? (
           <div className="flex items-center gap-2 text-muted-foreground"><Loader2 className="h-4 w-4 animate-spin" /> Cargando…</div>
@@ -246,10 +269,14 @@ export default function AdminSiteConfig() {
                 </CardHeader>
               )}
               <CardContent className="space-y-6">
-                {group.fields.map((f) => (
+                {group.fields.map((f) => {
+                  const currentValue = draft[f.key]?.value ?? "";
+                  const invalid = !!f.pattern && !!currentValue && !f.pattern.test(currentValue);
+                  return (
                   <div key={f.key} className="space-y-2">
                     <Label className="font-medium">{f.label}</Label>
                     {f.help && <p className="text-xs text-muted-foreground">{f.help}</p>}
+                    {invalid && <p className="text-xs text-destructive" data-testid={`error-${f.key}`}>{f.patternError || "Formato inválido."}</p>}
                     {f.media ? (
                       <ImageUpload
                         value={draft[f.key]?.value ?? ""}
@@ -305,7 +332,7 @@ export default function AdminSiteConfig() {
                       )
                     )}
                     <div className="flex items-center gap-2">
-                      <Button size="sm" onClick={() => requestSave(f)} disabled={saving === f.key} data-testid={`save-${f.key}`}>
+                      <Button size="sm" onClick={() => requestSave(f)} disabled={saving === f.key || invalid} data-testid={`save-${f.key}`}>
                         {saving === f.key ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : <Save className="h-4 w-4 mr-1" />}
                         Guardar
                       </Button>
@@ -317,7 +344,8 @@ export default function AdminSiteConfig() {
                       )}
                     </div>
                   </div>
-                ))}
+                  );
+                })}
               </CardContent>
             </Card>
           ))

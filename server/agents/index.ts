@@ -32,6 +32,7 @@ import { contentAnalyzerAgent } from './specialized/ContentAnalyzerAgent';
 import { socialMediaAgent } from './specialized/SocialMediaAgent';
 import { newsletterAgent } from './specialized/NewsletterAgent';
 import { legalAlertsAgent } from './specialized/LegalAlertsAgent';
+import { voiceAgent } from './specialized/VoiceAgent';
 
 export async function initializeAgents(): Promise<void> {
   console.log('[Agents] Initializing agent system...');
@@ -50,6 +51,7 @@ export async function initializeAgents(): Promise<void> {
   orchestrator.registerAgent(socialMediaAgent);
   orchestrator.registerAgent(newsletterAgent);
   orchestrator.registerAgent(legalAlertsAgent);
+  orchestrator.registerAgent(voiceAgent);
 
-  console.log('[Agents] All 12 agents registered and ready');
+  console.log('[Agents] All 13 agents registered and ready');
 }

@@ -32,11 +32,8 @@ export function broadcastPipelineProgress(articleId: string, data: {
   });
 }
 import { 
-  contactFormSchema, 
-  adminLoginSchema, 
-  insertBlogPostSchema,
-  insertBlogCategorySchema,
-  insertBlogTagSchema,
+  contactFormSchema,
+  adminLoginSchema,
   insertNewsSchema,
   insertTeamMemberSchema,
   insertPracticeGroupSchema,
@@ -336,6 +333,29 @@ export async function registerRoutes(
     immutable: true,
   }));
 
+  // Serve AI-generated audio (VoiceAgent / VoiceGenerator, TTS de OpenAI)
+  const generatedAudioDir = path.join(process.cwd(), 'public', 'generated-audio');
+  if (!fs.existsSync(generatedAudioDir)) {
+    fs.mkdirSync(generatedAudioDir, { recursive: true });
+  }
+
+  app.get('/generated-audio/:filename', (req, res) => {
+    const resolved = path.resolve(generatedAudioDir, req.params.filename);
+    if (resolved !== path.resolve(generatedAudioDir) && !resolved.startsWith(path.resolve(generatedAudioDir) + path.sep)) {
+      return res.status(403).json({ error: 'Forbidden' });
+    }
+    if (fs.existsSync(resolved) && fs.statSync(resolved).isFile()) {
+      res.set('Cache-Control', 'public, max-age=31536000, immutable');
+      return res.sendFile(resolved);
+    }
+    res.status(404).json({ error: 'Audio not found' });
+  });
+
+  app.use('/generated-audio', express.static(generatedAudioDir, {
+    maxAge: '365d',
+    immutable: true,
+  }));
+
   // Geolocation endpoint for automatic language detection
   const COUNTRY_TO_LANGUAGE: Record<string, string> = {
     // Spanish-speaking countries.
@@ -578,6 +598,28 @@ export async function registerRoutes(
       res.json({ success: true });
     } catch (error) {
       res.status(500).json({ error: "Failed to delete generated image" });
+    }
+  });
+
+  // Historial de audio generado por IA (VoiceAgent / VoiceGenerator, TTS de OpenAI) — boletín,
+  // redes y alertas legales convertidos a voz. Solo lectura + borrado; se crean desde
+  // VoiceGenerator, no desde el panel.
+  app.get("/api/admin/generated-audio", authMiddleware, requirePermission("agents"), async (_req: Request, res: Response) => {
+    try {
+      const audio = await storage.getGeneratedAudio();
+      res.json(audio);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch generated audio" });
+    }
+  });
+
+  app.delete("/api/admin/generated-audio/:id", authMiddleware, requirePermission("agents"), async (req: Request, res: Response) => {
+    try {
+      const deleted = await storage.deleteGeneratedAudio(req.params.id);
+      if (!deleted) return res.status(404).json({ error: "Audio not found" });
+      res.json({ success: true });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to delete generated audio" });
     }
   });
 
@@ -1412,262 +1454,6 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
     } catch (error) {
       console.error("Get current user error:", error);
       res.status(500).json({ error: "Failed to get user" });
-    }
-  });
-
-  // =============================================
-  // BLOG POSTS CRUD
-  // =============================================
-
-  // Get all blog posts with pagination
-  app.get("/api/admin/posts", authMiddleware, async (req: Request, res: Response) => {
-    try {
-      const search = req.query.search as string || "";
-      const status = req.query.status as string || "";
-      const page = parseInt(req.query.page as string) || 1;
-      const limit = parseInt(req.query.limit as string) || 20;
-      
-      let posts = await storage.getBlogPosts();
-      
-      // Filter by search
-      if (search) {
-        const searchLower = search.toLowerCase();
-        posts = posts.filter(post => 
-          post.title.toLowerCase().includes(searchLower) ||
-          post.titleEs.toLowerCase().includes(searchLower)
-        );
-      }
-      
-      // Filter by status
-      if (status && status !== "all") {
-        posts = posts.filter(post => post.status === status);
-      }
-      
-      const total = posts.length;
-      const totalPages = Math.ceil(total / limit);
-      const startIndex = (page - 1) * limit;
-      const paginatedPosts = posts.slice(startIndex, startIndex + limit);
-      
-      res.json({
-        posts: paginatedPosts,
-        total,
-        page,
-        totalPages,
-      });
-    } catch (error) {
-      console.error("Get posts error:", error);
-      res.status(500).json({ error: "Failed to fetch posts" });
-    }
-  });
-
-  // Get single blog post
-  app.get("/api/admin/posts/:id", authMiddleware, async (req: Request, res: Response) => {
-    try {
-      const post = await storage.getBlogPostById(req.params.id);
-      if (!post) {
-        return res.status(404).json({ error: "Post not found" });
-      }
-      res.json(post);
-    } catch (error) {
-      console.error("Get post error:", error);
-      res.status(500).json({ error: "Failed to fetch post" });
-    }
-  });
-
-  // Create blog post
-  app.post("/api/admin/posts", authMiddleware, requirePermission("content"), async (req: Request, res: Response) => {
-    try {
-      const validation = insertBlogPostSchema.safeParse({
-        ...req.body,
-        authorId: req.adminUser!.id,
-      });
-      
-      if (!validation.success) {
-        return res.status(400).json({ 
-          error: "Validation failed", 
-          details: validation.error.errors 
-        });
-      }
-
-      // Check for duplicate slug
-      const existingPost = await storage.getBlogPostBySlug(validation.data.slug);
-      if (existingPost) {
-        return res.status(400).json({ error: "Slug already exists" });
-      }
-
-      sanitizeFields(validation.data, ["content", "contentEs", "excerpt", "excerptEs"]);
-      const post = await storage.createBlogPost(validation.data);
-      res.status(201).json(post);
-    } catch (error) {
-      console.error("Create post error:", error);
-      res.status(500).json({ error: "Failed to create post" });
-    }
-  });
-
-  // Update blog post
-  app.put("/api/admin/posts/:id", authMiddleware, requirePermission("content"), async (req: Request, res: Response) => {
-    try {
-      const existingPost = await storage.getBlogPostById(req.params.id);
-      if (!existingPost) {
-        return res.status(404).json({ error: "Post not found" });
-      }
-
-      // Check for duplicate slug if slug is being changed
-      if (req.body.slug && req.body.slug !== existingPost.slug) {
-        const slugPost = await storage.getBlogPostBySlug(req.body.slug);
-        if (slugPost) {
-          return res.status(400).json({ error: "Slug already exists" });
-        }
-      }
-
-      sanitizeFields(req.body, ["content", "contentEs", "excerpt", "excerptEs"]);
-      const post = await storage.updateBlogPost(req.params.id, req.body);
-      res.json(post);
-    } catch (error) {
-      console.error("Update post error:", error);
-      res.status(500).json({ error: "Failed to update post" });
-    }
-  });
-
-  // Delete blog post (soft delete)
-  app.delete("/api/admin/posts/:id", authMiddleware, requirePermission("content"), async (req: Request, res: Response) => {
-    try {
-      const deleted = await storage.deleteBlogPost(req.params.id);
-      if (!deleted) {
-        return res.status(404).json({ error: "Post not found" });
-      }
-      res.json({ success: true });
-    } catch (error) {
-      console.error("Delete post error:", error);
-      res.status(500).json({ error: "Failed to delete post" });
-    }
-  });
-
-  // =============================================
-  // BLOG CATEGORIES CRUD
-  // =============================================
-
-  // Get all categories
-  app.get("/api/admin/categories", authMiddleware, async (_req: Request, res: Response) => {
-    try {
-      const categories = await storage.getBlogCategories();
-      res.json(categories);
-    } catch (error) {
-      console.error("Get categories error:", error);
-      res.status(500).json({ error: "Failed to fetch categories" });
-    }
-  });
-
-  // Get single category
-  app.get("/api/admin/categories/:id", authMiddleware, async (req: Request, res: Response) => {
-    try {
-      const category = await storage.getBlogCategoryById(req.params.id);
-      if (!category) {
-        return res.status(404).json({ error: "Category not found" });
-      }
-      res.json(category);
-    } catch (error) {
-      console.error("Get category error:", error);
-      res.status(500).json({ error: "Failed to fetch category" });
-    }
-  });
-
-  // Create category
-  app.post("/api/admin/categories", authMiddleware, requirePermission("content"), async (req: Request, res: Response) => {
-    try {
-      const validation = insertBlogCategorySchema.safeParse(req.body);
-      
-      if (!validation.success) {
-        return res.status(400).json({ 
-          error: "Validation failed", 
-          details: validation.error.errors 
-        });
-      }
-
-      sanitizeFields(validation.data, ["description", "descriptionEs"]);
-      const category = await storage.createBlogCategory(validation.data);
-      res.status(201).json(category);
-    } catch (error) {
-      console.error("Create category error:", error);
-      res.status(500).json({ error: "Failed to create category" });
-    }
-  });
-
-  // Update category
-  app.put("/api/admin/categories/:id", authMiddleware, requirePermission("content"), async (req: Request, res: Response) => {
-    try {
-      sanitizeFields(req.body, ["description", "descriptionEs"]);
-      const category = await storage.updateBlogCategory(req.params.id, req.body);
-      if (!category) {
-        return res.status(404).json({ error: "Category not found" });
-      }
-      res.json(category);
-    } catch (error) {
-      console.error("Update category error:", error);
-      res.status(500).json({ error: "Failed to update category" });
-    }
-  });
-
-  // Delete category
-  app.delete("/api/admin/categories/:id", authMiddleware, requirePermission("content"), async (req: Request, res: Response) => {
-    try {
-      const deleted = await storage.deleteBlogCategory(req.params.id);
-      if (!deleted) {
-        return res.status(404).json({ error: "Category not found" });
-      }
-      res.json({ success: true });
-    } catch (error) {
-      console.error("Delete category error:", error);
-      res.status(500).json({ error: "Failed to delete category" });
-    }
-  });
-
-  // =============================================
-  // BLOG TAGS CRUD
-  // =============================================
-
-  // Get all tags
-  app.get("/api/admin/tags", authMiddleware, async (_req: Request, res: Response) => {
-    try {
-      const tags = await storage.getBlogTags();
-      res.json(tags);
-    } catch (error) {
-      console.error("Get tags error:", error);
-      res.status(500).json({ error: "Failed to fetch tags" });
-    }
-  });
-
-  // Create tag
-  app.post("/api/admin/tags", authMiddleware, requirePermission("content"), async (req: Request, res: Response) => {
-    try {
-      const validation = insertBlogTagSchema.safeParse(req.body);
-      
-      if (!validation.success) {
-        return res.status(400).json({ 
-          error: "Validation failed", 
-          details: validation.error.errors 
-        });
-      }
-
-      const tag = await storage.createBlogTag(validation.data);
-      res.status(201).json(tag);
-    } catch (error) {
-      console.error("Create tag error:", error);
-      res.status(500).json({ error: "Failed to create tag" });
-    }
-  });
-
-  // Delete tag
-  app.delete("/api/admin/tags/:id", authMiddleware, requirePermission("content"), async (req: Request, res: Response) => {
-    try {
-      const deleted = await storage.deleteBlogTag(req.params.id);
-      if (!deleted) {
-        return res.status(404).json({ error: "Tag not found" });
-      }
-      res.json({ success: true });
-    } catch (error) {
-      console.error("Delete tag error:", error);
-      res.status(500).json({ error: "Failed to delete tag" });
     }
   });
 

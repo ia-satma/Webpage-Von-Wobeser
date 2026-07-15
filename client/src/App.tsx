@@ -26,9 +26,6 @@ const AdminSiteConfig = lazy(() => import("@/pages/admin/AdminSiteConfig"));
 const AdminRecognitions = lazy(() => import("@/pages/admin/AdminRecognitions"));
 const AdminDesks = lazy(() => import("@/pages/admin/AdminDesks"));
 const AdminDashboard = lazy(() => import("@/pages/admin/AdminDashboard"));
-const AdminPosts = lazy(() => import("@/pages/admin/AdminPosts"));
-const AdminPostForm = lazy(() => import("@/pages/admin/AdminPostForm"));
-const AdminCategories = lazy(() => import("@/pages/admin/AdminCategories"));
 const AdminNews = lazy(() => import("@/pages/admin/AdminNews"));
 const AdminNewsForm = lazy(() => import("@/pages/admin/AdminNewsForm"));
 const AdminUsers = lazy(() => import("@/pages/admin/AdminUsers"));
@@ -50,6 +47,7 @@ const SystemExplorer = lazy(() => import("@/pages/admin/SystemExplorer"));
 const AdminArticleDetail = lazy(() => import("@/pages/admin/AdminArticleDetail"));
 const GalleryAdmin = lazy(() => import("@/pages/admin/GalleryAdmin"));
 const AdminGeneratedImages = lazy(() => import("@/pages/admin/AdminGeneratedImages"));
+const AdminGeneratedAudio = lazy(() => import("@/pages/admin/AdminGeneratedAudio"));
 const AdminManual = lazy(() => import("@/pages/admin/AdminManual"));
 const AdminComingSoon = lazy(() => import("@/pages/admin/AdminComingSoon"));
 
@@ -141,10 +139,6 @@ function Router() {
         <Route path="/admin/submissions" component={AdminSubmissions} />
         <Route path="/admin/recognitions" component={AdminRecognitions} />
         <Route path="/admin/desks" component={AdminDesks} />
-        <Route path="/admin/posts" component={AdminPosts} />
-        <Route path="/admin/posts/new" component={AdminPostForm} />
-        <Route path="/admin/posts/:id/edit" component={AdminPostForm} />
-        <Route path="/admin/categories" component={AdminCategories} />
         <Route path="/admin/news" component={AdminNews} />
         <Route path="/admin/news/new" component={AdminNewsForm} />
         <Route path="/admin/news/:id/edit" component={AdminNewsForm} />
@@ -166,6 +160,7 @@ function Router() {
         <Route path="/admin/explorer" component={SystemExplorer} />
         <Route path="/admin/gallery" component={GalleryAdmin} />
         <Route path="/admin/generated-images" component={AdminGeneratedImages} />
+        <Route path="/admin/generated-audio" component={AdminGeneratedAudio} />
         <Route component={NotFound} />
       </Switch>
   );

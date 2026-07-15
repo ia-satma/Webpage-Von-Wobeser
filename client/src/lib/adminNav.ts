@@ -4,7 +4,6 @@ import {
   HelpCircle,
   Newspaper,
   FileText,
-  FolderOpen,
   Users,
   Briefcase,
   Building2,
@@ -15,6 +14,7 @@ import {
   Images,
   Languages,
   ShieldCheck,
+  LineChart,
   Bot,
   Cog,
   BookOpen,
@@ -23,6 +23,7 @@ import {
   BarChart3,
   CheckCircle,
   Sparkles,
+  Volume2,
   Trophy,
   Handshake,
   Quote,
@@ -104,7 +105,6 @@ export const ADMIN_NAV_GROUPS: AdminNavGroup[] = [
     label: "Publicaciones",
     items: [
       { href: "/admin/news", label: "Noticias", icon: Newspaper },
-      { href: "/admin/categories", label: "Categorías", icon: FolderOpen },
     ],
   },
   {
@@ -135,6 +135,7 @@ export const ADMIN_NAV_GROUPS: AdminNavGroup[] = [
     label: "Configuración",
     items: [
       { href: "/admin/site-config", label: "Portada y pie de página", icon: Settings, requires: "config" },
+      { href: "/admin/site-config/seo", label: "SEO — Analytics y verificación", icon: LineChart, requires: "config" },
       { href: "/admin/translations", label: "Traducciones", icon: Languages, requires: "config" },
       { href: "/admin/users", label: "Usuarios y accesos", icon: ShieldCheck, requires: "adminOnly" },
     ],
@@ -143,7 +144,6 @@ export const ADMIN_NAV_GROUPS: AdminNavGroup[] = [
     id: "construccion",
     label: "En construcción",
     items: [
-      { href: "/admin/posts", label: "Blog / Artículos", icon: FileText, comingSoon: true },
       { href: "/admin/events", label: "Eventos", icon: Calendar, comingSoon: true },
       { href: "/admin/gallery", label: "Galería de imágenes", icon: Images, requires: "config", comingSoon: true },
       { href: "/admin/coming-soon/premios", label: "Premios", icon: Trophy, comingSoon: true },
@@ -160,6 +160,7 @@ export const ADMIN_NAV_GROUPS: AdminNavGroup[] = [
     items: [
       { href: "/admin/agents", label: "Agentes IA", icon: Bot, requires: "agents" },
       { href: "/admin/generated-images", label: "Imágenes generadas por IA", icon: Sparkles, requires: "agents" },
+      { href: "/admin/generated-audio", label: "Audio generado por IA", icon: Volume2, requires: "agents" },
       { href: "/admin/processing", label: "Procesamiento de artículos", icon: Cog, requires: "advanced" },
       { href: "/admin/knowledge", label: "Base de conocimiento", icon: BookOpen, requires: "advanced" },
       { href: "/admin/explorer", label: "Explorador del sistema", icon: Layers, requires: "advanced" },

@@ -15,7 +15,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 import { ImageUpload } from "@/components/admin/ImageUpload";
 import { AdminPageHelp } from "@/components/admin/AdminPageHelp";
-import { SocialPostButton } from "@/components/admin/AgentTools";
+import { SocialPostButton, VoiceButton } from "@/components/admin/AgentTools";
 import { TranslateButton } from "@/components/admin/TranslateButton";
 import { ArrowLeft, Save, Loader2 } from "lucide-react";
 import { newsCategories, type News } from "@shared/schema";
@@ -201,7 +201,19 @@ export default function AdminNewsForm() {
               {isEdit ? "Editar noticia" : "Nueva noticia"}
             </h1>
           </div>
-          {isEdit && id && <SocialPostButton articleId={id} />}
+          {isEdit && id && (
+            <div className="flex items-center gap-2">
+              <SocialPostButton articleId={id} />
+              {form.category === "alerts" && (
+                <VoiceButton
+                  text={form.contentEs || form.content}
+                  sourceType="legal_alerts"
+                  articleId={id}
+                  label="Generar audio de la alerta"
+                />
+              )}
+            </div>
+          )}
         </div>
 
         <AdminPageHelp pageId="noticias-form" manualSectionId="noticias">

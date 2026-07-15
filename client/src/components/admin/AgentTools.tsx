@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
-import { Share2, Mail, Bell, Loader2, Copy } from "lucide-react";
+import { Share2, Mail, Bell, Loader2, Copy, Volume2 } from "lucide-react";
 
 /** Llama a un agente y devuelve su AgentResult (o un error legible). */
 async function runAgent(agentType: string, payload: Record<string, unknown>): Promise<{ ok: boolean; data?: any; error?: string }> {
@@ -34,6 +34,46 @@ function CopyBox({ label, text }: { label: string; text: string }) {
         </Button>
       </div>
       <Textarea readOnly value={text} rows={Math.min(10, Math.max(3, Math.ceil(text.length / 80)))} className="text-sm" />
+    </div>
+  );
+}
+
+/**
+ * Botón "Generar audio" — convierte texto YA generado por otro agente (newsletter/
+ * social_media/legal_alerts) a voz vía OpenAI TTS (voice_agent, el 13° agente del contrato).
+ */
+export function VoiceButton({
+  text,
+  sourceType,
+  articleId,
+  label = "Generar audio",
+}: {
+  text: string;
+  sourceType: "newsletter" | "social_media" | "legal_alerts";
+  articleId?: string;
+  label?: string;
+}) {
+  const [loading, setLoading] = useState(false);
+  const [audioUrl, setAudioUrl] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  const generate = async () => {
+    if (!text || !text.trim()) { setError("No hay texto para convertir a audio."); return; }
+    setLoading(true); setError(null); setAudioUrl(null);
+    const r = await runAgent("voice_agent", { text, sourceType, articleId });
+    setLoading(false);
+    if (!r.ok) { setError(r.error || "No se pudo generar el audio."); return; }
+    setAudioUrl(r.data?.audioUrl || null);
+  };
+
+  return (
+    <div className="space-y-2">
+      <Button type="button" variant="outline" size="sm" onClick={generate} disabled={loading || !text?.trim()} data-testid="button-voice">
+        {loading ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : <Volume2 className="h-4 w-4 mr-1" />}
+        {label}
+      </Button>
+      {error && <p className="text-sm text-destructive">{error}</p>}
+      {audioUrl && <audio controls src={audioUrl} className="w-full" data-testid="audio-generated" />}
     </div>
   );
 }
@@ -75,6 +115,10 @@ export function SocialPostButton({ articleId }: { articleId: string }) {
               ) : null}
               <CopyBox label="LinkedIn" text={[res.data.linkedin, (res.data.linkedinHashtags || []).join(" ")].filter(Boolean).join("\n\n")} />
               <CopyBox label="X (Twitter)" text={[res.data.twitter, (res.data.twitterHashtags || []).join(" ")].filter(Boolean).join(" ")} />
+              <div className="space-y-1">
+                <Label className="text-xs uppercase tracking-wide text-muted-foreground">Locución para redes (audio)</Label>
+                <VoiceButton text={res.data.linkedin || ""} sourceType="social_media" articleId={articleId} label="Generar audio del post" />
+              </div>
             </div>
           ) : null}
           <DialogFooter>
@@ -128,6 +172,10 @@ export function NewsletterButton() {
                 />
               </div>
               <CopyBox label="HTML (para pegar en el correo)" text={res.data.html || ""} />
+              <div className="space-y-1">
+                <Label className="text-xs uppercase tracking-wide text-muted-foreground">Boletín hablado (audio)</Label>
+                <VoiceButton text={res.data.html || ""} sourceType="newsletter" label="Generar audio del boletín" />
+              </div>
             </div>
           ) : null}
           <DialogFooter>

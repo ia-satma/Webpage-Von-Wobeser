@@ -182,6 +182,25 @@ export const insertGeneratedImageSchema = createInsertSchema(generatedImages).om
 export type InsertGeneratedImage = z.infer<typeof insertGeneratedImageSchema>;
 export type GeneratedImage = typeof generatedImages.$inferSelect;
 
+// Historial de audio generado por IA (VoiceAgent / VoiceGenerator, TTS de OpenAI) — boletines,
+// posts de redes y alertas legales convertidos a voz. sourceType identifica de qué agente
+// salió el texto (newsletter/social_media/legal_alerts); articleId es opcional porque un
+// boletín no está ligado a un solo artículo.
+export const generatedAudio = pgTable("generated_audio", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  audioUrl: text("audio_url").notNull(),
+  sourceText: text("source_text"),
+  voiceId: text("voice_id"),
+  engine: text("engine").notNull(),
+  sourceType: text("source_type").notNull(), // newsletter | social_media | legal_alerts
+  articleId: varchar("article_id").references(() => news.id, { onDelete: "set null" }),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertGeneratedAudioSchema = createInsertSchema(generatedAudio).omit({ id: true, createdAt: true });
+export type InsertGeneratedAudio = z.infer<typeof insertGeneratedAudioSchema>;
+export type GeneratedAudio = typeof generatedAudio.$inferSelect;
+
 export const practiceGroups = pgTable("practice_groups", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   name: text("name").notNull(),
@@ -457,72 +476,6 @@ export const adminLoginEvents = pgTable(
 export const insertAdminLoginEventSchema = createInsertSchema(adminLoginEvents).omit({ id: true, createdAt: true });
 export type InsertAdminLoginEvent = z.infer<typeof insertAdminLoginEventSchema>;
 export type AdminLoginEvent = typeof adminLoginEvents.$inferSelect;
-
-// Blog Categories
-export const blogCategories = pgTable("blog_categories", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  name: text("name").notNull(),
-  nameEs: text("name_es").notNull(),
-  slug: text("slug").notNull().unique(),
-  description: text("description"),
-  descriptionEs: text("description_es"),
-  order: integer("order").default(0),
-  createdAt: timestamp("created_at").defaultNow(),
-});
-
-export const insertBlogCategorySchema = createInsertSchema(blogCategories).omit({ id: true, createdAt: true });
-export type InsertBlogCategory = z.infer<typeof insertBlogCategorySchema>;
-export type BlogCategory = typeof blogCategories.$inferSelect;
-
-// Blog Tags
-export const blogTags = pgTable("blog_tags", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  name: text("name").notNull(),
-  nameEs: text("name_es"),
-  slug: text("slug").notNull().unique(),
-});
-
-export const insertBlogTagSchema = createInsertSchema(blogTags).omit({ id: true });
-export type InsertBlogTag = z.infer<typeof insertBlogTagSchema>;
-export type BlogTag = typeof blogTags.$inferSelect;
-
-// Blog Posts
-export const blogPosts = pgTable("blog_posts", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  title: text("title").notNull(),
-  titleEs: text("title_es").notNull(),
-  slug: text("slug").notNull().unique(),
-  content: text("content"),
-  contentEs: text("content_es"),
-  excerpt: text("excerpt"),
-  excerptEs: text("excerpt_es"),
-  featuredImage: text("featured_image"),
-  categoryId: varchar("category_id"),
-  authorId: varchar("author_id"),
-  status: text("status").notNull().default("draft"), // draft, published, trash
-  publishedAt: timestamp("published_at"),
-  metaTitle: text("meta_title"),
-  metaTitleEs: text("meta_title_es"),
-  metaDescription: text("meta_description"),
-  metaDescriptionEs: text("meta_description_es"),
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
-  deletedAt: timestamp("deleted_at"),
-}, (t) => ({
-  // Listado de blog filtra por deletedAt IS NULL + status.
-  statusDeletedIdx: index("blog_posts_status_deleted_idx").on(t.status, t.deletedAt),
-}));
-
-export const insertBlogPostSchema = createInsertSchema(blogPosts).omit({ id: true, createdAt: true, updatedAt: true });
-export type InsertBlogPost = z.infer<typeof insertBlogPostSchema>;
-export type BlogPost = typeof blogPosts.$inferSelect;
-
-// Blog Post Tags (pivot table)
-export const blogPostTags = pgTable("blog_post_tags", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  postId: varchar("post_id").notNull(),
-  tagId: varchar("tag_id").notNull(),
-});
 
 // Media Library
 export const mediaItems = pgTable("media_items", {
