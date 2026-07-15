@@ -15,6 +15,18 @@ export function getBaseUrl(): string {
   return BASE_URL;
 }
 
+// -------------------------------------------------------------------------
+// GA4 / Search Console — apagados por default (vacío = no se inyecta nada).
+// Se activan solo llenando las keys `ga4_measurement_id` / `google_site_verification`
+// en el panel (Configuración → Portada y pie de página → SEO), sin tocar código.
+// -------------------------------------------------------------------------
+let GA4_MEASUREMENT_ID = "";
+let GSC_VERIFICATION = "";
+export function setAnalyticsConfig(opts: { ga4MeasurementId?: string | null; searchConsoleVerification?: string | null }): void {
+  if (typeof opts.ga4MeasurementId === "string") GA4_MEASUREMENT_ID = opts.ga4MeasurementId.trim();
+  if (typeof opts.searchConsoleVerification === "string") GSC_VERIFICATION = opts.searchConsoleVerification.trim();
+}
+
 const SITE_NAME = "Von Wobeser y Sierra";
 const ORG_LEGAL_NAME = "Von Wobeser y Sierra, S.C.";
 const DEFAULT_IMAGE = "/logo-color.png";
@@ -267,4 +279,22 @@ export function applySeo($: cheerio.CheerioAPI, opts: SeoOptions): void {
   const graph = [organizationNode(lang), ...(opts.jsonLd || [])];
   $('head script[type="application/ld+json"]').remove();
   $("head").append(`<script type="application/ld+json">${jsonLdScript(graph)}</script>`);
+
+  // Verificación de Google Search Console (solo si se llenó en el panel).
+  $('head meta[name="google-site-verification"]').remove();
+  upsertMeta($, "name", "google-site-verification", GSC_VERIFICATION);
+
+  // GA4 (solo si se llenó un Measurement ID válido en el panel — G-XXXXXXX).
+  // También quita cualquier snippet de gtag ya incrustado en la plantilla scrapeada
+  // (el sitio original tenía uno inline sin el loader de gtag.js — no funcionaba,
+  // pero no debe quedar duplicado/conflictuando con el que instala el panel).
+  $("head script")
+    .filter((_, el) => /gtag\(/.test($(el).html() || ""))
+    .remove();
+  if (/^G-[A-Z0-9]+$/i.test(GA4_MEASUREMENT_ID)) {
+    $("head").append(
+      `<script data-ga4 async src="https://www.googletagmanager.com/gtag/js?id=${GA4_MEASUREMENT_ID}"></script>` +
+      `<script data-ga4>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','${GA4_MEASUREMENT_ID}');</script>`
+    );
+  }
 }

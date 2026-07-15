@@ -15,7 +15,7 @@ import * as cheerio from "cheerio";
 import { renderNewsList, renderNewsDetail } from "./renderNews";
 import { buildIdMaps, type IdMaps } from "./idMap";
 import { getConfigMap, seedConfigDefaults, upsertConfig, isRichTextConfigKey, type ConfigMap } from "./siteConfig";
-import { setBaseUrl } from "./seo";
+import { setBaseUrl, setAnalyticsConfig } from "./seo";
 import { sanitizeCms } from "./sanitize";
 import { authMiddleware, requireRole, requirePermission } from "../auth";
 import { storage } from "../storage";
@@ -344,7 +344,14 @@ export async function setupMirror(app: Express) {
   try {
     await seedConfigDefaults();
     // Base URL para canonical/OG/JSON-LD: env SITE_URL o la key editable site_url.
-    setBaseUrl(process.env.SITE_URL || (await getConfigMap()).site_url?.value);
+    const configAtStartup = await getConfigMap();
+    setBaseUrl(process.env.SITE_URL || configAtStartup.site_url?.value);
+    // GA4 / Search Console: igual que site_url, se lee una vez al arrancar — si se
+    // editan en el panel después, el cambio aplica hasta el siguiente restart.
+    setAnalyticsConfig({
+      ga4MeasurementId: configAtStartup.ga4_measurement_id?.value,
+      searchConsoleVerification: configAtStartup.google_site_verification?.value,
+    });
   } catch (e) {
     console.warn("[mirror] No se pudo sembrar siteConfig:", (e as Error).message);
   }
