@@ -82,6 +82,10 @@ export default function AdminSubmissions() {
 
   if (authLoading || !isAuthenticated) return null;
 
+  // El sidebar enlaza aquí con ?tab=career o ?tab=contact según la sección de origen
+  // (Carrera en VWyS / Contacto) — abre la pestaña correspondiente de una vez.
+  const initialTab = new URLSearchParams(window.location.search).get("tab") === "career" ? "career" : "contact";
+
   return (
     <div className="min-h-screen bg-background">
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
@@ -93,7 +97,7 @@ export default function AdminSubmissions() {
           Aquí ves los mensajes que las personas han enviado desde los formularios de contacto del sitio.
         </AdminPageHelp>
 
-        <Tabs defaultValue="contact">
+        <Tabs defaultValue={initialTab}>
           <TabsList>
             <TabsTrigger value="contact">
               <Mail className="h-4 w-4 mr-1" /> Contacto {unreadContact > 0 && <Badge className="ml-2">{unreadContact}</Badge>}

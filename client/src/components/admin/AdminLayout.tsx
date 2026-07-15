@@ -1,7 +1,7 @@
-import type { ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { Link, useLocation } from "wouter";
 import { useAdminAuth, useMyPermissions } from "@/lib/adminAuth";
-import { ADMIN_NAV_GROUPS, canSeeNavItem, isNavItemActive } from "@/lib/adminNav";
+import { ADMIN_NAV_GROUPS, canSeeNavItem, isNavItemActive, type AdminNavGroup, type AdminNavItem } from "@/lib/adminNav";
 import {
   SidebarProvider,
   Sidebar,
@@ -16,22 +16,149 @@ import {
   SidebarMenuButton,
   SidebarTrigger,
   SidebarInset,
+  useSidebar,
 } from "@/components/ui/sidebar";
+import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
 import { Button } from "@/components/ui/button";
 import ThemeToggle from "@/components/ThemeToggle";
-import { ArrowUpRight, LogOut } from "lucide-react";
+import { ArrowUpRight, ChevronDown, LogOut } from "lucide-react";
+
+const OPEN_GROUPS_KEY = "admin-sidebar-open-groups";
+
+function loadOpenGroups(): Set<string> {
+  try {
+    const raw = window.localStorage.getItem(OPEN_GROUPS_KEY);
+    return new Set(raw ? (JSON.parse(raw) as string[]) : []);
+  } catch {
+    return new Set();
+  }
+}
+
+function saveOpenGroups(groups: Set<string>) {
+  try {
+    window.localStorage.setItem(OPEN_GROUPS_KEY, JSON.stringify(Array.from(groups)));
+  } catch {
+    // localStorage no disponible (modo privado, cuota, etc.) — el plegado simplemente no persiste.
+  }
+}
+
+function NavItems({ items, location }: { items: AdminNavItem[]; location: string }) {
+  return (
+    <SidebarMenu>
+      {items.map((item) => {
+        const Icon = item.icon;
+        const active = isNavItemActive(location, item.href);
+        const tooltip = item.comingSoon ? `${item.label} (en construcción)` : item.label;
+        return (
+          <SidebarMenuItem key={item.href}>
+            <SidebarMenuButton asChild isActive={active} tooltip={tooltip} data-testid={`nav-${item.href.replace(/\//g, "-")}`}>
+              <Link href={item.href}>
+                <Icon />
+                <span className="flex-1 truncate">{item.label}</span>
+                {item.comingSoon && (
+                  <span
+                    className="ml-auto rounded-none bg-warning/15 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-warning group-data-[collapsible=icon]:hidden"
+                    data-testid={`badge-coming-soon-${item.href.replace(/\//g, "-")}`}
+                  >
+                    En construcción
+                  </span>
+                )}
+              </Link>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        );
+      })}
+    </SidebarMenu>
+  );
+}
+
+/**
+ * Un grupo con etiqueta se puede plegar/desplegar por separado (clic en el título) — el
+ * estado se recuerda entre navegaciones (localStorage) y el grupo que contiene la página
+ * activa se abre solo. En modo icon-only (sidebar colapsado a la barra angosta) el plegado
+ * por grupo se ignora — ahí siempre se ven todos los iconos, igual que antes.
+ */
+function NavGroupSection({
+  group,
+  visibleItems,
+  location,
+  isOpen,
+  onToggle,
+}: {
+  group: AdminNavGroup;
+  visibleItems: AdminNavItem[];
+  location: string;
+  isOpen: boolean;
+  onToggle: () => void;
+}) {
+  const { state } = useSidebar();
+  const open = state === "collapsed" || isOpen;
+
+  if (!group.label) {
+    return (
+      <SidebarGroup>
+        <SidebarGroupContent>
+          <NavItems items={visibleItems} location={location} />
+        </SidebarGroupContent>
+      </SidebarGroup>
+    );
+  }
+
+  return (
+    <SidebarGroup>
+      <Collapsible open={open} onOpenChange={onToggle}>
+        <SidebarGroupLabel asChild>
+          <CollapsibleTrigger className="flex w-full items-center justify-between cursor-pointer" data-testid={`nav-group-toggle-${group.id}`}>
+            <span>{group.label}</span>
+            <ChevronDown className={`h-3.5 w-3.5 shrink-0 transition-transform duration-200 ${open ? "" : "-rotate-90"}`} />
+          </CollapsibleTrigger>
+        </SidebarGroupLabel>
+        <CollapsibleContent>
+          <SidebarGroupContent>
+            <NavItems items={visibleItems} location={location} />
+          </SidebarGroupContent>
+        </CollapsibleContent>
+      </Collapsible>
+    </SidebarGroup>
+  );
+}
 
 /**
  * Envoltura común de todas las páginas del admin: sidebar con TODAS las secciones
  * (agrupadas y gateadas por permiso, ver client/src/lib/adminNav.ts), colapsable a
  * icon-only en desktop y con drawer automático en móvil (el propio componente Sidebar de
- * shadcn ya resuelve esto — ver client/src/components/ui/sidebar.tsx).
+ * shadcn ya resuelve esto — ver client/src/components/ui/sidebar.tsx). Cada grupo con
+ * etiqueta además se puede plegar/desplegar individualmente (ver NavGroupSection arriba).
  */
 export function AdminLayout({ children }: { children: ReactNode }) {
   const [location] = useLocation();
   const { logout, role } = useAdminAuth();
   const { has } = useMyPermissions();
   const isAdmin = !role || role === "admin" || role === "super_admin";
+  const [openGroups, setOpenGroups] = useState<Set<string>>(() => loadOpenGroups());
+
+  // Abre solo, sin cerrar los demás, el grupo que contiene la página actual.
+  useEffect(() => {
+    const activeGroup = ADMIN_NAV_GROUPS.find((g) => g.items.some((item) => isNavItemActive(location, item.href)));
+    if (!activeGroup || openGroups.has(activeGroup.id)) return;
+    setOpenGroups((prev) => {
+      const next = new Set(prev);
+      next.add(activeGroup.id);
+      saveOpenGroups(next);
+      return next;
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location]);
+
+  const toggleGroup = (id: string) => {
+    setOpenGroups((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      saveOpenGroups(next);
+      return next;
+    });
+  };
 
   return (
     <SidebarProvider>
@@ -53,36 +180,14 @@ export function AdminLayout({ children }: { children: ReactNode }) {
             const visibleItems = group.items.filter((item) => canSeeNavItem(item, { has, isAdmin }));
             if (visibleItems.length === 0) return null;
             return (
-              <SidebarGroup key={group.id}>
-                {group.label && <SidebarGroupLabel>{group.label}</SidebarGroupLabel>}
-                <SidebarGroupContent>
-                  <SidebarMenu>
-                    {visibleItems.map((item) => {
-                      const Icon = item.icon;
-                      const active = isNavItemActive(location, item.href);
-                      const tooltip = item.comingSoon ? `${item.label} (en construcción)` : item.label;
-                      return (
-                        <SidebarMenuItem key={item.href}>
-                          <SidebarMenuButton asChild isActive={active} tooltip={tooltip} data-testid={`nav-${item.href.replace(/\//g, "-")}`}>
-                            <Link href={item.href}>
-                              <Icon />
-                              <span className="flex-1 truncate">{item.label}</span>
-                              {item.comingSoon && (
-                                <span
-                                  className="ml-auto rounded-none bg-warning/15 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-warning group-data-[collapsible=icon]:hidden"
-                                  data-testid={`badge-coming-soon-${item.href.replace(/\//g, "-")}`}
-                                >
-                                  En construcción
-                                </span>
-                              )}
-                            </Link>
-                          </SidebarMenuButton>
-                        </SidebarMenuItem>
-                      );
-                    })}
-                  </SidebarMenu>
-                </SidebarGroupContent>
-              </SidebarGroup>
+              <NavGroupSection
+                key={group.id}
+                group={group}
+                visibleItems={visibleItems}
+                location={location}
+                isOpen={openGroups.has(group.id)}
+                onToggle={() => toggleGroup(group.id)}
+              />
             );
           })}
         </SidebarContent>

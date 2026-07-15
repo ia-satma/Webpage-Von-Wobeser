@@ -11,6 +11,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { RichTextEditor } from "@/components/admin/RichTextEditor";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -1268,8 +1269,9 @@ export default function AdminPostForm() {
                         <FormItem>
                           <FormLabel>{t.excerptLabel}</FormLabel>
                           <FormControl>
-                            <Textarea
-                              {...field}
+                            <RichTextEditor
+                              value={field.value ?? ""}
+                              onChange={field.onChange}
                               placeholder={t.excerptPlaceholder}
                               rows={2}
                               data-testid="textarea-excerpt-en"
@@ -1287,8 +1289,9 @@ export default function AdminPostForm() {
                         <FormItem>
                           <FormLabel>{t.contentLabel}</FormLabel>
                           <FormControl>
-                            <Textarea
-                              {...field}
+                            <RichTextEditor
+                              value={field.value ?? ""}
+                              onChange={field.onChange}
                               placeholder={t.contentPlaceholder}
                               rows={12}
                               data-testid="textarea-content-en"
@@ -1379,8 +1382,9 @@ export default function AdminPostForm() {
                             </Button>
                           </div>
                           <FormControl>
-                            <Textarea
-                              {...field}
+                            <RichTextEditor
+                              value={field.value ?? ""}
+                              onChange={field.onChange}
                               placeholder={t.excerptPlaceholder}
                               rows={2}
                               data-testid="textarea-excerpt-es"
@@ -1421,8 +1425,9 @@ export default function AdminPostForm() {
                             </Button>
                           </div>
                           <FormControl>
-                            <Textarea
-                              {...field}
+                            <RichTextEditor
+                              value={field.value ?? ""}
+                              onChange={field.onChange}
                               placeholder={t.contentPlaceholder}
                               rows={12}
                               data-testid="textarea-content-es"

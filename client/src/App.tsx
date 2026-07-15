@@ -49,6 +49,7 @@ const AdminHealthCheck = lazy(() => import("@/pages/admin/AdminHealthCheck"));
 const SystemExplorer = lazy(() => import("@/pages/admin/SystemExplorer"));
 const AdminArticleDetail = lazy(() => import("@/pages/admin/AdminArticleDetail"));
 const GalleryAdmin = lazy(() => import("@/pages/admin/GalleryAdmin"));
+const AdminGeneratedImages = lazy(() => import("@/pages/admin/AdminGeneratedImages"));
 const AdminManual = lazy(() => import("@/pages/admin/AdminManual"));
 const AdminComingSoon = lazy(() => import("@/pages/admin/AdminComingSoon"));
 
@@ -135,6 +136,7 @@ function Router() {
         <Route path="/admin/manual" component={AdminManual} />
         <Route path="/admin/coming-soon/:key" component={AdminComingSoon} />
         <Route path="/admin/site-config" component={AdminSiteConfig} />
+        <Route path="/admin/site-config/:section" component={AdminSiteConfig} />
         <Route path="/admin/users" component={AdminUsers} />
         <Route path="/admin/submissions" component={AdminSubmissions} />
         <Route path="/admin/recognitions" component={AdminRecognitions} />
@@ -163,6 +165,7 @@ function Router() {
         <Route path="/admin/health-check" component={AdminHealthCheck} />
         <Route path="/admin/explorer" component={SystemExplorer} />
         <Route path="/admin/gallery" component={GalleryAdmin} />
+        <Route path="/admin/generated-images" component={AdminGeneratedImages} />
         <Route component={NotFound} />
       </Switch>
   );

@@ -14,8 +14,9 @@ import { applyCareersFormFix, applyContactForm } from "./formsFix";
 import * as cheerio from "cheerio";
 import { renderNewsList, renderNewsDetail } from "./renderNews";
 import { buildIdMaps, type IdMaps } from "./idMap";
-import { getConfigMap, seedConfigDefaults, upsertConfig, type ConfigMap } from "./siteConfig";
+import { getConfigMap, seedConfigDefaults, upsertConfig, isRichTextConfigKey, type ConfigMap } from "./siteConfig";
 import { setBaseUrl } from "./seo";
+import { sanitizeCms } from "./sanitize";
 import { authMiddleware, requireRole, requirePermission } from "../auth";
 import { storage } from "../storage";
 import { db } from "../db";
@@ -614,7 +615,14 @@ export async function setupMirror(app: Express) {
   // que toda la plantilla capturada) porque el mapa no tiene una vista de detalle propia.
   const serveDesksMap = async (lang: Lang, res: Response) => {
     const desks = await storage.getSpecializedDesks();
-    sendPage(res, renderDesksMap(pick(TEMPLATES.desksList, lang), desks, lang));
+    const published = desks.filter((d: any) => d.published !== false);
+    const teamByDeskId: Record<string, any[]> = {};
+    await Promise.all(
+      published.map(async (d: any) => {
+        teamByDeskId[d.id] = await storage.getTeamMembersByDesk(d.id);
+      }),
+    );
+    sendPage(res, renderDesksMap(pick(TEMPLATES.desksList, lang), desks, lang, teamByDeskId));
   };
 
   const serveDesk = async (slug: string | undefined, lang: Lang, res: Response, next: NextFunction) => {
@@ -781,7 +789,13 @@ export async function setupMirror(app: Express) {
     res.json(await getConfigMap());
   }));
   app.put("/api/admin/site-config/:key", authMiddleware, requirePermission("config"), wrap(async (req, res) => {
-    const { value, valueEs } = req.body || {};
+    let { value, valueEs } = req.body || {};
+    // Solo las claves de prosa de páginas institucionales pasan por el editor de texto
+    // enriquecido — el resto (URLs de video, banner corto, redes, teléfono) se guarda tal cual.
+    if (isRichTextConfigKey(req.params.key)) {
+      value = sanitizeCms(value ?? "");
+      if (valueEs != null) valueEs = sanitizeCms(valueEs);
+    }
     await upsertConfig(req.params.key, value ?? "", valueEs);
     res.json({ ok: true, key: req.params.key });
   }));

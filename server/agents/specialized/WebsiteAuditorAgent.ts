@@ -2,9 +2,21 @@ import { BaseAgent } from '../core/BaseAgent';
 import { AgentResult, ExecutionContext, AgentType } from '../core/types';
 import { orchestrator } from '../core/AgentOrchestrator';
 import { storage } from '../../storage';
+import { getConfigMap } from '../../mirror/siteConfig';
 import type { InsertWebsiteAuditFinding, WebsiteAuditFinding, TeamMember, PracticeGroup, IndustryGroup, News } from '@shared/schema';
 
 const SUPPORTED_LANGUAGES = ['en', 'es', 'de', 'zh', 'ko', 'ja', 'ar', 'ru', 'fr', 'it'];
+
+// Lee `active_languages` de site_config (default "es,en") — solo se piden/reportan hallazgos
+// de traducción faltante para los idiomas realmente en uso, no los 10 soportados por el
+// traductor. Ver [[vonwobeser-cobertura-idioma]]: sin este filtro, el auditor re-encolaba
+// miles de trabajos de polyglot_translator para idiomas que el cliente no usa.
+async function getActiveLanguages(): Promise<string[]> {
+  const config = await getConfigMap();
+  const raw = config.active_languages?.value || 'es,en';
+  const active = raw.split(',').map((s) => s.trim()).filter((c) => SUPPORTED_LANGUAGES.includes(c));
+  return active.length > 0 ? active : ['es', 'en'];
+}
 
 // Fallback usado en toda la app cuando una imagen no carga (server/agents/AutoRecoveryAgent.ts,
 // SmartImageGenerator.ts) — mismo asset, así el auto-fix no introduce un placeholder distinto.
@@ -239,9 +251,10 @@ Be thorough but prioritize critical issues that directly impact users.`,
       await this.checkIndustryGroupTranslations(ig);
     }
 
+    const activeLanguages = await getActiveLanguages();
     for (const news of newsItems) {
       this.metrics.translationsChecked++;
-      await this.checkNewsTranslations(news);
+      await this.checkNewsTranslations(news, activeLanguages);
     }
 
     console.log(`[WebsiteAuditor] Checked ${this.metrics.translationsChecked} items for translations`);
@@ -345,17 +358,17 @@ Be thorough but prioritize critical issues that directly impact users.`,
     }
   }
 
-  private async checkNewsTranslations(newsItem: News): Promise<void> {
+  private async checkNewsTranslations(newsItem: News, activeLanguages: string[]): Promise<void> {
     const translations = await storage.getNewsTranslations(newsItem.id);
     const translatedLanguages = new Set(translations.map(t => t.language));
-    
-    const missingLanguages = SUPPORTED_LANGUAGES.filter(
+
+    const missingLanguages = activeLanguages.filter(
       lang => lang !== 'es' && !translatedLanguages.has(lang)
     );
 
     if (missingLanguages.length > 0) {
       const severity = missingLanguages.length >= 5 ? 'high' : 'medium';
-      
+
       this.addFinding({
         category: 'translations',
         issueType: 'missing_translation',
@@ -367,7 +380,7 @@ Be thorough but prioritize critical issues that directly impact users.`,
           slug: newsItem.slug,
           missingLanguages,
           translatedCount: translatedLanguages.size,
-          totalRequired: SUPPORTED_LANGUAGES.length,
+          totalRequired: activeLanguages.length,
         },
         recommendation: `Translate news article "${newsItem.title}" to: ${missingLanguages.join(', ')}`,
         ownerAgent: 'polyglot_translator',

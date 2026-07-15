@@ -1,5 +1,5 @@
 import * as cheerio from "cheerio";
-import { sanitizeCms } from "./sanitize";
+import { renderRichText } from "./sanitize";
 import { applySeo, articleNode, breadcrumbNode, clip } from "./seo";
 
 type Lang = "en" | "es";
@@ -49,7 +49,7 @@ export function renderNewsList(
 
   const cards = news.map((n) => {
     const title = esc(L(n, "title", lang));
-    const intro = sanitizeCms(L(n, "excerpt", lang)); // HTML del CMS — sanitizado (anti-XSS)
+    const intro = renderRichText(L(n, "excerpt", lang));
     const href = `/news/${esc(n.slug)}${langSuffix}`;
     return (
       `<div class="archive__item"><a href="${href}">` +
@@ -112,14 +112,14 @@ export function renderNewsList(
 export function renderNewsDetail(templateHtml: string, item: any, lang: Lang = "en"): string {
   const $ = cheerio.load(templateHtml);
   const title = L(item, "title", lang);
-  const excerpt = sanitizeCms(L(item, "excerpt", lang)); // anti-XSS
-  const content = sanitizeCms(L(item, "content", lang)); // anti-XSS
+  const excerpt = renderRichText(L(item, "excerpt", lang));
+  const content = renderRichText(L(item, "content", lang));
   const date = fmtDate(item.date, lang);
 
   $(".single__meta--name").first().text(title);
   // Show the date inside the meta sidebar (kept minimal, original styling).
   $(".single__meta--list").first().html(date ? `<p style="color:#fff;">${esc(date)}</p>` : "");
-  $(".single__content--intro").html(excerpt ? `<p>${excerpt}</p>` : "");
+  $(".single__content--intro").html(excerpt || "");
   $(".single__content--txt").html(content || (excerpt ? "" : `<p>${esc(title)}</p>`));
 
   $("html").attr("lang", lang === "es" ? "es-mx" : "en-gb");

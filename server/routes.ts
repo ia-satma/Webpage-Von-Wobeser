@@ -9,6 +9,7 @@ import fs from "fs";
 import crypto from "crypto";
 import multer from "multer";
 import { optimizeImageIfNeeded } from "./media/optimizeImage";
+import { sanitizeFields } from "./mirror/sanitize";
 
 // Global WebSocket clients map for pipeline progress updates
 const pipelineClients: Map<string, WebSocket> = new Map();
@@ -531,6 +532,28 @@ export async function registerRoutes(
       res.json({ success: true });
     } catch (error) {
       res.status(500).json({ error: "Failed to delete office image" });
+    }
+  });
+
+  // Historial de imágenes generadas por IA (ImageSuggestionAgent) — para reutilizarlas después
+  // sin volver a gastar créditos de Cloudflare/Gemini. Solo lectura + borrado; se crean desde
+  // SmartImageGenerator, no desde el panel.
+  app.get("/api/admin/generated-images", authMiddleware, requirePermission("agents"), async (_req: Request, res: Response) => {
+    try {
+      const images = await storage.getGeneratedImages();
+      res.json(images);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch generated images" });
+    }
+  });
+
+  app.delete("/api/admin/generated-images/:id", authMiddleware, requirePermission("agents"), async (req: Request, res: Response) => {
+    try {
+      const deleted = await storage.deleteGeneratedImage(req.params.id);
+      if (!deleted) return res.status(404).json({ error: "Image not found" });
+      res.json({ success: true });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to delete generated image" });
     }
   });
 
@@ -1438,6 +1461,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
         return res.status(400).json({ error: "Slug already exists" });
       }
 
+      sanitizeFields(validation.data, ["content", "contentEs", "excerpt", "excerptEs"]);
       const post = await storage.createBlogPost(validation.data);
       res.status(201).json(post);
     } catch (error) {
@@ -1462,6 +1486,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
         }
       }
 
+      sanitizeFields(req.body, ["content", "contentEs", "excerpt", "excerptEs"]);
       const post = await storage.updateBlogPost(req.params.id, req.body);
       res.json(post);
     } catch (error) {
@@ -1525,6 +1550,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
         });
       }
 
+      sanitizeFields(validation.data, ["description", "descriptionEs"]);
       const category = await storage.createBlogCategory(validation.data);
       res.status(201).json(category);
     } catch (error) {
@@ -1536,6 +1562,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
   // Update category
   app.put("/api/admin/categories/:id", authMiddleware, requirePermission("content"), async (req: Request, res: Response) => {
     try {
+      sanitizeFields(req.body, ["description", "descriptionEs"]);
       const category = await storage.updateBlogCategory(req.params.id, req.body);
       if (!category) {
         return res.status(404).json({ error: "Category not found" });
@@ -1658,10 +1685,11 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
     try {
       // Antes: getNews() (1.792 filas) + un getNewsTranslations() POR artículo (N+1)
       // → timeout. Ahora: conteos/agregados en SQL + solo las 5 recientes.
-      const [totalArticles, transStats, recent] = await Promise.all([
+      const [totalArticles, transStats, recent, baseCoverage] = await Promise.all([
         storage.getNewsCount(),
         storage.getTranslationStats(),
         storage.getRecentNews(5),
+        storage.getBaseLanguageCoverage(),
       ]);
 
       const recentArticles = recent.map(n => ({
@@ -1679,6 +1707,12 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
         articlesWithTranslations: transStats.articlesWithTranslations,
         totalTranslations: transStats.total,
         translationsByLanguage: transStats.byLanguage,
+        // Cobertura REAL español/inglés (columnas base de `news`, no la caché de 10 idiomas
+        // de arriba) — ver comentario en storage.getBaseLanguageCoverage().
+        languageCoverage: {
+          es: { total: baseCoverage.total, translated: baseCoverage.total },
+          en: { total: baseCoverage.total, translated: baseCoverage.total - baseCoverage.missingEnglish },
+        },
         recentArticles,
         languagesSupported: 10,
         processingStatus: "idle", // Could be connected to actual processing status
@@ -1735,6 +1769,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
         return apiError(res, 400, "Validation failed", validation.error.errors);
       }
 
+      sanitizeFields(validation.data, ["content", "contentEs", "excerpt", "excerptEs"]);
       const newsItem = await storage.createNews(validation.data);
       auditLog("create", "news", newsItem.id, (req as any).adminUser?.id || "unknown");
       res.status(201).json(newsItem);
@@ -1748,6 +1783,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
   app.put("/api/admin/news/:id", authMiddleware, requirePermission("content"), async (req: Request, res: Response) => {
     try {
       const validated = insertNewsSchema.partial().parse(req.body); // valida + descarta campos no permitidos (anti mass-assignment)
+      sanitizeFields(validated, ["content", "contentEs", "excerpt", "excerptEs"]);
       const newsItem = await storage.updateNews(req.params.id, validated);
       if (!newsItem) {
         return apiError(res, 404, "News not found");
@@ -1847,6 +1883,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
   app.post("/api/admin/team", authMiddleware, requirePermission("content"), async (req: Request, res: Response) => {
     try {
       const validatedData = insertTeamMemberSchema.parse(req.body);
+      sanitizeFields(validatedData, ["bio", "bioEs"]);
       const member = await storage.createTeamMember(validatedData);
       const practiceGroupIds = Array.isArray(req.body.practiceGroupIds) ? req.body.practiceGroupIds : [];
       const industryGroupIds = Array.isArray(req.body.industryGroupIds) ? req.body.industryGroupIds : [];
@@ -1869,6 +1906,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
   app.put("/api/admin/team/:id", authMiddleware, requirePermission("content"), async (req: Request, res: Response) => {
     try {
       const validatedData = insertTeamMemberSchema.partial().parse(req.body);
+      sanitizeFields(validatedData, ["bio", "bioEs"]);
       // Si el body solo trae practiceGroupIds/industryGroupIds (sin campos propios de
       // teamMembers), no hay nada que actualizar en la tabla principal — Drizzle
       // rechaza un SET vacío. Solo se llama a updateTeamMember si hay campos reales.
@@ -1953,6 +1991,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
   app.post("/api/admin/practice-groups", authMiddleware, requirePermission("content"), async (req: Request, res: Response) => {
     try {
       const validatedData = insertPracticeGroupSchema.parse(req.body);
+      sanitizeFields(validatedData, ["description", "descriptionEs", "fullDescription", "fullDescriptionEs"]);
       const group = await storage.createPracticeGroup(validatedData);
       res.status(201).json(group);
     } catch (error) {
@@ -1968,6 +2007,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
   app.put("/api/admin/practice-groups/:id", authMiddleware, requirePermission("content"), async (req: Request, res: Response) => {
     try {
       const validatedData = insertPracticeGroupSchema.partial().parse(req.body);
+      sanitizeFields(validatedData, ["description", "descriptionEs", "fullDescription", "fullDescriptionEs"]);
       const group = await storage.updatePracticeGroup(req.params.id, validatedData);
       if (!group) {
         return res.status(404).json({ error: "Practice group not found" });
@@ -2015,6 +2055,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
   app.post("/api/admin/industry-groups", authMiddleware, requirePermission("content"), async (req: Request, res: Response) => {
     try {
       const validatedData = insertIndustryGroupSchema.parse(req.body);
+      sanitizeFields(validatedData, ["description", "descriptionEs", "fullDescription", "fullDescriptionEs"]);
       const group = await storage.createIndustryGroup(validatedData);
       res.status(201).json(group);
     } catch (error) {
@@ -2030,6 +2071,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
   app.put("/api/admin/industry-groups/:id", authMiddleware, requirePermission("content"), async (req: Request, res: Response) => {
     try {
       const validatedData = insertIndustryGroupSchema.partial().parse(req.body);
+      sanitizeFields(validatedData, ["description", "descriptionEs", "fullDescription", "fullDescriptionEs"]);
       const group = await storage.updateIndustryGroup(req.params.id, validatedData);
       if (!group) {
         return res.status(404).json({ error: "Industry group not found" });
@@ -2075,6 +2117,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
   app.post("/api/admin/events", authMiddleware, requirePermission("content"), async (req: Request, res: Response) => {
     try {
       const validatedData = insertEventSchema.parse(req.body);
+      sanitizeFields(validatedData, ["description", "descriptionEs"]);
       const event = await storage.createEvent(validatedData);
       res.json(event);
     } catch (error) {
@@ -2089,6 +2132,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
   app.put("/api/admin/events/:id", authMiddleware, requirePermission("content"), async (req: Request, res: Response) => {
     try {
       const validatedData = insertEventSchema.partial().parse(req.body);
+      sanitizeFields(validatedData, ["description", "descriptionEs"]);
       const updated = await storage.updateEvent(req.params.id, validatedData);
       if (!updated) {
         return res.status(404).json({ error: "Event not found" });
@@ -2589,6 +2633,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
   app.post("/api/admin/desks", authMiddleware, requirePermission("content"), async (req: Request, res: Response) => {
     try {
       const validatedData = insertSpecializedDeskSchema.parse(req.body);
+      sanitizeFields(validatedData, ["description", "descriptionEs", "fullDescription", "fullDescriptionEs"]);
       const desk = await storage.createSpecializedDesk(validatedData);
       res.json(desk);
     } catch (error) {
@@ -2603,6 +2648,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
   app.put("/api/admin/desks/:id", authMiddleware, requirePermission("content"), async (req: Request, res: Response) => {
     try {
       const validatedData = insertSpecializedDeskSchema.partial().parse(req.body);
+      sanitizeFields(validatedData, ["description", "descriptionEs", "fullDescription", "fullDescriptionEs"]);
       const updated = await storage.updateSpecializedDesk(req.params.id, validatedData);
       if (!updated) {
         return res.status(404).json({ error: "Desk not found" });
@@ -2627,6 +2673,27 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
     } catch (error) {
       console.error("Delete desk error:", error);
       res.status(500).json({ error: "Failed to delete desk" });
+    }
+  });
+
+  app.get("/api/admin/desks/:id/team", authMiddleware, async (req: Request, res: Response) => {
+    try {
+      const members = await storage.getTeamMembersByDesk(req.params.id);
+      res.json(members);
+    } catch (error) {
+      console.error("Get desk team error:", error);
+      res.status(500).json({ error: "Failed to fetch desk team" });
+    }
+  });
+
+  app.put("/api/admin/desks/:id/team", authMiddleware, requirePermission("content"), async (req: Request, res: Response) => {
+    try {
+      const teamMemberIds = Array.isArray(req.body?.teamMemberIds) ? req.body.teamMemberIds.map(String) : [];
+      await storage.setDeskTeamMembers(req.params.id, teamMemberIds);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Set desk team error:", error);
+      res.status(500).json({ error: "Failed to update desk team" });
     }
   });
 

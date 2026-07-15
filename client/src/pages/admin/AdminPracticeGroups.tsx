@@ -11,7 +11,7 @@ import { queryClient } from "@/lib/queryClient";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
+import { RichTextEditor } from "@/components/admin/RichTextEditor";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { ImageUpload } from "@/components/admin/ImageUpload";
@@ -839,8 +839,9 @@ export default function AdminPracticeGroups() {
                           <FormItem>
                             <FormLabel>{t.descriptionEn}</FormLabel>
                             <FormControl>
-                              <Textarea
-                                {...field}
+                              <RichTextEditor
+                                value={field.value ?? ""}
+                                onChange={field.onChange}
                                 placeholder={t.descriptionEnPlaceholder}
                                 rows={3}
                                 data-testid="input-description-en"
@@ -858,8 +859,9 @@ export default function AdminPracticeGroups() {
                           <FormItem>
                             <FormLabel>{t.descriptionEs}</FormLabel>
                             <FormControl>
-                              <Textarea
-                                {...field}
+                              <RichTextEditor
+                                value={field.value ?? ""}
+                                onChange={field.onChange}
                                 placeholder={t.descriptionEsPlaceholder}
                                 rows={3}
                                 data-testid="input-description-es"
@@ -879,8 +881,9 @@ export default function AdminPracticeGroups() {
                           <FormItem>
                             <FormLabel>{t.fullDescriptionEn}</FormLabel>
                             <FormControl>
-                              <Textarea
-                                {...field}
+                              <RichTextEditor
+                                value={field.value ?? ""}
+                                onChange={field.onChange}
                                 placeholder={t.fullDescriptionEnPlaceholder}
                                 rows={4}
                                 data-testid="input-full-description-en"
@@ -898,8 +901,9 @@ export default function AdminPracticeGroups() {
                           <FormItem>
                             <FormLabel>{t.fullDescriptionEs}</FormLabel>
                             <FormControl>
-                              <Textarea
-                                {...field}
+                              <RichTextEditor
+                                value={field.value ?? ""}
+                                onChange={field.onChange}
                                 placeholder={t.fullDescriptionEsPlaceholder}
                                 rows={4}
                                 data-testid="input-full-description-es"

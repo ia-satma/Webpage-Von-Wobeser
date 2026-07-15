@@ -9,6 +9,8 @@ import {
   type InsertNewsTranslation,
   type OfficeImage,
   type InsertOfficeImage,
+  type GeneratedImage,
+  type InsertGeneratedImage,
   type PracticeGroup,
   type InsertPracticeGroup,
   type IndustryGroup,
@@ -70,11 +72,13 @@ import {
   news,
   newsTranslations,
   officeImages,
+  generatedImages,
   practiceGroups,
   industryGroups,
   teamMembers,
   teamMemberPracticeGroups,
   teamMemberIndustryGroups,
+  teamMemberDesks,
   representativeMatters,
   adminUsers,
   adminLoginEvents,
@@ -113,6 +117,7 @@ export interface IStorage {
   getPublishedNewsCount(category?: string): Promise<number>;
   getAdminNewsPage(opts: { limit: number; offset: number; search?: string; category?: string }): Promise<{ rows: News[]; total: number }>;
   getTranslationStats(): Promise<{ total: number; byLanguage: Record<string, number>; articlesWithTranslations: number }>;
+  getBaseLanguageCoverage(): Promise<{ total: number; missingEnglish: number }>;
   searchNews(q: string, limit: number): Promise<News[]>;
   getNewsById(id: string): Promise<News | undefined>;
   getNewsBySlug(slug: string): Promise<News | undefined>;
@@ -123,6 +128,9 @@ export interface IStorage {
   createOfficeImage(image: InsertOfficeImage): Promise<OfficeImage>;
   updateOfficeImage(id: string, data: Partial<InsertOfficeImage>): Promise<OfficeImage | undefined>;
   deleteOfficeImage(id: string): Promise<boolean>;
+  getGeneratedImages(): Promise<(GeneratedImage & { articleTitle: string | null; articleSlug: string | null })[]>;
+  createGeneratedImage(image: InsertGeneratedImage): Promise<GeneratedImage>;
+  deleteGeneratedImage(id: string): Promise<boolean>;
   getSiteContent(): SiteContent;
   getStats(): Stat[];
   getPracticeGroups(): Promise<PracticeGroup[]>;
@@ -266,7 +274,10 @@ export interface IStorage {
   createSpecializedDesk(desk: InsertSpecializedDesk): Promise<SpecializedDesk>;
   updateSpecializedDesk(id: string, desk: Partial<InsertSpecializedDesk>): Promise<SpecializedDesk | undefined>;
   deleteSpecializedDesk(id: string): Promise<boolean>;
-  
+  getDeskTeamMemberIds(deskId: string): Promise<string[]>;
+  getTeamMembersByDesk(deskId: string): Promise<TeamMember[]>;
+  setDeskTeamMembers(deskId: string, teamMemberIds: string[]): Promise<void>;
+
   // Translation Cache
   getTranslation(contentType: string, entityId: string, field: string, targetLanguage: string): Promise<TranslationCache | undefined>;
   getTranslations(contentType: string, entityId: string, targetLanguage: string): Promise<TranslationCache[]>;
@@ -448,6 +459,30 @@ export class DatabaseStorage implements IStorage {
     return { total, byLanguage, articlesWithTranslations: distinct[0]?.count ?? 0 };
   }
 
+  /**
+   * Cobertura REAL de español/inglés en las columnas base de `news` (title/content vs
+   * title_es/content_es — las que de verdad usa el sitio público), no la caché de
+   * traducción a 10 idiomas de `news_translations` (esa es una feature aparte, ver
+   * `getTranslationStats`). Un campo "sin inglés" es aquel cuyo lado en español SÍ tiene
+   * texto pero el inglés está vacío o es idéntico (copiado sin traducir) — si el español
+   * también está vacío (ej. publicaciones que solo referencian un PDF externo, sin cuerpo en
+   * ningún idioma) no cuenta como hueco, porque no hay nada que traducir. Mismo criterio que
+   * `scripts/fix-missing-news-english.mjs`.
+   */
+  async getBaseLanguageCoverage(): Promise<{ total: number; missingEnglish: number }> {
+    const [row] = await db
+      .select({
+        total: sql<number>`count(*)::int`,
+        missingEnglish: sql<number>`count(*) filter (
+          where (trim(${news.titleEs}) <> '' and (${news.title} is null or ${news.title} = ${news.titleEs}))
+             or (trim(${news.excerptEs}) <> '' and (${news.excerpt} is null or ${news.excerpt} = ${news.excerptEs}))
+             or (trim(${news.contentEs}) <> '' and (${news.content} is null or trim(${news.content}) = '' or ${news.content} = ${news.contentEs}))
+        )::int`,
+      })
+      .from(news);
+    return { total: row?.total ?? 0, missingEnglish: row?.missingEnglish ?? 0 };
+  }
+
   /** Conteos de noticias por estado (publicadas/no) en SQL, sin traer filas. */
   async getNewsStatusCounts(): Promise<{ total: number; published: number; unpublished: number }> {
     const rows = await db.select({ published: news.published, count: sql<number>`count(*)::int` }).from(news).groupBy(news.published);
@@ -520,6 +555,35 @@ export class DatabaseStorage implements IStorage {
   async updateOfficeImage(id: string, data: Partial<InsertOfficeImage>): Promise<OfficeImage | undefined> {
     const [updated] = await db.update(officeImages).set(data).where(eq(officeImages.id, id)).returning();
     return updated;
+  }
+
+  async getGeneratedImages(): Promise<(GeneratedImage & { articleTitle: string | null; articleSlug: string | null })[]> {
+    const rows = await db
+      .select({
+        id: generatedImages.id,
+        imageUrl: generatedImages.imageUrl,
+        prompt: generatedImages.prompt,
+        sanitizedPrompt: generatedImages.sanitizedPrompt,
+        engine: generatedImages.engine,
+        articleId: generatedImages.articleId,
+        createdAt: generatedImages.createdAt,
+        articleTitle: news.titleEs,
+        articleSlug: news.slug,
+      })
+      .from(generatedImages)
+      .leftJoin(news, eq(generatedImages.articleId, news.id))
+      .orderBy(desc(generatedImages.createdAt));
+    return rows;
+  }
+
+  async createGeneratedImage(image: InsertGeneratedImage): Promise<GeneratedImage> {
+    const [created] = await db.insert(generatedImages).values(image).returning();
+    return created;
+  }
+
+  async deleteGeneratedImage(id: string): Promise<boolean> {
+    const result = await db.delete(generatedImages).where(eq(generatedImages.id, id)).returning();
+    return result.length > 0;
   }
 
   async deleteOfficeImage(id: string): Promise<boolean> {
@@ -1211,6 +1275,28 @@ export class DatabaseStorage implements IStorage {
   async deleteSpecializedDesk(id: string): Promise<boolean> {
     const result = await db.delete(specializedDesks).where(eq(specializedDesks.id, id));
     return (result.rowCount ?? 0) > 0;
+  }
+
+  async getDeskTeamMemberIds(deskId: string): Promise<string[]> {
+    const rows = await db
+      .select({ id: teamMemberDesks.teamMemberId })
+      .from(teamMemberDesks)
+      .where(eq(teamMemberDesks.deskId, deskId));
+    return rows.map((r) => r.id);
+  }
+
+  async getTeamMembersByDesk(deskId: string): Promise<TeamMember[]> {
+    const ids = await this.getDeskTeamMemberIds(deskId);
+    if (ids.length === 0) return [];
+    return db.select().from(teamMembers).where(inArray(teamMembers.id, ids)).orderBy(asc(teamMembers.order));
+  }
+
+  async setDeskTeamMembers(deskId: string, teamMemberIds: string[]): Promise<void> {
+    await db.delete(teamMemberDesks).where(eq(teamMemberDesks.deskId, deskId));
+    if (teamMemberIds.length === 0) return;
+    await db.insert(teamMemberDesks).values(
+      teamMemberIds.map((teamMemberId) => ({ teamMemberId, deskId }))
+    );
   }
 
   // Translation Cache

@@ -30,6 +30,11 @@ import {
   MapPin,
   ClipboardList,
   UserPlus,
+  Landmark,
+  HeartHandshake,
+  Lock,
+  GraduationCap,
+  MessageSquare,
 } from "lucide-react";
 
 /**
@@ -68,35 +73,79 @@ export const ADMIN_NAV_GROUPS: AdminNavGroup[] = [
     ],
   },
   {
-    id: "contenido",
-    label: "Contenido",
+    id: "nuestra-firma",
+    label: "Nuestra Firma",
     items: [
-      { href: "/admin/news", label: "Noticias", icon: Newspaper },
-      { href: "/admin/posts", label: "Blog / Artículos", icon: FileText, comingSoon: true },
-      { href: "/admin/categories", label: "Categorías", icon: FolderOpen },
+      { href: "/admin/site-config/firma", label: "Textos — Nuestra Firma", icon: Landmark, requires: "config" },
+      { href: "/admin/site-config/probono", label: "Pro Bono", icon: HeartHandshake, requires: "config" },
+      { href: "/admin/site-config/diversidad", label: "Diversidad e Inclusión", icon: Sparkles, requires: "config" },
+      { href: "/admin/site-config/privacidad", label: "Aviso de Privacidad", icon: Lock, requires: "config" },
+    ],
+  },
+  {
+    id: "abogados",
+    label: "Abogados",
+    items: [
       { href: "/admin/team", label: "Abogados y equipo", icon: Users },
+    ],
+  },
+  {
+    id: "capacidades",
+    label: "Capacidades",
+    items: [
       { href: "/admin/practice-groups", label: "Áreas de práctica", icon: Briefcase },
       { href: "/admin/industry-groups", label: "Sectores / Industrias", icon: Building2 },
       { href: "/admin/desks", label: "Áreas especializadas (desks)", icon: ClipboardList },
-      { href: "/admin/events", label: "Eventos", icon: Calendar, comingSoon: true },
+      { href: "/admin/site-config/capacidades", label: "Textos — Capacidades", icon: Landmark, requires: "config" },
+    ],
+  },
+  {
+    id: "publicaciones",
+    label: "Publicaciones",
+    items: [
+      { href: "/admin/news", label: "Noticias", icon: Newspaper },
+      { href: "/admin/categories", label: "Categorías", icon: FolderOpen },
+    ],
+  },
+  {
+    id: "carrera",
+    label: "Carrera en VWyS",
+    items: [
+      { href: "/admin/site-config/carrera", label: "Textos — Carrera en VWyS", icon: GraduationCap, requires: "config" },
+      { href: "/admin/submissions?tab=career", label: "Solicitudes de pasantías", icon: FileText },
+    ],
+  },
+  {
+    id: "contacto",
+    label: "Contacto",
+    items: [
+      { href: "/admin/site-config/contacto", label: "Textos — Contacto", icon: Mail, requires: "config" },
+      { href: "/admin/submissions?tab=contact", label: "Mensajes de contacto", icon: MessageSquare },
+    ],
+  },
+  {
+    id: "otros-contenidos",
+    label: "Otros contenidos",
+    items: [
       { href: "/admin/recognitions", label: "Reconocimientos", icon: Award },
-      { href: "/admin/submissions", label: "Solicitudes recibidas", icon: Mail },
     ],
   },
   {
     id: "configuracion",
     label: "Configuración",
     items: [
-      { href: "/admin/site-config", label: "Textos, video y logos", icon: Settings, requires: "config" },
-      { href: "/admin/gallery", label: "Galería de imágenes", icon: Images, requires: "config", comingSoon: true },
+      { href: "/admin/site-config", label: "Portada y pie de página", icon: Settings, requires: "config" },
       { href: "/admin/translations", label: "Traducciones", icon: Languages, requires: "config" },
       { href: "/admin/users", label: "Usuarios y accesos", icon: ShieldCheck, requires: "adminOnly" },
     ],
   },
   {
-    id: "proximamente",
-    label: "Próximamente",
+    id: "construccion",
+    label: "En construcción",
     items: [
+      { href: "/admin/posts", label: "Blog / Artículos", icon: FileText, comingSoon: true },
+      { href: "/admin/events", label: "Eventos", icon: Calendar, comingSoon: true },
+      { href: "/admin/gallery", label: "Galería de imágenes", icon: Images, requires: "config", comingSoon: true },
       { href: "/admin/coming-soon/premios", label: "Premios", icon: Trophy, comingSoon: true },
       { href: "/admin/coming-soon/clientes", label: "Clientes", icon: Handshake, comingSoon: true },
       { href: "/admin/coming-soon/testimonios", label: "Testimonios", icon: Quote, comingSoon: true },
@@ -110,6 +159,7 @@ export const ADMIN_NAV_GROUPS: AdminNavGroup[] = [
     label: "Avanzado · Agentes IA",
     items: [
       { href: "/admin/agents", label: "Agentes IA", icon: Bot, requires: "agents" },
+      { href: "/admin/generated-images", label: "Imágenes generadas por IA", icon: Sparkles, requires: "agents" },
       { href: "/admin/processing", label: "Procesamiento de artículos", icon: Cog, requires: "advanced" },
       { href: "/admin/knowledge", label: "Base de conocimiento", icon: BookOpen, requires: "advanced" },
       { href: "/admin/explorer", label: "Explorador del sistema", icon: Layers, requires: "advanced" },
@@ -162,10 +212,16 @@ export const COMING_SOON_SECTIONS: ComingSoonSection[] = [
   },
 ];
 
-/** Resalta rutas anidadas (ej. /admin/news/new, /admin/news/:id/edit resaltan "Noticias"). */
+/**
+ * Resalta rutas anidadas (ej. /admin/news/new, /admin/news/:id/edit resaltan "Noticias";
+ * /admin/site-config/firma resalta también "Portada y pie de página", su padre). Ignora "?"
+ * del href al comparar — las entradas de Solicitudes usan /admin/submissions?tab=... y
+ * wouter's `location` no incluye query.
+ */
 export function isNavItemActive(location: string, href: string): boolean {
-  const exact = href === "/admin/dashboard" || href === "/admin/manual";
-  return exact ? location === href : location === href || location.startsWith(href + "/");
+  const path = href.split(/[?#]/)[0];
+  const exact = path === "/admin/dashboard" || path === "/admin/manual";
+  return exact ? location === path : location === path || location.startsWith(path + "/");
 }
 
 /**

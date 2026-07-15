@@ -165,6 +165,23 @@ export const insertOfficeImageSchema = createInsertSchema(officeImages).omit({ i
 export type InsertOfficeImage = z.infer<typeof insertOfficeImageSchema>;
 export type OfficeImage = typeof officeImages.$inferSelect;
 
+// Historial de imágenes generadas por IA (ImageSuggestionAgent / SmartImageGenerator) — permite
+// reutilizar una imagen ya generada más adelante sin volver a gastar créditos de Cloudflare/Gemini.
+// No se registran los placeholders (no son un asset real generado, solo un fallback visual).
+export const generatedImages = pgTable("generated_images", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  imageUrl: text("image_url").notNull(),
+  prompt: text("prompt"),
+  sanitizedPrompt: text("sanitized_prompt"),
+  engine: text("engine").notNull(),
+  articleId: varchar("article_id").references(() => news.id, { onDelete: "set null" }),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertGeneratedImageSchema = createInsertSchema(generatedImages).omit({ id: true, createdAt: true });
+export type InsertGeneratedImage = z.infer<typeof insertGeneratedImageSchema>;
+export type GeneratedImage = typeof generatedImages.$inferSelect;
+
 export const practiceGroups = pgTable("practice_groups", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   name: text("name").notNull(),

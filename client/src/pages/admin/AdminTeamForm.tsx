@@ -11,7 +11,7 @@ import { queryClient } from "@/lib/queryClient";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
+import { RichTextEditor } from "@/components/admin/RichTextEditor";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -897,10 +897,10 @@ export default function AdminTeamForm() {
                                   {t.bio}
                                 </FormLabel>
                                 <FormControl>
-                                  <Textarea
-                                    {...field}
+                                  <RichTextEditor
+                                    value={field.value ?? ""}
+                                    onChange={field.onChange}
                                     rows={8}
-                                    className="rounded-none border-[#D9D8D7] focus:border-[#AA1A2E] focus:ring-[#AA1A2E] resize-none"
                                     placeholder="Professional experience, education, notable cases..."
                                     data-testid="textarea-bio"
                                   />
@@ -925,10 +925,10 @@ export default function AdminTeamForm() {
                                   {t.bioEs}
                                 </FormLabel>
                                 <FormControl>
-                                  <Textarea
-                                    {...field}
+                                  <RichTextEditor
+                                    value={field.value ?? ""}
+                                    onChange={field.onChange}
                                     rows={8}
-                                    className="rounded-none border-[#D9D8D7] focus:border-[#AA1A2E] focus:ring-[#AA1A2E] resize-none"
                                     placeholder="Experiencia profesional, educación, casos notables..."
                                     data-testid="textarea-bio-es"
                                   />

@@ -4,6 +4,7 @@ import sharp from 'sharp';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as https from 'https';
+import { storage } from '../storage';
 
 const VON_WOBESER_BRAND = {
   primaryColor: '#AA1A2E',
@@ -428,6 +429,22 @@ export class SmartImageGenerator {
       : `Image generation failed, placeholder assigned: ${result.errorMessage}`;
 
     this.log(summaryLog);
+
+    // Registra la imagen en el historial reutilizable (galería del panel) — solo assets reales,
+    // no el placeholder de fallback, que no sirve para reutilizarse en otro artículo.
+    if (result.success && result.engine !== 'placeholder' && result.imageUrl) {
+      try {
+        await storage.createGeneratedImage({
+          imageUrl: result.imageUrl,
+          prompt: result.originalPrompt,
+          sanitizedPrompt: result.sanitizedPrompt,
+          engine: result.engine,
+          articleId,
+        });
+      } catch (err: any) {
+        this.log(`Failed to record generated image in gallery history: ${err.message}`);
+      }
+    }
 
     return result;
   }

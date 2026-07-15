@@ -1,18 +1,12 @@
 import * as cheerio from "cheerio";
 import { applySeo, breadcrumbNode, clip } from "./seo";
+import { CATEGORIES } from "./renderAttorneyList";
+import { renderRichText } from "./sanitize";
 
 type Lang = "en" | "es";
 
 function esc(s: any): string {
   return String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-}
-
-function toParagraphs(text: string): string {
-  return text
-    .replace(/\r\n/g, "\n")
-    .split(/\n{2,}/)
-    .map((p) => `<p>${esc(p).replace(/\n/g, "<br>")}</p>`)
-    .join("");
 }
 
 function L(obj: any, base: string, lang: Lang): string {
@@ -28,11 +22,57 @@ function L(obj: any, base: string, lang: Lang): string {
 // siendo alcanzable por su página individual /desk/:slug.
 const MAP_REGION_BY_SLUG: Record<string, string> = { "german-desk": "germany" };
 
+// El título del abogado (exactamente "Partner"/"Of Counsel"/"Counsel"/"Associate", ver el
+// <Select> de AdminTeamForm) decide bajo qué acordeón del modal aparece — no hay un campo de
+// "rol dentro del desk" separado, se reusa la misma categorización que ya usa /attorneys.
+const TITLE_TO_CATEGORY: Record<string, keyof typeof CATEGORIES> = {
+  Partner: "partners",
+  "Of Counsel": "of-counsel",
+  Counsel: "counsel",
+  Associate: "associates",
+};
+
+/**
+ * Reconstruye el acordeón "Socios en el Desk / Of Counsel en el Desk / Asociados en el Desk"
+ * (`.single__meta--list.seccion_desk`) con los abogados reales asignados al desk, agrupados
+ * por categoría. El sitio capturado traía esta lista con nombres de abogados fijos desde el
+ * scrape original — se reemplaza por completo con datos de la base. Categorías sin abogados
+ * simplemente no aparecen (igual que las regiones del mapa sin desk).
+ */
+function buildDeskTeamAccordion(members: any[], lang: Lang): string {
+  const byCategory: Partial<Record<keyof typeof CATEGORIES, any[]>> = {};
+  for (const m of members) {
+    if (m.published === false) continue;
+    const cat = TITLE_TO_CATEGORY[m.title as string];
+    if (!cat) continue;
+    (byCategory[cat] ||= []).push(m);
+  }
+  let html = "";
+  for (const cat of Object.keys(CATEGORIES) as (keyof typeof CATEGORIES)[]) {
+    const list = byCategory[cat];
+    if (!list || !list.length) continue;
+    const label = lang === "es" ? `${CATEGORIES[cat].es} en el Desk` : `${CATEGORIES[cat].en} at the Desk`;
+    const items = list
+      .map(
+        (m) =>
+          `<p style="font-size:14px; margin-bottom:10px; margin-top:10px; line-height:18px;"><a href="/lawyer/${esc(m.slug)}${lang === "en" ? "?lang=en" : ""}">${esc(m.name)}</a></p>`,
+      )
+      .join("");
+    html += `<li class="accordion">${esc(label)}</li><div style="padding:0 10px; background-color:#bdbcbc;" class="panel">${items}</div>`;
+  }
+  return html;
+}
+
 /**
  * Rellena las regiones del mapa de "Desks" que tengan un desk real correspondiente, dejando
  * las demás regiones tal cual (vacías, como en el sitio original).
  */
-export function renderDesksMap(templateHtml: string, desks: any[], lang: Lang = "en"): string {
+export function renderDesksMap(
+  templateHtml: string,
+  desks: any[],
+  lang: Lang = "en",
+  teamMembersByDeskId: Record<string, any[]> = {},
+): string {
   const $ = cheerio.load(templateHtml);
 
   for (const desk of desks) {
@@ -44,11 +84,12 @@ export function renderDesksMap(templateHtml: string, desks: any[], lang: Lang = 
     const name = L(desk, "name", lang);
     const country = L(desk, "country", lang) || name;
     item.find(".desks__item--ttl").first().text(country);
-    item.find(".desks__item--txt").first().html(toParagraphs(L(desk, "fullDescription", lang) || L(desk, "description", lang)));
+    item.find(".desks__item--txt").first().html(renderRichText(L(desk, "fullDescription", lang) || L(desk, "description", lang)));
     // El nombre completo enlaza a la página individual del desk para más detalle.
     item.find(".desks__item--txt").first().append(
       `<p><a href="/desk/${esc(desk.slug)}${lang === "en" ? "?lang=en" : ""}">${esc(name)} →</a></p>`,
     );
+    item.find(".seccion_desk").first().html(buildDeskTeamAccordion(teamMembersByDeskId[desk.id] || [], lang));
   }
 
   $("html").attr("lang", lang === "es" ? "es-mx" : "en-gb");
@@ -95,7 +136,7 @@ export function renderDeskDetail(templateHtml: string, desk: any, lang: Lang = "
   const ttlHolder = $(".page__ttl--holder").first();
   if (ttlHolder.length) ttlHolder.html(`<span>${esc(titleText.toUpperCase())}</span>`);
 
-  const body = toParagraphs(L(desk, "fullDescription", lang) || L(desk, "description", lang));
+  const body = renderRichText(L(desk, "fullDescription", lang) || L(desk, "description", lang));
   $(".page__content--intro").first().remove();
   $(".page__content--body").first().html(body);
 

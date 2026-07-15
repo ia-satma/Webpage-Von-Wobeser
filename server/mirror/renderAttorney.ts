@@ -1,5 +1,6 @@
 import * as cheerio from "cheerio";
 import { applySeo, personNode, breadcrumbNode, clip } from "./seo";
+import { renderRichText } from "./sanitize";
 
 type Lang = "en" | "es";
 
@@ -100,12 +101,21 @@ function buildMetaList(a: any, lang: Lang): string {
   return tel + blocks.join("\n");
 }
 
-/** Convert plaintext (with newlines) into simple paragraph/break HTML. */
-function textToHtml(text: string): string {
-  return esc(text || "")
-    .split(/\n{2,}/)
-    .map((p) => `<p>${p.replace(/\n/g, "<br>")}</p>`)
-    .join("\n");
+/**
+ * Separa el primer bloque (párrafo/lista/etc.) del resto de un HTML ya sanitizado — la
+ * plantilla del perfil tiene dos zonas de texto distintas (intro destacada + cuerpo).
+ */
+function splitFirstBlock(html: string): { first: string; rest: string } {
+  const $frag = cheerio.load(`<div>${html}</div>`);
+  const $blocks = $frag("div").children();
+  if (!$blocks.length) return { first: html, rest: "" };
+  const first = $frag.html($blocks.first()) || "";
+  const rest = $blocks
+    .slice(1)
+    .map((_, el) => $frag.html(el))
+    .get()
+    .join("");
+  return { first, rest };
 }
 
 /**
@@ -141,9 +151,9 @@ export function renderAttorney(templateHtml: string, a: any, lang: Lang = "en"):
 
   // --- Bio ---------------------------------------------------------------
   const bio = L(a, "bio", lang);
-  const paras = (bio || "").split(/\n{2,}/);
-  $(".attorney__content--intro").html(`<p>${esc(paras[0] || "")}</p>`);
-  $(".attorney__content--txt").html(textToHtml(paras.slice(1).join("\n\n") || bio));
+  const { first: bioIntro, rest: bioRest } = splitFirstBlock(renderRichText(bio));
+  $(".attorney__content--intro").html(bioIntro);
+  $(".attorney__content--txt").html(bioRest);
 
   // --- Head metadata -----------------------------------------------------
   $('meta[name="Attorney"]').attr("content", name);

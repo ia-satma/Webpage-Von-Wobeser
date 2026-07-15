@@ -4,9 +4,20 @@ import { knowledgeStore } from '../core/AgentKnowledge';
 import { db } from '../../db';
 import { news, translationCache, newsTranslations } from '../../../shared/schema';
 import { eq, and } from 'drizzle-orm';
+import { getConfigMap } from '../../mirror/siteConfig';
 
 const LANGUAGES = ['en', 'es', 'de', 'zh', 'ko', 'ja', 'ar', 'ru', 'fr', 'it'] as const;
 type Language = typeof LANGUAGES[number];
+
+// Idiomas realmente en uso (site_config.active_languages, default "es,en") — cuando no viene
+// `targetLanguages` explícito en el payload (caso del auto-encolado del auditor del sitio), solo
+// se traduce a estos, no a los 10 soportados. Ver [[vonwobeser-cobertura-idioma]].
+async function getActiveLanguages(): Promise<Language[]> {
+  const config = await getConfigMap();
+  const raw = config.active_languages?.value || 'es,en';
+  const active = raw.split(',').map((s) => s.trim()).filter((c): c is Language => (LANGUAGES as readonly string[]).includes(c));
+  return active.length > 0 ? active : ['es', 'en'];
+}
 
 const LANGUAGE_NAMES: Record<Language, string> = {
   en: 'English',
@@ -85,8 +96,9 @@ export class PolyglotTranslatorAgent extends BaseAgent {
     // Only consider English as source if content is clearly only in English fields
     const sourceLanguage: Language = 'es';
     
-    // Target all 10 languages including English (en) since source is Spanish
-    const languages = targetLanguages || LANGUAGES.filter(l => l !== sourceLanguage);
+    // Sin `targetLanguages` explícito (auto-encolado), solo se traduce a los idiomas activos
+    // del sitio (site_config.active_languages), no a los 10 soportados por el traductor.
+    const languages = targetLanguages || (await getActiveLanguages()).filter(l => l !== sourceLanguage);
 
     const glossaryDocs = await knowledgeStore.searchDocuments('polyglot_translator', 'glossary', { limit: 50 });
     const glossary: Record<string, Record<string, string>> = {};

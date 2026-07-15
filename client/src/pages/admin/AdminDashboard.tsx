@@ -581,6 +581,10 @@ interface CMSStats {
   articlesWithTranslations: number;
   totalTranslations: number;
   translationsByLanguage: Record<string, number>;
+  languageCoverage: {
+    es: { total: number; translated: number };
+    en: { total: number; translated: number };
+  };
   recentArticles: Array<{
     id: string;
     title: string;
@@ -636,8 +640,11 @@ export default function AdminDashboard() {
   }
 
   const cmsStats = cmsStatsQuery.data;
-  const translationPercentage = cmsStats 
-    ? Math.round((cmsStats.articlesWithTranslations / Math.max(cmsStats.totalArticles, 1)) * 100) 
+  // Cobertura real español→inglés (columnas base de `news`, no la caché de 10 idiomas de
+  // "Distribución por Idioma" más abajo — son dos cosas distintas, ver server/routes.ts).
+  const enCoverage = cmsStats?.languageCoverage?.en;
+  const translationPercentage = enCoverage
+    ? Math.round((enCoverage.translated / Math.max(enCoverage.total, 1)) * 100)
     : 0;
 
   const maxTranslationsPerLang = cmsStats 
@@ -672,7 +679,7 @@ export default function AdminDashboard() {
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
           {[
             { key: "content", label: "Contenido", icon: Newspaper, value: cmsStats?.totalArticles ?? 0, sub: "artículos publicables" },
-            { key: "translations", label: "Traducciones", icon: Languages, value: cmsStats?.totalTranslations ?? 0, sub: `${translationPercentage}% con traducción` },
+            { key: "translations", label: "Español → Inglés", icon: Languages, value: `${translationPercentage}%`, sub: enCoverage ? `${enCoverage.translated} de ${enCoverage.total} con inglés real` : "" },
             { key: "db", label: "Base de datos", icon: Database, value: "Conectada", sub: "en línea", ok: true },
             { key: "status", label: "Estado", icon: Activity, value: cmsStats?.processingStatus === "processing" ? t.processing : "Activo", sub: "sistema operativo", ok: true },
           ].map((s) => {
@@ -741,12 +748,12 @@ export default function AdminDashboard() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <BarChart3 className="h-5 w-5" />
-                {t.translationCoverage}
+                Cobertura Español → Inglés
               </CardTitle>
               <CardDescription>
-                {cmsStats ? (
+                {enCoverage ? (
                   <>
-                    {cmsStats.articlesWithTranslations} {t.outOf} {cmsStats.totalArticles} {t.articlesTranslated}
+                    {enCoverage.translated} de {enCoverage.total} noticias con inglés real (no vacío ni copiado del español)
                   </>
                 ) : (
                   <Skeleton className="h-4 w-32" />
@@ -787,6 +794,9 @@ export default function AdminDashboard() {
                 </span>
                 <ChevronRight className={`h-4 w-4 transition-transform ${showLangDist ? "rotate-90" : ""}`} />
               </CardTitle>
+              <CardDescription>
+                Traducciones adicionales generadas por IA a otros idiomas (opcional) — distinto de la cobertura Español/Inglés de la izquierda, que es la que usa el sitio público hoy.
+              </CardDescription>
             </CardHeader>
             {showLangDist && (
             <CardContent>
@@ -806,6 +816,9 @@ export default function AdminDashboard() {
                 </p>
               ) : (
                 <div className="space-y-3">
+                  <p className="text-xs text-muted-foreground border-b border-border pb-3 mb-1">
+                    Cada barra cuenta cuántos artículos tienen una traducción generada por IA guardada en ese idioma — no si el artículo "existe" en ese idioma (eso se ve en la tarjeta de la izquierda). El español sale bajo a propósito: casi todos los artículos ya se escribieron originalmente en español, así que casi nunca hace falta generar una traducción hacia español.
+                  </p>
                   {Object.entries(languageNames).map(([code, name]) => {
                     const count = cmsStats?.translationsByLanguage[code] || 0;
                     const percentage = (count / maxTranslationsPerLang) * 100;

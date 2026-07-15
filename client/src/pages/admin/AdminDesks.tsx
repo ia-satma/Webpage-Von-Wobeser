@@ -7,13 +7,16 @@ import { useAdminAuth, adminApiRequest } from "@/lib/adminAuth";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
+import { RichTextEditor } from "@/components/admin/RichTextEditor";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
 import { ImageUpload } from "@/components/admin/ImageUpload";
-import { Globe2, Plus, Trash2, Loader2, Pencil, Save, X } from "lucide-react";
+import { Globe2, Plus, Trash2, Loader2, Pencil, Save, X, Users } from "lucide-react";
 import { TranslateButton } from "@/components/admin/TranslateButton";
+
+type TeamMemberLite = { id: string; name: string; title?: string | null; published?: boolean | null };
 
 type Desk = {
   id: string;
@@ -55,6 +58,43 @@ export default function AdminDesks() {
     enabled: isAuthenticated,
   });
 
+  // Abogados que aparecerán en el acordeón del modal del mapa (Socios/Of Counsel/Counsel/
+  // Asociados "en el Desk") — la categoría la decide el título del abogado, no se elige aquí.
+  const teamQuery = useQuery<TeamMemberLite[]>({
+    queryKey: ["/api/team"],
+    queryFn: async () => {
+      const res = await fetch("/api/team");
+      if (!res.ok) throw new Error("No se pudo cargar la lista de abogados");
+      return res.json();
+    },
+    enabled: isAuthenticated,
+  });
+  const [teamIds, setTeamIds] = useState<string[]>([]);
+  const [teamBusy, setTeamBusy] = useState(false);
+  const deskTeamQuery = useQuery<TeamMemberLite[]>({
+    queryKey: ["/api/admin/desks", editingId, "team"],
+    enabled: isAuthenticated && !!editingId,
+    queryFn: async () => (await adminApiRequest("GET", `/api/admin/desks/${editingId}/team`)).json(),
+  });
+  useEffect(() => {
+    setTeamIds((deskTeamQuery.data || []).map((m) => m.id));
+  }, [deskTeamQuery.data]);
+
+  const toggleTeamMember = (id: string, checked: boolean) =>
+    setTeamIds((prev) => (checked ? [...prev, id] : prev.filter((x) => x !== id)));
+
+  const saveTeam = async () => {
+    if (!editingId) return;
+    setTeamBusy(true);
+    try {
+      const res = await adminApiRequest("PUT", `/api/admin/desks/${editingId}/team`, { teamMemberIds: teamIds });
+      if (res.ok) toast({ title: "Equipo del desk actualizado", description: "Ya se refleja en el modal del mapa del sitio público." });
+      else toast({ title: "Error al guardar el equipo", variant: "destructive" });
+    } finally {
+      setTeamBusy(false);
+    }
+  };
+
   const set = (k: keyof typeof EMPTY, v: string | boolean | number) => setForm((f) => ({ ...f, [k]: v }));
 
   const edit = (d: Desk) => {
@@ -70,7 +110,7 @@ export default function AdminDesks() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  const cancelEdit = () => { setEditingId(null); setForm({ ...EMPTY }); };
+  const cancelEdit = () => { setEditingId(null); setForm({ ...EMPTY }); setTeamIds([]); };
 
   const save = async () => {
     if (!form.name || !form.nameEs || !form.slug || !form.description || !form.descriptionEs) {
@@ -167,19 +207,19 @@ export default function AdminDesks() {
               </div>
               <div className="space-y-1">
                 <Label>Descripción corta (inglés) *</Label>
-                <Textarea rows={2} value={form.description} onChange={(e) => set("description", e.target.value)} data-testid="input-description" />
+                <RichTextEditor rows={2} value={form.description} onChange={(html) => set("description", html)} data-testid="input-description" />
               </div>
               <div className="space-y-1">
                 <Label>Descripción corta (español) *</Label>
-                <Textarea rows={2} value={form.descriptionEs} onChange={(e) => set("descriptionEs", e.target.value)} data-testid="input-descriptionEs" />
+                <RichTextEditor rows={2} value={form.descriptionEs} onChange={(html) => set("descriptionEs", html)} data-testid="input-descriptionEs" />
               </div>
               <div className="space-y-1">
                 <Label>Descripción completa (inglés)</Label>
-                <Textarea rows={6} value={form.fullDescription} onChange={(e) => set("fullDescription", e.target.value)} placeholder="Texto que se muestra en la página individual del desk." data-testid="input-fullDescription" />
+                <RichTextEditor rows={6} value={form.fullDescription} onChange={(html) => set("fullDescription", html)} placeholder="Texto que se muestra en la página individual del desk." data-testid="input-fullDescription" />
               </div>
               <div className="space-y-1">
                 <Label>Descripción completa (español)</Label>
-                <Textarea rows={6} value={form.fullDescriptionEs} onChange={(e) => set("fullDescriptionEs", e.target.value)} data-testid="input-fullDescriptionEs" />
+                <RichTextEditor rows={6} value={form.fullDescriptionEs} onChange={(html) => set("fullDescriptionEs", html)} data-testid="input-fullDescriptionEs" />
               </div>
               <div className="space-y-1 sm:col-span-2">
                 <Label>Imagen</Label>
@@ -207,6 +247,40 @@ export default function AdminDesks() {
             </div>
           </CardContent>
         </Card>
+
+        {/* Equipo del desk (aparece en el modal del mapa: Socios/Of Counsel/Counsel/Asociados "en el Desk") */}
+        {editingId && (
+          <Card>
+            <CardHeader><CardTitle className="text-base flex items-center gap-2"><Users className="h-4 w-4" /> Abogados en este desk</CardTitle></CardHeader>
+            <CardContent>
+              <p className="text-xs text-muted-foreground mb-3">
+                Aparecerán agrupados automáticamente por su título (Socios / Of Counsel / Counsel / Asociados) en la ventana que se abre al hacer clic en el mapa de "Capacidades → Desks" del sitio público.
+              </p>
+              {deskTeamQuery.isLoading ? (
+                <div className="flex items-center gap-2 text-muted-foreground text-sm"><Loader2 className="h-4 w-4 animate-spin" /> Cargando…</div>
+              ) : (
+                <div className="grid gap-2 sm:grid-cols-2 max-h-64 overflow-y-auto border rounded-md p-3">
+                  {teamQuery.isLoading && <p className="text-sm text-muted-foreground col-span-2">Cargando abogados…</p>}
+                  {(teamQuery.data || []).map((m) => (
+                    <label key={m.id} className="flex items-center gap-2 text-sm cursor-pointer">
+                      <Checkbox
+                        checked={teamIds.includes(m.id)}
+                        onCheckedChange={(c) => toggleTeamMember(m.id, !!c)}
+                        data-testid={`checkbox-desk-team-${m.id}`}
+                      />
+                      {m.name}
+                      {m.title && <span className="text-xs text-muted-foreground">({m.title})</span>}
+                    </label>
+                  ))}
+                </div>
+              )}
+              <Button className="mt-3" size="sm" onClick={saveTeam} disabled={teamBusy} data-testid="button-save-desk-team">
+                {teamBusy ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : <Save className="h-4 w-4 mr-1" />}
+                Guardar equipo
+              </Button>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Lista */}
         <Card>

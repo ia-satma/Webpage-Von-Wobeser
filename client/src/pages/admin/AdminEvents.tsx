@@ -9,7 +9,7 @@ import { queryClient } from "@/lib/queryClient";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
+import { RichTextEditor } from "@/components/admin/RichTextEditor";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -1075,10 +1075,10 @@ export default function AdminEvents() {
                       <FormItem>
                         <FormLabel>{t.descriptionEn}</FormLabel>
                         <FormControl>
-                          <Textarea
-                            {...field}
+                          <RichTextEditor
+                            value={field.value ?? ""}
+                            onChange={field.onChange}
                             placeholder={t.descriptionEnPlaceholder}
-                            className="rounded-none min-h-[100px]"
                             data-testid="textarea-description"
                           />
                         </FormControl>
@@ -1094,10 +1094,10 @@ export default function AdminEvents() {
                       <FormItem>
                         <FormLabel>{t.descriptionEs}</FormLabel>
                         <FormControl>
-                          <Textarea
-                            {...field}
+                          <RichTextEditor
+                            value={field.value ?? ""}
+                            onChange={field.onChange}
                             placeholder={t.descriptionEsPlaceholder}
-                            className="rounded-none min-h-[100px]"
                             data-testid="textarea-description-es"
                           />
                         </FormControl>

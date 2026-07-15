@@ -1,5 +1,6 @@
 import * as cheerio from "cheerio";
 import { applySeo, serviceNode, breadcrumbNode, clip } from "./seo";
+import { renderRichText } from "./sanitize";
 
 type Lang = "en" | "es";
 type Kind = "practice" | "industry";
@@ -11,13 +12,6 @@ function esc(s: any): string {
 function L(obj: any, base: string, lang: Lang): string {
   if (!obj) return "";
   return lang === "es" ? obj[base + "Es"] || obj[base] || "" : obj[base] || "";
-}
-
-function textToHtml(text: string): string {
-  return esc(text || "")
-    .split(/\n{2,}/)
-    .map((p) => `<p>${p.replace(/\n/g, "<br>")}</p>`)
-    .join("\n");
 }
 
 const ROLE_GROUPS = [
@@ -68,8 +62,8 @@ export function renderSingle(
   $(".single__meta--name").first().text(name);
   $(".single__meta--list").html(buildAttorneyAccordion(attorneys, kind, lang));
 
-  $(".single__content--intro").html(`<p>${esc(L(group, "description", lang))}</p>`);
-  $(".single__content--txt").html(textToHtml(L(group, "fullDescription", lang)));
+  $(".single__content--intro").html(renderRichText(L(group, "description", lang)));
+  $(".single__content--txt").html(renderRichText(L(group, "fullDescription", lang)));
 
   // Keep the category nav working against our dynamic routes.
   $('a[href*="/index.php/practice/"], a[href*="/index.php/industry/"]').each((_, el) => {

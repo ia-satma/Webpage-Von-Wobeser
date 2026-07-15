@@ -5,7 +5,7 @@ import { adminApiRequest } from "@/lib/adminAuth";
 import { queryClient } from "@/lib/queryClient";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
+import { RichTextEditor } from "@/components/admin/RichTextEditor";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -233,20 +233,20 @@ export default function AdminNewsForm() {
 
               <div className="space-y-1.5">
                 <Label htmlFor="excerptEs">Extracto (español) *</Label>
-                <Textarea id="excerptEs" rows={2} value={form.excerptEs} onChange={(e) => set("excerptEs", e.target.value)} placeholder="Resumen corto que aparece en el listado" data-testid="input-excerpt-es" />
+                <RichTextEditor rows={2} value={form.excerptEs} onChange={(html) => set("excerptEs", html)} placeholder="Resumen corto que aparece en el listado" data-testid="input-excerpt-es" />
               </div>
               <div className="space-y-1.5">
                 <Label htmlFor="excerpt">Extracto (inglés) <span className="text-muted-foreground text-xs">— opcional</span></Label>
-                <Textarea id="excerpt" rows={2} value={form.excerpt} onChange={(e) => set("excerpt", e.target.value)} placeholder="Short summary (optional)" data-testid="input-excerpt-en" />
+                <RichTextEditor rows={2} value={form.excerpt} onChange={(html) => set("excerpt", html)} placeholder="Short summary (optional)" data-testid="input-excerpt-en" />
               </div>
 
               <div className="space-y-1.5">
                 <Label htmlFor="contentEs">Contenido (español)</Label>
-                <Textarea id="contentEs" rows={8} value={form.contentEs} onChange={(e) => set("contentEs", e.target.value)} placeholder="Cuerpo de la noticia" data-testid="input-content-es" />
+                <RichTextEditor rows={8} value={form.contentEs} onChange={(html) => set("contentEs", html)} placeholder="Cuerpo de la noticia" data-testid="input-content-es" />
               </div>
               <div className="space-y-1.5">
                 <Label htmlFor="content">Contenido (inglés) <span className="text-muted-foreground text-xs">— opcional</span></Label>
-                <Textarea id="content" rows={8} value={form.content} onChange={(e) => set("content", e.target.value)} placeholder="Body (optional)" data-testid="input-content-en" />
+                <RichTextEditor rows={8} value={form.content} onChange={(html) => set("content", html)} placeholder="Body (optional)" data-testid="input-content-en" />
               </div>
             </CardContent>
           </Card>

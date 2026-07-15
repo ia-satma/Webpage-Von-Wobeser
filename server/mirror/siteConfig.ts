@@ -48,6 +48,18 @@ const DEFAULTS: Array<{ key: string; value: string; valueEs?: string; type: stri
   { key: "page_diversity_video_7", value: "/images/vid_07.mp4", type: "url", category: "pages", description: "Diversidad e Inclusión — video miniatura 7" },
 ];
 
+// Claves de texto largo/prosa (páginas institucionales) elegibles para el editor de texto
+// enriquecido — derivado de DEFAULTS en vez de una lista aparte, así se mantiene sincronizado
+// automáticamente. Excluye las claves de video/URL (galería de Diversidad) y los textos cortos
+// del home/footer (banner, teléfono, redes) que no necesitan formato.
+const RICH_TEXT_CONFIG_KEYS = new Set(
+  DEFAULTS.filter((d) => d.category === "pages" && d.type === "text").map((d) => d.key),
+);
+
+export function isRichTextConfigKey(key: string): boolean {
+  return RICH_TEXT_CONFIG_KEYS.has(key);
+}
+
 // Caché en memoria del site-config: antes se hacía SELECT * en CADA render del
 // espejo. Se cachea con TTL corto y se invalida al escribir (upsert/seed).
 let _configCache: { map: ConfigMap; at: number } | null = null;
