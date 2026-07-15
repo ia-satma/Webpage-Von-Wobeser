@@ -1225,12 +1225,12 @@ export async function seed() {
   // Seed admin user from environment variables (secure approach)
   const adminEmail = process.env.ADMIN_EMAIL;
   const adminPasswordHash = process.env.ADMIN_PASSWORD_HASH;
-  
+
   if (adminEmail && adminPasswordHash) {
     const existingAdmin = await db.select().from(adminUsers).where(
       eq(adminUsers.email, adminEmail)
     );
-    
+
     if (existingAdmin.length === 0) {
       console.log("Creating admin user from environment variables...");
       await db.insert(adminUsers).values({
@@ -1241,6 +1241,32 @@ export async function seed() {
         isActive: true,
       }).onConflictDoNothing();
       console.log(`Admin user created: ${adminEmail}`);
+    }
+  }
+
+  // Reseteo de emergencia (opcional, "botón de pánico"): a diferencia de ADMIN_PASSWORD_HASH
+  // de arriba (que solo crea el admin si el correo NO existe), ADMIN_RESET_PASSWORD SIEMPRE
+  // sobreescribe la contraseña del admin con ese correo en cada arranque — pensado para que
+  // el dueño del proyecto pueda recuperar el acceso desde Replit → Secrets sin depender del
+  // panel ni de nosotros. Acepta la contraseña en texto plano (más fácil de generar que un
+  // hash bcrypt) y la hashea aquí mismo. Debe quitarse de las Secrets después de usarla, o el
+  // siguiente reinicio del servidor volverá a aplicar la misma contraseña.
+  const resetPassword = process.env.ADMIN_RESET_PASSWORD;
+  if (adminEmail && resetPassword) {
+    const resetHash = await hashPassword(resetPassword);
+    const [existing] = await db.select().from(adminUsers).where(eq(adminUsers.email, adminEmail));
+    if (existing) {
+      await db.update(adminUsers).set({ passwordHash: resetHash }).where(eq(adminUsers.id, existing.id));
+      console.warn(`[seed] ADMIN_RESET_PASSWORD activo: la contraseña de ${adminEmail} fue sobreescrita. Quita esta variable de las Secrets de Replit para que no se repita en el próximo reinicio.`);
+    } else {
+      await db.insert(adminUsers).values({
+        username: adminEmail.split('@')[0],
+        email: adminEmail,
+        passwordHash: resetHash,
+        role: "super_admin",
+        isActive: true,
+      });
+      console.warn(`[seed] ADMIN_RESET_PASSWORD activo: se creó el admin ${adminEmail}. Quita esta variable de las Secrets de Replit para que no se repita en el próximo reinicio.`);
     }
   }
 

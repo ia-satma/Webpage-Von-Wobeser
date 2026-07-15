@@ -46,6 +46,13 @@ integrations = ["javascript_openai:1.0.0", "javascript_openai_ai_integrations:1.
 # de producción expuestos en git). Configúralos en Replit → Tools → Secrets y rota
 # la contraseña del admin tras moverlos. server/seed.ts los lee de las variables
 # de entorno, que Replit Secrets inyecta en runtime.
+#
+# Para el día a día, cambia la contraseña del admin desde el panel (/admin/users) —
+# eso NO requiere tocar Secrets. Como respaldo de emergencia si te quedas fuera del
+# panel, agrega ADMIN_RESET_PASSWORD (texto plano) en Secrets junto con ADMIN_EMAIL
+# y reinicia el servidor: se sobreescribe la contraseña de ese correo en cada
+# arranque mientras la variable siga presente. Quítala de las Secrets en cuanto
+# recuperes el acceso, o el próximo reinicio la volverá a aplicar.
 
 [postMerge]
 path = "scripts/post-merge.sh"
