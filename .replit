@@ -41,6 +41,7 @@ waitForPort = 5000
 
 [agent]
 integrations = ["javascript_openai:1.0.0", "javascript_openai_ai_integrations:1.0.0", "javascript_gemini_ai_integrations:1.0.0"]
+expertMode = true
 
 # ADMIN_EMAIL y ADMIN_PASSWORD_HASH NO se versionan aquí (eran secretos del admin
 # de producción expuestos en git). Configúralos en Replit → Tools → Secrets y rota
