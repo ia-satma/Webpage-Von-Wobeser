@@ -27,7 +27,7 @@ const AUDITOR_CONFIG: AgentConfig = {
 4. Generate tasks for other agents to fix issues
 
 Be thorough but efficient. Focus on issues that impact user experience.`,
-  model: 'claude-sonnet-4-6',
+  model: 'gpt-4o',
   temperature: 0.2,
   maxTokens: 4000,
   skills: ['content_analysis', 'gap_detection', 'quality_assessment'],

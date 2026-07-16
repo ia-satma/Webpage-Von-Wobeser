@@ -33,8 +33,8 @@ export abstract class BaseAgent {
     messages: { role: 'system' | 'user' | 'assistant'; content: string }[],
     options?: { temperature?: number; maxTokens?: number; jsonMode?: boolean }
   ): Promise<string> {
-    const primaryModel = this.config.model || 'claude-sonnet-4-6';
-    const fallbackModels = ['claude-haiku-4-5'];
+    const primaryModel = this.config.model || 'gpt-4o';
+    const fallbackModels = ['gpt-4o-mini'];
     const allModels = [primaryModel, ...fallbackModels.filter(m => m !== primaryModel)];
     
     let lastError: Error | null = null;
