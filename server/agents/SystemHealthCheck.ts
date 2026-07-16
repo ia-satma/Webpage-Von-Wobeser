@@ -8,6 +8,7 @@ import {
   translationCache 
 } from '@shared/schema';
 import { eq, lt, and, isNull, or, sql } from 'drizzle-orm';
+import { getConfigMap } from '../mirror/siteConfig';
 
 export interface HealthIssue {
   id: string;
@@ -115,11 +116,19 @@ export class SystemHealthCheck {
       missingTranslations: this.issues.filter(i => i.type === 'missing_translation').length,
     };
 
-    const maxPossibleIssues = 100;
-    const weightedIssues = 
-      summary.criticalCount * 10 + 
-      summary.highCount * 5 + 
-      summary.mediumCount * 2 + 
+    // Salud proporcional al volumen revisado: unos pocos huecos de contenido en ~1800
+    // artículos no deben tumbar el score a 0. El denominador escala con los artículos
+    // publicados (mínimo 100). Lo crítico/alto pesa mucho más que lo medio/bajo, así una
+    // falla real del sistema SÍ baja la salud, pero los huecos menores de contenido no.
+    const [{ c: publishedCount }] = await db
+      .select({ c: sql<number>`count(*)::int` })
+      .from(news)
+      .where(eq(news.published, true));
+    const maxPossibleIssues = Math.max(100, Math.round((publishedCount || 0) / 2));
+    const weightedIssues =
+      summary.criticalCount * 10 +
+      summary.highCount * 5 +
+      summary.mediumCount * 2 +
       summary.lowCount * 1;
     const healthScore = Math.max(0, Math.round(100 - (weightedIssues / maxPossibleIssues) * 100));
 
@@ -184,35 +193,31 @@ export class SystemHealthCheck {
     console.log('[SystemHealthCheck] Checking for incomplete success states...');
     
     try {
-      const articles = await db.select().from(news);
-      
+      // Solo artículos PUBLICADOS (borradores/viejos no cuentan como "listos"). Y NO se marca
+      // "sin imagen" como defecto: la imagen de IA es opcional en noticias.
+      const articles = await db.select().from(news).where(eq(news.published, true));
+
       for (const article of articles) {
         const issues: string[] = [];
-        
-        if (!article.imageUrl || article.imageUrl.trim() === '') {
-          issues.push('missing imageUrl');
-        }
-        
+
         if (!article.content || article.content.trim() === '') {
           issues.push('missing English content');
         }
-        
+
         if (!article.title || article.title.trim() === '') {
           issues.push('missing English title');
         }
-        
+
         if (issues.length > 0) {
           this.issues.push({
             id: `incomplete-${article.id}`,
             type: 'incomplete_success',
-            severity: issues.includes('missing English content') ? 'high' : 'medium',
+            severity: 'medium',
             entityType: 'article',
             entityId: article.id,
             title: article.title || article.titleEs || 'Unknown article',
-            details: `Article marked as ready but has: ${issues.join(', ')}`,
-            suggestedAction: issues.includes('missing imageUrl') 
-              ? 'Run ImageSuggestionAgent to generate image'
-              : 'Review article content and fill missing fields',
+            details: `Published article missing: ${issues.join(', ')}`,
+            suggestedAction: 'Review article content and fill missing fields',
             detectedAt: new Date(),
           });
         }
@@ -354,10 +359,15 @@ export class SystemHealthCheck {
   private async checkMissingTranslations(): Promise<void> {
     console.log('[SystemHealthCheck] Checking for missing translations...');
     
-    const REQUIRED_LANGUAGES = ['en', 'es', 'de', 'zh', 'ko', 'ja', 'ar', 'ru', 'fr', 'it'];
-    
+    // Solo exige los idiomas ACTIVOS del sitio (config active_languages, por defecto es,en).
+    // Antes exigía 10 idiomas hardcodeados → marcaba casi toda noticia como "sin traducir"
+    // por idiomas que el sitio ni sirve.
+    const config = await getConfigMap();
+    const REQUIRED_LANGUAGES = (config.active_languages?.value || 'es,en')
+      .split(',').map((s) => s.trim()).filter(Boolean);
+
     try {
-      const articles = await db.select().from(news);
+      const articles = await db.select().from(news).where(eq(news.published, true));
       const translations = await db.select().from(newsTranslations);
       
       const translationMap = new Map<string, Set<string>>();
