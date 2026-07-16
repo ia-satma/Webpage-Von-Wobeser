@@ -715,6 +715,12 @@ export default function AdminEvents() {
 
   const { data: events, isLoading: eventsLoading } = useQuery<Event[]>({
     queryKey: ["/api/admin/events"],
+    // /api/admin/events exige auth; el queryFn default no manda el token → 401.
+    queryFn: async () => {
+      const res = await adminApiRequest("GET", "/api/admin/events");
+      if (!res.ok) throw new Error("Failed to fetch events");
+      return res.json();
+    },
   });
 
   const saveMutation = useMutation({

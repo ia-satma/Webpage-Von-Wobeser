@@ -1,4 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
+import { adminApiRequest } from "@/lib/adminAuth";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -415,7 +416,14 @@ export default function AdminGuide() {
 
   const { data, isLoading, isError } = useQuery<ChroniclerResponse>({
     queryKey: ["/api/system/chronicler"],
-    refetchInterval: 30000
+    // El endpoint exige auth (authMiddleware + requirePermission "advanced"); el queryFn
+    // default no manda el token Bearer, así que hay que usar adminApiRequest o da 401.
+    queryFn: async () => {
+      const res = await adminApiRequest("GET", "/api/system/chronicler");
+      if (!res.ok) throw new Error("Failed to fetch chronicler");
+      return res.json();
+    },
+    refetchInterval: 30000,
   });
 
   if (isLoading) {
