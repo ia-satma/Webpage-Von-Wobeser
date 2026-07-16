@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { AgentButton } from "@/components/admin/AgentButton";
 import { Languages, Loader2 } from "lucide-react";
 import { adminApiRequest } from "@/lib/adminAuth";
 import { useToast } from "@/hooks/use-toast";
@@ -60,9 +61,8 @@ export function TranslateButton({
   };
 
   return (
-    <Button type="button" variant="outline" size={size} onClick={run} disabled={loading} className={className} data-testid="button-translate-en">
-      {loading ? <Loader2 className="h-4 w-4 mr-1.5 animate-spin" /> : <Languages className="h-4 w-4 mr-1.5" />}
+    <AgentButton type="button" size={size} onClick={run} disabled={loading} className={className} icon={loading ? <Loader2 className="h-4 w-4 mr-1.5 animate-spin" /> : <Languages className="h-4 w-4 mr-1.5" />} data-testid="button-translate-en">
       {label}
-    </Button>
+    </AgentButton>
   );
 }

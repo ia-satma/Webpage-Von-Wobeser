@@ -325,7 +325,7 @@ export class SmartImageGenerator {
     }
   }
 
-  async generateImage(originalPrompt: string, articleId: string): Promise<ImageGenerationResult> {
+  async generateImage(originalPrompt: string, articleId: string, aspectOverride?: string): Promise<ImageGenerationResult> {
     this.transparencyLog = [];
     this.log(`Starting smart image generation for article ${articleId}`);
     
@@ -351,7 +351,7 @@ export class SmartImageGenerator {
       primary === 'cloudflare' ? ['cloudflare', 'openai'] : ['openai', 'cloudflare'];
 
     // Proporción/tamaño elegido en config (image_aspect) → tamaño soportado por DALL-E.
-    const aspect = (config.image_aspect?.value || '1:1').trim();
+    const aspect = (aspectOverride || config.image_aspect?.value || '1:1').trim();
     const dalleSize: '1024x1024' | '1792x1024' | '1024x1792' =
       aspect === '16:9' ? '1792x1024' : aspect === '9:16' ? '1024x1792' : '1024x1024';
 

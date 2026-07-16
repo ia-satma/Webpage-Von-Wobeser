@@ -52,6 +52,7 @@ import {
 } from "@shared/schema";
 import { db } from "./db";
 import { sql, gte } from "drizzle-orm";
+import { smartImageGenerator } from "./services/SmartImageGenerator";
 import { ZodError, z } from "zod";
 import { CATEGORIES as ATTORNEY_CATEGORIES } from "./mirror/renderAttorneyList";
 import {
@@ -1318,6 +1319,28 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
       });
     } catch (e: any) {
       res.status(500).json({ error: e?.message || "Error al calcular el gasto" });
+    }
+  });
+
+  // Generador de imágenes con IA a demanda (editor de noticias, redes, galería). Recibe un
+  // prompt/tema + formato opcional (1:1 / 16:9 / 9:16) y devuelve la URL de la imagen generada.
+  app.post("/api/admin/generate-image", authMiddleware, requirePermission("content"), async (req: Request, res: Response) => {
+    try {
+      const { prompt, aspect } = (req.body || {}) as { prompt?: string; aspect?: string };
+      if (!prompt || typeof prompt !== "string" || !prompt.trim()) {
+        return res.status(400).json({ error: "Falta el tema/prompt de la imagen" });
+      }
+      const result = await smartImageGenerator.generateImage(
+        prompt.trim().substring(0, 800),
+        `manual-${Date.now()}`,
+        typeof aspect === "string" ? aspect : undefined,
+      );
+      if (!result.success || result.engine === "placeholder") {
+        return res.status(502).json({ error: result.errorMessage || "No se pudo generar la imagen (revisa el saldo de OpenAI)." });
+      }
+      res.json({ imageUrl: result.imageUrl, engine: result.engine });
+    } catch (e: any) {
+      res.status(500).json({ error: e?.message || "Error al generar la imagen" });
     }
   });
 

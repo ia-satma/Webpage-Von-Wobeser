@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useLocation } from "wouter";
 import { adminApiRequest } from "@/lib/adminAuth";
 import { Button } from "@/components/ui/button";
+import { AgentButton } from "@/components/admin/AgentButton";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -68,10 +69,9 @@ export function VoiceButton({
 
   return (
     <div className="space-y-2">
-      <Button type="button" variant="outline" size="sm" onClick={generate} disabled={loading || !text?.trim()} data-testid="button-voice">
-        {loading ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : <Volume2 className="h-4 w-4 mr-1" />}
+      <AgentButton type="button" size="sm" onClick={generate} disabled={loading || !text?.trim()} icon={loading ? <Loader2 className="h-4 w-4 mr-1.5 animate-spin" /> : <Volume2 className="h-4 w-4 mr-1.5" />} data-testid="button-voice">
         {label}
-      </Button>
+      </AgentButton>
       {error && <p className="text-sm text-destructive">{error}</p>}
       {audioUrl && <audio controls src={audioUrl} className="w-full" data-testid="audio-generated" />}
     </div>
@@ -91,6 +91,7 @@ export function SocialPostButton({ articleId }: { articleId: string }) {
   const [loading, setLoading] = useState(false);
   const [res, setRes] = useState<{ ok: boolean; data?: any; error?: string } | null>(null);
   const [selected, setSelected] = useState<string[]>(["linkedin", "twitter"]);
+  const [aspect, setAspect] = useState("1:1");
 
   const toggle = (id: string) =>
     setSelected((s) => (s.includes(id) ? s.filter((x) => x !== id) : [...s, id]));
@@ -98,7 +99,7 @@ export function SocialPostButton({ articleId }: { articleId: string }) {
   const generate = async () => {
     if (!selected.length) return;
     setLoading(true); setRes(null);
-    const r = await runAgent("social_media", { articleId, platforms: selected });
+    const r = await runAgent("social_media", { articleId, platforms: selected, aspect });
     setRes(r); setLoading(false);
   };
 
@@ -107,9 +108,9 @@ export function SocialPostButton({ articleId }: { articleId: string }) {
 
   return (
     <>
-      <Button type="button" variant="outline" onClick={() => { setOpen(true); setRes(null); }} data-testid="button-social">
-        <Share2 className="h-4 w-4 mr-1" /> Generar post de redes
-      </Button>
+      <AgentButton type="button" onClick={() => { setOpen(true); setRes(null); }} data-testid="button-social">
+        Generar post de redes
+      </AgentButton>
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
@@ -131,10 +132,28 @@ export function SocialPostButton({ articleId }: { articleId: string }) {
               </Button>
             ))}
           </div>
-          <Button type="button" onClick={generate} disabled={loading || !selected.length} data-testid="button-social-generate">
-            {loading ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : <Share2 className="h-4 w-4 mr-1" />}
+          <div className="flex flex-wrap items-center gap-2">
+            <Label className="text-xs text-muted-foreground">Formato de imagen:</Label>
+            <select
+              value={aspect}
+              onChange={(e) => setAspect(e.target.value)}
+              className="h-9 rounded-none border border-input bg-background px-2 text-sm"
+              data-testid="select-social-aspect"
+            >
+              <option value="1:1">Cuadrada 1:1</option>
+              <option value="16:9">Horizontal 16:9</option>
+              <option value="9:16">Vertical 9:16</option>
+            </select>
+          </div>
+          <AgentButton
+            type="button"
+            onClick={generate}
+            disabled={loading || !selected.length}
+            icon={loading ? <Loader2 className="h-4 w-4 mr-1.5 animate-spin" /> : undefined}
+            data-testid="button-social-generate"
+          >
             Generar publicaciones
-          </Button>
+          </AgentButton>
 
           {loading ? (
             <div className="flex items-center gap-2 text-muted-foreground py-8 justify-center"><Loader2 className="h-4 w-4 animate-spin" /> Generando…</div>
@@ -183,9 +202,9 @@ export function NewsletterButton() {
 
   return (
     <>
-      <Button type="button" variant="outline" size="sm" onClick={() => { setOpen(true); generate(); }} data-testid="button-newsletter">
-        <Mail className="h-4 w-4 mr-1" /> Boletín
-      </Button>
+      <AgentButton type="button" size="sm" onClick={() => { setOpen(true); generate(); }} icon={<Mail className="h-4 w-4 mr-1.5" />} data-testid="button-newsletter">
+        Boletín
+      </AgentButton>
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>

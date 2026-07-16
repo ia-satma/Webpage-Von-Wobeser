@@ -14,6 +14,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { ImageUpload } from "@/components/admin/ImageUpload";
+import { ImageGenButton } from "@/components/admin/ImageGenButton";
 import { AdminPageHelp } from "@/components/admin/AdminPageHelp";
 import { SocialPostButton, VoiceButton } from "@/components/admin/AgentTools";
 import { TranslateButton } from "@/components/admin/TranslateButton";
@@ -269,6 +270,11 @@ export default function AdminNewsForm() {
               <div className="space-y-1.5">
                 <Label>Imagen destacada</Label>
                 <ImageUpload value={form.imageUrl} onChange={(url) => set("imageUrl", url)} kind="image" />
+                <ImageGenButton
+                  getPrompt={() => form.titleEs || form.title || ""}
+                  onGenerated={(url) => set("imageUrl", url)}
+                />
+                <p className="text-xs text-muted-foreground">O genera una con IA a partir del título (elige el formato).</p>
               </div>
 
               <div className="grid gap-5 sm:grid-cols-2">

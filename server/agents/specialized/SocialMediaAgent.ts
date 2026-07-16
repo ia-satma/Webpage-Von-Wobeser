@@ -57,7 +57,7 @@ export class SocialMediaAgent extends BaseAgent {
   constructor() { super(SOCIAL_CONFIG); }
 
   async execute(_context: ExecutionContext, payload: Record<string, unknown>): Promise<AgentResult> {
-    const { articleId, platforms } = payload as { articleId?: string; platforms?: string[] };
+    const { articleId, platforms, aspect } = payload as { articleId?: string; platforms?: string[]; aspect?: string };
     if (!articleId) return { success: false, error: 'articleId es requerido' };
 
     // Redes elegidas por el usuario (default LinkedIn + X). Se validan contra las permitidas.
@@ -102,6 +102,7 @@ Devuelve JSON { "posts": { <red>: { "text", "hashtags" } }, "imagePrompt" } incl
         const imageResult = await smartImageGenerator.generateImage(
           parsed?.imagePrompt || `Professional legal social media graphic for: ${title}`,
           articleId,
+          typeof aspect === 'string' ? aspect : undefined,
         );
         if (imageResult.success && imageResult.imageUrl) {
           imageUrl = imageResult.imageUrl;
