@@ -497,7 +497,10 @@ export default function AdminNews() {
                         <TableCell className="text-right">
                           <div className="flex justify-end gap-2">
                             {newsItem.published && (
-                              <Link href={`/news/${newsItem.slug}`}>
+                              // Página pública servida por el espejo (Express), no por React:
+                              // usar <a> nativo (no <Link> de wouter) para que la petición
+                              // llegue al servidor. Con <Link> wouter navega en el SPA y cae en 404.
+                              <a href={`/news/${newsItem.slug}`} target="_blank" rel="noopener noreferrer">
                                 <Button
                                   variant="ghost"
                                   size="icon"
@@ -506,7 +509,7 @@ export default function AdminNews() {
                                 >
                                   <Eye className="h-4 w-4" />
                                 </Button>
-                              </Link>
+                              </a>
                             )}
                             <Link href={`/admin/news/${newsItem.id}/edit`}>
                               <Button
