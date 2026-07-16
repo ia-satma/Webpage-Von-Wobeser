@@ -277,7 +277,17 @@ export default function AdminSiteConfig() {
                     <Label className="font-medium">{f.label}</Label>
                     {f.help && <p className="text-xs text-muted-foreground">{f.help}</p>}
                     {invalid && <p className="text-xs text-destructive" data-testid={`error-${f.key}`}>{f.patternError || "Formato inválido."}</p>}
-                    {f.media ? (
+                    {f.key === "image_engine" ? (
+                      <select
+                        value={draft[f.key]?.value ?? "openai"}
+                        onChange={(e) => set(f.key, "value", e.target.value)}
+                        data-testid={`input-${f.key}`}
+                        className="flex h-9 w-full rounded-none border border-input bg-background px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                      >
+                        <option value="openai">OpenAI · DALL-E 3 (principal — usa tu API, ~$0.04/imagen)</option>
+                        <option value="cloudflare">Cloudflare (gratis — requiere credenciales de Cloudflare)</option>
+                      </select>
+                    ) : f.media ? (
                       <ImageUpload
                         value={draft[f.key]?.value ?? ""}
                         onChange={(v) => set(f.key, "value", v)}

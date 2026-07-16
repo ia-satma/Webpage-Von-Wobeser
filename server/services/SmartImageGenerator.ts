@@ -5,6 +5,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as https from 'https';
 import { storage } from '../storage';
+import { getConfigMap } from '../mirror/siteConfig';
 
 const VON_WOBESER_BRAND = {
   primaryColor: '#AA1A2E',
@@ -337,89 +338,83 @@ export class SmartImageGenerator {
 
     const brandEnhancedPrompt = `${originalPrompt}. Style: Professional corporate legal, color scheme featuring deep burgundy red (#AA1A2E) with white and dark gray accents. Sharp geometric edges, no rounded corners. Sophisticated and elegant composition suitable for a prestigious law firm.`;
 
-    // Step 0: Cloudflare Workers AI (gratuito — se intenta primero para no gastar Gemini/DALL-E de pago)
-    this.log('Step 0: Attempting Cloudflare Workers AI (free tier)...');
-    const cloudflareResult = await this.callCloudflareFlux(brandEnhancedPrompt);
-    result.retryCount++;
+    // Motor elegible por config (site_config.image_engine): 'openai' (DALL-E 3, principal por
+    // defecto) o 'cloudflare' (gratis, requiere credenciales CLOUDFLARE_*). Se intenta el elegido
+    // primero y el otro como respaldo. Gemini se retiró del flujo.
+    const config = await getConfigMap();
+    const primary = (config.image_engine?.value || 'openai').trim().toLowerCase() === 'cloudflare'
+      ? 'cloudflare'
+      : 'openai';
+    const order: Array<'openai' | 'cloudflare'> =
+      primary === 'cloudflare' ? ['cloudflare', 'openai'] : ['openai', 'cloudflare'];
 
-    if (cloudflareResult.buffer) {
-      try {
-        const filename = `article-${articleId}-cloudflare-${Date.now()}.png`;
-        const outputPath = path.join(OUTPUT_DIR, filename);
-
-        await this.overlayLogo(cloudflareResult.buffer, outputPath);
-
-        result.success = true;
-        result.engine = 'cloudflare';
-        result.imageUrl = `/generated-images/${filename}`;
-        this.log(`SUCCESS: Cloudflare image saved with logo overlay: ${result.imageUrl}`);
-        result.transparencyLog = [...this.transparencyLog];
-        return result;
-      } catch (saveErr: any) {
-        this.log(`Cloudflare image save failed: ${saveErr.message}`);
-      }
-    } else {
-      this.log(`Cloudflare failed: ${cloudflareResult.error}. Falling back to Gemini...`);
-    }
-
-    // Step 1: Gemini (primary de pago)
-    this.log('Step 1: Attempting Gemini image generation (primary)...');
-    const geminiResult = await this.callGeminiImageGen(brandEnhancedPrompt);
-    result.retryCount++;
-
-    if (geminiResult.buffer) {
-      try {
-        const filename = `article-${articleId}-gemini-${Date.now()}.png`;
-        const outputPath = path.join(OUTPUT_DIR, filename);
-
-        await this.overlayLogo(geminiResult.buffer, outputPath);
-
-        result.success = true;
-        result.engine = 'gemini';
-        result.imageUrl = `/generated-images/${filename}`;
-        this.log(`SUCCESS: Gemini image saved with logo overlay: ${result.imageUrl}`);
-      } catch (saveErr: any) {
-        this.log(`Gemini image save failed: ${saveErr.message}`);
-      }
-    } else {
-      this.log(`Gemini failed: ${geminiResult.error}. Trying with sanitized prompt...`);
-
-      const { sanitized, wasSanitized, changes } = this.sanitizePromptForContentPolicy(originalPrompt);
-      if (wasSanitized) {
-        result.sanitizedPrompt = sanitized;
-        result.promptWasSanitized = true;
-        this.log(`Prompt sanitized. Changes: ${changes.join(', ')}`);
-
-        const sanitizedBrandPrompt = `${sanitized}. Style: Professional corporate legal, color scheme featuring deep burgundy red (#AA1A2E) with white and dark gray accents. Sharp geometric edges, sophisticated composition.`;
-        const sanitizedResult = await this.callGeminiImageGen(sanitizedBrandPrompt);
-        result.retryCount++;
-
-        if (sanitizedResult.buffer) {
+    // Ejecuta un motor y devuelve un buffer (DALL-E entrega URL → se descarga a buffer).
+    const runEngine = async (
+      engine: 'openai' | 'cloudflare',
+      prompt: string,
+    ): Promise<{ buffer?: Buffer; name?: 'dalle3' | 'cloudflare'; error?: string; errorCode?: string }> => {
+      if (engine === 'openai') {
+        const r = await this.callDalle3(prompt);
+        if (r.url) {
           try {
-            const filename = `article-${articleId}-gemini-${Date.now()}.png`;
-            const outputPath = path.join(OUTPUT_DIR, filename);
-
-            await this.overlayLogo(sanitizedResult.buffer, outputPath);
-
-            result.success = true;
-            result.engine = 'gemini';
-            result.imageUrl = `/generated-images/${filename}`;
-            this.log(`SUCCESS: Gemini image (sanitized) saved: ${result.imageUrl}`);
-          } catch (saveErr: any) {
-            this.log(`Gemini sanitized image save failed: ${saveErr.message}`);
+            return { buffer: await this.downloadImage(r.url), name: 'dalle3' };
+          } catch (e: any) {
+            return { error: `DALL-E download: ${e.message}`, errorCode: 'dalle_download' };
           }
         }
+        return { error: r.error, errorCode: r.errorCode };
+      }
+      const r = await this.callCloudflareFlux(prompt);
+      return r.buffer ? { buffer: r.buffer, name: 'cloudflare' } : { error: r.error, errorCode: r.errorCode };
+    };
+
+    let lastError = '';
+    for (const engine of order) {
+      this.log(`Intentando motor de imágenes: ${engine}${engine === primary ? ' (principal)' : ' (respaldo)'}...`);
+      let attempt = await runEngine(engine, brandEnhancedPrompt);
+      result.retryCount++;
+
+      // Reintento con prompt saneado si el motor rechaza por política de contenido (términos legales sensibles).
+      if (!attempt.buffer && attempt.errorCode === 'content_policy_violation') {
+        const { sanitized, wasSanitized, changes } = this.sanitizePromptForContentPolicy(originalPrompt);
+        if (wasSanitized) {
+          result.sanitizedPrompt = sanitized;
+          result.promptWasSanitized = true;
+          this.log(`Prompt saneado para ${engine}. Cambios: ${changes.join(', ')}`);
+          const sanitizedBrandPrompt = `${sanitized}. Style: Professional corporate legal, deep burgundy red (#AA1A2E) with white and dark gray accents. Sharp geometric edges, sophisticated composition.`;
+          attempt = await runEngine(engine, sanitizedBrandPrompt);
+          result.retryCount++;
+        }
+      }
+
+      if (attempt.buffer) {
+        try {
+          const filename = `article-${articleId}-${attempt.name}-${Date.now()}.png`;
+          const outputPath = path.join(OUTPUT_DIR, filename);
+          await this.overlayLogo(attempt.buffer, outputPath);
+          result.success = true;
+          result.engine = attempt.name!;
+          result.imageUrl = `/generated-images/${filename}`;
+          this.log(`SUCCESS: imagen de ${attempt.name} guardada con logo: ${result.imageUrl}`);
+          break;
+        } catch (saveErr: any) {
+          this.log(`Guardado de ${engine} falló: ${saveErr.message}`);
+          lastError = saveErr.message;
+        }
+      } else {
+        this.log(`${engine} falló: ${attempt.error}. Probando el siguiente motor...`);
+        lastError = attempt.error || lastError;
       }
     }
 
-    // Step 2: Placeholder SVG fallback
+    // Fallback final: placeholder SVG.
     if (!result.success) {
-      this.log('Step 2: Gemini failed. Assigning placeholder image.');
+      this.log('Todos los motores fallaron. Asignando placeholder.');
       result.engine = 'placeholder';
       result.imageUrl = '/placeholder-article.svg';
       result.success = true;
       result.fallbackUsed = true;
-      result.errorMessage = geminiResult.error || 'All image generation engines failed';
+      result.errorMessage = lastError || 'Todos los motores de imagen fallaron';
     }
 
     result.transparencyLog = [...this.transparencyLog];
