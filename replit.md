@@ -1,156 +1,165 @@
-# Von Wobeser y Sierra Corporate Website
+# Von Wobeser y Sierra — Sitio + Panel + Agentes de IA
 
 ## Overview
-This project is a corporate website for Von Wobeser y Sierra, a leading Mexican law firm. Its primary purpose is to showcase their new office and firm capabilities through a single-page application. Key features include comprehensive multi-language support (10 languages with AI-powered legal translation), dark mode, and a professional design aesthetic. The site aims to provide a sophisticated online presence, highlighting news, office vision, statistics, image galleries, and location information.
 
-## User Preferences
-Preferred communication style: Simple, everyday language.
+Este proyecto es la plataforma web del despacho de abogados **Von Wobeser y Sierra**. Su arquitectura tiene cuatro piezas que conviven en un mismo servidor Express (Node 20 + TypeScript):
 
-## System Architecture
+- **Sitio público = un ESPEJO estático**, no una app de React. El HTML del sitio original (Joomla) vive en `frontend-mirror/` y en cada request se re-parsea con **cheerio** para inyectarle datos frescos de la base de datos (abogados, noticias, grupos, configuración). Este es el frontend que ven los visitantes.
+- **Backend Express** sobre **Neon PostgreSQL** (Drizzle ORM) que sirve la API, el espejo y el panel.
+- **Panel de administración en React** (SPA con `wouter`), que existe **SOLO** bajo `/admin/*`. Es el CMS.
+- **Malla de 13 agentes de IA** (OpenAI vía AI Integrations de Replit) que redactan, traducen, auditan, optimizan SEO, generan imágenes y voz.
 
-### Frontend
-The frontend is built with React 18+ and TypeScript, utilizing Vite for development and optimized builds. UI components leverage Shadcn/UI (based on Radix UI) and are styled with Tailwind CSS, following atomic design principles. Framer Motion handles animations. State management primarily uses TanStack Query for server state and local React state for UI interactions. The application is a single-page site with section-based navigation, featuring components for Hero, News, Vision, Stats, ImageCollage, Quote, Map, and Footer.
+---
 
-The design emphasizes a professional corporate aesthetic with conservative animations, a zero-border-radius policy for minimalism, and a robust typography system. Key features include a video hero, news overlay, new offices popup, a world map section for the German Desk, image collages, and rich team member profiles with vCard downloads. SEO is optimized with JSON-LD, sitemap, hreflang, and proper heading structures. Performance is enhanced through image lazy loading, font optimization, and React Query caching. The site is fully mobile-responsive.
+## Arquitectura crítica que un agente DEBE entender antes de tocar nada
 
-### Multi-Language Translation System
-The application implements a dual translation approach supporting 10 languages (en, es, de, zh, ko, ja, ar, ru, fr, it) with **100% translation coverage** - no English fallback text visible in any language mode:
+Lee esto completo antes de mover un solo archivo. Tres cosas rompen "todo el sitio" de forma silenciosa si no se entienden.
 
-1. **Static UI Translations (i18next)**: Used for navigation, buttons, labels, and UI text. Translations are stored as inline JavaScript objects in `client/src/i18n.ts`. The system uses localStorage (`vwb_language`) for persistence and automatically updates the HTML `lang` attribute. RTL support is included for Arabic.
+### (a) El sitio público NO es React. Es el ESPEJO.
+La app de React de `client/` **no** contiene ninguna página pública. Un comentario explícito en `client/src/App.tsx` lo dice: *"The public site is served by the mirror frontend (Express, server/mirror). This React app is the ADMIN PANEL ONLY. Public redesign pages were removed."* Buscar la home, `/attorneys` o `/news` dentro de la app de React es en vano — se sirven desde `server/mirror` leyendo `frontend-mirror/`. Editar contenido público se hace por el panel (site-config, news, team...), que persiste a la BD que el espejo consume.
 
-2. **Page-Specific Content Translations**: All page components use inline content objects with complete translations for all 10 languages. Pattern: `content[language as keyof typeof content] || content.en`. This covers hero sections, feature descriptions, benefit lists, and all other static page content.
+### (b) `setupMirror()` puede desactivar TODO el sitio público en silencio — y por eso `frontend-mirror/` NO se borra
+`setupMirror()` (en `server/mirror/index.ts`) hace un **`return` temprano** si no encuentra la plantilla-guardia `frontend-mirror/index.php/lawyer/l-134.html`. Cuando eso pasa:
+- **NO se registra NINGUNA ruta pública** (ni `/`, ni `/attorneys`, ni `/news`, ni los assets estáticos, ni el catch-all del espejo).
+- El único rastro es un `console.warn: '[mirror] Plantilla no encontrada... Rutas del espejo deshabilitadas.'` — **no lanza excepción, no rompe el arranque**.
+- **Consecuencia:** toda navegación pública cae hasta el catch-all de la SPA de React, cuyo `/` hace `Redirect` a `/admin/login`. **Síntoma observable: "todo el sitio manda al login".** La causa casi siempre es que `frontend-mirror/` no está presente en el deploy.
 
-3. **Dynamic Content Translations (OpenAI)**: Used for database content (news, team bios, practice descriptions, events). Translations are cached in the database (`translation_caches` table) and requested on-demand via the `useTranslatedContent` hook. The backend uses OpenAI GPT-5 for high-quality legal text translation. Supported content types: `team_member`, `practice_group`, `industry_group`, `news`, `event`.
+Por esto, **`frontend-mirror/` es un activo de runtime imprescindible que vive DENTRO del repo (~1.2 GB) y NO se debe borrar, mover ni "limpiar"**. Es distinto de `gh-pages` (ese es otro espejo estático manual, no este). Si necesitas apuntar a otra copia, usa la env `MIRROR_DIR`, pero esa copia debe contener `index.html` **y** `index.php/lawyer/l-134.html`.
 
-4. **Automatic Language Detection (Geolocation)**: On first visit (when no stored preference exists), the system automatically detects the user's country via IP geolocation (`/api/detect-language` endpoint using ip-api.com) and sets the appropriate language. Supports country-to-language mapping for Spanish-speaking countries (MX, ES, AR, etc.), German-speaking (DE, AT, CH), Chinese regions (CN, TW, HK), and more. Falls back to Spanish for unsupported countries or detection failures.
+- Matiz: `getMirrorDir()` decide el directorio por la existencia de `index.html`, pero la **guardia** de `setupMirror()` valida un archivo **distinto** (`index.php/lawyer/l-134.html`). Un directorio con `index.html` pero sin esa plantilla-guardia igual dispara el return temprano.
+- Las plantillas del espejo (HTML de hasta ~181 KB) se memoizan en RAM (`templateCache` / `warmTemplates`). No romper ese cacheo.
 
-Key files:
-- `client/src/i18n.ts` - i18next configuration with all 10 language resources
-- `client/src/contexts/LanguageContext.tsx` - Language state management, persistence, and geolocation detection
-- `client/src/hooks/useTranslatedContent.ts` - Dynamic translation hook for database content
-- `server/routes.ts` - `/api/detect-language` endpoint with COUNTRY_TO_LANGUAGE mapping
-- `server/openai.ts` - OpenAI translation API integration
+### (c) La app de React es solo el admin y su `/` redirige a `/admin/login`
+`client/src/App.tsx` usa `wouter`. La ruta raíz `/` hace `<Redirect to="/admin/login" />`. Por eso, si el espejo está caído, el único frontend vivo es esta SPA y su `/` manda al login. **Diagnostica el espejo (`server/mirror`), no el Router de React.**
 
-New dedicated pages for Diversity & Inclusion, Pro Bono, German Desk, Articles, Newsletter, and Internships have been added, all featuring bilingual support, SEO, and animations.
+### Orden de registro (load-bearing) en `server/index.ts`
+El IIFE async registra en este orden EXACTO y no debe alterarse:
+1. `registerRoutes(httpServer, app)` — API (`/api/*`).
+2. `setupMirror(app)` — sitio público del espejo (importado dinámicamente).
+3. Middleware de manejo de errores (4 args).
+4. Según `NODE_ENV`: producción → `serveStatic(app)`; dev → `setupVite(httpServer, app)` (catch-all de la SPA con HMR).
+5. `httpServer.listen(...)`.
 
-### Backend
-The backend uses Express.js with TypeScript, providing RESTful API endpoints under `/api`. It currently uses an in-memory storage implementation for mock data but is designed for PostgreSQL integration. The server build uses esbuild, while the client uses Vite.
+El catch-all de la SPA (paso 4) DEBE ir al final: si se mueve antes de la API o del espejo, se traga esas peticiones. El espejo va después de la API y antes del catch-all para no ensombrecer `/api` ni ser ensombrecido. El orquestador de agentes y los schedulers arrancan **dentro del callback de `listen()`** — si el puerto no bindea, no se inicializan.
 
-### Data Storage
-The project uses a PostgreSQL database with Drizzle ORM. Content is real, extracted from the firm's existing website, and includes bilingual (English/Spanish) fields. The schema defines tables for users, news, office images, practice groups, industry groups, and team members. Data models include 25 real lawyers, 18 practice groups, 7 industry groups, firm news, office images, and site content, all sourced accurately. A translation cache table stores AI-generated translations.
+---
 
-### Authentication & Authorization
-While a user schema is defined, authentication and authorization are not yet implemented, though necessary dependencies like `express-session` and `passport` are installed, preparing for future integration.
+## Cómo correr
 
-### Design System
-The color scheme uses `#AA1A2E` (brand red) as the primary color. **Light mode** uses a warm-gray palette derived from user swatches (#D5D2CD / #C0BDB8): off-white background (HSL 37 6% 97%), warm card (37 6% 82%), warm borders (37 5% 74%). **Dark mode** uses three dark swatches (#8B8D89 / #5B5C5F / #2E2E2A): background (50 5% 17%), cards (50 4% 21%), muted-foreground (100 2% 54%). All UI components use semantic CSS variable tokens (`bg-background`, `bg-card`, `text-foreground`, `border-border`, etc.) — no hardcoded `gray-*` colors. Typography uses Playfair Display for headlines, Optima/Lato for body, Geomanist/Lato for labels. Consistent `rounded-none` policy throughout (except avatar circles). ALL CAPS headings with `tracking-[0.12em]`.
+Scripts (`package.json`):
 
-### AI Agent System (Self-Evolving Backend)
-The backend has been transformed from a static brochure into a self-evolving system with autonomous AI agents that continuously improve content quality, translations, SEO, and metadata linking. The system is inspired by the brujer.ia project architecture.
+| Script | Comando | Uso |
+|---|---|---|
+| `dev` | `NODE_ENV=development tsx server/index.ts` | Desarrollo. `tsx` corre el TS directo; da Vite + HMR. **Es lo que Replit ejecuta en Run.** |
+| `build` | `tsx script/build.ts` | Build custom. Produce `dist/index.cjs`. |
+| `start` | `NODE_ENV=production node dist/index.cjs` | Producción. **Es lo que Replit ejecuta en Deploy.** Usa `serveStatic`. |
+| `check` | `tsc` | Type-check. |
+| `db:push` | `drizzle-kit push` | Migraciones de esquema contra Neon (manual). |
 
-**Architecture:**
-- **Knowledge Layer**: Stores agent learnings, legal glossaries, and insights in `agent_knowledge` table and pCloud
-- **Skills Layer**: Tracks agent capabilities, expertise levels, and success rates in `agent_skills` table
-- **Evolution Layer**: Agents propose improvements tracked in `agent_evolution_proposals` table
+- **Puerto:** `process.env.PORT || 5000`. `.replit` fija `PORT=5000` y mapea `localPort 5000 → externalPort 80`. Bind a `0.0.0.0`.
+- **Replit config (`.replit`):** `modules = ['nodejs-20','web']`; `run = 'npm run dev'`; `[deployment]` target `autoscale`, `build = ['npm','run','build']`, `run = ['npm','run','start']`; workflow "Start application" espera el puerto 5000.
+- **Gotcha del build:** el script es `tsx script/build.ts` — carpeta **`script/` en SINGULAR**. No confundir con `scripts/` (que existe para `post-merge.sh` y scripts de verificación). Confundirlas rompe el build.
+- **Gotcha macOS:** `reusePort` solo se pasa en Linux (`process.platform === 'linux'`); en Mac lanzaría `ENOTSUP`. Por eso correr local en Mac funciona.
 
-**Specialized Agents:**
-1. **FormatterAgent**: Cleans PDF-extracted articles, fixes broken line breaks, normalizes paragraphs, removes boilerplate
-2. **MetadataLinkerAgent**: Analyzes content to link articles with authors, practice areas, and industry groups
-3. **PolyglotTranslatorAgent**: Translates to 10 languages using legal term glossary with smart caching
-4. **ContentAuditorAgent**: Scans database for content gaps (missing translations, authors, formatting issues)
-5. **SEOOptimizerAgent**: Improves titles, meta descriptions, slugs, and keywords for search engines
-6. **ContentAnalyzerAgent**: Comprehensive article analysis using GPT-4o providing:
-   - SEO recommendations (keywords, title suggestions, meta descriptions)
-   - Article categorization (primary/secondary categories)
-   - Spelling & grammar review with corrections
-   - Lawyer identification within content
-   - Legal branch classification (Corporate, M&A, Banking, etc.)
-   - Industry detection (Financial Services, Energy, Technology, etc.)
-   Results stored in `content_analysis` table with quality scores (0-100)
+---
 
-**Orchestration:**
-- Central orchestrator (`AgentOrchestrator`) manages job queue, agent coordination, and pipeline execution
-- Pipeline execution: article → format → categorize → link metadata → SEO optimize → translate (9 languages) → image (optional)
-- Job queue with priority support (critical, high, normal, low)
+## Los 13 agentes de IA
 
-**Real-Time Pipeline Progress (WebSocket):**
-- WebSocket server at `/ws/pipeline` broadcasts pipeline progress to connected clients
-- Frontend hook `usePipelineProgress` provides singleton WebSocket manager with automatic reconnection
-- `PipelineProgressModal` component displays real-time step-by-step progress with status indicators
-- Progress events include: step name, status (running/completed/error), progress percentage, and messages
-- Heartbeat/ping mechanism detects and cleans up stale connections every 30 seconds
+Disparo central: **`POST /api/agents/run/:agentType`** (`server/agents/api/agentRoutes.ts`), un `switch` de exactamente 13 casos que llama `<agent>.execute(...)` sobre singletons. El router se monta con `authMiddleware, requirePermission('agents')` — **todo requiere sesión admin autenticada + permiso `agents`**. Registro de los 13 en `server/agents/index.ts` (`orchestrator.registerAgent(...)`).
 
-**Cloud Persistence (pCloud):**
-- Agent knowledge and evolution data syncs to pCloud for persistence across sessions
-- Configured via `PCLOUD_USERNAME` and `PCLOUD_PASSWORD` secrets
+**Todos los agentes que usan LLM usan `gpt-4o` (fallback `gpt-4o-mini` solo ante error de cuota 429/rate-limit), vía el cliente OpenAI apuntando a AI Integrations de Replit. CERO Claude/Anthropic en código activo.** (La única mención a `claude-sonnet` es un comentario histórico ya muerto en `server/openai.ts`.)
 
-**Database Tables:**
-- `agent_jobs`: Job queue with status, payload, results, retry logic
-- `agent_events`: Event log for all agent activities
-- `agent_knowledge`: Stored learnings and glossary entries
-- `agent_skills`: Skill tracking with expertise and success rates
-- `agent_evolution_proposals`: Self-improvement proposals pending review
+| agentType | Nombre | LLM | Modelo | Disparador | Qué hace |
+|---|---|---|---|---|---|
+| `formatter` | Article Formatter | Sí | gpt-4o | botón panel + pipeline | Limpia/reformatea artículos legales de PDFs; devuelve title/content/excerpt. |
+| `metadata_linker` | Metadata Linker | Sí | gpt-4o | run + auto (website_auditor) | Vincula artículo a autores, prácticas e industrias en la BD. |
+| `polyglot_translator` | Polyglot Translator | Sí | gpt-4o | run + auto (auditores) | Traduce noticias (fuente ES) a idiomas activos con terminología legal; cachea. |
+| `content_auditor` | Content Auditor | **No (estructural)** | n/a | run + `POST /api/agents/audit` | Escanea la BD con checks en código (regex/longitudes) y sugiere qué agente arregla. |
+| `seo_optimizer` | SEO Optimizer | Sí | gpt-4o | run + auto | Optimiza título/meta/slug/keywords; aplica cambios si mejora el score. |
+| `image_suggestion` | Image Suggestion | Sí | gpt-4o | botón + `generate-image/:articleId` | Genera prompt con marca y delega en SmartImageGenerator. |
+| `category_agent` | Category Agent | Sí | gpt-4o | run | Clasifica el artículo (categoría, prácticas, industrias, tags) y la escribe en `news`. |
+| `website_auditor` | Website Auditor | **No (estructural)** | n/a | run + **scheduler** | Audita enlaces/imágenes/traducciones/SEO; auto-fix de imágenes rotas; auto-encola fixers. |
+| `content_analyzer` | Content Analyzer | Sí | gpt-4o | run + `analyze/:articleId` | Reporte integral del artículo (SEO, ortografía, abogados, industrias, quality score). |
+| `social_media` | Social Media | Sí | gpt-4o | botón AgentTools | Convierte noticia en posts para LinkedIn y X (español) + imagen. |
+| `newsletter` | Newsletter | Sí | gpt-4o | botón AgentTools | Compila noticias recientes en un boletín HTML con subject/preheader. |
+| `legal_alerts` | Legal Alerts | Sí | gpt-4o | botón + scanner programado | Desde fuente oficial MX (.gob.mx/cofece, allowlist anti-SSRF) redacta un **borrador** bilingüe (noticia no publicada, `ready_for_approval`). |
+| `voice_agent` | Voice Agent | **No (estructural)** | n/a | botones "Generar audio" | Toma texto ya generado y lo convierte a voz con OpenAI TTS (no llama a LLM de texto). |
 
-**API Endpoints:**
-- `GET /api/agents/status`: System status, queue length, registered agents
-- `POST /api/agents/run/:agentType`: Run specific agent with payload
-- `POST /api/agents/pipeline/:articleId`: Run full pipeline on article
-- `POST /api/agents/audit`: Run content audit across all articles
-- `POST /api/agents/evolution/learning-cycle`: Analyze and generate improvement proposals
-- `POST /api/agents/pcloud/sync`: Sync knowledge to cloud storage
+- **3 son estructurales** (`content_auditor`, `website_auditor`, `voice_agent`): no gastan LLM de texto. Cuidado: `content_auditor` y `website_auditor` **declaran** `model:'gpt-4o'` en su config pero **nunca invocan `callLLM`**. El único indicador fiable de "estructural" es leer si `execute()` llama `this.callLLM()`, no la config.
+- Cómo llaman al LLM: `BaseAgent.callLLM()` → cliente `openai` de `server/openai.ts` → modelo `gpt-4o`, fallback `gpt-4o-mini`.
+- Otros disparadores en el mismo router: `POST /audit`, `POST|GET /analyze/:articleId`, `POST /pipeline/:articleId` + `/pipeline/batch` + `/pipeline/process-all`, `POST /queue`, `GET /status|/jobs|/jobs/failed`, `/evolution/*`, `/knowledge/:agentType`, `/pcloud/*`.
+- Si `AI_INTEGRATIONS_OPENAI_*` no están inyectadas, el cliente es lazy (no crashea al importar) pero la **primera** llamada real de un agente-LLM falla; los estructurales siguen (salvo voice, que necesita la key del TTS).
 
-**Admin Dashboard:**
-- Located at `/admin/agents`
-- Monitor agent status, view evolution proposals, run audits
-- Approve/reject evolution proposals
-- Start/stop job processing
+---
 
-**Live Nerve Center Dashboard:**
-- Located at `/admin/guide`
-- Real-time visualization of the AI agent ecosystem with 30-second auto-refresh
-- Displays **14 specialized agents** organized into 3 categories:
-  - **The Brain (6 agents)**: Orchestrator, Legal Council, Content Analyzer, Category Agent, Metadata Linker, System Chronicler
-  - **The Hands (4 agents)**: Polyglot Translator, Smart Image Generator, SEO Optimizer, Formatter
-  - **The Shield (4 agents)**: Auto Recovery, System Health, Content Auditor, Website Auditor
-- Each agent card shows: business name, role, description, capabilities, evolution level (1-5 dots), status
-- Pulsing CSS animations on active agents to demonstrate "living, breathing" system
-- System Evolution Timeline showing narrative history of improvements with impact levels (critical/major/minor)
-- Full 10-language support matching all other pages
+## Servicios de IA
 
-**Agent Inventory - Single Source of Truth (Auditor-Level Precision):**
-- Shared constants file: `shared/agentConstants.ts`
-- Contains canonical `AGENT_IDS` typed constants, `AGENT_CATEGORY_MAP`, and derived category arrays
-- `BRAIN_AGENT_IDS`, `HANDS_AGENT_IDS`, `SHIELD_AGENT_IDS` - computed from AGENT_CATEGORY_MAP (not manually maintained)
-- Frontend manifest uses typed constants: `id: AGENT_IDS.ORCHESTRATOR` (no literal strings)
-- Both frontend and backend **throw errors on startup** if inventory mismatches shared constants
-- Runtime validation: SystemChronicler.validateInventory() and validateManifestAgentInventory()
-- Category membership verification: ensures brain IDs in BRAIN_AGENT_IDS, etc.
-- All agent IDs use underscore format (e.g., `content_analyzer`, `polyglot_translator`)
-- Expected counts: 6 brain + 4 hands + 4 shield = 14 total agents
+- **LegalCouncilService** (`services/agents/LegalCouncilService.ts`): "consejo legal" multi-agente que evalúa calidad/riesgo de un artículo. Corre 3 evaluadores en paralelo (Legal Scholar, Risk Analyst, Brand Guardian) con `Promise.allSettled`; cada uno devuelve `{score, decision, reasoning}` y se agregan en un `CouncilVerdict`. Usa **`fetch` crudo** a `${openaiBaseUrl}/chat/completions`, **model `gpt-4o`** (no el SDK, no Claude). Un evaluador que falla recibe abstención de sistema (score 50).
+- **VoiceGenerator** (`server/services/VoiceGenerator.ts`): texto-a-voz con **OpenAI TTS `tts-1`** (voz `alloy`), vía el cliente `openai` compartido. Guarda mp3 en `public/generated-audio/` y registra el asset. **No usa ElevenLabs** (no está en AI Integrations de Replit). Si falta `AI_INTEGRATIONS_OPENAI_API_KEY` hace early-return con `not_configured`. Trunca a 4000 chars.
+- **SmartImageGenerator** (`server/services/SmartImageGenerator.ts`): imágenes con marca Von Wobeser. Cascada real: **Cloudflare Workers AI (Flux, gratis) → Gemini `gemini-2.5-flash-image` (pago) → placeholder SVG**. Sanitiza términos legales sensibles y superpone el logo con `sharp`. Un `success:true` puede ser solo el placeholder (`fallbackUsed:true`), no una imagen real.
 
-- Key files:
-  - `shared/agentConstants.ts` - Single source of truth for agent inventory
-  - `server/agents/SystemChronicler.ts` - Meta-agent that auto-documents all agents
-  - `client/src/lib/systemManifest.ts` - Frontend technical documentation manifest
-  - `client/src/components/admin/NerveCenter.tsx` - Agent network visualization
-  - `client/src/components/admin/EvolutionTimeline.tsx` - Timeline component
-  - `system_evolution.json` - Persisted evolution history
+---
 
-## External Dependencies
+## Datos
 
-### Third-Party Services
-- **Database:** Neon PostgreSQL serverless database.
-- **AI Translation:** OpenAI GPT-5 for legal text translation.
+- **BD = Neon PostgreSQL** con **Drizzle ORM** (driver `drizzle-orm/neon-http`). `server/db.ts` crea `db = drizzle(neon(process.env.DATABASE_URL!), { schema })` — punto de entrada único a la BD.
+- **`DATABASE_URL` es la ÚNICA env estrictamente obligatoria para arrancar.** `db.ts` la usa con `!` (aserción, no salvaguarda): si falta, `neon()` lanza al importar y el proceso crashea antes de escuchar.
+- **49 tablas** en `shared/schema.ts`, agrupadas en: **contenido público** (news, news_translations, practice_groups, industry_groups, team_members y relaciones, representative_matters, specialized_desks, rankings, awards, offices, alliances, faqs, events, banners, site_config, contact_submissions, career_applications, ...), **agentes de IA** (agent_jobs, agent_events, agent_knowledge, agent_skills, agent_evolution_proposals, content_analysis, website_audits, website_audit_findings, processed_official_sources, generated_images, generated_audio), y **sistema/auth** (admin_users, admin_login_events, admin_sessions, media_items, y una tabla `users` **legacy que NO usa el panel**).
+- **El contenido es REAL** (extraído del sitio Von Wobeser y Sierra, migrado de Joomla — `news.legacyId` mapea el `p_id` original), NO mock. Volúmenes en prod: ~134 abogados, 18 prácticas, 7 industrias, ~1742 publicaciones.
+- **Seed (`server/seed.ts`):** se invoca en CADA arranque desde `registerRoutes()`. Para cada tabla de contenido inserta datos semilla **solo si está vacía** (idempotente; en prod se salta). Es bootstrap para BD vacía, no la fuente de la data real; **nunca actualiza ni borra**.
+- **Admin en el seed:** si `ADMIN_EMAIL` + `ADMIN_PASSWORD_HASH` están y el email no existe, crea `super_admin` (`onConflictDoNothing`, nunca sobreescribe). `ADMIN_RESET_PASSWORD` (botón de pánico) **sobreescribe la contraseña en texto plano en CADA arranque** — hay que **quitarla de Secrets** tras usarla o cada reinicio la reaplica.
+- **Migraciones:** `npm run db:push` (`drizzle-kit push`, push directo sin archivos SQL versionados). El tooling de BD integrado de Replit **no** soporta push contra una BD externa como Neon — es normal, se corre manualmente.
 
-### Key NPM Packages
-- **UI Framework:** `@radix-ui/*`, `framer-motion`, `lucide-react`, `tailwindcss`.
-- **Data & State:** `@tanstack/react-query`, `drizzle-orm`, `drizzle-zod`, `zod`.
-- **Server:** `express`, `cors`, `express-rate-limit`.
-- **Build & Development:** `vite`, `esbuild`, `tsx`, `typescript`.
-- **Utility Libraries:** `clsx`, `tailwind-merge`, `class-variance-authority`, `date-fns`, `nanoid`.
+---
 
-### Asset Management
-- **Branding & Content:** Configuration and markdown stored in `attached_assets`.
-- **Favicon:** `/favicon.png`.
-- **Fonts:** Google Fonts CDN (Cormorant Garamond, Inter).
-- **Images:** Partner photos are served locally from `/partner_photos/` (21 photos), with an avatar component providing initials fallback for missing images. Office imagery uses Von Wobeser branding images.
+## Panel de administración (`/admin/*`)
+
+React 18 + `wouter`. Entrada `client/src/main.tsx` → `<App />`. Providers: QueryClientProvider (TanStack Query) > TooltipProvider > LanguageProvider > Router. Todas las páginas cargan con `React.lazy()` + `<Suspense fallback={null}>`.
+
+Rutas principales:
+- `/` → Redirect a `/admin/login` · `/admin` → Redirect a `/admin/dashboard`
+- `/admin/login` (única ruta admin **sin** `AdminLayout` shell)
+- `/admin/dashboard`, `/admin/manual`, `/admin/guide`, `/admin/coming-soon/:key`
+- `/admin/site-config` y `/admin/site-config/:section`
+- `/admin/users` (usuarios y roles), `/admin/submissions`, `/admin/recognitions`, `/admin/desks`
+- `/admin/news` (+ `/new`, `/:id/edit`, `/:id`), `/admin/agents`, `/admin/processing`, `/admin/audits`
+- `/admin/team` (+ `/new`, `/:id/edit`), `/admin/practice-groups`, `/admin/industry-groups`
+- `/admin/knowledge`, `/admin/translations`, `/admin/events`, `/admin/health-check`, `/admin/explorer`, `/admin/performance`
+- `/admin/gallery`, `/admin/generated-images`, `/admin/generated-audio`
+- `*` → `NotFound` (404)
+
+Login: el endpoint `POST /api/admin/login` espera el campo **`username`** (acepta el email como su valor), no `email`.
+
+---
+
+## Secrets / variables de entorno
+
+**Obligatoria para arrancar (una sola):**
+- `DATABASE_URL` — conexión a Neon. Sin ella el proceso crashea al importar.
+
+**Opcionales (degradan con gracia; el server arranca sin ellas):**
+
+*IA (integración administrada de Replit — AI Integrations / Model Farm):*
+- `AI_INTEGRATIONS_OPENAI_API_KEY` y `AI_INTEGRATIONS_OPENAI_BASE_URL` — necesarias para los 10 agentes-LLM, el TTS de voz y LegalCouncilService. **Nota:** las inyecta el sistema de AI Integrations de Replit en runtime; **el aprovisionamiento de esta integración puede estar pendiente y hay que gestionarlo con el soporte de Replit** (declarar `javascript_openai_ai_integrations` en `.replit` es solo metadata, no inyecta las vars). Sin ellas la app arranca y solo fallan las features de IA/traducción/voz (con errorCode diferido, no crash).
+- `AI_INTEGRATIONS_GEMINI_API_KEY` y `AI_INTEGRATIONS_GEMINI_BASE_URL` — fallback de imágenes (Gemini).
+- `CLOUDFLARE_ACCOUNT_ID` y `CLOUDFLARE_API_TOKEN` — motor primario (gratis) de imágenes; si faltan, cae a Gemini.
+
+*Admin (seed):*
+- `ADMIN_EMAIL` + `ADMIN_PASSWORD_HASH` — crean el super_admin inicial si no existe.
+- `ADMIN_RESET_PASSWORD` — botón de pánico; sobreescribe la contraseña en cada arranque. **Borrar de Secrets tras usarla.**
+
+*Almacenamiento de agentes:* `PCLOUD_USERNAME`, `PCLOUD_PASSWORD` — pCloud; si faltan, `authenticate()` devuelve false.
+
+*Red / runtime:* `PORT` (default 5000), `NODE_ENV`, `CORS_ORIGIN` (vacío = sin cross-origin; el admin es same-origin), `SITE_URL` (default `https://www.vonwobeser.com`; base de canonical/OG/sitemap, se lee una vez al arranque), `MIRROR_DIR` (override del directorio del espejo; casi nunca hace falta por los fallbacks).
+
+Notas:
+- **`SESSION_SECRET` NO se usa** en el código. Las sesiones del admin se respaldan en BD (`admin_sessions` con token), no con cookies firmadas.
+- `site_url`, `ga4_measurement_id` y `google_site_verification` se leen **una vez al arranque**; editarlos en el panel requiere reiniciar.
+- `helmet` corre con `contentSecurityPolicy:false` a propósito (el espejo usa scripts/estilos inline); no asumir CSP activa.
+- El cliente OpenAI en `server/openai.ts` es lazy-init (envoltura `Proxy`), así que credenciales faltantes fallan por-request, no al arrancar.
+
+---
+
+## Preferencias del usuario
+
+- **Comunicación en lenguaje simple y cotidiano**, sin jerga técnica innecesaria. Explicar el "qué" y el "por qué" con palabras llanas; reservar los detalles técnicos para cuando de verdad hagan falta.
