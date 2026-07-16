@@ -198,7 +198,7 @@ export class SmartImageGenerator {
     };
   }
 
-  private async callDalle3(prompt: string, maxRetries: number = 3): Promise<{ url?: string; error?: string; errorCode?: string }> {
+  private async callDalle3(prompt: string, maxRetries: number = 3, size: '1024x1024' | '1792x1024' | '1024x1792' = '1024x1024'): Promise<{ url?: string; error?: string; errorCode?: string }> {
     let lastError: any = null;
     const backoffTimes = [0, 5000, 10000, 20000];
 
@@ -214,7 +214,7 @@ export class SmartImageGenerator {
           model: 'dall-e-3',
           prompt,
           n: 1,
-          size: '1024x1024',
+          size,
           quality: 'standard',
         });
 
@@ -348,13 +348,18 @@ export class SmartImageGenerator {
     const order: Array<'openai' | 'cloudflare'> =
       primary === 'cloudflare' ? ['cloudflare', 'openai'] : ['openai', 'cloudflare'];
 
+    // Proporción/tamaño elegido en config (image_aspect) → tamaño soportado por DALL-E.
+    const aspect = (config.image_aspect?.value || '1:1').trim();
+    const dalleSize: '1024x1024' | '1792x1024' | '1024x1792' =
+      aspect === '16:9' ? '1792x1024' : aspect === '9:16' ? '1024x1792' : '1024x1024';
+
     // Ejecuta un motor y devuelve un buffer (DALL-E entrega URL → se descarga a buffer).
     const runEngine = async (
       engine: 'openai' | 'cloudflare',
       prompt: string,
     ): Promise<{ buffer?: Buffer; name?: 'dalle3' | 'cloudflare'; error?: string; errorCode?: string }> => {
       if (engine === 'openai') {
-        const r = await this.callDalle3(prompt);
+        const r = await this.callDalle3(prompt, 3, dalleSize);
         if (r.url) {
           try {
             return { buffer: await this.downloadImage(r.url), name: 'dalle3' };

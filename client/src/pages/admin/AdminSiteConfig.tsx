@@ -287,6 +287,17 @@ export default function AdminSiteConfig() {
                         <option value="openai">OpenAI · DALL-E 3 (principal — usa tu API, ~$0.04/imagen)</option>
                         <option value="cloudflare">Cloudflare (gratis — requiere credenciales de Cloudflare)</option>
                       </select>
+                    ) : f.key === "image_aspect" ? (
+                      <select
+                        value={draft[f.key]?.value ?? "1:1"}
+                        onChange={(e) => set(f.key, "value", e.target.value)}
+                        data-testid={`input-${f.key}`}
+                        className="flex h-9 w-full rounded-none border border-input bg-background px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                      >
+                        <option value="1:1">Cuadrada · 1:1 (1024×1024)</option>
+                        <option value="16:9">Horizontal · 16:9 (1792×1024) — portadas</option>
+                        <option value="9:16">Vertical · 9:16 (1024×1792) — historias</option>
+                      </select>
                     ) : f.media ? (
                       <ImageUpload
                         value={draft[f.key]?.value ?? ""}

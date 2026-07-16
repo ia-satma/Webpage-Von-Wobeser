@@ -78,52 +78,91 @@ export function VoiceButton({
   );
 }
 
+const SOCIAL_PLATFORMS = [
+  { id: "linkedin", label: "LinkedIn" },
+  { id: "twitter", label: "X (Twitter)" },
+  { id: "instagram", label: "Instagram" },
+  { id: "facebook", label: "Facebook" },
+];
+
 /** Botón "Generar post de redes" para un artículo (usar en el editor de noticias). */
 export function SocialPostButton({ articleId }: { articleId: string }) {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [res, setRes] = useState<{ ok: boolean; data?: any; error?: string } | null>(null);
+  const [selected, setSelected] = useState<string[]>(["linkedin", "twitter"]);
+
+  const toggle = (id: string) =>
+    setSelected((s) => (s.includes(id) ? s.filter((x) => x !== id) : [...s, id]));
 
   const generate = async () => {
+    if (!selected.length) return;
     setLoading(true); setRes(null);
-    const r = await runAgent("social_media", { articleId });
+    const r = await runAgent("social_media", { articleId, platforms: selected });
     setRes(r); setLoading(false);
   };
 
+  const posts: Record<string, { text?: string; hashtags?: string[] }> = res?.data?.posts || {};
+  const firstText = Object.values(posts).find((p) => p?.text)?.text || "";
+
   return (
     <>
-      <Button type="button" variant="outline" onClick={() => { setOpen(true); setRes(null); generate(); }} data-testid="button-social">
+      <Button type="button" variant="outline" onClick={() => { setOpen(true); setRes(null); }} data-testid="button-social">
         <Share2 className="h-4 w-4 mr-1" /> Generar post de redes
       </Button>
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle>Publicaciones para redes</DialogTitle>
-            <DialogDescription>Generadas con IA. Revísalas y cópialas a LinkedIn / X.</DialogDescription>
+            <DialogDescription>Elige las redes y genera copys de alta calidad con IA.</DialogDescription>
           </DialogHeader>
+
+          <div className="flex flex-wrap gap-2">
+            {SOCIAL_PLATFORMS.map((p) => (
+              <Button
+                key={p.id}
+                type="button"
+                size="sm"
+                variant={selected.includes(p.id) ? "default" : "outline"}
+                onClick={() => toggle(p.id)}
+                data-testid={`toggle-${p.id}`}
+              >
+                {p.label}
+              </Button>
+            ))}
+          </div>
+          <Button type="button" onClick={generate} disabled={loading || !selected.length} data-testid="button-social-generate">
+            {loading ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : <Share2 className="h-4 w-4 mr-1" />}
+            Generar publicaciones
+          </Button>
+
           {loading ? (
             <div className="flex items-center gap-2 text-muted-foreground py-8 justify-center"><Loader2 className="h-4 w-4 animate-spin" /> Generando…</div>
           ) : res && !res.ok ? (
             <p className="text-sm text-destructive py-4">{res.error}</p>
           ) : res?.data ? (
-            <div className="space-y-4 max-h-[60vh] overflow-y-auto">
+            <div className="space-y-4 max-h-[55vh] overflow-y-auto">
               {res.data.imageUrl ? (
                 <div className="space-y-1">
                   <Label className="text-xs uppercase tracking-wide text-muted-foreground">Imagen para el post</Label>
                   <img src={res.data.imageUrl} alt="Imagen generada para redes" className="w-full max-h-64 object-cover rounded-none border" />
                 </div>
               ) : null}
-              <CopyBox label="LinkedIn" text={[res.data.linkedin, (res.data.linkedinHashtags || []).join(" ")].filter(Boolean).join("\n\n")} />
-              <CopyBox label="X (Twitter)" text={[res.data.twitter, (res.data.twitterHashtags || []).join(" ")].filter(Boolean).join(" ")} />
-              <div className="space-y-1">
-                <Label className="text-xs uppercase tracking-wide text-muted-foreground">Locución para redes (audio)</Label>
-                <VoiceButton text={res.data.linkedin || ""} sourceType="social_media" articleId={articleId} label="Generar audio del post" />
-              </div>
+              {SOCIAL_PLATFORMS.filter((p) => posts[p.id]?.text).map((p) => (
+                <CopyBox
+                  key={p.id}
+                  label={p.label}
+                  text={[posts[p.id]?.text, (posts[p.id]?.hashtags || []).join(" ")].filter(Boolean).join("\n\n")}
+                />
+              ))}
+              {firstText ? (
+                <div className="space-y-1">
+                  <Label className="text-xs uppercase tracking-wide text-muted-foreground">Locución para redes (audio)</Label>
+                  <VoiceButton text={firstText} sourceType="social_media" articleId={articleId} label="Generar audio del post" />
+                </div>
+              ) : null}
             </div>
           ) : null}
-          <DialogFooter>
-            <Button variant="outline" onClick={generate} disabled={loading}>Regenerar</Button>
-          </DialogFooter>
         </DialogContent>
       </Dialog>
     </>
