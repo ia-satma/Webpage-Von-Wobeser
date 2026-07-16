@@ -2,14 +2,17 @@ import OpenAI from "openai";
 
 // Using Replit's AI Integrations service - provides OpenAI-compatible API access
 // without requiring your own OpenAI API key. Charges are billed to Replit credits.
-// Apuntado al endpoint compatible de Claude (Anthropic) — modelo claude-sonnet-4-6.
+// Modelo real de OpenAI (gpt-4o) — antes apuntaba a claude-sonnet-4-6 vía un endpoint
+// compatible de Anthropic, un workaround de dev local que no aplica una vez que la
+// integración administrada de OpenAI de Replit esté aprovisionada de verdad.
 export const openai = new OpenAI({
   baseURL: process.env.AI_INTEGRATIONS_OPENAI_BASE_URL,
   apiKey: process.env.AI_INTEGRATIONS_OPENAI_API_KEY
 });
 
-// El endpoint compatible de Claude no acepta response_format:json_object; los prompts
-// piden JSON y Claude lo devuelve. Este helper extrae el JSON aunque venga con fences.
+// No se usa response_format:json_object (evita depender de que el proxy en turno lo
+// soporte) — los prompts piden JSON en texto plano. Este helper lo extrae aunque venga
+// envuelto en fences de markdown o con texto alrededor.
 export function extractJson(s: string): string {
   const fence = s.match(/```(?:json)?\s*([\s\S]*?)```/i);
   if (fence) return fence[1].trim();
@@ -58,7 +61,7 @@ export async function translateLegalText(
   }
 
   const response = await openai.chat.completions.create({
-    model: "claude-sonnet-4-6",
+    model: "gpt-4o",
     messages: [
       {
         role: "system",
@@ -98,7 +101,7 @@ export async function translateMultipleTexts(
   const textsForTranslation = texts.map(({ key, text }) => `${key}: ${text}`).join("\n---\n");
 
   const response = await openai.chat.completions.create({
-    model: "claude-sonnet-4-6",
+    model: "gpt-4o",
     messages: [
       {
         role: "system",
@@ -133,7 +136,7 @@ export async function suggestTranslation(
     .join("\n");
 
   const response = await openai.chat.completions.create({
-    model: "claude-sonnet-4-6",
+    model: "gpt-4o",
     messages: [
       {
         role: "system",
