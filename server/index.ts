@@ -179,7 +179,7 @@ app.use((req, res, next) => {
         } catch (err) {
           log(`[Scheduler] Error en el escaneo de fuentes oficiales: ${err}`, "scheduler");
         }
-      }, 6 * 60 * 60 * 1000);
+      }, 12 * 60 * 60 * 1000); // cada 12 h (antes 6 h) para cuidar créditos de IA
     },
   );
 })();
