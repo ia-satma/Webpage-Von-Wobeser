@@ -15,7 +15,9 @@ export function AgentButton({ className, children, icon, ...props }: AgentButton
     <Button
       {...props}
       className={cn(
-        "bg-violet-600 text-white border-transparent hover:bg-violet-700 focus-visible:ring-violet-400",
+        "bg-blue-600 text-white border-transparent shadow-sm transition-all duration-200",
+        "hover:bg-blue-700 hover:shadow-md hover:-translate-y-0.5 active:translate-y-0",
+        "focus-visible:ring-blue-400",
         className,
       )}
     >
