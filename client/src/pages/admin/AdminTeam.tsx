@@ -550,7 +550,10 @@ export default function AdminTeam() {
                         <TableCell>{member.email || "-"}</TableCell>
                         <TableCell>
                           <div className="flex items-center justify-end gap-2">
-                            <Link href={`/team/${member.slug}`}>
+                            {/* Perfil público del abogado servido por el espejo (Express).
+                                La ruta correcta es /abogado/:slug (no /team/:slug, que no existe)
+                                y se usa <a> nativo, no <Link> de wouter, para pegarle al servidor. */}
+                            <a href={`/abogado/${member.slug}`} target="_blank" rel="noopener noreferrer">
                               <Button
                                 variant="ghost"
                                 size="icon"
@@ -558,7 +561,7 @@ export default function AdminTeam() {
                               >
                                 <Eye className="w-4 h-4" />
                               </Button>
-                            </Link>
+                            </a>
                             <Link href={`/admin/team/${member.id}/edit`}>
                               <Button
                                 variant="ghost"

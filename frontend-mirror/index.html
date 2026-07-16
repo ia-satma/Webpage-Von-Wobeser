@@ -851,6 +851,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     const iframe = document.getElementById('overlayIframe');
     const btnCerrar = document.getElementById('closeOverlay');
+    if (!iframe || !btnCerrar) return; // overlay heredado no presente en esta pagina: evita el TypeError de consola
     iframe.addEventListener('load', function () {
         const iframeWin = iframe.contentWindow;
         const iframeDoc = iframeWin.document;
