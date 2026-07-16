@@ -58,3 +58,9 @@ expertMode = true
 [postMerge]
 path = "scripts/post-merge.sh"
 timeoutMs = 90000
+
+[userenv]
+
+[userenv.shared]
+ADMIN_EMAIL = "admin@vonwobeser.com"
+AI_INTEGRATIONS_OPENAI_BASE_URL = "https://api.openai.com/v1"

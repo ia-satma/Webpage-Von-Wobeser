@@ -15,7 +15,7 @@ The app's translation pipeline reads `AI_INTEGRATIONS_OPENAI_API_KEY` / `AI_INTE
 - Personal Core-plan account (owner == user, no org), so org-settings enablement doesn't apply.
 
 **Why:** provisioning is platform-side; user was directed to Replit support.
-**How to apply:** don't retry the above paths; if translations must work before support resolves it, use a real OpenAI API key in those same env vars. NOTE (updated 2026-07-16): the app now requests model `gpt-4o` (and `gpt-4o-mini` as fallback) everywhere — all 13 agents, `server/openai.ts`, and `services/agents/LegalCouncilService.ts` — so a real OpenAI key works with NO code changes. (Earlier this file said the code requested `claude-sonnet-4-6` and needed a model swap; that is no longer true.)
+**How to apply:** don't retry the above paths. **RESOLVED 2026-07-16:** user provided a personal OpenAI API key saved as `AI_INTEGRATIONS_OPENAI_API_KEY`; `AI_INTEGRATIONS_OPENAI_BASE_URL` set to `https://api.openai.com/v1`. All 13 agents are now operational — tested with `gpt-4o-mini` and got a valid response. No code changes were needed.
 
 Related quirks discovered while verifying:
 - Admin login endpoint expects `username` field (accepts email as its value), not `email`.
