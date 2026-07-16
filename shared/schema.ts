@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { pgTable, text, varchar, timestamp, integer, boolean, jsonb, index, uniqueIndex } from "drizzle-orm/pg-core";
+import { pgTable, text, varchar, timestamp, integer, boolean, jsonb, index, uniqueIndex, doublePrecision } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -177,6 +177,20 @@ export const generatedImages = pgTable("generated_images", {
   articleId: varchar("article_id").references(() => news.id, { onDelete: "set null" }),
   createdAt: timestamp("created_at").defaultNow(),
 });
+
+// Registro de consumo de la API de IA (para el contador de gasto ESTIMADO del panel).
+// OpenAI no expone el saldo por API key; esto estima el costo sumando tokens/imágenes por
+// nuestras propias llamadas y multiplicándolos por el precio conocido del modelo.
+export const apiUsage = pgTable("api_usage", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  kind: text("kind").notNull(),                    // 'chat' | 'translation' | 'image' | 'tts'
+  model: text("model"),
+  promptTokens: integer("prompt_tokens").default(0),
+  completionTokens: integer("completion_tokens").default(0),
+  images: integer("images").default(0),
+  costUsd: doublePrecision("cost_usd").default(0),
+  createdAt: timestamp("created_at").defaultNow(),
+}, (t) => ({ createdIdx: index("api_usage_created_idx").on(t.createdAt) }));
 
 export const insertGeneratedImageSchema = createInsertSchema(generatedImages).omit({ id: true, createdAt: true });
 export type InsertGeneratedImage = z.infer<typeof insertGeneratedImageSchema>;

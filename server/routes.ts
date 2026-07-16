@@ -48,7 +48,10 @@ import {
   insertAllianceSchema,
   insertSpecializedDeskSchema,
   insertOfficeImageSchema,
+  apiUsage,
 } from "@shared/schema";
+import { db } from "./db";
+import { sql, gte } from "drizzle-orm";
 import { ZodError, z } from "zod";
 import { CATEGORIES as ATTORNEY_CATEGORIES } from "./mirror/renderAttorneyList";
 import {
@@ -1281,6 +1284,40 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
     } catch (error) {
       console.error("Login error:", error);
       res.status(500).json({ error: "Login failed" });
+    }
+  });
+
+  // Contador de gasto ESTIMADO de la API de IA. OpenAI no expone el saldo por API key, así que
+  // esto suma tokens/imágenes de NUESTRAS llamadas por el precio conocido del modelo (aproximado).
+  app.get("/api/admin/usage/summary", authMiddleware, async (_req: Request, res: Response) => {
+    try {
+      const now = new Date();
+      const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+      const byKind = await db
+        .select({
+          kind: apiUsage.kind,
+          cost: sql<number>`coalesce(sum(${apiUsage.costUsd}), 0)`,
+          calls: sql<number>`count(*)::int`,
+        })
+        .from(apiUsage)
+        .where(gte(apiUsage.createdAt, monthStart))
+        .groupBy(apiUsage.kind);
+      const [totals] = await db
+        .select({
+          month: sql<number>`coalesce(sum(case when ${apiUsage.createdAt} >= ${monthStart} then ${apiUsage.costUsd} else 0 end), 0)`,
+          total: sql<number>`coalesce(sum(${apiUsage.costUsd}), 0)`,
+          calls: sql<number>`count(*)::int`,
+        })
+        .from(apiUsage);
+      res.json({
+        month: `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`,
+        monthUsd: Number(totals?.month || 0),
+        totalUsd: Number(totals?.total || 0),
+        totalCalls: Number(totals?.calls || 0),
+        byKind: byKind.map((r) => ({ kind: r.kind, costUsd: Number(r.cost), calls: Number(r.calls) })),
+      });
+    } catch (e: any) {
+      res.status(500).json({ error: e?.message || "Error al calcular el gasto" });
     }
   });
 

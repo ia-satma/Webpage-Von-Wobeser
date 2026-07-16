@@ -9,6 +9,7 @@ import {
   KnowledgeDocument
 } from './types';
 import { openai, extractJson } from '../../openai';
+import { recordChatUsage } from '../../services/usageTracker';
 
 export abstract class BaseAgent {
   protected config: AgentConfig;
@@ -55,6 +56,7 @@ export abstract class BaseAgent {
           max_tokens: options?.maxTokens ?? this.config.maxTokens ?? 4096,
         });
 
+        recordChatUsage('chat', model, response.usage as any);
         const content = response.choices[0]?.message?.content || '';
         return options?.jsonMode ? extractJson(content) : content;
       } catch (error: any) {

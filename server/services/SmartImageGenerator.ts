@@ -6,6 +6,7 @@ import * as path from 'path';
 import * as https from 'https';
 import { storage } from '../storage';
 import { getConfigMap } from '../mirror/siteConfig';
+import { recordImageUsage } from './usageTracker';
 
 const VON_WOBESER_BRAND = {
   primaryColor: '#AA1A2E',
@@ -221,6 +222,7 @@ export class SmartImageGenerator {
         const imageUrl = image.data?.[0]?.url;
         if (imageUrl) {
           this.log(`DALL-E 3 generated image successfully on attempt ${attempt + 1}`);
+          recordImageUsage(size);
           return { url: imageUrl };
         }
         lastError = new Error('No image URL returned');

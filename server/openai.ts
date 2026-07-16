@@ -1,4 +1,5 @@
 import OpenAI from "openai";
+import { recordChatUsage } from "./services/usageTracker";
 
 // Using Replit's AI Integrations service - provides OpenAI-compatible API access
 // without requiring your own OpenAI API key. Charges are billed to Replit credits.
@@ -100,6 +101,7 @@ Respond with JSON in this format: { "translation": "translated text here" }`,
     max_tokens: 4096,
   });
 
+  recordChatUsage('translation', 'gpt-4o', response.usage as any);
   const result = safeParseJson<{ translation?: string }>(response.choices[0].message.content);
   return result?.translation || text; // si el modelo no devolvió JSON, se conserva el original
 }
@@ -132,6 +134,7 @@ Respond with JSON where keys are the original keys and values are the translatio
     max_tokens: 8192,
   });
 
+  recordChatUsage('translation', 'gpt-4o', response.usage as any);
   const parsed = safeParseJson<Record<string, string>>(response.choices[0].message.content);
   // Si el modelo no devolvió un objeto JSON, se conservan los textos originales.
   if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
@@ -170,6 +173,7 @@ Confidence should be between 0 and 1, where 1 means highly confident.`,
     max_tokens: 4096,
   });
 
+  recordChatUsage('translation', 'gpt-4o', response.usage as any);
   const parsed = safeParseJson<{ translation?: string; confidence?: number }>(response.choices[0].message.content);
   return {
     translation: parsed?.translation ?? "",

@@ -9,6 +9,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { AdminPageHelp } from "@/components/admin/AdminPageHelp";
+import { AiUsageCard } from "@/components/admin/AiUsageCard";
 import {
   FileText,
   FilePenLine,
@@ -702,6 +703,10 @@ export default function AdminDashboard() {
         </div>
 
         {/* ── Manual de uso — destacado, ya no escondido en "Avanzado" ── */}
+        <div className="mb-8 max-w-sm">
+          <AiUsageCard />
+        </div>
+
         <Card className="mb-8 rounded-2xl border-primary/30 bg-primary/5" data-testid="card-manual">
           <CardContent className="flex flex-wrap items-center justify-between gap-4 py-5">
             <div className="flex items-center gap-3">
