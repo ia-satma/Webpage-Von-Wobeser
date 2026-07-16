@@ -1,5 +1,5 @@
-// Test de conexión: confirma que el cliente OpenAI apuntado al endpoint compatible
-// de Anthropic responde con Claude (texto + modo JSON). node scripts/test-claude.mjs
+// Test de conexión: confirma que el cliente OpenAI (AI Integrations de Replit)
+// responde con gpt-4o (texto + modo JSON). node scripts/test-claude.mjs
 import "dotenv/config";
 import OpenAI from "openai";
 
@@ -7,7 +7,7 @@ const client = new OpenAI({
   baseURL: process.env.AI_INTEGRATIONS_OPENAI_BASE_URL,
   apiKey: process.env.AI_INTEGRATIONS_OPENAI_API_KEY,
 });
-const MODEL = "claude-sonnet-4-6";
+const MODEL = "gpt-4o";
 
 console.log("baseURL:", process.env.AI_INTEGRATIONS_OPENAI_BASE_URL);
 console.log("key:", (process.env.AI_INTEGRATIONS_OPENAI_API_KEY || "").slice(0, 18) + "…\n");

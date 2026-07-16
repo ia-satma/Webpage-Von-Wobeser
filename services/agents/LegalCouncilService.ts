@@ -114,7 +114,7 @@ export class LegalCouncilService {
         'Authorization': `Bearer ${this.openaiApiKey}`,
       },
       body: JSON.stringify({
-        model: 'claude-sonnet-4-6',
+        model: 'gpt-4o',
         messages: [
           { role: 'system', content: agent.systemPrompt },
           { role: 'user', content: `Evaluate this article:\n\n${truncatedText}` },
