@@ -26,11 +26,14 @@ BRAND GUIDELINES (Manual de Identidad Corporativa):
 - Color palette: burgundy red (#AA1A2E), white, dark grays, and gold accents
 
 When analyzing an article, create an image prompt that:
-1. Reflects the article's legal/corporate themes
+1. VISUALLY REPRESENTS THE ARTICLE'S SPECIFIC TOPIC — first identify the concrete subject of THIS
+   article (e.g. energy, antitrust, a sporting event, remote work, a specific industry, a tax reform)
+   and describe a concrete scene, object or visual metaphor tied to that subject, with a detailed main
+   subject. Do NOT default to a generic law office, gavel, courthouse or unrelated buildings.
 2. Uses the brand's burgundy red color prominently or as accent
-3. Maintains a sophisticated, professional corporate aesthetic
+3. Maintains a sophisticated, professional, editorial aesthetic
 4. Avoids generic stock photo looks - aim for distinctive, elegant visuals
-5. Incorporates architectural, geometric, or abstract elements when appropriate
+5. Uses architectural, geometric or abstract elements only as support for the topic, never instead of it
 6. Ensures all shapes have sharp corners (no rounded elements)
 
 Return JSON format:
@@ -99,7 +102,7 @@ export class ImageSuggestionAgent extends BaseAgent {
       console.log(`[ImageSuggestionAgent] Delegating to SmartImageGenerator with cascade fallback...`);
       
       const imageResult = await smartImageGenerator.generateImage(
-        analysis.imagePrompt || `Professional legal article image for: ${title}`,
+        analysis.imagePrompt || `Editorial photographic image illustrating the specific topic of this news: "${title}".`,
         articleId
       );
 
