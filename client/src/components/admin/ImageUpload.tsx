@@ -15,6 +15,14 @@ function downloadName(url: string, isVideo: boolean): string {
   }
 }
 
+/** Para assets generados (mismo origen) agrega ?download=1 → el server responde con
+ * Content-Disposition: attachment y fuerza la descarga (el atributo download no basta). */
+export function downloadHref(url: string): string {
+  return /^\/generated-(images|audio|presentations)\//.test(url)
+    ? `${url}${url.includes("?") ? "&" : "?"}download=1`
+    : url;
+}
+
 /**
  * Campo de medios reutilizable: permite SUBIR un archivo desde la computadora
  * (a /api/admin/media/upload) o pegar una URL/ruta. Soporta imagen o video.
@@ -83,9 +91,8 @@ export function ImageUpload({
           </div>
           {/* Descargar el medio (funciona con imágenes generadas por IA / subidas — mismo origen). */}
           <a
-            href={value}
+            href={downloadHref(value)}
             download={downloadName(value, isVideo)}
-            target="_blank"
             rel="noopener noreferrer"
             className="flex w-fit items-center gap-1 text-xs text-primary hover:underline"
             data-testid="link-download-media"

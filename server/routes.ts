@@ -363,6 +363,11 @@ export async function registerRoutes(
     }
     if (fs.existsSync(resolved) && fs.statSync(resolved).isFile()) {
       res.set('Cache-Control', 'public, max-age=31536000, immutable');
+      // ?download=1 fuerza la descarga a nivel HTTP (los estáticos se sirven inline; el atributo
+      // download del <a> no basta cross-origin). filename saneado con basename (sin ruta).
+      if (req.query.download !== undefined) {
+        res.setHeader('Content-Disposition', `attachment; filename="${path.basename(resolved)}"`);
+      }
       return res.sendFile(resolved);
     }
     res.status(404).json({ error: 'Image not found' });
@@ -386,6 +391,9 @@ export async function registerRoutes(
     }
     if (fs.existsSync(resolved) && fs.statSync(resolved).isFile()) {
       res.set('Cache-Control', 'public, max-age=31536000, immutable');
+      if (req.query.download !== undefined) {
+        res.setHeader('Content-Disposition', `attachment; filename="${path.basename(resolved)}"`);
+      }
       return res.sendFile(resolved);
     }
     res.status(404).json({ error: 'Audio not found' });
@@ -410,6 +418,9 @@ export async function registerRoutes(
     }
     if (fs.existsSync(resolved) && fs.statSync(resolved).isFile()) {
       res.set('Cache-Control', 'public, max-age=31536000, immutable');
+      if (req.query.download !== undefined) {
+        res.setHeader('Content-Disposition', `attachment; filename="${path.basename(resolved)}"`);
+      }
       return res.sendFile(resolved);
     }
     res.status(404).json({ error: 'Presentation not found' });

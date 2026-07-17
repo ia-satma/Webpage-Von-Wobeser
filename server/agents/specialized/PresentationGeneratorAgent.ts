@@ -47,7 +47,7 @@ Tipos de diapositiva ("layout") — VARÍALOS para que no se vea genérico:
 - "twocolumn": comparación / dos bloques. Agrega "columns": [ { "heading": "Antes", "points": ["a","b"] }, { "heading": "Después", "points": ["c","d"] } ].
 - "chart": gráfica. "chart": { "type": "bar"|"line"|"pie", "categories": ["A","B"], "series": [ { "name": "Serie", "values": [10, 20] } ], "unit": "%" (opcional), "insight": "la lectura clave en 1-2 frases" }. SOLO con datos numéricos reales del material; admite valores negativos.
 - "diagram": proceso/pasos. "diagram": { "kind": "flow"|"steps", "nodes": ["Paso 1","Paso 2","Paso 3"] } (2 a 6 nodos cortos).
-- "image": diapositiva ilustrada. "image": { "prompt": "...", "caption": "pie opcional" } + 2-4 viñetas de apoyo. El "prompt" (en INGLÉS) debe REPRESENTAR VISUALMENTE EL TEMA CONCRETO de ESA diapositiva (una escena, objeto o metáfora ligada a su contenido), con un sujeto principal detallado — NO una foto corporativa genérica de oficina/edificios/manos estrechándose sin relación. Estilo fotográfico/editorial sobrio, sin texto ni logos.
+- "image": diapositiva ilustrada. "image": { "prompt": "...", "caption": "pie opcional" } + 2-4 viñetas de apoyo. El "prompt" (en INGLÉS) debe REPRESENTAR VISUALMENTE EL TEMA CONCRETO de ESA diapositiva (una escena, objeto o metáfora ligada a su contenido), con un sujeto principal detallado — NO una foto corporativa genérica de oficina/edificios/manos estrechándose sin relación. Estilo FOTOGRAFÍA documental REALISTA (foto de prensa, luz natural), NO ilustración, NO dibujo, NO render 3D, sin texto, sin logos, sin colores de marca.
 - "closing": cierre. La ÚLTIMA. "title" tipo "Gracias" / "Hablemos".
 
 Reglas:

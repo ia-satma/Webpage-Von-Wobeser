@@ -92,7 +92,7 @@ export class SmartImageGenerator {
     }
 
     if (wasSanitized) {
-      sanitized = `Abstract professional visualization: ${sanitized}. Modern corporate office environment with elegant burgundy red (#AA1A2E) accents, scales of justice symbolism, clean geometric shapes, sophisticated lighting, no people in distress, peaceful and professional atmosphere.`;
+      sanitized = `Realistic documentary photograph: ${sanitized}. Neutral real-world editorial scene, natural lighting, no people in distress, calm and professional atmosphere. Photojournalism, not an illustration.`;
     } else {
       sanitized = prompt;
     }
@@ -404,7 +404,7 @@ export class SmartImageGenerator {
       transparencyLog: [],
     };
 
-    const brandEnhancedPrompt = `${originalPrompt}. Style: Professional corporate legal, color scheme featuring deep burgundy red (#AA1A2E) with white and dark gray accents. Sharp geometric edges, no rounded corners. Sophisticated and elegant composition suitable for a prestigious law firm.`;
+    const brandEnhancedPrompt = `${originalPrompt}. Style: realistic editorial documentary photograph, photojournalism, natural lighting, candid real-world scene, high detail, DSLR photo. NOT an illustration, NOT a cartoon, NOT a drawing, NOT a 3D render, NOT digital art. No text, no watermark, no logo, no captions.`;
 
     // Motor elegible por config (site_config.image_engine): 'openai' (DALL-E 3, principal por
     // defecto) o 'cloudflare' (gratis, requiere credenciales CLOUDFLARE_*). Se intenta el elegido
@@ -447,7 +447,7 @@ export class SmartImageGenerator {
           result.sanitizedPrompt = sanitized;
           result.promptWasSanitized = true;
           this.log(`Prompt saneado para ${engine}. Cambios: ${changes.join(', ')}`);
-          const sanitizedBrandPrompt = `${sanitized}. Style: Professional corporate legal, deep burgundy red (#AA1A2E) with white and dark gray accents. Sharp geometric edges, sophisticated composition.`;
+          const sanitizedBrandPrompt = `${sanitized}. Style: realistic editorial documentary photograph, photojournalism, natural lighting. NOT an illustration, NOT a cartoon, NOT a 3D render. No text, no watermark, no logo.`;
           attempt = await runEngine(engine, sanitizedBrandPrompt);
           result.retryCount++;
         }
@@ -457,11 +457,18 @@ export class SmartImageGenerator {
         try {
           const filename = `article-${articleId}-${attempt.name}-${Date.now()}.png`;
           const outputPath = path.join(OUTPUT_DIR, filename);
-          await this.overlayLogo(attempt.buffer, outputPath);
+          // Por defecto NO se estampa el logo (el usuario pidió imágenes de fotoperiodismo sin
+          // branding). Reactivable poniendo site_config.image_overlay_logo = 'true'.
+          const stampLogo = (config.image_overlay_logo?.value || '').trim().toLowerCase() === 'true';
+          if (stampLogo) {
+            await this.overlayLogo(attempt.buffer, outputPath);
+          } else {
+            await sharp(attempt.buffer).png().toFile(outputPath);
+          }
           result.success = true;
           result.engine = attempt.name!;
           result.imageUrl = `/generated-images/${filename}`;
-          this.log(`SUCCESS: imagen de ${attempt.name} guardada con logo: ${result.imageUrl}`);
+          this.log(`SUCCESS: imagen de ${attempt.name} guardada${stampLogo ? ' con logo' : ' (sin logo, foto realista)'}: ${result.imageUrl}`);
           break;
         } catch (saveErr: any) {
           this.log(`Guardado de ${engine} falló: ${saveErr.message}`);

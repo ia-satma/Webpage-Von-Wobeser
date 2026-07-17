@@ -30,8 +30,9 @@ ESPECÍFICO de ESTA noticia — NO una imagen genérica de oficina, abogados, ma
 relación. Primero identifica el asunto concreto de la noticia (p.ej. energía, competencia económica, un evento
 deportivo, teletrabajo, un sector industrial, una reforma fiscal) y describe una ESCENA, objeto o metáfora
 visual concreta ligada a ese asunto, con un sujeto principal detallado. Estilo: fotográfico/editorial
-profesional, paleta con burdeos #AA1A2E y acentos gris/blanco, elegante, esquinas rectas, SIN texto ni logos
-dentro de la imagen. (10–40 palabras, empezando por el sujeto principal.)
+documental/fotoperiodismo REALISTA (como una foto de prensa real), luz natural, NO ilustración, NO dibujo,
+NO render 3D, SIN texto, SIN logos y SIN colores de marca dentro de la imagen. (10–40 palabras, empezando
+por el sujeto principal.)
 
 Devuelve SOLO un objeto JSON con esta forma (incluye ÚNICAMENTE las redes solicitadas):
 { "posts": { "linkedin": { "text": "...", "hashtags": ["#Etiqueta"] }, "twitter": { "text": "...", "hashtags": [] } }, "imagePrompt": "escena concreta en inglés que ilustre el tema de la noticia" }
