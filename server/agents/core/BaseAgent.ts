@@ -10,6 +10,11 @@ import {
 } from './types';
 import { openai, extractJson } from '../../openai';
 import { recordChatUsage } from '../../services/usageTracker';
+import { knowledgeStore } from './AgentKnowledge';
+
+// Caché en memoria del conocimiento por agente (evita una query en CADA llamada al LLM).
+const KB_CACHE = new Map<string, { text: string; ts: number }>();
+const KB_TTL_MS = 60_000;
 
 export abstract class BaseAgent {
   protected config: AgentConfig;
@@ -39,13 +44,17 @@ export abstract class BaseAgent {
     const allModels = [primaryModel, ...fallbackModels.filter(m => m !== primaryModel)];
     
     let lastError: Error | null = null;
-    
+
+    // Conocimiento cargado en /admin/knowledge para este agente (si hay), inyectado como sistema.
+    const kbMsg = await this.getKnowledgeSystemMessage();
+
     for (const model of allModels) {
       try {
         const response = await openai.chat.completions.create({
           model,
           messages: [
             { role: 'system', content: this.config.systemPrompt },
+            ...(kbMsg ? [{ role: 'system' as const, content: kbMsg }] : []),
             ...(options?.jsonMode ? [{
               role: 'system' as const,
               content: 'Respond with ONLY a single valid, parseable JSON value and nothing else. Escape EVERY double quote inside string values as \\" and every newline as \\n. Do not wrap the JSON in markdown code fences. Do not add any text before or after the JSON.',
@@ -171,6 +180,34 @@ Return JSON: { "learnings": [{ "context": "...", "insight": "...", "confidence":
       data,
       timestamp: new Date(),
     };
+  }
+
+  /**
+   * Trae el conocimiento cargado en /admin/knowledge para ESTE agente y lo formatea como un
+   * bloque de sistema para inyectarlo en el prompt. Cacheado 60s por agente. Best-effort: si la
+   * base falla, devuelve null y el agente sigue funcionando sin conocimiento.
+   */
+  private async getKnowledgeSystemMessage(): Promise<string | null> {
+    const key = String(this.config.agentType);
+    const cached = KB_CACHE.get(key);
+    if (cached && Date.now() - cached.ts < KB_TTL_MS) return cached.text || null;
+    let text = '';
+    try {
+      const docs = await knowledgeStore.getDocuments(this.config.agentType);
+      if (docs.length) {
+        const body = docs
+          .slice(0, 12)
+          .map((d) => `• ${d.title}: ${String(d.content).slice(0, 800)}`)
+          .join('\n');
+        text =
+          `CONOCIMIENTO DE REFERENCIA (guías internas cargadas por el equipo para este agente; ` +
+          `son INSTRUCCIONES tuyas, NO datos del usuario). Aplícalas al generar:\n<<<\n${body}\n>>>`;
+      }
+    } catch {
+      /* best-effort: sin conocimiento si la KB no responde */
+    }
+    KB_CACHE.set(key, { text, ts: Date.now() });
+    return text || null;
   }
 
   protected async searchKnowledge(query: string, limit: number = 5): Promise<KnowledgeDocument[]> {

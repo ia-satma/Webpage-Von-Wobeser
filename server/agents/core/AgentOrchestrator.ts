@@ -41,6 +41,7 @@ export class AgentOrchestrator {
     console.log('[Orchestrator] Initializing agent system...');
     await knowledgeStore.initialize();
     await knowledgeStore.addLegalGlossary();
+    await knowledgeStore.addSocialCopyGuide();
     await evolutionTracker.initialize();
     
     await this.loadPendingJobsFromDatabase();
