@@ -15,7 +15,7 @@ import * as cheerio from "cheerio";
 import { renderNewsList, renderNewsDetail } from "./renderNews";
 import { buildIdMaps, type IdMaps } from "./idMap";
 import { getConfigMap, seedConfigDefaults, upsertConfig, isRichTextConfigKey, type ConfigMap } from "./siteConfig";
-import { setBaseUrl, setAnalyticsConfig } from "./seo";
+import { setBaseUrl, setAnalyticsConfig, applyA11y } from "./seo";
 import { sanitizeCms } from "./sanitize";
 import { authMiddleware, requireRole, requirePermission } from "../auth";
 import { storage } from "../storage";
@@ -304,6 +304,25 @@ function applyDiversityVideoGallery($: cheerio.CheerioAPI, config: ConfigMap): v
 // Inyecta el toggle de idioma antes de </body>, aplica el pie editable y envía.
 // Cache-Control permite que navegador/CDN reutilicen la página (contenido público
 // que cambia poco); stale-while-revalidate sirve la copia vieja mientras revalida.
+// Backstop de accesibilidad (Lighthouse) a nivel string: garantiza `alt` en CUALQUIER
+// <img> que haya escapado a applyA11y (p.ej. imgs que se materializan tras el render de
+// cheerio — comentarios destapados / inyección tardía). Barato (una regex), sin re-parsear
+// el documento (la perf de la home es sensible). Logo/redes reciben nombre real; el resto
+// queda decorativo (alt="").
+function ensureImgAlt(html: string): string {
+  return html.replace(/<img\b(?![^>]*\balt=)[^>]*?>/gi, (tag) => {
+    const src = (tag.match(/\bsrc=["']([^"']*)["']/i)?.[1] || "").toLowerCase();
+    let alt = "";
+    if (/logo|vonwobeser|vw40|vw2025|vw_/.test(src)) alt = "Von Wobeser y Sierra";
+    else if (/facebook/.test(src)) alt = "Facebook";
+    else if (/twitter|icon_tw/.test(src)) alt = "Twitter";
+    else if (/linkedin/.test(src)) alt = "LinkedIn";
+    else if (/instagram/.test(src)) alt = "Instagram";
+    else if (/youtube/.test(src)) alt = "YouTube";
+    return tag.replace(/\s*\/?>\s*$/, ` alt="${alt}">`);
+  });
+}
+
 async function sendPage(res: Response, html: string) {
   let out = html.includes("</body>")
     ? html.replace("</body>", `${LANG_TOGGLE_SCRIPT}</body>`)
@@ -312,6 +331,7 @@ async function sendPage(res: Response, html: string) {
     out = injectFooterString(out, await getConfigMap()); // getConfigMap está cacheado
   } catch { /* si la config falla, se sirve el pie original de la plantilla */ }
   out = injectAdminLink(out);
+  out = ensureImgAlt(out); // backstop a11y: alt en imgs que escaparon a applyA11y
   res.set("Cache-Control", "public, max-age=300, stale-while-revalidate=3600");
   res.status(200).type("html").send(out);
 }
@@ -725,6 +745,7 @@ export async function setupMirror(app: Express) {
     app.get(p, wrap((_req, res) => {
       const $ = cheerio.load(tpl("index.php/bolsa-de-trabajo/pasantes/index.html"));
       applyCareersFormFix($, "es");
+      applyA11y($, "es"); // estas subpáginas no pasan por applySeo
       sendPage(res, $.html());
       return Promise.resolve();
     }));
@@ -732,6 +753,7 @@ export async function setupMirror(app: Express) {
     app.get(p, wrap((_req, res) => {
       const $ = cheerio.load(tpl("index.php/careers/interns/index.html"));
       applyCareersFormFix($, "en");
+      applyA11y($, "en"); // estas subpáginas no pasan por applySeo
       sendPage(res, $.html());
       return Promise.resolve();
     }));
