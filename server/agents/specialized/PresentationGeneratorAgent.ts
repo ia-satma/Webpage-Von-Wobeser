@@ -17,6 +17,7 @@ import {
   type PresentationFormat,
 } from '../../services/PresentationGenerator';
 import { smartImageGenerator } from '../../services/SmartImageGenerator';
+import { hasDedicatedImageClient } from '../../openai';
 
 // 14° agente: Generador de Presentaciones. A diferencia de los agentes estructurales
 // (voice/auditors), SÍ llama a un LLM de texto: estructura el tema escrito + el texto extraído
@@ -46,7 +47,7 @@ Tipos de diapositiva ("layout") — VARÍALOS para que no se vea genérico:
 - "twocolumn": comparación / dos bloques. Agrega "columns": [ { "heading": "Antes", "points": ["a","b"] }, { "heading": "Después", "points": ["c","d"] } ].
 - "chart": gráfica. "chart": { "type": "bar"|"line"|"pie", "categories": ["A","B"], "series": [ { "name": "Serie", "values": [10, 20] } ], "unit": "%" (opcional), "insight": "la lectura clave en 1-2 frases" }. SOLO con datos numéricos reales del material; admite valores negativos.
 - "diagram": proceso/pasos. "diagram": { "kind": "flow"|"steps", "nodes": ["Paso 1","Paso 2","Paso 3"] } (2 a 6 nodos cortos).
-- "image": diapositiva ilustrada. "image": { "prompt": "descripción en INGLÉS de una foto corporativa sobria, sin texto", "caption": "pie opcional" } + 2-4 viñetas de apoyo.
+- "image": diapositiva ilustrada. "image": { "prompt": "...", "caption": "pie opcional" } + 2-4 viñetas de apoyo. El "prompt" (en INGLÉS) debe REPRESENTAR VISUALMENTE EL TEMA CONCRETO de ESA diapositiva (una escena, objeto o metáfora ligada a su contenido), con un sujeto principal detallado — NO una foto corporativa genérica de oficina/edificios/manos estrechándose sin relación. Estilo fotográfico/editorial sobrio, sin texto ni logos.
 - "closing": cierre. La ÚLTIMA. "title" tipo "Gracias" / "Hablemos".
 
 Reglas:
@@ -208,7 +209,12 @@ export class PresentationGeneratorAgent extends BaseAgent {
             aiImages++;
             continue;
           }
-          notes.push(`No se pudo generar una imagen (${res.engine === 'placeholder' ? 'sin créditos de imagen' : res.errorCode || 'error'}); esa diapositiva usa solo texto.`);
+          const reason = res.engine === 'placeholder'
+            ? (hasDedicatedImageClient()
+                ? 'DALL-E rechazó la imagen (revisa saldo/validez de la key de OpenAI)'
+                : 'falta la key de OpenAI para imágenes (OPENAI_IMAGE_API_KEY); el proxy de Replit no genera imágenes')
+            : (res.errorCode || 'error');
+          notes.push(`No se pudo generar una imagen (${reason}); esa diapositiva usa solo texto.`);
         } catch (e: any) {
           notes.push(`Error al generar imagen: ${e?.message || 'desconocido'}.`);
         }
