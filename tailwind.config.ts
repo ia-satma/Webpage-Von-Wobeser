@@ -6,12 +6,23 @@ export default {
   theme: {
     extend: {
       borderRadius: {
-        // Derivado de --radius (0rem, esquinas rectas por mandato del manual de identidad).
-        // Antes estaban fijos en rem e ignoraban la variable — la marca nunca se respetaba
-        // en botones/cards/inputs que usan rounded-lg/md/sm.
-        lg: "var(--radius)",
-        md: "var(--radius)",
-        sm: "var(--radius)",
+        // Escala coherente del PANEL ADMIN derivada de --radius (8px). El sitio público mantiene
+        // sus esquinas rectas por su propio CSS; esto solo gobierna las utilidades rounded-* del panel.
+        sm: "calc(var(--radius) - 4px)",   // 4px  checkbox
+        md: "calc(var(--radius) - 2px)",   // 6px  badge, botón sm, tab trigger, select item, skeleton
+        lg: "var(--radius)",               // 8px  botón, input, textarea, select trigger, menús, sidebar
+        xl: "calc(var(--radius) + 4px)",   // 12px card, dialog
+        "2xl": "calc(var(--radius) + 8px)",// 16px reservado
+      },
+      boxShadow: {
+        // Cablea las --shadow-* de index.css a las utilidades shadow-* (antes shadow-xs era no-op).
+        xs: "var(--shadow-xs)",
+        sm: "var(--shadow-sm)",
+        DEFAULT: "var(--shadow)",
+        md: "var(--shadow-md)",
+        lg: "var(--shadow-lg)",
+        xl: "var(--shadow-xl)",
+        "2xl": "var(--shadow-2xl)",
       },
       colors: {
         // Flat / base colors (regular buttons)

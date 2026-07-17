@@ -62,7 +62,7 @@ blockquote {
   --button-outline: rgba(0,0,0, .10);
   --badge-outline: rgba(0,0,0, .05);
   --opaque-button-border-intensity: -8;
-  --elevate-1: rgba(0,0,0, .03);
+  --elevate-1: rgba(0,0,0, .04);
   --elevate-2: rgba(0,0,0, .08);
 
   /* ── PALETA LIGHT ─────────────────────────────────────────
@@ -74,7 +74,7 @@ blockquote {
   --card: 0 0% 100%;               /* #FFFFFF — blanco puro           */
   --card-foreground: 0 0% 9%;
   --card-border: 0 0% 90%;         /* #E6E6E6 — borde sutil           */
-  --border: 0 0% 87%;              /* #DEDEDE                         */
+  --border: 0 0% 89%;              /* #E3E3E3 — hairline sutil         */
   --sidebar: 0 0% 96%;             /* #F5F5F5                         */
   --sidebar-foreground: 0 0% 9%;
   --sidebar-border: 0 0% 88%;
@@ -103,7 +103,7 @@ blockquote {
   --success-foreground: 0 0% 98%;
   --warning: 38 85% 45%;
   --warning-foreground: 0 0% 9%;
-  --input: 0 0% 84%;
+  --input: 0 0% 86%;
   --ring: 351 77% 38%;
   --chart-1: 351 77% 38%;
   --chart-2: 352 50% 45%;
@@ -115,16 +115,18 @@ blockquote {
   --font-heading: 'Publico-Roman', 'Georgia', 'Times New Roman', serif;
   --font-support: 'Geomanist-Book', 'Geomanist', 'Century Gothic', 'Lato', sans-serif;
   --font-mono: Menlo, monospace;
-  /* Esquinas rectas — Manual de Identidad VW / look del espejo (zero-radius). */
-  --radius: 0rem;
-  --shadow-2xs: 0 1px 2px 0 hsl(220 25% 12% / 0.04);
-  --shadow-xs:  0 1px 3px 0 hsl(220 25% 12% / 0.06);
-  --shadow-sm:  0 1px 3px 0 hsl(220 25% 12% / 0.08), 0 1px 2px -1px hsl(220 25% 12% / 0.06);
-  --shadow:     0 4px 6px -1px hsl(220 25% 12% / 0.08), 0 2px 4px -2px hsl(220 25% 12% / 0.06);
-  --shadow-md:  0 8px 16px -4px hsl(220 25% 12% / 0.10), 0 4px 6px -4px hsl(220 25% 12% / 0.06);
-  --shadow-lg:  0 16px 24px -6px hsl(220 25% 12% / 0.12), 0 8px 10px -6px hsl(220 25% 12% / 0.06);
-  --shadow-xl:  0 24px 40px -8px hsl(220 25% 12% / 0.14), 0 12px 16px -8px hsl(220 25% 12% / 0.06);
-  --shadow-2xl: 0 40px 64px -12px hsl(220 25% 12% / 0.18);
+  /* Radio base del PANEL ADMIN (8px). El espejo público conserva sus esquinas rectas por su
+     propio CSS; esto solo afecta las utilidades rounded-* del panel React. */
+  --radius: 0.5rem;
+  /* Sombras 0-hue (negro puro) — antes tenían tinte azul (220 25% 12%) que rompía la paleta neutra. */
+  --shadow-2xs: 0 1px 2px 0 hsl(0 0% 0% / 0.04);
+  --shadow-xs:  0 1px 2px 0 hsl(0 0% 0% / 0.05);
+  --shadow-sm:  0 1px 2px -1px hsl(0 0% 0% / 0.06), 0 1px 3px 0 hsl(0 0% 0% / 0.06);
+  --shadow:     0 2px 4px -1px hsl(0 0% 0% / 0.06), 0 4px 8px -2px hsl(0 0% 0% / 0.07);
+  --shadow-md:  0 2px 4px -1px hsl(0 0% 0% / 0.06), 0 4px 10px -2px hsl(0 0% 0% / 0.08);
+  --shadow-lg:  0 4px 8px -2px hsl(0 0% 0% / 0.08), 0 12px 20px -4px hsl(0 0% 0% / 0.10);
+  --shadow-xl:  0 8px 16px -4px hsl(0 0% 0% / 0.10), 0 24px 32px -8px hsl(0 0% 0% / 0.12);
+  --shadow-2xl: 0 24px 48px -12px hsl(0 0% 0% / 0.18);
   --tracking-normal: 0em;
   --spacing: 0.25rem;
 
@@ -161,8 +163,8 @@ blockquote {
   --button-outline: rgba(255,255,255, .10);
   --badge-outline: rgba(255,255,255, .05);
   --opaque-button-border-intensity: 9;
-  --elevate-1: rgba(255,255,255, .04);
-  --elevate-2: rgba(255,255,255, .09);
+  --elevate-1: rgba(255,255,255, .06);
+  --elevate-2: rgba(255,255,255, .10);
 
   /* ── PALETA DARK ──────────────────────────────────────────
      Carbón neutro profundo — sin azul, sin calidez.
@@ -172,7 +174,7 @@ blockquote {
   --foreground: 0 0% 93%;          /* #EDEDED — blanco neutro suave   */
   --card: 0 0% 13%;                /* #212121 — panel elevado         */
   --card-foreground: 0 0% 93%;
-  --card-border: 0 0% 20%;         /* #333333 — borde sutil           */
+  --card-border: 0 0% 22%;         /* #383838 — borde (da elevación en dark plano) */
   --border: 0 0% 22%;              /* #383838                         */
   --sidebar: 0 0% 11%;             /* #1C1C1C                         */
   --sidebar-foreground: 0 0% 90%;
@@ -206,14 +208,16 @@ blockquote {
   --chart-3: 0 0% 65%;
   --chart-4: 0 0% 48%;
   --chart-5: 351 40% 55%;
-  --shadow-2xs: 0px 2px 0px 0px hsl(0 0% 0% / 0.00);
-  --shadow-xs: 0px 2px 0px 0px hsl(0 0% 0% / 0.00);
-  --shadow-sm: 0px 2px 0px 0px hsl(0 0% 0% / 0.00), 0px 1px 2px -1px hsl(0 0% 0% / 0.00);
-  --shadow: 0px 2px 0px 0px hsl(0 0% 0% / 0.00), 0px 1px 2px -1px hsl(0 0% 0% / 0.00);
-  --shadow-md: 0px 2px 0px 0px hsl(0 0% 0% / 0.00), 0px 2px 4px -1px hsl(0 0% 0% / 0.00);
-  --shadow-lg: 0px 2px 0px 0px hsl(0 0% 0% / 0.00), 0px 4px 6px -1px hsl(0 0% 0% / 0.00);
-  --shadow-xl: 0px 2px 0px 0px hsl(0 0% 0% / 0.00), 0px 8px 10px -1px hsl(0 0% 0% / 0.00);
-  --shadow-2xl: 0px 2px 0px 0px hsl(0 0% 0% / 0.00);
+  /* Dark: superficies en reposo PLANAS (el borde da la elevación); los overlays (menús/diálogos)
+     sí llevan sombra real para despegarse del velo. */
+  --shadow-2xs: 0 0 0 0 transparent;
+  --shadow-xs:  0 0 0 0 transparent;
+  --shadow-sm:  0 1px 2px -1px hsl(0 0% 0% / 0.30);
+  --shadow:     0 2px 6px -1px hsl(0 0% 0% / 0.35);
+  --shadow-md:  0 2px 6px -1px hsl(0 0% 0% / 0.40), 0 4px 12px -2px hsl(0 0% 0% / 0.35);
+  --shadow-lg:  0 8px 24px -4px hsl(0 0% 0% / 0.50);
+  --shadow-xl:  0 16px 40px -8px hsl(0 0% 0% / 0.55);
+  --shadow-2xl: 0 24px 56px -12px hsl(0 0% 0% / 0.60);
 
 /* Fallback for older browsers */
   --sidebar-primary-border: hsl(var(--sidebar-primary));
@@ -326,28 +330,15 @@ blockquote {
     right: 0.5rem;
   }
 
-  /* Enhanced focus indicators for accessibility */
-  *:focus-visible {
-    outline: 2px solid hsl(var(--ring));
-    outline-offset: 2px;
-  }
-
-  /* Focus indicators for interactive elements */
+  /* Foco de accesibilidad — SOLO como respaldo para focusables SIN estilo propio. Los primitivos
+     (Button/Input/etc.) usan focus-visible:outline-none + su propio ring, así que aquí se EXCLUYEN
+     input/textarea/select/button para no dibujar un doble anillo. */
   a:focus-visible,
-  button:focus-visible,
-  input:focus-visible,
-  textarea:focus-visible,
-  select:focus-visible,
   [role="button"]:focus-visible,
-  [tabindex]:focus-visible {
+  [tabindex]:not(input):not(textarea):not(select):not(button):focus-visible,
+  [contenteditable]:focus-visible {
     outline: 2px solid hsl(var(--ring));
     outline-offset: 2px;
-  }
-
-  /* Ensure focus is visible on dark backgrounds */
-  .dark a:focus-visible,
-  .dark button:focus-visible {
-    outline-color: hsl(var(--ring));
   }
 
   /* Hide ugly search cancel button in Chrome until we can style it properly */

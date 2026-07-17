@@ -686,7 +686,7 @@ export default function AdminDashboard() {
           ].map((s) => {
             const Icon = s.icon;
             return (
-              <div key={s.key} className="rounded-2xl border border-border bg-card p-5 transition-shadow hover:shadow-sm" data-testid={`stat-${s.key}`}>
+              <div key={s.key} className="rounded-xl border border-border bg-card p-5 transition-shadow hover:shadow-sm" data-testid={`stat-${s.key}`}>
                 <div className="flex items-center justify-between">
                   <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{s.label}</span>
                   <span className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-primary"><Icon className="h-4 w-4" /></span>
@@ -707,7 +707,7 @@ export default function AdminDashboard() {
           <AiUsageCard />
         </div>
 
-        <Card className="mb-8 rounded-2xl border-primary/30 bg-primary/5" data-testid="card-manual">
+        <Card className="mb-8 rounded-xl border-primary/30 bg-primary/5" data-testid="card-manual">
           <CardContent className="flex flex-wrap items-center justify-between gap-4 py-5">
             <div className="flex items-center gap-3">
               <span className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary flex-shrink-0"><HelpCircle className="h-5 w-5" /></span>
@@ -723,7 +723,7 @@ export default function AdminDashboard() {
         </Card>
 
         {/* ── Accesos rápidos — el resto de las secciones ya viven en el sidebar ── */}
-        <Card className="mb-8 rounded-2xl" data-testid="card-quick-actions">
+        <Card className="mb-8 rounded-xl" data-testid="card-quick-actions">
           <CardHeader>
             <CardTitle>Accesos rápidos</CardTitle>
             <CardDescription>Las tareas más frecuentes. El resto de las secciones está en el menú lateral.</CardDescription>
@@ -749,7 +749,7 @@ export default function AdminDashboard() {
         </Card>
 
         <div className="grid gap-6 lg:grid-cols-3 mb-8">
-          <Card className="lg:col-span-1 rounded-2xl" data-testid="card-translation-coverage">
+          <Card className="lg:col-span-1 rounded-xl" data-testid="card-translation-coverage">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <BarChart3 className="h-5 w-5" />
@@ -786,7 +786,7 @@ export default function AdminDashboard() {
             </CardContent>
           </Card>
 
-          <Card className="lg:col-span-2 rounded-2xl" data-testid="card-language-distribution">
+          <Card className="lg:col-span-2 rounded-xl" data-testid="card-language-distribution">
             <CardHeader
               className="cursor-pointer select-none"
               onClick={() => setShowLangDist((v) => !v)}

@@ -16,17 +16,21 @@ interface AdminPageHeaderProps {
  */
 export function AdminPageHeader({ title, description, icon: Icon, actions }: AdminPageHeaderProps) {
   return (
-    <div className="mb-6 flex flex-wrap items-start justify-between gap-3">
-      <div className="min-w-0">
-        <div className="flex items-center gap-2">
-          {Icon && <Icon className="h-5 w-5 text-primary flex-shrink-0" />}
-          <h1 className="text-2xl font-heading font-semibold tracking-tight text-foreground" data-testid="text-page-title">
+    <div className="mb-6 flex flex-wrap items-start justify-between gap-3 border-b border-border pb-4">
+      <div className="flex min-w-0 items-start gap-3">
+        {Icon && (
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-primary/20 bg-primary/10 text-primary">
+            <Icon className="h-5 w-5" />
+          </span>
+        )}
+        <div className="min-w-0 space-y-1">
+          <h1 className="text-xl md:text-2xl font-semibold tracking-tight text-foreground" data-testid="text-page-title">
             {title}
           </h1>
+          {description && <p className="text-sm text-muted-foreground">{description}</p>}
         </div>
-        {description && <p className="text-sm text-muted-foreground mt-1">{description}</p>}
       </div>
-      {actions && <div className="flex items-center gap-2 flex-shrink-0">{actions}</div>}
+      {actions && <div className="flex shrink-0 items-center gap-2">{actions}</div>}
     </div>
   );
 }

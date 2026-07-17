@@ -238,10 +238,10 @@ export default function AdminLogin() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-muted dark:bg-gray-900 px-4">
-      <Card className="w-full max-w-md">
+    <div className="min-h-screen flex items-center justify-center px-4 bg-[radial-gradient(120%_120%_at_50%_0%,hsl(var(--muted))_0%,hsl(var(--background))_60%)]">
+      <Card className="w-full max-w-md rounded-xl border-t-2 border-t-primary shadow-xl">
         <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl font-bold text-center" data-testid="text-login-title">
+          <CardTitle className="text-xl font-semibold text-center" data-testid="text-login-title">
             {t.title}
           </CardTitle>
           <CardDescription className="text-center" data-testid="text-login-description">
@@ -292,7 +292,7 @@ export default function AdminLogin() {
 
               {loginMutation.isError && (
                 <div 
-                  className="flex items-center gap-2 p-3 bg-destructive/10 text-destructive rounded-none text-sm"
+                  className="flex items-center gap-2 p-3 bg-destructive/10 text-destructive rounded-md text-sm"
                   data-testid="error-login-message"
                 >
                   <AlertCircle className="h-4 w-4" />
