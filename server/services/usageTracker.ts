@@ -26,12 +26,19 @@ export function recordChatUsage(kind: 'chat' | 'translation', model: string, usa
   })();
 }
 
-/** Registra una imagen generada por DALL-E (costo según el tamaño). */
-export function recordImageUsage(size: string): void {
+/** Registra una imagen generada (costo aproximado según modelo, tamaño y calidad). */
+export function recordImageUsage(size: string, model: string = 'dall-e-3', quality?: string): void {
   void (async () => {
     try {
-      const costUsd = size === '1024x1024' ? 0.04 : 0.08;
-      await db.insert(apiUsage).values({ kind: 'image', model: 'dall-e-3', images: 1, costUsd });
+      let costUsd: number;
+      if (model === 'gpt-image-1') {
+        // gpt-image-1 cobra por tokens; aprox. 1024² por calidad. landscape/portrait cuestan más.
+        const base = quality === 'low' ? 0.011 : quality === 'medium' ? 0.042 : 0.167;
+        costUsd = size === '1024x1024' ? base : base * 1.5;
+      } else {
+        costUsd = size === '1024x1024' ? 0.04 : 0.08;
+      }
+      await db.insert(apiUsage).values({ kind: 'image', model, images: 1, costUsd });
     } catch {
       /* ignore */
     }

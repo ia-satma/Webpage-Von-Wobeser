@@ -56,7 +56,7 @@ const ABSTRACT_REPLACEMENTS: Record<string, string> = {
 export interface ImageGenerationResult {
   success: boolean;
   imageUrl?: string;
-  engine: 'cloudflare' | 'dalle3' | 'gemini' | 'placeholder';
+  engine: 'cloudflare' | 'gptimage' | 'dalle3' | 'gemini' | 'placeholder';
   originalPrompt: string;
   sanitizedPrompt?: string;
   promptWasSanitized: boolean;
@@ -187,70 +187,134 @@ export class SmartImageGenerator {
     const errorMessage = error?.message || error?.error?.message || '';
     const status = error?.status || error?.response?.status;
 
+    const msg = errorMessage.toLowerCase();
     return {
       code: errorCode,
-      isContentPolicy: errorCode === 'content_policy_violation' || 
-                       status === 400 || 
-                       errorMessage.toLowerCase().includes('safety') ||
-                       errorMessage.toLowerCase().includes('content policy'),
+      // OJO: NO tratar cualquier 400 como content policy — un 400 puede ser tamaño/param
+      // inválido (p.ej. size no soportado por el modelo) y eso NO debe abortar el fallback.
+      isContentPolicy: errorCode === 'content_policy_violation' ||
+                       msg.includes('safety') ||
+                       msg.includes('content policy') ||
+                       msg.includes('content_policy') ||
+                       msg.includes('moderation'),
       isRateLimit: errorCode === 'rate_limit_exceeded' || status === 429,
       isTimeout: errorCode === 'timeout' || status === 504 || status === 503 ||
                  errorMessage.toLowerCase().includes('timeout'),
     };
   }
 
-  private async callDalle3(prompt: string, maxRetries: number = 3, size: '1024x1024' | '1792x1024' | '1024x1792' = '1024x1024'): Promise<{ url?: string; error?: string; errorCode?: string }> {
+  // Tamaños que ACEPTA cada modelo de OpenAI (son distintos): gpt-image-1 usa
+  // 1024x1024/1536x1024/1024x1536 (no 1792); dall-e-3 usa 1024x1024/1792x1024/1024x1792.
+  private gptImageSize(aspect: string): '1024x1024' | '1536x1024' | '1024x1536' {
+    const a = (aspect || '1:1').trim();
+    return a === '16:9' ? '1536x1024' : a === '9:16' ? '1024x1536' : '1024x1024';
+  }
+  private dalleSize(aspect: string): '1024x1024' | '1792x1024' | '1024x1792' {
+    const a = (aspect || '1:1').trim();
+    return a === '16:9' ? '1792x1024' : a === '9:16' ? '1024x1792' : '1024x1024';
+  }
+
+  /**
+   * Genera una imagen con OpenAI y devuelve el BUFFER final (no una URL).
+   * Modelo primario: gpt-image-1 (mejor calidad y seguimiento del tema; responde en base64,
+   * sin URL). Si la organización de OpenAI NO está verificada para gpt-image-1 (403) o el
+   * modelo no es accesible, cae automáticamente a dall-e-3 (que responde con URL → se descarga).
+   * Quality 'high' de gpt-image-1 es la de mejor calidad (cuesta ~$0.16/imagen 1024²; se puede
+   * bajar a 'medium' ~$0.04 en IMAGE_QUALITY si el gasto importa).
+   */
+  private async callOpenAIImage(
+    prompt: string,
+    maxRetries: number,
+    aspect: string,
+  ): Promise<{ buffer?: Buffer; name?: 'gptimage' | 'dalle3'; error?: string; errorCode?: string }> {
     let lastError: any = null;
     const backoffTimes = [0, 5000, 10000, 20000];
+    // Empieza en gpt-image-1; puede degradar a dall-e-3 dentro del mismo loop.
+    let model: 'gpt-image-1' | 'dall-e-3' = 'gpt-image-1';
+    const IMAGE_QUALITY: 'low' | 'medium' | 'high' = 'high';
 
     for (let attempt = 0; attempt < maxRetries; attempt++) {
       if (attempt > 0) {
         const waitTime = backoffTimes[attempt] || 20000;
-        this.log(`DALL-E retry ${attempt}/${maxRetries - 1}, waiting ${waitTime / 1000}s...`);
+        this.log(`OpenAI image retry ${attempt}/${maxRetries - 1}, waiting ${waitTime / 1000}s...`);
         await this.sleep(waitTime);
       }
 
       try {
-        // Cliente dedicado (api.openai.com con OPENAI_IMAGE_API_KEY) si está configurado;
-        // si no, el compartido — que apunta al proxy de Replit, el cual NO soporta imágenes.
-        const image = await getImageClient().images.generate({
-          model: 'dall-e-3',
-          prompt,
-          n: 1,
-          size,
-          quality: 'standard',
-        });
-
-        const imageUrl = image.data?.[0]?.url;
-        if (imageUrl) {
-          this.log(`DALL-E 3 generated image successfully on attempt ${attempt + 1}`);
-          recordImageUsage(size);
-          return { url: imageUrl };
+        // Cliente dedicado (api.openai.com con OPENAI_IMAGE_API_KEY). El proxy de Replit NO
+        // soporta imágenes, por eso se usa getImageClient() apuntado al OpenAI real.
+        if (model === 'gpt-image-1') {
+          const res = await getImageClient().images.generate({
+            model: 'gpt-image-1',
+            prompt,
+            n: 1,
+            size: this.gptImageSize(aspect),
+            quality: IMAGE_QUALITY,
+          });
+          // gpt-image-1 SIEMPRE devuelve b64_json y NUNCA url.
+          const b64 = (res.data?.[0] as any)?.b64_json as string | undefined;
+          if (b64) {
+            this.log(`gpt-image-1 generó imagen (intento ${attempt + 1}, quality ${IMAGE_QUALITY})`);
+            recordImageUsage(this.gptImageSize(aspect), 'gpt-image-1', IMAGE_QUALITY);
+            return { buffer: Buffer.from(b64, 'base64'), name: 'gptimage' };
+          }
+          lastError = new Error('gpt-image-1 no devolvió b64_json');
+        } else {
+          const res = await getImageClient().images.generate({
+            model: 'dall-e-3',
+            prompt,
+            n: 1,
+            size: this.dalleSize(aspect),
+            quality: 'standard',
+          });
+          const url = res.data?.[0]?.url;
+          if (url) {
+            this.log(`dall-e-3 generó imagen (intento ${attempt + 1})`);
+            recordImageUsage(this.dalleSize(aspect), 'dall-e-3');
+            return { buffer: await this.downloadImage(url), name: 'dalle3' };
+          }
+          lastError = new Error('dall-e-3 no devolvió url');
         }
-        lastError = new Error('No image URL returned');
       } catch (err: any) {
         lastError = err;
         const parsed = this.parseOpenAIError(err);
-        
-        this.log(`DALL-E attempt ${attempt + 1} failed: ${parsed.code} - ${err.message}`);
+        const status = err?.status ?? err?.response?.status;
+        const msg = (err?.message || err?.error?.message || '').toLowerCase();
+        this.log(`OpenAI image (${model}) intento ${attempt + 1} falló: ${parsed.code} / ${status} - ${err?.message}`);
+
+        // Org sin verificar para gpt-image-1, o modelo no accesible → degrada a dall-e-3 y
+        // reintenta de inmediato (NO cuenta como reintento con backoff).
+        if (
+          model === 'gpt-image-1' &&
+          (status === 403 ||
+            msg.includes('must be verified') ||
+            msg.includes('verify your organization') ||
+            msg.includes('not have access') ||
+            parsed.code === 'model_not_found' ||
+            msg.includes('does not exist') ||
+            msg.includes('unsupported'))
+        ) {
+          this.log('gpt-image-1 no disponible (organización sin verificar o sin acceso al modelo) → usando dall-e-3.');
+          model = 'dall-e-3';
+          attempt--; // que este intento no consuma un reintento
+          continue;
+        }
 
         if (parsed.isContentPolicy) {
           return { error: 'Content policy violation', errorCode: 'content_policy_violation' };
         }
-
-        if (err?.code === 'billing_hard_limit_reached') {
-          return { error: 'OpenAI billing limit reached', errorCode: 'billing_limit' };
+        if (err?.code === 'billing_hard_limit_reached' || msg.includes('billing')) {
+          return { error: 'OpenAI billing/credit limit', errorCode: 'billing_limit' };
         }
-
         if (!parsed.isRateLimit && !parsed.isTimeout) {
           break;
         }
       }
     }
 
-    return { 
-      error: lastError?.message || 'DALL-E generation failed after retries',
-      errorCode: lastError?.code || 'unknown'
+    return {
+      error: lastError?.message || 'OpenAI image generation failed after retries',
+      errorCode: lastError?.code || 'unknown',
     };
   }
 
@@ -352,26 +416,19 @@ export class SmartImageGenerator {
     const order: Array<'openai' | 'cloudflare'> =
       primary === 'cloudflare' ? ['cloudflare', 'openai'] : ['openai', 'cloudflare'];
 
-    // Proporción/tamaño elegido en config (image_aspect) → tamaño soportado por DALL-E.
+    // Proporción elegida (1:1 / 16:9 / 9:16). Cada motor la mapea a su tamaño soportado
+    // internamente (gpt-image-1 y dall-e-3 aceptan tamaños distintos).
     const aspect = (aspectOverride || config.image_aspect?.value || '1:1').trim();
-    const dalleSize: '1024x1024' | '1792x1024' | '1024x1792' =
-      aspect === '16:9' ? '1792x1024' : aspect === '9:16' ? '1024x1792' : '1024x1024';
 
-    // Ejecuta un motor y devuelve un buffer (DALL-E entrega URL → se descarga a buffer).
+    // Ejecuta un motor y devuelve un buffer.
     const runEngine = async (
       engine: 'openai' | 'cloudflare',
       prompt: string,
-    ): Promise<{ buffer?: Buffer; name?: 'dalle3' | 'cloudflare'; error?: string; errorCode?: string }> => {
+    ): Promise<{ buffer?: Buffer; name?: 'gptimage' | 'dalle3' | 'cloudflare'; error?: string; errorCode?: string }> => {
       if (engine === 'openai') {
-        const r = await this.callDalle3(prompt, 3, dalleSize);
-        if (r.url) {
-          try {
-            return { buffer: await this.downloadImage(r.url), name: 'dalle3' };
-          } catch (e: any) {
-            return { error: `DALL-E download: ${e.message}`, errorCode: 'dalle_download' };
-          }
-        }
-        return { error: r.error, errorCode: r.errorCode };
+        // callOpenAIImage ya devuelve el buffer final (gpt-image-1 en base64, o dall-e-3 descargado).
+        const r = await this.callOpenAIImage(prompt, 3, aspect);
+        return r.buffer ? { buffer: r.buffer, name: r.name } : { error: r.error, errorCode: r.errorCode };
       }
       const r = await this.callCloudflareFlux(prompt);
       return r.buffer ? { buffer: r.buffer, name: 'cloudflare' } : { error: r.error, errorCode: r.errorCode };
@@ -442,16 +499,34 @@ export class SmartImageGenerator {
     // Registra la imagen en el historial reutilizable (galería del panel) — solo assets reales,
     // no el placeholder de fallback, que no sirve para reutilizarse en otro artículo.
     if (result.success && result.engine !== 'placeholder' && result.imageUrl) {
+      // articleId es FK a news.id (UUID). Los llamadores de presentaciones ("presentation-…")
+      // y del editor manual ("manual-…") pasan ids SINTÉTICOS que NO existen en news → el INSERT
+      // violaba la FK (23503) y se tragaba en el catch → la imagen NUNCA entraba a la galería.
+      // Fix: si el articleId no tiene forma de UUID, guardar NULL (la columna es nullable con
+      // onDelete:set null, y getGeneratedImages usa leftJoin, así que igual aparece en la galería).
+      const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+      const safeArticleId = articleId && UUID_RE.test(articleId) ? articleId : null;
+      const row = {
+        imageUrl: result.imageUrl,
+        prompt: result.originalPrompt,
+        sanitizedPrompt: result.sanitizedPrompt,
+        engine: result.engine,
+        articleId: safeArticleId,
+      };
       try {
-        await storage.createGeneratedImage({
-          imageUrl: result.imageUrl,
-          prompt: result.originalPrompt,
-          sanitizedPrompt: result.sanitizedPrompt,
-          engine: result.engine,
-          articleId,
-        });
+        await storage.createGeneratedImage(row);
       } catch (err: any) {
-        this.log(`Failed to record generated image in gallery history: ${err.message}`);
+        // Red de seguridad: si aun con UUID el INSERT falla por FK (noticia borrada entre la
+        // generación y el guardado), reintentar con articleId NULL para no perder el asset.
+        if (/foreign key|23503/i.test(err?.message || err?.code || '')) {
+          try {
+            await storage.createGeneratedImage({ ...row, articleId: null });
+          } catch (err2: any) {
+            this.log(`Failed to record generated image in gallery history (retry): ${err2.message}`);
+          }
+        } else {
+          this.log(`Failed to record generated image in gallery history: ${err.message}`);
+        }
       }
     }
 
