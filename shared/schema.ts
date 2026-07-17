@@ -215,6 +215,37 @@ export const insertGeneratedAudioSchema = createInsertSchema(generatedAudio).omi
 export type InsertGeneratedAudio = z.infer<typeof insertGeneratedAudioSchema>;
 export type GeneratedAudio = typeof generatedAudio.$inferSelect;
 
+// Historial de presentaciones generadas por IA (PresentationGenerator / 14° agente
+// presentation_generator). Un mismo registro apunta a los tres formatos generados a partir
+// del MISMO modelo de diapositivas: pptxUrl (editable), pdfUrl (una página por diapositiva) y
+// pngUrls (una imagen por diapositiva). template = plantilla visual (vonwobeser|minimal|dark);
+// branding = perfil de marca aplicado (vonwobeser|custom); sourceDocs = nombres de los
+// documentos subidos que se usaron como insumo. Mismo patrón de disco + fila que
+// generatedImages/generatedAudio: archivos en public/generated-presentations/.
+export const generatedPresentations = pgTable("generated_presentations", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  title: text("title").notNull(),
+  topic: text("topic"),
+  template: text("template").notNull().default("vonwobeser"),
+  branding: text("branding").notNull().default("vonwobeser"),
+  lang: text("lang").notNull().default("es"),
+  slideCount: integer("slide_count").default(0),
+  pptxUrl: text("pptx_url"),
+  pdfUrl: text("pdf_url"),
+  pngUrls: jsonb("png_urls").$type<string[]>().default([]),
+  sourceDocs: jsonb("source_docs").$type<string[]>().default([]),
+  engine: text("engine").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertGeneratedPresentationSchema = createInsertSchema(generatedPresentations, {
+  // Refina los jsonb a arreglos de strings (drizzle-zod infiere unknown[] por defecto).
+  pngUrls: z.array(z.string()).optional(),
+  sourceDocs: z.array(z.string()).optional(),
+}).omit({ id: true, createdAt: true });
+export type InsertGeneratedPresentation = z.infer<typeof insertGeneratedPresentationSchema>;
+export type GeneratedPresentation = typeof generatedPresentations.$inferSelect;
+
 export const practiceGroups = pgTable("practice_groups", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   name: text("name").notNull(),

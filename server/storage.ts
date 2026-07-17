@@ -13,6 +13,8 @@ import {
   type InsertGeneratedImage,
   type GeneratedAudio,
   type InsertGeneratedAudio,
+  type GeneratedPresentation,
+  type InsertGeneratedPresentation,
   type PracticeGroup,
   type InsertPracticeGroup,
   type IndustryGroup,
@@ -70,6 +72,7 @@ import {
   officeImages,
   generatedImages,
   generatedAudio,
+  generatedPresentations,
   practiceGroups,
   industryGroups,
   teamMembers,
@@ -127,6 +130,9 @@ export interface IStorage {
   getGeneratedAudio(): Promise<(GeneratedAudio & { articleTitle: string | null; articleSlug: string | null })[]>;
   createGeneratedAudio(audio: InsertGeneratedAudio): Promise<GeneratedAudio>;
   deleteGeneratedAudio(id: string): Promise<boolean>;
+  getGeneratedPresentations(): Promise<GeneratedPresentation[]>;
+  createGeneratedPresentation(presentation: InsertGeneratedPresentation): Promise<GeneratedPresentation>;
+  deleteGeneratedPresentation(id: string): Promise<boolean>;
   getSiteContent(): SiteContent;
   getStats(): Stat[];
   getPracticeGroups(): Promise<PracticeGroup[]>;
@@ -589,6 +595,23 @@ export class DatabaseStorage implements IStorage {
 
   async deleteGeneratedAudio(id: string): Promise<boolean> {
     const result = await db.delete(generatedAudio).where(eq(generatedAudio.id, id)).returning();
+    return result.length > 0;
+  }
+
+  async getGeneratedPresentations(): Promise<GeneratedPresentation[]> {
+    return await db
+      .select()
+      .from(generatedPresentations)
+      .orderBy(desc(generatedPresentations.createdAt));
+  }
+
+  async createGeneratedPresentation(presentation: InsertGeneratedPresentation): Promise<GeneratedPresentation> {
+    const [created] = await db.insert(generatedPresentations).values(presentation).returning();
+    return created;
+  }
+
+  async deleteGeneratedPresentation(id: string): Promise<boolean> {
+    const result = await db.delete(generatedPresentations).where(eq(generatedPresentations.id, id)).returning();
     return result.length > 0;
   }
 

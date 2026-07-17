@@ -33,7 +33,9 @@ import {
   Loader2,
   Share2,
   Mail,
-  Bell
+  Bell,
+  Volume2,
+  Presentation
 } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
@@ -111,6 +113,8 @@ const AGENT_ICONS: Record<string, any> = {
   social_media: Share2,
   newsletter: Mail,
   legal_alerts: Bell,
+  voice_agent: Volume2,
+  presentation_generator: Presentation,
   orchestrator: Bot,
 };
 
@@ -127,6 +131,8 @@ const AGENT_NAMES: Record<string, string> = {
   social_media: "Redes Sociales",
   newsletter: "Boletín / Newsletter",
   legal_alerts: "Alertas Legales",
+  voice_agent: "Generador de Voz",
+  presentation_generator: "Generador de Presentaciones",
   orchestrator: "Orquestador",
 };
 
@@ -144,6 +150,8 @@ const AGENT_DESCRIPTIONS: Record<string, string> = {
   social_media: "Convierte una noticia en publicaciones para LinkedIn y X (Twitter), con una imagen para acompañarlas. → Dónde: en un cuadro para copiar, con el botón 'Generar post de redes' cuando EDITAS una noticia. (usa IA)",
   newsletter: "Compila las noticias recientes en un boletín (asunto + cuerpo HTML). → Dónde: en un cuadro para copiar/enviar, con el botón 'Boletín' arriba en la página de Noticias. (usa IA)",
   legal_alerts: "De una fuente oficial (texto pegado, URL .gob.mx, o automático cada 6h escaneando COFECE) redacta un borrador de alerta. → Dónde: crea una noticia SIN PUBLICAR y te abre su editor; desde el botón 'Crear alerta' en Noticias, o sola en la cola si el escaneo automático encontró algo relevante. (usa IA)",
+  voice_agent: "Convierte a audio (voz corporativa vía OpenAI TTS) un texto ya generado por el boletín, un post de redes o una alerta legal. → Dónde: el audio queda en 'Audio generado por IA'. (usa IA)",
+  presentation_generator: "Genera una presentación con branding de Von Wobeser a partir de un tema escrito y/o documentos subidos (.pdf/.docx/.pptx/.tex). Descarga en PPTX, PDF y PNG por diapositiva. → Dónde: en su propia pestaña 'Presentaciones IA'. (usa IA)",
   orchestrator: "Coordina la cola de trabajos y ejecuta los agentes en orden. → Dónde: su estado (cola, activos) se ve arriba en esta misma página. (sin IA)",
 };
 

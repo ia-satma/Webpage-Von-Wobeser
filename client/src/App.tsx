@@ -48,6 +48,7 @@ const AdminArticleDetail = lazy(() => import("@/pages/admin/AdminArticleDetail")
 const GalleryAdmin = lazy(() => import("@/pages/admin/GalleryAdmin"));
 const AdminGeneratedImages = lazy(() => import("@/pages/admin/AdminGeneratedImages"));
 const AdminGeneratedAudio = lazy(() => import("@/pages/admin/AdminGeneratedAudio"));
+const AdminPresentations = lazy(() => import("@/pages/admin/AdminPresentations"));
 const AdminManual = lazy(() => import("@/pages/admin/AdminManual"));
 const AdminComingSoon = lazy(() => import("@/pages/admin/AdminComingSoon"));
 
@@ -161,6 +162,7 @@ function Router() {
         <Route path="/admin/gallery" component={GalleryAdmin} />
         <Route path="/admin/generated-images" component={AdminGeneratedImages} />
         <Route path="/admin/generated-audio" component={AdminGeneratedAudio} />
+        <Route path="/admin/presentations" component={AdminPresentations} />
         <Route component={NotFound} />
       </Switch>
   );

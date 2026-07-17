@@ -18,6 +18,8 @@ export { contentAnalyzerAgent } from './specialized/ContentAnalyzerAgent';
 export { socialMediaAgent } from './specialized/SocialMediaAgent';
 export { newsletterAgent } from './specialized/NewsletterAgent';
 export { legalAlertsAgent } from './specialized/LegalAlertsAgent';
+export { voiceAgent } from './specialized/VoiceAgent';
+export { presentationGeneratorAgent } from './specialized/PresentationGeneratorAgent';
 
 import { orchestrator } from './core/AgentOrchestrator';
 import { formatterAgent } from './specialized/FormatterAgent';
@@ -33,6 +35,7 @@ import { socialMediaAgent } from './specialized/SocialMediaAgent';
 import { newsletterAgent } from './specialized/NewsletterAgent';
 import { legalAlertsAgent } from './specialized/LegalAlertsAgent';
 import { voiceAgent } from './specialized/VoiceAgent';
+import { presentationGeneratorAgent } from './specialized/PresentationGeneratorAgent';
 
 export async function initializeAgents(): Promise<void> {
   console.log('[Agents] Initializing agent system...');
@@ -52,6 +55,7 @@ export async function initializeAgents(): Promise<void> {
   orchestrator.registerAgent(newsletterAgent);
   orchestrator.registerAgent(legalAlertsAgent);
   orchestrator.registerAgent(voiceAgent);
+  orchestrator.registerAgent(presentationGeneratorAgent);
 
-  console.log('[Agents] All 13 agents registered and ready');
+  console.log('[Agents] All 14 agents registered and ready');
 }

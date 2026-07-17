@@ -36,6 +36,7 @@ import {
   Lock,
   GraduationCap,
   MessageSquare,
+  Presentation,
 } from "lucide-react";
 
 /**
@@ -159,6 +160,7 @@ export const ADMIN_NAV_GROUPS: AdminNavGroup[] = [
     label: "Avanzado · Agentes IA",
     items: [
       { href: "/admin/agents", label: "Agentes IA", icon: Bot, requires: "agents" },
+      { href: "/admin/presentations", label: "Presentaciones IA", icon: Presentation, requires: "agents" },
       { href: "/admin/generated-images", label: "Imágenes generadas por IA", icon: Sparkles, requires: "agents" },
       { href: "/admin/generated-audio", label: "Audio generado por IA", icon: Volume2, requires: "agents" },
       { href: "/admin/processing", label: "Procesamiento de artículos", icon: Cog, requires: "advanced" },

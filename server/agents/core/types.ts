@@ -14,6 +14,7 @@ export type AgentType =
   | 'newsletter'
   | 'legal_alerts'
   | 'voice_agent'
+  | 'presentation_generator'
   | 'orchestrator';
 
 export type JobStatus = 'pending' | 'in_progress' | 'completed' | 'failed' | 'cancelled';

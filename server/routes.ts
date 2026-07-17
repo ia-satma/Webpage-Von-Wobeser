@@ -53,6 +53,9 @@ import {
 import { db } from "./db";
 import { sql, gte } from "drizzle-orm";
 import { smartImageGenerator } from "./services/SmartImageGenerator";
+import { presentationGeneratorAgent } from "./agents/specialized/PresentationGeneratorAgent";
+import { extractManyTexts } from "./services/documentText";
+import type { ExecutionContext } from "./agents/core/types";
 import { ZodError, z } from "zod";
 import { CATEGORIES as ATTORNEY_CATEGORIES } from "./mirror/renderAttorneyList";
 import {
@@ -124,6 +127,8 @@ const MIME_TO_EXT: Record<string, string> = {
   "video/quicktime": ".mov",
   "application/msword": ".doc",
   "application/vnd.openxmlformats-officedocument.wordprocessingml.document": ".docx",
+  "application/vnd.ms-powerpoint": ".ppt",
+  "application/vnd.openxmlformats-officedocument.presentationml.presentation": ".pptx",
 };
 
 function safeUploadFilename(file: Express.Multer.File): string {
@@ -190,6 +195,37 @@ const cvUpload = multer({
       "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
     ];
     if (allowedMimes.includes(file.mimetype)) {
+      cb(null, true);
+    } else {
+      const e: any = new Error("Invalid file type");
+      e.status = 400;
+      cb(e);
+    }
+  },
+});
+
+// Multer para los documentos de insumo del Generador de Presentaciones (14° agente). Admin-only
+// (requirePermission("agents")). Acepta por EXTENSIÓN del nombre original porque el MIME que
+// reporta el navegador para .tex/.md es poco fiable (suele venir octet-stream); la extensión con
+// la que se GUARDA en disco sigue derivándose del MIME validado (safeUploadFilename) — nunca del
+// nombre — así que aceptar por extensión no reintroduce el XSS almacenado. Estos archivos solo
+// los lee el parser del servidor; no se ejecutan.
+const PRESENTATION_DOC_EXTS = new Set([".pdf", ".doc", ".docx", ".ppt", ".pptx", ".tex", ".txt", ".md"]);
+const presentationDocUpload = multer({
+  storage: multer.diskStorage({
+    destination: (_req, _file, cb) => {
+      cb(null, uploadsDir);
+    },
+    filename: (_req, file, cb) => {
+      cb(null, safeUploadFilename(file));
+    },
+  }),
+  limits: {
+    fileSize: 30 * 1024 * 1024, // 30MB
+  },
+  fileFilter: (_req, file, cb) => {
+    const ext = path.extname(file.originalname || "").toLowerCase();
+    if (PRESENTATION_DOC_EXTS.has(ext)) {
       cb(null, true);
     } else {
       const e: any = new Error("Invalid file type");
@@ -356,6 +392,30 @@ export async function registerRoutes(
   });
 
   app.use('/generated-audio', express.static(generatedAudioDir, {
+    maxAge: '365d',
+    immutable: true,
+  }));
+
+  // Serve AI-generated presentations (PresentationGenerator / presentation_generator agent):
+  // .pptx, .pdf y las .png por diapositiva. Mismo patrón anti path-traversal que audio/imágenes.
+  const generatedPresentationsDir = path.join(process.cwd(), 'public', 'generated-presentations');
+  if (!fs.existsSync(generatedPresentationsDir)) {
+    fs.mkdirSync(generatedPresentationsDir, { recursive: true });
+  }
+
+  app.get('/generated-presentations/:filename', (req, res) => {
+    const resolved = path.resolve(generatedPresentationsDir, req.params.filename);
+    if (resolved !== path.resolve(generatedPresentationsDir) && !resolved.startsWith(path.resolve(generatedPresentationsDir) + path.sep)) {
+      return res.status(403).json({ error: 'Forbidden' });
+    }
+    if (fs.existsSync(resolved) && fs.statSync(resolved).isFile()) {
+      res.set('Cache-Control', 'public, max-age=31536000, immutable');
+      return res.sendFile(resolved);
+    }
+    res.status(404).json({ error: 'Presentation not found' });
+  });
+
+  app.use('/generated-presentations', express.static(generatedPresentationsDir, {
     maxAge: '365d',
     immutable: true,
   }));
@@ -624,6 +684,93 @@ export async function registerRoutes(
       res.json({ success: true });
     } catch (error) {
       res.status(500).json({ error: "Failed to delete generated audio" });
+    }
+  });
+
+  // --- Generador de Presentaciones (14° agente) ---------------------------------------------
+  // Subida de un documento de insumo (.pdf/.docx/.pptx/.tex/...). Devuelve la URL bajo /uploads
+  // y el nombre original (el parser usa la extensión del nombre original para elegir el lector).
+  app.post("/api/admin/presentations/upload", authMiddleware, requirePermission("agents"), presentationDocUpload.single("file"), (req: Request, res: Response) => {
+    if (!req.file) return res.status(400).json({ error: "No se recibió ningún archivo" });
+    res.json({ url: `/uploads/${req.file.filename}`, name: req.file.originalname });
+  });
+
+  // Genera la presentación: extrae el texto de los documentos subidos, estructura con IA (o cae a
+  // un esquema determinista si no hay créditos), y renderiza PPTX/PDF/PNG con branding.
+  app.post("/api/admin/presentations/generate", authMiddleware, requirePermission("agents"), async (req: Request, res: Response) => {
+    try {
+      const { topic, docs, slideCount, lang, template, branding, customLogoUrl, customPrimaryColor, formats, visuals, illustrate, supportImages } = req.body || {};
+
+      let documentsText = "";
+      let usedDocs: string[] = [];
+      let docNotes: string[] = [];
+      if (Array.isArray(docs) && docs.length > 0) {
+        const files = docs
+          .map((d: any) => ({
+            path: path.join(uploadsDir, path.basename(String(d?.url || ""))),
+            originalName: typeof d?.name === "string" ? d.name : undefined,
+          }))
+          .filter((f) => f.path && fs.existsSync(f.path));
+        const extracted = await extractManyTexts(files);
+        documentsText = extracted.combinedText;
+        usedDocs = extracted.usedDocs;
+        docNotes = extracted.notes;
+      }
+
+      if (!String(topic || "").trim() && !documentsText.trim()) {
+        return res.status(400).json({ error: "Escribe un tema o sube al menos un documento con contenido de texto.", docNotes });
+      }
+
+      const context: ExecutionContext = {
+        jobId: `manual-${Date.now()}`,
+        agentType: "presentation_generator",
+        startTime: new Date(),
+        metadata: { source: "admin" },
+      };
+
+      const result = await presentationGeneratorAgent.execute(context, {
+        topic,
+        documentsText,
+        slideCount,
+        lang,
+        template,
+        branding,
+        customLogoUrl,
+        customPrimaryColor,
+        formats,
+        sourceDocs: usedDocs,
+        visuals,
+        illustrate,
+        supportImages,
+      });
+
+      if (!result.success) {
+        return res.status(400).json({ error: result.error || "No se pudo generar la presentación.", docNotes });
+      }
+
+      res.json({ ...(result.data as Record<string, unknown>), docNotes });
+    } catch (error) {
+      console.error("[presentations/generate]", error);
+      res.status(500).json({ error: "Falló la generación de la presentación." });
+    }
+  });
+
+  app.get("/api/admin/generated-presentations", authMiddleware, requirePermission("agents"), async (_req: Request, res: Response) => {
+    try {
+      const presentations = await storage.getGeneratedPresentations();
+      res.json(presentations);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch generated presentations" });
+    }
+  });
+
+  app.delete("/api/admin/generated-presentations/:id", authMiddleware, requirePermission("agents"), async (req: Request, res: Response) => {
+    try {
+      const deleted = await storage.deleteGeneratedPresentation(req.params.id);
+      if (!deleted) return res.status(404).json({ error: "Presentation not found" });
+      res.json({ success: true });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to delete generated presentation" });
     }
   });
 
