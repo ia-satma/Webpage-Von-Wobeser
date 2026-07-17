@@ -121,7 +121,7 @@ export function PipelineProgressModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg">
+      <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             {isComplete ? (
@@ -135,7 +135,7 @@ export function PipelineProgressModal({
         
         <div className="space-y-4">
           {articleTitle && (
-            <p className="text-sm text-muted-foreground truncate">
+            <p className="text-sm text-muted-foreground break-words">
               Processing: <span className="font-medium text-foreground">{articleTitle}</span>
             </p>
           )}
@@ -163,16 +163,16 @@ export function PipelineProgressModal({
                     'bg-muted/50 border-border'
                   }`}
                 >
-                  <div className="flex items-center gap-3">
-                    <Icon className="h-4 w-4 text-muted-foreground" />
-                    <div>
+                  <div className="flex items-center gap-3 min-w-0">
+                    <Icon className="h-4 w-4 shrink-0 text-muted-foreground" />
+                    <div className="min-w-0">
                       <p className="text-sm font-medium">{STEP_LABELS[step] || step}</p>
                       {event?.message && (
-                        <p className="text-xs text-muted-foreground">{event.message}</p>
+                        <p className="text-xs text-muted-foreground break-words">{event.message}</p>
                       )}
                     </div>
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 shrink-0">
                     {getStatusIcon(step)}
                     {getStatusBadge(step)}
                   </div>
