@@ -26,6 +26,38 @@ export const openai: OpenAI = new Proxy({} as OpenAI, {
   },
 });
 
+// Cliente DEDICADO para generación de imágenes (DALL-E).
+// El proxy de AI Integrations de Replit (AI_INTEGRATIONS_OPENAI_BASE_URL) es SOLO
+// chat/completions — NO expone /images/generations, así que DALL-E falla ahí aunque el
+// texto funcione (por eso el copy de redes sí sale pero la imagen no). Si se define
+// OPENAI_IMAGE_API_KEY (una API key REAL de OpenAI con facturación activa), las imágenes
+// se piden contra api.openai.com; si no, cae al cliente compartido (que fallará → placeholder).
+// Acepta varios nombres comunes de secret para no depender de cómo la haya nombrado el
+// usuario: OPENAI_IMAGE_API_KEY (dedicada), o la estándar del SDK OPENAI_API_KEY. Debe ser
+// una key REAL de OpenAI (empieza con "sk-"); la del proxy de Replit no sirve para imágenes.
+function dedicatedImageKey(): string | undefined {
+  return process.env.OPENAI_IMAGE_API_KEY || process.env.OPENAI_API_KEY || undefined;
+}
+let _imageClient: OpenAI | null = null;
+export function getImageClient(): OpenAI {
+  if (_imageClient) return _imageClient;
+  const key = dedicatedImageKey();
+  const which = process.env.OPENAI_IMAGE_API_KEY ? "OPENAI_IMAGE_API_KEY" : (process.env.OPENAI_API_KEY ? "OPENAI_API_KEY" : "");
+  if (key) {
+    const base = process.env.OPENAI_IMAGE_BASE_URL || "https://api.openai.com/v1";
+    console.log(`[images] Cliente OpenAI dedicado para DALL-E — key de ${which} (…${key.slice(-4)}), base ${base}`);
+    _imageClient = new OpenAI({ apiKey: key, baseURL: base });
+  } else {
+    console.warn("[images] Sin key dedicada de OpenAI para imágenes (OPENAI_IMAGE_API_KEY/OPENAI_API_KEY) — DALL-E usará el proxy de Replit y probablemente fallará → placeholder.");
+    _imageClient = getOpenAIClient();
+  }
+  return _imageClient;
+}
+/** True si hay una API key real de OpenAI (dedicada o estándar) para imágenes. */
+export function hasDedicatedImageClient(): boolean {
+  return !!dedicatedImageKey();
+}
+
 // No se usa response_format:json_object (evita depender de que el proxy en turno lo
 // soporte) — los prompts piden JSON en texto plano. Este helper lo extrae aunque venga
 // envuelto en fences de markdown o con texto alrededor.

@@ -1,5 +1,5 @@
 import { GoogleGenAI, Modality } from "@google/genai";
-import { openai } from '../openai';
+import { openai, getImageClient, hasDedicatedImageClient } from '../openai';
 import sharp from 'sharp';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -211,7 +211,9 @@ export class SmartImageGenerator {
       }
 
       try {
-        const image = await openai.images.generate({
+        // Cliente dedicado (api.openai.com con OPENAI_IMAGE_API_KEY) si está configurado;
+        // si no, el compartido — que apunta al proxy de Replit, el cual NO soporta imágenes.
+        const image = await getImageClient().images.generate({
           model: 'dall-e-3',
           prompt,
           n: 1,
@@ -416,12 +418,17 @@ export class SmartImageGenerator {
 
     // Fallback final: placeholder SVG.
     if (!result.success) {
-      this.log('Todos los motores fallaron. Asignando placeholder.');
+      // Pista accionable: la causa #1 en Replit es que DALL-E se pide contra el proxy de
+      // AI Integrations (solo chat) sin una key real de OpenAI para imágenes.
+      const hint = !hasDedicatedImageClient()
+        ? ' — No se detectó una API key real de OpenAI para imágenes (define OPENAI_IMAGE_API_KEY u OPENAI_API_KEY en Secrets con una key sk-…); el proxy de Replit solo soporta texto, no DALL-E.'
+        : ' — Hay key de OpenAI configurada pero la llamada a DALL-E falló; revisa que la key sea válida y tenga facturación/crédito.';
+      this.log(`Todos los motores fallaron. Asignando placeholder.${hint}`);
       result.engine = 'placeholder';
       result.imageUrl = '/placeholder-article.svg';
       result.success = true;
       result.fallbackUsed = true;
-      result.errorMessage = lastError || 'Todos los motores de imagen fallaron';
+      result.errorMessage = (lastError || 'Todos los motores de imagen fallaron') + hint;
     }
 
     result.transparencyLog = [...this.transparencyLog];
