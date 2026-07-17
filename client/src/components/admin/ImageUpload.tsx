@@ -2,7 +2,18 @@ import { useRef, useState } from "react";
 import { getAuthHeaders } from "@/lib/adminAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Upload, Loader2, X } from "lucide-react";
+import { Upload, Loader2, X, Download } from "lucide-react";
+
+/** Deriva un nombre de archivo del final de la URL/ruta para el atributo download. */
+function downloadName(url: string, isVideo: boolean): string {
+  try {
+    const clean = url.split("?")[0].split("#")[0];
+    const base = clean.substring(clean.lastIndexOf("/") + 1);
+    return base || (isVideo ? "video.mp4" : "imagen.png");
+  } catch {
+    return isVideo ? "video.mp4" : "imagen.png";
+  }
+}
 
 /**
  * Campo de medios reutilizable: permite SUBIR un archivo desde la computadora
@@ -53,21 +64,34 @@ export function ImageUpload({
   return (
     <div className="space-y-2">
       {value ? (
-        <div className="relative inline-block">
-          {isVideo ? (
-            <video src={value} className="h-28 w-auto border bg-muted" muted controls />
-          ) : (
-            <img src={value} alt="Vista previa" className="h-24 w-auto border object-contain bg-muted" />
-          )}
-          <button
-            type="button"
-            onClick={() => onChange("")}
-            className="absolute -top-2 -right-2 bg-card border p-0.5 leading-none"
-            aria-label="Quitar"
-            data-testid="button-remove-media"
+        <div className="space-y-1">
+          <div className="relative inline-block">
+            {isVideo ? (
+              <video src={value} className="h-28 w-auto border bg-muted" muted controls />
+            ) : (
+              <img src={value} alt="Vista previa" className="h-24 w-auto border object-contain bg-muted" />
+            )}
+            <button
+              type="button"
+              onClick={() => onChange("")}
+              className="absolute -top-2 -right-2 bg-card border p-0.5 leading-none"
+              aria-label="Quitar"
+              data-testid="button-remove-media"
+            >
+              <X className="h-3 w-3" />
+            </button>
+          </div>
+          {/* Descargar el medio (funciona con imágenes generadas por IA / subidas — mismo origen). */}
+          <a
+            href={value}
+            download={downloadName(value, isVideo)}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex w-fit items-center gap-1 text-xs text-primary hover:underline"
+            data-testid="link-download-media"
           >
-            <X className="h-3 w-3" />
-          </button>
+            <Download className="h-3.5 w-3.5" /> Descargar
+          </a>
         </div>
       ) : null}
 
