@@ -18,6 +18,7 @@ import {
 } from '../../services/PresentationGenerator';
 import { smartImageGenerator } from '../../services/SmartImageGenerator';
 import { hasDedicatedImageClient } from '../../openai';
+import { webSearchSummary } from '../../services/webSearch';
 
 // 14° agente: Generador de Presentaciones. A diferencia de los agentes estructurales
 // (voice/auditors), SÍ llama a un LLM de texto: estructura el tema escrito + el texto extraído
@@ -90,6 +91,7 @@ export interface PresentationPayload {
   visuals?: boolean;        // permitir gráficas/diagramas/imágenes (default true)
   illustrate?: boolean;     // generar imágenes con IA por diapositiva (default false, usa créditos)
   supportImages?: string[]; // URLs de imágenes subidas por el usuario (pool para slides image)
+  webSearch?: boolean;      // buscar información en la web (OpenAI web_search) para enriquecer
 }
 
 export class PresentationGeneratorAgent extends BaseAgent {
@@ -122,9 +124,15 @@ export class PresentationGeneratorAgent extends BaseAgent {
     let model: SlideModel | null = null;
     let engine = 'openai+native';
 
+    // 0) Búsqueda web opcional (herramienta nativa de OpenAI) para enriquecer con datos verificados.
+    let webInfo = '';
+    if (p.webSearch === true && topic) {
+      webInfo = await webSearchSummary(topic);
+    }
+
     // 1) Estructuración con IA (con fallback determinista si falla / no hay créditos).
     try {
-      const userPrompt = buildUserPrompt(topic, documentsText, slideCount, lang, visuals);
+      const userPrompt = buildUserPrompt(topic, documentsText, slideCount, lang, visuals, webInfo);
       const raw = await this.callLLM([{ role: 'user', content: userPrompt }], { jsonMode: true, temperature: 0.5 });
       const parsed = safeParseJson<SlideModel>(raw);
       model = normalizeModel(parsed, topic);
@@ -253,7 +261,7 @@ function normalizeFormats(v: unknown): PresentationFormat[] {
   return picked.length ? picked : all;
 }
 
-function buildUserPrompt(topic: string, documentsText: string, slideCount: number, lang: string, visuals: boolean): string {
+function buildUserPrompt(topic: string, documentsText: string, slideCount: number, lang: string, visuals: boolean, webInfo?: string): string {
   const idioma = lang === 'en' ? 'inglés' : 'español';
   const parts: string[] = [];
   parts.push(`Idioma de la presentación: ${idioma}.`);
@@ -266,6 +274,9 @@ function buildUserPrompt(topic: string, documentsText: string, slideCount: numbe
   if (topic) parts.push(`Tema / instrucciones del usuario:\n<<<\n${topic}\n>>>`);
   if (documentsText) {
     parts.push(`Material de los documentos subidos (úsalo como fuente principal; no inventes fuera de esto):\n<<<\n${documentsText}\n>>>`);
+  }
+  if (webInfo && webInfo.trim()) {
+    parts.push(`Información encontrada en la WEB (fuente adicional verificada por búsqueda; puedes usar estos datos y citarlos; NO inventes fuera de esto ni de lo anterior):\n<<<\n${webInfo.trim()}\n>>>`);
   }
   parts.push('Devuelve solo el JSON del modelo de diapositivas.');
   return parts.join('\n\n');

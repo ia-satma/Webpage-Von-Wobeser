@@ -63,6 +63,7 @@ export default function AdminPresentations() {
   const [formats, setFormats] = useState<Record<Format, boolean>>({ pptx: true, pdf: true, png: true });
   const [visuals, setVisuals] = useState(true);
   const [illustrate, setIllustrate] = useState(false);
+  const [webSearch, setWebSearch] = useState(false);
   const [supportImages, setSupportImages] = useState<string[]>([]);
   const [uploadingImg, setUploadingImg] = useState(false);
   const [notes, setNotes] = useState<string[]>([]);
@@ -119,6 +120,7 @@ export default function AdminPresentations() {
         visuals,
         illustrate: visuals && illustrate,
         supportImages: visuals ? supportImages : [],
+        webSearch,
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error((data as any)?.error || "No se pudo generar la presentación.");
@@ -313,6 +315,14 @@ export default function AdminPresentations() {
                   <p className="text-xs text-muted-foreground">Genera hasta 4 imágenes por presentación con IA (DALL·E/Cloudflare). <span className="text-amber-600">Usa créditos de OpenAI.</span></p>
                 </div>
                 <Switch checked={illustrate} onCheckedChange={setIllustrate} disabled={!visuals} data-testid="switch-illustrate" />
+              </div>
+
+              <div className="flex items-center justify-between gap-4">
+                <div>
+                  <p className="text-sm">Buscar información en la web</p>
+                  <p className="text-xs text-muted-foreground">La IA busca datos actuales en internet (OpenAI) para enriquecer la presentación. Si está apagado, usa solo lo que compartes. <span className="text-amber-600">Usa créditos de OpenAI.</span></p>
+                </div>
+                <Switch checked={webSearch} onCheckedChange={setWebSearch} data-testid="switch-websearch" />
               </div>
 
               {visuals && (
