@@ -10,7 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
-import { Sparkles, Copy, Trash2, ExternalLink, ImageOff } from "lucide-react";
+import { Sparkles, Copy, Trash2, ExternalLink, ImageOff, Download } from "lucide-react";
 import { Link } from "wouter";
 
 interface GeneratedImageRow {
@@ -171,6 +171,17 @@ export default function AdminGeneratedImages() {
                         >
                           <Copy className="w-3 h-3 mr-1" />
                           Copiar URL
+                        </Button>
+                        <Button asChild size="sm" variant="outline" data-testid={`button-download-${img.id}`}>
+                          <a
+                            href={img.imageUrl}
+                            download={img.imageUrl.split("?")[0].split("/").pop() || "imagen.png"}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
+                            <Download className="w-3 h-3 mr-1" />
+                            Descargar
+                          </a>
                         </Button>
                         <Button
                           size="icon"

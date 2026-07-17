@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
-import { Share2, Mail, Bell, Loader2, Copy, Volume2 } from "lucide-react";
+import { Share2, Mail, Bell, Loader2, Copy, Volume2, Download } from "lucide-react";
 
 /** Llama a un agente y devuelve su AgentResult (o un error legible). */
 async function runAgent(agentType: string, payload: Record<string, unknown>): Promise<{ ok: boolean; data?: any; error?: string }> {
@@ -165,6 +165,16 @@ export function SocialPostButton({ articleId }: { articleId: string }) {
                 <div className="space-y-1">
                   <Label className="text-xs uppercase tracking-wide text-muted-foreground">Imagen para el post</Label>
                   <img src={res.data.imageUrl} alt="Imagen generada para redes" className="w-full max-h-64 object-cover rounded-none border" />
+                  <a
+                    href={res.data.imageUrl}
+                    download={String(res.data.imageUrl).split("?")[0].split("/").pop() || "imagen.png"}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex w-fit items-center gap-1 text-xs text-primary hover:underline"
+                    data-testid="link-download-social-image"
+                  >
+                    <Download className="h-3.5 w-3.5" /> Descargar imagen
+                  </a>
                 </div>
               ) : null}
               {SOCIAL_PLATFORMS.filter((p) => posts[p.id]?.text).map((p) => (
