@@ -236,6 +236,100 @@ export interface SeoOptions {
   robots?: string;
 }
 
+// -------------------------------------------------------------------------
+// Accesibilidad — correcciones aplicadas a CADA página del espejo (llamada al
+// final de applySeo). Arregla los hallazgos reales de Lighthouse móvil sobre
+// la plantilla scrapeada: viewport que bloquea el zoom, imágenes sin alt,
+// vínculos de íconos sin nombre, buscador sin etiqueta, y falta de landmark
+// <main>. Como el header/footer/buscador son chrome compartido, corregir aquí
+// una vez cubre todo el sitio.
+// -------------------------------------------------------------------------
+const SOCIAL_NAMES: Array<[RegExp, string]> = [
+  [/facebook|icon_fb|\bfb\b/i, "Facebook"],
+  [/twitter|icon_tw|\bx\b|icon_x/i, "Twitter"],
+  [/linkedin|icon_in/i, "LinkedIn"],
+  [/instagram|icon_ig/i, "Instagram"],
+  [/youtube/i, "YouTube"],
+];
+
+export function applyA11y($: cheerio.CheerioAPI, lang: Lang): void {
+  // 1) Viewport — permitir el zoom (WCAG 1.4.4). Quita maximum-scale/user-scalable=no.
+  const VP = "width=device-width, initial-scale=1, viewport-fit=cover";
+  const $vp = $('meta[name="viewport"]');
+  if ($vp.length) $vp.attr("content", VP);
+  else $("head").prepend(`<meta name="viewport" content="${VP}">`);
+
+  // 2) alt en imágenes sin alt: íconos sociales y logo con nombre real; el resto decorativo (alt="").
+  $("img:not([alt])").each((_, el) => {
+    const $img = $(el);
+    const src = ($img.attr("src") || "").toLowerCase();
+    const cls = ($img.attr("class") || "").toLowerCase();
+    const social = SOCIAL_NAMES.find(([re]) => re.test(src));
+    let alt = "";
+    if (social) alt = social[1];
+    else if (/logo|vonwobeser|vw40|vw_|vw2025/.test(src) || /logo/.test(cls)) alt = "Von Wobeser y Sierra";
+    $img.attr("alt", alt);
+  });
+
+  // 3) Vínculos sin nombre reconocible (íconos): aria-label desde el dominio del href.
+  $("a").each((_, el) => {
+    const $a = $(el);
+    if (($a.attr("aria-label") || "").trim() || ($a.attr("title") || "").trim()) return;
+    if ($a.text().replace(/\s+/g, "")) return; // ya tiene texto visible
+    if (($a.find("img[alt]").attr("alt") || "").trim()) return; // ya tiene nombre por el alt del ícono
+    const href = ($a.attr("href") || "").toLowerCase();
+    const social = SOCIAL_NAMES.find(([re]) => re.test(href));
+    if (social) $a.attr("aria-label", social[1]);
+  });
+
+  // 4) Buscador — nombre accesible + placeholder localizado.
+  const searchLabel = lang === "es" ? "Buscar" : "Search";
+  $('input[type="text"], input[type="search"], input:not([type])').each((_, el) => {
+    const $i = $(el);
+    const id = ($i.attr("id") || "").toLowerCase();
+    const name = ($i.attr("name") || "").toLowerCase();
+    const cls = ($i.attr("class") || "").toLowerCase();
+    const isSearch = name === "q" || /search/.test(id) || /search/.test(cls);
+    if (!isSearch) return;
+    // Si ya tiene un <label for> asociado, no forzamos aria-label.
+    const hasLabel = id && $(`label[for="${id}"]`).length > 0;
+    if (!hasLabel && !($i.attr("aria-label") || "").trim()) $i.attr("aria-label", searchLabel);
+    if (($i.attr("placeholder") || "").trim()) $i.attr("placeholder", searchLabel);
+  });
+
+  // 5) Landmark <main>: si no hay ninguno, marcar el contenedor de contenido principal.
+  if ($("main, [role=main]").length === 0) {
+    const candidates = [".page__content", ".home__hero", ".wide-container", "#content", ".content", "#main-content"];
+    let placed = false;
+    for (const sel of candidates) {
+      const $c = $(sel).first();
+      if ($c.length) { $c.attr("role", "main"); placed = true; break; }
+    }
+    if (!placed) {
+      const $afterHeader = $("header").first().nextAll().filter("div,section,article").first();
+      if ($afterHeader.length) $afterHeader.attr("role", "main");
+    }
+  }
+
+  // 6) Contraste (WCAG 1.4.3): el color de texto BASE del sitio scrapeado es #808080
+  //    (~3.95:1 sobre blanco → falla AA). Se oscurece a #5f5f5f (~6:1) el texto que
+  //    HEREDA del body + las reglas explícitas que lo resisten (toggle de idioma, botón
+  //    de menú, titulares de noticias del hero). NO afecta textos con color propio
+  //    (verificado en la página viva: los blancos sobre rojo/hero siguen blancos, porque
+  //    tienen su propia regla de color; !important en body no fuerza herencia en hijos
+  //    que ya declaran color). Si un re-audit de otra página marcara más grises con regla
+  //    propia, se agregan aquí sus selectores.
+  if ($("#a11y-contrast").length === 0) {
+    $("head").append(
+      '<style id="a11y-contrast">' +
+      'body{color:#5f5f5f !important}' +
+      '.header__lang--item,.header--btn{color:#5f5f5f !important}' +
+      '.covid_headlines a,.covid_headlines h3,.news_item a,.news_item h3{color:#5f5f5f !important}' +
+      '</style>'
+    );
+  }
+}
+
 export function applySeo($: cheerio.CheerioAPI, opts: SeoOptions): void {
   const { lang, path } = opts;
   const description = clip(opts.description || DESC[lang]);
@@ -297,4 +391,8 @@ export function applySeo($: cheerio.CheerioAPI, opts: SeoOptions): void {
       `<script data-ga4>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','${GA4_MEASUREMENT_ID}');</script>`
     );
   }
+
+  // Accesibilidad (Lighthouse) — se aplica al final para cubrir también los nodos
+  // que otros pasos hayan insertado en el <body> (formularios, listados, etc.).
+  applyA11y($, lang);
 }
