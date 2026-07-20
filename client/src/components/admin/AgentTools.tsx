@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Share2, Mail, Bell, Loader2, Copy, Volume2, Download } from "lucide-react";
+import { downloadHref } from "./ImageUpload";
 
 /** Llama a un agente y devuelve su AgentResult (o un error legible). */
 async function runAgent(agentType: string, payload: Record<string, unknown>): Promise<{ ok: boolean; data?: any; error?: string }> {
@@ -57,11 +58,12 @@ export function VoiceButton({
   const [loading, setLoading] = useState(false);
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [voiceId, setVoiceId] = useState("onyx"); // voz masculina por defecto (OpenAI TTS)
 
   const generate = async () => {
     if (!text || !text.trim()) { setError("No hay texto para convertir a audio."); return; }
     setLoading(true); setError(null); setAudioUrl(null);
-    const r = await runAgent("voice_agent", { text, sourceType, articleId });
+    const r = await runAgent("voice_agent", { text, sourceType, articleId, voiceId });
     setLoading(false);
     if (!r.ok) { setError(r.error || "No se pudo generar el audio."); return; }
     setAudioUrl(r.data?.audioUrl || null);
@@ -69,6 +71,25 @@ export function VoiceButton({
 
   return (
     <div className="space-y-2">
+      <div className="flex items-center gap-2">
+        <label className="text-xs text-muted-foreground">Voz:</label>
+        <select
+          value={voiceId}
+          onChange={(e) => setVoiceId(e.target.value)}
+          disabled={loading}
+          className="h-8 rounded-md border border-input bg-background px-2 text-xs"
+          data-testid="select-voice"
+        >
+          <optgroup label="Hombre">
+            <option value="onyx">Hombre (grave)</option>
+            <option value="echo">Hombre (claro)</option>
+          </optgroup>
+          <optgroup label="Mujer">
+            <option value="nova">Mujer (cálida)</option>
+            <option value="shimmer">Mujer (suave)</option>
+          </optgroup>
+        </select>
+      </div>
       <AgentButton type="button" size="sm" onClick={generate} disabled={loading || !text?.trim()} icon={loading ? <Loader2 className="h-4 w-4 mr-1.5 animate-spin" /> : <Volume2 className="h-4 w-4 mr-1.5" />} data-testid="button-voice">
         {label}
       </AgentButton>
@@ -166,9 +187,8 @@ export function SocialPostButton({ articleId }: { articleId: string }) {
                   <Label className="text-xs uppercase tracking-wide text-muted-foreground">Imagen para el post</Label>
                   <img src={res.data.imageUrl} alt="Imagen generada para redes" className="w-full max-h-64 object-cover rounded-none border" />
                   <a
-                    href={res.data.imageUrl}
+                    href={downloadHref(res.data.imageUrl)}
                     download={String(res.data.imageUrl).split("?")[0].split("/").pop() || "imagen.png"}
-                    target="_blank"
                     rel="noopener noreferrer"
                     className="flex w-fit items-center gap-1 text-xs text-primary hover:underline"
                     data-testid="link-download-social-image"

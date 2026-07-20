@@ -893,6 +893,12 @@ const AGENT_TYPES = [
   { value: "website_auditor", labelKey: "websiteAuditor" },
   { value: "image_suggestion", labelKey: "imageSuggestion" },
   { value: "category_agent", labelKey: "categoryAgent" },
+  // Agentes de difusión / generación (antes faltaban aquí, no se les podía dirigir conocimiento).
+  { value: "social_media", labelKey: "socialMedia", label: "Redes sociales" },
+  { value: "newsletter", labelKey: "newsletter", label: "Boletín" },
+  { value: "legal_alerts", labelKey: "legalAlerts", label: "Alertas legales" },
+  { value: "voice_agent", labelKey: "voiceAgent", label: "Voz corporativa" },
+  { value: "presentation_generator", labelKey: "presentationGenerator", label: "Presentaciones" },
 ] as const;
 
 const LANGUAGE_OPTIONS = [
@@ -1217,7 +1223,7 @@ export default function AdminKnowledge() {
                   <SelectContent>
                     <SelectItem value="all">{t.allAgents}</SelectItem>
                     {AGENT_TYPES.map(agent => (
-                      <SelectItem key={agent.value} value={agent.value}>{t[agent.labelKey as keyof typeof t]}</SelectItem>
+                      <SelectItem key={agent.value} value={agent.value}>{(t as any)[agent.labelKey] || (agent as any).label || agent.value}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
@@ -1275,7 +1281,8 @@ export default function AdminKnowledge() {
                       <TableBody>
                         {filteredDocuments.map((doc) => {
                           const catLabelKey = KNOWLEDGE_CATEGORIES.find(c => c.value === doc.category)?.labelKey;
-                          const agentLabelKey = AGENT_TYPES.find(a => a.value === doc.agentType)?.labelKey;
+                          const agentEntry = AGENT_TYPES.find(a => a.value === doc.agentType);
+                          const agentLabelKey = agentEntry?.labelKey;
                           const langLabelKey = LANGUAGE_OPTIONS.find(l => l.value === doc.metadata?.language)?.labelKey;
                           return (
                           <TableRow key={doc.id} data-testid={`row-knowledge-${doc.id}`}>
@@ -1289,7 +1296,7 @@ export default function AdminKnowledge() {
                             </TableCell>
                             <TableCell>
                               <Badge variant="secondary">
-                                {agentLabelKey ? t[agentLabelKey as keyof typeof t] : doc.agentType}
+                                {(agentLabelKey && (t as any)[agentLabelKey]) || (agentEntry as any)?.label || doc.agentType}
                               </Badge>
                             </TableCell>
                             <TableCell>
@@ -1382,7 +1389,7 @@ export default function AdminKnowledge() {
                           </FormControl>
                           <SelectContent>
                             {AGENT_TYPES.map(agent => (
-                              <SelectItem key={agent.value} value={agent.value}>{t[agent.labelKey as keyof typeof t]}</SelectItem>
+                              <SelectItem key={agent.value} value={agent.value}>{(t as any)[agent.labelKey] || (agent as any).label || agent.value}</SelectItem>
                             ))}
                           </SelectContent>
                         </Select>
@@ -1429,14 +1436,14 @@ export default function AdminKnowledge() {
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>{t.languageOptional}</FormLabel>
-                        <Select onValueChange={field.onChange} value={field.value}>
+                        <Select onValueChange={(v) => field.onChange(v === "none" ? "" : v)} value={field.value || "none"}>
                           <FormControl>
                             <SelectTrigger data-testid="select-add-language">
                               <SelectValue placeholder={t.selectLanguage} />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            <SelectItem value="">{t.none}</SelectItem>
+                            <SelectItem value="none">{t.none}</SelectItem>
                             {LANGUAGE_OPTIONS.map(lang => (
                               <SelectItem key={lang.value} value={lang.value}>{t[lang.labelKey as keyof typeof t]}</SelectItem>
                             ))}
@@ -1528,7 +1535,7 @@ export default function AdminKnowledge() {
                           </FormControl>
                           <SelectContent>
                             {AGENT_TYPES.map(agent => (
-                              <SelectItem key={agent.value} value={agent.value}>{t[agent.labelKey as keyof typeof t]}</SelectItem>
+                              <SelectItem key={agent.value} value={agent.value}>{(t as any)[agent.labelKey] || (agent as any).label || agent.value}</SelectItem>
                             ))}
                           </SelectContent>
                         </Select>
@@ -1574,14 +1581,14 @@ export default function AdminKnowledge() {
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>{t.languageOptional}</FormLabel>
-                        <Select onValueChange={field.onChange} value={field.value}>
+                        <Select onValueChange={(v) => field.onChange(v === "none" ? "" : v)} value={field.value || "none"}>
                           <FormControl>
                             <SelectTrigger data-testid="select-edit-language">
                               <SelectValue placeholder={t.selectLanguage} />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            <SelectItem value="">{t.none}</SelectItem>
+                            <SelectItem value="none">{t.none}</SelectItem>
                             {LANGUAGE_OPTIONS.map(lang => (
                               <SelectItem key={lang.value} value={lang.value}>{t[lang.labelKey as keyof typeof t]}</SelectItem>
                             ))}
@@ -1673,7 +1680,7 @@ export default function AdminKnowledge() {
                           </FormControl>
                           <SelectContent>
                             {AGENT_TYPES.map(agent => (
-                              <SelectItem key={agent.value} value={agent.value}>{t[agent.labelKey as keyof typeof t]}</SelectItem>
+                              <SelectItem key={agent.value} value={agent.value}>{(t as any)[agent.labelKey] || (agent as any).label || agent.value}</SelectItem>
                             ))}
                           </SelectContent>
                         </Select>

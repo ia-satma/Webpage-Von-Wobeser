@@ -12,6 +12,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import { Sparkles, Copy, Trash2, ExternalLink, ImageOff, Download } from "lucide-react";
 import { Link } from "wouter";
+import { downloadHref } from "@/components/admin/ImageUpload";
 
 interface GeneratedImageRow {
   id: string;
@@ -174,9 +175,8 @@ export default function AdminGeneratedImages() {
                         </Button>
                         <Button asChild size="sm" variant="outline" data-testid={`button-download-${img.id}`}>
                           <a
-                            href={img.imageUrl}
+                            href={downloadHref(img.imageUrl)}
                             download={img.imageUrl.split("?")[0].split("/").pop() || "imagen.png"}
-                            target="_blank"
                             rel="noopener noreferrer"
                           >
                             <Download className="w-3 h-3 mr-1" />

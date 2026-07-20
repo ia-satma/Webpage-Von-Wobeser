@@ -20,7 +20,7 @@ import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
-import { Presentation, Loader2, Trash2, FileDown, FileText, Image as ImageIcon, Wand2 } from "lucide-react";
+import { Presentation, Loader2, Trash2, FileDown, FileText, Image as ImageIcon, Wand2, Eye } from "lucide-react";
 
 interface PresentationRow {
   id: string;
@@ -63,12 +63,14 @@ export default function AdminPresentations() {
   const [formats, setFormats] = useState<Record<Format, boolean>>({ pptx: true, pdf: true, png: true });
   const [visuals, setVisuals] = useState(true);
   const [illustrate, setIllustrate] = useState(false);
+  const [webSearch, setWebSearch] = useState(false);
   const [supportImages, setSupportImages] = useState<string[]>([]);
   const [uploadingImg, setUploadingImg] = useState(false);
   const [notes, setNotes] = useState<string[]>([]);
   const [usedFallback, setUsedFallback] = useState(false);
 
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
+  const [previewId, setPreviewId] = useState<string | null>(null);
 
   const { data: presentations = [], isLoading } = useQuery<PresentationRow[]>({
     queryKey: ["/api/admin/generated-presentations"],
@@ -118,6 +120,7 @@ export default function AdminPresentations() {
         visuals,
         illustrate: visuals && illustrate,
         supportImages: visuals ? supportImages : [],
+        webSearch,
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error((data as any)?.error || "No se pudo generar la presentación.");
@@ -314,6 +317,14 @@ export default function AdminPresentations() {
                 <Switch checked={illustrate} onCheckedChange={setIllustrate} disabled={!visuals} data-testid="switch-illustrate" />
               </div>
 
+              <div className="flex items-center justify-between gap-4">
+                <div>
+                  <p className="text-sm">Buscar información en la web</p>
+                  <p className="text-xs text-muted-foreground">La IA busca datos actuales en internet (OpenAI) para enriquecer la presentación. Si está apagado, usa solo lo que compartes. <span className="text-amber-600">Usa créditos de OpenAI.</span></p>
+                </div>
+                <Switch checked={webSearch} onCheckedChange={setWebSearch} data-testid="switch-websearch" />
+              </div>
+
               {visuals && (
                 <div className="space-y-2">
                   <Label className="text-xs">Imágenes de apoyo (opcional) — se usan en las diapositivas de imagen antes que la IA</Label>
@@ -408,19 +419,24 @@ export default function AdminPresentations() {
                   </p>
 
                   <div className="flex flex-wrap gap-2">
+                    {Array.isArray(p.pngUrls) && p.pngUrls.length > 0 && (
+                      <Button size="sm" variant="outline" onClick={() => setPreviewId(p.id)} data-testid={`preview-${p.id}`}>
+                        <Eye className="w-3 h-3 mr-1" />Previsualizar
+                      </Button>
+                    )}
                     {p.pptxUrl && (
-                      <a href={p.pptxUrl} download className="inline-flex" data-testid={`download-pptx-${p.id}`}>
+                      <a href={`${p.pptxUrl}?download=1`} className="inline-flex" data-testid={`download-pptx-${p.id}`}>
                         <Button size="sm" variant="outline"><FileDown className="w-3 h-3 mr-1" />PPTX</Button>
                       </a>
                     )}
                     {p.pdfUrl && (
-                      <a href={p.pdfUrl} download className="inline-flex" data-testid={`download-pdf-${p.id}`}>
+                      <a href={`${p.pdfUrl}?download=1`} className="inline-flex" data-testid={`download-pdf-${p.id}`}>
                         <Button size="sm" variant="outline"><FileText className="w-3 h-3 mr-1" />PDF</Button>
                       </a>
                     )}
                     {Array.isArray(p.pngUrls) && p.pngUrls.length > 0 && (
-                      <a href={p.pngUrls[0]} target="_blank" rel="noopener noreferrer" className="inline-flex" data-testid={`download-png-${p.id}`}>
-                        <Button size="sm" variant="outline"><ImageIcon className="w-3 h-3 mr-1" />PNG ({p.pngUrls.length})</Button>
+                      <a href={`${p.pngUrls[0]}?download=1`} className="inline-flex" data-testid={`download-png-${p.id}`}>
+                        <Button size="sm" variant="outline"><ImageIcon className="w-3 h-3 mr-1" />PNG portada</Button>
                       </a>
                     )}
                   </div>
@@ -463,6 +479,38 @@ export default function AdminPresentations() {
               Eliminar
             </Button>
           </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Vista previa in-panel: muestra las PNG por diapositiva (índice 0 = portada). */}
+      <Dialog open={!!previewId} onOpenChange={(open) => !open && setPreviewId(null)}>
+        <DialogContent className="max-w-3xl max-h-[85vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Vista previa de la presentación</DialogTitle>
+          </DialogHeader>
+          {(() => {
+            const pre = presentations.find((p) => p.id === previewId);
+            const pngs = pre?.pngUrls || [];
+            if (!pngs.length) {
+              return (
+                <p className="text-sm text-muted-foreground py-2">
+                  Esta presentación no tiene imágenes por diapositiva. Genera en formato PNG o PDF para poder previsualizarla.
+                </p>
+              );
+            }
+            return (
+              <div className="space-y-4 py-1">
+                {pngs.map((u, i) => (
+                  <div key={u} className="space-y-1">
+                    <p className="text-xs uppercase tracking-wide text-muted-foreground">
+                      {i === 0 ? "Portada" : `Diapositiva ${i}`}
+                    </p>
+                    <img src={u} alt={i === 0 ? "Portada" : `Diapositiva ${i}`} className="w-full rounded-md border" loading="lazy" />
+                  </div>
+                ))}
+              </div>
+            );
+          })()}
         </DialogContent>
       </Dialog>
     </div>
