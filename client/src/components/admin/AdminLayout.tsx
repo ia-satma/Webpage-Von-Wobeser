@@ -1,4 +1,4 @@
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useLayoutEffect, useState, type ReactNode } from "react";
 import { Link, useLocation } from "wouter";
 import { useAdminAuth, useMyPermissions } from "@/lib/adminAuth";
 import { ADMIN_NAV_GROUPS, canSeeNavItem, isNavItemActive, type AdminNavGroup, type AdminNavItem } from "@/lib/adminNav";
@@ -20,7 +20,6 @@ import {
 } from "@/components/ui/sidebar";
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
 import { Button } from "@/components/ui/button";
-import ThemeToggle from "@/components/ThemeToggle";
 import { ArrowUpRight, ChevronDown, LogOut } from "lucide-react";
 
 const OPEN_GROUPS_KEY = "admin-sidebar-open-groups";
@@ -137,6 +136,14 @@ export function AdminLayout({ children }: { children: ReactNode }) {
   const isAdmin = !role || role === "admin" || role === "super_admin";
   const [openGroups, setOpenGroups] = useState<Set<string>>(() => loadOpenGroups());
 
+  // El panel admin siempre va en modo día — nunca modo noche, ni siquiera si el visitante
+  // activó el modo oscuro en el sitio público antes de entrar (misma pestaña, mismo <html>,
+  // sin ThemeProvider aislado). Se limpia en cada montaje del shell admin, antes del primer
+  // pintado, sin tocar la preferencia guardada del sitio público.
+  useLayoutEffect(() => {
+    document.documentElement.classList.remove("dark");
+  }, []);
+
   // Abre solo, sin cerrar los demás, el grupo que contiene la página actual.
   useEffect(() => {
     const activeGroup = ADMIN_NAV_GROUPS.find((g) => g.items.some((item) => isNavItemActive(location, item.href)));
@@ -214,7 +221,6 @@ export function AdminLayout({ children }: { children: ReactNode }) {
             </a>
           </div>
           <div className="flex items-center gap-2 group-data-[collapsible=icon]:flex-col">
-            <ThemeToggle />
             <Button variant="outline" size="sm" onClick={logout} data-testid="button-logout" title="Cerrar sesión" aria-label="Cerrar sesión" className="flex-1 group-data-[collapsible=icon]:flex-none">
               <LogOut className="h-4 w-4" />
               <span className="group-data-[collapsible=icon]:hidden">Cerrar sesión</span>

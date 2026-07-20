@@ -127,6 +127,12 @@ export function renderAttorneyList(
       `</div>`;
 
     $(".attorneys__meta").before(formHtml);
+
+    // La landing general "Abogados" debe mostrar SOLO el buscador. Quitamos la lista
+    // maestro-detalle (fotos + nombres) — esa sí aparece en las subpáginas por categoría
+    // (Socios/Of Counsel/Counsel/Asociados), donde showSearch es false.
+    $(".attorneys__meta").remove();
+    $(".attorneys__list").remove();
   }
 
   const label = lang === "es" ? CATEGORIES[category]?.es : CATEGORIES[category]?.en;

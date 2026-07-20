@@ -122,6 +122,33 @@ export function renderNewsDetail(templateHtml: string, item: any, lang: Lang = "
   $(".single__content--intro").html(excerpt || "");
   $(".single__content--txt").html(content || (excerpt ? "" : `<p>${esc(title)}</p>`));
 
+  // --- Botones de acción (Imprimir / Compartir) ---
+  // El template original traía Print/Share/Download cableados con jQuery (frágil → el botón de
+  // imprimir no funcionaba de forma fiable) y un "Download" apuntando a un PDF viejo FIJO de 2017,
+  // sin relación con la noticia (roto para todo el contenido de la BD). Se reconstruyen limpios y
+  // accesibles; el estilo y el handler (vanilla, con delegación de eventos) se inyectan de forma
+  // global en sendPage, así que funcionan aunque jQuery no cargue.
+  const B =
+    lang === "es"
+      ? { print: "Imprimir", share: "Compartir", printAria: "Imprimir esta publicación", shareAria: "Compartir esta publicación" }
+      : { print: "Print", share: "Share", printAria: "Print this publication", shareAria: "Share this publication" };
+  const ICON_PRINT =
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>';
+  const ICON_SHARE =
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg>';
+  const btns = $(".single__meta--btns");
+  if (btns.length) {
+    btns.html(
+      `<button type="button" class="vw-doc-btn" data-doc-action="print" aria-label="${esc(B.printAria)}">${ICON_PRINT}<span>${esc(B.print)}</span></button>` +
+        `<button type="button" class="vw-doc-btn" data-doc-action="share" aria-label="${esc(B.shareAria)}">${ICON_SHARE}<span>${esc(B.share)}</span></button>`,
+    );
+  }
+  // Elimina el <script> scrapeado que cableaba print/share con jQuery (ya no se usa).
+  $("script").each((_i, el) => {
+    const js = $(el).html() || "";
+    if (js.includes("window.print()") || js.includes("share_url")) $(el).remove();
+  });
+
   $("html").attr("lang", lang === "es" ? "es-mx" : "en-gb");
   const path = `/news/${item.slug}`;
   const desc = clip(excerpt || content || title);

@@ -216,6 +216,68 @@ const LANG_TOGGLE_SCRIPT = `<script>(function(){try{
   });
 }catch(e){}})();</script>`;
 
+// Estilo + comportamiento de los botones de acción de las publicaciones (Imprimir / Compartir).
+// Se inyecta en TODAS las páginas del espejo (sendPage), así que funciona en todo el front sin
+// depender de jQuery: el handler usa delegación de eventos y cubre tanto los botones nuevos
+// (data-doc-action) como cualquier `.page--btn.print/.share` heredado del scrape.
+const DOC_ACTIONS_SCRIPT = `<style id="vw-doc-actions">
+.single__meta--btns{display:flex;flex-wrap:wrap;gap:10px;margin-top:16px;align-items:center}
+.single__meta--btns br{display:none}
+.vw-doc-btn{display:inline-flex;align-items:center;gap:9px;cursor:pointer;border:1.5px solid #8a1622;background:transparent;color:#8a1622;font-family:"Geomanist-Book",Arial,sans-serif;font-size:12px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;line-height:1;padding:11px 20px;border-radius:999px;transition:background-color .25s ease,color .25s ease,border-color .25s ease}
+.vw-doc-btn svg{width:16px;height:16px;flex:0 0 auto;display:block}
+.vw-doc-btn:hover,.vw-doc-btn:focus-visible{background:#8a1622;color:#fff;border-color:#8a1622}
+.vw-doc-btn:focus-visible{outline:2px solid #8a1622;outline-offset:3px}
+@media print{
+  /* Oculta el cromo del sitio al imprimir (menú, pie, buscador, botones, migas). */
+  #header,#footer,#breadcrumbs,header,footer,nav,.header,.footer,.header__nav,.header__lang,
+  .search,.search__form,.pagination,.pagination-dyn,.attorney__content--btns,.single__meta--btns,
+  .vw-doc-btn,.page--btn,#vw-admin-bar,.footer__social,.archive__nav{display:none!important}
+  /* Expande TODAS las secciones del perfil (el acordeón las colapsa con max-height/overflow) y
+     quita la flechita decorativa (blanca — invisible sobre papel de todas formas). */
+  .attorney__meta--list>li{max-height:none!important;overflow:visible!important;padding-left:0!important}
+  .attorney__meta--list>li>ul{display:block!important;max-height:none!important;overflow:visible!important}
+  .attorney__meta--list>li:before{display:none!important}
+  /* Layout lineal a todo el ancho para que el documento salga limpio. */
+  .attorney,.attorney__meta,.attorney__content,.page--wrap,.single,.single__meta,.single__content{
+    width:100%!important;max-width:100%!important;float:none!important;position:static!important}
+  /* --- Ficha del abogado: la tarjeta oscura (fondo gris + texto blanco) no sobrevive al papel
+     (los navegadores no imprimen fondos/colores por defecto) y el margin-top fijo que "adivinaba"
+     la altura de la foto para no encimarse con el nombre es frágil. Se reemplaza por flujo normal:
+     foto → nombre → puesto → contacto → secciones, cada uno debajo del anterior, sin necesitar
+     ningún cálculo de altura. */
+  .attorney__meta:after{display:none!important}
+  .attorney__meta{background:none!important;padding:0!important;margin:0!important}
+  .attorney__meta--img{height:auto!important;width:auto!important;max-width:150px!important;
+    padding:0!important;margin:0 0 14px 0!important;background-image:none!important}
+  #foto{display:block!important;width:150px!important;max-width:150px!important;height:auto!important}
+  .attorney__meta--name{color:#111!important;margin:0 0 4px 0!important;font-size:22pt!important}
+  .attorney__meta--role{display:block!important;color:#8a1622!important;margin:0 0 14px 0!important;
+    font-size:11pt!important;letter-spacing:2px!important;white-space:normal!important}
+  .attorney__meta--txt{display:block!important;color:#333!important;margin:0 0 16px 0!important;font-size:10pt!important}
+  .attorney__meta--txt a{color:#333!important}
+  .attorney__meta--txt a[download]{display:none!important} /* la vCard no sirve en papel */
+  .attorney__meta--list,.attorney__meta--list a{color:#111!important}
+  a{color:inherit!important;text-decoration:none!important}
+  li,p,img,.attorney__meta--img{page-break-inside:avoid}
+}
+</style><script>(function(){
+if(window.__vwDoc)return;window.__vwDoc=1;
+function action(el){var a=el.getAttribute&&el.getAttribute('data-doc-action');if(a)return a;var c=el.classList;if(!c)return '';if(c.contains('print'))return 'print';if(c.contains('share'))return 'share';return '';}
+document.addEventListener('click',function(e){
+ var t=e.target;if(!t||!t.closest)return;
+ var el=t.closest('[data-doc-action],a.page--btn.print,a.page--btn.share');
+ if(!el)return;
+ var a=action(el);if(!a)return;
+ e.preventDefault();
+ if(a==='print'){window.print();return;}
+ if(a==='share'){
+  var url=location.href,title=(document.title||'').replace(/\\s*\\|.*$/,'').trim();
+  if(navigator.share){navigator.share({title:title,url:url}).catch(function(){});}
+  else{window.open('https://www.linkedin.com/sharing/share-offsite/?url='+encodeURIComponent(url),'_blank','noopener,noreferrer,width=620,height=560');}
+ }
+},false);
+})();</script>`;
+
 const escHtml = (s: any) => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 
 // Inyecta los datos del pie de página (dirección, teléfono, redes) desde siteConfig
@@ -324,9 +386,10 @@ function ensureImgAlt(html: string): string {
 }
 
 async function sendPage(res: Response, html: string) {
+  const inject = `${LANG_TOGGLE_SCRIPT}${DOC_ACTIONS_SCRIPT}`;
   let out = html.includes("</body>")
-    ? html.replace("</body>", `${LANG_TOGGLE_SCRIPT}</body>`)
-    : html + LANG_TOGGLE_SCRIPT;
+    ? html.replace("</body>", `${inject}</body>`)
+    : html + inject;
   try {
     out = injectFooterString(out, await getConfigMap()); // getConfigMap está cacheado
   } catch { /* si la config falla, se sirve el pie original de la plantilla */ }
