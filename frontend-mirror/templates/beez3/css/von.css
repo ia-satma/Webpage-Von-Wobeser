@@ -210,6 +210,83 @@ loader de practicas en español
   right: 15px;
 }
 
+/* CTA global: la flecha y la línea inferior hacen inequívoca la acción sin
+   alterar el color ni la familia tipográfica definidos por cada sección. */
+a.vw-read-more {
+  align-items: center;
+  border-bottom: 1px solid currentColor;
+  display: inline-flex;
+  font-family: inherit;
+  gap: 0.55em;
+  line-height: 1.2;
+  padding-bottom: 3px;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+a.vw-read-more::after {
+  content: "\2192";
+  display: inline-block;
+  font-size: 1.12em;
+  line-height: 1;
+  transform: translateX(0);
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+a.vw-read-more:hover::after,
+a.vw-read-more:focus-visible::after {
+  transform: translateX(4px);
+}
+
+a.vw-read-more:active::after {
+  transform: translateX(1px);
+}
+
+a.vw-read-more:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 4px;
+}
+
+/* En el módulo de Noticias el texto vive dentro de un <span> posicionado.
+   La flecha debe pertenecer a ese mismo elemento, no al enlace contenedor. */
+.covid_headlines .news_item > a.vw-read-more {
+  border-bottom: 0;
+  display: inline;
+  padding-bottom: 0;
+  white-space: normal;
+}
+
+.covid_headlines .news_item > a.vw-read-more::after {
+  display: none;
+}
+
+.covid_headlines .news_item > a.vw-read-more > span::after {
+  content: "\2192";
+  display: inline-block;
+  margin-left: 0.55em;
+  transform: translateX(0);
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.covid_headlines .news_item > a.vw-read-more:hover > span::after,
+.covid_headlines .news_item > a.vw-read-more:focus-visible > span::after {
+  transform: translateX(4px);
+}
+
+.covid_headlines .news_item > a.vw-read-more:active > span::after {
+  transform: translateX(1px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  a.vw-read-more::after {
+    transition: none;
+  }
+
+  .covid_headlines .news_item > a.vw-read-more > span::after {
+    transition: none;
+  }
+}
+
 .img_banner{
 	width: 114px !important;
 
@@ -252,4 +329,311 @@ loader de practicas en español
   left: 1% !important;
 }
 
+/* Desk Alemán retirado: el espejo contiene miles de HTML capturados. Esta
+ * regla compartida evita que sus menús/fotters heredados sigan mostrando el
+ * acceso sin reescribir cada archivo histórico. */
+a.nav__menu--sublink[href*="/desks"],
+a[href="/german-desk"],
+.footer a[href*="/desks"] {
+  display: none !important;
+}
 
+.footer li:has(> a[href*="/desks"]) {
+  display: none !important;
+}
+
+.header.header_JS .header--wrap {
+  background-image: none !important;
+}
+
+.vw-footer-esr {
+  align-items: center;
+  display: flex;
+  justify-content: center;
+  margin: 18px auto 0;
+}
+
+.vw-footer-esr__img {
+  background: #fff;
+  display: block;
+  height: auto;
+  padding: 4px 6px;
+  width: 106px;
+}
+
+/* Navegación directa: el mismo cromo se usa en miles de páginas del espejo.
+ * En escritorio los siete accesos principales viven siempre en la barra superior;
+ * en pantallas reducidas el panel conserva todos los destinos en una lista clara. */
+@media (min-width: 1240px) {
+  .header.header_JS {
+    height: 72px;
+    padding: 0 !important;
+  }
+
+  .header.header_JS .header--wrap {
+    box-sizing: border-box;
+    height: 72px;
+    max-width: none;
+    padding: 0 40px !important;
+  }
+
+  .header.header_JS .header__logo {
+    width: 220px;
+  }
+
+  .header.header_JS .header__logo--img {
+    max-width: 220px !important;
+    width: 100%;
+  }
+
+  .header.header_JS .search_form_cont {
+    right: 96px !important;
+    top: 20px !important;
+    width: 34px !important;
+  }
+
+  .header.header_JS .eyeglass {
+    background-position: center !important;
+    background-size: 25px 25px;
+    float: none;
+    height: 32px !important;
+    right: 0 !important;
+    top: 0 !important;
+    width: 34px !important;
+  }
+
+  .header.header_JS .header__lang {
+    font-size: 15px;
+    right: 40px !important;
+    top: 36px;
+  }
+
+  .header .menu_btn_JS {
+    display: none !important;
+  }
+
+  nav.nav.menu_JS {
+    background: transparent !important;
+    display: block !important;
+    height: 72px;
+    left: 270px;
+    overflow: visible;
+    pointer-events: none;
+    position: fixed;
+    right: 150px;
+    top: 0;
+    user-select: auto;
+    width: auto !important;
+    z-index: 10;
+  }
+
+  nav.nav.menu_JS .nav__header {
+    display: none !important;
+  }
+
+  nav.nav.menu_JS .nav__menu {
+    display: flex !important;
+    height: 72px;
+    margin: 0;
+    min-height: 0;
+    padding: 0;
+    pointer-events: auto;
+    width: 100%;
+  }
+
+  nav.nav.menu_JS .nav__menu--holder {
+    align-items: center;
+    display: flex;
+    gap: clamp(12px, 1.4vw, 28px);
+    justify-content: center;
+    width: 100%;
+  }
+
+  nav.nav.menu_JS .nav__menu--item {
+    display: block !important;
+    margin: 0;
+    opacity: 1 !important;
+    position: relative;
+    transform: none !important;
+  }
+
+  nav.nav.menu_JS .nav__menu--link {
+    color: #5e5e5e;
+    font-family: "Geomanist-Book", sans-serif;
+    font-size: clamp(13px, 1vw, 16px);
+    letter-spacing: 0.025em;
+    line-height: 72px;
+    margin: 0;
+    padding: 0 0 2px;
+    text-decoration: none;
+    white-space: nowrap;
+  }
+
+  nav.nav.menu_JS .nav__menu--link::after {
+    background-color: #ac162c;
+    bottom: 13px;
+    height: 1px;
+  }
+
+  nav.nav.menu_JS .nav__menu--link:hover,
+  nav.nav.menu_JS .nav__menu--link:focus-visible,
+  nav.nav.menu_JS .nav__menu--link.vw-nav-current {
+    color: #ac162c !important;
+  }
+
+  nav.nav.menu_JS .nav__menu--link.vw-nav-current::after {
+    width: 100%;
+  }
+
+  nav.nav.menu_JS .nav__menu--link:focus-visible {
+    outline: 2px solid #ac162c;
+    outline-offset: 4px;
+  }
+
+  nav.nav.menu_JS .vw-subnav {
+    background: #fff;
+    border-top: 1px solid #ac162c;
+    box-shadow: 0 10px 20px rgba(62, 62, 62, 0.12);
+    display: flex;
+    flex-direction: column;
+    left: 50%;
+    min-width: 170px;
+    opacity: 0;
+    padding: 10px 14px 12px;
+    pointer-events: none;
+    position: absolute;
+    top: 60px;
+    transform: translateX(-50%);
+    transition: opacity 0.18s ease, visibility 0.18s ease;
+    visibility: hidden;
+    white-space: nowrap;
+    z-index: 11;
+  }
+
+  nav.nav.menu_JS .vw-has-subnav:hover .vw-subnav,
+  nav.nav.menu_JS .vw-has-subnav:focus-within .vw-subnav {
+    opacity: 1;
+    pointer-events: auto;
+    visibility: visible;
+  }
+
+  nav.nav.menu_JS .vw-subnav .nav__menu--sublink {
+    color: #5e5e5e;
+    display: block !important;
+    font-family: "Geomanist-Book", sans-serif;
+    font-size: 11px;
+    letter-spacing: 0.035em;
+    line-height: 1.25;
+    margin: 0;
+    max-height: none;
+    padding: 6px 0;
+    text-transform: none;
+  }
+
+  nav.nav.menu_JS .vw-subnav .nav__menu--sublink:hover,
+  nav.nav.menu_JS .vw-subnav .nav__menu--sublink:focus-visible {
+    color: #ac162c;
+  }
+
+  nav.nav.menu_JS .vw-subnav .nav__menu--sublink:focus-visible {
+    outline: 2px solid #ac162c;
+    outline-offset: 2px;
+  }
+
+  nav.nav.menu_JS .vw-subnav .nav__menu--sublink[href*="/desks"] {
+    display: none !important;
+  }
+}
+
+@media (max-width: 1239px) {
+  nav.nav.menu_JS {
+    background: #fff;
+    box-shadow: 0 14px 28px rgba(62, 62, 62, 0.12);
+    height: auto;
+    left: 0;
+    max-height: calc(100dvh - 66px);
+    overflow: auto;
+    position: fixed;
+    right: 0;
+    top: 66px;
+    width: 100%;
+  }
+
+  nav.nav.menu_JS .nav__header {
+    display: none !important;
+  }
+
+  nav.nav.menu_JS .nav__menu {
+    display: block;
+    margin: 0 auto;
+    min-height: 0;
+    padding: 16px 30px 22px;
+    width: min(100%, 640px);
+  }
+
+  nav.nav.menu_JS .nav__menu--holder {
+    display: block;
+  }
+
+  nav.nav.menu_JS .nav__menu--item {
+    border-top: 1px solid #e2e2e2;
+    margin: 0;
+    opacity: 1 !important;
+    padding: 12px 0;
+    transform: none !important;
+  }
+
+  nav.nav.menu_JS .vw-subnav {
+    display: block;
+  }
+
+  nav.nav.menu_JS .nav__menu--item:first-child {
+    border-top: 0;
+  }
+
+  nav.nav.menu_JS .nav__menu--link {
+    color: #5e5e5e;
+    font-family: "Geomanist-Book", sans-serif;
+    font-size: 16px;
+    letter-spacing: 0.035em;
+    line-height: 1.25;
+    margin: 0;
+  }
+
+  nav.nav.menu_JS .nav__menu--link::after {
+    bottom: -4px;
+  }
+
+  nav.nav.menu_JS .nav__menu--link.vw-nav-current {
+    color: #ac162c !important;
+  }
+
+  nav.nav.menu_JS .vw-subnav .nav__menu--sublink {
+    color: #666;
+    display: block;
+    font-family: "Geomanist-Book", sans-serif;
+    font-size: 12px;
+    letter-spacing: 0.045em;
+    line-height: 1.35;
+    margin-top: 8px;
+    max-height: none;
+    text-transform: none;
+  }
+
+  nav.nav.menu_JS .vw-subnav .nav__menu--sublink[href*="/desks"] {
+    display: none !important;
+  }
+
+  nav.nav.menu_JS .nav__menu--sublink:focus-visible,
+  nav.nav.menu_JS .nav__menu--link:focus-visible {
+    outline: 2px solid #ac162c;
+    outline-offset: 3px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  nav.nav.menu_JS,
+  nav.nav.menu_JS * {
+    transition: none !important;
+  }
+}

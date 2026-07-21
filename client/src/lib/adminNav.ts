@@ -11,7 +11,6 @@ import {
   Award,
   Mail,
   Settings,
-  Images,
   Languages,
   ShieldCheck,
   LineChart,
@@ -29,7 +28,6 @@ import {
   Quote,
   Link2,
   MapPin,
-  ClipboardList,
   UserPlus,
   Landmark,
   HeartHandshake,
@@ -82,6 +80,7 @@ export const ADMIN_NAV_GROUPS: AdminNavGroup[] = [
       { href: "/admin/site-config/probono", label: "Pro Bono", icon: HeartHandshake, requires: "config" },
       { href: "/admin/site-config/diversidad", label: "Diversidad e Inclusión", icon: Sparkles, requires: "config" },
       { href: "/admin/site-config/privacidad", label: "Aviso de Privacidad", icon: Lock, requires: "config" },
+      { href: "/admin/testimonials", label: "Testimonios del home", icon: Quote },
     ],
   },
   {
@@ -97,7 +96,6 @@ export const ADMIN_NAV_GROUPS: AdminNavGroup[] = [
     items: [
       { href: "/admin/practice-groups", label: "Áreas de práctica", icon: Briefcase },
       { href: "/admin/industry-groups", label: "Sectores / Industrias", icon: Building2 },
-      { href: "/admin/desks", label: "Áreas especializadas (desks)", icon: ClipboardList },
       { href: "/admin/site-config/capacidades", label: "Textos — Capacidades", icon: Landmark, requires: "config" },
     ],
   },
@@ -106,6 +104,7 @@ export const ADMIN_NAV_GROUPS: AdminNavGroup[] = [
     label: "Publicaciones",
     items: [
       { href: "/admin/news", label: "Noticias", icon: Newspaper },
+      { href: "/admin/newsletter", label: "Suscriptores del Newsletter", icon: Mail },
     ],
   },
   {
@@ -129,6 +128,7 @@ export const ADMIN_NAV_GROUPS: AdminNavGroup[] = [
     label: "Otros contenidos",
     items: [
       { href: "/admin/recognitions", label: "Reconocimientos", icon: Award },
+      { href: "/admin/offices", label: "Oficinas", icon: MapPin, requires: "config" },
     ],
   },
   {
@@ -146,12 +146,9 @@ export const ADMIN_NAV_GROUPS: AdminNavGroup[] = [
     label: "En construcción",
     items: [
       { href: "/admin/events", label: "Eventos", icon: Calendar, comingSoon: true },
-      { href: "/admin/gallery", label: "Galería de imágenes", icon: Images, requires: "config", comingSoon: true },
       { href: "/admin/coming-soon/premios", label: "Premios", icon: Trophy, comingSoon: true },
       { href: "/admin/coming-soon/clientes", label: "Clientes", icon: Handshake, comingSoon: true },
-      { href: "/admin/coming-soon/testimonios", label: "Testimonios", icon: Quote, comingSoon: true },
       { href: "/admin/coming-soon/alianzas", label: "Alianzas", icon: Link2, comingSoon: true },
-      { href: "/admin/coming-soon/oficinas", label: "Oficinas", icon: MapPin, comingSoon: true },
       { href: "/admin/coming-soon/vacantes", label: "Vacantes", icon: UserPlus, comingSoon: true },
     ],
   },
@@ -198,16 +195,8 @@ export const COMING_SOON_SECTIONS: ComingSoonSection[] = [
     description: "Logos y nombres de clientes representativos de la firma, para mostrar como prueba social en el sitio.",
   },
   {
-    key: "testimonios", title: "Testimonios", icon: Quote, status: "no-screen",
-    description: "Citas y testimonios de clientes sobre su experiencia trabajando con la firma.",
-  },
-  {
     key: "alianzas", title: "Alianzas", icon: Link2, status: "no-screen",
     description: "Redes y alianzas internacionales de las que forma parte la firma (ej. asociaciones de despachos aliados).",
-  },
-  {
-    key: "oficinas", title: "Oficinas", icon: MapPin, status: "no-screen",
-    description: "Ubicaciones físicas de la firma (dirección, mapa, datos de contacto por oficina), si en algún momento hay más de una sede.",
   },
   {
     key: "vacantes", title: "Vacantes", icon: UserPlus, status: "no-screen",

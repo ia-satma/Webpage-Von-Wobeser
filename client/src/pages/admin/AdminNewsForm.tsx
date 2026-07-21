@@ -32,6 +32,8 @@ function generateSlug(s: string): string {
     .slice(0, 90);
 }
 
+const hasReadableText = (value: string) => value.replace(/<[^>]*>/g, "").replace(/&nbsp;/gi, " ").trim().length > 0;
+
 const EMPTY = {
   titleEs: "", title: "", excerptEs: "", excerpt: "", contentEs: "", content: "",
   imageUrl: "", slug: "", category: "press", published: false, featuredHome: false,
@@ -40,8 +42,8 @@ const EMPTY = {
 type TeamMemberLite = { id: string; name: string; slug: string };
 
 /**
- * Editor de Noticias (crear / editar). El despacho llena el contenido en español;
- * el inglés es opcional (si se deja vacío, se copia del español al guardar).
+ * Editor de Noticias (crear / editar). Los borradores pueden prepararse por etapas,
+ * pero una noticia publicada requiere título y extracto reales en ambos idiomas.
  */
 export default function AdminNewsForm() {
   const { id } = useParams<{ id: string }>();
@@ -122,11 +124,11 @@ export default function AdminNewsForm() {
       const catEs = newsCategories.find((c) => c.value === form.category)?.es || "Prensa";
       const payload = {
         titleEs: form.titleEs.trim(),
-        title: (form.title.trim() || form.titleEs.trim()),        // inglés opcional → cae al español
+        title: form.title.trim(),
         excerptEs: form.excerptEs.trim(),
-        excerpt: (form.excerpt.trim() || form.excerptEs.trim()),
+        excerpt: form.excerpt.trim(),
         contentEs: form.contentEs.trim() || null,
-        content: (form.content.trim() || form.contentEs.trim() || null),
+        content: form.content.trim() || null,
         imageUrl: form.imageUrl.trim() || null,
         slug: (form.slug.trim() || generateSlug(form.titleEs)),
         category: form.category,
@@ -168,12 +170,18 @@ export default function AdminNewsForm() {
     },
   });
 
-  const canSave = form.titleEs.trim() && form.excerptEs.trim() && !saveMutation.isPending;
+  const spanishReady = hasReadableText(form.titleEs) && hasReadableText(form.excerptEs);
+  const englishReady = hasReadableText(form.title) && hasReadableText(form.excerpt);
+  const canSave = spanishReady && (!form.published || englishReady) && !saveMutation.isPending;
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!form.titleEs.trim() || !form.excerptEs.trim()) {
+    if (!spanishReady) {
       toast({ title: "Faltan datos", description: "El título y el extracto (en español) son obligatorios.", variant: "destructive" });
+      return;
+    }
+    if (form.published && !englishReady) {
+      toast({ title: "Falta la versión en inglés", description: "Para publicar, completa el título y el extracto en inglés o usa el traductor y revisa el resultado.", variant: "destructive" });
       return;
     }
     saveMutation.mutate();
@@ -218,9 +226,9 @@ export default function AdminNewsForm() {
         </div>
 
         <AdminPageHelp pageId="noticias-form" manualSectionId="noticias">
-          Llena el contenido <strong>en español</strong> (obligatorio el título y el extracto). Para el inglés,
-          usa el botón <strong>“Traducir al inglés con IA”</strong> y revisa el resultado; si lo dejas vacío, el
-          sitio usa el español. Sube una imagen destacada, elige la categoría y activa
+          Llena el contenido en español y revisa también su versión en inglés. Puedes guardar un borrador
+          mientras traduces, pero para publicarlo son obligatorios el título y el extracto en ambos idiomas.
+          Usa <strong>“Traducir al inglés con IA”</strong> como apoyo y revisa el resultado. Sube una imagen destacada, elige la categoría y activa
           <strong> “Publicada”</strong> cuando quieras que aparezca en el sitio.
         </AdminPageHelp>
 
@@ -240,8 +248,8 @@ export default function AdminNewsForm() {
                 <Input id="titleEs" value={form.titleEs} onChange={(e) => set("titleEs", e.target.value)} placeholder="Título de la noticia" data-testid="input-title-es" />
               </div>
               <div className="space-y-1.5">
-                <Label htmlFor="title">Título (inglés) <span className="text-muted-foreground text-xs">— opcional</span></Label>
-                <Input id="title" value={form.title} onChange={(e) => set("title", e.target.value)} placeholder="English title (optional)" data-testid="input-title-en" />
+                <Label htmlFor="title">Título (inglés) <span className="text-muted-foreground text-xs">— obligatorio al publicar</span></Label>
+                <Input id="title" value={form.title} onChange={(e) => set("title", e.target.value)} placeholder="English title" data-testid="input-title-en" />
               </div>
 
               <div className="space-y-1.5">
@@ -249,8 +257,8 @@ export default function AdminNewsForm() {
                 <RichTextEditor rows={2} value={form.excerptEs} onChange={(html) => set("excerptEs", html)} placeholder="Resumen corto que aparece en el listado" data-testid="input-excerpt-es" />
               </div>
               <div className="space-y-1.5">
-                <Label htmlFor="excerpt">Extracto (inglés) <span className="text-muted-foreground text-xs">— opcional</span></Label>
-                <RichTextEditor rows={2} value={form.excerpt} onChange={(html) => set("excerpt", html)} placeholder="Short summary (optional)" data-testid="input-excerpt-en" />
+                <Label htmlFor="excerpt">Extracto (inglés) <span className="text-muted-foreground text-xs">— obligatorio al publicar</span></Label>
+                <RichTextEditor rows={2} value={form.excerpt} onChange={(html) => set("excerpt", html)} placeholder="Short summary" data-testid="input-excerpt-en" />
               </div>
 
               <div className="space-y-1.5">

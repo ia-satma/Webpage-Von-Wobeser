@@ -1,7 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { AdminPageHelp } from "@/components/admin/AdminPageHelp";
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
-import { AdminComingSoonNote } from "@/components/admin/AdminComingSoonNote";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useAdminAuth, adminApiRequest, getAuthHeaders } from "@/lib/adminAuth";
 import { queryClient } from "@/lib/queryClient";
@@ -14,7 +13,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Upload, Trash2, Pencil, Link as LinkIcon, ChevronUp, ChevronDown, PlusCircle, Image } from "lucide-react";
 import type { OfficeImage } from "@shared/schema";
 
-export default function GalleryAdmin() {
+export function OfficeGalleryManager({ embedded = false }: { embedded?: boolean }) {
   const { isAuthenticated, isLoading: authLoading, requireAuth } = useAdminAuth();
 
   useEffect(() => {
@@ -30,6 +29,7 @@ export default function GalleryAdmin() {
   const [editingImage, setEditingImage] = useState<OfficeImage | null>(null);
   const [editAltEn, setEditAltEn] = useState("");
   const [editAltEs, setEditAltEs] = useState("");
+  const [editImageUrl, setEditImageUrl] = useState("");
   const [editOrder, setEditOrder] = useState("");
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
@@ -146,6 +146,7 @@ export default function GalleryAdmin() {
 
   const openEdit = (img: OfficeImage) => {
     setEditingImage(img);
+    setEditImageUrl(img.imageUrl || "");
     setEditAltEn(img.alt || "");
     setEditAltEs(img.altEs || "");
     setEditOrder(String(img.order ?? 0));
@@ -164,16 +165,18 @@ export default function GalleryAdmin() {
   const sortedImages = [...images].sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
 
   return (
-    <div className="min-h-screen bg-background">
-      <main className="max-w-6xl mx-auto px-6 py-10">
-        <AdminPageHeader
-          title="GALERÍA DE OFICINAS"
-          description="Administra la galería de fotos de la oficina: sube, reordena y elimina imágenes."
-          icon={Image}
-        />
-
-        <AdminComingSoonNote />
-        <AdminPageHelp pageId="galeria" manualSectionId="galeria">Sube y ordena las fotos de la galería de oficinas del sitio público. Arrástralas o usa las flechas para cambiar el orden.</AdminPageHelp>
+    <div className={embedded ? "bg-background" : "min-h-screen bg-background"}>
+      <main className={embedded ? "space-y-6" : "max-w-6xl mx-auto px-6 py-10"}>
+        {!embedded && (
+          <>
+            <AdminPageHeader
+              title="GALERÍA DE OFICINAS"
+              description="Administra las nueve posiciones fotográficas del micrositio de oficinas."
+              icon={Image}
+            />
+            <AdminPageHelp pageId="galeria" manualSectionId="galeria">Sube, sustituye y ordena las fotos que aparecen en la página pública de Nuevas oficinas.</AdminPageHelp>
+          </>
+        )}
         {/* Add Image Card */}
         <Card className="mb-8">
           <CardHeader>
@@ -371,6 +374,8 @@ export default function GalleryAdmin() {
                           aria-label="Eliminar"
                           data-testid={`button-delete-${img.id}`}
                           className="text-red-600"
+                          disabled={sortedImages.length <= 9}
+                          title={sortedImages.length <= 9 ? "La composición necesita nueve imágenes" : "Eliminar imagen"}
                         >
                           <Trash2 className="w-3 h-3" />
                         </Button>
@@ -400,6 +405,14 @@ export default function GalleryAdmin() {
                 />
               </div>
             )}
+            <div className="space-y-1">
+              <label className="text-xs uppercase tracking-[0.1em] text-muted-foreground">Imagen (URL o ruta)</label>
+              <Input
+                value={editImageUrl}
+                onChange={(e) => setEditImageUrl(e.target.value)}
+                data-testid="input-edit-image-url"
+              />
+            </div>
             <div className="space-y-1">
               <label className="text-xs uppercase tracking-[0.1em] text-muted-foreground">Texto alternativo (EN)</label>
               <Input
@@ -436,6 +449,7 @@ export default function GalleryAdmin() {
                 updateMutation.mutate({
                   id: editingImage.id,
                   data: {
+                    imageUrl: editImageUrl,
                     alt: editAltEn,
                     altEs: editAltEs,
                     order: parseInt(editOrder) || 0,
@@ -477,4 +491,8 @@ export default function GalleryAdmin() {
       </Dialog>
     </div>
   );
+}
+
+export default function GalleryAdmin() {
+  return <OfficeGalleryManager />;
 }

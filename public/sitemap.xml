@@ -20,6 +20,16 @@
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
+
+  <!-- New offices showcase -->
+  <url>
+    <loc>https://www.vonwobeser.com/nuevas-oficinas/</loc>
+    <xhtml:link rel="alternate" hreflang="es-MX" href="https://www.vonwobeser.com/nuevas-oficinas/"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.vonwobeser.com/new-offices/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.vonwobeser.com/nuevas-oficinas/"/>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
   
   <!-- About -->
   <url>
@@ -174,17 +184,6 @@
     <xhtml:link rel="alternate" hreflang="en" href="https://www.vonwobeser.com/pro-bono"/>
     <xhtml:link rel="alternate" hreflang="es-MX" href="https://www.vonwobeser.com/pro-bono"/>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://www.vonwobeser.com/pro-bono"/>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  
-  <!-- German Desk -->
-  <url>
-    <loc>https://www.vonwobeser.com/german-desk</loc>
-    <xhtml:link rel="alternate" hreflang="en" href="https://www.vonwobeser.com/german-desk"/>
-    <xhtml:link rel="alternate" hreflang="es-MX" href="https://www.vonwobeser.com/german-desk"/>
-    <xhtml:link rel="alternate" hreflang="de" href="https://www.vonwobeser.com/german-desk"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.vonwobeser.com/german-desk"/>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>

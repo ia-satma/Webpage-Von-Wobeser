@@ -1054,6 +1054,23 @@ b,strong {
 .home__rojo--txt p span{
   font-size:1.4rem !important
 }
+
+/* Mensaje de nuevas oficinas: en escritorio se presenta como un solo titular,
+   sin cambiar la familia tipográfica original. */
+@media (min-width: 801px) {
+  .home__rojo--wrap {
+    max-width: 1050px;
+  }
+
+  .home__rojo--txt > p:first-child {
+    white-space: nowrap;
+  }
+
+  .home__rojo--txt > p:first-child span {
+    font-size: 2rem !important;
+  }
+}
+
 @media (max-width: 480px) {
   .home__rojo {
     padding: 10% 0;

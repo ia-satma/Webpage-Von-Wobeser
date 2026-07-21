@@ -401,6 +401,18 @@ export const contactFormSchema = z.object({
 
 export type ContactFormData = z.infer<typeof contactFormSchema>;
 
+// Formulario público de newsletter. Los límites se mantienen deliberadamente
+// pequeños para evitar que el home se convierta en una fuente de datos basura.
+export const newsletterSubscribeSchema = z.object({
+  name: z.string().trim().min(1, "Name is required").max(120, "Name is too long"),
+  email: z.string().trim().min(1, "Email is required").email("Invalid email address").max(254),
+  company: z.string().trim().min(1, "Company is required").max(160, "Company is too long"),
+  acceptPrivacy: z.literal(true, { errorMap: () => ({ message: "Privacy notice acceptance is required" }) }),
+  language: z.enum(["es", "en"]).optional(),
+});
+
+export type NewsletterSubscribeData = z.infer<typeof newsletterSubscribeSchema>;
+
 export const contactSubmissions = pgTable("contact_submissions", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   fullName: text("full_name").notNull(),
@@ -1372,6 +1384,10 @@ export const newsletterSubscribers = pgTable("newsletter_subscribers", {
   isActive: boolean("is_active").default(true),
   subscribedAt: timestamp("subscribed_at").defaultNow(),
   unsubscribedAt: timestamp("unsubscribed_at"),
+  // Trazabilidad mínima del consentimiento y del punto de captura. No se
+  // almacenan datos de marketing adicionales en esta primera entrega.
+  consentedAt: timestamp("consented_at"),
+  source: text("source").default("home"),
 });
 
 export const insertNewsletterSubscriberSchema = createInsertSchema(newsletterSubscribers).omit({ id: true, subscribedAt: true });

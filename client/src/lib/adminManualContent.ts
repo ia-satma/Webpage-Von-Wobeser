@@ -1,7 +1,8 @@
 import type { LucideIcon } from "lucide-react";
 import {
   Newspaper, FileText, Users, Briefcase, Building2, Calendar, Award,
-  Settings, Images, Languages, ShieldCheck, Mail, Bot, LineChart,
+  Settings, MapPin, Languages, ShieldCheck, Mail, Bot, LineChart,
+  Quote,
 } from "lucide-react";
 
 export interface AdminManualSection {
@@ -96,17 +97,18 @@ export const ADMIN_MANUAL_SECTIONS: AdminManualSection[] = [
     relatedHref: "/admin/recognitions",
   },
   {
-    id: "desks",
-    title: "Áreas especializadas (desks)",
-    icon: Building2,
-    whatIsIt: "Grupos de trabajo especializados que cruzan varias áreas de práctica, enfocados en un país o sector específico (ej. el Desk Alemán).",
-    whatFor: "Mostrar equipos con experiencia dedicada a un mercado o industria concreta, más allá de las áreas de práctica generales.",
+    id: "testimonios",
+    title: "Testimonios del home",
+    icon: Quote,
+    whatIsIt: "Las citas de firmas evaluadoras o clientes que rotan en el carrusel superior de la portada.",
+    whatFor: "Mantener actualizada la prueba social del sitio en español e inglés.",
     steps: [
-      "Entra a \"Áreas especializadas (desks)\".",
-      "Agrega un desk con su nombre (ES/EN), identificador de URL, país y descripción corta y completa.",
-      "Aparece de inmediato en Capacidades → Desks del sitio público, en ambos idiomas.",
+      "Entra a \"Testimonios del home\".",
+      "Agrega o edita la cita en español e inglés, su fuente y el orden.",
+      "Activa \"Destacado en el home\" y \"Publicado\" para mostrarla en el carrusel.",
+      "Desactiva \"Publicado\" para retirarla sin borrar sus datos.",
     ],
-    relatedHref: "/admin/desks",
+    relatedHref: "/admin/testimonials",
   },
   {
     id: "configuracion",
@@ -137,17 +139,18 @@ export const ADMIN_MANUAL_SECTIONS: AdminManualSection[] = [
     relatedHref: "/admin/site-config/seo",
   },
   {
-    id: "galeria",
-    title: "Galería de imágenes",
-    icon: Images,
-    whatIsIt: "El banco de fotos de las oficinas y eventos que se usa en distintas secciones del sitio.",
-    whatFor: "Mantener actualizado el material visual institucional sin depender de un desarrollador.",
+    id: "oficinas",
+    title: "Oficinas",
+    icon: MapPin,
+    whatIsIt: "El editor completo del micrositio bilingüe de Nuevas oficinas: textos, ubicación, videos, galería, comunicado y SEO.",
+    whatFor: "Mantener la experiencia de oficinas actualizada sin alterar la estructura visual del espejo.",
     steps: [
-      "Entra a \"Galería de imágenes\".",
-      "Sube nuevas fotos con el botón correspondiente.",
-      "Ordénalas arrastrándolas o elimina las que ya no apliquen.",
+      "Entra a \"Oficinas\" y selecciona la pestaña que quieras editar.",
+      "Completa siempre las versiones en español e inglés de los textos.",
+      "Usa las vistas previas ES/EN para revisar el resultado y después guarda los cambios.",
+      "La galería conserva nueve posiciones; puedes sustituir y reordenar sus imágenes.",
     ],
-    relatedHref: "/admin/gallery",
+    relatedHref: "/admin/offices",
   },
   {
     id: "traducciones",

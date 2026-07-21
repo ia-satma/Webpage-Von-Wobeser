@@ -24,7 +24,8 @@ const NotFound = lazy(() => import("@/pages/not-found"));
 const AdminLogin = lazy(() => import("@/pages/admin/AdminLogin"));
 const AdminSiteConfig = lazy(() => import("@/pages/admin/AdminSiteConfig"));
 const AdminRecognitions = lazy(() => import("@/pages/admin/AdminRecognitions"));
-const AdminDesks = lazy(() => import("@/pages/admin/AdminDesks"));
+const AdminTestimonials = lazy(() => import("@/pages/admin/AdminTestimonials"));
+const AdminNewsletter = lazy(() => import("@/pages/admin/AdminNewsletter"));
 const AdminDashboard = lazy(() => import("@/pages/admin/AdminDashboard"));
 const AdminNews = lazy(() => import("@/pages/admin/AdminNews"));
 const AdminNewsForm = lazy(() => import("@/pages/admin/AdminNewsForm"));
@@ -45,7 +46,7 @@ const AdminEvents = lazy(() => import("@/pages/admin/AdminEvents"));
 const AdminHealthCheck = lazy(() => import("@/pages/admin/AdminHealthCheck"));
 const SystemExplorer = lazy(() => import("@/pages/admin/SystemExplorer"));
 const AdminArticleDetail = lazy(() => import("@/pages/admin/AdminArticleDetail"));
-const GalleryAdmin = lazy(() => import("@/pages/admin/GalleryAdmin"));
+const AdminOffices = lazy(() => import("@/pages/admin/AdminOffices"));
 const AdminGeneratedImages = lazy(() => import("@/pages/admin/AdminGeneratedImages"));
 const AdminGeneratedAudio = lazy(() => import("@/pages/admin/AdminGeneratedAudio"));
 const AdminPresentations = lazy(() => import("@/pages/admin/AdminPresentations"));
@@ -139,7 +140,8 @@ function Router() {
         <Route path="/admin/users" component={AdminUsers} />
         <Route path="/admin/submissions" component={AdminSubmissions} />
         <Route path="/admin/recognitions" component={AdminRecognitions} />
-        <Route path="/admin/desks" component={AdminDesks} />
+        <Route path="/admin/testimonials" component={AdminTestimonials} />
+        <Route path="/admin/newsletter" component={AdminNewsletter} />
         <Route path="/admin/news" component={AdminNews} />
         <Route path="/admin/news/new" component={AdminNewsForm} />
         <Route path="/admin/news/:id/edit" component={AdminNewsForm} />
@@ -159,7 +161,8 @@ function Router() {
         <Route path="/admin/events" component={AdminEvents} />
         <Route path="/admin/health-check" component={AdminHealthCheck} />
         <Route path="/admin/explorer" component={SystemExplorer} />
-        <Route path="/admin/gallery" component={GalleryAdmin} />
+        <Route path="/admin/offices" component={AdminOffices} />
+        <Route path="/admin/gallery"><Redirect to="/admin/offices?tab=gallery" /></Route>
         <Route path="/admin/generated-images" component={AdminGeneratedImages} />
         <Route path="/admin/generated-audio" component={AdminGeneratedAudio} />
         <Route path="/admin/presentations" component={AdminPresentations} />

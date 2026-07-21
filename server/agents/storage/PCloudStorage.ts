@@ -201,7 +201,7 @@ export class PCloudStorage {
 
   async saveKnowledge(): Promise<boolean> {
     await this.ensureFolder('knowledge');
-    const data = JSON.stringify(knowledgeStore.toJSON(), null, 2);
+    const data = JSON.stringify(await knowledgeStore.toJSON(), null, 2);
     return this.uploadFile('knowledge/knowledge.json', data);
   }
 
@@ -211,7 +211,12 @@ export class PCloudStorage {
 
     try {
       const parsed = JSON.parse(data);
-      knowledgeStore.fromJSON(parsed);
+      const restore = (knowledgeStore as unknown as { fromJSON?: (value: unknown) => void | Promise<void> }).fromJSON;
+      if (!restore) {
+        console.warn('[PCloud] Knowledge restore is unavailable; the database remains the source of truth');
+        return false;
+      }
+      await restore.call(knowledgeStore, parsed);
       console.log('[PCloud] Knowledge loaded successfully');
       return true;
     } catch (error) {
@@ -222,7 +227,7 @@ export class PCloudStorage {
 
   async saveEvolution(): Promise<boolean> {
     await this.ensureFolder('evolution');
-    const data = JSON.stringify(evolutionTracker.toJSON(), null, 2);
+    const data = JSON.stringify(await evolutionTracker.toJSON(), null, 2);
     return this.uploadFile('evolution/evolution.json', data);
   }
 
@@ -232,7 +237,12 @@ export class PCloudStorage {
 
     try {
       const parsed = JSON.parse(data);
-      evolutionTracker.fromJSON(parsed);
+      const restore = (evolutionTracker as unknown as { fromJSON?: (value: unknown) => void | Promise<void> }).fromJSON;
+      if (!restore) {
+        console.warn('[PCloud] Evolution restore is unavailable; the database remains the source of truth');
+        return false;
+      }
+      await restore.call(evolutionTracker, parsed);
       console.log('[PCloud] Evolution data loaded successfully');
       return true;
     } catch (error) {
