@@ -2,6 +2,7 @@ import { BaseAgent } from '../core/BaseAgent';
 import { AgentConfig, AgentResult, ExecutionContext } from '../core/types';
 import { storage } from '../../storage';
 import { safeParseJson } from '../../openai';
+import { sanitizeCms } from '../../mirror/sanitize';
 
 const NEWSLETTER_CONFIG: AgentConfig = {
   agentType: 'newsletter' as any,
@@ -58,12 +59,17 @@ Devuelve JSON con: subject, preheader, html (cada noticia como enlace a /news/{s
       const parsed = safeParseJson<NewsletterOut>(response);
       if (!parsed?.html) return { success: false, error: 'La IA no devolvió el boletín.' };
 
+      // El prompt le pide al modelo no incluir <script>, pero eso es una instrucción, no una
+      // garantía — igual que el resto de los agentes, el HTML se sanea antes de devolverlo
+      // (el panel lo previsualiza y este boletín termina enviándose a clientes reales).
+      const safeHtml = sanitizeCms(parsed.html);
+
       return {
         success: true,
         data: {
           subject: parsed.subject || 'Boletín — Von Wobeser y Sierra',
           preheader: parsed.preheader || '',
-          html: parsed.html,
+          html: safeHtml,
           articleCount: items.length,
         },
         metrics: { articleCount: items.length },

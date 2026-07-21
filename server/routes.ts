@@ -8,6 +8,7 @@ import path from "path";
 import fs from "fs";
 import crypto from "crypto";
 import multer from "multer";
+import rateLimit from "express-rate-limit";
 import { optimizeImageIfNeeded } from "./media/optimizeImage";
 import { sanitizeFields } from "./mirror/sanitize";
 
@@ -962,7 +963,18 @@ export async function registerRoutes(
     }
   });
 
-  app.post("/api/contact", async (req, res) => {
+  // Rate-limit para los 2 formularios PÚBLICOS sin login (contacto y pasantes) — antes no
+  // tenían ningún límite de tasa, a diferencia del login. 10 envíos / 15 min por IP basta para
+  // uso legítimo (un visitante no manda 10 formularios en 15 min) y frena spam/abuso masivo.
+  const publicFormLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    limit: 10,
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: { error: "Demasiados envíos, intenta de nuevo más tarde." },
+  });
+
+  app.post("/api/contact", publicFormLimiter, async (req, res) => {
     try {
       const validationResult = contactFormSchema.safeParse(req.body);
 
@@ -1005,7 +1017,7 @@ export async function registerRoutes(
   // Formulario de "Pasantes" — antes era HTML de Joomla con action="" (no llegaba a
   // ningún lado). Los campos del multipart (name, l_name, mail, tel, comment, accept)
   // vienen tal cual del HTML original capturado; se mapean a las columnas de career_applications.
-  app.post("/api/career-applications", cvUpload.single("uploaded_file"), async (req, res) => {
+  app.post("/api/career-applications", publicFormLimiter, cvUpload.single("uploaded_file"), async (req, res) => {
     try {
       const bodySchema = z.object({
         name: z.string().min(1),

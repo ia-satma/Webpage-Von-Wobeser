@@ -1,4 +1,5 @@
 import { useState } from "react";
+import DOMPurify from "dompurify";
 import { useParams, Link } from "wouter";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { ArrowLeft, Calendar, User, Tag, Loader2, RefreshCw, AlertCircle } from "lucide-react";
@@ -443,9 +444,13 @@ export default function AdminArticleDetail() {
           <CardTitle>{t.content}</CardTitle>
         </CardHeader>
         <CardContent>
-          <div 
+          <div
             className="prose prose-sm dark:prose-invert max-w-none"
-            dangerouslySetInnerHTML={{ __html: article.content || '' }}
+            // Defensa en profundidad: el servidor ya sanea el contenido antes de guardarlo
+            // (sanitizeFields en los agentes/rutas de escritura), pero esta vista renderiza
+            // borradores crudos de agentes que puedan olvidarse de sanearlo en el futuro —
+            // nunca confiar únicamente en el saneo de origen para algo que se inyecta como HTML.
+            dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(article.content || '') }}
           />
         </CardContent>
       </Card>

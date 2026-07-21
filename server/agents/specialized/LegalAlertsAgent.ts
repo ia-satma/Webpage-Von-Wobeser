@@ -5,6 +5,7 @@ import { BaseAgent } from '../core/BaseAgent';
 import { AgentConfig, AgentResult, ExecutionContext } from '../core/types';
 import { storage } from '../../storage';
 import { safeParseJson } from '../../openai';
+import { sanitizeFields } from '../../mirror/sanitize';
 
 // cofece.mx no envía el certificado intermedio en el handshake TLS (confirmado con
 // `openssl s_client -showcerts`: solo manda el leaf, firmado por "GeoTrust TLS RSA CA G1").
@@ -193,13 +194,21 @@ Devuelve JSON con: titleEs, title, excerptEs, excerpt, contentEs, content, slug.
       const baseSlug = (a.slug || this.slugify(a.titleEs)) || 'alerta';
       const slug = `${baseSlug}-${Date.now().toString(36)}`;
 
-      const draft = await storage.createNews({
+      const newsFields = {
         titleEs: a.titleEs,
         title: a.title || a.titleEs,
         excerptEs: a.excerptEs || '',
         excerpt: a.excerpt || a.excerptEs || '',
         contentEs: a.contentEs || null,
         content: a.content || a.contentEs || null,
+      };
+      // El contenido viene de una fuente EXTERNA (DOF/COFECE/etc.) parafraseada por el LLM —
+      // igual que Formatter/SEOOptimizer, se sanea antes de persistir (aunque nazca published:false,
+      // si se aprueba sin editar el campo quedaría expuesto sin este paso).
+      sanitizeFields(newsFields, ['content', 'contentEs', 'excerpt', 'excerptEs']);
+
+      const draft = await storage.createNews({
+        ...newsFields,
         slug,
         published: false,
         category: 'alerts',
