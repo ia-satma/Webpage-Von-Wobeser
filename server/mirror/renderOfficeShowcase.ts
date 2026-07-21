@@ -138,7 +138,7 @@ export function renderOfficeShowcase(
   $("footer .follow-text").text(value("office_follow_label"));
 
   // Versionado explícito: evita conservar una copia incompleta de CSS/JS en caché.
-  $('link[href*="estilos_home.css"]').attr("href", "/css/estilos_home.css?v=20260721-offices4");
+  $('link[href*="estilos_home.css"]').attr("href", "/css/estilos_home.css?v=20260721-offices5");
   $('script[src*="funciones_animaciones"]').attr("src", "/js/office-showcase.js?v=20260721-offices4");
   return $.html();
 }

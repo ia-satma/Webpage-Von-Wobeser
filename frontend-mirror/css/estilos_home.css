@@ -1,6 +1,7 @@
 @font-face {
   font-family: "Publico-light";
   src: url("../fonts/Publico/Publico-Light.otf") format("opentype");
+  font-weight: 300;
   font-display: swap;
 }
 
@@ -41,8 +42,8 @@ body {
 
 .titulos,
 .titulo_banner {
-  font-family: "Publico-medium", Georgia, serif !important;
-  font-weight: 400;
+  font-family: "Publico-light", Georgia, serif !important;
+  font-weight: 500;
   text-wrap: balance;
 }
 
