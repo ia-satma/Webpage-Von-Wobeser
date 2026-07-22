@@ -11,6 +11,7 @@ import multer from "multer";
 import rateLimit from "express-rate-limit";
 import { optimizeImageIfNeeded } from "./media/optimizeImage";
 import { sanitizeFields } from "./mirror/sanitize";
+import { getConfigMap } from "./mirror/siteConfig";
 
 // Global WebSocket clients map for pipeline progress updates
 const pipelineClients: Map<string, WebSocket> = new Map();
@@ -50,6 +51,21 @@ import {
   insertAllianceSchema,
   insertOfficeImageSchema,
   apiUsage,
+  awards,
+  banners,
+  diversityInitiatives,
+  events,
+  generatedImages,
+  industryGroups,
+  news,
+  officeImages,
+  offices,
+  practiceGroups,
+  proBonoProjects,
+  rankings,
+  representativeClients,
+  teamMembers,
+  testimonials,
 } from "@shared/schema";
 import { db } from "./db";
 import { sql, gte } from "drizzle-orm";
@@ -2922,7 +2938,114 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
   app.get("/api/admin/media", authMiddleware, async (_req: Request, res: Response) => {
     try {
       const items = await storage.getMediaItems();
-      res.json(items);
+      const [
+        practiceRefs,
+        industryRefs,
+        newsRefs,
+        teamRefs,
+        officeImageRefs,
+        officeRefs,
+        testimonialRefs,
+        rankingRefs,
+        awardRefs,
+        clientRefs,
+        eventRefs,
+        proBonoRefs,
+        diversityRefs,
+        bannerRefs,
+        generatedRefs,
+        config,
+      ] = await Promise.all([
+        db.select({ path: practiceGroups.imageUrl, label: practiceGroups.nameEs }).from(practiceGroups),
+        db.select({ path: industryGroups.imageUrl, label: industryGroups.nameEs }).from(industryGroups),
+        db.select({ path: news.imageUrl, label: news.titleEs }).from(news),
+        db.select({ path: teamMembers.imageUrl, label: teamMembers.name }).from(teamMembers),
+        db.select({ path: officeImages.imageUrl, label: officeImages.altEs }).from(officeImages),
+        db.select({ path: offices.imageUrl, label: offices.nameEs }).from(offices),
+        db.select({ path: testimonials.authorPhotoUrl, label: testimonials.authorName }).from(testimonials),
+        db.select({ path: rankings.logoUrl, label: rankings.nameEs }).from(rankings),
+        db.select({ path: awards.logoUrl, label: awards.nameEs }).from(awards),
+        db.select({ path: representativeClients.logoUrl, label: representativeClients.name }).from(representativeClients),
+        db.select({ path: events.imageUrl, label: events.titleEs }).from(events),
+        db.select({ path: proBonoProjects.imageUrl, label: proBonoProjects.titleEs }).from(proBonoProjects),
+        db.select({ path: diversityInitiatives.imageUrl, label: diversityInitiatives.titleEs }).from(diversityInitiatives),
+        db.select({ path: banners.imageUrl, mobilePath: banners.imageUrlMobile, label: banners.titleEs }).from(banners),
+        db.select({ path: generatedImages.imageUrl, label: generatedImages.prompt }).from(generatedImages),
+        getConfigMap(),
+      ]);
+
+      // La biblioteca incluye tanto archivos subidos como recursos que ya están en uso.
+      // Los recursos históricos se exponen como entradas virtuales: no se duplican ni se
+      // insertan en la base, pero pueden seleccionarse desde cualquier ImageUpload.
+      const reusable = new Map<string, any>(items.map((item) => [item.path, item]));
+      const mimeByExtension: Record<string, string> = {
+        ".jpg": "image/jpeg",
+        ".jpeg": "image/jpeg",
+        ".png": "image/png",
+        ".gif": "image/gif",
+        ".webp": "image/webp",
+        ".mp4": "video/mp4",
+        ".webm": "video/webm",
+        ".ogv": "video/ogg",
+        ".ogg": "video/ogg",
+        ".mov": "video/quicktime",
+      };
+      const addReference = (candidate: unknown, label?: unknown) => {
+        if (typeof candidate !== "string" || !candidate.trim()) return;
+        const mediaPath = candidate.trim();
+        if (reusable.has(mediaPath)) return;
+        const pathname = mediaPath.split(/[?#]/, 1)[0];
+        const extension = path.extname(pathname).toLowerCase();
+        const mimeType = mimeByExtension[extension];
+        if (!mimeType) return;
+        const filename = path.basename(pathname) || `archivo${extension}`;
+        const displayLabel = typeof label === "string" && label.trim() ? label.trim() : filename;
+        reusable.set(mediaPath, {
+          id: `used-${crypto.createHash("sha1").update(mediaPath).digest("hex").slice(0, 16)}`,
+          filename,
+          originalName: displayLabel,
+          path: mediaPath,
+          mimeType,
+          size: null,
+          width: null,
+          height: null,
+          alt: displayLabel,
+          altEs: displayLabel,
+          uploadedBy: null,
+          createdAt: null,
+          sourceLabel: "En uso en el sitio",
+        });
+      };
+
+      for (const collection of [
+        practiceRefs,
+        industryRefs,
+        newsRefs,
+        teamRefs,
+        officeImageRefs,
+        officeRefs,
+        testimonialRefs,
+        rankingRefs,
+        awardRefs,
+        clientRefs,
+        eventRefs,
+        proBonoRefs,
+        diversityRefs,
+        generatedRefs,
+      ]) {
+        for (const item of collection) addReference(item.path, item.label);
+      }
+      for (const item of bannerRefs) {
+        addReference(item.path, item.label);
+        addReference(item.mobilePath, `${item.label || "Banner"} — móvil`);
+      }
+      for (const [key, entry] of Object.entries(config)) {
+        const label = key.replaceAll("_", " ");
+        addReference(entry.value, label);
+        if (entry.valueEs !== entry.value) addReference(entry.valueEs, `${label} — español`);
+      }
+
+      res.json(Array.from(reusable.values()));
     } catch (error) {
       console.error("Get media error:", error);
       res.status(500).json({ error: "Failed to fetch media" });

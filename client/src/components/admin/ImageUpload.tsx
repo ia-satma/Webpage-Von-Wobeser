@@ -1,8 +1,10 @@
 import { useRef, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { getAuthHeaders } from "@/lib/adminAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Upload, Loader2, X, Download } from "lucide-react";
+import { Upload, Loader2, X, Download, Library } from "lucide-react";
+import { MediaLibraryPicker, type MediaLibraryItem } from "@/components/admin/MediaLibraryPicker";
 
 /** Deriva un nombre de archivo del final de la URL/ruta para el atributo download. */
 function downloadName(url: string, isVideo: boolean): string {
@@ -24,8 +26,8 @@ export function downloadHref(url: string): string {
 }
 
 /**
- * Campo de medios reutilizable: permite SUBIR un archivo desde la computadora
- * (a /api/admin/media/upload) o pegar una URL/ruta. Soporta imagen o video.
+ * Campo de medios reutilizable: permite SUBIR un archivo desde la computadora,
+ * elegir uno previamente cargado al panel o pegar una URL/ruta. Soporta imagen o video.
  * Muestra vista previa.
  */
 export function ImageUpload({
@@ -40,7 +42,9 @@ export function ImageUpload({
   kind?: "image" | "video";
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
+  const queryClient = useQueryClient();
   const [uploading, setUploading] = useState(false);
+  const [libraryOpen, setLibraryOpen] = useState(false);
   const [error, setError] = useState("");
   const isVideo = kind === "video";
 
@@ -62,6 +66,10 @@ export function ImageUpload({
       }
       const data = await res.json();
       onChange(data.path || data.url || "");
+      queryClient.setQueryData<MediaLibraryItem[]>(["/api/admin/media"], (existing) => {
+        if (!data?.id) return existing;
+        return [data, ...(existing || []).filter((item) => item.id !== data.id)];
+      });
     } catch {
       setError("Error al subir el archivo.");
     } finally {
@@ -102,7 +110,7 @@ export function ImageUpload({
         </div>
       ) : null}
 
-      <div className="flex items-center gap-2">
+      <div className="flex flex-wrap items-center gap-2">
         <input
           ref={inputRef}
           type="file"
@@ -126,10 +134,29 @@ export function ImageUpload({
           {uploading ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : <Upload className="h-4 w-4 mr-1" />}
           {uploading ? "Subiendo…" : isVideo ? "Subir video desde tu computadora" : "Subir desde tu computadora"}
         </Button>
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={() => setLibraryOpen(true)}
+          disabled={uploading}
+          data-testid="button-open-media-library"
+        >
+          <Library className="mr-1 h-4 w-4" />
+          Elegir de la biblioteca
+        </Button>
       </div>
 
       <Input value={value} onChange={(e) => onChange(e.target.value)} placeholder={placeholder} data-testid="input-media-url" />
       {error && <p className="text-xs text-destructive">{error}</p>}
+
+      <MediaLibraryPicker
+        open={libraryOpen}
+        onOpenChange={setLibraryOpen}
+        kind={kind}
+        currentValue={value}
+        onSelect={onChange}
+      />
     </div>
   );
 }
