@@ -15,7 +15,7 @@ import { ImageUpload } from "@/components/admin/ImageUpload";
 import { ConfirmChangesDialog, fmtValue, type Change } from "@/components/admin/ConfirmChangesDialog";
 import { TranslateButton } from "@/components/admin/TranslateButton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Save, Settings, Loader2, ArrowLeft, Landmark, HeartHandshake, Sparkles, Lock, Briefcase, GraduationCap, Mail, LineChart, PanelBottom, Volume2, type LucideIcon } from "lucide-react";
+import { Save, Settings, Loader2, ArrowLeft, ArrowUpRight, ImageIcon, Landmark, HeartHandshake, Sparkles, Lock, Briefcase, GraduationCap, Mail, LineChart, PanelBottom, Volume2, type LucideIcon } from "lucide-react";
 
 type Field = { key: string; label: string; help?: string; bilingual?: boolean; media?: "image" | "video"; multiline?: boolean; rows?: number; pattern?: RegExp; patternError?: string };
 type FieldGroup = { title?: string; fields: Field[] };
@@ -48,8 +48,8 @@ const PAGES: Record<string, SiteConfigPage> = {
       {
         title: "Carruseles de prácticas e industrias",
         fields: [
-          { key: "home_practices_label", label: "Carrusel de prácticas — etiqueta", bilingual: true, help: "Los nombres, imágenes, orden y publicación de cada tarjeta se editan en Áreas de práctica." },
-          { key: "home_industries_label", label: "Carrusel de industrias — etiqueta", bilingual: true, help: "Los nombres, imágenes, orden y publicación de cada tarjeta se editan en Sectores / Industrias." },
+          { key: "home_practices_label", label: "Carrusel de prácticas — etiqueta", bilingual: true, help: "Los nombres, imágenes, orden y publicación de cada tarjeta se editan en Prácticas." },
+          { key: "home_industries_label", label: "Carrusel de industrias — etiqueta", bilingual: true, help: "Los nombres, imágenes, orden y publicación de cada tarjeta se editan en Grupos por industria." },
         ],
       },
       {
@@ -292,6 +292,15 @@ const PAGES: Record<string, SiteConfigPage> = {
 };
 
 type ConfigMap = Record<string, { value: string; valueEs: string; type: string }>;
+type CarouselGroup = {
+  id: string;
+  slug: string;
+  name: string;
+  nameEs: string;
+  imageUrl?: string | null;
+  order?: number | null;
+  published?: boolean | null;
+};
 const HOME_TAB_LABELS = ["Inicio", "Carruseles", "Contenido editorial", "Newsletter", "Noticias"];
 
 export default function AdminSiteConfig() {
@@ -317,6 +326,26 @@ export default function AdminSiteConfig() {
     queryKey: ["/api/admin/site-config"],
     queryFn: async () => (await adminApiRequest("GET", "/api/admin/site-config")).json(),
     enabled: isAuthenticated,
+  });
+
+  const practiceCarouselQuery = useQuery<CarouselGroup[]>({
+    queryKey: ["/api/admin/practice-groups"],
+    queryFn: async () => {
+      const response = await adminApiRequest("GET", "/api/admin/practice-groups");
+      if (!response.ok) throw new Error("No se pudieron cargar las prácticas.");
+      return response.json();
+    },
+    enabled: isAuthenticated && section === "portada",
+  });
+
+  const industryCarouselQuery = useQuery<CarouselGroup[]>({
+    queryKey: ["/api/admin/industry-groups"],
+    queryFn: async () => {
+      const response = await adminApiRequest("GET", "/api/admin/industry-groups");
+      if (!response.ok) throw new Error("No se pudieron cargar los grupos por industria.");
+      return response.json();
+    },
+    enabled: isAuthenticated && section === "portada",
   });
 
   useEffect(() => {
@@ -428,6 +457,101 @@ export default function AdminSiteConfig() {
     </Card>
   );
 
+  const visibleCarouselItems = (items?: CarouselGroup[]) =>
+    [...(items || [])]
+      .filter((item) => item.published !== false && item.slug !== "german-desk")
+      .sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+
+  const renderCarouselCollection = (
+    title: string,
+    items: CarouselGroup[] | undefined,
+    loading: boolean,
+    error: unknown,
+    manageHref: string,
+  ) => {
+    const visibleItems = visibleCarouselItems(items);
+    const imageCount = visibleItems.filter((item) => item.imageUrl).length;
+
+    return (
+      <section className="space-y-3" aria-label={`Imágenes del carrusel de ${title.toLowerCase()}`}>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h3 className="font-medium">{title}</h3>
+            {!loading && !error && (
+              <p className="text-xs text-muted-foreground">
+                {imageCount} de {visibleItems.length} tarjetas con imagen
+              </p>
+            )}
+          </div>
+          <Button asChild variant="outline" size="sm">
+            <Link href={manageHref}>
+              Administrar <ArrowUpRight className="ml-1 h-3.5 w-3.5" />
+            </Link>
+          </Button>
+        </div>
+
+        {loading ? (
+          <div className="flex items-center gap-2 rounded-lg border p-4 text-sm text-muted-foreground">
+            <Loader2 className="h-4 w-4 animate-spin" /> Cargando imágenes…
+          </div>
+        ) : error ? (
+          <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-4 text-sm text-destructive">
+            No fue posible cargar estas imágenes. Puedes administrarlas desde el botón superior.
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+            {visibleItems.map((item) => (
+              <div key={item.id} className="overflow-hidden rounded-lg border bg-card">
+                {item.imageUrl ? (
+                  <img
+                    src={item.imageUrl}
+                    alt={`Imagen del carrusel de ${item.nameEs || item.name}`}
+                    loading="lazy"
+                    className="h-24 w-full object-cover"
+                  />
+                ) : (
+                  <div className="flex h-24 items-center justify-center gap-2 bg-muted text-xs text-muted-foreground">
+                    <ImageIcon className="h-4 w-4" /> Sin imagen
+                  </div>
+                )}
+                <p className="line-clamp-2 min-h-12 px-3 py-2 text-xs font-medium">
+                  {item.nameEs || item.name}
+                </p>
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
+    );
+  };
+
+  const renderCarouselPreview = () => (
+    <Card className="mb-5">
+      <CardHeader>
+        <CardTitle className="text-base">Imágenes actuales de los carruseles</CardTitle>
+        <CardDescription>
+          Vista previa de las imágenes publicadas en la portada. Para sustituir una imagen, usa “Administrar” en la sección correspondiente.
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-8">
+        {renderCarouselCollection(
+          "Prácticas",
+          practiceCarouselQuery.data,
+          practiceCarouselQuery.isLoading,
+          practiceCarouselQuery.error,
+          "/admin/practice-groups",
+        )}
+        {renderCarouselCollection(
+          "Grupos de práctica por industria",
+          industryCarouselQuery.data,
+          industryCarouselQuery.isLoading,
+          industryCarouselQuery.error,
+          "/admin/industry-groups",
+        )}
+      </CardContent>
+    </Card>
+  );
+
   return (
     <div className="min-h-screen bg-background">
       <main className="max-w-4xl mx-auto px-6 py-8 space-y-6">
@@ -458,6 +582,7 @@ export default function AdminSiteConfig() {
             </TabsList>
             {page.groups.map((group, i) => (
               <TabsContent key={group.title ?? i} value={String(i)} className="mt-0">
+                {i === 1 && renderCarouselPreview()}
                 {renderGroup(group, i)}
               </TabsContent>
             ))}
