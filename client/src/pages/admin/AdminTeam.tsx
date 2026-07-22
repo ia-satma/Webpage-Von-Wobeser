@@ -60,7 +60,7 @@ const translations = {
     createNew: "Create New Member",
   },
   es: {
-    title: "Miembros del Equipo",
+    title: "Abogados y equipo",
     back: "Volver al Dashboard",
     search: "Buscar por nombre o correo...",
     filterRole: "Filtrar por rol",

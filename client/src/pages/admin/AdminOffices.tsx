@@ -204,10 +204,10 @@ export default function AdminOffices() {
   return (
     <main className="mx-auto max-w-7xl space-y-6 px-4 py-8 sm:px-6">
       <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
-        <AdminPageHeader title="OFICINAS" description="Administra el micrositio bilingüe de las nuevas oficinas sin alterar su diseño." icon={MapPin} />
+        <AdminPageHeader title="Oficinas" description="Administra el micrositio bilingüe de las nuevas oficinas sin alterar su diseño." icon={MapPin} />
         <div className="flex flex-wrap gap-2">
           <Button asChild variant="outline"><a href="/nuevas-oficinas/?preview=admin" target="_blank" rel="noreferrer"><ExternalLink className="mr-2 h-4 w-4" />Vista ES</a></Button>
-          <Button asChild variant="outline"><a href="/new-offices/?preview=admin" target="_blank" rel="noreferrer"><ExternalLink className="mr-2 h-4 w-4" />View EN</a></Button>
+          <Button asChild variant="outline"><a href="/new-offices/?preview=admin" target="_blank" rel="noreferrer"><ExternalLink className="mr-2 h-4 w-4" />Vista EN</a></Button>
           <Button onClick={save} disabled={saving}><Save className="mr-2 h-4 w-4" />{saving ? "Guardando…" : "Guardar cambios"}</Button>
         </div>
       </div>

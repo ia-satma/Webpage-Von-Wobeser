@@ -1,8 +1,8 @@
 import type { LucideIcon } from "lucide-react";
 import {
-  Newspaper, FileText, Users, Briefcase, Building2, Calendar, Award,
+  Newspaper, FileText, Users, Briefcase, Building2, Award,
   Settings, MapPin, Languages, ShieldCheck, Mail, Bot, LineChart,
-  Quote,
+  Quote, Navigation,
 } from "lucide-react";
 
 export interface AdminManualSection {
@@ -71,19 +71,6 @@ export const ADMIN_MANUAL_SECTIONS: AdminManualSection[] = [
     relatedHref: "/admin/industry-groups",
   },
   {
-    id: "eventos",
-    title: "Eventos",
-    icon: Calendar,
-    whatIsIt: "Conferencias, webinars y presentaciones del despacho.",
-    whatFor: "Anunciar y dar seguimiento a la participación de la firma en eventos públicos.",
-    steps: [
-      "Entra a \"Eventos\".",
-      "Crea un nuevo evento con fecha, lugar y descripción.",
-      "Publícalo para que aparezca en el sitio.",
-    ],
-    relatedHref: "/admin/events",
-  },
-  {
     id: "reconocimientos",
     title: "Reconocimientos",
     icon: Award,
@@ -112,16 +99,44 @@ export const ADMIN_MANUAL_SECTIONS: AdminManualSection[] = [
   },
   {
     id: "configuracion",
-    title: "Textos, video y logos",
+    title: "Portada y contenido institucional",
     icon: Settings,
-    whatIsIt: "Los textos e imágenes clave de la portada y páginas institucionales del sitio (hero, footer, video de fondo, logos).",
-    whatFor: "Actualizar mensajes principales sin tocar código: el eslogan, el video del hero, datos de contacto del footer, etc.",
+    whatIsIt: "Los textos e imágenes de la portada y de las páginas institucionales, organizados por sección.",
+    whatFor: "Actualizar mensajes principales sin tocar código y sin recorrer un formulario interminable.",
     steps: [
-      "Entra a \"Textos, video y logos\".",
-      "Ubica la sección que quieras editar (Portada, Footer, Contacto, Nosotros...).",
+      "Entra a \"Portada\" para editar Inicio, Carruseles, Contenido editorial, Newsletter o Noticias desde sus pestañas.",
+      "Para Nuestra Firma, Contacto, Carrera, Pie de página u otra sección, usa su acceso directo en el menú lateral.",
       "Modifica el texto o sube el nuevo archivo y guarda — el cambio se refleja de inmediato en el sitio público.",
     ],
     relatedHref: "/admin/site-config",
+  },
+  {
+    id: "navegacion",
+    title: "Navegación y visibilidad",
+    icon: Navigation,
+    whatIsIt: "El control de los siete accesos principales del menú público en español e inglés.",
+    whatFor: "Cambiar sus etiquetas o retirar temporalmente una opción del encabezado sin borrar contenido ni desactivar su URL.",
+    steps: [
+      "Entra a \"Navegación y visibilidad\" dentro de Configuración.",
+      "Edita las etiquetas en español e inglés o usa el interruptor \"Visible en el menú\".",
+      "Revisa las vistas ES/EN, confirma el resumen de cambios y guarda una sola vez.",
+      "Inicio, búsqueda e idioma permanecen siempre visibles.",
+    ],
+    relatedHref: "/admin/navigation",
+  },
+  {
+    id: "newsletter",
+    title: "Suscriptores del Newsletter",
+    icon: Mail,
+    whatIsIt: "Los registros enviados desde el formulario de Newsletter de la portada.",
+    whatFor: "Consultar nombre, correo, empresa, idioma, consentimiento y estado; también permite exportar la lista filtrada.",
+    steps: [
+      "Entra a \"Suscriptores del Newsletter\" dentro de Registros recibidos.",
+      "Busca o filtra registros y activa o desactiva una suscripción sin eliminarla.",
+      "Usa \"Exportar CSV\" para descargar el resultado del filtro actual.",
+      "Los textos del formulario se editan en Portada → Newsletter.",
+    ],
+    relatedHref: "/admin/newsletter",
   },
   {
     id: "seo",

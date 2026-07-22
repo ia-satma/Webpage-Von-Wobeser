@@ -283,6 +283,11 @@ export async function registerRoutes(
   httpServer: Server,
   app: Express
 ): Promise<Server> {
+  // Compatibilidad con bases existentes de Replit/Neon creadas antes de que el
+  // Newsletter guardara trazabilidad de consentimiento. Es idempotente y no
+  // modifica ni elimina registros previos.
+  await db.execute(sql`ALTER TABLE newsletter_subscribers ADD COLUMN IF NOT EXISTS consented_at timestamp`);
+  await db.execute(sql`ALTER TABLE newsletter_subscribers ADD COLUMN IF NOT EXISTS source text DEFAULT 'home'`);
   await seed();
 
   // Setup WebSocket server for pipeline progress updates

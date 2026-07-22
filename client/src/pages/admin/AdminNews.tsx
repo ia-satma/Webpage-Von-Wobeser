@@ -53,7 +53,7 @@ const translations = {
     unpublished: "Unpublished",
   },
   es: {
-    title: "Artículos de Noticias",
+    title: "Noticias y publicaciones",
     back: "Volver al Dashboard",
     search: "Buscar por título...",
     filterCategory: "Filtrar por categoría",

@@ -351,19 +351,31 @@ function navigationLabelsScript(config: ConfigMap, lang: Lang): string {
     search: cfg(config, "nav_search", lang),
     more: cfg(config, "home_news_more", lang),
   };
-  const payload = JSON.stringify(labels).replace(/</g, "\\u003c");
-  return `<script>(function(labels){
+  const visible = Object.fromEntries(
+    ["firm", "attorneys", "practices", "industries", "publications", "careers", "contact"]
+      .map((id) => [id, (config[`nav_visible_${id}`]?.value || "true").trim().toLowerCase() !== "false"]),
+  );
+  const payload = JSON.stringify({ labels, visible }).replace(/</g, "\\u003c");
+  return `<script>(function(settings){
+    var labels=settings.labels||{},visible=settings.visible||{};
+    var identify=function(href,isSub){
+      if(href.indexOf('/practicas/')>=0||href.indexOf('/practices/')>=0)return 'practices';
+      if(href.indexOf('/industrias/')>=0||href.indexOf('/industries/')>=0)return 'industries';
+      if(!isSub&&(href.indexOf('/nuestra-firma/')>=0||href.indexOf('/our-firm/')>=0))return 'firm';
+      if(!isSub&&(href.indexOf('/abogados/')>=0||href.indexOf('/attorneys/')>=0))return 'attorneys';
+      if(!isSub&&(href.indexOf('/publicaciones/')>=0||href.indexOf('/publications/')>=0))return 'publications';
+      if(!isSub&&(href.indexOf('/bolsa-de-trabajo/')>=0||href.indexOf('/careers/')>=0))return 'careers';
+      if(!isSub&&(href.indexOf('/contacto/')>=0||href.indexOf('/contact/')>=0))return 'contact';
+      return '';
+    };
     var links=document.querySelectorAll('.menu_JS a.nav__menu--link,.menu_JS a.nav__menu--sublink');
     for(var i=0;i<links.length;i++){
-      var link=links[i],href=(link.getAttribute('href')||'').toLowerCase(),key='';
-      if(link.classList.contains('nav__menu--sublink')){
-        if(href.indexOf('/practicas/')>=0||href.indexOf('/practices/')>=0)key='practices';
-        else if(href.indexOf('/industrias/')>=0||href.indexOf('/industries/')>=0)key='industries';
-      }else if(href.indexOf('/nuestra-firma/')>=0||href.indexOf('/our-firm/')>=0)key='firm';
-      else if(href.indexOf('/abogados/')>=0||href.indexOf('/attorneys/')>=0)key='attorneys';
-      else if(href.indexOf('/publicaciones/')>=0||href.indexOf('/publications/')>=0)key='publications';
-      else if(href.indexOf('/bolsa-de-trabajo/')>=0||href.indexOf('/careers/')>=0)key='careers';
-      else if(href.indexOf('/contacto/')>=0||href.indexOf('/contact/')>=0)key='contact';
+      var link=links[i],href=(link.getAttribute('href')||'').toLowerCase(),isSub=link.classList.contains('nav__menu--sublink'),key=identify(href,isSub);
+      if(key&&visible[key]===false){
+        if(isSub)link.remove();
+        else{var item=link.closest('.nav__menu--item');if(item)item.remove();else link.remove();}
+        continue;
+      }
       if(key&&labels[key])link.textContent=labels[key];
     }
     var search=document.querySelector('.eyeglass');
@@ -1261,6 +1273,100 @@ export async function setupMirror(app: Express) {
       office: updatedOffices.find((item) => item.isHeadquarters) || updatedOffices[0] || null,
       gallery: [...gallery].sort((a, b) => (a.order ?? 0) - (b.order ?? 0)),
     });
+  }));
+
+  // ---------- Admin: navegación pública y visibilidad ------------------
+  const navigationItems = [
+    { id: "firm", key: "nav_firm", pathEs: "/nuestra-firma", pathEn: "/our-firm" },
+    { id: "attorneys", key: "nav_attorneys", pathEs: "/attorneys", pathEn: "/attorneys?lang=en" },
+    { id: "practices", key: "nav_practices", pathEs: "/capacidades/practicas", pathEn: "/capabilities/practices" },
+    { id: "industries", key: "nav_industries", pathEs: "/capacidades/industrias", pathEn: "/capabilities/industries" },
+    { id: "publications", key: "nav_publications", pathEs: "/publicaciones", pathEn: "/publications" },
+    { id: "careers", key: "nav_careers", pathEs: "/bolsa-de-trabajo", pathEn: "/careers" },
+    { id: "contact", key: "nav_contact", pathEs: "/contacto", pathEn: "/contact" },
+  ] as const;
+  const navigationIdSchema = z.enum(["firm", "attorneys", "practices", "industries", "publications", "careers", "contact"]);
+  const navigationUpdateSchema = z.object({
+    searchLabelEn: z.string().trim().min(1).max(120),
+    searchLabelEs: z.string().trim().min(1).max(120),
+    items: z.array(z.object({
+      id: navigationIdSchema,
+      labelEn: z.string().trim().min(1).max(120),
+      labelEs: z.string().trim().min(1).max(120),
+      visible: z.boolean(),
+    })).length(navigationItems.length),
+  }).superRefine(({ items }, ctx) => {
+    const ids = new Set(items.map((item) => item.id));
+    if (ids.size !== navigationItems.length || navigationItems.some((item) => !ids.has(item.id))) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["items"], message: "Debes enviar exactamente las siete opciones de navegación." });
+    }
+  });
+  const publicNavigationPayload = (config: ConfigMap) => ({
+    items: navigationItems.map((item) => ({
+      id: item.id,
+      labelEn: config[item.key]?.value || "",
+      labelEs: config[item.key]?.valueEs || config[item.key]?.value || "",
+      visible: (config[`nav_visible_${item.id}`]?.value || "true").trim().toLowerCase() !== "false",
+      pathEs: item.pathEs,
+      pathEn: item.pathEn,
+    })),
+    fixed: {
+      homeViaLogo: true,
+      search: true,
+      language: true,
+      searchLabelEn: config.nav_search?.value || "Search",
+      searchLabelEs: config.nav_search?.valueEs || config.nav_search?.value || "Buscar",
+    },
+  });
+
+  app.get("/api/admin/site-navigation", authMiddleware, requirePermission("config"), wrap(async (_req, res) => {
+    res.json(publicNavigationPayload(await getConfigMap()));
+  }));
+
+  app.put("/api/admin/site-navigation", authMiddleware, requirePermission("config"), wrap(async (req, res) => {
+    const payload = navigationUpdateSchema.parse(req.body || {});
+    const byId = new Map(payload.items.map((item) => [item.id, item]));
+    await db.transaction(async (tx) => {
+      for (const definition of navigationItems) {
+        const item = byId.get(definition.id)!;
+        await tx.insert(siteConfig).values({
+          key: definition.key,
+          value: item.labelEn,
+          valueEs: item.labelEs,
+          type: "text",
+          category: "navigation",
+          updatedAt: new Date(),
+        }).onConflictDoUpdate({
+          target: siteConfig.key,
+          set: { value: item.labelEn, valueEs: item.labelEs, updatedAt: new Date() },
+        });
+        const visible = String(item.visible);
+        await tx.insert(siteConfig).values({
+          key: `nav_visible_${definition.id}`,
+          value: visible,
+          valueEs: visible,
+          type: "boolean",
+          category: "navigation",
+          updatedAt: new Date(),
+        }).onConflictDoUpdate({
+          target: siteConfig.key,
+          set: { value: visible, valueEs: visible, updatedAt: new Date() },
+        });
+      }
+      await tx.insert(siteConfig).values({
+        key: "nav_search",
+        value: payload.searchLabelEn,
+        valueEs: payload.searchLabelEs,
+        type: "text",
+        category: "navigation",
+        updatedAt: new Date(),
+      }).onConflictDoUpdate({
+        target: siteConfig.key,
+        set: { value: payload.searchLabelEn, valueEs: payload.searchLabelEs, updatedAt: new Date() },
+      });
+    });
+    invalidateConfigCache();
+    res.json({ ok: true, ...publicNavigationPayload(await getConfigMap()) });
   }));
 
   // ---------- Admin: editable site config (texts, hero video, etc.) -----

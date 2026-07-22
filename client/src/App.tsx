@@ -23,6 +23,7 @@ const NotFound = lazy(() => import("@/pages/not-found"));
 
 const AdminLogin = lazy(() => import("@/pages/admin/AdminLogin"));
 const AdminSiteConfig = lazy(() => import("@/pages/admin/AdminSiteConfig"));
+const AdminNavigation = lazy(() => import("@/pages/admin/AdminNavigation"));
 const AdminRecognitions = lazy(() => import("@/pages/admin/AdminRecognitions"));
 const AdminTestimonials = lazy(() => import("@/pages/admin/AdminTestimonials"));
 const AdminNewsletter = lazy(() => import("@/pages/admin/AdminNewsletter"));
@@ -137,6 +138,7 @@ function Router() {
         <Route path="/admin/coming-soon/:key" component={AdminComingSoon} />
         <Route path="/admin/site-config" component={AdminSiteConfig} />
         <Route path="/admin/site-config/:section" component={AdminSiteConfig} />
+        <Route path="/admin/navigation" component={AdminNavigation} />
         <Route path="/admin/users" component={AdminUsers} />
         <Route path="/admin/submissions" component={AdminSubmissions} />
         <Route path="/admin/recognitions" component={AdminRecognitions} />

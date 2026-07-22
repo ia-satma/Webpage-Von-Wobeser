@@ -35,6 +35,7 @@ import {
   GraduationCap,
   MessageSquare,
   Presentation,
+  Navigation,
 } from "lucide-react";
 
 /**
@@ -42,7 +43,7 @@ import {
  * vivía duplicado (uno usado en AdminLayout.tsx, otro muerto/sin usar en AdminDashboard.tsx).
  * La consumen tanto el sidebar (AdminLayout.tsx) como los accesos rápidos del Dashboard.
  */
-export type AdminNavPermission = "config" | "agents" | "advanced" | "adminOnly";
+export type AdminNavPermission = "config" | "agents" | "advanced" | "adminOnly" | "superAdminOnly";
 
 export interface AdminNavItem {
   href: string;
@@ -68,74 +69,52 @@ export const ADMIN_NAV_GROUPS: AdminNavGroup[] = [
     id: "pinned",
     label: null,
     items: [
-      { href: "/admin/dashboard", label: "Dashboard", icon: LayoutDashboard },
+      { href: "/admin/dashboard", label: "Resumen", icon: LayoutDashboard },
       { href: "/admin/manual", label: "Manual de uso", icon: HelpCircle },
     ],
   },
   {
-    id: "nuestra-firma",
-    label: "Nuestra Firma",
+    id: "contenido",
+    label: "Contenido del sitio",
     items: [
-      { href: "/admin/site-config/firma", label: "Textos — Nuestra Firma", icon: Landmark, requires: "config" },
+      { href: "/admin/site-config", label: "Portada", icon: Settings, requires: "config" },
+      { href: "/admin/site-config/firma", label: "Nuestra Firma", icon: Landmark, requires: "config" },
+      { href: "/admin/team", label: "Abogados y equipo", icon: Users },
+      { href: "/admin/practice-groups", label: "Prácticas", icon: Briefcase },
+      { href: "/admin/industry-groups", label: "Grupos por industria", icon: Building2 },
+      { href: "/admin/news", label: "Noticias y publicaciones", icon: Newspaper },
+      { href: "/admin/site-config/carrera", label: "Carrera en VWyS", icon: GraduationCap, requires: "config" },
+      { href: "/admin/site-config/contacto", label: "Contacto", icon: Mail, requires: "config" },
+      { href: "/admin/offices", label: "Oficinas", icon: MapPin, requires: "config" },
+    ],
+  },
+  {
+    id: "complementario",
+    label: "Contenido complementario",
+    items: [
       { href: "/admin/site-config/probono", label: "Pro Bono", icon: HeartHandshake, requires: "config" },
       { href: "/admin/site-config/diversidad", label: "Diversidad e Inclusión", icon: Sparkles, requires: "config" },
       { href: "/admin/site-config/privacidad", label: "Aviso de Privacidad", icon: Lock, requires: "config" },
       { href: "/admin/testimonials", label: "Testimonios del home", icon: Quote },
-    ],
-  },
-  {
-    id: "abogados",
-    label: "Abogados",
-    items: [
-      { href: "/admin/team", label: "Abogados y equipo", icon: Users },
-    ],
-  },
-  {
-    id: "capacidades",
-    label: "Capacidades",
-    items: [
-      { href: "/admin/practice-groups", label: "Áreas de práctica", icon: Briefcase },
-      { href: "/admin/industry-groups", label: "Sectores / Industrias", icon: Building2 },
-      { href: "/admin/site-config/capacidades", label: "Textos — Capacidades", icon: Landmark, requires: "config" },
-    ],
-  },
-  {
-    id: "publicaciones",
-    label: "Publicaciones",
-    items: [
-      { href: "/admin/news", label: "Noticias", icon: Newspaper },
-      { href: "/admin/newsletter", label: "Suscriptores del Newsletter", icon: Mail },
-    ],
-  },
-  {
-    id: "carrera",
-    label: "Carrera en VWyS",
-    items: [
-      { href: "/admin/site-config/carrera", label: "Textos — Carrera en VWyS", icon: GraduationCap, requires: "config" },
-      { href: "/admin/submissions?tab=career", label: "Solicitudes de pasantías", icon: FileText },
-    ],
-  },
-  {
-    id: "contacto",
-    label: "Contacto",
-    items: [
-      { href: "/admin/site-config/contacto", label: "Textos — Contacto", icon: Mail, requires: "config" },
-      { href: "/admin/submissions?tab=contact", label: "Mensajes de contacto", icon: MessageSquare },
-    ],
-  },
-  {
-    id: "otros-contenidos",
-    label: "Otros contenidos",
-    items: [
       { href: "/admin/recognitions", label: "Reconocimientos", icon: Award },
-      { href: "/admin/offices", label: "Oficinas", icon: MapPin, requires: "config" },
+      { href: "/admin/site-config/capacidades", label: "Introducción de Capacidades", icon: Landmark, requires: "config" },
+    ],
+  },
+  {
+    id: "registros",
+    label: "Registros recibidos",
+    items: [
+      { href: "/admin/newsletter", label: "Suscriptores del Newsletter", icon: Mail },
+      { href: "/admin/submissions?tab=contact", label: "Mensajes de contacto", icon: MessageSquare },
+      { href: "/admin/submissions?tab=career", label: "Solicitudes de pasantías", icon: FileText },
     ],
   },
   {
     id: "configuracion",
     label: "Configuración",
     items: [
-      { href: "/admin/site-config", label: "Portada y pie de página", icon: Settings, requires: "config" },
+      { href: "/admin/navigation", label: "Navegación y visibilidad", icon: Navigation, requires: "config" },
+      { href: "/admin/site-config/footer", label: "Pie de página", icon: Settings, requires: "config" },
       { href: "/admin/site-config/seo", label: "SEO — Analytics y verificación", icon: LineChart, requires: "config" },
       { href: "/admin/translations", label: "Traducciones", icon: Languages, requires: "config" },
       { href: "/admin/users", label: "Usuarios y accesos", icon: ShieldCheck, requires: "adminOnly" },
@@ -145,17 +124,18 @@ export const ADMIN_NAV_GROUPS: AdminNavGroup[] = [
     id: "construccion",
     label: "En construcción",
     items: [
-      { href: "/admin/events", label: "Eventos", icon: Calendar, comingSoon: true },
-      { href: "/admin/coming-soon/premios", label: "Premios", icon: Trophy, comingSoon: true },
-      { href: "/admin/coming-soon/clientes", label: "Clientes", icon: Handshake, comingSoon: true },
-      { href: "/admin/coming-soon/alianzas", label: "Alianzas", icon: Link2, comingSoon: true },
-      { href: "/admin/coming-soon/vacantes", label: "Vacantes", icon: UserPlus, comingSoon: true },
+      { href: "/admin/events", label: "Eventos", icon: Calendar, comingSoon: true, requires: "superAdminOnly" },
+      { href: "/admin/coming-soon/premios", label: "Premios", icon: Trophy, comingSoon: true, requires: "superAdminOnly" },
+      { href: "/admin/coming-soon/clientes", label: "Clientes", icon: Handshake, comingSoon: true, requires: "superAdminOnly" },
+      { href: "/admin/coming-soon/alianzas", label: "Alianzas", icon: Link2, comingSoon: true, requires: "superAdminOnly" },
+      { href: "/admin/coming-soon/vacantes", label: "Vacantes", icon: UserPlus, comingSoon: true, requires: "superAdminOnly" },
     ],
   },
   {
     id: "avanzado",
     label: "Avanzado · Agentes IA",
     items: [
+      { href: "/admin/site-config/voz", label: "Voz corporativa", icon: Volume2, requires: "config" },
       { href: "/admin/agents", label: "Agentes IA", icon: Bot, requires: "agents" },
       { href: "/admin/presentations", label: "Presentaciones IA", icon: Presentation, requires: "agents" },
       { href: "/admin/generated-images", label: "Imágenes generadas por IA", icon: Sparkles, requires: "agents" },
@@ -206,13 +186,16 @@ export const COMING_SOON_SECTIONS: ComingSoonSection[] = [
 
 /**
  * Resalta rutas anidadas (ej. /admin/news/new, /admin/news/:id/edit resaltan "Noticias";
- * /admin/site-config/firma resalta también "Portada y pie de página", su padre). Ignora "?"
+ * /admin/site-config/firma resalta su sección directa sin activar también "Portada". Ignora "?"
  * del href al comparar — las entradas de Solicitudes usan /admin/submissions?tab=... y
  * wouter's `location` no incluye query.
  */
 export function isNavItemActive(location: string, href: string): boolean {
   const path = href.split(/[?#]/)[0];
-  const exact = path === "/admin/dashboard" || path === "/admin/manual";
+  if (href.includes("?") && location === path && typeof window !== "undefined") {
+    return new URLSearchParams(window.location.search).toString() === href.split("?")[1];
+  }
+  const exact = path === "/admin/dashboard" || path === "/admin/manual" || path === "/admin/site-config";
   return exact ? location === path : location === path || location.startsWith(path + "/");
 }
 
@@ -223,9 +206,10 @@ export function isNavItemActive(location: string, href: string): boolean {
  */
 export function canSeeNavItem(
   item: AdminNavItem,
-  ctx: { has: (perm: string) => boolean; isAdmin: boolean },
+  ctx: { has: (perm: string) => boolean; isAdmin: boolean; isSuperAdmin: boolean },
 ): boolean {
   if (!item.requires) return true;
   if (item.requires === "adminOnly") return ctx.isAdmin;
+  if (item.requires === "superAdminOnly") return ctx.isSuperAdmin;
   return ctx.has(item.requires);
 }

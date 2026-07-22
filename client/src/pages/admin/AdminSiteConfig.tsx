@@ -14,7 +14,8 @@ import { useToast } from "@/hooks/use-toast";
 import { ImageUpload } from "@/components/admin/ImageUpload";
 import { ConfirmChangesDialog, fmtValue, type Change } from "@/components/admin/ConfirmChangesDialog";
 import { TranslateButton } from "@/components/admin/TranslateButton";
-import { Save, Settings, Loader2, ArrowLeft, Landmark, HeartHandshake, Sparkles, Lock, Briefcase, GraduationCap, Mail, LineChart, type LucideIcon } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Save, Settings, Loader2, ArrowLeft, Landmark, HeartHandshake, Sparkles, Lock, Briefcase, GraduationCap, Mail, LineChart, PanelBottom, Volume2, type LucideIcon } from "lucide-react";
 
 type Field = { key: string; label: string; help?: string; bilingual?: boolean; media?: "image" | "video"; multiline?: boolean; rows?: number; pattern?: RegExp; patternError?: string };
 type FieldGroup = { title?: string; fields: Field[] };
@@ -24,13 +25,13 @@ type SiteConfigPage = { title: string; description: string; icon: LucideIcon; gr
  * Cada sección de "Configuración del sitio" es su propia pantalla (ruta
  * /admin/site-config/:section), enlazada directo desde el grupo del sidebar al que
  * pertenece (Nuestra Firma/Capacidades/Carrera/Contacto/etc — ver client/src/lib/adminNav.ts).
- * "portada" (sin :section) es la única de alcance realmente global — hero/banner/pie de
- * página — y sigue siendo el destino del ítem "Portada y pie de página" en Configuración.
+ * "portada" (sin :section) reúne únicamente el home. Navegación, pie y voz viven en
+ * pantallas separadas para que la edición cotidiana no sea una página interminable.
  */
 const PAGES: Record<string, SiteConfigPage> = {
   portada: {
-    title: "Portada y pie de página",
-    description: "Elementos globales que aparecen en todo el sitio: el video/banner del inicio y el pie de página.",
+    title: "Portada",
+    description: "Edita el inicio por bloques. Cada pestaña conserva sus cambios mientras navegas entre ellas.",
     icon: Settings,
     groups: [
       {
@@ -99,21 +100,14 @@ const PAGES: Record<string, SiteConfigPage> = {
           { key: "home_news_expand", label: "Accesibilidad — mostrar", bilingual: true },
         ],
       },
+    ],
+  },
+  footer: {
+    title: "Pie de página",
+    description: "Datos institucionales y enlaces que aparecen al final de las páginas del espejo.",
+    icon: PanelBottom,
+    groups: [
       {
-        title: "Navegación principal",
-        fields: [
-          { key: "nav_firm", label: "Nuestra Firma", bilingual: true },
-          { key: "nav_attorneys", label: "Abogados", bilingual: true },
-          { key: "nav_practices", label: "Prácticas", bilingual: true },
-          { key: "nav_industries", label: "Grupos por industria", bilingual: true },
-          { key: "nav_publications", label: "Publicaciones", bilingual: true },
-          { key: "nav_careers", label: "Carrera en VWyS", bilingual: true },
-          { key: "nav_contact", label: "Contacto", bilingual: true },
-          { key: "nav_search", label: "Buscador — etiqueta accesible", bilingual: true },
-        ],
-      },
-      {
-        title: "Pie de página (todas las páginas)",
         fields: [
           { key: "footer_firm", label: "Nombre de la firma", help: "Aparece en el pie de página del sitio." },
           { key: "footer_address", label: "Dirección", help: "Una línea por renglón.", multiline: true, bilingual: true },
@@ -126,10 +120,16 @@ const PAGES: Record<string, SiteConfigPage> = {
           { key: "footer_esr_alt", label: "Distintivo ESR — texto alternativo", bilingual: true },
         ],
       },
+    ],
+  },
+  voz: {
+    title: "Voz corporativa",
+    description: "Configuración técnica de la voz utilizada por OpenAI TTS.",
+    icon: Volume2,
+    groups: [
       {
-        title: "Voz corporativa (OpenAI TTS)",
         fields: [
-          { key: "tts_voice", label: "Voz de marca", help: "Voces válidas: alloy, ash, ballad, coral, echo, fable, onyx, nova, sage, shimmer, verse. Vacío = usa \"alloy\" por defecto." },
+          { key: "tts_voice", label: "Voz de marca", help: "Voces válidas: alloy, ash, ballad, coral, echo, fable, onyx, nova, sage, shimmer, verse. Vacío = usa alloy por defecto." },
         ],
       },
     ],
@@ -148,7 +148,7 @@ const PAGES: Record<string, SiteConfigPage> = {
     ],
   },
   firma: {
-    title: "Nuestra Firma — textos",
+    title: "Nuestra Firma",
     description: "Si dejas un campo vacío, se muestra el texto original de la página.",
     icon: Landmark,
     groups: [
@@ -242,7 +242,7 @@ const PAGES: Record<string, SiteConfigPage> = {
     ],
   },
   capacidades: {
-    title: "Capacidades — textos",
+    title: "Introducción de Capacidades",
     description: "Si lo dejas vacío, se muestra el texto original de la página.",
     icon: Briefcase,
     groups: [
@@ -254,7 +254,7 @@ const PAGES: Record<string, SiteConfigPage> = {
     ],
   },
   carrera: {
-    title: "Carrera en VWyS — textos",
+    title: "Carrera en VWyS",
     description: "Si lo dejas vacío, se muestra el texto original de la página.",
     icon: GraduationCap,
     groups: [
@@ -277,7 +277,7 @@ const PAGES: Record<string, SiteConfigPage> = {
     ],
   },
   contacto: {
-    title: "Contacto — textos",
+    title: "Contacto",
     description: "Si lo dejas vacío, se muestra el texto original de la página.",
     icon: Mail,
     groups: [
@@ -292,6 +292,7 @@ const PAGES: Record<string, SiteConfigPage> = {
 };
 
 type ConfigMap = Record<string, { value: string; valueEs: string; type: string }>;
+const HOME_TAB_LABELS = ["Inicio", "Carruseles", "Contenido editorial", "Newsletter", "Noticias"];
 
 export default function AdminSiteConfig() {
   const { isAuthenticated, isLoading: authLoading } = useAdminAuth();
@@ -303,11 +304,14 @@ export default function AdminSiteConfig() {
   const [draft, setDraft] = useState<Record<string, { value: string; valueEs: string }>>({});
   const [saving, setSaving] = useState<string | null>(null);
   const [confirm, setConfirm] = useState<{ key: string; changes: Change[] } | null>(null);
+  const [homeTab, setHomeTab] = useState("0");
 
   useEffect(() => {
     // Only redirect once auth has finished loading (avoids a flash-redirect).
     if (!authLoading && !isAuthenticated) setLocation("/admin/login");
   }, [authLoading, isAuthenticated, setLocation]);
+
+  useEffect(() => setHomeTab("0"), [section]);
 
   const { data, isLoading, refetch } = useQuery<ConfigMap>({
     queryKey: ["/api/admin/site-config"],
@@ -353,6 +357,77 @@ export default function AdminSiteConfig() {
     setConfirm({ key: f.key, changes });
   };
 
+  const renderGroup = (group: FieldGroup, i: number) => (
+    <Card key={group.title ?? i}>
+      {group.title && (
+        <CardHeader>
+          <CardTitle className="text-base">{group.title}</CardTitle>
+        </CardHeader>
+      )}
+      <CardContent className="space-y-6">
+        {group.fields.map((f) => {
+          const currentValue = draft[f.key]?.value ?? "";
+          const invalid = !!f.pattern && !!currentValue && !f.pattern.test(currentValue);
+          return (
+          <div key={f.key} className="space-y-2">
+            <Label className="font-medium">{f.label}</Label>
+            {f.help && <p className="text-xs text-muted-foreground">{f.help}</p>}
+            {invalid && <p className="text-xs text-destructive" data-testid={`error-${f.key}`}>{f.patternError || "Formato inválido."}</p>}
+            {f.key === "image_engine" ? (
+              <select
+                value={draft[f.key]?.value ?? "openai"}
+                onChange={(e) => set(f.key, "value", e.target.value)}
+                data-testid={`input-${f.key}`}
+                className="flex h-9 w-full rounded-lg border border-input bg-background px-3 py-1 text-sm shadow-xs focus-visible:outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/25"
+              >
+                <option value="openai">OpenAI · DALL-E 3 (principal — usa tu API, ~$0.04/imagen)</option>
+                <option value="cloudflare">Cloudflare (gratis — requiere credenciales de Cloudflare)</option>
+              </select>
+            ) : f.key === "image_aspect" ? (
+              <select
+                value={draft[f.key]?.value ?? "1:1"}
+                onChange={(e) => set(f.key, "value", e.target.value)}
+                data-testid={`input-${f.key}`}
+                className="flex h-9 w-full rounded-lg border border-input bg-background px-3 py-1 text-sm shadow-xs focus-visible:outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/25"
+              >
+                <option value="1:1">Cuadrada · 1:1 (1024×1024)</option>
+                <option value="16:9">Horizontal · 16:9 (1792×1024) — portadas</option>
+                <option value="9:16">Vertical · 9:16 (1024×1792) — historias</option>
+              </select>
+            ) : f.media ? (
+              <ImageUpload value={draft[f.key]?.value ?? ""} onChange={(v) => set(f.key, "value", v)} kind={f.media} />
+            ) : f.multiline && f.key.startsWith("page_") ? (
+              <RichTextEditor rows={f.rows ?? 3} value={draft[f.key]?.value ?? ""} onChange={(html) => set(f.key, "value", html)} data-testid={`input-${f.key}`} />
+            ) : f.multiline ? (
+              <Textarea rows={f.rows ?? 3} value={draft[f.key]?.value ?? ""} onChange={(e) => set(f.key, "value", e.target.value)} data-testid={`input-${f.key}`} />
+            ) : (
+              <Input value={draft[f.key]?.value ?? ""} onChange={(e) => set(f.key, "value", e.target.value)} placeholder={f.bilingual ? "Texto en inglés" : ""} data-testid={`input-${f.key}`} />
+            )}
+            {f.bilingual && (
+              f.multiline && f.key.startsWith("page_") ? (
+                <RichTextEditor rows={f.rows ?? 3} value={draft[f.key]?.valueEs ?? ""} onChange={(html) => set(f.key, "valueEs", html)} placeholder="Texto en español" data-testid={`input-${f.key}-es`} />
+              ) : f.multiline ? (
+                <Textarea rows={f.rows ?? 3} value={draft[f.key]?.valueEs ?? ""} onChange={(e) => set(f.key, "valueEs", e.target.value)} placeholder="Texto en español" data-testid={`input-${f.key}-es`} />
+              ) : (
+                <Input value={draft[f.key]?.valueEs ?? ""} onChange={(e) => set(f.key, "valueEs", e.target.value)} placeholder="Texto en español" data-testid={`input-${f.key}-es`} />
+              )
+            )}
+            <div className="flex items-center gap-2">
+              <Button size="sm" onClick={() => requestSave(f)} disabled={saving === f.key || invalid} data-testid={`save-${f.key}`}>
+                {saving === f.key ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : <Save className="h-4 w-4 mr-1" />}
+                Guardar
+              </Button>
+              {f.bilingual && (
+                <TranslateButton getSource={() => ({ value: draft[f.key]?.valueEs ?? "" })} onApply={(t) => { if (t.value != null) set(f.key, "value", t.value); }} />
+              )}
+            </div>
+          </div>
+          );
+        })}
+      </CardContent>
+    </Card>
+  );
+
   return (
     <div className="min-h-screen bg-background">
       <main className="max-w-4xl mx-auto px-6 py-8 space-y-6">
@@ -372,116 +447,23 @@ export default function AdminSiteConfig() {
 
         {isLoading ? (
           <div className="flex items-center gap-2 text-muted-foreground"><Loader2 className="h-4 w-4 animate-spin" /> Cargando…</div>
+        ) : section === "portada" ? (
+          <Tabs value={homeTab} onValueChange={setHomeTab} className="space-y-5">
+            <TabsList className="flex h-auto w-full justify-start gap-1 overflow-x-auto p-1" aria-label="Secciones de la portada">
+              {page.groups.map((group, i) => (
+                <TabsTrigger key={group.title ?? i} value={String(i)} className="shrink-0" data-testid={`tab-home-${i}`}>
+                  {HOME_TAB_LABELS[i] || group.title || `Sección ${i + 1}`}
+                </TabsTrigger>
+              ))}
+            </TabsList>
+            {page.groups.map((group, i) => (
+              <TabsContent key={group.title ?? i} value={String(i)} className="mt-0">
+                {renderGroup(group, i)}
+              </TabsContent>
+            ))}
+          </Tabs>
         ) : (
-          page.groups.map((group, i) => (
-            <Card key={group.title ?? i}>
-              {group.title && (
-                <CardHeader>
-                  <CardTitle className="text-base">{group.title}</CardTitle>
-                </CardHeader>
-              )}
-              <CardContent className="space-y-6">
-                {group.fields.map((f) => {
-                  const currentValue = draft[f.key]?.value ?? "";
-                  const invalid = !!f.pattern && !!currentValue && !f.pattern.test(currentValue);
-                  return (
-                  <div key={f.key} className="space-y-2">
-                    <Label className="font-medium">{f.label}</Label>
-                    {f.help && <p className="text-xs text-muted-foreground">{f.help}</p>}
-                    {invalid && <p className="text-xs text-destructive" data-testid={`error-${f.key}`}>{f.patternError || "Formato inválido."}</p>}
-                    {f.key === "image_engine" ? (
-                      <select
-                        value={draft[f.key]?.value ?? "openai"}
-                        onChange={(e) => set(f.key, "value", e.target.value)}
-                        data-testid={`input-${f.key}`}
-                        className="flex h-9 w-full rounded-none border border-input bg-background px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-                      >
-                        <option value="openai">OpenAI · DALL-E 3 (principal — usa tu API, ~$0.04/imagen)</option>
-                        <option value="cloudflare">Cloudflare (gratis — requiere credenciales de Cloudflare)</option>
-                      </select>
-                    ) : f.key === "image_aspect" ? (
-                      <select
-                        value={draft[f.key]?.value ?? "1:1"}
-                        onChange={(e) => set(f.key, "value", e.target.value)}
-                        data-testid={`input-${f.key}`}
-                        className="flex h-9 w-full rounded-none border border-input bg-background px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-                      >
-                        <option value="1:1">Cuadrada · 1:1 (1024×1024)</option>
-                        <option value="16:9">Horizontal · 16:9 (1792×1024) — portadas</option>
-                        <option value="9:16">Vertical · 9:16 (1024×1792) — historias</option>
-                      </select>
-                    ) : f.media ? (
-                      <ImageUpload
-                        value={draft[f.key]?.value ?? ""}
-                        onChange={(v) => set(f.key, "value", v)}
-                        kind={f.media}
-                      />
-                    ) : f.multiline && f.key.startsWith("page_") ? (
-                      <RichTextEditor
-                        rows={f.rows ?? 3}
-                        value={draft[f.key]?.value ?? ""}
-                        onChange={(html) => set(f.key, "value", html)}
-                        data-testid={`input-${f.key}`}
-                      />
-                    ) : f.multiline ? (
-                      <Textarea
-                        rows={f.rows ?? 3}
-                        value={draft[f.key]?.value ?? ""}
-                        onChange={(e) => set(f.key, "value", e.target.value)}
-                        data-testid={`input-${f.key}`}
-                      />
-                    ) : (
-                      <Input
-                        value={draft[f.key]?.value ?? ""}
-                        onChange={(e) => set(f.key, "value", e.target.value)}
-                        placeholder={f.bilingual ? "Texto en inglés" : ""}
-                        data-testid={`input-${f.key}`}
-                      />
-                    )}
-                    {f.bilingual && (
-                      f.multiline && f.key.startsWith("page_") ? (
-                        <RichTextEditor
-                          rows={f.rows ?? 3}
-                          value={draft[f.key]?.valueEs ?? ""}
-                          onChange={(html) => set(f.key, "valueEs", html)}
-                          placeholder="Texto en español"
-                          data-testid={`input-${f.key}-es`}
-                        />
-                      ) : f.multiline ? (
-                        <Textarea
-                          rows={f.rows ?? 3}
-                          value={draft[f.key]?.valueEs ?? ""}
-                          onChange={(e) => set(f.key, "valueEs", e.target.value)}
-                          placeholder="Texto en español"
-                          data-testid={`input-${f.key}-es`}
-                        />
-                      ) : (
-                        <Input
-                          value={draft[f.key]?.valueEs ?? ""}
-                          onChange={(e) => set(f.key, "valueEs", e.target.value)}
-                          placeholder="Texto en español"
-                          data-testid={`input-${f.key}-es`}
-                        />
-                      )
-                    )}
-                    <div className="flex items-center gap-2">
-                      <Button size="sm" onClick={() => requestSave(f)} disabled={saving === f.key || invalid} data-testid={`save-${f.key}`}>
-                        {saving === f.key ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : <Save className="h-4 w-4 mr-1" />}
-                        Guardar
-                      </Button>
-                      {f.bilingual && (
-                        <TranslateButton
-                          getSource={() => ({ value: draft[f.key]?.valueEs ?? "" })}
-                          onApply={(t) => { if (t.value != null) set(f.key, "value", t.value); }}
-                        />
-                      )}
-                    </div>
-                  </div>
-                  );
-                })}
-              </CardContent>
-            </Card>
-          ))
+          page.groups.map(renderGroup)
         )}
       </main>
 
