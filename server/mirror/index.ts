@@ -9,14 +9,14 @@ import { renderSingle } from "./renderSingle";
 import { renderHome } from "./renderHome";
 import { renderPage } from "./renderPage";
 import { renderGroupList, type GroupListItem } from "./renderGroupList";
-import { renderDeskDetail, renderDesksMap } from "./renderDesk";
 import { applyCareersFormFix, applyContactForm } from "./formsFix";
 import * as cheerio from "cheerio";
 import { renderNewsList, renderNewsDetail } from "./renderNews";
 import { buildIdMaps, type IdMaps } from "./idMap";
-import { getConfigMap, seedConfigDefaults, upsertConfig, isRichTextConfigKey, type ConfigMap } from "./siteConfig";
+import { cfg, getConfigMap, seedConfigDefaults, upsertConfig, isRichTextConfigKey, isOfficeConfigKey, invalidateConfigCache, type ConfigMap } from "./siteConfig";
 import { setBaseUrl, setAnalyticsConfig, applyA11y } from "./seo";
-import { sanitizeCms } from "./sanitize";
+import { renderRichText, sanitizeCms } from "./sanitize";
+import { renderOfficeShowcase } from "./renderOfficeShowcase";
 import { authMiddleware, requireRole, requirePermission } from "../auth";
 import { storage } from "../storage";
 import { db } from "../db";
@@ -26,7 +26,11 @@ import {
   practiceGroups,
   teamMemberIndustryGroups,
   industryGroups,
+  offices,
+  siteConfig,
+  insertOfficeSchema,
 } from "@shared/schema";
+import { z } from "zod";
 
 type Lang = "en" | "es";
 
@@ -62,7 +66,7 @@ async function getAttorneyGroups(memberId: string) {
       .innerJoin(industryGroups, eq(teamMemberIndustryGroups.industryGroupId, industryGroups.id))
       .where(and(eq(teamMemberIndustryGroups.teamMemberId, memberId), eq(industryGroups.published, true))),
   ]);
-  return { practiceGroups: pg, industryGroups: ig };
+  return { practiceGroups: pg.filter((group) => group.slug !== "german-desk"), industryGroups: ig };
 }
 
 // Canonical layouts from the mirror, EN + ES variants. The ES files carry the
@@ -87,7 +91,7 @@ const TEMPLATES = {
   capabilities: { en: "index.php/capabilities/index.html",          es: "index.php/capacidades/index.html" },
   practiceList: { en: "index.php/capabilities/practices/index.html", es: "index.php/capacidades/practicas/index.html" },
   industryList: { en: "index.php/capabilities/industries/index.html", es: "index.php/capacidades/industrias/index.html" },
-  desksList:    { en: "index.php/capabilities/capabilities-desks/index.html", es: "index.php/capacidades/desks/index.html" },
+  offices:      { en: "new-offices/index.html",                    es: "nuevas-oficinas/index.html" },
 };
 
 // Páginas institucionales con texto editable: qué keys de siteConfig inyecta cada una,
@@ -200,7 +204,6 @@ const LANG_TOGGLE_SCRIPT = `<script>(function(){try{
     '/capacidades':'/capabilities','/capabilities':'/capacidades',
     '/capacidades/practicas':'/capabilities/practices','/capabilities/practices':'/capacidades/practicas',
     '/capacidades/industrias':'/capabilities/industries','/capabilities/industries':'/capacidades/industrias',
-    '/capacidades/desks':'/capabilities/desks','/capabilities/desks':'/capacidades/desks',
     '/publicaciones':'/publications','/publications':'/publicaciones',
     '/aviso':'/privacy','/privacy':'/aviso'
   };
@@ -215,6 +218,16 @@ const LANG_TOGGLE_SCRIPT = `<script>(function(){try{
     a.setAttribute('href',u.pathname+(u.search||''));
   });
 }catch(e){}})();</script>`;
+
+// `von.css` y `functions.min.js` son el cromo compartido de todo el espejo.
+// Se versionan desde el render para que los cambios de navegación no queden
+// ocultos detrás de los 30 días de caché de los assets estáticos.
+const NAV_ASSET_VERSION = "20260721-nav6";
+function refreshNavigationAssets(html: string): string {
+  return html
+    .replace(/(href=["']\/templates\/beez3\/css\/von\.css)(?:\?[^"']*)?(["'])/gi, `$1?v=${NAV_ASSET_VERSION}$2`)
+    .replace(/(src=["']\/templates\/beez3\/js\/min\/functions\.min\.js)(?:\?[^"']*)?(["'])/gi, `$1?v=${NAV_ASSET_VERSION}$2`);
+}
 
 // Estilo + comportamiento de los botones de acción de las publicaciones (Imprimir / Compartir).
 // Se inyecta en TODAS las páginas del espejo (sendPage), así que funciona en todo el front sin
@@ -283,8 +296,8 @@ const escHtml = (s: any) => String(s ?? "").replace(/&/g, "&amp;").replace(/</g,
 // Inyecta los datos del pie de página (dirección, teléfono, redes) desde siteConfig
 // por reemplazo de string (sin re-parseo, muy barato). La plantilla en disco es
 // inmutable, así que los selectores/URLs originales siempre están para reemplazar.
-function injectFooterString(html: string, config: ConfigMap): string {
-  const v = (k: string) => (config[k]?.value ?? "").trim();
+function injectFooterString(html: string, config: ConfigMap, lang: Lang): string {
+  const v = (k: string) => cfg(config, k, lang).trim();
   const firm = v("footer_firm"), address = v("footer_address"), phone = v("footer_phone"), website = v("footer_website");
   if (firm || address || phone || website) {
     const lines: string[] = [];
@@ -301,14 +314,83 @@ function injectFooterString(html: string, config: ConfigMap): string {
   return html;
 }
 
+function injectFooterESR(html: string, config: ConfigMap, lang: Lang): string {
+  if (html.includes('class="vw-footer-esr"')) return html;
+  const src = cfg(config, "footer_esr_image", lang).trim() || "/templates/beez3/img/esr.jpg";
+  const alt = cfg(config, "footer_esr_alt", lang).trim() || (lang === "es" ? "Empresa Socialmente Responsable" : "Socially Responsible Company");
+  const mark = `<aside class="vw-footer-esr" aria-label="${escHtml(alt)}"><img class="vw-footer-esr__img" src="${escHtml(src)}" alt="${escHtml(alt)}"></aside>`;
+  return html.replace(/(<div class="footer--copy">[\s\S]*?<\/div>)/, `$1${mark}`);
+}
+
 // Enlace discreto al panel de administración: candado pequeño, opacidad baja (sube al
 // pasar el mouse), junto al copyright del pie. FontAwesome ya está cargado en toda plantilla
 // (self-hosted en _vendor/fontawesome), así que no agrega ninguna petición extra.
 const ADMIN_LINK_STYLE = '<style>.vwb-admin-link{color:#fff;opacity:.35;text-decoration:none;transition:opacity .2s;}.vwb-admin-link:hover{opacity:1;}</style>';
-const ADMIN_LINK = `${ADMIN_LINK_STYLE}<a class="vwb-admin-link" href="/admin" target="_blank" rel="noopener" title="Panel de administración" aria-label="Panel de administración">&nbsp;&nbsp;<i class="fas fa-lock" style="font-size:11px;"></i></a>`;
+function injectAdminLink(html: string, lang: Lang): string {
+  const label = lang === "es" ? "Panel de administración" : "Administration panel";
+  const link = `${ADMIN_LINK_STYLE}<a class="vwb-admin-link" href="/admin" target="_blank" rel="noopener" title="${label}" aria-label="${label}">&nbsp;&nbsp;<i class="fas fa-lock" style="font-size:11px;"></i></a>`;
+  return html.replace(/(<div class="footer--copy">[\s\S]*?)(<\/div>)/, (_m, inner, close) => `${inner}${link}${close}`);
+}
 
-function injectAdminLink(html: string): string {
-  return html.replace(/(<div class="footer--copy">[\s\S]*?)(<\/div>)/, (_m, inner, close) => `${inner}${ADMIN_LINK}${close}`);
+// Las plantillas históricas todavía traen el enlace del Desk en el HTML. Se
+// elimina antes de enviar cualquier página para evitar destellos, navegación por
+// teclado y rastreo de una sección ya retirada; los datos siguen intactos en BD.
+function stripRetiredDeskLinks(html: string): string {
+  return html.replace(/<a\b[^>]*href=["'][^"']*\/(?:capacidades|capabilities)\/(?:capabilities-)?desks(?:\/index\.html|\/)?[^"']*["'][^>]*>[\s\S]*?<\/a>/gi, "");
+}
+
+function navigationLabelsScript(config: ConfigMap, lang: Lang): string {
+  const labels = {
+    firm: cfg(config, "nav_firm", lang),
+    attorneys: cfg(config, "nav_attorneys", lang),
+    practices: cfg(config, "nav_practices", lang),
+    industries: cfg(config, "nav_industries", lang),
+    publications: cfg(config, "nav_publications", lang),
+    careers: cfg(config, "nav_careers", lang),
+    contact: cfg(config, "nav_contact", lang),
+    search: cfg(config, "nav_search", lang),
+    more: cfg(config, "home_news_more", lang),
+  };
+  const visible = Object.fromEntries(
+    ["firm", "attorneys", "practices", "industries", "publications", "careers", "contact"]
+      .map((id) => [id, (config[`nav_visible_${id}`]?.value || "true").trim().toLowerCase() !== "false"]),
+  );
+  const payload = JSON.stringify({ labels, visible }).replace(/</g, "\\u003c");
+  return `<script>(function(settings){
+    var labels=settings.labels||{},visible=settings.visible||{};
+    var identify=function(href,isSub){
+      if(href.indexOf('/practicas/')>=0||href.indexOf('/practices/')>=0)return 'practices';
+      if(href.indexOf('/industrias/')>=0||href.indexOf('/industries/')>=0)return 'industries';
+      if(!isSub&&(href.indexOf('/nuestra-firma/')>=0||href.indexOf('/our-firm/')>=0))return 'firm';
+      if(!isSub&&(href.indexOf('/abogados/')>=0||href.indexOf('/attorneys/')>=0))return 'attorneys';
+      if(!isSub&&(href.indexOf('/publicaciones/')>=0||href.indexOf('/publications/')>=0))return 'publications';
+      if(!isSub&&(href.indexOf('/bolsa-de-trabajo/')>=0||href.indexOf('/careers/')>=0))return 'careers';
+      if(!isSub&&(href.indexOf('/contacto/')>=0||href.indexOf('/contact/')>=0))return 'contact';
+      return '';
+    };
+    var links=document.querySelectorAll('.menu_JS a.nav__menu--link,.menu_JS a.nav__menu--sublink');
+    for(var i=0;i<links.length;i++){
+      var link=links[i],href=(link.getAttribute('href')||'').toLowerCase(),isSub=link.classList.contains('nav__menu--sublink'),key=identify(href,isSub);
+      if(key&&visible[key]===false){
+        if(isSub)link.remove();
+        else{var item=link.closest('.nav__menu--item');if(item)item.remove();else link.remove();}
+        continue;
+      }
+      if(key&&labels[key])link.textContent=labels[key];
+    }
+    var search=document.querySelector('.eyeglass');
+    if(search&&labels.search){search.setAttribute('aria-label',labels.search);search.setAttribute('title',labels.search);}
+    if(labels.more){
+      var allLinks=document.querySelectorAll('a');
+      for(var j=0;j<allLinks.length;j++){
+        var raw=(allLinks[j].textContent||'').replace(/\s+/g,' ').trim().toUpperCase();
+        if(raw==='VER MAS'||raw==='VER MÁS'||raw==='SEE MORE'){
+          allLinks[j].textContent=labels.more;
+          allLinks[j].classList.add('vw-read-more');
+        }
+      }
+    }
+  })(${payload});</script>`;
 }
 
 // Sustituye el texto de la línea que arma la URL del video en el swap de miniaturas
@@ -351,9 +433,16 @@ function applyDiversityVideoGallery($: cheerio.CheerioAPI, config: ConfigMap): v
     vid_07: resolve(v("page_diversity_video_7", "/images/vid_07.mp4")),
   };
   $("#videoSource").attr("src", mainUrl);
-  $(".thumb[name]").each((_, el) => {
+  $(".thumb[name]").each((index, el) => {
     const name = $(el).attr("name") || "";
     if (slots[name]) $(el).attr("data-video", slots[name]);
+    const thumbKey = index === 0 ? "page_diversity_thumb_main" : `page_diversity_thumb_${index}`;
+    const thumb = v(thumbKey, "/images/thumb_main_vid.png");
+    $(el).find("img").first().attr({ src: thumb, alt: `Video ${index + 1}` });
+  });
+  const partnerLogos = ["page_diversity_logo_1", "page_diversity_logo_2", "page_diversity_logo_3"];
+  $(".page__content--body .pro_img img").each((index, el) => {
+    if (partnerLogos[index]) $(el).attr({ src: v(partnerLogos[index], $(el).attr("src") || ""), alt: `Diversity partner ${index + 1}` });
   });
   $("script").each((_, el) => {
     const js = $(el).html();
@@ -361,6 +450,44 @@ function applyDiversityVideoGallery($: cheerio.CheerioAPI, config: ConfigMap): v
       $(el).text(js.replace(DIVERSITY_SWAP_ORIGINAL, DIVERSITY_SWAP_EDITABLE));
     }
   });
+}
+
+function applyProBonoMedia($: cheerio.CheerioAPI, config: ConfigMap): void {
+  const logos = [1, 2, 3, 4]
+    .map((index) => (config[`page_probono_logo_${index}`]?.value || "").trim())
+    .filter(Boolean);
+  if (!logos.length) return;
+  const body = $(".page__content--body").first();
+  body.find(".pro_img").remove();
+  const widths = [156, 200, 130, 171];
+  logos.forEach((url, index) => {
+    const paragraph = $("<p>").addClass("pro_img");
+    const image = $("<img>").attr({
+      src: url,
+      alt: `Pro Bono ${index + 1}`,
+      decoding: "async",
+      style: `display:block;width:min(${widths[index] || 180}px,100%);height:auto;margin:24px auto`,
+    });
+    paragraph.append(image);
+    body.append(paragraph);
+  });
+}
+
+function applyInternsContent($: cheerio.CheerioAPI, config: ConfigMap, lang: Lang): void {
+  $("html").attr("lang", lang === "es" ? "es-mx" : "en-gb");
+  const intros = $(".careers__content .page__content--intro");
+  const bodies = $(".careers__content .page__content--body");
+  const slots: Array<[cheerio.Cheerio<any>, string]> = [
+    [intros.eq(0), "page_interns_intro"],
+    [intros.eq(1), "page_interns_summer_title"],
+    [bodies.eq(0), "page_interns_summer_body"],
+    [intros.eq(2), "page_interns_offer_title"],
+    [bodies.eq(1), "page_interns_offer_body"],
+  ];
+  for (const [$slot, key] of slots) {
+    const value = cfg(config, key, lang).trim();
+    if (value) $slot.html(renderRichText(value));
+  }
 }
 
 // Inyecta el toggle de idioma antes de </body>, aplica el pie editable y envía.
@@ -386,14 +513,22 @@ function ensureImgAlt(html: string): string {
 }
 
 async function sendPage(res: Response, html: string) {
-  const inject = `${LANG_TOGGLE_SCRIPT}${DOC_ACTIONS_SCRIPT}`;
-  let out = html.includes("</body>")
-    ? html.replace("</body>", `${inject}</body>`)
-    : html + inject;
-  try {
-    out = injectFooterString(out, await getConfigMap()); // getConfigMap está cacheado
-  } catch { /* si la config falla, se sirve el pie original de la plantilla */ }
-  out = injectAdminLink(out);
+  const lang: Lang = /<html\b[^>]*\blang=["']es(?:-|["'])/i.test(html) ? "es" : "en";
+  const isOfficeShowcase = /<body\b[^>]*\boffice-showcase\b/i.test(html);
+  let config: ConfigMap = {};
+  try { config = await getConfigMap(); } catch { /* se conservan los textos originales */ }
+  const inject = `${navigationLabelsScript(config, lang)}${LANG_TOGGLE_SCRIPT}${DOC_ACTIONS_SCRIPT}`;
+  let out = stripRetiredDeskLinks(refreshNavigationAssets(html));
+  out = out.includes("</body>")
+    ? out.replace("</body>", `${inject}</body>`)
+    : out + inject;
+  if (!isOfficeShowcase) {
+    try {
+      out = injectFooterString(out, config, lang);
+    } catch { /* si la config falla, se sirve el pie original de la plantilla */ }
+    out = injectFooterESR(out, config, lang);
+    out = injectAdminLink(out, lang);
+  }
   out = ensureImgAlt(out); // backstop a11y: alt en imgs que escaparon a applyA11y
   res.set("Cache-Control", "public, max-age=300, stale-while-revalidate=3600");
   res.status(200).type("html").send(out);
@@ -406,6 +541,166 @@ const ES_CATEGORY: Record<string, string> = {
   "counsel-sp": "counsel",
   asociados: "associates",
 };
+
+const OFFICE_GALLERY_DEFAULTS = [
+  ["/img/Collage/collage_01.jpg", "Tall view on the left side of the office gallery", "Vista alta en el lado izquierdo de la galería de oficinas"],
+  ["/img/Collage/collage_02.jpg", "Upper wide view of the new offices", "Vista panorámica superior de las nuevas oficinas"],
+  ["/img/Collage/collage_05.jpg", "Lower wide view of the new offices", "Vista panorámica inferior de las nuevas oficinas"],
+  ["/img/Collage/collage_07.jpg", "Upper view of a collaboration area", "Vista superior de un área de colaboración"],
+  ["/img/Collage/collage_04.jpg", "Lower view of a collaboration area", "Vista inferior de un área de colaboración"],
+  ["/img/Collage/05.jpg", "Tall view on the right side of the office gallery", "Vista alta en el lado derecho de la galería de oficinas"],
+  ["/img/Collage/collage_09.jpg", "Tall architectural detail of the offices", "Detalle arquitectónico vertical de las oficinas"],
+  ["/img/Collage/collage_08.jpg", "Upper architectural detail of the offices", "Detalle arquitectónico superior de las oficinas"],
+  ["/img/Collage/collage_03.jpg", "Lower architectural detail of the offices", "Detalle arquitectónico inferior de las oficinas"],
+] as const;
+
+const LEGACY_OFFICE_GALLERY_PLACEHOLDERS = new Set([
+  "https://images.unsplash.com/photo-1497366216548-37526070297c?w=800&q=80",
+  "https://images.unsplash.com/photo-1497366754035-f200968a6e72?w=800&q=80",
+  "https://images.unsplash.com/photo-1504384308090-c894fdcc538d?w=800&q=80",
+  "https://images.unsplash.com/photo-1497366811353-6870744d04b2?w=800&q=80",
+  "https://images.unsplash.com/photo-1600508774634-4e11d34730e2?w=800&q=80",
+  "https://images.unsplash.com/photo-1497366858526-0766cadbe8fa?w=800&q=80",
+  "https://images.unsplash.com/photo-1524758631624-e2822e304c36?w=800&q=80",
+  "https://images.unsplash.com/photo-1556761175-b413da4baf72?w=800&q=80",
+]);
+
+async function ensureOfficeShowcaseData(): Promise<void> {
+  const currentOffices = await storage.getOffices();
+  if (!currentOffices.length) {
+    await storage.createOffice({
+      name: "Von Wobeser y Sierra — Mexico City",
+      nameEs: "Von Wobeser y Sierra — Ciudad de México",
+      city: "Mexico City",
+      country: "Mexico",
+      countryEs: "México",
+      address: "Torre SOMA Chapultepec, 18th floor. Campos Elíseos 204, Polanco\nEntrance on Arquímedes Street No. 10\n11550 Mexico City",
+      addressEs: "Torre SOMA Chapultepec Piso 18. Campos Elíseos 204, Polanco\nAcceso por Calle Arquímedes N.° 10\nC.P. 11550, Ciudad de México",
+      phone: "+52 55 5258 1000",
+      email: "info@vonwobeser.com",
+      latitude: "19.427559",
+      longitude: "-99.195333",
+      timezone: "America/Mexico_City",
+      description: "Headquarters and new offices in Polanco.",
+      descriptionEs: "Sede principal y nuevas oficinas en Polanco.",
+      imageUrl: "/img/Banner/03.jpg",
+      isHeadquarters: true,
+      published: true,
+      order: 0,
+    });
+  }
+
+  const currentImages = await storage.getOfficeImages();
+  if (currentImages.length === 1 && currentImages[0].imageUrl === "https://vonwobeser.com/images/vonwobeser_2025.png") {
+    const first = OFFICE_GALLERY_DEFAULTS[0];
+    await storage.updateOfficeImage(currentImages[0].id, { imageUrl: first[0], alt: first[1], altEs: first[2], order: 0 });
+    currentImages[0] = { ...currentImages[0], imageUrl: first[0], alt: first[1], altEs: first[2], order: 0 };
+  }
+  for (const image of currentImages) {
+    if (!LEGACY_OFFICE_GALLERY_PLACEHOLDERS.has(image.imageUrl)) continue;
+    const index = Math.max(0, Math.min(OFFICE_GALLERY_DEFAULTS.length - 1, image.order ?? 0));
+    const item = OFFICE_GALLERY_DEFAULTS[index];
+    await storage.updateOfficeImage(image.id, { imageUrl: item[0], alt: item[1], altEs: item[2], order: index });
+    image.imageUrl = item[0];
+    image.alt = item[1];
+    image.altEs = item[2];
+    image.order = index;
+  }
+  const occupiedOrders = new Set(currentImages.map((image) => image.order ?? 0));
+  for (let index = 0; index < OFFICE_GALLERY_DEFAULTS.length; index += 1) {
+    if (occupiedOrders.has(index)) continue;
+    const item = OFFICE_GALLERY_DEFAULTS[index];
+    await storage.createOfficeImage({ imageUrl: item[0], alt: item[1], altEs: item[2], order: index });
+  }
+}
+
+const PRACTICE_HOME_IMAGES: Record<string, string> = {
+  "administrative-law": "/images/banners/13.jpg",
+  "antitrust-competition": "/images/banners/banner_competition.jpg",
+  arbitration: "/images/banners/3.jpg",
+  "banking-finance": "/images/banners/4.jpg",
+  "bankruptcy-restructuring": "/images/banners/5.jpg",
+  "corporate-ma": "/images/banners/7-a.jpg",
+  "energy-natural-resources": "/images/banners/home-slider-01.jpg",
+  environmental: "/images/banners/banner_environmental.jpg",
+  esg: "/images/esg.jpeg",
+  "immigration-global-mobility": "/images/banners/image.png",
+  "intellectual-property": "/images/banners/banner_ip.jpg",
+  "international-trade": "/images/banners/11.jpg",
+  "investigations-anticorruption": "/images/banners/home-slider-02.jpg",
+  "labor-employment": "/images/banners/12.jpg",
+  litigation: "/images/banners/13.jpg",
+  "projects-infrastructure": "/images/banners/18.jpg",
+  "real-estate": "/images/banners/14.jpg",
+  tax: "/images/banners/15.jpg",
+  "telecommunications-media-technology": "/images/banners/16.jpg",
+};
+
+const INDUSTRY_HOME_IMAGES: Record<string, string> = {
+  "automotive-mobility-manufacturing": "/images/banners/1_ind.jpg",
+  "consumer-goods": "/images/banners/francesca-grima-vwZo1zAYPws-unsplash_1.jpg",
+  "energy-natural-resources-industry": "/images/banners/3_ind.jpg",
+  "financial-services": "/images/banners/4_ind.jpg",
+  "pharmaceutical-life-sciences": "/images/banners/5_ind.jpg",
+  "real-estate-industry": "/images/_banners/pexels-photo-3637943.jpeg",
+  "technology-industry": "/images/_banners/pexels-googledeepmind-18069816.jpg",
+};
+
+/**
+ * Completa únicamente huecos heredados del HTML capturado. Nunca pisa imágenes ni
+ * testimonios administrados: después del primer arranque, el panel es la fuente de verdad.
+ */
+async function ensureHomeContentData(): Promise<void> {
+  const [practices, industries, currentTestimonials] = await Promise.all([
+    storage.getPracticeGroups(),
+    storage.getIndustryGroups(),
+    storage.getTestimonials(),
+  ]);
+  await Promise.all([
+    ...practices
+      .filter((group) => !group.imageUrl && PRACTICE_HOME_IMAGES[group.slug])
+      .map((group) => storage.updatePracticeGroup(group.id, { imageUrl: PRACTICE_HOME_IMAGES[group.slug] })),
+    ...industries
+      .filter((group) => !group.imageUrl && INDUSTRY_HOME_IMAGES[group.slug])
+      .map((group) => storage.updateIndustryGroup(group.id, { imageUrl: INDUSTRY_HOME_IMAGES[group.slug] })),
+  ]);
+
+  if (!currentTestimonials.length) {
+    const defaults = [
+      {
+        quote: "Von Wobeser y Sierra, S.C. is a full-service law firm that has successfully blended elite corporate and disputes work. It is possibly the only firm in this market with perfectly balanced strength in both areas, making it well served to assist companies with the most challenging legal matters.",
+        quoteEs: "Von Wobeser y Sierra, S.C. es una firma de servicio integral que ha combinado exitosamente trabajo corporativo y contencioso de élite. Es posiblemente la única firma de este mercado con una fortaleza perfectamente equilibrada en ambas áreas, lo que le permite asistir a empresas en los asuntos legales más desafiantes.",
+        authorName: "Latin Lawyer",
+        source: "Latin Lawyer",
+        sourceEs: "Latin Lawyer",
+        isFeatured: true,
+        published: true,
+        order: 1,
+      },
+      {
+        quote: "With a high-profile client base across Latin America, Europe and the US, Von Wobeser y Sierra, S.C.'s service corresponds to that of a highly qualified, international firm.",
+        quoteEs: "Con una destacada base de clientes en América Latina, Europa y Estados Unidos, el servicio de Von Wobeser y Sierra, S.C. corresponde al de una firma internacional altamente calificada.",
+        authorName: "Legal 500",
+        source: "Legal 500",
+        sourceEs: "Legal 500",
+        isFeatured: true,
+        published: true,
+        order: 2,
+      },
+      {
+        quote: "This is a firm with the capacity to give comprehensive and practical advice. The lawyers are committed to the client and are always accessible.",
+        quoteEs: "Es una firma con la capacidad de brindar asesoría integral y práctica. Los abogados están comprometidos con el cliente y siempre están disponibles.",
+        authorName: "Chambers & Partners Latin America",
+        source: "Chambers & Partners Latin America",
+        sourceEs: "Chambers & Partners Latin America",
+        isFeatured: true,
+        published: true,
+        order: 3,
+      },
+    ];
+    for (const testimonial of defaults) await storage.createTestimonial(testimonial);
+  }
+}
 
 /**
  * Wires the original (mirror) frontend to our backend.
@@ -426,6 +721,8 @@ export async function setupMirror(app: Express) {
   warmTemplates(); // precarga plantillas a RAM (evita I/O de disco por request)
   try {
     await seedConfigDefaults();
+    await ensureOfficeShowcaseData();
+    await ensureHomeContentData();
     // Base URL para canonical/OG/JSON-LD: env SITE_URL o la key editable site_url.
     const configAtStartup = await getConfigMap();
     setBaseUrl(process.env.SITE_URL || configAtStartup.site_url?.value);
@@ -511,7 +808,7 @@ export async function setupMirror(app: Express) {
 
     const practiceGroupsRaw = await storage.getPracticeGroups();
     const practiceGroups = practiceGroupsRaw
-      .filter((pg: any) => pg.published !== false)
+      .filter((pg: any) => pg.published !== false && pg.slug !== "german-desk")
       .map((pg) => ({ slug: pg.slug, name: pg.name, nameEs: pg.nameEs }));
 
     sendPage(res, renderAttorneyList(pick(TEMPLATES.list, lang), attorneys, category, lang, { practiceGroups, showSearch }));
@@ -550,6 +847,10 @@ export async function setupMirror(app: Express) {
 
   const servePractice = async (slug: string | undefined, lang: Lang, res: Response, next: NextFunction) => {
     if (!slug) return next();
+    if (slug === "german-desk") {
+      res.status(410).type("html").send(lang === "es" ? "Esta sección fue retirada" : "This section has been retired");
+      return;
+    }
     const group = await storage.getPracticeGroupBySlug(slug);
     if (!group) return next();
     if ((group as any).published === false) return next(); // oculta
@@ -617,15 +918,38 @@ export async function setupMirror(app: Express) {
   };
 
   const serveHome = async (lang: Lang, res: Response) => {
-    // El hero muestra 2 noticias: las DESTACADAS van primero (curadas desde el admin) y, si
-    // sobran espacios, se rellenan con las publicadas más recientes → nunca se ve vacío.
-    const [featured, config, rankings] = await Promise.all([storage.getFeaturedNews(2), getConfigMap(), storage.getRankings()]);
+    // El carrusel muestra hasta 6 noticias, en parejas. Las destacadas van primero y el resto
+    // se completa con las publicadas más recientes para que siempre haya rotación útil.
+    const [featured, config, rankings, practices, industries, testimonials] = await Promise.all([
+      storage.getFeaturedNews(6),
+      getConfigMap(),
+      storage.getRankings(),
+      storage.getPracticeGroups(),
+      storage.getIndustryGroups(),
+      storage.getTestimonials(),
+    ]);
     let heroNews = featured;
-    if (heroNews.length < 2) {
-      const recent = await storage.getRecentPublishedNews(2 + featured.length);
-      heroNews = [...featured, ...recent.filter((r) => !featured.some((f) => f.id === r.id))].slice(0, 2);
+    if (heroNews.length < 6) {
+      const recent = await storage.getRecentPublishedNews(6 + featured.length);
+      heroNews = [...featured, ...recent.filter((r) => !featured.some((f) => f.id === r.id))].slice(0, 6);
     }
-    sendPage(res, renderHome(pick(TEMPLATES.home, lang), heroNews, config, lang, rankings));
+    sendPage(res, renderHome(pick(TEMPLATES.home, lang), heroNews, config, lang, rankings, practices, industries, testimonials));
+  };
+
+  const serveOfficeShowcase = async (lang: Lang, res: Response) => {
+    const [config, officeRows, gallery] = await Promise.all([
+      getConfigMap(),
+      storage.getOffices(),
+      storage.getOfficeImages(),
+    ]);
+    const office = officeRows.find((item) => item.isHeadquarters && item.published !== false)
+      || officeRows.find((item) => item.published !== false);
+    if (config.office_published?.value === "false" || !office) {
+      res.status(404).type("html").send(lang === "es" ? "Página no disponible" : "Page unavailable");
+      return;
+    }
+    const html = renderOfficeShowcase(pick(TEMPLATES.offices, lang), config, lang, office, gallery);
+    sendPage(res, html);
   };
 
   // Páginas institucionales (Nuestra Firma, Contacto, Carrera): el texto es editable desde el
@@ -647,8 +971,10 @@ export async function setupMirror(app: Express) {
             ? ($: cheerio.CheerioAPI) => applyContactForm($, lang)
             : which === "diversity"
               ? ($: cheerio.CheerioAPI) => applyDiversityVideoGallery($, config)
+              : which === "proBono"
+                ? ($: cheerio.CheerioAPI) => applyProBonoMedia($, config)
               : undefined,
-        which === "diversity" ? { bodyMode: "prepend" } : undefined,
+        which === "diversity" || which === "proBono" ? { bodyMode: "prepend" } : undefined,
       ),
     );
   };
@@ -686,7 +1012,7 @@ export async function setupMirror(app: Express) {
     const seo = GROUP_LIST_SEO[kind];
     const rows = kind === "practice" ? await storage.getPracticeGroups() : await storage.getIndustryGroups();
     const items: GroupListItem[] = rows
-      .filter((r: any) => r.published !== false)
+      .filter((r: any) => r.published !== false && (kind !== "practice" || r.slug !== "german-desk"))
       .map((r: any) => ({ slug: r.slug, name: r.name, nameEs: r.nameEs, order: r.order }));
     sendPage(
       res,
@@ -699,31 +1025,6 @@ export async function setupMirror(app: Express) {
     );
   };
 
-  // La página "Desks" del espejo es un mapa mundial interactivo (SVG), no una lista de texto —
-  // ver renderDesk.ts. serveDesksMap rellena las regiones que tengan un desk real; serveDesk
-  // sirve la página individual de cada desk, reusando el chrome de "Prácticas" (misma nav/pie
-  // que toda la plantilla capturada) porque el mapa no tiene una vista de detalle propia.
-  const serveDesksMap = async (lang: Lang, res: Response) => {
-    const desks = await storage.getSpecializedDesks();
-    const published = desks.filter((d: any) => d.published !== false);
-    const teamByDeskId: Record<string, any[]> = {};
-    await Promise.all(
-      published.map(async (d: any) => {
-        teamByDeskId[d.id] = await storage.getTeamMembersByDesk(d.id);
-      }),
-    );
-    sendPage(res, renderDesksMap(pick(TEMPLATES.desksList, lang), desks, lang, teamByDeskId));
-  };
-
-  const serveDesk = async (slug: string | undefined, lang: Lang, res: Response, next: NextFunction) => {
-    if (!slug) return next();
-    const desks = await storage.getSpecializedDesks();
-    const desk = desks.find((d) => d.slug === slug);
-    if (!desk) return next();
-    if ((desk as any).published === false) return next();
-    sendPage(res, renderDeskDetail(pick(TEMPLATES.practiceList, lang), desk, lang));
-  };
-
   const wrap = (fn: (req: Request, res: Response, next: NextFunction) => Promise<any>) => (
     req: Request,
     res: Response,
@@ -733,6 +1034,12 @@ export async function setupMirror(app: Express) {
   // ---------- Clean dynamic routes --------------------------------------
   app.get("/", wrap((req, res) => serveHome(langOf(req), res)));
   app.get("/home", wrap((req, res) => serveHome(langOf(req), res)));
+  app.get("/nuevas-oficinas", wrap((_req, res) => serveOfficeShowcase("es", res)));
+  app.get("/nuevas-oficinas/", wrap((_req, res) => serveOfficeShowcase("es", res)));
+  app.get("/new-offices", wrap((_req, res) => serveOfficeShowcase("en", res)));
+  app.get("/new-offices/", wrap((_req, res) => serveOfficeShowcase("en", res)));
+  app.get("/nuevas-oficinas/index.html", (_req, res) => res.redirect(301, "/nuevas-oficinas/"));
+  app.get("/new-offices/index.html", (_req, res) => res.redirect(301, "/new-offices/"));
   app.get("/news", wrap((req, res) => serveNewsList(langOf(req), res, parseInt(String(req.query.page)) || 1)));
   app.get("/news/:slug", wrap((req, res, next) => serveNewsDetail(req.params.slug, langOf(req), res, next)));
   app.get("/articles", wrap((req, res) => serveArticlesList(langOf(req), res, parseInt(String(req.query.page)) || 1)));
@@ -750,7 +1057,23 @@ export async function setupMirror(app: Express) {
   app.get("/abogado/:slug", wrap((req, res, next) => serveAttorney(req.params.slug, "es", res, next)));
   app.get("/practice/:slug", wrap((req, res, next) => servePractice(req.params.slug, langOf(req), res, next)));
   app.get("/industry/:slug", wrap((req, res, next) => serveIndustry(req.params.slug, langOf(req), res, next)));
-  app.get("/desk/:slug", wrap((req, res, next) => serveDesk(req.params.slug, langOf(req), res, next)));
+
+  // El Desk Alemán fue retirado de la experiencia pública. No se borran sus
+  // filas ni relaciones; estas rutas sólo marcan explícitamente el retiro para
+  // visitantes, buscadores y enlaces históricos.
+  const deskRetired = (req: Request, res: Response) => {
+    const en = /capabilities|german-desk/.test(req.path) || req.query.lang === "en";
+    const title = en ? "Content retired" : "Contenido retirado";
+    const message = en ? "This section is no longer available." : "Esta sección ya no está disponible.";
+    res.set("X-Robots-Tag", "noindex");
+    res.status(410).type("html").send(`<!doctype html><html lang="${en ? "en" : "es"}"><head><meta charset="utf-8"><title>${title}</title></head><body><p>${message}</p></body></html>`);
+  };
+  for (const p of [
+    "/german-desk", "/desk", "/desk/:slug",
+    "/index.php/capacidades/desks/index.html", "/index.php/capacidades/desks/", "/capacidades/desks",
+    "/index.php/capabilities/desks/index.html", "/index.php/capabilities/desks/",
+    "/index.php/capabilities/capabilities-desks/index.html", "/index.php/capabilities/capabilities-desks/", "/capabilities/desks",
+  ]) app.get(p, deskRetired);
 
   // ---------- Páginas institucionales (texto editable desde el panel) ----
   // Variantes de URL del espejo: ES (nuestra-firma/contacto/bolsa-de-trabajo) y EN
@@ -795,11 +1118,6 @@ export async function setupMirror(app: Express) {
     app.get(p, wrap((_req, res) => serveGroupList("industry", "es", res)));
   for (const p of ["/index.php/capabilities/industries/index.html", "/index.php/capabilities/industries/", "/capabilities/industries"])
     app.get(p, wrap((_req, res) => serveGroupList("industry", "en", res)));
-  for (const p of ["/index.php/capacidades/desks/index.html", "/index.php/capacidades/desks/", "/capacidades/desks"])
-    app.get(p, wrap((_req, res) => serveDesksMap("es", res)));
-  for (const p of ["/index.php/capabilities/capabilities-desks/index.html", "/index.php/capabilities/capabilities-desks/", "/capabilities/desks"])
-    app.get(p, wrap((_req, res) => serveDesksMap("en", res)));
-
   // Subpáginas de "Pasantes" — a diferencia de las landings de arriba, estas NO pasan por
   // renderPage/siteConfig (no tienen texto editable), pero SÍ tienen el mismo formulario
   // roto, así que necesitan el mismo fix. Deben registrarse ANTES del express.static de
@@ -808,17 +1126,21 @@ export async function setupMirror(app: Express) {
     app.get(p, wrap((_req, res) => {
       const $ = cheerio.load(tpl("index.php/bolsa-de-trabajo/pasantes/index.html"));
       applyCareersFormFix($, "es");
-      applyA11y($, "es"); // estas subpáginas no pasan por applySeo
-      sendPage(res, $.html());
-      return Promise.resolve();
+      return getConfigMap().then((config) => {
+        applyInternsContent($, config, "es");
+        applyA11y($, "es"); // estas subpáginas no pasan por applySeo
+        return sendPage(res, $.html());
+      });
     }));
   for (const p of ["/index.php/careers/interns/index.html", "/index.php/careers/interns/", "/careers/interns"])
     app.get(p, wrap((_req, res) => {
       const $ = cheerio.load(tpl("index.php/careers/interns/index.html"));
       applyCareersFormFix($, "en");
-      applyA11y($, "en"); // estas subpáginas no pasan por applySeo
-      sendPage(res, $.html());
-      return Promise.resolve();
+      return getConfigMap().then((config) => {
+        applyInternsContent($, config, "en");
+        applyA11y($, "en"); // estas subpáginas no pasan por applySeo
+        return sendPage(res, $.html());
+      });
     }));
 
   // ---------- Original mirror URLs (SEO preserved, nav coherent) --------
@@ -875,6 +1197,177 @@ export async function setupMirror(app: Express) {
 
   // News detail (publication id → news slug not mapped; falls through to static
   // for legacy publications, while in-app /news/:slug links stay dynamic).
+
+  // ---------- Admin: micrositio de oficinas ----------------------------
+  const officeConfigEntrySchema = z.object({
+    value: z.string().max(25_000),
+    valueEs: z.string().max(25_000).optional(),
+  });
+  const officeShowcaseUpdateSchema = z.object({
+    config: z.record(officeConfigEntrySchema).optional(),
+    office: z.record(z.unknown()).optional(),
+  });
+
+  app.get("/api/admin/office-showcase", authMiddleware, requirePermission("config"), wrap(async (_req, res) => {
+    const [configMap, officeRows, gallery] = await Promise.all([
+      getConfigMap(),
+      storage.getOffices(),
+      storage.getOfficeImages(),
+    ]);
+    const config = Object.fromEntries(Object.entries(configMap).filter(([key]) => isOfficeConfigKey(key)));
+    const office = officeRows.find((item) => item.isHeadquarters) || officeRows[0] || null;
+    res.json({ config, office, gallery: [...gallery].sort((a, b) => (a.order ?? 0) - (b.order ?? 0)) });
+  }));
+
+  app.put("/api/admin/office-showcase", authMiddleware, requirePermission("config"), wrap(async (req, res) => {
+    const payload = officeShowcaseUpdateSchema.parse(req.body || {});
+    const currentConfig = await getConfigMap();
+    const configEntries = Object.entries(payload.config || {});
+    for (const [key] of configEntries) {
+      if (!isOfficeConfigKey(key)) {
+        res.status(400).json({ error: `Invalid office config key: ${key}` });
+        return;
+      }
+    }
+
+    const officeInput = payload.office ? { ...payload.office } : null;
+    const officeId = typeof officeInput?.id === "string" ? officeInput.id : undefined;
+    if (officeInput) {
+      delete officeInput.id;
+      delete officeInput.createdAt;
+    }
+    const parsedOffice = officeInput ? insertOfficeSchema.partial().parse(officeInput) : null;
+
+    await db.transaction(async (tx) => {
+      for (const [key, entry] of configEntries) {
+        const existing = currentConfig[key];
+        const type = existing?.type || (/(_video_|_image|_logo|_pdf|_map_|_linkedin|_x$)/.test(key) ? "url" : "text");
+        await tx.insert(siteConfig).values({
+          key,
+          value: entry.value,
+          valueEs: entry.valueEs ?? entry.value,
+          type,
+          category: "offices",
+          updatedAt: new Date(),
+        }).onConflictDoUpdate({
+          target: siteConfig.key,
+          set: { value: entry.value, valueEs: entry.valueEs ?? entry.value, updatedAt: new Date() },
+        });
+      }
+
+      if (parsedOffice && officeId) {
+        await tx.update(offices).set(parsedOffice).where(eq(offices.id, officeId));
+      } else if (parsedOffice) {
+        const completeOffice = insertOfficeSchema.parse(parsedOffice);
+        await tx.insert(offices).values(completeOffice);
+      }
+    });
+
+    invalidateConfigCache();
+    const [updatedConfig, updatedOffices, gallery] = await Promise.all([
+      getConfigMap(), storage.getOffices(), storage.getOfficeImages(),
+    ]);
+    res.json({
+      ok: true,
+      config: Object.fromEntries(Object.entries(updatedConfig).filter(([key]) => isOfficeConfigKey(key))),
+      office: updatedOffices.find((item) => item.isHeadquarters) || updatedOffices[0] || null,
+      gallery: [...gallery].sort((a, b) => (a.order ?? 0) - (b.order ?? 0)),
+    });
+  }));
+
+  // ---------- Admin: navegación pública y visibilidad ------------------
+  const navigationItems = [
+    { id: "firm", key: "nav_firm", pathEs: "/nuestra-firma", pathEn: "/our-firm" },
+    { id: "attorneys", key: "nav_attorneys", pathEs: "/attorneys", pathEn: "/attorneys?lang=en" },
+    { id: "practices", key: "nav_practices", pathEs: "/capacidades/practicas", pathEn: "/capabilities/practices" },
+    { id: "industries", key: "nav_industries", pathEs: "/capacidades/industrias", pathEn: "/capabilities/industries" },
+    { id: "publications", key: "nav_publications", pathEs: "/publicaciones", pathEn: "/publications" },
+    { id: "careers", key: "nav_careers", pathEs: "/bolsa-de-trabajo", pathEn: "/careers" },
+    { id: "contact", key: "nav_contact", pathEs: "/contacto", pathEn: "/contact" },
+  ] as const;
+  const navigationIdSchema = z.enum(["firm", "attorneys", "practices", "industries", "publications", "careers", "contact"]);
+  const navigationUpdateSchema = z.object({
+    searchLabelEn: z.string().trim().min(1).max(120),
+    searchLabelEs: z.string().trim().min(1).max(120),
+    items: z.array(z.object({
+      id: navigationIdSchema,
+      labelEn: z.string().trim().min(1).max(120),
+      labelEs: z.string().trim().min(1).max(120),
+      visible: z.boolean(),
+    })).length(navigationItems.length),
+  }).superRefine(({ items }, ctx) => {
+    const ids = new Set(items.map((item) => item.id));
+    if (ids.size !== navigationItems.length || navigationItems.some((item) => !ids.has(item.id))) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["items"], message: "Debes enviar exactamente las siete opciones de navegación." });
+    }
+  });
+  const publicNavigationPayload = (config: ConfigMap) => ({
+    items: navigationItems.map((item) => ({
+      id: item.id,
+      labelEn: config[item.key]?.value || "",
+      labelEs: config[item.key]?.valueEs || config[item.key]?.value || "",
+      visible: (config[`nav_visible_${item.id}`]?.value || "true").trim().toLowerCase() !== "false",
+      pathEs: item.pathEs,
+      pathEn: item.pathEn,
+    })),
+    fixed: {
+      homeViaLogo: true,
+      search: true,
+      language: true,
+      searchLabelEn: config.nav_search?.value || "Search",
+      searchLabelEs: config.nav_search?.valueEs || config.nav_search?.value || "Buscar",
+    },
+  });
+
+  app.get("/api/admin/site-navigation", authMiddleware, requirePermission("config"), wrap(async (_req, res) => {
+    res.json(publicNavigationPayload(await getConfigMap()));
+  }));
+
+  app.put("/api/admin/site-navigation", authMiddleware, requirePermission("config"), wrap(async (req, res) => {
+    const payload = navigationUpdateSchema.parse(req.body || {});
+    const byId = new Map(payload.items.map((item) => [item.id, item]));
+    await db.transaction(async (tx) => {
+      for (const definition of navigationItems) {
+        const item = byId.get(definition.id)!;
+        await tx.insert(siteConfig).values({
+          key: definition.key,
+          value: item.labelEn,
+          valueEs: item.labelEs,
+          type: "text",
+          category: "navigation",
+          updatedAt: new Date(),
+        }).onConflictDoUpdate({
+          target: siteConfig.key,
+          set: { value: item.labelEn, valueEs: item.labelEs, updatedAt: new Date() },
+        });
+        const visible = String(item.visible);
+        await tx.insert(siteConfig).values({
+          key: `nav_visible_${definition.id}`,
+          value: visible,
+          valueEs: visible,
+          type: "boolean",
+          category: "navigation",
+          updatedAt: new Date(),
+        }).onConflictDoUpdate({
+          target: siteConfig.key,
+          set: { value: visible, valueEs: visible, updatedAt: new Date() },
+        });
+      }
+      await tx.insert(siteConfig).values({
+        key: "nav_search",
+        value: payload.searchLabelEn,
+        valueEs: payload.searchLabelEs,
+        type: "text",
+        category: "navigation",
+        updatedAt: new Date(),
+      }).onConflictDoUpdate({
+        target: siteConfig.key,
+        set: { value: payload.searchLabelEn, valueEs: payload.searchLabelEs, updatedAt: new Date() },
+      });
+    });
+    invalidateConfigCache();
+    res.json({ ok: true, ...publicNavigationPayload(await getConfigMap()) });
+  }));
 
   // ---------- Admin: editable site config (texts, hero video, etc.) -----
   app.get("/api/admin/site-config", authMiddleware, requirePermission("config"), wrap(async (_req, res) => {
@@ -941,7 +1434,11 @@ export async function setupMirror(app: Express) {
       index: false,
       maxAge: "30d",
       setHeaders: (res, filePath) => {
-        if (/([\\/]_vendor[\\/]|\.(?:woff2?|ttf|eot|otf))/i.test(filePath)) {
+        if (/[\\/]templates[\\/]beez3[\\/](?:css[\\/]von\.css|js[\\/]min[\\/]functions\.min\.js)$/i.test(filePath)) {
+          // Estos dos assets cambian la navegación global y los HTML legacy
+          // los referencian sin versión; no deben permanecer obsoletos 30 días.
+          res.setHeader("Cache-Control", "public, max-age=300, must-revalidate");
+        } else if (/([\\/]_vendor[\\/]|\.(?:woff2?|ttf|eot|otf))/i.test(filePath)) {
           res.setHeader("Cache-Control", "public, max-age=31536000, immutable");
         }
       },

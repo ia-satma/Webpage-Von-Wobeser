@@ -35,7 +35,7 @@ const esCommon = {
   home: {
     heroTagline: "VAMOS A DONDE NUESTROS CLIENTES NOS NECESITAN",
     seeMore: "Ver Más",
-    experienceBanner: "Von Wobeser y Sierra, S.C. cuenta con más de tres décadas de experiencia",
+    experienceBanner: "Von Wobeser y Sierra, S.C. cuenta con más de cuarenta años de experiencia",
     teamStats: "Equipo de más de 150 abogados (22 socios, 6 of counsel, 12 consejeros...)",
     recognitionsTitle: "RECONOCIMIENTOS",
     recognitionsIntro: "Von Wobeser y Sierra, S.C. ha sido reconocida a nivel internacional por diversas instituciones incluyendo",
@@ -212,7 +212,7 @@ const enCommon = {
   home: {
     heroTagline: "WE GO WHERE CLIENTS NEED US",
     seeMore: "See More",
-    experienceBanner: "Von Wobeser y Sierra, S.C. has more than three decades of experience",
+    experienceBanner: "Von Wobeser y Sierra, S.C. has more than forty years of experience",
     teamStats: "Team of more than 150 lawyers (22 partners, 6 of counsel, 12 counsel...)",
     recognitionsTitle: "RECOGNITIONS",
     recognitionsIntro: "Von Wobeser y Sierra, S.C. has been recognized on an international level by various institutions including",

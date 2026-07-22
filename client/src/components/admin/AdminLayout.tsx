@@ -134,6 +134,7 @@ export function AdminLayout({ children }: { children: ReactNode }) {
   const { logout, role } = useAdminAuth();
   const { has } = useMyPermissions();
   const isAdmin = !role || role === "admin" || role === "super_admin";
+  const isSuperAdmin = role === "super_admin";
   const [openGroups, setOpenGroups] = useState<Set<string>>(() => loadOpenGroups());
 
   // El panel admin siempre va en modo día — nunca modo noche, ni siquiera si el visitante
@@ -184,7 +185,7 @@ export function AdminLayout({ children }: { children: ReactNode }) {
 
         <SidebarContent>
           {ADMIN_NAV_GROUPS.map((group) => {
-            const visibleItems = group.items.filter((item) => canSeeNavItem(item, { has, isAdmin }));
+            const visibleItems = group.items.filter((item) => canSeeNavItem(item, { has, isAdmin, isSuperAdmin }));
             if (visibleItems.length === 0) return null;
             return (
               <NavGroupSection

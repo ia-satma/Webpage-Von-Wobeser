@@ -31,6 +31,7 @@ import {
   ArrowRight,
   Mail,
   HelpCircle,
+  Navigation,
 } from "lucide-react";
 
 const translations = {
@@ -124,7 +125,7 @@ const translations = {
     totalTranslations: "Total de Traducciones",
     languagesSupported: "Idiomas Soportados",
     processingStatus: "Estado del Proceso",
-    idle: "Inactivo",
+    idle: "Sin procesos en curso",
     processing: "Procesando",
     viewAll: "Ver Todo",
   },
@@ -729,7 +730,7 @@ export default function AdminDashboard() {
             <CardDescription>Las tareas más frecuentes. El resto de las secciones está en el menú lateral.</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-5">
               <Link href="/admin/news/new">
                 <Button variant="outline" className="w-full justify-start h-auto py-2" data-testid="button-quick-new-news"><Newspaper className="mr-2 h-4 w-4" /><span className="flex flex-col items-start text-left leading-tight"><span>Nueva noticia</span><span className="text-[11px] font-normal text-muted-foreground mt-0.5">Publica un comunicado o artículo.</span></span></Button>
               </Link>
@@ -738,7 +739,12 @@ export default function AdminDashboard() {
               </Link>
               {canConfig && (
                 <Link href="/admin/site-config">
-                  <Button variant="outline" className="w-full justify-start h-auto py-2" data-testid="button-quick-site-config"><Settings className="mr-2 h-4 w-4" /><span className="flex flex-col items-start text-left leading-tight"><span>Editar portada</span><span className="text-[11px] font-normal text-muted-foreground mt-0.5">Textos, video y logos del sitio.</span></span></Button>
+                  <Button variant="outline" className="w-full justify-start h-auto py-2" data-testid="button-quick-site-config"><Settings className="mr-2 h-4 w-4" /><span className="flex flex-col items-start text-left leading-tight"><span>Editar portada</span><span className="text-[11px] font-normal text-muted-foreground mt-0.5">Inicio organizado por bloques.</span></span></Button>
+                </Link>
+              )}
+              {canConfig && (
+                <Link href="/admin/navigation">
+                  <Button variant="outline" className="w-full justify-start h-auto py-2" data-testid="button-quick-navigation"><Navigation className="mr-2 h-4 w-4" /><span className="flex flex-col items-start text-left leading-tight"><span>Navegación y visibilidad</span><span className="text-[11px] font-normal text-muted-foreground mt-0.5">Muestra u oculta opciones del menú.</span></span></Button>
                 </Link>
               )}
               <Link href="/admin/submissions">

@@ -904,10 +904,8 @@ export default function AdminIndustryGroups() {
                         name="imageUrl"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>
-                              Imagen{" "}
-                              <span className="text-warning font-normal text-xs">(en construcción — aún no se muestra en el sitio)</span>
-                            </FormLabel>
+                            <FormLabel>Imagen del carrusel</FormLabel>
+                            <FormDescription>Se muestra como fondo de este grupo en el carrusel de la portada.</FormDescription>
                             <FormControl>
                               <ImageUpload value={field.value || ""} onChange={field.onChange} />
                             </FormControl>
@@ -974,6 +972,7 @@ export default function AdminIndustryGroups() {
                 <TableHeader>
                   <TableRow>
                     <TableHead className="w-12">{t.orderColumn}</TableHead>
+                    <TableHead className="w-28">Imagen</TableHead>
                     <TableHead>{t.nameColumn}</TableHead>
                     <TableHead>{t.slugColumn}</TableHead>
                     <TableHead className="w-24 text-right">{t.actions}</TableHead>
@@ -987,6 +986,18 @@ export default function AdminIndustryGroups() {
                           <GripVertical className="h-4 w-4 text-muted-foreground" />
                           <span className="text-sm text-muted-foreground">{group.order}</span>
                         </div>
+                      </TableCell>
+                      <TableCell>
+                        {group.imageUrl ? (
+                          <img
+                            src={group.imageUrl}
+                            alt={`Imagen del carrusel de ${group.nameEs || group.name}`}
+                            className="h-14 w-24 rounded-md border border-border object-cover"
+                            loading="lazy"
+                          />
+                        ) : (
+                          <div className="flex h-14 w-24 items-center justify-center rounded-md border border-dashed border-border bg-muted text-[11px] text-muted-foreground">Sin imagen</div>
+                        )}
                       </TableCell>
                       <TableCell>
                         <div>

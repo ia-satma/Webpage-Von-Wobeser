@@ -11,6 +11,7 @@ import multer from "multer";
 import rateLimit from "express-rate-limit";
 import { optimizeImageIfNeeded } from "./media/optimizeImage";
 import { sanitizeFields } from "./mirror/sanitize";
+import { getConfigMap } from "./mirror/siteConfig";
 
 // Global WebSocket clients map for pipeline progress updates
 const pipelineClients: Map<string, WebSocket> = new Map();
@@ -34,6 +35,7 @@ export function broadcastPipelineProgress(articleId: string, data: {
 }
 import { 
   contactFormSchema,
+  newsletterSubscribeSchema,
   adminLoginSchema,
   insertNewsSchema,
   insertTeamMemberSchema,
@@ -47,9 +49,23 @@ import {
   insertJobOpeningSchema,
   insertOfficeSchema,
   insertAllianceSchema,
-  insertSpecializedDeskSchema,
   insertOfficeImageSchema,
   apiUsage,
+  awards,
+  banners,
+  diversityInitiatives,
+  events,
+  generatedImages,
+  industryGroups,
+  news,
+  officeImages,
+  offices,
+  practiceGroups,
+  proBonoProjects,
+  rankings,
+  representativeClients,
+  teamMembers,
+  testimonials,
 } from "@shared/schema";
 import { db } from "./db";
 import { sql, gte } from "drizzle-orm";
@@ -283,6 +299,11 @@ export async function registerRoutes(
   httpServer: Server,
   app: Express
 ): Promise<Server> {
+  // Compatibilidad con bases existentes de Replit/Neon creadas antes de que el
+  // Newsletter guardara trazabilidad de consentimiento. Es idempotente y no
+  // modifica ni elimina registros previos.
+  await db.execute(sql`ALTER TABLE newsletter_subscribers ADD COLUMN IF NOT EXISTS consented_at timestamp`);
+  await db.execute(sql`ALTER TABLE newsletter_subscribers ADD COLUMN IF NOT EXISTS source text DEFAULT 'home'`);
   await seed();
 
   // Setup WebSocket server for pipeline progress updates
@@ -634,7 +655,7 @@ export async function registerRoutes(
 
   app.patch("/api/admin/office-images/:id", authMiddleware, requirePermission("config"), async (req: Request, res: Response) => {
     try {
-      const patchSchema = insertOfficeImageSchema.pick({ alt: true, altEs: true, order: true }).partial();
+      const patchSchema = insertOfficeImageSchema.pick({ imageUrl: true, alt: true, altEs: true, order: true }).partial();
       const parsed = patchSchema.safeParse(req.body);
       if (!parsed.success) return res.status(400).json({ error: parsed.error.flatten() });
       const updated = await storage.updateOfficeImage(req.params.id, parsed.data);
@@ -813,7 +834,7 @@ export async function registerRoutes(
 
   app.get("/api/practice-groups", async (_req, res) => {
     try {
-      const groups = (await storage.getPracticeGroups()).filter(isPubliclyVisible);
+      const groups = (await storage.getPracticeGroups()).filter((group) => isPubliclyVisible(group) && group.slug !== "german-desk");
       res.set("Cache-Control", "public, max-age=60");
       res.json(groups);
     } catch (error) {
@@ -828,7 +849,7 @@ export async function registerRoutes(
       if (!group) {
         group = await storage.getPracticeGroupById(param);
       }
-      if (!group || !isPubliclyVisible(group)) {
+      if (!group || !isPubliclyVisible(group) || group.slug === "german-desk") {
         return res.status(404).json({ error: "Practice group not found" });
       }
       res.json(group);
@@ -1014,6 +1035,52 @@ export async function registerRoutes(
     }
   });
 
+  // Newsletter público: el resultado es intencionalmente genérico. Así no se
+  // revela si un correo ya estaba registrado y se permite reactivar una baja.
+  app.post("/api/newsletter/subscribe", publicFormLimiter, async (req, res) => {
+    try {
+      const validation = newsletterSubscribeSchema.safeParse(req.body);
+      if (!validation.success) {
+        return res.status(400).json({ error: "Validation failed", details: validation.error.errors });
+      }
+
+      const sanitize = (value: string) => value.replace(/<[^>]*>/g, "").replace(/\s+/g, " ").trim();
+      const data = validation.data;
+      const email = data.email.trim().toLowerCase();
+      const consentedAt = new Date();
+      const existing = await storage.getNewsletterSubscriberByEmail(email);
+
+      if (!existing) {
+        await storage.createNewsletterSubscriber({
+          name: sanitize(data.name),
+          email,
+          company: sanitize(data.company),
+          preferredLanguage: data.language === "en" ? "en" : "es",
+          isVerified: false,
+          isActive: true,
+          consentedAt,
+          source: "home",
+          unsubscribedAt: null,
+        });
+      } else if (!existing.isActive) {
+        await storage.updateNewsletterSubscriber(existing.id, {
+          name: sanitize(data.name),
+          company: sanitize(data.company),
+          preferredLanguage: data.language === "en" ? "en" : "es",
+          isActive: true,
+          consentedAt,
+          source: "home",
+          unsubscribedAt: null,
+        });
+      }
+
+      res.json({ success: true, message: "Subscription received" });
+    } catch (error) {
+      console.error("Newsletter subscription error:", error);
+      res.status(500).json({ error: "Failed to process subscription" });
+    }
+  });
+
   // Formulario de "Pasantes" — antes era HTML de Joomla con action="" (no llegaba a
   // ningún lado). Los campos del multipart (name, l_name, mail, tel, comment, accept)
   // vienen tal cual del HTML original capturado; se mapean a las columnas de career_applications.
@@ -1075,6 +1142,7 @@ export async function registerRoutes(
   app.get("/api/practice-groups/:slug/representative-matters", async (req, res) => {
     try {
       const { slug } = req.params;
+      if (slug === "german-desk") return res.status(410).json({ error: "Practice group retired" });
       const allMatters = await storage.getRepresentativeMatters();
       const filtered = allMatters.filter(m => m.practiceAreaSlug === slug);
       res.json(filtered);
@@ -1227,11 +1295,11 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
       const today = new Date().toISOString().split('T')[0];
       const xmlEsc = (s: string) => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
-      // Genera una <url> con alternates hreflang ES/EN (sitio bilingüe: EN = ?lang=en).
-      // loc = ruta canónica en español (idioma principal); x-default apunta a ES.
-      const urlEntry = (loc: string, changefreq: string, priority: string, lastmod = today) => {
-        const es = `${baseUrl}${loc}`;
-        const en = `${baseUrl}${loc}${loc.includes('?') ? '&' : '?'}lang=en`;
+      // Genera una <url> con alternates reales. Algunas secciones comparten ruta y
+      // usan ?lang=en; las institucionales tienen rutas distintas (/contacto|/contact).
+      const urlEntry = (esPath: string, enPath: string, changefreq: string, priority: string, lastmod = today) => {
+        const es = `${baseUrl}${esPath}`;
+        const en = `${baseUrl}${enPath}`;
         return `
   <url>
     <loc>${xmlEsc(es)}</loc>
@@ -1246,17 +1314,26 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
 
       // Rutas REALES del espejo (antes apuntaba a rutas del viejo SPA que ya no existen).
       const staticPages = [
-        { loc: '/', changefreq: 'weekly', priority: '1.0' },
-        { loc: '/nuestra-firma', changefreq: 'monthly', priority: '0.8' },
-        { loc: '/nuestra-firma/probono', changefreq: 'monthly', priority: '0.6' },
-        { loc: '/nuestra-firma/diversidad', changefreq: 'monthly', priority: '0.6' },
-        { loc: '/news', changefreq: 'daily', priority: '0.9' },
-        { loc: '/attorneys/partners', changefreq: 'weekly', priority: '0.8' },
-        { loc: '/attorneys/of-counsel', changefreq: 'weekly', priority: '0.6' },
-        { loc: '/attorneys/counsel', changefreq: 'weekly', priority: '0.6' },
-        { loc: '/attorneys/associates', changefreq: 'weekly', priority: '0.6' },
-        { loc: '/contacto', changefreq: 'monthly', priority: '0.7' },
-        { loc: '/bolsa-de-trabajo', changefreq: 'weekly', priority: '0.7' },
+        { es: '/', en: '/?lang=en', changefreq: 'weekly', priority: '1.0' },
+        { es: '/nuevas-oficinas/', en: '/new-offices/', changefreq: 'monthly', priority: '0.8' },
+        { es: '/nuestra-firma', en: '/our-firm', changefreq: 'monthly', priority: '0.8' },
+        { es: '/nuestra-firma/probono', en: '/our-firm/our-firm-probono', changefreq: 'monthly', priority: '0.6' },
+        { es: '/nuestra-firma/diversidad', en: '/our-firm/diversity', changefreq: 'monthly', priority: '0.6' },
+        { es: '/capacidades', en: '/capabilities', changefreq: 'monthly', priority: '0.8' },
+        { es: '/capacidades/practicas', en: '/capabilities/practices', changefreq: 'weekly', priority: '0.8' },
+        { es: '/capacidades/industrias', en: '/capabilities/industries', changefreq: 'weekly', priority: '0.8' },
+        { es: '/publicaciones', en: '/publications', changefreq: 'weekly', priority: '0.8' },
+        { es: '/news', en: '/news?lang=en', changefreq: 'daily', priority: '0.9' },
+        { es: '/articles', en: '/articles?lang=en', changefreq: 'weekly', priority: '0.8' },
+        { es: '/attorneys', en: '/attorneys?lang=en', changefreq: 'weekly', priority: '0.8' },
+        { es: '/attorneys/partners', en: '/attorneys/partners?lang=en', changefreq: 'weekly', priority: '0.8' },
+        { es: '/attorneys/of-counsel', en: '/attorneys/of-counsel?lang=en', changefreq: 'weekly', priority: '0.6' },
+        { es: '/attorneys/counsel', en: '/attorneys/counsel?lang=en', changefreq: 'weekly', priority: '0.6' },
+        { es: '/attorneys/associates', en: '/attorneys/associates?lang=en', changefreq: 'weekly', priority: '0.6' },
+        { es: '/contacto', en: '/contact', changefreq: 'monthly', priority: '0.7' },
+        { es: '/bolsa-de-trabajo', en: '/careers', changefreq: 'weekly', priority: '0.7' },
+        { es: '/bolsa-de-trabajo/pasantes', en: '/careers/interns', changefreq: 'monthly', priority: '0.6' },
+        { es: '/aviso', en: '/privacy', changefreq: 'yearly', priority: '0.4' },
       ];
 
       const [teamMembers, practiceGroups, industryGroups, newsItems] = await Promise.all([
@@ -1269,23 +1346,24 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
       // array.join en vez de string += en bucle (evita O(n²) de concatenación).
       const parts: string[] = [];
 
-      for (const page of staticPages) parts.push(urlEntry(page.loc, page.changefreq, page.priority));
+      for (const page of staticPages) parts.push(urlEntry(page.es, page.en, page.changefreq, page.priority));
 
       for (const member of teamMembers as any[]) {
         if (member.published === false) continue;
-        parts.push(urlEntry(`/lawyer/${member.slug}`, 'monthly', '0.6'));
+        parts.push(urlEntry(`/abogado/${member.slug}`, `/lawyer/${member.slug}?lang=en`, 'monthly', '0.6'));
       }
       for (const group of practiceGroups as any[]) {
         if (group.published === false) continue;
-        parts.push(urlEntry(`/practice/${group.slug}`, 'monthly', '0.7'));
+        parts.push(urlEntry(`/practice/${group.slug}`, `/practice/${group.slug}?lang=en`, 'monthly', '0.7'));
       }
       for (const group of industryGroups as any[]) {
         if (group.published === false) continue;
-        parts.push(urlEntry(`/industry/${group.slug}`, 'monthly', '0.7'));
+        parts.push(urlEntry(`/industry/${group.slug}`, `/industry/${group.slug}?lang=en`, 'monthly', '0.7'));
       }
       for (const newsItem of newsItems as any[]) {
+        if (newsItem.published !== true || (newsItem.publishAt && new Date(newsItem.publishAt) > new Date())) continue;
         const lastmod = newsItem.date ? new Date(newsItem.date).toISOString().split('T')[0] : today;
-        parts.push(urlEntry(`/news/${newsItem.slug}`, 'monthly', '0.6', lastmod));
+        parts.push(urlEntry(`/news/${newsItem.slug}`, `/news/${newsItem.slug}?lang=en`, 'monthly', '0.6', lastmod));
       }
 
       const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
@@ -1692,6 +1770,10 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
   // ADMIN NEWS CRUD
   // =============================================
 
+  const hasCmsText = (value: unknown) => String(value ?? "").replace(/<[^>]*>/g, "").replace(/&nbsp;/gi, " ").trim().length > 0;
+  const hasPublishableBilingualNews = (item: { title?: unknown; titleEs?: unknown; excerpt?: unknown; excerptEs?: unknown }) =>
+    hasCmsText(item.title) && hasCmsText(item.titleEs) && hasCmsText(item.excerpt) && hasCmsText(item.excerptEs);
+
   // Get all news with pagination/search
   app.get("/api/admin/news", authMiddleware, async (req: Request, res: Response) => {
     try {
@@ -1821,6 +1903,10 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
       }
 
       sanitizeFields(validation.data, ["content", "contentEs", "excerpt", "excerptEs"]);
+      if (validation.data.published && !hasPublishableBilingualNews(validation.data)) {
+        return apiError(res, 400, "Published news requires title and excerpt in English and Spanish");
+      }
+
       const newsItem = await storage.createNews(validation.data);
       auditLog("create", "news", newsItem.id, (req as any).adminUser?.id || "unknown");
       res.status(201).json(newsItem);
@@ -1835,6 +1921,12 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
     try {
       const validated = insertNewsSchema.partial().parse(req.body); // valida + descarta campos no permitidos (anti mass-assignment)
       sanitizeFields(validated, ["content", "contentEs", "excerpt", "excerptEs"]);
+      const current = await storage.getNewsById(req.params.id);
+      if (!current) return apiError(res, 404, "News not found");
+      const finalState = { ...current, ...validated };
+      if (finalState.published && !hasPublishableBilingualNews(finalState)) {
+        return apiError(res, 400, "Published news requires title and excerpt in English and Spanish");
+      }
       const newsItem = await storage.updateNews(req.params.id, validated);
       if (!newsItem) {
         return apiError(res, 404, "News not found");
@@ -2668,85 +2760,73 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
   });
 
   // =============================================
-  // ADMIN SPECIALIZED DESKS CRUD
+  // ADMIN NEWSLETTER SUBSCRIBERS
   // =============================================
-  
-  app.get("/api/admin/desks", authMiddleware, async (_req: Request, res: Response) => {
+  const newsletterFilters = (req: Request) => {
+    const search = typeof req.query.search === "string" ? req.query.search.slice(0, 160) : undefined;
+    const state = typeof req.query.active === "string" ? req.query.active : "all";
+    return { search, active: state === "active" ? true : state === "inactive" ? false : undefined };
+  };
+
+  const escapeCsv = (value: unknown) => `"${String(value ?? "").replace(/"/g, '""')}"`;
+
+  app.get("/api/admin/newsletter-subscribers", authMiddleware, async (req: Request, res: Response) => {
     try {
-      const desksList = await storage.getSpecializedDesks();
-      res.json(desksList);
+      const subscribers = await storage.getNewsletterSubscribers(newsletterFilters(req));
+      res.json(subscribers);
     } catch (error) {
-      console.error("Get desks error:", error);
-      res.status(500).json({ error: "Failed to fetch desks" });
+      console.error("Get newsletter subscribers error:", error);
+      res.status(500).json({ error: "Failed to fetch newsletter subscribers" });
     }
   });
 
-  app.post("/api/admin/desks", authMiddleware, requirePermission("content"), async (req: Request, res: Response) => {
+  app.patch("/api/admin/newsletter-subscribers/:id/active", authMiddleware, requirePermission("content"), async (req: Request, res: Response) => {
     try {
-      const validatedData = insertSpecializedDeskSchema.parse(req.body);
-      sanitizeFields(validatedData, ["description", "descriptionEs", "fullDescription", "fullDescriptionEs"]);
-      const desk = await storage.createSpecializedDesk(validatedData);
-      res.json(desk);
+      const body = z.object({ isActive: z.boolean() }).safeParse(req.body);
+      if (!body.success) return res.status(400).json({ error: "Validation failed", details: body.error.errors });
+      const subscriber = await storage.updateNewsletterSubscriber(req.params.id, {
+        isActive: body.data.isActive,
+        unsubscribedAt: body.data.isActive ? null : new Date(),
+      });
+      if (!subscriber) return res.status(404).json({ error: "Subscriber not found" });
+      res.json(subscriber);
     } catch (error) {
-      if (error instanceof ZodError) {
-        return res.status(400).json({ error: "Validation failed", details: error.errors });
-      }
-      console.error("Create desk error:", error);
-      res.status(500).json({ error: "Failed to create desk" });
+      console.error("Update newsletter subscriber error:", error);
+      res.status(500).json({ error: "Failed to update newsletter subscriber" });
     }
   });
 
-  app.put("/api/admin/desks/:id", authMiddleware, requirePermission("content"), async (req: Request, res: Response) => {
+  app.get("/api/admin/newsletter-subscribers/export.csv", authMiddleware, async (req: Request, res: Response) => {
     try {
-      const validatedData = insertSpecializedDeskSchema.partial().parse(req.body);
-      sanitizeFields(validatedData, ["description", "descriptionEs", "fullDescription", "fullDescriptionEs"]);
-      const updated = await storage.updateSpecializedDesk(req.params.id, validatedData);
-      if (!updated) {
-        return res.status(404).json({ error: "Desk not found" });
-      }
-      res.json(updated);
+      const subscribers = await storage.getNewsletterSubscribers(newsletterFilters(req));
+      const header = ["Nombre", "Correo", "Empresa", "Idioma", "Fecha de suscripción", "Consentimiento", "Origen", "Estado"];
+      const rows = subscribers.map((subscriber) => [
+        subscriber.name,
+        subscriber.email,
+        subscriber.company,
+        subscriber.preferredLanguage,
+        subscriber.subscribedAt?.toISOString() ?? "",
+        subscriber.consentedAt?.toISOString() ?? "",
+        subscriber.source,
+        subscriber.isActive ? "Activo" : "Inactivo",
+      ]);
+      const csv = [header, ...rows].map((row) => row.map(escapeCsv).join(",")).join("\r\n");
+      res.setHeader("Content-Type", "text/csv; charset=utf-8");
+      res.setHeader("Content-Disposition", "attachment; filename=newsletter-subscribers.csv");
+      res.send(`\uFEFF${csv}`);
     } catch (error) {
-      if (error instanceof ZodError) {
-        return res.status(400).json({ error: "Validation failed", details: error.errors });
-      }
-      console.error("Update desk error:", error);
-      res.status(500).json({ error: "Failed to update desk" });
+      console.error("Export newsletter subscribers error:", error);
+      res.status(500).json({ error: "Failed to export newsletter subscribers" });
     }
   });
 
-  app.delete("/api/admin/desks/:id", authMiddleware, requirePermission("content"), async (req: Request, res: Response) => {
-    try {
-      const deleted = await storage.deleteSpecializedDesk(req.params.id);
-      if (!deleted) {
-        return res.status(404).json({ error: "Desk not found" });
-      }
-      res.json({ success: true });
-    } catch (error) {
-      console.error("Delete desk error:", error);
-      res.status(500).json({ error: "Failed to delete desk" });
-    }
-  });
-
-  app.get("/api/admin/desks/:id/team", authMiddleware, async (req: Request, res: Response) => {
-    try {
-      const members = await storage.getTeamMembersByDesk(req.params.id);
-      res.json(members);
-    } catch (error) {
-      console.error("Get desk team error:", error);
-      res.status(500).json({ error: "Failed to fetch desk team" });
-    }
-  });
-
-  app.put("/api/admin/desks/:id/team", authMiddleware, requirePermission("content"), async (req: Request, res: Response) => {
-    try {
-      const teamMemberIds = Array.isArray(req.body?.teamMemberIds) ? req.body.teamMemberIds.map(String) : [];
-      await storage.setDeskTeamMembers(req.params.id, teamMemberIds);
-      res.json({ success: true });
-    } catch (error) {
-      console.error("Set desk team error:", error);
-      res.status(500).json({ error: "Failed to update desk team" });
-    }
-  });
+  // El CRUD de Desks queda retirado, pero las tablas y relaciones se conservan
+  // como respaldo. Responder 410 evita que la SPA devuelva su HTML por defecto
+  // a integraciones antiguas y deja claro que ya no es una API disponible.
+  const retiredDeskApi = (_req: Request, res: Response) => {
+    res.status(410).json({ error: "The Desk API has been retired" });
+  };
+  app.all(["/api/admin/desks", "/api/admin/desks/:id", "/api/admin/desks/:id/team"], retiredDeskApi);
 
   // =============================================
   // AGENT KNOWLEDGE CRUD (Admin)
@@ -2858,7 +2938,114 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
   app.get("/api/admin/media", authMiddleware, async (_req: Request, res: Response) => {
     try {
       const items = await storage.getMediaItems();
-      res.json(items);
+      const [
+        practiceRefs,
+        industryRefs,
+        newsRefs,
+        teamRefs,
+        officeImageRefs,
+        officeRefs,
+        testimonialRefs,
+        rankingRefs,
+        awardRefs,
+        clientRefs,
+        eventRefs,
+        proBonoRefs,
+        diversityRefs,
+        bannerRefs,
+        generatedRefs,
+        config,
+      ] = await Promise.all([
+        db.select({ path: practiceGroups.imageUrl, label: practiceGroups.nameEs }).from(practiceGroups),
+        db.select({ path: industryGroups.imageUrl, label: industryGroups.nameEs }).from(industryGroups),
+        db.select({ path: news.imageUrl, label: news.titleEs }).from(news),
+        db.select({ path: teamMembers.imageUrl, label: teamMembers.name }).from(teamMembers),
+        db.select({ path: officeImages.imageUrl, label: officeImages.altEs }).from(officeImages),
+        db.select({ path: offices.imageUrl, label: offices.nameEs }).from(offices),
+        db.select({ path: testimonials.authorPhotoUrl, label: testimonials.authorName }).from(testimonials),
+        db.select({ path: rankings.logoUrl, label: rankings.nameEs }).from(rankings),
+        db.select({ path: awards.logoUrl, label: awards.nameEs }).from(awards),
+        db.select({ path: representativeClients.logoUrl, label: representativeClients.name }).from(representativeClients),
+        db.select({ path: events.imageUrl, label: events.titleEs }).from(events),
+        db.select({ path: proBonoProjects.imageUrl, label: proBonoProjects.titleEs }).from(proBonoProjects),
+        db.select({ path: diversityInitiatives.imageUrl, label: diversityInitiatives.titleEs }).from(diversityInitiatives),
+        db.select({ path: banners.imageUrl, mobilePath: banners.imageUrlMobile, label: banners.titleEs }).from(banners),
+        db.select({ path: generatedImages.imageUrl, label: generatedImages.prompt }).from(generatedImages),
+        getConfigMap(),
+      ]);
+
+      // La biblioteca incluye tanto archivos subidos como recursos que ya están en uso.
+      // Los recursos históricos se exponen como entradas virtuales: no se duplican ni se
+      // insertan en la base, pero pueden seleccionarse desde cualquier ImageUpload.
+      const reusable = new Map<string, any>(items.map((item) => [item.path, item]));
+      const mimeByExtension: Record<string, string> = {
+        ".jpg": "image/jpeg",
+        ".jpeg": "image/jpeg",
+        ".png": "image/png",
+        ".gif": "image/gif",
+        ".webp": "image/webp",
+        ".mp4": "video/mp4",
+        ".webm": "video/webm",
+        ".ogv": "video/ogg",
+        ".ogg": "video/ogg",
+        ".mov": "video/quicktime",
+      };
+      const addReference = (candidate: unknown, label?: unknown) => {
+        if (typeof candidate !== "string" || !candidate.trim()) return;
+        const mediaPath = candidate.trim();
+        if (reusable.has(mediaPath)) return;
+        const pathname = mediaPath.split(/[?#]/, 1)[0];
+        const extension = path.extname(pathname).toLowerCase();
+        const mimeType = mimeByExtension[extension];
+        if (!mimeType) return;
+        const filename = path.basename(pathname) || `archivo${extension}`;
+        const displayLabel = typeof label === "string" && label.trim() ? label.trim() : filename;
+        reusable.set(mediaPath, {
+          id: `used-${crypto.createHash("sha1").update(mediaPath).digest("hex").slice(0, 16)}`,
+          filename,
+          originalName: displayLabel,
+          path: mediaPath,
+          mimeType,
+          size: null,
+          width: null,
+          height: null,
+          alt: displayLabel,
+          altEs: displayLabel,
+          uploadedBy: null,
+          createdAt: null,
+          sourceLabel: "En uso en el sitio",
+        });
+      };
+
+      for (const collection of [
+        practiceRefs,
+        industryRefs,
+        newsRefs,
+        teamRefs,
+        officeImageRefs,
+        officeRefs,
+        testimonialRefs,
+        rankingRefs,
+        awardRefs,
+        clientRefs,
+        eventRefs,
+        proBonoRefs,
+        diversityRefs,
+        generatedRefs,
+      ]) {
+        for (const item of collection) addReference(item.path, item.label);
+      }
+      for (const item of bannerRefs) {
+        addReference(item.path, item.label);
+        addReference(item.mobilePath, `${item.label || "Banner"} — móvil`);
+      }
+      for (const [key, entry] of Object.entries(config)) {
+        const label = key.replaceAll("_", " ");
+        addReference(entry.value, label);
+        if (entry.valueEs !== entry.value) addReference(entry.valueEs, `${label} — español`);
+      }
+
+      res.json(Array.from(reusable.values()));
     } catch (error) {
       console.error("Get media error:", error);
       res.status(500).json({ error: "Failed to fetch media" });

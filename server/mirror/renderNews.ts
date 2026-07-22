@@ -10,7 +10,10 @@ function esc(s: any): string {
 
 function L(obj: any, base: string, lang: Lang): string {
   if (!obj) return "";
-  return lang === "es" ? obj[base + "Es"] || obj[base] || "" : obj[base] || "";
+  // No mezclar idiomas silenciosamente. Todas las noticias publicadas nuevas
+  // requieren título y extracto ES/EN; en contenido legacy vacío se muestra el
+  // extracto del idioma solicitado, no el cuerpo del idioma contrario.
+  return lang === "es" ? obj[base + "Es"] || "" : obj[base] || "";
 }
 
 const MONTHS: Record<Lang, string[]> = {

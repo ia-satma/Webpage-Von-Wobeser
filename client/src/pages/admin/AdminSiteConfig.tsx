@@ -14,7 +14,8 @@ import { useToast } from "@/hooks/use-toast";
 import { ImageUpload } from "@/components/admin/ImageUpload";
 import { ConfirmChangesDialog, fmtValue, type Change } from "@/components/admin/ConfirmChangesDialog";
 import { TranslateButton } from "@/components/admin/TranslateButton";
-import { Save, Settings, Loader2, ArrowLeft, Landmark, HeartHandshake, Sparkles, Lock, Briefcase, GraduationCap, Mail, LineChart, type LucideIcon } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Save, Settings, Loader2, ArrowLeft, ArrowUpRight, ImageIcon, Landmark, HeartHandshake, Sparkles, Lock, Briefcase, GraduationCap, Mail, LineChart, PanelBottom, Volume2, type LucideIcon } from "lucide-react";
 
 type Field = { key: string; label: string; help?: string; bilingual?: boolean; media?: "image" | "video"; multiline?: boolean; rows?: number; pattern?: RegExp; patternError?: string };
 type FieldGroup = { title?: string; fields: Field[] };
@@ -24,13 +25,13 @@ type SiteConfigPage = { title: string; description: string; icon: LucideIcon; gr
  * Cada sección de "Configuración del sitio" es su propia pantalla (ruta
  * /admin/site-config/:section), enlazada directo desde el grupo del sidebar al que
  * pertenece (Nuestra Firma/Capacidades/Carrera/Contacto/etc — ver client/src/lib/adminNav.ts).
- * "portada" (sin :section) es la única de alcance realmente global — hero/banner/pie de
- * página — y sigue siendo el destino del ítem "Portada y pie de página" en Configuración.
+ * "portada" (sin :section) reúne únicamente el home. Navegación, pie y voz viven en
+ * pantallas separadas para que la edición cotidiana no sea una página interminable.
  */
 const PAGES: Record<string, SiteConfigPage> = {
   portada: {
-    title: "Portada y pie de página",
-    description: "Elementos globales que aparecen en todo el sitio: el video/banner del inicio y el pie de página.",
+    title: "Portada",
+    description: "Edita el inicio por bloques. Cada pestaña conserva sus cambios mientras navegas entre ellas.",
     icon: Settings,
     groups: [
       {
@@ -38,26 +39,97 @@ const PAGES: Record<string, SiteConfigPage> = {
         fields: [
           { key: "hero_video", label: "Video del hero", media: "video", help: "Sube el video desde tu computadora o pega una URL/ruta (mp4)." },
           { key: "hero_practice_link", label: "Enlace del hero", help: "A dónde lleva al hacer clic en el video del hero." },
+          { key: "home_experience", label: "Frase — años de experiencia", bilingual: true },
+          { key: "home_team_stats", label: "Frase — cifras del equipo", bilingual: true, multiline: true },
           { key: "banner_title", label: "Banner — título", help: "Texto grande del banner rojo.", bilingual: true },
           { key: "banner_subtitle", label: "Banner — subtítulo", bilingual: true },
         ],
       },
       {
-        title: "Pie de página (todas las páginas)",
+        title: "Carruseles de prácticas e industrias",
+        fields: [
+          { key: "home_practices_label", label: "Carrusel de prácticas — etiqueta", bilingual: true, help: "Los nombres, imágenes, orden y publicación de cada tarjeta se editan en Prácticas." },
+          { key: "home_industries_label", label: "Carrusel de industrias — etiqueta", bilingual: true, help: "Los nombres, imágenes, orden y publicación de cada tarjeta se editan en Grupos por industria." },
+        ],
+      },
+      {
+        title: "Secciones editoriales del home",
+        fields: [
+          { key: "home_recognitions_title", label: "Reconocimientos — título", bilingual: true },
+          { key: "home_recognitions_intro", label: "Reconocimientos — introducción", bilingual: true, multiline: true },
+          { key: "home_recognitions_body", label: "Reconocimientos — texto", bilingual: true, multiline: true },
+          { key: "home_diversity_title", label: "Diversidad — título", bilingual: true },
+          { key: "home_diversity_body", label: "Diversidad — texto", bilingual: true, multiline: true },
+          { key: "home_probono_title", label: "Pro Bono — título", bilingual: true },
+          { key: "home_probono_body", label: "Pro Bono — texto", bilingual: true, multiline: true },
+          { key: "home_about_title", label: "Acerca de nosotros — título", bilingual: true },
+          { key: "home_vision_label", label: "Visión — etiqueta", bilingual: true },
+          { key: "home_vision_body", label: "Visión — texto", bilingual: true, multiline: true },
+          { key: "home_mission_label", label: "Misión — etiqueta", bilingual: true },
+          { key: "home_mission_body", label: "Misión — texto", bilingual: true, multiline: true },
+          { key: "home_values_label", label: "Valores — etiqueta", bilingual: true },
+          { key: "home_values_body", label: "Valores — texto (separa cada valor con una línea en blanco)", bilingual: true, multiline: true, rows: 12 },
+        ],
+      },
+      {
+        title: "Newsletter (home)",
+        fields: [
+          { key: "newsletter_title", label: "Newsletter — título", bilingual: true },
+          { key: "newsletter_description", label: "Newsletter — descripción", bilingual: true, multiline: true },
+          { key: "newsletter_eyebrow", label: "Newsletter — etiqueta superior", bilingual: true },
+          { key: "newsletter_name_label", label: "Campo — nombre", bilingual: true },
+          { key: "newsletter_email_label", label: "Campo — correo", bilingual: true },
+          { key: "newsletter_company_label", label: "Campo — empresa", bilingual: true },
+          { key: "newsletter_privacy_intro", label: "Privacidad — texto previo", bilingual: true },
+          { key: "newsletter_privacy_link", label: "Privacidad — texto del enlace", bilingual: true },
+          { key: "newsletter_privacy_path", label: "Privacidad — destino", bilingual: true, help: "Inglés: /privacy. Español: /aviso." },
+          { key: "newsletter_required", label: "Newsletter — mensaje de campos obligatorios", bilingual: true },
+          { key: "newsletter_cta", label: "Newsletter — botón", bilingual: true },
+          { key: "newsletter_success", label: "Newsletter — mensaje de éxito", bilingual: true },
+          { key: "newsletter_error", label: "Newsletter — mensaje de error", bilingual: true },
+        ],
+      },
+      {
+        title: "Noticias de portada",
+        fields: [
+          { key: "home_news_title", label: "Título", bilingual: true },
+          { key: "home_news_more", label: "CTA global — ver más", bilingual: true, help: "Se aplica a los enlaces VER MÁS / SEE MORE de todo el espejo." },
+          { key: "home_news_previous", label: "Accesibilidad — anterior", bilingual: true },
+          { key: "home_news_next", label: "Accesibilidad — siguiente", bilingual: true },
+          { key: "home_news_minimize", label: "Accesibilidad — minimizar", bilingual: true },
+          { key: "home_news_expand", label: "Accesibilidad — mostrar", bilingual: true },
+        ],
+      },
+    ],
+  },
+  footer: {
+    title: "Pie de página",
+    description: "Datos institucionales y enlaces que aparecen al final de las páginas del espejo.",
+    icon: PanelBottom,
+    groups: [
+      {
         fields: [
           { key: "footer_firm", label: "Nombre de la firma", help: "Aparece en el pie de página del sitio." },
-          { key: "footer_address", label: "Dirección", help: "Una línea por renglón.", multiline: true },
+          { key: "footer_address", label: "Dirección", help: "Una línea por renglón.", multiline: true, bilingual: true },
           { key: "footer_phone", label: "Teléfono" },
           { key: "footer_website", label: "Sitio web / correo" },
           { key: "footer_facebook", label: "Facebook (URL)" },
           { key: "footer_twitter", label: "Twitter / X (URL)" },
           { key: "footer_linkedin", label: "LinkedIn (URL)" },
+          { key: "footer_esr_image", label: "Distintivo ESR", media: "image", help: "Imagen que aparece como acreditación junto al bloque legal." },
+          { key: "footer_esr_alt", label: "Distintivo ESR — texto alternativo", bilingual: true },
         ],
       },
+    ],
+  },
+  voz: {
+    title: "Voz corporativa",
+    description: "Configuración técnica de la voz utilizada por OpenAI TTS.",
+    icon: Volume2,
+    groups: [
       {
-        title: "Voz corporativa (OpenAI TTS)",
         fields: [
-          { key: "tts_voice", label: "Voz de marca", help: "Voces válidas: alloy, ash, ballad, coral, echo, fable, onyx, nova, sage, shimmer, verse. Vacío = usa \"alloy\" por defecto." },
+          { key: "tts_voice", label: "Voz de marca", help: "Voces válidas: alloy, ash, ballad, coral, echo, fable, onyx, nova, sage, shimmer, verse. Vacío = usa alloy por defecto." },
         ],
       },
     ],
@@ -76,7 +148,7 @@ const PAGES: Record<string, SiteConfigPage> = {
     ],
   },
   firma: {
-    title: "Nuestra Firma — textos",
+    title: "Nuestra Firma",
     description: "Si dejas un campo vacío, se muestra el texto original de la página.",
     icon: Landmark,
     groups: [
@@ -90,13 +162,22 @@ const PAGES: Record<string, SiteConfigPage> = {
   },
   probono: {
     title: "Pro Bono",
-    description: "Si dejas un campo vacío, se muestra el texto original de la página.",
+    description: "Textos y logotipos de la página. Si dejas un texto vacío, se muestra el contenido original.",
     icon: HeartHandshake,
     groups: [
       {
         fields: [
           { key: "page_probono_intro", label: "Introducción", bilingual: true, multiline: true },
           { key: "page_probono_body", label: "Cuerpo", bilingual: true, multiline: true },
+        ],
+      },
+      {
+        title: "Logotipos y reconocimientos",
+        fields: [
+          { key: "page_probono_logo_1", label: "Logotipo 1", media: "image" },
+          { key: "page_probono_logo_2", label: "Logotipo 2", media: "image" },
+          { key: "page_probono_logo_3", label: "Logotipo 3", media: "image" },
+          { key: "page_probono_logo_4", label: "Logotipo 4", media: "image" },
         ],
       },
     ],
@@ -125,6 +206,27 @@ const PAGES: Record<string, SiteConfigPage> = {
           { key: "page_diversity_video_7", label: "Video — miniatura 7", media: "video" },
         ],
       },
+      {
+        title: "Imágenes del carrusel de video",
+        fields: [
+          { key: "page_diversity_thumb_main", label: "Miniatura principal", media: "image" },
+          { key: "page_diversity_thumb_1", label: "Imagen — miniatura 1", media: "image" },
+          { key: "page_diversity_thumb_2", label: "Imagen — miniatura 2", media: "image" },
+          { key: "page_diversity_thumb_3", label: "Imagen — miniatura 3", media: "image" },
+          { key: "page_diversity_thumb_4", label: "Imagen — miniatura 4", media: "image" },
+          { key: "page_diversity_thumb_5", label: "Imagen — miniatura 5", media: "image" },
+          { key: "page_diversity_thumb_6", label: "Imagen — miniatura 6", media: "image" },
+          { key: "page_diversity_thumb_7", label: "Imagen — miniatura 7", media: "image" },
+        ],
+      },
+      {
+        title: "Logotipos aliados",
+        fields: [
+          { key: "page_diversity_logo_1", label: "Logotipo 1", media: "image" },
+          { key: "page_diversity_logo_2", label: "Logotipo 2", media: "image" },
+          { key: "page_diversity_logo_3", label: "Logotipo 3", media: "image" },
+        ],
+      },
     ],
   },
   privacidad: {
@@ -140,7 +242,7 @@ const PAGES: Record<string, SiteConfigPage> = {
     ],
   },
   capacidades: {
-    title: "Capacidades — textos",
+    title: "Introducción de Capacidades",
     description: "Si lo dejas vacío, se muestra el texto original de la página.",
     icon: Briefcase,
     groups: [
@@ -152,7 +254,7 @@ const PAGES: Record<string, SiteConfigPage> = {
     ],
   },
   carrera: {
-    title: "Carrera en VWyS — textos",
+    title: "Carrera en VWyS",
     description: "Si lo dejas vacío, se muestra el texto original de la página.",
     icon: GraduationCap,
     groups: [
@@ -162,10 +264,20 @@ const PAGES: Record<string, SiteConfigPage> = {
           { key: "page_careers_body", label: "Cuerpo", bilingual: true, multiline: true },
         ],
       },
+      {
+        title: "Programa de Pasantes",
+        fields: [
+          { key: "page_interns_intro", label: "Introducción", bilingual: true, multiline: true },
+          { key: "page_interns_summer_title", label: "Programa de verano — título", bilingual: true, multiline: true },
+          { key: "page_interns_summer_body", label: "Programa de verano — descripción", bilingual: true, multiline: true },
+          { key: "page_interns_offer_title", label: "Qué ofrecemos — título", bilingual: true, multiline: true },
+          { key: "page_interns_offer_body", label: "Qué ofrecemos — contenido", bilingual: true, multiline: true, rows: 8 },
+        ],
+      },
     ],
   },
   contacto: {
-    title: "Contacto — textos",
+    title: "Contacto",
     description: "Si lo dejas vacío, se muestra el texto original de la página.",
     icon: Mail,
     groups: [
@@ -180,6 +292,16 @@ const PAGES: Record<string, SiteConfigPage> = {
 };
 
 type ConfigMap = Record<string, { value: string; valueEs: string; type: string }>;
+type CarouselGroup = {
+  id: string;
+  slug: string;
+  name: string;
+  nameEs: string;
+  imageUrl?: string | null;
+  order?: number | null;
+  published?: boolean | null;
+};
+const HOME_TAB_LABELS = ["Inicio", "Carruseles", "Contenido editorial", "Newsletter", "Noticias"];
 
 export default function AdminSiteConfig() {
   const { isAuthenticated, isLoading: authLoading } = useAdminAuth();
@@ -191,16 +313,39 @@ export default function AdminSiteConfig() {
   const [draft, setDraft] = useState<Record<string, { value: string; valueEs: string }>>({});
   const [saving, setSaving] = useState<string | null>(null);
   const [confirm, setConfirm] = useState<{ key: string; changes: Change[] } | null>(null);
+  const [homeTab, setHomeTab] = useState("0");
 
   useEffect(() => {
     // Only redirect once auth has finished loading (avoids a flash-redirect).
     if (!authLoading && !isAuthenticated) setLocation("/admin/login");
   }, [authLoading, isAuthenticated, setLocation]);
 
+  useEffect(() => setHomeTab("0"), [section]);
+
   const { data, isLoading, refetch } = useQuery<ConfigMap>({
     queryKey: ["/api/admin/site-config"],
     queryFn: async () => (await adminApiRequest("GET", "/api/admin/site-config")).json(),
     enabled: isAuthenticated,
+  });
+
+  const practiceCarouselQuery = useQuery<CarouselGroup[]>({
+    queryKey: ["/api/admin/practice-groups"],
+    queryFn: async () => {
+      const response = await adminApiRequest("GET", "/api/admin/practice-groups");
+      if (!response.ok) throw new Error("No se pudieron cargar las prácticas.");
+      return response.json();
+    },
+    enabled: isAuthenticated && section === "portada",
+  });
+
+  const industryCarouselQuery = useQuery<CarouselGroup[]>({
+    queryKey: ["/api/admin/industry-groups"],
+    queryFn: async () => {
+      const response = await adminApiRequest("GET", "/api/admin/industry-groups");
+      if (!response.ok) throw new Error("No se pudieron cargar los grupos por industria.");
+      return response.json();
+    },
+    enabled: isAuthenticated && section === "portada",
   });
 
   useEffect(() => {
@@ -241,6 +386,172 @@ export default function AdminSiteConfig() {
     setConfirm({ key: f.key, changes });
   };
 
+  const renderGroup = (group: FieldGroup, i: number) => (
+    <Card key={group.title ?? i}>
+      {group.title && (
+        <CardHeader>
+          <CardTitle className="text-base">{group.title}</CardTitle>
+        </CardHeader>
+      )}
+      <CardContent className="space-y-6">
+        {group.fields.map((f) => {
+          const currentValue = draft[f.key]?.value ?? "";
+          const invalid = !!f.pattern && !!currentValue && !f.pattern.test(currentValue);
+          return (
+          <div key={f.key} className="space-y-2">
+            <Label className="font-medium">{f.label}</Label>
+            {f.help && <p className="text-xs text-muted-foreground">{f.help}</p>}
+            {invalid && <p className="text-xs text-destructive" data-testid={`error-${f.key}`}>{f.patternError || "Formato inválido."}</p>}
+            {f.key === "image_engine" ? (
+              <select
+                value={draft[f.key]?.value ?? "openai"}
+                onChange={(e) => set(f.key, "value", e.target.value)}
+                data-testid={`input-${f.key}`}
+                className="flex h-9 w-full rounded-lg border border-input bg-background px-3 py-1 text-sm shadow-xs focus-visible:outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/25"
+              >
+                <option value="openai">OpenAI · DALL-E 3 (principal — usa tu API, ~$0.04/imagen)</option>
+                <option value="cloudflare">Cloudflare (gratis — requiere credenciales de Cloudflare)</option>
+              </select>
+            ) : f.key === "image_aspect" ? (
+              <select
+                value={draft[f.key]?.value ?? "1:1"}
+                onChange={(e) => set(f.key, "value", e.target.value)}
+                data-testid={`input-${f.key}`}
+                className="flex h-9 w-full rounded-lg border border-input bg-background px-3 py-1 text-sm shadow-xs focus-visible:outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/25"
+              >
+                <option value="1:1">Cuadrada · 1:1 (1024×1024)</option>
+                <option value="16:9">Horizontal · 16:9 (1792×1024) — portadas</option>
+                <option value="9:16">Vertical · 9:16 (1024×1792) — historias</option>
+              </select>
+            ) : f.media ? (
+              <ImageUpload value={draft[f.key]?.value ?? ""} onChange={(v) => set(f.key, "value", v)} kind={f.media} />
+            ) : f.multiline && f.key.startsWith("page_") ? (
+              <RichTextEditor rows={f.rows ?? 3} value={draft[f.key]?.value ?? ""} onChange={(html) => set(f.key, "value", html)} data-testid={`input-${f.key}`} />
+            ) : f.multiline ? (
+              <Textarea rows={f.rows ?? 3} value={draft[f.key]?.value ?? ""} onChange={(e) => set(f.key, "value", e.target.value)} data-testid={`input-${f.key}`} />
+            ) : (
+              <Input value={draft[f.key]?.value ?? ""} onChange={(e) => set(f.key, "value", e.target.value)} placeholder={f.bilingual ? "Texto en inglés" : ""} data-testid={`input-${f.key}`} />
+            )}
+            {f.bilingual && (
+              f.multiline && f.key.startsWith("page_") ? (
+                <RichTextEditor rows={f.rows ?? 3} value={draft[f.key]?.valueEs ?? ""} onChange={(html) => set(f.key, "valueEs", html)} placeholder="Texto en español" data-testid={`input-${f.key}-es`} />
+              ) : f.multiline ? (
+                <Textarea rows={f.rows ?? 3} value={draft[f.key]?.valueEs ?? ""} onChange={(e) => set(f.key, "valueEs", e.target.value)} placeholder="Texto en español" data-testid={`input-${f.key}-es`} />
+              ) : (
+                <Input value={draft[f.key]?.valueEs ?? ""} onChange={(e) => set(f.key, "valueEs", e.target.value)} placeholder="Texto en español" data-testid={`input-${f.key}-es`} />
+              )
+            )}
+            <div className="flex items-center gap-2">
+              <Button size="sm" onClick={() => requestSave(f)} disabled={saving === f.key || invalid} data-testid={`save-${f.key}`}>
+                {saving === f.key ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : <Save className="h-4 w-4 mr-1" />}
+                Guardar
+              </Button>
+              {f.bilingual && (
+                <TranslateButton getSource={() => ({ value: draft[f.key]?.valueEs ?? "" })} onApply={(t) => { if (t.value != null) set(f.key, "value", t.value); }} />
+              )}
+            </div>
+          </div>
+          );
+        })}
+      </CardContent>
+    </Card>
+  );
+
+  const visibleCarouselItems = (items?: CarouselGroup[]) =>
+    [...(items || [])]
+      .filter((item) => item.published !== false && item.slug !== "german-desk")
+      .sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+
+  const renderCarouselCollection = (
+    title: string,
+    items: CarouselGroup[] | undefined,
+    loading: boolean,
+    error: unknown,
+    manageHref: string,
+  ) => {
+    const visibleItems = visibleCarouselItems(items);
+    const imageCount = visibleItems.filter((item) => item.imageUrl).length;
+
+    return (
+      <section className="space-y-3" aria-label={`Imágenes del carrusel de ${title.toLowerCase()}`}>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h3 className="font-medium">{title}</h3>
+            {!loading && !error && (
+              <p className="text-xs text-muted-foreground">
+                {imageCount} de {visibleItems.length} tarjetas con imagen
+              </p>
+            )}
+          </div>
+          <Button asChild variant="outline" size="sm">
+            <Link href={manageHref}>
+              Administrar <ArrowUpRight className="ml-1 h-3.5 w-3.5" />
+            </Link>
+          </Button>
+        </div>
+
+        {loading ? (
+          <div className="flex items-center gap-2 rounded-lg border p-4 text-sm text-muted-foreground">
+            <Loader2 className="h-4 w-4 animate-spin" /> Cargando imágenes…
+          </div>
+        ) : error ? (
+          <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-4 text-sm text-destructive">
+            No fue posible cargar estas imágenes. Puedes administrarlas desde el botón superior.
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+            {visibleItems.map((item) => (
+              <div key={item.id} className="overflow-hidden rounded-lg border bg-card">
+                {item.imageUrl ? (
+                  <img
+                    src={item.imageUrl}
+                    alt={`Imagen del carrusel de ${item.nameEs || item.name}`}
+                    loading="lazy"
+                    className="h-24 w-full object-cover"
+                  />
+                ) : (
+                  <div className="flex h-24 items-center justify-center gap-2 bg-muted text-xs text-muted-foreground">
+                    <ImageIcon className="h-4 w-4" /> Sin imagen
+                  </div>
+                )}
+                <p className="line-clamp-2 min-h-12 px-3 py-2 text-xs font-medium">
+                  {item.nameEs || item.name}
+                </p>
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
+    );
+  };
+
+  const renderCarouselPreview = () => (
+    <Card className="mb-5">
+      <CardHeader>
+        <CardTitle className="text-base">Imágenes actuales de los carruseles</CardTitle>
+        <CardDescription>
+          Vista previa de las imágenes publicadas en la portada. Para sustituir una imagen, usa “Administrar” en la sección correspondiente.
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-8">
+        {renderCarouselCollection(
+          "Prácticas",
+          practiceCarouselQuery.data,
+          practiceCarouselQuery.isLoading,
+          practiceCarouselQuery.error,
+          "/admin/practice-groups",
+        )}
+        {renderCarouselCollection(
+          "Grupos de práctica por industria",
+          industryCarouselQuery.data,
+          industryCarouselQuery.isLoading,
+          industryCarouselQuery.error,
+          "/admin/industry-groups",
+        )}
+      </CardContent>
+    </Card>
+  );
+
   return (
     <div className="min-h-screen bg-background">
       <main className="max-w-4xl mx-auto px-6 py-8 space-y-6">
@@ -260,116 +571,24 @@ export default function AdminSiteConfig() {
 
         {isLoading ? (
           <div className="flex items-center gap-2 text-muted-foreground"><Loader2 className="h-4 w-4 animate-spin" /> Cargando…</div>
+        ) : section === "portada" ? (
+          <Tabs value={homeTab} onValueChange={setHomeTab} className="space-y-5">
+            <TabsList className="flex h-auto w-full justify-start gap-1 overflow-x-auto p-1" aria-label="Secciones de la portada">
+              {page.groups.map((group, i) => (
+                <TabsTrigger key={group.title ?? i} value={String(i)} className="shrink-0" data-testid={`tab-home-${i}`}>
+                  {HOME_TAB_LABELS[i] || group.title || `Sección ${i + 1}`}
+                </TabsTrigger>
+              ))}
+            </TabsList>
+            {page.groups.map((group, i) => (
+              <TabsContent key={group.title ?? i} value={String(i)} className="mt-0">
+                {i === 1 && renderCarouselPreview()}
+                {renderGroup(group, i)}
+              </TabsContent>
+            ))}
+          </Tabs>
         ) : (
-          page.groups.map((group, i) => (
-            <Card key={group.title ?? i}>
-              {group.title && (
-                <CardHeader>
-                  <CardTitle className="text-base">{group.title}</CardTitle>
-                </CardHeader>
-              )}
-              <CardContent className="space-y-6">
-                {group.fields.map((f) => {
-                  const currentValue = draft[f.key]?.value ?? "";
-                  const invalid = !!f.pattern && !!currentValue && !f.pattern.test(currentValue);
-                  return (
-                  <div key={f.key} className="space-y-2">
-                    <Label className="font-medium">{f.label}</Label>
-                    {f.help && <p className="text-xs text-muted-foreground">{f.help}</p>}
-                    {invalid && <p className="text-xs text-destructive" data-testid={`error-${f.key}`}>{f.patternError || "Formato inválido."}</p>}
-                    {f.key === "image_engine" ? (
-                      <select
-                        value={draft[f.key]?.value ?? "openai"}
-                        onChange={(e) => set(f.key, "value", e.target.value)}
-                        data-testid={`input-${f.key}`}
-                        className="flex h-9 w-full rounded-none border border-input bg-background px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-                      >
-                        <option value="openai">OpenAI · DALL-E 3 (principal — usa tu API, ~$0.04/imagen)</option>
-                        <option value="cloudflare">Cloudflare (gratis — requiere credenciales de Cloudflare)</option>
-                      </select>
-                    ) : f.key === "image_aspect" ? (
-                      <select
-                        value={draft[f.key]?.value ?? "1:1"}
-                        onChange={(e) => set(f.key, "value", e.target.value)}
-                        data-testid={`input-${f.key}`}
-                        className="flex h-9 w-full rounded-none border border-input bg-background px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-                      >
-                        <option value="1:1">Cuadrada · 1:1 (1024×1024)</option>
-                        <option value="16:9">Horizontal · 16:9 (1792×1024) — portadas</option>
-                        <option value="9:16">Vertical · 9:16 (1024×1792) — historias</option>
-                      </select>
-                    ) : f.media ? (
-                      <ImageUpload
-                        value={draft[f.key]?.value ?? ""}
-                        onChange={(v) => set(f.key, "value", v)}
-                        kind={f.media}
-                      />
-                    ) : f.multiline && f.key.startsWith("page_") ? (
-                      <RichTextEditor
-                        rows={f.rows ?? 3}
-                        value={draft[f.key]?.value ?? ""}
-                        onChange={(html) => set(f.key, "value", html)}
-                        data-testid={`input-${f.key}`}
-                      />
-                    ) : f.multiline ? (
-                      <Textarea
-                        rows={f.rows ?? 3}
-                        value={draft[f.key]?.value ?? ""}
-                        onChange={(e) => set(f.key, "value", e.target.value)}
-                        data-testid={`input-${f.key}`}
-                      />
-                    ) : (
-                      <Input
-                        value={draft[f.key]?.value ?? ""}
-                        onChange={(e) => set(f.key, "value", e.target.value)}
-                        placeholder={f.bilingual ? "Texto en inglés" : ""}
-                        data-testid={`input-${f.key}`}
-                      />
-                    )}
-                    {f.bilingual && (
-                      f.multiline && f.key.startsWith("page_") ? (
-                        <RichTextEditor
-                          rows={f.rows ?? 3}
-                          value={draft[f.key]?.valueEs ?? ""}
-                          onChange={(html) => set(f.key, "valueEs", html)}
-                          placeholder="Texto en español"
-                          data-testid={`input-${f.key}-es`}
-                        />
-                      ) : f.multiline ? (
-                        <Textarea
-                          rows={f.rows ?? 3}
-                          value={draft[f.key]?.valueEs ?? ""}
-                          onChange={(e) => set(f.key, "valueEs", e.target.value)}
-                          placeholder="Texto en español"
-                          data-testid={`input-${f.key}-es`}
-                        />
-                      ) : (
-                        <Input
-                          value={draft[f.key]?.valueEs ?? ""}
-                          onChange={(e) => set(f.key, "valueEs", e.target.value)}
-                          placeholder="Texto en español"
-                          data-testid={`input-${f.key}-es`}
-                        />
-                      )
-                    )}
-                    <div className="flex items-center gap-2">
-                      <Button size="sm" onClick={() => requestSave(f)} disabled={saving === f.key || invalid} data-testid={`save-${f.key}`}>
-                        {saving === f.key ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : <Save className="h-4 w-4 mr-1" />}
-                        Guardar
-                      </Button>
-                      {f.bilingual && (
-                        <TranslateButton
-                          getSource={() => ({ value: draft[f.key]?.valueEs ?? "" })}
-                          onApply={(t) => { if (t.value != null) set(f.key, "value", t.value); }}
-                        />
-                      )}
-                    </div>
-                  </div>
-                  );
-                })}
-              </CardContent>
-            </Card>
-          ))
+          page.groups.map(renderGroup)
         )}
       </main>
 

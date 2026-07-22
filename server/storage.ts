@@ -1,4 +1,4 @@
-import { eq, desc, asc, and, isNull, gte, lte, sql, inArray, ilike, or } from "drizzle-orm";
+import { eq, desc, asc, and, isNull, gte, lte, sql, inArray, ilike, or, type SQL } from "drizzle-orm";
 import { db } from "./db";
 import {
   type User,
@@ -60,6 +60,9 @@ import {
   type ContactSubmission,
   type InsertContactSubmission,
   contactSubmissions,
+  type NewsletterSubscriber,
+  type InsertNewsletterSubscriber,
+  newsletterSubscribers,
   type CareerApplication,
   type InsertCareerApplication,
   careerApplications,
@@ -294,6 +297,12 @@ export interface IStorage {
   createContactSubmission(data: InsertContactSubmission): Promise<ContactSubmission>;
   getContactSubmissions(): Promise<ContactSubmission[]>;
   markContactSubmissionRead(id: string): Promise<boolean>;
+
+  // Newsletter (el Desk retirado no altera ni borra sus datos históricos).
+  getNewsletterSubscribers(filters?: { search?: string; active?: boolean }): Promise<NewsletterSubscriber[]>;
+  getNewsletterSubscriberByEmail(email: string): Promise<NewsletterSubscriber | undefined>;
+  createNewsletterSubscriber(data: InsertNewsletterSubscriber): Promise<NewsletterSubscriber>;
+  updateNewsletterSubscriber(id: string, data: Partial<InsertNewsletterSubscriber>): Promise<NewsletterSubscriber | undefined>;
 
   // Career Applications (Pasantes)
   createCareerApplication(data: InsertCareerApplication): Promise<CareerApplication>;
@@ -685,14 +694,14 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createTeamMember(member: InsertTeamMember): Promise<TeamMember> {
-    const [item] = await db.insert(teamMembers).values(member).returning();
+    const [item] = await db.insert(teamMembers).values(member as typeof teamMembers.$inferInsert).returning();
     return item;
   }
 
   async updateTeamMember(id: string, member: Partial<InsertTeamMember>): Promise<TeamMember | undefined> {
     const [item] = await db
       .update(teamMembers)
-      .set(member)
+      .set(member as Partial<typeof teamMembers.$inferInsert>)
       .where(eq(teamMembers.id, id))
       .returning();
     return item;
@@ -1468,6 +1477,37 @@ export class DatabaseStorage implements IStorage {
   async markContactSubmissionRead(id: string): Promise<boolean> {
     const result = await db.update(contactSubmissions).set({ read: true }).where(eq(contactSubmissions.id, id)).returning({ id: contactSubmissions.id });
     return result.length > 0;
+  }
+
+  async getNewsletterSubscribers(filters: { search?: string; active?: boolean } = {}): Promise<NewsletterSubscriber[]> {
+    const conditions: SQL[] = [];
+    if (typeof filters.active === "boolean") conditions.push(eq(newsletterSubscribers.isActive, filters.active));
+    const search = filters.search?.trim();
+    if (search) {
+      const pattern = `%${search.replace(/[%_\\]/g, "\\$&")}%`;
+      conditions.push(or(
+        ilike(newsletterSubscribers.name, pattern),
+        ilike(newsletterSubscribers.email, pattern),
+        ilike(newsletterSubscribers.company, pattern),
+      )!);
+    }
+    if (!conditions.length) return db.select().from(newsletterSubscribers).orderBy(desc(newsletterSubscribers.subscribedAt));
+    return db.select().from(newsletterSubscribers).where(and(...conditions)).orderBy(desc(newsletterSubscribers.subscribedAt));
+  }
+
+  async getNewsletterSubscriberByEmail(email: string): Promise<NewsletterSubscriber | undefined> {
+    const [subscriber] = await db.select().from(newsletterSubscribers).where(eq(newsletterSubscribers.email, email));
+    return subscriber;
+  }
+
+  async createNewsletterSubscriber(data: InsertNewsletterSubscriber): Promise<NewsletterSubscriber> {
+    const [subscriber] = await db.insert(newsletterSubscribers).values(data).returning();
+    return subscriber;
+  }
+
+  async updateNewsletterSubscriber(id: string, data: Partial<InsertNewsletterSubscriber>): Promise<NewsletterSubscriber | undefined> {
+    const [subscriber] = await db.update(newsletterSubscribers).set(data).where(eq(newsletterSubscribers.id, id)).returning();
+    return subscriber;
   }
 
   async createCareerApplication(data: InsertCareerApplication): Promise<CareerApplication> {
