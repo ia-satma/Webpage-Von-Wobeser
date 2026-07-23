@@ -22,8 +22,8 @@ export default function AdminChangePassword() {
   }, [isAuthenticated, isLoading, setLocation]);
 
   const save = async () => {
-    if (newPassword.length < 15 || newPassword.length > 128) {
-      toast({ title: "Contraseña no válida", description: "Usa entre 15 y 128 caracteres.", variant: "destructive" });
+    if (newPassword.length < 12 || newPassword.length > 16) {
+      toast({ title: "Contraseña no válida", description: "Usa entre 12 y 16 caracteres.", variant: "destructive" });
       return;
     }
     if (newPassword !== confirmation) {
@@ -52,7 +52,7 @@ export default function AdminChangePassword() {
             Cambiar contraseña
           </CardTitle>
           <CardDescription>
-            Esta cuenta tiene una contraseña temporal o heredada. Crea una frase de al menos 15 caracteres antes de continuar.
+            Actualiza tu contraseña cuando tú lo decidas. Esta acción cerrará las demás sesiones abiertas.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -63,7 +63,7 @@ export default function AdminChangePassword() {
           <div className="space-y-1">
             <Label>Nueva contraseña</Label>
             <Input type="password" autoComplete="new-password" value={newPassword} onChange={(event) => setNewPassword(event.target.value)} />
-            <p className="text-xs text-muted-foreground">15–128 caracteres. Se permiten frases largas y espacios.</p>
+            <p className="text-xs text-muted-foreground">Entre 12 y 16 caracteres.</p>
           </div>
           <div className="space-y-1">
             <Label>Confirmar nueva contraseña</Label>

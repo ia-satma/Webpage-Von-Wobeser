@@ -2,7 +2,7 @@
 
 ## Overview
 
-Este proyecto es la plataforma web del despacho de abogados **Von Wobeser y Sierra**. Su arquitectura tiene cuatro piezas que conviven en un mismo servidor Express (Node 20 + TypeScript):
+Este proyecto es la plataforma web del despacho de abogados **Von Wobeser y Sierra**. Su arquitectura tiene cuatro piezas que conviven en un mismo servidor Express (Node 24 + TypeScript):
 
 - **Sitio público = un ESPEJO estático**, no una app de React. El HTML del sitio original (Joomla) vive en `frontend-mirror/` y en cada request se re-parsea con **cheerio** para inyectarle datos frescos de la base de datos (abogados, noticias, grupos, configuración). Este es el frontend que ven los visitantes.
 - **Backend Express** sobre **Neon PostgreSQL** (Drizzle ORM) que sirve la API, el espejo y el panel.
@@ -52,12 +52,14 @@ Scripts (`package.json`):
 |---|---|---|
 | `dev` | `NODE_ENV=development tsx server/index.ts` | Desarrollo. `tsx` corre el TS directo; da Vite + HMR. **Es lo que Replit ejecuta en Run.** |
 | `build` | `tsx script/build.ts` | Build custom. Produce `dist/index.cjs`. |
-| `start` | `NODE_ENV=production node dist/index.cjs` | Producción. **Es lo que Replit ejecuta en Deploy.** Usa `serveStatic`. |
+| `start` | `NODE_ENV=production node dist/index.cjs` | Inicia el build de producción. Usa `serveStatic`. |
+| `start:deploy` | `npm run db:migrate && npm run start` | Aplica migraciones y arranca. **Es lo que Replit ejecuta en Deploy.** |
 | `check` | `tsc` | Type-check. |
-| `db:push` | `drizzle-kit push` | Migraciones de esquema contra Neon (manual). |
+| `db:migrate` | `node scripts/run-migrations.mjs` | Migraciones SQL versionadas con transacción y advisory lock. |
+| `admin:recover` | `node --import tsx scripts/recover-admin.ts` | Recuperación manual desde Replit Secrets; nunca imprime contraseña ni hash. |
 
 - **Puerto:** `process.env.PORT || 5000`. `.replit` fija `PORT=5000` y mapea `localPort 5000 → externalPort 80`. Bind a `0.0.0.0`.
-- **Replit config (`.replit`):** `modules = ['nodejs-20','web']`; `run = 'npm run dev'`; `[deployment]` target `autoscale`, `build = ['npm','run','build']`, `run = ['npm','run','start']`; workflow "Start application" espera el puerto 5000.
+- **Replit config (`.replit`):** `modules = ['nodejs-24','web']`; `run = 'npm run dev'`; `[deployment]` target `autoscale`, `build = ['npm','run','build']`, `run = ['npm','run','start:deploy']`; workflow "Start application" espera el puerto 5000.
 - **Gotcha del build:** el script es `tsx script/build.ts` — carpeta **`script/` en SINGULAR**. No confundir con `scripts/` (que existe para `post-merge.sh` y scripts de verificación). Confundirlas rompe el build.
 - **Gotcha macOS:** `reusePort` solo se pasa en Linux (`process.platform === 'linux'`); en Mac lanzaría `ENOTSUP`. Por eso correr local en Mac funciona.
 
@@ -107,8 +109,8 @@ Disparo central: **`POST /api/agents/run/:agentType`** (`server/agents/api/agent
 - **49 tablas** en `shared/schema.ts`, agrupadas en: **contenido público** (news, news_translations, practice_groups, industry_groups, team_members y relaciones, representative_matters, specialized_desks, rankings, awards, offices, alliances, faqs, events, banners, site_config, contact_submissions, career_applications, ...), **agentes de IA** (agent_jobs, agent_events, agent_knowledge, agent_skills, agent_evolution_proposals, content_analysis, website_audits, website_audit_findings, processed_official_sources, generated_images, generated_audio), y **sistema/auth** (admin_users, admin_login_events, admin_sessions, media_items, y una tabla `users` **legacy que NO usa el panel**).
 - **El contenido es REAL** (extraído del sitio Von Wobeser y Sierra, migrado de Joomla — `news.legacyId` mapea el `p_id` original), NO mock. Volúmenes en prod: ~134 abogados, 18 prácticas, 7 industrias, ~1742 publicaciones.
 - **Seed (`server/seed.ts`):** se invoca en CADA arranque desde `registerRoutes()`. Para cada tabla de contenido inserta datos semilla **solo si está vacía** (idempotente; en prod se salta). Es bootstrap para BD vacía, no la fuente de la data real; **nunca actualiza ni borra**.
-- **Admin en el seed:** `ADMIN_EMAIL` + `ADMIN_BOOTSTRAP_PASSWORD` viven en Replit Secrets. Solo crean al Dueño si el correo todavía no existe; la contraseña se convierte inmediatamente a Argon2id y se ignora por completo en reinicios posteriores.
-- **Migraciones:** `npm run db:migrate` aplica archivos SQL versionados, con hash, transacción y advisory lock. El proyecto ya no usa `drizzle-kit push` en arranque ni despliegue.
+- **Admin en el seed:** `ADMIN_EMAIL` + `ADMIN_BOOTSTRAP_PASSWORD` viven en Replit Secrets. Solo crean al Dueño si el correo todavía no existe; la contraseña se convierte inmediatamente a Argon2id y se ignora por completo en reinicios posteriores. Una recuperación de una cuenta existente requiere ejecutar explícitamente `npm run admin:recover -- --confirm=<correo>`.
+- **Migraciones:** `npm run db:migrate` aplica archivos SQL versionados, con hash, transacción y advisory lock. Replit lo ejecuta antes de cada arranque de producción mediante `start:deploy`; si falla, el panel no arranca con un esquema incompatible.
 
 ---
 
@@ -146,7 +148,7 @@ Login: `POST /api/admin/login` espera `username` y `password`, continúa con MFA
 - `AI_MONTHLY_BUDGET_USD` — tope mensual estimado de IA pagada; por defecto USD 100. Al alcanzarlo se pausan llamadas pagadas y se registra una alerta sin datos sensibles.
 
 *Admin y MFA:*
-- `ADMIN_EMAIL` + `ADMIN_BOOTSTRAP_PASSWORD` — crean el Dueño únicamente cuando el correo no existe. La contraseña debe tener entre 15 y 128 caracteres.
+- `ADMIN_EMAIL` + `ADMIN_BOOTSTRAP_PASSWORD` — crean el Dueño únicamente cuando el correo no existe. Las contraseñas nuevas deben tener entre 12 y 16 caracteres. El comando manual `admin:recover` puede reactivar esa misma cuenta usando estos Secrets, pero nunca se ejecuta automáticamente.
 - `MFA_ENCRYPTION_KEY` — exactamente 32 bytes aleatorios codificados en base64 o hexadecimal; cifra los secretos TOTP mediante AES-256-GCM.
 
 *Almacenamiento de agentes:* `PCLOUD_USERNAME`, `PCLOUD_PASSWORD` — pCloud; si faltan, `authenticate()` devuelve false.

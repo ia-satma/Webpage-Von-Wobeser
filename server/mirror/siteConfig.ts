@@ -7,7 +7,7 @@ export type ConfigMap = Record<string, { value: string; valueEs: string; type: s
 /** Default site-config keys for the editable parts of the mirror frontend. */
 const DEFAULTS: Array<{ key: string; value: string; valueEs?: string; type: string; category: string; description: string }> = [
   { key: "hero_video", value: "/images/dron_2026_40.mp4", type: "url", category: "home", description: "Video de fondo del hero (home)" },
-  { key: "hero_practice_link", value: "/practice/arbitration", type: "url", category: "home", description: "Enlace al hacer clic en el hero" },
+  { key: "hero_practice_link", value: "/about", valueEs: "/acerca-de", type: "url", category: "home", description: "Destino bilingüe al hacer clic en el video del hero" },
   { key: "home_experience", value: "Von Wobeser y Sierra, S.C. has more than forty years of experience.", valueEs: "Von Wobeser y Sierra, S.C. cuenta con más de cuarenta años de experiencia.", type: "text", category: "home", description: "Frase de experiencia de la portada" },
   { key: "home_team_stats", value: "We have more than 180 legal team members (including 26 partners, 6 of counsel, and 8 counsel) and legal interns, plus administrative staff.", valueEs: "Tenemos más de 180 integrantes del equipo legal (incluyendo 26 socios, 6 of counsel y 8 consejeros) y pasantes, más el personal administrativo.", type: "text", category: "home", description: "Cifras del equipo en la portada" },
   { key: "home_practices_label", value: "Practices", valueEs: "Prácticas", type: "text", category: "home", description: "Etiqueta del carrusel de prácticas" },
@@ -140,10 +140,127 @@ const DEFAULTS: Array<{ key: string; value: string; valueEs?: string; type: stri
   { key: "footer_linkedin", value: "https://mx.linkedin.com/company/von-wobeser-y-sierra", type: "url", category: "footer", description: "Enlace de LinkedIn (pie de página)" },
   { key: "footer_esr_image", value: "/templates/beez3/img/esr.jpg", type: "url", category: "footer", description: "Imagen del distintivo ESR" },
   { key: "footer_esr_alt", value: "Socially Responsible Company", valueEs: "Empresa Socialmente Responsable", type: "text", category: "footer", description: "Texto alternativo bilingüe del distintivo ESR" },
-  // Páginas institucionales (texto editable). Nacen VACÍAS → el sitio muestra el texto original
-  // de la plantilla hasta que el cliente edite. valueEs = español, value = inglés.
-  { key: "page_firm_intro", value: "", valueEs: "", type: "text", category: "pages", description: "Nuestra Firma — párrafo de introducción" },
-  { key: "page_firm_body", value: "", valueEs: "", type: "text", category: "pages", description: "Nuestra Firma — cuerpo del texto" },
+  // Landing bilingüe de Nuestra Firma. Los dos campos históricos se conservan como la
+  // introducción y el cuerpo de Historia para no perder ninguna edición administrativa previa.
+  { key: "page_firm_intro", value: "Von Wobeser y Sierra was founded in 1986 with excellence and integrity as its cornerstones. Today, our multidisciplinary team provides comprehensive legal advice across the firm’s practices and industry groups.", valueEs: "Von Wobeser y Sierra nació en 1986 con la excelencia y la integridad como piedras angulares. Hoy, nuestro equipo multidisciplinario brinda asesoría jurídica integral a través de las prácticas y grupos por industria de la firma.", type: "text", category: "pages", description: "Nuestra Firma — introducción de Historia" },
+  { key: "page_firm_body", value: "The business and legal community recognizes our team for its experience, expertise and ability to advise leading companies throughout their development in Mexico and abroad.\n\nWe work as a strategic partner, combining preventive and solution-oriented counsel with an in-depth understanding of each client’s business and its most relevant legal matters.", valueEs: "El medio empresarial y legal reconoce a nuestro equipo por su experiencia, especialización y capacidad para asesorar a compañías líderes durante su desarrollo en México y en el extranjero.\n\nTrabajamos como un socio estratégico, combinando asesoría preventiva y resolutiva con un entendimiento profundo del negocio de cada cliente y de sus asuntos legales más relevantes.", type: "text", category: "pages", description: "Nuestra Firma — cuerpo de Historia" },
+  { key: "firm_landing_hero_visible", value: "true", type: "boolean", category: "firm", description: "Mostrar el hero de Nuestra Firma" },
+  { key: "firm_landing_hero_order", value: "0", type: "number", category: "firm", description: "Orden del hero de Nuestra Firma" },
+  { key: "firm_landing_eyebrow", value: "Von Wobeser y Sierra", valueEs: "Von Wobeser y Sierra", type: "text", category: "firm", description: "Nuestra Firma — etiqueta del hero" },
+  { key: "firm_landing_title", value: "Von Wobeser y Sierra", valueEs: "Von Wobeser y Sierra", type: "text", category: "firm", description: "Resumen institucional — título principal" },
+  { key: "firm_landing_subtitle", value: "More than forty years of legal excellence in Mexico", valueEs: "Más de cuarenta años de excelencia jurídica en México", type: "text", category: "firm", description: "Nuestra Firma — subtítulo principal" },
+  { key: "firm_landing_hero_image", value: "/img/Collage/collage_02.jpg", type: "url", category: "firm", description: "Resumen institucional — imagen principal reutilizada de Nuevas Oficinas" },
+  { key: "firm_landing_hero_video", value: "", type: "url", category: "firm", description: "Nuestra Firma — video principal opcional" },
+  { key: "firm_landing_hero_alt", value: "Boardroom at the new Von Wobeser y Sierra offices", valueEs: "Sala de consejo de las nuevas oficinas de Von Wobeser y Sierra", type: "text", category: "firm", description: "Resumen institucional — texto alternativo del hero" },
+  { key: "firm_landing_scroll_label", value: "Discover VWyS", valueEs: "Conoce VWyS", type: "text", category: "firm", description: "Resumen institucional — etiqueta de desplazamiento" },
+
+  { key: "firm_landing_history_visible", value: "true", type: "boolean", category: "firm", description: "Mostrar Historia" },
+  { key: "firm_landing_history_order", value: "10", type: "number", category: "firm", description: "Orden de Historia" },
+  { key: "firm_landing_history_title", value: "At a glance", valueEs: "En breve", type: "text", category: "firm", description: "Resumen institucional — título" },
+  { key: "firm_landing_history_since", value: "Since 1986", valueEs: "Desde 1986", type: "text", category: "firm", description: "Nuestra Firma — fecha destacada de Historia" },
+  { key: "firm_landing_history_intro", value: "Founded in 1986, Von Wobeser y Sierra combines legal excellence, integrity and a multidisciplinary approach to advise clients on their most relevant matters in Mexico.", valueEs: "Fundada en 1986, Von Wobeser y Sierra combina excelencia jurídica, integridad y un enfoque multidisciplinario para asesorar a sus clientes en sus asuntos más relevantes en México.", type: "text", category: "firm", description: "Resumen institucional — introducción" },
+  { key: "firm_landing_history_body", value: "We work as a strategic partner, providing preventive and solution-oriented counsel based on an in-depth understanding of each client’s business.", valueEs: "Trabajamos como un socio estratégico, brindando asesoría preventiva y resolutiva a partir de un entendimiento profundo del negocio de cada cliente.", type: "text", category: "firm", description: "Resumen institucional — presentación breve" },
+  { key: "firm_landing_history_image", value: "/img/Collage/collage_07.jpg", type: "url", category: "firm", description: "Resumen institucional — imagen secundaria reutilizada de Nuevas Oficinas" },
+  { key: "firm_landing_history_image_alt", value: "Collaboration area at the Von Wobeser y Sierra offices", valueEs: "Área de colaboración en las oficinas de Von Wobeser y Sierra", type: "text", category: "firm", description: "Resumen institucional — texto alternativo de la imagen secundaria" },
+
+  { key: "firm_landing_stats_visible", value: "true", type: "boolean", category: "firm", description: "Mostrar cifras" },
+  { key: "firm_landing_stats_order", value: "20", type: "number", category: "firm", description: "Orden de cifras" },
+  { key: "firm_landing_stats_title", value: "Our firm in numbers", valueEs: "Nuestra firma en cifras", type: "text", category: "firm", description: "Nuestra Firma — título de cifras" },
+  { key: "firm_landing_stat_1_value", value: "40+", type: "text", category: "firm", description: "Nuestra Firma — cifra de experiencia" },
+  { key: "firm_landing_stat_1_label", value: "Years of experience", valueEs: "Años de experiencia", type: "text", category: "firm", description: "Nuestra Firma — etiqueta de experiencia" },
+  { key: "firm_landing_stat_2_value", value: "", type: "text", category: "firm", description: "Nuestra Firma — cifra opcional de abogados; vacío usa la base" },
+  { key: "firm_landing_stat_2_label", value: "Attorneys", valueEs: "Abogados", type: "text", category: "firm", description: "Nuestra Firma — etiqueta de abogados" },
+  { key: "firm_landing_stat_3_value", value: "", type: "text", category: "firm", description: "Nuestra Firma — cifra opcional de prácticas; vacío usa la base" },
+  { key: "firm_landing_stat_3_label", value: "Legal practices", valueEs: "Prácticas legales", type: "text", category: "firm", description: "Nuestra Firma — etiqueta de prácticas" },
+  { key: "firm_landing_stat_4_value", value: "", type: "text", category: "firm", description: "Nuestra Firma — cifra opcional de industrias; vacío usa la base" },
+  { key: "firm_landing_stat_4_label", value: "Industry practice groups", valueEs: "Grupos de práctica por industria", type: "text", category: "firm", description: "Nuestra Firma — etiqueta de industrias" },
+
+  { key: "firm_landing_values_visible", value: "true", type: "boolean", category: "firm", description: "Mostrar Valores" },
+  { key: "firm_landing_values_order", value: "30", type: "number", category: "firm", description: "Orden de Valores" },
+  { key: "firm_landing_values_title", value: "Our values", valueEs: "Nuestros valores", type: "text", category: "firm", description: "Nuestra Firma — título de Valores" },
+  { key: "firm_landing_values_intro", value: "The principles that guide our work and our relationship with clients.", valueEs: "Los principios que guían nuestro trabajo y nuestra relación con los clientes.", type: "text", category: "firm", description: "Nuestra Firma — introducción de Valores" },
+  ...[
+    ["Integrity", "Integridad", "We do what we say, work with clarity and uphold the highest ethical standards.", "Hacemos lo que decimos, trabajamos con claridad y nos conducimos bajo los estándares éticos más altos."],
+    ["Excellence", "Excelencia", "We pursue the highest quality in our legal services and seek effective, innovative solutions.", "Buscamos la más alta calidad en nuestros servicios jurídicos y soluciones efectivas e innovadoras."],
+    ["Commitment", "Compromiso", "We place the client’s interests first and work to understand their business and environment.", "Anteponemos el interés del cliente y trabajamos para comprender su negocio y su entorno."],
+    ["Agility", "Agilidad", "We provide comprehensive and timely counsel that adds value to every matter.", "Brindamos asesoría integral y oportuna que agrega valor a cada asunto."],
+    ["Diversity", "Diversidad", "A highly prepared and diverse team enriches our perspective and strengthens our practice.", "Un equipo altamente preparado y diverso enriquece nuestra perspectiva y fortalece nuestra práctica."],
+  ].flatMap(([title, titleEs, body, bodyEs], index) => [
+    { key: `firm_landing_value_${index + 1}_title`, value: title, valueEs: titleEs, type: "text", category: "firm", description: `Nuestra Firma — valor ${index + 1}` },
+    { key: `firm_landing_value_${index + 1}_body`, value: body, valueEs: bodyEs, type: "text", category: "firm", description: `Nuestra Firma — descripción del valor ${index + 1}` },
+  ]),
+
+  { key: "firm_landing_culture_visible", value: "true", type: "boolean", category: "firm", description: "Mostrar Cultura" },
+  { key: "firm_landing_culture_order", value: "40", type: "number", category: "firm", description: "Orden de Cultura" },
+  { key: "firm_landing_culture_title", value: "Our culture", valueEs: "Nuestra cultura", type: "text", category: "firm", description: "Nuestra Firma — título de Cultura" },
+  { key: "firm_landing_culture_subtitle", value: "Professional rigor, collaboration and continuous learning", valueEs: "Rigor profesional, colaboración y aprendizaje continuo", type: "text", category: "firm", description: "Nuestra Firma — subtítulo de Cultura" },
+  { key: "firm_landing_culture_intro", value: "We cultivate an environment in which legal talent works across disciplines, shares knowledge and develops solutions for complex matters.", valueEs: "Cultivamos un entorno en el que el talento jurídico trabaja entre disciplinas, comparte conocimiento y desarrolla soluciones para asuntos complejos.", type: "text", category: "firm", description: "Nuestra Firma — introducción de Cultura" },
+  { key: "firm_landing_culture_image", value: "/img/Collage/collage_03.jpg", type: "url", category: "firm", description: "Nuestra Firma — imagen de Cultura" },
+  { key: "firm_landing_culture_image_alt", value: "Architecture in Mexico City", valueEs: "Arquitectura en la Ciudad de México", type: "text", category: "firm", description: "Nuestra Firma — texto alternativo de Cultura" },
+  ...[
+    ["Modern workplace", "Espacios de trabajo modernos", "Facilities conceived to promote collaboration, creativity and well-being.", "Instalaciones concebidas para promover la colaboración, la creatividad y el bienestar."],
+    ["Team collaboration", "Colaboración en equipo", "Our practices and industry groups combine specialized perspectives to provide comprehensive counsel.", "Nuestras prácticas y grupos por industria combinan perspectivas especializadas para brindar asesoría integral."],
+    ["Professional development", "Desarrollo profesional", "Continuous learning, mentoring and professional growth are central to the development of our team.", "El aprendizaje continuo, la mentoría y el crecimiento profesional son centrales para el desarrollo de nuestro equipo."],
+    ["Community involvement", "Participación comunitaria", "Our Pro Bono work and collaboration with civil society extend our impact beyond client matters.", "Nuestro trabajo Pro Bono y la colaboración con la sociedad civil extienden nuestro impacto más allá de los asuntos de clientes."],
+    ["Sustainable performance", "Desempeño sostenible", "We seek working practices that support consistent excellence and the well-being of our people.", "Buscamos prácticas de trabajo que favorezcan la excelencia constante y el bienestar de nuestra gente."],
+    ["Innovation mindset", "Mentalidad de innovación", "We value initiative, technology and new approaches that improve the way we deliver legal services.", "Valoramos la iniciativa, la tecnología y nuevas formas de mejorar la prestación de nuestros servicios jurídicos."],
+  ].flatMap(([title, titleEs, body, bodyEs], index) => [
+    { key: `firm_landing_culture_${index + 1}_title`, value: title, valueEs: titleEs, type: "text", category: "firm", description: `Nuestra Firma — aspecto cultural ${index + 1}` },
+    { key: `firm_landing_culture_${index + 1}_body`, value: body, valueEs: bodyEs, type: "text", category: "firm", description: `Nuestra Firma — descripción cultural ${index + 1}` },
+  ]),
+
+  { key: "firm_landing_diversity_visible", value: "true", type: "boolean", category: "firm", description: "Mostrar Diversidad" },
+  { key: "firm_landing_diversity_order", value: "50", type: "number", category: "firm", description: "Orden de Diversidad" },
+  { key: "firm_landing_diversity_title", value: "Diversity & inclusion", valueEs: "Diversidad e inclusión", type: "text", category: "firm", description: "Nuestra Firma — título de Diversidad" },
+  { key: "firm_landing_diversity_subtitle", value: "Different perspectives strengthen our firm", valueEs: "Las perspectivas diferentes fortalecen nuestra firma", type: "text", category: "firm", description: "Nuestra Firma — subtítulo de Diversidad" },
+  { key: "firm_landing_diversity_intro", value: "We are committed to an inclusive workplace where every person is valued, respected and able to develop their potential.", valueEs: "Estamos comprometidos con un entorno incluyente en el que cada persona sea valorada, respetada y pueda desarrollar su potencial.", type: "text", category: "firm", description: "Nuestra Firma — introducción de Diversidad" },
+  { key: "firm_landing_diversity_commitment", value: "Diversity is a core value that shapes how we work, grow and serve our clients. We continually review our practices to contribute to a more equitable legal profession.", valueEs: "La diversidad es un valor central que define cómo trabajamos, crecemos y servimos a nuestros clientes. Revisamos continuamente nuestras prácticas para contribuir a una profesión jurídica más equitativa.", type: "text", category: "firm", description: "Nuestra Firma — compromiso de Diversidad" },
+  { key: "firm_landing_diversity_cta", value: "Learn about our commitment", valueEs: "Conoce nuestro compromiso", type: "text", category: "firm", description: "Nuestra Firma — CTA de Diversidad" },
+  { key: "firm_landing_diversity_path", value: "/our-firm/diversity", valueEs: "/nuestra-firma/diversidad", type: "url", category: "firm", description: "Nuestra Firma — destino de Diversidad" },
+  ...[
+    ["Inclusive recruitment", "Contratación incluyente", "We evaluate talent through skills, experience and potential, promoting equal opportunities.", "Evaluamos el talento por sus capacidades, experiencia y potencial, promoviendo la igualdad de oportunidades."],
+    ["Gender equality", "Igualdad de género", "We promote the development and participation of women at every level of the organization.", "Promovemos el desarrollo y la participación de las mujeres en todos los niveles de la organización."],
+    ["Equal opportunities", "Igualdad de oportunidades", "Our people have access to development resources, challenging matters and professional growth.", "Nuestra gente tiene acceso a recursos de desarrollo, asuntos desafiantes y crecimiento profesional."],
+    ["Inclusive workplace", "Entorno incluyente", "We foster a respectful environment in which differences are valued and every voice can be heard.", "Fomentamos un entorno respetuoso en el que se valoran las diferencias y todas las voces pueden ser escuchadas."],
+  ].flatMap(([title, titleEs, body, bodyEs], index) => [
+    { key: `firm_landing_diversity_${index + 1}_title`, value: title, valueEs: titleEs, type: "text", category: "firm", description: `Nuestra Firma — iniciativa de diversidad ${index + 1}` },
+    { key: `firm_landing_diversity_${index + 1}_body`, value: body, valueEs: bodyEs, type: "text", category: "firm", description: `Nuestra Firma — descripción de diversidad ${index + 1}` },
+  ]),
+
+  { key: "firm_landing_rankings_visible", value: "true", type: "boolean", category: "firm", description: "Mostrar Reconocimientos" },
+  { key: "firm_landing_rankings_order", value: "60", type: "number", category: "firm", description: "Orden de Reconocimientos" },
+  { key: "firm_landing_rankings_title", value: "Rankings & recognition", valueEs: "Reconocimientos", type: "text", category: "firm", description: "Nuestra Firma — título de Reconocimientos" },
+  { key: "firm_landing_rankings_intro", value: "The firm and its attorneys are consistently recognized by leading international legal directories.", valueEs: "La firma y sus abogados son reconocidos constantemente por los principales directorios jurídicos internacionales.", type: "text", category: "firm", description: "Nuestra Firma — introducción de Reconocimientos" },
+  { key: "firm_landing_rankings_empty", value: "Recognition records can be managed from the administration panel.", valueEs: "Los reconocimientos pueden administrarse desde el panel.", type: "text", category: "firm", description: "Nuestra Firma — mensaje sin Reconocimientos" },
+
+  { key: "firm_landing_pathways_visible", value: "true", type: "boolean", category: "firm", description: "Mostrar Pro Bono y Carrera" },
+  { key: "firm_landing_pathways_order", value: "70", type: "number", category: "firm", description: "Orden de Pro Bono y Carrera" },
+  { key: "firm_landing_probono_title", value: "Pro Bono", valueEs: "Pro Bono", type: "text", category: "firm", description: "Nuestra Firma — título Pro Bono" },
+  { key: "firm_landing_probono_text", value: "For more than 35 years, our firm has supported access to justice through legal services for people and organizations that need them.", valueEs: "Durante más de 35 años, nuestra firma ha apoyado el acceso a la justicia mediante servicios jurídicos para personas y organizaciones que los necesitan.", type: "text", category: "firm", description: "Nuestra Firma — texto Pro Bono" },
+  { key: "firm_landing_probono_cta", value: "Discover our Pro Bono work", valueEs: "Conoce nuestro trabajo Pro Bono", type: "text", category: "firm", description: "Nuestra Firma — CTA Pro Bono" },
+  { key: "firm_landing_probono_path", value: "/our-firm/our-firm-probono", valueEs: "/nuestra-firma/probono", type: "url", category: "firm", description: "Nuestra Firma — destino Pro Bono" },
+  { key: "firm_landing_careers_title", value: "Careers", valueEs: "Carrera en VWyS", type: "text", category: "firm", description: "Nuestra Firma — título Carrera" },
+  { key: "firm_landing_careers_text", value: "Build your career alongside a team that combines legal excellence, collaboration and continuous learning.", valueEs: "Desarrolla tu carrera junto a un equipo que combina excelencia jurídica, colaboración y aprendizaje continuo.", type: "text", category: "firm", description: "Nuestra Firma — texto Carrera" },
+  { key: "firm_landing_careers_cta", value: "Explore opportunities", valueEs: "Conoce las oportunidades", type: "text", category: "firm", description: "Nuestra Firma — CTA Carrera" },
+  { key: "firm_landing_careers_path", value: "/careers", valueEs: "/bolsa-de-trabajo", type: "url", category: "firm", description: "Nuestra Firma — destino Carrera" },
+
+  { key: "firm_landing_cta_visible", value: "true", type: "boolean", category: "firm", description: "Mostrar enlaces finales" },
+  { key: "firm_landing_cta_order", value: "80", type: "number", category: "firm", description: "Orden de enlaces finales" },
+  { key: "firm_landing_cta_title", value: "How can we help?", valueEs: "¿Cómo podemos ayudarte?", type: "text", category: "firm", description: "Nuestra Firma — título del CTA final" },
+  { key: "firm_landing_cta_text", value: "Meet our team, explore our capabilities or contact us.", valueEs: "Conoce a nuestro equipo, explora nuestras capacidades o ponte en contacto.", type: "text", category: "firm", description: "Nuestra Firma — texto del CTA final" },
+  { key: "firm_landing_cta_1_label", value: "Our attorneys", valueEs: "Nuestros abogados", type: "text", category: "firm", description: "Nuestra Firma — primer CTA" },
+  { key: "firm_landing_cta_1_path", value: "/attorneys?lang=en", valueEs: "/attorneys", type: "url", category: "firm", description: "Nuestra Firma — destino del primer CTA" },
+  { key: "firm_landing_cta_2_label", value: "Legal practices", valueEs: "Prácticas legales", type: "text", category: "firm", description: "Nuestra Firma — segundo CTA" },
+  { key: "firm_landing_cta_2_path", value: "/capabilities/practices", valueEs: "/capacidades/practicas", type: "url", category: "firm", description: "Nuestra Firma — destino del segundo CTA" },
+  { key: "firm_landing_cta_3_label", value: "Contact", valueEs: "Contacto", type: "text", category: "firm", description: "Nuestra Firma — tercer CTA" },
+  { key: "firm_landing_cta_3_path", value: "/contact", valueEs: "/contacto", type: "url", category: "firm", description: "Nuestra Firma — destino del tercer CTA" },
+
+  { key: "firm_landing_seo_title", value: "Von Wobeser y Sierra | Mexican law firm", valueEs: "Von Wobeser y Sierra | Firma legal en México", type: "text", category: "firm", description: "Resumen institucional — título SEO" },
+  { key: "firm_landing_seo_description", value: "Learn about Von Wobeser y Sierra, a Mexican law firm founded in 1986 and recognized for legal excellence, integrity and comprehensive counsel.", valueEs: "Conoce a Von Wobeser y Sierra, firma mexicana fundada en 1986 y reconocida por su excelencia jurídica, integridad y asesoría integral.", type: "text", category: "firm", description: "Nuestra Firma — descripción SEO" },
+  { key: "firm_landing_seo_image", value: "/img/Collage/collage_02.jpg", type: "url", category: "firm", description: "Resumen institucional — imagen para compartir" },
+  { key: "firm_landing_canonical", value: "/about", valueEs: "/acerca-de", type: "url", category: "firm", description: "Resumen institucional — canonical bilingüe" },
+  { key: "firm_landing_social_title", value: "Von Wobeser y Sierra | Mexican law firm", valueEs: "Von Wobeser y Sierra | Firma legal en México", type: "text", category: "firm", description: "Resumen institucional — título para redes sociales" },
+  { key: "firm_landing_social_description", value: "More than forty years of legal excellence, integrity and comprehensive counsel in Mexico.", valueEs: "Más de cuarenta años de excelencia jurídica, integridad y asesoría integral en México.", type: "text", category: "firm", description: "Nuestra Firma — descripción para redes sociales" },
   { key: "page_contact_intro", value: "", valueEs: "", type: "text", category: "pages", description: "Contacto — texto de introducción" },
   { key: "page_contact_body", value: "", valueEs: "", type: "text", category: "pages", description: "Contacto — dirección / texto principal" },
   { key: "page_careers_intro", value: "", valueEs: "", type: "text", category: "pages", description: "Carrera en VWyS — párrafo de introducción" },
@@ -240,13 +357,107 @@ export async function seedConfigDefaults(): Promise<void> {
   const legacyAddress = "Torre SOMA Chapultepec 18th floor. Campos Elíseos 204, Polanco\nAcceso por Calle Arquímedes N.° 10, C.P. 11550, Ciudad de México";
   const footerDefault = DEFAULTS.find((d) => d.key === "footer_address")!;
   const [footerAddress] = await db.select().from(siteConfig).where(eq(siteConfig.key, "footer_address"));
+  let footerUpdated = false;
   if (footerAddress && footerAddress.value === legacyAddress && (!footerAddress.valueEs || footerAddress.valueEs === legacyAddress)) {
     await db.update(siteConfig)
       .set({ value: footerDefault.value, valueEs: footerDefault.valueEs, updatedAt: new Date() })
       .where(eq(siteConfig.key, "footer_address"));
+    footerUpdated = true;
   }
 
-  if (missing.length || footerAddress?.value === legacyAddress) invalidateConfigCache();
+  // El resumen institucional ahora vive separado de Nuestra Firma. Solo se migran los
+  // destinos exactos usados por versiones anteriores; cualquier URL elegida se respeta.
+  const [heroLink] = await db.select().from(siteConfig).where(eq(siteConfig.key, "hero_practice_link"));
+  let heroLinkUpdated = false;
+  if (
+    heroLink
+    && (
+      (heroLink.value === "/practice/arbitration" && (!heroLink.valueEs || heroLink.valueEs === "/practice/arbitration"))
+      || (heroLink.value === "/our-firm" && heroLink.valueEs === "/nuestra-firma")
+    )
+  ) {
+    await db.update(siteConfig)
+      .set({ value: "/about", valueEs: "/acerca-de", updatedAt: new Date() })
+      .where(eq(siteConfig.key, "hero_practice_link"));
+    heroLinkUpdated = true;
+  }
+
+  // La primera versión del resumen reutilizaba nombres y canonical de Nuestra Firma.
+  // Se actualizan solo los defaults exactos para mantener separadas ambas experiencias.
+  let landingRouteUpdated = false;
+  const landingLegacyPairs: Array<[string, string, string, string, string]> = [
+    ["firm_landing_title", "Our Firm", "Nuestra Firma", "Von Wobeser y Sierra", "Von Wobeser y Sierra"],
+    ["firm_landing_scroll_label", "Discover our firm", "Conoce nuestra firma", "Discover VWyS", "Conoce VWyS"],
+    ["firm_landing_hero_alt", "Aerial view of Mexico City", "Vista aérea de la Ciudad de México", "Boardroom at the new Von Wobeser y Sierra offices", "Sala de consejo de las nuevas oficinas de Von Wobeser y Sierra"],
+    ["firm_landing_canonical", "/our-firm", "/nuestra-firma", "/about", "/acerca-de"],
+    ["firm_landing_seo_title", "Our Firm | Von Wobeser y Sierra", "Nuestra Firma | Von Wobeser y Sierra", "Von Wobeser y Sierra | Mexican law firm", "Von Wobeser y Sierra | Firma legal en México"],
+    ["firm_landing_social_title", "Our Firm | Von Wobeser y Sierra", "Nuestra Firma | Von Wobeser y Sierra", "Von Wobeser y Sierra | Mexican law firm", "Von Wobeser y Sierra | Firma legal en México"],
+  ];
+  for (const [key, oldEn, oldEs, nextEn, nextEs] of landingLegacyPairs) {
+    const [current] = await db.select().from(siteConfig).where(eq(siteConfig.key, key));
+    if (current?.value !== oldEn || current.valueEs !== oldEs) continue;
+    await db.update(siteConfig)
+      .set({ value: nextEn, valueEs: nextEs, updatedAt: new Date() })
+      .where(eq(siteConfig.key, key));
+    landingRouteUpdated = true;
+  }
+
+  // La primera versión del resumen usaba la toma aérea genérica del home. Se sustituye
+  // únicamente cuando conserva ese valor exacto, de modo que cualquier medio seleccionado
+  // posteriormente desde administración permanezca intacto.
+  for (const key of ["firm_landing_hero_image", "firm_landing_seo_image"]) {
+    const [current] = await db.select().from(siteConfig).where(eq(siteConfig.key, key));
+    if (current?.value !== "/images/home-hero.jpg" || (current.valueEs && current.valueEs !== "/images/home-hero.jpg")) continue;
+    await db.update(siteConfig)
+      .set({
+        value: "/img/Collage/collage_02.jpg",
+        valueEs: "/img/Collage/collage_02.jpg",
+        updatedAt: new Date(),
+      })
+      .where(eq(siteConfig.key, key));
+    landingRouteUpdated = true;
+  }
+
+  // Las instalaciones anteriores ya tenían page_firm_* pero nacían vacías para usar el HTML
+  // capturado. Ahora son la fuente editable de Historia: se completan únicamente los idiomas
+  // vacíos o el texto legacy que todavía mencionaba Desk/Best Lawyers. Cualquier otro contenido
+  // escrito desde el panel se conserva.
+  let firmCopyUpdated = false;
+  for (const key of ["page_firm_intro", "page_firm_body"]) {
+    const fallback = DEFAULTS.find((item) => item.key === key);
+    const [current] = await db.select().from(siteConfig).where(eq(siteConfig.key, key));
+    if (!fallback || !current) continue;
+    const obsolete = (value: string | null | undefined) => {
+      const normalized = String(value || "").replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").toLowerCase();
+      return key === "page_firm_intro"
+        ? /\bdesk\b|1952|70 (?:years|años)|seven decades|siete décadas|three decades|tres décadas|18 (?:legal )?practices|18 prácticas/.test(normalized)
+        : /best lawyers|benchmark litigation|fortune 50|dow jones|chambers and partners global/.test(normalized);
+    };
+    const keepEn = current.value?.trim() && !obsolete(current.value);
+    const keepEs = current.valueEs?.trim() && !obsolete(current.valueEs);
+    if (keepEn && keepEs) continue;
+    await db.update(siteConfig)
+      .set({
+        value: keepEn ? current.value : fallback.value,
+        valueEs: keepEs ? current.valueEs : fallback.valueEs ?? fallback.value,
+        updatedAt: new Date(),
+      })
+      .where(eq(siteConfig.key, key));
+    firmCopyUpdated = true;
+  }
+
+  // Normaliza únicamente el título español que se sembró con el anglicismo anterior.
+  // Una edición distinta hecha por el cliente se conserva intacta.
+  const [rankingTitle] = await db.select().from(siteConfig).where(eq(siteConfig.key, "firm_landing_rankings_title"));
+  let rankingTitleUpdated = false;
+  if (rankingTitle?.valueEs === "Rankings y reconocimientos") {
+    await db.update(siteConfig)
+      .set({ valueEs: "Reconocimientos", updatedAt: new Date() })
+      .where(eq(siteConfig.key, "firm_landing_rankings_title"));
+    rankingTitleUpdated = true;
+  }
+
+  if (missing.length || footerUpdated || heroLinkUpdated || landingRouteUpdated || firmCopyUpdated || rankingTitleUpdated) invalidateConfigCache();
 }
 
 /** Upsert one key (used by the admin endpoint). */

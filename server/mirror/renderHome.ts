@@ -38,6 +38,13 @@ function safeMediaUrl(value: unknown): string {
   return "";
 }
 
+function safeHref(value: unknown, fallback: string): string {
+  const href = String(value ?? "").trim();
+  if (/^\/(?!\/)[a-z0-9_./%+@~:?&=#-]*$/i.test(href)) return href;
+  if (/^https:\/\/[a-z0-9.-]+(?:[/:?#][^\s"'<>]*)?$/i.test(href)) return href;
+  return fallback;
+}
+
 function paragraphs(value: string): string {
   return value
     .split(/\n\s*\n/)
@@ -275,8 +282,16 @@ export function renderHome(
   // el video igual se transmite por rango (206) al reproducir.
   const video = cfg(config, "hero_video", lang);
   if (video) $("#video_header source").attr("src", video);
-  const heroLink = cfg(config, "hero_practice_link", lang);
-  if (heroLink) $("#video_header").parent("a").attr("href", heroLink);
+  const configuredHeroLink = cfg(config, "hero_practice_link", lang).trim();
+  const fallbackHeroLink = lang === "es" ? "/acerca-de" : "/about";
+  const legacyHeroLinks = new Set(["/practice/arbitration", "/nuestra-firma", "/our-firm"]);
+  const heroLink = !configuredHeroLink || legacyHeroLinks.has(configuredHeroLink)
+    ? fallbackHeroLink
+    : safeHref(configuredHeroLink, fallbackHeroLink);
+  $("#video_header").parent("a").attr({
+    href: heroLink,
+    "aria-label": lang === "es" ? "Conoce Von Wobeser y Sierra" : "Discover Von Wobeser y Sierra",
+  });
   $("#video_header").attr("preload", "metadata");
 
   // --- Frases editoriales de la portada -------------------------------

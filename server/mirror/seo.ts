@@ -225,9 +225,14 @@ export interface SeoOptions {
   lang: Lang;
   /** Ruta canónica SIN el parámetro ?lang (p.ej. /news/mi-noticia). */
   path: string;
+  /** Rutas distintas por idioma para páginas institucionales (p.ej. /nuestra-firma y /our-firm). */
+  alternatePaths?: { es: string; en: string };
   /** <title> completo de la página. */
   title: string;
   description?: string;
+  /** Textos opcionales específicos para Open Graph y Twitter. */
+  socialTitle?: string;
+  socialDescription?: string;
   /** Imagen para Open Graph (ruta o URL). Default = logo. */
   image?: string;
   type?: "website" | "article" | "profile";
@@ -333,12 +338,17 @@ export function applyA11y($: cheerio.CheerioAPI, lang: Lang): void {
 export function applySeo($: cheerio.CheerioAPI, opts: SeoOptions): void {
   const { lang, path } = opts;
   const description = clip(opts.description || DESC[lang]);
+  const socialTitle = clip(opts.socialTitle || opts.title, 100);
+  const socialDescription = clip(opts.socialDescription || description);
   const image = abs(opts.image || DEFAULT_IMAGE);
   const type = opts.type || "website";
 
-  // Canonical de ESTA página (ES = sin sufijo; EN = ?lang=en).
-  const esUrl = abs(path);
-  const enUrl = abs(path) + (path.includes("?") ? "&" : "?") + "lang=en";
+  // La mayoría de las páginas comparte ruta y alterna con ?lang=en; algunas landings
+  // institucionales tienen rutas limpias distintas por idioma.
+  const esUrl = abs(opts.alternatePaths?.es || path);
+  const enUrl = opts.alternatePaths
+    ? abs(opts.alternatePaths.en)
+    : abs(path) + (path.includes("?") ? "&" : "?") + "lang=en";
   const canonical = lang === "es" ? esUrl : enUrl;
 
   // <title> + description
@@ -356,8 +366,8 @@ export function applySeo($: cheerio.CheerioAPI, opts: SeoOptions): void {
   // Open Graph
   upsertMeta($, "property", "og:type", type);
   upsertMeta($, "property", "og:site_name", SITE_NAME);
-  upsertMeta($, "property", "og:title", opts.title);
-  upsertMeta($, "property", "og:description", description);
+  upsertMeta($, "property", "og:title", socialTitle);
+  upsertMeta($, "property", "og:description", socialDescription);
   upsertMeta($, "property", "og:url", canonical);
   upsertMeta($, "property", "og:image", image);
   upsertMeta($, "property", "og:locale", lang === "es" ? "es_MX" : "en_US");
@@ -365,8 +375,8 @@ export function applySeo($: cheerio.CheerioAPI, opts: SeoOptions): void {
 
   // Twitter Card
   upsertMeta($, "name", "twitter:card", "summary_large_image");
-  upsertMeta($, "name", "twitter:title", opts.title);
-  upsertMeta($, "name", "twitter:description", description);
+  upsertMeta($, "name", "twitter:title", socialTitle);
+  upsertMeta($, "name", "twitter:description", socialDescription);
   upsertMeta($, "name", "twitter:image", image);
 
   // JSON-LD (Organization siempre + nodos de la página)
