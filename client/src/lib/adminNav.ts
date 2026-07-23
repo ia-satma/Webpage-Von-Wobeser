@@ -220,5 +220,7 @@ export function canSeeNavItem(
   if (!item.requires) return true;
   if (item.requires === "adminOnly") return ctx.isAdmin;
   if (item.requires === "superAdminOnly") return ctx.isSuperAdmin;
-  return ctx.has(item.requires);
+  // Admin y Dueño reciben todos los permisos en el servidor. Este respaldo evita ocultar
+  // sus módulos si una respuesta de sesión antigua llega sin la lista de permisos.
+  return ctx.isAdmin || ctx.has(item.requires);
 }

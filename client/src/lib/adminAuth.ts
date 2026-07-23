@@ -75,7 +75,12 @@ export function establishAdminSession(payload: { csrfToken?: string; user?: Admi
     setRole(payload.user.role);
   }
   sessionSet(SESSION_MARKER_KEY, "1");
-  sessionPromise = Promise.resolve(cachedUser);
+  // Un payload de login heredado puede traer rol pero no permisos. En ese caso no se
+  // considera una sesión completamente hidratada: la siguiente lectura debe consultar
+  // /api/admin/session en vez de perpetuar un menú incompleto desde la caché.
+  sessionPromise = Array.isArray(cachedUser?.permissions)
+    ? Promise.resolve(cachedUser)
+    : null;
 }
 
 export async function loadAdminSession(force = false): Promise<AdminSessionUser | null> {
@@ -205,7 +210,8 @@ export function useMyPermissions() {
   const [permissions, setPermissions] = useState<string[] | null>(cachedUser?.permissions || null);
   useEffect(() => {
     let cancelled = false;
-    loadAdminSession().then((user) => {
+    const needsAuthoritativeRefresh = cachedUser !== null && !Array.isArray(cachedUser.permissions);
+    loadAdminSession(needsAuthoritativeRefresh).then((user) => {
       if (!cancelled) setPermissions(Array.isArray(user?.permissions) ? user.permissions : []);
     });
     return () => { cancelled = true; };
