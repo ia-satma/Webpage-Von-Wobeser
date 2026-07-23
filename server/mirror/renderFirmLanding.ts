@@ -256,8 +256,8 @@ function renderValues(config: ConfigMap, lang: Lang): string {
       </div>
       <ol class="vw-firm__values-list">
         ${items.map((item, index) => `<li>
-          <span class="vw-firm__index">${String(index + 1).padStart(2, "0")}</span>
-          <div><h3>${esc(item.title)}</h3>${rich({ item: { value: item.body, valueEs: item.body, type: "text" } }, "item", lang)}</div>
+          <span class="vw-firm__index">${esc(String(index + 1).padStart(2, "0"))}</span>
+          <div><h3>${esc(item.title)}</h3>${item.body ? `<p>${esc(plain(item.body))}</p>` : ""}</div>
         </li>`).join("")}
       </ol>
     </div>
@@ -288,9 +288,9 @@ function renderCulture(config: ConfigMap, lang: Lang): string {
       ${image ? `<figure class="vw-firm__culture-media"><img src="${escAttr(image)}" alt="${escAttr(imageAlt)}" loading="lazy" decoding="async"></figure>` : ""}
       <ol class="vw-firm__culture-list">
         ${items.map((item, index) => `<li>
-          <span class="vw-firm__index">${String(index + 1).padStart(2, "0")}</span>
+          <span class="vw-firm__index">${esc(String(index + 1).padStart(2, "0"))}</span>
           <h3>${esc(item.title)}</h3>
-          ${rich({ item: { value: item.body, valueEs: item.body, type: "text" } }, "item", lang)}
+          ${item.body ? `<p>${esc(plain(item.body))}</p>` : ""}
         </li>`).join("")}
       </ol>
     </div>
@@ -319,8 +319,8 @@ function renderDiversity(config: ConfigMap, lang: Lang): string {
       </div>
       <ol class="vw-firm__diversity-list">
         ${items.map((item, index) => `<li>
-          <span>${String(index + 1).padStart(2, "0")}</span>
-          <div><h3>${esc(item.title)}</h3>${rich({ item: { value: item.body, valueEs: item.body, type: "text" } }, "item", lang)}</div>
+          <span>${esc(String(index + 1).padStart(2, "0"))}</span>
+          <div><h3>${esc(item.title)}</h3>${item.body ? `<p>${esc(plain(item.body))}</p>` : ""}</div>
         </li>`).join("")}
       </ol>
       <a class="vw-firm__text-link" href="${path}">${esc(cta)}<span aria-hidden="true">→</span></a>
