@@ -1,17 +1,18 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import { z } from "zod";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { setToken, setRole, isAuthenticated } from "@/lib/adminAuth";
+import { establishAdminSession, loadAdminSession } from "@/lib/adminAuth";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { LogIn, AlertCircle } from "lucide-react";
+import { LogIn, AlertCircle, ShieldCheck, Copy } from "lucide-react";
 
 type LoginFormData = {
   username: string;
@@ -20,7 +21,9 @@ type LoginFormData = {
 
 const createLoginSchema = (t: { emailRequired: string; passwordMin: string }) => z.object({
   username: z.string().min(1, t.emailRequired),
-  password: z.string().min(6, t.passwordMin),
+  // Las credenciales heredadas pueden ser más cortas; después del acceso el
+  // servidor obliga a cambiarlas por una contraseña moderna de 15+ caracteres.
+  password: z.string().min(1, t.passwordMin).max(128),
 });
 
 const translations = {
@@ -37,7 +40,7 @@ const translations = {
     loginError: "Login failed",
     invalidCredentials: "Invalid email or password",
     emailRequired: "Email is required",
-    passwordMin: "Password must be at least 6 characters",
+    passwordMin: "Password is required",
   },
   es: {
     title: "Inicio de Sesión Admin",
@@ -52,7 +55,7 @@ const translations = {
     loginError: "Error al iniciar sesión",
     invalidCredentials: "Correo electrónico o contraseña inválidos",
     emailRequired: "El correo electrónico es obligatorio",
-    passwordMin: "La contraseña debe tener al menos 6 caracteres",
+    passwordMin: "La contraseña es obligatoria",
   },
   de: {
     title: "Admin-Anmeldung",
@@ -67,7 +70,7 @@ const translations = {
     loginError: "Anmeldung fehlgeschlagen",
     invalidCredentials: "Ungültige E-Mail oder Passwort",
     emailRequired: "E-Mail ist erforderlich",
-    passwordMin: "Das Passwort muss mindestens 6 Zeichen haben",
+    passwordMin: "Das Passwort ist erforderlich",
   },
   zh: {
     title: "管理员登录",
@@ -82,7 +85,7 @@ const translations = {
     loginError: "登录失败",
     invalidCredentials: "电子邮件或密码无效",
     emailRequired: "电子邮件是必填项",
-    passwordMin: "密码必须至少6个字符",
+    passwordMin: "密码为必填项",
   },
   ko: {
     title: "관리자 로그인",
@@ -97,7 +100,7 @@ const translations = {
     loginError: "로그인 실패",
     invalidCredentials: "잘못된 이메일 또는 비밀번호",
     emailRequired: "이메일은 필수입니다",
-    passwordMin: "비밀번호는 최소 6자 이상이어야 합니다",
+    passwordMin: "비밀번호는 필수입니다",
   },
   ja: {
     title: "管理者ログイン",
@@ -112,7 +115,7 @@ const translations = {
     loginError: "ログイン失敗",
     invalidCredentials: "メールアドレスまたはパスワードが無効です",
     emailRequired: "メールアドレスは必須です",
-    passwordMin: "パスワードは6文字以上必要です",
+    passwordMin: "パスワードは必須です",
   },
   ar: {
     title: "تسجيل دخول المسؤول",
@@ -127,7 +130,7 @@ const translations = {
     loginError: "فشل تسجيل الدخول",
     invalidCredentials: "البريد الإلكتروني أو كلمة المرور غير صالحة",
     emailRequired: "البريد الإلكتروني مطلوب",
-    passwordMin: "يجب أن تكون كلمة المرور 6 أحرف على الأقل",
+    passwordMin: "كلمة المرور مطلوبة",
   },
   ru: {
     title: "Вход администратора",
@@ -142,7 +145,7 @@ const translations = {
     loginError: "Ошибка входа",
     invalidCredentials: "Неверная электронная почта или пароль",
     emailRequired: "Электронная почта обязательна",
-    passwordMin: "Пароль должен содержать не менее 6 символов",
+    passwordMin: "Пароль обязателен",
   },
   fr: {
     title: "Connexion Admin",
@@ -157,7 +160,7 @@ const translations = {
     loginError: "Échec de la connexion",
     invalidCredentials: "Email ou mot de passe invalide",
     emailRequired: "L'email est requis",
-    passwordMin: "Le mot de passe doit contenir au moins 6 caractères",
+    passwordMin: "Le mot de passe est requis",
   },
   it: {
     title: "Login Admin",
@@ -172,7 +175,7 @@ const translations = {
     loginError: "Accesso fallito",
     invalidCredentials: "Email o password non validi",
     emailRequired: "L'email è obbligatoria",
-    passwordMin: "La password deve contenere almeno 6 caratteri",
+    passwordMin: "La password è obbligatoria",
   },
 };
 
@@ -181,6 +184,14 @@ export default function AdminLogin() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const t = translations[language as keyof typeof translations] || translations.en;
+  const isSpanish = language === "es";
+  const [mfaStep, setMfaStep] = useState<"verify" | "enroll" | null>(null);
+  const [mfaCode, setMfaCode] = useState("");
+  const [recoveryCode, setRecoveryCode] = useState("");
+  const [useRecovery, setUseRecovery] = useState(false);
+  const [enrollment, setEnrollment] = useState<{ secret: string; otpauthUrl: string } | null>(null);
+  const [recoveryCodes, setRecoveryCodes] = useState<string[]>([]);
+  const [mfaBusy, setMfaBusy] = useState(false);
   
   const loginSchema = createLoginSchema({ 
     emailRequired: t.emailRequired, 
@@ -188,9 +199,9 @@ export default function AdminLogin() {
   });
 
   useEffect(() => {
-    if (isAuthenticated()) {
-      setLocation("/admin/dashboard");
-    }
+    void loadAdminSession().then((user) => {
+      if (user) setLocation(user.mustChangePassword ? "/admin/change-password" : "/admin/dashboard");
+    });
   }, [setLocation]);
 
   const form = useForm<LoginFormData>({
@@ -216,13 +227,29 @@ export default function AdminLogin() {
       
       return res.json();
     },
-    onSuccess: (data) => {
-      setToken(data.token);
-      setRole(data.user?.role || "");
+    onSuccess: async (data) => {
+      if (data.mfaRequired) {
+        setMfaStep(data.setupRequired ? "enroll" : "verify");
+        if (data.setupRequired) {
+          const enrollmentResponse = await fetch("/api/admin/mfa/enroll", {
+            method: "POST",
+            credentials: "include",
+            headers: { "Content-Type": "application/json" },
+            body: "{}",
+          });
+          if (!enrollmentResponse.ok) {
+            const body = await enrollmentResponse.json().catch(() => ({}));
+            throw new Error(body.error || "No se pudo configurar el segundo factor");
+          }
+          setEnrollment(await enrollmentResponse.json());
+        }
+        return;
+      }
+      establishAdminSession(data);
       toast({
         title: t.loginSuccess,
       });
-      setLocation("/admin/dashboard");
+      setLocation(data.user?.mustChangePassword ? "/admin/change-password" : "/admin/dashboard");
     },
     onError: (error: Error) => {
       toast({
@@ -237,6 +264,36 @@ export default function AdminLogin() {
     loginMutation.mutate(data);
   };
 
+  const finishMfa = async () => {
+    setMfaBusy(true);
+    try {
+      const endpoint = useRecovery ? "/api/admin/mfa/recovery" : "/api/admin/mfa/verify";
+      const body = useRecovery ? { recoveryCode } : { code: mfaCode.replace(/\s/g, "") };
+      const response = await fetch(endpoint, {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(payload.error || "Código inválido");
+      establishAdminSession(payload);
+      if (Array.isArray(payload.recoveryCodes) && payload.recoveryCodes.length) {
+        setRecoveryCodes(payload.recoveryCodes);
+        return;
+      }
+      setLocation("/admin/dashboard");
+    } catch (error) {
+      toast({
+        title: isSpanish ? "No se pudo verificar" : "Verification failed",
+        description: error instanceof Error ? error.message : undefined,
+        variant: "destructive",
+      });
+    } finally {
+      setMfaBusy(false);
+    }
+  };
+
   return (
     <div className="min-h-screen flex items-center justify-center px-4 bg-[radial-gradient(120%_120%_at_50%_0%,hsl(var(--muted))_0%,hsl(var(--background))_60%)]">
       <Card className="w-full max-w-md rounded-xl border-t-2 border-t-primary shadow-xl">
@@ -249,6 +306,77 @@ export default function AdminLogin() {
           </CardDescription>
         </CardHeader>
         <CardContent>
+          {recoveryCodes.length > 0 ? (
+            <div className="space-y-4">
+              <div className="rounded-lg border border-amber-300 bg-amber-50 p-4 text-sm text-amber-950">
+                <p className="font-semibold">{isSpanish ? "Guarda estos códigos de recuperación" : "Save these recovery codes"}</p>
+                <p className="mt-1">{isSpanish ? "Solo se mostrarán una vez. Cada código funciona una sola vez." : "They are shown once and each code can only be used once."}</p>
+              </div>
+              <pre className="grid grid-cols-1 gap-1 rounded-lg bg-muted p-4 text-center text-sm">
+                {recoveryCodes.join("\n")}
+              </pre>
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full"
+                onClick={() => void navigator.clipboard.writeText(recoveryCodes.join("\n"))}
+              >
+                <Copy className="mr-2 h-4 w-4" />
+                {isSpanish ? "Copiar códigos" : "Copy codes"}
+              </Button>
+              <Button className="w-full" onClick={() => setLocation("/admin/dashboard")}>
+                {isSpanish ? "Ya los guardé" : "I saved them"}
+              </Button>
+            </div>
+          ) : mfaStep ? (
+            <div className="space-y-4">
+              <div className="flex items-center gap-3 rounded-lg border bg-muted/40 p-4">
+                <ShieldCheck className="h-6 w-6 text-primary" />
+                <div>
+                  <p className="font-semibold">{isSpanish ? "Verificación en dos pasos" : "Two-step verification"}</p>
+                  <p className="text-sm text-muted-foreground">
+                    {mfaStep === "enroll"
+                      ? (isSpanish ? "Agrega esta cuenta en tu aplicación autenticadora." : "Add this account to your authenticator app.")
+                      : (isSpanish ? "Escribe el código de tu aplicación autenticadora." : "Enter the code from your authenticator app.")}
+                  </p>
+                </div>
+              </div>
+              {mfaStep === "enroll" && enrollment && (
+                <div className="space-y-2 rounded-lg border p-4">
+                  <Label>{isSpanish ? "Clave de configuración manual" : "Manual setup key"}</Label>
+                  <code className="block break-all rounded bg-muted p-3 text-center font-mono text-sm">{enrollment.secret}</code>
+                  <p className="break-all text-xs text-muted-foreground">{enrollment.otpauthUrl}</p>
+                </div>
+              )}
+              {useRecovery ? (
+                <div className="space-y-1">
+                  <Label>{isSpanish ? "Código de recuperación" : "Recovery code"}</Label>
+                  <Input value={recoveryCode} onChange={(event) => setRecoveryCode(event.target.value)} autoComplete="one-time-code" />
+                </div>
+              ) : (
+                <div className="space-y-1">
+                  <Label>{isSpanish ? "Código de 6 dígitos" : "6-digit code"}</Label>
+                  <Input
+                    value={mfaCode}
+                    onChange={(event) => setMfaCode(event.target.value.replace(/\D/g, "").slice(0, 6))}
+                    inputMode="numeric"
+                    autoComplete="one-time-code"
+                    className="text-center font-mono text-lg tracking-[0.35em]"
+                  />
+                </div>
+              )}
+              <Button className="w-full" onClick={finishMfa} disabled={mfaBusy}>
+                {mfaBusy ? (isSpanish ? "Verificando…" : "Verifying…") : (isSpanish ? "Verificar" : "Verify")}
+              </Button>
+              {mfaStep === "verify" && (
+                <Button type="button" variant="ghost" className="w-full" onClick={() => setUseRecovery((value) => !value)}>
+                  {useRecovery
+                    ? (isSpanish ? "Usar aplicación autenticadora" : "Use authenticator app")
+                    : (isSpanish ? "Usar código de recuperación" : "Use recovery code")}
+                </Button>
+              )}
+            </div>
+          ) : (
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
               <FormField
@@ -317,6 +445,7 @@ export default function AdminLogin() {
               </Button>
             </form>
           </Form>
+          )}
         </CardContent>
       </Card>
     </div>

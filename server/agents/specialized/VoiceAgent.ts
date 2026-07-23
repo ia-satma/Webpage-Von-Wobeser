@@ -81,7 +81,7 @@ export class VoiceAgent extends BaseAgent {
       };
     } catch (error: any) {
       console.error('[VoiceAgent] Error:', error);
-      return { success: false, error: error?.message || 'Falló la generación de audio.' };
+      return { success: false, error: 'Falló la generación de audio.' };
     }
   }
 }

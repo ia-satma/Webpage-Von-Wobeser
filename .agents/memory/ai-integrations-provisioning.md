@@ -19,5 +19,8 @@ The app's translation pipeline reads `AI_INTEGRATIONS_OPENAI_API_KEY` / `AI_INTE
 
 Related quirks discovered while verifying:
 - Admin login endpoint expects `username` field (accepts email as its value), not `email`.
-- `ADMIN_RESET_PASSWORD` secret re-applies the admin password on every server start (see `.replit` comments / `server/seed.ts`).
+- Seguridad actualizada 2026-07-23: `ADMIN_RESET_PASSWORD` fue retirado. El arranque usa
+  `ADMIN_EMAIL` + `ADMIN_BOOTSTRAP_PASSWORD` exclusivamente cuando ese correo todavía no
+  existe; después ignora por completo la contraseña bootstrap y PostgreSQL conserva solo
+  su hash Argon2id.
 - OpenAI client in `server/openai.ts` is lazy-initialized (Proxy wrapper) so missing credentials fail per-request, not at boot.

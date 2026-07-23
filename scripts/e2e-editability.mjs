@@ -5,10 +5,11 @@
 import "dotenv/config";
 import { neon } from "@neondatabase/serverless";
 import * as cheerio from "cheerio";
+import { adminSessionHeaders, requireIsolatedSecurityTarget } from "./lib/admin-session.mjs";
 
 const B = process.env.VERIFY_BASE || "http://localhost:5050";
-const ADMIN_USER = "admin@vonwobeser.com";
-const ADMIN_PASS = process.env.ADMIN_PASS || "VonWobeser2026!";
+requireIsolatedSecurityTarget(B);
+const sessionHeaders = adminSessionHeaders();
 const sql = neon(process.env.DATABASE_URL);
 const RUN_TS = Date.now();
 
@@ -24,19 +25,13 @@ function bad(entity, label, detail) {
 }
 
 async function login() {
-  const r = await fetch(B + "/api/admin/login", {
-    method: "POST", headers: { "content-type": "application/json" },
-    body: JSON.stringify({ username: ADMIN_USER, password: ADMIN_PASS }),
-  });
-  const j = await r.json().catch(() => ({}));
-  if (!j.token) throw new Error("No se pudo loguear admin: " + JSON.stringify(j).slice(0, 150));
-  return j.token;
+  return sessionHeaders;
 }
 
 async function api(method, path, token, body) {
   const r = await fetch(B + path, {
     method,
-    headers: { "content-type": "application/json", authorization: "Bearer " + token },
+    headers: { "content-type": "application/json", ...token },
     body: body !== undefined ? JSON.stringify(body) : undefined,
   });
   const json = await r.json().catch(() => ({}));

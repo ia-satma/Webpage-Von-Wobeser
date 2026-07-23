@@ -3,17 +3,15 @@
 // Uso: node scripts/test-agents.mjs
 import "dotenv/config";
 import { neon } from "@neondatabase/serverless";
+import { adminSessionHeaders, requireIsolatedSecurityTarget } from "./lib/admin-session.mjs";
 
 const B = process.env.VERIFY_BASE || "http://localhost:5050";
 const sql = neon(process.env.DATABASE_URL);
-
-const login = async () => {
-  const r = await fetch(B + "/api/admin/login", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ username: "admin@vonwobeser.com", password: process.env.ADMIN_PASS || "VonWobeser2026!" }) });
-  return (await r.json()).token;
-};
-const run = async (token, agent, payload, ms = 170000) => {
+requireIsolatedSecurityTarget(B);
+const sessionHeaders = adminSessionHeaders();
+const run = async (agent, payload, ms = 170000) => {
   try {
-    const r = await fetch(B + "/api/agents/run/" + agent, { method: "POST", headers: { authorization: "Bearer " + token, "content-type": "application/json" }, body: JSON.stringify(payload), signal: AbortSignal.timeout(ms) });
+    const r = await fetch(B + "/api/agents/run/" + agent, { method: "POST", headers: { ...sessionHeaders, "content-type": "application/json" }, body: JSON.stringify(payload), signal: AbortSignal.timeout(ms) });
     return await r.json();
   } catch (e) { return { success: false, error: String(e).slice(0, 60) }; }
 };
@@ -32,9 +30,7 @@ const V = {
 const AI_AGENTS = ["content_analyzer", "formatter", "seo_optimizer", "category_agent", "metadata_linker", "polyglot_translator", "image_suggestion"];
 
 (async () => {
-  const token = await login();
-  if (!token) { console.error("❌ login falló"); process.exit(1); }
-  console.log("✅ Token admin OK\n");
+  console.log("✅ Sesión administrativa aislada disponible\n");
 
   // 5 artículos DIVERSOS (cortos→largos, distintas categorías)
   const all = await sql`select id, title, char_length(content) len, category from news where content is not null and char_length(content) between 120 and 9000 order by char_length(content)`;
@@ -54,7 +50,7 @@ const AI_AGENTS = ["content_analyzer", "formatter", "seo_optimizer", "category_a
     process.stdout.write(`Ronda ${i + 1} (artículo ${art.len} chars): `);
     for (const agent of AI_AGENTS) {
       const payload = agent === "polyglot_translator" ? { articleId: art.id, targetLanguages: ["de"] } : { articleId: art.id };
-      const r = await run(token, agent, payload);
+      const r = await run(agent, payload);
       const v = r.success ? V[agent](r.data) : { ok: false, ev: (r.error || "fallo").slice(0, 40) };
       results[agent].push(v.ok);
       if (v.ok && !evidence[agent]) evidence[agent] = v.ev;
@@ -66,7 +62,7 @@ const AI_AGENTS = ["content_analyzer", "formatter", "seo_optimizer", "category_a
   // --- content_auditor: 5 scanTypes distintos ---
   process.stdout.write("Auditor de contenido (5 scanTypes): ");
   for (const st of ["full", "metadata", "translations", "formatting", undefined]) {
-    const r = await run(token, "content_auditor", st ? { scanType: st } : {});
+    const r = await run("content_auditor", st ? { scanType: st } : {});
     const ok = r.success && r.data?.stats?.articlesScanned > 0;
     results.content_auditor.push(ok);
     if (ok && !evidence.content_auditor) evidence.content_auditor = `${r.data.stats.articlesScanned} art. escaneados, ${r.data.totalGaps} huecos`;
@@ -78,7 +74,7 @@ const AI_AGENTS = ["content_analyzer", "formatter", "seo_optimizer", "category_a
   process.stdout.write("Auditor del sitio (5 variantes): ");
   const variants = [{}, { skipModules: ["news"] }, { skipModules: ["attorneys"] }, { skipModules: ["practices", "industries"] }, { skipModules: ["seo"] }];
   for (const v of variants) {
-    const r = await run(token, "website_auditor", { runType: "full", ...v }, 290000);
+    const r = await run("website_auditor", { runType: "full", ...v }, 290000);
     const ok = r.success && typeof r.data?.auditId === "string" && typeof r.data?.findings === "number";
     results.website_auditor.push(ok);
     if (ok) auditIds.push(r.data.auditId);

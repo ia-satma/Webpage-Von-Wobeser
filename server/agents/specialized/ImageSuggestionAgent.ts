@@ -142,7 +142,7 @@ export class ImageSuggestionAgent extends BaseAgent {
       console.error('[ImageSuggestionAgent] Error:', error);
       return {
         success: false,
-        error: error.message || 'Failed to generate image suggestion',
+        error: 'Failed to generate image suggestion',
       };
     }
   }

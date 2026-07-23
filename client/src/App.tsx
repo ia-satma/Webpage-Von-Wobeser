@@ -22,6 +22,7 @@ function ScrollToTop() {
 const NotFound = lazy(() => import("@/pages/not-found"));
 
 const AdminLogin = lazy(() => import("@/pages/admin/AdminLogin"));
+const AdminChangePassword = lazy(() => import("@/pages/admin/AdminChangePassword"));
 const AdminSiteConfig = lazy(() => import("@/pages/admin/AdminSiteConfig"));
 const AdminNavigation = lazy(() => import("@/pages/admin/AdminNavigation"));
 const AdminRecognitions = lazy(() => import("@/pages/admin/AdminRecognitions"));
@@ -125,7 +126,9 @@ function SkipLinks() {
 function Router() {
   const [routerLocation] = useLocation();
   // El shell del admin (barra superior) envuelve todas las páginas /admin excepto el login.
-  const isAdminShell = routerLocation.startsWith("/admin") && routerLocation !== "/admin/login";
+  const isAdminShell = routerLocation.startsWith("/admin")
+    && routerLocation !== "/admin/login"
+    && routerLocation !== "/admin/change-password";
   const routes = (
     <Switch>
       {/* Root of the React app → admin (public site lives in the mirror). */}
@@ -133,6 +136,7 @@ function Router() {
         {/* /admin exacto no tenía ruta y caía en NotFound (404). Redirige al dashboard. */}
         <Route path="/admin"><Redirect to="/admin/dashboard" /></Route>
         <Route path="/admin/login" component={AdminLogin} />
+        <Route path="/admin/change-password" component={AdminChangePassword} />
         <Route path="/admin/dashboard" component={AdminDashboard} />
         <Route path="/admin/manual" component={AdminManual} />
         <Route path="/admin/coming-soon/:key" component={AdminComingSoon} />

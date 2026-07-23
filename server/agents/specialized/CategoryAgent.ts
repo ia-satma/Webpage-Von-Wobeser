@@ -179,7 +179,7 @@ Categorize this article and return JSON with primaryCategory, categorySlug, prac
       console.error('[CategoryAgent] Error:', error);
       return {
         success: false,
-        error: error.message || 'Failed to categorize article',
+        error: 'Failed to categorize article',
       };
     }
   }

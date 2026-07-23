@@ -6,8 +6,11 @@
 //
 // Uso: npx tsx scripts/audit-security-mocked-legal-alerts.ts
 import "dotenv/config";
+import { adminSessionHeaders, requireIsolatedSecurityTarget } from "./lib/admin-session.mjs";
 process.env.PORT = "5051";
 const B = "http://localhost:5051";
+requireIsolatedSecurityTarget(B);
+const sessionHeaders = adminSessionHeaders();
 
 const { neon } = await import("@neondatabase/serverless");
 const sql = neon(process.env.DATABASE_URL!);
@@ -47,26 +50,15 @@ async function waitReady() {
   throw new Error("El servidor de prueba en :5051 nunca respondió");
 }
 
-async function login(): Promise<string> {
-  const r = await fetch(B + "/api/admin/login", {
-    method: "POST", headers: { "content-type": "application/json" },
-    body: JSON.stringify({ username: "admin@vonwobeser.com", password: process.env.ADMIN_PASS || "VonWobeser2026!" }),
-  });
-  const j: any = await r.json().catch(() => ({}));
-  if (!j.token) throw new Error("No se pudo loguear admin: " + JSON.stringify(j).slice(0, 150));
-  return j.token;
-}
-
 (async () => {
   console.log(`\n=== PROBE #19 — LegalAlertsAgent: XSS almacenado (mockeado, sin costo) — ${B} ===`);
   await waitReady();
-  const token = await login();
 
   let newsId: string | null = null;
   try {
     const r = await fetch(B + "/api/agents/run/legal_alerts", {
       method: "POST",
-      headers: { "content-type": "application/json", authorization: "Bearer " + token },
+      headers: { "content-type": "application/json", ...sessionHeaders },
       body: JSON.stringify({ sourceText: "Texto de fuente oficial simulada para la auditoría de seguridad, con al menos cuarenta caracteres de longitud." }),
     });
     const j: any = await r.json().catch(() => ({}));

@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useLocation } from "wouter";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Download, Mail, Search } from "lucide-react";
-import { adminApiRequest, useAdminAuth } from "@/lib/adminAuth";
+import { adminApiRequest, useAdminAuth, useMyPermissions } from "@/lib/adminAuth";
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -29,6 +29,7 @@ const fmtDate = (value: string | null) => value
 
 export default function AdminNewsletter() {
   const { isAuthenticated, isLoading: authLoading } = useAdminAuth();
+  const { has, loaded: permissionsLoaded } = useMyPermissions();
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -55,7 +56,7 @@ export default function AdminNewsletter() {
 
   const subscribers = useQuery<Subscriber[]>({
     queryKey: ["/api/admin/newsletter-subscribers", queryString],
-    enabled: isAuthenticated,
+    enabled: isAuthenticated && permissionsLoaded && has("newsletter"),
     queryFn: async () => {
       const res = await adminApiRequest("GET", `/api/admin/newsletter-subscribers${queryString ? `?${queryString}` : ""}`);
       if (!res.ok) throw new Error("No se pudieron cargar los suscriptores.");
@@ -96,7 +97,7 @@ export default function AdminNewsletter() {
     }
   };
 
-  if (authLoading || !isAuthenticated) return null;
+  if (authLoading || !isAuthenticated || !permissionsLoaded) return null;
 
   return (
     <div className="min-h-screen bg-background">
@@ -105,7 +106,7 @@ export default function AdminNewsletter() {
           title="Suscriptores del Newsletter"
           description="Registros recibidos desde la portada. Puedes desactivar una suscripción y exportar el resultado filtrado."
           icon={Mail}
-          actions={<Button onClick={exportCsv} variant="outline"><Download className="h-4 w-4 mr-2" />Exportar CSV</Button>}
+          actions={has("exports") ? <Button onClick={exportCsv} variant="outline"><Download className="h-4 w-4 mr-2" />Exportar CSV</Button> : undefined}
         />
 
         <Card>

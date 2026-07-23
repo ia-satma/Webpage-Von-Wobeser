@@ -3,11 +3,11 @@ import express, { type Request, Response, NextFunction } from "express";
 import cors from "cors";
 import helmet from "helmet";
 import compression from "compression";
-import { registerRoutes } from "./routes";
+import { registerRoutes, runSecurityMaintenance } from "./routes";
 import { serveStatic } from "./static";
 import { createServer } from "http";
+import { randomUUID } from "node:crypto";
 import { orchestrator } from "./agents/core/AgentOrchestrator";
-import { storage } from "./storage";
 
 const app = express();
 // Detrás del reverse-proxy de Replit (inyecta X-Forwarded-For). Sin esto req.ip es la IP del
@@ -20,10 +20,35 @@ app.use(compression());
 
 // Security headers (CSP se afina aparte: el espejo usa inline scripts/estilos + assets externos)
 app.use(helmet({
-  contentSecurityPolicy: false,
+  // El espejo heredado todavía contiene scripts inline. Se recopilan reportes
+  // antes de pasar a enforcement para no romper miles de páginas de golpe.
+  contentSecurityPolicy: {
+    reportOnly: true,
+    directives: {
+      defaultSrc: ["'self'"],
+      baseUri: ["'self'"],
+      objectSrc: ["'none'"],
+      frameAncestors: ["'none'"],
+      formAction: ["'self'"],
+      scriptSrc: ["'self'"],
+      styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+      fontSrc: ["'self'", "data:", "https://fonts.gstatic.com"],
+      imgSrc: ["'self'", "data:", "blob:", "https:"],
+      mediaSrc: ["'self'", "blob:", "https:"],
+      connectSrc: ["'self'", "https:", "wss:", "ws:"],
+      frameSrc: ["'self'", "https://www.google.com", "https://www.youtube.com", "https://player.vimeo.com"],
+      upgradeInsecureRequests: process.env.NODE_ENV === "production" ? [] : null,
+      reportUri: ["/api/security/csp-report"],
+    },
+  },
   crossOriginEmbedderPolicy: false,
   crossOriginResourcePolicy: { policy: "cross-origin" },
+  referrerPolicy: { policy: "strict-origin-when-cross-origin" },
 }));
+app.use((_req, res, next) => {
+  res.setHeader("Permissions-Policy", "camera=(), microphone=(), geolocation=(), payment=(), usb=()");
+  next();
+});
 
 // CORS: solo orígenes en whitelist (CORS_ORIGIN, separados por coma). Sin whitelist NO
 // se refleja ningún origen cruzado (el admin se sirve same-origin, así que no se ve afectado).
@@ -32,7 +57,7 @@ app.use(cors({
   origin: corsOrigins.length ? corsOrigins : false,
   credentials: true,
   methods: ["GET", "HEAD", "PUT", "PATCH", "POST", "DELETE", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization"],
+  allowedHeaders: ["Content-Type", "X-CSRF-Token"],
 }));
 
 declare module "http" {
@@ -43,13 +68,31 @@ declare module "http" {
 
 app.use(
   express.json({
+    limit: "256kb",
     verify: (req, _res, buf) => {
       req.rawBody = buf;
     },
   }),
 );
 
-app.use(express.urlencoded({ extended: false }));
+app.use(express.urlencoded({ extended: false, limit: "128kb" }));
+
+app.post(
+  "/api/security/csp-report",
+  express.json({ type: ["application/csp-report", "application/reports+json"], limit: "32kb" }),
+  (req, res) => {
+    const report = req.body?.["csp-report"] || (Array.isArray(req.body) ? req.body[0]?.body : null) || {};
+    const safe = {
+      directive: String(report["effective-directive"] || report.effectiveDirective || "").slice(0, 100),
+      disposition: String(report.disposition || "report").slice(0, 20),
+      sourceFileOrigin: (() => {
+        try { return new URL(String(report["source-file"] || report.sourceFile || "")).origin; } catch { return ""; }
+      })(),
+    };
+    console.warn("[csp-report]", JSON.stringify(safe));
+    res.status(204).end();
+  },
+);
 
 export function log(message: string, source = "express") {
   const formattedTime = new Date().toLocaleTimeString("en-US", {
@@ -65,11 +108,19 @@ export function log(message: string, source = "express") {
 app.use((req, res, next) => {
   const start = Date.now();
   const path = req.path;
-  let capturedJsonResponse: Record<string, any> | undefined = undefined;
+  const requestId = req.header("x-request-id")?.slice(0, 80) || randomUUID();
+  res.setHeader("X-Request-Id", requestId);
+  let responseShape: string | undefined;
 
   const originalResJson = res.json;
   res.json = function (bodyJson, ...args) {
-    capturedJsonResponse = bodyJson;
+    if (Array.isArray(bodyJson)) {
+      responseShape = `[${bodyJson.length} items]`;
+    } else if (bodyJson && typeof bodyJson === "object") {
+      // Nunca registrar valores: login, formularios, credenciales temporales y
+      // respuestas de agentes pueden contener secretos o datos personales.
+      responseShape = `{${Object.keys(bodyJson).slice(0, 12).join(",")}}`;
+    }
     return originalResJson.apply(res, [bodyJson, ...args]);
   };
 
@@ -77,20 +128,9 @@ app.use((req, res, next) => {
     const duration = Date.now() - start;
     if (path.startsWith("/api")) {
       let logLine = `${req.method} ${path} ${res.statusCode} in ${duration}ms`;
-      if (capturedJsonResponse) {
-        // No serializar respuestas grandes (p.ej. /api/news con ~1.792 filas) en cada
-        // request: para arrays se registra solo el conteo; los objetos, truncados.
-        let preview: string;
-        if (Array.isArray(capturedJsonResponse)) {
-          preview = `[${(capturedJsonResponse as unknown[]).length} items]`;
-        } else {
-          const s = JSON.stringify(capturedJsonResponse);
-          preview = s.length > 200 ? s.slice(0, 200) + "…" : s;
-        }
-        logLine += ` :: ${preview}`;
-      }
+      if (responseShape) logLine += ` :: ${responseShape}`;
 
-      log(logLine);
+      log(`${logLine} requestId=${requestId}`);
     }
   });
 
@@ -107,10 +147,11 @@ app.use((req, res, next) => {
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
     const status = err.status || err.statusCode || 500;
-    const message = err.message || "Internal Server Error";
+    const requestId = String(res.getHeader("X-Request-Id") || "");
+    const publicMessage = status >= 500 ? "Internal Server Error" : (err.message || "Request failed");
 
-    if (!res.headersSent) res.status(status).json({ error: message });
-    console.error("[error]", status, message);
+    if (!res.headersSent) res.status(status).json({ error: publicMessage, requestId });
+    console.error("[error]", status, requestId, err instanceof Error ? err.message : "unknown");
   });
 
   // importantly only setup vite in development and after
@@ -138,6 +179,11 @@ app.use((req, res, next) => {
     },
     async () => {
       log(`serving on port ${port}`);
+
+      if (process.env.SECURITY_READ_ONLY_SMOKE === "true") {
+        log("Read-only security smoke mode active; background workers are disabled", "security");
+        return;
+      }
       
       // Initialize and start the agent orchestrator
       try {
@@ -145,18 +191,20 @@ app.use((req, res, next) => {
         orchestrator.start(2000); // Process jobs every 2 seconds
         log("Agent orchestrator initialized and started", "agents");
       } catch (error) {
-        log(`Failed to initialize agent orchestrator: ${error}`, "agents");
+        log("Failed to initialize agent orchestrator", "agents");
       }
 
-      // Hourly maintenance tick — clean expired admin sessions
+      // Mantenimiento de seguridad y retención: sesiones, logs de 90 días y
+      // formularios/CV con retención de 12 meses.
       setInterval(async () => {
         try {
-          const count = await storage.cleanExpiredSessions();
-          if (count > 0) {
-            log(`[Scheduler] Cleaned ${count} expired sessions`, "scheduler");
+          const cleaned = await runSecurityMaintenance();
+          const total = Object.values(cleaned).reduce((sum, value) => sum + value, 0);
+          if (total > 0) {
+            log(`[Scheduler] Cleaned ${total} expired security/privacy records`, "scheduler");
           }
         } catch (err) {
-          log(`[Scheduler] Error during hourly tick: ${err}`, "scheduler");
+          log("[Scheduler] Error during hourly tick", "scheduler");
         }
       }, 60 * 60 * 1000);
 
@@ -167,7 +215,7 @@ app.use((req, res, next) => {
           await orchestrator.enqueueJob("website_auditor", { runType: "full", triggeredBy: "scheduled" });
           log("[Scheduler] Auditoría diaria del sitio encolada", "scheduler");
         } catch (err) {
-          log(`[Scheduler] Error al encolar la auditoría diaria: ${err}`, "scheduler");
+          log("[Scheduler] Error al encolar la auditoría diaria", "scheduler");
         }
       }, 24 * 60 * 60 * 1000);
 
@@ -181,7 +229,7 @@ app.use((req, res, next) => {
           const { enqueued, skipped } = await runScheduledLegalAlertsScan();
           log(`[Scheduler] Escaneo de fuentes oficiales: ${enqueued} alertas encoladas, ${skipped} descartadas`, "scheduler");
         } catch (err) {
-          log(`[Scheduler] Error en el escaneo de fuentes oficiales: ${err}`, "scheduler");
+          log("[Scheduler] Error en el escaneo de fuentes oficiales", "scheduler");
         }
       }, 12 * 60 * 60 * 1000); // cada 12 h (antes 6 h) para cuidar créditos de IA
     },

@@ -4,10 +4,10 @@
 import "dotenv/config";
 import { neon } from "@neondatabase/serverless";
 import * as cheerio from "cheerio";
+import { adminSessionHeaders } from "./lib/admin-session.mjs";
 
 const B = process.env.VERIFY_BASE || "http://localhost:5050";
-const ADMIN_USER = "admin@vonwobeser.com";
-const ADMIN_PASS = process.env.ADMIN_PASS || "VonWobeser2026!";
+const sessionHeaders = adminSessionHeaders();
 const sql = neon(process.env.DATABASE_URL);
 
 let pass = 0, fail = 0, warn = 0;
@@ -215,14 +215,11 @@ async function checkPage(label, path, expectLang, dataSelector) {
 
   // 5) ADMIN conectado
   section("5. Admin conectado");
-  const login = await getJson("/api/admin/login");
-  // login es POST:
-  const lr = await fetch(B + "/api/admin/login", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ username: ADMIN_USER, password: ADMIN_PASS }) });
-  const lj = await lr.json().catch(() => ({}));
-  const token = lj.token;
-  if (token) { ok("login"); console.log("  ✅ Login admin OK"); } else { bad("Login admin falló: " + JSON.stringify(lj).slice(0, 80)); }
-  if (token) {
-    const H = { authorization: "Bearer " + token };
+  const session = await getJson("/api/admin/session", sessionHeaders);
+  const authenticated = session.status === 200 && session.json?.user?.id;
+  if (authenticated) { ok("login"); console.log("  ✅ Sesión admin HttpOnly OK"); } else { bad(`Sesión admin falló (${session.status})`); }
+  if (authenticated) {
+    const H = sessionHeaders;
     for (const [label, p] of [["/api/admin/me", "/api/admin/me"], ["site-config", "/api/admin/site-config"], ["team/stats", "/api/admin/team/stats"]]) {
       const r = await getJson(p, H);
       if (r.status === 200) { ok("admin " + label); console.log(`  ✅ ${p} → 200`); }
@@ -232,7 +229,7 @@ async function checkPage(label, path, expectLang, dataSelector) {
 
   // 6) AGENTES
   section("6. Agentes (registrados + corriendo, sin disparar)");
-  const st = (await getJson("/api/agents/status", { authorization: "Bearer " + token })).json;
+  const st = (await getJson("/api/agents/status", sessionHeaders)).json;
   const EXPECTED = ["formatter", "metadata_linker", "polyglot_translator", "content_auditor", "seo_optimizer", "image_suggestion", "category_agent", "website_auditor", "content_analyzer"];
   if (st?.orchestrator?.isRunning === true) { ok("orchestrator running"); console.log("  ✅ Orquestador corriendo (isRunning=true)"); }
   else bad("Orquestador NO está corriendo (isRunning != true)");

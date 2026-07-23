@@ -76,7 +76,7 @@ Devuelve JSON con: subject, preheader, html (cada noticia como enlace a /news/{s
       };
     } catch (error: any) {
       console.error('[NewsletterAgent] Error:', error);
-      return { success: false, error: error?.message || 'Falló la generación del boletín' };
+      return { success: false, error: 'Falló la generación del boletín' };
     }
   }
 }

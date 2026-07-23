@@ -5,8 +5,11 @@
 // el texto que "responde" el modelo.
 // Uso: npx tsx scripts/test-agents-mocked.ts
 import "dotenv/config";
+import { adminSessionHeaders, requireIsolatedSecurityTarget } from "./lib/admin-session.mjs";
 process.env.PORT = "5051";
 const B = "http://localhost:5051";
+requireIsolatedSecurityTarget(B);
+const sessionHeaders = adminSessionHeaders();
 
 const { neon } = await import("@neondatabase/serverless");
 const sql = neon(process.env.DATABASE_URL!);
@@ -57,19 +60,9 @@ async function waitReady() {
   throw new Error("El servidor de prueba en :5051 nunca respondió");
 }
 
-async function login(): Promise<string> {
-  const r = await fetch(B + "/api/admin/login", {
-    method: "POST", headers: { "content-type": "application/json" },
-    body: JSON.stringify({ username: "admin@vonwobeser.com", password: process.env.ADMIN_PASS || "VonWobeser2026!" }),
-  });
-  const j: any = await r.json().catch(() => ({}));
-  if (!j.token) throw new Error("No se pudo loguear admin: " + JSON.stringify(j).slice(0, 150));
-  return j.token;
-}
-
 async function api(method: string, path: string, token: string, body?: any) {
   const r = await fetch(B + path, {
-    method, headers: { "content-type": "application/json", authorization: "Bearer " + token },
+    method, headers: { "content-type": "application/json", ...sessionHeaders },
     body: body !== undefined ? JSON.stringify(body) : undefined,
   });
   const json = await r.json().catch(() => ({}));
@@ -123,7 +116,7 @@ async function runJsonAgent(
 (async () => {
   console.log(`\n=== BATERÍA DE AGENTES (IA SIMULADA) — ${B} ===`);
   await waitReady();
-  const token = await login();
+  const token = "cookie-session";
 
   // --- Fixtures --------------------------------------------------------------
   const sandboxTs = Date.now();

@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { useLocation } from "wouter";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useAdminAuth, adminApiRequest } from "@/lib/adminAuth";
+import { useAdminAuth, adminApiRequest, useMyPermissions } from "@/lib/adminAuth";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -29,6 +29,7 @@ function fmtDate(d: string | null): string {
 
 export default function AdminSubmissions() {
   const { isAuthenticated, isLoading: authLoading } = useAdminAuth();
+  const { has, loaded: permissionsLoaded } = useMyPermissions();
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -39,7 +40,7 @@ export default function AdminSubmissions() {
 
   const contactQuery = useQuery<ContactSubmissionRow[]>({
     queryKey: ["/api/admin/contact-submissions"],
-    enabled: isAuthenticated,
+    enabled: isAuthenticated && permissionsLoaded && has("contact_submissions"),
     queryFn: async () => {
       const res = await adminApiRequest("GET", "/api/admin/contact-submissions");
       if (!res.ok) throw new Error("No se pudo cargar los mensajes de contacto.");
@@ -49,7 +50,7 @@ export default function AdminSubmissions() {
 
   const careerQuery = useQuery<CareerApplicationRow[]>({
     queryKey: ["/api/admin/career-applications"],
-    enabled: isAuthenticated,
+    enabled: isAuthenticated && permissionsLoaded && has("career_applications"),
     queryFn: async () => {
       const res = await adminApiRequest("GET", "/api/admin/career-applications");
       if (!res.ok) throw new Error("No se pudo cargar las solicitudes de pasantías.");
@@ -80,11 +81,15 @@ export default function AdminSubmissions() {
   const unreadContact = (contactQuery.data || []).filter((c) => !c.read).length;
   const unreadCareer = (careerQuery.data || []).filter((c) => !c.read).length;
 
-  if (authLoading || !isAuthenticated) return null;
+  if (authLoading || !isAuthenticated || !permissionsLoaded) return null;
 
   // El sidebar enlaza aquí con ?tab=career o ?tab=contact según la sección de origen
   // (Carrera en VWyS / Contacto) — abre la pestaña correspondiente de una vez.
-  const initialTab = new URLSearchParams(window.location.search).get("tab") === "career" ? "career" : "contact";
+  const canContact = has("contact_submissions");
+  const canCareer = has("career_applications");
+  const canDownloadPrivate = has("private_downloads");
+  const requestedCareer = new URLSearchParams(window.location.search).get("tab") === "career";
+  const initialTab = requestedCareer && canCareer ? "career" : canContact ? "contact" : "career";
 
   return (
     <div className="min-h-screen bg-background">
@@ -99,15 +104,19 @@ export default function AdminSubmissions() {
 
         <Tabs defaultValue={initialTab}>
           <TabsList>
-            <TabsTrigger value="contact">
-              <Mail className="h-4 w-4 mr-1" /> Contacto {unreadContact > 0 && <Badge className="ml-2">{unreadContact}</Badge>}
-            </TabsTrigger>
-            <TabsTrigger value="career">
-              <FileText className="h-4 w-4 mr-1" /> Pasantes {unreadCareer > 0 && <Badge className="ml-2">{unreadCareer}</Badge>}
-            </TabsTrigger>
+            {canContact && (
+              <TabsTrigger value="contact">
+                <Mail className="h-4 w-4 mr-1" /> Contacto {unreadContact > 0 && <Badge className="ml-2">{unreadContact}</Badge>}
+              </TabsTrigger>
+            )}
+            {canCareer && (
+              <TabsTrigger value="career">
+                <FileText className="h-4 w-4 mr-1" /> Pasantes {unreadCareer > 0 && <Badge className="ml-2">{unreadCareer}</Badge>}
+              </TabsTrigger>
+            )}
           </TabsList>
 
-          <TabsContent value="contact">
+          {canContact && <TabsContent value="contact">
             <Card>
               <CardHeader>
                 <CardTitle>Mensajes de contacto</CardTitle>
@@ -152,9 +161,9 @@ export default function AdminSubmissions() {
                 )}
               </CardContent>
             </Card>
-          </TabsContent>
+          </TabsContent>}
 
-          <TabsContent value="career">
+          {canCareer && <TabsContent value="career">
             <Card>
               <CardHeader>
                 <CardTitle>Solicitudes de pasantías</CardTitle>
@@ -185,9 +194,13 @@ export default function AdminSubmissions() {
                           <TableCell>{c.email}</TableCell>
                           <TableCell>{c.phone || "—"}</TableCell>
                           <TableCell>
-                            <a href={c.cvPath} download target="_blank" rel="noreferrer" className="inline-flex items-center text-sm text-primary hover:underline">
-                              <Download className="h-3.5 w-3.5 mr-1" /> {c.cvOriginalName || "CV"}
-                            </a>
+                            {canDownloadPrivate ? (
+                              <a href={`/api/admin/career-applications/${c.id}/cv`} download className="inline-flex items-center text-sm text-primary hover:underline">
+                                <Download className="h-3.5 w-3.5 mr-1" /> {c.cvOriginalName || "CV"}
+                              </a>
+                            ) : (
+                              <span className="text-xs text-muted-foreground">Sin permiso de descarga</span>
+                            )}
                           </TableCell>
                           <TableCell>
                             {!c.read && (
@@ -203,7 +216,7 @@ export default function AdminSubmissions() {
                 )}
               </CardContent>
             </Card>
-          </TabsContent>
+          </TabsContent>}
         </Tabs>
       </main>
     </div>
