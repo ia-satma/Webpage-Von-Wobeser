@@ -442,6 +442,24 @@ export function effectivePermissions(user: Pick<AdminUser, "role" | "permissions
   return new Set<Permission>([...base, ...sanitizeGrants(user.permissions)]);
 }
 
+/**
+ * Única forma de exponer un usuario autenticado al navegador. Mantener los permisos
+ * efectivos dentro del payload evita que el menú administrativo quede incompleto justo
+ * después del login o del segundo factor.
+ */
+export function adminSessionUserPayload(
+  user: Pick<AdminUser, "id" | "username" | "email" | "role" | "permissions">,
+) {
+  return {
+    id: user.id,
+    username: user.username,
+    email: user.email,
+    role: user.role,
+    mustChangePassword: false,
+    permissions: Array.from(effectivePermissions(user)),
+  };
+}
+
 export function requirePermission(permission: Permission) {
   return (req: Request, res: Response, next: NextFunction): void => {
     if (!req.adminUser) {

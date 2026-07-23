@@ -108,6 +108,7 @@ import {
   requireRole,
   requirePermission,
   effectivePermissions,
+  adminSessionUserPayload,
   sanitizeGrants,
 } from "./auth";
 import {
@@ -1675,7 +1676,13 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
 
   const createAuthenticatedSession = async (
     res: Response,
-    user: { id: string; username: string; email: string; role: string },
+    user: {
+      id: string;
+      username: string;
+      email: string;
+      role: string;
+      permissions: string[] | null;
+    },
     ipAddress: string,
     userAgent: string | null,
     mfaVerified: boolean,
@@ -1696,13 +1703,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
     res.cookie(SESSION_COOKIE, rawToken, authCookieOptions(8 * 60 * 60 * 1000));
     return {
       csrfToken,
-      user: {
-        id: user.id,
-        username: user.username,
-        email: user.email,
-        role: user.role,
-        mustChangePassword: false,
-      },
+      user: adminSessionUserPayload(user),
     };
   };
 
@@ -2041,28 +2042,14 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
     res.json({
       authenticated: true,
       csrfToken,
-      user: {
-        id: user.id,
-        username: user.username,
-        email: user.email,
-        role: user.role,
-        mustChangePassword: false,
-        permissions: Array.from(effectivePermissions(user)),
-      },
+      user: adminSessionUserPayload(user),
     });
   });
 
   // Perfil del usuario autenticado + sus permisos EFECTIVOS.
   app.get("/api/admin/me", authMiddleware, async (req: Request, res: Response) => {
     const u = req.adminUser!;
-    res.json({
-      id: u.id,
-      username: u.username,
-      email: u.email,
-      role: u.role,
-      mustChangePassword: false,
-      permissions: Array.from(effectivePermissions(u)),
-    });
+    res.json(adminSessionUserPayload(u));
   });
 
   // Historial de accesos (solo admin/dueño). Nunca expone contraseñas.
