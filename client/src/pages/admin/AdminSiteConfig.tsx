@@ -15,9 +15,21 @@ import { ImageUpload } from "@/components/admin/ImageUpload";
 import { ConfirmChangesDialog, fmtValue, type Change } from "@/components/admin/ConfirmChangesDialog";
 import { TranslateButton } from "@/components/admin/TranslateButton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Switch } from "@/components/ui/switch";
 import { Save, Settings, Loader2, ArrowLeft, ArrowUpRight, ImageIcon, Landmark, HeartHandshake, Sparkles, Lock, Briefcase, GraduationCap, Mail, LineChart, PanelBottom, Volume2, type LucideIcon } from "lucide-react";
 
-type Field = { key: string; label: string; help?: string; bilingual?: boolean; media?: "image" | "video"; multiline?: boolean; rows?: number; pattern?: RegExp; patternError?: string };
+type Field = {
+  key: string;
+  label: string;
+  help?: string;
+  bilingual?: boolean;
+  media?: "image" | "video";
+  multiline?: boolean;
+  rows?: number;
+  control?: "switch" | "number";
+  pattern?: RegExp;
+  patternError?: string;
+};
 type FieldGroup = { title?: string; fields: Field[] };
 type SiteConfigPage = { title: string; description: string; icon: LucideIcon; groups: FieldGroup[] };
 
@@ -38,7 +50,7 @@ const PAGES: Record<string, SiteConfigPage> = {
         title: "Portada (home)",
         fields: [
           { key: "hero_video", label: "Video del hero", media: "video", help: "Sube el video desde tu computadora o pega una URL/ruta (mp4)." },
-          { key: "hero_practice_link", label: "Enlace del hero", help: "A dónde lleva al hacer clic en el video del hero." },
+          { key: "hero_practice_link", label: "Destino del video del hero", bilingual: true, help: "Inglés: /about. Español: /acerca-de." },
           { key: "home_experience", label: "Frase — años de experiencia", bilingual: true },
           { key: "home_team_stats", label: "Frase — cifras del equipo", bilingual: true, multiline: true },
           { key: "banner_title", label: "Banner — título", help: "Texto grande del banner rojo.", bilingual: true },
@@ -149,13 +161,148 @@ const PAGES: Record<string, SiteConfigPage> = {
   },
   firma: {
     title: "Nuestra Firma",
-    description: "Si dejas un campo vacío, se muestra el texto original de la página.",
+    description: "Edita el contenido de la página original conservando el diseño del espejo.",
     icon: Landmark,
     groups: [
       {
         fields: [
-          { key: "page_firm_intro", label: "Introducción", bilingual: true, multiline: true },
-          { key: "page_firm_body", label: "Cuerpo", bilingual: true, multiline: true },
+          { key: "page_firm_intro", label: "Introducción", bilingual: true, multiline: true, rows: 6 },
+          { key: "page_firm_body", label: "Presentación de la firma", bilingual: true, multiline: true, rows: 9 },
+        ],
+      },
+    ],
+  },
+  "resumen-firma": {
+    title: "Resumen institucional",
+    description: "Landing breve que se abre exclusivamente al hacer clic en el video del home.",
+    icon: Landmark,
+    groups: [
+      {
+        title: "Hero",
+        fields: [
+          { key: "firm_landing_hero_visible", label: "Mostrar sección", control: "switch", help: "Ocultarla no elimina sus textos ni medios." },
+          { key: "firm_landing_hero_order", label: "Orden", control: "number", help: "Cero mantiene el hero al inicio de la landing." },
+          { key: "firm_landing_eyebrow", label: "Etiqueta superior", bilingual: true },
+          { key: "firm_landing_title", label: "Título principal", bilingual: true },
+          { key: "firm_landing_subtitle", label: "Subtítulo", bilingual: true, multiline: true },
+          { key: "firm_landing_hero_image", label: "Imagen principal / póster", media: "image", bilingual: true, help: "Utiliza por defecto una fotografía panorámica de Nuevas Oficinas. También se usa como póster cuando hay un video." },
+          { key: "firm_landing_hero_video", label: "Video principal (opcional)", media: "video", bilingual: true, help: "Si lo dejas vacío, se muestra la imagen principal." },
+          { key: "firm_landing_hero_alt", label: "Descripción accesible del medio", bilingual: true },
+          { key: "firm_landing_scroll_label", label: "Indicador para seguir leyendo", bilingual: true },
+        ],
+      },
+      {
+        title: "Historia",
+        fields: [
+          { key: "firm_landing_history_visible", label: "Mostrar sección", control: "switch" },
+          { key: "firm_landing_history_order", label: "Orden", control: "number", help: "Un número menor coloca esta sección antes que las demás." },
+          { key: "firm_landing_history_title", label: "Título", bilingual: true },
+          { key: "firm_landing_history_since", label: "Etiqueta de fecha", bilingual: true },
+          { key: "firm_landing_history_intro", label: "Introducción breve", bilingual: true, multiline: true, rows: 4 },
+          { key: "firm_landing_history_body", label: "Presentación breve", bilingual: true, multiline: true, rows: 5 },
+          { key: "firm_landing_history_image", label: "Fotografía de apoyo", media: "image", bilingual: true, help: "Utiliza por defecto otra fotografía de la galería de Nuevas Oficinas." },
+          { key: "firm_landing_history_image_alt", label: "Descripción accesible de la fotografía", bilingual: true },
+        ],
+      },
+      {
+        title: "Cifras",
+        fields: [
+          { key: "firm_landing_stats_visible", label: "Mostrar sección", control: "switch" },
+          { key: "firm_landing_stats_order", label: "Orden", control: "number" },
+          { key: "firm_landing_stats_title", label: "Título", bilingual: true },
+          { key: "firm_landing_stat_1_value", label: "Años de experiencia — cifra", help: "Ejemplo: 40+." },
+          { key: "firm_landing_stat_1_label", label: "Años de experiencia — etiqueta", bilingual: true },
+          { key: "firm_landing_stat_2_value", label: "Abogados — cifra opcional", help: "Vacío = cuenta automáticamente los abogados publicados." },
+          { key: "firm_landing_stat_2_label", label: "Abogados — etiqueta", bilingual: true },
+          { key: "firm_landing_stat_3_value", label: "Prácticas — cifra opcional", help: "Vacío = cuenta automáticamente las prácticas publicadas." },
+          { key: "firm_landing_stat_3_label", label: "Prácticas — etiqueta", bilingual: true },
+          { key: "firm_landing_stat_4_value", label: "Grupos por industria — cifra opcional", help: "Vacío = cuenta automáticamente los grupos publicados." },
+          { key: "firm_landing_stat_4_label", label: "Grupos por industria — etiqueta", bilingual: true },
+        ],
+      },
+      {
+        title: "Valores",
+        fields: [
+          { key: "firm_landing_values_visible", label: "Mostrar sección", control: "switch" },
+          { key: "firm_landing_values_order", label: "Orden", control: "number" },
+          { key: "firm_landing_values_title", label: "Título", bilingual: true },
+          { key: "firm_landing_values_intro", label: "Introducción", bilingual: true, multiline: true },
+          ...Array.from({ length: 5 }, (_, index) => [
+            { key: `firm_landing_value_${index + 1}_title`, label: `Valor ${index + 1} — título`, bilingual: true },
+            { key: `firm_landing_value_${index + 1}_body`, label: `Valor ${index + 1} — descripción`, bilingual: true, multiline: true },
+          ]).flat(),
+        ],
+      },
+      {
+        title: "Cultura",
+        fields: [
+          { key: "firm_landing_culture_visible", label: "Mostrar sección", control: "switch" },
+          { key: "firm_landing_culture_order", label: "Orden", control: "number" },
+          { key: "firm_landing_culture_title", label: "Título", bilingual: true },
+          { key: "firm_landing_culture_subtitle", label: "Subtítulo", bilingual: true },
+          { key: "firm_landing_culture_intro", label: "Introducción", bilingual: true, multiline: true },
+          { key: "firm_landing_culture_image", label: "Imagen", media: "image", bilingual: true },
+          { key: "firm_landing_culture_image_alt", label: "Texto alternativo de la imagen", bilingual: true },
+          ...Array.from({ length: 6 }, (_, index) => [
+            { key: `firm_landing_culture_${index + 1}_title`, label: `Aspecto ${index + 1} — título`, bilingual: true },
+            { key: `firm_landing_culture_${index + 1}_body`, label: `Aspecto ${index + 1} — descripción`, bilingual: true, multiline: true },
+          ]).flat(),
+        ],
+      },
+      {
+        title: "Diversidad y reconocimientos",
+        fields: [
+          { key: "firm_landing_diversity_visible", label: "Mostrar Diversidad", control: "switch" },
+          { key: "firm_landing_diversity_order", label: "Orden de Diversidad", control: "number" },
+          { key: "firm_landing_diversity_title", label: "Diversidad — título", bilingual: true },
+          { key: "firm_landing_diversity_subtitle", label: "Diversidad — subtítulo", bilingual: true },
+          { key: "firm_landing_diversity_intro", label: "Diversidad — introducción", bilingual: true, multiline: true },
+          { key: "firm_landing_diversity_commitment", label: "Diversidad — compromiso", bilingual: true, multiline: true },
+          { key: "firm_landing_diversity_cta", label: "Diversidad — enlace", bilingual: true },
+          { key: "firm_landing_diversity_path", label: "Diversidad — destino", bilingual: true },
+          ...Array.from({ length: 4 }, (_, index) => [
+            { key: `firm_landing_diversity_${index + 1}_title`, label: `Iniciativa ${index + 1} — título`, bilingual: true },
+            { key: `firm_landing_diversity_${index + 1}_body`, label: `Iniciativa ${index + 1} — descripción`, bilingual: true, multiline: true },
+          ]).flat(),
+          { key: "firm_landing_rankings_visible", label: "Mostrar Reconocimientos", control: "switch", help: "Los registros, logotipos y años se administran en Contenido complementario → Reconocimientos." },
+          { key: "firm_landing_rankings_order", label: "Orden de Reconocimientos", control: "number" },
+          { key: "firm_landing_rankings_title", label: "Reconocimientos — título", bilingual: true },
+          { key: "firm_landing_rankings_intro", label: "Reconocimientos — introducción", bilingual: true, multiline: true },
+          { key: "firm_landing_rankings_empty", label: "Reconocimientos — mensaje cuando no hay registros", bilingual: true, multiline: true },
+        ],
+      },
+      {
+        title: "Pro Bono, Carrera y enlaces finales",
+        fields: [
+          { key: "firm_landing_pathways_visible", label: "Mostrar Pro Bono y Carrera", control: "switch" },
+          { key: "firm_landing_pathways_order", label: "Orden de Pro Bono y Carrera", control: "number" },
+          { key: "firm_landing_probono_title", label: "Pro Bono — título", bilingual: true },
+          { key: "firm_landing_probono_text", label: "Pro Bono — texto", bilingual: true, multiline: true },
+          { key: "firm_landing_probono_cta", label: "Pro Bono — enlace", bilingual: true },
+          { key: "firm_landing_probono_path", label: "Pro Bono — destino", bilingual: true },
+          { key: "firm_landing_careers_title", label: "Carrera — título", bilingual: true },
+          { key: "firm_landing_careers_text", label: "Carrera — texto", bilingual: true, multiline: true },
+          { key: "firm_landing_careers_cta", label: "Carrera — enlace", bilingual: true },
+          { key: "firm_landing_careers_path", label: "Carrera — destino", bilingual: true },
+          { key: "firm_landing_cta_visible", label: "Mostrar enlaces finales", control: "switch" },
+          { key: "firm_landing_cta_order", label: "Orden de enlaces finales", control: "number" },
+          { key: "firm_landing_cta_title", label: "Cierre — título", bilingual: true },
+          { key: "firm_landing_cta_text", label: "Cierre — descripción", bilingual: true, multiline: true },
+          ...Array.from({ length: 3 }, (_, index) => [
+            { key: `firm_landing_cta_${index + 1}_label`, label: `Enlace ${index + 1} — etiqueta`, bilingual: true },
+            { key: `firm_landing_cta_${index + 1}_path`, label: `Enlace ${index + 1} — destino`, bilingual: true },
+          ]).flat(),
+        ],
+      },
+      {
+        title: "SEO",
+        fields: [
+          { key: "firm_landing_seo_title", label: "Título SEO", bilingual: true },
+          { key: "firm_landing_seo_description", label: "Descripción SEO", bilingual: true, multiline: true },
+          { key: "firm_landing_seo_image", label: "Imagen para redes sociales", media: "image", bilingual: true },
+          { key: "firm_landing_canonical", label: "URL canonical", bilingual: true, help: "Usa /about en inglés y /acerca-de en español, salvo que SEO requiera otra URL." },
+          { key: "firm_landing_social_title", label: "Título para redes sociales", bilingual: true },
+          { key: "firm_landing_social_description", label: "Descripción para redes sociales", bilingual: true, multiline: true },
         ],
       },
     ],
@@ -291,6 +438,22 @@ const PAGES: Record<string, SiteConfigPage> = {
   },
 };
 
+// El resumen conserva en la base los bloques extensos de la primera propuesta, pero
+// el panel muestra únicamente lo que realmente se renderiza en la landing breve.
+const firmSummaryPage = PAGES["resumen-firma"];
+const firmSummaryLinkGroup: FieldGroup = {
+  title: "Enlaces finales",
+  fields: firmSummaryPage.groups[6].fields.filter((field) => field.key.startsWith("firm_landing_cta_")),
+};
+firmSummaryPage.groups = [
+  firmSummaryPage.groups[0],
+  firmSummaryPage.groups[1],
+  firmSummaryPage.groups[2],
+  firmSummaryPage.groups[3],
+  firmSummaryLinkGroup,
+  firmSummaryPage.groups[7],
+];
+
 type ConfigMap = Record<string, { value: string; valueEs: string; type: string }>;
 type CarouselGroup = {
   id: string;
@@ -302,6 +465,7 @@ type CarouselGroup = {
   published?: boolean | null;
 };
 const HOME_TAB_LABELS = ["Inicio", "Carruseles", "Contenido editorial", "Newsletter", "Noticias"];
+const FIRM_TAB_LABELS = ["Hero", "Resumen", "Cifras", "Valores", "Enlaces", "SEO"];
 
 export default function AdminSiteConfig() {
   const { isAuthenticated, isLoading: authLoading } = useAdminAuth();
@@ -402,7 +566,35 @@ export default function AdminSiteConfig() {
             <Label className="font-medium">{f.label}</Label>
             {f.help && <p className="text-xs text-muted-foreground">{f.help}</p>}
             {invalid && <p className="text-xs text-destructive" data-testid={`error-${f.key}`}>{f.patternError || "Formato inválido."}</p>}
-            {f.key === "image_engine" ? (
+            {f.control === "switch" ? (
+              <div className="flex items-center gap-3 rounded-lg border bg-muted/20 px-3 py-3">
+                <Switch
+                  checked={(draft[f.key]?.value || "true").toLowerCase() !== "false"}
+                  onCheckedChange={(checked) => {
+                    const next = checked ? "true" : "false";
+                    set(f.key, "value", next);
+                    set(f.key, "valueEs", next);
+                  }}
+                  data-testid={`input-${f.key}`}
+                />
+                <span className="text-sm text-muted-foreground">
+                  {(draft[f.key]?.value || "true").toLowerCase() !== "false" ? "Visible en la página" : "Oculta, pero conserva su contenido"}
+                </span>
+              </div>
+            ) : f.control === "number" ? (
+              <Input
+                type="number"
+                min={0}
+                step={1}
+                value={draft[f.key]?.value ?? ""}
+                onChange={(e) => {
+                  set(f.key, "value", e.target.value);
+                  set(f.key, "valueEs", e.target.value);
+                }}
+                className="max-w-32"
+                data-testid={`input-${f.key}`}
+              />
+            ) : f.key === "image_engine" ? (
               <select
                 value={draft[f.key]?.value ?? "openai"}
                 onChange={(e) => set(f.key, "value", e.target.value)}
@@ -424,7 +616,10 @@ export default function AdminSiteConfig() {
                 <option value="9:16">Vertical · 9:16 (1024×1792) — historias</option>
               </select>
             ) : f.media ? (
-              <ImageUpload value={draft[f.key]?.value ?? ""} onChange={(v) => set(f.key, "value", v)} kind={f.media} />
+              <div className="space-y-1">
+                {f.bilingual && <p className="text-xs font-medium text-muted-foreground">Medio en inglés</p>}
+                <ImageUpload value={draft[f.key]?.value ?? ""} onChange={(v) => set(f.key, "value", v)} kind={f.media} />
+              </div>
             ) : f.multiline && f.key.startsWith("page_") ? (
               <RichTextEditor rows={f.rows ?? 3} value={draft[f.key]?.value ?? ""} onChange={(html) => set(f.key, "value", html)} data-testid={`input-${f.key}`} />
             ) : f.multiline ? (
@@ -433,7 +628,12 @@ export default function AdminSiteConfig() {
               <Input value={draft[f.key]?.value ?? ""} onChange={(e) => set(f.key, "value", e.target.value)} placeholder={f.bilingual ? "Texto en inglés" : ""} data-testid={`input-${f.key}`} />
             )}
             {f.bilingual && (
-              f.multiline && f.key.startsWith("page_") ? (
+              f.media ? (
+                <div className="space-y-1 border-t pt-3">
+                  <p className="text-xs font-medium text-muted-foreground">Medio en español</p>
+                  <ImageUpload value={draft[f.key]?.valueEs ?? ""} onChange={(v) => set(f.key, "valueEs", v)} kind={f.media} />
+                </div>
+              ) : f.multiline && f.key.startsWith("page_") ? (
                 <RichTextEditor rows={f.rows ?? 3} value={draft[f.key]?.valueEs ?? ""} onChange={(html) => set(f.key, "valueEs", html)} placeholder="Texto en español" data-testid={`input-${f.key}-es`} />
               ) : f.multiline ? (
                 <Textarea rows={f.rows ?? 3} value={draft[f.key]?.valueEs ?? ""} onChange={(e) => set(f.key, "valueEs", e.target.value)} placeholder="Texto en español" data-testid={`input-${f.key}-es`} />
@@ -552,6 +752,29 @@ export default function AdminSiteConfig() {
     </Card>
   );
 
+  const renderFirmPreview = () => (
+    <Card className="mb-5">
+      <CardHeader>
+        <CardTitle className="text-base">Previsualizar resumen institucional</CardTitle>
+        <CardDescription>
+          Revisa la landing pública en ambos idiomas. Los textos, medios y visibilidad guardados se reflejan de inmediato.
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="flex flex-wrap gap-2">
+        <Button asChild variant="outline" size="sm">
+          <a href="/acerca-de" target="_blank" rel="noopener noreferrer">
+            Ver español <ArrowUpRight className="ml-1 h-3.5 w-3.5" />
+          </a>
+        </Button>
+        <Button asChild variant="outline" size="sm">
+          <a href="/about" target="_blank" rel="noopener noreferrer">
+            View English <ArrowUpRight className="ml-1 h-3.5 w-3.5" />
+          </a>
+        </Button>
+      </CardContent>
+    </Card>
+  );
+
   return (
     <div className="min-h-screen bg-background">
       <main className="max-w-4xl mx-auto px-6 py-8 space-y-6">
@@ -571,12 +794,13 @@ export default function AdminSiteConfig() {
 
         {isLoading ? (
           <div className="flex items-center gap-2 text-muted-foreground"><Loader2 className="h-4 w-4 animate-spin" /> Cargando…</div>
-        ) : section === "portada" ? (
+        ) : section === "portada" || section === "resumen-firma" ? (
           <Tabs value={homeTab} onValueChange={setHomeTab} className="space-y-5">
-            <TabsList className="flex h-auto w-full justify-start gap-1 overflow-x-auto p-1" aria-label="Secciones de la portada">
+            {section === "resumen-firma" && renderFirmPreview()}
+            <TabsList className="flex h-auto w-full justify-start gap-1 overflow-x-auto p-1" aria-label={section === "resumen-firma" ? "Secciones del resumen institucional" : "Secciones de la portada"}>
               {page.groups.map((group, i) => (
                 <TabsTrigger key={group.title ?? i} value={String(i)} className="shrink-0" data-testid={`tab-home-${i}`}>
-                  {HOME_TAB_LABELS[i] || group.title || `Sección ${i + 1}`}
+                  {(section === "resumen-firma" ? FIRM_TAB_LABELS : HOME_TAB_LABELS)[i] || group.title || `Sección ${i + 1}`}
                 </TabsTrigger>
               ))}
             </TabsList>

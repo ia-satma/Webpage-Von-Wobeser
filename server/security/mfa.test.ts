@@ -16,7 +16,9 @@ test("TOTP secrets are encrypted with authenticated encryption", () => {
   const encrypted = encryptTotpSecret(secret);
   assert.notEqual(encrypted, secret);
   assert.equal(decryptTotpSecret(encrypted), secret);
-  assert.throws(() => decryptTotpSecret(`${encrypted.slice(0, -1)}A`));
+  const parts = encrypted.split(".");
+  parts[3] = `${parts[3][0] === "A" ? "B" : "A"}${parts[3].slice(1)}`;
+  assert.throws(() => decryptTotpSecret(parts.join(".")));
 });
 
 test("recovery codes are one-time values stored only as hashes", () => {

@@ -20,7 +20,7 @@ Decisiones del propietario:
 
 | Área ASVS / riesgo | Control | Evidencia automatizada |
 | --- | --- | --- |
-| V2 Autenticación | Argon2id 19 MiB/2/1, compatibilidad y migración de bcrypt, política 15–128, contraseña temporal | `server/security/auth.test.ts` |
+| V2 Autenticación | Argon2id 19 MiB/2/1, compatibilidad y migración silenciosa de bcrypt, política 12–16, contraseña generada definitiva | `server/security/auth.test.ts` |
 | V3 Sesiones | Cookie `__Host-*` HttpOnly/Secure/Strict, token hasheado, inactividad 30 min, máximo 8 h, revocación y CSRF | TypeScript, revisión de rutas |
 | V2 MFA | TOTP obligatorio para administradores, secreto AES-256-GCM y códigos de recuperación de un uso | `server/security/mfa.test.ts` |
 | V4 Acceso | Permisos separados para registros, exportaciones, documentos, usuarios y agentes | matriz manual por rol |

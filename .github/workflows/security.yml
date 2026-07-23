@@ -21,6 +21,7 @@ jobs:
       - uses: gitleaks/gitleaks-action@v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITLEAKS_VERSION: "8.30.1"
 
   semgrep:
     runs-on: ubuntu-latest
@@ -28,7 +29,42 @@ jobs:
       image: semgrep/semgrep
     steps:
       - uses: actions/checkout@v4
-      - run: semgrep scan --config p/owasp-top-ten --config p/typescript --error --sarif --output semgrep.sarif
+        with:
+          fetch-depth: 0
+      - name: Scan new findings against the base commit
+        if: github.event_name != 'schedule'
+        env:
+          SEMGREP_BASELINE: ${{ github.event.pull_request.base.sha || github.event.before }}
+        run: semgrep scan --config p/owasp-top-ten --config p/typescript --baseline-commit "$SEMGREP_BASELINE" --error --sarif --output semgrep.sarif
+      - name: Build the scheduled full-repository inventory
+        if: github.event_name == 'schedule'
+        run: semgrep scan --config p/owasp-top-ten --config p/typescript --sarif --output semgrep.sarif
+      - name: Summarize blocking findings
+        if: failure()
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+
+          report_path = Path("semgrep.sarif")
+          if not report_path.is_file():
+              print("Semgrep did not produce a SARIF report.")
+              raise SystemExit(0)
+
+          report = json.loads(report_path.read_text(encoding="utf-8"))
+          results = [
+              result
+              for run in report.get("runs", [])
+              for result in run.get("results", [])
+          ]
+          print(f"Blocking Semgrep findings: {len(results)}")
+          for result in results:
+              location = (result.get("locations") or [{}])[0]
+              physical = location.get("physicalLocation", {})
+              artifact = physical.get("artifactLocation", {}).get("uri", "unknown")
+              line = physical.get("region", {}).get("startLine", "?")
+              print(f"- {result.get('ruleId', 'unknown')} — {artifact}:{line}")
+          PY
       - uses: github/codeql-action/upload-sarif@v3
         if: always()
         with:

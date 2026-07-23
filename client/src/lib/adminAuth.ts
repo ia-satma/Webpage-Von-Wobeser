@@ -128,9 +128,7 @@ export async function adminApiRequest(method: string, url: string, data?: unknow
     cache: "no-store",
   });
 
-  if (response.status === 428 && typeof window !== "undefined") {
-    window.location.href = "/admin/change-password";
-  } else if (response.status === 401) {
+  if (response.status === 401) {
     clearToken();
     if (typeof window !== "undefined" && !window.location.pathname.includes("/admin/login")) {
       window.location.href = "/admin/login";
@@ -168,9 +166,6 @@ export function useAdminAuth() {
         role: user?.role || null,
         user,
       });
-      if (user?.mustChangePassword && window.location.pathname !== "/admin/change-password") {
-        setLocation("/admin/change-password");
-      }
     });
     return () => { cancelled = true; };
   }, [setLocation]);

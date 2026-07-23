@@ -8,14 +8,15 @@ process.env.DATABASE_URL = "postgresql://unused:unused@127.0.0.1:1/unused?sslmod
 const {
   comparePassword,
   deriveCsrfToken,
-  generateTemporaryPassword,
+  generateAdminPassword,
   hashPassword,
   passwordNeedsRehash,
+  rehashVerifiedPassword,
   validateNewPassword,
 } = await import("../auth");
 
 test("new passwords use Argon2id and verify without persisting plaintext", async () => {
-  const password = "Correct-Horse-Battery-2026!";
+  const password = "Secure-2026-Key!";
   const encoded = await hashPassword(password);
   assert.match(encoded, /^\$argon2id\$v=19\$m=19456,t=2,p=1\$/);
   assert.equal(encoded.includes(password), false);
@@ -29,14 +30,21 @@ test("legacy bcrypt remains verifiable and is marked for lazy migration", async 
   const encoded = await bcrypt.hash(password, 12);
   assert.equal(await comparePassword(password, encoded), true);
   assert.equal(passwordNeedsRehash(encoded), true);
+  const migrated = await rehashVerifiedPassword(password);
+  assert.equal(await comparePassword(password, migrated), true);
+  assert.equal(passwordNeedsRehash(migrated), false);
 });
 
-test("password policy and temporary credentials enforce the required length", () => {
-  assert.equal(validateNewPassword("short").valid, false);
+test("password policy accepts 12–16 characters and generated credentials are definitive", () => {
+  assert.equal(validateNewPassword("A1-safe-key!").valid, true);
+  assert.equal(validateNewPassword("A1-safe-key!2026").valid, true);
+  assert.equal(validateNewPassword("short-key!1").valid, false);
+  assert.equal(validateNewPassword("A1-safe-key!2026x").valid, false);
   assert.equal(validateNewPassword("passwordpassword").valid, false);
-  const temporary = generateTemporaryPassword();
-  assert.equal(temporary.length, 20);
-  assert.equal(validateNewPassword(temporary).valid, true);
+  assert.equal(validateNewPassword("VonWobeser-Key!").valid, true);
+  const generated = generateAdminPassword();
+  assert.equal(generated.length, 16);
+  assert.equal(validateNewPassword(generated).valid, true);
 });
 
 test("CSRF tokens are stable per session and do not expose the session token", () => {

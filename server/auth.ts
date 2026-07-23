@@ -6,7 +6,6 @@ import { storage } from "./storage";
 import { db } from "./db";
 import { securityRateLimits, type AdminSession, type AdminUser } from "@shared/schema";
 
-const BCRYPT_ROUNDS = 12;
 const TOKEN_BYTES = 32;
 const IDLE_SESSION_MINUTES = 30;
 const ABSOLUTE_SESSION_HOURS = 8;
@@ -14,8 +13,9 @@ const ARGON_MEMORY_KIB = 19_456;
 const ARGON_PASSES = 2;
 const ARGON_PARALLELISM = 1;
 const ARGON_TAG_LENGTH = 32;
-const PASSWORD_MIN = 15;
-const PASSWORD_MAX = 128;
+export const PASSWORD_MIN = 12;
+export const PASSWORD_MAX = 16;
+export const GENERATED_PASSWORD_LENGTH = 16;
 
 type NativeArgon2 = (
   algorithm: "argon2id",
@@ -56,6 +56,12 @@ function deriveArgon2(password: string, salt: Buffer, params = {
   });
 }
 
+async function derivePasswordHash(password: string): Promise<string> {
+  const salt = crypto.randomBytes(16);
+  const derived = await deriveArgon2(password, salt);
+  return `$argon2id$v=19$m=${ARGON_MEMORY_KIB},t=${ARGON_PASSES},p=${ARGON_PARALLELISM}$${salt.toString("base64url")}$${derived.toString("base64url")}`;
+}
+
 /**
  * Formato autocontenido inspirado en PHC. Permite verificar y actualizar parámetros
  * sin guardar sal ni contraseña en columnas separadas.
@@ -63,9 +69,19 @@ function deriveArgon2(password: string, salt: Buffer, params = {
 export async function hashPassword(password: string): Promise<string> {
   const validation = validateNewPassword(password);
   if (!validation.valid) throw new Error(validation.error);
-  const salt = crypto.randomBytes(16);
-  const derived = await deriveArgon2(password, salt);
-  return `$argon2id$v=19$m=${ARGON_MEMORY_KIB},t=${ARGON_PASSES},p=${ARGON_PARALLELISM}$${salt.toString("base64url")}$${derived.toString("base64url")}`;
+  return derivePasswordHash(password);
+}
+
+/**
+ * Rehashea una contraseña heredada DESPUÉS de que comparePassword confirmó su validez.
+ * No aplica la política de alta porque el login debe seguir aceptando credenciales
+ * anteriores de otra longitud mientras las migra de bcrypt a Argon2id.
+ */
+export async function rehashVerifiedPassword(password: string): Promise<string> {
+  if (typeof password !== "string" || password.length < 1 || password.length > 128) {
+    throw new Error("Verified password is outside the supported legacy range");
+  }
+  return derivePasswordHash(password);
 }
 
 export async function comparePassword(password: string, encodedHash: string): Promise<boolean> {
@@ -117,17 +133,17 @@ export function validateNewPassword(password: unknown): { valid: true } | { vali
   const normalized = password.normalize("NFKC").toLowerCase().replace(/\s+/g, "");
   if (
     COMMON_PASSWORDS.has(normalized)
-    || /(password|contrase(?:n|ñ)a|vonwobeser|bienvenido|welcome|qwerty|asdfgh|123456)/.test(normalized)
-    || /^(.)\1{14,}$/.test(normalized)
+    || /(password|contrase(?:n|ñ)a|bienvenido|welcome|qwerty|asdfgh|123456)/.test(normalized)
+    || /^(.)\1{11,}$/.test(normalized)
   ) {
     return { valid: false, error: "Elige una contraseña menos común" };
   }
   return { valid: true };
 }
 
-export function generateTemporaryPassword(length = 20): string {
+export function generateAdminPassword(length = GENERATED_PASSWORD_LENGTH): string {
   if (!Number.isInteger(length) || length < PASSWORD_MIN || length > PASSWORD_MAX) {
-    throw new Error(`Temporary password length must be between ${PASSWORD_MIN} and ${PASSWORD_MAX}`);
+    throw new Error(`Generated password length must be between ${PASSWORD_MIN} and ${PASSWORD_MAX}`);
   }
   const alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789!@#$%*-_";
   while (true) {
@@ -303,14 +319,6 @@ function constantTimeHexEqual(actual: string, expectedHash: string): boolean {
   return left.length === right.length && crypto.timingSafeEqual(left, right);
 }
 
-const PASSWORD_CHANGE_PATHS = new Set([
-  "/api/admin/session",
-  "/api/admin/me",
-  "/api/admin/password/change",
-  "/api/admin/logout",
-  "/api/admin/sessions/revoke-all",
-]);
-
 export async function resolveAdminSession(req: Request): Promise<{ session: AdminSession; user: AdminUser; rawToken: string } | null> {
   const rawToken = readCookie(req, SESSION_COOKIE);
   if (!rawToken || rawToken.length < 32 || rawToken.length > 256) return null;
@@ -341,11 +349,7 @@ export async function authMiddleware(req: Request, res: Response, next: NextFunc
     }
     const { session, user } = resolved;
 
-    if (user.mustChangePassword && !PASSWORD_CHANGE_PATHS.has(req.path)) {
-      res.status(428).json({ error: "Password change required", code: "PASSWORD_CHANGE_REQUIRED" });
-      return;
-    }
-    if ((user.role === "super_admin" || user.role === "admin") && !session.mfaVerified && !user.mustChangePassword) {
+    if ((user.role === "super_admin" || user.role === "admin") && !session.mfaVerified) {
       res.status(401).json({ error: "Multi-factor authentication required", code: "MFA_REQUIRED" });
       return;
     }

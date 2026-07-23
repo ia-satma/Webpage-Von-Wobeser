@@ -1,6 +1,6 @@
 # Von Wobeser y Sierra — Plataforma Web
 
-Plataforma web del despacho de abogados **Von Wobeser y Sierra**: sitio público + CMS + malla de agentes de IA, en un solo servidor Express (Node 20 + TypeScript).
+Plataforma web del despacho de abogados **Von Wobeser y Sierra**: sitio público + CMS + malla de agentes de IA, en un solo servidor Express (Node 24 + TypeScript).
 
 > **Documentación completa para agentes/ingenieros:** ver [`replit.md`](./replit.md). Léelo antes de tocar el código — explica la arquitectura crítica que evita romper el sitio.
 
@@ -19,8 +19,10 @@ npm run dev      # NODE_ENV=development, tsx + Vite/HMR, puerto 5000 (o PORT)
 ```
 
 - `npm run build` → produce `dist/index.cjs`.
-- `npm run start` → producción (`node dist/index.cjs`), lo que usa Replit en Deploy.
-- `npm run db:push` → aplica el esquema Drizzle a Neon (manual).
+- `npm run start` → inicia el build de producción (`node dist/index.cjs`).
+- `npm run start:deploy` → aplica migraciones y después inicia producción; es lo que usa Replit en Deploy.
+- `npm run db:migrate` → aplica migraciones SQL versionadas e idempotentes.
+- `npm run admin:recover -- --confirm=<correo>` → recuperación manual usando exclusivamente los Secrets `ADMIN_EMAIL` y `ADMIN_BOOTSTRAP_PASSWORD`.
 
 ## Variables de entorno
 
