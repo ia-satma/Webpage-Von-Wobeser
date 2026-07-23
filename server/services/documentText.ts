@@ -126,9 +126,11 @@ export async function extractText(filePath: string, originalName?: string): Prom
       return { ...base, note: 'No se pudo extraer texto del documento (¿está vacío o es solo imágenes?).' };
     }
     return { name, ext, text: clamped, ok: true };
-  } catch (err: any) {
-    console.error(`[documentText] Falló la extracción de ${name}:`, err?.message);
-    return { ...base, note: `Error al leer el documento: ${err?.message || 'desconocido'}.` };
+  } catch {
+    // El nombre del documento y los errores del parser pueden contener datos
+    // personales o rutas internas; no se imprimen ni se devuelven al navegador.
+    console.error("[documentText] Falló la extracción de un documento");
+    return { ...base, note: "No fue posible leer este documento." };
   }
 }
 

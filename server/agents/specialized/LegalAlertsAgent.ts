@@ -6,6 +6,7 @@ import { AgentConfig, AgentResult, ExecutionContext } from '../core/types';
 import { storage } from '../../storage';
 import { safeParseJson } from '../../openai';
 import { sanitizeFields } from '../../mirror/sanitize';
+import { assertExternalUrl, fetchTextWithPolicy } from '../../security/network';
 
 // cofece.mx no envía el certificado intermedio en el handshake TLS (confirmado con
 // `openssl s_client -showcerts`: solo manda el leaf, firmado por "GeoTrust TLS RSA CA G1").
@@ -90,6 +91,12 @@ REGLAS DE SEGURIDAD (obligatorias):
 // —no se puede apuntar el agente a hosts internos/arbitrarios— y (2) limita el agente
 // a su propósito. Para cualquier otra fuente, el abogado pega el texto directamente.
 const ALLOWED_SOURCE_HOSTS = ['cofece.mx', 'cndh.org.mx'];
+export function isAllowedLegalHostname(hostname: string): boolean {
+  const h = hostname.toLowerCase().replace(/\.$/, '');
+  return h === 'gob.mx' || h.endsWith('.gob.mx')
+    || ALLOWED_SOURCE_HOSTS.some((domain) => h === domain || h.endsWith(`.${domain}`));
+}
+
 export function isAllowedSourceUrl(raw: string): boolean {
   let u: URL;
   try { u = new URL(raw); } catch { return false; }
@@ -101,25 +108,34 @@ export function isAllowedSourceUrl(raw: string): boolean {
   if (/^172\.(1[6-9]|2\d|3[01])\./.test(h)) return false;
   if (/^169\.254\./.test(h)) return false;
   // Allowlist: dominios de gobierno mexicano (.gob.mx incluye DOF y SCJN) + oficiales.
-  const official = h === 'gob.mx' || h.endsWith('.gob.mx') ||
-    ALLOWED_SOURCE_HOSTS.some((d) => h === d || h.endsWith('.' + d));
-  return official;
+  return isAllowedLegalHostname(h);
 }
 
-export function getViaPatchedAgent(url: string, timeoutMs: number): Promise<string> {
+export async function getViaPatchedAgent(url: string, timeoutMs: number, redirects = 0): Promise<string> {
+  if (redirects > 3) throw new Error('Redirect limit reached');
+  const validated = await assertExternalUrl(url, isAllowedLegalHostname);
   return new Promise((resolve, reject) => {
     const req = https.get(
-      url,
+      validated,
       { agent: patchedChainAgent, headers: { 'User-Agent': 'VonWobeserBot/1.0 (+legal-alerts)' }, timeout: timeoutMs },
       (res) => {
         if (res.statusCode && res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
-          getViaPatchedAgent(new URL(res.headers.location, url).toString(), timeoutMs).then(resolve, reject);
+          res.resume();
+          getViaPatchedAgent(new URL(res.headers.location, validated).toString(), timeoutMs, redirects + 1).then(resolve, reject);
           return;
         }
         if (!res.statusCode || res.statusCode >= 400) { reject(new Error(`HTTP ${res.statusCode}`)); return; }
         let body = '';
+        let bytes = 0;
         res.setEncoding('utf8');
-        res.on('data', (chunk) => { body += chunk; });
+        res.on('data', (chunk) => {
+          bytes += Buffer.byteLength(chunk);
+          if (bytes > 1_000_000) {
+            req.destroy(new Error('Response is too large'));
+            return;
+          }
+          body += chunk;
+        });
         res.on('end', () => resolve(body));
       },
     );
@@ -129,25 +145,22 @@ export function getViaPatchedAgent(url: string, timeoutMs: number): Promise<stri
 }
 
 export async function fetchReadableText(url: string): Promise<string> {
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), 8000);
+  const html = needsChainPatch(url)
+    ? await getViaPatchedAgent(url, 8000)
+    : await fetchTextWithPolicy({
+        url,
+        isAllowedHostname: isAllowedLegalHostname,
+        timeoutMs: 8_000,
+        maxBytes: 1_000_000,
+        maxRedirects: 3,
+        headers: { 'User-Agent': 'VonWobeserBot/1.0 (+legal-alerts)' },
+      });
   try {
-    const html = needsChainPatch(url)
-      ? await getViaPatchedAgent(url, 8000)
-      : await (async () => {
-          const res = await fetch(url, {
-            redirect: 'follow',
-            signal: controller.signal,
-            headers: { 'User-Agent': 'VonWobeserBot/1.0 (+legal-alerts)' },
-          });
-          if (!res.ok) throw new Error(`HTTP ${res.status}`);
-          return res.text();
-        })();
     const $ = cheerio.load(html);
     $('script, style, noscript, nav, header, footer, form, iframe').remove();
     return $('body').text().replace(/\s+/g, ' ').trim().substring(0, 8000);
-  } finally {
-    clearTimeout(timer);
+  } catch {
+    throw new Error('Official source could not be parsed');
   }
 }
 
@@ -222,7 +235,7 @@ Devuelve JSON con: titleEs, title, excerptEs, excerpt, contentEs, content, slug.
       };
     } catch (error: any) {
       console.error('[LegalAlertsAgent] Error:', error);
-      return { success: false, error: error?.message || 'Falló la generación de la alerta' };
+      return { success: false, error: 'Falló la generación de la alerta' };
     }
   }
 

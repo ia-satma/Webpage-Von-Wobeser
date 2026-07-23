@@ -43,7 +43,15 @@ import {
  * vivía duplicado (uno usado en AdminLayout.tsx, otro muerto/sin usar en AdminDashboard.tsx).
  * La consumen tanto el sidebar (AdminLayout.tsx) como los accesos rápidos del Dashboard.
  */
-export type AdminNavPermission = "config" | "agents" | "advanced" | "adminOnly" | "superAdminOnly";
+export type AdminNavPermission =
+  | "config"
+  | "agents"
+  | "advanced"
+  | "contact_submissions"
+  | "career_applications"
+  | "newsletter"
+  | "adminOnly"
+  | "superAdminOnly";
 
 export interface AdminNavItem {
   href: string;
@@ -104,9 +112,9 @@ export const ADMIN_NAV_GROUPS: AdminNavGroup[] = [
     id: "registros",
     label: "Registros recibidos",
     items: [
-      { href: "/admin/newsletter", label: "Suscriptores del Newsletter", icon: Mail },
-      { href: "/admin/submissions?tab=contact", label: "Mensajes de contacto", icon: MessageSquare },
-      { href: "/admin/submissions?tab=career", label: "Solicitudes de pasantías", icon: FileText },
+      { href: "/admin/newsletter", label: "Suscriptores del Newsletter", icon: Mail, requires: "newsletter" },
+      { href: "/admin/submissions?tab=contact", label: "Mensajes de contacto", icon: MessageSquare, requires: "contact_submissions" },
+      { href: "/admin/submissions?tab=career", label: "Solicitudes de pasantías", icon: FileText, requires: "career_applications" },
     ],
   },
   {

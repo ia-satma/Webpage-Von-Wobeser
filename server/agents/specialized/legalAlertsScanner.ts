@@ -3,7 +3,15 @@ import crypto from 'crypto';
 import { storage } from '../../storage';
 import { orchestrator } from '../core/AgentOrchestrator';
 import { openai, safeParseJson } from '../../openai';
-import { isAllowedSourceUrl, fetchReadableText, needsChainPatch, getViaPatchedAgent } from './LegalAlertsAgent';
+import { assertAiBudget, recordChatUsage } from "../../services/usageTracker";
+import {
+  isAllowedLegalHostname,
+  isAllowedSourceUrl,
+  fetchReadableText,
+  needsChainPatch,
+  getViaPatchedAgent,
+} from './LegalAlertsAgent';
+import { fetchTextWithPolicy } from '../../security/network';
 
 /**
  * Fuentes confirmadas usables SIN API key (ver docs/plan): el feed RSS de comunicados
@@ -30,21 +38,18 @@ export interface OfficialSourceCandidate {
 /** Descubre candidatos nuevos (no procesados) desde las fuentes oficiales confirmadas. */
 export async function scanOfficialSourcesForCandidates(): Promise<OfficialSourceCandidate[]> {
   const feedUrl = officialSourceFeedUrl();
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), 10000);
-
   let items: { link: string; description: string }[] = [];
   try {
     const xml = needsChainPatch(feedUrl)
       ? await getViaPatchedAgent(feedUrl, 10000)
-      : await (async () => {
-          const res = await fetch(feedUrl, {
-            signal: controller.signal,
-            headers: { 'User-Agent': 'VonWobeserBot/1.0 (+legal-alerts-scan)' },
-          });
-          if (!res.ok) throw new Error(`HTTP ${res.status}`);
-          return res.text();
-        })();
+      : await fetchTextWithPolicy({
+          url: feedUrl,
+          isAllowedHostname: isAllowedLegalHostname,
+          timeoutMs: 10_000,
+          maxBytes: 1_000_000,
+          maxRedirects: 3,
+          headers: { 'User-Agent': 'VonWobeserBot/1.0 (+legal-alerts-scan)' },
+        });
     const $ = cheerio.load(xml, { xmlMode: true });
     $('item').each((_, el) => {
       const link = $(el).find('link').first().text().trim();
@@ -54,8 +59,6 @@ export async function scanOfficialSourcesForCandidates(): Promise<OfficialSource
   } catch (err) {
     console.error('[legalAlertsScanner] Error leyendo el feed de fuentes oficiales:', err);
     return [];
-  } finally {
-    clearTimeout(timer);
   }
 
   const candidates: OfficialSourceCandidate[] = [];
@@ -93,12 +96,14 @@ ${excerpt}
 { "relevant": true|false, "matchedPractice": "nombre del área si relevant=true, si no omite este campo" }`;
 
   try {
+    await assertAiBudget();
     const response = await openai.chat.completions.create({
       model: 'gpt-4o',
       messages: [{ role: 'user', content: prompt }],
       max_tokens: 200,
       temperature: 0.2,
     });
+    recordChatUsage("chat", "gpt-4o", response.usage as any);
     const parsed = safeParseJson<{ relevant?: boolean; matchedPractice?: string }>(
       response.choices[0]?.message?.content,
     );

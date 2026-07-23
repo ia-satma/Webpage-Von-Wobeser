@@ -305,7 +305,7 @@ export class AgentOrchestrator {
 
       } catch (error) {
         console.error(`[Orchestrator] ${stage} threw error:`, error);
-        results[stage] = { success: false, error: String(error) };
+        results[stage] = { success: false, error: "Agent stage failed" };
         return { success: false, results: results as Record<AgentType, AgentResult> };
       }
     }

@@ -229,6 +229,26 @@ function refreshNavigationAssets(html: string): string {
     .replace(/(src=["']\/templates\/beez3\/js\/min\/functions\.min\.js)(?:\?[^"']*)?(["'])/gi, `$1?v=${NAV_ASSET_VERSION}$2`);
 }
 
+// Las plantillas capturadas comparten dos fragmentos de JavaScript legado que
+// fallan en páginas donde el widget asociado no existe o Slick aún no ha sido
+// inicializado. Se corrigen al servir el HTML para cubrir todo el espejo sin
+// reescribir miles de archivos estáticos.
+function hardenLegacyClientScripts(html: string): string {
+  return html
+    .replace(
+      /(\bconst btnCerrar = document\.getElementById\(['"]closeOverlay['"]\);\s*)(?!if\s*\(!iframe\s*\|\|\s*!btnCerrar\))/g,
+      "$1if (!iframe || !btnCerrar) return;\n    ",
+    )
+    .replaceAll(
+      `jQuery(".home_slider_JS").slick('unslick')`,
+      `jQuery(".home_slider_JS").filter('.slick-initialized').slick('unslick')`,
+    )
+    .replaceAll(
+      `jQuery(".home_rec_JS").slick('unslick')`,
+      `jQuery(".home_rec_JS").filter('.slick-initialized').slick('unslick')`,
+    );
+}
+
 // Estilo + comportamiento de los botones de acción de las publicaciones (Imprimir / Compartir).
 // Se inyecta en TODAS las páginas del espejo (sendPage), así que funciona en todo el front sin
 // depender de jQuery: el handler usa delegación de eventos y cubre tanto los botones nuevos
@@ -518,7 +538,7 @@ async function sendPage(res: Response, html: string) {
   let config: ConfigMap = {};
   try { config = await getConfigMap(); } catch { /* se conservan los textos originales */ }
   const inject = `${navigationLabelsScript(config, lang)}${LANG_TOGGLE_SCRIPT}${DOC_ACTIONS_SCRIPT}`;
-  let out = stripRetiredDeskLinks(refreshNavigationAssets(html));
+  let out = hardenLegacyClientScripts(stripRetiredDeskLinks(refreshNavigationAssets(html)));
   out = out.includes("</body>")
     ? out.replace("</body>", `${inject}</body>`)
     : out + inject;
@@ -720,9 +740,11 @@ export async function setupMirror(app: Express) {
   console.log(`[mirror] Sirviendo frontend del espejo desde: ${mirrorDir}`);
   warmTemplates(); // precarga plantillas a RAM (evita I/O de disco por request)
   try {
-    await seedConfigDefaults();
-    await ensureOfficeShowcaseData();
-    await ensureHomeContentData();
+    if (process.env.SECURITY_READ_ONLY_SMOKE !== "true") {
+      await seedConfigDefaults();
+      await ensureOfficeShowcaseData();
+      await ensureHomeContentData();
+    }
     // Base URL para canonical/OG/JSON-LD: env SITE_URL o la key editable site_url.
     const configAtStartup = await getConfigMap();
     setBaseUrl(process.env.SITE_URL || configAtStartup.site_url?.value);

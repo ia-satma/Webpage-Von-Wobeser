@@ -1,164 +1,375 @@
 import bcrypt from "bcrypt";
-import crypto from "crypto";
+import crypto from "node:crypto";
 import type { Request, Response, NextFunction } from "express";
+import { eq, sql } from "drizzle-orm";
 import { storage } from "./storage";
-import type { AdminUser } from "@shared/schema";
+import { db } from "./db";
+import { securityRateLimits, type AdminSession, type AdminUser } from "@shared/schema";
 
-const SALT_ROUNDS = 12;
+const BCRYPT_ROUNDS = 12;
 const TOKEN_BYTES = 32;
-const SESSION_DURATION_HOURS = 24;
+const IDLE_SESSION_MINUTES = 30;
+const ABSOLUTE_SESSION_HOURS = 8;
+const ARGON_MEMORY_KIB = 19_456;
+const ARGON_PASSES = 2;
+const ARGON_PARALLELISM = 1;
+const ARGON_TAG_LENGTH = 32;
+const PASSWORD_MIN = 15;
+const PASSWORD_MAX = 128;
 
-export async function hashPassword(password: string): Promise<string> {
-  return bcrypt.hash(password, SALT_ROUNDS);
+type NativeArgon2 = (
+  algorithm: "argon2id",
+  parameters: {
+    message: Buffer;
+    nonce: Buffer;
+    parallelism: number;
+    tagLength: number;
+    memory: number;
+    passes: number;
+  },
+  callback: (error: Error | null, derivedKey: Buffer) => void,
+) => void;
+
+function nativeArgon2(): NativeArgon2 {
+  const fn = (crypto as unknown as { argon2?: NativeArgon2 }).argon2;
+  if (!fn) {
+    throw new Error("Argon2id requires Node.js 24.7 or newer");
+  }
+  return fn;
 }
 
-export async function comparePassword(password: string, hash: string): Promise<boolean> {
-  return bcrypt.compare(password, hash);
+function deriveArgon2(password: string, salt: Buffer, params = {
+  memory: ARGON_MEMORY_KIB,
+  passes: ARGON_PASSES,
+  parallelism: ARGON_PARALLELISM,
+  tagLength: ARGON_TAG_LENGTH,
+}): Promise<Buffer> {
+  return new Promise((resolve, reject) => {
+    nativeArgon2()("argon2id", {
+      message: Buffer.from(password, "utf8"),
+      nonce: salt,
+      parallelism: params.parallelism,
+      tagLength: params.tagLength,
+      memory: params.memory,
+      passes: params.passes,
+    }, (error, result) => error ? reject(error) : resolve(result));
+  });
+}
+
+/**
+ * Formato autocontenido inspirado en PHC. Permite verificar y actualizar parámetros
+ * sin guardar sal ni contraseña en columnas separadas.
+ */
+export async function hashPassword(password: string): Promise<string> {
+  const validation = validateNewPassword(password);
+  if (!validation.valid) throw new Error(validation.error);
+  const salt = crypto.randomBytes(16);
+  const derived = await deriveArgon2(password, salt);
+  return `$argon2id$v=19$m=${ARGON_MEMORY_KIB},t=${ARGON_PASSES},p=${ARGON_PARALLELISM}$${salt.toString("base64url")}$${derived.toString("base64url")}`;
+}
+
+export async function comparePassword(password: string, encodedHash: string): Promise<boolean> {
+  if (encodedHash.startsWith("$argon2id$")) {
+    try {
+      const parts = encodedHash.split("$");
+      if (parts.length !== 6 || parts[2] !== "v=19") return false;
+      const parsed = Object.fromEntries(parts[3].split(",").map((entry) => {
+        const [key, value] = entry.split("=");
+        return [key, Number(value)];
+      }));
+      if (!Number.isSafeInteger(parsed.m) || !Number.isSafeInteger(parsed.t) || !Number.isSafeInteger(parsed.p)) return false;
+      if (parsed.m < 8 || parsed.m > 1_048_576 || parsed.t < 1 || parsed.t > 20 || parsed.p < 1 || parsed.p > 16) return false;
+      const salt = Buffer.from(parts[4], "base64url");
+      const expected = Buffer.from(parts[5], "base64url");
+      if (salt.length < 16 || expected.length < 16 || expected.length > 128) return false;
+      const actual = await deriveArgon2(password, salt, {
+        memory: parsed.m,
+        passes: parsed.t,
+        parallelism: parsed.p,
+        tagLength: expected.length,
+      });
+      return actual.length === expected.length && crypto.timingSafeEqual(actual, expected);
+    } catch {
+      return false;
+    }
+  }
+  if (encodedHash.startsWith("$2")) {
+    return bcrypt.compare(password, encodedHash).catch(() => false);
+  }
+  return false;
+}
+
+export function passwordNeedsRehash(encodedHash: string): boolean {
+  if (!encodedHash.startsWith("$argon2id$")) return true;
+  return !encodedHash.includes(`m=${ARGON_MEMORY_KIB},t=${ARGON_PASSES},p=${ARGON_PARALLELISM}`);
+}
+
+const COMMON_PASSWORDS = new Set([
+  "password", "password123", "admin", "admin123", "qwerty", "qwerty123",
+  "123456789", "1234567890", "letmein", "welcome", "bienvenido",
+  "contraseña", "contrasena", "passwordpassword", "vonwobeser", "vonwobeser2026",
+]);
+
+export function validateNewPassword(password: unknown): { valid: true } | { valid: false; error: string } {
+  if (typeof password !== "string") return { valid: false, error: "La contraseña es obligatoria" };
+  if (password.length < PASSWORD_MIN) return { valid: false, error: `La contraseña debe tener al menos ${PASSWORD_MIN} caracteres` };
+  if (password.length > PASSWORD_MAX) return { valid: false, error: `La contraseña no puede exceder ${PASSWORD_MAX} caracteres` };
+  const normalized = password.normalize("NFKC").toLowerCase().replace(/\s+/g, "");
+  if (
+    COMMON_PASSWORDS.has(normalized)
+    || /(password|contrase(?:n|ñ)a|vonwobeser|bienvenido|welcome|qwerty|asdfgh|123456)/.test(normalized)
+    || /^(.)\1{14,}$/.test(normalized)
+  ) {
+    return { valid: false, error: "Elige una contraseña menos común" };
+  }
+  return { valid: true };
+}
+
+export function generateTemporaryPassword(length = 20): string {
+  if (!Number.isInteger(length) || length < PASSWORD_MIN || length > PASSWORD_MAX) {
+    throw new Error(`Temporary password length must be between ${PASSWORD_MIN} and ${PASSWORD_MAX}`);
+  }
+  const alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789!@#$%*-_";
+  while (true) {
+    let value = "";
+    while (value.length < length) {
+      const bytes = crypto.randomBytes(length);
+      for (let index = 0; index < bytes.length; index += 1) {
+        const byte = bytes[index];
+        if (byte >= Math.floor(256 / alphabet.length) * alphabet.length) continue;
+        value += alphabet[byte % alphabet.length];
+        if (value.length === length) break;
+      }
+    }
+    if (validateNewPassword(value).valid) return value;
+  }
 }
 
 export function generateToken(): string {
-  return crypto.randomBytes(TOKEN_BYTES).toString("hex");
+  return crypto.randomBytes(TOKEN_BYTES).toString("base64url");
+}
+
+export function hashOpaqueToken(token: string): string {
+  return crypto.createHash("sha256").update(token, "utf8").digest("hex");
+}
+
+export function deriveCsrfToken(rawSessionToken: string): string {
+  // Token estable por sesión: permite abrir varias pestañas sin que una invalide
+  // a las demás. No revela la cookie aleatoria ni se persiste en texto claro.
+  return crypto.createHash("sha256").update(`csrf:${rawSessionToken}`, "utf8").digest("base64url");
 }
 
 export function getSessionExpiry(): Date {
-  const expiry = new Date();
-  expiry.setHours(expiry.getHours() + SESSION_DURATION_HOURS);
-  return expiry;
+  return new Date(Date.now() + IDLE_SESSION_MINUTES * 60 * 1000);
 }
 
-// Rate limiting for login attempts
-interface RateLimitEntry {
-  attempts: number;
-  lastAttempt: number;
-  blockedUntil: number;
+export function getAbsoluteSessionExpiry(): Date {
+  return new Date(Date.now() + ABSOLUTE_SESSION_HOURS * 60 * 60 * 1000);
 }
 
-const loginAttempts = new Map<string, RateLimitEntry>();
-const MAX_ATTEMPTS = 5;
-const WINDOW_MS = 15 * 60 * 1000; // 15 minutes
-const BLOCK_DURATION_MS = 30 * 60 * 1000; // 30 minutes
+export const SESSION_COOKIE = process.env.NODE_ENV === "production"
+  ? "__Host-vwb_admin_session"
+  : "vwb_admin_session";
+export const CHALLENGE_COOKIE = process.env.NODE_ENV === "production"
+  ? "__Host-vwb_admin_challenge"
+  : "vwb_admin_challenge";
 
-export function checkRateLimit(identifier: string): { allowed: boolean; retryAfter?: number } {
+export function authCookieOptions(maxAgeMs: number) {
+  return {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "strict" as const,
+    path: "/",
+    maxAge: maxAgeMs,
+  };
+}
+
+export function clearAuthCookie(res: Response, name: string): void {
+  res.clearCookie(name, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "strict",
+    path: "/",
+  });
+}
+
+export function readCookie(req: Request | { headers: { cookie?: string } }, name: string): string | null {
+  const header = req.headers.cookie || "";
+  for (const part of header.split(";")) {
+    const [rawName, ...rawValue] = part.trim().split("=");
+    if (rawName === name) {
+      try {
+        return decodeURIComponent(rawValue.join("="));
+      } catch {
+        return null;
+      }
+    }
+  }
+  return null;
+}
+
+const LOGIN_RATE_POLICY = {
+  maxAttempts: 5,
+  windowMs: 15 * 60 * 1000,
+  blockDurationMs: 30 * 60 * 1000,
+};
+
+export type SharedRateLimitPolicy = {
+  maxAttempts: number;
+  windowMs: number;
+  blockDurationMs: number;
+};
+
+function rateLimitKey(namespace: string, identifier: string): string {
+  return hashOpaqueToken(`${namespace}:${identifier.trim().toLowerCase()}`);
+}
+
+export async function checkSharedRateLimit(
+  namespace: string,
+  identifier: string,
+  policy: SharedRateLimitPolicy,
+): Promise<{ allowed: boolean; retryAfter?: number }> {
+  const keyHash = rateLimitKey(namespace, identifier);
+  const [entry] = await db.select().from(securityRateLimits).where(eq(securityRateLimits.keyHash, keyHash));
+  if (!entry) return { allowed: true };
+
   const now = Date.now();
-  const entry = loginAttempts.get(identifier);
-
-  if (!entry) {
+  const windowStart = entry.windowStartedAt.getTime();
+  if (entry.blockedUntil && entry.blockedUntil.getTime() > now) {
+    return { allowed: false, retryAfter: Math.ceil((entry.blockedUntil.getTime() - now) / 1000) };
+  }
+  if (now - windowStart > policy.windowMs) {
+    await db.delete(securityRateLimits).where(eq(securityRateLimits.keyHash, keyHash));
     return { allowed: true };
   }
-
-  // Check if blocked
-  if (entry.blockedUntil > now) {
-    return { 
-      allowed: false, 
-      retryAfter: Math.ceil((entry.blockedUntil - now) / 1000) 
-    };
+  if (entry.attempts >= policy.maxAttempts) {
+    const blockedUntil = new Date(now + policy.blockDurationMs);
+    await db.update(securityRateLimits).set({ blockedUntil, updatedAt: new Date() }).where(eq(securityRateLimits.keyHash, keyHash));
+    return { allowed: false, retryAfter: Math.ceil(policy.blockDurationMs / 1000) };
   }
-
-  // Reset if window has passed
-  if (now - entry.lastAttempt > WINDOW_MS) {
-    loginAttempts.delete(identifier);
-    return { allowed: true };
-  }
-
-  // Check attempts
-  if (entry.attempts >= MAX_ATTEMPTS) {
-    entry.blockedUntil = now + BLOCK_DURATION_MS;
-    return { 
-      allowed: false, 
-      retryAfter: Math.ceil(BLOCK_DURATION_MS / 1000) 
-    };
-  }
-
   return { allowed: true };
 }
 
-export function recordLoginAttempt(identifier: string, success: boolean): void {
-  const now = Date.now();
-  
-  if (success) {
-    loginAttempts.delete(identifier);
+export async function recordSharedRateLimitAttempt(
+  namespace: string,
+  identifier: string,
+  policy: SharedRateLimitPolicy,
+  reset = false,
+): Promise<void> {
+  const keyHash = rateLimitKey(namespace, identifier);
+  if (reset) {
+    await db.delete(securityRateLimits).where(eq(securityRateLimits.keyHash, keyHash));
     return;
   }
-
-  const entry = loginAttempts.get(identifier);
-  
-  if (!entry) {
-    loginAttempts.set(identifier, {
-      attempts: 1,
-      lastAttempt: now,
-      blockedUntil: 0,
-    });
-    return;
-  }
-
-  // Reset if window has passed
-  if (now - entry.lastAttempt > WINDOW_MS) {
-    loginAttempts.set(identifier, {
-      attempts: 1,
-      lastAttempt: now,
-      blockedUntil: 0,
-    });
-    return;
-  }
-
-  entry.attempts++;
-  entry.lastAttempt = now;
+  const now = new Date();
+  const windowCutoff = new Date(now.getTime() - policy.windowMs);
+  await db.insert(securityRateLimits).values({
+    keyHash,
+    attempts: 1,
+    windowStartedAt: now,
+    updatedAt: now,
+  }).onConflictDoUpdate({
+    target: securityRateLimits.keyHash,
+    set: {
+      attempts: sql`CASE WHEN ${securityRateLimits.windowStartedAt} < ${windowCutoff} THEN 1 ELSE ${securityRateLimits.attempts} + 1 END`,
+      windowStartedAt: sql`CASE WHEN ${securityRateLimits.windowStartedAt} < ${windowCutoff} THEN NOW() ELSE ${securityRateLimits.windowStartedAt} END`,
+      blockedUntil: null,
+      updatedAt: now,
+    },
+  });
 }
 
-// Extend Express Request to include admin user
+export async function checkRateLimit(identifier: string): Promise<{ allowed: boolean; retryAfter?: number }> {
+  return checkSharedRateLimit("login", identifier, LOGIN_RATE_POLICY);
+}
+
+export async function recordLoginAttempt(identifier: string, success: boolean): Promise<void> {
+  return recordSharedRateLimitAttempt("login", identifier, LOGIN_RATE_POLICY, success);
+}
+
 declare global {
   namespace Express {
     interface Request {
       adminUser?: AdminUser;
+      adminSession?: AdminSession;
     }
   }
 }
 
-export async function authMiddleware(
-  req: Request,
-  res: Response,
-  next: NextFunction
-): Promise<void> {
+function constantTimeHexEqual(actual: string, expectedHash: string): boolean {
+  const actualHash = hashOpaqueToken(actual);
+  const left = Buffer.from(actualHash, "hex");
+  const right = Buffer.from(expectedHash, "hex");
+  return left.length === right.length && crypto.timingSafeEqual(left, right);
+}
+
+const PASSWORD_CHANGE_PATHS = new Set([
+  "/api/admin/session",
+  "/api/admin/me",
+  "/api/admin/password/change",
+  "/api/admin/logout",
+  "/api/admin/sessions/revoke-all",
+]);
+
+export async function resolveAdminSession(req: Request): Promise<{ session: AdminSession; user: AdminUser; rawToken: string } | null> {
+  const rawToken = readCookie(req, SESSION_COOKIE);
+  if (!rawToken || rawToken.length < 32 || rawToken.length > 256) return null;
+  const tokenHash = hashOpaqueToken(rawToken);
+  const session = await storage.getAdminSession(tokenHash);
+  if (!session) return null;
+  const now = new Date();
+  const absoluteExpiry = session.absoluteExpiresAt || session.expiresAt;
+  if (now > session.expiresAt || now > absoluteExpiry) {
+    await storage.deleteAdminSession(tokenHash);
+    return null;
+  }
+  const user = await storage.getAdminUser(session.userId);
+  if (!user?.isActive) {
+    await storage.deleteAdminSession(tokenHash);
+    return null;
+  }
+  return { session, user, rawToken };
+}
+
+export async function authMiddleware(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    // Get token from Authorization header
-    const authHeader = req.headers.authorization;
-    
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      res.status(401).json({ error: "Authentication required" });
+    const resolved = await resolveAdminSession(req);
+    if (!resolved) {
+      clearAuthCookie(res, SESSION_COOKIE);
+      res.status(401).json({ error: "Authentication required", code: "AUTH_REQUIRED" });
+      return;
+    }
+    const { session, user } = resolved;
+
+    if (user.mustChangePassword && !PASSWORD_CHANGE_PATHS.has(req.path)) {
+      res.status(428).json({ error: "Password change required", code: "PASSWORD_CHANGE_REQUIRED" });
+      return;
+    }
+    if ((user.role === "super_admin" || user.role === "admin") && !session.mfaVerified && !user.mustChangePassword) {
+      res.status(401).json({ error: "Multi-factor authentication required", code: "MFA_REQUIRED" });
       return;
     }
 
-    const token = authHeader.substring(7);
-
-    // Validate session
-    const session = await storage.getAdminSession(token);
-    
-    if (!session) {
-      res.status(401).json({ error: "Invalid session" });
-      return;
+    if (!["GET", "HEAD", "OPTIONS"].includes(req.method)) {
+      const csrf = req.header("x-csrf-token");
+      if (!csrf || !session.csrfTokenHash || !constantTimeHexEqual(csrf, session.csrfTokenHash)) {
+        res.status(403).json({ error: "Invalid CSRF token", code: "CSRF_INVALID" });
+        return;
+      }
     }
 
-    // Check expiry
-    if (new Date() > session.expiresAt) {
-      await storage.deleteAdminSession(token);
-      res.status(401).json({ error: "Session expired" });
-      return;
+    req.adminUser = user;
+    req.adminSession = session;
+    const lastSeen = session.lastSeenAt?.getTime() || session.createdAt?.getTime() || 0;
+    if (Date.now() - lastSeen > 5 * 60 * 1000) {
+      const nextIdle = getSessionExpiry();
+      const absolute = session.absoluteExpiresAt || session.expiresAt;
+      await storage.touchAdminSession(session.id, nextIdle > absolute ? absolute : nextIdle);
     }
-
-    // Get admin user
-    const adminUser = await storage.getAdminUser(session.userId);
-    
-    if (!adminUser || !adminUser.isActive) {
-      res.status(401).json({ error: "User not found or inactive" });
-      return;
-    }
-
-    // Attach user to request
-    req.adminUser = adminUser;
     next();
   } catch (error) {
-    console.error("Auth middleware error:", error);
-    res.status(500).json({ error: "Authentication error" });
+    console.error("Auth middleware error:", error instanceof Error ? error.message : "unknown");
+    res.status(500).json({ error: "Authentication error", code: "AUTH_ERROR" });
   }
 }
 
@@ -168,7 +379,6 @@ export function requireRole(...roles: string[]) {
       res.status(401).json({ error: "Authentication required" });
       return;
     }
-    // super_admin sits above all role checks (full access).
     if (req.adminUser.role !== "super_admin" && !roles.includes(req.adminUser.role)) {
       res.status(403).json({ error: "Insufficient permissions" });
       return;
@@ -177,22 +387,32 @@ export function requireRole(...roles: string[]) {
   };
 }
 
-// =============================================
-// Permisos por usuario (rol = permisos base + concesiones extra)
-// =============================================
-// Áreas del panel. `users` (gestión de accesos) NO es concedible por usuario para evitar escalada.
-//  - content:  contenido del sitio (noticias, abogados, prácticas, industrias, eventos, blog, etc.)
-//  - agents:   agentes de IA
-//  - config:   configuración del sitio (site-config, footer, textos)
-//  - advanced: sección avanzada (auditorías, salud, cronista/sistema)
-//  - users:    gestión de accesos (solo por rol admin/dueño)
-export const PERMISSIONS = ["content", "agents", "config", "advanced", "users"] as const;
+export const PERMISSIONS = [
+  "content",
+  "agents",
+  "config",
+  "advanced",
+  "contact_submissions",
+  "career_applications",
+  "newsletter",
+  "exports",
+  "private_downloads",
+  "users",
+] as const;
 export type Permission = (typeof PERMISSIONS)[number];
 
-// Permisos que el Dueño/Admin puede conceder EXTRA a un usuario (aditivos sobre su rol).
-export const GRANTABLE: Permission[] = ["content", "agents", "config", "advanced"];
+export const GRANTABLE: Permission[] = [
+  "content",
+  "agents",
+  "config",
+  "advanced",
+  "contact_submissions",
+  "career_applications",
+  "newsletter",
+  "exports",
+  "private_downloads",
+];
 
-// Permisos base por rol. super_admin/admin obtienen todos (ver effectivePermissions).
 export const ROLE_PERMISSIONS: Record<string, Permission[]> = {
   super_admin: [...PERMISSIONS],
   admin: [...PERMISSIONS],
@@ -201,45 +421,33 @@ export const ROLE_PERMISSIONS: Record<string, Permission[]> = {
   sistemas: ["content", "agents", "advanced"],
 };
 
-// Filtra concesiones extra a solo las claves permitidas (nunca `users`).
 export function sanitizeGrants(perms: unknown): Permission[] {
   if (!Array.isArray(perms)) return [];
   const set = new Set<Permission>();
-  for (const p of perms) {
-    if (typeof p === "string" && (GRANTABLE as string[]).includes(p)) set.add(p as Permission);
+  for (const permission of perms) {
+    if (typeof permission === "string" && (GRANTABLE as string[]).includes(permission)) {
+      set.add(permission as Permission);
+    }
   }
   return Array.from(set);
 }
 
-// Permisos efectivos = base del rol ∪ concesiones extra (acotadas a GRANTABLE).
 export function effectivePermissions(user: Pick<AdminUser, "role" | "permissions">): Set<Permission> {
   if (user.role === "super_admin") return new Set(PERMISSIONS);
   const base = ROLE_PERMISSIONS[user.role] ?? [];
   return new Set<Permission>([...base, ...sanitizeGrants(user.permissions)]);
 }
 
-export function requirePermission(perm: Permission) {
+export function requirePermission(permission: Permission) {
   return (req: Request, res: Response, next: NextFunction): void => {
     if (!req.adminUser) {
       res.status(401).json({ error: "Authentication required" });
       return;
     }
-    if (!effectivePermissions(req.adminUser).has(perm)) {
+    if (!effectivePermissions(req.adminUser).has(permission)) {
       res.status(403).json({ error: "Insufficient permissions" });
       return;
     }
     next();
   };
 }
-
-// Clean up expired entries periodically (every hour)
-setInterval(() => {
-  const now = Date.now();
-  const keys = Array.from(loginAttempts.keys());
-  keys.forEach(key => {
-    const entry = loginAttempts.get(key);
-    if (entry && now - entry.lastAttempt > WINDOW_MS && entry.blockedUntil < now) {
-      loginAttempts.delete(key);
-    }
-  });
-}, 60 * 60 * 1000);

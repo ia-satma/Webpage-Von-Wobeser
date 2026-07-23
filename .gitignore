@@ -16,6 +16,7 @@ CLAUDEAPI.env.rtf
 # Uploads de runtime (contenido de usuario, no se commitea)
 uploads/*
 !uploads/.gitkeep
+private_uploads/
 # Basura macOS
 __MACOSX/
 ._*

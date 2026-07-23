@@ -1,10 +1,10 @@
-modules = ["nodejs-20", "web"]
+modules = ["nodejs-24", "web"]
 run = "npm run dev"
 hidden = [".config", ".git", "generated-icon.png", "node_modules", "dist"]
 
 [nix]
 channel = "stable-24_05"
-packages = ["unzip", "jq"]
+packages = ["unzip", "jq", "clamav"]
 
 [deployment]
 deploymentTarget = "autoscale"
@@ -43,17 +43,11 @@ waitForPort = 5000
 integrations = ["javascript_openai:1.0.0", "javascript_openai_ai_integrations:1.0.0", "javascript_gemini_ai_integrations:1.0.0"]
 expertMode = true
 
-# ADMIN_EMAIL y ADMIN_PASSWORD_HASH NO se versionan aquí (eran secretos del admin
-# de producción expuestos en git). Configúralos en Replit → Tools → Secrets y rota
-# la contraseña del admin tras moverlos. server/seed.ts los lee de las variables
-# de entorno, que Replit Secrets inyecta en runtime.
-#
-# Para el día a día, cambia la contraseña del admin desde el panel (/admin/users) —
-# eso NO requiere tocar Secrets. Como respaldo de emergencia si te quedas fuera del
-# panel, agrega ADMIN_RESET_PASSWORD (texto plano) en Secrets junto con ADMIN_EMAIL
-# y reinicia el servidor: se sobreescribe la contraseña de ese correo en cada
-# arranque mientras la variable siga presente. Quítala de las Secrets en cuanto
-# recuperes el acceso, o el próximo reinicio la volverá a aplicar.
+# ADMIN_EMAIL, ADMIN_BOOTSTRAP_PASSWORD y MFA_ENCRYPTION_KEY se configuran
+# exclusivamente en Replit → Tools → Secrets. ADMIN_BOOTSTRAP_PASSWORD solo crea
+# al Dueño si ADMIN_EMAIL todavía no existe; nunca sobreescribe una cuenta existente.
+# AI_MONTHLY_BUDGET_USD es opcional y limita el gasto mensual estimado (USD 100
+# si se omite). Las claves de proveedores también deben permanecer en Secrets.
 
 [postMerge]
 path = "scripts/post-merge.sh"
@@ -62,5 +56,4 @@ timeoutMs = 90000
 [userenv]
 
 [userenv.shared]
-ADMIN_EMAIL = "admin@vonwobeser.com"
 AI_INTEGRATIONS_OPENAI_BASE_URL = "https://api.openai.com/v1"

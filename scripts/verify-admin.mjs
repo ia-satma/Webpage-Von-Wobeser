@@ -1,50 +1,32 @@
+// Verificación segura y no destructiva de la sesión administrativa.
+// No cambia contraseñas ni contenido. Para cuentas con MFA, copie temporalmente
+// la cookie y el CSRF de una sesión del entorno aislado a Secrets locales.
 import "dotenv/config";
-import bcrypt from "bcrypt";
-import { neon } from "@neondatabase/serverless";
-const sql = neon(process.env.DATABASE_URL);
-const BASE = "http://localhost:5050";
-const PW = "VonWobeser2026!";
 
-// 1) Fijar contraseña conocida para admin@vonwobeser.com
-const hash = await bcrypt.hash(PW, 12);
-await sql`update admin_users set password_hash=${hash} where email='admin@vonwobeser.com'`;
-console.log("1) Contraseña fijada para admin@vonwobeser.com");
+const base = process.env.VERIFY_BASE || "http://localhost:5050";
+const cookie = process.env.ADMIN_SESSION_COOKIE;
+const csrf = process.env.ADMIN_CSRF_TOKEN;
 
-// 2) Login por API
-const lr = await fetch(BASE + "/api/admin/login", {
-  method: "POST",
-  headers: { "content-type": "application/json" },
-  body: JSON.stringify({ username: "admin@vonwobeser.com", password: PW }),
+if (!cookie || !csrf) {
+  throw new Error("ADMIN_SESSION_COOKIE and ADMIN_CSRF_TOKEN are required");
+}
+if (!/^(__Host-)?vwb_admin_session=/.test(cookie)) {
+  throw new Error("ADMIN_SESSION_COOKIE must contain only the session cookie name and value");
+}
+
+const response = await fetch(`${base}/api/admin/session`, {
+  headers: {
+    cookie,
+    "x-csrf-token": csrf,
+  },
+  redirect: "manual",
 });
-const lj = await lr.json();
-console.log("2) Login HTTP", lr.status, "| campos:", Object.keys(lj).join(", "));
-const token = lj.token || lj.sessionToken || lj.accessToken || (lj.session && lj.session.token);
-console.log("   token:", token ? token.slice(0, 18) + "…" : "(no encontrado) " + JSON.stringify(lj).slice(0, 150));
-if (!token) process.exit(1);
+const body = await response.json().catch(() => ({}));
 
-// 3) Editar un abogado por el API admin.
-// La página /lawyer/:slug carga en ESPAÑOL por defecto y muestra `titleEs`,
-// así que se edita ese campo (editar `title`/inglés no se vería en la página ES).
-const [m] = await sql`select id, slug, title_es from team_members where slug='rodrigo-barradas'`;
-const orig = m.title_es;
-const NEW = "Socio Fundador (EDITADO DESDE ADMIN)";
-const er = await fetch(BASE + `/api/admin/team/${m.id}`, {
-  method: "PUT",
-  headers: { "content-type": "application/json", authorization: "Bearer " + token },
-  body: JSON.stringify({ titleEs: NEW }),
-});
-console.log("3) Edit HTTP", er.status, "(", orig, "→", NEW, ")");
+if (response.status !== 200 || !body?.user?.id) {
+  throw new Error(`Admin session verification failed (${response.status})`);
+}
 
-// 4) Confirmar el cambio en la página pública del sitio (espejo dinámico)
-const page = await (await fetch(BASE + "/lawyer/rodrigo-barradas")).text();
-const shown = (page.match(/attorney__meta--role">([^<]*)/) || [])[1];
-console.log("4) En el sitio /lawyer/rodrigo-barradas → rol mostrado:", JSON.stringify(shown));
-console.log("   ¿Refleja la edición?", shown === NEW ? "✅ SÍ" : "❌ no");
-
-// 5) Revertir
-await fetch(BASE + `/api/admin/team/${m.id}`, {
-  method: "PUT",
-  headers: { "content-type": "application/json", authorization: "Bearer " + token },
-  body: JSON.stringify({ titleEs: orig }),
-});
-console.log("5) Revertido a:", orig);
+console.log("Admin session verified");
+console.log(`Role: ${body.user.role}`);
+console.log(`Permissions: ${(body.permissions || []).join(", ")}`);

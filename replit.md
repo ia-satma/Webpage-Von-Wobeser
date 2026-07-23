@@ -94,7 +94,7 @@ Disparo central: **`POST /api/agents/run/:agentType`** (`server/agents/api/agent
 
 ## Servicios de IA
 
-- **LegalCouncilService** (`services/agents/LegalCouncilService.ts`): "consejo legal" multi-agente que evalúa calidad/riesgo de un artículo. Corre 3 evaluadores en paralelo (Legal Scholar, Risk Analyst, Brand Guardian) con `Promise.allSettled`; cada uno devuelve `{score, decision, reasoning}` y se agregan en un `CouncilVerdict`. Usa **`fetch` crudo** a `${openaiBaseUrl}/chat/completions`, **model `gpt-4o`** (no el SDK, no Claude). Un evaluador que falla recibe abstención de sistema (score 50).
+- **LegalCouncilService** (`services/agents/LegalCouncilService.ts`): "consejo legal" multi-agente que evalúa calidad/riesgo de un artículo. Corre 3 evaluadores en paralelo (Legal Scholar, Risk Analyst, Brand Guardian) con `Promise.allSettled`; cada uno devuelve `{score, decision, reasoning}` y se agregan en un `CouncilVerdict`. Usa el cliente compartido de OpenAI, respeta el presupuesto mensual, limita tiempos/tokens y trata el artículo como datos no confiables. Un evaluador que falla recibe abstención de sistema (score 50).
 - **VoiceGenerator** (`server/services/VoiceGenerator.ts`): texto-a-voz con **OpenAI TTS `tts-1`** (voz `alloy`), vía el cliente `openai` compartido. Guarda mp3 en `public/generated-audio/` y registra el asset. **No usa ElevenLabs** (no está en AI Integrations de Replit). Si falta `AI_INTEGRATIONS_OPENAI_API_KEY` hace early-return con `not_configured`. Trunca a 4000 chars.
 - **SmartImageGenerator** (`server/services/SmartImageGenerator.ts`): imágenes con marca Von Wobeser. Cascada real: **Cloudflare Workers AI (Flux, gratis) → Gemini `gemini-2.5-flash-image` (pago) → placeholder SVG**. Sanitiza términos legales sensibles y superpone el logo con `sharp`. Un `success:true` puede ser solo el placeholder (`fallbackUsed:true`), no una imagen real.
 
@@ -102,13 +102,13 @@ Disparo central: **`POST /api/agents/run/:agentType`** (`server/agents/api/agent
 
 ## Datos
 
-- **BD = Neon PostgreSQL** con **Drizzle ORM** (driver `drizzle-orm/neon-http`). `server/db.ts` crea `db = drizzle(neon(process.env.DATABASE_URL!), { schema })` — punto de entrada único a la BD.
+- **BD = PostgreSQL** con **Drizzle ORM** y `node-postgres`. Se conserva una sola cuenta y el `DATABASE_URL` actual; las conexiones externas validan TLS y la PostgreSQL interna de Replit usa su conexión interna.
 - **`DATABASE_URL` es la ÚNICA env estrictamente obligatoria para arrancar.** `db.ts` la usa con `!` (aserción, no salvaguarda): si falta, `neon()` lanza al importar y el proceso crashea antes de escuchar.
 - **49 tablas** en `shared/schema.ts`, agrupadas en: **contenido público** (news, news_translations, practice_groups, industry_groups, team_members y relaciones, representative_matters, specialized_desks, rankings, awards, offices, alliances, faqs, events, banners, site_config, contact_submissions, career_applications, ...), **agentes de IA** (agent_jobs, agent_events, agent_knowledge, agent_skills, agent_evolution_proposals, content_analysis, website_audits, website_audit_findings, processed_official_sources, generated_images, generated_audio), y **sistema/auth** (admin_users, admin_login_events, admin_sessions, media_items, y una tabla `users` **legacy que NO usa el panel**).
 - **El contenido es REAL** (extraído del sitio Von Wobeser y Sierra, migrado de Joomla — `news.legacyId` mapea el `p_id` original), NO mock. Volúmenes en prod: ~134 abogados, 18 prácticas, 7 industrias, ~1742 publicaciones.
 - **Seed (`server/seed.ts`):** se invoca en CADA arranque desde `registerRoutes()`. Para cada tabla de contenido inserta datos semilla **solo si está vacía** (idempotente; en prod se salta). Es bootstrap para BD vacía, no la fuente de la data real; **nunca actualiza ni borra**.
-- **Admin en el seed:** si `ADMIN_EMAIL` + `ADMIN_PASSWORD_HASH` están y el email no existe, crea `super_admin` (`onConflictDoNothing`, nunca sobreescribe). `ADMIN_RESET_PASSWORD` (botón de pánico) **sobreescribe la contraseña en texto plano en CADA arranque** — hay que **quitarla de Secrets** tras usarla o cada reinicio la reaplica.
-- **Migraciones:** `npm run db:push` (`drizzle-kit push`, push directo sin archivos SQL versionados). El tooling de BD integrado de Replit **no** soporta push contra una BD externa como Neon — es normal, se corre manualmente.
+- **Admin en el seed:** `ADMIN_EMAIL` + `ADMIN_BOOTSTRAP_PASSWORD` viven en Replit Secrets. Solo crean al Dueño si el correo todavía no existe; la contraseña se convierte inmediatamente a Argon2id y se ignora por completo en reinicios posteriores.
+- **Migraciones:** `npm run db:migrate` aplica archivos SQL versionados, con hash, transacción y advisory lock. El proyecto ya no usa `drizzle-kit push` en arranque ni despliegue.
 
 ---
 
@@ -128,7 +128,7 @@ Rutas principales:
 - `/admin/gallery`, `/admin/generated-images`, `/admin/generated-audio`
 - `*` → `NotFound` (404)
 
-Login: el endpoint `POST /api/admin/login` espera el campo **`username`** (acepta el email como su valor), no `email`.
+Login: `POST /api/admin/login` espera `username` y `password`, continúa con MFA para Administradores/Dueño y establece una cookie HttpOnly. El navegador no recibe ni guarda Bearer tokens.
 
 ---
 
@@ -143,19 +143,20 @@ Login: el endpoint `POST /api/admin/login` espera el campo **`username`** (acept
 - `AI_INTEGRATIONS_OPENAI_API_KEY` y `AI_INTEGRATIONS_OPENAI_BASE_URL` — necesarias para los 10 agentes-LLM, el TTS de voz y LegalCouncilService. **Nota:** las inyecta el sistema de AI Integrations de Replit en runtime; **el aprovisionamiento de esta integración puede estar pendiente y hay que gestionarlo con el soporte de Replit** (declarar `javascript_openai_ai_integrations` en `.replit` es solo metadata, no inyecta las vars). Sin ellas la app arranca y solo fallan las features de IA/traducción/voz (con errorCode diferido, no crash).
 - `AI_INTEGRATIONS_GEMINI_API_KEY` y `AI_INTEGRATIONS_GEMINI_BASE_URL` — fallback de imágenes (Gemini).
 - `CLOUDFLARE_ACCOUNT_ID` y `CLOUDFLARE_API_TOKEN` — motor primario (gratis) de imágenes; si faltan, cae a Gemini.
+- `AI_MONTHLY_BUDGET_USD` — tope mensual estimado de IA pagada; por defecto USD 100. Al alcanzarlo se pausan llamadas pagadas y se registra una alerta sin datos sensibles.
 
-*Admin (seed):*
-- `ADMIN_EMAIL` + `ADMIN_PASSWORD_HASH` — crean el super_admin inicial si no existe.
-- `ADMIN_RESET_PASSWORD` — botón de pánico; sobreescribe la contraseña en cada arranque. **Borrar de Secrets tras usarla.**
+*Admin y MFA:*
+- `ADMIN_EMAIL` + `ADMIN_BOOTSTRAP_PASSWORD` — crean el Dueño únicamente cuando el correo no existe. La contraseña debe tener entre 15 y 128 caracteres.
+- `MFA_ENCRYPTION_KEY` — exactamente 32 bytes aleatorios codificados en base64 o hexadecimal; cifra los secretos TOTP mediante AES-256-GCM.
 
 *Almacenamiento de agentes:* `PCLOUD_USERNAME`, `PCLOUD_PASSWORD` — pCloud; si faltan, `authenticate()` devuelve false.
 
 *Red / runtime:* `PORT` (default 5000), `NODE_ENV`, `CORS_ORIGIN` (vacío = sin cross-origin; el admin es same-origin), `SITE_URL` (default `https://www.vonwobeser.com`; base de canonical/OG/sitemap, se lee una vez al arranque), `MIRROR_DIR` (override del directorio del espejo; casi nunca hace falta por los fallbacks).
 
 Notas:
-- **`SESSION_SECRET` NO se usa** en el código. Las sesiones del admin se respaldan en BD (`admin_sessions` con token), no con cookies firmadas.
+- **`SESSION_SECRET` NO se usa.** La cookie contiene un token aleatorio; PostgreSQL guarda solamente su hash SHA-256, expiración, actividad, estado MFA y hash CSRF.
 - `site_url`, `ga4_measurement_id` y `google_site_verification` se leen **una vez al arranque**; editarlos en el panel requiere reiniciar.
-- `helmet` corre con `contentSecurityPolicy:false` a propósito (el espejo usa scripts/estilos inline); no asumir CSP activa.
+- CSP está activa inicialmente en modo `Report-Only`; los demás encabezados Helmet, HSTS, `frame-ancestors`, `nosniff`, Referrer y Permissions Policy sí se aplican.
 - El cliente OpenAI en `server/openai.ts` es lazy-init (envoltura `Proxy`), así que credenciales faltantes fallan por-request, no al arrancar.
 
 ---

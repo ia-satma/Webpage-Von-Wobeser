@@ -21,8 +21,30 @@ import { presentationGeneratorAgent } from '../specialized/PresentationGenerator
 import { AgentType, ExecutionContext } from '../core/types';
 import { db } from '../../db';
 import { news } from '../../../shared/schema';
+import { z } from 'zod';
 
 const router = Router();
+const agentTypeSchema = z.enum([
+  'formatter',
+  'metadata_linker',
+  'polyglot_translator',
+  'content_auditor',
+  'seo_optimizer',
+  'content_analyzer',
+  'image_suggestion',
+  'category_agent',
+  'website_auditor',
+  'social_media',
+  'newsletter',
+  'legal_alerts',
+  'voice_agent',
+  'presentation_generator',
+]);
+const articleIdSchema = z.string().uuid();
+const stagesSchema = z.array(agentTypeSchema).max(8).optional();
+const boundedPayloadSchema = z.record(z.unknown())
+  .refine((payload) => Object.keys(payload).length <= 50, 'Too many payload fields')
+  .refine((payload) => Buffer.byteLength(JSON.stringify(payload)) <= 100_000, 'Payload is too large');
 
 router.get('/status', async (req: Request, res: Response) => {
   try {
@@ -49,7 +71,7 @@ router.get('/status', async (req: Request, res: Response) => {
       },
     });
   } catch (error) {
-    res.status(500).json({ error: String(error) });
+    res.status(500).json({ error: 'Agent operation failed' });
   }
 });
 
@@ -74,24 +96,30 @@ router.get('/stats/:agentType', async (req: Request, res: Response) => {
       knowledge 
     });
   } catch (error) {
-    res.status(500).json({ error: String(error) });
+    res.status(500).json({ error: 'Agent operation failed' });
   }
 });
 
 router.get('/jobs/failed', async (req: Request, res: Response) => {
   try {
-    const { limit } = req.query;
-    const failedJobs = await orchestrator.getFailedJobs(limit ? parseInt(limit as string) : 50);
+    const parsed = z.coerce.number().int().min(1).max(100).default(50).safeParse(req.query.limit);
+    if (!parsed.success) return res.status(400).json({ error: 'Invalid limit' });
+    const failedJobs = await orchestrator.getFailedJobs(parsed.data);
     res.json(failedJobs);
   } catch (error) {
-    res.status(500).json({ error: String(error) });
+    res.status(500).json({ error: 'Agent operation failed' });
   }
 });
 
 router.post('/run/:agentType', async (req: Request, res: Response) => {
   try {
-    const { agentType } = req.params;
-    const payload = req.body;
+    const parsedAgent = agentTypeSchema.safeParse(req.params.agentType);
+    const parsedPayload = boundedPayloadSchema.safeParse(req.body);
+    if (!parsedAgent.success || !parsedPayload.success) {
+      return res.status(400).json({ error: 'Invalid agent request' });
+    }
+    const agentType = parsedAgent.data;
+    const payload = parsedPayload.data;
 
     const context: ExecutionContext = {
       jobId: `manual-${Date.now()}`,
@@ -150,29 +178,33 @@ router.post('/run/:agentType', async (req: Request, res: Response) => {
 
     res.json(result);
   } catch (error) {
-    res.status(500).json({ error: String(error) });
+    res.status(500).json({ error: 'Agent operation failed' });
   }
 });
 
 router.post('/pipeline/:articleId', async (req: Request, res: Response) => {
   try {
-    const { articleId } = req.params;
-    const { stages } = req.body;
+    const parsed = z.object({ stages: stagesSchema }).strict().safeParse(req.body || {});
+    const parsedId = articleIdSchema.safeParse(req.params.articleId);
+    if (!parsed.success || !parsedId.success) return res.status(400).json({ error: 'Invalid pipeline request' });
+    const articleId = parsedId.data;
+    const { stages } = parsed.data;
     
     const result = await orchestrator.runPipeline(articleId, stages);
     res.json(result);
   } catch (error) {
-    res.status(500).json({ error: String(error) });
+    res.status(500).json({ error: 'Agent operation failed' });
   }
 });
 
 router.post('/pipeline/batch', async (req: Request, res: Response) => {
   try {
-    const { articleIds, stages } = req.body;
-    
-    if (!articleIds || !Array.isArray(articleIds)) {
-      return res.status(400).json({ error: 'articleIds array required' });
-    }
+    const parsed = z.object({
+      articleIds: z.array(articleIdSchema).min(1).max(25).transform((ids) => Array.from(new Set(ids))),
+      stages: stagesSchema,
+    }).strict().safeParse(req.body);
+    if (!parsed.success) return res.status(400).json({ error: 'Invalid pipeline batch' });
+    const { articleIds, stages } = parsed.data;
 
     const results: Record<string, any> = {};
     
@@ -186,16 +218,21 @@ router.post('/pipeline/batch', async (req: Request, res: Response) => {
       results 
     });
   } catch (error) {
-    res.status(500).json({ error: String(error) });
+    res.status(500).json({ error: 'Agent operation failed' });
   }
 });
 
 router.post('/pipeline/process-all', async (req: Request, res: Response) => {
   try {
-    const { stages, limit } = req.body;
+    const parsed = z.object({
+      stages: stagesSchema,
+      limit: z.coerce.number().int().min(1).max(25).default(25),
+    }).strict().safeParse(req.body || {});
+    if (!parsed.success) return res.status(400).json({ error: 'Invalid process request' });
+    const { stages, limit } = parsed.data;
     
-    const allNews = await db.select({ id: news.id, title: news.title }).from(news);
-    const articleIds = limit ? allNews.slice(0, limit).map(n => n.id) : allNews.map(n => n.id);
+    const allNews = await db.select({ id: news.id, title: news.title }).from(news).limit(limit);
+    const articleIds = allNews.map(n => n.id);
     
     console.log(`[Pipeline] Processing ${articleIds.length} articles...`);
     
@@ -212,7 +249,7 @@ router.post('/pipeline/process-all', async (req: Request, res: Response) => {
         if (result.success) successful++;
         else failed++;
       } catch (error) {
-        results[articleId] = { success: false, error: String(error) };
+        results[articleId] = { success: false, error: 'Pipeline stage failed' };
         failed++;
       }
     }
@@ -226,7 +263,7 @@ router.post('/pipeline/process-all', async (req: Request, res: Response) => {
       results 
     });
   } catch (error) {
-    res.status(500).json({ error: String(error) });
+    res.status(500).json({ error: 'Agent operation failed' });
   }
 });
 
@@ -244,7 +281,7 @@ router.post('/audit', async (req: Request, res: Response) => {
     const result = await contentAuditorAgent.execute(context, { scanType });
     res.json(result);
   } catch (error) {
-    res.status(500).json({ error: String(error) });
+    res.status(500).json({ error: 'Agent operation failed' });
   }
 });
 
@@ -260,7 +297,7 @@ router.get('/evolution/proposals', async (req: Request, res: Response) => {
 
     res.json(proposals);
   } catch (error) {
-    res.status(500).json({ error: String(error) });
+    res.status(500).json({ error: 'Agent operation failed' });
   }
 });
 
@@ -277,7 +314,7 @@ router.post('/evolution/proposals/:id/status', async (req: Request, res: Respons
 
     res.json(updated);
   } catch (error) {
-    res.status(500).json({ error: String(error) });
+    res.status(500).json({ error: 'Agent operation failed' });
   }
 });
 
@@ -286,7 +323,7 @@ router.post('/evolution/learning-cycle', async (req: Request, res: Response) => 
     const result = await evolutionTracker.runLearningCycle();
     res.json(result);
   } catch (error) {
-    res.status(500).json({ error: String(error) });
+    res.status(500).json({ error: 'Agent operation failed' });
   }
 });
 
@@ -296,14 +333,21 @@ router.get('/knowledge/:agentType', async (req: Request, res: Response) => {
     const documents = await knowledgeStore.getDocuments(agentType as AgentType);
     res.json(documents);
   } catch (error) {
-    res.status(500).json({ error: String(error) });
+    res.status(500).json({ error: 'Agent operation failed' });
   }
 });
 
 router.post('/knowledge/:agentType/search', async (req: Request, res: Response) => {
   try {
-    const { agentType } = req.params;
-    const { query, category, limit } = req.body;
+    const parsedAgent = agentTypeSchema.safeParse(req.params.agentType);
+    const parsed = z.object({
+      query: z.string().trim().min(1).max(4_000),
+      category: z.string().trim().max(80).optional(),
+      limit: z.coerce.number().int().min(1).max(50).default(20),
+    }).strict().safeParse(req.body);
+    if (!parsedAgent.success || !parsed.success) return res.status(400).json({ error: 'Invalid knowledge search' });
+    const agentType = parsedAgent.data;
+    const { query, category, limit } = parsed.data;
     
     const documents = await knowledgeStore.searchDocuments(
       agentType as AgentType,
@@ -313,7 +357,7 @@ router.post('/knowledge/:agentType/search', async (req: Request, res: Response) 
 
     res.json(documents);
   } catch (error) {
-    res.status(500).json({ error: String(error) });
+    res.status(500).json({ error: 'Agent operation failed' });
   }
 });
 
@@ -322,7 +366,7 @@ router.get('/pcloud/test', async (req: Request, res: Response) => {
     const connected = await pcloudStorage.testConnection();
     res.json({ connected });
   } catch (error) {
-    res.status(500).json({ error: String(error), connected: false });
+    res.status(500).json({ error: 'Storage connection failed', connected: false });
   }
 });
 
@@ -331,7 +375,7 @@ router.post('/pcloud/sync', async (req: Request, res: Response) => {
     const result = await pcloudStorage.syncAll();
     res.json(result);
   } catch (error) {
-    res.status(500).json({ error: String(error) });
+    res.status(500).json({ error: 'Agent operation failed' });
   }
 });
 
@@ -340,7 +384,7 @@ router.post('/pcloud/load', async (req: Request, res: Response) => {
     const result = await pcloudStorage.loadAll();
     res.json(result);
   } catch (error) {
-    res.status(500).json({ error: String(error) });
+    res.status(500).json({ error: 'Agent operation failed' });
   }
 });
 
@@ -356,18 +400,24 @@ router.get('/jobs', async (req: Request, res: Response) => {
 
     res.json(jobs);
   } catch (error) {
-    res.status(500).json({ error: String(error) });
+    res.status(500).json({ error: 'Agent operation failed' });
   }
 });
 
 router.post('/queue', async (req: Request, res: Response) => {
   try {
-    const { agentType, payload, priority } = req.body;
+    const parsed = z.object({
+      agentType: agentTypeSchema,
+      payload: boundedPayloadSchema,
+      priority: z.enum(['low', 'normal', 'high']).default('normal'),
+    }).strict().safeParse(req.body);
+    if (!parsed.success) return res.status(400).json({ error: 'Invalid queue request' });
+    const { agentType, payload, priority } = parsed.data;
     
     const job = await orchestrator.enqueueJob(agentType, payload, { priority });
     res.json(job);
   } catch (error) {
-    res.status(500).json({ error: String(error) });
+    res.status(500).json({ error: 'Agent operation failed' });
   }
 });
 
@@ -376,7 +426,7 @@ router.post('/processing/start', async (req: Request, res: Response) => {
     orchestrator.startProcessing();
     res.json({ message: 'Job processing started' });
   } catch (error) {
-    res.status(500).json({ error: String(error) });
+    res.status(500).json({ error: 'Agent operation failed' });
   }
 });
 
@@ -385,7 +435,7 @@ router.post('/processing/stop', async (req: Request, res: Response) => {
     orchestrator.stopProcessing();
     res.json({ message: 'Job processing stopped' });
   } catch (error) {
-    res.status(500).json({ error: String(error) });
+    res.status(500).json({ error: 'Agent operation failed' });
   }
 });
 
@@ -403,7 +453,7 @@ router.post('/analyze/:articleId', async (req: Request, res: Response) => {
     const result = await contentAnalyzerAgent.execute(context, { articleId });
     res.json(result);
   } catch (error) {
-    res.status(500).json({ error: String(error) });
+    res.status(500).json({ error: 'Agent operation failed' });
   }
 });
 
@@ -418,7 +468,7 @@ router.get('/analyze/:articleId', async (req: Request, res: Response) => {
 
     res.json(analysis);
   } catch (error) {
-    res.status(500).json({ error: String(error) });
+    res.status(500).json({ error: 'Agent operation failed' });
   }
 });
 

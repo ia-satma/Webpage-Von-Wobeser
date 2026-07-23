@@ -14,7 +14,16 @@ const OPTS: sanitizeHtml.IOptions = {
   allowedSchemes: ["http", "https", "mailto", "tel"],
   allowedSchemesByTag: { img: ["http", "https", "data"] },
   // Bloquea url()/expression() y deja solo estilos inocuos.
-  allowedStyles: { "*": { "font-size": [/^[\d.]+(px|rem|em|%)$/], "text-align": [/^(left|right|center|justify)$/], color: [/^#[0-9a-fA-F]{3,8}$/, /^rgb\(/] } },
+  allowedStyles: {
+    "*": {
+      "font-size": [/^\d+(?:\.\d+)?(?:px|rem|em|%)$/],
+      "text-align": [/^(left|right|center|justify)$/],
+      color: [
+        /^#[0-9a-fA-F]{3,8}$/,
+        /^rgba?\(\s*\d{1,3}\s*,\s*\d{1,3}\s*,\s*\d{1,3}(?:\s*,\s*(?:0|1|0?\.\d+))?\s*\)$/,
+      ],
+    },
+  },
   disallowedTagsMode: "discard",
   enforceHtmlBoundary: true,
   // target="_blank" sin rel="noopener" permite que la pestaña abierta controle window.opener
@@ -24,6 +33,15 @@ const OPTS: sanitizeHtml.IOptions = {
     a: (tagName, attribs) => {
       if (attribs.target === "_blank") {
         attribs.rel = "noopener noreferrer";
+      }
+      return { tagName, attribs };
+    },
+    img: (tagName, attribs) => {
+      // Los data URI SVG/HTML pueden incorporar contenido activo. Solo se admiten
+      // formatos raster base64 cuando el editor necesita una imagen embebida.
+      if (attribs.src?.startsWith("data:")
+        && !/^data:image\/(?:png|jpe?g|gif|webp);base64,[a-z0-9+/=\s]+$/i.test(attribs.src)) {
+        delete attribs.src;
       }
       return { tagName, attribs };
     },

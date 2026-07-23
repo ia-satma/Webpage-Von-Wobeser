@@ -146,7 +146,7 @@ Devuelve JSON { "posts": { <red>: { "text", "hashtags" } }, "imagePrompt" } incl
       };
     } catch (error: any) {
       console.error('[SocialMediaAgent] Error:', error);
-      return { success: false, error: error?.message || 'Falló la generación de redes' };
+      return { success: false, error: 'Falló la generación de redes' };
     }
   }
 }

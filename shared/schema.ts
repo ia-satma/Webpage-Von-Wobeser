@@ -391,13 +391,13 @@ export type RepresentativeMatterDb = typeof representativeMatters.$inferSelect;
 
 // Contact form schema
 export const contactFormSchema = z.object({
-  fullName: z.string().min(1, "Full name is required"),
-  email: z.string().min(1, "Email is required").email("Invalid email address"),
-  phone: z.string().optional(),
-  company: z.string().optional(),
-  practiceArea: z.string().optional(),
-  message: z.string().min(1, "Message is required"),
-});
+  fullName: z.string().trim().min(1, "Full name is required").max(120),
+  email: z.string().trim().min(1, "Email is required").email("Invalid email address").max(254),
+  phone: z.string().trim().max(32).optional(),
+  company: z.string().trim().max(160).optional(),
+  practiceArea: z.string().trim().max(120).optional(),
+  message: z.string().trim().min(1, "Message is required").max(5_000),
+}).strict();
 
 export type ContactFormData = z.infer<typeof contactFormSchema>;
 
@@ -506,6 +506,10 @@ export const adminUsers = pgTable("admin_users", {
   createdAt: timestamp("created_at").defaultNow(),
   lastLogin: timestamp("last_login"),
   isActive: boolean("is_active").default(true),
+  // Las cuentas creadas desde el panel reciben una contraseña temporal que debe
+  // reemplazarse antes de usar cualquier otra función administrativa.
+  mustChangePassword: boolean("must_change_password").notNull().default(false),
+  passwordChangedAt: timestamp("password_changed_at"),
 });
 
 // `permissions` se omite del insert (default '[]' en DB; las concesiones extra se aplican con updateAdminUser).
@@ -519,7 +523,7 @@ export const adminLoginEvents = pgTable(
   {
     id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
     userId: varchar("user_id"), // null si el intento fue sobre un usuario inexistente
-    email: text("email").notNull(), // identificador intentado (correo o usuario)
+    email: text("email").notNull(), // nombre histórico: contiene SHA-256, nunca correo/usuario
     success: boolean("success").notNull(),
     ipAddress: text("ip_address"),
     userAgent: text("user_agent"),
@@ -557,9 +561,15 @@ export type MediaItem = typeof mediaItems.$inferSelect;
 // Admin sessions for token-based auth
 export const adminSessions = pgTable("admin_sessions", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  userId: varchar("user_id").notNull(),
-  token: text("token").notNull().unique(),
+  userId: varchar("user_id").notNull().references(() => adminUsers.id, { onDelete: "cascade" }),
+  // La columna histórica se llama `token`, pero desde este endurecimiento guarda
+  // exclusivamente SHA-256(token). El valor crudo solo vive en la cookie HttpOnly.
+  tokenHash: text("token").notNull().unique(),
   expiresAt: timestamp("expires_at").notNull(),
+  absoluteExpiresAt: timestamp("absolute_expires_at").notNull(),
+  lastSeenAt: timestamp("last_seen_at").notNull().defaultNow(),
+  csrfTokenHash: text("csrf_token_hash").notNull(),
+  mfaVerified: boolean("mfa_verified").notNull().default(false),
   createdAt: timestamp("created_at").defaultNow(),
   ipAddress: text("ip_address"),
   userAgent: text("user_agent"),
@@ -569,10 +579,55 @@ export const insertAdminSessionSchema = createInsertSchema(adminSessions).omit({
 export type InsertAdminSession = z.infer<typeof insertAdminSessionSchema>;
 export type AdminSession = typeof adminSessions.$inferSelect;
 
+// Segundo factor TOTP. El secreto se cifra con AES-256-GCM usando
+// MFA_ENCRYPTION_KEY; los códigos de recuperación solo se guardan como hashes.
+export const adminMfaCredentials = pgTable("admin_mfa_credentials", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().unique().references(() => adminUsers.id, { onDelete: "cascade" }),
+  encryptedSecret: text("encrypted_secret").notNull(),
+  recoveryCodeHashes: jsonb("recovery_code_hashes").$type<string[]>().notNull().default(sql`'[]'::jsonb`),
+  enabledAt: timestamp("enabled_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const insertAdminMfaCredentialSchema = createInsertSchema(adminMfaCredentials).omit({ id: true, createdAt: true, updatedAt: true });
+export type InsertAdminMfaCredential = typeof adminMfaCredentials.$inferInsert;
+export type AdminMfaCredential = typeof adminMfaCredentials.$inferSelect;
+
+// Desafíos breves posteriores a la contraseña. El navegador recibe el token
+// crudo en una cookie HttpOnly; PostgreSQL conserva únicamente su hash.
+export const adminAuthChallenges = pgTable("admin_auth_challenges", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => adminUsers.id, { onDelete: "cascade" }),
+  tokenHash: text("token_hash").notNull().unique(),
+  purpose: text("purpose").notNull(), // mfa | enroll
+  attempts: integer("attempts").notNull().default(0),
+  expiresAt: timestamp("expires_at").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertAdminAuthChallengeSchema = createInsertSchema(adminAuthChallenges).omit({ id: true, createdAt: true });
+export type InsertAdminAuthChallenge = z.infer<typeof insertAdminAuthChallengeSchema>;
+export type AdminAuthChallenge = typeof adminAuthChallenges.$inferSelect;
+
+// Rate limit compartido entre todas las instancias autoscale de Replit.
+export const securityRateLimits = pgTable("security_rate_limits", {
+  keyHash: text("key_hash").primaryKey(),
+  attempts: integer("attempts").notNull().default(0),
+  windowStartedAt: timestamp("window_started_at").notNull().defaultNow(),
+  blockedUntil: timestamp("blocked_until"),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+export type SecurityRateLimit = typeof securityRateLimits.$inferSelect;
+
 // Admin login schema for validation (accepts email or username)
 export const adminLoginSchema = z.object({
-  username: z.string().min(1, "Email or username is required"),
-  password: z.string().min(6, "Password must be at least 6 characters"),
+  username: z.string().trim().min(1, "Email or username is required").max(254),
+  // El login debe aceptar hashes bcrypt heredados. La regla fuerte de 15
+  // caracteres se aplica al crear o cambiar credenciales nuevas.
+  password: z.string().min(1, "Password is required").max(128, "Password is too long"),
 });
 
 export type AdminLoginData = z.infer<typeof adminLoginSchema>;

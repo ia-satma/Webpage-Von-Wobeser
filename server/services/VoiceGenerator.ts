@@ -2,6 +2,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { openai } from '../openai';
 import { storage } from '../storage';
+import { assertAiBudget, recordAudioUsage } from "./usageTracker";
 
 const OUTPUT_DIR = path.join(process.cwd(), 'public', 'generated-audio');
 
@@ -60,11 +61,13 @@ export class VoiceGenerator {
     voice: string,
   ): Promise<{ buffer?: Buffer; error?: string; errorCode?: string }> {
     try {
+      await assertAiBudget();
       const response = await openai.audio.speech.create(
         { model: MODEL, voice, input: text, response_format: 'mp3' },
         { maxRetries: 2, timeout: 30000 },
       );
       const arrayBuffer = await response.arrayBuffer();
+      recordAudioUsage(text.length, MODEL);
       this.log('Audio generado correctamente');
       return { buffer: Buffer.from(arrayBuffer) };
     } catch (err: any) {
@@ -72,7 +75,7 @@ export class VoiceGenerator {
       if (status === 401) return { error: 'Credencial de OpenAI (AI Integrations) inválida o ausente', errorCode: 'unauthorized' };
       if (status === 429) return { error: 'Cuota/rate limit de OpenAI agotado', errorCode: 'rate_limit' };
       const isTimeout = err?.name === 'APIConnectionTimeoutError' || err?.name === 'AbortError';
-      const message = isTimeout ? 'Timeout del TTS de OpenAI' : err?.message || 'Error desconocido';
+      const message = isTimeout ? 'Timeout del TTS de OpenAI' : 'No fue posible generar el audio';
       this.log(`Falló: ${message}`);
       return { error: message, errorCode: isTimeout ? 'timeout' : (status ? 'http_error' : 'network_error') };
     }
@@ -144,9 +147,9 @@ export class VoiceGenerator {
         sourceType: opts.sourceType,
         articleId: opts.articleId ?? null,
       });
-    } catch (err: any) {
-      this.log(`Fallo al guardar el audio: ${err.message}`);
-      result.errorMessage = err.message;
+    } catch {
+      this.log("Fallo al guardar el audio");
+      result.errorMessage = "No fue posible guardar el audio";
       result.errorCode = 'save_failed';
     }
 

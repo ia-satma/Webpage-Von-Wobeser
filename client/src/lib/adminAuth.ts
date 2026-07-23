@@ -1,93 +1,142 @@
 import { useState, useEffect, useCallback } from "react";
 import { useLocation } from "wouter";
 
-const TOKEN_KEY = "vwb_admin_token";
+const SESSION_MARKER_KEY = "vwb_admin_session_active";
+const CSRF_KEY = "vwb_admin_csrf";
 const ROLE_KEY = "vwb_admin_role";
 
-export function getToken(): string | null {
+export type AdminSessionUser = {
+  id: string;
+  username: string;
+  email: string;
+  role: string;
+  mustChangePassword?: boolean;
+  permissions?: string[];
+};
+
+let cachedUser: AdminSessionUser | null = null;
+let sessionPromise: Promise<AdminSessionUser | null> | null = null;
+
+function sessionGet(key: string): string | null {
   if (typeof window === "undefined") return null;
-  try {
-    return localStorage.getItem(TOKEN_KEY);
-  } catch {
-    return null;
-  }
+  try { return sessionStorage.getItem(key); } catch { return null; }
+}
+
+function sessionSet(key: string, value: string): void {
+  if (typeof window === "undefined") return;
+  try { sessionStorage.setItem(key, value); } catch { /* sesión sigue en cookie */ }
+}
+
+function sessionRemove(key: string): void {
+  if (typeof window === "undefined") return;
+  try { sessionStorage.removeItem(key); } catch { /* ignore */ }
+}
+
+export function getToken(): string | null {
+  // Compatibilidad con componentes antiguos: es solo un marcador, nunca una
+  // credencial. El token real vive en una cookie HttpOnly inaccesible a JS.
+  return sessionGet(SESSION_MARKER_KEY) === "1" ? "cookie-session" : null;
 }
 
 export function getRole(): string | null {
-  if (typeof window === "undefined") return null;
-  try {
-    return localStorage.getItem(ROLE_KEY);
-  } catch {
-    return null;
-  }
+  return cachedUser?.role || sessionGet(ROLE_KEY);
 }
 
-export function setToken(token: string): void {
-  if (typeof window === "undefined") return;
-  try {
-    localStorage.setItem(TOKEN_KEY, token);
-  } catch {
-    console.error("Failed to save admin token");
-  }
+/** @deprecated La sesión ya no acepta Bearer tokens. */
+export function setToken(_token?: string): void {
+  sessionSet(SESSION_MARKER_KEY, "1");
 }
 
 export function setRole(role: string): void {
-  if (typeof window === "undefined") return;
-  try {
-    localStorage.setItem(ROLE_KEY, role || "");
-  } catch {
-    /* ignore */
-  }
+  sessionSet(ROLE_KEY, role || "");
 }
 
 export function clearToken(): void {
-  if (typeof window === "undefined") return;
+  cachedUser = null;
+  sessionPromise = null;
+  sessionRemove(SESSION_MARKER_KEY);
+  sessionRemove(CSRF_KEY);
+  sessionRemove(ROLE_KEY);
   try {
-    localStorage.removeItem(TOKEN_KEY);
-    localStorage.removeItem(ROLE_KEY);
-  } catch {
-    console.error("Failed to clear admin token");
-  }
+    // Limpia cualquier credencial heredada que hubiera quedado de versiones previas.
+    localStorage.removeItem("vwb_admin_token");
+    localStorage.removeItem("vwb_admin_role");
+  } catch { /* ignore */ }
 }
 
 export function isAuthenticated(): boolean {
-  return !!getToken();
+  return cachedUser !== null || getToken() !== null;
+}
+
+export function establishAdminSession(payload: { csrfToken?: string; user?: AdminSessionUser }): void {
+  if (payload.csrfToken) sessionSet(CSRF_KEY, payload.csrfToken);
+  if (payload.user) {
+    cachedUser = payload.user;
+    setRole(payload.user.role);
+  }
+  sessionSet(SESSION_MARKER_KEY, "1");
+  sessionPromise = Promise.resolve(cachedUser);
+}
+
+export async function loadAdminSession(force = false): Promise<AdminSessionUser | null> {
+  if (!force && cachedUser) return cachedUser;
+  if (!force && sessionPromise) return sessionPromise;
+  sessionPromise = (async () => {
+    try {
+      const response = await fetch("/api/admin/session", {
+        method: "GET",
+        credentials: "include",
+        headers: { Accept: "application/json" },
+        cache: "no-store",
+      });
+      if (!response.ok) {
+        clearToken();
+        return null;
+      }
+      const payload = await response.json();
+      establishAdminSession(payload);
+      return payload.user || null;
+    } catch {
+      clearToken();
+      return null;
+    }
+  })();
+  return sessionPromise;
 }
 
 export function getAuthHeaders(): Record<string, string> {
-  const token = getToken();
-  return token ? { Authorization: `Bearer ${token}` } : {};
+  const csrf = sessionGet(CSRF_KEY);
+  return csrf ? { "X-CSRF-Token": csrf } : {};
 }
 
-export async function adminApiRequest(
-  method: string,
-  url: string,
-  data?: unknown
-): Promise<Response> {
+export async function adminApiRequest(method: string, url: string, data?: unknown): Promise<Response> {
+  const upperMethod = method.toUpperCase();
+  const mutation = !["GET", "HEAD", "OPTIONS"].includes(upperMethod);
+  if (mutation && !sessionGet(CSRF_KEY)) await loadAdminSession();
+
   const headers: Record<string, string> = {
+    Accept: "application/json",
     ...getAuthHeaders(),
   };
-  
-  if (data) {
-    headers["Content-Type"] = "application/json";
-  }
-  
-  const res = await fetch(url, {
-    method,
+  if (data !== undefined) headers["Content-Type"] = "application/json";
+
+  const response = await fetch(url, {
+    method: upperMethod,
     headers,
-    body: data ? JSON.stringify(data) : undefined,
+    body: data !== undefined ? JSON.stringify(data) : undefined,
     credentials: "include",
+    cache: "no-store",
   });
-  
-  // Handle expired/invalid session - clear token and redirect to login
-  if (res.status === 401) {
+
+  if (response.status === 428 && typeof window !== "undefined") {
+    window.location.href = "/admin/change-password";
+  } else if (response.status === 401) {
     clearToken();
     if (typeof window !== "undefined" && !window.location.pathname.includes("/admin/login")) {
       window.location.href = "/admin/login";
     }
   }
-  
-  return res;
+  return response;
 }
 
 interface AdminAuthState {
@@ -95,6 +144,7 @@ interface AdminAuthState {
   isLoading: boolean;
   token: string | null;
   role: string | null;
+  user: AdminSessionUser | null;
 }
 
 export function useAdminAuth() {
@@ -104,40 +154,45 @@ export function useAdminAuth() {
     isLoading: true,
     token: null,
     role: null,
+    user: null,
   });
 
   useEffect(() => {
-    const token = getToken();
-    setState({
-      isAuthenticated: !!token,
-      isLoading: false,
-      token,
-      role: getRole(),
+    let cancelled = false;
+    loadAdminSession().then((user) => {
+      if (cancelled) return;
+      setState({
+        isAuthenticated: !!user,
+        isLoading: false,
+        token: user ? "cookie-session" : null,
+        role: user?.role || null,
+        user,
+      });
+      if (user?.mustChangePassword && window.location.pathname !== "/admin/change-password") {
+        setLocation("/admin/change-password");
+      }
     });
-  }, []);
+    return () => { cancelled = true; };
+  }, [setLocation]);
 
-  const login = useCallback((token: string, role?: string) => {
-    setToken(token);
-    if (role && typeof window !== "undefined") {
-      try { localStorage.setItem(ROLE_KEY, role); } catch { /* ignore */ }
-    }
+  const login = useCallback((_token?: string, role?: string) => {
+    const user = cachedUser || (role ? { id: "", username: "", email: "", role } : null);
+    if (user) establishAdminSession({ user });
     setState({
-      isAuthenticated: true,
+      isAuthenticated: !!user,
       isLoading: false,
-      token,
-      role: role ?? getRole(),
+      token: user ? "cookie-session" : null,
+      role: user?.role || null,
+      user,
     });
   }, []);
 
   const logout = useCallback(() => {
-    clearToken();
-    setState({
-      isAuthenticated: false,
-      isLoading: false,
-      token: null,
-      role: null,
+    void adminApiRequest("POST", "/api/admin/logout").finally(() => {
+      clearToken();
+      setState({ isAuthenticated: false, isLoading: false, token: null, role: null, user: null });
+      setLocation("/admin/login");
     });
-    setLocation("/admin/login");
   }, [setLocation]);
 
   const requireAuth = useCallback(() => {
@@ -145,38 +200,21 @@ export function useAdminAuth() {
       setLocation("/admin/login");
       return false;
     }
-    return true;
+    return state.isAuthenticated;
   }, [state.isLoading, state.isAuthenticated, setLocation]);
 
-  return {
-    ...state,
-    login,
-    logout,
-    requireAuth,
-  };
+  return { ...state, login, logout, requireAuth };
 }
 
-// Permisos EFECTIVOS del usuario (rol + concesiones extra), leídos de /api/admin/me.
-// Se usa para mostrar/ocultar secciones del panel con precisión. FAIL-OPEN: mientras carga
-// o si falla, `has()` devuelve true (el backend siempre re-valida, así que no hay riesgo real).
 export function useMyPermissions() {
-  const [perms, setPerms] = useState<string[] | null>(null);
+  const [permissions, setPermissions] = useState<string[] | null>(cachedUser?.permissions || null);
   useEffect(() => {
-    if (!getToken()) return;
     let cancelled = false;
-    (async () => {
-      try {
-        const res = await adminApiRequest("GET", "/api/admin/me");
-        if (!res.ok) return;
-        const data = await res.json();
-        if (!cancelled) setPerms(Array.isArray(data?.permissions) ? data.permissions : null);
-      } catch {
-        /* fail-open */
-      }
-    })();
+    loadAdminSession().then((user) => {
+      if (!cancelled) setPermissions(Array.isArray(user?.permissions) ? user.permissions : []);
+    });
     return () => { cancelled = true; };
   }, []);
-  // Aún sin cargar → true (fail-open). Cargado → comprobación real.
-  const has = useCallback((perm: string) => perms === null || perms.includes(perm), [perms]);
-  return { perms, has, loaded: perms !== null };
+  const has = useCallback((permission: string) => permissions?.includes(permission) === true, [permissions]);
+  return { perms: permissions, has, loaded: permissions !== null };
 }

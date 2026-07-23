@@ -1,0 +1,16 @@
+[extend]
+useDefault = true
+
+# Gitleaks interpreta el identificador CMS `ga4_measurement_id` como una clave
+# genérica. Es el nombre de un campo editable vacío, no el Measurement ID ni una
+# credencial. La excepción exige simultáneamente regla, ruta y secreto exactos.
+[[allowlists]]
+description = "GA4 CMS field identifier (not a credential)"
+targetRules = ["generic-api-key"]
+condition = "AND"
+regexTarget = "secret"
+regexes = ['''^ga4_measurement_id$''']
+paths = [
+  '''^server/mirror/siteConfig\.ts$''',
+  '''^client/src/pages/admin/AdminSiteConfig\.tsx$''',
+]

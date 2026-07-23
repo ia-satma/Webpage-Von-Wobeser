@@ -1,43 +1,31 @@
 // Batería de auditoría de SEGURIDAD (probes activos). Verifica cada hallazgo con un
 // ataque real y reporta PASA/FALLA. Idempotente: lo que muta, lo limpia vía DB.
 //
-// Uso:
-//   node scripts/audit-security.mjs                       (target=both, por defecto)
-//   node scripts/audit-security.mjs --target=local         (solo localhost)
-//   node scripts/audit-security.mjs --target=replit        (solo Replit — invasivas degradadas)
-//   node scripts/audit-security.mjs --ratelimit             (agrega fuerza bruta COMPLETA en local;
-//                                                             contra Replit SIEMPRE se limita a 2
-//                                                             intentos, nunca se agota el límite real)
-//
-// Local y Replit comparten la MISMA base de datos (Neon), así que un solo DATABASE_URL basta
-// para limpiar los datos de prueba sin importar contra cuál de los dos se hizo la petición HTTP.
+// Uso (EXCLUSIVAMENTE en un clon localhost con base sintética independiente):
+//   SECURITY_TEST_ISOLATED=true SECURITY_TEST_DATABASE_CONFIRMED=true \
+//   ADMIN_SESSION_COOKIE=... ADMIN_CSRF_TOKEN=... node scripts/audit-security.mjs
+//   Agregue --ratelimit únicamente si también desea la prueba completa de fuerza bruta.
+// El guard de arranque rechaza targets remotos y evita ejecutar esta batería por accidente
+// contra Replit/producción.
 import "dotenv/config";
 import { neon } from "@neondatabase/serverless";
+import { adminSessionHeaders, requireIsolatedSecurityTarget } from "./lib/admin-session.mjs";
 
-const ADMIN_USER = "admin@vonwobeser.com";
-const ADMIN_PASS = process.env.ADMIN_PASS || "VonWobeser2026!";
 const LOCAL_BASE = process.env.VERIFY_BASE || "http://localhost:5050";
-const REPLIT_BASE = process.env.REPLIT_BASE || "https://webpage-von-wobeser-2026.replit.app";
+requireIsolatedSecurityTarget(LOCAL_BASE);
+const ADMIN_HEADERS = adminSessionHeaders();
 const sql = neon(process.env.DATABASE_URL);
 const RATELIMIT = process.argv.includes("--ratelimit");
 
-const targetArg = (process.argv.find((a) => a.startsWith("--target=")) || "--target=both").split("=")[1];
-const TARGETS =
-  targetArg === "local" ? [{ name: "LOCAL", base: LOCAL_BASE, isLocal: true }] :
-  targetArg === "replit" ? [{ name: "REPLIT", base: REPLIT_BASE, isLocal: false }] :
-  [{ name: "LOCAL", base: LOCAL_BASE, isLocal: true }, { name: "REPLIT", base: REPLIT_BASE, isLocal: false }];
+const TARGETS = [{ name: "AISLADO", base: LOCAL_BASE, isLocal: true }];
 
 // Resultado global consolidado (todas las corridas, todos los entornos).
 const summary = []; // { env, pass, fail, issues: [] }
 
 async function login(B) {
-  const r = await fetch(B + "/api/admin/login", {
-    method: "POST", headers: { "content-type": "application/json" },
-    body: JSON.stringify({ username: ADMIN_USER, password: ADMIN_PASS }),
-  });
-  const j = await r.json().catch(() => ({}));
-  if (!j.token) throw new Error("No se pudo loguear admin (¿rate-limit activo de una corrida previa? espera o reinicia). " + JSON.stringify(j).slice(0, 80));
-  return j.token;
+  const r = await fetch(B + "/api/admin/session", { headers: ADMIN_HEADERS });
+  if (!r.ok) throw new Error(`La sesión administrativa aislada no es válida (${r.status})`);
+  return ADMIN_HEADERS;
 }
 
 // =====================================================================================
@@ -54,17 +42,15 @@ async function runAgainstTarget({ name, base: B, isLocal }) {
   const ok = (m) => { pass++; console.log("  ✅ " + m); };
   const bad = (m) => { fail++; issues.push(m); console.log("  ❌ " + m); };
 
-  let token;
+  let AH;
   try {
-    token = await login(B);
+    AH = await login(B);
   } catch (e) {
     console.log(`  ⚠️  No se pudo iniciar la corrida contra ${name}: ${e.message}`);
     console.log(`  ⚠️  Se omite este entorno por completo (no se ejecuta ningún probe contra él).`);
     summary.push({ env: name, pass: 0, fail: 0, issues: [`login falló, entorno omitido: ${e.message}`], skipped: true });
     return;
   }
-  const AH = { authorization: "Bearer " + token };
-
   // [1] Agentes sin auth → deben dar 401
   console.log("\n[1] Endpoints de agentes sin autenticación");
   for (const [m, p] of [["GET", "/api/agents/status"], ["POST", "/api/agents/processing/stop"], ["POST", "/api/agents/queue"]]) {
@@ -207,15 +193,15 @@ async function runAgainstTarget({ name, base: B, isLocal }) {
     const editorEmail = `audit-editor-${Date.now()}@test.local`;
     let editorId = null, editorToken = null;
     try {
-      const cr = await fetch(B + "/api/admin/users", { method: "POST", headers: { ...AH, "content-type": "application/json" }, body: JSON.stringify({ email: editorEmail, password: "Xx1!aaaabbbb", role: "editor" }) });
+      const cr = await fetch(B + "/api/admin/users", { method: "POST", headers: { ...AH, "content-type": "application/json" }, body: JSON.stringify({ email: editorEmail, role: "editor" }) });
       const cj = await cr.json().catch(() => ({}));
-      editorId = cj.id;
+      editorId = cj.user?.id;
       if (!editorId) { bad(`No se pudo crear usuario editor de prueba (${cr.status}) ${JSON.stringify(cj).slice(0, 100)}`); }
       else {
-        editorToken = await login2(B, editorEmail, "Xx1!aaaabbbb");
-        const ur = await fetch(B + "/api/admin/users", { headers: { authorization: "Bearer " + editorToken } });
-        if (ur.status === 403) ok("token de rol 'editor' → 403 en /api/admin/users (sin escalada)");
-        else bad(`token de rol 'editor' → ${ur.status} en /api/admin/users (ESPERABA 403 — posible escalada de privilegios)`);
+        editorToken = await login2(B, editorEmail, cj.temporaryPassword);
+        const ur = await fetch(B + "/api/admin/users", { headers: editorToken });
+        if (ur.status === 403 || ur.status === 428) ok(`sesión de rol 'editor' → ${ur.status} en /api/admin/users (sin escalada)`);
+        else bad(`sesión de rol 'editor' → ${ur.status} en /api/admin/users (ESPERABA 403/428 — posible escalada de privilegios)`);
       }
     } finally {
       if (editorId) await fetch(B + "/api/admin/users/" + editorId, { method: "DELETE", headers: AH }).catch(() => {});
@@ -333,8 +319,12 @@ async function login2(B, username, password) {
     body: JSON.stringify({ username, password }),
   });
   const j = await r.json().catch(() => ({}));
-  if (!j.token) throw new Error("login2 falló: " + JSON.stringify(j).slice(0, 100));
-  return j.token;
+  const setCookie = r.headers.get("set-cookie") || "";
+  const cookie = setCookie.split(";")[0];
+  if (!j.authenticated || !j.csrfToken || !cookie) {
+    throw new Error("login2 falló");
+  }
+  return { cookie, "x-csrf-token": j.csrfToken };
 }
 
 // =====================================================================================

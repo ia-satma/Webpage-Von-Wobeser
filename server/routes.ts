@@ -7,14 +7,14 @@ import express from "express";
 import path from "path";
 import fs from "fs";
 import crypto from "crypto";
+import net from "node:net";
 import multer from "multer";
-import rateLimit from "express-rate-limit";
 import { optimizeImageIfNeeded } from "./media/optimizeImage";
-import { sanitizeFields } from "./mirror/sanitize";
+import { sanitizeCms, sanitizeFields } from "./mirror/sanitize";
 import { getConfigMap } from "./mirror/siteConfig";
 
 // Global WebSocket clients map for pipeline progress updates
-const pipelineClients: Map<string, WebSocket> = new Map();
+const pipelineClients: Map<string, { ws: WebSocket; userId: string }> = new Map();
 
 export function broadcastPipelineProgress(articleId: string, data: {
   step: string;
@@ -27,9 +27,9 @@ export function broadcastPipelineProgress(articleId: string, data: {
   const payload = JSON.stringify({ articleId, ...data, timestamp: new Date().toISOString() });
   
   // Broadcast to all connected clients
-  pipelineClients.forEach((client, clientId) => {
-    if (client.readyState === WebSocket.OPEN) {
-      client.send(payload);
+  pipelineClients.forEach(({ ws }) => {
+    if (ws.readyState === WebSocket.OPEN) {
+      ws.send(payload);
     }
   });
 }
@@ -85,16 +85,57 @@ import {
 import {
   hashPassword,
   comparePassword,
+  passwordNeedsRehash,
+  validateNewPassword,
+  generateTemporaryPassword,
   generateToken,
+  hashOpaqueToken,
+  deriveCsrfToken,
   getSessionExpiry,
+  getAbsoluteSessionExpiry,
   checkRateLimit,
   recordLoginAttempt,
+  checkSharedRateLimit,
+  recordSharedRateLimitAttempt,
+  SESSION_COOKIE,
+  CHALLENGE_COOKIE,
+  authCookieOptions,
+  clearAuthCookie,
+  readCookie,
+  resolveAdminSession,
   authMiddleware,
   requireRole,
   requirePermission,
   effectivePermissions,
   sanitizeGrants,
 } from "./auth";
+import {
+  consumeRecoveryCode,
+  decryptTotpSecret,
+  encryptTotpSecret,
+  generateRecoveryCodes,
+  generateTotpSecret,
+  isMfaConfigured,
+  totpAuthUrl,
+  verifyTotp,
+} from "./security/mfa";
+import {
+  acceptQuarantinedPublicMedia,
+  acceptQuarantinedCv,
+  cleanExpiredPrivatePresentationInputs,
+  cvQuarantineDir,
+  ensurePrivateUploadDirectories,
+  privatePresentationDir,
+  publicMediaQuarantineDir,
+  removeUploadQuietly,
+  resolvePrivateCvStoragePath,
+  scanFileForMalware,
+  securePhysicalFilename,
+  validateCvFile,
+  validatePresentationInput,
+  validatePublicMediaSignature,
+} from "./security/uploads";
+import { escapeCsvCell } from "./security/csv";
 
 function apiError(res: Response, status: number, message: string, details?: unknown): void {
   const body: Record<string, unknown> = { error: message };
@@ -125,6 +166,41 @@ if (!fs.existsSync(uploadsDir)) {
   fs.mkdirSync(uploadsDir, { recursive: true });
 }
 
+export async function runSecurityMaintenance(): Promise<{
+  sessions: number;
+  loginEvents: number;
+  contactSubmissions: number;
+  careerApplications: number;
+  presentationInputs: number;
+}> {
+  const sessions = await storage.cleanExpiredSessions();
+  const security = await storage.cleanExpiredSecurityRecords();
+  const contactSubmissions = await storage.deleteExpiredContactSubmissions();
+  const expiredCareers = await storage.getExpiredCareerApplications();
+  for (const application of expiredCareers) {
+    const privatePath = resolvePrivateCvStoragePath(application.cvPath);
+    if (privatePath) {
+      await removeUploadQuietly(privatePath);
+      continue;
+    }
+    if (application.cvPath.startsWith("/uploads/")) {
+      const legacyPath = path.resolve(uploadsDir, path.basename(application.cvPath));
+      if (path.dirname(legacyPath) === path.resolve(uploadsDir)) {
+        await removeUploadQuietly(legacyPath);
+      }
+    }
+  }
+  const careerApplications = await storage.deleteCareerApplications(expiredCareers.map((item) => item.id));
+  const presentationInputs = await cleanExpiredPrivatePresentationInputs();
+  return {
+    sessions,
+    loginEvents: security.loginEvents,
+    contactSubmissions,
+    careerApplications,
+    presentationInputs,
+  };
+}
+
 // La extensión con la que se guarda cada archivo se deriva SOLO del MIME ya validado por
 // fileFilter — nunca de file.originalname (controlado por quien sube el archivo). Antes se
 // usaba path.extname(file.originalname), lo que permitía subir un archivo con Content-Type
@@ -149,15 +225,14 @@ const MIME_TO_EXT: Record<string, string> = {
 };
 
 function safeUploadFilename(file: Express.Multer.File): string {
-  const uniqueSuffix = crypto.randomBytes(8).toString("hex");
   const ext = MIME_TO_EXT[file.mimetype] || ".bin";
-  return `${Date.now()}-${uniqueSuffix}${ext}`;
+  return securePhysicalFilename(ext);
 }
 
 const upload = multer({
   storage: multer.diskStorage({
     destination: (_req, _file, cb) => {
-      cb(null, uploadsDir);
+      cb(null, publicMediaQuarantineDir);
     },
     filename: (_req, file, cb) => {
       cb(null, safeUploadFilename(file));
@@ -165,6 +240,9 @@ const upload = multer({
   }),
   limits: {
     fileSize: 200 * 1024 * 1024, // 200MB (permite videos del hero)
+    files: 1,
+    fields: 10,
+    fieldSize: 10 * 1024,
   },
   fileFilter: (_req, file, cb) => {
     const allowedMimes = [
@@ -196,7 +274,7 @@ const upload = multer({
 const cvUpload = multer({
   storage: multer.diskStorage({
     destination: (_req, _file, cb) => {
-      cb(null, uploadsDir);
+      cb(null, cvQuarantineDir);
     },
     filename: (_req, file, cb) => {
       cb(null, safeUploadFilename(file));
@@ -204,6 +282,10 @@ const cvUpload = multer({
   }),
   limits: {
     fileSize: 10 * 1024 * 1024, // 10MB basta para un CV
+    files: 1,
+    fields: 10,
+    fieldSize: 8 * 1024,
+    parts: 12,
   },
   fileFilter: (_req, file, cb) => {
     const allowedMimes = [
@@ -231,7 +313,7 @@ const PRESENTATION_DOC_EXTS = new Set([".pdf", ".doc", ".docx", ".ppt", ".pptx",
 const presentationDocUpload = multer({
   storage: multer.diskStorage({
     destination: (_req, _file, cb) => {
-      cb(null, uploadsDir);
+      cb(null, privatePresentationDir);
     },
     filename: (_req, file, cb) => {
       cb(null, safeUploadFilename(file));
@@ -239,10 +321,15 @@ const presentationDocUpload = multer({
   }),
   limits: {
     fileSize: 30 * 1024 * 1024, // 30MB
+    files: 1,
+    fields: 2,
+    fieldSize: 4 * 1024,
   },
   fileFilter: (_req, file, cb) => {
     const ext = path.extname(file.originalname || "").toLowerCase();
-    if (PRESENTATION_DOC_EXTS.has(ext)) {
+    const baseWithoutExtension = path.basename(file.originalname || "", ext);
+    const disguisedExecutable = /\.(exe|html?|js|svg|php|sh|bat|cmd|com|scr|jar)$/i.test(baseWithoutExtension);
+    if (PRESENTATION_DOC_EXTS.has(ext) && !disguisedExecutable) {
       cb(null, true);
     } else {
       const e: any = new Error("Invalid file type");
@@ -253,10 +340,23 @@ const presentationDocUpload = multer({
 });
 
 function generateVCard(member: any, language: "es" | "en" = "es"): string {
-  const title = language === "es" ? member.titleEs : member.title;
-  const role = language === "es" ? member.roleEs : member.role;
+  const vcardText = (value: unknown) => String(value ?? "")
+    .replace(/\\/g, "\\\\")
+    .replace(/\r?\n/g, "\\n")
+    .replace(/;/g, "\\;")
+    .replace(/,/g, "\\,");
+  const safeUri = (value: unknown): string | null => {
+    try {
+      const url = new URL(String(value ?? ""), "https://www.vonwobeser.com");
+      return ["http:", "https:"].includes(url.protocol) ? url.toString() : null;
+    } catch {
+      return null;
+    }
+  };
+  const title = vcardText(language === "es" ? member.titleEs : member.title);
+  const role = vcardText(language === "es" ? member.roleEs : member.role);
   
-  const safeName = member.name || member.slug?.replace(/-/g, ' ') || 'Unknown';
+  const safeName = vcardText(member.name || member.slug?.replace(/-/g, ' ') || 'Unknown');
   const nameParts = safeName.split(/\s+/);
   const firstName = nameParts[0] || '';
   const lastName = nameParts.slice(1).join(' ') || '';
@@ -272,22 +372,26 @@ function generateVCard(member: any, language: "es" | "en" = "es"): string {
   ];
   
   if (member.email) {
-    lines.push(`EMAIL;TYPE=WORK:${member.email}`);
+    const email = String(member.email).replace(/[\r\n]/g, "").trim();
+    if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) lines.push(`EMAIL;TYPE=WORK:${email}`);
   }
   
   if (member.phone) {
-    lines.push(`TEL;TYPE=WORK,VOICE:${member.phone}`);
+    const phone = String(member.phone).replace(/[^\d+().\s-]/g, "").slice(0, 40);
+    if (phone) lines.push(`TEL;TYPE=WORK,VOICE:${phone}`);
   }
   
   lines.push(`ADR;TYPE=WORK:;;Torre SOMA Chapultepec Piso 18, Campos Elíseos 204;Ciudad de México;CDMX;11560;México`);
   lines.push(`URL:https://www.vonwobeser.com`);
   
-  if (member.linkedinUrl) {
-    lines.push(`X-SOCIALPROFILE;TYPE=linkedin:${member.linkedinUrl}`);
+  const linkedinUrl = safeUri(member.linkedinUrl);
+  if (linkedinUrl) {
+    lines.push(`X-SOCIALPROFILE;TYPE=linkedin:${linkedinUrl}`);
   }
   
-  if (member.imageUrl) {
-    lines.push(`PHOTO;VALUE=URI:${member.imageUrl}`);
+  const imageUrl = safeUri(member.imageUrl);
+  if (imageUrl) {
+    lines.push(`PHOTO;VALUE=URI:${imageUrl}`);
   }
   
   lines.push('END:VCARD');
@@ -299,19 +403,38 @@ export async function registerRoutes(
   httpServer: Server,
   app: Express
 ): Promise<Server> {
-  // Compatibilidad con bases existentes de Replit/Neon creadas antes de que el
-  // Newsletter guardara trazabilidad de consentimiento. Es idempotente y no
-  // modifica ni elimina registros previos.
-  await db.execute(sql`ALTER TABLE newsletter_subscribers ADD COLUMN IF NOT EXISTS consented_at timestamp`);
-  await db.execute(sql`ALTER TABLE newsletter_subscribers ADD COLUMN IF NOT EXISTS source text DEFAULT 'home'`);
-  await seed();
+  await ensurePrivateUploadDirectories();
+  if (process.env.SECURITY_READ_ONLY_SMOKE !== "true") {
+    await seed();
+  }
+
+  // Todas las rutas que llaman `:id` usan claves UUID de PostgreSQL. Validarlas
+  // una sola vez evita consultas innecesarias, errores 500 e inputs ambiguos.
+  app.param("id", (req: Request, res: Response, next: NextFunction, value: string) => {
+    if (!z.string().uuid().safeParse(value).success) {
+      return res.status(400).json({ error: "Invalid identifier" });
+    }
+    next();
+  });
+  app.param("teamMemberId", (req: Request, res: Response, next: NextFunction, value: string) => {
+    if (!z.string().uuid().safeParse(value).success) {
+      return res.status(400).json({ error: "Invalid identifier" });
+    }
+    next();
+  });
+  app.param("articleId", (req: Request, res: Response, next: NextFunction, value: string) => {
+    if (!z.string().uuid().safeParse(value).success) {
+      return res.status(400).json({ error: "Invalid identifier" });
+    }
+    next();
+  });
 
   // Setup WebSocket server for pipeline progress updates
   const wss = new WebSocketServer({ server: httpServer, path: '/ws/pipeline' });
   
   // Heartbeat to detect stale connections
   const heartbeatInterval = setInterval(() => {
-    pipelineClients.forEach((ws, clientId) => {
+    pipelineClients.forEach(({ ws }, clientId) => {
       if (ws.readyState !== WebSocket.OPEN) {
         pipelineClients.delete(clientId);
         return;
@@ -329,27 +452,52 @@ export async function registerRoutes(
     clearInterval(heartbeatInterval);
   });
   
-  wss.on('connection', (ws, req) => {
-    const clientId = crypto.randomBytes(8).toString('hex');
-    pipelineClients.set(clientId, ws);
-    console.log(`[WebSocket] Pipeline client connected: ${clientId}`);
-    
-    ws.on('close', () => {
-      pipelineClients.delete(clientId);
-      console.log(`[WebSocket] Pipeline client disconnected: ${clientId}`);
-    });
-    
-    ws.on('error', (error) => {
-      console.error(`[WebSocket] Client error ${clientId}:`, error);
-      pipelineClients.delete(clientId);
-    });
+  wss.on('connection', async (ws, req) => {
+    try {
+      const origin = req.headers.origin;
+      const host = req.headers.host;
+      if (!origin || !host || new URL(origin).host !== host) {
+        ws.close(1008, "Origin not allowed");
+        return;
+      }
+      const resolved = await resolveAdminSession(req as unknown as Request);
+      if (!resolved || resolved.user.mustChangePassword) {
+        ws.close(1008, "Authentication required");
+        return;
+      }
+      if ((resolved.user.role === "super_admin" || resolved.user.role === "admin") && !resolved.session.mfaVerified) {
+        ws.close(1008, "MFA required");
+        return;
+      }
+      const currentConnections = Array.from(pipelineClients.values())
+        .filter((client) => client.userId === resolved.user.id).length;
+      if (currentConnections >= 3) {
+        ws.close(1008, "Connection limit reached");
+        return;
+      }
 
-    ws.on('pong', () => {
-      // Client is alive, nothing to do
-    });
-    
-    // Send initial connection confirmation
-    ws.send(JSON.stringify({ type: 'connected', clientId }));
+      const clientId = crypto.randomBytes(8).toString('hex');
+      pipelineClients.set(clientId, { ws, userId: resolved.user.id });
+      console.log(`[WebSocket] Pipeline client connected: ${clientId}`);
+
+      ws.on('close', () => {
+        pipelineClients.delete(clientId);
+        console.log(`[WebSocket] Pipeline client disconnected: ${clientId}`);
+      });
+
+      ws.on('error', () => {
+        console.error(`[WebSocket] Client error ${clientId}`);
+        pipelineClients.delete(clientId);
+      });
+
+      ws.on('pong', () => {
+        // Client is alive, nothing to do
+      });
+
+      ws.send(JSON.stringify({ type: 'connected', clientId }));
+    } catch {
+      ws.close(1011, "Connection rejected");
+    }
   });
 
   // Serve partner photos from attached_assets/partner_photos
@@ -526,21 +674,22 @@ export async function registerRoutes(
       const clientIp = forwardedFor
         ? (Array.isArray(forwardedFor) ? forwardedFor[0] : forwardedFor.split(",")[0].trim())
         : req.socket.remoteAddress || req.ip;
+      const normalizedClientIp = String(clientIp || "").replace(/^::ffff:/, "");
 
       // Skip geolocation for localhost/private IPs — use Accept-Language then English
-      if (!clientIp || isPrivateIp(clientIp)) {
+      if (!net.isIP(normalizedClientIp) || isPrivateIp(normalizedClientIp)) {
         const fromHeader = parseAcceptLanguage(req.headers["accept-language"]);
         return res.json({ language: fromHeader || "en", country: null, source: fromHeader ? "accept-language" : "fallback" });
       }
 
       // Check cache first
-      const cached = geoCache.get(clientIp);
+      const cached = geoCache.get(normalizedClientIp);
       if (cached && Date.now() - cached.timestamp < GEO_CACHE_TTL) {
         return res.json({ language: cached.language, country: cached.country, source: "cache" });
       }
 
       // HTTPS geolocation via ipapi.co (free tier, no key required)
-      const geoResponse = await fetch(`https://ipapi.co/${clientIp}/json/`, {
+      const geoResponse = await fetch(`https://ipapi.co/${encodeURIComponent(normalizedClientIp)}/json/`, {
         signal: AbortSignal.timeout(3000),
       });
 
@@ -564,7 +713,7 @@ export async function registerRoutes(
         return res.json({ language: fromHeader || "en", country: countryCode, source: fromHeader ? "accept-language" : "fallback" });
       }
 
-      geoCache.set(clientIp, { language: mapped, country: countryCode, timestamp: Date.now() });
+      geoCache.set(normalizedClientIp, { language: mapped, country: countryCode, timestamp: Date.now() });
 
       res.json({ language: mapped, country: countryCode, source: "geolocation" });
     } catch (error) {
@@ -578,7 +727,7 @@ export async function registerRoutes(
     try {
       const allNews = await storage.getNews();
       const now = new Date();
-      const news = allNews.filter(n => !n.publishAt || new Date(n.publishAt) <= now);
+      const news = allNews.filter(n => n.published === true && (!n.publishAt || new Date(n.publishAt) <= now));
       res.json(news);
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch news" });
@@ -721,27 +870,73 @@ export async function registerRoutes(
   });
 
   // --- Generador de Presentaciones (14° agente) ---------------------------------------------
-  // Subida de un documento de insumo (.pdf/.docx/.pptx/.tex/...). Devuelve la URL bajo /uploads
-  // y el nombre original (el parser usa la extensión del nombre original para elegir el lector).
-  app.post("/api/admin/presentations/upload", authMiddleware, requirePermission("agents"), presentationDocUpload.single("file"), (req: Request, res: Response) => {
+  // Los documentos de insumo no se exponen bajo /uploads; el identificador private:
+  // solamente vuelve al servidor cuando el administrador solicita generar la presentación.
+  app.post("/api/admin/presentations/upload", authMiddleware, requirePermission("agents"), presentationDocUpload.single("file"), async (req: Request, res: Response) => {
     if (!req.file) return res.status(400).json({ error: "No se recibió ningún archivo" });
-    res.json({ url: `/uploads/${req.file.filename}`, name: req.file.originalname });
+    try {
+      if (!await validatePresentationInput(req.file.path, req.file.originalname)) {
+        await removeUploadQuietly(req.file.path);
+        return res.status(400).json({ error: "El contenido del documento no coincide con un formato permitido." });
+      }
+      await scanFileForMalware(req.file.path);
+      res.json({
+        url: `private:presentations/${req.file.filename}`,
+        name: path.basename(req.file.originalname).replace(/[\u0000-\u001f\u007f]/g, "").slice(0, 180),
+      });
+    } catch {
+      await removeUploadQuietly(req.file.path);
+      res.status(500).json({ error: "No fue posible validar el documento." });
+    }
   });
 
   // Genera la presentación: extrae el texto de los documentos subidos, estructura con IA (o cae a
   // un esquema determinista si no hay créditos), y renderiza PPTX/PDF/PNG con branding.
   app.post("/api/admin/presentations/generate", authMiddleware, requirePermission("agents"), async (req: Request, res: Response) => {
     try {
-      const { topic, docs, slideCount, lang, template, branding, customLogoUrl, customPrimaryColor, formats, visuals, illustrate, supportImages, webSearch } = req.body || {};
+      const parsed = z.object({
+        topic: z.string().trim().max(2_000).default(""),
+        docs: z.array(z.object({
+          url: z.string().regex(/^private:presentations\/[a-f0-9]{32}\.[a-z0-9]{1,5}$/),
+          name: z.string().trim().min(1).max(180),
+        }).strict()).max(10).default([]),
+        slideCount: z.coerce.number().int().min(3).max(25).default(8),
+        lang: z.enum(["es", "en"]).default("es"),
+        template: z.enum(["vonwobeser", "minimal", "dark"]).default("vonwobeser"),
+        branding: z.enum(["vonwobeser", "custom"]).default("vonwobeser"),
+        customLogoUrl: z.string().regex(/^\/(?:uploads|generated-images)\/[A-Za-z0-9._-]+$/).nullable().optional(),
+        customPrimaryColor: z.string().regex(/^#[0-9a-fA-F]{6}$/).nullable().optional(),
+        formats: z.array(z.enum(["pptx", "pdf", "png"])).min(1).max(3).default(["pptx", "pdf", "png"]),
+        visuals: z.boolean().default(true),
+        illustrate: z.boolean().default(false),
+        supportImages: z.array(z.string().regex(/^\/(?:uploads|generated-images)\/[A-Za-z0-9._-]+$/)).max(25).default([]),
+        webSearch: z.boolean().default(false),
+      }).strict().safeParse(req.body);
+      if (!parsed.success) return res.status(400).json({ error: "Configuración de presentación inválida." });
+      const {
+        topic,
+        docs,
+        slideCount,
+        lang,
+        template,
+        branding,
+        customLogoUrl,
+        customPrimaryColor,
+        formats,
+        visuals,
+        illustrate,
+        supportImages,
+        webSearch,
+      } = parsed.data;
 
       let documentsText = "";
       let usedDocs: string[] = [];
       let docNotes: string[] = [];
-      if (Array.isArray(docs) && docs.length > 0) {
+      if (docs.length > 0) {
         const files = docs
-          .map((d: any) => ({
-            path: path.join(uploadsDir, path.basename(String(d?.url || ""))),
-            originalName: typeof d?.name === "string" ? d.name : undefined,
+          .map((document) => ({
+            path: path.join(privatePresentationDir, path.basename(document.url)),
+            originalName: document.name,
           }))
           .filter((f) => f.path && fs.existsSync(f.path));
         const extracted = await extractManyTexts(files);
@@ -907,9 +1102,13 @@ export async function registerRoutes(
   // Búsqueda de abogados: ?q=nombre&position=partners|of-counsel|counsel|associates&practice=slug
   app.get("/api/team/search", async (req, res) => {
     try {
-      const q = (req.query.q as string) || undefined;
-      const position = (req.query.position as string) || undefined;
-      const practiceSlug = (req.query.practice as string) || undefined;
+      const parsed = z.object({
+        q: z.string().trim().max(160).optional(),
+        position: z.enum(["partners", "of-counsel", "counsel", "associates"]).optional(),
+        practice: z.string().trim().regex(/^[a-z0-9-]{1,160}$/).optional(),
+      }).safeParse(req.query);
+      if (!parsed.success) return res.status(400).json({ error: "Invalid search parameters" });
+      const { q, position, practice: practiceSlug } = parsed.data;
 
       const title = position && ATTORNEY_CATEGORIES[position] ? ATTORNEY_CATEGORIES[position].title : undefined;
       let practiceGroupId: string | undefined;
@@ -963,6 +1162,8 @@ export async function registerRoutes(
       
       res.setHeader('Content-Type', 'text/vcard; charset=utf-8');
       res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+      res.setHeader("X-Content-Type-Options", "nosniff");
+      res.setHeader("Cache-Control", "no-store");
       res.send(vcard);
     } catch (error) {
       res.status(500).json({ error: "Failed to generate vCard" });
@@ -977,7 +1178,7 @@ export async function registerRoutes(
       if (!member || !isPubliclyVisible(member)) {
         return res.status(404).json({ error: "Team member not found" });
       }
-      const newsList = await storage.getNewsByTeamMemberId(member.id);
+      const newsList = (await storage.getNewsByTeamMemberId(member.id)).filter(isNewsPubliclyVisible);
       res.json(newsList);
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch news for team member" });
@@ -987,13 +1188,26 @@ export async function registerRoutes(
   // Rate-limit para los 2 formularios PÚBLICOS sin login (contacto y pasantes) — antes no
   // tenían ningún límite de tasa, a diferencia del login. 10 envíos / 15 min por IP basta para
   // uso legítimo (un visitante no manda 10 formularios en 15 min) y frena spam/abuso masivo.
-  const publicFormLimiter = rateLimit({
+  const PUBLIC_FORM_POLICY = {
+    maxAttempts: 10,
     windowMs: 15 * 60 * 1000,
-    limit: 10,
-    standardHeaders: true,
-    legacyHeaders: false,
-    message: { error: "Demasiados envíos, intenta de nuevo más tarde." },
-  });
+    blockDurationMs: 15 * 60 * 1000,
+  };
+  const publicFormLimiter = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const identifier = req.ip || req.socket.remoteAddress || "unknown";
+      const status = await checkSharedRateLimit("public-form", identifier, PUBLIC_FORM_POLICY);
+      if (!status.allowed) {
+        res.setHeader("Retry-After", String(status.retryAfter || 60));
+        return res.status(429).json({ error: "Demasiados envíos, intenta de nuevo más tarde." });
+      }
+      await recordSharedRateLimitAttempt("public-form", identifier, PUBLIC_FORM_POLICY);
+      next();
+    } catch (error) {
+      console.error("Public form rate limit error:", error);
+      res.status(503).json({ error: "No fue posible procesar el envío en este momento." });
+    }
+  };
 
   app.post("/api/contact", publicFormLimiter, async (req, res) => {
     try {
@@ -1026,7 +1240,7 @@ export async function registerRoutes(
 
       const submission = await storage.createContactSubmission(sanitizedData);
 
-      console.log(`[Contact] New submission from ${sanitizedData.fullName} <${sanitizedData.email}> saved with id ${submission.id}`);
+      console.log(`[Contact] New submission saved with id ${submission.id}`);
 
       res.json({ success: true, message: "Contact form submitted successfully" });
     } catch (error) {
@@ -1085,25 +1299,37 @@ export async function registerRoutes(
   // ningún lado). Los campos del multipart (name, l_name, mail, tel, comment, accept)
   // vienen tal cual del HTML original capturado; se mapean a las columnas de career_applications.
   app.post("/api/career-applications", publicFormLimiter, cvUpload.single("uploaded_file"), async (req, res) => {
+    let acceptedCvPath: string | undefined;
     try {
       const bodySchema = z.object({
-        name: z.string().min(1),
-        l_name: z.string().min(1),
-        mail: z.string().email(),
-        tel: z.string().optional(),
-        comment: z.string().optional(),
-        accept: z.string().optional(),
-      });
+        name: z.string().trim().min(1).max(120),
+        l_name: z.string().trim().min(1).max(120),
+        mail: z.string().trim().email().max(254),
+        tel: z.string().trim().max(32).optional(),
+        comment: z.string().trim().max(2_000).optional(),
+        accept: z.string().min(1),
+      }).strict();
       const validationResult = bodySchema.safeParse(req.body);
       if (!validationResult.success) {
-        return res.status(400).json({ error: "Validation failed", details: validationResult.error.errors });
+        await removeUploadQuietly(req.file?.path);
+        return res.status(400).json({ error: "Revisa los campos obligatorios y el Aviso de Privacidad." });
       }
       if (!req.file) {
         return res.status(400).json({ error: "Adjunta tu CV (PDF, DOC o DOCX)." });
       }
+      if (!await validateCvFile(req.file.path, req.file.mimetype)) {
+        await removeUploadQuietly(req.file.path);
+        return res.status(400).json({ error: "El contenido del archivo no corresponde a un PDF, DOC o DOCX válido." });
+      }
+      await scanFileForMalware(req.file.path);
+      const acceptedCv = await acceptQuarantinedCv(req.file.path, req.file.mimetype);
+      acceptedCvPath = acceptedCv.absolutePath;
 
       const data = validationResult.data;
       const sanitize = (str: string) => str.replace(/<[^>]*>/g, "").trim();
+      const safeOriginalName = path.basename(req.file.originalname)
+        .replace(/[\u0000-\u001f\u007f]/g, "")
+        .slice(0, 180);
 
       const application = await storage.createCareerApplication({
         firstName: sanitize(data.name),
@@ -1111,9 +1337,9 @@ export async function registerRoutes(
         email: data.mail.trim().toLowerCase(),
         phone: data.tel ? sanitize(data.tel) : undefined,
         address: data.comment ? sanitize(data.comment) : undefined,
-        cvPath: `/uploads/${req.file.filename}`,
-        cvOriginalName: req.file.originalname,
-        acceptedPrivacy: !!data.accept,
+        cvPath: acceptedCv.storagePath,
+        cvOriginalName: safeOriginalName,
+        acceptedPrivacy: true,
         ipAddress: (() => {
           const fwd = req.headers["x-forwarded-for"];
           const raw = Array.isArray(fwd) ? fwd[0] : fwd;
@@ -1121,12 +1347,14 @@ export async function registerRoutes(
         })(),
       });
 
-      console.log(`[CareerApplications] New submission from ${application.firstName} ${application.lastName} <${application.email}> saved with id ${application.id}`);
+      console.log(`[CareerApplications] Submission saved with id ${application.id}`);
 
       res.json({ success: true, message: "Application submitted successfully" });
     } catch (error) {
-      console.error("Career application error:", error);
-      res.status(500).json({ error: "Failed to process career application" });
+      await removeUploadQuietly(req.file?.path);
+      await removeUploadQuietly(acceptedCvPath);
+      console.error("Career application processing failed");
+      res.status(500).json({ error: "No fue posible procesar la solicitud." });
     }
   });
 
@@ -1163,7 +1391,9 @@ export async function registerRoutes(
 
   app.get("/api/events/upcoming", async (req, res) => {
     try {
-      const limit = parseInt(req.query.limit as string) || 4;
+      const parsed = z.coerce.number().int().min(1).max(50).default(4).safeParse(req.query.limit);
+      if (!parsed.success) return res.status(400).json({ error: "Invalid limit" });
+      const limit = parsed.data;
       const eventsList = await storage.getUpcomingEvents(limit);
       res.json(eventsList);
     } catch (error) {
@@ -1185,7 +1415,9 @@ export async function registerRoutes(
 
   app.get("/api/search", async (req, res) => {
     try {
-      const query = (req.query.q as string || '').toLowerCase().trim();
+      const parsed = z.string().trim().max(200).safeParse(req.query.q || "");
+      if (!parsed.success) return res.status(400).json({ error: "Invalid search" });
+      const query = parsed.data.toLowerCase();
       if (!query || query.length < 2) {
         return res.json({ team: [], practiceGroups: [], industryGroups: [], news: [] });
       }
@@ -1380,69 +1612,130 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
     }
   });
 
-  // Serve uploaded files
+  // Los CV históricos que alguna vez quedaron en /uploads tampoco se exponen sin
+  // autenticación. Se siguen pudiendo descargar desde el endpoint administrativo.
+  app.use("/uploads", async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const publicPath = `/uploads/${path.basename(req.path)}`;
+      if (await storage.getCareerApplicationByCvPath(publicPath)) {
+        return res.status(404).end();
+      }
+      next();
+    } catch {
+      res.status(404).end();
+    }
+  });
+
+  // Serve approved public media
   app.use('/uploads', express.static(uploadsDir, {
     maxAge: '1d',
     immutable: true,
+    setHeaders: (res) => {
+      res.setHeader("X-Content-Type-Options", "nosniff");
+      res.setHeader("Content-Security-Policy", "sandbox");
+    },
   }));
 
   // =============================================
   // ADMIN ROUTES
   // =============================================
 
-  // Admin Initialization (create first admin user)
-  app.post("/api/admin/init", async (req: Request, res: Response) => {
-    try {
-      // Validate input
-      const validation = adminLoginSchema.safeParse(req.body);
-      if (!validation.success) {
-        return res.status(400).json({ 
-          error: "Invalid input", 
-          details: validation.error.errors 
-        });
-      }
-
-      const { username, password } = validation.data;
-
-      // /init es SOLO para el primer setup: si ya existe CUALQUIER admin, se bloquea
-      // (si no, cualquiera podría crear un super_admin nuevo con otro email).
-      if ((await storage.countAdminUsers()) > 0) {
-        return res.status(403).json({ error: "Initialization disabled: an admin already exists" });
-      }
-
-      const passwordHash = await hashPassword(password);
-      const existingUser = await storage.getAdminUserByEmail(username);
-      if (existingUser) {
-        return res.status(403).json({ error: "Admin user with this email already exists" });
-      }
-
-      // Create the first admin user
-      const user = await storage.createAdminUser({
-        username: username.split('@')[0],
-        email: username,
-        passwordHash,
-        role: "super_admin",
-        isActive: true,
-      });
-
-      res.json({
-        success: true,
-        message: "Admin user created successfully",
-        user: {
-          id: user.id,
-          email: user.email,
-          role: user.role,
-        },
-      });
-    } catch (error) {
-      console.error("Init error:", error);
-      res.status(500).json({ error: "Initialization failed" });
-    }
+  // No existe un endpoint público de inicialización. El primer Dueño se crea
+  // exclusivamente desde ADMIN_EMAIL + ADMIN_BOOTSTRAP_PASSWORD en Replit Secrets.
+  app.all("/api/admin/init", (_req: Request, res: Response) => {
+    res.status(410).json({ error: "Initialization endpoint retired" });
   });
 
-  // Admin Login
-  app.post("/api/admin/login", async (req: Request, res: Response) => {
+  const dummyPasswordHash = await hashPassword("TimingOnly!9vQ2xK7mP4zR");
+  const privilegedRole = (role: string) => role === "super_admin" || role === "admin";
+  const requireSameOrigin = (req: Request, res: Response, next: NextFunction) => {
+    const fetchSite = req.header("sec-fetch-site");
+    if (fetchSite === "cross-site") {
+      return res.status(403).json({ error: "Origin not allowed", code: "ORIGIN_INVALID" });
+    }
+    const origin = req.header("origin");
+    if (!origin) return next(); // CLI, app nativa y pruebas autorizadas no siempre lo envían.
     try {
+      const host = req.header("host");
+      if (!host || new URL(origin).host !== host) {
+        return res.status(403).json({ error: "Origin not allowed", code: "ORIGIN_INVALID" });
+      }
+      next();
+    } catch {
+      return res.status(403).json({ error: "Origin not allowed", code: "ORIGIN_INVALID" });
+    }
+  };
+
+  const createAuthenticatedSession = async (
+    res: Response,
+    user: { id: string; username: string; email: string; role: string; mustChangePassword?: boolean | null },
+    ipAddress: string,
+    userAgent: string | null,
+    mfaVerified: boolean,
+  ) => {
+    const rawToken = generateToken();
+    const csrfToken = deriveCsrfToken(rawToken);
+    await storage.createAdminSession({
+      userId: user.id,
+      tokenHash: hashOpaqueToken(rawToken),
+      csrfTokenHash: hashOpaqueToken(csrfToken),
+      expiresAt: getSessionExpiry(),
+      absoluteExpiresAt: getAbsoluteSessionExpiry(),
+      lastSeenAt: new Date(),
+      mfaVerified,
+      ipAddress,
+      userAgent,
+    });
+    res.cookie(SESSION_COOKIE, rawToken, authCookieOptions(8 * 60 * 60 * 1000));
+    return {
+      csrfToken,
+      user: {
+        id: user.id,
+        username: user.username,
+        email: user.email,
+        role: user.role,
+        mustChangePassword: user.mustChangePassword === true,
+      },
+    };
+  };
+
+  const createLoginChallenge = async (
+    res: Response,
+    userId: string,
+    purpose: "mfa" | "enroll",
+  ) => {
+    await storage.deleteAdminAuthChallengesByUserId(userId);
+    const rawToken = generateToken();
+    await storage.createAdminAuthChallenge({
+      userId,
+      tokenHash: hashOpaqueToken(rawToken),
+      purpose,
+      attempts: 0,
+      expiresAt: new Date(Date.now() + 10 * 60 * 1000),
+    });
+    res.cookie(CHALLENGE_COOKIE, rawToken, authCookieOptions(10 * 60 * 1000));
+  };
+
+  const resolveLoginChallenge = async (req: Request, res: Response) => {
+    const rawToken = readCookie(req, CHALLENGE_COOKIE);
+    if (!rawToken) return null;
+    const tokenHash = hashOpaqueToken(rawToken);
+    const challenge = await storage.getAdminAuthChallenge(tokenHash);
+    if (!challenge || challenge.expiresAt < new Date() || challenge.attempts >= 5) {
+      if (challenge) await storage.deleteAdminAuthChallenge(tokenHash);
+      clearAuthCookie(res, CHALLENGE_COOKIE);
+      return null;
+    }
+    const user = await storage.getAdminUser(challenge.userId);
+    if (!user?.isActive) return null;
+    return { rawToken, tokenHash, challenge, user };
+  };
+
+  // Admin Login: nunca devuelve el token de sesión. La sesión final viaja
+  // exclusivamente en una cookie HttpOnly, después de MFA cuando corresponde.
+  app.post("/api/admin/login", requireSameOrigin, async (req: Request, res: Response) => {
+    try {
+      res.setHeader("Cache-Control", "no-store");
       const ip = req.ip || req.socket.remoteAddress || "unknown";
       const userAgent = req.headers["user-agent"] || null;
 
@@ -1450,30 +1743,41 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
       // Envuelto para que un fallo del log jamás rompa el inicio de sesión.
       const logLogin = async (email: string, success: boolean, userId: string | null = null) => {
         try {
-          await storage.recordLoginEvent({ userId, email: String(email).slice(0, 255), success, ipAddress: ip, userAgent });
+          const identifierHash = hashOpaqueToken(`login:${String(email).trim().toLowerCase()}`);
+          const ipHash = hashOpaqueToken(`ip:${ip}`);
+          await storage.recordLoginEvent({
+            userId,
+            // Nombre histórico de columna; contiene un hash SHA-256, nunca el correo.
+            email: identifierHash,
+            success,
+            ipAddress: ipHash,
+            userAgent: userAgent?.slice(0, 512) || null,
+          });
         } catch (e) {
-          console.error("recordLoginEvent failed:", e);
+          console.error("recordLoginEvent failed");
         }
       };
 
       // Check rate limit
-      const rateCheck = checkRateLimit(ip);
+      const attemptedIdentifier = String(req.body?.username || "").trim().toLowerCase();
+      const rateIdentifier = `${ip}|${attemptedIdentifier}`;
+      const rateCheck = await checkRateLimit(rateIdentifier);
       if (!rateCheck.allowed) {
+        console.warn("[SECURITY_ALERT] Login rate limit triggered");
+        res.setHeader("Retry-After", String(rateCheck.retryAfter || 60));
         return res.status(429).json({
           error: "Too many login attempts",
-          retryAfter: rateCheck.retryAfter
+          code: "LOGIN_RATE_LIMITED",
+          retryAfter: rateCheck.retryAfter,
         });
       }
 
       // Validate input
       const validation = adminLoginSchema.safeParse(req.body);
       if (!validation.success) {
-        recordLoginAttempt(ip, false);
+        await recordLoginAttempt(rateIdentifier, false);
         await logLogin(String((req.body && req.body.username) || ""), false);
-        return res.status(400).json({
-          error: "Invalid input",
-          details: validation.error.errors
-        });
+        return res.status(400).json({ error: "Invalid credentials", code: "INVALID_CREDENTIALS" });
       }
 
       const { username, password } = validation.data;
@@ -1484,62 +1788,190 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
         user = await storage.getAdminUserByUsername(username);
       }
       if (!user) {
-        await comparePassword(password, "$2b$12$InvalidHashToPreventTimingAttackXXXXXXXXXXXX");
-        recordLoginAttempt(ip, false);
+        await comparePassword(password, dummyPasswordHash);
+        await recordLoginAttempt(rateIdentifier, false);
         await logLogin(username, false);
-        return res.status(401).json({ error: "Invalid credentials" });
+        return res.status(401).json({ error: "Invalid credentials", code: "INVALID_CREDENTIALS" });
       }
 
       // Check if user is active
       if (!user.isActive) {
-        recordLoginAttempt(ip, false);
+        await comparePassword(password, dummyPasswordHash);
+        await recordLoginAttempt(rateIdentifier, false);
         await logLogin(user.email, false, user.id);
-        return res.status(401).json({ error: "Account is disabled" });
+        return res.status(401).json({ error: "Invalid credentials", code: "INVALID_CREDENTIALS" });
       }
 
       // Verify password
       const validPassword = await comparePassword(password, user.passwordHash);
       if (!validPassword) {
-        recordLoginAttempt(ip, false);
+        await recordLoginAttempt(rateIdentifier, false);
         await logLogin(user.email, false, user.id);
-        return res.status(401).json({ error: "Invalid credentials" });
+        return res.status(401).json({ error: "Invalid credentials", code: "INVALID_CREDENTIALS" });
       }
 
-      // Record successful attempt
-      recordLoginAttempt(ip, true);
+      await recordLoginAttempt(rateIdentifier, true);
       await logLogin(user.email, true, user.id);
-
-      // Create session
-      const token = generateToken();
-      const session = await storage.createAdminSession({
-        userId: user.id,
-        token,
-        expiresAt: getSessionExpiry(),
-        ipAddress: ip,
-        userAgent: req.headers["user-agent"] || null,
-      });
-
-      // Update last login
       await storage.updateAdminUserLogin(user.id);
 
+      // Migración perezosa: bcrypt heredado pasa a Argon2id cuando la contraseña ya
+      // cumple la política moderna. Si es corta, se exige cambio antes de continuar.
+      if (passwordNeedsRehash(user.passwordHash)) {
+        const policy = validateNewPassword(password);
+        if (policy.valid) {
+          await storage.setAdminUserPassword(user.id, await hashPassword(password), user.mustChangePassword === true);
+          user = (await storage.getAdminUser(user.id)) || user;
+        } else if (!user.mustChangePassword) {
+          user = (await storage.updateAdminUser(user.id, { mustChangePassword: true })) || user;
+        }
+      }
+
+      if (user.mustChangePassword) {
+        const sessionPayload = await createAuthenticatedSession(res, user, ip, userAgent, false);
+        return res.json({ authenticated: true, ...sessionPayload });
+      }
+
+      if (privilegedRole(user.role)) {
+        if (!isMfaConfigured()) {
+          return res.status(503).json({
+            error: "MFA is not configured on the server",
+            code: "MFA_CONFIGURATION_REQUIRED",
+          });
+        }
+        const credential = await storage.getAdminMfaCredential(user.id);
+        const setupRequired = !credential?.enabledAt;
+        await createLoginChallenge(res, user.id, setupRequired ? "enroll" : "mfa");
+        return res.json({
+          authenticated: false,
+          mfaRequired: true,
+          setupRequired,
+          user: { email: user.email, role: user.role },
+        });
+      }
+
+      const sessionPayload = await createAuthenticatedSession(res, user, ip, userAgent, false);
+      return res.json({ authenticated: true, ...sessionPayload });
+    } catch (error) {
+      console.error("Login error:", error instanceof Error ? error.message : "unknown");
+      res.status(500).json({ error: "Login failed", code: "LOGIN_FAILED" });
+    }
+  });
+
+  app.post("/api/admin/mfa/enroll", requireSameOrigin, async (req: Request, res: Response) => {
+    try {
+      const resolved = await resolveLoginChallenge(req, res);
+      if (!resolved || resolved.challenge.purpose !== "enroll") {
+        return res.status(401).json({ error: "Enrollment challenge expired", code: "CHALLENGE_EXPIRED" });
+      }
+      if (!isMfaConfigured()) {
+        return res.status(503).json({ error: "MFA is not configured", code: "MFA_CONFIGURATION_REQUIRED" });
+      }
+      let credential = await storage.getAdminMfaCredential(resolved.user.id);
+      let secret: string;
+      if (credential && !credential.enabledAt) {
+        secret = decryptTotpSecret(credential.encryptedSecret);
+      } else if (!credential) {
+        secret = generateTotpSecret();
+        credential = await storage.upsertAdminMfaCredential({
+          userId: resolved.user.id,
+          encryptedSecret: encryptTotpSecret(secret),
+          recoveryCodeHashes: [],
+          enabledAt: null,
+        });
+      } else {
+        return res.status(409).json({ error: "MFA is already enabled" });
+      }
+      res.setHeader("Cache-Control", "no-store");
       res.json({
-        token: session.token,
-        user: {
-          id: user.id,
-          username: user.username,
-          email: user.email,
-          role: user.role,
-        },
+        secret,
+        otpauthUrl: totpAuthUrl(resolved.user.email, secret),
+        issuer: "Von Wobeser",
+        account: resolved.user.email,
       });
     } catch (error) {
-      console.error("Login error:", error);
-      res.status(500).json({ error: "Login failed" });
+      console.error("MFA enrollment error:", error instanceof Error ? error.message : "unknown");
+      res.status(500).json({ error: "Unable to start MFA enrollment" });
+    }
+  });
+
+  app.post("/api/admin/mfa/verify", requireSameOrigin, async (req: Request, res: Response) => {
+    try {
+      const parsed = z.object({ code: z.string().regex(/^\d{6}$/) }).safeParse(req.body);
+      if (!parsed.success) return res.status(400).json({ error: "Invalid verification code" });
+      const resolved = await resolveLoginChallenge(req, res);
+      if (!resolved) return res.status(401).json({ error: "Challenge expired", code: "CHALLENGE_EXPIRED" });
+      const credential = await storage.getAdminMfaCredential(resolved.user.id);
+      if (!credential) return res.status(409).json({ error: "MFA enrollment is incomplete" });
+      const secret = decryptTotpSecret(credential.encryptedSecret);
+      if (!verifyTotp(secret, parsed.data.code)) {
+        await storage.updateAdminAuthChallengeAttempts(resolved.challenge.id, resolved.challenge.attempts + 1);
+        return res.status(401).json({ error: "Invalid verification code", code: "INVALID_MFA_CODE" });
+      }
+
+      let recoveryCodes: string[] | undefined;
+      if (!credential.enabledAt) {
+        const generated = generateRecoveryCodes();
+        recoveryCodes = generated.plain;
+        await storage.updateAdminMfaCredential(resolved.user.id, {
+          recoveryCodeHashes: generated.hashes,
+          enabledAt: new Date(),
+        });
+      }
+
+      await storage.deleteAdminAuthChallenge(resolved.tokenHash);
+      clearAuthCookie(res, CHALLENGE_COOKIE);
+      const ip = req.ip || req.socket.remoteAddress || "unknown";
+      const sessionPayload = await createAuthenticatedSession(
+        res,
+        resolved.user,
+        ip,
+        req.headers["user-agent"] || null,
+        true,
+      );
+      res.setHeader("Cache-Control", "no-store");
+      res.json({ authenticated: true, ...sessionPayload, ...(recoveryCodes ? { recoveryCodes } : {}) });
+    } catch (error) {
+      console.error("MFA verification error:", error instanceof Error ? error.message : "unknown");
+      res.status(500).json({ error: "Unable to verify MFA" });
+    }
+  });
+
+  app.post("/api/admin/mfa/recovery", requireSameOrigin, async (req: Request, res: Response) => {
+    try {
+      const parsed = z.object({ recoveryCode: z.string().min(8).max(64) }).safeParse(req.body);
+      if (!parsed.success) return res.status(400).json({ error: "Invalid recovery code" });
+      const resolved = await resolveLoginChallenge(req, res);
+      if (!resolved || resolved.challenge.purpose !== "mfa") {
+        return res.status(401).json({ error: "Challenge expired", code: "CHALLENGE_EXPIRED" });
+      }
+      const credential = await storage.getAdminMfaCredential(resolved.user.id);
+      if (!credential?.enabledAt) return res.status(409).json({ error: "MFA is not enabled" });
+      const remaining = consumeRecoveryCode(credential.recoveryCodeHashes || [], parsed.data.recoveryCode);
+      if (!remaining) {
+        await storage.updateAdminAuthChallengeAttempts(resolved.challenge.id, resolved.challenge.attempts + 1);
+        return res.status(401).json({ error: "Invalid recovery code" });
+      }
+      await storage.updateAdminMfaCredential(resolved.user.id, { recoveryCodeHashes: remaining });
+      await storage.deleteAdminAuthChallenge(resolved.tokenHash);
+      clearAuthCookie(res, CHALLENGE_COOKIE);
+      const sessionPayload = await createAuthenticatedSession(
+        res,
+        resolved.user,
+        req.ip || req.socket.remoteAddress || "unknown",
+        req.headers["user-agent"] || null,
+        true,
+      );
+      res.setHeader("Cache-Control", "no-store");
+      res.json({ authenticated: true, ...sessionPayload });
+    } catch (error) {
+      console.error("MFA recovery error:", error instanceof Error ? error.message : "unknown");
+      res.status(500).json({ error: "Unable to use recovery code" });
     }
   });
 
   // Contador de gasto ESTIMADO de la API de IA. OpenAI no expone el saldo por API key, así que
   // esto suma tokens/imágenes de NUESTRAS llamadas por el precio conocido del modelo (aproximado).
-  app.get("/api/admin/usage/summary", authMiddleware, async (_req: Request, res: Response) => {
+  app.get("/api/admin/usage/summary", authMiddleware, requirePermission("agents"), async (_req: Request, res: Response) => {
     try {
       const now = new Date();
       const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
@@ -1566,8 +1998,9 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
         totalCalls: Number(totals?.calls || 0),
         byKind: byKind.map((r) => ({ kind: r.kind, costUsd: Number(r.cost), calls: Number(r.calls) })),
       });
-    } catch (e: any) {
-      res.status(500).json({ error: e?.message || "Error al calcular el gasto" });
+    } catch (error) {
+      console.error("Usage summary error:", error);
+      res.status(500).json({ error: "Error al calcular el gasto" });
     }
   });
 
@@ -1585,23 +2018,46 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
         typeof aspect === "string" ? aspect : undefined,
       );
       if (!result.success || result.engine === "placeholder") {
-        return res.status(502).json({ error: result.errorMessage || "No se pudo generar la imagen (revisa el saldo de OpenAI)." });
+        return res.status(502).json({ error: "No se pudo generar la imagen. Revisa la configuración del proveedor." });
       }
       res.json({ imageUrl: result.imageUrl, engine: result.engine });
-    } catch (e: any) {
-      res.status(500).json({ error: e?.message || "Error al generar la imagen" });
+    } catch {
+      res.status(500).json({ error: "Error al generar la imagen" });
     }
   });
 
-  // Perfil del usuario autenticado + sus permisos EFECTIVOS (rol + concesiones extra).
-  // El front lo usa para mostrar/ocultar secciones con precisión. El backend siempre re-valida.
+  // Estado de sesión: deriva el mismo token CSRF para todas las pestañas de esta
+  // sesión. La cookie HttpOnly nunca se expone y PostgreSQL conserva solo el hash.
+  app.get("/api/admin/session", authMiddleware, async (req: Request, res: Response) => {
+    const user = req.adminUser!;
+    const rawSessionToken = readCookie(req, SESSION_COOKIE);
+    if (!rawSessionToken) return res.status(401).json({ error: "Authentication required" });
+    const csrfToken = deriveCsrfToken(rawSessionToken);
+    await storage.rotateAdminSessionCsrf(req.adminSession!.id, hashOpaqueToken(csrfToken));
+    res.setHeader("Cache-Control", "no-store");
+    res.json({
+      authenticated: true,
+      csrfToken,
+      user: {
+        id: user.id,
+        username: user.username,
+        email: user.email,
+        role: user.role,
+        mustChangePassword: user.mustChangePassword,
+        permissions: Array.from(effectivePermissions(user)),
+      },
+    });
+  });
+
+  // Perfil del usuario autenticado + sus permisos EFECTIVOS.
   app.get("/api/admin/me", authMiddleware, async (req: Request, res: Response) => {
-    const u = (req as any).adminUser;
+    const u = req.adminUser!;
     res.json({
       id: u.id,
       username: u.username,
       email: u.email,
       role: u.role,
+      mustChangePassword: u.mustChangePassword,
       permissions: Array.from(effectivePermissions(u)),
     });
   });
@@ -1609,8 +2065,9 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
   // Historial de accesos (solo admin/dueño). Nunca expone contraseñas.
   app.get("/api/admin/login-log", authMiddleware, requireRole("super_admin", "admin"), async (req: Request, res: Response) => {
     try {
-      const limit = Math.min(Number(req.query.limit) || 100, 500);
-      res.json(await storage.getLoginEvents(limit));
+      const parsed = z.coerce.number().int().min(1).max(500).default(100).safeParse(req.query.limit);
+      if (!parsed.success) return res.status(400).json({ error: "Invalid limit" });
+      res.json(await storage.getLoginEvents(parsed.data));
     } catch (error) {
       console.error("Login log error:", error);
       return apiError(res, 500, "Failed to load login log");
@@ -1623,7 +2080,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
   const MANAGEABLE_ROLES = ["super_admin", "admin", "editor", "marketing", "sistemas"];
   const isPrivileged = (r: string) => r === "super_admin" || r === "admin";
 
-  app.get("/api/admin/users", authMiddleware, requireRole("super_admin", "admin"), async (_req: Request, res: Response) => {
+  app.get("/api/admin/users", authMiddleware, requirePermission("users"), async (_req: Request, res: Response) => {
     try {
       res.json(await storage.getAdminUsers()); // nunca incluye passwordHash
     } catch (error) {
@@ -1632,22 +2089,37 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
     }
   });
 
-  app.post("/api/admin/users", authMiddleware, requireRole("super_admin", "admin"), async (req: Request, res: Response) => {
+  app.post("/api/admin/users", authMiddleware, requirePermission("users"), async (req: Request, res: Response) => {
     try {
-      const actor = (req as any).adminUser;
-      const { username, email, password, role } = req.body || {};
-      if (!email || !password) return apiError(res, 400, "Correo y contraseña son obligatorios");
-      if (String(password).length < 8) return apiError(res, 400, "La contraseña debe tener al menos 8 caracteres");
-      const r = role || "editor";
+      const actor = req.adminUser!;
+      const parsed = z.object({
+        username: z.string().trim().min(1).max(80).optional(),
+        email: z.string().trim().email().max(254).transform((value) => value.toLowerCase()),
+        role: z.enum(["super_admin", "admin", "editor", "marketing", "sistemas"]).default("editor"),
+      }).strict().safeParse(req.body);
+      if (!parsed.success) return apiError(res, 400, "Datos de usuario inválidos");
+      const { username, email, role: r } = parsed.data;
       if (!MANAGEABLE_ROLES.includes(r)) return apiError(res, 400, "Rol inválido");
       if (r === "super_admin" && actor.role !== "super_admin") return apiError(res, 403, "Solo un Dueño puede crear otro Dueño");
-      // El usuario se deriva del correo si no se especifica (el registro pide correo + contraseña).
-      const finalUsername = (username && String(username).trim()) || String(email).split("@")[0].toLowerCase();
-      const passwordHash = await hashPassword(String(password));
-      const created = await storage.createAdminUser({ username: finalUsername, email, passwordHash, role: r, isActive: true } as any);
+      const finalUsername = username || email.split("@")[0].toLowerCase();
+      const temporaryPassword = generateTemporaryPassword();
+      const passwordHash = await hashPassword(temporaryPassword);
+      const created = await storage.createAdminUser({
+        username: finalUsername,
+        email,
+        passwordHash,
+        role: r,
+        isActive: true,
+        mustChangePassword: true,
+        passwordChangedAt: new Date(),
+      } as any);
+      if (r === "super_admin") {
+        console.warn("[SECURITY_ALERT] A super administrator account was created");
+      }
       auditLog("create", "admin_user", created.id, actor?.id || "unknown");
       const { passwordHash: _omit, ...safe } = created as any;
-      res.status(201).json(safe);
+      res.setHeader("Cache-Control", "no-store");
+      res.status(201).json({ user: safe, temporaryPassword });
     } catch (error: any) {
       if (error?.code === "23505" || /unique|duplicate/i.test(String(error?.message))) {
         return apiError(res, 409, "Ya existe un usuario con ese correo o nombre de usuario");
@@ -1657,20 +2129,28 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
     }
   });
 
-  app.put("/api/admin/users/:id", authMiddleware, requireRole("super_admin", "admin"), async (req: Request, res: Response) => {
+  app.put("/api/admin/users/:id", authMiddleware, requirePermission("users"), async (req: Request, res: Response) => {
     try {
       const actor = (req as any).adminUser;
-      const id = req.params.id;
+      const idResult = z.string().uuid().safeParse(req.params.id);
+      if (!idResult.success) return apiError(res, 400, "Identificador inválido");
+      const id = idResult.data;
       const target = await storage.getAdminUser(id);
       if (!target) return apiError(res, 404, "Usuario no encontrado");
-      const { role, isActive } = req.body || {};
+      const parsed = z.object({
+        role: z.enum(["super_admin", "admin", "editor", "marketing", "sistemas"]).optional(),
+        isActive: z.boolean().optional(),
+        permissions: z.array(z.string().max(60)).max(20).optional(),
+      }).strict().safeParse(req.body);
+      if (!parsed.success) return apiError(res, 400, "Datos de usuario inválidos");
+      const { role, isActive } = parsed.data;
       if ((target.role === "super_admin" || role === "super_admin") && actor.role !== "super_admin") {
         return apiError(res, 403, "Solo un Dueño puede modificar a un Dueño o asignar ese rol");
       }
       if (role !== undefined && !MANAGEABLE_ROLES.includes(role)) return apiError(res, 400, "Rol inválido");
       if (isActive === false && id === actor.id) return apiError(res, 400, "No puedes desactivar tu propia cuenta");
       // Concesiones extra: solo claves de GRANTABLE (nunca `users` → evita escalada de privilegios).
-      const permissions = req.body?.permissions !== undefined ? sanitizeGrants(req.body.permissions) : undefined;
+      const permissions = parsed.data.permissions !== undefined ? sanitizeGrants(parsed.data.permissions) : undefined;
       // Anti-lockout: no dejar 0 administradores/dueños activos.
       const willLosePrivilege = (role !== undefined && !isPrivileged(role)) || isActive === false;
       if (isPrivileged(target.role) && willLosePrivilege) {
@@ -1683,6 +2163,13 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
         ...(isActive !== undefined ? { isActive } : {}),
         ...(permissions !== undefined ? { permissions } : {}),
       });
+      if (role === "super_admin" && target.role !== "super_admin") {
+        console.warn("[SECURITY_ALERT] An account was promoted to super administrator");
+      }
+      if (role !== undefined || isActive !== undefined) {
+        await storage.deleteAdminSessionsByUserId(id);
+        await storage.deleteAdminAuthChallengesByUserId(id);
+      }
       auditLog("update", "admin_user", id, actor?.id || "unknown");
       const { passwordHash: _o, ...safe } = (updated as any) || {};
       res.json(safe);
@@ -1692,29 +2179,35 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
     }
   });
 
-  app.post("/api/admin/users/:id/password", authMiddleware, requireRole("super_admin", "admin"), async (req: Request, res: Response) => {
+  app.post("/api/admin/users/:id/password", authMiddleware, requirePermission("users"), async (req: Request, res: Response) => {
     try {
       const actor = (req as any).adminUser;
-      const target = await storage.getAdminUser(req.params.id);
+      const idResult = z.string().uuid().safeParse(req.params.id);
+      if (!idResult.success) return apiError(res, 400, "Identificador inválido");
+      const target = await storage.getAdminUser(idResult.data);
       if (!target) return apiError(res, 404, "Usuario no encontrado");
       if (target.role === "super_admin" && actor.role !== "super_admin" && target.id !== actor.id) {
         return apiError(res, 403, "Solo un Dueño puede cambiar la contraseña de un Dueño");
       }
-      const { password } = req.body || {};
-      if (!password || String(password).length < 8) return apiError(res, 400, "La contraseña debe tener al menos 8 caracteres");
-      await storage.setAdminUserPassword(req.params.id, await hashPassword(String(password)));
-      auditLog("update", "admin_user", req.params.id, actor?.id || "unknown");
-      res.json({ ok: true });
+      const temporaryPassword = generateTemporaryPassword();
+      await storage.setAdminUserPassword(idResult.data, await hashPassword(temporaryPassword), true);
+      await storage.deleteAdminSessionsByUserId(idResult.data);
+      await storage.deleteAdminAuthChallengesByUserId(idResult.data);
+      auditLog("update", "admin_user", idResult.data, actor?.id || "unknown");
+      res.setHeader("Cache-Control", "no-store");
+      res.json({ ok: true, temporaryPassword });
     } catch (error) {
       console.error("Reset password error:", error);
       return apiError(res, 500, "Failed to reset password");
     }
   });
 
-  app.delete("/api/admin/users/:id", authMiddleware, requireRole("super_admin", "admin"), async (req: Request, res: Response) => {
+  app.delete("/api/admin/users/:id", authMiddleware, requirePermission("users"), async (req: Request, res: Response) => {
     try {
       const actor = (req as any).adminUser;
-      const id = req.params.id;
+      const idResult = z.string().uuid().safeParse(req.params.id);
+      if (!idResult.success) return apiError(res, 400, "Identificador inválido");
+      const id = idResult.data;
       if (id === actor.id) return apiError(res, 400, "No puedes eliminar tu propia cuenta");
       const target = await storage.getAdminUser(id);
       if (!target) return apiError(res, 404, "Usuario no encontrado");
@@ -1724,6 +2217,8 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
         const otherActivePriv = users.filter((u) => u.isActive && isPrivileged(u.role) && u.id !== id).length;
         if (otherActivePriv < 1) return apiError(res, 400, "Debe quedar al menos un Administrador/Dueño activo");
       }
+      await storage.deleteAdminSessionsByUserId(id);
+      await storage.deleteAdminAuthChallengesByUserId(id);
       await storage.deleteAdminUser(id);
       auditLog("delete", "admin_user", id, actor?.id || "unknown");
       res.json({ ok: true });
@@ -1733,36 +2228,51 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
     }
   });
 
+  app.post("/api/admin/password/change", authMiddleware, async (req: Request, res: Response) => {
+    try {
+      const parsed = z.object({
+        currentPassword: z.string().min(1).max(128),
+        newPassword: z.string().min(15).max(128),
+      }).safeParse(req.body);
+      if (!parsed.success) return apiError(res, 400, "La nueva contraseña debe tener entre 15 y 128 caracteres");
+      const policy = validateNewPassword(parsed.data.newPassword);
+      if (!policy.valid) return apiError(res, 400, policy.error);
+      const user = req.adminUser!;
+      if (!await comparePassword(parsed.data.currentPassword, user.passwordHash)) {
+        return apiError(res, 401, "La contraseña actual no es correcta");
+      }
+      if (await comparePassword(parsed.data.newPassword, user.passwordHash)) {
+        return apiError(res, 400, "La nueva contraseña debe ser diferente");
+      }
+      await storage.setAdminUserPassword(user.id, await hashPassword(parsed.data.newPassword), false);
+      await storage.deleteAdminSessionsByUserId(user.id);
+      await storage.deleteAdminAuthChallengesByUserId(user.id);
+      clearAuthCookie(res, SESSION_COOKIE);
+      auditLog("update", "admin_user_password", user.id, user.id);
+      res.json({ ok: true, reauthenticationRequired: true });
+    } catch (error) {
+      console.error("Password change error:", error instanceof Error ? error.message : "unknown");
+      apiError(res, 500, "No se pudo cambiar la contraseña");
+    }
+  });
+
+  app.post("/api/admin/sessions/revoke-all", authMiddleware, async (req: Request, res: Response) => {
+    const count = await storage.deleteAdminSessionsByUserId(req.adminUser!.id);
+    await storage.deleteAdminAuthChallengesByUserId(req.adminUser!.id);
+    clearAuthCookie(res, SESSION_COOKIE);
+    res.json({ ok: true, revoked: count });
+  });
+
   // Admin Logout
   app.post("/api/admin/logout", authMiddleware, async (req: Request, res: Response) => {
     try {
-      const authHeader = req.headers.authorization;
-      if (authHeader && authHeader.startsWith("Bearer ")) {
-        const token = authHeader.substring(7);
-        await storage.deleteAdminSession(token);
-      }
+      const rawToken = readCookie(req, SESSION_COOKIE);
+      if (rawToken) await storage.deleteAdminSession(hashOpaqueToken(rawToken));
+      clearAuthCookie(res, SESSION_COOKIE);
       res.json({ success: true });
     } catch (error) {
       console.error("Logout error:", error);
       res.status(500).json({ error: "Logout failed" });
-    }
-  });
-
-  // Get current admin user
-  app.get("/api/admin/me", authMiddleware, async (req: Request, res: Response) => {
-    try {
-      const user = req.adminUser!;
-      res.json({
-        id: user.id,
-        username: user.username,
-        email: user.email,
-        role: user.role,
-        createdAt: user.createdAt,
-        lastLogin: user.lastLogin,
-      });
-    } catch (error) {
-      console.error("Get current user error:", error);
-      res.status(500).json({ error: "Failed to get user" });
     }
   });
 
@@ -1775,12 +2285,16 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
     hasCmsText(item.title) && hasCmsText(item.titleEs) && hasCmsText(item.excerpt) && hasCmsText(item.excerptEs);
 
   // Get all news with pagination/search
-  app.get("/api/admin/news", authMiddleware, async (req: Request, res: Response) => {
+  app.get("/api/admin/news", authMiddleware, requirePermission("content"), async (req: Request, res: Response) => {
     try {
-      const page = parseInt(req.query.page as string) || 1;
-      const limit = parseInt(req.query.limit as string) || 20;
-      const search = (req.query.search as string) || "";
-      const category = (req.query.category as string) || "";
+      const parsed = z.object({
+        page: z.coerce.number().int().min(1).max(100_000).default(1),
+        limit: z.coerce.number().int().min(1).max(100).default(20),
+        search: z.string().trim().max(200).default(""),
+        category: z.string().trim().max(80).default(""),
+      }).safeParse(req.query);
+      if (!parsed.success) return res.status(400).json({ error: "Invalid pagination or filters" });
+      const { page, limit, search, category } = parsed.data;
 
       // Filtro + paginado EN SQL (antes traía las ~1.792 noticias completas → 35s).
       const { rows, total } = await storage.getAdminNewsPage({
@@ -1803,7 +2317,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
   });
 
   // Get news stats
-  app.get("/api/admin/news/stats", authMiddleware, async (_req: Request, res: Response) => {
+  app.get("/api/admin/news/stats", authMiddleware, requirePermission("content"), async (_req: Request, res: Response) => {
     try {
       const { total, published, unpublished } = await storage.getNewsStatusCounts();
       res.json({ total, published, unpublished });
@@ -1814,7 +2328,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
   });
 
   // Get comprehensive CMS stats for admin dashboard
-  app.get("/api/admin/cms-stats", authMiddleware, async (_req: Request, res: Response) => {
+  app.get("/api/admin/cms-stats", authMiddleware, requirePermission("content"), async (_req: Request, res: Response) => {
     try {
       // Antes: getNews() (1.792 filas) + un getNewsTranslations() POR artículo (N+1)
       // → timeout. Ahora: conteos/agregados en SQL + solo las 5 recientes.
@@ -1857,7 +2371,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
   });
 
   // Get translation counts for all news articles
-  app.get("/api/admin/news/translation-counts", authMiddleware, async (_req: Request, res: Response) => {
+  app.get("/api/admin/news/translation-counts", authMiddleware, requirePermission("content"), async (_req: Request, res: Response) => {
     try {
       const counts = await storage.getNewsTranslationCounts();
       res.json(counts);
@@ -1868,7 +2382,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
   });
 
   // Get translations for a specific news article
-  app.get("/api/admin/news/:id/translations", authMiddleware, async (req: Request, res: Response) => {
+  app.get("/api/admin/news/:id/translations", authMiddleware, requirePermission("content"), async (req: Request, res: Response) => {
     try {
       const { id } = req.params;
       const translations = await storage.getNewsTranslations(id);
@@ -1880,7 +2394,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
   });
 
   // Get single news by ID
-  app.get("/api/admin/news/:id", authMiddleware, async (req: Request, res: Response) => {
+  app.get("/api/admin/news/:id", authMiddleware, requirePermission("content"), async (req: Request, res: Response) => {
     try {
       const newsItem = await storage.getNewsById(req.params.id);
       if (!newsItem) {
@@ -1962,12 +2476,16 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
   // =============================================
 
   // Get all team members (admin)
-  app.get("/api/admin/team", authMiddleware, async (req: Request, res: Response) => {
+  app.get("/api/admin/team", authMiddleware, requirePermission("content"), async (req: Request, res: Response) => {
     try {
-      const page = parseInt(req.query.page as string) || 1;
-      const limit = parseInt(req.query.limit as string) || 20;
-      const search = (req.query.search as string) || "";
-      const role = (req.query.role as string) || "";
+      const parsed = z.object({
+        page: z.coerce.number().int().min(1).max(100_000).default(1),
+        limit: z.coerce.number().int().min(1).max(100).default(20),
+        search: z.string().trim().max(160).default(""),
+        role: z.string().trim().max(80).default(""),
+      }).safeParse(req.query);
+      if (!parsed.success) return res.status(400).json({ error: "Invalid pagination or filters" });
+      const { page, limit, search, role } = parsed.data;
 
       let members = await storage.getTeamMembers();
 
@@ -2003,7 +2521,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
   });
 
   // Get single team member (admin)
-  app.get("/api/admin/team/:id", authMiddleware, async (req: Request, res: Response, next: NextFunction) => {
+  app.get("/api/admin/team/:id", authMiddleware, requirePermission("content"), async (req: Request, res: Response, next: NextFunction) => {
     // "stats" es una subruta específica registrada después; no la trates como un id.
     if (req.params.id === "stats") return next();
     try {
@@ -2096,7 +2614,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
   });
 
   // Get team stats
-  app.get("/api/admin/team/stats", authMiddleware, async (_req: Request, res: Response) => {
+  app.get("/api/admin/team/stats", authMiddleware, requirePermission("content"), async (_req: Request, res: Response) => {
     try {
       const members = await storage.getTeamMembers();
       const partners = members.filter(m => m.title.toLowerCase().includes("partner") || m.isPartner);
@@ -2120,7 +2638,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
   // =============================================
 
   // Get all practice groups (admin)
-  app.get("/api/admin/practice-groups", authMiddleware, async (_req: Request, res: Response) => {
+  app.get("/api/admin/practice-groups", authMiddleware, requirePermission("content"), async (_req: Request, res: Response) => {
     try {
       const groups = await storage.getPracticeGroups();
       res.json(groups);
@@ -2184,7 +2702,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
   // =============================================
 
   // Get all industry groups (admin)
-  app.get("/api/admin/industry-groups", authMiddleware, async (_req: Request, res: Response) => {
+  app.get("/api/admin/industry-groups", authMiddleware, requirePermission("content"), async (_req: Request, res: Response) => {
     try {
       const groups = await storage.getIndustryGroups();
       res.json(groups);
@@ -2247,7 +2765,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
   // ADMIN EVENTS CRUD
   // =============================================
   
-  app.get("/api/admin/events", authMiddleware, async (_req: Request, res: Response) => {
+  app.get("/api/admin/events", authMiddleware, requirePermission("content"), async (_req: Request, res: Response) => {
     try {
       const eventsList = await storage.getEvents();
       res.json(eventsList);
@@ -2307,7 +2825,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
   // ADMIN RANKINGS CRUD
   // =============================================
   
-  app.get("/api/admin/rankings", authMiddleware, async (_req: Request, res: Response) => {
+  app.get("/api/admin/rankings", authMiddleware, requirePermission("content"), async (_req: Request, res: Response) => {
     try {
       const rankingsList = await storage.getRankings();
       res.json(rankingsList);
@@ -2365,7 +2883,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
   // ADMIN AWARDS CRUD
   // =============================================
   
-  app.get("/api/admin/awards", authMiddleware, async (_req: Request, res: Response) => {
+  app.get("/api/admin/awards", authMiddleware, requirePermission("content"), async (_req: Request, res: Response) => {
     try {
       const awardsList = await storage.getAwards();
       res.json(awardsList);
@@ -2423,7 +2941,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
   // ADMIN REPRESENTATIVE CLIENTS CRUD
   // =============================================
   
-  app.get("/api/admin/clients", authMiddleware, async (_req: Request, res: Response) => {
+  app.get("/api/admin/clients", authMiddleware, requirePermission("content"), async (_req: Request, res: Response) => {
     try {
       const clientsList = await storage.getRepresentativeClients();
       res.json(clientsList);
@@ -2481,7 +2999,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
   // ADMIN TESTIMONIALS CRUD
   // =============================================
   
-  app.get("/api/admin/testimonials", authMiddleware, async (_req: Request, res: Response) => {
+  app.get("/api/admin/testimonials", authMiddleware, requirePermission("content"), async (_req: Request, res: Response) => {
     try {
       const testimonialsList = await storage.getTestimonials();
       res.json(testimonialsList);
@@ -2539,7 +3057,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
   // ADMIN JOB OPENINGS CRUD
   // =============================================
   
-  app.get("/api/admin/jobs", authMiddleware, async (_req: Request, res: Response) => {
+  app.get("/api/admin/jobs", authMiddleware, requirePermission("content"), async (_req: Request, res: Response) => {
     try {
       const jobsList = await storage.getJobOpenings();
       res.json(jobsList);
@@ -2597,7 +3115,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
   // ADMIN OFFICES CRUD
   // =============================================
   
-  app.get("/api/admin/offices", authMiddleware, async (_req: Request, res: Response) => {
+  app.get("/api/admin/offices", authMiddleware, requirePermission("content"), async (_req: Request, res: Response) => {
     try {
       const officesList = await storage.getOffices();
       res.json(officesList);
@@ -2655,7 +3173,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
   // ADMIN ALLIANCES CRUD
   // =============================================
   
-  app.get("/api/admin/alliances", authMiddleware, async (_req: Request, res: Response) => {
+  app.get("/api/admin/alliances", authMiddleware, requirePermission("content"), async (_req: Request, res: Response) => {
     try {
       const alliancesList = await storage.getAlliances();
       res.json(alliancesList);
@@ -2713,7 +3231,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
   // ADMIN CONTACT SUBMISSIONS
   // =============================================
 
-  app.get("/api/admin/contact-submissions", authMiddleware, async (_req: Request, res: Response) => {
+  app.get("/api/admin/contact-submissions", authMiddleware, requirePermission("contact_submissions"), async (_req: Request, res: Response) => {
     try {
       const submissions = await storage.getContactSubmissions();
       res.json(submissions);
@@ -2723,7 +3241,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
     }
   });
 
-  app.patch("/api/admin/contact-submissions/:id/read", authMiddleware, requirePermission("content"), async (req: Request, res: Response) => {
+  app.patch("/api/admin/contact-submissions/:id/read", authMiddleware, requirePermission("contact_submissions"), async (req: Request, res: Response) => {
     try {
       const found = await storage.markContactSubmissionRead(req.params.id);
       if (!found) {
@@ -2736,7 +3254,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
     }
   });
 
-  app.get("/api/admin/career-applications", authMiddleware, async (_req: Request, res: Response) => {
+  app.get("/api/admin/career-applications", authMiddleware, requirePermission("career_applications"), async (_req: Request, res: Response) => {
     try {
       const applications = await storage.getCareerApplications();
       res.json(applications);
@@ -2746,7 +3264,47 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
     }
   });
 
-  app.patch("/api/admin/career-applications/:id/read", authMiddleware, requirePermission("content"), async (req: Request, res: Response) => {
+  app.get("/api/admin/career-applications/:id/cv", authMiddleware, requirePermission("career_applications"), requirePermission("private_downloads"), async (req: Request, res: Response) => {
+    try {
+      if (!z.string().uuid().safeParse(req.params.id).success) {
+        return res.status(404).json({ error: "Application not found" });
+      }
+      const application = await storage.getCareerApplication(req.params.id);
+      if (!application) return res.status(404).json({ error: "Application not found" });
+
+      let absolutePath = resolvePrivateCvStoragePath(application.cvPath);
+      if (!absolutePath && application.cvPath.startsWith("/uploads/")) {
+        const legacyName = path.basename(application.cvPath);
+        const legacyPath = path.resolve(uploadsDir, legacyName);
+        if (path.dirname(legacyPath) === path.resolve(uploadsDir)) absolutePath = legacyPath;
+      }
+      if (!absolutePath || !fs.existsSync(absolutePath)) {
+        return res.status(404).json({ error: "Document not found" });
+      }
+
+      const original = (application.cvOriginalName || path.basename(absolutePath))
+        .replace(/[\r\n"\\]/g, "_")
+        .slice(0, 180);
+      const fallback = original.replace(/[^\x20-\x7e]/g, "_") || "cv";
+      const extension = path.extname(absolutePath).toLowerCase();
+      const contentType = extension === ".pdf"
+        ? "application/pdf"
+        : extension === ".docx"
+          ? "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+          : "application/msword";
+      res.setHeader("Content-Type", contentType);
+      res.setHeader("Content-Disposition", `attachment; filename="${fallback}"; filename*=UTF-8''${encodeURIComponent(original)}`);
+      res.setHeader("X-Content-Type-Options", "nosniff");
+      res.setHeader("Content-Security-Policy", "sandbox");
+      res.setHeader("Cache-Control", "private, no-store");
+      auditLog("update", "career_application_cv_download", application.id, req.adminUser!.id);
+      res.sendFile(absolutePath);
+    } catch {
+      res.status(500).json({ error: "Failed to download document" });
+    }
+  });
+
+  app.patch("/api/admin/career-applications/:id/read", authMiddleware, requirePermission("career_applications"), async (req: Request, res: Response) => {
     try {
       const found = await storage.markCareerApplicationRead(req.params.id);
       if (!found) {
@@ -2768,9 +3326,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
     return { search, active: state === "active" ? true : state === "inactive" ? false : undefined };
   };
 
-  const escapeCsv = (value: unknown) => `"${String(value ?? "").replace(/"/g, '""')}"`;
-
-  app.get("/api/admin/newsletter-subscribers", authMiddleware, async (req: Request, res: Response) => {
+  app.get("/api/admin/newsletter-subscribers", authMiddleware, requirePermission("newsletter"), async (req: Request, res: Response) => {
     try {
       const subscribers = await storage.getNewsletterSubscribers(newsletterFilters(req));
       res.json(subscribers);
@@ -2780,7 +3336,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
     }
   });
 
-  app.patch("/api/admin/newsletter-subscribers/:id/active", authMiddleware, requirePermission("content"), async (req: Request, res: Response) => {
+  app.patch("/api/admin/newsletter-subscribers/:id/active", authMiddleware, requirePermission("newsletter"), async (req: Request, res: Response) => {
     try {
       const body = z.object({ isActive: z.boolean() }).safeParse(req.body);
       if (!body.success) return res.status(400).json({ error: "Validation failed", details: body.error.errors });
@@ -2796,7 +3352,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
     }
   });
 
-  app.get("/api/admin/newsletter-subscribers/export.csv", authMiddleware, async (req: Request, res: Response) => {
+  app.get("/api/admin/newsletter-subscribers/export.csv", authMiddleware, requirePermission("newsletter"), requirePermission("exports"), async (req: Request, res: Response) => {
     try {
       const subscribers = await storage.getNewsletterSubscribers(newsletterFilters(req));
       const header = ["Nombre", "Correo", "Empresa", "Idioma", "Fecha de suscripción", "Consentimiento", "Origen", "Estado"];
@@ -2810,8 +3366,17 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
         subscriber.source,
         subscriber.isActive ? "Activo" : "Inactivo",
       ]);
-      const csv = [header, ...rows].map((row) => row.map(escapeCsv).join(",")).join("\r\n");
+      const csv = [header, ...rows].map((row) => row.map(escapeCsvCell).join(",")).join("\r\n");
+      auditLog(
+        "create",
+        "newsletter_export",
+        null,
+        req.adminUser!.id,
+        { rowCount: subscribers.length, filtered: Object.values(newsletterFilters(req)).some((value) => value !== undefined) },
+      );
       res.setHeader("Content-Type", "text/csv; charset=utf-8");
+      res.setHeader("X-Content-Type-Options", "nosniff");
+      res.setHeader("Cache-Control", "no-store");
       res.setHeader("Content-Disposition", "attachment; filename=newsletter-subscribers.csv");
       res.send(`\uFEFF${csv}`);
     } catch (error) {
@@ -2832,7 +3397,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
   // AGENT KNOWLEDGE CRUD (Admin)
   // =============================================
 
-  app.get("/api/admin/knowledge", authMiddleware, async (_req: Request, res: Response) => {
+  app.get("/api/admin/knowledge", authMiddleware, requirePermission("content"), async (_req: Request, res: Response) => {
     try {
       const { dbPersistence } = await import('./agents/storage/DatabasePersistence');
       const documents = await dbPersistence.getAllKnowledge();
@@ -2935,7 +3500,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
   // =============================================
 
   // Get all media items
-  app.get("/api/admin/media", authMiddleware, async (_req: Request, res: Response) => {
+  app.get("/api/admin/media", authMiddleware, requirePermission("content"), async (_req: Request, res: Response) => {
     try {
       const items = await storage.getMediaItems();
       const [
@@ -3054,10 +3619,18 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
 
   // Upload media
   app.post("/api/admin/media/upload", authMiddleware, requirePermission("content"), upload.single("file"), async (req: Request, res: Response) => {
+    let acceptedMediaPath: string | undefined;
     try {
       if (!req.file) {
         return res.status(400).json({ error: "No file uploaded" });
       }
+      if (!await validatePublicMediaSignature(req.file.path, req.file.mimetype)) {
+        await removeUploadQuietly(req.file.path);
+        return res.status(400).json({ error: "El contenido del archivo no coincide con su formato." });
+      }
+      await scanFileForMalware(req.file.path);
+      acceptedMediaPath = await acceptQuarantinedPublicMedia(req.file.path, uploadsDir);
+      req.file.path = acceptedMediaPath;
 
       // Imágenes pesadas (>1MB) se redimensionan/recomprimen antes de registrar el tamaño real.
       // Video no se toca en esta ronda (requiere ffmpeg, ver server/media/optimizeVideo.ts).
@@ -3078,8 +3651,10 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
 
       res.status(201).json(mediaItem);
     } catch (error) {
-      console.error("Upload media error:", error);
-      res.status(500).json({ error: "Failed to upload file" });
+      await removeUploadQuietly(req.file?.path);
+      await removeUploadQuietly(acceptedMediaPath);
+      console.error("Upload media validation failed");
+      res.status(500).json({ error: "Failed to validate uploaded file" });
     }
   });
 
@@ -3242,6 +3817,21 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
   app.get("/api/languages", (_req, res) => {
     res.json(SUPPORTED_LANGUAGES);
   });
+  const validLanguageCodes = new Set<string>(SUPPORTED_LANGUAGES.map((language) => language.code));
+  const languageCodeSchema = z.string().refine((value) => validLanguageCodes.has(value), "Invalid language code");
+  const translationTextSchema = z.string().min(1).max(20_000);
+  const translationEntitySchema = z.string().uuid();
+  const translationKeySchema = z.string().trim().regex(/^[A-Za-z][A-Za-z0-9_]{0,79}$/);
+  const boundedTranslationFields = z.record(translationKeySchema, z.string().max(20_000))
+    .superRefine((fields, context) => {
+      const entries = Object.entries(fields);
+      if (entries.length > 25) {
+        context.addIssue({ code: z.ZodIssueCode.custom, message: "Too many fields" });
+      }
+      if (entries.reduce((total, [, value]) => total + value.length, 0) > 100_000) {
+        context.addIssue({ code: z.ZodIssueCode.custom, message: "Translation payload is too large" });
+      }
+    });
 
   // Estas 5 rutas llaman al LLM de traducción real (costo de API) y una de ellas escribe en
   // la base de datos para un entityId arbitrario — no deben ser alcanzables sin sesión de
@@ -3251,18 +3841,13 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
   // POST /api/translate - Translate single text
   app.post("/api/translate", authMiddleware, requirePermission("content"), async (req: Request, res: Response) => {
     try {
-      const { text, sourceLanguage, targetLanguage } = req.body;
-
-      if (!text || !sourceLanguage || !targetLanguage) {
-        return res.status(400).json({ 
-          error: "Missing required fields: text, sourceLanguage, targetLanguage" 
-        });
-      }
-
-      const validCodes = SUPPORTED_LANGUAGES.map(l => l.code);
-      if (!validCodes.includes(sourceLanguage) || !validCodes.includes(targetLanguage)) {
-        return res.status(400).json({ error: "Invalid language code" });
-      }
+      const parsed = z.object({
+        text: translationTextSchema,
+        sourceLanguage: languageCodeSchema,
+        targetLanguage: languageCodeSchema,
+      }).strict().safeParse(req.body);
+      if (!parsed.success) return res.status(400).json({ error: "Invalid translation request" });
+      const { text, sourceLanguage, targetLanguage } = parsed.data;
 
       const translation = await translateLegalText(
         text,
@@ -3280,18 +3865,20 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
   // POST /api/translate/batch - Translate multiple texts
   app.post("/api/translate/batch", authMiddleware, requirePermission("content"), async (req: Request, res: Response) => {
     try {
-      const { texts, sourceLanguage, targetLanguage } = req.body;
-
-      if (!texts || !Array.isArray(texts) || !sourceLanguage || !targetLanguage) {
-        return res.status(400).json({ 
-          error: "Missing required fields: texts (array), sourceLanguage, targetLanguage" 
-        });
-      }
-
-      const validCodes = SUPPORTED_LANGUAGES.map(l => l.code);
-      if (!validCodes.includes(sourceLanguage) || !validCodes.includes(targetLanguage)) {
-        return res.status(400).json({ error: "Invalid language code" });
-      }
+      const parsed = z.object({
+        texts: z.array(z.object({
+          key: translationKeySchema,
+          text: translationTextSchema,
+        }).strict()).min(1).max(25),
+        sourceLanguage: languageCodeSchema,
+        targetLanguage: languageCodeSchema,
+      }).strict().superRefine((value, context) => {
+        if (value.texts.reduce((total, item) => total + item.text.length, 0) > 100_000) {
+          context.addIssue({ code: z.ZodIssueCode.custom, message: "Translation payload is too large" });
+        }
+      }).safeParse(req.body);
+      if (!parsed.success) return res.status(400).json({ error: "Invalid batch translation request" });
+      const { texts, sourceLanguage, targetLanguage } = parsed.data;
 
       const translations = await translateMultipleTexts(
         texts,
@@ -3309,22 +3896,17 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
   // POST /api/translate/suggest - Suggest translation for blog post
   app.post("/api/translate/suggest", authMiddleware, requirePermission("content"), async (req: Request, res: Response) => {
     try {
-      const { originalText, existingTranslations, targetLanguage } = req.body;
-
-      if (!originalText || !targetLanguage) {
-        return res.status(400).json({ 
-          error: "Missing required fields: originalText, targetLanguage" 
-        });
-      }
-
-      const validCodes = SUPPORTED_LANGUAGES.map(l => l.code);
-      if (!validCodes.includes(targetLanguage)) {
-        return res.status(400).json({ error: "Invalid target language code" });
-      }
+      const parsed = z.object({
+        originalText: translationTextSchema,
+        existingTranslations: z.record(languageCodeSchema, z.string().max(20_000)).optional().default({}),
+        targetLanguage: languageCodeSchema,
+      }).strict().safeParse(req.body);
+      if (!parsed.success) return res.status(400).json({ error: "Invalid translation suggestion request" });
+      const { originalText, existingTranslations, targetLanguage } = parsed.data;
 
       const result = await suggestTranslation(
         originalText,
-        existingTranslations || {},
+        existingTranslations,
         targetLanguage as LanguageCode
       );
 
@@ -3340,14 +3922,13 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
   // "Traducir al inglés con IA" del editor: el usuario revisa antes de guardar. Una sola llamada al LLM.
   app.post("/api/admin/translate-fields", authMiddleware, requirePermission("content"), async (req: Request, res: Response) => {
     try {
-      const { fields, from = "es", to = "en" } = req.body || {};
-      if (!fields || typeof fields !== "object" || Array.isArray(fields)) {
-        return apiError(res, 400, "Se requiere 'fields' como objeto { clave: texto }");
-      }
-      const validCodes = SUPPORTED_LANGUAGES.map((l) => l.code);
-      if (!validCodes.includes(from) || !validCodes.includes(to)) {
-        return apiError(res, 400, "Código de idioma inválido");
-      }
+      const parsed = z.object({
+        fields: boundedTranslationFields,
+        from: languageCodeSchema.default("es"),
+        to: languageCodeSchema.default("en"),
+      }).strict().safeParse(req.body);
+      if (!parsed.success) return apiError(res, 400, "Solicitud de traducción inválida");
+      const { fields, from, to } = parsed.data;
       // Solo campos con texto real; los vacíos se devuelven vacíos sin gastar tokens.
       const entries = Object.entries(fields as Record<string, unknown>)
         .filter(([, v]) => typeof v === "string" && v.trim())
@@ -3372,12 +3953,13 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
   // pasar por el filtro de publicado — mismo patrón de fuga que el resto de la API pública.
   app.get("/api/translations/:contentType/:entityId/:targetLanguage", authMiddleware, requirePermission("content"), async (req: Request, res: Response) => {
     try {
-      const { contentType, entityId, targetLanguage } = req.params;
-
-      const validCodes: string[] = SUPPORTED_LANGUAGES.map(l => l.code);
-      if (!validCodes.includes(targetLanguage)) {
-        return res.status(400).json({ error: "Invalid target language code" });
-      }
+      const parsed = z.object({
+        contentType: z.enum(["team_member", "practice_group", "industry_group", "news", "event", "representative_matter"]),
+        entityId: translationEntitySchema,
+        targetLanguage: languageCodeSchema,
+      }).safeParse(req.params);
+      if (!parsed.success) return res.status(400).json({ error: "Invalid translation lookup" });
+      const { contentType, entityId, targetLanguage } = parsed.data;
 
       // For news content, first check the newsTranslations table
       if (contentType === 'news') {
@@ -3423,18 +4005,16 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
   // caché de traducción) además de gastar la API de traducción de pago.
   app.post("/api/translate-content", authMiddleware, requirePermission("content"), async (req: Request, res: Response) => {
     try {
-      const { contentType, entityId, field, sourceText, sourceLanguage, targetLanguage } = req.body;
-
-      if (!contentType || !entityId || !field || !sourceText || !sourceLanguage || !targetLanguage) {
-        return res.status(400).json({ 
-          error: "Missing required fields: contentType, entityId, field, sourceText, sourceLanguage, targetLanguage" 
-        });
-      }
-
-      const validCodes = SUPPORTED_LANGUAGES.map(l => l.code);
-      if (!validCodes.includes(sourceLanguage) || !validCodes.includes(targetLanguage)) {
-        return res.status(400).json({ error: "Invalid language code" });
-      }
+      const parsed = z.object({
+        contentType: z.enum(["team_member", "practice_group", "industry_group", "news", "event", "representative_matter"]),
+        entityId: translationEntitySchema,
+        field: translationKeySchema,
+        sourceText: translationTextSchema,
+        sourceLanguage: languageCodeSchema,
+        targetLanguage: languageCodeSchema,
+      }).strict().safeParse(req.body);
+      if (!parsed.success) return res.status(400).json({ error: "Invalid translation request" });
+      const { contentType, entityId, field, sourceText, sourceLanguage, targetLanguage } = parsed.data;
 
       const existingTranslation = await storage.getTranslation(contentType, entityId, field, targetLanguage);
       if (existingTranslation && existingTranslation.sourceText === sourceText) {
@@ -3454,6 +4034,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
         targetLanguage as LanguageCode
       );
 
+      const safeTranslatedText = sanitizeCms(translatedText);
       const saved = await storage.saveTranslation({
         contentType,
         entityId,
@@ -3461,7 +4042,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
         sourceLanguage,
         targetLanguage,
         sourceText,
-        translatedText,
+        translatedText: safeTranslatedText,
       });
 
       res.json({ 
@@ -3481,20 +4062,16 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
   // POST /api/translate-entity - Batch translate all translatable fields for an entity
   app.post("/api/translate-entity", authMiddleware, requirePermission("content"), async (req: Request, res: Response) => {
     try {
-      const { contentType, entityId, fields, sourceLanguage, targetLanguage } = req.body;
-
-      if (!contentType || !entityId || !fields || !sourceLanguage || !targetLanguage) {
-        return res.status(400).json({ 
-          error: "Missing required fields: contentType, entityId, fields, sourceLanguage, targetLanguage" 
-        });
-      }
-
       const validContentTypes = ['team_member', 'practice_group', 'industry_group', 'news', 'event', 'representative_matter'] as const;
-      if (!validContentTypes.includes(contentType)) {
-        return res.status(400).json({ 
-          error: `Invalid contentType. Must be one of: ${validContentTypes.join(', ')}` 
-        });
-      }
+      const parsed = z.object({
+        contentType: z.enum(validContentTypes),
+        entityId: translationEntitySchema,
+        fields: boundedTranslationFields,
+        sourceLanguage: languageCodeSchema,
+        targetLanguage: languageCodeSchema,
+      }).strict().safeParse(req.body);
+      if (!parsed.success) return res.status(400).json({ error: "Invalid entity translation request" });
+      const { contentType, entityId, fields, sourceLanguage, targetLanguage } = parsed.data;
 
       const validFieldsByContentType: Record<string, readonly string[]> = {
         team_member: ['title', 'role', 'bio', 'degree'],
@@ -3513,11 +4090,6 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
         return res.status(400).json({ 
           error: `Invalid field names for ${contentType}: ${invalidFields.join(', ')}. Valid fields are: ${validFields.join(', ')}` 
         });
-      }
-
-      const validCodes = SUPPORTED_LANGUAGES.map(l => l.code);
-      if (!validCodes.includes(sourceLanguage) || !validCodes.includes(targetLanguage)) {
-        return res.status(400).json({ error: "Invalid language code" });
       }
 
       const fieldsToTranslate: { key: string; text: string }[] = [];
@@ -3545,6 +4117,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
         for (const [fieldName, translatedText] of Object.entries(newTranslations)) {
           const originalField = fieldsToTranslate.find(f => f.key === fieldName);
           if (originalField) {
+            const safeTranslatedText = sanitizeCms(translatedText);
             await storage.saveTranslation({
               contentType,
               entityId,
@@ -3552,8 +4125,9 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
               sourceLanguage,
               targetLanguage,
               sourceText: originalField.text,
-              translatedText,
+              translatedText: safeTranslatedText,
             });
+            newTranslations[fieldName] = safeTranslatedText;
           }
         }
       }
@@ -3683,9 +4257,9 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
         };
         emitProgress('format', formatResult.success ? 'completed' : 'error', undefined, formatResult.success ? 'Article formatted' : formatResult.error);
       } catch (err: any) {
-        pipelineResults.steps.format = { success: false, error: err.message };
-        pipelineResults.errors.push(`Format: ${err.message}`);
-        emitProgress('format', 'error', undefined, err.message);
+        pipelineResults.steps.format = { success: false, error: "Formatting failed" };
+        pipelineResults.errors.push("Format: failed");
+        emitProgress('format', 'error', undefined, "Formatting failed");
       }
 
       // Step 2: CATEGORIZE - Automatically categorize for SEO
@@ -3704,9 +4278,9 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
         emitProgress('categorize', categoryResult.success ? 'completed' : 'error', undefined, 
           categoryResult.success ? `Category: ${(categoryResult.data as any)?.primaryCategory || 'assigned'}` : categoryResult.error);
       } catch (err: any) {
-        pipelineResults.steps.categorize = { success: false, error: err.message };
-        pipelineResults.errors.push(`Categorize: ${err.message}`);
-        emitProgress('categorize', 'error', undefined, err.message);
+        pipelineResults.steps.categorize = { success: false, error: "Categorization failed" };
+        pipelineResults.errors.push("Categorize: failed");
+        emitProgress('categorize', 'error', undefined, "Categorization failed");
       }
 
       // Step 3: LINK METADATA - Connect to authors, practice areas, industries
@@ -3725,9 +4299,9 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
         emitProgress('metadata', metadataResult.success ? 'completed' : 'error', undefined, 
           metadataResult.success ? 'Metadata linked' : metadataResult.error);
       } catch (err: any) {
-        pipelineResults.steps.metadata = { success: false, error: err.message };
-        pipelineResults.errors.push(`Metadata: ${err.message}`);
-        emitProgress('metadata', 'error', undefined, err.message);
+        pipelineResults.steps.metadata = { success: false, error: "Metadata linking failed" };
+        pipelineResults.errors.push("Metadata: failed");
+        emitProgress('metadata', 'error', undefined, "Metadata linking failed");
       }
 
       // Step 4: SEO OPTIMIZE - Improve titles, descriptions, slugs
@@ -3746,9 +4320,9 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
         emitProgress('seo', seoResult.success ? 'completed' : 'error', undefined, 
           seoResult.success ? 'SEO optimized' : seoResult.error);
       } catch (err: any) {
-        pipelineResults.steps.seo = { success: false, error: err.message };
-        pipelineResults.errors.push(`SEO: ${err.message}`);
-        emitProgress('seo', 'error', undefined, err.message);
+        pipelineResults.steps.seo = { success: false, error: "SEO optimization failed" };
+        pipelineResults.errors.push("SEO: failed");
+        emitProgress('seo', 'error', undefined, "SEO optimization failed");
       }
 
       // Step 5: TRANSLATE - Translate to all 9 target languages (source is Spanish)
@@ -3774,9 +4348,9 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
             ? `Translated: ${translatedCount} new, ${cachedCount} cached` 
             : translateResult.error);
       } catch (err: any) {
-        pipelineResults.steps.translate = { success: false, error: err.message };
-        pipelineResults.errors.push(`Translate: ${err.message}`);
-        emitProgress('translate', 'error', undefined, err.message);
+        pipelineResults.steps.translate = { success: false, error: "Translation failed" };
+        pipelineResults.errors.push("Translate: failed");
+        emitProgress('translate', 'error', undefined, "Translation failed");
       }
 
       // Step 6: GENERATE IMAGE (optional)
@@ -3796,9 +4370,9 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
           emitProgress('image', imageResult.success ? 'completed' : 'error', undefined, 
             imageResult.success ? 'Image generated' : imageResult.error);
         } catch (err: any) {
-          pipelineResults.steps.image = { success: false, error: err.message };
-          pipelineResults.errors.push(`Image: ${err.message}`);
-          emitProgress('image', 'error', undefined, err.message);
+          pipelineResults.steps.image = { success: false, error: "Image generation failed" };
+          pipelineResults.errors.push("Image: failed");
+          emitProgress('image', 'error', undefined, "Image generation failed");
         }
       }
 
@@ -3843,7 +4417,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
       console.error("Pipeline error:", error);
       res.status(500).json({ 
         success: false, 
-        error: error.message || "Failed to process article pipeline" 
+        error: "Failed to process article pipeline",
       });
     }
   });
@@ -3896,7 +4470,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
             articleResult.steps.format = { success: formatResult.success };
           } catch (err: any) {
             console.error(`[Pipeline] Format error for ${article.id}:`, err.message);
-            articleResult.steps.format = { success: false, error: err.message };
+            articleResult.steps.format = { success: false, error: "Formatting failed" };
           }
 
           // Step 2: CATEGORIZE
@@ -3908,7 +4482,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
             articleResult.steps.categorize = { success: categoryResult.success };
           } catch (err: any) {
             console.error(`[Pipeline] Categorize error for ${article.id}:`, err.message);
-            articleResult.steps.categorize = { success: false, error: err.message };
+            articleResult.steps.categorize = { success: false, error: "Categorization failed" };
           }
 
           // Step 3: METADATA
@@ -3920,7 +4494,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
             articleResult.steps.metadata = { success: metadataResult.success };
           } catch (err: any) {
             console.error(`[Pipeline] Metadata error for ${article.id}:`, err.message);
-            articleResult.steps.metadata = { success: false, error: err.message };
+            articleResult.steps.metadata = { success: false, error: "Metadata linking failed" };
           }
 
           // Step 4: SEO
@@ -3932,7 +4506,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
             articleResult.steps.seo = { success: seoResult.success };
           } catch (err: any) {
             console.error(`[Pipeline] SEO error for ${article.id}:`, err.message);
-            articleResult.steps.seo = { success: false, error: err.message };
+            articleResult.steps.seo = { success: false, error: "SEO optimization failed" };
           }
 
           // Step 5: TRANSLATE
@@ -3944,7 +4518,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
             articleResult.steps.translate = { success: translateResult.success };
           } catch (err: any) {
             console.error(`[Pipeline] Translate error for ${article.id}:`, err.message);
-            articleResult.steps.translate = { success: false, error: err.message };
+            articleResult.steps.translate = { success: false, error: "Translation failed" };
           }
 
           // Step 6: IMAGE (optional)
@@ -3959,7 +4533,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
               articleResult.steps.image = { success: imageResult.success, error: imageResult.error };
             } catch (err: any) {
               console.error(`[Pipeline] Image generation error for ${article.id}:`, err.message);
-              articleResult.steps.image = { success: false, error: err.message };
+              articleResult.steps.image = { success: false, error: "Image generation failed" };
             }
           }
 
@@ -4015,7 +4589,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
       console.error('[Recovery] Error:', error);
       res.status(500).json({ 
         success: false, 
-        error: error.message || 'Recovery failed' 
+        error: 'Recovery failed',
       });
     }
   });
@@ -4028,7 +4602,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
       res.json({ success: true, ...summary });
     } catch (error: any) {
       console.error('[FailedSummary] Error:', error);
-      res.status(500).json({ success: false, error: error.message });
+      res.status(500).json({ success: false, error: "Failed to load recovery summary" });
     }
   });
 
@@ -4054,7 +4628,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
       });
     } catch (error: any) {
       console.error('[SystemChronicler] Error:', error);
-      res.status(500).json({ success: false, error: error.message });
+      res.status(500).json({ success: false, error: "Failed to load system history" });
     }
   });
 
@@ -4062,14 +4636,17 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
   app.post("/api/system/chronicler/evolution", authMiddleware, requirePermission("advanced"), async (req: Request, res: Response) => {
     try {
       const { systemChronicler } = await import('./agents/SystemChronicler');
-      const { title, description, agentId, impact, category } = req.body;
-      
-      if (!title || !description || !impact || !category) {
-        return res.status(400).json({ 
-          success: false, 
-          error: 'Missing required fields: title, description, impact, category' 
-        });
+      const parsed = z.object({
+        title: z.string().trim().min(1).max(160),
+        description: z.string().trim().min(1).max(2_000),
+        agentId: z.string().trim().max(120).optional(),
+        impact: z.enum(["minor", "major", "critical"]),
+        category: z.enum(["security", "intelligence", "performance", "capability"]),
+      }).strict().safeParse(req.body);
+      if (!parsed.success) {
+        return res.status(400).json({ success: false, error: "Validation failed" });
       }
+      const { title, description, agentId, impact, category } = parsed.data;
       
       systemChronicler.recordEvolution({
         title,
@@ -4082,14 +4659,16 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
       res.json({ success: true, message: 'Evolution recorded' });
     } catch (error: any) {
       console.error('[SystemChronicler] Error recording evolution:', error);
-      res.status(500).json({ success: false, error: error.message });
+      res.status(500).json({ success: false, error: "Failed to record evolution" });
     }
   });
 
   // Website Audit API routes
   app.get("/api/audits", authMiddleware, requirePermission("advanced"), async (req: Request, res: Response) => {
     try {
-      const limit = parseInt(req.query.limit as string) || 20;
+      const parsed = z.coerce.number().int().min(1).max(100).default(20).safeParse(req.query.limit);
+      if (!parsed.success) return res.status(400).json({ error: "Invalid limit" });
+      const limit = parsed.data;
       const audits = await storage.getWebsiteAudits(limit);
       res.json({ success: true, audits });
     } catch (error) {
@@ -4204,7 +4783,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
       });
     } catch (error: any) {
       console.error("Health check failed:", error);
-      res.status(500).json({ error: error.message || "Failed to run health check" });
+      res.status(500).json({ error: "Failed to run health check" });
     }
   });
 
@@ -4219,7 +4798,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
       });
     } catch (error: any) {
       console.error("Failed to reset zombies:", error);
-      res.status(500).json({ error: error.message || "Failed to reset zombie jobs" });
+      res.status(500).json({ error: "Failed to reset zombie jobs" });
     }
   });
 
@@ -4244,9 +4823,12 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
   const agentRoutes = await import('./agents/api/agentRoutes');
   app.use('/api/agents', authMiddleware, requirePermission("agents"), agentRoutes.default);
 
-  // Initialize agents on server start
-  const { initializeAgents } = await import('./agents');
-  initializeAgents().catch(err => console.error('[Agents] Initialization error:', err));
+  // Initialize agents on normal server start. El smoke test de seguridad es
+  // deliberadamente de solo lectura y no debe cargar conocimiento ni colas.
+  if (process.env.SECURITY_READ_ONLY_SMOKE !== "true") {
+    const { initializeAgents } = await import('./agents');
+    initializeAgents().catch(err => console.error('[Agents] Initialization error:', err));
+  }
 
   return httpServer;
 }

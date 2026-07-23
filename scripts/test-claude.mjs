@@ -9,8 +9,7 @@ const client = new OpenAI({
 });
 const MODEL = "gpt-4o";
 
-console.log("baseURL:", process.env.AI_INTEGRATIONS_OPENAI_BASE_URL);
-console.log("key:", (process.env.AI_INTEGRATIONS_OPENAI_API_KEY || "").slice(0, 18) + "…\n");
+console.log("OpenAI integration configured:", Boolean(process.env.AI_INTEGRATIONS_OPENAI_API_KEY));
 
 // 1) Texto simple
 try {
@@ -21,7 +20,7 @@ try {
   console.log("✅ TEXTO →", r.choices[0].message.content.trim());
   console.log("   modelo que respondió:", r.model);
 } catch (e) {
-  console.log("❌ TEXTO falló:", e.status || "", e.message);
+  console.log("❌ TEXTO falló:", e.status || "");
   process.exit(1);
 }
 
@@ -35,6 +34,6 @@ try {
   const parsed = JSON.parse(r.choices[0].message.content);
   console.log("✅ JSON  →", JSON.stringify(parsed));
 } catch (e) {
-  console.log("⚠️ JSON (response_format) falló:", e.status || "", e.message);
+  console.log("⚠️ JSON (response_format) falló:", e.status || "");
   console.log("   (los agentes igual piden JSON en el prompt; probamos si funciona sin el parámetro)");
 }

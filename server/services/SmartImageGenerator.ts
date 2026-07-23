@@ -6,7 +6,7 @@ import * as path from 'path';
 import * as https from 'https';
 import { storage } from '../storage';
 import { getConfigMap } from '../mirror/siteConfig';
-import { recordImageUsage } from './usageTracker';
+import { assertAiBudget, recordImageUsage } from './usageTracker';
 
 const VON_WOBESER_BRAND = {
   primaryColor: '#AA1A2E',
@@ -227,6 +227,7 @@ export class SmartImageGenerator {
     maxRetries: number,
     aspect: string,
   ): Promise<{ buffer?: Buffer; name?: 'gptimage' | 'dalle3'; error?: string; errorCode?: string }> {
+    await assertAiBudget();
     let lastError: any = null;
     const backoffTimes = [0, 5000, 10000, 20000];
     // Empieza en gpt-image-1; puede degradar a dall-e-3 dentro del mismo loop.
@@ -280,7 +281,7 @@ export class SmartImageGenerator {
         const parsed = this.parseOpenAIError(err);
         const status = err?.status ?? err?.response?.status;
         const msg = (err?.message || err?.error?.message || '').toLowerCase();
-        this.log(`OpenAI image (${model}) intento ${attempt + 1} falló: ${parsed.code} / ${status} - ${err?.message}`);
+        this.log(`OpenAI image (${model}) intento ${attempt + 1} falló: ${parsed.code} / ${status || "unknown"}`);
 
         // Org sin verificar para gpt-image-1, o modelo no accesible → degrada a dall-e-3 y
         // reintenta de inmediato (NO cuenta como reintento con backoff).
@@ -313,8 +314,8 @@ export class SmartImageGenerator {
     }
 
     return {
-      error: lastError?.message || 'OpenAI image generation failed after retries',
-      errorCode: lastError?.code || 'unknown',
+      error: 'OpenAI image generation failed after retries',
+      errorCode: 'openai_generation_failed',
     };
   }
 
@@ -350,14 +351,14 @@ export class SmartImageGenerator {
 
       const data: any = await res.json();
       if (!data?.success || !data?.result?.image) {
-        return { error: data?.errors?.[0]?.message || 'Cloudflare no devolvió una imagen', errorCode: 'cloudflare_no_image' };
+        return { error: 'Cloudflare no devolvió una imagen', errorCode: 'cloudflare_no_image' };
       }
 
       this.log('Cloudflare Workers AI (flux-1-schnell) generó la imagen correctamente');
       return { buffer: Buffer.from(data.result.image, 'base64') };
     } catch (err: any) {
       const isTimeout = err?.name === 'AbortError';
-      return { error: isTimeout ? 'Cloudflare timeout' : err.message, errorCode: isTimeout ? 'cloudflare_timeout' : 'cloudflare_error' };
+      return { error: isTimeout ? 'Cloudflare timeout' : 'Cloudflare image generation failed', errorCode: isTimeout ? 'cloudflare_timeout' : 'cloudflare_error' };
     } finally {
       clearTimeout(timer);
     }
@@ -386,8 +387,8 @@ export class SmartImageGenerator {
       this.log('Gemini image generation successful');
       return { buffer: imageBuffer };
     } catch (err: any) {
-      this.log(`Gemini image generation failed: ${err.message}`);
-      return { error: err.message, errorCode: 'gemini_error' };
+      this.log("Gemini image generation failed");
+      return { error: 'Gemini image generation failed', errorCode: 'gemini_error' };
     }
   }
 
@@ -532,7 +533,7 @@ export class SmartImageGenerator {
             this.log(`Failed to record generated image in gallery history (retry): ${err2.message}`);
           }
         } else {
-          this.log(`Failed to record generated image in gallery history: ${err.message}`);
+          this.log("Failed to record generated image in gallery history");
         }
       }
     }

@@ -33,6 +33,10 @@ import {
   type InsertMediaItem,
   type AdminSession,
   type InsertAdminSession,
+  type AdminMfaCredential,
+  type InsertAdminMfaCredential,
+  type AdminAuthChallenge,
+  type InsertAdminAuthChallenge,
   type Event,
   type InsertEvent,
   type TranslationCache,
@@ -87,6 +91,9 @@ import {
   adminLoginEvents,
   mediaItems,
   adminSessions,
+  adminMfaCredentials,
+  adminAuthChallenges,
+  securityRateLimits,
   newsTeamMembers,
   events,
   translationCache,
@@ -173,11 +180,12 @@ export interface IStorage {
   createAdminUser(user: InsertAdminUser): Promise<AdminUser>;
   updateAdminUserLogin(id: string): Promise<AdminUser | undefined>;
   getAdminUsers(): Promise<Omit<AdminUser, "passwordHash">[]>;
-  updateAdminUser(id: string, data: Partial<Pick<AdminUser, "role" | "isActive" | "permissions">>): Promise<AdminUser | undefined>;
-  setAdminUserPassword(id: string, passwordHash: string): Promise<boolean>;
+  updateAdminUser(id: string, data: Partial<Pick<AdminUser, "role" | "isActive" | "permissions" | "mustChangePassword" | "passwordChangedAt">>): Promise<AdminUser | undefined>;
+  setAdminUserPassword(id: string, passwordHash: string, mustChangePassword?: boolean): Promise<boolean>;
   deleteAdminUser(id: string): Promise<boolean>;
   recordLoginEvent(data: InsertAdminLoginEvent): Promise<void>;
   getLoginEvents(limit?: number): Promise<AdminLoginEvent[]>;
+  cleanExpiredSecurityRecords(): Promise<{ loginEvents: number; challenges: number; rateLimits: number }>;
   
   // Media Items CRUD
   getMediaItems(): Promise<MediaItem[]>;
@@ -186,9 +194,20 @@ export interface IStorage {
   
   // Admin Sessions
   createAdminSession(session: InsertAdminSession): Promise<AdminSession>;
-  getAdminSession(token: string): Promise<AdminSession | undefined>;
-  deleteAdminSession(token: string): Promise<boolean>;
+  getAdminSession(tokenHash: string): Promise<AdminSession | undefined>;
+  touchAdminSession(id: string, expiresAt: Date): Promise<void>;
+  rotateAdminSessionCsrf(id: string, csrfTokenHash: string): Promise<void>;
+  deleteAdminSession(tokenHash: string): Promise<boolean>;
+  deleteAdminSessionsByUserId(userId: string): Promise<number>;
   cleanExpiredSessions(): Promise<number>;
+  getAdminMfaCredential(userId: string): Promise<AdminMfaCredential | undefined>;
+  upsertAdminMfaCredential(data: InsertAdminMfaCredential): Promise<AdminMfaCredential>;
+  updateAdminMfaCredential(userId: string, data: Partial<Pick<AdminMfaCredential, "encryptedSecret" | "recoveryCodeHashes" | "enabledAt">>): Promise<AdminMfaCredential | undefined>;
+  createAdminAuthChallenge(data: InsertAdminAuthChallenge): Promise<AdminAuthChallenge>;
+  getAdminAuthChallenge(tokenHash: string): Promise<AdminAuthChallenge | undefined>;
+  updateAdminAuthChallengeAttempts(id: string, attempts: number): Promise<void>;
+  deleteAdminAuthChallenge(tokenHash: string): Promise<void>;
+  deleteAdminAuthChallengesByUserId(userId: string): Promise<void>;
   
   // News Team Members (many-to-many relationship)
   getNewsByTeamMemberId(teamMemberId: string): Promise<News[]>;
@@ -297,6 +316,7 @@ export interface IStorage {
   createContactSubmission(data: InsertContactSubmission): Promise<ContactSubmission>;
   getContactSubmissions(): Promise<ContactSubmission[]>;
   markContactSubmissionRead(id: string): Promise<boolean>;
+  deleteExpiredContactSubmissions(): Promise<number>;
 
   // Newsletter (el Desk retirado no altera ni borra sus datos históricos).
   getNewsletterSubscribers(filters?: { search?: string; active?: boolean }): Promise<NewsletterSubscriber[]>;
@@ -307,7 +327,11 @@ export interface IStorage {
   // Career Applications (Pasantes)
   createCareerApplication(data: InsertCareerApplication): Promise<CareerApplication>;
   getCareerApplications(): Promise<CareerApplication[]>;
+  getCareerApplication(id: string): Promise<CareerApplication | undefined>;
+  getCareerApplicationByCvPath(cvPath: string): Promise<CareerApplication | undefined>;
   markCareerApplicationRead(id: string): Promise<boolean>;
+  getExpiredCareerApplications(): Promise<CareerApplication[]>;
+  deleteCareerApplications(ids: string[]): Promise<number>;
 
   // LegalAlertsAgent automático — deduplicación de fuentes oficiales
   isSourceProcessed(sourceUrl: string): Promise<boolean>;
@@ -374,7 +398,7 @@ export class DatabaseStorage implements IStorage {
     return db
       .select()
       .from(news)
-      .where(eq(news.published, true))
+      .where(this.publishedNewsConditions())
       .orderBy(newsDateDescNullsLast)
       .limit(limit);
   }
@@ -384,7 +408,7 @@ export class DatabaseStorage implements IStorage {
     return db
       .select()
       .from(news)
-      .where(and(eq(news.featuredHome, true), eq(news.published, true)))
+      .where(and(eq(news.featuredHome, true), this.publishedNewsConditions()))
       .orderBy(newsDateDescNullsLast)
       .limit(limit);
   }
@@ -426,7 +450,7 @@ export class DatabaseStorage implements IStorage {
     const conds = [] as any[];
     const s = opts.search?.trim();
     if (s) {
-      const like = `%${s.replace(/[%_]/g, "\\$&")}%`;
+      const like = `%${s.replace(/[%_\\]/g, "\\$&")}%`;
       conds.push(or(ilike(news.title, like), ilike(news.titleEs, like), ilike(news.excerpt, like), ilike(news.excerptEs, like)));
     }
     if (opts.category && opts.category !== "all") conds.push(eq(news.category, opts.category));
@@ -484,18 +508,21 @@ export class DatabaseStorage implements IStorage {
 
   /** Búsqueda de noticias en SQL (ILIKE + LIMIT), para el buscador global. */
   async searchNews(q: string, limit: number): Promise<News[]> {
-    const like = `%${q.replace(/[%_]/g, "\\$&")}%`;
+    const like = `%${q.replace(/[%_\\]/g, "\\$&")}%`;
     return db
       .select()
       .from(news)
       .where(
-        or(
+        and(
+          this.publishedNewsConditions(),
+          or(
           ilike(news.title, like),
           ilike(news.titleEs, like),
           ilike(news.excerpt, like),
           ilike(news.excerptEs, like),
           ilike(news.content, like),
           ilike(news.contentEs, like),
+          ),
         ),
       )
       .orderBy(newsDateDescNullsLast)
@@ -753,7 +780,7 @@ export class DatabaseStorage implements IStorage {
     if (filters.title) conds.push(eq(teamMembers.title, filters.title));
     const q = filters.q?.trim();
     if (q) {
-      const like = `%${q.replace(/[%_]/g, "\\$&")}%`; // escapa comodines para búsqueda literal
+      const like = `%${q.replace(/[%_\\]/g, "\\$&")}%`; // escapa comodines para búsqueda literal
       conds.push(ilike(teamMembers.name, like));
     }
     if (filters.practiceGroupId) {
@@ -860,6 +887,8 @@ export class DatabaseStorage implements IStorage {
         createdAt: adminUsers.createdAt,
         lastLogin: adminUsers.lastLogin,
         isActive: adminUsers.isActive,
+        mustChangePassword: adminUsers.mustChangePassword,
+        passwordChangedAt: adminUsers.passwordChangedAt,
       })
       .from(adminUsers)
       .orderBy(asc(adminUsers.createdAt));
@@ -867,14 +896,18 @@ export class DatabaseStorage implements IStorage {
 
   async updateAdminUser(
     id: string,
-    data: Partial<Pick<AdminUser, "role" | "isActive" | "permissions">>,
+    data: Partial<Pick<AdminUser, "role" | "isActive" | "permissions" | "mustChangePassword" | "passwordChangedAt">>,
   ): Promise<AdminUser | undefined> {
     const [user] = await db.update(adminUsers).set(data).where(eq(adminUsers.id, id)).returning();
     return user;
   }
 
-  async setAdminUserPassword(id: string, passwordHash: string): Promise<boolean> {
-    const res = await db.update(adminUsers).set({ passwordHash }).where(eq(adminUsers.id, id)).returning();
+  async setAdminUserPassword(id: string, passwordHash: string, mustChangePassword = false): Promise<boolean> {
+    const res = await db
+      .update(adminUsers)
+      .set({ passwordHash, mustChangePassword, passwordChangedAt: new Date() })
+      .where(eq(adminUsers.id, id))
+      .returning();
     return res.length > 0;
   }
 
@@ -894,6 +927,25 @@ export class DatabaseStorage implements IStorage {
       .from(adminLoginEvents)
       .orderBy(desc(adminLoginEvents.createdAt))
       .limit(limit);
+  }
+
+  async cleanExpiredSecurityRecords(): Promise<{ loginEvents: number; challenges: number; rateLimits: number }> {
+    return db.transaction(async (tx) => {
+      const loginEvents = await tx.delete(adminLoginEvents)
+        .where(sql`${adminLoginEvents.createdAt} < NOW() - INTERVAL '90 days'`)
+        .returning({ id: adminLoginEvents.id });
+      const challenges = await tx.delete(adminAuthChallenges)
+        .where(sql`${adminAuthChallenges.expiresAt} < NOW()`)
+        .returning({ id: adminAuthChallenges.id });
+      const rateLimits = await tx.delete(securityRateLimits)
+        .where(sql`${securityRateLimits.updatedAt} < NOW() - INTERVAL '2 days'`)
+        .returning({ key: securityRateLimits.keyHash });
+      return {
+        loginEvents: loginEvents.length,
+        challenges: challenges.length,
+        rateLimits: rateLimits.length,
+      };
+    });
   }
 
   // Media Items CRUD
@@ -917,22 +969,91 @@ export class DatabaseStorage implements IStorage {
     return item;
   }
 
-  async getAdminSession(token: string): Promise<AdminSession | undefined> {
-    const [session] = await db.select().from(adminSessions).where(eq(adminSessions.token, token));
+  async getAdminSession(tokenHash: string): Promise<AdminSession | undefined> {
+    const [session] = await db.select().from(adminSessions).where(eq(adminSessions.tokenHash, tokenHash));
     return session;
   }
 
-  async deleteAdminSession(token: string): Promise<boolean> {
-    const result = await db.delete(adminSessions).where(eq(adminSessions.token, token)).returning();
+  async touchAdminSession(id: string, expiresAt: Date): Promise<void> {
+    await db.update(adminSessions).set({ expiresAt, lastSeenAt: new Date() }).where(eq(adminSessions.id, id));
+  }
+
+  async rotateAdminSessionCsrf(id: string, csrfTokenHash: string): Promise<void> {
+    await db.update(adminSessions).set({ csrfTokenHash }).where(eq(adminSessions.id, id));
+  }
+
+  async deleteAdminSession(tokenHash: string): Promise<boolean> {
+    const result = await db.delete(adminSessions).where(eq(adminSessions.tokenHash, tokenHash)).returning();
     return result.length > 0;
+  }
+
+  async deleteAdminSessionsByUserId(userId: string): Promise<number> {
+    const result = await db.delete(adminSessions).where(eq(adminSessions.userId, userId)).returning();
+    return result.length;
   }
 
   async cleanExpiredSessions(): Promise<number> {
     const result = await db
       .delete(adminSessions)
-      .where(sql`${adminSessions.expiresAt} < NOW()`)
+      .where(sql`${adminSessions.expiresAt} < NOW() OR (${adminSessions.absoluteExpiresAt} IS NOT NULL AND ${adminSessions.absoluteExpiresAt} < NOW())`)
       .returning();
     return result.length;
+  }
+
+  async getAdminMfaCredential(userId: string): Promise<AdminMfaCredential | undefined> {
+    const [credential] = await db.select().from(adminMfaCredentials).where(eq(adminMfaCredentials.userId, userId));
+    return credential;
+  }
+
+  async upsertAdminMfaCredential(data: InsertAdminMfaCredential): Promise<AdminMfaCredential> {
+    const [credential] = await db
+      .insert(adminMfaCredentials)
+      .values(data)
+      .onConflictDoUpdate({
+        target: adminMfaCredentials.userId,
+        set: {
+          encryptedSecret: data.encryptedSecret,
+          recoveryCodeHashes: data.recoveryCodeHashes,
+          enabledAt: data.enabledAt,
+          updatedAt: new Date(),
+        },
+      })
+      .returning();
+    return credential;
+  }
+
+  async updateAdminMfaCredential(
+    userId: string,
+    data: Partial<Pick<AdminMfaCredential, "encryptedSecret" | "recoveryCodeHashes" | "enabledAt">>,
+  ): Promise<AdminMfaCredential | undefined> {
+    const [credential] = await db
+      .update(adminMfaCredentials)
+      .set({ ...data, updatedAt: new Date() })
+      .where(eq(adminMfaCredentials.userId, userId))
+      .returning();
+    return credential;
+  }
+
+  async createAdminAuthChallenge(data: InsertAdminAuthChallenge): Promise<AdminAuthChallenge> {
+    const [challenge] = await db.insert(adminAuthChallenges).values(data).returning();
+    return challenge;
+  }
+
+  async getAdminAuthChallenge(tokenHash: string): Promise<AdminAuthChallenge | undefined> {
+    const [challenge] = await db.select().from(adminAuthChallenges).where(eq(adminAuthChallenges.tokenHash, tokenHash));
+    return challenge;
+  }
+
+  async updateAdminAuthChallengeAttempts(id: string, attempts: number): Promise<void> {
+    await db.update(adminAuthChallenges).set({ attempts }).where(eq(adminAuthChallenges.id, id));
+  }
+
+  async deleteAdminAuthChallenge(tokenHash: string): Promise<void> {
+    await db.delete(adminAuthChallenges).where(eq(adminAuthChallenges.tokenHash, tokenHash));
+  }
+
+  async deleteAdminAuthChallengesByUserId(userId: string): Promise<void> {
+    await db.delete(adminAuthChallenges).where(eq(adminAuthChallenges.userId, userId));
   }
 
   // News Team Members (many-to-many relationship)
@@ -1479,6 +1600,13 @@ export class DatabaseStorage implements IStorage {
     return result.length > 0;
   }
 
+  async deleteExpiredContactSubmissions(): Promise<number> {
+    const deleted = await db.delete(contactSubmissions)
+      .where(sql`${contactSubmissions.submittedAt} < NOW() - INTERVAL '12 months'`)
+      .returning({ id: contactSubmissions.id });
+    return deleted.length;
+  }
+
   async getNewsletterSubscribers(filters: { search?: string; active?: boolean } = {}): Promise<NewsletterSubscriber[]> {
     const conditions: SQL[] = [];
     if (typeof filters.active === "boolean") conditions.push(eq(newsletterSubscribers.isActive, filters.active));
@@ -1519,9 +1647,32 @@ export class DatabaseStorage implements IStorage {
     return db.select().from(careerApplications).orderBy(desc(careerApplications.submittedAt));
   }
 
+  async getCareerApplication(id: string): Promise<CareerApplication | undefined> {
+    const [application] = await db.select().from(careerApplications).where(eq(careerApplications.id, id));
+    return application;
+  }
+
+  async getCareerApplicationByCvPath(cvPath: string): Promise<CareerApplication | undefined> {
+    const [application] = await db.select().from(careerApplications).where(eq(careerApplications.cvPath, cvPath));
+    return application;
+  }
+
   async markCareerApplicationRead(id: string): Promise<boolean> {
     const result = await db.update(careerApplications).set({ read: true }).where(eq(careerApplications.id, id)).returning({ id: careerApplications.id });
     return result.length > 0;
+  }
+
+  async getExpiredCareerApplications(): Promise<CareerApplication[]> {
+    return db.select().from(careerApplications)
+      .where(sql`${careerApplications.submittedAt} < NOW() - INTERVAL '12 months'`);
+  }
+
+  async deleteCareerApplications(ids: string[]): Promise<number> {
+    if (!ids.length) return 0;
+    const deleted = await db.delete(careerApplications)
+      .where(inArray(careerApplications.id, ids))
+      .returning({ id: careerApplications.id });
+    return deleted.length;
   }
 
   async isSourceProcessed(sourceUrl: string): Promise<boolean> {

@@ -16,7 +16,7 @@ import { Switch } from "@/components/ui/switch";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
-import { UserPlus, KeyRound, Trash2, Loader2, SlidersHorizontal, History, Check, X } from "lucide-react";
+import { UserPlus, KeyRound, Trash2, Loader2, SlidersHorizontal, History, Check, X, Copy } from "lucide-react";
 
 type AdminUserRow = {
   id: string; username: string; email: string; role: string;
@@ -43,12 +43,17 @@ const GRANTABLE: { key: string; label: string; hint: string }[] = [
   { key: "agents", label: "Agentes IA", hint: "Ejecutar los agentes de inteligencia artificial" },
   { key: "config", label: "Configuración del sitio", hint: "Textos, pie de página, idiomas" },
   { key: "advanced", label: "Avanzado", hint: "Auditorías, salud del sistema, cronista" },
+  { key: "contact_submissions", label: "Mensajes de contacto", hint: "Consultar y gestionar mensajes del formulario de contacto" },
+  { key: "career_applications", label: "Solicitudes de pasantías", hint: "Consultar y gestionar registros de pasantes" },
+  { key: "newsletter", label: "Newsletter", hint: "Consultar y activar o desactivar suscriptores" },
+  { key: "exports", label: "Exportaciones CSV", hint: "Descargar listados autorizados" },
+  { key: "private_downloads", label: "Documentos privados", hint: "Descargar CV y archivos no públicos" },
 ];
 
 // Permisos BASE por rol (espejo de ROLE_PERMISSIONS en server/auth.ts).
 const ROLE_BASE: Record<string, string[]> = {
-  super_admin: ["content", "agents", "config", "advanced"],
-  admin: ["content", "agents", "config", "advanced"],
+  super_admin: ["content", "agents", "config", "advanced", "contact_submissions", "career_applications", "newsletter", "exports", "private_downloads"],
+  admin: ["content", "agents", "config", "advanced", "contact_submissions", "career_applications", "newsletter", "exports", "private_downloads"],
   editor: ["content", "config"],
   marketing: ["content", "agents"],
   sistemas: ["content", "agents", "advanced"],
@@ -88,19 +93,22 @@ export default function AdminUsers() {
 
   // --- crear ---
   const [openCreate, setOpenCreate] = useState(false);
-  const [nf, setNf] = useState({ username: "", email: "", password: "", role: "editor" });
+  const [nf, setNf] = useState({ username: "", email: "", role: "editor" });
+  const [generatedCredential, setGeneratedCredential] = useState<{ email: string; password: string } | null>(null);
   const [busy, setBusy] = useState(false);
   const create = async () => {
-    if (!nf.email || nf.password.length < 8) {
-      toast({ title: "Faltan datos", description: "Correo y contraseña (mín. 8 caracteres).", variant: "destructive" });
+    if (!nf.email) {
+      toast({ title: "Falta el correo", variant: "destructive" });
       return;
     }
     setBusy(true);
     const res = await adminApiRequest("POST", "/api/admin/users", nf);
     setBusy(false);
     if (res.ok) {
+      const body = await res.json();
+      setGeneratedCredential({ email: body.user.email, password: body.temporaryPassword });
       toast({ title: "Usuario creado" });
-      setOpenCreate(false); setNf({ username: "", email: "", password: "", role: "editor" }); refresh();
+      setOpenCreate(false); setNf({ username: "", email: "", role: "editor" }); refresh();
     } else {
       toast({ title: "Error", description: await err("No se pudo crear")(res), variant: "destructive" });
     }
@@ -127,13 +135,17 @@ export default function AdminUsers() {
 
   // --- reset contraseña ---
   const [pwUser, setPwUser] = useState<AdminUserRow | null>(null);
-  const [pw, setPw] = useState("");
   const resetPw = async () => {
-    if (!pwUser || pw.length < 8) { toast({ title: "Contraseña muy corta", description: "Mínimo 8 caracteres.", variant: "destructive" }); return; }
+    if (!pwUser) return;
     setBusy(true);
-    const res = await adminApiRequest("POST", `/api/admin/users/${pwUser.id}/password`, { password: pw });
+    const res = await adminApiRequest("POST", `/api/admin/users/${pwUser.id}/password`, {});
     setBusy(false);
-    if (res.ok) { toast({ title: "Contraseña actualizada" }); setPwUser(null); setPw(""); }
+    if (res.ok) {
+      const body = await res.json();
+      setGeneratedCredential({ email: pwUser.email, password: body.temporaryPassword });
+      toast({ title: "Contraseña temporal generada" });
+      setPwUser(null);
+    }
     else toast({ title: "Error", description: await err("No se pudo cambiar")(res), variant: "destructive" });
   };
 
@@ -253,7 +265,7 @@ export default function AdminUsers() {
                               <Button variant="ghost" size="icon" title="Permisos adicionales" onClick={() => openPerms(u)} disabled={!canEditOwner || u.role === "super_admin"} data-testid={`perms-${u.id}`}>
                                 <SlidersHorizontal className="h-4 w-4" />
                               </Button>
-                              <Button variant="ghost" size="icon" title="Cambiar contraseña" onClick={() => { setPwUser(u); setPw(""); }} disabled={!canEditOwner} data-testid={`pw-${u.id}`}>
+                              <Button variant="ghost" size="icon" title="Generar contraseña temporal" onClick={() => setPwUser(u)} disabled={!canEditOwner} data-testid={`pw-${u.id}`}>
                                 <KeyRound className="h-4 w-4" />
                               </Button>
                               <Button variant="ghost" size="icon" title="Eliminar" onClick={() => del(u)} disabled={!canEditOwner} data-testid={`del-${u.id}`}>
@@ -278,7 +290,7 @@ export default function AdminUsers() {
           </CardHeader>
           <CardContent>
             <p className="text-sm text-muted-foreground mb-3">
-              Registro de inicios de sesión (exitosos y fallidos). Se conserva para auditoría. Nunca se guardan contraseñas.
+              Registro de inicios de sesión (exitosos y fallidos). Correo e IP se muestran únicamente como huellas irreversibles.
             </p>
             {logQuery.isLoading ? (
               <div className="flex items-center gap-2 text-muted-foreground py-6"><Loader2 className="h-4 w-4 animate-spin" /> Cargando…</div>
@@ -292,9 +304,9 @@ export default function AdminUsers() {
                   <TableHeader>
                     <TableRow>
                       <TableHead>Fecha y hora</TableHead>
-                      <TableHead>Correo / usuario</TableHead>
+                      <TableHead>Identificador protegido</TableHead>
                       <TableHead>Resultado</TableHead>
-                      <TableHead>IP</TableHead>
+                      <TableHead>Origen protegido</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -303,7 +315,7 @@ export default function AdminUsers() {
                         <TableCell className="text-sm whitespace-nowrap">
                           {ev.createdAt ? new Date(ev.createdAt).toLocaleString("es-MX") : "—"}
                         </TableCell>
-                        <TableCell className="text-sm">{ev.email}</TableCell>
+                        <TableCell className="font-mono text-xs">{ev.email.slice(0, 12)}…</TableCell>
                         <TableCell>
                           {ev.success ? (
                             <Badge variant="secondary" className="gap-1"><Check className="h-3 w-3" /> Éxito</Badge>
@@ -311,7 +323,7 @@ export default function AdminUsers() {
                             <Badge variant="destructive" className="gap-1"><X className="h-3 w-3" /> Fallido</Badge>
                           )}
                         </TableCell>
-                        <TableCell className="text-sm text-muted-foreground">{ev.ipAddress || "—"}</TableCell>
+                        <TableCell className="font-mono text-xs text-muted-foreground">{ev.ipAddress ? `${ev.ipAddress.slice(0, 12)}…` : "—"}</TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
@@ -327,12 +339,11 @@ export default function AdminUsers() {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Nuevo usuario</DialogTitle>
-            <DialogDescription>Se crea con correo y contraseña. La contraseña se guarda cifrada.</DialogDescription>
+            <DialogDescription>El sistema generará una contraseña temporal segura y la mostrará una sola vez.</DialogDescription>
           </DialogHeader>
           <div className="space-y-3">
             <div className="space-y-1"><Label>Correo *</Label><Input type="email" value={nf.email} onChange={(e) => setNf({ ...nf, email: e.target.value })} placeholder="persona@vonwobeser.com" data-testid="input-email" /></div>
             <div className="space-y-1"><Label>Usuario <span className="text-xs text-muted-foreground">(opcional — se genera del correo)</span></Label><Input value={nf.username} onChange={(e) => setNf({ ...nf, username: e.target.value })} placeholder="Se genera del correo si lo dejas vacío" data-testid="input-username" /></div>
-            <div className="space-y-1"><Label>Contraseña temporal * <span className="text-xs text-muted-foreground">(mín. 8)</span></Label><Input type="text" value={nf.password} onChange={(e) => setNf({ ...nf, password: e.target.value })} placeholder="La comparte con la persona" data-testid="input-password" /></div>
             <div className="space-y-1">
               <Label>Rol</Label>
               <Select value={nf.role} onValueChange={(v) => setNf({ ...nf, role: v })}>
@@ -396,18 +407,44 @@ export default function AdminUsers() {
       <Dialog open={!!pwUser} onOpenChange={(o) => !o && setPwUser(null)}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Cambiar contraseña</DialogTitle>
-            <DialogDescription>{pwUser?.email} — se guardará cifrada. Comparte la nueva contraseña con la persona.</DialogDescription>
+            <DialogTitle>Generar contraseña temporal</DialogTitle>
+            <DialogDescription>
+              Se cerrarán todas las sesiones de {pwUser?.email}. La nueva contraseña se mostrará una sola vez y deberá cambiarse en el siguiente acceso.
+            </DialogDescription>
           </DialogHeader>
-          <div className="space-y-1">
-            <Label>Nueva contraseña <span className="text-xs text-muted-foreground">(mín. 8)</span></Label>
-            <Input type="text" value={pw} onChange={(e) => setPw(e.target.value)} data-testid="input-new-password" />
-          </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setPwUser(null)} disabled={busy}>Cancelar</Button>
             <Button onClick={resetPw} disabled={busy} data-testid="button-save-password">
-              {busy ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : <KeyRound className="h-4 w-4 mr-1" />} Guardar
+              {busy ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : <KeyRound className="h-4 w-4 mr-1" />} Generar
             </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Credencial temporal — deliberadamente se muestra una sola vez */}
+      <Dialog open={!!generatedCredential} onOpenChange={(open) => !open && setGeneratedCredential(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Contraseña temporal</DialogTitle>
+            <DialogDescription>
+              Copia y comparte esta contraseña por un canal seguro. Al cerrar esta ventana no volverá a mostrarse.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div className="rounded-md border bg-muted/40 p-3 text-sm">{generatedCredential?.email}</div>
+            <code className="block select-all break-all rounded-md bg-slate-950 p-4 text-center font-mono text-base text-white">
+              {generatedCredential?.password}
+            </code>
+            <Button
+              variant="outline"
+              className="w-full"
+              onClick={() => generatedCredential && void navigator.clipboard.writeText(generatedCredential.password)}
+            >
+              <Copy className="mr-2 h-4 w-4" /> Copiar contraseña
+            </Button>
+          </div>
+          <DialogFooter>
+            <Button onClick={() => setGeneratedCredential(null)}>Ya la guardé</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
