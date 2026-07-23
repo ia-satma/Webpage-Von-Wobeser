@@ -84,10 +84,11 @@ import {
 } from "./openai";
 import {
   hashPassword,
+  rehashVerifiedPassword,
   comparePassword,
   passwordNeedsRehash,
   validateNewPassword,
-  generateTemporaryPassword,
+  generateAdminPassword,
   generateToken,
   hashOpaqueToken,
   deriveCsrfToken,
@@ -461,7 +462,7 @@ export async function registerRoutes(
         return;
       }
       const resolved = await resolveAdminSession(req as unknown as Request);
-      if (!resolved || resolved.user.mustChangePassword) {
+      if (!resolved) {
         ws.close(1008, "Authentication required");
         return;
       }
@@ -1548,6 +1549,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
       const staticPages = [
         { es: '/', en: '/?lang=en', changefreq: 'weekly', priority: '1.0' },
         { es: '/nuevas-oficinas/', en: '/new-offices/', changefreq: 'monthly', priority: '0.8' },
+        { es: '/acerca-de', en: '/about', changefreq: 'monthly', priority: '0.8' },
         { es: '/nuestra-firma', en: '/our-firm', changefreq: 'monthly', priority: '0.8' },
         { es: '/nuestra-firma/probono', en: '/our-firm/our-firm-probono', changefreq: 'monthly', priority: '0.6' },
         { es: '/nuestra-firma/diversidad', en: '/our-firm/diversity', changefreq: 'monthly', priority: '0.6' },
@@ -1646,8 +1648,13 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
     res.status(410).json({ error: "Initialization endpoint retired" });
   });
 
-  const dummyPasswordHash = await hashPassword("TimingOnly!9vQ2xK7mP4zR");
+  const dummyPasswordHash = await hashPassword("Timing!9vQ2xK7mP");
   const privilegedRole = (role: string) => role === "super_admin" || role === "admin";
+  const isPendingSchemaMigration = (error: unknown): boolean => {
+    const code = (error as { code?: string; cause?: { code?: string } } | null)?.cause?.code
+      || (error as { code?: string } | null)?.code;
+    return code === "42703" || code === "42P01" || code === "23502";
+  };
   const requireSameOrigin = (req: Request, res: Response, next: NextFunction) => {
     const fetchSite = req.header("sec-fetch-site");
     if (fetchSite === "cross-site") {
@@ -1668,7 +1675,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
 
   const createAuthenticatedSession = async (
     res: Response,
-    user: { id: string; username: string; email: string; role: string; mustChangePassword?: boolean | null },
+    user: { id: string; username: string; email: string; role: string },
     ipAddress: string,
     userAgent: string | null,
     mfaVerified: boolean,
@@ -1694,7 +1701,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
         username: user.username,
         email: user.email,
         role: user.role,
-        mustChangePassword: user.mustChangePassword === true,
+        mustChangePassword: false,
       },
     };
   };
@@ -1814,21 +1821,11 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
       await logLogin(user.email, true, user.id);
       await storage.updateAdminUserLogin(user.id);
 
-      // Migración perezosa: bcrypt heredado pasa a Argon2id cuando la contraseña ya
-      // cumple la política moderna. Si es corta, se exige cambio antes de continuar.
+      // Migración perezosa: cualquier bcrypt heredado pasa a Argon2id después de
+      // verificarlo. La política de altas no bloquea el login de credenciales antiguas.
       if (passwordNeedsRehash(user.passwordHash)) {
-        const policy = validateNewPassword(password);
-        if (policy.valid) {
-          await storage.setAdminUserPassword(user.id, await hashPassword(password), user.mustChangePassword === true);
-          user = (await storage.getAdminUser(user.id)) || user;
-        } else if (!user.mustChangePassword) {
-          user = (await storage.updateAdminUser(user.id, { mustChangePassword: true })) || user;
-        }
-      }
-
-      if (user.mustChangePassword) {
-        const sessionPayload = await createAuthenticatedSession(res, user, ip, userAgent, false);
-        return res.json({ authenticated: true, ...sessionPayload });
+        await storage.setAdminUserPassword(user.id, await rehashVerifiedPassword(password), false);
+        user = (await storage.getAdminUser(user.id)) || user;
       }
 
       if (privilegedRole(user.role)) {
@@ -1853,6 +1850,12 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
       return res.json({ authenticated: true, ...sessionPayload });
     } catch (error) {
       console.error("Login error:", error instanceof Error ? error.message : "unknown");
+      if (isPendingSchemaMigration(error)) {
+        return res.status(503).json({
+          error: "El panel requiere completar una actualización de base de datos",
+          code: "SCHEMA_MIGRATION_REQUIRED",
+        });
+      }
       res.status(500).json({ error: "Login failed", code: "LOGIN_FAILED" });
     }
   });
@@ -2043,7 +2046,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
         username: user.username,
         email: user.email,
         role: user.role,
-        mustChangePassword: user.mustChangePassword,
+        mustChangePassword: false,
         permissions: Array.from(effectivePermissions(user)),
       },
     });
@@ -2057,7 +2060,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
       username: u.username,
       email: u.email,
       role: u.role,
-      mustChangePassword: u.mustChangePassword,
+      mustChangePassword: false,
       permissions: Array.from(effectivePermissions(u)),
     });
   });
@@ -2102,15 +2105,15 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
       if (!MANAGEABLE_ROLES.includes(r)) return apiError(res, 400, "Rol inválido");
       if (r === "super_admin" && actor.role !== "super_admin") return apiError(res, 403, "Solo un Dueño puede crear otro Dueño");
       const finalUsername = username || email.split("@")[0].toLowerCase();
-      const temporaryPassword = generateTemporaryPassword();
-      const passwordHash = await hashPassword(temporaryPassword);
+      const generatedPassword = generateAdminPassword();
+      const passwordHash = await hashPassword(generatedPassword);
       const created = await storage.createAdminUser({
         username: finalUsername,
         email,
         passwordHash,
         role: r,
         isActive: true,
-        mustChangePassword: true,
+        mustChangePassword: false,
         passwordChangedAt: new Date(),
       } as any);
       if (r === "super_admin") {
@@ -2119,7 +2122,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
       auditLog("create", "admin_user", created.id, actor?.id || "unknown");
       const { passwordHash: _omit, ...safe } = created as any;
       res.setHeader("Cache-Control", "no-store");
-      res.status(201).json({ user: safe, temporaryPassword });
+      res.status(201).json({ user: safe, generatedPassword });
     } catch (error: any) {
       if (error?.code === "23505" || /unique|duplicate/i.test(String(error?.message))) {
         return apiError(res, 409, "Ya existe un usuario con ese correo o nombre de usuario");
@@ -2189,13 +2192,13 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
       if (target.role === "super_admin" && actor.role !== "super_admin" && target.id !== actor.id) {
         return apiError(res, 403, "Solo un Dueño puede cambiar la contraseña de un Dueño");
       }
-      const temporaryPassword = generateTemporaryPassword();
-      await storage.setAdminUserPassword(idResult.data, await hashPassword(temporaryPassword), true);
+      const generatedPassword = generateAdminPassword();
+      await storage.setAdminUserPassword(idResult.data, await hashPassword(generatedPassword), false);
       await storage.deleteAdminSessionsByUserId(idResult.data);
       await storage.deleteAdminAuthChallengesByUserId(idResult.data);
       auditLog("update", "admin_user", idResult.data, actor?.id || "unknown");
       res.setHeader("Cache-Control", "no-store");
-      res.json({ ok: true, temporaryPassword });
+      res.json({ ok: true, generatedPassword });
     } catch (error) {
       console.error("Reset password error:", error);
       return apiError(res, 500, "Failed to reset password");
@@ -2232,9 +2235,9 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
     try {
       const parsed = z.object({
         currentPassword: z.string().min(1).max(128),
-        newPassword: z.string().min(15).max(128),
+        newPassword: z.string().min(12).max(16),
       }).safeParse(req.body);
-      if (!parsed.success) return apiError(res, 400, "La nueva contraseña debe tener entre 15 y 128 caracteres");
+      if (!parsed.success) return apiError(res, 400, "La nueva contraseña debe tener entre 12 y 16 caracteres");
       const policy = validateNewPassword(parsed.data.newPassword);
       if (!policy.valid) return apiError(res, 400, policy.error);
       const user = req.adminUser!;

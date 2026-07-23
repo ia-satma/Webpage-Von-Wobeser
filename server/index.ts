@@ -117,7 +117,7 @@ app.use((req, res, next) => {
     if (Array.isArray(bodyJson)) {
       responseShape = `[${bodyJson.length} items]`;
     } else if (bodyJson && typeof bodyJson === "object") {
-      // Nunca registrar valores: login, formularios, credenciales temporales y
+      // Nunca registrar valores: login, formularios, credenciales generadas y
       // respuestas de agentes pueden contener secretos o datos personales.
       responseShape = `{${Object.keys(bodyJson).slice(0, 12).join(",")}}`;
     }

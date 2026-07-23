@@ -198,7 +198,7 @@ async function runAgainstTarget({ name, base: B, isLocal }) {
       editorId = cj.user?.id;
       if (!editorId) { bad(`No se pudo crear usuario editor de prueba (${cr.status}) ${JSON.stringify(cj).slice(0, 100)}`); }
       else {
-        editorToken = await login2(B, editorEmail, cj.temporaryPassword);
+        editorToken = await login2(B, editorEmail, cj.generatedPassword);
         const ur = await fetch(B + "/api/admin/users", { headers: editorToken });
         if (ur.status === 403 || ur.status === 428) ok(`sesión de rol 'editor' → ${ur.status} en /api/admin/users (sin escalada)`);
         else bad(`sesión de rol 'editor' → ${ur.status} en /api/admin/users (ESPERABA 403/428 — posible escalada de privilegios)`);

@@ -506,8 +506,8 @@ export const adminUsers = pgTable("admin_users", {
   createdAt: timestamp("created_at").defaultNow(),
   lastLogin: timestamp("last_login"),
   isActive: boolean("is_active").default(true),
-  // Las cuentas creadas desde el panel reciben una contraseña temporal que debe
-  // reemplazarse antes de usar cualquier otra función administrativa.
+  // Campo heredado conservado por compatibilidad. El flujo actual genera
+  // contraseñas definitivas y mantiene este valor en false.
   mustChangePassword: boolean("must_change_password").notNull().default(false),
   passwordChangedAt: timestamp("password_changed_at"),
 });
@@ -625,8 +625,8 @@ export type SecurityRateLimit = typeof securityRateLimits.$inferSelect;
 // Admin login schema for validation (accepts email or username)
 export const adminLoginSchema = z.object({
   username: z.string().trim().min(1, "Email or username is required").max(254),
-  // El login debe aceptar hashes bcrypt heredados. La regla fuerte de 15
-  // caracteres se aplica al crear o cambiar credenciales nuevas.
+  // El login debe aceptar hashes bcrypt y longitudes heredadas. El rango de
+  // 12–16 caracteres se aplica al crear o cambiar credenciales nuevas.
   password: z.string().min(1, "Password is required").max(128, "Password is too long"),
 });
 

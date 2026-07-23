@@ -8,6 +8,7 @@ import { renderAttorneyResults } from "./renderAttorneyResults";
 import { renderSingle } from "./renderSingle";
 import { renderHome } from "./renderHome";
 import { renderPage } from "./renderPage";
+import { renderFirmLanding } from "./renderFirmLanding";
 import { renderGroupList, type GroupListItem } from "./renderGroupList";
 import { applyCareersFormFix, applyContactForm } from "./formsFix";
 import * as cheerio from "cheerio";
@@ -196,6 +197,7 @@ const lastWord = (name: string) => {
 const LANG_TOGGLE_SCRIPT = `<script>(function(){try{
   var PAIRS={
     '/nuestra-firma':'/our-firm','/our-firm':'/nuestra-firma',
+    '/acerca-de':'/about','/about':'/acerca-de',
     '/contacto':'/contact','/contact':'/contacto',
     '/bolsa-de-trabajo':'/careers','/careers':'/bolsa-de-trabajo',
     '/bolsa-de-trabajo/pasantes':'/careers/interns','/careers/interns':'/bolsa-de-trabajo/pasantes',
@@ -974,8 +976,25 @@ export async function setupMirror(app: Express) {
     sendPage(res, html);
   };
 
-  // Páginas institucionales (Nuestra Firma, Contacto, Carrera): el texto es editable desde el
-  // panel (siteConfig); si está vacío, se muestra el texto original de la plantilla.
+  const serveFirmLanding = async (lang: Lang, res: Response) => {
+    const [config, members, practices, industries] = await Promise.all([
+      getConfigMap(),
+      storage.getTeamMembers(),
+      storage.getPracticeGroups(),
+      storage.getIndustryGroups(),
+    ]);
+    sendPage(
+      res,
+      renderFirmLanding(pick(TEMPLATES.firm, lang), config, lang, {
+        teamMembers: members,
+        practices,
+        industries,
+      }),
+    );
+  };
+
+  // Páginas institucionales del espejo: conservan su diseño capturado y reciben únicamente
+  // el contenido editable de siteConfig. El resumen del video usa una ruta independiente.
   const servePage = async (which: keyof typeof PAGE_KEYS, lang: Lang, res: Response) => {
     const config = await getConfigMap();
     const seo = PAGE_SEO[which];
@@ -1098,8 +1117,13 @@ export async function setupMirror(app: Express) {
   ]) app.get(p, deskRetired);
 
   // ---------- Páginas institucionales (texto editable desde el panel) ----
-  // Variantes de URL del espejo: ES (nuestra-firma/contacto/bolsa-de-trabajo) y EN
-  // (our-firm/contact/careers), con y sin index.html, más atajos cortos.
+  // Landing-resumen independiente: solo se enlaza desde el video del home.
+  for (const p of ["/acerca-de", "/acerca-de/"])
+    app.get(p, wrap((_req, res) => serveFirmLanding("es", res)));
+  for (const p of ["/about", "/about/"])
+    app.get(p, wrap((_req, res) => serveFirmLanding("en", res)));
+
+  // Variantes originales de Nuestra Firma: recuperan el diseño previo del espejo.
   for (const p of ["/index.php/nuestra-firma/index.html", "/index.php/nuestra-firma/", "/nuestra-firma"])
     app.get(p, wrap((_req, res) => servePage("firm", "es", res)));
   for (const p of ["/index.php/our-firm/index.html", "/index.php/our-firm/", "/our-firm"])

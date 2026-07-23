@@ -21,8 +21,8 @@ type LoginFormData = {
 
 const createLoginSchema = (t: { emailRequired: string; passwordMin: string }) => z.object({
   username: z.string().min(1, t.emailRequired),
-  // Las credenciales heredadas pueden ser más cortas; después del acceso el
-  // servidor obliga a cambiarlas por una contraseña moderna de 15+ caracteres.
+  // El acceso mantiene compatibilidad con credenciales heredadas; el rango
+  // de 12–16 caracteres se aplica únicamente al crear o cambiar contraseñas.
   password: z.string().min(1, t.passwordMin).max(128),
 });
 
@@ -200,7 +200,7 @@ export default function AdminLogin() {
 
   useEffect(() => {
     void loadAdminSession().then((user) => {
-      if (user) setLocation(user.mustChangePassword ? "/admin/change-password" : "/admin/dashboard");
+      if (user) setLocation("/admin/dashboard");
     });
   }, [setLocation]);
 
@@ -220,12 +220,27 @@ export default function AdminLogin() {
         body: JSON.stringify(data),
         credentials: "include",
       });
-      
+      const body = await res.json().catch(() => ({}));
       if (!res.ok) {
-        throw new Error(t.invalidCredentials);
+        const code = String(body?.code || "");
+        const messages: Record<string, string> = {
+          INVALID_CREDENTIALS: t.invalidCredentials,
+          LOGIN_RATE_LIMITED: isSpanish
+            ? "Demasiados intentos. Espera unos minutos antes de volver a intentar."
+            : "Too many attempts. Wait a few minutes before trying again.",
+          MFA_CONFIGURATION_REQUIRED: isSpanish
+            ? "El segundo factor todavía no está configurado en Replit Secrets. Solicita apoyo al administrador del sistema."
+            : "Two-step verification is not configured in Replit Secrets yet. Contact the system administrator.",
+          SCHEMA_MIGRATION_REQUIRED: isSpanish
+            ? "El panel necesita completar una actualización de base de datos antes de iniciar sesión."
+            : "The administration panel must complete a database update before you can sign in.",
+          LOGIN_FAILED: isSpanish
+            ? "El panel no pudo completar el acceso. Intenta nuevamente o solicita apoyo al administrador."
+            : "The administration panel could not complete sign-in. Try again or contact the administrator.",
+        };
+        throw new Error(messages[code] || (typeof body?.error === "string" ? body.error : t.invalidCredentials));
       }
-      
-      return res.json();
+      return body;
     },
     onSuccess: async (data) => {
       if (data.mfaRequired) {
@@ -239,7 +254,17 @@ export default function AdminLogin() {
           });
           if (!enrollmentResponse.ok) {
             const body = await enrollmentResponse.json().catch(() => ({}));
-            throw new Error(body.error || "No se pudo configurar el segundo factor");
+            setMfaStep(null);
+            toast({
+              title: isSpanish ? "No se pudo configurar el segundo factor" : "Two-step setup failed",
+              description: body.code === "MFA_CONFIGURATION_REQUIRED"
+                ? (isSpanish
+                  ? "Falta configurar MFA_ENCRYPTION_KEY en Replit Secrets."
+                  : "MFA_ENCRYPTION_KEY is missing from Replit Secrets.")
+                : (body.error || (isSpanish ? "Intenta nuevamente." : "Try again.")),
+              variant: "destructive",
+            });
+            return;
           }
           setEnrollment(await enrollmentResponse.json());
         }
@@ -249,7 +274,7 @@ export default function AdminLogin() {
       toast({
         title: t.loginSuccess,
       });
-      setLocation(data.user?.mustChangePassword ? "/admin/change-password" : "/admin/dashboard");
+      setLocation("/admin/dashboard");
     },
     onError: (error: Error) => {
       toast({

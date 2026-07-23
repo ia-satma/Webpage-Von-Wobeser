@@ -10,9 +10,11 @@
     "dev": "NODE_ENV=development tsx server/index.ts",
     "build": "node --import tsx script/build.ts",
     "start": "NODE_ENV=production node dist/index.cjs",
+    "start:deploy": "npm run db:migrate && npm run start",
     "check": "tsc",
     "test:security": "node --import tsx --test server/security/*.test.ts",
-    "db:migrate": "node scripts/run-migrations.mjs"
+    "db:migrate": "node scripts/run-migrations.mjs",
+    "admin:recover": "node --import tsx scripts/recover-admin.ts"
   },
   "dependencies": {
     "@google/genai": "^1.32.0",

@@ -106,7 +106,7 @@ export default function AdminUsers() {
     setBusy(false);
     if (res.ok) {
       const body = await res.json();
-      setGeneratedCredential({ email: body.user.email, password: body.temporaryPassword });
+      setGeneratedCredential({ email: body.user.email, password: body.generatedPassword });
       toast({ title: "Usuario creado" });
       setOpenCreate(false); setNf({ username: "", email: "", role: "editor" }); refresh();
     } else {
@@ -142,8 +142,8 @@ export default function AdminUsers() {
     setBusy(false);
     if (res.ok) {
       const body = await res.json();
-      setGeneratedCredential({ email: pwUser.email, password: body.temporaryPassword });
-      toast({ title: "Contraseña temporal generada" });
+      setGeneratedCredential({ email: pwUser.email, password: body.generatedPassword });
+      toast({ title: "Contraseña segura generada" });
       setPwUser(null);
     }
     else toast({ title: "Error", description: await err("No se pudo cambiar")(res), variant: "destructive" });
@@ -265,7 +265,7 @@ export default function AdminUsers() {
                               <Button variant="ghost" size="icon" title="Permisos adicionales" onClick={() => openPerms(u)} disabled={!canEditOwner || u.role === "super_admin"} data-testid={`perms-${u.id}`}>
                                 <SlidersHorizontal className="h-4 w-4" />
                               </Button>
-                              <Button variant="ghost" size="icon" title="Generar contraseña temporal" onClick={() => setPwUser(u)} disabled={!canEditOwner} data-testid={`pw-${u.id}`}>
+                              <Button variant="ghost" size="icon" title="Generar contraseña nueva" onClick={() => setPwUser(u)} disabled={!canEditOwner} data-testid={`pw-${u.id}`}>
                                 <KeyRound className="h-4 w-4" />
                               </Button>
                               <Button variant="ghost" size="icon" title="Eliminar" onClick={() => del(u)} disabled={!canEditOwner} data-testid={`del-${u.id}`}>
@@ -339,7 +339,7 @@ export default function AdminUsers() {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Nuevo usuario</DialogTitle>
-            <DialogDescription>El sistema generará una contraseña temporal segura y la mostrará una sola vez.</DialogDescription>
+            <DialogDescription>El sistema generará una contraseña segura de 16 caracteres, la mostrará una sola vez y no exigirá reemplazarla.</DialogDescription>
           </DialogHeader>
           <div className="space-y-3">
             <div className="space-y-1"><Label>Correo *</Label><Input type="email" value={nf.email} onChange={(e) => setNf({ ...nf, email: e.target.value })} placeholder="persona@vonwobeser.com" data-testid="input-email" /></div>
@@ -407,9 +407,9 @@ export default function AdminUsers() {
       <Dialog open={!!pwUser} onOpenChange={(o) => !o && setPwUser(null)}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Generar contraseña temporal</DialogTitle>
+            <DialogTitle>Generar contraseña nueva</DialogTitle>
             <DialogDescription>
-              Se cerrarán todas las sesiones de {pwUser?.email}. La nueva contraseña se mostrará una sola vez y deberá cambiarse en el siguiente acceso.
+              Se cerrarán todas las sesiones de {pwUser?.email}. La contraseña se mostrará una sola vez y funcionará directamente, sin cambio obligatorio.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
@@ -421,13 +421,13 @@ export default function AdminUsers() {
         </DialogContent>
       </Dialog>
 
-      {/* Credencial temporal — deliberadamente se muestra una sola vez */}
+      {/* Credencial generada — deliberadamente se muestra una sola vez */}
       <Dialog open={!!generatedCredential} onOpenChange={(open) => !open && setGeneratedCredential(null)}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Contraseña temporal</DialogTitle>
+            <DialogTitle>Contraseña generada</DialogTitle>
             <DialogDescription>
-              Copia y comparte esta contraseña por un canal seguro. Al cerrar esta ventana no volverá a mostrarse.
+              Copia y comparte esta contraseña definitiva por un canal seguro. Al cerrar esta ventana no volverá a mostrarse.
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-3">
