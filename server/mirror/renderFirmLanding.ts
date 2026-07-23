@@ -171,6 +171,38 @@ function sectionHeading(eyebrow: string, title: string, intro?: string): string 
   </header>`;
 }
 
+function renderIndexedList(
+  items: Array<{ title: string; body: string }>,
+  listClass: string,
+  wrapCopy: boolean,
+  indexClass = "",
+): string {
+  const $list = cheerio.load("<ol></ol>", null, false);
+  const list = $list("ol").addClass(listClass);
+
+  items.forEach((item, index) => {
+    const row = $list("<li></li>");
+    const itemIndex = $list("<span></span>").text(String(index + 1).padStart(2, "0"));
+    if (indexClass) itemIndex.addClass(indexClass);
+    row.append(itemIndex);
+
+    const title = $list("<h3></h3>").text(item.title);
+    const body = plain(item.body);
+    if (wrapCopy) {
+      const copy = $list("<div></div>").append(title);
+      if (body) copy.append($list("<p></p>").text(body));
+      row.append(copy);
+    } else {
+      row.append(title);
+      if (body) row.append($list("<p></p>").text(body));
+    }
+
+    list.append(row);
+  });
+
+  return $list.html();
+}
+
 function renderHistory(config: ConfigMap, lang: Lang): string {
   const fallbackIntro = lang === "es"
     ? "Fundada en 1986, Von Wobeser y Sierra combina excelencia jurídica, integridad y un enfoque multidisciplinario para asesorar a sus clientes en sus asuntos más relevantes en México."
@@ -246,6 +278,7 @@ function renderValues(config: ConfigMap, lang: Lang): string {
     title: text(config, `firm_landing_value_${index + 1}_title`, lang, fallback.values[index][0]),
     body: text(config, `firm_landing_value_${index + 1}_body`, lang, fallback.values[index][1]),
   })).filter((item) => item.title || item.body);
+  const list = renderIndexedList(items, "vw-firm__values-list", true, "vw-firm__index");
 
   return `<section class="vw-firm__section vw-firm__values vw-firm-reveal" id="valores" aria-labelledby="vw-firm-values-title">
     <div class="vw-firm__container vw-firm__values-grid">
@@ -254,12 +287,7 @@ function renderValues(config: ConfigMap, lang: Lang): string {
         <h2 id="vw-firm-values-title">${esc(title)}</h2>
         ${intro ? `<p class="vw-firm__lede">${esc(intro)}</p>` : ""}
       </div>
-      <ol class="vw-firm__values-list">
-        ${items.map((item, index) => `<li>
-          <span class="vw-firm__index">${esc(String(index + 1).padStart(2, "0"))}</span>
-          <div><h3>${esc(item.title)}</h3>${item.body ? `<p>${esc(plain(item.body))}</p>` : ""}</div>
-        </li>`).join("")}
-      </ol>
+      ${list}
     </div>
   </section>`;
 }
@@ -275,6 +303,7 @@ function renderCulture(config: ConfigMap, lang: Lang): string {
     title: text(config, `firm_landing_culture_${index + 1}_title`, lang, fallback.culture[index][0]),
     body: text(config, `firm_landing_culture_${index + 1}_body`, lang, fallback.culture[index][1]),
   })).filter((item) => item.title || item.body);
+  const list = renderIndexedList(items, "vw-firm__culture-list", false, "vw-firm__index");
 
   return `<section class="vw-firm__section vw-firm__culture vw-firm-reveal" id="cultura" aria-labelledby="vw-firm-culture-title">
     <div class="vw-firm__container">
@@ -286,13 +315,7 @@ function renderCulture(config: ConfigMap, lang: Lang): string {
         ${intro ? `<p class="vw-firm__lede">${esc(intro)}</p>` : ""}
       </div>
       ${image ? `<figure class="vw-firm__culture-media"><img src="${escAttr(image)}" alt="${escAttr(imageAlt)}" loading="lazy" decoding="async"></figure>` : ""}
-      <ol class="vw-firm__culture-list">
-        ${items.map((item, index) => `<li>
-          <span class="vw-firm__index">${esc(String(index + 1).padStart(2, "0"))}</span>
-          <h3>${esc(item.title)}</h3>
-          ${item.body ? `<p>${esc(plain(item.body))}</p>` : ""}
-        </li>`).join("")}
-      </ol>
+      ${list}
     </div>
   </section>`;
 }
@@ -310,6 +333,7 @@ function renderDiversity(config: ConfigMap, lang: Lang): string {
     title: text(config, `firm_landing_diversity_${index + 1}_title`, lang, fallback.diversity[index][0]),
     body: text(config, `firm_landing_diversity_${index + 1}_body`, lang, fallback.diversity[index][1]),
   })).filter((item) => item.title || item.body);
+  const list = renderIndexedList(items, "vw-firm__diversity-list", true);
 
   return `<section class="vw-firm__section vw-firm__diversity vw-firm-reveal" id="diversidad" aria-labelledby="vw-firm-diversity-title">
     <div class="vw-firm__container">
@@ -317,12 +341,7 @@ function renderDiversity(config: ConfigMap, lang: Lang): string {
         ${sectionHeading(subtitle, title, intro)}
         ${commitment ? `<div class="vw-firm__diversity-commitment">${rich({ item: { value: commitment, valueEs: commitment, type: "text" } }, "item", lang)}</div>` : ""}
       </div>
-      <ol class="vw-firm__diversity-list">
-        ${items.map((item, index) => `<li>
-          <span>${esc(String(index + 1).padStart(2, "0"))}</span>
-          <div><h3>${esc(item.title)}</h3>${item.body ? `<p>${esc(plain(item.body))}</p>` : ""}</div>
-        </li>`).join("")}
-      </ol>
+      ${list}
       <a class="vw-firm__text-link" href="${path}">${esc(cta)}<span aria-hidden="true">→</span></a>
     </div>
   </section>`;
