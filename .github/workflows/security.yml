@@ -29,7 +29,16 @@ jobs:
       image: semgrep/semgrep
     steps:
       - uses: actions/checkout@v4
-      - run: semgrep scan --config p/owasp-top-ten --config p/typescript --error --sarif --output semgrep.sarif
+        with:
+          fetch-depth: 0
+      - name: Scan new findings against the base commit
+        if: github.event_name != 'schedule'
+        env:
+          SEMGREP_BASELINE: ${{ github.event.pull_request.base.sha || github.event.before }}
+        run: semgrep scan --config p/owasp-top-ten --config p/typescript --baseline-commit "$SEMGREP_BASELINE" --error --sarif --output semgrep.sarif
+      - name: Build the scheduled full-repository inventory
+        if: github.event_name == 'schedule'
+        run: semgrep scan --config p/owasp-top-ten --config p/typescript --sarif --output semgrep.sarif
       - uses: github/codeql-action/upload-sarif@v3
         if: always()
         with:
