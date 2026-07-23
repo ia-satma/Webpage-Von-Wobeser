@@ -39,6 +39,32 @@ jobs:
       - name: Build the scheduled full-repository inventory
         if: github.event_name == 'schedule'
         run: semgrep scan --config p/owasp-top-ten --config p/typescript --sarif --output semgrep.sarif
+      - name: Summarize blocking findings
+        if: failure()
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+
+          report_path = Path("semgrep.sarif")
+          if not report_path.is_file():
+              print("Semgrep did not produce a SARIF report.")
+              raise SystemExit(0)
+
+          report = json.loads(report_path.read_text(encoding="utf-8"))
+          results = [
+              result
+              for run in report.get("runs", [])
+              for result in run.get("results", [])
+          ]
+          print(f"Blocking Semgrep findings: {len(results)}")
+          for result in results:
+              location = (result.get("locations") or [{}])[0]
+              physical = location.get("physicalLocation", {})
+              artifact = physical.get("artifactLocation", {}).get("uri", "unknown")
+              line = physical.get("region", {}).get("startLine", "?")
+              print(f"- {result.get('ruleId', 'unknown')} — {artifact}:{line}")
+          PY
       - uses: github/codeql-action/upload-sarif@v3
         if: always()
         with:
