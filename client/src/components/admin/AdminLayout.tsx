@@ -133,7 +133,7 @@ export function AdminLayout({ children }: { children: ReactNode }) {
   const [location] = useLocation();
   const { logout, role } = useAdminAuth();
   const { has } = useMyPermissions();
-  const isAdmin = !role || role === "admin" || role === "super_admin";
+  const isAdmin = role === "admin" || role === "super_admin";
   const isSuperAdmin = role === "super_admin";
   const [openGroups, setOpenGroups] = useState<Set<string>>(() => loadOpenGroups());
 

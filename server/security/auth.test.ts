@@ -7,7 +7,9 @@ import bcrypt from "bcrypt";
 process.env.DATABASE_URL = "postgresql://unused:unused@127.0.0.1:1/unused?sslmode=disable";
 const {
   comparePassword,
+  adminSessionUserPayload,
   deriveCsrfToken,
+  effectivePermissions,
   generateAdminPassword,
   hashPassword,
   passwordNeedsRehash,
@@ -68,4 +70,18 @@ test("CSRF tokens are stable per session and do not expose the session token", (
   assert.equal(first, deriveCsrfToken(raw));
   assert.notEqual(first, deriveCsrfToken("B".repeat(43)));
   assert.equal(first.includes(raw), false);
+});
+
+test("authenticated admin payloads always include effective configuration permissions", () => {
+  const owner = {
+    id: "owner-id",
+    username: "owner",
+    email: "owner@example.com",
+    role: "super_admin",
+    permissions: [],
+  };
+  const payload = adminSessionUserPayload(owner);
+  assert.equal(payload.mustChangePassword, false);
+  assert.equal(payload.permissions.includes("config"), true);
+  assert.deepEqual(new Set(payload.permissions), effectivePermissions(owner));
 });
