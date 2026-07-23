@@ -624,7 +624,14 @@ export type SecurityRateLimit = typeof securityRateLimits.$inferSelect;
 
 // Admin login schema for validation (accepts email or username)
 export const adminLoginSchema = z.object({
-  username: z.string().trim().min(1, "Email or username is required").max(254),
+  username: z.string()
+    .trim()
+    .min(1, "Email or username is required")
+    .max(254)
+    // Las altas administrativas guardan el correo en minúsculas. El acceso debe
+    // aplicar la misma normalización para que una mayúscula accidental no haga
+    // parecer que una cuenta válida no existe. Los nombres de usuario se conservan.
+    .transform((value) => value.includes("@") ? value.toLowerCase() : value),
   // El login debe aceptar hashes bcrypt y longitudes heredadas. El rango de
   // 12–16 caracteres se aplica al crear o cambiar credenciales nuevas.
   password: z.string().min(1, "Password is required").max(128, "Password is too long"),
