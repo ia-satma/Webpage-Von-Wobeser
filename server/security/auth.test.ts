@@ -14,6 +14,7 @@ const {
   rehashVerifiedPassword,
   validateNewPassword,
 } = await import("../auth");
+const { adminLoginSchema } = await import("../../shared/schema");
 
 test("new passwords use Argon2id and verify without persisting plaintext", async () => {
   const password = "Secure-2026-Key!";
@@ -45,6 +46,20 @@ test("password policy accepts 12–16 characters and generated credentials are d
   const generated = generateAdminPassword();
   assert.equal(generated.length, 16);
   assert.equal(validateNewPassword(generated).valid, true);
+});
+
+test("admin login normalizes email case without changing usernames", () => {
+  const emailLogin = adminLoginSchema.parse({
+    username: "  AlejandroMtzICC@GMAIL.com  ",
+    password: "Secure-2026-Key!",
+  });
+  assert.equal(emailLogin.username, "alejandromtzicc@gmail.com");
+
+  const usernameLogin = adminLoginSchema.parse({
+    username: "CaseSensitiveUsername",
+    password: "Secure-2026-Key!",
+  });
+  assert.equal(usernameLogin.username, "CaseSensitiveUsername");
 });
 
 test("CSRF tokens are stable per session and do not expose the session token", () => {
