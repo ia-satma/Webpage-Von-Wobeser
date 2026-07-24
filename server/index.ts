@@ -7,7 +7,7 @@ import { registerRoutes, runSecurityMaintenance } from "./routes";
 import { serveStatic } from "./static";
 import { createServer } from "http";
 import { randomUUID } from "node:crypto";
-import { orchestrator } from "./agents/core/AgentOrchestrator";
+import { initializeAgents, orchestrator } from "./agents";
 
 const app = express();
 // Detrás del reverse-proxy de Replit (inyecta X-Forwarded-For). Sin esto req.ip es la IP del
@@ -187,7 +187,7 @@ app.use((req, res, next) => {
       
       // Initialize and start the agent orchestrator
       try {
-        await orchestrator.initialize();
+        await initializeAgents();
         orchestrator.start(2000); // Process jobs every 2 seconds
         log("Agent orchestrator initialized and started", "agents");
       } catch (error) {

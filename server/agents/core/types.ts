@@ -1,21 +1,8 @@
+import type { AgentId } from '@shared/agentConstants';
+
 export type AgentStatus = 'idle' | 'running' | 'completed' | 'failed' | 'paused';
 
-export type AgentType = 
-  | 'formatter'
-  | 'metadata_linker'
-  | 'polyglot_translator'
-  | 'content_auditor'
-  | 'seo_optimizer'
-  | 'content_analyzer'
-  | 'image_suggestion'
-  | 'category_agent'
-  | 'website_auditor'
-  | 'social_media'
-  | 'newsletter'
-  | 'legal_alerts'
-  | 'voice_agent'
-  | 'presentation_generator'
-  | 'orchestrator';
+export type AgentType = AgentId;
 
 export type JobStatus = 'pending' | 'in_progress' | 'completed' | 'failed' | 'cancelled';
 

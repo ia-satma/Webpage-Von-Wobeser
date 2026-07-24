@@ -179,7 +179,7 @@ export class SystemHealthCheck {
           entityType: 'agent_job',
           entityId: job.id,
           title: `Stuck ${job.agentType} job`,
-          details: `Job has been "in_progress" for ${stuckMinutes} minutes. Payload: ${JSON.stringify(job.payload).substring(0, 100)}...`,
+          details: `Job has been "in_progress" for ${stuckMinutes} minutes.`,
           suggestedAction: `Cancel job ${job.id} and restart if needed`,
           detectedAt: new Date(),
         });

@@ -68,6 +68,12 @@ export async function recoverFailedItems(): Promise<RecoveryReport> {
     };
     
     try {
+      if (article.published) {
+        result.message = 'Published content requires manual recovery approval';
+        results.push(result);
+        continue;
+      }
+
       const failedStep = article.failedStep || 'unknown';
       
       if (failedStep === 'image' || failedStep === 'unknown') {
@@ -82,10 +88,13 @@ export async function recoverFailedItems(): Promise<RecoveryReport> {
               console.log(`[AutoRecovery] Retrying image generation for ${article.id}`);
               const imageResult = await imageSuggestionAgent.execute(
                 createContext('image_suggestion'),
-                { articleId: article.id }
+                { articleId: article.id, applyChanges: true }
               );
               
-              if (imageResult.success) {
+              if (
+                imageResult.success &&
+                (imageResult.data as Record<string, unknown> | undefined)?.changesApplied === true
+              ) {
                 await db.update(news).set({
                   processingStatus: 'ready',
                   lastError: null,
@@ -97,28 +106,10 @@ export async function recoverFailedItems(): Promise<RecoveryReport> {
                 result.newStatus = 'ready';
                 result.message = 'Image generated successfully';
               } else {
-                await db.update(news).set({
-                  processingStatus: 'partial_success',
-                  imageUrl: '/placeholder-article.svg',
-                  lastError: `Image retry failed: ${imageResult.error}`,
-                  lastProcessedAt: new Date()
-                }).where(eq(news.id, article.id));
-                
-                result.recoverySuccess = true;
-                result.newStatus = 'partial_success';
-                result.message = 'Assigned placeholder image - content is ready';
+                result.message = `Image retry needs manual review: ${imageResult.error || 'no image candidate applied'}`;
               }
             } catch (imgErr: any) {
-              await db.update(news).set({
-                processingStatus: 'partial_success',
-                imageUrl: '/placeholder-article.svg',
-                lastError: `Image error: ${imgErr.message}`,
-                lastProcessedAt: new Date()
-              }).where(eq(news.id, article.id));
-              
-              result.recoverySuccess = true;
-              result.newStatus = 'partial_success';
-              result.message = 'Assigned placeholder - image service unavailable';
+              result.message = `Image service unavailable; manual review required: ${imgErr.message}`;
             }
           } else {
             await db.update(news).set({
@@ -142,7 +133,7 @@ export async function recoverFailedItems(): Promise<RecoveryReport> {
         try {
           const translateResult = await polyglotTranslatorAgent.execute(
             createContext('polyglot_translator'),
-            { articleId: article.id }
+            { articleId: article.id, applyChanges: true }
           );
           
           if (translateResult.success) {
@@ -169,10 +160,13 @@ export async function recoverFailedItems(): Promise<RecoveryReport> {
         try {
           const seoResult = await seoOptimizerAgent.execute(
             createContext('seo_optimizer'),
-            { articleId: article.id }
+            { articleId: article.id, applyChanges: true }
           );
           
-          if (seoResult.success) {
+          if (
+            seoResult.success &&
+            (seoResult.data as Record<string, unknown> | undefined)?.changesApplied === true
+          ) {
             await db.update(news).set({
               processingStatus: 'ready',
               lastError: null,
@@ -184,7 +178,7 @@ export async function recoverFailedItems(): Promise<RecoveryReport> {
             result.newStatus = 'ready';
             result.message = 'SEO optimization completed';
           } else {
-            result.message = `SEO retry failed: ${seoResult.error}`;
+            result.message = `SEO retry needs manual review: ${seoResult.error || 'no safe improvement applied'}`;
           }
         } catch (err: any) {
           result.message = `SEO error: ${err.message}`;

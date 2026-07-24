@@ -36,26 +36,57 @@ import { newsletterAgent } from './specialized/NewsletterAgent';
 import { legalAlertsAgent } from './specialized/LegalAlertsAgent';
 import { voiceAgent } from './specialized/VoiceAgent';
 import { presentationGeneratorAgent } from './specialized/PresentationGeneratorAgent';
+import { ALL_AGENT_IDS, type AgentId } from '@shared/agentConstants';
+
+const RUNTIME_AGENTS = [
+  formatterAgent,
+  metadataLinkerAgent,
+  polyglotTranslatorAgent,
+  contentAuditorAgent,
+  seoOptimizerAgent,
+  imageSuggestionAgent,
+  categoryAgent,
+  websiteAuditorAgent,
+  contentAnalyzerAgent,
+  socialMediaAgent,
+  newsletterAgent,
+  legalAlertsAgent,
+  voiceAgent,
+  presentationGeneratorAgent,
+] as const;
+
+let initializationPromise: Promise<void> | null = null;
 
 export async function initializeAgents(): Promise<void> {
-  console.log('[Agents] Initializing agent system...');
-  
-  await orchestrator.initialize();
-  
-  orchestrator.registerAgent(formatterAgent);
-  orchestrator.registerAgent(metadataLinkerAgent);
-  orchestrator.registerAgent(polyglotTranslatorAgent);
-  orchestrator.registerAgent(contentAuditorAgent);
-  orchestrator.registerAgent(seoOptimizerAgent);
-  orchestrator.registerAgent(imageSuggestionAgent);
-  orchestrator.registerAgent(categoryAgent);
-  orchestrator.registerAgent(websiteAuditorAgent);
-  orchestrator.registerAgent(contentAnalyzerAgent);
-  orchestrator.registerAgent(socialMediaAgent);
-  orchestrator.registerAgent(newsletterAgent);
-  orchestrator.registerAgent(legalAlertsAgent);
-  orchestrator.registerAgent(voiceAgent);
-  orchestrator.registerAgent(presentationGeneratorAgent);
+  if (initializationPromise) return initializationPromise;
 
-  console.log('[Agents] All 14 agents registered and ready');
+  initializationPromise = (async () => {
+    console.log('[Agents] Initializing agent system...');
+
+    const runtimeIds = RUNTIME_AGENTS.map((agent) => agent.agentType as AgentId);
+    const missing = ALL_AGENT_IDS.filter((id) => !runtimeIds.includes(id));
+    const unknown = runtimeIds.filter((id) => !ALL_AGENT_IDS.includes(id));
+    const duplicates = runtimeIds.filter((id, index) => runtimeIds.indexOf(id) !== index);
+
+    if (missing.length || unknown.length || duplicates.length) {
+      throw new Error(
+        `[Agents] Runtime inventory mismatch: missing=${missing.join(',') || 'none'} ` +
+        `unknown=${unknown.join(',') || 'none'} duplicates=${duplicates.join(',') || 'none'}`,
+      );
+    }
+
+    for (const agent of RUNTIME_AGENTS) {
+      if (!orchestrator.getAgent(agent.agentType)) orchestrator.registerAgent(agent);
+    }
+    await orchestrator.initialize();
+
+    console.log(`[Agents] All ${RUNTIME_AGENTS.length} canonical runtime agents registered and ready`);
+  })();
+
+  try {
+    await initializationPromise;
+  } catch (error) {
+    initializationPromise = null;
+    throw error;
+  }
 }

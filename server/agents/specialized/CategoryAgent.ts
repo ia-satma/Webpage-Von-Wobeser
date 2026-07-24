@@ -3,9 +3,19 @@ import { AgentConfig, AgentResult, ExecutionContext } from '../core/types';
 import { db } from '../../db';
 import { news, practiceGroups, industryGroups } from '../../../shared/schema';
 import { eq } from 'drizzle-orm';
+import { categoryOutputSchema } from '../core/contracts';
+
+function normalizeTaxonomyValue(value: string): string {
+  return value
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/\s+/g, ' ')
+    .trim();
+}
 
 const CATEGORY_CONFIG: AgentConfig = {
-  agentType: 'category_agent' as any,
+  agentType: 'category_agent',
   name: 'Category Agent',
   description: 'Automatically categorizes articles based on content analysis for SEO optimization',
   systemPrompt: `You are an expert content categorizer for Von Wobeser y Sierra, a prestigious Mexican law firm. 
@@ -77,7 +87,7 @@ export class CategoryAgent extends BaseAgent {
   }
 
   async execute(context: ExecutionContext, payload: Record<string, unknown>): Promise<AgentResult> {
-    const { articleId } = payload as { articleId: string };
+    const { articleId, applyChanges } = payload as { articleId: string; applyChanges?: boolean };
 
     if (!articleId) {
       return { success: false, error: 'articleId is required' };
@@ -89,9 +99,10 @@ export class CategoryAgent extends BaseAgent {
         return { success: false, error: `Article not found: ${articleId}` };
       }
 
-      const title = article.titleEs || article.title || '';
-      const content = article.contentEs || article.content || '';
-      const excerpt = article.excerptEs || article.excerpt || '';
+      const sourceLanguage: 'es' | 'en' = article.contentEs?.trim() ? 'es' : 'en';
+      const title = sourceLanguage === 'es' ? (article.titleEs || '') : (article.title || '');
+      const content = sourceLanguage === 'es' ? (article.contentEs || '') : (article.content || '');
+      const excerpt = sourceLanguage === 'es' ? (article.excerptEs || '') : (article.excerpt || '');
 
       if (!content.trim() && !title.trim()) {
         return { success: false, error: 'Article has no content to analyze' };
@@ -125,13 +136,13 @@ Categorize this article and return JSON with primaryCategory, categorySlug, prac
         { jsonMode: true, temperature: 0.3 }
       );
 
-      const categorization = JSON.parse(response);
+      const categorization = categoryOutputSchema.parse(JSON.parse(response));
 
       const matchedPracticeGroups: string[] = [];
       for (const practiceArea of categorization.practiceAreas || []) {
         const match = existingPracticeGroups.find(
-          pg => (pg.nameEs || pg.name || '').toLowerCase().includes(practiceArea.toLowerCase()) ||
-                practiceArea.toLowerCase().includes((pg.nameEs || pg.name || '').toLowerCase())
+          pg => pg.slug === practiceArea ||
+            normalizeTaxonomyValue(pg.nameEs || pg.name || '') === normalizeTaxonomyValue(practiceArea)
         );
         if (match) {
           matchedPracticeGroups.push(match.id);
@@ -141,25 +152,31 @@ Categorize this article and return JSON with primaryCategory, categorySlug, prac
       const matchedIndustryGroups: string[] = [];
       for (const industry of categorization.industrySectors || []) {
         const match = existingIndustryGroups.find(
-          ig => (ig.nameEs || ig.name || '').toLowerCase().includes(industry.toLowerCase()) ||
-                industry.toLowerCase().includes((ig.nameEs || ig.name || '').toLowerCase())
+          ig => ig.slug === industry ||
+            normalizeTaxonomyValue(ig.nameEs || ig.name || '') === normalizeTaxonomyValue(industry)
         );
         if (match) {
           matchedIndustryGroups.push(match.id);
         }
       }
 
-      await db.update(news)
-        .set({
-          category: categorization.primaryCategory,
-          categoryEs: categorization.primaryCategory,
-        })
-        .where(eq(news.id, articleId));
+      const canApply =
+        applyChanges === true &&
+        article.published === false &&
+        categorization.confidence >= 0.75;
+      if (canApply) {
+        await db.update(news)
+          .set(sourceLanguage === 'es'
+            ? { categoryEs: categorization.primaryCategory }
+            : { category: categorization.primaryCategory })
+          .where(eq(news.id, articleId));
+      }
 
       return {
         success: true,
         data: {
           articleId,
+          sourceLanguage,
           primaryCategory: categorization.primaryCategory,
           categorySlug: categorization.categorySlug,
           practiceAreas: matchedPracticeGroups,
@@ -167,6 +184,7 @@ Categorize this article and return JSON with primaryCategory, categorySlug, prac
           tags: categorization.tags,
           confidence: categorization.confidence,
           reasoning: categorization.reasoning,
+          changesApplied: canApply,
         },
         metrics: {
           confidence: categorization.confidence,

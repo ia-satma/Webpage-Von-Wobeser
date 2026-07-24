@@ -5,6 +5,8 @@ import { storage } from '../../storage';
 import { getConfigMap } from '../../mirror/siteConfig';
 import { fetchStatusWithPolicy } from '../../security/network';
 import type { InsertWebsiteAuditFinding, WebsiteAuditFinding, TeamMember, PracticeGroup, IndustryGroup, News } from '@shared/schema';
+import * as fs from 'node:fs';
+import * as path from 'node:path';
 
 const SUPPORTED_LANGUAGES = ['en', 'es', 'de', 'zh', 'ko', 'ja', 'ar', 'ru', 'fr', 'it'];
 
@@ -32,6 +34,7 @@ const AUTO_ENQUEUE_ENTITY_TYPE = 'news';
 interface AuditConfig {
   runType: 'full' | 'delta' | 'links_only' | 'translations_only' | 'seo_only' | 'content_only';
   skipModules?: string[];
+  applyChanges?: boolean;
 }
 
 interface AuditMetrics {
@@ -70,6 +73,7 @@ export class WebsiteAuditorAgent extends BaseAgent {
     contentItemsChecked: 0,
   };
   private findings: FindingData[] = [];
+  private allowChanges = false;
 
   constructor() {
     super({
@@ -98,7 +102,9 @@ Be thorough but prioritize critical issues that directly impact users.`,
     const config: AuditConfig = {
       runType: (payload.runType as AuditConfig['runType']) || 'full',
       skipModules: payload.skipModules as string[] | undefined,
+      applyChanges: payload.applyChanges === true,
     };
+    this.allowChanges = config.applyChanges === true;
 
     console.log(`[WebsiteAuditor] Starting ${config.runType} audit...`);
     this.metrics = {
@@ -674,7 +680,12 @@ Be thorough but prioritize critical issues that directly impact users.`,
 
   private async checkImageUrl(url: string): Promise<boolean> {
     try {
-      if (url.startsWith('/')) return true;
+      if (url.startsWith('/')) {
+        const relativePath = decodeURIComponent(url.split(/[?#]/, 1)[0]).replace(/^\/+/, '');
+        const publicRoot = path.resolve(process.cwd(), 'public');
+        const resolved = path.resolve(publicRoot, relativePath);
+        return resolved.startsWith(`${publicRoot}${path.sep}`) && fs.existsSync(resolved);
+      }
       const status = await fetchStatusWithPolicy({
         url,
         // Las imágenes editoriales pueden vivir en distintos CDN públicos. La
@@ -704,6 +715,7 @@ Be thorough but prioritize critical issues that directly impact users.`,
     entityId: string,
     brokenUrl: string,
   ): Promise<boolean> {
+    if (!this.allowChanges) return false;
     if (brokenUrl === FALLBACK_IMAGE) return false; // ya es el placeholder, nada que hacer
     try {
       if (entityType === 'team_member') {
