@@ -333,7 +333,7 @@ function uploadedResponsiveVariants(source: string): Array<{ url: string; width:
   });
 }
 
-function optimizePublicImageTags(html: string): string {
+export function optimizePublicImageTags(html: string): string {
   return html.replace(/<img\b[^>]*>/gi, (tag) => {
     const source = tag.match(/\bsrc=["']([^"']+)["']/i)?.[1] || "";
     const cleanSource = source.split(/[?#]/, 1)[0];
@@ -352,8 +352,11 @@ function optimizePublicImageTags(html: string): string {
       add(`srcset="${srcset}"`);
       if (!/\bsizes=/i.test(next)) add('sizes="(max-width: 680px) 100vw, 50vw"');
     }
-    if (manifestEntry?.width && !/\bwidth=/i.test(next)) add(`width="${manifestEntry.width}"`);
-    if (manifestEntry?.height && !/\bheight=/i.test(next)) add(`height="${manifestEntry.height}"`);
+    // Los logos del encabezado ya tienen límites de tamaño propios. Convertir sus
+    // dimensiones intrínsecas en atributos HTML fija una altura desproporcionada
+    // cuando el CSS solo limita el ancho.
+    if (!critical && manifestEntry?.width && !/\bwidth=/i.test(next)) add(`width="${manifestEntry.width}"`);
+    if (!critical && manifestEntry?.height && !/\bheight=/i.test(next)) add(`height="${manifestEntry.height}"`);
     if (critical) {
       if (!/\bfetchpriority=/i.test(next)) add('fetchpriority="high"');
     } else if (!/\bloading=/i.test(next)) {

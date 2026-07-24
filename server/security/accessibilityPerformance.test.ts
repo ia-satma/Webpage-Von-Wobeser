@@ -7,7 +7,7 @@ process.env.DATABASE_URL ||= "postgresql://test:test@127.0.0.1:5432/test";
 
 const { renderHome } = await import("../mirror/renderHome");
 const { applyA11y } = await import("../mirror/seo");
-const { hardenLegacyClientScripts, optimizeLegacyAssets } = await import("../mirror/index");
+const { hardenLegacyClientScripts, optimizeLegacyAssets, optimizePublicImageTags } = await import("../mirror/index");
 const { getCachedPublicPage, invalidatePublicPageCache, publicPageCacheSize } = await import("../mirror/pageCache");
 
 test("el cromo compartido usa lista válida y botón de búsqueda accesible", () => {
@@ -126,6 +126,23 @@ test("la carga pública elimina librerías Joomla duplicadas y usa jQuery vigent
   assert.match(optimized, /_vendor\/jquery\/jquery-3\.7\.1\.min\.js/);
   assert.match(optimized, /<script defer src="\/templates\/beez3\/js\/min\/slick\.min\.js"/);
   assert.doesNotMatch(optimized, /fontawesome|joomla-script-options/);
+});
+
+test("la optimización responsiva respeta el tamaño CSS del logo institucional", () => {
+  const html = optimizePublicImageTags(`
+    <img class="header__logo--img" src="/images/vw40.png" style="max-width:180px">
+    <img class="banner" src="/images/banners/3.jpg">
+  `);
+  const $ = cheerio.load(html);
+  const logo = $(".header__logo--img");
+  const banner = $(".banner");
+
+  assert.equal(logo.attr("width"), undefined);
+  assert.equal(logo.attr("height"), undefined);
+  assert.equal(logo.attr("fetchpriority"), "high");
+  assert.equal(banner.attr("width"), "5184");
+  assert.equal(banner.attr("height"), "3456");
+  assert.match(banner.attr("srcset") || "", /3-640\.webp 640w/);
 });
 
 test("el carrusel heredado no se destruye y reconstruye en cada evento de scroll", () => {
