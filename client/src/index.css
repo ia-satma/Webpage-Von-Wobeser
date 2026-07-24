@@ -8,17 +8,20 @@
    ────────────────────────────────────────────────────────────── */
 @font-face {
   font-family: 'Publico-Roman';
-  src: url('/templates/beez3/webfont/Publico-Roman.woff') format('woff');
+  src: url('/templates/beez3/webfont/Publico-Roman.woff2') format('woff2'),
+       url('/templates/beez3/webfont/Publico-Roman.woff') format('woff');
   font-weight: normal; font-style: normal; font-display: swap;
 }
 @font-face {
   font-family: 'OptimaLTStd';
-  src: url('/templates/beez3/webfont/OptimaLTStd.woff') format('woff');
+  src: url('/templates/beez3/webfont/OptimaLTStd.woff2') format('woff2'),
+       url('/templates/beez3/webfont/OptimaLTStd.woff') format('woff');
   font-weight: normal; font-style: normal; font-display: swap;
 }
 @font-face {
   font-family: 'Geomanist-Book';
-  src: url('/templates/beez3/webfont/Geomanist-Book.woff') format('woff');
+  src: url('/templates/beez3/webfont/Geomanist-Book.woff2') format('woff2'),
+       url('/templates/beez3/webfont/Geomanist-Book.woff') format('woff');
   font-weight: normal; font-style: normal; font-display: swap;
 }
 

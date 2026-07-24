@@ -1,5 +1,6 @@
 import sharp from "sharp";
 import fs from "fs";
+import path from "path";
 
 const MAX_WIDTH = 2000;
 const THRESHOLD_BYTES = 1 * 1024 * 1024; // 1MB — por debajo no vale la pena procesar
@@ -7,6 +8,7 @@ const JPEG_QUALITY = 80;
 const WEBP_QUALITY = 80;
 
 const IMAGE_MIMES = new Set(["image/jpeg", "image/png", "image/webp"]);
+const RESPONSIVE_WIDTHS = [640, 1280, 1920] as const;
 
 /**
  * Comprime en el mismo archivo una imagen recién subida si supera el umbral de tamaño:
@@ -38,5 +40,37 @@ export async function optimizeImageIfNeeded(
   } catch (e) {
     console.warn("[optimizeImage] No se pudo optimizar", filePath, (e as Error).message);
     return null;
+  }
+}
+
+/**
+ * Genera derivados WebP para el frontend sin reemplazar el archivo maestro.
+ * Se usa después de validar y aceptar una imagen pública; los nombres físicos
+ * ya son aleatorios, por lo que los derivados tampoco revelan el nombre original.
+ */
+export async function generateResponsiveImageVariants(filePath: string, mimeType: string): Promise<string[]> {
+  if (!IMAGE_MIMES.has(mimeType)) return [];
+  try {
+    const metadata = await sharp(filePath).metadata();
+    if (!metadata.width) return [];
+    const outputDirectory = path.join(path.dirname(filePath), "optimized");
+    fs.mkdirSync(outputDirectory, { recursive: true });
+    const parsed = path.parse(filePath);
+    const generated: string[] = [];
+    for (const requestedWidth of RESPONSIVE_WIDTHS) {
+      if (requestedWidth > metadata.width && requestedWidth !== RESPONSIVE_WIDTHS[0]) continue;
+      const width = Math.min(requestedWidth, metadata.width);
+      const outputPath = path.join(outputDirectory, `${parsed.name}-${width}.webp`);
+      await sharp(filePath)
+        .rotate()
+        .resize({ width: requestedWidth, withoutEnlargement: true })
+        .webp({ quality: requestedWidth <= 640 ? 72 : 76, effort: 5, smartSubsample: true })
+        .toFile(outputPath);
+      generated.push(outputPath);
+    }
+    return generated;
+  } catch (error) {
+    console.warn("[optimizeImage] No se pudieron crear variantes responsivas", (error as Error).message);
+    return [];
   }
 }

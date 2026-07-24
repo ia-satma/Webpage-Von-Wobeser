@@ -1,0 +1,2377 @@
+{
+  "/images/156x156_chambers_LATAM2026-1.png": {
+    "width": 156,
+    "height": 156,
+    "variants": []
+  },
+  "/images/21.-Katharina-Roehr.jpg": {
+    "width": 1417,
+    "height": 1890,
+    "variants": [
+      {
+        "url": "/images/optimized/images/21.-Katharina-Roehr-640.webp",
+        "width": 640
+      },
+      {
+        "url": "/images/optimized/images/21.-Katharina-Roehr-1280.webp",
+        "width": 1280
+      }
+    ]
+  },
+  "/images/Adrian-Martinez-.jpg": {
+    "width": 1417,
+    "height": 1890,
+    "variants": [
+      {
+        "url": "/images/optimized/images/Adrian-Martinez--640.webp",
+        "width": 640
+      },
+      {
+        "url": "/images/optimized/images/Adrian-Martinez--1280.webp",
+        "width": 1280
+      }
+    ]
+  },
+  "/images/Alejandro-Avila-2026-05-08-at-09.40.33.jpeg": {
+    "width": 600,
+    "height": 800,
+    "variants": []
+  },
+  "/images/Alexa-Mendivil.jpg": {
+    "width": 1417,
+    "height": 1890,
+    "variants": [
+      {
+        "url": "/images/optimized/images/Alexa-Mendivil-640.webp",
+        "width": 640
+      },
+      {
+        "url": "/images/optimized/images/Alexa-Mendivil-1280.webp",
+        "width": 1280
+      }
+    ]
+  },
+  "/images/Alondra-Marin.jpg": {
+    "width": 1417,
+    "height": 1890,
+    "variants": [
+      {
+        "url": "/images/optimized/images/Alondra-Marin-640.webp",
+        "width": 640
+      },
+      {
+        "url": "/images/optimized/images/Alondra-Marin-1280.webp",
+        "width": 1280
+      }
+    ]
+  },
+  "/images/Amanda-Ibanez.jpg": {
+    "width": 1417,
+    "height": 1890,
+    "variants": [
+      {
+        "url": "/images/optimized/images/Amanda-Ibanez-640.webp",
+        "width": 640
+      },
+      {
+        "url": "/images/optimized/images/Amanda-Ibanez-1280.webp",
+        "width": 1280
+      }
+    ]
+  },
+  "/images/Ana-Alpizar.jpg": {
+    "width": 1417,
+    "height": 1890,
+    "variants": [
+      {
+        "url": "/images/optimized/images/Ana-Alpizar-640.webp",
+        "width": 640
+      },
+      {
+        "url": "/images/optimized/images/Ana-Alpizar-1280.webp",
+        "width": 1280
+      }
+    ]
+  },
+  "/images/Ana-Victoria-Guevara-1.jpg": {
+    "width": 1417,
+    "height": 1890,
+    "variants": [
+      {
+        "url": "/images/optimized/images/Ana-Victoria-Guevara-1-640.webp",
+        "width": 640
+      },
+      {
+        "url": "/images/optimized/images/Ana-Victoria-Guevara-1-1280.webp",
+        "width": 1280
+      }
+    ]
+  },
+  "/images/Andoni-Garza_14092023.jpg": {
+    "width": 1417,
+    "height": 1890,
+    "variants": [
+      {
+        "url": "/images/optimized/images/Andoni-Garza_14092023-640.webp",
+        "width": 640
+      },
+      {
+        "url": "/images/optimized/images/Andoni-Garza_14092023-1280.webp",
+        "width": 1280
+      }
+    ]
+  },
+  "/images/Andres-Jimenez.jpg": {
+    "width": 1417,
+    "height": 1890,
+    "variants": [
+      {
+        "url": "/images/optimized/images/Andres-Jimenez-640.webp",
+        "width": 640
+      },
+      {
+        "url": "/images/optimized/images/Andres-Jimenez-1280.webp",
+        "width": 1280
+      }
+    ]
+  },
+  "/images/Arturo-Hernandez.jpg": {
+    "width": 1417,
+    "height": 1890,
+    "variants": [
+      {
+        "url": "/images/optimized/images/Arturo-Hernandez-640.webp",
+        "width": 640
+      },
+      {
+        "url": "/images/optimized/images/Arturo-Hernandez-1280.webp",
+        "width": 1280
+      }
+    ]
+  },
+  "/images/Carlos-Cazares.jpg": {
+    "width": 1417,
+    "height": 1890,
+    "variants": [
+      {
+        "url": "/images/optimized/images/Carlos-Cazares-640.webp",
+        "width": 640
+      },
+      {
+        "url": "/images/optimized/images/Carlos-Cazares-1280.webp",
+        "width": 1280
+      }
+    ]
+  },
+  "/images/Carlos-Cevallos.jpg": {
+    "width": 1417,
+    "height": 1890,
+    "variants": [
+      {
+        "url": "/images/optimized/images/Carlos-Cevallos-640.webp",
+        "width": 640
+      },
+      {
+        "url": "/images/optimized/images/Carlos-Cevallos-1280.webp",
+        "width": 1280
+      }
+    ]
+  },
+  "/images/CarlosUgalde_HiRes-1.jpg": {
+    "width": 960,
+    "height": 1280,
+    "variants": []
+  },
+  "/images/Christian-Ramirez_01082023.jpg": {
+    "width": 1417,
+    "height": 1890,
+    "variants": [
+      {
+        "url": "/images/optimized/images/Christian-Ramirez_01082023-640.webp",
+        "width": 640
+      },
+      {
+        "url": "/images/optimized/images/Christian-Ramirez_01082023-1280.webp",
+        "width": 1280
+      }
+    ]
+  },
+  "/images/Daniela-Pons.jpg": {
+    "width": 1417,
+    "height": 1890,
+    "variants": [
+      {
+        "url": "/images/optimized/images/Daniela-Pons-640.webp",
+        "width": 640
+      },
+      {
+        "url": "/images/optimized/images/Daniela-Pons-1280.webp",
+        "width": 1280
+      }
+    ]
+  },
+  "/images/Dario-Figueroa.jpg": {
+    "width": 1417,
+    "height": 1890,
+    "variants": [
+      {
+        "url": "/images/optimized/images/Dario-Figueroa-640.webp",
+        "width": 640
+      },
+      {
+        "url": "/images/optimized/images/Dario-Figueroa-1280.webp",
+        "width": 1280
+      }
+    ]
+  },
+  "/images/David-Fainsod-.jpg": {
+    "width": 1417,
+    "height": 1890,
+    "variants": [
+      {
+        "url": "/images/optimized/images/David-Fainsod--640.webp",
+        "width": 640
+      },
+      {
+        "url": "/images/optimized/images/David-Fainsod--1280.webp",
+        "width": 1280
+      }
+    ]
+  },
+  "/images/Diego-Altamirano.jpg": {
+    "width": 1417,
+    "height": 1890,
+    "variants": [
+      {
+        "url": "/images/optimized/images/Diego-Altamirano-640.webp",
+        "width": 640
+      },
+      {
+        "url": "/images/optimized/images/Diego-Altamirano-1280.webp",
+        "width": 1280
+      }
+    ]
+  },
+  "/images/Diego-Lozada.jpg": {
+    "width": 1417,
+    "height": 1890,
+    "variants": [
+      {
+        "url": "/images/optimized/images/Diego-Lozada-640.webp",
+        "width": 640
+      },
+      {
+        "url": "/images/optimized/images/Diego-Lozada-1280.webp",
+        "width": 1280
+      }
+    ]
+  },
+  "/images/Dolores-Jimnez_14072023.jpg": {
+    "width": 1417,
+    "height": 1890,
+    "variants": [
+      {
+        "url": "/images/optimized/images/Dolores-Jimnez_14072023-640.webp",
+        "width": 640
+      },
+      {
+        "url": "/images/optimized/images/Dolores-Jimnez_14072023-1280.webp",
+        "width": 1280
+      }
+    ]
+  },
+  "/images/ERA.jpg": {
+    "width": 1366,
+    "height": 593,
+    "variants": []
+  },
+  "/images/Edmundo-Berumen.jpg": {
+    "width": 1417,
+    "height": 1890,
+    "variants": [
+      {
+        "url": "/images/optimized/images/Edmundo-Berumen-640.webp",
+        "width": 640
+      },
+      {
+        "url": "/images/optimized/images/Edmundo-Berumen-1280.webp",
+        "width": 1280
+      }
+    ]
+  },
+  "/images/Eduardo-Estrada.jpg": {
+    "width": 1417,
+    "height": 1890,
+    "variants": [
+      {
+        "url": "/images/optimized/images/Eduardo-Estrada-640.webp",
+        "width": 640
+      },
+      {
+        "url": "/images/optimized/images/Eduardo-Estrada-1280.webp",
+        "width": 1280
+      }
+    ]
+  },
+  "/images/Eliana-Gonzalez.jpg": {
+    "width": 1417,
+    "height": 1890,
+    "variants": [
+      {
+        "url": "/images/optimized/images/Eliana-Gonzalez-640.webp",
+        "width": 640
+      },
+      {
+        "url": "/images/optimized/images/Eliana-Gonzalez-1280.webp",
+        "width": 1280
+      }
+    ]
+  },
+  "/images/Eric-Palacios.jpg": {
+    "width": 1417,
+    "height": 1890,
+    "variants": [
+      {
+        "url": "/images/optimized/images/Eric-Palacios-640.webp",
+        "width": 640
+      },
+      {
+        "url": "/images/optimized/images/Eric-Palacios-1280.webp",
+        "width": 1280
+      }
+    ]
+  },
+  "/images/Fernando-Mancilla_25052023.jpg": {
+    "width": 1417,
+    "height": 1890,
+    "variants": [
+      {
+        "url": "/images/optimized/images/Fernando-Mancilla_25052023-640.webp",
+        "width": 640
+      },
+      {
+        "url": "/images/optimized/images/Fernando-Mancilla_25052023-1280.webp",
+        "width": 1280
+      }
+    ]
+  },
+  "/images/Gabriela-Mancha.jpg": {
+    "width": 1417,
+    "height": 1890,
+    "variants": [
+      {
+        "url": "/images/optimized/images/Gabriela-Mancha-640.webp",
+        "width": 640
+      },
+      {
+        "url": "/images/optimized/images/Gabriela-Mancha-1280.webp",
+        "width": 1280
+      }
+    ]
+  },
+  "/images/Gustavo-Padilla.jpg": {
+    "width": 1417,
+    "height": 1890,
+    "variants": [
+      {
+        "url": "/images/optimized/images/Gustavo-Padilla-640.webp",
+        "width": 640
+      },
+      {
+        "url": "/images/optimized/images/Gustavo-Padilla-1280.webp",
+        "width": 1280
+      }
+    ]
+  },
+  "/images/Gustavo-Vaca.jpg": {
+    "width": 1417,
+    "height": 1890,
+    "variants": [
+      {
+        "url": "/images/optimized/images/Gustavo-Vaca-640.webp",
+        "width": 640
+      },
+      {
+        "url": "/images/optimized/images/Gustavo-Vaca-1280.webp",
+        "width": 1280
+      }
+    ]
+  },
+  "/images/Hector-Sanchez.jpg": {
+    "width": 1417,
+    "height": 1890,
+    "variants": [
+      {
+        "url": "/images/optimized/images/Hector-Sanchez-640.webp",
+        "width": 640
+      },
+      {
+        "url": "/images/optimized/images/Hector-Sanchez-1280.webp",
+        "width": 1280
+      }
+    ]
+  },
+  "/images/Jaime-Sanchez.jpg": {
+    "width": 1417,
+    "height": 1890,
+    "variants": [
+      {
+        "url": "/images/optimized/images/Jaime-Sanchez-640.webp",
+        "width": 640
+      },
+      {
+        "url": "/images/optimized/images/Jaime-Sanchez-1280.webp",
+        "width": 1280
+      }
+    ]
+  },
+  "/images/Joel-Domnguez_05062023.jpg": {
+    "width": 1417,
+    "height": 1890,
+    "variants": [
+      {
+        "url": "/images/optimized/images/Joel-Domnguez_05062023-640.webp",
+        "width": 640
+      },
+      {
+        "url": "/images/optimized/images/Joel-Domnguez_05062023-1280.webp",
+        "width": 1280
+      }
+    ]
+  },
+  "/images/Juan-Arturo.jpg": {
+    "width": 1199,
+    "height": 1600,
+    "variants": [
+      {
+        "url": "/images/optimized/images/Juan-Arturo-640.webp",
+        "width": 640
+      }
+    ]
+  },
+  "/images/Julian-Luna.jpg": {
+    "width": 1417,
+    "height": 1890,
+    "variants": [
+      {
+        "url": "/images/optimized/images/Julian-Luna-640.webp",
+        "width": 640
+      },
+      {
+        "url": "/images/optimized/images/Julian-Luna-1280.webp",
+        "width": 1280
+      }
+    ]
+  },
+  "/images/Julieta-Bejar.jpg": {
+    "width": 768,
+    "height": 1024,
+    "variants": []
+  },
+  "/images/Marcela-Calderon.jpg": {
+    "width": 1417,
+    "height": 1890,
+    "variants": [
+      {
+        "url": "/images/optimized/images/Marcela-Calderon-640.webp",
+        "width": 640
+      },
+      {
+        "url": "/images/optimized/images/Marcela-Calderon-1280.webp",
+        "width": 1280
+      }
+    ]
+  },
+  "/images/Margarita-Lima.jpg": {
+    "width": 600,
+    "height": 800,
+    "variants": []
+  },
+  "/images/Maria-Garcia_15122023_2.png": {
+    "width": 1714,
+    "height": 2400,
+    "variants": [
+      {
+        "url": "/images/optimized/images/Maria-Garcia_15122023_2-640.webp",
+        "width": 640
+      },
+      {
+        "url": "/images/optimized/images/Maria-Garcia_15122023_2-1280.webp",
+        "width": 1280
+      }
+    ]
+  },
+  "/images/Maria_E_Vera_2026-05-12-at-17.35.55.jpeg": {
+    "width": 1199,
+    "height": 1600,
+    "variants": [
+      {
+        "url": "/images/optimized/images/Maria_E_Vera_2026-05-12-at-17.35.55-640.webp",
+        "width": 640
+      }
+    ]
+  },
+  "/images/Mariana-Salcedo.jpg": {
+    "width": 1417,
+    "height": 1890,
+    "variants": [
+      {
+        "url": "/images/optimized/images/Mariana-Salcedo-640.webp",
+        "width": 640
+      },
+      {
+        "url": "/images/optimized/images/Mariana-Salcedo-1280.webp",
+        "width": 1280
+      }
+    ]
+  },
+  "/images/Melissa-Cruz_13072023.jpg": {
+    "width": 1417,
+    "height": 1890,
+    "variants": [
+      {
+        "url": "/images/optimized/images/Melissa-Cruz_13072023-640.webp",
+        "width": 640
+      },
+      {
+        "url": "/images/optimized/images/Melissa-Cruz_13072023-1280.webp",
+        "width": 1280
+      }
+    ]
+  },
+  "/images/Mercedes-Jimenez-.jpg": {
+    "width": 1417,
+    "height": 1890,
+    "variants": [
+      {
+        "url": "/images/optimized/images/Mercedes-Jimenez--640.webp",
+        "width": 640
+      },
+      {
+        "url": "/images/optimized/images/Mercedes-Jimenez--1280.webp",
+        "width": 1280
+      }
+    ]
+  },
+  "/images/Michael-Schreiber.jpg": {
+    "width": 1417,
+    "height": 1890,
+    "variants": [
+      {
+        "url": "/images/optimized/images/Michael-Schreiber-640.webp",
+        "width": 640
+      },
+      {
+        "url": "/images/optimized/images/Michael-Schreiber-1280.webp",
+        "width": 1280
+      }
+    ]
+  },
+  "/images/Miguel_A_Chinchilla_2026-05-12-at-16.59.08.jpeg": {
+    "width": 1199,
+    "height": 1600,
+    "variants": []
+  },
+  "/images/Montserrat-Garcia-.png": {
+    "width": 1714,
+    "height": 2400,
+    "variants": [
+      {
+        "url": "/images/optimized/images/Montserrat-Garcia--640.webp",
+        "width": 640
+      },
+      {
+        "url": "/images/optimized/images/Montserrat-Garcia--1280.webp",
+        "width": 1280
+      }
+    ]
+  },
+  "/images/Mujer_2022.png": {
+    "width": 600,
+    "height": 347,
+    "variants": []
+  },
+  "/images/PDF_news/2022/Guide_mergers.jpg": {
+    "width": 140,
+    "height": 213,
+    "variants": []
+  },
+  "/images/PHOTO-2026-06-02-08-42-18.jpg": {
+    "width": 1199,
+    "height": 1600,
+    "variants": [
+      {
+        "url": "/images/optimized/images/PHOTO-2026-06-02-08-42-18-640.webp",
+        "width": 640
+      }
+    ]
+  },
+  "/images/PROBONOMX_blanco.png": {
+    "width": 833,
+    "height": 833,
+    "variants": []
+  },
+  "/images/Pablo-Aceves.jpg": {
+    "width": 1417,
+    "height": 1890,
+    "variants": [
+      {
+        "url": "/images/optimized/images/Pablo-Aceves-640.webp",
+        "width": 640
+      },
+      {
+        "url": "/images/optimized/images/Pablo-Aceves-1280.webp",
+        "width": 1280
+      }
+    ]
+  },
+  "/images/Paola-Hernandez.jpg": {
+    "width": 1417,
+    "height": 1890,
+    "variants": [
+      {
+        "url": "/images/optimized/images/Paola-Hernandez-640.webp",
+        "width": 640
+      },
+      {
+        "url": "/images/optimized/images/Paola-Hernandez-1280.webp",
+        "width": 1280
+      }
+    ]
+  },
+  "/images/Patricio-Reyes-Retana.jpg": {
+    "width": 1417,
+    "height": 1890,
+    "variants": [
+      {
+        "url": "/images/optimized/images/Patricio-Reyes-Retana-640.webp",
+        "width": 640
+      },
+      {
+        "url": "/images/optimized/images/Patricio-Reyes-Retana-1280.webp",
+        "width": 1280
+      }
+    ]
+  },
+  "/images/Patricio_Cortina_2026-05-11-at-12.16.04.jpeg": {
+    "width": 405,
+    "height": 540,
+    "variants": []
+  },
+  "/images/Raul-Chaidez.jpg": {
+    "width": 1417,
+    "height": 1890,
+    "variants": [
+      {
+        "url": "/images/optimized/images/Raul-Chaidez-640.webp",
+        "width": 640
+      },
+      {
+        "url": "/images/optimized/images/Raul-Chaidez-1280.webp",
+        "width": 1280
+      }
+    ]
+  },
+  "/images/Regina-Castillo.jpg": {
+    "width": 1417,
+    "height": 1890,
+    "variants": [
+      {
+        "url": "/images/optimized/images/Regina-Castillo-640.webp",
+        "width": 640
+      },
+      {
+        "url": "/images/optimized/images/Regina-Castillo-1280.webp",
+        "width": 1280
+      }
+    ]
+  },
+  "/images/Regina-Forte.jpg": {
+    "width": 1417,
+    "height": 1890,
+    "variants": [
+      {
+        "url": "/images/optimized/images/Regina-Forte-640.webp",
+        "width": 640
+      },
+      {
+        "url": "/images/optimized/images/Regina-Forte-1280.webp",
+        "width": 1280
+      }
+    ]
+  },
+  "/images/Regina-Gonzalez.jpg": {
+    "width": 1417,
+    "height": 1890,
+    "variants": [
+      {
+        "url": "/images/optimized/images/Regina-Gonzalez-640.webp",
+        "width": 640
+      },
+      {
+        "url": "/images/optimized/images/Regina-Gonzalez-1280.webp",
+        "width": 1280
+      }
+    ]
+  },
+  "/images/Ricardo-Cacho_25032024.jpg": {
+    "width": 1417,
+    "height": 1890,
+    "variants": [
+      {
+        "url": "/images/optimized/images/Ricardo-Cacho_25032024-640.webp",
+        "width": 640
+      },
+      {
+        "url": "/images/optimized/images/Ricardo-Cacho_25032024-1280.webp",
+        "width": 1280
+      }
+    ]
+  },
+  "/images/Santiago-Torres.jpg": {
+    "width": 1417,
+    "height": 1890,
+    "variants": [
+      {
+        "url": "/images/optimized/images/Santiago-Torres-640.webp",
+        "width": 640
+      },
+      {
+        "url": "/images/optimized/images/Santiago-Torres-1280.webp",
+        "width": 1280
+      }
+    ]
+  },
+  "/images/Socios/17.-Pablo-Jimnez_16032023.jpg": {
+    "width": 1417,
+    "height": 1890,
+    "variants": [
+      {
+        "url": "/images/optimized/images/Socios/17.-Pablo-Jimnez_16032023-640.webp",
+        "width": 640
+      },
+      {
+        "url": "/images/optimized/images/Socios/17.-Pablo-Jimnez_16032023-1280.webp",
+        "width": 1280
+      }
+    ]
+  },
+  "/images/Socios/23.-Sergio-Lpez.jpg": {
+    "width": 1512,
+    "height": 2016,
+    "variants": [
+      {
+        "url": "/images/optimized/images/Socios/23.-Sergio-Lpez-640.webp",
+        "width": 640
+      },
+      {
+        "url": "/images/optimized/images/Socios/23.-Sergio-Lpez-1280.webp",
+        "width": 1280
+      }
+    ]
+  },
+  "/images/Socios/24.-Alejandro-Torres.jpg": {
+    "width": 1417,
+    "height": 1890,
+    "variants": [
+      {
+        "url": "/images/optimized/images/Socios/24.-Alejandro-Torres-640.webp",
+        "width": 640
+      },
+      {
+        "url": "/images/optimized/images/Socios/24.-Alejandro-Torres-1280.webp",
+        "width": 1280
+      }
+    ]
+  },
+  "/images/Socios/8.-Diego-Sierra.jpg": {
+    "width": 1417,
+    "height": 1890,
+    "variants": [
+      {
+        "url": "/images/optimized/images/Socios/8.-Diego-Sierra-640.webp",
+        "width": 640
+      },
+      {
+        "url": "/images/optimized/images/Socios/8.-Diego-Sierra-1280.webp",
+        "width": 1280
+      }
+    ]
+  },
+  "/images/Socios/Fotos_socios/01-Claus-von-Wobeser.jpg": {
+    "width": 1417,
+    "height": 1890,
+    "variants": [
+      {
+        "url": "/images/optimized/images/Socios/Fotos_socios/01-Claus-von-Wobeser-640.webp",
+        "width": 640
+      },
+      {
+        "url": "/images/optimized/images/Socios/Fotos_socios/01-Claus-von-Wobeser-1280.webp",
+        "width": 1280
+      }
+    ]
+  },
+  "/images/Socios/Fotos_socios/02-Javier-Lizardi.jpg": {
+    "width": 1417,
+    "height": 1890,
+    "variants": [
+      {
+        "url": "/images/optimized/images/Socios/Fotos_socios/02-Javier-Lizardi-640.webp",
+        "width": 640
+      },
+      {
+        "url": "/images/optimized/images/Socios/Fotos_socios/02-Javier-Lizardi-1280.webp",
+        "width": 1280
+      }
+    ]
+  },
+  "/images/Socios/Fotos_socios/03-Fernando-Moreno.jpg": {
+    "width": 1417,
+    "height": 1890,
+    "variants": [
+      {
+        "url": "/images/optimized/images/Socios/Fotos_socios/03-Fernando-Moreno-640.webp",
+        "width": 640
+      },
+      {
+        "url": "/images/optimized/images/Socios/Fotos_socios/03-Fernando-Moreno-1280.webp",
+        "width": 1280
+      }
+    ]
+  },
+  "/images/Socios/Fotos_socios/04_Luis_Burgueno.jpg": {
+    "width": 1417,
+    "height": 1890,
+    "variants": [
+      {
+        "url": "/images/optimized/images/Socios/Fotos_socios/04_Luis_Burgueno-640.webp",
+        "width": 640
+      },
+      {
+        "url": "/images/optimized/images/Socios/Fotos_socios/04_Luis_Burgueno-1280.webp",
+        "width": 1280
+      }
+    ]
+  },
+  "/images/Socios/Fotos_socios/07-Rupert-Huttler.jpg": {
+    "width": 1417,
+    "height": 1890,
+    "variants": [
+      {
+        "url": "/images/optimized/images/Socios/Fotos_socios/07-Rupert-Huttler-640.webp",
+        "width": 640
+      },
+      {
+        "url": "/images/optimized/images/Socios/Fotos_socios/07-Rupert-Huttler-1280.webp",
+        "width": 1280
+      }
+    ]
+  },
+  "/images/Socios/Fotos_socios/10-Edmond-Grieger-Feb2021.jpg": {
+    "width": 480,
+    "height": 621,
+    "variants": []
+  },
+  "/images/Socios/Fotos_socios/11-Adrian-Magallanes.jpg": {
+    "width": 768,
+    "height": 1024,
+    "variants": [
+      {
+        "url": "/images/optimized/images/Socios/Fotos_socios/11-Adrian-Magallanes-640.webp",
+        "width": 640
+      }
+    ]
+  },
+  "/images/Socios/Fotos_socios/FernandoCarreno_HiRes-1.jpg": {
+    "width": 960,
+    "height": 1280,
+    "variants": [
+      {
+        "url": "/images/optimized/images/Socios/Fotos_socios/FernandoCarreno_HiRes-1-640.webp",
+        "width": 640
+      }
+    ]
+  },
+  "/images/Socios/Fotos_socios/LuisMiguelJimenes_BN.png": {
+    "width": 470,
+    "height": 627,
+    "variants": []
+  },
+  "/images/Socios/Fotos_socios/PabloSaez_035OK_AltaRes.png": {
+    "width": 480,
+    "height": 640,
+    "variants": []
+  },
+  "/images/Sofia-Alcantara.jpg": {
+    "width": 1417,
+    "height": 1890,
+    "variants": [
+      {
+        "url": "/images/optimized/images/Sofia-Alcantara-640.webp",
+        "width": 640
+      },
+      {
+        "url": "/images/optimized/images/Sofia-Alcantara-1280.webp",
+        "width": 1280
+      }
+    ]
+  },
+  "/images/Sofia-Reyes.jpg": {
+    "width": 1417,
+    "height": 1890,
+    "variants": [
+      {
+        "url": "/images/optimized/images/Sofia-Reyes-640.webp",
+        "width": 640
+      },
+      {
+        "url": "/images/optimized/images/Sofia-Reyes-1280.webp",
+        "width": 1280
+      }
+    ]
+  },
+  "/images/Stefania-Lopardo.jpg": {
+    "width": 1417,
+    "height": 1890,
+    "variants": [
+      {
+        "url": "/images/optimized/images/Stefania-Lopardo-640.webp",
+        "width": 640
+      },
+      {
+        "url": "/images/optimized/images/Stefania-Lopardo-1280.webp",
+        "width": 1280
+      }
+    ]
+  },
+  "/images/_banners/pexels-googledeepmind-18069816.jpg": {
+    "width": 3840,
+    "height": 2160,
+    "variants": [
+      {
+        "url": "/images/optimized/images/_banners/pexels-googledeepmind-18069816-640.webp",
+        "width": 640
+      },
+      {
+        "url": "/images/optimized/images/_banners/pexels-googledeepmind-18069816-1280.webp",
+        "width": 1280
+      },
+      {
+        "url": "/images/optimized/images/_banners/pexels-googledeepmind-18069816-1920.webp",
+        "width": 1920
+      }
+    ]
+  },
+  "/images/_banners/pexels-photo-3637943.jpeg": {
+    "width": 1880,
+    "height": 1253,
+    "variants": []
+  },
+  "/images/abogadas_bn.png": {
+    "width": 1000,
+    "height": 185,
+    "variants": []
+  },
+  "/images/asociados/AdrianCastillo_HiRes.jpg": {
+    "width": 960,
+    "height": 1280,
+    "variants": [
+      {
+        "url": "/images/optimized/images/asociados/AdrianCastillo_HiRes-640.webp",
+        "width": 640
+      }
+    ]
+  },
+  "/images/asociados/AlejandraArizpe_HiResBN.png": {
+    "width": 960,
+    "height": 1280,
+    "variants": [
+      {
+        "url": "/images/optimized/images/asociados/AlejandraArizpe_HiResBN-640.webp",
+        "width": 640
+      }
+    ]
+  },
+  "/images/asociados/AlfonsoLenero_HiRes.jpg": {
+    "width": 960,
+    "height": 1280,
+    "variants": [
+      {
+        "url": "/images/optimized/images/asociados/AlfonsoLenero_HiRes-640.webp",
+        "width": 640
+      }
+    ]
+  },
+  "/images/asociados/AnaRuiz_HiRes.jpg": {
+    "width": 960,
+    "height": 1280,
+    "variants": [
+      {
+        "url": "/images/optimized/images/asociados/AnaRuiz_HiRes-640.webp",
+        "width": 640
+      }
+    ]
+  },
+  "/images/asociados/BNIleanaPantiga_HiRes.png": {
+    "width": 960,
+    "height": 1280,
+    "variants": [
+      {
+        "url": "/images/optimized/images/asociados/BNIleanaPantiga_HiRes-640.webp",
+        "width": 640
+      }
+    ]
+  },
+  "/images/asociados/Carlos-Lpez-07032023.jpg": {
+    "width": 1417,
+    "height": 1890,
+    "variants": [
+      {
+        "url": "/images/optimized/images/asociados/Carlos-Lpez-07032023-640.webp",
+        "width": 640
+      },
+      {
+        "url": "/images/optimized/images/asociados/Carlos-Lpez-07032023-1280.webp",
+        "width": 1280
+      }
+    ]
+  },
+  "/images/asociados/DanielAraujo_HiResBN.png": {
+    "width": 960,
+    "height": 1280,
+    "variants": [
+      {
+        "url": "/images/optimized/images/asociados/DanielAraujo_HiResBN-640.webp",
+        "width": 640
+      }
+    ]
+  },
+  "/images/asociados/Fotos/13.-Alberto-Cordoba.jpg": {
+    "width": 1417,
+    "height": 1890,
+    "variants": [
+      {
+        "url": "/images/optimized/images/asociados/Fotos/13.-Alberto-Cordoba-640.webp",
+        "width": 640
+      },
+      {
+        "url": "/images/optimized/images/asociados/Fotos/13.-Alberto-Cordoba-1280.webp",
+        "width": 1280
+      }
+    ]
+  },
+  "/images/asociados/Fotos/470_PabloFautsch.png": {
+    "width": 470,
+    "height": 627,
+    "variants": []
+  },
+  "/images/asociados/Fotos/AlexanderBarnes_LowRes.jpg": {
+    "width": 1417,
+    "height": 1890,
+    "variants": [
+      {
+        "url": "/images/optimized/images/asociados/Fotos/AlexanderBarnes_LowRes-640.webp",
+        "width": 640
+      },
+      {
+        "url": "/images/optimized/images/asociados/Fotos/AlexanderBarnes_LowRes-1280.webp",
+        "width": 1280
+      }
+    ]
+  },
+  "/images/asociados/Fotos/Anna-Maria-Brandstadter.jpg": {
+    "width": 1417,
+    "height": 1890,
+    "variants": [
+      {
+        "url": "/images/optimized/images/asociados/Fotos/Anna-Maria-Brandstadter-640.webp",
+        "width": 640
+      },
+      {
+        "url": "/images/optimized/images/asociados/Fotos/Anna-Maria-Brandstadter-1280.webp",
+        "width": 1280
+      }
+    ]
+  },
+  "/images/asociados/Fotos/CarolinaCamacho_LR1.jpg": {
+    "width": 1417,
+    "height": 1890,
+    "variants": [
+      {
+        "url": "/images/optimized/images/asociados/Fotos/CarolinaCamacho_LR1-640.webp",
+        "width": 640
+      },
+      {
+        "url": "/images/optimized/images/asociados/Fotos/CarolinaCamacho_LR1-1280.webp",
+        "width": 1280
+      }
+    ]
+  },
+  "/images/asociados/Fotos/Cesar-Martinez.jpg": {
+    "width": 1417,
+    "height": 1890,
+    "variants": [
+      {
+        "url": "/images/optimized/images/asociados/Fotos/Cesar-Martinez-640.webp",
+        "width": 640
+      },
+      {
+        "url": "/images/optimized/images/asociados/Fotos/Cesar-Martinez-1280.webp",
+        "width": 1280
+      }
+    ]
+  },
+  "/images/asociados/Fotos/Cinthya-Gonzlez-07032023.jpg": {
+    "width": 1417,
+    "height": 1890,
+    "variants": [
+      {
+        "url": "/images/optimized/images/asociados/Fotos/Cinthya-Gonzlez-07032023-640.webp",
+        "width": 640
+      },
+      {
+        "url": "/images/optimized/images/asociados/Fotos/Cinthya-Gonzlez-07032023-1280.webp",
+        "width": 1280
+      }
+    ]
+  },
+  "/images/asociados/Fotos/Diego-Bentez-07032023.jpg": {
+    "width": 1417,
+    "height": 1890,
+    "variants": [
+      {
+        "url": "/images/optimized/images/asociados/Fotos/Diego-Bentez-07032023-640.webp",
+        "width": 640
+      },
+      {
+        "url": "/images/optimized/images/asociados/Fotos/Diego-Bentez-07032023-1280.webp",
+        "width": 1280
+      }
+    ]
+  },
+  "/images/asociados/Fotos/Efren-Sanchez.jpg": {
+    "width": 1417,
+    "height": 1890,
+    "variants": [
+      {
+        "url": "/images/optimized/images/asociados/Fotos/Efren-Sanchez-640.webp",
+        "width": 640
+      },
+      {
+        "url": "/images/optimized/images/asociados/Fotos/Efren-Sanchez-1280.webp",
+        "width": 1280
+      }
+    ]
+  },
+  "/images/asociados/Fotos/EliasJalife_LowRes.jpg": {
+    "width": 1417,
+    "height": 1890,
+    "variants": [
+      {
+        "url": "/images/optimized/images/asociados/Fotos/EliasJalife_LowRes-640.webp",
+        "width": 640
+      },
+      {
+        "url": "/images/optimized/images/asociados/Fotos/EliasJalife_LowRes-1280.webp",
+        "width": 1280
+      }
+    ]
+  },
+  "/images/asociados/Fotos/Ernesto-Palomares.jpg": {
+    "width": 1417,
+    "height": 1890,
+    "variants": [
+      {
+        "url": "/images/optimized/images/asociados/Fotos/Ernesto-Palomares-640.webp",
+        "width": 640
+      },
+      {
+        "url": "/images/optimized/images/asociados/Fotos/Ernesto-Palomares-1280.webp",
+        "width": 1280
+      }
+    ]
+  },
+  "/images/asociados/Fotos/EugenioChinchillas_LowRes.jpg": {
+    "width": 1417,
+    "height": 1890,
+    "variants": [
+      {
+        "url": "/images/optimized/images/asociados/Fotos/EugenioChinchillas_LowRes-640.webp",
+        "width": 640
+      },
+      {
+        "url": "/images/optimized/images/asociados/Fotos/EugenioChinchillas_LowRes-1280.webp",
+        "width": 1280
+      }
+    ]
+  },
+  "/images/asociados/Fotos/Gabriela-Negrete.jpg": {
+    "width": 1417,
+    "height": 1890,
+    "variants": [
+      {
+        "url": "/images/optimized/images/asociados/Fotos/Gabriela-Negrete-640.webp",
+        "width": 640
+      },
+      {
+        "url": "/images/optimized/images/asociados/Fotos/Gabriela-Negrete-1280.webp",
+        "width": 1280
+      }
+    ]
+  },
+  "/images/asociados/Fotos/GloriaMartinez_HiRes_BW.jpg": {
+    "width": 1417,
+    "height": 1890,
+    "variants": [
+      {
+        "url": "/images/optimized/images/asociados/Fotos/GloriaMartinez_HiRes_BW-640.webp",
+        "width": 640
+      },
+      {
+        "url": "/images/optimized/images/asociados/Fotos/GloriaMartinez_HiRes_BW-1280.webp",
+        "width": 1280
+      }
+    ]
+  },
+  "/images/asociados/Fotos/JavierBetacourtBN_lo_res.jpg": {
+    "width": 470,
+    "height": 627,
+    "variants": []
+  },
+  "/images/asociados/Fotos/Jose-Antono-Gomez-LR.jpg": {
+    "width": 768,
+    "height": 1024,
+    "variants": []
+  },
+  "/images/asociados/Fotos/Juan-Francisco-Barrera_03112025.jpg": {
+    "width": 1417,
+    "height": 1890,
+    "variants": [
+      {
+        "url": "/images/optimized/images/asociados/Fotos/Juan-Francisco-Barrera_03112025-640.webp",
+        "width": 640
+      },
+      {
+        "url": "/images/optimized/images/asociados/Fotos/Juan-Francisco-Barrera_03112025-1280.webp",
+        "width": 1280
+      }
+    ]
+  },
+  "/images/asociados/Fotos/Laura-Maldonado1.jpg": {
+    "width": 1417,
+    "height": 1890,
+    "variants": [
+      {
+        "url": "/images/optimized/images/asociados/Fotos/Laura-Maldonado1-640.webp",
+        "width": 640
+      },
+      {
+        "url": "/images/optimized/images/asociados/Fotos/Laura-Maldonado1-1280.webp",
+        "width": 1280
+      }
+    ]
+  },
+  "/images/asociados/Fotos/Lourdes_Salazar-.jpg": {
+    "width": 1080,
+    "height": 1080,
+    "variants": []
+  },
+  "/images/asociados/Fotos/Montserrat-Manzano-2.jpg": {
+    "width": 1417,
+    "height": 1890,
+    "variants": [
+      {
+        "url": "/images/optimized/images/asociados/Fotos/Montserrat-Manzano-2-640.webp",
+        "width": 640
+      },
+      {
+        "url": "/images/optimized/images/asociados/Fotos/Montserrat-Manzano-2-1280.webp",
+        "width": 1280
+      }
+    ]
+  },
+  "/images/asociados/Fotos/PKF09364_ByN.jpg": {
+    "width": 427,
+    "height": 640,
+    "variants": []
+  },
+  "/images/asociados/Fotos/RaimundoSoberanis_LowRes_BW.jpg": {
+    "width": 768,
+    "height": 1024,
+    "variants": []
+  },
+  "/images/asociados/Fotos/RobertoFlores_LowRes.jpg": {
+    "width": 1417,
+    "height": 1890,
+    "variants": [
+      {
+        "url": "/images/optimized/images/asociados/Fotos/RobertoFlores_LowRes-640.webp",
+        "width": 640
+      },
+      {
+        "url": "/images/optimized/images/asociados/Fotos/RobertoFlores_LowRes-1280.webp",
+        "width": 1280
+      }
+    ]
+  },
+  "/images/asociados/Fotos/Rocio-Vega.jpg": {
+    "width": 1417,
+    "height": 1890,
+    "variants": [
+      {
+        "url": "/images/optimized/images/asociados/Fotos/Rocio-Vega-640.webp",
+        "width": 640
+      },
+      {
+        "url": "/images/optimized/images/asociados/Fotos/Rocio-Vega-1280.webp",
+        "width": 1280
+      }
+    ]
+  },
+  "/images/asociados/Fotos/RodrigoBarradas_HiRes.jpg": {
+    "width": 960,
+    "height": 1280,
+    "variants": [
+      {
+        "url": "/images/optimized/images/asociados/Fotos/RodrigoBarradas_HiRes-640.webp",
+        "width": 640
+      }
+    ]
+  },
+  "/images/asociados/Fotos/VirginiaCornett_1.jpg": {
+    "width": 1417,
+    "height": 1890,
+    "variants": [
+      {
+        "url": "/images/optimized/images/asociados/Fotos/VirginiaCornett_1-640.webp",
+        "width": 640
+      },
+      {
+        "url": "/images/optimized/images/asociados/Fotos/VirginiaCornett_1-1280.webp",
+        "width": 1280
+      }
+    ]
+  },
+  "/images/asociados/Gaston_Hinojosa_2026-05-13.jpeg": {
+    "width": 1199,
+    "height": 1600,
+    "variants": [
+      {
+        "url": "/images/optimized/images/asociados/Gaston_Hinojosa_2026-05-13-640.webp",
+        "width": 640
+      }
+    ]
+  },
+  "/images/asociados/JessikaRocha_HiRes_03082022.jpg": {
+    "width": 960,
+    "height": 1280,
+    "variants": [
+      {
+        "url": "/images/optimized/images/asociados/JessikaRocha_HiRes_03082022-640.webp",
+        "width": 640
+      }
+    ]
+  },
+  "/images/asociados/LilianaPerez_HiRes.jpg": {
+    "width": 960,
+    "height": 1280,
+    "variants": [
+      {
+        "url": "/images/optimized/images/asociados/LilianaPerez_HiRes-640.webp",
+        "width": 640
+      }
+    ]
+  },
+  "/images/asociados/Manuel-Martinez.jpg": {
+    "width": 1417,
+    "height": 1890,
+    "variants": [
+      {
+        "url": "/images/optimized/images/asociados/Manuel-Martinez-640.webp",
+        "width": 640
+      },
+      {
+        "url": "/images/optimized/images/asociados/Manuel-Martinez-1280.webp",
+        "width": 1280
+      }
+    ]
+  },
+  "/images/asociados/MarianaGomez_HiRes.jpg": {
+    "width": 1417,
+    "height": 1890,
+    "variants": []
+  },
+  "/images/asociados/Nuevos_socios_19/470_AlejandroPerez_HiRes.jpg": {
+    "width": 470,
+    "height": 627,
+    "variants": []
+  },
+  "/images/asociados/Nuevos_socios_19/470_JorgeVazquez_HiRes.jpg": {
+    "width": 470,
+    "height": 627,
+    "variants": []
+  },
+  "/images/asociados/Nuevos_socios_19/470_Libna-Macias.jpg": {
+    "width": 470,
+    "height": 627,
+    "variants": []
+  },
+  "/images/asociados/Nuevos_socios_19/470_MaxMorales.jpg": {
+    "width": 470,
+    "height": 627,
+    "variants": []
+  },
+  "/images/asociados/Nuevos_socios_19/470_MichelLlorens_HiRes.jpg": {
+    "width": 470,
+    "height": 627,
+    "variants": []
+  },
+  "/images/asociados/Nuevos_socios_19/470_RodrigoGarcia.jpg": {
+    "width": 470,
+    "height": 627,
+    "variants": []
+  },
+  "/images/asociados/Nuevos_socios_19/Alejandro-Torres-07032023.jpg": {
+    "width": 1417,
+    "height": 1890,
+    "variants": [
+      {
+        "url": "/images/optimized/images/asociados/Nuevos_socios_19/Alejandro-Torres-07032023-640.webp",
+        "width": 640
+      },
+      {
+        "url": "/images/optimized/images/asociados/Nuevos_socios_19/Alejandro-Torres-07032023-1280.webp",
+        "width": 1280
+      }
+    ]
+  },
+  "/images/asociados/Nuevos_socios_19/ArielGarfio19-BN.png": {
+    "width": 480,
+    "height": 640,
+    "variants": []
+  },
+  "/images/asociados/Nuevos_socios_19/CynthiaOsio_HiRes.jpg": {
+    "width": 960,
+    "height": 1280,
+    "variants": []
+  },
+  "/images/asociados/Nuevos_socios_19/DeborahLuengo_HiRes.jpg": {
+    "width": 960,
+    "height": 1280,
+    "variants": []
+  },
+  "/images/asociados/Nuevos_socios_19/EnriqueRiquelme_HiRes.png": {
+    "width": 480,
+    "height": 640,
+    "variants": []
+  },
+  "/images/asociados/Nuevos_socios_19/JaimeOstos_Feb2021.jpg": {
+    "width": 480,
+    "height": 640,
+    "variants": []
+  },
+  "/images/asociados/Nuevos_socios_19/Regina-Godinez.jpg": {
+    "width": 1417,
+    "height": 1890,
+    "variants": [
+      {
+        "url": "/images/optimized/images/asociados/Nuevos_socios_19/Regina-Godinez-640.webp",
+        "width": 640
+      },
+      {
+        "url": "/images/optimized/images/asociados/Nuevos_socios_19/Regina-Godinez-1280.webp",
+        "width": 1280
+      }
+    ]
+  },
+  "/images/asociados/Nuevos_socios_19/RicardoRosas_HiRes.png": {
+    "width": 480,
+    "height": 640,
+    "variants": []
+  },
+  "/images/asociados/Nuevos_socios_19/SaraOrtiz_Feb2021.jpg": {
+    "width": 480,
+    "height": 640,
+    "variants": []
+  },
+  "/images/asociados/Nuevos_socios_19/bnMarioALugo_HiRes.png": {
+    "width": 960,
+    "height": 1280,
+    "variants": [
+      {
+        "url": "/images/optimized/images/asociados/Nuevos_socios_19/bnMarioALugo_HiRes-640.webp",
+        "width": 640
+      }
+    ]
+  },
+  "/images/asociados/RafaelVallejo_HiRes.jpg": {
+    "width": 960,
+    "height": 1280,
+    "variants": [
+      {
+        "url": "/images/optimized/images/asociados/RafaelVallejo_HiRes-640.webp",
+        "width": 640
+      }
+    ]
+  },
+  "/images/asociados/SarahGibert_HiRes.jpg": {
+    "width": 960,
+    "height": 1280,
+    "variants": [
+      {
+        "url": "/images/optimized/images/asociados/SarahGibert_HiRes-640.webp",
+        "width": 640
+      }
+    ]
+  },
+  "/images/asociados/VictorDelgado_HiRes.png": {
+    "width": 960,
+    "height": 1280,
+    "variants": [
+      {
+        "url": "/images/optimized/images/asociados/VictorDelgado_HiRes-640.webp",
+        "width": 640
+      }
+    ]
+  },
+  "/images/banner_homePuntoCero-esp-3.png": {
+    "width": 900,
+    "height": 369,
+    "variants": [
+      {
+        "url": "/images/optimized/images/banner_homePuntoCero-esp-3-640.webp",
+        "width": 640
+      }
+    ]
+  },
+  "/images/banner_homePuntoCero_ing-3.png": {
+    "width": 900,
+    "height": 369,
+    "variants": [
+      {
+        "url": "/images/optimized/images/banner_homePuntoCero_ing-3-640.webp",
+        "width": 640
+      }
+    ]
+  },
+  "/images/banners/11.jpg": {
+    "width": 3936,
+    "height": 2624,
+    "variants": [
+      {
+        "url": "/images/optimized/images/banners/11-640.webp",
+        "width": 640
+      },
+      {
+        "url": "/images/optimized/images/banners/11-1280.webp",
+        "width": 1280
+      },
+      {
+        "url": "/images/optimized/images/banners/11-1920.webp",
+        "width": 1920
+      }
+    ]
+  },
+  "/images/banners/12.jpg": {
+    "width": 9000,
+    "height": 6000,
+    "variants": [
+      {
+        "url": "/images/optimized/images/banners/12-640.webp",
+        "width": 640
+      },
+      {
+        "url": "/images/optimized/images/banners/12-1280.webp",
+        "width": 1280
+      },
+      {
+        "url": "/images/optimized/images/banners/12-1920.webp",
+        "width": 1920
+      }
+    ]
+  },
+  "/images/banners/13.jpg": {
+    "width": 5582,
+    "height": 3721,
+    "variants": [
+      {
+        "url": "/images/optimized/images/banners/13-640.webp",
+        "width": 640
+      },
+      {
+        "url": "/images/optimized/images/banners/13-1280.webp",
+        "width": 1280
+      },
+      {
+        "url": "/images/optimized/images/banners/13-1920.webp",
+        "width": 1920
+      }
+    ]
+  },
+  "/images/banners/14.jpg": {
+    "width": 3436,
+    "height": 4211,
+    "variants": [
+      {
+        "url": "/images/optimized/images/banners/14-640.webp",
+        "width": 640
+      },
+      {
+        "url": "/images/optimized/images/banners/14-1280.webp",
+        "width": 1280
+      },
+      {
+        "url": "/images/optimized/images/banners/14-1920.webp",
+        "width": 1920
+      }
+    ]
+  },
+  "/images/banners/15.jpg": {
+    "width": 5184,
+    "height": 3456,
+    "variants": [
+      {
+        "url": "/images/optimized/images/banners/15-640.webp",
+        "width": 640
+      },
+      {
+        "url": "/images/optimized/images/banners/15-1280.webp",
+        "width": 1280
+      },
+      {
+        "url": "/images/optimized/images/banners/15-1920.webp",
+        "width": 1920
+      }
+    ]
+  },
+  "/images/banners/156x156_chambers_LL250png.png": {
+    "width": 156,
+    "height": 156,
+    "variants": []
+  },
+  "/images/banners/16.jpg": {
+    "width": 5500,
+    "height": 4000,
+    "variants": [
+      {
+        "url": "/images/optimized/images/banners/16-640.webp",
+        "width": 640
+      },
+      {
+        "url": "/images/optimized/images/banners/16-1280.webp",
+        "width": 1280
+      },
+      {
+        "url": "/images/optimized/images/banners/16-1920.webp",
+        "width": 1920
+      }
+    ]
+  },
+  "/images/banners/18.jpg": {
+    "width": 4000,
+    "height": 2250,
+    "variants": [
+      {
+        "url": "/images/optimized/images/banners/18-640.webp",
+        "width": 640
+      },
+      {
+        "url": "/images/optimized/images/banners/18-1280.webp",
+        "width": 1280
+      },
+      {
+        "url": "/images/optimized/images/banners/18-1920.webp",
+        "width": 1920
+      }
+    ]
+  },
+  "/images/banners/1_ind.jpg": {
+    "width": 5000,
+    "height": 2206,
+    "variants": [
+      {
+        "url": "/images/optimized/images/banners/1_ind-640.webp",
+        "width": 640
+      },
+      {
+        "url": "/images/optimized/images/banners/1_ind-1280.webp",
+        "width": 1280
+      },
+      {
+        "url": "/images/optimized/images/banners/1_ind-1920.webp",
+        "width": 1920
+      }
+    ]
+  },
+  "/images/banners/3.jpg": {
+    "width": 5184,
+    "height": 3456,
+    "variants": [
+      {
+        "url": "/images/optimized/images/banners/3-640.webp",
+        "width": 640
+      },
+      {
+        "url": "/images/optimized/images/banners/3-1280.webp",
+        "width": 1280
+      },
+      {
+        "url": "/images/optimized/images/banners/3-1920.webp",
+        "width": 1920
+      }
+    ]
+  },
+  "/images/banners/3_ind.jpg": {
+    "width": 3992,
+    "height": 2992,
+    "variants": [
+      {
+        "url": "/images/optimized/images/banners/3_ind-640.webp",
+        "width": 640
+      },
+      {
+        "url": "/images/optimized/images/banners/3_ind-1280.webp",
+        "width": 1280
+      },
+      {
+        "url": "/images/optimized/images/banners/3_ind-1920.webp",
+        "width": 1920
+      }
+    ]
+  },
+  "/images/banners/4.jpg": {
+    "width": 800,
+    "height": 533,
+    "variants": []
+  },
+  "/images/banners/4_ind.jpg": {
+    "width": 6496,
+    "height": 4333,
+    "variants": [
+      {
+        "url": "/images/optimized/images/banners/4_ind-640.webp",
+        "width": 640
+      },
+      {
+        "url": "/images/optimized/images/banners/4_ind-1280.webp",
+        "width": 1280
+      },
+      {
+        "url": "/images/optimized/images/banners/4_ind-1920.webp",
+        "width": 1920
+      }
+    ]
+  },
+  "/images/banners/5.jpg": {
+    "width": 3840,
+    "height": 2160,
+    "variants": [
+      {
+        "url": "/images/optimized/images/banners/5-640.webp",
+        "width": 640
+      },
+      {
+        "url": "/images/optimized/images/banners/5-1280.webp",
+        "width": 1280
+      },
+      {
+        "url": "/images/optimized/images/banners/5-1920.webp",
+        "width": 1920
+      }
+    ]
+  },
+  "/images/banners/5_ind.jpg": {
+    "width": 5184,
+    "height": 3456,
+    "variants": [
+      {
+        "url": "/images/optimized/images/banners/5_ind-640.webp",
+        "width": 640
+      },
+      {
+        "url": "/images/optimized/images/banners/5_ind-1280.webp",
+        "width": 1280
+      },
+      {
+        "url": "/images/optimized/images/banners/5_ind-1920.webp",
+        "width": 1920
+      }
+    ]
+  },
+  "/images/banners/7-a.jpg": {
+    "width": 1692,
+    "height": 1650,
+    "variants": [
+      {
+        "url": "/images/optimized/images/banners/7-a-640.webp",
+        "width": 640
+      },
+      {
+        "url": "/images/optimized/images/banners/7-a-1280.webp",
+        "width": 1280
+      }
+    ]
+  },
+  "/images/banners/Agosto156x156_chambers_LATAM26.png": {
+    "width": 156,
+    "height": 156,
+    "variants": []
+  },
+  "/images/banners/Agosto156x156_chambers_global25-1.png": {
+    "width": 156,
+    "height": 156,
+    "variants": []
+  },
+  "/images/banners/LatAm_2026_156px.png": {
+    "width": 156,
+    "height": 156,
+    "variants": []
+  },
+  "/images/banners/banner_competition.jpg": {
+    "width": 1434,
+    "height": 554,
+    "variants": [
+      {
+        "url": "/images/optimized/images/banners/banner_competition-640.webp",
+        "width": 640
+      },
+      {
+        "url": "/images/optimized/images/banners/banner_competition-1280.webp",
+        "width": 1280
+      }
+    ]
+  },
+  "/images/banners/banner_environmental.jpg": {
+    "width": 1434,
+    "height": 554,
+    "variants": [
+      {
+        "url": "/images/optimized/images/banners/banner_environmental-640.webp",
+        "width": 640
+      },
+      {
+        "url": "/images/optimized/images/banners/banner_environmental-1280.webp",
+        "width": 1280
+      }
+    ]
+  },
+  "/images/banners/banner_ip.jpg": {
+    "width": 1434,
+    "height": 554,
+    "variants": []
+  },
+  "/images/banners/francesca-grima-vwZo1zAYPws-unsplash_1.jpg": {
+    "width": 3648,
+    "height": 1822,
+    "variants": [
+      {
+        "url": "/images/optimized/images/banners/francesca-grima-vwZo1zAYPws-unsplash_1-640.webp",
+        "width": 640
+      },
+      {
+        "url": "/images/optimized/images/banners/francesca-grima-vwZo1zAYPws-unsplash_1-1280.webp",
+        "width": 1280
+      },
+      {
+        "url": "/images/optimized/images/banners/francesca-grima-vwZo1zAYPws-unsplash_1-1920.webp",
+        "width": 1920
+      }
+    ]
+  },
+  "/images/banners/home-slider-01.jpg": {
+    "width": 2151,
+    "height": 831,
+    "variants": [
+      {
+        "url": "/images/optimized/images/banners/home-slider-01-640.webp",
+        "width": 640
+      },
+      {
+        "url": "/images/optimized/images/banners/home-slider-01-1280.webp",
+        "width": 1280
+      },
+      {
+        "url": "/images/optimized/images/banners/home-slider-01-1920.webp",
+        "width": 1920
+      }
+    ]
+  },
+  "/images/banners/home-slider-02.jpg": {
+    "width": 1434,
+    "height": 554,
+    "variants": []
+  },
+  "/images/banners/image.png": {
+    "width": 640,
+    "height": 427,
+    "variants": []
+  },
+  "/images/banners/latin_layer.png": {
+    "width": 1417,
+    "height": 1417,
+    "variants": [
+      {
+        "url": "/images/optimized/images/banners/latin_layer-640.webp",
+        "width": 640
+      },
+      {
+        "url": "/images/optimized/images/banners/latin_layer-1280.webp",
+        "width": 1280
+      }
+    ]
+  },
+  "/images/banners/slide_01.png": {
+    "width": 245,
+    "height": 245,
+    "variants": []
+  },
+  "/images/banners/slide_02.jpg": {
+    "width": 245,
+    "height": 245,
+    "variants": []
+  },
+  "/images/banners/slide_03.jpg": {
+    "width": 245,
+    "height": 245,
+    "variants": []
+  },
+  "/images/banners/slide_04.jpg": {
+    "width": 245,
+    "height": 245,
+    "variants": []
+  },
+  "/images/banners/slide_05.jpg": {
+    "width": 245,
+    "height": 245,
+    "variants": []
+  },
+  "/images/banners/slide_06.jpg": {
+    "width": 245,
+    "height": 245,
+    "variants": []
+  },
+  "/images/banners/slide_07.jpg": {
+    "width": 245,
+    "height": 245,
+    "variants": []
+  },
+  "/images/banners/slide_08.png": {
+    "width": 245,
+    "height": 245,
+    "variants": []
+  },
+  "/images/banners/slide_09.jpg": {
+    "width": 245,
+    "height": 245,
+    "variants": []
+  },
+  "/images/banners/slide_10.jpg": {
+    "width": 245,
+    "height": 245,
+    "variants": []
+  },
+  "/images/banners/slide_11.png": {
+    "width": 1072,
+    "height": 900,
+    "variants": []
+  },
+  "/images/capability-01.jpg": {
+    "width": 1095,
+    "height": 1170,
+    "variants": []
+  },
+  "/images/capability-02.jpg": {
+    "width": 730,
+    "height": 780,
+    "variants": []
+  },
+  "/images/ciudad.jpg": {
+    "width": 2000,
+    "height": 1348,
+    "variants": [
+      {
+        "url": "/images/optimized/images/ciudad-640.webp",
+        "width": 640
+      },
+      {
+        "url": "/images/optimized/images/ciudad-1280.webp",
+        "width": 1280
+      },
+      {
+        "url": "/images/optimized/images/ciudad-1920.webp",
+        "width": 1920
+      }
+    ]
+  },
+  "/images/consejeros/Fotos/470_Magistrada_Margarita_HiRes.png": {
+    "width": 470,
+    "height": 627,
+    "variants": []
+  },
+  "/images/consejeros/Fotos/Edmund_cons.JPG": {
+    "width": 1417,
+    "height": 1890,
+    "variants": [
+      {
+        "url": "/images/optimized/images/consejeros/Fotos/Edmund_cons-640.webp",
+        "width": 640
+      },
+      {
+        "url": "/images/optimized/images/consejeros/Fotos/Edmund_cons-1280.webp",
+        "width": 1280
+      }
+    ]
+  },
+  "/images/consejeros/Fotos/Guillermo_cons.jpg": {
+    "width": 1417,
+    "height": 1890,
+    "variants": [
+      {
+        "url": "/images/optimized/images/consejeros/Fotos/Guillermo_cons-640.webp",
+        "width": 640
+      },
+      {
+        "url": "/images/optimized/images/consejeros/Fotos/Guillermo_cons-1280.webp",
+        "width": 1280
+      }
+    ]
+  },
+  "/images/consejeros/LuisTorres_HiRes_BW.jpg": {
+    "width": 1417,
+    "height": 1890,
+    "variants": [
+      {
+        "url": "/images/optimized/images/consejeros/LuisTorres_HiRes_BW-640.webp",
+        "width": 640
+      },
+      {
+        "url": "/images/optimized/images/consejeros/LuisTorres_HiRes_BW-1280.webp",
+        "width": 1280
+      }
+    ]
+  },
+  "/images/equidadMx.png": {
+    "width": 126,
+    "height": 126,
+    "variants": []
+  },
+  "/images/esg.jpeg": {
+    "width": 3531,
+    "height": 1308,
+    "variants": [
+      {
+        "url": "/images/optimized/images/esg-640.webp",
+        "width": 640
+      },
+      {
+        "url": "/images/optimized/images/esg-1280.webp",
+        "width": 1280
+      },
+      {
+        "url": "/images/optimized/images/esg-1920.webp",
+        "width": 1920
+      }
+    ]
+  },
+  "/images/esg_02.jpg": {
+    "width": 3531,
+    "height": 1308,
+    "variants": [
+      {
+        "url": "/images/optimized/images/esg_02-640.webp",
+        "width": 640
+      },
+      {
+        "url": "/images/optimized/images/esg_02-1280.webp",
+        "width": 1280
+      },
+      {
+        "url": "/images/optimized/images/esg_02-1920.webp",
+        "width": 1920
+      }
+    ]
+  },
+  "/images/esg_03.jpg": {
+    "width": 2005,
+    "height": 2874,
+    "variants": [
+      {
+        "url": "/images/optimized/images/esg_03-640.webp",
+        "width": 640
+      },
+      {
+        "url": "/images/optimized/images/esg_03-1280.webp",
+        "width": 1280
+      },
+      {
+        "url": "/images/optimized/images/esg_03-1920.webp",
+        "width": 1920
+      }
+    ]
+  },
+  "/images/grupo_industrias.jpg": {
+    "width": 3867,
+    "height": 4834,
+    "variants": [
+      {
+        "url": "/images/optimized/images/grupo_industrias-640.webp",
+        "width": 640
+      },
+      {
+        "url": "/images/optimized/images/grupo_industrias-1280.webp",
+        "width": 1280
+      },
+      {
+        "url": "/images/optimized/images/grupo_industrias-1920.webp",
+        "width": 1920
+      }
+    ]
+  },
+  "/images/home-hero-poster-v1.webp": {
+    "width": 960,
+    "height": 540,
+    "variants": []
+  },
+  "/images/home-hero.jpg": {
+    "width": 1440,
+    "height": 900,
+    "variants": []
+  },
+  "/images/home-hero.webp": {
+    "width": 1440,
+    "height": 900,
+    "variants": []
+  },
+  "/images/icon_facebook_gray.png": {
+    "width": 22,
+    "height": 22,
+    "variants": []
+  },
+  "/images/icon_linkedin_gray.png": {
+    "width": 22,
+    "height": 22,
+    "variants": []
+  },
+  "/images/icon_twitter_gray.png": {
+    "width": 22,
+    "height": 22,
+    "variants": []
+  },
+  "/images/interns.png": {
+    "width": 400,
+    "height": 336,
+    "variants": []
+  },
+  "/images/joomla_black.png": {
+    "width": 225,
+    "height": 50,
+    "variants": []
+  },
+  "/images/logo_0411.jpg": {
+    "width": 312,
+    "height": 186,
+    "variants": []
+  },
+  "/images/play_overlay.png": {
+    "width": 350,
+    "height": 197,
+    "variants": []
+  },
+  "/images/play_overlay_02.png": {
+    "width": 350,
+    "height": 197,
+    "variants": []
+  },
+  "/images/practices-01.jpg": {
+    "width": 800,
+    "height": 1102,
+    "variants": []
+  },
+  "/images/probono_new.png": {
+    "width": 348,
+    "height": 211,
+    "variants": []
+  },
+  "/images/probono_new_2.png": {
+    "width": 348,
+    "height": 100,
+    "variants": []
+  },
+  "/images/thumb_01.jpg": {
+    "width": 350,
+    "height": 197,
+    "variants": []
+  },
+  "/images/thumb_02.jpg": {
+    "width": 350,
+    "height": 197,
+    "variants": []
+  },
+  "/images/thumb_03.jpg": {
+    "width": 350,
+    "height": 197,
+    "variants": []
+  },
+  "/images/thumb_04.jpg": {
+    "width": 350,
+    "height": 197,
+    "variants": []
+  },
+  "/images/thumb_05.jpg": {
+    "width": 350,
+    "height": 197,
+    "variants": []
+  },
+  "/images/thumb_06.jpg": {
+    "width": 350,
+    "height": 197,
+    "variants": []
+  },
+  "/images/thumb_07.jpg": {
+    "width": 350,
+    "height": 197,
+    "variants": []
+  },
+  "/images/thumb_main_vid.png": {
+    "width": 350,
+    "height": 197,
+    "variants": []
+  },
+  "/images/trf_logo_rgb.jpg": {
+    "width": 450,
+    "height": 354,
+    "variants": []
+  },
+  "/images/vonwobeser_2025_.png": {
+    "width": 240,
+    "height": 42,
+    "variants": []
+  },
+  "/images/vw40.png": {
+    "width": 1148,
+    "height": 264,
+    "variants": []
+  },
+  "/images/vw40F.png": {
+    "width": 1150,
+    "height": 769,
+    "variants": []
+  },
+  "/img/Banner/03.jpg": {
+    "width": 2560,
+    "height": 1440,
+    "variants": []
+  },
+  "/img/Collage/05.jpg": {
+    "width": 1280,
+    "height": 960,
+    "variants": [
+      {
+        "url": "/images/optimized/img/Collage/05-640.webp",
+        "width": 640
+      },
+      {
+        "url": "/images/optimized/img/Collage/05-1280.webp",
+        "width": 1280
+      }
+    ]
+  },
+  "/img/Collage/collage_01.jpg": {
+    "width": 1280,
+    "height": 1927,
+    "variants": []
+  },
+  "/img/Collage/collage_02.jpg": {
+    "width": 1280,
+    "height": 720,
+    "variants": []
+  },
+  "/img/Collage/collage_03.jpg": {
+    "width": 1280,
+    "height": 720,
+    "variants": []
+  },
+  "/img/Collage/collage_04.jpg": {
+    "width": 1280,
+    "height": 720,
+    "variants": [
+      {
+        "url": "/images/optimized/img/Collage/collage_04-640.webp",
+        "width": 640
+      },
+      {
+        "url": "/images/optimized/img/Collage/collage_04-1280.webp",
+        "width": 1280
+      }
+    ]
+  },
+  "/img/Collage/collage_05.jpg": {
+    "width": 1280,
+    "height": 1707,
+    "variants": []
+  },
+  "/img/Collage/collage_07.jpg": {
+    "width": 1280,
+    "height": 949,
+    "variants": []
+  },
+  "/img/Collage/collage_08.jpg": {
+    "width": 1280,
+    "height": 853,
+    "variants": []
+  },
+  "/img/Collage/collage_09.jpg": {
+    "width": 1280,
+    "height": 959,
+    "variants": []
+  },
+  "/img/miniaturas/miniatura_1.jpg": {
+    "width": 3840,
+    "height": 2160,
+    "variants": [
+      {
+        "url": "/images/optimized/img/miniaturas/miniatura_1-640.webp",
+        "width": 640
+      },
+      {
+        "url": "/images/optimized/img/miniaturas/miniatura_1-1280.webp",
+        "width": 1280
+      },
+      {
+        "url": "/images/optimized/img/miniaturas/miniatura_1-1920.webp",
+        "width": 1920
+      }
+    ]
+  },
+  "/img/miniaturas/miniatura_2.jpg": {
+    "width": 1920,
+    "height": 1080,
+    "variants": []
+  },
+  "/img/miniaturas/miniatura_3.jpg": {
+    "width": 1920,
+    "height": 1080,
+    "variants": []
+  },
+  "/img/miniaturas/miniatura_4.jpg": {
+    "width": 1920,
+    "height": 1080,
+    "variants": []
+  },
+  "/img/miniaturas/miniatura_5.jpg": {
+    "width": 1920,
+    "height": 1080,
+    "variants": []
+  },
+  "/img/miniaturas/miniatura_6.jpg": {
+    "width": 1920,
+    "height": 1080,
+    "variants": []
+  },
+  "/img/vw40b.png": {
+    "width": 1148,
+    "height": 264,
+    "variants": []
+  }
+}

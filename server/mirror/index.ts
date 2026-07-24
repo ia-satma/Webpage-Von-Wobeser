@@ -1,5 +1,6 @@
 import express, { type Express, type Request, type Response, type NextFunction } from "express";
 import fs from "fs";
+import path from "node:path";
 import { eq, and } from "drizzle-orm";
 import { getMirrorDir, mirrorPath } from "./config";
 import { renderAttorney } from "./renderAttorney";
@@ -19,6 +20,7 @@ import { cfg, getConfigMap, seedConfigDefaults, upsertConfig, isRichTextConfigKe
 import { setBaseUrl, setAnalyticsConfig, applyA11y } from "./seo";
 import { renderRichText, sanitizeCms } from "./sanitize";
 import { renderOfficeShowcase } from "./renderOfficeShowcase";
+import { getCachedPublicPage } from "./pageCache";
 import { authMiddleware, requireRole, requirePermission } from "../auth";
 import { storage } from "../storage";
 import { db } from "../db";
@@ -257,9 +259,10 @@ const SEARCH_FORMS_SCRIPT = `<script>(function(){try{
 // `von.css` y `functions.min.js` son el cromo compartido de todo el espejo.
 // Se versionan desde el render para que los cambios de navegación no queden
 // ocultos detrás de los 30 días de caché de los assets estáticos.
-const NAV_ASSET_VERSION = "20260723-a11y1";
+const NAV_ASSET_VERSION = "20260724-pagespeed1";
 function refreshNavigationAssets(html: string): string {
   return html
+    .replace(/(href=["']\/templates\/beez3\/css\/style\.css)(?:\?[^"']*)?(["'])/gi, `$1?v=${NAV_ASSET_VERSION}$2`)
     .replace(/(href=["']\/templates\/beez3\/css\/von\.css)(?:\?[^"']*)?(["'])/gi, `$1?v=${NAV_ASSET_VERSION}$2`)
     .replace(/(src=["']\/templates\/beez3\/js\/min\/functions\.min\.js)(?:\?[^"']*)?(["'])/gi, `$1?v=${NAV_ASSET_VERSION}$2`)
     .replace(/(src=["']\/templates\/beez3\/js\/min\/slick\.min\.js)(?:\?[^"']*)?(["'])/gi, `$1?v=${NAV_ASSET_VERSION}$2`);
@@ -278,7 +281,86 @@ export function optimizeLegacyAssets(html: string): string {
     .replace(
       /(["'])\/templates\/beez3\/js\/min\/jquery_3\.3\.1\.min\.js(?:\?[^"']*)?\1/gi,
       `"/_vendor/jquery/jquery-3.7.1.min.js"`,
+    )
+    .replace(
+      /<link\b[^>]*\bhref=["']\/_vendor\/fontawesome\/all\.css(?:\?[^"']*)?["'][^>]*>\s*/gi,
+      "",
+    )
+    .replace(
+      /<script\b[^>]*\bclass=["'][^"']*\bjoomla-script-options\b[^"']*["'][^>]*>[\s\S]*?<\/script>\s*/gi,
+      "",
+    )
+    .replace(
+      /<script(?![^>]*\bdefer\b)([^>]*\bsrc=["']\/(?:templates\/beez3\/js\/min\/(?:slick|functions)\.min\.js|_vendor\/slick\/slick\.min\.js)(?:\?[^"']*)?["'][^>]*)>/gi,
+      "<script defer$1>",
     );
+}
+
+function injectPerformanceHints(html: string): string {
+  if (!html.includes("</head>")) return html;
+  const hints = [
+    '<link rel="preload" href="/templates/beez3/webfont/Geomanist-Book.woff2" as="font" type="font/woff2" crossorigin>',
+    '<link rel="preload" href="/templates/beez3/webfont/Publico-Roman.woff2" as="font" type="font/woff2" crossorigin>',
+  ].filter((hint) => !html.includes(hint.match(/href="([^"]+)"/)?.[1] || ""));
+  return hints.length ? html.replace("</head>", `${hints.join("")}</head>`) : html;
+}
+
+type ResponsiveImageRecord = {
+  width?: number;
+  height?: number;
+  variants?: Array<{ url: string; width: number }>;
+};
+
+let responsiveImageManifest: Record<string, ResponsiveImageRecord> = {};
+try {
+  responsiveImageManifest = JSON.parse(
+    fs.readFileSync(mirrorPath("images", "optimized", "manifest.json"), "utf8"),
+  ) as Record<string, ResponsiveImageRecord>;
+} catch {
+  // El manifiesto es una mejora progresiva: si aún no fue generado se sirven los originales.
+}
+
+function uploadedResponsiveVariants(source: string): Array<{ url: string; width: number }> {
+  if (!source.startsWith("/uploads/") || source.includes("/optimized/")) return [];
+  const clean = source.split(/[?#]/, 1)[0];
+  const parsed = path.posix.parse(clean);
+  return [640, 1280, 1920].flatMap((width) => {
+    const filename = `${parsed.name}-${width}.webp`;
+    const absolute = path.join(process.cwd(), "uploads", "optimized", filename);
+    return fs.existsSync(absolute)
+      ? [{ url: `/uploads/optimized/${filename}`, width }]
+      : [];
+  });
+}
+
+function optimizePublicImageTags(html: string): string {
+  return html.replace(/<img\b[^>]*>/gi, (tag) => {
+    const source = tag.match(/\bsrc=["']([^"']+)["']/i)?.[1] || "";
+    const cleanSource = source.split(/[?#]/, 1)[0];
+    const manifestEntry = responsiveImageManifest[cleanSource];
+    const variants = manifestEntry?.variants?.length
+      ? manifestEntry.variants
+      : uploadedResponsiveVariants(cleanSource);
+    const critical = /(?:logo|vonwobeser|vw40|vw2025|vw_2025)/i.test(source);
+    let next = tag;
+    const add = (attribute: string) => {
+      next = next.replace(/\s*\/?>$/, (ending) => ` ${attribute}${ending.trimStart()}`);
+    };
+    if (!/\bdecoding=/i.test(next)) add('decoding="async"');
+    if (variants.length && !/\bsrcset=/i.test(next)) {
+      const srcset = variants.map((variant) => `${variant.url} ${variant.width}w`).join(", ");
+      add(`srcset="${srcset}"`);
+      if (!/\bsizes=/i.test(next)) add('sizes="(max-width: 680px) 100vw, 50vw"');
+    }
+    if (manifestEntry?.width && !/\bwidth=/i.test(next)) add(`width="${manifestEntry.width}"`);
+    if (manifestEntry?.height && !/\bheight=/i.test(next)) add(`height="${manifestEntry.height}"`);
+    if (critical) {
+      if (!/\bfetchpriority=/i.test(next)) add('fetchpriority="high"');
+    } else if (!/\bloading=/i.test(next)) {
+      add('loading="lazy"');
+    }
+    return next;
+  });
 }
 
 // Las plantillas capturadas comparten fragmentos de JavaScript legado que
@@ -414,12 +496,13 @@ function injectFooterESR(html: string, config: ConfigMap, lang: Lang): string {
 }
 
 // Enlace discreto al panel de administración: candado pequeño, opacidad baja (sube al
-// pasar el mouse), junto al copyright del pie. FontAwesome ya está cargado en toda plantilla
-// (self-hosted en _vendor/fontawesome), así que no agrega ninguna petición extra.
+// pasar el mouse), junto al copyright del pie. El SVG inline evita cargar toda la
+// tipografía de Font Awesome solo para mostrar este icono.
 const ADMIN_LINK_STYLE = '<style>.vwb-admin-link{color:#fff;opacity:.35;text-decoration:none;transition:opacity .2s;}.vwb-admin-link:hover{opacity:1;}</style>';
 function injectAdminLink(html: string, lang: Lang): string {
   const label = lang === "es" ? "Panel de administración" : "Administration panel";
-  const link = `${ADMIN_LINK_STYLE}<a class="vwb-admin-link" href="/admin" target="_blank" rel="noopener" title="${label}" aria-label="${label}">&nbsp;&nbsp;<i class="fas fa-lock" style="font-size:11px;"></i></a>`;
+  const lock = '<svg width="11" height="11" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path fill="currentColor" d="M4.5 7V5a3.5 3.5 0 1 1 7 0v2H13v8H3V7h1.5Zm1.4 0h4.2V5a2.1 2.1 0 1 0-4.2 0v2Z"/></svg>';
+  const link = `${ADMIN_LINK_STYLE}<a class="vwb-admin-link" href="/admin" target="_blank" rel="noopener" title="${label}" aria-label="${label}">&nbsp;&nbsp;${lock}</a>`;
   return html.replace(/(<div class="footer--copy">[\s\S]*?)(<\/div>)/, (_m, inner, close) => `${inner}${link}${close}`);
 }
 
@@ -612,6 +695,7 @@ async function sendPage(res: Response, html: string) {
   let out = hardenLegacyClientScripts(
     stripRetiredDeskLinks(refreshNavigationAssets(optimizeLegacyAssets(html))),
   );
+  out = injectPerformanceHints(optimizePublicImageTags(out));
   out = out.includes("</body>")
     ? out.replace("</body>", `${inject}</body>`)
     : out + inject;
@@ -623,7 +707,7 @@ async function sendPage(res: Response, html: string) {
     out = injectAdminLink(out, lang);
   }
   out = ensureImgAlt(out); // backstop a11y: alt en imgs que escaparon a applyA11y
-  res.set("Cache-Control", "public, max-age=300, stale-while-revalidate=3600");
+  res.set("Cache-Control", "public, max-age=60, stale-while-revalidate=300");
   res.status(200).type("html").send(out);
 }
 
@@ -1060,23 +1144,27 @@ export async function setupMirror(app: Express) {
     return sendPage(res, renderGlobalSearch(pick(TEMPLATES.publications, lang), results, query, lang));
   };
 
-  const serveHome = async (lang: Lang, res: Response) => {
-    // El carrusel muestra hasta 6 noticias, en parejas. Las destacadas van primero y el resto
-    // se completa con las publicadas más recientes para que siempre haya rotación útil.
-    const [featured, config, rankings, practices, industries, testimonials] = await Promise.all([
-      storage.getFeaturedNews(6),
-      getConfigMap(),
-      storage.getRankings(),
-      storage.getPracticeGroups(),
-      storage.getIndustryGroups(),
-      storage.getTestimonials(),
-    ]);
-    let heroNews = featured;
-    if (heroNews.length < 6) {
-      const recent = await storage.getRecentPublishedNews(6 + featured.length);
-      heroNews = [...featured, ...recent.filter((r) => !featured.some((f) => f.id === r.id))].slice(0, 6);
-    }
-    sendPage(res, renderHome(pick(TEMPLATES.home, lang), heroNews, config, lang, rankings, practices, industries, testimonials));
+  const serveHome = async (lang: Lang, res: Response, bypassCache = false) => {
+    const build = async () => {
+      // El carrusel muestra hasta 6 noticias, en parejas. Las destacadas van primero y el resto
+      // se completa con las publicadas más recientes para que siempre haya rotación útil.
+      const [featured, config, rankings, practices, industries, testimonials] = await Promise.all([
+        storage.getFeaturedNews(6),
+        getConfigMap(),
+        storage.getRankings(),
+        storage.getPracticeGroups(),
+        storage.getIndustryGroups(),
+        storage.getTestimonials(),
+      ]);
+      let heroNews = featured;
+      if (heroNews.length < 6) {
+        const recent = await storage.getRecentPublishedNews(6 + featured.length);
+        heroNews = [...featured, ...recent.filter((r) => !featured.some((f) => f.id === r.id))].slice(0, 6);
+      }
+      return renderHome(pick(TEMPLATES.home, lang), heroNews, config, lang, rankings, practices, industries, testimonials);
+    };
+    const html = bypassCache ? await build() : await getCachedPublicPage(`home:${lang}`, build);
+    await sendPage(res, html);
   };
 
   const serveOfficeShowcase = async (lang: Lang, res: Response) => {
@@ -1229,8 +1317,8 @@ export async function setupMirror(app: Express) {
   };
 
   // ---------- Clean dynamic routes --------------------------------------
-  app.get("/", wrap((req, res) => serveHome(langOf(req), res)));
-  app.get("/home", wrap((req, res) => serveHome(langOf(req), res)));
+  app.get("/", wrap((req, res) => serveHome(langOf(req), res, typeof req.query.preview === "string")));
+  app.get("/home", wrap((req, res) => serveHome(langOf(req), res, typeof req.query.preview === "string")));
   app.get("/nuevas-oficinas", wrap((_req, res) => serveOfficeShowcase("es", res)));
   app.get("/nuevas-oficinas/", wrap((_req, res) => serveOfficeShowcase("es", res)));
   app.get("/new-offices", wrap((_req, res) => serveOfficeShowcase("en", res)));
@@ -1766,7 +1854,9 @@ export async function setupMirror(app: Express) {
           // Estos assets cambian navegación y accesibilidad global en los HTML legacy
           // los referencian sin versión; no deben permanecer obsoletos 30 días.
           res.setHeader("Cache-Control", "public, max-age=300, must-revalidate");
-        } else if (/([\\/]_vendor[\\/]|\.(?:woff2?|ttf|eot|otf))/i.test(filePath)) {
+        } else if (
+          /([\\/]_vendor[\\/]|[\\/]images[\\/]optimized[\\/]|[\\/]images[\\/]home-hero-(?:desktop|mobile|poster)-v\d+\.|\.(?:woff2?|ttf|eot|otf))/i.test(filePath)
+        ) {
           res.setHeader("Cache-Control", "public, max-age=31536000, immutable");
         }
       },
