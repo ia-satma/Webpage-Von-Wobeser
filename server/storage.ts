@@ -121,6 +121,12 @@ export interface IStorage {
   getNewsCount(): Promise<number>;
   getPublishedNewsPage(limit: number, offset: number, category?: string): Promise<News[]>;
   getPublishedNewsCount(category?: string): Promise<number>;
+  searchPublishedNewsPage(opts: {
+    query: string;
+    limit: number;
+    offset: number;
+    category?: string;
+  }): Promise<{ rows: News[]; total: number }>;
   getAdminNewsPage(opts: { limit: number; offset: number; search?: string; category?: string }): Promise<{ rows: News[]; total: number }>;
   getTranslationStats(): Promise<{ total: number; byLanguage: Record<string, number>; articlesWithTranslations: number }>;
   getBaseLanguageCoverage(): Promise<{ total: number; missingEnglish: number }>;
@@ -443,6 +449,42 @@ export class DatabaseStorage implements IStorage {
   async getPublishedNewsCount(category?: string): Promise<number> {
     const [row] = await db.select({ count: sql<number>`count(*)::int` }).from(news).where(this.publishedNewsConditions(category));
     return row?.count ?? 0;
+  }
+
+  /**
+   * Búsqueda pública paginada. La consulta se mantiene parametrizada mediante Drizzle,
+   * escapa comodines de ILIKE y reutiliza exactamente los filtros de publicación del
+   * listado público para no filtrar borradores ni contenido programado.
+   */
+  async searchPublishedNewsPage(opts: {
+    query: string;
+    limit: number;
+    offset: number;
+    category?: string;
+  }): Promise<{ rows: News[]; total: number }> {
+    const like = `%${opts.query.replace(/[%_\\]/g, "\\$&")}%`;
+    const where = and(
+      this.publishedNewsConditions(opts.category),
+      or(
+        ilike(news.title, like),
+        ilike(news.titleEs, like),
+        ilike(news.excerpt, like),
+        ilike(news.excerptEs, like),
+        ilike(news.content, like),
+        ilike(news.contentEs, like),
+      ),
+    );
+    const [rows, countRows] = await Promise.all([
+      db
+        .select()
+        .from(news)
+        .where(where)
+        .orderBy(newsDateDescNullsLast)
+        .limit(opts.limit)
+        .offset(opts.offset),
+      db.select({ count: sql<number>`count(*)::int` }).from(news).where(where),
+    ]);
+    return { rows, total: countRows[0]?.count ?? 0 };
   }
 
   /** Página de noticias para el admin (filtro+paginado EN SQL, no trae toda la tabla). */

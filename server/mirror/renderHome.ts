@@ -282,6 +282,9 @@ export function renderHome(
   // el video igual se transmite por rango (206) al reproducir.
   const video = cfg(config, "hero_video", lang);
   if (video) $("#video_header source").attr("src", video);
+  if (($("#video_header source").attr("src") || "").toLowerCase().endsWith(".mp4")) {
+    $("#video_header source").attr("type", "video/mp4");
+  }
   const configuredHeroLink = cfg(config, "hero_practice_link", lang).trim();
   const fallbackHeroLink = lang === "es" ? "/acerca-de" : "/about";
   const legacyHeroLinks = new Set(["/practice/arbitration", "/nuestra-firma", "/our-firm"]);
@@ -292,7 +295,18 @@ export function renderHome(
     href: heroLink,
     "aria-label": lang === "es" ? "Conoce Von Wobeser y Sierra" : "Discover Von Wobeser y Sierra",
   });
-  $("#video_header").attr("preload", "metadata");
+  $("#video_header").attr({
+    preload: "metadata",
+    poster: "/images/home-hero.webp",
+  });
+  const hero = $(".home__hero").first();
+  const heroStyle = hero.attr("style") || "";
+  if (heroStyle.includes("/images/home-hero.jpg")) {
+    hero.attr("style", heroStyle.replaceAll("/images/home-hero.jpg", "/images/home-hero.webp"));
+  }
+  if ($('link[rel="preload"][href="/images/home-hero.webp"]').length === 0) {
+    $("head").append('<link rel="preload" as="image" href="/images/home-hero.webp" fetchpriority="high">');
+  }
 
   // --- Frases editoriales de la portada -------------------------------
   const grayStatements = $(".home__gray--txt");
@@ -305,13 +319,28 @@ export function renderHome(
   // Conservan exactamente las clases del espejo para que Slick y sus flechas sigan
   // funcionando. Nombre, traducción, orden, publicación e imagen vienen del panel.
   const homeSliders = $(".home_slider_JS");
+  homeSliders.eq(0).attr({
+    role: "region",
+    "aria-roledescription": "carousel",
+    "aria-label": lang === "es" ? "Prácticas" : "Practices",
+  });
+  homeSliders.eq(1).attr({
+    role: "region",
+    "aria-roledescription": "carousel",
+    "aria-label": lang === "es" ? "Grupos de práctica por industria" : "Industry practice groups",
+  });
   const practiceSlides = renderGroupSlider(practices, "practice", config, lang);
   const industrySlides = renderGroupSlider(industries, "industry", config, lang);
   if (practiceSlides) homeSliders.eq(0).html(practiceSlides);
   if (industrySlides) homeSliders.eq(1).html(industrySlides);
 
   const testimonialSlides = renderTestimonials(testimonials, lang);
-  if (testimonialSlides) $(".home_intro_JS").html(testimonialSlides);
+  const testimonialCarousel = $(".home_intro_JS").attr({
+    role: "region",
+    "aria-roledescription": "carousel",
+    "aria-label": lang === "es" ? "Testimonios" : "Testimonials",
+  });
+  if (testimonialSlides) testimonialCarousel.html(testimonialSlides);
 
   // --- Red banner texts (editable) --------------------------------------
   const bTitle = cfg(config, "banner_title", lang);
@@ -335,6 +364,11 @@ export function renderHome(
   // El slider `.home__rec--slider` muestra logos de reconocimientos. Si el panel tiene
   // reconocimientos CON logo, se arma el slider desde ahí; si no, se deja el original.
   const withLogo = (rankings || []).filter((r) => r && (r.logoUrl || "").trim());
+  $(".home_rec_JS").attr({
+    role: "region",
+    "aria-roledescription": "carousel",
+    "aria-label": lang === "es" ? "Reconocimientos" : "Rankings and recognitions",
+  });
   if (withLogo.length) {
     const slides = withLogo
       .map((r) => {

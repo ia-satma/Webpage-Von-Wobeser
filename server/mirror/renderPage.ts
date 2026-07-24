@@ -15,7 +15,12 @@ export function renderPage(
   config: ConfigMap,
   lang: Lang,
   keys: { intro?: string; body?: string },
-  meta?: { path: string; title: string; description?: string },
+  meta?: {
+    path: string;
+    title: string;
+    description?: string;
+    alternatePaths?: { es: string; en: string };
+  },
   postProcess?: ($: cheerio.CheerioAPI) => void,
   opts?: { bodyMode?: "replace" | "prepend" },
 ): string {
@@ -44,6 +49,7 @@ export function renderPage(
     applySeo($, {
       lang,
       path: meta.path,
+      alternatePaths: meta.alternatePaths,
       title: meta.title,
       description: meta.description || clip(introText) || fallbackDesc,
       type: "website",
