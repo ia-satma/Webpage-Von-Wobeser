@@ -1,6 +1,6 @@
 import { useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { getAuthHeaders } from "@/lib/adminAuth";
+import { getAuthHeaders, loadAdminSession } from "@/lib/adminAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Upload, Loader2, X, Download, Library } from "lucide-react";
@@ -52,6 +52,9 @@ export function ImageUpload({
     setError("");
     setUploading(true);
     try {
+      // Una pestaña restaurada puede conservar la cookie HttpOnly pero no el
+      // token CSRF en sessionStorage. Se renueva antes de enviar multipart.
+      await loadAdminSession(true);
       const fd = new FormData();
       fd.append("file", file);
       const res = await fetch("/api/admin/media/upload", {
@@ -61,7 +64,12 @@ export function ImageUpload({
         credentials: "include",
       });
       if (!res.ok) {
-        setError(`No se pudo subir (máx 200 MB, ${isVideo ? "video mp4/webm" : "solo imágenes"}).`);
+        const response = await res.json().catch(() => null);
+        setError(
+          typeof response?.error === "string"
+            ? response.error
+            : `No se pudo subir (máx 200 MB, ${isVideo ? "video mp4/webm" : "solo imágenes"}).`,
+        );
         return;
       }
       const data = await res.json();

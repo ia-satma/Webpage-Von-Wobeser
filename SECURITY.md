@@ -28,7 +28,9 @@ variables `VITE_*`. Las variables `VITE_*` son públicas por definición.
 - No ejecutar ZAP activo, SQLMap, pruebas de fuerza bruta ni restauraciones sobre
   producción. Se requiere un clon aislado y una base independiente.
 - En producción, ClamAV falla de forma cerrada salvo decisión explícita mediante
-  `CLAMAV_REQUIRED=false`.
+  `CLAMAV_REQUIRED=false`. La única excepción automática son PNG/JPEG/WebP públicos
+  que hayan sido decodificados y re-codificados completamente en cuarentena; GIF,
+  videos, CV y documentos continúan bloqueados si el escáner no está disponible.
 - Los CV son privados y solo se descargan desde el endpoint administrativo autenticado.
 - Ante sospecha de compromiso, revocar sesiones, cambiar la contraseña afectada y las
   claves pertinentes. `DATABASE_URL` no se rota automáticamente.
