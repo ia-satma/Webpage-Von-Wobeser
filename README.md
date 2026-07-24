@@ -4,6 +4,9 @@ Plataforma web del despacho de abogados **Von Wobeser y Sierra**: sitio público
 
 > **Documentación completa para agentes/ingenieros:** ver [`replit.md`](./replit.md). Léelo antes de tocar el código — explica la arquitectura crítica que evita romper el sitio.
 
+> **Contexto más reciente:** [`docs/CONTEXT-2026-07-23.md`](./docs/CONTEXT-2026-07-23.md) resume
+> la jornada de seguridad, acceso administrativo, landing institucional y sincronización con Replit.
+
 ## Arquitectura en 30 segundos
 
 - **Sitio público** → un **espejo estático** (`frontend-mirror/`, HTML del sitio original) servido por Express + cheerio, que inyecta datos de la BD en cada request. **No es React.**
