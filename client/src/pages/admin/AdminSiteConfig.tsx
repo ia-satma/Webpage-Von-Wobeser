@@ -49,7 +49,9 @@ const PAGES: Record<string, SiteConfigPage> = {
       {
         title: "Portada (home)",
         fields: [
-          { key: "hero_video", label: "Video del hero", media: "video", help: "Sube el video desde tu computadora o pega una URL/ruta (mp4)." },
+          { key: "hero_video", label: "Video maestro del hero", media: "video", help: "Al guardar un video local, el sistema crea y publica automáticamente las versiones ligera de escritorio, móvil y su póster." },
+          { key: "hero_video_mobile", label: "Video optimizado para móvil", media: "video", help: "Se genera automáticamente. También puedes sustituirlo manualmente." },
+          { key: "hero_video_poster", label: "Póster del video", media: "image", help: "Debe coincidir con el primer fotograma visible para evitar parpadeos durante la carga." },
           { key: "hero_practice_link", label: "Destino del video del hero", bilingual: true, help: "Inglés: /about. Español: /acerca-de." },
           { key: "home_experience", label: "Frase — años de experiencia", bilingual: true },
           { key: "home_team_stats", label: "Frase — cifras del equipo", bilingual: true, multiline: true },
@@ -554,6 +556,35 @@ export default function AdminSiteConfig() {
     setSaving(key);
     try {
       const d = draft[key] || { value: "", valueEs: "" };
+      const shouldOptimizeHero = key === "hero_video"
+        && /^\/(?:uploads|images)\/.+\.(?:mp4|webm|mov|ogv)$/i.test(d.value)
+        && !/home-hero-(?:desktop|mobile)-v\d+\.mp4$/i.test(d.value)
+        && !/\/hero-[a-f0-9]+-desktop\.mp4$/i.test(d.value);
+      if (shouldOptimizeHero) {
+        const optimized = await adminApiRequest("POST", "/api/admin/media/hero-variants", { mediaPath: d.value });
+        if (!optimized.ok) {
+          const body = await optimized.json().catch(() => ({}));
+          toast({
+            title: "No se pudo optimizar",
+            description: body.error || "El video anterior continúa publicado.",
+            variant: "destructive",
+          });
+          return;
+        }
+        const variants = await optimized.json();
+        setDraft((current) => ({
+          ...current,
+          hero_video: { value: variants.desktopPath, valueEs: variants.desktopPath },
+          hero_video_mobile: { value: variants.mobilePath, valueEs: variants.mobilePath },
+          hero_video_poster: { value: variants.posterPath, valueEs: variants.posterPath },
+        }));
+        toast({
+          title: "Video optimizado y publicado",
+          description: "Se generaron las versiones de escritorio, móvil y el póster sin modificar el archivo maestro.",
+        });
+        refetch();
+        return;
+      }
       const res = await adminApiRequest("PUT", `/api/admin/site-config/${key}`, { value: d.value, valueEs: d.valueEs });
       if (res.ok) {
         toast({ title: "Guardado", description: "El cambio ya está reflejado en el sitio." });

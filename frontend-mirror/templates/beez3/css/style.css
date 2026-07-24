@@ -252,7 +252,7 @@ b,strong {
 }
 
 @font-face {
-  font-family:'OptimaLTStd';src:url("../webfont/OptimaLTStd.eot");src:url("../webfont/OptimaLTStd.eot?#iefix") format("embedded-opentype"),url("../webfont/OptimaLTStd.woff") format("woff"),url("../webfont/OptimaLTStd.ttf") format("truetype"),url("../webfont/OptimaLTStd.svg#OptimaLTStd") format("svg");font-weight:300;font-style:normal;font-stretch:normal;
+  font-family:'OptimaLTStd';src:url("../webfont/OptimaLTStd.woff2") format("woff2"),url("../webfont/OptimaLTStd.woff") format("woff");font-weight:300;font-style:normal;font-stretch:normal;font-display:swap;
 }
 
 @font-face {
@@ -260,11 +260,11 @@ b,strong {
 }
 
 @font-face {
-  font-family:'Publico-Roman';src:url("../webfont/Publico-Roman.eot");src:url("../webfont/Publico-Roman.eot?#iefix") format("embedded-opentype"),url("../webfont/Publico-Roman.woff") format("woff"),url("../webfont/Publico-Roman.ttf") format("truetype"),url("../webfont/Publico-Roman.svg#Publico-Roman") format("svg");font-weight:300;font-style:normal;font-stretch:normal;
+  font-family:'Publico-Roman';src:url("../webfont/Publico-Roman.woff2") format("woff2"),url("../webfont/Publico-Roman.woff") format("woff");font-weight:300;font-style:normal;font-stretch:normal;font-display:swap;
 }
 
 @font-face {
-  font-family:'Geomanist-Book';src:url("../webfont/Geomanist-Book.eot");src:url("../webfont/Geomanist-Book.eot?#iefix") format("embedded-opentype"),url("../webfont/Geomanist-Book.woff") format("woff"),url("../webfont/Geomanist-Book.ttf") format("truetype"),url("../webfont/Geomanist-Book.svg#Geomanist-Book") format("svg");font-weight:300;font-style:normal;font-stretch:normal;
+  font-family:'Geomanist-Book';src:url("../webfont/Geomanist-Book.woff2") format("woff2"),url("../webfont/Geomanist-Book.woff") format("woff");font-weight:300;font-style:normal;font-stretch:normal;font-display:swap;
 }
 
 .header {

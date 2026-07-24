@@ -1,6 +1,9 @@
 import * as cheerio from "cheerio";
+import fs from "node:fs";
+import path from "node:path";
 import { cfg, type ConfigMap } from "./siteConfig";
 import { applySeo } from "./seo";
+import { getMirrorDir } from "./config";
 
 type Lang = "en" | "es";
 
@@ -45,6 +48,79 @@ function safeHref(value: unknown, fallback: string): string {
   return fallback;
 }
 
+function existingResponsiveVariant(sourceUrl: string, width: number): string {
+  const cleanUrl = sourceUrl.split(/[?#]/, 1)[0];
+  const parsed = path.posix.parse(cleanUrl);
+  let publicUrl = "";
+  let absolutePath = "";
+  if (cleanUrl.startsWith("/uploads/") && !cleanUrl.includes("/optimized/")) {
+    publicUrl = `/uploads/optimized/${parsed.name}-${width}.webp`;
+    absolutePath = path.join(process.cwd(), "uploads", "optimized", `${parsed.name}-${width}.webp`);
+  } else if ((cleanUrl.startsWith("/images/") || cleanUrl.startsWith("/img/")) && !cleanUrl.includes("/optimized/")) {
+    const relative = cleanUrl.replace(/^\/+/, "");
+    const relativeParsed = path.posix.parse(relative);
+    publicUrl = `/images/optimized/${relativeParsed.dir}/${relativeParsed.name}-${width}.webp`;
+    absolutePath = path.join(getMirrorDir(), publicUrl.replace(/^\/+/, ""));
+  }
+  return publicUrl && fs.existsSync(absolutePath) ? publicUrl : "";
+}
+
+function responsiveBackgroundUrls(sourceUrl: string): { mobile: string; desktop: string; fallback: string } {
+  const fallback = safeMediaUrl(sourceUrl);
+  if (!fallback) return { mobile: "", desktop: "", fallback: "" };
+  const mobile = existingResponsiveVariant(fallback, 640) || fallback;
+  const desktop = existingResponsiveVariant(fallback, 1920)
+    || existingResponsiveVariant(fallback, 1280)
+    || fallback;
+  return { mobile, desktop, fallback };
+}
+
+const HERO_PERFORMANCE_STYLE = `<style id="vw-home-performance">
+.home__slider--item.vw-lazy-bg{background-color:#777;background-position:center;background-size:cover}
+@media (prefers-reduced-motion:reduce){#video_header{display:none}.home__hero{background-position:center;background-size:cover}}
+</style>`;
+
+const HERO_PERFORMANCE_SCRIPT = `<script id="vw-home-performance-js">(function(){
+  var video=document.getElementById('video_header');
+  if(video){
+    var reduced=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var saveData=!!(navigator.connection&&navigator.connection.saveData);
+    if(reduced||saveData){video.pause();video.preload='none';}
+    else{var promise=video.play();if(promise&&promise.catch)promise.catch(function(){});}
+  }
+  function loadBackground(item){
+    if(!item||item.getAttribute('data-vw-bg-loaded')==='true')return;
+    var mobile=window.matchMedia&&window.matchMedia('(max-width: 680px)').matches;
+    var selected=item.getAttribute(mobile?'data-bg-mobile':'data-bg-desktop');
+    var fallback=item.getAttribute('data-bg-fallback')||selected;
+    if(!selected)return;
+    item.setAttribute('data-vw-bg-loaded','true');
+    var probe=new Image();
+    probe.onload=function(){item.style.backgroundImage='url("'+selected.replace(/"/g,'%22')+'")';};
+    probe.onerror=function(){
+      if(fallback&&fallback!==selected)item.style.backgroundImage='url("'+fallback.replace(/"/g,'%22')+'")';
+    };
+    probe.src=selected;
+  }
+  function loadWindow(slider,index){
+    var items=slider.querySelectorAll('.home__slider--item:not(.slick-cloned)');
+    if(!items.length)return;
+    loadBackground(items[(index+items.length)%items.length]);
+    loadBackground(items[(index+1+items.length)%items.length]);
+  }
+  function init(){
+    document.querySelectorAll('.home_slider_JS').forEach(function(slider){
+      loadWindow(slider,0);
+      if(window.jQuery){
+        window.jQuery(slider).off('beforeChange.vwLazyBg').on('beforeChange.vwLazyBg',function(_event,_slick,_current,next){
+          loadWindow(slider,next);
+        });
+      }
+    });
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
+})();</script>`;
+
 function paragraphs(value: string): string {
   return value
     .split(/\n\s*\n/)
@@ -71,9 +147,12 @@ function renderGroupSlider(groups: HomeGroup[], kind: "practice" | "industry", c
   const intro = `<div class="home__slider--item" style="background-color:rgba(94,94,94,0.2)"><div class="home__slider--wrap wrap"><span class="industria_intro_1">${visible.length}</span><span class="industria_intro_2">${esc(label)}</span><span><a style="color:#fff" href="${overview}">${esc(seeMore)}</a></span></div></div>`;
   const items = visible.map((group, index) => {
     const image = safeMediaUrl(group.imageUrl);
-    const style = image ? ` style="background-image:url('${escAttr(image)}')"` : ` style="background-color:#777"`;
+    const responsive = responsiveBackgroundUrls(image);
+    const media = image
+      ? ` class="home__slider--item vw-lazy-bg" data-bg-mobile="${escAttr(responsive.mobile)}" data-bg-desktop="${escAttr(responsive.desktop)}" data-bg-fallback="${escAttr(responsive.fallback)}"`
+      : ` class="home__slider--item" style="background-color:#777"`;
     const name = lang === "es" ? group.nameEs || group.name : group.name;
-    return `<div class="home__slider--item"${style}><div class="color_banner"><div class="home__slider--wrap wrap"><span>${index + 1}</span><span>${esc(name)}</span><span><a style="color:#fff" href="/${kind}/${encodeURIComponent(group.slug)}${langSuffix}">${esc(seeMore)}</a></span></div></div></div>`;
+    return `<div${media}><div class="color_banner"><div class="home__slider--wrap wrap"><span>${index + 1}</span><span>${esc(name)}</span><span><a style="color:#fff" href="/${kind}/${encodeURIComponent(group.slug)}${langSuffix}">${esc(seeMore)}</a></span></div></div></div>`;
   }).join("");
   return intro + items;
 }
@@ -277,36 +356,56 @@ export function renderHome(
     $("body").append(HERO_NEWS_CAROUSEL_SCRIPT);
   }
 
-  // --- Hero video (editable via siteConfig hero_video) ------------------
-  // preload="metadata": el navegador no descarga los 8.5 MB de golpe (importa en móvil);
-  // el video igual se transmite por rango (206) al reproducir.
-  const video = cfg(config, "hero_video", lang);
-  if (video) $("#video_header source").attr("src", video);
-  if (($("#video_header source").attr("src") || "").toLowerCase().endsWith(".mp4")) {
-    $("#video_header source").attr("type", "video/mp4");
-  }
+  // --- Hero video responsivo (editable via siteConfig) ------------------
+  const legacyHeroVideos = new Set([
+    "/images/dron_2026_40.mp4",
+    "/images/home-hero-desktop-v1.mp4",
+  ]);
+  const configuredDesktop = safeMediaUrl(cfg(config, "hero_video", lang));
+  const desktopVideo = !configuredDesktop || legacyHeroVideos.has(configuredDesktop)
+    ? "/images/home-hero-desktop-v2.mp4"
+    : configuredDesktop;
+  const configuredMobile = safeMediaUrl(cfg(config, "hero_video_mobile", lang));
+  const mobileVideo = !configuredMobile || configuredMobile === "/images/home-hero-mobile-v1.mp4"
+    ? (desktopVideo === "/images/home-hero-desktop-v2.mp4" ? "/images/home-hero-mobile-v2.mp4" : desktopVideo)
+    : configuredMobile;
+  const configuredPoster = safeMediaUrl(cfg(config, "hero_video_poster", lang));
+  const heroPoster = !configuredPoster || configuredPoster === "/images/home-hero-poster-v1.webp"
+    ? "/images/home-hero-poster-v2.webp"
+    : configuredPoster;
+  const videoElement = $("#video_header");
+  videoElement.empty()
+    .append(`<source media="(max-width: 680px)" src="${escAttr(mobileVideo)}" type="video/mp4">`)
+    .append(`<source src="${escAttr(desktopVideo)}" type="video/mp4">`);
   const configuredHeroLink = cfg(config, "hero_practice_link", lang).trim();
   const fallbackHeroLink = lang === "es" ? "/acerca-de" : "/about";
   const legacyHeroLinks = new Set(["/practice/arbitration", "/nuestra-firma", "/our-firm"]);
   const heroLink = !configuredHeroLink || legacyHeroLinks.has(configuredHeroLink)
     ? fallbackHeroLink
     : safeHref(configuredHeroLink, fallbackHeroLink);
-  $("#video_header").parent("a").attr({
+  videoElement.parent("a").attr({
     href: heroLink,
     "aria-label": lang === "es" ? "Conoce Von Wobeser y Sierra" : "Discover Von Wobeser y Sierra",
   });
-  $("#video_header").attr({
+  videoElement.removeAttr("autoplay").attr({
     preload: "metadata",
-    poster: "/images/home-hero.webp",
+    poster: heroPoster,
+    muted: "",
+    loop: "",
+    playsinline: "",
   });
   const hero = $(".home__hero").first();
   const heroStyle = hero.attr("style") || "";
-  if (heroStyle.includes("/images/home-hero.jpg")) {
-    hero.attr("style", heroStyle.replaceAll("/images/home-hero.jpg", "/images/home-hero.webp"));
+  if (/home-hero\.(?:jpg|webp)/.test(heroStyle)) {
+    hero.attr("style", heroStyle.replace(/\/images\/home-hero\.(?:jpg|webp)/g, heroPoster));
+  } else {
+    hero.css("background-image", `url("${heroPoster}")`);
   }
-  if ($('link[rel="preload"][href="/images/home-hero.webp"]').length === 0) {
-    $("head").append('<link rel="preload" as="image" href="/images/home-hero.webp" fetchpriority="high">');
+  if ($(`link[rel="preload"][href="${heroPoster}"]`).length === 0) {
+    $("head").append(`<link rel="preload" as="image" href="${escAttr(heroPoster)}" type="image/webp" fetchpriority="high">`);
   }
+  $("head").append(HERO_PERFORMANCE_STYLE);
+  $("body").append(HERO_PERFORMANCE_SCRIPT);
 
   // --- Frases editoriales de la portada -------------------------------
   const grayStatements = $(".home__gray--txt");

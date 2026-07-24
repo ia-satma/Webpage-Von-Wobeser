@@ -9,9 +9,11 @@ import fs from "fs";
 import crypto from "crypto";
 import net from "node:net";
 import multer from "multer";
-import { optimizeImageIfNeeded } from "./media/optimizeImage";
+import { generateResponsiveImageVariants, optimizeImageIfNeeded } from "./media/optimizeImage";
+import { generateHeroVideoVariants } from "./media/optimizeVideo";
 import { sanitizeCms, sanitizeFields } from "./mirror/sanitize";
-import { getConfigMap } from "./mirror/siteConfig";
+import { getConfigMap, setHeroMediaConfig } from "./mirror/siteConfig";
+import { getMirrorDir } from "./mirror/config";
 
 // Global WebSocket clients map for pipeline progress updates
 const pipelineClients: Map<string, { ws: WebSocket; userId: string }> = new Map();
@@ -3627,6 +3629,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
       let finalSize = req.file.size;
       const optimizedSize = await optimizeImageIfNeeded(req.file.path, req.file.mimetype, req.file.size);
       if (optimizedSize != null) finalSize = optimizedSize;
+      await generateResponsiveImageVariants(req.file.path, req.file.mimetype);
 
       const mediaItem = await storage.createMediaItem({
         filename: req.file.filename,
@@ -3645,6 +3648,45 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
       await removeUploadQuietly(acceptedMediaPath);
       console.error("Upload media validation failed");
       res.status(500).json({ error: "Failed to validate uploaded file" });
+    }
+  });
+
+  const heroVariantSchema = z.object({
+    mediaPath: z.string().trim().min(1).max(500).regex(/^\/(?:uploads|images)\/[A-Za-z0-9._/%+-]+$/),
+  });
+
+  app.post("/api/admin/media/hero-variants", authMiddleware, requirePermission("content"), async (req: Request, res: Response) => {
+    const parsed = heroVariantSchema.safeParse(req.body);
+    if (!parsed.success) {
+      return res.status(400).json({ error: "Selecciona un video local válido de la biblioteca." });
+    }
+    try {
+      const cleanPath = parsed.data.mediaPath.split(/[?#]/, 1)[0];
+      const allowedVideo = /\.(?:mp4|webm|mov|ogv)$/i.test(cleanPath);
+      if (!allowedVideo) return res.status(400).json({ error: "El archivo seleccionado no es un video compatible." });
+
+      const baseDirectory = cleanPath.startsWith("/uploads/") ? uploadsDir : getMirrorDir();
+      const relativePath = cleanPath.startsWith("/uploads/")
+        ? cleanPath.slice("/uploads/".length)
+        : cleanPath.replace(/^\/+/, "");
+      const sourcePath = path.resolve(baseDirectory, relativePath);
+      const resolvedBase = path.resolve(baseDirectory);
+      if (!sourcePath.startsWith(`${resolvedBase}${path.sep}`) || !fs.existsSync(sourcePath)) {
+        return res.status(404).json({ error: "No se encontró el video seleccionado." });
+      }
+
+      const outputDirectory = path.join(uploadsDir, "hero");
+      const variants = await generateHeroVideoVariants(sourcePath, outputDirectory);
+      await setHeroMediaConfig(variants.desktopPath, variants.mobilePath, variants.posterPath);
+      res.json({
+        ok: true,
+        masterPath: cleanPath,
+        ...variants,
+      });
+    } catch {
+      res.status(500).json({
+        error: "No se pudo optimizar el video. La configuración anterior permanece activa.",
+      });
     }
   });
 

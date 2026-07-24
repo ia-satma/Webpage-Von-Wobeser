@@ -8,6 +8,7 @@ import { serveStatic } from "./static";
 import { createServer } from "http";
 import { randomUUID } from "node:crypto";
 import { initializeAgents, orchestrator } from "./agents";
+import { invalidatePublicPageCache } from "./mirror/pageCache";
 
 const app = express();
 // Detrás del reverse-proxy de Replit (inyecta X-Forwarded-For). Sin esto req.ip es la IP del
@@ -126,6 +127,14 @@ app.use((req, res, next) => {
 
   res.on("finish", () => {
     const duration = Date.now() - start;
+    if (
+      path.startsWith("/api/admin")
+      && !["GET", "HEAD", "OPTIONS"].includes(req.method)
+      && res.statusCode >= 200
+      && res.statusCode < 400
+    ) {
+      invalidatePublicPageCache();
+    }
     if (path.startsWith("/api")) {
       let logLine = `${req.method} ${path} ${res.statusCode} in ${duration}ms`;
       if (responseShape) logLine += ` :: ${responseShape}`;

@@ -6,7 +6,9 @@ export type ConfigMap = Record<string, { value: string; valueEs: string; type: s
 
 /** Default site-config keys for the editable parts of the mirror frontend. */
 const DEFAULTS: Array<{ key: string; value: string; valueEs?: string; type: string; category: string; description: string }> = [
-  { key: "hero_video", value: "/images/dron_2026_40.mp4", type: "url", category: "home", description: "Video de fondo del hero (home)" },
+  { key: "hero_video", value: "/images/home-hero-desktop-v2.mp4", type: "url", category: "home", description: "Video optimizado de alta calidad del hero para escritorio" },
+  { key: "hero_video_mobile", value: "/images/home-hero-mobile-v2.mp4", type: "url", category: "home", description: "Video optimizado de alta calidad del hero para móvil" },
+  { key: "hero_video_poster", value: "/images/home-hero-poster-v2.webp", type: "url", category: "home", description: "Póster del primer fotograma real del hero" },
   { key: "hero_practice_link", value: "/about", valueEs: "/acerca-de", type: "url", category: "home", description: "Destino bilingüe al hacer clic en el video del hero" },
   { key: "home_experience", value: "Von Wobeser y Sierra, S.C. has more than forty years of experience.", valueEs: "Von Wobeser y Sierra, S.C. cuenta con más de cuarenta años de experiencia.", type: "text", category: "home", description: "Frase de experiencia de la portada" },
   { key: "home_team_stats", value: "We have more than 180 legal team members (including 26 partners, 6 of counsel, and 8 counsel) and legal interns, plus administrative staff.", valueEs: "Tenemos más de 180 integrantes del equipo legal (incluyendo 26 socios, 6 of counsel y 8 consejeros) y pasantes, más el personal administrativo.", type: "text", category: "home", description: "Cifras del equipo en la portada" },
@@ -484,6 +486,46 @@ export async function upsertConfig(key: string, value: string, valueEs?: string)
   } else {
     await db.insert(siteConfig).values({ key, value, valueEs: valueEs ?? value, type: "text", category: "general" });
   }
+  invalidateConfigCache();
+}
+
+/** Publica las tres variantes del hero como una sola operación de configuración. */
+export async function setHeroMediaConfig(
+  desktopPath: string,
+  mobilePath: string,
+  posterPath: string,
+): Promise<void> {
+  const values = [
+    { key: "hero_video", value: desktopPath, description: "Video optimizado del hero para escritorio" },
+    { key: "hero_video_mobile", value: mobilePath, description: "Video optimizado del hero para móvil" },
+    { key: "hero_video_poster", value: posterPath, description: "Póster optimizado del hero" },
+  ];
+  await db.transaction(async (transaction) => {
+    for (const item of values) {
+      await transaction
+        .insert(siteConfig)
+        .values({
+          key: item.key,
+          value: item.value,
+          valueEs: item.value,
+          type: "url",
+          category: "home",
+          description: item.description,
+          updatedAt: new Date(),
+        })
+        .onConflictDoUpdate({
+          target: siteConfig.key,
+          set: {
+            value: item.value,
+            valueEs: item.value,
+            type: "url",
+            category: "home",
+            description: item.description,
+            updatedAt: new Date(),
+          },
+        });
+    }
+  });
   invalidateConfigCache();
 }
 
