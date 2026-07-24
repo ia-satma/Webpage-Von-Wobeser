@@ -4,6 +4,7 @@ import { db } from '../../db';
 import { news } from '../../../shared/schema';
 import { eq } from 'drizzle-orm';
 import { sanitizeFields } from '../../mirror/sanitize';
+import { formatterOutputSchema } from '../core/contracts';
 
 const FORMATTER_CONFIG: AgentConfig = {
   agentType: 'formatter',
@@ -50,7 +51,13 @@ export class FormatterAgent extends BaseAgent {
   }
 
   async execute(context: ExecutionContext, payload: Record<string, unknown>): Promise<AgentResult> {
-    const { articleId, content, title } = payload as { articleId?: string; content?: string; title?: string };
+    const { articleId, content, title, language, applyChanges } = payload as {
+      articleId?: string;
+      content?: string;
+      title?: string;
+      language?: 'es' | 'en';
+      applyChanges?: boolean;
+    };
 
     if (!articleId && !content) {
       return { success: false, error: 'Either articleId or content is required' };
@@ -58,14 +65,17 @@ export class FormatterAgent extends BaseAgent {
 
     let originalContent = content as string;
     let originalTitle = title as string;
+    let article: typeof news.$inferSelect | undefined;
+    let sourceLanguage: 'es' | 'en' = language || 'es';
 
     if (articleId) {
-      const [article] = await db.select().from(news).where(eq(news.id, articleId));
+      [article] = await db.select().from(news).where(eq(news.id, articleId));
       if (!article) {
         return { success: false, error: `Article not found: ${articleId}` };
       }
-      originalContent = article.content || article.contentEs || '';
-      originalTitle = article.title || article.titleEs || '';
+      sourceLanguage = language || (article.contentEs?.trim() ? 'es' : 'en');
+      originalContent = sourceLanguage === 'es' ? (article.contentEs || '') : (article.content || '');
+      originalTitle = sourceLanguage === 'es' ? (article.titleEs || '') : (article.title || '');
     }
 
     if (!originalContent || originalContent.trim().length < 50) {
@@ -92,18 +102,22 @@ Return JSON with cleaned title, content, and excerpt.`;
         { temperature: 0.2, jsonMode: true }
       );
 
-      const result = JSON.parse(response);
+      const result = formatterOutputSchema.parse(JSON.parse(response));
 
-      if (articleId) {
-        const update = {
-          title: result.title || originalTitle,
-          titleEs: result.title || originalTitle,
-          content: result.content,
-          contentEs: result.content,
-          excerpt: result.excerpt,
-          excerptEs: result.excerpt,
-        };
-        sanitizeFields(update, ["content", "contentEs", "excerpt", "excerptEs"]);
+      const canApply = Boolean(articleId && (applyChanges === true || article?.published === false));
+      if (articleId && canApply) {
+        const update = sourceLanguage === 'es'
+          ? {
+              titleEs: result.title || originalTitle,
+              contentEs: result.content,
+              excerptEs: result.excerpt,
+            }
+          : {
+              title: result.title || originalTitle,
+              content: result.content,
+              excerpt: result.excerpt,
+            };
+        sanitizeFields(update, sourceLanguage === 'es' ? ["contentEs", "excerptEs"] : ["content", "excerpt"]);
         await db.update(news).set(update).where(eq(news.id, articleId));
       }
 
@@ -117,9 +131,11 @@ Return JSON with cleaned title, content, and excerpt.`;
         success: true,
         data: {
           articleId,
+          language: sourceLanguage,
           title: result.title,
           content: result.content,
           excerpt: result.excerpt,
+          changesApplied: canApply,
           ...metrics,
         },
         metrics,

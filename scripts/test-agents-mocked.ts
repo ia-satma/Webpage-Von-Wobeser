@@ -1,11 +1,19 @@
-// Batería de los 12 agentes de IA en LOCAL, sin gastar créditos reales.
+// Batería de agentes de IA en LOCAL, sin gastar créditos reales.
 // Levanta su PROPIA instancia del servidor en :5051 (no toca el :5050 de desarrollo),
 // parcheando openai.chat.completions.create ANTES de importar server/index.ts — todo
-// lo demás (DB real, rutas reales, orquestador real) queda intacto, solo se simula
-// el texto que "responde" el modelo.
-// Uso: npx tsx scripts/test-agents-mocked.ts
+// lo demás usa una base AISLADA indicada en AGENT_TEST_DATABASE_URL.
+// Uso: AGENT_TEST_DATABASE_URL=... npx tsx scripts/test-agents-mocked.ts
 import "dotenv/config";
 import { adminSessionHeaders, requireIsolatedSecurityTarget } from "./lib/admin-session.mjs";
+
+const isolatedDatabaseUrl = (process.env.AGENT_TEST_DATABASE_URL || "").trim();
+if (!isolatedDatabaseUrl) {
+  throw new Error("AGENT_TEST_DATABASE_URL es obligatoria; no se permite usar DATABASE_URL en esta prueba.");
+}
+if (isolatedDatabaseUrl === (process.env.DATABASE_URL || "").trim()) {
+  throw new Error("AGENT_TEST_DATABASE_URL debe ser distinta de DATABASE_URL.");
+}
+process.env.DATABASE_URL = isolatedDatabaseUrl;
 process.env.PORT = "5051";
 const B = "http://localhost:5051";
 requireIsolatedSecurityTarget(B);

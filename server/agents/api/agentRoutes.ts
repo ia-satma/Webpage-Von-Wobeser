@@ -4,44 +4,30 @@ import { knowledgeStore } from '../core/AgentKnowledge';
 import { evolutionTracker } from '../core/AgentEvolution';
 import { pcloudStorage } from '../storage/PCloudStorage';
 import { dbPersistence } from '../storage/DatabasePersistence';
-import { formatterAgent } from '../specialized/FormatterAgent';
-import { metadataLinkerAgent } from '../specialized/MetadataLinkerAgent';
-import { polyglotTranslatorAgent } from '../specialized/PolyglotTranslatorAgent';
-import { contentAuditorAgent } from '../specialized/ContentAuditorAgent';
-import { seoOptimizerAgent } from '../specialized/SEOOptimizerAgent';
 import { contentAnalyzerAgent } from '../specialized/ContentAnalyzerAgent';
-import { imageSuggestionAgent } from '../specialized/ImageSuggestionAgent';
-import { categoryAgent } from '../specialized/CategoryAgent';
-import { websiteAuditorAgent } from '../specialized/WebsiteAuditorAgent';
-import { socialMediaAgent } from '../specialized/SocialMediaAgent';
-import { newsletterAgent } from '../specialized/NewsletterAgent';
-import { legalAlertsAgent } from '../specialized/LegalAlertsAgent';
-import { voiceAgent } from '../specialized/VoiceAgent';
-import { presentationGeneratorAgent } from '../specialized/PresentationGeneratorAgent';
-import { AgentType, ExecutionContext } from '../core/types';
+import { AgentType } from '../core/types';
 import { db } from '../../db';
 import { news } from '../../../shared/schema';
+import { eq } from 'drizzle-orm';
 import { z } from 'zod';
+import {
+  agentTypeSchema,
+  articleIdSchema,
+  parseAgentPayload,
+} from '../core/contracts';
 
 const router = Router();
-const agentTypeSchema = z.enum([
+const pipelineAgentTypeSchema = z.enum([
   'formatter',
   'metadata_linker',
   'polyglot_translator',
-  'content_auditor',
   'seo_optimizer',
   'content_analyzer',
   'image_suggestion',
   'category_agent',
-  'website_auditor',
-  'social_media',
-  'newsletter',
-  'legal_alerts',
-  'voice_agent',
-  'presentation_generator',
 ]);
-const articleIdSchema = z.string().uuid();
-const stagesSchema = z.array(agentTypeSchema).max(8).optional();
+const stagesSchema = z.array(pipelineAgentTypeSchema).max(7).optional();
+const jobStatusSchema = z.enum(['pending', 'in_progress', 'completed', 'failed', 'cancelled']);
 const boundedPayloadSchema = z.record(z.unknown())
   .refine((payload) => Object.keys(payload).length <= 50, 'Too many payload fields')
   .refine((payload) => Buffer.byteLength(JSON.stringify(payload)) <= 100_000, 'Payload is too large');
@@ -77,9 +63,11 @@ router.get('/status', async (req: Request, res: Response) => {
 
 router.get('/stats/:agentType', async (req: Request, res: Response) => {
   try {
-    const { agentType } = req.params;
-    const memoryStats = evolutionTracker.getAgentStats(agentType as AgentType);
-    const knowledge = await knowledgeStore.getStats(agentType as AgentType);
+    const parsedAgent = agentTypeSchema.safeParse(req.params.agentType);
+    if (!parsedAgent.success) return res.status(400).json({ error: 'Invalid agent type' });
+    const agentType = parsedAgent.data;
+    const memoryStats = evolutionTracker.getAgentStats(agentType);
+    const knowledge = await knowledgeStore.getStats(agentType);
     
     const allJobStats = await dbPersistence.getJobStatsByAgentType();
     const jobStats = allJobStats[agentType] || { total: 0, completed: 0, failed: 0, pending: 0 };
@@ -119,78 +107,14 @@ router.post('/run/:agentType', async (req: Request, res: Response) => {
       return res.status(400).json({ error: 'Invalid agent request' });
     }
     const agentType = parsedAgent.data;
-    const payload = parsedPayload.data;
-
-    const context: ExecutionContext = {
-      jobId: `manual-${Date.now()}`,
-      agentType: agentType as AgentType,
-      startTime: new Date(),
-      metadata: { source: 'api' },
-    };
-
-    let result;
-    switch (agentType) {
-      case 'formatter':
-        result = await formatterAgent.execute(context, payload);
-        break;
-      case 'metadata_linker':
-        result = await metadataLinkerAgent.execute(context, payload);
-        break;
-      case 'polyglot_translator':
-        result = await polyglotTranslatorAgent.execute(context, payload);
-        break;
-      case 'content_auditor':
-        result = await contentAuditorAgent.execute(context, payload);
-        break;
-      case 'seo_optimizer':
-        result = await seoOptimizerAgent.execute(context, payload);
-        break;
-      case 'content_analyzer':
-        result = await contentAnalyzerAgent.execute(context, payload);
-        break;
-      case 'image_suggestion':
-        result = await imageSuggestionAgent.execute(context, payload);
-        break;
-      case 'category_agent':
-        result = await categoryAgent.execute(context, payload);
-        break;
-      case 'website_auditor':
-        result = await websiteAuditorAgent.execute(context, payload);
-        break;
-      case 'social_media':
-        result = await socialMediaAgent.execute(context, payload);
-        break;
-      case 'newsletter':
-        result = await newsletterAgent.execute(context, payload);
-        break;
-      case 'legal_alerts':
-        result = await legalAlertsAgent.execute(context, payload);
-        break;
-      case 'voice_agent':
-        result = await voiceAgent.execute(context, payload);
-        break;
-      case 'presentation_generator':
-        result = await presentationGeneratorAgent.execute(context, payload);
-        break;
-      default:
-        return res.status(400).json({ error: `Unknown agent type: ${agentType}` });
+    const validatedPayload = parseAgentPayload(parsedAgent.data, parsedPayload.data);
+    if (!validatedPayload.success) {
+      return res.status(400).json({ error: 'Invalid agent payload', details: validatedPayload.error });
     }
+    const payload = validatedPayload.data;
 
-    res.json(result);
-  } catch (error) {
-    res.status(500).json({ error: 'Agent operation failed' });
-  }
-});
+    const result = await orchestrator.executeImmediately(agentType, payload);
 
-router.post('/pipeline/:articleId', async (req: Request, res: Response) => {
-  try {
-    const parsed = z.object({ stages: stagesSchema }).strict().safeParse(req.body || {});
-    const parsedId = articleIdSchema.safeParse(req.params.articleId);
-    if (!parsed.success || !parsedId.success) return res.status(400).json({ error: 'Invalid pipeline request' });
-    const articleId = parsedId.data;
-    const { stages } = parsed.data;
-    
-    const result = await orchestrator.runPipeline(articleId, stages);
     res.json(result);
   } catch (error) {
     res.status(500).json({ error: 'Agent operation failed' });
@@ -231,7 +155,11 @@ router.post('/pipeline/process-all', async (req: Request, res: Response) => {
     if (!parsed.success) return res.status(400).json({ error: 'Invalid process request' });
     const { stages, limit } = parsed.data;
     
-    const allNews = await db.select({ id: news.id, title: news.title }).from(news).limit(limit);
+    const allNews = await db
+      .select({ id: news.id, title: news.title })
+      .from(news)
+      .where(eq(news.published, false))
+      .limit(limit);
     const articleIds = allNews.map(n => n.id);
     
     console.log(`[Pipeline] Processing ${articleIds.length} articles...`);
@@ -267,18 +195,28 @@ router.post('/pipeline/process-all', async (req: Request, res: Response) => {
   }
 });
 
+router.post('/pipeline/:articleId', async (req: Request, res: Response) => {
+  try {
+    const parsed = z.object({ stages: stagesSchema }).strict().safeParse(req.body || {});
+    const parsedId = articleIdSchema.safeParse(req.params.articleId);
+    if (!parsed.success || !parsedId.success) return res.status(400).json({ error: 'Invalid pipeline request' });
+    const articleId = parsedId.data;
+    const { stages } = parsed.data;
+
+    const result = await orchestrator.runPipeline(articleId, stages as AgentType[] | undefined);
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ error: 'Agent operation failed' });
+  }
+});
+
 router.post('/audit', async (req: Request, res: Response) => {
   try {
-    const { scanType } = req.body;
-    
-    const context: ExecutionContext = {
-      jobId: `audit-${Date.now()}`,
-      agentType: 'content_auditor',
-      startTime: new Date(),
-      metadata: { source: 'api' },
-    };
-
-    const result = await contentAuditorAgent.execute(context, { scanType });
+    const parsed = z.object({
+      scanType: z.enum(['full', 'translations', 'metadata', 'formatting']).optional(),
+    }).strict().safeParse(req.body || {});
+    if (!parsed.success) return res.status(400).json({ error: 'Invalid audit request' });
+    const result = await orchestrator.executeImmediately('content_auditor', parsed.data);
     res.json(result);
   } catch (error) {
     res.status(500).json({ error: 'Agent operation failed' });
@@ -287,12 +225,17 @@ router.post('/audit', async (req: Request, res: Response) => {
 
 router.get('/evolution/proposals', async (req: Request, res: Response) => {
   try {
-    const { status, agentType, limit } = req.query;
-    
+    const parsed = z.object({
+      status: z.enum(['pending', 'approved', 'rejected', 'implemented']).optional(),
+      agentType: agentTypeSchema.optional(),
+      limit: z.coerce.number().int().min(1).max(200).default(100),
+    }).safeParse(req.query);
+    if (!parsed.success) return res.status(400).json({ error: 'Invalid proposal filters' });
+
     const proposals = await evolutionTracker.getProposals({
-      status: status as any,
-      agentType: agentType as AgentType,
-      limit: limit ? parseInt(limit as string) : undefined,
+      status: parsed.data.status,
+      agentType: parsed.data.agentType,
+      limit: parsed.data.limit,
     });
 
     res.json(proposals);
@@ -303,8 +246,13 @@ router.get('/evolution/proposals', async (req: Request, res: Response) => {
 
 router.post('/evolution/proposals/:id/status', async (req: Request, res: Response) => {
   try {
-    const { id } = req.params;
-    const { status, afterMetrics } = req.body;
+    const parsed = z.object({
+      id: z.string().uuid(),
+      status: z.enum(['pending', 'approved', 'rejected', 'implemented']),
+      afterMetrics: z.record(z.number().finite()).optional(),
+    }).strict().safeParse({ id: req.params.id, ...req.body });
+    if (!parsed.success) return res.status(400).json({ error: 'Invalid proposal update' });
+    const { id, status, afterMetrics } = parsed.data;
     
     const updated = await evolutionTracker.updateProposalStatus(id, status, afterMetrics);
     
@@ -329,8 +277,9 @@ router.post('/evolution/learning-cycle', async (req: Request, res: Response) => 
 
 router.get('/knowledge/:agentType', async (req: Request, res: Response) => {
   try {
-    const { agentType } = req.params;
-    const documents = await knowledgeStore.getDocuments(agentType as AgentType);
+    const parsedAgent = agentTypeSchema.safeParse(req.params.agentType);
+    if (!parsedAgent.success) return res.status(400).json({ error: 'Invalid agent type' });
+    const documents = await knowledgeStore.getDocuments(parsedAgent.data);
     res.json(documents);
   } catch (error) {
     res.status(500).json({ error: 'Agent operation failed' });
@@ -390,12 +339,17 @@ router.post('/pcloud/load', async (req: Request, res: Response) => {
 
 router.get('/jobs', async (req: Request, res: Response) => {
   try {
-    const { agentType, status, limit } = req.query;
-    
-    const jobs = orchestrator.getJobHistory({
-      agentType: agentType as AgentType,
-      status: status as any,
-      limit: limit ? parseInt(limit as string) : undefined,
+    const parsed = z.object({
+      agentType: agentTypeSchema.optional(),
+      status: jobStatusSchema.optional(),
+      limit: z.coerce.number().int().min(1).max(200).default(100),
+    }).safeParse(req.query);
+    if (!parsed.success) return res.status(400).json({ error: 'Invalid job filters' });
+
+    const jobs = await orchestrator.getJobHistory({
+      agentType: parsed.data.agentType,
+      status: parsed.data.status,
+      limit: parsed.data.limit,
     });
 
     res.json(jobs);
@@ -412,9 +366,13 @@ router.post('/queue', async (req: Request, res: Response) => {
       priority: z.enum(['low', 'normal', 'high']).default('normal'),
     }).strict().safeParse(req.body);
     if (!parsed.success) return res.status(400).json({ error: 'Invalid queue request' });
-    const { agentType, payload, priority } = parsed.data;
+    const { agentType, priority } = parsed.data;
+    const validatedPayload = parseAgentPayload(agentType, parsed.data.payload);
+    if (!validatedPayload.success) {
+      return res.status(400).json({ error: 'Invalid agent payload', details: validatedPayload.error });
+    }
     
-    const job = await orchestrator.enqueueJob(agentType, payload, { priority });
+    const job = await orchestrator.enqueueJob(agentType, validatedPayload.data, { priority });
     res.json(job);
   } catch (error) {
     res.status(500).json({ error: 'Agent operation failed' });
@@ -441,16 +399,9 @@ router.post('/processing/stop', async (req: Request, res: Response) => {
 
 router.post('/analyze/:articleId', async (req: Request, res: Response) => {
   try {
-    const { articleId } = req.params;
-    
-    const context: ExecutionContext = {
-      jobId: `analyze-${Date.now()}`,
-      agentType: 'content_analyzer',
-      startTime: new Date(),
-      metadata: { source: 'api' },
-    };
-
-    const result = await contentAnalyzerAgent.execute(context, { articleId });
+    const parsedId = articleIdSchema.safeParse(req.params.articleId);
+    if (!parsedId.success) return res.status(400).json({ error: 'Invalid article id' });
+    const result = await orchestrator.executeImmediately('content_analyzer', { articleId: parsedId.data });
     res.json(result);
   } catch (error) {
     res.status(500).json({ error: 'Agent operation failed' });

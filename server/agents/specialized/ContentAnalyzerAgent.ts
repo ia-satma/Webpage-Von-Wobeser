@@ -4,6 +4,7 @@ import { db } from '../../db';
 import { news, teamMembers, practiceGroups, industryGroups, contentAnalysis } from '../../../shared/schema';
 import type { ContentAnalysisResult, SEORecommendation, SpellingGrammarIssue, LawyerMention } from '../../../shared/schema';
 import { eq } from 'drizzle-orm';
+import { contentAnalysisOutputSchema } from '../core/contracts';
 
 const ANALYZER_CONFIG: AgentConfig = {
   agentType: 'content_analyzer',
@@ -114,7 +115,20 @@ export class ContentAnalyzerAgent extends BaseAgent {
     const allPracticeGroups = await db.select().from(practiceGroups);
     const allIndustryGroups = await db.select().from(industryGroups);
 
-    const lawyerNames = allLawyers.map(l => l.name);
+    const searchableArticle = [
+      article.title,
+      article.titleEs,
+      article.content,
+      article.contentEs,
+    ].filter(Boolean).join(' ').toLowerCase();
+    const lawyerNames = allLawyers
+      .filter((lawyer) => {
+        const fullName = lawyer.name.toLowerCase();
+        const surname = fullName.split(/\s+/).pop() || '';
+        return searchableArticle.includes(fullName) || (surname.length >= 5 && searchableArticle.includes(surname));
+      })
+      .map((lawyer) => lawyer.name)
+      .slice(0, 50);
     const practiceNames = allPracticeGroups.map(p => ({ en: p.name, es: p.nameEs }));
     const industryNames = allIndustryGroups.map(i => ({ en: i.name, es: i.nameEs }));
 
@@ -236,25 +250,10 @@ Quality score (0-100) based on:
       { temperature: 0.3, jsonMode: true }
     );
 
-    const parsed = JSON.parse(response);
-    
+    const parsed = contentAnalysisOutputSchema.parse(JSON.parse(response));
+
     return {
-      seoRecommendations: this.validateSEO(parsed.seoRecommendations),
-      categories: {
-        primary: parsed.categories?.primary || 'Legal News',
-        secondary: parsed.categories?.secondary || [],
-      },
-      spellingGrammar: this.validateSpellingGrammar(parsed.spellingGrammar || []),
-      lawyersMentioned: this.validateLawyerMentions(parsed.lawyersMentioned || []),
-      legalBranches: {
-        primary: parsed.legalBranches?.primary || [],
-        secondary: parsed.legalBranches?.secondary || [],
-      },
-      industries: {
-        primary: parsed.industries?.primary || 'General',
-        secondary: parsed.industries?.secondary || [],
-      },
-      qualityScore: Math.min(100, Math.max(0, parsed.qualityScore || 50)),
+      ...parsed,
       analysisTimestamp: new Date().toISOString(),
     };
   }

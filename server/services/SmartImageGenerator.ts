@@ -7,6 +7,7 @@ import * as https from 'https';
 import { storage } from '../storage';
 import { getConfigMap } from '../mirror/siteConfig';
 import { assertAiBudget, recordImageUsage } from './usageTracker';
+import { AsyncLocalStorage } from 'node:async_hooks';
 
 const VON_WOBESER_BRAND = {
   primaryColor: '#AA1A2E',
@@ -68,7 +69,11 @@ export interface ImageGenerationResult {
 }
 
 export class SmartImageGenerator {
-  private transparencyLog: string[] = [];
+  private readonly logStorage = new AsyncLocalStorage<string[]>();
+
+  private get transparencyLog(): string[] {
+    return this.logStorage.getStore() || [];
+  }
 
   private log(message: string): void {
     const timestamp = new Date().toISOString();
@@ -393,7 +398,10 @@ export class SmartImageGenerator {
   }
 
   async generateImage(originalPrompt: string, articleId: string, aspectOverride?: string): Promise<ImageGenerationResult> {
-    this.transparencyLog = [];
+    return this.logStorage.run([], () => this.generateImageInternal(originalPrompt, articleId, aspectOverride));
+  }
+
+  private async generateImageInternal(originalPrompt: string, articleId: string, aspectOverride?: string): Promise<ImageGenerationResult> {
     this.log(`Starting smart image generation for article ${articleId}`);
     
     const result: ImageGenerationResult = {

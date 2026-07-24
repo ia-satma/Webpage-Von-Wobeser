@@ -1,5 +1,5 @@
 import { db } from '../../db';
-import { eq, and, desc, inArray, sql } from 'drizzle-orm';
+import { eq, and, desc, inArray, lt, sql } from 'drizzle-orm';
 import {
   agentJobs,
   agentEvents,
@@ -37,6 +37,22 @@ export class DatabasePersistence {
     return job || null;
   }
 
+  /**
+   * Atomically claims a pending job. When multiple application instances see
+   * the same row, only one update can succeed because the status predicate is
+   * evaluated inside PostgreSQL.
+   */
+  async claimPendingJob(id: string, startedAt = new Date()): Promise<DbAgentJob | null> {
+    const [claimed] = await db.update(agentJobs)
+      .set({ status: 'in_progress', startedAt })
+      .where(and(
+        eq(agentJobs.id, id),
+        eq(agentJobs.status, 'pending'),
+      ))
+      .returning();
+    return claimed || null;
+  }
+
   async getPendingJobs(agentType?: string): Promise<DbAgentJob[]> {
     if (agentType) {
       return db.select().from(agentJobs)
@@ -51,10 +67,13 @@ export class DatabasePersistence {
       .orderBy(desc(agentJobs.createdAt));
   }
 
-  async resetInProgressJobsToPending(): Promise<number> {
+  async resetInProgressJobsToPending(staleBefore = new Date(Date.now() - 15 * 60 * 1000)): Promise<number> {
     const result = await db.update(agentJobs)
-      .set({ status: 'pending' })
-      .where(eq(agentJobs.status, 'in_progress'))
+      .set({ status: 'pending', startedAt: null })
+      .where(and(
+        eq(agentJobs.status, 'in_progress'),
+        lt(agentJobs.startedAt, staleBefore),
+      ))
       .returning();
     return result.length;
   }
@@ -108,6 +127,21 @@ export class DatabasePersistence {
       .where(eq(agentJobs.status, status))
       .orderBy(desc(agentJobs.createdAt))
       .limit(limit);
+  }
+
+  async getJobs(options: { agentType?: string; status?: string; limit?: number }): Promise<DbAgentJob[]> {
+    const conditions = [];
+    if (options.agentType) conditions.push(eq(agentJobs.agentType, options.agentType));
+    if (options.status) conditions.push(eq(agentJobs.status, options.status));
+
+    const base = db.select().from(agentJobs);
+    const filtered = conditions.length > 0
+      ? base.where(and(...conditions))
+      : base;
+
+    return filtered
+      .orderBy(desc(agentJobs.createdAt))
+      .limit(Math.min(Math.max(options.limit || 100, 1), 200));
   }
 
   async getRecentJobs(limit = 50): Promise<DbAgentJob[]> {

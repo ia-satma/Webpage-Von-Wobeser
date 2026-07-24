@@ -109,9 +109,9 @@ export class PresentationGeneratorAgent extends BaseAgent {
 
   async execute(_context: ExecutionContext, payload: Record<string, unknown>): Promise<AgentResult> {
     const p = payload as PresentationPayload;
-    const topic = (p.topic || '').trim();
-    const documentsText = (p.documentsText || '').trim();
-    const slideCount = clampInt(p.slideCount, 3, 25, 8);
+    const topic = (p.topic || '').trim().slice(0, 10_000);
+    const documentsText = (p.documentsText || '').trim().slice(0, 80_000);
+    const slideCount = clampInt(p.slideCount, 3, MAX_SLIDES, 8);
     const lang = p.lang === 'en' ? 'en' : 'es';
     const template: PresentationTemplate = ['vonwobeser', 'minimal', 'dark'].includes(p.template as string)
       ? (p.template as PresentationTemplate) : 'vonwobeser';
@@ -152,6 +152,7 @@ export class PresentationGeneratorAgent extends BaseAgent {
       model = buildFallbackModel(topic, documentsText, slideCount, lang);
       engine = 'fallback-outline';
     }
+    appendSourcesSlide(model, webInfo, lang);
 
     // 1.5) Resolver los elementos visuales: si no se permiten, degradar a viñetas; para slides
     // "image" asignar imagen del pool subido o generarla con IA (si illustrate), o degradar.
@@ -452,6 +453,30 @@ function buildFallbackModel(topic: string, documentsText: string, slideCount: nu
   });
 
   return { title, subtitle, slides };
+}
+
+function appendSourcesSlide(model: SlideModel, webInfo: string, lang: string): void {
+  if (!webInfo.trim()) return;
+  const urls = Array.from(new Set(webInfo.match(/https?:\/\/[^\s)\]}>"']+/g) || [])).slice(0, 8);
+  if (urls.length === 0) return;
+
+  const sourceSlide: SlideModelSlide = {
+    layout: 'bullets',
+    kicker: lang === 'en' ? 'REFERENCES' : 'REFERENCIAS',
+    title: lang === 'en' ? 'Sources' : 'Fuentes',
+    bullets: urls,
+    notes: lang === 'en'
+      ? 'Sources retrieved through the optional web research step. Verify access date and facts before presenting.'
+      : 'Fuentes recuperadas mediante la búsqueda web opcional. Verifique fecha de consulta y datos antes de presentar.',
+  };
+  let closingIndex = model.slides.findIndex((slide) => slide.layout === 'closing');
+  if (model.slides.length >= MAX_SLIDES) {
+    const removableIndex = closingIndex > 0 ? closingIndex - 1 : model.slides.length - 1;
+    model.slides.splice(removableIndex, 1);
+    closingIndex = model.slides.findIndex((slide) => slide.layout === 'closing');
+  }
+  if (closingIndex >= 0) model.slides.splice(closingIndex, 0, sourceSlide);
+  else model.slides.push(sourceSlide);
 }
 
 export const presentationGeneratorAgent = new PresentationGeneratorAgent();

@@ -451,7 +451,13 @@ export default function AdminArticleProcessing() {
   });
 
   const newsQuery = useQuery<News[]>({
-    queryKey: ["/api/news"],
+    queryKey: ["/api/admin/news", "agent-processing"],
+    queryFn: async () => {
+      const res = await adminApiRequest("GET", "/api/admin/news?limit=100");
+      if (!res.ok) throw new Error("Failed to fetch administrative news");
+      const payload = await res.json();
+      return Array.isArray(payload.news) ? payload.news : [];
+    },
     enabled: isAuthenticated,
   });
 
@@ -485,6 +491,12 @@ export default function AdminArticleProcessing() {
       }
       
       const result = await res.json();
+      if (result.success === false) {
+        const error = Array.isArray(result.errors) && result.errors.length
+          ? result.errors.join("; ")
+          : "One or more processing stages failed";
+        return { success: false, error };
+      }
       // Check if image generation had a warning (processed but image failed)
       const imageWarning = result.steps?.image?.success === false && result.success === true;
       return { success: true, imageWarning };
@@ -518,7 +530,7 @@ export default function AdminArticleProcessing() {
         title: t.repairSuccess,
         description: `${data.recovered} articles recovered`,
       });
-      queryClient.invalidateQueries({ queryKey: ["/api/news"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/news", "agent-processing"] });
     },
     onError: (error: any) => {
       setIsRecovering(false);
@@ -645,7 +657,7 @@ export default function AdminArticleProcessing() {
 
     // Invalidate queries to refresh the data
     queryClient.invalidateQueries({ queryKey: ["/api/admin/news/translation-counts"] });
-    queryClient.invalidateQueries({ queryKey: ["/api/news"] });
+    queryClient.invalidateQueries({ queryKey: ["/api/admin/news", "agent-processing"] });
   }, [processSingleArticle, t, toast]);
 
   // Stop batch processing
@@ -681,7 +693,7 @@ export default function AdminArticleProcessing() {
     onSuccess: () => {
       toast({ title: t.processSuccess });
       queryClient.invalidateQueries({ queryKey: ["/api/admin/news/translation-counts"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/news"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/news", "agent-processing"] });
       setProcessingArticleId(null);
     },
     onError: (error: any) => {
@@ -699,7 +711,7 @@ export default function AdminArticleProcessing() {
   const handleRefresh = () => {
     queryClient.invalidateQueries({ queryKey: ["/api/admin/news/stats"] });
     queryClient.invalidateQueries({ queryKey: ["/api/admin/news/translation-counts"] });
-    queryClient.invalidateQueries({ queryKey: ["/api/news"] });
+    queryClient.invalidateQueries({ queryKey: ["/api/admin/news", "agent-processing"] });
   };
 
   const formatDate = (date: string | Date | null | undefined) => {

@@ -7,6 +7,8 @@ import { storage } from '../../storage';
 import { safeParseJson } from '../../openai';
 import { sanitizeFields } from '../../mirror/sanitize';
 import { assertExternalUrl, fetchTextWithPolicy } from '../../security/network';
+import { legalAlertOutputSchema } from '../core/contracts';
+import { createHash } from 'node:crypto';
 
 // cofece.mx no envía el certificado intermedio en el handshake TLS (confirmado con
 // `openssl s_client -showcerts`: solo manda el leaf, firmado por "GeoTrust TLS RSA CA G1").
@@ -58,7 +60,7 @@ export function needsChainPatch(rawUrl: string): boolean {
 }
 
 const ALERTS_CONFIG: AgentConfig = {
-  agentType: 'legal_alerts' as any,
+  agentType: 'legal_alerts',
   name: 'Legal Alerts Agent',
   description: 'A partir de una fuente oficial (DOF/SCJN), redacta un BORRADOR de alerta legal para revisión.',
   systemPrompt: `Eres un abogado editor de Von Wobeser y Sierra, despacho mexicano de prestigio. A partir del texto
@@ -201,8 +203,7 @@ ${source}
 Devuelve JSON con: titleEs, title, excerptEs, excerpt, contentEs, content, slug.`;
 
       const response = await this.callLLM([{ role: 'user', content: prompt }], { jsonMode: true, temperature: 0.3 });
-      const a = safeParseJson<AlertOut>(response);
-      if (!a?.titleEs) return { success: false, error: 'La IA no devolvió un borrador válido.' };
+      const a = legalAlertOutputSchema.parse(safeParseJson<AlertOut>(response));
 
       const baseSlug = (a.slug || this.slugify(a.titleEs)) || 'alerta';
       const slug = `${baseSlug}-${Date.now().toString(36)}`;
@@ -229,9 +230,20 @@ Devuelve JSON con: titleEs, title, excerptEs, excerpt, contentEs, content, slug.
         processingStatus: 'ready_for_approval',
       } as any);
 
+      const sourceHash = createHash('sha256').update(source).digest('hex');
       return {
         success: true,
-        data: { newsId: draft.id, slug: draft.slug, titleEs: a.titleEs, status: 'draft_created' },
+        data: {
+          newsId: draft.id,
+          slug: draft.slug,
+          titleEs: a.titleEs,
+          status: 'draft_created',
+          source: {
+            url: sourceUrl || null,
+            sha256: sourceHash,
+            retrievedAt: new Date().toISOString(),
+          },
+        },
       };
     } catch (error: any) {
       console.error('[LegalAlertsAgent] Error:', error);

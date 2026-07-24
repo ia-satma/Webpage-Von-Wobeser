@@ -24,6 +24,7 @@ const VOICE_CONFIG: AgentConfig = {
 };
 
 const VALID_SOURCE_TYPES = ['newsletter', 'social_media', 'legal_alerts'] as const;
+const VALID_VOICES = ['alloy', 'ash', 'ballad', 'coral', 'echo', 'fable', 'onyx', 'nova', 'sage', 'shimmer', 'verse'] as const;
 type VoiceSourceType = typeof VALID_SOURCE_TYPES[number];
 
 export class VoiceAgent extends BaseAgent {
@@ -45,6 +46,9 @@ export class VoiceAgent extends BaseAgent {
     if (!sourceType || !VALID_SOURCE_TYPES.includes(sourceType as VoiceSourceType)) {
       return { success: false, error: `sourceType debe ser uno de: ${VALID_SOURCE_TYPES.join(', ')}` };
     }
+    if (voiceId && !VALID_VOICES.includes(voiceId as typeof VALID_VOICES[number])) {
+      return { success: false, error: `voiceId debe ser uno de: ${VALID_VOICES.join(', ')}` };
+    }
 
     try {
       // Voz por defecto configurable desde el panel (site_config.tts_voice) si no
@@ -55,34 +59,66 @@ export class VoiceAgent extends BaseAgent {
         resolvedVoiceId = config.tts_voice?.value || undefined;
       }
 
-      const result = await voiceGenerator.generateSpeech(text, {
-        voiceId: resolvedVoiceId,
-        sourceType,
-        articleId: articleId || null,
-      });
-
-      if (!result.success) {
-        return {
-          success: false,
-          error: result.errorMessage || 'La generación de audio falló.',
-          data: { errorCode: result.errorCode, transparencyLog: result.transparencyLog },
-        };
+      const segments = this.splitForSpeech(text);
+      const audioUrls: string[] = [];
+      const transparencyLog: string[] = [];
+      for (let index = 0; index < segments.length; index++) {
+        const result = await voiceGenerator.generateSpeech(segments[index], {
+          voiceId: resolvedVoiceId,
+          sourceType,
+          articleId: articleId || null,
+        });
+        transparencyLog.push(...result.transparencyLog);
+        if (!result.success || !result.audioUrl) {
+          return {
+            success: false,
+            error: result.errorMessage || `La generación del segmento ${index + 1} falló.`,
+            data: { errorCode: result.errorCode, transparencyLog, completedSegments: audioUrls },
+          };
+        }
+        audioUrls.push(result.audioUrl);
       }
 
       return {
         success: true,
         data: {
-          audioUrl: result.audioUrl,
-          voiceId: result.voiceId,
+          audioUrl: audioUrls[0],
+          audioUrls,
+          segmentCount: audioUrls.length,
+          voiceId: resolvedVoiceId || 'alloy',
           sourceType,
           articleId: articleId || null,
-          transparencyLog: result.transparencyLog,
+          transparencyLog,
         },
       };
     } catch (error: any) {
       console.error('[VoiceAgent] Error:', error);
       return { success: false, error: 'Falló la generación de audio.' };
     }
+  }
+
+  private splitForSpeech(text: string, maxChars = 3_800): string[] {
+    const sentences = text.split(/(?<=[.!?])\s+/).filter(Boolean);
+    const segments: string[] = [];
+    let current = '';
+    for (const sentence of sentences) {
+      if (sentence.length > maxChars) {
+        if (current) {
+          segments.push(current);
+          current = '';
+        }
+        for (let offset = 0; offset < sentence.length; offset += maxChars) {
+          segments.push(sentence.slice(offset, offset + maxChars));
+        }
+      } else if (!current || current.length + sentence.length + 1 <= maxChars) {
+        current = current ? `${current} ${sentence}` : sentence;
+      } else {
+        segments.push(current);
+        current = sentence;
+      }
+    }
+    if (current) segments.push(current);
+    return segments.length > 0 ? segments : [text.slice(0, maxChars)];
   }
 }
 

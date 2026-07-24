@@ -4,9 +4,10 @@ import { db } from '../../db';
 import { news } from '../../../shared/schema';
 import { eq } from 'drizzle-orm';
 import { smartImageGenerator } from '../../services/SmartImageGenerator';
+import { imageAnalysisSchema } from '../core/contracts';
 
 const IMAGE_CONFIG: AgentConfig = {
-  agentType: 'image_suggestion' as any,
+  agentType: 'image_suggestion',
   name: 'Image Suggestion Agent',
   description: 'Analyzes article content and generates a realistic photojournalism image for the news',
   systemPrompt: `You are a photo editor for a serious news outlet. You create image prompts for a REALISTIC
@@ -51,7 +52,7 @@ export class ImageSuggestionAgent extends BaseAgent {
   }
 
   async execute(context: ExecutionContext, payload: Record<string, unknown>): Promise<AgentResult> {
-    const { articleId } = payload as { articleId: string };
+    const { articleId, applyChanges } = payload as { articleId: string; applyChanges?: boolean };
 
     if (!articleId) {
       return { success: false, error: 'articleId is required' };
@@ -83,7 +84,7 @@ export class ImageSuggestionAgent extends BaseAgent {
         { jsonMode: true, maxTokens: 600 }
       );
 
-      const analysis = JSON.parse(analysisResult);
+      const analysis = imageAnalysisSchema.parse(JSON.parse(analysisResult));
       
       console.log(`[ImageSuggestionAgent] Delegating to SmartImageGenerator with cascade fallback...`);
       
@@ -93,14 +94,18 @@ export class ImageSuggestionAgent extends BaseAgent {
       );
 
       if (imageResult.success && imageResult.imageUrl) {
-        await db.update(news)
-          .set({ 
-            imageUrl: imageResult.imageUrl,
-            processingStatus: imageResult.engine === 'placeholder' ? 'partial_success' : 'ready',
-            lastError: imageResult.engine === 'placeholder' ? imageResult.errorMessage : null,
-            lastProcessedAt: new Date()
-          })
-          .where(eq(news.id, articleId));
+        const canApply =
+          applyChanges === true &&
+          article.published === false &&
+          imageResult.engine !== 'placeholder';
+        if (canApply) {
+          await db.update(news)
+            .set({
+              imageUrl: imageResult.imageUrl,
+              lastProcessedAt: new Date(),
+            })
+            .where(eq(news.id, articleId));
+        }
 
         const engineMessage = imageResult.promptWasSanitized
           ? `${imageResult.engine.toUpperCase()} (prompt sanitized for safety filters)`
@@ -124,6 +129,7 @@ export class ImageSuggestionAgent extends BaseAgent {
             imageGenerated: imageResult.engine !== 'placeholder',
             retryCount: imageResult.retryCount,
             transparencyLog: imageResult.transparencyLog,
+            changesApplied: canApply,
           },
         };
       }

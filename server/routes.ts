@@ -72,7 +72,7 @@ import { sql, gte } from "drizzle-orm";
 import { smartImageGenerator } from "./services/SmartImageGenerator";
 import { presentationGeneratorAgent } from "./agents/specialized/PresentationGeneratorAgent";
 import { extractManyTexts } from "./services/documentText";
-import type { ExecutionContext } from "./agents/core/types";
+import type { AgentType, ExecutionContext } from "./agents/core/types";
 import { ZodError, z } from "zod";
 import { CATEGORIES as ATTORNEY_CATEGORIES } from "./mirror/renderAttorneyList";
 import {
@@ -4145,23 +4145,20 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
   // Generate image for article
   app.post("/api/agents/generate-image/:articleId", authMiddleware, requirePermission("agents"), async (req: Request, res: Response) => {
     try {
-      const { articleId } = req.params;
-      
+      const parsedId = z.string().uuid().safeParse(req.params.articleId);
+      if (!parsedId.success) return res.status(400).json({ error: "Invalid article id" });
+      const articleId = parsedId.data;
+
       const article = await storage.getNewsById(articleId);
       if (!article) {
         return res.status(404).json({ error: "Article not found" });
       }
 
-      // Use ImageSuggestionAgent
-      const { imageSuggestionAgent } = await import('./agents');
-      const context = {
-        jobId: `img-${articleId}-${Date.now()}`,
-        agentType: 'image_suggestion' as any,
-        startTime: new Date(),
-        metadata: { articleId },
-      };
-
-      const result = await imageSuggestionAgent.execute(context, { articleId });
+      const { orchestrator } = await import('./agents');
+      const result = await orchestrator.executeImmediately('image_suggestion', {
+        articleId,
+        applyChanges: true,
+      });
 
       if (result.success && result.data) {
         res.json({
@@ -4177,17 +4174,127 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
     }
   });
 
+  // Register the exact batch path before the dynamic :articleId route so that
+  // Express never interprets "process-all" as an article identifier.
+  app.post("/api/agents/pipeline/process-all", authMiddleware, requirePermission("agents"), async (req: Request, res: Response) => {
+    try {
+      const parsed = z.object({
+        generateImage: z.boolean().default(false),
+        limit: z.coerce.number().int().min(1).max(25).default(25),
+      }).strict().safeParse(req.body || {});
+      if (!parsed.success) return res.status(400).json({ error: "Invalid batch request" });
+
+      const candidates = (await storage.getNews())
+        .filter((article) => article.published === false)
+        .slice(0, parsed.data.limit);
+      const { orchestrator } = await import('./agents');
+      const stages: AgentType[] = [
+        'formatter',
+        'category_agent',
+        'metadata_linker',
+        'seo_optimizer',
+        'polyglot_translator',
+      ];
+
+      const results: Record<string, Awaited<ReturnType<typeof orchestrator.runPipeline>>> = {};
+      for (const article of candidates) {
+        const pipelineResult = await orchestrator.runPipeline(article.id, stages);
+        if (parsed.data.generateImage && pipelineResult.success) {
+          pipelineResult.results.image_suggestion = await orchestrator.executeImmediately(
+            'image_suggestion',
+            { articleId: article.id, applyChanges: true },
+          );
+        }
+        results[article.id] = pipelineResult;
+      }
+
+      const successful = Object.values(results).filter((result) => result.success).length;
+      return res.json({
+        success: successful === candidates.length,
+        total: candidates.length,
+        successful,
+        failed: candidates.length - successful,
+        results,
+      });
+    } catch (error) {
+      console.error("Batch processing error:", error);
+      return res.status(500).json({ error: "Failed to process articles" });
+    }
+  });
+
   // Process single article - FULL RAG AGENTIC PIPELINE
   // Runs ALL agents in sequence: Format → Categorize → Link Metadata → SEO → Translate → Image
   app.post("/api/agents/pipeline/:articleId", authMiddleware, requirePermission("agents"), async (req: Request, res: Response) => {
     try {
-      const { articleId } = req.params;
-      const { generateImage = false } = req.body;
-      
+      const parsed = z.object({
+        articleId: z.string().uuid(),
+        generateImage: z.boolean().default(false),
+      }).strict().safeParse({ articleId: req.params.articleId, ...(req.body || {}) });
+      if (!parsed.success) return res.status(400).json({ error: "Invalid pipeline request" });
+      const { articleId, generateImage } = parsed.data;
+
       const article = await storage.getNewsById(articleId);
       if (!article) {
         return res.status(404).json({ error: "Article not found" });
       }
+
+      const { orchestrator } = await import('./agents');
+      const stages: AgentType[] = [
+        'formatter',
+        'category_agent',
+        'metadata_linker',
+        'seo_optimizer',
+        'polyglot_translator',
+      ];
+      broadcastPipelineProgress(articleId, {
+        step: 'pipeline',
+        status: 'running',
+        progress: 0,
+        message: 'Processing article with the validated agent pipeline',
+      });
+
+      const result = await orchestrator.runPipeline(articleId, stages);
+      if (generateImage && result.success) {
+        result.results.image_suggestion = await orchestrator.executeImmediately(
+          'image_suggestion',
+          { articleId, applyChanges: true },
+        );
+      }
+      const stepAliases: Partial<Record<AgentType, string>> = {
+        formatter: 'format',
+        category_agent: 'categorize',
+        metadata_linker: 'metadata',
+        seo_optimizer: 'seo',
+        polyglot_translator: 'translate',
+        image_suggestion: 'image',
+      };
+      const steps = Object.fromEntries(
+        Object.entries(result.results).map(([agentId, agentResult]) => [
+          stepAliases[agentId as AgentType] || agentId,
+          agentResult,
+        ]),
+      );
+      const canonicalImageWarning = Boolean(steps.image && !steps.image.success);
+      const canonicalPipelineResults = {
+        articleId,
+        success: result.success,
+        steps,
+        successfulSteps: Object.values(steps).filter((step) => step.success).length,
+        totalSteps: Object.keys(steps).length,
+        partialSuccess: result.success && canonicalImageWarning,
+        imageWarning: canonicalImageWarning ? (steps.image.error || 'Image generation failed') : null,
+        errors: Object.entries(steps)
+          .filter(([, step]) => !step.success)
+          .map(([step, value]) => `${step}: ${value.error || 'failed'}`),
+      };
+      broadcastPipelineProgress(articleId, {
+        step: 'complete',
+        status: result.success ? 'completed' : 'error',
+        progress: 100,
+        message: result.success ? 'Pipeline complete' : 'Pipeline requires review',
+        data: canonicalPipelineResults,
+      });
+      return res.json(canonicalPipelineResults);
 
       const { 
         formatterAgent, 
@@ -4717,15 +4824,19 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
 
   app.post("/api/audits/run", authMiddleware, requirePermission("advanced"), async (req: Request, res: Response) => {
     try {
-      const { runType = 'full', skipModules } = req.body;
+      const parsed = z.object({
+        runType: z.enum(['full', 'delta', 'links_only', 'translations_only', 'seo_only', 'content_only']).default('full'),
+        skipModules: z.array(z.enum(['links', 'navigation', 'translations', 'performance', 'seo', 'content'])).max(6).optional(),
+        applyChanges: z.boolean().default(false),
+      }).strict().safeParse(req.body || {});
+      if (!parsed.success) return res.status(400).json({ error: "Invalid audit request" });
       
       const { orchestrator } = await import('./agents');
       
       const job = await orchestrator.enqueueJob(
         'website_auditor',
         {
-          runType,
-          skipModules,
+          ...parsed.data,
           triggeredBy: 'manual',
         },
         { priority: 'high' }

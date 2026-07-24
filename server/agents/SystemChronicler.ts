@@ -5,7 +5,7 @@ import * as fs from "fs";
 import * as path from "path";
 import { 
   AGENT_CATEGORIES, 
-  AGENT_IDS, 
+  AGENT_DEFINITIONS,
   EXPECTED_AGENT_COUNTS,
   validateAgentInventory,
   type AgentCategory 
@@ -34,7 +34,7 @@ export interface SystemEvolutionEntry {
   category: "intelligence" | "security" | "performance" | "capability";
 }
 
-const AGENT_REGISTRY: AgentCapabilityCard[] = [
+const LEGACY_AGENT_REGISTRY: AgentCapabilityCard[] = [
   {
     id: "orchestrator",
     technicalName: "AgentOrchestrator",
@@ -274,6 +274,21 @@ const AGENT_REGISTRY: AgentCapabilityCard[] = [
     evolutionLevel: 2
   }
 ];
+
+// The live registry is derived from the same runnable inventory used by the
+// orchestrator and the admin manifest. The legacy cards above remain only as
+// historical copy and are deliberately not exposed as live status.
+const AGENT_REGISTRY: AgentCapabilityCard[] = AGENT_DEFINITIONS.map((agent) => ({
+  id: agent.id,
+  technicalName: agent.technicalName,
+  businessName: agent.name,
+  role: agent.role,
+  category: agent.category,
+  description: agent.description,
+  capabilities: [...agent.capabilities],
+  status: "active",
+  evolutionLevel: 1,
+}));
 
 const EVOLUTION_FILE_PATH = path.join(process.cwd(), "system_evolution.json");
 

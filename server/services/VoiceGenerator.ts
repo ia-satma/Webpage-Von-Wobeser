@@ -3,6 +3,7 @@ import * as path from 'path';
 import { openai } from '../openai';
 import { storage } from '../storage';
 import { assertAiBudget, recordAudioUsage } from "./usageTracker";
+import { AsyncLocalStorage } from 'node:async_hooks';
 
 const OUTPUT_DIR = path.join(process.cwd(), 'public', 'generated-audio');
 
@@ -48,7 +49,11 @@ export function cleanTextForSpeech(raw: string): string {
 }
 
 export class VoiceGenerator {
-  private transparencyLog: string[] = [];
+  private readonly logStorage = new AsyncLocalStorage<string[]>();
+
+  private get transparencyLog(): string[] {
+    return this.logStorage.getStore() || [];
+  }
 
   private log(message: string): void {
     const entry = `[${new Date().toISOString()}] ${message}`;
@@ -85,7 +90,13 @@ export class VoiceGenerator {
     rawText: string,
     opts: { voiceId?: string; sourceType: string; articleId?: string | null },
   ): Promise<AudioGenerationResult> {
-    this.transparencyLog = [];
+    return this.logStorage.run([], () => this.generateSpeechInternal(rawText, opts));
+  }
+
+  private async generateSpeechInternal(
+    rawText: string,
+    opts: { voiceId?: string; sourceType: string; articleId?: string | null },
+  ): Promise<AudioGenerationResult> {
     const voice = opts.voiceId?.trim() || DEFAULT_VOICE;
     this.log(`Iniciando generación de audio (fuente: ${opts.sourceType})`);
 

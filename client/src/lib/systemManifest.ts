@@ -13,13 +13,34 @@
  */
 
 import { 
-  AGENT_IDS, 
+  AGENT_CATEGORIES,
+  AGENT_DEFINITIONS,
   EXPECTED_AGENT_COUNTS,
   ALL_AGENT_IDS,
   BRAIN_AGENT_IDS,
   HANDS_AGENT_IDS,
   SHIELD_AGENT_IDS,
 } from '@shared/agentConstants';
+
+// Historical identifiers used only by the detailed legacy cards below. The
+// cards exported to the UI are generated from AGENT_DEFINITIONS, the runtime
+// source of truth, near the end of this section.
+const LEGACY_AGENT_IDS = {
+  ORCHESTRATOR: 'orchestrator',
+  LEGAL_COUNCIL: 'legal_council',
+  CONTENT_ANALYZER: 'content_analyzer',
+  CATEGORY_AGENT: 'category_agent',
+  METADATA_LINKER: 'metadata_linker',
+  SYSTEM_CHRONICLER: 'system_chronicler',
+  POLYGLOT_TRANSLATOR: 'polyglot_translator',
+  SMART_IMAGE_GENERATOR: 'smart_image_generator',
+  SEO_OPTIMIZER: 'seo_optimizer',
+  FORMATTER: 'formatter',
+  AUTO_RECOVERY: 'auto_recovery',
+  SYSTEM_HEALTH: 'system_health',
+  CONTENT_AUDITOR: 'content_auditor',
+  WEBSITE_AUDITOR: 'website_auditor',
+} as const;
 
 export type SystemCategory = 
   | 'ai_brain'        // El Cerebro - Agentes de Decisión Estratégica
@@ -78,9 +99,9 @@ export interface SystemManifestTranslations {
 // 🧠 EL CEREBRO - AGENTES DE DECISIÓN ESTRATÉGICA (6 Agentes)
 // ════════════════════════════════════════════════════════════════════════════════
 
-export const AI_BRAIN_AGENTS: SystemFeature[] = [
+const LEGACY_AI_BRAIN_AGENTS: SystemFeature[] = [
   {
-    id: AGENT_IDS.ORCHESTRATOR,
+    id: LEGACY_AGENT_IDS.ORCHESTRATOR,
     category: 'ai_brain',
     name: 'Centro Neuronal de Orquestación',
     technicalName: 'AgentOrchestrator',
@@ -102,7 +123,7 @@ export const AI_BRAIN_AGENTS: SystemFeature[] = [
     },
   },
   {
-    id: AGENT_IDS.LEGAL_COUNCIL,
+    id: LEGACY_AGENT_IDS.LEGAL_COUNCIL,
     category: 'ai_brain',
     name: 'Consejo de Gobernanza Digital',
     technicalName: 'LegalCouncilService',
@@ -124,7 +145,7 @@ export const AI_BRAIN_AGENTS: SystemFeature[] = [
     },
   },
   {
-    id: AGENT_IDS.CONTENT_ANALYZER,
+    id: LEGACY_AGENT_IDS.CONTENT_ANALYZER,
     category: 'ai_brain',
     name: 'Analizador de Inteligencia de Contenido',
     technicalName: 'ContentAnalyzerAgent',
@@ -146,7 +167,7 @@ export const AI_BRAIN_AGENTS: SystemFeature[] = [
     },
   },
   {
-    id: AGENT_IDS.CATEGORY_AGENT,
+    id: LEGACY_AGENT_IDS.CATEGORY_AGENT,
     category: 'ai_brain',
     name: 'Agente de Taxonomía Inteligente',
     technicalName: 'CategoryAgent',
@@ -167,7 +188,7 @@ export const AI_BRAIN_AGENTS: SystemFeature[] = [
     },
   },
   {
-    id: AGENT_IDS.METADATA_LINKER,
+    id: LEGACY_AGENT_IDS.METADATA_LINKER,
     category: 'ai_brain',
     name: 'Vinculador de Metadatos Relacionales',
     technicalName: 'MetadataLinkerAgent',
@@ -187,7 +208,7 @@ export const AI_BRAIN_AGENTS: SystemFeature[] = [
     },
   },
   {
-    id: AGENT_IDS.SYSTEM_CHRONICLER,
+    id: LEGACY_AGENT_IDS.SYSTEM_CHRONICLER,
     category: 'ai_brain',
     name: 'Cronista del Sistema Evolutivo',
     technicalName: 'SystemChronicler',
@@ -208,9 +229,9 @@ export const AI_BRAIN_AGENTS: SystemFeature[] = [
 // 🤲 LAS MANOS - AGENTES DE EJECUCIÓN OPERATIVA (4 Agentes)
 // ════════════════════════════════════════════════════════════════════════════════
 
-export const AI_HANDS_AGENTS: SystemFeature[] = [
+const LEGACY_AI_HANDS_AGENTS: SystemFeature[] = [
   {
-    id: AGENT_IDS.POLYGLOT_TRANSLATOR,
+    id: LEGACY_AGENT_IDS.POLYGLOT_TRANSLATOR,
     category: 'ai_hands',
     name: 'Motor Neuronal de Localización Semántica',
     technicalName: 'PolyglotTranslatorAgent',
@@ -232,7 +253,7 @@ export const AI_HANDS_AGENTS: SystemFeature[] = [
     },
   },
   {
-    id: AGENT_IDS.SMART_IMAGE_GENERATOR,
+    id: LEGACY_AGENT_IDS.SMART_IMAGE_GENERATOR,
     category: 'ai_hands',
     name: 'Sintetizador Visual con Escudo Legal',
     technicalName: 'SmartImageGenerator + ImageSuggestionAgent',
@@ -255,7 +276,7 @@ export const AI_HANDS_AGENTS: SystemFeature[] = [
     },
   },
   {
-    id: AGENT_IDS.SEO_OPTIMIZER,
+    id: LEGACY_AGENT_IDS.SEO_OPTIMIZER,
     category: 'ai_hands',
     name: 'Agente de Posicionamiento Orgánico',
     technicalName: 'SEOOptimizerAgent',
@@ -276,7 +297,7 @@ export const AI_HANDS_AGENTS: SystemFeature[] = [
     },
   },
   {
-    id: AGENT_IDS.FORMATTER,
+    id: LEGACY_AGENT_IDS.FORMATTER,
     category: 'ai_hands',
     name: 'Formateador de Contenido Jurídico',
     technicalName: 'FormatterAgent',
@@ -301,9 +322,9 @@ export const AI_HANDS_AGENTS: SystemFeature[] = [
 // 🛡️ EL ESCUDO - AGENTES DE PROTECCIÓN Y AUDITORÍA (4 Agentes)
 // ════════════════════════════════════════════════════════════════════════════════
 
-export const AI_SHIELD_AGENTS: SystemFeature[] = [
+const LEGACY_AI_SHIELD_AGENTS: SystemFeature[] = [
   {
-    id: AGENT_IDS.AUTO_RECOVERY,
+    id: LEGACY_AGENT_IDS.AUTO_RECOVERY,
     category: 'ai_shield',
     name: 'Arquitectura de Auto-Curación (Self-Healing)',
     technicalName: 'AutoRecoveryAgent',
@@ -323,7 +344,7 @@ export const AI_SHIELD_AGENTS: SystemFeature[] = [
     },
   },
   {
-    id: AGENT_IDS.SYSTEM_HEALTH,
+    id: LEGACY_AGENT_IDS.SYSTEM_HEALTH,
     category: 'ai_shield',
     name: 'Monitor de Salud Sistémica',
     technicalName: 'SystemHealthCheck',
@@ -344,7 +365,7 @@ export const AI_SHIELD_AGENTS: SystemFeature[] = [
     },
   },
   {
-    id: AGENT_IDS.CONTENT_AUDITOR,
+    id: LEGACY_AGENT_IDS.CONTENT_AUDITOR,
     category: 'ai_shield',
     name: 'Auditor de Completitud de Contenido',
     technicalName: 'ContentAuditorAgent',
@@ -365,7 +386,7 @@ export const AI_SHIELD_AGENTS: SystemFeature[] = [
     },
   },
   {
-    id: AGENT_IDS.WEBSITE_AUDITOR,
+    id: LEGACY_AGENT_IDS.WEBSITE_AUDITOR,
     category: 'ai_shield',
     name: 'Auditor de Calidad Web Integral',
     technicalName: 'WebsiteAuditorAgent',
@@ -381,6 +402,45 @@ export const AI_SHIELD_AGENTS: SystemFeature[] = [
     ],
   },
 ];
+
+// Runtime cards shown by the admin UI. Infrastructure services are documented
+// in their own sections and are not presented as runnable agents.
+function toRuntimeAgentFeature(
+  definition: (typeof AGENT_DEFINITIONS)[number],
+): SystemFeature {
+  const category: SystemCategory =
+    definition.category === AGENT_CATEGORIES.BRAIN
+      ? 'ai_brain'
+      : definition.category === AGENT_CATEGORIES.HANDS
+        ? 'ai_hands'
+        : 'ai_shield';
+
+  return {
+    id: definition.id,
+    category,
+    name: definition.name,
+    technicalName: definition.technicalName,
+    technicalDetail: definition.description,
+    userBenefit: definition.userBenefit,
+    status: 'production',
+    keyCapabilities: [...definition.capabilities],
+    technicalSpecs: {
+      inventory: 'runtime',
+    },
+  };
+}
+
+const RUNTIME_AGENT_FEATURES = AGENT_DEFINITIONS.map(toRuntimeAgentFeature);
+
+export const AI_BRAIN_AGENTS: SystemFeature[] = RUNTIME_AGENT_FEATURES.filter(
+  (agent) => agent.category === 'ai_brain',
+);
+export const AI_HANDS_AGENTS: SystemFeature[] = RUNTIME_AGENT_FEATURES.filter(
+  (agent) => agent.category === 'ai_hands',
+);
+export const AI_SHIELD_AGENTS: SystemFeature[] = RUNTIME_AGENT_FEATURES.filter(
+  (agent) => agent.category === 'ai_shield',
+);
 
 // ════════════════════════════════════════════════════════════════════════════════
 // 🔐 BÓVEDA DIGITAL - INFRAESTRUCTURA DE SEGURIDAD (7 Módulos)

@@ -2,9 +2,33 @@ import { BaseAgent } from '../core/BaseAgent';
 import { AgentConfig, AgentResult, ExecutionContext } from '../core/types';
 import { db } from '../../db';
 import { news, translationCache, newsTeamMembers } from '../../../shared/schema';
-import { eq, sql } from 'drizzle-orm';
+import { getConfigMap } from '../../mirror/siteConfig';
 
 const LANGUAGES = ['en', 'es', 'de', 'zh', 'ko', 'ja', 'ar', 'ru', 'fr', 'it'] as const;
+
+async function getActiveLanguages(): Promise<Set<string>> {
+  const config = await getConfigMap();
+  const raw = config.active_languages?.value || 'es,en';
+  const active = raw
+    .split(',')
+    .map((language) => language.trim())
+    .filter((language) => (LANGUAGES as readonly string[]).includes(language));
+  return new Set(active.length > 0 ? active : ['es', 'en']);
+}
+
+export interface ContentAuditorDependencies {
+  loadArticles: () => Promise<Array<typeof news.$inferSelect>>;
+  loadTranslationCache: () => Promise<Array<typeof translationCache.$inferSelect>>;
+  loadAuthorLinks: () => Promise<Array<typeof newsTeamMembers.$inferSelect>>;
+  loadActiveLanguages: () => Promise<Set<string>>;
+}
+
+const defaultDependencies: ContentAuditorDependencies = {
+  loadArticles: () => db.select().from(news),
+  loadTranslationCache: () => db.select().from(translationCache),
+  loadAuthorLinks: () => db.select().from(newsTeamMembers),
+  loadActiveLanguages: getActiveLanguages,
+};
 
 interface ContentGap {
   articleId: string;
@@ -37,8 +61,11 @@ Be thorough but efficient. Focus on issues that impact user experience.`,
 };
 
 export class ContentAuditorAgent extends BaseAgent {
-  constructor() {
+  private readonly dependencies: ContentAuditorDependencies;
+
+  constructor(dependencies: Partial<ContentAuditorDependencies> = {}) {
     super(AUDITOR_CONFIG);
+    this.dependencies = { ...defaultDependencies, ...dependencies };
   }
 
   async execute(context: ExecutionContext, payload: Record<string, unknown>): Promise<AgentResult> {
@@ -54,21 +81,30 @@ export class ContentAuditorAgent extends BaseAgent {
     };
 
     try {
-      const articles = await db.select().from(news);
+      const [articles, activeLanguages, translations, authorLinks] = await Promise.all([
+        this.dependencies.loadArticles(),
+        this.dependencies.loadActiveLanguages(),
+        this.dependencies.loadTranslationCache(),
+        this.dependencies.loadAuthorLinks(),
+      ]);
       stats.articlesScanned = articles.length;
 
       // Pre-cargar traducciones y autores UNA vez (evita N+1: con miles de artículos,
       // una query por artículo satura a Neon y provoca timeout).
       const langsByEntity = new Map<string, Set<string>>();
-      for (const c of await db.select().from(translationCache)) {
+      for (const c of translations) {
         if (!langsByEntity.has(c.entityId)) langsByEntity.set(c.entityId, new Set());
         langsByEntity.get(c.entityId)!.add(c.targetLanguage);
       }
-      const newsWithAuthors = new Set((await db.select().from(newsTeamMembers)).map(a => a.newsId));
+      const newsWithAuthors = new Set(authorLinks.map((link) => link.newsId));
 
       for (const article of articles) {
         if (!scanType || scanType === 'full' || scanType === 'translations') {
-          const translationGaps = this.checkTranslations(article, langsByEntity.get(article.id) ?? new Set());
+          const translationGaps = this.checkTranslations(
+            article,
+            langsByEntity.get(article.id) ?? new Set(),
+            activeLanguages,
+          );
           gaps.push(...translationGaps);
           stats.translationGaps += translationGaps.length;
         }
@@ -116,11 +152,16 @@ export class ContentAuditorAgent extends BaseAgent {
     }
   }
 
-  private checkTranslations(article: typeof news.$inferSelect, cachedLanguages: Set<string>): ContentGap[] {
+  private checkTranslations(
+    article: typeof news.$inferSelect,
+    cachedLanguages: Set<string>,
+    activeLanguages: Set<string>,
+  ): ContentGap[] {
     const gaps: ContentGap[] = [];
 
     for (const lang of LANGUAGES) {
       if (lang === 'en' || lang === 'es') continue;
+      if (!activeLanguages.has(lang)) continue;
 
       if (!cachedLanguages.has(lang)) {
         gaps.push({

@@ -62,6 +62,18 @@ export abstract class BaseAgent {
     return this.config.name;
   }
 
+  get enabled(): boolean {
+    return this.config.enabled;
+  }
+
+  get concurrency(): number {
+    return Math.max(1, Math.floor(this.config.concurrency || 1));
+  }
+
+  get retryPolicy(): AgentConfig['retryPolicy'] {
+    return { ...this.config.retryPolicy };
+  }
+
   abstract execute(context: ExecutionContext, payload: Record<string, unknown>): Promise<AgentResult>;
 
   protected async callLLM(

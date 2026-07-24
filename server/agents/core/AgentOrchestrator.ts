@@ -15,6 +15,7 @@ import { legalCouncilService } from '../../../services/agents/LegalCouncilServic
 import { db } from '../../db';
 import { news } from '@shared/schema';
 import { eq } from 'drizzle-orm';
+import { parseAgentPayload } from './contracts';
 
 export class AgentOrchestrator {
   private agents: Map<AgentType, BaseAgent> = new Map();
@@ -23,11 +24,14 @@ export class AgentOrchestrator {
   private isRunning: boolean = false;
   private processingInterval: NodeJS.Timeout | null = null;
   private isProcessingCycle: boolean = false;
+  private initialized = false;
+  private initializationPromise: Promise<void> | null = null;
   // Reconciliación con la DB: los jobs encolados en-proceso ya entran a la cola
   // local, así que solo hace falta sincronizar cada tanto (jobs externos/huérfanos),
   // no en cada tick. Antes se pegaba a la DB cada 1–2 s aun estando en reposo.
   private lastSyncAt: number = 0;
   private readonly SYNC_INTERVAL_MS = 30_000;
+  private readonly MAX_ACTIVE_JOBS = 4;
 
   isProcessing(): boolean {
     return this.isRunning;
@@ -38,6 +42,19 @@ export class AgentOrchestrator {
   }
 
   async initialize(): Promise<void> {
+    if (this.initialized) return;
+    if (this.initializationPromise) return this.initializationPromise;
+
+    this.initializationPromise = this.performInitialization();
+    try {
+      await this.initializationPromise;
+      this.initialized = true;
+    } finally {
+      this.initializationPromise = null;
+    }
+  }
+
+  private async performInitialization(): Promise<void> {
     console.log('[Orchestrator] Initializing agent system...');
     await knowledgeStore.initialize();
     await knowledgeStore.addLegalGlossary();
@@ -178,8 +195,14 @@ export class AgentOrchestrator {
   }
 
   registerAgent(agent: BaseAgent): void {
+    if (this.agents.has(agent.agentType)) {
+      throw new Error(`[Orchestrator] Agent already registered: ${agent.agentType}`);
+    }
     this.agents.set(agent.agentType, agent);
-    console.log(`[Orchestrator] Registered agent: ${agent.name}`);
+    console.log(
+      `[Orchestrator] Registered agent: ${agent.name} ` +
+      `(enabled=${agent.enabled}, concurrency=${agent.concurrency})`,
+    );
   }
 
   getAgent(agentType: AgentType): BaseAgent | undefined {
@@ -195,15 +218,24 @@ export class AgentOrchestrator {
       maxRetries?: number;
     }
   ): Promise<AgentJob> {
+    const agent = this.agents.get(agentType);
+    if (!agent) throw new Error(`Agent ${agentType} is not registered`);
+    if (!agent.enabled) throw new Error(`Agent ${agentType} is disabled`);
+    const parsedPayload = parseAgentPayload(agentType, payload);
+    if (!parsedPayload.success) {
+      throw new Error(`Invalid payload for ${agentType}: ${parsedPayload.error}`);
+    }
+
     const priority = options?.priority || 'normal';
+    const maxRetries = options?.maxRetries ?? agent.retryPolicy.maxRetries;
     
     const dbJob = await dbPersistence.createJob({
       agentType,
       status: 'pending',
       priority,
-      payload,
+      payload: parsedPayload.data,
       retryCount: 0,
-      maxRetries: options?.maxRetries ?? 3,
+      maxRetries,
       parentJobId: options?.parentJobId,
     });
 
@@ -212,9 +244,9 @@ export class AgentOrchestrator {
       agentType,
       status: 'pending',
       priority,
-      payload,
+      payload: parsedPayload.data,
       retryCount: 0,
-      maxRetries: options?.maxRetries ?? 3,
+      maxRetries,
       createdAt: dbJob.createdAt || new Date(),
       parentJobId: options?.parentJobId,
     };
@@ -241,67 +273,168 @@ export class AgentOrchestrator {
     return job;
   }
 
+  /**
+   * Executes an authenticated manual request through the same persistent job
+   * lifecycle used by the background queue. This keeps history, events,
+   * enabled flags and per-agent concurrency consistent without changing the
+   * synchronous API contract used by the admin panel.
+   */
+  async executeImmediately(
+    agentType: AgentType,
+    payload: Record<string, unknown>,
+  ): Promise<AgentResult> {
+    const agent = this.agents.get(agentType);
+    if (!agent) return { success: false, error: `Agent ${agentType} is not registered` };
+    if (!agent.enabled) return { success: false, error: `Agent ${agentType} is disabled` };
+
+    const activeForAgent = Array.from(this.activeJobs.values())
+      .filter((activeJob) => activeJob.agentType === agentType)
+      .length;
+    if (activeForAgent >= agent.concurrency || this.activeJobs.size >= this.MAX_ACTIVE_JOBS) {
+      return { success: false, error: `Agent ${agentType} is currently at capacity` };
+    }
+
+    const job = await this.enqueueJob(agentType, payload, { priority: 'high' });
+    this.jobQueue = this.jobQueue.filter((queuedJob) => queuedJob.id !== job.id);
+
+    job.status = 'in_progress';
+    job.startedAt = new Date();
+    this.activeJobs.set(job.id, job);
+
+    try {
+      const claimed = await dbPersistence.claimPendingJob(job.id, job.startedAt);
+      if (!claimed) return { success: false, error: 'The agent job could not be claimed' };
+
+      await this.addEvent(job.id, agentType, 'start', 'Manual job started');
+      const context: ExecutionContext = {
+        jobId: job.id,
+        agentType,
+        startTime: job.startedAt,
+        metadata: { ...job.payload, source: 'api' },
+      };
+
+      let lastResult: AgentResult = { success: false, error: 'Agent execution failed' };
+      let lastError: unknown;
+      const retryPolicy = agent.retryPolicy;
+      const attempts = retryPolicy.maxRetries + 1;
+
+      for (let attempt = 0; attempt < attempts; attempt++) {
+        try {
+          lastResult = await agent.execute(context, job.payload);
+          if (lastResult.success) break;
+          lastError = new Error(lastResult.error || 'Agent returned an unsuccessful result');
+        } catch (error) {
+          lastError = error;
+          lastResult = { success: false, error: String(error) };
+        }
+
+        if (attempt < attempts - 1) {
+          job.retryCount = attempt + 1;
+          await dbPersistence.updateJob(job.id, {
+            retryCount: job.retryCount,
+            error: lastResult.error || String(lastError),
+          });
+          const delayMs = Math.min(
+            30_000,
+            retryPolicy.backoffMs * retryPolicy.backoffMultiplier ** attempt,
+          );
+          await this.addEvent(
+            job.id,
+            agentType,
+            'error',
+            `Manual job failed, retrying (${job.retryCount}/${retryPolicy.maxRetries}) in ${delayMs}ms`,
+          );
+          await new Promise((resolve) => setTimeout(resolve, delayMs));
+        }
+      }
+
+      job.status = lastResult.success ? 'completed' : 'failed';
+      job.result = lastResult.data as Record<string, unknown> | undefined;
+      job.error = lastResult.success ? undefined : (lastResult.error || String(lastError));
+      job.completedAt = new Date();
+      await dbPersistence.updateJob(job.id, {
+        status: job.status,
+        result: job.result,
+        error: job.error,
+        completedAt: job.completedAt,
+      });
+      await this.addEvent(
+        job.id,
+        agentType,
+        lastResult.success ? 'complete' : 'error',
+        lastResult.success ? 'Manual job completed' : 'Manual job failed',
+      );
+
+      await this.recordAgentOutcome(
+        agentType,
+        lastResult,
+        job.completedAt.getTime() - job.startedAt.getTime(),
+      );
+
+      return lastResult;
+    } catch (error) {
+      job.status = 'failed';
+      job.error = String(error);
+      job.completedAt = new Date();
+      await dbPersistence.updateJob(job.id, {
+        status: 'failed',
+        error: job.error,
+        completedAt: job.completedAt,
+      });
+      return { success: false, error: 'Agent execution failed' };
+    } finally {
+      this.activeJobs.delete(job.id);
+    }
+  }
+
   async runPipeline(
     articleId: string,
     stages: AgentType[] = ['formatter', 'metadata_linker', 'polyglot_translator', 'seo_optimizer']
   ): Promise<{ success: boolean; results: Record<AgentType, AgentResult> }> {
     const results: Record<string, AgentResult> = {};
-    let currentData: Record<string, unknown> = { articleId };
+    const [pipelineArticle] = await db.select().from(news).where(eq(news.id, articleId));
+    if (!pipelineArticle) {
+      return {
+        success: false,
+        results: { formatter: { success: false, error: 'Article not found' } } as Record<AgentType, AgentResult>,
+      };
+    }
+    if (pipelineArticle.published !== false) {
+      return {
+        success: false,
+        results: {
+          formatter: {
+            success: false,
+            error: 'Published articles must be converted to a draft before applying the pipeline',
+          },
+        } as Record<AgentType, AgentResult>,
+      };
+    }
 
     console.log(`[Orchestrator] Starting pipeline for article ${articleId}`);
 
     for (const stage of stages) {
       const agent = this.agents.get(stage);
-      if (!agent) {
+      if (!agent || !agent.enabled) {
         console.warn(`[Orchestrator] Agent ${stage} not registered, skipping`);
         continue;
       }
 
-      const context: ExecutionContext = {
-        jobId: `pipeline-${articleId}-${stage}`,
-        agentType: stage,
-        startTime: new Date(),
-        metadata: { articleId, pipelineStage: stage },
-      };
-
       try {
         console.log(`[Orchestrator] Running ${stage}...`);
-        const result = await agent.execute(context, currentData);
+        // A pipeline is an explicit authenticated editing action. Agents still
+        // enforce their own unpublished-content guard before applying a
+        // proposal. Analysis-only stages intentionally receive no write flag.
+        const stagePayload: Record<string, unknown> = stage === 'content_analyzer'
+          ? { articleId }
+          : { articleId, applyChanges: true };
+        const result = await this.executeImmediately(stage, stagePayload);
         results[stage] = result;
 
         if (!result.success) {
           console.error(`[Orchestrator] ${stage} failed:`, result.error);
           return { success: false, results: results as Record<AgentType, AgentResult> };
         }
-
-        if (result.data) {
-          currentData = { ...currentData, ...result.data };
-        }
-
-        if (result.learnings && result.learnings.length > 0) {
-          for (const learning of result.learnings) {
-            await knowledgeStore.addDocument({
-              agentType: stage,
-              category: 'learning',
-              title: learning.context,
-              content: learning.insight,
-              metadata: { confidence: learning.confidence, source: learning.source },
-            });
-          }
-        }
-
-        if (result.evolutionProposals) {
-          for (const proposal of result.evolutionProposals) {
-            await evolutionTracker.addProposal(proposal);
-          }
-        }
-
-        evolutionTracker.updateAgentStats(stage, {
-          totalJobs: 1,
-          completedJobs: result.success ? 1 : 0,
-          failedJobs: result.success ? 0 : 1,
-          successRate: result.success ? 1 : 0,
-        });
 
       } catch (error) {
         console.error(`[Orchestrator] ${stage} threw error:`, error);
@@ -319,8 +452,9 @@ export class AgentOrchestrator {
       // Get article content for evaluation
       const [article] = await db.select().from(news).where(eq(news.id, articleId));
       
-      if (article && article.content) {
-        const verdict = await legalCouncilService.evaluateArticle(article.content);
+      const councilContent = article?.content || article?.contentEs;
+      if (article && councilContent) {
+        const verdict = await legalCouncilService.evaluateArticle(councilContent);
         
         // Determine final status based on council verdict
         const newStatus = verdict.overallStatus === 'approved' ? 'ready_for_approval' : 
@@ -362,22 +496,39 @@ export class AgentOrchestrator {
     return { success: true, results: results as Record<AgentType, AgentResult> };
   }
 
+  private takeNextRunnableJob(): AgentJob | undefined {
+    const index = this.jobQueue.findIndex((queuedJob) => {
+      const agent = this.agents.get(queuedJob.agentType);
+      if (!agent || !agent.enabled) return true;
+
+      const activeForAgent = Array.from(this.activeJobs.values())
+        .filter((activeJob) => activeJob.agentType === queuedJob.agentType)
+        .length;
+      return activeForAgent < agent.concurrency;
+    });
+
+    if (index < 0) return undefined;
+    return this.jobQueue.splice(index, 1)[0];
+  }
+
   async processNextJob(): Promise<AgentJob | null> {
-    let job = this.jobQueue.shift();
+    let job = this.takeNextRunnableJob();
     
     if (!job) {
       const syncedCount = await this.syncQueueWithDatabase();
       if (syncedCount > 0) {
-        job = this.jobQueue.shift();
+        job = this.takeNextRunnableJob();
       }
     }
     
     if (!job) return null;
 
     const agent = this.agents.get(job.agentType);
-    if (!agent) {
+    if (!agent || !agent.enabled) {
       job.status = 'failed';
-      job.error = `Agent ${job.agentType} not registered`;
+      job.error = !agent
+        ? `Agent ${job.agentType} not registered`
+        : `Agent ${job.agentType} is disabled`;
       await dbPersistence.updateJob(job.id, {
         status: 'failed',
         error: job.error,
@@ -386,14 +537,36 @@ export class AgentOrchestrator {
       return job;
     }
 
+    const parsedPayload = parseAgentPayload(job.agentType, job.payload);
+    if (!parsedPayload.success) {
+      job.status = 'failed';
+      job.error = `Invalid persisted payload: ${parsedPayload.error}`;
+      job.completedAt = new Date();
+      await dbPersistence.updateJob(job.id, {
+        status: 'failed',
+        error: job.error,
+        completedAt: job.completedAt,
+      });
+      await this.addEvent(job.id, job.agentType, 'error', 'Persisted job payload failed validation');
+      return job;
+    }
+    job.payload = parsedPayload.data;
+
     job.status = 'in_progress';
     job.startedAt = new Date();
     this.activeJobs.set(job.id, job);
-    
-    await dbPersistence.updateJob(job.id, {
-      status: 'in_progress',
-      startedAt: job.startedAt,
-    });
+
+    let claimed;
+    try {
+      claimed = await dbPersistence.claimPendingJob(job.id, job.startedAt);
+    } catch (error) {
+      this.activeJobs.delete(job.id);
+      throw error;
+    }
+    if (!claimed) {
+      this.activeJobs.delete(job.id);
+      return null;
+    }
     
     await this.addEvent(job.id, job.agentType, 'start', `Job started`);
 
@@ -406,10 +579,13 @@ export class AgentOrchestrator {
 
     try {
       const result = await agent.execute(context, job.payload);
+      if (!result.success) {
+        throw new Error(result.error || `Agent ${job.agentType} returned an unsuccessful result`);
+      }
       
-      job.status = result.success ? 'completed' : 'failed';
+      job.status = 'completed';
       job.result = result.data as Record<string, unknown>;
-      job.error = result.error;
+      job.error = undefined;
       job.completedAt = new Date();
 
       await dbPersistence.updateJob(job.id, {
@@ -419,16 +595,10 @@ export class AgentOrchestrator {
         completedAt: job.completedAt,
       });
 
-      await this.addEvent(job.id, job.agentType, result.success ? 'complete' : 'error', 
-        result.success ? 'Job completed successfully' : `Job failed: ${result.error}`);
+      await this.addEvent(job.id, job.agentType, 'complete', 'Job completed successfully');
 
       const executionTime = job.completedAt.getTime() - job.startedAt.getTime();
-      evolutionTracker.updateAgentStats(job.agentType, {
-        totalJobs: 1,
-        completedJobs: result.success ? 1 : 0,
-        failedJobs: result.success ? 0 : 1,
-        averageExecutionTime: executionTime,
-      });
+      await this.recordAgentOutcome(job.agentType, result, executionTime);
 
     } catch (error) {
       job.status = 'failed';
@@ -447,7 +617,11 @@ export class AgentOrchestrator {
 
         // Backoff exponencial antes de reencolar (2s, 4s, 8s… tope 30s): evita el
         // bucle apretado de reintentos inmediatos ante errores transitorios.
-        const delayMs = Math.min(30_000, 2000 * 2 ** (job.retryCount - 1));
+        const retryPolicy = agent.retryPolicy;
+        const delayMs = Math.min(
+          30_000,
+          retryPolicy.backoffMs * retryPolicy.backoffMultiplier ** (job.retryCount - 1),
+        );
         const retryJob = job;
         setTimeout(() => {
           if (
@@ -468,6 +642,11 @@ export class AgentOrchestrator {
         });
         
         await this.addEvent(job.id, job.agentType, 'error', `Job failed permanently: ${error}`);
+        await this.recordAgentOutcome(
+          job.agentType,
+          { success: false, error: job.error },
+          job.startedAt ? job.completedAt.getTime() - job.startedAt.getTime() : 0,
+        );
       }
     }
 
@@ -495,15 +674,19 @@ export class AgentOrchestrator {
           this.lastSyncAt = now;
         }
 
-        if (this.jobQueue.length > 0 && this.activeJobs.size < 1) {
-          await this.processNextJob();
+        if (this.jobQueue.length > 0 && this.activeJobs.size < this.MAX_ACTIVE_JOBS) {
+          void this.processNextJob().catch((error) => {
+            console.error('[Orchestrator] Unhandled job dispatch error:', error);
+          });
         }
       } finally {
         this.isProcessingCycle = false;
       }
     }, intervalMs);
 
-    console.log('[Orchestrator] Started job processing with immediate DB sync every cycle');
+    console.log(
+      `[Orchestrator] Started job processing (max ${this.MAX_ACTIVE_JOBS} active, DB sync every ${this.SYNC_INTERVAL_MS}ms)`,
+    );
   }
 
   stopProcessing(): void {
@@ -513,6 +696,44 @@ export class AgentOrchestrator {
     }
     this.isRunning = false;
     console.log('[Orchestrator] Stopped job processing');
+  }
+
+  private async recordAgentOutcome(
+    agentType: AgentType,
+    result: AgentResult,
+    executionTime: number,
+  ): Promise<void> {
+    if (result.success) {
+      for (const learning of result.learnings || []) {
+        try {
+          await knowledgeStore.addDocument({
+            agentType,
+            category: 'learning',
+            title: learning.context,
+            content: learning.insight,
+            metadata: { confidence: learning.confidence, source: learning.source },
+          });
+        } catch (error) {
+          console.error(`[Orchestrator] Could not persist learning for ${agentType}:`, error);
+        }
+      }
+
+      for (const proposal of result.evolutionProposals || []) {
+        try {
+          await evolutionTracker.addProposal(proposal);
+        } catch (error) {
+          console.error(`[Orchestrator] Could not persist proposal for ${agentType}:`, error);
+        }
+      }
+    }
+
+    evolutionTracker.updateAgentStats(agentType, {
+      totalJobs: 1,
+      completedJobs: result.success ? 1 : 0,
+      failedJobs: result.success ? 0 : 1,
+      averageExecutionTime: Math.max(0, executionTime),
+      successRate: result.success ? 1 : 0,
+    });
   }
 
   private async addEvent(jobId: string, agentType: AgentType | string, eventType: AgentEvent['eventType'], message: string, data?: Record<string, unknown>): Promise<void> {
@@ -579,7 +800,11 @@ export class AgentOrchestrator {
   }
 
   async getJobHistory(options?: { agentType?: AgentType; status?: JobStatus; limit?: number }): Promise<AgentJob[]> {
-    const dbJobs = await dbPersistence.getJobsByStatus(options?.status || 'completed', options?.limit || 100);
+    const dbJobs = await dbPersistence.getJobs({
+      agentType: options?.agentType,
+      status: options?.status,
+      limit: options?.limit,
+    });
     
     return dbJobs.map(j => ({
       id: j.id,
