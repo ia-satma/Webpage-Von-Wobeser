@@ -275,6 +275,14 @@ export function applyA11y($: cheerio.CheerioAPI, lang: Lang): void {
     else if (/logo|vonwobeser|vw40|vw_|vw2025/.test(src) || /logo/.test(cls)) alt = "Von Wobeser y Sierra";
     $img.attr("alt", alt);
   });
+  $("img").each((_, el) => {
+    const $img = $(el);
+    const critical =
+      $img.attr("fetchpriority") === "high" ||
+      $img.closest("header,.home__hero,.vw-firm__hero,.office-showcase__hero").length > 0;
+    if (!critical && !$img.attr("loading")) $img.attr("loading", "lazy");
+    if (!$img.attr("decoding")) $img.attr("decoding", "async");
+  });
 
   // 3) Vínculos sin nombre reconocible (íconos): aria-label desde el dominio del href.
   $("a").each((_, el) => {
@@ -289,6 +297,23 @@ export function applyA11y($: cheerio.CheerioAPI, lang: Lang): void {
 
   // 4) Buscador — nombre accesible + placeholder localizado.
   const searchLabel = lang === "es" ? "Buscar" : "Search";
+  $(".eyeglass").each((_, el) => {
+    const $trigger = $(el);
+    $trigger.attr({
+      "aria-label": searchLabel,
+      "aria-controls": "search_q",
+      "aria-expanded": "false",
+      title: searchLabel,
+    });
+    if (el.tagName.toLowerCase() === "button") {
+      $trigger.attr("type", "button");
+      return;
+    }
+    const attrs = $trigger.attr() || {};
+    const $button = $("<button>").attr(attrs).attr("type", "button");
+    $button.html($trigger.html() || "");
+    $trigger.replaceWith($button);
+  });
   $('input[type="text"], input[type="search"], input:not([type])').each((_, el) => {
     const $i = $(el);
     const id = ($i.attr("id") || "").toLowerCase();
@@ -316,7 +341,17 @@ export function applyA11y($: cheerio.CheerioAPI, lang: Lang): void {
     }
   }
 
-  // 6) Contraste (WCAG 1.4.3): el color de texto BASE del sitio scrapeado es #808080
+  // 6) Estructura del menú: las plantillas históricas colocan <li> dentro de un <div>.
+  //    Se conserva la misma clase/CSS, pero el contenedor pasa a ser una lista real.
+  $(".nav__menu--holder").each((_, el) => {
+    if (el.tagName.toLowerCase() === "ul") return;
+    const $holder = $(el);
+    const attrs = $holder.attr() || {};
+    const $list = $("<ul>").attr(attrs).html($holder.html() || "");
+    $holder.replaceWith($list);
+  });
+
+  // 7) Contraste (WCAG 1.4.3): el color de texto BASE del sitio scrapeado es #808080
   //    (~3.95:1 sobre blanco → falla AA). Se oscurece a #5f5f5f (~6:1) el texto que
   //    HEREDA del body + las reglas explícitas que lo resisten (toggle de idioma, botón
   //    de menú, titulares de noticias del hero). NO afecta textos con color propio
@@ -329,7 +364,7 @@ export function applyA11y($: cheerio.CheerioAPI, lang: Lang): void {
       '<style id="a11y-contrast">' +
       'body{color:#5f5f5f !important}' +
       '.header__lang--item,.header--btn{color:#5f5f5f !important}' +
-      '.covid_headlines a,.covid_headlines h3,.news_item a,.news_item h3{color:#5f5f5f !important}' +
+      '.covid_title span,.covid_headlines a,.covid_headlines h3,.news_item a,.news_item h3,.vw-news-carousel__count{color:#5f5f5f !important}' +
       '</style>'
     );
   }

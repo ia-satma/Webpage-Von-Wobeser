@@ -429,9 +429,36 @@ const PAGES: Record<string, SiteConfigPage> = {
     icon: Mail,
     groups: [
       {
+        title: "Información y ubicación",
         fields: [
           { key: "page_contact_intro", label: "Introducción", bilingual: true, multiline: true },
           { key: "page_contact_body", label: "Dirección / texto", bilingual: true, multiline: true },
+        ],
+      },
+      {
+        title: "Formulario",
+        fields: [
+          { key: "contact_form_title", label: "Título", bilingual: true },
+          { key: "contact_form_description", label: "Descripción", bilingual: true, multiline: true },
+          { key: "contact_form_name_label", label: "Campo — nombre", bilingual: true },
+          { key: "contact_form_email_label", label: "Campo — correo", bilingual: true },
+          { key: "contact_form_phone_label", label: "Campo — teléfono", bilingual: true },
+          { key: "contact_form_company_label", label: "Campo — empresa", bilingual: true },
+          { key: "contact_form_practice_label", label: "Campo — área de interés", bilingual: true },
+          { key: "contact_form_select_label", label: "Selector — opción inicial", bilingual: true },
+          { key: "contact_form_message_label", label: "Campo — mensaje", bilingual: true },
+          { key: "contact_form_submit_label", label: "Botón — enviar", bilingual: true },
+          { key: "contact_form_sending_label", label: "Botón — enviando", bilingual: true },
+        ],
+      },
+      {
+        title: "Validación y respuestas",
+        fields: [
+          { key: "contact_form_required_message", label: "Campos obligatorios", bilingual: true },
+          { key: "contact_form_invalid_email_message", label: "Correo inválido", bilingual: true },
+          { key: "contact_form_success_message", label: "Mensaje de éxito", bilingual: true },
+          { key: "contact_form_error_message", label: "Error del servidor", bilingual: true },
+          { key: "contact_form_network_error_message", label: "Error de conexión", bilingual: true },
         ],
       },
     ],

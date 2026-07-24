@@ -13,6 +13,7 @@ import { renderGroupList, type GroupListItem } from "./renderGroupList";
 import { applyCareersFormFix, applyContactForm } from "./formsFix";
 import * as cheerio from "cheerio";
 import { renderNewsList, renderNewsDetail } from "./renderNews";
+import { applyPublicationsSearch, renderGlobalSearch } from "./renderSearch";
 import { buildIdMaps, type IdMaps } from "./idMap";
 import { cfg, getConfigMap, seedConfigDefaults, upsertConfig, isRichTextConfigKey, isOfficeConfigKey, invalidateConfigCache, type ConfigMap } from "./siteConfig";
 import { setBaseUrl, setAnalyticsConfig, applyA11y } from "./seo";
@@ -211,31 +212,80 @@ const LANG_TOGGLE_SCRIPT = `<script>(function(){try{
   };
   var isEn=(document.documentElement.lang||'').toLowerCase().indexOf('en')===0;
   var path=location.pathname.replace(/\\/$/,'')||'/';
-  var mapped=PAIRS[path];
+  var targetLang=isEn?'es-MX':'en';
+  var alternate=document.querySelector('link[rel="alternate"][hreflang="'+targetLang+'"]');
+  var mapped='';
+  if(alternate&&alternate.getAttribute('href')){
+    var alternateUrl=new URL(alternate.getAttribute('href'),location.origin);
+    mapped=alternateUrl.pathname+(alternateUrl.search||'');
+  }
+  if(!mapped)mapped=PAIRS[path]||'';
+  function preserveState(href){
+    var u=new URL(href,location.origin);
+    var current=new URL(location.href);
+    ['q','page'].forEach(function(key){
+      if(current.searchParams.has(key))u.searchParams.set(key,current.searchParams.get(key));
+    });
+    return u.pathname+(u.search||'');
+  }
   document.querySelectorAll('.header__lang--item').forEach(function(a){
     a.textContent=isEn?'ESP':'ENG';
-    if(mapped){a.setAttribute('href',mapped);return;}
+    if(mapped){a.setAttribute('href',preserveState(mapped));return;}
     var u=new URL(location.href);
     if(isEn){u.searchParams.delete('lang');}else{u.searchParams.set('lang','en');}
     a.setAttribute('href',u.pathname+(u.search||''));
   });
 }catch(e){}})();</script>`;
 
+// El buscador de la lupa vive en el encabezado compartido de las 2,253 páginas
+// capturadas. Se normaliza al vuelo para que incluso una página estática aún cacheada
+// deje de enviar a los endpoints Joomla retirados.
+const SEARCH_FORMS_SCRIPT = `<script>(function(){try{
+  document.querySelectorAll('form[action="/index.php/results"],form[action="/index.php/resultados"]').forEach(function(form){
+    var kind=form.querySelector('input[name="kind"]');
+    if(!kind||kind.value==='general'){
+      form.setAttribute('action','/search');
+      form.setAttribute('method','get');
+      form.querySelectorAll('input[type="hidden"]').forEach(function(input){input.remove();});
+      if((document.documentElement.lang||'').toLowerCase().indexOf('en')===0){
+        var lang=document.createElement('input');lang.type='hidden';lang.name='lang';lang.value='en';form.appendChild(lang);
+      }
+    }
+  });
+}catch(e){}})();</script>`;
+
 // `von.css` y `functions.min.js` son el cromo compartido de todo el espejo.
 // Se versionan desde el render para que los cambios de navegación no queden
 // ocultos detrás de los 30 días de caché de los assets estáticos.
-const NAV_ASSET_VERSION = "20260721-nav6";
+const NAV_ASSET_VERSION = "20260723-a11y1";
 function refreshNavigationAssets(html: string): string {
   return html
     .replace(/(href=["']\/templates\/beez3\/css\/von\.css)(?:\?[^"']*)?(["'])/gi, `$1?v=${NAV_ASSET_VERSION}$2`)
-    .replace(/(src=["']\/templates\/beez3\/js\/min\/functions\.min\.js)(?:\?[^"']*)?(["'])/gi, `$1?v=${NAV_ASSET_VERSION}$2`);
+    .replace(/(src=["']\/templates\/beez3\/js\/min\/functions\.min\.js)(?:\?[^"']*)?(["'])/gi, `$1?v=${NAV_ASSET_VERSION}$2`)
+    .replace(/(src=["']\/templates\/beez3\/js\/min\/slick\.min\.js)(?:\?[^"']*)?(["'])/gi, `$1?v=${NAV_ASSET_VERSION}$2`);
 }
 
-// Las plantillas capturadas comparten dos fragmentos de JavaScript legado que
+// El espejo carga dos versiones completas de jQuery, jQuery Migrate y el core
+// público de Joomla en cada página. El HTML no usa ninguna API Joomla (comprobado
+// sobre las 2,253 capturas) y el segundo jQuery es el que realmente consumen Slick
+// y functions.min.js. Se conserva una sola versión actual, ya incluida localmente.
+export function optimizeLegacyAssets(html: string): string {
+  return html
+    .replace(
+      /<script\b[^>]*\bsrc=["']\/media\/(?:jui\/js\/(?:jquery(?:-migrate)?\.min\.js|jquery-noconflict\.js)|system\/js\/core\.js)["'][^>]*>\s*<\/script>/gi,
+      "",
+    )
+    .replace(
+      /(["'])\/templates\/beez3\/js\/min\/jquery_3\.3\.1\.min\.js(?:\?[^"']*)?\1/gi,
+      `"/_vendor/jquery/jquery-3.7.1.min.js"`,
+    );
+}
+
+// Las plantillas capturadas comparten fragmentos de JavaScript legado que
 // fallan en páginas donde el widget asociado no existe o Slick aún no ha sido
 // inicializado. Se corrigen al servir el HTML para cubrir todo el espejo sin
 // reescribir miles de archivos estáticos.
-function hardenLegacyClientScripts(html: string): string {
+export function hardenLegacyClientScripts(html: string): string {
   return html
     .replace(
       /(\bconst btnCerrar = document\.getElementById\(['"]closeOverlay['"]\);\s*)(?!if\s*\(!iframe\s*\|\|\s*!btnCerrar\))/g,
@@ -248,6 +298,25 @@ function hardenLegacyClientScripts(html: string): string {
     .replaceAll(
       `jQuery(".home_rec_JS").slick('unslick')`,
       `jQuery(".home_rec_JS").filter('.slick-initialized').slick('unslick')`,
+    )
+    .replace(
+      /jQuery\(function\(\$\)\{\s*\$\(["']\.hasTooltip["']\)\.tooltip\((\{[^;]*\})\);\s*\}\);/g,
+      `jQuery(function($){ if ($.fn.tooltip) $(".hasTooltip").tooltip($1); });`,
+    )
+    .replaceAll(
+      `var c_txt = counter.split(" ");`,
+      `var c_txt = (counter || "").split(" ");`,
+    )
+    .replace(
+      /\/\* Scroll - activacion de sliders \*\/\s*jQuery\(window\)\.scroll\(function\(\)\{\s*var height =\s*jQuery\(window\)\.scrollTop\(\);/,
+      `/* Scroll - activacion de sliders */
+          var vwSliderScrollState = "";
+          jQuery(window).scroll(function(){
+            var height = jQuery(window).scrollTop();
+            var nextState = ((height > 514 && height <= 1482) || (height > 1710 && height <= 2280))
+              ? "groups" : ((height >= 2793 && height <= 3534) ? "recognitions" : "paused");
+            if (nextState === vwSliderScrollState) return;
+            vwSliderScrollState = nextState;`,
     );
 }
 
@@ -340,7 +409,7 @@ function injectFooterESR(html: string, config: ConfigMap, lang: Lang): string {
   if (html.includes('class="vw-footer-esr"')) return html;
   const src = cfg(config, "footer_esr_image", lang).trim() || "/templates/beez3/img/esr.jpg";
   const alt = cfg(config, "footer_esr_alt", lang).trim() || (lang === "es" ? "Empresa Socialmente Responsable" : "Socially Responsible Company");
-  const mark = `<aside class="vw-footer-esr" aria-label="${escHtml(alt)}"><img class="vw-footer-esr__img" src="${escHtml(src)}" alt="${escHtml(alt)}"></aside>`;
+  const mark = `<aside class="vw-footer-esr" aria-label="${escHtml(alt)}"><img class="vw-footer-esr__img" src="${escHtml(src)}" alt="${escHtml(alt)}" loading="lazy" decoding="async"></aside>`;
   return html.replace(/(<div class="footer--copy">[\s\S]*?<\/div>)/, `$1${mark}`);
 }
 
@@ -539,8 +608,10 @@ async function sendPage(res: Response, html: string) {
   const isOfficeShowcase = /<body\b[^>]*\boffice-showcase\b/i.test(html);
   let config: ConfigMap = {};
   try { config = await getConfigMap(); } catch { /* se conservan los textos originales */ }
-  const inject = `${navigationLabelsScript(config, lang)}${LANG_TOGGLE_SCRIPT}${DOC_ACTIONS_SCRIPT}`;
-  let out = hardenLegacyClientScripts(stripRetiredDeskLinks(refreshNavigationAssets(html)));
+  const inject = `${navigationLabelsScript(config, lang)}${LANG_TOGGLE_SCRIPT}${SEARCH_FORMS_SCRIPT}${DOC_ACTIONS_SCRIPT}`;
+  let out = hardenLegacyClientScripts(
+    stripRetiredDeskLinks(refreshNavigationAssets(optimizeLegacyAssets(html))),
+  );
   out = out.includes("</body>")
     ? out.replace("</body>", `${inject}</body>`)
     : out + inject;
@@ -904,14 +975,22 @@ export async function setupMirror(app: Express) {
     sendPage(res, renderNewsDetail(pick(TEMPLATES.newsDetail, lang), item, lang));
   };
 
-  const serveNewsList = async (lang: Lang, res: Response, page = 1) => {
+  const serveNewsList = async (lang: Lang, res: Response, page = 1, query = "") => {
     const perPage = 24;
     // Cuenta + una sola página en SQL, en vez de traer TODAS las noticias y paginar en memoria.
-    const total = await storage.getPublishedNewsCount();
+    const searched = query.length >= 2
+      ? await storage.searchPublishedNewsPage({ query, limit: perPage, offset: Math.max(0, page - 1) * perPage })
+      : null;
+    const total = searched?.total ?? (query ? 0 : await storage.getPublishedNewsCount());
     const totalPages = Math.max(1, Math.ceil(total / perPage));
     const p = Math.min(Math.max(1, page), totalPages);
-    const slice = await storage.getPublishedNewsPage(perPage, (p - 1) * perPage);
-    sendPage(res, renderNewsList(pick(TEMPLATES.newsList, lang), slice, lang, { page: p, totalPages }));
+    const slice = query.length >= 2 && p !== page
+      ? (await storage.searchPublishedNewsPage({ query, limit: perPage, offset: (p - 1) * perPage })).rows
+      : searched?.rows ?? (query ? [] : await storage.getPublishedNewsPage(perPage, (p - 1) * perPage));
+    sendPage(
+      res,
+      renderNewsList(pick(TEMPLATES.newsList, lang), slice, lang, { page: p, totalPages }, { query }),
+    );
   };
 
   // "Artículos"/"Articles": antes HTML congelado (express.static), enlazando a las mismas
@@ -919,12 +998,22 @@ export async function setupMirror(app: Express) {
   // MISMA tabla `news`, distinguidas por `category` ("news" vs "articles", ~284 filas). Se
   // reusa renderNewsList con opts distintos; Noticias sigue sin filtrar por categoría (no se
   // le quita nada de lo que ya mostraba), así que un artículo puede aparecer en ambos listados.
-  const serveArticlesList = async (lang: Lang, res: Response, page = 1) => {
+  const serveArticlesList = async (lang: Lang, res: Response, page = 1, query = "") => {
     const perPage = 24;
-    const total = await storage.getPublishedNewsCount("articles");
+    const searched = query.length >= 2
+      ? await storage.searchPublishedNewsPage({
+          query,
+          limit: perPage,
+          offset: Math.max(0, page - 1) * perPage,
+          category: "articles",
+        })
+      : null;
+    const total = searched?.total ?? (query ? 0 : await storage.getPublishedNewsCount("articles"));
     const totalPages = Math.max(1, Math.ceil(total / perPage));
     const p = Math.min(Math.max(1, page), totalPages);
-    const slice = await storage.getPublishedNewsPage(perPage, (p - 1) * perPage, "articles");
+    const slice = query.length >= 2 && p !== page
+      ? (await storage.searchPublishedNewsPage({ query, limit: perPage, offset: (p - 1) * perPage, category: "articles" })).rows
+      : searched?.rows ?? (query ? [] : await storage.getPublishedNewsPage(perPage, (p - 1) * perPage, "articles"));
     sendPage(
       res,
       renderNewsList(pick(TEMPLATES.articlesList, lang), slice, lang, { page: p, totalPages }, {
@@ -937,8 +1026,38 @@ export async function setupMirror(app: Express) {
           es: "Artículos y columnas de opinión escritos por los abogados de Von Wobeser y Sierra.",
         },
         crumbLabel: { en: "Articles", es: "Artículos" },
+        query,
       }),
     );
+  };
+
+  const serveGlobalSearch = async (lang: Lang, res: Response, query: string) => {
+    const normalized = normalizeStr(query);
+    const empty = { team: [], practiceGroups: [], industryGroups: [], news: [] };
+    if (normalized.length < 2) {
+      return sendPage(res, renderGlobalSearch(pick(TEMPLATES.publications, lang), empty, query, lang));
+    }
+    const [teamRows, practiceRows, industryRows, newsRows] = await Promise.all([
+      storage.getTeamMembers(),
+      storage.getPracticeGroups(),
+      storage.getIndustryGroups(),
+      storage.searchNews(query, 20),
+    ]);
+    const contains = (...values: Array<string | null | undefined>) =>
+      values.some((value) => normalizeStr(value || "").includes(normalized));
+    const results = {
+      team: teamRows
+        .filter((item) => item.published !== false && contains(item.name, item.title, item.titleEs, item.role, item.roleEs, item.bio, item.bioEs))
+        .slice(0, 20),
+      practiceGroups: practiceRows
+        .filter((item) => item.published !== false && item.slug !== "german-desk" && contains(item.name, item.nameEs, item.description, item.descriptionEs))
+        .slice(0, 12),
+      industryGroups: industryRows
+        .filter((item) => item.published !== false && contains(item.name, item.nameEs, item.description, item.descriptionEs))
+        .slice(0, 12),
+      news: newsRows,
+    };
+    return sendPage(res, renderGlobalSearch(pick(TEMPLATES.publications, lang), results, query, lang));
   };
 
   const serveHome = async (lang: Lang, res: Response) => {
@@ -996,7 +1115,10 @@ export async function setupMirror(app: Express) {
   // Páginas institucionales del espejo: conservan su diseño capturado y reciben únicamente
   // el contenido editable de siteConfig. El resumen del video usa una ruta independiente.
   const servePage = async (which: keyof typeof PAGE_KEYS, lang: Lang, res: Response) => {
-    const config = await getConfigMap();
+    const [config, contactPractices] = await Promise.all([
+      getConfigMap(),
+      which === "contact" ? storage.getPracticeGroups() : Promise.resolve([]),
+    ]);
     const seo = PAGE_SEO[which];
     sendPage(
       res,
@@ -1005,11 +1127,13 @@ export async function setupMirror(app: Express) {
         config,
         lang,
         PAGE_KEYS[which],
-        { path: seo.path[lang], title: seo.title[lang] },
+        { path: seo.path[lang], title: seo.title[lang], alternatePaths: seo.path },
         which === "careers"
           ? ($: cheerio.CheerioAPI) => applyCareersFormFix($, lang)
           : which === "contact"
-            ? ($: cheerio.CheerioAPI) => applyContactForm($, lang)
+            ? ($: cheerio.CheerioAPI) => applyContactForm($, lang, config, contactPractices)
+            : which === "publications"
+              ? ($: cheerio.CheerioAPI) => applyPublicationsSearch($, lang)
             : which === "diversity"
               ? ($: cheerio.CheerioAPI) => applyDiversityVideoGallery($, config)
               : which === "proBono"
@@ -1072,6 +1196,38 @@ export async function setupMirror(app: Express) {
     next: NextFunction,
   ) => fn(req, res, next).catch(next);
 
+  const publicSearchSchema = z.string().trim().max(200);
+  const parsePublicSearch = (value: unknown, lang: Lang, res: Response): string | null => {
+    const parsed = publicSearchSchema.safeParse(typeof value === "string" ? value : "");
+    if (parsed.success) return parsed.data;
+    res
+      .status(400)
+      .type("html")
+      .send(
+        `<!doctype html><html lang="${lang}"><meta charset="utf-8"><title>${lang === "es" ? "Búsqueda inválida" : "Invalid search"}</title>` +
+        `<body><p>${lang === "es" ? "La búsqueda no puede superar 200 caracteres." : "Search cannot exceed 200 characters."}</p></body></html>`,
+      );
+    return null;
+  };
+  const parsePublicPage = (value: unknown): number => {
+    const parsed = z.coerce.number().int().min(1).max(10_000).safeParse(value || 1);
+    return parsed.success ? parsed.data : 1;
+  };
+  const searchRedirect = (rawKind: unknown, rawQuery: unknown, lang: Lang): string => {
+    const kind = String(rawKind || "general").trim().toLowerCase();
+    const query = String(rawQuery || "").trim().slice(0, 200);
+    const path = ["noticias", "news"].includes(kind)
+      ? "/news"
+      : ["articulos", "articles"].includes(kind)
+        ? "/articles"
+        : "/search";
+    const params = new URLSearchParams();
+    if (query) params.set("q", query);
+    if (lang === "en") params.set("lang", "en");
+    const suffix = params.toString();
+    return suffix ? `${path}?${suffix}` : path;
+  };
+
   // ---------- Clean dynamic routes --------------------------------------
   app.get("/", wrap((req, res) => serveHome(langOf(req), res)));
   app.get("/home", wrap((req, res) => serveHome(langOf(req), res)));
@@ -1081,15 +1237,42 @@ export async function setupMirror(app: Express) {
   app.get("/new-offices/", wrap((_req, res) => serveOfficeShowcase("en", res)));
   app.get("/nuevas-oficinas/index.html", (_req, res) => res.redirect(301, "/nuevas-oficinas/"));
   app.get("/new-offices/index.html", (_req, res) => res.redirect(301, "/new-offices/"));
-  app.get("/news", wrap((req, res) => serveNewsList(langOf(req), res, parseInt(String(req.query.page)) || 1)));
+  app.get("/search", wrap(async (req, res) => {
+    const lang = langOf(req);
+    const query = parsePublicSearch(req.query.q, lang, res);
+    if (query === null) return;
+    await serveGlobalSearch(lang, res, query);
+  }));
+  app.get("/publications/search", (req, res) => {
+    const lang = langOf(req);
+    const query = parsePublicSearch(req.query.q, lang, res);
+    if (query === null) return;
+    res.redirect(303, searchRedirect(req.query.kind, query, lang));
+  });
+  // Compatibilidad con formularios conservados en caché y páginas estáticas del espejo.
+  // La redirección 303 convierte el POST heredado en un GET compartible y seguro.
+  app.post(["/index.php/results", "/index.php/resultados"], (req, res) => {
+    const requestedLang = req.body?.lang === "en" || req.query.lang === "en" ? "en" : "es";
+    res.redirect(303, searchRedirect(req.body?.kind, req.body?.q, requestedLang));
+  });
+  app.get("/news", wrap(async (req, res) => {
+    const lang = langOf(req);
+    const query = parsePublicSearch(req.query.q, lang, res);
+    if (query === null) return;
+    await serveNewsList(lang, res, parsePublicPage(req.query.page), query);
+  }));
   app.get("/news/:slug", wrap((req, res, next) => serveNewsDetail(req.params.slug, langOf(req), res, next)));
-  app.get("/articles", wrap((req, res) => serveArticlesList(langOf(req), res, parseInt(String(req.query.page)) || 1)));
+  app.get("/articles", wrap(async (req, res) => {
+    const lang = langOf(req);
+    const query = parsePublicSearch(req.query.q, lang, res);
+    if (query === null) return;
+    await serveArticlesList(lang, res, parsePublicPage(req.query.page), query);
+  }));
   // Página general "Abogados" (a la que redirige el menú): ÚNICA con buscador.
   app.get("/attorneys", wrap((req, res, next) => serveList("partners", langOf(req), res, next, req.query, true)));
   // Resultados de búsqueda (debe ir ANTES de /attorneys/:category para no ser
   // tragada por el parámetro :category).
   app.get("/attorneys/buscar", wrap((req, res) => serveResults(langOf(req), res, req.query)));
-  app.get("/attorneys/:category", wrap((req, res, next) => serveList(req.params.category, langOf(req), res, next, req.query)));
   // El menú "Abogados"/"Attorneys" enlazaba a una página estática solo-buscador, sin
   // listado. Se redirige al listado dinámico, que ya trae el buscador integrado.
   app.get("/index.php/attorneys/index.html", wrap((_req, res) => { res.redirect(302, "/attorneys?lang=en"); return Promise.resolve(); }));
@@ -1115,6 +1298,105 @@ export async function setupMirror(app: Express) {
     "/index.php/capabilities/desks/index.html", "/index.php/capabilities/desks/",
     "/index.php/capabilities/capabilities-desks/index.html", "/index.php/capabilities/capabilities-desks/", "/capabilities/desks",
   ]) app.get(p, deskRetired);
+
+  const redirectLegacy = (target: string, lang?: Lang) => (req: Request, res: Response) => {
+    const url = new URL(target, "https://local.invalid");
+    const effectiveLang = lang || langOf(req);
+    if (effectiveLang === "en" && !/^\/(?:our-firm|contact|careers|capabilities|publications|privacy|about)(?:\/|$)/.test(target)) {
+      url.searchParams.set("lang", "en");
+    }
+    for (const key of ["q", "page"]) {
+      const value = req.query[key];
+      if (typeof value === "string" && value) url.searchParams.set(key, value);
+    }
+    res.redirect(301, url.pathname + url.search);
+  };
+
+  // Canonicaliza las páginas heredadas antes de registrar sus renderizadores de respaldo.
+  // De esta forma un enlace o favorito viejo entra una vez a la ruta limpia y el selector
+  // de idioma ya no queda atrapado en una URL que fuerza español o inglés.
+  const legacyPageRedirects: Array<[string, string, Lang?]> = [
+    ["/index.php/home", "/", "es"],
+    ["/index.php/home/", "/", "es"],
+    ["/index.php/home/index.html", "/", "es"],
+    ["/index.html", "/", undefined],
+    ["/index.php/index.html", "/", undefined],
+    ["/index.php/nuestra-firma/index.html", "/nuestra-firma", "es"],
+    ["/index.php/nuestra-firma/", "/nuestra-firma", "es"],
+    ["/index.php/our-firm/index.html", "/our-firm", "en"],
+    ["/index.php/our-firm/", "/our-firm", "en"],
+    ["/index.php/contacto/index.html", "/contacto", "es"],
+    ["/index.php/contacto/", "/contacto", "es"],
+    ["/index.php/contact/index.html", "/contact", "en"],
+    ["/index.php/contact/", "/contact", "en"],
+    ["/index.php/bolsa-de-trabajo/index.html", "/bolsa-de-trabajo", "es"],
+    ["/index.php/bolsa-de-trabajo/", "/bolsa-de-trabajo", "es"],
+    ["/index.php/careers/index.html", "/careers", "en"],
+    ["/index.php/careers/", "/careers", "en"],
+    ["/index.php/capacidades/index.html", "/capacidades", "es"],
+    ["/index.php/capacidades/", "/capacidades", "es"],
+    ["/index.php/capabilities/index.html", "/capabilities", "en"],
+    ["/index.php/capabilities/", "/capabilities", "en"],
+    ["/index.php/publicaciones/index.html", "/publicaciones", "es"],
+    ["/index.php/publicaciones/", "/publicaciones", "es"],
+    ["/index.php/publications/index.html", "/publications", "en"],
+    ["/index.php/publications/", "/publications", "en"],
+    ["/index.php/publicaciones/noticias/index.html", "/news", "es"],
+    ["/index.php/publications/news/index.html", "/news", "en"],
+    ["/index.php/publicaciones/articulos/index.html", "/articles", "es"],
+    ["/index.php/publications/articles/index.html", "/articles", "en"],
+    ["/index.php/aviso/index.html", "/aviso", "es"],
+    ["/index.php/aviso/", "/aviso", "es"],
+    ["/index.php/privacy/index.html", "/privacy", "en"],
+    ["/index.php/privacy/", "/privacy", "en"],
+    ["/index.php/capacidades/practicas/index.html", "/capacidades/practicas", "es"],
+    ["/index.php/capacidades/practicas/", "/capacidades/practicas", "es"],
+    ["/index.php/capabilities/practices/index.html", "/capabilities/practices", "en"],
+    ["/index.php/capabilities/practices/", "/capabilities/practices", "en"],
+    ["/index.php/capacidades/industrias/index.html", "/capacidades/industrias", "es"],
+    ["/index.php/capacidades/industrias/", "/capacidades/industrias", "es"],
+    ["/index.php/capabilities/industries/index.html", "/capabilities/industries", "en"],
+    ["/index.php/capabilities/industries/", "/capabilities/industries", "en"],
+  ];
+  for (const [legacy, target, lang] of legacyPageRedirects) app.get(legacy, redirectLegacy(target, lang));
+  app.get("/index.php/publication/p_id-:id.html", (req, res, next) => {
+    const slug = pubIdMap.get(req.params.id);
+    if (!slug) return next();
+    return redirectLegacy(`/news/${slug}`, "en")(req, res);
+  });
+  app.get("/index.php/publicacion/p_id-:id.html", (req, res, next) => {
+    const slug = pubIdMap.get(req.params.id);
+    if (!slug) return next();
+    return redirectLegacy(`/news/${slug}`, "es")(req, res);
+  });
+  app.get("/index.php/lawyer/l-:id.html", (req, res, next) => {
+    const slug = ids.attorney.get(req.params.id);
+    if (!slug) return next();
+    return redirectLegacy(`/lawyer/${slug}`, "en")(req, res);
+  });
+  app.get("/index.php/abogado/l-:id.html", (req, res, next) => {
+    const slug = ids.attorney.get(req.params.id);
+    if (!slug) return next();
+    return redirectLegacy(`/abogado/${slug}`, "es")(req, res);
+  });
+  for (const [pathPattern, map, prefix, lang] of [
+    ["/index.php/practice/p-:id.html", ids.practice, "/practice/", "en"],
+    ["/index.php/practica/p-:id.html", ids.practice, "/practice/", "es"],
+    ["/index.php/industry/p-:id.html", ids.industry, "/industry/", "en"],
+    ["/index.php/industria/p-:id.html", ids.industry, "/industry/", "es"],
+  ] as const) {
+    app.get(pathPattern, (req, res, next) => {
+      const slug = map.get(req.params.id);
+      if (!slug) return next();
+      return redirectLegacy(`${prefix}${slug}`, lang)(req, res);
+    });
+  }
+  app.get("/index.php/attorneys/:category/index.html", (req, res) =>
+    redirectLegacy(`/attorneys/${req.params.category}`, "en")(req, res),
+  );
+  app.get("/index.php/abogados/:category/index.html", (req, res) =>
+    redirectLegacy(`/attorneys/${ES_CATEGORY[req.params.category] || req.params.category}`, "es")(req, res),
+  );
 
   // ---------- Páginas institucionales (texto editable desde el panel) ----
   // Landing-resumen independiente: solo se enlaza desde el video del home.
@@ -1480,8 +1762,8 @@ export async function setupMirror(app: Express) {
       index: false,
       maxAge: "30d",
       setHeaders: (res, filePath) => {
-        if (/[\\/]templates[\\/]beez3[\\/](?:css[\\/]von\.css|js[\\/]min[\\/]functions\.min\.js)$/i.test(filePath)) {
-          // Estos dos assets cambian la navegación global y los HTML legacy
+        if (/[\\/]templates[\\/]beez3[\\/](?:css[\\/]von\.css|js[\\/]min[\\/](?:functions|slick)\.min\.js)$/i.test(filePath)) {
+          // Estos assets cambian navegación y accesibilidad global en los HTML legacy
           // los referencian sin versión; no deben permanecer obsoletos 30 días.
           res.setHeader("Cache-Control", "public, max-age=300, must-revalidate");
         } else if (/([\\/]_vendor[\\/]|\.(?:woff2?|ttf|eot|otf))/i.test(filePath)) {

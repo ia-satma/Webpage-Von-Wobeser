@@ -247,6 +247,23 @@ a.vw-read-more:focus-visible {
   outline-offset: 4px;
 }
 
+/* La lupa heredada ahora es un botón real. Se neutraliza únicamente el cromo
+   nativo del botón para conservar exactamente el arte y la posición originales. */
+.header .eyeglass {
+  appearance: none;
+  background-color: transparent;
+  border: 0;
+  color: inherit;
+  cursor: pointer;
+  margin: 0;
+  padding: 0;
+}
+
+.header .eyeglass:focus-visible {
+  outline: 2px solid #ac162c;
+  outline-offset: 3px;
+}
+
 /* En el módulo de Noticias el texto vive dentro de un <span> posicionado.
    La flecha debe pertenecer a ese mismo elemento, no al enlace contenedor. */
 .covid_headlines .news_item > a.vw-read-more {
@@ -446,6 +463,9 @@ a[href="/german-desk"],
     display: flex;
     gap: clamp(12px, 1.4vw, 28px);
     justify-content: center;
+    list-style: none;
+    margin: 0;
+    padding: 0;
     width: 100%;
   }
 
@@ -573,6 +593,9 @@ a[href="/german-desk"],
 
   nav.nav.menu_JS .nav__menu--holder {
     display: block;
+    list-style: none;
+    margin: 0;
+    padding: 0;
   }
 
   nav.nav.menu_JS .nav__menu--item {
