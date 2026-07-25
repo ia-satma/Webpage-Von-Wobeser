@@ -6,6 +6,7 @@ export type ConfigMap = Record<string, { value: string; valueEs: string; type: s
 
 /** Default site-config keys for the editable parts of the mirror frontend. */
 const DEFAULTS: Array<{ key: string; value: string; valueEs?: string; type: string; category: string; description: string }> = [
+  { key: "site_favicon", value: "/favicon-512x512.png", type: "url", category: "seo", description: "Favicon global del sitio y del panel administrativo" },
   { key: "hero_video", value: "/images/home-hero-desktop-v2.mp4", type: "url", category: "home", description: "Video optimizado de alta calidad del hero para escritorio" },
   { key: "hero_video_mobile", value: "/images/home-hero-mobile-v2.mp4", type: "url", category: "home", description: "Video optimizado de alta calidad del hero para móvil" },
   { key: "hero_video_poster", value: "/images/home-hero-poster-v2.webp", type: "url", category: "home", description: "Póster del primer fotograma real del hero" },

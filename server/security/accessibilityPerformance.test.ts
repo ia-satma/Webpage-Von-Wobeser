@@ -1,12 +1,14 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
 import test from "node:test";
 import * as cheerio from "cheerio";
+import sharp from "sharp";
 
 process.env.DATABASE_URL ||= "postgresql://test:test@127.0.0.1:5432/test";
 
 const { renderHome } = await import("../mirror/renderHome");
-const { applyA11y } = await import("../mirror/seo");
+const { applyA11y, applySeo, setFaviconConfig } = await import("../mirror/seo");
 const { hardenLegacyClientScripts, optimizeLegacyAssets, optimizePublicImageTags } = await import("../mirror/index");
 const { getCachedPublicPage, invalidatePublicPageCache, publicPageCacheSize } = await import("../mirror/pageCache");
 
@@ -34,6 +36,23 @@ test("el cromo compartido usa lista válida y botón de búsqueda accesible", ()
   assert.equal($(".eyeglass").attr("aria-label"), "Buscar");
   assert.equal($(".eyeglass").attr("aria-controls"), "search_q");
   assert.equal($(".eyeglass").attr("aria-expanded"), "false");
+});
+
+test("el favicon institucional usa fondo blanco y se inyecta en todas las páginas", async () => {
+  const iconPath = fileURLToPath(new URL("../../frontend-mirror/favicon-32x32.png", import.meta.url));
+  const { data, info } = await sharp(iconPath).removeAlpha().raw().toBuffer({ resolveWithObject: true });
+  assert.equal(info.width, 32);
+  assert.equal(info.height, 32);
+  assert.deepEqual([...data.subarray(0, 3)], [255, 255, 255]);
+
+  setFaviconConfig("/favicon-512x512.png");
+  const $ = cheerio.load('<!doctype html><html><head><link rel="shortcut icon" href="/anterior.ico"></head><body></body></html>');
+  applySeo($, { lang: "es", path: "/", title: "Inicio" });
+
+  assert.equal($('link[rel="icon"][sizes="32x32"]').attr("href"), "/favicon-32x32.png?v=20260724");
+  assert.equal($('link[rel="apple-touch-icon"]').attr("href"), "/apple-touch-icon.png?v=20260724");
+  assert.equal($('link[rel="manifest"]').attr("href"), "/manifest.json?v=20260724");
+  assert.equal($('link[href="/anterior.ico"]').length, 0);
 });
 
 test("Slick expone carruseles como listas, no como campos listbox sin nombre", () => {

@@ -17,7 +17,7 @@ import { renderNewsList, renderNewsDetail } from "./renderNews";
 import { applyPublicationsSearch, renderGlobalSearch } from "./renderSearch";
 import { buildIdMaps, type IdMaps } from "./idMap";
 import { cfg, getConfigMap, seedConfigDefaults, upsertConfig, isRichTextConfigKey, isOfficeConfigKey, invalidateConfigCache, type ConfigMap } from "./siteConfig";
-import { setBaseUrl, setAnalyticsConfig, applyA11y } from "./seo";
+import { setBaseUrl, setAnalyticsConfig, setFaviconConfig, applyA11y } from "./seo";
 import { renderRichText, sanitizeCms } from "./sanitize";
 import { renderOfficeShowcase } from "./renderOfficeShowcase";
 import { getCachedPublicPage } from "./pageCache";
@@ -914,6 +914,7 @@ export async function setupMirror(app: Express) {
       ga4MeasurementId: configAtStartup.ga4_measurement_id?.value,
       searchConsoleVerification: configAtStartup.google_site_verification?.value,
     });
+    setFaviconConfig(configAtStartup.site_favicon?.value);
   } catch (e) {
     console.warn("[mirror] No se pudo sembrar siteConfig:", (e as Error).message);
   }

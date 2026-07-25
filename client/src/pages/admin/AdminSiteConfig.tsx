@@ -150,10 +150,17 @@ const PAGES: Record<string, SiteConfigPage> = {
   },
   seo: {
     title: "SEO — Analytics y verificación",
-    description: "Conecta Google Analytics (GA4) y Google Search Console. Vacío = no se instala nada todavía.",
+    description: "Administra el favicon y conecta Google Analytics (GA4) y Google Search Console.",
     icon: LineChart,
     groups: [
       {
+        title: "Identidad del navegador",
+        fields: [
+          { key: "site_favicon", label: "Favicon del sitio", media: "image", help: "Usa una imagen cuadrada. El favicon institucional incluido tiene fondo blanco. Requiere reiniciar el servidor después de sustituirlo." },
+        ],
+      },
+      {
+        title: "Medición y verificación",
         fields: [
           { key: "ga4_measurement_id", label: "Google Analytics (GA4) — Measurement ID", help: "Formato G-XXXXXXX, lo da Google Analytics al crear la propiedad. Vacío = no se instala GA4 todavía. Requiere reiniciar el servidor para tomar efecto.", pattern: /^G-[A-Z0-9]+$/i, patternError: "El Measurement ID debe tener el formato G-XXXXXXX (lo copias de Google Analytics, no lo inventes)." },
           { key: "google_site_verification", label: "Google Search Console — código de verificación", help: "El valor de content=\"...\" que da Google al verificar por meta tag. No hace falta si ya verificaste por DNS en GoDaddy. Requiere reiniciar el servidor para tomar efecto." },
