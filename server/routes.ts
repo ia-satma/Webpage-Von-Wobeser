@@ -9,7 +9,12 @@ import fs from "fs";
 import crypto from "crypto";
 import net from "node:net";
 import multer from "multer";
-import { generateResponsiveImageVariants, optimizeImageIfNeeded } from "./media/optimizeImage";
+import {
+  canSanitizeRasterMime,
+  generateResponsiveImageVariants,
+  optimizeImageIfNeeded,
+  sanitizeRasterImage,
+} from "./media/optimizeImage";
 import { generateHeroVideoVariants } from "./media/optimizeVideo";
 import { sanitizeCms, sanitizeFields } from "./mirror/sanitize";
 import { getConfigMap, setHeroMediaConfig } from "./mirror/siteConfig";
@@ -3620,14 +3625,46 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
         await removeUploadQuietly(req.file.path);
         return res.status(400).json({ error: "El contenido del archivo no coincide con su formato." });
       }
-      await scanFileForMalware(req.file.path);
+
+      // Los raster compatibles se decodifican y re-codifican dentro de cuarentena.
+      // Así se eliminan EXIF/chunks auxiliares y se neutralizan archivos políglota.
+      let sanitizedRaster = false;
+      let sanitizedSize = req.file.size;
+      if (canSanitizeRasterMime(req.file.mimetype)) {
+        try {
+          sanitizedSize = await sanitizeRasterImage(req.file.path, req.file.mimetype);
+          sanitizedRaster = true;
+        } catch {
+          await removeUploadQuietly(req.file.path);
+          return res.status(400).json({
+            error: "La imagen está dañada, excede el límite de resolución o no puede procesarse.",
+          });
+        }
+      }
+
+      try {
+        await scanFileForMalware(req.file.path);
+      } catch (error) {
+        const message = error instanceof Error ? error.message : "";
+        if (message === "Malware detected") {
+          await removeUploadQuietly(req.file.path);
+          return res.status(400).json({ error: "El archivo fue rechazado por seguridad." });
+        }
+        // Solo PNG/JPEG/WebP que ya fueron decodificados y re-codificados pueden
+        // continuar si el binario o la base de firmas de ClamAV no está disponible.
+        if (!(message === "Malware scanner unavailable" && sanitizedRaster)) {
+          throw error;
+        }
+        console.warn("[media-upload] ClamAV no disponible; raster saneado aceptado.");
+      }
+
       acceptedMediaPath = await acceptQuarantinedPublicMedia(req.file.path, uploadsDir);
       req.file.path = acceptedMediaPath;
 
       // Imágenes pesadas (>1MB) se redimensionan/recomprimen antes de registrar el tamaño real.
       // Video no se toca en esta ronda (requiere ffmpeg, ver server/media/optimizeVideo.ts).
-      let finalSize = req.file.size;
-      const optimizedSize = await optimizeImageIfNeeded(req.file.path, req.file.mimetype, req.file.size);
+      let finalSize = sanitizedSize;
+      const optimizedSize = await optimizeImageIfNeeded(req.file.path, req.file.mimetype, sanitizedSize);
       if (optimizedSize != null) finalSize = optimizedSize;
       await generateResponsiveImageVariants(req.file.path, req.file.mimetype);
 

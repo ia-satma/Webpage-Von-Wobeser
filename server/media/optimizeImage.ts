@@ -6,9 +6,56 @@ const MAX_WIDTH = 2000;
 const THRESHOLD_BYTES = 1 * 1024 * 1024; // 1MB — por debajo no vale la pena procesar
 const JPEG_QUALITY = 80;
 const WEBP_QUALITY = 80;
+const MAX_SANITIZED_INPUT_PIXELS = 25_000_000;
+const MAX_SANITIZED_BYTES = 200 * 1024 * 1024;
 
 const IMAGE_MIMES = new Set(["image/jpeg", "image/png", "image/webp"]);
 const RESPONSIVE_WIDTHS = [640, 1280, 1920] as const;
+
+export function canSanitizeRasterMime(mimeType: string): boolean {
+  return IMAGE_MIMES.has(mimeType);
+}
+
+/**
+ * Decodifica y vuelve a codificar un raster antes de sacarlo de cuarentena.
+ * Además de comprobar que la imagen es realmente decodificable, elimina EXIF,
+ * perfiles y chunks auxiliares que podrían convertirla en un archivo políglota.
+ *
+ * Este paso permite aceptar PNG/JPEG/WebP saneados cuando ClamAV no está
+ * disponible temporalmente. GIF, SVG, documentos y videos no usan este fallback.
+ */
+export async function sanitizeRasterImage(
+  filePath: string,
+  mimeType: string,
+): Promise<number> {
+  if (!canSanitizeRasterMime(mimeType)) {
+    throw new Error("Unsupported raster format");
+  }
+
+  let pipeline = sharp(filePath, {
+    failOn: "warning",
+    limitInputPixels: MAX_SANITIZED_INPUT_PIXELS,
+  }).rotate();
+  const metadata = await pipeline.metadata();
+  if (!metadata.width || !metadata.height) {
+    throw new Error("Invalid raster dimensions");
+  }
+
+  if (mimeType === "image/jpeg") {
+    pipeline = pipeline.jpeg({ quality: 90, mozjpeg: true });
+  } else if (mimeType === "image/png") {
+    pipeline = pipeline.png({ compressionLevel: 9, adaptiveFiltering: true });
+  } else {
+    pipeline = pipeline.webp({ quality: 90, effort: 5 });
+  }
+
+  const sanitized = await pipeline.toBuffer();
+  if (!sanitized.length || sanitized.length > MAX_SANITIZED_BYTES) {
+    throw new Error("Sanitized raster exceeds size limit");
+  }
+  fs.writeFileSync(filePath, sanitized, { mode: 0o600 });
+  return sanitized.length;
+}
 
 /**
  * Comprime en el mismo archivo una imagen recién subida si supera el umbral de tamaño:

@@ -4,6 +4,8 @@ import os from "node:os";
 import path from "node:path";
 import test from "node:test";
 import JSZip from "jszip";
+import sharp from "sharp";
+import { sanitizeRasterImage } from "../media/optimizeImage";
 import { validateCvFile, validatePublicMediaSignature } from "./uploads";
 
 test("media validation checks bytes instead of trusting browser MIME", async () => {
@@ -16,6 +18,37 @@ test("media validation checks bytes instead of trusting browser MIME", async () 
     const png = path.join(directory, "real.png");
     await fs.writeFile(png, Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]));
     assert.equal(await validatePublicMediaSignature(png, "image/png"), true);
+  } finally {
+    await fs.rm(directory, { recursive: true, force: true });
+  }
+});
+
+test("public raster sanitization decodes and removes appended payloads", async () => {
+  const directory = await fs.mkdtemp(path.join(os.tmpdir(), "vwb-raster-test-"));
+  try {
+    const imagePath = path.join(directory, "recognition.png");
+    const cleanPng = await sharp({
+      create: {
+        width: 80,
+        height: 60,
+        channels: 3,
+        background: { r: 255, g: 255, b: 255 },
+      },
+    }).png().toBuffer();
+    await fs.writeFile(
+      imagePath,
+      Buffer.concat([cleanPng, Buffer.from("<script>alert(1)</script>")]),
+    );
+
+    const sanitizedSize = await sanitizeRasterImage(imagePath, "image/png");
+    const sanitized = await fs.readFile(imagePath);
+    const metadata = await sharp(sanitized).metadata();
+
+    assert.equal(sanitizedSize, sanitized.length);
+    assert.equal(metadata.width, 80);
+    assert.equal(metadata.height, 60);
+    assert.equal(sanitized.includes(Buffer.from("<script>")), false);
+    assert.equal(await validatePublicMediaSignature(imagePath, "image/png"), true);
   } finally {
     await fs.rm(directory, { recursive: true, force: true });
   }
