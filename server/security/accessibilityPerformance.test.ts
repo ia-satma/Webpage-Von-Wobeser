@@ -9,8 +9,14 @@ process.env.DATABASE_URL ||= "postgresql://test:test@127.0.0.1:5432/test";
 
 const { renderHome } = await import("../mirror/renderHome");
 const { applyA11y, applySeo, setFaviconConfig } = await import("../mirror/seo");
-const { hardenLegacyClientScripts, optimizeLegacyAssets, optimizePublicImageTags } = await import("../mirror/index");
+const {
+  hardenLegacyClientScripts,
+  navigationLabelsScript,
+  optimizeLegacyAssets,
+  optimizePublicImageTags,
+} = await import("../mirror/index");
 const { getCachedPublicPage, invalidatePublicPageCache, publicPageCacheSize } = await import("../mirror/pageCache");
+const { buildPublicNavigationMenu } = await import("../mirror/navigationMenu");
 
 test("el cromo compartido usa lista válida y botón de búsqueda accesible", () => {
   const $ = cheerio.load(`<!doctype html><html lang="es"><head></head><body>
@@ -124,9 +130,77 @@ test("el recurso compartido corrige también HTML legacy antes de inicializar el
   assert.match(functions, /function normalizeSharedChromeA11y\(\)/);
   assert.match(functions, /document\.createElement\("ul"\)/);
   assert.match(functions, /document\.createElement\("button"\)/);
+  assert.match(functions, /function populateCapabilitySubmenus\(e\)/);
+  assert.match(functions, /\/api\/public\/navigation-menu/);
+  assert.match(functions, /aria-expanded/);
   assert.ok(functions.indexOf("normalizeSharedChromeA11y()") < functions.lastIndexOf("menuToggle()"));
   assert.match(css, /\.header \.eyeglass:focus-visible/);
   assert.match(css, /nav\.nav\.menu_JS \.nav__menu--holder[\s\S]*list-style: none/);
+  assert.match(css, /\.vw-subnav--practices[\s\S]*grid-template-columns: repeat\(2/);
+  assert.match(css, /\.vw-subnav--industries/);
+});
+
+test("el menú público expone 19 prácticas y 7 industrias desde contenido publicado", () => {
+  const practices = Array.from({ length: 19 }, (_, index) => ({
+    slug: `practice-${index + 1}`,
+    name: `Practice ${index + 1}`,
+    nameEs: `Práctica ${index + 1}`,
+    order: index + 1,
+    published: true,
+  }));
+  practices.push(
+    {
+      slug: "german-desk",
+      name: "German Desk",
+      nameEs: "Desk Alemán",
+      order: 20,
+      published: true,
+    },
+    {
+      slug: "hidden-practice",
+      name: "Hidden practice",
+      nameEs: "Práctica oculta",
+      order: 21,
+      published: false,
+    },
+  );
+  const industries = Array.from({ length: 7 }, (_, index) => ({
+    slug: `industry-${index + 1}`,
+    name: `Industry ${index + 1}`,
+    nameEs: `Industria ${index + 1}`,
+    order: index + 1,
+    published: true,
+  }));
+  industries.push({
+    slug: "hidden-industry",
+    name: "Hidden industry",
+    nameEs: "Industria oculta",
+    order: 8,
+    published: false,
+  });
+
+  const es = buildPublicNavigationMenu({ practices, industries }, "es");
+  const en = buildPublicNavigationMenu({ practices, industries }, "en");
+
+  assert.equal(es.practices.length, 19);
+  assert.equal(es.industries.length, 7);
+  assert.equal(en.practices.length, 19);
+  assert.equal(en.industries.length, 7);
+  assert.deepEqual(es.practices[0], {
+    label: "Práctica 1",
+    href: "/practice/practice-1",
+    slug: "practice-1",
+  });
+  assert.deepEqual(en.industries[6], {
+    label: "Industry 7",
+    href: "/industry/industry-7?lang=en",
+    slug: "industry-7",
+  });
+  assert.equal(es.practices.some((item) => item.slug === "german-desk"), false);
+
+  const injected = navigationLabelsScript({}, "es", es);
+  assert.match(injected, /window\.__VW_NAV_MENU_ITEMS__/);
+  assert.equal((injected.match(/"href":/g) || []).length, 26);
 });
 
 test("la carga pública elimina librerías Joomla duplicadas y usa jQuery vigente", () => {

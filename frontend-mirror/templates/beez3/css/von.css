@@ -530,6 +530,24 @@ a[href="/german-desk"],
     z-index: 11;
   }
 
+  nav.nav.menu_JS .vw-subnav--practices {
+    align-items: start;
+    column-gap: 32px;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(240px, 1fr));
+    max-height: calc(100vh - 104px);
+    overflow-y: auto;
+    padding: 14px 20px 16px;
+    white-space: normal;
+    width: min(720px, calc(100vw - 48px));
+  }
+
+  nav.nav.menu_JS .vw-subnav--industries {
+    min-width: 360px;
+    padding: 14px 18px 16px;
+    white-space: normal;
+  }
+
   nav.nav.menu_JS .vw-has-subnav:hover .vw-subnav,
   nav.nav.menu_JS .vw-has-subnav:focus-within .vw-subnav {
     opacity: 1;
@@ -537,17 +555,39 @@ a[href="/german-desk"],
     visibility: visible;
   }
 
+  nav.nav.menu_JS .vw-has-subnav.vw-subnav-dismissed .vw-subnav {
+    opacity: 0;
+    pointer-events: none;
+    visibility: hidden;
+  }
+
   nav.nav.menu_JS .vw-subnav .nav__menu--sublink {
     color: #5e5e5e;
     display: block !important;
     font-family: "Geomanist-Book", sans-serif;
-    font-size: 11px;
+    font-size: 12px;
     letter-spacing: 0.035em;
-    line-height: 1.25;
+    line-height: 1.35;
     margin: 0;
     max-height: none;
-    padding: 6px 0;
+    min-width: 0;
+    padding: 7px 0;
     text-transform: none;
+  }
+
+  nav.nav.menu_JS .vw-subnav--practices .nav__menu--sublink {
+    border-bottom: 1px solid #ededed;
+    height: 100%;
+    padding-right: 8px;
+  }
+
+  nav.nav.menu_JS .vw-subnav--industries .nav__menu--sublink {
+    border-bottom: 1px solid #ededed;
+  }
+
+  nav.nav.menu_JS .vw-subnav--practices .nav__menu--sublink:nth-last-child(-n + 2),
+  nav.nav.menu_JS .vw-subnav--industries .nav__menu--sublink:last-child {
+    border-bottom-color: transparent;
   }
 
   nav.nav.menu_JS .vw-subnav .nav__menu--sublink:hover,
@@ -610,6 +650,16 @@ a[href="/german-desk"],
     display: block;
   }
 
+  nav.nav.menu_JS .vw-subnav--practices,
+  nav.nav.menu_JS .vw-subnav--industries {
+    display: block;
+    max-height: none;
+    min-width: 0;
+    overflow: visible;
+    padding: 0 0 2px 16px;
+    width: auto;
+  }
+
   nav.nav.menu_JS .nav__menu--item:first-child {
     border-top: 0;
   }
@@ -632,6 +682,7 @@ a[href="/german-desk"],
   }
 
   nav.nav.menu_JS .vw-subnav .nav__menu--sublink {
+    border-bottom: 0;
     color: #666;
     display: block;
     font-family: "Geomanist-Book", sans-serif;
@@ -640,6 +691,7 @@ a[href="/german-desk"],
     line-height: 1.35;
     margin-top: 8px;
     max-height: none;
+    padding: 0;
     text-transform: none;
   }
 
