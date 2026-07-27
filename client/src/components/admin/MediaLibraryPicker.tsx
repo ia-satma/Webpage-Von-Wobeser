@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Check, Film, Image as ImageIcon, Search } from "lucide-react";
+import { AlertTriangle, Check, Film, Image as ImageIcon, Search } from "lucide-react";
 import { adminApiRequest } from "@/lib/adminAuth";
 import { Button } from "@/components/ui/button";
 import {
@@ -27,6 +27,14 @@ export type MediaLibraryItem = {
   altEs?: string | null;
   createdAt?: string | null;
   sourceLabel?: string | null;
+  available?: boolean | null;
+  storageProvider?: string | null;
+};
+
+type MediaStorageStatus = {
+  required: boolean;
+  available: boolean;
+  provider: "replit_app_storage" | "local_development";
 };
 
 const SUPPORTED_LIBRARY_MIMES = {
@@ -81,6 +89,19 @@ export function MediaLibraryPicker({
     enabled: open,
     staleTime: 5 * 60 * 1000,
   });
+  const storageQuery = useQuery<MediaStorageStatus>({
+    queryKey: ["/api/admin/media/storage-status"],
+    queryFn: async () => {
+      const response = await adminApiRequest("GET", "/api/admin/media/storage-status");
+      const payload = await response.json().catch(() => null);
+      if (!payload || typeof payload.available !== "boolean") {
+        throw new Error("No se pudo verificar el almacenamiento.");
+      }
+      return payload;
+    },
+    enabled: open,
+    staleTime: 60 * 1000,
+  });
 
   const items = useMemo(() => {
     const term = search.trim().toLocaleLowerCase("es");
@@ -96,9 +117,11 @@ export function MediaLibraryPicker({
 
   const choose = () => {
     if (!selectedPath) return;
+    if (items.find((item) => item.path === selectedPath)?.available === false) return;
     onSelect(selectedPath);
     onOpenChange(false);
   };
+  const selectedUnavailable = items.find((item) => item.path === selectedPath)?.available === false;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -111,6 +134,15 @@ export function MediaLibraryPicker({
         </DialogHeader>
 
         <div className="space-y-4 px-6">
+          {storageQuery.data?.required && !storageQuery.data.available ? (
+            <div className="flex items-start gap-3 rounded-lg border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive" role="alert">
+              <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
+              <p>
+                App Storage no está conectado. Las cargas nuevas están bloqueadas para evitar
+                que las imágenes o videos desaparezcan al volver a publicar.
+              </p>
+            </div>
+          ) : null}
           <div className="relative">
             <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
             <Input
@@ -153,20 +185,35 @@ export function MediaLibraryPicker({
               <div className="grid grid-cols-2 gap-3 pb-1 sm:grid-cols-3 lg:grid-cols-4">
                 {items.map((item) => {
                   const selected = selectedPath === item.path;
+                  const unavailable = item.available === false;
                   return (
                     <button
                       key={item.id}
                       type="button"
-                      onClick={() => setSelectedPath(item.path)}
+                      onClick={() => {
+                        if (!unavailable) setSelectedPath(item.path);
+                      }}
                       aria-pressed={selected}
+                      aria-disabled={unavailable}
+                      disabled={unavailable}
                       className={cn(
                         "group overflow-hidden rounded-lg border bg-card text-left transition-[border-color,box-shadow,transform] duration-200 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
-                        selected ? "border-primary ring-1 ring-primary" : "border-border hover:border-muted-foreground/50",
+                        unavailable
+                          ? "cursor-not-allowed border-destructive/30 opacity-75"
+                          : selected
+                            ? "border-primary ring-1 ring-primary"
+                            : "border-border hover:border-muted-foreground/50",
                       )}
                       data-testid={`media-library-item-${item.id}`}
                     >
                       <div className="relative aspect-[4/3] overflow-hidden bg-muted">
-                        {isVideo ? (
+                        {unavailable ? (
+                          <span className="flex h-full flex-col items-center justify-center gap-2 px-3 text-center text-destructive">
+                            <AlertTriangle className="h-7 w-7" aria-hidden="true" />
+                            <span className="text-xs font-medium">Archivo no disponible</span>
+                            <span className="text-[10px] text-muted-foreground">Vuelve a subir el original</span>
+                          </span>
+                        ) : isVideo ? (
                           <>
                             <video src={item.path} className="h-full w-full object-cover" muted playsInline preload="metadata" />
                             <span className="pointer-events-none absolute bottom-2 left-2 flex items-center gap-1 rounded-md bg-card/90 px-2 py-1 text-[10px] font-medium text-foreground" aria-hidden="true">
@@ -185,7 +232,7 @@ export function MediaLibraryPicker({
                       <div className="space-y-1 px-3 py-2.5">
                         <p className="truncate text-xs font-medium" title={item.originalName}>{item.originalName}</p>
                         <p className="truncate text-[11px] text-muted-foreground">
-                          {[item.sourceLabel, readableSize(item.size), readableDate(item.createdAt)].filter(Boolean).join(" · ")}
+                          {[item.storageProvider, item.sourceLabel, readableSize(item.size), readableDate(item.createdAt)].filter(Boolean).join(" · ")}
                         </p>
                       </div>
                     </button>
@@ -198,7 +245,7 @@ export function MediaLibraryPicker({
 
         <DialogFooter className="border-t px-6 py-4">
           <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
-          <Button type="button" onClick={choose} disabled={!selectedPath || selectedPath === currentValue} data-testid="button-use-library-media">
+          <Button type="button" onClick={choose} disabled={!selectedPath || selectedUnavailable || selectedPath === currentValue} data-testid="button-use-library-media">
             Usar archivo seleccionado
           </Button>
         </DialogFooter>
