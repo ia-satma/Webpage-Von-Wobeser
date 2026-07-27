@@ -61,3 +61,6 @@ timeoutMs = 90000
 
 [userenv.shared]
 AI_INTEGRATIONS_OPENAI_BASE_URL = "https://api.openai.com/v1"
+
+[objectStorage]
+defaultBucketID = "replit-objstore-4fe099a5-d86a-4249-ab6d-16ac6571febe"
