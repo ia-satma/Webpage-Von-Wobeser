@@ -449,7 +449,7 @@ export async function seedConfigDefaults(): Promise<void> {
     const obsolete = (value: string | null | undefined) => {
       const normalized = String(value || "").replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").toLowerCase();
       return key === "page_firm_intro"
-        ? /\bdesk\b|1952|70 (?:years|años)|seven decades|siete décadas|three decades|tres décadas|18 (?:legal )?practices|18 prácticas/.test(normalized)
+        ? /\bdesk\b|1952|70 (?:years|años)|seven decades|siete décadas|three decades|tres décadas|19 (?:legal )?practices|19 prácticas/.test(normalized)
         : /best lawyers|benchmark litigation|fortune 50|dow jones|chambers and partners global/.test(normalized);
     };
     const keepEn = current.value?.trim() && !obsolete(current.value);

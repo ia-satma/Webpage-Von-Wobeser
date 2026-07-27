@@ -28,6 +28,10 @@ import { renderRichText, sanitizeCms } from "./sanitize";
 import { renderOfficeShowcase } from "./renderOfficeShowcase";
 import { getCachedPublicPage } from "./pageCache";
 import {
+  isPublicPracticeSlug,
+  isVisiblePublicPractice,
+} from "./publicPracticeGroups";
+import {
   getPublicNavigationMenu,
   type PublicNavigationMenu,
 } from "./navigationMenu";
@@ -80,7 +84,7 @@ async function getAttorneyGroups(memberId: string) {
       .innerJoin(industryGroups, eq(teamMemberIndustryGroups.industryGroupId, industryGroups.id))
       .where(and(eq(teamMemberIndustryGroups.teamMemberId, memberId), eq(industryGroups.published, true))),
   ]);
-  return { practiceGroups: pg.filter((group) => group.slug !== "german-desk"), industryGroups: ig };
+  return { practiceGroups: pg.filter((group) => isPublicPracticeSlug(group.slug)), industryGroups: ig };
 }
 
 // Canonical layouts from the mirror, EN + ES variants. The ES files carry the
@@ -1012,7 +1016,7 @@ export async function setupMirror(app: Express) {
 
     const practiceGroupsRaw = await storage.getPracticeGroups();
     const practiceGroups = practiceGroupsRaw
-      .filter((pg: any) => pg.published !== false && pg.slug !== "german-desk")
+      .filter(isVisiblePublicPractice)
       .map((pg) => ({ slug: pg.slug, name: pg.name, nameEs: pg.nameEs }));
 
     sendPage(res, renderAttorneyList(pick(TEMPLATES.list, lang), attorneys, category, lang, { practiceGroups, showSearch }));
@@ -1051,7 +1055,7 @@ export async function setupMirror(app: Express) {
 
   const servePractice = async (slug: string | undefined, lang: Lang, res: Response, next: NextFunction) => {
     if (!slug) return next();
-    if (slug === "german-desk") {
+    if (!isPublicPracticeSlug(slug)) {
       res.status(410).type("html").send(lang === "es" ? "Esta sección fue retirada" : "This section has been retired");
       return;
     }
@@ -1159,7 +1163,7 @@ export async function setupMirror(app: Express) {
         .filter((item) => item.published !== false && contains(item.name, item.title, item.titleEs, item.role, item.roleEs, item.bio, item.bioEs))
         .slice(0, 20),
       practiceGroups: practiceRows
-        .filter((item) => item.published !== false && item.slug !== "german-desk" && contains(item.name, item.nameEs, item.description, item.descriptionEs))
+        .filter((item) => isVisiblePublicPractice(item) && contains(item.name, item.nameEs, item.description, item.descriptionEs))
         .slice(0, 12),
       industryGroups: industryRows
         .filter((item) => item.published !== false && contains(item.name, item.nameEs, item.description, item.descriptionEs))
@@ -1290,7 +1294,7 @@ export async function setupMirror(app: Express) {
     const seo = GROUP_LIST_SEO[kind];
     const rows = kind === "practice" ? await storage.getPracticeGroups() : await storage.getIndustryGroups();
     const items: GroupListItem[] = rows
-      .filter((r: any) => r.published !== false && (kind !== "practice" || r.slug !== "german-desk"))
+      .filter((r: any) => r.published !== false && (kind !== "practice" || isPublicPracticeSlug(r.slug)))
       .map((r: any) => ({ slug: r.slug, name: r.name, nameEs: r.nameEs, order: r.order }));
     sendPage(
       res,

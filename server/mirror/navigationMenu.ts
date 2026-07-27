@@ -1,4 +1,6 @@
 import { storage } from "../storage";
+import { isPublicPracticeSlug } from "./publicPracticeGroups";
+import { localizedGroupLabel, sortGroupsAlphabetically } from "./sortPublicGroups";
 
 export type NavigationMenuEntry = {
   label: string;
@@ -30,12 +32,12 @@ const SAFE_SLUG = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 let cache: { expiresAt: number; value: RawNavigationGroups } | null = null;
 let inFlight: Promise<RawNavigationGroups> | null = null;
 
-function publicGroups(rows: NavigationGroupRecord[], excludeGermanDesk = false): NavigationGroupRecord[] {
+function publicGroups(rows: NavigationGroupRecord[], practices = false): NavigationGroupRecord[] {
   return rows
     .filter((row) => (
       row.published !== false
       && SAFE_SLUG.test(row.slug)
-      && (!excludeGermanDesk || row.slug !== "german-desk")
+      && (!practices || isPublicPracticeSlug(row.slug))
     ))
     .sort((a, b) => (
       (a.order ?? 0) - (b.order ?? 0)
@@ -50,13 +52,16 @@ export function buildPublicNavigationMenu(
   const suffix = lang === "en" ? "?lang=en" : "";
   const mapEntries = (rows: NavigationGroupRecord[], kind: "practice" | "industry") =>
     rows.map((row) => ({
-      label: (lang === "es" ? row.nameEs : row.name).trim(),
+      label: localizedGroupLabel(row, lang),
       href: `/${kind}/${encodeURIComponent(row.slug)}${suffix}`,
       slug: row.slug,
     })).filter((row) => row.label.length > 0);
 
   return {
-    practices: mapEntries(publicGroups(groups.practices, true), "practice"),
+    practices: mapEntries(
+      sortGroupsAlphabetically(publicGroups(groups.practices, true), lang),
+      "practice",
+    ),
     industries: mapEntries(publicGroups(groups.industries), "industry"),
   };
 }

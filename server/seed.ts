@@ -180,6 +180,28 @@ const practiceGroupsData = [
     iconName: "leaf", 
     order: 16 
   },
+  {
+    name: "Immigration & Global Mobility",
+    nameEs: "Migración y Movilidad Global",
+    slug: "immigration-global-mobility",
+    description: "Immigration compliance and international mobility strategies for companies and their personnel.",
+    descriptionEs: "Cumplimiento migratorio y estrategias de movilidad internacional para empresas y su personal.",
+    fullDescription: "Von Wobeser y Sierra advises companies and their personnel on Mexican immigration compliance, work permits, relocation strategies and international mobility matters.",
+    fullDescriptionEs: "Von Wobeser y Sierra asesora a empresas y a su personal en cumplimiento migratorio mexicano, permisos de trabajo, estrategias de reubicación y asuntos de movilidad internacional.",
+    iconName: "plane",
+    order: 17,
+  },
+  {
+    name: "Projects & Infrastructure",
+    nameEs: "Proyectos e Infraestructura",
+    slug: "projects-infrastructure",
+    description: "Development, financing, construction and operation of infrastructure projects in Mexico.",
+    descriptionEs: "Desarrollo, financiamiento, construcción y operación de proyectos de infraestructura en México.",
+    fullDescription: "Von Wobeser y Sierra advises clients on the development, financing, construction and operation of infrastructure projects across strategic sectors in Mexico.",
+    fullDescriptionEs: "Von Wobeser y Sierra asesora a clientes en el desarrollo, financiamiento, construcción y operación de proyectos de infraestructura en sectores estratégicos de México.",
+    iconName: "building",
+    order: 18,
+  },
   { 
     name: "Administrative Law", 
     nameEs: "Derecho Administrativo", 
@@ -189,7 +211,8 @@ const practiceGroupsData = [
     fullDescription: "Von Wobeser y Sierra's Administrative Law practice, also known as Constitutional Amparo & Administrative Proceedings, is a key component of the firm's full-service offerings and has earned Highly Recommended recognition from Latin Lawyer 250. Core services include constitutional law proceedings covering amparo challenges against public authorities and legal provisions, administrative litigation and dispute resolution, government procurement and public works contracting, administrative law advice for national and foreign clients across sectors, disputes with government entities including the Federal Electricity Commission, Petróleos Mexicanos and other public entities, foreign investment matters with administrative law dimensions, and energy and natural resources regulatory matters. The practice stands out for handling complex cases that combine administrative law with other specialties, particularly commercial law, investment law, and arbitration, positioning the firm well for disputes against government entities that require both administrative expertise and arbitration capabilities. The practice serves prestigious domestic and international clients including Fortune 500 companies and major energy sector players.",
     fullDescriptionEs: "La práctica de Derecho Administrativo de Von Wobeser y Sierra, también conocida como Amparo Constitucional y Procedimientos Administrativos, es un componente clave de la oferta de servicios completos de la firma y ha obtenido el reconocimiento de Altamente Recomendado de Latin Lawyer 250. Los servicios principales incluyen procedimientos de derecho constitucional cubriendo amparos contra autoridades públicas y disposiciones legales, litigio administrativo y resolución de disputas, contratación pública y obras públicas, asesoría en derecho administrativo para clientes nacionales y extranjeros en diversos sectores, disputas con entidades gubernamentales incluyendo la Comisión Federal de Electricidad, Petróleos Mexicanos y otras entidades públicas, asuntos de inversión extranjera con dimensiones de derecho administrativo, y asuntos regulatorios de energía y recursos naturales. La práctica destaca por manejar casos complejos que combinan derecho administrativo con otras especialidades, particularmente derecho comercial, derecho de inversiones y arbitraje, posicionando a la firma para disputas contra entidades gubernamentales que requieren tanto experiencia administrativa como capacidades de arbitraje. La práctica atiende a clientes nacionales e internacionales prestigiosos incluyendo empresas Fortune 500 y actores importantes del sector energético.",
     iconName: "file-text", 
-    order: 17 
+    order: 19,
+    published: false,
   },
   { 
     name: "German Desk", 
@@ -200,7 +223,8 @@ const practiceGroupsData = [
     fullDescription: "The German Desk at Von Wobeser y Sierra is a specialized practice group that bridges German business culture with Mexican legal expertise, serving German and Austrian companies operating in Mexico for over three decades. The team includes German and Austrian attorneys with legal educations from their home countries, Mexican lawyers with extensive experience in Mexican business law, and German-speaking professionals who understand German values, mentality, and business culture. Core services include corporate and M&A transactions, foreign investment matters, commercial contracts and negotiations, energy and natural resources, automotive and manufacturing sectors, pharmaceutical and life sciences, environmental and regulatory compliance, and international transactions. Key differentiators include cultural understanding with team members sharing common language and cultural roots with German clients, a specialized communication channel optimized for German-speaking clients, deep market knowledge as experts in Mexican business environment and regulatory dynamics, ongoing education with active monitoring of legal framework changes, and over 34 years of experience successfully concluding multiple international transactions for German industry leaders.",
     fullDescriptionEs: "El Desk Alemán de Von Wobeser y Sierra es un grupo de práctica especializado que conecta la cultura empresarial alemana con la experiencia legal mexicana, atendiendo a empresas alemanas y austriacas que operan en México por más de tres décadas. El equipo incluye abogados alemanes y austriacos con formación legal de sus países de origen, abogados mexicanos con amplia experiencia en derecho empresarial mexicano, y profesionales de habla alemana que entienden los valores, mentalidad y cultura empresarial alemana. Los servicios principales incluyen transacciones corporativas y de M&A, asuntos de inversión extranjera, contratos comerciales y negociaciones, energía y recursos naturales, sectores automotriz y de manufactura, farmacéutica y ciencias de la vida, cumplimiento ambiental y regulatorio, y transacciones internacionales. Los diferenciadores clave incluyen entendimiento cultural con miembros del equipo que comparten idioma común y raíces culturales con clientes alemanes, un canal de comunicación especializado optimizado para clientes de habla alemana, profundo conocimiento del mercado como expertos en el ambiente empresarial mexicano y dinámicas regulatorias, educación continua con monitoreo activo de cambios en el marco legal, y más de 34 años de experiencia concluyendo exitosamente múltiples transacciones internacionales para líderes de la industria alemana.",
     iconName: "globe", 
-    order: 18 
+    order: 20,
+    published: false,
   },
 ];
 

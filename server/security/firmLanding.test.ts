@@ -13,9 +13,15 @@ const template = `<!doctype html><html lang="es"><head><title>Anterior</title></
 </body></html>`;
 
 test("landing de Firma usa hechos verificados y cifras publicadas", () => {
-  const html = renderFirmLanding(template, {}, "es", {
+  const html = renderFirmLanding(template, {
+    firm_landing_stat_3_value: { value: "19", valueEs: "19", type: "text" },
+  }, "es", {
     teamMembers: [{ published: true }, { published: true }, { published: false }],
-    practices: [{ published: true, slug: "arbitraje" }, { published: true, slug: "german-desk" }],
+    practices: [
+      { published: true, slug: "arbitraje" },
+      { published: true, slug: "administrative-law" },
+      { published: true, slug: "german-desk" },
+    ],
     industries: [{ published: true }, { published: false }],
   });
 

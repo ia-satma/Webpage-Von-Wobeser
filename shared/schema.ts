@@ -480,14 +480,14 @@ export const practiceAreas = [
   { value: "energy-natural-resources", en: "Energy & Natural Resources", es: "Energía y Recursos Naturales" },
   { value: "esg", en: "ESG (Environmental, Social & Corporate Governance)", es: "ESG (Ambiental, Social y Gobierno Corporativo)" },
   { value: "real-estate", en: "Real Estate", es: "Inmobiliario" },
-  { value: "intellectual-property", en: "Intellectual Property", es: "Propiedad Intelectual" },
-  { value: "labor-employment", en: "Labor & Employment", es: "Laboral" },
-  { value: "tax", en: "Tax", es: "Fiscal" },
-  { value: "international-trade", en: "International Trade", es: "Comercio Exterior" },
+  { value: "intellectual-property", en: "Industrial & Intellectual Property", es: "Propiedad Industrial e Intelectual" },
+  { value: "labor-employment", en: "Labor, Executive Compensation & Benefits", es: "Laboral, Compensación de Ejecutivos y Prestaciones" },
+  { value: "tax", en: "Tax (Consultancy, Controversy & Litigation)", es: "Fiscal (Consultoría, Controversias y Litigio)" },
+  { value: "international-trade", en: "International Trade & Customs", es: "Comercio Exterior y Aduanas" },
   { value: "telecommunications-media-technology", en: "Telecommunications, Media & Technology", es: "Telecomunicaciones, Medios y Tecnología" },
   { value: "environmental", en: "Environmental", es: "Ambiental" },
-  { value: "administrative-law", en: "Administrative Law", es: "Derecho Administrativo" },
-  { value: "german-desk", en: "German Desk", es: "Desk Alemán" },
+  { value: "immigration-global-mobility", en: "Immigration & Global Mobility", es: "Migración y Movilidad Global" },
+  { value: "projects-infrastructure", en: "Projects & Infrastructure", es: "Proyectos e Infraestructura" },
 ] as const;
 
 // ============================================
