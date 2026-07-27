@@ -29,6 +29,8 @@ import {
 import { sanitizeCms, sanitizeFields } from "./mirror/sanitize";
 import { getConfigMap, setHeroMediaConfig } from "./mirror/siteConfig";
 import { getMirrorDir } from "./mirror/config";
+import { invalidatePublicPageCache } from "./mirror/pageCache";
+import { rankingOrderRequestSchema } from "./rankings/order";
 
 // Global WebSocket clients map for pipeline progress updates
 const pipelineClients: Map<string, { ws: WebSocket; userId: string }> = new Map();
@@ -2889,10 +2891,34 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
     }
   });
 
+  app.put("/api/admin/rankings/order", authMiddleware, requirePermission("content"), async (req: Request, res: Response) => {
+    try {
+      const validatedData = rankingOrderRequestSchema.parse(req.body);
+
+      const result = await storage.reorderRankings(validatedData.ids);
+      if (!result.ok) {
+        return res.status(409).json({
+          error: "Rankings changed while they were being reordered",
+          code: "RANKINGS_ORDER_STALE",
+        });
+      }
+
+      invalidatePublicPageCache();
+      res.json(result.rankings);
+    } catch (error) {
+      if (error instanceof ZodError) {
+        return res.status(400).json({ error: "Validation failed", details: error.errors });
+      }
+      console.error("Reorder rankings error:", error);
+      res.status(500).json({ error: "Failed to reorder rankings" });
+    }
+  });
+
   app.post("/api/admin/rankings", authMiddleware, requirePermission("content"), async (req: Request, res: Response) => {
     try {
       const validatedData = insertRankingSchema.parse(req.body);
       const ranking = await storage.createRanking(validatedData);
+      invalidatePublicPageCache();
       res.json(ranking);
     } catch (error) {
       if (error instanceof ZodError) {
@@ -2910,6 +2936,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
       if (!updated) {
         return res.status(404).json({ error: "Ranking not found" });
       }
+      invalidatePublicPageCache();
       res.json(updated);
     } catch (error) {
       if (error instanceof ZodError) {
@@ -2926,6 +2953,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
       if (!deleted) {
         return res.status(404).json({ error: "Ranking not found" });
       }
+      invalidatePublicPageCache();
       res.json({ success: true });
     } catch (error) {
       console.error("Delete ranking error:", error);
