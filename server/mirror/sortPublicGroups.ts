@@ -1,7 +1,7 @@
 export type LocalizedPublicGroup = {
   slug: string;
   name: string;
-  nameEs: string;
+  nameEs?: string | null;
 };
 
 export function localizedGroupLabel(
