@@ -5,6 +5,7 @@ import { cfg, type ConfigMap } from "./siteConfig";
 import { applySeo } from "./seo";
 import { getMirrorDir } from "./config";
 import { isPublicPracticeSlug } from "./publicPracticeGroups";
+import { sortGroupsAlphabetically } from "./sortPublicGroups";
 
 type Lang = "en" | "es";
 
@@ -133,12 +134,15 @@ function paragraphs(value: string): string {
 
 function renderGroupSlider(groups: HomeGroup[], kind: "practice" | "industry", config: ConfigMap, lang: Lang): string {
   const isPractice = kind === "practice";
-  const visible = groups
-    .filter((group) => (
+  const publicGroups = groups.filter((group) => (
       group.published !== false
       && (!isPractice || isPublicPracticeSlug(group.slug))
-    ))
-    .sort((a, b) => (a.order ?? 0) - (b.order ?? 0) || a.name.localeCompare(b.name));
+    ));
+  const visible = isPractice
+    ? sortGroupsAlphabetically(publicGroups, lang)
+    : publicGroups.sort(
+      (a, b) => (a.order ?? 0) - (b.order ?? 0) || a.name.localeCompare(b.name),
+    );
   if (!visible.length) return "";
 
   const label = cfg(config, isPractice ? "home_practices_label" : "home_industries_label", lang)

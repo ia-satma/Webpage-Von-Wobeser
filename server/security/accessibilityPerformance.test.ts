@@ -311,6 +311,42 @@ test("Prácticas usa orden alfabético bilingüe tanto en el menú como en su p�
   );
 });
 
+test("el carrusel de Prácticas del Home recorre el mismo orden alfabético bilingüe", () => {
+  const template = `<!doctype html><html><head></head><body>
+    <div class="home_slider_JS"></div>
+    <div class="home_slider_JS"></div>
+  </body></html>`;
+  const practices = [
+    { slug: "labor-employment", name: "Employment", nameEs: "Laboral", order: 1, published: true },
+    { slug: "arbitration", name: "Arbitration", nameEs: "Arbitraje", order: 2, published: true },
+    { slug: "environmental", name: "Environmental", nameEs: "Ambiental", order: 3, published: true },
+    { slug: "tax", name: "Tax", nameEs: "Fiscal", order: 4, published: true },
+  ];
+  const extractSlides = (html: string) => {
+    const $ = cheerio.load(html);
+    const slides = $(".home_slider_JS").eq(0).children(".home__slider--item").slice(1);
+    return {
+      labels: slides.toArray().map((element) => $(element).find(".home__slider--wrap > span").eq(1).text()),
+      positions: slides.toArray().map((element) => $(element).find(".home__slider--wrap > span").eq(0).text()),
+    };
+  };
+
+  assert.deepEqual(
+    extractSlides(renderHome(template, [], {}, "es", [], practices)),
+    {
+      labels: ["Ambiental", "Arbitraje", "Fiscal", "Laboral"],
+      positions: ["1", "2", "3", "4"],
+    },
+  );
+  assert.deepEqual(
+    extractSlides(renderHome(template, [], {}, "en", [], practices)),
+    {
+      labels: ["Arbitration", "Employment", "Environmental", "Tax"],
+      positions: ["1", "2", "3", "4"],
+    },
+  );
+});
+
 test("la carga pública elimina librerías Joomla duplicadas y usa jQuery vigente", () => {
   const html = `
     <script src="/media/jui/js/jquery.min.js"></script>
