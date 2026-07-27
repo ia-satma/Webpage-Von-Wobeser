@@ -31,6 +31,10 @@ import { getConfigMap, setHeroMediaConfig } from "./mirror/siteConfig";
 import { getMirrorDir } from "./mirror/config";
 import { invalidatePublicPageCache } from "./mirror/pageCache";
 import { rankingOrderRequestSchema } from "./rankings/order";
+import {
+  isPublishedPublicPractice,
+  isPublicPracticeSlug,
+} from "./mirror/publicPracticeGroups";
 
 // Global WebSocket clients map for pipeline progress updates
 const pipelineClients: Map<string, { ws: WebSocket; userId: string }> = new Map();
@@ -1085,7 +1089,7 @@ export async function registerRoutes(
 
   app.get("/api/practice-groups", async (_req, res) => {
     try {
-      const groups = (await storage.getPracticeGroups()).filter((group) => isPubliclyVisible(group) && group.slug !== "german-desk");
+      const groups = (await storage.getPracticeGroups()).filter(isPublishedPublicPractice);
       res.set("Cache-Control", "public, max-age=60");
       res.json(groups);
     } catch (error) {
@@ -1100,7 +1104,7 @@ export async function registerRoutes(
       if (!group) {
         group = await storage.getPracticeGroupById(param);
       }
-      if (!group || !isPubliclyVisible(group) || group.slug === "german-desk") {
+      if (!group || !isPublishedPublicPractice(group)) {
         return res.status(404).json({ error: "Practice group not found" });
       }
       res.json(group);
@@ -1426,7 +1430,7 @@ export async function registerRoutes(
   app.get("/api/practice-groups/:slug/representative-matters", async (req, res) => {
     try {
       const { slug } = req.params;
-      if (slug === "german-desk") return res.status(410).json({ error: "Practice group retired" });
+      if (!isPublicPracticeSlug(slug)) return res.status(410).json({ error: "Practice group retired" });
       const allMatters = await storage.getRepresentativeMatters();
       const filtered = allMatters.filter(m => m.practiceAreaSlug === slug);
       res.json(filtered);
@@ -1487,7 +1491,7 @@ export async function registerRoutes(
         storage.searchNews(query, 5),
       ]);
       const team = teamRaw.filter(isPubliclyVisible);
-      const practiceGroups = practiceGroupsRaw.filter(isPubliclyVisible);
+      const practiceGroups = practiceGroupsRaw.filter(isPublishedPublicPractice);
       const industryGroups = industryGroupsRaw.filter(isPubliclyVisible);
 
       const filteredTeam = team.filter(m =>
@@ -1642,7 +1646,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
         parts.push(urlEntry(`/abogado/${member.slug}`, `/lawyer/${member.slug}?lang=en`, 'monthly', '0.6'));
       }
       for (const group of practiceGroups as any[]) {
-        if (group.published === false) continue;
+        if (!isPublishedPublicPractice(group)) continue;
         parts.push(urlEntry(`/practice/${group.slug}`, `/practice/${group.slug}?lang=en`, 'monthly', '0.7'));
       }
       for (const group of industryGroups as any[]) {

@@ -1,4 +1,5 @@
 import * as cheerio from "cheerio";
+import { isVisiblePublicPractice } from "./publicPracticeGroups";
 import { cfg, type ConfigMap } from "./siteConfig";
 
 function esc(s: string): string {
@@ -179,7 +180,7 @@ export function applyContactForm(
   };
 
   const options = practices
-    .filter((practice) => practice.published !== false && practice.slug !== "german-desk")
+    .filter(isVisiblePublicPractice)
     .sort((a, b) => (lang === "es" ? a.nameEs : a.name).localeCompare(lang === "es" ? b.nameEs : b.name))
     .map((practice) => `<option value="${esc(practice.slug)}">${esc(lang === "es" ? practice.nameEs || practice.name : practice.name)}</option>`)
     .join("");

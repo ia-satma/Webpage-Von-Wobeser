@@ -15,6 +15,9 @@ const {
 } = await import("../mirror/index");
 const { getCachedPublicPage, invalidatePublicPageCache, publicPageCacheSize } = await import("../mirror/pageCache");
 const { buildPublicNavigationMenu } = await import("../mirror/navigationMenu");
+const { renderGroupList } = await import("../mirror/renderGroupList");
+const { isPublicPracticeSlug } = await import("../mirror/publicPracticeGroups");
+const { practiceAreas } = await import("../../shared/schema");
 
 test("el cromo compartido usa lista válida y botón de búsqueda accesible", () => {
   const $ = cheerio.load(`<!doctype html><html lang="es"><head></head><body>
@@ -93,12 +96,17 @@ test("la portada nombra los cuatro carruseles y aplica contraste AA al módulo d
     {},
     "es",
     [],
-    [{ slug: "arbitration", name: "Arbitration", nameEs: "Arbitraje", imageUrl: "/images/banners/3.jpg", published: true }],
+    [
+      { slug: "arbitration", name: "Arbitration", nameEs: "Arbitraje", imageUrl: "/images/banners/3.jpg", published: true },
+      { slug: "administrative-law", name: "Administrative Law", nameEs: "Derecho Administrativo", imageUrl: "/images/banners/13.jpg", published: true },
+    ],
   );
   const $ = cheerio.load(html);
 
   assert.equal($(".home_intro_JS").attr("aria-label"), "Testimonios");
   assert.equal($(".home_slider_JS").eq(0).attr("aria-label"), "Prácticas");
+  assert.equal($(".home_slider_JS").eq(0).find(".industria_intro_1").text(), "1");
+  assert.equal($(".home_slider_JS").eq(0).text().includes("Derecho Administrativo"), false);
   assert.equal($(".home_slider_JS").eq(1).attr("aria-label"), "Grupos de práctica por industria");
   assert.equal($(".home_rec_JS").attr("aria-label"), "Reconocimientos");
   assert.equal($("#video_header").attr("poster"), "/images/home-hero-poster-v2.webp");
@@ -141,8 +149,8 @@ test("el recurso compartido corrige también HTML legacy antes de inicializar el
   assert.match(css, /\.vw-subnav--industries/);
 });
 
-test("el menú público expone 19 prácticas y 7 industrias desde contenido publicado", () => {
-  const practices = Array.from({ length: 19 }, (_, index) => ({
+test("el menú público expone 18 prácticas oficiales y 7 industrias desde contenido publicado", () => {
+  const practices = Array.from({ length: 18 }, (_, index) => ({
     slug: `practice-${index + 1}`,
     name: `Practice ${index + 1}`,
     nameEs: `Práctica ${index + 1}`,
@@ -150,6 +158,13 @@ test("el menú público expone 19 prácticas y 7 industrias desde contenido publ
     published: true,
   }));
   practices.push(
+    {
+      slug: "administrative-law",
+      name: "Administrative Law",
+      nameEs: "Derecho Administrativo",
+      order: 19,
+      published: true,
+    },
     {
       slug: "german-desk",
       name: "German Desk",
@@ -183,9 +198,9 @@ test("el menú público expone 19 prácticas y 7 industrias desde contenido publ
   const es = buildPublicNavigationMenu({ practices, industries }, "es");
   const en = buildPublicNavigationMenu({ practices, industries }, "en");
 
-  assert.equal(es.practices.length, 19);
+  assert.equal(es.practices.length, 18);
   assert.equal(es.industries.length, 7);
-  assert.equal(en.practices.length, 19);
+  assert.equal(en.practices.length, 18);
   assert.equal(en.industries.length, 7);
   assert.deepEqual(es.practices[0], {
     label: "Práctica 1",
@@ -198,10 +213,102 @@ test("el menú público expone 19 prácticas y 7 industrias desde contenido publ
     slug: "industry-7",
   });
   assert.equal(es.practices.some((item) => item.slug === "german-desk"), false);
+  assert.equal(es.practices.some((item) => item.slug === "administrative-law"), false);
+  assert.equal(isPublicPracticeSlug("immigration-global-mobility"), true);
+  assert.equal(isPublicPracticeSlug("projects-infrastructure"), true);
 
   const injected = navigationLabelsScript({}, "es", es);
   assert.match(injected, /window\.__VW_NAV_MENU_ITEMS__/);
-  assert.equal((injected.match(/"href":/g) || []).length, 26);
+  assert.equal((injected.match(/"href":/g) || []).length, 25);
+});
+
+test("la migración conserva Derecho Administrativo como respaldo y solo lo despublica", () => {
+  const migration = readFileSync(
+    new URL("../../migrations/20260727_0003_retire_administrative_law.sql", import.meta.url),
+    "utf8",
+  );
+
+  assert.match(migration, /UPDATE\s+practice_groups/i);
+  assert.match(migration, /SET\s+published\s*=\s*false/i);
+  assert.match(migration, /slug\s*=\s*'administrative-law'/i);
+  assert.doesNotMatch(migration, /\bDELETE\b|\bDROP\b/i);
+});
+
+test("el inventario oficial contiene exactamente las 18 prácticas vigentes", () => {
+  assert.equal(practiceAreas.length, 18);
+  assert.deepEqual(
+    practiceAreas.map((practice) => practice.value).sort(),
+    [
+      "antitrust-competition",
+      "arbitration",
+      "banking-finance",
+      "bankruptcy-restructuring",
+      "corporate-ma",
+      "energy-natural-resources",
+      "environmental",
+      "esg",
+      "immigration-global-mobility",
+      "intellectual-property",
+      "international-trade",
+      "investigations-anticorruption",
+      "labor-employment",
+      "litigation",
+      "projects-infrastructure",
+      "real-estate",
+      "tax",
+      "telecommunications-media-technology",
+    ],
+  );
+  assert.equal(practiceAreas.some((practice) => !isPublicPracticeSlug(practice.value)), false);
+});
+
+test("Prácticas usa orden alfabético bilingüe tanto en el menú como en su página", () => {
+  const practices = [
+    { slug: "labor", name: "Employment", nameEs: "Laboral", order: 1, published: true },
+    { slug: "arbitration", name: "Arbitration", nameEs: "Arbitraje", order: 2, published: true },
+    { slug: "environmental", name: "Environmental", nameEs: "Ambiental", order: 3, published: true },
+    { slug: "tax", name: "Tax", nameEs: "Fiscal", order: 4, published: true },
+    { slug: "administrative-law", name: "Administrative Law", nameEs: "Derecho Administrativo", order: 5, published: true },
+  ];
+  const groups = { practices, industries: [] };
+  const esMenu = buildPublicNavigationMenu(groups, "es");
+  const enMenu = buildPublicNavigationMenu(groups, "en");
+
+  assert.deepEqual(
+    esMenu.practices.map((item) => item.label),
+    ["Ambiental", "Arbitraje", "Fiscal", "Laboral"],
+  );
+  assert.deepEqual(
+    enMenu.practices.map((item) => item.label),
+    ["Arbitration", "Employment", "Environmental", "Tax"],
+  );
+
+  const template = `<!doctype html><html><head></head><body>
+    <div class="page__content--body"></div>
+  </body></html>`;
+  const meta = {
+    path: "/capacidades/practicas",
+    title: "Prácticas",
+    description: "Listado",
+    crumbLabel: "Prácticas",
+  };
+  const esPage = cheerio.load(renderGroupList(template, practices, "/practice/", "es", meta));
+  const enPage = cheerio.load(renderGroupList(
+    template,
+    practices,
+    "/practice/",
+    "en",
+    { ...meta, path: "/capabilities/practices" },
+  ));
+
+  assert.deepEqual(
+    esPage(".page__content--item").toArray().map((element) => esPage(element).text()),
+    ["Ambiental", "Arbitraje", "Fiscal", "Laboral"],
+  );
+  assert.deepEqual(
+    enPage(".page__content--item").toArray().map((element) => enPage(element).text()),
+    ["Arbitration", "Employment", "Environmental", "Tax"],
+  );
 });
 
 test("la carga pública elimina librerías Joomla duplicadas y usa jQuery vigente", () => {

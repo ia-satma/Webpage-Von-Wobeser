@@ -2,6 +2,7 @@ import * as cheerio from "cheerio";
 import { cfg, type ConfigMap } from "./siteConfig";
 import { applySeo, breadcrumbNode } from "./seo";
 import { renderRichText } from "./sanitize";
+import { isVisiblePublicPractice } from "./publicPracticeGroups";
 
 type Lang = "en" | "es";
 
@@ -149,7 +150,7 @@ function verifiedHistory(config: ConfigMap, key: "firm_landing_history_intro" | 
   if (!candidate) return fallback;
   const normalized = plain(candidate).toLowerCase();
   const obsolete = key === "firm_landing_history_intro"
-    ? /\bdesk\b|1952|70 (?:years|años)|seven decades|siete décadas|three decades|tres décadas|18 (?:legal )?practices|18 prácticas/.test(normalized)
+    ? /\bdesk\b|1952|70 (?:years|años)|seven decades|siete décadas|three decades|tres décadas|19 (?:legal )?practices|19 prácticas/.test(normalized)
     : /best lawyers|benchmark litigation|fortune 50|dow jones|chambers and partners global/.test(normalized);
   return obsolete ? fallback : candidate;
 }
@@ -243,21 +244,25 @@ function renderHistory(config: ConfigMap, lang: Lang): string {
 }
 
 function renderStats(config: ConfigMap, lang: Lang, data: FirmLandingData): string {
-  const published = (items: Publishable[] | undefined, excludeDesk = false) =>
-    (items || []).filter((item) => item.published !== false && (!excludeDesk || item.slug !== "german-desk")).length;
+  const published = (items: Publishable[] | undefined) =>
+    (items || []).filter((item) => item.published !== false).length;
   const dynamicValues = [
     "40+",
     String(published(data.teamMembers)),
-    String(published(data.practices, true)),
+    String((data.practices || []).filter(isVisiblePublicPractice).length),
     String(published(data.industries)),
   ];
   const fallbackLabels = lang === "es"
     ? ["Años de experiencia", "Abogados", "Prácticas legales", "Grupos de práctica por industria"]
     : ["Years of experience", "Attorneys", "Legal practices", "Industry practice groups"];
-  const stats = dynamicValues.map((fallback, index) => ({
-    value: text(config, `firm_landing_stat_${index + 1}_value`, lang, fallback) || fallback,
-    label: text(config, `firm_landing_stat_${index + 1}_label`, lang, fallbackLabels[index]),
-  }));
+  const stats = dynamicValues.map((fallback, index) => {
+    const configured = text(config, `firm_landing_stat_${index + 1}_value`, lang, fallback) || fallback;
+    return {
+      // Corrige el valor histórico equivocado sin bloquear otras cifras editoriales.
+      value: index === 2 && configured.trim() === "19" ? fallback : configured,
+      label: text(config, `firm_landing_stat_${index + 1}_label`, lang, fallbackLabels[index]),
+    };
+  });
   const title = text(config, "firm_landing_stats_title", lang, lang === "es" ? "Nuestra firma en cifras" : "Our firm in numbers");
 
   return `<section class="vw-firm__section vw-firm__stats vw-firm-reveal" id="cifras" aria-labelledby="vw-firm-stats-title">

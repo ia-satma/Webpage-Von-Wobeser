@@ -4,6 +4,7 @@ import path from "node:path";
 import { cfg, type ConfigMap } from "./siteConfig";
 import { applySeo } from "./seo";
 import { getMirrorDir } from "./config";
+import { isPublicPracticeSlug } from "./publicPracticeGroups";
 
 type Lang = "en" | "es";
 
@@ -131,12 +132,15 @@ function paragraphs(value: string): string {
 }
 
 function renderGroupSlider(groups: HomeGroup[], kind: "practice" | "industry", config: ConfigMap, lang: Lang): string {
+  const isPractice = kind === "practice";
   const visible = groups
-    .filter((group) => group.published !== false && group.slug !== "german-desk")
+    .filter((group) => (
+      group.published !== false
+      && (!isPractice || isPublicPracticeSlug(group.slug))
+    ))
     .sort((a, b) => (a.order ?? 0) - (b.order ?? 0) || a.name.localeCompare(b.name));
   if (!visible.length) return "";
 
-  const isPractice = kind === "practice";
   const label = cfg(config, isPractice ? "home_practices_label" : "home_industries_label", lang)
     || (lang === "es" ? (isPractice ? "Prácticas" : "Grupos de práctica por industria") : (isPractice ? "Practices" : "Industry Practice Groups"));
   const seeMore = cfg(config, "home_news_more", lang) || (lang === "es" ? "VER MÁS" : "SEE MORE");

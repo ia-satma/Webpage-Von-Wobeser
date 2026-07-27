@@ -1,5 +1,7 @@
 import * as cheerio from "cheerio";
+import { isPublicPracticeSlug } from "./publicPracticeGroups";
 import { applySeo, breadcrumbNode } from "./seo";
+import { localizedGroupLabel, sortGroupsAlphabetically } from "./sortPublicGroups";
 
 type Lang = "en" | "es";
 
@@ -25,13 +27,18 @@ export function renderGroupList(
   const $ = cheerio.load(templateHtml);
   const langSuffix = lang === "en" ? "?lang=en" : "";
 
-  const sorted = [...items].sort(
-    (a, b) => (a.order ?? 0) - (b.order ?? 0) || (lang === "es" ? a.nameEs : a.name).localeCompare(lang === "es" ? b.nameEs : b.name),
-  );
+  const sorted = linkPrefix === "/practice/"
+    ? sortGroupsAlphabetically(items.filter((item) => isPublicPracticeSlug(item.slug)), lang)
+    : [...items].sort(
+      (a, b) => (
+        (a.order ?? 0) - (b.order ?? 0)
+        || localizedGroupLabel(a, lang).localeCompare(localizedGroupLabel(b, lang))
+      ),
+    );
 
   const linksHtml = sorted
     .map((it) => {
-      const label = lang === "es" ? it.nameEs || it.name : it.name;
+      const label = localizedGroupLabel(it, lang);
       return `<a class="page__content--item" href="${linkPrefix}${esc(it.slug)}${langSuffix}">${esc(label)}</a>`;
     })
     .join("");
