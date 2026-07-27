@@ -8,6 +8,10 @@ import { storage } from '../storage';
 import { getConfigMap } from '../mirror/siteConfig';
 import { assertAiBudget, recordImageUsage } from './usageTracker';
 import { AsyncLocalStorage } from 'node:async_hooks';
+import {
+  persistPublicMediaFiles,
+  PersistentMediaUnavailableError,
+} from '../media/persistentMedia';
 
 const VON_WOBESER_BRAND = {
   primaryColor: '#AA1A2E',
@@ -463,9 +467,10 @@ export class SmartImageGenerator {
       }
 
       if (attempt.buffer) {
+        let outputPath = "";
         try {
           const filename = `article-${articleId}-${attempt.name}-${Date.now()}.png`;
-          const outputPath = path.join(OUTPUT_DIR, filename);
+          outputPath = path.join(OUTPUT_DIR, filename);
           // Por defecto NO se estampa el logo (el usuario pidió imágenes de fotoperiodismo sin
           // branding). Reactivable poniendo site_config.image_overlay_logo = 'true'.
           const stampLogo = (config.image_overlay_logo?.value || '').trim().toLowerCase() === 'true';
@@ -474,12 +479,28 @@ export class SmartImageGenerator {
           } else {
             await sharp(attempt.buffer).png().toFile(outputPath);
           }
+          await persistPublicMediaFiles([{
+            absolutePath: outputPath,
+            publicPath: `/generated-images/${filename}`,
+          }]);
           result.success = true;
           result.engine = attempt.name!;
           result.imageUrl = `/generated-images/${filename}`;
           this.log(`SUCCESS: imagen de ${attempt.name} guardada${stampLogo ? ' con logo' : ' (sin logo, foto realista)'}: ${result.imageUrl}`);
           break;
         } catch (saveErr: any) {
+          if (outputPath) {
+            try {
+              fs.unlinkSync(outputPath);
+            } catch {
+              // El archivo quizá no llegó a crearse.
+            }
+          }
+          if (saveErr instanceof PersistentMediaUnavailableError) {
+            this.log('App Storage no está disponible; la imagen no se publicó para evitar pérdida de datos.');
+            lastError = 'El almacenamiento persistente de imágenes no está disponible';
+            break;
+          }
           this.log(`Guardado de ${engine} falló: ${saveErr.message}`);
           lastError = saveErr.message;
         }

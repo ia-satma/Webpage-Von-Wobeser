@@ -31,6 +31,9 @@ variables `VITE_*`. Las variables `VITE_*` son públicas por definición.
   `CLAMAV_REQUIRED=false`. La única excepción automática son PNG/JPEG/WebP públicos
   que hayan sido decodificados y re-codificados completamente en cuarentena; GIF,
   videos, CV y documentos continúan bloqueados si el escáner no está disponible.
+- Las imágenes y videos administrados deben persistirse en Replit App Storage antes de
+  registrar su ruta. El filesystem de runtime solo funciona como caché y nunca como
+  fuente de verdad en producción.
 - Los CV son privados y solo se descargan desde el endpoint administrativo autenticado.
 - Ante sospecha de compromiso, revocar sesiones, cambiar la contraseña afectada y las
   claves pertinentes. `DATABASE_URL` no se rota automáticamente.

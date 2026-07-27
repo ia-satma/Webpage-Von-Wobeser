@@ -49,6 +49,9 @@ expertMode = true
 # requiere ejecutar manualmente `npm run admin:recover -- --confirm=<correo>`.
 # AI_MONTHLY_BUDGET_USD es opcional y limita el gasto mensual estimado (USD 100
 # si se omite). Las claves de proveedores también deben permanecer en Secrets.
+# Las imágenes y videos administrados requieren un bucket predeterminado vinculado
+# desde Tools → App Storage. REPLIT_APP_STORAGE_BUCKET_ID solo es necesario si se
+# desea seleccionar explícitamente un bucket distinto del predeterminado.
 
 [postMerge]
 path = "scripts/post-merge.sh"

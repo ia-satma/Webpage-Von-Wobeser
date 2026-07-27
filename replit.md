@@ -56,6 +56,7 @@ Scripts (`package.json`):
 | `start:deploy` | `npm run db:migrate && npm run start` | Aplica migraciones y arranca. **Es lo que Replit ejecuta en Deploy.** |
 | `check` | `tsc` | Type-check. |
 | `db:migrate` | `node scripts/run-migrations.mjs` | Migraciones SQL versionadas con transacción y advisory lock. |
+| `media:migrate-storage` | `node --import tsx scripts/migrate-media-to-app-storage.ts` | Migra medios históricos locales al bucket persistente de Replit. |
 | `admin:recover` | `node --import tsx scripts/recover-admin.ts` | Recuperación manual desde Replit Secrets; nunca imprime contraseña ni hash. |
 
 - **Puerto:** `process.env.PORT || 5000`. `.replit` fija `PORT=5000` y mapea `localPort 5000 → externalPort 80`. Bind a `0.0.0.0`.
@@ -111,6 +112,24 @@ Disparo central: **`POST /api/agents/run/:agentType`** (`server/agents/api/agent
 - **Seed (`server/seed.ts`):** se invoca en CADA arranque desde `registerRoutes()`. Para cada tabla de contenido inserta datos semilla **solo si está vacía** (idempotente; en prod se salta). Es bootstrap para BD vacía, no la fuente de la data real; **nunca actualiza ni borra**.
 - **Admin en el seed:** `ADMIN_EMAIL` + `ADMIN_BOOTSTRAP_PASSWORD` viven en Replit Secrets. Solo crean al Dueño si el correo todavía no existe; la contraseña se convierte inmediatamente a Argon2id y se ignora por completo en reinicios posteriores. Una recuperación de una cuenta existente requiere ejecutar explícitamente `npm run admin:recover -- --confirm=<correo>`.
 - **Migraciones:** `npm run db:migrate` aplica archivos SQL versionados, con hash, transacción y advisory lock. Replit lo ejecuta antes de cada arranque de producción mediante `start:deploy`; si falla, el panel no arranca con un esquema incompatible.
+
+### Medios persistentes (imágenes y videos)
+
+- `media_items` y las tablas de contenido guardan rutas y metadatos, no los bytes.
+- Toda carga de `/api/admin/media/upload` se valida, sanea y optimiza primero en
+  cuarentena; después se copia a **Replit App Storage** y solo entonces se registra en
+  PostgreSQL.
+- `/uploads/*` conserva una copia caliente en el filesystem para rendimiento, pero
+  puede recuperar el mismo objeto desde App Storage después de un restart o republish.
+- Las imágenes generadas por IA bajo `/generated-images/*` siguen el mismo flujo.
+- En Replit/producción, App Storage es obligatorio para aceptar una carga. Si el bucket
+  no está conectado se devuelve `503` y se elimina la copia temporal; no queda una
+  referencia falsa en la base.
+- Para una instalación nueva: abrir **Tools → App Storage**, crear o vincular un bucket
+  y dejarlo como bucket predeterminado. Si se usa uno explícito, definir
+  `REPLIT_APP_STORAGE_BUCKET_ID`.
+- Para proteger archivos históricos que todavía existan en el workspace, ejecutar una
+  sola vez `npm run media:migrate-storage`.
 
 ---
 

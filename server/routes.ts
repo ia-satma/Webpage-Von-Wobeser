@@ -16,6 +16,16 @@ import {
   sanitizeRasterImage,
 } from "./media/optimizeImage";
 import { generateHeroVideoVariants } from "./media/optimizeVideo";
+import {
+  deletePersistentMediaObjects,
+  hydratePersistentPublicMedia,
+  listPersistentPublicMediaPaths,
+  managedMediaMimeType,
+  openPersistentPublicMediaStream,
+  persistPublicMediaFiles,
+  persistentMediaStorageStatus,
+  PersistentMediaUnavailableError,
+} from "./media/persistentMedia";
 import { sanitizeCms, sanitizeFields } from "./mirror/sanitize";
 import { getConfigMap, setHeroMediaConfig } from "./mirror/siteConfig";
 import { getMirrorDir } from "./mirror/config";
@@ -173,6 +183,39 @@ function auditLog(
 const uploadsDir = path.join(process.cwd(), "uploads");
 if (!fs.existsSync(uploadsDir)) {
   fs.mkdirSync(uploadsDir, { recursive: true });
+}
+
+async function servePersistentManagedMedia(
+  req: Request,
+  res: Response,
+  publicPath: string,
+): Promise<boolean> {
+  const stream = await openPersistentPublicMediaStream(publicPath);
+  if (!stream) return false;
+
+  res.setHeader("Content-Type", managedMediaMimeType(publicPath));
+  res.setHeader("Cache-Control", "public, max-age=31536000, immutable");
+  res.setHeader("X-Content-Type-Options", "nosniff");
+  res.setHeader("Cross-Origin-Resource-Policy", "cross-origin");
+  res.setHeader("Content-Security-Policy", "sandbox");
+  if (req.query.download !== undefined) {
+    res.setHeader(
+      "Content-Disposition",
+      `attachment; filename="${path.basename(publicPath.split(/[?#]/, 1)[0])}"`,
+    );
+  }
+  if (req.method === "HEAD") {
+    stream.destroy();
+    res.end();
+    return true;
+  }
+
+  stream.once("error", () => {
+    if (!res.headersSent) res.status(404).end();
+    else res.destroy();
+  });
+  stream.pipe(res);
+  return true;
 }
 
 export async function runSecurityMaintenance(): Promise<{
@@ -534,7 +577,7 @@ export async function registerRoutes(
   }
 
   // Explicit route handler — belt-and-suspenders vs SPA catch-all
-  app.get('/generated-images/:filename', (req, res) => {
+  app.get('/generated-images/:filename', async (req, res) => {
     const resolved = path.resolve(generatedImagesDir, req.params.filename);
     // Contención: el archivo resuelto DEBE quedar dentro del directorio (anti path-traversal).
     if (resolved !== path.resolve(generatedImagesDir) && !resolved.startsWith(path.resolve(generatedImagesDir) + path.sep)) {
@@ -549,6 +592,8 @@ export async function registerRoutes(
       }
       return res.sendFile(resolved);
     }
+    const publicPath = `/generated-images/${req.params.filename}`;
+    if (await servePersistentManagedMedia(req, res, publicPath)) return;
     res.status(404).json({ error: 'Image not found' });
   });
 
@@ -1645,6 +1690,18 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
       res.setHeader("Content-Security-Policy", "sandbox");
     },
   }));
+
+  // El disco de un Deployment de Replit es efímero. Si la copia caliente de
+  // /uploads ya no existe, se sirve la copia persistente de App Storage. Una
+  // ausencia real termina aquí con 404 y nunca cae al HTML del home.
+  app.use("/uploads", async (req: Request, res: Response) => {
+    if (req.method !== "GET" && req.method !== "HEAD") {
+      return res.status(405).setHeader("Allow", "GET, HEAD").end();
+    }
+    const publicPath = `/uploads${req.path}`;
+    if (await servePersistentManagedMedia(req, res, publicPath)) return;
+    res.status(404).json({ error: "Media not found" });
+  });
 
   // =============================================
   // ADMIN ROUTES
@@ -3496,6 +3553,11 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
   // MEDIA ITEMS CRUD
   // =============================================
 
+  app.get("/api/admin/media/storage-status", authMiddleware, requirePermission("content"), async (_req: Request, res: Response) => {
+    const status = await persistentMediaStorageStatus();
+    res.status(status.required && !status.available ? 503 : 200).json(status);
+  });
+
   // Get all media items
   app.get("/api/admin/media", authMiddleware, requirePermission("content"), async (_req: Request, res: Response) => {
     try {
@@ -3607,7 +3669,50 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
         if (entry.valueEs !== entry.value) addReference(entry.valueEs, `${label} — español`);
       }
 
-      res.json(Array.from(reusable.values()));
+      const persistentPaths = await listPersistentPublicMediaPaths();
+      const classifyAvailability = (item: any) => {
+        const cleanPath = String(item.path || "").split(/[?#]/, 1)[0];
+        let available: boolean | null = null;
+        let storageProvider = "Referencia externa";
+
+        if (cleanPath.startsWith("/uploads/")) {
+          const relative = cleanPath.slice("/uploads/".length);
+          const local = path.resolve(uploadsDir, relative);
+          const localAvailable = local.startsWith(`${path.resolve(uploadsDir)}${path.sep}`)
+            && fs.existsSync(local);
+          const persistent = persistentPaths?.has(cleanPath) ?? false;
+          available = localAvailable || persistent;
+          storageProvider = persistent
+            ? "App Storage persistente"
+            : localAvailable
+              ? "Instancia temporal"
+              : "Archivo no disponible";
+        } else if (cleanPath.startsWith("/generated-images/")) {
+          const relative = cleanPath.slice("/generated-images/".length);
+          const local = path.resolve(generatedImagesDir, relative);
+          const localAvailable = local.startsWith(`${path.resolve(generatedImagesDir)}${path.sep}`)
+            && fs.existsSync(local);
+          const persistent = persistentPaths?.has(cleanPath) ?? false;
+          available = localAvailable || persistent;
+          storageProvider = persistent
+            ? "App Storage persistente"
+            : localAvailable
+              ? "Instancia temporal"
+              : "Archivo no disponible";
+        } else if (/^\/(?:images|img|templates)\//.test(cleanPath)) {
+          const local = path.resolve(getMirrorDir(), cleanPath.replace(/^\/+/, ""));
+          const mirrorRoot = path.resolve(getMirrorDir());
+          available = local.startsWith(`${mirrorRoot}${path.sep}`) && fs.existsSync(local);
+          storageProvider = available ? "Incluido en el sitio" : "Archivo no disponible";
+        } else if (/^https:\/\//i.test(cleanPath)) {
+          available = null;
+          storageProvider = "URL externa";
+        }
+
+        return { ...item, available, storageProvider };
+      };
+
+      res.json(Array.from(reusable.values(), classifyAvailability));
     } catch (error) {
       console.error("Get media error:", error);
       res.status(500).json({ error: "Failed to fetch media" });
@@ -3617,6 +3722,8 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
   // Upload media
   app.post("/api/admin/media/upload", authMiddleware, requirePermission("content"), upload.single("file"), async (req: Request, res: Response) => {
     let acceptedMediaPath: string | undefined;
+    let generatedVariantPaths: string[] = [];
+    let persistedObjectNames: string[] = [];
     try {
       if (!req.file) {
         return res.status(400).json({ error: "No file uploaded" });
@@ -3666,12 +3773,29 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
       let finalSize = sanitizedSize;
       const optimizedSize = await optimizeImageIfNeeded(req.file.path, req.file.mimetype, sanitizedSize);
       if (optimizedSize != null) finalSize = optimizedSize;
-      await generateResponsiveImageVariants(req.file.path, req.file.mimetype);
+      generatedVariantPaths = await generateResponsiveImageVariants(req.file.path, req.file.mimetype);
+
+      const toPublicUploadsPath = (absolutePath: string): string => {
+        const relative = path.relative(uploadsDir, absolutePath);
+        if (!relative || relative.startsWith("..") || path.isAbsolute(relative)) {
+          throw new Error("Invalid accepted media path");
+        }
+        return `/uploads/${relative.split(path.sep).join("/")}`;
+      };
+      const publicPath = `/uploads/${req.file.filename}`;
+      const persistence = await persistPublicMediaFiles([
+        { absolutePath: req.file.path, publicPath },
+        ...generatedVariantPaths.map((variantPath) => ({
+          absolutePath: variantPath,
+          publicPath: toPublicUploadsPath(variantPath),
+        })),
+      ]);
+      persistedObjectNames = persistence.objectNames;
 
       const mediaItem = await storage.createMediaItem({
         filename: req.file.filename,
         originalName: req.file.originalname,
-        path: `/uploads/${req.file.filename}`,
+        path: publicPath,
         mimeType: req.file.mimetype,
         size: finalSize,
         uploadedBy: req.adminUser!.id,
@@ -3679,11 +3803,22 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
         altEs: req.body.altEs || null,
       });
 
-      res.status(201).json(mediaItem);
+      res.status(201).json({
+        ...mediaItem,
+        available: true,
+        storageProvider: persistence.persisted ? "App Storage persistente" : "Desarrollo local",
+      });
     } catch (error) {
+      await deletePersistentMediaObjects(persistedObjectNames);
       await removeUploadQuietly(req.file?.path);
       await removeUploadQuietly(acceptedMediaPath);
+      await Promise.all(generatedVariantPaths.map((variantPath) => removeUploadQuietly(variantPath)));
       console.error("Upload media validation failed");
+      if (error instanceof PersistentMediaUnavailableError) {
+        return res.status(503).json({
+          error: "App Storage no está disponible. El archivo no se guardó para evitar que se pierda al publicar.",
+        });
+      }
       res.status(500).json({ error: "Failed to validate uploaded file" });
     }
   });
@@ -3708,19 +3843,46 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
         : cleanPath.replace(/^\/+/, "");
       const sourcePath = path.resolve(baseDirectory, relativePath);
       const resolvedBase = path.resolve(baseDirectory);
-      if (!sourcePath.startsWith(`${resolvedBase}${path.sep}`) || !fs.existsSync(sourcePath)) {
+      if (!sourcePath.startsWith(`${resolvedBase}${path.sep}`)) {
         return res.status(404).json({ error: "No se encontró el video seleccionado." });
       }
+      if (
+        !fs.existsSync(sourcePath)
+        && cleanPath.startsWith("/uploads/")
+        && !await hydratePersistentPublicMedia(cleanPath, sourcePath)
+      ) {
+        return res.status(404).json({ error: "No se encontró el video seleccionado." });
+      }
+      if (!fs.existsSync(sourcePath)) return res.status(404).json({ error: "No se encontró el video seleccionado." });
 
       const outputDirectory = path.join(uploadsDir, "hero");
       const variants = await generateHeroVideoVariants(sourcePath, outputDirectory);
+      await persistPublicMediaFiles([
+        {
+          absolutePath: path.join(outputDirectory, path.basename(variants.desktopPath)),
+          publicPath: variants.desktopPath,
+        },
+        {
+          absolutePath: path.join(outputDirectory, path.basename(variants.mobilePath)),
+          publicPath: variants.mobilePath,
+        },
+        {
+          absolutePath: path.join(outputDirectory, path.basename(variants.posterPath)),
+          publicPath: variants.posterPath,
+        },
+      ]);
       await setHeroMediaConfig(variants.desktopPath, variants.mobilePath, variants.posterPath);
       res.json({
         ok: true,
         masterPath: cleanPath,
         ...variants,
       });
-    } catch {
+    } catch (error) {
+      if (error instanceof PersistentMediaUnavailableError) {
+        return res.status(503).json({
+          error: "App Storage no está disponible. El video anterior permanece publicado.",
+        });
+      }
       res.status(500).json({
         error: "No se pudo optimizar el video. La configuración anterior permanece activa.",
       });
