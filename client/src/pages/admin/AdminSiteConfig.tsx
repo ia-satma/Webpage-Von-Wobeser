@@ -156,7 +156,7 @@ const PAGES: Record<string, SiteConfigPage> = {
       {
         title: "Identidad del navegador",
         fields: [
-          { key: "site_favicon", label: "Favicon del sitio", media: "image", help: "Usa una imagen cuadrada. El favicon institucional incluido tiene fondo blanco. Requiere reiniciar el servidor después de sustituirlo." },
+          { key: "site_favicon", label: "Favicon del sitio", media: "image", help: "Usa un PNG o WebP cuadrado con transparencia. El sistema conserva el canal transparente y no agrega fondo. El cambio se aplica al guardar, sin reiniciar el servidor." },
         ],
       },
       {
@@ -594,6 +594,12 @@ export default function AdminSiteConfig() {
       }
       const res = await adminApiRequest("PUT", `/api/admin/site-config/${key}`, { value: d.value, valueEs: d.valueEs });
       if (res.ok) {
+        const response = await res.json().catch(() => ({}));
+        if (key === "site_favicon") {
+          window.dispatchEvent(new CustomEvent("vwb:favicon-change", {
+            detail: typeof response.favicon === "string" ? response.favicon : d.value,
+          }));
+        }
         toast({ title: "Guardado", description: "El cambio ya está reflejado en el sitio." });
         refetch();
       } else {

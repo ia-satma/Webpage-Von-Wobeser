@@ -6,6 +6,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { LanguageProvider, useLanguage } from "@/contexts/LanguageContext";
 import { AdminLayout } from "@/components/admin/AdminLayout";
+import { applyBrowserFavicon, loadBrowserFavicon } from "@/lib/browserIdentity";
 
 function ScrollToTop() {
   const [location] = useLocation();
@@ -14,6 +15,19 @@ function ScrollToTop() {
     window.scrollTo({ top: 0, behavior: 'instant' });
   }, [location]);
   
+  return null;
+}
+
+function BrowserIdentity() {
+  useEffect(() => {
+    loadBrowserFavicon().catch(() => undefined);
+    const update = (event: Event) => {
+      const favicon = (event as CustomEvent<string>).detail;
+      if (typeof favicon === "string") applyBrowserFavicon(favicon);
+    };
+    window.addEventListener("vwb:favicon-change", update);
+    return () => window.removeEventListener("vwb:favicon-change", update);
+  }, []);
   return null;
 }
 
@@ -187,6 +201,7 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <LanguageProvider>
+          <BrowserIdentity />
           <ScrollToTop />
           <SkipLinks />
           <Toaster />

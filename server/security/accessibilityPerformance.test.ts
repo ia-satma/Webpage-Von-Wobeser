@@ -1,9 +1,7 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
-import { fileURLToPath } from "node:url";
 import test from "node:test";
 import * as cheerio from "cheerio";
-import sharp from "sharp";
 
 process.env.DATABASE_URL ||= "postgresql://test:test@127.0.0.1:5432/test";
 
@@ -44,20 +42,23 @@ test("el cromo compartido usa lista válida y botón de búsqueda accesible", ()
   assert.equal($(".eyeglass").attr("aria-expanded"), "false");
 });
 
-test("el favicon institucional usa fondo blanco y se inyecta en todas las páginas", async () => {
-  const iconPath = fileURLToPath(new URL("../../frontend-mirror/favicon-32x32.png", import.meta.url));
-  const { data, info } = await sharp(iconPath).removeAlpha().raw().toBuffer({ resolveWithObject: true });
-  assert.equal(info.width, 32);
-  assert.equal(info.height, 32);
-  assert.deepEqual([...data.subarray(0, 3)], [255, 255, 255]);
-
-  setFaviconConfig("/favicon-512x512.png");
+test("el favicon administrable conserva su archivo transparente y rompe la caché anterior", () => {
+  setFaviconConfig("/uploads/favicon-transparente.png", "transparent-test");
   const $ = cheerio.load('<!doctype html><html><head><link rel="shortcut icon" href="/anterior.ico"></head><body></body></html>');
   applySeo($, { lang: "es", path: "/", title: "Inicio" });
 
-  assert.equal($('link[rel="icon"][sizes="32x32"]').attr("href"), "/favicon-32x32.png?v=20260724");
-  assert.equal($('link[rel="apple-touch-icon"]').attr("href"), "/apple-touch-icon.png?v=20260724");
-  assert.equal($('link[rel="manifest"]').attr("href"), "/manifest.json?v=20260724");
+  assert.equal(
+    $('link[rel="icon"]').attr("href"),
+    "/uploads/favicon-transparente.png?v=transparent-test",
+  );
+  assert.equal(
+    $('link[rel="apple-touch-icon"]').attr("href"),
+    "/uploads/favicon-transparente.png?v=transparent-test",
+  );
+  assert.equal(
+    $('link[rel="manifest"]').attr("href"),
+    "/api/public/manifest.webmanifest?v=transparent-test",
+  );
   assert.equal($('link[href="/anterior.ico"]').length, 0);
 });
 

@@ -17,7 +17,13 @@ import { renderNewsList, renderNewsDetail } from "./renderNews";
 import { applyPublicationsSearch, renderGlobalSearch } from "./renderSearch";
 import { buildIdMaps, type IdMaps } from "./idMap";
 import { cfg, getConfigMap, seedConfigDefaults, upsertConfig, isRichTextConfigKey, isOfficeConfigKey, invalidateConfigCache, type ConfigMap } from "./siteConfig";
-import { setBaseUrl, setAnalyticsConfig, setFaviconConfig, applyA11y } from "./seo";
+import {
+  setBaseUrl,
+  setAnalyticsConfig,
+  setFaviconConfig,
+  getFaviconHref,
+  applyA11y,
+} from "./seo";
 import { renderRichText, sanitizeCms } from "./sanitize";
 import { renderOfficeShowcase } from "./renderOfficeShowcase";
 import { getCachedPublicPage } from "./pageCache";
@@ -1336,6 +1342,29 @@ export async function setupMirror(app: Express) {
   };
 
   // ---------- Clean dynamic routes --------------------------------------
+  app.get("/api/public/site-branding", wrap(async (_req, res) => {
+    const config = await getConfigMap();
+    setFaviconConfig(config.site_favicon?.value);
+    res
+      .set("Cache-Control", "no-cache, must-revalidate")
+      .json({ favicon: getFaviconHref() });
+  }));
+  app.get("/api/public/manifest.webmanifest", wrap(async (_req, res) => {
+    const config = await getConfigMap();
+    setFaviconConfig(config.site_favicon?.value);
+    res
+      .set("Cache-Control", "no-cache, must-revalidate")
+      .type("application/manifest+json")
+      .json({
+        name: "Von Wobeser y Sierra",
+        short_name: "Von Wobeser",
+        start_url: "/",
+        display: "standalone",
+        background_color: "#ffffff",
+        theme_color: "#AC162C",
+        icons: [{ src: getFaviconHref(), sizes: "any", purpose: "any" }],
+      });
+  }));
   app.get("/api/public/navigation-menu", wrap(async (req, res) => {
     res
       .set("Cache-Control", "public, max-age=60, stale-while-revalidate=300")
@@ -1822,7 +1851,14 @@ export async function setupMirror(app: Express) {
       if (valueEs != null) valueEs = sanitizeCms(valueEs);
     }
     await upsertConfig(req.params.key, value ?? "", valueEs);
-    res.json({ ok: true, key: req.params.key });
+    let favicon: string | undefined;
+    if (req.params.key === "site_favicon") {
+      // El cambio debe verse en la siguiente navegación sin reiniciar Replit.
+      // Se usa una revisión nueva para romper la caché especial de favicons.
+      setFaviconConfig(value ?? "", Date.now());
+      favicon = getFaviconHref();
+    }
+    res.json({ ok: true, key: req.params.key, ...(favicon ? { favicon } : {}) });
   }));
 
   // ---------- Idiomas de traducción (config global + disparo con selección) --
