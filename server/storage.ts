@@ -1,5 +1,6 @@
 import { eq, desc, asc, and, isNull, gte, lte, sql, inArray, ilike, or, type SQL } from "drizzle-orm";
 import { db } from "./db";
+import { hasExactRankingSet } from "./rankings/order";
 import {
   type User,
   type InsertUser,
@@ -235,6 +236,10 @@ export interface IStorage {
   createRanking(ranking: InsertRanking): Promise<FirmRanking>;
   updateRanking(id: string, ranking: Partial<InsertRanking>): Promise<FirmRanking | undefined>;
   deleteRanking(id: string): Promise<boolean>;
+  reorderRankings(ids: string[]): Promise<
+    | { ok: true; rankings: FirmRanking[] }
+    | { ok: false; reason: "stale" }
+  >;
   
   // Awards CRUD
   getAwards(): Promise<Award[]>;
@@ -1187,7 +1192,16 @@ export class DatabaseStorage implements IStorage {
 
   // Rankings CRUD
   async getRankings(): Promise<FirmRanking[]> {
-    return db.select().from(rankings).orderBy(desc(rankings.year), asc(rankings.order));
+    return db
+      .select()
+      .from(rankings)
+      .orderBy(
+        sql`CASE WHEN ${rankings.order} > 0 THEN 0 ELSE 1 END`,
+        asc(rankings.order),
+        desc(rankings.year),
+        asc(rankings.createdAt),
+        asc(rankings.id),
+      );
   }
 
   async getRankingById(id: string): Promise<FirmRanking | undefined> {
@@ -1196,8 +1210,18 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createRanking(ranking: InsertRanking): Promise<FirmRanking> {
-    const [item] = await db.insert(rankings).values(ranking).returning();
-    return item;
+    return db.transaction(async (tx) => {
+      await tx.execute(sql`LOCK TABLE ${rankings} IN SHARE ROW EXCLUSIVE MODE`);
+      const [current] = await tx
+        .select({ maxOrder: sql<number>`COALESCE(MAX(${rankings.order}), 0)` })
+        .from(rankings);
+      const nextOrder = Number(current?.maxOrder ?? 0) + 1;
+      const [item] = await tx
+        .insert(rankings)
+        .values({ ...ranking, order: nextOrder })
+        .returning();
+      return item;
+    });
   }
 
   async updateRanking(id: string, rankingData: Partial<InsertRanking>): Promise<FirmRanking | undefined> {
@@ -1208,6 +1232,36 @@ export class DatabaseStorage implements IStorage {
   async deleteRanking(id: string): Promise<boolean> {
     const result = await db.delete(rankings).where(eq(rankings.id, id));
     return (result.rowCount ?? 0) > 0;
+  }
+
+  async reorderRankings(ids: string[]): Promise<
+    | { ok: true; rankings: FirmRanking[] }
+    | { ok: false; reason: "stale" }
+  > {
+    return db.transaction(async (tx) => {
+      // Evita que una alta, baja o segundo reordenamiento modifique el conjunto
+      // mientras se validan y asignan las posiciones.
+      await tx.execute(sql`LOCK TABLE ${rankings} IN SHARE ROW EXCLUSIVE MODE`);
+      const current = await tx.select({ id: rankings.id }).from(rankings);
+
+      if (!hasExactRankingSet(current.map((item) => item.id), ids)) {
+        return { ok: false as const, reason: "stale" as const };
+      }
+
+      for (let index = 0; index < ids.length; index += 1) {
+        const id = ids[index];
+        await tx
+          .update(rankings)
+          .set({ order: index + 1 })
+          .where(eq(rankings.id, id));
+      }
+
+      const reordered = await tx
+        .select()
+        .from(rankings)
+        .orderBy(asc(rankings.order), asc(rankings.id));
+      return { ok: true as const, rankings: reordered };
+    });
   }
 
   // Awards CRUD
