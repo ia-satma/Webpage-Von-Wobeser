@@ -54,6 +54,32 @@ test("public raster sanitization decodes and removes appended payloads", async (
   }
 });
 
+test("PNG favicon sanitization preserves transparent pixels", async () => {
+  const directory = await fs.mkdtemp(path.join(os.tmpdir(), "vwb-favicon-alpha-test-"));
+  try {
+    const imagePath = path.join(directory, "favicon-transparent.png");
+    await sharp({
+      create: {
+        width: 64,
+        height: 64,
+        channels: 4,
+        background: { r: 172, g: 22, b: 44, alpha: 0 },
+      },
+    }).png().toFile(imagePath);
+
+    await sanitizeRasterImage(imagePath, "image/png");
+    const { data, info } = await sharp(imagePath)
+      .ensureAlpha()
+      .raw()
+      .toBuffer({ resolveWithObject: true });
+
+    assert.equal(info.channels, 4);
+    assert.equal(data[3], 0);
+  } finally {
+    await fs.rm(directory, { recursive: true, force: true });
+  }
+});
+
 test("DOCX validation requires a Word package and rejects active content", async () => {
   const directory = await fs.mkdtemp(path.join(os.tmpdir(), "vwb-docx-test-"));
   try {

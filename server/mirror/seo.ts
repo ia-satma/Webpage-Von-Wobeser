@@ -24,15 +24,31 @@ let GA4_MEASUREMENT_ID = "";
 let GSC_VERIFICATION = "";
 const DEFAULT_FAVICON = "/favicon-512x512.png";
 let FAVICON_PATH = DEFAULT_FAVICON;
+let FAVICON_VERSION = "default";
 export function setAnalyticsConfig(opts: { ga4MeasurementId?: string | null; searchConsoleVerification?: string | null }): void {
   if (typeof opts.ga4MeasurementId === "string") GA4_MEASUREMENT_ID = opts.ga4MeasurementId.trim();
   if (typeof opts.searchConsoleVerification === "string") GSC_VERIFICATION = opts.searchConsoleVerification.trim();
 }
 
 /** Configura el favicon administrable sin permitir esquemas ejecutables. */
-export function setFaviconConfig(pathOrUrl?: string | null): void {
+export function setFaviconConfig(pathOrUrl?: string | null, version?: string | number): void {
   const candidate = String(pathOrUrl || "").trim();
-  FAVICON_PATH = /^(?:\/(?!\/)|https:\/\/)/i.test(candidate) ? candidate : DEFAULT_FAVICON;
+  const nextPath = /^(?:\/(?!\/)|https:\/\/)/i.test(candidate) ? candidate : DEFAULT_FAVICON;
+  if (nextPath !== FAVICON_PATH || version !== undefined) {
+    FAVICON_VERSION = String(version ?? Date.now());
+  }
+  FAVICON_PATH = nextPath;
+}
+
+/** Ruta activa sin transformar; se usa también en el panel y el manifest dinámico. */
+export function getFaviconPath(): string {
+  return FAVICON_PATH;
+}
+
+/** URL versionada para evitar que el navegador conserve el favicon anterior. */
+export function getFaviconHref(): string {
+  const separator = FAVICON_PATH.includes("?") ? "&" : "?";
+  return `${FAVICON_PATH}${separator}v=${encodeURIComponent(FAVICON_VERSION)}`;
 }
 
 const SITE_NAME = "Von Wobeser y Sierra";
@@ -407,24 +423,24 @@ export function applySeo($: cheerio.CheerioAPI, opts: SeoOptions): void {
   upsertLink($, "alternate", esUrl, "x-default");
 
   // Identidad del navegador. Se retiran los íconos heredados para que todas las
-  // rutas ES/EN usen una sola configuración. Los tamaños optimizados se conservan
-  // cuando está activo el favicon institucional incluido con el proyecto.
+  // rutas ES/EN usen la imagen elegida en el panel. La imagen se referencia tal
+  // como fue cargada: no se le agrega fondo ni se elimina su canal transparente.
   $('head link[rel~="icon"], head link[rel="apple-touch-icon"], head link[rel="manifest"]').remove();
   if (FAVICON_PATH === DEFAULT_FAVICON) {
     $("head").append(
-      '<link rel="icon" href="/favicon.ico?v=20260724" sizes="any">' +
-      '<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png?v=20260724">' +
-      '<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png?v=20260724">' +
-      '<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=20260724">'
+      '<link rel="icon" href="/favicon.ico?v=20260727" sizes="any">' +
+      '<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png?v=20260727">' +
+      '<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png?v=20260727">' +
+      '<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=20260727">'
     );
   } else {
-    const favicon = escAttr(FAVICON_PATH);
+    const favicon = escAttr(getFaviconHref());
     $("head").append(
-      `<link rel="icon" href="${favicon}">` +
+      `<link rel="icon" href="${favicon}" sizes="any">` +
       `<link rel="apple-touch-icon" href="${favicon}">`
     );
   }
-  $("head").append('<link rel="manifest" href="/manifest.json?v=20260724">');
+  $("head").append(`<link rel="manifest" href="/api/public/manifest.webmanifest?v=${encodeURIComponent(FAVICON_VERSION)}">`);
 
   // Open Graph
   upsertMeta($, "property", "og:type", type);
