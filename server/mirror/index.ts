@@ -21,6 +21,10 @@ import { setBaseUrl, setAnalyticsConfig, setFaviconConfig, applyA11y } from "./s
 import { renderRichText, sanitizeCms } from "./sanitize";
 import { renderOfficeShowcase } from "./renderOfficeShowcase";
 import { getCachedPublicPage } from "./pageCache";
+import {
+  getPublicNavigationMenu,
+  type PublicNavigationMenu,
+} from "./navigationMenu";
 import { authMiddleware, requireRole, requirePermission } from "../auth";
 import { storage } from "../storage";
 import { db } from "../db";
@@ -259,7 +263,7 @@ const SEARCH_FORMS_SCRIPT = `<script>(function(){try{
 // `von.css` y `functions.min.js` son el cromo compartido de todo el espejo.
 // Se versionan desde el render para que los cambios de navegación no queden
 // ocultos detrás de los 30 días de caché de los assets estáticos.
-const NAV_ASSET_VERSION = "20260724-pagespeed1";
+const NAV_ASSET_VERSION = "20260727-capability-submenus1";
 function refreshNavigationAssets(html: string): string {
   return html
     .replace(/(href=["']\/templates\/beez3\/css\/style\.css)(?:\?[^"']*)?(["'])/gi, `$1?v=${NAV_ASSET_VERSION}$2`)
@@ -516,7 +520,11 @@ function stripRetiredDeskLinks(html: string): string {
   return html.replace(/<a\b[^>]*href=["'][^"']*\/(?:capacidades|capabilities)\/(?:capabilities-)?desks(?:\/index\.html|\/)?[^"']*["'][^>]*>[\s\S]*?<\/a>/gi, "");
 }
 
-function navigationLabelsScript(config: ConfigMap, lang: Lang): string {
+export function navigationLabelsScript(
+  config: ConfigMap,
+  lang: Lang,
+  items: PublicNavigationMenu = { practices: [], industries: [] },
+): string {
   const labels = {
     firm: cfg(config, "nav_firm", lang),
     attorneys: cfg(config, "nav_attorneys", lang),
@@ -532,9 +540,10 @@ function navigationLabelsScript(config: ConfigMap, lang: Lang): string {
     ["firm", "attorneys", "practices", "industries", "publications", "careers", "contact"]
       .map((id) => [id, (config[`nav_visible_${id}`]?.value || "true").trim().toLowerCase() !== "false"]),
   );
-  const payload = JSON.stringify({ labels, visible }).replace(/</g, "\\u003c");
+  const payload = JSON.stringify({ labels, visible, items }).replace(/</g, "\\u003c");
   return `<script>(function(settings){
     var labels=settings.labels||{},visible=settings.visible||{};
+    window.__VW_NAV_MENU_ITEMS__=settings.items||{practices:[],industries:[]};
     var identify=function(href,isSub){
       if(href.indexOf('/practicas/')>=0||href.indexOf('/practices/')>=0)return 'practices';
       if(href.indexOf('/industrias/')>=0||href.indexOf('/industries/')>=0)return 'industries';
@@ -693,8 +702,14 @@ async function sendPage(res: Response, html: string) {
   const lang: Lang = /<html\b[^>]*\blang=["']es(?:-|["'])/i.test(html) ? "es" : "en";
   const isOfficeShowcase = /<body\b[^>]*\boffice-showcase\b/i.test(html);
   let config: ConfigMap = {};
-  try { config = await getConfigMap(); } catch { /* se conservan los textos originales */ }
-  const inject = `${navigationLabelsScript(config, lang)}${LANG_TOGGLE_SCRIPT}${SEARCH_FORMS_SCRIPT}${DOC_ACTIONS_SCRIPT}`;
+  let navigationItems: PublicNavigationMenu = { practices: [], industries: [] };
+  const [configResult, navigationResult] = await Promise.allSettled([
+    getConfigMap(),
+    getPublicNavigationMenu(lang),
+  ]);
+  if (configResult.status === "fulfilled") config = configResult.value;
+  if (navigationResult.status === "fulfilled") navigationItems = navigationResult.value;
+  const inject = `${navigationLabelsScript(config, lang, navigationItems)}${LANG_TOGGLE_SCRIPT}${SEARCH_FORMS_SCRIPT}${DOC_ACTIONS_SCRIPT}`;
   let out = hardenLegacyClientScripts(
     stripRetiredDeskLinks(refreshNavigationAssets(optimizeLegacyAssets(html))),
   );
@@ -1321,6 +1336,11 @@ export async function setupMirror(app: Express) {
   };
 
   // ---------- Clean dynamic routes --------------------------------------
+  app.get("/api/public/navigation-menu", wrap(async (req, res) => {
+    res
+      .set("Cache-Control", "public, max-age=60, stale-while-revalidate=300")
+      .json(await getPublicNavigationMenu(langOf(req)));
+  }));
   app.get("/", wrap((req, res) => serveHome(langOf(req), res, typeof req.query.preview === "string")));
   app.get("/home", wrap((req, res) => serveHome(langOf(req), res, typeof req.query.preview === "string")));
   app.get("/nuevas-oficinas", wrap((_req, res) => serveOfficeShowcase("es", res)));
