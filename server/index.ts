@@ -32,7 +32,13 @@ app.use(helmet({
       objectSrc: ["'none'"],
       frameAncestors: ["'none'"],
       formAction: ["'self'"],
-      scriptSrc: ["'self'"],
+      // Compatibilidad temporal y explícita con el HTML heredado del espejo:
+      // aún contiene scripts y manejadores inline. Mantenerlos declarados en
+      // Report-Only evita miles de falsos positivos sin habilitar unsafe-eval.
+      // La migración futura a nonces permitirá retirarlos antes de enforcement.
+      scriptSrc: ["'self'", "'unsafe-inline'"],
+      scriptSrcElem: ["'self'", "'unsafe-inline'"],
+      scriptSrcAttr: ["'unsafe-inline'"],
       styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
       fontSrc: ["'self'", "data:", "https://fonts.gstatic.com"],
       imgSrc: ["'self'", "data:", "blob:", "https:"],
@@ -155,6 +161,12 @@ app.use((req, res, next) => {
   // after the API routes and before the SPA catch-all in setupVite/serveStatic.
   const { setupMirror } = await import("./mirror");
   await setupMirror(app);
+
+  // Las APIs desconocidas nunca deben caer en la SPA ni responder HTML 200.
+  app.use("/api", (_req, res) => {
+    const requestId = String(res.getHeader("X-Request-Id") || "");
+    res.status(404).json({ error: "Not Found", requestId });
+  });
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
     const status = err.status || err.statusCode || 500;

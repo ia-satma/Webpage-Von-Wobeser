@@ -13,10 +13,12 @@ const {
   navigationLabelsScript,
   optimizeLegacyAssets,
   optimizePublicImageTags,
+  SEARCH_FORMS_SCRIPT,
 } = await import("../mirror/index");
 const { getCachedPublicPage, invalidatePublicPageCache, publicPageCacheSize } = await import("../mirror/pageCache");
 const { buildPublicNavigationMenu } = await import("../mirror/navigationMenu");
 const { renderGroupList } = await import("../mirror/renderGroupList");
+const { renderNotFound } = await import("../mirror/renderNotFound");
 const { isPublicPracticeSlug } = await import("../mirror/publicPracticeGroups");
 const { practiceAreas } = await import("../../shared/schema");
 
@@ -46,6 +48,28 @@ test("el cromo compartido usa lista válida y botón de búsqueda accesible", ()
   assert.equal($(".eyeglass").attr("aria-expanded"), "false");
 });
 
+test("la lupa abre, enfoca y envía el buscador global bilingüe", () => {
+  const css = readFileSync(
+    new URL("../../frontend-mirror/templates/beez3/css/von.css", import.meta.url),
+    "utf8",
+  );
+
+  assert.match(SEARCH_FORMS_SCRIPT, /form\.setAttribute\('action','\/search'\)/);
+  assert.match(SEARCH_FORMS_SCRIPT, /input\.setAttribute\('type','search'\)/);
+  assert.match(SEARCH_FORMS_SCRIPT, /input\.focus\(\);input\.select\(\)/);
+  assert.match(SEARCH_FORMS_SCRIPT, /event\.key==='Enter'/);
+  assert.match(SEARCH_FORMS_SCRIPT, /event\.key==='Escape'/);
+  assert.match(SEARCH_FORMS_SCRIPT, /window\.location\.assign\('\/search\?'/);
+  assert.match(SEARCH_FORMS_SCRIPT, /closest\('\.vw-header-search__submit'\)/);
+  assert.match(SEARCH_FORMS_SCRIPT, /vw-header-search__submit/);
+  assert.match(SEARCH_FORMS_SCRIPT, /aria-expanded/);
+  assert.match(SEARCH_FORMS_SCRIPT, /lang\.name='lang';lang\.value='en'/);
+  assert.match(css, /\.search_form_cont\.vw-search-open \.field/);
+  assert.match(css, /\.header\.vw-header-search-open/);
+  assert.match(css, /\.vw-header-search__submit/);
+  assert.match(css, /font-family: "Geomanist-Book", sans-serif !important/);
+});
+
 test("las cuatro categorías de Abogados tienen ruta limpia bilingüe antes del catch-all", () => {
   const mirrorServer = readFileSync(
     new URL("../mirror/index.ts", import.meta.url),
@@ -59,10 +83,68 @@ test("las cuatro categorías de Abogados tienen ruta limpia bilingüe antes del 
   assert.ok(categoryRoute > searchRoute);
   assert.ok(catchAll > categoryRoute);
   assert.match(mirrorServer, /if \(!CATEGORIES\[req\.params\.category\]\)/);
-  assert.match(mirrorServer, /res\.status\(404\)\.type\("html"\)/);
-  assert.match(mirrorServer, /return serveHome\(langOf\(req\), res\)\.catch\(next\)/);
+  assert.match(mirrorServer, /renderNotFound\(pick\(TEMPLATES\.publications, lang\), lang, req\.originalUrl\)/);
+  assert.match(mirrorServer, /renderNotFound\(pick\(TEMPLATES\.publications, lang\), lang, req\.originalUrl\),\s*404/);
+  assert.doesNotMatch(mirrorServer, /Page navigation → dynamic mirror home/);
   assert.match(mirrorServer, /redirectLegacy\(`\/attorneys\/\$\{req\.params\.category\}`, "en"\)/);
   assert.match(mirrorServer, /redirectLegacy\(`\/attorneys\/\$\{ES_CATEGORY\[req\.params\.category\] \|\| req\.params\.category\}`, "es"\)/);
+});
+
+test("las rutas públicas, APIs y recursos inexistentes conservan un 404 real", () => {
+  const mirrorServer = readFileSync(
+    new URL("../mirror/index.ts", import.meta.url),
+    "utf8",
+  );
+  const mainServer = readFileSync(new URL("../index.ts", import.meta.url), "utf8");
+  const staticServer = readFileSync(new URL("../static.ts", import.meta.url), "utf8");
+  const template = `<!doctype html><html lang="es"><head><title>Publicaciones</title></head><body>
+    <header></header><div id="main"><section class="page"><div class="page__ttl--holder"><span>Publicaciones</span></div></section></div>
+    <footer></footer>
+  </body></html>`;
+  const $ = cheerio.load(renderNotFound(template, "es", "/ruta-inexistente"));
+
+  assert.equal($("h1").text(), "Página no encontrada");
+  assert.equal($('meta[name="robots"]').attr("content"), "noindex,follow");
+  assert.match(mirrorServer, /res\.status\(404\)\.type\("text"\)\.send\("Not Found"\)/);
+  assert.match(mirrorServer, /renderNotFound\(pick\(TEMPLATES\.publications, lang\)/);
+  assert.match(mainServer, /app\.use\("\/api", \(_req, res\)/);
+  assert.match(mainServer, /res\.status\(404\)\.json\(\{ error: "Not Found", requestId \}\)/);
+  assert.match(staticServer, /req\.path\.startsWith\("\/assets\/"\)/);
+  assert.match(staticServer, /res\.status\(404\)\.type\("text"\)\.send\("Not Found"\)/);
+});
+
+test("CSP Report-Only modela los scripts inline heredados sin habilitar eval", () => {
+  const mainServer = readFileSync(new URL("../index.ts", import.meta.url), "utf8");
+
+  assert.match(mainServer, /contentSecurityPolicy:\s*\{[\s\S]*reportOnly:\s*true/);
+  assert.match(mainServer, /scriptSrc:\s*\["'self'", "'unsafe-inline'"\]/);
+  assert.match(mainServer, /scriptSrcElem:\s*\["'self'", "'unsafe-inline'"\]/);
+  assert.match(mainServer, /scriptSrcAttr:\s*\["'unsafe-inline'"\]/);
+  assert.doesNotMatch(mainServer, /scriptSrc[^\n]*unsafe-eval/);
+  assert.match(mainServer, /objectSrc:\s*\["'none'"\]/);
+  assert.match(mainServer, /frameAncestors:\s*\["'none'"\]/);
+});
+
+test("cada página usa un único H1 editorial y elimina encabezados ocultos de Joomla", () => {
+  const listing = cheerio.load(`<!doctype html><html lang="es"><head><title>Áreas de práctica</title></head><body>
+    <header id="header"><h1 id="logo">Open Source Content Management</h1></header>
+    <main><div class="page__ttl--holder"><span>Áreas de práctica</span></div></main>
+  </body></html>`);
+  applyA11y(listing, "es");
+  assert.equal(listing("h1").length, 1);
+  assert.equal(listing("h1").text(), "Áreas de práctica");
+  assert.equal(listing(".page__ttl--holder > h1").length, 1);
+  assert.equal(listing("h1#logo").length, 0);
+
+  const home = cheerio.load(`<!doctype html><html lang="es"><head><title>Inicio | Von Wobeser y Sierra</title></head><body>
+    <header id="header"><h1 id="logo">Open Source Content Management</h1></header>
+    <section class="home"><div class="home__hero" role="main"></div></section>
+    <article class="item-page"><h1>Von Wobeser y Sierra - Home</h1></article>
+  </body></html>`);
+  applyA11y(home, "es");
+  assert.equal(home("h1").length, 1);
+  assert.equal(home("h1").attr("class"), "vw-sr-only");
+  assert.equal(home("h1").text(), "Inicio");
 });
 
 test("los listados de Abogados conservan categoría, idioma, canonical y hreflang", () => {
@@ -109,6 +191,11 @@ test("los módulos públicos añadidos usan la línea tipográfica institucional
   assert.match(css, /--vw-font-editorial:\s*"Publico-Roman"/);
   assert.match(css, /--vw-font-ui:\s*"Geomanist-Book"/);
   assert.match(css, /--vw-font-body:\s*"OptimaLTStd"/);
+  assert.match(css, /\.header \.header--btn,[\s\S]*font-family: var\(--vw-font-ui\) !important/);
+  assert.match(css, /nav\.nav\.menu_JS \.vw-subnav \.nav__menu--sublink[\s\S]*min-height: 44px/);
+  assert.match(css, /\.home__rec \.slick-arrow\.slick-prev[\s\S]*left: 0 !important/);
+  assert.match(css, /\.home__rec \.slick-arrow\.slick-next[\s\S]*right: 0 !important/);
+  assert.match(css, /\.page__ttl--holder > h1/);
   assert.match(fontCss, /font-family:'Publico-Roman'[\s\S]*Publico-Roman\.woff2/);
   assert.match(fontCss, /font-family:'Geomanist-Book'[\s\S]*Geomanist-Book\.woff2/);
   assert.match(fontCss, /font-family:'OptimaLTStd'[\s\S]*OptimaLTStd\.woff2/);

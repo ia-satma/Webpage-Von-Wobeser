@@ -6,6 +6,221 @@
   --vw-font-body: "OptimaLTStd", Arial, sans-serif;
 }
 
+.vw-footer-socials {
+  align-items: center;
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  margin: 0 auto;
+  padding-top: 20px;
+  width: auto !important;
+}
+
+.vw-footer-socials a {
+  align-items: center;
+  display: inline-flex;
+  justify-content: center;
+}
+
+.vw-footer-socials img {
+  float: none !important;
+  margin: 0 !important;
+}
+
+/* Correcciones globales de regresión pública (2026-07-29). */
+html,
+body {
+  max-width: 100%;
+  overflow-x: clip;
+}
+
+.vw-sr-only {
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  position: absolute;
+  white-space: nowrap;
+  width: 1px;
+}
+
+/* El título vertical del espejo ahora es el H1 real sin alterar su apariencia. */
+.page__ttl--holder > h1 {
+  color: #ac162c;
+  display: block;
+  font-family: var(--vw-font-ui);
+  font-size: 17px;
+  font-weight: 400;
+  letter-spacing: 6px;
+  margin: 0;
+  position: absolute;
+  text-align: right;
+  text-transform: uppercase;
+  transform: rotate(-90deg) translateX(-100%);
+  transform-origin: top left;
+  white-space: nowrap;
+}
+
+/* Evita los 12 px de scroll lateral causados por las flechas del carrusel. */
+@media (max-width: 680px) {
+  .home__rec .slick-arrow.slick-prev {
+    left: 0;
+  }
+
+  .home__rec .slick-arrow.slick-next {
+    right: 0;
+  }
+
+  .home__rec--slider {
+    box-sizing: border-box;
+    max-width: 100%;
+    overflow: hidden;
+    padding-inline: 40px;
+  }
+}
+
+@media (max-width: 800px) {
+  .page__ttl--holder > h1 {
+    position: relative;
+    text-align: left;
+    transform: none;
+  }
+
+  .page__content,
+  .page__content--body,
+  .page__content--item,
+  .capabilities__meta,
+  .capabilities__slider {
+    box-sizing: border-box;
+    max-width: 100%;
+    min-width: 0;
+  }
+
+  .page__content--item,
+  .page__content--intro,
+  .page__content--body {
+    overflow-wrap: anywhere;
+  }
+}
+
+/* Menú y controles compartidos: Geomanist y área táctil mínima WCAG. */
+.header .header--btn,
+.header .header__lang--item,
+.header .eyeglass,
+nav.nav.menu_JS .nav__menu--link,
+nav.nav.menu_JS .nav__menu--sublink,
+.search_form_cont input,
+.search_form_cont button {
+  font-family: var(--vw-font-ui) !important;
+}
+
+@media (max-width: 1239px) {
+  nav.nav.menu_JS .nav__menu--link,
+  nav.nav.menu_JS .vw-subnav .nav__menu--sublink {
+    align-items: center;
+    box-sizing: border-box;
+    display: flex !important;
+    min-height: 44px;
+    padding-block: 10px;
+  }
+
+  nav.nav.menu_JS .vw-subnav .nav__menu--sublink {
+    margin-top: 0;
+  }
+
+  .header .header--btn,
+  .header .header__lang--item,
+  .header .eyeglass {
+    align-items: center;
+    display: inline-flex;
+    justify-content: center;
+    min-height: 44px;
+    min-width: 44px;
+  }
+}
+
+/* 404 editorial: mismo sistema tipográfico y cromático del espejo. */
+.vw-not-found {
+  align-items: center;
+  box-sizing: border-box;
+  display: flex;
+  min-height: calc(100vh - 190px);
+  padding: clamp(72px, 10vw, 150px) 24px;
+}
+
+.vw-not-found__inner {
+  border-top: 2px solid #ac162c;
+  box-sizing: border-box;
+  max-width: 940px;
+  padding-top: clamp(28px, 5vw, 58px);
+  width: 100%;
+}
+
+.vw-not-found__eyebrow {
+  color: #ac162c;
+  font-family: var(--vw-font-ui);
+  font-size: 13px;
+  letter-spacing: 0.2em;
+  margin: 0 0 18px;
+}
+
+.vw-not-found h1 {
+  color: #333;
+  font-family: var(--vw-font-editorial);
+  font-size: clamp(38px, 6vw, 72px);
+  font-weight: 400;
+  line-height: 1.05;
+  margin: 0;
+}
+
+.vw-not-found__body {
+  color: #5f5f5f;
+  font-family: var(--vw-font-body);
+  font-size: clamp(18px, 2vw, 24px);
+  line-height: 1.45;
+  margin: 24px 0 34px;
+  max-width: 680px;
+}
+
+.vw-not-found__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+}
+
+.vw-not-found__primary,
+.vw-not-found__secondary {
+  align-items: center;
+  border: 1px solid #ac162c;
+  box-sizing: border-box;
+  cursor: pointer;
+  display: inline-flex;
+  font-family: var(--vw-font-ui);
+  font-size: 14px;
+  justify-content: center;
+  letter-spacing: 0.04em;
+  min-height: 46px;
+  padding: 12px 24px;
+  text-decoration: none;
+}
+
+.vw-not-found__primary {
+  background: #ac162c;
+  color: #fff;
+}
+
+.vw-not-found__secondary {
+  background: #fff;
+  color: #ac162c;
+}
+
+.vw-not-found__primary:focus-visible,
+.vw-not-found__secondary:focus-visible {
+  outline: 2px solid #333;
+  outline-offset: 3px;
+}
+
 /* links */
 .unseen {
   display:none;
@@ -270,6 +485,97 @@ a.vw-read-more:focus-visible {
 .header .eyeglass:focus-visible {
   outline: 2px solid #ac162c;
   outline-offset: 3px;
+}
+
+/* Buscador global del encabezado. El HTML heredado deja el formulario dentro
+   de un contenedor de 34 px; al abrirlo presentamos un panel compacto sin
+   desplazar la navegación ni depender de los antiguos handlers de Joomla. */
+.header .search_form_cont .field {
+  display: none;
+}
+
+.header.vw-header-search-open {
+  z-index: 130 !important;
+}
+
+.header .search_form_cont.vw-search-open .field {
+  background: #fff;
+  border: 1px solid #d7d7d7;
+  box-shadow: 0 10px 24px rgba(45, 45, 45, 0.16);
+  box-sizing: border-box;
+  display: block;
+  padding: 7px;
+  position: fixed;
+  right: 140px;
+  top: 11px;
+  width: min(430px, calc(100vw - 420px));
+  z-index: 120;
+}
+
+.header .search_form_cont.vw-search-open .search_form {
+  align-items: stretch;
+  display: flex;
+  gap: 7px;
+  margin: 0;
+  width: 100%;
+}
+
+.header .search_form_cont.vw-search-open #search_q {
+  border: 1px solid #767676 !important;
+  border-radius: 0 !important;
+  box-sizing: border-box;
+  display: block !important;
+  flex: 1 1 auto;
+  float: none;
+  font-family: "Geomanist-Book", sans-serif !important;
+  font-size: 16px;
+  height: 42px;
+  margin: 0;
+  min-width: 0;
+  padding: 8px 12px;
+  width: auto;
+}
+
+.header .search_form_cont.vw-search-open #search_q:focus {
+  border-color: #ac162c !important;
+  outline: 2px solid #ac162c;
+  outline-offset: 1px;
+}
+
+.header .vw-header-search__submit {
+  align-items: center;
+  appearance: none;
+  background: #ac162c;
+  border: 1px solid #ac162c;
+  color: #fff;
+  cursor: pointer;
+  display: inline-flex;
+  flex: 0 0 42px;
+  font-family: "Geomanist-Book", sans-serif;
+  font-size: 24px;
+  height: 42px;
+  justify-content: center;
+  line-height: 1;
+  padding: 0;
+}
+
+.header .vw-header-search__submit:hover,
+.header .vw-header-search__submit:focus-visible {
+  background: #821124;
+  border-color: #821124;
+}
+
+.header .vw-header-search__submit:focus-visible {
+  outline: 2px solid #821124;
+  outline-offset: 2px;
+}
+
+@media (max-width: 1239px) {
+  .header .search_form_cont.vw-search-open .field {
+    right: 16px;
+    top: 66px;
+    width: calc(100vw - 32px);
+  }
 }
 
 /* En el módulo de Noticias el texto vive dentro de un <span> posicionado.
@@ -718,5 +1024,34 @@ a[href="/german-desk"],
   nav.nav.menu_JS,
   nav.nav.menu_JS * {
     transition: none !important;
+  }
+}
+
+/* Estos overrides deben permanecer al final: la hoja heredada redefine
+   flechas y sublinks varias veces antes de este bloque. */
+@media (max-width: 680px) {
+  .home__rec .slick-arrow.slick-prev {
+    left: 0 !important;
+  }
+
+  .home__rec .slick-arrow.slick-next {
+    right: 0 !important;
+  }
+
+  .home__rec--slider {
+    box-sizing: border-box;
+    max-width: 100%;
+    overflow: hidden;
+    padding-inline: 40px !important;
+  }
+}
+
+@media (max-width: 1239px) {
+  nav.nav.menu_JS .nav__menu--link,
+  nav.nav.menu_JS .vw-subnav .nav__menu--sublink {
+    box-sizing: border-box;
+    font-family: var(--vw-font-ui) !important;
+    min-height: 44px;
+    padding-block: 10px;
   }
 }

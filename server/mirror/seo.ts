@@ -365,7 +365,31 @@ export function applyA11y($: cheerio.CheerioAPI, lang: Lang): void {
     }
   }
 
-  // 6) Estructura del menú: las plantillas históricas colocan <li> dentro de un <div>.
+  // 6) Encabezado principal: retirar el H1 oculto de Joomla y convertir el
+  // título editorial visible de cada página en el H1 real. Home no tiene un
+  // título visible por diseño, así que recibe uno solo para lectores de pantalla.
+  $("h1#logo").remove();
+  // Home conserva un artículo Joomla oculto con un H1 de sistema; no debe
+  // impedir que el contenido principal reciba su encabezado accesible real.
+  if ($(".home__hero").length) $(".item-page h1").remove();
+  if ($("h1").length === 0) {
+    const $visibleTitle = $(".page__ttl--holder > span").first();
+    if ($visibleTitle.length) {
+      const attrs = $visibleTitle.attr() || {};
+      const $h1 = $("<h1>").attr(attrs).html($visibleTitle.html() || "");
+      $visibleTitle.replaceWith($h1);
+    } else {
+      const documentTitle = ($("title").text() || "Von Wobeser y Sierra")
+        .split("|")[0]
+        .trim() || "Von Wobeser y Sierra";
+      const $main = $("main, [role=main]").first();
+      if ($main.length) {
+        $main.prepend(`<h1 class="vw-sr-only">${documentTitle}</h1>`);
+      }
+    }
+  }
+
+  // 7) Estructura del menú: las plantillas históricas colocan <li> dentro de un <div>.
   //    Se conserva la misma clase/CSS, pero el contenedor pasa a ser una lista real.
   $(".nav__menu--holder").each((_, el) => {
     if (el.tagName.toLowerCase() === "ul") return;
@@ -375,7 +399,7 @@ export function applyA11y($: cheerio.CheerioAPI, lang: Lang): void {
     $holder.replaceWith($list);
   });
 
-  // 7) Contraste (WCAG 1.4.3): el color de texto BASE del sitio scrapeado es #808080
+  // 8) Contraste (WCAG 1.4.3): el color de texto BASE del sitio scrapeado es #808080
   //    (~3.95:1 sobre blanco → falla AA). Se oscurece a #5f5f5f (~6:1) el texto que
   //    HEREDA del body + las reglas explícitas que lo resisten (toggle de idioma, botón
   //    de menú, titulares de noticias del hero). NO afecta textos con color propio
