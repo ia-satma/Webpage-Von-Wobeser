@@ -138,8 +138,11 @@ const DEFAULTS: Array<{ key: string; value: string; valueEs?: string; type: stri
   { key: "footer_address", value: "SOMA Chapultepec Tower, 18th floor. Campos Elíseos 204, Polanco\nEntrance on Arquímedes Street No. 10, 11550 Mexico City", valueEs: "Torre SOMA Chapultepec, piso 18. Campos Elíseos 204, Polanco\nAcceso por Calle Arquímedes N.° 10, C.P. 11550, Ciudad de México", type: "text", category: "footer", description: "Dirección bilingüe del pie de página (una línea por renglón)" },
   { key: "footer_phone", value: "+52 (55) 5258 1000", type: "text", category: "footer", description: "Teléfono del pie de página" },
   { key: "footer_website", value: "vonwobeser.com", type: "text", category: "footer", description: "Sitio web / correo mostrado en el pie" },
+  { key: "footer_facebook_visible", value: "true", type: "boolean", category: "footer", description: "Mostrar Facebook en el pie de página" },
   { key: "footer_facebook", value: "https://www.facebook.com/Von-Wobeser-Sierra-SC-1655250134508590/about/?ref=page_internal", type: "url", category: "footer", description: "Enlace de Facebook (pie de página)" },
+  { key: "footer_twitter_visible", value: "true", type: "boolean", category: "footer", description: "Mostrar Twitter/X en el pie de página" },
   { key: "footer_twitter", value: "https://twitter.com/VWySOficial", type: "url", category: "footer", description: "Enlace de Twitter/X (pie de página)" },
+  { key: "footer_linkedin_visible", value: "true", type: "boolean", category: "footer", description: "Mostrar LinkedIn en el pie de página" },
   { key: "footer_linkedin", value: "https://mx.linkedin.com/company/von-wobeser-y-sierra", type: "url", category: "footer", description: "Enlace de LinkedIn (pie de página)" },
   { key: "footer_esr_image", value: "/templates/beez3/img/esr.jpg", type: "url", category: "footer", description: "Imagen del distintivo ESR" },
   { key: "footer_esr_alt", value: "Socially Responsible Company", valueEs: "Empresa Socialmente Responsable", type: "text", category: "footer", description: "Texto alternativo bilingüe del distintivo ESR" },
@@ -534,4 +537,11 @@ export function cfg(map: ConfigMap, key: string, lang: "en" | "es"): string {
   const c = map[key];
   if (!c) return "";
   return lang === "es" ? c.valueEs || c.value : c.value;
+}
+
+/** Boolean site-config helper. Missing keys remain enabled for backwards compatibility. */
+export function isConfigEnabled(map: ConfigMap, key: string, defaultValue = true): boolean {
+  const raw = map[key]?.value?.trim().toLowerCase();
+  if (!raw) return defaultValue;
+  return raw !== "false";
 }

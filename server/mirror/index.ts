@@ -11,12 +11,13 @@ import { renderHome } from "./renderHome";
 import { renderPage } from "./renderPage";
 import { renderFirmLanding } from "./renderFirmLanding";
 import { renderGroupList, type GroupListItem } from "./renderGroupList";
+import { renderNotFound } from "./renderNotFound";
 import { applyCareersFormFix, applyContactForm } from "./formsFix";
 import * as cheerio from "cheerio";
 import { renderNewsList, renderNewsDetail } from "./renderNews";
 import { applyPublicationsSearch, renderGlobalSearch } from "./renderSearch";
 import { buildIdMaps, type IdMaps } from "./idMap";
-import { cfg, getConfigMap, seedConfigDefaults, upsertConfig, isRichTextConfigKey, isOfficeConfigKey, invalidateConfigCache, type ConfigMap } from "./siteConfig";
+import { cfg, getConfigMap, seedConfigDefaults, upsertConfig, isRichTextConfigKey, isOfficeConfigKey, isConfigEnabled, invalidateConfigCache, type ConfigMap } from "./siteConfig";
 import {
   setBaseUrl,
   setAnalyticsConfig,
@@ -256,24 +257,116 @@ const LANG_TOGGLE_SCRIPT = `<script>(function(){try{
 // El buscador de la lupa vive en el encabezado compartido de las 2,253 páginas
 // capturadas. Se normaliza al vuelo para que incluso una página estática aún cacheada
 // deje de enviar a los endpoints Joomla retirados.
-const SEARCH_FORMS_SCRIPT = `<script>(function(){try{
-  document.querySelectorAll('form[action="/index.php/results"],form[action="/index.php/resultados"]').forEach(function(form){
+export const SEARCH_FORMS_SCRIPT = `<script>(function(){try{
+  var isEn=(document.documentElement.lang||'').toLowerCase().indexOf('en')===0;
+  var label=isEn?'Search':'Buscar';
+  var minMessage=isEn?'Enter at least 2 characters.':'Escribe al menos 2 caracteres.';
+  var navigateSearch=function(query){
+    var params=new URLSearchParams();
+    params.set('q',query);
+    if(isEn)params.set('lang','en');
+    window.location.assign('/search?'+params.toString());
+  };
+  document.querySelectorAll('form[action="/index.php/results"],form[action="/index.php/resultados"],.search_form_cont form[action="/search"]').forEach(function(form){
     var kind=form.querySelector('input[name="kind"]');
-    if(!kind||kind.value==='general'){
-      form.setAttribute('action','/search');
-      form.setAttribute('method','get');
-      form.querySelectorAll('input[type="hidden"]').forEach(function(input){input.remove();});
-      if((document.documentElement.lang||'').toLowerCase().indexOf('en')===0){
-        var lang=document.createElement('input');lang.type='hidden';lang.name='lang';lang.value='en';form.appendChild(lang);
-      }
+    if(kind&&kind.value!=='general')return;
+    form.setAttribute('action','/search');
+    form.setAttribute('method','get');
+    form.querySelectorAll('input[type="hidden"]').forEach(function(input){input.remove();});
+    if(isEn){
+      var lang=document.createElement('input');lang.type='hidden';lang.name='lang';lang.value='en';form.appendChild(lang);
     }
+    var input=form.querySelector('input[name="q"]');
+    var container=form.closest('.search_form_cont');
+    var trigger=container&&container.querySelector('.eyeglass');
+    if(!input||!container||!trigger)return;
+    input.setAttribute('type','search');
+    input.setAttribute('autocomplete','off');
+    input.setAttribute('enterkeyhint','search');
+    input.setAttribute('aria-label',label);
+    input.setAttribute('placeholder',label);
+    trigger.setAttribute('aria-label',label);
+    trigger.setAttribute('title',label);
+    trigger.setAttribute('aria-controls',input.id||'search_q');
+    trigger.setAttribute('aria-expanded','false');
+    trigger.setAttribute('data-vw-search-ready','true');
+    var button=form.querySelector('.vw-header-search__submit');
+    if(!button){
+      button=document.createElement('button');
+      button.type='submit';
+      button.className='vw-header-search__submit';
+      button.setAttribute('aria-label',label);
+      button.setAttribute('title',label);
+      button.textContent='\\u2192';
+      form.appendChild(button);
+    }
+    var header=container.closest('.header');
+    var setOpen=function(open,focus){
+      container.classList.toggle('vw-search-open',open);
+      if(header)header.classList.toggle('vw-header-search-open',open);
+      trigger.setAttribute('aria-expanded',open?'true':'false');
+      input.style.display=open?'block':'none';
+      if(open&&focus)window.requestAnimationFrame(function(){input.focus();input.select();});
+    };
+    container.vwSetSearchOpen=setOpen;
+    container.vwSubmitSearch=function(){
+      var query=(input.value||'').trim();
+      if(query.length<2){
+        setOpen(true,true);
+        input.setCustomValidity(minMessage);
+        input.reportValidity();
+        return;
+      }
+      input.setCustomValidity('');
+      input.value=query;
+      navigateSearch(query);
+    };
+    input.addEventListener('input',function(){input.setCustomValidity('');});
+    input.addEventListener('keydown',function(event){
+      if(event.key==='Escape'){event.preventDefault();setOpen(false,false);trigger.focus();}
+      else if(event.key==='Enter'){event.preventDefault();container.vwSubmitSearch();}
+    });
+    form.addEventListener('submit',function(event){
+      event.preventDefault();
+      container.vwSubmitSearch();
+    });
+    setOpen(false,false);
+  });
+  document.addEventListener('click',function(event){
+    var submitButton=event.target&&event.target.closest?event.target.closest('.vw-header-search__submit'):null;
+    if(submitButton){
+      var submitContainer=submitButton.closest('.search_form_cont');
+      if(submitContainer&&submitContainer.vwSubmitSearch){
+        event.preventDefault();
+        event.stopPropagation();
+        event.stopImmediatePropagation();
+        submitContainer.vwSubmitSearch();
+      }
+      return;
+    }
+    var trigger=event.target&&event.target.closest?event.target.closest('.eyeglass'):null;
+    if(!trigger)return;
+    var container=trigger.closest('.search_form_cont');
+    if(!container||!container.vwSetSearchOpen)return;
+    event.preventDefault();
+    event.stopPropagation();
+    event.stopImmediatePropagation();
+    var isOpen=container.classList.contains('vw-search-open');
+    var input=container.querySelector('input[name="q"]');
+    if(isOpen&&input&&(input.value||'').trim().length>=2)container.vwSubmitSearch();
+    else container.vwSetSearchOpen(!isOpen,true);
+  },true);
+  document.addEventListener('click',function(event){
+    document.querySelectorAll('.search_form_cont.vw-search-open').forEach(function(container){
+      if(!container.contains(event.target)&&container.vwSetSearchOpen)container.vwSetSearchOpen(false,false);
+    });
   });
 }catch(e){}})();</script>`;
 
 // `von.css` y `functions.min.js` son el cromo compartido de todo el espejo.
 // Se versionan desde el render para que los cambios de navegación no queden
 // ocultos detrás de los 30 días de caché de los assets estáticos.
-const NAV_ASSET_VERSION = "20260728-attorney-type1";
+const NAV_ASSET_VERSION = "20260729-public-bugfixes2";
 function refreshNavigationAssets(html: string): string {
   return html
     .replace(/(href=["']\/templates\/beez3\/css\/style\.css)(?:\?[^"']*)?(["'])/gi, `$1?v=${NAV_ASSET_VERSION}$2`)
@@ -486,7 +579,27 @@ const escHtml = (s: any) => String(s ?? "").replace(/&/g, "&amp;").replace(/</g,
 // Inyecta los datos del pie de página (dirección, teléfono, redes) desde siteConfig
 // por reemplazo de string (sin re-parseo, muy barato). La plantilla en disco es
 // inmutable, así que los selectores/URLs originales siempre están para reemplazar.
-function injectFooterString(html: string, config: ConfigMap, lang: Lang): string {
+const FOOTER_SOCIAL_ANCHORS = {
+  facebook: /<a\b[^>]*href=["']https?:\/\/(?:www\.)?facebook\.com[^"']*["'][^>]*>[\s\S]*?<\/a>/i,
+  twitter: /<a\b[^>]*href=["']https?:\/\/(?:www\.)?(?:twitter|x)\.com[^"']*["'][^>]*>[\s\S]*?<\/a>/i,
+  linkedin: /<a\b[^>]*href=["']https?:\/\/[^"']*linkedin\.com[^"']*["'][^>]*>[\s\S]*?<\/a>/i,
+} as const;
+
+function updateFooterSocial(
+  html: string,
+  network: keyof typeof FOOTER_SOCIAL_ANCHORS,
+  href: string,
+  visible: boolean,
+): string {
+  const pattern = FOOTER_SOCIAL_ANCHORS[network];
+  return html.replace(pattern, (anchor) => {
+    if (!visible) return "";
+    if (!href) return anchor;
+    return anchor.replace(/\bhref=(["'])[^"']*\1/i, `href="${escHtml(href)}"`);
+  });
+}
+
+export function injectFooterString(html: string, config: ConfigMap, lang: Lang): string {
   const v = (k: string) => cfg(config, k, lang).trim();
   const firm = v("footer_firm"), address = v("footer_address"), phone = v("footer_phone"), website = v("footer_website");
   if (firm || address || phone || website) {
@@ -498,9 +611,16 @@ function injectFooterString(html: string, config: ConfigMap, lang: Lang): string
     html = html.replace(/(<div class="footer--txt">)[\s\S]*?(<\/div>)/, `$1${lines.join("<br>")}$2`);
   }
   const fb = v("footer_facebook"), tw = v("footer_twitter"), ln = v("footer_linkedin");
-  if (fb) html = html.replace(/href="https:\/\/(www\.)?facebook\.com[^"]*"/i, `href="${escHtml(fb)}"`);
-  if (tw) html = html.replace(/href="https:\/\/(www\.)?twitter\.com[^"]*"/i, `href="${escHtml(tw)}"`);
-  if (ln) html = html.replace(/href="https:\/\/[^"']*linkedin\.com[^"]*"/i, `href="${escHtml(ln)}"`);
+  html = html.replace(/<footer\b[\s\S]*?<\/footer>/i, (footer) => {
+    let socialFooter = footer.replace(
+      /<div\b([^>]*style=["'][^"']*width\s*:\s*90px[^"']*["'][^>]*)>(?=\s*<a\b[^>]*facebook\.com)/i,
+      '<div class="vw-footer-socials"$1>',
+    );
+    socialFooter = updateFooterSocial(socialFooter, "facebook", fb, isConfigEnabled(config, "footer_facebook_visible"));
+    socialFooter = updateFooterSocial(socialFooter, "twitter", tw, isConfigEnabled(config, "footer_twitter_visible"));
+    socialFooter = updateFooterSocial(socialFooter, "linkedin", ln, isConfigEnabled(config, "footer_linkedin_visible"));
+    return socialFooter.replace(/<div class="vw-footer-socials"[^>]*>\s*<\/div>/i, "");
+  });
   return html;
 }
 
@@ -708,7 +828,7 @@ function ensureImgAlt(html: string): string {
   });
 }
 
-async function sendPage(res: Response, html: string) {
+async function sendPage(res: Response, html: string, status = 200) {
   const lang: Lang = /<html\b[^>]*\blang=["']es(?:-|["'])/i.test(html) ? "es" : "en";
   const isOfficeShowcase = /<body\b[^>]*\boffice-showcase\b/i.test(html);
   let config: ConfigMap = {};
@@ -736,7 +856,7 @@ async function sendPage(res: Response, html: string) {
   }
   out = ensureImgAlt(out); // backstop a11y: alt en imgs que escaparon a applyA11y
   res.set("Cache-Control", "public, max-age=60, stale-while-revalidate=300");
-  res.status(200).type("html").send(out);
+  res.status(status).type("html").send(out);
 }
 
 // ES attorney-listing category slugs → our canonical category keys.
@@ -1205,7 +1325,11 @@ export async function setupMirror(app: Express) {
     const office = officeRows.find((item) => item.isHeadquarters && item.published !== false)
       || officeRows.find((item) => item.published !== false);
     if (config.office_published?.value === "false" || !office) {
-      res.status(404).type("html").send(lang === "es" ? "Página no disponible" : "Page unavailable");
+      await sendPage(
+        res,
+        renderNotFound(pick(TEMPLATES.publications, lang), lang, lang === "es" ? "/nuevas-oficinas/" : "/new-offices/"),
+        404,
+      );
       return;
     }
     const html = renderOfficeShowcase(pick(TEMPLATES.offices, lang), config, lang, office, gallery);
@@ -1423,8 +1547,11 @@ export async function setupMirror(app: Express) {
   app.get("/attorneys/:category", wrap((req, res, next) => {
     const lang = langOf(req);
     if (!CATEGORIES[req.params.category]) {
-      res.status(404).type("html").send(lang === "es" ? "Página no disponible" : "Page unavailable");
-      return Promise.resolve();
+      return sendPage(
+        res,
+        renderNotFound(pick(TEMPLATES.publications, lang), lang, req.originalUrl),
+        404,
+      );
     }
     return serveList(req.params.category, lang, res, next, req.query);
   }));
@@ -1937,18 +2064,24 @@ export async function setupMirror(app: Express) {
     }),
   );
 
-  // ---------- Public catch-all: ALWAYS the mirror, never the old React --
-  // The old React redesign stays reachable ONLY at /admin (the CMS). Every
-  // other unmatched public navigation falls back to the mirror home, so the
-  // pre-mirror frontend never surfaces to visitors.
+  // ---------- Public catch-all: mirror 404, never Home/SPA with status 200 --
+  // The old React redesign stays reachable ONLY at /admin. An unknown public
+  // URL gets a real, branded 404 so crawlers, analytics and visitors can tell
+  // it apart from Home. Missing mirror assets return plain text, not HTML.
   app.use((req: Request, res: Response, next: NextFunction) => {
     if (req.method !== "GET" && req.method !== "HEAD") return next();
     const p = req.path;
     // Admin app, API and Vite/React internals must reach the SPA.
     if (p.startsWith("/@") || /^\/(admin|api|src|node_modules|vite|assets)(\/|$)/.test(p) || p === "/__vite_ping") return next();
-    // Asset-like requests (with a file extension) fall through to Vite/static.
-    if (/\.[a-z0-9]+$/i.test(p)) return next();
-    // Page navigation → dynamic mirror home (the old public frontend is gone).
-    return serveHome(langOf(req), res).catch(next);
+    if (/\.[a-z0-9]+$/i.test(p)) {
+      res.status(404).type("text").send("Not Found");
+      return;
+    }
+    const lang = langOf(req);
+    return sendPage(
+      res,
+      renderNotFound(pick(TEMPLATES.publications, lang), lang, req.originalUrl),
+      404,
+    ).catch(next);
   });
 }

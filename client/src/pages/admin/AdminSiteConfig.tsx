@@ -118,18 +118,32 @@ const PAGES: Record<string, SiteConfigPage> = {
   },
   footer: {
     title: "Pie de página",
-    description: "Datos institucionales y enlaces que aparecen al final de las páginas del espejo.",
+    description: "Datos institucionales, acreditaciones y redes sociales que aparecen al final de las páginas del espejo.",
     icon: PanelBottom,
     groups: [
       {
+        title: "Datos institucionales",
         fields: [
           { key: "footer_firm", label: "Nombre de la firma", help: "Aparece en el pie de página del sitio." },
           { key: "footer_address", label: "Dirección", help: "Una línea por renglón.", multiline: true, bilingual: true },
           { key: "footer_phone", label: "Teléfono" },
           { key: "footer_website", label: "Sitio web / correo" },
+        ],
+      },
+      {
+        title: "Redes sociales",
+        fields: [
+          { key: "footer_facebook_visible", label: "Mostrar Facebook", control: "switch", help: "Puedes ocultarlo sin borrar ni modificar su enlace." },
           { key: "footer_facebook", label: "Facebook (URL)" },
+          { key: "footer_twitter_visible", label: "Mostrar X / Twitter", control: "switch", help: "Puedes ocultarlo sin borrar ni modificar su enlace." },
           { key: "footer_twitter", label: "Twitter / X (URL)" },
+          { key: "footer_linkedin_visible", label: "Mostrar LinkedIn", control: "switch", help: "Puedes ocultarlo sin borrar ni modificar su enlace." },
           { key: "footer_linkedin", label: "LinkedIn (URL)" },
+        ],
+      },
+      {
+        title: "Acreditación",
+        fields: [
           { key: "footer_esr_image", label: "Distintivo ESR", media: "image", help: "Imagen que aparece como acreditación junto al bloque legal." },
           { key: "footer_esr_alt", label: "Distintivo ESR — texto alternativo", bilingual: true },
         ],

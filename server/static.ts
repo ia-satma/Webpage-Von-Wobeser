@@ -21,8 +21,17 @@ export function serveStatic(app: Express) {
 
   app.use(express.static(distPath));
 
-  // fall through to index.html if the file doesn't exist
-  app.use("*", (_req, res) => {
+  // Solo las rutas del panel usan el fallback SPA. Una API o archivo
+  // inexistente debe conservar un 404 real en vez de devolver index.html.
+  app.use("*", (req, res) => {
+    if (
+      req.path.startsWith("/api/")
+      || req.path.startsWith("/assets/")
+      || /\.[a-z0-9]+$/i.test(req.path)
+    ) {
+      res.status(404).type("text").send("Not Found");
+      return;
+    }
     res.sendFile(path.resolve(distPath, "index.html"));
   });
 }
