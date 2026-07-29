@@ -1,6 +1,6 @@
 import * as cheerio from "cheerio";
 import type { Office, OfficeImage } from "@shared/schema";
-import { cfg, type ConfigMap } from "./siteConfig";
+import { cfg, isConfigEnabled, type ConfigMap } from "./siteConfig";
 
 type Lang = "en" | "es";
 
@@ -133,9 +133,16 @@ export function renderOfficeShowcase(
   $("footer a.mb-1").first()
     .attr("href", safeUrl(value("office_press_pdf")))
     .text(value("office_press_label"));
-  $("footer a[aria-label=LinkedIn]").attr("href", safeUrl(value("office_linkedin")));
-  $("footer a[aria-label=X]").attr("href", safeUrl(value("office_x")));
-  $("footer .follow-text").text(value("office_follow_label"));
+  const linkedinVisible = isConfigEnabled(config, "footer_linkedin_visible");
+  const twitterVisible = isConfigEnabled(config, "footer_twitter_visible");
+  const linkedin = $("footer a[aria-label=LinkedIn]");
+  const twitter = $("footer a[aria-label=X]");
+  if (linkedinVisible) linkedin.attr("href", safeUrl(value("office_linkedin")));
+  else linkedin.remove();
+  if (twitterVisible) twitter.attr("href", safeUrl(value("office_x")));
+  else twitter.remove();
+  if (linkedinVisible || twitterVisible) $("footer .follow-text").text(value("office_follow_label"));
+  else $("footer .follow-text").remove();
 
   // Versionado explícito: evita conservar una copia incompleta de CSS/JS en caché.
   $('link[href*="estilos_home.css"]').attr("href", "/css/estilos_home.css?v=20260721-offices5");

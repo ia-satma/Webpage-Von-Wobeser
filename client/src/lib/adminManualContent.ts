@@ -106,6 +106,7 @@ export const ADMIN_MANUAL_SECTIONS: AdminManualSection[] = [
     steps: [
       "Entra a \"Portada\" para editar Inicio, Carruseles, Contenido editorial, Newsletter o Noticias desde sus pestañas.",
       "Para Nuestra Firma, Contacto, Carrera, Pie de página u otra sección, usa su acceso directo en el menú lateral.",
+      "En \"Pie de página\" puedes mostrar u ocultar Facebook, X/Twitter y LinkedIn de forma independiente sin borrar sus enlaces.",
       "Modifica el texto o sube el nuevo archivo y guarda — el cambio se refleja de inmediato en el sitio público.",
     ],
     relatedHref: "/admin/site-config",
