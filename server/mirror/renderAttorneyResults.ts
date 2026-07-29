@@ -46,7 +46,7 @@ export function renderAttorneyResults(templateHtml: string, attorneys: any[], la
     `<p style="width:100%;margin:30px 0 0;"><a href="/attorneys${langSuffix}">${esc(t.back)}</a></p>` +
     (attorneys.length === 0
       ? `<p style="width:100%;margin:24px 0;color:#AA1A2E;">${esc(t.noResults)}</p>`
-      : `<p style="width:100%;margin:24px 0 4px;font-family:'Geomanist-Book',serif;letter-spacing:2px;text-transform:uppercase;font-size:13px;color:gray;">${esc(countText)}</p>` +
+      : `<p style="width:100%;margin:24px 0 4px;font-family:var(--vw-font-ui);letter-spacing:2px;text-transform:uppercase;font-size:13px;color:gray;">${esc(countText)}</p>` +
         `<div class="archive__list" style="width:100%;max-width:575px;">${items}</div>`) +
     `</div>`;
 

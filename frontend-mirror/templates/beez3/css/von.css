@@ -1,3 +1,11 @@
+/* Línea tipográfica institucional compartida por el espejo y los módulos
+   públicos añadidos. Los nombres coinciden con los @font-face de style.css. */
+:root {
+  --vw-font-editorial: "Publico-Roman", Georgia, serif;
+  --vw-font-ui: "Geomanist-Book", Arial, sans-serif;
+  --vw-font-body: "OptimaLTStd", Arial, sans-serif;
+}
+
 /* links */
 .unseen {
   display:none;

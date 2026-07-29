@@ -220,8 +220,9 @@ export type GeneratedAudio = typeof generatedAudio.$inferSelect;
 // del MISMO modelo de diapositivas: pptxUrl (editable), pdfUrl (una página por diapositiva) y
 // pngUrls (una imagen por diapositiva). template = plantilla visual (vonwobeser|minimal|dark);
 // branding = perfil de marca aplicado (vonwobeser|custom); sourceDocs = nombres de los
-// documentos subidos que se usaron como insumo. Mismo patrón de disco + fila que
-// generatedImages/generatedAudio: archivos en public/generated-presentations/.
+// documentos subidos que se usaron como insumo. PostgreSQL conserva este historial y
+// las rutas; los binarios de PPTX/PDF/PNG se guardan en App Storage bajo
+// /generated-presentations/ para sobrevivir a reinicios y Republish.
 export const generatedPresentations = pgTable("generated_presentations", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   title: text("title").notNull(),

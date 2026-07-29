@@ -273,7 +273,7 @@ const SEARCH_FORMS_SCRIPT = `<script>(function(){try{
 // `von.css` y `functions.min.js` son el cromo compartido de todo el espejo.
 // Se versionan desde el render para que los cambios de navegación no queden
 // ocultos detrás de los 30 días de caché de los assets estáticos.
-const NAV_ASSET_VERSION = "20260727-capability-submenus1";
+const NAV_ASSET_VERSION = "20260728-attorney-type1";
 function refreshNavigationAssets(html: string): string {
   return html
     .replace(/(href=["']\/templates\/beez3\/css\/style\.css)(?:\?[^"']*)?(["'])/gi, `$1?v=${NAV_ASSET_VERSION}$2`)
@@ -1418,6 +1418,16 @@ export async function setupMirror(app: Express) {
   // Resultados de búsqueda (debe ir ANTES de /attorneys/:category para no ser
   // tragada por el parámetro :category).
   app.get("/attorneys/buscar", wrap((req, res) => serveResults(langOf(req), res, req.query)));
+  // Listados limpios de las cuatro categorías del submenu de Abogados. Antes
+  // estas URLs no tenían handler y caían en el Home inglés del catch-all.
+  app.get("/attorneys/:category", wrap((req, res, next) => {
+    const lang = langOf(req);
+    if (!CATEGORIES[req.params.category]) {
+      res.status(404).type("html").send(lang === "es" ? "Página no disponible" : "Page unavailable");
+      return Promise.resolve();
+    }
+    return serveList(req.params.category, lang, res, next, req.query);
+  }));
   // El menú "Abogados"/"Attorneys" enlazaba a una página estática solo-buscador, sin
   // listado. Se redirige al listado dinámico, que ya trae el buscador integrado.
   app.get("/index.php/attorneys/index.html", wrap((_req, res) => { res.redirect(302, "/attorneys?lang=en"); return Promise.resolve(); }));
@@ -1939,6 +1949,6 @@ export async function setupMirror(app: Express) {
     // Asset-like requests (with a file extension) fall through to Vite/static.
     if (/\.[a-z0-9]+$/i.test(p)) return next();
     // Page navigation → dynamic mirror home (the old public frontend is gone).
-    return serveHome(req.query.lang === "es" ? "es" : "en", res).catch(next);
+    return serveHome(langOf(req), res).catch(next);
   });
 }

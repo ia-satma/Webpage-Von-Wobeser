@@ -233,20 +233,20 @@ export function applyContactForm(
 <style id="vw-contact-form-style">
 .vw-contact-form-section{width:100%;flex:0 0 100%;margin:72px 0 30px;padding-top:34px;border-top:2px solid #b51d35}
 .vw-contact-form-section__heading{display:grid;grid-template-columns:minmax(260px,.75fr) minmax(0,1fr);gap:48px;align-items:start;margin-bottom:32px}
-.vw-contact-form-section__heading h2{margin:0;color:#606060;font:400 clamp(34px,4vw,54px)/1.04 "Publico-Roman",Georgia,serif}
-.vw-contact-form-section__heading p{max-width:620px;margin:7px 0 0;color:#606060;font:400 17px/1.55 "Geomanist-Book",Arial,sans-serif}
+.vw-contact-form-section__heading h2{margin:0;color:#606060;font:400 clamp(34px,4vw,54px)/1.04 var(--vw-font-editorial)}
+.vw-contact-form-section__heading p{max-width:620px;margin:7px 0 0;color:#606060;font:400 17px/1.55 var(--vw-font-body)}
 .vw-contact-form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:26px 34px;padding:42px;background:#858585}
-.vw-contact-field{display:grid;gap:10px;margin:0;color:#fff;font:500 12px/1.3 "Geomanist-Book",Arial,sans-serif;letter-spacing:.14em;text-transform:uppercase}
+.vw-contact-field{display:grid;gap:10px;margin:0;color:#fff;font:500 12px/1.3 var(--vw-font-ui);letter-spacing:.14em;text-transform:uppercase}
 .vw-contact-field b{color:#fff;font-weight:400}
 .vw-contact-field--full{grid-column:1/-1}
-.vw-contact-field input,.vw-contact-field select,.vw-contact-field textarea{box-sizing:border-box;width:100%;min-width:0;min-height:48px;margin:0;border:1px solid transparent;border-radius:0;background:#fff;color:#3f3f3f;padding:12px 14px;font:400 16px/1.4 "Geomanist-Book",Arial,sans-serif;letter-spacing:0;text-transform:none;appearance:auto}
+.vw-contact-field input,.vw-contact-field select,.vw-contact-field textarea{box-sizing:border-box;width:100%;min-width:0;min-height:48px;margin:0;border:1px solid transparent;border-radius:0;background:#fff;color:#3f3f3f;padding:12px 14px;font:400 16px/1.4 var(--vw-font-ui);letter-spacing:0;text-transform:none;appearance:auto}
 .vw-contact-field textarea{min-height:152px;resize:vertical}
 .vw-contact-field input:focus-visible,.vw-contact-field select:focus-visible,.vw-contact-field textarea:focus-visible,.vw-contact-form button:focus-visible{outline:3px solid #fff;outline-offset:3px}
 .vw-contact-field input[aria-invalid="true"],.vw-contact-field textarea[aria-invalid="true"]{border-color:#b51d35;box-shadow:0 0 0 2px #fff}
 .vw-contact-form__footer{display:flex;align-items:center;justify-content:space-between;gap:30px;padding-top:6px}
-.vw-contact-form__feedback{min-height:24px;color:#fff;font:400 15px/1.5 "Geomanist-Book",Arial,sans-serif}
+.vw-contact-form__feedback{min-height:24px;color:#fff;font:400 15px/1.5 var(--vw-font-ui)}
 .vw-contact-form__feedback[data-state="success"]{color:#fff;font-weight:600}
-.vw-contact-form button{display:inline-flex;align-items:center;justify-content:space-between;gap:30px;min-width:220px;min-height:52px;border:0;border-radius:0;background:#b51d35;color:#fff;padding:0 24px;font:500 13px/1 "Geomanist-Book",Arial,sans-serif;letter-spacing:.14em;text-transform:uppercase;cursor:pointer}
+.vw-contact-form button{display:inline-flex;align-items:center;justify-content:space-between;gap:30px;min-width:220px;min-height:52px;border:0;border-radius:0;background:#b51d35;color:#fff;padding:0 24px;font:500 13px/1 var(--vw-font-ui);letter-spacing:.14em;text-transform:uppercase;cursor:pointer}
 .vw-contact-form button>span:last-child{font-size:21px;transition:transform .2s ease}
 .vw-contact-form button:hover>span:last-child,.vw-contact-form button:focus-visible>span:last-child{transform:translateX(5px)}
 .vw-contact-form button:disabled{cursor:wait;opacity:.7}

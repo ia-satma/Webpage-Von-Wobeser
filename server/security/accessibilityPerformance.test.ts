@@ -6,6 +6,7 @@ import * as cheerio from "cheerio";
 process.env.DATABASE_URL ||= "postgresql://test:test@127.0.0.1:5432/test";
 
 const { renderHome } = await import("../mirror/renderHome");
+const { CATEGORIES, renderAttorneyList } = await import("../mirror/renderAttorneyList");
 const { applyA11y, applySeo, setFaviconConfig } = await import("../mirror/seo");
 const {
   hardenLegacyClientScripts,
@@ -43,6 +44,78 @@ test("el cromo compartido usa lista válida y botón de búsqueda accesible", ()
   assert.equal($(".eyeglass").attr("aria-label"), "Buscar");
   assert.equal($(".eyeglass").attr("aria-controls"), "search_q");
   assert.equal($(".eyeglass").attr("aria-expanded"), "false");
+});
+
+test("las cuatro categorías de Abogados tienen ruta limpia bilingüe antes del catch-all", () => {
+  const mirrorServer = readFileSync(
+    new URL("../mirror/index.ts", import.meta.url),
+    "utf8",
+  );
+  const searchRoute = mirrorServer.indexOf('app.get("/attorneys/buscar"');
+  const categoryRoute = mirrorServer.indexOf('app.get("/attorneys/:category"');
+  const catchAll = mirrorServer.indexOf("app.use((req: Request, res: Response, next: NextFunction)");
+
+  assert.ok(searchRoute >= 0);
+  assert.ok(categoryRoute > searchRoute);
+  assert.ok(catchAll > categoryRoute);
+  assert.match(mirrorServer, /if \(!CATEGORIES\[req\.params\.category\]\)/);
+  assert.match(mirrorServer, /res\.status\(404\)\.type\("html"\)/);
+  assert.match(mirrorServer, /return serveHome\(langOf\(req\), res\)\.catch\(next\)/);
+  assert.match(mirrorServer, /redirectLegacy\(`\/attorneys\/\$\{req\.params\.category\}`, "en"\)/);
+  assert.match(mirrorServer, /redirectLegacy\(`\/attorneys\/\$\{ES_CATEGORY\[req\.params\.category\] \|\| req\.params\.category\}`, "es"\)/);
+});
+
+test("los listados de Abogados conservan categoría, idioma, canonical y hreflang", () => {
+  const template = `<!doctype html><html lang="es"><head><title>Abogados</title></head><body>
+    <header><a class="header__lang--item" href="#">ENG</a></header>
+    <nav><a href="/index.php/attorneys/partners/index.html">Partners</a></nav>
+    <main><div class="attorneys__meta"></div><div class="attorneys__list"></div></main>
+  </body></html>`;
+
+  for (const category of Object.keys(CATEGORIES)) {
+    const es = cheerio.load(renderAttorneyList(template, [], category, "es"));
+    const en = cheerio.load(renderAttorneyList(template, [], category, "en"));
+    const canonicalPath = `https://www.vonwobeser.com/attorneys/${category}`;
+
+    assert.equal(es("html").attr("lang"), "es-mx");
+    assert.equal(en("html").attr("lang"), "en-gb");
+    assert.equal(es('link[rel="canonical"]').attr("href"), canonicalPath);
+    assert.equal(en('link[rel="canonical"]').attr("href"), `${canonicalPath}?lang=en`);
+    assert.equal(es('link[rel="alternate"][hreflang="en"]').attr("href"), `${canonicalPath}?lang=en`);
+    assert.equal(en('link[rel="alternate"][hreflang="es-MX"]').attr("href"), canonicalPath);
+    assert.equal(es('nav a').attr("href"), "/attorneys/partners");
+    assert.equal(en('nav a').attr("href"), "/attorneys/partners?lang=en");
+  }
+});
+
+test("los módulos públicos añadidos usan la línea tipográfica institucional", () => {
+  const css = readFileSync(
+    new URL("../../frontend-mirror/templates/beez3/css/von.css", import.meta.url),
+    "utf8",
+  );
+  const fontCss = readFileSync(
+    new URL("../../frontend-mirror/templates/beez3/css/style.css", import.meta.url),
+    "utf8",
+  );
+  const customRenderers = [
+    "../mirror/renderHome.ts",
+    "../mirror/renderNews.ts",
+    "../mirror/renderSearch.ts",
+    "../mirror/formsFix.ts",
+    "../mirror/renderFirmLanding.ts",
+    "../mirror/renderAttorneyResults.ts",
+  ].map((path) => readFileSync(new URL(path, import.meta.url), "utf8")).join("\n");
+
+  assert.match(css, /--vw-font-editorial:\s*"Publico-Roman"/);
+  assert.match(css, /--vw-font-ui:\s*"Geomanist-Book"/);
+  assert.match(css, /--vw-font-body:\s*"OptimaLTStd"/);
+  assert.match(fontCss, /font-family:'Publico-Roman'[\s\S]*Publico-Roman\.woff2/);
+  assert.match(fontCss, /font-family:'Geomanist-Book'[\s\S]*Geomanist-Book\.woff2/);
+  assert.match(fontCss, /font-family:'OptimaLTStd'[\s\S]*OptimaLTStd\.woff2/);
+  assert.match(customRenderers, /var\(--vw-font-editorial\)/);
+  assert.match(customRenderers, /var\(--vw-font-ui\)/);
+  assert.match(customRenderers, /var\(--vw-font-body\)/);
+  assert.doesNotMatch(customRenderers, /font(?:-family)?:[^;\n]*(?:Geomanist,|Publico,|Publico-roman)/);
 });
 
 test("el favicon administrable conserva su archivo transparente y rompe la caché anterior", () => {

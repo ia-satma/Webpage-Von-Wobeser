@@ -36,6 +36,11 @@ interface PresentationRow {
   sourceDocs: string[] | null;
   engine: string;
   createdAt: string | null;
+  availability?: {
+    pptx: boolean;
+    pdf: boolean;
+    png: boolean[];
+  };
 }
 
 type Format = "pptx" | "pdf" | "png";
@@ -404,7 +409,20 @@ export default function AdminPresentations() {
 
         {!isLoading && presentations.length > 0 && (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {presentations.map((p) => (
+            {presentations.map((p) => {
+              const pngUrls = Array.isArray(p.pngUrls) ? p.pngUrls : [];
+              const pngAvailable = pngUrls.map((_, index) => p.availability?.png[index] ?? true);
+              const hasPreview = pngAvailable.some(Boolean);
+              const hasPptx = Boolean(p.pptxUrl && (p.availability?.pptx ?? true));
+              const hasPdf = Boolean(p.pdfUrl && (p.availability?.pdf ?? true));
+              const hasStoredPaths = Boolean(p.pptxUrl || p.pdfUrl || pngUrls.length);
+              const hasAvailableFile = hasPptx || hasPdf || hasPreview;
+              const hasMissingFile = Boolean(
+                (p.pptxUrl && !hasPptx)
+                || (p.pdfUrl && !hasPdf)
+                || pngAvailable.some((available) => !available),
+              );
+              return (
               <Card key={p.id} data-testid={`presentation-card-${p.id}`}>
                 <CardContent className="p-4 space-y-3">
                   <div className="flex items-center justify-between gap-2">
@@ -419,27 +437,35 @@ export default function AdminPresentations() {
                   </p>
 
                   <div className="flex flex-wrap gap-2">
-                    {Array.isArray(p.pngUrls) && p.pngUrls.length > 0 && (
+                    {hasPreview && (
                       <Button size="sm" variant="outline" onClick={() => setPreviewId(p.id)} data-testid={`preview-${p.id}`}>
                         <Eye className="w-3 h-3 mr-1" />Previsualizar
                       </Button>
                     )}
-                    {p.pptxUrl && (
+                    {hasPptx && p.pptxUrl && (
                       <a href={`${p.pptxUrl}?download=1`} className="inline-flex" data-testid={`download-pptx-${p.id}`}>
                         <Button size="sm" variant="outline"><FileDown className="w-3 h-3 mr-1" />PPTX</Button>
                       </a>
                     )}
-                    {p.pdfUrl && (
+                    {hasPdf && p.pdfUrl && (
                       <a href={`${p.pdfUrl}?download=1`} className="inline-flex" data-testid={`download-pdf-${p.id}`}>
                         <Button size="sm" variant="outline"><FileText className="w-3 h-3 mr-1" />PDF</Button>
                       </a>
                     )}
-                    {Array.isArray(p.pngUrls) && p.pngUrls.length > 0 && (
-                      <a href={`${p.pngUrls[0]}?download=1`} className="inline-flex" data-testid={`download-png-${p.id}`}>
+                    {hasPreview && pngUrls[0] && pngAvailable[0] && (
+                      <a href={`${pngUrls[0]}?download=1`} className="inline-flex" data-testid={`download-png-${p.id}`}>
                         <Button size="sm" variant="outline"><ImageIcon className="w-3 h-3 mr-1" />PNG portada</Button>
                       </a>
                     )}
                   </div>
+
+                  {p.availability && hasStoredPaths && hasMissingFile && (
+                    <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-md p-2" role="status">
+                      {hasAvailableFile
+                        ? "Parte de los archivos históricos ya no está disponible. Las descargas conservadas siguen activas."
+                        : "El historial permanece en la base, pero sus archivos ya no están disponibles. Vuelve a generar la presentación para restaurar sus descargas."}
+                    </p>
+                  )}
 
                   <div className="flex justify-end pt-1">
                     <Button
@@ -455,7 +481,8 @@ export default function AdminPresentations() {
                   </div>
                 </CardContent>
               </Card>
-            ))}
+              );
+            })}
           </div>
         )}
       </main>
@@ -491,21 +518,28 @@ export default function AdminPresentations() {
           {(() => {
             const pre = presentations.find((p) => p.id === previewId);
             const pngs = pre?.pngUrls || [];
-            if (!pngs.length) {
+            const availablePngs = pngs
+              .map((url, index) => ({
+                url,
+                index,
+                available: pre?.availability?.png[index] ?? true,
+              }))
+              .filter((entry) => entry.available);
+            if (!availablePngs.length) {
               return (
                 <p className="text-sm text-muted-foreground py-2">
-                  Esta presentación no tiene imágenes por diapositiva. Genera en formato PNG o PDF para poder previsualizarla.
+                  Esta presentación no conserva imágenes disponibles para previsualizar.
                 </p>
               );
             }
             return (
               <div className="space-y-4 py-1">
-                {pngs.map((u, i) => (
-                  <div key={u} className="space-y-1">
+                {availablePngs.map(({ url, index }) => (
+                  <div key={url} className="space-y-1">
                     <p className="text-xs uppercase tracking-wide text-muted-foreground">
-                      {i === 0 ? "Portada" : `Diapositiva ${i}`}
+                      {index === 0 ? "Portada" : `Diapositiva ${index}`}
                     </p>
-                    <img src={u} alt={i === 0 ? "Portada" : `Diapositiva ${i}`} className="w-full rounded-md border" loading="lazy" />
+                    <img src={url} alt={index === 0 ? "Portada" : `Diapositiva ${index}`} className="w-full rounded-md border" loading="lazy" />
                   </div>
                 ))}
               </div>

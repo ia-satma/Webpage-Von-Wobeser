@@ -20,6 +20,10 @@ test("las rutas administradas se convierten en objetos sin permitir traversal", 
     managedMediaObjectName("/generated-images/article-123.png?download=1"),
     "von-wobeser/public/generated-images/article-123.png",
   );
+  assert.equal(
+    managedMediaObjectName("/generated-presentations/pres-123.pptx?download=1"),
+    "von-wobeser/public/generated-presentations/pres-123.pptx",
+  );
   assert.equal(managedMediaObjectName("/uploads/../private/file.pdf"), null);
   assert.equal(managedMediaObjectName("/uploads/%2e%2e/private/file.png"), null);
   assert.equal(managedMediaObjectName("/uploads/folder\\file.png"), null);
@@ -27,6 +31,10 @@ test("las rutas administradas se convierten en objetos sin permitir traversal", 
   assert.equal(
     publicPathFromManagedObjectName("von-wobeser/public/uploads/hero/poster.webp"),
     "/uploads/hero/poster.webp",
+  );
+  assert.equal(
+    publicPathFromManagedObjectName("von-wobeser/public/generated-presentations/pres-123.pdf"),
+    "/generated-presentations/pres-123.pdf",
   );
 });
 
@@ -36,6 +44,11 @@ test("el almacenamiento persistente es obligatorio en producción y Replit", () 
   assert.equal(persistentMediaIsRequired({ NODE_ENV: "test" }), false);
   assert.equal(managedMediaMimeType("/uploads/logo.webp"), "image/webp");
   assert.equal(managedMediaMimeType("/uploads/hero/video.mp4"), "video/mp4");
+  assert.equal(managedMediaMimeType("/generated-presentations/pres-123.pdf"), "application/pdf");
+  assert.equal(
+    managedMediaMimeType("/generated-presentations/pres-123.pptx"),
+    "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+  );
 });
 
 test("el upload persiste originales y derivados antes de guardar su registro", () => {
@@ -47,6 +60,36 @@ test("el upload persiste originales y derivados antes de guardar su registro", (
   assert.ok(databaseCall > persistenceCall);
   assert.match(routes, /App Storage no está disponible\. El archivo no se guardó/);
   assert.match(routes, /res\.status\(404\)\.json\(\{ error: "Media not found" \}\)/);
+});
+
+test("las presentaciones se persisten antes de registrar el historial y se sirven desde App Storage", () => {
+  const generator = readFileSync(new URL("../services/PresentationGenerator.ts", import.meta.url), "utf8");
+  const routes = readFileSync(new URL("../routes.ts", import.meta.url), "utf8");
+  const migration = readFileSync(
+    new URL("../../scripts/migrate-media-to-app-storage.ts", import.meta.url),
+    "utf8",
+  );
+  const admin = readFileSync(
+    new URL("../../client/src/pages/admin/AdminPresentations.tsx", import.meta.url),
+    "utf8",
+  );
+
+  const persistenceCall = generator.indexOf("await persistPublicMediaFiles(generatedFiles)");
+  const historyCall = generator.indexOf("await storage.createGeneratedPresentation({");
+  assert.ok(persistenceCall > 0);
+  assert.ok(historyCall > persistenceCall);
+  assert.match(generator, /deletePersistentMediaObjects\(persistedObjectNames\)/);
+
+  assert.match(routes, /servePersistentManagedMedia\(req, res, publicPath\)/);
+  assert.match(routes, /const persistentPaths = await listPersistentPublicMediaPaths\(\)/);
+  assert.match(routes, /availability:\s*\{\s*pptx:/);
+  assert.match(routes, /deletePersistentMediaObjects\(objectNames\)/);
+
+  assert.match(migration, /"generated-presentations"/);
+  assert.match(migration, /"\.pdf", "\.pptx"/);
+
+  assert.match(admin, /p\.availability\?\.pptx/);
+  assert.match(admin, /El historial permanece en la base/);
 });
 
 test("los nueve reconocimientos recuperados son WebP válidos y livianos", async () => {

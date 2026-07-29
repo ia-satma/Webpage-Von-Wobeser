@@ -176,28 +176,28 @@ export function renderGlobalSearch(
 <style id="vw-global-search-style">
 .vw-global-results{background:#fff;padding:150px 0 110px;color:#5f5f5f}
 .vw-global-results__wrap{width:min(1180px,calc(100% - 64px));margin:0 auto}
-.vw-global-results__eyebrow{color:#b51d35;font:600 13px/1 Geomanist,Arial,sans-serif;letter-spacing:.28em;margin-bottom:22px}
-.vw-global-results h1{font:400 clamp(44px,6vw,82px)/.98 Publico-roman,Georgia,serif;margin:0 0 58px;color:#606060}
+.vw-global-results__eyebrow{color:#b51d35;font:600 13px/1 var(--vw-font-ui);letter-spacing:.28em;margin-bottom:22px}
+.vw-global-results h1{font:400 clamp(44px,6vw,82px)/.98 var(--vw-font-editorial);margin:0 0 58px;color:#606060}
 .vw-global-results__form{background:#909090;padding:34px 40px 40px;margin-bottom:36px}
-.vw-global-results__form label{display:block;color:#fff;font:500 13px/1 Geomanist,Arial,sans-serif;letter-spacing:.2em;text-transform:uppercase;margin-bottom:16px}
+.vw-global-results__form label{display:block;color:#fff;font:500 13px/1 var(--vw-font-ui);letter-spacing:.2em;text-transform:uppercase;margin-bottom:16px}
 .vw-global-results__controls{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:14px}
-.vw-global-results__controls input{min-width:0;min-height:52px;border:0;background:#fff;padding:12px 16px;font:400 18px/1.35 Geomanist,Arial,sans-serif;color:#333}
-.vw-global-results__controls button{min-height:52px;border:0;background:#b51d35;color:#fff;padding:0 28px;font:500 15px/1 Geomanist,Arial,sans-serif;letter-spacing:.14em;text-transform:uppercase;cursor:pointer}
+.vw-global-results__controls input{min-width:0;min-height:52px;border:0;background:#fff;padding:12px 16px;font:400 18px/1.35 var(--vw-font-ui);color:#333}
+.vw-global-results__controls button{min-height:52px;border:0;background:#b51d35;color:#fff;padding:0 28px;font:500 15px/1 var(--vw-font-ui);letter-spacing:.14em;text-transform:uppercase;cursor:pointer}
 .vw-global-results__controls button span{display:inline-block;margin-left:18px;transition:transform .2s ease}
 .vw-global-results__controls button:hover span,.vw-global-results__controls button:focus-visible span{transform:translateX(5px)}
 .vw-global-results__controls input:focus-visible,.vw-global-results__controls button:focus-visible,.vw-global-result:focus-visible{outline:3px solid #b51d35;outline-offset:3px}
-.vw-global-results__summary{font:400 15px/1.5 Geomanist,Arial,sans-serif;color:#b51d35;margin:0 0 26px}
+.vw-global-results__summary{font:400 15px/1.5 var(--vw-font-ui);color:#b51d35;margin:0 0 26px}
 .vw-global-results__group{border-top:2px solid #b51d35;padding:28px 0 46px}
-.vw-global-results__group h2{font:400 clamp(28px,3vw,42px)/1.1 Publico-roman,Georgia,serif;margin:0 0 18px;color:#626262}
+.vw-global-results__group h2{font:400 clamp(28px,3vw,42px)/1.1 var(--vw-font-editorial);margin:0 0 18px;color:#626262}
 .vw-global-results__list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));column-gap:48px}
 .vw-global-result{position:relative;display:grid;gap:8px;padding:22px 44px 22px 0;border-bottom:1px solid #cfcfcf;color:inherit;text-decoration:none}
-.vw-global-result__title{font:400 22px/1.2 Publico-roman,Georgia,serif;color:#5c5c5c}
-.vw-global-result__description{font:400 14px/1.55 Geomanist,Arial,sans-serif;color:#6a6a6a}
+.vw-global-result__title{font:400 22px/1.2 var(--vw-font-editorial);color:#5c5c5c}
+.vw-global-result__description{font:400 14px/1.55 var(--vw-font-body);color:#6a6a6a}
 .vw-global-result__arrow{position:absolute;right:4px;top:24px;color:#b51d35;font-size:24px;transition:transform .2s ease}
 .vw-global-result:hover .vw-global-result__arrow,.vw-global-result:focus-visible .vw-global-result__arrow{transform:translateX(5px)}
-.vw-global-results__state{padding:70px 20px;border-top:2px solid #b51d35;text-align:center;font:400 18px/1.5 Geomanist,Arial,sans-serif}
+.vw-global-results__state{padding:70px 20px;border-top:2px solid #b51d35;text-align:center;font:400 18px/1.5 var(--vw-font-body)}
 .vw-global-results__state strong,.vw-global-results__state span{display:block}
-.vw-global-results__state strong{font:400 34px/1.2 Publico-roman,Georgia,serif;margin-bottom:12px}
+.vw-global-results__state strong{font:400 34px/1.2 var(--vw-font-editorial);margin-bottom:12px}
 @media(max-width:760px){
   .vw-global-results{padding:112px 0 72px}
   .vw-global-results__wrap{width:min(100% - 32px,1180px)}

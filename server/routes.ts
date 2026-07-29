@@ -21,8 +21,10 @@ import {
   hydratePersistentPublicMedia,
   listPersistentPublicMediaPaths,
   managedMediaMimeType,
+  managedMediaObjectName,
   openPersistentPublicMediaStream,
   persistPublicMediaFiles,
+  persistentPublicMediaExists,
   persistentMediaStorageStatus,
   PersistentMediaUnavailableError,
 } from "./media/persistentMedia";
@@ -641,7 +643,20 @@ export async function registerRoutes(
     fs.mkdirSync(generatedPresentationsDir, { recursive: true });
   }
 
-  app.get('/generated-presentations/:filename', (req, res) => {
+  const presentationAssetExists = async (
+    publicPath: string | null,
+    persistentPaths?: Set<string> | null,
+  ): Promise<boolean> => {
+    if (!publicPath || !/^\/generated-presentations\/[A-Za-z0-9._+-]+$/.test(publicPath)) {
+      return false;
+    }
+    const localPath = path.join(generatedPresentationsDir, path.basename(publicPath));
+    if (fs.existsSync(localPath) && fs.statSync(localPath).isFile()) return true;
+    if (persistentPaths) return persistentPaths.has(publicPath);
+    return persistentPublicMediaExists(publicPath);
+  };
+
+  app.get('/generated-presentations/:filename', async (req, res) => {
     const resolved = path.resolve(generatedPresentationsDir, req.params.filename);
     if (resolved !== path.resolve(generatedPresentationsDir) && !resolved.startsWith(path.resolve(generatedPresentationsDir) + path.sep)) {
       return res.status(403).json({ error: 'Forbidden' });
@@ -653,6 +668,8 @@ export async function registerRoutes(
       }
       return res.sendFile(resolved);
     }
+    const publicPath = `/generated-presentations/${req.params.filename}`;
+    if (await servePersistentManagedMedia(req, res, publicPath)) return;
     res.status(404).json({ error: 'Presentation not found' });
   });
 
@@ -1047,7 +1064,28 @@ export async function registerRoutes(
   app.get("/api/admin/generated-presentations", authMiddleware, requirePermission("agents"), async (_req: Request, res: Response) => {
     try {
       const presentations = await storage.getGeneratedPresentations();
-      res.json(presentations);
+      // Una sola lectura del inventario evita una petición remota por cada
+      // diapositiva al abrir historiales extensos.
+      const persistentPaths = await listPersistentPublicMediaPaths();
+      const presentationsWithAvailability = await Promise.all(
+        presentations.map(async (presentation) => {
+          const pngUrls = Array.isArray(presentation.pngUrls) ? presentation.pngUrls : [];
+          const [pptxAvailable, pdfAvailable, pngAvailable] = await Promise.all([
+            presentationAssetExists(presentation.pptxUrl, persistentPaths),
+            presentationAssetExists(presentation.pdfUrl, persistentPaths),
+            Promise.all(pngUrls.map((url) => presentationAssetExists(url, persistentPaths))),
+          ]);
+          return {
+            ...presentation,
+            availability: {
+              pptx: pptxAvailable,
+              pdf: pdfAvailable,
+              png: pngAvailable,
+            },
+          };
+        }),
+      );
+      res.json(presentationsWithAvailability);
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch generated presentations" });
     }
@@ -1055,8 +1093,30 @@ export async function registerRoutes(
 
   app.delete("/api/admin/generated-presentations/:id", authMiddleware, requirePermission("agents"), async (req: Request, res: Response) => {
     try {
+      const presentation = await storage.getGeneratedPresentationById(req.params.id);
+      if (!presentation) return res.status(404).json({ error: "Presentation not found" });
+
       const deleted = await storage.deleteGeneratedPresentation(req.params.id);
       if (!deleted) return res.status(404).json({ error: "Presentation not found" });
+
+      const publicPaths = [
+        presentation.pptxUrl,
+        presentation.pdfUrl,
+        ...(Array.isArray(presentation.pngUrls) ? presentation.pngUrls : []),
+      ].filter((publicPath): publicPath is string => Boolean(publicPath));
+      const objectNames = Array.from(new Set(
+        publicPaths
+          .map((publicPath) => managedMediaObjectName(publicPath))
+          .filter((objectName): objectName is string => Boolean(objectName)),
+      ));
+      await deletePersistentMediaObjects(objectNames);
+      for (const publicPath of publicPaths) {
+        if (!/^\/generated-presentations\/[A-Za-z0-9._+-]+$/.test(publicPath)) continue;
+        await removeUploadQuietly(
+          path.join(generatedPresentationsDir, path.basename(publicPath)),
+        );
+      }
+
       res.json({ success: true });
     } catch (error) {
       res.status(500).json({ error: "Failed to delete generated presentation" });
