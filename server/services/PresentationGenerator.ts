@@ -6,6 +6,12 @@ import { PDFDocument } from 'pdf-lib';
 import { storage } from '../storage';
 import { getConfigMap, cfg } from '../mirror/siteConfig';
 import type { GeneratedPresentation } from '../../shared/schema';
+import {
+  deletePersistentMediaObjects,
+  persistPublicMediaFiles,
+  PersistentMediaUnavailableError,
+  type PublicMediaFile,
+} from '../media/persistentMedia';
 
 // Generador NATIVO de presentaciones (sin LibreOffice/Chromium) — SISTEMA DE DISEÑO "MERIDIANO":
 // editorial de prestigio para Von Wobeser y Sierra. Rejilla con "spine" en x=80, kickers en
@@ -679,6 +685,8 @@ export class PresentationGenerator {
   }
 
   async renderAndSave(model: SlideModel, opts: RenderOptions): Promise<RenderResult> {
+    const generatedFiles: PublicMediaFile[] = [];
+    let persistedObjectNames: string[] = [];
     try {
       if (!model || !model.title || !Array.isArray(model.slides) || model.slides.length === 0) {
         return { success: false, error: 'El modelo de diapositivas está vacío o es inválido.' };
@@ -742,7 +750,14 @@ export class PresentationGenerator {
           // diapositiva abajo-derecha).
           const png = await this.rasterize(builds[i].build);
           pngBuffers.push(png);
-          if (needPng) { const fn = `${baseName}-slide-${i + 1}.png`; fs.writeFileSync(path.join(OUTPUT_DIR, fn), png); pngUrls.push(`/generated-presentations/${fn}`); }
+          if (needPng) {
+            const fn = `${baseName}-slide-${i + 1}.png`;
+            const absolutePath = path.join(OUTPUT_DIR, fn);
+            const publicPath = `/generated-presentations/${fn}`;
+            fs.writeFileSync(absolutePath, png);
+            generatedFiles.push({ absolutePath, publicPath });
+            pngUrls.push(publicPath);
+          }
         }
         this.log(`Renderizadas ${pngBuffers.length} diapositivas a PNG`);
       }
@@ -751,15 +766,30 @@ export class PresentationGenerator {
         const pdf = await PDFDocument.create();
         for (const png of pngBuffers) { const img = await pdf.embedPng(png); const pg = pdf.addPage([W, H]); pg.drawImage(img, { x: 0, y: 0, width: W, height: H }); }
         const bytes = await pdf.save();
-        const fn = `${baseName}.pdf`; fs.writeFileSync(path.join(OUTPUT_DIR, fn), bytes); pdfUrl = `/generated-presentations/${fn}`;
+        const fn = `${baseName}.pdf`;
+        const absolutePath = path.join(OUTPUT_DIR, fn);
+        const publicPath = `/generated-presentations/${fn}`;
+        fs.writeFileSync(absolutePath, bytes);
+        generatedFiles.push({ absolutePath, publicPath });
+        pdfUrl = publicPath;
         this.log('PDF generado');
       }
 
       if (formats.includes('pptx')) {
         const pptx = await this.buildPptx(model, t, footer, docKicker, contact, `${firm} · ${site.replace(/^https?:\/\//, '')}`, total);
-        const fn = `${baseName}.pptx`; await pptx.writeFile({ fileName: path.join(OUTPUT_DIR, fn) }); pptxUrl = `/generated-presentations/${fn}`;
+        const fn = `${baseName}.pptx`;
+        const absolutePath = path.join(OUTPUT_DIR, fn);
+        const publicPath = `/generated-presentations/${fn}`;
+        await pptx.writeFile({ fileName: absolutePath });
+        generatedFiles.push({ absolutePath, publicPath });
+        pptxUrl = publicPath;
         this.log('PPTX generado');
       }
+
+      // El historial solo se confirma después de que todos los formatos solicitados
+      // quedaron protegidos. En Replit/producción App Storage es obligatorio.
+      const persistence = await persistPublicMediaFiles(generatedFiles);
+      persistedObjectNames = persistence.objectNames;
 
       const presentation = await storage.createGeneratedPresentation({
         title: model.title, topic: opts.topic || null, template: opts.template, branding: opts.branding, lang: opts.lang,
@@ -767,7 +797,21 @@ export class PresentationGenerator {
       });
       return { success: true, presentation };
     } catch (err: any) {
+      await deletePersistentMediaObjects(persistedObjectNames);
+      for (const generatedFile of generatedFiles) {
+        try {
+          fs.unlinkSync(generatedFile.absolutePath);
+        } catch {
+          // El archivo quizá no llegó a escribirse o ya fue limpiado.
+        }
+      }
       console.error('[PresentationGenerator] Error:', err);
+      if (err instanceof PersistentMediaUnavailableError) {
+        return {
+          success: false,
+          error: 'App Storage no está disponible. La presentación no se guardó para evitar que se pierda al publicar.',
+        };
+      }
       return { success: false, error: err?.message || 'Falló la generación de la presentación.' };
     }
   }

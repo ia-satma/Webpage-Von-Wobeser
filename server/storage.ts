@@ -148,6 +148,7 @@ export interface IStorage {
   createGeneratedAudio(audio: InsertGeneratedAudio): Promise<GeneratedAudio>;
   deleteGeneratedAudio(id: string): Promise<boolean>;
   getGeneratedPresentations(): Promise<GeneratedPresentation[]>;
+  getGeneratedPresentationById(id: string): Promise<GeneratedPresentation | undefined>;
   createGeneratedPresentation(presentation: InsertGeneratedPresentation): Promise<GeneratedPresentation>;
   deleteGeneratedPresentation(id: string): Promise<boolean>;
   getSiteContent(): SiteContent;
@@ -686,6 +687,14 @@ export class DatabaseStorage implements IStorage {
       .select()
       .from(generatedPresentations)
       .orderBy(desc(generatedPresentations.createdAt));
+  }
+
+  async getGeneratedPresentationById(id: string): Promise<GeneratedPresentation | undefined> {
+    const [presentation] = await db
+      .select()
+      .from(generatedPresentations)
+      .where(eq(generatedPresentations.id, id));
+    return presentation;
   }
 
   async createGeneratedPresentation(presentation: InsertGeneratedPresentation): Promise<GeneratedPresentation> {

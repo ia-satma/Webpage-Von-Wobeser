@@ -56,7 +56,7 @@ Scripts (`package.json`):
 | `start:deploy` | `npm run db:migrate && npm run start` | Aplica migraciones y arranca. **Es lo que Replit ejecuta en Deploy.** |
 | `check` | `tsc` | Type-check. |
 | `db:migrate` | `node scripts/run-migrations.mjs` | Migraciones SQL versionadas con transacción y advisory lock. |
-| `media:migrate-storage` | `node --import tsx scripts/migrate-media-to-app-storage.ts` | Migra medios históricos locales al bucket persistente de Replit. |
+| `media:migrate-storage` | `node --import tsx scripts/migrate-media-to-app-storage.ts` | Migra imágenes, videos y presentaciones históricas locales al bucket persistente de Replit. |
 | `admin:recover` | `node --import tsx scripts/recover-admin.ts` | Recuperación manual desde Replit Secrets; nunca imprime contraseña ni hash. |
 
 - **Puerto:** `process.env.PORT || 5000`. `.replit` fija `PORT=5000` y mapea `localPort 5000 → externalPort 80`. Bind a `0.0.0.0`.

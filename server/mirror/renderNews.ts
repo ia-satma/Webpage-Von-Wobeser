@@ -111,10 +111,10 @@ export function renderNewsList(
     );
     $("head").append(
       `<style id="vw-news-search-style">` +
-        `.vw-search-summary{clear:both;padding:22px 0 10px;color:#b51d35;font-family:Geomanist,Arial,sans-serif;font-size:16px;letter-spacing:.02em}` +
+        `.vw-search-summary{clear:both;padding:22px 0 10px;color:#b51d35;font-family:var(--vw-font-ui);font-size:16px;letter-spacing:.02em}` +
         `.vw-search-empty{padding:64px 0;border-top:1px solid #b51d35;text-align:center}` +
-        `.vw-search-empty__title{font-family:Publico-roman,serif;font-size:32px;color:#5f5f5f}` +
-        `.vw-search-empty p{font-family:Geomanist,Arial,sans-serif;font-size:16px}` +
+        `.vw-search-empty__title{font-family:var(--vw-font-editorial);font-size:32px;color:#5f5f5f}` +
+        `.vw-search-empty p{font-family:var(--vw-font-body);font-size:16px}` +
       `</style>`,
     );
   }

@@ -4,7 +4,11 @@ import path from "node:path";
 import type { Readable } from "node:stream";
 
 const STORAGE_ROOT = "von-wobeser/public";
-const MANAGED_PREFIXES = ["/uploads/", "/generated-images/"] as const;
+const MANAGED_PREFIXES = [
+  "/uploads/",
+  "/generated-images/",
+  "/generated-presentations/",
+] as const;
 const AVAILABILITY_TTL_MS = 60_000;
 
 type Environment = NodeJS.ProcessEnv;
@@ -95,6 +99,8 @@ export function managedMediaMimeType(publicPath: string): string {
     case ".ogg": return "video/ogg";
     case ".mov": return "video/quicktime";
     case ".pdf": return "application/pdf";
+    case ".pptx":
+      return "application/vnd.openxmlformats-officedocument.presentationml.presentation";
     default: return "application/octet-stream";
   }
 }
