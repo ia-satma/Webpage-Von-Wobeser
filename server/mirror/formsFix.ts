@@ -10,6 +10,13 @@ function jsString(s: string): string {
   return JSON.stringify(s).replace(/</g, "\\u003c");
 }
 
+function safePublicHref(value: string, fallback: string): string {
+  const href = String(value ?? "").trim();
+  if (/^\/(?!\/)[a-z0-9_./%+@~:?&=#-]*$/i.test(href)) return href;
+  if (/^https:\/\/[a-z0-9.-]+(?:[/:?#][^\s"'<>]*)?$/i.test(href)) return href;
+  return fallback;
+}
+
 /**
  * El formulario de "Pasantes" del sitio capturado es HTML crudo de Joomla con
  * action="" — al enviarse no llega a ningún backend (ni correo, ni BD, ni panel).
@@ -135,8 +142,11 @@ export function applyContactForm(
         send: "Enviar mensaje",
         sending: "Enviando…",
         selectOption: "Selecciona una opción",
-        required: "Completa nombre, correo y mensaje.",
+        required: "Completa nombre, correo y mensaje, y acepta el Aviso de Privacidad.",
         invalidEmail: "Escribe un correo electrónico válido.",
+        privacy: "He leído y acepto el",
+        privacyLink: "Aviso de Privacidad",
+        privacyPath: "/aviso",
         ok: "Gracias, tu mensaje fue enviado correctamente.",
         err: "No fue posible enviar tu mensaje. Intenta de nuevo.",
         netErr: "No pudimos conectarnos. Revisa tu conexión e intenta de nuevo.",
@@ -153,8 +163,11 @@ export function applyContactForm(
         send: "Send message",
         sending: "Sending…",
         selectOption: "Select an option",
-        required: "Please fill in name, email and message.",
+        required: "Please fill in name, email and message, and accept the Privacy Notice.",
         invalidEmail: "Enter a valid email address.",
+        privacy: "I have read and accept the",
+        privacyLink: "Privacy Notice",
+        privacyPath: "/privacy",
         ok: "Thank you, your message was sent successfully.",
         err: "Your message could not be sent. Please try again.",
         netErr: "We could not connect. Check your connection and try again.",
@@ -174,6 +187,9 @@ export function applyContactForm(
     selectOption: text("contact_form_select_label", defaults.selectOption),
     required: text("contact_form_required_message", defaults.required),
     invalidEmail: text("contact_form_invalid_email_message", defaults.invalidEmail),
+    privacy: text("contact_form_privacy_intro", defaults.privacy),
+    privacyLink: text("contact_form_privacy_link", defaults.privacyLink),
+    privacyPath: safePublicHref(text("contact_form_privacy_path", defaults.privacyPath), defaults.privacyPath),
     ok: text("contact_form_success_message", defaults.ok),
     err: text("contact_form_error_message", defaults.err),
     netErr: text("contact_form_network_error_message", defaults.netErr),
@@ -219,6 +235,10 @@ export function applyContactForm(
       <span>${esc(t.message)} <b aria-hidden="true">*</b></span>
       <textarea name="message" rows="6" maxlength="5000" required></textarea>
     </label>
+    <label class="vw-contact-privacy vw-contact-field--full" for="vw-contact-privacy">
+      <input id="vw-contact-privacy" name="acceptPrivacy" type="checkbox" required>
+      <span>${esc(t.privacy)} <a href="${esc(t.privacyPath)}">${esc(t.privacyLink)}</a>.</span>
+    </label>
     <div class="vw-contact-form__footer vw-contact-field--full">
       <div class="vw-contact-form__feedback" data-vw-feedback role="status" aria-live="polite"></div>
       <button type="submit" data-idle-label="${esc(t.send)}" data-loading-label="${esc(t.sending)}">
@@ -241,8 +261,11 @@ export function applyContactForm(
 .vw-contact-field--full{grid-column:1/-1}
 .vw-contact-field input,.vw-contact-field select,.vw-contact-field textarea{box-sizing:border-box;width:100%;min-width:0;min-height:48px;margin:0;border:1px solid transparent;border-radius:0;background:#fff;color:#3f3f3f;padding:12px 14px;font:400 16px/1.4 var(--vw-font-ui);letter-spacing:0;text-transform:none;appearance:auto}
 .vw-contact-field textarea{min-height:152px;resize:vertical}
-.vw-contact-field input:focus-visible,.vw-contact-field select:focus-visible,.vw-contact-field textarea:focus-visible,.vw-contact-form button:focus-visible{outline:3px solid #fff;outline-offset:3px}
+.vw-contact-field input:focus-visible,.vw-contact-field select:focus-visible,.vw-contact-field textarea:focus-visible,.vw-contact-form button:focus-visible,.vw-contact-privacy input:focus-visible,.vw-contact-privacy a:focus-visible{outline:3px solid #fff;outline-offset:3px}
 .vw-contact-field input[aria-invalid="true"],.vw-contact-field textarea[aria-invalid="true"]{border-color:#b51d35;box-shadow:0 0 0 2px #fff}
+.vw-contact-privacy{display:flex;align-items:flex-start;gap:12px;margin:0;background:#fff;color:#4f4f4f;padding:15px 17px;font:400 16px/1.55 var(--vw-font-ui);letter-spacing:0;text-transform:none}
+.vw-contact-privacy input{width:20px;height:20px;flex:0 0 20px;margin:2px 0 0;accent-color:#b51d35}
+.vw-contact-privacy a{color:#a5102a;font-weight:600;text-decoration:underline;text-decoration-color:#a5102a;text-decoration-thickness:2px;text-underline-offset:.2em}
 .vw-contact-form__footer{display:flex;align-items:center;justify-content:space-between;gap:30px;padding-top:6px}
 .vw-contact-form__feedback{min-height:24px;color:#fff;font:400 15px/1.5 var(--vw-font-ui)}
 .vw-contact-form__feedback[data-state="success"]{color:#fff;font-weight:600}
@@ -282,11 +305,13 @@ export function applyContactForm(
         company: form.company.value || undefined,
         practiceArea: form.practiceArea.value || undefined,
         message: form.message.value,
+        acceptPrivacy: !!form.acceptPrivacy.checked,
       };
-      var missing = !data.fullName.trim() || !data.email.trim() || !data.message.trim();
+      var missing = !data.fullName.trim() || !data.email.trim() || !data.message.trim() || !data.acceptPrivacy;
       setInvalid(form.fullName, !data.fullName.trim());
       setInvalid(form.email, !data.email.trim() || !form.email.validity.valid);
       setInvalid(form.message, !data.message.trim());
+      setInvalid(form.acceptPrivacy, !data.acceptPrivacy);
       if (missing) {
         feedback.textContent = ${jsString(t.required)};
         return;

@@ -4,6 +4,10 @@ import { openai } from '../openai';
 import { storage } from '../storage';
 import { assertAiBudget, recordAudioUsage } from "./usageTracker";
 import { AsyncLocalStorage } from 'node:async_hooks';
+import {
+  deletePersistentMediaObjects,
+  persistPublicMediaFiles,
+} from "../media/persistentMedia";
 
 const OUTPUT_DIR = path.join(process.cwd(), 'public', 'generated-audio');
 
@@ -137,29 +141,40 @@ export class VoiceGenerator {
       return result;
     }
 
+    let outputPath = "";
+    let persistedObjects: string[] = [];
     try {
       if (!fs.existsSync(OUTPUT_DIR)) {
         fs.mkdirSync(OUTPUT_DIR, { recursive: true });
       }
       const filename = `${opts.sourceType}-${Date.now()}.mp3`;
-      const outputPath = path.join(OUTPUT_DIR, filename);
+      outputPath = path.join(OUTPUT_DIR, filename);
       fs.writeFileSync(outputPath, ttsResult.buffer);
-
-      result.success = true;
-      result.engine = 'openai_tts';
-      result.audioUrl = `/generated-audio/${filename}`;
-      this.log(`Audio guardado: ${result.audioUrl}`);
+      const publicPath = `/generated-audio/${filename}`;
+      const persisted = await persistPublicMediaFiles([{ absolutePath: outputPath, publicPath }]);
+      persistedObjects = persisted.objectNames;
 
       await storage.createGeneratedAudio({
-        audioUrl: result.audioUrl,
+        audioUrl: publicPath,
         sourceText: cleaned,
         voiceId: voice,
         engine: 'openai_tts',
         sourceType: opts.sourceType,
         articleId: opts.articleId ?? null,
       });
+      result.success = true;
+      result.engine = 'openai_tts';
+      result.audioUrl = publicPath;
+      this.log(`Audio guardado: ${result.audioUrl}`);
     } catch {
+      await deletePersistentMediaObjects(persistedObjects);
+      if (outputPath) {
+        try { fs.unlinkSync(outputPath); } catch { /* compensación; puede no existir */ }
+      }
       this.log("Fallo al guardar el audio");
+      result.success = false;
+      result.engine = "unavailable";
+      result.audioUrl = undefined;
       result.errorMessage = "No fue posible guardar el audio";
       result.errorCode = 'save_failed';
     }

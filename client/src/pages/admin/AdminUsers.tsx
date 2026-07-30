@@ -27,6 +27,7 @@ type AdminUserRow = {
 type LoginEvent = {
   id: string; userId: string | null; email: string; success: boolean;
   ipAddress: string | null; userAgent: string | null; createdAt: string | null;
+  userEmail: string | null; username: string | null; userRole: string | null; userExists: boolean;
 };
 
 const ROLE_LABELS: Record<string, string> = {
@@ -290,7 +291,8 @@ export default function AdminUsers() {
           </CardHeader>
           <CardContent>
             <p className="text-sm text-muted-foreground mb-3">
-              Registro de inicios de sesión (exitosos y fallidos). Correo e IP se muestran únicamente como huellas irreversibles.
+              Registro de inicios de sesión exitosos y fallidos. La identidad se resuelve con el usuario del panel;
+              el identificador original y el origen permanecen protegidos como huellas irreversibles.
             </p>
             {logQuery.isLoading ? (
               <div className="flex items-center gap-2 text-muted-foreground py-6"><Loader2 className="h-4 w-4 animate-spin" /> Cargando…</div>
@@ -304,7 +306,8 @@ export default function AdminUsers() {
                   <TableHeader>
                     <TableRow>
                       <TableHead>Fecha y hora</TableHead>
-                      <TableHead>Identificador protegido</TableHead>
+                      <TableHead>Usuario</TableHead>
+                      <TableHead>Rol</TableHead>
                       <TableHead>Resultado</TableHead>
                       <TableHead>Origen protegido</TableHead>
                     </TableRow>
@@ -315,7 +318,26 @@ export default function AdminUsers() {
                         <TableCell className="text-sm whitespace-nowrap">
                           {ev.createdAt ? new Date(ev.createdAt).toLocaleString("es-MX") : "—"}
                         </TableCell>
-                        <TableCell className="font-mono text-xs">{ev.email.slice(0, 12)}…</TableCell>
+                        <TableCell>
+                          {ev.userId && ev.userExists ? (
+                            <>
+                              <div className="font-medium text-sm">{ev.userEmail || ev.username || "Usuario"}</div>
+                              {ev.username && ev.username !== ev.userEmail ? (
+                                <div className="text-xs text-muted-foreground">{ev.username}</div>
+                              ) : null}
+                            </>
+                          ) : (
+                            <>
+                              <div className="font-medium text-sm">
+                                {ev.userId ? "Usuario eliminado" : "Usuario no reconocido"}
+                              </div>
+                              <div className="font-mono text-xs text-muted-foreground">{ev.email.slice(0, 12)}…</div>
+                            </>
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          {ev.userRole ? <Badge variant="outline">{ROLE_LABELS[ev.userRole] || ev.userRole}</Badge> : "—"}
+                        </TableCell>
                         <TableCell>
                           {ev.success ? (
                             <Badge variant="secondary" className="gap-1"><Check className="h-3 w-3" /> Éxito</Badge>

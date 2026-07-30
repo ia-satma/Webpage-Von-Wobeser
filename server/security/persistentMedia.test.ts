@@ -24,6 +24,10 @@ test("las rutas administradas se convierten en objetos sin permitir traversal", 
     managedMediaObjectName("/generated-presentations/pres-123.pptx?download=1"),
     "von-wobeser/public/generated-presentations/pres-123.pptx",
   );
+  assert.equal(
+    managedMediaObjectName("/generated-audio/newsletter-123.mp3?download=1"),
+    "von-wobeser/public/generated-audio/newsletter-123.mp3",
+  );
   assert.equal(managedMediaObjectName("/uploads/../private/file.pdf"), null);
   assert.equal(managedMediaObjectName("/uploads/%2e%2e/private/file.png"), null);
   assert.equal(managedMediaObjectName("/uploads/folder\\file.png"), null);
@@ -44,6 +48,7 @@ test("el almacenamiento persistente es obligatorio en producción y Replit", () 
   assert.equal(persistentMediaIsRequired({ NODE_ENV: "test" }), false);
   assert.equal(managedMediaMimeType("/uploads/logo.webp"), "image/webp");
   assert.equal(managedMediaMimeType("/uploads/hero/video.mp4"), "video/mp4");
+  assert.equal(managedMediaMimeType("/generated-audio/newsletter-123.mp3"), "audio/mpeg");
   assert.equal(managedMediaMimeType("/generated-presentations/pres-123.pdf"), "application/pdf");
   assert.equal(
     managedMediaMimeType("/generated-presentations/pres-123.pptx"),
@@ -62,8 +67,10 @@ test("el upload persiste originales y derivados antes de guardar su registro", (
   assert.match(routes, /res\.status\(404\)\.json\(\{ error: "Media not found" \}\)/);
 });
 
-test("las presentaciones se persisten antes de registrar el historial y se sirven desde App Storage", () => {
+test("imágenes, audios y presentaciones conservan archivos e historial permanente", () => {
   const generator = readFileSync(new URL("../services/PresentationGenerator.ts", import.meta.url), "utf8");
+  const voiceGenerator = readFileSync(new URL("../services/VoiceGenerator.ts", import.meta.url), "utf8");
+  const imageGenerator = readFileSync(new URL("../services/SmartImageGenerator.ts", import.meta.url), "utf8");
   const routes = readFileSync(new URL("../routes.ts", import.meta.url), "utf8");
   const migration = readFileSync(
     new URL("../../scripts/migrate-media-to-app-storage.ts", import.meta.url),
@@ -71,6 +78,14 @@ test("las presentaciones se persisten antes de registrar el historial y se sirve
   );
   const admin = readFileSync(
     new URL("../../client/src/pages/admin/AdminPresentations.tsx", import.meta.url),
+    "utf8",
+  );
+  const adminAudio = readFileSync(
+    new URL("../../client/src/pages/admin/AdminGeneratedAudio.tsx", import.meta.url),
+    "utf8",
+  );
+  const adminImages = readFileSync(
+    new URL("../../client/src/pages/admin/AdminGeneratedImages.tsx", import.meta.url),
     "utf8",
   );
 
@@ -83,13 +98,40 @@ test("las presentaciones se persisten antes de registrar el historial y se sirve
   assert.match(routes, /servePersistentManagedMedia\(req, res, publicPath\)/);
   assert.match(routes, /const persistentPaths = await listPersistentPublicMediaPaths\(\)/);
   assert.match(routes, /availability:\s*\{\s*pptx:/);
-  assert.match(routes, /deletePersistentMediaObjects\(objectNames\)/);
+  assert.match(routes, /available:\s*await generatedAssetAvailable\(item\.audioUrl/);
+  assert.equal(
+    (routes.match(/code:\s*"HISTORY_IMMUTABLE"/g) || []).length,
+    3,
+  );
+  assert.equal(
+    (routes.match(/app\.delete\("\/api\/admin\/generated-(?:images|audio|presentations)\/:id"/g) || []).length,
+    3,
+  );
 
   assert.match(migration, /"generated-presentations"/);
+  assert.match(migration, /"generated-audio"/);
+  assert.match(migration, /"\.mp3"/);
   assert.match(migration, /"\.pdf", "\.pptx"/);
+
+  const audioPersistenceCall = voiceGenerator.indexOf("await persistPublicMediaFiles([{ absolutePath: outputPath, publicPath }])");
+  const audioHistoryCall = voiceGenerator.indexOf("await storage.createGeneratedAudio({");
+  assert.ok(audioPersistenceCall > 0);
+  assert.ok(audioHistoryCall > audioPersistenceCall);
+  assert.match(voiceGenerator, /deletePersistentMediaObjects\(persistedObjects\)/);
+  assert.ok(
+    imageGenerator.indexOf("await persistPublicMediaFiles([{")
+      < imageGenerator.indexOf("await storage.createGeneratedImage(row)"),
+  );
+  assert.match(imageGenerator, /errorCode = 'history_save_failed'/);
+  assert.match(imageGenerator, /deletePersistentMediaObjects\(persistedObjectNames\)/);
 
   assert.match(admin, /p\.availability\?\.pptx/);
   assert.match(admin, /El historial permanece en la base/);
+  assert.doesNotMatch(admin, /button-delete-presentation|deleteMutation|Trash2/);
+  assert.match(adminAudio, /El registro permanece, pero el archivo no está disponible/);
+  assert.doesNotMatch(adminAudio, /button-delete-audio|deleteMutation|Trash2/);
+  assert.match(adminImages, /Archivo no disponible/);
+  assert.doesNotMatch(adminImages, /button-delete-image|deleteMutation|Trash2/);
 });
 
 test("los nueve reconocimientos recuperados son WebP válidos y livianos", async () => {

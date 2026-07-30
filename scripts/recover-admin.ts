@@ -25,7 +25,7 @@ async function recoverAdmin(): Promise<void> {
   // Secrets y la confirmación, evitando trazas técnicas o conexiones accidentales.
   const [
     { eq },
-    { adminAuthChallenges, adminMfaCredentials, adminSessions, adminUsers },
+    { adminAuthChallenges, adminSessions, adminUsers },
     { hashPassword, validateNewPassword },
     { db },
   ] = await Promise.all([
@@ -57,12 +57,11 @@ async function recoverAdmin(): Promise<void> {
       .where(eq(adminUsers.id, user.id));
     await tx.delete(adminSessions).where(eq(adminSessions.userId, user.id));
     await tx.delete(adminAuthChallenges).where(eq(adminAuthChallenges.userId, user.id));
-    await tx.delete(adminMfaCredentials).where(eq(adminMfaCredentials.userId, user.id));
     return true;
   });
 
   if (!recovered) throw new Error("No se pudo recuperar la cuenta.");
-  console.log("[admin:recover] Cuenta reactivada; sesiones y enrolamiento MFA revocados.");
+  console.log("[admin:recover] Cuenta reactivada y sesiones anteriores revocadas.");
 }
 
 recoverAdmin()

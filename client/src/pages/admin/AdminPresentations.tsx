@@ -17,10 +17,10 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Switch } from "@/components/ui/switch";
 import { getAuthHeaders } from "@/lib/adminAuth";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
-import { Presentation, Loader2, Trash2, FileDown, FileText, Image as ImageIcon, Wand2, Eye } from "lucide-react";
+import { Presentation, Loader2, FileDown, FileText, Image as ImageIcon, Wand2, Eye } from "lucide-react";
 
 interface PresentationRow {
   id: string;
@@ -74,7 +74,6 @@ export default function AdminPresentations() {
   const [notes, setNotes] = useState<string[]>([]);
   const [usedFallback, setUsedFallback] = useState(false);
 
-  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
   const [previewId, setPreviewId] = useState<string | null>(null);
 
   const { data: presentations = [], isLoading } = useQuery<PresentationRow[]>({
@@ -147,20 +146,6 @@ export default function AdminPresentations() {
     },
   });
 
-  const deleteMutation = useMutation({
-    mutationFn: async (id: string) => {
-      const res = await adminApiRequest("DELETE", `/api/admin/generated-presentations/${id}`);
-      if (!res.ok) throw new Error("No se pudo eliminar la presentación");
-      return res.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/generated-presentations"] });
-      setDeleteConfirmId(null);
-      toast({ title: "Presentación eliminada del historial" });
-    },
-    onError: () => toast({ title: "No se pudo eliminar", variant: "destructive" }),
-  });
-
   const canGenerate =
     !generateMutation.isPending &&
     (topic.trim().length > 0 || docs.length > 0) &&
@@ -188,7 +173,7 @@ export default function AdminPresentations() {
           Escribe un tema (o súbele documentos .pdf/.docx/.pptx/.tex), elige plantilla y formato, y presiona
           "Generar presentación". La IA arma las diapositivas y el sistema las exporta con el logo y los colores de la
           firma. Si aún no hay créditos de IA disponibles, se genera un borrador con un esquema automático para que
-          puedas probar la descarga. Los archivos .doc/.ppt antiguos deben convertirse a .docx/.pptx.
+          puedas probar la descarga. El historial es permanente y ningún usuario puede borrarlo. Los archivos .doc/.ppt antiguos deben convertirse a .docx/.pptx.
         </AdminPageHelp>
 
         {/* --- Generador --- */}
@@ -467,18 +452,6 @@ export default function AdminPresentations() {
                     </p>
                   )}
 
-                  <div className="flex justify-end pt-1">
-                    <Button
-                      size="icon"
-                      variant="outline"
-                      onClick={() => setDeleteConfirmId(p.id)}
-                      aria-label="Eliminar del historial"
-                      className="text-red-600"
-                      data-testid={`button-delete-${p.id}`}
-                    >
-                      <Trash2 className="w-3 h-3" />
-                    </Button>
-                  </div>
                 </CardContent>
               </Card>
               );
@@ -486,28 +459,6 @@ export default function AdminPresentations() {
           </div>
         )}
       </main>
-
-      <Dialog open={!!deleteConfirmId} onOpenChange={(open) => !open && setDeleteConfirmId(null)}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Eliminar del historial</DialogTitle>
-          </DialogHeader>
-          <p className="text-muted-foreground text-sm py-2">
-            Esto solo quita la presentación de este historial — no afecta a lo que ya hayas descargado o compartido. No se puede deshacer.
-          </p>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setDeleteConfirmId(null)}>Cancelar</Button>
-            <Button
-              variant="destructive"
-              onClick={() => deleteConfirmId && deleteMutation.mutate(deleteConfirmId)}
-              disabled={deleteMutation.isPending}
-              data-testid="button-confirm-delete"
-            >
-              Eliminar
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
 
       {/* Vista previa in-panel: muestra las PNG por diapositiva (índice 0 = portada). */}
       <Dialog open={!!previewId} onOpenChange={(open) => !open && setPreviewId(null)}>

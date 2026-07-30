@@ -68,6 +68,11 @@ test("la lupa abre, enfoca y envía el buscador global bilingüe", () => {
   assert.match(css, /\.header\.vw-header-search-open/);
   assert.match(css, /\.vw-header-search__submit/);
   assert.match(css, /font-family: "Geomanist-Book", sans-serif !important/);
+  assert.match(css, /\.header\.header_JS \.search_form_cont[\s\S]*right: 124px !important/);
+  assert.match(css, /\.header\.header_JS \.search_form_cont[\s\S]*top: 11px !important[\s\S]*transform: none/);
+  assert.match(css, /\.header\.header_JS \.menu_btn_JS[\s\S]*right: 62px !important/);
+  assert.match(css, /\.header\.header_JS \.header__lang[\s\S]*right: 8px !important/);
+  assert.match(css, /\.header\.header_JS \.eyeglass[\s\S]*width: 44px !important/);
 });
 
 test("las cuatro categorías de Abogados tienen ruta limpia bilingüe antes del catch-all", () => {
@@ -123,6 +128,7 @@ test("CSP Report-Only modela los scripts inline heredados sin habilitar eval", (
   assert.doesNotMatch(mainServer, /scriptSrc[^\n]*unsafe-eval/);
   assert.match(mainServer, /objectSrc:\s*\["'none'"\]/);
   assert.match(mainServer, /frameAncestors:\s*\["'none'"\]/);
+  assert.doesNotMatch(mainServer, /upgradeInsecureRequests:/);
 });
 
 test("cada página usa un único H1 editorial y elimina encabezados ocultos de Joomla", () => {

@@ -137,16 +137,6 @@ import {
   sanitizeGrants,
 } from "./auth";
 import {
-  consumeRecoveryCode,
-  decryptTotpSecret,
-  encryptTotpSecret,
-  generateRecoveryCodes,
-  generateTotpSecret,
-  isMfaConfigured,
-  totpAuthUrl,
-  verifyTotp,
-} from "./security/mfa";
-import {
   acceptQuarantinedPublicMedia,
   acceptQuarantinedCv,
   cleanExpiredPrivatePresentationInputs,
@@ -525,10 +515,6 @@ export async function registerRoutes(
         ws.close(1008, "Authentication required");
         return;
       }
-      if ((resolved.user.role === "super_admin" || resolved.user.role === "admin") && !resolved.session.mfaVerified) {
-        ws.close(1008, "MFA required");
-        return;
-      }
       const currentConnections = Array.from(pipelineClients.values())
         .filter((client) => client.userId === resolved.user.id).length;
       if (currentConnections >= 3) {
@@ -616,7 +602,7 @@ export async function registerRoutes(
     fs.mkdirSync(generatedAudioDir, { recursive: true });
   }
 
-  app.get('/generated-audio/:filename', (req, res) => {
+  app.get('/generated-audio/:filename', async (req, res) => {
     const resolved = path.resolve(generatedAudioDir, req.params.filename);
     if (resolved !== path.resolve(generatedAudioDir) && !resolved.startsWith(path.resolve(generatedAudioDir) + path.sep)) {
       return res.status(403).json({ error: 'Forbidden' });
@@ -628,6 +614,8 @@ export async function registerRoutes(
       }
       return res.sendFile(resolved);
     }
+    const publicPath = `/generated-audio/${req.params.filename}`;
+    if (await servePersistentManagedMedia(req, res, publicPath)) return;
     res.status(404).json({ error: 'Audio not found' });
   });
 
@@ -902,48 +890,51 @@ export async function registerRoutes(
     }
   });
 
-  // Historial de imágenes generadas por IA (ImageSuggestionAgent) — para reutilizarlas después
-  // sin volver a gastar créditos de Cloudflare/Gemini. Solo lectura + borrado; se crean desde
-  // SmartImageGenerator, no desde el panel.
+  const generatedAssetAvailable = async (
+    publicPath: string,
+    localRoot: string,
+    persistentPaths: Set<string> | null,
+  ): Promise<boolean> => {
+    const localPath = path.join(localRoot, path.basename(publicPath));
+    if (fs.existsSync(localPath) && fs.statSync(localPath).isFile()) return true;
+    if (persistentPaths) return persistentPaths.has(publicPath);
+    return persistentPublicMediaExists(publicPath);
+  };
+
+  // Historial permanente de imágenes generadas por IA.
   app.get("/api/admin/generated-images", authMiddleware, requirePermission("agents"), async (_req: Request, res: Response) => {
     try {
       const images = await storage.getGeneratedImages();
-      res.json(images);
+      const persistentPaths = await listPersistentPublicMediaPaths();
+      res.json(await Promise.all(images.map(async (image) => ({
+        ...image,
+        available: await generatedAssetAvailable(image.imageUrl, generatedImagesDir, persistentPaths),
+      }))));
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch generated images" });
     }
   });
 
-  app.delete("/api/admin/generated-images/:id", authMiddleware, requirePermission("agents"), async (req: Request, res: Response) => {
-    try {
-      const deleted = await storage.deleteGeneratedImage(req.params.id);
-      if (!deleted) return res.status(404).json({ error: "Image not found" });
-      res.json({ success: true });
-    } catch (error) {
-      res.status(500).json({ error: "Failed to delete generated image" });
-    }
+  app.delete("/api/admin/generated-images/:id", authMiddleware, requirePermission("agents"), (_req: Request, res: Response) => {
+    res.status(405).json({ error: "Generated history is permanent", code: "HISTORY_IMMUTABLE" });
   });
 
-  // Historial de audio generado por IA (VoiceAgent / VoiceGenerator, TTS de OpenAI) — boletín,
-  // redes y alertas legales convertidos a voz. Solo lectura + borrado; se crean desde
-  // VoiceGenerator, no desde el panel.
+  // Historial permanente de audio generado por IA.
   app.get("/api/admin/generated-audio", authMiddleware, requirePermission("agents"), async (_req: Request, res: Response) => {
     try {
       const audio = await storage.getGeneratedAudio();
-      res.json(audio);
+      const persistentPaths = await listPersistentPublicMediaPaths();
+      res.json(await Promise.all(audio.map(async (item) => ({
+        ...item,
+        available: await generatedAssetAvailable(item.audioUrl, generatedAudioDir, persistentPaths),
+      }))));
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch generated audio" });
     }
   });
 
-  app.delete("/api/admin/generated-audio/:id", authMiddleware, requirePermission("agents"), async (req: Request, res: Response) => {
-    try {
-      const deleted = await storage.deleteGeneratedAudio(req.params.id);
-      if (!deleted) return res.status(404).json({ error: "Audio not found" });
-      res.json({ success: true });
-    } catch (error) {
-      res.status(500).json({ error: "Failed to delete generated audio" });
-    }
+  app.delete("/api/admin/generated-audio/:id", authMiddleware, requirePermission("agents"), (_req: Request, res: Response) => {
+    res.status(405).json({ error: "Generated history is permanent", code: "HISTORY_IMMUTABLE" });
   });
 
   // --- Generador de Presentaciones (14° agente) ---------------------------------------------
@@ -1091,36 +1082,8 @@ export async function registerRoutes(
     }
   });
 
-  app.delete("/api/admin/generated-presentations/:id", authMiddleware, requirePermission("agents"), async (req: Request, res: Response) => {
-    try {
-      const presentation = await storage.getGeneratedPresentationById(req.params.id);
-      if (!presentation) return res.status(404).json({ error: "Presentation not found" });
-
-      const deleted = await storage.deleteGeneratedPresentation(req.params.id);
-      if (!deleted) return res.status(404).json({ error: "Presentation not found" });
-
-      const publicPaths = [
-        presentation.pptxUrl,
-        presentation.pdfUrl,
-        ...(Array.isArray(presentation.pngUrls) ? presentation.pngUrls : []),
-      ].filter((publicPath): publicPath is string => Boolean(publicPath));
-      const objectNames = Array.from(new Set(
-        publicPaths
-          .map((publicPath) => managedMediaObjectName(publicPath))
-          .filter((objectName): objectName is string => Boolean(objectName)),
-      ));
-      await deletePersistentMediaObjects(objectNames);
-      for (const publicPath of publicPaths) {
-        if (!/^\/generated-presentations\/[A-Za-z0-9._+-]+$/.test(publicPath)) continue;
-        await removeUploadQuietly(
-          path.join(generatedPresentationsDir, path.basename(publicPath)),
-        );
-      }
-
-      res.json({ success: true });
-    } catch (error) {
-      res.status(500).json({ error: "Failed to delete generated presentation" });
-    }
+  app.delete("/api/admin/generated-presentations/:id", authMiddleware, requirePermission("agents"), (_req: Request, res: Response) => {
+    res.status(405).json({ error: "Generated history is permanent", code: "HISTORY_IMMUTABLE" });
   });
 
   app.get("/api/site-content", (_req, res) => {
@@ -1351,6 +1314,8 @@ export async function registerRoutes(
         company: contactData.company ? sanitize(contactData.company) : undefined,
         practiceArea: contactData.practiceArea ? sanitize(contactData.practiceArea) : undefined,
         message: sanitize(contactData.message),
+        acceptedPrivacy: true,
+        consentedAt: new Date(),
         ipAddress: (() => {
           const fwd = req.headers["x-forwarded-for"];
           const raw = Array.isArray(fwd) ? fwd[0] : fwd;
@@ -1780,7 +1745,6 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
   });
 
   const dummyPasswordHash = await hashPassword("Timing!9vQ2xK7mP");
-  const privilegedRole = (role: string) => role === "super_admin" || role === "admin";
   const isPendingSchemaMigration = (error: unknown): boolean => {
     const code = (error as { code?: string; cause?: { code?: string } } | null)?.cause?.code
       || (error as { code?: string } | null)?.code;
@@ -1815,7 +1779,6 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
     },
     ipAddress: string,
     userAgent: string | null,
-    mfaVerified: boolean,
   ) => {
     const rawToken = generateToken();
     const csrfToken = deriveCsrfToken(rawToken);
@@ -1826,7 +1789,9 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
       expiresAt: getSessionExpiry(),
       absoluteExpiresAt: getAbsoluteSessionExpiry(),
       lastSeenAt: new Date(),
-      mfaVerified,
+      // Se conserva la columna histórica para compatibilidad de esquema. MFA está
+      // retirado del flujo activo y este valor ya no controla el acceso.
+      mfaVerified: true,
       ipAddress,
       userAgent,
     });
@@ -1837,40 +1802,8 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
     };
   };
 
-  const createLoginChallenge = async (
-    res: Response,
-    userId: string,
-    purpose: "mfa" | "enroll",
-  ) => {
-    await storage.deleteAdminAuthChallengesByUserId(userId);
-    const rawToken = generateToken();
-    await storage.createAdminAuthChallenge({
-      userId,
-      tokenHash: hashOpaqueToken(rawToken),
-      purpose,
-      attempts: 0,
-      expiresAt: new Date(Date.now() + 10 * 60 * 1000),
-    });
-    res.cookie(CHALLENGE_COOKIE, rawToken, authCookieOptions(10 * 60 * 1000));
-  };
-
-  const resolveLoginChallenge = async (req: Request, res: Response) => {
-    const rawToken = readCookie(req, CHALLENGE_COOKIE);
-    if (!rawToken) return null;
-    const tokenHash = hashOpaqueToken(rawToken);
-    const challenge = await storage.getAdminAuthChallenge(tokenHash);
-    if (!challenge || challenge.expiresAt < new Date() || challenge.attempts >= 5) {
-      if (challenge) await storage.deleteAdminAuthChallenge(tokenHash);
-      clearAuthCookie(res, CHALLENGE_COOKIE);
-      return null;
-    }
-    const user = await storage.getAdminUser(challenge.userId);
-    if (!user?.isActive) return null;
-    return { rawToken, tokenHash, challenge, user };
-  };
-
   // Admin Login: nunca devuelve el token de sesión. La sesión final viaja
-  // exclusivamente en una cookie HttpOnly, después de MFA cuando corresponde.
+  // exclusivamente en una cookie HttpOnly.
   app.post("/api/admin/login", requireSameOrigin, async (req: Request, res: Response) => {
     try {
       res.setHeader("Cache-Control", "no-store");
@@ -1959,25 +1892,11 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
         user = (await storage.getAdminUser(user.id)) || user;
       }
 
-      if (privilegedRole(user.role)) {
-        if (!isMfaConfigured()) {
-          return res.status(503).json({
-            error: "MFA is not configured on the server",
-            code: "MFA_CONFIGURATION_REQUIRED",
-          });
-        }
-        const credential = await storage.getAdminMfaCredential(user.id);
-        const setupRequired = !credential?.enabledAt;
-        await createLoginChallenge(res, user.id, setupRequired ? "enroll" : "mfa");
-        return res.json({
-          authenticated: false,
-          mfaRequired: true,
-          setupRequired,
-          user: { email: user.email, role: user.role },
-        });
-      }
-
-      const sessionPayload = await createAuthenticatedSession(res, user, ip, userAgent, false);
+      // Cualquier desafío antiguo queda inutilizado. Las credenciales TOTP
+      // cifradas se conservan en la base como respaldo, pero ya no participan.
+      await storage.deleteAdminAuthChallengesByUserId(user.id);
+      clearAuthCookie(res, CHALLENGE_COOKIE);
+      const sessionPayload = await createAuthenticatedSession(res, user, ip, userAgent);
       return res.json({ authenticated: true, ...sessionPayload });
     } catch (error) {
       console.error("Login error:", error instanceof Error ? error.message : "unknown");
@@ -1991,117 +1910,18 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
     }
   });
 
-  app.post("/api/admin/mfa/enroll", requireSameOrigin, async (req: Request, res: Response) => {
-    try {
-      const resolved = await resolveLoginChallenge(req, res);
-      if (!resolved || resolved.challenge.purpose !== "enroll") {
-        return res.status(401).json({ error: "Enrollment challenge expired", code: "CHALLENGE_EXPIRED" });
-      }
-      if (!isMfaConfigured()) {
-        return res.status(503).json({ error: "MFA is not configured", code: "MFA_CONFIGURATION_REQUIRED" });
-      }
-      let credential = await storage.getAdminMfaCredential(resolved.user.id);
-      let secret: string;
-      if (credential && !credential.enabledAt) {
-        secret = decryptTotpSecret(credential.encryptedSecret);
-      } else if (!credential) {
-        secret = generateTotpSecret();
-        credential = await storage.upsertAdminMfaCredential({
-          userId: resolved.user.id,
-          encryptedSecret: encryptTotpSecret(secret),
-          recoveryCodeHashes: [],
-          enabledAt: null,
-        });
-      } else {
-        return res.status(409).json({ error: "MFA is already enabled" });
-      }
-      res.setHeader("Cache-Control", "no-store");
-      res.json({
-        secret,
-        otpauthUrl: totpAuthUrl(resolved.user.email, secret),
-        issuer: "Von Wobeser",
-        account: resolved.user.email,
-      });
-    } catch (error) {
-      console.error("MFA enrollment error:", error instanceof Error ? error.message : "unknown");
-      res.status(500).json({ error: "Unable to start MFA enrollment" });
-    }
-  });
-
-  app.post("/api/admin/mfa/verify", requireSameOrigin, async (req: Request, res: Response) => {
-    try {
-      const parsed = z.object({ code: z.string().regex(/^\d{6}$/) }).safeParse(req.body);
-      if (!parsed.success) return res.status(400).json({ error: "Invalid verification code" });
-      const resolved = await resolveLoginChallenge(req, res);
-      if (!resolved) return res.status(401).json({ error: "Challenge expired", code: "CHALLENGE_EXPIRED" });
-      const credential = await storage.getAdminMfaCredential(resolved.user.id);
-      if (!credential) return res.status(409).json({ error: "MFA enrollment is incomplete" });
-      const secret = decryptTotpSecret(credential.encryptedSecret);
-      if (!verifyTotp(secret, parsed.data.code)) {
-        await storage.updateAdminAuthChallengeAttempts(resolved.challenge.id, resolved.challenge.attempts + 1);
-        return res.status(401).json({ error: "Invalid verification code", code: "INVALID_MFA_CODE" });
-      }
-
-      let recoveryCodes: string[] | undefined;
-      if (!credential.enabledAt) {
-        const generated = generateRecoveryCodes();
-        recoveryCodes = generated.plain;
-        await storage.updateAdminMfaCredential(resolved.user.id, {
-          recoveryCodeHashes: generated.hashes,
-          enabledAt: new Date(),
-        });
-      }
-
-      await storage.deleteAdminAuthChallenge(resolved.tokenHash);
-      clearAuthCookie(res, CHALLENGE_COOKIE);
-      const ip = req.ip || req.socket.remoteAddress || "unknown";
-      const sessionPayload = await createAuthenticatedSession(
-        res,
-        resolved.user,
-        ip,
-        req.headers["user-agent"] || null,
-        true,
-      );
-      res.setHeader("Cache-Control", "no-store");
-      res.json({ authenticated: true, ...sessionPayload, ...(recoveryCodes ? { recoveryCodes } : {}) });
-    } catch (error) {
-      console.error("MFA verification error:", error instanceof Error ? error.message : "unknown");
-      res.status(500).json({ error: "Unable to verify MFA" });
-    }
-  });
-
-  app.post("/api/admin/mfa/recovery", requireSameOrigin, async (req: Request, res: Response) => {
-    try {
-      const parsed = z.object({ recoveryCode: z.string().min(8).max(64) }).safeParse(req.body);
-      if (!parsed.success) return res.status(400).json({ error: "Invalid recovery code" });
-      const resolved = await resolveLoginChallenge(req, res);
-      if (!resolved || resolved.challenge.purpose !== "mfa") {
-        return res.status(401).json({ error: "Challenge expired", code: "CHALLENGE_EXPIRED" });
-      }
-      const credential = await storage.getAdminMfaCredential(resolved.user.id);
-      if (!credential?.enabledAt) return res.status(409).json({ error: "MFA is not enabled" });
-      const remaining = consumeRecoveryCode(credential.recoveryCodeHashes || [], parsed.data.recoveryCode);
-      if (!remaining) {
-        await storage.updateAdminAuthChallengeAttempts(resolved.challenge.id, resolved.challenge.attempts + 1);
-        return res.status(401).json({ error: "Invalid recovery code" });
-      }
-      await storage.updateAdminMfaCredential(resolved.user.id, { recoveryCodeHashes: remaining });
-      await storage.deleteAdminAuthChallenge(resolved.tokenHash);
-      clearAuthCookie(res, CHALLENGE_COOKIE);
-      const sessionPayload = await createAuthenticatedSession(
-        res,
-        resolved.user,
-        req.ip || req.socket.remoteAddress || "unknown",
-        req.headers["user-agent"] || null,
-        true,
-      );
-      res.setHeader("Cache-Control", "no-store");
-      res.json({ authenticated: true, ...sessionPayload });
-    } catch (error) {
-      console.error("MFA recovery error:", error instanceof Error ? error.message : "unknown");
-      res.status(500).json({ error: "Unable to use recovery code" });
-    }
-  });
+  const retiredMfaApi = (_req: Request, res: Response) => {
+    clearAuthCookie(res, CHALLENGE_COOKIE);
+    res.status(410).json({
+      error: "Two-step verification has been retired",
+      code: "MFA_RETIRED",
+    });
+  };
+  app.all(
+    ["/api/admin/mfa/enroll", "/api/admin/mfa/verify", "/api/admin/mfa/recovery"],
+    requireSameOrigin,
+    retiredMfaApi,
+  );
 
   // Contador de gasto ESTIMADO de la API de IA. OpenAI no expone el saldo por API key, así que
   // esto suma tokens/imágenes de NUESTRAS llamadas por el precio conocido del modelo (aproximado).

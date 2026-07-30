@@ -9,6 +9,7 @@ import { getConfigMap } from '../mirror/siteConfig';
 import { assertAiBudget, recordImageUsage } from './usageTracker';
 import { AsyncLocalStorage } from 'node:async_hooks';
 import {
+  deletePersistentMediaObjects,
   persistPublicMediaFiles,
   PersistentMediaUnavailableError,
 } from '../media/persistentMedia';
@@ -448,6 +449,8 @@ export class SmartImageGenerator {
     };
 
     let lastError = '';
+    let savedOutputPath = '';
+    let persistedObjectNames: string[] = [];
     for (const engine of order) {
       this.log(`Intentando motor de imágenes: ${engine}${engine === primary ? ' (principal)' : ' (respaldo)'}...`);
       let attempt = await runEngine(engine, brandEnhancedPrompt);
@@ -479,10 +482,12 @@ export class SmartImageGenerator {
           } else {
             await sharp(attempt.buffer).png().toFile(outputPath);
           }
-          await persistPublicMediaFiles([{
+          const persistence = await persistPublicMediaFiles([{
             absolutePath: outputPath,
             publicPath: `/generated-images/${filename}`,
           }]);
+          savedOutputPath = outputPath;
+          persistedObjectNames = persistence.objectNames;
           result.success = true;
           result.engine = attempt.name!;
           result.imageUrl = `/generated-images/${filename}`;
@@ -550,20 +555,42 @@ export class SmartImageGenerator {
         engine: result.engine,
         articleId: safeArticleId,
       };
+      let historySaved = false;
       try {
         await storage.createGeneratedImage(row);
+        historySaved = true;
       } catch (err: any) {
         // Red de seguridad: si aun con UUID el INSERT falla por FK (noticia borrada entre la
         // generación y el guardado), reintentar con articleId NULL para no perder el asset.
         if (/foreign key|23503/i.test(err?.message || err?.code || '')) {
           try {
             await storage.createGeneratedImage({ ...row, articleId: null });
+            historySaved = true;
           } catch (err2: any) {
             this.log(`Failed to record generated image in gallery history (retry): ${err2.message}`);
           }
         } else {
           this.log("Failed to record generated image in gallery history");
         }
+      }
+      if (!historySaved) {
+        // Nunca se reporta una generación como exitosa si el archivo no quedó
+        // asociado a su historial permanente. La limpieza es compensatoria de
+        // una operación incompleta; no elimina ningún registro ya confirmado.
+        await deletePersistentMediaObjects(persistedObjectNames);
+        if (savedOutputPath) {
+          try {
+            fs.unlinkSync(savedOutputPath);
+          } catch {
+            // El archivo local puede no existir en un deployment efímero.
+          }
+        }
+        result.success = false;
+        result.engine = 'placeholder';
+        result.imageUrl = undefined;
+        result.errorCode = 'history_save_failed';
+        result.errorMessage = 'La imagen no pudo registrarse en el historial permanente.';
+        this.log('La imagen se descartó porque no pudo registrarse en el historial permanente.');
       }
     }
 

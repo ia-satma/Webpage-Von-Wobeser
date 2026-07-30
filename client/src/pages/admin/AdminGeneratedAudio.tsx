@@ -1,16 +1,14 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { AdminPageHelp } from "@/components/admin/AdminPageHelp";
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { useAdminAuth, adminApiRequest } from "@/lib/adminAuth";
-import { queryClient } from "@/lib/queryClient";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
-import { Volume2, Copy, Trash2, ExternalLink, VolumeX } from "lucide-react";
+import { Volume2, Copy, ExternalLink, VolumeX } from "lucide-react";
 import { Link } from "wouter";
 
 interface GeneratedAudioRow {
@@ -24,6 +22,7 @@ interface GeneratedAudioRow {
   articleTitle: string | null;
   articleSlug: string | null;
   createdAt: string | null;
+  available: boolean;
 }
 
 const ENGINE_LABELS: Record<string, string> = {
@@ -44,8 +43,6 @@ export default function AdminGeneratedAudio() {
   }, [requireAuth]);
   const { toast } = useToast();
 
-  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
-
   const { data: audios = [], isLoading } = useQuery<GeneratedAudioRow[]>({
     queryKey: ["/api/admin/generated-audio"],
     enabled: isAuthenticated,
@@ -54,20 +51,6 @@ export default function AdminGeneratedAudio() {
       if (!res.ok) throw new Error("No se pudo cargar el historial de audio.");
       return res.json();
     },
-  });
-
-  const deleteMutation = useMutation({
-    mutationFn: async (id: string) => {
-      const res = await adminApiRequest("DELETE", `/api/admin/generated-audio/${id}`);
-      if (!res.ok) throw new Error("No se pudo eliminar el audio");
-      return res.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/generated-audio"] });
-      setDeleteConfirmId(null);
-      toast({ title: "Audio eliminado del historial" });
-    },
-    onError: () => toast({ title: "No se pudo eliminar el audio", variant: "destructive" }),
   });
 
   const copyUrl = async (url: string) => {
@@ -100,7 +83,7 @@ export default function AdminGeneratedAudio() {
 
         <AdminPageHelp pageId="generated-audio">
           Cada vez que usas "Generar audio" desde el boletín, un post de redes o una alerta legal, el archivo queda guardado aquí.
-          Copia la URL para reutilizarla o descárgala directamente desde el reproductor.
+          El historial es permanente y ningún usuario puede borrarlo. Copia la URL para reutilizarlo.
         </AdminPageHelp>
 
         <div>
@@ -136,7 +119,13 @@ export default function AdminGeneratedAudio() {
                       <Badge variant="outline">{SOURCE_TYPE_LABELS[audio.sourceType] || audio.sourceType}</Badge>
                     </div>
 
-                    <audio controls src={audio.audioUrl} className="w-full" data-testid={`audio-player-${audio.id}`} />
+                    {audio.available ? (
+                      <audio controls src={audio.audioUrl} className="w-full" data-testid={`audio-player-${audio.id}`} />
+                    ) : (
+                      <div className="rounded-md border bg-muted/40 p-4 text-center text-xs text-muted-foreground" role="status">
+                        El registro permanece, pero el archivo no está disponible.
+                      </div>
+                    )}
 
                     {audio.sourceText && (
                       <p className="text-xs text-foreground line-clamp-2" title={audio.sourceText}>
@@ -164,20 +153,11 @@ export default function AdminGeneratedAudio() {
                         size="sm"
                         variant="outline"
                         onClick={() => copyUrl(audio.audioUrl)}
+                        disabled={!audio.available}
                         data-testid={`button-copy-${audio.id}`}
                       >
                         <Copy className="w-3 h-3 mr-1" />
                         Copiar URL
-                      </Button>
-                      <Button
-                        size="icon"
-                        variant="outline"
-                        onClick={() => setDeleteConfirmId(audio.id)}
-                        aria-label="Eliminar del historial"
-                        data-testid={`button-delete-${audio.id}`}
-                        className="text-red-600"
-                      >
-                        <Trash2 className="w-3 h-3" />
                       </Button>
                     </div>
                   </CardContent>
@@ -188,29 +168,6 @@ export default function AdminGeneratedAudio() {
         </div>
       </main>
 
-      <Dialog open={!!deleteConfirmId} onOpenChange={(open) => !open && setDeleteConfirmId(null)}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Eliminar del historial</DialogTitle>
-          </DialogHeader>
-          <p className="text-muted-foreground text-sm py-2">
-            Esto solo quita el audio de este historial — no afecta a lo que ya se haya compartido. No se puede deshacer.
-          </p>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setDeleteConfirmId(null)}>
-              Cancelar
-            </Button>
-            <Button
-              variant="destructive"
-              onClick={() => deleteConfirmId && deleteMutation.mutate(deleteConfirmId)}
-              disabled={deleteMutation.isPending}
-              data-testid="button-confirm-delete"
-            >
-              Eliminar
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }
