@@ -116,8 +116,47 @@ test("Contacto queda debajo del mapa, usa cuadrícula propia y prácticas admini
   assert.match($.html(), /\.vw-contact-form\{display:grid;grid-template-columns:repeat\(2/);
   assert.match($.html(), /@media\(max-width:720px\).*grid-template-columns:1fr/s);
   assert.match($.html(), /fetch\('\/api\/contact'/);
+  assert.equal($("#vw-contact-privacy").attr("required"), "required");
+  assert.match($.html(), /name="acceptPrivacy"/);
+  assert.match($.html(), /acceptPrivacy:\s*!!form\.acceptPrivacy\.checked/);
+  assert.match($.html(), /href="\/aviso"/);
+  assert.match($.html(), /Aviso de Privacidad/);
+  assert.match($.html(), /\.vw-contact-privacy a\{color:#a5102a;font-weight:600/);
   assert.match($.html(), /Torre SOMA Chapultepec, piso 18/);
   assert.doesNotMatch($.html(), /18th floor/);
+});
+
+test("Contacto permite administrar el consentimiento bilingüe", () => {
+  const $ = cheerio.load(chrome.replace('lang="es"', 'lang="en"'));
+  applyContactForm(
+    $,
+    "en",
+    {
+      contact_form_privacy_intro: { value: "I agree to", valueEs: "Acepto", type: "text" },
+      contact_form_privacy_link: { value: "the Privacy Notice", valueEs: "el Aviso", type: "text" },
+      contact_form_privacy_path: { value: "/custom-privacy", valueEs: "/aviso-personalizado", type: "url" },
+    },
+    [],
+  );
+
+  assert.match($.html(), /I agree to/);
+  assert.match($.html(), /the Privacy Notice/);
+  assert.match($.html(), /href="\/custom-privacy"/);
+  assert.equal($("#vw-contact-privacy").attr("required"), "required");
+});
+
+test("Contacto rechaza destinos de privacidad con protocolos activos", () => {
+  const $ = cheerio.load(chrome);
+  applyContactForm(
+    $,
+    "es",
+    {
+      contact_form_privacy_path: { value: "javascript:alert(1)", valueEs: "javascript:alert(1)", type: "url" },
+    },
+    [],
+  );
+  assert.equal($(".vw-contact-privacy a").attr("href"), "/aviso");
+  assert.doesNotMatch($.html(), /javascript:/i);
 });
 
 test("páginas institucionales generan alternates de rutas ES/EN distintas", () => {

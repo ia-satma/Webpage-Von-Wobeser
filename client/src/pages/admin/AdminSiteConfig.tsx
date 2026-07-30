@@ -27,6 +27,8 @@ type Field = {
   multiline?: boolean;
   rows?: number;
   control?: "switch" | "number";
+  min?: number;
+  max?: number;
   pattern?: RegExp;
   patternError?: string;
 };
@@ -112,6 +114,7 @@ const PAGES: Record<string, SiteConfigPage> = {
           { key: "home_news_next", label: "Accesibilidad — siguiente", bilingual: true },
           { key: "home_news_minimize", label: "Accesibilidad — minimizar", bilingual: true },
           { key: "home_news_expand", label: "Accesibilidad — mostrar", bilingual: true },
+          { key: "home_news_pages", label: "Número de páginas", control: "number", min: 1, max: 10, help: "Cada página muestra dos noticias. Si hay menos noticias publicadas, se muestran solo las disponibles." },
         ],
       },
     ],
@@ -472,6 +475,9 @@ const PAGES: Record<string, SiteConfigPage> = {
           { key: "contact_form_message_label", label: "Campo — mensaje", bilingual: true },
           { key: "contact_form_submit_label", label: "Botón — enviar", bilingual: true },
           { key: "contact_form_sending_label", label: "Botón — enviando", bilingual: true },
+          { key: "contact_form_privacy_intro", label: "Privacidad — texto previo", bilingual: true },
+          { key: "contact_form_privacy_link", label: "Privacidad — texto del enlace", bilingual: true },
+          { key: "contact_form_privacy_path", label: "Privacidad — destino", bilingual: true, help: "Inglés: /privacy. Español: /aviso." },
         ],
       },
       {
@@ -669,7 +675,8 @@ export default function AdminSiteConfig() {
             ) : f.control === "number" ? (
               <Input
                 type="number"
-                min={0}
+                min={f.min ?? 0}
+                max={f.max}
                 step={1}
                 value={draft[f.key]?.value ?? ""}
                 onChange={(e) => {

@@ -349,11 +349,6 @@ export async function authMiddleware(req: Request, res: Response, next: NextFunc
     }
     const { session, user } = resolved;
 
-    if ((user.role === "super_admin" || user.role === "admin") && !session.mfaVerified) {
-      res.status(401).json({ error: "Multi-factor authentication required", code: "MFA_REQUIRED" });
-      return;
-    }
-
     if (!["GET", "HEAD", "OPTIONS"].includes(req.method)) {
       const csrf = req.header("x-csrf-token");
       if (!csrf || !session.csrfTokenHash || !constantTimeHexEqual(csrf, session.csrfTokenHash)) {
@@ -445,7 +440,7 @@ export function effectivePermissions(user: Pick<AdminUser, "role" | "permissions
 /**
  * Única forma de exponer un usuario autenticado al navegador. Mantener los permisos
  * efectivos dentro del payload evita que el menú administrativo quede incompleto justo
- * después del login o del segundo factor.
+ * después del login.
  */
 export function adminSessionUserPayload(
   user: Pick<AdminUser, "id" | "username" | "email" | "role" | "permissions">,

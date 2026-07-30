@@ -1055,3 +1055,99 @@ a[href="/german-desk"],
     padding-block: 10px;
   }
 }
+
+/* Encabezado compacto: los HTML históricos contienen posiciones inline
+   diferentes para la lupa, MENÚ e idioma. En móvil/tablet reservamos una zona
+   estable para cada control para que nunca se superpongan. */
+@media (max-width: 1239px) {
+  .header.header_JS {
+    box-sizing: border-box;
+    min-height: 66px;
+    padding: 11px 0 !important;
+  }
+
+  .header.header_JS .header--wrap {
+    align-items: center;
+    box-sizing: border-box;
+    min-height: 44px;
+    padding: 0 12px !important;
+    position: relative;
+  }
+
+  .header.header_JS .header__logo {
+    box-sizing: border-box;
+    flex: 0 1 auto;
+    max-width: calc(100% - 190px);
+    overflow: visible;
+    width: clamp(106px, 42vw, 220px);
+  }
+
+  .header.header_JS .header__logo--img {
+    display: block;
+    float: none;
+    height: auto;
+    max-width: 100% !important;
+    width: 100%;
+  }
+
+  .header.header_JS .search_form_cont {
+    height: 44px;
+    left: auto !important;
+    position: absolute !important;
+    right: 124px !important;
+    top: 11px !important;
+    transform: none;
+    width: 44px !important;
+  }
+
+  .header.header_JS .eyeglass {
+    background-position: center !important;
+    background-size: 26px 26px;
+    bottom: auto !important;
+    float: none;
+    height: 44px !important;
+    left: 0 !important;
+    position: absolute !important;
+    right: auto !important;
+    top: 0 !important;
+    width: 44px !important;
+  }
+
+  .header.header_JS .menu_btn_JS {
+    align-items: center;
+    box-sizing: border-box;
+    display: inline-flex;
+    font-size: 14px !important;
+    height: 44px;
+    justify-content: center;
+    left: auto !important;
+    padding: 0 !important;
+    position: absolute;
+    right: 62px !important;
+    top: 50%;
+    transform: translateY(-50%);
+    white-space: nowrap;
+    width: 58px;
+  }
+
+  .header.header_JS .header__lang {
+    align-items: center;
+    box-sizing: border-box;
+    display: flex;
+    font-size: 14px;
+    height: 44px;
+    justify-content: center;
+    left: auto !important;
+    letter-spacing: 2px;
+    right: 8px !important;
+    top: 50% !important;
+    transform: translateY(-50%);
+    width: 48px;
+  }
+
+  .header.header_JS .header__lang--item {
+    box-sizing: border-box;
+    min-width: 44px;
+    text-align: center;
+  }
+}

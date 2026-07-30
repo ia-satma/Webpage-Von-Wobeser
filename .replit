@@ -43,8 +43,8 @@ waitForPort = 5000
 integrations = ["javascript_openai:1.0.0", "javascript_openai_ai_integrations:1.0.0", "javascript_gemini_ai_integrations:1.0.0"]
 expertMode = true
 
-# ADMIN_EMAIL, ADMIN_BOOTSTRAP_PASSWORD y MFA_ENCRYPTION_KEY se configuran
-# exclusivamente en Replit → Tools → Secrets. ADMIN_BOOTSTRAP_PASSWORD solo crea
+# ADMIN_EMAIL y ADMIN_BOOTSTRAP_PASSWORD se configuran exclusivamente en
+# Replit → Tools → Secrets. ADMIN_BOOTSTRAP_PASSWORD solo crea
 # al Dueño si ADMIN_EMAIL todavía no existe; una recuperación de una cuenta existente
 # requiere ejecutar manualmente `npm run admin:recover -- --confirm=<correo>`.
 # AI_MONTHLY_BUDGET_USD es opcional y limita el gasto mensual estimado (USD 100

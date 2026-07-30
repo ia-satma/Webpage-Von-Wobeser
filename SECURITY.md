@@ -6,7 +6,7 @@ No publiques vulnerabilidades, credenciales ni datos personales en Issues. Repó
 directamente al responsable técnico del proyecto, incluyendo la ruta afectada, impacto,
 pasos mínimos de reproducción y una forma segura de contacto.
 
-Nunca incluyas en el reporte contraseñas, cookies de sesión, códigos MFA, `DATABASE_URL`,
+Nunca incluyas en el reporte contraseñas, cookies de sesión, `DATABASE_URL`,
 claves de IA ni archivos reales de postulantes.
 
 ## Secretos requeridos en Replit
@@ -15,7 +15,6 @@ claves de IA ni archivos reales de postulantes.
 - `ADMIN_EMAIL`.
 - `ADMIN_BOOTSTRAP_PASSWORD`: solo crea al propietario cuando `ADMIN_EMAIL` todavía no
   existe. Después se ignora; PostgreSQL almacena exclusivamente el hash.
-- `MFA_ENCRYPTION_KEY`: 32 bytes aleatorios, codificados en base64 o hexadecimal.
 - Claves de OpenAI, pCloud y cualquier proveedor externo usado por el despliegue.
 - `AI_MONTHLY_BUDGET_USD` para ajustar el límite mensual (USD 100 si se omite).
 
@@ -37,6 +36,8 @@ variables `VITE_*`. Las variables `VITE_*` son públicas por definición.
 - Los CV son privados y solo se descargan desde el endpoint administrativo autenticado.
 - Ante sospecha de compromiso, revocar sesiones, cambiar la contraseña afectada y las
   claves pertinentes. `DATABASE_URL` no se rota automáticamente.
+- El segundo factor TOTP está retirado del flujo activo. Sus tablas cifradas se
+  conservan únicamente para permitir una reversión controlada.
 
 Consulta [docs/security/SECURITY_TEST_PLAN.md](docs/security/SECURITY_TEST_PLAN.md) para
 la matriz de pruebas y los gates de liberación.

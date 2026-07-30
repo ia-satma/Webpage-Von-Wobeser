@@ -110,6 +110,13 @@ import {
   specializedDesks,
 } from "@shared/schema";
 
+export type AdminLoginEventWithIdentity = AdminLoginEvent & {
+  userEmail: string | null;
+  username: string | null;
+  userRole: string | null;
+  userExists: boolean;
+};
+
 export interface IStorage {
   getUser(id: string): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
@@ -192,7 +199,7 @@ export interface IStorage {
   setAdminUserPassword(id: string, passwordHash: string, mustChangePassword?: boolean): Promise<boolean>;
   deleteAdminUser(id: string): Promise<boolean>;
   recordLoginEvent(data: InsertAdminLoginEvent): Promise<void>;
-  getLoginEvents(limit?: number): Promise<AdminLoginEvent[]>;
+  getLoginEvents(limit?: number): Promise<AdminLoginEventWithIdentity[]>;
   cleanExpiredSecurityRecords(): Promise<{ loginEvents: number; challenges: number; rateLimits: number }>;
   
   // Media Items CRUD
@@ -977,10 +984,23 @@ export class DatabaseStorage implements IStorage {
     await db.insert(adminLoginEvents).values(data);
   }
 
-  async getLoginEvents(limit = 100): Promise<AdminLoginEvent[]> {
+  async getLoginEvents(limit = 100): Promise<AdminLoginEventWithIdentity[]> {
     return db
-      .select()
+      .select({
+        id: adminLoginEvents.id,
+        userId: adminLoginEvents.userId,
+        email: adminLoginEvents.email,
+        success: adminLoginEvents.success,
+        ipAddress: adminLoginEvents.ipAddress,
+        userAgent: adminLoginEvents.userAgent,
+        createdAt: adminLoginEvents.createdAt,
+        userEmail: adminUsers.email,
+        username: adminUsers.username,
+        userRole: adminUsers.role,
+        userExists: sql<boolean>`${adminUsers.id} IS NOT NULL`,
+      })
       .from(adminLoginEvents)
+      .leftJoin(adminUsers, eq(adminLoginEvents.userId, adminUsers.id))
       .orderBy(desc(adminLoginEvents.createdAt))
       .limit(limit);
   }

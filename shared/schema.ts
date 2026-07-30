@@ -398,6 +398,9 @@ export const contactFormSchema = z.object({
   company: z.string().trim().max(160).optional(),
   practiceArea: z.string().trim().max(120).optional(),
   message: z.string().trim().min(1, "Message is required").max(5_000),
+  acceptPrivacy: z.literal(true, {
+    errorMap: () => ({ message: "Privacy notice acceptance is required" }),
+  }),
 }).strict();
 
 export type ContactFormData = z.infer<typeof contactFormSchema>;
@@ -422,6 +425,8 @@ export const contactSubmissions = pgTable("contact_submissions", {
   company: text("company"),
   practiceArea: text("practice_area"),
   message: text("message").notNull(),
+  acceptedPrivacy: boolean("accepted_privacy").notNull().default(false),
+  consentedAt: timestamp("consented_at"),
   ipAddress: text("ip_address"),
   submittedAt: timestamp("submitted_at").defaultNow(),
   read: boolean("read").default(false),
@@ -570,6 +575,8 @@ export const adminSessions = pgTable("admin_sessions", {
   absoluteExpiresAt: timestamp("absolute_expires_at").notNull(),
   lastSeenAt: timestamp("last_seen_at").notNull().defaultNow(),
   csrfTokenHash: text("csrf_token_hash").notNull(),
+  // Columna histórica conservada para compatibilidad. El acceso actual usa
+  // exclusivamente usuario/contraseña y no condiciona la sesión a este valor.
   mfaVerified: boolean("mfa_verified").notNull().default(false),
   createdAt: timestamp("created_at").defaultNow(),
   ipAddress: text("ip_address"),
@@ -580,8 +587,8 @@ export const insertAdminSessionSchema = createInsertSchema(adminSessions).omit({
 export type InsertAdminSession = z.infer<typeof insertAdminSessionSchema>;
 export type AdminSession = typeof adminSessions.$inferSelect;
 
-// Segundo factor TOTP. El secreto se cifra con AES-256-GCM usando
-// MFA_ENCRYPTION_KEY; los códigos de recuperación solo se guardan como hashes.
+// Infraestructura TOTP retirada del flujo activo y conservada para una posible
+// reversión. Los secretos existentes continúan cifrados y nunca se exponen.
 export const adminMfaCredentials = pgTable("admin_mfa_credentials", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   userId: varchar("user_id").notNull().unique().references(() => adminUsers.id, { onDelete: "cascade" }),
@@ -596,8 +603,8 @@ export const insertAdminMfaCredentialSchema = createInsertSchema(adminMfaCredent
 export type InsertAdminMfaCredential = typeof adminMfaCredentials.$inferInsert;
 export type AdminMfaCredential = typeof adminMfaCredentials.$inferSelect;
 
-// Desafíos breves posteriores a la contraseña. El navegador recibe el token
-// crudo en una cookie HttpOnly; PostgreSQL conserva únicamente su hash.
+// Desafíos históricos de MFA, conservados únicamente para compatibilidad y
+// limpieza de registros previos. Los endpoints activos responden 410 Gone.
 export const adminAuthChallenges = pgTable("admin_auth_challenges", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   userId: varchar("user_id").notNull().references(() => adminUsers.id, { onDelete: "cascade" }),

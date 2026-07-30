@@ -15,6 +15,7 @@ import { AdminPageHelp } from "@/components/admin/AdminPageHelp";
 type ContactSubmissionRow = {
   id: string; fullName: string; email: string; phone: string | null; company: string | null;
   practiceArea: string | null; message: string; submittedAt: string | null; read: boolean | null;
+  acceptedPrivacy: boolean; consentedAt: string | null;
 };
 
 type CareerApplicationRow = {
@@ -136,6 +137,7 @@ export default function AdminSubmissions() {
                         <TableHead>Correo</TableHead>
                         <TableHead>Área</TableHead>
                         <TableHead>Mensaje</TableHead>
+                        <TableHead>Privacidad</TableHead>
                         <TableHead></TableHead>
                       </TableRow>
                     </TableHeader>
@@ -147,6 +149,13 @@ export default function AdminSubmissions() {
                           <TableCell>{c.email}</TableCell>
                           <TableCell>{c.practiceArea || "—"}</TableCell>
                           <TableCell className="max-w-xs truncate" title={c.message}>{c.message}</TableCell>
+                          <TableCell className="whitespace-nowrap">
+                            {c.acceptedPrivacy && c.consentedAt ? (
+                              <Badge variant="secondary" title={fmtDate(c.consentedAt)}>Aceptado</Badge>
+                            ) : (
+                              <span className="text-xs text-muted-foreground">Consentimiento no registrado</span>
+                            )}
+                          </TableCell>
                           <TableCell>
                             {!c.read && (
                               <Button variant="ghost" size="sm" onClick={() => markContactRead(c.id)}>

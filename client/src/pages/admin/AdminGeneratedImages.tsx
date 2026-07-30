@@ -1,16 +1,14 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { AdminPageHelp } from "@/components/admin/AdminPageHelp";
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { useAdminAuth, adminApiRequest } from "@/lib/adminAuth";
-import { queryClient } from "@/lib/queryClient";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
-import { Sparkles, Copy, Trash2, ExternalLink, ImageOff, Download } from "lucide-react";
+import { Sparkles, Copy, ExternalLink, ImageOff, Download } from "lucide-react";
 import { Link } from "wouter";
 import { downloadHref } from "@/components/admin/ImageUpload";
 
@@ -24,6 +22,7 @@ interface GeneratedImageRow {
   articleTitle: string | null;
   articleSlug: string | null;
   createdAt: string | null;
+  available: boolean;
 }
 
 const ENGINE_LABELS: Record<string, string> = {
@@ -40,8 +39,6 @@ export default function AdminGeneratedImages() {
   }, [requireAuth]);
   const { toast } = useToast();
 
-  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
-
   const { data: images = [], isLoading } = useQuery<GeneratedImageRow[]>({
     queryKey: ["/api/admin/generated-images"],
     enabled: isAuthenticated,
@@ -50,20 +47,6 @@ export default function AdminGeneratedImages() {
       if (!res.ok) throw new Error("No se pudo cargar el historial de imágenes.");
       return res.json();
     },
-  });
-
-  const deleteMutation = useMutation({
-    mutationFn: async (id: string) => {
-      const res = await adminApiRequest("DELETE", `/api/admin/generated-images/${id}`);
-      if (!res.ok) throw new Error("No se pudo eliminar la imagen");
-      return res.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/generated-images"] });
-      setDeleteConfirmId(null);
-      toast({ title: "Imagen eliminada del historial" });
-    },
-    onError: () => toast({ title: "No se pudo eliminar la imagen", variant: "destructive" }),
   });
 
   const copyUrl = async (url: string) => {
@@ -96,7 +79,7 @@ export default function AdminGeneratedImages() {
 
         <AdminPageHelp pageId="generated-images">
           Cada vez que el agente de imágenes genera una imagen para una noticia (no cuenta el placeholder de respaldo), queda guardada aquí.
-          Copia la URL de cualquiera y pégala en el campo "…o pega una URL / ruta" de la imagen destacada de otra noticia para reutilizarla sin gastar créditos de nuevo.
+          Este historial es permanente y ningún usuario puede borrarlo. Copia la URL para reutilizar una imagen sin gastar créditos de nuevo.
         </AdminPageHelp>
 
         <div>
@@ -128,12 +111,19 @@ export default function AdminGeneratedImages() {
                 <Card key={img.id} data-testid={`generated-image-card-${img.id}`}>
                   <CardContent className="p-0">
                     <div className="relative h-44 overflow-hidden bg-muted">
-                      <img
-                        src={img.imageUrl}
-                        alt={img.prompt || "Imagen generada por IA"}
-                        className="w-full h-full object-cover"
-                        loading="lazy"
-                      />
+                      {img.available ? (
+                        <img
+                          src={img.imageUrl}
+                          alt={img.prompt || "Imagen generada por IA"}
+                          className="w-full h-full object-cover"
+                          loading="lazy"
+                        />
+                      ) : (
+                        <div className="h-full flex flex-col items-center justify-center gap-2 text-muted-foreground">
+                          <ImageOff className="w-8 h-8 opacity-40" />
+                          <span className="text-xs">Archivo no disponible</span>
+                        </div>
+                      )}
                       <Badge className="absolute top-2 left-2" variant="secondary">
                         {ENGINE_LABELS[img.engine] || img.engine}
                       </Badge>
@@ -168,31 +158,29 @@ export default function AdminGeneratedImages() {
                           size="sm"
                           variant="outline"
                           onClick={() => copyUrl(img.imageUrl)}
+                          disabled={!img.available}
                           data-testid={`button-copy-${img.id}`}
                         >
                           <Copy className="w-3 h-3 mr-1" />
                           Copiar URL
                         </Button>
-                        <Button asChild size="sm" variant="outline" data-testid={`button-download-${img.id}`}>
-                          <a
-                            href={downloadHref(img.imageUrl)}
-                            download={img.imageUrl.split("?")[0].split("/").pop() || "imagen.png"}
-                            rel="noopener noreferrer"
-                          >
+                        {img.available ? (
+                          <Button asChild size="sm" variant="outline" data-testid={`button-download-${img.id}`}>
+                            <a
+                              href={downloadHref(img.imageUrl)}
+                              download={img.imageUrl.split("?")[0].split("/").pop() || "imagen.png"}
+                              rel="noopener noreferrer"
+                            >
+                              <Download className="w-3 h-3 mr-1" />
+                              Descargar
+                            </a>
+                          </Button>
+                        ) : (
+                          <Button size="sm" variant="outline" disabled data-testid={`button-download-${img.id}`}>
                             <Download className="w-3 h-3 mr-1" />
                             Descargar
-                          </a>
-                        </Button>
-                        <Button
-                          size="icon"
-                          variant="outline"
-                          onClick={() => setDeleteConfirmId(img.id)}
-                          aria-label="Eliminar del historial"
-                          data-testid={`button-delete-${img.id}`}
-                          className="text-red-600"
-                        >
-                          <Trash2 className="w-3 h-3" />
-                        </Button>
+                          </Button>
+                        )}
                       </div>
                     </div>
                   </CardContent>
@@ -203,29 +191,6 @@ export default function AdminGeneratedImages() {
         </div>
       </main>
 
-      <Dialog open={!!deleteConfirmId} onOpenChange={(open) => !open && setDeleteConfirmId(null)}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Eliminar del historial</DialogTitle>
-          </DialogHeader>
-          <p className="text-muted-foreground text-sm py-2">
-            Esto solo quita la imagen de este historial — no borra el archivo ni afecta a la noticia que la esté usando actualmente. No se puede deshacer.
-          </p>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setDeleteConfirmId(null)}>
-              Cancelar
-            </Button>
-            <Button
-              variant="destructive"
-              onClick={() => deleteConfirmId && deleteMutation.mutate(deleteConfirmId)}
-              disabled={deleteMutation.isPending}
-              data-testid="button-confirm-delete"
-            >
-              Eliminar
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }

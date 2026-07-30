@@ -11,6 +11,7 @@ const {
 const ALLOWED_EXTENSIONS = new Set([
   ".png", ".jpg", ".jpeg", ".webp", ".gif",
   ".mp4", ".webm", ".ogv", ".ogg", ".mov",
+  ".mp3",
   ".pdf", ".pptx",
 ]);
 
@@ -40,6 +41,10 @@ const roots = [
   {
     absolute: path.join(process.cwd(), "public", "generated-images"),
     publicPrefix: "/generated-images",
+  },
+  {
+    absolute: path.join(process.cwd(), "public", "generated-audio"),
+    publicPrefix: "/generated-audio",
   },
   {
     absolute: path.join(process.cwd(), "public", "generated-presentations"),

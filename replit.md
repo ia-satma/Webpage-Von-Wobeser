@@ -149,7 +149,7 @@ Rutas principales:
 - `/admin/gallery`, `/admin/generated-images`, `/admin/generated-audio`
 - `*` → `NotFound` (404)
 
-Login: `POST /api/admin/login` espera `username` y `password`, continúa con MFA para Administradores/Dueño y establece una cookie HttpOnly. El navegador no recibe ni guarda Bearer tokens.
+Login: `POST /api/admin/login` espera `username` y `password` y establece directamente una cookie HttpOnly para cualquier rol activo. El navegador no recibe ni guarda Bearer tokens.
 
 ---
 
@@ -166,16 +166,16 @@ Login: `POST /api/admin/login` espera `username` y `password`, continúa con MFA
 - `CLOUDFLARE_ACCOUNT_ID` y `CLOUDFLARE_API_TOKEN` — motor primario (gratis) de imágenes; si faltan, cae a Gemini.
 - `AI_MONTHLY_BUDGET_USD` — tope mensual estimado de IA pagada; por defecto USD 100. Al alcanzarlo se pausan llamadas pagadas y se registra una alerta sin datos sensibles.
 
-*Admin y MFA:*
+*Acceso administrativo:*
 - `ADMIN_EMAIL` + `ADMIN_BOOTSTRAP_PASSWORD` — crean el Dueño únicamente cuando el correo no existe. Las contraseñas nuevas deben tener entre 12 y 16 caracteres. El comando manual `admin:recover` puede reactivar esa misma cuenta usando estos Secrets, pero nunca se ejecuta automáticamente.
-- `MFA_ENCRYPTION_KEY` — exactamente 32 bytes aleatorios codificados en base64 o hexadecimal; cifra los secretos TOTP mediante AES-256-GCM.
+- El segundo factor TOTP está retirado. `MFA_ENCRYPTION_KEY` ya no es necesario para operar; si el Secret existe puede permanecer sin efecto. Las tablas cifradas se conservan como respaldo reversible.
 
 *Almacenamiento de agentes:* `PCLOUD_USERNAME`, `PCLOUD_PASSWORD` — pCloud; si faltan, `authenticate()` devuelve false.
 
 *Red / runtime:* `PORT` (default 5000), `NODE_ENV`, `CORS_ORIGIN` (vacío = sin cross-origin; el admin es same-origin), `SITE_URL` (default `https://www.vonwobeser.com`; base de canonical/OG/sitemap, se lee una vez al arranque), `MIRROR_DIR` (override del directorio del espejo; casi nunca hace falta por los fallbacks).
 
 Notas:
-- **`SESSION_SECRET` NO se usa.** La cookie contiene un token aleatorio; PostgreSQL guarda solamente su hash SHA-256, expiración, actividad, estado MFA y hash CSRF.
+- **`SESSION_SECRET` NO se usa.** La cookie contiene un token aleatorio; PostgreSQL guarda solamente su hash SHA-256, expiración, actividad y hash CSRF.
 - `site_url`, `ga4_measurement_id` y `google_site_verification` se leen **una vez al arranque**; editarlos en el panel requiere reiniciar.
 - CSP está activa inicialmente en modo `Report-Only`; los demás encabezados Helmet, HSTS, `frame-ancestors`, `nosniff`, Referrer y Permissions Policy sí se aplican.
 - El cliente OpenAI en `server/openai.ts` es lazy-init (envoltura `Proxy`), así que credenciales faltantes fallan por-request, no al arrancar.

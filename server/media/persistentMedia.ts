@@ -7,6 +7,7 @@ const STORAGE_ROOT = "von-wobeser/public";
 const MANAGED_PREFIXES = [
   "/uploads/",
   "/generated-images/",
+  "/generated-audio/",
   "/generated-presentations/",
 ] as const;
 const AVAILABILITY_TTL_MS = 60_000;
@@ -98,6 +99,7 @@ export function managedMediaMimeType(publicPath: string): string {
     case ".ogv":
     case ".ogg": return "video/ogg";
     case ".mov": return "video/quicktime";
+    case ".mp3": return "audio/mpeg";
     case ".pdf": return "application/pdf";
     case ".pptx":
       return "application/vnd.openxmlformats-officedocument.presentationml.presentation";

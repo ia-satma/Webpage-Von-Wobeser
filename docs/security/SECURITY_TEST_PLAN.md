@@ -22,7 +22,7 @@ Decisiones del propietario:
 | --- | --- | --- |
 | V2 Autenticación | Argon2id 19 MiB/2/1, compatibilidad y migración silenciosa de bcrypt, política 12–16, contraseña generada definitiva | `server/security/auth.test.ts` |
 | V3 Sesiones | Cookie `__Host-*` HttpOnly/Secure/Strict, token hasheado, inactividad 30 min, máximo 8 h, revocación y CSRF | TypeScript, revisión de rutas |
-| V2 MFA | TOTP obligatorio para administradores, secreto AES-256-GCM y códigos de recuperación de un uso | `server/security/mfa.test.ts` |
+| V2 MFA retirado | Endpoints TOTP responden 410 y la infraestructura cifrada permanece inactiva para reversión | `server/security/passwordOnlyAuth.test.ts` |
 | V4 Acceso | Permisos separados para registros, exportaciones, documentos, usuarios y agentes | matriz manual por rol |
 | V5 Validación | Zod, límites de cuerpo/paginación/lotes, Drizzle parametrizado, comodines ILIKE escapados | TypeScript y pruebas de API |
 | V5 CSV | Neutralización de `=`, `+`, `-`, `@`, tabulador y retorno de carro | revisión de exportación |
@@ -74,7 +74,7 @@ Ejecutar en ese clon:
 - SSRF a loopback, RFC1918, link-local, metadata, IPv6 privado, DNS rebinding simulado
   y redirecciones.
 - Traversal, doble extensión, MIME falso, SVG/HTML/ejecutable, ZIP bomb y muestra EICAR.
-- Fuerza bruta, enumeración, expiración absoluta/inactividad, revocación y recuperación MFA.
+- Fuerza bruta, enumeración, expiración absoluta/inactividad y revocación de sesiones.
 - WebSocket sin cookie, origen incorrecto y exceso de conexiones.
 - Límites y concurrencia de agentes, tamaño de prompts y presupuesto autorizado.
 - Exportaciones masivas, alertas y ausencia de PII/secretos en logs.
@@ -87,7 +87,7 @@ Ejecutar en ese clon:
 - `npm audit` sin vulnerabilidades altas.
 - Gitleaks sin secretos reales en archivos, ramas, etiquetas o historial.
 - TypeScript, pruebas, build y `git diff --check` exitosos.
-- Evidencia ES/EN del sitio, panel, MFA, archivos y permisos.
+- Evidencia ES/EN del sitio, panel, acceso por contraseña, archivos y permisos.
 
 ## Riesgos residuales y pendientes externos
 

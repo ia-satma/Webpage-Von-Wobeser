@@ -366,7 +366,7 @@ export const SEARCH_FORMS_SCRIPT = `<script>(function(){try{
 // `von.css` y `functions.min.js` son el cromo compartido de todo el espejo.
 // Se versionan desde el render para que los cambios de navegación no queden
 // ocultos detrás de los 30 días de caché de los assets estáticos.
-const NAV_ASSET_VERSION = "20260729-public-bugfixes2";
+const NAV_ASSET_VERSION = "20260729-header-spacing2";
 function refreshNavigationAssets(html: string): string {
   return html
     .replace(/(href=["']\/templates\/beez3\/css\/style\.css)(?:\?[^"']*)?(["'])/gi, `$1?v=${NAV_ASSET_VERSION}$2`)
@@ -1295,20 +1295,24 @@ export async function setupMirror(app: Express) {
 
   const serveHome = async (lang: Lang, res: Response, bypassCache = false) => {
     const build = async () => {
-      // El carrusel muestra hasta 6 noticias, en parejas. Las destacadas van primero y el resto
-      // se completa con las publicadas más recientes para que siempre haya rotación útil.
-      const [featured, config, rankings, practices, industries, testimonials] = await Promise.all([
-        storage.getFeaturedNews(6),
-        getConfigMap(),
+      const config = await getConfigMap();
+      const configuredPages = Number.parseInt(cfg(config, "home_news_pages", "en"), 10);
+      const newsLimit = (Number.isFinite(configuredPages)
+        ? Math.min(10, Math.max(1, configuredPages))
+        : 5) * 2;
+      // Las destacadas van primero y el resto se completa con las publicadas más
+      // recientes. La cantidad se administra como páginas de dos noticias.
+      const [featured, rankings, practices, industries, testimonials] = await Promise.all([
+        storage.getFeaturedNews(newsLimit),
         storage.getRankings(),
         storage.getPracticeGroups(),
         storage.getIndustryGroups(),
         storage.getTestimonials(),
       ]);
       let heroNews = featured;
-      if (heroNews.length < 6) {
-        const recent = await storage.getRecentPublishedNews(6 + featured.length);
-        heroNews = [...featured, ...recent.filter((r) => !featured.some((f) => f.id === r.id))].slice(0, 6);
+      if (heroNews.length < newsLimit) {
+        const recent = await storage.getRecentPublishedNews(newsLimit + featured.length);
+        heroNews = [...featured, ...recent.filter((r) => !featured.some((f) => f.id === r.id))].slice(0, newsLimit);
       }
       return renderHome(pick(TEMPLATES.home, lang), heroNews, config, lang, rankings, practices, industries, testimonials);
     };
@@ -1985,6 +1989,15 @@ export async function setupMirror(app: Express) {
   }));
   app.put("/api/admin/site-config/:key", authMiddleware, requirePermission("config"), wrap(async (req, res) => {
     let { value, valueEs } = req.body || {};
+    if (req.params.key === "home_news_pages") {
+      const parsedPages = z.coerce.number().int().min(1).max(10).safeParse(value);
+      if (!parsedPages.success) {
+        res.status(400).json({ error: "El número de páginas de noticias debe estar entre 1 y 10." });
+        return;
+      }
+      value = String(parsedPages.data);
+      valueEs = String(parsedPages.data);
+    }
     // Solo las claves de prosa de páginas institucionales pasan por el editor de texto
     // enriquecido — el resto (URLs de video, banner corto, redes, teléfono) se guarda tal cual.
     if (isRichTextConfigKey(req.params.key)) {

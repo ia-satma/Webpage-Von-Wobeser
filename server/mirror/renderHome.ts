@@ -181,7 +181,7 @@ function renderTestimonials(items: HomeTestimonial[], lang: Lang): string {
 function renderNewsletter(config: ConfigMap, lang: Lang): string {
   const fallback = lang === "es"
     ? {
-        eyebrow: "Newsletter",
+        eyebrow: "",
         name: "Nombre",
         email: "Correo electrónico",
         company: "Empresa",
@@ -191,7 +191,7 @@ function renderNewsletter(config: ConfigMap, lang: Lang): string {
         required: "Complete los campos obligatorios y acepte el Aviso de Privacidad.",
       }
     : {
-        eyebrow: "Newsletter",
+        eyebrow: "",
         name: "Name",
         email: "Email address",
         company: "Company",
@@ -200,14 +200,19 @@ function renderNewsletter(config: ConfigMap, lang: Lang): string {
         privacyPath: "/privacy",
         required: "Please complete the required fields and accept the Privacy Notice.",
       };
+  const configuredEyebrow = cfg(config, "newsletter_eyebrow", lang).trim();
+  // Compatibilidad con bases que todavía conservan la etiqueta sembrada
+  // anteriormente. El bloque se oculta de inmediato aun antes de ejecutar la
+  // migración; cualquier etiqueta distinta escrita desde el panel se muestra.
+  const eyebrow = /^newsletter$/i.test(configuredEyebrow) ? "" : configuredEyebrow;
   const copy = {
-    eyebrow: cfg(config, "newsletter_eyebrow", lang) || fallback.eyebrow,
+    eyebrow: eyebrow || fallback.eyebrow,
     name: cfg(config, "newsletter_name_label", lang) || fallback.name,
     email: cfg(config, "newsletter_email_label", lang) || fallback.email,
     company: cfg(config, "newsletter_company_label", lang) || fallback.company,
     privacy: cfg(config, "newsletter_privacy_intro", lang) || fallback.privacy,
     privacyLink: cfg(config, "newsletter_privacy_link", lang) || fallback.privacyLink,
-    privacyPath: cfg(config, "newsletter_privacy_path", lang) || fallback.privacyPath,
+    privacyPath: safeHref(cfg(config, "newsletter_privacy_path", lang), fallback.privacyPath),
     required: cfg(config, "newsletter_required", lang) || fallback.required,
   };
   const title = cfg(config, "newsletter_title", lang) || (lang === "es" ? "Manténgase informado" : "Stay informed");
@@ -220,7 +225,7 @@ function renderNewsletter(config: ConfigMap, lang: Lang): string {
     <section class="home__newsletter fade_JS" aria-labelledby="newsletter-title">
       <div class="home__newsletter--wrap wrap">
         <div class="home__newsletter--intro">
-          <p class="home__newsletter--eyebrow">${esc(copy.eyebrow)}</p>
+          ${copy.eyebrow ? `<p class="home__newsletter--eyebrow">${esc(copy.eyebrow)}</p>` : ""}
           <h2 id="newsletter-title">${esc(title)}</h2>
           <p class="home__newsletter--description">${esc(description)}</p>
         </div>
@@ -249,7 +254,7 @@ function renderNewsletter(config: ConfigMap, lang: Lang): string {
       </div>
     </section>
     <style>
-      .home__newsletter{background:#f1f1ef;color:#626262;padding:9.5rem 0 8.5rem}.home__newsletter--wrap{display:grid;grid-template-columns:minmax(0,4fr) minmax(21rem,5fr);gap:9vw;align-items:start}.home__newsletter--eyebrow{margin:0 0 1.5rem;color:#b11d35;font-family:var(--vw-font-ui);font-size:.74rem;font-weight:600;letter-spacing:.13em;text-transform:uppercase}.home__newsletter h2{margin:0;max-width:10ch;color:#666;font-family:var(--vw-font-editorial);font-size:clamp(3rem,5.3vw,5.55rem);font-weight:400;line-height:.98}.home__newsletter--description{max-width:31rem;margin:2rem 0 0;color:#666;font-family:var(--vw-font-body);font-size:1.04rem;line-height:1.55}.home__newsletter--form{display:grid;gap:1.6rem;padding-top:.35rem}.home__newsletter--field{display:grid;gap:.55rem}.home__newsletter--field label,.home__newsletter--privacy{font-family:var(--vw-font-ui);font-size:.78rem;letter-spacing:.04em}.home__newsletter--field input{width:100%;box-sizing:border-box;border:0;border-bottom:1px solid #8f8f8f;border-radius:0;background:transparent;color:#4f4f4f;font-family:var(--vw-font-ui);font-size:1.2rem;line-height:1.35;padding:.45rem 0 .7rem;outline:0;transition:border-color .18s ease}.home__newsletter--field input:focus{border-color:#b11d35}.home__newsletter--privacy{display:flex;align-items:flex-start;gap:.7rem;margin-top:.15rem;color:#666;line-height:1.45}.home__newsletter--privacy input{margin:.16rem 0 0;accent-color:#b11d35}.home__newsletter--privacy a{color:inherit;text-decoration-color:#b11d35;text-underline-offset:.18em}.home__newsletter--actions{display:flex;align-items:center;flex-wrap:wrap;gap:1.2rem;margin-top:.8rem}.home__newsletter--actions button{display:inline-flex;align-items:center;gap:1.2rem;min-height:3.1rem;border:1px solid #b11d35;background:#b11d35;color:#fff;cursor:pointer;font-family:var(--vw-font-ui);font-size:.76rem;font-weight:600;letter-spacing:.1em;padding:0 1.25rem;text-transform:uppercase}.home__newsletter--actions button span:last-child{font-size:1.2rem;line-height:1;transition:transform .18s ease}.home__newsletter--actions button:hover span:last-child,.home__newsletter--actions button:focus-visible span:last-child{transform:translateX(4px)}.home__newsletter--actions button:disabled{cursor:wait;opacity:.7}.home__newsletter--feedback{margin:0;font-family:var(--vw-font-ui);font-size:.88rem;line-height:1.4}.home__newsletter--feedback[data-state=error]{color:#a0102b}.home__newsletter--feedback[data-state=success]{color:#38563d}.home__newsletter input:focus-visible,.home__newsletter button:focus-visible,.home__newsletter a:focus-visible{outline:2px solid #b11d35;outline-offset:4px}@media(max-width:760px){.home__newsletter{padding:5.5rem 0}.home__newsletter--wrap{grid-template-columns:1fr;gap:3.25rem}.home__newsletter h2{font-size:clamp(2.7rem,13vw,4.5rem)}.home__newsletter--description{margin-top:1.5rem}.home__newsletter--form{gap:1.4rem}}@media(prefers-reduced-motion:reduce){.home__newsletter--field input,.home__newsletter--actions button span:last-child{transition:none}}
+      .home__newsletter{background:#f1f1ef;color:#626262;padding:9.5rem 0 8.5rem}.home__newsletter--wrap{display:grid;grid-template-columns:minmax(0,4fr) minmax(21rem,5fr);gap:9vw;align-items:start}.home__newsletter--eyebrow{margin:0 0 1.5rem;color:#b11d35;font-family:var(--vw-font-ui);font-size:.74rem;font-weight:600;letter-spacing:.13em;text-transform:uppercase}.home__newsletter h2{margin:0;max-width:10ch;color:#666;font-family:var(--vw-font-editorial);font-size:clamp(3rem,5.3vw,5.55rem);font-weight:400;line-height:.98}.home__newsletter--description{max-width:31rem;margin:2rem 0 0;color:#666;font-family:var(--vw-font-body);font-size:1.04rem;line-height:1.55}.home__newsletter--form{display:grid;gap:1.6rem;padding-top:.35rem}.home__newsletter--field{display:grid;gap:.55rem}.home__newsletter--field label{font-family:var(--vw-font-ui);font-size:.78rem;letter-spacing:.04em}.home__newsletter--field input{width:100%;box-sizing:border-box;border:0;border-bottom:1px solid #8f8f8f;border-radius:0;background:transparent;color:#4f4f4f;font-family:var(--vw-font-ui);font-size:1.2rem;line-height:1.35;padding:.45rem 0 .7rem;outline:0;transition:border-color .18s ease}.home__newsletter--field input:focus{border-color:#b11d35}.home__newsletter--privacy{display:flex;align-items:flex-start;gap:.8rem;margin-top:.15rem;color:#555;font-family:var(--vw-font-ui);font-size:1rem;letter-spacing:0;line-height:1.55}.home__newsletter--privacy input{width:20px;height:20px;flex:0 0 20px;margin:.12rem 0 0;accent-color:#b11d35}.home__newsletter--privacy a{color:#a5102a;font-weight:600;text-decoration:underline;text-decoration-color:#a5102a;text-decoration-thickness:2px;text-underline-offset:.2em}.home__newsletter--actions{display:flex;align-items:center;flex-wrap:wrap;gap:1.2rem;margin-top:.8rem}.home__newsletter--actions button{display:inline-flex;align-items:center;gap:1.2rem;min-height:3.1rem;border:1px solid #b11d35;background:#b11d35;color:#fff;cursor:pointer;font-family:var(--vw-font-ui);font-size:.76rem;font-weight:600;letter-spacing:.1em;padding:0 1.25rem;text-transform:uppercase}.home__newsletter--actions button span:last-child{font-size:1.2rem;line-height:1;transition:transform .18s ease}.home__newsletter--actions button:hover span:last-child,.home__newsletter--actions button:focus-visible span:last-child{transform:translateX(4px)}.home__newsletter--actions button:disabled{cursor:wait;opacity:.7}.home__newsletter--feedback{margin:0;font-family:var(--vw-font-ui);font-size:.88rem;line-height:1.4}.home__newsletter--feedback[data-state=error]{color:#a0102b}.home__newsletter--feedback[data-state=success]{color:#38563d}.home__newsletter input:focus-visible,.home__newsletter button:focus-visible,.home__newsletter a:focus-visible{outline:2px solid #b11d35;outline-offset:4px}@media(max-width:760px){.home__newsletter{padding:5.5rem 0}.home__newsletter--wrap{grid-template-columns:1fr;gap:3.25rem}.home__newsletter h2{font-size:clamp(2.7rem,13vw,4.5rem)}.home__newsletter--description{margin-top:1.5rem}.home__newsletter--form{gap:1.4rem}}@media(prefers-reduced-motion:reduce){.home__newsletter--field input,.home__newsletter--actions button span:last-child{transition:none}}
     </style>
     <script>
       (function(){
@@ -288,7 +293,9 @@ function renderHeroNewsCarousel(news: any[], config: ConfigMap, lang: Lang): str
     expand: cfg(config, "home_news_expand", lang) || fallback.expand,
     position: fallback.position,
   };
-  const stories = news.slice(0, 6);
+  const configuredPages = Number.parseInt(cfg(config, "home_news_pages", "en"), 10);
+  const pageCount = Number.isFinite(configuredPages) ? Math.min(10, Math.max(1, configuredPages)) : 5;
+  const stories = news.slice(0, pageCount * 2);
   const slides: string[] = [];
   for (let index = 0; index < stories.length; index += 2) {
     const cards = stories.slice(index, index + 2).map((item) => {
