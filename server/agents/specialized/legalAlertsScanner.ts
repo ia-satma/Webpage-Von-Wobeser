@@ -101,7 +101,7 @@ ${excerpt}
     const response = await openai.chat.completions.create({
       ...textModelParams(model, 200),
       messages: [{ role: 'user', content: prompt }],
-    } as any, { timeout: 60_000, maxRetries: 1 });
+    } as any, { timeout: 45_000, maxRetries: 0 });
     recordChatUsage("chat", model, response.usage as any);
     const parsed = safeParseJson<{ relevant?: boolean; matchedPractice?: string }>(
       response.choices[0]?.message?.content,

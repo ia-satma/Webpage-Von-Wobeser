@@ -235,6 +235,15 @@ export class SmartImageGenerator {
     maxRetries: number,
     aspect: string,
   ): Promise<{ buffer?: Buffer; name?: 'gptimage2' | 'gptimage' | 'dalle3'; error?: string; errorCode?: string }> {
+    // El proxy de AI Integrations de Replit sirve texto, pero no el endpoint de imágenes.
+    // Fallar de inmediato evita esperar un timeout largo contra un endpoint que nunca podrá
+    // responder. Cloudflare todavía puede operar como respaldo cuando está configurado.
+    if (!hasDedicatedImageClient()) {
+      return {
+        error: 'Falta una API key directa de OpenAI para generar imágenes',
+        errorCode: 'openai_image_key_missing',
+      };
+    }
     await assertAiBudget();
     let lastError: any = null;
     const backoffTimes = [0, 5000, 10000, 20000];
@@ -446,7 +455,7 @@ export class SmartImageGenerator {
     ): Promise<{ buffer?: Buffer; name?: 'gptimage2' | 'gptimage' | 'dalle3' | 'cloudflare'; error?: string; errorCode?: string }> => {
       if (engine === 'openai') {
         // callOpenAIImage ya devuelve el buffer final (GPT Image en base64 o fallback descargado).
-        const r = await this.callOpenAIImage(prompt, 2, aspect);
+        const r = await this.callOpenAIImage(prompt, 1, aspect);
         return r.buffer ? { buffer: r.buffer, name: r.name } : { error: r.error, errorCode: r.errorCode };
       }
       const r = await this.callCloudflareFlux(prompt);

@@ -164,5 +164,45 @@ test('administrative article processing uses private content and the canonical o
     'the exact batch route must be registered before the dynamic article route',
   );
   assert.match(orchestratorSource, /parseAgentPayload\(agentType, payload\)/);
-  assert.match(routeSource, /orchestrator\.runPipeline\(articleId, stages\)/);
+  assert.match(routeSource, /orchestrator\.runPipeline\(articleId, stages,\s*\{/);
+  assert.match(routeSource, /onProgress:\s*\(\{ stage, status, index, message \}\)/);
+  assert.match(routeSource, /legal_council:\s*'council'/);
+});
+
+test('interactive AI calls have bounded waits and image generation fails fast without a direct key', () => {
+  const root = process.cwd();
+  const baseAgentSource = fs.readFileSync(
+    path.join(root, 'server/agents/core/BaseAgent.ts'),
+    'utf8',
+  );
+  const imageSource = fs.readFileSync(
+    path.join(root, 'server/services/SmartImageGenerator.ts'),
+    'utf8',
+  );
+
+  assert.match(baseAgentSource, /timeout:\s*60_000/);
+  assert.match(baseAgentSource, /maxRetries:\s*0/);
+  assert.match(imageSource, /if \(!hasDedicatedImageClient\(\)\)/);
+  assert.match(imageSource, /errorCode:\s*'openai_image_key_missing'/);
+  assert.match(imageSource, /callOpenAIImage\(prompt, 1, aspect\)/);
+});
+
+test('the admin agent center exposes all 14 canonical agents with safe quick-use defaults', () => {
+  const root = process.cwd();
+  const centerSource = fs.readFileSync(
+    path.join(root, 'client/src/components/admin/AgentUseCenter.tsx'),
+    'utf8',
+  );
+  const agentsPageSource = fs.readFileSync(
+    path.join(root, 'client/src/pages/AdminAgents.tsx'),
+    'utf8',
+  );
+
+  assert.match(centerSource, /AGENT_DEFINITIONS\.filter/);
+  assert.match(centerSource, /Record<AgentId, AgentLauncherConfig>/);
+  assert.match(centerSource, /\/api\/agents\/run\/\$\{selected\.id\}/);
+  assert.match(centerSource, /applyChanges:\s*false/g);
+  assert.match(centerSource, /Centro de uso de los 14 agentes/);
+  assert.match(agentsPageSource, /defaultValue="use"/);
+  assert.match(agentsPageSource, /<AgentUseCenter registeredAgents=/);
 });

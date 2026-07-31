@@ -114,7 +114,13 @@ export abstract class BaseAgent {
           ...(!/^gpt-5(?:\.|-|$)/i.test(model)
             ? { temperature: options?.temperature ?? this.config.temperature ?? 0.7 }
             : {}),
-        } as any, { timeout: 90_000, maxRetries: 1 });
+        } as any, {
+          // Las acciones del panel deben terminar o fallar en un tiempo acotado. El fallback
+          // de modelo se controla explícitamente abajo; desactivar los reintentos internos del
+          // SDK evita duplicar silenciosamente una espera completa.
+          timeout: 60_000,
+          maxRetries: 0,
+        });
 
         recordChatUsage('chat', model, response.usage as any);
         const content = response.choices[0]?.message?.content || '';
@@ -126,8 +132,13 @@ export abstract class BaseAgent {
                             error?.message?.includes('rate limit');
         const isUnavailableModel = [400, 404].includes(Number(error?.status)) &&
           /model|unsupported|not found|does not exist|access/i.test(String(error?.message || ''));
+        const status = Number(error?.status || error?.response?.status || 0);
+        const isTransientError = status === 408 || status === 429 || status >= 500 ||
+          /timeout|timed out|ETIMEDOUT|ECONNRESET|network|temporar|unavailable/i.test(
+            String(error?.message || ''),
+          );
         
-        if ((isQuotaError || isUnavailableModel) && model !== allModels[allModels.length - 1]) {
+        if ((isQuotaError || isUnavailableModel || isTransientError) && model !== allModels[allModels.length - 1]) {
           console.log(`[${this.name}] Modelo principal no disponible; usando respaldo compatible.`);
           continue;
         }

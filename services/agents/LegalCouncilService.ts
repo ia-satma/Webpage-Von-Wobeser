@@ -115,7 +115,12 @@ export class LegalCouncilService {
           content: `Evaluate this article:\n<<<UNTRUSTED_ARTICLE_START>>>\n${truncatedText}\n<<<UNTRUSTED_ARTICLE_END>>>`,
         },
       ],
-    } as any, { timeout: 60_000, maxRetries: 1 });
+    } as any, {
+      // La revisión se ejecuta en paralelo y es complementaria. Un proveedor lento no debe
+      // mantener el pipeline aparentemente bloqueado durante varios minutos.
+      timeout: 45_000,
+      maxRetries: 0,
+    });
     recordChatUsage('chat', model, response.usage as any);
     const content = response.choices?.[0]?.message?.content;
 

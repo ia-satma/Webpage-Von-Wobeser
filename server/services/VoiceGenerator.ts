@@ -73,7 +73,9 @@ export class VoiceGenerator {
       await assertAiBudget();
       const response = await openai.audio.speech.create(
         { model: MODEL, voice, input: text, response_format: 'mp3' },
-        { maxRetries: 2, timeout: 30000 },
+        // Un intento acotado mantiene la interfaz predecible. El usuario puede reintentar
+        // conscientemente; el SDK no repite en silencio la locución completa.
+        { maxRetries: 0, timeout: 30_000 },
       );
       const arrayBuffer = await response.arrayBuffer();
       recordAudioUsage(text.length, MODEL);

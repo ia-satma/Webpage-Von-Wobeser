@@ -39,6 +39,8 @@ import {
 } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
+import { AgentUseCenter } from "@/components/admin/AgentUseCenter";
+import { AiUsageCard } from "@/components/admin/AiUsageCard";
 
 interface AgentStats {
   agentType: string;
@@ -169,7 +171,8 @@ const STATUS_COLORS: Record<string, string> = {
 export default function AdminAgents() {
   const { toast } = useToast();
   const [, setLocation] = useLocation();
-  const { isAuthenticated, isLoading: authLoading, token } = useAdminAuth();
+  const { isAuthenticated, isLoading: authLoading, token, role } = useAdminAuth();
+  const canViewAiUsage = role === "super_admin" || role === "admin";
 
   useEffect(() => {
     if (!authLoading && !isAuthenticated) {
@@ -305,7 +308,7 @@ export default function AdminAgents() {
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <AdminPageHeader
           title="Sistema de Agentes IA"
-          description="Monitorea y controla los agentes de mejora de contenido"
+          description="Usa, prueba y supervisa los 14 agentes desde un solo lugar"
           icon={Bot}
           actions={
             <>
@@ -420,13 +423,24 @@ export default function AdminAgents() {
           </Card>
         </div>
 
-        <Tabs defaultValue="agents" className="space-y-4">
-          <TabsList data-testid="tabs-agent-sections">
-            <TabsTrigger value="agents" data-testid="tab-agents">Agentes</TabsTrigger>
+        {canViewAiUsage && (
+          <div className="mb-8 max-w-sm" data-testid="admin-only-agent-usage">
+            <AiUsageCard />
+          </div>
+        )}
+
+        <Tabs defaultValue="use" className="space-y-4">
+          <TabsList className="h-auto flex-wrap justify-start" data-testid="tabs-agent-sections">
+            <TabsTrigger value="use" data-testid="tab-agent-use-center">Centro de uso</TabsTrigger>
+            <TabsTrigger value="agents" data-testid="tab-agents">Estado de agentes</TabsTrigger>
             <TabsTrigger value="evolution" data-testid="tab-evolution">Evolución</TabsTrigger>
-            <TabsTrigger value="jobs" data-testid="tab-jobs">Trabajos</TabsTrigger>
-            <TabsTrigger value="actions" data-testid="tab-actions">Acciones</TabsTrigger>
+            <TabsTrigger value="jobs" data-testid="tab-jobs">Historial</TabsTrigger>
+            <TabsTrigger value="actions" data-testid="tab-actions">Sistema</TabsTrigger>
           </TabsList>
+
+          <TabsContent value="use" className="space-y-4">
+            <AgentUseCenter registeredAgents={status?.orchestrator?.registeredAgents || []} />
+          </TabsContent>
 
           <TabsContent value="agents" className="space-y-4">
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">

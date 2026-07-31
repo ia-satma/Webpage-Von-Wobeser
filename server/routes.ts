@@ -1958,7 +1958,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
 
   // Contador de gasto ESTIMADO de la API de IA. OpenAI no expone el saldo por API key, así que
   // esto suma tokens/imágenes de NUESTRAS llamadas por el precio conocido del modelo (aproximado).
-  app.get("/api/admin/usage/summary", authMiddleware, requirePermission("agents"), async (_req: Request, res: Response) => {
+  app.get("/api/admin/usage/summary", authMiddleware, requireRole("super_admin", "admin"), async (_req: Request, res: Response) => {
     try {
       const now = new Date();
       const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
@@ -4433,27 +4433,54 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
         'polyglot_translator',
       ];
       broadcastPipelineProgress(articleId, {
-        step: 'pipeline',
+        step: 'format',
         status: 'running',
-        progress: 0,
-        message: 'Processing article with the validated agent pipeline',
+        progress: 2,
+        message: 'Preparando el artículo y validando la solicitud',
       });
 
-      const result = await orchestrator.runPipeline(articleId, stages);
-      if (generateImage && result.success) {
-        result.results.image_suggestion = await orchestrator.executeImmediately(
-          'image_suggestion',
-          { articleId, applyChanges: true },
-        );
-      }
-      const stepAliases: Partial<Record<AgentType, string>> = {
+      const totalVisibleSteps = stages.length + 1 + (generateImage ? 1 : 0);
+      const stepAliases: Record<string, string> = {
         formatter: 'format',
         category_agent: 'categorize',
         metadata_linker: 'metadata',
         seo_optimizer: 'seo',
         polyglot_translator: 'translate',
+        legal_council: 'council',
         image_suggestion: 'image',
       };
+      const result = await orchestrator.runPipeline(articleId, stages, {
+        onProgress: ({ stage, status, index, message }) => {
+          const completed = status === 'running' ? index : index + 1;
+          broadcastPipelineProgress(articleId, {
+            step: stepAliases[stage] || stage,
+            status,
+            progress: Math.max(2, Math.min(98, Math.round((completed / totalVisibleSteps) * 100))),
+            message,
+          });
+        },
+      });
+      if (generateImage && result.success) {
+        const imageIndex = stages.length + 1;
+        broadcastPipelineProgress(articleId, {
+          step: 'image',
+          status: 'running',
+          progress: Math.round((imageIndex / totalVisibleSteps) * 100),
+          message: 'Generando y guardando la imagen del artículo…',
+        });
+        result.results.image_suggestion = await orchestrator.executeImmediately(
+          'image_suggestion',
+          { articleId, applyChanges: true },
+        );
+        broadcastPipelineProgress(articleId, {
+          step: 'image',
+          status: result.results.image_suggestion.success ? 'completed' : 'error',
+          progress: Math.round(((imageIndex + 1) / totalVisibleSteps) * 100),
+          message: result.results.image_suggestion.success
+            ? 'Imagen del artículo generada y guardada'
+            : (result.results.image_suggestion.error || 'Falló la generación de la imagen del artículo'),
+        });
+      }
       const steps = Object.fromEntries(
         Object.entries(result.results).map(([agentId, agentResult]) => [
           stepAliases[agentId as AgentType] || agentId,
@@ -4477,7 +4504,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
         step: 'complete',
         status: result.success ? 'completed' : 'error',
         progress: 100,
-        message: result.success ? 'Pipeline complete' : 'Pipeline requires review',
+        message: result.success ? 'Procesamiento terminado' : 'El procesamiento requiere revisión',
         data: canonicalPipelineResults,
       });
       return res.json(canonicalPipelineResults);
