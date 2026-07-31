@@ -1,11 +1,3 @@
-/* Línea tipográfica institucional compartida por el espejo y los módulos
-   públicos añadidos. Los nombres coinciden con los @font-face de style.css. */
-:root {
-  --vw-font-editorial: "Publico-Roman", Georgia, serif;
-  --vw-font-ui: "Geomanist-Book", Arial, sans-serif;
-  --vw-font-body: "OptimaLTStd", Arial, sans-serif;
-}
-
 .vw-footer-socials {
   align-items: center;
   display: flex;
@@ -104,7 +96,7 @@ body {
   }
 }
 
-/* Menú y controles compartidos: Geomanist y área táctil mínima WCAG. */
+/* Menú y controles compartidos: Atkinson y área táctil mínima WCAG. */
 .header .header--btn,
 .header .header__lang--item,
 .header .eyeglass,
@@ -239,7 +231,7 @@ nav.nav.menu_JS .nav__menu--sublink,
   font-size:100px;
   /*font-style:italic;*/
   /*line-height:1;*/
-  font-family:"Publico-Roman",serif;
+  font-family:"Gelasio",serif;
   vertical-align:middle;
   position: relative;
   top: -195px;
@@ -527,7 +519,7 @@ a.vw-read-more:focus-visible {
   display: block !important;
   flex: 1 1 auto;
   float: none;
-  font-family: "Geomanist-Book", sans-serif !important;
+  font-family: "Atkinson Hyperlegible", sans-serif !important;
   font-size: 16px;
   height: 42px;
   margin: 0;
@@ -551,7 +543,7 @@ a.vw-read-more:focus-visible {
   cursor: pointer;
   display: inline-flex;
   flex: 0 0 42px;
-  font-family: "Geomanist-Book", sans-serif;
+  font-family: "Atkinson Hyperlegible", sans-serif;
   font-size: 24px;
   height: 42px;
   justify-content: center;
@@ -793,7 +785,7 @@ a[href="/german-desk"],
 
   nav.nav.menu_JS .nav__menu--link {
     color: #5e5e5e;
-    font-family: "Geomanist-Book", sans-serif;
+    font-family: "Atkinson Hyperlegible", sans-serif;
     font-size: clamp(13px, 1vw, 16px);
     letter-spacing: 0.025em;
     line-height: 72px;
@@ -878,7 +870,7 @@ a[href="/german-desk"],
   nav.nav.menu_JS .vw-subnav .nav__menu--sublink {
     color: #5e5e5e;
     display: block !important;
-    font-family: "Geomanist-Book", sans-serif;
+    font-family: "Atkinson Hyperlegible", sans-serif;
     font-size: 12px;
     letter-spacing: 0.035em;
     line-height: 1.35;
@@ -980,7 +972,7 @@ a[href="/german-desk"],
 
   nav.nav.menu_JS .nav__menu--link {
     color: #5e5e5e;
-    font-family: "Geomanist-Book", sans-serif;
+    font-family: "Atkinson Hyperlegible", sans-serif;
     font-size: 16px;
     letter-spacing: 0.035em;
     line-height: 1.25;
@@ -999,7 +991,7 @@ a[href="/german-desk"],
     border-bottom: 0;
     color: #666;
     display: block;
-    font-family: "Geomanist-Book", sans-serif;
+    font-family: "Atkinson Hyperlegible", sans-serif;
     font-size: 12px;
     letter-spacing: 0.045em;
     line-height: 1.35;

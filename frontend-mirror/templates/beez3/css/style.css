@@ -19,7 +19,7 @@ body {
   overflow-x: hidden;
   background: #fff;
   line-height: 1.5;
-  font-family: "OptimaLTStd",sans-serif;
+  font-family: "Atkinson Hyperlegible",sans-serif;
   background-color: #fff;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -57,8 +57,8 @@ body {
   zoom: 1;
 }
 
-h1,h2,h3 {
-  font-family: "OptimaLTStd",sans-serif;
+h1,h2,h3,h4,h5,h6 {
+  font-family: "Gelasio",serif;
   font-weight: normal;
   margin: 0 0 10px 0;
   line-height: 1.3;
@@ -99,7 +99,7 @@ section {
 
 b,strong {
   font-weight: normal;
-  font-family: "OptimaLTStd",sans-serif;
+  font-family: "Atkinson Hyperlegible",sans-serif;
 }
 
 #pre {
@@ -159,7 +159,7 @@ b,strong {
 
 .home__hero--scroll,.home__intro--item div:nth-child(2) {
   font-size: 15px;
-  font-family: "Geomanist-Book",serif;
+  font-family: "Atkinson Hyperlegible",sans-serif;
   letter-spacing: 5px;
   text-transform: uppercase;
 }
@@ -249,22 +249,6 @@ b,strong {
   opacity: 1;
   -webkit-transform: translateY(0);
   transform: translateY(0);
-}
-
-@font-face {
-  font-family:'OptimaLTStd';src:url("../webfont/OptimaLTStd.woff2") format("woff2"),url("../webfont/OptimaLTStd.woff") format("woff");font-weight:300;font-style:normal;font-stretch:normal;font-display:swap;
-}
-
-@font-face {
-  font-family:'OptimaLTStd-Bold';src:url("../webfont/OptimaLTStd-Bold.eot");src:url("../webfont/OptimaLTStd-Bold.eot?#iefix") format("embedded-opentype"),url("../webfont/OptimaLTStd-Bold.woff") format("woff"),url("../webfont/OptimaLTStd-Bold.ttf") format("truetype"),url("../webfont/OptimaLTStd-Bold.svg#OptimaLTStd-Bold") format("svg");font-weight:300;font-style:normal;font-stretch:normal;
-}
-
-@font-face {
-  font-family:'Publico-Roman';src:url("../webfont/Publico-Roman.woff2") format("woff2"),url("../webfont/Publico-Roman.woff") format("woff");font-weight:300;font-style:normal;font-stretch:normal;font-display:swap;
-}
-
-@font-face {
-  font-family:'Geomanist-Book';src:url("../webfont/Geomanist-Book.woff2") format("woff2"),url("../webfont/Geomanist-Book.woff") format("woff");font-weight:300;font-style:normal;font-stretch:normal;font-display:swap;
 }
 
 .header {
@@ -422,7 +406,7 @@ b,strong {
   -webkit-transform: translateY(-50%);
   transform: translateY(-50%);
   line-height: 1;
-  font-family: "Geomanist-Book",serif;
+  font-family: "Atkinson Hyperlegible",sans-serif;
   letter-spacing: 3px;
 }
 
@@ -457,7 +441,7 @@ b,strong {
 
 .footer--txt {
   font-size: 14px;
-  font-family: "Publico-Roman",serif;
+  font-family: "Gelasio",serif;
   letter-spacing: 0.2px;
   margin-bottom: 20px;
   margin-top: -3%;
@@ -472,7 +456,7 @@ b,strong {
 .footer--copy {
   font-size: 14px;
   /*font-style: italic;*/
-  font-family: "Publico-Roman",serif;
+  font-family: "Gelasio",serif;
 }
 
 @media (max-width: 480px) {
@@ -638,7 +622,7 @@ b,strong {
   display: inline-block;
   position: relative;
   font-size: 52px;
-  font-family: "Publico-Roman",serif;
+  font-family: "Gelasio",serif;
   margin-bottom: 10px;
   -webkit-transition: all .5s ease;
   transition: all .5s ease;
@@ -689,7 +673,7 @@ b,strong {
   font-size: 12px;
   max-height: 0;
   line-height: 2;
-  font-family: "Geomanist-Book",serif;
+  font-family: "Atkinson Hyperlegible",sans-serif;
   letter-spacing: 2px;
   text-transform: uppercase;
   -webkit-transition: max-height 0.65s ease, color 0.3s ease;
@@ -819,11 +803,23 @@ b,strong {
     /*height: calc(56vh);*/
     padding:0 !important;
   }
+
+  /* Reserve the testimonial carousel's final footprint before Slick starts.
+     Without this, the three raw slides briefly stack and then collapse. */
+  .home__intro:not(.slick-initialized) {
+    height: calc(56vh - 48px);
+    min-height: calc(56vh - 48px);
+    overflow: hidden;
+  }
+
+  .home__intro:not(.slick-initialized) .home__intro--item:not(:first-child) {
+    display: none;
+  }
 }
 
 .home__intro--item div:nth-child(1) {
   font-size: 26px;
-  font-family: "Publico-Roman",serif;
+  font-family: "Gelasio",serif;
   margin-bottom: 40px;
 }
 
@@ -842,17 +838,25 @@ b,strong {
   .home__intro--wrap {
   	height: calc(80vh) !important;
   }
+  .home__intro:not(.slick-initialized) {
+    height: calc(80vh - 48px);
+    min-height: calc(80vh - 48px);
+  }
 }
 
 @media (max-width: 300px) {
 	.home__intro--wrap {
   	height: calc(100vh) !important;
   }
+  .home__intro:not(.slick-initialized) {
+    height: calc(100vh - 48px);
+    min-height: calc(100vh - 48px);
+  }
 }
 
 .home__intro--item div:nth-child(2) {
   font-size: 19px;
-  font-family: "Geomanist-Book",serif;
+  font-family: "Atkinson Hyperlegible",sans-serif;
 }
 
 @media (max-width: 980px) {
@@ -912,7 +916,7 @@ b,strong {
   font-size: 100px;
   /*font-style: italic;*/
   line-height: 1;
-  font-family: "Publico-Roman",serif;
+  font-family: "Gelasio",serif;
   vertical-align: middle;
 }
 
@@ -953,7 +957,7 @@ b,strong {
   display: inline-block;
   font-size: 34px;
   line-height: 1;
-  font-family: "Geomanist-Book",serif;
+  font-family: "Atkinson Hyperlegible",sans-serif;
   margin-left: 35px;
   border-bottom: 2px solid #444;
   letter-spacing: 5px;
@@ -1162,7 +1166,7 @@ b,strong {
   position: relative;
   /*font-style: italic;*/
   line-height: 1.2;
-  font-family: "Publico-Roman",serif;
+  font-family: "Gelasio",serif;
   margin-bottom: 25px;
   border-bottom: 1px solid #ac162c;
 }
@@ -1266,7 +1270,7 @@ b,strong {
   color: #ac162c;
   font-size: 22px;
   line-height: 1;
-  font-family: "Geomanist-Book",serif;
+  font-family: "Atkinson Hyperlegible",sans-serif;
   border-bottom: 1px solid #c4c4c4;
   margin-bottom: 45px;
   letter-spacing: 6px;
@@ -1291,7 +1295,7 @@ b,strong {
 
 .home__desk--txt {
   font-size: 26px;
-  font-family: "Publico-Roman",serif;
+  font-family: "Gelasio",serif;
   margin-bottom: 25%;
 }
 
@@ -1344,7 +1348,7 @@ b,strong {
   color: #ac162c;
   font-size: 22px;
   line-height: 1;
-  font-family: "Geomanist-Book",serif;
+  font-family: "Atkinson Hyperlegible",sans-serif;
   margin-bottom: 45px;
   letter-spacing: 6px;
 }
@@ -1376,7 +1380,7 @@ b,strong {
   font-size: 28px;
   /*font-style: italic;*/
   line-height: 1.3;
-  font-family: "Publico-Roman",serif;
+  font-family: "Gelasio",serif;
   margin-bottom: 25px;
 }
 
@@ -1394,7 +1398,7 @@ b,strong {
 
 .home__rec--top strong {
   font-style: normal;
-  font-family: "Publico-Roman",serif;
+  font-family: "Gelasio",serif;
 }
 
 .home__rec--txt {
@@ -1557,7 +1561,7 @@ b,strong {
   transform: rotate(-90deg) translateX(-100%);
   text-align: right;
   white-space: nowrap;
-  font-family: "Geomanist-Book",serif;
+  font-family: "Atkinson Hyperlegible",sans-serif;
   letter-spacing: 6px;
   text-transform: uppercase;
   -webkit-transform-origin: top left;
@@ -1613,7 +1617,7 @@ b,strong {
 
 .page__content--intro {
   font-size: 26px;
-  font-family: "Publico-Roman",serif;
+  font-family: "Gelasio",serif;
   border-bottom: 1px solid #c4c4c4;
   margin-bottom: 50px;
   padding-bottom: 30px;
@@ -1645,7 +1649,7 @@ b,strong {
 
 .page__content--intro a {
   font-size: 19px;
-  font-family: "OptimaLTStd",sans-serif;
+  font-family: "Atkinson Hyperlegible",sans-serif;
 }
 
 @media (max-width: 980px) {
@@ -1675,7 +1679,7 @@ b,strong {
   display: block;
   font-size: 21px;
   line-height: 23px;
-  font-family: "Publico-Roman",serif;
+  font-family: "Gelasio",serif;
   margin-bottom: 20px;
 }
 
@@ -1763,7 +1767,7 @@ b,strong {
 .page--btn {
   cursor: pointer;
   font-size: 16px;
-  font-family: "Geomanist-Book",serif;
+  font-family: "Atkinson Hyperlegible",sans-serif;
   letter-spacing: 5px;
   text-transform: uppercase;
   -webkit-transition: all .3s ease;
@@ -2011,7 +2015,7 @@ b,strong {
   font-size: 23px;
   /*font-style: italic;*/
   line-height: 1;
-  font-family: "Publico-Roman",serif;
+  font-family: "Gelasio",serif;
   margin-bottom: 50px;
   letter-spacing: 0.5px;
 }
@@ -2049,7 +2053,7 @@ b,strong {
   font-size: 17px;
   -webkit-flex-wrap: wrap;
   flex-wrap: wrap;
-  font-family: "Geomanist-Book",serif;
+  font-family: "Atkinson Hyperlegible",sans-serif;
   margin-bottom: 20px;
   letter-spacing: 5px;
   text-transform: uppercase;
@@ -2071,7 +2075,7 @@ b,strong {
   padding: 8px 5px;
   display: block;
   font-size: 17px;
-  font-family: "Geomanist-Book",serif;
+  font-family: "Atkinson Hyperlegible",sans-serif;
   border-radius: 0;
   background-color: #fff;
 }
@@ -2117,7 +2121,7 @@ b,strong {
   font-size: 17px;
   text-align: center;
   margin-left: auto;
-  font-family: "Geomanist-Book",serif;
+  font-family: "Atkinson Hyperlegible",sans-serif;
   border-radius: 0;
   margin-bottom: 0px;
   letter-spacing: 5px;
@@ -2143,7 +2147,7 @@ b,strong {
   color: #fff;
   cursor: pointer;
   line-height: 1;
-  font-family: "Geomanist-Book",serif;
+  font-family: "Atkinson Hyperlegible",sans-serif;
   margin-bottom: 25px;
 }
 
@@ -2209,7 +2213,7 @@ b,strong {
 .single__meta--name {
   color: #fff;
   font-size: 32px;
-  font-family: "Publico-Roman",serif;
+  font-family: "Gelasio",serif;
   line-height: 1.2;
   margin-bottom: 40px;
 }
@@ -2237,7 +2241,7 @@ b,strong {
   color: #fff;
   font-size: 17px;
   white-space: nowrap;
-  font-family: "Geomanist-Book",serif;
+  font-family: "Atkinson Hyperlegible",sans-serif;
   margin-bottom: 10px;
   letter-spacing: 6px;
   text-transform: uppercase;
@@ -2333,7 +2337,7 @@ b,strong {
 
 .single__content--intro {
   font-size: 26px;
-  font-family: "Publico-Roman",serif;
+  font-family: "Gelasio",serif;
   /*margin-bottom: 30px;*/
 }
 
@@ -2367,7 +2371,7 @@ b,strong {
 
 .archive__filters--label {
   font-size: 16px;
-  font-family: "Geomanist-Book",serif;
+  font-family: "Atkinson Hyperlegible",sans-serif;
   margin-right: 20px;
   letter-spacing: 5px;
   text-transform: uppercase;
@@ -2384,7 +2388,7 @@ b,strong {
   border: 1px solid gray;
   padding: 8px 32px 6px 10px;
   font-size: 16px;
-  font-family: "Geomanist-Book",serif;
+  font-family: "Atkinson Hyperlegible",sans-serif;
   border-radius: 0;
   background-size: 30px auto;
   background-color: #fff;
@@ -2399,7 +2403,7 @@ b,strong {
   border: 1px solid gray;
   padding: 8px 30px 6px 12px;
   font-size: 16px;
-  font-family: "Geomanist-Book",serif;
+  font-family: "Atkinson Hyperlegible",sans-serif;
   border-radius: 0;
   background-color: #fff;
 }
@@ -2454,7 +2458,7 @@ b,strong {
 
 .archive__item--ttl {
   font-size: 25px;
-  font-family: "Publico-Roman",serif;
+  font-family: "Gelasio",serif;
   margin-bottom: -3px;
   /*margin-bottom: 8px;*/
   /*width: 266px;*/
@@ -2468,7 +2472,7 @@ b,strong {
 
 .archive__item--date {
   font-size: 16px;
-  font-family: "Geomanist-Book",serif;
+  font-family: "Atkinson Hyperlegible",sans-serif;
   margin-bottom: 25px;
   letter-spacing: 5px;
   text-transform: uppercase;
@@ -2489,7 +2493,7 @@ b,strong {
   font-size: 16px;
   text-align: right;
   line-height: 1;
-  font-family: "Geomanist-Book",serif;
+  font-family: "Atkinson Hyperlegible",sans-serif;
   letter-spacing: 5px;
   text-transform: uppercase;
 }
@@ -2543,7 +2547,7 @@ b,strong {
   margin: 0 12px;
   font-size: 16px;
   margin-top: auto;
-  font-family: "Geomanist-Book",serif;
+  font-family: "Atkinson Hyperlegible",sans-serif;
   letter-spacing: 5px;
   text-transform: uppercase;
 }
@@ -2554,7 +2558,7 @@ b,strong {
   font-size: 16px;
   border-top: 1px solid #c4c4c4;
   text-align: center;
-  font-family: "Geomanist-Book",serif;
+  font-family: "Atkinson Hyperlegible",sans-serif;
 }
 
 .archive__nav--num.current,.archive__nav--num:hover {
@@ -2655,7 +2659,7 @@ b,strong {
   font-size: 15px;
   -webkit-flex-wrap: wrap;
   flex-wrap: wrap;
-  font-family: "Geomanist-Book",serif;
+  font-family: "Atkinson Hyperlegible",sans-serif;
   margin-bottom: 20px;
   letter-spacing: 3px;
   text-transform: uppercase;
@@ -2671,7 +2675,7 @@ b,strong {
   font-size: 12px;
   margin-left: auto;
   white-space: nowrap;
-  font-family: "OptimaLTStd",sans-serif;
+  font-family: "Atkinson Hyperlegible",sans-serif;
   letter-spacing: 0;
   text-transform: none;
 }
@@ -2732,7 +2736,7 @@ b,strong {
   padding: 8px 5px;
   display: block;
   font-size: 16px;
-  font-family: "Geomanist-Book",serif;
+  font-family: "Atkinson Hyperlegible",sans-serif;
   border-radius: 0;
   background-color: #fff;
 }
@@ -2782,7 +2786,7 @@ b,strong {
   display: inline-block;
   font-size: 15px;
   line-height: 1;
-  font-family: "Geomanist-Book",serif;
+  font-family: "Atkinson Hyperlegible",sans-serif;
   margin-bottom: 20px;
   letter-spacing: 3px;
   text-transform: uppercase;
@@ -2802,7 +2806,7 @@ b,strong {
   display: inline-block;
   font-size: 16px;
   line-height: 1;
-  font-family: "Geomanist-Book",serif;
+  font-family: "Atkinson Hyperlegible",sans-serif;
   letter-spacing: 5px;
   text-transform: uppercase;
   background-color: #5e5e5e;
@@ -2865,7 +2869,7 @@ b,strong {
 .attorney__meta--name {
   color: #fff;
   font-size: 32px;
-  font-family: "Publico-Roman",serif;
+  font-family: "Gelasio",serif;
   line-height: 1.2;
   margin-bottom: 10px;
 }
@@ -2892,7 +2896,7 @@ b,strong {
   color: #fff;
   font-size: 17px;
   white-space: nowrap;
-  font-family: "Geomanist-Book",serif;
+  font-family: "Atkinson Hyperlegible",sans-serif;
   margin-bottom: 30px;
   letter-spacing: 6px;
   text-transform: uppercase;
@@ -2930,7 +2934,7 @@ b,strong {
 .attorney__meta--txt a[download] {
   font-size: 17px;
   white-space: nowrap;
-  font-family: "Geomanist-Book",serif;
+  font-family: "Atkinson Hyperlegible",sans-serif;
   letter-spacing: 6px;
   text-transform: uppercase;
 }
@@ -3014,7 +3018,7 @@ b,strong {
 
 .attorney__content--intro {
   font-size: 26px;
-  font-family: "Publico-Roman",serif;
+  font-family: "Gelasio",serif;
   margin-bottom: 30px;
 }
 
@@ -3109,7 +3113,7 @@ b,strong {
 .attorneys__meta--item .txt a[download] {
   font-size: 17px;
   white-space: nowrap;
-  font-family: "Geomanist-Book",serif;
+  font-family: "Atkinson Hyperlegible",sans-serif;
   letter-spacing: 6px;
   text-transform: uppercase;
 }
@@ -3249,7 +3253,7 @@ b,strong {
 
 .attorneys__list--item .name {
   font-size: 24px;
-  font-family: "Publico-Roman",serif;
+  font-family: "Gelasio",serif;
   position: absolute;
   margin-left: -2px;
 }
@@ -3309,7 +3313,7 @@ b,strong {
   margin: auto 0;
   font-size: 17px;
   white-space: nowrap;
-  font-family: "Geomanist-Book",serif;
+  font-family: "Atkinson Hyperlegible",sans-serif;
   letter-spacing: 6px;
   text-transform: uppercase;
   margin-left: 76%;
@@ -3416,7 +3420,7 @@ b,strong {
   text-align: center;
   line-height: 1;
   white-space: nowrap;
-  font-family: "Geomanist-Book",serif;
+  font-family: "Atkinson Hyperlegible",sans-serif;
   margin-bottom: 30px;
   letter-spacing: 5px;
   text-transform: uppercase;
@@ -3513,7 +3517,7 @@ b,strong {
 .capabilities__slide--txt {
   color: #fff;
   font-size: 39px;
-  font-family: "Publico-Roman",serif;
+  font-family: "Gelasio",serif;
   line-height: 1.2;
 }
 

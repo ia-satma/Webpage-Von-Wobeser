@@ -1,27 +1,4 @@
-@font-face {
-  font-family: "Publico-light";
-  src: url("../fonts/Publico/Publico-Light.otf") format("opentype");
-  font-weight: 300;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: "Publico-medium";
-  src: url("../fonts/Publico/Publico-Medium.otf") format("opentype");
-  font-display: swap;
-}
-
-@font-face {
-  font-family: "Geomanist-light";
-  src: url("../fonts/Geomanist/Geomanist-Light.otf") format("opentype");
-  font-display: swap;
-}
-
-@font-face {
-  font-family: "Geomanist-regular";
-  src: url("../fonts/Geomanist/Geomanist-Regular.otf") format("opentype");
-  font-display: swap;
-}
+/* Las fuentes se declaran una sola vez en templates/beez3/css/style.css. */
 
 :root {
   --office-red: #ac162c;
@@ -40,16 +17,21 @@ body {
   background: #fff;
 }
 
+.office-showcase section,
+.office-showcase .contenedor_comillas {
+  overflow-x: clip;
+}
+
 .titulos,
 .titulo_banner {
-  font-family: "Publico-light", Georgia, serif !important;
+  font-family: "Gelasio" !important;
   font-weight: 500;
   text-wrap: balance;
 }
 
 .texto,
 .texto_banner {
-  font-family: "Geomanist-regular", Arial, sans-serif !important;
+  font-family: "Atkinson Hyperlegible" !important;
 }
 
 .contenedor_header {
@@ -91,7 +73,7 @@ body {
 .office-home-link {
   position: relative;
   color: #666;
-  font: 500 .78rem/1 "Geomanist-regular", Arial, sans-serif;
+  font: 500 .78rem/1 "Atkinson Hyperlegible";
   letter-spacing: .13em;
   text-decoration: none;
   transition: color .2s ease;
@@ -132,7 +114,7 @@ body {
   border-radius: 4px;
   color: #fff;
   background: #777;
-  font: 700 .875rem/1 "Geomanist-regular", Arial, sans-serif;
+  font: 700 .875rem/1 "Atkinson Hyperlegible";
   cursor: pointer;
   transition: background-color .2s ease, transform .2s ease;
 }
@@ -209,7 +191,7 @@ footer a:focus-visible,
   z-index: 2;
   transform: translateX(-50%);
   color: #fff;
-  font: 300 .9rem/1.2 "Geomanist-light", Arial, sans-serif;
+  font: 300 .9rem/1.2 "Atkinson Hyperlegible";
   text-align: center;
 }
 
@@ -281,7 +263,7 @@ footer a:focus-visible,
   max-width: 68rem;
   margin-inline: auto;
   color: #444;
-  font: 400 1.1rem/1.55 "Geomanist-regular", Arial, sans-serif;
+  font: 400 1.1rem/1.55 "Atkinson Hyperlegible";
 }
 
 .bg-custom-red {
@@ -295,7 +277,7 @@ footer a:focus-visible,
 .parrafo-map {
   max-width: 62ch;
   color: rgba(255, 255, 255, .78);
-  font: 300 1rem/1.55 "Geomanist-regular", Arial, sans-serif;
+  font: 300 1rem/1.55 "Atkinson Hyperlegible";
   text-align: justify;
 }
 
@@ -386,7 +368,7 @@ footer a:focus-visible,
 
 #changingTitle .titulo {
   margin: .35rem 0 0;
-  font: 400 1.35rem/1.15 "Publico-medium", Georgia, serif;
+  font: 400 1.35rem/1.15 "Gelasio";
 }
 
 .giant-quote {
@@ -397,12 +379,12 @@ footer a:focus-visible,
 }
 
 .quote-text {
-  font: 400 clamp(1.3rem, 2.2vw, 2rem)/1.4 "Geomanist-regular", Arial, sans-serif;
+  font: 400 clamp(1.3rem, 2.2vw, 2rem)/1.4 "Atkinson Hyperlegible";
   text-wrap: pretty;
 }
 
 .contenedor_comillas .p {
-  font: italic 1.1rem/1.5 "Geomanist-regular", Arial, sans-serif;
+  font: italic 1.1rem/1.5 "Atkinson Hyperlegible";
 }
 
 .bg-custom-gray {
@@ -425,7 +407,7 @@ footer a:focus-visible,
 .footer-socials .follow-text {
   margin-left: 8px;
   color: #f8f9fa;
-  font: 600 .8rem/1 "Geomanist-regular", Arial, sans-serif;
+  font: 600 .8rem/1 "Atkinson Hyperlegible";
 }
 
 #imageModal .modal-dialog { max-width: 90vw; }

@@ -110,9 +110,6 @@ export default {
         heading: ["var(--font-heading)"],
         support: ["var(--font-support)"],
         mono: ["var(--font-mono)"],
-        publico: ["'Publico-Roman'", "Georgia", "serif"],
-        optima: ["'OptimaLTStd'", "'Optima'", "'Lato'", "sans-serif"],
-        geomanist: ["'Geomanist-Book'", "'Geomanist'", "'Century Gothic'", "'Lato'", "sans-serif"],
       },
       keyframes: {
         "accordion-down": {
