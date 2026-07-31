@@ -3,7 +3,7 @@ import { usePipelineProgress, PipelineProgressEvent } from '@/hooks/usePipelineP
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
-import { CheckCircle2, XCircle, Loader2, FileText, Tags, Link2, Search, Languages, Image } from 'lucide-react';
+import { CheckCircle2, XCircle, Loader2, FileText, Tags, Link2, Search, Languages, Image, Scale } from 'lucide-react';
 
 interface PipelineProgressModalProps {
   open: boolean;
@@ -19,18 +19,20 @@ const STEP_ICONS: Record<string, typeof FileText> = {
   metadata: Link2,
   seo: Search,
   translate: Languages,
+  council: Scale,
   image: Image,
   complete: CheckCircle2,
 };
 
 const STEP_LABELS: Record<string, string> = {
-  format: 'Formatting',
-  categorize: 'Categorizing',
-  metadata: 'Linking Metadata',
-  seo: 'SEO Optimization',
-  translate: 'Translating',
-  image: 'Generating Image',
-  complete: 'Complete',
+  format: 'Dando formato',
+  categorize: 'Clasificando',
+  metadata: 'Relacionando metadatos',
+  seo: 'Optimizando SEO',
+  translate: 'Traduciendo',
+  council: 'Revisión legal final',
+  image: 'Generando imagen',
+  complete: 'Terminado',
 };
 
 export function PipelineProgressModal({ 
@@ -43,6 +45,7 @@ export function PipelineProgressModal({
   const [steps, setSteps] = useState<Record<string, PipelineProgressEvent>>({});
   const [overallProgress, setOverallProgress] = useState(0);
   const [isComplete, setIsComplete] = useState(false);
+  const [hasError, setHasError] = useState(false);
 
   const handleProgress = useCallback((event: PipelineProgressEvent) => {
     if (event.articleId === articleId) {
@@ -66,6 +69,9 @@ export function PipelineProgressModal({
   const handleError = useCallback((event: PipelineProgressEvent) => {
     if (event.articleId === articleId) {
       setSteps(prev => ({ ...prev, [event.step]: event }));
+      setHasError(true);
+      if (event.progress !== undefined) setOverallProgress(event.progress);
+      if (event.step === 'complete') setIsComplete(true);
     }
   }, [articleId]);
   
@@ -76,16 +82,30 @@ export function PipelineProgressModal({
   });
 
   useEffect(() => {
-    if (!open) {
+    if (open && articleId) {
+      const initialEvent: PipelineProgressEvent = {
+        articleId,
+        step: 'format',
+        status: 'running',
+        progress: 2,
+        message: 'Preparando el artículo y validando la solicitud…',
+        timestamp: new Date().toISOString(),
+      };
+      setSteps({ format: initialEvent });
+      setOverallProgress(2);
+      setIsComplete(false);
+      setHasError(false);
+    } else {
       setSteps({});
       setOverallProgress(0);
       setIsComplete(false);
+      setHasError(false);
     }
-  }, [open]);
+  }, [open, articleId]);
 
   const stepOrder = includeImage 
-    ? ['format', 'categorize', 'metadata', 'seo', 'translate', 'image']
-    : ['format', 'categorize', 'metadata', 'seo', 'translate'];
+    ? ['format', 'categorize', 'metadata', 'seo', 'translate', 'council', 'image']
+    : ['format', 'categorize', 'metadata', 'seo', 'translate', 'council'];
 
   const getStatusIcon = (step: string) => {
     const event = steps[step];
@@ -105,18 +125,18 @@ export function PipelineProgressModal({
 
   const getStatusBadge = (step: string) => {
     const event = steps[step];
-    if (!event) return <Badge variant="outline">Pending</Badge>;
+    if (!event) return <Badge variant="outline">Pendiente</Badge>;
     
     if (event.status === 'running') {
-      return <Badge className="bg-blue-500">Running</Badge>;
+      return <Badge className="bg-blue-500">En curso</Badge>;
     }
     if (event.status === 'completed') {
-      return <Badge className="bg-green-600">Done</Badge>;
+      return <Badge className="bg-green-600">Listo</Badge>;
     }
     if (event.status === 'error') {
       return <Badge variant="destructive">Error</Badge>;
     }
-    return <Badge variant="outline">Pending</Badge>;
+    return <Badge variant="outline">Pendiente</Badge>;
   };
 
   return (
@@ -125,24 +145,26 @@ export function PipelineProgressModal({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             {isComplete ? (
-              <CheckCircle2 className="h-5 w-5 text-green-500" />
+              hasError
+                ? <XCircle className="h-5 w-5 text-red-500" />
+                : <CheckCircle2 className="h-5 w-5 text-green-500" />
             ) : (
               <Loader2 className="h-5 w-5 animate-spin text-primary" />
             )}
-            Pipeline Progress
+            Progreso del procesamiento
           </DialogTitle>
         </DialogHeader>
         
         <div className="space-y-4">
           {articleTitle && (
             <p className="text-sm text-muted-foreground break-words">
-              Processing: <span className="font-medium text-foreground">{articleTitle}</span>
+              Procesando: <span className="font-medium text-foreground">{articleTitle}</span>
             </p>
           )}
 
           <div className="space-y-1">
             <div className="flex justify-between text-sm">
-              <span>Overall Progress</span>
+              <span>Progreso general</span>
               <span className="font-medium">{overallProgress}%</span>
             </div>
             <Progress value={overallProgress} className="h-2" />
@@ -186,16 +208,16 @@ export function PipelineProgressModal({
               {isConnected ? (
                 <>
                   <span className="w-2 h-2 rounded-full bg-green-500"></span>
-                  Connected
+                  Conectado
                 </>
               ) : (
                 <>
                   <span className="w-2 h-2 rounded-full bg-red-500"></span>
-                  Disconnected
+                  Reconectando
                 </>
               )}
             </span>
-            {articleId && <span>Article ID: {articleId.slice(0, 8)}...</span>}
+            {articleId && <span>Artículo: {articleId.slice(0, 8)}…</span>}
           </div>
         </div>
       </DialogContent>

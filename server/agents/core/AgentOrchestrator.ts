@@ -17,6 +17,19 @@ import { news } from '@shared/schema';
 import { eq } from 'drizzle-orm';
 import { parseAgentPayload } from './contracts';
 
+export interface PipelineStageUpdate {
+  stage: AgentType | 'legal_council';
+  status: 'running' | 'completed' | 'error';
+  index: number;
+  total: number;
+  result?: AgentResult;
+  message: string;
+}
+
+export interface PipelineRunOptions {
+  onProgress?: (update: PipelineStageUpdate) => void | Promise<void>;
+}
+
 export class AgentOrchestrator {
   private agents: Map<AgentType, BaseAgent> = new Map();
   private jobQueue: AgentJob[] = [];
@@ -316,7 +329,12 @@ export class AgentOrchestrator {
       let lastResult: AgentResult = { success: false, error: 'Agent execution failed' };
       let lastError: unknown;
       const retryPolicy = agent.retryPolicy;
-      const attempts = retryPolicy.maxRetries + 1;
+      // Las acciones manuales del panel deben responder de forma predecible. Cada llamada al
+      // modelo ya cuenta con timeout y fallback propios; repetir aquí el trabajo completo podía
+      // convertir un fallo de red en varios minutos de espera sin avance visible. La cola en
+      // segundo plano conserva su política de reintentos, pero una acción interactiva se ejecuta
+      // una sola vez y devuelve un error accionable para que el usuario decida si reintenta.
+      const attempts = 1;
 
       for (let attempt = 0; attempt < attempts; attempt++) {
         try {
@@ -389,7 +407,8 @@ export class AgentOrchestrator {
 
   async runPipeline(
     articleId: string,
-    stages: AgentType[] = ['formatter', 'metadata_linker', 'polyglot_translator', 'seo_optimizer']
+    stages: AgentType[] = ['formatter', 'metadata_linker', 'polyglot_translator', 'seo_optimizer'],
+    options: PipelineRunOptions = {},
   ): Promise<{ success: boolean; results: Record<AgentType, AgentResult> }> {
     const results: Record<string, AgentResult> = {};
     const [pipelineArticle] = await db.select().from(news).where(eq(news.id, articleId));
@@ -413,15 +432,33 @@ export class AgentOrchestrator {
 
     console.log(`[Orchestrator] Starting pipeline for article ${articleId}`);
 
-    for (const stage of stages) {
+    const totalStages = stages.length + 1; // incluye la revisión final del Consejo Legal
+    for (let stageIndex = 0; stageIndex < stages.length; stageIndex++) {
+      const stage = stages[stageIndex];
       const agent = this.agents.get(stage);
       if (!agent || !agent.enabled) {
-        console.warn(`[Orchestrator] Agent ${stage} not registered, skipping`);
-        continue;
+        const result = { success: false, error: `Agent ${stage} is unavailable` };
+        results[stage] = result;
+        await options.onProgress?.({
+          stage,
+          status: 'error',
+          index: stageIndex,
+          total: totalStages,
+          result,
+          message: result.error,
+        });
+        return { success: false, results: results as Record<AgentType, AgentResult> };
       }
 
       try {
         console.log(`[Orchestrator] Running ${stage}...`);
+        await options.onProgress?.({
+          stage,
+          status: 'running',
+          index: stageIndex,
+          total: totalStages,
+          message: `${agent.name}: trabajando…`,
+        });
         // A pipeline is an explicit authenticated editing action. Agents still
         // enforce their own unpublished-content guard before applying a
         // proposal. Analysis-only stages intentionally receive no write flag.
@@ -431,6 +468,15 @@ export class AgentOrchestrator {
         const result = await this.executeImmediately(stage, stagePayload);
         results[stage] = result;
 
+        await options.onProgress?.({
+          stage,
+          status: result.success ? 'completed' : 'error',
+          index: stageIndex,
+          total: totalStages,
+          result,
+          message: result.success ? `${agent.name}: etapa terminada` : (result.error || `${agent.name}: etapa fallida`),
+        });
+
         if (!result.success) {
           console.error(`[Orchestrator] ${stage} failed:`, result.error);
           return { success: false, results: results as Record<AgentType, AgentResult> };
@@ -439,6 +485,14 @@ export class AgentOrchestrator {
       } catch (error) {
         console.error(`[Orchestrator] ${stage} threw error:`, error);
         results[stage] = { success: false, error: "Agent stage failed" };
+        await options.onProgress?.({
+          stage,
+          status: 'error',
+          index: stageIndex,
+          total: totalStages,
+          result: results[stage],
+          message: 'Agent stage failed',
+        });
         return { success: false, results: results as Record<AgentType, AgentResult> };
       }
     }
@@ -448,6 +502,13 @@ export class AgentOrchestrator {
     // Run Legal Council evaluation after pipeline completes
     try {
       console.log(`[Orchestrator] Running Legal Council evaluation for article ${articleId}...`);
+      await options.onProgress?.({
+        stage: 'legal_council',
+        status: 'running',
+        index: stages.length,
+        total: totalStages,
+        message: 'Ejecutando la revisión legal final…',
+      });
       
       // Get article content for evaluation
       const [article] = await db.select().from(news).where(eq(news.id, articleId));
@@ -476,6 +537,16 @@ export class AgentOrchestrator {
           success: verdict.overallStatus !== 'rejected',
           data: verdict as unknown as Record<string, unknown>,
         };
+        await options.onProgress?.({
+          stage: 'legal_council',
+          status: results['legal_council'].success ? 'completed' : 'error',
+          index: stages.length,
+          total: totalStages,
+          result: results['legal_council'],
+          message: results['legal_council'].success
+            ? 'Revisión legal final terminada'
+            : 'La revisión legal final requiere atención',
+        });
       }
     } catch (councilError) {
       console.error(`[Orchestrator] Legal Council evaluation failed:`, councilError);
@@ -491,6 +562,14 @@ export class AgentOrchestrator {
           },
         })
         .where(eq(news.id, articleId));
+      await options.onProgress?.({
+        stage: 'legal_council',
+        status: 'error',
+        index: stages.length,
+        total: totalStages,
+        result: { success: false, error: 'Legal review unavailable; manual review required' },
+        message: 'La revisión legal no estuvo disponible; se requiere revisión manual',
+      });
     }
     
     return { success: true, results: results as Record<AgentType, AgentResult> };

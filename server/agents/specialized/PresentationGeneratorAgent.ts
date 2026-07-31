@@ -102,6 +102,13 @@ export interface PresentationPayload {
   webSearch?: boolean;      // buscar información en la web (OpenAI web_search) para enriquecer
 }
 
+interface VisualResolutionResult {
+  notes: string[];
+  generatedImages: number;
+  resolvedImages: number;
+  requestedAiImages: number;
+}
+
 export class PresentationGeneratorAgent extends BaseAgent {
   constructor() {
     super(CONFIG);
@@ -156,7 +163,21 @@ export class PresentationGeneratorAgent extends BaseAgent {
 
     // 1.5) Resolver los elementos visuales: si no se permiten, degradar a viñetas; para slides
     // "image" asignar imagen del pool subido o generarla con IA (si illustrate), o degradar.
-    const visualNotes = await this.resolveVisuals(model, { visuals, illustrate, supportImages, lang, template, branding, customPrimaryColor: p.customPrimaryColor ?? null });
+    const visualResult = await this.resolveVisuals(model, { visuals, illustrate, supportImages, lang, template, branding, customPrimaryColor: p.customPrimaryColor ?? null });
+
+    // Si el administrador pidió explícitamente ilustración, nunca se reporta una presentación
+    // "correcta" sin una sola imagen. Antes el modelo podía devolver únicamente bullets y el
+    // sistema omitía la generación en silencio, o degradaba todas las imágenes a texto.
+    if (illustrate && visualResult.resolvedImages === 0) {
+      const setupHint = hasDedicatedImageClient()
+        ? 'La cuenta de imágenes no respondió. Revisa acceso a gpt-image-2, facturación y créditos.'
+        : 'Configura OPENAI_API_KEY u OPENAI_IMAGE_API_KEY en Replit Secrets; la integración de texto de Replit no genera imágenes.';
+      return {
+        success: false,
+        error: `No se pudo generar ninguna imagen para la presentación. ${setupHint}`,
+        data: { visualNotes: visualResult.notes },
+      };
+    }
 
     // 2) Render de los formatos + persistencia.
     const result = await presentationGenerator.renderAndSave(model, {
@@ -181,7 +202,9 @@ export class PresentationGeneratorAgent extends BaseAgent {
         presentation: result.presentation,
         usedFallback: engine === 'fallback-outline',
         slideCount: result.presentation?.slideCount,
-        visualNotes,
+        visualNotes: visualResult.notes,
+        generatedImages: visualResult.generatedImages,
+        resolvedImages: visualResult.resolvedImages,
       },
     };
   }
@@ -190,7 +213,7 @@ export class PresentationGeneratorAgent extends BaseAgent {
   private async resolveVisuals(
     model: SlideModel,
     opts: { visuals: boolean; illustrate: boolean; supportImages: string[]; lang: string; template: PresentationTemplate; branding: PresentationBranding; customPrimaryColor: string | null },
-  ): Promise<string[]> {
+  ): Promise<VisualResolutionResult> {
     const notes: string[] = [];
     const pool = [...opts.supportImages];
     const aiCandidates: Array<{ slide: SlideModelSlide; prompt: string; index: number }> = [];
@@ -203,6 +226,42 @@ export class PresentationGeneratorAgent extends BaseAgent {
       slide.bullets = bullets;
       delete slide.image;
     };
+
+    // El checkbox "generar imágenes" es una instrucción explícita, no una sugerencia para el
+    // LLM. Si el modelo devolvió solo bullets, promovemos de forma distribuida algunas slides
+    // de contenido para garantizar candidatos visuales. Las imágenes subidas también reciben
+    // un lugar aunque el modelo no haya elegido layout=image.
+    if (opts.visuals && (opts.illustrate || pool.length > 0)) {
+      const eligible = model.slides
+        .map((slide, index) => ({ slide, index }))
+        .filter(({ slide }) =>
+          slide.layout === 'bullets' &&
+          !/^(fuentes|sources|referencias|references)$/i.test(slide.title.trim()),
+        );
+      const desiredAiImages = opts.illustrate
+        ? Math.min(MAX_AI_IMAGES, Math.max(1, Math.ceil(eligible.length / 4)))
+        : 0;
+      const desiredTotal = Math.min(eligible.length, pool.length + desiredAiImages);
+      const selectedIndices = new Set<number>();
+
+      for (let position = 0; position < desiredTotal; position++) {
+        const eligiblePosition = Math.min(
+          eligible.length - 1,
+          Math.floor(((position + 1) * eligible.length) / (desiredTotal + 1)),
+        );
+        let candidate = eligible[eligiblePosition];
+        if (selectedIndices.has(candidate.index)) {
+          candidate = eligible.find((item) => !selectedIndices.has(item.index)) || candidate;
+        }
+        selectedIndices.add(candidate.index);
+        const context = (candidate.slide.bullets || []).slice(0, 3).join('; ');
+        candidate.slide.layout = 'image';
+        candidate.slide.image = {
+          prompt: `Realistic editorial documentary photograph representing the legal topic "${candidate.slide.title}". Context: ${context || candidate.slide.title}. A concrete real-world scene in Mexico, natural light, photojournalism, no text, no logos.`,
+          caption: candidate.slide.title,
+        };
+      }
+    }
 
     for (let index = 0; index < model.slides.length; index++) {
       const s = model.slides[index];
@@ -274,7 +333,15 @@ export class PresentationGeneratorAgent extends BaseAgent {
     if (generatedImages > 0) {
       notes.push(`${generatedImages} imagen${generatedImages === 1 ? '' : 'es'} generada${generatedImages === 1 ? '' : 's'} y guardada${generatedImages === 1 ? '' : 's'} en el historial.`);
     }
-    return notes;
+    const resolvedImages = model.slides.filter(
+      (slide) => slide.layout === 'image' && Boolean(slide.image?.url),
+    ).length;
+    return {
+      notes,
+      generatedImages,
+      resolvedImages,
+      requestedAiImages: aiCandidates.length,
+    };
   }
 }
 

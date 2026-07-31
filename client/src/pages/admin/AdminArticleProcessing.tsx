@@ -687,14 +687,28 @@ export default function AdminArticleProcessing() {
       const res = await adminApiRequest("POST", `/api/agents/pipeline/${articleId}`, {
         generateImage: generateImages
       });
-      if (!res.ok) throw new Error("Failed to process article");
-      return res.json();
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        throw new Error(data?.error || data?.message || `Error HTTP ${res.status}`);
+      }
+      if (data?.success === false) {
+        const details = Array.isArray(data?.errors) && data.errors.length
+          ? data.errors.join("; ")
+          : (data?.error || "Una etapa no pudo completar el procesamiento.");
+        throw new Error(details);
+      }
+      return data;
     },
-    onSuccess: () => {
-      toast({ title: t.processSuccess });
+    onSuccess: (data: any) => {
+      toast(data?.imageWarning
+        ? {
+            title: t.imageWarning,
+            description: String(data.imageWarning),
+            variant: "destructive",
+          }
+        : { title: t.processSuccess });
       queryClient.invalidateQueries({ queryKey: ["/api/admin/news/translation-counts"] });
       queryClient.invalidateQueries({ queryKey: ["/api/admin/news", "agent-processing"] });
-      setProcessingArticleId(null);
     },
     onError: (error: any) => {
       const errorMessage = error?.message || error?.error || t.processError;
@@ -703,8 +717,8 @@ export default function AdminArticleProcessing() {
         description: errorMessage,
         variant: "destructive" 
       });
-      setProcessingArticleId(null);
-      setProgressModalOpen(false);
+      // El modal conserva la etapa fallida y su mensaje para que el administrador pueda
+      // identificar qué ocurrió. Se cierra manualmente después de revisar el detalle.
     },
   });
 
@@ -968,7 +982,13 @@ export default function AdminArticleProcessing() {
 
       <PipelineProgressModal
         open={progressModalOpen}
-        onOpenChange={setProgressModalOpen}
+        onOpenChange={(open) => {
+          setProgressModalOpen(open);
+          if (!open) {
+            setProcessingArticleId(null);
+            setProgressArticleTitle("");
+          }
+        }}
         articleId={processingArticleId}
         articleTitle={progressArticleTitle}
         includeImage={generateImages}

@@ -43,8 +43,8 @@ export function getOpenAIClient(): OpenAI {
         ? (process.env.OPENAI_BASE_URL || "https://api.openai.com/v1")
         : process.env.AI_INTEGRATIONS_OPENAI_BASE_URL,
       apiKey: directKey || integrationKey,
-      timeout: 90_000,
-      maxRetries: 1,
+      timeout: 60_000,
+      maxRetries: 0,
     });
   }
   return _openaiClient;
@@ -66,13 +66,22 @@ export const openai: OpenAI = new Proxy({} as OpenAI, {
 // usuario: OPENAI_IMAGE_API_KEY (dedicada), o la estándar del SDK OPENAI_API_KEY. Debe ser
 // una key REAL de OpenAI (empieza con "sk-"); la del proxy de Replit no sirve para imágenes.
 function dedicatedImageKey(): string | undefined {
-  return process.env.OPENAI_IMAGE_API_KEY || process.env.OPENAI_API_KEY || undefined;
+  const direct = process.env.OPENAI_IMAGE_API_KEY?.trim() || process.env.OPENAI_API_KEY?.trim();
+  if (direct) return direct;
+
+  // Algunas instalaciones guardaron una key REAL del cliente bajo el nombre histórico de
+  // Replit. Solo se reutiliza contra api.openai.com si conserva el formato de una key OpenAI;
+  // un token propio del proxy administrado nunca se trata como credencial directa.
+  const legacy = process.env.AI_INTEGRATIONS_OPENAI_API_KEY?.trim();
+  return legacy && /^sk-[A-Za-z0-9_-]{20,}$/.test(legacy) ? legacy : undefined;
 }
 let _imageClient: OpenAI | null = null;
 export function getImageClient(): OpenAI {
   if (_imageClient) return _imageClient;
   const key = dedicatedImageKey();
-  const which = process.env.OPENAI_IMAGE_API_KEY ? "OPENAI_IMAGE_API_KEY" : (process.env.OPENAI_API_KEY ? "OPENAI_API_KEY" : "");
+  const which = process.env.OPENAI_IMAGE_API_KEY
+    ? "OPENAI_IMAGE_API_KEY"
+    : (process.env.OPENAI_API_KEY ? "OPENAI_API_KEY" : "AI_INTEGRATIONS_OPENAI_API_KEY");
   if (key) {
     const base = process.env.OPENAI_IMAGE_BASE_URL || "https://api.openai.com/v1";
     // No registrar fragmentos de claves ni URLs configurables: pueden contener
@@ -80,7 +89,7 @@ export function getImageClient(): OpenAI {
     console.log(`[images] Cliente OpenAI dedicado configurado mediante ${which}`);
     // SmartImageGenerator controla los reintentos. Deshabilitarlos aquí evita que una sola
     // imagen multiplique silenciosamente la espera por los reintentos internos del SDK.
-    _imageClient = new OpenAI({ apiKey: key, baseURL: base, timeout: 125_000, maxRetries: 0 });
+    _imageClient = new OpenAI({ apiKey: key, baseURL: base, timeout: 90_000, maxRetries: 0 });
   } else {
     console.warn("[images] Sin key directa de OpenAI para imágenes; el proxy de texto de Replit probablemente no atenderá /images/generations.");
     _imageClient = getOpenAIClient();

@@ -606,7 +606,7 @@ export default function AdminDashboard() {
   // Gating por PERMISOS EFECTIVOS (rol + concesiones extra) leídos de /api/admin/me.
   // FAIL-OPEN mientras carga (has() = true); el backend siempre re-valida.
   const { has } = useMyPermissions();
-  const isAdmin = !role || role === "admin" || role === "super_admin";
+  const isAdmin = role === "admin" || role === "super_admin";
   const canConfig = has("config");
   // Caja "Distribución por Idioma" colapsada por defecto (foco en ES/EN).
   const [showLangDist, setShowLangDist] = useState(false);
@@ -704,9 +704,11 @@ export default function AdminDashboard() {
         </div>
 
         {/* ── Manual de uso — destacado, ya no escondido en "Avanzado" ── */}
-        <div className="mb-8 max-w-sm">
-          <AiUsageCard />
-        </div>
+        {isAdmin && (
+          <div className="mb-8 max-w-sm" data-testid="admin-only-ai-usage">
+            <AiUsageCard />
+          </div>
+        )}
 
         <Card className="mb-8 rounded-xl border-primary/30 bg-primary/5" data-testid="card-manual">
           <CardContent className="flex flex-wrap items-center justify-between gap-4 py-5">

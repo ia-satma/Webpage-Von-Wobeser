@@ -440,3 +440,76 @@ test('presentation agent validates render, preview and download metadata without
     fallbackLlmMock.mock.restore();
   }
 });
+
+test('presentation illustration request creates image slides even when the text model returns only bullets', async () => {
+  const llmMock = mock.method(
+    presentationGeneratorAgent as unknown as { callLLM: (...args: unknown[]) => Promise<string> },
+    'callLLM',
+    async () => JSON.stringify({
+      title: 'Panorama energético',
+      subtitle: 'Prueba visual aislada',
+      slides: [
+        { layout: 'bullets', title: 'Marco regulatorio', bullets: ['Permisos', 'Interconexión'] },
+        { layout: 'bullets', title: 'Riesgos del proyecto', bullets: ['Cumplimiento', 'Plazos'] },
+        { layout: 'bullets', title: 'Siguientes pasos', bullets: ['Diagnóstico', 'Ejecución'] },
+        { layout: 'closing', title: 'Gracias', bullets: ['Von Wobeser y Sierra'] },
+      ],
+    }),
+  );
+  const imageMock = mock.method(
+    smartImageGenerator,
+    'generateImage',
+    async () => ({
+      success: true,
+      imageUrl: '/generated-images/isolated-presentation-image.png',
+      engine: 'gptimage2' as const,
+      originalPrompt: 'isolated presentation',
+      promptWasSanitized: false,
+      retryCount: 0,
+      transparencyLog: ['simulated'],
+    }),
+  );
+  let renderedModel: { slides: Array<{ layout: string; image?: { url?: string } }> } | null = null;
+  const renderMock = mock.method(
+    presentationGenerator,
+    'renderAndSave',
+    async (model: any) => {
+      renderedModel = model;
+      return {
+        success: true,
+        presentation: {
+          id: 'isolated-illustrated-presentation',
+          title: model.title,
+          slideCount: model.slides.length + 1,
+          pngUrls: ['/generated-presentations/isolated-illustrated-cover.png'],
+        },
+      } as never;
+    },
+  );
+
+  try {
+    const result = await presentationGeneratorAgent.execute(
+      context('presentation_generator'),
+      {
+        topic: 'Regulación energética',
+        formats: ['png'],
+        visuals: true,
+        illustrate: true,
+      },
+    );
+
+    assert.equal(result.success, true);
+    assert.ok(imageMock.mock.callCount() >= 1);
+    assert.ok(renderedModel);
+    assert.ok(
+      renderedModel!.slides.some(
+        (slide) => slide.layout === 'image' && slide.image?.url === '/generated-images/isolated-presentation-image.png',
+      ),
+    );
+    assert.ok(Number((result.data as { generatedImages: number }).generatedImages) >= 1);
+  } finally {
+    renderMock.mock.restore();
+    imageMock.mock.restore();
+    llmMock.mock.restore();
+  }
+});

@@ -86,6 +86,26 @@ test("el registro de accesos resuelve identidad sin exponer hashes como correo",
   assert.match(adminSource, /Origen protegido/);
 });
 
+test("el gasto estimado de IA solo está disponible para Dueño y Administrador", () => {
+  const routesSource = readFileSync(new URL("../routes.ts", import.meta.url), "utf8");
+  const dashboardSource = readFileSync(
+    new URL("../../client/src/pages/admin/AdminDashboard.tsx", import.meta.url),
+    "utf8",
+  );
+  const agentsSource = readFileSync(
+    new URL("../../client/src/pages/AdminAgents.tsx", import.meta.url),
+    "utf8",
+  );
+
+  assert.match(
+    routesSource,
+    /"\/api\/admin\/usage\/summary",\s*authMiddleware,\s*requireRole\("super_admin",\s*"admin"\)/,
+  );
+  assert.match(dashboardSource, /role === "admin" \|\| role === "super_admin"/);
+  assert.match(dashboardSource, /isAdmin && \([\s\S]*?<AiUsageCard/);
+  assert.match(agentsSource, /canViewAiUsage && \([\s\S]*?<AiUsageCard/);
+});
+
 test("servidor y panel validan de una a diez páginas de noticias", () => {
   const serverSource = readFileSync(new URL("../mirror/index.ts", import.meta.url), "utf8");
   const adminSource = readFileSync(
