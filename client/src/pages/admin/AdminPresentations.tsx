@@ -2,10 +2,11 @@ import { useEffect, useState } from "react";
 import { AdminPageHelp } from "@/components/admin/AdminPageHelp";
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 import { AgentButton } from "@/components/admin/AgentButton";
+import { AgentProgress } from "@/components/admin/AgentTools";
 import { DocumentUpload, type UploadedDoc } from "@/components/admin/DocumentUpload";
 import { ImageUpload } from "@/components/admin/ImageUpload";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { useAdminAuth, adminApiRequest } from "@/lib/adminAuth";
+import { useAdminAuth, adminApiRequest, getAuthHeaders, loadAdminSession } from "@/lib/adminAuth";
 import { queryClient } from "@/lib/queryClient";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -15,7 +16,6 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Switch } from "@/components/ui/switch";
-import { getAuthHeaders } from "@/lib/adminAuth";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -92,6 +92,7 @@ export default function AdminPresentations() {
     setUploadingImg(true);
     const next = [...supportImages];
     try {
+      await loadAdminSession(true);
       for (const file of Array.from(files)) {
         const fd = new FormData();
         fd.append("file", file);
@@ -149,7 +150,8 @@ export default function AdminPresentations() {
   const canGenerate =
     !generateMutation.isPending &&
     (topic.trim().length > 0 || docs.length > 0) &&
-    (formats.pptx || formats.pdf || formats.png);
+    (formats.pptx || formats.pdf || formats.png) &&
+    (branding !== "custom" || /^#[0-9a-f]{6}$/i.test(customColor));
 
   if (authLoading) {
     return (
@@ -206,9 +208,9 @@ export default function AdminPresentations() {
                   id="pres-slides"
                   type="number"
                   min={3}
-                  max={25}
+                  max={20}
                   value={slideCount}
-                  onChange={(e) => setSlideCount(Math.max(3, Math.min(25, parseInt(e.target.value || "8", 10) || 8)))}
+                  onChange={(e) => setSlideCount(Math.max(3, Math.min(20, parseInt(e.target.value || "8", 10) || 8)))}
                   data-testid="input-slide-count"
                 />
               </div>
@@ -266,6 +268,9 @@ export default function AdminPresentations() {
                         />
                         <Input value={customColor} onChange={(e) => setCustomColor(e.target.value)} className="max-w-[140px]" />
                       </div>
+                      {!/^#[0-9a-f]{6}$/i.test(customColor) && (
+                        <p className="text-xs text-destructive">Usa un color hexadecimal completo, por ejemplo #AA1A2E.</p>
+                      )}
                     </div>
                   </div>
                 )}
@@ -302,7 +307,7 @@ export default function AdminPresentations() {
               <div className="flex items-center justify-between gap-4">
                 <div>
                   <p className="text-sm">Ilustrar con imágenes generadas por IA</p>
-                  <p className="text-xs text-muted-foreground">Genera hasta 4 imágenes por presentación con IA (DALL·E/Cloudflare). <span className="text-amber-600">Usa créditos de OpenAI.</span></p>
+                  <p className="text-xs text-muted-foreground">Genera hasta 4 imágenes por presentación con GPT Image 2 (o el motor alterno configurado). <span className="text-amber-600">Usa créditos de OpenAI.</span></p>
                 </div>
                 <Switch checked={illustrate} onCheckedChange={setIllustrate} disabled={!visuals} data-testid="switch-illustrate" />
               </div>
@@ -356,8 +361,24 @@ export default function AdminPresentations() {
               >
                 {generateMutation.isPending ? "Generando…" : "Generar presentación"}
               </AgentButton>
-              <span className="text-xs text-muted-foreground">La generación puede tardar algunos segundos.</span>
+              <span className="text-xs text-muted-foreground">
+                El texto suele tardar menos de un minuto; las imágenes pueden requerir más tiempo.
+              </span>
             </div>
+
+            {generateMutation.isPending && (
+              <AgentProgress
+                title="El sistema sigue trabajando y guardará los archivos en el historial permanente"
+                stages={[
+                  { afterSeconds: 0, label: "Enviando y validando el material" },
+                  { afterSeconds: 5, label: "Analizando los documentos" },
+                  { afterSeconds: 14, label: "Creando la estructura de diapositivas" },
+                  { afterSeconds: 30, label: illustrate ? "Preparando imágenes de apoyo" : "Aplicando el diseño editorial" },
+                  { afterSeconds: 55, label: "Renderizando PowerPoint, PDF e imágenes" },
+                  { afterSeconds: 90, label: "Ya casi está lista; guardando el historial" },
+                ]}
+              />
+            )}
 
             {usedFallback && (
               <p className="text-xs text-amber-600" data-testid="text-fallback-note">

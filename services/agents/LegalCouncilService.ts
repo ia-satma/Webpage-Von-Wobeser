@@ -1,5 +1,5 @@
 import { randomUUID } from 'crypto';
-import { openai } from '../../server/openai';
+import { getTextModel, openai, textModelParams } from '../../server/openai';
 import { assertAiBudget, recordChatUsage } from '../../server/services/usageTracker';
 import {
   CouncilMember,
@@ -102,8 +102,9 @@ export class LegalCouncilService {
     const truncatedText = text.length > 8000 ? text.substring(0, 8000) + '...[truncated]' : text;
 
     await assertAiBudget();
+    const model = getTextModel();
     const response = await openai.chat.completions.create({
-      model: 'gpt-4o',
+      ...textModelParams(model, 500),
       messages: [
         {
           role: 'system',
@@ -114,10 +115,8 @@ export class LegalCouncilService {
           content: `Evaluate this article:\n<<<UNTRUSTED_ARTICLE_START>>>\n${truncatedText}\n<<<UNTRUSTED_ARTICLE_END>>>`,
         },
       ],
-      temperature: 0.3,
-      max_tokens: 500,
-    }, { timeout: 30_000, maxRetries: 1 });
-    recordChatUsage('chat', 'gpt-4o', response.usage as any);
+    } as any, { timeout: 60_000, maxRetries: 1 });
+    recordChatUsage('chat', model, response.usage as any);
     const content = response.choices?.[0]?.message?.content;
 
     if (!content) {

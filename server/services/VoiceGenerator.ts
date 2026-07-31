@@ -1,6 +1,6 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import { openai } from '../openai';
+import { hasOpenAITextClient, openai } from '../openai';
 import { storage } from '../storage';
 import { assertAiBudget, recordAudioUsage } from "./usageTracker";
 import { AsyncLocalStorage } from 'node:async_hooks';
@@ -11,8 +11,8 @@ import {
 
 const OUTPUT_DIR = path.join(process.cwd(), 'public', 'generated-audio');
 
-// Texto-a-voz vía el TTS de OpenAI, reusando el cliente/credencial de la "AI Integrations" de
-// Replit que ya está conectada (AI_INTEGRATIONS_OPENAI_API_KEY/_BASE_URL, ver server/openai.ts).
+// Texto-a-voz vía el TTS de OpenAI, reusando la credencial directa del cliente o, como
+// respaldo, la integración administrada de Replit (ver server/openai.ts).
 // ElevenLabs NO forma parte del sistema de "AI Integrations" (Model Farm) de Replit — solo
 // OpenAI/Anthropic/Gemini/OpenRouter viven ahí; ElevenLabs solo existe como Connector/Agent
 // service en el catálogo amplio de Replit, con un mecanismo de credenciales distinto. Por eso
@@ -113,9 +113,9 @@ export class VoiceGenerator {
       transparencyLog: [],
     };
 
-    if (!process.env.AI_INTEGRATIONS_OPENAI_API_KEY) {
-      this.log('AI_INTEGRATIONS_OPENAI_API_KEY no está configurada.');
-      result.errorMessage = 'El TTS de OpenAI no está configurado (falta AI_INTEGRATIONS_OPENAI_API_KEY).';
+    if (!hasOpenAITextClient()) {
+      this.log('No hay una credencial de OpenAI configurada para TTS.');
+      result.errorMessage = 'El TTS de OpenAI no está configurado (falta OPENAI_API_KEY o la integración de OpenAI de Replit).';
       result.errorCode = 'not_configured';
       result.transparencyLog = [...this.transparencyLog];
       return result;

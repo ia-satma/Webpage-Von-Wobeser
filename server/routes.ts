@@ -370,7 +370,7 @@ const presentationDocUpload = multer({
     },
   }),
   limits: {
-    fileSize: 30 * 1024 * 1024, // 30MB
+    fileSize: 100 * 1024 * 1024, // 100MB por documento; el cliente los envía uno por uno
     files: 1,
     fields: 2,
     fieldSize: 4 * 1024,
@@ -388,6 +388,32 @@ const presentationDocUpload = multer({
     }
   },
 });
+
+const receivePresentationDocument = (req: Request, res: Response, next: NextFunction): void => {
+  presentationDocUpload.single("file")(req, res, (error: any) => {
+    if (!error) return next();
+    if (error instanceof multer.MulterError && error.code === "LIMIT_FILE_SIZE") {
+      res.status(413).json({
+        error: "El documento supera el máximo seguro de 100 MB por archivo.",
+        code: "PRESENTATION_FILE_TOO_LARGE",
+      });
+      return;
+    }
+    res.status(400).json({
+      error: "Formato no admitido. Usa PDF, DOCX, PPTX, TEX, TXT o MD.",
+      code: "INVALID_PRESENTATION_FILE",
+    });
+  });
+};
+
+// La biblioteca agrega ocasionalmente un query de versión para invalidar caché. Se retira antes
+// de validar, pero la ruta física continúa limitada a los dos directorios públicos permitidos.
+const presentationMediaPathSchema = z.string()
+  .transform((value) => value.split(/[?#]/, 1)[0])
+  .refine(
+    (value) => /^\/(?:uploads|generated-images)\/[A-Za-z0-9][A-Za-z0-9._-]*$/.test(value),
+    "Ruta de imagen no admitida",
+  );
 
 function generateVCard(member: any, language: "es" | "en" = "es"): string {
   const vcardText = (value: unknown) => String(value ?? "")
@@ -940,7 +966,7 @@ export async function registerRoutes(
   // --- Generador de Presentaciones (14° agente) ---------------------------------------------
   // Los documentos de insumo no se exponen bajo /uploads; el identificador private:
   // solamente vuelve al servidor cuando el administrador solicita generar la presentación.
-  app.post("/api/admin/presentations/upload", authMiddleware, requirePermission("agents"), presentationDocUpload.single("file"), async (req: Request, res: Response) => {
+  app.post("/api/admin/presentations/upload", authMiddleware, requirePermission("agents"), receivePresentationDocument, async (req: Request, res: Response) => {
     if (!req.file) return res.status(400).json({ error: "No se recibió ningún archivo" });
     try {
       if (!await validatePresentationInput(req.file.path, req.file.originalname)) {
@@ -963,24 +989,31 @@ export async function registerRoutes(
   app.post("/api/admin/presentations/generate", authMiddleware, requirePermission("agents"), async (req: Request, res: Response) => {
     try {
       const parsed = z.object({
-        topic: z.string().trim().max(2_000).default(""),
+        topic: z.string().trim().max(10_000).default(""),
         docs: z.array(z.object({
           url: z.string().regex(/^private:presentations\/[a-f0-9]{32}\.[a-z0-9]{1,5}$/),
           name: z.string().trim().min(1).max(180),
-        }).strict()).max(10).default([]),
-        slideCount: z.coerce.number().int().min(3).max(25).default(8),
+        }).strict()).max(20).default([]),
+        slideCount: z.coerce.number().int().min(3).max(20).default(8),
         lang: z.enum(["es", "en"]).default("es"),
         template: z.enum(["vonwobeser", "minimal", "dark"]).default("vonwobeser"),
         branding: z.enum(["vonwobeser", "custom"]).default("vonwobeser"),
-        customLogoUrl: z.string().regex(/^\/(?:uploads|generated-images)\/[A-Za-z0-9._-]+$/).nullable().optional(),
+        customLogoUrl: presentationMediaPathSchema.nullable().optional(),
         customPrimaryColor: z.string().regex(/^#[0-9a-fA-F]{6}$/).nullable().optional(),
         formats: z.array(z.enum(["pptx", "pdf", "png"])).min(1).max(3).default(["pptx", "pdf", "png"]),
         visuals: z.boolean().default(true),
         illustrate: z.boolean().default(false),
-        supportImages: z.array(z.string().regex(/^\/(?:uploads|generated-images)\/[A-Za-z0-9._-]+$/)).max(25).default([]),
+        supportImages: z.array(presentationMediaPathSchema).max(30).default([]),
         webSearch: z.boolean().default(false),
       }).strict().safeParse(req.body);
-      if (!parsed.success) return res.status(400).json({ error: "Configuración de presentación inválida." });
+      if (!parsed.success) {
+        const issue = parsed.error.issues[0];
+        const field = issue?.path?.join(".") || "configuración";
+        return res.status(400).json({
+          error: `Configuración de presentación inválida en “${field}”. Revisa ese campo e inténtalo de nuevo.`,
+          code: "INVALID_PRESENTATION_CONFIG",
+        });
+      }
       const {
         topic,
         docs,
@@ -4606,7 +4639,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
       // Step 6: GENERATE IMAGE (optional)
       if (generateImage) {
         console.log(`[Pipeline] Step 6: Generating image for article ${articleId}`);
-        emitProgress('image', 'running', undefined, 'Generating article image with DALL-E...');
+        emitProgress('image', 'running', undefined, 'Generando la imagen del artículo con OpenAI...');
         try {
           const imageResult = await imageSuggestionAgent.execute(
             createContext('image_suggestion'),

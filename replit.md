@@ -66,30 +66,31 @@ Scripts (`package.json`):
 
 ---
 
-## Los 13 agentes de IA
+## Los 14 agentes de IA
 
-Disparo central: **`POST /api/agents/run/:agentType`** (`server/agents/api/agentRoutes.ts`), un `switch` de exactamente 13 casos que llama `<agent>.execute(...)` sobre singletons. El router se monta con `authMiddleware, requirePermission('agents')` — **todo requiere sesión admin autenticada + permiso `agents`**. Registro de los 13 en `server/agents/index.ts` (`orchestrator.registerAgent(...)`).
+Disparo central: **`POST /api/agents/run/:agentType`** (`server/agents/api/agentRoutes.ts`), validado contra el inventario canónico de 14 agentes. El router se monta con `authMiddleware, requirePermission('agents')` — **todo requiere sesión admin autenticada + permiso `agents`**.
 
-**Todos los agentes que usan LLM usan `gpt-4o` (fallback `gpt-4o-mini` solo ante error de cuota 429/rate-limit), vía el cliente OpenAI apuntando a AI Integrations de Replit. CERO Claude/Anthropic en código activo.** (La única mención a `claude-sonnet` es un comentario histórico ya muerto en `server/openai.ts`.)
+**Todos los agentes de texto usan `gpt-5.4-mini` por defecto.** Una variable `OPENAI_TEXT_MODEL` permite cambiarlo de forma controlada y `gpt-4o-mini` se conserva únicamente como fallback técnico ante indisponibilidad o límite del modelo principal. La clave directa `OPENAI_API_KEY` tiene prioridad y AI Integrations de Replit funciona como alternativa.
 
 | agentType | Nombre | LLM | Modelo | Disparador | Qué hace |
 |---|---|---|---|---|---|
-| `formatter` | Article Formatter | Sí | gpt-4o | botón panel + pipeline | Limpia/reformatea artículos legales de PDFs; devuelve title/content/excerpt. |
-| `metadata_linker` | Metadata Linker | Sí | gpt-4o | run + auto (website_auditor) | Vincula artículo a autores, prácticas e industrias en la BD. |
-| `polyglot_translator` | Polyglot Translator | Sí | gpt-4o | run + auto (auditores) | Traduce noticias (fuente ES) a idiomas activos con terminología legal; cachea. |
+| `formatter` | Article Formatter | Sí | gpt-5.4-mini | botón panel + pipeline | Limpia/reformatea artículos legales de PDFs; devuelve title/content/excerpt. |
+| `metadata_linker` | Metadata Linker | Sí | gpt-5.4-mini | run + auto (website_auditor) | Vincula artículo a autores, prácticas e industrias en la BD. |
+| `polyglot_translator` | Polyglot Translator | Sí | gpt-5.4-mini | run + auto (auditores) | Traduce noticias (fuente ES) a idiomas activos con terminología legal; cachea. |
 | `content_auditor` | Content Auditor | **No (estructural)** | n/a | run + `POST /api/agents/audit` | Escanea la BD con checks en código (regex/longitudes) y sugiere qué agente arregla. |
-| `seo_optimizer` | SEO Optimizer | Sí | gpt-4o | run + auto | Optimiza título/meta/slug/keywords; aplica cambios si mejora el score. |
-| `image_suggestion` | Image Suggestion | Sí | gpt-4o | botón + `generate-image/:articleId` | Genera prompt con marca y delega en SmartImageGenerator. |
-| `category_agent` | Category Agent | Sí | gpt-4o | run | Clasifica el artículo (categoría, prácticas, industrias, tags) y la escribe en `news`. |
+| `seo_optimizer` | SEO Optimizer | Sí | gpt-5.4-mini | run + auto | Optimiza título/meta/slug/keywords; aplica cambios si mejora el score. |
+| `image_suggestion` | Image Suggestion | Sí | gpt-5.4-mini + gpt-image-2 | botón + `generate-image/:articleId` | Genera el prompt con marca y delega la imagen en SmartImageGenerator. |
+| `category_agent` | Category Agent | Sí | gpt-5.4-mini | run | Clasifica el artículo (categoría, prácticas, industrias, tags) y la escribe en `news`. |
 | `website_auditor` | Website Auditor | **No (estructural)** | n/a | run + **scheduler** | Audita enlaces/imágenes/traducciones/SEO; auto-fix de imágenes rotas; auto-encola fixers. |
-| `content_analyzer` | Content Analyzer | Sí | gpt-4o | run + `analyze/:articleId` | Reporte integral del artículo (SEO, ortografía, abogados, industrias, quality score). |
-| `social_media` | Social Media | Sí | gpt-4o | botón AgentTools | Convierte noticia en posts para LinkedIn y X (español) + imagen. |
-| `newsletter` | Newsletter | Sí | gpt-4o | botón AgentTools | Compila noticias recientes en un boletín HTML con subject/preheader. |
-| `legal_alerts` | Legal Alerts | Sí | gpt-4o | botón + scanner programado | Desde fuente oficial MX (.gob.mx/cofece, allowlist anti-SSRF) redacta un **borrador** bilingüe (noticia no publicada, `ready_for_approval`). |
+| `content_analyzer` | Content Analyzer | Sí | gpt-5.4-mini | run + `analyze/:articleId` | Reporte integral del artículo (SEO, ortografía, abogados, industrias, quality score). |
+| `social_media` | Social Media | Sí | gpt-5.4-mini + gpt-image-2 | botón AgentTools | Convierte noticia en posts para redes y prepara una imagen en paralelo. |
+| `newsletter` | Newsletter | Sí | gpt-5.4-mini | botón AgentTools | Compila noticias recientes en un boletín HTML con subject/preheader. |
+| `legal_alerts` | Legal Alerts | Sí | gpt-5.4-mini | botón + scanner programado | Desde fuente oficial MX (.gob.mx/cofece, allowlist anti-SSRF) redacta un **borrador** bilingüe (noticia no publicada, `ready_for_approval`). |
 | `voice_agent` | Voice Agent | **No (estructural)** | n/a | botones "Generar audio" | Toma texto ya generado y lo convierte a voz con OpenAI TTS (no llama a LLM de texto). |
+| `presentation_generator` | Presentation Generator | Sí | gpt-5.4-mini + gpt-image-2 | Administración → Presentaciones | Estructura, ilustra y renderiza presentaciones PPTX/PDF/PNG a partir de tema y hasta 20 documentos. |
 
-- **3 son estructurales** (`content_auditor`, `website_auditor`, `voice_agent`): no gastan LLM de texto. Cuidado: `content_auditor` y `website_auditor` **declaran** `model:'gpt-4o'` en su config pero **nunca invocan `callLLM`**. El único indicador fiable de "estructural" es leer si `execute()` llama `this.callLLM()`, no la config.
-- Cómo llaman al LLM: `BaseAgent.callLLM()` → cliente `openai` de `server/openai.ts` → modelo `gpt-4o`, fallback `gpt-4o-mini`.
+- **3 son estructurales** (`content_auditor`, `website_auditor`, `voice_agent`): los dos auditores ejecutan comprobaciones deterministas y Voice usa TTS, no un LLM de texto.
+- Cómo llaman al LLM: `BaseAgent.callLLM()` → cliente compartido de `server/openai.ts` → `gpt-5.4-mini`, con timeout y un solo reintento para evitar cargas indefinidas.
 - Otros disparadores en el mismo router: `POST /audit`, `POST|GET /analyze/:articleId`, `POST /pipeline/:articleId` + `/pipeline/batch` + `/pipeline/process-all`, `POST /queue`, `GET /status|/jobs|/jobs/failed`, `/evolution/*`, `/knowledge/:agentType`, `/pcloud/*`.
 - Si `AI_INTEGRATIONS_OPENAI_*` no están inyectadas, el cliente es lazy (no crashea al importar) pero la **primera** llamada real de un agente-LLM falla; los estructurales siguen (salvo voice, que necesita la key del TTS).
 
@@ -99,7 +100,7 @@ Disparo central: **`POST /api/agents/run/:agentType`** (`server/agents/api/agent
 
 - **LegalCouncilService** (`services/agents/LegalCouncilService.ts`): "consejo legal" multi-agente que evalúa calidad/riesgo de un artículo. Corre 3 evaluadores en paralelo (Legal Scholar, Risk Analyst, Brand Guardian) con `Promise.allSettled`; cada uno devuelve `{score, decision, reasoning}` y se agregan en un `CouncilVerdict`. Usa el cliente compartido de OpenAI, respeta el presupuesto mensual, limita tiempos/tokens y trata el artículo como datos no confiables. Un evaluador que falla recibe abstención de sistema (score 50).
 - **VoiceGenerator** (`server/services/VoiceGenerator.ts`): texto-a-voz con **OpenAI TTS `tts-1`** (voz `alloy`), vía el cliente `openai` compartido. Guarda mp3 en `public/generated-audio/` y registra el asset. **No usa ElevenLabs** (no está en AI Integrations de Replit). Si falta `AI_INTEGRATIONS_OPENAI_API_KEY` hace early-return con `not_configured`. Trunca a 4000 chars.
-- **SmartImageGenerator** (`server/services/SmartImageGenerator.ts`): imágenes con marca Von Wobeser. Cascada real: **Cloudflare Workers AI (Flux, gratis) → Gemini `gemini-2.5-flash-image` (pago) → placeholder SVG**. Sanitiza términos legales sensibles y superpone el logo con `sharp`. Un `success:true` puede ser solo el placeholder (`fallbackUsed:true`), no una imagen real.
+- **SmartImageGenerator** (`server/services/SmartImageGenerator.ts`): imágenes con marca Von Wobeser. Por defecto usa **`gpt-image-2`** en calidad media y JPEG optimizado; si el modelo no está disponible intenta `gpt-image-1` y después DALL-E 3. Cloudflare continúa disponible como motor opcional configurado. Sanitiza términos legales sensibles y superpone el logo con `sharp`.
 
 ---
 

@@ -249,9 +249,15 @@ async function checkPage(label, path, expectLang, dataSelector) {
   if (failed > 0) aviso(`${failed} jobs en estado 'failed' (históricos; revisar si son recientes)`);
 
   // Dependencia OpenAI
-  const hasKey = !!(process.env.AI_INTEGRATIONS_OPENAI_API_KEY && process.env.AI_INTEGRATIONS_OPENAI_API_KEY.trim());
-  if (hasKey) { ok("openai key"); console.log("  ✅ AI_INTEGRATIONS_OPENAI_API_KEY configurada"); }
-  else { aviso("AI_INTEGRATIONS_OPENAI_API_KEY VACÍA — agentes corren pero las tareas de IA nuevas fallarán hasta configurarla (config de deploy, no bug)"); console.log("  ⚠️  OpenAI key vacía: agentes registrados+corriendo, pero tareas IA nuevas requieren la key"); }
+  const hasDirectKey = !!(process.env.OPENAI_API_KEY && process.env.OPENAI_API_KEY.trim());
+  const hasIntegrationKey = !!(process.env.AI_INTEGRATIONS_OPENAI_API_KEY && process.env.AI_INTEGRATIONS_OPENAI_API_KEY.trim());
+  if (hasDirectKey || hasIntegrationKey) {
+    ok("openai key");
+    console.log(`  ✅ OpenAI configurado (${hasDirectKey ? "cuenta directa" : "integración de Replit"})`);
+  } else {
+    aviso("OpenAI sin configurar — los agentes cargan, pero las tareas de IA fallarán hasta definir OPENAI_API_KEY o la integración de Replit");
+    console.log("  ⚠️  OpenAI sin credencial disponible para agentes nuevos");
+  }
 
   // REPORTE FINAL
   section("RESULTADO");

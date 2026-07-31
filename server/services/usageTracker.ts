@@ -5,6 +5,9 @@ import { gte, sql } from "drizzle-orm";
 // Precios USD aproximados (actualizables). Chat: por 1M de tokens. Imagen: por imagen.
 // OpenAI no expone el saldo por API key, así que el costo se ESTIMA con estos precios.
 const CHAT_PRICES: Record<string, { in: number; out: number }> = {
+  // Los precios pueden actualizarse mediante despliegue; estos valores solo alimentan el
+  // presupuesto preventivo y nunca afectan la facturación real de OpenAI.
+  'gpt-5.4-mini': { in: 0.75, out: 4.5 },
   'gpt-4o': { in: 2.5, out: 10 },
   'gpt-4o-mini': { in: 0.15, out: 0.6 },
 };
@@ -53,8 +56,8 @@ export function recordImageUsage(size: string, model: string = 'dall-e-3', quali
   void (async () => {
     try {
       let costUsd: number;
-      if (model === 'gpt-image-1') {
-        // gpt-image-1 cobra por tokens; aprox. 1024² por calidad. landscape/portrait cuestan más.
+      if (model.startsWith('gpt-image-')) {
+        // GPT Image cobra por tokens; estimación conservadora por tamaño/calidad.
         const base = quality === 'low' ? 0.011 : quality === 'medium' ? 0.042 : 0.167;
         costUsd = size === '1024x1024' ? base : base * 1.5;
       } else {

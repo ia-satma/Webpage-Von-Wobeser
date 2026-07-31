@@ -6,10 +6,12 @@ export const articleIdSchema = z.string().uuid();
 export const languageSchema = z.enum(['en', 'es', 'de', 'zh', 'ko', 'ja', 'ar', 'ru', 'fr', 'it']);
 
 const articleOnlySchema = z.object({ articleId: articleIdSchema }).strict();
-const localMediaPathSchema = z.string().refine(
-  (value) => value.startsWith('/uploads/') || value.startsWith('/generated-images/'),
-  'Unsupported image path',
-);
+const localMediaPathSchema = z.string()
+  .transform((value) => value.split(/[?#]/, 1)[0])
+  .refine(
+    (value) => /^\/(?:uploads|generated-images)\/[A-Za-z0-9][A-Za-z0-9._-]*$/.test(value),
+    'Unsupported image path',
+  );
 
 export const agentPayloadSchemas = {
   formatter: z.object({

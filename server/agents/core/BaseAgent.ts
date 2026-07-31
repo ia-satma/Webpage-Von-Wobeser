@@ -8,7 +8,13 @@ import {
   EvolutionProposal,
   KnowledgeDocument
 } from './types';
-import { openai, extractJson } from '../../openai';
+import {
+  openai,
+  extractJson,
+  FALLBACK_TEXT_MODEL,
+  getTextModel,
+  textModelParams,
+} from '../../openai';
 import { assertAiBudget, recordChatUsage } from '../../services/usageTracker';
 import { knowledgeStore } from './AgentKnowledge';
 
@@ -80,8 +86,8 @@ export abstract class BaseAgent {
     messages: { role: 'system' | 'user' | 'assistant'; content: string }[],
     options?: { temperature?: number; maxTokens?: number; jsonMode?: boolean }
   ): Promise<string> {
-    const primaryModel = this.config.model || 'gpt-4o';
-    const fallbackModels = ['gpt-4o-mini'];
+    const primaryModel = process.env.OPENAI_TEXT_MODEL?.trim() || this.config.model || getTextModel();
+    const fallbackModels = [FALLBACK_TEXT_MODEL];
     const allModels = [primaryModel, ...fallbackModels.filter(m => m !== primaryModel)];
     
     let lastError: Error | null = null;
@@ -93,7 +99,7 @@ export abstract class BaseAgent {
       try {
         await assertAiBudget();
         const response = await openai.chat.completions.create({
-          model,
+          ...textModelParams(model, options?.maxTokens ?? this.config.maxTokens ?? 4096),
           messages: [
             { role: 'system', content: this.config.systemPrompt },
             ...(kbMsg ? [{ role: 'system' as const, content: kbMsg }] : []),
@@ -103,21 +109,26 @@ export abstract class BaseAgent {
             }] : []),
             ...messages
           ],
-          temperature: options?.temperature ?? this.config.temperature ?? 0.7,
-          max_tokens: options?.maxTokens ?? this.config.maxTokens ?? 4096,
-        });
+          // Los modelos GPT-5 usan razonamiento sin esfuerzo para priorizar velocidad.
+          // El fallback clásico conserva la temperatura editorial configurada.
+          ...(!/^gpt-5(?:\.|-|$)/i.test(model)
+            ? { temperature: options?.temperature ?? this.config.temperature ?? 0.7 }
+            : {}),
+        } as any, { timeout: 90_000, maxRetries: 1 });
 
         recordChatUsage('chat', model, response.usage as any);
         const content = response.choices[0]?.message?.content || '';
         return options?.jsonMode ? extractJson(content) : content;
       } catch (error: any) {
         lastError = error;
-        const isQuotaError = error?.status === 429 || 
+        const isQuotaError = error?.status === 429 ||
                             error?.message?.includes('quota') || 
                             error?.message?.includes('rate limit');
+        const isUnavailableModel = [400, 404].includes(Number(error?.status)) &&
+          /model|unsupported|not found|does not exist|access/i.test(String(error?.message || ''));
         
-        if (isQuotaError && model !== allModels[allModels.length - 1]) {
-          console.log(`[${this.name}] Model ${model} quota exceeded, trying fallback...`);
+        if ((isQuotaError || isUnavailableModel) && model !== allModels[allModels.length - 1]) {
+          console.log(`[${this.name}] Modelo principal no disponible; usando respaldo compatible.`);
           continue;
         }
         throw error;

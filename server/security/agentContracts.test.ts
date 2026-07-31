@@ -84,6 +84,24 @@ test('agent contracts reject unsafe identifiers, sizes and options', () => {
     triggeredBy: 'scheduled',
     matchedPractice: 'Competencia',
   }).success, true);
+  const presentationWithVersionedMedia = parseAgentPayload('presentation_generator', {
+    topic: 'tema',
+    customLogoUrl: '/uploads/logo-institucional.png?v=20260731',
+    supportImages: ['/generated-images/portada.jpg?download=0'],
+  });
+  assert.equal(presentationWithVersionedMedia.success, true);
+  if (presentationWithVersionedMedia.success) {
+    assert.equal(presentationWithVersionedMedia.data.customLogoUrl, '/uploads/logo-institucional.png');
+    assert.deepEqual(presentationWithVersionedMedia.data.supportImages, ['/generated-images/portada.jpg']);
+  }
+  assert.equal(parseAgentPayload('presentation_generator', {
+    topic: 'tema',
+    customLogoUrl: '/uploads/../private/secret.png',
+  }).success, false);
+  assert.equal(parseAgentPayload('presentation_generator', {
+    topic: 'tema',
+    supportImages: ['https://example.com/remote.png'],
+  }).success, false);
 });
 
 test('LLM output contracts reject unexpected or oversized data', () => {

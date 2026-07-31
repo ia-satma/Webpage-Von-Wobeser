@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useLocation } from "wouter";
 import { adminApiRequest } from "@/lib/adminAuth";
 import { Button } from "@/components/ui/button";
@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
-import { Share2, Mail, Bell, Loader2, Copy, Volume2, Download } from "lucide-react";
+import { Mail, Bell, Loader2, Copy, Volume2, Download, Clock3 } from "lucide-react";
 import { downloadHref } from "./ImageUpload";
 
 /** Llama a un agente y devuelve su AgentResult (o un error legible). */
@@ -22,6 +22,76 @@ async function runAgent(agentType: string, payload: Record<string, unknown>): Pr
   } catch (e: any) {
     return { ok: false, error: e?.message || "No se pudo ejecutar el agente." };
   }
+}
+
+export type AgentProgressStage = {
+  afterSeconds: number;
+  label: string;
+  detail?: string;
+};
+
+const DEFAULT_PROGRESS_STAGES: AgentProgressStage[] = [
+  { afterSeconds: 0, label: "Preparando la solicitud" },
+  { afterSeconds: 4, label: "Analizando el contenido" },
+  { afterSeconds: 12, label: "Generando el resultado" },
+  { afterSeconds: 30, label: "Afinando la respuesta" },
+  { afterSeconds: 55, label: "Ya casi está listo" },
+];
+
+/**
+ * Estado honesto para operaciones de IA que no ofrecen progreso porcentual. La etapa se
+ * calcula por tiempo transcurrido y se presenta explícitamente como aproximada; el reloj
+ * confirma que la solicitud continúa activa sin inventar porcentajes ni respuestas.
+ */
+export function AgentProgress({
+  title = "La solicitud sigue activa",
+  stages = DEFAULT_PROGRESS_STAGES,
+}: {
+  title?: string;
+  stages?: AgentProgressStage[];
+}) {
+  const [elapsedSeconds, setElapsedSeconds] = useState(0);
+
+  useEffect(() => {
+    const startedAt = Date.now();
+    const timer = window.setInterval(() => {
+      setElapsedSeconds(Math.floor((Date.now() - startedAt) / 1000));
+    }, 1000);
+    return () => window.clearInterval(timer);
+  }, []);
+
+  const stage = stages.reduce(
+    (current, candidate) => elapsedSeconds >= candidate.afterSeconds ? candidate : current,
+    stages[0] || DEFAULT_PROGRESS_STAGES[0],
+  );
+
+  return (
+    <div
+      className="border border-primary/25 bg-primary/[0.035] px-4 py-4"
+      role="status"
+      aria-live="polite"
+      data-testid="agent-progress"
+    >
+      <div className="flex items-start gap-3">
+        <span className="relative mt-1 flex h-3 w-3 shrink-0" aria-hidden="true">
+          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary/45 motion-reduce:hidden" />
+          <span className="relative inline-flex h-3 w-3 rounded-full bg-primary" />
+        </span>
+        <div className="min-w-0 flex-1 space-y-1">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <p className="text-sm font-semibold text-foreground">{stage.label}</p>
+            <span className="inline-flex items-center gap-1 text-xs tabular-nums text-muted-foreground">
+              <Clock3 className="h-3.5 w-3.5" aria-hidden="true" />
+              {elapsedSeconds} s
+            </span>
+          </div>
+          <p className="text-xs leading-relaxed text-muted-foreground">
+            {stage.detail || title}. La etapa es aproximada; no cierres esta ventana mientras termina.
+          </p>
+        </div>
+      </div>
+    </div>
+  );
 }
 
 function CopyBox({ label, text }: { label: string; text: string }) {
@@ -93,6 +163,16 @@ export function VoiceButton({
       <AgentButton type="button" size="sm" onClick={generate} disabled={loading || !text?.trim()} icon={loading ? <Loader2 className="h-4 w-4 mr-1.5 animate-spin" /> : <Volume2 className="h-4 w-4 mr-1.5" />} data-testid="button-voice">
         {label}
       </AgentButton>
+      {loading && (
+        <AgentProgress
+          title="OpenAI está preparando y guardando el audio"
+          stages={[
+            { afterSeconds: 0, label: "Preparando la locución" },
+            { afterSeconds: 4, label: "Generando el audio" },
+            { afterSeconds: 18, label: "Guardando el archivo en el historial" },
+          ]}
+        />
+      )}
       {error && <p className="text-sm text-destructive">{error}</p>}
       {audioUrl && <audio controls src={audioUrl} className="w-full" data-testid="audio-generated" />}
     </div>
@@ -177,7 +257,16 @@ export function SocialPostButton({ articleId }: { articleId: string }) {
           </AgentButton>
 
           {loading ? (
-            <div className="flex items-center gap-2 text-muted-foreground py-8 justify-center"><Loader2 className="h-4 w-4 animate-spin" /> Generando…</div>
+            <AgentProgress
+              title="El texto y la imagen se están preparando en paralelo cuando es posible"
+              stages={[
+                { afterSeconds: 0, label: "Analizando la noticia" },
+                { afterSeconds: 5, label: "Creando textos e imagen" },
+                { afterSeconds: 22, label: "Afinando cada red social" },
+                { afterSeconds: 50, label: "Guardando la imagen en el historial" },
+                { afterSeconds: 85, label: "Ya casi está listo" },
+              ]}
+            />
           ) : res && !res.ok ? (
             <p className="text-sm text-destructive py-4">{res.error}</p>
           ) : res?.data ? (
@@ -242,7 +331,15 @@ export function NewsletterButton() {
             <DialogDescription>Compilado de las noticias recientes. Revísalo antes de enviarlo.</DialogDescription>
           </DialogHeader>
           {loading ? (
-            <div className="flex items-center gap-2 text-muted-foreground py-8 justify-center"><Loader2 className="h-4 w-4 animate-spin" /> Generando…</div>
+            <AgentProgress
+              title="Se están seleccionando y redactando las noticias del boletín"
+              stages={[
+                { afterSeconds: 0, label: "Reuniendo noticias publicadas" },
+                { afterSeconds: 5, label: "Redactando el boletín" },
+                { afterSeconds: 16, label: "Preparando la vista previa" },
+                { afterSeconds: 35, label: "Ya casi está listo" },
+              ]}
+            />
           ) : res && !res.ok ? (
             <p className="text-sm text-destructive py-4">{res.error}</p>
           ) : res?.data ? (
@@ -317,6 +414,17 @@ export function LegalAlertButton() {
               <Input value={url} onChange={(e) => setUrl(e.target.value)} placeholder="https://www.dof.gob.mx/..." data-testid="input-alert-url" />
             </div>
             {err && <p className="text-sm text-destructive">{err}</p>}
+            {loading && (
+              <AgentProgress
+                title="La fuente se está validando y convirtiendo en un borrador"
+                stages={[
+                  { afterSeconds: 0, label: "Validando la fuente" },
+                  { afterSeconds: 5, label: "Analizando el contenido legal" },
+                  { afterSeconds: 16, label: "Redactando el borrador" },
+                  { afterSeconds: 35, label: "Guardando para revisión" },
+                ]}
+              />
+            )}
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setOpen(false)} disabled={loading}>Cancelar</Button>
