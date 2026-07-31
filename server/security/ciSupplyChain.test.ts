@@ -38,4 +38,6 @@ test("Dependabot agrupa actualizaciones compatibles y no mezcla versiones mayore
     config,
     /dependency-name:\s+["']\*["'][\s\S]*version-update:semver-major/,
   );
+  assert.equal((config.match(/cooldown:/g) ?? []).length, 2);
+  assert.match(config, /cooldown:[\s\S]*default-days:\s+7/);
 });
