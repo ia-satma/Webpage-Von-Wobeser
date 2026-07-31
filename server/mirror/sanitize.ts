@@ -98,3 +98,13 @@ export function sanitizeFields<T extends Record<string, any>>(obj: T, keys: (key
   }
   return obj;
 }
+
+/**
+ * Fuente única de verdad para los campos enriquecidos de Noticias y Artículos.
+ * Ambos tipos comparten la tabla `news`; centralizar la lista evita que una ruta,
+ * agente o integración futura persista estilos tipográficos pegados desde Word,
+ * correo u otra página. Los títulos son texto plano y se escapan al renderizar.
+ */
+export function sanitizeNewsFields<T extends Record<string, any>>(obj: T): T {
+  return sanitizeFields(obj, ["content", "contentEs", "excerpt", "excerptEs"] as (keyof T)[]);
+}

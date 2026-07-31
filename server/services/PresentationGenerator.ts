@@ -6,6 +6,8 @@ import { PDFDocument } from 'pdf-lib';
 import { storage } from '../storage';
 import { getConfigMap, cfg } from '../mirror/siteConfig';
 import type { GeneratedPresentation } from '../../shared/schema';
+import { TYPOGRAPHY, TYPOGRAPHY_ASSETS } from '../../shared/typography';
+import { embedPresentationFonts } from './presentationFonts';
 import {
   deletePersistentMediaObjects,
   persistPublicMediaFiles,
@@ -101,10 +103,26 @@ export interface RenderResult {
 // Tokens de color, tipografía y fuentes
 // ============================================================
 const FONT = {
-  serif: "Georgia, 'Times New Roman', Times, serif",
-  body: "Calibri, 'Helvetica Neue', Arial, sans-serif",
-  label: "'Century Gothic', Futura, Arial, sans-serif",
+  serif: TYPOGRAPHY.title,
+  body: TYPOGRAPHY.body,
+  label: TYPOGRAPHY.body,
 };
+
+let svgFontDefsCache: string | null = null;
+
+function svgFontDefs(): string {
+  if (svgFontDefsCache) return svgFontDefsCache;
+  const data = (filePath: string) => fs.readFileSync(filePath).toString('base64');
+  svgFontDefsCache = `<defs><style><![CDATA[
+@font-face{font-family:'Gelasio';src:url(data:font/ttf;base64,${data(TYPOGRAPHY_ASSETS.gelasioRegular)}) format('truetype');font-style:normal;font-weight:400}
+@font-face{font-family:'Gelasio';src:url(data:font/ttf;base64,${data(TYPOGRAPHY_ASSETS.gelasioBold)}) format('truetype');font-style:normal;font-weight:700}
+@font-face{font-family:'Atkinson Hyperlegible';src:url(data:font/ttf;base64,${data(TYPOGRAPHY_ASSETS.atkinsonRegular)}) format('truetype');font-style:normal;font-weight:400}
+@font-face{font-family:'Atkinson Hyperlegible';src:url(data:font/ttf;base64,${data(TYPOGRAPHY_ASSETS.atkinsonBold)}) format('truetype');font-style:normal;font-weight:700}
+@font-face{font-family:'Atkinson Hyperlegible';src:url(data:font/ttf;base64,${data(TYPOGRAPHY_ASSETS.atkinsonItalic)}) format('truetype');font-style:italic;font-weight:400}
+@font-face{font-family:'Atkinson Hyperlegible';src:url(data:font/ttf;base64,${data(TYPOGRAPHY_ASSETS.atkinsonBoldItalic)}) format('truetype');font-style:italic;font-weight:700}
+]]></style></defs>`;
+  return svgFontDefsCache;
+}
 
 interface Palette {
   burgundy: string; burgundyDeep: string; burgundyTint: string; burgundyWash: string;
@@ -145,7 +163,7 @@ function buildTheme(opts: RenderOptions, logo: { path: string; aspect: number } 
     showGhost: opts.template !== 'minimal',
     paperBreathers: opts.template !== 'minimal',
     logo,
-    pptxFontSerif: 'Georgia', pptxFontBody: 'Calibri', pptxFontLabel: 'Century Gothic',
+    pptxFontSerif: TYPOGRAPHY.title, pptxFontBody: TYPOGRAPHY.body, pptxFontLabel: TYPOGRAPHY.body,
   };
 }
 
@@ -392,12 +410,12 @@ function groundFill(t: Theme, g: Ground): string {
   return g === 'dark' ? t.nearBlack : g === 'paper' ? t.paper : t.white;
 }
 function svgOpen(t: Theme, g: Ground): string {
-  return `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}"><rect width="${W}" height="${H}" fill="${groundFill(t, g)}"/>`;
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">${svgFontDefs()}<rect width="${W}" height="${H}" fill="${groundFill(t, g)}"/>`;
 }
 // SVG con fondo TRANSPARENTE — para diapositivas con imagen compuesta por sharp: el SVG va
 // ENCIMA de la imagen y solo pinta el texto/fondo parcial, dejando ver la foto donde es transparente.
 function svgOpenT(): string {
-  return `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">`;
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">${svgFontDefs()}`;
 }
 
 function resolveLocalAsset(url?: string | null): string | null {
@@ -781,6 +799,7 @@ export class PresentationGenerator {
         const absolutePath = path.join(OUTPUT_DIR, fn);
         const publicPath = `/generated-presentations/${fn}`;
         await pptx.writeFile({ fileName: absolutePath });
+        await embedPresentationFonts(absolutePath);
         generatedFiles.push({ absolutePath, publicPath });
         pptxUrl = publicPath;
         this.log('PPTX generado');
@@ -823,7 +842,7 @@ export class PresentationGenerator {
 
   private async diagramPng(d: SlideDiagram, t: Theme): Promise<Buffer> {
     const wPx = 1180, hPx = 470;
-    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${wPx}" height="${hPx}"><rect width="${wPx}" height="${hPx}" fill="${t.white}"/>${renderDiagramSvg(d, { x: 24, y: 24, w: wPx - 48, h: hPx - 48 }, t)}</svg>`;
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${wPx}" height="${hPx}">${svgFontDefs()}<rect width="${wPx}" height="${hPx}" fill="${t.white}"/>${renderDiagramSvg(d, { x: 24, y: 24, w: wPx - 48, h: hPx - 48 }, t)}</svg>`;
     return sharp(Buffer.from(svg)).png().toBuffer();
   }
 
@@ -987,6 +1006,6 @@ export class PresentationGenerator {
 
 // pptxgenjs es dual CJS/ESM; bajo esbuild/tsx el default puede venir como { default: class }.
 const PptxGenCtor = ((PptxGenJS as any)?.default ?? PptxGenJS) as typeof PptxGenJS;
-const FONT_PPTX = { serif: 'Georgia', body: 'Calibri', label: 'Century Gothic' };
+const FONT_PPTX = { serif: TYPOGRAPHY.title, body: TYPOGRAPHY.body, label: TYPOGRAPHY.body };
 
 export const presentationGenerator = new PresentationGenerator();

@@ -2,55 +2,6 @@
 @tailwind components;
 @tailwind utilities;
 
-/* ──────────────────────────────────────────────────────────────
-   FUENTES DE MARCA REALES (servidas desde el espejo) — homologa el
-   panel admin con la tipografía exacta del sitio Von Wobeser.
-   ────────────────────────────────────────────────────────────── */
-@font-face {
-  font-family: 'Publico-Roman';
-  src: url('/templates/beez3/webfont/Publico-Roman.woff2') format('woff2'),
-       url('/templates/beez3/webfont/Publico-Roman.woff') format('woff');
-  font-weight: normal; font-style: normal; font-display: swap;
-}
-@font-face {
-  font-family: 'OptimaLTStd';
-  src: url('/templates/beez3/webfont/OptimaLTStd.woff2') format('woff2'),
-       url('/templates/beez3/webfont/OptimaLTStd.woff') format('woff');
-  font-weight: normal; font-style: normal; font-display: swap;
-}
-@font-face {
-  font-family: 'Geomanist-Book';
-  src: url('/templates/beez3/webfont/Geomanist-Book.woff2') format('woff2'),
-       url('/templates/beez3/webfont/Geomanist-Book.woff') format('woff');
-  font-weight: normal; font-style: normal; font-display: swap;
-}
-
-/* ======================================================
-   CORPORATE IDENTITY FONTS — Manual de Identidad 2022
-   ====================================================== */
-
-/*
-  CORPORATE IDENTITY FONT STRATEGY (Manual de Identidad 2022)
-  ─────────────────────────────────────────────────────────────
-  • Playfair Display  → headlines / H1–H3  (loaded via Google Fonts, full Latin-ext)
-  • Optima            → body / running text (native on macOS/iOS; Lato as web fallback)
-  • Geomanist         → labels / menu / buttons (Century Gothic on Windows; Lato as web fallback)
-
-  The broken TTF files are intentionally NOT loaded via @font-face because they
-  are missing Latin-Extended glyphs (accented Spanish characters render incorrectly).
-  System fonts handle Optima on Apple devices; Lato is the universal web fallback.
-*/
-
-/* Italic is prohibited by the Manual de Identidad */
-* {
-  font-style: normal !important;
-}
-
-/* Exception: blockquote testimonials */
-blockquote {
-  font-style: italic !important;
-}
-
 /* LIGHT MODE */
 :root {
   /* Von Wobeser Corporate Colors (Manual de Identidad Junio 2022) */
@@ -113,11 +64,11 @@ blockquote {
   --chart-3: 0 0% 30%;
   --chart-4: 0 0% 50%;
   --chart-5: 351 30% 55%;
-  --font-sans: 'OptimaLTStd', 'Optima', 'Lato', 'Segoe UI', sans-serif;
-  --font-serif: 'Publico-Roman', 'Georgia', 'Times New Roman', serif;
-  --font-heading: 'Publico-Roman', 'Georgia', 'Times New Roman', serif;
-  --font-support: 'Geomanist-Book', 'Geomanist', 'Century Gothic', 'Lato', sans-serif;
-  --font-mono: Menlo, monospace;
+  --font-sans: var(--font-body);
+  --font-serif: var(--font-title);
+  --font-heading: var(--font-title);
+  --font-support: var(--font-body);
+  --font-mono: var(--font-body);
   /* Radio base del PANEL ADMIN (8px). El espejo público conserva sus esquinas rectas por su
      propio CSS; esto solo afecta las utilidades rounded-* del panel React. */
   --radius: 0.5rem;
@@ -258,6 +209,24 @@ blockquote {
 
   body {
     @apply font-sans antialiased bg-background text-foreground;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    @apply font-heading;
+  }
+
+  code,
+  pre,
+  kbd,
+  samp,
+  .font-mono {
+    font-family: var(--font-body);
+    font-variant-numeric: tabular-nums;
   }
 }
 

@@ -1,6 +1,7 @@
 import { eq, desc, asc, and, isNull, gte, lte, sql, inArray, ilike, or, type SQL } from "drizzle-orm";
 import { db } from "./db";
 import { hasExactRankingSet } from "./rankings/order";
+import { sanitizeNewsFields } from "./mirror/sanitize";
 import {
   type User,
   type InsertUser,
@@ -595,14 +596,18 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createNews(insertNews: InsertNews): Promise<News> {
-    const [item] = await db.insert(news).values(insertNews).returning();
+    // Última barrera común para panel, agentes e integraciones: la BD nunca recibe
+    // familias tipográficas pegadas ni HTML activo en los campos enriquecidos.
+    const safeNews = sanitizeNewsFields({ ...insertNews });
+    const [item] = await db.insert(news).values(safeNews).returning();
     return item;
   }
 
   async updateNews(id: string, data: Partial<InsertNews>): Promise<News | undefined> {
+    const safeData = sanitizeNewsFields({ ...data });
     const [item] = await db
       .update(news)
-      .set(data)
+      .set(safeData)
       .where(eq(news.id, id))
       .returning();
     return item;

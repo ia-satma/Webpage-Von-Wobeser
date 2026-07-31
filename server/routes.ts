@@ -28,7 +28,7 @@ import {
   persistentMediaStorageStatus,
   PersistentMediaUnavailableError,
 } from "./media/persistentMedia";
-import { sanitizeCms, sanitizeFields } from "./mirror/sanitize";
+import { sanitizeCms, sanitizeFields, sanitizeNewsFields } from "./mirror/sanitize";
 import { getConfigMap, setHeroMediaConfig } from "./mirror/siteConfig";
 import { getMirrorDir } from "./mirror/config";
 import { invalidatePublicPageCache } from "./mirror/pageCache";
@@ -2356,7 +2356,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
         return apiError(res, 400, "Validation failed", validation.error.errors);
       }
 
-      sanitizeFields(validation.data, ["content", "contentEs", "excerpt", "excerptEs"]);
+      sanitizeNewsFields(validation.data);
       if (validation.data.published && !hasPublishableBilingualNews(validation.data)) {
         return apiError(res, 400, "Published news requires title and excerpt in English and Spanish");
       }
@@ -2374,7 +2374,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
   app.put("/api/admin/news/:id", authMiddleware, requirePermission("content"), async (req: Request, res: Response) => {
     try {
       const validated = insertNewsSchema.partial().parse(req.body); // valida + descarta campos no permitidos (anti mass-assignment)
-      sanitizeFields(validated, ["content", "contentEs", "excerpt", "excerptEs"]);
+      sanitizeNewsFields(validated);
       const current = await storage.getNewsById(req.params.id);
       if (!current) return apiError(res, 404, "News not found");
       const finalState = { ...current, ...validated };
