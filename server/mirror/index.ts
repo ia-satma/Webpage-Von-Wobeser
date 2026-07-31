@@ -36,6 +36,12 @@ import {
   getPublicNavigationMenu,
   type PublicNavigationMenu,
 } from "./navigationMenu";
+import {
+  legacyHtmlLanguage,
+  legacyPaginationDestination,
+  normalizeLegacyHtmlLanguage,
+  normalizeLegacyTypography,
+} from "./legacyHtml";
 import { authMiddleware, requireRole, requirePermission } from "../auth";
 import { storage } from "../storage";
 import { db } from "../db";
@@ -237,6 +243,15 @@ const LANG_TOGGLE_SCRIPT = `<script>(function(){try{
     mapped=alternateUrl.pathname+(alternateUrl.search||'');
   }
   if(!mapped)mapped=PAIRS[path]||'';
+  // Una captura histórica sin hreflang conserva en el encabezado el enlace
+  // original a su contraparte. Se usa como último recurso antes del fallback
+  // por query string, porque una carpeta inglesa siempre volvería a inferir EN.
+  var originalLanguageLink=document.querySelector('.header__lang--item[href]');
+  if(!mapped&&originalLanguageLink){
+    var originalUrl=new URL(originalLanguageLink.getAttribute('href'),location.origin);
+    var originalTarget=originalUrl.pathname+(originalUrl.search||'');
+    if(originalTarget!==path)mapped=originalTarget;
+  }
   function preserveState(href){
     var u=new URL(href,location.origin);
     var current=new URL(location.href);
@@ -366,7 +381,7 @@ export const SEARCH_FORMS_SCRIPT = `<script>(function(){try{
 // `von.css` y `functions.min.js` son el cromo compartido de todo el espejo.
 // Se versionan desde el render para que los cambios de navegación no queden
 // ocultos detrás de los 30 días de caché de los assets estáticos.
-const NAV_ASSET_VERSION = "20260729-header-spacing2";
+const NAV_ASSET_VERSION = "20260731-gelasio-atkinson4";
 function refreshNavigationAssets(html: string): string {
   return html
     .replace(/(href=["']\/templates\/beez3\/css\/style\.css)(?:\?[^"']*)?(["'])/gi, `$1?v=${NAV_ASSET_VERSION}$2`)
@@ -406,8 +421,9 @@ export function optimizeLegacyAssets(html: string): string {
 function injectPerformanceHints(html: string): string {
   if (!html.includes("</head>")) return html;
   const hints = [
-    '<link rel="preload" href="/templates/beez3/webfont/Geomanist-Book.woff2" as="font" type="font/woff2" crossorigin>',
-    '<link rel="preload" href="/templates/beez3/webfont/Publico-Roman.woff2" as="font" type="font/woff2" crossorigin>',
+    '<link rel="stylesheet" href="/templates/beez3/css/typography.css?v=20260731-gelasio-atkinson4">',
+    '<link rel="preload" href="/templates/beez3/webfont/AtkinsonHyperlegible-Regular.woff2" as="font" type="font/woff2" crossorigin>',
+    '<link rel="preload" href="/templates/beez3/webfont/Gelasio-Variable.woff2" as="font" type="font/woff2" crossorigin>',
   ].filter((hint) => !html.includes(hint.match(/href="([^"]+)"/)?.[1] || ""));
   return hints.length ? html.replace("</head>", `${hints.join("")}</head>`) : html;
 }
@@ -519,7 +535,7 @@ export function hardenLegacyClientScripts(html: string): string {
 const DOC_ACTIONS_SCRIPT = `<style id="vw-doc-actions">
 .single__meta--btns{display:flex;flex-wrap:wrap;gap:10px;margin-top:16px;align-items:center}
 .single__meta--btns br{display:none}
-.vw-doc-btn{display:inline-flex;align-items:center;gap:9px;cursor:pointer;border:1.5px solid #8a1622;background:transparent;color:#8a1622;font-family:"Geomanist-Book",Arial,sans-serif;font-size:12px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;line-height:1;padding:11px 20px;border-radius:999px;transition:background-color .25s ease,color .25s ease,border-color .25s ease}
+.vw-doc-btn{display:inline-flex;align-items:center;gap:9px;cursor:pointer;border:1.5px solid #8a1622;background:transparent;color:#8a1622;font-family:"Atkinson Hyperlegible",sans-serif;font-size:12px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;line-height:1;padding:11px 20px;border-radius:999px;transition:background-color .25s ease,color .25s ease,border-color .25s ease}
 .vw-doc-btn svg{width:16px;height:16px;flex:0 0 auto;display:block}
 .vw-doc-btn:hover,.vw-doc-btn:focus-visible{background:#8a1622;color:#fff;border-color:#8a1622}
 .vw-doc-btn:focus-visible{outline:2px solid #8a1622;outline-offset:3px}
@@ -840,9 +856,9 @@ async function sendPage(res: Response, html: string, status = 200) {
   if (configResult.status === "fulfilled") config = configResult.value;
   if (navigationResult.status === "fulfilled") navigationItems = navigationResult.value;
   const inject = `${navigationLabelsScript(config, lang, navigationItems)}${LANG_TOGGLE_SCRIPT}${SEARCH_FORMS_SCRIPT}${DOC_ACTIONS_SCRIPT}`;
-  let out = hardenLegacyClientScripts(
+  let out = normalizeLegacyTypography(hardenLegacyClientScripts(
     stripRetiredDeskLinks(refreshNavigationAssets(optimizeLegacyAssets(html))),
-  );
+  ));
   out = injectPerformanceHints(optimizePublicImageTags(out));
   out = out.includes("</body>")
     ? out.replace("</body>", `${inject}</body>`)
@@ -1645,6 +1661,18 @@ export async function setupMirror(app: Express) {
     ["/index.php/capabilities/industries/", "/capabilities/industries", "en"],
   ];
   for (const [legacy, target, lang] of legacyPageRedirects) app.get(legacy, redirectLegacy(target, lang));
+
+  // La paginación capturada de Joomla usaba offsets de diez elementos. El
+  // listado actual pagina en PostgreSQL y es bilingüe; se conserva la posición
+  // aproximada del visitante al llevarlo a la página dinámica correspondiente.
+  app.get(
+    /^\/index\.php\/(?:publications|publicaciones)\/(?:news|noticias|articles|articulos)\/start-\d+\.html$/i,
+    (req, res, next) => {
+      const destination = legacyPaginationDestination(req.path);
+      if (!destination) return next();
+      return res.redirect(301, destination);
+    },
+  );
   app.get("/index.php/publication/p_id-:id.html", (req, res, next) => {
     const slug = pubIdMap.get(req.params.id);
     if (!slug) return next();
@@ -2054,6 +2082,41 @@ export async function setupMirror(app: Express) {
     );
     res.json(result);
   }));
+
+  // Backstop para cualquier captura HTML histórica que no tenga todavía una
+  // ruta dinámica o redirección específica. A diferencia de express.static,
+  // este paso la hace pasar por sendPage(), que aplica las dos fuentes vigentes,
+  // navegación, idioma, accesibilidad y recursos versionados. Los archivos
+  // binarios continúan debajo con su caché larga sin ninguna transformación.
+  const mirrorRoot = fs.realpathSync(mirrorDir);
+  app.use((req: Request, res: Response, next: NextFunction) => {
+    if ((req.method !== "GET" && req.method !== "HEAD") || !/\.html$/i.test(req.path)) return next();
+
+    let decodedPath: string;
+    try {
+      decodedPath = decodeURIComponent(req.path);
+    } catch {
+      return next();
+    }
+    const relativePath = decodedPath.replace(/^\/+/, "");
+    if (!relativePath || relativePath.split("/").some((segment) => !segment || segment.startsWith("."))) return next();
+
+    const candidate = path.resolve(mirrorRoot, relativePath);
+    if (!candidate.startsWith(`${mirrorRoot}${path.sep}`)) return next();
+
+    let resolved: string;
+    try {
+      resolved = fs.realpathSync(candidate);
+      if (!resolved.startsWith(`${mirrorRoot}${path.sep}`) || !fs.statSync(resolved).isFile()) return next();
+    } catch {
+      return next();
+    }
+
+    const lang = legacyHtmlLanguage(decodedPath, req.query.lang);
+    const relativeTemplate = path.relative(mirrorRoot, resolved).split(path.sep).join("/");
+    const html = normalizeLegacyHtmlLanguage(tpl(relativeTemplate), lang);
+    return sendPage(res, html).catch(next);
+  });
 
   // ---------- Static assets (css, js, vendor, images, fonts) ------------
   // Antes se servían con max-age=0 → el navegador revalidaba CSS/JS/imágenes/fuentes

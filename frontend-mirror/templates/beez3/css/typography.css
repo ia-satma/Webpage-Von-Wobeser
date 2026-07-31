@@ -1,0 +1,86 @@
+/* Fuente única de verdad tipográfica para sitio público, micrositios y panel. */
+@font-face {
+  font-family: "Gelasio";
+  src: url("../webfont/Gelasio-Variable.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Gelasio";
+  src: url("../webfont/Gelasio-Italic-Variable.woff2") format("woff2");
+  font-style: italic;
+  font-weight: 400 700;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Atkinson Hyperlegible";
+  src: url("../webfont/AtkinsonHyperlegible-Regular.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 300 500;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Atkinson Hyperlegible";
+  src: url("../webfont/AtkinsonHyperlegible-Bold.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 600 700;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Atkinson Hyperlegible";
+  src: url("../webfont/AtkinsonHyperlegible-Italic.woff2") format("woff2");
+  font-style: italic;
+  font-weight: 300 500;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Atkinson Hyperlegible";
+  src: url("../webfont/AtkinsonHyperlegible-BoldItalic.woff2") format("woff2");
+  font-style: italic;
+  font-weight: 600 700;
+  font-display: swap;
+}
+
+/* Compatibilidad con el HTML histórico: los nombres heredados nunca cargan
+   binarios anteriores; todos se resuelven a Gelasio o Atkinson. */
+@font-face { font-family: "Publico-Roman"; src: url("../webfont/Gelasio-Variable.woff2") format("woff2"); font-style: normal; font-weight: 300 700; font-display: swap; }
+@font-face { font-family: "Publico-light"; src: url("../webfont/Gelasio-Variable.woff2") format("woff2"); font-style: normal; font-weight: 300 700; font-display: swap; }
+@font-face { font-family: "Publico-medium"; src: url("../webfont/Gelasio-Variable.woff2") format("woff2"); font-style: normal; font-weight: 300 700; font-display: swap; }
+@font-face { font-family: "Geomanist-Book"; src: url("../webfont/AtkinsonHyperlegible-Regular.woff2") format("woff2"); font-style: normal; font-weight: 300 600; font-display: swap; }
+@font-face { font-family: "Geomanist-light"; src: url("../webfont/AtkinsonHyperlegible-Regular.woff2") format("woff2"); font-style: normal; font-weight: 300 500; font-display: swap; }
+@font-face { font-family: "Geomanist-regular"; src: url("../webfont/AtkinsonHyperlegible-Regular.woff2") format("woff2"); font-style: normal; font-weight: 300 600; font-display: swap; }
+@font-face { font-family: "OptimaLTStd"; src: url("../webfont/AtkinsonHyperlegible-Regular.woff2") format("woff2"); font-style: normal; font-weight: 300 600; font-display: swap; }
+@font-face { font-family: "OptimaLTStd-Bold"; src: url("../webfont/AtkinsonHyperlegible-Bold.woff2") format("woff2"); font-style: normal; font-weight: 600 700; font-display: swap; }
+
+:root {
+  --font-title: "Gelasio", serif;
+  --font-body: "Atkinson Hyperlegible", sans-serif;
+  --vw-font-editorial: var(--font-title);
+  --vw-font-ui: var(--font-body);
+  --vw-font-body: var(--font-body);
+}
+
+html,
+body {
+  font-family: var(--font-body);
+}
+
+/* Los controles y componentes heredados (incluido Slick) no deben reintroducir
+   Arial u otra fuente de sistema mediante sus hojas de estilo internas. */
+:where(button, input, textarea, select, option, label, code, pre, kbd, samp, table, th, td) {
+  font-family: var(--font-body) !important;
+}
+
+/* La jerarquía editorial manda incluso cuando un HTML histórico conserva un
+   style inline con el nombre de una familia anterior. */
+:where(h1, h2, h3, h4, h5, h6),
+:where(h1, h2, h3, h4, h5, h6) :where(span, a, strong, em),
+.covid_title span {
+  font-family: var(--font-title) !important;
+}

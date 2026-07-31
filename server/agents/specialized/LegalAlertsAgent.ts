@@ -5,7 +5,7 @@ import { BaseAgent } from '../core/BaseAgent';
 import { AgentConfig, AgentResult, ExecutionContext } from '../core/types';
 import { storage } from '../../storage';
 import { safeParseJson } from '../../openai';
-import { sanitizeFields } from '../../mirror/sanitize';
+import { sanitizeNewsFields } from '../../mirror/sanitize';
 import { assertExternalUrl, fetchTextWithPolicy } from '../../security/network';
 import { legalAlertOutputSchema } from '../core/contracts';
 import { createHash } from 'node:crypto';
@@ -219,7 +219,7 @@ Devuelve JSON con: titleEs, title, excerptEs, excerpt, contentEs, content, slug.
       // El contenido viene de una fuente EXTERNA (DOF/COFECE/etc.) parafraseada por el LLM —
       // igual que Formatter/SEOOptimizer, se sanea antes de persistir (aunque nazca published:false,
       // si se aprueba sin editar el campo quedaría expuesto sin este paso).
-      sanitizeFields(newsFields, ['content', 'contentEs', 'excerpt', 'excerptEs']);
+      sanitizeNewsFields(newsFields);
 
       const draft = await storage.createNews({
         ...newsFields,

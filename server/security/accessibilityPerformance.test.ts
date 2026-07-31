@@ -67,7 +67,7 @@ test("la lupa abre, enfoca y envía el buscador global bilingüe", () => {
   assert.match(css, /\.search_form_cont\.vw-search-open \.field/);
   assert.match(css, /\.header\.vw-header-search-open/);
   assert.match(css, /\.vw-header-search__submit/);
-  assert.match(css, /font-family: "Geomanist-Book", sans-serif !important/);
+  assert.match(css, /font-family: "Atkinson Hyperlegible", sans-serif !important/);
   assert.match(css, /\.header\.header_JS \.search_form_cont[\s\S]*right: 124px !important/);
   assert.match(css, /\.header\.header_JS \.search_form_cont[\s\S]*top: 11px !important[\s\S]*transform: none/);
   assert.match(css, /\.header\.header_JS \.menu_btn_JS[\s\S]*right: 62px !important/);
@@ -182,7 +182,7 @@ test("los módulos públicos añadidos usan la línea tipográfica institucional
     "utf8",
   );
   const fontCss = readFileSync(
-    new URL("../../frontend-mirror/templates/beez3/css/style.css", import.meta.url),
+    new URL("../../frontend-mirror/templates/beez3/css/typography.css", import.meta.url),
     "utf8",
   );
   const customRenderers = [
@@ -194,17 +194,19 @@ test("los módulos públicos añadidos usan la línea tipográfica institucional
     "../mirror/renderAttorneyResults.ts",
   ].map((path) => readFileSync(new URL(path, import.meta.url), "utf8")).join("\n");
 
-  assert.match(css, /--vw-font-editorial:\s*"Publico-Roman"/);
-  assert.match(css, /--vw-font-ui:\s*"Geomanist-Book"/);
-  assert.match(css, /--vw-font-body:\s*"OptimaLTStd"/);
+  assert.match(fontCss, /--font-title:\s*"Gelasio", serif/);
+  assert.match(fontCss, /--font-body:\s*"Atkinson Hyperlegible", sans-serif/);
+  assert.match(fontCss, /--vw-font-editorial:\s*var\(--font-title\)/);
+  assert.match(fontCss, /--vw-font-ui:\s*var\(--font-body\)/);
+  assert.match(fontCss, /--vw-font-body:\s*var\(--font-body\)/);
   assert.match(css, /\.header \.header--btn,[\s\S]*font-family: var\(--vw-font-ui\) !important/);
   assert.match(css, /nav\.nav\.menu_JS \.vw-subnav \.nav__menu--sublink[\s\S]*min-height: 44px/);
   assert.match(css, /\.home__rec \.slick-arrow\.slick-prev[\s\S]*left: 0 !important/);
   assert.match(css, /\.home__rec \.slick-arrow\.slick-next[\s\S]*right: 0 !important/);
   assert.match(css, /\.page__ttl--holder > h1/);
-  assert.match(fontCss, /font-family:'Publico-Roman'[\s\S]*Publico-Roman\.woff2/);
-  assert.match(fontCss, /font-family:'Geomanist-Book'[\s\S]*Geomanist-Book\.woff2/);
-  assert.match(fontCss, /font-family:'OptimaLTStd'[\s\S]*OptimaLTStd\.woff2/);
+  assert.match(fontCss, /font-family: "Gelasio";[\s\S]*Gelasio-Variable\.woff2/);
+  assert.match(fontCss, /font-family: "Atkinson Hyperlegible";[\s\S]*AtkinsonHyperlegible-Regular\.woff2/);
+  assert.doesNotMatch(fontCss, /(?:Publico|Geomanist|Optima)[-A-Za-z0-9]*\.(?:woff2?|otf|ttf)/);
   assert.match(customRenderers, /var\(--vw-font-editorial\)/);
   assert.match(customRenderers, /var\(--vw-font-ui\)/);
   assert.match(customRenderers, /var\(--vw-font-body\)/);
@@ -276,6 +278,8 @@ test("la portada nombra los cuatro carruseles y aplica contraste AA al módulo d
   assert.equal($(".home_slider_JS").eq(1).attr("aria-label"), "Grupos de práctica por industria");
   assert.equal($(".home_rec_JS").attr("aria-label"), "Reconocimientos");
   assert.equal($("#video_header").attr("poster"), "/images/home-hero-poster-v2.webp");
+  assert.equal($("#video_header").attr("width"), "1920");
+  assert.equal($("#video_header").attr("height"), "1080");
   assert.equal($("#video_header source").eq(0).attr("src"), "/images/home-hero-mobile-v2.mp4");
   assert.equal($("#video_header source").eq(0).attr("media"), "(max-width: 680px)");
   assert.equal($("#video_header source").eq(1).attr("src"), "/images/home-hero-desktop-v2.mp4");

@@ -403,6 +403,8 @@ export function renderHome(
     "aria-label": lang === "es" ? "Conoce Von Wobeser y Sierra" : "Discover Von Wobeser y Sierra",
   });
   videoElement.removeAttr("autoplay").attr({
+    width: "1920",
+    height: "1080",
     preload: "metadata",
     poster: heroPoster,
     muted: "",
