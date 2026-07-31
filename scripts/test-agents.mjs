@@ -99,6 +99,6 @@ const AI_AGENTS = ["content_analyzer", "formatter", "seo_optimizer", "category_a
     console.log("  " + a.padEnd(22) + cells + "   " + verdict.padEnd(11) + " " + (evidence[a] || "—"));
   }
   console.log("\n  " + (allPass ? "🎉 LOS 9 AGENTES PASARON LAS 5 PRUEBAS (sin falsos positivos)" : "⚠️ Revisar los agentes con <5/5 arriba"));
-  console.log("  Nota: image_suggestion genera el PROMPT con IA; la imagen final usa DALL-E (Claude no genera imágenes).");
+  console.log("  Nota: image_suggestion genera el prompt con gpt-5.4-mini; la imagen final usa gpt-image-2 con fallbacks compatibles.");
   process.exit(allPass ? 0 : 1);
 })().catch((e) => { console.error("ERROR:", e); process.exit(2); });

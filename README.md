@@ -12,7 +12,7 @@ Plataforma web del despacho de abogados **Von Wobeser y Sierra**: sitio público
 - **Sitio público** → un **espejo estático** (`frontend-mirror/`, HTML del sitio original) servido por Express + cheerio, que inyecta datos de la BD en cada request. **No es React.**
 - **Panel de administración (CMS)** → app de React (`client/`, SPA con wouter), **solo** bajo `/admin/*`.
 - **Backend** → Express + **Neon PostgreSQL** (Drizzle ORM).
-- **13 agentes de IA** → OpenAI (`gpt-4o`) vía AI Integrations de Replit: redacción, traducción, SEO, auditoría, imágenes y voz (TTS).
+- **14 agentes ejecutables** → `gpt-5.4-mini` para texto, `gpt-image-2` para imágenes y OpenAI TTS para audio; los auditores estructurales no consumen un modelo de texto.
 
 ## Correr localmente
 

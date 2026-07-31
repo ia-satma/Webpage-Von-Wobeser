@@ -1,4 +1,4 @@
-import { getImageClient, hasDedicatedImageClient } from '../openai';
+import { getImageClient, getTextModel, hasDedicatedImageClient } from '../openai';
 
 /**
  * Búsqueda web con la herramienta NATIVA de OpenAI (Responses API + tool `web_search`).
@@ -18,7 +18,7 @@ export async function webSearchSummary(query: string): Promise<string> {
   try {
     const client: any = getImageClient();
     const res: any = await client.responses.create({
-      model: process.env.OPENAI_SEARCH_MODEL || 'gpt-4o',
+      model: process.env.OPENAI_SEARCH_MODEL || getTextModel(),
       tools: [{ type: 'web_search' }],
       input:
         `Investiga en la web información RECIENTE y verificable sobre: ${q}. ` +

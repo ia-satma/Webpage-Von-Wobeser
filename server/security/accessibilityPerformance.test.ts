@@ -565,6 +565,24 @@ test("el carrusel heredado no se destruye y reconstruye en cada evento de scroll
   assert.match(hardened, /filter\('\.slick-initialized'\)\.slick\('unslick'\)/);
 });
 
+test("el carrusel de testimonios conserva una altura estable entre citas", () => {
+  const functions = readFileSync(
+    new URL("../../frontend-mirror/templates/beez3/js/min/functions.min.js", import.meta.url),
+    "utf8",
+  );
+  const styles = readFileSync(
+    new URL("../../frontend-mirror/templates/beez3/css/style.css", import.meta.url),
+    "utf8",
+  );
+
+  assert.match(functions, /function syncTestimonialHeights\(\)/);
+  assert.match(functions, /adaptiveHeight:\s*!1/);
+  assert.match(functions, /prefers-reduced-motion:\s*reduce/);
+  assert.match(styles, /\.home__intro\.slick-initialized \.home__intro--item/);
+  assert.match(styles, /justify-content:\s*center/);
+  assert.match(styles, /\.home__intro\.slick-initialized \.slick-list[\s\S]*transition:\s*none\s*!important/);
+});
+
 test("la caché pública agrupa renderizados simultáneos y permite invalidación administrativa", async () => {
   invalidatePublicPageCache();
   let renders = 0;

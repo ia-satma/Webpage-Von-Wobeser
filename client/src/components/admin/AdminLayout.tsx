@@ -21,6 +21,7 @@ import {
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
 import { Button } from "@/components/ui/button";
 import { ArrowUpRight, ChevronDown, LogOut } from "lucide-react";
+import adminLogoUrl from "@assets/vonwobeser_logo_hd.png";
 
 const OPEN_GROUPS_KEY = "admin-sidebar-open-groups";
 
@@ -175,7 +176,13 @@ export function AdminLayout({ children }: { children: ReactNode }) {
           <div className="flex items-center justify-between gap-2 px-1 py-1">
             <Link href="/admin/dashboard">
               <div className="flex items-center gap-2 cursor-pointer" data-testid="link-admin-home">
-                <img src="/logo-color.png" alt="Von Wobeser y Sierra" className="h-7 w-auto group-data-[collapsible=icon]:hidden" />
+                <img
+                  src={adminLogoUrl}
+                  alt="Von Wobeser y Sierra"
+                  width={240}
+                  height={42}
+                  className="h-7 w-auto object-contain group-data-[collapsible=icon]:hidden"
+                />
                 <span className="hidden group-data-[collapsible=icon]:inline rounded-none bg-primary/10 px-1.5 py-0.5 text-[10px] font-semibold text-primary">VW</span>
               </div>
             </Link>
@@ -233,7 +240,7 @@ export function AdminLayout({ children }: { children: ReactNode }) {
       <SidebarInset>
         <header className="flex items-center gap-2 border-b border-border p-3 md:hidden sticky top-0 z-30 bg-card/90 backdrop-blur">
           <SidebarTrigger />
-          <img src="/logo-color.png" alt="Von Wobeser y Sierra" className="h-6 w-auto" />
+          <img src={adminLogoUrl} alt="Von Wobeser y Sierra" width={240} height={42} className="h-6 w-auto object-contain" />
           <span className="rounded-none bg-primary/10 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-primary">Admin</span>
         </header>
         {children}

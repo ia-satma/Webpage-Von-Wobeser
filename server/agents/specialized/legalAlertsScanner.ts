@@ -2,7 +2,7 @@ import * as cheerio from 'cheerio';
 import crypto from 'crypto';
 import { storage } from '../../storage';
 import { orchestrator } from '../core/AgentOrchestrator';
-import { openai, safeParseJson } from '../../openai';
+import { getTextModel, openai, safeParseJson, textModelParams } from '../../openai';
 import { assertAiBudget, recordChatUsage } from "../../services/usageTracker";
 import {
   isAllowedLegalHostname,
@@ -97,13 +97,12 @@ ${excerpt}
 
   try {
     await assertAiBudget();
+    const model = getTextModel();
     const response = await openai.chat.completions.create({
-      model: 'gpt-4o',
+      ...textModelParams(model, 200),
       messages: [{ role: 'user', content: prompt }],
-      max_tokens: 200,
-      temperature: 0.2,
-    });
-    recordChatUsage("chat", "gpt-4o", response.usage as any);
+    } as any, { timeout: 60_000, maxRetries: 1 });
+    recordChatUsage("chat", model, response.usage as any);
     const parsed = safeParseJson<{ relevant?: boolean; matchedPractice?: string }>(
       response.choices[0]?.message?.content,
     );

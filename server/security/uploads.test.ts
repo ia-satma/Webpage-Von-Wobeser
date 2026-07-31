@@ -8,6 +8,21 @@ import sharp from "sharp";
 import { sanitizeRasterImage } from "../media/optimizeImage";
 import { validateCvFile, validatePublicMediaSignature } from "./uploads";
 
+test("presentation uploader supports multiple client files up to 100 MB each", async () => {
+  const root = process.cwd();
+  const clientSource = await fs.readFile(
+    path.join(root, "client/src/components/admin/DocumentUpload.tsx"),
+    "utf8",
+  );
+  const routeSource = await fs.readFile(path.join(root, "server/routes.ts"), "utf8");
+
+  assert.match(clientSource, /const MAX_DOCUMENTS = 20/);
+  assert.match(clientSource, /const MAX_DOCUMENT_MB = 100/);
+  assert.match(clientSource, /type="file"[\s\S]{0,120}multiple/);
+  assert.match(routeSource, /fileSize: 100 \* 1024 \* 1024/);
+  assert.match(routeSource, /PRESENTATION_FILE_TOO_LARGE/);
+});
+
 test("media validation checks bytes instead of trusting browser MIME", async () => {
   const directory = await fs.mkdtemp(path.join(os.tmpdir(), "vwb-upload-test-"));
   try {

@@ -211,7 +211,7 @@ const LEGACY_AGENT_REGISTRY: AgentCapabilityCard[] = [
     businessName: "The Deep Reader",
     role: "Content Intelligence",
     category: "brain",
-    description: "Performs comprehensive GPT-4o analysis of articles: SEO recommendations, spelling corrections, lawyer identification, legal branch classification, and quality scoring from 0-100.",
+    description: "Performs comprehensive GPT-5.4-mini analysis of articles: SEO recommendations, spelling corrections, lawyer identification, legal branch classification, and quality scoring from 0-100.",
     capabilities: [
       "SEO recommendation generation",
       "Spelling & grammar analysis",
@@ -372,7 +372,7 @@ export class SystemChronicler {
       {
         date: "2025-12-05",
         title: "Content Analysis Engine",
-        description: "Deep Reader agent now provides comprehensive GPT-4o analysis with quality scoring, spelling review, and legal classification.",
+        description: "Deep Reader agent now provides comprehensive GPT-5.4-mini analysis with quality scoring, spelling review, and legal classification.",
         agentId: "content_analyzer",
         impact: "major",
         category: "intelligence"

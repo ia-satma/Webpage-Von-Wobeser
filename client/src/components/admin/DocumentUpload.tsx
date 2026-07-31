@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import { getAuthHeaders } from "@/lib/adminAuth";
+import { getAuthHeaders, loadAdminSession } from "@/lib/adminAuth";
 import { Button } from "@/components/ui/button";
 import { Upload, Loader2, X, FileText } from "lucide-react";
 
@@ -7,6 +7,9 @@ export interface UploadedDoc {
   url: string;
   name: string;
 }
+
+const MAX_DOCUMENTS = 20;
+const MAX_DOCUMENT_MB = 100;
 
 /**
  * Subida de documentos de insumo para el Generador de Presentaciones. Permite elegir varios
@@ -25,13 +28,27 @@ export function DocumentUpload({
   const inputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState("");
+  const [uploadStatus, setUploadStatus] = useState("");
 
   const uploadFiles = async (files: FileList) => {
     setError("");
     setUploading(true);
     const next: UploadedDoc[] = [...docs];
     try {
-      for (const file of Array.from(files)) {
+      // Una pestaña restaurada puede conservar la cookie pero no el token CSRF en memoria.
+      // Se renueva una sola vez antes del lote para que la carga múltiple no falle en silencio.
+      await loadAdminSession(true);
+      const candidates = Array.from(files).slice(0, Math.max(0, MAX_DOCUMENTS - docs.length));
+      if (candidates.length < files.length) {
+        setError(`Se admiten hasta ${MAX_DOCUMENTS} documentos por presentación.`);
+      }
+      for (let index = 0; index < candidates.length; index++) {
+        const file = candidates[index];
+        if (file.size > MAX_DOCUMENT_MB * 1024 * 1024) {
+          setError(`"${file.name}" supera el máximo seguro de ${MAX_DOCUMENT_MB} MB por archivo.`);
+          continue;
+        }
+        setUploadStatus(`Subiendo ${index + 1} de ${candidates.length}: ${file.name}`);
         const fd = new FormData();
         fd.append("file", file);
         const res = await fetch("/api/admin/presentations/upload", {
@@ -41,7 +58,12 @@ export function DocumentUpload({
           credentials: "include",
         });
         if (!res.ok) {
-          setError(`No se pudo subir "${file.name}" (máx 30 MB; .pdf/.docx/.pptx/.tex/.txt/.md).`);
+          const body = await res.json().catch(() => null);
+          setError(
+            typeof body?.error === "string"
+              ? body.error
+              : `No se pudo subir "${file.name}" (máx ${MAX_DOCUMENT_MB} MB; .pdf/.docx/.pptx/.tex/.txt/.md).`,
+          );
           continue;
         }
         const data = await res.json();
@@ -52,6 +74,7 @@ export function DocumentUpload({
       setError("Error al subir los documentos.");
     } finally {
       setUploading(false);
+      setUploadStatus("");
       if (inputRef.current) inputRef.current.value = "";
     }
   };
@@ -81,6 +104,8 @@ export function DocumentUpload({
       </Button>
 
       {error && <p className="text-xs text-red-600">{error}</p>}
+      {uploadStatus && <p className="text-xs text-muted-foreground" aria-live="polite">{uploadStatus}</p>}
+      <p className="text-xs text-muted-foreground">Hasta {MAX_DOCUMENTS} archivos, máximo {MAX_DOCUMENT_MB} MB por archivo.</p>
 
       {docs.length > 0 && (
         <ul className="space-y-1">

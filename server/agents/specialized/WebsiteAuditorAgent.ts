@@ -84,7 +84,7 @@ export class WebsiteAuditorAgent extends BaseAgent {
 Your role is to identify issues that affect user experience, SEO, and content quality.
 Focus on: broken links, missing translations, incomplete lawyer profiles, SEO gaps, and content issues.
 Be thorough but prioritize critical issues that directly impact users.`,
-      model: 'gpt-4o',
+      model: 'structural-no-llm',
       temperature: 0.3,
       maxTokens: 4096,
       skills: ['link_checking', 'translation_validation', 'content_analysis', 'seo_audit', 'performance_monitoring'],

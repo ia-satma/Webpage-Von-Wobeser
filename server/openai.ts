@@ -1,20 +1,50 @@
 import OpenAI from "openai";
 import { assertAiBudget, recordChatUsage } from "./services/usageTracker";
 
-// Using Replit's AI Integrations service - provides OpenAI-compatible API access
-// without requiring your own OpenAI API key. Charges are billed to Replit credits.
-// Modelo real de OpenAI (gpt-4o) — antes apuntaba a claude-sonnet-4-6 vía un endpoint
-// compatible de Anthropic, un workaround de dev local que no aplica una vez que la
-// integración administrada de OpenAI de Replit esté aprovisionada de verdad.
-// Lazy initialization: the AI_INTEGRATIONS_OPENAI_API_KEY env var is injected by
-// the Replit platform at runtime; we defer client creation to avoid startup crashes
-// when the env var isn't resolved yet at import time.
+export const DEFAULT_TEXT_MODEL = "gpt-5.4-mini";
+export const FALLBACK_TEXT_MODEL = "gpt-4o-mini";
+
+export function getTextModel(): string {
+  return process.env.OPENAI_TEXT_MODEL?.trim() || DEFAULT_TEXT_MODEL;
+}
+
+export function hasOpenAITextClient(): boolean {
+  return Boolean(
+    process.env.OPENAI_API_KEY?.trim() ||
+    process.env.AI_INTEGRATIONS_OPENAI_API_KEY?.trim(),
+  );
+}
+
+/**
+ * Parámetros compatibles con los modelos de razonamiento y con el fallback clásico.
+ * `reasoning_effort: none` prioriza latencia para las tareas editoriales del panel.
+ */
+export function textModelParams(model: string, maxCompletionTokens: number): Record<string, unknown> {
+  if (/^gpt-5(?:\.|-|$)/i.test(model)) {
+    return {
+      model,
+      max_completion_tokens: maxCompletionTokens,
+      reasoning_effort: "none",
+    };
+  }
+  return { model, max_tokens: maxCompletionTokens };
+}
+
+// Se prefiere la cuenta directa de OpenAI del cliente. La integración administrada de
+// Replit queda como respaldo para instalaciones que todavía no hayan configurado la key.
+// La inicialización es lazy para que la aplicación pueda arrancar aun sin IA configurada.
 let _openaiClient: OpenAI | null = null;
 export function getOpenAIClient(): OpenAI {
   if (!_openaiClient) {
+    const directKey = process.env.OPENAI_API_KEY?.trim();
+    const integrationKey = process.env.AI_INTEGRATIONS_OPENAI_API_KEY?.trim();
     _openaiClient = new OpenAI({
-      baseURL: process.env.AI_INTEGRATIONS_OPENAI_BASE_URL,
-      apiKey: process.env.AI_INTEGRATIONS_OPENAI_API_KEY,
+      baseURL: directKey
+        ? (process.env.OPENAI_BASE_URL || "https://api.openai.com/v1")
+        : process.env.AI_INTEGRATIONS_OPENAI_BASE_URL,
+      apiKey: directKey || integrationKey,
+      timeout: 90_000,
+      maxRetries: 1,
     });
   }
   return _openaiClient;
@@ -26,12 +56,12 @@ export const openai: OpenAI = new Proxy({} as OpenAI, {
   },
 });
 
-// Cliente DEDICADO para generación de imágenes (DALL-E).
+// Cliente dedicado para los modelos de generación de imágenes de OpenAI.
 // El proxy de AI Integrations de Replit (AI_INTEGRATIONS_OPENAI_BASE_URL) es SOLO
-// chat/completions — NO expone /images/generations, así que DALL-E falla ahí aunque el
+// chat/completions — NO expone /images/generations, así que la imagen falla ahí aunque el
 // texto funcione (por eso el copy de redes sí sale pero la imagen no). Si se define
 // OPENAI_IMAGE_API_KEY (una API key REAL de OpenAI con facturación activa), las imágenes
-// se piden contra api.openai.com; si no, cae al cliente compartido (que fallará → placeholder).
+// se piden contra api.openai.com; si no, cae al cliente compartido (que puede fallar → placeholder).
 // Acepta varios nombres comunes de secret para no depender de cómo la haya nombrado el
 // usuario: OPENAI_IMAGE_API_KEY (dedicada), o la estándar del SDK OPENAI_API_KEY. Debe ser
 // una key REAL de OpenAI (empieza con "sk-"); la del proxy de Replit no sirve para imágenes.
@@ -47,10 +77,12 @@ export function getImageClient(): OpenAI {
     const base = process.env.OPENAI_IMAGE_BASE_URL || "https://api.openai.com/v1";
     // No registrar fragmentos de claves ni URLs configurables: pueden contener
     // credenciales o facilitar la correlación de un Secret.
-    console.log(`[images] Cliente OpenAI dedicado para DALL-E configurado mediante ${which}`);
-    _imageClient = new OpenAI({ apiKey: key, baseURL: base });
+    console.log(`[images] Cliente OpenAI dedicado configurado mediante ${which}`);
+    // SmartImageGenerator controla los reintentos. Deshabilitarlos aquí evita que una sola
+    // imagen multiplique silenciosamente la espera por los reintentos internos del SDK.
+    _imageClient = new OpenAI({ apiKey: key, baseURL: base, timeout: 125_000, maxRetries: 0 });
   } else {
-    console.warn("[images] Sin key dedicada de OpenAI para imágenes (OPENAI_IMAGE_API_KEY/OPENAI_API_KEY) — DALL-E usará el proxy de Replit y probablemente fallará → placeholder.");
+    console.warn("[images] Sin key directa de OpenAI para imágenes; el proxy de texto de Replit probablemente no atenderá /images/generations.");
     _imageClient = getOpenAIClient();
   }
   return _imageClient;
@@ -111,8 +143,9 @@ export async function translateLegalText(
   }
 
   await assertAiBudget();
+  const model = getTextModel();
   const response = await openai.chat.completions.create({
-    model: "gpt-4o",
+    ...textModelParams(model, 4096),
     messages: [
       {
         role: "system",
@@ -134,10 +167,9 @@ Respond with JSON in this format: { "translation": "translated text here" }`,
         content: `<<<UNTRUSTED_TEXT_START>>>\n${text}\n<<<UNTRUSTED_TEXT_END>>>`,
       },
     ],
-    max_tokens: 4096,
-  });
+  } as any);
 
-  recordChatUsage('translation', 'gpt-4o', response.usage as any);
+  recordChatUsage('translation', model, response.usage as any);
   const result = safeParseJson<{ translation?: string }>(response.choices[0].message.content);
   return typeof result?.translation === "string"
     ? result.translation.slice(0, 40_000)
@@ -158,8 +190,9 @@ export async function translateMultipleTexts(
     .join("\n---\n");
 
   await assertAiBudget();
+  const model = getTextModel();
   const response = await openai.chat.completions.create({
-    model: "gpt-4o",
+    ...textModelParams(model, 8192),
     messages: [
       {
         role: "system",
@@ -172,10 +205,9 @@ Respond with JSON where keys are the original keys and values are the translatio
         content: textsForTranslation,
       },
     ],
-    max_tokens: 8192,
-  });
+  } as any);
 
-  recordChatUsage('translation', 'gpt-4o', response.usage as any);
+  recordChatUsage('translation', model, response.usage as any);
   const parsed = safeParseJson<Record<string, string>>(response.choices[0].message.content);
   // Si el modelo no devolvió un objeto JSON, se conservan los textos originales.
   if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
@@ -200,8 +232,9 @@ export async function suggestTranslation(
     .join("\n");
 
   await assertAiBudget();
+  const model = getTextModel();
   const response = await openai.chat.completions.create({
-    model: "gpt-4o",
+    ...textModelParams(model, 4096),
     messages: [
       {
         role: "system",
@@ -217,10 +250,9 @@ Confidence should be between 0 and 1, where 1 means highly confident.`,
         content: `<<<UNTRUSTED_ORIGINAL_START>>>\n${originalText}\n<<<UNTRUSTED_ORIGINAL_END>>>\n\nExisting translations:\n<<<UNTRUSTED_TRANSLATIONS_START>>>\n${existingLanguages || "None available"}\n<<<UNTRUSTED_TRANSLATIONS_END>>>`,
       },
     ],
-    max_tokens: 4096,
-  });
+  } as any);
 
-  recordChatUsage('translation', 'gpt-4o', response.usage as any);
+  recordChatUsage('translation', model, response.usage as any);
   const parsed = safeParseJson<{ translation?: string; confidence?: number }>(response.choices[0].message.content);
   return {
     translation: typeof parsed?.translation === "string" ? parsed.translation.slice(0, 40_000) : "",

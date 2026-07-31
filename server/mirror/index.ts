@@ -381,7 +381,7 @@ export const SEARCH_FORMS_SCRIPT = `<script>(function(){try{
 // `von.css` y `functions.min.js` son el cromo compartido de todo el espejo.
 // Se versionan desde el render para que los cambios de navegación no queden
 // ocultos detrás de los 30 días de caché de los assets estáticos.
-const NAV_ASSET_VERSION = "20260731-gelasio-atkinson4";
+const NAV_ASSET_VERSION = "20260731-testimonial-height1";
 function refreshNavigationAssets(html: string): string {
   return html
     .replace(/(href=["']\/templates\/beez3\/css\/style\.css)(?:\?[^"']*)?(["'])/gi, `$1?v=${NAV_ASSET_VERSION}$2`)

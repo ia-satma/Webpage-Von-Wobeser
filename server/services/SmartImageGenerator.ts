@@ -62,7 +62,7 @@ const ABSTRACT_REPLACEMENTS: Record<string, string> = {
 export interface ImageGenerationResult {
   success: boolean;
   imageUrl?: string;
-  engine: 'cloudflare' | 'gptimage' | 'dalle3' | 'gemini' | 'placeholder';
+  engine: 'cloudflare' | 'gptimage2' | 'gptimage' | 'dalle3' | 'gemini' | 'placeholder';
   originalPrompt: string;
   sanitizedPrompt?: string;
   promptWasSanitized: boolean;
@@ -213,7 +213,7 @@ export class SmartImageGenerator {
     };
   }
 
-  // Tamaños que ACEPTA cada modelo de OpenAI (son distintos): gpt-image-1 usa
+  // Tamaños que aceptan los modelos GPT Image (son distintos a DALL-E 3):
   // 1024x1024/1536x1024/1024x1536 (no 1792); dall-e-3 usa 1024x1024/1792x1024/1024x1792.
   private gptImageSize(aspect: string): '1024x1024' | '1536x1024' | '1024x1536' {
     const a = (aspect || '1:1').trim();
@@ -226,23 +226,22 @@ export class SmartImageGenerator {
 
   /**
    * Genera una imagen con OpenAI y devuelve el BUFFER final (no una URL).
-   * Modelo primario: gpt-image-1 (mejor calidad y seguimiento del tema; responde en base64,
-   * sin URL). Si la organización de OpenAI NO está verificada para gpt-image-1 (403) o el
-   * modelo no es accesible, cae automáticamente a dall-e-3 (que responde con URL → se descarga).
-   * Quality 'high' de gpt-image-1 es la de mejor calidad (cuesta ~$0.16/imagen 1024²; se puede
-   * bajar a 'medium' ~$0.04 en IMAGE_QUALITY si el gasto importa).
+   * Modelo primario: gpt-image-2 en calidad media. Es el modelo vigente de mayor calidad y
+   * `medium` evita el costo/latencia de `high` para imágenes editoriales de redes. Si la cuenta
+   * todavía no tiene acceso, se intenta gpt-image-1 y finalmente DALL-E 3.
    */
   private async callOpenAIImage(
     prompt: string,
     maxRetries: number,
     aspect: string,
-  ): Promise<{ buffer?: Buffer; name?: 'gptimage' | 'dalle3'; error?: string; errorCode?: string }> {
+  ): Promise<{ buffer?: Buffer; name?: 'gptimage2' | 'gptimage' | 'dalle3'; error?: string; errorCode?: string }> {
     await assertAiBudget();
     let lastError: any = null;
     const backoffTimes = [0, 5000, 10000, 20000];
-    // Empieza en gpt-image-1; puede degradar a dall-e-3 dentro del mismo loop.
-    let model: 'gpt-image-1' | 'dall-e-3' = 'gpt-image-1';
-    const IMAGE_QUALITY: 'low' | 'medium' | 'high' = 'high';
+    const modelFallbacks = ['gpt-image-2', 'gpt-image-1', 'dall-e-3'] as const;
+    let modelIndex = 0;
+    let model: (typeof modelFallbacks)[number] = modelFallbacks[modelIndex];
+    const IMAGE_QUALITY: 'low' | 'medium' | 'high' = 'medium';
 
     for (let attempt = 0; attempt < maxRetries; attempt++) {
       if (attempt > 0) {
@@ -254,22 +253,28 @@ export class SmartImageGenerator {
       try {
         // Cliente dedicado (api.openai.com con OPENAI_IMAGE_API_KEY). El proxy de Replit NO
         // soporta imágenes, por eso se usa getImageClient() apuntado al OpenAI real.
-        if (model === 'gpt-image-1') {
+        if (model !== 'dall-e-3') {
           const res = await getImageClient().images.generate({
-            model: 'gpt-image-1',
+            model,
             prompt,
             n: 1,
             size: this.gptImageSize(aspect),
             quality: IMAGE_QUALITY,
-          });
-          // gpt-image-1 SIEMPRE devuelve b64_json y NUNCA url.
+            // JPEG reduce el tiempo y el tamaño de la respuesta. El archivo se normaliza con
+            // Sharp antes de persistirlo, igual que el resto de imágenes del panel.
+            output_format: 'jpeg',
+            output_compression: 88,
+          } as any);
           const b64 = (res.data?.[0] as any)?.b64_json as string | undefined;
           if (b64) {
-            this.log(`gpt-image-1 generó imagen (intento ${attempt + 1}, quality ${IMAGE_QUALITY})`);
-            recordImageUsage(this.gptImageSize(aspect), 'gpt-image-1', IMAGE_QUALITY);
-            return { buffer: Buffer.from(b64, 'base64'), name: 'gptimage' };
+            this.log(`${model} generó imagen (intento ${attempt + 1}, quality ${IMAGE_QUALITY})`);
+            recordImageUsage(this.gptImageSize(aspect), model, IMAGE_QUALITY);
+            return {
+              buffer: Buffer.from(b64, 'base64'),
+              name: model === 'gpt-image-2' ? 'gptimage2' : 'gptimage',
+            };
           }
-          lastError = new Error('gpt-image-1 no devolvió b64_json');
+          lastError = new Error(`${model} no devolvió b64_json`);
         } else {
           const res = await getImageClient().images.generate({
             model: 'dall-e-3',
@@ -293,10 +298,9 @@ export class SmartImageGenerator {
         const msg = (err?.message || err?.error?.message || '').toLowerCase();
         this.log(`OpenAI image (${model}) intento ${attempt + 1} falló: ${parsed.code} / ${status || "unknown"}`);
 
-        // Org sin verificar para gpt-image-1, o modelo no accesible → degrada a dall-e-3 y
-        // reintenta de inmediato (NO cuenta como reintento con backoff).
+        // Modelo no disponible para la cuenta → intenta el siguiente sin aplicar backoff.
         if (
-          model === 'gpt-image-1' &&
+          model !== 'dall-e-3' &&
           (status === 403 ||
             msg.includes('must be verified') ||
             msg.includes('verify your organization') ||
@@ -305,8 +309,9 @@ export class SmartImageGenerator {
             msg.includes('does not exist') ||
             msg.includes('unsupported'))
         ) {
-          this.log('gpt-image-1 no disponible (organización sin verificar o sin acceso al modelo) → usando dall-e-3.');
-          model = 'dall-e-3';
+          modelIndex += 1;
+          model = modelFallbacks[modelIndex];
+          this.log(`Modelo de imagen no disponible; usando respaldo ${model}.`);
           attempt--; // que este intento no consuma un reintento
           continue;
         }
@@ -420,7 +425,7 @@ export class SmartImageGenerator {
 
     const brandEnhancedPrompt = `${originalPrompt}. Style: realistic editorial documentary photograph, photojournalism, natural lighting, candid real-world scene, high detail, DSLR photo. NOT an illustration, NOT a cartoon, NOT a drawing, NOT a 3D render, NOT digital art. No text, no watermark, no logo, no captions.`;
 
-    // Motor elegible por config (site_config.image_engine): 'openai' (DALL-E 3, principal por
+    // Motor elegible por config (site_config.image_engine): 'openai' (GPT Image 2, principal por
     // defecto) o 'cloudflare' (gratis, requiere credenciales CLOUDFLARE_*). Se intenta el elegido
     // primero y el otro como respaldo. Gemini se retiró del flujo.
     const config = await getConfigMap();
@@ -438,10 +443,10 @@ export class SmartImageGenerator {
     const runEngine = async (
       engine: 'openai' | 'cloudflare',
       prompt: string,
-    ): Promise<{ buffer?: Buffer; name?: 'gptimage' | 'dalle3' | 'cloudflare'; error?: string; errorCode?: string }> => {
+    ): Promise<{ buffer?: Buffer; name?: 'gptimage2' | 'gptimage' | 'dalle3' | 'cloudflare'; error?: string; errorCode?: string }> => {
       if (engine === 'openai') {
-        // callOpenAIImage ya devuelve el buffer final (gpt-image-1 en base64, o dall-e-3 descargado).
-        const r = await this.callOpenAIImage(prompt, 3, aspect);
+        // callOpenAIImage ya devuelve el buffer final (GPT Image en base64 o fallback descargado).
+        const r = await this.callOpenAIImage(prompt, 2, aspect);
         return r.buffer ? { buffer: r.buffer, name: r.name } : { error: r.error, errorCode: r.errorCode };
       }
       const r = await this.callCloudflareFlux(prompt);
@@ -517,11 +522,11 @@ export class SmartImageGenerator {
 
     // Fallback final: placeholder SVG.
     if (!result.success) {
-      // Pista accionable: la causa #1 en Replit es que DALL-E se pide contra el proxy de
+      // Pista accionable: la causa #1 en Replit es pedir imágenes contra el proxy de
       // AI Integrations (solo chat) sin una key real de OpenAI para imágenes.
       const hint = !hasDedicatedImageClient()
-        ? ' — No se detectó una API key real de OpenAI para imágenes (define OPENAI_IMAGE_API_KEY u OPENAI_API_KEY en Secrets con una key sk-…); el proxy de Replit solo soporta texto, no DALL-E.'
-        : ' — Hay key de OpenAI configurada pero la llamada a DALL-E falló; revisa que la key sea válida y tenga facturación/crédito.';
+        ? ' — No se detectó una API key real de OpenAI para imágenes (define OPENAI_IMAGE_API_KEY u OPENAI_API_KEY en Secrets); el proxy de texto de Replit no ofrece el endpoint de imágenes.'
+        : ' — Hay una key de OpenAI configurada, pero la generación de imagen falló; revisa acceso al modelo, facturación y crédito.';
       this.log(`Todos los motores fallaron. Asignando placeholder.${hint}`);
       result.engine = 'placeholder';
       result.imageUrl = '/placeholder-article.svg';

@@ -769,6 +769,28 @@ b,strong {
   text-align: center;
 }
 
+/* Slick used to animate the list height between short and long quotes. Keep
+   every slide at the tallest measured height so only the horizontal motion is
+   visible and the copy stays vertically centered throughout the transition. */
+.home__intro.slick-initialized .home__intro--item {
+  display: -webkit-flex !important;
+  display: flex !important;
+  -webkit-flex-direction: column;
+  flex-direction: column;
+  -webkit-justify-content: center;
+  justify-content: center;
+}
+
+.home__intro.slick-initialized .slick-list {
+  transition: none !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .home__intro.slick-initialized .slick-track {
+    transition-duration: 0.01ms !important;
+  }
+}
+
 @media (max-width: 800px) {
   .home__intro {
     padding: 50px 70px;

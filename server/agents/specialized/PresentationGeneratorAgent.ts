@@ -71,7 +71,7 @@ const CONFIG: AgentConfig = {
   name: 'Generador de Presentaciones',
   description: 'Genera presentaciones (PPTX/PDF/PNG) con branding de Von Wobeser a partir de un tema escrito y/o documentos subidos.',
   systemPrompt: SYSTEM_PROMPT,
-  model: 'gpt-4o',
+  model: 'gpt-5.4-mini',
   temperature: 0.5,
   maxTokens: 4096,
   skills: ['slide_structuring', 'presentation_design'],
@@ -193,14 +193,24 @@ export class PresentationGeneratorAgent extends BaseAgent {
   ): Promise<string[]> {
     const notes: string[] = [];
     const pool = [...opts.supportImages];
-    let aiImages = 0;
+    const aiCandidates: Array<{ slide: SlideModelSlide; prompt: string; index: number }> = [];
 
-    for (const s of model.slides) {
+    const degradeToBullets = (slide: SlideModelSlide): void => {
+      const bullets = slide.bullets && slide.bullets.length
+        ? slide.bullets
+        : [slide.image?.caption || slide.title];
+      slide.layout = 'bullets';
+      slide.bullets = bullets;
+      delete slide.image;
+    };
+
+    for (let index = 0; index < model.slides.length; index++) {
+      const s = model.slides[index];
       if (!opts.visuals && VISUAL_LAYOUTS.has(s.layout)) {
         // Degradar a viñetas usando lo que haya.
         const fallbackBullets = s.bullets && s.bullets.length ? s.bullets
           : s.diagram?.nodes?.length ? s.diagram.nodes
-          : s.chart ? s.chart.categories.map((c, i) => `${c}: ${s.chart!.series[0]?.values?.[i] ?? ''}`)
+          : s.chart ? s.chart.categories.map((c: string, i: number) => `${c}: ${s.chart!.series[0]?.values?.[i] ?? ''}`)
           : [s.title];
         s.layout = 'bullets';
         s.bullets = fallbackBullets;
@@ -216,34 +226,54 @@ export class PresentationGeneratorAgent extends BaseAgent {
         continue;
       }
       // 2) Generar con IA si se activó.
-      if (opts.illustrate && s.image?.prompt && aiImages < MAX_AI_IMAGES) {
+      if (opts.illustrate && s.image?.prompt && aiCandidates.length < MAX_AI_IMAGES) {
+        aiCandidates.push({ slide: s, prompt: s.image.prompt, index });
+        continue;
+      }
+      // 3) Sin imagen disponible → degradar a viñetas para no dejar un marco vacío.
+      degradeToBullets(s);
+    }
+
+    // Las imágenes son independientes. Se procesan dos a la vez: reduce notablemente la espera
+    // sin disparar demasiadas solicitudes simultáneas ni multiplicar el gasto accidentalmente.
+    let cursor = 0;
+    let generatedImages = 0;
+    const runWorker = async (): Promise<void> => {
+      while (cursor < aiCandidates.length) {
+        const candidate = aiCandidates[cursor++];
         try {
-          const res = await smartImageGenerator.generateImage(s.image.prompt, `presentation-${Date.now()}-${aiImages}`, '16:9');
-          // engine 'placeholder' = ningún motor disponible (sin créditos): NO es una imagen real,
-          // su URL no se resuelve en disco y dejaría un marco vacío. Se trata como fallo → viñetas.
+          const res = await smartImageGenerator.generateImage(
+            candidate.prompt,
+            `presentation-${Date.now()}-${candidate.index}`,
+            '16:9',
+          );
+          // engine 'placeholder' no es un recurso real y dejaría un marco vacío.
           if (res.success && res.imageUrl && res.engine !== 'placeholder') {
-            s.image = { ...s.image, url: res.imageUrl };
-            aiImages++;
+            candidate.slide.image = { ...candidate.slide.image, url: res.imageUrl };
+            generatedImages++;
             continue;
           }
           const reason = res.engine === 'placeholder'
             ? (hasDedicatedImageClient()
-                ? 'DALL-E rechazó la imagen (revisa saldo/validez de la key de OpenAI)'
-                : 'falta la key de OpenAI para imágenes (OPENAI_IMAGE_API_KEY); el proxy de Replit no genera imágenes')
+                ? 'el modelo de imágenes rechazó la solicitud o no tiene saldo disponible'
+                : 'falta OPENAI_IMAGE_API_KEY u OPENAI_API_KEY')
             : (res.errorCode || 'error');
           notes.push(`No se pudo generar una imagen (${reason}); esa diapositiva usa solo texto.`);
-        } catch (e: any) {
-          notes.push(`Error al generar imagen: ${e?.message || 'desconocido'}.`);
+        } catch (error: any) {
+          notes.push(`Error al generar imagen: ${error?.message || 'desconocido'}.`);
         }
+        degradeToBullets(candidate.slide);
       }
-      // 3) Sin imagen disponible → degradar a viñetas para no dejar un marco vacío.
-      const bl = s.bullets && s.bullets.length ? s.bullets : [s.image?.caption || s.title];
-      s.layout = 'bullets';
-      s.bullets = bl;
-      delete s.image;
-    }
+    };
 
-    if (aiImages >= MAX_AI_IMAGES) notes.push(`Se alcanzó el máximo de ${MAX_AI_IMAGES} imágenes generadas con IA por presentación.`);
+    await Promise.all(Array.from({ length: Math.min(2, aiCandidates.length) }, () => runWorker()));
+
+    if (aiCandidates.length >= MAX_AI_IMAGES) {
+      notes.push(`Se aplicó el máximo de ${MAX_AI_IMAGES} imágenes generadas con IA por presentación.`);
+    }
+    if (generatedImages > 0) {
+      notes.push(`${generatedImages} imagen${generatedImages === 1 ? '' : 'es'} generada${generatedImages === 1 ? '' : 's'} y guardada${generatedImages === 1 ? '' : 's'} en el historial.`);
+    }
     return notes;
   }
 }

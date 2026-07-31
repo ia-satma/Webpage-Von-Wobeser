@@ -138,7 +138,7 @@ const LEGACY_AI_BRAIN_AGENTS: SystemFeature[] = [
       'Aislamiento a prueba de fallos',
     ],
     technicalSpecs: {
-      model: 'gpt-4o-mini',
+      model: 'gpt-5.4-mini',
       temperature: 0.3,
       concurrency: 3,
       agents: ['Legal Scholar', 'Risk Analyst', 'Brand Guardian'],
@@ -149,7 +149,7 @@ const LEGACY_AI_BRAIN_AGENTS: SystemFeature[] = [
     category: 'ai_brain',
     name: 'Analizador de Inteligencia de Contenido',
     technicalName: 'ContentAnalyzerAgent',
-    technicalDetail: 'GPT-4o con modo JSON, análisis de 18 ramas jurídicas + 15 industrias, revisión ortográfica/gramatical con esquema SpellingGrammarIssue, extracción de menciones de abogados con contexto, recomendaciones SEO (keywords/título/meta/encabezados), puntuación de calidad 0-100.',
+    technicalDetail: 'GPT-5.4-mini con salida estructurada, análisis de 18 ramas jurídicas + 15 industrias, revisión ortográfica/gramatical con esquema SpellingGrammarIssue, extracción de menciones de abogados con contexto, recomendaciones SEO (keywords/título/meta/encabezados), puntuación de calidad 0-100.',
     userBenefit: 'Inteligencia profunda que permite optimización SEO automática, categorización sin intervención editorial, y priorización de trabajo basada en puntuación de calidad. Reduce 80% del tiempo de clasificación manual.',
     status: 'production',
     keyCapabilities: [
@@ -160,7 +160,7 @@ const LEGACY_AI_BRAIN_AGENTS: SystemFeature[] = [
       'Detección de menciones de abogados',
     ],
     technicalSpecs: {
-      model: 'gpt-4o',
+      model: 'gpt-5.4-mini',
       temperature: 0.3,
       maxTokens: 8000,
       concurrency: 2,
@@ -171,7 +171,7 @@ const LEGACY_AI_BRAIN_AGENTS: SystemFeature[] = [
     category: 'ai_brain',
     name: 'Agente de Taxonomía Inteligente',
     technicalName: 'CategoryAgent',
-    technicalDetail: 'GPT-4o-mini con modo JSON, mapeo a practiceGroups/industryGroups existentes, 16 áreas de práctica + 7 sectores industriales, generación de 5 tags por artículo, puntuación de confianza.',
+    technicalDetail: 'GPT-5.4-mini con salida estructurada, mapeo a practiceGroups/industryGroups existentes, 18 áreas de práctica + 7 sectores industriales, generación de tags por artículo y puntuación de confianza.',
     userBenefit: 'Elimina el trabajo manual de etiquetado, asegura taxonomía consistente en todo el contenido, y mejora la descubribilidad mediante categorización inteligente basada en contexto legal.',
     status: 'production',
     keyCapabilities: [
@@ -182,7 +182,7 @@ const LEGACY_AI_BRAIN_AGENTS: SystemFeature[] = [
       'Creación dinámica de categorías',
     ],
     technicalSpecs: {
-      model: 'gpt-4o-mini',
+      model: 'gpt-5.4-mini',
       temperature: 0.3,
       concurrency: 3,
     },
@@ -192,7 +192,7 @@ const LEGACY_AI_BRAIN_AGENTS: SystemFeature[] = [
     category: 'ai_brain',
     name: 'Vinculador de Metadatos Relacionales',
     technicalName: 'MetadataLinkerAgent',
-    technicalDetail: 'GPT-4o, extracción de patrones de autor → coincidencia fuzzy por apellido vía ilike, matching de slugs de áreas de práctica, matching de slugs de grupos industriales, creación de relaciones en tabla de unión newsTeamMembers.',
+    technicalDetail: 'GPT-5.4-mini, extracción de patrones de autor → coincidencia fuzzy por apellido vía ilike, matching de slugs de áreas de práctica, matching de slugs de grupos industriales y creación de relaciones en newsTeamMembers.',
     userBenefit: 'Atribución automática contenido-autor, enlaces cruzados entre artículos y áreas de práctica, mejora del SEO mediante internal linking inteligente. Los socios aparecen vinculados automáticamente a sus publicaciones.',
     status: 'production',
     keyCapabilities: [
@@ -203,7 +203,7 @@ const LEGACY_AI_BRAIN_AGENTS: SystemFeature[] = [
       'Matching fuzzy de nombres',
     ],
     technicalSpecs: {
-      model: 'gpt-4o',
+      model: 'gpt-5.4-mini',
       concurrency: 5,
     },
   },
@@ -235,7 +235,7 @@ const LEGACY_AI_HANDS_AGENTS: SystemFeature[] = [
     category: 'ai_hands',
     name: 'Motor Neuronal de Localización Semántica',
     technicalName: 'PolyglotTranslatorAgent',
-    technicalDetail: 'GPT-4o con temperatura 0.3, soporte para 10 jurisdicciones lingüísticas (EN/ES/DE/ZH/KO/JA/AR/RU/FR/IT), inyección de glosario jurídico desde tabla agentKnowledge (500+ términos), detección de idioma fuente (prioridad español), caché de traducciones en tabla translationCache.',
+    technicalDetail: 'GPT-5.4-mini con soporte para 10 jurisdicciones lingüísticas (EN/ES/DE/ZH/KO/JA/AR/RU/FR/IT), inyección de glosario jurídico desde agentKnowledge, detección de idioma fuente y caché de traducciones en translationCache.',
     userBenefit: 'Barreras de contención anti-"Spanglish" que garantizan 100% de cobertura en los 10 idiomas. Reduce costos de API 90% vía caché inteligente mientras mantiene precisión jurídica impecable.',
     status: 'production',
     keyCapabilities: [
@@ -246,7 +246,7 @@ const LEGACY_AI_HANDS_AGENTS: SystemFeature[] = [
       'Detección automática de idioma fuente',
     ],
     technicalSpecs: {
-      model: 'gpt-4o',
+      model: 'gpt-5.4-mini',
       temperature: 0.3,
       concurrency: 2,
       languages: ['en', 'es', 'de', 'zh', 'ko', 'ja', 'ar', 'ru', 'fr', 'it'],
@@ -257,7 +257,7 @@ const LEGACY_AI_HANDS_AGENTS: SystemFeature[] = [
     category: 'ai_hands',
     name: 'Sintetizador Visual con Escudo Legal',
     technicalName: 'SmartImageGenerator + ImageSuggestionAgent',
-    technicalDetail: 'DALL-E 3 primario → Gemini 2.5 Flash fallback → Placeholder garantizado. Sanitización de políticas de contenido (28 términos legales sensibles → reemplazos abstractos), inyección de color de marca (#AA1A2E), overlay de logo con Sharp (150px sobre fondo blanco, esquina inferior derecha).',
+    technicalDetail: 'GPT Image 2 con calidad media y salida JPEG optimizada; fallback a GPT Image 1 y DALL-E 3 si el acceso al modelo principal no está disponible. Sanitización de términos sensibles, color de marca (#AA1A2E) y overlay de logo con Sharp.',
     userBenefit: 'Generación gráfica con "Sanitización Legal" que reinterpreta conceptos sensibles para asegurar integridad institucional. Previene bloqueos de publicación por censura de IA y garantiza 100% de uptime visual.',
     status: 'production',
     keyCapabilities: [
@@ -268,8 +268,8 @@ const LEGACY_AI_HANDS_AGENTS: SystemFeature[] = [
       'Inyección de paleta corporativa',
     ],
     technicalSpecs: {
-      primaryEngine: 'DALL-E 3',
-      fallbackEngine: 'Gemini 2.5 Flash',
+      primaryEngine: 'gpt-image-2',
+      fallbackEngine: 'gpt-image-1 / DALL-E 3',
       sanitizedTerms: 28,
       logoSize: '150px',
       brandColor: '#AA1A2E',
@@ -280,7 +280,7 @@ const LEGACY_AI_HANDS_AGENTS: SystemFeature[] = [
     category: 'ai_hands',
     name: 'Agente de Posicionamiento Orgánico',
     technicalName: 'SEOOptimizerAgent',
-    technicalDetail: 'GPT-4o, optimización de título (50-60 caracteres), generación de meta descripción (150-160 caracteres), sugerencia de slug (3-5 keywords), extracción de keywords bilingüe (EN/ES), cálculo de puntuación SEO con delta de mejora.',
+    technicalDetail: 'GPT-5.4-mini, optimización de título, generación de meta descripción, sugerencia de slug, extracción de keywords bilingüe (EN/ES) y cálculo de puntuación SEO con delta de mejora.',
     userBenefit: 'Visibilidad de mercado maximizada mediante optimización automática para motores de búsqueda. Estrategia bilingüe de keywords asegura visibilidad en búsquedas en inglés y español.',
     status: 'production',
     keyCapabilities: [
@@ -291,7 +291,7 @@ const LEGACY_AI_HANDS_AGENTS: SystemFeature[] = [
       'Sugerencia de slugs semánticos',
     ],
     technicalSpecs: {
-      model: 'gpt-4o',
+      model: 'gpt-5.4-mini',
       titleLength: '50-60 chars',
       metaLength: '150-160 chars',
     },
@@ -301,7 +301,7 @@ const LEGACY_AI_HANDS_AGENTS: SystemFeature[] = [
     category: 'ai_hands',
     name: 'Formateador de Contenido Jurídico',
     technicalName: 'FormatterAgent',
-    technicalDetail: 'GPT-4o con temperatura 0.2, eliminación de artefactos PDF (marcadores de página, pies, boilerplate), pre-limpieza regex (dirección Von Wobeser, números de página), lógica de merge/split de párrafos, extracción de excerpt (primeras 2-3 oraciones).',
+    technicalDetail: 'GPT-5.4-mini, eliminación de artefactos PDF (marcadores de página, pies y boilerplate), pre-limpieza segura, reestructuración de párrafos y extracción de excerpt.',
     userBenefit: 'Transforma extractos crudos de PDF en contenido listo para publicación, elimina trabajo manual de formateo, y preserva precisión legal mientras mejora legibilidad.',
     status: 'production',
     keyCapabilities: [
@@ -312,7 +312,7 @@ const LEGACY_AI_HANDS_AGENTS: SystemFeature[] = [
       'Preservación de precisión legal',
     ],
     technicalSpecs: {
-      model: 'gpt-4o',
+      model: 'gpt-5.4-mini',
       temperature: 0.2,
     },
   },
@@ -380,7 +380,7 @@ const LEGACY_AI_SHIELD_AGENTS: SystemFeature[] = [
       'Priorización por severidad',
     ],
     technicalSpecs: {
-      model: 'gpt-4o',
+      model: 'structural-no-llm',
       temperature: 0.2,
       concurrency: 1,
     },
