@@ -2,7 +2,8 @@ import { useState, useRef, useEffect } from "react";
 import { AdminPageHelp } from "@/components/admin/AdminPageHelp";
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { useAdminAuth, adminApiRequest, getAuthHeaders } from "@/lib/adminAuth";
+import { useAdminAuth, adminApiRequest } from "@/lib/adminAuth";
+import { uploadAdminMedia } from "@/lib/adminMediaUpload";
 import { queryClient } from "@/lib/queryClient";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -88,20 +89,8 @@ export function OfficeGalleryManager({ embedded = false }: { embedded?: boolean 
   const handleFileUpload = async (file: File) => {
     setUploading(true);
     try {
-      const formData = new FormData();
-      formData.append("file", file);
-      if (altEn) formData.append("alt", altEn);
-      if (altEs) formData.append("altEs", altEs);
-
-      const res = await fetch("/api/admin/media/upload", {
-        method: "POST",
-        headers: getAuthHeaders(),
-        credentials: "include",
-        body: formData,
-      });
-
-      if (!res.ok) throw new Error("Falló la subida");
-      const mediaItem = await res.json();
+      const mediaItem = await uploadAdminMedia(file, { alt: altEn, altEs });
+      if (typeof mediaItem.path !== "string" || !mediaItem.path) throw new Error("El servidor no devolvió una ruta válida.");
 
       await createMutation.mutateAsync({
         imageUrl: mediaItem.path,
@@ -109,8 +98,12 @@ export function OfficeGalleryManager({ embedded = false }: { embedded?: boolean 
         altEs: altEs,
         order: parseInt(orderInput) || 0,
       });
-    } catch {
-      toast({ title: "Falló la subida", variant: "destructive" });
+    } catch (error) {
+      toast({
+        title: "Falló la subida",
+        description: error instanceof Error ? error.message : undefined,
+        variant: "destructive",
+      });
     } finally {
       setUploading(false);
     }
@@ -261,7 +254,7 @@ export function OfficeGalleryManager({ embedded = false }: { embedded?: boolean 
                 <input
                   ref={fileInputRef}
                   type="file"
-                  accept="image/*"
+                  accept="image/jpeg,image/png,image/gif,image/webp,.jpg,.jpeg,.png,.gif,.webp"
                   className="hidden"
                   onChange={(e) => {
                     const file = e.target.files?.[0];
@@ -277,6 +270,9 @@ export function OfficeGalleryManager({ embedded = false }: { embedded?: boolean 
                   <Upload className="w-4 h-4 mr-2" />
                   {uploading ? "Subiendo…" : "Seleccionar y subir archivo"}
                 </Button>
+                <p className="mt-2 text-xs text-muted-foreground">
+                  JPG, PNG, GIF o WebP de hasta 200 MB. El sistema valida, optimiza y guarda la imagen en App Storage.
+                </p>
               </div>
             )}
           </CardContent>

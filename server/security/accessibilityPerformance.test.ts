@@ -291,6 +291,17 @@ test("la portada nombra los cuatro carruseles y aplica contraste AA al módulo d
   assert.match($(".home_slider_JS").eq(0).find(".vw-lazy-bg").attr("data-bg-mobile") || "", /-640\.webp$/);
   assert.match($(".home_slider_JS").eq(0).find(".vw-lazy-bg").attr("data-bg-desktop") || "", /-(?:1280|1920)\.webp$/);
   assert.match($("#vw-home-performance-js").text(), /navigator\.connection/);
+  assert.match($("#vw-home-performance-js").text(), /\.slick-cloned\.vw-lazy-bg/);
+  assert.match($("#vw-home-performance-js").text(), /\.slick-active\.vw-lazy-bg/);
+  assert.match($("#vw-home-performance-js").text(), /afterChange\.vwLazyBg/);
+  assert.match($("#vw-home-performance-js").text(), /addEventListener\('wheel'/);
+  assert.match($("#vw-home-performance-js").text(), /data-vw-wheel-bound/);
+  assert.match($("#vw-home-performance-js").text(), /slickNext/);
+  assert.match($("#vw-home-performance-js").text(), /slickPrev/);
+  assert.match($("#vw-home-performance-js").text(), /wheelLocked/);
+  assert.match($("#vw-home-performance-js").text(), /Math\.abs\(wheelTotal\)<70/);
+  assert.match($("#vw-home-performance-js").text(), /1000/);
+  assert.match($("#vw-home-performance-js").text(), /\{passive:true\}/);
   assert.equal($(".home_rec_JS img").attr("loading"), "lazy");
   assert.match($("#a11y-contrast").text(), /\.covid_title span/);
   assert.match($("#a11y-contrast").text(), /\.vw-news-carousel__count\{color:#5f5f5f !important\}/);
@@ -312,6 +323,9 @@ test("el recurso compartido corrige también HTML legacy antes de inicializar el
   assert.match(functions, /function populateCapabilitySubmenus\(e\)/);
   assert.match(functions, /\/api\/public\/navigation-menu/);
   assert.match(functions, /aria-expanded/);
+  assert.match(functions, /swipe: !0/);
+  assert.match(functions, /draggable: !0/);
+  assert.match(functions, /touchMove: !0/);
   assert.ok(functions.indexOf("normalizeSharedChromeA11y()") < functions.lastIndexOf("menuToggle()"));
   assert.match(css, /\.header \.eyeglass:focus-visible/);
   assert.match(css, /nav\.nav\.menu_JS \.nav__menu--holder[\s\S]*list-style: none/);

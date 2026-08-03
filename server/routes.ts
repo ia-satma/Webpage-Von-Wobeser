@@ -17,6 +17,13 @@ import {
 } from "./media/optimizeImage";
 import { generateHeroVideoVariants } from "./media/optimizeVideo";
 import {
+  assembleChunkedMediaUpload,
+  ChunkedMediaUploadError,
+  createChunkedMediaUpload,
+  removeChunkedMediaUpload,
+  storeChunkedMediaPart,
+} from "./media/chunkedUpload";
+import {
   deletePersistentMediaObjects,
   hydratePersistentPublicMedia,
   listPersistentPublicMediaPaths,
@@ -341,6 +348,11 @@ const receivePublicMediaUpload = (req: Request, res: Response, next: NextFunctio
     });
   });
 };
+
+const receiveMediaChunk = express.raw({
+  type: "application/octet-stream",
+  limit: "5mb",
+});
 
 // Multer dedicado para CVs del formulario de Pasantes — límite y tipos distintos del de
 // medios (10MB en vez de 200MB, solo PDF/DOC/DOCX en vez de imágenes/video). Público (sin
@@ -3688,18 +3700,22 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
     }
   });
 
-  // Upload media
-  app.post("/api/admin/media/upload", authMiddleware, requirePermission("content"), receivePublicMediaUpload, async (req: Request, res: Response) => {
+  // Finalización compartida por la carga multipart tradicional y la carga
+  // fragmentada. Ambas pasan por exactamente la misma validación, cuarentena,
+  // saneamiento, App Storage y registro de biblioteca.
+  const completePublicMediaUpload = async (req: Request, res: Response): Promise<void> => {
     let acceptedMediaPath: string | undefined;
     let generatedVariantPaths: string[] = [];
     let persistedObjectNames: string[] = [];
     try {
       if (!req.file) {
-        return res.status(400).json({ error: "No file uploaded" });
+        res.status(400).json({ error: "No file uploaded" });
+        return;
       }
       if (!await validatePublicMediaSignature(req.file.path, req.file.mimetype)) {
         await removeUploadQuietly(req.file.path);
-        return res.status(400).json({ error: "El contenido del archivo no coincide con su formato." });
+        res.status(400).json({ error: "El contenido del archivo no coincide con su formato." });
+        return;
       }
 
       const isVideoUpload = req.file.mimetype.startsWith("video/");
@@ -3708,10 +3724,11 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
         : false;
       if (isVideoUpload && !validatedVideoContainer) {
         await removeUploadQuietly(req.file.path);
-        return res.status(400).json({
+        res.status(400).json({
           error: "El video no contiene una pista reproducible o su contenedor está dañado.",
           code: "INVALID_VIDEO_CONTAINER",
         });
+        return;
       }
 
       // Los raster compatibles se decodifican y re-codifican dentro de cuarentena.
@@ -3724,9 +3741,10 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
           sanitizedRaster = true;
         } catch {
           await removeUploadQuietly(req.file.path);
-          return res.status(400).json({
+          res.status(400).json({
             error: "La imagen está dañada, excede el límite de resolución o no puede procesarse.",
           });
+          return;
         }
       }
 
@@ -3740,7 +3758,8 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
         const message = error instanceof Error ? error.message : "";
         if (message === "Malware detected") {
           await removeUploadQuietly(req.file.path);
-          return res.status(400).json({ error: "El archivo fue rechazado por seguridad." });
+          res.status(400).json({ error: "El archivo fue rechazado por seguridad." });
+          return;
         }
         // Los raster saneados y los videos cuya firma y contenedor fueron
         // validados pueden continuar si la base de ClamAV no está disponible.
@@ -3804,16 +3823,134 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
       await Promise.all(generatedVariantPaths.map((variantPath) => removeUploadQuietly(variantPath)));
       console.error("Upload media validation failed", error instanceof Error ? error.message : "unknown");
       if (error instanceof PersistentMediaUnavailableError) {
-        return res.status(503).json({
+        res.status(503).json({
           error: "App Storage no está disponible. El archivo no se guardó para evitar que se pierda al publicar.",
         });
+        return;
       }
       res.status(500).json({
         error: "No se pudo completar la carga. El archivo anterior permanece sin cambios.",
         code: "MEDIA_UPLOAD_FAILED",
       });
     }
+  };
+
+  const chunkedMediaStartSchema = z.object({
+    originalName: z.string().trim().min(1).max(180),
+    mimeType: z.string().trim().min(1).max(100),
+    size: z.number().int().positive().max(200 * 1024 * 1024),
+  }).strict();
+  const chunkedMediaCompleteSchema = z.object({
+    token: z.string().min(40).max(2_000),
+    alt: z.string().max(500).optional().default(""),
+    altEs: z.string().max(500).optional().default(""),
+  }).strict();
+  const sendChunkedMediaError = (res: Response, error: unknown): void => {
+    if (error instanceof ChunkedMediaUploadError) {
+      res.status(error.status).json({ error: error.message, code: error.code });
+      return;
+    }
+    console.error("Chunked media upload failed", error instanceof Error ? error.message : "unknown");
+    res.status(500).json({
+      error: "No se pudo completar la carga fragmentada. El archivo anterior permanece sin cambios.",
+      code: "CHUNK_UPLOAD_FAILED",
+    });
+  };
+
+  app.post("/api/admin/media/upload/start", authMiddleware, requirePermission("content"), (req: Request, res: Response) => {
+    const parsed = chunkedMediaStartSchema.safeParse(req.body);
+    if (!parsed.success) {
+      return res.status(400).json({
+        error: "Indica un archivo compatible de hasta 200 MB.",
+        code: "INVALID_CHUNK_UPLOAD_REQUEST",
+      });
+    }
+    try {
+      return res.json(createChunkedMediaUpload({
+        userId: req.adminUser!.id,
+        ...parsed.data,
+      }));
+    } catch (error) {
+      sendChunkedMediaError(res, error);
+    }
   });
+
+  app.put(
+    "/api/admin/media/upload/chunk",
+    authMiddleware,
+    requirePermission("content"),
+    receiveMediaChunk,
+    async (req: Request, res: Response) => {
+      const token = typeof req.headers["x-upload-token"] === "string" ? req.headers["x-upload-token"] : "";
+      const indexHeader = typeof req.headers["x-chunk-index"] === "string" ? req.headers["x-chunk-index"] : "";
+      const index = /^\d{1,2}$/.test(indexHeader) ? Number(indexHeader) : -1;
+      if (!token || !Buffer.isBuffer(req.body)) {
+        return res.status(400).json({ error: "El fragmento no es válido.", code: "INVALID_MEDIA_CHUNK" });
+      }
+      try {
+        return res.json(await storeChunkedMediaPart(token, req.adminUser!.id, index, req.body));
+      } catch (error) {
+        sendChunkedMediaError(res, error);
+      }
+    },
+  );
+
+  app.post("/api/admin/media/upload/abort", authMiddleware, requirePermission("content"), async (req: Request, res: Response) => {
+    const parsed = chunkedMediaCompleteSchema.pick({ token: true }).safeParse(req.body);
+    if (!parsed.success) {
+      return res.status(400).json({ error: "La sesión de carga no es válida.", code: "INVALID_CHUNK_SESSION" });
+    }
+    await removeChunkedMediaUpload(parsed.data.token, req.adminUser!.id);
+    return res.json({ success: true });
+  });
+
+  app.post("/api/admin/media/upload/complete", authMiddleware, requirePermission("content"), async (req: Request, res: Response) => {
+    const parsed = chunkedMediaCompleteSchema.safeParse(req.body);
+    if (!parsed.success) {
+      return res.status(400).json({ error: "La sesión de carga no es válida.", code: "INVALID_CHUNK_SESSION" });
+    }
+    const token = parsed.data.token;
+    let assembledPath = "";
+    try {
+      // La extensión física se deriva después del MIME firmado; nunca del nombre
+      // proporcionado por el navegador.
+      const provisional = securePhysicalFilename(".bin");
+      assembledPath = path.join(publicMediaQuarantineDir, provisional);
+      const assembled = await assembleChunkedMediaUpload(token, req.adminUser!.id, assembledPath);
+      const extension = MIME_TO_EXT[assembled.mimeType];
+      if (!extension) throw new ChunkedMediaUploadError("El formato no está permitido.", "INVALID_MEDIA_TYPE", 415);
+      const filename = securePhysicalFilename(extension);
+      const typedPath = path.join(publicMediaQuarantineDir, filename);
+      await fs.promises.rename(assembledPath, typedPath);
+      assembledPath = typedPath;
+      req.file = {
+        fieldname: "file",
+        originalname: assembled.originalName,
+        encoding: "7bit",
+        mimetype: assembled.mimeType,
+        size: assembled.size,
+        destination: publicMediaQuarantineDir,
+        filename,
+        path: typedPath,
+        buffer: Buffer.alloc(0),
+      } as Express.Multer.File;
+      req.body = { alt: parsed.data.alt, altEs: parsed.data.altEs };
+      await completePublicMediaUpload(req, res);
+    } catch (error) {
+      await removeUploadQuietly(assembledPath);
+      sendChunkedMediaError(res, error);
+    } finally {
+      await removeChunkedMediaUpload(token, req.adminUser!.id);
+    }
+  });
+
+  app.post(
+    "/api/admin/media/upload",
+    authMiddleware,
+    requirePermission("content"),
+    receivePublicMediaUpload,
+    completePublicMediaUpload,
+  );
 
   const heroVariantSchema = z.object({
     mediaPath: z.string().trim().min(1).max(500).regex(/^\/(?:uploads|images)\/[A-Za-z0-9._/%+-]+$/),

@@ -5,6 +5,14 @@ import path from "node:path";
 import test from "node:test";
 import JSZip from "jszip";
 import sharp from "sharp";
+import {
+  assembleChunkedMediaUpload,
+  ChunkedMediaUploadError,
+  createChunkedMediaUpload,
+  MEDIA_CHUNK_BYTES,
+  removeChunkedMediaUpload,
+  storeChunkedMediaPart,
+} from "../media/chunkedUpload";
 import { sanitizeRasterImage } from "../media/optimizeImage";
 import { validateCvFile, validatePublicMediaSignature, validateVideoContainer } from "./uploads";
 
@@ -56,16 +64,116 @@ test("video upload accepts a playable MP4 container and rejects a forged one", a
 test("admin media upload exposes progress and keeps the 200 MB video limit explicit", async () => {
   const root = process.cwd();
   const clientSource = await fs.readFile(
+    path.join(root, "client/src/lib/adminMediaUpload.ts"),
+    "utf8",
+  );
+  const fieldSource = await fs.readFile(
     path.join(root, "client/src/components/admin/ImageUpload.tsx"),
     "utf8",
   );
   const routeSource = await fs.readFile(path.join(root, "server/routes.ts"), "utf8");
 
-  assert.match(clientSource, /const MAX_MEDIA_MB = 200/);
+  assert.match(clientSource, /MAX_ADMIN_MEDIA_MB = 200/);
+  assert.match(clientSource, /CHUNKED_UPLOAD_THRESHOLD = 6 \* 1024 \* 1024/);
   assert.match(clientSource, /xhr\.upload\.onprogress/);
-  assert.match(clientSource, /Guardando en App Storage/);
+  assert.match(clientSource, /Guardado en App Storage/);
+  assert.match(clientSource, /\/api\/admin\/media\/upload\/start/);
+  assert.match(clientSource, /\/api\/admin\/media\/upload\/chunk/);
+  assert.match(clientSource, /\/api\/admin\/media\/upload\/complete/);
+  assert.match(fieldSource, /720p, 1080p y 4K/);
   assert.match(routeSource, /MEDIA_FILE_TOO_LARGE/);
   assert.match(routeSource, /validateVideoContainer/);
+  assert.match(routeSource, /receiveMediaChunk/);
+});
+
+test("chunked admin media upload reconstructs every byte and rejects altered sessions", async () => {
+  const environmentKeys = [
+    "NODE_ENV",
+    "REPL_ID",
+    "REPLIT_DEPLOYMENT",
+    "REPLIT_ENVIRONMENT",
+    "REPLIT_APP_STORAGE_BUCKET_ID",
+    "VWB_APP_STORAGE_ENABLED",
+    "VWB_PERSISTENT_MEDIA_REQUIRED",
+    "SESSION_SECRET",
+  ] as const;
+  const previous = Object.fromEntries(environmentKeys.map((key) => [key, process.env[key]]));
+  const directory = await fs.mkdtemp(path.join(os.tmpdir(), "vwb-chunk-upload-test-"));
+  let token = "";
+  try {
+    for (const key of environmentKeys) delete process.env[key];
+    process.env.NODE_ENV = "test";
+    process.env.SESSION_SECRET = "chunk-upload-test-secret-with-enough-entropy";
+
+    const contents = Buffer.alloc(MEDIA_CHUNK_BYTES + 17, 0x5a);
+    const session = createChunkedMediaUpload({
+      userId: "test-admin",
+      originalName: "master-video.mp4",
+      mimeType: "video/mp4",
+      size: contents.length,
+    });
+    token = session.token;
+    assert.equal(session.totalChunks, 2);
+    await storeChunkedMediaPart(token, "test-admin", 0, contents.subarray(0, MEDIA_CHUNK_BYTES));
+    await storeChunkedMediaPart(token, "test-admin", 1, contents.subarray(MEDIA_CHUNK_BYTES));
+
+    const destination = path.join(directory, "assembled.mp4");
+    const result = await assembleChunkedMediaUpload(token, "test-admin", destination);
+    assert.deepEqual(await fs.readFile(destination), contents);
+    assert.equal(result.mimeType, "video/mp4");
+    assert.equal(result.originalName, "master-video.mp4");
+
+    const altered = `${token.slice(0, -1)}${token.endsWith("A") ? "B" : "A"}`;
+    assert.throws(
+      () => createChunkedMediaUpload({
+        userId: "test-admin",
+        originalName: "x.exe",
+        mimeType: "application/x-msdownload",
+        size: 10,
+      }),
+      (error: unknown) => error instanceof ChunkedMediaUploadError && error.code === "INVALID_MEDIA_TYPE",
+    );
+    await assert.rejects(
+      () => assembleChunkedMediaUpload(altered, "test-admin", path.join(directory, "altered.mp4")),
+      (error: unknown) => error instanceof ChunkedMediaUploadError && error.code === "INVALID_CHUNK_SESSION",
+    );
+  } finally {
+    if (token) await removeChunkedMediaUpload(token, "test-admin");
+    await fs.rm(directory, { recursive: true, force: true });
+    for (const key of environmentKeys) {
+      const value = previous[key];
+      if (value === undefined) delete process.env[key];
+      else process.env[key] = value;
+    }
+  }
+});
+
+test("all public admin media screens use the shared resilient uploader", async () => {
+  const root = process.cwd();
+  const files = [
+    "client/src/components/admin/ImageUpload.tsx",
+    "client/src/pages/admin/GalleryAdmin.tsx",
+    "client/src/pages/admin/AdminOffices.tsx",
+    "client/src/pages/admin/AdminPresentations.tsx",
+  ];
+  for (const relative of files) {
+    const source = await fs.readFile(path.join(root, relative), "utf8");
+    assert.match(source, /uploadAdminMedia/);
+    assert.doesNotMatch(source, /fetch\(["']\/api\/admin\/media\/upload["']/);
+  }
+});
+
+test("hero video derivatives preserve a Full HD desktop profile without replacing the master", async () => {
+  const source = await fs.readFile(
+    path.join(process.cwd(), "server/media/optimizeVideo.ts"),
+    "utf8",
+  );
+
+  assert.match(source, /scale=1920:1080/);
+  assert.match(source, /"-crf", "20"/);
+  assert.match(source, /scale=640:360/);
+  assert.match(source, /"-crf", "24"/);
+  assert.match(source, /El archivo original permanece intacto/);
 });
 
 test("public raster sanitization decodes and removes appended payloads", async () => {

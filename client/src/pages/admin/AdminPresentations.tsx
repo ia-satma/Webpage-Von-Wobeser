@@ -6,7 +6,8 @@ import { AgentProgress } from "@/components/admin/AgentTools";
 import { DocumentUpload, type UploadedDoc } from "@/components/admin/DocumentUpload";
 import { ImageUpload } from "@/components/admin/ImageUpload";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { useAdminAuth, adminApiRequest, getAuthHeaders, loadAdminSession } from "@/lib/adminAuth";
+import { useAdminAuth, adminApiRequest } from "@/lib/adminAuth";
+import { uploadAdminMedia } from "@/lib/adminMediaUpload";
 import { queryClient } from "@/lib/queryClient";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -71,6 +72,7 @@ export default function AdminPresentations() {
   const [webSearch, setWebSearch] = useState(false);
   const [supportImages, setSupportImages] = useState<string[]>([]);
   const [uploadingImg, setUploadingImg] = useState(false);
+  const [supportUploadStatus, setSupportUploadStatus] = useState("");
   const [notes, setNotes] = useState<string[]>([]);
   const [usedFallback, setUsedFallback] = useState(false);
 
@@ -90,22 +92,30 @@ export default function AdminPresentations() {
 
   const uploadSupportImages = async (files: FileList) => {
     setUploadingImg(true);
+    setSupportUploadStatus("Preparando imágenes…");
     const next = [...supportImages];
     try {
-      await loadAdminSession(true);
-      for (const file of Array.from(files)) {
-        const fd = new FormData();
-        fd.append("file", file);
-        const res = await fetch("/api/admin/media/upload", { method: "POST", headers: { ...getAuthHeaders() }, body: fd, credentials: "include" });
-        if (res.ok) {
-          const data = await res.json();
-          const url = data.path || data.url;
-          if (url) next.push(url);
-        }
+      const selected = Array.from(files);
+      for (let index = 0; index < selected.length; index += 1) {
+        const file = selected[index];
+        const data = await uploadAdminMedia(file, {
+          onProgress: (percent, status) => setSupportUploadStatus(
+            `Imagen ${index + 1} de ${selected.length}: ${status || "subiendo"}${percent ? ` (${percent}%)` : ""}`,
+          ),
+        });
+        const url = data.path || data.url;
+        if (typeof url === "string" && url) next.push(url);
       }
       setSupportImages(next);
+    } catch (error) {
+      toast({
+        title: "No se pudieron cargar todas las imágenes",
+        description: error instanceof Error ? error.message : undefined,
+        variant: "destructive",
+      });
     } finally {
       setUploadingImg(false);
+      setSupportUploadStatus("");
     }
   };
 
@@ -329,7 +339,7 @@ export default function AdminPresentations() {
                       Subir imágenes
                       <input
                         type="file"
-                        accept="image/*"
+                        accept="image/jpeg,image/png,image/gif,image/webp,.jpg,.jpeg,.png,.gif,.webp"
                         multiple
                         className="hidden"
                         onChange={(e) => e.target.files && e.target.files.length > 0 && uploadSupportImages(e.target.files)}
@@ -348,6 +358,11 @@ export default function AdminPresentations() {
                       </div>
                     ))}
                   </div>
+                  {uploadingImg && supportUploadStatus && (
+                    <p className="text-xs text-muted-foreground" role="status" aria-live="polite">
+                      {supportUploadStatus}
+                    </p>
+                  )}
                 </div>
               )}
             </div>

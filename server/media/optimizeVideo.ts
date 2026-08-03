@@ -120,7 +120,7 @@ export async function generateHeroVideoVariants(
   const sourceStat = await fs.stat(sourcePath);
   const fingerprint = crypto
     .createHash("sha256")
-    .update(`hero-stream-v4:${path.basename(sourcePath)}:${sourceStat.size}:${sourceStat.mtimeMs}`)
+    .update(`hero-stream-v6-full-hd:${path.basename(sourcePath)}:${sourceStat.size}:${sourceStat.mtimeMs}`)
     .digest("hex")
     .slice(0, 16);
   const desktopName = `hero-${fingerprint}-desktop.mp4`;
@@ -157,23 +157,23 @@ export async function generateHeroVideoVariants(
   try {
     await runFfmpeg([
       "-y", "-ss", "1", "-i", sourcePath, "-an",
-      "-vf", "scale=960:540:force_original_aspect_ratio=decrease:force_divisible_by=2,fps=24",
-      "-c:v", "libx264", "-profile:v", "high", "-level", "3.1",
-      "-preset", "slow", "-b:v", "560k", "-maxrate", "800k", "-bufsize", "1600k",
+      "-vf", "scale=1920:1080:force_original_aspect_ratio=decrease:force_divisible_by=2,fps=24",
+      "-c:v", "libx264", "-profile:v", "high", "-level", "4.1",
+      "-preset", "medium", "-crf", "20", "-maxrate", "3500k", "-bufsize", "7000k",
       "-pix_fmt", "yuv420p",
       "-movflags", "+faststart", temporaryDesktop,
     ]);
     await runFfmpeg([
       "-y", "-ss", "1", "-i", sourcePath, "-an",
-      "-vf", "scale=480:270:force_original_aspect_ratio=decrease:force_divisible_by=2,fps=24",
-      "-c:v", "libx264", "-profile:v", "high", "-level", "3.0",
-      "-preset", "slow", "-b:v", "170k", "-maxrate", "250k", "-bufsize", "500k",
+      "-vf", "scale=640:360:force_original_aspect_ratio=decrease:force_divisible_by=2,fps=24",
+      "-c:v", "libx264", "-profile:v", "high", "-level", "3.1",
+      "-preset", "medium", "-crf", "24", "-maxrate", "650k", "-bufsize", "1300k",
       "-pix_fmt", "yuv420p",
       "-movflags", "+faststart", temporaryMobile,
     ]);
     await runFfmpeg([
       "-y", "-ss", "1", "-i", sourcePath, "-frames:v", "1",
-      "-vf", "scale=960:540:force_original_aspect_ratio=decrease",
+      "-vf", "scale=1920:1080:force_original_aspect_ratio=decrease",
       temporaryPng,
     ]);
     await sharp(temporaryPng).webp({ quality: 68, effort: 5 }).toFile(temporaryPoster);
