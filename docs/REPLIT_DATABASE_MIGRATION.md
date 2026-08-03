@@ -90,7 +90,15 @@ npm run db:replit-migrate -- verify
 `--file=/ruta/segura/respaldo.dump.enc` continúa disponible como alternativa,
 pero nunca se debe depender de una ruta bajo `/tmp` después de reiniciar Replit.
 
-`pg_restore` usa `--single-transaction`, `--clean`, `--if-exists`, `--no-owner`, `--no-acl` y `--exit-on-error`. Un error revierte toda la restauración.
+La restauración conserva `--clean`, `--if-exists`, `--no-owner` y `--no-acl` al
+convertir el archivo custom. La aplicación final usa una sola transacción y
+`ON_ERROR_STOP`, por lo que cualquier error revierte el destino completo.
+
+Si el respaldo proviene de PostgreSQL 18 y Helium utiliza PostgreSQL 16, la
+herramienta genera primero el SQL completo, valida que `pg_restore` termine bien,
+retira únicamente `SET transaction_timeout = 0;` y después lo aplica con `psql`,
+`ON_ERROR_STOP` y una sola transacción. El SQL temporal usa permisos `0600` y se
+elimina siempre al terminar.
 
 Mantén Run/Preview detenido o `MIGRATION_READ_ONLY=true` hasta que `verify` apruebe. Después puedes desactivar el modo de mantenimiento en desarrollo para ejecutar las pruebas manuales.
 
