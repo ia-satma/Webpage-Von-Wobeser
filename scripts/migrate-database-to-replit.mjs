@@ -260,6 +260,47 @@ async function uploadEncryptedBackup(filePath, checksum) {
   return objectName;
 }
 
+export function assertBackupObjectName(objectName) {
+  const normalized = String(objectName || "").trim();
+  if (
+    !normalized.startsWith(`${BACKUP_PREFIX}/`)
+    || !normalized.endsWith(".dump.enc")
+    || normalized.includes("..")
+    || normalized.includes("\\")
+  ) {
+    throw new Error(`El objeto debe pertenecer a ${BACKUP_PREFIX}/ y terminar en .dump.enc.`);
+  }
+  return normalized;
+}
+
+async function downloadEncryptedBackup(objectName, destinationPath) {
+  const safeObjectName = assertBackupObjectName(objectName);
+  const bucketId = process.env.REPLIT_APP_STORAGE_BUCKET_ID?.trim();
+  const client = new AppStorageClient(bucketId ? { bucketId } : undefined);
+  const [backupResult, manifestResult] = await Promise.all([
+    client.downloadToFilename(safeObjectName, destinationPath, { decompress: false }),
+    client.downloadAsText(`${safeObjectName}.sha256.json`, { decompress: false }),
+  ]);
+  if (!backupResult.ok) throw new Error("No se pudo recuperar el respaldo desde App Storage.");
+  if (!manifestResult.ok) throw new Error("No se pudo recuperar el manifiesto del respaldo.");
+
+  let manifest;
+  try {
+    manifest = JSON.parse(manifestResult.value);
+  } catch {
+    throw new Error("El manifiesto del respaldo no contiene JSON válido.");
+  }
+  if (manifest.objectName !== safeObjectName || !/^[a-f0-9]{64}$/i.test(manifest.sha256 || "")) {
+    throw new Error("El manifiesto del respaldo no coincide con el objeto solicitado.");
+  }
+  const checksum = sha256(await fs.readFile(destinationPath));
+  if (checksum.toLowerCase() !== String(manifest.sha256).toLowerCase()) {
+    throw new Error("El SHA-256 del respaldo recuperado no coincide con su manifiesto.");
+  }
+  await fs.chmod(destinationPath, 0o600);
+  return destinationPath;
+}
+
 async function backup(label) {
   const sourceUrl = databaseUrlFor("source");
   await assertBackupClientCompatibility(sourceUrl);
@@ -297,8 +338,10 @@ export function assertTargetConfirmation(targetUrl, confirmation) {
   }
 }
 
-async function restore(filePath, confirmation) {
-  if (!filePath) throw new Error("Indica --file=/ruta/al/respaldo.dump.enc");
+async function restore(filePath, objectName, confirmation) {
+  if ((!filePath && !objectName) || (filePath && objectName)) {
+    throw new Error("Indica exactamente uno: --file=/ruta/respaldo.dump.enc o --object=nombre-en-app-storage.");
+  }
   const sourceUrl = databaseUrlFor("source");
   const targetUrl = databaseUrlFor("target");
   if (fingerprint(redactedDatabaseIdentity(sourceUrl)) === fingerprint(redactedDatabaseIdentity(targetUrl))) {
@@ -306,8 +349,13 @@ async function restore(filePath, confirmation) {
   }
   assertTargetConfirmation(targetUrl, confirmation);
   const rawPath = path.join(os.tmpdir(), `vwb-restore-${crypto.randomUUID()}.dump`);
+  const downloadedPath = objectName
+    ? path.join(os.tmpdir(), `vwb-backup-${crypto.randomUUID()}.dump.enc`)
+    : null;
+  const encryptedPath = downloadedPath || path.resolve(filePath);
   try {
-    await decryptBackup(path.resolve(filePath), rawPath);
+    if (objectName && downloadedPath) await downloadEncryptedBackup(objectName, downloadedPath);
+    await decryptBackup(encryptedPath, rawPath);
     await execFileAsync("pg_restore", [
       "--clean",
       "--if-exists",
@@ -321,6 +369,7 @@ async function restore(filePath, confirmation) {
     console.log("[database-migration] Restauración transaccional completada.");
   } finally {
     await fs.rm(rawPath, { force: true });
+    if (downloadedPath) await fs.rm(downloadedPath, { force: true });
   }
 }
 
@@ -359,11 +408,13 @@ export async function main() {
     return audit(role);
   }
   if (command === "backup") return backup(option("label") || "snapshot");
-  if (command === "restore") return restore(option("file"), option("confirm-target"));
+  if (command === "restore") {
+    return restore(option("file"), option("object"), option("confirm-target"));
+  }
   if (command === "verify") return verify();
   throw new Error(
     "Uso: db:replit-migrate <audit source|target|backup|restore|verify> "
-      + "[--file=...] [--label=...] [--confirm-target=base]",
+      + "[--file=...|--object=...] [--label=...] [--confirm-target=base]",
   );
 }
 
