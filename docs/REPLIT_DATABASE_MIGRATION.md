@@ -15,13 +15,19 @@ Este documento mueve la base PostgreSQL externa a la infraestructura administrad
 
 ## Requisitos
 
-Replit instala los clientes PostgreSQL 16 desde `.replit`. Antes de comenzar:
+Replit instala los clientes PostgreSQL 18 desde `.replit`, la misma versión mayor
+del servidor origen auditado. Después de actualizar `.replit`, reinicia o recarga
+el Shell para que Nix aplique el nuevo entorno. Antes de comenzar:
 
 ```bash
 pg_dump --version
 pg_restore --version
 test -n "$REPLIT_APP_STORAGE_BUCKET_ID" && echo "App Storage: OK" || echo "App Storage: revisar"
 ```
+
+Ambos comandos deben mostrar la versión 18. Si todavía muestran 16, usa la opción
+de Replit para recargar el Shell antes de crear el respaldo. La herramienta también
+detiene el proceso con una explicación si el cliente es más antiguo que el servidor.
 
 Configura temporalmente en **Tools → Secrets**:
 
