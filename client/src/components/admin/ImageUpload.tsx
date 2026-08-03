@@ -6,6 +6,47 @@ import { Input } from "@/components/ui/input";
 import { Upload, Loader2, X, Download, Library } from "lucide-react";
 import { MediaLibraryPicker, type MediaLibraryItem } from "@/components/admin/MediaLibraryPicker";
 
+const MAX_MEDIA_MB = 200;
+const MAX_MEDIA_BYTES = MAX_MEDIA_MB * 1024 * 1024;
+const VIDEO_TYPES = new Set(["video/mp4", "video/webm", "video/ogg", "video/quicktime"]);
+const IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/gif", "image/webp"]);
+
+type UploadResult = {
+  status: number;
+  body: (MediaLibraryItem & { url?: string; error?: string; code?: string }) | null;
+};
+
+function sendMediaFile(
+  file: File,
+  headers: Record<string, string>,
+  onProgress: (percent: number) => void,
+): Promise<UploadResult> {
+  return new Promise((resolve, reject) => {
+    const form = new FormData();
+    form.append("file", file);
+    const xhr = new XMLHttpRequest();
+    xhr.open("POST", "/api/admin/media/upload");
+    xhr.withCredentials = true;
+    xhr.timeout = 10 * 60 * 1000;
+    xhr.setRequestHeader("Accept", "application/json");
+    for (const [name, value] of Object.entries(headers)) xhr.setRequestHeader(name, value);
+    xhr.upload.onprogress = (event) => {
+      if (!event.lengthComputable || event.total <= 0) return;
+      onProgress(Math.max(1, Math.min(99, Math.round((event.loaded / event.total) * 100))));
+    };
+    xhr.onload = () => {
+      let body: UploadResult["body"] = null;
+      try { body = JSON.parse(xhr.responseText); } catch { /* proxy puede responder HTML */ }
+      onProgress(100);
+      resolve({ status: xhr.status, body });
+    };
+    xhr.onerror = () => reject(new Error("network"));
+    xhr.ontimeout = () => reject(new Error("timeout"));
+    xhr.onabort = () => reject(new Error("aborted"));
+    xhr.send(form);
+  });
+}
+
 /** Deriva un nombre de archivo del final de la URL/ruta para el atributo download. */
 function downloadName(url: string, isVideo: boolean): string {
   try {
@@ -44,44 +85,61 @@ export function ImageUpload({
   const inputRef = useRef<HTMLInputElement>(null);
   const queryClient = useQueryClient();
   const [uploading, setUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState<number | null>(null);
   const [libraryOpen, setLibraryOpen] = useState(false);
   const [error, setError] = useState("");
   const isVideo = kind === "video";
 
   const upload = async (file: File) => {
     setError("");
+    if (file.size > MAX_MEDIA_BYTES) {
+      setError(`El archivo pesa ${(file.size / 1024 / 1024).toFixed(1)} MB. El máximo es ${MAX_MEDIA_MB} MB.`);
+      return;
+    }
+    const extension = file.name.toLowerCase().match(/\.[a-z0-9]+$/)?.[0] || "";
+    const compatibleVideo = VIDEO_TYPES.has(file.type) || (!file.type && [".mp4", ".webm", ".ogv", ".mov"].includes(extension));
+    const compatibleImage = IMAGE_TYPES.has(file.type) || (!file.type && [".jpg", ".jpeg", ".png", ".gif", ".webp"].includes(extension));
+    if ((isVideo && !compatibleVideo) || (!isVideo && !compatibleImage)) {
+      setError(isVideo
+        ? "Formato no admitido. Usa video MP4, WebM, OGV o MOV."
+        : "Formato no admitido. Usa imagen JPG, PNG, GIF o WebP.");
+      return;
+    }
     setUploading(true);
+    setUploadProgress(0);
     try {
       // Una pestaña restaurada puede conservar la cookie HttpOnly pero no el
       // token CSRF en sessionStorage. Se renueva antes de enviar multipart.
       await loadAdminSession(true);
-      const fd = new FormData();
-      fd.append("file", file);
-      const res = await fetch("/api/admin/media/upload", {
-        method: "POST",
-        headers: { ...getAuthHeaders() }, // sin Content-Type: el navegador pone el boundary
-        body: fd,
-        credentials: "include",
-      });
-      if (!res.ok) {
-        const response = await res.json().catch(() => null);
+      const response = await sendMediaFile(file, getAuthHeaders(), setUploadProgress);
+      if (response.status < 200 || response.status >= 300) {
         setError(
-          typeof response?.error === "string"
-            ? response.error
-            : `No se pudo subir (máx 200 MB, ${isVideo ? "video mp4/webm" : "solo imágenes"}).`,
+          typeof response.body?.error === "string"
+            ? response.body.error
+            : response.status === 413
+              ? `El archivo supera el máximo admitido de ${MAX_MEDIA_MB} MB.`
+              : "La carga fue rechazada antes de llegar al servidor. Inténtalo de nuevo o elige el archivo desde la biblioteca.",
         );
         return;
       }
-      const data = await res.json();
+      const data = response.body;
+      if (!data?.path && !data?.url) {
+        setError("El servidor recibió el archivo, pero no devolvió una ruta válida.");
+        return;
+      }
       onChange(data.path || data.url || "");
       queryClient.setQueryData<MediaLibraryItem[]>(["/api/admin/media"], (existing) => {
         if (!data?.id) return existing;
         return [data, ...(existing || []).filter((item) => item.id !== data.id)];
       });
-    } catch {
-      setError("Error al subir el archivo.");
+    } catch (uploadError) {
+      const reason = uploadError instanceof Error ? uploadError.message : "";
+      setError(reason === "timeout"
+        ? "La carga tardó más de 10 minutos y fue cancelada. Verifica tu conexión e inténtalo de nuevo."
+        : "La conexión se interrumpió durante la carga. El archivo anterior permanece sin cambios.");
     } finally {
       setUploading(false);
+      setUploadProgress(null);
     }
   };
 
@@ -122,7 +180,7 @@ export function ImageUpload({
         <input
           ref={inputRef}
           type="file"
-          accept={isVideo ? "video/*" : "image/*"}
+          accept={isVideo ? "video/mp4,video/webm,video/ogg,video/quicktime,.mp4,.webm,.ogv,.mov" : "image/jpeg,image/png,image/gif,image/webp"}
           className="hidden"
           onChange={(e) => {
             const f = e.target.files?.[0];
@@ -140,7 +198,9 @@ export function ImageUpload({
           data-testid="button-upload"
         >
           {uploading ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : <Upload className="h-4 w-4 mr-1" />}
-          {uploading ? "Subiendo…" : isVideo ? "Subir video desde tu computadora" : "Subir desde tu computadora"}
+          {uploading
+            ? `Subiendo${uploadProgress !== null && uploadProgress > 0 ? ` ${uploadProgress}%` : "…"}`
+            : isVideo ? "Subir video desde tu computadora" : "Subir desde tu computadora"}
         </Button>
         <Button
           type="button"
@@ -156,6 +216,16 @@ export function ImageUpload({
       </div>
 
       <Input value={value} onChange={(e) => onChange(e.target.value)} placeholder={placeholder} data-testid="input-media-url" />
+      {uploading && uploadProgress !== null && (
+        <div className="space-y-1" aria-live="polite">
+          <div className="h-1.5 overflow-hidden rounded-full bg-muted" aria-hidden="true">
+            <div className="h-full bg-primary transition-[width] duration-200" style={{ width: `${uploadProgress}%` }} />
+          </div>
+          <p className="text-xs text-muted-foreground">
+            {uploadProgress < 100 ? `Enviando archivo: ${uploadProgress}%` : "Archivo enviado. Guardando en App Storage…"}
+          </p>
+        </div>
+      )}
       {error && <p className="text-xs text-destructive">{error}</p>}
 
       <MediaLibraryPicker

@@ -151,6 +151,7 @@ import {
   validateCvFile,
   validatePresentationInput,
   validatePublicMediaSignature,
+  validateVideoContainer,
 } from "./security/uploads";
 import { escapeCsvCell } from "./security/csv";
 
@@ -317,6 +318,29 @@ const upload = multer({
     }
   },
 });
+
+/** Devuelve errores concretos para cargas grandes en vez de dejar que Multer
+ * caiga en el manejador genérico. Esto también permite que el panel distinga
+ * un límite real de tamaño de un formato inválido o una conexión interrumpida. */
+const receivePublicMediaUpload = (req: Request, res: Response, next: NextFunction): void => {
+  upload.single("file")(req, res, (error: any) => {
+    if (!error) return next();
+    if (error instanceof multer.MulterError && error.code === "LIMIT_FILE_SIZE") {
+      res.status(413).json({
+        error: "El archivo supera el máximo de 200 MB.",
+        code: "MEDIA_FILE_TOO_LARGE",
+      });
+      return;
+    }
+    const invalidType = error?.message === "Invalid file type";
+    res.status(invalidType ? 415 : 400).json({
+      error: invalidType
+        ? "Formato no admitido. Usa imágenes JPG, PNG, GIF o WebP; o video MP4, WebM, OGV o MOV."
+        : "No se pudo recibir el archivo. Vuelve a seleccionarlo e inténtalo de nuevo.",
+      code: invalidType ? "INVALID_MEDIA_TYPE" : "INVALID_MEDIA_UPLOAD",
+    });
+  });
+};
 
 // Multer dedicado para CVs del formulario de Pasantes — límite y tipos distintos del de
 // medios (10MB en vez de 200MB, solo PDF/DOC/DOCX en vez de imágenes/video). Público (sin
@@ -3665,7 +3689,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
   });
 
   // Upload media
-  app.post("/api/admin/media/upload", authMiddleware, requirePermission("content"), upload.single("file"), async (req: Request, res: Response) => {
+  app.post("/api/admin/media/upload", authMiddleware, requirePermission("content"), receivePublicMediaUpload, async (req: Request, res: Response) => {
     let acceptedMediaPath: string | undefined;
     let generatedVariantPaths: string[] = [];
     let persistedObjectNames: string[] = [];
@@ -3676,6 +3700,18 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
       if (!await validatePublicMediaSignature(req.file.path, req.file.mimetype)) {
         await removeUploadQuietly(req.file.path);
         return res.status(400).json({ error: "El contenido del archivo no coincide con su formato." });
+      }
+
+      const isVideoUpload = req.file.mimetype.startsWith("video/");
+      const validatedVideoContainer = isVideoUpload
+        ? await validateVideoContainer(req.file.path)
+        : false;
+      if (isVideoUpload && !validatedVideoContainer) {
+        await removeUploadQuietly(req.file.path);
+        return res.status(400).json({
+          error: "El video no contiene una pista reproducible o su contenedor está dañado.",
+          code: "INVALID_VIDEO_CONTAINER",
+        });
       }
 
       // Los raster compatibles se decodifican y re-codifican dentro de cuarentena.
@@ -3695,19 +3731,27 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
       }
 
       try {
-        await scanFileForMalware(req.file.path);
+        // Un maestro de video grande no debe dejar el request bloqueado un minuto
+        // si ClamAV no está listo en una instancia recién iniciada. Se intenta el
+        // análisis durante 20 s y, si el scanner no responde, se exige la firma
+        // mágica + el contenedor reproducible que ya se validaron arriba.
+        await scanFileForMalware(req.file.path, isVideoUpload ? 20_000 : 60_000);
       } catch (error) {
         const message = error instanceof Error ? error.message : "";
         if (message === "Malware detected") {
           await removeUploadQuietly(req.file.path);
           return res.status(400).json({ error: "El archivo fue rechazado por seguridad." });
         }
-        // Solo PNG/JPEG/WebP que ya fueron decodificados y re-codificados pueden
-        // continuar si el binario o la base de firmas de ClamAV no está disponible.
-        if (!(message === "Malware scanner unavailable" && sanitizedRaster)) {
+        // Los raster saneados y los videos cuya firma y contenedor fueron
+        // validados pueden continuar si la base de ClamAV no está disponible.
+        // El archivo conserva una extensión derivada del MIME y se sirve con
+        // nosniff; nunca se interpreta como HTML o script.
+        const safeWithoutScanner = message === "Malware scanner unavailable"
+          && (sanitizedRaster || validatedVideoContainer);
+        if (!safeWithoutScanner) {
           throw error;
         }
-        console.warn("[media-upload] ClamAV no disponible; raster saneado aceptado.");
+        console.warn(`[media-upload] ClamAV no disponible; ${isVideoUpload ? "contenedor de video validado" : "raster saneado"} aceptado.`);
       }
 
       acceptedMediaPath = await acceptQuarantinedPublicMedia(req.file.path, uploadsDir);
@@ -3758,13 +3802,16 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
       await removeUploadQuietly(req.file?.path);
       await removeUploadQuietly(acceptedMediaPath);
       await Promise.all(generatedVariantPaths.map((variantPath) => removeUploadQuietly(variantPath)));
-      console.error("Upload media validation failed");
+      console.error("Upload media validation failed", error instanceof Error ? error.message : "unknown");
       if (error instanceof PersistentMediaUnavailableError) {
         return res.status(503).json({
           error: "App Storage no está disponible. El archivo no se guardó para evitar que se pierda al publicar.",
         });
       }
-      res.status(500).json({ error: "Failed to validate uploaded file" });
+      res.status(500).json({
+        error: "No se pudo completar la carga. El archivo anterior permanece sin cambios.",
+        code: "MEDIA_UPLOAD_FAILED",
+      });
     }
   });
 
