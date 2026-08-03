@@ -11,9 +11,11 @@ import {
 import { isMigrationReadOnlyEnabled, migrationReadOnlyGuard } from "../database/maintenance";
 import { compileSqlTemplate } from "../../scripts/lib/postgres-sql.mjs";
 import {
+  assertPgDumpCompatibility,
   assertTargetConfirmation,
   decryptBackup,
   encryptBackup,
+  postgresMajorFromVersion,
   postgresCliEnvironment,
 } from "../../scripts/migrate-database-to-replit.mjs";
 
@@ -58,6 +60,19 @@ test("pg_dump usa las CA del sistema para bases externas y omite TLS en Helium",
     if (previousRootCert === undefined) delete process.env.PGSSLROOTCERT;
     else process.env.PGSSLROOTCERT = previousRootCert;
   }
+});
+
+test("el respaldo exige un pg_dump igual o más nuevo que el servidor", () => {
+  assert.equal(postgresMajorFromVersion("PostgreSQL 18.4 (df16b3c)"), 18);
+  assert.equal(postgresMajorFromVersion("pg_dump (PostgreSQL) 18.1"), 18);
+  assert.doesNotThrow(() => assertPgDumpCompatibility(
+    "PostgreSQL 18.4 (df16b3c)",
+    "pg_dump (PostgreSQL) 18.1",
+  ));
+  assert.throws(() => assertPgDumpCompatibility(
+    "PostgreSQL 18.4 (df16b3c)",
+    "pg_dump (PostgreSQL) 16.3",
+  ), /postgresql_18/i);
 });
 
 test("la conexión rechaza protocolos no PostgreSQL", () => {
@@ -158,6 +173,8 @@ test("la herramienta usa respaldos custom y restauración de una sola transacci�
   assert.match(source, /AES-256-GCM\+scrypt/);
   assert.match(source, /uploadFromFilename/);
   assert.match(source, /confirm-target/);
+  const replitConfig = await fs.readFile(path.join(process.cwd(), ".replit"), "utf8");
+  assert.match(replitConfig, /postgresql_18/);
 });
 
 test("una restauración exige confirmar exactamente la base destino", () => {

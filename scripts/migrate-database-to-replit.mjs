@@ -65,6 +65,34 @@ function sha256(contents) {
   return crypto.createHash("sha256").update(contents).digest("hex");
 }
 
+export function postgresMajorFromVersion(version) {
+  const match = String(version || "").match(/(?:PostgreSQL|pg_dump|pg_restore)[^0-9]*(\d+)/i);
+  if (!match) throw new Error(`No se pudo interpretar la versión PostgreSQL: ${String(version || "vacía")}`);
+  return Number(match[1]);
+}
+
+export function assertPgDumpCompatibility(serverVersion, pgDumpVersion) {
+  const serverMajor = postgresMajorFromVersion(serverVersion);
+  const clientMajor = postgresMajorFromVersion(pgDumpVersion);
+  if (clientMajor < serverMajor) {
+    throw new Error(
+      `El origen usa PostgreSQL ${serverMajor}, pero pg_dump es ${clientMajor}. `
+      + `Recarga el Shell de Replit para instalar postgresql_${serverMajor} y vuelve a intentarlo.`,
+    );
+  }
+}
+
+async function assertBackupClientCompatibility(connectionString) {
+  const [serverVersion, client] = await Promise.all([
+    withClient(connectionString, async (pgClient) => {
+      const result = await pgClient.query("select version() as version");
+      return result.rows[0].version;
+    }),
+    execFileAsync("pg_dump", ["--version"], { maxBuffer: 64 * 1024 }),
+  ]);
+  assertPgDumpCompatibility(serverVersion, client.stdout);
+}
+
 function encryptionKey(salt) {
   const secret = requiredEnv("DB_BACKUP_ENCRYPTION_KEY");
   if (secret.length < 24) throw new Error("DB_BACKUP_ENCRYPTION_KEY debe tener al menos 24 caracteres.");
@@ -234,6 +262,7 @@ async function uploadEncryptedBackup(filePath, checksum) {
 
 async function backup(label) {
   const sourceUrl = databaseUrlFor("source");
+  await assertBackupClientCompatibility(sourceUrl);
   const directory = process.env.DB_MIGRATION_BACKUP_DIR?.trim() || DEFAULT_DIR;
   await fs.mkdir(directory, { recursive: true, mode: 0o700 });
   const encryptedPath = path.join(directory, safeFilename(label));

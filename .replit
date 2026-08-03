@@ -3,8 +3,8 @@ run = "npm run dev"
 hidden = [".config", ".git", "generated-icon.png", "node_modules", "dist"]
 
 [nix]
-channel = "stable-24_05"
-packages = ["unzip", "jq", "clamav", "ffmpeg", "postgresql_16"]
+channel = "stable-25_11"
+packages = ["unzip", "jq", "clamav", "ffmpeg", "postgresql_18"]
 
 [deployment]
 deploymentTarget = "autoscale"
