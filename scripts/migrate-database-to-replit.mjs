@@ -1,10 +1,13 @@
 #!/usr/bin/env node
 import "dotenv/config";
 import crypto from "node:crypto";
+import { createReadStream } from "node:fs";
 import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import { execFile } from "node:child_process";
+import { execFile, spawn } from "node:child_process";
+import { Transform } from "node:stream";
+import { pipeline } from "node:stream/promises";
 import { promisify } from "node:util";
 import { pathToFileURL } from "node:url";
 import pg from "pg";
@@ -338,6 +341,83 @@ export function assertTargetConfirmation(targetUrl, confirmation) {
   }
 }
 
+export function compatibleRestoreSqlLine(line) {
+  return String(line).trim() === "SET transaction_timeout = 0;" ? null : line;
+}
+
+function createRestoreSqlCompatibilityFilter() {
+  let remainder = "";
+  return new Transform({
+    transform(chunk, _encoding, callback) {
+      const lines = `${remainder}${chunk.toString("utf8")}`.split("\n");
+      remainder = lines.pop() || "";
+      const output = lines
+        .map((line) => compatibleRestoreSqlLine(line))
+        .filter((line) => line !== null)
+        .join("\n");
+      if (lines.length > 0) this.push(`${output}\n`);
+      callback();
+    },
+    flush(callback) {
+      const finalLine = compatibleRestoreSqlLine(remainder);
+      if (finalLine !== null && finalLine.length > 0) this.push(finalLine);
+      callback();
+    },
+  });
+}
+
+function waitForChild(child) {
+  return new Promise((resolve, reject) => {
+    child.once("error", reject);
+    child.once("close", (code, signal) => resolve({ code, signal }));
+  });
+}
+
+async function applyRestoreSql(sqlPath, targetUrl) {
+  const stderrChunks = [];
+  let stderrBytes = 0;
+  const maxStderrBytes = 8 * 1024 * 1024;
+  const child = spawn("psql", [
+    "--set=ON_ERROR_STOP=1",
+    "--single-transaction",
+    "--dbname", redactedDatabaseIdentity(targetUrl).database,
+  ], {
+    env: postgresCliEnvironment(targetUrl),
+    stdio: ["pipe", "ignore", "pipe"],
+  });
+  child.stderr.on("data", (chunk) => {
+    if (stderrBytes >= maxStderrBytes) return;
+    const remaining = maxStderrBytes - stderrBytes;
+    const safeChunk = chunk.subarray(0, remaining);
+    stderrChunks.push(safeChunk);
+    stderrBytes += safeChunk.length;
+  });
+
+  const pipeResult = pipeline(
+    createReadStream(sqlPath),
+    createRestoreSqlCompatibilityFilter(),
+    child.stdin,
+  ).then(
+    () => ({ ok: true }),
+    (error) => ({ ok: false, error }),
+  );
+
+  let result;
+  try {
+    result = await waitForChild(child);
+  } catch (error) {
+    child.kill("SIGTERM");
+    await pipeResult;
+    throw error;
+  }
+  const streamed = await pipeResult;
+  const stderr = Buffer.concat(stderrChunks).toString("utf8").trim();
+  if (result.code !== 0) {
+    throw new Error(`psql terminó con código ${String(result.code)}${stderr ? `: ${stderr}` : "."}`);
+  }
+  if (!streamed.ok) throw streamed.error;
+}
+
 async function restore(filePath, objectName, confirmation) {
   if ((!filePath && !objectName) || (filePath && objectName)) {
     throw new Error("Indica exactamente uno: --file=/ruta/respaldo.dump.enc o --object=nombre-en-app-storage.");
@@ -349,6 +429,7 @@ async function restore(filePath, objectName, confirmation) {
   }
   assertTargetConfirmation(targetUrl, confirmation);
   const rawPath = path.join(os.tmpdir(), `vwb-restore-${crypto.randomUUID()}.dump`);
+  const sqlPath = path.join(os.tmpdir(), `vwb-restore-${crypto.randomUUID()}.sql`);
   const downloadedPath = objectName
     ? path.join(os.tmpdir(), `vwb-backup-${crypto.randomUUID()}.dump.enc`)
     : null;
@@ -356,19 +437,21 @@ async function restore(filePath, objectName, confirmation) {
   try {
     if (objectName && downloadedPath) await downloadEncryptedBackup(objectName, downloadedPath);
     await decryptBackup(encryptedPath, rawPath);
+    await fs.writeFile(sqlPath, "", { mode: 0o600 });
     await execFileAsync("pg_restore", [
       "--clean",
       "--if-exists",
-      "--single-transaction",
       "--no-owner",
       "--no-acl",
-      "--exit-on-error",
-      "--dbname", redactedDatabaseIdentity(targetUrl).database,
+      "--file", sqlPath,
       rawPath,
-    ], { env: postgresCliEnvironment(targetUrl), maxBuffer: 8 * 1024 * 1024 });
+    ], { maxBuffer: 8 * 1024 * 1024 });
+    await fs.chmod(sqlPath, 0o600);
+    await applyRestoreSql(sqlPath, targetUrl);
     console.log("[database-migration] Restauración transaccional completada.");
   } finally {
     await fs.rm(rawPath, { force: true });
+    await fs.rm(sqlPath, { force: true });
     if (downloadedPath) await fs.rm(downloadedPath, { force: true });
   }
 }

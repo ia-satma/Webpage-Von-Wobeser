@@ -14,6 +14,7 @@ import {
   assertBackupObjectName,
   assertPgDumpCompatibility,
   assertTargetConfirmation,
+  compatibleRestoreSqlLine,
   decryptBackup,
   encryptBackup,
   postgresMajorFromVersion,
@@ -82,6 +83,13 @@ test("la restauración desde App Storage solo admite respaldos privados esperado
   assert.throws(() => assertBackupObjectName("generated-images/image.png"), /database-backups/i);
   assert.throws(() => assertBackupObjectName("von-wobeser/private/database-backups/../secret.dump.enc"));
   assert.throws(() => assertBackupObjectName("von-wobeser/private/database-backups/snapshot.sql"));
+});
+
+test("la restauración elimina únicamente el ajuste de PostgreSQL 18 incompatible con Helium 16", () => {
+  assert.equal(compatibleRestoreSqlLine("SET transaction_timeout = 0;"), null);
+  assert.equal(compatibleRestoreSqlLine("  SET transaction_timeout = 0;  "), null);
+  assert.equal(compatibleRestoreSqlLine("SET statement_timeout = 0;"), "SET statement_timeout = 0;");
+  assert.equal(compatibleRestoreSqlLine("select 1;"), "select 1;");
 });
 
 test("la conexión rechaza protocolos no PostgreSQL", () => {
@@ -179,6 +187,8 @@ test("la herramienta usa respaldos custom y restauración de una sola transacci�
   );
   assert.match(source, /--format=custom/);
   assert.match(source, /--single-transaction/);
+  assert.match(source, /ON_ERROR_STOP=1/);
+  assert.match(source, /transaction_timeout/);
   assert.match(source, /AES-256-GCM\+scrypt/);
   assert.match(source, /uploadFromFilename/);
   assert.match(source, /downloadToFilename/);
