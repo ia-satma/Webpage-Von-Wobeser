@@ -6,7 +6,7 @@
 // Guarda idempotencia: solo actualiza filas aún pendientes (title = title_es) y en UNA sola
 // sentencia por fila (para no romper el guard entre campos).
 //   DATABASE_URL="..." node scripts/write-news-translations.mjs <baseDir>
-import { neon } from "@neondatabase/serverless";
+import { createSqlClient } from "./lib/postgres-sql.mjs";
 import fs from "fs";
 import path from "path";
 
@@ -17,7 +17,7 @@ if (!baseDir) { console.error("Uso: node scripts/write-news-translations.mjs <ba
 const outDir = path.join(baseDir, "out");
 if (!fs.existsSync(outDir)) { console.error("No existe", outDir); process.exit(1); }
 
-const sql = neon(url);
+const sql = createSqlClient(url);
 const nz = (s) => (s ?? "").toString();
 
 const files = fs.readdirSync(outDir).filter((f) => /^batch_\d+\.json$/.test(f)).sort();

@@ -5,7 +5,7 @@
 // Uso: node scripts/seed-attorney-relations.mjs            (aplica cambios)
 //      node scripts/seed-attorney-relations.mjs --dry-run  (solo reporta)
 import "dotenv/config";
-import { neon } from "@neondatabase/serverless";
+import { createSqlClient } from "./lib/postgres-sql.mjs";
 import fs from "fs";
 import path from "path";
 
@@ -13,7 +13,7 @@ const DRY = process.argv.includes("--dry-run");
 const MIRROR = process.env.MIRROR_DIR || path.resolve(process.cwd(), "..", "mirror");
 const LAWYER_DIR = path.join(MIRROR, "index.php", "lawyer");
 
-const sql = neon(process.env.DATABASE_URL);
+const sql = createSqlClient(process.env.DATABASE_URL);
 
 const decode = (s) =>
   String(s)

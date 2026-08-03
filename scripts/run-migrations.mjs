@@ -2,24 +2,13 @@ import crypto from "node:crypto";
 import fs from "node:fs/promises";
 import path from "node:path";
 import pg from "pg";
+import { getPostgresConnectionConfig } from "../shared/postgres-config.mjs";
 
 const databaseUrl = process.env.DATABASE_URL;
 if (!databaseUrl) throw new Error("DATABASE_URL is required");
 
-const parsed = new URL(databaseUrl);
-const isReplitInternal = parsed.hostname.endsWith(".replit.dev")
-  || parsed.hostname.endsWith(".replit.com")
-  || parsed.hostname === "localhost"
-  || parsed.hostname === "127.0.0.1";
-if (!isReplitInternal) {
-  for (const key of ["sslmode", "sslcert", "sslkey", "sslrootcert"]) {
-    parsed.searchParams.delete(key);
-  }
-}
-
 const client = new pg.Client({
-  connectionString: parsed.toString(),
-  ssl: isReplitInternal ? undefined : { rejectUnauthorized: true },
+  ...getPostgresConnectionConfig(databaseUrl),
 });
 
 const migrationsDir = path.join(process.cwd(), "migrations");

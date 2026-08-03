@@ -5,7 +5,7 @@
 //   needEN: la columna *_es (ES) está bien pero base está en ESPAÑOL -> traducir ES->EN y llenar base
 // Fuente = el texto correcto de la otra columna. Escribe lotes {id, dir, title, excerpt, content}.
 //   DATABASE_URL="..." node scripts/export-news-buckets.mjs <outDir>
-import { neon } from "@neondatabase/serverless";
+import { createSqlClient } from "./lib/postgres-sql.mjs";
 import fs from "fs";
 import path from "path";
 const url = process.env.DATABASE_URL;
@@ -13,7 +13,7 @@ if (!url) { console.error("Falta DATABASE_URL."); process.exit(1); }
 const outDir = process.argv[2];
 if (!outDir) { console.error("Uso: export-news-buckets.mjs <outDir>"); process.exit(1); }
 const inDir = path.join(outDir, "in"); fs.mkdirSync(inDir, { recursive: true }); fs.mkdirSync(path.join(outDir,"out"),{recursive:true});
-const sql = neon(url);
+const sql = createSqlClient(url);
 
 const strip = (s) => (s || "").replace(/<[^>]*>/g, " ").replace(/&[a-z]+;/gi, " ").replace(/\s+/g, " ").toLowerCase();
 const ES = /\b(que|para|con|los|las|una|por|más|según|del|están|este|esta|como|pero|sus|leyes|ley|mediante|sobre|entre|nuevas|nuevos|nuevo|nueva|reforma|decreto|disposiciones|nuestra|además|país|jurídico|servicios|siguiente|acuerdo)\b/gi;

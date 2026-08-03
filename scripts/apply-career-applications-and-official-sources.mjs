@@ -1,11 +1,9 @@
 #!/usr/bin/env node
-// Aplica scripts/career-applications-and-official-sources.sql a la base Neon.
+// Aplica scripts/career-applications-and-official-sources.sql a PostgreSQL.
 // Idempotente (CREATE TABLE IF NOT EXISTS / CREATE UNIQUE INDEX IF NOT EXISTS) y no destructivo.
 //   node scripts/apply-career-applications-and-official-sources.mjs
 import "dotenv/config";
-import { neon } from "@neondatabase/serverless";
-import { drizzle } from "drizzle-orm/neon-http";
-import { sql as dsql } from "drizzle-orm";
+import { createSqlClient } from "./lib/postgres-sql.mjs";
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
@@ -25,11 +23,11 @@ const statements = sqlText
   .map((s) => s.trim())
   .filter(Boolean);
 
-const db = drizzle(neon(process.env.DATABASE_URL));
+const sql = createSqlClient(process.env.DATABASE_URL);
 let ok = 0;
 for (const stmt of statements) {
   try {
-    await db.execute(dsql.raw(stmt));
+    await sql(stmt);
     console.log("✓", stmt.replace(/\s+/g, " ").slice(0, 72));
     ok++;
   } catch (e) {

@@ -8,13 +8,13 @@
 // El guard de arranque rechaza targets remotos y evita ejecutar esta batería por accidente
 // contra Replit/producción.
 import "dotenv/config";
-import { neon } from "@neondatabase/serverless";
+import { createSqlClient } from "./lib/postgres-sql.mjs";
 import { adminSessionHeaders, requireIsolatedSecurityTarget } from "./lib/admin-session.mjs";
 
 const LOCAL_BASE = process.env.VERIFY_BASE || "http://localhost:5050";
 requireIsolatedSecurityTarget(LOCAL_BASE);
 const ADMIN_HEADERS = adminSessionHeaders();
-const sql = neon(process.env.DATABASE_URL);
+const sql = createSqlClient(process.env.DATABASE_URL);
 const RATELIMIT = process.argv.includes("--ratelimit");
 
 const TARGETS = [{ name: "AISLADO", base: LOCAL_BASE, isLocal: true }];

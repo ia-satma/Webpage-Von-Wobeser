@@ -3,14 +3,14 @@
 // 8-10 corridas por entidad con datos genuinamente distintos (no 50 repeticiones idénticas).
 // Uso: node scripts/e2e-editability.mjs   (con el server corriendo en :5050)
 import "dotenv/config";
-import { neon } from "@neondatabase/serverless";
+import { createSqlClient } from "./lib/postgres-sql.mjs";
 import * as cheerio from "cheerio";
 import { adminSessionHeaders, requireIsolatedSecurityTarget } from "./lib/admin-session.mjs";
 
 const B = process.env.VERIFY_BASE || "http://localhost:5050";
 requireIsolatedSecurityTarget(B);
 const sessionHeaders = adminSessionHeaders();
-const sql = neon(process.env.DATABASE_URL);
+const sql = createSqlClient(process.env.DATABASE_URL);
 const RUN_TS = Date.now();
 
 let pass = 0, fail = 0;
@@ -55,8 +55,8 @@ async function fetchOk(url) {
   }
 }
 
-// El cliente neon(...) con template tags NO soporta interpolar nombres de tabla
-// (sql(tableName) no es una API válida de @neondatabase/serverless) — de ahí el
+// Los identificadores de tabla nunca se interpolan desde entradas del usuario; se
+// seleccionan mediante este allowlist explícito.
 // "syntax error at or near $1" en la primera corrida. Se resuelve con un mapa fijo.
 async function deleteById(table, id) {
   switch (table) {

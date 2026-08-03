@@ -4,7 +4,7 @@
 //
 // Uso: node scripts/ingest-missing-attorneys.mjs [--dry-run]
 import "dotenv/config";
-import { neon } from "@neondatabase/serverless";
+import { createSqlClient } from "./lib/postgres-sql.mjs";
 import fs from "fs";
 import path from "path";
 
@@ -12,7 +12,7 @@ const DRY = process.argv.includes("--dry-run");
 const MIRROR = process.env.MIRROR_DIR || path.resolve(process.cwd(), "..", "mirror");
 const EN_DIR = path.join(MIRROR, "index.php", "lawyer");
 const ES_DIR = path.join(MIRROR, "index.php", "abogado");
-const sql = neon(process.env.DATABASE_URL);
+const sql = createSqlClient(process.env.DATABASE_URL);
 
 const decode = (s) => String(s).replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&#39;|&rsquo;/g, "'").replace(/&quot;/g, '"').replace(/&nbsp;/g, " ");
 const norm = (s) => decode(s).normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/[-.,]/g, " ").replace(/\s+/g, " ").trim();
