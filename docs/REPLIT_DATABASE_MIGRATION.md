@@ -76,14 +76,19 @@ La aplicación reconoce `helium` como red interna y no intenta usar TLS. Las con
 
 ## 4. Restaurar en desarrollo
 
-Usa la ruta local cifrada informada por el comando de respaldo:
+Usa preferentemente el nombre de App Storage informado por el comando de respaldo.
+La herramienta descarga tanto el respaldo como su manifiesto, valida el SHA-256 y
+solo entonces lo descifra en una ruta temporal:
 
 ```bash
 npm run db:replit-migrate -- audit target
-npm run db:replit-migrate -- restore --file=/ruta/segura/respaldo.dump.enc --confirm-target=NOMBRE_DE_LA_BASE_DESTINO
+npm run db:replit-migrate -- restore --object=von-wobeser/private/database-backups/ARCHIVO.dump.enc --confirm-target=NOMBRE_DE_LA_BASE_DESTINO
 npm run db:migrate
 npm run db:replit-migrate -- verify
 ```
+
+`--file=/ruta/segura/respaldo.dump.enc` continúa disponible como alternativa,
+pero nunca se debe depender de una ruta bajo `/tmp` después de reiniciar Replit.
 
 `pg_restore` usa `--single-transaction`, `--clean`, `--if-exists`, `--no-owner`, `--no-acl` y `--exit-on-error`. Un error revierte toda la restauración.
 

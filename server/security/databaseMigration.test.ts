@@ -11,6 +11,7 @@ import {
 import { isMigrationReadOnlyEnabled, migrationReadOnlyGuard } from "../database/maintenance";
 import { compileSqlTemplate } from "../../scripts/lib/postgres-sql.mjs";
 import {
+  assertBackupObjectName,
   assertPgDumpCompatibility,
   assertTargetConfirmation,
   decryptBackup,
@@ -73,6 +74,14 @@ test("el respaldo exige un pg_dump igual o más nuevo que el servidor", () => {
     "PostgreSQL 18.4 (df16b3c)",
     "pg_dump (PostgreSQL) 16.3",
   ), /postgresql_18/i);
+});
+
+test("la restauración desde App Storage solo admite respaldos privados esperados", () => {
+  const objectName = "von-wobeser/private/database-backups/snapshot.dump.enc";
+  assert.equal(assertBackupObjectName(objectName), objectName);
+  assert.throws(() => assertBackupObjectName("generated-images/image.png"), /database-backups/i);
+  assert.throws(() => assertBackupObjectName("von-wobeser/private/database-backups/../secret.dump.enc"));
+  assert.throws(() => assertBackupObjectName("von-wobeser/private/database-backups/snapshot.sql"));
 });
 
 test("la conexión rechaza protocolos no PostgreSQL", () => {
@@ -172,6 +181,8 @@ test("la herramienta usa respaldos custom y restauración de una sola transacci�
   assert.match(source, /--single-transaction/);
   assert.match(source, /AES-256-GCM\+scrypt/);
   assert.match(source, /uploadFromFilename/);
+  assert.match(source, /downloadToFilename/);
+  assert.match(source, /downloadAsText/);
   assert.match(source, /confirm-target/);
   const replitConfig = await fs.readFile(path.join(process.cwd(), ".replit"), "utf8");
   assert.match(replitConfig, /postgresql_18/);
