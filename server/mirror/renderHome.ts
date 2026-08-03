@@ -375,18 +375,21 @@ export function renderHome(
   const legacyHeroVideos = new Set([
     "/images/dron_2026_40.mp4",
     "/images/home-hero-desktop-v1.mp4",
+    "/images/home-hero-desktop-v2.mp4",
   ]);
   const configuredDesktop = safeMediaUrl(cfg(config, "hero_video", lang));
   const desktopVideo = !configuredDesktop || legacyHeroVideos.has(configuredDesktop)
-    ? "/images/home-hero-desktop-v2.mp4"
+    ? "/images/hero-092c5875ed80af62-desktop.mp4"
     : configuredDesktop;
   const configuredMobile = safeMediaUrl(cfg(config, "hero_video_mobile", lang));
-  const mobileVideo = !configuredMobile || configuredMobile === "/images/home-hero-mobile-v1.mp4"
-    ? (desktopVideo === "/images/home-hero-desktop-v2.mp4" ? "/images/home-hero-mobile-v2.mp4" : desktopVideo)
+  const legacyMobileVideos = new Set(["/images/home-hero-mobile-v1.mp4", "/images/home-hero-mobile-v2.mp4"]);
+  const mobileVideo = !configuredMobile || legacyMobileVideos.has(configuredMobile)
+    ? (desktopVideo === "/images/hero-092c5875ed80af62-desktop.mp4" ? "/images/hero-092c5875ed80af62-mobile.mp4" : desktopVideo)
     : configuredMobile;
   const configuredPoster = safeMediaUrl(cfg(config, "hero_video_poster", lang));
-  const heroPoster = !configuredPoster || configuredPoster === "/images/home-hero-poster-v1.webp"
-    ? "/images/home-hero-poster-v2.webp"
+  const legacyHeroPosters = new Set(["/images/home-hero-poster-v1.webp", "/images/home-hero-poster-v2.webp"]);
+  const heroPoster = !configuredPoster || legacyHeroPosters.has(configuredPoster)
+    ? "/images/hero-092c5875ed80af62-poster.webp"
     : configuredPoster;
   const videoElement = $("#video_header");
   videoElement.empty()

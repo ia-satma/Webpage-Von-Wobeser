@@ -117,7 +117,7 @@ export function ImageUpload({
           typeof response.body?.error === "string"
             ? response.body.error
             : response.status === 413
-              ? `El archivo supera el máximo admitido de ${MAX_MEDIA_MB} MB.`
+              ? "El alojamiento rechazó la carga antes de que la aplicación recibiera el archivo. Usa una versión optimizada o elige un video ya guardado en la biblioteca."
               : "La carga fue rechazada antes de llegar al servidor. Inténtalo de nuevo o elige el archivo desde la biblioteca.",
         );
         return;
