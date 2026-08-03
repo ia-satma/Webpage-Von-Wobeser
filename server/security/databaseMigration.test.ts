@@ -14,6 +14,7 @@ import {
   assertTargetConfirmation,
   decryptBackup,
   encryptBackup,
+  postgresCliEnvironment,
 } from "../../scripts/migrate-database-to-replit.mjs";
 
 test("Helium y los hosts locales explícitos nunca fuerzan TLS", () => {
@@ -38,6 +39,25 @@ test("una base externa siempre valida TLS y no conserva parámetros que lo degra
   assert.doesNotMatch(config.connectionString, /sslmode|sslcert/);
   assert.equal(redactedDatabaseIdentity(config.connectionString).host, "external.example.com");
   assert.doesNotMatch(JSON.stringify(redactedDatabaseIdentity(config.connectionString)), /secret/);
+});
+
+test("pg_dump usa las CA del sistema para bases externas y omite TLS en Helium", () => {
+  const external = postgresCliEnvironment(
+    "postgresql://user:secret@external.example.com:5432/app",
+  );
+  assert.equal(external.PGSSLMODE, "verify-full");
+  assert.equal(external.PGSSLROOTCERT, "system");
+
+  const previousRootCert = process.env.PGSSLROOTCERT;
+  process.env.PGSSLROOTCERT = "/tmp/legacy-root.crt";
+  try {
+    const helium = postgresCliEnvironment("postgresql://user:secret@helium/app");
+    assert.equal(helium.PGSSLMODE, "disable");
+    assert.equal(helium.PGSSLROOTCERT, undefined);
+  } finally {
+    if (previousRootCert === undefined) delete process.env.PGSSLROOTCERT;
+    else process.env.PGSSLROOTCERT = previousRootCert;
+  }
 });
 
 test("la conexión rechaza protocolos no PostgreSQL", () => {
