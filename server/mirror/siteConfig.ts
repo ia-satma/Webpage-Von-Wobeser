@@ -4,12 +4,18 @@ import { siteConfig } from "@shared/schema";
 
 export type ConfigMap = Record<string, { value: string; valueEs: string; type: string }>;
 
+const CURRENT_HERO_MEDIA = {
+  desktop: "/images/hero-092c5875ed80af62-desktop.mp4",
+  mobile: "/images/hero-092c5875ed80af62-mobile.mp4",
+  poster: "/images/hero-092c5875ed80af62-poster.webp",
+} as const;
+
 /** Default site-config keys for the editable parts of the mirror frontend. */
 const DEFAULTS: Array<{ key: string; value: string; valueEs?: string; type: string; category: string; description: string }> = [
   { key: "site_favicon", value: "/favicon-512x512.png", type: "url", category: "seo", description: "Favicon global del sitio y del panel administrativo" },
-  { key: "hero_video", value: "/images/home-hero-desktop-v2.mp4", type: "url", category: "home", description: "Video optimizado de alta calidad del hero para escritorio" },
-  { key: "hero_video_mobile", value: "/images/home-hero-mobile-v2.mp4", type: "url", category: "home", description: "Video optimizado de alta calidad del hero para móvil" },
-  { key: "hero_video_poster", value: "/images/home-hero-poster-v2.webp", type: "url", category: "home", description: "Póster del primer fotograma real del hero" },
+  { key: "hero_video", value: CURRENT_HERO_MEDIA.desktop, type: "url", category: "home", description: "Video optimizado de alta calidad del hero para escritorio" },
+  { key: "hero_video_mobile", value: CURRENT_HERO_MEDIA.mobile, type: "url", category: "home", description: "Video optimizado de alta calidad del hero para móvil" },
+  { key: "hero_video_poster", value: CURRENT_HERO_MEDIA.poster, type: "url", category: "home", description: "Póster del primer fotograma real del hero" },
   { key: "hero_practice_link", value: "/about", valueEs: "/acerca-de", type: "url", category: "home", description: "Destino bilingüe al hacer clic en el video del hero" },
   { key: "home_experience", value: "Von Wobeser y Sierra, S.C. has more than forty years of experience.", valueEs: "Von Wobeser y Sierra, S.C. cuenta con más de cuarenta años de experiencia.", type: "text", category: "home", description: "Frase de experiencia de la portada" },
   { key: "home_team_stats", value: "We have more than 180 legal team members (including 26 partners, 6 of counsel, and 8 counsel) and legal interns, plus administrative staff.", valueEs: "Tenemos más de 180 integrantes del equipo legal (incluyendo 26 socios, 6 of counsel y 8 consejeros) y pasantes, más el personal administrativo.", type: "text", category: "home", description: "Cifras del equipo en la portada" },
@@ -377,6 +383,33 @@ export async function seedConfigDefaults(): Promise<void> {
     );
   }
 
+  // Publica el video 2026 entregado por el cliente únicamente cuando cada campo
+  // conserva un recurso predeterminado anterior. Los medios personalizados que
+  // se hayan elegido desde administración permanecen intactos.
+  const legacyHeroMedia: Record<string, { current: string; legacy: Set<string> }> = {
+    hero_video: {
+      current: CURRENT_HERO_MEDIA.desktop,
+      legacy: new Set(["", "/images/dron_2026_40.mp4", "/images/home-hero-desktop-v1.mp4", "/images/home-hero-desktop-v2.mp4"]),
+    },
+    hero_video_mobile: {
+      current: CURRENT_HERO_MEDIA.mobile,
+      legacy: new Set(["", "/images/home-hero-mobile-v1.mp4", "/images/home-hero-mobile-v2.mp4"]),
+    },
+    hero_video_poster: {
+      current: CURRENT_HERO_MEDIA.poster,
+      legacy: new Set(["", "/images/home-hero-poster-v1.webp", "/images/home-hero-poster-v2.webp"]),
+    },
+  };
+  let heroMediaUpdated = false;
+  for (const [key, media] of Object.entries(legacyHeroMedia)) {
+    const [current] = await db.select().from(siteConfig).where(eq(siteConfig.key, key));
+    if (!current || !media.legacy.has(current.value || "") || !media.legacy.has(current.valueEs || "")) continue;
+    await db.update(siteConfig)
+      .set({ value: media.current, valueEs: media.current, updatedAt: new Date() })
+      .where(eq(siteConfig.key, key));
+    heroMediaUpdated = true;
+  }
+
   // Migración conservadora del único valor histórico que mezclaba ambos idiomas.
   // Solo se toca cuando sigue siendo EXACTAMENTE el default anterior; una dirección
   // editada por el cliente nunca se sobreescribe.
@@ -483,7 +516,7 @@ export async function seedConfigDefaults(): Promise<void> {
     rankingTitleUpdated = true;
   }
 
-  if (missing.length || footerUpdated || heroLinkUpdated || landingRouteUpdated || firmCopyUpdated || rankingTitleUpdated) invalidateConfigCache();
+  if (missing.length || heroMediaUpdated || footerUpdated || heroLinkUpdated || landingRouteUpdated || firmCopyUpdated || rankingTitleUpdated) invalidateConfigCache();
 }
 
 /** Upsert one key (used by the admin endpoint). */

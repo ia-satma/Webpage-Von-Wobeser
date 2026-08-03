@@ -86,6 +86,27 @@ async function runFfmpeg(args: string[]): Promise<void> {
   });
 }
 
+/** Publica un derivado de forma atómica incluso cuando /tmp y el directorio
+ * público están en volúmenes distintos (por ejemplo, disco externo o Replit). */
+async function publishGeneratedFile(sourcePath: string, destinationPath: string): Promise<void> {
+  try {
+    await fs.rename(sourcePath, destinationPath);
+    return;
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code !== "EXDEV") throw error;
+  }
+
+  const stagedPath = `${destinationPath}.staged-${crypto.randomBytes(6).toString("hex")}`;
+  try {
+    await fs.copyFile(sourcePath, stagedPath);
+    await fs.rename(stagedPath, destinationPath);
+    await fs.unlink(sourcePath);
+  } catch (error) {
+    await fs.rm(stagedPath, { force: true }).catch(() => undefined);
+    throw error;
+  }
+}
+
 /**
  * Crea las tres piezas atómicas que necesita el hero: escritorio, móvil y póster.
  * El archivo original permanece intacto. Solo después de producir las tres piezas
@@ -99,7 +120,7 @@ export async function generateHeroVideoVariants(
   const sourceStat = await fs.stat(sourcePath);
   const fingerprint = crypto
     .createHash("sha256")
-    .update(`hero-hq-v3:${path.basename(sourcePath)}:${sourceStat.size}:${sourceStat.mtimeMs}`)
+    .update(`hero-stream-v4:${path.basename(sourcePath)}:${sourceStat.size}:${sourceStat.mtimeMs}`)
     .digest("hex")
     .slice(0, 16);
   const desktopName = `hero-${fingerprint}-desktop.mp4`;
@@ -136,18 +157,18 @@ export async function generateHeroVideoVariants(
   try {
     await runFfmpeg([
       "-y", "-ss", "1", "-i", sourcePath, "-an",
-      "-vf", "scale=960:540:force_original_aspect_ratio=decrease:force_divisible_by=2",
+      "-vf", "scale=960:540:force_original_aspect_ratio=decrease:force_divisible_by=2,fps=24",
       "-c:v", "libx264", "-profile:v", "high", "-level", "3.1",
-      "-preset", "fast", "-crf", "21", "-pix_fmt", "yuv420p",
-      "-maxrate", "1800k", "-bufsize", "3600k",
+      "-preset", "slow", "-b:v", "560k", "-maxrate", "800k", "-bufsize", "1600k",
+      "-pix_fmt", "yuv420p",
       "-movflags", "+faststart", temporaryDesktop,
     ]);
     await runFfmpeg([
       "-y", "-ss", "1", "-i", sourcePath, "-an",
-      "-vf", "scale=640:360:force_original_aspect_ratio=decrease:force_divisible_by=2",
+      "-vf", "scale=480:270:force_original_aspect_ratio=decrease:force_divisible_by=2,fps=24",
       "-c:v", "libx264", "-profile:v", "high", "-level", "3.0",
-      "-preset", "fast", "-crf", "24", "-pix_fmt", "yuv420p",
-      "-maxrate", "650k", "-bufsize", "1300k",
+      "-preset", "slow", "-b:v", "170k", "-maxrate", "250k", "-bufsize", "500k",
+      "-pix_fmt", "yuv420p",
       "-movflags", "+faststart", temporaryMobile,
     ]);
     await runFfmpeg([
@@ -155,11 +176,11 @@ export async function generateHeroVideoVariants(
       "-vf", "scale=960:540:force_original_aspect_ratio=decrease",
       temporaryPng,
     ]);
-    await sharp(temporaryPng).webp({ quality: 76, effort: 5 }).toFile(temporaryPoster);
+    await sharp(temporaryPng).webp({ quality: 68, effort: 5 }).toFile(temporaryPoster);
 
-    await fs.rename(temporaryDesktop, finalDesktop);
-    await fs.rename(temporaryMobile, finalMobile);
-    await fs.rename(temporaryPoster, finalPoster);
+    await publishGeneratedFile(temporaryDesktop, finalDesktop);
+    await publishGeneratedFile(temporaryMobile, finalMobile);
+    await publishGeneratedFile(temporaryPoster, finalPoster);
     const [desktop, mobile, poster] = await Promise.all([
       fs.stat(finalDesktop),
       fs.stat(finalMobile),

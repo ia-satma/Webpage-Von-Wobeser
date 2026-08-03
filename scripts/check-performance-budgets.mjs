@@ -16,13 +16,13 @@ function size(relativePath) {
   return fs.statSync(path.join(mirror, relativePath)).size;
 }
 
-assert.ok(size("images/home-hero-poster-v2.webp") <= limits.poster, "El póster del hero supera 50 KB.");
-assert.ok(size("images/home-hero-mobile-v2.mp4") <= limits.mobileVideo, "El video móvil supera 1.5 MB.");
-assert.ok(size("images/home-hero-desktop-v2.mp4") <= limits.desktopVideo, "El video de escritorio supera 4.5 MB.");
+assert.ok(size("images/hero-092c5875ed80af62-poster.webp") <= limits.poster, "El póster del hero supera 50 KB.");
+assert.ok(size("images/hero-092c5875ed80af62-mobile.mp4") <= limits.mobileVideo, "El video móvil supera 1.5 MB.");
+assert.ok(size("images/hero-092c5875ed80af62-desktop.mp4") <= limits.desktopVideo, "El video de escritorio supera 4.5 MB.");
 
 const initialMobileAssets = [
-  "images/home-hero-mobile-v2.mp4",
-  "images/home-hero-poster-v2.webp",
+  "images/hero-092c5875ed80af62-mobile.mp4",
+  "images/hero-092c5875ed80af62-poster.webp",
   "images/optimized/images/banners/7-a-640.webp",
   "images/optimized/images/banners/1_ind-640.webp",
   "templates/beez3/webfont/AtkinsonHyperlegible-Regular.woff2",
@@ -66,6 +66,6 @@ assert.ok(Object.keys(manifest).length >= 200, "El manifiesto responsivo no cubr
 const renderer = fs.readFileSync(path.join(root, "server", "mirror", "renderHome.ts"), "utf8");
 assert.match(renderer, /data-bg-mobile=/, "El carrusel debe usar fondos diferidos.");
 assert.doesNotMatch(renderer, /style="background-image:url/, "El renderer no debe cargar fondos pesados de forma anticipada.");
-assert.match(renderer, /home-hero-mobile-v2\.mp4/, "Falta la variante móvil predeterminada.");
+assert.match(renderer, /hero-092c5875ed80af62-mobile\.mp4/, "Falta la variante móvil predeterminada.");
 
 console.log(`[performance] Presupuestos aprobados; transferencia móvil estimada: ${initialMobileBytes} bytes.`);
