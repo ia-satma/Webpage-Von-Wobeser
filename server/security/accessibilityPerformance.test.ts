@@ -293,6 +293,10 @@ test("la portada nombra los cuatro carruseles y aplica contraste AA al módulo d
   assert.match($("#vw-home-performance-js").text(), /navigator\.connection/);
   assert.match($("#vw-home-performance-js").text(), /\.slick-cloned\.vw-lazy-bg/);
   assert.match($("#vw-home-performance-js").text(), /\.slick-active\.vw-lazy-bg/);
+  assert.match($("#vw-home-performance-js").text(), /data-vw-bg-source/);
+  assert.match($("#vw-home-performance-js").text(), /if\(!item\.style\.backgroundImage\)applyBackground\(item,loadedSource\)/);
+  assert.match($("#vw-home-performance-js").text(), /data-vw-bg-loading/);
+  assert.match($("#vw-home-performance-js").text(), /fallbackProbe\.onload=function\(\)\{applyBackground\(item,fallback\);\}/);
   assert.match($("#vw-home-performance-js").text(), /afterChange\.vwLazyBg/);
   assert.match($("#vw-home-performance-js").text(), /addEventListener\('wheel'/);
   assert.match($("#vw-home-performance-js").text(), /data-vw-wheel-bound/);
