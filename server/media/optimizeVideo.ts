@@ -73,7 +73,10 @@ export type HeroVideoVariants = {
   posterBytes: number;
 };
 
-const FFMPEG_TIMEOUT_MS = 4 * 60 * 1000;
+// Un maestro de hasta 200 MB puede tardar varios minutos en una instancia Autoscale.
+// El preset `fast` conserva el CRF (calidad visual) y reduce de forma importante el
+// tiempo que el administrador espera frente al preset `slow` anterior.
+const FFMPEG_TIMEOUT_MS = 8 * 60 * 1000;
 
 async function runFfmpeg(args: string[]): Promise<void> {
   if (!(await hasFfmpeg())) throw new Error("FFmpeg no está disponible en este entorno.");
@@ -96,7 +99,7 @@ export async function generateHeroVideoVariants(
   const sourceStat = await fs.stat(sourcePath);
   const fingerprint = crypto
     .createHash("sha256")
-    .update(`hero-hq-v2:${path.basename(sourcePath)}:${sourceStat.size}:${sourceStat.mtimeMs}`)
+    .update(`hero-hq-v3:${path.basename(sourcePath)}:${sourceStat.size}:${sourceStat.mtimeMs}`)
     .digest("hex")
     .slice(0, 16);
   const desktopName = `hero-${fingerprint}-desktop.mp4`;
@@ -135,14 +138,16 @@ export async function generateHeroVideoVariants(
       "-y", "-ss", "1", "-i", sourcePath, "-an",
       "-vf", "scale=960:540:force_original_aspect_ratio=decrease:force_divisible_by=2",
       "-c:v", "libx264", "-profile:v", "high", "-level", "3.1",
-      "-preset", "slow", "-crf", "21", "-pix_fmt", "yuv420p",
+      "-preset", "fast", "-crf", "21", "-pix_fmt", "yuv420p",
+      "-maxrate", "1800k", "-bufsize", "3600k",
       "-movflags", "+faststart", temporaryDesktop,
     ]);
     await runFfmpeg([
       "-y", "-ss", "1", "-i", sourcePath, "-an",
       "-vf", "scale=640:360:force_original_aspect_ratio=decrease:force_divisible_by=2",
       "-c:v", "libx264", "-profile:v", "high", "-level", "3.0",
-      "-preset", "slow", "-crf", "24", "-pix_fmt", "yuv420p",
+      "-preset", "fast", "-crf", "24", "-pix_fmt", "yuv420p",
+      "-maxrate", "650k", "-bufsize", "1300k",
       "-movflags", "+faststart", temporaryMobile,
     ]);
     await runFfmpeg([

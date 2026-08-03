@@ -65,6 +65,57 @@ export async function validatePublicMediaSignature(filePath: string, mimeType: s
   }
 }
 
+/**
+ * Confirma que un video que ya pasó la firma mágica contiene al menos una pista
+ * de video legible. En Replit, ClamAV puede no tener su base de firmas disponible
+ * durante un despliegue; ffprobe ofrece una segunda validación estructural sin
+ * decodificar los 45-200 MB completos ni hacer que la carga tarde varios minutos.
+ */
+export function validateVideoContainer(filePath: string): Promise<boolean> {
+  return new Promise((resolve) => {
+    execFile(
+      "ffprobe",
+      [
+        "-v", "error",
+        "-select_streams", "v:0",
+        "-show_entries", "stream=codec_type,codec_name,width,height:format=duration,format_name",
+        "-of", "json",
+        filePath,
+      ],
+      {
+        timeout: 45_000,
+        windowsHide: true,
+        maxBuffer: 512 * 1024,
+      },
+      (error, stdout) => {
+        if (error) return resolve(false);
+        try {
+          const parsed = JSON.parse(stdout) as {
+            streams?: Array<{ codec_type?: string; codec_name?: string; width?: number; height?: number }>;
+            format?: { duration?: string; format_name?: string };
+          };
+          const video = parsed.streams?.find((stream) => stream.codec_type === "video");
+          const duration = Number(parsed.format?.duration || 0);
+          const width = Number(video?.width || 0);
+          const height = Number(video?.height || 0);
+          resolve(Boolean(
+            video?.codec_name
+            && Number.isFinite(duration)
+            && duration > 0
+            && duration <= 60 * 60
+            && width > 0
+            && height > 0
+            && width <= 7680
+            && height <= 4320,
+          ));
+        } catch {
+          resolve(false);
+        }
+      },
+    );
+  });
+}
+
 async function validateDocx(filePath: string): Promise<boolean> {
   const archive = await JSZip.loadAsync(await fs.readFile(filePath), {
     checkCRC32: true,
@@ -159,10 +210,13 @@ export async function validatePresentationInput(filePath: string, originalName: 
   return false;
 }
 
-function runClamScan(filePath: string): Promise<"clean" | "infected" | "unavailable"> {
+function runClamScan(
+  filePath: string,
+  timeoutMs = 60_000,
+): Promise<"clean" | "infected" | "unavailable"> {
   return new Promise((resolve) => {
     execFile("clamscan", ["--no-summary", "--infected", filePath], {
-      timeout: 60_000,
+      timeout: timeoutMs,
       windowsHide: true,
     }, (error) => {
       if (!error) return resolve("clean");
@@ -173,8 +227,8 @@ function runClamScan(filePath: string): Promise<"clean" | "infected" | "unavaila
   });
 }
 
-export async function scanFileForMalware(filePath: string): Promise<void> {
-  const result = await runClamScan(filePath);
+export async function scanFileForMalware(filePath: string, timeoutMs = 60_000): Promise<void> {
+  const result = await runClamScan(filePath, timeoutMs);
   if (result === "infected") throw new Error("Malware detected");
   const required = process.env.CLAMAV_REQUIRED === "true"
     || (process.env.NODE_ENV === "production" && process.env.CLAMAV_REQUIRED !== "false");

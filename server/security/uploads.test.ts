@@ -6,7 +6,7 @@ import test from "node:test";
 import JSZip from "jszip";
 import sharp from "sharp";
 import { sanitizeRasterImage } from "../media/optimizeImage";
-import { validateCvFile, validatePublicMediaSignature } from "./uploads";
+import { validateCvFile, validatePublicMediaSignature, validateVideoContainer } from "./uploads";
 
 test("presentation uploader supports multiple client files up to 100 MB each", async () => {
   const root = process.cwd();
@@ -36,6 +36,36 @@ test("media validation checks bytes instead of trusting browser MIME", async () 
   } finally {
     await fs.rm(directory, { recursive: true, force: true });
   }
+});
+
+test("video upload accepts a playable MP4 container and rejects a forged one", async () => {
+  const root = process.cwd();
+  const validVideo = path.join(root, "frontend-mirror/images/home-hero-mobile-v2.mp4");
+  assert.equal(await validateVideoContainer(validVideo), true);
+
+  const directory = await fs.mkdtemp(path.join(os.tmpdir(), "vwb-video-test-"));
+  try {
+    const forgedVideo = path.join(directory, "forged.mp4");
+    await fs.writeFile(forgedVideo, Buffer.from("not a playable video"));
+    assert.equal(await validateVideoContainer(forgedVideo), false);
+  } finally {
+    await fs.rm(directory, { recursive: true, force: true });
+  }
+});
+
+test("admin media upload exposes progress and keeps the 200 MB video limit explicit", async () => {
+  const root = process.cwd();
+  const clientSource = await fs.readFile(
+    path.join(root, "client/src/components/admin/ImageUpload.tsx"),
+    "utf8",
+  );
+  const routeSource = await fs.readFile(path.join(root, "server/routes.ts"), "utf8");
+
+  assert.match(clientSource, /const MAX_MEDIA_MB = 200/);
+  assert.match(clientSource, /xhr\.upload\.onprogress/);
+  assert.match(clientSource, /Guardando en App Storage/);
+  assert.match(routeSource, /MEDIA_FILE_TOO_LARGE/);
+  assert.match(routeSource, /validateVideoContainer/);
 });
 
 test("public raster sanitization decodes and removes appended payloads", async () => {

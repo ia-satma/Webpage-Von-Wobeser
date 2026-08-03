@@ -51,7 +51,7 @@ const PAGES: Record<string, SiteConfigPage> = {
       {
         title: "Portada (home)",
         fields: [
-          { key: "hero_video", label: "Video maestro del hero", media: "video", help: "Al guardar un video local, el sistema crea y publica automáticamente las versiones ligera de escritorio, móvil y su póster." },
+          { key: "hero_video", label: "Video maestro del hero", media: "video", help: "Admite MP4, WebM, OGV o MOV de hasta 200 MB. Al guardar, conserva el maestro y publica automáticamente versiones ligeras sin audio para escritorio y móvil, además del póster." },
           { key: "hero_video_mobile", label: "Video optimizado para móvil", media: "video", help: "Se genera automáticamente. También puedes sustituirlo manualmente." },
           { key: "hero_video_poster", label: "Póster del video", media: "image", help: "Debe coincidir con el primer fotograma visible para evitar parpadeos durante la carga." },
           { key: "hero_practice_link", label: "Destino del video del hero", bilingual: true, help: "Inglés: /about. Español: /acerca-de." },
