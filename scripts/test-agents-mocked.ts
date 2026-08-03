@@ -19,8 +19,8 @@ const B = "http://localhost:5051";
 requireIsolatedSecurityTarget(B);
 const sessionHeaders = adminSessionHeaders();
 
-const { neon } = await import("@neondatabase/serverless");
-const sql = neon(process.env.DATABASE_URL!);
+const { createSqlClient } = await import("./lib/postgres-sql.mjs");
+const sql = createSqlClient(process.env.DATABASE_URL!);
 
 let pass = 0, fail = 0, unhandled = 0;
 const failures: { agent: string; scenario: string; detail: string }[] = [];

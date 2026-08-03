@@ -2,13 +2,13 @@
 // falsos positivos), conteos DB↔API, ocultar, admin, y agentes registrados+corriendo.
 // Uso: node scripts/verify-all.mjs
 import "dotenv/config";
-import { neon } from "@neondatabase/serverless";
+import { createSqlClient } from "./lib/postgres-sql.mjs";
 import * as cheerio from "cheerio";
 import { adminSessionHeaders } from "./lib/admin-session.mjs";
 
 const B = process.env.VERIFY_BASE || "http://localhost:5050";
 const sessionHeaders = adminSessionHeaders();
-const sql = neon(process.env.DATABASE_URL);
+const sql = createSqlClient(process.env.DATABASE_URL);
 
 let pass = 0, fail = 0, warn = 0;
 const issues = [];
@@ -64,7 +64,7 @@ async function checkPage(label, path, expectLang, dataSelector) {
 
   // 1) INFRA
   section("1. Infraestructura / conectividad");
-  try { await sql`select 1`; ok("DB conecta"); console.log("  ✅ DB Neon conecta"); }
+  try { await sql`select 1`; ok("DB conecta"); console.log("  ✅ PostgreSQL conecta"); }
   catch (e) { bad("DB no conecta: " + e.message); console.log("  ❌ DB no conecta"); }
   const home = await get("/");
   if (home.status === 200 && /Von Wobeser/.test(home.html)) { ok("server"); console.log("  ✅ Server responde en " + B); }

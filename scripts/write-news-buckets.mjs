@@ -3,14 +3,14 @@
 //   es_*  (dir=es): traducción ESPAÑOL -> columnas *_es (base EN se queda).
 //   en_*  (dir=en): traducción INGLÉS -> columnas base; y preserva el español actual (base) en *_es.
 //   DATABASE_URL="..." node scripts/write-news-buckets.mjs <baseDir>
-import { neon } from "@neondatabase/serverless";
+import { createSqlClient } from "./lib/postgres-sql.mjs";
 import fs from "fs";
 import path from "path";
 const url = process.env.DATABASE_URL;
 if (!url) { console.error("Falta DATABASE_URL."); process.exit(1); }
 const baseDir = process.argv[2];
 const outDir = path.join(baseDir, "out");
-const sql = neon(url);
+const sql = createSqlClient(url);
 const nz = (s) => (s ?? "").toString();
 const files = fs.readdirSync(outDir).filter((f) => /^(es|en)_\d+\.json$/.test(f)).sort();
 let up = 0, skip = 0, bad = 0;

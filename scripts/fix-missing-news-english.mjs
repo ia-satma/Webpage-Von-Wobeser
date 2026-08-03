@@ -10,10 +10,10 @@
 // Uso: node scripts/fix-missing-news-english.mjs           (aplica los cambios)
 //      node scripts/fix-missing-news-english.mjs --dry-run (solo lista qué haría, sin llamar al LLM)
 import "dotenv/config";
-import { neon } from "@neondatabase/serverless";
+import { createSqlClient } from "./lib/postgres-sql.mjs";
 import { translateMultipleTexts } from "../server/openai.ts";
 
-const sql = neon(process.env.DATABASE_URL);
+const sql = createSqlClient(process.env.DATABASE_URL);
 const DRY_RUN = process.argv.includes("--dry-run");
 
 const rows = await sql`

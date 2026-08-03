@@ -5,9 +5,9 @@
 Este proyecto es la plataforma web del despacho de abogados **Von Wobeser y Sierra**. Su arquitectura tiene cuatro piezas que conviven en un mismo servidor Express (Node 24 + TypeScript):
 
 - **Sitio público = un ESPEJO estático**, no una app de React. El HTML del sitio original (Joomla) vive en `frontend-mirror/` y en cada request se re-parsea con **cheerio** para inyectarle datos frescos de la base de datos (abogados, noticias, grupos, configuración). Este es el frontend que ven los visitantes.
-- **Backend Express** sobre **Neon PostgreSQL** (Drizzle ORM) que sirve la API, el espejo y el panel.
+- **Backend Express** sobre **PostgreSQL administrado desde Replit** (Drizzle ORM + `pg`) que sirve la API, el espejo y el panel.
 - **Panel de administración en React** (SPA con `wouter`), que existe **SOLO** bajo `/admin/*`. Es el CMS.
-- **Malla de 13 agentes de IA** (OpenAI vía AI Integrations de Replit) que redactan, traducen, auditan, optimizan SEO, generan imágenes y voz.
+- **Malla de 14 agentes ejecutables de IA** (OpenAI vía AI Integrations de Replit) que redactan, traducen, auditan, optimizan SEO, generan imágenes y voz.
 
 ---
 
@@ -56,6 +56,7 @@ Scripts (`package.json`):
 | `start:deploy` | `npm run db:migrate && npm run start` | Aplica migraciones y arranca. **Es lo que Replit ejecuta en Deploy.** |
 | `check` | `tsc` | Type-check. |
 | `db:migrate` | `node scripts/run-migrations.mjs` | Migraciones SQL versionadas con transacción y advisory lock. |
+| `db:replit-migrate` | `node scripts/migrate-database-to-replit.mjs` | Auditoría, respaldo cifrado, restauración y comparación exacta de bases. |
 | `media:migrate-storage` | `node --import tsx scripts/migrate-media-to-app-storage.ts` | Migra imágenes, videos y presentaciones históricas locales al bucket persistente de Replit. |
 | `admin:recover` | `node --import tsx scripts/recover-admin.ts` | Recuperación manual desde Replit Secrets; nunca imprime contraseña ni hash. |
 
@@ -106,13 +107,14 @@ Disparo central: **`POST /api/agents/run/:agentType`** (`server/agents/api/agent
 
 ## Datos
 
-- **BD = PostgreSQL** con **Drizzle ORM** y `node-postgres`. Se conserva una sola cuenta y el `DATABASE_URL` actual; las conexiones externas validan TLS y la PostgreSQL interna de Replit usa su conexión interna.
-- **`DATABASE_URL` es la ÚNICA env estrictamente obligatoria para arrancar.** `db.ts` la usa con `!` (aserción, no salvaguarda): si falta, `neon()` lanza al importar y el proceso crashea antes de escuchar.
+- **BD = PostgreSQL** con **Drizzle ORM** y `node-postgres`. Desarrollo usa Helium y producción una base independiente, ambas administradas desde Replit. Las conexiones externas temporales validan TLS y la red interna `helium` opera sin SSL.
+- **`DATABASE_URL` es la ÚNICA env estrictamente obligatoria para arrancar.** Replit inyecta un valor distinto en desarrollo y producción; si falta, el proceso se detiene antes de escuchar.
 - **49 tablas** en `shared/schema.ts`, agrupadas en: **contenido público** (news, news_translations, practice_groups, industry_groups, team_members y relaciones, representative_matters, specialized_desks, rankings, awards, offices, alliances, faqs, events, banners, site_config, contact_submissions, career_applications, ...), **agentes de IA** (agent_jobs, agent_events, agent_knowledge, agent_skills, agent_evolution_proposals, content_analysis, website_audits, website_audit_findings, processed_official_sources, generated_images, generated_audio), y **sistema/auth** (admin_users, admin_login_events, admin_sessions, media_items, y una tabla `users` **legacy que NO usa el panel**).
 - **El contenido es REAL** (extraído del sitio Von Wobeser y Sierra, migrado de Joomla — `news.legacyId` mapea el `p_id` original), NO mock. Volúmenes en prod: ~134 abogados, 18 prácticas, 7 industrias, ~1742 publicaciones.
 - **Seed (`server/seed.ts`):** se invoca en CADA arranque desde `registerRoutes()`. Para cada tabla de contenido inserta datos semilla **solo si está vacía** (idempotente; en prod se salta). Es bootstrap para BD vacía, no la fuente de la data real; **nunca actualiza ni borra**.
 - **Admin en el seed:** `ADMIN_EMAIL` + `ADMIN_BOOTSTRAP_PASSWORD` viven en Replit Secrets. Solo crean al Dueño si el correo todavía no existe; la contraseña se convierte inmediatamente a Argon2id y se ignora por completo en reinicios posteriores. Una recuperación de una cuenta existente requiere ejecutar explícitamente `npm run admin:recover -- --confirm=<correo>`.
 - **Migraciones:** `npm run db:migrate` aplica archivos SQL versionados, con hash, transacción y advisory lock. Replit lo ejecuta antes de cada arranque de producción mediante `start:deploy`; si falla, el panel no arranca con un esquema incompatible.
+- **Migración de proveedor:** el procedimiento completo y reversible vive en [`docs/REPLIT_DATABASE_MIGRATION.md`](docs/REPLIT_DATABASE_MIGRATION.md). `MIGRATION_READ_ONLY=true` mantiene navegación de lectura, bloquea escrituras con 503 y desactiva agentes/schedulers durante el corte.
 
 ### Medios persistentes (imágenes y videos)
 
@@ -157,7 +159,7 @@ Login: `POST /api/admin/login` espera `username` y `password` y establece direct
 ## Secrets / variables de entorno
 
 **Obligatoria para arrancar (una sola):**
-- `DATABASE_URL` — conexión a Neon. Sin ella el proceso crashea al importar.
+- `DATABASE_URL` — conexión PostgreSQL inyectada por Replit para el entorno activo. Sin ella el proceso se detiene al importar.
 
 **Opcionales (degradan con gracia; el server arranca sin ellas):**
 
@@ -174,6 +176,8 @@ Login: `POST /api/admin/login` espera `username` y `password` y establece direct
 *Almacenamiento de agentes:* `PCLOUD_USERNAME`, `PCLOUD_PASSWORD` — pCloud; si faltan, `authenticate()` devuelve false.
 
 *Red / runtime:* `PORT` (default 5000), `NODE_ENV`, `CORS_ORIGIN` (vacío = sin cross-origin; el admin es same-origin), `SITE_URL` (default `https://www.vonwobeser.com`; base de canonical/OG/sitemap, se lee una vez al arranque), `MIRROR_DIR` (override del directorio del espejo; casi nunca hace falta por los fallbacks).
+
+*Migración temporal de base:* `SOURCE_DATABASE_URL` (origen de solo lectura para las herramientas), `DB_BACKUP_ENCRYPTION_KEY` (cifra respaldos) y `MIGRATION_READ_ONLY=true` durante el corte. Los dos primeros se eliminan al terminar su periodo de retención; nunca se exponen al cliente.
 
 Notas:
 - **`SESSION_SECRET` NO se usa.** La cookie contiene un token aleatorio; PostgreSQL guarda solamente su hash SHA-256, expiración, actividad y hash CSRF.

@@ -11,7 +11,7 @@ Plataforma web del despacho de abogados **Von Wobeser y Sierra**: sitio público
 
 - **Sitio público** → un **espejo estático** (`frontend-mirror/`, HTML del sitio original) servido por Express + cheerio, que inyecta datos de la BD en cada request. **No es React.**
 - **Panel de administración (CMS)** → app de React (`client/`, SPA con wouter), **solo** bajo `/admin/*`.
-- **Backend** → Express + **Neon PostgreSQL** (Drizzle ORM).
+- **Backend** → Express + **PostgreSQL administrado por Replit** (Drizzle ORM y `pg`).
 - **14 agentes ejecutables** → `gpt-5.4-mini` para texto, `gpt-image-2` para imágenes y OpenAI TTS para audio; los auditores estructurales no consumen un modelo de texto.
 
 ## Correr localmente
@@ -25,12 +25,13 @@ npm run dev      # NODE_ENV=development, tsx + Vite/HMR, puerto 5000 (o PORT)
 - `npm run start` → inicia el build de producción (`node dist/index.cjs`).
 - `npm run start:deploy` → aplica migraciones y después inicia producción; es lo que usa Replit en Deploy.
 - `npm run db:migrate` → aplica migraciones SQL versionadas e idempotentes.
+- `npm run db:replit-migrate -- <comando>` → audita, respalda, restaura y compara la migración a las bases administradas por Replit. Procedimiento en [`docs/REPLIT_DATABASE_MIGRATION.md`](./docs/REPLIT_DATABASE_MIGRATION.md).
 - `npm run media:migrate-storage` → copia imágenes, videos y archivos históricos de presentaciones (PPTX, PDF y PNG) a Replit App Storage.
 - `npm run admin:recover -- --confirm=<correo>` → recuperación manual usando exclusivamente los Secrets `ADMIN_EMAIL` y `ADMIN_BOOTSTRAP_PASSWORD`.
 
 ## Variables de entorno
 
-Única obligatoria para arrancar: **`DATABASE_URL`** (Neon). Las demás (IA, admin, imágenes, pCloud) son opcionales y degradan con gracia. Lista completa en [`replit.md`](./replit.md#secrets--variables-de-entorno).
+Única obligatoria para arrancar: **`DATABASE_URL`**, inyectada por la base correspondiente de Replit. Las demás (IA, admin, imágenes, pCloud) son opcionales y degradan con gracia. Lista completa en [`replit.md`](./replit.md#secrets--variables-de-entorno).
 
 ## Medios administrados
 

@@ -3,14 +3,14 @@
 // Idempotente: usa legacy_id para no duplicar (borra y reinserta las migradas).
 // Uso: node scripts/ingest-publications.mjs [--dry-run]
 import "dotenv/config";
-import { neon } from "@neondatabase/serverless";
+import { createSqlClient } from "./lib/postgres-sql.mjs";
 import * as cheerio from "cheerio";
 import fs from "fs";
 import path from "path";
 
 const DRY = process.argv.includes("--dry-run");
 const MIRROR = process.env.MIRROR_DIR || path.resolve(process.cwd(), "..", "mirror");
-const sql = neon(process.env.DATABASE_URL);
+const sql = createSqlClient(process.env.DATABASE_URL);
 
 const slugify = (s) => String(s).normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 80);
 const clean = (h) => cheerio.load("<div>" + h + "</div>")("div").text().replace(/\s+/g, " ").trim();

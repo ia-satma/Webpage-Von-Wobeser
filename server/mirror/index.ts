@@ -56,6 +56,7 @@ import {
   insertOfficeSchema,
 } from "@shared/schema";
 import { z } from "zod";
+import { isMigrationReadOnlyEnabled } from "../database/maintenance";
 
 type Lang = "en" | "es";
 
@@ -1061,7 +1062,7 @@ export async function setupMirror(app: Express) {
   console.log(`[mirror] Sirviendo frontend del espejo desde: ${mirrorDir}`);
   warmTemplates(); // precarga plantillas a RAM (evita I/O de disco por request)
   try {
-    if (process.env.SECURITY_READ_ONLY_SMOKE !== "true") {
+    if (process.env.SECURITY_READ_ONLY_SMOKE !== "true" && !isMigrationReadOnlyEnabled()) {
       await seedConfigDefaults();
       await ensureOfficeShowcaseData();
       await ensureHomeContentData();

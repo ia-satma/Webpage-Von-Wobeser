@@ -5,11 +5,11 @@
 // traducir (title = title_es) y solo cuando la traducción guardada difiere del español.
 // Idempotente. Requiere DATABASE_URL en el entorno.
 //   DATABASE_URL="..." node scripts/backfill-news-en.mjs
-import { neon } from "@neondatabase/serverless";
+import { createSqlClient } from "./lib/postgres-sql.mjs";
 
 const url = process.env.DATABASE_URL;
 if (!url) { console.error("Falta DATABASE_URL en el entorno."); process.exit(1); }
-const sql = neon(url);
+const sql = createSqlClient(url);
 
 const nz = (s) => (s ?? "").trim();
 let fromNT = 0, fromCache = 0;

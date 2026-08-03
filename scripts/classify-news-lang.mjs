@@ -2,10 +2,10 @@
 // Clasifica el idioma REAL de cada columna (base=EN esperado, *_es=ES esperado) en TODAS las
 // noticias, para saber exactamente qué falta. Detección por stopwords sobre title+excerpt.
 //   DATABASE_URL="..." node scripts/classify-news-lang.mjs [--dump-bad <n>]
-import { neon } from "@neondatabase/serverless";
+import { createSqlClient } from "./lib/postgres-sql.mjs";
 const url = process.env.DATABASE_URL;
 if (!url) { console.error("Falta DATABASE_URL."); process.exit(1); }
-const sql = neon(url);
+const sql = createSqlClient(url);
 
 const strip = (s) => (s || "").replace(/<[^>]*>/g, " ").replace(/&[a-z]+;/gi, " ").replace(/\s+/g, " ").toLowerCase();
 const ES = /\b(que|para|con|los|las|una|por|más|según|del|están|este|esta|como|pero|sus|leyes|ley|mediante|sobre|entre|nuevas|nuevos|nuevo|nueva|reforma|decreto|disposiciones|nuestra|además|país|jurídico|servicios|siguiente|acuerdo|de la|en el|se publica)\b/gi;

@@ -2,11 +2,11 @@
 // Valida que la salida sea REAL (no solo success:true). Limpia los datos de prueba.
 // Uso: node scripts/test-agents.mjs
 import "dotenv/config";
-import { neon } from "@neondatabase/serverless";
+import { createSqlClient } from "./lib/postgres-sql.mjs";
 import { adminSessionHeaders, requireIsolatedSecurityTarget } from "./lib/admin-session.mjs";
 
 const B = process.env.VERIFY_BASE || "http://localhost:5050";
-const sql = neon(process.env.DATABASE_URL);
+const sql = createSqlClient(process.env.DATABASE_URL);
 requireIsolatedSecurityTarget(B);
 const sessionHeaders = adminSessionHeaders();
 const run = async (agent, payload, ms = 170000) => {

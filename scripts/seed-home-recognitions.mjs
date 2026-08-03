@@ -4,9 +4,9 @@
 // Idempotente: solo actúa si aún no hay reconocimientos con logo /images/banners/.
 //   node scripts/seed-home-recognitions.mjs
 import "dotenv/config";
-import { neon } from "@neondatabase/serverless";
+import { createSqlClient } from "./lib/postgres-sql.mjs";
 if (!process.env.DATABASE_URL) { console.error("Falta DATABASE_URL."); process.exit(1); }
-const sql = neon(process.env.DATABASE_URL);
+const sql = createSqlClient(process.env.DATABASE_URL);
 
 const REAL = [
   { name: "Chambers Global",         nameEs: "Chambers Global",         publication: "Chambers and Partners", logo: "/images/banners/Agosto156x156_chambers_global25-1.png", order: 1 },

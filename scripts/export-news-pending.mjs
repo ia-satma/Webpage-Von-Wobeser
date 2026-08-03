@@ -3,7 +3,7 @@
 // traducción. Cada lote: array de {id, title, excerpt, content} (el texto fuente, en ES o EN).
 // Presupuesto por lote: MAX_ITEMS items o MAX_CHARS de texto fuente; un cuerpo gigante va solo.
 //   DATABASE_URL="..." node scripts/export-news-pending.mjs <outDir>
-import { neon } from "@neondatabase/serverless";
+import { createSqlClient } from "./lib/postgres-sql.mjs";
 import fs from "fs";
 import path from "path";
 
@@ -17,7 +17,7 @@ fs.mkdirSync(inDir, { recursive: true });
 const MAX_ITEMS = 30;
 const MAX_CHARS = 18000;
 
-const sql = neon(url);
+const sql = createSqlClient(url);
 const rows = await sql`
   select id, coalesce(title_es,'') as title, coalesce(excerpt_es,'') as excerpt, coalesce(content_es,'') as content
   from news where title = title_es

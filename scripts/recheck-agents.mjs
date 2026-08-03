@@ -1,11 +1,11 @@
 // Re-test enfocado de los 2 agentes que salieron <5/5: confirma si son fallas reales
 // o falsos negativos del harness (timeout). node scripts/recheck-agents.mjs
 import "dotenv/config";
-import { neon } from "@neondatabase/serverless";
+import { createSqlClient } from "./lib/postgres-sql.mjs";
 import { adminSessionHeaders, requireIsolatedSecurityTarget } from "./lib/admin-session.mjs";
 
 const B = process.env.VERIFY_BASE || "http://localhost:5050";
-const sql = neon(process.env.DATABASE_URL);
+const sql = createSqlClient(process.env.DATABASE_URL);
 requireIsolatedSecurityTarget(B);
 const sessionHeaders = adminSessionHeaders();
 const run = async (agent, payload, ms = 280000) => {

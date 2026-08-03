@@ -24,9 +24,9 @@ import "dotenv/config";
 import * as cheerio from "cheerio";
 import fs from "node:fs";
 import path from "node:path";
-import { neon } from "@neondatabase/serverless";
+import { createSqlClient } from "./lib/postgres-sql.mjs";
 
-const sql = neon(process.env.DATABASE_URL);
+const sql = createSqlClient(process.env.DATABASE_URL);
 const DRY_RUN = process.argv.includes("--dry-run");
 const MIRROR_ROOT = "/Volumes/alejandro /MIRROR VON WOBESER PAGE/mirror";
 

@@ -1,14 +1,14 @@
 // Ingiere las prácticas REALES del espejo que no están en la DB (ni como variante
 // de nombre). Bilingüe (EN practice/ + ES practica/). Idempotente. node scripts/ingest-missing-practices.mjs [--dry-run]
 import "dotenv/config";
-import { neon } from "@neondatabase/serverless";
+import { createSqlClient } from "./lib/postgres-sql.mjs";
 import * as cheerio from "cheerio";
 import fs from "fs";
 import path from "path";
 
 const DRY = process.argv.includes("--dry-run");
 const MIRROR = process.env.MIRROR_DIR || path.resolve(process.cwd(), "..", "mirror");
-const sql = neon(process.env.DATABASE_URL);
+const sql = createSqlClient(process.env.DATABASE_URL);
 const norm = (s) => String(s).normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/[-.,&()]/g, " ").replace(/\s+/g, " ").trim();
 const slugify = (s) => String(s).normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
 const clean = (h) => cheerio.load("<div>" + (h || "") + "</div>")("div").text().replace(/\s+/g, " ").trim();

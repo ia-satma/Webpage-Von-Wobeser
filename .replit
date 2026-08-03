@@ -4,7 +4,7 @@ hidden = [".config", ".git", "generated-icon.png", "node_modules", "dist"]
 
 [nix]
 channel = "stable-24_05"
-packages = ["unzip", "jq", "clamav", "ffmpeg"]
+packages = ["unzip", "jq", "clamav", "ffmpeg", "postgresql_16"]
 
 [deployment]
 deploymentTarget = "autoscale"
@@ -52,6 +52,9 @@ expertMode = true
 # Las imágenes y videos administrados requieren un bucket predeterminado vinculado
 # desde Tools → App Storage. REPLIT_APP_STORAGE_BUCKET_ID solo es necesario si se
 # desea seleccionar explícitamente un bucket distinto del predeterminado.
+# MIGRATION_READ_ONLY=true bloquea temporalmente todas las escrituras HTTP y los
+# procesos de fondo durante el corte final de base de datos. SOURCE_DATABASE_URL y
+# DB_BACKUP_ENCRYPTION_KEY son Secrets temporales; nunca deben quedar en Git.
 
 [postMerge]
 path = "scripts/post-merge.sh"

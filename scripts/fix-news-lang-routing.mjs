@@ -5,11 +5,11 @@
 // columna (por stopwords) y, si están invertidas, se INTERCAMBIAN los tres campos.
 // Detección deterministic, no usa la etiqueta del subagente.
 //   DATABASE_URL="..." node scripts/fix-news-lang-routing.mjs [--apply]
-import { neon } from "@neondatabase/serverless";
+import { createSqlClient } from "./lib/postgres-sql.mjs";
 const url = process.env.DATABASE_URL;
 if (!url) { console.error("Falta DATABASE_URL."); process.exit(1); }
 const APPLY = process.argv.includes("--apply");
-const sql = neon(url);
+const sql = createSqlClient(url);
 
 const strip = (s) => (s || "").replace(/<[^>]*>/g, " ").replace(/&[a-z]+;/gi, " ").replace(/\s+/g, " ").toLowerCase();
 const ES = /\b(que|para|con|los|las|una|por|más|según|del|están|este|esta|como|pero|sus|ley|leyes|mediante|sobre|entre|nuevo|nueva|nuevas|nuevos|de la|en el|se publica|reforma|decreto|disposiciones|artículo)\b/gi;

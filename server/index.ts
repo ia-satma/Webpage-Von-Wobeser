@@ -10,6 +10,7 @@ import { randomUUID } from "node:crypto";
 import { initializeAgents, orchestrator } from "./agents";
 import { invalidatePublicPageCache } from "./mirror/pageCache";
 import { invalidatePublicNavigationMenuCache } from "./mirror/navigationMenu";
+import { isMigrationReadOnlyEnabled, migrationReadOnlyGuard } from "./database/maintenance";
 
 const app = express();
 // Detrás del reverse-proxy de Replit (inyecta X-Forwarded-For). Sin esto req.ip es la IP del
@@ -156,6 +157,10 @@ app.use((req, res, next) => {
   next();
 });
 
+// Durante el corte final de base de datos las páginas públicas siguen disponibles,
+// pero ninguna ruta puede modificar contenido ni crear registros nuevos.
+app.use(migrationReadOnlyGuard);
+
 (async () => {
   await registerRoutes(httpServer, app);
 
@@ -205,8 +210,13 @@ app.use((req, res, next) => {
     async () => {
       log(`serving on port ${port}`);
 
-      if (process.env.SECURITY_READ_ONLY_SMOKE === "true") {
-        log("Read-only security smoke mode active; background workers are disabled", "security");
+      if (process.env.SECURITY_READ_ONLY_SMOKE === "true" || isMigrationReadOnlyEnabled()) {
+        log(
+          isMigrationReadOnlyEnabled()
+            ? "Database migration maintenance active; background workers are disabled"
+            : "Read-only security smoke mode active; background workers are disabled",
+          "security",
+        );
         return;
       }
       

@@ -44,6 +44,7 @@ import {
   isPublishedPublicPractice,
   isPublicPracticeSlug,
 } from "./mirror/publicPracticeGroups";
+import { isMigrationReadOnlyEnabled } from "./database/maintenance";
 
 // Global WebSocket clients map for pipeline progress updates
 const pipelineClients: Map<string, { ws: WebSocket; userId: string }> = new Map();
@@ -516,7 +517,7 @@ export async function registerRoutes(
   app: Express
 ): Promise<Server> {
   await ensurePrivateUploadDirectories();
-  if (process.env.SECURITY_READ_ONLY_SMOKE !== "true") {
+  if (process.env.SECURITY_READ_ONLY_SMOKE !== "true" && !isMigrationReadOnlyEnabled()) {
     await seed();
   }
 
@@ -5323,7 +5324,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
 
   // Initialize agents on normal server start. El smoke test de seguridad es
   // deliberadamente de solo lectura y no debe cargar conocimiento ni colas.
-  if (process.env.SECURITY_READ_ONLY_SMOKE !== "true") {
+  if (process.env.SECURITY_READ_ONLY_SMOKE !== "true" && !isMigrationReadOnlyEnabled()) {
     const { initializeAgents } = await import('./agents');
     initializeAgents().catch(err => console.error('[Agents] Initialization error:', err));
   }
