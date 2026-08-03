@@ -15,6 +15,7 @@ import {
   assertPgDumpCompatibility,
   assertTargetConfirmation,
   compatibleRestoreSqlLine,
+  constraintDifferences,
   decryptBackup,
   encryptBackup,
   postgresMajorFromVersion,
@@ -90,6 +91,22 @@ test("la restauración elimina únicamente el ajuste de PostgreSQL 18 incompatib
   assert.equal(compatibleRestoreSqlLine("  SET transaction_timeout = 0;  "), null);
   assert.equal(compatibleRestoreSqlLine("SET statement_timeout = 0;"), "SET statement_timeout = 0;");
   assert.equal(compatibleRestoreSqlLine("select 1;"), "select 1;");
+});
+
+test("el diagnóstico de restricciones muestra diferencias semánticas sin datos de tablas", () => {
+  const source = [
+    { table_name: "users", conname: "users_email_key", definition: "UNIQUE (email)" },
+    { table_name: "users", conname: "users_role_check", definition: "CHECK (role <> '')" },
+  ];
+  const target = [
+    { table_name: "users", conname: "users_email_key", definition: "UNIQUE (email)" },
+    { table_name: "users", conname: "users_role_check", definition: "CHECK (role != '')" },
+  ];
+  assert.deepEqual(constraintDifferences(source, target), [{
+    key: "users:users_role_check",
+    source: source[1],
+    target: target[1],
+  }]);
 });
 
 test("la conexión rechaza protocolos no PostgreSQL", () => {

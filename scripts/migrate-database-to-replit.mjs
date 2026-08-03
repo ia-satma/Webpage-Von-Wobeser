@@ -230,6 +230,19 @@ function comparableSnapshot(snapshot) {
   return comparable;
 }
 
+export function constraintDifferences(sourceConstraints, targetConstraints) {
+  const keyFor = (entry) => `${entry.table_name}:${entry.conname}`;
+  const source = new Map(sourceConstraints.map((entry) => [keyFor(entry), entry]));
+  const target = new Map(targetConstraints.map((entry) => [keyFor(entry), entry]));
+  const keys = [...new Set([...source.keys(), ...target.keys()])].sort();
+  return keys.flatMap((key) => {
+    const sourceEntry = source.get(key) || null;
+    const targetEntry = target.get(key) || null;
+    if (JSON.stringify(sourceEntry) === JSON.stringify(targetEntry)) return [];
+    return [{ key, source: sourceEntry, target: targetEntry }];
+  });
+}
+
 async function audit(role) {
   const snapshot = await catalogSnapshot(databaseUrlFor(role));
   console.log(`[database-migration] Auditoría ${role}:`);
@@ -471,6 +484,14 @@ async function verify() {
   })).map((entry) => ({ ...entry, equal: entry.sourceSha256 === entry.targetSha256 }));
   console.log(JSON.stringify({ source: source.identity, target: target.identity, results }, null, 2));
   if (results.some((entry) => !entry.equal)) {
+    const constraintsResult = results.find((entry) => entry.category === "constraints");
+    if (constraintsResult && !constraintsResult.equal) {
+      const differences = constraintDifferences(source.constraints, target.constraints);
+      console.log(JSON.stringify({
+        constraintDifferences: differences.slice(0, 100),
+        totalConstraintDifferences: differences.length,
+      }, null, 2));
+    }
     throw new Error("La verificación encontró diferencias entre origen y destino.");
   }
   console.log("[database-migration] Verificación exacta aprobada.");
