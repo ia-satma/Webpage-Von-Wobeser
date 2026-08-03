@@ -93,7 +93,15 @@ function readSession(token: string, expectedUserId: string): UploadSession {
   } catch {
     throw new ChunkedMediaUploadError("La sesión de carga no es válida.", "INVALID_CHUNK_SESSION", 401);
   }
-  if (supplied.length !== expectedSignature.length || !crypto.timingSafeEqual(supplied, expectedSignature)) {
+  /* Buffer acepta representaciones base64url no canónicas cuyos bits de relleno
+     pueden decodificar al mismo HMAC. Exigir la recodificación exacta evita que
+     una firma textual alterada siga siendo válida. */
+  const canonicalSignature = supplied.toString("base64url");
+  if (
+    canonicalSignature !== suppliedSignature
+    || supplied.length !== expectedSignature.length
+    || !crypto.timingSafeEqual(supplied, expectedSignature)
+  ) {
     throw new ChunkedMediaUploadError("La sesión de carga no es válida.", "INVALID_CHUNK_SESSION", 401);
   }
 
