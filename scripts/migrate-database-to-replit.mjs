@@ -32,10 +32,10 @@ function databaseUrlFor(role) {
     : requiredEnv("DATABASE_URL");
 }
 
-function postgresCliEnvironment(connectionString) {
+export function postgresCliEnvironment(connectionString) {
   const parsed = new URL(connectionString);
   const internal = isReplitInternalHost(parsed.hostname);
-  return {
+  const environment = {
     ...process.env,
     PGHOST: parsed.hostname,
     PGPORT: parsed.port || "5432",
@@ -44,6 +44,15 @@ function postgresCliEnvironment(connectionString) {
     PGDATABASE: decodeURIComponent(parsed.pathname.replace(/^\//, "")),
     PGSSLMODE: internal ? "disable" : "verify-full",
   };
+
+  // libpq no siempre consulta el almacén de certificados del sistema por
+  // defecto. En Replit esto provoca que pg_dump/pg_restore busquen
+  // ~/.postgresql/root.crt aunque Node pueda validar la misma conexión. La
+  // opción `system` conserva verify-full y usa las CA confiables del sistema.
+  if (internal) delete environment.PGSSLROOTCERT;
+  else environment.PGSSLROOTCERT = "system";
+
+  return environment;
 }
 
 function safeFilename(label = "snapshot") {
