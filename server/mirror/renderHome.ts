@@ -90,17 +90,38 @@ const HERO_PERFORMANCE_SCRIPT = `<script id="vw-home-performance-js">(function()
     if(reduced||saveData){video.pause();video.preload='none';}
     else{var promise=video.play();if(promise&&promise.catch)promise.catch(function(){});}
   }
+  function applyBackground(item,source){
+    if(!item||!source)return;
+    item.style.backgroundImage='url("'+source.replace(/"/g,'%22')+'")';
+    item.setAttribute('data-vw-bg-source',source);
+    item.setAttribute('data-vw-bg-loaded','true');
+    item.removeAttribute('data-vw-bg-loading');
+  }
   function loadBackground(item){
-    if(!item||item.getAttribute('data-vw-bg-loaded')==='true')return;
+    if(!item)return;
     var mobile=window.matchMedia&&window.matchMedia('(max-width: 680px)').matches;
     var selected=item.getAttribute(mobile?'data-bg-mobile':'data-bg-desktop');
     var fallback=item.getAttribute('data-bg-fallback')||selected;
+    var loadedSource=item.getAttribute('data-vw-bg-source')||selected;
+    /* Slick puede conservar la marca de carga al clonar/recalcular una slide y,
+       al mismo tiempo, eliminar su background inline. Restaurarlo aquí evita
+       que la primera práctica o industria quede gris después de setPosition. */
+    if(item.getAttribute('data-vw-bg-loaded')==='true'&&loadedSource){
+      if(!item.style.backgroundImage)applyBackground(item,loadedSource);
+      return;
+    }
+    if(item.getAttribute('data-vw-bg-loading')==='true')return;
     if(!selected)return;
-    item.setAttribute('data-vw-bg-loaded','true');
+    item.setAttribute('data-vw-bg-loading','true');
     var probe=new Image();
-    probe.onload=function(){item.style.backgroundImage='url("'+selected.replace(/"/g,'%22')+'")';};
+    probe.onload=function(){applyBackground(item,selected);};
     probe.onerror=function(){
-      if(fallback&&fallback!==selected)item.style.backgroundImage='url("'+fallback.replace(/"/g,'%22')+'")';
+      if(fallback&&fallback!==selected){
+        var fallbackProbe=new Image();
+        fallbackProbe.onload=function(){applyBackground(item,fallback);};
+        fallbackProbe.onerror=function(){item.removeAttribute('data-vw-bg-loading');};
+        fallbackProbe.src=fallback;
+      }else item.removeAttribute('data-vw-bg-loading');
     };
     probe.src=selected;
   }
