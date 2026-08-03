@@ -100,6 +100,11 @@ retira únicamente `SET transaction_timeout = 0;` y después lo aplica con `psql
 `ON_ERROR_STOP` y una sola transacción. El SQL temporal usa permisos `0600` y se
 elimina siempre al terminar.
 
+La verificación compara `NOT NULL` mediante `information_schema.columns.is_nullable`.
+PostgreSQL 18 también expone esas reglas como restricciones de tipo `n`, mientras
+que PostgreSQL 16 las conserva como atributo de columna. Las restricciones de
+llave, unicidad, relación, exclusión y `CHECK` sí se comparan por separado.
+
 Mantén Run/Preview detenido o `MIGRATION_READ_ONLY=true` hasta que `verify` apruebe. Después puedes desactivar el modo de mantenimiento en desarrollo para ejecutar las pruebas manuales.
 
 ## 5. Validar desarrollo

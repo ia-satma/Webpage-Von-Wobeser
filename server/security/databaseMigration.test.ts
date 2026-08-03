@@ -206,6 +206,7 @@ test("la herramienta usa respaldos custom y restauraci√≥n de una sola transacci√
   assert.match(source, /--single-transaction/);
   assert.match(source, /ON_ERROR_STOP=1/);
   assert.match(source, /transaction_timeout/);
+  assert.match(source, /c\.contype <> 'n'/);
   assert.match(source, /AES-256-GCM\+scrypt/);
   assert.match(source, /uploadFromFilename/);
   assert.match(source, /downloadToFilename/);
