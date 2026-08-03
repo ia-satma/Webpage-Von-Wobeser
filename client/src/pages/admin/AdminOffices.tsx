@@ -4,7 +4,8 @@ import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 import { AdminPageHelp } from "@/components/admin/AdminPageHelp";
 import { ImageUpload } from "@/components/admin/ImageUpload";
 import { OfficeGalleryManager } from "@/pages/admin/GalleryAdmin";
-import { useAdminAuth, adminApiRequest, getAuthHeaders } from "@/lib/adminAuth";
+import { useAdminAuth, adminApiRequest } from "@/lib/adminAuth";
+import { uploadAdminMedia } from "@/lib/adminMediaUpload";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -104,20 +105,23 @@ function BilingualConfigField({ field, draft, setValue }: {
 function PdfUpload({ label, value, onChange }: { label: string; value: string; onChange: (value: string) => void }) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
+  const [progress, setProgress] = useState(0);
   const { toast } = useToast();
   const upload = async (file: File) => {
     setUploading(true);
+    setProgress(0);
     try {
-      const form = new FormData();
-      form.append("file", file);
-      const response = await fetch("/api/admin/media/upload", { method: "POST", headers: getAuthHeaders(), body: form, credentials: "include" });
-      if (!response.ok) throw new Error("upload");
-      const media = await response.json();
+      const media = await uploadAdminMedia(file, { onProgress: (value) => setProgress(value) });
       onChange(media.path || "");
-    } catch {
-      toast({ title: "No se pudo subir el PDF", variant: "destructive" });
+    } catch (error) {
+      toast({
+        title: "No se pudo subir el PDF",
+        description: error instanceof Error ? error.message : undefined,
+        variant: "destructive",
+      });
     } finally {
       setUploading(false);
+      setProgress(0);
     }
   };
   return (
@@ -131,8 +135,9 @@ function PdfUpload({ label, value, onChange }: { label: string; value: string; o
       }} />
       <Button type="button" size="sm" variant="outline" disabled={uploading} onClick={() => inputRef.current?.click()}>
         {uploading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Upload className="mr-2 h-4 w-4" />}
-        {uploading ? "Subiendo…" : "Subir PDF"}
+        {uploading ? `Subiendo${progress ? ` ${progress}%` : "…"}` : "Subir PDF"}
       </Button>
+      <p className="text-xs text-muted-foreground">PDF de hasta 200 MB; los archivos grandes se cargan automáticamente en fragmentos seguros.</p>
     </div>
   );
 }

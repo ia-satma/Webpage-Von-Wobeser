@@ -1,51 +1,18 @@
 import { useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { getAuthHeaders, loadAdminSession } from "@/lib/adminAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Upload, Loader2, X, Download, Library } from "lucide-react";
 import { MediaLibraryPicker, type MediaLibraryItem } from "@/components/admin/MediaLibraryPicker";
+import {
+  AdminMediaUploadError,
+  MAX_ADMIN_MEDIA_BYTES,
+  MAX_ADMIN_MEDIA_MB,
+  uploadAdminMedia,
+} from "@/lib/adminMediaUpload";
 
-const MAX_MEDIA_MB = 200;
-const MAX_MEDIA_BYTES = MAX_MEDIA_MB * 1024 * 1024;
 const VIDEO_TYPES = new Set(["video/mp4", "video/webm", "video/ogg", "video/quicktime"]);
 const IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/gif", "image/webp"]);
-
-type UploadResult = {
-  status: number;
-  body: (MediaLibraryItem & { url?: string; error?: string; code?: string }) | null;
-};
-
-function sendMediaFile(
-  file: File,
-  headers: Record<string, string>,
-  onProgress: (percent: number) => void,
-): Promise<UploadResult> {
-  return new Promise((resolve, reject) => {
-    const form = new FormData();
-    form.append("file", file);
-    const xhr = new XMLHttpRequest();
-    xhr.open("POST", "/api/admin/media/upload");
-    xhr.withCredentials = true;
-    xhr.timeout = 10 * 60 * 1000;
-    xhr.setRequestHeader("Accept", "application/json");
-    for (const [name, value] of Object.entries(headers)) xhr.setRequestHeader(name, value);
-    xhr.upload.onprogress = (event) => {
-      if (!event.lengthComputable || event.total <= 0) return;
-      onProgress(Math.max(1, Math.min(99, Math.round((event.loaded / event.total) * 100))));
-    };
-    xhr.onload = () => {
-      let body: UploadResult["body"] = null;
-      try { body = JSON.parse(xhr.responseText); } catch { /* proxy puede responder HTML */ }
-      onProgress(100);
-      resolve({ status: xhr.status, body });
-    };
-    xhr.onerror = () => reject(new Error("network"));
-    xhr.ontimeout = () => reject(new Error("timeout"));
-    xhr.onabort = () => reject(new Error("aborted"));
-    xhr.send(form);
-  });
-}
 
 /** Deriva un nombre de archivo del final de la URL/ruta para el atributo download. */
 function downloadName(url: string, isVideo: boolean): string {
@@ -86,14 +53,15 @@ export function ImageUpload({
   const queryClient = useQueryClient();
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState<number | null>(null);
+  const [uploadStatus, setUploadStatus] = useState("");
   const [libraryOpen, setLibraryOpen] = useState(false);
   const [error, setError] = useState("");
   const isVideo = kind === "video";
 
   const upload = async (file: File) => {
     setError("");
-    if (file.size > MAX_MEDIA_BYTES) {
-      setError(`El archivo pesa ${(file.size / 1024 / 1024).toFixed(1)} MB. El máximo es ${MAX_MEDIA_MB} MB.`);
+    if (file.size > MAX_ADMIN_MEDIA_BYTES) {
+      setError(`El archivo pesa ${(file.size / 1024 / 1024).toFixed(1)} MB. El máximo es ${MAX_ADMIN_MEDIA_MB} MB.`);
       return;
     }
     const extension = file.name.toLowerCase().match(/\.[a-z0-9]+$/)?.[0] || "";
@@ -107,22 +75,14 @@ export function ImageUpload({
     }
     setUploading(true);
     setUploadProgress(0);
+    setUploadStatus("Preparando archivo…");
     try {
-      // Una pestaña restaurada puede conservar la cookie HttpOnly pero no el
-      // token CSRF en sessionStorage. Se renueva antes de enviar multipart.
-      await loadAdminSession(true);
-      const response = await sendMediaFile(file, getAuthHeaders(), setUploadProgress);
-      if (response.status < 200 || response.status >= 300) {
-        setError(
-          typeof response.body?.error === "string"
-            ? response.body.error
-            : response.status === 413
-              ? "El alojamiento rechazó la carga antes de que la aplicación recibiera el archivo. Usa una versión optimizada o elige un video ya guardado en la biblioteca."
-              : "La carga fue rechazada antes de llegar al servidor. Inténtalo de nuevo o elige el archivo desde la biblioteca.",
-        );
-        return;
-      }
-      const data = response.body;
+      const data = await uploadAdminMedia(file, {
+        onProgress: (percent, status) => {
+          setUploadProgress(percent);
+          if (status) setUploadStatus(status);
+        },
+      }) as MediaLibraryItem & { url?: string };
       if (!data?.path && !data?.url) {
         setError("El servidor recibió el archivo, pero no devolvió una ruta válida.");
         return;
@@ -133,13 +93,13 @@ export function ImageUpload({
         return [data, ...(existing || []).filter((item) => item.id !== data.id)];
       });
     } catch (uploadError) {
-      const reason = uploadError instanceof Error ? uploadError.message : "";
-      setError(reason === "timeout"
-        ? "La carga tardó más de 10 minutos y fue cancelada. Verifica tu conexión e inténtalo de nuevo."
+      setError(uploadError instanceof AdminMediaUploadError || uploadError instanceof Error
+        ? uploadError.message
         : "La conexión se interrumpió durante la carga. El archivo anterior permanece sin cambios.");
     } finally {
       setUploading(false);
       setUploadProgress(null);
+      setUploadStatus("");
     }
   };
 
@@ -222,10 +182,16 @@ export function ImageUpload({
             <div className="h-full bg-primary transition-[width] duration-200" style={{ width: `${uploadProgress}%` }} />
           </div>
           <p className="text-xs text-muted-foreground">
-            {uploadProgress < 100 ? `Enviando archivo: ${uploadProgress}%` : "Archivo enviado. Guardando en App Storage…"}
+            {uploadStatus || (uploadProgress < 100 ? `Enviando archivo: ${uploadProgress}%` : "Guardando en App Storage…")}
+            {uploadProgress > 0 && uploadProgress < 100 ? ` (${uploadProgress}%)` : ""}
           </p>
         </div>
       )}
+      <p className="text-xs leading-relaxed text-muted-foreground">
+        {isVideo
+          ? "MP4 (H.264 recomendado), WebM, OGV o MOV; hasta 200 MB. Se aceptan 720p, 1080p y 4K. La carga es fragmentada: el maestro se conserva y el sistema genera automáticamente una versión Full HD de alta calidad para escritorio, otra ligera para móvil y el póster."
+          : "JPG, PNG, GIF o WebP; hasta 200 MB. La carga es fragmentada cuando se necesita y el sistema valida y optimiza la imagen automáticamente."}
+      </p>
       {error && <p className="text-xs text-destructive">{error}</p>}
 
       <MediaLibraryPicker

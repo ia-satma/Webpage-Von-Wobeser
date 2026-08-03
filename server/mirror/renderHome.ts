@@ -107,16 +107,67 @@ const HERO_PERFORMANCE_SCRIPT = `<script id="vw-home-performance-js">(function()
   function loadWindow(slider,index){
     var items=slider.querySelectorAll('.home__slider--item:not(.slick-cloned)');
     if(!items.length)return;
-    loadBackground(items[(index+items.length)%items.length]);
-    loadBackground(items[(index+1+items.length)%items.length]);
+    var count=items.length;
+    var current=((Number(index)||0)%count+count)%count;
+    var next=(current+1)%count;
+    loadBackground(items[current]);
+    loadBackground(items[next]);
+    /* Slick clona slides para el desplazamiento infinito. La imagen se debe
+       aplicar también a las copias que representan el slide actual/siguiente;
+       cargar solo el original deja cuadros grises aunque la ruta exista. */
+    slider.querySelectorAll('.slick-cloned.vw-lazy-bg').forEach(function(item){
+      var raw=Number(item.getAttribute('data-slick-index'));
+      if(!Number.isFinite(raw))return;
+      var logical=((raw%count)+count)%count;
+      if(logical===current||logical===next)loadBackground(item);
+    });
+    slider.querySelectorAll('.slick-active.vw-lazy-bg,.slick-current.vw-lazy-bg').forEach(loadBackground);
   }
   function init(){
     document.querySelectorAll('.home_slider_JS').forEach(function(slider){
-      loadWindow(slider,0);
       if(window.jQuery){
-        window.jQuery(slider).off('beforeChange.vwLazyBg').on('beforeChange.vwLazyBg',function(_event,_slick,_current,next){
-          loadWindow(slider,next);
-        });
+        var instance=window.jQuery(slider);
+        instance.off('.vwLazyBg')
+          .on('init.vwLazyBg reInit.vwLazyBg setPosition.vwLazyBg',function(_event,slick){
+            loadWindow(slider,slick&&Number.isFinite(slick.currentSlide)?slick.currentSlide:0);
+          })
+          .on('beforeChange.vwLazyBg',function(_event,_slick,_current,next){loadWindow(slider,next);})
+          .on('afterChange.vwLazyBg',function(_event,_slick,current){loadWindow(slider,current);});
+        var current=0;
+        if(instance.hasClass('slick-initialized')){
+          try{current=instance.slick('slickCurrentSlide')||0;}catch(_error){current=0;}
+        }
+        loadWindow(slider,current);
+        window.requestAnimationFrame(function(){loadWindow(slider,current);});
+        /* Rueda y trackpad: un gesto mueve una sola diapositiva. El listener es
+           pasivo para que el carrusel nunca capture ni bloquee el scroll vertical
+           normal de la portada. Slick conserva además flechas, arrastre y swipe. */
+        if(slider.getAttribute('data-vw-wheel-bound')!=='true'){
+          slider.setAttribute('data-vw-wheel-bound','true');
+          var wheelTotal=0;
+          var wheelLocked=false;
+          var wheelUnlockTimer=0;
+          slider.addEventListener('wheel',function(event){
+            var horizontal=Math.abs(event.deltaX)>Math.abs(event.deltaY);
+            var delta=horizontal?event.deltaX:event.deltaY;
+            if(!Number.isFinite(delta)||Math.abs(delta)<2)return;
+            /* Los trackpads envían una ráfaga prolongada de eventos por cada
+               gesto. Cada evento extiende el bloqueo hasta que la ráfaga termine. */
+            window.clearTimeout(wheelUnlockTimer);
+            wheelUnlockTimer=window.setTimeout(function(){
+              wheelTotal=0;
+              wheelLocked=false;
+            },1000);
+            if(wheelLocked)return;
+            wheelTotal+=delta;
+            if(Math.abs(wheelTotal)<70)return;
+            try{instance.slick(wheelTotal>0?'slickNext':'slickPrev');}catch(_error){}
+            wheelTotal=0;
+            wheelLocked=true;
+          },{passive:true});
+        }
+      }else{
+        loadWindow(slider,0);
       }
     });
   }
