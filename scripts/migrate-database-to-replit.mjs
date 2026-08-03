@@ -184,6 +184,7 @@ async function catalogSnapshot(connectionString, includeCounts = true) {
       from pg_constraint c
       join pg_namespace n on n.oid = c.connamespace
       where n.nspname = 'public'
+        and c.contype <> 'n'
       order by table_name, c.conname
     `)).rows;
     const indexes = (await client.query(`
