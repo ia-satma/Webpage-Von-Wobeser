@@ -35,6 +35,11 @@ import {
   persistentMediaStorageStatus,
   PersistentMediaUnavailableError,
 } from "./media/persistentMedia";
+import {
+  deletePersistentPrivateCv,
+  openPersistentPrivateCvStream,
+  persistPrivateCvFile,
+} from "./media/privateDocuments";
 import { sanitizeCms, sanitizeFields, sanitizeNewsFields } from "./mirror/sanitize";
 import { getConfigMap, setHeroMediaConfig } from "./mirror/siteConfig";
 import { getMirrorDir } from "./mirror/config";
@@ -236,10 +241,17 @@ export async function runSecurityMaintenance(): Promise<{
   const security = await storage.cleanExpiredSecurityRecords();
   const contactSubmissions = await storage.deleteExpiredContactSubmissions();
   const expiredCareers = await storage.getExpiredCareerApplications();
+  const deletableCareerIds: string[] = [];
   for (const application of expiredCareers) {
     const privatePath = resolvePrivateCvStoragePath(application.cvPath);
     if (privatePath) {
-      await removeUploadQuietly(privatePath);
+      try {
+        await deletePersistentPrivateCv(application.cvPath);
+        await removeUploadQuietly(privatePath);
+        deletableCareerIds.push(application.id);
+      } catch {
+        console.error("[SecurityMaintenance] No se pudo retirar un CV privado; el registro se conservará para reintentar.");
+      }
       continue;
     }
     if (application.cvPath.startsWith("/uploads/")) {
@@ -247,9 +259,12 @@ export async function runSecurityMaintenance(): Promise<{
       if (path.dirname(legacyPath) === path.resolve(uploadsDir)) {
         await removeUploadQuietly(legacyPath);
       }
+      deletableCareerIds.push(application.id);
+      continue;
     }
+    deletableCareerIds.push(application.id);
   }
-  const careerApplications = await storage.deleteCareerApplications(expiredCareers.map((item) => item.id));
+  const careerApplications = await storage.deleteCareerApplications(deletableCareerIds);
   const presentationInputs = await cleanExpiredPrivatePresentationInputs();
   return {
     sessions,
@@ -1455,6 +1470,8 @@ export async function registerRoutes(
   // vienen tal cual del HTML original capturado; se mapean a las columnas de career_applications.
   app.post("/api/career-applications", publicFormLimiter, cvUpload.single("uploaded_file"), async (req, res) => {
     let acceptedCvPath: string | undefined;
+    let acceptedCvStoragePath: string | undefined;
+    let acceptedCvPersisted = false;
     try {
       const bodySchema = z.object({
         name: z.string().trim().min(1).max(120),
@@ -1479,6 +1496,9 @@ export async function registerRoutes(
       await scanFileForMalware(req.file.path);
       const acceptedCv = await acceptQuarantinedCv(req.file.path, req.file.mimetype);
       acceptedCvPath = acceptedCv.absolutePath;
+      acceptedCvStoragePath = acceptedCv.storagePath;
+      const persistence = await persistPrivateCvFile(acceptedCv.absolutePath, acceptedCv.storagePath);
+      acceptedCvPersisted = persistence.persisted;
 
       const data = validationResult.data;
       const sanitize = (str: string) => str.replace(/<[^>]*>/g, "").trim();
@@ -1504,10 +1524,18 @@ export async function registerRoutes(
 
       console.log(`[CareerApplications] Submission saved with id ${application.id}`);
 
+      if (acceptedCvPersisted) {
+        await removeUploadQuietly(acceptedCvPath);
+        acceptedCvPath = undefined;
+      }
+
       res.json({ success: true, message: "Application submitted successfully" });
     } catch (error) {
       await removeUploadQuietly(req.file?.path);
       await removeUploadQuietly(acceptedCvPath);
+      if (acceptedCvPersisted && acceptedCvStoragePath) {
+        await deletePersistentPrivateCv(acceptedCvStoragePath).catch(() => undefined);
+      }
       console.error("Career application processing failed");
       res.status(500).json({ error: "No fue posible procesar la solicitud." });
     }
@@ -3314,15 +3342,18 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
         const legacyPath = path.resolve(uploadsDir, legacyName);
         if (path.dirname(legacyPath) === path.resolve(uploadsDir)) absolutePath = legacyPath;
       }
-      if (!absolutePath || !fs.existsSync(absolutePath)) {
-        return res.status(404).json({ error: "Document not found" });
-      }
+      const hasLocalFile = Boolean(absolutePath && fs.existsSync(absolutePath));
+      const persistentStream = hasLocalFile
+        ? null
+        : await openPersistentPrivateCvStream(application.cvPath);
+      if (!hasLocalFile && !persistentStream) return res.status(404).json({ error: "Document not found" });
 
-      const original = (application.cvOriginalName || path.basename(absolutePath))
+      const sourceName = absolutePath || application.cvPath;
+      const original = (application.cvOriginalName || path.basename(sourceName))
         .replace(/[\r\n"\\]/g, "_")
         .slice(0, 180);
       const fallback = original.replace(/[^\x20-\x7e]/g, "_") || "cv";
-      const extension = path.extname(absolutePath).toLowerCase();
+      const extension = path.extname(sourceName).toLowerCase();
       const contentType = extension === ".pdf"
         ? "application/pdf"
         : extension === ".docx"
@@ -3334,7 +3365,12 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
       res.setHeader("Content-Security-Policy", "sandbox");
       res.setHeader("Cache-Control", "private, no-store");
       auditLog("update", "career_application_cv_download", application.id, req.adminUser!.id);
-      res.sendFile(absolutePath);
+      if (hasLocalFile && absolutePath) return res.sendFile(absolutePath);
+      persistentStream!.once("error", () => {
+        if (!res.headersSent) res.status(404).end();
+        else res.destroy();
+      });
+      persistentStream!.pipe(res);
     } catch {
       res.status(500).json({ error: "Failed to download document" });
     }

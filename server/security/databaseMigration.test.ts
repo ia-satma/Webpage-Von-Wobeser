@@ -13,6 +13,7 @@ import { compileSqlTemplate } from "../../scripts/lib/postgres-sql.mjs";
 import {
   assertBackupObjectName,
   assertPgDumpCompatibility,
+  assertSourceConfirmation,
   assertTargetConfirmation,
   compatibleRestoreSqlLine,
   constraintDifferences,
@@ -212,8 +213,12 @@ test("la herramienta usa respaldos custom y restauración de una sola transacci�
   assert.match(source, /downloadToFilename/);
   assert.match(source, /downloadAsText/);
   assert.match(source, /confirm-target/);
+  assert.match(source, /backup-current/);
+  assert.match(source, /confirm-source/);
+  assert.match(source, /process\.env\.SOURCE_DATABASE_URL\?\.trim/);
   const replitConfig = await fs.readFile(path.join(process.cwd(), ".replit"), "utf8");
   assert.match(replitConfig, /postgresql_18/);
+  assert.doesNotMatch(replitConfig, /defaultBucketID/);
 });
 
 test("una restauración exige confirmar exactamente la base destino", () => {
@@ -221,6 +226,13 @@ test("una restauración exige confirmar exactamente la base destino", () => {
   assert.doesNotThrow(() => assertTargetConfirmation(target, "replit_production"));
   assert.throws(() => assertTargetConfirmation(target, "otra_base"), /confirm-target/);
   assert.throws(() => assertTargetConfirmation(target, undefined), /confirm-target/);
+});
+
+test("el respaldo de entrega exige confirmar exactamente la base activa", () => {
+  const current = "postgresql://user:secret@helium/heliumdb";
+  assert.doesNotThrow(() => assertSourceConfirmation(current, "heliumdb"));
+  assert.throws(() => assertSourceConfirmation(current, "otra_base"), /confirm-source/);
+  assert.throws(() => assertSourceConfirmation(current, undefined), /confirm-source/);
 });
 
 test("el modo mantenimiento evita seeds y procesos de fondo además de bloquear HTTP", async () => {

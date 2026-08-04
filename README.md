@@ -27,7 +27,16 @@ npm run dev      # NODE_ENV=development, tsx + Vite/HMR, puerto 5000 (o PORT)
 - `npm run db:migrate` → aplica migraciones SQL versionadas e idempotentes.
 - `npm run db:replit-migrate -- <comando>` → audita, respalda, restaura y compara la migración a las bases administradas por Replit. Procedimiento en [`docs/REPLIT_DATABASE_MIGRATION.md`](./docs/REPLIT_DATABASE_MIGRATION.md).
 - `npm run media:migrate-storage` → copia imágenes, videos y archivos históricos de presentaciones (PPTX, PDF y PNG) a Replit App Storage.
+- `npm run media:migrate-private` → mueve CV históricos a la zona privada de App Storage y corrige sus referencias de forma segura.
+- `npm run handoff:storage -- <export|import|verify>` → crea o restaura el paquete portable de medios públicos para una entrega por GitHub.
+- `npm run handoff:private -- <export|import|verify>` → cifra, transporta y verifica los documentos privados sin exponerlos en Git.
+- `npm run handoff:readiness -- --confirm-database=<base>` → comprueba que una instalación nueva tiene datos, medios públicos y CV privados completos.
 - `npm run admin:recover -- --confirm=<correo>` → recuperación manual usando exclusivamente los Secrets `ADMIN_EMAIL` y `ADMIN_BOOTSTRAP_PASSWORD`.
+
+La instalación en una cuenta nueva del cliente está documentada en
+[`docs/CLIENT_REPLIT_HANDOFF.md`](./docs/CLIENT_REPLIT_HANDOFF.md). GitHub transporta
+el código, pero la base, App Storage y Secrets se reconstruyen de forma segura dentro
+del Replit del cliente.
 
 ## Variables de entorno
 
@@ -40,6 +49,10 @@ guarda sus rutas y metadatos; `/uploads/*` sirve una copia local caliente cuando
 y recupera automáticamente el objeto persistente después de reinicios o publicaciones.
 En Replit, una carga falla de forma segura si el bucket no está conectado: nunca se
 confirma un archivo que pueda desaparecer con el siguiente deployment.
+
+Los CV de solicitudes se almacenan bajo `von-wobeser/private/cvs/`, no se sirven desde
+`/uploads` y solo se recuperan mediante una ruta administrativa autenticada. PostgreSQL
+guarda una referencia privada, nunca los bytes ni la ruta original del equipo del usuario.
 
 ## ⚠️ No borrar `frontend-mirror/`
 

@@ -17,6 +17,10 @@ CLAUDEAPI.env.rtf
 uploads/*
 !uploads/.gitkeep
 private_uploads/
+
+# Paquetes portables de entrega (base cifrada y exportación de App Storage)
+# Se transfieren por un canal seguro; nunca deben publicarse en GitHub.
+.handoff/
 # Basura macOS
 __MACOSX/
 ._*

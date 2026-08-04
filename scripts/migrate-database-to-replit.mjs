@@ -318,8 +318,20 @@ async function downloadEncryptedBackup(objectName, destinationPath) {
   return destinationPath;
 }
 
-async function backup(label) {
-  const sourceUrl = databaseUrlFor("source");
+export function assertSourceConfirmation(sourceUrl, confirmation) {
+  const source = redactedDatabaseIdentity(sourceUrl);
+  if (!confirmation || confirmation !== source.database) {
+    throw new Error(
+      `Confirma la base que se respaldará con --confirm-source=${source.database}.`,
+    );
+  }
+}
+
+async function backup(label, options = {}) {
+  const sourceUrl = options.current
+    ? databaseUrlFor("target")
+    : databaseUrlFor("source");
+  if (options.current) assertSourceConfirmation(sourceUrl, options.confirmation);
   await assertBackupClientCompatibility(sourceUrl);
   const directory = process.env.DB_MIGRATION_BACKUP_DIR?.trim() || DEFAULT_DIR;
   await fs.mkdir(directory, { recursive: true, mode: 0o700 });
@@ -436,9 +448,12 @@ async function restore(filePath, objectName, confirmation) {
   if ((!filePath && !objectName) || (filePath && objectName)) {
     throw new Error("Indica exactamente uno: --file=/ruta/respaldo.dump.enc o --object=nombre-en-app-storage.");
   }
-  const sourceUrl = databaseUrlFor("source");
   const targetUrl = databaseUrlFor("target");
-  if (fingerprint(redactedDatabaseIdentity(sourceUrl)) === fingerprint(redactedDatabaseIdentity(targetUrl))) {
+  const sourceUrl = process.env.SOURCE_DATABASE_URL?.trim();
+  if (
+    sourceUrl
+    && fingerprint(redactedDatabaseIdentity(sourceUrl)) === fingerprint(redactedDatabaseIdentity(targetUrl))
+  ) {
     throw new Error("Origen y destino apuntan a la misma base; restauración cancelada.");
   }
   assertTargetConfirmation(targetUrl, confirmation);
@@ -513,13 +528,20 @@ export async function main() {
     return audit(role);
   }
   if (command === "backup") return backup(option("label") || "snapshot");
+  if (command === "backup-current") {
+    return backup(option("label") || "handoff", {
+      current: true,
+      confirmation: option("confirm-source"),
+    });
+  }
   if (command === "restore") {
     return restore(option("file"), option("object"), option("confirm-target"));
   }
   if (command === "verify") return verify();
   throw new Error(
-    "Uso: db:replit-migrate <audit source|target|backup|restore|verify> "
-      + "[--file=...|--object=...] [--label=...] [--confirm-target=base]",
+    "Uso: db:replit-migrate <audit source|target|backup|backup-current|restore|verify> "
+      + "[--file=...|--object=...] [--label=...] "
+      + "[--confirm-source=base] [--confirm-target=base]",
   );
 }
 

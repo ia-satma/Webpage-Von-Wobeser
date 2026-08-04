@@ -53,8 +53,10 @@ expertMode = true
 # desde Tools → App Storage. REPLIT_APP_STORAGE_BUCKET_ID solo es necesario si se
 # desea seleccionar explícitamente un bucket distinto del predeterminado.
 # MIGRATION_READ_ONLY=true bloquea temporalmente todas las escrituras HTTP y los
-# procesos de fondo durante el corte final de base de datos. SOURCE_DATABASE_URL y
+# procesos de fondo durante un corte de base de datos. SOURCE_DATABASE_URL y
 # DB_BACKUP_ENCRYPTION_KEY son Secrets temporales; nunca deben quedar en Git.
+# El ID del bucket tampoco se versiona: cada importación desde GitHub debe vincular
+# su propio App Storage y, si hace falta, definir REPLIT_APP_STORAGE_BUCKET_ID.
 
 [postMerge]
 path = "scripts/post-merge.sh"
@@ -64,6 +66,3 @@ timeoutMs = 90000
 
 [userenv.shared]
 AI_INTEGRATIONS_OPENAI_BASE_URL = "https://api.openai.com/v1"
-
-[objectStorage]
-defaultBucketID = "replit-objstore-4fe099a5-d86a-4249-ab6d-16ac6571febe"
