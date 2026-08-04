@@ -58,6 +58,10 @@ Scripts (`package.json`):
 | `db:migrate` | `node scripts/run-migrations.mjs` | Migraciones SQL versionadas con transacción y advisory lock. |
 | `db:replit-migrate` | `node scripts/migrate-database-to-replit.mjs` | Auditoría, respaldo cifrado, restauración y comparación exacta de bases. |
 | `media:migrate-storage` | `node --import tsx scripts/migrate-media-to-app-storage.ts` | Migra imágenes, videos y presentaciones históricas locales al bucket persistente de Replit. |
+| `media:migrate-private` | `node --import tsx scripts/migrate-private-cvs-to-app-storage.ts` | Migra CV históricos a la zona privada de App Storage. |
+| `handoff:storage` | `node scripts/handoff-app-storage.mjs` | Exporta, importa y verifica los medios públicos en una entrega GitHub → Replit. |
+| `handoff:private` | `node scripts/handoff-private-documents.mjs` | Exporta, importa y verifica documentos privados cifrados. |
+| `handoff:readiness` | `node scripts/verify-client-handoff.mjs` | Audita una instalación nueva sin revelar datos personales ni Secrets. |
 | `admin:recover` | `node --import tsx scripts/recover-admin.ts` | Recuperación manual desde Replit Secrets; nunca imprime contraseña ni hash. |
 
 - **Puerto:** `process.env.PORT || 5000`. `.replit` fija `PORT=5000` y mapea `localPort 5000 → externalPort 80`. Bind a `0.0.0.0`.
@@ -131,8 +135,16 @@ Disparo central: **`POST /api/agents/run/:agentType`** (`server/agents/api/agent
 - Para una instalación nueva: abrir **Tools → App Storage**, crear o vincular un bucket
   y dejarlo como bucket predeterminado. Si se usa uno explícito, definir
   `REPLIT_APP_STORAGE_BUCKET_ID`.
+- El ID del bucket no se guarda en `.replit`: cada importación desde GitHub debe vincular
+  el App Storage propiedad de esa cuenta. Ver `docs/CLIENT_REPLIT_HANDOFF.md`.
 - Para proteger archivos históricos que todavía existan en el workspace, ejecutar una
   sola vez `npm run media:migrate-storage`.
+- Los CV se guardan en `von-wobeser/private/cvs/` y PostgreSQL conserva referencias
+  `private:cvs/...`. Nunca se sirven como contenido público: la descarga exige sesión y
+  permiso administrativo. Ejecutar una sola vez `npm run media:migrate-private` para
+  proteger registros históricos que aún apunten a `/uploads`.
+- La entrega mediante GitHub usa dos paquetes separados: medios públicos verificables y
+  documentos privados cifrados. Ver `docs/CLIENT_REPLIT_HANDOFF.md`.
 
 ---
 

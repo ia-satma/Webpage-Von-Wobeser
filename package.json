@@ -18,6 +18,10 @@
     "test:performance": "node scripts/check-performance-budgets.mjs",
     "media:optimize": "node scripts/generate-performance-assets.mjs",
     "media:migrate-storage": "node --import tsx scripts/migrate-media-to-app-storage.ts",
+    "media:migrate-private": "node --import tsx scripts/migrate-private-cvs-to-app-storage.ts",
+    "handoff:storage": "node scripts/handoff-app-storage.mjs",
+    "handoff:private": "node scripts/handoff-private-documents.mjs",
+    "handoff:readiness": "node scripts/verify-client-handoff.mjs",
     "db:migrate": "node scripts/run-migrations.mjs",
     "db:replit-migrate": "node scripts/migrate-database-to-replit.mjs",
     "admin:recover": "node --import tsx scripts/recover-admin.ts"
