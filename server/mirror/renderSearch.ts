@@ -174,18 +174,19 @@ export function renderGlobalSearch(
   $("html").attr("lang", lang === "es" ? "es-mx" : "en-gb");
   $("head").append(`
 <style id="vw-global-search-style">
-.vw-global-results{background:#fff;padding:150px 0 110px;color:#5f5f5f}
+.vw-global-results{background:#fff;padding:132px 0 100px;color:#5f5f5f}
 .vw-global-results__wrap{width:min(1180px,calc(100% - 64px));margin:0 auto}
-.vw-global-results__eyebrow{color:#b51d35;font:600 13px/1 var(--vw-font-ui);letter-spacing:.28em;margin-bottom:22px}
-.vw-global-results h1{font:400 clamp(44px,6vw,82px)/.98 var(--vw-font-editorial);margin:0 0 58px;color:#606060}
-.vw-global-results__form{background:#909090;padding:34px 40px 40px;margin-bottom:36px}
-.vw-global-results__form label{display:block;color:#fff;font:500 13px/1 var(--vw-font-ui);letter-spacing:.2em;text-transform:uppercase;margin-bottom:16px}
+.vw-global-results__eyebrow{color:#b51d35;font:600 12px/1 var(--vw-font-ui);letter-spacing:.26em;margin-bottom:18px}
+.vw-global-results h1{font:400 clamp(36px,4vw,56px)/1.06 var(--vw-font-editorial);margin:0 0 42px;color:#606060}
+.vw-global-results__form{background:#f1f1ef;border-block:1px solid #c8c8c6;padding:27px 32px 30px;margin-bottom:34px}
+.vw-global-results__form label{display:block;color:#606060;font:600 12px/1 var(--vw-font-ui);letter-spacing:.18em;text-transform:uppercase;margin-bottom:13px}
 .vw-global-results__controls{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:14px}
-.vw-global-results__controls input{min-width:0;min-height:52px;border:0;background:#fff;padding:12px 16px;font:400 18px/1.35 var(--vw-font-ui);color:#333}
-.vw-global-results__controls button{min-height:52px;border:0;background:#b51d35;color:#fff;padding:0 28px;font:500 15px/1 var(--vw-font-ui);letter-spacing:.14em;text-transform:uppercase;cursor:pointer}
-.vw-global-results__controls button span{display:inline-block;margin-left:18px;transition:transform .2s ease}
-.vw-global-results__controls button:hover span,.vw-global-results__controls button:focus-visible span{transform:translateX(5px)}
-.vw-global-results__controls input:focus-visible,.vw-global-results__controls button:focus-visible,.vw-global-result:focus-visible{outline:3px solid #b51d35;outline-offset:3px}
+.vw-global-results__controls input{min-width:0;min-height:48px;border:1px solid #c8c8c6;background:#fff;padding:11px 15px;font:400 17px/1.35 var(--vw-font-ui);color:#333}
+.vw-global-results__controls button{align-items:center;display:inline-flex;justify-content:center;min-height:48px;border:0;background:#b51d35;color:#fff;padding:0 25px;font:600 13px/1 var(--vw-font-ui);letter-spacing:.14em;text-transform:uppercase;cursor:pointer}
+.vw-global-results__controls button span{display:inline-block;font-size:18px;line-height:1;margin-left:16px;transform:translateY(-1px);transition:transform .2s ease}
+.vw-global-results__controls button:hover span,.vw-global-results__controls button:focus-visible span{transform:translate(5px,-1px)}
+.vw-global-results__controls input:focus-visible{border-color:#777;box-shadow:inset 0 -2px 0 #b51d35;outline:0}
+.vw-global-results__controls button:focus-visible,.vw-global-result:focus-visible{outline:2px solid rgba(181,29,53,.42);outline-offset:3px}
 .vw-global-results__summary{font:400 15px/1.5 var(--vw-font-ui);color:#b51d35;margin:0 0 26px}
 .vw-global-results__group{border-top:2px solid #b51d35;padding:28px 0 46px}
 .vw-global-results__group h2{font:400 clamp(28px,3vw,42px)/1.1 var(--vw-font-editorial);margin:0 0 18px;color:#626262}
@@ -199,10 +200,10 @@ export function renderGlobalSearch(
 .vw-global-results__state strong,.vw-global-results__state span{display:block}
 .vw-global-results__state strong{font:400 34px/1.2 var(--vw-font-editorial);margin-bottom:12px}
 @media(max-width:760px){
-  .vw-global-results{padding:112px 0 72px}
+  .vw-global-results{padding:104px 0 72px}
   .vw-global-results__wrap{width:min(100% - 32px,1180px)}
-  .vw-global-results h1{margin-bottom:36px}
-  .vw-global-results__form{padding:24px}
+  .vw-global-results h1{font-size:clamp(36px,11vw,48px);margin-bottom:30px}
+  .vw-global-results__form{padding:22px 20px 24px}
   .vw-global-results__controls,.vw-global-results__list{grid-template-columns:1fr}
   .vw-global-results__controls button{width:100%}
 }

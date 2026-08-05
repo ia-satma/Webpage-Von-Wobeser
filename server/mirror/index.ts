@@ -511,13 +511,36 @@ export function hardenLegacyClientScripts(html: string): string {
       /(\bconst btnCerrar = document\.getElementById\(['"]closeOverlay['"]\);\s*)(?!if\s*\(!iframe\s*\|\|\s*!btnCerrar\))/g,
       "$1if (!iframe || !btnCerrar) return;\n    ",
     )
-    .replaceAll(
-      `jQuery(".home_slider_JS").slick('unslick')`,
-      `jQuery(".home_slider_JS").filter('.slick-initialized').slick('unslick')`,
-    )
-    .replaceAll(
-      `jQuery(".home_rec_JS").slick('unslick')`,
-      `jQuery(".home_rec_JS").filter('.slick-initialized').slick('unslick')`,
+    .replace(
+      /\/\* Scroll - activacion de sliders \*\/[\s\S]*?(?=<\/script>|$)/,
+      `/* Activación estable de carruseles según visibilidad */
+          jQuery(function($){
+            var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+            var nodes = document.querySelectorAll('.home_slider_JS,.home_rec_JS');
+            if (!nodes.length) return;
+            function updatePlayback(node, active) {
+              node.setAttribute('data-vw-in-view', active ? 'true' : 'false');
+              var slider = $(node);
+              if (!slider.hasClass('slick-initialized')) return;
+              try { slider.slick(active && !reduceMotion ? 'slickPlay' : 'slickPause'); } catch (_error) {}
+            }
+            nodes.forEach(function(node){
+              $(node).off('.vwViewport').on('init.vwViewport reInit.vwViewport', function(){
+                updatePlayback(node, node.getAttribute('data-vw-in-view') === 'true');
+              });
+            });
+            if ('IntersectionObserver' in window) {
+              var observer = new IntersectionObserver(function(entries){
+                entries.forEach(function(entry){
+                  updatePlayback(entry.target, entry.isIntersecting && entry.intersectionRatio >= .35);
+                });
+              }, { threshold: [0, .35, .75] });
+              nodes.forEach(function(node){ observer.observe(node); });
+            } else {
+              nodes.forEach(function(node){ updatePlayback(node, true); });
+            }
+          });
+          `,
     )
     .replace(
       /jQuery\(function\(\$\)\{\s*\$\(["']\.hasTooltip["']\)\.tooltip\((\{[^;]*\})\);\s*\}\);/g,
@@ -526,17 +549,6 @@ export function hardenLegacyClientScripts(html: string): string {
     .replaceAll(
       `var c_txt = counter.split(" ");`,
       `var c_txt = (counter || "").split(" ");`,
-    )
-    .replace(
-      /\/\* Scroll - activacion de sliders \*\/\s*jQuery\(window\)\.scroll\(function\(\)\{\s*var height =\s*jQuery\(window\)\.scrollTop\(\);/,
-      `/* Scroll - activacion de sliders */
-          var vwSliderScrollState = "";
-          jQuery(window).scroll(function(){
-            var height = jQuery(window).scrollTop();
-            var nextState = ((height > 514 && height <= 1482) || (height > 1710 && height <= 2280))
-              ? "groups" : ((height >= 2793 && height <= 3534) ? "recognitions" : "paused");
-            if (nextState === vwSliderScrollState) return;
-            vwSliderScrollState = nextState;`,
     );
 }
 

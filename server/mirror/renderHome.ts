@@ -202,31 +202,47 @@ const HERO_PERFORMANCE_SCRIPT = `<script id="vw-home-performance-js">(function()
         }
         loadWindow(slider,current);
         window.requestAnimationFrame(function(){loadWindow(slider,current);});
-        /* Rueda y trackpad: un gesto mueve una sola diapositiva. El listener es
-           pasivo para que el carrusel nunca capture ni bloquee el scroll vertical
-           normal de la portada. Slick conserva además flechas, arrastre y swipe. */
+        /* Rueda y trackpad: una ráfaga física mueve exactamente una diapositiva.
+           El listener permanece pasivo para no capturar el scroll vertical de la
+           portada; Slick conserva además flechas, arrastre y swipe. */
         if(slider.getAttribute('data-vw-wheel-bound')!=='true'){
           slider.setAttribute('data-vw-wheel-bound','true');
           var wheelTotal=0;
-          var wheelLocked=false;
-          var wheelUnlockTimer=0;
+          var wheelDirection=0;
+          var wheelMoved=false;
+          var wheelGestureTimer=0;
+          function resetWheelGesture(){
+            wheelTotal=0;
+            wheelDirection=0;
+            wheelMoved=false;
+          }
+          function sliderIsVisible(){
+            var rect=slider.getBoundingClientRect();
+            if(rect.height<=0||rect.width<=0)return false;
+            var visible=Math.min(rect.bottom,window.innerHeight||document.documentElement.clientHeight)-Math.max(rect.top,0);
+            return visible>=Math.min(rect.height*.3,180);
+          }
           slider.addEventListener('wheel',function(event){
+            if(event.ctrlKey||event.metaKey||!sliderIsVisible()||!instance.hasClass('slick-initialized'))return;
             var horizontal=Math.abs(event.deltaX)>Math.abs(event.deltaY);
             var delta=horizontal?event.deltaX:event.deltaY;
-            if(!Number.isFinite(delta)||Math.abs(delta)<2)return;
-            /* Los trackpads envían una ráfaga prolongada de eventos por cada
-               gesto. Cada evento extiende el bloqueo hasta que la ráfaga termine. */
-            window.clearTimeout(wheelUnlockTimer);
-            wheelUnlockTimer=window.setTimeout(function(){
-              wheelTotal=0;
-              wheelLocked=false;
-            },1000);
-            if(wheelLocked)return;
+            if(event.deltaMode===1)delta*=16;
+            else if(event.deltaMode===2)delta*=window.innerHeight||800;
+            if(!Number.isFinite(delta)||Math.abs(delta)<1)return;
+            window.clearTimeout(wheelGestureTimer);
+            wheelGestureTimer=window.setTimeout(resetWheelGesture,220);
+            if(wheelMoved)return;
+            var direction=delta>0?1:-1;
+            if(wheelDirection&&direction!==wheelDirection)wheelTotal=0;
+            wheelDirection=direction;
             wheelTotal+=delta;
-            if(Math.abs(wheelTotal)<70)return;
-            try{instance.slick(wheelTotal>0?'slickNext':'slickPrev');}catch(_error){}
+            if(Math.abs(wheelTotal)<48)return;
+            var slick=null;
+            try{slick=instance.slick('getSlick');}catch(_error){return;}
+            if(!slick||slick.unslicked||slick.animating)return;
+            wheelMoved=true;
+            try{instance.slick(direction>0?'slickNext':'slickPrev');}catch(_error){wheelMoved=false;}
             wheelTotal=0;
-            wheelLocked=true;
           },{passive:true});
         }
       }else{
@@ -302,7 +318,7 @@ function renderNewsletter(config: ConfigMap, lang: Lang): string {
         privacy: "He leído y acepto el",
         privacyLink: "Aviso de Privacidad",
         privacyPath: "/aviso",
-        required: "Complete los campos obligatorios y acepte el Aviso de Privacidad.",
+        required: "Completa los campos obligatorios y acepta el Aviso de Privacidad.",
       }
     : {
         eyebrow: "",
@@ -329,14 +345,14 @@ function renderNewsletter(config: ConfigMap, lang: Lang): string {
     privacyPath: safeHref(cfg(config, "newsletter_privacy_path", lang), fallback.privacyPath),
     required: cfg(config, "newsletter_required", lang) || fallback.required,
   };
-  const title = cfg(config, "newsletter_title", lang) || (lang === "es" ? "Manténgase informado" : "Stay informed");
-  const description = cfg(config, "newsletter_description", lang) || (lang === "es" ? "Reciba novedades legales, publicaciones y noticias de la firma directamente en su correo." : "Receive relevant legal updates, publications and firm news directly in your inbox.");
+  const title = cfg(config, "newsletter_title", lang) || (lang === "es" ? "Suscríbete" : "Subscribe");
+  const description = cfg(config, "newsletter_description", lang) || (lang === "es" ? "Recibe en tu correo análisis jurídicos, publicaciones y novedades de Von Wobeser y Sierra." : "Receive legal analysis, publications and news from Von Wobeser y Sierra directly in your inbox.");
   const cta = cfg(config, "newsletter_cta", lang) || (lang === "es" ? "SUSCRIBIRME" : "SUBSCRIBE");
-  const success = cfg(config, "newsletter_success", lang) || (lang === "es" ? "Gracias. Hemos recibido su suscripción." : "Thank you. Your subscription has been received.");
-  const error = cfg(config, "newsletter_error", lang) || (lang === "es" ? "No pudimos procesar su solicitud. Inténtelo de nuevo." : "We could not process your request. Please try again.");
+  const success = cfg(config, "newsletter_success", lang) || (lang === "es" ? "Gracias. Hemos recibido tu suscripción." : "Thank you. Your subscription has been received.");
+  const error = cfg(config, "newsletter_error", lang) || (lang === "es" ? "No pudimos procesar tu solicitud. Inténtalo de nuevo." : "We could not process your request. Please try again.");
 
   return `
-    <section class="home__newsletter fade_JS" aria-labelledby="newsletter-title">
+    <section class="home__newsletter vw-newsletter--compact fade_JS" aria-labelledby="newsletter-title">
       <div class="home__newsletter--wrap wrap">
         <div class="home__newsletter--intro">
           ${copy.eyebrow ? `<p class="home__newsletter--eyebrow">${esc(copy.eyebrow)}</p>` : ""}
@@ -344,15 +360,15 @@ function renderNewsletter(config: ConfigMap, lang: Lang): string {
           <p class="home__newsletter--description">${esc(description)}</p>
         </div>
         <form id="vw-newsletter-form" class="home__newsletter--form" data-language="${lang}" data-success="${escAttr(success)}" data-error="${escAttr(error)}" data-required="${escAttr(copy.required)}" novalidate>
-          <div class="home__newsletter--field">
+          <div class="home__newsletter--field home__newsletter--field--half">
             <label for="newsletter-name">${esc(copy.name)}</label>
             <input id="newsletter-name" name="name" type="text" autocomplete="name" required maxlength="120">
           </div>
-          <div class="home__newsletter--field">
+          <div class="home__newsletter--field home__newsletter--field--half">
             <label for="newsletter-email">${esc(copy.email)}</label>
             <input id="newsletter-email" name="email" type="email" autocomplete="email" required maxlength="254">
           </div>
-          <div class="home__newsletter--field">
+          <div class="home__newsletter--field home__newsletter--field--full">
             <label for="newsletter-company">${esc(copy.company)}</label>
             <input id="newsletter-company" name="company" type="text" autocomplete="organization" required maxlength="160">
           </div>
@@ -368,7 +384,36 @@ function renderNewsletter(config: ConfigMap, lang: Lang): string {
       </div>
     </section>
     <style>
-      .home__newsletter{background:#f1f1ef;color:#626262;padding:9.5rem 0 8.5rem}.home__newsletter--wrap{display:grid;grid-template-columns:minmax(0,4fr) minmax(21rem,5fr);gap:9vw;align-items:start}.home__newsletter--eyebrow{margin:0 0 1.5rem;color:#b11d35;font-family:var(--vw-font-ui);font-size:.74rem;font-weight:600;letter-spacing:.13em;text-transform:uppercase}.home__newsletter h2{margin:0;max-width:10ch;color:#666;font-family:var(--vw-font-editorial);font-size:clamp(3rem,5.3vw,5.55rem);font-weight:400;line-height:.98}.home__newsletter--description{max-width:31rem;margin:2rem 0 0;color:#666;font-family:var(--vw-font-body);font-size:1.04rem;line-height:1.55}.home__newsletter--form{display:grid;gap:1.6rem;padding-top:.35rem}.home__newsletter--field{display:grid;gap:.55rem}.home__newsletter--field label{font-family:var(--vw-font-ui);font-size:.78rem;letter-spacing:.04em}.home__newsletter--field input{width:100%;box-sizing:border-box;border:0;border-bottom:1px solid #8f8f8f;border-radius:0;background:transparent;color:#4f4f4f;font-family:var(--vw-font-ui);font-size:1.2rem;line-height:1.35;padding:.45rem 0 .7rem;outline:0;transition:border-color .18s ease}.home__newsletter--field input:focus{border-color:#b11d35}.home__newsletter--privacy{display:flex;align-items:flex-start;gap:.8rem;margin-top:.15rem;color:#555;font-family:var(--vw-font-ui);font-size:1rem;letter-spacing:0;line-height:1.55}.home__newsletter--privacy input{width:20px;height:20px;flex:0 0 20px;margin:.12rem 0 0;accent-color:#b11d35}.home__newsletter--privacy a{color:#a5102a;font-weight:600;text-decoration:underline;text-decoration-color:#a5102a;text-decoration-thickness:2px;text-underline-offset:.2em}.home__newsletter--actions{display:flex;align-items:center;flex-wrap:wrap;gap:1.2rem;margin-top:.8rem}.home__newsletter--actions button{display:inline-flex;align-items:center;gap:1.2rem;min-height:3.1rem;border:1px solid #b11d35;background:#b11d35;color:#fff;cursor:pointer;font-family:var(--vw-font-ui);font-size:.76rem;font-weight:600;letter-spacing:.1em;padding:0 1.25rem;text-transform:uppercase}.home__newsletter--actions button span:last-child{font-size:1.2rem;line-height:1;transition:transform .18s ease}.home__newsletter--actions button:hover span:last-child,.home__newsletter--actions button:focus-visible span:last-child{transform:translateX(4px)}.home__newsletter--actions button:disabled{cursor:wait;opacity:.7}.home__newsletter--feedback{margin:0;font-family:var(--vw-font-ui);font-size:.88rem;line-height:1.4}.home__newsletter--feedback[data-state=error]{color:#a0102b}.home__newsletter--feedback[data-state=success]{color:#38563d}.home__newsletter input:focus-visible,.home__newsletter button:focus-visible,.home__newsletter a:focus-visible{outline:2px solid #b11d35;outline-offset:4px}@media(max-width:760px){.home__newsletter{padding:5.5rem 0}.home__newsletter--wrap{grid-template-columns:1fr;gap:3.25rem}.home__newsletter h2{font-size:clamp(2.7rem,13vw,4.5rem)}.home__newsletter--description{margin-top:1.5rem}.home__newsletter--form{gap:1.4rem}}@media(prefers-reduced-motion:reduce){.home__newsletter--field input,.home__newsletter--actions button span:last-child{transition:none}}
+      .home__newsletter.vw-newsletter--compact{box-sizing:border-box;min-height:0;height:auto;background:#f1f1ef;color:#5f5f5d;padding:clamp(2.35rem,3.8vw,3.4rem) 0}
+      .home__newsletter.vw-newsletter--compact .home__newsletter--wrap{display:grid;grid-template-columns:minmax(15rem,.7fr) minmax(34rem,1.3fr);gap:clamp(2.5rem,5vw,5.25rem);align-items:center}
+      .vw-newsletter--compact .home__newsletter--intro{align-self:center}
+      .vw-newsletter--compact .home__newsletter--eyebrow{margin:0 0 .65rem;color:#b11d35;font-family:var(--vw-font-ui);font-size:.72rem;font-weight:600;letter-spacing:.13em;text-transform:uppercase}
+      .vw-newsletter--compact h2{margin:0;max-width:12ch;color:#5f5f5d;font-family:var(--vw-font-editorial);font-size:clamp(2.35rem,3.3vw,3.25rem);font-weight:400;line-height:1.02}
+      .vw-newsletter--compact .home__newsletter--description{max-width:30rem;margin:.85rem 0 0;color:#5f5f5d;font-family:var(--vw-font-body);font-size:.96rem;line-height:1.5}
+      .home__newsletter.vw-newsletter--compact .home__newsletter--form{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));column-gap:.8rem;row-gap:.9rem;padding:0}
+      .vw-newsletter--compact .home__newsletter--field{display:grid;gap:.38rem;min-width:0}
+      .vw-newsletter--compact .home__newsletter--field--full{grid-column:auto}
+      .vw-newsletter--compact .home__newsletter--field label{color:#595957;font-family:var(--vw-font-ui);font-size:.74rem;font-weight:500;letter-spacing:.025em}
+      .home__newsletter.vw-newsletter--compact .home__newsletter--field input{display:block;width:100%;min-height:3rem;height:3rem;box-sizing:border-box;border:1px solid #c7c7c3;border-bottom:1px solid #c7c7c3;border-radius:0;background:#fafaf8;color:#454543;font-family:var(--vw-font-ui);font-size:.95rem;line-height:1.35;padding:.68rem .82rem;outline:0;box-shadow:none;transition:border-color .18s ease,box-shadow .18s ease,background-color .18s ease}
+      .vw-newsletter--compact .home__newsletter--field input:hover{border-color:#a5a5a1}
+      .home__newsletter.vw-newsletter--compact .home__newsletter--field input:focus{border-color:#a5102a;background:#fff;box-shadow:inset 0 0 0 1px #a5102a}
+      .vw-newsletter--compact .home__newsletter--privacy{grid-column:1/3;display:flex;align-items:center;gap:.65rem;min-height:3rem;margin:0;color:#50504e;font-family:var(--vw-font-ui);font-size:.91rem;letter-spacing:0;line-height:1.4}
+      .vw-newsletter--compact .home__newsletter--privacy input{width:20px;height:20px;flex:0 0 20px;margin:0;accent-color:#b11d35}
+      .vw-newsletter--compact .home__newsletter--privacy a{color:#a5102a;font-weight:600;text-decoration:underline;text-decoration-color:#a5102a;text-decoration-thickness:1.5px;text-underline-offset:.2em}
+      .vw-newsletter--compact .home__newsletter--actions{grid-column:3;display:flex;align-items:center;justify-content:flex-end;flex-wrap:wrap;gap:.7rem;margin:0}
+      .vw-newsletter--compact .home__newsletter--actions button{display:inline-flex;align-items:center;justify-content:center;gap:1rem;min-height:3rem;border:1px solid #b11d35;background:#b11d35;color:#fff;cursor:pointer;font-family:var(--vw-font-ui);font-size:.73rem;font-weight:600;letter-spacing:.09em;padding:0 1.15rem;text-transform:uppercase;transition:background-color .18s ease,transform .18s ease}
+      .vw-newsletter--compact .home__newsletter--actions button span:last-child{font-size:1.1rem;line-height:1;transition:transform .18s ease}
+      .vw-newsletter--compact .home__newsletter--actions button:hover,.vw-newsletter--compact .home__newsletter--actions button:focus-visible{background:#9f1830}
+      .vw-newsletter--compact .home__newsletter--actions button:hover span:last-child,.vw-newsletter--compact .home__newsletter--actions button:focus-visible span:last-child{transform:translateX(3px)}
+      .vw-newsletter--compact .home__newsletter--actions button:active{transform:translateY(1px)}
+      .vw-newsletter--compact .home__newsletter--actions button:disabled{cursor:wait;opacity:.7}
+      .vw-newsletter--compact .home__newsletter--feedback{flex-basis:100%;margin:0;font-family:var(--vw-font-ui);font-size:.84rem;line-height:1.35}
+      .vw-newsletter--compact .home__newsletter--feedback[data-state=error]{color:#a0102b}
+      .vw-newsletter--compact .home__newsletter--feedback[data-state=success]{color:#38563d}
+      .vw-newsletter--compact input:focus-visible,.vw-newsletter--compact button:focus-visible,.vw-newsletter--compact a:focus-visible{outline:2px solid #b11d35;outline-offset:3px}
+      @media(max-width:1100px){.home__newsletter.vw-newsletter--compact .home__newsletter--wrap{grid-template-columns:minmax(14rem,.75fr) minmax(25rem,1.25fr);gap:2.5rem}.home__newsletter.vw-newsletter--compact .home__newsletter--form{grid-template-columns:repeat(2,minmax(0,1fr))}.vw-newsletter--compact .home__newsletter--field--full,.vw-newsletter--compact .home__newsletter--privacy,.vw-newsletter--compact .home__newsletter--actions{grid-column:1/-1}.vw-newsletter--compact .home__newsletter--actions{justify-content:flex-start}}
+      @media(max-width:760px){.home__newsletter.vw-newsletter--compact{padding:2.6rem 0}.home__newsletter.vw-newsletter--compact .home__newsletter--wrap{grid-template-columns:1fr;gap:1.75rem}.vw-newsletter--compact .home__newsletter--intro{max-width:34rem}.vw-newsletter--compact h2{font-size:clamp(2.3rem,9vw,3.15rem)}.vw-newsletter--compact .home__newsletter--description{margin-top:.75rem}.home__newsletter.vw-newsletter--compact .home__newsletter--form{grid-template-columns:1fr;row-gap:.9rem}.vw-newsletter--compact .home__newsletter--field--full,.vw-newsletter--compact .home__newsletter--privacy,.vw-newsletter--compact .home__newsletter--actions{grid-column:auto}.vw-newsletter--compact .home__newsletter--actions{align-items:stretch;flex-direction:column}.vw-newsletter--compact .home__newsletter--actions button{width:100%}.vw-newsletter--compact .home__newsletter--privacy{font-size:.9rem}}
+      @media(prefers-reduced-motion:reduce){.vw-newsletter--compact .home__newsletter--field input,.vw-newsletter--compact .home__newsletter--actions button,.vw-newsletter--compact .home__newsletter--actions button span:last-child{transition:none}}
     </style>
     <script>
       (function(){
