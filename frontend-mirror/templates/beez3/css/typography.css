@@ -16,51 +16,34 @@
 }
 
 @font-face {
-  font-family: "Atkinson Hyperlegible";
-  src: url("../webfont/AtkinsonHyperlegible-Regular.woff2") format("woff2");
+  font-family: "Inter";
+  src: url("../webfont/Inter-Variable.woff2") format("woff2");
   font-style: normal;
-  font-weight: 300 500;
+  font-weight: 100 900;
   font-display: swap;
 }
 
 @font-face {
-  font-family: "Atkinson Hyperlegible";
-  src: url("../webfont/AtkinsonHyperlegible-Bold.woff2") format("woff2");
-  font-style: normal;
-  font-weight: 600 700;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: "Atkinson Hyperlegible";
-  src: url("../webfont/AtkinsonHyperlegible-Italic.woff2") format("woff2");
+  font-family: "Inter";
+  src: url("../webfont/Inter-Italic-Variable.woff2") format("woff2");
   font-style: italic;
-  font-weight: 300 500;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: "Atkinson Hyperlegible";
-  src: url("../webfont/AtkinsonHyperlegible-BoldItalic.woff2") format("woff2");
-  font-style: italic;
-  font-weight: 600 700;
+  font-weight: 100 900;
   font-display: swap;
 }
 
 /* Compatibilidad con el HTML histórico: los nombres heredados nunca cargan
-   binarios anteriores; todos se resuelven a Gelasio o Atkinson. */
+   binarios anteriores; todos se resuelven a Gelasio o Inter. */
 @font-face { font-family: "Publico-Roman"; src: url("../webfont/Gelasio-Variable.woff2") format("woff2"); font-style: normal; font-weight: 300 700; font-display: swap; }
 @font-face { font-family: "Publico-light"; src: url("../webfont/Gelasio-Variable.woff2") format("woff2"); font-style: normal; font-weight: 300 700; font-display: swap; }
 @font-face { font-family: "Publico-medium"; src: url("../webfont/Gelasio-Variable.woff2") format("woff2"); font-style: normal; font-weight: 300 700; font-display: swap; }
-@font-face { font-family: "Geomanist-Book"; src: url("../webfont/AtkinsonHyperlegible-Regular.woff2") format("woff2"); font-style: normal; font-weight: 300 600; font-display: swap; }
-@font-face { font-family: "Geomanist-light"; src: url("../webfont/AtkinsonHyperlegible-Regular.woff2") format("woff2"); font-style: normal; font-weight: 300 500; font-display: swap; }
-@font-face { font-family: "Geomanist-regular"; src: url("../webfont/AtkinsonHyperlegible-Regular.woff2") format("woff2"); font-style: normal; font-weight: 300 600; font-display: swap; }
-@font-face { font-family: "OptimaLTStd"; src: url("../webfont/AtkinsonHyperlegible-Regular.woff2") format("woff2"); font-style: normal; font-weight: 300 600; font-display: swap; }
-@font-face { font-family: "OptimaLTStd-Bold"; src: url("../webfont/AtkinsonHyperlegible-Bold.woff2") format("woff2"); font-style: normal; font-weight: 600 700; font-display: swap; }
-
+@font-face { font-family: "Geomanist-Book"; src: url("../webfont/Inter-Variable.woff2") format("woff2"); font-style: normal; font-weight: 300 600; font-display: swap; }
+@font-face { font-family: "Geomanist-light"; src: url("../webfont/Inter-Variable.woff2") format("woff2"); font-style: normal; font-weight: 300 500; font-display: swap; }
+@font-face { font-family: "Geomanist-regular"; src: url("../webfont/Inter-Variable.woff2") format("woff2"); font-style: normal; font-weight: 300 600; font-display: swap; }
+@font-face { font-family: "OptimaLTStd"; src: url("../webfont/Inter-Variable.woff2") format("woff2"); font-style: normal; font-weight: 300 600; font-display: swap; }
+@font-face { font-family: "OptimaLTStd-Bold"; src: url("../webfont/Inter-Variable.woff2") format("woff2"); font-style: normal; font-weight: 600 700; font-display: swap; }
 :root {
   --font-title: "Gelasio", serif;
-  --font-body: "Atkinson Hyperlegible", sans-serif;
+  --font-body: "Inter", sans-serif;
   --vw-font-editorial: var(--font-title);
   --vw-font-ui: var(--font-body);
   --vw-font-body: var(--font-body);
@@ -69,6 +52,7 @@
 html,
 body {
   font-family: var(--font-body);
+  font-optical-sizing: auto;
 }
 
 /* Los controles y componentes heredados (incluido Slick) no deben reintroducir

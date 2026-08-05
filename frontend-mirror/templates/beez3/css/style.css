@@ -19,7 +19,7 @@ body {
   overflow-x: hidden;
   background: #fff;
   line-height: 1.5;
-  font-family: "Atkinson Hyperlegible",sans-serif;
+  font-family: "Inter",sans-serif;
   background-color: #fff;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -99,7 +99,7 @@ section {
 
 b,strong {
   font-weight: normal;
-  font-family: "Atkinson Hyperlegible",sans-serif;
+  font-family: "Inter",sans-serif;
 }
 
 #pre {
@@ -159,7 +159,7 @@ b,strong {
 
 .home__hero--scroll,.home__intro--item div:nth-child(2) {
   font-size: 15px;
-  font-family: "Atkinson Hyperlegible",sans-serif;
+  font-family: "Inter",sans-serif;
   letter-spacing: 5px;
   text-transform: uppercase;
 }
@@ -406,7 +406,7 @@ b,strong {
   -webkit-transform: translateY(-50%);
   transform: translateY(-50%);
   line-height: 1;
-  font-family: "Atkinson Hyperlegible",sans-serif;
+  font-family: "Inter",sans-serif;
   letter-spacing: 3px;
 }
 
@@ -673,7 +673,7 @@ b,strong {
   font-size: 12px;
   max-height: 0;
   line-height: 2;
-  font-family: "Atkinson Hyperlegible",sans-serif;
+  font-family: "Inter",sans-serif;
   letter-spacing: 2px;
   text-transform: uppercase;
   -webkit-transition: max-height 0.65s ease, color 0.3s ease;
@@ -878,7 +878,7 @@ b,strong {
 
 .home__intro--item div:nth-child(2) {
   font-size: 19px;
-  font-family: "Atkinson Hyperlegible",sans-serif;
+  font-family: "Inter",sans-serif;
 }
 
 @media (max-width: 980px) {
@@ -920,6 +920,16 @@ b,strong {
 
 .home__slider--wrap {
   max-width: 780px;
+}
+
+/* Separación estructural entre los dos carruseles cuando la frase intermedia
+   está oculta. Ocupa espacio real en el documento y nunca cubre las imágenes. */
+.home__carousel-separator {
+  display: block;
+  width: 100%;
+  height: clamp(16px, 1.5vw, 28px);
+  margin: 0;
+  background-color: #fff;
 }
 
 .home__slider--item {
@@ -979,7 +989,7 @@ b,strong {
   display: inline-block;
   font-size: 34px;
   line-height: 1;
-  font-family: "Atkinson Hyperlegible",sans-serif;
+  font-family: "Inter",sans-serif;
   margin-left: 35px;
   border-bottom: 2px solid #444;
   letter-spacing: 5px;
@@ -1292,7 +1302,7 @@ b,strong {
   color: #ac162c;
   font-size: 22px;
   line-height: 1;
-  font-family: "Atkinson Hyperlegible",sans-serif;
+  font-family: "Inter",sans-serif;
   border-bottom: 1px solid #c4c4c4;
   margin-bottom: 45px;
   letter-spacing: 6px;
@@ -1370,7 +1380,7 @@ b,strong {
   color: #ac162c;
   font-size: 22px;
   line-height: 1;
-  font-family: "Atkinson Hyperlegible",sans-serif;
+  font-family: "Inter",sans-serif;
   margin-bottom: 45px;
   letter-spacing: 6px;
 }
@@ -1421,6 +1431,21 @@ b,strong {
 .home__rec--top strong {
   font-style: normal;
   font-family: "Gelasio",serif;
+}
+
+/* Jerarquía solicitada para Reconocimientos: Gelasio en el título e Inter
+   en la introducción y el texto detallado. La clase se añade en el render
+   compartido para cubrir español e inglés sin afectar las demás secciones. */
+.home__rec--recognitions .home__rec--ttl,
+.home__rec--recognitions .home__rec--ttl :where(span, strong, em, a) {
+  font-family: var(--font-title) !important;
+}
+
+.home__rec--recognitions .home__rec--top,
+.home__rec--recognitions .home__rec--top :where(p, span, strong, em, a),
+.home__rec--recognitions .home__rec--txt,
+.home__rec--recognitions .home__rec--txt :where(p, span, strong, em, a) {
+  font-family: var(--font-body) !important;
 }
 
 .home__rec--txt {
@@ -1583,7 +1608,7 @@ b,strong {
   transform: rotate(-90deg) translateX(-100%);
   text-align: right;
   white-space: nowrap;
-  font-family: "Atkinson Hyperlegible",sans-serif;
+  font-family: "Inter",sans-serif;
   letter-spacing: 6px;
   text-transform: uppercase;
   -webkit-transform-origin: top left;
@@ -1671,7 +1696,7 @@ b,strong {
 
 .page__content--intro a {
   font-size: 19px;
-  font-family: "Atkinson Hyperlegible",sans-serif;
+  font-family: "Inter",sans-serif;
 }
 
 @media (max-width: 980px) {
@@ -1789,7 +1814,7 @@ b,strong {
 .page--btn {
   cursor: pointer;
   font-size: 16px;
-  font-family: "Atkinson Hyperlegible",sans-serif;
+  font-family: "Inter",sans-serif;
   letter-spacing: 5px;
   text-transform: uppercase;
   -webkit-transition: all .3s ease;
@@ -2075,7 +2100,7 @@ b,strong {
   font-size: 17px;
   -webkit-flex-wrap: wrap;
   flex-wrap: wrap;
-  font-family: "Atkinson Hyperlegible",sans-serif;
+  font-family: "Inter",sans-serif;
   margin-bottom: 20px;
   letter-spacing: 5px;
   text-transform: uppercase;
@@ -2097,7 +2122,7 @@ b,strong {
   padding: 8px 5px;
   display: block;
   font-size: 17px;
-  font-family: "Atkinson Hyperlegible",sans-serif;
+  font-family: "Inter",sans-serif;
   border-radius: 0;
   background-color: #fff;
 }
@@ -2143,7 +2168,7 @@ b,strong {
   font-size: 17px;
   text-align: center;
   margin-left: auto;
-  font-family: "Atkinson Hyperlegible",sans-serif;
+  font-family: "Inter",sans-serif;
   border-radius: 0;
   margin-bottom: 0px;
   letter-spacing: 5px;
@@ -2169,7 +2194,7 @@ b,strong {
   color: #fff;
   cursor: pointer;
   line-height: 1;
-  font-family: "Atkinson Hyperlegible",sans-serif;
+  font-family: "Inter",sans-serif;
   margin-bottom: 25px;
 }
 
@@ -2263,7 +2288,7 @@ b,strong {
   color: #fff;
   font-size: 17px;
   white-space: nowrap;
-  font-family: "Atkinson Hyperlegible",sans-serif;
+  font-family: "Inter",sans-serif;
   margin-bottom: 10px;
   letter-spacing: 6px;
   text-transform: uppercase;
@@ -2393,7 +2418,7 @@ b,strong {
 
 .archive__filters--label {
   font-size: 16px;
-  font-family: "Atkinson Hyperlegible",sans-serif;
+  font-family: "Inter",sans-serif;
   margin-right: 20px;
   letter-spacing: 5px;
   text-transform: uppercase;
@@ -2410,7 +2435,7 @@ b,strong {
   border: 1px solid gray;
   padding: 8px 32px 6px 10px;
   font-size: 16px;
-  font-family: "Atkinson Hyperlegible",sans-serif;
+  font-family: "Inter",sans-serif;
   border-radius: 0;
   background-size: 30px auto;
   background-color: #fff;
@@ -2425,7 +2450,7 @@ b,strong {
   border: 1px solid gray;
   padding: 8px 30px 6px 12px;
   font-size: 16px;
-  font-family: "Atkinson Hyperlegible",sans-serif;
+  font-family: "Inter",sans-serif;
   border-radius: 0;
   background-color: #fff;
 }
@@ -2494,7 +2519,7 @@ b,strong {
 
 .archive__item--date {
   font-size: 16px;
-  font-family: "Atkinson Hyperlegible",sans-serif;
+  font-family: "Inter",sans-serif;
   margin-bottom: 25px;
   letter-spacing: 5px;
   text-transform: uppercase;
@@ -2515,7 +2540,7 @@ b,strong {
   font-size: 16px;
   text-align: right;
   line-height: 1;
-  font-family: "Atkinson Hyperlegible",sans-serif;
+  font-family: "Inter",sans-serif;
   letter-spacing: 5px;
   text-transform: uppercase;
 }
@@ -2569,7 +2594,7 @@ b,strong {
   margin: 0 12px;
   font-size: 16px;
   margin-top: auto;
-  font-family: "Atkinson Hyperlegible",sans-serif;
+  font-family: "Inter",sans-serif;
   letter-spacing: 5px;
   text-transform: uppercase;
 }
@@ -2580,7 +2605,7 @@ b,strong {
   font-size: 16px;
   border-top: 1px solid #c4c4c4;
   text-align: center;
-  font-family: "Atkinson Hyperlegible",sans-serif;
+  font-family: "Inter",sans-serif;
 }
 
 .archive__nav--num.current,.archive__nav--num:hover {
@@ -2681,7 +2706,7 @@ b,strong {
   font-size: 15px;
   -webkit-flex-wrap: wrap;
   flex-wrap: wrap;
-  font-family: "Atkinson Hyperlegible",sans-serif;
+  font-family: "Inter",sans-serif;
   margin-bottom: 20px;
   letter-spacing: 3px;
   text-transform: uppercase;
@@ -2697,7 +2722,7 @@ b,strong {
   font-size: 12px;
   margin-left: auto;
   white-space: nowrap;
-  font-family: "Atkinson Hyperlegible",sans-serif;
+  font-family: "Inter",sans-serif;
   letter-spacing: 0;
   text-transform: none;
 }
@@ -2758,7 +2783,7 @@ b,strong {
   padding: 8px 5px;
   display: block;
   font-size: 16px;
-  font-family: "Atkinson Hyperlegible",sans-serif;
+  font-family: "Inter",sans-serif;
   border-radius: 0;
   background-color: #fff;
 }
@@ -2808,7 +2833,7 @@ b,strong {
   display: inline-block;
   font-size: 15px;
   line-height: 1;
-  font-family: "Atkinson Hyperlegible",sans-serif;
+  font-family: "Inter",sans-serif;
   margin-bottom: 20px;
   letter-spacing: 3px;
   text-transform: uppercase;
@@ -2828,7 +2853,7 @@ b,strong {
   display: inline-block;
   font-size: 16px;
   line-height: 1;
-  font-family: "Atkinson Hyperlegible",sans-serif;
+  font-family: "Inter",sans-serif;
   letter-spacing: 5px;
   text-transform: uppercase;
   background-color: #5e5e5e;
@@ -2918,7 +2943,7 @@ b,strong {
   color: #fff;
   font-size: 17px;
   white-space: nowrap;
-  font-family: "Atkinson Hyperlegible",sans-serif;
+  font-family: "Inter",sans-serif;
   margin-bottom: 30px;
   letter-spacing: 6px;
   text-transform: uppercase;
@@ -2956,7 +2981,7 @@ b,strong {
 .attorney__meta--txt a[download] {
   font-size: 17px;
   white-space: nowrap;
-  font-family: "Atkinson Hyperlegible",sans-serif;
+  font-family: "Inter",sans-serif;
   letter-spacing: 6px;
   text-transform: uppercase;
 }
@@ -3135,7 +3160,7 @@ b,strong {
 .attorneys__meta--item .txt a[download] {
   font-size: 17px;
   white-space: nowrap;
-  font-family: "Atkinson Hyperlegible",sans-serif;
+  font-family: "Inter",sans-serif;
   letter-spacing: 6px;
   text-transform: uppercase;
 }
@@ -3335,7 +3360,7 @@ b,strong {
   margin: auto 0;
   font-size: 17px;
   white-space: nowrap;
-  font-family: "Atkinson Hyperlegible",sans-serif;
+  font-family: "Inter",sans-serif;
   letter-spacing: 6px;
   text-transform: uppercase;
   margin-left: 76%;
@@ -3442,7 +3467,7 @@ b,strong {
   text-align: center;
   line-height: 1;
   white-space: nowrap;
-  font-family: "Atkinson Hyperlegible",sans-serif;
+  font-family: "Inter",sans-serif;
   margin-bottom: 30px;
   letter-spacing: 5px;
   text-transform: uppercase;

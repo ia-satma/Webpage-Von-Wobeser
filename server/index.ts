@@ -45,7 +45,7 @@ app.use(helmet({
       imgSrc: ["'self'", "data:", "blob:", "https:"],
       mediaSrc: ["'self'", "blob:", "https:"],
       connectSrc: ["'self'", "https:", "wss:", "ws:"],
-      frameSrc: ["'self'", "https://www.google.com", "https://www.youtube.com", "https://player.vimeo.com"],
+      frameSrc: ["'self'", "https://www.google.com", "https://www.youtube.com", "https://www.youtube-nocookie.com", "https://player.vimeo.com"],
       // `upgrade-insecure-requests` es ignorada por los navegadores dentro de una
       // política Report-Only y genera un error de consola que Lighthouse penaliza.
       // Se añadirá cuando la CSP pase a enforcement, no antes.

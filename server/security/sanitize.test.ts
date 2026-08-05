@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { renderRichText, sanitizeCms, sanitizeNewsFields } from "../mirror/sanitize";
+import { renderRichText, sanitizeCms, sanitizeFields, sanitizeNewsFields } from "../mirror/sanitize";
 
 test("sanitizeCms elimina scripts, manejadores y javascript URLs", () => {
   const output = sanitizeCms(
@@ -50,4 +50,23 @@ test("Noticias y Artículos eliminan tipografías anteriores en español e ingl�
   assert.match(payload.excerptEs, /font-size:\s*18px/i);
   assert.equal(payload.titleEs, "Título español");
   assert.equal(payload.title, "English title");
+});
+
+test("Abogados, Prácticas e Industrias eliminan cualquier fuente pegada antes de guardarse", () => {
+  const attorney = sanitizeFields({
+    bioEs: '<p style="font-family: Times New Roman">Biografía</p>',
+    bio: '<p style="font-family: Arial">Biography</p>',
+  }, ["bio", "bioEs"]);
+  const capability = sanitizeFields({
+    descriptionEs: '<p style="font-family: Atkinson Hyperlegible">Descripción</p>',
+    description: '<p style="font-family: OptimaLTStd">Description</p>',
+    fullDescriptionEs: '<h2 style="font-family: Publico-Roman">Detalle</h2>',
+    fullDescription: '<h2 style="font-family: Georgia">Detail</h2>',
+  }, ["description", "descriptionEs", "fullDescription", "fullDescriptionEs"]);
+
+  const stored = JSON.stringify({ attorney, capability });
+  assert.doesNotMatch(
+    stored,
+    /font-family|Times New Roman|Arial|Atkinson|Optima|Publico|Georgia/i,
+  );
 });

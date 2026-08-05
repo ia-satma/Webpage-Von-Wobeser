@@ -41,10 +41,16 @@ export function legacyPaginationDestination(pathname: string): string | null {
 export function normalizeLegacyTypography(html: string): string {
   return html
     .replace(/Publico-(?:Roman|light|medium)/gi, "Gelasio")
-    .replace(/Geomanist-(?:Book|light|regular)/gi, "Atkinson Hyperlegible")
-    .replace(/OptimaLTStd(?:-Bold)?/gi, "Atkinson Hyperlegible")
+    .replace(/Geomanist-(?:Book|light|regular)/gi, "Inter")
+    .replace(/OptimaLTStd(?:-Bold)?/gi, "Inter")
+    .replace(/Atkinson Hyperlegible/gi, "Inter")
+    .replace(
+      /(<input\b[^>]*\bclass=["'][^"']*\bsearch__form--input\b[^"']*["'][^>]*\bstyle=["'][^"']*font-family\s*:\s*)Gelasio/gi,
+      "$1Inter",
+    )
+    .replace(/font-family\s*:\s*Inter\s*,\s*serif/gi, "font-family:Inter,sans-serif")
     .replace(
       /(?:tahoma\s*,\s*)?arial\s*,\s*helvetica\s*,\s*sans-serif/gi,
-      '"Atkinson Hyperlegible", sans-serif',
+      '"Inter", sans-serif',
     );
 }

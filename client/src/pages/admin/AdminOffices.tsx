@@ -296,7 +296,7 @@ export default function AdminOffices() {
 
         <TabsContent value="videos" className="space-y-6">
           <Card>
-            <CardHeader><CardTitle className="flex items-center gap-2"><Film className="h-5 w-5 text-[#AA1A2E]" />Recorrido audiovisual</CardTitle><CardDescription>Seis videos con sus miniaturas. Cada archivo puede subirse o sustituirse por una URL.</CardDescription></CardHeader>
+            <CardHeader><CardTitle className="flex items-center gap-2"><Film className="h-5 w-5 text-[#AA1A2E]" />Recorrido audiovisual</CardTitle><CardDescription>Seis videos con sus miniaturas. Puedes subir cada archivo o usar un enlace público de YouTube o Vimeo; el sitio mostrará el reproductor correspondiente.</CardDescription></CardHeader>
             <CardContent className="space-y-8">
               {Array.from({ length: 6 }, (_, index) => index + 1).map((number) => (
                 <section key={number} className="grid gap-5 border-b pb-8 last:border-b-0 lg:grid-cols-[1.3fr_1fr]">

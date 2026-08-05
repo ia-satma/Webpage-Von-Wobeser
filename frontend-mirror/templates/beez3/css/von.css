@@ -96,7 +96,7 @@ body {
   }
 }
 
-/* Menú y controles compartidos: Atkinson y área táctil mínima WCAG. */
+/* Menú y controles compartidos: Inter y área táctil mínima WCAG. */
 .header .header--btn,
 .header .header__lang--item,
 .header .eyeglass,
@@ -519,7 +519,7 @@ a.vw-read-more:focus-visible {
   display: block !important;
   flex: 1 1 auto;
   float: none;
-  font-family: "Atkinson Hyperlegible", sans-serif !important;
+  font-family: "Inter", sans-serif !important;
   font-size: 16px;
   height: 42px;
   margin: 0;
@@ -543,7 +543,7 @@ a.vw-read-more:focus-visible {
   cursor: pointer;
   display: inline-flex;
   flex: 0 0 42px;
-  font-family: "Atkinson Hyperlegible", sans-serif;
+  font-family: "Inter", sans-serif;
   font-size: 24px;
   height: 42px;
   justify-content: center;
@@ -785,7 +785,7 @@ a[href="/german-desk"],
 
   nav.nav.menu_JS .nav__menu--link {
     color: #5e5e5e;
-    font-family: "Atkinson Hyperlegible", sans-serif;
+    font-family: "Inter", sans-serif;
     font-size: clamp(13px, 1vw, 16px);
     letter-spacing: 0.025em;
     line-height: 72px;
@@ -870,7 +870,7 @@ a[href="/german-desk"],
   nav.nav.menu_JS .vw-subnav .nav__menu--sublink {
     color: #5e5e5e;
     display: block !important;
-    font-family: "Atkinson Hyperlegible", sans-serif;
+    font-family: "Inter", sans-serif;
     font-size: 12px;
     letter-spacing: 0.035em;
     line-height: 1.35;
@@ -972,7 +972,7 @@ a[href="/german-desk"],
 
   nav.nav.menu_JS .nav__menu--link {
     color: #5e5e5e;
-    font-family: "Atkinson Hyperlegible", sans-serif;
+    font-family: "Inter", sans-serif;
     font-size: 16px;
     letter-spacing: 0.035em;
     line-height: 1.25;
@@ -991,7 +991,7 @@ a[href="/german-desk"],
     border-bottom: 0;
     color: #666;
     display: block;
-    font-family: "Atkinson Hyperlegible", sans-serif;
+    font-family: "Inter", sans-serif;
     font-size: 12px;
     letter-spacing: 0.045em;
     line-height: 1.35;

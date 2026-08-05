@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtempSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdtempSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import JSZip from 'jszip';
@@ -14,7 +14,7 @@ import {
 
 const read = (relative: string) => readFileSync(new URL(relative, import.meta.url), 'utf8');
 
-test('sitio y panel usan solamente Gelasio y Atkinson como familias activas', () => {
+test('sitio y panel usan solamente Gelasio e Inter como familias activas', () => {
   const typography = read('../../frontend-mirror/templates/beez3/css/typography.css');
   const publicCss = [
     read('../../frontend-mirror/templates/beez3/css/style.css'),
@@ -26,15 +26,15 @@ test('sitio y panel usan solamente Gelasio y Atkinson como familias activas', ()
   const server = read('../mirror/index.ts');
 
   assert.match(typography, /--font-title:\s*"Gelasio", serif/);
-  assert.match(typography, /--font-body:\s*"Atkinson Hyperlegible", sans-serif/);
+  assert.match(typography, /--font-body:\s*"Inter", sans-serif/);
   assert.match(typography, /Gelasio-Variable\.woff2/);
-  assert.match(typography, /AtkinsonHyperlegible-Regular\.woff2/);
+  assert.match(typography, /Inter-Variable\.woff2/);
   assert.match(publicCss, /font-family:\s*"Gelasio"/);
-  assert.match(publicCss, /font-family:\s*"Atkinson Hyperlegible"/);
+  assert.match(publicCss, /font-family:\s*"Inter"/);
   assert.match(adminCss, /--font-heading:\s*var\(--font-title\)/);
   assert.match(adminCss, /--font-sans:\s*var\(--font-body\)/);
-  assert.match(adminHtml, /typography\.css\?v=20260731-gelasio-atkinson4/);
-  assert.match(server, /AtkinsonHyperlegible-Regular\.woff2/);
+  assert.match(adminHtml, /typography\.css\?v=20260804-gelasio-inter1/);
+  assert.match(server, /Inter-Variable\.woff2/);
   assert.match(server, /Gelasio-Variable\.woff2/);
   assert.match(server, /normalizeLegacyTypography/);
   assert.match(server, /originalLanguageLink/);
@@ -42,17 +42,28 @@ test('sitio y panel usan solamente Gelasio y Atkinson como familias activas', ()
   const activeSources = `${publicCss}\n${adminCss}\n${adminHtml}\n${server}`;
   assert.doesNotMatch(activeSources, /fonts\.(?:googleapis|gstatic)\.com/);
   assert.doesNotMatch(activeSources, /(?:Publico|Geomanist|Optima)[-A-Za-z0-9]*\.(?:woff2?|otf|ttf)/);
+  assert.doesNotMatch(typography, /Atkinson/);
+  assert.equal(
+    existsSync(new URL('../../frontend-mirror/templates/beez3/webfont/AtkinsonHyperlegible-Regular.woff2', import.meta.url)),
+    false,
+  );
+  assert.equal(
+    existsSync(new URL('../../assets/fonts/Atkinson-Hyperlegible/AtkinsonHyperlegible-Regular.ttf', import.meta.url)),
+    false,
+  );
 });
 
 test('módulos nuevos no pueden reintroducir familias tipográficas anteriores', () => {
   const roots = [
     new URL('../../client/src/', import.meta.url),
+    new URL('../agents/', import.meta.url),
     new URL('../mirror/', import.meta.url),
     new URL('../services/', import.meta.url),
     new URL('../../shared/', import.meta.url),
+    new URL('../../scripts/', import.meta.url),
   ];
   const extensions = /\.(?:css|html|ts|tsx)$/;
-  const forbidden = /font-family\s*:[^;}\n]*(?:Arial|Georgia|Publico|Geomanist|Optima|Lato|Inter|Playfair|Cormorant|Calibri|Century Gothic)/i;
+  const forbidden = /font-family\s*:[^;}\n]*(?:Arial|Georgia|Publico|Geomanist|Optima|Atkinson|Lato|Playfair|Cormorant|Calibri|Century Gothic)/i;
   const violations: string[] = [];
 
   const visit = (directory: URL) => {
@@ -71,6 +82,41 @@ test('módulos nuevos no pueden reintroducir familias tipográficas anteriores',
   assert.deepEqual(violations, []);
 });
 
+test('guías, agentes y configuración futura reconocen únicamente Gelasio e Inter', () => {
+  const guidelines = read('../../design_guidelines.md');
+  const typographyTokens = read('../../shared/typography.ts');
+  const tailwind = read('../../tailwind.config.ts');
+  const agentRoots = [
+    new URL('../agents/', import.meta.url),
+    new URL('../../services/agents/', import.meta.url),
+  ];
+  const forbiddenFamily = /\b(?:Publico|Geomanist|Optima|Atkinson|Georgia|Arial|Calibri|Century Gothic|Lato|Playfair Display|Cormorant Garamond|Times New Roman)\b/i;
+  const agentViolations: string[] = [];
+
+  const visitAgents = (directory: URL) => {
+    if (!existsSync(directory)) return;
+    for (const name of readdirSync(directory)) {
+      const unresolved = new URL(name, directory);
+      const directoryEntry = statSync(unresolved).isDirectory();
+      const entry = directoryEntry ? new URL(`${name}/`, directory) : unresolved;
+      if (directoryEntry) visitAgents(entry);
+      else if (/\.(?:md|ts|tsx|txt)$/.test(name) && forbiddenFamily.test(readFileSync(entry, 'utf8'))) {
+        agentViolations.push(entry.pathname);
+      }
+    }
+  };
+  for (const root of agentRoots) visitAgents(root);
+
+  assert.match(guidelines, /\*\*Gelasio\*\*/);
+  assert.match(guidelines, /\*\*Inter\*\*/);
+  assert.doesNotMatch(guidelines, forbiddenFamily);
+  assert.match(typographyTokens, /title:\s*"Gelasio"/);
+  assert.match(typographyTokens, /body:\s*"Inter"/);
+  assert.match(tailwind, /sans:\s*\["var\(--font-sans\)"\]/);
+  assert.match(tailwind, /heading:\s*\["var\(--font-heading\)"\]/);
+  assert.deepEqual(agentViolations, []);
+});
+
 test('HTML histórico recibe idioma, tipografías y paginación bilingüe correctos', () => {
   assert.equal(legacyHtmlLanguage('/index.php/publications/news/start-10.html'), 'en');
   assert.equal(legacyHtmlLanguage('/index.php/publicaciones/noticias/start-10.html'), 'es');
@@ -84,7 +130,15 @@ test('HTML histórico recibe idioma, tipografías y paginación bilingüe correc
   );
   assert.doesNotMatch(normalized, /Publico|Optima|tahoma|arial|helvetica/i);
   assert.match(normalized, /Gelasio/);
-  assert.match(normalized, /Atkinson Hyperlegible/);
+  assert.match(normalized, /Inter/);
+
+  const normalizedControls = normalizeLegacyTypography(
+    '<input class="search__form--input" style="font-family:Publico-Roman">'
+      + '<div class="header--btn" style="font-family:Geomanist-Book,serif">MENÚ</div>',
+  );
+  assert.match(normalizedControls, /search__form--input[^>]+font-family:Inter/);
+  assert.match(normalizedControls, /font-family:Inter,sans-serif/);
+  assert.doesNotMatch(normalizedControls, /font-family:(?:Gelasio|Inter),serif/);
 
   assert.equal(legacyPaginationDestination('/index.php/publications/news/start-10.html'), '/news?page=1&lang=en');
   assert.equal(legacyPaginationDestination('/index.php/publicaciones/noticias/start-50.html'), '/news?page=3');
@@ -97,12 +151,12 @@ test('los SVG nuevos incrustan las dos familias antes de rasterizar PDF y PNG', 
   const generator = read('../services/PresentationGenerator.ts');
   assert.match(generator, /data:font\/ttf;base64/);
   assert.match(generator, /font-family:'Gelasio'/);
-  assert.match(generator, /font-family:'Atkinson Hyperlegible'/);
+  assert.match(generator, /font-family:'Inter'/);
   assert.match(generator, /\$\{svgFontDefs\(\)\}/);
   assert.doesNotMatch(generator, /const FONT(?:_PPTX)?\s*=\s*\{[^}]+(?:Georgia|Calibri|Century Gothic)/s);
 });
 
-test('los PPTX nuevos contienen Gelasio y Atkinson editables e incrustadas en OOXML', async () => {
+test('los PPTX nuevos contienen Gelasio e Inter editables e incrustadas en OOXML', async () => {
   const directory = mkdtempSync(path.join(tmpdir(), 'vw-typography-'));
   const filePath = path.join(directory, 'sample.pptx');
   try {
@@ -129,7 +183,7 @@ test('los PPTX nuevos contienen Gelasio y Atkinson editables e incrustadas en OO
     const fontParts = Object.keys(output.files).filter((name) => /^ppt\/fonts\/font-.+\.fntdata$/.test(name));
 
     assert.match(presentation, /typeface="Gelasio"/);
-    assert.match(presentation, /typeface="Atkinson Hyperlegible"/);
+    assert.match(presentation, /typeface="Inter"/);
     assert.equal((presentation.match(/<p:embeddedFont>/g) || []).length, 2);
     assert.equal((relationships.match(/relationships\/font"/g) || []).length, 8);
     assert.equal(fontParts.length, 8);

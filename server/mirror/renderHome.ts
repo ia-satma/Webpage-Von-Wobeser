@@ -1,11 +1,16 @@
 import * as cheerio from "cheerio";
 import fs from "node:fs";
 import path from "node:path";
-import { cfg, type ConfigMap } from "./siteConfig";
+import { cfg, isConfigEnabled, type ConfigMap } from "./siteConfig";
 import { applySeo } from "./seo";
 import { getMirrorDir } from "./config";
 import { isPublicPracticeSlug } from "./publicPracticeGroups";
 import { sortGroupsAlphabetically } from "./sortPublicGroups";
+import {
+  buildVideoEmbedUrl,
+  parseVideoSource,
+  type VideoSource,
+} from "@shared/videoSource";
 
 type Lang = "en" | "es";
 
@@ -79,7 +84,15 @@ function responsiveBackgroundUrls(sourceUrl: string): { mobile: string; desktop:
 
 const HERO_PERFORMANCE_STYLE = `<style id="vw-home-performance">
 .home__slider--item.vw-lazy-bg{background-color:#777;background-position:center;background-size:cover}
+.vw-home-video-facade{position:relative;width:100%;aspect-ratio:16/9;background-position:center;background-size:cover;background-color:#222;overflow:hidden}
+.vw-home-video-facade__poster{position:absolute;inset:0;display:block;width:100%;height:100%;object-fit:cover}
+.vw-home-video-facade iframe,.vw-home-video-facade video{display:block;width:100%;height:100%;border:0;object-fit:cover}
+.vw-home-video-facade__play{position:absolute;z-index:1;inset:0;width:100%;border:0;background:rgba(0,0,0,.12);color:#fff;cursor:pointer;display:grid;place-items:center}
+.vw-home-video-facade__play span{display:grid;place-items:center;width:72px;height:72px;border:2px solid currentColor;border-radius:50%;background:rgba(0,0,0,.5);font:700 32px/1 var(--font-body,"Inter",sans-serif);padding-left:5px}
+.vw-home-video-facade__play:focus-visible{outline:3px solid #b5122b;outline-offset:-4px}
 @media (prefers-reduced-motion:reduce){#video_header{display:none}.home__hero{background-position:center;background-size:cover}}
+@media (max-width:800px){.vw-home-video-facade{margin-top:281px}}
+@media (max-width:430px){.vw-home-video-facade{margin-top:354px}}
 </style>`;
 
 const HERO_PERFORMANCE_SCRIPT = `<script id="vw-home-performance-js">(function(){
@@ -89,6 +102,35 @@ const HERO_PERFORMANCE_SCRIPT = `<script id="vw-home-performance-js">(function()
     var saveData=!!(navigator.connection&&navigator.connection.saveData);
     if(reduced||saveData){video.pause();video.preload='none';}
     else{var promise=video.play();if(promise&&promise.catch)promise.catch(function(){});}
+  }
+  var facade=document.querySelector('[data-vw-home-video-facade]');
+  if(facade){
+    var play=facade.querySelector('[data-vw-home-video-play]');
+    if(play)play.addEventListener('click',function(){
+      var mobile=window.matchMedia&&window.matchMedia('(max-width: 680px)').matches;
+      var embed=facade.getAttribute(mobile?'data-mobile-embed':'data-desktop-embed')||facade.getAttribute('data-desktop-embed');
+      var file=facade.getAttribute(mobile?'data-mobile-file':'data-desktop-file')||facade.getAttribute('data-desktop-file');
+      var title=facade.getAttribute('data-player-title')||'Video';
+      var player;
+      if(embed){
+        player=document.createElement('iframe');
+        player.src=embed;
+        player.title=title;
+        player.loading='eager';
+        player.allow='autoplay; encrypted-media; picture-in-picture; fullscreen';
+        player.referrerPolicy='strict-origin-when-cross-origin';
+        player.setAttribute('allowfullscreen','');
+        player.setAttribute('sandbox','allow-scripts allow-same-origin allow-presentation');
+      }else if(file){
+        player=document.createElement('video');
+        player.src=file;
+        player.controls=true;
+        player.autoplay=true;
+        player.muted=true;
+        player.playsInline=true;
+      }
+      if(player)facade.replaceChildren(player);
+    });
   }
   function applyBackground(item,source){
     if(!item||!source)return;
@@ -449,14 +491,20 @@ export function renderHome(
     "/images/home-hero-desktop-v1.mp4",
     "/images/home-hero-desktop-v2.mp4",
   ]);
-  const configuredDesktop = safeMediaUrl(cfg(config, "hero_video", lang));
-  const desktopVideo = !configuredDesktop || legacyHeroVideos.has(configuredDesktop)
-    ? "/images/hero-092c5875ed80af62-desktop.mp4"
+  const defaultDesktopVideo = "/images/hero-092c5875ed80af62-desktop.mp4";
+  const defaultMobileVideo = "/images/hero-092c5875ed80af62-mobile.mp4";
+  const configuredDesktop = parseVideoSource(cfg(config, "hero_video", lang));
+  const desktopSource: VideoSource = !configuredDesktop
+    || (configuredDesktop.kind === "file" && legacyHeroVideos.has(configuredDesktop.url))
+    ? { kind: "file", url: defaultDesktopVideo }
     : configuredDesktop;
-  const configuredMobile = safeMediaUrl(cfg(config, "hero_video_mobile", lang));
+  const configuredMobile = parseVideoSource(cfg(config, "hero_video_mobile", lang));
   const legacyMobileVideos = new Set(["/images/home-hero-mobile-v1.mp4", "/images/home-hero-mobile-v2.mp4"]);
-  const mobileVideo = !configuredMobile || legacyMobileVideos.has(configuredMobile)
-    ? (desktopVideo === "/images/hero-092c5875ed80af62-desktop.mp4" ? "/images/hero-092c5875ed80af62-mobile.mp4" : desktopVideo)
+  const mobileSource: VideoSource = !configuredMobile
+    || (configuredMobile.kind === "file" && legacyMobileVideos.has(configuredMobile.url))
+    ? (desktopSource.kind === "file" && desktopSource.url === defaultDesktopVideo
+      ? { kind: "file", url: defaultMobileVideo }
+      : desktopSource)
     : configuredMobile;
   const configuredPoster = safeMediaUrl(cfg(config, "hero_video_poster", lang));
   const legacyHeroPosters = new Set(["/images/home-hero-poster-v1.webp", "/images/home-hero-poster-v2.webp"]);
@@ -464,28 +512,56 @@ export function renderHome(
     ? "/images/hero-092c5875ed80af62-poster.webp"
     : configuredPoster;
   const videoElement = $("#video_header");
-  videoElement.empty()
-    .append(`<source media="(max-width: 680px)" src="${escAttr(mobileVideo)}" type="video/mp4">`)
-    .append(`<source src="${escAttr(desktopVideo)}" type="video/mp4">`);
   const configuredHeroLink = cfg(config, "hero_practice_link", lang).trim();
   const fallbackHeroLink = lang === "es" ? "/acerca-de" : "/about";
   const legacyHeroLinks = new Set(["/practice/arbitration", "/nuestra-firma", "/our-firm"]);
   const heroLink = !configuredHeroLink || legacyHeroLinks.has(configuredHeroLink)
     ? fallbackHeroLink
     : safeHref(configuredHeroLink, fallbackHeroLink);
-  videoElement.parent("a").attr({
-    href: heroLink,
-    "aria-label": lang === "es" ? "Conoce Von Wobeser y Sierra" : "Discover Von Wobeser y Sierra",
-  });
-  videoElement.removeAttr("autoplay").attr({
-    width: "1920",
-    height: "1080",
-    preload: "metadata",
-    poster: heroPoster,
-    muted: "",
-    loop: "",
-    playsinline: "",
-  });
+  const usesExternalPlayer = desktopSource.kind !== "file" || mobileSource.kind !== "file";
+  if (usesExternalPlayer) {
+    const desktopEmbed = buildVideoEmbedUrl(desktopSource, { autoplay: true, muted: true });
+    const mobileEmbed = buildVideoEmbedUrl(mobileSource, { autoplay: true, muted: true });
+    const playerTitle = lang === "es" ? "Video de portada de Von Wobeser y Sierra" : "Von Wobeser y Sierra homepage video";
+    const playLabel = lang === "es" ? "Reproducir video de portada" : "Play homepage video";
+    videoElement.parent("a").replaceWith(
+      `<div class="vw-home-video-facade" data-vw-home-video-facade` +
+      ` data-desktop-embed="${escAttr(desktopEmbed || "")}" data-mobile-embed="${escAttr(mobileEmbed || "")}"` +
+      ` data-desktop-file="${escAttr(desktopSource.kind === "file" ? desktopSource.url : "")}"` +
+      ` data-mobile-file="${escAttr(mobileSource.kind === "file" ? mobileSource.url : "")}"` +
+      ` data-player-title="${escAttr(playerTitle)}">` +
+      `<img class="vw-home-video-facade__poster" src="${escAttr(heroPoster)}" alt="" width="1920" height="1080" fetchpriority="high">` +
+      `<button type="button" class="vw-home-video-facade__play" data-vw-home-video-play aria-label="${escAttr(playLabel)}"><span aria-hidden="true">▶</span></button>` +
+      `</div>`,
+    );
+  } else {
+    const mobileType = mobileSource.url.toLowerCase().split(/[?#]/, 1)[0].endsWith(".webm")
+      ? "video/webm"
+      : mobileSource.url.toLowerCase().split(/[?#]/, 1)[0].endsWith(".ogv")
+        ? "video/ogg"
+        : "video/mp4";
+    const desktopType = desktopSource.url.toLowerCase().split(/[?#]/, 1)[0].endsWith(".webm")
+      ? "video/webm"
+      : desktopSource.url.toLowerCase().split(/[?#]/, 1)[0].endsWith(".ogv")
+        ? "video/ogg"
+        : "video/mp4";
+    videoElement.empty()
+      .append(`<source media="(max-width: 680px)" src="${escAttr(mobileSource.url)}" type="${mobileType}">`)
+      .append(`<source src="${escAttr(desktopSource.url)}" type="${desktopType}">`);
+    videoElement.parent("a").attr({
+      href: heroLink,
+      "aria-label": lang === "es" ? "Conoce Von Wobeser y Sierra" : "Discover Von Wobeser y Sierra",
+    });
+    videoElement.removeAttr("autoplay").attr({
+      width: "1920",
+      height: "1080",
+      preload: "metadata",
+      poster: heroPoster,
+      muted: "",
+      loop: "",
+      playsinline: "",
+    });
+  }
   const hero = $(".home__hero").first();
   const heroStyle = hero.attr("style") || "";
   if (/home-hero\.(?:jpg|webp)/.test(heroStyle)) {
@@ -503,8 +579,19 @@ export function renderHome(
   const grayStatements = $(".home__gray--txt");
   const experience = cfg(config, "home_experience", lang);
   const teamStats = cfg(config, "home_team_stats", lang);
-  if (experience) grayStatements.eq(0).html(`<p>${esc(experience)}</p>`);
-  if (teamStats) grayStatements.eq(1).html(`<p>${esc(teamStats)}</p>`);
+  const experienceBlock = grayStatements.eq(0).closest("section");
+  const teamStatsBlock = grayStatements.eq(1).closest("section");
+  const experienceVisible = isConfigEnabled(config, "home_experience_visible", false);
+  if (experienceVisible) {
+    if (experience) grayStatements.eq(0).html(`<p>${esc(experience)}</p>`);
+  } else {
+    experienceBlock.remove();
+  }
+  if (isConfigEnabled(config, "home_team_stats_visible", false)) {
+    if (teamStats) grayStatements.eq(1).html(`<p>${esc(teamStats)}</p>`);
+  } else {
+    teamStatsBlock.remove();
+  }
 
   // --- Carruseles editoriales del home (BD + panel) --------------------
   // Conservan exactamente las clases del espejo para que Slick y sus flechas sigan
@@ -520,6 +607,14 @@ export function renderHome(
     "aria-roledescription": "carousel",
     "aria-label": lang === "es" ? "Grupos de práctica por industria" : "Industry practice groups",
   });
+  const industryCarouselSection = homeSliders.eq(1).closest("section");
+  // Cuando la frase intermedia está oculta, mantenemos un corte editorial real
+  // entre ambos carruseles. Es un elemento dentro del flujo del documento: no
+  // se superpone sobre las imágenes ni depende de pseudo-elementos.
+  $(".home__carousel-separator").remove();
+  if (!experienceVisible && industryCarouselSection.length) {
+    industryCarouselSection.before('<div class="home__carousel-separator" aria-hidden="true"></div>');
+  }
   const practiceSlides = renderGroupSlider(practices, "practice", config, lang);
   const industrySlides = renderGroupSlider(industries, "industry", config, lang);
   if (practiceSlides) homeSliders.eq(0).html(practiceSlides);
@@ -573,12 +668,20 @@ export function renderHome(
 
   // --- Secciones editoriales finales del home -------------------------
   const editorialSections = $("#bottom .home__rec");
+  // Reconocimientos conserva su composición, pero sigue la jerarquía
+  // tipográfica institucional: título en Gelasio y cuerpo en Inter.
+  editorialSections.eq(0).addClass("home__rec--recognitions");
   const recognitionTitle = cfg(config, "home_recognitions_title", lang);
   const recognitionIntro = cfg(config, "home_recognitions_intro", lang);
   const recognitionBody = cfg(config, "home_recognitions_body", lang);
   if (recognitionTitle) editorialSections.eq(0).find(".home__rec--ttl").first().text(recognitionTitle);
   if (recognitionIntro) editorialSections.eq(0).find(".home__rec--top").first().html(paragraphs(recognitionIntro));
-  if (recognitionBody) editorialSections.eq(0).find(".home__rec--txt").first().html(paragraphs(recognitionBody));
+  const recognitionBodyElement = editorialSections.eq(0).find(".home__rec--txt").first();
+  if (isConfigEnabled(config, "home_recognitions_body_visible", false)) {
+    if (recognitionBody) recognitionBodyElement.html(paragraphs(recognitionBody));
+  } else {
+    recognitionBodyElement.remove();
+  }
 
   const diversityTitle = cfg(config, "home_diversity_title", lang);
   const diversityBody = cfg(config, "home_diversity_body", lang);

@@ -65,55 +65,275 @@ export async function validatePublicMediaSignature(filePath: string, mimeType: s
   }
 }
 
+export interface VideoContainerValidationOptions {
+  ffprobePath?: string;
+  ffmpegPath?: string;
+  mimeType?: string;
+}
+
+export type VideoContainerValidationResult =
+  | { valid: true; verifier: "ffprobe+ffmpeg" }
+  | { valid: false; reason: "invalid" | "validator_unavailable" | "validation_timeout" };
+
+export type ProbedVideoMetadata = {
+  streamIndex: number;
+  codecName: string;
+  width: number;
+  height: number;
+  duration: number;
+  formatName: string;
+  attachedPicture: boolean;
+};
+
+const VIDEO_CODECS_BY_MIME: Readonly<Record<string, ReadonlySet<string>>> = {
+  "video/mp4": new Set(["h264", "hevc", "av1", "vp9", "mpeg4", "mjpeg"]),
+  "video/quicktime": new Set(["h264", "hevc", "av1", "vp9", "mpeg4", "mjpeg", "prores"]),
+  "video/webm": new Set(["vp8", "vp9", "av1"]),
+  "video/ogg": new Set(["theora"]),
+};
+
+function videoToolMissing(error: unknown): boolean {
+  const systemError = error as NodeJS.ErrnoException;
+  return systemError?.code === "ENOENT" || systemError?.code === "EACCES";
+}
+
+function videoToolTimedOut(error: unknown): boolean {
+  const systemError = error as NodeJS.ErrnoException & { killed?: boolean; signal?: string | null };
+  return systemError?.code === "ETIMEDOUT"
+    || systemError?.killed === true
+    || systemError?.signal === "SIGTERM";
+}
+
+function containerMatchesMime(mimeType: string, formatName: string): boolean {
+  const formats = new Set(formatName.toLowerCase().split(",").map((format) => format.trim()));
+  if (mimeType === "video/mp4" || mimeType === "video/quicktime") {
+    return formats.has("mov") || formats.has("mp4");
+  }
+  if (mimeType === "video/webm") return formats.has("webm");
+  if (mimeType === "video/ogg") return formats.has("ogg");
+  return false;
+}
+
+function parseVideoFrameRate(value: unknown): number {
+  const raw = String(value || "").trim();
+  if (!raw) return 0;
+  const [numeratorText, denominatorText] = raw.split("/", 2);
+  const numerator = Number(numeratorText);
+  const denominator = denominatorText === undefined ? 1 : Number(denominatorText);
+  const frameRate = numerator / denominator;
+  return Number.isFinite(frameRate) && frameRate > 0 ? frameRate : 0;
+}
+
+/** Política pura para poder probar formatos adversariales sin lanzar procesos. */
+export function videoMetadataAllowed(mimeType: string, metadata: ProbedVideoMetadata): boolean {
+  const allowedCodecs = VIDEO_CODECS_BY_MIME[mimeType];
+  const pixels = metadata.width * metadata.height;
+  return Boolean(
+    allowedCodecs
+    && allowedCodecs.has(metadata.codecName.toLowerCase())
+    && containerMatchesMime(mimeType, metadata.formatName)
+    && !metadata.attachedPicture
+    && Number.isSafeInteger(metadata.streamIndex)
+    && metadata.streamIndex >= 0
+    && Number.isFinite(metadata.duration)
+    && metadata.duration >= 0.1
+    && metadata.duration <= 60 * 60
+    && Number.isSafeInteger(metadata.width)
+    && Number.isSafeInteger(metadata.height)
+    && metadata.width > 0
+    && metadata.height > 0
+    && metadata.width <= 4096
+    && metadata.height <= 4096
+    && pixels <= 4096 * 2160
+  );
+}
+
+const FRAMEHASH_LINE = /^\s*\d+,\s*-?\d+,\s*-?\d+,\s*\d+,\s*\d+,\s*[a-f0-9]{64}\s*$/im;
+
 /**
- * Confirma que un video que ya pasó la firma mágica contiene al menos una pista
- * de video legible. En Replit, ClamAV puede no tener su base de firmas disponible
- * durante un despliegue; ffprobe ofrece una segunda validación estructural sin
- * decodificar los 45-200 MB completos ni hacer que la carga tarde varios minutos.
+ * Decodifica exactamente un cuadro y exige evidencia criptográfica del cuadro
+ * producido. FFmpeg puede terminar con código 0 aun cuando no haya emitido
+ * ningún cuadro (por ejemplo, ante un MP4 truncado o un binario sustituto que
+ * simplemente devuelve éxito), por lo que el código de salida no basta.
  */
-export function validateVideoContainer(filePath: string): Promise<boolean> {
+function decodeVideoFrameAt(
+  filePath: string,
+  ffmpegPath: string,
+  streamIndex: number,
+  seekSeconds = 0,
+): Promise<VideoContainerValidationResult> {
   return new Promise((resolve) => {
+    const seekArguments = seekSeconds > 0
+      ? ["-ss", seekSeconds.toFixed(3)]
+      : [];
     execFile(
-      "ffprobe",
+      ffmpegPath,
       [
         "-v", "error",
-        "-select_streams", "v:0",
-        "-show_entries", "stream=codec_type,codec_name,width,height:format=duration,format_name",
-        "-of", "json",
-        filePath,
+        "-xerror",
+        "-err_detect", "explode",
+        "-nostdin",
+        "-threads", "1",
+        ...seekArguments,
+        "-i", filePath,
+        "-map", `0:${streamIndex}`,
+        "-frames:v", "1",
+        "-an",
+        "-sn",
+        "-dn",
+        "-hash", "sha256",
+        "-f", "framehash",
+        "-",
       ],
       {
-        timeout: 45_000,
+        timeout: 30_000,
         windowsHide: true,
         maxBuffer: 512 * 1024,
       },
       (error, stdout) => {
-        if (error) return resolve(false);
-        try {
-          const parsed = JSON.parse(stdout) as {
-            streams?: Array<{ codec_type?: string; codec_name?: string; width?: number; height?: number }>;
-            format?: { duration?: string; format_name?: string };
-          };
-          const video = parsed.streams?.find((stream) => stream.codec_type === "video");
-          const duration = Number(parsed.format?.duration || 0);
-          const width = Number(video?.width || 0);
-          const height = Number(video?.height || 0);
-          resolve(Boolean(
-            video?.codec_name
-            && Number.isFinite(duration)
-            && duration > 0
-            && duration <= 60 * 60
-            && width > 0
-            && height > 0
-            && width <= 7680
-            && height <= 4320,
-          ));
-        } catch {
-          resolve(false);
+        if (!error && FRAMEHASH_LINE.test(String(stdout || ""))) {
+          resolve({ valid: true, verifier: "ffprobe+ffmpeg" });
+          return;
+        }
+        if (videoToolMissing(error)) {
+          resolve({ valid: false, reason: "validator_unavailable" });
+        } else if (videoToolTimedOut(error)) {
+          resolve({ valid: false, reason: "validation_timeout" });
+        } else {
+          resolve({ valid: false, reason: "invalid" });
         }
       },
     );
   });
+}
+
+/**
+ * Confirma que un video que ya pasó la firma mágica contiene al menos una pista
+ * de video legible. ffprobe valida formato, códec y límites; ffmpeg decodifica
+ * un cuadro real. Si cualquiera de los verificadores no está instalado se
+ * responde como indisponibilidad temporal: nunca se acepta por una heurística
+ * más débil ni se etiqueta falsamente al archivo como dañado.
+ */
+export function inspectVideoContainer(
+  filePath: string,
+  options: VideoContainerValidationOptions = {},
+): Promise<VideoContainerValidationResult> {
+  const ffprobePath = options.ffprobePath?.trim()
+    || process.env.FFPROBE_PATH?.trim()
+    || "ffprobe";
+  const ffmpegPath = options.ffmpegPath?.trim()
+    || process.env.FFMPEG_PATH?.trim()
+    || "ffmpeg";
+  return new Promise((resolve) => {
+    execFile(
+      ffprobePath,
+      [
+        "-v", "error",
+        "-show_entries", "stream=index,codec_type,codec_name,width,height,duration,avg_frame_rate,r_frame_rate:stream_disposition=attached_pic:format=duration,format_name",
+        "-of", "json",
+        filePath,
+      ],
+      {
+        timeout: 15_000,
+        windowsHide: true,
+        maxBuffer: 512 * 1024,
+      },
+      async (error, stdout) => {
+        if (error) {
+          if (videoToolMissing(error)) {
+            resolve({ valid: false, reason: "validator_unavailable" });
+          } else if (videoToolTimedOut(error)) {
+            resolve({ valid: false, reason: "validation_timeout" });
+          } else {
+            resolve({ valid: false, reason: "invalid" });
+          }
+          return;
+        }
+        try {
+          const parsed = JSON.parse(stdout) as {
+            streams?: Array<{
+              index?: number;
+              codec_type?: string;
+              codec_name?: string;
+              width?: number;
+              height?: number;
+              duration?: string;
+              avg_frame_rate?: string;
+              r_frame_rate?: string;
+              disposition?: { attached_pic?: number };
+            }>;
+            format?: { duration?: string; format_name?: string };
+          };
+          const video = parsed.streams?.find((stream) => (
+            stream.codec_type === "video" && Number(stream.disposition?.attached_pic || 0) !== 1
+          ));
+          const metadata: ProbedVideoMetadata = {
+            streamIndex: Number(video?.index ?? -1),
+            codecName: String(video?.codec_name || ""),
+            width: Number(video?.width || 0),
+            height: Number(video?.height || 0),
+            // Preferir la duración de la pista evita buscar más allá del video
+            // cuando una pista de audio excepcionalmente más larga determina
+            // la duración total del contenedor.
+            duration: Number(video?.duration || parsed.format?.duration || 0),
+            formatName: String(parsed.format?.format_name || ""),
+            attachedPicture: Number(video?.disposition?.attached_pic || 0) === 1,
+          };
+          const mimeType = options.mimeType?.trim().toLowerCase() || "video/mp4";
+          if (!videoMetadataAllowed(mimeType, metadata)) {
+            resolve({ valid: false, reason: "invalid" });
+            return;
+          }
+
+          const frameRate = parseVideoFrameRate(
+            video?.avg_frame_rate || video?.r_frame_rate,
+          );
+
+          const firstFrame = await decodeVideoFrameAt(
+            filePath,
+            ffmpegPath,
+            metadata.streamIndex,
+          );
+          if (!firstFrame.valid) {
+            resolve(firstFrame);
+            return;
+          }
+
+          // Revisar también el tramo final impide aceptar cargas parciales cuyo
+          // encabezado y primer cuadro son válidos, pero cuyo contenido quedó
+          // cortado durante la transferencia. En videos muy breves el primer
+          // cuadro ya representa suficientemente el archivo completo.
+          // La última marca de tiempo disponible suele ser duración - 1/fps.
+          // Considerar ese intervalo evita rechazar videos válidos de baja
+          // frecuencia (por ejemplo 1 fps), sin retroceder arbitrariamente en
+          // un archivo truncado. Para videos normales se conserva la revisión
+          // del último 5 % como barrera de integridad.
+          const finalFrameInterval = frameRate > 0 ? 1 / frameRate : 0.5;
+          const nearEndSeconds = Math.max(
+            0,
+            metadata.duration - Math.max(finalFrameInterval, metadata.duration * 0.05),
+          );
+          resolve(nearEndSeconds >= 0.1
+            ? await decodeVideoFrameAt(
+              filePath,
+              ffmpegPath,
+              metadata.streamIndex,
+              nearEndSeconds,
+            )
+            : firstFrame);
+        } catch {
+          resolve({ valid: false, reason: "validator_unavailable" });
+        }
+      },
+    );
+  });
+}
+
+export async function validateVideoContainer(
+  filePath: string,
+  options: VideoContainerValidationOptions = {},
+): Promise<boolean> {
+  return (await inspectVideoContainer(filePath, options)).valid;
 }
 
 async function validateDocx(filePath: string): Promise<boolean> {

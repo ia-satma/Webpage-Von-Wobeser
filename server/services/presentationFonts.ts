@@ -25,10 +25,10 @@ const PRESENTATION_FONTS: Array<{
     family: TYPOGRAPHY.body,
     pitchFamily: '34',
     styles: {
-      regular: TYPOGRAPHY_ASSETS.atkinsonRegular,
-      bold: TYPOGRAPHY_ASSETS.atkinsonBold,
-      italic: TYPOGRAPHY_ASSETS.atkinsonItalic,
-      boldItalic: TYPOGRAPHY_ASSETS.atkinsonBoldItalic,
+      regular: TYPOGRAPHY_ASSETS.interRegular,
+      bold: TYPOGRAPHY_ASSETS.interBold,
+      italic: TYPOGRAPHY_ASSETS.interItalic,
+      boldItalic: TYPOGRAPHY_ASSETS.interBoldItalic,
     },
   },
 ];

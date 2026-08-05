@@ -24,7 +24,7 @@ export const CHUNKED_MEDIA_MIMES = new Set([
 ]);
 
 type UploadSession = {
-  v: 1;
+  v: 1 | 2;
   id: string;
   userId: string;
   originalName: string;
@@ -81,7 +81,18 @@ function encodeSession(session: UploadSession): string {
   return `${payload}.${signature}`;
 }
 
-function readSession(token: string, expectedUserId: string): UploadSession {
+/**
+ * La primera publicación de la carga con integridad debe seguir emitiendo
+ * sesiones v1: una petición /start puede llegar a la instancia nueva mientras
+ * el siguiente fragmento todavía llega a una instancia anterior durante el
+ * despliegue rodante de Replit. La v2 queda lista para activarse explícitamente
+ * cuando todas las instancias ya ejecuten este código.
+ */
+function currentChunkProtocol(): 1 | 2 {
+  return process.env.VWB_MEDIA_CHUNK_V2 === "true" ? 2 : 1;
+}
+
+function readSession(token: string, expectedUserId: string, allowExpired = false): UploadSession {
   const [payload, suppliedSignature, extra] = token.split(".");
   if (!payload || !suppliedSignature || extra) {
     throw new ChunkedMediaUploadError("La sesión de carga no es válida.", "INVALID_CHUNK_SESSION", 401);
@@ -111,7 +122,7 @@ function readSession(token: string, expectedUserId: string): UploadSession {
   } catch {
     throw new ChunkedMediaUploadError("La sesión de carga no es válida.", "INVALID_CHUNK_SESSION", 401);
   }
-  const structurallyValid = session.v === 1
+  const structurallyValid = (session.v === 1 || session.v === 2)
     && /^[a-f0-9]{32}$/.test(session.id)
     && session.userId === expectedUserId
     && CHUNKED_MEDIA_MIMES.has(session.mimeType)
@@ -123,7 +134,7 @@ function readSession(token: string, expectedUserId: string): UploadSession {
     && session.totalChunks >= 1
     && session.totalChunks <= 50
     && Number.isSafeInteger(session.expiresAt)
-    && session.expiresAt > Date.now()
+    && (allowExpired || session.expiresAt > Date.now())
     && typeof session.originalName === "string"
     && session.originalName.length >= 1
     && session.originalName.length <= 180;
@@ -137,8 +148,80 @@ function objectName(session: UploadSession, index: number): string {
   return `${STORAGE_PREFIX}/${session.id}/${String(index).padStart(3, "0")}.part`;
 }
 
+function checksumObjectName(session: UploadSession, index: number): string {
+  return `${objectName(session, index)}.sha256`;
+}
+
 function localChunkPath(session: UploadSession, index: number): string {
   return path.join(localChunkRoot, session.id, `${String(index).padStart(3, "0")}.part`);
+}
+
+function localChecksumPath(session: UploadSession, index: number): string {
+  return `${localChunkPath(session, index)}.sha256`;
+}
+
+function chunkChecksum(contents: Buffer): string {
+  return crypto.createHash("sha256").update(contents).digest("hex");
+}
+
+const V2_CHUNK_PREFIX = Buffer.from("VWBCHUNK2\n", "ascii");
+const V2_CHUNK_HEADER_BYTES = V2_CHUNK_PREFIX.length + 64 + 1;
+
+function encodeV2Chunk(contents: Buffer, checksum: string): Buffer {
+  return Buffer.concat([
+    V2_CHUNK_PREFIX,
+    Buffer.from(checksum, "ascii"),
+    Buffer.from("\n", "ascii"),
+    contents,
+  ]);
+}
+
+function decodeV2Chunk(stored: Buffer): Buffer {
+  if (stored.length <= V2_CHUNK_HEADER_BYTES
+    || !stored.subarray(0, V2_CHUNK_PREFIX.length).equals(V2_CHUNK_PREFIX)
+    || stored[V2_CHUNK_HEADER_BYTES - 1] !== 0x0a) {
+    throw new ChunkedMediaUploadError(
+      "Un fragmento guardado no tiene el formato de integridad esperado.",
+      "CORRUPTED_MEDIA_CHUNK",
+      409,
+    );
+  }
+  const expectedChecksum = stored
+    .subarray(V2_CHUNK_PREFIX.length, V2_CHUNK_HEADER_BYTES - 1)
+    .toString("ascii")
+    .toLowerCase();
+  const contents = stored.subarray(V2_CHUNK_HEADER_BYTES);
+  if (!/^[a-f0-9]{64}$/.test(expectedChecksum) || chunkChecksum(contents) !== expectedChecksum) {
+    throw new ChunkedMediaUploadError(
+      "Un fragmento guardado no superó la comprobación de integridad.",
+      "CORRUPTED_MEDIA_CHUNK",
+      409,
+    );
+  }
+  return contents;
+}
+
+function validateSuppliedChecksum(contents: Buffer, suppliedChecksum = ""): string {
+  const actual = chunkChecksum(contents);
+  // Compatibilidad durante despliegues: una pestaña abierta con el JavaScript
+  // anterior no enviaba la cabecera. El servidor conserva la misma garantía al
+  // calcular y guardar la huella directamente desde los bytes recibidos.
+  if (!suppliedChecksum.trim()) return actual;
+  const normalized = suppliedChecksum.trim().toLowerCase();
+  if (!/^[a-f0-9]{64}$/.test(normalized)) {
+    throw new ChunkedMediaUploadError(
+      "No se pudo verificar la integridad del fragmento.",
+      "INVALID_CHUNK_CHECKSUM",
+    );
+  }
+  if (!crypto.timingSafeEqual(Buffer.from(normalized, "hex"), Buffer.from(actual, "hex"))) {
+    throw new ChunkedMediaUploadError(
+      "El fragmento cambió durante la transferencia.",
+      "CHUNK_CHECKSUM_MISMATCH",
+      409,
+    );
+  }
+  return actual;
 }
 
 function expectedChunkBytes(session: UploadSession, index: number): number {
@@ -164,7 +247,7 @@ export function createChunkedMediaUpload(input: {
     throw new ChunkedMediaUploadError("El archivo debe pesar como máximo 200 MB.", "MEDIA_FILE_TOO_LARGE", 413);
   }
   const session: UploadSession = {
-    v: 1,
+    v: currentChunkProtocol(),
     id: crypto.randomBytes(16).toString("hex"),
     userId: input.userId,
     originalName,
@@ -187,53 +270,132 @@ export async function storeChunkedMediaPart(
   userId: string,
   index: number,
   contents: Buffer,
+  suppliedChecksum = "",
 ): Promise<{ received: number; totalChunks: number }> {
   const session = readSession(token, userId);
   const expected = expectedChunkBytes(session, index);
   if (contents.length !== expected) {
     throw new ChunkedMediaUploadError("El fragmento llegó incompleto.", "INVALID_CHUNK_SIZE");
   }
+  const checksum = validateSuppliedChecksum(contents, suppliedChecksum);
+  if (session.v === 2) {
+    const stored = encodeV2Chunk(contents, checksum);
+    if (sharedStorageEnabled()) {
+      const result = await client().uploadFromBytes(objectName(session, index), stored, { compress: false });
+      if (!result.ok) {
+        throw new ChunkedMediaUploadError("App Storage no pudo guardar el fragmento.", "CHUNK_STORAGE_UNAVAILABLE", 503);
+      }
+    } else {
+      const destination = localChunkPath(session, index);
+      await fs.mkdir(path.dirname(destination), { recursive: true, mode: 0o700 });
+      await fs.writeFile(destination, stored, { mode: 0o600 });
+    }
+    return { received: index + 1, totalChunks: session.totalChunks };
+  }
+
+  // Sesión v1 en curso durante el despliegue: mantener su representación
+  // anterior para que pueda terminar sin obligar al usuario a volver a cargar.
   if (sharedStorageEnabled()) {
-    const result = await client().uploadFromBytes(objectName(session, index), contents, { compress: false });
-    if (!result.ok) {
+    const [partResult, checksumResult] = await Promise.all([
+      client().uploadFromBytes(objectName(session, index), contents, { compress: false }),
+      client().uploadFromBytes(checksumObjectName(session, index), Buffer.from(checksum, "ascii"), { compress: false }),
+    ]);
+    if (!partResult.ok || !checksumResult.ok) {
       throw new ChunkedMediaUploadError("App Storage no pudo guardar el fragmento.", "CHUNK_STORAGE_UNAVAILABLE", 503);
     }
   } else {
     const destination = localChunkPath(session, index);
     await fs.mkdir(path.dirname(destination), { recursive: true, mode: 0o700 });
-    await fs.writeFile(destination, contents, { mode: 0o600 });
+    await Promise.all([
+      fs.writeFile(destination, contents, { mode: 0o600 }),
+      fs.writeFile(localChecksumPath(session, index), checksum, { mode: 0o600 }),
+    ]);
   }
   return { received: index + 1, totalChunks: session.totalChunks };
 }
 
 async function loadPart(session: UploadSession, index: number): Promise<Buffer> {
+  if (session.v === 2) {
+    let stored: Buffer;
+    if (sharedStorageEnabled()) {
+      const result = await client().downloadAsBytes(objectName(session, index), { decompress: false });
+      if (!result.ok) {
+        throw new ChunkedMediaUploadError("Falta un fragmento de la carga.", "MISSING_MEDIA_CHUNK", 409);
+      }
+      stored = result.value[0];
+    } else {
+      try {
+        stored = await fs.readFile(localChunkPath(session, index));
+      } catch {
+        throw new ChunkedMediaUploadError("Falta un fragmento de la carga.", "MISSING_MEDIA_CHUNK", 409);
+      }
+    }
+    return decodeV2Chunk(stored);
+  }
+
+  let contents: Buffer;
+  let expectedChecksum = "";
   if (sharedStorageEnabled()) {
-    const result = await client().downloadAsBytes(objectName(session, index), { decompress: false });
-    if (!result.ok) {
+    const partResult = await client().downloadAsBytes(objectName(session, index), { decompress: false });
+    if (!partResult.ok) {
       throw new ChunkedMediaUploadError("Falta un fragmento de la carga.", "MISSING_MEDIA_CHUNK", 409);
     }
-    return result.value[0];
+    contents = partResult.value[0];
+    const checksumResult = await client().downloadAsBytes(checksumObjectName(session, index), { decompress: false });
+    if (checksumResult.ok) expectedChecksum = checksumResult.value[0].toString("ascii").trim().toLowerCase();
+  } else {
+    try {
+      contents = await fs.readFile(localChunkPath(session, index));
+    } catch {
+      throw new ChunkedMediaUploadError("Falta un fragmento de la carga.", "MISSING_MEDIA_CHUNK", 409);
+    }
+    expectedChecksum = await fs.readFile(localChecksumPath(session, index), "utf8")
+      .then((value) => value.trim().toLowerCase())
+      .catch(() => "");
   }
+  // Una sesión v1 creada antes del despliegue no tiene sidecar. El tamaño del
+  // fragmento, el tamaño final y la decodificación real del video siguen siendo
+  // obligatorios; si sí existe la huella, también debe coincidir.
+  if (expectedChecksum
+    && (!/^[a-f0-9]{64}$/.test(expectedChecksum) || chunkChecksum(contents) !== expectedChecksum)) {
+    throw new ChunkedMediaUploadError(
+      "Un fragmento guardado no superó la comprobación de integridad.",
+      "CORRUPTED_MEDIA_CHUNK",
+      409,
+    );
+  }
+  return contents;
+}
+
+async function deleteStorageObject(name: string): Promise<boolean> {
   try {
-    return await fs.readFile(localChunkPath(session, index));
+    const result = await client().delete(name, { ignoreNotFound: true });
+    return result.ok;
   } catch {
-    throw new ChunkedMediaUploadError("Falta un fragmento de la carga.", "MISSING_MEDIA_CHUNK", 409);
+    return false;
   }
 }
 
-export async function removeChunkedMediaUpload(token: string, userId: string): Promise<void> {
+export async function removeChunkedMediaUpload(token: string, userId: string): Promise<boolean> {
   let session: UploadSession;
   try {
-    session = readSession(token, userId);
+    session = readSession(token, userId, true);
   } catch {
-    return;
+    return false;
   }
   if (sharedStorageEnabled()) {
-    await Promise.all(Array.from({ length: session.totalChunks }, async (_, index) => {
-      await client().delete(objectName(session, index), { ignoreNotFound: true }).catch(() => undefined);
-    }));
+    const results = await Promise.all(Array.from({ length: session.totalChunks }, async (_, index) => (
+      Promise.all([
+        deleteStorageObject(objectName(session, index)),
+        deleteStorageObject(checksumObjectName(session, index)),
+      ])
+    )));
+    const removed = results.every(([part, checksum]) => part && checksum);
+    if (!removed) console.warn(`[media-upload] No se pudieron limpiar todos los fragmentos de ${session.id}.`);
+    return removed;
   } else {
     await fs.rm(path.join(localChunkRoot, session.id), { recursive: true, force: true });
+    return true;
   }
 }
 
@@ -252,7 +414,23 @@ export async function assembleChunkedMediaUpload(
       if (contents.length !== expected) {
         throw new ChunkedMediaUploadError("Un fragmento guardado está incompleto.", "INVALID_CHUNK_SIZE", 409);
       }
-      await handle.write(contents, 0, contents.length, index * session.chunkSize);
+      let written = 0;
+      while (written < contents.length) {
+        const result = await handle.write(
+          contents,
+          written,
+          contents.length - written,
+          index * session.chunkSize + written,
+        );
+        if (result.bytesWritten <= 0) {
+          throw new ChunkedMediaUploadError(
+            "No se pudo reconstruir completamente el archivo.",
+            "INCOMPLETE_MEDIA_WRITE",
+            503,
+          );
+        }
+        written += result.bytesWritten;
+      }
     }
   } catch (error) {
     await handle.close().catch(() => undefined);

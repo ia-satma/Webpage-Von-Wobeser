@@ -67,7 +67,7 @@ test("la lupa abre, enfoca y envía el buscador global bilingüe", () => {
   assert.match(css, /\.search_form_cont\.vw-search-open \.field/);
   assert.match(css, /\.header\.vw-header-search-open/);
   assert.match(css, /\.vw-header-search__submit/);
-  assert.match(css, /font-family: "Atkinson Hyperlegible", sans-serif !important/);
+  assert.match(css, /font-family: "Inter", sans-serif !important/);
   assert.match(css, /\.header\.header_JS \.search_form_cont[\s\S]*right: 124px !important/);
   assert.match(css, /\.header\.header_JS \.search_form_cont[\s\S]*top: 11px !important[\s\S]*transform: none/);
   assert.match(css, /\.header\.header_JS \.menu_btn_JS[\s\S]*right: 62px !important/);
@@ -195,7 +195,7 @@ test("los módulos públicos añadidos usan la línea tipográfica institucional
   ].map((path) => readFileSync(new URL(path, import.meta.url), "utf8")).join("\n");
 
   assert.match(fontCss, /--font-title:\s*"Gelasio", serif/);
-  assert.match(fontCss, /--font-body:\s*"Atkinson Hyperlegible", sans-serif/);
+  assert.match(fontCss, /--font-body:\s*"Inter", sans-serif/);
   assert.match(fontCss, /--vw-font-editorial:\s*var\(--font-title\)/);
   assert.match(fontCss, /--vw-font-ui:\s*var\(--font-body\)/);
   assert.match(fontCss, /--vw-font-body:\s*var\(--font-body\)/);
@@ -205,7 +205,7 @@ test("los módulos públicos añadidos usan la línea tipográfica institucional
   assert.match(css, /\.home__rec \.slick-arrow\.slick-next[\s\S]*right: 0 !important/);
   assert.match(css, /\.page__ttl--holder > h1/);
   assert.match(fontCss, /font-family: "Gelasio";[\s\S]*Gelasio-Variable\.woff2/);
-  assert.match(fontCss, /font-family: "Atkinson Hyperlegible";[\s\S]*AtkinsonHyperlegible-Regular\.woff2/);
+  assert.match(fontCss, /font-family: "Inter";[\s\S]*Inter-Variable\.woff2/);
   assert.doesNotMatch(fontCss, /(?:Publico|Geomanist|Optima)[-A-Za-z0-9]*\.(?:woff2?|otf|ttf)/);
   assert.match(customRenderers, /var\(--vw-font-editorial\)/);
   assert.match(customRenderers, /var\(--vw-font-ui\)/);

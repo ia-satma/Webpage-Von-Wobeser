@@ -10,7 +10,12 @@ const { renderHome } = await import("../mirror/renderHome");
 const homeTemplate = `<!doctype html><html lang="es"><head><title>Home</title></head><body>
   <div class="home__hero"><a href="/practice/arbitration"><video id="video_header"></video></a></div>
   <div class="covid_cont"><div class="covid_title"><h2><span>Noticias</span></h2></div><div class="covid_headlines"></div></div>
+  <section data-block="practice-carousel"><div class="home_slider_JS"><div>Prácticas</div></div></section>
+  <section data-block="experience"><div class="home__gray--txt"><p>Experiencia heredada</p></div></section>
+  <section data-block="industry-carousel"><div class="home_slider_JS"><div>Industrias</div></div></section>
+  <section data-block="team"><div class="home__gray--txt"><p>Equipo heredado</p></div></section>
   <section class="home__desk"><p>Desk heredado</p></section>
+  <div id="bottom"><section class="home__rec"><div class="home__rec--ttl">Reconocimientos</div><div class="home__rec--top">Introducción</div><div class="home__rec--txt">Listado</div><div class="home__rec--slider home_rec_JS"><img src="/logo.png"></div></section></div>
 </body></html>`;
 
 const news = Array.from({ length: 20 }, (_, index) => ({
@@ -63,6 +68,82 @@ test("Newsletter oculta solo la etiqueta vacía y permite restaurarla desde conf
     newsletter_privacy_path: { value: "javascript:alert(1)", valueEs: "javascript:alert(1)", type: "url" },
   }, "es");
   assert.equal(cheerio.load(unsafePathHtml)(".home__newsletter--privacy a").attr("href"), "/aviso");
+});
+
+test("los tres textos institucionales del Home están ocultos por defecto y se restauran desde el panel", () => {
+  const hidden = cheerio.load(renderHome(homeTemplate, [], {}, "es"));
+  assert.equal(hidden('[data-block="experience"]').length, 0);
+  assert.equal(hidden('[data-block="team"]').length, 0);
+  assert.equal(hidden(".home__carousel-separator").length, 1);
+  assert.equal(hidden(".home__carousel-separator").next().is('[data-block="industry-carousel"]'), true);
+  assert.equal(hidden("#bottom .home__rec--txt").length, 0);
+  assert.equal(hidden("#bottom .home__rec--ttl").length, 1);
+  assert.equal(hidden("#bottom .home__rec--slider").length, 1);
+  assert.equal(hidden("#bottom .home__rec--recognitions").length, 1);
+
+  const hiddenEn = cheerio.load(
+    renderHome(homeTemplate.replace('lang="es"', 'lang="en"'), [], {}, "en"),
+  );
+  assert.equal(hiddenEn('[data-block="experience"]').length, 0);
+  assert.equal(hiddenEn('[data-block="team"]').length, 0);
+  assert.equal(hiddenEn(".home__carousel-separator").length, 1);
+  assert.equal(hiddenEn(".home__carousel-separator").next().is('[data-block="industry-carousel"]'), true);
+  assert.equal(hiddenEn("#bottom .home__rec--txt").length, 0);
+  assert.equal(hiddenEn("#bottom .home__rec--ttl").length, 1);
+  assert.equal(hiddenEn("#bottom .home__rec--slider").length, 1);
+
+  const visibleConfig = {
+    home_experience_visible: { value: "true", valueEs: "true", type: "boolean" },
+    home_team_stats_visible: { value: "true", valueEs: "true", type: "boolean" },
+    home_recognitions_body_visible: { value: "true", valueEs: "true", type: "boolean" },
+    home_experience: { value: "Forty years", valueEs: "Cuarenta años", type: "text" },
+    home_team_stats: { value: "Team figures", valueEs: "Cifras del equipo", type: "text" },
+    home_recognitions_body: { value: "Recognition list", valueEs: "Lista de reconocimientos", type: "text" },
+  };
+  const visibleEs = cheerio.load(renderHome(homeTemplate, [], visibleConfig, "es"));
+  assert.equal(visibleEs('[data-block="experience"]').text().trim(), "Cuarenta años");
+  assert.equal(visibleEs('[data-block="team"]').text().trim(), "Cifras del equipo");
+  assert.equal(visibleEs(".home__carousel-separator").length, 0);
+  assert.equal(visibleEs("#bottom .home__rec--txt").text().trim(), "Lista de reconocimientos");
+
+  const visibleEn = cheerio.load(renderHome(homeTemplate.replace('lang="es"', 'lang="en"'), [], visibleConfig, "en"));
+  assert.equal(visibleEn('[data-block="experience"]').text().trim(), "Forty years");
+  assert.equal(visibleEn('[data-block="team"]').text().trim(), "Team figures");
+  assert.equal(visibleEn(".home__carousel-separator").length, 0);
+  assert.equal(visibleEn("#bottom .home__rec--txt").text().trim(), "Recognition list");
+
+  const publicCss = readFileSync(
+    new URL("../../frontend-mirror/templates/beez3/css/style.css", import.meta.url),
+    "utf8",
+  );
+  assert.match(
+    publicCss,
+    /\.home__rec--recognitions \.home__rec--ttl[\s\S]*font-family:\s*var\(--font-title\) !important/,
+  );
+  assert.match(
+    publicCss,
+    /\.home__rec--recognitions \.home__rec--top[\s\S]*font-family:\s*var\(--font-body\) !important/,
+  );
+  assert.match(
+    publicCss,
+    /\.home__carousel-separator\s*\{[\s\S]*width:\s*100%[\s\S]*height:\s*clamp\(16px, 1\.5vw, 28px\)[\s\S]*background-color:\s*#fff/,
+  );
+  assert.doesNotMatch(publicCss, /\.home__carousel-section--separated::before/);
+
+  const adminSource = readFileSync(
+    new URL("../../client/src/pages/admin/AdminSiteConfig.tsx", import.meta.url),
+    "utf8",
+  );
+  for (const key of [
+    "home_experience_visible",
+    "home_team_stats_visible",
+    "home_recognitions_body_visible",
+  ]) {
+    assert.match(
+      adminSource,
+      new RegExp(`key:\\s*"${key}"[^}]*control:\\s*"switch"[^}]*defaultValue:\\s*false`),
+    );
+  }
 });
 
 test("el registro de accesos resuelve identidad sin exponer hashes como correo", () => {
