@@ -27,6 +27,7 @@ type Field = {
   multiline?: boolean;
   rows?: number;
   control?: "switch" | "number";
+  defaultValue?: boolean;
   min?: number;
   max?: number;
   pattern?: RegExp;
@@ -51,11 +52,13 @@ const PAGES: Record<string, SiteConfigPage> = {
       {
         title: "Portada (home)",
         fields: [
-          { key: "hero_video", label: "Video maestro del hero", media: "video", help: "Admite MP4 (H.264 recomendado), WebM, OGV o MOV de hasta 200 MB, en 720p, 1080p o 4K. La carga fragmentada evita el límite del alojamiento. Al guardar, conserva el maestro y publica automáticamente una versión Full HD de alta calidad para escritorio, otra ligera para móvil y el póster." },
-          { key: "hero_video_mobile", label: "Video optimizado para móvil", media: "video", help: "Se genera automáticamente. También puedes sustituirlo manualmente." },
+          { key: "hero_video", label: "Video maestro del hero", media: "video", help: "Sube MP4, WebM, OGV o MOV de hasta 200 MB, o pega un enlace de YouTube/Vimeo. Los archivos locales generan automáticamente versiones optimizadas para escritorio y móvil, además del póster; los enlaces externos usan el reproductor seguro del proveedor." },
+          { key: "hero_video_mobile", label: "Video optimizado para móvil", media: "video", help: "Se genera automáticamente desde un archivo maestro local. También puedes sustituirlo por otro archivo o por un enlace de YouTube/Vimeo." },
           { key: "hero_video_poster", label: "Póster del video", media: "image", help: "Debe coincidir con el primer fotograma visible para evitar parpadeos durante la carga." },
           { key: "hero_practice_link", label: "Destino del video del hero", bilingual: true, help: "Inglés: /about. Español: /acerca-de." },
+          { key: "home_experience_visible", label: "Mostrar frase de experiencia", control: "switch", defaultValue: false, help: "Permite ocultar el bloque sin borrar su texto en español ni en inglés." },
           { key: "home_experience", label: "Frase — años de experiencia", bilingual: true },
+          { key: "home_team_stats_visible", label: "Mostrar cifras del equipo", control: "switch", defaultValue: false, help: "Permite ocultar el bloque sin borrar sus cifras ni traducciones." },
           { key: "home_team_stats", label: "Frase — cifras del equipo", bilingual: true, multiline: true },
           { key: "banner_title", label: "Banner — título", help: "Texto grande del banner rojo.", bilingual: true },
           { key: "banner_subtitle", label: "Banner — subtítulo", bilingual: true },
@@ -73,6 +76,7 @@ const PAGES: Record<string, SiteConfigPage> = {
         fields: [
           { key: "home_recognitions_title", label: "Reconocimientos — título", bilingual: true },
           { key: "home_recognitions_intro", label: "Reconocimientos — introducción", bilingual: true, multiline: true },
+          { key: "home_recognitions_body_visible", label: "Mostrar listado detallado de reconocimientos", control: "switch", defaultValue: false, help: "Oculta solamente el párrafo largo; el título, la introducción y el carrusel de logotipos permanecen visibles." },
           { key: "home_recognitions_body", label: "Reconocimientos — texto", bilingual: true, multiline: true },
           { key: "home_diversity_title", label: "Diversidad — título", bilingual: true },
           { key: "home_diversity_body", label: "Diversidad — texto", bilingual: true, multiline: true },
@@ -212,7 +216,7 @@ const PAGES: Record<string, SiteConfigPage> = {
           { key: "firm_landing_title", label: "Título principal", bilingual: true },
           { key: "firm_landing_subtitle", label: "Subtítulo", bilingual: true, multiline: true },
           { key: "firm_landing_hero_image", label: "Imagen principal / póster", media: "image", bilingual: true, help: "Utiliza por defecto una fotografía panorámica de Nuevas Oficinas. También se usa como póster cuando hay un video." },
-          { key: "firm_landing_hero_video", label: "Video principal (opcional)", media: "video", bilingual: true, help: "Si lo dejas vacío, se muestra la imagen principal." },
+          { key: "firm_landing_hero_video", label: "Video principal (opcional)", media: "video", bilingual: true, help: "Puedes subir un archivo o pegar un enlace de YouTube/Vimeo. Si lo dejas vacío, se muestra la imagen principal." },
           { key: "firm_landing_hero_alt", label: "Descripción accesible del medio", bilingual: true },
           { key: "firm_landing_scroll_label", label: "Indicador para seguir leyendo", bilingual: true },
         ],
@@ -369,7 +373,7 @@ const PAGES: Record<string, SiteConfigPage> = {
       {
         title: "Galería de video",
         fields: [
-          { key: "page_diversity_video_main", label: "Video principal", media: "video", help: "El video que se reproduce por defecto al entrar a la página." },
+          { key: "page_diversity_video_main", label: "Video principal", media: "video", help: "El video que se reproduce por defecto al entrar a la página. Puedes subir un archivo o pegar un enlace de YouTube/Vimeo." },
           { key: "page_diversity_video_1", label: "Video — miniatura 1", media: "video" },
           { key: "page_diversity_video_2", label: "Video — miniatura 2", media: "video" },
           { key: "page_diversity_video_3", label: "Video — miniatura 3", media: "video" },
@@ -651,6 +655,7 @@ export default function AdminSiteConfig() {
       <CardContent className="space-y-6">
         {group.fields.map((f) => {
           const currentValue = draft[f.key]?.value ?? "";
+          const switchFallback = f.defaultValue === false ? "false" : "true";
           const invalid = !!f.pattern && !!currentValue && !f.pattern.test(currentValue);
           return (
           <div key={f.key} className="space-y-2">
@@ -660,7 +665,7 @@ export default function AdminSiteConfig() {
             {f.control === "switch" ? (
               <div className="flex items-center gap-3 rounded-lg border bg-muted/20 px-3 py-3">
                 <Switch
-                  checked={(draft[f.key]?.value || "true").toLowerCase() !== "false"}
+                  checked={(draft[f.key]?.value || switchFallback).toLowerCase() !== "false"}
                   onCheckedChange={(checked) => {
                     const next = checked ? "true" : "false";
                     set(f.key, "value", next);
@@ -669,7 +674,7 @@ export default function AdminSiteConfig() {
                   data-testid={`input-${f.key}`}
                 />
                 <span className="text-sm text-muted-foreground">
-                  {(draft[f.key]?.value || "true").toLowerCase() !== "false" ? "Visible en la página" : "Oculta, pero conserva su contenido"}
+                  {(draft[f.key]?.value || switchFallback).toLowerCase() !== "false" ? "Visible en la página" : "Oculta, pero conserva su contenido"}
                 </span>
               </div>
             ) : f.control === "number" ? (

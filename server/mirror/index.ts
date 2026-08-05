@@ -27,6 +27,7 @@ import {
 } from "./seo";
 import { renderRichText, sanitizeCms } from "./sanitize";
 import { renderOfficeShowcase } from "./renderOfficeShowcase";
+import { applyDiversityVideoGallery } from "./diversityVideoGallery";
 import { getCachedPublicPage } from "./pageCache";
 import {
   isPublicPracticeSlug,
@@ -57,8 +58,18 @@ import {
 } from "@shared/schema";
 import { z } from "zod";
 import { isMigrationReadOnlyEnabled } from "../database/maintenance";
+import { normalizeVideoSource } from "@shared/videoSource";
 
 type Lang = "en" | "es";
+
+const MANAGED_VIDEO_CONFIG_KEY = /^(?:hero_video(?:_mobile)?|firm_landing_hero_video|page_diversity_video_(?:main|[1-7])|office_video_[1-6])$/;
+const VIDEO_SOURCE_ERROR = "Usa un archivo MP4, WebM, OGV o MOV, o una liga válida de YouTube o Vimeo.";
+
+function normalizedManagedVideoValue(key: string, value: unknown): string | null {
+  const raw = String(value ?? "").trim();
+  if (!MANAGED_VIDEO_CONFIG_KEY.test(key) || !raw) return raw;
+  return normalizeVideoSource(raw);
+}
 
 /** Attorneys belonging to a practice group (reverse of the seeded relation). */
 async function getAttorneysByPractice(practiceGroupId: string) {
@@ -382,7 +393,7 @@ export const SEARCH_FORMS_SCRIPT = `<script>(function(){try{
 // `von.css` y `functions.min.js` son el cromo compartido de todo el espejo.
 // Se versionan desde el render para que los cambios de navegación no queden
 // ocultos detrás de los 30 días de caché de los assets estáticos.
-const NAV_ASSET_VERSION = "20260731-testimonial-height1";
+const NAV_ASSET_VERSION = "20260805-home-carousel-separator4";
 function refreshNavigationAssets(html: string): string {
   return html
     .replace(/(href=["']\/templates\/beez3\/css\/style\.css)(?:\?[^"']*)?(["'])/gi, `$1?v=${NAV_ASSET_VERSION}$2`)
@@ -422,8 +433,8 @@ export function optimizeLegacyAssets(html: string): string {
 function injectPerformanceHints(html: string): string {
   if (!html.includes("</head>")) return html;
   const hints = [
-    '<link rel="stylesheet" href="/templates/beez3/css/typography.css?v=20260731-gelasio-atkinson4">',
-    '<link rel="preload" href="/templates/beez3/webfont/AtkinsonHyperlegible-Regular.woff2" as="font" type="font/woff2" crossorigin>',
+    '<link rel="stylesheet" href="/templates/beez3/css/typography.css?v=20260804-gelasio-inter1">',
+    '<link rel="preload" href="/templates/beez3/webfont/Inter-Variable.woff2" as="font" type="font/woff2" crossorigin>',
     '<link rel="preload" href="/templates/beez3/webfont/Gelasio-Variable.woff2" as="font" type="font/woff2" crossorigin>',
   ].filter((hint) => !html.includes(hint.match(/href="([^"]+)"/)?.[1] || ""));
   return hints.length ? html.replace("</head>", `${hints.join("")}</head>`) : html;
@@ -536,7 +547,7 @@ export function hardenLegacyClientScripts(html: string): string {
 const DOC_ACTIONS_SCRIPT = `<style id="vw-doc-actions">
 .single__meta--btns{display:flex;flex-wrap:wrap;gap:10px;margin-top:16px;align-items:center}
 .single__meta--btns br{display:none}
-.vw-doc-btn{display:inline-flex;align-items:center;gap:9px;cursor:pointer;border:1.5px solid #8a1622;background:transparent;color:#8a1622;font-family:"Atkinson Hyperlegible",sans-serif;font-size:12px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;line-height:1;padding:11px 20px;border-radius:999px;transition:background-color .25s ease,color .25s ease,border-color .25s ease}
+.vw-doc-btn{display:inline-flex;align-items:center;gap:9px;cursor:pointer;border:1.5px solid #8a1622;background:transparent;color:#8a1622;font-family:"Inter",sans-serif;font-size:12px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;line-height:1;padding:11px 20px;border-radius:999px;transition:background-color .25s ease,color .25s ease,border-color .25s ease}
 .vw-doc-btn svg{width:16px;height:16px;flex:0 0 auto;display:block}
 .vw-doc-btn:hover,.vw-doc-btn:focus-visible{background:#8a1622;color:#fff;border-color:#8a1622}
 .vw-doc-btn:focus-visible{outline:2px solid #8a1622;outline-offset:3px}
@@ -724,65 +735,6 @@ export function navigationLabelsScript(
       }
     }
   })(${payload});</script>`;
-}
-
-// Sustituye el texto de la línea que arma la URL del video en el swap de miniaturas
-// ('/images/' + cual + '.mp4') por una que primero busca la URL editable en data-video,
-// y solo cae a la ruta original si no hay ninguna configurada.
-const DIVERSITY_SWAP_ORIGINAL = "salsa.setAttribute('src', '/images/' + cual + '.mp4');";
-const DIVERSITY_SWAP_EDITABLE =
-  "salsa.setAttribute('src', $(this).attr('data-video') || ('/images/' + cual + '.mp4'));";
-
-// Video principal + 7 miniaturas de la galería "Diversidad e Inclusión" son archivos fijos
-// en la plantilla capturada. Esto los hace editables desde el panel: reescribe el <source>
-// inicial, agrega data-video a cada miniatura, y ajusta el único punto del script inline
-// que decide qué video cargar al hacer clic (ver DIVERSITY_SWAP_ORIGINAL arriba).
-// Del espejo capturado solo existe vw_vid_02.mp4 en disco; vid_01..vid_07 nunca se capturaron
-// (huecos de la captura original, no de este código). Si un slot sigue apuntando a un archivo
-// LOCAL que no existe, se cae al video principal en vez de "reproducir" el HTML de error de
-// Vite (200 con content-type text/html) como si fuera un video roto. Un video ya subido desde
-// el panel (URL /uploads/...) siempre es real, así que ese chequeo no le aplica.
-const diversityLocalFileExists = (relUrl: string): boolean => {
-  if (!relUrl.startsWith("/images/")) return true;
-  try {
-    return fs.existsSync(mirrorPath(relUrl.slice(1)));
-  } catch {
-    return false;
-  }
-};
-
-function applyDiversityVideoGallery($: cheerio.CheerioAPI, config: ConfigMap): void {
-  const v = (key: string, fallback: string) => (config[key]?.value || "").trim() || fallback;
-  const mainUrl = v("page_diversity_video_main", "/images/vw_vid_02.mp4");
-  const resolve = (url: string) => (diversityLocalFileExists(url) ? url : mainUrl);
-  const slots: Record<string, string> = {
-    vw_vid_02: mainUrl, // la miniatura "vw_vid_02" vuelve a mostrar el video principal
-    vid_01: resolve(v("page_diversity_video_1", "/images/vid_01.mp4")),
-    vid_02: resolve(v("page_diversity_video_2", "/images/vid_02.mp4")),
-    vid_03: resolve(v("page_diversity_video_3", "/images/vid_03.mp4")),
-    vid_04: resolve(v("page_diversity_video_4", "/images/vid_04.mp4")),
-    vid_05: resolve(v("page_diversity_video_5", "/images/vid_05.mp4")),
-    vid_06: resolve(v("page_diversity_video_6", "/images/vid_06.mp4")),
-    vid_07: resolve(v("page_diversity_video_7", "/images/vid_07.mp4")),
-  };
-  $("#videoSource").attr("src", mainUrl);
-  $(".thumb[name]").each((index, el) => {
-    const name = $(el).attr("name") || "";
-    if (slots[name]) $(el).attr("data-video", slots[name]);
-    const thumbKey = index === 0 ? "page_diversity_thumb_main" : `page_diversity_thumb_${index}`;
-    const thumb = v(thumbKey, "/images/thumb_main_vid.png");
-    $(el).find("img").first().attr({ src: thumb, alt: `Video ${index + 1}` });
-  });
-  const partnerLogos = ["page_diversity_logo_1", "page_diversity_logo_2", "page_diversity_logo_3"];
-  $(".page__content--body .pro_img img").each((index, el) => {
-    if (partnerLogos[index]) $(el).attr({ src: v(partnerLogos[index], $(el).attr("src") || ""), alt: `Diversity partner ${index + 1}` });
-  });
-  $("script").each((_, el) => {
-    const js = $(el).html();
-    if (js && js.includes(DIVERSITY_SWAP_ORIGINAL)) {
-      $(el).text(js.replace(DIVERSITY_SWAP_ORIGINAL, DIVERSITY_SWAP_EDITABLE));
-    }
-  });
 }
 
 function applyProBonoMedia($: cheerio.CheerioAPI, config: ConfigMap): void {
@@ -1397,7 +1349,7 @@ export async function setupMirror(app: Express) {
             : which === "publications"
               ? ($: cheerio.CheerioAPI) => applyPublicationsSearch($, lang)
             : which === "diversity"
-              ? ($: cheerio.CheerioAPI) => applyDiversityVideoGallery($, config)
+              ? ($: cheerio.CheerioAPI) => applyDiversityVideoGallery($, config, lang)
               : which === "proBono"
                 ? ($: cheerio.CheerioAPI) => applyProBonoMedia($, config)
               : undefined,
@@ -1866,10 +1818,20 @@ export async function setupMirror(app: Express) {
     const payload = officeShowcaseUpdateSchema.parse(req.body || {});
     const currentConfig = await getConfigMap();
     const configEntries = Object.entries(payload.config || {});
-    for (const [key] of configEntries) {
+    for (const [key, entry] of configEntries) {
       if (!isOfficeConfigKey(key)) {
         res.status(400).json({ error: `Invalid office config key: ${key}` });
         return;
+      }
+      if (MANAGED_VIDEO_CONFIG_KEY.test(key)) {
+        const normalized = normalizedManagedVideoValue(key, entry.value);
+        const normalizedEs = normalizedManagedVideoValue(key, entry.valueEs ?? entry.value);
+        if (normalized == null || normalizedEs == null) {
+          res.status(400).json({ error: VIDEO_SOURCE_ERROR });
+          return;
+        }
+        entry.value = normalized;
+        entry.valueEs = normalizedEs;
       }
     }
 
@@ -2032,6 +1994,16 @@ export async function setupMirror(app: Express) {
     if (isRichTextConfigKey(req.params.key)) {
       value = sanitizeCms(value ?? "");
       if (valueEs != null) valueEs = sanitizeCms(valueEs);
+    }
+    if (MANAGED_VIDEO_CONFIG_KEY.test(req.params.key)) {
+      const normalized = normalizedManagedVideoValue(req.params.key, value);
+      const normalizedEs = valueEs == null ? undefined : normalizedManagedVideoValue(req.params.key, valueEs);
+      if (normalized == null || normalizedEs === null) {
+        res.status(400).json({ error: VIDEO_SOURCE_ERROR });
+        return;
+      }
+      value = normalized;
+      if (normalizedEs !== undefined) valueEs = normalizedEs;
     }
     await upsertConfig(req.params.key, value ?? "", valueEs);
     let favicon: string | undefined;

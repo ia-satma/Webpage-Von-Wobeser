@@ -1,5 +1,6 @@
 import * as cheerio from "cheerio";
 import type { Office, OfficeImage } from "@shared/schema";
+import { buildVideoEmbedUrl, parseVideoSource } from "@shared/videoSource";
 import { cfg, isConfigEnabled, type ConfigMap } from "./siteConfig";
 
 type Lang = "en" | "es";
@@ -108,14 +109,39 @@ export function renderOfficeShowcase(
   setLines(addressLink, officeAddress);
   $("iframe.map-iframe").attr("src", safeUrl(value("office_map_embed"), "https://www.google.com/maps"));
 
+  const mainVideo = $("#videoPrincipal").first();
+  let mainEmbed = $("#videoPrincipalEmbed").first();
+  if (!mainEmbed.length && mainVideo.length) {
+    mainVideo.after('<iframe id="videoPrincipalEmbed" class="office-video-embed" hidden title="" loading="lazy" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" sandbox="allow-scripts allow-same-origin allow-presentation" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>');
+    mainEmbed = $("#videoPrincipalEmbed").first();
+  }
+
   for (let index = 0; index < 6; index += 1) {
-    const videoUrl = safeUrl(value(`office_video_${index + 1}`), `/img/videos/video${index + 1}.mp4`);
+    const fallbackVideo = `/img/videos/video${index + 1}.mp4`;
+    const videoSource = parseVideoSource(value(`office_video_${index + 1}`))
+      || parseVideoSource(fallbackVideo);
     const thumbnailUrl = safeUrl(value(`office_video_thumb_${index + 1}`), `/img/miniaturas/miniatura_${index + 1}.jpg`);
-    const alt = value(`office_video_alt_${index + 1}`);
+    const alt = value(`office_video_alt_${index + 1}`) || (lang === "es" ? `Video de oficinas ${index + 1}` : `Office video ${index + 1}`);
     const thumb = $(".video-thumb").eq(index);
-    thumb.attr("data-video", videoUrl);
+    thumb.removeAttr("data-video data-embed");
+    if (videoSource?.kind === "file") {
+      thumb.attr("data-video", videoSource.url);
+    } else if (videoSource) {
+      const embedUrl = buildVideoEmbedUrl(videoSource, { controls: true, playsInline: true });
+      if (embedUrl) thumb.attr("data-embed", embedUrl);
+    }
+    thumb.attr("data-video-title", alt);
     thumb.find("img").attr({ src: thumbnailUrl, alt });
-    if (index === 0) $("#videoPrincipal source").attr("src", videoUrl);
+    if (index === 0 && videoSource?.kind === "file") {
+      mainVideo.removeAttr("hidden").attr("aria-label", alt);
+      mainVideo.find("source").attr("src", videoSource.url);
+      mainEmbed.attr("hidden", "").removeAttr("src");
+    } else if (index === 0 && videoSource) {
+      const embedUrl = buildVideoEmbedUrl(videoSource, { controls: true, playsInline: true });
+      mainVideo.attr("hidden", "");
+      mainVideo.find("source").removeAttr("src");
+      if (embedUrl) mainEmbed.removeAttr("hidden").attr({ src: embedUrl, title: alt });
+    }
   }
 
   const sortedGallery = [...gallery].sort((a, b) => (a.order ?? 0) - (b.order ?? 0)).slice(0, 9);
@@ -145,7 +171,7 @@ export function renderOfficeShowcase(
   else $("footer .follow-text").remove();
 
   // Versionado explícito: evita conservar una copia incompleta de CSS/JS en caché.
-  $('link[href*="estilos_home.css"]').attr("href", "/css/estilos_home.css?v=20260731-gelasio-atkinson4");
-  $('script[src*="funciones_animaciones"]').attr("src", "/js/office-showcase.js?v=20260721-offices4");
+  $('link[href*="estilos_home.css"]').attr("href", "/css/estilos_home.css?v=20260804-gelasio-inter1");
+  $('script[src*="funciones_animaciones"]').attr("src", "/js/office-showcase.js?v=20260803-video-providers1");
   return $.html();
 }

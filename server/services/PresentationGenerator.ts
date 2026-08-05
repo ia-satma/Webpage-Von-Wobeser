@@ -116,10 +116,10 @@ function svgFontDefs(): string {
   svgFontDefsCache = `<defs><style><![CDATA[
 @font-face{font-family:'Gelasio';src:url(data:font/ttf;base64,${data(TYPOGRAPHY_ASSETS.gelasioRegular)}) format('truetype');font-style:normal;font-weight:400}
 @font-face{font-family:'Gelasio';src:url(data:font/ttf;base64,${data(TYPOGRAPHY_ASSETS.gelasioBold)}) format('truetype');font-style:normal;font-weight:700}
-@font-face{font-family:'Atkinson Hyperlegible';src:url(data:font/ttf;base64,${data(TYPOGRAPHY_ASSETS.atkinsonRegular)}) format('truetype');font-style:normal;font-weight:400}
-@font-face{font-family:'Atkinson Hyperlegible';src:url(data:font/ttf;base64,${data(TYPOGRAPHY_ASSETS.atkinsonBold)}) format('truetype');font-style:normal;font-weight:700}
-@font-face{font-family:'Atkinson Hyperlegible';src:url(data:font/ttf;base64,${data(TYPOGRAPHY_ASSETS.atkinsonItalic)}) format('truetype');font-style:italic;font-weight:400}
-@font-face{font-family:'Atkinson Hyperlegible';src:url(data:font/ttf;base64,${data(TYPOGRAPHY_ASSETS.atkinsonBoldItalic)}) format('truetype');font-style:italic;font-weight:700}
+@font-face{font-family:'Inter';src:url(data:font/ttf;base64,${data(TYPOGRAPHY_ASSETS.interRegular)}) format('truetype');font-style:normal;font-weight:400}
+@font-face{font-family:'Inter';src:url(data:font/ttf;base64,${data(TYPOGRAPHY_ASSETS.interBold)}) format('truetype');font-style:normal;font-weight:700}
+@font-face{font-family:'Inter';src:url(data:font/ttf;base64,${data(TYPOGRAPHY_ASSETS.interItalic)}) format('truetype');font-style:italic;font-weight:400}
+@font-face{font-family:'Inter';src:url(data:font/ttf;base64,${data(TYPOGRAPHY_ASSETS.interBoldItalic)}) format('truetype');font-style:italic;font-weight:700}
 ]]></style></defs>`;
   return svgFontDefsCache;
 }

@@ -162,9 +162,9 @@ import {
   scanFileForMalware,
   securePhysicalFilename,
   validateCvFile,
+  inspectVideoContainer,
   validatePresentationInput,
   validatePublicMediaSignature,
-  validateVideoContainer,
 } from "./security/uploads";
 import { escapeCsvCell } from "./security/csv";
 
@@ -3756,15 +3756,33 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
       }
 
       const isVideoUpload = req.file.mimetype.startsWith("video/");
-      const validatedVideoContainer = isVideoUpload
-        ? await validateVideoContainer(req.file.path)
-        : false;
+      const videoValidation = isVideoUpload
+        ? await inspectVideoContainer(req.file.path, { mimeType: req.file.mimetype })
+        : null;
+      const validatedVideoContainer = videoValidation?.valid === true;
       if (isVideoUpload && !validatedVideoContainer) {
         await removeUploadQuietly(req.file.path);
-        res.status(400).json({
-          error: "El video no contiene una pista reproducible o su contenedor está dañado.",
-          code: "INVALID_VIDEO_CONTAINER",
-        });
+        const validatorUnavailable = videoValidation?.valid === false
+          && videoValidation.reason === "validator_unavailable";
+        const validationTimedOut = videoValidation?.valid === false
+          && videoValidation.reason === "validation_timeout";
+        const chunkedRetry = res.locals.chunkedMediaUpload === true;
+        res.status(validatorUnavailable ? 503 : validationTimedOut ? 422 : 400).json(validatorUnavailable
+          ? {
+              error: chunkedRetry
+                ? "El servidor no pudo iniciar el verificador. Se reintentará sin volver a transferir el video."
+                : "El servidor no pudo iniciar el verificador. La carga cambiará automáticamente al modo fragmentado.",
+              code: "VIDEO_VALIDATOR_UNAVAILABLE",
+            }
+          : validationTimedOut
+            ? {
+                error: "La validación tardó demasiado. Convierte el video a MP4 con H.264 y vuelve a intentarlo.",
+                code: "VIDEO_VALIDATION_TIMEOUT",
+              }
+          : {
+              error: "El archivo no es un video reproducible compatible. Usa MP4/H.264, WebM/VP8-VP9, OGV/Theora o MOV con una pista de video real.",
+              code: "INVALID_VIDEO_CONTAINER",
+            });
         return;
       }
 
@@ -3920,12 +3938,13 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
     async (req: Request, res: Response) => {
       const token = typeof req.headers["x-upload-token"] === "string" ? req.headers["x-upload-token"] : "";
       const indexHeader = typeof req.headers["x-chunk-index"] === "string" ? req.headers["x-chunk-index"] : "";
+      const checksum = typeof req.headers["x-chunk-sha256"] === "string" ? req.headers["x-chunk-sha256"] : "";
       const index = /^\d{1,2}$/.test(indexHeader) ? Number(indexHeader) : -1;
       if (!token || !Buffer.isBuffer(req.body)) {
         return res.status(400).json({ error: "El fragmento no es válido.", code: "INVALID_MEDIA_CHUNK" });
       }
       try {
-        return res.json(await storeChunkedMediaPart(token, req.adminUser!.id, index, req.body));
+        return res.json(await storeChunkedMediaPart(token, req.adminUser!.id, index, req.body, checksum));
       } catch (error) {
         sendChunkedMediaError(res, error);
       }
@@ -3937,8 +3956,14 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
     if (!parsed.success) {
       return res.status(400).json({ error: "La sesión de carga no es válida.", code: "INVALID_CHUNK_SESSION" });
     }
-    await removeChunkedMediaUpload(parsed.data.token, req.adminUser!.id);
-    return res.json({ success: true });
+    const removed = await removeChunkedMediaUpload(parsed.data.token, req.adminUser!.id);
+    return res.status(removed ? 200 : 503).json({
+      success: removed,
+      ...(!removed && {
+        error: "La carga se canceló, pero App Storage no confirmó la limpieza completa.",
+        code: "CHUNK_CLEANUP_INCOMPLETE",
+      }),
+    });
   });
 
   app.post("/api/admin/media/upload/complete", authMiddleware, requirePermission("content"), async (req: Request, res: Response) => {
@@ -3972,12 +3997,18 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
         buffer: Buffer.alloc(0),
       } as Express.Multer.File;
       req.body = { alt: parsed.data.alt, altEs: parsed.data.altEs };
+      res.locals.chunkedMediaUpload = true;
       await completePublicMediaUpload(req, res);
     } catch (error) {
       await removeUploadQuietly(assembledPath);
       sendChunkedMediaError(res, error);
     } finally {
-      await removeChunkedMediaUpload(token, req.adminUser!.id);
+      // Un 503 es recuperable (por ejemplo, ffmpeg iniciando en una instancia
+      // nueva). Conserva los fragmentos para que el cliente reintente solo la
+      // verificación; cualquier respuesta definitiva o /abort sí los elimina.
+      if (res.statusCode !== 503) {
+        await removeChunkedMediaUpload(token, req.adminUser!.id);
+      }
     }
   });
 

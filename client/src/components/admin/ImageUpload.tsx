@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useId, useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,6 +10,7 @@ import {
   MAX_ADMIN_MEDIA_MB,
   uploadAdminMedia,
 } from "@/lib/adminMediaUpload";
+import { buildVideoEmbedUrl, parseVideoSource } from "@shared/videoSource";
 
 const VIDEO_TYPES = new Set(["video/mp4", "video/webm", "video/ogg", "video/quicktime"]);
 const IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/gif", "image/webp"]);
@@ -50,6 +51,7 @@ export function ImageUpload({
   kind?: "image" | "video";
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
+  const videoHelpId = useId();
   const queryClient = useQueryClient();
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState<number | null>(null);
@@ -57,6 +59,11 @@ export function ImageUpload({
   const [libraryOpen, setLibraryOpen] = useState(false);
   const [error, setError] = useState("");
   const isVideo = kind === "video";
+  const videoSource = isVideo && value.trim() ? parseVideoSource(value) : null;
+  const videoEmbedUrl = videoSource && videoSource.kind !== "file"
+    ? buildVideoEmbedUrl(videoSource, { controls: true, privacyEnhanced: true })
+    : null;
+  const invalidVideoSource = isVideo && Boolean(value.trim()) && !videoSource;
 
   const upload = async (file: File) => {
     setError("");
@@ -108,8 +115,23 @@ export function ImageUpload({
       {value ? (
         <div className="space-y-1">
           <div className="relative inline-block">
-            {isVideo ? (
-              <video src={value} className="h-28 w-auto border bg-muted" muted controls />
+            {videoEmbedUrl ? (
+              <iframe
+                src={videoEmbedUrl}
+                title={videoSource?.kind === "youtube" ? "Vista previa de YouTube" : "Vista previa de Vimeo"}
+                className="aspect-video h-40 max-w-full border bg-muted"
+                loading="lazy"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                referrerPolicy="strict-origin-when-cross-origin"
+                sandbox="allow-scripts allow-same-origin allow-presentation"
+                allowFullScreen
+              />
+            ) : isVideo && videoSource?.kind === "file" ? (
+              <video src={videoSource.url} className="h-28 w-auto max-w-full border bg-muted" muted controls />
+            ) : isVideo ? (
+              <div className="flex min-h-28 max-w-md items-center border bg-muted px-4 py-3 text-xs text-muted-foreground">
+                Agrega un archivo de video o un enlace público válido de YouTube o Vimeo para mostrar la vista previa.
+              </div>
             ) : (
               <img src={value} alt="Vista previa" className="h-24 w-auto border object-contain bg-muted" />
             )}
@@ -123,16 +145,18 @@ export function ImageUpload({
               <X className="h-3 w-3" />
             </button>
           </div>
-          {/* Descargar el medio (funciona con imágenes generadas por IA / subidas — mismo origen). */}
-          <a
-            href={downloadHref(value)}
-            download={downloadName(value, isVideo)}
-            rel="noopener noreferrer"
-            className="flex w-fit items-center gap-1 text-xs text-primary hover:underline"
-            data-testid="link-download-media"
-          >
-            <Download className="h-3.5 w-3.5" /> Descargar
-          </a>
+          {/* Los reproductores externos no representan un archivo descargable. */}
+          {(!isVideo || videoSource?.kind === "file") && (
+            <a
+              href={downloadHref(isVideo && videoSource?.kind === "file" ? videoSource.url : value)}
+              download={downloadName(isVideo && videoSource?.kind === "file" ? videoSource.url : value, isVideo)}
+              rel="noopener noreferrer"
+              className="flex w-fit items-center gap-1 text-xs text-primary hover:underline"
+              data-testid="link-download-media"
+            >
+              <Download className="h-3.5 w-3.5" /> Descargar
+            </a>
+          )}
         </div>
       ) : null}
 
@@ -175,7 +199,17 @@ export function ImageUpload({
         </Button>
       </div>
 
-      <Input value={value} onChange={(e) => onChange(e.target.value)} placeholder={placeholder} data-testid="input-media-url" />
+      <Input
+        value={value}
+        onChange={(e) => {
+          setError("");
+          onChange(e.target.value);
+        }}
+        placeholder={isVideo ? "…o pega un enlace de YouTube, Vimeo o una URL de video" : placeholder}
+        aria-invalid={invalidVideoSource || undefined}
+        aria-describedby={isVideo ? videoHelpId : undefined}
+        data-testid="input-media-url"
+      />
       {uploading && uploadProgress !== null && (
         <div className="space-y-1" aria-live="polite">
           <div className="h-1.5 overflow-hidden rounded-full bg-muted" aria-hidden="true">
@@ -187,11 +221,16 @@ export function ImageUpload({
           </p>
         </div>
       )}
-      <p className="text-xs leading-relaxed text-muted-foreground">
+      <p id={isVideo ? videoHelpId : undefined} className="text-xs leading-relaxed text-muted-foreground">
         {isVideo
-          ? "MP4 (H.264 recomendado), WebM, OGV o MOV; hasta 200 MB. Se aceptan 720p, 1080p y 4K. La carga es fragmentada: el maestro se conserva y el sistema genera automáticamente una versión Full HD de alta calidad para escritorio, otra ligera para móvil y el póster."
+          ? "Sube MP4 (H.264 recomendado), WebM, OGV o MOV de hasta 200 MB en 720p, 1080p y 4K, o pega un enlace público de YouTube o Vimeo. Los archivos locales se validan y optimizan; los enlaces externos se muestran en un reproductor seguro del proveedor."
           : "JPG, PNG, GIF o WebP; hasta 200 MB. La carga es fragmentada cuando se necesita y el sistema valida y optimiza la imagen automáticamente."}
       </p>
+      {invalidVideoSource && (
+        <p className="text-xs text-destructive" role="alert">
+          Enlace de video no compatible. Usa un archivo MP4, WebM, OGV o MOV, o una URL pública válida de YouTube o Vimeo.
+        </p>
+      )}
       {error && <p className="text-xs text-destructive">{error}</p>}
 
       <MediaLibraryPicker

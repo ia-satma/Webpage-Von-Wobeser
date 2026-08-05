@@ -2,9 +2,9 @@ import path from "node:path";
 
 export const TYPOGRAPHY = Object.freeze({
   title: "Gelasio",
-  body: "Atkinson Hyperlegible",
+  body: "Inter",
   cssTitle: '"Gelasio", serif',
-  cssBody: '"Atkinson Hyperlegible", sans-serif',
+  cssBody: '"Inter", sans-serif',
 });
 
 export const TYPOGRAPHY_ASSETS = Object.freeze({
@@ -19,32 +19,32 @@ export const TYPOGRAPHY_ASSETS = Object.freeze({
   gelasioBold: path.join(process.cwd(), "assets", "fonts", "Gelasio", "Gelasio-Bold.ttf"),
   gelasioItalic: path.join(process.cwd(), "assets", "fonts", "Gelasio", "Gelasio-Italic.ttf"),
   gelasioBoldItalic: path.join(process.cwd(), "assets", "fonts", "Gelasio", "Gelasio-BoldItalic.ttf"),
-  atkinsonRegular: path.join(
+  interRegular: path.join(
     process.cwd(),
     "assets",
     "fonts",
-    "Atkinson-Hyperlegible",
-    "AtkinsonHyperlegible-Regular.ttf",
+    "Inter",
+    "Inter-Regular.ttf",
   ),
-  atkinsonBold: path.join(
+  interBold: path.join(
     process.cwd(),
     "assets",
     "fonts",
-    "Atkinson-Hyperlegible",
-    "AtkinsonHyperlegible-Bold.ttf",
+    "Inter",
+    "Inter-Bold.ttf",
   ),
-  atkinsonItalic: path.join(
+  interItalic: path.join(
     process.cwd(),
     "assets",
     "fonts",
-    "Atkinson-Hyperlegible",
-    "AtkinsonHyperlegible-Italic.ttf",
+    "Inter",
+    "Inter-Italic.ttf",
   ),
-  atkinsonBoldItalic: path.join(
+  interBoldItalic: path.join(
     process.cwd(),
     "assets",
     "fonts",
-    "Atkinson-Hyperlegible",
-    "AtkinsonHyperlegible-BoldItalic.ttf",
+    "Inter",
+    "Inter-BoldItalic.ttf",
   ),
 });

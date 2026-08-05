@@ -33,30 +33,31 @@ Este documento sigue las especificaciones oficiales del Manual de Identidad Corp
 
 ## 2. Tipografías
 
-### Tipografías Corporativas (Diseño profesional)
+### Sistema tipográfico único vigente
 | Fuente | Uso |
 |--------|-----|
-| **Publico** | Títulos, subtítulos, citas de desempeño |
-| **Optima** | Texto corrido en documentos, dirección de la firma |
-| **Geomanist** | Textos de apoyo, nombres de secciones, firmas |
+| **Gelasio** | Títulos, encabezados, cifras editoriales y citas destacadas |
+| **Inter** | Cuerpo, navegación, botones, formularios, tablas, etiquetas y contenido general |
 
-### Tipografías Web (Alternativas disponibles)
-| Alternativa | Reemplaza a | Uso |
-|-------------|-------------|-----|
-| **Georgia** | Publico | Títulos, subtítulos, introducciones |
-| **Calibri** | Optima | Texto corrido |
-| **Century Gothic** | Geomanist | Textos de apoyo, labels |
+Estas dos familias son las únicas tipografías textuales permitidas en el sitio público, el
+panel administrativo y los archivos nuevos generados por los agentes. Se sirven localmente;
+no se cargan fuentes desde Google Fonts ni desde otros proveedores externos.
 
-### Variables CSS Implementadas
+### Variables CSS implementadas
 ```css
---font-heading: 'Georgia', 'Publico', 'Times New Roman', serif;
---font-sans: 'Calibri', 'Optima', 'Segoe UI', sans-serif;
---font-support: 'Century Gothic', 'Geomanist', 'Segoe UI', sans-serif;
+--font-title: "Gelasio", serif;
+--font-body: "Inter", sans-serif;
 ```
 
-### Reglas de Uso
-- **NO usar versión itálica** excepto para: palabras en otro idioma, citas textuales, o mensajes cortos a destacar
-- La fuente del logotipo NO se usa en comunicados
+Los aliases heredados del espejo deben resolver internamente a uno de esos dos tokens. No se
+deben declarar pilas tipográficas alternativas en componentes, contenido del CMS, prompts o
+plantillas de agentes.
+
+### Reglas de uso
+- Todo contenido nuevo hereda la fuente por su función; el editor no ofrece un selector de fuente.
+- Los estilos tipográficos pegados desde Word, correo o páginas externas se eliminan al guardar y renderizar.
+- **No usar versión itálica** excepto para palabras en otro idioma, citas textuales o mensajes breves a destacar.
+- La fuente del logotipo no se usa como tipografía de contenido.
 
 ---
 

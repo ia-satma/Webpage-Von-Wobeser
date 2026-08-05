@@ -16,6 +16,7 @@
     "pretest:security": "node scripts/clean-appledouble.mjs",
     "test:security": "node --import tsx --test server/security/*.test.ts",
     "test:performance": "node scripts/check-performance-budgets.mjs",
+    "audit:typography-content": "node scripts/audit-content-typography.mjs",
     "media:optimize": "node scripts/generate-performance-assets.mjs",
     "media:migrate-storage": "node --import tsx scripts/migrate-media-to-app-storage.ts",
     "media:migrate-private": "node --import tsx scripts/migrate-private-cvs-to-app-storage.ts",

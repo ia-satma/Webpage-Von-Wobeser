@@ -25,7 +25,7 @@ const initialMobileAssets = [
   "images/hero-092c5875ed80af62-poster.webp",
   "images/optimized/images/banners/7-a-640.webp",
   "images/optimized/images/banners/1_ind-640.webp",
-  "templates/beez3/webfont/AtkinsonHyperlegible-Regular.woff2",
+  "templates/beez3/webfont/Inter-Variable.woff2",
   "templates/beez3/webfont/Gelasio-Variable.woff2",
   "templates/beez3/css/von.css",
   "templates/beez3/css/typography.css",

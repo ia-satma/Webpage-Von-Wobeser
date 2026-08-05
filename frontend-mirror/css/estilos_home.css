@@ -31,7 +31,7 @@ body {
 
 .texto,
 .texto_banner {
-  font-family: "Atkinson Hyperlegible" !important;
+  font-family: "Inter" !important;
 }
 
 .contenedor_header {
@@ -73,7 +73,7 @@ body {
 .office-home-link {
   position: relative;
   color: #666;
-  font: 500 .78rem/1 "Atkinson Hyperlegible";
+  font: 500 .78rem/1 "Inter";
   letter-spacing: .13em;
   text-decoration: none;
   transition: color .2s ease;
@@ -114,7 +114,7 @@ body {
   border-radius: 4px;
   color: #fff;
   background: #777;
-  font: 700 .875rem/1 "Atkinson Hyperlegible";
+  font: 700 .875rem/1 "Inter";
   cursor: pointer;
   transition: background-color .2s ease, transform .2s ease;
 }
@@ -191,7 +191,7 @@ footer a:focus-visible,
   z-index: 2;
   transform: translateX(-50%);
   color: #fff;
-  font: 300 .9rem/1.2 "Atkinson Hyperlegible";
+  font: 300 .9rem/1.2 "Inter";
   text-align: center;
 }
 
@@ -205,12 +205,22 @@ footer a:focus-visible,
   border-bottom: 2px solid #fff;
 }
 
-.video-main video {
+.video-main video,
+.video-main .office-video-embed {
   display: block;
   width: 100%;
+  aspect-ratio: 16 / 9;
   max-height: 70vh;
   background: #111;
   object-fit: contain;
+}
+
+.video-main .office-video-embed {
+  border: 0;
+}
+
+.video-main [hidden] {
+  display: none !important;
 }
 
 .video-thumb {
@@ -263,7 +273,7 @@ footer a:focus-visible,
   max-width: 68rem;
   margin-inline: auto;
   color: #444;
-  font: 400 1.1rem/1.55 "Atkinson Hyperlegible";
+  font: 400 1.1rem/1.55 "Inter";
 }
 
 .bg-custom-red {
@@ -277,7 +287,7 @@ footer a:focus-visible,
 .parrafo-map {
   max-width: 62ch;
   color: rgba(255, 255, 255, .78);
-  font: 300 1rem/1.55 "Atkinson Hyperlegible";
+  font: 300 1rem/1.55 "Inter";
   text-align: justify;
 }
 
@@ -379,12 +389,12 @@ footer a:focus-visible,
 }
 
 .quote-text {
-  font: 400 clamp(1.3rem, 2.2vw, 2rem)/1.4 "Atkinson Hyperlegible";
+  font: 400 clamp(1.3rem, 2.2vw, 2rem)/1.4 "Inter";
   text-wrap: pretty;
 }
 
 .contenedor_comillas .p {
-  font: italic 1.1rem/1.5 "Atkinson Hyperlegible";
+  font: italic 1.1rem/1.5 "Inter";
 }
 
 .bg-custom-gray {
@@ -407,7 +417,7 @@ footer a:focus-visible,
 .footer-socials .follow-text {
   margin-left: 8px;
   color: #f8f9fa;
-  font: 600 .8rem/1 "Atkinson Hyperlegible";
+  font: 600 .8rem/1 "Inter";
 }
 
 #imageModal .modal-dialog { max-width: 90vw; }

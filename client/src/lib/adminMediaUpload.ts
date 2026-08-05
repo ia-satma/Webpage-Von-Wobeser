@@ -95,6 +95,13 @@ async function uploadChunk(
   headers: Record<string, string>,
   onChunkProgress: (loaded: number) => void,
 ): Promise<void> {
+  // Cada fragmento viaja con su huella. El servidor vuelve a calcularla antes
+  // de almacenarlo y otra vez al reconstruir el archivo desde App Storage.
+  const digest = await crypto.subtle.digest("SHA-256", await contents.arrayBuffer());
+  const checksum = Array.from(
+    new Uint8Array(digest),
+    (byte) => byte.toString(16).padStart(2, "0"),
+  ).join("");
   let lastError: unknown;
   for (let attempt = 0; attempt < 3; attempt += 1) {
     try {
@@ -106,6 +113,7 @@ async function uploadChunk(
         xhr.setRequestHeader("Content-Type", "application/octet-stream");
         xhr.setRequestHeader("X-Upload-Token", token);
         xhr.setRequestHeader("X-Chunk-Index", String(index));
+        xhr.setRequestHeader("X-Chunk-SHA256", checksum);
         for (const [name, value] of Object.entries(headers)) xhr.setRequestHeader(name, value);
         xhr.upload.onprogress = (event) => {
           if (event.lengthComputable) onChunkProgress(event.loaded);
@@ -178,21 +186,29 @@ async function chunkedUpload(
     }
 
     onProgress(96, file.type.startsWith("video/") ? "Verificando el video…" : "Procesando el archivo…");
-    const complete = await fetch("/api/admin/media/upload/complete", {
-      method: "POST",
-      credentials: "include",
-      headers: { Accept: "application/json", "Content-Type": "application/json", ...headers },
-      body: JSON.stringify({ token, alt: alt || "", altEs: altEs || "" }),
-    });
-    const completed = await responseBody(complete);
-    if (!complete.ok) {
+    for (let attempt = 0; attempt < 3; attempt += 1) {
+      const complete = await fetch("/api/admin/media/upload/complete", {
+        method: "POST",
+        credentials: "include",
+        headers: { Accept: "application/json", "Content-Type": "application/json", ...headers },
+        body: JSON.stringify({ token, alt: alt || "", altEs: altEs || "" }),
+      });
+      const completed = await responseBody(complete);
+      if (complete.ok) {
+        onProgress(100, "Guardado en App Storage");
+        return completed;
+      }
+      if (complete.status === 503 && attempt < 2) {
+        onProgress(97 + attempt, "El servidor está iniciando el verificador; reintentando…");
+        await new Promise((resolve) => window.setTimeout(resolve, 1_000 * (attempt + 1)));
+        continue;
+      }
       throw new AdminMediaUploadError(
         typeof completed.error === "string" ? completed.error : "No se pudo reconstruir el archivo.",
         typeof completed.code === "string" ? completed.code : `HTTP_${complete.status}`,
       );
     }
-    onProgress(100, "Guardado en App Storage");
-    return completed;
+    throw new AdminMediaUploadError("No se pudo verificar el archivo.", "MEDIA_VERIFICATION_FAILED");
   } catch (error) {
     await fetch("/api/admin/media/upload/abort", {
       method: "POST",
@@ -238,7 +254,8 @@ export async function uploadAdminMedia(
   } catch (error) {
     // Si el proxy aplica un límite menor al esperado, reintenta automáticamente
     // en fragmentos sin pedir al usuario que vuelva a seleccionar el archivo.
-    if (error instanceof AdminMediaUploadError && error.code === "HTTP_413") {
+    if (error instanceof AdminMediaUploadError
+      && ["HTTP_413", "VIDEO_VALIDATOR_UNAVAILABLE"].includes(error.code)) {
       return chunkedUpload(uploadFile, headers, progress, options.alt, options.altEs);
     }
     throw error;

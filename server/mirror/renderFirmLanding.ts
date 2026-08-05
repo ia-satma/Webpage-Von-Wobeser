@@ -1,4 +1,5 @@
 import * as cheerio from "cheerio";
+import { buildVideoEmbedUrl, parseVideoSource } from "@shared/videoSource";
 import { cfg, type ConfigMap } from "./siteConfig";
 import { applySeo, breadcrumbNode } from "./seo";
 import { renderRichText } from "./sanitize";
@@ -465,7 +466,7 @@ function renderFinalCta(config: ConfigMap, lang: Lang): string {
 const STYLE = `<style id="vw-firm-landing-style">
   .vw-firm{--vw-red:#a9192d;--vw-ink:#555;--vw-mid:#6a6a6a;--vw-line:#b9b9b9;--vw-paper:#f3f3f1;background:#fff;color:var(--vw-ink);font-family:var(--vw-font-body);overflow:hidden}
   .vw-firm *{box-sizing:border-box}.vw-firm__container{width:min(100% - 8vw,86rem);margin:0 auto}.vw-firm__section{position:relative;padding:clamp(5.5rem,10vw,10rem) 0}.vw-firm h1,.vw-firm h2,.vw-firm h3{font-family:var(--vw-font-editorial);font-weight:400;text-wrap:balance}.vw-firm h2{font-size:clamp(2.8rem,5.4vw,5.8rem);line-height:.98;letter-spacing:-.025em;margin:0}.vw-firm h3{font-size:clamp(1.6rem,2.3vw,2.45rem);line-height:1.08;margin:0}.vw-firm p{margin:0}.vw-firm__eyebrow{color:var(--vw-red);font-family:var(--vw-font-ui);font-size:.72rem;font-weight:600;letter-spacing:.16em;line-height:1.4;text-transform:uppercase}.vw-firm__lede{font-size:clamp(1.05rem,1.45vw,1.3rem);line-height:1.6;max-width:36rem;text-wrap:pretty}.vw-firm__index{font-family:var(--vw-font-ui);font-size:.7rem;font-variant-numeric:tabular-nums;font-weight:600;letter-spacing:.12em}
-  .vw-firm__hero{display:grid;min-height:clamp(36rem,68dvh,46rem);position:relative;isolation:isolate;align-items:end;background:#696969;color:#fff;padding:clamp(9rem,13vw,11rem) 0 clamp(4rem,6vw,6rem);box-shadow:inset 0 -.55rem 0 var(--vw-red)}.vw-firm__hero-media,.vw-firm__hero-media:after{position:absolute;inset:0}.vw-firm__hero-media{z-index:-2;margin:0}.vw-firm__hero-media img,.vw-firm__hero-media video{width:100%;height:100%;display:block;object-fit:cover}.vw-firm__hero-media:after{content:"";z-index:1;background:linear-gradient(90deg,rgba(29,29,29,.78) 0%,rgba(29,29,29,.38) 58%,rgba(169,25,45,.24) 100%)}.vw-firm__hero-grid{display:grid;grid-template-columns:minmax(0,7fr) minmax(12rem,3fr);gap:8vw;align-items:end}.vw-firm__hero h1{font-size:clamp(4rem,8vw,8.5rem);line-height:.82;letter-spacing:-.045em;margin:.7rem 0 1.6rem;max-width:11ch}.vw-firm__hero-subtitle{font-family:var(--vw-font-editorial);font-size:clamp(1.45rem,2.2vw,2.25rem);line-height:1.2;max-width:24ch;text-wrap:balance}.vw-firm__scroll{display:flex;align-items:center;gap:1rem;align-self:end;color:#fff;font-family:var(--vw-font-ui);font-size:.7rem;letter-spacing:.13em;text-decoration:none;text-transform:uppercase}.vw-firm__scroll:before{content:"";width:3.2rem;height:2px;background:var(--vw-red)}.vw-firm__scroll:after{content:"↓";font-size:1rem}
+  .vw-firm__hero{display:grid;min-height:clamp(36rem,68dvh,46rem);position:relative;isolation:isolate;align-items:end;background:#696969;color:#fff;padding:clamp(9rem,13vw,11rem) 0 clamp(4rem,6vw,6rem);box-shadow:inset 0 -.55rem 0 var(--vw-red)}.vw-firm__hero-media,.vw-firm__hero-media:after{position:absolute;inset:0}.vw-firm__hero-media{z-index:-1;margin:0}.vw-firm__hero-media img,.vw-firm__hero-media video,.vw-firm__hero-media iframe,.vw-firm__video-facade{width:100%;height:100%;display:block;object-fit:cover}.vw-firm__hero-media iframe{border:0}.vw-firm__hero-media:after{content:"";z-index:1;pointer-events:none;background:linear-gradient(90deg,rgba(29,29,29,.78) 0%,rgba(29,29,29,.38) 58%,rgba(169,25,45,.24) 100%)}.vw-firm__video-facade{position:relative;border:0;padding:0;background:#555;cursor:pointer}.vw-firm__video-facade img{position:absolute;inset:0}.vw-firm__video-play{position:absolute;left:50%;top:50%;z-index:2;width:4.5rem;height:4.5rem;border:2px solid #fff;border-radius:50%;display:grid;place-items:center;transform:translate(-50%,-50%);background:rgba(169,25,45,.88);color:#fff;font:1.4rem/1 var(--vw-font-ui);box-shadow:0 .4rem 1.5rem rgba(0,0,0,.28)}.vw-firm__video-facade:focus-visible{outline:3px solid #fff;outline-offset:-6px}.vw-firm__hero-grid{display:grid;grid-template-columns:minmax(0,7fr) minmax(12rem,3fr);gap:8vw;align-items:end}.vw-firm__hero h1{font-size:clamp(4rem,8vw,8.5rem);line-height:.82;letter-spacing:-.045em;margin:.7rem 0 1.6rem;max-width:11ch}.vw-firm__hero-subtitle{font-family:var(--vw-font-editorial);font-size:clamp(1.45rem,2.2vw,2.25rem);line-height:1.2;max-width:24ch;text-wrap:balance}.vw-firm__scroll{display:flex;align-items:center;gap:1rem;align-self:end;color:#fff;font-family:var(--vw-font-ui);font-size:.7rem;letter-spacing:.13em;text-decoration:none;text-transform:uppercase}.vw-firm__scroll:before{content:"";width:3.2rem;height:2px;background:var(--vw-red)}.vw-firm__scroll:after{content:"↓";font-size:1rem}
   .vw-firm__history{background:#fff;padding:clamp(5rem,8vw,7.5rem) 0}.vw-firm__history-grid{display:grid;grid-template-columns:minmax(15rem,3fr) minmax(0,6fr);gap:10vw}.vw-firm__history h2{margin-top:1rem}.vw-firm__history-media{height:clamp(10rem,15vw,14rem);margin:2.8rem 0 0;overflow:hidden;border-top:3px solid var(--vw-red)}.vw-firm__history-media img{display:block;width:100%;height:100%;object-fit:cover;transition:transform .7s cubic-bezier(.16,1,.3,1),filter .4s ease}.vw-firm__history-media:hover img{transform:scale(1.02);filter:saturate(.9)}.vw-firm__history-copy{padding-top:.4rem}.vw-firm__history-intro{font-family:var(--vw-font-editorial);font-size:clamp(1.55rem,2.35vw,2.35rem);line-height:1.32;max-width:30ch}.vw-firm__history-intro p{margin:0}.vw-firm__prose{margin-top:2.5rem;font-size:1rem;line-height:1.75;max-width:42rem}.vw-firm__prose p{margin:0}
   .vw-firm__stats{background:var(--vw-red);color:#fff;padding:clamp(4.5rem,7vw,6.5rem) 0}.vw-firm__stats h2{font-size:clamp(2rem,3vw,3.2rem);padding-bottom:2.2rem;border-bottom:1px solid rgba(255,255,255,.5)}.vw-firm__stats-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));margin:0}.vw-firm__stats-grid>div{padding:2.8rem 2rem 0;border-left:1px solid rgba(255,255,255,.42)}.vw-firm__stats-grid>div:first-child{border-left:0;padding-left:0}.vw-firm__stats-grid dd{font-family:var(--vw-font-editorial);font-size:clamp(3.6rem,6vw,6.5rem);line-height:.85;margin:0;color:#fff;font-variant-numeric:tabular-nums}.vw-firm__stats-grid dt{font-family:var(--vw-font-ui);font-size:.75rem;letter-spacing:.12em;line-height:1.45;margin-top:1.2rem;text-transform:uppercase}
   .vw-firm__values{background:var(--vw-paper);padding:clamp(5rem,8vw,7rem) 0}.vw-firm__values-grid{display:grid;grid-template-columns:1fr;gap:3.5rem}.vw-firm__values-heading{display:grid;grid-template-columns:minmax(15rem,3fr) minmax(0,4fr);gap:10vw;align-items:end}.vw-firm__values-heading h2{margin:1.1rem 0 0}.vw-firm__values-heading .vw-firm__lede{align-self:end}.vw-firm__values-list{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));list-style:none;margin:0;padding:0;border-top:2px solid var(--vw-red)}.vw-firm__values-list li{display:block;min-height:14rem;padding:1.8rem 1.3rem 2rem;border-left:1px solid var(--vw-line);border-bottom:1px solid var(--vw-line)}.vw-firm__values-list li:first-child{border-left:0}.vw-firm__values-list .vw-firm__index{display:block;color:var(--vw-red);margin-bottom:2.2rem}.vw-firm__values-list h3{font-size:clamp(1.3rem,1.7vw,1.8rem);margin-bottom:.8rem}.vw-firm__values-list p{font-size:.9rem;line-height:1.55;max-width:24rem}
@@ -483,6 +484,12 @@ const STYLE = `<style id="vw-firm-landing-style">
 
 const SCRIPT = `<script id="vw-firm-landing-script">(function(){
   var root=document.querySelector('.vw-firm');if(!root)return;
+  var facade=root.querySelector('.vw-firm__video-facade');
+  if(facade){facade.addEventListener('click',function(){
+    var src=facade.getAttribute('data-embed');if(!src)return;
+    var frame=document.createElement('iframe');frame.src=src;frame.title=facade.getAttribute('aria-label')||'Video';frame.allow='autoplay; encrypted-media; picture-in-picture; fullscreen';frame.referrerPolicy='strict-origin-when-cross-origin';frame.setAttribute('sandbox','allow-scripts allow-same-origin allow-presentation');frame.setAttribute('allowfullscreen','');
+    facade.replaceWith(frame);
+  },{once:true});}
   var items=root.querySelectorAll('.vw-firm-reveal');
   if(!('IntersectionObserver' in window)||window.matchMedia('(prefers-reduced-motion: reduce)').matches){
     for(var i=0;i<items.length;i++)items[i].classList.add('is-visible');return;
@@ -515,7 +522,7 @@ export function renderFirmLanding(
   );
   const configuredHeroImage = text(config, "firm_landing_hero_image", lang, "/img/Collage/collage_02.jpg");
   const heroImage = safeMediaUrl(configuredHeroImage === "/images/home-hero.jpg" ? "/img/Collage/collage_02.jpg" : configuredHeroImage);
-  const heroVideo = safeMediaUrl(text(config, "firm_landing_hero_video", lang));
+  const heroVideoSource = parseVideoSource(text(config, "firm_landing_hero_video", lang));
   const configuredHeroAlt = text(config, "firm_landing_hero_alt", lang);
   const heroAlt = !configuredHeroAlt || configuredHeroAlt === "Vista aérea de la Ciudad de México" || configuredHeroAlt === "Aerial view of Mexico City"
     ? (lang === "es"
@@ -529,9 +536,17 @@ export function renderFirmLanding(
       ? "Discover VWyS"
       : configuredScrollLabel;
 
+  const heroVideo = heroVideoSource?.kind === "file" ? heroVideoSource.url : "";
+  const heroEmbed = heroVideoSource && heroVideoSource.kind !== "file"
+    ? buildVideoEmbedUrl(heroVideoSource, { autoplay: true, controls: true, muted: true, playsInline: true })
+    : null;
+  const playLabel = lang === "es" ? "Reproducir video" : "Play video";
+
   const hero = heroVisible ? `<section class="vw-firm__hero" aria-labelledby="vw-firm-title">
     <figure class="vw-firm__hero-media">
-      ${heroVideo
+      ${heroEmbed
+        ? `<button class="vw-firm__video-facade" type="button" data-embed="${escAttr(heroEmbed)}" aria-label="${escAttr(`${playLabel}: ${heroAlt}`)}">${heroImage ? `<img src="${escAttr(heroImage)}" alt="" fetchpriority="high" decoding="async">` : ""}<span class="vw-firm__video-play" aria-hidden="true">▶</span></button>`
+        : heroVideo
         ? `<video autoplay muted loop playsinline preload="metadata"${heroImage ? ` poster="${escAttr(heroImage)}"` : ""} aria-label="${escAttr(heroAlt)}"><source src="${escAttr(heroVideo)}"></video>`
         : heroImage
           ? `<img src="${escAttr(heroImage)}" alt="${escAttr(heroAlt)}" fetchpriority="high" decoding="async">`

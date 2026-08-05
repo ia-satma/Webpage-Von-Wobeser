@@ -1,4 +1,6 @@
 import assert from "node:assert/strict";
+import { execFileSync } from "node:child_process";
+import crypto from "node:crypto";
 import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
@@ -14,7 +16,13 @@ import {
   storeChunkedMediaPart,
 } from "../media/chunkedUpload";
 import { sanitizeRasterImage } from "../media/optimizeImage";
-import { validateCvFile, validatePublicMediaSignature, validateVideoContainer } from "./uploads";
+import {
+  validateCvFile,
+  inspectVideoContainer,
+  validatePublicMediaSignature,
+  validateVideoContainer,
+  videoMetadataAllowed,
+} from "./uploads";
 
 test("presentation uploader supports multiple client files up to 100 MB each", async () => {
   const root = process.cwd();
@@ -49,16 +57,138 @@ test("media validation checks bytes instead of trusting browser MIME", async () 
 test("video upload accepts a playable MP4 container and rejects a forged one", async () => {
   const root = process.cwd();
   const validVideo = path.join(root, "frontend-mirror/images/home-hero-mobile-v2.mp4");
-  assert.equal(await validateVideoContainer(validVideo), true);
+  assert.equal(await validateVideoContainer(validVideo, { mimeType: "video/mp4" }), true);
+  assert.deepEqual(await inspectVideoContainer(validVideo, {
+    ffprobePath: path.join(root, "definitely-missing-ffprobe"),
+    ffmpegPath: "ffmpeg",
+    mimeType: "video/mp4",
+  }), { valid: false, reason: "validator_unavailable" });
+  assert.deepEqual(await inspectVideoContainer(validVideo, {
+    ffprobePath: path.join(root, "definitely-missing-ffprobe"),
+    ffmpegPath: path.join(root, "definitely-missing-ffmpeg"),
+    mimeType: "video/mp4",
+  }), { valid: false, reason: "validator_unavailable" });
 
   const directory = await fs.mkdtemp(path.join(os.tmpdir(), "vwb-video-test-"));
   try {
+    const successfulButSilentFfmpeg = path.join(directory, "silent-ffmpeg");
+    await fs.writeFile(successfulButSilentFfmpeg, "#!/bin/sh\nexit 0\n", { mode: 0o700 });
+    assert.deepEqual(await inspectVideoContainer(validVideo, {
+      ffmpegPath: successfulButSilentFfmpeg,
+      mimeType: "video/mp4",
+    }), { valid: false, reason: "invalid" });
+
+    const validContents = await fs.readFile(validVideo);
+    const truncatedVideo = path.join(directory, "truncated.mp4");
+    await fs.writeFile(truncatedVideo, validContents.subarray(0, Math.floor(validContents.length / 2)));
+    assert.equal(await validatePublicMediaSignature(truncatedVideo, "video/mp4"), true);
+    assert.equal(await validateVideoContainer(truncatedVideo, { mimeType: "video/mp4" }), false);
+
     const forgedVideo = path.join(directory, "forged.mp4");
     await fs.writeFile(forgedVideo, Buffer.from("not a playable video"));
-    assert.equal(await validateVideoContainer(forgedVideo), false);
+    assert.equal(await validateVideoContainer(forgedVideo, { mimeType: "video/mp4" }), false);
+
+    const forgedIsoBmff = path.join(directory, "forged-isobmff.mp4");
+    await fs.writeFile(forgedIsoBmff, Buffer.from([
+      0x00, 0x00, 0x00, 0x18,
+      0x66, 0x74, 0x79, 0x70,
+      0x69, 0x73, 0x6f, 0x6d,
+      0x00, 0x00, 0x02, 0x00,
+      0x69, 0x73, 0x6f, 0x6d,
+      0x6d, 0x70, 0x34, 0x32,
+    ]));
+    assert.equal(await validateVideoContainer(forgedIsoBmff, {
+      ffprobePath: path.join(root, "definitely-missing-ffprobe"),
+      ffmpegPath: "ffmpeg",
+      mimeType: "video/mp4",
+    }), false);
+
+    const box = (type: string, payload: Buffer): Buffer => {
+      const header = Buffer.alloc(8);
+      header.writeUInt32BE(payload.length + 8, 0);
+      header.write(type, 4, 4, "ascii");
+      return Buffer.concat([header, payload]);
+    };
+    const handler = Buffer.alloc(12);
+    handler.write("vide", 8, 4, "ascii");
+    const fakeTrack = box("moov", box("trak", box("mdia", box("hdlr", handler))));
+    const fakeWithVideoHandler = path.join(directory, "handler-without-frames.mp4");
+    await fs.writeFile(fakeWithVideoHandler, Buffer.concat([
+      box("ftyp", Buffer.from([
+        0x69, 0x73, 0x6f, 0x6d,
+        0x00, 0x00, 0x02, 0x00,
+        0x69, 0x73, 0x6f, 0x6d,
+        0x6d, 0x70, 0x34, 0x32,
+      ])),
+      box("mdat", Buffer.from("this is not encoded video", "utf8")),
+      fakeTrack,
+    ]));
+    assert.equal(await validatePublicMediaSignature(fakeWithVideoHandler, "video/mp4"), true);
+    assert.equal(await validateVideoContainer(fakeWithVideoHandler, { mimeType: "video/mp4" }), false);
+    assert.deepEqual(await inspectVideoContainer(fakeWithVideoHandler, {
+      ffprobePath: path.join(root, "definitely-missing-ffprobe"),
+      mimeType: "video/mp4",
+    }), { valid: false, reason: "validator_unavailable" });
   } finally {
     await fs.rm(directory, { recursive: true, force: true });
   }
+});
+
+test("video validation accepts playable low-frame-rate MP4 and WebM files", async () => {
+  const directory = await fs.mkdtemp(path.join(os.tmpdir(), "vwb-low-fps-video-test-"));
+  try {
+    const mp4 = path.join(directory, "low-fps.mp4");
+    const webm = path.join(directory, "low-fps.webm");
+    execFileSync("ffmpeg", [
+      "-v", "error",
+      "-f", "lavfi",
+      "-i", "color=c=black:s=320x180:r=1:d=2",
+      "-c:v", "libx264",
+      "-pix_fmt", "yuv420p",
+      "-movflags", "+faststart",
+      mp4,
+    ]);
+    execFileSync("ffmpeg", [
+      "-v", "error",
+      "-f", "lavfi",
+      "-i", "color=c=black:s=320x180:r=1:d=2",
+      "-c:v", "libvpx-vp9",
+      "-pix_fmt", "yuv420p",
+      webm,
+    ]);
+
+    assert.equal(await validateVideoContainer(mp4, { mimeType: "video/mp4" }), true);
+    assert.equal(await validateVideoContainer(webm, { mimeType: "video/webm" }), true);
+  } finally {
+    await fs.rm(directory, { recursive: true, force: true });
+  }
+});
+
+test("video policy rejects cover art, mismatched containers and resolutions above 4K", () => {
+  const base = {
+    streamIndex: 0,
+    codecName: "h264",
+    width: 1920,
+    height: 1080,
+    duration: 62.5,
+    formatName: "mov,mp4,m4a,3gp,3g2,mj2",
+    attachedPicture: false,
+  };
+  assert.equal(videoMetadataAllowed("video/mp4", base), true);
+  assert.equal(videoMetadataAllowed("video/mp4", { ...base, attachedPicture: true }), false);
+  assert.equal(videoMetadataAllowed("video/webm", { ...base, formatName: "matroska,webm" }), false);
+  assert.equal(videoMetadataAllowed("video/webm", {
+    ...base,
+    codecName: "vp9",
+    formatName: "matroska,webm",
+  }), true);
+  assert.equal(videoMetadataAllowed("video/ogg", {
+    ...base,
+    codecName: "theora",
+    formatName: "ogg",
+  }), true);
+  assert.equal(videoMetadataAllowed("video/mp4", { ...base, width: 7680, height: 4320 }), false);
+  assert.equal(videoMetadataAllowed("video/mp4", { ...base, duration: 0.02 }), false);
 });
 
 test("admin media upload exposes progress and keeps the 200 MB video limit explicit", async () => {
@@ -80,9 +210,13 @@ test("admin media upload exposes progress and keeps the 200 MB video limit expli
   assert.match(clientSource, /\/api\/admin\/media\/upload\/start/);
   assert.match(clientSource, /\/api\/admin\/media\/upload\/chunk/);
   assert.match(clientSource, /\/api\/admin\/media\/upload\/complete/);
+  assert.match(clientSource, /X-Chunk-SHA256/);
+  assert.match(clientSource, /crypto\.subtle\.digest\("SHA-256"/);
   assert.match(fieldSource, /720p, 1080p y 4K/);
   assert.match(routeSource, /MEDIA_FILE_TOO_LARGE/);
-  assert.match(routeSource, /validateVideoContainer/);
+  assert.match(routeSource, /inspectVideoContainer/);
+  assert.match(routeSource, /VIDEO_VALIDATOR_UNAVAILABLE/);
+  assert.match(routeSource, /VIDEO_VALIDATION_TIMEOUT/);
   assert.match(routeSource, /receiveMediaChunk/);
 });
 
@@ -95,6 +229,7 @@ test("chunked admin media upload reconstructs every byte and rejects altered ses
     "REPLIT_APP_STORAGE_BUCKET_ID",
     "VWB_APP_STORAGE_ENABLED",
     "VWB_PERSISTENT_MEDIA_REQUIRED",
+    "VWB_MEDIA_CHUNK_V2",
     "SESSION_SECRET",
   ] as const;
   const previous = Object.fromEntries(environmentKeys.map((key) => [key, process.env[key]]));
@@ -114,14 +249,76 @@ test("chunked admin media upload reconstructs every byte and rejects altered ses
     });
     token = session.token;
     assert.equal(session.totalChunks, 2);
-    await storeChunkedMediaPart(token, "test-admin", 0, contents.subarray(0, MEDIA_CHUNK_BYTES));
-    await storeChunkedMediaPart(token, "test-admin", 1, contents.subarray(MEDIA_CHUNK_BYTES));
+    const sessionPayload = JSON.parse(
+      Buffer.from(session.token.split(".", 1)[0], "base64url").toString("utf8"),
+    ) as { v: number };
+    assert.equal(sessionPayload.v, 1, "v1 remains the rolling-deployment compatible default");
+    const firstChunk = contents.subarray(0, MEDIA_CHUNK_BYTES);
+    const secondChunk = contents.subarray(MEDIA_CHUNK_BYTES);
+    const checksum = (chunk: Buffer) => crypto.createHash("sha256").update(chunk).digest("hex");
+    await storeChunkedMediaPart(token, "test-admin", 0, firstChunk, checksum(firstChunk));
+    // Una pestaña abierta durante el despliegue puede no enviar aún la cabecera.
+    // El servidor calcula la huella y mantiene la integridad de todas formas.
+    await storeChunkedMediaPart(token, "test-admin", 1, secondChunk);
 
     const destination = path.join(directory, "assembled.mp4");
     const result = await assembleChunkedMediaUpload(token, "test-admin", destination);
     assert.deepEqual(await fs.readFile(destination), contents);
     assert.equal(result.mimeType, "video/mp4");
     assert.equal(result.originalName, "master-video.mp4");
+
+    process.env.VWB_MEDIA_CHUNK_V2 = "true";
+    const corruptedSession = createChunkedMediaUpload({
+      userId: "test-admin",
+      originalName: "corrupted.mp4",
+      mimeType: "video/mp4",
+      size: 17,
+    });
+    const v2Payload = JSON.parse(
+      Buffer.from(corruptedSession.token.split(".", 1)[0], "base64url").toString("utf8"),
+    ) as { v: number };
+    assert.equal(v2Payload.v, 2, "v2 can be enabled after every instance is compatible");
+    const corruptedChunk = Buffer.alloc(17, 0x33);
+    await storeChunkedMediaPart(
+      corruptedSession.token,
+      "test-admin",
+      0,
+      corruptedChunk,
+      checksum(corruptedChunk),
+    );
+    const payload = corruptedSession.token.split(".", 1)[0];
+    const sessionId = JSON.parse(Buffer.from(payload, "base64url").toString("utf8")).id as string;
+    const storedPath = path.join(process.cwd(), "private_uploads/media-chunks", sessionId, "000.part");
+    const storedChunk = await fs.readFile(storedPath);
+    storedChunk[storedChunk.length - 1] ^= 0xff;
+    await fs.writeFile(storedPath, storedChunk);
+    await assert.rejects(
+      () => assembleChunkedMediaUpload(
+        corruptedSession.token,
+        "test-admin",
+        path.join(directory, "corrupted.mp4"),
+      ),
+      (error: unknown) => error instanceof ChunkedMediaUploadError && error.code === "CORRUPTED_MEDIA_CHUNK",
+    );
+    await removeChunkedMediaUpload(corruptedSession.token, "test-admin");
+
+    const rejectedSession = createChunkedMediaUpload({
+      userId: "test-admin",
+      originalName: "integrity.mp4",
+      mimeType: "video/mp4",
+      size: 17,
+    });
+    await assert.rejects(
+      () => storeChunkedMediaPart(
+        rejectedSession.token,
+        "test-admin",
+        0,
+        Buffer.alloc(17, 0x5a),
+        "0".repeat(64),
+      ),
+      (error: unknown) => error instanceof ChunkedMediaUploadError && error.code === "CHUNK_CHECKSUM_MISMATCH",
+    );
+    await removeChunkedMediaUpload(rejectedSession.token, "test-admin");
 
     const altered = `${token.slice(0, -1)}${token.endsWith("A") ? "B" : "A"}`;
     assert.throws(

@@ -63,18 +63,36 @@
     }
 
     var mainVideo = document.getElementById("videoPrincipal");
+    var mainEmbed = document.getElementById("videoPrincipalEmbed");
     var thumbnails = Array.prototype.slice.call(document.querySelectorAll(".video-thumb"));
     thumbnails.forEach(function (thumbnail, index) {
       thumbnail.classList.toggle("active", index === 0);
       thumbnail.setAttribute("role", "button");
       thumbnail.setAttribute("tabindex", "0");
       var chooseVideo = function () {
-        if (!mainVideo) return;
+        if (!mainVideo || !mainEmbed) return;
         thumbnails.forEach(function (item) { item.classList.remove("active"); });
         thumbnail.classList.add("active");
         var source = thumbnail.getAttribute("data-video");
+        var embed = thumbnail.getAttribute("data-embed");
+        var title = thumbnail.getAttribute("data-video-title") || "Video";
+        if (embed) {
+          mainVideo.pause();
+          mainVideo.removeAttribute("src");
+          var localSource = mainVideo.querySelector("source");
+          if (localSource) localSource.removeAttribute("src");
+          mainVideo.load();
+          mainVideo.hidden = true;
+          mainEmbed.title = title;
+          mainEmbed.src = embed;
+          mainEmbed.hidden = false;
+          return;
+        }
         if (!source) return;
-        mainVideo.pause();
+        mainEmbed.hidden = true;
+        mainEmbed.removeAttribute("src");
+        mainVideo.hidden = false;
+        mainVideo.setAttribute("aria-label", title);
         mainVideo.src = source;
         mainVideo.load();
         var play = mainVideo.play();
