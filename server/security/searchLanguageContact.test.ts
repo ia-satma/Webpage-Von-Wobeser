@@ -86,6 +86,10 @@ test("buscador global escapa contenido y enlaza todos los tipos publicados", () 
   assert.equal($("#vw-global-query").attr("value"), `<img src=x onerror=alert(1)>`);
   assert.doesNotMatch(html, /<script>Ana/);
   assert.match(html, /&lt;img src=x onerror=alert\(1\)&gt;/);
+  assert.match(html, /clamp\(36px,4vw,56px\)/);
+  assert.match(html, /background:#f1f1ef;border-block:1px solid #c8c8c6/);
+  assert.match(html, /align-items:center;display:inline-flex;justify-content:center/);
+  assert.match(html, /transform:translate\(5px,-1px\)/);
 });
 
 test("Contacto queda debajo del mapa, usa cuadrícula propia y prácticas administradas", () => {

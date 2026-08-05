@@ -68,6 +68,8 @@ test("la lupa abre, enfoca y envía el buscador global bilingüe", () => {
   assert.match(css, /\.header\.vw-header-search-open/);
   assert.match(css, /\.vw-header-search__submit/);
   assert.match(css, /font-family: "Inter", sans-serif !important/);
+  assert.match(css, /#search_q:focus[\s\S]*box-shadow: inset 0 -2px 0 #ac162c[\s\S]*outline: 0/);
+  assert.match(css, /\.vw-header-search__submit::before[\s\S]*transform: translateY\(-1px\)/);
   assert.match(css, /\.header\.header_JS \.search_form_cont[\s\S]*right: 124px !important/);
   assert.match(css, /\.header\.header_JS \.search_form_cont[\s\S]*top: 11px !important[\s\S]*transform: none/);
   assert.match(css, /\.header\.header_JS \.menu_btn_JS[\s\S]*right: 62px !important/);
@@ -302,9 +304,11 @@ test("la portada nombra los cuatro carruseles y aplica contraste AA al módulo d
   assert.match($("#vw-home-performance-js").text(), /data-vw-wheel-bound/);
   assert.match($("#vw-home-performance-js").text(), /slickNext/);
   assert.match($("#vw-home-performance-js").text(), /slickPrev/);
-  assert.match($("#vw-home-performance-js").text(), /wheelLocked/);
-  assert.match($("#vw-home-performance-js").text(), /Math\.abs\(wheelTotal\)<70/);
-  assert.match($("#vw-home-performance-js").text(), /1000/);
+  assert.match($("#vw-home-performance-js").text(), /wheelMoved/);
+  assert.match($("#vw-home-performance-js").text(), /Math\.abs\(wheelTotal\)<48/);
+  assert.match($("#vw-home-performance-js").text(), /sliderIsVisible/);
+  assert.match($("#vw-home-performance-js").text(), /slick\.animating/);
+  assert.match($("#vw-home-performance-js").text(), /setTimeout\(resetWheelGesture,220\)/);
   assert.match($("#vw-home-performance-js").text(), /\{passive:true\}/);
   assert.equal($(".home_rec_JS img").attr("loading"), "lazy");
   assert.match($("#a11y-contrast").text(), /\.covid_title span/);
@@ -570,17 +574,20 @@ test("la optimización responsiva respeta el tamaño CSS del logo institucional"
   assert.match(banner.attr("srcset") || "", /3-640\.webp 640w/);
 });
 
-test("el carrusel heredado no se destruye y reconstruye en cada evento de scroll", () => {
-  const legacy = `/* Scroll - activacion de sliders */
-    jQuery(window).scroll(function(){
-      var height = jQuery(window).scrollTop();
-      jQuery(".home_slider_JS").slick('unslick');
-    });`;
+test("el carrusel heredado usa visibilidad real sin destruirse durante el scroll", () => {
+  const legacy = readFileSync(
+    new URL("../../frontend-mirror/index.php/home/index.html", import.meta.url),
+    "utf8",
+  );
   const hardened = hardenLegacyClientScripts(legacy);
 
-  assert.match(hardened, /var vwSliderScrollState = ""/);
-  assert.match(hardened, /if \(nextState === vwSliderScrollState\) return/);
-  assert.match(hardened, /filter\('\.slick-initialized'\)\.slick\('unslick'\)/);
+  assert.match(hardened, /IntersectionObserver/);
+  assert.match(hardened, /data-vw-in-view/);
+  assert.match(hardened, /slickPlay/);
+  assert.match(hardened, /slickPause/);
+  assert.doesNotMatch(hardened, /slick\('unslick'\)/);
+  assert.doesNotMatch(hardened, /scrollTop\(\)/);
+  assert.equal((hardened.match(/Activación estable de carruseles según visibilidad/g) || []).length, 1);
 });
 
 test("el carrusel de testimonios conserva una altura estable entre citas", () => {

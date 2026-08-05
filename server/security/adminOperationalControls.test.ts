@@ -49,10 +49,28 @@ test("Newsletter oculta solo la etiqueta vacía y permite restaurarla desde conf
   const $hidden = cheerio.load(hiddenHtml);
   assert.equal($hidden(".home__newsletter").length, 1);
   assert.equal($hidden(".home__newsletter--eyebrow").length, 0);
-  assert.match($hidden(".home__newsletter h2").text(), /Manténgase informado/);
+  assert.equal($hidden(".home__newsletter h2").text(), "Suscríbete");
+  assert.equal(
+    $hidden(".home__newsletter--description").text(),
+    "Recibe en tu correo análisis jurídicos, publicaciones y novedades de Von Wobeser y Sierra.",
+  );
+  assert.equal($hidden(".home__newsletter--field--half").length, 2);
+  assert.equal($hidden(".home__newsletter--field--full").length, 1);
+  assert.equal($hidden(".home__newsletter.vw-newsletter--compact").length, 1);
   assert.equal($hidden("#newsletter-privacy").attr("required"), "required");
-  assert.match(hiddenHtml, /font-size:1rem/);
-  assert.match(hiddenHtml, /text-decoration-thickness:2px/);
+  assert.match(hiddenHtml, /border:1px solid #c7c7c3/);
+  assert.match(hiddenHtml, /grid-template-columns:repeat\(3,minmax\(0,1fr\)\)/);
+  assert.match(hiddenHtml, /min-height:0;height:auto/);
+  assert.match(hiddenHtml, /padding:clamp\(2\.35rem,3\.8vw,3\.4rem\)/);
+  assert.match(hiddenHtml, /text-decoration-thickness:1\.5px/);
+
+  const english = cheerio.load(renderHome(homeTemplate.replace('lang="es"', 'lang="en"'), [], {}, "en"));
+  assert.equal(english(".home__newsletter h2").text(), "Subscribe");
+  assert.equal(
+    english(".home__newsletter--description").text(),
+    "Receive legal analysis, publications and news from Von Wobeser y Sierra directly in your inbox.",
+  );
+  assert.equal(english(".home__newsletter--privacy a").attr("href"), "/privacy");
 
   const legacyHtml = renderHome(homeTemplate, [], {
     newsletter_eyebrow: { value: "Newsletter", valueEs: "Newsletter", type: "text" },
@@ -64,10 +82,57 @@ test("Newsletter oculta solo la etiqueta vacía y permite restaurarla desde conf
   }, "es");
   assert.equal(cheerio.load(restoredHtml)(".home__newsletter--eyebrow").text(), "Novedades");
 
+  const customizedHtml = renderHome(homeTemplate, [], {
+    newsletter_title: { value: "Client updates", valueEs: "Actualizaciones para clientes", type: "text" },
+    newsletter_description: { value: "Custom copy", valueEs: "Texto personalizado", type: "text" },
+  }, "es");
+  const $customized = cheerio.load(customizedHtml);
+  assert.equal($customized(".home__newsletter h2").text(), "Actualizaciones para clientes");
+  assert.equal($customized(".home__newsletter--description").text(), "Texto personalizado");
+
   const unsafePathHtml = renderHome(homeTemplate, [], {
     newsletter_privacy_path: { value: "javascript:alert(1)", valueEs: "javascript:alert(1)", type: "url" },
   }, "es");
   assert.equal(cheerio.load(unsafePathHtml)(".home__newsletter--privacy a").attr("href"), "/aviso");
+});
+
+test("Newsletter conserva un único flujo entre Home, PostgreSQL y Administración", () => {
+  const homeSource = readFileSync(new URL("../mirror/renderHome.ts", import.meta.url), "utf8");
+  const routesSource = readFileSync(new URL("../routes.ts", import.meta.url), "utf8");
+  const storageSource = readFileSync(new URL("../storage.ts", import.meta.url), "utf8");
+  const schemaSource = readFileSync(new URL("../../shared/schema.ts", import.meta.url), "utf8");
+  const adminSource = readFileSync(
+    new URL("../../client/src/pages/admin/AdminNewsletter.tsx", import.meta.url),
+    "utf8",
+  );
+  const siteConfigSource = readFileSync(new URL("../mirror/siteConfig.ts", import.meta.url), "utf8");
+
+  assert.match(homeSource, /fetch\('\/api\/newsletter\/subscribe'/);
+  assert.match(homeSource, /acceptPrivacy:form\.elements\.acceptPrivacy\.checked/);
+  assert.match(routesSource, /app\.post\("\/api\/newsletter\/subscribe",\s*publicFormLimiter/);
+  assert.match(routesSource, /newsletterSubscribeSchema\.safeParse\(req\.body\)/);
+  assert.match(routesSource, /storage\.createNewsletterSubscriber/);
+  assert.match(routesSource, /storage\.updateNewsletterSubscriber/);
+  assert.match(schemaSource, /newsletterSubscribers\s*=\s*pgTable\("newsletter_subscribers"/);
+  assert.match(storageSource, /getNewsletterSubscribers\([\s\S]*newsletterSubscribers/);
+  assert.match(
+    routesSource,
+    /"\/api\/admin\/newsletter-subscribers",\s*authMiddleware,\s*requirePermission\("newsletter"\)/,
+  );
+  assert.match(adminSource, /\/api\/admin\/newsletter-subscribers/);
+  assert.match(adminSource, /queryClient\.invalidateQueries/);
+  for (const key of [
+    "newsletter_title",
+    "newsletter_description",
+    "newsletter_privacy_intro",
+    "newsletter_privacy_link",
+    "newsletter_privacy_path",
+    "newsletter_cta",
+    "newsletter_success",
+    "newsletter_error",
+  ]) {
+    assert.match(siteConfigSource, new RegExp(`key:\\s*"${key}"`));
+  }
 });
 
 test("los tres textos institucionales del Home están ocultos por defecto y se restauran desde el panel", () => {

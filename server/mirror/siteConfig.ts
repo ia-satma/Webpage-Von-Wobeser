@@ -100,8 +100,8 @@ const DEFAULTS: Array<{ key: string; value: string; valueEs?: string; type: stri
     category: "offices",
     description: `Texto alternativo del video ${index + 1}`,
   })),
-  { key: "newsletter_title", value: "Stay informed", valueEs: "Manténgase informado", type: "text", category: "home", description: "Título de Newsletter en portada" },
-  { key: "newsletter_description", value: "Receive relevant legal updates, publications and firm news directly in your inbox.", valueEs: "Reciba novedades legales, publicaciones y noticias de la firma directamente en su correo.", type: "text", category: "home", description: "Descripción de Newsletter en portada" },
+  { key: "newsletter_title", value: "Subscribe", valueEs: "Suscríbete", type: "text", category: "home", description: "Título de Newsletter en portada" },
+  { key: "newsletter_description", value: "Receive legal analysis, publications and news from Von Wobeser y Sierra directly in your inbox.", valueEs: "Recibe en tu correo análisis jurídicos, publicaciones y novedades de Von Wobeser y Sierra.", type: "text", category: "home", description: "Descripción de Newsletter en portada" },
   { key: "newsletter_eyebrow", value: "", valueEs: "", type: "text", category: "home", description: "Etiqueta superior opcional del Newsletter" },
   { key: "newsletter_name_label", value: "Name", valueEs: "Nombre", type: "text", category: "home", description: "Etiqueta del campo nombre" },
   { key: "newsletter_email_label", value: "Email address", valueEs: "Correo electrónico", type: "text", category: "home", description: "Etiqueta del campo correo" },
@@ -109,10 +109,10 @@ const DEFAULTS: Array<{ key: string; value: string; valueEs?: string; type: stri
   { key: "newsletter_privacy_intro", value: "I have read and accept the", valueEs: "He leído y acepto el", type: "text", category: "home", description: "Texto previo al enlace de privacidad" },
   { key: "newsletter_privacy_link", value: "Privacy Notice", valueEs: "Aviso de Privacidad", type: "text", category: "home", description: "Texto del enlace de privacidad" },
   { key: "newsletter_privacy_path", value: "/privacy", valueEs: "/aviso", type: "url", category: "home", description: "Destino del Aviso de Privacidad" },
-  { key: "newsletter_required", value: "Please complete the required fields and accept the Privacy Notice.", valueEs: "Complete los campos obligatorios y acepte el Aviso de Privacidad.", type: "text", category: "home", description: "Mensaje de validación del Newsletter" },
+  { key: "newsletter_required", value: "Please complete the required fields and accept the Privacy Notice.", valueEs: "Completa los campos obligatorios y acepta el Aviso de Privacidad.", type: "text", category: "home", description: "Mensaje de validación del Newsletter" },
   { key: "newsletter_cta", value: "SUBSCRIBE", valueEs: "SUSCRIBIRME", type: "text", category: "home", description: "Botón de Newsletter en portada" },
-  { key: "newsletter_success", value: "Thank you. Your subscription has been received.", valueEs: "Gracias. Hemos recibido su suscripción.", type: "text", category: "home", description: "Mensaje de éxito de Newsletter" },
-  { key: "newsletter_error", value: "We could not process your request. Please try again.", valueEs: "No pudimos procesar su solicitud. Inténtelo de nuevo.", type: "text", category: "home", description: "Mensaje de error de Newsletter" },
+  { key: "newsletter_success", value: "Thank you. Your subscription has been received.", valueEs: "Gracias. Hemos recibido tu suscripción.", type: "text", category: "home", description: "Mensaje de éxito de Newsletter" },
+  { key: "newsletter_error", value: "We could not process your request. Please try again.", valueEs: "No pudimos procesar tu solicitud. Inténtalo de nuevo.", type: "text", category: "home", description: "Mensaje de error de Newsletter" },
   { key: "home_news_title", value: "News", valueEs: "Noticias", type: "text", category: "home", description: "Título del carrusel de noticias" },
   { key: "home_news_more", value: "SEE MORE", valueEs: "VER MÁS", type: "text", category: "home", description: "CTA del carrusel de noticias" },
   { key: "home_news_previous", value: "Previous news", valueEs: "Noticias anteriores", type: "text", category: "home", description: "Etiqueta accesible para noticias anteriores" },
@@ -519,7 +519,54 @@ export async function seedConfigDefaults(): Promise<void> {
     rankingTitleUpdated = true;
   }
 
-  if (missing.length || heroMediaUpdated || footerUpdated || heroLinkUpdated || landingRouteUpdated || firmCopyUpdated || rankingTitleUpdated) invalidateConfigCache();
+  // Actualiza el tono y la propuesta editorial del Newsletter solo cuando cada
+  // idioma conserva exactamente el texto predeterminado anterior. Una edición
+  // distinta hecha desde el panel se mantiene sin cambios.
+  let newsletterCopyUpdated = false;
+  const newsletterLegacyCopy: Array<[string, string, string, string, string]> = [
+    ["newsletter_title", "Stay informed", "Manténgase informado", "Subscribe", "Suscríbete"],
+    [
+      "newsletter_description",
+      "Receive relevant legal updates, publications and firm news directly in your inbox.",
+      "Reciba novedades legales, publicaciones y noticias de la firma directamente en su correo.",
+      "Receive legal analysis, publications and news from Von Wobeser y Sierra directly in your inbox.",
+      "Recibe en tu correo análisis jurídicos, publicaciones y novedades de Von Wobeser y Sierra.",
+    ],
+    [
+      "newsletter_required",
+      "Please complete the required fields and accept the Privacy Notice.",
+      "Complete los campos obligatorios y acepte el Aviso de Privacidad.",
+      "Please complete the required fields and accept the Privacy Notice.",
+      "Completa los campos obligatorios y acepta el Aviso de Privacidad.",
+    ],
+    [
+      "newsletter_success",
+      "Thank you. Your subscription has been received.",
+      "Gracias. Hemos recibido su suscripción.",
+      "Thank you. Your subscription has been received.",
+      "Gracias. Hemos recibido tu suscripción.",
+    ],
+    [
+      "newsletter_error",
+      "We could not process your request. Please try again.",
+      "No pudimos procesar su solicitud. Inténtelo de nuevo.",
+      "We could not process your request. Please try again.",
+      "No pudimos procesar tu solicitud. Inténtalo de nuevo.",
+    ],
+  ];
+  for (const [key, oldEn, oldEs, nextEn, nextEs] of newsletterLegacyCopy) {
+    const [current] = await db.select().from(siteConfig).where(eq(siteConfig.key, key));
+    if (!current) continue;
+    const value = current.value === oldEn ? nextEn : current.value;
+    const valueEs = current.valueEs === oldEs ? nextEs : current.valueEs;
+    if (value === current.value && valueEs === current.valueEs) continue;
+    await db.update(siteConfig)
+      .set({ value, valueEs, updatedAt: new Date() })
+      .where(eq(siteConfig.key, key));
+    newsletterCopyUpdated = true;
+  }
+
+  if (missing.length || heroMediaUpdated || footerUpdated || heroLinkUpdated || landingRouteUpdated || firmCopyUpdated || rankingTitleUpdated || newsletterCopyUpdated) invalidateConfigCache();
 }
 
 /** Upsert one key (used by the admin endpoint). */
