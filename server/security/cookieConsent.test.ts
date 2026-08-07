@@ -35,6 +35,15 @@ test("el HTML público bloquea analítica y proveedores externos antes del conse
   assert.equal($('script[src^="/vwb-cookie-consent-config.js"]').length, 0);
 });
 
+test("el footer público incluye la política de cookies y las preferencias en ambos idiomas", () => {
+  for (const [lang, path, label] of [["es", "/politica-de-cookies", "Política de cookies"], ["en", "/cookie-policy", "Cookie Policy"]] as const) {
+    const $ = cheerio.load('<!doctype html><html><head></head><body><footer><div class="footer__copy">© Von Wobeser</div></footer></body></html>');
+    applyA11y($, lang);
+    assert.equal($(`footer a[href="${path}"]`).text(), label);
+    assert.equal($('footer a[data-vwb-cookie-preferences="true"]').length, 1);
+  }
+});
+
 test("el gestor conserva elección versionada, respeta GPC sin ocultar el aviso y revoca GA4", () => {
   const source = readFileSync(new URL("../../public/vwb-cookie-consent.js", import.meta.url), "utf8");
   const mirrorSource = readFileSync(new URL("../mirror/index.ts", import.meta.url), "utf8");
