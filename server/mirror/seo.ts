@@ -336,7 +336,7 @@ export function applyA11y($: cheerio.CheerioAPI, lang: Lang): void {
     $("head").append('<link rel="stylesheet" href="/vwb-cookie-consent.css?v=20260806c">');
   }
   if ($('script[src^="/vwb-cookie-consent.js"]').length === 0) {
-    $("body").append('<script defer src="/vwb-cookie-consent.js?v=20260806d"></script>');
+    $("body").append('<script defer src="/vwb-cookie-consent.js?v=20260806e"></script>');
   }
   $("a,button").each((_, el) => {
     const $el = $(el);

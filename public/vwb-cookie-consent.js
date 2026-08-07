@@ -274,8 +274,13 @@
     try {
       config = window.__VWB_COOKIE_CONSENT_CONFIG__ || await requestConfig();
       choice = read();
-      if (navigator.globalPrivacyControl === true && !choice) write({ analytics: false, external: false });
-      choice = read();
+      // Brave and other privacy-first browsers may expose Global Privacy
+      // Control. It keeps optional categories denied until the visitor makes a
+      // choice, but it must not silently save a decision or hide the banner.
+      // Otherwise the visitor has no visible way to review the policy or
+      // manage their preferences on a first visit.
+      const gpcOptOut = navigator.globalPrivacyControl === true && !choice;
+      if (gpcOptOut) clearGa();
       apply();
       if (!choice) banner();
     } catch {

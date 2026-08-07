@@ -35,7 +35,7 @@ test("el HTML público bloquea analítica y proveedores externos antes del conse
   assert.equal($('script[src^="/vwb-cookie-consent-config.js"]').length, 0);
 });
 
-test("el gestor conserva elección versionada, GPC y revocación de GA4", () => {
+test("el gestor conserva elección versionada, respeta GPC sin ocultar el aviso y revoca GA4", () => {
   const source = readFileSync(new URL("../../public/vwb-cookie-consent.js", import.meta.url), "utf8");
   const mirrorSource = readFileSync(new URL("../mirror/index.ts", import.meta.url), "utf8");
 
@@ -46,6 +46,8 @@ test("el gestor conserva elección versionada, GPC y revocación de GA4", () => 
   assert.match(source, /globalPrivacyControl/);
   assert.match(source, /analytics:\s*false/);
   assert.match(source, /external:\s*false/);
+  assert.doesNotMatch(source, /globalPrivacyControl\s*===\s*true\s*&&\s*!choice\)\s*write/);
+  assert.match(source, /if \(!choice\) banner\(\)/);
   assert.match(source, /_ga_/);
   assert.match(source, /googletagmanager\.com\/gtag\/js/);
   assert.match(source, /vwb:open-cookie-preferences/);
