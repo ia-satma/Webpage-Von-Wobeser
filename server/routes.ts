@@ -51,6 +51,15 @@ import {
 } from "./mirror/publicPracticeGroups";
 import { isMigrationReadOnlyEnabled } from "./database/maintenance";
 
+type LinguisticField = { field: string; lang: "es" | "en"; text: unknown };
+
+async function getLinguisticWarnings(fields: LinguisticField[]) {
+  const { analyzeLinguisticText } = await import("./audits/linguisticAudit");
+  return fields.flatMap(({ field, lang, text }) =>
+    analyzeLinguisticText(text, lang).map((finding) => ({ field, lang, ...finding })),
+  );
+}
+
 // Global WebSocket clients map for pipeline progress updates
 const pipelineClients: Map<string, { ws: WebSocket; userId: string }> = new Map();
 
@@ -2460,8 +2469,16 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
       }
 
       const newsItem = await storage.createNews(validation.data);
+      const linguisticWarnings = await getLinguisticWarnings([
+        { field: "title", lang: "en", text: newsItem.title },
+        { field: "titleEs", lang: "es", text: newsItem.titleEs },
+        { field: "excerpt", lang: "en", text: newsItem.excerpt },
+        { field: "excerptEs", lang: "es", text: newsItem.excerptEs },
+        { field: "content", lang: "en", text: newsItem.content },
+        { field: "contentEs", lang: "es", text: newsItem.contentEs },
+      ]);
       auditLog("create", "news", newsItem.id, (req as any).adminUser?.id || "unknown");
-      res.status(201).json(newsItem);
+      res.status(201).json({ ...newsItem, linguisticWarnings });
     } catch (error) {
       console.error("Create news error:", error);
       return apiError(res, 500, "Failed to create news");
@@ -2483,8 +2500,16 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
       if (!newsItem) {
         return apiError(res, 404, "News not found");
       }
+      const linguisticWarnings = await getLinguisticWarnings([
+        { field: "title", lang: "en", text: newsItem.title },
+        { field: "titleEs", lang: "es", text: newsItem.titleEs },
+        { field: "excerpt", lang: "en", text: newsItem.excerpt },
+        { field: "excerptEs", lang: "es", text: newsItem.excerptEs },
+        { field: "content", lang: "en", text: newsItem.content },
+        { field: "contentEs", lang: "es", text: newsItem.contentEs },
+      ]);
       auditLog("update", "news", req.params.id, (req as any).adminUser?.id || "unknown");
-      res.json(newsItem);
+      res.json({ ...newsItem, linguisticWarnings });
     } catch (error) {
       if (error instanceof ZodError) {
         return apiError(res, 400, "Invalid input", error.errors);
@@ -2591,7 +2616,13 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
         storage.setTeamMemberIndustryGroups(member.id, industryGroupIds),
       ]);
       auditLog("create", "team", member.id, (req as any).adminUser?.id || "unknown");
-      res.status(201).json({ ...member, practiceGroupIds, industryGroupIds });
+      const linguisticWarnings = await getLinguisticWarnings([
+        { field: "title", lang: "en", text: member.title },
+        { field: "titleEs", lang: "es", text: member.titleEs },
+        { field: "bio", lang: "en", text: member.bio },
+        { field: "bioEs", lang: "es", text: member.bioEs },
+      ]);
+      res.status(201).json({ ...member, practiceGroupIds, industryGroupIds, linguisticWarnings });
     } catch (error) {
       if (error instanceof ZodError) {
         return apiError(res, 400, "Validation failed", error.errors);
@@ -2626,7 +2657,13 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
         await storage.setTeamMemberIndustryGroups(member.id, industryGroupIds!);
       }
       auditLog("update", "team", req.params.id, (req as any).adminUser?.id || "unknown");
-      res.json({ ...member, ...(practiceGroupIds && { practiceGroupIds }), ...(industryGroupIds && { industryGroupIds }) });
+      const linguisticWarnings = await getLinguisticWarnings([
+        { field: "title", lang: "en", text: member.title },
+        { field: "titleEs", lang: "es", text: member.titleEs },
+        { field: "bio", lang: "en", text: member.bio },
+        { field: "bioEs", lang: "es", text: member.bioEs },
+      ]);
+      res.json({ ...member, ...(practiceGroupIds && { practiceGroupIds }), ...(industryGroupIds && { industryGroupIds }), linguisticWarnings });
     } catch (error) {
       if (error instanceof ZodError) {
         return apiError(res, 400, "Validation failed", error.errors);
@@ -5253,6 +5290,26 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
     }
   });
 
+  app.get("/api/audits/:id/export.csv", authMiddleware, requirePermission("advanced"), async (req: Request, res: Response) => {
+    try {
+      const audit = await storage.getWebsiteAudit(req.params.id);
+      if (!audit) return res.status(404).json({ error: "Audit not found" });
+      const findings = await storage.getWebsiteAuditFindings(audit.id);
+      const csvCell = (value: unknown) => `"${String(value ?? "").replace(/"/g, '""')}"`;
+      const headers = ["url", "entity", "entity_id", "field", "language", "original", "suggestion", "type", "severity", "confidence", "reason", "status"];
+      const rows = findings.map((finding) => {
+        const details = (finding.details || {}) as Record<string, unknown>;
+        return [finding.url, finding.entityType, finding.entityId, details.field, finding.language, details.original, details.suggestion || finding.recommendation, finding.issueType, finding.severity, details.confidence, details.reason, finding.status].map(csvCell).join(",");
+      });
+      res.setHeader("Content-Type", "text/csv; charset=utf-8");
+      res.setHeader("Content-Disposition", `attachment; filename="auditoria-${audit.runType}-${audit.id}.csv"`);
+      res.send(`\uFEFF${headers.map(csvCell).join(",")}\n${rows.join("\n")}`);
+    } catch (error) {
+      console.error("Failed to export audit:", error);
+      res.status(500).json({ error: "Failed to export audit" });
+    }
+  });
+
   app.get("/api/audits/:id", authMiddleware, requirePermission("advanced"), async (req: Request, res: Response) => {
     try {
       const audit = await storage.getWebsiteAudit(req.params.id);
@@ -5290,11 +5347,21 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
   app.post("/api/audits/run", authMiddleware, requirePermission("advanced"), async (req: Request, res: Response) => {
     try {
       const parsed = z.object({
-        runType: z.enum(['full', 'delta', 'links_only', 'translations_only', 'seo_only', 'content_only']).default('full'),
+        runType: z.enum(['full', 'delta', 'links_only', 'translations_only', 'seo_only', 'content_only', 'linguistic']).default('full'),
         skipModules: z.array(z.enum(['links', 'navigation', 'translations', 'performance', 'seo', 'content'])).max(6).optional(),
         applyChanges: z.boolean().default(false),
       }).strict().safeParse(req.body || {});
       if (!parsed.success) return res.status(400).json({ error: "Invalid audit request" });
+
+      if (parsed.data.runType === "linguistic") {
+        const { runLinguisticAudit } = await import("./audits/linguisticAudit");
+        const result = await runLinguisticAudit(req.adminUser?.id || "manual");
+        return res.json({
+          success: true,
+          auditId: result.auditId,
+          message: `Auditoría lingüística completada: ${result.issuesFound} hallazgos en ${result.pagesScanned} fuentes.`,
+        });
+      }
       
       const { orchestrator } = await import('./agents');
       
@@ -5320,6 +5387,16 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
       console.error("Failed to run audit:", error);
       res.status(500).json({ error: "Failed to run audit" });
     }
+  });
+
+  app.post("/api/admin/linguistic/check", authMiddleware, requirePermission("content"), async (req: Request, res: Response) => {
+    const parsed = z.object({
+      text: z.string().max(200_000),
+      lang: z.enum(["es", "en"]).default("es"),
+    }).strict().safeParse(req.body || {});
+    if (!parsed.success) return res.status(400).json({ error: "Invalid linguistic check request" });
+    const { analyzeLinguisticText } = await import("./audits/linguisticAudit");
+    res.json({ success: true, findings: analyzeLinguisticText(parsed.data.text, parsed.data.lang) });
   });
 
   app.get("/api/audits/findings/open", authMiddleware, requirePermission("advanced"), async (req: Request, res: Response) => {
@@ -5370,7 +5447,12 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
 
   app.patch("/api/audits/findings/:id", authMiddleware, requirePermission("advanced"), async (req: Request, res: Response) => {
     try {
-      const { status, resolvedBy } = req.body;
+      const parsed = z.object({
+        status: z.enum(["open", "in_progress", "resolved", "ignored", "wont_fix"]),
+        resolvedBy: z.string().max(120).optional(),
+      }).strict().safeParse(req.body || {});
+      if (!parsed.success) return res.status(400).json({ error: "Invalid finding update" });
+      const { status, resolvedBy } = parsed.data;
       
       if (status === 'resolved') {
         const finding = await storage.resolveWebsiteAuditFinding(req.params.id, resolvedBy || 'manual');

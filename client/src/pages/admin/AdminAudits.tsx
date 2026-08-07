@@ -40,7 +40,10 @@ import {
   RefreshCw,
   XCircle,
   Eye,
-  Filter
+  Filter,
+  Download,
+  ExternalLink,
+  Ban
 } from "lucide-react";
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 import { AdminPageHelp } from "@/components/admin/AdminPageHelp";
@@ -819,6 +822,21 @@ export default function AdminAudits() {
     },
   });
 
+  const ignoreFindingMutation = useMutation({
+    mutationFn: async (findingId: string) => {
+      const response = await adminApiRequest('PATCH', `/api/audits/findings/${findingId}`, {
+        status: 'ignored',
+        resolvedBy: 'manual',
+      });
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/audits'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/audits', selectedAuditId] });
+      queryClient.invalidateQueries({ queryKey: ['/api/audits/findings/open'] });
+    },
+  });
+
   if (authLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -863,6 +881,9 @@ export default function AdminAudits() {
                   <SelectItem value="translations_only">{t.translationsOnly}</SelectItem>
                   <SelectItem value="seo_only">{t.seoOnly}</SelectItem>
                   <SelectItem value="content_only">{t.contentOnly}</SelectItem>
+                  <SelectItem value="linguistic">
+                    {language === 'es' ? 'Ortografía, nombres y consistencia' : 'Spelling, names and consistency'}
+                  </SelectItem>
                 </SelectContent>
               </Select>
 
@@ -1022,8 +1043,20 @@ export default function AdminAudits() {
                   <SelectItem value="translations">{t.translations}</SelectItem>
                   <SelectItem value="content">{t.content}</SelectItem>
                   <SelectItem value="seo">{t.seo}</SelectItem>
+                  <SelectItem value="linguistic">
+                    {language === 'es' ? 'Ortografía y consistencia' : 'Language consistency'}
+                  </SelectItem>
                 </SelectContent>
               </Select>
+
+              {(selectedAudit || latestAudit) && (
+                <Button variant="outline" asChild>
+                  <a href={`/api/audits/${(selectedAudit || latestAudit)!.id}/export.csv`}>
+                    <Download className="h-4 w-4 mr-2" />
+                    {language === 'es' ? 'Exportar informe' : 'Export report'}
+                  </a>
+                </Button>
+              )}
             </div>
 
             <Card>
@@ -1075,17 +1108,34 @@ export default function AdminAudits() {
                         <TableCell>
                           {getStatusBadge(finding.status, t)}
                         </TableCell>
-                        <TableCell>
+                        <TableCell className="w-[190px]">
                           {finding.status === 'open' && (
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => resolveFindingMutation.mutate(finding.id)}
-                              disabled={resolveFindingMutation.isPending}
-                              data-testid={`button-resolve-${finding.id}`}
-                            >
-                              <CheckCircle2 className="h-4 w-4" />
-                            </Button>
+                            <div className="flex items-center justify-end gap-1">
+                              {finding.url && (
+                                <Button variant="ghost" size="sm" asChild title={language === 'es' ? 'Ir a editar o revisar' : 'Open to review'}>
+                                  <a href={finding.url} target="_blank" rel="noreferrer"><ExternalLink className="h-4 w-4" /></a>
+                                </Button>
+                              )}
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => ignoreFindingMutation.mutate(finding.id)}
+                                disabled={ignoreFindingMutation.isPending}
+                                title={language === 'es' ? 'Ignorar' : 'Ignore'}
+                              >
+                                <Ban className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => resolveFindingMutation.mutate(finding.id)}
+                                disabled={resolveFindingMutation.isPending}
+                                data-testid={`button-resolve-${finding.id}`}
+                                title={t.markResolved}
+                              >
+                                <CheckCircle2 className="h-4 w-4" />
+                              </Button>
+                            </div>
                           )}
                         </TableCell>
                       </TableRow>

@@ -281,7 +281,85 @@ const SOCIAL_NAMES: Array<[RegExp, string]> = [
   [/youtube/i, "YouTube"],
 ];
 
+function privacyEnhancedExternalUrl(value: string): string {
+  try {
+    const url = new URL(value, BASE_URL);
+    const host = url.hostname.toLowerCase();
+    if (host === "www.youtube.com" || host === "youtube.com" || host === "m.youtube.com") {
+      url.hostname = "www.youtube-nocookie.com";
+    }
+    if (host === "player.vimeo.com") url.searchParams.set("dnt", "1");
+    return url.toString();
+  } catch {
+    return value;
+  }
+}
+
 export function applyA11y($: cheerio.CheerioAPI, lang: Lang): void {
+  // Privacidad por diseño: se retiran rastreadores heredados y ningún iframe de
+  // terceros recibe `src` hasta que el visitante autorice "Contenido externo".
+  // El HTML permanece cacheable porque la decisión se aplica exclusivamente en
+  // el navegador mediante el gestor de consentimiento compartido.
+  $('script[src*="googletagmanager"],script[src*="google-analytics"],script[src*="cookiehub"],script[src*="leadinfo"],script[data-ga4]').remove();
+  $('script').filter((_, el) => /(?:gtag\s*\(|cookiehub|leadinfo)/i.test($(el).html() || "")).remove();
+  $("iframe[src]").each((_, el) => {
+    const $iframe = $(el);
+    const src = String($iframe.attr("src") || "");
+    if (!/(?:youtube(?:-nocookie)?\.com|youtu\.be|player\.vimeo\.com|google\.[^/]+\/maps|google\.com\/maps)/i.test(src)) return;
+    $iframe.attr("data-vwb-consent-src", privacyEnhancedExternalUrl(src)).removeAttr("src");
+    $iframe.attr("data-vwb-consent-provider", /vimeo/i.test(src) ? "Vimeo" : /maps/i.test(src) ? "Google Maps" : "YouTube");
+    $iframe.attr("title", $iframe.attr("title") || (lang === "es" ? "Contenido externo bloqueado" : "External content blocked"));
+  });
+  const externalImagePattern = /(?:i\.ytimg\.com|img\.youtube\.com|yt3\.ggpht\.com|i\.vimeocdn\.com|maps\.gstatic\.com|maps\.googleapis\.com)/i;
+  const externalPlaceholder = `data:image/svg+xml,${encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 9"><rect width="16" height="9" fill="#ececec"/></svg>')}`;
+  $("img[src]").each((_, el) => {
+    const $image = $(el);
+    const src = String($image.attr("src") || "");
+    if (!externalImagePattern.test(src)) return;
+    $image
+      .attr("data-vwb-consent-image-src", src)
+      .attr("data-vwb-consent-placeholder", externalPlaceholder)
+      .attr("src", externalPlaceholder);
+  });
+  const gatedEmbedAttributes = ["data-embed", "data-desktop-embed", "data-mobile-embed"];
+  gatedEmbedAttributes.forEach((attribute) => {
+    $(`[${attribute}]`).each((_, el) => {
+      const $el = $(el);
+      const value = String($el.attr(attribute) || "");
+      if (!/(?:youtube(?:-nocookie)?\.com|youtu\.be|player\.vimeo\.com|google\.[^/]+\/maps|google\.com\/maps)/i.test(value)) return;
+      $el.attr(attribute.replace("data-", "data-vwb-consent-"), privacyEnhancedExternalUrl(value)).removeAttr(attribute);
+      $el.attr("aria-label", $el.attr("aria-label") || (lang === "es" ? "Autorizar y abrir contenido externo" : "Authorize and open external content"));
+    });
+  });
+
+  if ($('link[href^="/vwb-cookie-consent.css"]').length === 0) {
+    $("head").append('<link rel="stylesheet" href="/vwb-cookie-consent.css?v=20260806c">');
+  }
+  if ($('script[src^="/vwb-cookie-consent.js"]').length === 0) {
+    $("body").append('<script defer src="/vwb-cookie-consent.js?v=20260806d"></script>');
+  }
+  $("a,button").each((_, el) => {
+    const $el = $(el);
+    const text = $el.text().replace(/\s+/g, " ").trim();
+    if (/^(?:Preferencias de Cookies|Cookie Preferences)$/i.test(text)) {
+      $el.attr("data-vwb-cookie-preferences", "true");
+      if (el.tagName.toLowerCase() === "a") $el.attr("href", "#cookie-preferences");
+    }
+  });
+  // Las páginas históricas no siempre incluyen el vínculo del footer. Se añade
+  // dentro del pie existente, sin crear navegación o estilos paralelos.
+  if ($('[data-vwb-cookie-preferences="true"]').length === 0) {
+    const $footer = $("footer,.footer").first();
+    if ($footer.length) {
+      const label = lang === "es" ? "Preferencias de cookies" : "Cookie preferences";
+      const $link = $(`<a href="#cookie-preferences" data-vwb-cookie-preferences="true">${label}</a>`);
+      $link.attr("style", "color:inherit;text-decoration:underline;text-underline-offset:3px;cursor:pointer");
+      const $copyright = $footer.find(".footer__copy,.footer__copyright,.copyright").first();
+      if ($copyright.length) $copyright.append(" · ", $link);
+      else $footer.append($("<p>").attr("class", "vwb-cookie-footer-link").append($link));
+    }
+  }
+
   // 1) Viewport — permitir el zoom (WCAG 1.4.4). Quita maximum-scale/user-scalable=no.
   const VP = "width=device-width, initial-scale=1, viewport-fit=cover";
   const $vp = $('meta[name="viewport"]');
@@ -491,19 +569,12 @@ export function applySeo($: cheerio.CheerioAPI, opts: SeoOptions): void {
   $('head meta[name="google-site-verification"]').remove();
   upsertMeta($, "name", "google-site-verification", GSC_VERIFICATION);
 
-  // GA4 (solo si se llenó un Measurement ID válido en el panel — G-XXXXXXX).
-  // También quita cualquier snippet de gtag ya incrustado en la plantilla scrapeada
-  // (el sitio original tenía uno inline sin el loader de gtag.js — no funcionaba,
-  // pero no debe quedar duplicado/conflictuando con el que instala el panel).
+  // GA4 nunca se inserta aquí. El identificador se expone de forma inerte por
+  // `/api/public/consent-config` y el navegador carga gtag.js únicamente si el
+  // visitante autoriza la categoría Analítica.
   $("head script")
     .filter((_, el) => /gtag\(/.test($(el).html() || ""))
     .remove();
-  if (/^G-[A-Z0-9]+$/i.test(GA4_MEASUREMENT_ID)) {
-    $("head").append(
-      `<script data-ga4 async src="https://www.googletagmanager.com/gtag/js?id=${GA4_MEASUREMENT_ID}"></script>` +
-      `<script data-ga4>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','${GA4_MEASUREMENT_ID}');</script>`
-    );
-  }
 
   // Accesibilidad (Lighthouse) — se aplica al final para cubrir también los nodos
   // que otros pasos hayan insertado en el <body> (formularios, listados, etc.).

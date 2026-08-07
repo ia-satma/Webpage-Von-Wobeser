@@ -90,7 +90,9 @@ const HERO_PERFORMANCE_STYLE = `<style id="vw-home-performance">
 .vw-home-video-facade__play{position:absolute;z-index:1;inset:0;width:100%;border:0;background:rgba(0,0,0,.12);color:#fff;cursor:pointer;display:grid;place-items:center}
 .vw-home-video-facade__play span{display:grid;place-items:center;width:72px;height:72px;border:2px solid currentColor;border-radius:50%;background:rgba(0,0,0,.5);font:700 32px/1 var(--font-body,"Inter",sans-serif);padding-left:5px}
 .vw-home-video-facade__play:focus-visible{outline:3px solid #b5122b;outline-offset:-4px}
-@media (prefers-reduced-motion:reduce){#video_header{display:none}.home__hero{background-position:center;background-size:cover}}
+.vw-home-video-retry{position:absolute;z-index:8;left:50%;top:50%;display:none;align-items:center;gap:12px;min-height:48px;padding:10px 18px;border:1px solid rgba(255,255,255,.82);background:rgba(20,20,20,.72);color:#fff;cursor:pointer;font:600 14px/1.2 var(--font-body,"Inter",sans-serif);letter-spacing:.02em;transform:translate(-50%,-50%);backdrop-filter:blur(4px)}
+.vw-home-video-retry.is-visible{display:inline-flex}.vw-home-video-retry__icon{font-size:19px;line-height:1}.vw-home-video-retry:hover{background:rgba(20,20,20,.88)}.vw-home-video-retry:focus-visible{outline:3px solid #fff;outline-offset:3px}
+@media (prefers-reduced-motion:reduce){.home__hero{background-position:center;background-size:cover}}
 @media (max-width:800px){.vw-home-video-facade{margin-top:281px}}
 @media (max-width:430px){.vw-home-video-facade{margin-top:354px}}
 </style>`;
@@ -98,10 +100,25 @@ const HERO_PERFORMANCE_STYLE = `<style id="vw-home-performance">
 const HERO_PERFORMANCE_SCRIPT = `<script id="vw-home-performance-js">(function(){
   var video=document.getElementById('video_header');
   if(video){
+    var retry=document.querySelector('[data-vw-home-video-retry]');
     var reduced=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     var saveData=!!(navigator.connection&&navigator.connection.saveData);
-    if(reduced||saveData){video.pause();video.preload='none';}
-    else{var promise=video.play();if(promise&&promise.catch)promise.catch(function(){});}
+    var showRetry=function(){if(retry)retry.classList.add('is-visible');};
+    var hideRetry=function(){if(retry)retry.classList.remove('is-visible');};
+    var start=function(){
+      video.muted=true;video.defaultMuted=true;video.playsInline=true;
+      var promise=video.play();
+      if(promise&&promise.catch)promise.catch(showRetry);
+    };
+    video.addEventListener('playing',hideRetry);
+    video.addEventListener('error',showRetry);
+    if(reduced||saveData){video.autoplay=false;video.pause();video.preload='metadata';showRetry();}
+    else{
+      video.autoplay=true;
+      start();
+      window.setTimeout(function(){if(video.paused&&!video.ended)showRetry();},3500);
+    }
+    if(retry)retry.addEventListener('click',function(){video.preload='auto';hideRetry();start();});
   }
   var facade=document.querySelector('[data-vw-home-video-facade]');
   if(facade){
@@ -597,15 +614,21 @@ export function renderHome(
       href: heroLink,
       "aria-label": lang === "es" ? "Conoce Von Wobeser y Sierra" : "Discover Von Wobeser y Sierra",
     });
-    videoElement.removeAttr("autoplay").attr({
+    videoElement.attr({
       width: "1920",
       height: "1080",
       preload: "metadata",
       poster: heroPoster,
+      autoplay: "",
       muted: "",
       loop: "",
       playsinline: "",
     });
+    const retryLabel = lang === "es" ? "Reproducir video" : "Play video";
+    videoElement.parent("a").after(
+      `<button type="button" class="vw-home-video-retry" data-vw-home-video-retry aria-label="${escAttr(retryLabel)}">` +
+      `<span class="vw-home-video-retry__icon" aria-hidden="true">▶</span><span>${esc(retryLabel)}</span></button>`,
+    );
   }
   const hero = $(".home__hero").first();
   const heroStyle = hero.attr("style") || "";

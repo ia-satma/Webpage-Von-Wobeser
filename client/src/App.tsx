@@ -67,6 +67,7 @@ const AdminGeneratedImages = lazy(() => import("@/pages/admin/AdminGeneratedImag
 const AdminGeneratedAudio = lazy(() => import("@/pages/admin/AdminGeneratedAudio"));
 const AdminPresentations = lazy(() => import("@/pages/admin/AdminPresentations"));
 const AdminManual = lazy(() => import("@/pages/admin/AdminManual"));
+const AdminCookieConsent = lazy(() => import("@/pages/admin/AdminCookieConsent"));
 const AdminComingSoon = lazy(() => import("@/pages/admin/AdminComingSoon"));
 
 function SkipLinks() {
@@ -157,6 +158,7 @@ function Router() {
         <Route path="/admin/site-config" component={AdminSiteConfig} />
         <Route path="/admin/site-config/:section" component={AdminSiteConfig} />
         <Route path="/admin/navigation" component={AdminNavigation} />
+        <Route path="/admin/cookie-consent" component={AdminCookieConsent} />
         <Route path="/admin/users" component={AdminUsers} />
         <Route path="/admin/submissions" component={AdminSubmissions} />
         <Route path="/admin/recognitions" component={AdminRecognitions} />
