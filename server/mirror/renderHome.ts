@@ -88,9 +88,9 @@ const HERO_PERFORMANCE_STYLE = `<style id="vw-home-performance">
 .vw-home-video-facade__poster{position:absolute;inset:0;display:block;width:100%;height:100%;object-fit:cover}
 .vw-home-video-facade iframe,.vw-home-video-facade video{display:block;width:100%;height:100%;border:0;object-fit:cover}
 .vw-home-video-facade__play{position:absolute;z-index:1;inset:0;width:100%;border:0;background:rgba(0,0,0,.12);color:#fff;cursor:pointer;display:grid;place-items:center}
-.vw-home-video-facade__play span{display:grid;place-items:center;width:72px;height:72px;border:2px solid currentColor;border-radius:50%;background:rgba(0,0,0,.5);font:700 32px/1 var(--font-body,"Inter",sans-serif);padding-left:5px}
+.vw-home-video-facade__play span{display:grid;place-items:center;width:72px;height:72px;border:2px solid currentColor;border-radius:50%;background:rgba(0,0,0,.5);font:500 32px/1 var(--font-body,"Inter",sans-serif);padding-left:5px}
 .vw-home-video-facade__play:focus-visible{outline:3px solid #b5122b;outline-offset:-4px}
-.vw-home-video-retry{position:absolute;z-index:8;left:50%;top:50%;display:none;align-items:center;gap:12px;min-height:48px;padding:10px 18px;border:1px solid rgba(255,255,255,.82);background:rgba(20,20,20,.72);color:#fff;cursor:pointer;font:600 14px/1.2 var(--font-body,"Inter",sans-serif);letter-spacing:.02em;transform:translate(-50%,-50%);backdrop-filter:blur(4px)}
+.vw-home-video-retry{position:absolute;z-index:8;left:50%;top:50%;display:none;align-items:center;gap:12px;min-height:48px;padding:10px 18px;border:1px solid rgba(255,255,255,.82);background:rgba(20,20,20,.72);color:#fff;cursor:pointer;font:500 14px/1.2 var(--font-body,"Inter",sans-serif);letter-spacing:.02em;transform:translate(-50%,-50%);backdrop-filter:blur(4px)}
 .vw-home-video-retry.is-visible{display:inline-flex}.vw-home-video-retry__icon{font-size:19px;line-height:1}.vw-home-video-retry:hover{background:rgba(20,20,20,.88)}.vw-home-video-retry:focus-visible{outline:3px solid #fff;outline-offset:3px}
 @media (prefers-reduced-motion:reduce){.home__hero{background-position:center;background-size:cover}}
 @media (max-width:800px){.vw-home-video-facade{margin-top:281px}}
@@ -404,7 +404,7 @@ function renderNewsletter(config: ConfigMap, lang: Lang): string {
       .home__newsletter.vw-newsletter--compact{box-sizing:border-box;min-height:0;height:auto;background:#f1f1ef;color:#5f5f5d;padding:clamp(2.35rem,3.8vw,3.4rem) 0}
       .home__newsletter.vw-newsletter--compact .home__newsletter--wrap{display:grid;grid-template-columns:minmax(15rem,.7fr) minmax(34rem,1.3fr);gap:clamp(2.5rem,5vw,5.25rem);align-items:center}
       .vw-newsletter--compact .home__newsletter--intro{align-self:center}
-      .vw-newsletter--compact .home__newsletter--eyebrow{margin:0 0 .65rem;color:#b11d35;font-family:var(--vw-font-ui);font-size:.72rem;font-weight:600;letter-spacing:.13em;text-transform:uppercase}
+      .vw-newsletter--compact .home__newsletter--eyebrow{margin:0 0 .65rem;color:#b11d35;font-family:var(--vw-font-ui);font-size:.72rem;font-weight:500;letter-spacing:.13em;text-transform:uppercase}
       .vw-newsletter--compact h2{margin:0;max-width:12ch;color:#5f5f5d;font-family:var(--vw-font-editorial);font-size:clamp(2.35rem,3.3vw,3.25rem);font-weight:400;line-height:1.02}
       .vw-newsletter--compact .home__newsletter--description{max-width:30rem;margin:.85rem 0 0;color:#5f5f5d;font-family:var(--vw-font-body);font-size:.96rem;line-height:1.5}
       .home__newsletter.vw-newsletter--compact .home__newsletter--form{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));column-gap:.8rem;row-gap:.9rem;padding:0}
@@ -416,9 +416,9 @@ function renderNewsletter(config: ConfigMap, lang: Lang): string {
       .home__newsletter.vw-newsletter--compact .home__newsletter--field input:focus{border-color:#a5102a;background:#fff;box-shadow:inset 0 0 0 1px #a5102a}
       .vw-newsletter--compact .home__newsletter--privacy{grid-column:1/3;display:flex;align-items:center;gap:.65rem;min-height:3rem;margin:0;color:#50504e;font-family:var(--vw-font-ui);font-size:.91rem;letter-spacing:0;line-height:1.4}
       .vw-newsletter--compact .home__newsletter--privacy input{width:20px;height:20px;flex:0 0 20px;margin:0;accent-color:#b11d35}
-      .vw-newsletter--compact .home__newsletter--privacy a{color:#a5102a;font-weight:600;text-decoration:underline;text-decoration-color:#a5102a;text-decoration-thickness:1.5px;text-underline-offset:.2em}
+      .vw-newsletter--compact .home__newsletter--privacy a{color:#a5102a;font-weight:500;text-decoration:underline;text-decoration-color:#a5102a;text-decoration-thickness:1.5px;text-underline-offset:.2em}
       .vw-newsletter--compact .home__newsletter--actions{grid-column:3;display:flex;align-items:center;justify-content:flex-end;flex-wrap:wrap;gap:.7rem;margin:0}
-      .vw-newsletter--compact .home__newsletter--actions button{display:inline-flex;align-items:center;justify-content:center;gap:1rem;min-height:3rem;border:1px solid #b11d35;background:#b11d35;color:#fff;cursor:pointer;font-family:var(--vw-font-ui);font-size:.73rem;font-weight:600;letter-spacing:.09em;padding:0 1.15rem;text-transform:uppercase;transition:background-color .18s ease,transform .18s ease}
+      .vw-newsletter--compact .home__newsletter--actions button{display:inline-flex;align-items:center;justify-content:center;gap:1rem;min-height:3rem;border:1px solid #b11d35;background:#b11d35;color:#fff;cursor:pointer;font-family:var(--vw-font-ui);font-size:.73rem;font-weight:500;letter-spacing:.09em;padding:0 1.15rem;text-transform:uppercase;transition:background-color .18s ease,transform .18s ease}
       .vw-newsletter--compact .home__newsletter--actions button span:last-child{font-size:1.1rem;line-height:1;transition:transform .18s ease}
       .vw-newsletter--compact .home__newsletter--actions button:hover,.vw-newsletter--compact .home__newsletter--actions button:focus-visible{background:#9f1830}
       .vw-newsletter--compact .home__newsletter--actions button:hover span:last-child,.vw-newsletter--compact .home__newsletter--actions button:focus-visible span:last-child{transform:translateX(3px)}
@@ -702,7 +702,7 @@ export function renderHome(
   if (bTitle || bSubtitle) {
     const seeMoreLink = $(".home__rojo--txt a").first().attr("href") || "/new-offices/index.html";
     $(".home__rojo--txt").html(
-      `<p><span style="font-size: 1.4rem;"><strong>${esc(bTitle)}</strong></span></p>` +
+      `<p class="home__rojo--title"><span style="font-size: 1.4rem;">${esc(bTitle)}</span></p>` +
         `<p><span style="font-size: 1.4rem;">${esc(bSubtitle)}</span></p>` +
         `<p style="text-align: right;"><span style="font-size: 1.4rem;">` +
         `<a href="${esc(seeMoreLink)}" target="_blank" rel="alternate noopener noreferrer">${seeMore}</a></span></p>`,
@@ -736,8 +736,8 @@ export function renderHome(
 
   // --- Secciones editoriales finales del home -------------------------
   const editorialSections = $("#bottom .home__rec");
-  // Reconocimientos conserva su composición, pero sigue la jerarquía
-  // tipográfica institucional: título en Gelasio y cuerpo en Inter.
+  // Reconocimientos conserva la misma jerarquía editorial que Diversidad:
+  // etiqueta institucional en Inter y texto principal en Gelasio.
   editorialSections.eq(0).addClass("home__rec--recognitions");
   const recognitionTitle = cfg(config, "home_recognitions_title", lang);
   const recognitionIntro = cfg(config, "home_recognitions_intro", lang);

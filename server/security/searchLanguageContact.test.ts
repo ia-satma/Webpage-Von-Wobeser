@@ -125,7 +125,7 @@ test("Contacto queda debajo del mapa, usa cuadrícula propia y prácticas admini
   assert.match($.html(), /acceptPrivacy:\s*!!form\.acceptPrivacy\.checked/);
   assert.match($.html(), /href="\/aviso"/);
   assert.match($.html(), /Aviso de Privacidad/);
-  assert.match($.html(), /\.vw-contact-privacy a\{color:#a5102a;font-weight:600/);
+  assert.match($.html(), /\.vw-contact-privacy a\{color:#a5102a;font-weight:500/);
   assert.match($.html(), /Torre SOMA Chapultepec, piso 18/);
   assert.doesNotMatch($.html(), /18th floor/);
 });

@@ -1087,6 +1087,20 @@ b,strong {
   text-align: center;
 }
 
+/* El banner de Nuevas oficinas usa Inter regular para subtítulo y CTA. El
+   titular conserva un único énfasis editorial en Inter Semibold (600), sin
+   convertir el resto de la interfaz en negritas. */
+.home__rojo--txt,
+.home__rojo--txt :where(p, span, strong, a) {
+  font-family: var(--font-body) !important;
+  font-weight: 400 !important;
+}
+
+.home__rojo--txt .home__rojo--title,
+.home__rojo--txt .home__rojo--title span {
+  font-weight: 600 !important;
+}
+
 .home__rojo--txt p span{
   font-size:1.4rem !important
 }
@@ -1118,11 +1132,11 @@ b,strong {
 }
 .home__rojo--txt a {
   color: #fff;
-  font-weight:bold;
+  font-weight:500 !important;
   padding-right:15px;
 }
 .faded strong {
-	font-weight:bold !important;
+	font-weight:500 !important;
 }
 .home__blocks {
   padding: 5% 0;
@@ -1433,19 +1447,21 @@ b,strong {
   font-family: "Gelasio",serif;
 }
 
-/* Jerarquía solicitada para Reconocimientos: Gelasio en el título e Inter
-   en la introducción y el texto detallado. La clase se añade en el render
-   compartido para cubrir español e inglés sin afectar las demás secciones. */
-.home__rec--recognitions .home__rec--ttl,
-.home__rec--recognitions .home__rec--ttl :where(span, strong, em, a) {
-  font-family: var(--font-title) !important;
+/*
+ * Las secciones editoriales del Home comparten una jerarquía tipográfica:
+ * el rótulo institucional usa Inter y la frase editorial usa Gelasio. Los
+ * HTML históricos contienen párrafos y encabezados dentro de estos bloques;
+ * se declaran también sus descendientes para que las reglas semánticas
+ * globales no inviertan la jerarquía en Reconocimientos ni en inglés.
+ */
+#bottom .home__rec .home__rec--ttl,
+#bottom .home__rec .home__rec--ttl :where(h1, h2, h3, h4, h5, h6, p, span, strong, em, a) {
+  font-family: var(--font-body) !important;
 }
 
-.home__rec--recognitions .home__rec--top,
-.home__rec--recognitions .home__rec--top :where(p, span, strong, em, a),
-.home__rec--recognitions .home__rec--txt,
-.home__rec--recognitions .home__rec--txt :where(p, span, strong, em, a) {
-  font-family: var(--font-body) !important;
+#bottom .home__rec .home__rec--top,
+#bottom .home__rec .home__rec--top :where(h1, h2, h3, h4, h5, h6, p, span, strong, em, a) {
+  font-family: var(--font-title) !important;
 }
 
 .home__rec--txt {

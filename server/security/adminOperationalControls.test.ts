@@ -181,14 +181,8 @@ test("los tres textos institucionales del Home están ocultos por defecto y se r
     new URL("../../frontend-mirror/templates/beez3/css/style.css", import.meta.url),
     "utf8",
   );
-  assert.match(
-    publicCss,
-    /\.home__rec--recognitions \.home__rec--ttl[\s\S]*font-family:\s*var\(--font-title\) !important/,
-  );
-  assert.match(
-    publicCss,
-    /\.home__rec--recognitions \.home__rec--top[\s\S]*font-family:\s*var\(--font-body\) !important/,
-  );
+  assert.match(publicCss, /#bottom\s+\.home__rec\s+\.home__rec--ttl,[\s\S]*?font-family:\s*var\(--font-body\)\s*!important/);
+  assert.match(publicCss, /#bottom\s+\.home__rec\s+\.home__rec--top,[\s\S]*?font-family:\s*var\(--font-title\)\s*!important/);
   assert.match(
     publicCss,
     /\.home__carousel-separator\s*\{[\s\S]*width:\s*100%[\s\S]*height:\s*clamp\(16px, 1\.5vw, 28px\)[\s\S]*background-color:\s*#fff/,

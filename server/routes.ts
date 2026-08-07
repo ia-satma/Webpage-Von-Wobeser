@@ -1686,7 +1686,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
 
 ## Secciones principales
 - [Inicio](${base}/): presentación de la firma.
-- [Nuestra Firma](${base}/nuestra-firma): historia, valores y enfoque.
+- [Nuestra Firma](${base}/acerca-de): historia, valores y enfoque.
 - [Pro Bono](${base}/nuestra-firma/probono): programa de trabajo pro bono de la firma.
 - [Diversidad e Inclusión](${base}/nuestra-firma/diversidad): iniciativas de diversidad e inclusión.
 - [Abogados / Socios](${base}/attorneys/partners): directorio del equipo legal.
@@ -1741,7 +1741,6 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
         { es: '/', en: '/?lang=en', changefreq: 'weekly', priority: '1.0' },
         { es: '/nuevas-oficinas/', en: '/new-offices/', changefreq: 'monthly', priority: '0.8' },
         { es: '/acerca-de', en: '/about', changefreq: 'monthly', priority: '0.8' },
-        { es: '/nuestra-firma', en: '/our-firm', changefreq: 'monthly', priority: '0.8' },
         { es: '/nuestra-firma/probono', en: '/our-firm/our-firm-probono', changefreq: 'monthly', priority: '0.6' },
         { es: '/nuestra-firma/diversidad', en: '/our-firm/diversity', changefreq: 'monthly', priority: '0.6' },
         { es: '/capacidades', en: '/capabilities', changefreq: 'monthly', priority: '0.8' },

@@ -17,7 +17,7 @@ import * as cheerio from "cheerio";
 import { renderNewsList, renderNewsDetail } from "./renderNews";
 import { applyPublicationsSearch, renderGlobalSearch } from "./renderSearch";
 import { buildIdMaps, type IdMaps } from "./idMap";
-import { cfg, getConfigMap, seedConfigDefaults, upsertConfig, isRichTextConfigKey, isOfficeConfigKey, isConfigEnabled, invalidateConfigCache, type ConfigMap } from "./siteConfig";
+import { cfg, getConfigMap, getFirmPreviousVersion, restoreFirmPreviousVersion, seedConfigDefaults, upsertConfig, isRichTextConfigKey, isOfficeConfigKey, isConfigEnabled, invalidateConfigCache, type ConfigMap } from "./siteConfig";
 import {
   setBaseUrl,
   setAnalyticsConfig,
@@ -159,7 +159,7 @@ const PAGE_KEYS = {
 };
 const PAGE_SEO: Record<keyof typeof PAGE_KEYS, { path: { en: string; es: string }; title: { en: string; es: string } }> = {
   firm: {
-    path: { en: "/our-firm", es: "/nuestra-firma" },
+    path: { en: "/about", es: "/acerca-de" },
     title: { en: "Our Firm | Von Wobeser y Sierra", es: "Nuestra Firma | Von Wobeser y Sierra" },
   },
   contact: {
@@ -239,7 +239,7 @@ const lastWord = (name: string) => {
 // en las páginas de PAIRS, que nunca traen ?lang=en.
 const LANG_TOGGLE_SCRIPT = `<script>(function(){try{
   var PAIRS={
-    '/nuestra-firma':'/our-firm','/our-firm':'/nuestra-firma',
+    '/nuestra-firma':'/about','/our-firm':'/acerca-de',
     '/acerca-de':'/about','/about':'/acerca-de',
     '/contacto':'/contact','/contact':'/contacto',
     '/bolsa-de-trabajo':'/careers','/careers':'/bolsa-de-trabajo',
@@ -400,7 +400,9 @@ export const SEARCH_FORMS_SCRIPT = `<script>(function(){try{
 // `von.css` y `functions.min.js` son el cromo compartido de todo el espejo.
 // Se versionan desde el render para que los cambios de navegación no queden
 // ocultos detrás de los 30 días de caché de los assets estáticos.
-const NAV_ASSET_VERSION = "20260806-footer-socials-x";
+// Se incrementa junto con los estilos globales del espejo para que las
+// navegaciones existentes no conserven una tipografía previa en caché.
+const NAV_ASSET_VERSION = "20260807-home-banner-semibold-final";
 function refreshNavigationAssets(html: string): string {
   return html
     .replace(/(href=["']\/templates\/beez3\/css\/style\.css)(?:\?[^"']*)?(["'])/gi, `$1?v=${NAV_ASSET_VERSION}$2`)
@@ -440,7 +442,7 @@ export function optimizeLegacyAssets(html: string): string {
 function injectPerformanceHints(html: string): string {
   if (!html.includes("</head>")) return html;
   const hints = [
-    '<link rel="stylesheet" href="/templates/beez3/css/typography.css?v=20260804-gelasio-inter1">',
+    '<link rel="stylesheet" href="/templates/beez3/css/typography.css?v=20260807-inter-medium">',
     '<link rel="preload" href="/templates/beez3/webfont/Inter-Variable.woff2" as="font" type="font/woff2" crossorigin>',
     '<link rel="preload" href="/templates/beez3/webfont/Gelasio-Variable.woff2" as="font" type="font/woff2" crossorigin>',
   ].filter((hint) => !html.includes(hint.match(/href="([^"]+)"/)?.[1] || ""));
@@ -566,7 +568,7 @@ export function hardenLegacyClientScripts(html: string): string {
 const DOC_ACTIONS_SCRIPT = `<style id="vw-doc-actions">
 .single__meta--btns{display:flex;flex-wrap:wrap;gap:10px;margin-top:16px;align-items:center}
 .single__meta--btns br{display:none}
-.vw-doc-btn{display:inline-flex;align-items:center;gap:9px;cursor:pointer;border:1.5px solid #8a1622;background:transparent;color:#8a1622;font-family:"Inter",sans-serif;font-size:12px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;line-height:1;padding:11px 20px;border-radius:999px;transition:background-color .25s ease,color .25s ease,border-color .25s ease}
+.vw-doc-btn{display:inline-flex;align-items:center;gap:9px;cursor:pointer;border:1.5px solid #8a1622;background:transparent;color:#8a1622;font-family:"Inter",sans-serif;font-size:12px;font-weight:500;letter-spacing:1.5px;text-transform:uppercase;line-height:1;padding:11px 20px;border-radius:999px;transition:background-color .25s ease,color .25s ease,border-color .25s ease}
 .vw-doc-btn svg{width:16px;height:16px;flex:0 0 auto;display:block}
 .vw-doc-btn:hover,.vw-doc-btn:focus-visible{background:#8a1622;color:#fff;border-color:#8a1622}
 .vw-doc-btn:focus-visible{outline:2px solid #8a1622;outline-offset:3px}
@@ -766,7 +768,7 @@ export function navigationLabelsScript(
     var identify=function(href,isSub){
       if(href.indexOf('/practicas/')>=0||href.indexOf('/practices/')>=0)return 'practices';
       if(href.indexOf('/industrias/')>=0||href.indexOf('/industries/')>=0)return 'industries';
-      if(!isSub&&(href.indexOf('/nuestra-firma/')>=0||href.indexOf('/our-firm/')>=0))return 'firm';
+      if(!isSub&&(href==='/acerca-de'||href==='/about'||href.indexOf('/nuestra-firma/')>=0||href.indexOf('/our-firm/')>=0))return 'firm';
       if(!isSub&&(href.indexOf('/abogados/')>=0||href.indexOf('/attorneys/')>=0))return 'attorneys';
       if(!isSub&&(href.indexOf('/publicaciones/')>=0||href.indexOf('/publications/')>=0))return 'publications';
       if(!isSub&&(href.indexOf('/bolsa-de-trabajo/')>=0||href.indexOf('/careers/')>=0))return 'careers';
@@ -1662,10 +1664,12 @@ export async function setupMirror(app: Express) {
     ["/index.php/home/index.html", "/", "es"],
     ["/index.html", "/", undefined],
     ["/index.php/index.html", "/", undefined],
-    ["/index.php/nuestra-firma/index.html", "/nuestra-firma", "es"],
-    ["/index.php/nuestra-firma/", "/nuestra-firma", "es"],
-    ["/index.php/our-firm/index.html", "/our-firm", "en"],
-    ["/index.php/our-firm/", "/our-firm", "en"],
+    ["/index.php/nuestra-firma", "/acerca-de", "es"],
+    ["/index.php/nuestra-firma/index.html", "/acerca-de", "es"],
+    ["/index.php/nuestra-firma/", "/acerca-de", "es"],
+    ["/index.php/our-firm", "/about", "en"],
+    ["/index.php/our-firm/index.html", "/about", "en"],
+    ["/index.php/our-firm/", "/about", "en"],
     ["/index.php/contacto/index.html", "/contacto", "es"],
     ["/index.php/contacto/", "/contacto", "es"],
     ["/index.php/contact/index.html", "/contact", "en"],
@@ -1751,18 +1755,19 @@ export async function setupMirror(app: Express) {
     redirectLegacy(`/attorneys/${ES_CATEGORY[req.params.category] || req.params.category}`, "es")(req, res),
   );
 
-  // ---------- Páginas institucionales (texto editable desde el panel) ----
-  // Landing-resumen independiente: solo se enlaza desde el video del home.
+  // ---------- Landing institucional (texto editable desde el panel) --------
+  // El menú y el video del home comparten estas rutas canónicas.
   for (const p of ["/acerca-de", "/acerca-de/"])
     app.get(p, wrap((_req, res) => serveFirmLanding("es", res)));
   for (const p of ["/about", "/about/"])
     app.get(p, wrap((_req, res) => serveFirmLanding("en", res)));
 
-  // Variantes originales de Nuestra Firma: recuperan el diseño previo del espejo.
-  for (const p of ["/index.php/nuestra-firma/index.html", "/index.php/nuestra-firma/", "/nuestra-firma"])
-    app.get(p, wrap((_req, res) => servePage("firm", "es", res)));
-  for (const p of ["/index.php/our-firm/index.html", "/index.php/our-firm/", "/our-firm"])
-    app.get(p, wrap((_req, res) => servePage("firm", "en", res)));
+  // Las raíces antiguas no vuelven a renderizar la página previa. Redirigen en
+  // un único salto; las subpáginas de Pro Bono y Diversidad siguen registradas abajo.
+  for (const p of ["/nuestra-firma", "/nuestra-firma/"])
+    app.get(p, redirectLegacy("/acerca-de", "es"));
+  for (const p of ["/our-firm", "/our-firm/"])
+    app.get(p, redirectLegacy("/about", "en"));
   for (const p of ["/index.php/contacto/index.html", "/index.php/contacto/", "/contacto"])
     app.get(p, wrap((_req, res) => servePage("contact", "es", res)));
   for (const p of ["/index.php/contact/index.html", "/index.php/contact/", "/contact"])
@@ -2022,7 +2027,7 @@ export async function setupMirror(app: Express) {
 
   // ---------- Admin: navegación pública y visibilidad ------------------
   const navigationItems = [
-    { id: "firm", key: "nav_firm", pathEs: "/nuestra-firma", pathEn: "/our-firm" },
+    { id: "firm", key: "nav_firm", pathEs: "/acerca-de", pathEn: "/about" },
     { id: "attorneys", key: "nav_attorneys", pathEs: "/attorneys", pathEn: "/attorneys?lang=en" },
     { id: "practices", key: "nav_practices", pathEs: "/capacidades/practicas", pathEn: "/capabilities/practices" },
     { id: "industries", key: "nav_industries", pathEs: "/capacidades/industrias", pathEn: "/capabilities/industries" },
@@ -2117,6 +2122,35 @@ export async function setupMirror(app: Express) {
   // ---------- Admin: editable site config (texts, hero video, etc.) -----
   app.get("/api/admin/site-config", authMiddleware, requirePermission("config"), wrap(async (_req, res) => {
     res.json(await getConfigMap());
+  }));
+  // La versión anterior se conserva exclusivamente como respaldo editorial. Esta
+  // previsualización requiere sesión administrativa y se marca explícitamente
+  // como no indexable para que nunca vuelva a convertirse en una ruta pública.
+  app.get("/api/admin/site-config/firma/previous-version/preview", authMiddleware, requirePermission("config"), wrap(async (req, res) => {
+    const previous = await getFirmPreviousVersion();
+    if (!previous) {
+      res.status(404).json({ error: "No existe una versión anterior disponible." });
+      return;
+    }
+    const lang: Lang = req.query.lang === "en" ? "en" : "es";
+    const pick = (key: string) => {
+      const content = previous.content[key];
+      return escHtml(lang === "es" ? content?.valueEs : content?.value).replace(/\n/g, "<br>");
+    };
+    res.set("X-Robots-Tag", "noindex, nofollow, noarchive");
+    res.type("html").send(`<!doctype html><html lang="${lang}"><head><meta charset="utf-8"><meta name="robots" content="noindex,nofollow,noarchive"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${lang === "es" ? "Versión anterior — Nuestra Firma" : "Previous version — Our Firm"}</title><style>body{margin:0;background:#f6f6f4;color:#3f3f3f;font-family:Inter,sans-serif}.vw-preview{max-width:940px;margin:0 auto;padding:56px 28px 72px}.vw-preview__eyebrow{margin:0 0 20px;color:#b71932;font-size:12px;font-weight:500;letter-spacing:.2em;text-transform:uppercase}.vw-preview h1{margin:0 0 34px;font:400 clamp(2.3rem,6vw,4.8rem)/1.02 Gelasio,serif;color:#333}.vw-preview__copy{max-width:760px;font-size:1.1rem;line-height:1.7}.vw-preview__copy p{margin:0 0 24px}</style></head><body><main class="vw-preview"><p class="vw-preview__eyebrow">${lang === "es" ? "Vista interna no indexable" : "Internal, non-indexable preview"}</p><h1>${lang === "es" ? "Versión anterior" : "Previous version"}</h1><section class="vw-preview__copy"><p>${pick("firm_landing_history_intro")}</p><p>${pick("firm_landing_history_body")}</p></section></main></body></html>`);
+  }));
+  app.post("/api/admin/site-config/firma/restore-previous", authMiddleware, requirePermission("config"), wrap(async (req, res) => {
+    if (req.body?.confirm !== true) {
+      res.status(400).json({ error: "Confirma la restauración de la versión anterior." });
+      return;
+    }
+    if (!await restoreFirmPreviousVersion()) {
+      res.status(404).json({ error: "No existe una versión anterior disponible." });
+      return;
+    }
+    invalidatePublicPageCache();
+    res.json({ ok: true });
   }));
   app.get("/api/admin/cookie-consent", authMiddleware, requirePermission("config"), wrap(async (_req, res) => {
     res.json(await getCookieConsentConfig());

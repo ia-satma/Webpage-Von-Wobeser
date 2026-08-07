@@ -4,6 +4,20 @@ export default {
   darkMode: ["class"],
   content: ["./client/index.html", "./client/src/**/*.{js,jsx,ts,tsx}"],
   theme: {
+    // Inter es la única familia de interfaz. El panel no debe generar pesos
+    // semibold/bold artificiales: todas las utilidades superiores se limitan
+    // a Medium (500), también para componentes nuevos.
+    fontWeight: {
+      thin: "400",
+      extralight: "400",
+      light: "400",
+      normal: "400",
+      medium: "500",
+      semibold: "500",
+      bold: "500",
+      extrabold: "500",
+      black: "500",
+    },
     extend: {
       borderRadius: {
         // Escala coherente del PANEL ADMIN derivada de --radius (8px). El sitio público mantiene

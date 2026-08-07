@@ -132,7 +132,7 @@ export function renderNewsList(
     const parts: string[] = [];
     if (page > 1) parts.push(`<a class="pagination__item" href="${linkPage(page - 1)}">‹ ${lang === "es" ? "Anterior" : "Prev"}</a>`);
     const from = Math.max(1, page - 2), to = Math.min(totalPages, page + 2);
-    for (let p = from; p <= to; p++) parts.push(`<a class="pagination__item${p === page ? " is-active" : ""}" href="${linkPage(p)}" style="${p === page ? "font-weight:bold;text-decoration:underline;" : ""}margin:0 6px;">${p}</a>`);
+    for (let p = from; p <= to; p++) parts.push(`<a class="pagination__item${p === page ? " is-active" : ""}" href="${linkPage(p)}" style="${p === page ? "font-weight:500;text-decoration:underline;" : ""}margin:0 6px;">${p}</a>`);
     if (page < totalPages) parts.push(`<a class="pagination__item" href="${linkPage(page + 1)}">${lang === "es" ? "Siguiente" : "Next"} ›</a>`);
     $(".archive__list").after(
       `<div class="pagination-dyn" style="text-align:center;padding:30px 0;font-size:14px;">${parts.join(" ")}` +

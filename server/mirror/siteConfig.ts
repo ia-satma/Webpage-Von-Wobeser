@@ -369,6 +369,102 @@ export function isOfficeConfigKey(key: string): boolean {
   return key.startsWith("office_");
 }
 
+/**
+ * Copia no pública de la configuración que alimentaba la primera landing de la
+ * firma. Se guarda una sola vez para que el cliente pueda recuperar sus textos
+ * desde administración sin volver a exponer las rutas antiguas.
+ */
+const FIRM_PREVIOUS_VERSION_KEY = "firm_landing_previous_version";
+
+type FirmPreviousVersion = {
+  capturedAt: string;
+  content: Record<string, { value: string; valueEs: string }>;
+};
+
+function parseFirmPreviousVersion(raw: string | null | undefined): FirmPreviousVersion | null {
+  if (!raw?.trim()) return null;
+  try {
+    const candidate = JSON.parse(raw) as Partial<FirmPreviousVersion>;
+    if (!candidate || typeof candidate !== "object" || !candidate.content || typeof candidate.content !== "object") return null;
+    const content = Object.fromEntries(
+      Object.entries(candidate.content).flatMap(([key, entry]) => {
+        if (!key.startsWith("firm_landing_") || !entry || typeof entry !== "object") return [];
+        const item = entry as { value?: unknown; valueEs?: unknown };
+        return [[key, { value: String(item.value ?? ""), valueEs: String(item.valueEs ?? "") }]];
+      }),
+    );
+    return Object.keys(content).length ? { capturedAt: String(candidate.capturedAt || ""), content } : null;
+  } catch {
+    return null;
+  }
+}
+
+async function ensureFirmPreviousVersion(): Promise<boolean> {
+  const [existing] = await db.select({ value: siteConfig.value }).from(siteConfig).where(eq(siteConfig.key, FIRM_PREVIOUS_VERSION_KEY));
+  // Un respaldo existente nunca se reemplaza: aunque un valor histórico fuese
+  // inválido, conservarlo es más seguro que destruir la única copia disponible.
+  if (existing) return false;
+
+  const rows = await db.select().from(siteConfig);
+  const content = Object.fromEntries(
+    rows
+      .filter((row) => row.key.startsWith("firm_landing_") && row.key !== FIRM_PREVIOUS_VERSION_KEY)
+      .map((row) => [row.key, { value: row.value ?? "", valueEs: row.valueEs ?? "" }]),
+  );
+  if (!Object.keys(content).length) return false;
+
+  await db.insert(siteConfig).values({
+    key: FIRM_PREVIOUS_VERSION_KEY,
+    value: JSON.stringify({ capturedAt: new Date().toISOString(), content } satisfies FirmPreviousVersion),
+    valueEs: "",
+    type: "json",
+    category: "firm",
+    description: "Respaldo interno de la versión anterior de la landing institucional",
+  }).onConflictDoNothing({ target: siteConfig.key });
+  return true;
+}
+
+export async function getFirmPreviousVersion(): Promise<FirmPreviousVersion | null> {
+  const [row] = await db.select({ value: siteConfig.value }).from(siteConfig).where(eq(siteConfig.key, FIRM_PREVIOUS_VERSION_KEY));
+  return parseFirmPreviousVersion(row?.value);
+}
+
+export async function restoreFirmPreviousVersion(): Promise<boolean> {
+  const previous = await getFirmPreviousVersion();
+  if (!previous) return false;
+  await db.transaction(async (tx) => {
+    for (const [key, content] of Object.entries(previous.content)) {
+      await tx.update(siteConfig)
+        .set({ value: content.value, valueEs: content.valueEs, updatedAt: new Date() })
+        .where(eq(siteConfig.key, key));
+    }
+    // La landing canónica ahora muestra page_firm_*. Al restaurar una versión
+    // anterior, reflejamos su historia también en estos dos campos sin volver a
+    // publicar las rutas anteriores.
+    for (const [legacyKey, activeKey] of [
+      ["firm_landing_history_intro", "page_firm_intro"],
+      ["firm_landing_history_body", "page_firm_body"],
+    ] as const) {
+      const content = previous.content[legacyKey];
+      if (!content) continue;
+      await tx.insert(siteConfig).values({
+        key: activeKey,
+        value: content.value,
+        valueEs: content.valueEs,
+        type: "text",
+        category: "pages",
+        description: "Nuestra Firma — contenido restaurado desde la versión anterior",
+        updatedAt: new Date(),
+      }).onConflictDoUpdate({
+        target: siteConfig.key,
+        set: { value: content.value, valueEs: content.valueEs, updatedAt: new Date() },
+      });
+    }
+  });
+  invalidateConfigCache();
+  return true;
+}
+
 // Caché en memoria del site-config: antes se hacía SELECT * en CADA render del
 // espejo. Se cachea con TTL corto y se invalida al escribir (upsert/seed).
 let _configCache: { map: ConfigMap; at: number } | null = null;
@@ -398,6 +494,10 @@ export async function seedConfigDefaults(): Promise<void> {
       missing.map((d) => ({ key: d.key, value: d.value, valueEs: d.valueEs ?? d.value, type: d.type, category: d.category, description: d.description })),
     );
   }
+
+  // Debe ejecutarse antes de cualquier normalización de la landing. Así la copia
+  // conserva exactamente la versión que el público veía antes de consolidarla.
+  const firmPreviousVersionCreated = await ensureFirmPreviousVersion();
 
   // Publica el video 2026 entregado por el cliente únicamente cuando cada campo
   // conserva un recurso predeterminado anterior. Los medios personalizados que
@@ -579,7 +679,7 @@ export async function seedConfigDefaults(): Promise<void> {
     newsletterCopyUpdated = true;
   }
 
-  if (missing.length || heroMediaUpdated || footerUpdated || heroLinkUpdated || landingRouteUpdated || firmCopyUpdated || rankingTitleUpdated || newsletterCopyUpdated) invalidateConfigCache();
+  if (missing.length || firmPreviousVersionCreated || heroMediaUpdated || footerUpdated || heroLinkUpdated || landingRouteUpdated || firmCopyUpdated || rankingTitleUpdated || newsletterCopyUpdated) invalidateConfigCache();
 }
 
 /** Upsert one key (used by the admin endpoint). */

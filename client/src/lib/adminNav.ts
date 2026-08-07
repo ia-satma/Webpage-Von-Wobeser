@@ -88,7 +88,6 @@ export const ADMIN_NAV_GROUPS: AdminNavGroup[] = [
     items: [
       { href: "/admin/site-config", label: "Portada", icon: Settings, requires: "config" },
       { href: "/admin/site-config/firma", label: "Nuestra Firma", icon: Landmark, requires: "config" },
-      { href: "/admin/site-config/resumen-firma", label: "Resumen institucional", icon: Sparkles, requires: "config" },
       { href: "/admin/team", label: "Abogados y equipo", icon: Users },
       { href: "/admin/practice-groups", label: "Prácticas", icon: Briefcase },
       { href: "/admin/industry-groups", label: "Grupos por industria", icon: Building2 },

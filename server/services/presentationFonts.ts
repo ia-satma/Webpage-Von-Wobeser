@@ -26,9 +26,12 @@ const PRESENTATION_FONTS: Array<{
     pitchFamily: '34',
     styles: {
       regular: TYPOGRAPHY_ASSETS.interRegular,
-      bold: TYPOGRAPHY_ASSETS.interBold,
+      // PowerPoint conserva las cuatro referencias OOXML, pero el contenido
+      // nuevo reutiliza Regular/Italic en las variantes bold para cumplir el
+      // límite tipográfico de Inter Medium (500) sin sustituciones externas.
+      bold: TYPOGRAPHY_ASSETS.interRegular,
       italic: TYPOGRAPHY_ASSETS.interItalic,
-      boldItalic: TYPOGRAPHY_ASSETS.interBoldItalic,
+      boldItalic: TYPOGRAPHY_ASSETS.interItalic,
     },
   },
 ];

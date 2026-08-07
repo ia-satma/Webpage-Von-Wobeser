@@ -498,21 +498,26 @@ const PAGES: Record<string, SiteConfigPage> = {
   },
 };
 
-// El resumen conserva en la base los bloques extensos de la primera propuesta, pero
-// el panel muestra únicamente lo que realmente se renderiza en la landing breve.
-const firmSummaryPage = PAGES["resumen-firma"];
-const firmSummaryLinkGroup: FieldGroup = {
-  title: "Enlaces finales",
-  fields: firmSummaryPage.groups[6].fields.filter((field) => field.key.startsWith("firm_landing_cta_")),
+// La landing institucional y "Nuestra Firma" comparten un único editor. La ruta
+// anterior se conserva únicamente como alias interno para enlaces administrativos
+// existentes, pero ya no presenta una segunda configuración.
+const firmLandingPage = PAGES["resumen-firma"];
+PAGES.firma = {
+  ...PAGES.firma,
+  description: "Edita la landing institucional, su contenido bilingüe, medios, secciones, enlaces y SEO desde un solo lugar.",
+  groups: firmLandingPage.groups.map((group) => ({
+    ...group,
+    fields: group.fields.map((field) => {
+      if (field.key === "firm_landing_history_intro") {
+        return { ...field, key: "page_firm_intro", label: "Introducción institucional", rows: 6 };
+      }
+      if (field.key === "firm_landing_history_body") {
+        return { ...field, key: "page_firm_body", label: "Presentación institucional", rows: 9 };
+      }
+      return field;
+    }),
+  })),
 };
-firmSummaryPage.groups = [
-  firmSummaryPage.groups[0],
-  firmSummaryPage.groups[1],
-  firmSummaryPage.groups[2],
-  firmSummaryPage.groups[3],
-  firmSummaryLinkGroup,
-  firmSummaryPage.groups[7],
-];
 
 type ConfigMap = Record<string, { value: string; valueEs: string; type: string }>;
 type CarouselGroup = {
@@ -525,17 +530,20 @@ type CarouselGroup = {
   published?: boolean | null;
 };
 const HOME_TAB_LABELS = ["Inicio", "Carruseles", "Contenido editorial", "Newsletter", "Noticias"];
-const FIRM_TAB_LABELS = ["Hero", "Resumen", "Cifras", "Valores", "Enlaces", "SEO"];
+const FIRM_TAB_LABELS = ["Hero", "Historia", "Cifras", "Valores", "Cultura", "Diversidad y reconocimientos", "Pro Bono y Carrera", "SEO"];
 
 export default function AdminSiteConfig() {
   const { isAuthenticated, isLoading: authLoading } = useAdminAuth();
   const [, setLocation] = useLocation();
   const { section: rawSection } = useParams<{ section?: string }>();
-  const section = rawSection && PAGES[rawSection] ? rawSection : "portada";
+  const section = rawSection === "resumen-firma"
+    ? "firma"
+    : rawSection && PAGES[rawSection] ? rawSection : "portada";
   const page = PAGES[section];
   const { toast } = useToast();
   const [draft, setDraft] = useState<Record<string, { value: string; valueEs: string }>>({});
   const [saving, setSaving] = useState<string | null>(null);
+  const [restoringPreviousFirm, setRestoringPreviousFirm] = useState(false);
   const [confirm, setConfirm] = useState<{ key: string; changes: Change[] } | null>(null);
   const [homeTab, setHomeTab] = useState("0");
 
@@ -543,6 +551,10 @@ export default function AdminSiteConfig() {
     // Only redirect once auth has finished loading (avoids a flash-redirect).
     if (!authLoading && !isAuthenticated) setLocation("/admin/login");
   }, [authLoading, isAuthenticated, setLocation]);
+
+  useEffect(() => {
+    if (rawSection === "resumen-firma") setLocation("/admin/site-config/firma");
+  }, [rawSection, setLocation]);
 
   useEffect(() => setHomeTab("0"), [section]);
 
@@ -849,25 +861,61 @@ export default function AdminSiteConfig() {
     </Card>
   );
 
+  const restorePreviousFirmVersion = async () => {
+    if (!data?.firm_landing_previous_version?.value) return;
+    if (!window.confirm("¿Restaurar los textos de la versión anterior? La landing pública conservará sus rutas actuales.")) return;
+    setRestoringPreviousFirm(true);
+    try {
+      const response = await adminApiRequest("POST", "/api/admin/site-config/firma/restore-previous", { confirm: true });
+      const payload = await response.json().catch(() => null);
+      if (!response.ok) throw new Error(payload?.error || "No se pudo restaurar la versión anterior.");
+      setDraft({});
+      await refetch();
+      toast({ title: "Versión anterior restaurada", description: "Los textos se reflejaron en la landing institucional; las rutas antiguas siguen redirigiendo." });
+    } catch (error) {
+      toast({ title: "No se pudo restaurar", description: error instanceof Error ? error.message : "Inténtalo de nuevo.", variant: "destructive" });
+    } finally {
+      setRestoringPreviousFirm(false);
+    }
+  };
+
   const renderFirmPreview = () => (
     <Card className="mb-5">
       <CardHeader>
-        <CardTitle className="text-base">Previsualizar resumen institucional</CardTitle>
+        <CardTitle className="text-base">Landing institucional</CardTitle>
         <CardDescription>
           Revisa la landing pública en ambos idiomas. Los textos, medios y visibilidad guardados se reflejan de inmediato.
         </CardDescription>
       </CardHeader>
-      <CardContent className="flex flex-wrap gap-2">
-        <Button asChild variant="outline" size="sm">
-          <a href="/acerca-de" target="_blank" rel="noopener noreferrer">
-            Ver español <ArrowUpRight className="ml-1 h-3.5 w-3.5" />
-          </a>
-        </Button>
-        <Button asChild variant="outline" size="sm">
-          <a href="/about" target="_blank" rel="noopener noreferrer">
-            View English <ArrowUpRight className="ml-1 h-3.5 w-3.5" />
-          </a>
-        </Button>
+      <CardContent className="space-y-4">
+        <div className="flex flex-wrap gap-2">
+          <Button asChild variant="outline" size="sm">
+            <a href="/acerca-de" target="_blank" rel="noopener noreferrer">
+              Ver español <ArrowUpRight className="ml-1 h-3.5 w-3.5" />
+            </a>
+          </Button>
+          <Button asChild variant="outline" size="sm">
+            <a href="/about" target="_blank" rel="noopener noreferrer">
+              View English <ArrowUpRight className="ml-1 h-3.5 w-3.5" />
+            </a>
+          </Button>
+        </div>
+        <div className="border-t pt-4">
+          <p className="text-sm font-medium">Versión anterior</p>
+          <p className="mt-1 text-sm text-muted-foreground">Respaldo de la página anterior. La restauración recupera sus textos, pero no vuelve a publicar las rutas antiguas.</p>
+          <div className="mt-3 flex flex-wrap gap-2">
+            {data?.firm_landing_previous_version?.value ? (
+              <Button asChild variant="ghost" size="sm">
+                <a href="/api/admin/site-config/firma/previous-version/preview" target="_blank" rel="noopener noreferrer">Vista previa interna <ArrowUpRight className="ml-1 h-3.5 w-3.5" /></a>
+              </Button>
+            ) : (
+              <Button variant="ghost" size="sm" disabled>Vista previa interna <ArrowUpRight className="ml-1 h-3.5 w-3.5" /></Button>
+            )}
+            <Button variant="outline" size="sm" disabled={!data?.firm_landing_previous_version?.value || restoringPreviousFirm} onClick={restorePreviousFirmVersion}>
+              {restoringPreviousFirm && <Loader2 className="mr-1 h-3.5 w-3.5 animate-spin" />}Restaurar textos de la versión anterior
+            </Button>
+          </div>
+        </div>
       </CardContent>
     </Card>
   );
@@ -891,13 +939,13 @@ export default function AdminSiteConfig() {
 
         {isLoading ? (
           <div className="flex items-center gap-2 text-muted-foreground"><Loader2 className="h-4 w-4 animate-spin" /> Cargando…</div>
-        ) : section === "portada" || section === "resumen-firma" ? (
+        ) : section === "portada" || section === "firma" ? (
           <Tabs value={homeTab} onValueChange={setHomeTab} className="space-y-5">
-            {section === "resumen-firma" && renderFirmPreview()}
-            <TabsList className="flex h-auto w-full justify-start gap-1 overflow-x-auto p-1" aria-label={section === "resumen-firma" ? "Secciones del resumen institucional" : "Secciones de la portada"}>
+            {section === "firma" && renderFirmPreview()}
+            <TabsList className="flex h-auto w-full justify-start gap-1 overflow-x-auto p-1" aria-label={section === "firma" ? "Secciones de Nuestra Firma" : "Secciones de la portada"}>
               {page.groups.map((group, i) => (
                 <TabsTrigger key={group.title ?? i} value={String(i)} className="shrink-0" data-testid={`tab-home-${i}`}>
-                  {(section === "resumen-firma" ? FIRM_TAB_LABELS : HOME_TAB_LABELS)[i] || group.title || `Sección ${i + 1}`}
+                  {(section === "firma" ? FIRM_TAB_LABELS : HOME_TAB_LABELS)[i] || group.title || `Sección ${i + 1}`}
                 </TabsTrigger>
               ))}
             </TabsList>

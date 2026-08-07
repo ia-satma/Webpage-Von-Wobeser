@@ -265,10 +265,10 @@ export function applyContactForm(
 .vw-contact-field input[aria-invalid="true"],.vw-contact-field textarea[aria-invalid="true"]{border-color:#b51d35;box-shadow:0 0 0 2px #fff}
 .vw-contact-privacy{display:flex;align-items:flex-start;gap:12px;margin:0;background:#fff;color:#4f4f4f;padding:15px 17px;font:400 16px/1.55 var(--vw-font-ui);letter-spacing:0;text-transform:none}
 .vw-contact-privacy input{width:20px;height:20px;flex:0 0 20px;margin:2px 0 0;accent-color:#b51d35}
-.vw-contact-privacy a{color:#a5102a;font-weight:600;text-decoration:underline;text-decoration-color:#a5102a;text-decoration-thickness:2px;text-underline-offset:.2em}
+.vw-contact-privacy a{color:#a5102a;font-weight:500;text-decoration:underline;text-decoration-color:#a5102a;text-decoration-thickness:2px;text-underline-offset:.2em}
 .vw-contact-form__footer{display:flex;align-items:center;justify-content:space-between;gap:30px;padding-top:6px}
 .vw-contact-form__feedback{min-height:24px;color:#fff;font:400 15px/1.5 var(--vw-font-ui)}
-.vw-contact-form__feedback[data-state="success"]{color:#fff;font-weight:600}
+.vw-contact-form__feedback[data-state="success"]{color:#fff;font-weight:500}
 .vw-contact-form button{display:inline-flex;align-items:center;justify-content:space-between;gap:30px;min-width:220px;min-height:52px;border:0;border-radius:0;background:#b51d35;color:#fff;padding:0 24px;font:500 13px/1 var(--vw-font-ui);letter-spacing:.14em;text-transform:uppercase;cursor:pointer}
 .vw-contact-form button>span:last-child{font-size:21px;transition:transform .2s ease}
 .vw-contact-form button:hover>span:last-child,.vw-contact-form button:focus-visible>span:last-child{transform:translateX(5px)}
