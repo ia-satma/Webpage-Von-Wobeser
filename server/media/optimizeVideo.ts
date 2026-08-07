@@ -120,7 +120,7 @@ export async function generateHeroVideoVariants(
   const sourceStat = await fs.stat(sourcePath);
   const fingerprint = crypto
     .createHash("sha256")
-    .update(`hero-stream-v6-full-hd:${path.basename(sourcePath)}:${sourceStat.size}:${sourceStat.mtimeMs}`)
+    .update(`hero-stream-v7-windows-avc1:${path.basename(sourcePath)}:${sourceStat.size}:${sourceStat.mtimeMs}`)
     .digest("hex")
     .slice(0, 16);
   const desktopName = `hero-${fingerprint}-desktop.mp4`;
@@ -161,6 +161,7 @@ export async function generateHeroVideoVariants(
       "-c:v", "libx264", "-profile:v", "high", "-level", "4.1",
       "-preset", "medium", "-crf", "20", "-maxrate", "3500k", "-bufsize", "7000k",
       "-pix_fmt", "yuv420p",
+      "-tag:v", "avc1",
       "-movflags", "+faststart", temporaryDesktop,
     ]);
     await runFfmpeg([
@@ -169,6 +170,7 @@ export async function generateHeroVideoVariants(
       "-c:v", "libx264", "-profile:v", "high", "-level", "3.1",
       "-preset", "medium", "-crf", "24", "-maxrate", "650k", "-bufsize", "1300k",
       "-pix_fmt", "yuv420p",
+      "-tag:v", "avc1",
       "-movflags", "+faststart", temporaryMobile,
     ]);
     await runFfmpeg([

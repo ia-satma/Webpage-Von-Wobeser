@@ -4,7 +4,7 @@ import sanitizeHtml from "sanitize-html";
 // Conserva el formato legítimo (párrafos, enlaces, listas, énfasis) pero elimina
 // <script>, manejadores on*, iframes, y URLs javascript: — cierra el XSS almacenado.
 const OPTS: sanitizeHtml.IOptions = {
-  allowedTags: ["p", "br", "strong", "b", "em", "i", "u", "span", "a", "ul", "ol", "li", "blockquote", "h2", "h3", "h4", "h5", "h6", "img", "hr", "sub", "sup"],
+  allowedTags: ["p", "br", "strong", "b", "em", "i", "u", "span", "a", "ul", "ol", "li", "blockquote", "h2", "h3", "h4", "h5", "h6", "img", "hr", "sub", "sup", "table", "thead", "tbody", "tr", "th", "td"],
   allowedAttributes: {
     a: ["href", "target", "rel", "title"],
     img: ["src", "alt", "title"],

@@ -28,7 +28,14 @@ import {
 import { renderRichText, sanitizeCms } from "./sanitize";
 import { renderOfficeShowcase } from "./renderOfficeShowcase";
 import { applyDiversityVideoGallery } from "./diversityVideoGallery";
-import { getCachedPublicPage } from "./pageCache";
+import { getCachedPublicPage, invalidatePublicPageCache } from "./pageCache";
+import {
+  cookieConsentSchema,
+  getCookieConsentConfig,
+  publicConsentPayload,
+  saveCookieConsentConfig,
+  seedCookiePolicy,
+} from "../privacy/cookieConsent";
 import {
   isPublicPracticeSlug,
   isVisiblePublicPractice,
@@ -393,7 +400,7 @@ export const SEARCH_FORMS_SCRIPT = `<script>(function(){try{
 // `von.css` y `functions.min.js` son el cromo compartido de todo el espejo.
 // Se versionan desde el render para que los cambios de navegación no queden
 // ocultos detrás de los 30 días de caché de los assets estáticos.
-const NAV_ASSET_VERSION = "20260805-home-carousel-separator4";
+const NAV_ASSET_VERSION = "20260806-footer-socials-x";
 function refreshNavigationAssets(html: string): string {
   return html
     .replace(/(href=["']\/templates\/beez3\/css\/style\.css)(?:\?[^"']*)?(["'])/gi, `$1?v=${NAV_ASSET_VERSION}$2`)
@@ -625,6 +632,39 @@ const FOOTER_SOCIAL_ANCHORS = {
   linkedin: /<a\b[^>]*href=["']https?:\/\/[^"']*linkedin\.com[^"']*["'][^>]*>[\s\S]*?<\/a>/i,
 } as const;
 
+const FOOTER_SOCIAL_LABELS: Record<keyof typeof FOOTER_SOCIAL_ANCHORS, string> = {
+  facebook: "Facebook",
+  twitter: "X",
+  linkedin: "LinkedIn",
+};
+
+// SVG monocromos y nítidos: conservan el lenguaje sobrio del footer original,
+// pero ya no dependen de los PNG históricos de 22 px. `currentColor` permite
+// una respuesta sutil en hover/foco sin introducir otra paleta visual.
+const FOOTER_SOCIAL_ICONS: Record<keyof typeof FOOTER_SOCIAL_ANCHORS, string> = {
+  facebook: '<svg class="vw-footer-social__icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path fill="currentColor" d="M22 12.07C22 6.51 17.52 2 12 2S2 6.51 2 12.07C2 17.1 5.66 21.28 10.44 22v-7.03H7.9v-2.9h2.54V9.85c0-2.51 1.49-3.9 3.78-3.9 1.09 0 2.24.19 2.24.19v2.47h-1.26c-1.24 0-1.63.78-1.63 1.57v1.89h2.77l-.44 2.9h-2.33V22C18.34 21.28 22 17.1 22 12.07Z"/></svg>',
+  twitter: '<svg class="vw-footer-social__icon vw-footer-social__icon--x" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path fill="currentColor" d="M18.24 2.25h3.31l-7.23 8.26 8.51 11.24h-6.66l-5.21-6.82-5.97 6.82H1.68l7.73-8.84L1.25 2.25h6.83l4.71 6.23 5.45-6.23Zm-1.16 17.52h1.84L7.08 4.13H5.12l11.96 15.64Z"/></svg>',
+  linkedin: '<svg class="vw-footer-social__icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path fill="currentColor" d="M5.34 3.5A1.84 1.84 0 1 1 5.33 7.2a1.84 1.84 0 0 1 .01-3.69ZM3.75 8.73h3.18V19H3.75V8.73Zm5.17 0h3.05v1.4h.04c.42-.81 1.46-1.66 3-1.66 3.22 0 3.81 2.12 3.81 4.87V19h-3.18v-5.02c0-1.2-.02-2.74-1.67-2.74-1.67 0-1.93 1.31-1.93 2.65V19H8.92V8.73Z"/></svg>',
+};
+
+function modernSocialHref(network: keyof typeof FOOTER_SOCIAL_ANCHORS, href: string): string {
+  if (network !== "twitter") return href;
+  try {
+    const url = new URL(href);
+    if (/^(?:www\.)?twitter\.com$/i.test(url.hostname)) url.hostname = "x.com";
+    return url.toString();
+  } catch {
+    return href;
+  }
+}
+
+function setAnchorAttribute(anchor: string, name: string, value: string): string {
+  const escaped = escHtml(value);
+  const pattern = new RegExp(`\\s${name}=(['\"])[\\s\\S]*?\\1`, "i");
+  if (pattern.test(anchor)) return anchor.replace(pattern, ` ${name}="${escaped}"`);
+  return anchor.replace(/^<a\b/i, `<a ${name}="${escaped}"`);
+}
+
 function updateFooterSocial(
   html: string,
   network: keyof typeof FOOTER_SOCIAL_ANCHORS,
@@ -634,8 +674,15 @@ function updateFooterSocial(
   const pattern = FOOTER_SOCIAL_ANCHORS[network];
   return html.replace(pattern, (anchor) => {
     if (!visible) return "";
-    if (!href) return anchor;
-    return anchor.replace(/\bhref=(["'])[^"']*\1/i, `href="${escHtml(href)}"`);
+    const configuredHref = modernSocialHref(network, href || anchor.match(/\bhref=(["'])([^"']*)\1/i)?.[2] || "");
+    let normalized = anchor;
+    if (configuredHref) normalized = setAnchorAttribute(normalized, "href", configuredHref);
+    normalized = setAnchorAttribute(normalized, "class", `vw-footer-social vw-footer-social--${network === "twitter" ? "x" : network}`);
+    normalized = setAnchorAttribute(normalized, "aria-label", FOOTER_SOCIAL_LABELS[network]);
+    normalized = setAnchorAttribute(normalized, "title", FOOTER_SOCIAL_LABELS[network]);
+    normalized = setAnchorAttribute(normalized, "target", "_blank");
+    normalized = setAnchorAttribute(normalized, "rel", "noopener noreferrer");
+    return normalized.replace(/(<a\b[^>]*>)[\s\S]*?(<\/a>)/i, `$1${FOOTER_SOCIAL_ICONS[network]}$2`);
   });
 }
 
@@ -656,7 +703,9 @@ export function injectFooterString(html: string, config: ConfigMap, lang: Lang):
       /<div\b([^>]*style=["'][^"']*width\s*:\s*90px[^"']*["'][^>]*)>(?=\s*<a\b[^>]*facebook\.com)/i,
       '<div class="vw-footer-socials"$1>',
     );
-    socialFooter = updateFooterSocial(socialFooter, "facebook", fb, isConfigEnabled(config, "footer_facebook_visible"));
+    // Facebook parte oculto incluso cuando una instalación todavía no ha
+    // sembrado la configuración. El administrador puede activarlo después.
+    socialFooter = updateFooterSocial(socialFooter, "facebook", fb, isConfigEnabled(config, "footer_facebook_visible", false));
     socialFooter = updateFooterSocial(socialFooter, "twitter", tw, isConfigEnabled(config, "footer_twitter_visible"));
     socialFooter = updateFooterSocial(socialFooter, "linkedin", ln, isConfigEnabled(config, "footer_linkedin_visible"));
     return socialFooter.replace(/<div class="vw-footer-socials"[^>]*>\s*<\/div>/i, "");
@@ -813,14 +862,23 @@ async function sendPage(res: Response, html: string, status = 200) {
   const lang: Lang = /<html\b[^>]*\blang=["']es(?:-|["'])/i.test(html) ? "es" : "en";
   const isOfficeShowcase = /<body\b[^>]*\boffice-showcase\b/i.test(html);
   let config: ConfigMap = {};
+  let consentConfigScript = "";
   let navigationItems: PublicNavigationMenu = { practices: [], industries: [] };
-  const [configResult, navigationResult] = await Promise.allSettled([
+  const [configResult, navigationResult, consentResult] = await Promise.allSettled([
     getConfigMap(),
     getPublicNavigationMenu(lang),
+    getCookieConsentConfig(),
   ]);
   if (configResult.status === "fulfilled") config = configResult.value;
   if (navigationResult.status === "fulfilled") navigationItems = navigationResult.value;
-  const inject = `${navigationLabelsScript(config, lang, navigationItems)}${LANG_TOGGLE_SCRIPT}${SEARCH_FORMS_SCRIPT}${DOC_ACTIONS_SCRIPT}`;
+  if (consentResult.status === "fulfilled") {
+    const serialized = JSON.stringify(publicConsentPayload(consentResult.value))
+      .replace(/</g, "\\u003c")
+      .replace(/\u2028/g, "\\u2028")
+      .replace(/\u2029/g, "\\u2029");
+    consentConfigScript = `<script>window.__VWB_COOKIE_CONSENT_CONFIG__=${serialized};</script>`;
+  }
+  const inject = `${consentConfigScript}${navigationLabelsScript(config, lang, navigationItems)}${LANG_TOGGLE_SCRIPT}${SEARCH_FORMS_SCRIPT}${DOC_ACTIONS_SCRIPT}`;
   let out = normalizeLegacyTypography(hardenLegacyClientScripts(
     stripRetiredDeskLinks(refreshNavigationAssets(optimizeLegacyAssets(html))),
   ));
@@ -1028,6 +1086,7 @@ export async function setupMirror(app: Express) {
   try {
     if (process.env.SECURITY_READ_ONLY_SMOKE !== "true" && !isMigrationReadOnlyEnabled()) {
       await seedConfigDefaults();
+      await seedCookiePolicy();
       await ensureOfficeShowcaseData();
       await ensureHomeContentData();
     }
@@ -1483,6 +1542,21 @@ export async function setupMirror(app: Express) {
       .set("Cache-Control", "public, max-age=60, stale-while-revalidate=300")
       .json(await getPublicNavigationMenu(langOf(req)));
   }));
+  app.get("/api/public/consent-config", wrap(async (_req, res) => {
+    const payload = publicConsentPayload(await getCookieConsentConfig());
+    res.set("Cache-Control", "public, max-age=60, stale-while-revalidate=300").json(payload);
+  }));
+  app.get("/vwb-cookie-consent-config.js", wrap(async (_req, res) => {
+    const payload = publicConsentPayload(await getCookieConsentConfig());
+    const serialized = JSON.stringify(payload)
+      .replace(/</g, "\\u003c")
+      .replace(/\u2028/g, "\\u2028")
+      .replace(/\u2029/g, "\\u2029");
+    res
+      .type("application/javascript")
+      .set("Cache-Control", "public, max-age=60, stale-while-revalidate=300")
+      .send(`window.__VWB_COOKIE_CONSENT_CONFIG__=${serialized};`);
+  }));
   app.get("/", wrap((req, res) => serveHome(langOf(req), res, typeof req.query.preview === "string")));
   app.get("/home", wrap((req, res) => serveHome(langOf(req), res, typeof req.query.preview === "string")));
   app.get("/nuevas-oficinas", wrap((_req, res) => serveOfficeShowcase("es", res)));
@@ -1717,6 +1791,60 @@ export async function setupMirror(app: Express) {
     app.get(p, wrap((_req, res) => servePage("privacy", "es", res)));
   for (const p of ["/index.php/privacy/index.html", "/index.php/privacy/", "/privacy"])
     app.get(p, wrap((_req, res) => servePage("privacy", "en", res)));
+  const serveCookiePolicy = async (lang: Lang, res: Response) => {
+    const [config, consent] = await Promise.all([getConfigMap(), getCookieConsentConfig()]);
+    const policyKey = "page_privacy_body";
+    const policyConfig: ConfigMap = {
+      ...config,
+      [policyKey]: {
+        value: consent.policyContent.en,
+        valueEs: consent.policyContent.es,
+        type: "richtext",
+      },
+    };
+    const title = lang === "es" ? consent.policyTitle.es : consent.policyTitle.en;
+    sendPage(res, renderPage(
+      pick(TEMPLATES.privacy, lang),
+      policyConfig,
+      lang,
+      { body: policyKey },
+      {
+        path: lang === "es" ? "/politica-de-cookies" : "/cookie-policy",
+        alternatePaths: { es: "/politica-de-cookies", en: "/cookie-policy" },
+        title: `${title} | Von Wobeser y Sierra`,
+        description: lang === "es"
+          ? "Conoce qué cookies y tecnologías utiliza Von Wobeser y Sierra y cómo puedes administrar tu consentimiento."
+          : "Learn which cookies and technologies Von Wobeser y Sierra uses and how you can manage your consent.",
+      },
+      ($) => {
+        $("body").addClass("vwb-cookie-policy");
+        $(".page__ttl--holder span,.page__ttl--holder h1,.page__ttl--holder h2").first().text(title);
+        const $policyBody = $(".page__content--body").first();
+        const policyTableLabel = lang === "es" ? "Tecnologías y proveedores de cookies" : "Cookie technologies and providers";
+        const policyMetaLabel = lang === "es" ? "Privacidad digital" : "Digital privacy";
+        const policyVersionLabel = lang === "es" ? "Versión" : "Version";
+
+        $policyBody.addClass("vwb-cookie-policy__body");
+        $policyBody.children("p").first().addClass("vwb-cookie-policy__intro");
+        $policyBody.children("h2").addClass("vwb-cookie-policy__section-title");
+        $policyBody.children("p").last().addClass("vwb-cookie-policy__legal-note");
+        const $policyMeta = $('<div class="vwb-cookie-policy__meta"><span></span><span></span></div>');
+        $policyMeta.children().eq(0).text(policyMetaLabel);
+        $policyMeta.children().eq(1).text(`${policyVersionLabel} ${consent.version}`);
+        $policyBody.prepend($policyMeta);
+
+        const $policyTable = $policyBody.children("table").first();
+        if ($policyTable.length) {
+          $policyTable.addClass("vwb-cookie-policy__table");
+          $policyTable.wrap(
+            `<div class="vwb-cookie-policy__table-shell" role="region" tabindex="0" aria-label="${policyTableLabel}"></div>`,
+          );
+        }
+      },
+    ));
+  };
+  app.get(["/politica-de-cookies", "/politica-de-cookies/"], wrap((_req, res) => serveCookiePolicy("es", res)));
+  app.get(["/cookie-policy", "/cookie-policy/"], wrap((_req, res) => serveCookiePolicy("en", res)));
   for (const p of ["/index.php/capacidades/practicas/index.html", "/index.php/capacidades/practicas/", "/capacidades/practicas"])
     app.get(p, wrap((_req, res) => serveGroupList("practice", "es", res)));
   for (const p of ["/index.php/capabilities/practices/index.html", "/index.php/capabilities/practices/", "/capabilities/practices"])
@@ -1990,6 +2118,20 @@ export async function setupMirror(app: Express) {
   app.get("/api/admin/site-config", authMiddleware, requirePermission("config"), wrap(async (_req, res) => {
     res.json(await getConfigMap());
   }));
+  app.get("/api/admin/cookie-consent", authMiddleware, requirePermission("config"), wrap(async (_req, res) => {
+    res.json(await getCookieConsentConfig());
+  }));
+  app.put("/api/admin/cookie-consent", authMiddleware, requirePermission("config"), wrap(async (req, res) => {
+    const parsed = cookieConsentSchema.safeParse(req.body);
+    if (!parsed.success) {
+      res.status(400).json({ error: "Configuración de privacidad inválida", details: parsed.error.flatten() });
+      return;
+    }
+    const saved = await saveCookieConsentConfig(parsed.data);
+    invalidateConfigCache();
+    invalidatePublicPageCache();
+    res.json(saved);
+  }));
   app.put("/api/admin/site-config/:key", authMiddleware, requirePermission("config"), wrap(async (req, res) => {
     let { value, valueEs } = req.body || {};
     if (req.params.key === "home_news_pages") {
@@ -2018,6 +2160,11 @@ export async function setupMirror(app: Express) {
       if (normalizedEs !== undefined) valueEs = normalizedEs;
     }
     await upsertConfig(req.params.key, value ?? "", valueEs);
+    const { analyzeLinguisticText } = await import("../audits/linguisticAudit");
+    const linguisticWarnings = [
+      ...analyzeLinguisticText(value ?? "", "en").map((finding) => ({ field: "value", lang: "en", ...finding })),
+      ...analyzeLinguisticText(valueEs ?? "", "es").map((finding) => ({ field: "valueEs", lang: "es", ...finding })),
+    ];
     let favicon: string | undefined;
     if (req.params.key === "site_favicon") {
       // El cambio debe verse en la siguiente navegación sin reiniciar Replit.
@@ -2025,7 +2172,7 @@ export async function setupMirror(app: Express) {
       setFaviconConfig(value ?? "", Date.now());
       favicon = getFaviconHref();
     }
-    res.json({ ok: true, key: req.params.key, ...(favicon ? { favicon } : {}) });
+    res.json({ ok: true, key: req.params.key, linguisticWarnings, ...(favicon ? { favicon } : {}) });
   }));
 
   // ---------- Idiomas de traducción (config global + disparo con selección) --
@@ -2067,6 +2214,24 @@ export async function setupMirror(app: Express) {
     );
     res.json(result);
   }));
+
+  // El espejo registra su 404 antes de que Vite/serveStatic atienda `public/`.
+  // Por eso los recursos globales del gestor de consentimiento deben salir de
+  // forma explícita aquí; de otro modo el HTML los referencia correctamente,
+  // pero el navegador recibe un 404 y el panel nunca puede aparecer.
+  const consentAssets: Array<[string, string]> = [
+    ["/vwb-cookie-consent.css", "vwb-cookie-consent.css"],
+    ["/vwb-cookie-consent.js", "vwb-cookie-consent.js"],
+  ];
+  for (const [route, filename] of consentAssets) {
+    app.get(route, (_req, res, next) => {
+      const assetPath = path.resolve(process.cwd(), "public", filename);
+      res.setHeader("Cache-Control", "public, max-age=31536000, immutable");
+      res.sendFile(assetPath, (error) => {
+        if (error && !res.headersSent) next(error);
+      });
+    });
+  }
 
   // Backstop para cualquier captura HTML histórica que no tenga todavía una
   // ruta dinámica o redirección específica. A diferencia de express.static,

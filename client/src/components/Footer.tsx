@@ -761,9 +761,10 @@ export default function Footer() {
                 {t.terms}
               </Link>
               <button
-                onClick={() => localStorage.removeItem('vwb_cookie_consent')}
+                onClick={() => window.dispatchEvent(new CustomEvent('vwb:open-cookie-preferences'))}
                 className="inline-flex items-center min-h-[44px] px-2 text-xs text-white/40 hover:text-white transition-colors touch-manipulation"
                 data-testid="button-cookies"
+                data-vwb-cookie-preferences="true"
                 aria-label={t.cookiesLabel}
               >
                 {t.cookies}

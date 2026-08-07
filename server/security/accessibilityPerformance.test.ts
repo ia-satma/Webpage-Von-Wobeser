@@ -286,7 +286,10 @@ test("la portada nombra los cuatro carruseles y aplica contraste AA al módulo d
   assert.equal($("#video_header source").eq(0).attr("media"), "(max-width: 680px)");
   assert.equal($("#video_header source").eq(1).attr("src"), "/images/hero-092c5875ed80af62-desktop.mp4");
   assert.equal($("#video_header source").eq(1).attr("type"), "video/mp4");
-  assert.equal($("#video_header").attr("autoplay"), undefined);
+  assert.equal($("#video_header").attr("autoplay"), "autoplay");
+  assert.equal($("[data-vw-home-video-retry] span").last().text().trim(), "Reproducir video");
+  assert.match(html, /video\.defaultMuted=true/);
+  assert.match(html, /promise\.catch\(showRetry\)/);
   assert.match($(".home__hero").attr("style") || "", /hero-092c5875ed80af62-poster\.webp/);
   assert.equal($('link[rel="preload"][href="/images/hero-092c5875ed80af62-poster.webp"]').attr("fetchpriority"), "high");
   assert.equal($(".home_slider_JS").eq(0).find(".vw-lazy-bg").attr("style"), undefined);
@@ -334,6 +337,13 @@ test("el recurso compartido corrige también HTML legacy antes de inicializar el
   assert.match(functions, /swipe: !0/);
   assert.match(functions, /draggable: !0/);
   assert.match(functions, /touchMove: !0/);
+  assert.match(functions, /function installHistoryNavigationRecovery\(\)/);
+  assert.match(functions, /addEventListener\("pagehide", resetPageTransition\)/);
+  assert.match(functions, /addEventListener\("pageshow", resetPageTransition\)/);
+  assert.match(functions, /addEventListener\("popstate", resetPageTransition\)/);
+  assert.match(functions, /\.stop\(!0, !0\)\.hide\(\)\.attr\("aria-hidden", "true"\)/);
+  assert.match(functions, /e\.metaKey \|\| e\.ctrlKey \|\| e\.shiftKey \|\| e\.altKey/);
+  assert.match(functions, /t\.origin !== window\.location\.origin/);
   assert.ok(functions.indexOf("normalizeSharedChromeA11y()") < functions.lastIndexOf("menuToggle()"));
   assert.match(css, /\.header \.eyeglass:focus-visible/);
   assert.match(css, /nav\.nav\.menu_JS \.nav__menu--holder[\s\S]*list-style: none/);

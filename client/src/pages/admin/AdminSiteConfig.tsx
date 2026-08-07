@@ -142,8 +142,8 @@ const PAGES: Record<string, SiteConfigPage> = {
         fields: [
           { key: "footer_facebook_visible", label: "Mostrar Facebook", control: "switch", help: "Puedes ocultarlo sin borrar ni modificar su enlace." },
           { key: "footer_facebook", label: "Facebook (URL)" },
-          { key: "footer_twitter_visible", label: "Mostrar X / Twitter", control: "switch", help: "Puedes ocultarlo sin borrar ni modificar su enlace." },
-          { key: "footer_twitter", label: "Twitter / X (URL)" },
+          { key: "footer_twitter_visible", label: "Mostrar X", control: "switch", help: "Puedes ocultarlo sin borrar ni modificar su enlace." },
+          { key: "footer_twitter", label: "X (URL)" },
           { key: "footer_linkedin_visible", label: "Mostrar LinkedIn", control: "switch", help: "Puedes ocultarlo sin borrar ni modificar su enlace." },
           { key: "footer_linkedin", label: "LinkedIn (URL)" },
         ],

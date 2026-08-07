@@ -24,8 +24,8 @@ test("el Home usa una fachada privada para YouTube sin cargarlo como archivo", a
   const $ = cheerio.load(html);
   const facade = $("[data-vw-home-video-facade]");
   assert.equal(facade.length, 1);
-  assert.match(facade.attr("data-desktop-embed") || "", /^https:\/\/www\.youtube-nocookie\.com\/embed\/dQw4w9WgXcQ/);
-  assert.match(facade.attr("data-mobile-embed") || "", /^https:\/\/player\.vimeo\.com\/video\/76979871/);
+  assert.match(facade.attr("data-vwb-consent-desktop-embed") || "", /^https:\/\/www\.youtube-nocookie\.com\/embed\/dQw4w9WgXcQ/);
+  assert.match(facade.attr("data-vwb-consent-mobile-embed") || "", /^https:\/\/player\.vimeo\.com\/video\/76979871/);
   assert.equal($("#video_header").length, 0);
   assert.equal($("iframe").length, 0, "el proveedor no debe cargarse hasta que el usuario pulse reproducir");
   assert.match(html, /data-vw-home-video-play/);
@@ -49,7 +49,30 @@ test("el Home conserva video nativo y enlace institucional para archivos", async
   assert.equal($("#video_header source").length, 2);
   assert.equal($("#video_header source").first().attr("src"), "/uploads/video/mobile.webm");
   assert.equal($("#video_header").parent("a").attr("href"), "/acerca-de");
+  assert.equal($("#video_header").attr("autoplay"), "autoplay");
+  assert.equal($("#video_header").attr("muted"), "");
+  assert.equal($("[data-vw-home-video-retry]").length, 1);
   assert.equal($("[data-vw-home-video-facade]").length, 0);
+});
+
+test("el video nativo ofrece recuperación cuando Edge o Brave bloquean autoplay", async () => {
+  const { renderHome } = await import("../mirror/renderHome");
+  const template = `<!doctype html><html><head></head><body>
+    <div class="home__hero"><a href="/old"><video id="video_header"></video></a></div>
+    <div class="home__desk"></div>
+  </body></html>`;
+  const html = renderHome(template, [], {
+    hero_video: entry("/images/desktop.mp4"),
+    hero_video_mobile: entry("/images/mobile.mp4"),
+    hero_video_poster: entry("/images/poster.webp"),
+  }, "en");
+  const $ = cheerio.load(html);
+
+  assert.equal($("[data-vw-home-video-retry] span").last().text().trim(), "Play video");
+  assert.match(html, /navigator\.connection&&navigator\.connection\.saveData/);
+  assert.match(html, /prefers-reduced-motion: reduce/);
+  assert.match(html, /video\.preload='auto'/);
+  assert.doesNotMatch(html, /#video_header\{display:none\}/);
 });
 
 test("Diversidad alterna de forma segura entre archivo, YouTube y Vimeo", () => {

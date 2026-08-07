@@ -22,12 +22,13 @@ const footer = `<footer>
   </div>
 </footer>`;
 
-test("las redes del footer permanecen visibles cuando no existe configuración", () => {
+test("Facebook permanece oculto por defecto y las demás redes siguen visibles", () => {
   const rendered = injectFooterString(footer, {}, "es");
   const $ = cheerio.load(rendered);
 
-  assert.equal($(".vw-footer-socials a").length, 3);
-  assert.equal(isConfigEnabled({}, "footer_facebook_visible"), true);
+  assert.equal($(".vw-footer-socials a").length, 2);
+  assert.equal($(".vw-footer-social--facebook").length, 0);
+  assert.equal(isConfigEnabled({}, "footer_facebook_visible", false), false);
 });
 
 test("cada red puede ocultarse sin modificar los enlaces de las demás", () => {
@@ -46,6 +47,21 @@ test("cada red puede ocultarse sin modificar los enlaces de las demás", () => {
   assert.equal($('a[href="https://x.com/VWySOficial"]').length, 1);
   assert.equal($('a[href*="linkedin.com/company/von-wobeser"]').length, 1);
   assert.equal($(".vw-footer-socials a").length, 2);
+  assert.equal($(".vw-footer-social--x svg").length, 1);
+  assert.equal($(".vw-footer-social--x img").length, 0);
+  assert.equal($(".vw-footer-social--x").attr("aria-label"), "X");
+  assert.equal($(".vw-footer-social--x").attr("rel"), "noopener noreferrer");
+});
+
+test("los iconos históricos se sustituyen por SVG nítidos y Twitter usa X", () => {
+  const rendered = injectFooterString(footer, config({ footer_facebook_visible: "true" }), "es");
+  const $ = cheerio.load(rendered);
+
+  assert.equal($(".vw-footer-socials img").length, 0);
+  assert.equal($(".vw-footer-socials svg").length, 3);
+  assert.equal($(".vw-footer-social--facebook").attr("aria-label"), "Facebook");
+  assert.equal($(".vw-footer-social--linkedin").attr("aria-label"), "LinkedIn");
+  assert.equal($(".vw-footer-social--x").attr("href"), "https://x.com/original");
 });
 
 test("el contenedor social desaparece cuando las tres redes están ocultas", () => {

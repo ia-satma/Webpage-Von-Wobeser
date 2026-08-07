@@ -44,6 +44,11 @@ export function renderPage(
 
   $("html").attr("lang", lang === "es" ? "es-mx" : "en-gb");
 
+  // Los módulos de Contacto, Diversidad y Oficinas pueden insertar mapas o videos.
+  // Deben existir antes de applySeo/applyA11y para que el gestor de consentimiento
+  // retire sus `src` externos antes de entregar el HTML al navegador.
+  postProcess?.($);
+
   if (meta) {
     const fallbackDesc = clip($(".page__content--intro").first().text()) || undefined;
     applySeo($, {
@@ -64,6 +69,5 @@ export function renderPage(
       ],
     });
   }
-  postProcess?.($);
   return $.html();
 }
