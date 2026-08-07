@@ -346,14 +346,24 @@ export function applyA11y($: cheerio.CheerioAPI, lang: Lang): void {
       if (el.tagName.toLowerCase() === "a") $el.attr("href", "#cookie-preferences");
     }
   });
-  // Las páginas históricas no siempre incluyen el vínculo del footer. Se añade
-  // dentro del pie existente, sin crear navegación o estilos paralelos.
+  // Las páginas históricas no siempre incluyen los vínculos de privacidad del
+  // footer. Se añaden dentro del pie existente, sin crear navegación paralela.
   if ($('[data-vwb-cookie-preferences="true"]').length === 0) {
     const $footer = $("footer,.footer").first();
     if ($footer.length) {
       const label = lang === "es" ? "Preferencias de cookies" : "Cookie preferences";
-      const $link = $(`<a href="#cookie-preferences" data-vwb-cookie-preferences="true">${label}</a>`);
-      $link.attr("style", "color:inherit;text-decoration:underline;text-underline-offset:3px;cursor:pointer");
+      const $link = $(`<a href="#cookie-preferences" class="vwb-cookie-footer-link" data-vwb-cookie-preferences="true">${label}</a>`);
+      const $copyright = $footer.find(".footer__copy,.footer__copyright,.copyright").first();
+      if ($copyright.length) $copyright.append(" · ", $link);
+      else $footer.append($("<p>").attr("class", "vwb-cookie-footer-link").append($link));
+    }
+  }
+  const cookiePolicyPath = lang === "es" ? "/politica-de-cookies" : "/cookie-policy";
+  if ($(`a[href="${cookiePolicyPath}"]`).length === 0) {
+    const $footer = $("footer,.footer").first();
+    if ($footer.length) {
+      const label = lang === "es" ? "Política de cookies" : "Cookie Policy";
+      const $link = $(`<a href="${cookiePolicyPath}" class="vwb-cookie-policy-footer-link">${label}</a>`);
       const $copyright = $footer.find(".footer__copy,.footer__copyright,.copyright").first();
       if ($copyright.length) $copyright.append(" · ", $link);
       else $footer.append($("<p>").attr("class", "vwb-cookie-footer-link").append($link));
