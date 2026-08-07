@@ -33,7 +33,7 @@ test('sitio y panel usan solamente Gelasio e Inter como familias activas', () =>
   assert.match(publicCss, /font-family:\s*"Inter"/);
   assert.match(adminCss, /--font-heading:\s*var\(--font-title\)/);
   assert.match(adminCss, /--font-sans:\s*var\(--font-body\)/);
-  assert.match(adminHtml, /typography\.css\?v=20260804-gelasio-inter1/);
+  assert.match(adminHtml, /typography\.css\?v=20260807-inter-medium/);
   assert.match(server, /Inter-Variable\.woff2/);
   assert.match(server, /Gelasio-Variable\.woff2/);
   assert.match(server, /normalizeLegacyTypography/);
@@ -51,6 +51,27 @@ test('sitio y panel usan solamente Gelasio e Inter como familias activas', () =>
     existsSync(new URL('../../assets/fonts/Atkinson-Hyperlegible/AtkinsonHyperlegible-Regular.ttf', import.meta.url)),
     false,
   );
+});
+
+test('Inter no supera Medium (500), salvo el único titular editorial autorizado de Nuevas oficinas', () => {
+  const typography = read('../../frontend-mirror/templates/beez3/css/typography.css');
+  const tailwind = read('../../tailwind.config.ts');
+  const generator = read('../services/PresentationGenerator.ts');
+  const presentationFonts = read('../services/presentationFonts.ts');
+
+  const interFaces = typography.match(/@font-face\s*\{[\s\S]*?font-family:\s*"Inter"[\s\S]*?\}/g) || [];
+  assert.equal(interFaces.length, 2);
+  assert.ok(interFaces.every((face) => /font-weight:\s*400 500/.test(face)));
+  assert.match(typography, /font-synthesis:\s*none/);
+  assert.match(tailwind, /bold:\s*"500"/);
+  assert.match(tailwind, /black:\s*"500"/);
+  assert.match(generator, /Math\.min\(500, Math\.max\(400, requestedWeight\)\)/);
+  assert.doesNotMatch(presentationFonts, /bold:\s*TYPOGRAPHY_ASSETS\.interBold/);
+
+  const homeCss = read('../../frontend-mirror/templates/beez3/css/style.css');
+  const homeRenderer = read('../mirror/renderHome.ts');
+  assert.match(homeCss, /\.home__rojo--title[\s\S]*?font-weight:\s*600\s*!important/);
+  assert.match(homeRenderer, /class="home__rojo--title"/);
 });
 
 test('módulos nuevos no pueden reintroducir familias tipográficas anteriores', () => {

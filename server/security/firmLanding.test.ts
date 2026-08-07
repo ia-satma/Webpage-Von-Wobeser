@@ -86,23 +86,24 @@ test("landing de Firma usa medios, destinos y metadatos bilingües administrable
   assert.match(html, /name="twitter:description" content="Texto social en español"/);
 });
 
-test("landing de Firma reemplaza copias históricas obsoletas sin sobrescribir configuración", () => {
+test("landing de Firma muestra la presentación institucional canónica editable", () => {
   const config = {
-    firm_landing_history_intro: {
-      value: "German Desk and three decades",
-      valueEs: "Desk Alemán y tres décadas",
+    page_firm_intro: {
+      value: "Our multidisciplinary team provides comprehensive legal advice across the firm's practices and industry groups.",
+      valueEs: "Von Wobeser y Sierra nació en 1986 con la excelencia y la integridad como piedras angulares. Hoy, nuestro equipo multidisciplinario brinda asesoría jurídica integral a través de las prácticas y grupos por industria de la firma.",
       type: "text",
     },
-    firm_landing_history_body: {
-      value: "Best Lawyers and Benchmark Litigation",
-      valueEs: "Best Lawyers y Benchmark Litigation",
+    page_firm_body: {
+      value: "We work as a strategic partner, combining preventive and responsive legal advice.",
+      valueEs: "El medio empresarial y legal reconoce a nuestro equipo por su experiencia, especialización y capacidad para asesorar a compañías líderes durante su desarrollo en México y en el extranjero.\n\nTrabajamos como un socio estratégico, combinando asesoría preventiva y resolutiva con un entendimiento profundo del negocio de cada cliente y de sus asuntos legales más relevantes.",
       type: "text",
     },
   };
   const html = renderFirmLanding(template, config, "es");
 
-  assert.match(html, /Fundada en 1986/);
-  assert.doesNotMatch(html, /Desk Alemán|Best Lawyers|Benchmark Litigation|tres décadas/i);
+  assert.match(html, /piedras angulares/);
+  assert.match(html, /El medio empresarial y legal reconoce/);
+  assert.match(html, /socio estratégico/);
 });
 
 test("el video del home cae en el resumen separado aunque falte configuración", () => {
@@ -115,6 +116,20 @@ test("el video del home cae en el resumen separado aunque falte configuración",
   assert.match(htmlEs, /href="\/acerca-de"/);
   assert.match(htmlEn, /href="\/about"/);
   assert.doesNotMatch(htmlEs, /href="\/practice\/arbitration"/);
+});
+
+test("las rutas de Firma apuntan a la landing canónica y conservan sus subpáginas", async () => {
+  const { readFile } = await import("node:fs/promises");
+  const source = await readFile(new URL("../mirror/index.ts", import.meta.url), "utf8");
+
+  assert.ok(source.includes('["/nuestra-firma", "/nuestra-firma/"]'));
+  assert.ok(source.includes('redirectLegacy("/acerca-de", "es")'));
+  assert.ok(source.includes('["/our-firm", "/our-firm/"]'));
+  assert.ok(source.includes('redirectLegacy("/about", "en")'));
+  assert.ok(source.includes('["/index.php/nuestra-firma", "/acerca-de", "es"]'));
+  assert.ok(source.includes('["/index.php/our-firm", "/about", "en"]'));
+  assert.ok(source.includes('"/nuestra-firma/probono"'));
+  assert.ok(source.includes('"/nuestra-firma/diversidad"'));
 });
 
 test("el destino administrable del video rechaza protocolos activos", () => {

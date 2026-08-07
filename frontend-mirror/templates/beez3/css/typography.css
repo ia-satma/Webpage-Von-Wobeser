@@ -19,7 +19,7 @@
   font-family: "Inter";
   src: url("../webfont/Inter-Variable.woff2") format("woff2");
   font-style: normal;
-  font-weight: 100 900;
+  font-weight: 400 500;
   font-display: swap;
 }
 
@@ -27,7 +27,7 @@
   font-family: "Inter";
   src: url("../webfont/Inter-Italic-Variable.woff2") format("woff2");
   font-style: italic;
-  font-weight: 100 900;
+  font-weight: 400 500;
   font-display: swap;
 }
 
@@ -36,11 +36,11 @@
 @font-face { font-family: "Publico-Roman"; src: url("../webfont/Gelasio-Variable.woff2") format("woff2"); font-style: normal; font-weight: 300 700; font-display: swap; }
 @font-face { font-family: "Publico-light"; src: url("../webfont/Gelasio-Variable.woff2") format("woff2"); font-style: normal; font-weight: 300 700; font-display: swap; }
 @font-face { font-family: "Publico-medium"; src: url("../webfont/Gelasio-Variable.woff2") format("woff2"); font-style: normal; font-weight: 300 700; font-display: swap; }
-@font-face { font-family: "Geomanist-Book"; src: url("../webfont/Inter-Variable.woff2") format("woff2"); font-style: normal; font-weight: 300 600; font-display: swap; }
-@font-face { font-family: "Geomanist-light"; src: url("../webfont/Inter-Variable.woff2") format("woff2"); font-style: normal; font-weight: 300 500; font-display: swap; }
-@font-face { font-family: "Geomanist-regular"; src: url("../webfont/Inter-Variable.woff2") format("woff2"); font-style: normal; font-weight: 300 600; font-display: swap; }
-@font-face { font-family: "OptimaLTStd"; src: url("../webfont/Inter-Variable.woff2") format("woff2"); font-style: normal; font-weight: 300 600; font-display: swap; }
-@font-face { font-family: "OptimaLTStd-Bold"; src: url("../webfont/Inter-Variable.woff2") format("woff2"); font-style: normal; font-weight: 600 700; font-display: swap; }
+@font-face { font-family: "Geomanist-Book"; src: url("../webfont/Inter-Variable.woff2") format("woff2"); font-style: normal; font-weight: 400 500; font-display: swap; }
+@font-face { font-family: "Geomanist-light"; src: url("../webfont/Inter-Variable.woff2") format("woff2"); font-style: normal; font-weight: 400 500; font-display: swap; }
+@font-face { font-family: "Geomanist-regular"; src: url("../webfont/Inter-Variable.woff2") format("woff2"); font-style: normal; font-weight: 400 500; font-display: swap; }
+@font-face { font-family: "OptimaLTStd"; src: url("../webfont/Inter-Variable.woff2") format("woff2"); font-style: normal; font-weight: 400 500; font-display: swap; }
+@font-face { font-family: "OptimaLTStd-Bold"; src: url("../webfont/Inter-Variable.woff2") format("woff2"); font-style: normal; font-weight: 400 500; font-display: swap; }
 :root {
   --font-title: "Gelasio", serif;
   --font-body: "Inter", sans-serif;
@@ -53,6 +53,14 @@ html,
 body {
   font-family: var(--font-body);
   font-optical-sizing: auto;
+  /* Nunca se sintetizan pesos inexistentes: Inter queda solo en 400 y 500. */
+  font-synthesis: none;
+}
+
+/* El HTML histórico contiene <strong> y pesos inline. Conservamos la
+   jerarquía semántica, pero Inter nunca supera Medium. */
+:where(body) :where(strong, b) {
+  font-weight: 500 !important;
 }
 
 /* Los controles y componentes heredados (incluido Slick) no deben reintroducir

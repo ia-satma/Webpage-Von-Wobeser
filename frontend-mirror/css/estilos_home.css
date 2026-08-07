@@ -114,7 +114,7 @@ body {
   border-radius: 4px;
   color: #fff;
   background: #777;
-  font: 700 .875rem/1 "Inter";
+  font: 500 .875rem/1 "Inter";
   cursor: pointer;
   transition: background-color .2s ease, transform .2s ease;
 }
@@ -384,7 +384,7 @@ footer a:focus-visible,
 .giant-quote {
   color: #b0b0b0;
   font-size: clamp(6rem, 12vw, 10rem);
-  font-weight: 700;
+  font-weight: 500;
   line-height: .8;
 }
 
@@ -417,7 +417,7 @@ footer a:focus-visible,
 .footer-socials .follow-text {
   margin-left: 8px;
   color: #f8f9fa;
-  font: 600 .8rem/1 "Inter";
+  font: 500 .8rem/1 "Inter";
 }
 
 #imageModal .modal-dialog { max-width: 90vw; }

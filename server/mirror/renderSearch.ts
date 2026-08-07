@@ -176,13 +176,13 @@ export function renderGlobalSearch(
 <style id="vw-global-search-style">
 .vw-global-results{background:#fff;padding:132px 0 100px;color:#5f5f5f}
 .vw-global-results__wrap{width:min(1180px,calc(100% - 64px));margin:0 auto}
-.vw-global-results__eyebrow{color:#b51d35;font:600 12px/1 var(--vw-font-ui);letter-spacing:.26em;margin-bottom:18px}
+.vw-global-results__eyebrow{color:#b51d35;font:500 12px/1 var(--vw-font-ui);letter-spacing:.26em;margin-bottom:18px}
 .vw-global-results h1{font:400 clamp(36px,4vw,56px)/1.06 var(--vw-font-editorial);margin:0 0 42px;color:#606060}
 .vw-global-results__form{background:#f1f1ef;border-block:1px solid #c8c8c6;padding:27px 32px 30px;margin-bottom:34px}
-.vw-global-results__form label{display:block;color:#606060;font:600 12px/1 var(--vw-font-ui);letter-spacing:.18em;text-transform:uppercase;margin-bottom:13px}
+.vw-global-results__form label{display:block;color:#606060;font:500 12px/1 var(--vw-font-ui);letter-spacing:.18em;text-transform:uppercase;margin-bottom:13px}
 .vw-global-results__controls{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:14px}
 .vw-global-results__controls input{min-width:0;min-height:48px;border:1px solid #c8c8c6;background:#fff;padding:11px 15px;font:400 17px/1.35 var(--vw-font-ui);color:#333}
-.vw-global-results__controls button{align-items:center;display:inline-flex;justify-content:center;min-height:48px;border:0;background:#b51d35;color:#fff;padding:0 25px;font:600 13px/1 var(--vw-font-ui);letter-spacing:.14em;text-transform:uppercase;cursor:pointer}
+.vw-global-results__controls button{align-items:center;display:inline-flex;justify-content:center;min-height:48px;border:0;background:#b51d35;color:#fff;padding:0 25px;font:500 13px/1 var(--vw-font-ui);letter-spacing:.14em;text-transform:uppercase;cursor:pointer}
 .vw-global-results__controls button span{display:inline-block;font-size:18px;line-height:1;margin-left:16px;transform:translateY(-1px);transition:transform .2s ease}
 .vw-global-results__controls button:hover span,.vw-global-results__controls button:focus-visible span{transform:translate(5px,-1px)}
 .vw-global-results__controls input:focus-visible{border-color:#777;box-shadow:inset 0 -2px 0 #b51d35;outline:0}

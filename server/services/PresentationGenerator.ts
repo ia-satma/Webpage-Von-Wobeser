@@ -117,9 +117,9 @@ function svgFontDefs(): string {
 @font-face{font-family:'Gelasio';src:url(data:font/ttf;base64,${data(TYPOGRAPHY_ASSETS.gelasioRegular)}) format('truetype');font-style:normal;font-weight:400}
 @font-face{font-family:'Gelasio';src:url(data:font/ttf;base64,${data(TYPOGRAPHY_ASSETS.gelasioBold)}) format('truetype');font-style:normal;font-weight:700}
 @font-face{font-family:'Inter';src:url(data:font/ttf;base64,${data(TYPOGRAPHY_ASSETS.interRegular)}) format('truetype');font-style:normal;font-weight:400}
-@font-face{font-family:'Inter';src:url(data:font/ttf;base64,${data(TYPOGRAPHY_ASSETS.interBold)}) format('truetype');font-style:normal;font-weight:700}
+@font-face{font-family:'Inter';src:url(data:font/ttf;base64,${data(TYPOGRAPHY_ASSETS.interRegular)}) format('truetype');font-style:normal;font-weight:500}
 @font-face{font-family:'Inter';src:url(data:font/ttf;base64,${data(TYPOGRAPHY_ASSETS.interItalic)}) format('truetype');font-style:italic;font-weight:400}
-@font-face{font-family:'Inter';src:url(data:font/ttf;base64,${data(TYPOGRAPHY_ASSETS.interBoldItalic)}) format('truetype');font-style:italic;font-weight:700}
+@font-face{font-family:'Inter';src:url(data:font/ttf;base64,${data(TYPOGRAPHY_ASSETS.interItalic)}) format('truetype');font-style:italic;font-weight:500}
 ]]></style></defs>`;
   return svgFontDefsCache;
 }
@@ -191,7 +191,9 @@ function text(t: Txt): string {
   const ls = t.tracking ? ` letter-spacing="${t.tracking}"` : '';
   const op = t.opacity != null && t.opacity !== 1 ? ` fill-opacity="${t.opacity}"` : '';
   const tspans = t.lines.map((ln, i) => `<tspan x="${r1(t.x)}" dy="${i === 0 ? 0 : lh}">${esc(ln)}</tspan>`).join('');
-  return `<text x="${r1(t.x)}" y="${r1(t.y)}" font-family="${t.font}" font-size="${t.size}" fill="${t.color}" font-weight="${t.weight ?? 400}" text-anchor="${anchor}"${ls}${op}>${tspans}</text>`;
+  const requestedWeight = t.weight ?? 400;
+  const weight = t.font === TYPOGRAPHY.body ? Math.min(500, Math.max(400, requestedWeight)) : requestedWeight;
+  return `<text x="${r1(t.x)}" y="${r1(t.y)}" font-family="${t.font}" font-size="${t.size}" fill="${t.color}" font-weight="${weight}" text-anchor="${anchor}"${ls}${op}>${tspans}</text>`;
 }
 // Envuelve por conteo aproximado de caracteres (SVG <text> no auto-envuelve).
 function wrap(s: string, maxChars: number): string[] {
