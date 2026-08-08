@@ -224,8 +224,9 @@ const lastWord = (name: string) => {
   return parts[parts.length - 1] || "";
 };
 
-// Hace que el botón de idioma del header alterne ES⇄EN sobre la URL actual, en cualquier
-// página, sin depender de las rutas originales del espejo.
+// Convierte el control histórico de idioma del header en un selector ES/EN sobre la URL
+// actual, sin depender de las rutas originales del espejo. Conserva el enlace original
+// oculto para no romper los estilos y scripts de las 2,259 capturas históricas.
 //
 // Bug real que esto corrige: la mayoría de las páginas del espejo comparten UNA sola ruta y
 // alternan idioma con ?lang=en (/news, /attorneys, /practice/:slug, /lawyer/:slug, etc.) — para
@@ -237,7 +238,7 @@ const lastWord = (name: string) => {
 // idioma actual se detecta con document.documentElement.lang (ya seteado server-side en TODOS
 // los renderers), no con el query string — así el botón muestra la etiqueta correcta incluso
 // en las páginas de PAIRS, que nunca traen ?lang=en.
-const LANG_TOGGLE_SCRIPT = `<script>(function(){try{
+export const LANG_TOGGLE_SCRIPT = `<script>(function(){try{
   var PAIRS={
     '/nuestra-firma':'/about','/our-firm':'/acerca-de',
     '/acerca-de':'/about','/about':'/acerca-de',
@@ -286,6 +287,35 @@ const LANG_TOGGLE_SCRIPT = `<script>(function(){try{
     if(isEn){u.searchParams.delete('lang');}else{u.searchParams.set('lang','en');}
     a.setAttribute('href',u.pathname+(u.search||''));
   });
+  if(!originalLanguageLink||!originalLanguageLink.parentElement)return;
+  var languageHolder=originalLanguageLink.parentElement;
+  if(languageHolder.dataset.vwbLanguageReady)return;
+  languageHolder.dataset.vwbLanguageReady='true';
+  var currentHref=preserveState(location.pathname+location.search);
+  var alternateHref=originalLanguageLink.getAttribute('href')||currentHref;
+  var esHref=isEn?alternateHref:currentHref;
+  var enHref=isEn?currentHref:alternateHref;
+  var widget=document.createElement('div');
+  widget.className='vwb-language';
+  var legacy=originalLanguageLink.cloneNode(true);
+  legacy.classList.add('vwb-language__legacy');
+  legacy.setAttribute('aria-hidden','true');
+  legacy.setAttribute('tabindex','-1');
+  var menuId='vwb-language-menu';
+  var label=isEn?'Language':'Idioma';
+  var compact=isEn?'EN':'ES';
+  widget.innerHTML='<button class="vwb-language__trigger" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="'+menuId+'" aria-label="'+label+'"><span class="vwb-language__label">'+label+'</span><span class="vwb-language__compact" aria-hidden="true">'+compact+'</span><svg viewBox="0 0 12 8" aria-hidden="true" focusable="false"><path d="M1 1.5 6 6.5l5-5"/></svg></button><div class="vwb-language__menu" id="'+menuId+'" role="menu" hidden><a role="menuitem" lang="es" hreflang="es-MX" href="'+esHref+'"'+(isEn?'':' aria-current="page"')+'>Español</a><a role="menuitem" lang="en" hreflang="en" href="'+enHref+'"'+(isEn?' aria-current="page"':'')+'>English</a></div>';
+  widget.insertBefore(legacy,widget.firstChild);
+  languageHolder.replaceChildren(widget);
+  var trigger=widget.querySelector('.vwb-language__trigger');
+  var menu=widget.querySelector('.vwb-language__menu');
+  var setOpen=function(open){trigger.setAttribute('aria-expanded',open?'true':'false');menu.hidden=!open;};
+  trigger.addEventListener('click',function(){setOpen(trigger.getAttribute('aria-expanded')!=='true');});
+  widget.addEventListener('keydown',function(event){
+    if(event.key==='Escape'){setOpen(false);trigger.focus();}
+    if(event.key==='ArrowDown'&&trigger===document.activeElement){event.preventDefault();setOpen(true);var first=menu.querySelector('a');if(first)first.focus();}
+  });
+  document.addEventListener('click',function(event){if(!widget.contains(event.target))setOpen(false);});
 }catch(e){}})();</script>`;
 
 // El buscador de la lupa vive en el encabezado compartido de las 2,253 páginas
@@ -402,7 +432,7 @@ export const SEARCH_FORMS_SCRIPT = `<script>(function(){try{
 // ocultos detrás de los 30 días de caché de los assets estáticos.
 // Se incrementa junto con los estilos globales del espejo para que las
 // navegaciones existentes no conserven una tipografía previa en caché.
-const NAV_ASSET_VERSION = "20260807-home-banner-semibold-final";
+const NAV_ASSET_VERSION = "20260807-header-language-alignment";
 function refreshNavigationAssets(html: string): string {
   return html
     .replace(/(href=["']\/templates\/beez3\/css\/style\.css)(?:\?[^"']*)?(["'])/gi, `$1?v=${NAV_ASSET_VERSION}$2`)
@@ -746,11 +776,21 @@ export function navigationLabelsScript(
   lang: Lang,
   items: PublicNavigationMenu = { practices: [], industries: [] },
 ): string {
+  // Algunas instalaciones guardaron el nombre descriptivo completo antes de
+  // que el cliente aprobara la etiqueta breve del menú. Lo normalizamos solo
+  // cuando coincide exactamente con ese valor legado: un texto personalizado
+  // desde Administración siempre se respeta.
+  const industryLabel = cfg(config, "nav_industries", lang).trim();
+  const legacyIndustryLabel = lang === "es"
+    ? "Grupos de práctica por industria"
+    : "Industry groups";
   const labels = {
     firm: cfg(config, "nav_firm", lang),
     attorneys: cfg(config, "nav_attorneys", lang),
     practices: cfg(config, "nav_practices", lang),
-    industries: cfg(config, "nav_industries", lang),
+    industries: industryLabel === legacyIndustryLabel
+      ? (lang === "es" ? "Industrias" : "Industries")
+      : industryLabel,
     publications: cfg(config, "nav_publications", lang),
     careers: cfg(config, "nav_careers", lang),
     contact: cfg(config, "nav_contact", lang),

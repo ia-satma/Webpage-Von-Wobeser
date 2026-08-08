@@ -347,26 +347,32 @@ export function applyA11y($: cheerio.CheerioAPI, lang: Lang): void {
     }
   });
   // Las páginas históricas no siempre incluyen los vínculos de privacidad del
-  // footer. Se añaden dentro del pie existente, sin crear navegación paralela.
-  if ($('[data-vwb-cookie-preferences="true"]').length === 0) {
-    const $footer = $("footer,.footer").first();
-    if ($footer.length) {
-      const label = lang === "es" ? "Preferencias de cookies" : "Cookie preferences";
-      const $link = $(`<a href="#cookie-preferences" class="vwb-cookie-footer-link" data-vwb-cookie-preferences="true">${label}</a>`);
-      const $copyright = $footer.find(".footer__copy,.footer__copyright,.copyright").first();
-      if ($copyright.length) $copyright.append(" · ", $link);
-      else $footer.append($("<p>").attr("class", "vwb-cookie-footer-link").append($link));
-    }
-  }
+  // footer. Se agrupan bajo el Aviso de privacidad existente, sin crear una
+  // sección o navegación paralela en el pie.
   const cookiePolicyPath = lang === "es" ? "/politica-de-cookies" : "/cookie-policy";
-  if ($(`a[href="${cookiePolicyPath}"]`).length === 0) {
-    const $footer = $("footer,.footer").first();
-    if ($footer.length) {
-      const label = lang === "es" ? "Política de cookies" : "Cookie Policy";
-      const $link = $(`<a href="${cookiePolicyPath}" class="vwb-cookie-policy-footer-link">${label}</a>`);
-      const $copyright = $footer.find(".footer__copy,.footer__copyright,.copyright").first();
-      if ($copyright.length) $copyright.append(" · ", $link);
-      else $footer.append($("<p>").attr("class", "vwb-cookie-footer-link").append($link));
+  const $footer = $("footer,.footer").first();
+  if ($footer.length) {
+    const $copyright = $footer.find(".footer__copy,.footer--copy,.footer__copyright,.copyright").first();
+    const policyLabel = lang === "es" ? "Política de cookies" : "Cookie Policy";
+    const preferencesLabel = lang === "es" ? "Preferencias de cookies" : "Cookie preferences";
+    const $existingPolicyLink = $footer.find(`a[href="${cookiePolicyPath}"]`).first();
+    const $existingPreferencesLink = $footer.find('[data-vwb-cookie-preferences="true"]').first();
+    const policyHtml = `<a href="${cookiePolicyPath}" class="vwb-cookie-policy-footer-link">${policyLabel}</a>`;
+    const preferencesHtml = `<a href="#cookie-preferences" class="vwb-cookie-footer-link" data-vwb-cookie-preferences="true">${preferencesLabel}</a>`;
+
+    const $privacyLink = $copyright.find('a[href*="/aviso"],a[href*="/privacy"]').first();
+    if ($copyright.length && $privacyLink.length) {
+      // Reubicar los enlaces existentes evita duplicados en HTML históricos.
+      $existingPolicyLink.remove();
+      $existingPreferencesLink.remove();
+      const $cookieRow = $('<span class="vwb-cookie-footer-row"></span>')
+        .append(policyHtml, " · ", preferencesHtml);
+      $privacyLink.after("<br>", $cookieRow);
+    } else if ($copyright.length) {
+      if (!$existingPolicyLink.length) $copyright.append(" · ", policyHtml);
+      if (!$existingPreferencesLink.length) $copyright.append(" · ", preferencesHtml);
+    } else {
+      $footer.append($("<p>").attr("class", "vwb-cookie-footer-link").append(policyHtml, " · ", preferencesHtml));
     }
   }
 

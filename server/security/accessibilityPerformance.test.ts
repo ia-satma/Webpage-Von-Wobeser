@@ -10,6 +10,7 @@ const { CATEGORIES, renderAttorneyList } = await import("../mirror/renderAttorne
 const { applyA11y, applySeo, setFaviconConfig } = await import("../mirror/seo");
 const {
   hardenLegacyClientScripts,
+  LANG_TOGGLE_SCRIPT,
   navigationLabelsScript,
   optimizeLegacyAssets,
   optimizePublicImageTags,
@@ -75,6 +76,24 @@ test("la lupa abre, enfoca y envía el buscador global bilingüe", () => {
   assert.match(css, /\.header\.header_JS \.menu_btn_JS[\s\S]*right: 62px !important/);
   assert.match(css, /\.header\.header_JS \.header__lang[\s\S]*right: 8px !important/);
   assert.match(css, /\.header\.header_JS \.eyeglass[\s\S]*width: 44px !important/);
+});
+
+test("el selector de idioma presenta Español e English y conserva rutas alternas", () => {
+  const css = readFileSync(
+    new URL("../../frontend-mirror/templates/beez3/css/von.css", import.meta.url),
+    "utf8",
+  );
+
+  assert.match(LANG_TOGGLE_SCRIPT, /vwb-language__trigger/);
+  assert.match(LANG_TOGGLE_SCRIPT, /Idioma/);
+  assert.match(LANG_TOGGLE_SCRIPT, /Español/);
+  assert.match(LANG_TOGGLE_SCRIPT, /English/);
+  assert.match(LANG_TOGGLE_SCRIPT, /aria-haspopup="menu"/);
+  assert.match(LANG_TOGGLE_SCRIPT, /event\.key==='Escape'/);
+  assert.match(LANG_TOGGLE_SCRIPT, /link\[rel="alternate"\]\[hreflang=/);
+  assert.match(css, /\.vwb-language__menu/);
+  assert.match(css, /\.vwb-language__trigger:focus-visible/);
+  assert.match(css, /\.vwb-language__compact/);
 });
 
 test("las cuatro categorías de Abogados tienen ruta limpia bilingüe antes del catch-all", () => {
@@ -175,6 +194,12 @@ test("los listados de Abogados conservan categoría, idioma, canonical y hreflan
     assert.equal(en('link[rel="alternate"][hreflang="es-MX"]').attr("href"), canonicalPath);
     assert.equal(es('nav a').attr("href"), "/attorneys/partners");
     assert.equal(en('nav a').attr("href"), "/attorneys/partners?lang=en");
+    assert.equal(es(".attorneys__meta").hasClass("attorneys__meta--directory"), true);
+    assert.equal(en(".attorneys__meta").hasClass("attorneys__meta--directory"), true);
+    assert.equal(es(".attorneys__list").attr("role"), "region");
+    assert.equal(es(".attorneys__list").attr("aria-label"), "Lista de abogados");
+    assert.equal(en(".attorneys__list").attr("aria-label"), "Attorney list");
+    assert.equal(es("#vwb-attorney-directory-pin").length, 0);
   }
 });
 
@@ -303,16 +328,17 @@ test("la portada nombra los cuatro carruseles y aplica contraste AA al módulo d
   assert.match($("#vw-home-performance-js").text(), /data-vw-bg-loading/);
   assert.match($("#vw-home-performance-js").text(), /fallbackProbe\.onload=function\(\)\{applyBackground\(item,fallback\);\}/);
   assert.match($("#vw-home-performance-js").text(), /afterChange\.vwLazyBg/);
-  assert.match($("#vw-home-performance-js").text(), /addEventListener\('wheel'/);
-  assert.match($("#vw-home-performance-js").text(), /data-vw-wheel-bound/);
-  assert.match($("#vw-home-performance-js").text(), /slickNext/);
-  assert.match($("#vw-home-performance-js").text(), /slickPrev/);
-  assert.match($("#vw-home-performance-js").text(), /wheelMoved/);
-  assert.match($("#vw-home-performance-js").text(), /Math\.abs\(wheelTotal\)<48/);
-  assert.match($("#vw-home-performance-js").text(), /sliderIsVisible/);
-  assert.match($("#vw-home-performance-js").text(), /slick\.animating/);
-  assert.match($("#vw-home-performance-js").text(), /setTimeout\(resetWheelGesture,220\)/);
-  assert.match($("#vw-home-performance-js").text(), /\{passive:true\}/);
+  assert.doesNotMatch($("#vw-home-performance-js").text(), /addEventListener\('wheel'/);
+  assert.doesNotMatch($("#vw-home-performance-js").text(), /data-vw-wheel-bound/);
+  assert.doesNotMatch($("#vw-home-performance-js").text(), /wheelMoved/);
+  const carouselScript = readFileSync(
+    new URL("../../frontend-mirror/templates/beez3/js/min/functions.min.js", import.meta.url),
+    "utf8",
+  );
+  assert.match(
+    carouselScript,
+    /\$\("\.home_slider_JS"\)\.each\(function \(\)[\s\S]*?autoplay: !0,[\s\S]*?autoplaySpeed: 4500/,
+  );
   assert.equal($(".home_rec_JS img").attr("loading"), "lazy");
   assert.match($("#a11y-contrast").text(), /\.covid_title span/);
   assert.match($("#a11y-contrast").text(), /\.vw-news-carousel__count\{color:#5f5f5f !important\}/);
@@ -422,6 +448,20 @@ test("el menú público expone 18 prácticas oficiales y 7 industrias desde cont
   const injected = navigationLabelsScript({}, "es", es);
   assert.match(injected, /window\.__VW_NAV_MENU_ITEMS__/);
   assert.equal((injected.match(/"href":/g) || []).length, 25);
+  const navigationConfig = {
+    nav_industries: { value: "Industries", valueEs: "Industrias", type: "text" },
+  };
+  assert.match(navigationLabelsScript(navigationConfig, "es"), /"industries":"Industrias"/);
+  assert.match(navigationLabelsScript(navigationConfig, "en"), /"industries":"Industries"/);
+  const legacyNavigationConfig = {
+    nav_industries: {
+      value: "Industry groups",
+      valueEs: "Grupos de práctica por industria",
+      type: "text",
+    },
+  };
+  assert.match(navigationLabelsScript(legacyNavigationConfig, "es"), /"industries":"Industrias"/);
+  assert.match(navigationLabelsScript(legacyNavigationConfig, "en"), /"industries":"Industries"/);
 });
 
 test("la migración conserva Derecho Administrativo como respaldo y solo lo despublica", () => {

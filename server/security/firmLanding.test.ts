@@ -1,5 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 
 process.env.DATABASE_URL ||= "postgresql://test:test@127.0.0.1:5432/test";
 
@@ -39,6 +40,8 @@ test("landing de Firma usa hechos verificados y cifras publicadas", () => {
   assert.match(html, /src="\/img\/Collage\/collage_02\.jpg"/);
   assert.match(html, /src="\/img\/Collage\/collage_07\.jpg"/);
   assert.match(html, /Área de colaboración en las oficinas de Von Wobeser y Sierra/);
+  assert.match(html, /class="vw-firm__eyebrow">Von Wobeser<\/p>/);
+  assert.doesNotMatch(html, /class="vw-firm__eyebrow">Von Wobeser y Sierra<\/p>/);
 });
 
 test("landing de Firma respeta visibilidad, orden y escape de contenido", () => {
@@ -64,6 +67,55 @@ test("landing de Firma genera canonical y hreflang con rutas limpias distintas",
   assert.match(htmlEs, /href="https:\/\/www\.vonwobeser\.com\/about" hreflang="en"/);
   assert.match(htmlEn, /rel="canonical" href="https:\/\/www\.vonwobeser\.com\/about"/);
   assert.match(htmlEn, /href="https:\/\/www\.vonwobeser\.com\/acerca-de" hreflang="es-MX"/);
+});
+
+test("landing de Firma conserva un eyebrow personalizado y usa una escala editorial acotada", () => {
+  const html = renderFirmLanding(template, {
+    firm_landing_eyebrow: { value: "About the firm", valueEs: "La firma", type: "text" },
+  }, "es");
+
+  assert.match(html, /class="vw-firm__eyebrow">La firma<\/p>/);
+  assert.match(html, /font-size:clamp\(2\.55rem,4\.2vw,4\.65rem\)/);
+  assert.match(html, /font-family:var\(--vw-font-editorial\)/);
+  assert.match(html, /font-family:var\(--vw-font-body\)/);
+  assert.doesNotMatch(html, />01 — 05</);
+  assert.match(html, /\.vw-firm__values-heading\{display:grid;grid-template-columns:minmax\(0,1fr\)/);
+  assert.match(html, /\.vw-firm__values\{background:var\(--vw-paper\);padding:clamp\(3\.75rem,5\.5vw,5\.75rem\)/);
+  assert.match(html, /\.vw-firm__history-grid\{display:grid;grid-template-columns:minmax\(20rem,4\.5fr\) minmax\(0,5\.5fr\)/);
+  assert.match(html, /\.vw-firm__history-media\{height:clamp\(16rem,23vw,21rem\);margin:2\.2rem 0 0;overflow:hidden\}/);
+  assert.doesNotMatch(html, /\.vw-firm__history-media\{[^}]*border-top/);
+});
+
+test("landing de Firma ofrece prácticas, industrias y contacto en el CTA final bilingüe", () => {
+  const htmlEs = renderFirmLanding(template, {}, "es");
+  const htmlEn = renderFirmLanding(template.replace('lang="es"', 'lang="en"'), {}, "en");
+  const ctaEs = htmlEs.match(/<section class="vw-firm__section vw-firm__cta[\s\S]*?<\/section>/)?.[0] ?? "";
+  const ctaEn = htmlEn.match(/<section class="vw-firm__section vw-firm__cta[\s\S]*?<\/section>/)?.[0] ?? "";
+
+  assert.match(ctaEs, /Prácticas/);
+  assert.match(ctaEs, /Industrias/);
+  assert.match(ctaEs, /href="\/capacidades\/industrias"/);
+  assert.match(ctaEs, /Contacto/);
+  assert.doesNotMatch(ctaEs, /Prácticas legales/);
+  assert.match(ctaEn, /Practices/);
+  assert.match(ctaEn, /Industries/);
+  assert.match(ctaEn, /href="\/capabilities\/industries"/);
+  assert.match(ctaEn, /Contact/);
+  assert.doesNotMatch(ctaEn, /Legal practices/);
+});
+
+test("la migración del CTA conserva personalizaciones y convierte solamente los tres valores heredados", () => {
+  const migration = readFileSync(
+    new URL("../../migrations/20260807_0001_firm_landing_cta_industries.sql", import.meta.url),
+    "utf8",
+  );
+
+  assert.match(migration, /firm_landing_cta_2_label[\s\S]*Legal practices[\s\S]*Prácticas legales/);
+  assert.match(migration, /firm_landing_cta_3_label[\s\S]*value = 'Contact'[\s\S]*value_es = 'Contacto'/);
+  assert.match(migration, /firm_landing_cta_3_path[\s\S]*value = '\/contact'[\s\S]*value_es = '\/contacto'/);
+  assert.match(migration, /firm_landing_cta_4_label/);
+  assert.match(migration, /firm_landing_cta_4_path/);
+  assert.doesNotMatch(migration, /DELETE\s+FROM\s+site_config/i);
 });
 
 test("landing de Firma usa medios, destinos y metadatos bilingües administrables", () => {

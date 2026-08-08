@@ -35,12 +35,20 @@ test("el HTML público bloquea analítica y proveedores externos antes del conse
   assert.equal($('script[src^="/vwb-cookie-consent-config.js"]').length, 0);
 });
 
-test("el footer público incluye la política de cookies y las preferencias en ambos idiomas", () => {
-  for (const [lang, path, label] of [["es", "/politica-de-cookies", "Política de cookies"], ["en", "/cookie-policy", "Cookie Policy"]] as const) {
-    const $ = cheerio.load('<!doctype html><html><head></head><body><footer><div class="footer__copy">© Von Wobeser</div></footer></body></html>');
+test("el footer público coloca política y preferencias debajo del aviso de privacidad", () => {
+  for (const [lang, path, label, privacyPath, privacyLabel] of [
+    ["es", "/politica-de-cookies", "Política de cookies", "/aviso", "Aviso de privacidad"],
+    ["en", "/cookie-policy", "Cookie Policy", "/privacy", "Privacy Notice"],
+  ] as const) {
+    const $ = cheerio.load(`<!doctype html><html><head></head><body><footer><div class="footer--copy">Todos los derechos reservados. <a href="${privacyPath}">${privacyLabel}</a><br>© Von Wobeser</div></footer></body></html>`);
     applyA11y($, lang);
+    const $privacy = $(`footer a[href="${privacyPath}"]`);
+    const $cookieRow = $privacy.nextAll(".vwb-cookie-footer-row").first();
     assert.equal($(`footer a[href="${path}"]`).text(), label);
-    assert.equal($('footer a[data-vwb-cookie-preferences="true"]').length, 1);
+    assert.equal($cookieRow.length, 1);
+    assert.equal($cookieRow.find(`a[href="${path}"]`).length, 1);
+    assert.equal($cookieRow.find('a[data-vwb-cookie-preferences="true"]').length, 1);
+    assert.equal($cookieRow.prev().is("br"), true);
   }
 });
 
