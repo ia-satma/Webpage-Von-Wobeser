@@ -70,6 +70,20 @@ export function renderAttorneyList(
   $(".attorneys__meta").html(metaItems.join("\n"));
   $(".attorneys__list").html(listItems.join("\n"));
 
+  // En los listados por categoría la lista de nombres puede ser mucho más alta
+  // que la ficha. En escritorio la lista se desplaza dentro de su propia columna,
+  // para que la fotografía y los datos del abogado siempre permanezcan visibles.
+  // La búsqueda general conserva el flujo normal de la página.
+  if (!opts.showSearch) {
+    $(".attorneys").addClass("attorneys--directory");
+    $(".attorneys__meta").addClass("attorneys__meta--directory");
+    $(".attorneys__list").addClass("attorneys__list--directory").attr({
+      role: "region",
+      tabindex: "0",
+      "aria-label": lang === "es" ? "Lista de abogados" : "Attorney list",
+    });
+  }
+
   // Rewrite category sub-nav + main nav to our dynamic routes.
   $('a[href*="/index.php/attorneys/"]').each((_, el) => {
     const href = $(el).attr("href") || "";

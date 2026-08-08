@@ -141,6 +141,7 @@ body {
 /* Menú y controles compartidos: Inter y área táctil mínima WCAG. */
 .header .header--btn,
 .header .header__lang--item,
+.header .vwb-language__trigger,
 .header .eyeglass,
 nav.nav.menu_JS .nav__menu--link,
 nav.nav.menu_JS .nav__menu--sublink,
@@ -165,6 +166,7 @@ nav.nav.menu_JS .nav__menu--sublink,
 
   .header .header--btn,
   .header .header__lang--item,
+  .header .vwb-language__trigger,
   .header .eyeglass {
     align-items: center;
     display: inline-flex;
@@ -172,6 +174,105 @@ nav.nav.menu_JS .nav__menu--sublink,
     min-height: 44px;
     min-width: 44px;
   }
+}
+
+/* Selector de idioma: reemplaza el antiguo vínculo ENG/ESP por un menú de
+ * idiomas reales. Es deliberadamente ligero para conservar el lenguaje visual
+ * editorial del espejo y no competir con la navegación principal. */
+.header .vwb-language {
+  align-items: center;
+  display: inline-flex;
+  height: 44px;
+  position: relative;
+}
+
+.header .vwb-language__legacy {
+  display: none !important;
+}
+
+.header .vwb-language__trigger {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  color: #5e5e5e;
+  cursor: pointer;
+  display: inline-flex;
+  font-family: var(--vw-font-ui) !important;
+  font-size: 12px;
+  font-weight: 500;
+  gap: 8px;
+  justify-content: center;
+  letter-spacing: .09em;
+  line-height: 1;
+  min-height: 44px;
+  padding: 0 4px;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.header .vwb-language__trigger svg {
+  fill: none;
+  height: 7px;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.35;
+  transition: transform .18s ease;
+  width: 10px;
+}
+
+.header .vwb-language__trigger[aria-expanded="true"] svg {
+  transform: rotate(180deg);
+}
+
+.header .vwb-language__trigger:hover,
+.header .vwb-language__trigger:focus-visible {
+  color: #ac162c;
+}
+
+.header .vwb-language__trigger:focus-visible {
+  outline: 1px solid #ac162c;
+  outline-offset: 3px;
+}
+
+.header .vwb-language__compact {
+  display: none;
+}
+
+.header .vwb-language__menu {
+  background: #fff;
+  border-top: 1px solid #ac162c;
+  box-shadow: 0 10px 20px rgba(62, 62, 62, .12);
+  min-width: 142px;
+  padding: 5px 0;
+  position: absolute;
+  right: 0;
+  top: calc(100% + 6px);
+  z-index: 30;
+}
+
+.header .vwb-language__menu a {
+  color: #5e5e5e;
+  display: block;
+  font-family: var(--vw-font-ui) !important;
+  font-size: 13px;
+  font-weight: 400;
+  letter-spacing: .02em;
+  line-height: 1.25;
+  padding: 10px 14px;
+  text-decoration: none;
+}
+
+.header .vwb-language__menu a:hover,
+.header .vwb-language__menu a:focus-visible {
+  background: #f6f2f2;
+  color: #ac162c;
+  outline: 0;
+}
+
+.header .vwb-language__menu a[aria-current="page"] {
+  color: #ac162c;
+  font-weight: 500;
 }
 
 /* 404 editorial: mismo sistema tipográfico y cromático del espejo. */
@@ -762,7 +863,7 @@ a[href="/german-desk"],
   }
 
   .header.header_JS .search_form_cont {
-    right: 96px !important;
+    right: 164px !important;
     top: 20px !important;
     width: 34px !important;
   }
@@ -778,9 +879,14 @@ a[href="/german-desk"],
   }
 
   .header.header_JS .header__lang {
+    align-items: center;
+    display: flex;
     font-size: 15px;
-    right: 40px !important;
-    top: 36px;
+    height: 44px;
+    justify-content: center;
+    right: 32px !important;
+    top: 50% !important;
+    transform: translateY(-50%);
   }
 
   .header .menu_btn_JS {
@@ -795,7 +901,7 @@ a[href="/german-desk"],
     overflow: visible;
     pointer-events: none;
     position: fixed;
-    right: 150px;
+    right: 218px;
     top: 0;
     user-select: auto;
     width: auto !important;
@@ -1193,5 +1299,75 @@ a[href="/german-desk"],
     box-sizing: border-box;
     min-width: 44px;
     text-align: center;
+  }
+
+  .header .vwb-language__label {
+    display: none;
+  }
+
+  .header .vwb-language__compact {
+    display: inline;
+  }
+
+  .header .vwb-language__trigger {
+    gap: 4px;
+    min-width: 44px;
+    padding: 0;
+  }
+
+  .header .vwb-language__menu {
+    min-width: 138px;
+    right: 0;
+  }
+}
+
+/* Directorio de abogados: este bloque queda al final de von.css porque
+   style.css se carga después. En escritorio, la lista extensa se desplaza en
+   su columna y la ficha queda siempre disponible para comparar perfiles. */
+@media (min-width: 981px) {
+  .attorneys.attorneys--directory .page--wrap {
+    align-items: start;
+    display: grid !important;
+    gap: clamp(42px, 5vw, 96px);
+    grid-template-columns: 470px minmax(0, 1fr);
+    position: relative;
+  }
+
+  .attorneys.attorneys--directory .attorneys__meta--directory {
+    align-self: flex-start;
+  }
+
+  .attorneys.attorneys--directory .attorneys__list--directory {
+    /* Las categorías cortas siguen teniendo su altura natural; solo las
+       listas extensas activan su desplazamiento interno. */
+    max-block-size: min(720px, calc(100dvh - 104px));
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding-inline-end: 12px;
+    scrollbar-color: #a1a1a1 transparent;
+    scrollbar-gutter: stable;
+    scrollbar-width: thin;
+    width: auto !important;
+  }
+
+  .attorneys.attorneys--directory .attorneys__list--directory::-webkit-scrollbar {
+    width: 7px;
+  }
+
+  .attorneys.attorneys--directory .attorneys__list--directory::-webkit-scrollbar-thumb {
+    background: #a1a1a1;
+    border-radius: 999px;
+  }
+
+  .attorneys.attorneys--directory .attorneys__list--directory:focus-visible {
+    outline: 1px solid #b7122a;
+    outline-offset: 6px;
+  }
+}
+
+@media (min-width: 981px) and (max-width: 1080px) {
+  .attorneys.attorneys--directory .page--wrap {
+    grid-template-columns: 380px minmax(0, 1fr);
   }
 }

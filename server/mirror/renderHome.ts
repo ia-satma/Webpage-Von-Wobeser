@@ -219,49 +219,6 @@ const HERO_PERFORMANCE_SCRIPT = `<script id="vw-home-performance-js">(function()
         }
         loadWindow(slider,current);
         window.requestAnimationFrame(function(){loadWindow(slider,current);});
-        /* Rueda y trackpad: una ráfaga física mueve exactamente una diapositiva.
-           El listener permanece pasivo para no capturar el scroll vertical de la
-           portada; Slick conserva además flechas, arrastre y swipe. */
-        if(slider.getAttribute('data-vw-wheel-bound')!=='true'){
-          slider.setAttribute('data-vw-wheel-bound','true');
-          var wheelTotal=0;
-          var wheelDirection=0;
-          var wheelMoved=false;
-          var wheelGestureTimer=0;
-          function resetWheelGesture(){
-            wheelTotal=0;
-            wheelDirection=0;
-            wheelMoved=false;
-          }
-          function sliderIsVisible(){
-            var rect=slider.getBoundingClientRect();
-            if(rect.height<=0||rect.width<=0)return false;
-            var visible=Math.min(rect.bottom,window.innerHeight||document.documentElement.clientHeight)-Math.max(rect.top,0);
-            return visible>=Math.min(rect.height*.3,180);
-          }
-          slider.addEventListener('wheel',function(event){
-            if(event.ctrlKey||event.metaKey||!sliderIsVisible()||!instance.hasClass('slick-initialized'))return;
-            var horizontal=Math.abs(event.deltaX)>Math.abs(event.deltaY);
-            var delta=horizontal?event.deltaX:event.deltaY;
-            if(event.deltaMode===1)delta*=16;
-            else if(event.deltaMode===2)delta*=window.innerHeight||800;
-            if(!Number.isFinite(delta)||Math.abs(delta)<1)return;
-            window.clearTimeout(wheelGestureTimer);
-            wheelGestureTimer=window.setTimeout(resetWheelGesture,220);
-            if(wheelMoved)return;
-            var direction=delta>0?1:-1;
-            if(wheelDirection&&direction!==wheelDirection)wheelTotal=0;
-            wheelDirection=direction;
-            wheelTotal+=delta;
-            if(Math.abs(wheelTotal)<48)return;
-            var slick=null;
-            try{slick=instance.slick('getSlick');}catch(_error){return;}
-            if(!slick||slick.unslicked||slick.animating)return;
-            wheelMoved=true;
-            try{instance.slick(direction>0?'slickNext':'slickPrev');}catch(_error){wheelMoved=false;}
-            wheelTotal=0;
-          },{passive:true});
-        }
       }else{
         loadWindow(slider,0);
       }
