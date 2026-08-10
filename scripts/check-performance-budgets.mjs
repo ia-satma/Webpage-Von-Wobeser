@@ -7,7 +7,7 @@ const mirror = path.join(root, "frontend-mirror");
 const limits = {
   poster: 50 * 1024,
   mobileVideo: 1.5 * 1024 * 1024,
-  desktopVideo: 4.5 * 1024 * 1024,
+  desktopVideo: 30 * 1024 * 1024,
   responsiveImage: 850 * 1024,
   initialMobile: 2 * 1024 * 1024,
 };
@@ -16,13 +16,13 @@ function size(relativePath) {
   return fs.statSync(path.join(mirror, relativePath)).size;
 }
 
-assert.ok(size("images/hero-092c5875ed80af62-poster.webp") <= limits.poster, "El póster del hero supera 50 KB.");
-assert.ok(size("images/hero-092c5875ed80af62-mobile.mp4") <= limits.mobileVideo, "El video móvil supera 1.5 MB.");
-assert.ok(size("images/hero-092c5875ed80af62-desktop.mp4") <= limits.desktopVideo, "El video de escritorio supera 4.5 MB.");
+assert.ok(size("images/hero-20260810-fullhd-poster.webp") <= limits.poster, "El póster del hero supera 50 KB.");
+assert.ok(size("images/hero-20260810-fullhd-mobile.mp4") <= limits.mobileVideo, "El video móvil supera 1.5 MB.");
+assert.ok(size("images/hero-20260810-fullhd-desktop.mp4") <= limits.desktopVideo, "El video Full HD de escritorio supera 30 MB.");
 
 const initialMobileAssets = [
-  "images/hero-092c5875ed80af62-mobile.mp4",
-  "images/hero-092c5875ed80af62-poster.webp",
+  "images/hero-20260810-fullhd-mobile.mp4",
+  "images/hero-20260810-fullhd-poster.webp",
   "images/optimized/images/banners/7-a-640.webp",
   "images/optimized/images/banners/1_ind-640.webp",
   "templates/beez3/webfont/Inter-Variable.woff2",
@@ -66,6 +66,6 @@ assert.ok(Object.keys(manifest).length >= 200, "El manifiesto responsivo no cubr
 const renderer = fs.readFileSync(path.join(root, "server", "mirror", "renderHome.ts"), "utf8");
 assert.match(renderer, /data-bg-mobile=/, "El carrusel debe usar fondos diferidos.");
 assert.doesNotMatch(renderer, /style="background-image:url/, "El renderer no debe cargar fondos pesados de forma anticipada.");
-assert.match(renderer, /hero-092c5875ed80af62-mobile\.mp4/, "Falta la variante móvil predeterminada.");
+assert.match(renderer, /hero-20260810-fullhd-mobile\.mp4/, "Falta la variante móvil predeterminada.");
 
 console.log(`[performance] Presupuestos aprobados; transferencia móvil estimada: ${initialMobileBytes} bytes.`);

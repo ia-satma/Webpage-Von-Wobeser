@@ -527,16 +527,17 @@ export function renderHome(
     "/images/dron_2026_40.mp4",
     "/images/home-hero-desktop-v1.mp4",
     "/images/home-hero-desktop-v2.mp4",
+    "/images/hero-092c5875ed80af62-desktop.mp4",
   ]);
-  const defaultDesktopVideo = "/images/hero-092c5875ed80af62-desktop.mp4";
-  const defaultMobileVideo = "/images/hero-092c5875ed80af62-mobile.mp4";
+  const defaultDesktopVideo = "/images/hero-20260810-fullhd-desktop.mp4";
+  const defaultMobileVideo = "/images/hero-20260810-fullhd-mobile.mp4";
   const configuredDesktop = parseVideoSource(cfg(config, "hero_video", lang));
   const desktopSource: VideoSource = !configuredDesktop
     || (configuredDesktop.kind === "file" && legacyHeroVideos.has(configuredDesktop.url))
     ? { kind: "file", url: defaultDesktopVideo }
     : configuredDesktop;
   const configuredMobile = parseVideoSource(cfg(config, "hero_video_mobile", lang));
-  const legacyMobileVideos = new Set(["/images/home-hero-mobile-v1.mp4", "/images/home-hero-mobile-v2.mp4"]);
+  const legacyMobileVideos = new Set(["/images/home-hero-mobile-v1.mp4", "/images/home-hero-mobile-v2.mp4", "/images/hero-092c5875ed80af62-mobile.mp4"]);
   const mobileSource: VideoSource = !configuredMobile
     || (configuredMobile.kind === "file" && legacyMobileVideos.has(configuredMobile.url))
     ? (desktopSource.kind === "file" && desktopSource.url === defaultDesktopVideo
@@ -544,9 +545,9 @@ export function renderHome(
       : desktopSource)
     : configuredMobile;
   const configuredPoster = safeMediaUrl(cfg(config, "hero_video_poster", lang));
-  const legacyHeroPosters = new Set(["/images/home-hero-poster-v1.webp", "/images/home-hero-poster-v2.webp"]);
+  const legacyHeroPosters = new Set(["/images/home-hero-poster-v1.webp", "/images/home-hero-poster-v2.webp", "/images/hero-092c5875ed80af62-poster.webp"]);
   const heroPoster = !configuredPoster || legacyHeroPosters.has(configuredPoster)
-    ? "/images/hero-092c5875ed80af62-poster.webp"
+    ? "/images/hero-20260810-fullhd-poster.webp"
     : configuredPoster;
   const videoElement = $("#video_header");
   const configuredHeroLink = cfg(config, "hero_practice_link", lang).trim();

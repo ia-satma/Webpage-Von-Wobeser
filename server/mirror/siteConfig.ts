@@ -5,10 +5,10 @@ import { siteConfig } from "@shared/schema";
 export type ConfigMap = Record<string, { value: string; valueEs: string; type: string }>;
 
 const CURRENT_HERO_MEDIA = {
-  master: "/images/dron_2026_40.mp4",
-  desktop: "/images/hero-092c5875ed80af62-desktop.mp4",
-  mobile: "/images/hero-092c5875ed80af62-mobile.mp4",
-  poster: "/images/hero-092c5875ed80af62-poster.webp",
+  master: "/images/hero-20260810-fullhd-master.mp4",
+  desktop: "/images/hero-20260810-fullhd-desktop.mp4",
+  mobile: "/images/hero-20260810-fullhd-mobile.mp4",
+  poster: "/images/hero-20260810-fullhd-poster.webp",
 } as const;
 
 /** Default site-config keys for the editable parts of the mirror frontend. */
@@ -509,15 +509,15 @@ export async function seedConfigDefaults(): Promise<void> {
   const legacyHeroMedia: Record<string, { current: string; legacy: Set<string> }> = {
     hero_video: {
       current: CURRENT_HERO_MEDIA.desktop,
-      legacy: new Set(["", "/images/dron_2026_40.mp4", "/images/home-hero-desktop-v1.mp4", "/images/home-hero-desktop-v2.mp4"]),
+      legacy: new Set(["", "/images/dron_2026_40.mp4", "/images/home-hero-desktop-v1.mp4", "/images/home-hero-desktop-v2.mp4", "/images/hero-092c5875ed80af62-desktop.mp4"]),
     },
     hero_video_mobile: {
       current: CURRENT_HERO_MEDIA.mobile,
-      legacy: new Set(["", "/images/home-hero-mobile-v1.mp4", "/images/home-hero-mobile-v2.mp4"]),
+      legacy: new Set(["", "/images/home-hero-mobile-v1.mp4", "/images/home-hero-mobile-v2.mp4", "/images/hero-092c5875ed80af62-mobile.mp4"]),
     },
     hero_video_poster: {
       current: CURRENT_HERO_MEDIA.poster,
-      legacy: new Set(["", "/images/home-hero-poster-v1.webp", "/images/home-hero-poster-v2.webp"]),
+      legacy: new Set(["", "/images/home-hero-poster-v1.webp", "/images/home-hero-poster-v2.webp", "/images/hero-092c5875ed80af62-poster.webp"]),
     },
   };
   let heroMediaUpdated = false;
