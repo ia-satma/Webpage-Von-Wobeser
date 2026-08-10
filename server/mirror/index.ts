@@ -4,8 +4,14 @@ import path from "node:path";
 import { eq, and } from "drizzle-orm";
 import { getMirrorDir, mirrorPath } from "./config";
 import { renderAttorney } from "./renderAttorney";
-import { renderAttorneyList, CATEGORIES } from "./renderAttorneyList";
-import { renderAttorneyResults } from "./renderAttorneyResults";
+import {
+  renderAttorneyDirectory,
+  renderAttorneyList,
+  CATEGORIES,
+  type AttorneyDirectoryFilters,
+  type AttorneyDirectoryItem,
+  type AttorneyDirectoryPractice,
+} from "./renderAttorneyList";
 import { renderSingle } from "./renderSingle";
 import { renderHome } from "./renderHome";
 import { renderPage } from "./renderPage";
@@ -66,8 +72,18 @@ import {
 import { z } from "zod";
 import { isMigrationReadOnlyEnabled } from "../database/maintenance";
 import { normalizeVideoSource } from "@shared/videoSource";
+import { getLocalizedAttorneyTitle } from "@shared/attorneyTitles";
 
 type Lang = "en" | "es";
+
+const ATTORNEY_DIRECTORY_ROLE_KEYS = ["partners", "of-counsel", "counsel", "associates"] as const;
+const attorneyDirectoryQuerySchema = z.object({
+  q: z.string().trim().max(200).optional(),
+  role: z.union([z.enum(ATTORNEY_DIRECTORY_ROLE_KEYS), z.literal("")]).optional(),
+  practice: z.union([z.string().trim().regex(/^[a-z0-9-]{1,160}$/), z.literal("")]).optional(),
+  letter: z.union([z.string().trim().regex(/^(?:[A-Za-z])?$/), z.literal("")]).optional(),
+  "set-letter": z.union([z.string().trim().regex(/^(?:[A-Za-z])?$/), z.literal("")]).optional(),
+});
 
 const MANAGED_VIDEO_CONFIG_KEY = /^(?:hero_video(?:_mobile)?|firm_landing_hero_video|page_diversity_video_(?:main|[1-7])|office_video_[1-6])$/;
 const VIDEO_SOURCE_ERROR = "Usa un archivo MP4, WebM, OGV o MOV, o una liga válida de YouTube o Vimeo.";
@@ -432,7 +448,7 @@ export const SEARCH_FORMS_SCRIPT = `<script>(function(){try{
 // ocultos detrás de los 30 días de caché de los assets estáticos.
 // Se incrementa junto con los estilos globales del espejo para que las
 // navegaciones existentes no conserven una tipografía previa en caché.
-const NAV_ASSET_VERSION = "20260807-header-language-alignment";
+const NAV_ASSET_VERSION = "20260810-attorney-directory";
 function refreshNavigationAssets(html: string): string {
   return html
     .replace(/(href=["']\/templates\/beez3\/css\/style\.css)(?:\?[^"']*)?(["'])/gi, `$1?v=${NAV_ASSET_VERSION}$2`)
@@ -1224,35 +1240,93 @@ export async function setupMirror(app: Express) {
     sendPage(res, renderAttorneyList(pick(TEMPLATES.list, lang), attorneys, category, lang, { practiceGroups, showSearch }));
   };
 
-  // Página de resultados de búsqueda (navegación, no inline) — réplica del flujo
-  // real: por apellido (kind=letter) o por nombre/posición/práctica.
-  const serveResults = async (lang: Lang, res: Response, query: Record<string, any>) => {
-    const q = (query.q as string) || "";
-    const kind = (query.kind as string) || "";
-    const position = (query.position as string) || undefined;
-    const practiceSlug = (query.practice as string) || undefined;
-
-    let attorneys: any[];
-    if (kind === "letter" && q) {
-      const letter = normalizeStr(q);
-      const all = await storage.getTeamMembers();
-      attorneys = all.filter(
-        (m: any) => m.published !== false && normalizeStr(lastWord(m.name)).startsWith(letter),
-      );
-    } else {
-      const title = position && CATEGORIES[position] ? CATEGORIES[position].title : undefined;
-      let practiceGroupId: string | undefined;
-      if (practiceSlug) {
-        const group = await storage.getPracticeGroupBySlug(practiceSlug);
-        practiceGroupId = group?.id;
-      }
-      attorneys = await storage.searchTeamMembers({ q: q || undefined, title, practiceGroupId });
+  const serveAttorneyDirectory = async (lang: Lang, res: Response, query: Record<string, unknown>) => {
+    const parsed = attorneyDirectoryQuerySchema.safeParse(query);
+    if (!parsed.success) {
+      res
+        .status(400)
+        .type("html")
+        .send(`<!doctype html><html lang="${lang}"><meta charset="utf-8"><title>${lang === "es" ? "Filtros inválidos" : "Invalid filters"}</title><body><p>${lang === "es" ? "Revisa los filtros e inténtalo de nuevo." : "Review the filters and try again."}</p></body></html>`);
+      return;
     }
-    attorneys = attorneys.sort(
-      (a: any, b: any) => (a.order ?? 0) - (b.order ?? 0) || a.name.localeCompare(b.name),
-    );
 
-    sendPage(res, renderAttorneyResults(pick(TEMPLATES.list, lang), attorneys, lang));
+    const filters: AttorneyDirectoryFilters = {
+      q: parsed.data.q || "",
+      role: parsed.data.role || "",
+      practice: parsed.data.practice || "",
+      letter: (parsed.data["set-letter"] ?? parsed.data.letter ?? "").toUpperCase(),
+    };
+    const [members, practiceGroupsRaw, practiceRelations] = await Promise.all([
+      storage.getTeamMembers(),
+      storage.getPracticeGroups(),
+      db
+        .select({
+          teamMemberId: teamMemberPracticeGroups.teamMemberId,
+          practiceSlug: practiceGroups.slug,
+          published: practiceGroups.published,
+        })
+        .from(teamMemberPracticeGroups)
+        .innerJoin(practiceGroups, eq(teamMemberPracticeGroups.practiceGroupId, practiceGroups.id)),
+    ]);
+
+    const practices: AttorneyDirectoryPractice[] = practiceGroupsRaw
+      .filter(isVisiblePublicPractice)
+      .map((group) => ({
+        slug: group.slug,
+        name: lang === "es" ? group.nameEs : group.name,
+      }));
+    const publicPracticeSlugs = new Set(practices.map((practice) => practice.slug));
+    const practicesByAttorney = new Map<string, string[]>();
+    for (const relation of practiceRelations) {
+      if (relation.published === false || !publicPracticeSlugs.has(relation.practiceSlug)) continue;
+      const memberPractices = practicesByAttorney.get(relation.teamMemberId) || [];
+      memberPractices.push(relation.practiceSlug);
+      practicesByAttorney.set(relation.teamMemberId, memberPractices);
+    }
+
+    const roleByTitle = new Map(
+      ATTORNEY_DIRECTORY_ROLE_KEYS.map((role) => [CATEGORIES[role].title, role]),
+    );
+    const attorneys: AttorneyDirectoryItem[] = members
+      .filter((member) => member.published !== false && roleByTitle.has(member.title))
+      .sort((a, b) => (a.order ?? 0) - (b.order ?? 0) || a.name.localeCompare(b.name, lang === "es" ? "es" : "en", { sensitivity: "base" }))
+      .map((member) => {
+        const role = roleByTitle.get(member.title)!;
+        return {
+          id: member.id,
+          slug: member.slug,
+          name: member.name,
+          role,
+          roleLabel: getLocalizedAttorneyTitle(member, lang) || CATEGORIES[role][lang === "es" ? "es" : "en"],
+          imageUrl: member.imageUrl || "",
+          practiceSlugs: practicesByAttorney.get(member.id) || [],
+        };
+      });
+
+    await sendPage(res, renderAttorneyDirectory(pick(TEMPLATES.list, lang), attorneys, practices, filters, lang));
+  };
+
+  // Ruta histórica: sus filtros se convierten a los del directorio unificado.
+  const redirectAttorneySearch = (lang: Lang, res: Response, query: Record<string, unknown>) => {
+    const rawQuery = typeof query.q === "string" ? query.q.trim().slice(0, 200) : "";
+    const kind = typeof query.kind === "string" ? query.kind.toLowerCase() : "";
+    const position = typeof query.position === "string" ? query.position : "";
+    const practice = typeof query.practice === "string" ? query.practice : "";
+    const params = new URLSearchParams();
+
+    if (kind === "letter") {
+      const letter = rawQuery.charAt(0).toUpperCase();
+      if (/^[A-Z]$/.test(letter)) params.set("letter", letter);
+    } else if (rawQuery) {
+      params.set("q", rawQuery);
+    }
+    if (ATTORNEY_DIRECTORY_ROLE_KEYS.includes(position as typeof ATTORNEY_DIRECTORY_ROLE_KEYS[number])) {
+      params.set("role", position);
+    }
+    if (/^[a-z0-9-]{1,160}$/.test(practice)) params.set("practice", practice);
+    if (lang === "en") params.set("lang", "en");
+
+    res.redirect(302, `/attorneys${params.size ? `?${params.toString()}` : ""}`);
   };
 
   const servePractice = async (slug: string | undefined, lang: Lang, res: Response, next: NextFunction) => {
@@ -1638,11 +1712,13 @@ export async function setupMirror(app: Express) {
     if (query === null) return;
     await serveArticlesList(lang, res, parsePublicPage(req.query.page), query);
   }));
-  // Página general "Abogados" (a la que redirige el menú): ÚNICA con buscador.
-  app.get("/attorneys", wrap((req, res, next) => serveList("partners", langOf(req), res, next, req.query, true)));
-  // Resultados de búsqueda (debe ir ANTES de /attorneys/:category para no ser
-  // tragada por el parámetro :category).
-  app.get("/attorneys/buscar", wrap((req, res) => serveResults(langOf(req), res, req.query)));
+  // Directorio general: filtros y todos los perfiles viven en la misma página.
+  app.get("/attorneys", wrap((req, res) => serveAttorneyDirectory(langOf(req), res, req.query)));
+  // Compatibilidad con el buscador histórico antes de la ruta por categoría.
+  app.get("/attorneys/buscar", wrap((req, res) => {
+    redirectAttorneySearch(langOf(req), res, req.query);
+    return Promise.resolve();
+  }));
   // Listados limpios de las cuatro categorías del submenu de Abogados. Antes
   // estas URLs no tenían handler y caían en el Home inglés del catch-all.
   app.get("/attorneys/:category", wrap((req, res, next) => {

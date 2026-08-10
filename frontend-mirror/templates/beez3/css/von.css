@@ -1386,3 +1386,412 @@ a[href="/german-desk"],
     grid-template-columns: 380px minmax(0, 1fr);
   }
 }
+
+/* Directorio unificado: el bloque de búsqueda conserva sin reinterpretación
+   la composición del buscador histórico capturado en el espejo. */
+.attorney-directory {
+  box-sizing: border-box;
+  color: #5e5e5e;
+  margin: 0 auto;
+  padding: 132px 0 116px;
+  width: min(1200px, calc(100% - 64px));
+}
+
+.attorney-directory *,
+.attorney-directory *::before,
+.attorney-directory *::after {
+  box-sizing: border-box;
+}
+
+.attorney-directory__intro {
+  margin: 0 0 42px;
+  max-width: 720px;
+}
+
+.attorney-directory__eyebrow {
+  color: #ac162c;
+  font: 500 12px/1 var(--vw-font-ui);
+  letter-spacing: .23em;
+  margin: 0 0 18px;
+  text-transform: uppercase;
+}
+
+.attorney-directory__intro h1 {
+  color: #5a5a5a;
+  font: 400 clamp(38px, 4.4vw, 58px)/1.04 var(--vw-font-editorial);
+  margin: 0 0 18px;
+}
+
+.attorney-directory__intro > p:last-child {
+  color: #666;
+  font: 400 17px/1.6 var(--vw-font-body);
+  margin: 0;
+  max-width: 620px;
+}
+
+.attorney-directory__filters {
+  background: #858585;
+  color: #fff;
+  display: flow-root;
+  margin-left: auto;
+  margin-right: auto;
+  padding: 50px;
+  width: 780px;
+}
+
+.attorney-directory__filter-main {
+  float: left;
+  width: 50%;
+}
+
+.attorney-directory__filter-title,
+.attorney-directory__initials > span {
+  color: #fff;
+  display: block;
+  font: 400 23px/1 var(--vw-font-editorial);
+  letter-spacing: .5px;
+  margin: 0 0 50px;
+}
+
+.attorney-directory__field {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0;
+  justify-content: space-between;
+  margin-bottom: 20px;
+  width: 100%;
+}
+
+.attorney-directory__field > span {
+  color: #fff;
+  flex: 0 0 auto;
+  font: 400 17px/1.2 var(--vw-font-ui);
+  letter-spacing: 5px;
+  text-transform: uppercase;
+}
+
+.attorney-directory__field input,
+.attorney-directory__field select {
+  background: #fff;
+  border: 0;
+  border-radius: 0;
+  color: #444;
+  font: 400 17px/1.2 var(--vw-font-ui);
+  min-width: 0;
+  padding: 8px 5px;
+  width: calc(100% - 150px);
+}
+
+.attorney-directory__field select {
+  cursor: pointer;
+}
+
+.attorney-directory__field input:focus-visible,
+.attorney-directory__field select:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 3px;
+}
+
+.attorney-directory__initials {
+  display: flex;
+  flex-wrap: wrap;
+  float: right;
+  justify-content: center;
+  width: 40%;
+}
+
+.attorney-directory__initials > span {
+  width: 100%;
+}
+
+.attorney-directory__initials > input {
+  display: none;
+}
+
+.attorney-directory__letters {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0;
+  justify-content: center;
+  width: 100%;
+}
+
+.attorney-directory__letter {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  color: #fff;
+  cursor: pointer;
+  display: inline-flex;
+  font: 400 17px/1 var(--vw-font-ui);
+  height: auto;
+  justify-content: center;
+  letter-spacing: 0;
+  margin-bottom: 25px;
+  min-width: 0;
+  padding: 0;
+  transition: color .2s ease, text-decoration-color .2s ease, transform .2s ease;
+  width: 7.65%;
+}
+
+.attorney-directory__letter:first-child {
+  display: none;
+}
+
+.attorney-directory__letter:hover,
+.attorney-directory__letter[aria-pressed="true"] {
+  color: #fff;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 4px;
+}
+
+.attorney-directory__letter:active {
+  transform: scale(.97);
+}
+
+.attorney-directory__letter:focus-visible,
+.attorney-directory__actions button:focus-visible,
+.attorney-directory__clear:focus-visible,
+.attorney-directory__result a:focus-visible {
+  outline: 2px solid rgba(255, 255, 255, .85);
+  outline-offset: 3px;
+}
+
+.attorney-directory__actions {
+  min-height: 44px;
+  position: relative;
+}
+
+.attorney-directory__actions button,
+.attorney-directory__clear {
+  border-radius: 0;
+  cursor: pointer;
+  display: block;
+  font: 400 17px/1 var(--vw-font-ui);
+  height: 44px;
+  letter-spacing: 5px;
+  padding: 12px 18px;
+  text-transform: uppercase;
+}
+
+.attorney-directory__actions button[type="submit"] {
+  background: #ac162c;
+  border: 1px solid #ac162c;
+  color: #fff;
+  margin-left: auto;
+  text-align: center;
+  width: 130px;
+}
+
+.attorney-directory__clear {
+  background: transparent;
+  border: 0;
+  color: #fff;
+  font-size: 11px;
+  height: auto;
+  letter-spacing: .12em;
+  padding: 0 !important;
+  position: absolute;
+  right: 0;
+  text-align: right;
+  top: 51px;
+  text-decoration-color: currentcolor;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 4px;
+}
+
+.attorney-directory__clear[hidden] {
+  display: none;
+}
+
+.attorney-directory__actions button:active {
+  transform: scale(.98);
+}
+
+.attorney-directory__status {
+  color: #ac162c;
+  font: 500 12px/1.3 var(--vw-font-ui);
+  letter-spacing: .16em;
+  margin: 26px 0 42px;
+  text-transform: uppercase;
+}
+
+.attorney-directory__empty {
+  border-top: 1px solid #c9c9c6;
+  color: #626262;
+  font: 400 22px/1.45 var(--vw-font-editorial);
+  margin: 0;
+  padding: 48px 0 76px;
+}
+
+.attorney-directory__groups {
+  display: grid;
+  gap: 62px;
+}
+
+.attorney-directory__group {
+  border-top: 2px solid #ac162c;
+  padding-top: 22px;
+}
+
+.attorney-directory__group h2 {
+  color: #5a5a5a;
+  font: 400 clamp(30px, 3vw, 42px)/1.1 var(--vw-font-editorial);
+  margin: 0 0 26px;
+}
+
+.attorney-directory__grid {
+  display: grid;
+  gap: 36px 22px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.attorney-directory__result {
+  min-width: 0;
+}
+
+.attorney-directory__result a {
+  color: inherit;
+  display: block;
+  text-decoration: none;
+}
+
+.attorney-directory__portrait {
+  aspect-ratio: 4 / 5;
+  background: #dededb;
+  display: block;
+  margin-bottom: 14px;
+  overflow: hidden;
+}
+
+.attorney-directory__portrait img,
+.attorney-directory__portrait--fallback {
+  display: block;
+  height: 100%;
+  object-fit: cover;
+  object-position: center top;
+  transition: transform .35s cubic-bezier(.16, 1, .3, 1);
+  width: 100%;
+}
+
+.attorney-directory__portrait--fallback {
+  background: #c9c9c6;
+}
+
+.attorney-directory__result a:hover .attorney-directory__portrait img,
+.attorney-directory__result a:focus-visible .attorney-directory__portrait img {
+  transform: scale(1.025);
+}
+
+.attorney-directory__name,
+.attorney-directory__role {
+  display: block;
+}
+
+.attorney-directory__name {
+  color: #575757;
+  font: 400 clamp(20px, 1.7vw, 24px)/1.15 var(--vw-font-editorial);
+}
+
+.attorney-directory__role {
+  color: #727272;
+  font: 500 11px/1.35 var(--vw-font-ui);
+  letter-spacing: .13em;
+  margin-top: 7px;
+  text-transform: uppercase;
+}
+
+@media (max-width: 1080px) {
+  .attorney-directory__filters {
+    padding: 60px;
+    width: 640px;
+  }
+}
+
+@media (max-width: 980px) {
+  .attorney-directory__grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 800px) {
+  .attorney-directory__filters {
+    padding: 50px;
+    width: 100%;
+  }
+
+  .attorney-directory__filter-title,
+  .attorney-directory__initials > span {
+    font-size: 19px;
+  }
+}
+
+@media (max-width: 680px) {
+  .attorney-directory__filters {
+    padding: 35px;
+  }
+
+  .attorney-directory__field input,
+  .attorney-directory__field select {
+    width: 100%;
+  }
+
+  .attorney-directory__initials {
+    width: 50%;
+  }
+
+  .attorney-directory__letter {
+    width: 10%;
+  }
+
+  .attorney-directory__actions button[type="submit"] {
+    margin-left: 0;
+  }
+}
+
+@media (max-width: 480px) {
+  .attorney-directory__filters {
+    padding: 22px;
+  }
+}
+
+@media (max-width: 640px) {
+  .attorney-directory {
+    padding: 106px 0 78px;
+    width: min(100% - 32px, 1200px);
+  }
+
+  .attorney-directory__intro {
+    margin-bottom: 30px;
+  }
+
+  .attorney-directory__intro h1 {
+    font-size: clamp(37px, 11vw, 48px);
+  }
+
+  .attorney-directory__grid {
+    gap: 30px;
+    grid-template-columns: 1fr;
+  }
+
+  .attorney-directory__groups {
+    gap: 48px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .attorney-directory *,
+  .attorney-directory *::before,
+  .attorney-directory *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0s !important;
+  }
+}

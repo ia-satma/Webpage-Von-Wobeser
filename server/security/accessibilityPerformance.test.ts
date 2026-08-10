@@ -6,7 +6,7 @@ import * as cheerio from "cheerio";
 process.env.DATABASE_URL ||= "postgresql://test:test@127.0.0.1:5432/test";
 
 const { renderHome } = await import("../mirror/renderHome");
-const { CATEGORIES, renderAttorneyList } = await import("../mirror/renderAttorneyList");
+const { CATEGORIES, renderAttorneyDirectory, renderAttorneyList } = await import("../mirror/renderAttorneyList");
 const { applyA11y, applySeo, setFaviconConfig } = await import("../mirror/seo");
 const {
   hardenLegacyClientScripts,
@@ -201,6 +201,47 @@ test("los listados de Abogados conservan categoría, idioma, canonical y hreflan
     assert.equal(en(".attorneys__list").attr("aria-label"), "Attorney list");
     assert.equal(es("#vwb-attorney-directory-pin").length, 0);
   }
+});
+
+test("el directorio de abogados agrupa tarjetas, localiza perfiles y filtra desde el servidor", () => {
+  const template = `<!doctype html><html lang="es"><head><title>Abogados</title></head><body>
+    <header><a class="header__lang--item" href="#">ENG</a></header>
+    <section class="page attorneys"><div class="attorneys__meta"></div><div class="attorneys__list"></div></section>
+  </body></html>`;
+  const attorneys = [
+    { id: "1", slug: "maria-nunez", name: "María Núñez", role: "partners", roleLabel: "Socia", imageUrl: "/images/maria.jpg", practiceSlugs: ["tax"] },
+    { id: "2", slug: "alan-carreno", name: "Alan Carreño", role: "of-counsel", roleLabel: "Of Counsel", imageUrl: "/images/alan.jpg", practiceSlugs: ["tax"] },
+    { id: "3", slug: "berta-torres", name: "Berta Torres", role: "counsel", roleLabel: "Consejera", imageUrl: "/images/berta.jpg", practiceSlugs: ["litigation"] },
+    { id: "4", slug: "carlos-arias", name: "Carlos Arias", role: "associates", roleLabel: "Asociado", imageUrl: "/images/carlos.jpg", practiceSlugs: ["litigation"] },
+  ] as const;
+  const practices = [
+    { slug: "tax", name: "Fiscal" },
+    { slug: "litigation", name: "Litigio" },
+  ];
+  const filters = { q: "NUNEZ", role: "partners", practice: "tax", letter: "N" };
+  const es = cheerio.load(renderAttorneyDirectory(template, [...attorneys], practices, filters, "es"));
+  const en = cheerio.load(renderAttorneyDirectory(template, [...attorneys], practices, { q: "", role: "", practice: "", letter: "" }, "en"));
+  const js = readFileSync(new URL("../../public/attorney-directory.js", import.meta.url), "utf8");
+
+  assert.equal(es(".attorney-directory").length, 1);
+  assert.equal(es(".search__form").length, 0);
+  assert.equal(es("[data-attorney-result]").length, 4);
+  assert.equal(es("[data-attorney-result]:not([hidden])").length, 1);
+  assert.equal(es("[data-attorney-result]:not([hidden]) a").attr("href"), "/abogado/maria-nunez");
+  assert.equal(es("[data-attorney-result]:not([hidden]) img").attr("loading"), "lazy");
+  assert.equal(es("[data-attorney-letter-option][value=\"N\"]").attr("aria-pressed"), "true");
+  assert.equal(es("input[data-attorney-letter]").attr("value"), "N");
+  assert.equal(es(".attorney-directory__initials > span").text(), "Búsqueda por inicial:");
+  assert.equal(es('[data-attorney-result][data-name-initials="M|N"]').length, 1);
+  assert.equal(es(".attorney-directory__grid").length, 4);
+  assert.equal(es('link[rel="canonical"]').attr("href"), "https://www.vonwobeser.com/attorneys");
+  assert.equal(en("[data-attorney-result]").first().find("a").attr("href"), "/lawyer/maria-nunez?lang=en");
+  assert.equal(en('link[rel="canonical"]').attr("href"), "https://www.vonwobeser.com/attorneys?lang=en");
+  assert.match(js, /data-attorney-letter-option/);
+  assert.match(js, /params\.has\("set-letter"\)/);
+  assert.match(js, /"set-letter"\]\.?forEach/);
+  assert.match(js, /window\.addEventListener\("popstate"/);
+  assert.match(js, /window\.history\[mode \+ "State"\]/);
 });
 
 test("los módulos públicos añadidos usan la línea tipográfica institucional", () => {
