@@ -105,18 +105,36 @@ const HERO_PERFORMANCE_SCRIPT = `<script id="vw-home-performance-js">(function()
     var saveData=!!(navigator.connection&&navigator.connection.saveData);
     var showRetry=function(){if(retry)retry.classList.add('is-visible');};
     var hideRetry=function(){if(retry)retry.classList.remove('is-visible');};
+    var hydrated=false;
+    var hydrate=function(){
+      if(hydrated)return;
+      var sources=video.querySelectorAll('source[data-vwb-src]');
+      for(var index=0;index<sources.length;index++){
+        var source=sources[index];
+        var url=source.getAttribute('data-vwb-src');
+        if(url){source.setAttribute('src',url);source.removeAttribute('data-vwb-src');}
+      }
+      hydrated=true;
+      video.setAttribute('data-vwb-hydrated','true');
+      video.load();
+    };
     var start=function(){
+      hydrate();
       video.muted=true;video.defaultMuted=true;video.playsInline=true;
       var promise=video.play();
       if(promise&&promise.catch)promise.catch(showRetry);
     };
     video.addEventListener('playing',hideRetry);
     video.addEventListener('error',showRetry);
-    if(reduced||saveData){video.autoplay=false;video.pause();video.preload='metadata';showRetry();}
+    if(reduced||saveData){video.autoplay=false;video.pause();video.preload='none';showRetry();}
     else{
       video.autoplay=true;
-      start();
-      window.setTimeout(function(){if(video.paused&&!video.ended)showRetry();},3500);
+      var begin=function(){
+        start();
+        window.setTimeout(function(){if(video.paused&&!video.ended)showRetry();},3500);
+      };
+      if(window.requestAnimationFrame)window.requestAnimationFrame(function(){window.requestAnimationFrame(begin);});
+      else window.setTimeout(begin,0);
     }
     if(retry)retry.addEventListener('click',function(){video.preload='auto';hideRetry();start();});
   }
@@ -565,8 +583,8 @@ export function renderHome(
         ? "video/ogg"
         : "video/mp4";
     videoElement.empty()
-      .append(`<source media="(max-width: 680px)" src="${escAttr(mobileSource.url)}" type="${mobileType}">`)
-      .append(`<source src="${escAttr(desktopSource.url)}" type="${desktopType}">`);
+      .append(`<source media="(max-width: 680px)" data-vwb-src="${escAttr(mobileSource.url)}" type="${mobileType}">`)
+      .append(`<source data-vwb-src="${escAttr(desktopSource.url)}" type="${desktopType}">`);
     videoElement.parent("a").attr({
       href: heroLink,
       "aria-label": lang === "es" ? "Conoce Von Wobeser y Sierra" : "Discover Von Wobeser y Sierra",

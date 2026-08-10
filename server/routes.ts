@@ -6,6 +6,7 @@ import { seed } from "./seed";
 import express from "express";
 import path from "path";
 import fs from "fs";
+import fsp from "node:fs/promises";
 import crypto from "crypto";
 import net from "node:net";
 import multer from "multer";
@@ -114,6 +115,7 @@ import {
   teamMembers,
   testimonials,
 } from "@shared/schema";
+import { getLocalizedAttorneyRole, getLocalizedAttorneyTitle } from "@shared/attorneyTitles";
 import { db } from "./db";
 import { sql, gte } from "drizzle-orm";
 import { smartImageGenerator } from "./services/SmartImageGenerator";
@@ -490,8 +492,8 @@ function generateVCard(member: any, language: "es" | "en" = "es"): string {
       return null;
     }
   };
-  const title = vcardText(language === "es" ? member.titleEs : member.title);
-  const role = vcardText(language === "es" ? member.roleEs : member.role);
+  const title = vcardText(getLocalizedAttorneyTitle(member, language));
+  const role = vcardText(getLocalizedAttorneyRole(member, language));
   
   const safeName = vcardText(member.name || member.slug?.replace(/-/g, ' ') || 'Unknown');
   const nameParts = safeName.split(/\s+/);
@@ -4069,6 +4071,9 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
       const cleanPath = parsed.data.mediaPath.split(/[?#]/, 1)[0];
       const allowedVideo = /\.(?:mp4|webm|mov|ogv)$/i.test(cleanPath);
       if (!allowedVideo) return res.status(400).json({ error: "El archivo seleccionado no es un video compatible." });
+      if (/^\/uploads\/hero\/(?:masters\/)?hero-[a-f0-9]{16}-(?:desktop|mobile)\.mp4$/i.test(cleanPath)) {
+        return res.status(400).json({ error: "Selecciona el video maestro original, no una variante ya optimizada." });
+      }
 
       const baseDirectory = cleanPath.startsWith("/uploads/") ? uploadsDir : getMirrorDir();
       const relativePath = cleanPath.startsWith("/uploads/")
@@ -4089,8 +4094,30 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
       if (!fs.existsSync(sourcePath)) return res.status(404).json({ error: "No se encontró el video seleccionado." });
 
       const outputDirectory = path.join(uploadsDir, "hero");
-      const variants = await generateHeroVideoVariants(sourcePath, outputDirectory);
+      const sourceStats = await fsp.stat(sourcePath);
+      const masterFingerprint = crypto
+        .createHash("sha256")
+        .update(`${cleanPath}:${sourceStats.size}:${sourceStats.mtimeMs}`)
+        .digest("hex")
+        .slice(0, 16);
+      const masterExtension = path.extname(cleanPath).toLowerCase() || ".mp4";
+      const masterPublicPath = `/uploads/hero/masters/hero-master-${masterFingerprint}${masterExtension}`;
+      const masterAbsolutePath = path.join(outputDirectory, "masters", path.basename(masterPublicPath));
+      await fsp.mkdir(path.dirname(masterAbsolutePath), { recursive: true });
+      if (path.resolve(sourcePath) !== path.resolve(masterAbsolutePath)) {
+        try {
+          await fsp.access(masterAbsolutePath);
+        } catch {
+          await fsp.copyFile(sourcePath, masterAbsolutePath);
+        }
+      }
+
+      const variants = await generateHeroVideoVariants(masterAbsolutePath, outputDirectory);
       await persistPublicMediaFiles([
+        {
+          absolutePath: masterAbsolutePath,
+          publicPath: masterPublicPath,
+        },
         {
           absolutePath: path.join(outputDirectory, path.basename(variants.desktopPath)),
           publicPath: variants.desktopPath,
@@ -4104,10 +4131,10 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
           publicPath: variants.posterPath,
         },
       ]);
-      await setHeroMediaConfig(variants.desktopPath, variants.mobilePath, variants.posterPath);
+      await setHeroMediaConfig(masterPublicPath, variants.desktopPath, variants.mobilePath, variants.posterPath);
       res.json({
         ok: true,
-        masterPath: cleanPath,
+        masterPath: masterPublicPath,
         ...variants,
       });
     } catch (error) {

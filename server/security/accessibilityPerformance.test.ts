@@ -307,9 +307,9 @@ test("la portada nombra los cuatro carruseles y aplica contraste AA al módulo d
   assert.equal($("#video_header").attr("poster"), "/images/hero-092c5875ed80af62-poster.webp");
   assert.equal($("#video_header").attr("width"), "1920");
   assert.equal($("#video_header").attr("height"), "1080");
-  assert.equal($("#video_header source").eq(0).attr("src"), "/images/hero-092c5875ed80af62-mobile.mp4");
+  assert.equal($("#video_header source").eq(0).attr("data-vwb-src"), "/images/hero-092c5875ed80af62-mobile.mp4");
   assert.equal($("#video_header source").eq(0).attr("media"), "(max-width: 680px)");
-  assert.equal($("#video_header source").eq(1).attr("src"), "/images/hero-092c5875ed80af62-desktop.mp4");
+  assert.equal($("#video_header source").eq(1).attr("data-vwb-src"), "/images/hero-092c5875ed80af62-desktop.mp4");
   assert.equal($("#video_header source").eq(1).attr("type"), "video/mp4");
   assert.equal($("#video_header").attr("autoplay"), "autoplay");
   assert.equal($("[data-vw-home-video-retry] span").last().text().trim(), "Reproducir video");

@@ -1,4 +1,5 @@
 import * as cheerio from "cheerio";
+import { getLocalizedAttorneyTitle } from "@shared/attorneyTitles";
 import { applySeo, breadcrumbNode } from "./seo";
 
 type Lang = "en" | "es";
@@ -44,7 +45,7 @@ export function renderAttorneyList(
     const active = idx === 0 ? "active" : "";
     const di = idx + 1;
     const img = esc(a.imageUrl || "");
-    const role = lang === "es" ? a.titleEs || a.title : a.title;
+    const role = getLocalizedAttorneyTitle(a, lang);
     const vcard = `/api/team/${esc(a.slug)}/vcard`;
 
     metaItems.push(

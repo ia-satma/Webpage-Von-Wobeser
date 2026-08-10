@@ -1,4 +1,5 @@
 import * as cheerio from "cheerio";
+import { getLocalizedAttorneyRole, getLocalizedAttorneyTitle } from "@shared/attorneyTitles";
 import { applySeo, personNode, breadcrumbNode, clip } from "./seo";
 import { renderRichText } from "./sanitize";
 
@@ -126,7 +127,7 @@ export function renderAttorney(templateHtml: string, a: any, lang: Lang = "en"):
   const $ = cheerio.load(templateHtml);
 
   const name = a.name || "";
-  const role = L(a, "title", lang) || L(a, "role", lang);
+  const role = getLocalizedAttorneyTitle(a, lang) || getLocalizedAttorneyRole(a, lang);
   const phone = a.phone || "";
   const email = a.email || "";
   const img = a.imageUrl || "";
