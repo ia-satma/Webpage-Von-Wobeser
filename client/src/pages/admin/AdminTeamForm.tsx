@@ -20,6 +20,7 @@ import { ConfirmChangesDialog, computeChanges, type Change } from "@/components/
 import { TranslateButton } from "@/components/admin/TranslateButton";
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 import { AdminPageHelp } from "@/components/admin/AdminPageHelp";
+import { normalizeSpanishPartnerFields } from "@shared/attorneyTitles";
 
 const TEAM_LABELS: Record<string, string> = {
   name: "Nombre", slug: "Slug", title: "Cargo", titleEs: "Cargo (español)",
@@ -80,7 +81,7 @@ const translations = {
     title: "Category",
     titleHint: "Determines which listing this person appears in (Partners, Of Counsel, Counsel, Associates). Must match exactly — pick from the list.",
     titleEs: "Displayed Title (Spanish)",
-    titleEsHint: "Free text shown on the Spanish site (e.g., 'Socio', 'Socia', 'Asociada'). Does not affect which listing they appear in — that's set by Category.",
+    titleEsHint: "Text shown on the Spanish site. For partners use ‘Socio’ or ‘Socia’; if ‘Partner’ is entered it will be saved as ‘Socio’. Category defines the listing.",
     role: "Position",
     roleEs: "Position (Spanish)",
     email: "Email Address",
@@ -151,7 +152,7 @@ const translations = {
     title: "Categoría",
     titleHint: "Determina en qué listado aparece esta persona (Socios, Of Counsel, Consejeros, Asociados). Debe coincidir exacto — elígelo de la lista.",
     titleEs: "Título mostrado (Español)",
-    titleEsHint: "Texto libre que se muestra en el sitio en español (ej. 'Socio', 'Socia', 'Asociada'). No afecta en qué listado aparece — eso lo define la Categoría.",
+    titleEsHint: "Texto mostrado en el sitio en español. Para Socios usa ‘Socio’ o ‘Socia’; si escribes ‘Partner’, se guardará como ‘Socio’. La Categoría define el listado.",
     role: "Posición",
     roleEs: "Posición (Español)",
     email: "Correo Electrónico",
@@ -370,7 +371,7 @@ export default function AdminTeamForm() {
   };
 
   const onSubmit = (data: TeamMemberFormData) => {
-    const cleanData = {
+    const cleanData = normalizeSpanishPartnerFields({
       ...data,
       email: data.email || null,
       phone: data.phone || null,
@@ -378,7 +379,7 @@ export default function AdminTeamForm() {
       imageUrl: data.imageUrl || null,
       bio: data.bio || null,
       bioEs: data.bioEs || null,
-    };
+    });
     // Muestra un resumen de lo que se va a guardar antes de confirmar.
     const changes = computeChanges(isEditMode ? (member as any) || {} : {}, cleanData, TEAM_LABELS);
     setConfirm({ data: cleanData, changes });

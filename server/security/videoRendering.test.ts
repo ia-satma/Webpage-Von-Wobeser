@@ -47,7 +47,8 @@ test("el Home conserva video nativo y enlace institucional para archivos", async
   const html = renderHome(template, [], config, "es");
   const $ = cheerio.load(html);
   assert.equal($("#video_header source").length, 2);
-  assert.equal($("#video_header source").first().attr("src"), "/uploads/video/mobile.webm");
+  assert.equal($("#video_header source").first().attr("data-vwb-src"), "/uploads/video/mobile.webm");
+  assert.equal($("#video_header source").first().attr("src"), undefined, "el video no debe descargarse antes de que el póster pinte");
   assert.equal($("#video_header").parent("a").attr("href"), "/acerca-de");
   assert.equal($("#video_header").attr("autoplay"), "autoplay");
   assert.equal($("#video_header").attr("muted"), "");
@@ -71,6 +72,9 @@ test("el video nativo ofrece recuperación cuando Edge o Brave bloquean autoplay
   assert.equal($("[data-vw-home-video-retry] span").last().text().trim(), "Play video");
   assert.match(html, /navigator\.connection&&navigator\.connection\.saveData/);
   assert.match(html, /prefers-reduced-motion: reduce/);
+  assert.match(html, /source\[data-vwb-src\]/);
+  assert.match(html, /video\.load\(\)/);
+  assert.match(html, /requestAnimationFrame/);
   assert.match(html, /video\.preload='auto'/);
   assert.doesNotMatch(html, /#video_header\{display:none\}/);
 });

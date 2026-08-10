@@ -79,21 +79,42 @@ body {
   width: 1px;
 }
 
-/* El título vertical del espejo ahora es el H1 real sin alterar su apariencia. */
-.page__ttl--holder > h1 {
+/* Rótulos editoriales heredados: dentro del flujo, sin la columna lateral. */
+.page--wrap .page__ttl {
+  flex: 0 0 100%;
+  margin: 0 0 1.25rem;
+  width: 100%;
+}
+
+.page--wrap .page__ttl--holder {
+  height: auto;
+  overflow: visible;
+  position: static;
+  width: auto;
+}
+
+.page__ttl--holder > h1,
+.page__ttl--holder > span {
   color: #ac162c;
   display: block;
   font-family: var(--vw-font-ui);
-  font-size: 17px;
-  font-weight: 400;
-  letter-spacing: 6px;
+  font-size: clamp(0.72rem, 0.68rem + 0.1vw, 0.82rem);
+  font-weight: 500;
+  letter-spacing: 0.22em;
+  line-height: 1.35;
   margin: 0;
-  position: absolute;
-  text-align: right;
+  position: static;
+  text-align: left;
   text-transform: uppercase;
-  transform: rotate(-90deg) translateX(-100%);
-  transform-origin: top left;
-  white-space: nowrap;
+  transform: none;
+  transform-origin: initial;
+  white-space: normal;
+}
+
+.page--wrap .page__ttl + .page__content,
+.page--wrap .page__ttl ~ .page__content.ml {
+  margin-left: 0;
+  margin-top: 0;
 }
 
 /* Evita los 12 px de scroll lateral causados por las flechas del carrusel. */
@@ -115,12 +136,6 @@ body {
 }
 
 @media (max-width: 800px) {
-  .page__ttl--holder > h1 {
-    position: relative;
-    text-align: left;
-    transform: none;
-  }
-
   .page__content,
   .page__content--body,
   .page__content--item,

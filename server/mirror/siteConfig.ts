@@ -5,6 +5,7 @@ import { siteConfig } from "@shared/schema";
 export type ConfigMap = Record<string, { value: string; valueEs: string; type: string }>;
 
 const CURRENT_HERO_MEDIA = {
+  master: "/images/dron_2026_40.mp4",
   desktop: "/images/hero-092c5875ed80af62-desktop.mp4",
   mobile: "/images/hero-092c5875ed80af62-mobile.mp4",
   poster: "/images/hero-092c5875ed80af62-poster.webp",
@@ -26,7 +27,8 @@ const DEFAULTS: Array<{ key: string; value: string; valueEs?: string; type: stri
   { key: "cookie_analytics_description", value: "Aggregate usage statistics through Google Analytics 4.", valueEs: "Estadísticas agregadas de uso mediante Google Analytics 4.", type: "text", category: "privacy", description: "Descripción de analítica" },
   { key: "cookie_external_description", value: "YouTube, Vimeo and Google Maps content.", valueEs: "Contenido de YouTube, Vimeo y Google Maps.", type: "text", category: "privacy", description: "Descripción de contenido externo" },
   { key: "site_favicon", value: "/favicon-512x512.png", type: "url", category: "seo", description: "Favicon global del sitio y del panel administrativo" },
-  { key: "hero_video", value: CURRENT_HERO_MEDIA.desktop, type: "url", category: "home", description: "Video optimizado de alta calidad del hero para escritorio" },
+  { key: "hero_video_master", value: CURRENT_HERO_MEDIA.master, type: "url", category: "home", description: "Archivo maestro original del hero" },
+  { key: "hero_video", value: CURRENT_HERO_MEDIA.desktop, type: "url", category: "home", description: "Video Full HD optimizado del hero para escritorio" },
   { key: "hero_video_mobile", value: CURRENT_HERO_MEDIA.mobile, type: "url", category: "home", description: "Video optimizado de alta calidad del hero para móvil" },
   { key: "hero_video_poster", value: CURRENT_HERO_MEDIA.poster, type: "url", category: "home", description: "Póster del primer fotograma real del hero" },
   { key: "hero_practice_link", value: "/about", valueEs: "/acerca-de", type: "url", category: "home", description: "Destino bilingüe al hacer clic en el video del hero" },
@@ -697,12 +699,14 @@ export async function upsertConfig(key: string, value: string, valueEs?: string)
 
 /** Publica las tres variantes del hero como una sola operación de configuración. */
 export async function setHeroMediaConfig(
+  masterPath: string,
   desktopPath: string,
   mobilePath: string,
   posterPath: string,
 ): Promise<void> {
   const values = [
-    { key: "hero_video", value: desktopPath, description: "Video optimizado del hero para escritorio" },
+    { key: "hero_video_master", value: masterPath, description: "Archivo maestro original del hero" },
+    { key: "hero_video", value: desktopPath, description: "Video Full HD optimizado del hero para escritorio" },
     { key: "hero_video_mobile", value: mobilePath, description: "Video optimizado del hero para móvil" },
     { key: "hero_video_poster", value: posterPath, description: "Póster optimizado del hero" },
   ];

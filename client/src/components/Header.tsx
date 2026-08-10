@@ -10,6 +10,7 @@ import ThemeToggle from "./ThemeToggle";
 import LanguageSelector from "./LanguageSelector";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useTranslatedContent } from "@/hooks/useTranslatedContent";
+import { getLocalizedAttorneyTitle } from "@shared/attorneyTitles";
 import type { TeamMember, PracticeGroup, IndustryGroup, News, LanguageCode } from "@shared/schema";
 import logoColor from "@assets/logovw_1775695774326.png";
 import logoWhite from "@assets/logovw-b_1775695826011.png";
@@ -50,9 +51,10 @@ function SearchResultTeamMember({
     enabled: language !== 'es',
   });
 
-  const displayTitle = language === 'es'
-    ? member.titleEs
-    : (translatedFields.title || member.titleEs || member.title);
+  const localizedTitle = getLocalizedAttorneyTitle(member, language === "es" ? "es" : "en");
+  const displayTitle = language === "es"
+    ? localizedTitle
+    : (translatedFields.title || localizedTitle);
 
   return (
     <button

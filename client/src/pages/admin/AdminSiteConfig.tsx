@@ -52,9 +52,7 @@ const PAGES: Record<string, SiteConfigPage> = {
       {
         title: "Portada (home)",
         fields: [
-          { key: "hero_video", label: "Video maestro del hero", media: "video", help: "Sube MP4, WebM, OGV o MOV de hasta 200 MB, o pega un enlace de YouTube/Vimeo. Los archivos locales generan automáticamente versiones optimizadas para escritorio y móvil, además del póster; los enlaces externos usan el reproductor seguro del proveedor." },
-          { key: "hero_video_mobile", label: "Video optimizado para móvil", media: "video", help: "Se genera automáticamente desde un archivo maestro local. También puedes sustituirlo por otro archivo o por un enlace de YouTube/Vimeo." },
-          { key: "hero_video_poster", label: "Póster del video", media: "image", help: "Debe coincidir con el primer fotograma visible para evitar parpadeos durante la carga." },
+          { key: "hero_video_master", label: "Video maestro del hero", media: "video", help: "Sube MP4 (H.264 recomendado), WebM, OGV o MOV de hasta 200 MB. Conservamos el maestro y generamos automáticamente Full HD para escritorio, una versión ligera para móvil y el póster. Los enlaces externos usan el reproductor seguro del proveedor." },
           { key: "hero_practice_link", label: "Destino del video del hero", bilingual: true, help: "Inglés: /about. Español: /acerca-de." },
           { key: "home_experience_visible", label: "Mostrar frase de experiencia", control: "switch", defaultValue: false, help: "Permite ocultar el bloque sin borrar su texto en español ni en inglés." },
           { key: "home_experience", label: "Frase — años de experiencia", bilingual: true },
@@ -599,7 +597,7 @@ export default function AdminSiteConfig() {
     setSaving(key);
     try {
       const d = draft[key] || { value: "", valueEs: "" };
-      const shouldOptimizeHero = key === "hero_video"
+      const shouldOptimizeHero = key === "hero_video_master"
         && /^\/(?:uploads|images)\/.+\.(?:mp4|webm|mov|ogv)$/i.test(d.value)
         && !/home-hero-(?:desktop|mobile)-v\d+\.mp4$/i.test(d.value)
         && !/\/hero-[a-f0-9]+-desktop\.mp4$/i.test(d.value);
@@ -617,6 +615,7 @@ export default function AdminSiteConfig() {
         const variants = await optimized.json();
         setDraft((current) => ({
           ...current,
+          hero_video_master: { value: variants.masterPath, valueEs: variants.masterPath },
           hero_video: { value: variants.desktopPath, valueEs: variants.desktopPath },
           hero_video_mobile: { value: variants.mobilePath, valueEs: variants.mobilePath },
           hero_video_poster: { value: variants.posterPath, valueEs: variants.posterPath },
@@ -753,7 +752,9 @@ export default function AdminSiteConfig() {
             <div className="flex items-center gap-2">
               <Button size="sm" onClick={() => requestSave(f)} disabled={saving === f.key || invalid} data-testid={`save-${f.key}`}>
                 {saving === f.key ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : <Save className="h-4 w-4 mr-1" />}
-                Guardar
+                {saving === f.key
+                  ? (f.key === "hero_video_master" ? "Generando versiones…" : "Guardando…")
+                  : (f.key === "hero_video_master" ? "Generar / regenerar Full HD" : "Guardar")}
               </Button>
               {f.bilingual && (
                 <TranslateButton getSource={() => ({ value: draft[f.key]?.valueEs ?? "" })} onApply={(t) => { if (t.value != null) set(f.key, "value", t.value); }} />

@@ -2,6 +2,7 @@ import { eq, desc, asc, and, isNull, gte, lte, sql, inArray, ilike, or, type SQL
 import { db } from "./db";
 import { hasExactRankingSet } from "./rankings/order";
 import { sanitizeNewsFields } from "./mirror/sanitize";
+import { normalizeSpanishPartnerFields } from "@shared/attorneyTitles";
 import {
   type User,
   type InsertUser,
@@ -789,14 +790,22 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createTeamMember(member: InsertTeamMember): Promise<TeamMember> {
-    const [item] = await db.insert(teamMembers).values(member as typeof teamMembers.$inferInsert).returning();
+    const normalizedMember = normalizeSpanishPartnerFields(member);
+    const [item] = await db.insert(teamMembers).values(normalizedMember as typeof teamMembers.$inferInsert).returning();
     return item;
   }
 
   async updateTeamMember(id: string, member: Partial<InsertTeamMember>): Promise<TeamMember | undefined> {
+    const current = await this.getTeamMemberById(id);
+    const normalized = normalizeSpanishPartnerFields({ ...(current ?? {}), ...member });
+    const normalizedMember: Partial<InsertTeamMember> = {
+      ...member,
+      ...(normalized.titleEs !== undefined ? { titleEs: normalized.titleEs } : {}),
+      ...(normalized.roleEs !== undefined ? { roleEs: normalized.roleEs } : {}),
+    };
     const [item] = await db
       .update(teamMembers)
-      .set(member as Partial<typeof teamMembers.$inferInsert>)
+      .set(normalizedMember as Partial<typeof teamMembers.$inferInsert>)
       .where(eq(teamMembers.id, id))
       .returning();
     return item;
