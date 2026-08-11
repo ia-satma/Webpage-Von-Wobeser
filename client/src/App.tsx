@@ -45,6 +45,7 @@ const AdminNewsletter = lazy(() => import("@/pages/admin/AdminNewsletter"));
 const AdminDashboard = lazy(() => import("@/pages/admin/AdminDashboard"));
 const AdminNews = lazy(() => import("@/pages/admin/AdminNews"));
 const AdminNewsForm = lazy(() => import("@/pages/admin/AdminNewsForm"));
+const AdminNewsAuthorReview = lazy(() => import("@/pages/admin/AdminNewsAuthorReview"));
 const AdminUsers = lazy(() => import("@/pages/admin/AdminUsers"));
 const AdminSubmissions = lazy(() => import("@/pages/admin/AdminSubmissions"));
 const AdminAgents = lazy(() => import("@/pages/AdminAgents"));
@@ -165,6 +166,7 @@ function Router() {
         <Route path="/admin/testimonials" component={AdminTestimonials} />
         <Route path="/admin/newsletter" component={AdminNewsletter} />
         <Route path="/admin/news" component={AdminNews} />
+        <Route path="/admin/news/authors-review" component={AdminNewsAuthorReview} />
         <Route path="/admin/news/new" component={AdminNewsForm} />
         <Route path="/admin/news/:id/edit" component={AdminNewsForm} />
         <Route path="/admin/news/:id" component={AdminArticleDetail} />

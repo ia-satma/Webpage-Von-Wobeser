@@ -26,7 +26,8 @@ type Field = {
   media?: "image" | "video";
   multiline?: boolean;
   rows?: number;
-  control?: "switch" | "number";
+  control?: "switch" | "number" | "select";
+  options?: Array<{ value: string; label: string }>;
   defaultValue?: boolean;
   min?: number;
   max?: number;
@@ -80,6 +81,18 @@ const PAGES: Record<string, SiteConfigPage> = {
           { key: "home_diversity_body", label: "Diversidad — texto", bilingual: true, multiline: true },
           { key: "home_probono_title", label: "Pro Bono — título", bilingual: true },
           { key: "home_probono_body", label: "Pro Bono — texto", bilingual: true, multiline: true },
+          {
+            key: "home_about_layout",
+            label: "Visión, misión y valores — diseño",
+            control: "select",
+            options: [
+              { value: "editorial", label: "Editorial — retícula de valores" },
+              { value: "classic", label: "Clásico — diseño anterior" },
+            ],
+            help: "Editorial es el nuevo diseño. Clásico recupera el bloque anterior sin modificar ninguno de sus textos.",
+          },
+          { key: "home_about_editorial_title", label: "Visión, misión y valores — título editorial", bilingual: true },
+          { key: "home_about_editorial_intro", label: "Visión, misión y valores — introducción editorial", bilingual: true, multiline: true },
           { key: "home_about_title", label: "Acerca de nosotros — título", bilingual: true },
           { key: "home_vision_label", label: "Visión — etiqueta", bilingual: true },
           { key: "home_vision_body", label: "Visión — texto", bilingual: true, multiline: true },
@@ -702,6 +715,18 @@ export default function AdminSiteConfig() {
                 className="max-w-32"
                 data-testid={`input-${f.key}`}
               />
+            ) : f.control === "select" ? (
+              <select
+                value={draft[f.key]?.value ?? f.options?.[0]?.value ?? ""}
+                onChange={(e) => {
+                  set(f.key, "value", e.target.value);
+                  set(f.key, "valueEs", e.target.value);
+                }}
+                className="flex h-9 w-full rounded-lg border border-input bg-background px-3 py-1 text-sm shadow-xs focus-visible:outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/25"
+                data-testid={`input-${f.key}`}
+              >
+                {(f.options || []).map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
+              </select>
             ) : f.key === "image_engine" ? (
               <select
                 value={draft[f.key]?.value ?? "openai"}

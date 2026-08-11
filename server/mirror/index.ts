@@ -448,7 +448,7 @@ export const SEARCH_FORMS_SCRIPT = `<script>(function(){try{
 // ocultos detrás de los 30 días de caché de los assets estáticos.
 // Se incrementa junto con los estilos globales del espejo para que las
 // navegaciones existentes no conserven una tipografía previa en caché.
-const NAV_ASSET_VERSION = "20260810-attorney-directory";
+const NAV_ASSET_VERSION = "20260810-editorial-network";
 function refreshNavigationAssets(html: string): string {
   return html
     .replace(/(href=["']\/templates\/beez3\/css\/style\.css)(?:\?[^"']*)?(["'])/gi, `$1?v=${NAV_ASSET_VERSION}$2`)
@@ -1191,15 +1191,14 @@ export async function setupMirror(app: Express) {
     if (!member) member = await storage.getTeamMemberById(slug);
     if (!member) return next();
     if ((member as any).published === false) return next(); // oculto
-    const [groups, relatedNewsRaw] = await Promise.all([
+    const [groups, relatedNews] = await Promise.all([
       getAttorneyGroups(member.id),
-      storage.getNewsByTeamMemberId(member.id).catch(() => []),
+      storage.getPublishedNewsByTeamMemberIdPage({
+        teamMemberId: member.id,
+        limit: 6,
+        offset: 0,
+      }).then((result) => result.rows).catch(() => []),
     ]);
-    // Solo noticias publicadas, más recientes primero; se acota para no inflar el perfil.
-    const relatedNews = relatedNewsRaw
-      .filter((n: any) => n.published !== false)
-      .sort((a: any, b: any) => new Date(b.date ?? 0).getTime() - new Date(a.date ?? 0).getTime())
-      .slice(0, 10);
     sendPage(res, renderAttorney(pick(TEMPLATES.attorney, lang), { ...member, ...groups, relatedNews }, lang));
   };
 
@@ -1361,24 +1360,46 @@ export async function setupMirror(app: Express) {
     if (!slug) return next();
     const item = await storage.getNewsBySlug(slug);
     if (!item || !isPubliclyVisible(item)) return next();
-    sendPage(res, renderNewsDetail(pick(TEMPLATES.newsDetail, lang), item, lang));
+    const relatedTeamMembers = (await storage.getTeamMembersByNewsId(item.id))
+      .filter((member) => member.published === true);
+    // La red editorial conecta las publicaciones por temas, autores y categoría. La
+    // ponderación está en storage para que cada criterio se pueda controlar desde CMS.
+    const relatedNews = await storage.getEditorialRecommendations({
+      excludeNewsId: item.id,
+      teamMemberIds: relatedTeamMembers.map((member) => member.id),
+      tags: item.tags || [],
+      category: item.category,
+      limit: 6,
+    }).catch(() => []);
+    sendPage(res, renderNewsDetail(pick(TEMPLATES.newsDetail, lang), { ...item, relatedTeamMembers, relatedNews }, lang));
   };
 
-  const serveNewsList = async (lang: Lang, res: Response, page = 1, query = "") => {
+  type PublicAuthorFilter = { id: string; slug: string; name: string };
+
+  const serveNewsList = async (lang: Lang, res: Response, page = 1, query = "", author?: PublicAuthorFilter) => {
     const perPage = 24;
+    const fetchAuthorPage = (targetPage: number) => storage.getPublishedNewsByTeamMemberIdPage({
+      teamMemberId: author!.id,
+      query: query.length >= 2 ? query : undefined,
+      limit: perPage,
+      offset: (targetPage - 1) * perPage,
+    });
+    const authorPage = author && (!query || query.length >= 2) ? await fetchAuthorPage(page) : null;
     // Cuenta + una sola página en SQL, en vez de traer TODAS las noticias y paginar en memoria.
-    const searched = query.length >= 2
+    const searched = !author && query.length >= 2
       ? await storage.searchPublishedNewsPage({ query, limit: perPage, offset: Math.max(0, page - 1) * perPage })
       : null;
-    const total = searched?.total ?? (query ? 0 : await storage.getPublishedNewsCount());
+    const total = authorPage?.total ?? searched?.total ?? (query ? 0 : await storage.getPublishedNewsCount());
     const totalPages = Math.max(1, Math.ceil(total / perPage));
     const p = Math.min(Math.max(1, page), totalPages);
-    const slice = query.length >= 2 && p !== page
+    const slice = author
+      ? (authorPage && p === page ? authorPage.rows : (query && query.length < 2 ? [] : (await fetchAuthorPage(p)).rows))
+      : query.length >= 2 && p !== page
       ? (await storage.searchPublishedNewsPage({ query, limit: perPage, offset: (p - 1) * perPage })).rows
       : searched?.rows ?? (query ? [] : await storage.getPublishedNewsPage(perPage, (p - 1) * perPage));
     sendPage(
       res,
-      renderNewsList(pick(TEMPLATES.newsList, lang), slice, lang, { page: p, totalPages }, { query }),
+      renderNewsList(pick(TEMPLATES.newsList, lang), slice, lang, { page: p, totalPages }, { query, author }),
     );
   };
 
@@ -1387,9 +1408,17 @@ export async function setupMirror(app: Express) {
   // MISMA tabla `news`, distinguidas por `category` ("news" vs "articles", ~284 filas). Se
   // reusa renderNewsList con opts distintos; Noticias sigue sin filtrar por categoría (no se
   // le quita nada de lo que ya mostraba), así que un artículo puede aparecer en ambos listados.
-  const serveArticlesList = async (lang: Lang, res: Response, page = 1, query = "") => {
+  const serveArticlesList = async (lang: Lang, res: Response, page = 1, query = "", author?: PublicAuthorFilter) => {
     const perPage = 24;
-    const searched = query.length >= 2
+    const fetchAuthorPage = (targetPage: number) => storage.getPublishedNewsByTeamMemberIdPage({
+      teamMemberId: author!.id,
+      query: query.length >= 2 ? query : undefined,
+      category: "articles",
+      limit: perPage,
+      offset: (targetPage - 1) * perPage,
+    });
+    const authorPage = author && (!query || query.length >= 2) ? await fetchAuthorPage(page) : null;
+    const searched = !author && query.length >= 2
       ? await storage.searchPublishedNewsPage({
           query,
           limit: perPage,
@@ -1397,10 +1426,12 @@ export async function setupMirror(app: Express) {
           category: "articles",
         })
       : null;
-    const total = searched?.total ?? (query ? 0 : await storage.getPublishedNewsCount("articles"));
+    const total = authorPage?.total ?? searched?.total ?? (query ? 0 : await storage.getPublishedNewsCount("articles"));
     const totalPages = Math.max(1, Math.ceil(total / perPage));
     const p = Math.min(Math.max(1, page), totalPages);
-    const slice = query.length >= 2 && p !== page
+    const slice = author
+      ? (authorPage && p === page ? authorPage.rows : (query && query.length < 2 ? [] : (await fetchAuthorPage(p)).rows))
+      : query.length >= 2 && p !== page
       ? (await storage.searchPublishedNewsPage({ query, limit: perPage, offset: (p - 1) * perPage, category: "articles" })).rows
       : searched?.rows ?? (query ? [] : await storage.getPublishedNewsPage(perPage, (p - 1) * perPage, "articles"));
     sendPage(
@@ -1416,6 +1447,7 @@ export async function setupMirror(app: Express) {
         },
         crumbLabel: { en: "Articles", es: "Artículos" },
         query,
+        author,
       }),
     );
   };
@@ -1598,6 +1630,7 @@ export async function setupMirror(app: Express) {
   ) => fn(req, res, next).catch(next);
 
   const publicSearchSchema = z.string().trim().max(200);
+  const publicAuthorSchema = z.string().trim().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/).max(160);
   const parsePublicSearch = (value: unknown, lang: Lang, res: Response): string | null => {
     const parsed = publicSearchSchema.safeParse(typeof value === "string" ? value : "");
     if (parsed.success) return parsed.data;
@@ -1613,6 +1646,26 @@ export async function setupMirror(app: Express) {
   const parsePublicPage = (value: unknown): number => {
     const parsed = z.coerce.number().int().min(1).max(10_000).safeParse(value || 1);
     return parsed.success ? parsed.data : 1;
+  };
+  const resolvePublicAuthor = async (value: unknown, lang: Lang, res: Response): Promise<PublicAuthorFilter | undefined | null> => {
+    if (value === undefined || value === "") return undefined;
+    const parsed = publicAuthorSchema.safeParse(typeof value === "string" ? value : "");
+    if (!parsed.success) {
+      res.status(400).type("html").send(
+        `<!doctype html><html lang="${lang}"><meta charset="utf-8"><title>${lang === "es" ? "Autor inválido" : "Invalid author"}</title>` +
+        `<body><p>${lang === "es" ? "El autor indicado no es válido." : "The requested author is invalid."}</p></body></html>`,
+      );
+      return null;
+    }
+    const member = await storage.getTeamMemberBySlug(parsed.data);
+    if (!member || member.published !== true) {
+      res.status(404).type("html").send(
+        `<!doctype html><html lang="${lang}"><meta charset="utf-8"><title>${lang === "es" ? "Autor no encontrado" : "Author not found"}</title>` +
+        `<body><p>${lang === "es" ? "No encontramos el abogado solicitado." : "We could not find the requested attorney."}</p></body></html>`,
+      );
+      return null;
+    }
+    return { id: member.id, slug: member.slug, name: member.name };
   };
   const searchRedirect = (rawKind: unknown, rawQuery: unknown, lang: Lang): string => {
     const kind = String(rawKind || "general").trim().toLowerCase();
@@ -1703,14 +1756,18 @@ export async function setupMirror(app: Express) {
     const lang = langOf(req);
     const query = parsePublicSearch(req.query.q, lang, res);
     if (query === null) return;
-    await serveNewsList(lang, res, parsePublicPage(req.query.page), query);
+    const author = await resolvePublicAuthor(req.query.author, lang, res);
+    if (author === null) return;
+    await serveNewsList(lang, res, parsePublicPage(req.query.page), query, author);
   }));
   app.get("/news/:slug", wrap((req, res, next) => serveNewsDetail(req.params.slug, langOf(req), res, next)));
   app.get("/articles", wrap(async (req, res) => {
     const lang = langOf(req);
     const query = parsePublicSearch(req.query.q, lang, res);
     if (query === null) return;
-    await serveArticlesList(lang, res, parsePublicPage(req.query.page), query);
+    const author = await resolvePublicAuthor(req.query.author, lang, res);
+    if (author === null) return;
+    await serveArticlesList(lang, res, parsePublicPage(req.query.page), query, author);
   }));
   // Directorio general: filtros y todos los perfiles viven en la misma página.
   app.get("/attorneys", wrap((req, res) => serveAttorneyDirectory(langOf(req), res, req.query)));
@@ -2292,6 +2349,15 @@ export async function setupMirror(app: Express) {
       }
       value = String(parsedPages.data);
       valueEs = String(parsedPages.data);
+    }
+    if (req.params.key === "home_about_layout") {
+      const parsedLayout = z.enum(["editorial", "classic"]).safeParse(value);
+      if (!parsedLayout.success) {
+        res.status(400).json({ error: "El diseño de Visión, Misión y Valores debe ser editorial o clásico." });
+        return;
+      }
+      value = parsedLayout.data;
+      valueEs = parsedLayout.data;
     }
     // Solo las claves de prosa de páginas institucionales pasan por el editor de texto
     // enriquecido — el resto (URLs de video, banner corto, redes, teléfono) se guarda tal cual.

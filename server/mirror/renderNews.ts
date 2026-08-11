@@ -1,11 +1,17 @@
 import * as cheerio from "cheerio";
 import { renderRichText } from "./sanitize";
 import { applySeo, articleNode, breadcrumbNode, clip } from "./seo";
+import { getLocalizedAttorneyRole, getLocalizedAttorneyTitle } from "@shared/attorneyTitles";
 
 type Lang = "en" | "es";
 
 function esc(s: any): string {
-  return String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  return String(s ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
 }
 
 function L(obj: any, base: string, lang: Lang): string {
@@ -35,6 +41,7 @@ export type NewsListOpts = {
   description?: { en: string; es: string };
   crumbLabel?: { en: string; es: string };
   query?: string;
+  author?: { name: string; slug: string } | null;
 };
 
 /** News listing — replaces the archive cards with DB news (paginated). Reused for both
@@ -51,6 +58,7 @@ export function renderNewsList(
   const readMore = lang === "es" ? "Leer más" : "Read more";
   const basePath = opts.basePath || "/news";
   const query = (opts.query || "").trim();
+  const author = opts.author || null;
 
   const cards = news.map((n) => {
     const title = esc(L(n, "title", lang));
@@ -68,11 +76,11 @@ export function renderNewsList(
 
   if (cards.length) {
     $(".archive__list").html(cards.join("\n"));
-  } else if (query) {
+  } else if (query || author) {
     $(".archive__list").html(
       `<div class="vw-search-empty" role="status">` +
         `<div class="vw-search-empty__title">${lang === "es" ? "No encontramos resultados" : "No results found"}</div>` +
-        `<p>${lang === "es" ? "Intenta con otras palabras o revisa la ortografía." : "Try different keywords or check the spelling."}</p>` +
+        `<p>${lang === "es" ? "No hay publicaciones vinculadas con los filtros actuales." : "There are no publications connected to the current filters."}</p>` +
       `</div>`,
     );
   } else {
@@ -98,15 +106,20 @@ export function renderNewsList(
         placeholder: lang === "es" ? "Buscar" : "Search",
       });
     if (lang === "en") $filterForm.append('<input type="hidden" name="lang" value="en">');
+    if (author) $filterForm.append(`<input type="hidden" name="author" value="${esc(author.slug)}">`);
   }
   // El selector Joomla de cantidad no está conectado al nuevo listado; se elimina para
   // evitar un segundo formulario roto que daba la impresión de que el filtro fallaba.
   $(".archive__filters form#adminForm").remove();
 
-  if (query) {
+  if (query || author) {
+    const summary = [
+      author ? `${lang === "es" ? "Publicaciones de" : "Publications by"} ${esc(author.name)}` : "",
+      query ? `${lang === "es" ? "Resultados para" : "Results for"} “${esc(query)}”` : "",
+    ].filter(Boolean).join(" · ");
     $(".archive__list").before(
       `<div class="vw-search-summary" role="status">` +
-        `${lang === "es" ? "Resultados para" : "Results for"} “${esc(query)}”` +
+        summary +
       `</div>`,
     );
     $("head").append(
@@ -125,6 +138,7 @@ export function renderNewsList(
     const linkPage = (p: number) => {
       const params = new URLSearchParams();
       if (query) params.set("q", query);
+      if (author) params.set("author", author.slug);
       params.set("page", String(p));
       if (lang === "en") params.set("lang", "en");
       return `${basePath}?${params.toString()}`;
@@ -156,7 +170,7 @@ export function renderNewsList(
     title: title[lang],
     description: description[lang],
     type: "website",
-    robots: query ? "noindex,follow" : undefined,
+    robots: query || author ? "noindex,follow" : undefined,
     jsonLd: [
       breadcrumbNode(
         [
@@ -168,6 +182,66 @@ export function renderNewsList(
     ],
   });
   return $.html();
+}
+
+function buildRelatedAttorneys(attorneys: any[], lang: Lang): string {
+  if (!attorneys.length) return "";
+  const labels = lang === "es"
+    ? { heading: "Autores de esta publicación", view: "Ver perfil" }
+    : { heading: "Publication authors", view: "View profile" };
+  const cards = attorneys.map((attorney) => {
+    const title = getLocalizedAttorneyTitle(attorney, lang) || getLocalizedAttorneyRole(attorney, lang);
+    const href = lang === "es"
+      ? `/abogado/${encodeURIComponent(attorney.slug)}`
+      : `/lawyer/${encodeURIComponent(attorney.slug)}?lang=en`;
+    const image = attorney.imageUrl
+      ? `<a class="news-related-attorneys__image" href="${href}" aria-hidden="true" tabindex="-1"><img src="${esc(attorney.imageUrl)}" alt="" loading="lazy"></a>`
+      : `<span class="news-related-attorneys__image" aria-hidden="true"></span>`;
+    return `<article class="news-related-attorneys__item">` +
+      image +
+      `<div><h3><a href="${href}">${esc(attorney.name)}</a></h3>` +
+      `<p>${esc(title)}</p><a class="news-related-attorneys__link" href="${href}">${labels.view}</a></div>` +
+      `</article>`;
+  }).join("");
+  return `<section class="news-related-attorneys" aria-labelledby="news-related-attorneys-title">` +
+    `<h2 id="news-related-attorneys-title">${labels.heading}</h2>` +
+    `<div class="news-related-attorneys__grid">${cards}</div></section>`;
+}
+
+function publicInsightImage(value: unknown): string {
+  const source = String(value || "").trim();
+  return /^(?:https?:\/\/|\/uploads\/)/i.test(source) ? source : "";
+}
+
+/** Contenido relacionado por etiquetas editoriales, autores o categoría. */
+function buildRelatedInsights(items: any[], lang: Lang): string {
+  if (!items.length) return "";
+  const labels = lang === "es"
+    ? { heading: "Contenido relacionado", read: "Leer publicación" }
+    : { heading: "Related insights", read: "Read publication" };
+  const langSuffix = lang === "en" ? "?lang=en" : "";
+  const cards = items.map((item) => {
+    const title = esc(L(item, "title", lang));
+    const category = esc(L(item, "category", lang));
+    const date = esc(fmtDate(item.date, lang));
+    const href = `/news/${encodeURIComponent(String(item.slug || ""))}${langSuffix}`;
+    const image = publicInsightImage(item.imageUrl || item.image);
+    const imageMarkup = image
+      ? `<div class="news-related-insights__image"><img src="${esc(image)}" alt="" loading="lazy"></div>`
+      : "";
+    return `<article class="news-related-insights__item">${imageMarkup}` +
+      `<div class="news-related-insights__body">` +
+      `<div class="news-related-insights__meta">${category}${category && date ? " · " : ""}${date}</div>` +
+      `<h3><a href="${href}" aria-label="${esc(`${labels.read}: ${L(item, "title", lang)}`)}">${title}</a></h3>` +
+      `<div class="news-related-insights__excerpt">${renderRichText(L(item, "excerpt", lang))}</div>` +
+      `</div></article>`;
+  }).join("");
+
+  return `<section class="news-related-insights" aria-labelledby="news-related-insights-title">` +
+    `<div class="news-related-insights__wrap wrap">` +
+    `<div class="news-related-insights__header">` +
+    `<h2 id="news-related-insights-title">${labels.heading}</h2>` +
+    `</div><div class="news-related-insights__grid">${cards}</div></div></section>`;
 }
 
 /** News detail — injects one article into the single layout. */
@@ -183,6 +257,18 @@ export function renderNewsDetail(templateHtml: string, item: any, lang: Lang = "
   $(".single__meta--list").first().html(date ? `<p style="color:#fff;">${esc(date)}</p>` : "");
   $(".single__content--intro").html(excerpt || "");
   $(".single__content--txt").html(content || (excerpt ? "" : `<p>${esc(title)}</p>`));
+  $(".news-related-attorneys").remove();
+  $(".news-related-insights").remove();
+  const relatedAttorneys = (item.relatedTeamMembers || []) as any[];
+  const relatedAttorneyMarkup = buildRelatedAttorneys(relatedAttorneys, lang);
+  if (relatedAttorneyMarkup) $(".single__content--txt").after(relatedAttorneyMarkup);
+  const relatedInsightsMarkup = buildRelatedInsights((item.relatedNews || []) as any[], lang);
+  if (relatedInsightsMarkup) {
+    const $pageWrap = $(".page--wrap").first();
+    if ($pageWrap.length) $pageWrap.after(relatedInsightsMarkup);
+    else if (relatedAttorneyMarkup) $(".news-related-attorneys").after(relatedInsightsMarkup);
+    else $(".single__content--txt").after(relatedInsightsMarkup);
+  }
 
   // --- Botones de acción (Imprimir / Compartir) ---
   // El template original traía Print/Share/Download cableados con jQuery (frágil → el botón de
@@ -230,6 +316,10 @@ export function renderNewsDetail(templateHtml: string, item: any, lang: Lang = "
         path,
         datePublished: iso,
         dateModified: item.updatedAt ? new Date(item.updatedAt).toISOString() : iso,
+        authors: relatedAttorneys.map((attorney) => ({
+          name: attorney.name,
+          path: lang === "es" ? `/abogado/${attorney.slug}` : `/lawyer/${attorney.slug}`,
+        })),
         lang,
       }),
       breadcrumbNode(

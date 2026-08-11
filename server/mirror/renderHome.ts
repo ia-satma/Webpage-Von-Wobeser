@@ -245,6 +245,33 @@ const HERO_PERFORMANCE_SCRIPT = `<script id="vw-home-performance-js">(function()
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
 })();</script>`;
 
+// La portada heredada revela sus bloques al desplazarse con una subida de 40 px,
+// un segundo de transición y 200 ms de desfase. Esta versión es deliberadamente
+// aislada: el contenido nace visible y solo se prepara para animarse cuando el
+// navegador confirma que JavaScript, escritorio y movimiento normal están activos.
+const HOME_ABOUT_EDITORIAL_REVEAL_SCRIPT = `<script id="vw-home-about-editorial-reveal">(function(){
+  if(window.__vwHomeAboutEditorialReveal)return;
+  window.__vwHomeAboutEditorialReveal=true;
+  var roots=document.querySelectorAll('[data-home-about-reveal]');
+  if(!roots.length)return;
+  var reduced=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var compact=window.matchMedia&&window.matchMedia('(max-width: 980px)').matches;
+  roots.forEach(function(root){
+    var items=root.querySelectorAll('[data-home-about-reveal-item]');
+    if(!items.length)return;
+    var reveal=function(){root.classList.add('is-revealed');};
+    if(reduced||compact||!('IntersectionObserver' in window)){reveal();return;}
+    root.classList.add('is-motion-ready');
+    var observer=new IntersectionObserver(function(entries){
+      entries.forEach(function(entry){
+        if(!entry.isIntersecting)return;
+        reveal();observer.unobserve(root);
+      });
+    },{rootMargin:'0px 0px -90px 0px',threshold:0});
+    observer.observe(root);
+  });
+})();</script>`;
+
 function paragraphs(value: string): string {
   return value
     .split(/\n\s*\n/)
@@ -252,6 +279,77 @@ function paragraphs(value: string): string {
     .filter(Boolean)
     .map((part) => `<p>${esc(part).replace(/\n/g, "<br>")}</p>`)
     .join("");
+}
+
+type HomeValueItem = {
+  title: string;
+  body: string;
+};
+
+/**
+ * El panel mantiene los Valores como prosa separada por una línea en blanco.
+ * La presentación editorial aprovecha ese mismo contenido: el primer ":"
+ * define el título de cada valor y todo lo demás conserva su descripción.
+ */
+function splitHomeValueItems(value: string): HomeValueItem[] {
+  return value
+    .split(/\n\s*\n/)
+    .map((part) => part.trim())
+    .filter(Boolean)
+    .map((part) => {
+      const separator = part.indexOf(":");
+      if (separator < 0) return { title: "", body: part };
+      return {
+        title: part.slice(0, separator).trim(),
+        body: part.slice(separator + 1).trim(),
+      };
+    });
+}
+
+function renderHomeAboutEditorial(content: {
+  title: string;
+  intro: string;
+  visionLabel: string;
+  visionBody: string;
+  missionLabel: string;
+  missionBody: string;
+  valuesLabel: string;
+  valuesBody: string;
+}): string {
+  const values = splitHomeValueItems(content.valuesBody);
+  let revealIndex = 0;
+  const reveal = () => ` data-home-about-reveal-item="${++revealIndex}"`;
+  const principles = [
+    { index: "01", label: content.visionLabel, body: content.visionBody },
+    { index: "02", label: content.missionLabel, body: content.missionBody },
+  ].filter((item) => item.label || item.body);
+  const valuesMarkup = () => values.length
+    ? `<section class="home-about-editorial__values"${reveal()} aria-labelledby="home-about-values-title">` +
+        `<h3 id="home-about-values-title">${esc(content.valuesLabel)}</h3>` +
+        `<ol class="home-about-editorial__value-list">${values.map((value, index) =>
+          `<li><span class="home-about-editorial__index">${String(index + 1).padStart(2, "0")}</span>` +
+            `<div>${value.title ? `<h4>${esc(value.title)}</h4>` : ""}${value.body ? paragraphs(value.body) : ""}</div>` +
+          `</li>`,
+        ).join("")}</ol>` +
+      `</section>`
+    : "";
+
+  return `<section class="home-about-editorial" data-home-about-reveal aria-labelledby="home-about-editorial-title">` +
+    `<div class="home-about-editorial__container">` +
+      `<header class="home-about-editorial__heading"${reveal()}>` +
+        `<h2 id="home-about-editorial-title">${esc(content.title)}</h2>` +
+        (content.intro ? `<p>${esc(content.intro)}</p>` : "") +
+      `</header>` +
+      (principles.length
+        ? `<div class="home-about-editorial__principles"${reveal()}>${principles.map((principle) =>
+            `<article><span class="home-about-editorial__index">${principle.index}</span>` +
+              `<h3>${esc(principle.label)}</h3>${principle.body ? `<div class="home-about-editorial__copy">${paragraphs(principle.body)}</div>` : ""}` +
+            `</article>`,
+          ).join("")}</div>`
+        : "") +
+      valuesMarkup() +
+    `</div>` +
+  `</section>`;
 }
 
 function renderGroupSlider(groups: HomeGroup[], kind: "practice" | "industry", config: ConfigMap, lang: Lang): string {
@@ -738,18 +836,44 @@ export function renderHome(
   if (proBonoBody) editorialSections.eq(2).find(".home__rec--top").first().html(paragraphs(proBonoBody));
 
   const about = $("#footer-sub > #footer > .home__rec--wrap").first();
-  const aboutTitle = cfg(config, "home_about_title", lang);
   const aboutLabels = ["home_vision_label", "home_mission_label", "home_values_label"];
   const aboutBodies = ["home_vision_body", "home_mission_body", "home_values_body"];
-  if (aboutTitle) about.find(".home__rec--ttl").first().text(aboutTitle);
-  about.find(".home__rec--top").each((index, element) => {
-    const value = cfg(config, aboutLabels[index], lang);
-    if (value) $(element).find("strong").first().text(value);
-  });
-  about.find(".home__rec--txt").each((index, element) => {
-    const value = cfg(config, aboutBodies[index], lang);
-    if (value) $(element).html(paragraphs(value));
-  });
+  const legacyTitle = about.find(".home__rec--ttl").first().text().trim();
+  const legacyLabels = about.find(".home__rec--top strong").map((_index, element) => $(element).text().trim()).get();
+  const legacyBodies = about.find(".home__rec--txt").map((_index, element) => $(element).text().trim()).get();
+  const aboutTitle = cfg(config, "home_about_title", lang) || legacyTitle;
+  const labels = aboutLabels.map((key, index) => cfg(config, key, lang) || legacyLabels[index] || "");
+  const bodies = aboutBodies.map((key, index) => cfg(config, key, lang) || legacyBodies[index] || "");
+  const aboutLayout = cfg(config, "home_about_layout", lang).trim().toLowerCase() === "classic" ? "classic" : "editorial";
+
+  if (aboutLayout === "classic") {
+    if (aboutTitle) about.find(".home__rec--ttl").first().text(aboutTitle);
+    about.find(".home__rec--top").each((index, element) => {
+      const value = labels[index];
+      if (value) $(element).find("strong").first().text(value);
+    });
+    about.find(".home__rec--txt").each((index, element) => {
+      const value = bodies[index];
+      if (value) $(element).html(paragraphs(value));
+    });
+  } else if (about.length) {
+    about.replaceWith(renderHomeAboutEditorial({
+      title: cfg(config, "home_about_editorial_title", lang) || (lang === "es" ? "Visión, misión y valores" : "Vision, mission and values"),
+      intro: cfg(config, "home_about_editorial_intro", lang) || (lang === "es"
+        ? "Los principios que guían nuestro trabajo y nuestra relación con los clientes."
+        : "The principles that guide our work and our relationship with clients."),
+      visionLabel: labels[0],
+      visionBody: bodies[0],
+      missionLabel: labels[1],
+      missionBody: bodies[1],
+      valuesLabel: labels[2],
+      valuesBody: bodies[2],
+    }));
+  }
+
+  if ($("[data-home-about-reveal]").length) {
+    $("body").append(HOME_ABOUT_EDITORIAL_REVEAL_SCRIPT);
+  }
 
   $("html").attr("lang", lang === "es" ? "es-mx" : "en-gb");
   applySeo($, {

@@ -6,6 +6,8 @@ process.env.DATABASE_URL ||= "postgresql://test:test@127.0.0.1:5432/test";
 
 const { renderFirmLanding } = await import("../mirror/renderFirmLanding");
 const { renderHome } = await import("../mirror/renderHome");
+const { applyCareersFormFix } = await import("../mirror/formsFix");
+const { load } = await import("cheerio");
 
 const template = `<!doctype html><html lang="es"><head><title>Anterior</title></head><body>
   <header><a class="header__lang--item" href="#">ENG</a></header>
@@ -94,6 +96,8 @@ test("landing de Firma ofrece prácticas, industrias y contacto en el CTA final 
 
   assert.match(ctaEs, /Prácticas/);
   assert.match(ctaEs, /Industrias/);
+  assert.match(ctaEs, /class="vw-firm__eyebrow">VW<\/p>/);
+  assert.doesNotMatch(ctaEs, /class="vw-firm__eyebrow">VWyS<\/p>/);
   assert.match(ctaEs, /href="\/capacidades\/industrias"/);
   assert.match(ctaEs, /Contacto/);
   assert.doesNotMatch(ctaEs, /Prácticas legales/);
@@ -102,6 +106,17 @@ test("landing de Firma ofrece prácticas, industrias y contacto en el CTA final 
   assert.match(ctaEn, /href="\/capabilities\/industries"/);
   assert.match(ctaEn, /Contact/);
   assert.doesNotMatch(ctaEn, /Legal practices/);
+});
+
+test("las etiquetas de Carrera usan la abreviatura VW en ambos idiomas", () => {
+  const spanish = load('<div class="careers__meta"><div class="page__ttl--holder"><span>CARRERA EN VWyS</span></div></div>');
+  const english = load('<div class="careers__meta"><div class="page__ttl--holder"><span>CAREER AT VWyS</span></div></div>');
+
+  applyCareersFormFix(spanish, "es");
+  applyCareersFormFix(english, "en");
+
+  assert.equal(spanish(".page__ttl--holder > span").text(), "CARRERA EN VW");
+  assert.equal(english(".page__ttl--holder > span").text(), "CAREER AT VW");
 });
 
 test("la migración del CTA conserva personalizaciones y convierte solamente los tres valores heredados", () => {

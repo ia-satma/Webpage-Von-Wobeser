@@ -444,7 +444,7 @@ function renderFinalCta(config: ConfigMap, lang: Lang): string {
 
   return `<section class="vw-firm__section vw-firm__cta vw-firm-reveal" aria-labelledby="vw-firm-cta-title">
     <div class="vw-firm__container vw-firm__cta-grid">
-      <div><p class="vw-firm__eyebrow">VWyS</p><h2 id="vw-firm-cta-title">${esc(title)}</h2>${body ? `<p>${esc(body)}</p>` : ""}</div>
+      <div><p class="vw-firm__eyebrow">VW</p><h2 id="vw-firm-cta-title">${esc(title)}</h2>${body ? `<p>${esc(body)}</p>` : ""}</div>
       <nav aria-label="${escAttr(lang === "es" ? "Siguientes pasos" : "Next steps")}">
         ${links.map((link, index) => `<a href="${escAttr(link.path)}"><span>${String(index + 1).padStart(2, "0")}</span>${esc(link.label)}<b aria-hidden="true">→</b></a>`).join("")}
       </nav>

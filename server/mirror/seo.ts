@@ -182,6 +182,7 @@ export function articleNode(opts: {
   path: string;
   datePublished?: string;
   dateModified?: string;
+  authors?: Array<{ name: string; path: string }>;
   lang: Lang;
 }): object {
   const suffix = opts.lang === "en" ? "?lang=en" : "";
@@ -194,7 +195,13 @@ export function articleNode(opts: {
     mainEntityOfPage: { "@type": "WebPage", "@id": url },
     url,
     inLanguage: opts.lang === "es" ? "es-MX" : "en",
-    author: { "@id": BASE_URL + "/" + ORG_ID },
+    author: opts.authors?.length
+      ? opts.authors.map((author) => ({
+          "@type": "Person",
+          name: author.name,
+          url: abs(author.path) + suffix,
+        }))
+      : { "@id": BASE_URL + "/" + ORG_ID },
     publisher: { "@id": BASE_URL + "/" + ORG_ID },
   };
   if (opts.datePublished) node.datePublished = opts.datePublished;
@@ -333,7 +340,7 @@ export function applyA11y($: cheerio.CheerioAPI, lang: Lang): void {
   });
 
   if ($('link[href^="/vwb-cookie-consent.css"]').length === 0) {
-    $("head").append('<link rel="stylesheet" href="/vwb-cookie-consent.css?v=20260807-inter-medium">');
+  $("head").append('<link rel="stylesheet" href="/vwb-cookie-consent.css?v=20260810-footer-contrast">');
   }
   if ($('script[src^="/vwb-cookie-consent.js"]').length === 0) {
     $("body").append('<script defer src="/vwb-cookie-consent.js?v=20260806e"></script>');

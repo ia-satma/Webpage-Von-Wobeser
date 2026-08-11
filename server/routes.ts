@@ -929,7 +929,8 @@ export async function registerRoutes(
       if (!newsItem || !isNewsPubliclyVisible(newsItem)) {
         return res.status(404).json({ error: "News not found" });
       }
-      const teamMembersList = await storage.getTeamMembersByNewsId(newsItem.id);
+      const teamMembersList = (await storage.getTeamMembersByNewsId(newsItem.id))
+        .filter(isPubliclyVisible);
       res.json(teamMembersList);
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch authors for news" });
@@ -2441,6 +2442,86 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
     }
   });
 
+  const teamMemberIdsSchema = z.array(z.string().uuid()).max(50).transform((ids) => Array.from(new Set(ids)));
+  // Las etiquetas son una decisión editorial, no una inferencia opaca sobre el texto.
+  // Se normalizan para que "Fiscal" y " fiscal " siempre enlacen el mismo tema.
+  const editorialTagsSchema = z.array(z.string().trim().min(2).max(60)).max(12).transform((tags) =>
+    Array.from(new Set(tags.map((tag) => tag.replace(/\s+/g, " ").toLocaleLowerCase("es-MX")).filter(Boolean))),
+  );
+  const adminNewsCreateSchema = insertNewsSchema.extend({
+    tags: editorialTagsSchema.default([]),
+    teamMemberIds: teamMemberIdsSchema.default([]),
+  });
+  const adminNewsUpdateSchema = insertNewsSchema.partial().extend({
+    tags: editorialTagsSchema.optional(),
+    teamMemberIds: teamMemberIdsSchema.optional(),
+  });
+
+  const validateNewsTeamMembers = async (ids: string[]) => {
+    if (!ids.length) return true;
+    const knownIds = new Set((await storage.getTeamMembers()).map((member) => member.id));
+    return ids.every((id) => knownIds.has(id));
+  };
+
+  const normalizeAuthorEvidence = (value: unknown): string => String(value || "")
+    .replace(/<[^>]*>/g, " ")
+    .replace(/&nbsp;/gi, " ")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/\s+/g, " ")
+    .trim()
+    .toLowerCase();
+
+  const authorSuggestions = (item: typeof news.$inferSelect, members: typeof teamMembers.$inferSelect[]) => {
+    const source = [item.titleEs, item.title, item.excerptEs, item.excerpt, item.contentEs, item.content]
+      .filter(Boolean)
+      .join(" ")
+      .replace(/<[^>]*>/g, " ")
+      .replace(/&nbsp;/gi, " ")
+      .replace(/\s+/g, " ")
+      .trim();
+    const normalizedSource = normalizeAuthorEvidence(source);
+    return members
+      .map((member) => {
+        const candidate = normalizeAuthorEvidence(member.name);
+        const index = candidate.split(" ").length >= 2 && candidate.length >= 6
+          ? normalizedSource.indexOf(candidate)
+          : -1;
+        if (index < 0) return null;
+        return {
+          id: member.id,
+          name: member.name,
+          evidence: source.slice(Math.max(0, index - 70), Math.min(source.length, index + member.name.length + 110)),
+        };
+      })
+      .filter((candidate): candidate is { id: string; name: string; evidence: string } => candidate !== null);
+  };
+
+  // Revisión humana del histórico: las coincidencias son propuestas, nunca relaciones aplicadas.
+  app.get("/api/admin/news/author-review", authMiddleware, requirePermission("content"), async (req: Request, res: Response) => {
+    try {
+      const parsed = z.object({
+        page: z.coerce.number().int().min(1).max(100_000).default(1),
+        limit: z.coerce.number().int().min(1).max(50).default(20),
+      }).safeParse(req.query);
+      if (!parsed.success) return res.status(400).json({ error: "Invalid pagination" });
+      const { page, limit } = parsed.data;
+      const [{ rows, total }, members] = await Promise.all([
+        storage.getNewsWithoutTeamMembersPage({ limit, offset: (page - 1) * limit }),
+        storage.getTeamMembers(),
+      ]);
+      res.json({
+        news: rows.map((item) => ({ ...item, authorCandidates: authorSuggestions(item, members) })),
+        total,
+        page,
+        totalPages: Math.max(1, Math.ceil(total / limit)),
+      });
+    } catch (error) {
+      console.error("Get author review queue error:", error);
+      res.status(500).json({ error: "Failed to load author review queue" });
+    }
+  });
+
   // Get single news by ID
   app.get("/api/admin/news/:id", authMiddleware, requirePermission("content"), async (req: Request, res: Response) => {
     try {
@@ -2455,21 +2536,55 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
     }
   });
 
+  app.get("/api/admin/news/:id/team-members", authMiddleware, requirePermission("content"), async (req: Request, res: Response) => {
+    try {
+      const newsItem = await storage.getNewsById(req.params.id);
+      if (!newsItem) return res.status(404).json({ error: "News not found" });
+      res.json(await storage.getTeamMembersByNewsId(newsItem.id));
+    } catch (error) {
+      console.error("Get news team members error:", error);
+      res.status(500).json({ error: "Failed to fetch related team members" });
+    }
+  });
+
+  app.put("/api/admin/news/:id/team-members", authMiddleware, requirePermission("content"), async (req: Request, res: Response) => {
+    try {
+      const parsed = z.object({ teamMemberIds: teamMemberIdsSchema }).safeParse(req.body);
+      if (!parsed.success) return apiError(res, 400, "Invalid team members", parsed.error.errors);
+      const newsItem = await storage.getNewsById(req.params.id);
+      if (!newsItem) return apiError(res, 404, "News not found");
+      if (!await validateNewsTeamMembers(parsed.data.teamMemberIds)) {
+        return apiError(res, 400, "One or more team members do not exist");
+      }
+      await storage.setTeamMembersForNews(newsItem.id, parsed.data.teamMemberIds);
+      auditLog("update", "news_team_members", newsItem.id, (req as any).adminUser?.id || "unknown");
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Update news team members error:", error);
+      return apiError(res, 500, "Failed to update related team members");
+    }
+  });
+
   // Create news
   app.post("/api/admin/news", authMiddleware, requirePermission("content"), async (req: Request, res: Response) => {
     try {
-      const validation = insertNewsSchema.safeParse(req.body);
+      const validation = adminNewsCreateSchema.safeParse(req.body);
       
       if (!validation.success) {
         return apiError(res, 400, "Validation failed", validation.error.errors);
       }
 
-      sanitizeNewsFields(validation.data);
-      if (validation.data.published && !hasPublishableBilingualNews(validation.data)) {
+      const { teamMemberIds, ...newsData } = validation.data;
+      sanitizeNewsFields(newsData);
+      if (newsData.published && !hasPublishableBilingualNews(newsData)) {
         return apiError(res, 400, "Published news requires title and excerpt in English and Spanish");
       }
 
-      const newsItem = await storage.createNews(validation.data);
+      if (!await validateNewsTeamMembers(teamMemberIds)) {
+        return apiError(res, 400, "One or more team members do not exist");
+      }
+
+      const newsItem = await storage.createNewsWithTeamMembers(newsData, teamMemberIds);
       const linguisticWarnings = await getLinguisticWarnings([
         { field: "title", lang: "en", text: newsItem.title },
         { field: "titleEs", lang: "es", text: newsItem.titleEs },
@@ -2489,7 +2604,9 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
   // Update news
   app.put("/api/admin/news/:id", authMiddleware, requirePermission("content"), async (req: Request, res: Response) => {
     try {
-      const validated = insertNewsSchema.partial().parse(req.body); // valida + descarta campos no permitidos (anti mass-assignment)
+      const parsed = adminNewsUpdateSchema.safeParse(req.body);
+      if (!parsed.success) return apiError(res, 400, "Invalid input", parsed.error.errors);
+      const { teamMemberIds, ...validated } = parsed.data;
       sanitizeNewsFields(validated);
       const current = await storage.getNewsById(req.params.id);
       if (!current) return apiError(res, 404, "News not found");
@@ -2497,7 +2614,10 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
       if (finalState.published && !hasPublishableBilingualNews(finalState)) {
         return apiError(res, 400, "Published news requires title and excerpt in English and Spanish");
       }
-      const newsItem = await storage.updateNews(req.params.id, validated);
+      if (teamMemberIds && !await validateNewsTeamMembers(teamMemberIds)) {
+        return apiError(res, 400, "One or more team members do not exist");
+      }
+      const newsItem = await storage.updateNewsWithTeamMembers(req.params.id, validated, teamMemberIds);
       if (!newsItem) {
         return apiError(res, 404, "News not found");
       }

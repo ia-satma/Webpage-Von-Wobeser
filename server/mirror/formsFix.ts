@@ -29,6 +29,10 @@ function safePublicHref(value: string, fallback: string): string {
  * jQuery/jQuery Validate estén cargados ni de su orden de inicialización.
  */
 export function applyCareersFormFix($: cheerio.CheerioAPI, lang: "es" | "en" = "en"): void {
+  // La abreviatura de marca en la etiqueta editorial se mantiene breve y es
+  // independiente de los nombres largos usados en copys legales o SEO.
+  $(".careers__meta .page__ttl--holder > span").first().text(lang === "es" ? "CARRERA EN VW" : "CAREER AT VW");
+
   // La plantilla en inglés capturada tiene un segundo enlace a "Privacy Notice." (pie de
   // página, fuera del formulario) que por un error del sitio original apunta al aviso en
   // ESPAÑOL (/index.php/aviso/) en vez de al propio (/index.php/privacy/). El enlace del

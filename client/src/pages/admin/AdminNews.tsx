@@ -402,6 +402,11 @@ export default function AdminNews() {
             <>
               <NewsletterButton />
               <LegalAlertButton />
+              <Link href="/admin/news/authors-review">
+                <Button size="sm" variant="outline" data-testid="button-author-review">
+                  Revisar autores
+                </Button>
+              </Link>
               <Link href="/admin/news/new">
                 <Button size="sm" data-testid="button-new-article">
                   <Plus className="mr-2 h-4 w-4" />

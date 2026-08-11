@@ -97,6 +97,9 @@ export const news = pgTable("news", {
   featuredHome: boolean("featured_home").default(false),
   category: text("category").default("press"),
   categoryEs: text("category_es").default("Prensa"),
+  // Etiquetas editoriales explícitas: alimentan las recomendaciones entre publicaciones;
+  // no sustituyen categorías ni keywords SEO generadas por IA.
+  tags: text("tags").array().notNull().default(sql`ARRAY[]::text[]`),
   authorId: varchar("author_id"),
   // Processing status tracking
   processingStatus: text("processing_status").default("pending"), // pending, processing, ready, ready_for_approval, failed, partial_success
@@ -336,7 +339,10 @@ export const newsTeamMembers = pgTable("news_team_members", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   newsId: varchar("news_id").notNull(),
   teamMemberId: varchar("team_member_id").notNull(),
-});
+}, (t) => ({
+  newsMemberUnique: uniqueIndex("news_team_members_news_member_unique").on(t.newsId, t.teamMemberId),
+  teamNewsIdx: index("news_team_members_team_news_idx").on(t.teamMemberId, t.newsId),
+}));
 
 export const insertNewsTeamMemberSchema = createInsertSchema(newsTeamMembers).omit({ id: true });
 export type InsertNewsTeamMember = z.infer<typeof insertNewsTeamMemberSchema>;

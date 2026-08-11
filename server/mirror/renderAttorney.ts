@@ -16,7 +16,21 @@ function esc(s: string): string {
   return String(s ?? "")
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;");
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+const MONTHS: Record<Lang, string[]> = {
+  en: ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"],
+  es: ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"],
+};
+
+function fmtDate(value: unknown, lang: Lang): string {
+  if (!value) return "";
+  const date = new Date(String(value));
+  if (Number.isNaN(date.getTime())) return "";
+  return `${MONTHS[lang][date.getMonth()]}, ${date.getFullYear()}`;
 }
 
 /** Build the inner HTML of the `.attorney__meta--list` block from DB data. */
@@ -82,15 +96,6 @@ function buildMetaList(a: any, lang: Lang): string {
   });
   section(lang === "es" ? "Artículos" : "Articles", articles);
 
-  // Noticias del sitio en las que este abogado participa (news_team_members) — distinto de
-  // "Artículos" arriba, que son publicaciones externas (journal/year). Enlaza a /news/:slug.
-  const langSuffix = lang === "en" ? "?lang=en" : "";
-  const relatedNews: string[] = (a.relatedNews || []).map((n: any) => {
-    const title = esc(L(n, "title", lang));
-    return `<a href="/news/${esc(n.slug)}${langSuffix}">${title}</a>`;
-  });
-  section(lang === "es" ? "Noticias relacionadas" : "Related News", relatedNews);
-
   const languages: string[] = a.languages || [];
   if (languages.length) {
     blocks.push(
@@ -100,6 +105,52 @@ function buildMetaList(a: any, lang: Lang): string {
 
   const tel = `<p class='tel_print'>${lang === "es" ? "Tel" : "Phone"}:${esc(a.phone || "")}<br>${esc(a.email || "")}</p>`;
   return tel + blocks.join("\n");
+}
+
+function publicInsightImage(value: unknown): string {
+  const source = String(value || "").trim();
+
+  // Algunos registros históricos conservan imágenes generadas que ya no están
+  // disponibles en el sitio público. La imagen es complementaria: solo usamos
+  // rutas que pertenecen al almacenamiento público o una URL externa completa.
+  return /^(?:https?:\/\/|\/uploads\/)/i.test(source) ? source : "";
+}
+
+/** Publicaciones propias del sitio. No se mezclan con la bibliografía externa del perfil. */
+function buildRelatedInsights(attorney: any, lang: Lang): string {
+  const relatedNews: any[] = attorney.relatedNews || [];
+  if (!relatedNews.length) return "";
+
+  const labels = lang === "es"
+    ? { title: "Perspectivas relacionadas", more: "Ver todas las publicaciones", read: "Leer publicación" }
+    : { title: "Related insights", more: "View all publications", read: "Read publication" };
+  const langSuffix = lang === "en" ? "?lang=en" : "";
+  const archiveParams = new URLSearchParams({ author: attorney.slug || "" });
+  if (lang === "en") archiveParams.set("lang", "en");
+  const archiveHref = `/news?${archiveParams.toString()}`;
+  const cards = relatedNews.map((item) => {
+    const title = esc(L(item, "title", lang));
+    const category = esc(L(item, "category", lang));
+    const excerpt = renderRichText(L(item, "excerpt", lang));
+    const href = `/news/${encodeURIComponent(String(item.slug || ""))}${langSuffix}`;
+    const image = publicInsightImage(item.imageUrl || item.image);
+    const imageMarkup = image
+      ? `<div class="attorney-related-insights__image"><img src="${esc(String(image))}" alt="" loading="lazy"></div>`
+      : "";
+    return `<article class="attorney-related-insights__item">${imageMarkup}` +
+      `<div class="attorney-related-insights__body">` +
+      `<div class="attorney-related-insights__meta">${category}${category && fmtDate(item.date, lang) ? " · " : ""}${esc(fmtDate(item.date, lang))}</div>` +
+      `<h3><a href="${href}" aria-label="${esc(`${labels.read}: ${L(item, "title", lang)}`)}">${title}</a></h3>` +
+      `<div class="attorney-related-insights__excerpt">${excerpt}</div>` +
+      `</div></article>`;
+  }).join("");
+
+  return `<section class="attorney-related-insights" aria-labelledby="attorney-related-insights-title">` +
+    `<div class="attorney-related-insights__wrap wrap">` +
+    `<div class="attorney-related-insights__header">` +
+    `<h2 id="attorney-related-insights-title">${labels.title}</h2>` +
+    `<a class="attorney-related-insights__more" href="${archiveHref}">${labels.more}</a>` +
+    `</div><div class="attorney-related-insights__grid">${cards}</div></div></section>`;
 }
 
 /**
@@ -155,6 +206,15 @@ export function renderAttorney(templateHtml: string, a: any, lang: Lang = "en"):
   const { first: bioIntro, rest: bioRest } = splitFirstBlock(renderRichText(bio));
   $(".attorney__content--intro").html(bioIntro);
   $(".attorney__content--txt").html(bioRest);
+  const relatedInsights = buildRelatedInsights(a, lang);
+  $(".attorney-related-insights").remove();
+  if (relatedInsights) {
+    // El perfil termina con una franja editorial completa, antes del footer. Así las
+    // publicaciones no compiten con la biografía en la columna derecha del espejo.
+    const $profileWrap = $(".page--wrap").first();
+    if ($profileWrap.length) $profileWrap.after(relatedInsights);
+    else $(".attorney__content--txt").after(relatedInsights);
+  }
 
   // --- Head metadata -----------------------------------------------------
   $('meta[name="Attorney"]').attr("content", name);

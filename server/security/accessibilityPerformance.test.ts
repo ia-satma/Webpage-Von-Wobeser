@@ -174,6 +174,64 @@ test("cada página usa un único H1 editorial y elimina encabezados ocultos de J
   assert.equal(home("h1").text(), "Inicio");
 });
 
+test("la portada alterna entre Visión, misión y valores editorial y su diseño clásico", () => {
+  const template = `<!doctype html><html lang="es"><head><title>Inicio</title></head><body>
+    <div id="footer-sub"><footer id="footer"><div class="home__rec--wrap wrap">
+      <div class="home__rec--ttl">ACERCA DE NOSOTROS</div>
+      <div class="home__rec--top"><strong>Visión</strong></div><div class="home__rec--txt">Visión original</div>
+      <div class="home__rec--top"><strong>Misión</strong></div><div class="home__rec--txt">Misión original</div>
+      <div class="home__rec--top"><strong>Valores</strong></div><div class="home__rec--txt">Integridad: Texto original</div>
+    </div><footer class="footer"></footer></footer></div>
+  </body></html>`;
+  const config = {
+    home_about_layout: { value: "editorial", valueEs: "editorial", type: "select" },
+    home_about_editorial_title: { value: "Vision, mission and values", valueEs: "Visión, misión y valores", type: "text" },
+    home_about_editorial_intro: { value: "Guiding principles.", valueEs: "Principios que nos guían.", type: "text" },
+    home_about_title: { value: "ABOUT US", valueEs: "ACERCA DE NOSOTROS", type: "text" },
+    home_vision_label: { value: "Vision", valueEs: "Visión", type: "text" },
+    home_vision_body: { value: "English vision.", valueEs: "Visión en español.", type: "text" },
+    home_mission_label: { value: "Mission", valueEs: "Misión", type: "text" },
+    home_mission_body: { value: "English mission.", valueEs: "Misión en español.", type: "text" },
+    home_values_label: { value: "Values", valueEs: "Valores", type: "text" },
+    home_values_body: { value: "Integrity: We do what we say.\n\nDescription without a title", valueEs: "Integridad: Hacemos lo que decimos.\n\nDescripción sin título", type: "text" },
+  };
+  const editorialEs = cheerio.load(renderHome(template, [], config, "es"));
+  const editorialEn = cheerio.load(renderHome(template.replace('lang="es"', 'lang="en"'), [], config, "en"));
+  const classic = cheerio.load(renderHome(template, [], { ...config, home_about_layout: { value: "classic", valueEs: "classic", type: "select" } }, "es"));
+  const css = readFileSync(new URL("../../frontend-mirror/templates/beez3/css/von.css", import.meta.url), "utf8");
+  const admin = readFileSync(new URL("../../client/src/pages/admin/AdminSiteConfig.tsx", import.meta.url), "utf8");
+  const server = readFileSync(new URL("../mirror/index.ts", import.meta.url), "utf8");
+
+  assert.equal(editorialEs(".home-about-editorial").length, 1);
+  assert.equal(editorialEs("[data-home-about-reveal]").length, 1);
+  assert.equal(editorialEs("[data-home-about-reveal-item]").length, 3);
+  assert.equal(editorialEs("#vw-home-about-editorial-reveal").length, 1);
+  assert.equal(editorialEs("#home-about-editorial-title").text(), "Visión, misión y valores");
+  assert.equal(editorialEs(".home-about-editorial__heading > p").text(), "Principios que nos guían.");
+  assert.equal(editorialEs(".home-about-editorial__principles article").length, 2);
+  assert.equal(editorialEs(".home-about-editorial__value-list li").length, 2);
+  assert.equal(editorialEs(".home-about-editorial__value-list h4").first().text(), "Integridad");
+  assert.equal(editorialEs(".home-about-editorial__value-list li").last().text().includes("Descripción sin título"), true);
+  assert.equal(editorialEn("#home-about-editorial-title").text(), "Vision, mission and values");
+  assert.equal(editorialEn(".home-about-editorial__value-list h4").first().text(), "Integrity");
+  assert.equal(classic(".home-about-editorial").length, 0);
+  assert.equal(classic("#vw-home-about-editorial-reveal").length, 0);
+  assert.equal(classic(".home__rec--wrap").length, 1);
+  assert.equal(classic(".home__rec--ttl").text(), "ACERCA DE NOSOTROS");
+  assert.match(css, /\.home-about-editorial__value-list\s*\{[\s\S]*grid-template-columns:\s*repeat\(5/);
+  assert.match(css, /@media \(max-width: 980px\)[\s\S]*\.home-about-editorial__value-list\s*\{[\s\S]*repeat\(2/);
+  assert.match(css, /@media \(max-width: 620px\)[\s\S]*\.home-about-editorial__value-list\s*\{[\s\S]*grid-template-columns:\s*1fr/);
+  assert.match(css, /@media \(min-width: 981px\) and \(prefers-reduced-motion: no-preference\)[\s\S]*translateY\(40px\)[\s\S]*transition: opacity 1s, transform 1s/);
+  assert.match(css, /\[data-home-about-reveal-item="1"\][\s\S]*transition-delay: 200ms/);
+  const revealScript = editorialEs("#vw-home-about-editorial-reveal").html() || "";
+  assert.match(revealScript, /IntersectionObserver/);
+  assert.match(revealScript, /prefers-reduced-motion/);
+  assert.match(revealScript, /max-width: 980px/);
+  assert.match(admin, /home_about_layout/);
+  assert.match(admin, /Editorial — retícula de valores/);
+  assert.match(server, /z\.enum\(\["editorial", "classic"\]\)/);
+});
+
 test("los listados de Abogados conservan categoría, idioma, canonical y hreflang", () => {
   const template = `<!doctype html><html lang="es"><head><title>Abogados</title></head><body>
     <header><a class="header__lang--item" href="#">ENG</a></header>

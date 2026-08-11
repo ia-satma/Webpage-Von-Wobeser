@@ -1,4 +1,4 @@
-import { eq, desc, asc, and, isNull, gte, lte, sql, inArray, ilike, or, type SQL } from "drizzle-orm";
+import { eq, ne, desc, asc, and, isNull, gte, lte, sql, inArray, ilike, or, arrayOverlaps, type SQL } from "drizzle-orm";
 import { db } from "./db";
 import { hasExactRankingSet } from "./rankings/order";
 import { sanitizeNewsFields } from "./mirror/sanitize";
@@ -137,6 +137,26 @@ export interface IStorage {
     offset: number;
     category?: string;
   }): Promise<{ rows: News[]; total: number }>;
+  getPublishedNewsByTeamMemberIdPage(opts: {
+    teamMemberId: string;
+    limit: number;
+    offset: number;
+    query?: string;
+    category?: string;
+  }): Promise<{ rows: News[]; total: number }>;
+  getRelatedPublishedNewsForTeamMembers(opts: {
+    teamMemberIds: string[];
+    excludeNewsId: string;
+    limit: number;
+  }): Promise<News[]>;
+  getEditorialRecommendations(opts: {
+    excludeNewsId: string;
+    teamMemberIds?: string[];
+    tags?: string[];
+    category?: string | null;
+    limit: number;
+  }): Promise<News[]>;
+  getNewsWithoutTeamMembersPage(opts: { limit: number; offset: number }): Promise<{ rows: News[]; total: number }>;
   getAdminNewsPage(opts: { limit: number; offset: number; search?: string; category?: string }): Promise<{ rows: News[]; total: number }>;
   getTranslationStats(): Promise<{ total: number; byLanguage: Record<string, number>; articlesWithTranslations: number }>;
   getBaseLanguageCoverage(): Promise<{ total: number; missingEnglish: number }>;
@@ -144,7 +164,9 @@ export interface IStorage {
   getNewsById(id: string): Promise<News | undefined>;
   getNewsBySlug(slug: string): Promise<News | undefined>;
   createNews(news: InsertNews): Promise<News>;
+  createNewsWithTeamMembers(news: InsertNews, teamMemberIds: string[]): Promise<News>;
   updateNews(id: string, data: Partial<InsertNews>): Promise<News | undefined>;
+  updateNewsWithTeamMembers(id: string, data: Partial<InsertNews>, teamMemberIds?: string[]): Promise<News | undefined>;
   deleteNews(id: string): Promise<boolean>;
   getOfficeImages(): Promise<OfficeImage[]>;
   createOfficeImage(image: InsertOfficeImage): Promise<OfficeImage>;
@@ -229,6 +251,7 @@ export interface IStorage {
   // News Team Members (many-to-many relationship)
   getNewsByTeamMemberId(teamMemberId: string): Promise<News[]>;
   getTeamMembersByNewsId(newsId: string): Promise<TeamMember[]>;
+  setTeamMembersForNews(newsId: string, teamMemberIds: string[]): Promise<void>;
   addTeamMemberToNews(newsId: string, teamMemberId: string): Promise<void>;
   removeTeamMemberFromNews(newsId: string, teamMemberId: string): Promise<void>;
   
@@ -502,6 +525,145 @@ export class DatabaseStorage implements IStorage {
     return { rows, total: countRows[0]?.count ?? 0 };
   }
 
+  /** Archivo público de una persona: una sola consulta paginada sobre la relación editorial. */
+  async getPublishedNewsByTeamMemberIdPage(opts: {
+    teamMemberId: string;
+    limit: number;
+    offset: number;
+    query?: string;
+    category?: string;
+  }): Promise<{ rows: News[]; total: number }> {
+    const conditions: SQL[] = [
+      eq(newsTeamMembers.teamMemberId, opts.teamMemberId),
+      eq(news.published, true),
+      or(isNull(news.publishAt), lte(news.publishAt, new Date())) as SQL,
+    ];
+    if (opts.category) conditions.push(eq(news.category, opts.category));
+    if (opts.query) {
+      const like = `%${opts.query.replace(/[%_\\]/g, "\\$&")}%`;
+      conditions.push(or(
+        ilike(news.title, like),
+        ilike(news.titleEs, like),
+        ilike(news.excerpt, like),
+        ilike(news.excerptEs, like),
+        ilike(news.content, like),
+        ilike(news.contentEs, like),
+      ) as SQL);
+    }
+    const where = and(...conditions);
+    const [rows, countRows] = await Promise.all([
+      db
+        .select({ item: news })
+        .from(newsTeamMembers)
+        .innerJoin(news, eq(newsTeamMembers.newsId, news.id))
+        .where(where)
+        .orderBy(newsDateDescNullsLast)
+        .limit(opts.limit)
+        .offset(opts.offset),
+      db
+        .select({ count: sql<number>`count(*)::int` })
+        .from(newsTeamMembers)
+        .innerJoin(news, eq(newsTeamMembers.newsId, news.id))
+        .where(where),
+    ]);
+    return { rows: rows.map((row) => row.item), total: countRows[0]?.count ?? 0 };
+  }
+
+  /**
+   * Recomendaciones para un detalle editorial: otras publicaciones públicas firmadas por al
+   * menos una de las mismas personas. `distinct` evita repetir una noticia cofirmada.
+   */
+  async getRelatedPublishedNewsForTeamMembers(opts: {
+    teamMemberIds: string[];
+    excludeNewsId: string;
+    limit: number;
+  }): Promise<News[]> {
+    const ids = Array.from(new Set(opts.teamMemberIds.filter(Boolean)));
+    if (!ids.length || !opts.excludeNewsId || opts.limit < 1) return [];
+    const rows = await db
+      .selectDistinct({ item: news })
+      .from(newsTeamMembers)
+      .innerJoin(news, eq(newsTeamMembers.newsId, news.id))
+      .where(and(
+        inArray(newsTeamMembers.teamMemberId, ids),
+        ne(news.id, opts.excludeNewsId),
+        this.publishedNewsConditions(),
+      ))
+      .orderBy(newsDateDescNullsLast)
+      .limit(opts.limit);
+    return rows.map((row) => row.item);
+  }
+
+  /**
+   * Red editorial de una publicación. Prioriza etiquetas explícitas, después coautoría y,
+   * como último respaldo, categoría. Todos los candidatos se filtran como contenido público.
+   */
+  async getEditorialRecommendations(opts: {
+    excludeNewsId: string;
+    teamMemberIds?: string[];
+    tags?: string[];
+    category?: string | null;
+    limit: number;
+  }): Promise<News[]> {
+    const limit = Math.max(1, Math.min(opts.limit, 12));
+    const candidateLimit = Math.max(limit * 3, 12);
+    const teamMemberIds = Array.from(new Set((opts.teamMemberIds || []).filter(Boolean)));
+    const tags = Array.from(new Set((opts.tags || []).filter(Boolean)));
+    const baseConditions = [ne(news.id, opts.excludeNewsId), this.publishedNewsConditions()];
+
+    const [byAuthor, byTag, byCategory] = await Promise.all([
+      teamMemberIds.length
+        ? this.getRelatedPublishedNewsForTeamMembers({
+            teamMemberIds,
+            excludeNewsId: opts.excludeNewsId,
+            limit: candidateLimit,
+          })
+        : Promise.resolve([]),
+      tags.length
+        ? db.select().from(news)
+            .where(and(...baseConditions, arrayOverlaps(news.tags, tags)))
+            .orderBy(newsDateDescNullsLast)
+            .limit(candidateLimit)
+        : Promise.resolve([]),
+      opts.category
+        ? db.select().from(news)
+            .where(and(...baseConditions, eq(news.category, opts.category)))
+            .orderBy(newsDateDescNullsLast)
+            .limit(candidateLimit)
+        : Promise.resolve([]),
+    ]);
+
+    const ranked = new Map<string, { item: News; score: number }>();
+    const add = (rows: News[], score: number) => {
+      for (const item of rows) {
+        const existing = ranked.get(item.id);
+        if (existing) existing.score += score;
+        else ranked.set(item.id, { item, score });
+      }
+    };
+    add(byTag, 6);
+    add(byAuthor, 3);
+    add(byCategory, 1);
+
+    return Array.from(ranked.values())
+      .sort((a, b) => b.score - a.score || Number(new Date(b.item.date || 0)) - Number(new Date(a.item.date || 0)))
+      .slice(0, limit)
+      .map(({ item }) => item);
+  }
+
+  /** Cola administrativa: contenido sin ninguna persona vinculada, más reciente primero. */
+  async getNewsWithoutTeamMembersPage(opts: { limit: number; offset: number }): Promise<{ rows: News[]; total: number }> {
+    const withoutRelations = sql`not exists (
+      select 1 from ${newsTeamMembers}
+      where ${newsTeamMembers.newsId} = ${news.id}
+    )`;
+    const [rows, countRows] = await Promise.all([
+      db.select().from(news).where(withoutRelations).orderBy(newsDateDescNullsLast).limit(opts.limit).offset(opts.offset),
+      db.select({ count: sql<number>`count(*)::int` }).from(news).where(withoutRelations),
+    ]);
+    return { rows, total: countRows[0]?.count ?? 0 };
+  }
+
   /** Página de noticias para el admin (filtro+paginado EN SQL, no trae toda la tabla). */
   async getAdminNewsPage(opts: { limit: number; offset: number; search?: string; category?: string }): Promise<{ rows: News[]; total: number }> {
     const conds = [] as any[];
@@ -604,6 +766,18 @@ export class DatabaseStorage implements IStorage {
     return item;
   }
 
+  async createNewsWithTeamMembers(insertNews: InsertNews, teamMemberIds: string[]): Promise<News> {
+    const safeNews = sanitizeNewsFields({ ...insertNews });
+    const ids = Array.from(new Set(teamMemberIds));
+    return db.transaction(async (tx) => {
+      const [item] = await tx.insert(news).values(safeNews).returning();
+      if (ids.length) {
+        await tx.insert(newsTeamMembers).values(ids.map((teamMemberId) => ({ newsId: item.id, teamMemberId })));
+      }
+      return item;
+    });
+  }
+
   async updateNews(id: string, data: Partial<InsertNews>): Promise<News | undefined> {
     const safeData = sanitizeNewsFields({ ...data });
     const [item] = await db
@@ -612,6 +786,24 @@ export class DatabaseStorage implements IStorage {
       .where(eq(news.id, id))
       .returning();
     return item;
+  }
+
+  async updateNewsWithTeamMembers(
+    id: string,
+    data: Partial<InsertNews>,
+    teamMemberIds?: string[],
+  ): Promise<News | undefined> {
+    const safeData = sanitizeNewsFields({ ...data });
+    const ids = teamMemberIds === undefined ? undefined : Array.from(new Set(teamMemberIds));
+    return db.transaction(async (tx) => {
+      const [item] = await tx.update(news).set(safeData).where(eq(news.id, id)).returning();
+      if (!item || ids === undefined) return item;
+      await tx.delete(newsTeamMembers).where(eq(newsTeamMembers.newsId, id));
+      if (ids.length) {
+        await tx.insert(newsTeamMembers).values(ids.map((teamMemberId) => ({ newsId: id, teamMemberId })));
+      }
+      return item;
+    });
   }
 
   async deleteNews(id: string): Promise<boolean> {
@@ -1179,6 +1371,16 @@ export class DatabaseStorage implements IStorage {
     const rows = await db.select().from(teamMembers).where(inArray(teamMembers.id, teamMemberIds));
     const byId = new Map(rows.map((r) => [r.id, r]));
     return teamMemberIds.map((id) => byId.get(id)).filter((m): m is TeamMember => !!m);
+  }
+
+  async setTeamMembersForNews(newsId: string, teamMemberIds: string[]): Promise<void> {
+    const ids = Array.from(new Set(teamMemberIds));
+    await db.transaction(async (tx) => {
+      await tx.delete(newsTeamMembers).where(eq(newsTeamMembers.newsId, newsId));
+      if (ids.length) {
+        await tx.insert(newsTeamMembers).values(ids.map((teamMemberId) => ({ newsId, teamMemberId })));
+      }
+    });
   }
 
   async addTeamMemberToNews(newsId: string, teamMemberId: string): Promise<void> {
