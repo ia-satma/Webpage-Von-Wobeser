@@ -1,6 +1,7 @@
 import crypto from "node:crypto";
 import fs from "node:fs/promises";
 import path from "node:path";
+import { pathToFileURL } from "node:url";
 import pg from "pg";
 import { getPostgresConnectionConfig } from "../shared/postgres-config.mjs";
 
@@ -23,12 +24,13 @@ try {
     )
   `);
   const names = (await fs.readdir(migrationsDir))
-    .filter((name) => /^\d+_[a-z0-9_]+\.sql$/i.test(name))
+    .filter((name) => /^\d+_[a-z0-9_]+\.(?:sql|mjs)$/i.test(name))
     .sort();
 
   for (const name of names) {
-    const sql = await fs.readFile(path.join(migrationsDir, name), "utf8");
-    const sha256 = crypto.createHash("sha256").update(sql).digest("hex");
+    const sourcePath = path.join(migrationsDir, name);
+    const source = await fs.readFile(sourcePath, "utf8");
+    const sha256 = crypto.createHash("sha256").update(source).digest("hex");
     const existing = await client.query(
       "SELECT sha256 FROM app_schema_migrations WHERE name = $1",
       [name],
@@ -42,7 +44,15 @@ try {
 
     await client.query("BEGIN");
     try {
-      await client.query(sql);
+      if (name.endsWith(".sql")) {
+        await client.query(source);
+      } else {
+        const module = await import(`${pathToFileURL(sourcePath).href}?sha256=${sha256}`);
+        if (typeof module.default !== "function") {
+          throw new Error(`Data migration must have a default function: ${name}`);
+        }
+        await module.default(client);
+      }
       await client.query(
         "INSERT INTO app_schema_migrations (name, sha256) VALUES ($1, $2)",
         [name, sha256],

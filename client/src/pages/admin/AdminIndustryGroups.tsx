@@ -775,6 +775,7 @@ export default function AdminIndustryGroups() {
                                 data-testid="input-description-en"
                               />
                             </FormControl>
+                            <FormDescription>Presiona Enter para iniciar un párrafo nuevo. El sitio conserva la tipografía editorial automáticamente.</FormDescription>
                             <FormMessage />
                           </FormItem>
                         )}
@@ -795,6 +796,7 @@ export default function AdminIndustryGroups() {
                                 data-testid="input-description-es"
                               />
                             </FormControl>
+                            <FormDescription>Presiona Enter para iniciar un párrafo nuevo. El sitio conserva la tipografía editorial automáticamente.</FormDescription>
                             <FormMessage />
                           </FormItem>
                         )}
@@ -817,6 +819,7 @@ export default function AdminIndustryGroups() {
                                 data-testid="input-full-description-en"
                               />
                             </FormControl>
+                            <FormDescription>Usa un párrafo por bloque de contenido; las negritas, cursivas y listas se conservan al publicar.</FormDescription>
                             <FormMessage />
                           </FormItem>
                         )}
@@ -837,6 +840,7 @@ export default function AdminIndustryGroups() {
                                 data-testid="input-full-description-es"
                               />
                             </FormControl>
+                            <FormDescription>Usa un párrafo por bloque de contenido; las negritas, cursivas y listas se conservan al publicar.</FormDescription>
                             <FormMessage />
                           </FormItem>
                         )}

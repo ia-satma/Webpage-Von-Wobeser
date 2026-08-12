@@ -57,6 +57,7 @@ export function renderSingle(
   lang: Lang = "en",
 ): string {
   const $ = cheerio.load(templateHtml);
+  $(".single").first().attr("data-vw-content-kind", kind);
 
   const name = L(group, "name", lang);
   $(".single__meta--name").first().text(name);
@@ -64,6 +65,17 @@ export function renderSingle(
 
   $(".single__content--intro").html(renderRichText(L(group, "description", lang)));
   $(".single__content--txt").html(renderRichText(L(group, "fullDescription", lang)));
+
+  // Las plantillas históricas de prácticas e industrias traen un script que
+  // reúne intro y cuerpo al cargar. Las páginas dinámicas ya reciben ambos
+  // campos separados, por lo que ese comportamiento heredado duplica o
+  // desplaza el contenido.
+  // Se retira únicamente de este HTML renderizado; los archivos estáticos no se
+  // modifican y siguen disponibles como snapshot editorial.
+  $("script").filter((_, script) => {
+    const source = $(script).html() || "";
+    return source.includes("txt_separado") && source.includes("single__content--intro");
+  }).remove();
 
   // Keep the category nav working against our dynamic routes.
   $('a[href*="/index.php/practice/"], a[href*="/index.php/industry/"]').each((_, el) => {

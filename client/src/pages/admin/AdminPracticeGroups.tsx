@@ -23,6 +23,7 @@ import { useToast } from "@/hooks/use-toast";
 import { PlusCircle, Pencil, Trash2, Briefcase, Star, GripVertical } from "lucide-react";
 import { TranslateButton } from "@/components/admin/TranslateButton";
 import type { PracticeGroup } from "@shared/schema";
+import { practiceContentLimits } from "@shared/contentLimits";
 
 const translations = {
   en: {
@@ -571,10 +572,10 @@ const createPracticeGroupSchema = (t: typeof translations.en) => z.object({
   name: z.string().min(1, t.validationNameEnRequired).max(200),
   nameEs: z.string().min(1, t.validationNameEsRequired).max(200),
   slug: z.string().min(1, t.validationSlugRequired).max(100).regex(/^[a-z0-9-]+$/, t.validationSlugFormat),
-  description: z.string().min(1, t.validationDescriptionEnRequired).max(500),
-  descriptionEs: z.string().min(1, t.validationDescriptionEsRequired).max(500),
-  fullDescription: z.string().max(5000).optional(),
-  fullDescriptionEs: z.string().max(5000).optional(),
+  description: z.string().min(1, t.validationDescriptionEnRequired).max(practiceContentLimits.introduction),
+  descriptionEs: z.string().min(1, t.validationDescriptionEsRequired).max(practiceContentLimits.introduction),
+  fullDescription: z.string().max(practiceContentLimits.body).optional(),
+  fullDescriptionEs: z.string().max(practiceContentLimits.body).optional(),
   iconName: z.string().max(50).optional(),
   order: z.number().int().min(0).default(0),
   published: z.boolean().default(true),
@@ -847,6 +848,7 @@ export default function AdminPracticeGroups() {
                                 data-testid="input-description-en"
                               />
                             </FormControl>
+                            <FormDescription>Presiona Enter para iniciar un párrafo nuevo. El sitio conserva la tipografía editorial automáticamente.</FormDescription>
                             <FormMessage />
                           </FormItem>
                         )}
@@ -867,6 +869,7 @@ export default function AdminPracticeGroups() {
                                 data-testid="input-description-es"
                               />
                             </FormControl>
+                            <FormDescription>Presiona Enter para iniciar un párrafo nuevo. El sitio conserva la tipografía editorial automáticamente.</FormDescription>
                             <FormMessage />
                           </FormItem>
                         )}
@@ -889,6 +892,7 @@ export default function AdminPracticeGroups() {
                                 data-testid="input-full-description-en"
                               />
                             </FormControl>
+                            <FormDescription>Usa un párrafo por bloque de contenido; las negritas, cursivas y listas se conservan al publicar.</FormDescription>
                             <FormMessage />
                           </FormItem>
                         )}
@@ -909,6 +913,7 @@ export default function AdminPracticeGroups() {
                                 data-testid="input-full-description-es"
                               />
                             </FormControl>
+                            <FormDescription>Usa un párrafo por bloque de contenido; las negritas, cursivas y listas se conservan al publicar.</FormDescription>
                             <FormMessage />
                           </FormItem>
                         )}

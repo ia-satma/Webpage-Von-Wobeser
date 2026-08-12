@@ -3,26 +3,17 @@ import path from "path";
 import { getMirrorDir } from "./config";
 import { db } from "../db";
 import { teamMembers, practiceGroups, industryGroups } from "@shared/schema";
+import {
+  normalizeMirrorName,
+  parseMirrorMetaName,
+  resolvePracticeSlug,
+} from "./practiceIdentity";
 
 // Maps the original mirror numeric IDs to our DB slugs, so the original
 // /index.php/...-l-{id}.html URLs can serve dynamic pages (preserves SEO and
 // makes the mirror's existing internal links hit our backend-powered pages).
 
-const decode = (s: string) =>
-  String(s).replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&#39;|&rsquo;/g, "'").replace(/&quot;/g, '"');
-
-const norm = (s: string) =>
-  decode(s).normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/[-.,]/g, " ").replace(/\s+/g, " ").trim();
-
-const PRACTICE_ALIASES: Record<string, string> = {
-  "labor executive compensations & benefits": "labor & employment",
-  "international trade & customs": "international trade",
-  "tax (consultancy controversy & litigation)": "tax",
-  "esg (environmental social and governance)": "esg (environmental social & corporate governance)",
-  "competition & antitrust": "antitrust & competition",
-  "administrative and regulatory": "administrative law",
-  "industrial & intellectual property": "intellectual property",
-};
+const norm = normalizeMirrorName;
 
 export type IdMaps = {
   attorney: Map<string, string>;
@@ -70,9 +61,8 @@ export async function buildIdMaps(): Promise<IdMaps> {
     const m = f.match(/^p-(\d+)\.html$/);
     if (!m) continue;
     const html = fs.readFileSync(path.join(practiceDir, f), "utf8");
-    const t = (html.match(/single__meta--name[^>]*>([^<]+)</) || [])[1];
-    const key = t && (PRACTICE_ALIASES[norm(t)] || norm(t));
-    const slug = key && pgByName.get(key);
+    const t = parseMirrorMetaName(html);
+    const slug = t && resolvePracticeSlug(t, pgByName);
     if (slug) practice.set(m[1], slug);
   }
 
@@ -82,7 +72,7 @@ export async function buildIdMaps(): Promise<IdMaps> {
     const m = f.match(/^p-(\d+)\.html$/);
     if (!m) continue;
     const html = fs.readFileSync(path.join(industryDir, f), "utf8");
-    const t = (html.match(/single__meta--name[^>]*>([^<]+)</) || [])[1];
+    const t = parseMirrorMetaName(html);
     const slug = t && igByName.get(norm(t));
     if (slug) industry.set(m[1], slug);
   }

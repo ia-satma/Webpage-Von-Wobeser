@@ -2,8 +2,10 @@ import { db } from "./db";
 import { eq } from "drizzle-orm";
 import { news, officeImages, practiceGroups, industryGroups, teamMembers, representativeMatters, adminUsers, events, specializedDesks } from "@shared/schema";
 import { hashPassword } from "./auth";
+import { applyCanonicalPracticeContent } from "./content/canonicalPractices";
+import { applyCanonicalIndustryContent } from "./content/canonicalIndustries";
 
-const practiceGroupsData = [
+const legacyPracticeGroupsData = [
   { 
     name: "Corporate, Mergers & Acquisitions", 
     nameEs: "Corporativo, Fusiones y Adquisiciones", 
@@ -228,7 +230,7 @@ const practiceGroupsData = [
   },
 ];
 
-const industryGroupsData = [
+const legacyIndustryGroupsData = [
   { 
     name: "Automotive, Mobility & Manufacturing", 
     nameEs: "Automotriz, Movilidad y Manufactura", 
@@ -1180,6 +1182,10 @@ const eventsData = [
 // Único "desk" real capturado del sitio original (index.php/capacidades/desks e
 // index.php/capabilities/capabilities-desks) — texto completo tal cual, para que la migración
 // a la página dinámica no cambie nada visible hasta que el cliente lo edite desde el panel.
+// La metadata visual (icono, orden) permanece en la semilla original; el
+// contenido editorial se reemplaza desde el snapshot canónico bilingüe.
+const industryGroupsData = applyCanonicalIndustryContent(legacyIndustryGroupsData);
+
 const specializedDesksData = [
   {
     name: "German Desk",
@@ -1200,6 +1206,10 @@ const specializedDesksData = [
     order: 1,
   },
 ];
+
+// La metadata visual (icono, orden) permanece en la semilla original; el
+// contenido editorial se reemplaza desde el snapshot canónico bilingüe.
+const practiceGroupsData = applyCanonicalPracticeContent(legacyPracticeGroupsData);
 
 export async function seed() {
   console.log("Seeding database with real Von Wobeser y Sierra content...");

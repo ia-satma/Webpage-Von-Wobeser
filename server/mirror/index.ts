@@ -488,7 +488,7 @@ export function optimizeLegacyAssets(html: string): string {
 function injectPerformanceHints(html: string): string {
   if (!html.includes("</head>")) return html;
   const hints = [
-    '<link rel="stylesheet" href="/templates/beez3/css/typography.css?v=20260807-inter-medium">',
+    '<link rel="stylesheet" href="/templates/beez3/css/typography.css?v=20260812-practice-industry-paragraphs">',
     '<link rel="preload" href="/templates/beez3/webfont/Inter-Variable.woff2" as="font" type="font/woff2" crossorigin>',
     '<link rel="preload" href="/templates/beez3/webfont/Gelasio-Variable.woff2" as="font" type="font/woff2" crossorigin>',
   ].filter((hint) => !html.includes(hint.match(/href="([^"]+)"/)?.[1] || ""));
