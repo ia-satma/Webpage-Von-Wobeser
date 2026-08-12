@@ -134,6 +134,19 @@ test("video upload accepts a playable MP4 container and rejects a forged one", a
   }
 });
 
+test("the Replit deployment includes and verifies the strict video validators", async () => {
+  const root = process.cwd();
+  const [nixConfig, packageJson] = await Promise.all([
+    fs.readFile(path.join(root, "replit.nix"), "utf8"),
+    fs.readFile(path.join(root, "package.json"), "utf8"),
+  ]);
+
+  assert.match(nixConfig, /pkgs\.ffmpeg/);
+  assert.match(nixConfig, /pkgs\.clamav/);
+  assert.match(packageJson, /"verify:video-runtime": "node scripts\/verify-video-runtime\.mjs"/);
+  assert.match(packageJson, /"start:deploy": "npm run verify:video-runtime && npm run db:migrate && npm run start"/);
+});
+
 test("video validation accepts playable low-frame-rate MP4 and WebM files", async () => {
   const directory = await fs.mkdtemp(path.join(os.tmpdir(), "vwb-low-fps-video-test-"));
   try {
