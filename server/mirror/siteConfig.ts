@@ -1,8 +1,10 @@
 import { eq } from "drizzle-orm";
 import { db } from "../db";
 import { siteConfig } from "@shared/schema";
+import { getEditorialTypographyForEntities } from "../editorialTypography";
+import { typographyAttribute, type TypographyStyles } from "@shared/editorialTypography";
 
-export type ConfigMap = Record<string, { value: string; valueEs: string; type: string }>;
+export type ConfigMap = Record<string, { value: string; valueEs: string; type: string; typography?: TypographyStyles }>;
 
 const CURRENT_HERO_MEDIA = {
   master: "/images/hero-20260810-fullhd-master.mp4",
@@ -486,8 +488,9 @@ export function invalidateConfigCache(): void {
 export async function getConfigMap(): Promise<ConfigMap> {
   if (_configCache && Date.now() - _configCache.at < CONFIG_TTL_MS) return _configCache.map;
   const rows = await db.select().from(siteConfig);
+  const typography = await getEditorialTypographyForEntities("site_config", rows.map((row) => row.key));
   const map: ConfigMap = {};
-  for (const r of rows) map[r.key] = { value: r.value ?? "", valueEs: r.valueEs ?? "", type: r.type };
+  for (const r of rows) map[r.key] = { value: r.value ?? "", valueEs: r.valueEs ?? "", type: r.type, typography: typography.get(r.key) };
   _configCache = { map, at: Date.now() };
   return map;
 }
@@ -746,6 +749,11 @@ export function cfg(map: ConfigMap, key: string, lang: "en" | "es"): string {
   const c = map[key];
   if (!c) return "";
   return lang === "es" ? c.valueEs || c.value : c.value;
+}
+
+/** Atributo para el HTML de texto visible; `auto` conserva la plantilla. */
+export function cfgTypographyAttribute(map: ConfigMap, key: string, lang: "en" | "es"): Record<string, string> {
+  return typographyAttribute(map[key]?.typography, lang === "es" ? "valueEs" : "value", lang);
 }
 
 /** Boolean site-config helper. Missing keys remain enabled for backwards compatibility. */

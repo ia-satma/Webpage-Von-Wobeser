@@ -12,6 +12,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { RichTextEditor } from "@/components/admin/RichTextEditor";
+import { TypographyFieldControl } from "@/components/admin/TypographyFieldControl";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { ImageUpload } from "@/components/admin/ImageUpload";
@@ -716,6 +717,7 @@ export default function AdminIndustryGroups() {
                                 data-testid="input-name-en"
                               />
                             </FormControl>
+                            <TypographyFieldControl entityType="industry_group" entityId={editingGroup?.id} field="name" language="en" role="editorial" compact />
                             <FormMessage />
                           </FormItem>
                         )}
@@ -734,6 +736,7 @@ export default function AdminIndustryGroups() {
                                 data-testid="input-name-es"
                               />
                             </FormControl>
+                            <TypographyFieldControl entityType="industry_group" entityId={editingGroup?.id} field="nameEs" language="es" role="editorial" compact />
                             <FormMessage />
                           </FormItem>
                         )}
@@ -772,9 +775,11 @@ export default function AdminIndustryGroups() {
                                 onChange={field.onChange}
                                 placeholder={t.descriptionEnPlaceholder}
                                 rows={3}
+                                recommendedFamily="gelasio"
                                 data-testid="input-description-en"
                               />
                             </FormControl>
+                            <TypographyFieldControl entityType="industry_group" entityId={editingGroup?.id} field="description" language="en" role="editorial" />
                             <FormDescription>Presiona Enter para iniciar un párrafo nuevo. El sitio conserva la tipografía editorial automáticamente.</FormDescription>
                             <FormMessage />
                           </FormItem>
@@ -793,9 +798,11 @@ export default function AdminIndustryGroups() {
                                 onChange={field.onChange}
                                 placeholder={t.descriptionEsPlaceholder}
                                 rows={3}
+                                recommendedFamily="gelasio"
                                 data-testid="input-description-es"
                               />
                             </FormControl>
+                            <TypographyFieldControl entityType="industry_group" entityId={editingGroup?.id} field="descriptionEs" language="es" role="editorial" />
                             <FormDescription>Presiona Enter para iniciar un párrafo nuevo. El sitio conserva la tipografía editorial automáticamente.</FormDescription>
                             <FormMessage />
                           </FormItem>
@@ -816,9 +823,11 @@ export default function AdminIndustryGroups() {
                                 onChange={field.onChange}
                                 placeholder={t.fullDescriptionEnPlaceholder}
                                 rows={4}
+                                recommendedFamily="inter"
                                 data-testid="input-full-description-en"
                               />
                             </FormControl>
+                            <TypographyFieldControl entityType="industry_group" entityId={editingGroup?.id} field="fullDescription" language="en" role="body" />
                             <FormDescription>Usa un párrafo por bloque de contenido; las negritas, cursivas y listas se conservan al publicar.</FormDescription>
                             <FormMessage />
                           </FormItem>
@@ -837,9 +846,11 @@ export default function AdminIndustryGroups() {
                                 onChange={field.onChange}
                                 placeholder={t.fullDescriptionEsPlaceholder}
                                 rows={4}
+                                recommendedFamily="inter"
                                 data-testid="input-full-description-es"
                               />
                             </FormControl>
+                            <TypographyFieldControl entityType="industry_group" entityId={editingGroup?.id} field="fullDescriptionEs" language="es" role="body" />
                             <FormDescription>Usa un párrafo por bloque de contenido; las negritas, cursivas y listas se conservan al publicar.</FormDescription>
                             <FormMessage />
                           </FormItem>

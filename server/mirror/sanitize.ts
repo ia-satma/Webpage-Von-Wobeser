@@ -8,7 +8,9 @@ const OPTS: sanitizeHtml.IOptions = {
   allowedAttributes: {
     a: ["href", "target", "rel", "title"],
     img: ["src", "alt", "title"],
-    span: ["style"],
+    // Marca cerrada del editor para las dos familias institucionales. Nunca
+    // se acepta `font-family` ni una clase/estilo arbitrario.
+    span: ["style", "data-vw-font"],
     p: ["style"],
   },
   allowedSchemes: ["http", "https", "mailto", "tel"],
@@ -42,6 +44,12 @@ const OPTS: sanitizeHtml.IOptions = {
       if (attribs.src?.startsWith("data:")
         && !/^data:image\/(?:png|jpe?g|gif|webp);base64,[a-z0-9+/=\s]+$/i.test(attribs.src)) {
         delete attribs.src;
+      }
+      return { tagName, attribs };
+    },
+    span: (tagName, attribs) => {
+      if (attribs["data-vw-font"] !== "gelasio" && attribs["data-vw-font"] !== "inter") {
+        delete attribs["data-vw-font"];
       }
       return { tagName, attribs };
     },

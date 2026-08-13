@@ -1,5 +1,5 @@
 import * as cheerio from "cheerio";
-import { cfg, type ConfigMap } from "./siteConfig";
+import { cfg, cfgTypographyAttribute, type ConfigMap } from "./siteConfig";
 import { applySeo, breadcrumbNode, clip } from "./seo";
 import { renderRichText } from "./sanitize";
 
@@ -29,7 +29,7 @@ export function renderPage(
   let introText = "";
   if (keys.intro) {
     const t = cfg(config, keys.intro, lang);
-    if (t && t.trim()) { introText = t; $(".page__content--intro").first().html(renderRichText(t)); }
+    if (t && t.trim()) { introText = t; $(".page__content--intro").first().attr(cfgTypographyAttribute(config, keys.intro, lang)).html(renderRichText(t)); }
   }
   if (keys.body) {
     const t = cfg(config, keys.body, lang);
@@ -37,8 +37,9 @@ export function renderPage(
       const $body = $(".page__content--body").first();
       // "prepend": el bloque original tiene contenido no-texto (ej. la galería de video de
       // Diversidad e Inclusión) que NO debe borrarse — el texto editable se inserta antes.
-      if (opts?.bodyMode === "prepend") $body.prepend(renderRichText(t));
-      else $body.html(renderRichText(t));
+      const attrs = cfgTypographyAttribute(config, keys.body, lang);
+      if (opts?.bodyMode === "prepend") $body.attr(attrs).prepend(renderRichText(t));
+      else $body.attr(attrs).html(renderRichText(t));
     }
   }
 

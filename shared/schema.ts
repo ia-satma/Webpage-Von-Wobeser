@@ -1425,6 +1425,25 @@ export const insertSiteConfigSchema = createInsertSchema(siteConfig).omit({ id: 
 export type InsertSiteConfig = z.infer<typeof insertSiteConfigSchema>;
 export type SiteConfig = typeof siteConfig.$inferSelect;
 
+// Preferencias tipográficas por entidad/campo/idioma. Se mantiene separada de
+// cada tabla editorial para que el CMS pueda crecer sin columnas repetidas y
+// para que `auto` no altere el contenido legado.
+export const editorialTypography = pgTable("editorial_typography", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  entityType: text("entity_type").notNull(),
+  entityId: text("entity_id").notNull(),
+  field: text("field").notNull(),
+  language: varchar("language", { length: 2 }).notNull(),
+  family: varchar("family", { length: 12 }).notNull().default("auto"),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+}, (t) => ({
+  targetUnique: uniqueIndex("editorial_typography_target_unique").on(t.entityType, t.entityId, t.field, t.language),
+  entityIdx: index("editorial_typography_entity_idx").on(t.entityType, t.entityId),
+}));
+
+export const insertEditorialTypographySchema = createInsertSchema(editorialTypography).omit({ id: true, updatedAt: true });
+export type EditorialTypography = typeof editorialTypography.$inferSelect;
+
 // ============================================
 // BANNERS & PROMOTIONS MODULE
 // ============================================

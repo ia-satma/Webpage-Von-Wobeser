@@ -73,6 +73,7 @@ import { z } from "zod";
 import { isMigrationReadOnlyEnabled } from "../database/maintenance";
 import { normalizeVideoSource } from "@shared/videoSource";
 import { getLocalizedAttorneyTitle } from "@shared/attorneyTitles";
+import { getEditorialTypography, replaceEditorialTypography } from "../editorialTypography";
 
 type Lang = "en" | "es";
 
@@ -1199,7 +1200,8 @@ export async function setupMirror(app: Express) {
         offset: 0,
       }).then((result) => result.rows).catch(() => []),
     ]);
-    sendPage(res, renderAttorney(pick(TEMPLATES.attorney, lang), { ...member, ...groups, relatedNews }, lang));
+    const typography = await getEditorialTypography("team_member", member.id);
+    sendPage(res, renderAttorney(pick(TEMPLATES.attorney, lang), { ...member, ...groups, relatedNews }, lang, typography));
   };
 
   const serveList = async (
@@ -1338,7 +1340,8 @@ export async function setupMirror(app: Express) {
     if (!group) return next();
     if ((group as any).published === false) return next(); // oculta
     const attorneys = await getAttorneysByPractice(group.id);
-    sendPage(res, renderSingle(pick(TEMPLATES.practice, lang), group, attorneys, "practice", lang));
+    const typography = await getEditorialTypography("practice_group", group.id);
+    sendPage(res, renderSingle(pick(TEMPLATES.practice, lang), group, attorneys, "practice", lang, typography));
   };
 
   const serveIndustry = async (slug: string | undefined, lang: Lang, res: Response, next: NextFunction) => {
@@ -1347,7 +1350,8 @@ export async function setupMirror(app: Express) {
     if (!group) return next();
     if ((group as any).published === false) return next(); // oculta
     const attorneys = await getAttorneysByIndustry(group.id);
-    sendPage(res, renderSingle(pick(TEMPLATES.industry, lang), group, attorneys, "industry", lang));
+    const typography = await getEditorialTypography("industry_group", group.id);
+    sendPage(res, renderSingle(pick(TEMPLATES.industry, lang), group, attorneys, "industry", lang, typography));
   };
 
   // Un borrador (published=false) o un artículo programado a futuro (publishAt) NUNCA debe
@@ -1371,7 +1375,8 @@ export async function setupMirror(app: Express) {
       category: item.category,
       limit: 6,
     }).catch(() => []);
-    sendPage(res, renderNewsDetail(pick(TEMPLATES.newsDetail, lang), { ...item, relatedTeamMembers, relatedNews }, lang));
+    const typography = await getEditorialTypography("news", item.id);
+    sendPage(res, renderNewsDetail(pick(TEMPLATES.newsDetail, lang), { ...item, relatedTeamMembers, relatedNews }, lang, typography));
   };
 
   type PublicAuthorFilter = { id: string; slug: string; name: string };
@@ -2295,6 +2300,32 @@ export async function setupMirror(app: Express) {
   // ---------- Admin: editable site config (texts, hero video, etc.) -----
   app.get("/api/admin/site-config", authMiddleware, requirePermission("config"), wrap(async (_req, res) => {
     res.json(await getConfigMap());
+  }));
+  // Las preferencias de configuración editorial conservan el mismo formato
+  // central, pero respetan el permiso `config` (no el de contenido general).
+  const configTypographyPayload = z.object({
+    styles: z.array(z.object({
+      field: z.enum(["value", "valueEs"]),
+      language: z.enum(["en", "es"]),
+      family: z.enum(["auto", "gelasio", "inter"]),
+    })).min(1).max(2),
+  });
+  app.get("/api/admin/site-config/:key/typography", authMiddleware, requirePermission("config"), wrap(async (req, res) => {
+    const key = String(req.params.key || "");
+    const config = (await getConfigMap())[key];
+    if (!config || !["text", "html"].includes(config.type)) return res.status(404).json({ error: "Campo editorial no encontrado" });
+    res.json({ styles: await getEditorialTypography("site_config", key) });
+  }));
+  app.put("/api/admin/site-config/:key/typography", authMiddleware, requirePermission("config"), wrap(async (req, res) => {
+    const key = String(req.params.key || "");
+    const payload = configTypographyPayload.safeParse(req.body);
+    const config = (await getConfigMap())[key];
+    if (!payload.success || !config || !["text", "html"].includes(config.type)) {
+      return res.status(400).json({ error: "Tipografía o campo editorial inválido" });
+    }
+    const styles = await replaceEditorialTypography("site_config", key, payload.data.styles);
+    invalidatePublicPageCache();
+    res.json({ styles });
   }));
   // La versión anterior se conserva exclusivamente como respaldo editorial. Esta
   // previsualización requiere sesión administrativa y se marca explícitamente

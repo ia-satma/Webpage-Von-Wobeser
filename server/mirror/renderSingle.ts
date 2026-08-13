@@ -1,6 +1,7 @@
 import * as cheerio from "cheerio";
 import { applySeo, serviceNode, breadcrumbNode, clip } from "./seo";
 import { renderRichText } from "./sanitize";
+import { typographyAttribute, type TypographyStyles } from "@shared/editorialTypography";
 
 type Lang = "en" | "es";
 type Kind = "practice" | "industry";
@@ -55,16 +56,17 @@ export function renderSingle(
   attorneys: any[],
   kind: Kind,
   lang: Lang = "en",
+  typography?: TypographyStyles,
 ): string {
   const $ = cheerio.load(templateHtml);
   $(".single").first().attr("data-vw-content-kind", kind);
 
   const name = L(group, "name", lang);
-  $(".single__meta--name").first().text(name);
+  $(".single__meta--name").first().attr(typographyAttribute(typography, lang === "es" ? "nameEs" : "name", lang)).text(name);
   $(".single__meta--list").html(buildAttorneyAccordion(attorneys, kind, lang));
 
-  $(".single__content--intro").html(renderRichText(L(group, "description", lang)));
-  $(".single__content--txt").html(renderRichText(L(group, "fullDescription", lang)));
+  $(".single__content--intro").attr(typographyAttribute(typography, lang === "es" ? "descriptionEs" : "description", lang)).html(renderRichText(L(group, "description", lang)));
+  $(".single__content--txt").attr(typographyAttribute(typography, lang === "es" ? "fullDescriptionEs" : "fullDescription", lang)).html(renderRichText(L(group, "fullDescription", lang)));
 
   // Las plantillas históricas de prácticas e industrias traen un script que
   // reúne intro y cuerpo al cargar. Las páginas dinámicas ya reciben ambos

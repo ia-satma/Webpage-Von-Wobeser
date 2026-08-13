@@ -1,5 +1,6 @@
 import * as cheerio from "cheerio";
 import { renderRichText } from "./sanitize";
+import { typographyAttribute, type TypographyStyles } from "@shared/editorialTypography";
 import { applySeo, articleNode, breadcrumbNode, clip } from "./seo";
 import { getLocalizedAttorneyRole, getLocalizedAttorneyTitle } from "@shared/attorneyTitles";
 
@@ -245,18 +246,18 @@ function buildRelatedInsights(items: any[], lang: Lang): string {
 }
 
 /** News detail — injects one article into the single layout. */
-export function renderNewsDetail(templateHtml: string, item: any, lang: Lang = "en"): string {
+export function renderNewsDetail(templateHtml: string, item: any, lang: Lang = "en", typography?: TypographyStyles): string {
   const $ = cheerio.load(templateHtml);
   const title = L(item, "title", lang);
   const excerpt = renderRichText(L(item, "excerpt", lang));
   const content = renderRichText(L(item, "content", lang));
   const date = fmtDate(item.date, lang);
 
-  $(".single__meta--name").first().text(title);
+  $(".single__meta--name").first().attr(typographyAttribute(typography, lang === "es" ? "titleEs" : "title", lang)).text(title);
   // Show the date inside the meta sidebar (kept minimal, original styling).
   $(".single__meta--list").first().html(date ? `<p style="color:#fff;">${esc(date)}</p>` : "");
-  $(".single__content--intro").html(excerpt || "");
-  $(".single__content--txt").html(content || (excerpt ? "" : `<p>${esc(title)}</p>`));
+  $(".single__content--intro").attr(typographyAttribute(typography, lang === "es" ? "excerptEs" : "excerpt", lang)).html(excerpt || "");
+  $(".single__content--txt").attr(typographyAttribute(typography, lang === "es" ? "contentEs" : "content", lang)).html(content || (excerpt ? "" : `<p>${esc(title)}</p>`));
   $(".news-related-attorneys").remove();
   $(".news-related-insights").remove();
   const relatedAttorneys = (item.relatedTeamMembers || []) as any[];

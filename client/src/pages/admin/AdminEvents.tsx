@@ -10,6 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { RichTextEditor } from "@/components/admin/RichTextEditor";
+import { TypographyFieldControl } from "@/components/admin/TypographyFieldControl";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -1085,9 +1086,11 @@ export default function AdminEvents() {
                             value={field.value ?? ""}
                             onChange={field.onChange}
                             placeholder={t.descriptionEnPlaceholder}
+                            recommendedFamily="inter"
                             data-testid="textarea-description"
                           />
                         </FormControl>
+                        <TypographyFieldControl entityType="event" entityId={editingEvent?.id} field="description" language="en" role="body" compact />
                         <FormMessage />
                       </FormItem>
                     )}
@@ -1104,9 +1107,11 @@ export default function AdminEvents() {
                             value={field.value ?? ""}
                             onChange={field.onChange}
                             placeholder={t.descriptionEsPlaceholder}
+                            recommendedFamily="inter"
                             data-testid="textarea-description-es"
                           />
                         </FormControl>
+                        <TypographyFieldControl entityType="event" entityId={editingEvent?.id} field="descriptionEs" language="es" role="body" compact />
                         <FormMessage />
                       </FormItem>
                     )}

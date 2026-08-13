@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { RichTextEditor } from "@/components/admin/RichTextEditor";
+import { TypographyFieldControl } from "@/components/admin/TypographyFieldControl";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { ImageUpload } from "@/components/admin/ImageUpload";
@@ -36,6 +37,16 @@ type Field = {
 };
 type FieldGroup = { title?: string; fields: Field[] };
 type SiteConfigPage = { title: string; description: string; icon: LucideIcon; groups: FieldGroup[] };
+
+// Mantiene fuera la configuración técnica. El inventario del servidor es la
+// autoridad para guardar; esta lista sólo decide qué control se muestra.
+const TECHNICAL_TEXT_KEY = /(?:^ga4_|verification|favicon|_url$|_path$|_video|_image$|_master$|facebook|twitter|linkedin|phone|email|website|tts_|_pages$|_order$|_visible$|_layout$|_value$)/i;
+const isPublicTextField = (field: Field) => !field.media && !field.control && !TECHNICAL_TEXT_KEY.test(field.key);
+const typographyRoleFor = (field: Field): "editorial" | "body" | "ui" => {
+  if (/(?:_label$|_cta$|_success$|_error$|_required$|_more$|_next$|_previous$|_minimize$|_expand$|eyebrow)/i.test(field.key)) return "ui";
+  if (/(?:title|subtitle|intro|quote|experience|team_stats)/i.test(field.key)) return "editorial";
+  return "body";
+};
 
 /**
  * Cada sección de "Configuración del sitio" es su propia pantalla (ruta
@@ -763,27 +774,29 @@ export default function AdminSiteConfig() {
                 {f.bilingual && <p className="text-xs font-medium text-muted-foreground">Medio en inglés</p>}
                 <ImageUpload value={draft[f.key]?.value ?? ""} onChange={(v) => set(f.key, "value", v)} kind={f.media} />
               </div>
-            ) : f.multiline && f.key.startsWith("page_") ? (
-              <RichTextEditor rows={f.rows ?? 3} value={draft[f.key]?.value ?? ""} onChange={(html) => set(f.key, "value", html)} data-testid={`input-${f.key}`} />
+            ) : f.multiline && isPublicTextField(f) ? (
+              <RichTextEditor rows={f.rows ?? 3} value={draft[f.key]?.value ?? ""} onChange={(html) => set(f.key, "value", html)} recommendedFamily={typographyRoleFor(f) === "editorial" ? "gelasio" : "inter"} data-testid={`input-${f.key}`} />
             ) : f.multiline ? (
               <Textarea rows={f.rows ?? 3} value={draft[f.key]?.value ?? ""} onChange={(e) => set(f.key, "value", e.target.value)} data-testid={`input-${f.key}`} />
             ) : (
               <Input value={draft[f.key]?.value ?? ""} onChange={(e) => set(f.key, "value", e.target.value)} placeholder={f.bilingual ? "Texto en inglés" : ""} data-testid={`input-${f.key}`} />
             )}
+            {isPublicTextField(f) && <TypographyFieldControl entityType="site_config" entityId={f.key} field="value" language="en" role={typographyRoleFor(f)} endpoint={`/api/admin/site-config/${encodeURIComponent(f.key)}/typography`} compact />}
             {f.bilingual && (
               f.media ? (
                 <div className="space-y-1 border-t pt-3">
                   <p className="text-xs font-medium text-muted-foreground">Medio en español</p>
                   <ImageUpload value={draft[f.key]?.valueEs ?? ""} onChange={(v) => set(f.key, "valueEs", v)} kind={f.media} />
                 </div>
-              ) : f.multiline && f.key.startsWith("page_") ? (
-                <RichTextEditor rows={f.rows ?? 3} value={draft[f.key]?.valueEs ?? ""} onChange={(html) => set(f.key, "valueEs", html)} placeholder="Texto en español" data-testid={`input-${f.key}-es`} />
+              ) : f.multiline && isPublicTextField(f) ? (
+                <RichTextEditor rows={f.rows ?? 3} value={draft[f.key]?.valueEs ?? ""} onChange={(html) => set(f.key, "valueEs", html)} placeholder="Texto en español" recommendedFamily={typographyRoleFor(f) === "editorial" ? "gelasio" : "inter"} data-testid={`input-${f.key}-es`} />
               ) : f.multiline ? (
                 <Textarea rows={f.rows ?? 3} value={draft[f.key]?.valueEs ?? ""} onChange={(e) => set(f.key, "valueEs", e.target.value)} placeholder="Texto en español" data-testid={`input-${f.key}-es`} />
               ) : (
                 <Input value={draft[f.key]?.valueEs ?? ""} onChange={(e) => set(f.key, "valueEs", e.target.value)} placeholder="Texto en español" data-testid={`input-${f.key}-es`} />
               )
             )}
+            {f.bilingual && isPublicTextField(f) && <TypographyFieldControl entityType="site_config" entityId={f.key} field="valueEs" language="es" role={typographyRoleFor(f)} endpoint={`/api/admin/site-config/${encodeURIComponent(f.key)}/typography`} compact />}
             <div className="flex items-center gap-2">
               <Button size="sm" onClick={() => requestSave(f)} disabled={saving === f.key || invalid} data-testid={`save-${f.key}`}>
                 {saving === f.key ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : <Save className="h-4 w-4 mr-1" />}

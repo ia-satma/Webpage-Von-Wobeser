@@ -2,6 +2,7 @@ import * as cheerio from "cheerio";
 import { getLocalizedAttorneyRole, getLocalizedAttorneyTitle } from "@shared/attorneyTitles";
 import { applySeo, personNode, breadcrumbNode, clip } from "./seo";
 import { renderRichText } from "./sanitize";
+import { typographyAttribute, type TypographyStyles } from "@shared/editorialTypography";
 
 type Lang = "en" | "es";
 
@@ -190,7 +191,7 @@ function splitFirstBlock(html: string): { first: string; rest: string } {
  * Takes the original mirror HTML of an attorney profile and injects the
  * given attorney record from our backend, preserving the original markup.
  */
-export function renderAttorney(templateHtml: string, a: any, lang: Lang = "en"): string {
+export function renderAttorney(templateHtml: string, a: any, lang: Lang = "en", typography?: TypographyStyles): string {
   const $ = cheerio.load(templateHtml);
   $(".attorney").attr("data-vw-content-kind", "attorney");
 
@@ -201,8 +202,8 @@ export function renderAttorney(templateHtml: string, a: any, lang: Lang = "en"):
   const img = a.imageUrl || "";
 
   // --- Header card -------------------------------------------------------
-  $(".attorney__meta--name").text(name);
-  $(".attorney__meta--role").text(role);
+  $(".attorney__meta--name").attr(typographyAttribute(typography, "name", lang)).text(name);
+  $(".attorney__meta--role").attr(typographyAttribute(typography, lang === "es" ? "titleEs" : "title", lang)).text(role);
 
   const $img = $(".attorney__meta--img");
   if (img) {
@@ -224,8 +225,8 @@ export function renderAttorney(templateHtml: string, a: any, lang: Lang = "en"):
   const { first: legacyIntro, rest: legacyRest } = splitFirstBlock(renderRichText(bio));
   const bioIntro = storedIntro ? renderRichText(storedIntro) : legacyIntro;
   const bioRest = storedIntro ? renderRichText(bio) : legacyRest;
-  $(".attorney__content--intro").html(bioIntro);
-  $(".attorney__content--txt").html(bioRest);
+  $(".attorney__content--intro").attr(typographyAttribute(typography, lang === "es" ? "bioIntroEs" : "bioIntro", lang)).html(bioIntro);
+  $(".attorney__content--txt").attr(typographyAttribute(typography, lang === "es" ? "bioEs" : "bio", lang)).html(bioRest);
   const relatedInsights = buildRelatedInsights(a, lang);
   $(".attorney-related-insights").remove();
   if (relatedInsights) {

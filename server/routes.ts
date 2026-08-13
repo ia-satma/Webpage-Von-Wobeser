@@ -116,6 +116,13 @@ import {
   teamMembers,
   testimonials,
 } from "@shared/schema";
+import {
+  PUBLIC_TYPOGRAPHY_FIELDS,
+  isPublicTypographyField,
+  isTypographyFamily,
+  type TypographyLanguage,
+} from "@shared/editorialTypography";
+import { getEditorialTypography, replaceEditorialTypography } from "./editorialTypography";
 import { getLocalizedAttorneyRole, getLocalizedAttorneyTitle } from "@shared/attorneyTitles";
 import { db } from "./db";
 import { sql, gte } from "drizzle-orm";
@@ -2440,6 +2447,50 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
       console.error("Get CMS stats error:", error);
       res.status(500).json({ error: "Failed to fetch CMS stats" });
     }
+  });
+
+  // Preferencias tipográficas editoriales. La API es deliberadamente estrecha:
+  // no permite CSS, nombres de fuentes ni campos fuera del inventario público.
+  const typographyTargetSchema = z.object({
+    entityType: z.string().min(1).max(64),
+    entityId: z.string().min(1).max(160).regex(/^[A-Za-z0-9_-]+$/, "Identificador de contenido inválido"),
+  });
+  const typographyStylesSchema = z.object({
+    styles: z.array(z.object({
+      field: z.string().min(1).max(80),
+      language: z.enum(["en", "es"]),
+      family: z.enum(["auto", "gelasio", "inter"]),
+    })).min(1).max(80),
+  });
+
+  const validateTypographyTarget = (entityType: string, styles: Array<{ field: string; language: TypographyLanguage; family: string }>) => {
+    if (!styles.every((style) => isTypographyFamily(style.family) && isPublicTypographyField(entityType, style.field))) {
+      return false;
+    }
+    return true;
+  };
+
+  app.get("/api/admin/editorial-typography/:entityType/:entityId", authMiddleware, requirePermission("content"), async (req, res) => {
+    const target = typographyTargetSchema.safeParse(req.params);
+    if (!target.success || !PUBLIC_TYPOGRAPHY_FIELDS.some((field) => field.entityType === target.data.entityType)) {
+      return res.status(400).json({ error: "Destino tipográfico inválido" });
+    }
+    return res.json({ styles: await getEditorialTypography(target.data.entityType, target.data.entityId) });
+  });
+
+  app.put("/api/admin/editorial-typography/:entityType/:entityId", authMiddleware, requirePermission("content"), async (req, res) => {
+    const target = typographyTargetSchema.safeParse(req.params);
+    const payload = typographyStylesSchema.safeParse(req.body);
+    if (!target.success || !payload.success || !validateTypographyTarget(target.data.entityType, payload.data.styles)) {
+      return res.status(400).json({ error: "La tipografía, el idioma o el campo no están permitidos" });
+    }
+    const styles = await replaceEditorialTypography(
+      target.data.entityType,
+      target.data.entityId,
+      payload.data.styles as Array<{ field: string; language: TypographyLanguage; family: "auto" | "gelasio" | "inter" }>,
+    );
+    invalidatePublicPageCache();
+    return res.json({ styles });
   });
 
   // El procesamiento usa el mapa compacto `counts`, mientras que el panel de

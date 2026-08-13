@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { RichTextEditor } from "@/components/admin/RichTextEditor";
+import { TypographyFieldControl } from "@/components/admin/TypographyFieldControl";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -223,19 +224,23 @@ export default function AdminDesks() {
               </div>
               <div className="space-y-1">
                 <Label>Descripción corta (inglés) *</Label>
-                <RichTextEditor rows={2} value={form.description} onChange={(html) => set("description", html)} data-testid="input-description" />
+                <RichTextEditor rows={2} value={form.description} onChange={(html) => set("description", html)} recommendedFamily="gelasio" data-testid="input-description" />
+                <TypographyFieldControl entityType="specialized_desk" entityId={editingId} field="description" language="en" role="editorial" compact />
               </div>
               <div className="space-y-1">
                 <Label>Descripción corta (español) *</Label>
-                <RichTextEditor rows={2} value={form.descriptionEs} onChange={(html) => set("descriptionEs", html)} data-testid="input-descriptionEs" />
+                <RichTextEditor rows={2} value={form.descriptionEs} onChange={(html) => set("descriptionEs", html)} recommendedFamily="gelasio" data-testid="input-descriptionEs" />
+                <TypographyFieldControl entityType="specialized_desk" entityId={editingId} field="descriptionEs" language="es" role="editorial" compact />
               </div>
               <div className="space-y-1">
                 <Label>Descripción completa (inglés)</Label>
-                <RichTextEditor rows={6} value={form.fullDescription} onChange={(html) => set("fullDescription", html)} placeholder="Texto que se muestra en la página individual del desk." data-testid="input-fullDescription" />
+                <RichTextEditor rows={6} value={form.fullDescription} onChange={(html) => set("fullDescription", html)} placeholder="Texto que se muestra en la página individual del desk." recommendedFamily="inter" data-testid="input-fullDescription" />
+                <TypographyFieldControl entityType="specialized_desk" entityId={editingId} field="fullDescription" language="en" role="body" compact />
               </div>
               <div className="space-y-1">
                 <Label>Descripción completa (español)</Label>
-                <RichTextEditor rows={6} value={form.fullDescriptionEs} onChange={(html) => set("fullDescriptionEs", html)} data-testid="input-fullDescriptionEs" />
+                <RichTextEditor rows={6} value={form.fullDescriptionEs} onChange={(html) => set("fullDescriptionEs", html)} recommendedFamily="inter" data-testid="input-fullDescriptionEs" />
+                <TypographyFieldControl entityType="specialized_desk" entityId={editingId} field="fullDescriptionEs" language="es" role="body" compact />
               </div>
               <div className="space-y-1 sm:col-span-2">
                 <Label>Imagen</Label>

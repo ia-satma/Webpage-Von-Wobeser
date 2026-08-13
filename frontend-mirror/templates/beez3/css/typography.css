@@ -154,3 +154,15 @@ body {
 .attorney[data-vw-content-kind="attorney"] .attorney__content--txt { font-size: clamp(17px, 1.25vw, 19px); line-height: 1.62; padding-bottom: clamp(56px, 7vw, 96px); }
 .attorney[data-vw-content-kind="attorney"] .attorney__content--txt p + p { margin-top: 1.35em; }
 .attorney[data-vw-content-kind="attorney"] .attorney__content--txt :where(ul, ol) { margin: 0 0 1.35em; padding-left: 1.25em; }
+
+/* Elecciones explícitas desde CMS. `auto` no deja atributo y, por tanto,
+   conserva exactamente la jerarquía heredada. Estos selectores llegan después
+   de la tipografía de las plantillas para que una elección consciente pueda
+   cambiar incluso un título, sin cargar ni aceptar ninguna fuente externa. */
+:where([data-vw-font="gelasio"], [data-vw-font="gelasio"] *) {
+  font-family: var(--vw-font-editorial) !important;
+}
+
+:where([data-vw-font="inter"], [data-vw-font="inter"] *) {
+  font-family: var(--vw-font-body) !important;
+}

@@ -35,6 +35,14 @@ test("sanitizeCms elimina tipografías pegadas y conserva estilos editoriales pe
   assert.match(output, /color:\s*#800000/i);
 });
 
+test("sanitizeCms conserva únicamente las marcas institucionales de tipografía", () => {
+  const safe = sanitizeCms('<p><span data-vw-font="gelasio">Editorial</span><span data-vw-font="inter">Cuerpo</span></p>');
+  const unsafe = sanitizeCms('<p><span data-vw-font="Georgia" style="font-family: Georgia">No permitido</span></p>');
+  assert.match(safe, /data-vw-font="gelasio"/);
+  assert.match(safe, /data-vw-font="inter"/);
+  assert.doesNotMatch(unsafe, /data-vw-font|font-family|Georgia/i);
+});
+
 test("Noticias y Artículos eliminan tipografías anteriores en español e inglés antes de guardarse", () => {
   const payload = sanitizeNewsFields({
     titleEs: "Título español",

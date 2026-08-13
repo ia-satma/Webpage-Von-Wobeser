@@ -6,6 +6,7 @@ import { queryClient } from "@/lib/queryClient";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { RichTextEditor } from "@/components/admin/RichTextEditor";
+import { TypographyFieldControl } from "@/components/admin/TypographyFieldControl";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -254,28 +255,34 @@ export default function AdminNewsForm() {
               <div className="space-y-1.5">
                 <Label htmlFor="titleEs">Título (español) *</Label>
                 <Input id="titleEs" value={form.titleEs} onChange={(e) => set("titleEs", e.target.value)} placeholder="Título de la noticia" data-testid="input-title-es" />
+                <TypographyFieldControl entityType="news" entityId={id} field="titleEs" language="es" role="editorial" compact />
               </div>
               <div className="space-y-1.5">
                 <Label htmlFor="title">Título (inglés) <span className="text-muted-foreground text-xs">— obligatorio al publicar</span></Label>
                 <Input id="title" value={form.title} onChange={(e) => set("title", e.target.value)} placeholder="English title" data-testid="input-title-en" />
+                <TypographyFieldControl entityType="news" entityId={id} field="title" language="en" role="editorial" compact />
               </div>
 
               <div className="space-y-1.5">
                 <Label htmlFor="excerptEs">Extracto (español) *</Label>
-                <RichTextEditor rows={2} value={form.excerptEs} onChange={(html) => set("excerptEs", html)} placeholder="Resumen corto que aparece en el listado" data-testid="input-excerpt-es" />
+                <RichTextEditor rows={2} value={form.excerptEs} onChange={(html) => set("excerptEs", html)} placeholder="Resumen corto que aparece en el listado" recommendedFamily="gelasio" data-testid="input-excerpt-es" />
+                <TypographyFieldControl entityType="news" entityId={id} field="excerptEs" language="es" role="editorial" compact />
               </div>
               <div className="space-y-1.5">
                 <Label htmlFor="excerpt">Extracto (inglés) <span className="text-muted-foreground text-xs">— obligatorio al publicar</span></Label>
-                <RichTextEditor rows={2} value={form.excerpt} onChange={(html) => set("excerpt", html)} placeholder="Short summary" data-testid="input-excerpt-en" />
+                <RichTextEditor rows={2} value={form.excerpt} onChange={(html) => set("excerpt", html)} placeholder="Short summary" recommendedFamily="gelasio" data-testid="input-excerpt-en" />
+                <TypographyFieldControl entityType="news" entityId={id} field="excerpt" language="en" role="editorial" compact />
               </div>
 
               <div className="space-y-1.5">
                 <Label htmlFor="contentEs">Contenido (español)</Label>
-                <RichTextEditor rows={8} value={form.contentEs} onChange={(html) => set("contentEs", html)} placeholder="Cuerpo de la noticia" data-testid="input-content-es" />
+                <RichTextEditor rows={8} value={form.contentEs} onChange={(html) => set("contentEs", html)} placeholder="Cuerpo de la noticia" recommendedFamily="inter" data-testid="input-content-es" />
+                <TypographyFieldControl entityType="news" entityId={id} field="contentEs" language="es" role="body" compact />
               </div>
               <div className="space-y-1.5">
                 <Label htmlFor="content">Contenido (inglés) <span className="text-muted-foreground text-xs">— opcional</span></Label>
-                <RichTextEditor rows={8} value={form.content} onChange={(html) => set("content", html)} placeholder="Body (optional)" data-testid="input-content-en" />
+                <RichTextEditor rows={8} value={form.content} onChange={(html) => set("content", html)} placeholder="Body (optional)" recommendedFamily="inter" data-testid="input-content-en" />
+                <TypographyFieldControl entityType="news" entityId={id} field="content" language="en" role="body" compact />
               </div>
             </CardContent>
           </Card>

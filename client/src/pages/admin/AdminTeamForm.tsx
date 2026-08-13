@@ -12,6 +12,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { RichTextEditor } from "@/components/admin/RichTextEditor";
+import { TypographyFieldControl } from "@/components/admin/TypographyFieldControl";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -979,7 +980,8 @@ export default function AdminTeamForm() {
                             render={({ field }) => (
                               <FormItem>
                                 <FormLabel className="text-[#1D1D1B] font-medium flex items-center gap-2"><Globe className="w-4 h-4 text-[#878A8E]" />Introduction (English)</FormLabel>
-                                <FormControl><RichTextEditor value={field.value ?? ""} onChange={field.onChange} rows={4} placeholder="Short editorial introduction…" data-testid="textarea-bio-intro" /></FormControl>
+                                <FormControl><RichTextEditor value={field.value ?? ""} onChange={field.onChange} rows={4} placeholder="Short editorial introduction…" recommendedFamily="gelasio" data-testid="textarea-bio-intro" /></FormControl>
+                                <TypographyFieldControl entityType="team_member" entityId={params.id} field="bioIntro" language="en" role="editorial" compact />
                                 <FormDescription className="text-[#878A8E] text-xs">Destacado del perfil. Presiona Enter para crear párrafos; se conservan negritas, cursivas y listas.</FormDescription>
                               </FormItem>
                             )}
@@ -990,7 +992,8 @@ export default function AdminTeamForm() {
                             render={({ field }) => (
                               <FormItem>
                                 <FormLabel className="text-[#1D1D1B] font-medium flex items-center gap-2"><Globe className="w-4 h-4 text-[#878A8E]" />Introducción (español)</FormLabel>
-                                <FormControl><RichTextEditor value={field.value ?? ""} onChange={field.onChange} rows={4} placeholder="Introducción editorial breve…" data-testid="textarea-bio-intro-es" /></FormControl>
+                                <FormControl><RichTextEditor value={field.value ?? ""} onChange={field.onChange} rows={4} placeholder="Introducción editorial breve…" recommendedFamily="gelasio" data-testid="textarea-bio-intro-es" /></FormControl>
+                                <TypographyFieldControl entityType="team_member" entityId={params.id} field="bioIntroEs" language="es" role="editorial" compact />
                               </FormItem>
                             )}
                           />
@@ -1010,9 +1013,11 @@ export default function AdminTeamForm() {
                                     onChange={field.onChange}
                                     rows={8}
                                     placeholder="Professional experience, education, notable cases..."
+                                    recommendedFamily="inter"
                                     data-testid="textarea-bio"
                                   />
                                 </FormControl>
+                                <TypographyFieldControl entityType="team_member" entityId={params.id} field="bio" language="en" role="body" compact />
                                 <FormDescription className="text-[#878A8E] text-xs">
                                   {t.bioHint}
                                 </FormDescription>
@@ -1038,9 +1043,11 @@ export default function AdminTeamForm() {
                                     onChange={field.onChange}
                                     rows={8}
                                     placeholder="Experiencia profesional, educación, casos notables..."
+                                    recommendedFamily="inter"
                                     data-testid="textarea-bio-es"
                                   />
                                 </FormControl>
+                                <TypographyFieldControl entityType="team_member" entityId={params.id} field="bioEs" language="es" role="body" compact />
                                 <FormMessage />
                               </FormItem>
                             )}
