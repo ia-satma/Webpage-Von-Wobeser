@@ -2,6 +2,7 @@ import * as cheerio from "cheerio";
 import fs from "node:fs";
 import path from "node:path";
 import { cfg, isConfigEnabled, type ConfigMap } from "./siteConfig";
+import { typographyAttribute, type TypographyStyles } from "@shared/editorialTypography";
 import { applySeo } from "./seo";
 import { getMirrorDir } from "./config";
 import { isPublicPracticeSlug } from "./publicPracticeGroups";
@@ -24,6 +25,7 @@ type HomeGroup = {
 };
 
 type HomeTestimonial = {
+  id?: string;
   quote: string;
   quoteEs: string;
   authorName: string;
@@ -32,6 +34,7 @@ type HomeTestimonial = {
   order?: number | null;
   isFeatured?: boolean | null;
   published?: boolean | null;
+  typography?: TypographyStyles;
 };
 
 function esc(s: any): string {
@@ -394,7 +397,10 @@ function renderTestimonials(items: HomeTestimonial[], lang: Lang): string {
   return visible.map((item) => {
     const quote = lang === "es" ? item.quoteEs || item.quote : item.quote;
     const source = lang === "es" ? item.sourceEs || item.source || item.authorName : item.source || item.authorName;
-    return `<div class="home__intro--item"><div><p>“${esc(quote).replace(/^\s*[“\"]|[”\"]\s*$/g, "")}”</p></div><div>—${esc(source)}</div></div>`;
+    const field = lang === "es" ? "quoteEs" : "quote";
+    const sourceField = lang === "es" ? "sourceEs" : "source";
+    const attr = (attrs: Record<string, string>) => Object.entries(attrs).map(([key, value]) => ` ${key}="${escAttr(value)}"`).join("");
+    return `<div class="home__intro--item"><div${attr(typographyAttribute(item.typography, field, lang))}><p>“${esc(quote).replace(/^\s*[“\"]|[”\"]\s*$/g, "")}”</p></div><div${attr(typographyAttribute(item.typography, sourceField, lang))}>—${esc(source)}</div></div>`;
   }).join("");
 }
 

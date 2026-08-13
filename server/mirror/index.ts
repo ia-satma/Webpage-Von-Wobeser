@@ -73,7 +73,7 @@ import { z } from "zod";
 import { isMigrationReadOnlyEnabled } from "../database/maintenance";
 import { normalizeVideoSource } from "@shared/videoSource";
 import { getLocalizedAttorneyTitle } from "@shared/attorneyTitles";
-import { getEditorialTypography, replaceEditorialTypography } from "../editorialTypography";
+import { getEditorialTypography, getEditorialTypographyForEntities, replaceEditorialTypography } from "../editorialTypography";
 
 type Lang = "en" | "es";
 
@@ -1507,7 +1507,11 @@ export async function setupMirror(app: Express) {
         const recent = await storage.getRecentPublishedNews(newsLimit + featured.length);
         heroNews = [...featured, ...recent.filter((r) => !featured.some((f) => f.id === r.id))].slice(0, newsLimit);
       }
-      return renderHome(pick(TEMPLATES.home, lang), heroNews, config, lang, rankings, practices, industries, testimonials);
+      const testimonialTypography = await getEditorialTypographyForEntities("testimonial", testimonials.map((item) => item.id));
+      return renderHome(
+        pick(TEMPLATES.home, lang), heroNews, config, lang, rankings, practices, industries,
+        testimonials.map((item) => ({ ...item, typography: testimonialTypography.get(item.id) })),
+      );
     };
     const html = bypassCache ? await build() : await getCachedPublicPage(`home:${lang}`, build);
     await sendPage(res, html);

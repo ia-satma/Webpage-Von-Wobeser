@@ -25,6 +25,7 @@ import {
 } from "lucide-react";
 import { TranslateButton } from "@/components/admin/TranslateButton";
 import { queryClient } from "@/lib/queryClient";
+import { TypographyFieldControl } from "@/components/admin/TypographyFieldControl";
 
 type Ranking = {
   id: string;
@@ -231,9 +232,9 @@ export default function AdminRecognitions() {
               />
             </div>
             <div className="grid sm:grid-cols-2 gap-4">
-              <div className="space-y-1"><Label>Nombre (inglés) *</Label><Input value={form.name} onChange={(e) => set("name", e.target.value)} placeholder="Band 1 — Dispute Resolution" data-testid="input-name" /></div>
-              <div className="space-y-1"><Label>Nombre (español) *</Label><Input value={form.nameEs} onChange={(e) => set("nameEs", e.target.value)} placeholder="Banda 1 — Resolución de Disputas" data-testid="input-nameEs" /></div>
-              <div className="space-y-1"><Label>Publicación *</Label><Input value={form.publication} onChange={(e) => set("publication", e.target.value)} placeholder="Chambers and Partners" data-testid="input-publication" /></div>
+              <div className="space-y-1"><Label>Nombre (inglés) *</Label><Input value={form.name} onChange={(e) => set("name", e.target.value)} placeholder="Band 1 — Dispute Resolution" data-testid="input-name" /><TypographyFieldControl entityType="ranking" entityId={editingId} field="name" language="en" role="editorial" compact /></div>
+              <div className="space-y-1"><Label>Nombre (español) *</Label><Input value={form.nameEs} onChange={(e) => set("nameEs", e.target.value)} placeholder="Banda 1 — Resolución de Disputas" data-testid="input-nameEs" /><TypographyFieldControl entityType="ranking" entityId={editingId} field="nameEs" language="es" role="editorial" compact /></div>
+              <div className="space-y-1"><Label>Publicación *</Label><Input value={form.publication} onChange={(e) => set("publication", e.target.value)} placeholder="Chambers and Partners" data-testid="input-publication" /><TypographyFieldControl entityType="ranking" entityId={editingId} field="publication" language="en" role="editorial" compact /></div>
               <div className="space-y-1"><Label>Año</Label><Input type="number" value={form.year} onChange={(e) => set("year", e.target.value)} data-testid="input-year" /></div>
               <div className="space-y-1"><Label>Categoría</Label><Input value={form.category} onChange={(e) => set("category", e.target.value)} placeholder="Arbitraje" data-testid="input-category" /></div>
               <div className="space-y-1"><Label>Logo</Label><ImageUpload value={form.logoUrl} onChange={(v) => set("logoUrl", v)} placeholder="/logos/chambers.png" /></div>

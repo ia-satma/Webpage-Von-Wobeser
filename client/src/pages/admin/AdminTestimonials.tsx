@@ -12,6 +12,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { TypographyFieldControl } from "@/components/admin/TypographyFieldControl";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 
@@ -167,9 +168,9 @@ export default function AdminTestimonials() {
               />
             </div>
             <div className="grid gap-4 sm:grid-cols-2">
-              <div className="space-y-1 sm:col-span-2"><Label>Cita (español) *</Label><Textarea rows={5} value={form.quoteEs} onChange={(event) => set("quoteEs", event.target.value)} /></div>
-              <div className="space-y-1 sm:col-span-2"><Label>Cita (inglés) *</Label><Textarea rows={5} value={form.quote} onChange={(event) => set("quote", event.target.value)} /></div>
-              <div className="space-y-1"><Label>Autor o institución *</Label><Input value={form.authorName} onChange={(event) => set("authorName", event.target.value)} placeholder="Latin Lawyer" /></div>
+              <div className="space-y-1 sm:col-span-2"><Label>Cita (español) *</Label><Textarea rows={5} value={form.quoteEs} onChange={(event) => set("quoteEs", event.target.value)} /><TypographyFieldControl entityType="testimonial" entityId={editingId} field="quoteEs" language="es" role="editorial" compact /></div>
+              <div className="space-y-1 sm:col-span-2"><Label>Cita (inglés) *</Label><Textarea rows={5} value={form.quote} onChange={(event) => set("quote", event.target.value)} /><TypographyFieldControl entityType="testimonial" entityId={editingId} field="quote" language="en" role="editorial" compact /></div>
+              <div className="space-y-1"><Label>Autor o institución *</Label><Input value={form.authorName} onChange={(event) => set("authorName", event.target.value)} placeholder="Latin Lawyer" /><TypographyFieldControl entityType="testimonial" entityId={editingId} field="authorName" language="en" role="ui" compact /></div>
               <div className="space-y-1"><Label>Empresa</Label><Input value={form.authorCompany} onChange={(event) => set("authorCompany", event.target.value)} /></div>
               <div className="space-y-1"><Label>Cargo (español)</Label><Input value={form.authorTitleEs} onChange={(event) => set("authorTitleEs", event.target.value)} /></div>
               <div className="space-y-1"><Label>Cargo (inglés)</Label><Input value={form.authorTitle} onChange={(event) => set("authorTitle", event.target.value)} /></div>
