@@ -159,7 +159,7 @@ test("la migración parametrizada actualiza 132 perfiles, agrega a Bernardo y de
   await migration.default({
     query: async (sql: string, values: unknown[] = []) => {
       calls.push({ sql, values });
-      if (/SELECT id, name, title_es FROM team_members/i.test(sql)) return { rows: [...existing, ...extras] };
+      if (/SELECT id, name, title_es, email, slug FROM team_members/i.test(sql)) return { rows: [...existing, ...extras] };
       if (/SELECT id, name_es FROM practice_groups/i.test(sql)) return { rows: practices };
       if (/SELECT id, name_es FROM industry_groups/i.test(sql)) return { rows: industries };
       if (/SELECT slug, title, title_es, category FROM news/i.test(sql)) return { rows: [] };
@@ -177,4 +177,44 @@ test("la migración parametrizada actualiza 132 perfiles, agrega a Bernardo y de
   assert.doesNotMatch(JSON.stringify(updates.map((call) => call.values)), /javascript:|SEE MORE|VER MÁS/i);
   assert.match(inserted[0].sql, /'bernardo-zatarain'/);
   assert.equal(calls.filter((call) => /ADD COLUMN IF NOT EXISTS (?:bio_intro|bio_intro_es|languages_es)/i.test(call.sql)).length, 3);
+});
+
+test("la migración crea el único perfil oficial ausente sin frenar la publicación", async () => {
+  const canonical = loadCanonicalAttorneyContent(mirrorDir);
+  const missing = canonical.find((attorney) => attorney.name.includes("Anna-Maria"))!;
+  const existing = canonical
+    .filter((attorney) => attorney.legacyId !== "457" && attorney.legacyId !== missing.legacyId)
+    .map((attorney, index) => ({
+      id: `official-${index}`,
+      name: attorney.name,
+      title_es: attorney.titleEs,
+      email: attorney.email,
+      slug: `unchanged-${index}`,
+    }));
+  const practices = [...new Set(canonical.flatMap((attorney) => attorney.practiceNames))].map((name, index) => ({ id: `practice-${index}`, name_es: name }));
+  const industries = [...new Set(canonical.flatMap((attorney) => attorney.industryNames))].map((name, index) => ({ id: `industry-${index}`, name_es: name }));
+  const calls: Array<{ sql: string; values: unknown[] }> = [];
+  const migration = await import("../../migrations/20260812_0003_canonical_attorney_content.mjs");
+
+  await migration.default({
+    query: async (sql: string, values: unknown[] = []) => {
+      calls.push({ sql, values });
+      if (/SELECT id, name, title_es, email, slug FROM team_members/i.test(sql)) return { rows: existing };
+      if (/SELECT id, name_es FROM practice_groups/i.test(sql)) return { rows: practices };
+      if (/SELECT id, name_es FROM industry_groups/i.test(sql)) return { rows: industries };
+      if (/SELECT slug, title, title_es, category FROM news/i.test(sql)) return { rows: [] };
+      if (/INSERT INTO team_members/i.test(sql)) {
+        const isMissingOfficial = values.includes(missing.name);
+        return { rows: [{ id: isMissingOfficial ? "missing-official-id" : "bernardo-id", slug: isMissingOfficial ? "anna-maria-brandstadter" : undefined }] };
+      }
+      return { rows: [] };
+    },
+  });
+
+  const inserts = calls.filter((call) => /INSERT INTO team_members/i.test(call.sql));
+  const missingInsert = inserts.find((call) => call.values.includes(missing.name));
+  assert.equal(inserts.length, 2);
+  assert.ok(missingInsert);
+  assert.equal(missingInsert!.values[1], "anna-maria-brandstadter");
+  assert.ok(calls.some((call) => /UPDATE team_members SET/i.test(call.sql) && call.values.at(-1) === "missing-official-id"));
 });

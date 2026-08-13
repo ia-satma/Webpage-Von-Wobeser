@@ -1,21 +1,25 @@
 # Contexto vigente — Von Wobeser y Sierra
 
-Última actualización: **2026-08-06 17:18 CST**.
+Última actualización: **2026-08-12 CST**.
 
 Este archivo es el punto de entrada para continuar el proyecto. El detalle técnico, decisiones,
 errores corregidos, verificación y pendientes se encuentra en
-[`docs/CONTEXT-2026-08-06.md`](docs/CONTEXT-2026-08-06.md).
+[`docs/CONTEXT-2026-08-12.md`](docs/CONTEXT-2026-08-12.md).
 
 ## Estado breve
 
-- Fuente de verdad: `ia-satma/Webpage-Von-Wobeser`, rama `main`.
+- Fuente de verdad: `ia-satma/Webpage-Von-Wobeser`, rama `main`, sincronizada en
+  `bb42d6b` al cierre de esta jornada.
 - Sitio público: espejo editorial servido y enriquecido por Express.
 - Administración: aplicación React bajo `/admin/*`.
 - Datos: PostgreSQL de desarrollo y producción administrados desde Replit.
 - Archivos persistentes: Replit App Storage; PostgreSQL conserva rutas y metadatos.
-- Tipografía única vigente: **Gelasio** para títulos y **Inter** para cuerpo e interfaz.
+- Tipografía editorial vigente: **Gelasio** para introducciones y títulos, e **Inter** para
+  cuerpo e interfaz.
 - Idiomas: español e inglés con rutas, `canonical`, `hreflang` y selector compartidos.
-- Validación más reciente documentada: TypeScript, build y **178/178 pruebas de seguridad**.
+- Contenido canónico: 18 prácticas, 7 industrias y 133 perfiles oficiales bilingües;
+  el directorio conserva además 9 perfiles propios para un total de 142 publicados.
+- Validación más reciente documentada: TypeScript, build y **234/234 pruebas de seguridad**.
 
 ## Reglas de continuidad
 

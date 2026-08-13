@@ -7,6 +7,7 @@ const RETIRED_MIRROR_ONLY_LEGACY_IDS = new Set(["406", "423"]);
 const SNAPSHOT_SHA256 = "99e9e2790b61428fe22517758b754a308275cff6c79431c291907fc789e3aa7d";
 const clean = (value) => String(value || "").replace(/\s+/g, " ").trim();
 const key = (value) => clean(value).normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+const slugify = (value) => key(value).replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
 const unsafe = /<\/?(?:script|iframe|object|embed)\b|\bon\w+\s*=|\bjavascript\s*:/i;
 
 function mirrorDir() {
@@ -137,6 +138,21 @@ function resolveInternalResources(publications, newsRows) {
   });
 }
 
+async function insertCanonicalMember(client, attorney, publications, usedSlugs) {
+  const baseSlug = slugify(attorney.name);
+  let slug = baseSlug;
+  let suffix = 2;
+  while (usedSlugs.has(slug)) slug = `${baseSlug}-${suffix++}`;
+  const inserted = await client.query(`
+    INSERT INTO team_members (name, slug, title, title_es, role, role_es, bio, bio_es, bio_intro, bio_intro_es, email, phone, image_url, is_partner, "order", published, education, affiliations, rankings, publications, languages, languages_es)
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, 9999, true, $15::jsonb, $16::jsonb, $17::jsonb, $18::jsonb, $19::jsonb, $20::jsonb)
+    RETURNING id, slug
+  `, [attorney.name, slug, attorney.title, attorney.titleEs, attorney.role, attorney.roleEs, attorney.bio, attorney.bioEs, attorney.bioIntro, attorney.bioIntroEs, attorney.email, attorney.phone, attorney.imageUrl, attorney.title === "Partner", JSON.stringify(attorney.education), JSON.stringify(attorney.affiliations), JSON.stringify(attorney.rankings), JSON.stringify(publications), JSON.stringify(attorney.languages), JSON.stringify(attorney.languagesEs)]);
+  const member = inserted.rows[0];
+  usedSlugs.add(member.slug || slug);
+  return member;
+}
+
 export default async function migrateCanonicalAttorneyContent(client) {
   await client.query("ALTER TABLE team_members ADD COLUMN IF NOT EXISTS bio_intro text");
   await client.query("ALTER TABLE team_members ADD COLUMN IF NOT EXISTS bio_intro_es text");
@@ -144,29 +160,45 @@ export default async function migrateCanonicalAttorneyContent(client) {
 
   const attorneys = canonical(mirrorDir());
   const [membersResult, practicesResult, industriesResult, newsResult] = await Promise.all([
-    client.query("SELECT id, name, title_es FROM team_members"),
+    client.query("SELECT id, name, title_es, email, slug FROM team_members"),
     client.query("SELECT id, name_es FROM practice_groups"),
     client.query("SELECT id, name_es FROM industry_groups"),
     client.query("SELECT slug, title, title_es, category FROM news"),
   ]);
   const memberByIdentity = new Map(membersResult.rows.map((member) => [`${key(member.name)}|${key(member.title_es)}`, member]));
   const membersByName = new Map();
+  const membersByEmail = new Map();
+  const membersBySlug = new Map();
   for (const member of membersResult.rows) {
     const normalizedName = key(member.name);
     membersByName.set(normalizedName, [...(membersByName.get(normalizedName) || []), member]);
+    if (member.email) membersByEmail.set(key(member.email), [...(membersByEmail.get(key(member.email)) || []), member]);
+    if (member.slug) membersBySlug.set(key(member.slug), member);
   }
   const practiceByName = new Map(practicesResult.rows.map((group) => [key(group.name_es), group.id]));
   const industryByName = new Map(industriesResult.rows.map((group) => [key(group.name_es), group.id]));
   const canonicalExisting = attorneys.filter((attorney) => attorney.legacyId !== "457");
-  const existingMembers = canonicalExisting.map((attorney) => {
+  const usedSlugs = new Set(membersResult.rows.map((member) => member.slug).filter(Boolean));
+  const existingMembers = [];
+  for (const attorney of canonicalExisting) {
     const identity = `${key(attorney.name)}|${key(attorney.titleEs)}`;
     const sameName = membersByName.get(key(attorney.name)) || [];
-    // The title is normally the durable identity. The uniquely named fallback
-    // accommodates legacy CMS records whose Spanish gendered title was stale.
-    const member = memberByIdentity.get(identity) || (sameName.length === 1 ? sameName[0] : undefined);
-    if (!member) throw new Error(`Expected canonical attorney is missing from CMS: ${attorney.name}`);
-    return [attorney, member];
-  });
+    const sameEmail = membersByEmail.get(key(attorney.email)) || [];
+    // Names and gendered titles were abbreviated or stale in older CMS seeds.
+    // Email and a unique name are safe fallbacks. A genuinely absent official
+    // profile is created rather than blocking the entire deployment.
+    const member = memberByIdentity.get(identity)
+      || (sameEmail.length === 1 ? sameEmail[0] : undefined)
+      || (sameName.length === 1 ? sameName[0] : undefined)
+      || membersBySlug.get(key(slugify(attorney.name)));
+    if (member) {
+      existingMembers.push([attorney, member]);
+      continue;
+    }
+    const publications = resolveInternalResources(attorney.publications, newsResult.rows);
+    const inserted = await insertCanonicalMember(client, attorney, publications, usedSlugs);
+    existingMembers.push([attorney, inserted]);
+  }
   if (existingMembers.length !== 132) throw new Error("Expected 132 canonical attorney updates");
 
   const bernardoExisting = memberByIdentity.get(`${key(bernardo.name)}|${key(bernardo.titleEs)}`);
