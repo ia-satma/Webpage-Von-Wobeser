@@ -64,8 +64,12 @@ test("trusted HTML receives nonce and SRI while unknown remote scripts do not", 
 });
 
 test("SRI manifest exactly matches every local immutable asset", () => {
+  const aliases: Record<string, string> = {
+    "/vwb-privacy-preferences.css": "/vwb-cookie-consent.css",
+    "/vwb-privacy-preferences.js": "/vwb-cookie-consent.js",
+  };
   for (const [url, integrity] of Object.entries(LOCAL_SRI_MANIFEST)) {
-    const relative = url.replace(/^\//, "");
+    const relative = (aliases[url] || url).replace(/^\//, "");
     const file = relative.startsWith("vwb-")
       ? path.resolve(process.cwd(), "public", relative)
       : path.resolve(process.cwd(), "frontend-mirror", relative);

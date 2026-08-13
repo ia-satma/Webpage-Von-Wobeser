@@ -61,11 +61,11 @@ export function registerMirrorPublicRoutes(app: Express, runtime: MirrorRuntime)
       .set("Cache-Control", "public, max-age=60, stale-while-revalidate=300")
       .json(await getPublicNavigationMenu(langOf(req)));
   }));
-  app.get("/api/public/consent-config", wrap(async (_req, res) => {
+  app.get(["/api/public/privacy-preferences", "/api/public/consent-config"], wrap(async (_req, res) => {
     const payload = publicConsentPayload(await getCookieConsentConfig());
     res.set("Cache-Control", "public, max-age=60, stale-while-revalidate=300").json(payload);
   }));
-  app.get("/vwb-cookie-consent-config.js", wrap(async (_req, res) => {
+  app.get(["/vwb-privacy-preferences-config.js", "/vwb-cookie-consent-config.js"], wrap(async (_req, res) => {
     const payload = publicConsentPayload(await getCookieConsentConfig());
     const serialized = JSON.stringify(payload)
       .replace(/</g, "\\u003c")

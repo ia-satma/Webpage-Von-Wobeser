@@ -13,6 +13,9 @@ export function registerMirrorAssetAndFallbackRoutes(app: Express, runtime: Mirr
   // forma explícita aquí; de otro modo el HTML los referencia correctamente,
   // pero el navegador recibe un 404 y el panel nunca puede aparecer.
   const consentAssets: Array<[string, string]> = [
+    ["/vwb-privacy-preferences.css", "vwb-cookie-consent.css"],
+    ["/vwb-privacy-preferences.js", "vwb-cookie-consent.js"],
+    // Compatibilidad con HTML que pudiera seguir abierto o cacheado.
     ["/vwb-cookie-consent.css", "vwb-cookie-consent.css"],
     ["/vwb-cookie-consent.js", "vwb-cookie-consent.js"],
     ["/vwb-legacy-events.js", "vwb-legacy-events.js"],

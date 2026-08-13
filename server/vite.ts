@@ -5,13 +5,18 @@ import viteConfig from "../vite.config";
 import fs from "fs";
 import path from "path";
 import { nanoid } from "nanoid";
+import { createViteWebSocketOptions } from "./viteWebSocket";
 
 const viteLogger = createLogger();
 
 export async function setupVite(server: Server, app: Express) {
   const serverOptions = {
     middlewareMode: true,
-    hmr: { server, path: "/vite-hmr" },
+    // Vite 8 moved transport settings from `server.hmr` to `server.ws`.
+    // Replit terminates TLS at its proxy, so the browser must use the public
+    // WSS endpoint while the actual upgrade still lands on this HTTP server.
+    ws: createViteWebSocketOptions(server),
+    hmr: { overlay: true },
     allowedHosts: true as const,
   };
 

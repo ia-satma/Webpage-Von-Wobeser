@@ -6,8 +6,8 @@ import test from "node:test";
 import type { Express } from "express";
 import type { MirrorRuntime } from "../mirror/runtime";
 
-const BASELINE_ROUTE_COUNT = 206;
-const BASELINE_ROUTE_SHA256 = "b4907eeaa6cd9f0fcd1b2e4e3195c7288ca753d7b47d985fb54adf3c5bc07677";
+const BASELINE_ROUTE_COUNT = 210;
+const BASELINE_ROUTE_SHA256 = "d7513e9afc52c66c47ad52c7de1a8e5ee6f4f68e2b38796205ebcb59621cb40b";
 
 type RouteMethod = "get" | "post" | "put" | "patch" | "delete" | "all" | "use";
 
@@ -47,7 +47,7 @@ function createRuntimeStub(): MirrorRuntime {
   }) as unknown as MirrorRuntime;
 }
 
-test("el espejo conserva exactamente sus 206 métodos, rutas y orden histórico", async () => {
+test("el espejo conserva exactamente sus 210 métodos, rutas y orden histórico", async () => {
   process.env.DATABASE_URL ||= "postgresql://mirror-contract:mirror-contract@127.0.0.1:5432/mirror-contract";
   const [
     { registerMirrorPublicRoutes },

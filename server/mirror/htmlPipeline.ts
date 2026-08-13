@@ -349,7 +349,7 @@ function refreshNavigationAssets(html: string): string {
 export function optimizeLegacyAssets(html: string): string {
   return html
     .replace(
-      /<script\b[^>]*\bsrc=["']\/media\/(?:jui\/js\/(?:jquery(?:-migrate)?\.min\.js|jquery-noconflict\.js)|system\/js\/core\.js)["'][^>]*>\s*<\/script>/gi,
+      /<script\b[^>]*\bsrc=["']\/media\/(?:jui\/js\/(?:jquery(?:-migrate)?\.min\.js|jquery-noconflict\.js|bootstrap\.min\.js)|system\/js\/core\.js)["'][^>]*>\s*<\/script>/gi,
       "",
     )
     .replace(

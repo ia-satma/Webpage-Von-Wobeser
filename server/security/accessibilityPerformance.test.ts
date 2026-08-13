@@ -689,6 +689,7 @@ test("la carga pública elimina librerías Joomla duplicadas y usa jQuery vigent
     <script src="/media/jui/js/jquery.min.js"></script>
     <script src="/media/jui/js/jquery-noconflict.js"></script>
     <script src="/media/jui/js/jquery-migrate.min.js"></script>
+    <script src="/media/jui/js/bootstrap.min.js"></script>
     <script src="/media/system/js/core.js"></script>
     <script src="/templates/beez3/js/min/jquery_3.3.1.min.js"></script>
     <script src="/templates/beez3/js/min/slick.min.js"></script>

@@ -31,8 +31,10 @@ test("el HTML público bloquea analítica y proveedores externos antes del conse
   assert.match($("iframe").eq(1).attr("data-vwb-consent-src") || "", /[?&]dnt=1/);
   assert.equal($('img[src^="https://i.ytimg.com"]').length, 0);
   assert.equal($("img[data-vwb-consent-image-src]").length, 1);
-  assert.equal($('link[href^="/vwb-cookie-consent.css"]').length, 1);
-  assert.equal($('script[src^="/vwb-cookie-consent.js"]').length, 1);
+  assert.equal($('link[href^="/vwb-privacy-preferences.css"]').length, 1);
+  assert.equal($('script[src^="/vwb-privacy-preferences.js"]').length, 1);
+  assert.equal($('link[href^="/vwb-cookie-consent.css"]').length, 0);
+  assert.equal($('script[src^="/vwb-cookie-consent.js"]').length, 0);
   assert.equal($('script[src^="/vwb-cookie-consent-config.js"]').length, 0);
 });
 
@@ -71,6 +73,8 @@ test("el gestor conserva elección versionada, respeta GPC sin ocultar el aviso 
   const mirrorSource = readMirrorSources();
 
   assert.match(source, /vwb_cookie_consent/);
+  assert.match(source, /\/api\/public\/privacy-preferences/);
+  assert.doesNotMatch(source, /\/api\/public\/consent-config/);
   assert.match(source, /XMLHttpRequest/);
   assert.match(source, /SameSite=Lax/);
   assert.match(source, /Secure/);
@@ -86,9 +90,10 @@ test("el gestor conserva elección versionada, respeta GPC sin ocultar el aviso 
   assert.match(source, /googletagmanager\.com\/gtag\/js/);
   assert.match(source, /vwb:open-cookie-preferences/);
   assert.match(source, /validityMonths/);
-  assert.match(mirrorSource, /\/vwb-cookie-consent\.css/);
-  assert.match(mirrorSource, /\/vwb-cookie-consent\.js/);
-  assert.match(mirrorSource, /\/vwb-cookie-consent-config\.js/);
+  assert.match(mirrorSource, /\/vwb-privacy-preferences\.css/);
+  assert.match(mirrorSource, /\/vwb-privacy-preferences\.js/);
+  assert.match(mirrorSource, /\/vwb-privacy-preferences-config\.js/);
+  assert.match(mirrorSource, /\/api\/public\/privacy-preferences/);
   assert.match(mirrorSource, /res\.sendFile\(assetPath/);
 });
 
