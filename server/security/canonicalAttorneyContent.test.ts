@@ -180,6 +180,16 @@ test("la migración parametrizada actualiza 132 perfiles, agrega a Bernardo y de
   assert.equal(calls.filter((call) => /ADD COLUMN IF NOT EXISTS (?:bio_intro|bio_intro_es|languages_es)/i.test(call.sql)).length, 3);
 });
 
+test("la reconciliación de perfiles únicamente repone las columnas editoriales faltantes", async () => {
+  const source = read("../../migrations/20260812_0005_reconcile_attorney_editorial_columns.sql");
+
+  assert.match(source, /ALTER TABLE team_members ADD COLUMN IF NOT EXISTS bio_intro text;/);
+  assert.match(source, /ALTER TABLE team_members ADD COLUMN IF NOT EXISTS bio_intro_es text;/);
+  assert.match(source, /ALTER TABLE team_members ADD COLUMN IF NOT EXISTS languages_es jsonb;/);
+  assert.doesNotMatch(source, /\bDROP\s+COLUMN\b/i);
+  assert.doesNotMatch(source, /\bDELETE\s+FROM\b/i);
+});
+
 test("la migración crea el único perfil oficial ausente sin frenar la publicación", async () => {
   const canonical = loadCanonicalAttorneyContent(mirrorDir);
   const missing = canonical.find((attorney) => attorney.name.includes("Anna-Maria"))!;
