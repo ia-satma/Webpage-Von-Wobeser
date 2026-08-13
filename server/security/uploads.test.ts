@@ -144,7 +144,11 @@ test("the Replit deployment includes and verifies the strict video validators", 
   assert.match(nixConfig, /pkgs\.ffmpeg/);
   assert.match(nixConfig, /pkgs\.clamav/);
   assert.match(packageJson, /"verify:video-runtime": "node scripts\/verify-video-runtime\.mjs"/);
-  assert.match(packageJson, /"start:deploy": "npm run verify:video-runtime && npm run db:migrate && npm run start"/);
+  assert.match(packageJson, /"start:deploy": "node scripts\/start-deploy\.mjs"/);
+  const deploymentStart = await fs.readFile(path.join(root, "scripts", "start-deploy.mjs"), "utf8");
+  assert.match(deploymentStart, /verify:video-runtime/);
+  assert.match(deploymentStart, /db:migrate/);
+  assert.match(deploymentStart, /handoff-bootstrap-server/);
 });
 
 test("video validation accepts playable low-frame-rate MP4 and WebM files", async () => {

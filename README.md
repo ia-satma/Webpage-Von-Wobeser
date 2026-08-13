@@ -23,20 +23,24 @@ npm run dev      # NODE_ENV=development, tsx + Vite/HMR, puerto 5000 (o PORT)
 
 - `npm run build` → produce `dist/index.cjs`.
 - `npm run start` → inicia el build de producción (`node dist/index.cjs`).
-- `npm run start:deploy` → aplica migraciones y después inicia producción; es lo que usa Replit en Deploy.
+- `npm run start:workspace` → en un Repl nuevo detecta una entrega pendiente y muestra una pantalla segura; cuando la base está lista inicia el modo de desarrollo.
+- `npm run start:deploy` → detecta una entrega pendiente sin fallar el deployment; con una base completa aplica migraciones y después inicia producción.
 - `npm run db:migrate` → aplica migraciones SQL versionadas e idempotentes.
 - `npm run db:replit-migrate -- <comando>` → audita, respalda, restaura y compara la migración a las bases administradas por Replit. Procedimiento en [`docs/REPLIT_DATABASE_MIGRATION.md`](./docs/REPLIT_DATABASE_MIGRATION.md).
 - `npm run media:migrate-storage` → copia imágenes, videos y archivos históricos de presentaciones (PPTX, PDF y PNG) a Replit App Storage.
 - `npm run media:migrate-private` → mueve CV históricos a la zona privada de App Storage y corrige sus referencias de forma segura.
 - `npm run handoff:storage -- <export|import|verify>` → crea o restaura el paquete portable de medios públicos para una entrega por GitHub.
 - `npm run handoff:private -- <export|import|verify>` → cifra, transporta y verifica los documentos privados sin exponerlos en Git.
+- `npm run handoff:status -- --directory=.handoff` → detecta de forma segura si faltan Database, Secrets, App Storage, paquete o migraciones.
+- `npm run handoff:install -- --directory=.handoff --confirm-database=<base> --confirm-owner-email=<correo>` → restaura la entrega completa en una Database nueva, crea o valida solo el Dueño del cliente y verifica el resultado.
 - `npm run handoff:readiness -- --confirm-database=<base>` → comprueba que una instalación nueva tiene datos, medios públicos y CV privados completos.
 - `npm run admin:recover -- --confirm=<correo>` → recuperación manual usando exclusivamente los Secrets `ADMIN_EMAIL` y `ADMIN_BOOTSTRAP_PASSWORD`.
 
 La instalación en una cuenta nueva del cliente está documentada en
 [`docs/CLIENT_REPLIT_HANDOFF.md`](./docs/CLIENT_REPLIT_HANDOFF.md). GitHub transporta
 el código, pero la base, App Storage y Secrets se reconstruyen de forma segura dentro
-del Replit del cliente.
+del Replit del cliente. El instalador detecta permanentemente una cuenta nueva y evita
+publicar el sitio antes de terminar la restauración.
 
 ## Variables de entorno
 

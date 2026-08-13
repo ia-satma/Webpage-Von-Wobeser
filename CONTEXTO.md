@@ -8,8 +8,7 @@ errores corregidos, verificación y pendientes se encuentra en
 
 ## Estado breve
 
-- Fuente de verdad: `ia-satma/Webpage-Von-Wobeser`, rama `main`, publicada en
-  `7f50311` al cierre de esta jornada.
+- Fuente de verdad: `ia-satma/Webpage-Von-Wobeser`, rama `main`.
 - Sitio público: espejo editorial servido y enriquecido por Express.
 - Administración: aplicación React bajo `/admin/*`.
 - Datos: PostgreSQL de desarrollo y producción administrados desde Replit.
@@ -19,7 +18,10 @@ errores corregidos, verificación y pendientes se encuentra en
 - Idiomas: español e inglés con rutas, `canonical`, `hreflang` y selector compartidos.
 - Contenido canónico: 18 prácticas, 7 industrias y 133 perfiles oficiales bilingües;
   el directorio conserva además 9 perfiles propios para un total de 142 publicados.
-- Validación más reciente documentada: TypeScript, build y **236/236 pruebas de seguridad**.
+- Handoff al cliente: detección de instalación, restauración completa cifrada y creación
+  segura del Dueño desde Replit Secrets; una Database nueva muestra una pantalla de
+  instalación en vez de fallar el deployment.
+- Validación más reciente documentada: TypeScript, build y **240/240 pruebas de seguridad**.
 
 ## Reglas de continuidad
 
@@ -32,3 +34,5 @@ errores corregidos, verificación y pendientes se encuentra en
    `git diff --check`.
 7. La aceptación final requiere recorrido humano ES/EN, móvil/escritorio y panel, además de
    retroalimentación del cliente.
+8. Para una cuenta Replit nueva, usar `npm run handoff:status -- --directory=.handoff` y
+   después `npm run handoff:install`; nunca pegar valores de Secrets en Shell, Git o chat.

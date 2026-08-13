@@ -151,6 +151,18 @@ async function readManifest(directory) {
   return validatePrivateManifest(JSON.parse(decryptPrivatePayload(encrypted).toString("utf8")));
 }
 
+/** Valida el paquete local antes de escribir en Database o App Storage. */
+export async function validatePrivatePackage(directory) {
+  const manifest = await readManifest(directory);
+  for (const entry of manifest.objects) {
+    const plaintext = decryptPrivatePayload(await fs.readFile(encryptedObjectPath(directory, entry.name)));
+    if (plaintext.length !== entry.bytes || sha256(plaintext) !== entry.sha256) {
+      throw new Error("Un archivo privado local no coincide.");
+    }
+  }
+  return manifest;
+}
+
 async function verifyRemote(storage, entry) {
   const temporary = path.join(os.tmpdir(), `vwb-private-${crypto.randomUUID()}`);
   try {
@@ -164,11 +176,10 @@ async function verifyRemote(storage, entry) {
 }
 
 async function importOrVerify(directory, verifyOnly) {
-  const manifest = await readManifest(directory);
+  const manifest = await validatePrivatePackage(directory);
   const storage = client();
   for (const [index, entry] of manifest.objects.entries()) {
     const plaintext = decryptPrivatePayload(await fs.readFile(encryptedObjectPath(directory, entry.name)));
-    if (plaintext.length !== entry.bytes || sha256(plaintext) !== entry.sha256) throw new Error("Un archivo privado local no coincide.");
     if (!verifyOnly) {
       const result = await storage.uploadFromBytes(entry.name, plaintext, { compress: false });
       if (!result.ok) throw new Error("No se pudo importar un CV privado.");

@@ -162,6 +162,13 @@ async function verifyLocalFiles(directory, manifest) {
   }
 }
 
+/** Valida manifiesto y objetos locales antes de escribir en App Storage. */
+export async function validatePortablePackage(directory) {
+  const manifest = await readManifest(directory);
+  await verifyLocalFiles(directory, manifest);
+  return manifest;
+}
+
 async function exportStorage(directory) {
   await assertEmptyExportDirectory(directory);
   const client = storageClient();
@@ -205,8 +212,7 @@ async function verifyRemoteObject(client, entry) {
 }
 
 async function importStorage(directory, verifyOnly = false) {
-  const manifest = await readManifest(directory);
-  await verifyLocalFiles(directory, manifest);
+  const manifest = await validatePortablePackage(directory);
   const client = storageClient();
   for (const [index, entry] of manifest.objects.entries()) {
     if (!verifyOnly) {

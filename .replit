@@ -1,5 +1,5 @@
 modules = ["nodejs-24", "web"]
-run = "npm run dev"
+run = "npm run start:workspace"
 hidden = [".config", ".git", "generated-icon.png", "node_modules", "dist"]
 
 [nix]
@@ -36,13 +36,17 @@ author = "agent"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "npm run dev"
+args = "npm run start:workspace"
 waitForPort = 5000
 
 [agent]
 integrations = ["javascript_openai:1.0.0", "javascript_openai_ai_integrations:1.0.0", "javascript_gemini_ai_integrations:1.0.0"]
 expertMode = true
 
+# En un Repl importado, `npm run handoff:status -- --directory=.handoff`
+# detecta si faltan recursos, secretos o restauración. Hasta terminar
+# `npm run handoff:install`, el Repl sirve solamente una pantalla segura de
+# instalación, no el sitio del cliente.
 # ADMIN_EMAIL y ADMIN_BOOTSTRAP_PASSWORD se configuran exclusivamente en
 # Replit → Tools → Secrets. ADMIN_BOOTSTRAP_PASSWORD solo crea
 # al Dueño si ADMIN_EMAIL todavía no existe; una recuperación de una cuenta existente

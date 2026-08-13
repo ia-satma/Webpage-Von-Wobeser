@@ -21,6 +21,27 @@ documentos privados.
 > formularios e historiales reales. Omitir el respaldo de PostgreSQL o App Storage
 > produciría una instalación incompleta.
 
+## Instalación guiada y detectable
+
+El repositorio incluye un instalador permanente para una cuenta nueva. No intenta
+adivinar ni copiar credenciales: detecta Database, App Storage, paquete y migraciones,
+y solo restaura cuando la Database está vacía y el cliente confirma explícitamente el
+destino y su correo de Dueño.
+
+Al importar el repositorio, un Repl sin datos no devuelve errores `500` ni expone el
+sitio: muestra una pantalla de instalación pendiente. En el Shell del Repl del cliente,
+usar primero:
+
+```bash
+npm run handoff:status -- --directory=.handoff
+```
+
+El resultado solo enumera estados y **nombres** de Secrets faltantes; nunca revela sus
+valores, contraseñas, correos existentes ni URLs de conexión. Replit Agent puede correr
+el mismo diagnóstico y pedir al cliente que configure los nombres faltantes desde
+**Tools → Secrets**. No se deben pegar Secrets en el chat del agente, comandos, Git ni
+capturas.
+
 ## 1. Preparar el paquete desde el Replit actual
 
 No guardar el paquete dentro de Git. La carpeta `.handoff/` está excluida mediante
@@ -104,7 +125,6 @@ actual. Cada importación enlaza sus propios recursos.
 | `ADMIN_EMAIL` | Correo inicial del propietario. |
 | `ADMIN_BOOTSTRAP_PASSWORD` | Contraseña inicial de 12–16 caracteres; se usa solo si la cuenta no existe. |
 | `DB_BACKUP_ENCRYPTION_KEY` | Descifrar el respaldo entregado. Puede eliminarse después de validar la restauración y conservarse fuera de Replit. |
-| `SESSION_SECRET` | Protección de sesiones y operaciones temporales. Debe ser nuevo y aleatorio. |
 | `SITE_URL` | URL pública definitiva del deployment. |
 | `REPLIT_APP_STORAGE_BUCKET_ID` | Solo si Replit no inyecta automáticamente el bucket vinculado. |
 
@@ -122,10 +142,39 @@ cliente; no se copia la URL actual.
 La infraestructura MFA está desactivada; `MFA_ENCRYPTION_KEY` ya no es necesaria para
 el acceso administrativo.
 
-No copiar Secrets desde GitHub ni compartirlos en comandos, capturas, documentos o
-registros.
+No copiar Secrets desde GitHub ni compartir sus **valores** en comandos, capturas,
+documentos o registros. La contraseña se escribe solamente en el campo protegido de
+Replit Secrets.
 
-## 4. Restaurar la base de desarrollo
+## 4. Restauración completa en un solo comando
+
+Después de crear la Database y App Storage, cargar el paquete y configurar los cuatro
+Secrets de instalación, el diagnóstico indicará `ready_to_restore`. Entonces ejecutar:
+
+```bash
+npm run handoff:install -- \
+  --directory=.handoff \
+  --confirm-database=heliumdb \
+  --confirm-owner-email=correo-del-cliente@ejemplo.com
+```
+
+El comando valida que la Database no contiene tablas de aplicación y, en este orden:
+
+1. restaura el respaldo cifrado de PostgreSQL en una transacción;
+2. aplica las migraciones versionadas vigentes;
+3. importa y verifica los medios públicos;
+4. importa y verifica los documentos privados cifrados;
+5. crea el Dueño del cliente solo si ese correo aún no existe, sin modificar las demás cuentas;
+6. ejecuta la auditoría final de conteos, medios, CV y Dueño.
+
+Si la Database tiene información parcial o existente, el instalador se detiene antes de
+escribir. Esto evita una sobrescritura accidental y requiere una revisión explícita.
+
+`heliumdb` es el nombre común de la Database administrada por Replit, pero el comando
+de diagnóstico muestra el nombre real. Sustituirlo y usar exactamente el mismo correo
+que se guardó en `ADMIN_EMAIL`.
+
+## 5. Restauración manual de contingencia
 
 Identificar el nombre del archivo cifrado entregado y confirmar que el destino sea la
 base nueva de Replit:
@@ -152,7 +201,7 @@ La restauración local no necesita `SOURCE_DATABASE_URL`: esa variable solo se u
 comparar una migración entre dos bases conectadas. Así, la instalación del cliente no
 depende de la antigua cuenta o URL de origen.
 
-## 5. Restaurar y verificar App Storage
+## 6. Restaurar y verificar App Storage
 
 ```bash
 npm run handoff:storage -- import \
@@ -181,14 +230,14 @@ npm run handoff:private -- verify \
 Los CV no se exponen como medios públicos. Solo pueden descargarse mediante el endpoint
 administrativo autenticado y con el permiso correspondiente a registros recibidos.
 
-## 6. Validar antes de publicar
+## 7. Validar antes de publicar
 
 ```bash
 npm ci
 npm run check
 npm run test:security
 npm run build
-npm run handoff:readiness -- --confirm-database=heliumdb
+npm run handoff:readiness -- --confirm-database=heliumdb --owner-email=correo-del-cliente@ejemplo.com
 ```
 
 Además, comprobar manualmente:
@@ -200,13 +249,13 @@ Además, comprobar manualmente:
 - historiales de imágenes, audios y presentaciones;
 - ejecución controlada de los agentes con la API key del cliente.
 
-Al arrancar por primera vez, si `ADMIN_EMAIL` todavía no existe en el respaldo, el
-sistema crea ese nuevo Dueño sin modificar las demás cuentas. El cliente debe entrar
-con esa cuenta, confirmar sus permisos y desactivar desde **Usuarios y accesos** todas
-las cuentas del proveedor que ya no deban conservar acceso. Después puede retirar
-`ADMIN_BOOTSTRAP_PASSWORD` y guardar su credencial en el medio acordado.
+El instalador crea el Dueño indicado por `ADMIN_EMAIL` si no existe en el respaldo, sin
+modificar las demás cuentas. El cliente debe entrar con esa cuenta, confirmar sus
+permisos y desactivar desde **Usuarios y accesos** todas las cuentas del proveedor que
+ya no deban conservar acceso. Después puede retirar `ADMIN_BOOTSTRAP_PASSWORD` y
+`DB_BACKUP_ENCRYPTION_KEY` de Replit y guardar las credenciales por el medio acordado.
 
-## 7. Crear producción en la cuenta del cliente
+## 8. Crear producción en la cuenta del cliente
 
 Desde **Publishing**, crear la base de producción administrada por Replit y elegir la
 opción de copiar los datos actuales de desarrollo. Replit inyectará el
@@ -220,7 +269,7 @@ Después de publicar:
 4. verificar que el bucket y ambas bases aparecen en la cuenta del cliente;
 5. retirar cualquier Secret temporal que ya no sea necesario.
 
-## 8. Ensayo obligatorio en un Repl limpio
+## 9. Ensayo obligatorio en un Repl limpio
 
 Antes de entregar al cliente, repetir el procedimiento completo en un Repl temporal
 creado desde GitHub, con una base y un bucket nuevos. Restaurar los tres paquetes,
@@ -229,7 +278,7 @@ segunda vez. Este ensayo no debe usar ni sobrescribir la base o el bucket de pro
 actuales. Su objetivo es demostrar que el proyecto puede reconstruirse sin depender del
 Repl del proveedor.
 
-## 9. Criterio de cierre
+## 10. Criterio de cierre
 
 La entrega se considera independiente cuando:
 

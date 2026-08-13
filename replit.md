@@ -50,10 +50,11 @@ Scripts (`package.json`):
 
 | Script | Comando | Uso |
 |---|---|---|
-| `dev` | `NODE_ENV=development tsx server/index.ts` | Desarrollo. `tsx` corre el TS directo; da Vite + HMR. **Es lo que Replit ejecuta en Run.** |
+| `dev` | `NODE_ENV=development tsx server/index.ts` | Desarrollo con Vite/HMR cuando la Database ya está lista. |
 | `build` | `tsx script/build.ts` | Build custom. Produce `dist/index.cjs`. |
 | `start` | `NODE_ENV=production node dist/index.cjs` | Inicia el build de producción. Usa `serveStatic`. |
-| `start:deploy` | `npm run db:migrate && npm run start` | Aplica migraciones y arranca. **Es lo que Replit ejecuta en Deploy.** |
+| `start:workspace` | `node scripts/start-workspace.mjs` | Detecta un handoff pendiente en un Repl importado; solo entonces sirve la pantalla segura de instalación. |
+| `start:deploy` | `node scripts/start-deploy.mjs` | En una Database lista aplica migraciones y arranca; en una nueva evita un `500` y sirve únicamente la pantalla de handoff. **Es lo que Replit ejecuta en Deploy.** |
 | `check` | `tsc` | Type-check. |
 | `db:migrate` | `node scripts/run-migrations.mjs` | Migraciones SQL versionadas con transacción y advisory lock. |
 | `db:replit-migrate` | `node scripts/migrate-database-to-replit.mjs` | Auditoría, respaldo cifrado, restauración y comparación exacta de bases. |
@@ -61,11 +62,13 @@ Scripts (`package.json`):
 | `media:migrate-private` | `node --import tsx scripts/migrate-private-cvs-to-app-storage.ts` | Migra CV históricos a la zona privada de App Storage. |
 | `handoff:storage` | `node scripts/handoff-app-storage.mjs` | Exporta, importa y verifica los medios públicos en una entrega GitHub → Replit. |
 | `handoff:private` | `node scripts/handoff-private-documents.mjs` | Exporta, importa y verifica documentos privados cifrados. |
+| `handoff:status` | `node scripts/client-handoff.mjs status` | Diagnostica Database, App Storage, paquete y nombres de Secrets faltantes sin imprimir valores. |
+| `handoff:install` | `node scripts/client-handoff.mjs install` | Restaura el paquete completo únicamente sobre una Database vacía y con confirmaciones. |
 | `handoff:readiness` | `node scripts/verify-client-handoff.mjs` | Audita una instalación nueva sin revelar datos personales ni Secrets. |
 | `admin:recover` | `node --import tsx scripts/recover-admin.ts` | Recuperación manual desde Replit Secrets; nunca imprime contraseña ni hash. |
 
 - **Puerto:** `process.env.PORT || 5000`. `.replit` fija `PORT=5000` y mapea `localPort 5000 → externalPort 80`. Bind a `0.0.0.0`.
-- **Replit config (`.replit`):** `modules = ['nodejs-24','web']`; `run = 'npm run dev'`; `[deployment]` target `autoscale`, `build = ['npm','run','build']`, `run = ['npm','run','start:deploy']`; workflow "Start application" espera el puerto 5000.
+- **Replit config (`.replit`):** `modules = ['nodejs-24','web']`; `run = 'npm run start:workspace'`; `[deployment]` target `autoscale`, `build = ['npm','run','build']`, `run = ['npm','run','start:deploy']`; workflow "Start application" espera el puerto 5000.
 - **Gotcha del build:** el script es `tsx script/build.ts` — carpeta **`script/` en SINGULAR**. No confundir con `scripts/` (que existe para `post-merge.sh` y scripts de verificación). Confundirlas rompe el build.
 - **Gotcha macOS:** `reusePort` solo se pasa en Linux (`process.platform === 'linux'`); en Mac lanzaría `ENOTSUP`. Por eso correr local en Mac funciona.
 
@@ -145,6 +148,19 @@ Disparo central: **`POST /api/agents/run/:agentType`** (`server/agents/api/agent
   proteger registros históricos que aún apunten a `/uploads`.
 - La entrega mediante GitHub usa dos paquetes separados: medios públicos verificables y
   documentos privados cifrados. Ver `docs/CLIENT_REPLIT_HANDOFF.md`.
+
+### Handoff completo a una cuenta del cliente
+
+Si un usuario importa el repositorio en una cuenta nueva de Replit, no tratar una base
+vacía como un bug de aplicación. Ejecutar primero `npm run handoff:status --
+--directory=.handoff` y leer su estado. Pedir al cliente crear o vincular Database y
+App Storage, y configurar en **Tools → Secrets** `ADMIN_EMAIL`,
+`ADMIN_BOOTSTRAP_PASSWORD` y `DB_BACKUP_ENCRYPTION_KEY`; el valor de los Secrets nunca
+se pide ni se pega en Shell, en el chat o en Git. Tras recibir por un canal privado la
+carpeta `.handoff/`, usar el comando `handoff:install` documentado. No ejecutar una
+restauración manual ni `db:migrate` sobre una base vacía como sustituto del instalador.
+El instalador confirma el nombre de la Database y el correo Dueño, conserva las demás
+cuentas restauradas y detiene cualquier base parcial antes de escribir.
 
 ---
 

@@ -12,6 +12,10 @@ function option(name) {
   return process.argv.find((argument) => argument.startsWith(prefix))?.slice(prefix.length);
 }
 
+function normalizedEmail(value) {
+  return String(value || "").trim().toLowerCase();
+}
+
 function storageClient() {
   const bucketId = process.env.REPLIT_APP_STORAGE_BUCKET_ID?.trim();
   return new AppStorageClient(bucketId ? { bucketId } : undefined);
@@ -36,11 +40,18 @@ async function verify() {
   await database.connect();
   let summary;
   try {
-    const [tables, users, config, applications] = await Promise.all([
+    const ownerEmail = normalizedEmail(option("owner-email"));
+    const [tables, users, config, applications, practices, industries, attorneys, owner] = await Promise.all([
       database.query("select count(*)::int as count from information_schema.tables where table_schema = 'public' and table_type = 'BASE TABLE'"),
       database.query("select count(*)::int as count from admin_users"),
       database.query("select count(*)::int as count from site_config"),
       database.query("select id, cv_path from career_applications"),
+      database.query("select count(*)::int as count from practice_groups"),
+      database.query("select count(*)::int as count from industry_groups"),
+      database.query("select count(*)::int as count from team_members"),
+      ownerEmail
+        ? database.query("select exists(select 1 from admin_users where lower(email) = $1) as present", [ownerEmail])
+        : Promise.resolve({ rows: [{ present: null }] }),
     ]);
     const appStorage = storageClient();
     const [publicObjects, privateObjects] = await Promise.all([
@@ -61,6 +72,10 @@ async function verify() {
         adminUsers: users.rows[0].count,
         siteConfigEntries: config.rows[0].count,
         careerApplications: applications.rows.length,
+        practiceGroups: practices.rows[0].count,
+        industryGroups: industries.rows[0].count,
+        teamMembers: attorneys.rows[0].count,
+        clientOwnerPresent: owner.rows[0].present,
       },
       appStorage: {
         publicObjects: publicObjects.size,
@@ -81,6 +96,10 @@ async function verify() {
     summary.database.tables < 1
     || summary.database.adminUsers < 1
     || summary.database.siteConfigEntries < 1
+    || summary.database.practiceGroups < 18
+    || summary.database.industryGroups < 7
+    || summary.database.teamMembers < 142
+    || (option("owner-email") && !summary.database.clientOwnerPresent)
     || summary.appStorage.publicObjects < 1
     || summary.appStorage.legacyCvReferences > 0
     || summary.appStorage.missingPrivateCvRecords > 0
