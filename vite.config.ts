@@ -27,6 +27,14 @@ export default defineConfig({
     },
   },
   root: path.resolve(import.meta.dirname, "client"),
+  optimizeDeps: {
+    // El panel se sirve desde Express en modo middleware. Declarar la entrada
+    // permite que Vite termine de descubrir todo el grafo antes de responder;
+    // en Replit además se descarta cualquier prebundle incompleto de un
+    // proceso anterior, evitando respuestas 504 "Outdated Optimize Dep".
+    entries: ["index.html"],
+    force: process.env.REPL_ID !== undefined,
+  },
   build: {
     outDir: path.resolve(import.meta.dirname, "dist/public"),
     emptyOutDir: true,

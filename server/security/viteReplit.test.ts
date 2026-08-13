@@ -19,10 +19,18 @@ test("el compositor de desarrollo usa la API server.ws de Vite 8", () => {
   assert.doesNotMatch(source, /hmr:\s*\{\s*server,/);
 });
 
-test("la entrada del panel evita el parámetro v reservado por Vite", () => {
+test("la entrada del panel permanece estable y el HTML no se almacena", () => {
   const source = readFileSync(new URL("../vite.ts", import.meta.url), "utf8");
-  assert.match(source, /main\.tsx\?entry=\$\{nanoid\(\)\}/);
-  assert.doesNotMatch(source, /main\.tsx\?v=\$\{nanoid\(\)\}/);
+  assert.doesNotMatch(source, /main\.tsx\?(?:v|entry)=/);
+  assert.doesNotMatch(source, /nanoid/);
+  assert.match(source, /"Cache-Control":\s*"private, no-store, max-age=0"/);
+});
+
+test("Replit fuerza un prebundle completo desde index.html", () => {
+  const source = readFileSync(new URL("../../vite.config.ts", import.meta.url), "utf8");
+  assert.match(source, /optimizeDeps:\s*\{/);
+  assert.match(source, /entries:\s*\["index\.html"\]/);
+  assert.match(source, /force:\s*process\.env\.REPL_ID\s*!==\s*undefined/);
 });
 
 test("Vite usa WSS y el origen público del preview de Replit", () => {
