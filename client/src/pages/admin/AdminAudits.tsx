@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { useAdminAuth, adminApiRequest } from "@/lib/adminAuth";
+import { useAdminAuth, adminApiRequest, readAdminJson } from "@/lib/adminAuth";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -48,6 +48,11 @@ import {
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 import { AdminPageHelp } from "@/components/admin/AdminPageHelp";
 import type { WebsiteAudit, WebsiteAuditFinding } from "@shared/schema";
+
+type AuditListResponse = { audits: WebsiteAudit[] };
+type AuditDetailResponse = { audit: WebsiteAudit | null; findings: WebsiteAuditFinding[] };
+type AuditFindingsResponse = { findings: WebsiteAuditFinding[] };
+type AuditRunResponse = { message?: string };
 
 const translations = {
   en: {
@@ -747,7 +752,7 @@ export default function AdminAudits() {
     queryKey: ['/api/audits'],
     queryFn: async () => {
       const response = await adminApiRequest('GET', '/api/audits?limit=20');
-      return response.json();
+      return readAdminJson<AuditListResponse>(response, 'No se pudo cargar el historial de auditorías.');
     },
     enabled: isAuthenticated,
   });
@@ -756,7 +761,7 @@ export default function AdminAudits() {
     queryKey: ['/api/audits/latest'],
     queryFn: async () => {
       const response = await adminApiRequest('GET', '/api/audits/latest');
-      return response.json();
+      return readAdminJson<AuditDetailResponse>(response, 'No se pudo cargar la última auditoría.');
     },
     enabled: isAuthenticated,
   });
@@ -766,7 +771,7 @@ export default function AdminAudits() {
     queryFn: async () => {
       if (!selectedAuditId) return null;
       const response = await adminApiRequest('GET', `/api/audits/${selectedAuditId}`);
-      return response.json();
+      return readAdminJson<AuditDetailResponse>(response, 'No se pudo cargar la auditoría seleccionada.');
     },
     enabled: isAuthenticated && !!selectedAuditId,
   });
@@ -775,7 +780,7 @@ export default function AdminAudits() {
     queryKey: ['/api/audits/findings/open'],
     queryFn: async () => {
       const response = await adminApiRequest('GET', '/api/audits/findings/open');
-      return response.json();
+      return readAdminJson<AuditFindingsResponse>(response, 'No se pudieron cargar los hallazgos.');
     },
     enabled: isAuthenticated,
   });
@@ -785,7 +790,7 @@ export default function AdminAudits() {
   const runAuditMutation = useMutation({
     mutationFn: async (runType: string) => {
       const response = await adminApiRequest('POST', '/api/audits/run', { runType });
-      return response.json();
+      return readAdminJson<AuditRunResponse>(response, t.auditStartError);
     },
     onSuccess: (data) => {
       toast({
@@ -813,7 +818,7 @@ export default function AdminAudits() {
         status: 'resolved',
         resolvedBy: 'manual',
       });
-      return response.json();
+      return readAdminJson<{ success?: boolean }>(response, t.error);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/audits'] });
@@ -828,7 +833,7 @@ export default function AdminAudits() {
         status: 'ignored',
         resolvedBy: 'manual',
       });
-      return response.json();
+      return readAdminJson<{ success?: boolean }>(response, t.error);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/audits'] });

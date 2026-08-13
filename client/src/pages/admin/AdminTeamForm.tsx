@@ -26,7 +26,7 @@ const TEAM_LABELS: Record<string, string> = {
   name: "Nombre", slug: "Slug", title: "Cargo", titleEs: "Cargo (español)",
   role: "Rol", roleEs: "Rol (español)", email: "Email", phone: "Teléfono",
   imageUrl: "Foto", linkedinUrl: "LinkedIn", isPartner: "Socio",
-  published: "Visible en el sitio", bio: "Biografía", bioEs: "Biografía (español)",
+  published: "Visible en el sitio", bioIntro: "Introducción", bioIntroEs: "Introducción (español)", bio: "Biografía", bioEs: "Biografía (español)",
   practiceGroupIds: "Áreas de práctica", industryGroupIds: "Industrias",
 };
 import { Skeleton } from "@/components/ui/skeleton";
@@ -52,7 +52,7 @@ import {
   Award,
   CheckCircle2
 } from "lucide-react";
-import type { TeamMember, PracticeGroup, IndustryGroup } from "@shared/schema";
+import type { TeamMember, PracticeGroup, IndustryGroup, Education, Affiliation, Ranking, Publication } from "@shared/schema";
 
 const translations = {
   en: {
@@ -212,6 +212,14 @@ const teamMemberFormSchema = z.object({
   imageUrl: z.string().optional().or(z.literal("")),
   bio: z.string().optional(),
   bioEs: z.string().optional(),
+  bioIntro: z.string().optional(),
+  bioIntroEs: z.string().optional(),
+  education: z.array(z.object({ school: z.string(), schoolEs: z.string().optional(), degree: z.string(), degreeEs: z.string().optional(), year: z.string().optional() })).default([]),
+  affiliations: z.array(z.object({ organization: z.string(), organizationEs: z.string().optional(), role: z.string().optional(), roleEs: z.string().optional() })).default([]),
+  rankings: z.array(z.object({ publication: z.string(), ranking: z.string(), rankingEs: z.string().optional(), year: z.string().optional(), area: z.string().optional(), areaEs: z.string().optional() })).default([]),
+  publications: z.array(z.object({ title: z.string(), titleEs: z.string().optional(), journal: z.string().optional(), year: z.string().optional(), url: z.string().optional(), kind: z.enum(["news", "article"]).optional() })).default([]),
+  languages: z.array(z.string()).default([]),
+  languagesEs: z.array(z.string()).default([]),
   isPartner: z.boolean().default(false),
   published: z.boolean().default(true),
   order: z.coerce.number().min(0).default(0),
@@ -220,6 +228,65 @@ const teamMemberFormSchema = z.object({
 });
 
 type TeamMemberFormData = z.infer<typeof teamMemberFormSchema>;
+
+type StructuredField = { key: string; label: string; placeholder?: string; options?: Array<{ value: string; label: string }> };
+
+function ProfileCollection({
+  title,
+  description,
+  items,
+  fields,
+  create,
+  onChange,
+}: {
+  title: string;
+  description: string;
+  items: Array<Record<string, unknown>>;
+  fields: StructuredField[];
+  create: () => Record<string, unknown>;
+  onChange: (items: Array<Record<string, unknown>>) => void;
+}) {
+  return (
+    <section className="border border-[#D9D8D7] p-4 space-y-3" aria-label={title}>
+      <div className="flex items-start justify-between gap-4">
+        <div><h3 className="font-medium text-[#1D1D1B]">{title}</h3><p className="text-xs text-[#878A8E]">{description}</p></div>
+        <Button type="button" variant="outline" size="sm" className="rounded-none" onClick={() => onChange([...items, create()])}>Agregar</Button>
+      </div>
+      {items.map((item, index) => (
+        <div key={index} className="grid grid-cols-1 md:grid-cols-2 gap-3 border-t border-[#E8E7E6] pt-3">
+          {fields.map((field) => {
+            const updateValue = (value: string) => {
+              const next = items.map((current, itemIndex) => itemIndex === index ? { ...current, [field.key]: value } : current);
+              onChange(next);
+            };
+            return field.options ? (
+              <select
+                key={field.key}
+                value={String(item[field.key] ?? "")}
+                aria-label={`${title}: ${field.label} ${index + 1}`}
+                className="h-10 w-full rounded-none border border-[#D9D8D7] bg-background px-3 text-sm"
+                onChange={(event) => updateValue(event.target.value)}
+              >
+                {field.options.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
+              </select>
+            ) : (
+              <Input
+                key={field.key}
+                value={String(item[field.key] ?? "")}
+                placeholder={field.placeholder || field.label}
+                aria-label={`${title}: ${field.label} ${index + 1}`}
+                className="rounded-none border-[#D9D8D7]"
+                onChange={(event) => updateValue(event.target.value)}
+              />
+            );
+          })}
+          <Button type="button" variant="ghost" size="sm" className="justify-self-start text-[#AA1A2E]" onClick={() => onChange(items.filter((_, itemIndex) => itemIndex !== index))}>Quitar</Button>
+        </div>
+      ))}
+      {!items.length && <p className="text-xs text-[#878A8E]">Sin registros todavía.</p>}
+    </section>
+  );
+}
 
 export default function AdminTeamForm() {
   const { language } = useLanguage();
@@ -247,6 +314,14 @@ export default function AdminTeamForm() {
       imageUrl: "",
       bio: "",
       bioEs: "",
+      bioIntro: "",
+      bioIntroEs: "",
+      education: [],
+      affiliations: [],
+      rankings: [],
+      publications: [],
+      languages: [],
+      languagesEs: [],
       isPartner: false,
       published: true,
       order: 0,
@@ -301,6 +376,14 @@ export default function AdminTeamForm() {
         imageUrl: member.imageUrl || "",
         bio: member.bio || "",
         bioEs: member.bioEs || "",
+        bioIntro: (member as any).bioIntro || "",
+        bioIntroEs: (member as any).bioIntroEs || "",
+        education: member.education || [],
+        affiliations: member.affiliations || [],
+        rankings: member.rankings || [],
+        publications: member.publications || [],
+        languages: member.languages || [],
+        languagesEs: (member as any).languagesEs || [],
         isPartner: member.isPartner || false,
         published: member.published !== false,
         order: member.order || 0,
@@ -379,6 +462,8 @@ export default function AdminTeamForm() {
       imageUrl: data.imageUrl || null,
       bio: data.bio || null,
       bioEs: data.bioEs || null,
+      bioIntro: data.bioIntro || null,
+      bioIntroEs: data.bioIntroEs || null,
     });
     // Muestra un resumen de lo que se va a guardar antes de confirmar.
     const changes = computeChanges(isEditMode ? (member as any) || {} : {}, cleanData, TEAM_LABELS);
@@ -890,6 +975,28 @@ export default function AdminTeamForm() {
                         <CardContent className="p-6 space-y-6">
                           <FormField
                             control={form.control}
+                            name="bioIntro"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel className="text-[#1D1D1B] font-medium flex items-center gap-2"><Globe className="w-4 h-4 text-[#878A8E]" />Introduction (English)</FormLabel>
+                                <FormControl><RichTextEditor value={field.value ?? ""} onChange={field.onChange} rows={4} placeholder="Short editorial introduction…" data-testid="textarea-bio-intro" /></FormControl>
+                                <FormDescription className="text-[#878A8E] text-xs">Destacado del perfil. Presiona Enter para crear párrafos; se conservan negritas, cursivas y listas.</FormDescription>
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={form.control}
+                            name="bioIntroEs"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel className="text-[#1D1D1B] font-medium flex items-center gap-2"><Globe className="w-4 h-4 text-[#878A8E]" />Introducción (español)</FormLabel>
+                                <FormControl><RichTextEditor value={field.value ?? ""} onChange={field.onChange} rows={4} placeholder="Introducción editorial breve…" data-testid="textarea-bio-intro-es" /></FormControl>
+                              </FormItem>
+                            )}
+                          />
+                          <Separator className="bg-[#D9D8D7]" />
+                          <FormField
+                            control={form.control}
                             name="bio"
                             render={({ field }) => (
                               <FormItem>
@@ -937,6 +1044,51 @@ export default function AdminTeamForm() {
                                 <FormMessage />
                               </FormItem>
                             )}
+                          />
+
+                          <Separator className="bg-[#D9D8D7]" />
+                          <ProfileCollection
+                            title="Educación y experiencia"
+                            description="Una fila por grado, institución o hito profesional; cada campo conserva sus versiones bilingües."
+                            items={(watchedValues.education || []) as Array<Record<string, unknown>>}
+                            fields={[{ key: "degree", label: "Grado / EN" }, { key: "degreeEs", label: "Grado / ES" }, { key: "school", label: "Institución / EN" }, { key: "schoolEs", label: "Institución / ES" }, { key: "year", label: "Año" }]}
+                            create={() => ({ degree: "", degreeEs: "", school: "", schoolEs: "", year: "" })}
+                            onChange={(education) => form.setValue("education", education as unknown as Education[], { shouldDirty: true })}
+                          />
+                          <ProfileCollection
+                            title="Afiliaciones y actividades académicas"
+                            description="Organización y cargo, en inglés y español."
+                            items={(watchedValues.affiliations || []) as Array<Record<string, unknown>>}
+                            fields={[{ key: "organization", label: "Organización / EN" }, { key: "organizationEs", label: "Organización / ES" }, { key: "role", label: "Cargo / EN" }, { key: "roleEs", label: "Cargo / ES" }]}
+                            create={() => ({ organization: "", organizationEs: "", role: "", roleEs: "" })}
+                            onChange={(affiliations) => form.setValue("affiliations", affiliations as unknown as Affiliation[], { shouldDirty: true })}
+                          />
+                          <ProfileCollection
+                            title="Reconocimientos"
+                            description="Directorio, reconocimiento, área y año."
+                            items={(watchedValues.rankings || []) as Array<Record<string, unknown>>}
+                            fields={[{ key: "publication", label: "Directorio" }, { key: "ranking", label: "Reconocimiento / EN" }, { key: "rankingEs", label: "Reconocimiento / ES" }, { key: "area", label: "Área / EN" }, { key: "areaEs", label: "Área / ES" }, { key: "year", label: "Año" }]}
+                            create={() => ({ publication: "", ranking: "", rankingEs: "", area: "", areaEs: "", year: "" })}
+                            onChange={(rankings) => form.setValue("rankings", rankings as unknown as Ranking[], { shouldDirty: true })}
+                          />
+                          <ProfileCollection
+                            title="Noticias y artículos"
+                            description="Clasifica cada recurso como noticia o artículo. La liga admite una ruta interna o URL oficial segura."
+                            items={(watchedValues.publications || []) as Array<Record<string, unknown>>}
+                            fields={[{ key: "kind", label: "Tipo", options: [{ value: "news", label: "Noticia" }, { value: "article", label: "Artículo" }] }, { key: "title", label: "Título / EN" }, { key: "titleEs", label: "Título / ES" }, { key: "journal", label: "Medio" }, { key: "year", label: "Año" }, { key: "url", label: "Liga" }]}
+                            create={() => ({ kind: "article", title: "", titleEs: "", journal: "", year: "", url: "" })}
+                            onChange={(publications) => form.setValue("publications", publications as unknown as Publication[], { shouldDirty: true })}
+                          />
+                          <ProfileCollection
+                            title="Idiomas"
+                            description="Registra cada idioma en sus variantes inglesa y española."
+                            items={Array.from({ length: Math.max((watchedValues.languages || []).length, (watchedValues.languagesEs || []).length) }, (_, index) => ({ language: watchedValues.languages?.[index] || "", languageEs: watchedValues.languagesEs?.[index] || "" }))}
+                            fields={[{ key: "language", label: "Idioma / EN" }, { key: "languageEs", label: "Idioma / ES" }]}
+                            create={() => ({ language: "", languageEs: "" })}
+                            onChange={(languages) => {
+                              form.setValue("languages", languages.map((item) => String(item.language || "")).filter(Boolean), { shouldDirty: true });
+                              form.setValue("languagesEs", languages.map((item) => String(item.languageEs || "")).filter(Boolean), { shouldDirty: true });
+                            }}
                           />
 
                           {/* AI Translation hint */}

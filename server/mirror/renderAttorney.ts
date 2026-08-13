@@ -88,15 +88,23 @@ function buildMetaList(a: any, lang: Lang): string {
     ' id="recognitions"',
   );
 
-  const articles: string[] = (a.publications || []).map((p: any) => {
+  const resourceUrl = (value: unknown) => {
+    const url = String(value || "").trim();
+    return /^(?:\/news\/|\/articles\/|https:\/\/vonwobeser\.com\/)/i.test(url) ? url : "";
+  };
+  const renderResource = (p: any) => {
     const title = esc(L(p, "title", lang));
     const journal = esc(p.journal || "");
     const year = esc(p.year || "");
-    return [title, journal, year && `(${year})`].filter(Boolean).join(", ");
-  });
-  section(lang === "es" ? "Artículos" : "Articles", articles);
+    const label = [title, journal, year && `(${year})`].filter(Boolean).join(", ");
+    const url = resourceUrl(p.url);
+    return url ? `<a href="${esc(url)}" rel="noopener noreferrer">${label}</a>` : label;
+  };
+  const resources = a.publications || [];
+  section(lang === "es" ? "Noticias" : "News", resources.filter((p: any) => p.kind === "news").map(renderResource));
+  section(lang === "es" ? "Artículos" : "Articles", resources.filter((p: any) => p.kind !== "news").map(renderResource));
 
-  const languages: string[] = a.languages || [];
+  const languages: string[] = (lang === "es" ? a.languagesEs : a.languages) || a.languages || [];
   if (languages.length) {
     blocks.push(
       `<li>${lang === "es" ? "Idiomas" : "Languages"}<ul><li>${esc(languages.join(", "))}.</li></ul></li>`,
@@ -118,7 +126,15 @@ function publicInsightImage(value: unknown): string {
 
 /** Publicaciones propias del sitio. No se mezclan con la bibliografía externa del perfil. */
 function buildRelatedInsights(attorney: any, lang: Lang): string {
-  const relatedNews: any[] = attorney.relatedNews || [];
+  const canonicalNewsTitles = new Set((attorney.publications || [])
+    .filter((resource: any) => resource.kind === "news")
+    .flatMap((resource: any) => [resource.title, resource.titleEs])
+    .filter(Boolean)
+    .map((title: string) => title.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/\s+/g, " ").trim()));
+  const relatedNews: any[] = (attorney.relatedNews || []).filter((item: any) => {
+    const title = L(item, "title", lang).normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/\s+/g, " ").trim();
+    return !canonicalNewsTitles.has(title);
+  });
   if (!relatedNews.length) return "";
 
   const labels = lang === "es"
@@ -176,6 +192,7 @@ function splitFirstBlock(html: string): { first: string; rest: string } {
  */
 export function renderAttorney(templateHtml: string, a: any, lang: Lang = "en"): string {
   const $ = cheerio.load(templateHtml);
+  $(".attorney").attr("data-vw-content-kind", "attorney");
 
   const name = a.name || "";
   const role = getLocalizedAttorneyTitle(a, lang) || getLocalizedAttorneyRole(a, lang);
@@ -203,7 +220,10 @@ export function renderAttorney(templateHtml: string, a: any, lang: Lang = "en"):
 
   // --- Bio ---------------------------------------------------------------
   const bio = L(a, "bio", lang);
-  const { first: bioIntro, rest: bioRest } = splitFirstBlock(renderRichText(bio));
+  const storedIntro = L(a, "bioIntro", lang);
+  const { first: legacyIntro, rest: legacyRest } = splitFirstBlock(renderRichText(bio));
+  const bioIntro = storedIntro ? renderRichText(storedIntro) : legacyIntro;
+  const bioRest = storedIntro ? renderRichText(bio) : legacyRest;
   $(".attorney__content--intro").html(bioIntro);
   $(".attorney__content--txt").html(bioRest);
   const relatedInsights = buildRelatedInsights(a, lang);

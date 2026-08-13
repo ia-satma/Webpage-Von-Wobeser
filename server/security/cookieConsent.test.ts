@@ -52,6 +52,13 @@ test("el footer público coloca política y preferencias debajo del aviso de pri
   }
 });
 
+test("los enlaces de cookies del footer mantienen contraste visible sobre el fondo institucional", () => {
+  const css = readFileSync(new URL("../../public/vwb-cookie-consent.css", import.meta.url), "utf8");
+  assert.match(css, /\.vwb-cookie-footer-row\{[^}]*color:#f6f3ee/);
+  assert.match(css, /\.vwb-cookie-footer-link,\.vwb-cookie-policy-footer-link\{color:#f6f3ee!important/);
+  assert.match(css, /font:400 \.82rem\/1\.45 var\(--vwb-body\)/);
+});
+
 test("el gestor conserva elección versionada, respeta GPC sin ocultar el aviso y revoca GA4", () => {
   const source = readFileSync(new URL("../../public/vwb-cookie-consent.js", import.meta.url), "utf8");
   const mirrorSource = readFileSync(new URL("../mirror/index.ts", import.meta.url), "utf8");

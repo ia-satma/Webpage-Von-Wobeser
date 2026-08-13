@@ -217,7 +217,9 @@ test("la herramienta usa respaldos custom y restauración de una sola transacci�
   assert.match(source, /confirm-source/);
   assert.match(source, /process\.env\.SOURCE_DATABASE_URL\?\.trim/);
   const replitConfig = await fs.readFile(path.join(process.cwd(), ".replit"), "utf8");
-  assert.match(replitConfig, /postgresql_18/);
+  // El canal estable elegido por Replit expone PostgreSQL 16; el script aún
+  // detecta y exige una versión mayor si la base origen lo requiere.
+  assert.match(replitConfig, /postgresql_16/);
   assert.doesNotMatch(replitConfig, /defaultBucketID/);
 });
 

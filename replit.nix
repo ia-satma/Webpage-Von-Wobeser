@@ -7,6 +7,6 @@
     pkgs.clamav
     pkgs.unzip
     pkgs.jq
-    pkgs.postgresql_18
+    pkgs.postgresql_16
   ];
 }

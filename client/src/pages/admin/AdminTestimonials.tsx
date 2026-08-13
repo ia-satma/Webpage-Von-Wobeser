@@ -62,7 +62,11 @@ export default function AdminTestimonials() {
 
   const { data: items = [], isLoading, refetch } = useQuery<Testimonial[]>({
     queryKey: ["/api/admin/testimonials"],
-    queryFn: async () => (await adminApiRequest("GET", "/api/admin/testimonials")).json(),
+    queryFn: async () => {
+      const response = await adminApiRequest("GET", "/api/admin/testimonials");
+      if (!response.ok) throw new Error("No se pudieron cargar los testimonios.");
+      return response.json();
+    },
     enabled: isAuthenticated,
   });
 
@@ -127,13 +131,21 @@ export default function AdminTestimonials() {
 
   const remove = async (id: string) => {
     if (!window.confirm("¿Eliminar este testimonio?")) return;
-    const response = await adminApiRequest("DELETE", `/api/admin/testimonials/${id}`);
-    if (response.ok) {
-      toast({ title: "Testimonio eliminado" });
-      if (editingId === id) clear();
-      await refetch();
-    } else {
-      toast({ title: "No se pudo eliminar", variant: "destructive" });
+    try {
+      const response = await adminApiRequest("DELETE", `/api/admin/testimonials/${id}`);
+      if (response.ok) {
+        toast({ title: "Testimonio eliminado" });
+        if (editingId === id) clear();
+        await refetch();
+      } else {
+        toast({ title: "No se pudo eliminar", variant: "destructive" });
+      }
+    } catch {
+      toast({
+        title: "No se pudo eliminar",
+        description: "No fue posible conectar con el servidor.",
+        variant: "destructive",
+      });
     }
   };
 

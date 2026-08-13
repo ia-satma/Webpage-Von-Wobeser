@@ -14,7 +14,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useToast } from "@/hooks/use-toast";
-import { useAdminAuth, adminApiRequest } from "@/lib/adminAuth";
+import { useAdminAuth, adminApiRequest, readAdminJson } from "@/lib/adminAuth";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -981,7 +981,7 @@ export default function AdminKnowledge() {
     queryKey: ["/api/admin/knowledge"],
     queryFn: async () => {
       const res = await adminApiRequest("GET", "/api/admin/knowledge");
-      return res.json();
+      return readAdminJson<KnowledgeDocument[]>(res, t.createFailed);
     },
     enabled: isAuthenticated && !!token,
   });
@@ -995,7 +995,7 @@ export default function AdminKnowledge() {
           confidence: data.confidence,
         },
       });
-      return res.json();
+      return readAdminJson<KnowledgeDocument>(res, t.createFailed);
     },
     onSuccess: () => {
       toast({ title: t.documentCreated });
@@ -1017,7 +1017,7 @@ export default function AdminKnowledge() {
           confidence: data.confidence,
         },
       });
-      return res.json();
+      return readAdminJson<KnowledgeDocument>(res, t.updateFailed);
     },
     onSuccess: () => {
       toast({ title: t.documentUpdated });
@@ -1034,7 +1034,7 @@ export default function AdminKnowledge() {
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
       const res = await adminApiRequest("DELETE", `/api/admin/knowledge/${id}`);
-      return res.json();
+      return readAdminJson<{ success?: boolean }>(res, t.deleteFailed);
     },
     onSuccess: () => {
       toast({ title: t.documentDeleted });
@@ -1062,7 +1062,7 @@ export default function AdminKnowledge() {
       }).filter(item => item.title && item.content);
       
       const res = await adminApiRequest("POST", "/api/admin/knowledge/bulk", { items });
-      return res.json();
+      return readAdminJson<{ created?: number }>(res, t.bulkUploadFailed);
     },
     onSuccess: (data) => {
       toast({ title: t.bulkUploadComplete, description: `${data.created || 0} ${t.documentsCreated}` });

@@ -285,19 +285,27 @@ export default function AdminArticleDetail() {
   const t = translations[language as keyof typeof translations] || translations.en;
 
   const { data: article, isLoading, error, refetch } = useQuery<ArticleWithVerdict>({
-    queryKey: ['/api/news', id],
+    queryKey: ['/api/admin/news', id],
     enabled: !!id && isAuthenticated,
+    queryFn: async () => {
+      const response = await adminApiRequest('GET', `/api/admin/news/${id}`);
+      const body = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(body?.error || t.notFound);
+      return body;
+    },
   });
 
   const validateMutation = useMutation({
     mutationFn: async () => {
       const response = await adminApiRequest('POST', `/api/news/${id}/validate`);
-      return response;
+      const body = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(body?.error || t.validateError);
+      return body;
     },
     onSuccess: () => {
       toast({ title: t.validateSuccess });
-      queryClient.invalidateQueries({ queryKey: ['/api/news', id] });
-      queryClient.invalidateQueries({ queryKey: ['/api/news'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/news', id] });
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/news'] });
     },
     onError: () => {
       toast({ title: t.validateError, variant: 'destructive' });
@@ -307,7 +315,9 @@ export default function AdminArticleDetail() {
   const rerunCouncilMutation = useMutation({
     mutationFn: async () => {
       const response = await adminApiRequest('POST', `/api/news/${id}/council-review`);
-      return response;
+      const body = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(body?.error || t.rerunError);
+      return body;
     },
     onSuccess: () => {
       toast({ title: t.rerunSuccess });

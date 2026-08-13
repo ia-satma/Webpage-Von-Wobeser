@@ -11,6 +11,8 @@ interface PipelineProgressModalProps {
   articleId: string | null;
   articleTitle?: string;
   includeImage?: boolean;
+  /** Error de inicio HTTP antes de que exista un evento de WebSocket. */
+  startError?: string | null;
 }
 
 const STEP_ICONS: Record<string, typeof FileText> = {
@@ -40,7 +42,8 @@ export function PipelineProgressModal({
   onOpenChange, 
   articleId, 
   articleTitle,
-  includeImage = false
+  includeImage = false,
+  startError = null,
 }: PipelineProgressModalProps) {
   const [steps, setSteps] = useState<Record<string, PipelineProgressEvent>>({});
   const [overallProgress, setOverallProgress] = useState(0);
@@ -86,22 +89,22 @@ export function PipelineProgressModal({
       const initialEvent: PipelineProgressEvent = {
         articleId,
         step: 'format',
-        status: 'running',
-        progress: 2,
-        message: 'Preparando el artículo y validando la solicitud…',
+        status: startError ? 'error' : 'running',
+        progress: 0,
+        message: startError || 'Preparando el artículo y validando la solicitud…',
         timestamp: new Date().toISOString(),
       };
       setSteps({ format: initialEvent });
-      setOverallProgress(2);
-      setIsComplete(false);
-      setHasError(false);
+      setOverallProgress(0);
+      setIsComplete(Boolean(startError));
+      setHasError(Boolean(startError));
     } else {
       setSteps({});
       setOverallProgress(0);
       setIsComplete(false);
       setHasError(false);
     }
-  }, [open, articleId]);
+  }, [open, articleId, startError]);
 
   const stepOrder = includeImage 
     ? ['format', 'categorize', 'metadata', 'seo', 'translate', 'council', 'image']

@@ -8,7 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Progress } from "@/components/ui/progress";
 import { useToast } from "@/hooks/use-toast";
-import { useAdminAuth, adminApiRequest, getAuthHeaders } from "@/lib/adminAuth";
+import { useAdminAuth, adminApiRequest, readAdminJson } from "@/lib/adminAuth";
 import { 
   Bot, 
   Activity, 
@@ -189,7 +189,12 @@ export default function AdminAgents() {
     queryKey: ["/api/agents/status"],
     queryFn: async () => {
       const res = await adminApiRequest("GET", "/api/agents/status");
-      return res.json();
+      return readAdminJson<{
+        orchestrator: OrchestratorStatus;
+        evolution: EvolutionSummary;
+        knowledge: KnowledgeStats;
+        database: DatabaseStats;
+      }>(res, "No se pudo cargar el estado de los agentes.");
     },
     refetchInterval: 5000,
     enabled: isAuthenticated && !!token,
@@ -199,7 +204,7 @@ export default function AdminAgents() {
     queryKey: ["/api/agents/evolution/proposals"],
     queryFn: async () => {
       const res = await adminApiRequest("GET", "/api/agents/evolution/proposals");
-      return res.json();
+      return readAdminJson<EvolutionProposal[]>(res, "No se pudieron cargar las propuestas.");
     },
     enabled: isAuthenticated && !!token,
   });
@@ -207,7 +212,7 @@ export default function AdminAgents() {
   const runAuditMutation = useMutation({
     mutationFn: async () => {
       const res = await adminApiRequest("POST", "/api/audits/run", { runType: 'full' });
-      return res.json();
+      return readAdminJson<{ message?: string }>(res, "No se pudo iniciar la auditoría.");
     },
     onSuccess: (data: any) => {
       toast({ 
@@ -224,18 +229,21 @@ export default function AdminAgents() {
   const runLearningCycleMutation = useMutation({
     mutationFn: async () => {
       const res = await adminApiRequest("POST", "/api/agents/evolution/learning-cycle");
-      return res.json();
+      return readAdminJson<{ insights?: unknown[] }>(res, "No se pudo ejecutar el ciclo de aprendizaje.");
     },
     onSuccess: (data: any) => {
       toast({ title: "Ciclo de aprendizaje completado", description: `${data?.insights?.length || 0} hallazgos generados` });
       queryClient.invalidateQueries({ queryKey: ["/api/agents/status"] });
+    },
+    onError: (error: Error) => {
+      toast({ title: "Falló el ciclo de aprendizaje", description: error.message, variant: "destructive" });
     },
   });
 
   const syncPCloudMutation = useMutation({
     mutationFn: async () => {
       const res = await adminApiRequest("POST", "/api/agents/pcloud/sync");
-      return res.json();
+      return readAdminJson<{ knowledge: boolean; evolution: boolean }>(res, "No se pudo sincronizar a la nube.");
     },
     onSuccess: (data: { knowledge: boolean; evolution: boolean }) => {
       toast({ 
@@ -251,33 +259,42 @@ export default function AdminAgents() {
   const startProcessingMutation = useMutation({
     mutationFn: async () => {
       const res = await adminApiRequest("POST", "/api/agents/processing/start");
-      return res.json();
+      return readAdminJson<{ message?: string }>(res, "No se pudo iniciar el procesamiento.");
     },
     onSuccess: () => {
       toast({ title: "Procesamiento iniciado" });
       queryClient.invalidateQueries({ queryKey: ["/api/agents/status"] });
+    },
+    onError: (error: Error) => {
+      toast({ title: "No se pudo iniciar el procesamiento", description: error.message, variant: "destructive" });
     },
   });
 
   const stopProcessingMutation = useMutation({
     mutationFn: async () => {
       const res = await adminApiRequest("POST", "/api/agents/processing/stop");
-      return res.json();
+      return readAdminJson<{ message?: string }>(res, "No se pudo detener el procesamiento.");
     },
     onSuccess: () => {
       toast({ title: "Procesamiento detenido" });
       queryClient.invalidateQueries({ queryKey: ["/api/agents/status"] });
+    },
+    onError: (error: Error) => {
+      toast({ title: "No se pudo detener el procesamiento", description: error.message, variant: "destructive" });
     },
   });
 
   const updateProposalMutation = useMutation({
     mutationFn: async ({ id, status }: { id: string; status: string }) => {
       const res = await adminApiRequest("POST", `/api/agents/evolution/proposals/${id}/status`, { status });
-      return res.json();
+      return readAdminJson<EvolutionProposal>(res, "No se pudo actualizar la propuesta.");
     },
     onSuccess: () => {
       toast({ title: "Propuesta actualizada" });
       queryClient.invalidateQueries({ queryKey: ["/api/agents/evolution/proposals"] });
+    },
+    onError: (error: Error) => {
+      toast({ title: "No se pudo actualizar la propuesta", description: error.message, variant: "destructive" });
     },
   });
 

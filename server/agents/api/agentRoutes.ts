@@ -113,6 +113,21 @@ router.post('/run/:agentType', async (req: Request, res: Response) => {
     }
     const payload = validatedPayload.data;
 
+    // Capa común para todos los agentes ejecutables: una solicitud que pide
+    // aplicar cambios necesita un borrador. Cada agente vuelve a comprobarlo,
+    // pero hacerlo aquí evita que una futura implementación omita el seguro.
+    const articleId = typeof payload.articleId === 'string' ? payload.articleId : null;
+    if (payload.applyChanges === true && articleId) {
+      const [article] = await db.select({ published: news.published }).from(news).where(eq(news.id, articleId));
+      if (!article) return res.status(404).json({ error: 'Article not found' });
+      if (article.published !== false) {
+        return res.status(409).json({
+          code: 'PUBLISHED_ARTICLE_REQUIRES_DRAFT',
+          error: 'Published articles must be converted to a draft before applying agent changes',
+        });
+      }
+    }
+
     const result = await orchestrator.executeImmediately(agentType, payload);
 
     res.json(result);

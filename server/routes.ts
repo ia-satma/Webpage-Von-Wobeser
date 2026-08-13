@@ -106,6 +106,7 @@ import {
   generatedImages,
   industryGroups,
   news,
+  newsTranslations,
   officeImages,
   offices,
   practiceGroups,
@@ -967,6 +968,28 @@ export async function registerRoutes(
       res.json(updated);
     } catch (error) {
       res.status(500).json({ error: "Failed to update office image" });
+    }
+  });
+
+  app.put("/api/admin/office-images/order", authMiddleware, requirePermission("config"), async (req: Request, res: Response) => {
+    const parsed = z.object({
+      ids: z.array(z.string().uuid()).min(1).max(100),
+    }).safeParse(req.body);
+    if (!parsed.success) return res.status(400).json({ error: "Invalid office image order" });
+
+    try {
+      const result = await storage.reorderOfficeImages(parsed.data.ids);
+      if (!result.ok) {
+        return res.status(409).json({
+          error: "Office images changed while they were being reordered",
+          code: "OFFICE_IMAGES_ORDER_STALE",
+          images: result.images,
+        });
+      }
+      res.json(result.images);
+    } catch (error) {
+      console.error("Reorder office images error:", error);
+      res.status(500).json({ error: "Failed to reorder office images" });
     }
   });
 
@@ -2419,11 +2442,49 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
     }
   });
 
-  // Get translation counts for all news articles
+  // El procesamiento usa el mapa compacto `counts`, mientras que el panel de
+  // traducciones también necesita el estado detallado por artículo. Entregar ambos
+  // en una misma respuesta evita el antiguo contrato inconsistente (el panel esperaba
+  // `news`, pero el servidor solo devolvía el mapa de conteos).
   app.get("/api/admin/news/translation-counts", authMiddleware, requirePermission("content"), async (_req: Request, res: Response) => {
     try {
-      const counts = await storage.getNewsTranslationCounts();
-      res.json(counts);
+      const [counts, articles, translations] = await Promise.all([
+        storage.getNewsTranslationCounts(),
+        db.select({
+          id: news.id,
+          title: news.title,
+          titleEs: news.titleEs,
+          slug: news.slug,
+          category: news.category,
+          content: news.content,
+          contentEs: news.contentEs,
+          published: news.published,
+        }).from(news),
+        db.select({ newsId: newsTranslations.newsId, language: newsTranslations.language }).from(newsTranslations),
+      ]);
+      const languageCodes = SUPPORTED_LANGUAGES.map((language) => language.code);
+      const translationsByArticle = new Map<string, Set<string>>();
+      for (const translation of translations) {
+        const languages = translationsByArticle.get(translation.newsId) || new Set<string>();
+        languages.add(translation.language);
+        translationsByArticle.set(translation.newsId, languages);
+      }
+      const translationStatus = articles.map((article) => {
+        const sourceLanguage = article.contentEs?.trim() ? "es" : "en";
+        const translated = translationsByArticle.get(article.id) || new Set<string>();
+        translated.add(sourceLanguage);
+        const translatedLanguages = languageCodes.filter((language) => translated.has(language));
+        return {
+          articleId: article.id,
+          title: article.titleEs || article.title || article.slug,
+          slug: article.slug,
+          category: article.category || "news",
+          published: article.published === true,
+          translatedLanguages,
+          missingLanguages: languageCodes.filter((language) => !translated.has(language)),
+        };
+      });
+      res.json({ counts, news: translationStatus });
     } catch (error) {
       console.error("Get translation counts error:", error);
       res.status(500).json({ error: "Failed to fetch translation counts" });
@@ -2462,6 +2523,31 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
     const knownIds = new Set((await storage.getTeamMembers()).map((member) => member.id));
     return ids.every((id) => knownIds.has(id));
   };
+
+  // El pipeline modifica el contenido y por diseño solo puede trabajar sobre
+  // borradores. En vez de despublicar una nota visible, crea una copia de
+  // trabajo con sus relaciones y traducciones para que se revise antes de
+  // reemplazar o publicar cualquier cambio.
+  app.post("/api/admin/news/:id/processing-draft", authMiddleware, requirePermission("agents"), async (req: Request, res: Response) => {
+    try {
+      const parsedId = z.string().uuid().safeParse(req.params.id);
+      if (!parsedId.success) return apiError(res, 400, "Invalid news id");
+
+      const source = await storage.getNewsById(parsedId.data);
+      if (!source) return apiError(res, 404, "News not found");
+      if (source.published === false) {
+        return apiError(res, 409, "This article is already a draft", { code: "ARTICLE_ALREADY_DRAFT" });
+      }
+
+      const draft = await storage.createNewsProcessingDraft(source.id);
+      if (!draft) return apiError(res, 409, "The processing draft could not be created", { code: "PROCESSING_DRAFT_NOT_CREATED" });
+      auditLog("create", "news_processing_draft", draft.id, (req as any).adminUser?.id || "unknown", { sourceId: source.id });
+      return res.status(201).json({ sourceId: source.id, draft });
+    } catch (error) {
+      console.error("Create processing draft error:", error);
+      return apiError(res, 500, "Failed to create processing draft");
+    }
+  });
 
   const normalizeAuthorEvidence = (value: unknown): string => String(value || "")
     .replace(/<[^>]*>/g, " ")
@@ -2728,7 +2814,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
   app.post("/api/admin/team", authMiddleware, requirePermission("content"), async (req: Request, res: Response) => {
     try {
       const validatedData = insertTeamMemberSchema.parse(req.body);
-      sanitizeFields(validatedData, ["bio", "bioEs"]);
+      sanitizeFields(validatedData, ["bio", "bioEs", "bioIntro", "bioIntroEs"]);
       const member = await storage.createTeamMember(validatedData);
       const practiceGroupIds = Array.isArray(req.body.practiceGroupIds) ? req.body.practiceGroupIds : [];
       const industryGroupIds = Array.isArray(req.body.industryGroupIds) ? req.body.industryGroupIds : [];
@@ -2740,6 +2826,8 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
       const linguisticWarnings = await getLinguisticWarnings([
         { field: "title", lang: "en", text: member.title },
         { field: "titleEs", lang: "es", text: member.titleEs },
+        { field: "bioIntro", lang: "en", text: member.bioIntro },
+        { field: "bioIntroEs", lang: "es", text: member.bioIntroEs },
         { field: "bio", lang: "en", text: member.bio },
         { field: "bioEs", lang: "es", text: member.bioEs },
       ]);
@@ -2757,7 +2845,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
   app.put("/api/admin/team/:id", authMiddleware, requirePermission("content"), async (req: Request, res: Response) => {
     try {
       const validatedData = insertTeamMemberSchema.partial().parse(req.body);
-      sanitizeFields(validatedData, ["bio", "bioEs"]);
+      sanitizeFields(validatedData, ["bio", "bioEs", "bioIntro", "bioIntroEs"]);
       // Si el body solo trae practiceGroupIds/industryGroupIds (sin campos propios de
       // teamMembers), no hay nada que actualizar en la tabla principal — Drizzle
       // rechaza un SET vacío. Solo se llama a updateTeamMember si hay campos reales.
@@ -2781,6 +2869,8 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
       const linguisticWarnings = await getLinguisticWarnings([
         { field: "title", lang: "en", text: member.title },
         { field: "titleEs", lang: "es", text: member.titleEs },
+        { field: "bioIntro", lang: "en", text: member.bioIntro },
+        { field: "bioIntroEs", lang: "es", text: member.bioIntroEs },
         { field: "bio", lang: "en", text: member.bio },
         { field: "bioEs", lang: "es", text: member.bioEs },
       ]);
@@ -4355,11 +4445,14 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
         });
       }
 
-      // Check council verdict exists and is approved
+      // La publicación exige una aprobación explícita: estados como
+      // `pending_revision` o `escalated` son precisamente una señal para no
+      // exponer todavía el contenido.
       const verdict = newsItem.councilVerdict as any;
-      if (!verdict || verdict.overallStatus === 'rejected') {
-        return res.status(400).json({ 
-          error: "Article was rejected by the Legal Council",
+      if (!verdict || verdict.overallStatus !== 'approved') {
+        return res.status(409).json({
+          code: "ARTICLE_REQUIRES_COUNCIL_APPROVAL",
+          error: "Article requires an approved Legal Council verdict before publication",
           verdict 
         });
       }
@@ -4774,6 +4867,12 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
       if (!article) {
         return res.status(404).json({ error: "Article not found" });
       }
+      if (article.published !== false) {
+        return res.status(409).json({
+          code: "PUBLISHED_ARTICLE_REQUIRES_DRAFT",
+          error: "Published articles must be converted to a draft before applying agent changes",
+        });
+      }
 
       const { orchestrator } = await import('./agents');
       const result = await orchestrator.executeImmediately('image_suggestion', {
@@ -4857,6 +4956,14 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
       const article = await storage.getNewsById(articleId);
       if (!article) {
         return res.status(404).json({ error: "Article not found" });
+      }
+      // No anunciar progreso antes de validar este requisito: de otro modo el
+      // panel parece estar procesando algo que el orquestador rechazará.
+      if (article.published !== false) {
+        return res.status(409).json({
+          code: "PUBLISHED_ARTICLE_REQUIRES_DRAFT",
+          error: "Published articles must be converted to a draft before applying the pipeline",
+        });
       }
 
       const { orchestrator } = await import('./agents');

@@ -110,7 +110,10 @@ export class PolyglotTranslatorAgent extends BaseAgent {
     const sourceHash = createHash('sha256')
       .update(JSON.stringify(sourceContent))
       .digest('hex');
-    const canApply = applyChanges === true || article.published === false;
+    // `applyChanges: false` es un modo de propuesta real; no debe poblar la
+    // caché ni las traducciones de la base de datos, aunque el artículo ya sea
+    // un borrador. Las publicaciones visibles tampoco se modifican por IA.
+    const canApply = applyChanges === true && article.published === false;
     if (!sourceContent.title.trim() || !sourceContent.content.trim()) {
       return { success: false, error: `Article has no complete ${sourceLanguage.toUpperCase()} source content` };
     }

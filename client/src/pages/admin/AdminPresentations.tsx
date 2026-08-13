@@ -78,7 +78,7 @@ export default function AdminPresentations() {
 
   const [previewId, setPreviewId] = useState<string | null>(null);
 
-  const { data: presentations = [], isLoading } = useQuery<PresentationRow[]>({
+  const { data: presentations = [], isLoading, isError, error, refetch } = useQuery<PresentationRow[]>({
     queryKey: ["/api/admin/generated-presentations"],
     enabled: isAuthenticated,
     queryFn: async () => {
@@ -419,7 +419,16 @@ export default function AdminPresentations() {
           </div>
         )}
 
-        {!isLoading && presentations.length === 0 && (
+        {!isLoading && isError && (
+          <Card>
+            <CardContent className="flex flex-col items-center gap-3 py-16 text-center">
+              <p className="text-sm text-destructive">{error instanceof Error ? error.message : "No se pudo cargar el historial de presentaciones."}</p>
+              <Button variant="outline" size="sm" onClick={() => void refetch()}>Reintentar</Button>
+            </CardContent>
+          </Card>
+        )}
+
+        {!isLoading && !isError && presentations.length === 0 && (
           <Card>
             <CardContent className="py-16 flex flex-col items-center gap-3 text-muted-foreground">
               <Presentation className="w-8 h-8 opacity-30" />
@@ -428,7 +437,7 @@ export default function AdminPresentations() {
           </Card>
         )}
 
-        {!isLoading && presentations.length > 0 && (
+        {!isLoading && !isError && presentations.length > 0 && (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {presentations.map((p) => {
               const pngUrls = Array.isArray(p.pngUrls) ? p.pngUrls : [];

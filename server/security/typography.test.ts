@@ -33,7 +33,7 @@ test('sitio y panel usan solamente Gelasio e Inter como familias activas', () =>
   assert.match(publicCss, /font-family:\s*"Inter"/);
   assert.match(adminCss, /--font-heading:\s*var\(--font-title\)/);
   assert.match(adminCss, /--font-sans:\s*var\(--font-body\)/);
-  assert.match(adminHtml, /typography\.css\?v=20260812-practice-industry-paragraphs/);
+  assert.match(adminHtml, /typography\.css\?v=20260812-attorney-profiles/);
   assert.match(server, /Inter-Variable\.woff2/);
   assert.match(server, /Gelasio-Variable\.woff2/);
   assert.match(server, /normalizeLegacyTypography/);

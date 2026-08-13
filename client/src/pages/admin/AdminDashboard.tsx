@@ -652,6 +652,10 @@ export default function AdminDashboard() {
   const maxTranslationsPerLang = cmsStats 
     ? Math.max(...Object.values(cmsStats.translationsByLanguage), 1) 
     : 1;
+  const statsUnavailable = cmsStatsQuery.isError;
+  const statsErrorMessage = cmsStatsQuery.error instanceof Error
+    ? cmsStatsQuery.error.message
+    : "No se pudo cargar el estado del CMS.";
 
   return (
     <div className="min-h-screen bg-background">
@@ -665,7 +669,9 @@ export default function AdminDashboard() {
             <p className="text-muted-foreground mt-1">Von Wobeser y Sierra — resumen del sitio</p>
           </div>
           <Badge variant="secondary" className="flex items-center gap-1.5 rounded-full px-3 py-1" data-testid="badge-processing-status">
-            {cmsStats?.processingStatus === "processing" ? (
+            {statsUnavailable ? (
+              <><span className="h-2 w-2 rounded-full bg-red-500" />No disponible</>
+            ) : cmsStats?.processingStatus === "processing" ? (
               <><Loader2 className="h-3 w-3 animate-spin" />{t.processing}</>
             ) : (
               <><span className="h-2 w-2 rounded-full bg-green-500" />{t.idle}</>
@@ -677,13 +683,22 @@ export default function AdminDashboard() {
           Esta es la pantalla principal del panel. Aquí ves de un vistazo cómo está el sitio: noticias recientes, actividad del equipo y accesos rápidos a las secciones más usadas.
         </AdminPageHelp>
 
+        {statsUnavailable && (
+          <Card className="mb-8 border-destructive/40">
+            <CardContent className="flex flex-wrap items-center justify-between gap-3 py-4">
+              <p className="text-sm text-destructive">{statsErrorMessage}</p>
+              <Button variant="outline" size="sm" onClick={() => void cmsStatsQuery.refetch()}>Reintentar</Button>
+            </CardContent>
+          </Card>
+        )}
+
         {/* ── Tarjetas de estado ── */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
           {[
-            { key: "content", label: "Contenido", icon: Newspaper, value: cmsStats?.totalArticles ?? 0, sub: "artículos publicables" },
-            { key: "translations", label: "Español → Inglés", icon: Languages, value: `${translationPercentage}%`, sub: enCoverage ? `${enCoverage.translated} de ${enCoverage.total} con inglés real` : "" },
-            { key: "db", label: "Base de datos", icon: Database, value: "Conectada", sub: "en línea", ok: true },
-            { key: "status", label: "Estado", icon: Activity, value: cmsStats?.processingStatus === "processing" ? t.processing : "Activo", sub: "sistema operativo", ok: true },
+            { key: "content", label: "Contenido", icon: Newspaper, value: statsUnavailable ? "—" : (cmsStats?.totalArticles ?? 0), sub: "artículos publicables" },
+            { key: "translations", label: "Español → Inglés", icon: Languages, value: statsUnavailable ? "—" : `${translationPercentage}%`, sub: enCoverage ? `${enCoverage.translated} de ${enCoverage.total} con inglés real` : "" },
+            { key: "db", label: "Base de datos", icon: Database, value: statsUnavailable ? "No disponible" : "Conectada", sub: statsUnavailable ? "sin verificación" : "en línea", ok: !statsUnavailable },
+            { key: "status", label: "Estado", icon: Activity, value: statsUnavailable ? "No disponible" : (cmsStats?.processingStatus === "processing" ? t.processing : "Activo"), sub: statsUnavailable ? "sin verificación" : "sistema operativo", ok: !statsUnavailable },
           ].map((s) => {
             const Icon = s.icon;
             return (

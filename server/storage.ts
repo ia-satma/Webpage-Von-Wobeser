@@ -1,5 +1,6 @@
 import { eq, ne, desc, asc, and, isNull, gte, lte, sql, inArray, ilike, or, arrayOverlaps, type SQL } from "drizzle-orm";
 import { db } from "./db";
+import crypto from "node:crypto";
 import { hasExactRankingSet } from "./rankings/order";
 import { sanitizeNewsFields } from "./mirror/sanitize";
 import { normalizeSpanishPartnerFields } from "@shared/attorneyTitles";
@@ -165,12 +166,14 @@ export interface IStorage {
   getNewsBySlug(slug: string): Promise<News | undefined>;
   createNews(news: InsertNews): Promise<News>;
   createNewsWithTeamMembers(news: InsertNews, teamMemberIds: string[]): Promise<News>;
+  createNewsProcessingDraft(newsId: string): Promise<News | undefined>;
   updateNews(id: string, data: Partial<InsertNews>): Promise<News | undefined>;
   updateNewsWithTeamMembers(id: string, data: Partial<InsertNews>, teamMemberIds?: string[]): Promise<News | undefined>;
   deleteNews(id: string): Promise<boolean>;
   getOfficeImages(): Promise<OfficeImage[]>;
   createOfficeImage(image: InsertOfficeImage): Promise<OfficeImage>;
   updateOfficeImage(id: string, data: Partial<InsertOfficeImage>): Promise<OfficeImage | undefined>;
+  reorderOfficeImages(ids: string[]): Promise<{ ok: boolean; images: OfficeImage[] }>;
   deleteOfficeImage(id: string): Promise<boolean>;
   getGeneratedImages(): Promise<(GeneratedImage & { articleTitle: string | null; articleSlug: string | null })[]>;
   createGeneratedImage(image: InsertGeneratedImage): Promise<GeneratedImage>;
@@ -778,6 +781,75 @@ export class DatabaseStorage implements IStorage {
     });
   }
 
+  /**
+   * Crea una copia de trabajo de una publicación sin modificar el artículo que
+   * ya está visible. El pipeline solo puede aplicar cambios a borradores, por
+   * lo que esta es la transición segura desde contenido publicado.
+   */
+  async createNewsProcessingDraft(newsId: string): Promise<News | undefined> {
+    return db.transaction(async (tx) => {
+      const [source] = await tx.select().from(news).where(eq(news.id, newsId));
+      // El pipeline puede trabajar exclusivamente con published=false. Si ya
+      // es borrador, no creamos una copia adicional innecesaria.
+      if (!source || source.published === false) return undefined;
+
+      const [translations, authorLinks] = await Promise.all([
+        tx.select().from(newsTranslations).where(eq(newsTranslations.newsId, source.id)),
+        tx.select().from(newsTeamMembers).where(eq(newsTeamMembers.newsId, source.id)),
+      ]);
+      const draftSlug = `${source.slug}-draft-${crypto.randomBytes(4).toString("hex")}`;
+      const draftValues = sanitizeNewsFields({
+        title: source.title,
+        titleEs: source.titleEs,
+        excerpt: source.excerpt,
+        excerptEs: source.excerptEs,
+        content: source.content,
+        contentEs: source.contentEs,
+        slug: draftSlug,
+        imageUrl: source.imageUrl,
+        published: false,
+        featuredHome: false,
+        category: source.category,
+        categoryEs: source.categoryEs,
+        tags: source.tags || [],
+        authorId: source.authorId,
+        processingStatus: "pending",
+        lastError: null,
+        lastProcessedAt: null,
+        failedStep: null,
+        publishAt: null,
+        // El identificador de Joomla no se duplica: debe seguir identificando
+        // únicamente la publicación histórica de origen.
+        legacyId: null,
+        councilVerdict: null,
+      });
+      const [draft] = await tx.insert(news).values(draftValues).returning();
+
+      if (authorLinks.length) {
+        await tx.insert(newsTeamMembers).values(authorLinks.map((link) => ({
+          newsId: draft.id,
+          teamMemberId: link.teamMemberId,
+        })));
+      }
+      if (translations.length) {
+        await tx.insert(newsTranslations).values(translations.map((translation) => ({
+          newsId: draft.id,
+          language: translation.language,
+          title: translation.title,
+          excerpt: translation.excerpt,
+          content: translation.content,
+          category: translation.category,
+          seoTitle: translation.seoTitle,
+          seoDescription: translation.seoDescription,
+          seoKeywords: translation.seoKeywords,
+          translatedBy: translation.translatedBy,
+        })));
+      }
+
+      return draft;
+    });
+  }
+
   async updateNews(id: string, data: Partial<InsertNews>): Promise<News | undefined> {
     const safeData = sanitizeNewsFields({ ...data });
     const [item] = await db
@@ -826,6 +898,33 @@ export class DatabaseStorage implements IStorage {
   async updateOfficeImage(id: string, data: Partial<InsertOfficeImage>): Promise<OfficeImage | undefined> {
     const [updated] = await db.update(officeImages).set(data).where(eq(officeImages.id, id)).returning();
     return updated;
+  }
+
+  async reorderOfficeImages(ids: string[]): Promise<{ ok: boolean; images: OfficeImage[] }> {
+    return db.transaction(async (tx) => {
+      const current = await tx
+        .select({ id: officeImages.id })
+        .from(officeImages)
+        .orderBy(asc(officeImages.order));
+      const currentIds = current.map((image) => image.id);
+      const requestedIds = Array.from(new Set(ids));
+
+      // No aplicar un orden parcial o desactualizado evita posiciones duplicadas
+      // cuando alguien modifica la galería mientras otro usuario la reordena.
+      if (
+        requestedIds.length !== ids.length
+        || requestedIds.length !== currentIds.length
+        || requestedIds.some((id) => !currentIds.includes(id))
+      ) {
+        return { ok: false, images: await tx.select().from(officeImages).orderBy(asc(officeImages.order)) };
+      }
+
+      for (let order = 0; order < ids.length; order += 1) {
+        await tx.update(officeImages).set({ order }).where(eq(officeImages.id, ids[order]));
+      }
+
+      return { ok: true, images: await tx.select().from(officeImages).orderBy(asc(officeImages.order)) };
+    });
   }
 
   async getGeneratedImages(): Promise<(GeneratedImage & { articleTitle: string | null; articleSlug: string | null })[]> {

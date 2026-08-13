@@ -68,7 +68,7 @@ export async function recoverFailedItems(): Promise<RecoveryReport> {
     };
     
     try {
-      if (article.published) {
+      if (article.published !== false) {
         result.message = 'Published content requires manual recovery approval';
         results.push(result);
         continue;
@@ -220,12 +220,12 @@ export async function markAsPartialSuccess(articleIds?: string[]): Promise<numbe
   if (articleIds && articleIds.length > 0) {
     let updated = 0;
     for (const id of articleIds) {
-      await db.update(news).set({
+      const changed = await db.update(news).set({
         processingStatus: 'partial_success',
         imageUrl: '/placeholder-article.svg',
         lastProcessedAt: new Date()
-      }).where(eq(news.id, id));
-      updated++;
+      }).where(and(eq(news.id, id), eq(news.published, false))).returning({ id: news.id });
+      updated += changed.length;
     }
     return updated;
   }
@@ -243,7 +243,8 @@ export async function markAsPartialSuccess(articleIds?: string[]): Promise<numbe
       or(
         eq(news.failedStep, 'image'),
         isNull(news.failedStep)
-      )
+      ),
+      eq(news.published, false)
     )
   ).returning({ id: news.id });
 

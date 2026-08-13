@@ -353,7 +353,7 @@ export default function AdminTeam() {
   const [page, setPage] = useState(1);
   const limit = 20;
 
-  const { data, isLoading } = useQuery<TeamResponse>({
+  const { data, isLoading, isError, error, refetch } = useQuery<TeamResponse>({
     queryKey: ["/api/admin/team", { search, role: roleFilter, page, limit }],
     queryFn: async () => {
       const params = new URLSearchParams({
@@ -363,6 +363,7 @@ export default function AdminTeam() {
         role: roleFilter,
       });
       const response = await adminApiRequest("GET", `/api/admin/team?${params}`);
+      if (!response.ok) throw new Error("No se pudo cargar la lista de abogados.");
       return response.json();
     },
     enabled: isAuthenticated && !!token,
@@ -372,6 +373,7 @@ export default function AdminTeam() {
     queryKey: ["/api/admin/team/stats"],
     queryFn: async () => {
       const response = await adminApiRequest("GET", "/api/admin/team/stats");
+      if (!response.ok) throw new Error("No se pudieron cargar las estadísticas de abogados.");
       return response.json();
     },
     enabled: isAuthenticated && !!token,
@@ -513,6 +515,11 @@ export default function AdminTeam() {
                 {[...Array(5)].map((_, i) => (
                   <Skeleton key={i} className="h-16 w-full" />
                 ))}
+              </div>
+            ) : isError ? (
+              <div className="flex flex-col items-center gap-3 py-12 text-center">
+                <p className="text-sm text-destructive">{error instanceof Error ? error.message : "No se pudo cargar la lista de abogados."}</p>
+                <Button variant="outline" size="sm" onClick={() => void refetch()}>Reintentar</Button>
               </div>
             ) : data?.members && data.members.length > 0 ? (
               <>

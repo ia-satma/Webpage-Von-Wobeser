@@ -4,6 +4,7 @@ import { news, officeImages, practiceGroups, industryGroups, teamMembers, repres
 import { hashPassword } from "./auth";
 import { applyCanonicalPracticeContent } from "./content/canonicalPractices";
 import { applyCanonicalIndustryContent } from "./content/canonicalIndustries";
+import { applyCanonicalAttorneyContent } from "./content/canonicalAttorneys";
 
 const legacyPracticeGroupsData = [
   { 
@@ -798,6 +799,11 @@ const teamMembersData = [
   { name: "Virginia Cornett", slug: "virginia-cornett", title: "Associate", titleEs: "Asociada", role: "Labor & Employment", roleEs: "Laboral", email: "vcornett@vwys.com.mx", phone: "+52 (55) 5258-1000", isPartner: false, order: 115, imageUrl: "/associate_photos/virginia_cornett.jpg" },
 ];
 
+// El directorio inicial debe coincidir con la fuente editorial canónica; evita
+// que una instalación limpia vuelva a cargar biografías abreviadas o perfiles
+// retirados. La función conserva solo metadata visual preexistente.
+export const canonicalTeamMembersData = applyCanonicalAttorneyContent(teamMembersData);
+
 const newsData = [
   {
     title: "Von Wobeser y Sierra completes transition to new offices: a strategic investment in the firm's future",
@@ -1247,7 +1253,7 @@ export async function seed() {
   const existingTeamMembers = await db.select().from(teamMembers);
   if (existingTeamMembers.length === 0) {
     console.log("Seeding team members...");
-    await db.insert(teamMembers).values(teamMembersData);
+    await db.insert(teamMembers).values(canonicalTeamMembersData as typeof teamMembers.$inferInsert[]);
   }
 
   const existingRepresentativeMatters = await db.select().from(representativeMatters);
