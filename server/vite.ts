@@ -49,9 +49,13 @@ export async function setupVite(server: Server, app: Express) {
 
       // always reload the index.html file from disk incase it changes
       let template = await fs.promises.readFile(clientTemplate, "utf-8");
+      // `v` is a reserved Vite dependency-version query. Using it here made
+      // Vite reuse a stale transform after optimizeDeps regenerated its
+      // hashes, leaving the admin root blank. A neutral query keeps each HTML
+      // entry aligned with the currently active dependency graph.
       template = template.replace(
         `src="/src/main.tsx"`,
-        `src="/src/main.tsx?v=${nanoid()}"`,
+        `src="/src/main.tsx?entry=${nanoid()}"`,
       );
       const page = await vite.transformIndexHtml(url, template);
       res.status(200).set({ "Content-Type": "text/html" }).end(page);

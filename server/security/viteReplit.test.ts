@@ -19,6 +19,12 @@ test("el compositor de desarrollo usa la API server.ws de Vite 8", () => {
   assert.doesNotMatch(source, /hmr:\s*\{\s*server,/);
 });
 
+test("la entrada del panel evita el parámetro v reservado por Vite", () => {
+  const source = readFileSync(new URL("../vite.ts", import.meta.url), "utf8");
+  assert.match(source, /main\.tsx\?entry=\$\{nanoid\(\)\}/);
+  assert.doesNotMatch(source, /main\.tsx\?v=\$\{nanoid\(\)\}/);
+});
+
 test("Vite usa WSS y el origen público del preview de Replit", () => {
   assert.deepEqual(createViteWebSocketOptions(server, {
     REPL_ID: "repl-id",
