@@ -18,6 +18,23 @@ function safePublicHref(value: string, fallback: string): string {
 }
 
 /**
+ * La URL del mapa se administra desde Oficinas y se reutiliza en Contacto.
+ * Al ser un iframe, restringimos el origen a embeds HTTPS de Google Maps: así
+ * un valor accidental o una URL de otro proveedor no convierte Contacto en un
+ * punto de carga de contenido arbitrario.
+ */
+function safeGoogleMapsEmbed(value: string): string | null {
+  try {
+    const url = new URL(String(value ?? "").trim());
+    const googleHost = /(?:^|\.)google\.[a-z.]+$/i.test(url.hostname);
+    if (url.protocol !== "https:" || !googleHost || !/^\/maps\/embed(?:\/|$)/i.test(url.pathname)) return null;
+    return url.toString();
+  } catch {
+    return null;
+  }
+}
+
+/**
  * El formulario de "Pasantes" del sitio capturado es HTML crudo de Joomla con
  * action="" — al enviarse no llega a ningún backend (ni correo, ni BD, ni panel).
  * Este fix vive en código (no se edita el HTML capturado a mano) para sobrevivir a un
@@ -131,6 +148,17 @@ export function applyContactForm(
     if (currentHtml?.includes("Torre SOMA Chapultepec 18th floor.")) {
       $contactCopy.html(currentHtml.replaceAll("Torre SOMA Chapultepec 18th floor.", "Torre SOMA Chapultepec, piso 18."));
     }
+  }
+
+  // La plantilla capturada contiene un mapa histórico. Si el administrador
+  // actualiza la sede, Contacto debe reflejar exactamente el mismo embed que
+  // el micrositio de Oficinas. applyA11y lo aplaza después hasta que exista
+  // consentimiento para contenido externo.
+  const mapEmbed = safeGoogleMapsEmbed(cfg(config, "office_map_embed", lang));
+  if (mapEmbed) {
+    $(".page__map--holder iframe").first()
+      .attr("src", mapEmbed)
+      .attr("title", lang === "es" ? "Ubicación de Von Wobeser y Sierra en Google Maps" : "Von Wobeser y Sierra location on Google Maps");
   }
 
   const defaults = lang === "es"

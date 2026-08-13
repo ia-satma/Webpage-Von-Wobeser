@@ -340,7 +340,7 @@ export function applyA11y($: cheerio.CheerioAPI, lang: Lang): void {
   });
 
   if ($('link[href^="/vwb-cookie-consent.css"]').length === 0) {
-  $("head").append('<link rel="stylesheet" href="/vwb-cookie-consent.css?v=20260810-footer-contrast">');
+  $("head").append('<link rel="stylesheet" href="/vwb-cookie-consent.css?v=20260812-contact-map">');
   }
   if ($('script[src^="/vwb-cookie-consent.js"]').length === 0) {
     $("body").append('<script defer src="/vwb-cookie-consent.js?v=20260806e"></script>');

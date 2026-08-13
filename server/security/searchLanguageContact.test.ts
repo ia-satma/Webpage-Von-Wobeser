@@ -94,6 +94,7 @@ test("buscador global escapa contenido y enlaza todos los tipos publicados", () 
 
 test("Contacto queda debajo del mapa, usa cuadrícula propia y prácticas administradas", () => {
   const $ = cheerio.load(chrome);
+  $(".page__map--holder").html('<iframe src="https://www.google.com/maps/embed?pb=legacy"></iframe>');
   $(".page__content--body").html("<p>Torre SOMA Chapultepec 18th floor. Campos Elíseos 204.</p>");
   applyContactForm(
     $,
@@ -101,6 +102,7 @@ test("Contacto queda debajo del mapa, usa cuadrícula propia y prácticas admini
     {
       contact_form_title: { value: "Write us", valueEs: "Hablemos", type: "text" },
       contact_form_submit_label: { value: "Send", valueEs: "Enviar ahora", type: "text" },
+      office_map_embed: { value: "https://www.google.com/maps/embed?pb=official", valueEs: "", type: "url" },
     },
     [
       { slug: "arbitraje", name: "Arbitration", nameEs: "Arbitraje", published: true },
@@ -128,6 +130,18 @@ test("Contacto queda debajo del mapa, usa cuadrícula propia y prácticas admini
   assert.match($.html(), /\.vw-contact-privacy a\{color:#a5102a;font-weight:500/);
   assert.match($.html(), /Torre SOMA Chapultepec, piso 18/);
   assert.doesNotMatch($.html(), /18th floor/);
+  assert.equal($(".page__map--holder iframe").attr("src"), "https://www.google.com/maps/embed?pb=official");
+  assert.match($(".page__map--holder iframe").attr("title") || "", /Ubicación de Von Wobeser/);
+});
+
+test("Contacto conserva el mapa capturado si la configuración no es un embed seguro de Google Maps", () => {
+  const $ = cheerio.load(chrome);
+  $(".page__map--holder").html('<iframe src="https://www.google.com/maps/embed?pb=legacy"></iframe>');
+  applyContactForm($, "en", {
+    office_map_embed: { value: "https://example.com/embed", valueEs: "", type: "url" },
+  });
+
+  assert.equal($(".page__map--holder iframe").attr("src"), "https://www.google.com/maps/embed?pb=legacy");
 });
 
 test("Contacto permite administrar el consentimiento bilingüe", () => {

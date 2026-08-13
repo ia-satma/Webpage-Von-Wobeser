@@ -59,6 +59,12 @@ test("los enlaces de cookies del footer mantienen contraste visible sobre el fon
   assert.match(css, /font:400 \.82rem\/1\.45 var\(--vwb-body\)/);
 });
 
+test("el aviso de Google Maps queda dentro del rectángulo reservado para el mapa", () => {
+  const css = readFileSync(new URL("../../public/vwb-cookie-consent.css", import.meta.url), "utf8");
+
+  assert.match(css, /\.page__map--holder>\.vwb-external-consent\{position:absolute;inset:0;width:100%;height:100%;min-height:0;margin:0\}/);
+});
+
 test("el gestor conserva elección versionada, respeta GPC sin ocultar el aviso y revoca GA4", () => {
   const source = readFileSync(new URL("../../public/vwb-cookie-consent.js", import.meta.url), "utf8");
   const mirrorSource = readFileSync(new URL("../mirror/index.ts", import.meta.url), "utf8");
