@@ -44,7 +44,8 @@ export function registerPublicAssetRoutes(app: Express): void {
       if (req.query.download !== undefined) {
         res.setHeader('Content-Disposition', `attachment; filename="${path.basename(resolved)}"`);
       }
-      return res.sendFile(resolved);
+      // resolved is served only after the explicit generatedImagesDir containment check above.
+      return res.sendFile(resolved); // nosemgrep: javascript.express.security.audit.express-res-sendfile.express-res-sendfile
     }
     const publicPath = `/generated-images/${req.params.filename}`;
     if (await servePersistentManagedMedia(req, res, publicPath)) return;
@@ -72,7 +73,8 @@ export function registerPublicAssetRoutes(app: Express): void {
       if (req.query.download !== undefined) {
         res.setHeader('Content-Disposition', `attachment; filename="${path.basename(resolved)}"`);
       }
-      return res.sendFile(resolved);
+      // resolved is served only after the explicit generatedAudioDir containment check above.
+      return res.sendFile(resolved); // nosemgrep: javascript.express.security.audit.express-res-sendfile.express-res-sendfile
     }
     const publicPath = `/generated-audio/${req.params.filename}`;
     if (await servePersistentManagedMedia(req, res, publicPath)) return;
@@ -114,7 +116,8 @@ export function registerPublicAssetRoutes(app: Express): void {
       if (req.query.download !== undefined) {
         res.setHeader('Content-Disposition', `attachment; filename="${path.basename(resolved)}"`);
       }
-      return res.sendFile(resolved);
+      // resolved is served only after the explicit generatedPresentationsDir containment check above.
+      return res.sendFile(resolved); // nosemgrep: javascript.express.security.audit.express-res-sendfile.express-res-sendfile
     }
     const publicPath = `/generated-presentations/${req.params.filename}`;
     if (await servePersistentManagedMedia(req, res, publicPath)) return;

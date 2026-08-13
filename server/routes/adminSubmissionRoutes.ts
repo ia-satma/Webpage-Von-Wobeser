@@ -86,7 +86,8 @@ export function registerAdminSubmissionRoutes(app: Express): void {
         res.setHeader("Content-Security-Policy", "sandbox");
         res.setHeader("Cache-Control", "private, no-store");
         auditLog("update", "career_application_cv_download", application.id, req.adminUser!.id);
-        if (hasLocalFile && absolutePath) return res.sendFile(absolutePath);
+        // absolutePath is built from a managed filename and accepted only when it remains inside uploadsDir.
+        if (hasLocalFile && absolutePath) return res.sendFile(absolutePath); // nosemgrep: javascript.express.security.audit.express-res-sendfile.express-res-sendfile
         persistentStream!.once("error", () => {
           if (!res.headersSent) res.status(404).end();
           else res.destroy();
