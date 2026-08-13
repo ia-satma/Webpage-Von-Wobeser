@@ -19,7 +19,13 @@ export function serveStatic(app: Express) {
     }));
   }
 
-  app.use(express.static(distPath));
+  app.use(express.static(distPath, {
+    // El shell del panel es un documento HTML y puede contener estado de la
+    // sesión. Los bundles con hash se sirven arriba con caché inmutable.
+    setHeaders: (res, filePath) => {
+      if (filePath.endsWith(".html")) res.setHeader("Cache-Control", "private, no-store");
+    },
+  }));
 
   // Solo las rutas del panel usan el fallback SPA. Una API o archivo
   // inexistente debe conservar un 404 real en vez de devolver index.html.
@@ -32,6 +38,7 @@ export function serveStatic(app: Express) {
       res.status(404).type("text").send("Not Found");
       return;
     }
+    res.setHeader("Cache-Control", "private, no-store");
     res.sendFile(path.resolve(distPath, "index.html"));
   });
 }

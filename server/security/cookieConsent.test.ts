@@ -73,6 +73,9 @@ test("el gestor conserva elección versionada, respeta GPC sin ocultar el aviso 
   assert.match(source, /XMLHttpRequest/);
   assert.match(source, /SameSite=Lax/);
   assert.match(source, /Secure/);
+  assert.match(source, /const secureAttribute = \(\) => location\.protocol === "https:" \? "; Secure" : ""/);
+  assert.match(source, /Max-Age=0; Path=\/; SameSite=Lax\$\{secureAttribute\(\)\}/);
+  assert.match(source, /Max-Age=0; Path=\/; Domain=\$\{domain\}; SameSite=Lax\$\{secureAttribute\(\)\}/);
   assert.match(source, /globalPrivacyControl/);
   assert.match(source, /analytics:\s*false/);
   assert.match(source, /external:\s*false/);

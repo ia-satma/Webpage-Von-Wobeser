@@ -183,27 +183,31 @@ export function getAbsoluteSessionExpiry(): Date {
   return new Date(Date.now() + ABSOLUTE_SESSION_HOURS * 60 * 60 * 1000);
 }
 
-export const SESSION_COOKIE = process.env.NODE_ENV === "production"
-  ? "__Host-vwb_admin_session"
-  : "vwb_admin_session";
-export const CHALLENGE_COOKIE = process.env.NODE_ENV === "production"
-  ? "__Host-vwb_admin_challenge"
-  : "vwb_admin_challenge";
+export function getSessionCookieName(nodeEnv = process.env.NODE_ENV): string {
+  return nodeEnv === "production" ? "__Host-vwb_admin_session" : "vwb_admin_session";
+}
 
-export function authCookieOptions(maxAgeMs: number) {
+export function getChallengeCookieName(nodeEnv = process.env.NODE_ENV): string {
+  return nodeEnv === "production" ? "__Host-vwb_admin_challenge" : "vwb_admin_challenge";
+}
+
+export const SESSION_COOKIE = getSessionCookieName();
+export const CHALLENGE_COOKIE = getChallengeCookieName();
+
+export function authCookieOptions(maxAgeMs: number, nodeEnv = process.env.NODE_ENV) {
   return {
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
+    secure: nodeEnv === "production",
     sameSite: "strict" as const,
     path: "/",
     maxAge: maxAgeMs,
   };
 }
 
-export function clearAuthCookie(res: Response, name: string): void {
+export function clearAuthCookie(res: Response, name: string, nodeEnv = process.env.NODE_ENV): void {
   res.clearCookie(name, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
+    secure: nodeEnv === "production",
     sameSite: "strict",
     path: "/",
   });

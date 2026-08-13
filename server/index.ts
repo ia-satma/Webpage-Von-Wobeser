@@ -11,6 +11,7 @@ import { initializeAgents, orchestrator } from "./agents";
 import { invalidatePublicPageCache } from "./mirror/pageCache";
 import { invalidatePublicNavigationMenuCache } from "./mirror/navigationMenu";
 import { isMigrationReadOnlyEnabled, migrationReadOnlyGuard } from "./database/maintenance";
+import { createCspNonce } from "./security/csp";
 
 const app = express();
 // Detrás del reverse-proxy de Replit (inyecta X-Forwarded-For). Sin esto req.ip es la IP del
@@ -21,34 +22,50 @@ const httpServer = createServer(app);
 
 app.use(compression());
 
-// Security headers (CSP se afina aparte: el espejo usa inline scripts/estilos + assets externos)
+// El nonce nace antes de Helmet para que el encabezado y el HTML producido por
+// sendPage compartan exactamente el mismo valor, único por respuesta.
+app.use((_req, res, next) => {
+  res.locals.cspNonce = createCspNonce();
+  next();
+});
+
+const isProduction = process.env.NODE_ENV === "production";
+const cspNonceSource = (_req: any, res: any) => "'nonce-" + String(res.locals.cspNonce || "") + "'";
+
+// En producción la CSP es obligatoria. Desarrollo conserva Report-Only para
+// que Vite/HMR siga funcionando, sin relajar la política publicada.
 app.use(helmet({
-  // El espejo heredado todavía contiene scripts inline. Se recopilan reportes
-  // antes de pasar a enforcement para no romper miles de páginas de golpe.
   contentSecurityPolicy: {
-    reportOnly: true,
+    reportOnly: !isProduction,
     directives: {
       defaultSrc: ["'self'"],
       baseUri: ["'self'"],
       objectSrc: ["'none'"],
       frameAncestors: ["'none'"],
       formAction: ["'self'"],
-      // Compatibilidad temporal y explícita con el HTML heredado del espejo:
-      // aún contiene scripts y manejadores inline. Mantenerlos declarados en
-      // Report-Only evita miles de falsos positivos sin habilitar unsafe-eval.
-      // La migración futura a nonces permitirá retirarlos antes de enforcement.
-      scriptSrc: ["'self'", "'unsafe-inline'"],
-      scriptSrcElem: ["'self'", "'unsafe-inline'"],
-      scriptSrcAttr: ["'unsafe-inline'"],
-      styleSrc: ["'self'", "'unsafe-inline'"],
+      // Los scripts inline legítimos reciben nonce al generarse la respuesta.
+      // Los handlers HTML heredados se migran a eventos delegados locales.
+      scriptSrc: isProduction
+        ? ["'self'", cspNonceSource, "https://www.googletagmanager.com"]
+        : ["'self'", "'unsafe-inline'", "https://www.googletagmanager.com"],
+      scriptSrcElem: isProduction
+        ? ["'self'", cspNonceSource, "https://www.googletagmanager.com"]
+        : ["'self'", "'unsafe-inline'", "https://www.googletagmanager.com"],
+      scriptSrcAttr: isProduction ? ["'none'"] : ["'unsafe-inline'"],
+      styleSrc: isProduction ? ["'self'", cspNonceSource] : ["'self'", "'unsafe-inline'"],
+      styleSrcElem: isProduction ? ["'self'", cspNonceSource] : ["'self'", "'unsafe-inline'"],
+      // React y las capturas históricas usan atributos style; no ejecutan JS.
+      styleSrcAttr: ["'unsafe-inline'"],
       fontSrc: ["'self'", "data:"],
       imgSrc: ["'self'", "data:", "blob:", "https:"],
       mediaSrc: ["'self'", "blob:", "https:"],
-      connectSrc: ["'self'", "https:", "wss:", "ws:"],
+      // El sitio y el panel hablan con la misma origen. Las únicas conexiones
+      // externas del navegador son los beacons de GA4, tras consentimiento.
+      connectSrc: isProduction
+        ? ["'self'", "https://www.googletagmanager.com", "https://www.google-analytics.com", "https://region1.google-analytics.com"]
+        : ["'self'", "https:", "wss:", "ws:"],
       frameSrc: ["'self'", "https://www.google.com", "https://www.youtube.com", "https://www.youtube-nocookie.com", "https://player.vimeo.com"],
-      // `upgrade-insecure-requests` es ignorada por los navegadores dentro de una
-      // política Report-Only y genera un error de consola que Lighthouse penaliza.
-      // Se añadirá cuando la CSP pase a enforcement, no antes.
+      ...(isProduction ? { upgradeInsecureRequests: [] } : {}),
       reportUri: ["/api/security/csp-report"],
     },
   },

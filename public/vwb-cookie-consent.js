@@ -13,6 +13,7 @@
     const value = config?.[key];
     return typeof value === "object" ? (value[lang()] || value.en || value.es || "") : (value || "");
   };
+  const secureAttribute = () => location.protocol === "https:" ? "; Secure" : "";
   const esc = (value) => String(value ?? "").replace(/[&<>"']/g, (character) => ({
     "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;",
   })[character]);
@@ -44,7 +45,7 @@
       decidedAt: new Date().toISOString(),
       expiresAt: expires.toISOString(),
     };
-    document.cookie = `${COOKIE}=${encodeURIComponent(JSON.stringify(choice))}; Max-Age=${Math.round((expires.getTime() - Date.now()) / 1000)}; Path=/; SameSite=Lax${location.protocol === "https:" ? "; Secure" : ""}`;
+    document.cookie = `${COOKIE}=${encodeURIComponent(JSON.stringify(choice))}; Max-Age=${Math.round((expires.getTime() - Date.now()) / 1000)}; Path=/; SameSite=Lax${secureAttribute()}`;
     apply();
     window.dispatchEvent(new CustomEvent("vwb:consent-changed", { detail: choice }));
   };
@@ -66,9 +67,9 @@
     const domains = [location.hostname];
     if (hostParts.length > 2) domains.push(`.${hostParts.slice(-2).join(".")}`);
     gaCookieNames().forEach((name) => {
-      document.cookie = `${name}=; Max-Age=0; Path=/; SameSite=Lax`;
+      document.cookie = `${name}=; Max-Age=0; Path=/; SameSite=Lax${secureAttribute()}`;
       domains.forEach((domain) => {
-        document.cookie = `${name}=; Max-Age=0; Path=/; Domain=${domain}; SameSite=Lax`;
+        document.cookie = `${name}=; Max-Age=0; Path=/; Domain=${domain}; SameSite=Lax${secureAttribute()}`;
       });
     });
   };

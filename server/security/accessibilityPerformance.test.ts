@@ -139,17 +139,17 @@ test("las rutas públicas, APIs y recursos inexistentes conservan un 404 real", 
   assert.match(staticServer, /res\.status\(404\)\.type\("text"\)\.send\("Not Found"\)/);
 });
 
-test("CSP Report-Only modela los scripts inline heredados sin habilitar eval", () => {
+test("CSP de producción exige nonces y bloquea atributos de script inline", () => {
   const mainServer = readFileSync(new URL("../index.ts", import.meta.url), "utf8");
 
-  assert.match(mainServer, /contentSecurityPolicy:\s*\{[\s\S]*reportOnly:\s*true/);
-  assert.match(mainServer, /scriptSrc:\s*\["'self'", "'unsafe-inline'"\]/);
-  assert.match(mainServer, /scriptSrcElem:\s*\["'self'", "'unsafe-inline'"\]/);
-  assert.match(mainServer, /scriptSrcAttr:\s*\["'unsafe-inline'"\]/);
+  assert.match(mainServer, /contentSecurityPolicy:\s*\{[\s\S]*reportOnly:\s*!isProduction/);
+  assert.match(mainServer, /scriptSrc:\s*isProduction[\s\S]*cspNonceSource/);
+  assert.match(mainServer, /scriptSrcElem:\s*isProduction[\s\S]*cspNonceSource/);
+  assert.match(mainServer, /scriptSrcAttr:\s*isProduction\s*\?\s*\["'none'"\]/);
   assert.doesNotMatch(mainServer, /scriptSrc[^\n]*unsafe-eval/);
   assert.match(mainServer, /objectSrc:\s*\["'none'"\]/);
   assert.match(mainServer, /frameAncestors:\s*\["'none'"\]/);
-  assert.doesNotMatch(mainServer, /upgradeInsecureRequests:/);
+  assert.match(mainServer, /upgradeInsecureRequests/);
 });
 
 test("cada página usa un único H1 editorial y elimina encabezados ocultos de Joomla", () => {

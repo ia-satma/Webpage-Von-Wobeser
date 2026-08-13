@@ -74,6 +74,7 @@ import { isMigrationReadOnlyEnabled } from "../database/maintenance";
 import { normalizeVideoSource } from "@shared/videoSource";
 import { getLocalizedAttorneyTitle } from "@shared/attorneyTitles";
 import { getEditorialTypography, getEditorialTypographyForEntities, replaceEditorialTypography } from "../editorialTypography";
+import { prepareTrustedHtmlForCsp } from "../security/csp";
 
 type Lang = "en" | "es";
 
@@ -450,6 +451,8 @@ export const SEARCH_FORMS_SCRIPT = `<script>(function(){try{
 // Se incrementa junto con los estilos globales del espejo para que las
 // navegaciones existentes no conserven una tipografía previa en caché.
 const NAV_ASSET_VERSION = "20260810-editorial-network";
+const LEGACY_EVENTS_ASSET_VERSION = "20260813-csp";
+const LEGACY_EVENTS_SCRIPT = `<script defer src="/vwb-legacy-events.js?v=${LEGACY_EVENTS_ASSET_VERSION}"></script>`;
 function refreshNavigationAssets(html: string): string {
   return html
     .replace(/(href=["']\/templates\/beez3\/css\/style\.css)(?:\?[^"']*)?(["'])/gi, `$1?v=${NAV_ASSET_VERSION}$2`)
@@ -937,7 +940,7 @@ async function sendPage(res: Response, html: string, status = 200) {
       .replace(/\u2029/g, "\\u2029");
     consentConfigScript = `<script>window.__VWB_COOKIE_CONSENT_CONFIG__=${serialized};</script>`;
   }
-  const inject = `${consentConfigScript}${navigationLabelsScript(config, lang, navigationItems)}${LANG_TOGGLE_SCRIPT}${SEARCH_FORMS_SCRIPT}${DOC_ACTIONS_SCRIPT}`;
+  const inject = `${consentConfigScript}${navigationLabelsScript(config, lang, navigationItems)}${LANG_TOGGLE_SCRIPT}${SEARCH_FORMS_SCRIPT}${DOC_ACTIONS_SCRIPT}${LEGACY_EVENTS_SCRIPT}`;
   let out = normalizeLegacyTypography(hardenLegacyClientScripts(
     stripRetiredDeskLinks(refreshNavigationAssets(optimizeLegacyAssets(html))),
   ));
@@ -953,7 +956,12 @@ async function sendPage(res: Response, html: string, status = 200) {
     out = injectAdminLink(out, lang);
   }
   out = ensureImgAlt(out); // backstop a11y: alt en imgs que escaparon a applyA11y
-  res.set("Cache-Control", "public, max-age=60, stale-while-revalidate=300");
+  const nonce = String(res.locals.cspNonce || "");
+  if (!nonce) throw new Error("Missing CSP nonce for public HTML response");
+  out = prepareTrustedHtmlForCsp(out, nonce);
+  // Un nonce debe ser único por respuesta: el HTML no puede compartir caché.
+  // Los assets estáticos siguen usando sus TTL largos en express.static.
+  res.set("Cache-Control", "private, no-store");
   res.status(status).type("html").send(out);
 }
 
@@ -2495,6 +2503,7 @@ export async function setupMirror(app: Express) {
   const consentAssets: Array<[string, string]> = [
     ["/vwb-cookie-consent.css", "vwb-cookie-consent.css"],
     ["/vwb-cookie-consent.js", "vwb-cookie-consent.js"],
+    ["/vwb-legacy-events.js", "vwb-legacy-events.js"],
   ];
   for (const [route, filename] of consentAssets) {
     app.get(route, (_req, res, next) => {

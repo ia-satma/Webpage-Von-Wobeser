@@ -15,6 +15,9 @@ const {
   passwordNeedsRehash,
   rehashVerifiedPassword,
   validateNewPassword,
+  authCookieOptions,
+  getChallengeCookieName,
+  getSessionCookieName,
 } = await import("../auth");
 const { adminLoginSchema } = await import("../../shared/schema");
 
@@ -70,6 +73,21 @@ test("CSRF tokens are stable per session and do not expose the session token", (
   assert.equal(first, deriveCsrfToken(raw));
   assert.notEqual(first, deriveCsrfToken("B".repeat(43)));
   assert.equal(first.includes(raw), false);
+});
+
+test("production admin cookies use the __Host secure profile", () => {
+  const session = authCookieOptions(60_000, "production");
+  assert.equal(getSessionCookieName("production"), "__Host-vwb_admin_session");
+  assert.equal(getChallengeCookieName("production"), "__Host-vwb_admin_challenge");
+  assert.equal(session.httpOnly, true);
+  assert.equal(session.secure, true);
+  assert.equal(session.sameSite, "strict");
+  assert.equal(session.path, "/");
+  assert.equal(Object.hasOwn(session, "domain"), false);
+
+  const development = authCookieOptions(60_000, "development");
+  assert.equal(development.secure, false);
+  assert.equal(getSessionCookieName("development"), "vwb_admin_session");
 });
 
 test("authenticated admin payloads always include effective configuration permissions", () => {
