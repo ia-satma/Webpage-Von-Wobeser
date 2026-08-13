@@ -8,8 +8,8 @@ errores corregidos, verificación y pendientes se encuentra en
 
 ## Estado breve
 
-- Fuente de verdad: `ia-satma/Webpage-Von-Wobeser`, rama `main`, sincronizada en
-  `bb42d6b` al cierre de esta jornada.
+- Fuente de verdad: `ia-satma/Webpage-Von-Wobeser`, rama `main`, publicada en
+  `b67163e` al cierre de esta jornada.
 - Sitio público: espejo editorial servido y enriquecido por Express.
 - Administración: aplicación React bajo `/admin/*`.
 - Datos: PostgreSQL de desarrollo y producción administrados desde Replit.
@@ -19,7 +19,7 @@ errores corregidos, verificación y pendientes se encuentra en
 - Idiomas: español e inglés con rutas, `canonical`, `hreflang` y selector compartidos.
 - Contenido canónico: 18 prácticas, 7 industrias y 133 perfiles oficiales bilingües;
   el directorio conserva además 9 perfiles propios para un total de 142 publicados.
-- Validación más reciente documentada: TypeScript, build y **234/234 pruebas de seguridad**.
+- Validación más reciente documentada: TypeScript, build y **235/235 pruebas de seguridad**.
 
 ## Reglas de continuidad
 
