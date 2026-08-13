@@ -571,7 +571,11 @@ export default function AdminSiteConfig() {
 
   const { data, isLoading, refetch } = useQuery<ConfigMap>({
     queryKey: ["/api/admin/site-config"],
-    queryFn: async () => (await adminApiRequest("GET", "/api/admin/site-config")).json(),
+    queryFn: async () => {
+      const response = await adminApiRequest("GET", "/api/admin/site-config");
+      if (!response.ok) throw new Error("No se pudo cargar la configuración del sitio.");
+      return response.json();
+    },
     enabled: isAuthenticated,
   });
 
@@ -653,6 +657,12 @@ export default function AdminSiteConfig() {
       } else {
         toast({ title: "Error al guardar", variant: "destructive" });
       }
+    } catch (error) {
+      toast({
+        title: "Error al guardar",
+        description: error instanceof Error ? error.message : "No fue posible conectar con el servidor.",
+        variant: "destructive",
+      });
     } finally {
       setSaving(null);
     }

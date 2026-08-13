@@ -43,7 +43,7 @@ export default function AdminGeneratedAudio() {
   }, [requireAuth]);
   const { toast } = useToast();
 
-  const { data: audios = [], isLoading } = useQuery<GeneratedAudioRow[]>({
+  const { data: audios = [], isLoading, isError, error, refetch } = useQuery<GeneratedAudioRow[]>({
     queryKey: ["/api/admin/generated-audio"],
     enabled: isAuthenticated,
     queryFn: async () => {
@@ -99,7 +99,16 @@ export default function AdminGeneratedAudio() {
             </div>
           )}
 
-          {!isLoading && audios.length === 0 && (
+          {!isLoading && isError && (
+            <Card>
+              <CardContent className="flex flex-col items-center gap-3 py-16 text-center">
+                <p className="text-sm text-destructive">{error instanceof Error ? error.message : "No se pudo cargar el historial de audio."}</p>
+                <Button variant="outline" size="sm" onClick={() => void refetch()}>Reintentar</Button>
+              </CardContent>
+            </Card>
+          )}
+
+          {!isLoading && !isError && audios.length === 0 && (
             <Card>
               <CardContent className="py-16 flex flex-col items-center gap-3 text-muted-foreground">
                 <VolumeX className="w-8 h-8 opacity-30" />
@@ -109,7 +118,7 @@ export default function AdminGeneratedAudio() {
             </Card>
           )}
 
-          {!isLoading && audios.length > 0 && (
+          {!isLoading && !isError && audios.length > 0 && (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {audios.map((audio) => (
                 <Card key={audio.id} data-testid={`generated-audio-card-${audio.id}`}>

@@ -104,7 +104,14 @@ Return JSON with cleaned title, content, and excerpt.`;
 
       const result = formatterOutputSchema.parse(JSON.parse(response));
 
-      const canApply = Boolean(articleId && (applyChanges === true || article?.published === false));
+      // Una previsualización jamás puede persistir cambios. Incluso una orden
+      // explícita solo se aplica a un borrador: el contenido publicado se
+      // protege también si el endpoint se invoca fuera del panel.
+      const canApply = Boolean(
+        articleId &&
+        applyChanges === true &&
+        article?.published === false,
+      );
       if (articleId && canApply) {
         const update = sourceLanguage === 'es'
           ? {

@@ -54,7 +54,11 @@ export default function AdminDesks() {
 
   const { data: items = [], isLoading, refetch } = useQuery<Desk[]>({
     queryKey: ["/api/admin/desks"],
-    queryFn: async () => (await adminApiRequest("GET", "/api/admin/desks")).json(),
+    queryFn: async () => {
+      const response = await adminApiRequest("GET", "/api/admin/desks");
+      if (!response.ok) throw new Error("No se pudo cargar la lista de desks.");
+      return response.json();
+    },
     enabled: isAuthenticated,
   });
 
@@ -74,7 +78,11 @@ export default function AdminDesks() {
   const deskTeamQuery = useQuery<TeamMemberLite[]>({
     queryKey: ["/api/admin/desks", editingId, "team"],
     enabled: isAuthenticated && !!editingId,
-    queryFn: async () => (await adminApiRequest("GET", `/api/admin/desks/${editingId}/team`)).json(),
+    queryFn: async () => {
+      const response = await adminApiRequest("GET", `/api/admin/desks/${editingId}/team`);
+      if (!response.ok) throw new Error("No se pudo cargar el equipo del desk.");
+      return response.json();
+    },
   });
   useEffect(() => {
     setTeamIds((deskTeamQuery.data || []).map((m) => m.id));
@@ -90,6 +98,8 @@ export default function AdminDesks() {
       const res = await adminApiRequest("PUT", `/api/admin/desks/${editingId}/team`, { teamMemberIds: teamIds });
       if (res.ok) toast({ title: "Equipo del desk actualizado", description: "Ya se refleja en el modal del mapa del sitio público." });
       else toast({ title: "Error al guardar el equipo", variant: "destructive" });
+    } catch {
+      toast({ title: "Error al guardar el equipo", description: "No fue posible conectar con el servidor.", variant: "destructive" });
     } finally {
       setTeamBusy(false);
     }
@@ -131,15 +141,21 @@ export default function AdminDesks() {
       } else {
         toast({ title: editingId ? "Error al actualizar" : "Error al agregar", variant: "destructive" });
       }
+    } catch {
+      toast({ title: editingId ? "Error al actualizar" : "Error al agregar", description: "No fue posible conectar con el servidor.", variant: "destructive" });
     } finally {
       setBusy(false);
     }
   };
 
   const remove = async (id: string) => {
-    const res = await adminApiRequest("DELETE", `/api/admin/desks/${id}`);
-    if (res.ok) { toast({ title: "Eliminado" }); refetch(); }
-    else toast({ title: "Error al eliminar", variant: "destructive" });
+    try {
+      const res = await adminApiRequest("DELETE", `/api/admin/desks/${id}`);
+      if (res.ok) { toast({ title: "Eliminado" }); refetch(); }
+      else toast({ title: "Error al eliminar", variant: "destructive" });
+    } catch {
+      toast({ title: "Error al eliminar", description: "No fue posible conectar con el servidor.", variant: "destructive" });
+    }
   };
 
   return (

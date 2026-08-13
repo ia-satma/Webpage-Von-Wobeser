@@ -3,7 +3,7 @@ import { AdminPageHelp } from "@/components/admin/AdminPageHelp";
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { useAdminAuth, adminApiRequest } from "@/lib/adminAuth";
+import { useAdminAuth, adminApiRequest, readAdminJson, useMyPermissions } from "@/lib/adminAuth";
 import { queryClient } from "@/lib/queryClient";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -459,11 +459,14 @@ const translations = {
 };
 
 interface CMSStats {
-  totalNews: number;
-  totalTeamMembers: number;
-  totalPracticeGroups: number;
-  totalIndustryGroups: number;
+  totalArticles: number;
+  articlesWithTranslations: number;
+  totalTranslations: number;
   translationsByLanguage: Record<string, number>;
+  languageCoverage: {
+    es: { total: number; translated: number };
+    en: { total: number; translated: number };
+  };
 }
 
 interface TranslationCounts {
@@ -471,9 +474,21 @@ interface TranslationCounts {
   title: string;
   slug: string;
   category: string;
+  published: boolean;
   translatedLanguages: string[];
   missingLanguages: string[];
 }
+
+type TranslationResponse = {
+  counts: Record<string, number>;
+  news: TranslationCounts[];
+};
+
+type TranslationRunResult = {
+  success: boolean;
+  error?: string;
+  data?: { changesApplied?: boolean };
+};
 
 interface TranslationJob {
   id: string;
@@ -488,8 +503,10 @@ interface TranslationJob {
 export default function AdminTranslations() {
   const { language } = useLanguage();
   const { isAuthenticated, isLoading: authLoading, requireAuth } = useAdminAuth();
+  const { has, loaded: permissionsLoaded } = useMyPermissions();
   const { toast } = useToast();
   const t = translations[language as keyof typeof translations] || translations.en;
+  const canManageLanguages = permissionsLoaded && has("config");
 
   const [contentTypeFilter, setContentTypeFilter] = useState("all");
   const [translatingArticleId, setTranslatingArticleId] = useState<string | null>(null);
@@ -510,7 +527,7 @@ export default function AdminTranslations() {
     enabled: isAuthenticated,
   });
 
-  const translationCountsQuery = useQuery<{ news: TranslationCounts[] }>({
+  const translationCountsQuery = useQuery<TranslationResponse>({
     queryKey: ["/api/admin/news/translation-counts", contentTypeFilter],
     queryFn: async () => {
       const res = await adminApiRequest("GET", "/api/admin/news/translation-counts");
@@ -526,16 +543,23 @@ export default function AdminTranslations() {
         articleId,
         languages,
       });
-      if (!res.ok) throw new Error("Failed to trigger translation");
-      return res.json();
+      const result = await readAdminJson<TranslationRunResult>(res, "No se pudo iniciar la traducción.");
+      if (!result.success || result.data?.changesApplied !== true) {
+        throw new Error(result.error || "La traducción no se guardó en el borrador.");
+      }
+      return result;
     },
     onSuccess: () => {
       toast({ title: t.translateSuccess });
       queryClient.invalidateQueries({ queryKey: ["/api/admin/news/translation-counts"] });
       setTranslatingArticleId(null);
     },
-    onError: () => {
-      toast({ title: t.translateError, variant: "destructive" });
+    onError: (error) => {
+      toast({
+        title: t.translateError,
+        description: error instanceof Error ? error.message : undefined,
+        variant: "destructive",
+      });
       setTranslatingArticleId(null);
     },
   });
@@ -552,9 +576,10 @@ export default function AdminTranslations() {
     queryKey: ["/api/admin/settings/languages"],
     queryFn: async () => {
       const res = await adminApiRequest("GET", "/api/admin/settings/languages");
+      if (!res.ok) throw new Error("No se pudieron cargar los idiomas activos.");
       return res.json();
     },
-    enabled: isAuthenticated,
+    enabled: isAuthenticated && canManageLanguages,
   });
   useEffect(() => {
     if (languagesSettingsQuery.data?.activeLanguages) setActiveLangs(languagesSettingsQuery.data.activeLanguages);
@@ -579,10 +604,14 @@ export default function AdminTranslations() {
     const stats = cmsStatsQuery.data;
     if (!stats) return [];
 
-    const totalContent = stats.totalNews || 1;
+    const totalContent = stats.totalArticles || 1;
     
     return SUPPORTED_LANGUAGES.map((lang) => {
-      const translated = stats.translationsByLanguage?.[lang] || 0;
+      const translated = lang === "es"
+        ? stats.languageCoverage.es.translated
+        : lang === "en"
+          ? stats.languageCoverage.en.translated
+          : stats.translationsByLanguage?.[lang] || 0;
       const coverage = Math.round((translated / totalContent) * 100);
       return {
         code: lang,
@@ -599,14 +628,11 @@ export default function AdminTranslations() {
     const stats = cmsStatsQuery.data;
     if (!stats) return { total: 0, translated: 0, coverage: 0, languages: SUPPORTED_LANGUAGES.length };
 
-    const total = stats.totalNews || 0;
-    const translationCounts = Object.values(stats.translationsByLanguage || {});
-    const avgTranslated = translationCounts.length > 0
-      ? translationCounts.reduce((a, b) => a + b, 0) / translationCounts.length
-      : 0;
-    const coverage = total > 0 ? Math.round((avgTranslated / total) * 100) : 0;
+    const total = stats.totalArticles || 0;
+    const translated = stats.articlesWithTranslations || 0;
+    const coverage = total > 0 ? Math.round((translated / total) * 100) : 0;
 
-    return { total, translated: Math.floor(avgTranslated), coverage, languages: SUPPORTED_LANGUAGES.length };
+    return { total, translated, coverage, languages: SUPPORTED_LANGUAGES.length };
   };
 
   const getFilteredArticles = () => {
@@ -641,6 +667,33 @@ export default function AdminTranslations() {
     return null;
   }
 
+  const loadError = cmsStatsQuery.error || translationCountsQuery.error;
+  if (loadError) {
+    const message = loadError instanceof Error ? loadError.message : "No se pudo cargar el estado de traducciones.";
+    return (
+      <div className="min-h-screen bg-background" data-testid="admin-translations-page">
+        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <AdminPageHeader title={t.title} description={t.subtitle} icon={Languages} />
+          <Card>
+            <CardContent className="flex flex-col items-start gap-3 py-8">
+              <p className="text-sm text-destructive">{message}</p>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  void cmsStatsQuery.refetch();
+                  void translationCountsQuery.refetch();
+                }}
+              >
+                Reintentar
+              </Button>
+            </CardContent>
+          </Card>
+        </main>
+      </div>
+    );
+  }
+
   const overallStats = getOverallStats();
   const languageCoverage = getLanguageCoverageData();
   const filteredArticles = getFilteredArticles();
@@ -667,17 +720,17 @@ export default function AdminTranslations() {
             </Button>
           }
         />
-        <AdminPageHelp pageId="traducciones" manualSectionId="traducciones">Traduce el contenido a otros idiomas y elige, en la pestaña Idiomas activos, a cuáles traducir.</AdminPageHelp>
+        <AdminPageHelp pageId="traducciones" manualSectionId="traducciones">Traduce el contenido a otros idiomas{canManageLanguages ? " y elige, en la pestaña Idiomas activos, a cuáles traducir." : "."}</AdminPageHelp>
 
         <Tabs defaultValue="overview" className="space-y-6">
           <TabsList data-testid="tabs-navigation">
             <TabsTrigger value="overview" data-testid="tab-overview">{t.overview}</TabsTrigger>
             <TabsTrigger value="articles" data-testid="tab-articles">{t.articles}</TabsTrigger>
             <TabsTrigger value="jobs" data-testid="tab-jobs">{t.recentJobs}</TabsTrigger>
-            <TabsTrigger value="languages" data-testid="tab-languages">Idiomas activos</TabsTrigger>
+            {canManageLanguages && <TabsTrigger value="languages" data-testid="tab-languages">Idiomas activos</TabsTrigger>}
           </TabsList>
 
-          <TabsContent value="languages" className="space-y-6">
+          {canManageLanguages && <TabsContent value="languages" className="space-y-6">
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -724,7 +777,7 @@ export default function AdminTranslations() {
                 </p>
               </CardContent>
             </Card>
-          </TabsContent>
+          </TabsContent>}
 
           <TabsContent value="overview" className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -918,7 +971,9 @@ export default function AdminTranslations() {
                             </div>
                           </TableCell>
                           <TableCell className="text-right">
-                            {article.missingLanguages && article.missingLanguages.length > 0 && (
+                            {article.published ? (
+                              <span className="text-xs text-muted-foreground">Crea un borrador para traducir</span>
+                            ) : article.missingLanguages && article.missingLanguages.length > 0 && (
                               <Button
                                 size="sm"
                                 variant="outline"

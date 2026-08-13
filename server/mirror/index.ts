@@ -488,7 +488,7 @@ export function optimizeLegacyAssets(html: string): string {
 function injectPerformanceHints(html: string): string {
   if (!html.includes("</head>")) return html;
   const hints = [
-    '<link rel="stylesheet" href="/templates/beez3/css/typography.css?v=20260812-practice-industry-paragraphs">',
+    '<link rel="stylesheet" href="/templates/beez3/css/typography.css?v=20260812-attorney-profiles">',
     '<link rel="preload" href="/templates/beez3/webfont/Inter-Variable.woff2" as="font" type="font/woff2" crossorigin>',
     '<link rel="preload" href="/templates/beez3/webfont/Gelasio-Variable.woff2" as="font" type="font/woff2" crossorigin>',
   ].filter((hint) => !html.includes(hint.match(/href="([^"]+)"/)?.[1] || ""));
@@ -2413,21 +2413,43 @@ export async function setupMirror(app: Express) {
     res.json({ ok: true, activeLanguages: unique });
   }));
 
-  // Traduce un artículo a los idiomas indicados (o a los activos globales por defecto).
+  // Traduce un borrador a los idiomas indicados (o a los activos globales por defecto).
+  // Un contenido publicado nunca se reescribe automáticamente desde el panel.
   app.post("/api/admin/translate", authMiddleware, requirePermission("content"), wrap(async (req, res) => {
-    const { articleId, languages } = req.body || {};
-    if (!articleId) { res.status(400).json({ error: "articleId requerido" }); return; }
+    const parsed = z.object({
+      articleId: z.string().uuid(),
+      languages: z.array(z.enum(["es", "en", "de", "zh", "ko", "ja", "ar", "ru", "fr", "it"])).min(1).max(9).optional(),
+    }).strict().safeParse(req.body || {});
+    if (!parsed.success) { res.status(400).json({ error: "Solicitud de traducción inválida" }); return; }
+    const article = await storage.getNewsById(parsed.data.articleId);
+    if (!article) { res.status(404).json({ error: "Artículo no encontrado" }); return; }
+    if (article.published !== false) {
+      res.status(409).json({
+        code: "PUBLISHED_ARTICLE_REQUIRES_DRAFT",
+        error: "Crea un borrador antes de aplicar traducciones automáticas.",
+      });
+      return;
+    }
     const map = await getConfigMap();
     const active = parseLangs(map.active_languages?.value);
-    const requested = Array.isArray(languages) && languages.length
-      ? (languages as string[]).filter((c) => ALL_LANGS.includes(c))
+    const requested = parsed.data.languages?.length
+      ? parsed.data.languages.filter((c) => ALL_LANGS.includes(c))
       : active;
     const targetLanguages = requested.filter((c) => c !== "es"); // "es" es la fuente
+    if (targetLanguages.length === 0) { res.status(400).json({ error: "Selecciona al menos un idioma de destino" }); return; }
     const { polyglotTranslatorAgent } = await import("../agents/specialized/PolyglotTranslatorAgent");
     const result = await polyglotTranslatorAgent.execute(
-      { jobId: `translate-${articleId}`, agentType: "polyglot_translator", startTime: new Date(), metadata: { source: "admin" } } as any,
-      { articleId, targetLanguages },
+      { jobId: `translate-${article.id}`, agentType: "polyglot_translator", startTime: new Date(), metadata: { source: "admin" } } as any,
+      { articleId: article.id, targetLanguages, applyChanges: true },
     );
+    if (!result.success) {
+      res.status(422).json({ error: result.error || "No se pudieron generar las traducciones." });
+      return;
+    }
+    if ((result.data as { changesApplied?: boolean } | undefined)?.changesApplied !== true) {
+      res.status(409).json({ error: "No se guardó ninguna traducción nueva para este borrador." });
+      return;
+    }
     res.json(result);
   }));
 

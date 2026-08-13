@@ -20,7 +20,7 @@ import {
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { queryClient } from '@/lib/queryClient';
-import { adminApiRequest } from '@/lib/adminAuth';
+import { adminApiRequest, readAdminJson } from '@/lib/adminAuth';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { getImpactLabel } from '@/lib/adminTranslations';
 import { AdminPageHelp } from '@/components/admin/AdminPageHelp';
@@ -474,7 +474,7 @@ export default function AdminHealthCheck() {
   const resetZombiesMutation = useMutation({
     mutationFn: async () => {
       const response = await adminApiRequest('POST', '/api/health-check/reset-zombies');
-      return response.json();
+      return readAdminJson<{ message?: string }>(response, t.failedToResetZombies);
     },
     onSuccess: (data) => {
       toast({

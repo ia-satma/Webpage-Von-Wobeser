@@ -55,7 +55,11 @@ export default function AdminRecognitions() {
 
   const { data, isLoading, isError, refetch } = useQuery<Ranking[]>({
     queryKey: ["/api/admin/rankings"],
-    queryFn: async () => (await adminApiRequest("GET", "/api/admin/rankings")).json(),
+    queryFn: async () => {
+      const response = await adminApiRequest("GET", "/api/admin/rankings");
+      if (!response.ok) throw new Error("No se pudo cargar la lista de reconocimientos.");
+      return response.json();
+    },
     enabled: isAuthenticated,
   });
   const items = data ?? [];
@@ -99,19 +103,34 @@ export default function AdminRecognitions() {
       } else {
         toast({ title: editingId ? "Error al actualizar" : "Error al agregar", variant: "destructive" });
       }
+    } catch {
+      toast({
+        title: editingId ? "Error al actualizar" : "Error al agregar",
+        description: "No fue posible conectar con el servidor.",
+        variant: "destructive",
+      });
     } finally {
       setBusy(false);
     }
   };
 
   const remove = async (id: string) => {
-    const res = await adminApiRequest("DELETE", `/api/admin/rankings/${id}`);
-    if (res.ok) {
-      toast({ title: "Eliminado" });
-      setOrderDirty(false);
-      void refetch();
+    try {
+      const res = await adminApiRequest("DELETE", `/api/admin/rankings/${id}`);
+      if (res.ok) {
+        toast({ title: "Eliminado" });
+        setOrderDirty(false);
+        void refetch();
+      } else {
+        toast({ title: "Error al eliminar", variant: "destructive" });
+      }
+    } catch {
+      toast({
+        title: "Error al eliminar",
+        description: "No fue posible conectar con el servidor.",
+        variant: "destructive",
+      });
     }
-    else toast({ title: "Error al eliminar", variant: "destructive" });
   };
 
   const moveRanking = (id: string, direction: -1 | 1) => {

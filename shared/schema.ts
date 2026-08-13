@@ -43,6 +43,8 @@ export interface Publication {
   journal?: string;
   year?: string;
   url?: string;
+  /** Perfil editorial: los recursos oficiales distinguen noticias y artículos. */
+  kind?: "news" | "article";
 }
 
 export interface RepresentativeMatter {
@@ -298,6 +300,10 @@ export const teamMembers = pgTable("team_members", {
   roleEs: text("role_es").notNull(),
   bio: text("bio"),
   bioEs: text("bio_es"),
+  // La ficha editorial separa el destacado del cuerpo. Los campos `bio` y
+  // `bioEs` siguen siendo el cuerpo para compatibilidad con perfiles heredados.
+  bioIntro: text("bio_intro"),
+  bioIntroEs: text("bio_intro_es"),
   email: text("email"),
   phone: text("phone"),
   imageUrl: text("image_url"),
@@ -309,6 +315,7 @@ export const teamMembers = pgTable("team_members", {
   education: jsonb("education").$type<Education[]>(),
   barAdmissions: jsonb("bar_admissions").$type<BarAdmission[]>(),
   languages: jsonb("languages").$type<string[]>(),
+  languagesEs: jsonb("languages_es").$type<string[]>(),
   affiliations: jsonb("affiliations").$type<Affiliation[]>(),
   rankings: jsonb("rankings").$type<Ranking[]>(),
   publications: jsonb("publications").$type<Publication[]>(),

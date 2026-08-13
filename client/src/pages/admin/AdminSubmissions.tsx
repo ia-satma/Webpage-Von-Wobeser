@@ -60,22 +60,30 @@ export default function AdminSubmissions() {
   });
 
   const markContactRead = async (id: string) => {
-    const res = await adminApiRequest("PATCH", `/api/admin/contact-submissions/${id}/read`);
-    if (res.ok) {
-      toast({ title: "Marcado como leído" });
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/contact-submissions"] });
-    } else {
-      toast({ title: "Error", description: "No se pudo actualizar.", variant: "destructive" });
+    try {
+      const res = await adminApiRequest("PATCH", `/api/admin/contact-submissions/${id}/read`);
+      if (res.ok) {
+        toast({ title: "Marcado como leído" });
+        queryClient.invalidateQueries({ queryKey: ["/api/admin/contact-submissions"] });
+      } else {
+        toast({ title: "Error", description: "No se pudo actualizar.", variant: "destructive" });
+      }
+    } catch {
+      toast({ title: "Error", description: "No fue posible conectar con el servidor.", variant: "destructive" });
     }
   };
 
   const markCareerRead = async (id: string) => {
-    const res = await adminApiRequest("PATCH", `/api/admin/career-applications/${id}/read`);
-    if (res.ok) {
-      toast({ title: "Marcado como leído" });
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/career-applications"] });
-    } else {
-      toast({ title: "Error", description: "No se pudo actualizar.", variant: "destructive" });
+    try {
+      const res = await adminApiRequest("PATCH", `/api/admin/career-applications/${id}/read`);
+      if (res.ok) {
+        toast({ title: "Marcado como leído" });
+        queryClient.invalidateQueries({ queryKey: ["/api/admin/career-applications"] });
+      } else {
+        toast({ title: "Error", description: "No se pudo actualizar.", variant: "destructive" });
+      }
+    } catch {
+      toast({ title: "Error", description: "No fue posible conectar con el servidor.", variant: "destructive" });
     }
   };
 

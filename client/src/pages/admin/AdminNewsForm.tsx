@@ -61,10 +61,10 @@ export default function AdminNewsForm() {
 
   // Cargar la noticia al editar.
   const newsQuery = useQuery<News>({
-    queryKey: ["/api/news", id],
+    queryKey: ["/api/admin/news", id],
     enabled: isEdit,
     queryFn: async () => {
-      const res = await adminApiRequest("GET", `/api/news/${id}`);
+      const res = await adminApiRequest("GET", `/api/admin/news/${id}`);
       if (!res.ok) throw new Error("No se pudo cargar la noticia");
       return res.json();
     },
@@ -84,11 +84,12 @@ export default function AdminNewsForm() {
     setSlugTouched(true); // no re-generar slug de una noticia existente
   }, [newsQuery.data]);
 
-  // Todos los abogados (para el selector). Ruta pública, sin filtro de publicado.
-  const teamQuery = useQuery<TeamMemberLite[]>({
-    queryKey: ["/api/team"],
+  // El selector incluye perfiles aún en borrador para que una noticia no pierda
+  // vínculos válidos al editarse desde el CMS.
+  const teamQuery = useQuery<{ members: TeamMemberLite[] }>({
+    queryKey: ["/api/admin/team", "news-form"],
     queryFn: async () => {
-      const res = await fetch("/api/team");
+      const res = await adminApiRequest("GET", "/api/admin/team?page=1&limit=100");
       if (!res.ok) throw new Error("No se pudo cargar la lista de abogados");
       return res.json();
     },
@@ -389,7 +390,7 @@ export default function AdminNewsForm() {
               <div className="grid gap-2 sm:grid-cols-2 max-h-64 overflow-y-auto border rounded-md p-3" aria-live="polite">
                 {teamQuery.isLoading && <p className="text-sm text-muted-foreground col-span-2">Cargando…</p>}
                 {teamQuery.isError && <p className="text-sm text-destructive col-span-2">No fue posible cargar el directorio.</p>}
-                {(teamQuery.data || [])
+                {(teamQuery.data?.members || [])
                   .filter((member) => member.name.toLocaleLowerCase("es").includes(authorSearch.trim().toLocaleLowerCase("es")))
                   .map((member) => (
                     <label key={member.id} className="flex items-center gap-2 text-sm cursor-pointer rounded-sm px-1 py-1 hover:bg-muted">
@@ -401,7 +402,7 @@ export default function AdminNewsForm() {
                       {member.name}
                     </label>
                   ))}
-                {!teamQuery.isLoading && !teamQuery.isError && (teamQuery.data || []).filter((member) => member.name.toLocaleLowerCase("es").includes(authorSearch.trim().toLocaleLowerCase("es"))).length === 0 && (
+                {!teamQuery.isLoading && !teamQuery.isError && (teamQuery.data?.members || []).filter((member) => member.name.toLocaleLowerCase("es").includes(authorSearch.trim().toLocaleLowerCase("es"))).length === 0 && (
                   <p className="text-sm text-muted-foreground col-span-2">No hay coincidencias.</p>
                 )}
               </div>

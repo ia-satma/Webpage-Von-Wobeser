@@ -39,7 +39,7 @@ export default function AdminGeneratedImages() {
   }, [requireAuth]);
   const { toast } = useToast();
 
-  const { data: images = [], isLoading } = useQuery<GeneratedImageRow[]>({
+  const { data: images = [], isLoading, isError, error, refetch } = useQuery<GeneratedImageRow[]>({
     queryKey: ["/api/admin/generated-images"],
     enabled: isAuthenticated,
     queryFn: async () => {
@@ -95,7 +95,16 @@ export default function AdminGeneratedImages() {
             </div>
           )}
 
-          {!isLoading && images.length === 0 && (
+          {!isLoading && isError && (
+            <Card>
+              <CardContent className="flex flex-col items-center gap-3 py-16 text-center">
+                <p className="text-sm text-destructive">{error instanceof Error ? error.message : "No se pudo cargar el historial de imágenes."}</p>
+                <Button variant="outline" size="sm" onClick={() => void refetch()}>Reintentar</Button>
+              </CardContent>
+            </Card>
+          )}
+
+          {!isLoading && !isError && images.length === 0 && (
             <Card>
               <CardContent className="py-16 flex flex-col items-center gap-3 text-muted-foreground">
                 <ImageOff className="w-8 h-8 opacity-30" />
@@ -105,7 +114,7 @@ export default function AdminGeneratedImages() {
             </Card>
           )}
 
-          {!isLoading && images.length > 0 && (
+          {!isLoading && !isError && images.length > 0 && (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {images.map((img) => (
                 <Card key={img.id} data-testid={`generated-image-card-${img.id}`}>

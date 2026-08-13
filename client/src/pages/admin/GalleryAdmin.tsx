@@ -72,6 +72,26 @@ export function OfficeGalleryManager({ embedded = false }: { embedded?: boolean 
     onError: () => toast({ title: "No se pudo actualizar la imagen", variant: "destructive" }),
   });
 
+  const reorderMutation = useMutation({
+    mutationFn: async (orderedIds: string[]) => {
+      const res = await adminApiRequest("PUT", "/api/admin/office-images/order", { ids: orderedIds });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(typeof data?.error === "string" ? data.error : "No se pudo guardar el orden de la galería.");
+      return data as OfficeImage[];
+    },
+    onSuccess: (orderedImages) => {
+      queryClient.setQueryData(["/api/office-images"], orderedImages);
+    },
+    onError: async (error) => {
+      await queryClient.invalidateQueries({ queryKey: ["/api/office-images"] });
+      toast({
+        title: "No se pudo guardar el orden",
+        description: error instanceof Error ? error.message : "La galería se recargó para conservar el orden correcto.",
+        variant: "destructive",
+      });
+    },
+  });
+
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
       const res = await adminApiRequest("DELETE", `/api/admin/office-images/${id}`);
@@ -119,22 +139,26 @@ export function OfficeGalleryManager({ embedded = false }: { embedded?: boolean 
     });
   };
 
+  const saveReorderedImages = (next: OfficeImage[]) => {
+    reorderMutation.mutate(next.map((image) => image.id));
+  };
+
   const handleMoveUp = (img: OfficeImage) => {
     const sorted = [...images].sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
     const idx = sorted.findIndex((i) => i.id === img.id);
     if (idx <= 0) return;
-    const prev = sorted[idx - 1];
-    updateMutation.mutate({ id: img.id, data: { order: prev.order ?? 0 } });
-    updateMutation.mutate({ id: prev.id, data: { order: img.order ?? 0 } });
+    const next = [...sorted];
+    [next[idx - 1], next[idx]] = [next[idx], next[idx - 1]];
+    saveReorderedImages(next);
   };
 
   const handleMoveDown = (img: OfficeImage) => {
     const sorted = [...images].sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
     const idx = sorted.findIndex((i) => i.id === img.id);
     if (idx >= sorted.length - 1) return;
-    const next = sorted[idx + 1];
-    updateMutation.mutate({ id: img.id, data: { order: next.order ?? 0 } });
-    updateMutation.mutate({ id: next.id, data: { order: img.order ?? 0 } });
+    const next = [...sorted];
+    [next[idx], next[idx + 1]] = [next[idx + 1], next[idx]];
+    saveReorderedImages(next);
   };
 
   const openEdit = (img: OfficeImage) => {
@@ -334,7 +358,7 @@ export function OfficeGalleryManager({ embedded = false }: { embedded?: boolean 
                           size="icon"
                           variant="outline"
                           onClick={() => handleMoveUp(img)}
-                          disabled={idx === 0 || updateMutation.isPending}
+                          disabled={idx === 0 || updateMutation.isPending || reorderMutation.isPending}
                           aria-label="Subir"
                           data-testid={`button-move-up-${img.id}`}
                         >
@@ -344,7 +368,7 @@ export function OfficeGalleryManager({ embedded = false }: { embedded?: boolean 
                           size="icon"
                           variant="outline"
                           onClick={() => handleMoveDown(img)}
-                          disabled={idx === sortedImages.length - 1 || updateMutation.isPending}
+                          disabled={idx === sortedImages.length - 1 || updateMutation.isPending || reorderMutation.isPending}
                           aria-label="Bajar"
                           data-testid={`button-move-down-${img.id}`}
                         >

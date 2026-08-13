@@ -142,6 +142,25 @@ export async function adminApiRequest(method: string, url: string, data?: unknow
   return response;
 }
 
+/**
+ * Convierte una respuesta administrativa en JSON solo si la operación fue
+ * aceptada. `fetch` no rechaza respuestas 4xx/5xx por sí solo; usar este
+ * helper evita que una mutación muestre una notificación de éxito después de
+ * que el servidor la rechazó.
+ */
+export async function readAdminJson<T = unknown>(response: Response, fallbackMessage = "La operación no pudo completarse."): Promise<T> {
+  const body = await response.json().catch(() => ({})) as Record<string, unknown>;
+  if (!response.ok) {
+    const message = typeof body.error === "string"
+      ? body.error
+      : typeof body.message === "string"
+        ? body.message
+        : fallbackMessage;
+    throw new Error(message);
+  }
+  return body as T;
+}
+
 interface AdminAuthState {
   isAuthenticated: boolean;
   isLoading: boolean;

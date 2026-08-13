@@ -48,16 +48,25 @@ export function TranslateButton({
       return;
     }
     setLoading(true);
-    const res = await adminApiRequest("POST", "/api/admin/translate-fields", { fields: clean, from, to });
-    setLoading(false);
-    if (!res.ok) {
-      const e = await res.json().catch(() => ({}));
-      toast({ title: "No se pudo traducir", description: (e as any)?.error || "Intenta de nuevo en un momento.", variant: "destructive" });
-      return;
+    try {
+      const res = await adminApiRequest("POST", "/api/admin/translate-fields", { fields: clean, from, to });
+      if (!res.ok) {
+        const e = await res.json().catch(() => ({}));
+        toast({ title: "No se pudo traducir", description: (e as any)?.error || "Intenta de nuevo en un momento.", variant: "destructive" });
+        return;
+      }
+      const data = await res.json();
+      onApply((data?.fields || {}) as Record<string, string>);
+      toast({ title: "Traducción lista", description: "Revisa el inglés y guarda cuando estés conforme." });
+    } catch {
+      toast({
+        title: "No se pudo traducir",
+        description: "No fue posible conectar con el servicio de traducción. Inténtalo nuevamente.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
     }
-    const data = await res.json();
-    onApply((data?.fields || {}) as Record<string, string>);
-    toast({ title: "Traducción lista", description: "Revisa el inglés y guarda cuando estés conforme." });
   };
 
   return (

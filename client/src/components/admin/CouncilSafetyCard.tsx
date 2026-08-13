@@ -440,6 +440,7 @@ export function CouncilSafetyCard({ verdict, onValidate, isValidating, isAdmin }
   
   const score = verdict.averageScore ?? extractScoreFallback(verdict.consolidatedFeedback);
   const checksPassed = verdict.overallStatus === 'approved' || verdict.overallStatus === 'pending_revision';
+  const canPublish = verdict.overallStatus === 'approved';
 
   return (
     <Card className="border-2 border-primary/20 bg-gradient-to-br from-background to-primary/5" data-testid="card-council-safety">
@@ -549,7 +550,7 @@ export function CouncilSafetyCard({ verdict, onValidate, isValidating, isAdmin }
         {isAdmin && onValidate && (
           <Button 
             onClick={onValidate}
-            disabled={isValidating || verdict.overallStatus === 'rejected'}
+            disabled={isValidating || !canPublish}
             className="w-full bg-primary hover:bg-primary/90 text-white font-bold py-3"
             size="lg"
             data-testid="button-validate-publish"

@@ -103,35 +103,52 @@ export default function AdminUsers() {
       return;
     }
     setBusy(true);
-    const res = await adminApiRequest("POST", "/api/admin/users", nf);
-    setBusy(false);
-    if (res.ok) {
-      const body = await res.json();
-      setGeneratedCredential({ email: body.user.email, password: body.generatedPassword });
-      toast({ title: "Usuario creado" });
-      setOpenCreate(false); setNf({ username: "", email: "", role: "editor" }); refresh();
-    } else {
-      toast({ title: "Error", description: await err("No se pudo crear")(res), variant: "destructive" });
+    try {
+      const res = await adminApiRequest("POST", "/api/admin/users", nf);
+      if (res.ok) {
+        const body = await res.json();
+        setGeneratedCredential({ email: body.user.email, password: body.generatedPassword });
+        toast({ title: "Usuario creado" });
+        setOpenCreate(false); setNf({ username: "", email: "", role: "editor" }); refresh();
+      } else {
+        toast({ title: "Error", description: await err("No se pudo crear")(res), variant: "destructive" });
+      }
+    } catch {
+      toast({ title: "Error", description: "No fue posible conectar con el servidor.", variant: "destructive" });
+    } finally {
+      setBusy(false);
     }
   };
 
   const changeRole = async (u: AdminUserRow, role: string) => {
-    const res = await adminApiRequest("PUT", `/api/admin/users/${u.id}`, { role });
-    if (res.ok) { toast({ title: "Rol actualizado" }); refresh(); }
-    else toast({ title: "Error", description: await err("No se pudo cambiar el rol")(res), variant: "destructive" });
+    try {
+      const res = await adminApiRequest("PUT", `/api/admin/users/${u.id}`, { role });
+      if (res.ok) { toast({ title: "Rol actualizado" }); refresh(); }
+      else toast({ title: "Error", description: await err("No se pudo cambiar el rol")(res), variant: "destructive" });
+    } catch {
+      toast({ title: "Error", description: "No fue posible conectar con el servidor.", variant: "destructive" });
+    }
   };
 
   const toggleActive = async (u: AdminUserRow) => {
-    const res = await adminApiRequest("PUT", `/api/admin/users/${u.id}`, { isActive: !u.isActive });
-    if (res.ok) { toast({ title: u.isActive ? "Usuario desactivado" : "Usuario activado" }); refresh(); }
-    else toast({ title: "Error", description: await err("No se pudo cambiar")(res), variant: "destructive" });
+    try {
+      const res = await adminApiRequest("PUT", `/api/admin/users/${u.id}`, { isActive: !u.isActive });
+      if (res.ok) { toast({ title: u.isActive ? "Usuario desactivado" : "Usuario activado" }); refresh(); }
+      else toast({ title: "Error", description: await err("No se pudo cambiar")(res), variant: "destructive" });
+    } catch {
+      toast({ title: "Error", description: "No fue posible conectar con el servidor.", variant: "destructive" });
+    }
   };
 
   const del = async (u: AdminUserRow) => {
     if (!window.confirm(`¿Eliminar a ${u.email}? Esta acción no se puede deshacer.`)) return;
-    const res = await adminApiRequest("DELETE", `/api/admin/users/${u.id}`);
-    if (res.ok) { toast({ title: "Usuario eliminado" }); refresh(); }
-    else toast({ title: "Error", description: await err("No se pudo eliminar")(res), variant: "destructive" });
+    try {
+      const res = await adminApiRequest("DELETE", `/api/admin/users/${u.id}`);
+      if (res.ok) { toast({ title: "Usuario eliminado" }); refresh(); }
+      else toast({ title: "Error", description: await err("No se pudo eliminar")(res), variant: "destructive" });
+    } catch {
+      toast({ title: "Error", description: "No fue posible conectar con el servidor.", variant: "destructive" });
+    }
   };
 
   // --- reset contraseña ---
@@ -139,15 +156,21 @@ export default function AdminUsers() {
   const resetPw = async () => {
     if (!pwUser) return;
     setBusy(true);
-    const res = await adminApiRequest("POST", `/api/admin/users/${pwUser.id}/password`, {});
-    setBusy(false);
-    if (res.ok) {
-      const body = await res.json();
-      setGeneratedCredential({ email: pwUser.email, password: body.generatedPassword });
-      toast({ title: "Contraseña segura generada" });
-      setPwUser(null);
+    try {
+      const res = await adminApiRequest("POST", `/api/admin/users/${pwUser.id}/password`, {});
+      if (res.ok) {
+        const body = await res.json();
+        setGeneratedCredential({ email: pwUser.email, password: body.generatedPassword });
+        toast({ title: "Contraseña segura generada" });
+        setPwUser(null);
+      } else {
+        toast({ title: "Error", description: await err("No se pudo cambiar")(res), variant: "destructive" });
+      }
+    } catch {
+      toast({ title: "Error", description: "No fue posible conectar con el servidor.", variant: "destructive" });
+    } finally {
+      setBusy(false);
     }
-    else toast({ title: "Error", description: await err("No se pudo cambiar")(res), variant: "destructive" });
   };
 
   // --- permisos extra por usuario ---
@@ -164,10 +187,15 @@ export default function AdminUsers() {
   const savePerms = async () => {
     if (!permUser) return;
     setBusy(true);
-    const res = await adminApiRequest("PUT", `/api/admin/users/${permUser.id}`, { permissions: permExtra });
-    setBusy(false);
-    if (res.ok) { toast({ title: "Permisos actualizados" }); setPermUser(null); refresh(); }
-    else toast({ title: "Error", description: await err("No se pudieron guardar")(res), variant: "destructive" });
+    try {
+      const res = await adminApiRequest("PUT", `/api/admin/users/${permUser.id}`, { permissions: permExtra });
+      if (res.ok) { toast({ title: "Permisos actualizados" }); setPermUser(null); refresh(); }
+      else toast({ title: "Error", description: await err("No se pudieron guardar")(res), variant: "destructive" });
+    } catch {
+      toast({ title: "Error", description: "No fue posible conectar con el servidor.", variant: "destructive" });
+    } finally {
+      setBusy(false);
+    }
   };
 
   // --- historial de accesos ---

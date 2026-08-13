@@ -31,16 +31,25 @@ export default function AdminChangePassword() {
       return;
     }
     setBusy(true);
-    const response = await adminApiRequest("POST", "/api/admin/password/change", { currentPassword, newPassword });
-    const body = await response.json().catch(() => ({}));
-    setBusy(false);
-    if (!response.ok) {
-      toast({ title: "No se pudo cambiar", description: body.error || "Revisa los datos.", variant: "destructive" });
-      return;
+    try {
+      const response = await adminApiRequest("POST", "/api/admin/password/change", { currentPassword, newPassword });
+      const body = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        toast({ title: "No se pudo cambiar", description: body.error || "Revisa los datos.", variant: "destructive" });
+        return;
+      }
+      clearToken();
+      toast({ title: "Contraseña actualizada", description: "Vuelve a iniciar sesión para continuar." });
+      setLocation("/admin/login");
+    } catch {
+      toast({
+        title: "No se pudo cambiar",
+        description: "No fue posible conectar con el servidor. Inténtalo nuevamente.",
+        variant: "destructive",
+      });
+    } finally {
+      setBusy(false);
     }
-    clearToken();
-    toast({ title: "Contraseña actualizada", description: "Vuelve a iniciar sesión para continuar." });
-    setLocation("/admin/login");
   };
 
   return (

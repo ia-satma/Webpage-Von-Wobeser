@@ -27,7 +27,8 @@ import {
   ImageIcon,
   AlertCircle,
   StopCircle,
-  Wrench
+  Wrench,
+  FilePlus2,
 } from "lucide-react";
 import type { News, NewsTranslation } from "@shared/schema";
 
@@ -409,15 +410,47 @@ interface BatchProgress {
   errors: Array<{ articleId: string; title: string; error: string }>;
 }
 
+const processingDraftText = {
+  es: {
+    published: "Publicado",
+    draft: "Borrador",
+    processDraft: "Procesar borrador",
+    createDraft: "Crear borrador",
+    creatingDraft: "Creando borrador…",
+    draftCreated: "Borrador creado",
+    draftCreatedDescription: "La publicación original sigue visible. Procesa la nueva copia cuando estés listo.",
+    draftCreateError: "No se pudo crear el borrador de procesamiento",
+    noDrafts: "No hay borradores para procesar",
+    noDraftsDescription: "Las publicaciones están protegidas. Crea un borrador desde la tabla antes de ejecutar el pipeline.",
+    requiresDraft: "Este artículo está publicado. Crea un borrador para procesarlo sin afectar la versión pública.",
+  },
+  en: {
+    published: "Published",
+    draft: "Draft",
+    processDraft: "Process draft",
+    createDraft: "Create draft",
+    creatingDraft: "Creating draft…",
+    draftCreated: "Draft created",
+    draftCreatedDescription: "The published article remains visible. Process the new copy when you are ready.",
+    draftCreateError: "Could not create the processing draft",
+    noDrafts: "There are no drafts to process",
+    noDraftsDescription: "Published articles are protected. Create a draft from the table before running the pipeline.",
+    requiresDraft: "This article is published. Create a draft to process it without affecting the public version.",
+  },
+} as const;
+
 export default function AdminArticleProcessing() {
   const { language } = useLanguage();
   const { isAuthenticated, isLoading: authLoading, requireAuth } = useAdminAuth();
   const { toast } = useToast();
   const t = translations[language as keyof typeof translations] || translations.en;
+  const draftText = language === "es" ? processingDraftText.es : processingDraftText.en;
 
   const [processingArticleId, setProcessingArticleId] = useState<string | null>(null);
   const [progressModalOpen, setProgressModalOpen] = useState(false);
   const [progressArticleTitle, setProgressArticleTitle] = useState<string>("");
+  const [pipelineStartError, setPipelineStartError] = useState<string | null>(null);
+  const [creatingDraftArticleId, setCreatingDraftArticleId] = useState<string | null>(null);
   const [generateImages, setGenerateImages] = useState(false);
   
   // Batch processing state
@@ -461,7 +494,7 @@ export default function AdminArticleProcessing() {
     enabled: isAuthenticated,
   });
 
-  const translationCountsQuery = useQuery<Record<string, number>>({
+  const translationCountsQuery = useQuery<{ counts: Record<string, number> }>({
     queryKey: ["/api/admin/news/translation-counts"],
     queryFn: async () => {
       const res = await adminApiRequest("GET", "/api/admin/news/translation-counts");
@@ -471,9 +504,38 @@ export default function AdminArticleProcessing() {
     enabled: isAuthenticated,
   });
 
+  const createProcessingDraftMutation = useMutation({
+    mutationFn: async (article: News): Promise<{ draft: News }> => {
+      setCreatingDraftArticleId(article.id);
+      const res = await adminApiRequest("POST", `/api/admin/news/${article.id}/processing-draft`);
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || !data?.draft) {
+        throw new Error(data?.error || draftText.draftCreateError);
+      }
+      return data;
+    },
+    onSuccess: () => {
+      toast({ title: draftText.draftCreated, description: draftText.draftCreatedDescription });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/news", "agent-processing"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/news/translation-counts"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/news/stats"] });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: draftText.draftCreateError,
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+    onSettled: () => setCreatingDraftArticleId(null),
+  });
+
   // Process a single article with retry logic and detailed error extraction
   const processSingleArticle = useCallback(async (article: News): Promise<{ success: boolean; error?: string; imageWarning?: boolean }> => {
     try {
+      if (article.published !== false) {
+        return { success: false, error: draftText.requiresDraft };
+      }
       const res = await adminApiRequest("POST", `/api/agents/pipeline/${article.id}`, {
         generateImage: generateImages
       });
@@ -510,7 +572,7 @@ export default function AdminArticleProcessing() {
       }
       return { success: false, error: errorMessage };
     }
-  }, [generateImages]);
+  }, [draftText.requiresDraft, generateImages]);
 
   const recoverMutation = useMutation({
     mutationFn: async () => {
@@ -676,20 +738,41 @@ export default function AdminArticleProcessing() {
       toast({ title: t.noArticles, variant: "destructive" });
       return;
     }
-    processBatch(articles);
-  }, [newsQuery.data, processBatch, t, toast]);
+    const drafts = articles.filter((article) => article.published === false);
+    if (drafts.length === 0) {
+      toast({
+        title: draftText.noDrafts,
+        description: draftText.noDraftsDescription,
+        variant: "destructive",
+      });
+      return;
+    }
+    processBatch(drafts);
+  }, [draftText.noDrafts, draftText.noDraftsDescription, newsQuery.data, processBatch, t.noArticles, toast]);
 
   const processArticleMutation = useMutation({
     mutationFn: async ({ articleId, title }: { articleId: string; title: string }) => {
+      const article = (newsQuery.data || []).find((item) => item.id === articleId);
+      if (!article || article.published !== false) {
+        throw new Error(draftText.requiresDraft);
+      }
       setProcessingArticleId(articleId);
       setProgressArticleTitle(title);
+      setPipelineStartError(null);
       setProgressModalOpen(true);
       const res = await adminApiRequest("POST", `/api/agents/pipeline/${articleId}`, {
         generateImage: generateImages
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
-        throw new Error(data?.error || data?.message || `Error HTTP ${res.status}`);
+        const errorMessage = data?.code === "PUBLISHED_ARTICLE_REQUIRES_DRAFT"
+          ? draftText.requiresDraft
+          : (data?.error || data?.message || `Error HTTP ${res.status}`);
+        // Este error ocurrió antes de que el pipeline pudiera iniciar. El
+        // modal debe reflejarlo como tal, en lugar de conservar un progreso
+        // provisional que aparenta estar en curso.
+        setPipelineStartError(errorMessage);
+        throw new Error(errorMessage);
       }
       if (data?.success === false) {
         const details = Array.isArray(data?.errors) && data.errors.length
@@ -760,7 +843,7 @@ export default function AdminArticleProcessing() {
   }
 
   const news = newsQuery.data || [];
-  const translationCounts = translationCountsQuery.data || {};
+  const translationCounts = translationCountsQuery.data?.counts || {};
   const stats = statsQuery.data || { total: 0, published: 0, unpublished: 0 };
   
   const articlesWithTranslations = Object.values(translationCounts).filter(c => c > 0).length;
@@ -936,7 +1019,11 @@ export default function AdminArticleProcessing() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {news.map((article) => (
+                  {news.map((article) => {
+                    const isDraft = article.published === false;
+                    const isCreatingDraft = creatingDraftArticleId === article.id;
+
+                    return (
                     <TableRow key={article.id} data-testid={`row-article-${article.id}`}>
                       <TableCell className="font-medium max-w-md truncate" data-testid={`text-title-${article.id}`}>
                         {language === "es" ? article.titleEs : article.title}
@@ -948,31 +1035,59 @@ export default function AdminArticleProcessing() {
                         {getTranslationBadge(translationCounts[article.id] || 0)}
                       </TableCell>
                       <TableCell className="text-right">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => processArticleMutation.mutate({ 
-                            articleId: article.id, 
-                            title: (language === "es" ? article.titleEs : article.title) || "Article" 
-                          })}
-                          disabled={processingArticleId === article.id || batchProgress.isProcessing}
-                          data-testid={`button-process-${article.id}`}
-                        >
-                          {processingArticleId === article.id ? (
-                            <>
-                              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                              {t.processing}
-                            </>
+                        <div className="flex items-center justify-end gap-2">
+                          <Badge variant={isDraft ? "secondary" : "default"}>
+                            {isDraft ? draftText.draft : draftText.published}
+                          </Badge>
+                          {isDraft ? (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => processArticleMutation.mutate({
+                                articleId: article.id,
+                                title: (language === "es" ? article.titleEs : article.title) || "Article",
+                              })}
+                              disabled={processingArticleId === article.id || batchProgress.isProcessing}
+                              data-testid={`button-process-${article.id}`}
+                            >
+                              {processingArticleId === article.id ? (
+                                <>
+                                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                  {t.processing}
+                                </>
+                              ) : (
+                                <>
+                                  <Play className="mr-2 h-4 w-4" />
+                                  {draftText.processDraft}
+                                </>
+                              )}
+                            </Button>
                           ) : (
-                            <>
-                              <Play className="mr-2 h-4 w-4" />
-                              {t.process}
-                            </>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => createProcessingDraftMutation.mutate(article)}
+                              disabled={isCreatingDraft || batchProgress.isProcessing}
+                              data-testid={`button-create-processing-draft-${article.id}`}
+                            >
+                              {isCreatingDraft ? (
+                                <>
+                                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                  {draftText.creatingDraft}
+                                </>
+                              ) : (
+                                <>
+                                  <FilePlus2 className="mr-2 h-4 w-4" />
+                                  {draftText.createDraft}
+                                </>
+                              )}
+                            </Button>
                           )}
-                        </Button>
+                        </div>
                       </TableCell>
                     </TableRow>
-                  ))}
+                    );
+                  })}
                 </TableBody>
               </Table>
             )}
@@ -987,11 +1102,13 @@ export default function AdminArticleProcessing() {
           if (!open) {
             setProcessingArticleId(null);
             setProgressArticleTitle("");
+            setPipelineStartError(null);
           }
         }}
         articleId={processingArticleId}
         articleTitle={progressArticleTitle}
         includeImage={generateImages}
+        startError={pipelineStartError}
       />
     </div>
   );

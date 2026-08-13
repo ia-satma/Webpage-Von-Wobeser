@@ -151,6 +151,11 @@ test('administrative article processing uses private content and the canonical o
     'utf8',
   );
   const routeSource = fs.readFileSync(path.join(root, 'server/routes.ts'), 'utf8');
+  const storageSource = fs.readFileSync(path.join(root, 'server/storage.ts'), 'utf8');
+  const progressModalSource = fs.readFileSync(
+    path.join(root, 'client/src/components/PipelineProgressModal.tsx'),
+    'utf8',
+  );
   const orchestratorSource = fs.readFileSync(
     path.join(root, 'server/agents/core/AgentOrchestrator.ts'),
     'utf8',
@@ -167,6 +172,127 @@ test('administrative article processing uses private content and the canonical o
   assert.match(routeSource, /orchestrator\.runPipeline\(articleId, stages,\s*\{/);
   assert.match(routeSource, /onProgress:\s*\(\{ stage, status, index, message \}\)/);
   assert.match(routeSource, /legal_council:\s*'council'/);
+  assert.match(routeSource, /"\/api\/admin\/news\/:id\/processing-draft"/);
+  assert.match(routeSource, /PUBLISHED_ARTICLE_REQUIRES_DRAFT/);
+  assert.match(storageSource, /async createNewsProcessingDraft\(newsId: string\)/);
+  assert.match(storageSource, /from\(newsTranslations\).*source\.id/);
+  assert.match(storageSource, /from\(newsTeamMembers\).*source\.id/);
+  assert.match(adminSource, /article\.published === false/);
+  assert.match(adminSource, /button-create-processing-draft-/);
+  assert.match(progressModalSource, /startError/);
+});
+
+test('agent previews and administrative actions cannot report or apply unsafe changes', () => {
+  const root = process.cwd();
+  const formatterSource = fs.readFileSync(
+    path.join(root, 'server/agents/specialized/FormatterAgent.ts'),
+    'utf8',
+  );
+  const translatorSource = fs.readFileSync(
+    path.join(root, 'server/agents/specialized/PolyglotTranslatorAgent.ts'),
+    'utf8',
+  );
+  const recoverySource = fs.readFileSync(
+    path.join(root, 'server/agents/AutoRecoveryAgent.ts'),
+    'utf8',
+  );
+  const agentRoutesSource = fs.readFileSync(
+    path.join(root, 'server/agents/api/agentRoutes.ts'),
+    'utf8',
+  );
+  const routesSource = fs.readFileSync(path.join(root, 'server/routes.ts'), 'utf8');
+  const detailSource = fs.readFileSync(
+    path.join(root, 'client/src/pages/admin/AdminArticleDetail.tsx'),
+    'utf8',
+  );
+  const authSource = fs.readFileSync(path.join(root, 'client/src/lib/adminAuth.ts'), 'utf8');
+
+  assert.match(formatterSource, /applyChanges === true\s*&&\s*article\?\.published === false/);
+  assert.match(translatorSource, /applyChanges === true && article\.published === false/);
+  assert.match(recoverySource, /if \(article\.published !== false\)/);
+  assert.match(recoverySource, /eq\(news\.published, false\)/);
+  assert.match(agentRoutesSource, /PUBLISHED_ARTICLE_REQUIRES_DRAFT/);
+  assert.match(routesSource, /ARTICLE_REQUIRES_COUNCIL_APPROVAL/);
+  assert.match(routesSource, /\/api\/agents\/generate-image\/:articleId[\s\S]*?article\.published !== false/);
+  assert.match(detailSource, /\/api\/admin\/news\/\$\{id\}/);
+  assert.match(detailSource, /if \(!response\.ok\) throw new Error/);
+  assert.match(authSource, /export async function readAdminJson/);
+});
+
+test('CMS editors use private data and gallery reordering is transactional', () => {
+  const root = process.cwd();
+  const newsFormSource = fs.readFileSync(
+    path.join(root, 'client/src/pages/admin/AdminNewsForm.tsx'),
+    'utf8',
+  );
+  const gallerySource = fs.readFileSync(
+    path.join(root, 'client/src/pages/admin/GalleryAdmin.tsx'),
+    'utf8',
+  );
+  const routeSource = fs.readFileSync(path.join(root, 'server/routes.ts'), 'utf8');
+  const storageSource = fs.readFileSync(path.join(root, 'server/storage.ts'), 'utf8');
+
+  assert.match(newsFormSource, /queryKey:\s*\["\/api\/admin\/news", id\]/);
+  assert.match(newsFormSource, /adminApiRequest\("GET", `\/api\/admin\/news\/\$\{id\}`\)/);
+  assert.match(newsFormSource, /\/api\/admin\/team\?page=1&limit=100/);
+  assert.match(newsFormSource, /teamQuery\.data\?\.members/);
+
+  assert.match(gallerySource, /\/api\/admin\/office-images\/order/);
+  assert.doesNotMatch(gallerySource, /updateMutation\.mutate\(\{ id: img\.id, data: \{ order:/);
+  assert.match(routeSource, /app\.put\("\/api\/admin\/office-images\/order"/);
+  assert.match(routeSource, /OFFICE_IMAGES_ORDER_STALE/);
+  assert.match(storageSource, /async reorderOfficeImages\(ids: string\[\]\)/);
+  assert.match(storageSource, /return db\.transaction\(async \(tx\)/);
+});
+
+test('translation administration has one status contract and only persists draft translations', () => {
+  const root = process.cwd();
+  const routesSource = fs.readFileSync(path.join(root, 'server/routes.ts'), 'utf8');
+  const mirrorSource = fs.readFileSync(path.join(root, 'server/mirror/index.ts'), 'utf8');
+  const translationsSource = fs.readFileSync(
+    path.join(root, 'client/src/pages/admin/AdminTranslations.tsx'),
+    'utf8',
+  );
+  const processingSource = fs.readFileSync(
+    path.join(root, 'client/src/pages/admin/AdminArticleProcessing.tsx'),
+    'utf8',
+  );
+
+  assert.match(routesSource, /res\.json\(\{ counts, news: translationStatus \}\)/);
+  assert.match(translationsSource, /type TranslationResponse = \{[\s\S]*counts: Record<string, number>;[\s\S]*news: TranslationCounts\[\]/);
+  assert.match(translationsSource, /stats\.totalArticles/);
+  assert.match(processingSource, /translationCountsQuery\.data\?\.counts/);
+
+  assert.match(mirrorSource, /PUBLISHED_ARTICLE_REQUIRES_DRAFT/);
+  assert.match(mirrorSource, /applyChanges: true/);
+  assert.match(mirrorSource, /changesApplied !== true/);
+  assert.match(translationsSource, /readAdminJson<TranslationRunResult>/);
+  assert.match(translationsSource, /Crea un borrador para traducir/);
+  assert.match(translationsSource, /const canManageLanguages = permissionsLoaded && has\("config"\)/);
+  assert.match(translationsSource, /enabled: isAuthenticated && canManageLanguages/);
+});
+
+test('administrative mutations always recover their controls after transport failures', () => {
+  const root = process.cwd();
+  const passwordSource = fs.readFileSync(
+    path.join(root, 'client/src/pages/admin/AdminChangePassword.tsx'),
+    'utf8',
+  );
+  const translateButtonSource = fs.readFileSync(
+    path.join(root, 'client/src/components/admin/TranslateButton.tsx'),
+    'utf8',
+  );
+  const usersSource = fs.readFileSync(path.join(root, 'client/src/pages/admin/AdminUsers.tsx'), 'utf8');
+  const siteConfigSource = fs.readFileSync(
+    path.join(root, 'client/src/pages/admin/AdminSiteConfig.tsx'),
+    'utf8',
+  );
+
+  assert.match(passwordSource, /setBusy\(true\);[\s\S]*?catch \{[\s\S]*?finally \{[\s\S]*?setBusy\(false\)/);
+  assert.match(translateButtonSource, /setLoading\(true\);[\s\S]*?catch \{[\s\S]*?finally \{[\s\S]*?setLoading\(false\)/);
+  assert.match(usersSource, /const create = async[\s\S]*?catch \{[\s\S]*?finally \{[\s\S]*?setBusy\(false\)/);
+  assert.match(usersSource, /const resetPw = async[\s\S]*?catch \{[\s\S]*?finally \{[\s\S]*?setBusy\(false\)/);
+  assert.match(siteConfigSource, /const save = async[\s\S]*?catch \(error\)[\s\S]*?finally \{[\s\S]*?setSaving\(null\)/);
 });
 
 test('interactive AI calls have bounded waits and image generation fails fast without a direct key', () => {

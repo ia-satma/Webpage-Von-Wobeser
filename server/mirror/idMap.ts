@@ -32,11 +32,16 @@ function safeReaddir(dir: string): string[] {
 export async function buildIdMaps(): Promise<IdMaps> {
   const dir = getMirrorDir();
   const [members, pgs, igs] = await Promise.all([
-    db.select({ slug: teamMembers.slug, name: teamMembers.name }).from(teamMembers),
+    db.select({ slug: teamMembers.slug, name: teamMembers.name, title: teamMembers.title, titleEs: teamMembers.titleEs }).from(teamMembers),
     db.select({ slug: practiceGroups.slug, name: practiceGroups.name }).from(practiceGroups),
     db.select({ slug: industryGroups.slug, name: industryGroups.name }).from(industryGroups),
   ]);
   const memberByName = new Map(members.map((m) => [norm(m.name), m.slug]));
+  const memberByIdentity = new Map<string, string>();
+  for (const member of members) {
+    memberByIdentity.set(`${norm(member.name)}|${norm(member.title)}`, member.slug);
+    memberByIdentity.set(`${norm(member.name)}|${norm(member.titleEs)}`, member.slug);
+  }
   const pgByName = new Map(pgs.map((p) => [norm(p.name), p.slug]));
   const igByName = new Map(igs.map((i) => [norm(i.name), i.slug]));
 
@@ -51,9 +56,14 @@ export async function buildIdMaps(): Promise<IdMaps> {
     if (!m) continue;
     const html = fs.readFileSync(path.join(lawyerDir, f), "utf8");
     const name = (html.match(/name="Attorney" content="([^"]*)"/) || [])[1];
-    const slug = name && memberByName.get(norm(name));
+    const title = (html.match(/class="attorney__meta--role">([^<]*)</) || [])[1];
+    const slug = name && (title ? memberByIdentity.get(`${norm(name)}|${norm(title)}`) : undefined) || memberByName.get(norm(name));
     if (slug) attorney.set(m[1], slug);
   }
+  // Bernardo was added after the archived mirror was captured. Preserve his
+  // official historic identifier even though there is no local l-457 file.
+  const bernardoSlug = memberByName.get(norm("Bernardo Zatarain"));
+  if (bernardoSlug) attorney.set("457", bernardoSlug);
 
   // Practices: .single__meta--name
   const practiceDir = path.join(dir, "index.php", "practice");
