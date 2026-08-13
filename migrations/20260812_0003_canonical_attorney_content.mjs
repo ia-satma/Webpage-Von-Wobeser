@@ -4,6 +4,10 @@ import fs from "node:fs";
 import path from "node:path";
 
 const RETIRED_MIRROR_ONLY_LEGACY_IDS = new Set(["406", "423"]);
+// The official profile snapshots still mention this retired practice for a few
+// historical biographies. It was intentionally removed from the active CMS
+// catalogue, so no team-member relationship may be created for it.
+const RETIRED_PRACTICE_NAMES = new Set(["administrativo y regulatorio"]);
 const SNAPSHOT_SHA256 = "99e9e2790b61428fe22517758b754a308275cff6c79431c291907fc789e3aa7d";
 const clean = (value) => String(value || "").replace(/\s+/g, " ").trim();
 const key = (value) => clean(value).normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
@@ -138,6 +142,14 @@ function resolveInternalResources(publications, newsRows) {
   });
 }
 
+function resolveGroupIds(names, groupsByName, retiredNames, kind, attorneyName) {
+  const unresolved = names.filter((name) => !groupsByName.has(key(name)) && !retiredNames.has(key(name)));
+  if (unresolved.length) {
+    throw new Error(`Unresolved canonical ${kind} groups for ${attorneyName}: ${unresolved.join(", ")}`);
+  }
+  return names.map((name) => groupsByName.get(key(name))).filter(Boolean);
+}
+
 async function insertCanonicalMember(client, attorney, publications, usedSlugs) {
   const baseSlug = slugify(attorney.name);
   let slug = baseSlug;
@@ -221,9 +233,8 @@ export default async function migrateCanonicalAttorneyContent(client) {
         WHERE id = $18
       `, [attorney.name, attorney.title, attorney.titleEs, attorney.role, attorney.roleEs, attorney.bio, attorney.bioEs, attorney.bioIntro, attorney.bioIntroEs, attorney.email, attorney.phone, JSON.stringify(attorney.education), JSON.stringify(attorney.affiliations), JSON.stringify(attorney.rankings), JSON.stringify(publications), JSON.stringify(attorney.languages), JSON.stringify(attorney.languagesEs), member.id]);
     }
-    const practiceIds = attorney.practiceNames.map((name) => practiceByName.get(key(name))).filter(Boolean);
-    const industryIds = attorney.industryNames.map((name) => industryByName.get(key(name))).filter(Boolean);
-    if (practiceIds.length !== attorney.practiceNames.length || industryIds.length !== attorney.industryNames.length) throw new Error(`Unresolved canonical groups for ${attorney.name}`);
+    const practiceIds = resolveGroupIds(attorney.practiceNames, practiceByName, RETIRED_PRACTICE_NAMES, "practice", attorney.name);
+    const industryIds = resolveGroupIds(attorney.industryNames, industryByName, new Set(), "industry", attorney.name);
     await client.query("DELETE FROM team_member_practice_groups WHERE team_member_id = $1", [member.id]);
     await client.query("DELETE FROM team_member_industry_groups WHERE team_member_id = $1", [member.id]);
     for (const practiceGroupId of practiceIds) await client.query("INSERT INTO team_member_practice_groups (team_member_id, practice_group_id) VALUES ($1, $2)", [member.id, practiceGroupId]);

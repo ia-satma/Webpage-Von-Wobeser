@@ -11,6 +11,7 @@ import {
   loadCanonicalAttorneyContent,
   preservedAdditionalAttorneySlugs,
 } from "../content/canonicalAttorneys";
+import { canonicalPracticeManifest } from "../content/canonicalPractices";
 import { renderAttorney } from "../mirror/renderAttorney";
 import { renderRichText } from "../mirror/sanitize";
 
@@ -151,7 +152,7 @@ test("la migración parametrizada actualiza 132 perfiles, agrega a Bernardo y de
   const extras = [...preservedAdditionalAttorneySlugs].map((slug, index) => ({
     id: `extra-${index}`, name: `Extra ${index}`, title_es: "Asociado", slug, image_url: `/extras/${index}.jpg`, published: true, order: 600 + index,
   }));
-  const practices = [...new Set(canonical.flatMap((attorney) => attorney.practiceNames))].map((name, index) => ({ id: `practice-${index}`, name_es: name }));
+  const practices = canonicalPracticeManifest.map((practice, index) => ({ id: `practice-${index}`, name_es: practice.nameEs }));
   const industries = [...new Set(canonical.flatMap((attorney) => attorney.industryNames))].map((name, index) => ({ id: `industry-${index}`, name_es: name }));
   const calls: Array<{ sql: string; values: unknown[] }> = [];
   const migration = await import("../../migrations/20260812_0003_canonical_attorney_content.mjs");
@@ -191,7 +192,7 @@ test("la migración crea el único perfil oficial ausente sin frenar la publicac
       email: attorney.email,
       slug: `unchanged-${index}`,
     }));
-  const practices = [...new Set(canonical.flatMap((attorney) => attorney.practiceNames))].map((name, index) => ({ id: `practice-${index}`, name_es: name }));
+  const practices = canonicalPracticeManifest.map((practice, index) => ({ id: `practice-${index}`, name_es: practice.nameEs }));
   const industries = [...new Set(canonical.flatMap((attorney) => attorney.industryNames))].map((name, index) => ({ id: `industry-${index}`, name_es: name }));
   const calls: Array<{ sql: string; values: unknown[] }> = [];
   const migration = await import("../../migrations/20260812_0003_canonical_attorney_content.mjs");
@@ -217,4 +218,35 @@ test("la migración crea el único perfil oficial ausente sin frenar la publicac
   assert.ok(missingInsert);
   assert.equal(missingInsert!.values[1], "anna-maria-brandstadter");
   assert.ok(calls.some((call) => /UPDATE team_members SET/i.test(call.sql) && call.values.at(-1) === "missing-official-id"));
+});
+
+test("la migración omite sólo la práctica retirada sin ocultar otros grupos desconocidos", async () => {
+  const canonical = loadCanonicalAttorneyContent(mirrorDir);
+  const existing = canonical.filter((attorney) => attorney.legacyId !== "457").map((attorney, index) => ({
+    id: `official-${index}`,
+    name: attorney.name,
+    title_es: attorney.titleEs,
+    email: attorney.email,
+    slug: `unchanged-${index}`,
+  }));
+  const practices = canonicalPracticeManifest.map((practice, index) => ({ id: `practice-${index}`, name_es: practice.nameEs }));
+  const industries = [...new Set(canonical.flatMap((attorney) => attorney.industryNames))].map((name, index) => ({ id: `industry-${index}`, name_es: name }));
+  const calls: Array<{ sql: string; values: unknown[] }> = [];
+  const migration = await import("../../migrations/20260812_0003_canonical_attorney_content.mjs");
+
+  await migration.default({
+    query: async (sql: string, values: unknown[] = []) => {
+      calls.push({ sql, values });
+      if (/SELECT id, name, title_es, email, slug FROM team_members/i.test(sql)) return { rows: existing };
+      if (/SELECT id, name_es FROM practice_groups/i.test(sql)) return { rows: practices };
+      if (/SELECT id, name_es FROM industry_groups/i.test(sql)) return { rows: industries };
+      if (/SELECT slug, title, title_es, category FROM news/i.test(sql)) return { rows: [] };
+      if (/INSERT INTO team_members/i.test(sql)) return { rows: [{ id: "bernardo-id" }] };
+      return { rows: [] };
+    },
+  });
+
+  assert.ok(calls.some((call) => /DELETE FROM team_member_practice_groups/i.test(call.sql)));
+  assert.ok(calls.some((call) => /INSERT INTO team_member_practice_groups/i.test(call.sql)));
+  assert.doesNotMatch(JSON.stringify(calls), /Unresolved canonical practice groups/);
 });
