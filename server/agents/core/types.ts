@@ -131,6 +131,8 @@ export interface AgentResult<T = unknown> {
   success: boolean;
   data?: T;
   error?: string;
+  /** Identificador del copy editorial inmutable, cuando el agente produjo texto reutilizable. */
+  copyHistoryId?: string;
   learnings?: SkillLearning[];
   evolutionProposals?: Omit<EvolutionProposal, 'id' | 'createdAt'>[];
   metrics?: Record<string, number>;

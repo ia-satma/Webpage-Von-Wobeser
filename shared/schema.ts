@@ -910,6 +910,39 @@ export const insertAgentJobSchema = createInsertSchema(agentJobs).omit({ id: tru
 export type InsertAgentJob = z.infer<typeof insertAgentJobSchema>;
 export type AgentJob = typeof agentJobs.$inferSelect;
 
+// Historial editorial inmutable de los resultados textuales de los agentes.  A diferencia de
+// agent_jobs (que describe la ejecución técnica), aquí se conserva una instantánea reutilizable
+// del resultado final. sourceJobId es único para que reintentos y recuperaciones no dupliquen
+// copys; las referencias opcionales usan SET NULL para que el historial sobreviva a la limpieza
+// del artículo o del usuario de origen.
+export const agentCopyHistory = pgTable("agent_copy_history", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  sourceJobId: varchar("source_job_id"),
+  agentType: text("agent_type").notNull(),
+  copyType: text("copy_type").notNull(),
+  title: text("title").notNull(),
+  excerpt: text("excerpt"),
+  content: jsonb("content").$type<Record<string, unknown>>().notNull(),
+  searchText: text("search_text").notNull(),
+  language: text("language").notNull().default("multi"),
+  articleId: varchar("article_id").references(() => news.id, { onDelete: "set null" }),
+  status: text("status").notNull().default("proposal"), // proposal | applied | draft | recovered
+  origin: text("origin").notNull().default("manual"), // manual | pipeline | scheduled | recovered
+  actorId: varchar("actor_id").references(() => adminUsers.id, { onDelete: "set null" }),
+  archived: boolean("archived").notNull().default(false),
+  archivedAt: timestamp("archived_at"),
+  archivedBy: varchar("archived_by").references(() => adminUsers.id, { onDelete: "set null" }),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (t) => ({
+  sourceJobIdx: uniqueIndex("agent_copy_history_source_job_unique").on(t.sourceJobId),
+  createdIdx: index("agent_copy_history_created_idx").on(t.createdAt),
+  agentStatusIdx: index("agent_copy_history_agent_status_idx").on(t.agentType, t.status),
+  articleIdx: index("agent_copy_history_article_idx").on(t.articleId),
+  archivedCreatedIdx: index("agent_copy_history_archived_created_idx").on(t.archived, t.createdAt),
+}));
+
+export type AgentCopyHistory = typeof agentCopyHistory.$inferSelect;
+
 // Agent events log
 export const agentEvents = pgTable("agent_events", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),

@@ -66,6 +66,7 @@ const AdminArticleDetail = lazy(() => import("@/pages/admin/AdminArticleDetail")
 const AdminOffices = lazy(() => import("@/pages/admin/AdminOffices"));
 const AdminGeneratedImages = lazy(() => import("@/pages/admin/AdminGeneratedImages"));
 const AdminGeneratedAudio = lazy(() => import("@/pages/admin/AdminGeneratedAudio"));
+const AdminCopyHistory = lazy(() => import("@/pages/admin/AdminCopyHistory"));
 const AdminPresentations = lazy(() => import("@/pages/admin/AdminPresentations"));
 const AdminManual = lazy(() => import("@/pages/admin/AdminManual"));
 const AdminCookieConsent = lazy(() => import("@/pages/admin/AdminCookieConsent"));
@@ -189,6 +190,7 @@ function Router() {
         <Route path="/admin/gallery"><Redirect to="/admin/offices?tab=gallery" /></Route>
         <Route path="/admin/generated-images" component={AdminGeneratedImages} />
         <Route path="/admin/generated-audio" component={AdminGeneratedAudio} />
+        <Route path="/admin/copies-ai" component={AdminCopyHistory} />
         <Route path="/admin/presentations" component={AdminPresentations} />
         <Route component={NotFound} />
       </Switch>

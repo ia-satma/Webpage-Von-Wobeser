@@ -233,7 +233,7 @@ export function AgentUseCenter({ registeredAgents = [] }: AgentUseCenterProps) {
   const [topic, setTopic] = useState("");
   const [illustrate, setIllustrate] = useState(false);
   const [running, setRunning] = useState(false);
-  const [result, setResult] = useState<{ ok: boolean; text: string } | null>(null);
+  const [result, setResult] = useState<{ ok: boolean; text: string; copyHistoryId?: string } | null>(null);
 
   const registered = useMemo(() => new Set(registeredAgents), [registeredAgents]);
   const selected = AGENT_DEFINITIONS.find((agent) => agent.id === selectedId) || AGENT_DEFINITIONS[0];
@@ -315,6 +315,7 @@ export function AgentUseCenter({ registeredAgents = [] }: AgentUseCenterProps) {
         text: successful
           ? resultText(data)
           : String(data?.details || data?.error || "El agente no pudo completar la ejecución."),
+        copyHistoryId: successful && typeof data?.copyHistoryId === "string" ? data.copyHistoryId : undefined,
       });
     } catch (error) {
       setResult({ ok: false, text: error instanceof Error ? error.message : "No se pudo conectar con el agente." });
@@ -566,6 +567,11 @@ export function AgentUseCenter({ registeredAgents = [] }: AgentUseCenterProps) {
                   <p className="font-semibold">{result.ok ? "Ejecución completada" : "El agente no pudo completar la prueba"}</p>
                 </div>
                 <pre className="mt-3 max-h-64 overflow-auto whitespace-pre-wrap break-words font-sans text-sm leading-relaxed text-foreground">{result.text}</pre>
+                {result.copyHistoryId && (
+                  <Link href={`/admin/copies-ai?copy=${result.copyHistoryId}`} className="mt-3 inline-flex text-sm font-medium text-primary hover:underline">
+                    Ver copy guardado en el historial
+                  </Link>
+                )}
               </div>
             )}
           </div>

@@ -123,6 +123,13 @@ import {
   type TypographyLanguage,
 } from "@shared/editorialTypography";
 import { getEditorialTypography, replaceEditorialTypography } from "./editorialTypography";
+import {
+  TEXTUAL_AGENT_TYPES,
+  copyPlainText,
+  getAgentCopy,
+  listAgentCopies,
+  setAgentCopyArchived,
+} from "./agents/storage/CopyHistory";
 import { getLocalizedAttorneyRole, getLocalizedAttorneyTitle } from "@shared/attorneyTitles";
 import { db } from "./db";
 import { sql, gte } from "drizzle-orm";
@@ -1037,6 +1044,61 @@ export async function registerRoutes(
 
   app.delete("/api/admin/generated-images/:id", authMiddleware, requirePermission("agents"), (_req: Request, res: Response) => {
     res.status(405).json({ error: "Generated history is permanent", code: "HISTORY_IMMUTABLE" });
+  });
+
+  // Historial editorial privado: no hay endpoint público, creación manual ni borrado. Cada fila
+  // proviene de una ejecución de agente y conserva la instantánea aunque se elimine el artículo.
+  const copyHistoryQuerySchema = z.object({
+    page: z.coerce.number().int().min(1).max(10_000).default(1),
+    pageSize: z.coerce.number().int().min(1).max(100).default(25),
+    search: z.string().trim().max(160).optional(),
+    agentType: z.enum(TEXTUAL_AGENT_TYPES).optional(),
+    copyType: z.string().trim().max(80).optional(),
+    language: z.string().trim().max(12).optional(),
+    articleId: z.string().uuid().optional(),
+    status: z.enum(["proposal", "applied", "draft", "recovered"]).optional(),
+    archived: z.enum(["true", "false"]).transform((value) => value === "true").optional(),
+    from: z.coerce.date().optional(),
+    to: z.coerce.date().optional(),
+    sourceJobId: z.string().uuid().optional(),
+  }).strict();
+
+  app.get("/api/admin/copies-ai", authMiddleware, requirePermission("agents"), async (req: Request, res: Response) => {
+    const parsed = copyHistoryQuerySchema.safeParse(req.query);
+    if (!parsed.success) return res.status(400).json({ error: "Invalid copy history filters" });
+    try {
+      res.json(await listAgentCopies(parsed.data));
+    } catch (error) {
+      console.error("Copy history list error:", error);
+      res.status(500).json({ error: "Failed to load copy history" });
+    }
+  });
+
+  app.get("/api/admin/copies-ai/:id", authMiddleware, requirePermission("agents"), async (req: Request, res: Response) => {
+    if (!z.string().uuid().safeParse(req.params.id).success) return res.status(400).json({ error: "Invalid copy history id" });
+    try {
+      const copy = await getAgentCopy(req.params.id);
+      if (!copy) return res.status(404).json({ error: "Copy history record not found" });
+      res.json({ ...copy, plainText: copyPlainText(copy.content) });
+    } catch (error) {
+      console.error("Copy history detail error:", error);
+      res.status(500).json({ error: "Failed to load copy history record" });
+    }
+  });
+
+  app.post("/api/admin/copies-ai/:id/archive", authMiddleware, requirePermission("agents"), async (req: Request, res: Response) => {
+    if (!z.string().uuid().safeParse(req.params.id).success) return res.status(400).json({ error: "Invalid copy history id" });
+    const parsed = z.object({ archived: z.boolean() }).strict().safeParse(req.body);
+    if (!parsed.success) return res.status(400).json({ error: "Invalid archive request" });
+    try {
+      const copy = await setAgentCopyArchived(req.params.id, parsed.data.archived, req.adminUser!.id);
+      if (!copy) return res.status(404).json({ error: "Copy history record not found" });
+      auditLog("update", "agent_copy_history", copy.id, req.adminUser!.id, { archived: copy.archived });
+      res.json({ id: copy.id, archived: copy.archived, archivedAt: copy.archivedAt });
+    } catch (error) {
+      console.error("Copy history archive error:", error);
+      res.status(500).json({ error: "Failed to update copy history record" });
+    }
   });
 
   // Historial permanente de audio generado por IA.
@@ -4929,6 +4991,9 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
       const result = await orchestrator.executeImmediately('image_suggestion', {
         articleId,
         applyChanges: true,
+      }, {
+        actorId: req.adminUser?.id || null,
+        origin: 'manual',
       });
 
       if (result.success && result.data) {
@@ -4969,11 +5034,15 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
 
       const results: Record<string, Awaited<ReturnType<typeof orchestrator.runPipeline>>> = {};
       for (const article of candidates) {
-        const pipelineResult = await orchestrator.runPipeline(article.id, stages);
+        const pipelineResult = await orchestrator.runPipeline(article.id, stages, {
+          actorId: req.adminUser?.id || null,
+          origin: 'pipeline',
+        });
         if (parsed.data.generateImage && pipelineResult.success) {
           pipelineResult.results.image_suggestion = await orchestrator.executeImmediately(
             'image_suggestion',
             { articleId: article.id, applyChanges: true },
+            { actorId: req.adminUser?.id || null, origin: 'pipeline' },
           );
         }
         results[article.id] = pipelineResult;
@@ -5043,6 +5112,8 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
         image_suggestion: 'image',
       };
       const result = await orchestrator.runPipeline(articleId, stages, {
+        actorId: req.adminUser?.id || null,
+        origin: 'pipeline',
         onProgress: ({ stage, status, index, message }) => {
           const completed = status === 'running' ? index : index + 1;
           broadcastPipelineProgress(articleId, {
@@ -5064,6 +5135,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
         result.results.image_suggestion = await orchestrator.executeImmediately(
           'image_suggestion',
           { articleId, applyChanges: true },
+          { actorId: req.adminUser?.id || null, origin: 'pipeline' },
         );
         broadcastPipelineProgress(articleId, {
           step: 'image',

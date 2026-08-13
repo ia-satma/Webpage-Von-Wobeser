@@ -5,6 +5,7 @@ import { evolutionTracker } from '../core/AgentEvolution';
 import { pcloudStorage } from '../storage/PCloudStorage';
 import { dbPersistence } from '../storage/DatabasePersistence';
 import { contentAnalyzerAgent } from '../specialized/ContentAnalyzerAgent';
+import { getCopyIdsByJobIds } from '../storage/CopyHistory';
 import { AgentType } from '../core/types';
 import { db } from '../../db';
 import { news } from '../../../shared/schema';
@@ -35,6 +36,7 @@ const boundedPayloadSchema = z.record(z.unknown())
 router.get('/status', async (req: Request, res: Response) => {
   try {
     const status = await orchestrator.getStatus();
+    const copyIds = await getCopyIdsByJobIds(status.recentJobs.map((job) => job.id));
     const evolutionSummary = await evolutionTracker.getSummary();
     const knowledgeStats = await knowledgeStore.getStats();
     
@@ -46,6 +48,10 @@ router.get('/status', async (req: Request, res: Response) => {
     res.json({
       orchestrator: {
         ...status,
+        recentJobs: status.recentJobs.map((job) => ({
+          ...job,
+          copyHistoryId: copyIds.get(job.id) || null,
+        })),
         jobStatsByAgent: jobStats,
       },
       evolution: evolutionSummary,
@@ -128,7 +134,10 @@ router.post('/run/:agentType', async (req: Request, res: Response) => {
       }
     }
 
-    const result = await orchestrator.executeImmediately(agentType, payload);
+    const result = await orchestrator.executeImmediately(agentType, payload, {
+      actorId: req.adminUser?.id || null,
+      origin: 'manual',
+    });
 
     res.json(result);
   } catch (error) {
@@ -148,7 +157,10 @@ router.post('/pipeline/batch', async (req: Request, res: Response) => {
     const results: Record<string, any> = {};
     
     for (const articleId of articleIds) {
-      results[articleId] = await orchestrator.runPipeline(articleId, stages);
+      results[articleId] = await orchestrator.runPipeline(articleId, stages, {
+        actorId: req.adminUser?.id || null,
+        origin: 'pipeline',
+      });
     }
 
     res.json({ 
@@ -187,7 +199,10 @@ router.post('/pipeline/process-all', async (req: Request, res: Response) => {
     for (const articleId of articleIds) {
       try {
         console.log(`[Pipeline] Processing article ${++processed}/${articleIds.length}: ${articleId}`);
-        const result = await orchestrator.runPipeline(articleId, stages);
+        const result = await orchestrator.runPipeline(articleId, stages, {
+          actorId: req.adminUser?.id || null,
+          origin: 'pipeline',
+        });
         results[articleId] = result;
         if (result.success) successful++;
         else failed++;
@@ -218,7 +233,10 @@ router.post('/pipeline/:articleId', async (req: Request, res: Response) => {
     const articleId = parsedId.data;
     const { stages } = parsed.data;
 
-    const result = await orchestrator.runPipeline(articleId, stages as AgentType[] | undefined);
+    const result = await orchestrator.runPipeline(articleId, stages as AgentType[] | undefined, {
+      actorId: req.adminUser?.id || null,
+      origin: 'pipeline',
+    });
     res.json(result);
   } catch (error) {
     res.status(500).json({ error: 'Agent operation failed' });
@@ -231,7 +249,10 @@ router.post('/audit', async (req: Request, res: Response) => {
       scanType: z.enum(['full', 'translations', 'metadata', 'formatting']).optional(),
     }).strict().safeParse(req.body || {});
     if (!parsed.success) return res.status(400).json({ error: 'Invalid audit request' });
-    const result = await orchestrator.executeImmediately('content_auditor', parsed.data);
+    const result = await orchestrator.executeImmediately('content_auditor', parsed.data, {
+      actorId: req.adminUser?.id || null,
+      origin: 'manual',
+    });
     res.json(result);
   } catch (error) {
     res.status(500).json({ error: 'Agent operation failed' });
@@ -416,7 +437,10 @@ router.post('/analyze/:articleId', async (req: Request, res: Response) => {
   try {
     const parsedId = articleIdSchema.safeParse(req.params.articleId);
     if (!parsedId.success) return res.status(400).json({ error: 'Invalid article id' });
-    const result = await orchestrator.executeImmediately('content_analyzer', { articleId: parsedId.data });
+    const result = await orchestrator.executeImmediately('content_analyzer', { articleId: parsedId.data }, {
+      actorId: req.adminUser?.id || null,
+      origin: 'manual',
+    });
     res.json(result);
   } catch (error) {
     res.status(500).json({ error: 'Agent operation failed' });

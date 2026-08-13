@@ -37,6 +37,7 @@ import { legalAlertsAgent } from './specialized/LegalAlertsAgent';
 import { voiceAgent } from './specialized/VoiceAgent';
 import { presentationGeneratorAgent } from './specialized/PresentationGeneratorAgent';
 import { ALL_AGENT_IDS, type AgentId } from '@shared/agentConstants';
+import { recoverHistoricalAgentCopies } from './storage/CopyHistory';
 
 const RUNTIME_AGENTS = [
   formatterAgent,
@@ -79,6 +80,14 @@ export async function initializeAgents(): Promise<void> {
       if (!orchestrator.getAgent(agent.agentType)) orchestrator.registerAgent(agent);
     }
     await orchestrator.initialize();
+
+    // Recuperación no destructiva e idempotente de trabajos que existían antes del historial
+    // editorial. Corre aparte para que una base de datos muy grande no retrase el panel.
+    void recoverHistoricalAgentCopies()
+      .then((count) => {
+        if (count > 0) console.log(`[Agents] Recovered ${count} historical editorial copies`);
+      })
+      .catch((error) => console.error('[Agents] Copy history recovery skipped:', error));
 
     console.log(`[Agents] All ${RUNTIME_AGENTS.length} canonical runtime agents registered and ready`);
   })();

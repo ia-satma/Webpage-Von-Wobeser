@@ -16,6 +16,7 @@ import { db } from '../../db';
 import { news } from '@shared/schema';
 import { eq } from 'drizzle-orm';
 import { parseAgentPayload } from './contracts';
+import { persistAgentCopySnapshot, type CopyHistoryOrigin } from '../storage/CopyHistory';
 
 export interface PipelineStageUpdate {
   stage: AgentType | 'legal_council';
@@ -28,6 +29,8 @@ export interface PipelineStageUpdate {
 
 export interface PipelineRunOptions {
   onProgress?: (update: PipelineStageUpdate) => void | Promise<void>;
+  actorId?: string | null;
+  origin?: Extract<CopyHistoryOrigin, 'pipeline' | 'scheduled'>;
 }
 
 export class AgentOrchestrator {
@@ -295,6 +298,7 @@ export class AgentOrchestrator {
   async executeImmediately(
     agentType: AgentType,
     payload: Record<string, unknown>,
+    execution: { actorId?: string | null; origin?: CopyHistoryOrigin } = {},
   ): Promise<AgentResult> {
     const agent = this.agents.get(agentType);
     if (!agent) return { success: false, error: `Agent ${agentType} is not registered` };
@@ -383,6 +387,25 @@ export class AgentOrchestrator {
         lastResult.success ? 'Manual job completed' : 'Manual job failed',
       );
 
+      if (lastResult.success) {
+        try {
+          const copy = await persistAgentCopySnapshot({
+            jobId: job.id,
+            agentType,
+            payload: job.payload,
+            result: lastResult.data,
+            completedAt: job.completedAt,
+            actorId: execution.actorId,
+            origin: execution.origin || 'manual',
+          });
+          if (copy) lastResult.copyHistoryId = copy.id;
+        } catch (copyError) {
+          // El historial es una garantía adicional; nunca debe ocultar el resultado del agente
+          // si una base de datos temporalmente no puede guardar la instantánea.
+          console.error(`[Orchestrator] Could not persist copy history for ${job.id}:`, copyError);
+        }
+      }
+
       await this.recordAgentOutcome(
         agentType,
         lastResult,
@@ -465,7 +488,10 @@ export class AgentOrchestrator {
         const stagePayload: Record<string, unknown> = stage === 'content_analyzer'
           ? { articleId }
           : { articleId, applyChanges: true };
-        const result = await this.executeImmediately(stage, stagePayload);
+        const result = await this.executeImmediately(stage, stagePayload, {
+          actorId: options.actorId,
+          origin: options.origin || 'pipeline',
+        });
         results[stage] = result;
 
         await options.onProgress?.({
@@ -675,6 +701,19 @@ export class AgentOrchestrator {
       });
 
       await this.addEvent(job.id, job.agentType, 'complete', 'Job completed successfully');
+
+      try {
+        await persistAgentCopySnapshot({
+          jobId: job.id,
+          agentType: job.agentType,
+          payload: job.payload,
+          result: result.data,
+          completedAt: job.completedAt,
+          origin: 'scheduled',
+        });
+      } catch (copyError) {
+        console.error(`[Orchestrator] Could not persist scheduled copy history for ${job.id}:`, copyError);
+      }
 
       const executionTime = job.completedAt.getTime() - job.startedAt.getTime();
       await this.recordAgentOutcome(job.agentType, result, executionTime);

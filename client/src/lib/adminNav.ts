@@ -147,6 +147,7 @@ export const ADMIN_NAV_GROUPS: AdminNavGroup[] = [
     items: [
       { href: "/admin/site-config/voz", label: "Voz corporativa", icon: Volume2, requires: "config" },
       { href: "/admin/agents", label: "Agentes IA", icon: Bot, requires: "agents" },
+      { href: "/admin/copies-ai", label: "Copys IA", icon: FileText, requires: "agents" },
       { href: "/admin/presentations", label: "Presentaciones IA", icon: Presentation, requires: "agents" },
       { href: "/admin/generated-images", label: "Imágenes generadas por IA", icon: Sparkles, requires: "agents" },
       { href: "/admin/generated-audio", label: "Audio generado por IA", icon: Volume2, requires: "agents" },

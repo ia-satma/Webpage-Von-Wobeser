@@ -690,6 +690,15 @@ export default function AdminAgents() {
                             Resultado: {job.result.success ? 'Éxito' : 'Fallido'}
                           </p>
                         )}
+                        {job.copyHistoryId && (
+                          <Link
+                            href={`/admin/copies-ai?copy=${job.copyHistoryId}`}
+                            className="mt-2 inline-flex text-xs font-medium text-primary hover:underline"
+                            data-testid={`link-copy-history-${job.id}`}
+                          >
+                            Ver copy editorial guardado
+                          </Link>
+                        )}
                       </Card>
                     ))}
                     {(!status?.orchestrator?.recentJobs || status.orchestrator.recentJobs.length === 0) && (
