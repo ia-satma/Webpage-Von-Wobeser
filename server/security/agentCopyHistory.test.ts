@@ -3,6 +3,8 @@ import fs from "node:fs";
 import path from "node:path";
 import test from "node:test";
 import { sanitizeCms } from "../mirror/sanitize";
+import { readRouteSources } from "./routeTestSources";
+import { readAgentOrchestratorSources } from "./agentOrchestratorTestSources";
 
 const root = process.cwd();
 const read = (relative: string) => fs.readFileSync(path.join(root, relative), "utf8");
@@ -33,7 +35,7 @@ test("la migración es aditiva y conserva relaciones aunque se elimine su origen
 });
 
 test("las APIs de copys son privadas, archivables y sin borrado definitivo", () => {
-  const routes = read("server/routes.ts");
+  const routes = readRouteSources();
   const page = read("client/src/pages/admin/AdminCopyHistory.tsx");
   const nav = read("client/src/lib/adminNav.ts");
   assert.match(routes, /app\.get\("\/api\/admin\/copies-ai", authMiddleware, requirePermission\("agents"\)/);
@@ -45,9 +47,9 @@ test("las APIs de copys son privadas, archivables y sin borrado definitivo", () 
 });
 
 test("la captura central se ejecuta para solicitudes inmediatas, pipelines y cola", () => {
-  const orchestrator = read("server/agents/core/AgentOrchestrator.ts");
+  const orchestrator = readAgentOrchestratorSources();
   const routes = read("server/agents/api/agentRoutes.ts");
-  assert.match(orchestrator, /persistAgentCopySnapshot/);
+  assert.match(orchestrator, /persistCopySnapshot/);
   assert.match(orchestrator, /origin: execution\.origin \|\| 'manual'/);
   assert.match(orchestrator, /origin: options\.origin \|\| 'pipeline'/);
   assert.match(orchestrator, /origin: 'scheduled'/);

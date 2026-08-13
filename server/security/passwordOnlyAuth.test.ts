@@ -1,14 +1,16 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import test from "node:test";
+import { readRouteSources } from "./routeTestSources";
+import { readSchemaSources } from "./schemaTestSources";
 
-const routes = readFileSync(new URL("../routes.ts", import.meta.url), "utf8");
+const routes = readRouteSources();
 const auth = readFileSync(new URL("../auth.ts", import.meta.url), "utf8");
 const login = readFileSync(
   new URL("../../client/src/pages/admin/AdminLogin.tsx", import.meta.url),
   "utf8",
 );
-const schema = readFileSync(new URL("../../shared/schema.ts", import.meta.url), "utf8");
+const schema = readSchemaSources();
 const recovery = readFileSync(
   new URL("../../scripts/recover-admin.ts", import.meta.url),
   "utf8",

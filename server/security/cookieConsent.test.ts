@@ -1,3 +1,4 @@
+import { readMirrorSources } from "./mirrorTestSources";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import test from "node:test";
@@ -67,7 +68,7 @@ test("el aviso de Google Maps queda dentro del rectángulo reservado para el map
 
 test("el gestor conserva elección versionada, respeta GPC sin ocultar el aviso y revoca GA4", () => {
   const source = readFileSync(new URL("../../public/vwb-cookie-consent.js", import.meta.url), "utf8");
-  const mirrorSource = readFileSync(new URL("../mirror/index.ts", import.meta.url), "utf8");
+  const mirrorSource = readMirrorSources();
 
   assert.match(source, /vwb_cookie_consent/);
   assert.match(source, /XMLHttpRequest/);
@@ -101,7 +102,7 @@ test("la política de cookies conserva tablas seguras editables", () => {
 
 test("la política pública usa la composición editorial y las dos fuentes institucionales", () => {
   const css = readFileSync(new URL("../../public/vwb-cookie-consent.css", import.meta.url), "utf8");
-  const mirrorSource = readFileSync(new URL("../mirror/index.ts", import.meta.url), "utf8");
+  const mirrorSource = readMirrorSources();
 
   assert.match(css, /--vwb-title:"Gelasio",serif/);
   assert.match(css, /--vwb-body:"Inter",sans-serif/);

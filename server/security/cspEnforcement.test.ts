@@ -1,3 +1,4 @@
+import { readMirrorSources } from "./mirrorTestSources";
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
 import { existsSync, readFileSync } from "node:fs";
@@ -89,7 +90,7 @@ test("production CSP is enforced and does not permit inline script attributes", 
 });
 
 test("public HTML is not shared between visitors when it contains a nonce", () => {
-  const mirror = readFileSync(new URL("../mirror/index.ts", import.meta.url), "utf8");
+  const mirror = readMirrorSources();
   const staticServer = readFileSync(new URL("../static.ts", import.meta.url), "utf8");
   assert.match(mirror, /prepareTrustedHtmlForCsp\(out, nonce\)/);
   assert.match(mirror, /res\.set\("Cache-Control", "private, no-store"\)/);

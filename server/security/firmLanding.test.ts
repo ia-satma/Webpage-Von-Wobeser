@@ -1,3 +1,4 @@
+import { readMirrorSources } from "./mirrorTestSources";
 import test from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
@@ -186,8 +187,7 @@ test("el video del home cae en el resumen separado aunque falte configuración",
 });
 
 test("las rutas de Firma apuntan a la landing canónica y conservan sus subpáginas", async () => {
-  const { readFile } = await import("node:fs/promises");
-  const source = await readFile(new URL("../mirror/index.ts", import.meta.url), "utf8");
+  const source = readMirrorSources();
 
   assert.ok(source.includes('["/nuestra-firma", "/nuestra-firma/"]'));
   assert.ok(source.includes('redirectLegacy("/acerca-de", "es")'));

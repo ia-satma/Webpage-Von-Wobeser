@@ -1,3 +1,4 @@
+import { readMirrorSources } from "./mirrorTestSources";
 import test from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs/promises";
@@ -240,7 +241,7 @@ test("el respaldo de entrega exige confirmar exactamente la base activa", () => 
 test("el modo mantenimiento evita seeds y procesos de fondo además de bloquear HTTP", async () => {
   const [routes, mirror, index] = await Promise.all([
     fs.readFile(path.join(process.cwd(), "server/routes.ts"), "utf8"),
-    fs.readFile(path.join(process.cwd(), "server/mirror/index.ts"), "utf8"),
+    Promise.resolve(readMirrorSources()),
     fs.readFile(path.join(process.cwd(), "server/index.ts"), "utf8"),
   ]);
   assert.match(routes, /!isMigrationReadOnlyEnabled\(\)/);

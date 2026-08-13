@@ -14,6 +14,8 @@ import {
 import { canonicalPracticeManifest } from "../content/canonicalPractices";
 import { renderAttorney } from "../mirror/renderAttorney";
 import { renderRichText } from "../mirror/sanitize";
+import { readAdminFeatureSources } from "./adminFeatureTestSources";
+import { readRouteSources } from "./routeTestSources";
 
 const mirrorDir = path.resolve(process.cwd(), "frontend-mirror");
 const read = (relative: string) => fs.readFileSync(new URL(relative, import.meta.url), "utf8");
@@ -118,8 +120,8 @@ test("la ficha dinámica separa destacado y cuerpo, usa idiomas y no duplica not
 });
 
 test("el CMS expone introducción, estructura completa y saneamiento para los perfiles", () => {
-  const form = read("../../client/src/pages/admin/AdminTeamForm.tsx");
-  const routes = read("../routes.ts");
+  const form = readAdminFeatureSources("team-form", "AdminTeamForm.tsx");
+  const routes = readRouteSources();
   const typography = read("../../frontend-mirror/templates/beez3/css/typography.css");
   const idMap = read("../mirror/idMap.ts");
 

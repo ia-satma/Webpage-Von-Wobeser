@@ -1,3 +1,4 @@
+import { readMirrorSources } from "./mirrorTestSources";
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { existsSync, mkdtempSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs';
@@ -5,6 +6,7 @@ import { tmpdir } from 'node:os';
 import path from 'node:path';
 import JSZip from 'jszip';
 import { embedPresentationFonts } from '../services/presentationFonts';
+import { readPresentationGeneratorSources } from './presentationGeneratorTestSources';
 import {
   legacyHtmlLanguage,
   legacyPaginationDestination,
@@ -23,7 +25,7 @@ test('sitio y panel usan solamente Gelasio e Inter como familias activas', () =>
   ].join('\n');
   const adminCss = read('../../client/src/index.css');
   const adminHtml = read('../../client/index.html');
-  const server = read('../mirror/index.ts');
+  const server = readMirrorSources();
 
   assert.match(typography, /--font-title:\s*"Gelasio", serif/);
   assert.match(typography, /--font-body:\s*"Inter", sans-serif/);
@@ -56,7 +58,7 @@ test('sitio y panel usan solamente Gelasio e Inter como familias activas', () =>
 test('Inter no supera Medium (500), salvo el único titular editorial autorizado de Nuevas oficinas', () => {
   const typography = read('../../frontend-mirror/templates/beez3/css/typography.css');
   const tailwind = read('../../tailwind.config.ts');
-  const generator = read('../services/PresentationGenerator.ts');
+  const generator = readPresentationGeneratorSources();
   const presentationFonts = read('../services/presentationFonts.ts');
 
   const interFaces = typography.match(/@font-face\s*\{[\s\S]*?font-family:\s*"Inter"[\s\S]*?\}/g) || [];
@@ -169,7 +171,7 @@ test('HTML histórico recibe idioma, tipografías y paginación bilingüe correc
 });
 
 test('los SVG nuevos incrustan las dos familias antes de rasterizar PDF y PNG', () => {
-  const generator = read('../services/PresentationGenerator.ts');
+  const generator = readPresentationGeneratorSources();
   assert.match(generator, /data:font\/ttf;base64/);
   assert.match(generator, /font-family:'Gelasio'/);
   assert.match(generator, /font-family:'Inter'/);

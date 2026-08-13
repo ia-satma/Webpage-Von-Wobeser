@@ -10,6 +10,8 @@ import {
   persistentMediaIsRequired,
   publicPathFromManagedObjectName,
 } from "../media/persistentMedia";
+import { readRouteSources } from "./routeTestSources";
+import { readPresentationGeneratorModule } from "./presentationGeneratorTestSources";
 
 test("las rutas administradas se convierten en objetos sin permitir traversal", () => {
   assert.equal(
@@ -57,7 +59,7 @@ test("el almacenamiento persistente es obligatorio en producción y Replit", () 
 });
 
 test("el upload persiste originales y derivados antes de guardar su registro", () => {
-  const routes = readFileSync(new URL("../routes.ts", import.meta.url), "utf8");
+  const routes = readRouteSources();
   const persistenceCall = routes.indexOf("const persistence = await persistPublicMediaFiles([");
   const databaseCall = routes.indexOf("const mediaItem = await storage.createMediaItem({");
 
@@ -68,10 +70,10 @@ test("el upload persiste originales y derivados antes de guardar su registro", (
 });
 
 test("imágenes, audios y presentaciones conservan archivos e historial permanente", () => {
-  const generator = readFileSync(new URL("../services/PresentationGenerator.ts", import.meta.url), "utf8");
+  const generator = readPresentationGeneratorModule("outputPipeline.ts");
   const voiceGenerator = readFileSync(new URL("../services/VoiceGenerator.ts", import.meta.url), "utf8");
   const imageGenerator = readFileSync(new URL("../services/SmartImageGenerator.ts", import.meta.url), "utf8");
-  const routes = readFileSync(new URL("../routes.ts", import.meta.url), "utf8");
+  const routes = readRouteSources();
   const migration = readFileSync(
     new URL("../../scripts/migrate-media-to-app-storage.ts", import.meta.url),
     "utf8",
@@ -89,11 +91,11 @@ test("imágenes, audios y presentaciones conservan archivos e historial permanen
     "utf8",
   );
 
-  const persistenceCall = generator.indexOf("await persistPublicMediaFiles(generatedFiles)");
-  const historyCall = generator.indexOf("await storage.createGeneratedPresentation({");
+  const persistenceCall = generator.indexOf("await deps.persistFiles(generatedFiles)");
+  const historyCall = generator.indexOf("await deps.createHistory({");
   assert.ok(persistenceCall > 0);
   assert.ok(historyCall > persistenceCall);
-  assert.match(generator, /deletePersistentMediaObjects\(persistedObjectNames\)/);
+  assert.match(generator, /deps\.deletePersistentObjects\(persistedObjectNames\)/);
 
   assert.match(routes, /servePersistentManagedMedia\(req, res, publicPath\)/);
   assert.match(routes, /const persistentPaths = await listPersistentPublicMediaPaths\(\)/);

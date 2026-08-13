@@ -1,0 +1,563 @@
+import type { Express, NextFunction, Request, Response } from "express";
+import path from "node:path";
+import { contactFormSchema, newsletterSubscribeSchema } from "@shared/schema";
+import { getLocalizedAttorneyRole, getLocalizedAttorneyTitle } from "@shared/attorneyTitles";
+import { z } from "zod";
+import { checkSharedRateLimit, recordSharedRateLimitAttempt } from "../auth";
+import { deletePersistentPrivateCv, persistPrivateCvFile } from "../media/privateDocuments";
+import { isPublishedPublicPractice, isPublicPracticeSlug } from "../mirror/publicPracticeGroups";
+import { CATEGORIES as ATTORNEY_CATEGORIES } from "../mirror/renderAttorneyList";
+import {
+  acceptQuarantinedCv,
+  removeUploadQuietly,
+  scanFileForMalware,
+  validateCvFile,
+} from "../security/uploads";
+import { storage } from "../storage";
+import { cvUpload } from "./uploadMiddleware";
+
+const isNewsPubliclyVisible = (news: { published?: boolean | null; publishAt?: Date | string | null }): boolean =>
+  news.published === true && (!news.publishAt || new Date(news.publishAt) <= new Date());
+
+function generateVCard(member: any, language: "es" | "en" = "es"): string {
+  const vcardText = (value: unknown) => String(value ?? "")
+    .replace(/\\/g, "\\\\")
+    .replace(/\r?\n/g, "\\n")
+    .replace(/;/g, "\\;")
+    .replace(/,/g, "\\,");
+  const safeUri = (value: unknown): string | null => {
+    try {
+      const url = new URL(String(value ?? ""), "https://www.vonwobeser.com");
+      return ["http:", "https:"].includes(url.protocol) ? url.toString() : null;
+    } catch {
+      return null;
+    }
+  };
+  const title = vcardText(getLocalizedAttorneyTitle(member, language));
+  const role = vcardText(getLocalizedAttorneyRole(member, language));
+
+  const safeName = vcardText(member.name || member.slug?.replace(/-/g, ' ') || 'Unknown');
+  const nameParts = safeName.split(/\s+/);
+  const firstName = nameParts[0] || '';
+  const lastName = nameParts.slice(1).join(' ') || '';
+
+  const lines = [
+    'BEGIN:VCARD',
+    'VERSION:3.0',
+    `FN:${safeName}`,
+    `N:${lastName};${firstName};;;`,
+    `ORG:Von Wobeser y Sierra, S.C.`,
+    `TITLE:${title}`,
+    `ROLE:${role}`,
+  ];
+
+  if (member.email) {
+    const email = String(member.email).replace(/[\r\n]/g, "").trim();
+    if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) lines.push(`EMAIL;TYPE=WORK:${email}`);
+  }
+
+  if (member.phone) {
+    const phone = String(member.phone).replace(/[^\d+().\s-]/g, "").slice(0, 40);
+    if (phone) lines.push(`TEL;TYPE=WORK,VOICE:${phone}`);
+  }
+
+  lines.push(`ADR;TYPE=WORK:;;Torre SOMA Chapultepec Piso 18, Campos Elíseos 204;Ciudad de México;CDMX;11560;México`);
+  lines.push(`URL:https://www.vonwobeser.com`);
+
+  const linkedinUrl = safeUri(member.linkedinUrl);
+  if (linkedinUrl) {
+    lines.push(`X-SOCIALPROFILE;TYPE=linkedin:${linkedinUrl}`);
+  }
+
+  const imageUrl = safeUri(member.imageUrl);
+  if (imageUrl) {
+    lines.push(`PHOTO;VALUE=URI:${imageUrl}`);
+  }
+
+  lines.push('END:VCARD');
+
+  return lines.join('\r\n');
+}
+
+export function registerPublicContentRoutes(app: Express): void {
+  app.get("/api/site-content", (_req, res) => {
+    try {
+      const content = storage.getSiteContent();
+      res.json(content);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch site content" });
+    }
+  });
+
+  app.get("/api/stats", (_req, res) => {
+    try {
+      const stats = storage.getStats();
+      res.json(stats);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch stats" });
+    }
+  });
+
+  // Público (sin authMiddleware): un registro marcado published=false (borrador, perfil
+  // dado de baja, etc.) no debe ser alcanzable vía la API solo conociendo su id/slug, aunque
+  // el espejo público sí lo filtre correctamente al renderizar HTML. Mismo criterio que
+  // isNewsPubliclyVisible más abajo — published=true explícito, no basta con "no false".
+  const isPubliclyVisible = (e: { published?: boolean | null }): boolean => e.published === true;
+
+  app.get("/api/practice-groups", async (_req, res) => {
+    try {
+      const groups = (await storage.getPracticeGroups()).filter(isPublishedPublicPractice);
+      res.set("Cache-Control", "public, max-age=60");
+      res.json(groups);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch practice groups" });
+    }
+  });
+
+  app.get("/api/practice-groups/:idOrSlug", async (req, res) => {
+    try {
+      const param = req.params.idOrSlug;
+      let group = await storage.getPracticeGroupBySlug(param);
+      if (!group) {
+        group = await storage.getPracticeGroupById(param);
+      }
+      if (!group || !isPublishedPublicPractice(group)) {
+        return res.status(404).json({ error: "Practice group not found" });
+      }
+      res.json(group);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch practice group" });
+    }
+  });
+
+  app.get("/api/industry-groups", async (_req, res) => {
+    try {
+      const groups = (await storage.getIndustryGroups()).filter(isPubliclyVisible);
+      res.set("Cache-Control", "public, max-age=60");
+      res.json(groups);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch industry groups" });
+    }
+  });
+
+  app.get("/api/industry-groups/:idOrSlug", async (req, res) => {
+    try {
+      const param = req.params.idOrSlug;
+      let group = await storage.getIndustryGroupBySlug(param);
+      if (!group) {
+        group = await storage.getIndustryGroupById(param);
+      }
+      if (!group || !isPubliclyVisible(group)) {
+        return res.status(404).json({ error: "Industry group not found" });
+      }
+      res.json(group);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch industry group" });
+    }
+  });
+
+  app.get("/api/team", async (_req, res) => {
+    try {
+      const members = (await storage.getTeamMembers()).filter(isPubliclyVisible);
+      res.set("Cache-Control", "public, max-age=60");
+      res.json(members);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch team members" });
+    }
+  });
+
+  app.get("/api/team/partners", async (_req, res) => {
+    try {
+      const partners = (await storage.getPartners()).filter(isPubliclyVisible);
+      res.set("Cache-Control", "public, max-age=60");
+      res.json(partners);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch partners" });
+    }
+  });
+
+  // Búsqueda de abogados: ?q=nombre&position=partners|of-counsel|counsel|associates&practice=slug
+  app.get("/api/team/search", async (req, res) => {
+    try {
+      const parsed = z.object({
+        q: z.string().trim().max(160).optional(),
+        position: z.enum(["partners", "of-counsel", "counsel", "associates"]).optional(),
+        practice: z.string().trim().regex(/^[a-z0-9-]{1,160}$/).optional(),
+      }).safeParse(req.query);
+      if (!parsed.success) return res.status(400).json({ error: "Invalid search parameters" });
+      const { q, position, practice: practiceSlug } = parsed.data;
+
+      const title = position && ATTORNEY_CATEGORIES[position] ? ATTORNEY_CATEGORIES[position].title : undefined;
+      let practiceGroupId: string | undefined;
+      if (practiceSlug) {
+        const group = await storage.getPracticeGroupBySlug(practiceSlug);
+        practiceGroupId = group?.id;
+        if (!group) return res.json([]); // práctica inexistente: sin resultados
+      }
+
+      const members = await storage.searchTeamMembers({ q, title, practiceGroupId });
+      res.set("Cache-Control", "public, max-age=60");
+      res.json(members);
+    } catch (error) {
+      console.error("Team search error:", error);
+      res.status(500).json({ error: "Failed to search team members" });
+    }
+  });
+
+  app.get("/api/team/:idOrSlug", async (req, res) => {
+    try {
+      const param = req.params.idOrSlug;
+      let member = await storage.getTeamMemberBySlug(param);
+      if (!member) {
+        member = await storage.getTeamMemberById(param);
+      }
+      if (!member || !isPubliclyVisible(member)) {
+        return res.status(404).json({ error: "Team member not found" });
+      }
+      res.json(member);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch team member" });
+    }
+  });
+
+  app.get("/api/team/:idOrSlug/vcard", async (req, res) => {
+    try {
+      const param = req.params.idOrSlug;
+      const langParam = req.query.lang as string;
+      const language: "es" | "en" = langParam === "en" ? "en" : "es";
+
+      let member = await storage.getTeamMemberBySlug(param);
+      if (!member) {
+        member = await storage.getTeamMemberById(param);
+      }
+      if (!member || !isPubliclyVisible(member)) {
+        return res.status(404).json({ error: "Team member not found" });
+      }
+
+      const vcard = generateVCard(member, language);
+      const filename = member.slug.replace(/[^a-z0-9-]/g, '') + '.vcf';
+
+      res.setHeader('Content-Type', 'text/vcard; charset=utf-8');
+      res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+      res.setHeader("X-Content-Type-Options", "nosniff");
+      res.setHeader("Cache-Control", "no-store");
+      res.send(vcard);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to generate vCard" });
+    }
+  });
+
+  // Get all news articles related to a team member by slug
+  app.get("/api/team/:slug/news", async (req, res) => {
+    try {
+      const slug = req.params.slug;
+      const member = await storage.getTeamMemberBySlug(slug);
+      if (!member || !isPubliclyVisible(member)) {
+        return res.status(404).json({ error: "Team member not found" });
+      }
+      const newsList = (await storage.getNewsByTeamMemberId(member.id)).filter(isNewsPubliclyVisible);
+      res.json(newsList);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch news for team member" });
+    }
+  });
+
+  // Rate-limit para los 2 formularios PÚBLICOS sin login (contacto y pasantes) — antes no
+  // tenían ningún límite de tasa, a diferencia del login. 10 envíos / 15 min por IP basta para
+  // uso legítimo (un visitante no manda 10 formularios en 15 min) y frena spam/abuso masivo.
+  const PUBLIC_FORM_POLICY = {
+    maxAttempts: 10,
+    windowMs: 15 * 60 * 1000,
+    blockDurationMs: 15 * 60 * 1000,
+  };
+  const publicFormLimiter = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const identifier = req.ip || req.socket.remoteAddress || "unknown";
+      const status = await checkSharedRateLimit("public-form", identifier, PUBLIC_FORM_POLICY);
+      if (!status.allowed) {
+        res.setHeader("Retry-After", String(status.retryAfter || 60));
+        return res.status(429).json({ error: "Demasiados envíos, intenta de nuevo más tarde." });
+      }
+      await recordSharedRateLimitAttempt("public-form", identifier, PUBLIC_FORM_POLICY);
+      next();
+    } catch (error) {
+      console.error("Public form rate limit error:", error);
+      res.status(503).json({ error: "No fue posible procesar el envío en este momento." });
+    }
+  };
+
+  app.post("/api/contact", publicFormLimiter, async (req, res) => {
+    try {
+      const validationResult = contactFormSchema.safeParse(req.body);
+
+      if (!validationResult.success) {
+        return res.status(400).json({
+          error: "Validation failed",
+          details: validationResult.error.errors
+        });
+      }
+
+      const contactData = validationResult.data;
+
+      const sanitize = (str: string) => str.replace(/<[^>]*>/g, '').trim();
+
+      const sanitizedData = {
+        fullName: sanitize(contactData.fullName),
+        email: contactData.email.trim().toLowerCase(),
+        phone: contactData.phone ? sanitize(contactData.phone) : undefined,
+        company: contactData.company ? sanitize(contactData.company) : undefined,
+        practiceArea: contactData.practiceArea ? sanitize(contactData.practiceArea) : undefined,
+        message: sanitize(contactData.message),
+        acceptedPrivacy: true,
+        consentedAt: new Date(),
+        ipAddress: (() => {
+          const fwd = req.headers["x-forwarded-for"];
+          const raw = Array.isArray(fwd) ? fwd[0] : fwd;
+          return raw?.split(",")[0]?.trim() || req.ip || null;
+        })(),
+      };
+
+      const submission = await storage.createContactSubmission(sanitizedData);
+
+      console.log(`[Contact] New submission saved with id ${submission.id}`);
+
+      res.json({ success: true, message: "Contact form submitted successfully" });
+    } catch (error) {
+      console.error("Contact form error:", error);
+      res.status(500).json({ error: "Failed to process contact form" });
+    }
+  });
+
+  // Newsletter público: el resultado es intencionalmente genérico. Así no se
+  // revela si un correo ya estaba registrado y se permite reactivar una baja.
+  app.post("/api/newsletter/subscribe", publicFormLimiter, async (req, res) => {
+    try {
+      const validation = newsletterSubscribeSchema.safeParse(req.body);
+      if (!validation.success) {
+        return res.status(400).json({ error: "Validation failed", details: validation.error.errors });
+      }
+
+      const sanitize = (value: string) => value.replace(/<[^>]*>/g, "").replace(/\s+/g, " ").trim();
+      const data = validation.data;
+      const email = data.email.trim().toLowerCase();
+      const consentedAt = new Date();
+      const existing = await storage.getNewsletterSubscriberByEmail(email);
+
+      if (!existing) {
+        await storage.createNewsletterSubscriber({
+          name: sanitize(data.name),
+          email,
+          company: sanitize(data.company),
+          preferredLanguage: data.language === "en" ? "en" : "es",
+          isVerified: false,
+          isActive: true,
+          consentedAt,
+          source: "home",
+          unsubscribedAt: null,
+        });
+      } else if (!existing.isActive) {
+        await storage.updateNewsletterSubscriber(existing.id, {
+          name: sanitize(data.name),
+          company: sanitize(data.company),
+          preferredLanguage: data.language === "en" ? "en" : "es",
+          isActive: true,
+          consentedAt,
+          source: "home",
+          unsubscribedAt: null,
+        });
+      }
+
+      res.json({ success: true, message: "Subscription received" });
+    } catch (error) {
+      console.error("Newsletter subscription error:", error);
+      res.status(500).json({ error: "Failed to process subscription" });
+    }
+  });
+
+  // Formulario de "Pasantes" — antes era HTML de Joomla con action="" (no llegaba a
+  // ningún lado). Los campos del multipart (name, l_name, mail, tel, comment, accept)
+  // vienen tal cual del HTML original capturado; se mapean a las columnas de career_applications.
+  app.post("/api/career-applications", publicFormLimiter, cvUpload.single("uploaded_file"), async (req, res) => {
+    let acceptedCvPath: string | undefined;
+    let acceptedCvStoragePath: string | undefined;
+    let acceptedCvPersisted = false;
+    try {
+      const bodySchema = z.object({
+        name: z.string().trim().min(1).max(120),
+        l_name: z.string().trim().min(1).max(120),
+        mail: z.string().trim().email().max(254),
+        tel: z.string().trim().max(32).optional(),
+        comment: z.string().trim().max(2_000).optional(),
+        accept: z.string().min(1),
+      }).strict();
+      const validationResult = bodySchema.safeParse(req.body);
+      if (!validationResult.success) {
+        await removeUploadQuietly(req.file?.path);
+        return res.status(400).json({ error: "Revisa los campos obligatorios y el Aviso de Privacidad." });
+      }
+      if (!req.file) {
+        return res.status(400).json({ error: "Adjunta tu CV (PDF, DOC o DOCX)." });
+      }
+      if (!await validateCvFile(req.file.path, req.file.mimetype)) {
+        await removeUploadQuietly(req.file.path);
+        return res.status(400).json({ error: "El contenido del archivo no corresponde a un PDF, DOC o DOCX válido." });
+      }
+      await scanFileForMalware(req.file.path);
+      const acceptedCv = await acceptQuarantinedCv(req.file.path, req.file.mimetype);
+      acceptedCvPath = acceptedCv.absolutePath;
+      acceptedCvStoragePath = acceptedCv.storagePath;
+      const persistence = await persistPrivateCvFile(acceptedCv.absolutePath, acceptedCv.storagePath);
+      acceptedCvPersisted = persistence.persisted;
+
+      const data = validationResult.data;
+      const sanitize = (str: string) => str.replace(/<[^>]*>/g, "").trim();
+      const safeOriginalName = path.basename(req.file.originalname)
+        .replace(/[\u0000-\u001f\u007f]/g, "")
+        .slice(0, 180);
+
+      const application = await storage.createCareerApplication({
+        firstName: sanitize(data.name),
+        lastName: sanitize(data.l_name),
+        email: data.mail.trim().toLowerCase(),
+        phone: data.tel ? sanitize(data.tel) : undefined,
+        address: data.comment ? sanitize(data.comment) : undefined,
+        cvPath: acceptedCv.storagePath,
+        cvOriginalName: safeOriginalName,
+        acceptedPrivacy: true,
+        ipAddress: (() => {
+          const fwd = req.headers["x-forwarded-for"];
+          const raw = Array.isArray(fwd) ? fwd[0] : fwd;
+          return raw?.split(",")[0]?.trim() || req.ip || null;
+        })(),
+      });
+
+      console.log(`[CareerApplications] Submission saved with id ${application.id}`);
+
+      if (acceptedCvPersisted) {
+        await removeUploadQuietly(acceptedCvPath);
+        acceptedCvPath = undefined;
+      }
+
+      res.json({ success: true, message: "Application submitted successfully" });
+    } catch (error) {
+      await removeUploadQuietly(req.file?.path);
+      await removeUploadQuietly(acceptedCvPath);
+      if (acceptedCvPersisted && acceptedCvStoragePath) {
+        await deletePersistentPrivateCv(acceptedCvStoragePath).catch(() => undefined);
+      }
+      console.error("Career application processing failed");
+      res.status(500).json({ error: "No fue posible procesar la solicitud." });
+    }
+  });
+
+  app.get("/api/representative-matters", async (_req, res) => {
+    try {
+      const matters = await storage.getRepresentativeMatters();
+      res.json(matters);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch representative matters" });
+    }
+  });
+
+  app.get("/api/practice-groups/:slug/representative-matters", async (req, res) => {
+    try {
+      const { slug } = req.params;
+      if (!isPublicPracticeSlug(slug)) return res.status(410).json({ error: "Practice group retired" });
+      const allMatters = await storage.getRepresentativeMatters();
+      const filtered = allMatters.filter(m => m.practiceAreaSlug === slug);
+      res.json(filtered);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch representative matters" });
+    }
+  });
+
+  // Events API routes
+  app.get("/api/events", async (_req, res) => {
+    try {
+      const eventsList = await storage.getEvents();
+      res.json(eventsList);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch events" });
+    }
+  });
+
+  app.get("/api/events/upcoming", async (req, res) => {
+    try {
+      const parsed = z.coerce.number().int().min(1).max(50).default(4).safeParse(req.query.limit);
+      if (!parsed.success) return res.status(400).json({ error: "Invalid limit" });
+      const limit = parsed.data;
+      const eventsList = await storage.getUpcomingEvents(limit);
+      res.json(eventsList);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch upcoming events" });
+    }
+  });
+
+  app.get("/api/events/:id", async (req, res) => {
+    try {
+      const event = await storage.getEventById(req.params.id);
+      if (!event || !isPubliclyVisible(event)) {
+        return res.status(404).json({ error: "Event not found" });
+      }
+      res.json(event);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch event" });
+    }
+  });
+
+  app.get("/api/search", async (req, res) => {
+    try {
+      const parsed = z.string().trim().max(200).safeParse(req.query.q || "");
+      if (!parsed.success) return res.status(400).json({ error: "Invalid search" });
+      const query = parsed.data.toLowerCase();
+      if (!query || query.length < 2) {
+        return res.json({ team: [], practiceGroups: [], industryGroups: [], news: [] });
+      }
+
+      // Noticias vía SQL acotado (ILIKE+LIMIT); el resto son tablas pequeñas. Filtradas a
+      // published=true antes de buscar — este endpoint es público, sin authMiddleware.
+      const [teamRaw, practiceGroupsRaw, industryGroupsRaw, filteredNews] = await Promise.all([
+        storage.getTeamMembers(),
+        storage.getPracticeGroups(),
+        storage.getIndustryGroups(),
+        storage.searchNews(query, 5),
+      ]);
+      const team = teamRaw.filter(isPubliclyVisible);
+      const practiceGroups = practiceGroupsRaw.filter(isPublishedPublicPractice);
+      const industryGroups = industryGroupsRaw.filter(isPubliclyVisible);
+
+      const filteredTeam = team.filter(m =>
+        m.name.toLowerCase().includes(query) ||
+        m.title.toLowerCase().includes(query) ||
+        m.titleEs.toLowerCase().includes(query) ||
+        m.role.toLowerCase().includes(query) ||
+        m.roleEs.toLowerCase().includes(query) ||
+        (m.bio && m.bio.toLowerCase().includes(query)) ||
+        (m.bioEs && m.bioEs.toLowerCase().includes(query))
+      ).slice(0, 10);
+
+      const filteredPractice = practiceGroups.filter(g =>
+        g.name.toLowerCase().includes(query) ||
+        g.nameEs.toLowerCase().includes(query) ||
+        g.description.toLowerCase().includes(query) ||
+        g.descriptionEs.toLowerCase().includes(query)
+      ).slice(0, 5);
+
+      const filteredIndustry = industryGroups.filter(g =>
+        g.name.toLowerCase().includes(query) ||
+        g.nameEs.toLowerCase().includes(query) ||
+        g.description.toLowerCase().includes(query) ||
+        g.descriptionEs.toLowerCase().includes(query)
+      ).slice(0, 5);
+
+      res.json({
+        team: filteredTeam,
+        practiceGroups: filteredPractice,
+        industryGroups: filteredIndustry,
+        news: filteredNews,
+      });
+    } catch (error) {
+      res.status(500).json({ error: "Search failed" });
+    }
+  });
+}
