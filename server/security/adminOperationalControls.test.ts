@@ -11,6 +11,7 @@ import { readAdminFeatureSources } from "./adminFeatureTestSources";
 process.env.DATABASE_URL ||= "postgresql://test:test@127.0.0.1:5432/test";
 
 const { renderHome } = await import("../mirror/renderHome");
+const { isNewsTitleCompatible } = await import("../mirror/newsLanguage");
 
 const homeTemplate = `<!doctype html><html lang="es"><head><title>Home</title></head><body>
   <div class="home__hero"><a href="/practice/arbitration"><video id="video_header"></video></a></div>
@@ -49,6 +50,91 @@ test("el Home muestra cinco páginas por defecto y respeta el rango administrabl
   assert.equal(cheerio.load(clamped)("[data-vw-news-slide]").length, 10);
 });
 
+test("Noticias del Home conserva exclusivamente el idioma activo y anima la tarjeta con suavidad", () => {
+  const mixedNews = [
+    { id: "english-only", slug: "english-only", title: "English only", titleEs: "" },
+    {
+      id: "wrong-spanish-field",
+      slug: "wrong-spanish-field",
+      title: "Correct English title about a new legal development",
+      titleEs: "CFE Awards Projects Under the Mixed Development Scheme and SENER Extends Permits",
+    },
+    { id: "bilingual-one", slug: "bilingual-one", title: "English one", titleEs: "Español uno" },
+    { id: "bilingual-two", slug: "bilingual-two", title: "English two", titleEs: "Español dos" },
+  ];
+  const onePageConfig = { home_news_pages: { value: "1", valueEs: "1", type: "number" } };
+  const spanishHtml = renderHome(homeTemplate, mixedNews, onePageConfig, "es");
+  const englishHtml = renderHome(homeTemplate, mixedNews, onePageConfig, "en");
+  const spanish = cheerio.load(spanishHtml);
+  const english = cheerio.load(englishHtml);
+
+  assert.deepEqual(spanish(".vw-news-carousel__headline h3").map((_index, node) => spanish(node).text()).get(), [
+    "Español uno",
+    "Español dos",
+  ]);
+  assert.equal(spanishHtml.includes("English only"), false);
+  assert.equal(spanishHtml.includes("CFE Awards Projects"), false);
+  assert.deepEqual(english(".vw-news-carousel__headline h3").map((_index, node) => english(node).text()).get(), [
+    "English only",
+    "Correct English title about a new legal development",
+  ]);
+  assert.equal(englishHtml.includes("Español uno"), false);
+  assert.match(spanish("#vw-news-carousel-style").text(), /border-radius:7px/);
+  assert.match(spanish("#vw-news-carousel-script").text(), /panel\.animate/);
+  assert.match(spanish("#vw-news-carousel-script").text(), /duration:420/);
+  assert.match(spanish("#vw-news-carousel-script").text(), /prefers-reduced-motion: reduce/);
+});
+
+test("el filtro lingüístico del Home es conservador con nombres propios y títulos breves", () => {
+  assert.equal(isNewsTitleCompatible("Von Wobeser y Sierra", "es"), true);
+  assert.equal(isNewsTitleCompatible("Von Wobeser y Sierra", "en"), true);
+  assert.equal(isNewsTitleCompatible("Arbitraje", "es"), true);
+  assert.equal(isNewsTitleCompatible("Arbitration", "en"), true);
+  assert.equal(isNewsTitleCompatible("México y la Unión Europea firman un nuevo acuerdo", "en"), false);
+  assert.equal(isNewsTitleCompatible("Mexico and the European Union sign a new agreement", "es"), false);
+});
+
+test("la franja de Nuevas oficinas conserva contenido bilingüe con jerarquía semántica", () => {
+  const template = `<!doctype html><html lang="es"><head><title>Home</title></head><body>
+    <section><div class="home__rojo"><div class="home__rojo--wrap wrap"><div class="home__rojo--txt">
+      <a href="/nuevas-oficinas/">VER MÁS</a>
+    </div></div></div></section>
+  </body></html>`;
+  const config = {
+    banner_title: { value: "We go where clients need us", valueEs: "Vamos a donde los clientes nos necesitan", type: "text" },
+    banner_subtitle: { value: "New offices of Von Wobeser y Sierra", valueEs: "Nuevas oficinas de Von Wobeser y Sierra", type: "text" },
+  };
+  const spanish = cheerio.load(renderHome(template, [], config, "es"));
+  const english = cheerio.load(renderHome(template.replace('lang="es"', 'lang="en"'), [], config, "en"));
+
+  assert.equal(spanish(".home__rojo--title").prop("tagName"), "H2");
+  assert.equal(spanish(".home__rojo--title").text(), "Vamos a donde los clientes nos necesitan");
+  assert.equal(spanish(".home__rojo--subtitle").text(), "Nuevas oficinas de Von Wobeser y Sierra");
+  assert.equal(spanish(".home__rojo--cta").attr("href"), "/nuevas-oficinas/");
+  assert.equal(spanish(".home__rojo--cta").attr("target"), "_blank");
+  assert.equal(spanish(".home__rojo--cta").attr("rel"), "alternate noopener noreferrer");
+  assert.equal(spanish(".home__rojo--cta").text(), "VER MÁS→");
+  assert.equal(spanish(".home__rojo--action").length, 1);
+  assert.equal(spanish(".home__rojo--cta-arrow").attr("aria-hidden"), "true");
+  assert.equal(spanish(".home__rojo--txt [style]").length, 0);
+  assert.equal(english(".home__rojo--title").text(), "We go where clients need us");
+  assert.equal(english(".home__rojo--subtitle").text(), "New offices of Von Wobeser y Sierra");
+  assert.equal(english(".home__rojo--cta").text(), "SEE MORE→");
+
+  const legacyConfig = {
+    banner_title: { value: "WE GO WHERE CLIENTS NEED US", valueEs: "VAMOS A DONDE LOS CLIENTES NOS NECESITAN", type: "text" },
+    banner_subtitle: config.banner_subtitle,
+  };
+  assert.equal(
+    cheerio.load(renderHome(template, [], legacyConfig, "es"))(".home__rojo--title").text(),
+    "Vamos a donde los clientes nos necesitan",
+  );
+  assert.equal(
+    cheerio.load(renderHome(template.replace('lang="es"', 'lang="en"'), [], legacyConfig, "en"))(".home__rojo--title").text(),
+    "We go where clients need us",
+  );
+});
+
 test("Newsletter oculta solo la etiqueta vacía y permite restaurarla desde configuración", () => {
   const hiddenHtml = renderHome(homeTemplate, [], {}, "es");
   const $hidden = cheerio.load(hiddenHtml);
@@ -57,7 +143,7 @@ test("Newsletter oculta solo la etiqueta vacía y permite restaurarla desde conf
   assert.equal($hidden(".home__newsletter h2").text(), "Suscríbete");
   assert.equal(
     $hidden(".home__newsletter--description").text(),
-    "Recibe en tu correo análisis jurídicos, publicaciones y novedades de Von Wobeser y Sierra.",
+    "Mantente al día sobre los cambios legales y regulatorios relevantes para tu negocio.",
   );
   assert.equal($hidden(".home__newsletter--field--half").length, 2);
   assert.equal($hidden(".home__newsletter--field--full").length, 1);
@@ -73,7 +159,7 @@ test("Newsletter oculta solo la etiqueta vacía y permite restaurarla desde conf
   assert.equal(english(".home__newsletter h2").text(), "Subscribe");
   assert.equal(
     english(".home__newsletter--description").text(),
-    "Receive legal analysis, publications and news from Von Wobeser y Sierra directly in your inbox.",
+    "Stay up to date on legal and regulatory changes relevant to your business.",
   );
   assert.equal(english(".home__newsletter--privacy a").attr("href"), "/privacy");
 
@@ -204,6 +290,42 @@ test("los tres textos institucionales del Home están ocultos por defecto y se r
       adminSource,
       new RegExp(`key:\\s*"${key}"[^}]*control:\\s*"switch"[^}]*defaultValue:\\s*false`),
     );
+  }
+});
+
+test("Diversidad y Pro Bono se ocultan en Home sin perder su restauración desde el panel", () => {
+  const template = `<!doctype html><html lang="es"><head><title>Inicio</title></head><body>
+    <div id="bottom">
+      <section class="home__rec"><div class="home__rec--ttl">Reconocimientos</div><div class="home__rec--top">Introducción</div></section>
+      <section class="home__rec"><div class="home__rec--ttl">Diversidad</div><div class="home__rec--top">Texto diversidad</div></section>
+      <section class="home__rec"><div class="home__rec--ttl">Pro Bono</div><div class="home__rec--top">Texto Pro Bono</div></section>
+    </div>
+  </body></html>`;
+  const hidden = cheerio.load(renderHome(template, [], {}, "es"));
+  assert.equal(hidden("#bottom .home__rec").length, 1);
+  assert.equal(hidden("#bottom").text().includes("Diversidad"), false);
+  assert.equal(hidden("#bottom").text().includes("Pro Bono"), false);
+
+  const visibleConfig = {
+    home_diversity_visible: { value: "true", valueEs: "true", type: "boolean" },
+    home_probono_visible: { value: "true", valueEs: "true", type: "boolean" },
+    home_diversity_title: { value: "Diversity & inclusion", valueEs: "Diversidad e inclusión", type: "text" },
+    home_diversity_body: { value: "Diversity copy", valueEs: "Texto de diversidad", type: "text" },
+    home_probono_title: { value: "Pro Bono", valueEs: "Pro Bono", type: "text" },
+    home_probono_body: { value: "Pro Bono copy", valueEs: "Texto Pro Bono", type: "text" },
+  };
+  const visible = cheerio.load(renderHome(template, [], visibleConfig, "es"));
+  assert.equal(visible("#bottom .home__rec").length, 3);
+  assert.equal(visible("#bottom .home__rec").eq(1).find(".home__rec--ttl").text(), "Diversidad e inclusión");
+  assert.equal(visible("#bottom .home__rec").eq(1).find(".home__rec--top").text(), "Texto de diversidad");
+  assert.equal(visible("#bottom .home__rec").eq(2).find(".home__rec--ttl").text(), "Pro Bono");
+  assert.equal(visible("#bottom .home__rec").eq(2).find(".home__rec--top").text(), "Texto Pro Bono");
+
+  const adminSource = readAdminFeatureSources("site-config", "AdminSiteConfig.tsx");
+  const defaultsSource = readFileSync(new URL("../mirror/siteConfig.ts", import.meta.url), "utf8");
+  for (const key of ["home_diversity_visible", "home_probono_visible"]) {
+    assert.match(adminSource, new RegExp(`key:\\s*"${key}"[^}]*control:\\s*"switch"[^}]*defaultValue:\\s*false`));
+    assert.match(defaultsSource, new RegExp(`key:\\s*"${key}"[^}]*value:\\s*"false"[^}]*type:\\s*"boolean"`));
   }
 });
 

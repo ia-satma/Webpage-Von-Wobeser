@@ -33,10 +33,55 @@ type CatalogConfig = {
   };
   notFound: string;
   sanitize?: string[];
+  safeUrls?: string[];
+  emails?: string[];
   createStatus?: number;
   invalidatePublicCache?: boolean;
   registerAfterList?: () => void;
 };
+
+export function isSafeCatalogUrl(value: unknown): boolean {
+  const raw = typeof value === "string" ? value.trim() : "";
+  if (!raw) return true;
+  if (raw.length > 2_048) return false;
+  if (/^\/(?!\/)/.test(raw)) return true;
+  try {
+    const url = new URL(raw);
+    return (url.protocol === "https:" || url.protocol === "http:")
+      && !url.username
+      && !url.password;
+  } catch {
+    return false;
+  }
+}
+
+export function isSafeCatalogEmail(value: unknown): boolean {
+  const raw = typeof value === "string" ? value.trim() : "";
+  return !raw || (raw.length <= 320 && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(raw));
+}
+
+function validateSafeContactFields(data: Record<string, unknown>, config: CatalogConfig): void {
+  const issues: z.ZodIssue[] = [];
+  for (const field of config.safeUrls || []) {
+    if (!isSafeCatalogUrl(data[field])) {
+      issues.push({
+        code: z.ZodIssueCode.custom,
+        path: [field],
+        message: "Usa una URL http/https válida, sin credenciales, o una ruta interna que comience con /.",
+      });
+    }
+  }
+  for (const field of config.emails || []) {
+    if (!isSafeCatalogEmail(data[field])) {
+      issues.push({
+        code: z.ZodIssueCode.custom,
+        path: [field],
+        message: "Usa un correo electrónico válido.",
+      });
+    }
+  }
+  if (issues.length) throw new ZodError(issues);
+}
 
 function validationError(res: Response, error: unknown): boolean {
   if (!(error instanceof ZodError)) return false;
@@ -64,6 +109,7 @@ function registerCatalogCrud(app: Express, config: CatalogConfig): void {
   app.post(config.path, ...secured, async (req: Request, res: Response) => {
     try {
       const data = config.schema.parse(req.body);
+      validateSafeContactFields(data, config);
       if (config.sanitize) sanitizeFields(data, config.sanitize);
       const created = await config.create(data);
       invalidate();
@@ -78,6 +124,7 @@ function registerCatalogCrud(app: Express, config: CatalogConfig): void {
   app.put(`${config.path}/:id`, ...secured, async (req: Request, res: Response) => {
     try {
       const data = config.schema.partial().parse(req.body);
+      validateSafeContactFields(data, config);
       if (config.sanitize) sanitizeFields(data, config.sanitize);
       const updated = await config.update(req.params.id, data);
       if (!updated) return res.status(404).json({ error: config.notFound });
@@ -143,7 +190,7 @@ export function registerAdminCatalogRoutes(app: Express): void {
   registerCatalogCrud(app, {
     path: "/api/admin/events",
     schema: insertEventSchema,
-    list: () => storage.getEvents(),
+    list: () => storage.getAdminEvents(),
     create: (data) => storage.createEvent(data),
     update: (id, data) => storage.updateEvent(id, data),
     remove: (id) => storage.deleteEvent(id),
@@ -155,6 +202,7 @@ export function registerAdminCatalogRoutes(app: Express): void {
     },
     notFound: "Event not found",
     sanitize: ["description", "descriptionEs"],
+    safeUrls: ["externalUrl", "imageUrl"],
   });
 
   registerCatalogCrud(app, {
@@ -239,6 +287,9 @@ export function registerAdminCatalogRoutes(app: Express): void {
       remove: (id) => storage.deleteJobOpening(id),
       errors: { list: "Failed to fetch jobs", create: "Failed to create job", update: "Failed to update job", remove: "Failed to delete job" },
       notFound: "Job not found",
+      sanitize: ["description", "descriptionEs", "requirements", "requirementsEs", "benefits", "benefitsEs"],
+      safeUrls: ["applicationUrl"],
+      emails: ["applicationEmail"],
     },
     {
       path: "/api/admin/offices",
@@ -259,6 +310,8 @@ export function registerAdminCatalogRoutes(app: Express): void {
       remove: (id) => storage.deleteAlliance(id),
       errors: { list: "Failed to fetch alliances", create: "Failed to create alliance", update: "Failed to update alliance", remove: "Failed to delete alliance" },
       notFound: "Alliance not found",
+      sanitize: ["description", "descriptionEs"],
+      safeUrls: ["websiteUrl", "logoUrl"],
     },
   ];
 

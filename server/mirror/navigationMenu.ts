@@ -1,6 +1,14 @@
 import { storage } from "../storage";
+import { NAVIGATION_LANDING_CHILD_IDS } from "@shared/navigation";
 import { isPublicPracticeSlug } from "./publicPracticeGroups";
 import { localizedGroupLabel, sortGroupsAlphabetically } from "./sortPublicGroups";
+import { getConfigMap } from "./siteConfig";
+import {
+  getNavigationAvailability,
+  navigationConfigurationFromConfig,
+  resolveNavigationTree,
+  type ResolvedNavigationTree,
+} from "./navigationConfiguration";
 
 export type NavigationMenuEntry = {
   label: string;
@@ -11,6 +19,7 @@ export type NavigationMenuEntry = {
 export type PublicNavigationMenu = {
   practices: NavigationMenuEntry[];
   industries: NavigationMenuEntry[];
+  navigation?: ResolvedNavigationTree;
 };
 
 export type NavigationGroupRecord = {
@@ -28,6 +37,7 @@ type RawNavigationGroups = {
 
 const CACHE_TTL_MS = 60_000;
 const SAFE_SLUG = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+const LANDING_CHILD_IDS = new Set<string>(NAVIGATION_LANDING_CHILD_IDS);
 
 let cache: { expiresAt: number; value: RawNavigationGroups } | null = null;
 let inFlight: Promise<RawNavigationGroups> | null = null;
@@ -87,7 +97,33 @@ async function getRawNavigationGroups(): Promise<RawNavigationGroups> {
 }
 
 export async function getPublicNavigationMenu(lang: "en" | "es"): Promise<PublicNavigationMenu> {
-  return buildPublicNavigationMenu(await getRawNavigationGroups(), lang);
+  const [groups, config] = await Promise.all([getRawNavigationGroups(), getConfigMap()]);
+  const menu = buildPublicNavigationMenu(groups, lang);
+  const availability = await getNavigationAvailability(config);
+  const navigation = resolveNavigationTree(navigationConfigurationFromConfig(config), availability, lang);
+  const attachDynamicEntries = (
+    kind: "practices" | "industries",
+    entries: NavigationMenuEntry[],
+  ) => {
+    const item = navigation.items.find((candidate) => candidate.id === kind);
+    if (!item) return;
+    item.children.push(...entries.map((entry) => ({
+      id: `${kind === "practices" ? "practice" : "industry"}:${entry.slug}` as const,
+      label: entry.label,
+      href: entry.href,
+      configuredVisible: true,
+      visible: true,
+      status: "ready" as const,
+      reason: lang === "es" ? "Contenido publicado" : "Published content",
+      dynamic: kind === "practices" ? "practice" as const : "industry" as const,
+    })));
+  };
+  attachDynamicEntries("practices", menu.practices);
+  attachDynamicEntries("industries", menu.industries);
+  for (const item of navigation.items) {
+    item.children = item.children.filter((child) => !LANDING_CHILD_IDS.has(child.id));
+  }
+  return { ...menu, navigation };
 }
 
 export function invalidatePublicNavigationMenuCache(): void {

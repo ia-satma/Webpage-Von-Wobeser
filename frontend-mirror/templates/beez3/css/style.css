@@ -1059,15 +1059,14 @@ b,strong {
 }
 
 .home__rojo {
-  /*padding: 8% 0;*/
-  padding: 80px 0;
+  padding: clamp(44px, 3.5vw, 52px) 0;
   background-color: #ac162c;
   margin-top:-13px;
 }
 
 @media (max-width: 800px) {
   .home__rojo {
-    padding: 13% 0;
+    padding: clamp(40px, 6vw, 48px) 0;
   }
 
   .practica_ipad{
@@ -1079,61 +1078,127 @@ b,strong {
 
 
 .home__rojo--wrap {
-  max-width: 600px;
+  /* El mensaje ocupa la composición completa del bloque rojo; la acción
+     conserva una línea de lectura más corta y su posición histórica. */
+  max-width: 1400px;
 }
 
 .home__rojo--txt {
+  align-items: center;
   color: #fff;
+  display: flex;
+  flex-direction: column;
   text-align: center;
 }
 
-/* El banner de Nuevas oficinas usa Inter regular para subtítulo y CTA. El
-   titular conserva un único énfasis editorial en Inter Semibold (600), sin
-   convertir el resto de la interfaz en negritas. */
-.home__rojo--txt,
-.home__rojo--txt :where(p, span, strong, a) {
-  font-family: var(--font-body) !important;
+/* La referencia aprobada usa el titular editorial de la firma como
+   protagonista y un subtítulo funcional en Inter. La caja conserva la
+   capitalización escrita desde el CMS; nunca se transforma a altas. */
+.home__rojo--txt :where(h2, p) {
+  margin: 0;
+}
+
+.home__rojo--txt .home__rojo--title {
+  font-family: var(--font-title, "Gelasio", serif) !important;
+  font-size: clamp(1.75rem, 2.8vw, 2.8rem);
   font-weight: 400 !important;
+  letter-spacing: -0.022em;
+  line-height: 1.1;
+  max-width: 100%;
+  text-transform: none !important;
+  white-space: nowrap;
 }
 
-.home__rojo--txt .home__rojo--title,
-.home__rojo--txt .home__rojo--title span {
-  font-weight: 600 !important;
+.home__rojo--txt .home__rojo--subtitle {
+  font-family: var(--font-body, "Inter", Arial, sans-serif) !important;
+  font-size: clamp(1.1rem, 0.9rem + 1.1vw, 1.75rem);
+  font-weight: 400 !important;
+  line-height: 1.2;
+  margin-top: 0.7rem;
+  max-width: 100%;
+  text-wrap: balance;
+  text-transform: none !important;
 }
 
-.home__rojo--txt p span{
-  font-size:1.4rem !important
+.home__rojo--txt .home__rojo--action {
+  align-self: center;
+  margin-top: 0.45rem;
+  text-align: right;
+  width: min(440px, 100%);
 }
 
-/* Mensaje de nuevas oficinas: en escritorio se presenta como un solo titular,
-   sin cambiar la familia tipográfica original. */
-@media (min-width: 801px) {
-  .home__rojo--wrap {
-    max-width: 1050px;
-  }
+.home__rojo--txt .home__rojo--cta {
+  align-items: center;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.5);
+  box-sizing: border-box;
+  color: #fff !important;
+  display: inline-flex;
+  font-family: var(--font-body, "Inter", Arial, sans-serif) !important;
+  font-size: 0.56rem !important;
+  font-weight: 500 !important;
+  gap: 0.36rem;
+  justify-content: center;
+  letter-spacing: 0.05em;
+  line-height: 1;
+  min-height: 44px;
+  opacity: 0.92;
+  padding: 0 0.15rem;
+  text-decoration: none !important;
+  text-transform: uppercase;
+}
 
-  .home__rojo--txt > p:first-child {
-    white-space: nowrap;
-  }
+.home__rojo--txt .home__rojo--cta:hover,
+.home__rojo--txt .home__rojo--cta:focus-visible {
+  color: #fff !important;
+  opacity: 1;
+}
 
-  .home__rojo--txt > p:first-child span {
-    font-size: 2rem !important;
+/* Una carga heredada puede marcar todos los “Ver más” con la clase global.
+   Esta franja conserva deliberadamente una única flecha y su regla sutil. */
+.home__rojo--txt .home__rojo--cta.vw-read-more::after {
+  content: none;
+  display: none;
+}
+
+.home__rojo--txt .home__rojo--cta-arrow {
+  font-size: 0.78rem;
+  line-height: 1;
+  transition: transform 220ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.home__rojo--txt .home__rojo--cta:hover .home__rojo--cta-arrow,
+.home__rojo--txt .home__rojo--cta:focus-visible .home__rojo--cta-arrow {
+  transform: translateX(0.25rem);
+}
+
+.home__rojo--txt .home__rojo--cta:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 4px;
+}
+
+@media (max-width: 680px) {
+  .home__rojo--txt .home__rojo--title {
+    font-size: clamp(0.88rem, 3.9vw, 1.65rem);
+    max-width: none;
   }
 }
 
 @media (max-width: 480px) {
   .home__rojo {
-    padding: 10% 0;
-	margin-top:-9px;
-  }
-  .home__rojo--txt p span {
-	  font-size:1rem !important;
+    margin-top: -9px;
+    padding: 32px 0;
   }
 }
-.home__rojo--txt a {
-  color: #fff;
-  font-weight:500 !important;
-  padding-right:15px;
+
+@media (prefers-reduced-motion: reduce) {
+  .home__rojo--txt .home__rojo--cta-arrow {
+    transition: none;
+  }
+
+  .home__rojo--txt .home__rojo--cta:hover .home__rojo--cta-arrow,
+  .home__rojo--txt .home__rojo--cta:focus-visible .home__rojo--cta-arrow {
+    transform: none;
+  }
 }
 .faded strong {
 	font-weight:500 !important;

@@ -1,5 +1,4 @@
 import { Calendar as CalendarIcon } from "lucide-react";
-import { AdminComingSoonNote } from "@/components/admin/AdminComingSoonNote";
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 import { AdminPageHelp } from "@/components/admin/AdminPageHelp";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -30,9 +29,8 @@ export default function AdminEventsPage() {
           icon={CalendarIcon}
           actions={<EventFormDialog controller={controller} />}
         />
-        <AdminComingSoonNote />
         <AdminPageHelp pageId="events" manualSectionId="eventos">
-          Aquí administras los eventos del despacho (conferencias, webinars, presentaciones). Por ahora se guardan en el panel, en cuanto se autorice se conectan a una página pública.
+          Aquí administras los eventos del despacho. El acceso público aparece automáticamente cuando existe al menos un evento marcado como publicado.
         </AdminPageHelp>
         <EventsOverview controller={controller} />
         <DeleteEventDialog controller={controller} />

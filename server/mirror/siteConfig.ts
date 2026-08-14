@@ -3,6 +3,7 @@ import { db } from "../db";
 import { siteConfig } from "@shared/schema";
 import { getEditorialTypographyForEntities } from "../editorialTypography";
 import { typographyAttribute, type TypographyStyles } from "@shared/editorialTypography";
+import { DEFAULT_NAVIGATION_CONFIGURATION } from "@shared/navigation";
 
 export type ConfigMap = Record<string, { value: string; valueEs: string; type: string; typography?: TypographyStyles }>;
 
@@ -44,8 +45,10 @@ const DEFAULTS: Array<{ key: string; value: string; valueEs?: string; type: stri
   { key: "home_recognitions_intro", value: "Von Wobeser y Sierra, S.C. has been recognized internationally by various institutions, including:", valueEs: "Von Wobeser y Sierra, S.C. ha sido reconocido a nivel internacional por diversas instituciones, entre ellas:", type: "text", category: "home", description: "Introducción de reconocimientos en portada" },
   { key: "home_recognitions_body_visible", value: "false", valueEs: "false", type: "boolean", category: "home", description: "Mostrar el texto detallado de instituciones reconocedoras en la portada" },
   { key: "home_recognitions_body", value: "Chambers & Partners Global, Chambers & Partners Latin America, Legal 500, Latin Lawyer 250, Global Arbitration Review (GAR 100), Global Competition Review (GCR 100), Global Investigations Review (GIR 100), Global Restructuring Review (GRR), Lexology Index, Latin America Corporate Counsel Association (LACCA), IFLR 1000, Best Lawyers and Benchmark Litigation, among others.", valueEs: "Chambers & Partners Global, Chambers & Partners Latin America, Legal 500, Latin Lawyer 250, Global Arbitration Review (GAR 100), Global Competition Review (GCR 100), Global Investigations Review (GIR 100), Global Restructuring Review (GRR), Lexology Index, Latin America Corporate Counsel Association (LACCA), IFLR 1000, Best Lawyers y Benchmark Litigation, entre otras.", type: "text", category: "home", description: "Texto de reconocimientos en portada" },
+  { key: "home_diversity_visible", value: "false", valueEs: "false", type: "boolean", category: "home", description: "Mostrar el bloque de Diversidad e Inclusión en la portada" },
   { key: "home_diversity_title", value: "DIVERSITY & INCLUSION", valueEs: "DIVERSIDAD E INCLUSIÓN", type: "text", category: "home", description: "Título de diversidad en portada" },
   { key: "home_diversity_body", value: "Since its founding in 1986, our partners set out to create an inclusive firm.", valueEs: "Desde su fundación en 1986, nuestros socios se propusieron crear un despacho incluyente.", type: "text", category: "home", description: "Texto de diversidad en portada" },
+  { key: "home_probono_visible", value: "false", valueEs: "false", type: "boolean", category: "home", description: "Mostrar el bloque Pro Bono en la portada" },
   { key: "home_probono_title", value: "PRO BONO", valueEs: "PRO BONO", type: "text", category: "home", description: "Título Pro Bono en portada" },
   { key: "home_probono_body", value: "For more than 35 years, our firm has actively supported the Pro Bono cause.", valueEs: "Durante más de 35 años, nuestra firma ha apoyado la causa Pro Bono.", type: "text", category: "home", description: "Texto Pro Bono en portada" },
   { key: "home_about_layout", value: "editorial", valueEs: "editorial", type: "select", category: "home", description: "Diseño de Visión, Misión y Valores en portada: editorial o clásico" },
@@ -58,7 +61,7 @@ const DEFAULTS: Array<{ key: string; value: string; valueEs?: string; type: stri
   { key: "home_mission_body", value: "To solve our clients’ legal matters with the highest quality services, prioritizing their interests and the success of their business, through an expert and solution-oriented team.", valueEs: "Resolver los asuntos legales de nuestros clientes con servicios de la más alta calidad, priorizando sus intereses y el éxito de sus negocios, a través de un equipo experto y orientado a brindar soluciones.", type: "text", category: "home", description: "Texto Misión en portada" },
   { key: "home_values_label", value: "Values", valueEs: "Valores", type: "text", category: "home", description: "Etiqueta Valores en portada" },
   { key: "home_values_body", value: "Integrity: We do what we say we will do. We conduct ourselves under the highest ethical standards. Acting the right way makes things endure. We work with clarity and transparency.\n\nExcellence: We excel in the quality of our legal services. We are driven by client service. We want to exceed client expectations with effective and innovative solutions.\n\nCommitment: We strive to understand our client, their business and their environment. We seek the best results by placing the client's interest first. We face challenges with effort and the will to overcome them.\n\nAgility: We like to be where the action is. We offer an integral and timely service, seeking to add value. We always want to learn and develop new skills. We recognize the value of innovation and disruptive thinking.\n\nDiversity: Nothing is more important than our team. We build a highly skilled and diverse team. Diversity enriches our perspective and strengthens our practice.", valueEs: "Integridad: Hacemos lo que decimos. Nos conducimos bajo los estándares éticos más altos. Actuar de la manera correcta permite que las cosas perduren. Trabajamos con claridad y transparencia.\n\nExcelencia: Sobresalimos con la calidad de nuestros servicios legales. Nos impulsa una vocación de servicio. Queremos superar las expectativas del cliente con soluciones efectivas e innovadoras.\n\nCompromiso: Nos esforzamos por entender a nuestro cliente, su negocio y su entorno. Buscamos los mejores resultados anteponiendo el interés del cliente. Enfrentamos los retos con esfuerzo y voluntad de superarlos.\n\nAgilidad: Nos gusta estar en donde está la acción. Ofrecemos un servicio integral y oportuno, buscando agregar valor. Queremos aprender y desarrollar nuevas habilidades, siempre. Reconocemos el valor de innovar y pensar en forma disruptiva.\n\nDiversidad: Nada es más importante que nuestro equipo. Construimos un equipo altamente preparado y diverso. La diversidad enriquece nuestra perspectiva y fortalece nuestra práctica.", type: "text", category: "home", description: "Valores institucionales en portada" },
-  { key: "banner_title", value: "WE GO WHERE CLIENTS NEED US", valueEs: "VAMOS DONDE EL CLIENTE NOS NECESITA", type: "text", category: "home", description: "Título del banner rojo (home)" },
+  { key: "banner_title", value: "We go where clients need us", valueEs: "Vamos a donde los clientes nos necesitan", type: "text", category: "home", description: "Título del banner rojo (home)" },
   { key: "banner_subtitle", value: "New offices of Von Wobeser y Sierra", valueEs: "Nuevas oficinas de Von Wobeser y Sierra", type: "text", category: "home", description: "Subtítulo del banner rojo (home)" },
   // Micrositio bilingüe de Nuevas oficinas. Se guarda en site_config para aprovechar
   // la edición bilingüe y el sembrado no destructivo que ya usa el resto del espejo.
@@ -121,7 +124,7 @@ const DEFAULTS: Array<{ key: string; value: string; valueEs?: string; type: stri
     description: `Texto alternativo del video ${index + 1}`,
   })),
   { key: "newsletter_title", value: "Subscribe", valueEs: "Suscríbete", type: "text", category: "home", description: "Título de Newsletter en portada" },
-  { key: "newsletter_description", value: "Receive legal analysis, publications and news from Von Wobeser y Sierra directly in your inbox.", valueEs: "Recibe en tu correo análisis jurídicos, publicaciones y novedades de Von Wobeser y Sierra.", type: "text", category: "home", description: "Descripción de Newsletter en portada" },
+  { key: "newsletter_description", value: "Stay up to date on legal and regulatory changes relevant to your business.", valueEs: "Mantente al día sobre los cambios legales y regulatorios relevantes para tu negocio.", type: "text", category: "home", description: "Descripción de Newsletter en portada" },
   { key: "newsletter_eyebrow", value: "", valueEs: "", type: "text", category: "home", description: "Etiqueta superior opcional del Newsletter" },
   { key: "newsletter_name_label", value: "Name", valueEs: "Nombre", type: "text", category: "home", description: "Etiqueta del campo nombre" },
   { key: "newsletter_email_label", value: "Email address", valueEs: "Correo electrónico", type: "text", category: "home", description: "Etiqueta del campo correo" },
@@ -148,6 +151,14 @@ const DEFAULTS: Array<{ key: string; value: string; valueEs?: string; type: stri
   { key: "nav_careers", value: "Careers at VWyS", valueEs: "Carrera en VWyS", type: "text", category: "navigation", description: "Etiqueta del menú Carrera" },
   { key: "nav_contact", value: "Contact", valueEs: "Contacto", type: "text", category: "navigation", description: "Etiqueta del menú Contacto" },
   { key: "nav_search", value: "Search", valueEs: "Buscar", type: "text", category: "navigation", description: "Etiqueta accesible del buscador" },
+  {
+    key: "nav_structure_v2",
+    value: JSON.stringify(DEFAULT_NAVIGATION_CONFIGURATION),
+    valueEs: JSON.stringify(DEFAULT_NAVIGATION_CONFIGURATION),
+    type: "json",
+    category: "navigation",
+    description: "Jerarquía versionada del menú público VWyS",
+  },
   ...["firm", "attorneys", "practices", "industries", "publications", "careers", "contact"].map((id) => ({
     key: `nav_visible_${id}`,
     value: "true",
@@ -156,6 +167,17 @@ const DEFAULTS: Array<{ key: string; value: string; valueEs?: string; type: stri
     category: "navigation",
     description: `Visibilidad global ES/EN del acceso ${id} en el menú público`,
   })),
+  { key: "page_perspectives_title", value: "Insights", valueEs: "Perspectivas", type: "text", category: "pages", description: "Perspectivas — título" },
+  { key: "page_perspectives_intro", value: "", valueEs: "", type: "text", category: "pages", description: "Perspectivas — introducción editorial bilingüe" },
+  { key: "page_international_title", value: "International reach", valueEs: "Alcance internacional", type: "text", category: "pages", description: "Alcance internacional — título" },
+  { key: "page_international_intro", value: "", valueEs: "", type: "text", category: "pages", description: "Alcance internacional — introducción bilingüe" },
+  { key: "page_international_body", value: "", valueEs: "", type: "text", category: "pages", description: "Alcance internacional — cuerpo bilingüe" },
+  { key: "page_openings_title", value: "Openings", valueEs: "Vacantes", type: "text", category: "pages", description: "Vacantes — título" },
+  { key: "page_openings_intro", value: "", valueEs: "", type: "text", category: "pages", description: "Vacantes — introducción bilingüe" },
+  { key: "page_alumni_title", value: "Alumni", valueEs: "Alumni", type: "text", category: "pages", description: "Alumni — título futuro" },
+  { key: "page_alumni_intro", value: "", valueEs: "", type: "text", category: "pages", description: "Alumni — introducción bilingüe futura" },
+  { key: "page_alumni_body", value: "", valueEs: "", type: "text", category: "pages", description: "Alumni — cuerpo bilingüe futuro" },
+  { key: "page_alumni_published", value: "false", valueEs: "false", type: "boolean", category: "pages", description: "Publicación expresa de Alumni" },
   { key: "active_languages", value: "es,en", type: "json", category: "translations", description: "Idiomas a los que se traduce el contenido (lista separada por comas). El traductor solo genera estos idiomas por defecto." },
   { key: "image_engine", value: "openai", type: "select", category: "translations", description: "Motor de imágenes: 'openai' usa gpt-image-2 con fallbacks compatibles; 'cloudflare' requiere sus propias credenciales. Escribe uno de los dos." },
   { key: "image_aspect", value: "1:1", type: "select", category: "translations", description: "Formato de las imágenes generadas: '1:1' (cuadrada), '16:9' (horizontal) o '9:16' (vertical)." },
@@ -301,18 +323,25 @@ const DEFAULTS: Array<{ key: string; value: string; valueEs?: string; type: stri
   { key: "firm_landing_social_description", value: "More than forty years of legal excellence, integrity and comprehensive counsel in Mexico.", valueEs: "Más de cuarenta años de excelencia jurídica, integridad y asesoría integral en México.", type: "text", category: "firm", description: "Nuestra Firma — descripción para redes sociales" },
   { key: "page_contact_intro", value: "", valueEs: "", type: "text", category: "pages", description: "Contacto — texto de introducción" },
   { key: "page_contact_body", value: "", valueEs: "", type: "text", category: "pages", description: "Contacto — dirección / texto principal" },
+  { key: "page_contact_eyebrow", value: "CONTACT", valueEs: "CONTACTO", type: "text", category: "pages", description: "Contacto — etiqueta editorial" },
+  { key: "page_contact_title", value: "We are here to help.", valueEs: "Estamos aquí para ayudarte.", type: "text", category: "pages", description: "Contacto — título principal" },
+  { key: "page_contact_description", value: "Contact us or visit our offices in Mexico City.", valueEs: "Ponte en contacto con nosotros o visita nuestras oficinas en Ciudad de México.", type: "text", category: "pages", description: "Contacto — texto introductorio" },
+  { key: "page_contact_email", value: "info@vwys.com.mx", valueEs: "info@vwys.com.mx", type: "text", category: "pages", description: "Contacto — correo público" },
+  { key: "page_contact_phone", value: "+52 (55) 5258 1000", valueEs: "+52 (55) 5258 1000", type: "text", category: "pages", description: "Contacto — teléfono público" },
+  { key: "page_contact_address", value: "Torre SOMA Chapultepec, 18th floor\n204 Campos Elíseos, Polanco\nAccess via 10 Arquímedes Street\nC.P. 11550, Mexico City", valueEs: "Torre SOMA Chapultepec, piso 18\nCampos Elíseos 204, Polanco\nAcceso por Calle Arquímedes N.º 10\nC.P. 11550, Ciudad de México", type: "text", category: "pages", description: "Contacto — dirección pública, una línea por renglón" },
   { key: "contact_form_title", value: "Send us a message", valueEs: "Envíanos un mensaje", type: "text", category: "pages", description: "Contacto — título del formulario" },
-  { key: "contact_form_description", value: "Share your details and the area in which you need advice. Our team will contact you.", valueEs: "Déjanos tus datos y el área en la que necesitas asesoría. Nuestro equipo se pondrá en contacto contigo.", type: "text", category: "pages", description: "Contacto — descripción del formulario" },
+  { key: "contact_form_description", value: "Share your details and tell us how we can help. Our team will contact you.", valueEs: "Déjanos tus datos y cuéntanos cómo podemos ayudarte. Nuestro equipo se pondrá en contacto contigo.", type: "text", category: "pages", description: "Contacto — descripción del formulario" },
   { key: "contact_form_name_label", value: "Full name", valueEs: "Nombre completo", type: "text", category: "pages", description: "Contacto — etiqueta Nombre" },
   { key: "contact_form_email_label", value: "Email", valueEs: "Correo electrónico", type: "text", category: "pages", description: "Contacto — etiqueta Correo" },
   { key: "contact_form_phone_label", value: "Phone (optional)", valueEs: "Teléfono (opcional)", type: "text", category: "pages", description: "Contacto — etiqueta Teléfono" },
   { key: "contact_form_company_label", value: "Company (optional)", valueEs: "Empresa (opcional)", type: "text", category: "pages", description: "Contacto — etiqueta Empresa" },
-  { key: "contact_form_practice_label", value: "Area of interest (optional)", valueEs: "Área de interés (opcional)", type: "text", category: "pages", description: "Contacto — etiqueta Área de interés" },
+  { key: "contact_form_country_label", value: "Country", valueEs: "País", type: "text", category: "pages", description: "Contacto — etiqueta País" },
+  { key: "contact_form_practice_label", value: "Advisory area (optional)", valueEs: "Área de asesoría (opcional)", type: "text", category: "pages", description: "Contacto — etiqueta Área de asesoría" },
   { key: "contact_form_message_label", value: "Message", valueEs: "Mensaje", type: "text", category: "pages", description: "Contacto — etiqueta Mensaje" },
   { key: "contact_form_select_label", value: "Select an option", valueEs: "Selecciona una opción", type: "text", category: "pages", description: "Contacto — opción vacía del selector" },
   { key: "contact_form_submit_label", value: "Send message", valueEs: "Enviar mensaje", type: "text", category: "pages", description: "Contacto — texto del botón" },
   { key: "contact_form_sending_label", value: "Sending…", valueEs: "Enviando…", type: "text", category: "pages", description: "Contacto — texto durante el envío" },
-  { key: "contact_form_required_message", value: "Please fill in name, email and message.", valueEs: "Completa nombre, correo y mensaje.", type: "text", category: "pages", description: "Contacto — validación de campos obligatorios" },
+  { key: "contact_form_required_message", value: "Please fill in name, email, country and message, and accept the Privacy Notice.", valueEs: "Completa nombre, correo, país y mensaje, y acepta el Aviso de Privacidad.", type: "text", category: "pages", description: "Contacto — validación de campos obligatorios" },
   { key: "contact_form_invalid_email_message", value: "Enter a valid email address.", valueEs: "Escribe un correo electrónico válido.", type: "text", category: "pages", description: "Contacto — validación de correo" },
   { key: "contact_form_success_message", value: "Thank you, your message was sent successfully.", valueEs: "Gracias, tu mensaje fue enviado correctamente.", type: "text", category: "pages", description: "Contacto — mensaje de éxito" },
   { key: "contact_form_error_message", value: "Your message could not be sent. Please try again.", valueEs: "No fue posible enviar tu mensaje. Intenta de nuevo.", type: "text", category: "pages", description: "Contacto — mensaje de error" },
@@ -536,6 +565,25 @@ export async function seedConfigDefaults(): Promise<void> {
     heroMediaUpdated = true;
   }
 
+  // La franja de Nuevas oficinas deja de usar mayúsculas sostenidas y recupera
+  // la redacción bilingüe aprobada. Solo se sustituyen las variantes exactas
+  // de los defaults históricos; cualquier edición posterior del CMS prevalece.
+  const bannerDefault = DEFAULTS.find((item) => item.key === "banner_title")!;
+  const [bannerTitle] = await db.select().from(siteConfig).where(eq(siteConfig.key, "banner_title"));
+  let bannerCopyUpdated = false;
+  if (bannerTitle) {
+    const legacyEnglish = new Set(["WE GO WHERE CLIENTS NEED US"]);
+    const legacySpanish = new Set(["VAMOS DONDE EL CLIENTE NOS NECESITA", "VAMOS A DONDE LOS CLIENTES NOS NECESITAN"]);
+    const value = legacyEnglish.has(bannerTitle.value || "") ? bannerDefault.value : bannerTitle.value;
+    const valueEs = legacySpanish.has(bannerTitle.valueEs || "") ? bannerDefault.valueEs ?? bannerDefault.value : bannerTitle.valueEs;
+    if (value !== bannerTitle.value || valueEs !== bannerTitle.valueEs) {
+      await db.update(siteConfig)
+        .set({ value, valueEs, updatedAt: new Date() })
+        .where(eq(siteConfig.key, "banner_title"));
+      bannerCopyUpdated = true;
+    }
+  }
+
   // Migración conservadora del único valor histórico que mezclaba ambos idiomas.
   // Solo se toca cuando sigue siendo EXACTAMENTE el default anterior; una dirección
   // editada por el cliente nunca se sobreescribe.
@@ -656,6 +704,13 @@ export async function seedConfigDefaults(): Promise<void> {
       "Recibe en tu correo análisis jurídicos, publicaciones y novedades de Von Wobeser y Sierra.",
     ],
     [
+      "newsletter_description",
+      "Receive legal analysis, publications and news from Von Wobeser y Sierra directly in your inbox.",
+      "Recibe en tu correo análisis jurídicos, publicaciones y novedades de Von Wobeser y Sierra.",
+      "Stay up to date on legal and regulatory changes relevant to your business.",
+      "Mantente al día sobre los cambios legales y regulatorios relevantes para tu negocio.",
+    ],
+    [
       "newsletter_required",
       "Please complete the required fields and accept the Privacy Notice.",
       "Complete los campos obligatorios y acepte el Aviso de Privacidad.",
@@ -689,7 +744,45 @@ export async function seedConfigDefaults(): Promise<void> {
     newsletterCopyUpdated = true;
   }
 
-  if (missing.length || firmPreviousVersionCreated || heroMediaUpdated || footerUpdated || heroLinkUpdated || landingRouteUpdated || firmCopyUpdated || rankingTitleUpdated || newsletterCopyUpdated) invalidateConfigCache();
+  // Lleva el formulario de Contacto al copy comercial aprobado únicamente
+  // cuando todavía conserva los textos predeterminados anteriores.
+  let contactCopyUpdated = false;
+  const contactLegacyCopy: Array<[string, string, string, string, string]> = [
+    [
+      "contact_form_description",
+      "Share your details and the area in which you need advice. Our team will contact you.",
+      "Déjanos tus datos y el área en la que necesitas asesoría. Nuestro equipo se pondrá en contacto contigo.",
+      "Share your details and tell us how we can help. Our team will contact you.",
+      "Déjanos tus datos y cuéntanos cómo podemos ayudarte. Nuestro equipo se pondrá en contacto contigo.",
+    ],
+    [
+      "contact_form_practice_label",
+      "Area of interest (optional)",
+      "Área de interés (opcional)",
+      "Advisory area (optional)",
+      "Área de asesoría (opcional)",
+    ],
+    [
+      "contact_form_required_message",
+      "Please fill in name, email and message.",
+      "Completa nombre, correo y mensaje.",
+      "Please fill in name, email, country and message, and accept the Privacy Notice.",
+      "Completa nombre, correo, país y mensaje, y acepta el Aviso de Privacidad.",
+    ],
+  ];
+  for (const [key, oldEn, oldEs, nextEn, nextEs] of contactLegacyCopy) {
+    const [current] = await db.select().from(siteConfig).where(eq(siteConfig.key, key));
+    if (!current) continue;
+    const value = current.value === oldEn ? nextEn : current.value;
+    const valueEs = current.valueEs === oldEs ? nextEs : current.valueEs;
+    if (value === current.value && valueEs === current.valueEs) continue;
+    await db.update(siteConfig)
+      .set({ value, valueEs, updatedAt: new Date() })
+      .where(eq(siteConfig.key, key));
+    contactCopyUpdated = true;
+  }
+
+  if (missing.length || firmPreviousVersionCreated || heroMediaUpdated || bannerCopyUpdated || footerUpdated || heroLinkUpdated || landingRouteUpdated || firmCopyUpdated || rankingTitleUpdated || newsletterCopyUpdated || contactCopyUpdated) invalidateConfigCache();
 }
 
 /** Upsert one key (used by the admin endpoint). */

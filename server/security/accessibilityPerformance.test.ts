@@ -73,29 +73,29 @@ test("la lupa abre, enfoca y envía el buscador global bilingüe", () => {
   assert.match(css, /font-family: "Inter", sans-serif !important/);
   assert.match(css, /#search_q:focus[\s\S]*box-shadow: inset 0 -2px 0 #ac162c[\s\S]*outline: 0/);
   assert.match(css, /\.vw-header-search__submit::before[\s\S]*transform: translateY\(-1px\)/);
-  assert.match(css, /\.header\.header_JS \.search_form_cont[\s\S]*right: 124px !important/);
+  assert.match(css, /\.header\.header_JS \.search_form_cont[\s\S]*right: 170px !important/);
   assert.match(css, /\.header\.header_JS \.search_form_cont[\s\S]*top: 11px !important[\s\S]*transform: none/);
-  assert.match(css, /\.header\.header_JS \.menu_btn_JS[\s\S]*right: 62px !important/);
+  assert.match(css, /\.header\.header_JS \.menu_btn_JS[\s\S]*right: 108px !important/);
   assert.match(css, /\.header\.header_JS \.header__lang[\s\S]*right: 8px !important/);
   assert.match(css, /\.header\.header_JS \.eyeglass[\s\S]*width: 44px !important/);
 });
 
-test("el selector de idioma presenta Español e English y conserva rutas alternas", () => {
+test("el selector de idioma muestra ES y EN, destaca el activo y conserva rutas alternas", () => {
   const css = readFileSync(
     new URL("../../frontend-mirror/templates/beez3/css/von.css", import.meta.url),
     "utf8",
   );
 
-  assert.match(LANG_TOGGLE_SCRIPT, /vwb-language__trigger/);
-  assert.match(LANG_TOGGLE_SCRIPT, /Idioma/);
-  assert.match(LANG_TOGGLE_SCRIPT, /Español/);
-  assert.match(LANG_TOGGLE_SCRIPT, /English/);
-  assert.match(LANG_TOGGLE_SCRIPT, /aria-haspopup="menu"/);
-  assert.match(LANG_TOGGLE_SCRIPT, /event\.key==='Escape'/);
+  assert.match(LANG_TOGGLE_SCRIPT, /vwb-language__option/);
+  assert.match(LANG_TOGGLE_SCRIPT, />ES<\/a>/);
+  assert.match(LANG_TOGGLE_SCRIPT, />EN<\/a>/);
+  assert.match(LANG_TOGGLE_SCRIPT, /vwb-language__separator/);
+  assert.match(LANG_TOGGLE_SCRIPT, /aria-current="page"/);
   assert.match(LANG_TOGGLE_SCRIPT, /link\[rel="alternate"\]\[hreflang=/);
-  assert.match(css, /\.vwb-language__menu/);
-  assert.match(css, /\.vwb-language__trigger:focus-visible/);
-  assert.match(css, /\.vwb-language__compact/);
+  assert.match(css, /\.vwb-language__option:focus-visible/);
+  assert.match(css, /\.vwb-language__option\[aria-current="page"\][\s\S]*color: #ac162c/);
+  assert.doesNotMatch(LANG_TOGGLE_SCRIPT, /aria-haspopup="menu"/);
+  assert.doesNotMatch(css, /\.vwb-language__menu/);
 });
 
 test("las cuatro categorías de Abogados tienen ruta limpia bilingüe antes del catch-all", () => {
@@ -215,6 +215,8 @@ test("la portada alterna entre Visión, misión y valores editorial y su diseño
   assert.equal(classic(".home__rec--wrap").length, 1);
   assert.equal(classic(".home__rec--ttl").text(), "ACERCA DE NOSOTROS");
   assert.match(css, /\.home-about-editorial__value-list\s*\{[\s\S]*grid-template-columns:\s*repeat\(5/);
+  assert.match(css, /\.home-about-editorial__heading\s*\{[^}]*justify-items:\s*center[^}]*margin:\s*0 auto clamp\([^}]*text-align:\s*center/);
+  assert.match(css, /\.home-about-editorial__heading\s*>\s*p\s*\{[^}]*max-width:\s*680px[^}]*width:\s*100%/);
   assert.match(css, /@media \(max-width: 980px\)[\s\S]*\.home-about-editorial__value-list\s*\{[\s\S]*repeat\(2/);
   assert.match(css, /@media \(max-width: 620px\)[\s\S]*\.home-about-editorial__value-list\s*\{[\s\S]*grid-template-columns:\s*1fr/);
   assert.match(css, /@media \(min-width: 981px\) and \(prefers-reduced-motion: no-preference\)[\s\S]*translateY\(40px\)[\s\S]*transition: opacity 1s, transform 1s/);

@@ -1,5 +1,5 @@
 import type { Express } from "express";
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import { z } from "zod";
 import { authMiddleware, requirePermission } from "../../auth";
 import { db } from "../../db";
@@ -22,6 +22,16 @@ import {
 import { getFaviconHref, setFaviconConfig } from "../seo";
 import type { Lang } from "../htmlPipeline";
 import type { MirrorRuntime } from "../runtime";
+import {
+  adminNavigationPayload,
+  getNavigationAvailability,
+  navigationConfigurationFromConfig,
+  navigationConfigurationSchema,
+  navigationRevision,
+  parseNavigationConfiguration,
+  unavailableRequestedDestinations,
+} from "../navigationConfiguration";
+import { invalidatePublicNavigationMenuCache } from "../navigationMenu";
 
 export function registerMirrorAdminRoutes(app: Express, runtime: MirrorRuntime): void {
   const {
@@ -119,62 +129,92 @@ export function registerMirrorAdminRoutes(app: Express, runtime: MirrorRuntime):
     });
   }));
 
-  // ---------- Admin: navegación pública y visibilidad ------------------
-  const navigationItems = [
-    { id: "firm", key: "nav_firm", pathEs: "/acerca-de", pathEn: "/about" },
-    { id: "attorneys", key: "nav_attorneys", pathEs: "/attorneys", pathEn: "/attorneys?lang=en" },
-    { id: "practices", key: "nav_practices", pathEs: "/capacidades/practicas", pathEn: "/capabilities/practices" },
-    { id: "industries", key: "nav_industries", pathEs: "/capacidades/industrias", pathEn: "/capabilities/industries" },
-    { id: "publications", key: "nav_publications", pathEs: "/publicaciones", pathEn: "/publications" },
-    { id: "careers", key: "nav_careers", pathEs: "/bolsa-de-trabajo", pathEn: "/careers" },
-    { id: "contact", key: "nav_contact", pathEs: "/contacto", pathEn: "/contact" },
-  ] as const;
-  const navigationIdSchema = z.enum(["firm", "attorneys", "practices", "industries", "publications", "careers", "contact"]);
-  const navigationUpdateSchema = z.object({
-    searchLabelEn: z.string().trim().min(1).max(120),
-    searchLabelEs: z.string().trim().min(1).max(120),
-    items: z.array(z.object({
-      id: navigationIdSchema,
-      labelEn: z.string().trim().min(1).max(120),
-      labelEs: z.string().trim().min(1).max(120),
-      visible: z.boolean(),
-    })).length(navigationItems.length),
-  }).superRefine(({ items }, ctx) => {
-    const ids = new Set(items.map((item) => item.id));
-    if (ids.size !== navigationItems.length || navigationItems.some((item) => !ids.has(item.id))) {
-      ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["items"], message: "Debes enviar exactamente las siete opciones de navegación." });
-    }
-  });
-  const publicNavigationPayload = (config: ConfigMap) => ({
-    items: navigationItems.map((item) => ({
-      id: item.id,
-      labelEn: config[item.key]?.value || "",
-      labelEs: config[item.key]?.valueEs || config[item.key]?.value || "",
-      visible: (config[`nav_visible_${item.id}`]?.value || "true").trim().toLowerCase() !== "false",
-      pathEs: item.pathEs,
-      pathEn: item.pathEn,
-    })),
-    fixed: {
-      homeViaLogo: true,
-      search: true,
-      language: true,
-      searchLabelEn: config.nav_search?.value || "Search",
-      searchLabelEs: config.nav_search?.valueEs || config.nav_search?.value || "Buscar",
-    },
-  });
-
   app.get("/api/admin/site-navigation", authMiddleware, requirePermission("config"), wrap(async (_req, res) => {
-    res.json(publicNavigationPayload(await getConfigMap()));
+    const config = await getConfigMap();
+    const configuration = navigationConfigurationFromConfig(config);
+    res.json(adminNavigationPayload(configuration, await getNavigationAvailability(config)));
   }));
 
   app.put("/api/admin/site-navigation", authMiddleware, requirePermission("config"), wrap(async (req, res) => {
-    const payload = navigationUpdateSchema.parse(req.body || {});
-    const byId = new Map(payload.items.map((item) => [item.id, item]));
-    await db.transaction(async (tx) => {
-      for (const definition of navigationItems) {
-        const item = byId.get(definition.id)!;
+    const requestSchema = z.object({
+      version: z.literal(2),
+      revision: z.string().trim().length(16),
+      configuration: navigationConfigurationSchema,
+    }).strict();
+    const parsed = requestSchema.safeParse(req.body || {});
+    if (!parsed.success) {
+      res.status(400).json({ error: "Estructura de navegación inválida", details: parsed.error.flatten() });
+      return;
+    }
+
+    const currentConfig = await getConfigMap();
+    const current = navigationConfigurationFromConfig(currentConfig);
+    if (parsed.data.revision !== navigationRevision(current)) {
+      res.status(409).json({
+        error: "La navegación cambió mientras la editabas. Recarga antes de guardar.",
+        code: "NAVIGATION_REVISION_STALE",
+      });
+      return;
+    }
+    const availability = await getNavigationAvailability(currentConfig);
+    const unavailable = unavailableRequestedDestinations(parsed.data.configuration, availability, current);
+    if (unavailable.length) {
+      res.status(400).json({
+        error: "No se pueden activar destinos que todavía no tienen contenido público.",
+        code: "NAVIGATION_DESTINATION_NOT_READY",
+        destinations: unavailable,
+      });
+      return;
+    }
+
+    const configuration = parsed.data.configuration;
+    const byId = new Map(configuration.items.map((item) => [item.id, item]));
+    const legacyDefinitions = [
+      ["firm", "nav_firm"],
+      ["attorneys", "nav_attorneys"],
+      ["practices", "nav_practices"],
+      ["industries", "nav_industries"],
+      ["perspectives", "nav_publications"],
+      ["talent", "nav_careers"],
+    ] as const;
+    const saved = await db.transaction(async (tx) => {
+      // Serializa las ediciones del menú y vuelve a comprobar la revisión dentro de
+      // la misma transacción. La comprobación previa mejora el mensaje habitual,
+      // pero por sí sola permitiría una carrera entre dos administradores.
+      await tx.execute(sql`SELECT pg_advisory_xact_lock(hashtext('vw-navigation-v2'))`);
+      const [storedNavigation] = await tx
+        .select({ value: siteConfig.value })
+        .from(siteConfig)
+        .where(eq(siteConfig.key, "nav_structure_v2"))
+        .limit(1);
+      let authoritative = current;
+      if (storedNavigation?.value) {
+        try {
+          authoritative = parseNavigationConfiguration(JSON.parse(storedNavigation.value));
+        } catch {
+          // Un valor heredado inválido conserva el mismo fallback seguro que la lectura pública.
+        }
+      }
+      if (parsed.data.revision !== navigationRevision(authoritative)) return false;
+
+      await tx.insert(siteConfig).values({
+        key: "nav_structure_v2",
+        value: JSON.stringify(configuration),
+        valueEs: JSON.stringify(configuration),
+        type: "json",
+        category: "navigation",
+        updatedAt: new Date(),
+      }).onConflictDoUpdate({
+        target: siteConfig.key,
+        set: { value: JSON.stringify(configuration), valueEs: JSON.stringify(configuration), updatedAt: new Date() },
+      });
+
+      // Mantener las claves históricas sincronizadas permite volver al render previo sin
+      // perder etiquetas si hubiera que hacer rollback del código.
+      for (const [id, key] of legacyDefinitions) {
+        const item = byId.get(id)!;
         await tx.insert(siteConfig).values({
-          key: definition.key,
+          key,
           value: item.labelEn,
           valueEs: item.labelEs,
           type: "text",
@@ -186,7 +226,7 @@ export function registerMirrorAdminRoutes(app: Express, runtime: MirrorRuntime):
         });
         const visible = String(item.visible);
         await tx.insert(siteConfig).values({
-          key: `nav_visible_${definition.id}`,
+          key: `nav_visible_${id === "perspectives" ? "publications" : id === "talent" ? "careers" : id}`,
           value: visible,
           valueEs: visible,
           type: "boolean",
@@ -199,18 +239,43 @@ export function registerMirrorAdminRoutes(app: Express, runtime: MirrorRuntime):
       }
       await tx.insert(siteConfig).values({
         key: "nav_search",
-        value: payload.searchLabelEn,
-        valueEs: payload.searchLabelEs,
+        value: configuration.utilities.search.labelEn,
+        valueEs: configuration.utilities.search.labelEs,
         type: "text",
         category: "navigation",
         updatedAt: new Date(),
       }).onConflictDoUpdate({
         target: siteConfig.key,
-        set: { value: payload.searchLabelEn, valueEs: payload.searchLabelEs, updatedAt: new Date() },
+        set: { value: configuration.utilities.search.labelEn, valueEs: configuration.utilities.search.labelEs, updatedAt: new Date() },
       });
+      await tx.insert(siteConfig).values({
+        key: "nav_contact",
+        value: configuration.utilities.contact.labelEn,
+        valueEs: configuration.utilities.contact.labelEs,
+        type: "text",
+        category: "navigation",
+        updatedAt: new Date(),
+      }).onConflictDoUpdate({
+        target: siteConfig.key,
+        set: { value: configuration.utilities.contact.labelEn, valueEs: configuration.utilities.contact.labelEs, updatedAt: new Date() },
+      });
+      return true;
     });
+    if (!saved) {
+      res.status(409).json({
+        error: "La navegación cambió mientras la editabas. Recarga antes de guardar.",
+        code: "NAVIGATION_REVISION_STALE",
+      });
+      return;
+    }
     invalidateConfigCache();
-    res.json({ ok: true, ...publicNavigationPayload(await getConfigMap()) });
+    invalidatePublicNavigationMenuCache();
+    invalidatePublicPageCache();
+    const updatedConfig = await getConfigMap();
+    res.json({
+      ok: true,
+      ...adminNavigationPayload(configuration, await getNavigationAvailability(updatedConfig)),
+    });
   }));
 
   // ---------- Admin: editable site config (texts, hero video, etc.) -----

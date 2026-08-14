@@ -50,6 +50,9 @@ import { isMigrationReadOnlyEnabled } from "../database/maintenance";
 import { normalizeVideoSource } from "@shared/videoSource";
 import { getLocalizedAttorneyTitle } from "@shared/attorneyTitles";
 import { getEditorialTypography, getEditorialTypographyForEntities } from "../editorialTypography";
+import { getNavigationAvailability } from "./navigationConfiguration";
+import { buildSearchableEditorialPages } from "./searchEditorialPages";
+import { hasCompatibleLocalizedNewsTitle } from "./newsLanguage";
 
 import {
   PAGE_KEYS,
@@ -623,16 +626,19 @@ export async function createMirrorRuntime() {
 
   const serveGlobalSearch = async (lang: Lang, res: Response, query: string) => {
     const normalized = normalizeStr(query);
-    const empty = { team: [], practiceGroups: [], industryGroups: [], news: [] };
+    const empty = { team: [], practiceGroups: [], industryGroups: [], news: [], events: [], pages: [] };
     if (normalized.length < 2) {
       return sendPage(res, renderGlobalSearch(pick(TEMPLATES.publications, lang), empty, query, lang));
     }
-    const [teamRows, practiceRows, industryRows, newsRows] = await Promise.all([
+    const [teamRows, practiceRows, industryRows, newsRows, eventRows, config] = await Promise.all([
       storage.getTeamMembers(),
       storage.getPracticeGroups(),
       storage.getIndustryGroups(),
       storage.searchNews(query, 20),
+      storage.getEvents(),
+      getConfigMap(),
     ]);
+    const editorialPages = buildSearchableEditorialPages(config, await getNavigationAvailability(config));
     const contains = (...values: Array<string | null | undefined>) =>
       values.some((value) => normalizeStr(value || "").includes(normalized));
     const results = {
@@ -646,6 +652,10 @@ export async function createMirrorRuntime() {
         .filter((item) => item.published !== false && contains(item.name, item.nameEs, item.description, item.descriptionEs))
         .slice(0, 12),
       news: newsRows,
+      events: eventRows
+        .filter((item) => contains(item.title, item.titleEs, item.description, item.descriptionEs, item.location, item.locationEs))
+        .slice(0, 12),
+      pages: editorialPages.filter((item) => contains(item.title, item.titleEs, item.description, item.descriptionEs)),
     };
     return sendPage(res, renderGlobalSearch(pick(TEMPLATES.publications, lang), results, query, lang));
   };
@@ -657,19 +667,23 @@ export async function createMirrorRuntime() {
       const newsLimit = (Number.isFinite(configuredPages)
         ? Math.min(10, Math.max(1, configuredPages))
         : 5) * 2;
+      const newsCandidateLimit = Math.min(80, newsLimit * 4);
       // Las destacadas van primero y el resto se completa con las publicadas más
       // recientes. La cantidad se administra como páginas de dos noticias.
       const [featured, rankings, practices, industries, testimonials] = await Promise.all([
-        storage.getFeaturedNews(newsLimit),
+        storage.getFeaturedNews(newsCandidateLimit),
         storage.getRankings(),
         storage.getPracticeGroups(),
         storage.getIndustryGroups(),
         storage.getTestimonials(),
       ]);
-      let heroNews = featured;
+      let heroNews = featured.filter((item) => hasCompatibleLocalizedNewsTitle(item, lang)).slice(0, newsLimit);
       if (heroNews.length < newsLimit) {
-        const recent = await storage.getRecentPublishedNews(newsLimit + featured.length);
-        heroNews = [...featured, ...recent.filter((r) => !featured.some((f) => f.id === r.id))].slice(0, newsLimit);
+        const recent = await storage.getRecentPublishedNews(newsCandidateLimit);
+        heroNews = [
+          ...heroNews,
+          ...recent.filter((item) => hasCompatibleLocalizedNewsTitle(item, lang) && !heroNews.some((featuredItem) => featuredItem.id === item.id)),
+        ].slice(0, newsLimit);
       }
       const testimonialTypography = await getEditorialTypographyForEntities("testimonial", testimonials.map((item) => item.id));
       return renderHome(

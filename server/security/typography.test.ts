@@ -76,7 +76,7 @@ test('el panel aísla su interfaz en Inter sin desactivar la tipografía editori
   assert.match(typography, /\[data-vw-font="inter"\][\s\S]*?font-family:\s*var\(--vw-font-body\)\s*!important/);
 });
 
-test('Inter no supera Medium (500), salvo el único titular editorial autorizado de Nuevas oficinas', () => {
+test('Inter no supera Medium (500) y Nuevas oficinas conserva la jerarquía aprobada', () => {
   const typography = read('../../frontend-mirror/templates/beez3/css/typography.css');
   const tailwind = read('../../tailwind.config.ts');
   const generator = readPresentationGeneratorSources();
@@ -93,8 +93,34 @@ test('Inter no supera Medium (500), salvo el único titular editorial autorizado
 
   const homeCss = read('../../frontend-mirror/templates/beez3/css/style.css');
   const homeRenderer = read('../mirror/renderHome.ts');
-  assert.match(homeCss, /\.home__rojo--title[\s\S]*?font-weight:\s*600\s*!important/);
-  assert.match(homeRenderer, /class="home__rojo--title"/);
+  const homeConfig = read('../mirror/siteConfig.ts');
+  const homeStaticEn = read('../../frontend-mirror/index.html');
+  const homeStaticEs = read('../../frontend-mirror/index.php/home/index.html');
+  assert.match(homeCss, /\.home__rojo--title\s*\{[^}]*font-family:\s*var\(--font-title,\s*"Gelasio"[^}]*font-size:\s*clamp\(1\.75rem,\s*2\.8vw,\s*2\.8rem\)[^}]*font-weight:\s*400\s*!important[^}]*text-transform:\s*none\s*!important[^}]*white-space:\s*nowrap/);
+  assert.match(homeCss, /\.home__rojo--subtitle\s*\{[^}]*font-family:\s*var\(--font-body,\s*"Inter"[^}]*font-size:\s*clamp\(1\.1rem,\s*0\.9rem \+ 1\.1vw,\s*1\.75rem\)[^}]*font-weight:\s*400\s*!important[^}]*text-transform:\s*none\s*!important/);
+  assert.match(homeCss, /\.home__rojo--cta\s*\{[^}]*border-bottom:\s*1px solid rgba\(255, 255, 255, 0\.5\)[^}]*color:\s*#fff\s*!important[^}]*font-size:\s*0\.56rem\s*!important[^}]*font-weight:\s*500\s*!important/);
+  assert.match(homeCss, /\.home__rojo--action\s*\{[^}]*align-self:\s*center[^}]*text-align:\s*right[^}]*width:\s*min\(440px, 100%\)/);
+  assert.match(homeCss, /\.home__rojo--cta\s*\{[^}]*text-decoration:\s*none\s*!important/);
+  assert.match(homeCss, /\.home__rojo--cta\.vw-read-more::after\s*\{[^}]*content:\s*none[^}]*display:\s*none/);
+  assert.match(homeCss, /\.home__rojo--cta\s*\{[^}]*min-height:\s*44px/);
+  assert.match(homeCss, /\.home__rojo--cta:focus-visible\s*\{[^}]*outline:\s*2px solid #fff/);
+  assert.match(homeCss, /@media \(prefers-reduced-motion:\s*reduce\)\s*\{[\s\S]*?\.home__rojo--cta-arrow\s*\{[^}]*transition:\s*none/);
+  assert.doesNotMatch(homeCss, /\.home__rojo--title\s*\{[^}]*font-weight:\s*600/);
+  assert.match(homeRenderer, /<h2 class="home__rojo--title">/);
+  assert.match(homeRenderer, /class="home__rojo--cta-arrow" aria-hidden="true">→/);
+  assert.doesNotMatch(homeRenderer, /style="font-size:\s*1\.4rem/);
+  assert.doesNotMatch(homeRenderer, /<p style="text-align:\s*right;">/);
+  assert.match(homeConfig, /key: "banner_title", value: "We go where clients need us", valueEs: "Vamos a donde los clientes nos necesitan"/);
+  for (const homeStatic of [homeStaticEn, homeStaticEs]) {
+    assert.match(homeStatic, /href="\/templates\/beez3\/css\/style\.css\?v=20260814-banner-compact"/);
+    assert.match(homeStatic, /href="\/templates\/beez3\/css\/typography\.css\?v=20260812-attorney-profiles"/);
+    assert.match(homeStatic, /<h2 class="home__rojo--title">/);
+    assert.match(homeStatic, /<p class="home__rojo--subtitle">/);
+    assert.match(homeStatic, /<p class="home__rojo--action">/);
+    assert.doesNotMatch(homeStatic, /home__rojo--txt[\s\S]{0,600}style="font-size:\s*1\.4rem/);
+  }
+  assert.match(homeStaticEn, /<h2 class="home__rojo--title">We go where clients need us<\/h2>/);
+  assert.match(homeStaticEs, /<h2 class="home__rojo--title">Vamos a donde los clientes nos necesitan<\/h2>/);
 });
 
 test('módulos nuevos no pueden reintroducir familias tipográficas anteriores', () => {

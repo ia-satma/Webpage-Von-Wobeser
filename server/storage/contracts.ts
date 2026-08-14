@@ -218,6 +218,7 @@ export interface IStorage {
 
   // Events CRUD
   getEvents(): Promise<Event[]>;
+  getAdminEvents(): Promise<Event[]>;
   getEventById(id: string): Promise<Event | undefined>;
   getUpcomingEvents(limit?: number): Promise<Event[]>;
   createEvent(event: InsertEvent): Promise<Event>;

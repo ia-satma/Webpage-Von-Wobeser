@@ -15,6 +15,9 @@ import {
 } from "../security/uploads";
 import { storage } from "../storage";
 import { cvUpload } from "./uploadMiddleware";
+import { getNavigationAvailability } from "../mirror/navigationConfiguration";
+import { buildSearchableEditorialPages } from "../mirror/searchEditorialPages";
+import { getConfigMap } from "../mirror/siteConfig";
 
 const isNewsPubliclyVisible = (news: { published?: boolean | null; publishAt?: Date | string | null }): boolean =>
   news.published === true && (!news.publishAt || new Date(news.publishAt) <= new Date());
@@ -306,6 +309,7 @@ export function registerPublicContentRoutes(app: Express): void {
         email: contactData.email.trim().toLowerCase(),
         phone: contactData.phone ? sanitize(contactData.phone) : undefined,
         company: contactData.company ? sanitize(contactData.company) : undefined,
+        country: sanitize(contactData.country),
         practiceArea: contactData.practiceArea ? sanitize(contactData.practiceArea) : undefined,
         message: sanitize(contactData.message),
         acceptedPrivacy: true,
@@ -511,17 +515,20 @@ export function registerPublicContentRoutes(app: Express): void {
       if (!parsed.success) return res.status(400).json({ error: "Invalid search" });
       const query = parsed.data.toLowerCase();
       if (!query || query.length < 2) {
-        return res.json({ team: [], practiceGroups: [], industryGroups: [], news: [] });
+        return res.json({ team: [], practiceGroups: [], industryGroups: [], news: [], events: [], pages: [] });
       }
 
       // Noticias vía SQL acotado (ILIKE+LIMIT); el resto son tablas pequeñas. Filtradas a
       // published=true antes de buscar — este endpoint es público, sin authMiddleware.
-      const [teamRaw, practiceGroupsRaw, industryGroupsRaw, filteredNews] = await Promise.all([
+      const [teamRaw, practiceGroupsRaw, industryGroupsRaw, filteredNews, eventsRaw, config] = await Promise.all([
         storage.getTeamMembers(),
         storage.getPracticeGroups(),
         storage.getIndustryGroups(),
         storage.searchNews(query, 5),
+        storage.getEvents(),
+        getConfigMap(),
       ]);
+      const editorialPages = buildSearchableEditorialPages(config, await getNavigationAvailability(config));
       const team = teamRaw.filter(isPubliclyVisible);
       const practiceGroups = practiceGroupsRaw.filter(isPublishedPublicPractice);
       const industryGroups = industryGroupsRaw.filter(isPubliclyVisible);
@@ -550,11 +557,24 @@ export function registerPublicContentRoutes(app: Express): void {
         g.descriptionEs.toLowerCase().includes(query)
       ).slice(0, 5);
 
+      const filteredEvents = eventsRaw.filter(event =>
+        event.title.toLowerCase().includes(query) ||
+        event.titleEs.toLowerCase().includes(query) ||
+        event.description.toLowerCase().includes(query) ||
+        event.descriptionEs.toLowerCase().includes(query) ||
+        Boolean(event.location?.toLowerCase().includes(query)) ||
+        Boolean(event.locationEs?.toLowerCase().includes(query))
+      ).slice(0, 5);
+      const pages = editorialPages.filter(page => [page.title, page.titleEs, page.description, page.descriptionEs]
+        .some(value => value.toLowerCase().includes(query)));
+
       res.json({
         team: filteredTeam,
         practiceGroups: filteredPractice,
         industryGroups: filteredIndustry,
         news: filteredNews,
+        events: filteredEvents,
+        pages,
       });
     } catch (error) {
       res.status(500).json({ error: "Search failed" });

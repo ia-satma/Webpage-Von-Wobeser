@@ -18,9 +18,9 @@ const moduleFiles = fs.readdirSync(modulesDirectory)
 const EXPECTED_SOURCE_EXPORT_HASH = "8f72b84f96367adcc70fc281d196987e45e9ab8fb06af3f636bdc575899a34a2";
 const EXPECTED_TYPE_DECLARATION_HASH = "39fb72955206eba6cad616bea7a77f29f4361785c196560680d2daad20dff1ad";
 const EXPECTED_RUNTIME_EXPORT_HASH = "c66d297641f74ff05ba3d3af84e638879084a7278ba4b14476560a4df4de27f9";
-const EXPECTED_ZOD_HASH = "8395b86d0439c0ebda2441b18ba1d414f22f3051fbf761f48ddb6f218aa323cc";
+const EXPECTED_ZOD_HASH = "8dc0612855c2af45046fb0616c5cfc27da2a60bd0da2dd4faed5dbc7b160c30e";
 const EXPECTED_CATALOG_HASH = "6662e2b3056e21bede4362ab8adaad8c20601663166b83b73511cce7fe634762";
-const EXPECTED_SQL_HASH = "f03e60a804e25aea3f0ed28943dccd4968097d75c2af23c96311fab5962e2e55";
+const EXPECTED_SQL_HASH = "20011ed701753df88f96f8b0429f356f1a0a5ef273efa5dbfa1dcd63efef5577";
 
 function sha256(value: unknown): string {
   const serialized = typeof value === "string" ? value : JSON.stringify(value);
@@ -202,7 +202,7 @@ test("las tablas, Zod, catálogos y DDL permanecen semánticamente idénticos", 
     }
   });
   assert.equal(tables.length, 56);
-  assert.equal(tables.reduce((total, table) => total + table.columns.length, 0), 626);
+  assert.equal(tables.reduce((total, table) => total + table.columns.length, 0), 627);
   assert.equal(tables.reduce((total, table) => total + table.indexes.length, 0), 18);
   assert.equal(tables.reduce((total, table) => total + table.foreignKeys.length, 0), 10);
 

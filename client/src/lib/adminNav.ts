@@ -92,7 +92,11 @@ export const ADMIN_NAV_GROUPS: AdminNavGroup[] = [
       { href: "/admin/practice-groups", label: "Prácticas", icon: Briefcase },
       { href: "/admin/industry-groups", label: "Grupos por industria", icon: Building2 },
       { href: "/admin/news", label: "Noticias y publicaciones", icon: Newspaper },
+      { href: "/admin/site-config/perspectivas", label: "Portada de Perspectivas", icon: Newspaper, requires: "config" },
+      { href: "/admin/events", label: "Eventos", icon: Calendar },
       { href: "/admin/site-config/carrera", label: "Carrera en VWyS", icon: GraduationCap, requires: "config" },
+      { href: "/admin/openings", label: "Vacantes", icon: UserPlus },
+      { href: "/admin/site-config/vacantes", label: "Portada de Vacantes", icon: GraduationCap, requires: "config" },
       { href: "/admin/site-config/contacto", label: "Contacto", icon: Mail, requires: "config" },
       { href: "/admin/offices", label: "Oficinas", icon: MapPin, requires: "config" },
     ],
@@ -107,6 +111,9 @@ export const ADMIN_NAV_GROUPS: AdminNavGroup[] = [
       { href: "/admin/testimonials", label: "Testimonios del home", icon: Quote },
       { href: "/admin/recognitions", label: "Reconocimientos", icon: Award },
       { href: "/admin/site-config/capacidades", label: "Introducción de Capacidades", icon: Landmark, requires: "config" },
+      { href: "/admin/site-config/alcance-internacional", label: "Alcance internacional", icon: Link2, requires: "config" },
+      { href: "/admin/alliances", label: "Alianzas internacionales", icon: Link2 },
+      { href: "/admin/site-config/alumni", label: "Alumni (futuro)", icon: Users, requires: "config" },
     ],
   },
   {
@@ -134,11 +141,8 @@ export const ADMIN_NAV_GROUPS: AdminNavGroup[] = [
     id: "construccion",
     label: "En construcción",
     items: [
-      { href: "/admin/events", label: "Eventos", icon: Calendar, comingSoon: true, requires: "superAdminOnly" },
       { href: "/admin/coming-soon/premios", label: "Premios", icon: Trophy, comingSoon: true, requires: "superAdminOnly" },
       { href: "/admin/coming-soon/clientes", label: "Clientes", icon: Handshake, comingSoon: true, requires: "superAdminOnly" },
-      { href: "/admin/coming-soon/alianzas", label: "Alianzas", icon: Link2, comingSoon: true, requires: "superAdminOnly" },
-      { href: "/admin/coming-soon/vacantes", label: "Vacantes", icon: UserPlus, comingSoon: true, requires: "superAdminOnly" },
     ],
   },
   {
@@ -184,14 +188,6 @@ export const COMING_SOON_SECTIONS: ComingSoonSection[] = [
   {
     key: "clientes", title: "Clientes", icon: Handshake, status: "no-screen",
     description: "Logos y nombres de clientes representativos de la firma, para mostrar como prueba social en el sitio.",
-  },
-  {
-    key: "alianzas", title: "Alianzas", icon: Link2, status: "no-screen",
-    description: "Redes y alianzas internacionales de las que forma parte la firma (ej. asociaciones de despachos aliados).",
-  },
-  {
-    key: "vacantes", title: "Vacantes", icon: UserPlus, status: "no-screen",
-    description: "Puestos de trabajo abiertos en la firma, para publicarse en la página de Carrera.",
   },
 ];
 

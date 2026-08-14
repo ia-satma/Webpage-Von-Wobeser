@@ -6,6 +6,7 @@ import { registerMirrorInstitutionalRoutes } from "./routes/institutionalRoutes"
 import { registerMirrorLegacyRedirectRoutes } from "./routes/legacyRedirectRoutes";
 import { registerMirrorOriginalRoutes } from "./routes/originalRoutes";
 import { registerMirrorPublicRoutes } from "./routes/publicRoutes";
+import { registerMirrorNewPublicRoutes } from "./routes/newPublicRoutes";
 
 export {
   LANG_TOGGLE_SCRIPT,
@@ -24,6 +25,7 @@ export async function setupMirror(app: Express): Promise<void> {
   registerMirrorPublicRoutes(app, runtime);
   registerMirrorLegacyRedirectRoutes(app, runtime);
   registerMirrorInstitutionalRoutes(app, runtime);
+  registerMirrorNewPublicRoutes(app, runtime);
   registerMirrorOriginalRoutes(app, runtime);
   registerMirrorAdminRoutes(app, runtime);
   registerMirrorAssetAndFallbackRoutes(app, runtime);

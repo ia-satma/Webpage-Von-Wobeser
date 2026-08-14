@@ -9,6 +9,7 @@ export const contactFormSchema = z.object({
   email: z.string().trim().min(1, "Email is required").email("Invalid email address").max(254),
   phone: z.string().trim().max(32).optional(),
   company: z.string().trim().max(160).optional(),
+  country: z.string().trim().min(1, "Country is required").max(120),
   practiceArea: z.string().trim().max(120).optional(),
   message: z.string().trim().min(1, "Message is required").max(5_000),
   acceptPrivacy: z.literal(true, {
@@ -36,6 +37,7 @@ export const contactSubmissions = pgTable("contact_submissions", {
   email: text("email").notNull(),
   phone: text("phone"),
   company: text("company"),
+  country: text("country"),
   practiceArea: text("practice_area"),
   message: text("message").notNull(),
   acceptedPrivacy: boolean("accepted_privacy").notNull().default(false),

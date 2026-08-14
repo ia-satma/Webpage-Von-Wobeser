@@ -1,14 +1,17 @@
 import {
   Briefcase,
+  Globe2,
   GraduationCap,
   HeartHandshake,
   Landmark,
   LineChart,
   Lock,
   Mail,
+  Newspaper,
   PanelBottom,
   Settings,
   Sparkles,
+  UsersRound,
   Volume2,
 } from "lucide-react";
 import type { SiteConfigPageDefinition } from "./contracts";
@@ -46,8 +49,10 @@ export const PAGES: Record<string, SiteConfigPageDefinition> = {
           { key: "home_recognitions_intro", label: "Reconocimientos — introducción", bilingual: true, multiline: true },
           { key: "home_recognitions_body_visible", label: "Mostrar listado detallado de reconocimientos", control: "switch", defaultValue: false, help: "Oculta solamente el párrafo largo; el título, la introducción y el carrusel de logotipos permanecen visibles." },
           { key: "home_recognitions_body", label: "Reconocimientos — texto", bilingual: true, multiline: true },
+          { key: "home_diversity_visible", label: "Mostrar Diversidad e Inclusión en la portada", control: "switch", defaultValue: false, help: "El bloque queda oculto sin borrar sus textos ni afectar su página. Actívalo si el cliente desea recuperarlo en el Home." },
           { key: "home_diversity_title", label: "Diversidad — título", bilingual: true },
           { key: "home_diversity_body", label: "Diversidad — texto", bilingual: true, multiline: true },
+          { key: "home_probono_visible", label: "Mostrar Pro Bono en la portada", control: "switch", defaultValue: false, help: "El bloque queda oculto sin borrar sus textos ni afectar su página. Actívalo si el cliente desea recuperarlo en el Home." },
           { key: "home_probono_title", label: "Pro Bono — título", bilingual: true },
           { key: "home_probono_body", label: "Pro Bono — texto", bilingual: true, multiline: true },
           {
@@ -410,6 +415,61 @@ export const PAGES: Record<string, SiteConfigPageDefinition> = {
       },
     ],
   },
+  perspectivas: {
+    title: "Perspectivas",
+    description: "Textos bilingües de la portada que reúne artículos, eventos, reconocimientos, comunicaciones, análisis y Sala de prensa.",
+    icon: Newspaper,
+    groups: [
+      {
+        fields: [
+          { key: "page_perspectives_title", label: "Título", bilingual: true },
+          { key: "page_perspectives_intro", label: "Introducción editorial", bilingual: true, multiline: true, rows: 6 },
+        ],
+      },
+    ],
+  },
+  "alcance-internacional": {
+    title: "Alcance internacional",
+    description: "Contenido editorial bilingüe de la página. El menú solo la muestra cuando estos textos están completos y existe una alianza publicada.",
+    icon: Globe2,
+    groups: [
+      {
+        fields: [
+          { key: "page_international_title", label: "Título", bilingual: true },
+          { key: "page_international_intro", label: "Introducción", bilingual: true, multiline: true, rows: 5 },
+          { key: "page_international_body", label: "Cuerpo editorial", bilingual: true, multiline: true, rows: 12 },
+        ],
+      },
+    ],
+  },
+  vacantes: {
+    title: "Portada de Vacantes",
+    description: "Textos bilingües que acompañan el listado de puestos publicados y vigentes.",
+    icon: GraduationCap,
+    groups: [
+      {
+        fields: [
+          { key: "page_openings_title", label: "Título", bilingual: true },
+          { key: "page_openings_intro", label: "Introducción", bilingual: true, multiline: true, rows: 6 },
+        ],
+      },
+    ],
+  },
+  alumni: {
+    title: "Alumni — capacidad futura",
+    description: "Prepara el contenido bilingüe sin exponerlo. La página permanece en 404/noindex hasta completar los textos y autorizar su publicación expresamente.",
+    icon: UsersRound,
+    groups: [
+      {
+        fields: [
+          { key: "page_alumni_title", label: "Título", bilingual: true },
+          { key: "page_alumni_intro", label: "Introducción", bilingual: true, multiline: true, rows: 5 },
+          { key: "page_alumni_body", label: "Cuerpo editorial", bilingual: true, multiline: true, rows: 12 },
+          { key: "page_alumni_published", label: "Autorizar publicación de Alumni", control: "switch", defaultValue: false, help: "Esta autorización no basta por sí sola: también se requiere contenido bilingüe completo y activar el destino en Navegación." },
+        ],
+      },
+    ],
+  },
   carrera: {
     title: "Carrera en VWyS",
     description: "Si lo dejas vacío, se muestra el texto original de la página.",
@@ -441,8 +501,12 @@ export const PAGES: Record<string, SiteConfigPageDefinition> = {
       {
         title: "Información y ubicación",
         fields: [
-          { key: "page_contact_intro", label: "Introducción", bilingual: true, multiline: true },
-          { key: "page_contact_body", label: "Dirección / texto", bilingual: true, multiline: true },
+          { key: "page_contact_eyebrow", label: "Etiqueta editorial", bilingual: true, help: "Se muestra con el estilo institucional de RECONOCIMIENTOS." },
+          { key: "page_contact_title", label: "Título principal", bilingual: true },
+          { key: "page_contact_description", label: "Descripción", bilingual: true, multiline: true },
+          { key: "page_contact_email", label: "Correo público", bilingual: true },
+          { key: "page_contact_phone", label: "Teléfono público", bilingual: true },
+          { key: "page_contact_address", label: "Dirección", bilingual: true, multiline: true, help: "Una línea por renglón." },
         ],
       },
       {
@@ -454,7 +518,8 @@ export const PAGES: Record<string, SiteConfigPageDefinition> = {
           { key: "contact_form_email_label", label: "Campo — correo", bilingual: true },
           { key: "contact_form_phone_label", label: "Campo — teléfono", bilingual: true },
           { key: "contact_form_company_label", label: "Campo — empresa", bilingual: true },
-          { key: "contact_form_practice_label", label: "Campo — área de interés", bilingual: true },
+          { key: "contact_form_country_label", label: "Campo — país", bilingual: true },
+          { key: "contact_form_practice_label", label: "Campo — área de asesoría", bilingual: true },
           { key: "contact_form_select_label", label: "Selector — opción inicial", bilingual: true },
           { key: "contact_form_message_label", label: "Campo — mensaje", bilingual: true },
           { key: "contact_form_submit_label", label: "Botón — enviar", bilingual: true },

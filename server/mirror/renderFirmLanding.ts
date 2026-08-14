@@ -220,6 +220,7 @@ function renderHistory(config: ConfigMap, lang: Lang): string {
   );
 
   return `<section class="vw-firm__section vw-firm__history vw-firm-reveal" id="historia" aria-labelledby="vw-firm-history-title">
+    <span class="vw-anchor-alias" id="history" aria-hidden="true"></span>
     <div class="vw-firm__container vw-firm__history-grid">
       <div>
         <p class="vw-firm__eyebrow">${esc(since)}</p>
@@ -276,7 +277,7 @@ function renderValues(config: ConfigMap, lang: Lang): string {
   })).filter((item) => item.title || item.body);
   const list = renderIndexedList(items, "vw-firm__values-list", true, "vw-firm__index");
 
-  return `<section class="vw-firm__section vw-firm__values vw-firm-reveal" id="valores" aria-labelledby="vw-firm-values-title">
+  return `<section class="vw-firm__section vw-firm__values vw-firm-reveal" id="valores" aria-labelledby="vw-firm-values-title"><span class="vw-anchor-alias" id="propuesta-de-valor"></span><span class="vw-anchor-alias" id="value-proposition"></span>
     <div class="vw-firm__container vw-firm__values-grid">
       <div class="vw-firm__values-heading">
         <h2 id="vw-firm-values-title">${esc(title)}</h2>
@@ -382,7 +383,7 @@ function renderRankings(config: ConfigMap, lang: Lang, data: FirmLandingData): s
       }).join("")}</ol>`
     : `<p class="vw-firm__empty">${esc(empty)}</p>`;
 
-  return `<section class="vw-firm__section vw-firm__rankings vw-firm-reveal" id="reconocimientos" aria-labelledby="vw-firm-rankings-title">
+  return `<section class="vw-firm__section vw-firm__rankings vw-firm-reveal" id="reconocimientos" aria-labelledby="vw-firm-rankings-title"><span class="vw-anchor-alias" id="recognitions"></span>
     <div class="vw-firm__container vw-firm__rankings-grid">
       ${sectionHeading("VWyS", title, intro)}
       ${list}

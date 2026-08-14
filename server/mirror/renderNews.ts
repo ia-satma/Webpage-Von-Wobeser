@@ -43,6 +43,7 @@ export type NewsListOpts = {
   crumbLabel?: { en: string; es: string };
   query?: string;
   author?: { name: string; slug: string } | null;
+  alternatePaths?: { en: string; es: string };
 };
 
 /** News listing — replaces the archive cards with DB news (paginated). Reused for both
@@ -168,6 +169,7 @@ export function renderNewsList(
   applySeo($, {
     lang,
     path: basePath,
+    alternatePaths: opts.alternatePaths,
     title: title[lang],
     description: description[lang],
     type: "website",

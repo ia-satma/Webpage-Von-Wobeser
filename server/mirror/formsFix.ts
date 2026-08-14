@@ -1,6 +1,6 @@
 import * as cheerio from "cheerio";
 import { isVisiblePublicPractice } from "./publicPracticeGroups";
-import { cfg, type ConfigMap } from "./siteConfig";
+import { cfg, cfgTypographyAttribute, type ConfigMap } from "./siteConfig";
 
 function esc(s: string): string {
   return String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
@@ -128,9 +128,8 @@ export function applyCareersFormFix($: cheerio.CheerioAPI, lang: "es" | "en" = "
 }
 
 /**
- * Inserta el formulario de Contacto como un bloque editorial independiente, debajo de la
- * información y el mapa. Sus textos vienen de siteConfig y sus áreas de interés de las
- * prácticas publicadas; no reutiliza el ancho rígido del formulario de Pasantes.
+ * Reconstruye Contacto sobre la plantilla actual: cabecera editorial, datos,
+ * mapa con consentimiento y formulario comercial conectado a PostgreSQL.
  */
 export function applyContactForm(
   $: cheerio.CheerioAPI,
@@ -140,41 +139,39 @@ export function applyContactForm(
 ): void {
   const $wrap = $(".page .page--wrap").first();
   if (!$wrap.length || $wrap.find("#vwContactForm").length) return;
-  // Corrige únicamente la frase híbrida exacta al renderizar español. No escribe en
-  // site_config, de modo que el contenido personalizado del administrador permanece intacto.
-  if (lang === "es") {
-    const $contactCopy = $wrap.find(".page__content--body").first();
-    const currentHtml = $contactCopy.html();
-    if (currentHtml?.includes("Torre SOMA Chapultepec 18th floor.")) {
-      $contactCopy.html(currentHtml.replaceAll("Torre SOMA Chapultepec 18th floor.", "Torre SOMA Chapultepec, piso 18."));
-    }
-  }
 
-  // La plantilla capturada contiene un mapa histórico. Si el administrador
-  // actualiza la sede, Contacto debe reflejar exactamente el mismo embed que
-  // el micrositio de Oficinas. applyA11y lo aplaza después hasta que exista
-  // consentimiento para contenido externo.
-  const mapEmbed = safeGoogleMapsEmbed(cfg(config, "office_map_embed", lang));
-  if (mapEmbed) {
-    $(".page__map--holder iframe").first()
-      .attr("src", mapEmbed)
-      .attr("title", lang === "es" ? "Ubicación de Von Wobeser y Sierra en Google Maps" : "Von Wobeser y Sierra location on Google Maps");
-  }
-
+  const pageDefaults = lang === "es"
+    ? {
+        eyebrow: "CONTACTO",
+        title: "Estamos aquí para ayudarte.",
+        description: "Ponte en contacto con nosotros o visita nuestras oficinas en Ciudad de México.",
+        email: "info@vwys.com.mx",
+        phone: "+52 (55) 5258 1000",
+        address: "Torre SOMA Chapultepec, piso 18\nCampos Elíseos 204, Polanco\nAcceso por Calle Arquímedes N.º 10\nC.P. 11550, Ciudad de México",
+      }
+    : {
+        eyebrow: "CONTACT",
+        title: "We are here to help.",
+        description: "Contact us or visit our offices in Mexico City.",
+        email: "info@vwys.com.mx",
+        phone: "+52 (55) 5258 1000",
+        address: "Torre SOMA Chapultepec, 18th floor\n204 Campos Elíseos, Polanco\nAccess via 10 Arquímedes Street\nC.P. 11550, Mexico City",
+      };
   const defaults = lang === "es"
     ? {
         title: "Envíanos un mensaje",
-        description: "Déjanos tus datos y el área en la que necesitas asesoría. Nuestro equipo se pondrá en contacto contigo.",
+        description: "Déjanos tus datos y cuéntanos cómo podemos ayudarte. Nuestro equipo se pondrá en contacto contigo.",
         name: "Nombre completo",
         email: "Correo electrónico",
         phone: "Teléfono (opcional)",
         company: "Empresa (opcional)",
-        practice: "Área de interés (opcional)",
+        country: "País",
+        practice: "Área de asesoría (opcional)",
         message: "Mensaje",
         send: "Enviar mensaje",
         sending: "Enviando…",
         selectOption: "Selecciona una opción",
-        required: "Completa nombre, correo y mensaje, y acepta el Aviso de Privacidad.",
+        required: "Completa nombre, correo, país y mensaje, y acepta el Aviso de Privacidad.",
         invalidEmail: "Escribe un correo electrónico válido.",
         privacy: "He leído y acepto el",
         privacyLink: "Aviso de Privacidad",
@@ -185,17 +182,18 @@ export function applyContactForm(
       }
     : {
         title: "Send us a message",
-        description: "Share your details and the area in which you need advice. Our team will contact you.",
+        description: "Share your details and tell us how we can help. Our team will contact you.",
         name: "Full name",
         email: "Email",
         phone: "Phone (optional)",
         company: "Company (optional)",
-        practice: "Area of interest (optional)",
+        country: "Country",
+        practice: "Advisory area (optional)",
         message: "Message",
         send: "Send message",
         sending: "Sending…",
         selectOption: "Select an option",
-        required: "Please fill in name, email and message, and accept the Privacy Notice.",
+        required: "Please fill in name, email, country and message, and accept the Privacy Notice.",
         invalidEmail: "Enter a valid email address.",
         privacy: "I have read and accept the",
         privacyLink: "Privacy Notice",
@@ -204,20 +202,38 @@ export function applyContactForm(
         err: "Your message could not be sent. Please try again.",
         netErr: "We could not connect. Check your connection and try again.",
       };
-  const text = (key: string, fallback: string) => cfg(config, key, lang).trim() || fallback;
+  const text = (key: string, fallback: string, legacy: string[] = []) => {
+    const configured = cfg(config, key, lang).trim();
+    return !configured || legacy.includes(configured) ? fallback : configured;
+  };
+  const page = {
+    eyebrow: text("page_contact_eyebrow", pageDefaults.eyebrow),
+    title: text("page_contact_title", pageDefaults.title),
+    description: text("page_contact_description", pageDefaults.description),
+    email: text("page_contact_email", pageDefaults.email),
+    phone: text("page_contact_phone", pageDefaults.phone),
+    address: text("page_contact_address", pageDefaults.address),
+  };
   const t = {
     title: text("contact_form_title", defaults.title),
-    description: text("contact_form_description", defaults.description),
+    description: text("contact_form_description", defaults.description, lang === "es"
+      ? ["Déjanos tus datos y el área en la que necesitas asesoría. Nuestro equipo se pondrá en contacto contigo."]
+      : ["Share your details and the area in which you need advice. Our team will contact you."]),
     name: text("contact_form_name_label", defaults.name),
     email: text("contact_form_email_label", defaults.email),
     phone: text("contact_form_phone_label", defaults.phone),
     company: text("contact_form_company_label", defaults.company),
-    practice: text("contact_form_practice_label", defaults.practice),
+    country: text("contact_form_country_label", defaults.country),
+    practice: text("contact_form_practice_label", defaults.practice, lang === "es"
+      ? ["Área de interés (opcional)"]
+      : ["Area of interest (optional)"]),
     message: text("contact_form_message_label", defaults.message),
     send: text("contact_form_submit_label", defaults.send),
     sending: text("contact_form_sending_label", defaults.sending),
     selectOption: text("contact_form_select_label", defaults.selectOption),
-    required: text("contact_form_required_message", defaults.required),
+    required: text("contact_form_required_message", defaults.required, lang === "es"
+      ? ["Completa nombre, correo y mensaje.", "Completa nombre, correo y mensaje, y acepta el Aviso de Privacidad."]
+      : ["Please fill in name, email and message.", "Please fill in name, email and message, and accept the Privacy Notice."]),
     invalidEmail: text("contact_form_invalid_email_message", defaults.invalidEmail),
     privacy: text("contact_form_privacy_intro", defaults.privacy),
     privacyLink: text("contact_form_privacy_link", defaults.privacyLink),
@@ -227,13 +243,50 @@ export function applyContactForm(
     netErr: text("contact_form_network_error_message", defaults.netErr),
   };
 
+  const publicEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(page.email) ? page.email : pageDefaults.email;
+  const phoneHref = `tel:${page.phone.replace(/[^+\d]/g, "")}`;
+  const addressLines = page.address.split(/\r?\n/).map((line) => line.trim()).filter(Boolean).slice(0, 8);
+  const addressHtml = addressLines.map((line) => `<span>${esc(line)}</span>`).join("");
+
+  // La plantilla aporta el iframe histórico; se conserva y solo se reemplaza
+  // por el embed administrado cuando el origen de Google Maps es seguro.
+  const $map = $wrap.find(".page__map").first().clone();
+  const mapEmbed = safeGoogleMapsEmbed(cfg(config, "office_map_embed", lang));
+  if (mapEmbed) $map.find("iframe").first().attr("src", mapEmbed);
+  $map.find("iframe").first().attr(
+    "title",
+    lang === "es" ? "Ubicación de Von Wobeser y Sierra en Google Maps" : "Von Wobeser y Sierra location on Google Maps",
+  );
+
+  $wrap.empty().addClass("vw-contact-page");
+  $wrap.append(`
+<header class="vw-contact-page__header">
+  <p class="vw-contact-page__eyebrow">${esc(page.eyebrow)}</p>
+  <h1 class="vw-contact-page__title">${esc(page.title)}</h1>
+  <div class="page__content--intro vw-contact-page__lede"><p>${esc(page.description)}</p></div>
+</header>
+<section class="vw-contact-page__location" aria-label="${esc(lang === "es" ? "Información de contacto y ubicación" : "Contact information and location")}">
+  <div class="vw-contact-page__details">
+    <div class="vw-contact-page__links">
+      <a href="mailto:${esc(publicEmail)}">${esc(publicEmail)}</a>
+      <a href="${esc(phoneHref)}">${esc(page.phone)}</a>
+    </div>
+    <address>${addressHtml}</address>
+  </div>
+  <div class="vw-contact-page__map-slot"></div>
+</section>`);
+  if ($map.length) $wrap.find(".vw-contact-page__map-slot").append($map);
+  $wrap.find(".vw-contact-page__title").attr(cfgTypographyAttribute(config, "page_contact_title", lang));
+  $wrap.find(".vw-contact-page__lede").attr(cfgTypographyAttribute(config, "page_contact_description", lang));
+  $wrap.find(".vw-contact-page__details").attr(cfgTypographyAttribute(config, "page_contact_address", lang));
+
   const options = practices
     .filter(isVisiblePublicPractice)
     .sort((a, b) => (lang === "es" ? a.nameEs : a.name).localeCompare(lang === "es" ? b.nameEs : b.name))
     .map((practice) => `<option value="${esc(practice.slug)}">${esc(lang === "es" ? practice.nameEs || practice.name : practice.name)}</option>`)
     .join("");
 
-  const formHtml = `
+  $wrap.append(`
 <section class="vw-contact-form-section" aria-labelledby="vw-contact-form-title">
   <div class="vw-contact-form-section__heading">
     <h2 id="vw-contact-form-title">${esc(t.title)}</h2>
@@ -256,7 +309,11 @@ export function applyContactForm(
       <span>${esc(t.company)}</span>
       <input name="company" type="text" autocomplete="organization" maxlength="160">
     </label>
-    <label class="vw-contact-field vw-contact-field--full">
+    <label class="vw-contact-field">
+      <span>${esc(t.country)} <b aria-hidden="true">*</b></span>
+      <input name="country" type="text" autocomplete="country-name" maxlength="120" required>
+    </label>
+    <label class="vw-contact-field">
       <span>${esc(t.practice)}</span>
       <select name="practiceArea">
         <option value="">${esc(t.selectOption)}</option>
@@ -278,36 +335,57 @@ export function applyContactForm(
       </button>
     </div>
   </form>
-</section>`;
+</section>`);
+  $wrap.find("#vw-contact-form-title").attr(cfgTypographyAttribute(config, "contact_form_title", lang));
+  $wrap.find(".vw-contact-form-section__heading p").attr(cfgTypographyAttribute(config, "contact_form_description", lang));
 
-  $wrap.append(formHtml);
   $("head").append(`
 <style id="vw-contact-form-style">
-.vw-contact-form-section{width:100%;flex:0 0 100%;margin:72px 0 30px;padding-top:34px;border-top:2px solid #b51d35}
-.vw-contact-form-section__heading{display:grid;grid-template-columns:minmax(260px,.75fr) minmax(0,1fr);gap:48px;align-items:start;margin-bottom:32px}
-.vw-contact-form-section__heading h2{margin:0;color:#606060;font:400 clamp(34px,4vw,54px)/1.04 var(--vw-font-editorial)}
-.vw-contact-form-section__heading p{max-width:620px;margin:7px 0 0;color:#606060;font:400 17px/1.55 var(--vw-font-body)}
-.vw-contact-form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:26px 34px;padding:42px;background:#858585}
+.vw-contact-page{display:block!important;padding-top:clamp(48px,5.5vw,76px);padding-bottom:clamp(48px,6vw,88px)}
+.vw-contact-page__header{max-width:1040px;margin:0 0 clamp(40px,4.5vw,62px)}
+.vw-contact-page__eyebrow{margin:0 0 24px;color:#ac162c;font:500 clamp(13px,1.15vw,17px)/1.2 var(--vw-font-ui);letter-spacing:.28em;text-transform:uppercase}
+.vw-contact-page__title{max-width:960px;margin:0;color:#565656;font:400 clamp(36px,3.8vw,52px)/1.08 var(--vw-font-editorial);letter-spacing:-.02em}
+.vw-contact-page__lede{max-width:720px;margin:20px 0 0!important;color:#606060;font:400 clamp(16px,1.25vw,19px)/1.55 var(--vw-font-body)!important}
+.vw-contact-page__lede p{margin:0!important;font:inherit!important;color:inherit!important}
+.vw-contact-page__location{display:grid;grid-template-columns:minmax(280px,.72fr) minmax(0,1.28fr);gap:clamp(42px,6vw,88px);align-items:stretch;padding-top:32px;border-top:2px solid #ac162c}
+.vw-contact-page__details{display:flex;flex-direction:column;justify-content:space-between;gap:56px;padding:8px 0 12px;color:#5c5c5c;font-family:var(--vw-font-body)}
+.vw-contact-page__links{display:grid;gap:8px}
+.vw-contact-page__links a{width:max-content;max-width:100%;color:#ac162c;font:500 clamp(18px,1.6vw,23px)/1.45 var(--vw-font-body);text-decoration:none;text-decoration-thickness:1.5px;text-underline-offset:.25em}
+.vw-contact-page__links a:hover,.vw-contact-page__links a:focus-visible{text-decoration:underline}
+.vw-contact-page__links a:focus-visible{outline:2px solid #ac162c;outline-offset:4px}
+.vw-contact-page__details address{display:grid;gap:5px;margin:0;color:#5c5c5c;font:400 clamp(16px,1.25vw,19px)/1.5 var(--vw-font-body);font-style:normal}
+.vw-contact-page__details address span{display:block}
+.vw-contact-page__map-slot,.vw-contact-page .page__map,.vw-contact-page .page__map--holder{width:100%;height:100%;min-height:430px;margin:0}
+.vw-contact-page .page__map{float:none}
+.vw-contact-page .page__map--holder{position:relative;background:#dededb}
+.vw-contact-page .page__map--holder iframe{display:block;width:100%;height:100%;min-height:430px;border:0}
+.vw-contact-form-section{width:100%;margin:clamp(68px,8vw,112px) 0 0;padding-top:34px;border-top:2px solid #ac162c}
+.vw-contact-form-section__heading{display:grid;grid-template-columns:minmax(280px,.72fr) minmax(0,1.28fr);gap:clamp(42px,6vw,88px);align-items:start;margin-bottom:34px}
+.vw-contact-form-section__heading h2{margin:0;color:#565656;font:400 clamp(36px,4.3vw,58px)/1.06 var(--vw-font-editorial)}
+.vw-contact-form-section__heading p{max-width:650px;margin:7px 0 0;color:#606060;font:400 18px/1.55 var(--vw-font-body)}
+.vw-contact-form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:26px 34px;padding:clamp(30px,4vw,48px);background:#747473}
 .vw-contact-field{display:grid;gap:10px;margin:0;color:#fff;font:500 12px/1.3 var(--vw-font-ui);letter-spacing:.14em;text-transform:uppercase}
 .vw-contact-field b{color:#fff;font-weight:400}
 .vw-contact-field--full{grid-column:1/-1}
-.vw-contact-field input,.vw-contact-field select,.vw-contact-field textarea{box-sizing:border-box;width:100%;min-width:0;min-height:48px;margin:0;border:1px solid transparent;border-radius:0;background:#fff;color:#3f3f3f;padding:12px 14px;font:400 16px/1.4 var(--vw-font-ui);letter-spacing:0;text-transform:none;appearance:auto}
+.vw-contact-field input,.vw-contact-field select,.vw-contact-field textarea{box-sizing:border-box;width:100%;min-width:0;min-height:50px;margin:0;border:1px solid transparent;border-radius:0;background:#fff;color:#3f3f3f;padding:12px 14px;font:400 16px/1.4 var(--vw-font-ui);letter-spacing:0;text-transform:none;appearance:auto}
 .vw-contact-field textarea{min-height:152px;resize:vertical}
 .vw-contact-field input:focus-visible,.vw-contact-field select:focus-visible,.vw-contact-field textarea:focus-visible,.vw-contact-form button:focus-visible,.vw-contact-privacy input:focus-visible,.vw-contact-privacy a:focus-visible{outline:3px solid #fff;outline-offset:3px}
-.vw-contact-field input[aria-invalid="true"],.vw-contact-field textarea[aria-invalid="true"]{border-color:#b51d35;box-shadow:0 0 0 2px #fff}
+.vw-contact-field input[aria-invalid="true"],.vw-contact-field select[aria-invalid="true"],.vw-contact-field textarea[aria-invalid="true"]{border-color:#ac162c;box-shadow:0 0 0 2px #fff}
 .vw-contact-privacy{display:flex;align-items:flex-start;gap:12px;margin:0;background:#fff;color:#4f4f4f;padding:15px 17px;font:400 16px/1.55 var(--vw-font-ui);letter-spacing:0;text-transform:none}
-.vw-contact-privacy input{width:20px;height:20px;flex:0 0 20px;margin:2px 0 0;accent-color:#b51d35}
+.vw-contact-privacy input{width:20px;height:20px;flex:0 0 20px;margin:2px 0 0;accent-color:#ac162c}
 .vw-contact-privacy a{color:#a5102a;font-weight:500;text-decoration:underline;text-decoration-color:#a5102a;text-decoration-thickness:2px;text-underline-offset:.2em}
 .vw-contact-form__footer{display:flex;align-items:center;justify-content:space-between;gap:30px;padding-top:6px}
 .vw-contact-form__feedback{min-height:24px;color:#fff;font:400 15px/1.5 var(--vw-font-ui)}
 .vw-contact-form__feedback[data-state="success"]{color:#fff;font-weight:500}
-.vw-contact-form button{display:inline-flex;align-items:center;justify-content:space-between;gap:30px;min-width:220px;min-height:52px;border:0;border-radius:0;background:#b51d35;color:#fff;padding:0 24px;font:500 13px/1 var(--vw-font-ui);letter-spacing:.14em;text-transform:uppercase;cursor:pointer}
+.vw-contact-form button{display:inline-flex;align-items:center;justify-content:space-between;gap:30px;min-width:220px;min-height:52px;border:0;border-radius:0;background:#ac162c;color:#fff;padding:0 24px;font:500 13px/1 var(--vw-font-ui);letter-spacing:.14em;text-transform:uppercase;cursor:pointer;transition:transform .2s ease,background-color .2s ease}
 .vw-contact-form button>span:last-child{font-size:21px;transition:transform .2s ease}
+.vw-contact-form button:hover,.vw-contact-form button:focus-visible{background:#971329}
 .vw-contact-form button:hover>span:last-child,.vw-contact-form button:focus-visible>span:last-child{transform:translateX(5px)}
+.vw-contact-form button:active{transform:translateY(1px)}
 .vw-contact-form button:disabled{cursor:wait;opacity:.7}
-@media(max-width:1080px){.vw-contact-form-section{margin-top:52px}.vw-contact-form-section__heading{grid-template-columns:1fr;gap:12px}}
-@media(max-width:720px){.vw-contact-form-section{margin-top:40px;padding-top:26px}.vw-contact-form{grid-template-columns:1fr;gap:22px;padding:28px 22px}.vw-contact-field--full{grid-column:auto}.vw-contact-form__footer{align-items:stretch;flex-direction:column}.vw-contact-form button{width:100%;min-width:0;min-height:52px}}
-@media(prefers-reduced-motion:reduce){.vw-contact-form button>span:last-child{transition:none}}
+@media(max-width:980px){.vw-contact-page__location,.vw-contact-form-section__heading{grid-template-columns:1fr;gap:28px}.vw-contact-page__details{gap:30px}.vw-contact-page__map-slot,.vw-contact-page .page__map,.vw-contact-page .page__map--holder,.vw-contact-page .page__map--holder iframe{min-height:380px}}
+@media(max-width:720px){.vw-contact-page{padding-top:44px;padding-bottom:48px}.vw-contact-page__header{margin-bottom:42px}.vw-contact-page__eyebrow{margin-bottom:18px}.vw-contact-page__lede{margin-top:18px!important}.vw-contact-page__location{padding-top:24px}.vw-contact-page__map-slot,.vw-contact-page .page__map,.vw-contact-page .page__map--holder,.vw-contact-page .page__map--holder iframe{min-height:320px}.vw-contact-form-section{margin-top:58px;padding-top:26px}.vw-contact-form{grid-template-columns:1fr;gap:22px;padding:28px 22px}.vw-contact-field--full{grid-column:auto}.vw-contact-form__footer{align-items:stretch;flex-direction:column}.vw-contact-form button{width:100%;min-width:0;min-height:52px}}
+@media(prefers-reduced-motion:reduce){.vw-contact-form button,.vw-contact-form button>span:last-child{transition:none}}
 </style>`);
 
   const script = `
@@ -335,13 +413,15 @@ export function applyContactForm(
         email: form.email.value,
         phone: form.phone.value || undefined,
         company: form.company.value || undefined,
+        country: form.country.value,
         practiceArea: form.practiceArea.value || undefined,
         message: form.message.value,
         acceptPrivacy: !!form.acceptPrivacy.checked,
       };
-      var missing = !data.fullName.trim() || !data.email.trim() || !data.message.trim() || !data.acceptPrivacy;
+      var missing = !data.fullName.trim() || !data.email.trim() || !data.country.trim() || !data.message.trim() || !data.acceptPrivacy;
       setInvalid(form.fullName, !data.fullName.trim());
       setInvalid(form.email, !data.email.trim() || !form.email.validity.valid);
+      setInvalid(form.country, !data.country.trim());
       setInvalid(form.message, !data.message.trim());
       setInvalid(form.acceptPrivacy, !data.acceptPrivacy);
       if (missing) {

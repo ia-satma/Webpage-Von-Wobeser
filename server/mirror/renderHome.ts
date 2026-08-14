@@ -12,6 +12,7 @@ import {
   parseVideoSource,
   type VideoSource,
 } from "@shared/videoSource";
+import { hasCompatibleLocalizedNewsTitle } from "./newsLanguage";
 
 type Lang = "en" | "es";
 
@@ -43,6 +44,17 @@ function esc(s: any): string {
 
 function escAttr(s: any): string {
   return esc(s).replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+}
+
+function normalizeLegacyBannerTitle(value: string, lang: Lang): string {
+  const legacy = value.trim();
+  if (lang === "es" && ["VAMOS DONDE EL CLIENTE NOS NECESITA", "VAMOS A DONDE LOS CLIENTES NOS NECESITAN"].includes(legacy)) {
+    return "Vamos a donde los clientes nos necesitan";
+  }
+  if (lang === "en" && legacy === "WE GO WHERE CLIENTS NEED US") {
+    return "We go where clients need us";
+  }
+  return value;
 }
 
 function safeMediaUrl(value: unknown): string {
@@ -442,13 +454,22 @@ function renderNewsletter(config: ConfigMap, lang: Lang): string {
     required: cfg(config, "newsletter_required", lang) || fallback.required,
   };
   const title = cfg(config, "newsletter_title", lang) || (lang === "es" ? "Suscríbete" : "Subscribe");
-  const description = cfg(config, "newsletter_description", lang) || (lang === "es" ? "Recibe en tu correo análisis jurídicos, publicaciones y novedades de Von Wobeser y Sierra." : "Receive legal analysis, publications and news from Von Wobeser y Sierra directly in your inbox.");
+  const configuredDescription = cfg(config, "newsletter_description", lang);
+  const legacyDescription = lang === "es"
+    ? "Recibe en tu correo análisis jurídicos, publicaciones y novedades de Von Wobeser y Sierra."
+    : "Receive legal analysis, publications and news from Von Wobeser y Sierra directly in your inbox.";
+  const defaultDescription = lang === "es"
+    ? "Mantente al día sobre los cambios legales y regulatorios relevantes para tu negocio."
+    : "Stay up to date on legal and regulatory changes relevant to your business.";
+  const description = !configuredDescription || configuredDescription === legacyDescription
+    ? defaultDescription
+    : configuredDescription;
   const cta = cfg(config, "newsletter_cta", lang) || (lang === "es" ? "SUSCRIBIRME" : "SUBSCRIBE");
   const success = cfg(config, "newsletter_success", lang) || (lang === "es" ? "Gracias. Hemos recibido tu suscripción." : "Thank you. Your subscription has been received.");
   const error = cfg(config, "newsletter_error", lang) || (lang === "es" ? "No pudimos procesar tu solicitud. Inténtalo de nuevo." : "We could not process your request. Please try again.");
 
   return `
-    <section class="home__newsletter vw-newsletter--compact fade_JS" aria-labelledby="newsletter-title">
+    <section class="home__newsletter vw-newsletter--compact fade_JS" id="newsletter" aria-labelledby="newsletter-title">
       <div class="home__newsletter--wrap wrap">
         <div class="home__newsletter--intro">
           ${copy.eyebrow ? `<p class="home__newsletter--eyebrow">${esc(copy.eyebrow)}</p>` : ""}
@@ -550,11 +571,13 @@ function renderHeroNewsCarousel(news: any[], config: ConfigMap, lang: Lang): str
   };
   const configuredPages = Number.parseInt(cfg(config, "home_news_pages", "en"), 10);
   const pageCount = Number.isFinite(configuredPages) ? Math.min(10, Math.max(1, configuredPages)) : 5;
-  const stories = news.slice(0, pageCount * 2);
+  const stories = news
+    .filter((item) => hasCompatibleLocalizedNewsTitle(item, lang))
+    .slice(0, pageCount * 2);
   const slides: string[] = [];
   for (let index = 0; index < stories.length; index += 2) {
     const cards = stories.slice(index, index + 2).map((item) => {
-      const title = lang === "es" ? item.titleEs || item.title : item.title;
+      const title = lang === "es" ? item.titleEs : item.title;
       return `<article class="news_item"><a class="vw-news-carousel__headline" href="/news/${esc(item.slug)}${langSuffix}"><h3>${esc(title)}</h3></a><a class="vw-news-carousel__more" href="/news${langSuffix}"><span>${copy.seeMore}</span></a></article>`;
     }).join("");
     slides.push(`<div class="vw-news-carousel__slide${index === 0 ? " is-active" : ""}" data-vw-news-slide aria-hidden="${index === 0 ? "false" : "true"}">${cards}</div>`);
@@ -565,7 +588,7 @@ function renderHeroNewsCarousel(news: any[], config: ConfigMap, lang: Lang): str
 }
 
 const HERO_NEWS_CAROUSEL_STYLE = `<style id="vw-news-carousel-style">
-  .covid_cont.vw-news-panel{box-sizing:border-box;min-height:300px;padding:13px 15px 60px}.covid_cont.vw-news-panel .covid_title{padding:0 48px 10px}.covid_cont.vw-news-panel .covid_title h2{margin:0}.covid_cont.vw-news-panel .covid_headlines{margin-top:18px}.vw-news-carousel{position:relative}.vw-news-carousel .sr-only{height:1px;margin:-1px;overflow:hidden;position:absolute;width:1px;clip:rect(0,0,0,0);white-space:nowrap}.vw-news-carousel__slides{min-height:206px}.vw-news-carousel__slide{display:none;grid-template-columns:minmax(0,1fr) minmax(0,1fr);min-height:206px;animation:vw-news-in .32s cubic-bezier(.16,1,.3,1) both}.vw-news-carousel__slide.is-active{display:grid}.vw-news-carousel .news_item{display:flex;float:none;width:auto;min-width:0;flex-direction:column;font-size:16px;padding:0 20px 0 0}.vw-news-carousel .news_item+.news_item{border-left:1px solid #969696;margin-left:0;padding:0 0 0 20px}.vw-news-carousel .news_item h3{display:-webkit-box;overflow:hidden;color:#666;font-family:var(--vw-font-editorial);font-size:18px;font-weight:500;letter-spacing:normal;line-height:1.27;margin:0;padding:0;-webkit-box-orient:vertical;-webkit-line-clamp:6}.vw-news-carousel__headline{color:inherit;text-decoration:none}.vw-news-carousel__headline:focus-visible,.vw-news-carousel__more:focus-visible,.vw-news-carousel__nav button:focus-visible,.vw-news-carousel__toggle:focus-visible{outline:2px solid #ac162c;outline-offset:3px}.covid_headlines .vw-news-carousel .news_item>a.vw-news-carousel__more{align-self:flex-end;border:0;color:#666;display:inline-flex;font-family:var(--vw-font-ui);font-size:13px;letter-spacing:.04em;margin-top:auto;min-height:44px;padding:15px 0 0;white-space:normal;text-decoration:none}.vw-news-carousel__more span{float:none!important;position:static!important;width:auto!important;text-align:left!important}.covid_headlines .vw-news-carousel .news_item>a.vw-news-carousel__more>span::after{content:none}.covid_headlines .vw-news-carousel .news_item>a.vw-news-carousel__more::after{content:"→";display:inline-block;margin-left:.45em;transition:transform .2s cubic-bezier(.16,1,.3,1)}.vw-news-carousel__more:hover{text-decoration:underline}.vw-news-carousel__more:hover::after,.vw-news-carousel__more:focus-visible::after{transform:translateX(3px)}.vw-news-carousel__nav{align-items:center;bottom:-47px;display:flex;gap:3px;position:absolute;right:0}.vw-news-carousel__nav button,.vw-news-carousel__toggle{align-items:center;background:transparent;border:0;color:#777;cursor:pointer;display:inline-flex;justify-content:center;padding:4px}.vw-news-carousel__nav button{height:44px;width:44px}.vw-news-carousel__nav button svg,.vw-news-carousel__toggle svg{fill:none;height:15px;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round;stroke-width:1.5;width:15px}.vw-news-carousel__nav button:hover,.vw-news-carousel__toggle:hover{color:#ac162c}.vw-news-carousel__count{color:#888;font-family:var(--vw-font-ui);font-size:11px;letter-spacing:.08em;min-width:31px;text-align:center}.vw-news-carousel__toggle{height:44px;position:absolute;right:0;top:-55px;width:44px}.vw-news-carousel__toggle svg{transition:transform .2s cubic-bezier(.16,1,.3,1)}.covid_cont.vw-news-panel--minimized{min-height:0;padding:13px 15px;width:190px}.covid_cont.vw-news-panel--minimized .covid_title{border-bottom:0;padding:0 42px 0 0}.covid_cont.vw-news-panel--minimized .covid_title span{font-size:21px}.covid_cont.vw-news-panel--minimized .covid_headlines{display:none}.covid_cont.vw-news-panel--minimized .vw-news-carousel__toggle{top:-45px}.covid_cont.vw-news-panel--minimized .vw-news-carousel__toggle svg{transform:rotate(180deg)}@keyframes vw-news-in{from{opacity:0;transform:translateX(10px)}to{opacity:1;transform:translateX(0)}}@media(max-width:800px){.covid_cont.vw-news-panel{min-height:0;padding-bottom:56px}.vw-news-carousel__slides,.vw-news-carousel__slide{min-height:0}.vw-news-carousel__slide{grid-template-columns:1fr;gap:19px}.vw-news-carousel .news_item{min-height:116px;padding:0}.vw-news-carousel .news_item+.news_item{border-left:0;border-top:1px solid #969696;margin:0;padding:19px 0 0}.vw-news-carousel .news_item h3{-webkit-line-clamp:4}.vw-news-carousel__nav{bottom:-47px}.covid_cont.vw-news-panel--minimized{width:190px}.covid_cont.vw-news-panel--minimized .covid_headlines{display:none}}@media(prefers-reduced-motion:reduce){.vw-news-carousel__slide{animation:none}.vw-news-carousel__more::after,.vw-news-carousel__toggle svg{transition:none}}
+  .covid_cont.vw-news-panel{box-sizing:border-box;min-height:300px;padding:13px 15px 60px;border-radius:7px;box-shadow:0 14px 34px rgba(42,42,40,.1);overflow:hidden;transform-origin:top left}.covid_cont.vw-news-panel .covid_title{padding:0 48px 10px}.covid_cont.vw-news-panel .covid_title h2{margin:0}.covid_cont.vw-news-panel .covid_headlines{margin-top:18px}.vw-news-carousel{position:relative}.vw-news-carousel .sr-only{height:1px;margin:-1px;overflow:hidden;position:absolute;width:1px;clip:rect(0,0,0,0);white-space:nowrap}.vw-news-carousel__slides{min-height:206px}.vw-news-carousel__slide{display:none;grid-template-columns:minmax(0,1fr) minmax(0,1fr);min-height:206px;animation:vw-news-in .32s cubic-bezier(.16,1,.3,1) both}.vw-news-carousel__slide.is-active{display:grid}.vw-news-carousel .news_item{display:flex;float:none;width:auto;min-width:0;flex-direction:column;font-size:16px;padding:0 20px 0 0}.vw-news-carousel .news_item+.news_item{border-left:1px solid #969696;margin-left:0;padding:0 0 0 20px}.vw-news-carousel .news_item h3{display:-webkit-box;overflow:hidden;color:#666;font-family:var(--vw-font-editorial);font-size:18px;font-weight:500;letter-spacing:normal;line-height:1.27;margin:0;padding:0;-webkit-box-orient:vertical;-webkit-line-clamp:6}.vw-news-carousel__headline{color:inherit;text-decoration:none}.vw-news-carousel__headline:focus-visible,.vw-news-carousel__more:focus-visible,.vw-news-carousel__nav button:focus-visible,.vw-news-carousel__toggle:focus-visible{outline:2px solid #ac162c;outline-offset:3px}.covid_headlines .vw-news-carousel .news_item>a.vw-news-carousel__more{align-self:flex-end;border:0;color:#666;display:inline-flex;font-family:var(--vw-font-ui);font-size:13px;letter-spacing:.04em;margin-top:auto;min-height:44px;padding:15px 0 0;white-space:normal;text-decoration:none}.vw-news-carousel__more span{float:none!important;position:static!important;width:auto!important;text-align:left!important}.covid_headlines .vw-news-carousel .news_item>a.vw-news-carousel__more>span::after{content:none}.covid_headlines .vw-news-carousel .news_item>a.vw-news-carousel__more::after{content:"→";display:inline-block;margin-left:.45em;transition:transform .2s cubic-bezier(.16,1,.3,1)}.vw-news-carousel__more:hover{text-decoration:underline}.vw-news-carousel__more:hover::after,.vw-news-carousel__more:focus-visible::after{transform:translateX(3px)}.vw-news-carousel__nav{align-items:center;bottom:-47px;display:flex;gap:3px;position:absolute;right:0}.vw-news-carousel__nav button,.vw-news-carousel__toggle{align-items:center;background:transparent;border:0;color:#777;cursor:pointer;display:inline-flex;justify-content:center;padding:4px}.vw-news-carousel__nav button{height:44px;width:44px}.vw-news-carousel__nav button svg,.vw-news-carousel__toggle svg{fill:none;height:15px;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round;stroke-width:1.5;width:15px}.vw-news-carousel__nav button:hover,.vw-news-carousel__toggle:hover{color:#ac162c}.vw-news-carousel__count{color:#888;font-family:var(--vw-font-ui);font-size:11px;letter-spacing:.08em;min-width:31px;text-align:center}.vw-news-carousel__toggle{height:44px;position:absolute;right:0;top:-55px;width:44px}.vw-news-carousel__toggle svg{transition:transform .34s cubic-bezier(.16,1,.3,1)}.covid_cont.vw-news-panel--minimized{min-height:0;padding:13px 15px;width:190px}.covid_cont.vw-news-panel--minimized .covid_title{border-bottom:0;padding:0 42px 0 0}.covid_cont.vw-news-panel--minimized .covid_title span{font-size:21px}.covid_cont.vw-news-panel--minimized .covid_headlines{display:none}.covid_cont.vw-news-panel--minimized .vw-news-carousel__toggle{top:-45px}.covid_cont.vw-news-panel--minimized .vw-news-carousel__toggle svg{transform:rotate(180deg)}@keyframes vw-news-in{from{opacity:0;transform:translateX(10px)}to{opacity:1;transform:translateX(0)}}@media(max-width:800px){.covid_cont.vw-news-panel{min-height:0;padding-bottom:56px}.vw-news-carousel__slides,.vw-news-carousel__slide{min-height:0}.vw-news-carousel__slide{grid-template-columns:1fr;gap:19px}.vw-news-carousel .news_item{min-height:116px;padding:0}.vw-news-carousel .news_item+.news_item{border-left:0;border-top:1px solid #969696;margin:0;padding:19px 0 0}.vw-news-carousel .news_item h3{-webkit-line-clamp:4}.vw-news-carousel__nav{bottom:-47px}.covid_cont.vw-news-panel--minimized{width:190px}.covid_cont.vw-news-panel--minimized .covid_headlines{display:none}}@media(prefers-reduced-motion:reduce){.vw-news-carousel__slide{animation:none}.vw-news-carousel__more::after,.vw-news-carousel__toggle svg{transition:none}}
 </style><style id="vw-news-carousel-toggle-style">
   .covid_cont.vw-news-panel .covid_title{position:relative;}
   .covid_cont.vw-news-panel .covid_headlines .vw-news-carousel__toggle{display:none;}
@@ -580,13 +603,14 @@ const HERO_NEWS_CAROUSEL_SCRIPT = `<script id="vw-news-carousel-script">
     if(window.__vwHeroNewsCarousel)return;window.__vwHeroNewsCarousel=true;
     document.querySelectorAll('[data-vw-news-carousel]').forEach(function(root){
       var panel=root.closest('.covid_cont'),slides=Array.prototype.slice.call(root.querySelectorAll('[data-vw-news-slide]')),prev=root.querySelector('[data-vw-news-prev]'),next=root.querySelector('[data-vw-news-next]'),toggle=panel&&panel.querySelector('.vw-news-panel__toggle'),count=root.querySelector('[data-vw-news-count]'),toggleLabel=toggle&&toggle.querySelector('[data-vw-news-toggle-label]');
-      if(!panel||!slides.length)return;var index=0,timer=null,paused=false,reduced=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches,key='vw-news-panel-minimized';
+      if(!panel||!slides.length)return;var index=0,timer=null,panelMotion=null,paused=false,reduced=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches,key='vw-news-panel-minimized';
       function show(nextIndex){index=(nextIndex+slides.length)%slides.length;slides.forEach(function(slide,slideIndex){var active=slideIndex===index;slide.classList.toggle('is-active',active);slide.setAttribute('aria-hidden',active?'false':'true');});if(count)count.textContent=(index+1)+' / '+slides.length;}
       function stop(){if(timer){window.clearInterval(timer);timer=null;}}
       function start(){stop();if(slides.length>1&&!paused&&!reduced)timer=window.setInterval(function(){show(index+1);},7000);}
-      function setMinimized(value){panel.classList.toggle('vw-news-panel--minimized',value);toggle.setAttribute('aria-expanded',String(!value));toggle.setAttribute('aria-label',value?(root.getAttribute('data-expand-label')||'Show news'):(root.getAttribute('data-minimize-label')||'Minimize news'));if(toggleLabel)toggleLabel.textContent=toggle.getAttribute('aria-label');try{localStorage.setItem(key,value?'1':'0');}catch(_error){}if(value)stop();else start();}
-      try{setMinimized(localStorage.getItem(key)==='1');}catch(_error){setMinimized(false);}show(0);
-      if(prev)prev.addEventListener('click',function(){show(index-1);start();});if(next)next.addEventListener('click',function(){show(index+1);start();});if(toggle)toggle.addEventListener('click',function(){setMinimized(!panel.classList.contains('vw-news-panel--minimized'));});
+      function animatePanel(first){if(!first||reduced||typeof panel.animate!=='function')return;var last=panel.getBoundingClientRect();if(!last.width||!last.height)return;if(panelMotion)panelMotion.cancel();var dx=first.left-last.left,dy=first.top-last.top,sx=first.width/last.width,sy=first.height/last.height;panel.style.willChange='transform';panelMotion=panel.animate([{transform:'translate('+dx+'px,'+dy+'px) scale('+sx+','+sy+')',opacity:.96},{transform:'translate(0,0) scale(1,1)',opacity:1}],{duration:420,easing:'cubic-bezier(.16,1,.3,1)'});var current=panelMotion;var clean=function(){if(panelMotion===current){panelMotion=null;panel.style.willChange='';}};current.onfinish=clean;current.oncancel=clean;}
+      function setMinimized(value,withMotion){var first=withMotion&&!reduced?panel.getBoundingClientRect():null;panel.classList.toggle('vw-news-panel--minimized',value);toggle.setAttribute('aria-expanded',String(!value));toggle.setAttribute('aria-label',value?(root.getAttribute('data-expand-label')||'Show news'):(root.getAttribute('data-minimize-label')||'Minimize news'));if(toggleLabel)toggleLabel.textContent=toggle.getAttribute('aria-label');animatePanel(first);try{localStorage.setItem(key,value?'1':'0');}catch(_error){}if(value)stop();else start();}
+      try{setMinimized(localStorage.getItem(key)==='1',false);}catch(_error){setMinimized(false,false);}show(0);
+      if(prev)prev.addEventListener('click',function(){show(index-1);start();});if(next)next.addEventListener('click',function(){show(index+1);start();});if(toggle)toggle.addEventListener('click',function(){setMinimized(!panel.classList.contains('vw-news-panel--minimized'),true);});
       root.addEventListener('mouseenter',function(){paused=true;stop();});root.addEventListener('mouseleave',function(){paused=false;start();});root.addEventListener('focusin',function(){paused=true;stop();});root.addEventListener('focusout',function(event){if(!root.contains(event.relatedTarget)){paused=false;start();}});document.addEventListener('visibilitychange',function(){if(document.hidden)stop();else start();});start();
     });
   })();
@@ -777,15 +801,15 @@ export function renderHome(
   if (testimonialSlides) testimonialCarousel.html(testimonialSlides);
 
   // --- Red banner texts (editable) --------------------------------------
-  const bTitle = cfg(config, "banner_title", lang);
+  const bTitle = normalizeLegacyBannerTitle(cfg(config, "banner_title", lang), lang);
   const bSubtitle = cfg(config, "banner_subtitle", lang);
   if (bTitle || bSubtitle) {
     const seeMoreLink = $(".home__rojo--txt a").first().attr("href") || "/new-offices/index.html";
     $(".home__rojo--txt").html(
-      `<p class="home__rojo--title"><span style="font-size: 1.4rem;">${esc(bTitle)}</span></p>` +
-        `<p><span style="font-size: 1.4rem;">${esc(bSubtitle)}</span></p>` +
-        `<p style="text-align: right;"><span style="font-size: 1.4rem;">` +
-        `<a href="${esc(seeMoreLink)}" target="_blank" rel="alternate noopener noreferrer">${seeMore}</a></span></p>`,
+      `${bTitle ? `<h2 class="home__rojo--title">${esc(bTitle)}</h2>` : ""}` +
+        `${bSubtitle ? `<p class="home__rojo--subtitle">${esc(bSubtitle)}</p>` : ""}` +
+        `<p class="home__rojo--action"><a class="home__rojo--cta" href="${escAttr(seeMoreLink)}" target="_blank" rel="alternate noopener noreferrer">` +
+        `<span>${seeMore}</span><span class="home__rojo--cta-arrow" aria-hidden="true">→</span></a></p>`,
     );
   }
 
@@ -831,15 +855,25 @@ export function renderHome(
     recognitionBodyElement.remove();
   }
 
-  const diversityTitle = cfg(config, "home_diversity_title", lang);
-  const diversityBody = cfg(config, "home_diversity_body", lang);
-  if (diversityTitle) editorialSections.eq(1).find(".home__rec--ttl").first().text(diversityTitle);
-  if (diversityBody) editorialSections.eq(1).find(".home__rec--top").first().html(paragraphs(diversityBody));
+  const diversitySection = editorialSections.eq(1);
+  if (isConfigEnabled(config, "home_diversity_visible", false)) {
+    const diversityTitle = cfg(config, "home_diversity_title", lang);
+    const diversityBody = cfg(config, "home_diversity_body", lang);
+    if (diversityTitle) diversitySection.find(".home__rec--ttl").first().text(diversityTitle);
+    if (diversityBody) diversitySection.find(".home__rec--top").first().html(paragraphs(diversityBody));
+  } else {
+    diversitySection.remove();
+  }
 
-  const proBonoTitle = cfg(config, "home_probono_title", lang);
-  const proBonoBody = cfg(config, "home_probono_body", lang);
-  if (proBonoTitle) editorialSections.eq(2).find(".home__rec--ttl").first().text(proBonoTitle);
-  if (proBonoBody) editorialSections.eq(2).find(".home__rec--top").first().html(paragraphs(proBonoBody));
+  const proBonoSection = editorialSections.eq(2);
+  if (isConfigEnabled(config, "home_probono_visible", false)) {
+    const proBonoTitle = cfg(config, "home_probono_title", lang);
+    const proBonoBody = cfg(config, "home_probono_body", lang);
+    if (proBonoTitle) proBonoSection.find(".home__rec--ttl").first().text(proBonoTitle);
+    if (proBonoBody) proBonoSection.find(".home__rec--top").first().html(paragraphs(proBonoBody));
+  } else {
+    proBonoSection.remove();
+  }
 
   const about = $("#footer-sub > #footer > .home__rec--wrap").first();
   const aboutLabels = ["home_vision_label", "home_mission_label", "home_values_label"];

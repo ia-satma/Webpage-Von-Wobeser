@@ -11,6 +11,10 @@ import {
 } from "@shared/editorialTypography";
 import { renderSingle } from "../mirror/renderSingle";
 import { readRouteSources } from "./routeTestSources";
+import {
+  isMissingEditorialTypographyTable,
+  shouldUseAutomaticTypographyFallback,
+} from "../editorialTypographyFallback";
 
 const root = process.cwd();
 const read = (relative: string) => fs.readFileSync(path.join(root, relative), "utf8");
@@ -57,4 +61,21 @@ test("el panel y la API no permiten CSS o fuentes libres", () => {
   assert.match(css, /\[data-vw-font="gelasio"\]/);
   assert.match(css, /\[data-vw-font="inter"\]/);
   assert.doesNotMatch(editor, /font-family\s*:/i);
+});
+
+test("la ausencia de la tabla tipográfica sólo se tolera en la vista local de solo lectura", () => {
+  const missingTable = Object.assign(new Error('relation "editorial_typography" does not exist'), {
+    code: "42P01",
+  });
+  const wrapped = Object.assign(new Error("Failed query: select from editorial_typography"), {
+    cause: missingTable,
+  });
+
+  assert.equal(isMissingEditorialTypographyTable(wrapped), true);
+  assert.equal(shouldUseAutomaticTypographyFallback(wrapped, true), true);
+  assert.equal(shouldUseAutomaticTypographyFallback(wrapped, false), false);
+  assert.equal(
+    shouldUseAutomaticTypographyFallback(Object.assign(new Error("connection refused"), { code: "ECONNREFUSED" }), true),
+    false,
+  );
 });

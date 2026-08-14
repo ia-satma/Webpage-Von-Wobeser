@@ -766,9 +766,9 @@ test("Configuración conserva secciones, claves, APIs, query keys y controles", 
   );
   const declaredKeys = [...registrySource.matchAll(/key:\s*"([^"]+)"/g)]
     .map((match) => match[1]);
-  assert.equal(Object.keys(PAGES).filter((key) => key !== "resumen-firma").length, 11);
-  assert.equal(declaredKeys.length, 197);
-  assert.equal(new Set(declaredKeys).size, 195);
+  assert.equal(Object.keys(PAGES).filter((key) => key !== "resumen-firma").length, 15);
+  assert.equal(declaredKeys.length, 215);
+  assert.equal(new Set(declaredKeys).size, 213);
   assert.equal((source.match(/adminApiRequest\(/g) || []).length, 6);
   assert.equal((source.match(/queryKey:/g) || []).length, 3);
   assert.equal((source.match(/data-testid=/g) || []).length, 15);

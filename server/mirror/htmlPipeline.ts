@@ -7,6 +7,7 @@ import { cfg, getConfigMap, isConfigEnabled, type ConfigMap } from "./siteConfig
 import { renderRichText } from "./sanitize";
 import { getCookieConsentConfig, publicConsentPayload } from "../privacy/cookieConsent";
 import { getPublicNavigationMenu, type PublicNavigationMenu } from "./navigationMenu";
+import { applyNavigationMarkup } from "./navigationMarkup";
 import { normalizeLegacyTypography } from "./legacyHtml";
 import { prepareTrustedHtmlForCsp } from "../security/csp";
 
@@ -123,9 +124,9 @@ export const lastWord = (name: string) => {
   return parts[parts.length - 1] || "";
 };
 
-// Convierte el control histórico de idioma del header en un selector ES/EN sobre la URL
-// actual, sin depender de las rutas originales del espejo. Conserva el enlace original
-// oculto para no romper los estilos y scripts de las 2,259 capturas históricas.
+// Convierte el control histórico de idioma del header en un selector ES | EN sobre la URL
+// actual, sin depender de las rutas originales del espejo. Ambos idiomas permanecen
+// visibles y el activo se identifica semánticamente con aria-current.
 //
 // Bug real que esto corrige: la mayoría de las páginas del espejo comparten UNA sola ruta y
 // alternan idioma con ?lang=en (/news, /attorneys, /practice/:slug, /lawyer/:slug, etc.) — para
@@ -144,12 +145,21 @@ export const LANG_TOGGLE_SCRIPT = `<script>(function(){try{
     '/contacto':'/contact','/contact':'/contacto',
     '/bolsa-de-trabajo':'/careers','/careers':'/bolsa-de-trabajo',
     '/bolsa-de-trabajo/pasantes':'/careers/interns','/careers/interns':'/bolsa-de-trabajo/pasantes',
+    '/bolsa-de-trabajo/vacantes':'/careers/openings','/careers/openings':'/bolsa-de-trabajo/vacantes',
     '/nuestra-firma/probono':'/our-firm/our-firm-probono','/our-firm/our-firm-probono':'/nuestra-firma/probono',
     '/nuestra-firma/diversidad':'/our-firm/diversity','/our-firm/diversity':'/nuestra-firma/diversidad',
+    '/nuestra-firma/alcance-internacional':'/our-firm/international-reach','/our-firm/international-reach':'/nuestra-firma/alcance-internacional',
+    '/nuestra-firma/alumni':'/our-firm/alumni','/our-firm/alumni':'/nuestra-firma/alumni',
     '/capacidades':'/capabilities','/capabilities':'/capacidades',
     '/capacidades/practicas':'/capabilities/practices','/capabilities/practices':'/capacidades/practicas',
     '/capacidades/industrias':'/capabilities/industries','/capabilities/industries':'/capacidades/industrias',
     '/publicaciones':'/publications','/publications':'/publicaciones',
+    '/perspectivas':'/insights','/insights':'/perspectivas',
+    '/perspectivas/eventos':'/insights/events','/insights/events':'/perspectivas/eventos',
+    '/perspectivas/reconocimientos':'/insights/recognitions','/insights/recognitions':'/perspectivas/reconocimientos',
+    '/perspectivas/comunicaciones':'/insights/communications','/insights/communications':'/perspectivas/comunicaciones',
+    '/perspectivas/analisis-y-actualizaciones':'/insights/analysis-and-updates','/insights/analysis-and-updates':'/perspectivas/analisis-y-actualizaciones',
+    '/perspectivas/sala-de-prensa':'/insights/press-room','/insights/press-room':'/perspectivas/sala-de-prensa',
     '/aviso':'/privacy','/privacy':'/aviso'
   };
   var isEn=(document.documentElement.lang||'').toLowerCase().indexOf('en')===0;
@@ -196,25 +206,10 @@ export const LANG_TOGGLE_SCRIPT = `<script>(function(){try{
   var enHref=isEn?currentHref:alternateHref;
   var widget=document.createElement('div');
   widget.className='vwb-language';
-  var legacy=originalLanguageLink.cloneNode(true);
-  legacy.classList.add('vwb-language__legacy');
-  legacy.setAttribute('aria-hidden','true');
-  legacy.setAttribute('tabindex','-1');
-  var menuId='vwb-language-menu';
-  var label=isEn?'Language':'Idioma';
-  var compact=isEn?'EN':'ES';
-  widget.innerHTML='<button class="vwb-language__trigger" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="'+menuId+'" aria-label="'+label+'"><span class="vwb-language__label">'+label+'</span><span class="vwb-language__compact" aria-hidden="true">'+compact+'</span><svg viewBox="0 0 12 8" aria-hidden="true" focusable="false"><path d="M1 1.5 6 6.5l5-5"/></svg></button><div class="vwb-language__menu" id="'+menuId+'" role="menu" hidden><a role="menuitem" lang="es" hreflang="es-MX" href="'+esHref+'"'+(isEn?'':' aria-current="page"')+'>Español</a><a role="menuitem" lang="en" hreflang="en" href="'+enHref+'"'+(isEn?' aria-current="page"':'')+'>English</a></div>';
-  widget.insertBefore(legacy,widget.firstChild);
+  widget.setAttribute('role','group');
+  widget.setAttribute('aria-label',isEn?'Language':'Idioma');
+  widget.innerHTML='<a class="vwb-language__option" lang="es" hreflang="es-MX" href="'+esHref+'" aria-label="Español"'+(isEn?'':' aria-current="page"')+'>ES</a><span class="vwb-language__separator" aria-hidden="true">|</span><a class="vwb-language__option" lang="en" hreflang="en" href="'+enHref+'" aria-label="English"'+(isEn?' aria-current="page"':'')+'>EN</a>';
   languageHolder.replaceChildren(widget);
-  var trigger=widget.querySelector('.vwb-language__trigger');
-  var menu=widget.querySelector('.vwb-language__menu');
-  var setOpen=function(open){trigger.setAttribute('aria-expanded',open?'true':'false');menu.hidden=!open;};
-  trigger.addEventListener('click',function(){setOpen(trigger.getAttribute('aria-expanded')!=='true');});
-  widget.addEventListener('keydown',function(event){
-    if(event.key==='Escape'){setOpen(false);trigger.focus();}
-    if(event.key==='ArrowDown'&&trigger===document.activeElement){event.preventDefault();setOpen(true);var first=menu.querySelector('a');if(first)first.focus();}
-  });
-  document.addEventListener('click',function(event){if(!widget.contains(event.target))setOpen(false);});
 }catch(e){}})();</script>`;
 
 // El buscador de la lupa vive en el encabezado compartido de las 2,253 páginas
@@ -331,7 +326,7 @@ export const SEARCH_FORMS_SCRIPT = `<script>(function(){try{
 // ocultos detrás de los 30 días de caché de los assets estáticos.
 // Se incrementa junto con los estilos globales del espejo para que las
 // navegaciones existentes no conserven una tipografía previa en caché.
-const NAV_ASSET_VERSION = "20260810-editorial-network";
+const NAV_ASSET_VERSION = "20260814-home-editorial-controls";
 const LEGACY_EVENTS_ASSET_VERSION = "20260813-csp";
 const LEGACY_EVENTS_SCRIPT = `<script defer src="/vwb-legacy-events.js?v=${LEGACY_EVENTS_ASSET_VERSION}"></script>`;
 function refreshNavigationAssets(html: string): string {
@@ -716,7 +711,8 @@ export function navigationLabelsScript(
       if(!isSub&&(href.indexOf('/contacto/')>=0||href.indexOf('/contact/')>=0))return 'contact';
       return '';
     };
-    var links=document.querySelectorAll('.menu_JS a.nav__menu--link,.menu_JS a.nav__menu--sublink');
+    var isV2=!!document.querySelector('[data-vw-navigation-version="2"]');
+    var links=isV2?[]:document.querySelectorAll('.menu_JS a.nav__menu--link,.menu_JS a.nav__menu--sublink');
     for(var i=0;i<links.length;i++){
       var link=links[i],href=(link.getAttribute('href')||'').toLowerCase(),isSub=link.classList.contains('nav__menu--sublink'),key=identify(href,isSub);
       if(key&&visible[key]===false){
@@ -825,6 +821,7 @@ export async function sendPage(res: Response, html: string, status = 200) {
   let out = normalizeLegacyTypography(hardenLegacyClientScripts(
     stripRetiredDeskLinks(refreshNavigationAssets(optimizeLegacyAssets(html))),
   ));
+  out = applyNavigationMarkup(out, navigationItems, lang);
   out = injectPerformanceHints(optimizePublicImageTags(out));
   out = out.includes("</body>")
     ? out.replace("</body>", `${inject}</body>`)

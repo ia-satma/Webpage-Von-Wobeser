@@ -60,6 +60,8 @@ const AdminIndustryGroups = lazy(() => import("@/pages/admin/AdminIndustryGroups
 const AdminKnowledge = lazy(() => import("@/pages/admin/AdminKnowledge"));
 const AdminTranslations = lazy(() => import("@/pages/admin/AdminTranslations"));
 const AdminEvents = lazy(() => import("@/pages/admin/AdminEvents"));
+const AdminAlliances = lazy(() => import("@/pages/admin/AdminAlliances"));
+const AdminOpenings = lazy(() => import("@/pages/admin/AdminOpenings"));
 const AdminHealthCheck = lazy(() => import("@/pages/admin/AdminHealthCheck"));
 const SystemExplorer = lazy(() => import("@/pages/admin/SystemExplorer"));
 const AdminArticleDetail = lazy(() => import("@/pages/admin/AdminArticleDetail"));
@@ -184,6 +186,8 @@ function Router() {
         <Route path="/admin/knowledge" component={AdminKnowledge} />
         <Route path="/admin/translations" component={AdminTranslations} />
         <Route path="/admin/events" component={AdminEvents} />
+        <Route path="/admin/alliances" component={AdminAlliances} />
+        <Route path="/admin/openings" component={AdminOpenings} />
         <Route path="/admin/health-check" component={AdminHealthCheck} />
         <Route path="/admin/explorer" component={SystemExplorer} />
         <Route path="/admin/offices" component={AdminOffices} />

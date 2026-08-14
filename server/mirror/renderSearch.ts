@@ -4,7 +4,11 @@ import { applySeo, breadcrumbNode, clip } from "./seo";
 type Lang = "en" | "es";
 
 type SearchItem = {
-  slug: string;
+  slug?: string;
+  id?: string;
+  href?: string;
+  hrefEs?: string;
+  hrefEn?: string;
   name?: string | null;
   nameEs?: string | null;
   title?: string | null;
@@ -22,6 +26,8 @@ export type GlobalSearchResults = {
   practiceGroups: SearchItem[];
   industryGroups: SearchItem[];
   news: SearchItem[];
+  events: SearchItem[];
+  pages: SearchItem[];
 };
 
 function esc(value: unknown): string {
@@ -39,7 +45,7 @@ function localized(item: SearchItem, key: "name" | "title" | "role" | "descripti
 
 function resultSection(
   title: string,
-  items: SearchItem[],
+  items: SearchItem[] = [],
   lang: Lang,
   href: (item: SearchItem) => string,
   label: (item: SearchItem) => string,
@@ -116,7 +122,7 @@ export function renderGlobalSearch(
       lang === "es" ? "Abogados y equipo" : "Attorneys and team",
       results.team,
       lang,
-      (item) => lang === "es" ? `/abogado/${encodeURIComponent(item.slug)}` : `/lawyer/${encodeURIComponent(item.slug)}?lang=en`,
+      (item) => lang === "es" ? `/abogado/${encodeURIComponent(item.slug || "")}` : `/lawyer/${encodeURIComponent(item.slug || "")}?lang=en`,
       (item) => item.name || "",
       (item) => localized(item, "role", lang) || localized(item, "title", lang),
     ),
@@ -124,7 +130,7 @@ export function renderGlobalSearch(
       lang === "es" ? "Prácticas" : "Practices",
       results.practiceGroups,
       lang,
-      (item) => `/practice/${encodeURIComponent(item.slug)}${suffix}`,
+      (item) => `/practice/${encodeURIComponent(item.slug || "")}${suffix}`,
       (item) => localized(item, "name", lang),
       (item) => localized(item, "description", lang),
     ),
@@ -132,7 +138,7 @@ export function renderGlobalSearch(
       lang === "es" ? "Grupos de práctica por industria" : "Industry practice groups",
       results.industryGroups,
       lang,
-      (item) => `/industry/${encodeURIComponent(item.slug)}${suffix}`,
+      (item) => `/industry/${encodeURIComponent(item.slug || "")}${suffix}`,
       (item) => localized(item, "name", lang),
       (item) => localized(item, "description", lang),
     ),
@@ -140,9 +146,25 @@ export function renderGlobalSearch(
       lang === "es" ? "Noticias y publicaciones" : "News and publications",
       results.news,
       lang,
-      (item) => `/news/${encodeURIComponent(item.slug)}${suffix}`,
+      (item) => `/news/${encodeURIComponent(item.slug || "")}${suffix}`,
       (item) => localized(item, "title", lang),
       (item) => localized(item, "excerpt", lang),
+    ),
+    resultSection(
+      lang === "es" ? "Eventos" : "Events",
+      results.events,
+      lang,
+      (item) => `${lang === "es" ? "/perspectivas/eventos" : "/insights/events"}#evento-${encodeURIComponent(item.id || "")}`,
+      (item) => localized(item, "title", lang),
+      (item) => localized(item, "description", lang),
+    ),
+    resultSection(
+      lang === "es" ? "Páginas" : "Pages",
+      results.pages,
+      lang,
+      (item) => String(lang === "es" ? item.hrefEs || item.href : item.hrefEn || item.href),
+      (item) => localized(item, "title", lang),
+      (item) => localized(item, "description", lang),
     ),
   ].join("");
 

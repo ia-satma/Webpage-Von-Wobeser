@@ -10,6 +10,10 @@ export function createCatalogRepository(db: StorageDatabase) {
       return db.select().from(events).where(eq(events.published, true)).orderBy(desc(events.date));
     }
 
+    async getAdminEvents(): Promise<Event[]> {
+      return db.select().from(events).orderBy(desc(events.date));
+    }
+
     async getEventById(id: string): Promise<Event | undefined> {
       const [event] = await db.select().from(events).where(eq(events.id, id));
       return event;

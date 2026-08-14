@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import fs from "node:fs";
 import test from "node:test";
 import * as cheerio from "cheerio";
 
@@ -8,6 +9,7 @@ const { applyContactForm } = await import("../mirror/formsFix");
 const { renderNewsList } = await import("../mirror/renderNews");
 const { applyPublicationsSearch, renderGlobalSearch } = await import("../mirror/renderSearch");
 const { renderPage } = await import("../mirror/renderPage");
+const { contactFormSchema } = await import("../../shared/schema");
 
 const chrome = `<!doctype html><html lang="es"><head><title>Anterior</title></head><body>
   <header><a class="header__lang--item" href="#">ENG</a></header>
@@ -92,7 +94,7 @@ test("buscador global escapa contenido y enlaza todos los tipos publicados", () 
   assert.match(html, /transform:translate\(5px,-1px\)/);
 });
 
-test("Contacto queda debajo del mapa, usa cuadrícula propia y prácticas administradas", () => {
+test("Contacto usa la jerarquía aprobada, conserva el mapa y ofrece País y Área de asesoría", () => {
   const $ = cheerio.load(chrome);
   $(".page__map--holder").html('<iframe src="https://www.google.com/maps/embed?pb=legacy"></iframe>');
   $(".page__content--body").html("<p>Torre SOMA Chapultepec 18th floor. Campos Elíseos 204.</p>");
@@ -114,7 +116,15 @@ test("Contacto queda debajo del mapa, usa cuadrícula propia y prácticas admini
 
   assert.equal($section.length, 1);
   assert.equal($section.parent().hasClass("page--wrap"), true);
-  assert.ok($(".page__map").index() < $section.index());
+  assert.ok($(".vw-contact-page__location").index() < $section.index());
+  assert.equal($(".vw-contact-page__eyebrow").text(), "CONTACTO");
+  assert.equal($(".vw-contact-page__title").text(), "Estamos aquí para ayudarte.");
+  assert.equal(
+    $(".vw-contact-page__lede").text(),
+    "Ponte en contacto con nosotros o visita nuestras oficinas en Ciudad de México.",
+  );
+  assert.equal($(".vw-contact-page__links a").first().attr("href"), "mailto:info@vwys.com.mx");
+  assert.match($(".vw-contact-page__details address").text(), /Arquímedes N.º 10/);
   assert.match($.html(), /Hablemos|Enviar ahora/);
   assert.match($.html(), /option value="arbitraje">Arbitraje/);
   assert.doesNotMatch($.html(), /german-desk|Desk Alemán|value="oculta"/);
@@ -122,6 +132,10 @@ test("Contacto queda debajo del mapa, usa cuadrícula propia y prácticas admini
   assert.match($.html(), /\.vw-contact-form\{display:grid;grid-template-columns:repeat\(2/);
   assert.match($.html(), /@media\(max-width:720px\).*grid-template-columns:1fr/s);
   assert.match($.html(), /fetch\('\/api\/contact'/);
+  assert.equal($("input[name='country']").attr("required"), "required");
+  assert.equal($("input[name='country']").attr("autocomplete"), "country-name");
+  assert.match($.html(), /country:\s*form\.country\.value/);
+  assert.match($.html(), /Área de asesoría \(opcional\)/);
   assert.equal($("#vw-contact-privacy").attr("required"), "required");
   assert.match($.html(), /name="acceptPrivacy"/);
   assert.match($.html(), /acceptPrivacy:\s*!!form\.acceptPrivacy\.checked/);
@@ -175,6 +189,31 @@ test("Contacto rechaza destinos de privacidad con protocolos activos", () => {
   );
   assert.equal($(".vw-contact-privacy a").attr("href"), "/aviso");
   assert.doesNotMatch($.html(), /javascript:/i);
+});
+
+test("País es obligatorio, se persiste mediante una migración aditiva y conserva datos históricos", () => {
+  const valid = contactFormSchema.safeParse({
+    fullName: "María González",
+    email: "maria@example.com",
+    country: "México",
+    message: "Solicito asesoría.",
+    acceptPrivacy: true,
+  });
+  assert.equal(valid.success, true);
+  assert.equal(contactFormSchema.safeParse({
+    fullName: "María González",
+    email: "maria@example.com",
+    message: "Solicito asesoría.",
+    acceptPrivacy: true,
+  }).success, false);
+
+  const migration = fs.readFileSync(
+    "migrations/20260814_0001_contact_country.sql",
+    "utf8",
+  );
+  assert.match(migration, /ALTER TABLE contact_submissions/i);
+  assert.match(migration, /ADD COLUMN IF NOT EXISTS country text/i);
+  assert.doesNotMatch(migration, /\bDROP\b|NOT NULL/i);
 });
 
 test("páginas institucionales generan alternates de rutas ES/EN distintas", () => {

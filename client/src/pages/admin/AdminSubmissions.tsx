@@ -14,7 +14,7 @@ import { AdminPageHelp } from "@/components/admin/AdminPageHelp";
 
 type ContactSubmissionRow = {
   id: string; fullName: string; email: string; phone: string | null; company: string | null;
-  practiceArea: string | null; message: string; submittedAt: string | null; read: boolean | null;
+  country: string | null; practiceArea: string | null; message: string; submittedAt: string | null; read: boolean | null;
   acceptedPrivacy: boolean; consentedAt: string | null;
 };
 
@@ -143,7 +143,8 @@ export default function AdminSubmissions() {
                         <TableHead>Fecha</TableHead>
                         <TableHead>Nombre</TableHead>
                         <TableHead>Correo</TableHead>
-                        <TableHead>Área</TableHead>
+                        <TableHead>País</TableHead>
+                        <TableHead>Área de asesoría</TableHead>
                         <TableHead>Mensaje</TableHead>
                         <TableHead>Privacidad</TableHead>
                         <TableHead></TableHead>
@@ -155,6 +156,7 @@ export default function AdminSubmissions() {
                           <TableCell className="whitespace-nowrap text-sm">{fmtDate(c.submittedAt)}</TableCell>
                           <TableCell>{c.fullName}</TableCell>
                           <TableCell>{c.email}</TableCell>
+                          <TableCell>{c.country || "—"}</TableCell>
                           <TableCell>{c.practiceArea || "—"}</TableCell>
                           <TableCell className="max-w-xs truncate" title={c.message}>{c.message}</TableCell>
                           <TableCell className="whitespace-nowrap">

@@ -332,7 +332,7 @@ export function renderAttorneyDirectory(
 
   const directory =
     `<main class="attorney-directory" data-attorney-directory>` +
-      `<form class="attorney-directory__filters" action="/attorneys" method="get" data-attorney-filter-form>` +
+      `<form class="attorney-directory__filters" id="${isEs ? "buscar" : "search"}" action="/attorneys" method="get" data-attorney-filter-form>` +
         (isEs ? "" : `<input type="hidden" name="lang" value="en">`) +
         `<div class="attorney-directory__filter-main"><p class="attorney-directory__filter-title">${esc(copy.searchBy)}</p>` +
           `<label class="attorney-directory__field attorney-directory__field--query"><span>${esc(copy.name)}</span><input type="search" name="q" value="${esc(filters.q)}" autocomplete="off" data-attorney-q></label>` +
@@ -344,7 +344,7 @@ export function renderAttorneyDirectory(
       `</form>` +
       `<p class="attorney-directory__status" aria-live="polite" data-attorney-count data-singular="${isEs ? "resultado" : "result"}" data-plural="${esc(copy.results)}">${matchedAttorneys.length} ${matchedAttorneys.length === 1 ? (isEs ? "resultado" : "result") : copy.results}</p>` +
       `<p class="attorney-directory__empty" data-attorney-empty${matchedAttorneys.length ? " hidden" : ""}>${esc(copy.empty)}</p>` +
-      `<div class="attorney-directory__groups" data-attorney-groups>${roleGroups}</div>` +
+      `<div class="attorney-directory__groups" id="${isEs ? "directorio" : "directory"}" data-attorney-groups>${roleGroups}</div>` +
     `</main>`;
 
   // El HTML del espejo contiene cabecera y pie compartidos. Solo sustituimos el

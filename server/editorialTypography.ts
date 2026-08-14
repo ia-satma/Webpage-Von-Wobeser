@@ -7,15 +7,32 @@ import {
   type TypographyLanguage,
   type TypographyStyles,
 } from "@shared/editorialTypography";
+import { shouldUseAutomaticTypographyFallback } from "./editorialTypographyFallback";
 
 const keyOf = (field: string, language: TypographyLanguage) => `${field}:${language}`;
+let warnedAboutMissingTypographyTable = false;
+
+function warnAboutLocalTypographyFallback(): void {
+  if (warnedAboutMissingTypographyTable) return;
+  warnedAboutMissingTypographyTable = true;
+  console.warn(
+    "[typography] editorial_typography no existe en la base local; la vista de solo lectura usará la jerarquía automática.",
+  );
+}
 
 /** Carga sólo las preferencias de una entidad; ausencia significa `auto`. */
 export async function getEditorialTypography(entityType: string, entityId: string): Promise<TypographyStyles> {
-  const rows = await db
-    .select({ field: editorialTypography.field, language: editorialTypography.language, family: editorialTypography.family })
-    .from(editorialTypography)
-    .where(and(eq(editorialTypography.entityType, entityType), eq(editorialTypography.entityId, entityId)));
+  let rows;
+  try {
+    rows = await db
+      .select({ field: editorialTypography.field, language: editorialTypography.language, family: editorialTypography.family })
+      .from(editorialTypography)
+      .where(and(eq(editorialTypography.entityType, entityType), eq(editorialTypography.entityId, entityId)));
+  } catch (error) {
+    if (!shouldUseAutomaticTypographyFallback(error)) throw error;
+    warnAboutLocalTypographyFallback();
+    return {};
+  }
   return Object.fromEntries(
     rows
       .filter((row) => isTypographyFamily(row.family))
@@ -27,10 +44,17 @@ export async function getEditorialTypography(entityType: string, entityId: strin
 export async function getEditorialTypographyForEntities(entityType: string, entityIds: string[]): Promise<Map<string, TypographyStyles>> {
   const result = new Map<string, TypographyStyles>();
   if (!entityIds.length) return result;
-  const rows = await db
-    .select({ entityId: editorialTypography.entityId, field: editorialTypography.field, language: editorialTypography.language, family: editorialTypography.family })
-    .from(editorialTypography)
-    .where(and(eq(editorialTypography.entityType, entityType), inArray(editorialTypography.entityId, entityIds)));
+  let rows;
+  try {
+    rows = await db
+      .select({ entityId: editorialTypography.entityId, field: editorialTypography.field, language: editorialTypography.language, family: editorialTypography.family })
+      .from(editorialTypography)
+      .where(and(eq(editorialTypography.entityType, entityType), inArray(editorialTypography.entityId, entityIds)));
+  } catch (error) {
+    if (!shouldUseAutomaticTypographyFallback(error)) throw error;
+    warnAboutLocalTypographyFallback();
+    return result;
+  }
   for (const row of rows) {
     if (!isTypographyFamily(row.family)) continue;
     const styles = result.get(row.entityId) || {};
