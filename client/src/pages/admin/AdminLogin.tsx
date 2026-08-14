@@ -252,7 +252,7 @@ export default function AdminLogin() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4 bg-[radial-gradient(120%_120%_at_50%_0%,hsl(var(--muted))_0%,hsl(var(--background))_60%)]">
+    <div className="admin-shell min-h-screen flex items-center justify-center px-4 bg-[radial-gradient(120%_120%_at_50%_0%,hsl(var(--muted))_0%,hsl(var(--background))_60%)]">
       <Card className="w-full max-w-md rounded-xl border-t-2 border-t-primary shadow-xl">
         <CardHeader className="space-y-1">
           <CardTitle className="text-xl font-semibold text-center" data-testid="text-login-title">

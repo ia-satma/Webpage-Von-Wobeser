@@ -58,9 +58,11 @@ test('sitio y panel usan solamente Gelasio e Inter como familias activas', () =>
 test('el panel aísla su interfaz en Inter sin desactivar la tipografía editorial', () => {
   const adminCss = read('../../client/src/index.css');
   const adminLayout = read('../../client/src/components/admin/AdminLayout.tsx');
+  const adminLogin = read('../../client/src/pages/admin/AdminLogin.tsx');
   const typography = read('../../frontend-mirror/templates/beez3/css/typography.css');
 
   assert.match(adminLayout, /<SidebarProvider className="admin-shell">/);
+  assert.match(adminLogin, /<div className="admin-shell min-h-screen/);
   assert.match(adminCss, /\.admin-shell\s*\{[\s\S]*?--font-heading:\s*var\(--font-body\)/);
   assert.match(adminCss, /\.admin-shell\s*\{[\s\S]*?--font-serif:\s*var\(--font-body\)/);
   assert.match(adminCss, /\.admin-shell\s+:where\(h1, h2, h3, h4, h5, h6\)\s*\{[\s\S]*?font-family:\s*var\(--font-body\)\s*!important/);
