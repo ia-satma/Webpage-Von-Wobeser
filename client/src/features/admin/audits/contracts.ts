@@ -6,7 +6,16 @@ export type AuditDetailResponse = {
   audit: WebsiteAudit | null;
   findings: WebsiteAuditFinding[];
 };
-export type AuditFindingsResponse = { findings: WebsiteAuditFinding[] };
+export type AuditPagination = {
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
+};
+export type AuditFindingsResponse = {
+  findings: WebsiteAuditFinding[];
+  pagination: AuditPagination;
+};
 export type AuditRunResponse = { message?: string };
 export type AuditCopy = Record<keyof typeof auditTranslations.en, string>;
 

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { WebsiteAudit, WebsiteAuditFinding } from "@shared/schema";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -11,8 +11,9 @@ import type {
   AuditListResponse,
   AuditRunResponse,
 } from "./contracts";
-import { filterAuditFindings, selectAuditFindings } from "./helpers";
 import { auditTranslations } from "./translations";
+
+const FINDINGS_PAGE_SIZE = 50;
 
 export function useAdminAudits() {
   const { language } = useLanguage();
@@ -23,6 +24,8 @@ export function useAdminAudits() {
   const [auditType, setAuditType] = useState("full");
   const [severityFilter, setSeverityFilter] = useState("all");
   const [categoryFilter, setCategoryFilter] = useState("all");
+  const [findingsPage, setFindingsPage] = useState(1);
+  const [openPage, setOpenPage] = useState(1);
   const t = (auditTranslations[language as keyof typeof auditTranslations] ||
     auditTranslations.en) as AuditCopy;
 
@@ -40,7 +43,7 @@ export function useAdminAudits() {
   const { data: latestAuditData } = useQuery({
     queryKey: ["/api/audits/latest"],
     queryFn: async () => {
-      const response = await adminApiRequest("GET", "/api/audits/latest");
+      const response = await adminApiRequest("GET", "/api/audits/latest?includeFindings=false");
       return readAdminJson<AuditDetailResponse>(
         response,
         "No se pudo cargar la última auditoría.",
@@ -52,7 +55,7 @@ export function useAdminAudits() {
     queryKey: ["/api/audits", selectedAuditId],
     queryFn: async () => {
       if (!selectedAuditId) return null;
-      const response = await adminApiRequest("GET", `/api/audits/${selectedAuditId}`);
+      const response = await adminApiRequest("GET", `/api/audits/${selectedAuditId}?includeFindings=false`);
       return readAdminJson<AuditDetailResponse>(
         response,
         "No se pudo cargar la auditoría seleccionada.",
@@ -60,10 +63,38 @@ export function useAdminAudits() {
     },
     enabled: isAuthenticated && !!selectedAuditId,
   });
-  const { data: openFindingsData } = useQuery({
-    queryKey: ["/api/audits/findings/open"],
+  const latestAudit: WebsiteAudit | null = latestAuditData?.audit || null;
+  const selectedAudit: WebsiteAudit | null = selectedAuditData?.audit || null;
+  const activeAuditId = selectedAuditId || latestAudit?.id || null;
+
+  const { data: auditFindingsData } = useQuery({
+    queryKey: ["/api/audits/findings", activeAuditId, findingsPage, severityFilter, categoryFilter],
     queryFn: async () => {
-      const response = await adminApiRequest("GET", "/api/audits/findings/open");
+      if (!activeAuditId) return null;
+      const params = new URLSearchParams({
+        page: String(findingsPage),
+        limit: String(FINDINGS_PAGE_SIZE),
+      });
+      if (severityFilter !== "all") params.set("severity", severityFilter);
+      if (categoryFilter !== "all") params.set("category", categoryFilter);
+      const response = await adminApiRequest(
+        "GET",
+        `/api/audits/${activeAuditId}/findings?${params.toString()}`,
+      );
+      return readAdminJson<AuditFindingsResponse>(
+        response,
+        "No se pudieron cargar los hallazgos de la auditoría.",
+      );
+    },
+    enabled: isAuthenticated && !!activeAuditId,
+  });
+  const { data: openFindingsData } = useQuery({
+    queryKey: ["/api/audits/findings/open", openPage],
+    queryFn: async () => {
+      const response = await adminApiRequest(
+        "GET",
+        `/api/audits/findings/open?page=${openPage}&limit=${FINDINGS_PAGE_SIZE}`,
+      );
       return readAdminJson<AuditFindingsResponse>(
         response,
         "No se pudieron cargar los hallazgos.",
@@ -108,6 +139,7 @@ export function useAdminAudits() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/audits"] });
       queryClient.invalidateQueries({ queryKey: ["/api/audits", selectedAuditId] });
+      queryClient.invalidateQueries({ queryKey: ["/api/audits/findings"] });
       queryClient.invalidateQueries({ queryKey: ["/api/audits/findings/open"] });
     },
   });
@@ -122,20 +154,50 @@ export function useAdminAudits() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/audits"] });
       queryClient.invalidateQueries({ queryKey: ["/api/audits", selectedAuditId] });
+      queryClient.invalidateQueries({ queryKey: ["/api/audits/findings"] });
       queryClient.invalidateQueries({ queryKey: ["/api/audits/findings/open"] });
     },
   });
 
   const audits: WebsiteAudit[] = auditsData?.audits || [];
-  const latestAudit: WebsiteAudit | null = latestAuditData?.audit || null;
-  const latestFindings: WebsiteAuditFinding[] = latestAuditData?.findings || [];
-  const selectedAudit: WebsiteAudit | null = selectedAuditData?.audit || null;
-  const selectedFindings: WebsiteAuditFinding[] = selectedAuditData?.findings || [];
   const openFindings: WebsiteAuditFinding[] = openFindingsData?.findings || [];
-  const filteredFindings = filterAuditFindings(
-    selectAuditFindings(selectedAuditId, selectedFindings, latestFindings),
-    { severity: severityFilter, category: categoryFilter },
-  );
+  const filteredFindings: WebsiteAuditFinding[] = auditFindingsData?.findings || [];
+  const findingsPagination = auditFindingsData?.pagination || {
+    page: 1,
+    limit: FINDINGS_PAGE_SIZE,
+    total: 0,
+    totalPages: 1,
+  };
+  const openPagination = openFindingsData?.pagination || {
+    page: 1,
+    limit: FINDINGS_PAGE_SIZE,
+    total: 0,
+    totalPages: 1,
+  };
+
+  useEffect(() => {
+    if (findingsPage > findingsPagination.totalPages) {
+      setFindingsPage(findingsPagination.totalPages);
+    }
+  }, [findingsPage, findingsPagination.totalPages]);
+  useEffect(() => {
+    if (openPage > openPagination.totalPages) {
+      setOpenPage(openPagination.totalPages);
+    }
+  }, [openPage, openPagination.totalPages]);
+
+  const selectAudit = (auditId: string | null) => {
+    setSelectedAuditId(auditId);
+    setFindingsPage(1);
+  };
+  const selectSeverity = (severity: string) => {
+    setSeverityFilter(severity);
+    setFindingsPage(1);
+  };
+  const selectCategory = (category: string) => {
+    setCategoryFilter(category);
+    setFindingsPage(1);
+  };
 
   return {
     language,
@@ -148,13 +210,19 @@ export function useAdminAudits() {
     openFindings,
     filteredFindings,
     selectedAuditId,
-    setSelectedAuditId,
+    setSelectedAuditId: selectAudit,
     auditType,
     setAuditType,
     severityFilter,
-    setSeverityFilter,
+    setSeverityFilter: selectSeverity,
     categoryFilter,
-    setCategoryFilter,
+    setCategoryFilter: selectCategory,
+    findingsPage,
+    setFindingsPage,
+    findingsPagination,
+    openPage,
+    setOpenPage,
+    openPagination,
     runAuditMutation,
     resolveFindingMutation,
     ignoreFindingMutation,

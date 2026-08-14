@@ -6,6 +6,16 @@ import { persistentPublicMediaExists } from "../media/persistentMedia";
 import { servePersistentManagedMedia } from "./managedMedia";
 
 export function registerPublicAssetRoutes(app: Express): void {
+  // El catch-all del espejo se registra antes que el estático general de
+  // `public/`. Esta ruta explícita garantiza que el fallback editorial nunca
+  // termine convertido en un 404 de texto.
+  app.get('/placeholder-article.svg', (_req, res) => {
+    const placeholderPath = path.join(process.cwd(), 'public', 'placeholder-article.svg');
+    res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+    res.setHeader('X-Content-Type-Options', 'nosniff');
+    res.sendFile(placeholderPath);
+  });
+
   // Serve partner photos from attached_assets/partner_photos
   app.use('/partner_photos', express.static(path.join(process.cwd(), 'attached_assets', 'partner_photos'), {
     maxAge: '7d',

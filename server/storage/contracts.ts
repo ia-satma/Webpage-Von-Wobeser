@@ -314,6 +314,15 @@ export interface IStorage {
   getWebsiteAuditFindingsByCategory(auditId: string, category: string): Promise<WebsiteAuditFinding[]>;
   getWebsiteAuditFindingsBySeverity(auditId: string, severity: string): Promise<WebsiteAuditFinding[]>;
   getOpenFindings(): Promise<WebsiteAuditFinding[]>;
+  getWebsiteAuditFindingsPage(options: {
+    auditId?: string;
+    status?: string;
+    category?: string;
+    severity?: string;
+    limit: number;
+    offset: number;
+  }): Promise<{ findings: WebsiteAuditFinding[]; total: number }>;
+  supersedeOpenWebsiteAuditFindings(auditId: string, categories: string[]): Promise<number>;
   updateWebsiteAuditFinding(id: string, data: Partial<InsertWebsiteAuditFinding>): Promise<WebsiteAuditFinding | undefined>;
   resolveWebsiteAuditFinding(id: string, resolvedBy: string): Promise<WebsiteAuditFinding | undefined>;
 

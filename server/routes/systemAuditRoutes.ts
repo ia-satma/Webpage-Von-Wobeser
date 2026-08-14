@@ -3,6 +3,26 @@ import { z } from "zod";
 import { authMiddleware, requirePermission } from "../auth";
 import { storage } from "../storage";
 
+const findingsPageQuerySchema = z.object({
+  page: z.coerce.number().int().min(1).max(100_000).default(1),
+  limit: z.coerce.number().int().min(1).max(100).default(50),
+  category: z.enum(["links", "navigation", "translations", "performance", "seo", "content", "linguistic", "system"]).optional(),
+  severity: z.enum(["critical", "high", "medium", "low"]).optional(),
+}).strict();
+
+function pagination(page: number, limit: number, total: number) {
+  return {
+    page,
+    limit,
+    total,
+    totalPages: Math.max(1, Math.ceil(total / limit)),
+  };
+}
+
+function shouldIncludeFindings(value: unknown): boolean {
+  return value !== "false" && value !== "0";
+}
+
 export function registerSystemAuditRoutes(app: Express): void {
   // System Chronicler API - Nerve Center data
   app.get("/api/system/chronicler", authMiddleware, requirePermission("advanced"), async (req: Request, res: Response) => {
@@ -81,6 +101,9 @@ export function registerSystemAuditRoutes(app: Express): void {
       if (!audit) {
         return res.json({ success: true, audit: null });
       }
+      if (!shouldIncludeFindings(req.query.includeFindings)) {
+        return res.json({ success: true, audit, findings: [] });
+      }
       const findings = await storage.getWebsiteAuditFindings(audit.id);
       res.json({ success: true, audit, findings });
     } catch (error) {
@@ -115,6 +138,9 @@ export function registerSystemAuditRoutes(app: Express): void {
       if (!audit) {
         return res.status(404).json({ error: "Audit not found" });
       }
+      if (!shouldIncludeFindings(req.query.includeFindings)) {
+        return res.json({ success: true, audit, findings: [] });
+      }
       const findings = await storage.getWebsiteAuditFindings(audit.id);
       res.json({ success: true, audit, findings });
     } catch (error) {
@@ -125,18 +151,21 @@ export function registerSystemAuditRoutes(app: Express): void {
 
   app.get("/api/audits/:id/findings", authMiddleware, requirePermission("advanced"), async (req: Request, res: Response) => {
     try {
-      const { category, severity } = req.query;
-      let findings;
-
-      if (category) {
-        findings = await storage.getWebsiteAuditFindingsByCategory(req.params.id, category as string);
-      } else if (severity) {
-        findings = await storage.getWebsiteAuditFindingsBySeverity(req.params.id, severity as string);
-      } else {
-        findings = await storage.getWebsiteAuditFindings(req.params.id);
-      }
-
-      res.json({ success: true, findings });
+      const parsed = findingsPageQuerySchema.safeParse(req.query);
+      if (!parsed.success) return res.status(400).json({ error: "Invalid findings query" });
+      const { page, limit, category, severity } = parsed.data;
+      const result = await storage.getWebsiteAuditFindingsPage({
+        auditId: req.params.id,
+        category,
+        severity,
+        limit,
+        offset: (page - 1) * limit,
+      });
+      res.json({
+        success: true,
+        findings: result.findings,
+        pagination: pagination(page, limit, result.total),
+      });
     } catch (error) {
       console.error("Failed to get audit findings:", error);
       res.status(500).json({ error: "Failed to fetch findings" });
@@ -200,8 +229,21 @@ export function registerSystemAuditRoutes(app: Express): void {
 
   app.get("/api/audits/findings/open", authMiddleware, requirePermission("advanced"), async (req: Request, res: Response) => {
     try {
-      const findings = await storage.getOpenFindings();
-      res.json({ success: true, findings });
+      const parsed = findingsPageQuerySchema.safeParse(req.query);
+      if (!parsed.success) return res.status(400).json({ error: "Invalid findings query" });
+      const { page, limit, category, severity } = parsed.data;
+      const result = await storage.getWebsiteAuditFindingsPage({
+        status: "open",
+        category,
+        severity,
+        limit,
+        offset: (page - 1) * limit,
+      });
+      res.json({
+        success: true,
+        findings: result.findings,
+        pagination: pagination(page, limit, result.total),
+      });
     } catch (error) {
       console.error("Failed to get open findings:", error);
       res.status(500).json({ error: "Failed to fetch open findings" });

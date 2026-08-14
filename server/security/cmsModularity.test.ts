@@ -447,12 +447,13 @@ test("los módulos del Formulario de Abogados respetan los límites de arquitect
 
 test("Auditorías conserva contratos, endpoints, idiomas y acciones", () => {
   const source = readAdminFeatureSources("audits", "AdminAudits.tsx");
-  assert.equal((source.match(/adminApiRequest\(/g) || []).length, 7);
+  assert.equal((source.match(/adminApiRequest\(/g) || []).length, 8);
   for (const contract of [
     /adminApiRequest\("GET", "\/api\/audits\?limit=20"\)/,
-    /adminApiRequest\("GET", "\/api\/audits\/latest"\)/,
-    /adminApiRequest\("GET", `\/api\/audits\/\$\{selectedAuditId\}`\)/,
-    /adminApiRequest\("GET", "\/api\/audits\/findings\/open"\)/,
+    /\/api\/audits\/latest\?includeFindings=false/,
+    /\/api\/audits\/\$\{selectedAuditId\}\?includeFindings=false/,
+    /\/api\/audits\/\$\{activeAuditId\}\/findings\?\$\{params\.toString\(\)\}/,
+    /\/api\/audits\/findings\/open\?page=\$\{openPage\}&limit=\$\{FINDINGS_PAGE_SIZE\}/,
     /adminApiRequest\("POST", "\/api\/audits\/run", \{ runType \}\)/,
     /status: "resolved"/,
     /status: "ignored"/,

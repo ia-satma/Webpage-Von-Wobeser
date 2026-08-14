@@ -1,4 +1,4 @@
-import { eq, desc, and } from "drizzle-orm";
+import { eq, ne, desc, and, inArray, sql, type SQL } from "drizzle-orm";
 import { type WebsiteAudit, type InsertWebsiteAudit, type WebsiteAuditFinding, type InsertWebsiteAuditFinding, websiteAudits, websiteAuditFindings } from "@shared/schema";
 import type { StorageDatabase } from "../types";
 
@@ -66,6 +66,59 @@ export function createAuditRepository(db: StorageDatabase) {
       return db.select().from(websiteAuditFindings).where(
         eq(websiteAuditFindings.status, 'open')
       ).orderBy(desc(websiteAuditFindings.reportedAt));
+    }
+
+    async getWebsiteAuditFindingsPage(options: {
+      auditId?: string;
+      status?: string;
+      category?: string;
+      severity?: string;
+      limit: number;
+      offset: number;
+    }): Promise<{ findings: WebsiteAuditFinding[]; total: number }> {
+      const conditions: SQL[] = [];
+      if (options.auditId) conditions.push(eq(websiteAuditFindings.auditId, options.auditId));
+      if (options.status) conditions.push(eq(websiteAuditFindings.status, options.status));
+      if (options.category) conditions.push(eq(websiteAuditFindings.category, options.category));
+      if (options.severity) conditions.push(eq(websiteAuditFindings.severity, options.severity));
+      const where = conditions.length ? and(...conditions) : undefined;
+      const [findings, countRows] = await Promise.all([
+        db
+          .select()
+          .from(websiteAuditFindings)
+          .where(where)
+          .orderBy(desc(websiteAuditFindings.reportedAt))
+          .limit(options.limit)
+          .offset(options.offset),
+        db
+          .select({ count: sql<number>`count(*)::int` })
+          .from(websiteAuditFindings)
+          .where(where),
+      ]);
+      return { findings, total: countRows[0]?.count ?? 0 };
+    }
+
+    /**
+     * Una auditoría completada es la instantánea autoritativa de sus módulos.
+     * Cierra las copias abiertas de ejecuciones anteriores; si el problema
+     * persiste, ya existe una fila nueva en `auditId` que permanece abierta.
+     */
+    async supersedeOpenWebsiteAuditFindings(auditId: string, categories: string[]): Promise<number> {
+      if (!categories.length) return 0;
+      const superseded = await db
+        .update(websiteAuditFindings)
+        .set({
+          status: 'resolved',
+          resolvedAt: new Date(),
+          resolvedBy: `superseded:${auditId}`,
+        })
+        .where(and(
+          ne(websiteAuditFindings.auditId, auditId),
+          eq(websiteAuditFindings.status, 'open'),
+          inArray(websiteAuditFindings.category, categories),
+        ))
+        .returning({ id: websiteAuditFindings.id });
+      return superseded.length;
     }
 
     async updateWebsiteAuditFinding(id: string, data: Partial<InsertWebsiteAuditFinding>): Promise<WebsiteAuditFinding | undefined> {

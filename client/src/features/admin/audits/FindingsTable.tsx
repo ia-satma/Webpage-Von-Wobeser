@@ -1,4 +1,4 @@
-import { Ban, CheckCircle2, ExternalLink } from "lucide-react";
+import { Ban, CheckCircle2, ChevronLeft, ChevronRight, ExternalLink } from "lucide-react";
 import type { WebsiteAuditFinding } from "@shared/schema";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -24,13 +24,22 @@ export function FindingsTable({ controller, findings, mode }: FindingsTableProps
     language,
     t,
     latestAudit,
+    findingsPage,
+    setFindingsPage,
+    findingsPagination,
+    openPage,
+    setOpenPage,
+    openPagination,
     resolveFindingMutation,
     ignoreFindingMutation,
   } = controller;
   const detailed = mode === "findings";
+  const currentPage = detailed ? findingsPage : openPage;
+  const setCurrentPage = detailed ? setFindingsPage : setOpenPage;
+  const pageInfo = detailed ? findingsPagination : openPagination;
 
   return (
-    <Card>
+    <Card className="overflow-hidden">
       <Table>
         <TableHeader>
           <TableRow>
@@ -148,6 +157,36 @@ export function FindingsTable({ controller, findings, mode }: FindingsTableProps
           )}
         </TableBody>
       </Table>
+      {pageInfo.total > 0 && (
+        <div className="flex items-center justify-between border-t px-4 py-3 text-sm text-muted-foreground">
+          <span>
+            {language === "es" ? "Página" : "Page"} {pageInfo.page} / {pageInfo.totalPages}
+            {` · ${pageInfo.total} ${language === "es" ? "hallazgos" : "findings"}`}
+          </span>
+          <div className="flex gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              disabled={currentPage <= 1}
+              onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+              aria-label={language === "es" ? "Página anterior" : "Previous page"}
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              disabled={currentPage >= pageInfo.totalPages}
+              onClick={() => setCurrentPage(Math.min(pageInfo.totalPages, currentPage + 1))}
+              aria-label={language === "es" ? "Página siguiente" : "Next page"}
+            >
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+      )}
     </Card>
   );
 }
