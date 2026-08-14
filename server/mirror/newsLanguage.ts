@@ -6,17 +6,19 @@ export type LocalizedNewsTitle = {
 };
 
 const ENGLISH_MARKERS = new Set([
-  "a", "an", "and", "are", "awards", "be", "by", "changes", "developments",
-  "extends", "for", "from", "has", "have", "in", "into", "is", "its", "new",
-  "of", "on", "projects", "regulations", "sign", "steps", "the", "to", "toward",
-  "under", "with",
+  "a", "actions", "administrative", "agreement", "an", "and", "are", "awards", "be",
+  "by", "changes", "city", "developments", "entry", "extends", "for", "from", "has",
+  "have", "immediate", "in", "into", "investment", "is", "its", "match", "measures",
+  "new", "of", "on", "opening", "permits", "projects", "protection", "regime",
+  "regulations", "sign", "steps", "strategy", "the", "to", "toward", "under", "with",
 ]);
 
 const SPANISH_MARKERS = new Set([
-  "al", "ante", "cambios", "con", "de", "del", "desde", "el", "en", "es", "esta",
-  "este", "firman", "hacia", "la", "las", "lineamientos", "los", "modificaciones",
-  "nueva", "nuevas", "nuevo", "nuevos", "para", "por", "que", "regulatorios",
-  "sin", "sobre", "un", "una", "y",
+  "acciones", "acuerdo", "administrativas", "al", "ante", "apertura", "cambios", "ciudad",
+  "con", "de", "del", "desde", "el", "en", "entrada", "es", "esta", "este", "estrategia",
+  "firman", "hacia", "inmediatas", "inversión", "la", "las", "lineamientos", "los", "medidas",
+  "modificaciones", "nueva", "nuevas", "nuevo", "nuevos", "para", "partido", "permisos",
+  "por", "protección", "que", "régimen", "regulatorios", "sin", "sobre", "un", "una", "y",
 ]);
 
 function markerScore(tokens: string[], markers: Set<string>): number {
