@@ -59,6 +59,18 @@ test("Noticias del Home conserva exclusivamente el idioma activo y anima la tarj
       title: "Correct English title about a new legal development",
       titleEs: "CFE Awards Projects Under the Mixed Development Scheme and SENER Extends Permits",
     },
+    {
+      id: "wrong-spanish-administrative",
+      slug: "wrong-spanish-administrative",
+      title: "Administrative Measures – FIFA World Cup 2026 Opening Match in Mexico City.",
+      titleEs: "Administrative Measures – FIFA World Cup 2026 Opening Match in Mexico City.",
+    },
+    {
+      id: "wrong-spanish-plan-mexico",
+      slug: "wrong-spanish-plan-mexico",
+      title: "Plan Mexico — Immediate Actions for Investment",
+      titleEs: "Plan Mexico — Immediate Actions for Investment",
+    },
     { id: "bilingual-one", slug: "bilingual-one", title: "English one", titleEs: "Español uno" },
     { id: "bilingual-two", slug: "bilingual-two", title: "English two", titleEs: "Español dos" },
   ];
@@ -74,6 +86,8 @@ test("Noticias del Home conserva exclusivamente el idioma activo y anima la tarj
   ]);
   assert.equal(spanishHtml.includes("English only"), false);
   assert.equal(spanishHtml.includes("CFE Awards Projects"), false);
+  assert.equal(spanishHtml.includes("Administrative Measures"), false);
+  assert.equal(spanishHtml.includes("Immediate Actions for Investment"), false);
   assert.deepEqual(english(".vw-news-carousel__headline h3").map((_index, node) => english(node).text()).get(), [
     "English only",
     "Correct English title about a new legal development",
@@ -92,6 +106,8 @@ test("el filtro lingüístico del Home es conservador con nombres propios y tít
   assert.equal(isNewsTitleCompatible("Arbitration", "en"), true);
   assert.equal(isNewsTitleCompatible("México y la Unión Europea firman un nuevo acuerdo", "en"), false);
   assert.equal(isNewsTitleCompatible("Mexico and the European Union sign a new agreement", "es"), false);
+  assert.equal(isNewsTitleCompatible("Administrative Measures – FIFA World Cup 2026 Opening Match in Mexico City.", "es"), false);
+  assert.equal(isNewsTitleCompatible("Plan Mexico — Immediate Actions for Investment", "es"), false);
 });
 
 test("la franja de Nuevas oficinas conserva contenido bilingüe con jerarquía semántica", () => {
