@@ -12,7 +12,18 @@ function esc(value: unknown): string {
     .replace(/"/g, "&quot;");
 }
 
-function landingLabel(id: string, lang: "en" | "es"): string {
+function landingLabel(id: string, lang: "en" | "es", classic: boolean): string {
+  if (classic) {
+    const classicLabels: Record<string, [string, string]> = {
+      firm: ["Nuestra Firma", "Our Firm"],
+      attorneys: ["Todos los abogados", "All attorneys"],
+      practices: ["Todas las prácticas", "All practices"],
+      industries: ["Todas las industrias", "All industries"],
+      perspectives: ["Todas las publicaciones", "All publications"],
+      talent: ["Carrera en VWyS", "Careers at VWyS"],
+    };
+    return classicLabels[id]?.[lang === "es" ? 0 : 1] || (lang === "es" ? "Ver sección" : "View section");
+  }
   const labels: Record<string, [string, string]> = {
     firm: ["Quiénes somos", "Who we are"],
     attorneys: ["Ver todos los abogados", "View all attorneys"],
@@ -36,6 +47,7 @@ export function applyNavigationMarkup(
 ): string {
   const navigation = menu.navigation;
   if (!navigation) return html;
+  const classic = navigation.preset === "classic-vwys";
   const $ = cheerio.load(html);
   const $holder = $(".nav__menu--holder").first();
   if (!$holder.length) return html;
@@ -56,7 +68,7 @@ export function applyNavigationMarkup(
         `<div class="vw-nav-v2__panel" id="${panelId}" hidden>` +
           `<div class="vw-nav-v2__panel-head">` +
             `<span class="vw-nav-v2__panel-title">${esc(item.label)}</span>` +
-            `<a class="vw-nav-v2__landing" href="${esc(item.href)}">${esc(landingLabel(item.id, lang))}<span aria-hidden="true">→</span></a>` +
+            `<a class="vw-nav-v2__landing" href="${esc(item.href)}">${esc(landingLabel(item.id, lang, classic))}<span aria-hidden="true">→</span></a>` +
           `</div>` +
           `<div class="vw-nav-v2__children">${childMarkup}</div>` +
         `</div>` +
@@ -74,8 +86,10 @@ export function applyNavigationMarkup(
     `</li>`
   );
 
-  const markup = `<ul class="nav__menu--holder vw-nav-v2" data-vw-navigation-version="2" data-vw-navigation-revision="${esc(navigation.revision)}">${primary}${utility}</ul>`;
+  const markup = `<ul class="nav__menu--holder vw-nav-v2" data-vw-navigation-version="2" data-vw-navigation-preset="${esc(navigation.preset)}" data-vw-navigation-revision="${esc(navigation.revision)}">${primary}${utility}</ul>`;
   $holder.replaceWith(markup);
-  $("body").addClass("vwb-navigation-v2");
+  $("body")
+    .addClass("vwb-navigation-v2")
+    .addClass(classic ? "vwb-navigation-preset--classic" : "vwb-navigation-preset--definitive");
   return $.html();
 }

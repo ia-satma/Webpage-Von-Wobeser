@@ -7,6 +7,7 @@ import { getEditorialTypography, replaceEditorialTypography } from "../../editor
 import { getCookieConsentConfig, cookieConsentSchema, saveCookieConsentConfig } from "../../privacy/cookieConsent";
 import { storage } from "../../storage";
 import { insertOfficeSchema, offices, siteConfig } from "@shared/schema";
+import { NAVIGATION_PRESET_IDS, type NavigationPresetId } from "@shared/navigation";
 import { invalidatePublicPageCache } from "../pageCache";
 import { sanitizeCms } from "../sanitize";
 import {
@@ -23,12 +24,14 @@ import { getFaviconHref, setFaviconConfig } from "../seo";
 import type { Lang } from "../htmlPipeline";
 import type { MirrorRuntime } from "../runtime";
 import {
-  adminNavigationPayload,
+  NAVIGATION_ACTIVE_PRESET_KEY,
+  NAVIGATION_PRESET_CONFIG_KEYS,
+  adminNavigationPresetsPayload,
   getNavigationAvailability,
-  navigationConfigurationFromConfig,
   navigationConfigurationSchema,
+  navigationPresetStateFromConfig,
+  navigationPresetStateRevision,
   navigationRevision,
-  parseNavigationConfiguration,
   unavailableRequestedDestinations,
 } from "../navigationConfiguration";
 import { invalidatePublicNavigationMenuCache } from "../navigationMenu";
@@ -131,13 +134,16 @@ export function registerMirrorAdminRoutes(app: Express, runtime: MirrorRuntime):
 
   app.get("/api/admin/site-navigation", authMiddleware, requirePermission("config"), wrap(async (_req, res) => {
     const config = await getConfigMap();
-    const configuration = navigationConfigurationFromConfig(config);
-    res.json(adminNavigationPayload(configuration, await getNavigationAvailability(config)));
+    res.json(adminNavigationPresetsPayload(
+      navigationPresetStateFromConfig(config),
+      await getNavigationAvailability(config),
+    ));
   }));
 
   app.put("/api/admin/site-navigation", authMiddleware, requirePermission("config"), wrap(async (req, res) => {
     const requestSchema = z.object({
       version: z.literal(2),
+      preset: z.enum(NAVIGATION_PRESET_IDS).optional(),
       revision: z.string().trim().length(16),
       configuration: navigationConfigurationSchema,
     }).strict();
@@ -148,7 +154,9 @@ export function registerMirrorAdminRoutes(app: Express, runtime: MirrorRuntime):
     }
 
     const currentConfig = await getConfigMap();
-    const current = navigationConfigurationFromConfig(currentConfig);
+    const preset: NavigationPresetId = parsed.data.preset || "definitive-2026";
+    const currentState = navigationPresetStateFromConfig(currentConfig);
+    const current = currentState.configurations[preset];
     if (parsed.data.revision !== navigationRevision(current)) {
       res.status(409).json({
         error: "La navegación cambió mientras la editabas. Recarga antes de guardar.",
@@ -185,12 +193,13 @@ export function registerMirrorAdminRoutes(app: Express, runtime: MirrorRuntime):
       const [storedNavigation] = await tx
         .select({ value: siteConfig.value })
         .from(siteConfig)
-        .where(eq(siteConfig.key, "nav_structure_v2"))
+        .where(eq(siteConfig.key, NAVIGATION_PRESET_CONFIG_KEYS[preset]))
         .limit(1);
       let authoritative = current;
       if (storedNavigation?.value) {
         try {
-          authoritative = parseNavigationConfiguration(JSON.parse(storedNavigation.value));
+          const stored = navigationConfigurationSchema.safeParse(JSON.parse(storedNavigation.value));
+          if (stored.success) authoritative = stored.data;
         } catch {
           // Un valor heredado inválido conserva el mismo fallback seguro que la lectura pública.
         }
@@ -198,7 +207,7 @@ export function registerMirrorAdminRoutes(app: Express, runtime: MirrorRuntime):
       if (parsed.data.revision !== navigationRevision(authoritative)) return false;
 
       await tx.insert(siteConfig).values({
-        key: "nav_structure_v2",
+        key: NAVIGATION_PRESET_CONFIG_KEYS[preset],
         value: JSON.stringify(configuration),
         valueEs: JSON.stringify(configuration),
         type: "json",
@@ -209,56 +218,58 @@ export function registerMirrorAdminRoutes(app: Express, runtime: MirrorRuntime):
         set: { value: JSON.stringify(configuration), valueEs: JSON.stringify(configuration), updatedAt: new Date() },
       });
 
-      // Mantener las claves históricas sincronizadas permite volver al render previo sin
-      // perder etiquetas si hubiera que hacer rollback del código.
-      for (const [id, key] of legacyDefinitions) {
-        const item = byId.get(id)!;
+      // Las claves históricas solo reflejan el preset público. Editar el respaldo
+      // en segundo plano no debe modificar el fallback que ve producción.
+      if (currentState.activePreset === preset) {
+        for (const [id, key] of legacyDefinitions) {
+          const item = byId.get(id)!;
+          await tx.insert(siteConfig).values({
+            key,
+            value: item.labelEn,
+            valueEs: item.labelEs,
+            type: "text",
+            category: "navigation",
+            updatedAt: new Date(),
+          }).onConflictDoUpdate({
+            target: siteConfig.key,
+            set: { value: item.labelEn, valueEs: item.labelEs, updatedAt: new Date() },
+          });
+          const visible = String(item.visible);
+          await tx.insert(siteConfig).values({
+            key: `nav_visible_${id === "perspectives" ? "publications" : id === "talent" ? "careers" : id}`,
+            value: visible,
+            valueEs: visible,
+            type: "boolean",
+            category: "navigation",
+            updatedAt: new Date(),
+          }).onConflictDoUpdate({
+            target: siteConfig.key,
+            set: { value: visible, valueEs: visible, updatedAt: new Date() },
+          });
+        }
         await tx.insert(siteConfig).values({
-          key,
-          value: item.labelEn,
-          valueEs: item.labelEs,
+          key: "nav_search",
+          value: configuration.utilities.search.labelEn,
+          valueEs: configuration.utilities.search.labelEs,
           type: "text",
           category: "navigation",
           updatedAt: new Date(),
         }).onConflictDoUpdate({
           target: siteConfig.key,
-          set: { value: item.labelEn, valueEs: item.labelEs, updatedAt: new Date() },
+          set: { value: configuration.utilities.search.labelEn, valueEs: configuration.utilities.search.labelEs, updatedAt: new Date() },
         });
-        const visible = String(item.visible);
         await tx.insert(siteConfig).values({
-          key: `nav_visible_${id === "perspectives" ? "publications" : id === "talent" ? "careers" : id}`,
-          value: visible,
-          valueEs: visible,
-          type: "boolean",
+          key: "nav_contact",
+          value: configuration.utilities.contact.labelEn,
+          valueEs: configuration.utilities.contact.labelEs,
+          type: "text",
           category: "navigation",
           updatedAt: new Date(),
         }).onConflictDoUpdate({
           target: siteConfig.key,
-          set: { value: visible, valueEs: visible, updatedAt: new Date() },
+          set: { value: configuration.utilities.contact.labelEn, valueEs: configuration.utilities.contact.labelEs, updatedAt: new Date() },
         });
       }
-      await tx.insert(siteConfig).values({
-        key: "nav_search",
-        value: configuration.utilities.search.labelEn,
-        valueEs: configuration.utilities.search.labelEs,
-        type: "text",
-        category: "navigation",
-        updatedAt: new Date(),
-      }).onConflictDoUpdate({
-        target: siteConfig.key,
-        set: { value: configuration.utilities.search.labelEn, valueEs: configuration.utilities.search.labelEs, updatedAt: new Date() },
-      });
-      await tx.insert(siteConfig).values({
-        key: "nav_contact",
-        value: configuration.utilities.contact.labelEn,
-        valueEs: configuration.utilities.contact.labelEs,
-        type: "text",
-        category: "navigation",
-        updatedAt: new Date(),
-      }).onConflictDoUpdate({
-        target: siteConfig.key,
-        set: { value: configuration.utilities.contact.labelEn, valueEs: configuration.utilities.contact.labelEs, updatedAt: new Date() },
-      });
       return true;
     });
     if (!saved) {
@@ -274,7 +285,79 @@ export function registerMirrorAdminRoutes(app: Express, runtime: MirrorRuntime):
     const updatedConfig = await getConfigMap();
     res.json({
       ok: true,
-      ...adminNavigationPayload(configuration, await getNavigationAvailability(updatedConfig)),
+      ...adminNavigationPresetsPayload(
+        navigationPresetStateFromConfig(updatedConfig),
+        await getNavigationAvailability(updatedConfig),
+      ),
+    });
+  }));
+
+  app.put("/api/admin/site-navigation/active-preset", authMiddleware, requirePermission("config"), wrap(async (req, res) => {
+    const requestSchema = z.object({
+      preset: z.enum(NAVIGATION_PRESET_IDS),
+      stateRevision: z.string().trim().length(16),
+    }).strict();
+    const parsed = requestSchema.safeParse(req.body || {});
+    if (!parsed.success) {
+      res.status(400).json({ error: "Preset de navegación inválido", details: parsed.error.flatten() });
+      return;
+    }
+
+    const cachedConfig = await getConfigMap();
+    const activated = await db.transaction(async (tx) => {
+      await tx.execute(sql`SELECT pg_advisory_xact_lock(hashtext('vw-navigation-v2'))`);
+      const keys = [
+        NAVIGATION_ACTIVE_PRESET_KEY,
+        NAVIGATION_PRESET_CONFIG_KEYS["definitive-2026"],
+        NAVIGATION_PRESET_CONFIG_KEYS["classic-vwys"],
+      ] as const;
+      const authoritativeConfig: ConfigMap = { ...cachedConfig };
+      for (const key of keys) {
+        const [row] = await tx.select({ value: siteConfig.value, valueEs: siteConfig.valueEs, type: siteConfig.type })
+          .from(siteConfig)
+          .where(eq(siteConfig.key, key))
+          .limit(1);
+        if (row) authoritativeConfig[key] = {
+          value: row.value || "",
+          valueEs: row.valueEs || row.value || "",
+          type: row.type,
+        };
+      }
+      const authoritativeState = navigationPresetStateFromConfig(authoritativeConfig);
+      if (navigationPresetStateRevision(authoritativeState) !== parsed.data.stateRevision) return false;
+
+      await tx.insert(siteConfig).values({
+        key: NAVIGATION_ACTIVE_PRESET_KEY,
+        value: parsed.data.preset,
+        valueEs: parsed.data.preset,
+        type: "select",
+        category: "navigation",
+        updatedAt: new Date(),
+      }).onConflictDoUpdate({
+        target: siteConfig.key,
+        set: { value: parsed.data.preset, valueEs: parsed.data.preset, updatedAt: new Date() },
+      });
+      return true;
+    });
+
+    if (!activated) {
+      res.status(409).json({
+        error: "La navegación cambió mientras elegías el diseño. Recarga antes de activar.",
+        code: "NAVIGATION_PRESET_REVISION_STALE",
+      });
+      return;
+    }
+
+    invalidateConfigCache();
+    invalidatePublicNavigationMenuCache();
+    invalidatePublicPageCache();
+    const updatedConfig = await getConfigMap();
+    res.json({
+      ok: true,
+      ...adminNavigationPresetsPayload(
+        navigationPresetStateFromConfig(updatedConfig),
+        await getNavigationAvailability(updatedConfig),
+      ),
     });
   }));
 

@@ -5,7 +5,7 @@ import { localizedGroupLabel, sortGroupsAlphabetically } from "./sortPublicGroup
 import { getConfigMap } from "./siteConfig";
 import {
   getNavigationAvailability,
-  navigationConfigurationFromConfig,
+  navigationPresetStateFromConfig,
   resolveNavigationTree,
   type ResolvedNavigationTree,
 } from "./navigationConfiguration";
@@ -100,7 +100,13 @@ export async function getPublicNavigationMenu(lang: "en" | "es"): Promise<Public
   const [groups, config] = await Promise.all([getRawNavigationGroups(), getConfigMap()]);
   const menu = buildPublicNavigationMenu(groups, lang);
   const availability = await getNavigationAvailability(config);
-  const navigation = resolveNavigationTree(navigationConfigurationFromConfig(config), availability, lang);
+  const presetState = navigationPresetStateFromConfig(config);
+  const navigation = resolveNavigationTree(
+    presetState.configurations[presetState.activePreset],
+    availability,
+    lang,
+    presetState.activePreset,
+  );
   const attachDynamicEntries = (
     kind: "practices" | "industries",
     entries: NavigationMenuEntry[],

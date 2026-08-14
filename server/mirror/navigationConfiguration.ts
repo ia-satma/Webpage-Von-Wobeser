@@ -1,13 +1,18 @@
 import { createHash } from "node:crypto";
 import { z } from "zod";
 import {
+  DEFAULT_CLASSIC_NAVIGATION_CONFIGURATION,
   DEFAULT_NAVIGATION_CONFIGURATION,
+  DEFAULT_NAVIGATION_PRESET,
   NAVIGATION_CHILD_IDS,
   NAVIGATION_DESTINATIONS,
+  NAVIGATION_PRESET_IDS,
+  NAVIGATION_PRESET_METADATA,
   NAVIGATION_PRIMARY_IDS,
   NAVIGATION_VERSION,
   type NavigationChildId,
   type NavigationConfiguration,
+  type NavigationPresetId,
   type NavigationPrimaryId,
 } from "@shared/navigation";
 import { storage } from "../storage";
@@ -46,6 +51,7 @@ export type ResolvedNavigationPrimary = {
 
 export type ResolvedNavigationTree = {
   version: typeof NAVIGATION_VERSION;
+  preset: NavigationPresetId;
   revision: string;
   items: ResolvedNavigationPrimary[];
   utilities: {
@@ -54,6 +60,18 @@ export type ResolvedNavigationTree = {
     contact: { label: string; href: string; required: true };
   };
 };
+
+export type NavigationPresetState = {
+  activePreset: NavigationPresetId;
+  configurations: Record<NavigationPresetId, NavigationConfiguration>;
+};
+
+export const NAVIGATION_PRESET_CONFIG_KEYS: Record<NavigationPresetId, string> = {
+  "definitive-2026": "nav_structure_v2",
+  "classic-vwys": "nav_classic_structure_v2",
+};
+
+export const NAVIGATION_ACTIVE_PRESET_KEY = "nav_active_preset";
 
 const ALL_CHILD_IDS = Object.values(NAVIGATION_CHILD_IDS).flat() as NavigationChildId[];
 const primaryIdSchema = z.enum(NAVIGATION_PRIMARY_IDS);
@@ -110,6 +128,10 @@ function cloneDefault(): NavigationConfiguration {
   return JSON.parse(JSON.stringify(DEFAULT_NAVIGATION_CONFIGURATION)) as NavigationConfiguration;
 }
 
+function cloneClassicDefault(): NavigationConfiguration {
+  return JSON.parse(JSON.stringify(DEFAULT_CLASSIC_NAVIGATION_CONFIGURATION)) as NavigationConfiguration;
+}
+
 export function parseNavigationConfiguration(value: unknown): NavigationConfiguration {
   const parsed = navigationConfigurationSchema.safeParse(value);
   return parsed.success ? parsed.data : cloneDefault();
@@ -125,8 +147,58 @@ export function navigationConfigurationFromConfig(config: ConfigMap): Navigation
   }
 }
 
+export function classicNavigationConfigurationFromConfig(config: ConfigMap): NavigationConfiguration {
+  const raw = config[NAVIGATION_PRESET_CONFIG_KEYS["classic-vwys"]]?.value;
+  if (!raw) return cloneClassicDefault();
+  try {
+    const parsed = navigationConfigurationSchema.safeParse(JSON.parse(raw));
+    return parsed.success ? parsed.data : cloneClassicDefault();
+  } catch {
+    return cloneClassicDefault();
+  }
+}
+
+export function navigationPresetFromConfig(config: ConfigMap): NavigationPresetId {
+  const raw = config[NAVIGATION_ACTIVE_PRESET_KEY]?.value;
+  return NAVIGATION_PRESET_IDS.includes(raw as NavigationPresetId)
+    ? raw as NavigationPresetId
+    : DEFAULT_NAVIGATION_PRESET;
+}
+
+export function navigationPresetStateFromConfig(config: ConfigMap): NavigationPresetState {
+  return {
+    activePreset: navigationPresetFromConfig(config),
+    configurations: {
+      "definitive-2026": navigationConfigurationFromConfig(config),
+      "classic-vwys": classicNavigationConfigurationFromConfig(config),
+    },
+  };
+}
+
+export function navigationPresetStateRevision(state: NavigationPresetState): string {
+  return createHash("sha256").update(JSON.stringify(state)).digest("hex").slice(0, 16);
+}
+
 export function navigationRevision(configuration: NavigationConfiguration): string {
   return createHash("sha256").update(JSON.stringify(configuration)).digest("hex").slice(0, 16);
+}
+
+const CLASSIC_DESTINATIONS: Partial<Record<NavigationPrimaryId | NavigationChildId, {
+  pathEs: string;
+  pathEn: string;
+}>> = {
+  perspectives: { pathEs: "/publicaciones", pathEn: "/publications" },
+  "perspectives-communications": { pathEs: "/news", pathEn: "/news?lang=en" },
+  talent: { pathEs: "/bolsa-de-trabajo", pathEn: "/careers" },
+};
+
+export function navigationDestination(
+  id: NavigationPrimaryId | NavigationChildId,
+  preset: NavigationPresetId = DEFAULT_NAVIGATION_PRESET,
+) {
+  return preset === "classic-vwys" && CLASSIC_DESTINATIONS[id]
+    ? CLASSIC_DESTINATIONS[id]!
+    : NAVIGATION_DESTINATIONS[id];
 }
 
 function configBoolean(config: ConfigMap, key: string): boolean {
@@ -214,6 +286,7 @@ export function resolveNavigationTree(
   configuration: NavigationConfiguration,
   availability: NavigationAvailability,
   lang: "en" | "es",
+  preset: NavigationPresetId = DEFAULT_NAVIGATION_PRESET,
 ): ResolvedNavigationTree {
   const labelKey = lang === "es" ? "labelEs" : "labelEn";
   const pathKey = lang === "es" ? "pathEs" : "pathEn";
@@ -223,7 +296,7 @@ export function resolveNavigationTree(
     return {
       id: item.id,
       label: item[labelKey],
-      href: NAVIGATION_DESTINATIONS[item.id][pathKey],
+      href: navigationDestination(item.id, preset)[pathKey],
       configuredVisible: item.visible,
       ...state,
       reason: availability[item.id][reasonKey],
@@ -232,7 +305,7 @@ export function resolveNavigationTree(
         return {
           id: child.id,
           label: child[labelKey],
-          href: NAVIGATION_DESTINATIONS[child.id][pathKey],
+          href: navigationDestination(child.id, preset)[pathKey],
           configuredVisible: child.visible,
           ...childState,
           reason: availability[child.id][reasonKey],
@@ -243,6 +316,7 @@ export function resolveNavigationTree(
 
   return {
     version: NAVIGATION_VERSION,
+    preset,
     revision: navigationRevision(configuration),
     items,
     utilities: {
@@ -273,9 +347,10 @@ export function unavailableRequestedDestinations(
 export function adminNavigationPayload(
   configuration: NavigationConfiguration,
   availability: NavigationAvailability,
+  preset: NavigationPresetId = DEFAULT_NAVIGATION_PRESET,
 ) {
-  const es = resolveNavigationTree(configuration, availability, "es");
-  const en = resolveNavigationTree(configuration, availability, "en");
+  const es = resolveNavigationTree(configuration, availability, "es", preset);
+  const en = resolveNavigationTree(configuration, availability, "en", preset);
   return {
     version: NAVIGATION_VERSION,
     revision: es.revision,
@@ -283,8 +358,8 @@ export function adminNavigationPayload(
     items: configuration.items.map((item, index) => ({
       ...item,
       order: index,
-      pathEs: NAVIGATION_DESTINATIONS[item.id].pathEs,
-      pathEn: NAVIGATION_DESTINATIONS[item.id].pathEn,
+      pathEs: navigationDestination(item.id, preset).pathEs,
+      pathEn: navigationDestination(item.id, preset).pathEn,
       canActivate: availability[item.id].contentReady,
       status: es.items[index].status,
       statusEn: en.items[index].status,
@@ -293,8 +368,8 @@ export function adminNavigationPayload(
       children: item.children.map((child, childIndex) => ({
         ...child,
         order: childIndex,
-        pathEs: NAVIGATION_DESTINATIONS[child.id].pathEs,
-        pathEn: NAVIGATION_DESTINATIONS[child.id].pathEn,
+        pathEs: navigationDestination(child.id, preset).pathEs,
+        pathEn: navigationDestination(child.id, preset).pathEn,
         canActivate: availability[child.id].contentReady,
         status: es.items[index].children[childIndex].status,
         statusEn: en.items[index].children[childIndex].status,
@@ -313,5 +388,41 @@ export function adminNavigationPayload(
       contactLabelEs: configuration.utilities.contact.labelEs,
     },
     preview: { es, en },
+  };
+}
+
+export function adminNavigationPresetsPayload(
+  state: NavigationPresetState,
+  availability: NavigationAvailability,
+) {
+  const definitive = adminNavigationPayload(
+    state.configurations["definitive-2026"],
+    availability,
+    "definitive-2026",
+  );
+  const classic = adminNavigationPayload(
+    state.configurations["classic-vwys"],
+    availability,
+    "classic-vwys",
+  );
+  const active = state.activePreset === "classic-vwys" ? classic : definitive;
+  return {
+    ...active,
+    activePreset: state.activePreset,
+    stateRevision: navigationPresetStateRevision(state),
+    presets: {
+      "definitive-2026": {
+        id: "definitive-2026" as const,
+        ...NAVIGATION_PRESET_METADATA["definitive-2026"],
+        active: state.activePreset === "definitive-2026",
+        ...definitive,
+      },
+      "classic-vwys": {
+        id: "classic-vwys" as const,
+        ...NAVIGATION_PRESET_METADATA["classic-vwys"],
+        active: state.activePreset === "classic-vwys",
+        ...classic,
+      },
+    },
   };
 }

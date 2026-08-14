@@ -3,7 +3,11 @@ import { db } from "../db";
 import { siteConfig } from "@shared/schema";
 import { getEditorialTypographyForEntities } from "../editorialTypography";
 import { typographyAttribute, type TypographyStyles } from "@shared/editorialTypography";
-import { DEFAULT_NAVIGATION_CONFIGURATION } from "@shared/navigation";
+import {
+  DEFAULT_CLASSIC_NAVIGATION_CONFIGURATION,
+  DEFAULT_NAVIGATION_CONFIGURATION,
+  DEFAULT_NAVIGATION_PRESET,
+} from "@shared/navigation";
 
 export type ConfigMap = Record<string, { value: string; valueEs: string; type: string; typography?: TypographyStyles }>;
 
@@ -158,6 +162,22 @@ const DEFAULTS: Array<{ key: string; value: string; valueEs?: string; type: stri
     type: "json",
     category: "navigation",
     description: "Jerarquía versionada del menú público VWyS",
+  },
+  {
+    key: "nav_classic_structure_v2",
+    value: JSON.stringify(DEFAULT_CLASSIC_NAVIGATION_CONFIGURATION),
+    valueEs: JSON.stringify(DEFAULT_CLASSIC_NAVIGATION_CONFIGURATION),
+    type: "json",
+    category: "navigation",
+    description: "Respaldo administrable del menú clásico VWyS sobre las rutas actuales",
+  },
+  {
+    key: "nav_active_preset",
+    value: DEFAULT_NAVIGATION_PRESET,
+    valueEs: DEFAULT_NAVIGATION_PRESET,
+    type: "select",
+    category: "navigation",
+    description: "Preset activo del menú público: definitivo 2026 o clásico VWyS",
   },
   ...["firm", "attorneys", "practices", "industries", "publications", "careers", "contact"].map((id) => ({
     key: `nav_visible_${id}`,

@@ -3,7 +3,9 @@ import { readFileSync } from "node:fs";
 import test from "node:test";
 import * as cheerio from "cheerio";
 import {
+  DEFAULT_CLASSIC_NAVIGATION_CONFIGURATION,
   DEFAULT_NAVIGATION_CONFIGURATION,
+  DEFAULT_NAVIGATION_PRESET,
   NAVIGATION_CHILD_IDS,
   NAVIGATION_DESTINATIONS,
   NAVIGATION_LANDING_CHILD_IDS,
@@ -18,6 +20,9 @@ process.env.DATABASE_URL ||= "postgresql://test:test@127.0.0.1:5432/test";
 
 const {
   navigationConfigurationSchema,
+  navigationDestination,
+  navigationPresetStateFromConfig,
+  navigationPresetStateRevision,
   parseNavigationConfiguration,
   resolveNavigationTree,
 } = await import("../mirror/navigationConfiguration");
@@ -60,6 +65,46 @@ test("la navegación definitiva conserva orden, etiquetas y utilidades bilingüe
     "perspectives-all",
     "talent-work",
   ]);
+});
+
+test("el respaldo clásico conserva la navegación anterior sobre destinos actuales", () => {
+  assert.equal(DEFAULT_NAVIGATION_PRESET, "definitive-2026");
+  assert.deepEqual(DEFAULT_CLASSIC_NAVIGATION_CONFIGURATION.items.map((item) => item.labelEs), [
+    "Nuestra Firma", "Abogados", "Prácticas", "Industrias", "Publicaciones", "Carrera en VWyS",
+  ]);
+  assert.deepEqual(
+    DEFAULT_CLASSIC_NAVIGATION_CONFIGURATION.items
+      .find((item) => item.id === "firm")?.children.filter((child) => child.visible).map((child) => child.id),
+    ["firm-probono", "firm-diversity"],
+  );
+  assert.deepEqual(
+    DEFAULT_CLASSIC_NAVIGATION_CONFIGURATION.items
+      .find((item) => item.id === "perspectives")?.children.filter((child) => child.visible).map((child) => child.labelEs),
+    ["Artículos", "Noticias"],
+  );
+  assert.deepEqual(
+    DEFAULT_CLASSIC_NAVIGATION_CONFIGURATION.items
+      .find((item) => item.id === "talent")?.children.filter((child) => child.visible).map((child) => child.labelEs),
+    ["Pasantes"],
+  );
+  assert.equal(navigationDestination("perspectives", "classic-vwys").pathEs, "/publicaciones");
+  assert.equal(navigationDestination("perspectives-communications", "classic-vwys").pathEn, "/news?lang=en");
+  assert.equal(navigationDestination("perspectives", "definitive-2026").pathEs, "/perspectivas");
+});
+
+test("el estado de presets usa el definitivo por defecto y detecta cambios concurrentes", () => {
+  const state = navigationPresetStateFromConfig({});
+  assert.equal(state.activePreset, "definitive-2026");
+  assert.deepEqual(state.configurations["classic-vwys"], DEFAULT_CLASSIC_NAVIGATION_CONFIGURATION);
+  const revision = navigationPresetStateRevision(state);
+  const alternate = structuredClone(state);
+  alternate.activePreset = "classic-vwys";
+  assert.equal(revision.length, 16);
+  assert.notEqual(navigationPresetStateRevision(alternate), revision);
+  const invalid = navigationPresetStateFromConfig({
+    nav_active_preset: { value: "javascript:alert(1)", valueEs: "", type: "select" },
+  });
+  assert.equal(invalid.activePreset, "definitive-2026");
 });
 
 test("el contrato rechaza URLs, IDs duplicados y estructuras parciales", () => {
@@ -150,6 +195,28 @@ test("el servidor entrega menú semántico, seguro y sin parpadeo heredado", () 
   assert.equal($("a[href=\"/old\"]").length, 0);
 });
 
+test("el preset clásico se identifica en servidor y conserva el diseño como alternativa", () => {
+  const navigation = resolveNavigationTree(
+    structuredClone(DEFAULT_CLASSIC_NAVIGATION_CONFIGURATION),
+    readyAvailability(),
+    "es",
+    "classic-vwys",
+  );
+  const rendered = applyNavigationMarkup(
+    '<!doctype html><html><body><nav class="nav menu_JS"><div class="nav__menu--holder"><a href="/old">Anterior</a></div></nav></body></html>',
+    { practices: [], industries: [], navigation },
+    "es",
+  );
+  const $ = cheerio.load(rendered);
+  assert.equal($("[data-vw-navigation-preset=\"classic-vwys\"]").length, 1);
+  assert.equal($("body").hasClass("vwb-navigation-preset--classic"), true);
+  assert.equal($(".vw-nav-v2__item--perspectives .vw-nav-v2__trigger").text().trim(), "Publicaciones");
+  assert.equal($("#vw-nav-panel-perspectives .vw-nav-v2__landing").attr("href"), "/publicaciones");
+  assert.equal($("[data-vw-destination=\"perspectives-communications\"]").attr("href"), "/news");
+  assert.equal($("[data-vw-destination=\"perspectives-events\"]").length, 0);
+  assert.equal($("a[href=\"/old\"]").length, 0);
+});
+
 test("el clic abre escritorio, conserva el acordeón móvil y respeta el cromo blanco histórico", () => {
   const script = readFileSync(new URL("../../frontend-mirror/templates/beez3/js/min/functions.min.js", import.meta.url), "utf8");
   const styles = readFileSync(new URL("../../frontend-mirror/templates/beez3/css/von.css", import.meta.url), "utf8");
@@ -211,6 +278,24 @@ test("las páginas nuevas, Alumni noindex y el control CMS quedan cableados sin 
   assert.match(admin, /!childInfo\.canActivate/);
   assert.match(config, /nav_structure_v2/);
   assert.doesNotMatch(routes + render + config, /\b(?:ALTER|DROP|CREATE)\s+TABLE\b/i);
+});
+
+test("el CMS expone presets reversibles sin cambios estructurales de base de datos", () => {
+  const routes = readFileSync(new URL("../mirror/routes/adminRoutes.ts", import.meta.url), "utf8");
+  const config = readFileSync(new URL("../mirror/siteConfig.ts", import.meta.url), "utf8");
+  const panel = readFileSync(new URL("../../client/src/features/admin/navigation/AdminNavigationPage.tsx", import.meta.url), "utf8");
+  const selector = readFileSync(new URL("../../client/src/features/admin/navigation/NavigationPresetSelector.tsx", import.meta.url), "utf8");
+  const styles = readFileSync(new URL("../../frontend-mirror/templates/beez3/css/von.css", import.meta.url), "utf8");
+  assert.match(config, /nav_classic_structure_v2/);
+  assert.match(config, /nav_active_preset/);
+  assert.match(routes, /site-navigation\/active-preset/);
+  assert.match(routes, /requirePermission\("config"\)/);
+  assert.match(routes, /NAVIGATION_PRESET_REVISION_STALE/);
+  assert.match(routes, /pg_advisory_xact_lock\(hashtext\('vw-navigation-v2'\)\)/);
+  assert.match(panel, /Guardar respaldo/);
+  assert.match(selector, /Diseños guardados/);
+  assert.match(styles, /vwb-navigation-preset--classic/);
+  assert.doesNotMatch(config + routes, /\b(?:ALTER|DROP|CREATE)\s+TABLE\b/i);
 });
 
 test("la búsqueda editorial respeta disponibilidad, texto seguro y nunca indexa Alumni", () => {

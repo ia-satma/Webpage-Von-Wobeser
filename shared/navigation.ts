@@ -6,6 +6,26 @@
  */
 export const NAVIGATION_VERSION = 2 as const;
 
+export const NAVIGATION_PRESET_IDS = ["definitive-2026", "classic-vwys"] as const;
+
+export type NavigationPresetId = typeof NAVIGATION_PRESET_IDS[number];
+
+export const DEFAULT_NAVIGATION_PRESET: NavigationPresetId = "definitive-2026";
+
+export const NAVIGATION_PRESET_METADATA: Record<NavigationPresetId, {
+  name: string;
+  description: string;
+}> = {
+  "definitive-2026": {
+    name: "Menú definitivo 2026",
+    description: "La navegación editorial aprobada, con Perspectivas, Talento y desplegables compactos.",
+  },
+  "classic-vwys": {
+    name: "Menú clásico VWyS",
+    description: "El encabezado anterior, conservado como respaldo sobre las rutas y la seguridad actuales.",
+  },
+};
+
 export const NAVIGATION_PRIMARY_IDS = [
   "firm",
   "attorneys",
@@ -198,5 +218,46 @@ export const DEFAULT_NAVIGATION_CONFIGURATION: NavigationConfiguration = {
   utilities: {
     search: { labelEs: "Buscar", labelEn: "Search" },
     contact: { labelEs: "Contáctanos", labelEn: "Contact us" },
+  },
+};
+
+const CLASSIC_VISIBLE_CHILDREN = new Set<NavigationChildId>([
+  "firm-probono",
+  "firm-diversity",
+  "attorneys-partners",
+  "attorneys-of-counsel",
+  "attorneys-counsel",
+  "attorneys-associates",
+  "perspectives-articles",
+  "perspectives-communications",
+  "talent-interns",
+]);
+
+const classicLabels: Partial<Record<NavigationPrimaryId | NavigationChildId, NavigationLocalizedLabel>> = {
+  firm: { labelEs: "Nuestra Firma", labelEn: "Our Firm" },
+  perspectives: { labelEs: "Publicaciones", labelEn: "Publications" },
+  talent: { labelEs: "Carrera en VWyS", labelEn: "Careers at VWyS" },
+  "perspectives-communications": { labelEs: "Noticias", labelEn: "News" },
+};
+
+/**
+ * Copia administrable del menú que precedió a la navegación definitiva. Usa el
+ * mismo inventario cerrado de destinos; por ello activarlo nunca revive HTML,
+ * scripts ni URLs arbitrarias del espejo histórico.
+ */
+export const DEFAULT_CLASSIC_NAVIGATION_CONFIGURATION: NavigationConfiguration = {
+  version: NAVIGATION_VERSION,
+  items: DEFAULT_NAVIGATION_CONFIGURATION.items.map((item) => ({
+    ...item,
+    ...(classicLabels[item.id] || {}),
+    children: item.children.map((child) => ({
+      ...child,
+      ...(classicLabels[child.id] || {}),
+      visible: CLASSIC_VISIBLE_CHILDREN.has(child.id),
+    })),
+  })),
+  utilities: {
+    search: { labelEs: "Buscar", labelEn: "Search" },
+    contact: { labelEs: "Contacto", labelEn: "Contact" },
   },
 };

@@ -2721,6 +2721,107 @@ a[href="/german-desk"],
   }
 }
 
+/* Preset clásico: reproduce el encabezado directo anterior sin volver a usar
+   el HTML o los scripts heredados. El árbol, las rutas y la accesibilidad siguen
+   perteneciendo al runtime actual; únicamente cambia su presentación. */
+@media (min-width: 1240px) {
+  body.vwb-navigation-preset--classic nav.nav.menu_JS .vw-nav-v2__item {
+    position: relative;
+  }
+
+  body.vwb-navigation-preset--classic .vw-nav-v2__panel:not([hidden]) {
+    border: 0;
+    border-radius: 0;
+    border-top: 1px solid #ac162c;
+    box-shadow: 0 10px 20px rgba(62, 62, 62, .12);
+    left: 50%;
+    max-height: calc(100dvh - 104px);
+    padding: 10px 14px 12px;
+    top: 60px;
+    width: 260px;
+  }
+
+  body.vwb-navigation-preset--classic .vw-nav-v2__panel-head {
+    border: 0;
+    display: block;
+    margin: 0;
+    padding: 0;
+  }
+
+  body.vwb-navigation-preset--classic .vw-nav-v2__panel-title {
+    display: none;
+  }
+
+  body.vwb-navigation-preset--classic .vw-nav-v2__landing,
+  body.vwb-navigation-preset--classic .vw-nav-v2__child {
+    align-items: center;
+    border-bottom: 1px solid #ededed;
+    color: #5e5e5e;
+    display: flex;
+    font-size: 12px;
+    font-weight: 400;
+    justify-content: space-between;
+    letter-spacing: .035em;
+    line-height: 1.35;
+    min-height: 36px;
+    padding: 7px 2px;
+    text-decoration: none;
+    text-transform: none;
+    width: 100%;
+  }
+
+  body.vwb-navigation-preset--classic .vw-nav-v2__landing {
+    color: #ac162c;
+    font-weight: 500;
+  }
+
+  body.vwb-navigation-preset--classic .vw-nav-v2__children {
+    display: grid;
+    gap: 0 18px;
+    grid-template-columns: 1fr;
+  }
+
+  body.vwb-navigation-preset--classic .vw-nav-v2__item--practices .vw-nav-v2__panel {
+    width: min(720px, calc(100vw - 48px));
+  }
+
+  body.vwb-navigation-preset--classic .vw-nav-v2__item--practices .vw-nav-v2__children {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  body.vwb-navigation-preset--classic .vw-nav-v2__item--industries .vw-nav-v2__panel {
+    width: min(380px, calc(100vw - 48px));
+  }
+
+  body.vwb-navigation-preset--classic .vw-nav-v2__item--industries .vw-nav-v2__children,
+  body.vwb-navigation-preset--classic .vw-nav-v2__item--talent .vw-nav-v2__children {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 1239px) {
+  body.vwb-navigation-preset--classic .vw-nav-v2__panel:not([hidden]) {
+    background: transparent;
+    border: 0;
+    border-left: 1px solid #ac162c;
+    border-radius: 0;
+    margin: 0 0 8px 2px;
+    padding: 0 0 2px 14px;
+  }
+
+  body.vwb-navigation-preset--classic .vw-nav-v2__panel-head {
+    margin: 0;
+  }
+
+  body.vwb-navigation-preset--classic .vw-nav-v2__landing,
+  body.vwb-navigation-preset--classic .vw-nav-v2__child {
+    border: 0;
+    font-size: 12px;
+    min-height: 40px;
+    padding: 6px 4px 6px 0;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .vw-nav-v2 *,
   .vw-nav-v2 *::before,

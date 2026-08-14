@@ -1,6 +1,7 @@
 import type {
   NavigationChildConfiguration,
   NavigationConfiguration,
+  NavigationPresetId,
   NavigationPrimaryConfiguration,
 } from "@shared/navigation";
 
@@ -29,7 +30,11 @@ export type AdminNavigationItem = Omit<NavigationPrimaryConfiguration, "children
   children: AdminNavigationChild[];
 };
 
-export type NavigationResponse = {
+export type NavigationPresetResponse = {
+  id: NavigationPresetId;
+  name: string;
+  description: string;
+  active: boolean;
   version: 2;
   revision: string;
   configuration: NavigationConfiguration;
@@ -44,4 +49,10 @@ export type NavigationResponse = {
     contactLabelEn: string;
     contactLabelEs: string;
   };
+};
+
+export type NavigationResponse = NavigationPresetResponse & {
+  activePreset: NavigationPresetId;
+  stateRevision: string;
+  presets: Record<NavigationPresetId, NavigationPresetResponse>;
 };
