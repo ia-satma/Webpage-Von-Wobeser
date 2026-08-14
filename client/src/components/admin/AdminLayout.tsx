@@ -170,7 +170,7 @@ export function AdminLayout({ children }: { children: ReactNode }) {
   };
 
   return (
-    <SidebarProvider>
+    <SidebarProvider className="admin-shell">
       <Sidebar collapsible="icon">
         <SidebarHeader>
           <div className="flex items-center justify-between gap-2 px-1 py-1">

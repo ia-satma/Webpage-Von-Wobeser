@@ -5,10 +5,18 @@ import {
   teamMembers, 
   agentJobs, 
   mediaItems,
-  translationCache 
+  translationCache,
 } from '@shared/schema';
-import { eq, lt, and, isNull, or, sql } from 'drizzle-orm';
+import { eq, lt, and, sql } from 'drizzle-orm';
 import { getConfigMap } from '../mirror/siteConfig';
+import {
+  publishedArticleCompletenessIssues,
+  shouldAuditCachedTranslationLanguage,
+} from './systemHealthPolicy';
+import {
+  loadUsedPublicMediaReferences,
+  mediaItemIsReferenced,
+} from '../media/mediaReferences';
 
 export interface HealthIssue {
   id: string;
@@ -198,15 +206,7 @@ export class SystemHealthCheck {
       const articles = await db.select().from(news).where(eq(news.published, true));
 
       for (const article of articles) {
-        const issues: string[] = [];
-
-        if (!article.content || article.content.trim() === '') {
-          issues.push('missing English content');
-        }
-
-        if (!article.title || article.title.trim() === '') {
-          issues.push('missing English title');
-        }
+        const issues = publishedArticleCompletenessIssues(article);
 
         if (issues.length > 0) {
           this.issues.push({
@@ -288,7 +288,11 @@ export class SystemHealthCheck {
       const cachedTranslations = await db.select().from(translationCache);
       
       for (const cache of cachedTranslations) {
-        if (cache.targetLanguage === 'de' && cache.translatedText) {
+        if (
+          cache.targetLanguage === 'de'
+          && cache.translatedText
+          && shouldAuditCachedTranslationLanguage(cache.field)
+        ) {
           const detectedLang = detectLanguage(cache.translatedText);
           
           if (detectedLang === 'es') {
@@ -315,21 +319,13 @@ export class SystemHealthCheck {
     console.log('[SystemHealthCheck] Checking for orphaned assets...');
     
     try {
-      const allMedia = await db.select().from(mediaItems);
-      const allArticles = await db.select({
-        imageUrl: news.imageUrl,
-      }).from(news);
-      
-      const usedUrls = new Set(
-        allArticles
-          .map(a => a.imageUrl)
-          .filter(Boolean)
-      );
+      const [allMedia, usedUrls] = await Promise.all([
+        db.select().from(mediaItems),
+        loadUsedPublicMediaReferences(),
+      ]);
       
       for (const media of allMedia) {
-        const isUsed = usedUrls.has(media.path) || 
-                       usedUrls.has(`/uploads/${media.filename}`) ||
-                       usedUrls.has(media.filename);
+        const isUsed = mediaItemIsReferenced(media, usedUrls);
         
         if (!isUsed) {
           const ageHours = media.createdAt 
@@ -344,7 +340,7 @@ export class SystemHealthCheck {
               entityType: 'media',
               entityId: media.id,
               title: `Orphaned media: ${media.originalName}`,
-              details: `File uploaded ${ageHours} hours ago but not linked to any article. Path: ${media.path}`,
+              details: `File uploaded ${ageHours} hours ago but not linked to any public content. Path: ${media.path}`,
               suggestedAction: 'Review and delete if not needed',
               detectedAt: new Date(),
             });
