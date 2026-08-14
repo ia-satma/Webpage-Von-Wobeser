@@ -2,6 +2,44 @@
 @tailwind components;
 @tailwind utilities;
 
+/*
+ * El panel debe poder resolver sus fuentes aunque el navegador conserve una
+ * versión anterior de la hoja tipográfica del espejo público. Estas caras y
+ * variables viven también en el bundle versionado del CMS, por lo que cada
+ * despliegue invalida su caché de forma automática.
+ */
+@font-face {
+  font-family: "Gelasio";
+  src: url("/templates/beez3/webfont/Gelasio-Variable.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Gelasio";
+  src: url("/templates/beez3/webfont/Gelasio-Italic-Variable.woff2") format("woff2");
+  font-style: italic;
+  font-weight: 400 700;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Inter";
+  src: url("/templates/beez3/webfont/Inter-Variable.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 400 500;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Inter";
+  src: url("/templates/beez3/webfont/Inter-Italic-Variable.woff2") format("woff2");
+  font-style: italic;
+  font-weight: 400 500;
+  font-display: swap;
+}
+
 /* LIGHT MODE */
 :root {
   /* Von Wobeser Corporate Colors (Manual de Identidad Junio 2022) */
@@ -12,6 +50,10 @@
   --vw-gray-8: #5B5C5F;  /* dark swatch middle */
   --vw-gray-11: #2E2E2A; /* dark swatch right  */
   --vw-black: #1D1D1B;
+
+  /* Fuente de respaldo autocontenida para la aplicación React administrativa. */
+  --font-title: "Gelasio", serif;
+  --font-body: "Inter", sans-serif;
 
   --button-outline: rgba(0,0,0, .10);
   --badge-outline: rgba(0,0,0, .05);

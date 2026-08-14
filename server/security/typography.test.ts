@@ -33,9 +33,13 @@ test('sitio y panel usan solamente Gelasio e Inter como familias activas', () =>
   assert.match(typography, /Inter-Variable\.woff2/);
   assert.match(publicCss, /font-family:\s*"Gelasio"/);
   assert.match(publicCss, /font-family:\s*"Inter"/);
+  assert.match(adminCss, /--font-title:\s*"Gelasio", serif/);
+  assert.match(adminCss, /--font-body:\s*"Inter", sans-serif/);
+  assert.match(adminCss, /url\("\/templates\/beez3\/webfont\/Gelasio-Variable\.woff2"\)/);
+  assert.match(adminCss, /url\("\/templates\/beez3\/webfont\/Inter-Variable\.woff2"\)/);
   assert.match(adminCss, /--font-heading:\s*var\(--font-title\)/);
   assert.match(adminCss, /--font-sans:\s*var\(--font-body\)/);
-  assert.match(adminHtml, /typography\.css\?v=20260812-attorney-profiles/);
+  assert.match(adminHtml, /typography\.css\?v=20260813-admin-font-cache/);
   assert.match(server, /Inter-Variable\.woff2/);
   assert.match(server, /Gelasio-Variable\.woff2/);
   assert.match(server, /normalizeLegacyTypography/);
@@ -63,6 +67,8 @@ test('el panel aísla su interfaz en Inter sin desactivar la tipografía editori
 
   assert.match(adminLayout, /<SidebarProvider className="admin-shell">/);
   assert.match(adminLogin, /<div className="admin-shell min-h-screen/);
+  assert.match(adminCss, /@font-face\s*\{[\s\S]*?font-family:\s*"Inter"[\s\S]*?Inter-Variable\.woff2/);
+  assert.match(adminCss, /:root\s*\{[\s\S]*?--font-body:\s*"Inter", sans-serif/);
   assert.match(adminCss, /\.admin-shell\s*\{[\s\S]*?--font-heading:\s*var\(--font-body\)/);
   assert.match(adminCss, /\.admin-shell\s*\{[\s\S]*?--font-serif:\s*var\(--font-body\)/);
   assert.match(adminCss, /\.admin-shell\s+:where\(h1, h2, h3, h4, h5, h6\)\s*\{[\s\S]*?font-family:\s*var\(--font-body\)\s*!important/);
