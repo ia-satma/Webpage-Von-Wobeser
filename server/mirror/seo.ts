@@ -339,11 +339,11 @@ export function applyA11y($: cheerio.CheerioAPI, lang: Lang): void {
     });
   });
 
-  if ($('link[href^="/vwb-cookie-consent.css"]').length === 0) {
-  $("head").append('<link rel="stylesheet" href="/vwb-cookie-consent.css?v=20260812-contact-map">');
+  if ($('link[href^="/vwb-privacy-preferences.css"]').length === 0) {
+    $("head").append('<link rel="stylesheet" href="/vwb-privacy-preferences.css?v=20260813-brave">');
   }
-  if ($('script[src^="/vwb-cookie-consent.js"]').length === 0) {
-    $("body").append('<script defer src="/vwb-cookie-consent.js?v=20260806e"></script>');
+  if ($('script[src^="/vwb-privacy-preferences.js"]').length === 0) {
+    $("body").append('<script defer src="/vwb-privacy-preferences.js?v=20260813-brave"></script>');
   }
   $("a,button").each((_, el) => {
     const $el = $(el);
@@ -593,7 +593,7 @@ export function applySeo($: cheerio.CheerioAPI, opts: SeoOptions): void {
   upsertMeta($, "name", "google-site-verification", GSC_VERIFICATION);
 
   // GA4 nunca se inserta aquí. El identificador se expone de forma inerte por
-  // `/api/public/consent-config` y el navegador carga gtag.js únicamente si el
+  // `/api/public/privacy-preferences` y el navegador carga gtag.js únicamente si el
   // visitante autoriza la categoría Analítica.
   $("head script")
     .filter((_, el) => /gtag\(/.test($(el).html() || ""))

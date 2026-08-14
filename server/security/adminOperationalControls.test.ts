@@ -1,7 +1,12 @@
+import { readMirrorSources } from "./mirrorTestSources";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import test from "node:test";
 import * as cheerio from "cheerio";
+import { readRouteSources } from "./routeTestSources";
+import { readStorageSources } from "./storageTestSources";
+import { readSchemaSources } from "./schemaTestSources";
+import { readAdminFeatureSources } from "./adminFeatureTestSources";
 
 process.env.DATABASE_URL ||= "postgresql://test:test@127.0.0.1:5432/test";
 
@@ -98,9 +103,9 @@ test("Newsletter oculta solo la etiqueta vacía y permite restaurarla desde conf
 
 test("Newsletter conserva un único flujo entre Home, PostgreSQL y Administración", () => {
   const homeSource = readFileSync(new URL("../mirror/renderHome.ts", import.meta.url), "utf8");
-  const routesSource = readFileSync(new URL("../routes.ts", import.meta.url), "utf8");
-  const storageSource = readFileSync(new URL("../storage.ts", import.meta.url), "utf8");
-  const schemaSource = readFileSync(new URL("../../shared/schema.ts", import.meta.url), "utf8");
+  const routesSource = readRouteSources();
+  const storageSource = readStorageSources();
+  const schemaSource = readSchemaSources();
   const adminSource = readFileSync(
     new URL("../../client/src/pages/admin/AdminNewsletter.tsx", import.meta.url),
     "utf8",
@@ -189,10 +194,7 @@ test("los tres textos institucionales del Home están ocultos por defecto y se r
   );
   assert.doesNotMatch(publicCss, /\.home__carousel-section--separated::before/);
 
-  const adminSource = readFileSync(
-    new URL("../../client/src/pages/admin/AdminSiteConfig.tsx", import.meta.url),
-    "utf8",
-  );
+  const adminSource = readAdminFeatureSources("site-config", "AdminSiteConfig.tsx");
   for (const key of [
     "home_experience_visible",
     "home_team_stats_visible",
@@ -206,8 +208,8 @@ test("los tres textos institucionales del Home están ocultos por defecto y se r
 });
 
 test("el registro de accesos resuelve identidad sin exponer hashes como correo", () => {
-  const storageSource = readFileSync(new URL("../storage.ts", import.meta.url), "utf8");
-  const routesSource = readFileSync(new URL("../routes.ts", import.meta.url), "utf8");
+  const storageSource = readStorageSources();
+  const routesSource = readRouteSources();
   const adminSource = readFileSync(
     new URL("../../client/src/pages/admin/AdminUsers.tsx", import.meta.url),
     "utf8",
@@ -227,7 +229,7 @@ test("el registro de accesos resuelve identidad sin exponer hashes como correo",
 });
 
 test("el gasto estimado de IA solo está disponible para Dueño y Administrador", () => {
-  const routesSource = readFileSync(new URL("../routes.ts", import.meta.url), "utf8");
+  const routesSource = readRouteSources();
   const dashboardSource = readFileSync(
     new URL("../../client/src/pages/admin/AdminDashboard.tsx", import.meta.url),
     "utf8",
@@ -247,11 +249,8 @@ test("el gasto estimado de IA solo está disponible para Dueño y Administrador"
 });
 
 test("servidor y panel validan de una a diez páginas de noticias", () => {
-  const serverSource = readFileSync(new URL("../mirror/index.ts", import.meta.url), "utf8");
-  const adminSource = readFileSync(
-    new URL("../../client/src/pages/admin/AdminSiteConfig.tsx", import.meta.url),
-    "utf8",
-  );
+  const serverSource = readMirrorSources();
+  const adminSource = readAdminFeatureSources("site-config", "AdminSiteConfig.tsx");
 
   assert.match(serverSource, /req\.params\.key === "home_news_pages"/);
   assert.match(serverSource, /z\.coerce\.number\(\)\.int\(\)\.min\(1\)\.max\(10\)/);

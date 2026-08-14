@@ -4,14 +4,18 @@ import { type Server } from "http";
 import viteConfig from "../vite.config";
 import fs from "fs";
 import path from "path";
-import { nanoid } from "nanoid";
+import { createViteWebSocketOptions } from "./viteWebSocket";
 
 const viteLogger = createLogger();
 
 export async function setupVite(server: Server, app: Express) {
   const serverOptions = {
     middlewareMode: true,
-    hmr: { server, path: "/vite-hmr" },
+    // Vite 8 moved transport settings from `server.hmr` to `server.ws`.
+    // Replit terminates TLS at its proxy, so the browser must use the public
+    // WSS endpoint while the actual upgrade still lands on this HTTP server.
+    ws: createViteWebSocketOptions(server),
+    hmr: { overlay: true },
     allowedHosts: true as const,
   };
 
@@ -42,14 +46,17 @@ export async function setupVite(server: Server, app: Express) {
         "index.html",
       );
 
-      // always reload the index.html file from disk incase it changes
-      let template = await fs.promises.readFile(clientTemplate, "utf-8");
-      template = template.replace(
-        `src="/src/main.tsx"`,
-        `src="/src/main.tsx?v=${nanoid()}"`,
-      );
+      // Siempre releer el HTML, pero conservar una entrada estable. Vite
+      // administra la invalidación de módulos; añadir queries aleatorias aquí
+      // puede desacoplar la entrada de los hashes vigentes de optimizeDeps.
+      const template = await fs.promises.readFile(clientTemplate, "utf-8");
       const page = await vite.transformIndexHtml(url, template);
-      res.status(200).set({ "Content-Type": "text/html" }).end(page);
+      res.status(200).set({
+        "Content-Type": "text/html",
+        "Cache-Control": "private, no-store, max-age=0",
+        Pragma: "no-cache",
+        Expires: "0",
+      }).end(page);
     } catch (e) {
       vite.ssrFixStacktrace(e as Error);
       next(e);

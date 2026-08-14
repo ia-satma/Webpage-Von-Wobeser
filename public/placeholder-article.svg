@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 675" role="img" aria-labelledby="title description">
+  <title id="title">Von Wobeser y Sierra</title>
+  <desc id="description">Imagen institucional para publicaciones sin imagen destacada.</desc>
+  <rect width="1200" height="675" fill="#f3f1ee"/>
+  <path d="M0 523h1200v152H0z" fill="#e7e3df"/>
+  <path d="M96 113h8v370h-8z" fill="#b31b34"/>
+  <path d="M142 164h670v18H142zm0 62h520v12H142zm0 34h610v12H142z" fill="#77736f"/>
+  <path d="M142 403h250v8H142zm0 27h182v8H142z" fill="#b31b34"/>
+  <text x="96" y="603" fill="#5e5a57" font-family="Inter, Arial, Helvetica, sans-serif" font-size="34" letter-spacing="8">VON WOBESER</text>
+</svg>

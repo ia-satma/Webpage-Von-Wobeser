@@ -18,9 +18,13 @@ jobs:
         with:
           node-version: "24.7.0"
           cache: npm
+      - name: Install video validation runtime
+        run: |
+          sudo apt-get update
+          sudo apt-get install --no-install-recommends --yes ffmpeg
       - run: npm ci
       - run: npm run check
       - run: npm run test:security
       - run: npm run test:performance
       - run: npm run build
-      - run: npm audit --audit-level=high
+      - run: npm run audit:high

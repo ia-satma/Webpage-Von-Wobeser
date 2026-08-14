@@ -1,3 +1,4 @@
+import { readMirrorSources } from "./mirrorTestSources";
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
@@ -16,6 +17,10 @@ import {
   parseAgentPayload,
   seoOptimizationSchema,
 } from '../agents/core/contracts';
+import { readRouteSources } from './routeTestSources';
+import { readStorageSources } from './storageTestSources';
+import { readAdminFeatureSources } from './adminFeatureTestSources';
+import { readAgentOrchestratorSources } from './agentOrchestratorTestSources';
 
 const ARTICLE_ID = '11111111-1111-4111-8111-111111111111';
 
@@ -146,20 +151,17 @@ test('missing runtime agents and conceptual services are rejected by inventory v
 
 test('administrative article processing uses private content and the canonical orchestrator', () => {
   const root = process.cwd();
-  const adminSource = fs.readFileSync(
-    path.join(root, 'client/src/pages/admin/AdminArticleProcessing.tsx'),
-    'utf8',
+  const adminSource = readAdminFeatureSources(
+    'article-processing',
+    'AdminArticleProcessing.tsx',
   );
-  const routeSource = fs.readFileSync(path.join(root, 'server/routes.ts'), 'utf8');
-  const storageSource = fs.readFileSync(path.join(root, 'server/storage.ts'), 'utf8');
+  const routeSource = readRouteSources();
+  const storageSource = readStorageSources();
   const progressModalSource = fs.readFileSync(
     path.join(root, 'client/src/components/PipelineProgressModal.tsx'),
     'utf8',
   );
-  const orchestratorSource = fs.readFileSync(
-    path.join(root, 'server/agents/core/AgentOrchestrator.ts'),
-    'utf8',
-  );
+  const orchestratorSource = readAgentOrchestratorSources();
 
   assert.match(adminSource, /\/api\/admin\/news\?limit=100/);
   assert.doesNotMatch(adminSource, /queryKey:\s*\["\/api\/news"\]/);
@@ -168,7 +170,7 @@ test('administrative article processing uses private content and the canonical o
       < routeSource.indexOf('"/api/agents/pipeline/:articleId"'),
     'the exact batch route must be registered before the dynamic article route',
   );
-  assert.match(orchestratorSource, /parseAgentPayload\(agentType, payload\)/);
+  assert.match(orchestratorSource, /parsePayload\(agentType, payload\)/);
   assert.match(routeSource, /orchestrator\.runPipeline\(articleId, stages,\s*\{/);
   assert.match(routeSource, /onProgress:\s*\(\{ stage, status, index, message \}\)/);
   assert.match(routeSource, /legal_council:\s*'council'/);
@@ -200,7 +202,7 @@ test('agent previews and administrative actions cannot report or apply unsafe ch
     path.join(root, 'server/agents/api/agentRoutes.ts'),
     'utf8',
   );
-  const routesSource = fs.readFileSync(path.join(root, 'server/routes.ts'), 'utf8');
+  const routesSource = readRouteSources();
   const detailSource = fs.readFileSync(
     path.join(root, 'client/src/pages/admin/AdminArticleDetail.tsx'),
     'utf8',
@@ -229,8 +231,8 @@ test('CMS editors use private data and gallery reordering is transactional', () 
     path.join(root, 'client/src/pages/admin/GalleryAdmin.tsx'),
     'utf8',
   );
-  const routeSource = fs.readFileSync(path.join(root, 'server/routes.ts'), 'utf8');
-  const storageSource = fs.readFileSync(path.join(root, 'server/storage.ts'), 'utf8');
+  const routeSource = readRouteSources();
+  const storageSource = readStorageSources();
 
   assert.match(newsFormSource, /queryKey:\s*\["\/api\/admin\/news", id\]/);
   assert.match(newsFormSource, /adminApiRequest\("GET", `\/api\/admin\/news\/\$\{id\}`\)/);
@@ -246,20 +248,19 @@ test('CMS editors use private data and gallery reordering is transactional', () 
 });
 
 test('translation administration has one status contract and only persists draft translations', () => {
-  const root = process.cwd();
-  const routesSource = fs.readFileSync(path.join(root, 'server/routes.ts'), 'utf8');
-  const mirrorSource = fs.readFileSync(path.join(root, 'server/mirror/index.ts'), 'utf8');
-  const translationsSource = fs.readFileSync(
-    path.join(root, 'client/src/pages/admin/AdminTranslations.tsx'),
-    'utf8',
+  const routesSource = readRouteSources();
+  const mirrorSource = readMirrorSources();
+  const translationsSource = readAdminFeatureSources(
+    'translations',
+    'AdminTranslations.tsx',
   );
-  const processingSource = fs.readFileSync(
-    path.join(root, 'client/src/pages/admin/AdminArticleProcessing.tsx'),
-    'utf8',
+  const processingSource = readAdminFeatureSources(
+    'article-processing',
+    'AdminArticleProcessing.tsx',
   );
 
   assert.match(routesSource, /res\.json\(\{ counts, news: translationStatus \}\)/);
-  assert.match(translationsSource, /type TranslationResponse = \{[\s\S]*counts: Record<string, number>;[\s\S]*news: TranslationCounts\[\]/);
+  assert.match(translationsSource, /interface TranslationResponse \{[\s\S]*counts: Record<string, number>;[\s\S]*news: TranslationCounts\[\]/);
   assert.match(translationsSource, /stats\.totalArticles/);
   assert.match(processingSource, /translationCountsQuery\.data\?\.counts/);
 
@@ -283,10 +284,7 @@ test('administrative mutations always recover their controls after transport fai
     'utf8',
   );
   const usersSource = fs.readFileSync(path.join(root, 'client/src/pages/admin/AdminUsers.tsx'), 'utf8');
-  const siteConfigSource = fs.readFileSync(
-    path.join(root, 'client/src/pages/admin/AdminSiteConfig.tsx'),
-    'utf8',
-  );
+  const siteConfigSource = readAdminFeatureSources('site-config', 'AdminSiteConfig.tsx');
 
   assert.match(passwordSource, /setBusy\(true\);[\s\S]*?catch \{[\s\S]*?finally \{[\s\S]*?setBusy\(false\)/);
   assert.match(translateButtonSource, /setLoading\(true\);[\s\S]*?catch \{[\s\S]*?finally \{[\s\S]*?setLoading\(false\)/);

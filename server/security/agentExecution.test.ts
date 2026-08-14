@@ -22,6 +22,7 @@ const [
   { NewsletterAgent },
   { ContentAuditorAgent },
   { WebsiteAuditorAgent },
+  { orchestrator },
   { storage },
   { voiceGenerator },
   { presentationGenerator },
@@ -42,6 +43,7 @@ const [
   import('../agents/specialized/NewsletterAgent'),
   import('../agents/specialized/ContentAuditorAgent'),
   import('../agents/specialized/WebsiteAuditorAgent'),
+  import('../agents/core/AgentOrchestrator'),
   import('../storage'),
   import('../services/VoiceGenerator'),
   import('../services/PresentationGenerator'),
@@ -237,6 +239,140 @@ test('website auditor completes an isolated no-module dry run without persistenc
   } finally {
     createAuditMock.mock.restore();
     updateAuditMock.mock.restore();
+  }
+});
+
+test('website auditor never enqueues remediation work in diagnostic mode', async () => {
+  const auditor = new WebsiteAuditorAgent();
+  const createAuditMock = mock.method(
+    storage,
+    'createWebsiteAudit',
+    async () => ({ id: 'diagnostic-website-audit' } as never),
+  );
+  const updateAuditMock = mock.method(
+    storage,
+    'updateWebsiteAudit',
+    async () => ({ id: 'diagnostic-website-audit' } as never),
+  );
+  const saveFindingsMock = mock.method(
+    auditor as unknown as { saveFindings: () => Promise<unknown[]> },
+    'saveFindings',
+    async () => [{
+      id: 'diagnostic-finding',
+      auditId: 'diagnostic-website-audit',
+      category: 'seo',
+      issueType: 'missing_meta',
+      severity: 'medium',
+      status: 'open',
+      entityType: 'news',
+      entityId: '11111111-1111-4111-8111-111111111111',
+      language: 'es',
+      url: null,
+      details: {},
+      recommendation: 'Review SEO metadata',
+      ownerAgent: 'seo_optimizer',
+      reportedAt: new Date(),
+      resolvedAt: null,
+      resolvedBy: null,
+      remediationJobId: null,
+    }],
+  );
+  const enqueueMock = mock.method(
+    orchestrator,
+    'enqueueJob',
+    async () => {
+      throw new Error('Diagnostic execution attempted to enqueue a job');
+    },
+  );
+
+  try {
+    const result = await auditor.execute(
+      context('website_auditor'),
+      {
+        runType: 'full',
+        skipModules: ['translations', 'content', 'seo', 'links'],
+        applyChanges: false,
+        triggeredBy: 'diagnostic-test',
+      },
+    );
+
+    assert.equal(result.success, true);
+    assert.equal((result.data as { findings: number }).findings, 1);
+    assert.equal(enqueueMock.mock.callCount(), 0);
+  } finally {
+    enqueueMock.mock.restore();
+    saveFindingsMock.mock.restore();
+    updateAuditMock.mock.restore();
+    createAuditMock.mock.restore();
+  }
+});
+
+test('website auditor preserves explicitly authorized remediation enqueueing', async () => {
+  const auditor = new WebsiteAuditorAgent();
+  const createAuditMock = mock.method(
+    storage,
+    'createWebsiteAudit',
+    async () => ({ id: 'authorized-website-audit' } as never),
+  );
+  const updateAuditMock = mock.method(
+    storage,
+    'updateWebsiteAudit',
+    async () => ({ id: 'authorized-website-audit' } as never),
+  );
+  const updateFindingMock = mock.method(
+    storage,
+    'updateWebsiteAuditFinding',
+    async () => ({ id: 'authorized-finding' } as never),
+  );
+  const saveFindingsMock = mock.method(
+    auditor as unknown as { saveFindings: () => Promise<unknown[]> },
+    'saveFindings',
+    async () => [{
+      id: 'authorized-finding',
+      auditId: 'authorized-website-audit',
+      category: 'seo',
+      issueType: 'missing_meta',
+      severity: 'medium',
+      status: 'open',
+      entityType: 'news',
+      entityId: '22222222-2222-4222-8222-222222222222',
+      language: 'es',
+      url: null,
+      details: {},
+      recommendation: 'Review SEO metadata',
+      ownerAgent: 'seo_optimizer',
+      reportedAt: new Date(),
+      resolvedAt: null,
+      resolvedBy: null,
+      remediationJobId: null,
+    }],
+  );
+  const enqueueMock = mock.method(
+    orchestrator,
+    'enqueueJob',
+    async () => ({ id: 'authorized-job' } as never),
+  );
+
+  try {
+    const result = await auditor.execute(
+      context('website_auditor'),
+      {
+        runType: 'full',
+        skipModules: ['translations', 'content', 'seo', 'links'],
+        applyChanges: true,
+        triggeredBy: 'authorized-test',
+      },
+    );
+
+    assert.equal(result.success, true);
+    assert.equal(enqueueMock.mock.callCount(), 1);
+    assert.equal(updateFindingMock.mock.callCount(), 1);
+  } finally {
+    enqueueMock.mock.restore();
+    saveFindingsMock.mock.restore();
+    updateFindingMock.mock.restore();
+    updateAuditMock.mock.restore();
+    createAuditMock.mock.restore();
   }
 });
 

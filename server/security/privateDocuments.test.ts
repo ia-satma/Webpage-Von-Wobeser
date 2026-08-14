@@ -13,6 +13,7 @@ import {
   encryptPrivatePayload,
   validatePrivateManifest,
 } from "../../scripts/handoff-private-documents.mjs";
+import { readRouteSources } from "./routeTestSources";
 
 test("las rutas de CV privadas aceptan solo nombres físicos aleatorios", () => {
   const filename = `${"a".repeat(32)}.pdf`;
@@ -62,7 +63,7 @@ test("el manifiesto privado exige nombres, hashes y archivos únicos", () => {
 });
 
 test("la ruta de solicitudes persiste y recupera CV privados", async () => {
-  const routes = await fs.readFile(path.join(process.cwd(), "server", "routes.ts"), "utf8");
+  const routes = readRouteSources();
   const migration = await fs.readFile(
     path.join(process.cwd(), "scripts", "migrate-private-cvs-to-app-storage.ts"),
     "utf8",

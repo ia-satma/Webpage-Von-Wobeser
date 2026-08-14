@@ -10,6 +10,7 @@ import {
   isTypographyFamily,
 } from "@shared/editorialTypography";
 import { renderSingle } from "../mirror/renderSingle";
+import { readRouteSources } from "./routeTestSources";
 
 const root = process.cwd();
 const read = (relative: string) => fs.readFileSync(path.join(root, relative), "utf8");
@@ -45,7 +46,7 @@ test("el render público aplica sólo una elección explícita y auto conserva e
 
 test("el panel y la API no permiten CSS o fuentes libres", () => {
   const editor = read("client/src/components/admin/RichTextEditor.tsx");
-  const routes = read("server/routes.ts");
+  const routes = readRouteSources();
   const css = read("frontend-mirror/templates/beez3/css/typography.css");
   assert.match(editor, /data-vw-font/);
   assert.match(editor, /Gelasio editorial/);

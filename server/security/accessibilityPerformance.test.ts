@@ -1,7 +1,9 @@
+import { readMirrorSources } from "./mirrorTestSources";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import test from "node:test";
 import * as cheerio from "cheerio";
+import { readAdminFeatureSources } from "./adminFeatureTestSources";
 
 process.env.DATABASE_URL ||= "postgresql://test:test@127.0.0.1:5432/test";
 
@@ -97,10 +99,7 @@ test("el selector de idioma presenta Español e English y conserva rutas alterna
 });
 
 test("las cuatro categorías de Abogados tienen ruta limpia bilingüe antes del catch-all", () => {
-  const mirrorServer = readFileSync(
-    new URL("../mirror/index.ts", import.meta.url),
-    "utf8",
-  );
+  const mirrorServer = readMirrorSources();
   const searchRoute = mirrorServer.indexOf('app.get("/attorneys/buscar"');
   const categoryRoute = mirrorServer.indexOf('app.get("/attorneys/:category"');
   const catchAll = mirrorServer.indexOf("app.use((req: Request, res: Response, next: NextFunction)");
@@ -117,10 +116,7 @@ test("las cuatro categorías de Abogados tienen ruta limpia bilingüe antes del 
 });
 
 test("las rutas públicas, APIs y recursos inexistentes conservan un 404 real", () => {
-  const mirrorServer = readFileSync(
-    new URL("../mirror/index.ts", import.meta.url),
-    "utf8",
-  );
+  const mirrorServer = readMirrorSources();
   const mainServer = readFileSync(new URL("../index.ts", import.meta.url), "utf8");
   const staticServer = readFileSync(new URL("../static.ts", import.meta.url), "utf8");
   const template = `<!doctype html><html lang="es"><head><title>Publicaciones</title></head><body>
@@ -199,8 +195,8 @@ test("la portada alterna entre Visión, misión y valores editorial y su diseño
   const editorialEn = cheerio.load(renderHome(template.replace('lang="es"', 'lang="en"'), [], config, "en"));
   const classic = cheerio.load(renderHome(template, [], { ...config, home_about_layout: { value: "classic", valueEs: "classic", type: "select" } }, "es"));
   const css = readFileSync(new URL("../../frontend-mirror/templates/beez3/css/von.css", import.meta.url), "utf8");
-  const admin = readFileSync(new URL("../../client/src/pages/admin/AdminSiteConfig.tsx", import.meta.url), "utf8");
-  const server = readFileSync(new URL("../mirror/index.ts", import.meta.url), "utf8");
+  const admin = readAdminFeatureSources("site-config", "AdminSiteConfig.tsx");
+  const server = readMirrorSources();
 
   assert.equal(editorialEs(".home-about-editorial").length, 1);
   assert.equal(editorialEs("[data-home-about-reveal]").length, 1);
@@ -693,6 +689,7 @@ test("la carga pública elimina librerías Joomla duplicadas y usa jQuery vigent
     <script src="/media/jui/js/jquery.min.js"></script>
     <script src="/media/jui/js/jquery-noconflict.js"></script>
     <script src="/media/jui/js/jquery-migrate.min.js"></script>
+    <script src="/media/jui/js/bootstrap.min.js"></script>
     <script src="/media/system/js/core.js"></script>
     <script src="/templates/beez3/js/min/jquery_3.3.1.min.js"></script>
     <script src="/templates/beez3/js/min/slick.min.js"></script>

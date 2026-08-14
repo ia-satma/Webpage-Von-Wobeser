@@ -16,6 +16,7 @@ import {
   storeChunkedMediaPart,
 } from "../media/chunkedUpload";
 import { sanitizeRasterImage } from "../media/optimizeImage";
+import { readRouteSources } from "./routeTestSources";
 import {
   validateCvFile,
   inspectVideoContainer,
@@ -30,7 +31,7 @@ test("presentation uploader supports multiple client files up to 100 MB each", a
     path.join(root, "client/src/components/admin/DocumentUpload.tsx"),
     "utf8",
   );
-  const routeSource = await fs.readFile(path.join(root, "server/routes.ts"), "utf8");
+  const routeSource = readRouteSources();
 
   assert.match(clientSource, /const MAX_DOCUMENTS = 20/);
   assert.match(clientSource, /const MAX_DOCUMENT_MB = 100/);
@@ -218,7 +219,7 @@ test("admin media upload exposes progress and keeps the 200 MB video limit expli
     path.join(root, "client/src/components/admin/ImageUpload.tsx"),
     "utf8",
   );
-  const routeSource = await fs.readFile(path.join(root, "server/routes.ts"), "utf8");
+  const routeSource = readRouteSources();
 
   assert.match(clientSource, /MAX_ADMIN_MEDIA_MB = 200/);
   assert.match(clientSource, /CHUNKED_UPLOAD_THRESHOLD = 6 \* 1024 \* 1024/);

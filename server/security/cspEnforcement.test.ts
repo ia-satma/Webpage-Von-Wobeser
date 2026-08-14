@@ -1,3 +1,4 @@
+import { readMirrorSources } from "./mirrorTestSources";
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
 import { existsSync, readFileSync } from "node:fs";
@@ -63,8 +64,12 @@ test("trusted HTML receives nonce and SRI while unknown remote scripts do not", 
 });
 
 test("SRI manifest exactly matches every local immutable asset", () => {
+  const aliases: Record<string, string> = {
+    "/vwb-privacy-preferences.css": "/vwb-cookie-consent.css",
+    "/vwb-privacy-preferences.js": "/vwb-cookie-consent.js",
+  };
   for (const [url, integrity] of Object.entries(LOCAL_SRI_MANIFEST)) {
-    const relative = url.replace(/^\//, "");
+    const relative = (aliases[url] || url).replace(/^\//, "");
     const file = relative.startsWith("vwb-")
       ? path.resolve(process.cwd(), "public", relative)
       : path.resolve(process.cwd(), "frontend-mirror", relative);
@@ -89,7 +94,7 @@ test("production CSP is enforced and does not permit inline script attributes", 
 });
 
 test("public HTML is not shared between visitors when it contains a nonce", () => {
-  const mirror = readFileSync(new URL("../mirror/index.ts", import.meta.url), "utf8");
+  const mirror = readMirrorSources();
   const staticServer = readFileSync(new URL("../static.ts", import.meta.url), "utf8");
   assert.match(mirror, /prepareTrustedHtmlForCsp\(out, nonce\)/);
   assert.match(mirror, /res\.set\("Cache-Control", "private, no-store"\)/);

@@ -16,6 +16,7 @@ regexes = ['''^ga4_measurement_id$''']
 paths = [
   '''^server/mirror/siteConfig\.ts$''',
   '''^client/src/pages/admin/AdminSiteConfig\.tsx$''',
+  '''^client/src/features/admin/site-config/registry\.ts$''',
 ]
 
 # La regla genérica interpreta objetos CMS `{ key, value }` como pares de

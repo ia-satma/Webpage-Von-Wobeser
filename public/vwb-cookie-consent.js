@@ -241,7 +241,10 @@
   window.addEventListener(OPEN_EVENT, openDialog);
 
   const requestConfig = () => {
-    const url = `/api/public/consent-config?lang=${lang()}`;
+    // Algunos bloqueadores de privacidad interceptan rutas que contienen
+    // "consent" aunque sean same-origin. El nombre neutro evita que el mapa y
+    // el panel de preferencias queden en un estado pendiente permanente.
+    const url = `/api/public/privacy-preferences?lang=${lang()}`;
     if (typeof window.fetch === "function") {
       return window.fetch(url, { credentials: "same-origin" }).then(async (response) => {
         if (!response.ok) throw new Error("Consent configuration unavailable");

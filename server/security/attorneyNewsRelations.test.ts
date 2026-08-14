@@ -1,7 +1,10 @@
+import { readMirrorSources } from "./mirrorTestSources";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import test from "node:test";
 import * as cheerio from "cheerio";
+import { readRouteSources } from "./routeTestSources";
+import { readStorageSources } from "./storageTestSources";
 
 process.env.DATABASE_URL ||= "postgresql://test:test@127.0.0.1:5432/test";
 
@@ -109,7 +112,7 @@ test("el archivo conserva el filtro de autor al buscar y paginar", () => {
 test("el panel manda vínculos desde la creación y expone revisión humana", () => {
   const form = readFileSync(new URL("../../client/src/pages/admin/AdminNewsForm.tsx", import.meta.url), "utf8");
   const review = readFileSync(new URL("../../client/src/pages/admin/AdminNewsAuthorReview.tsx", import.meta.url), "utf8");
-  const routes = readFileSync(new URL("../routes.ts", import.meta.url), "utf8");
+  const routes = readRouteSources();
   assert.match(form, /teamMemberIds:\s*authorIds/);
   assert.match(form, /tags:\s*form\.tags/);
   assert.match(form, /input-author-search/);
@@ -128,8 +131,8 @@ test("las perspectivas del perfil se presentan en una franja horizontal antes de
 });
 
 test("el detalle recomienda publicaciones por etiquetas, autores y categoría sin repetir la actual", () => {
-  const storage = readFileSync(new URL("../storage.ts", import.meta.url), "utf8");
-  const mirror = readFileSync(new URL("../mirror/index.ts", import.meta.url), "utf8");
+  const storage = readStorageSources();
+  const mirror = readMirrorSources();
   const css = readFileSync(new URL("../../frontend-mirror/templates/beez3/css/von.css", import.meta.url), "utf8");
   assert.match(storage, /getEditorialRecommendations/);
   assert.match(storage, /arrayOverlaps\(news\.tags, tags\)/);

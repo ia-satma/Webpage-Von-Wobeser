@@ -12,15 +12,17 @@ import {
 import { normalizeMirrorName, parseMirrorMetaName } from "../mirror/practiceIdentity";
 import { renderSingle } from "../mirror/renderSingle";
 import { renderRichText } from "../mirror/sanitize";
+import { readAdminFeatureSources } from "./adminFeatureTestSources";
 
 const mirrorDir = path.resolve(process.cwd(), "frontend-mirror");
 const typographyCss = fs.readFileSync(
   path.join(mirrorDir, "templates", "beez3", "css", "typography.css"),
   "utf8",
 );
-const adminIndustrySource = fs.readFileSync(
-  path.resolve(process.cwd(), "client", "src", "pages", "admin", "AdminIndustryGroups.tsx"),
-  "utf8",
+const adminIndustrySource = readAdminFeatureSources(
+  "industry-groups",
+  "AdminIndustryGroups.tsx",
+  ["capability-groups"],
 );
 
 test("el snapshot canónico contiene las 7 industrias oficiales bilingües y contenido seguro", () => {

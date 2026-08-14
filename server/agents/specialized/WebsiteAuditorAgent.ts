@@ -5,8 +5,15 @@ import { storage } from '../../storage';
 import { getConfigMap } from '../../mirror/siteConfig';
 import { fetchStatusWithPolicy } from '../../security/network';
 import type { InsertWebsiteAuditFinding, WebsiteAuditFinding, TeamMember, PracticeGroup, IndustryGroup, News } from '@shared/schema';
-import * as fs from 'node:fs';
-import * as path from 'node:path';
+import { publicImageAssetExists } from './websiteAuditMedia';
+import {
+  industryGroupContentIssues,
+  isPublishedEntity,
+  isPublicNews,
+  newsSeoIssues,
+  practiceGroupContentIssues,
+  teamMemberContentIssues,
+} from './websiteAuditPolicy';
 
 const SUPPORTED_LANGUAGES = ['en', 'es', 'de', 'zh', 'ko', 'ja', 'ar', 'ru', 'fr', 'it'];
 
@@ -126,11 +133,13 @@ Be thorough but prioritize critical issues that directly impact users.`,
       console.log(`[WebsiteAuditor] Created audit record: ${this.auditId}`);
 
       const modulesToRun = this.getModulesToRun(config);
+      const completedModules: string[] = [];
       console.log(`[WebsiteAuditor] Running modules: ${modulesToRun.join(', ')}`);
 
       for (const module of modulesToRun) {
         try {
           await this.runModule(module);
+          completedModules.push(module);
         } catch (error) {
           console.error(`[WebsiteAuditor] Module ${module} failed:`, error);
           this.addFinding({
@@ -147,7 +156,19 @@ Be thorough but prioritize critical issues that directly impact users.`,
       this.metrics.executionTimeMs = this.metrics.endTime - this.metrics.startTime;
 
       const savedFindings = await this.saveFindings();
-      await this.autoEnqueueNewsFixers(savedFindings);
+      const supersededCount = await storage.supersedeOpenWebsiteAuditFindings(
+        this.auditId,
+        completedModules,
+      );
+      if (supersededCount > 0) {
+        console.log(`[WebsiteAuditor] Superseded ${supersededCount} findings from earlier audits.`);
+      }
+      // Un diagnóstico debe limitarse a registrar hallazgos. Encolar agentes consume
+      // recursos y crea trabajo persistente, por lo que solo está permitido cuando la
+      // ejecución recibió autorización explícita para aplicar cambios.
+      if (this.allowChanges) {
+        await this.autoEnqueueNewsFixers(savedFindings);
+      }
 
       const severityCounts = this.countBySeverity();
       await storage.updateWebsiteAudit(this.auditId, {
@@ -236,12 +257,16 @@ Be thorough but prioritize critical issues that directly impact users.`,
   private async auditTranslations(): Promise<void> {
     console.log('[WebsiteAuditor] Auditing translations...');
     
-    const [teamMembers, practiceGroups, industryGroups, newsItems] = await Promise.all([
+    const [allTeamMembers, allPracticeGroups, allIndustryGroups, allNewsItems] = await Promise.all([
       storage.getTeamMembers(),
       storage.getPracticeGroups(),
       storage.getIndustryGroups(),
       storage.getNews(),
     ]);
+    const teamMembers = allTeamMembers.filter(isPublishedEntity);
+    const practiceGroups = allPracticeGroups.filter(isPublishedEntity);
+    const industryGroups = allIndustryGroups.filter(isPublishedEntity);
+    const newsItems = allNewsItems.filter((item) => isPublicNews(item));
 
     for (const member of teamMembers) {
       this.metrics.translationsChecked++;
@@ -317,6 +342,7 @@ Be thorough but prioritize critical issues that directly impact users.`,
     const fields = [
       { en: 'name', es: 'nameEs' },
       { en: 'description', es: 'descriptionEs' },
+      { en: 'fullDescription', es: 'fullDescriptionEs' },
     ];
 
     for (const { en, es } of fields) {
@@ -343,6 +369,7 @@ Be thorough but prioritize critical issues that directly impact users.`,
     const fields = [
       { en: 'name', es: 'nameEs' },
       { en: 'description', es: 'descriptionEs' },
+      { en: 'fullDescription', es: 'fullDescriptionEs' },
     ];
 
     for (const { en, es } of fields) {
@@ -398,11 +425,14 @@ Be thorough but prioritize critical issues that directly impact users.`,
   private async auditContent(): Promise<void> {
     console.log('[WebsiteAuditor] Auditing content completeness...');
     
-    const [teamMembers, practiceGroups, industryGroups] = await Promise.all([
+    const [allTeamMembers, allPracticeGroups, allIndustryGroups] = await Promise.all([
       storage.getTeamMembers(),
       storage.getPracticeGroups(),
       storage.getIndustryGroups(),
     ]);
+    const teamMembers = allTeamMembers.filter(isPublishedEntity);
+    const practiceGroups = allPracticeGroups.filter(isPublishedEntity);
+    const industryGroups = allIndustryGroups.filter(isPublishedEntity);
 
     for (const member of teamMembers) {
       this.metrics.contentItemsChecked++;
@@ -423,32 +453,7 @@ Be thorough but prioritize critical issues that directly impact users.`,
   }
 
   private async checkTeamMemberContent(member: TeamMember): Promise<void> {
-    const issues: string[] = [];
-
-    if (!member.bio || member.bio.length < 50) {
-      issues.push('Missing or short biography');
-    }
-
-    if (!member.imageUrl) {
-      issues.push('Missing profile photo');
-    }
-
-    if (!member.email) {
-      issues.push('Missing email');
-    }
-
-    if (!member.phone) {
-      issues.push('Missing phone number');
-    }
-
-
-    if (!member.education || (member.education as any[]).length === 0) {
-      issues.push('No education listed');
-    }
-
-    if (!member.barAdmissions || (member.barAdmissions as any[]).length === 0) {
-      issues.push('No bar admissions listed');
-    }
+    const issues = teamMemberContentIssues(member);
 
     if (issues.length > 0) {
       const severity = issues.length >= 3 ? 'high' : 'medium';
@@ -459,12 +464,12 @@ Be thorough but prioritize critical issues that directly impact users.`,
         severity,
         entityType: 'team_member',
         entityId: member.id,
-        url: `/equipo/${member.slug}`,
+        url: `/abogado/${member.slug}`,
         details: {
           name: member.name,
           role: member.role,
           issues,
-          completionScore: Math.round((1 - issues.length / 7) * 100),
+          completionScore: Math.max(0, Math.round((1 - issues.length / 5) * 100)),
         },
         recommendation: `Complete profile for ${member.name}: ${issues.join(', ')}`,
         ownerAgent: 'metadata_linker',
@@ -473,11 +478,7 @@ Be thorough but prioritize critical issues that directly impact users.`,
   }
 
   private async checkPracticeGroupContent(pg: PracticeGroup): Promise<void> {
-    const issues: string[] = [];
-
-    if (!pg.description || pg.description.length < 100) {
-      issues.push('Missing or short description');
-    }
+    const issues = practiceGroupContentIssues(pg);
 
     if (issues.length > 0) {
       this.addFinding({
@@ -486,7 +487,7 @@ Be thorough but prioritize critical issues that directly impact users.`,
         severity: 'high',
         entityType: 'practice_group',
         entityId: pg.id,
-        url: `/practica/${pg.slug}`,
+        url: `/practice/${pg.slug}`,
         details: {
           name: pg.name,
           issues,
@@ -498,11 +499,7 @@ Be thorough but prioritize critical issues that directly impact users.`,
   }
 
   private async checkIndustryGroupContent(ig: IndustryGroup): Promise<void> {
-    const issues: string[] = [];
-
-    if (!ig.description || ig.description.length < 100) {
-      issues.push('Missing or short description');
-    }
+    const issues = industryGroupContentIssues(ig);
 
     if (issues.length > 0) {
       this.addFinding({
@@ -511,7 +508,7 @@ Be thorough but prioritize critical issues that directly impact users.`,
         severity: 'high',
         entityType: 'industry_group',
         entityId: ig.id,
-        url: `/industria/${ig.slug}`,
+        url: `/industry/${ig.slug}`,
         details: {
           name: ig.name,
           issues,
@@ -525,14 +522,14 @@ Be thorough but prioritize critical issues that directly impact users.`,
   private async auditSEO(): Promise<void> {
     console.log('[WebsiteAuditor] Auditing SEO...');
     
-    const newsItems = await storage.getNews();
+    const newsItems = (await storage.getNews()).filter((item) => isPublicNews(item));
 
     for (const news of newsItems) {
       this.metrics.pagesScanned++;
       await this.checkNewsSEO(news);
     }
 
-    const teamMembers = await storage.getTeamMembers();
+    const teamMembers = (await storage.getTeamMembers()).filter(isPublishedEntity);
     for (const member of teamMembers) {
       this.metrics.pagesScanned++;
       await this.checkTeamMemberSEO(member);
@@ -542,40 +539,22 @@ Be thorough but prioritize critical issues that directly impact users.`,
   }
 
   private async checkNewsSEO(news: News): Promise<void> {
-    const issues: string[] = [];
-
-    if (!news.title || news.title.length < 20) {
-      issues.push('Title too short for SEO');
-    }
-
-    if (!news.excerpt || news.excerpt.length < 50) {
-      issues.push('Excerpt/meta description too short');
-    }
-
-    if (!news.slug) {
-      issues.push('Missing SEO-friendly slug');
-    }
-
-    if (!news.imageUrl) {
-      issues.push('Missing featured image');
-    }
-
-    if (issues.length > 0) {
+    for (const seoIssue of newsSeoIssues(news)) {
       this.addFinding({
         category: 'seo',
-        issueType: 'missing_description',
-        severity: 'medium',
+        issueType: seoIssue.issueType,
+        severity: seoIssue.severity,
         entityType: 'news',
         entityId: news.id,
-        url: `/noticias/${news.slug}`,
+        url: `/news/${news.slug}`,
         details: {
           title: news.title,
-          issues,
+          issues: [seoIssue.issue],
           titleLength: news.title?.length || 0,
           excerptLength: news.excerpt?.length || 0,
         },
-        recommendation: `Improve SEO for article "${news.title}": ${issues.join(', ')}`,
-        ownerAgent: 'seo_optimizer',
+        recommendation: seoIssue.recommendation,
+        ownerAgent: seoIssue.ownerAgent,
       });
     }
   }
@@ -598,7 +577,7 @@ Be thorough but prioritize critical issues that directly impact users.`,
         severity: 'low',
         entityType: 'team_member',
         entityId: member.id,
-        url: `/equipo/${member.slug}`,
+        url: `/abogado/${member.slug}`,
         details: {
           name: member.name,
           issues,
@@ -612,7 +591,7 @@ Be thorough but prioritize critical issues that directly impact users.`,
   private async auditLinks(): Promise<void> {
     console.log('[WebsiteAuditor] Auditing links...');
     
-    const teamMembers = await storage.getTeamMembers();
+    const teamMembers = (await storage.getTeamMembers()).filter(isPublishedEntity);
 
     for (const member of teamMembers) {
       if (member.imageUrl) {
@@ -627,7 +606,7 @@ Be thorough but prioritize critical issues that directly impact users.`,
             severity: 'critical',
             entityType: 'team_member',
             entityId: member.id,
-            url: member.imageUrl,
+            url: `/abogado/${member.slug}`,
             details: {
               name: member.name,
               imageUrl: member.imageUrl,
@@ -644,7 +623,7 @@ Be thorough but prioritize critical issues that directly impact users.`,
       }
     }
 
-    const newsItems = await storage.getNews();
+    const newsItems = (await storage.getNews()).filter((item) => isPublicNews(item));
     for (const news of newsItems) {
       if (news.imageUrl) {
         this.metrics.linksChecked++;
@@ -658,7 +637,7 @@ Be thorough but prioritize critical issues that directly impact users.`,
             severity: 'high',
             entityType: 'news',
             entityId: news.id,
-            url: news.imageUrl,
+            url: `/news/${news.slug}`,
             details: {
               title: news.title,
               imageUrl: news.imageUrl,
@@ -681,10 +660,7 @@ Be thorough but prioritize critical issues that directly impact users.`,
   private async checkImageUrl(url: string): Promise<boolean> {
     try {
       if (url.startsWith('/')) {
-        const relativePath = decodeURIComponent(url.split(/[?#]/, 1)[0]).replace(/^\/+/, '');
-        const publicRoot = path.resolve(process.cwd(), 'public');
-        const resolved = path.resolve(publicRoot, relativePath);
-        return resolved.startsWith(`${publicRoot}${path.sep}`) && fs.existsSync(resolved);
+        return publicImageAssetExists(url);
       }
       const status = await fetchStatusWithPolicy({
         url,
