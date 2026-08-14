@@ -101,6 +101,7 @@ async function createHarness(options: HarnessOptions = {}) {
         maxRetries: Number(input.maxRetries),
         parentJobId: input.parentJobId ? String(input.parentJobId) : null,
         createdAt: new Date(currentMs),
+        startedAt: input.startedAt instanceof Date ? input.startedAt : null,
       });
       jobs.push(job);
       return job;
@@ -300,7 +301,7 @@ test('la cola mantiene prioridad estable y no duplica trabajos sincronizados', a
   );
 });
 
-test('la ejecución manual reclama una vez, persiste el copy y limpia capacidad', async () => {
+test('la ejecución manual se reserva una vez, persiste el copy y limpia capacidad', async () => {
   const harness = await createHarness();
   let executions = 0;
   harness.runtime.queue.registerAgent(fakeAgent('formatter', async (_context, payload) => {
@@ -326,7 +327,7 @@ test('la ejecución manual reclama una vez, persiste el copy y limpia capacidad'
   );
 });
 
-test('capacidad, reclamo fallido y error de historial no ocultan el contrato manual', async () => {
+test('capacidad, reserva inmediata y error de historial no ocultan el contrato manual', async () => {
   const capacity = await createHarness();
   capacity.runtime.queue.registerAgent(fakeAgent('formatter', async () => ({ success: true })));
   capacity.runtime.state.activeJobs.set('active', {
@@ -337,16 +338,18 @@ test('capacidad, reclamo fallido y error de historial no ocultan el contrato man
   assert.match(blocked.error || '', /currently at capacity/);
   assert.equal(capacity.jobs.length, 0);
 
-  const unclaimed = await createHarness({ claimJobs: false });
-  let unclaimedExecutions = 0;
-  unclaimed.runtime.queue.registerAgent(fakeAgent('formatter', async () => {
-    unclaimedExecutions++;
+  const reserved = await createHarness({ claimJobs: false });
+  let reservedExecutions = 0;
+  reserved.runtime.queue.registerAgent(fakeAgent('formatter', async () => {
+    reservedExecutions++;
     return { success: true };
   }));
-  const claimResult = await unclaimed.runtime.execution.executeImmediately('formatter', {});
-  assert.equal(claimResult.error, 'The agent job could not be claimed');
-  assert.equal(unclaimedExecutions, 0);
-  assert.equal(unclaimed.runtime.state.activeJobs.size, 0);
+  const reservedResult = await reserved.runtime.execution.executeImmediately('formatter', {});
+  assert.equal(reservedResult.success, true);
+  assert.equal(reservedExecutions, 1);
+  assert.equal(reserved.jobs[0].status, 'completed');
+  assert.ok(reserved.jobs[0].startedAt instanceof Date);
+  assert.equal(reserved.runtime.state.activeJobs.size, 0);
 
   const copyFailure = await createHarness({ copyFailure: true });
   copyFailure.runtime.queue.registerAgent(fakeAgent('formatter', async () => ({ success: true })));

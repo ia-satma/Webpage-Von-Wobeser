@@ -28,17 +28,13 @@ export class OrchestratorExecutionService {
       return { success: false, error: `Agent ${agentType} is currently at capacity` };
     }
 
-    const job = await this.queue.enqueueJob(agentType, payload, { priority: 'high' });
-    this.state.jobQueue = this.state.jobQueue.filter((queuedJob) => queuedJob.id !== job.id);
-
-    job.status = 'in_progress';
-    job.startedAt = this.dependencies.clock.now();
+    // Interactive executions are created already claimed. Persisting them as
+    // pending would expose a race in which the background queue can take the
+    // job before this request starts it.
+    const job = await this.queue.createImmediateJob(agentType, payload, { priority: 'high' });
     this.state.activeJobs.set(job.id, job);
 
     try {
-      const claimed = await this.dependencies.persistence.claimPendingJob(job.id, job.startedAt);
-      if (!claimed) return { success: false, error: 'The agent job could not be claimed' };
-
       await this.outcomes.addEvent(job.id, agentType, 'start', 'Manual job started');
       const context: ExecutionContext = {
         jobId: job.id,

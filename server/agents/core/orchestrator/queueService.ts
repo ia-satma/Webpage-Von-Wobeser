@@ -188,6 +188,61 @@ export class OrchestratorQueueService {
     return job;
   }
 
+  async createImmediateJob(
+    agentType: AgentType,
+    payload: Record<string, unknown>,
+    options?: {
+      priority?: JobPriority;
+      parentJobId?: string;
+      maxRetries?: number;
+    },
+  ): Promise<AgentJob & { startedAt: Date }> {
+    const agent = this.state.agents.get(agentType);
+    if (!agent) throw new Error(`Agent ${agentType} is not registered`);
+    if (!agent.enabled) throw new Error(`Agent ${agentType} is disabled`);
+
+    const parsedPayload = this.dependencies.parsePayload(agentType, payload);
+    if (!parsedPayload.success) {
+      throw new Error(`Invalid payload for ${agentType}: ${parsedPayload.error}`);
+    }
+
+    const priority = options?.priority || 'high';
+    const maxRetries = options?.maxRetries ?? agent.retryPolicy.maxRetries;
+    const startedAt = this.dependencies.clock.now();
+    const persistedJob = await this.dependencies.persistence.createJob({
+      agentType,
+      status: 'in_progress',
+      priority,
+      payload: parsedPayload.data,
+      retryCount: 0,
+      maxRetries,
+      parentJobId: options?.parentJobId,
+      startedAt,
+    });
+
+    const job: AgentJob & { startedAt: Date } = {
+      id: persistedJob.id,
+      agentType,
+      status: 'in_progress',
+      priority,
+      payload: parsedPayload.data,
+      retryCount: 0,
+      maxRetries,
+      createdAt: persistedJob.createdAt || startedAt,
+      startedAt,
+      parentJobId: options?.parentJobId,
+    };
+
+    await this.outcomes.addEvent(
+      job.id,
+      agentType,
+      'start',
+      `Job enqueued for ${agentType}`,
+      { priority: job.priority },
+    );
+    return job;
+  }
+
   takeNextRunnableJob(): AgentJob | undefined {
     const index = this.state.jobQueue.findIndex((queuedJob) => {
       const agent = this.state.agents.get(queuedJob.agentType);
