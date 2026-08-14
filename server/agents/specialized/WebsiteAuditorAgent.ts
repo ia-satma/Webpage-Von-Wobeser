@@ -147,7 +147,12 @@ Be thorough but prioritize critical issues that directly impact users.`,
       this.metrics.executionTimeMs = this.metrics.endTime - this.metrics.startTime;
 
       const savedFindings = await this.saveFindings();
-      await this.autoEnqueueNewsFixers(savedFindings);
+      // Un diagnóstico debe limitarse a registrar hallazgos. Encolar agentes consume
+      // recursos y crea trabajo persistente, por lo que solo está permitido cuando la
+      // ejecución recibió autorización explícita para aplicar cambios.
+      if (this.allowChanges) {
+        await this.autoEnqueueNewsFixers(savedFindings);
+      }
 
       const severityCounts = this.countBySeverity();
       await storage.updateWebsiteAudit(this.auditId, {

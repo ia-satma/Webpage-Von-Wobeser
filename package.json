@@ -19,6 +19,7 @@
     "test:security": "node --import tsx --test server/security/*.test.ts",
     "test:performance": "node scripts/check-performance-budgets.mjs",
     "audit:high": "node --import tsx scripts/audit-high-severity.ts",
+    "agents:cleanup-diagnostic-audit": "node --import tsx scripts/cleanup-diagnostic-audit-jobs.ts",
     "audit:typography-content": "node scripts/audit-content-typography.mjs",
     "media:optimize": "node scripts/generate-performance-assets.mjs",
     "media:migrate-storage": "node --import tsx scripts/migrate-media-to-app-storage.ts",
