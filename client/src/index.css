@@ -211,6 +211,22 @@
     @apply font-sans antialiased bg-background text-foreground;
   }
 
+  /*
+   * El CMS es una interfaz de trabajo: toda su navegación, títulos, tablas y
+   * controles usan Inter. Gelasio permanece disponible únicamente cuando el
+   * editor marca contenido público con data-vw-font="gelasio"; el sitio
+   * público no vive dentro de este ámbito.
+   */
+  .admin-shell {
+    --font-heading: var(--font-body);
+    --font-serif: var(--font-body);
+    font-family: var(--font-body);
+  }
+
+  .admin-shell :where(h1, h2, h3, h4, h5, h6) {
+    font-family: var(--font-body) !important;
+  }
+
   h1,
   h2,
   h3,
