@@ -596,6 +596,76 @@ const HERO_NEWS_CAROUSEL_STYLE = `<style id="vw-news-carousel-style">
   .covid_cont.vw-news-panel.vw-news-panel--minimized>.vw-news-panel__toggle{top:10px;}
   .vw-news-panel .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;}
   @media(max-width:767px){.covid_cont.vw-news-panel>.vw-news-panel__toggle{top:10px;}}
+</style><style id="vw-news-carousel-responsive-style">
+  /* El panel grande conserva sus proporciones. En laptops se compacta por
+     ancho O por altura disponible, porque 450x300px ocupa demasiado del hero
+     en pantallas 1366x768 aunque el viewport siga siendo "desktop". */
+  @media (min-width:801px) and (max-width:1439px), (min-width:801px) and (max-height:819px) {
+    .covid_cont.vw-news-panel:not(.vw-news-panel--minimized){
+      width:clamp(360px,30vw,400px);
+      min-height:245px;
+      padding:10px 13px 48px;
+    }
+    .covid_cont.vw-news-panel:not(.vw-news-panel--minimized) .covid_title{padding:0 44px 8px;}
+    .covid_cont.vw-news-panel:not(.vw-news-panel--minimized) .covid_title span{
+      font-size:clamp(22px,1.8vw,24px);
+      line-height:1.05;
+    }
+    .covid_cont.vw-news-panel:not(.vw-news-panel--minimized) .covid_headlines{margin-top:10px;}
+    .covid_cont.vw-news-panel:not(.vw-news-panel--minimized) .vw-news-carousel__slides,
+    .covid_cont.vw-news-panel:not(.vw-news-panel--minimized) .vw-news-carousel__slide{min-height:148px;}
+    .covid_cont.vw-news-panel:not(.vw-news-panel--minimized) .vw-news-carousel .news_item{padding-right:15px;}
+    .covid_cont.vw-news-panel:not(.vw-news-panel--minimized) .vw-news-carousel .news_item+.news_item{padding-left:15px;padding-right:0;}
+    .covid_cont.vw-news-panel:not(.vw-news-panel--minimized) .vw-news-carousel .news_item h3{
+      font-size:clamp(15px,1.15vw,16px);
+      line-height:1.24;
+      -webkit-line-clamp:4;
+    }
+    .covid_cont.vw-news-panel:not(.vw-news-panel--minimized) .covid_headlines .vw-news-carousel .news_item>a.vw-news-carousel__more{font-size:12px;padding-top:6px;}
+    .covid_cont.vw-news-panel:not(.vw-news-panel--minimized) .vw-news-carousel__nav{bottom:-43px;}
+  }
+
+  /* Tablet y móvil conservan ambas noticias en dos columnas compactas: así el
+     panel no crece verticalmente ni obliga a ocultar la segunda noticia. */
+  @media (max-width:800px) {
+    .covid_cont.vw-news-panel:not(.vw-news-panel--minimized){
+      box-sizing:border-box;
+      width:100%;
+      min-height:0;
+      padding:9px 14px 48px;
+    }
+    .covid_cont.vw-news-panel:not(.vw-news-panel--minimized) .covid_title{padding:0 44px 8px;}
+    .covid_cont.vw-news-panel:not(.vw-news-panel--minimized) .covid_title span{font-size:22px;line-height:1.05;}
+    .covid_cont.vw-news-panel:not(.vw-news-panel--minimized) .covid_headlines{margin-top:9px;}
+    .covid_cont.vw-news-panel:not(.vw-news-panel--minimized) .vw-news-carousel__slide{
+      grid-template-columns:minmax(0,1fr) minmax(0,1fr);
+      gap:0;
+    }
+    .covid_cont.vw-news-panel:not(.vw-news-panel--minimized) .vw-news-carousel .news_item{min-height:92px;padding:0 13px 0 0;}
+    .covid_cont.vw-news-panel:not(.vw-news-panel--minimized) .vw-news-carousel .news_item:nth-child(2){display:flex;}
+    .covid_cont.vw-news-panel:not(.vw-news-panel--minimized) .vw-news-carousel .news_item+.news_item{
+      border-left:1px solid #969696;
+      border-top:0;
+      padding:0 0 0 13px;
+    }
+    .covid_cont.vw-news-panel:not(.vw-news-panel--minimized) .vw-news-carousel .news_item h3{
+      font-size:15px;
+      line-height:1.25;
+      -webkit-line-clamp:3;
+    }
+    .covid_cont.vw-news-panel:not(.vw-news-panel--minimized) .covid_headlines .vw-news-carousel .news_item>a.vw-news-carousel__more{font-size:12px;padding-top:5px;}
+    .covid_cont.vw-news-panel:not(.vw-news-panel--minimized) .vw-news-carousel__nav{bottom:-43px;}
+  }
+
+  @media (max-width:430px) {
+    .covid_cont.vw-news-panel:not(.vw-news-panel--minimized){padding:8px 12px 46px;}
+    .covid_cont.vw-news-panel:not(.vw-news-panel--minimized) .covid_title{padding-bottom:7px;}
+    .covid_cont.vw-news-panel:not(.vw-news-panel--minimized) .covid_title span{font-size:21px;}
+    .covid_cont.vw-news-panel:not(.vw-news-panel--minimized) .covid_headlines{margin-top:8px;}
+    .covid_cont.vw-news-panel:not(.vw-news-panel--minimized) .vw-news-carousel .news_item{min-height:84px;padding-right:10px;}
+    .covid_cont.vw-news-panel:not(.vw-news-panel--minimized) .vw-news-carousel .news_item+.news_item{padding-left:10px;padding-right:0;}
+    .covid_cont.vw-news-panel:not(.vw-news-panel--minimized) .vw-news-carousel .news_item h3{font-size:14px;}
+  }
 </style>`;
 
 const HERO_NEWS_CAROUSEL_SCRIPT = `<script id="vw-news-carousel-script">

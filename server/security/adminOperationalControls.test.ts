@@ -99,6 +99,34 @@ test("Noticias del Home conserva exclusivamente el idioma activo y anima la tarj
   assert.match(spanish("#vw-news-carousel-script").text(), /prefers-reduced-motion: reduce/);
 });
 
+test("Noticias del Home se compacta en laptops sin perder la segunda noticia", () => {
+  const html = renderHome(homeTemplate, news.slice(0, 4), {
+    home_news_pages: { value: "2", valueEs: "2", type: "number" },
+  }, "es");
+  const $ = cheerio.load(html);
+  const baseStyle = $("#vw-news-carousel-style").text();
+  const responsiveStyle = $("#vw-news-carousel-responsive-style").text();
+
+  assert.equal($("[data-vw-news-slide]").length, 2);
+  assert.equal($("[data-vw-news-slide]").first().find(".news_item").length, 2);
+  assert.match(baseStyle, /min-height:300px/);
+  assert.match(baseStyle, /min-height:44px/);
+  assert.match(
+    responsiveStyle,
+    /\(min-width:801px\) and \(max-width:1439px\), \(min-width:801px\) and \(max-height:819px\)/,
+  );
+  assert.match(responsiveStyle, /width:clamp\(360px,30vw,400px\)/);
+  assert.match(responsiveStyle, /min-height:245px/);
+  assert.match(responsiveStyle, /-webkit-line-clamp:4/);
+  assert.match(responsiveStyle, /@media \(max-width:800px\)/);
+  assert.match(responsiveStyle, /width:100%/);
+  assert.match(responsiveStyle, /grid-template-columns:minmax\(0,1fr\) minmax\(0,1fr\)/);
+  assert.match(responsiveStyle, /-webkit-line-clamp:3/);
+  assert.match(responsiveStyle, /news_item:nth-child\(2\)\{display:flex;?\}/);
+  assert.doesNotMatch(responsiveStyle, /news_item:nth-child\(2\)[^{]*\{[^}]*display:none/);
+  assert.doesNotMatch(responsiveStyle, /transform:\s*scale/);
+});
+
 test("el filtro lingüístico del Home es conservador con nombres propios y títulos breves", () => {
   assert.equal(isNewsTitleCompatible("Von Wobeser y Sierra", "es"), true);
   assert.equal(isNewsTitleCompatible("Von Wobeser y Sierra", "en"), true);
