@@ -1,0 +1,17 @@
+{
+  "name": "image-size",
+  "version": "2.0.3-vwys.1",
+  "description": "Fail-closed replacement for an unused vulnerable pptxgenjs dependency",
+  "private": true,
+  "type": "commonjs",
+  "main": "index.cjs",
+  "types": "index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./index.d.ts",
+      "require": "./index.cjs",
+      "default": "./index.cjs"
+    }
+  },
+  "license": "UNLICENSED"
+}

@@ -2,7 +2,16 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 
-const roots = ["node_modules", "scripts", "server", "shared", "client", "script"]
+const roots = [
+  "node_modules",
+  "scripts",
+  "server",
+  "shared",
+  "client",
+  "script",
+  "migrations",
+  "vendor",
+]
   .map((directory) => path.join(process.cwd(), directory));
 let removed = 0;
 

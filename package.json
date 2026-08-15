@@ -99,6 +99,7 @@
     "helmet": "^8.2.0",
     "i18next": "^25.7.1",
     "i18next-browser-languagedetector": "^8.2.0",
+    "image-size": "file:vendor/image-size-guard",
     "input-otp": "^1.4.2",
     "jszip": "^3.10.1",
     "lucide-react": "^0.453.0",
@@ -157,6 +158,15 @@
     "tsx": "^4.20.5",
     "typescript": "5.6.3",
     "vite": "8.1.5"
+  },
+  "overrides": {
+    "@esbuild-kit/core-utils": {
+      "esbuild": "0.25.12"
+    },
+    "pptxgenjs": {
+      "image-size": "$image-size"
+    },
+    "uuid": "11.1.1"
   },
   "optionalDependencies": {
     "bufferutil": "^4.0.8"

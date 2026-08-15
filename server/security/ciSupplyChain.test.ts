@@ -1,11 +1,12 @@
 import assert from "node:assert/strict";
+import { createRequire } from "node:module";
 import fs from "node:fs";
 import path from "node:path";
 import test from "node:test";
 import {
-  evaluateHighSeverityAudit,
+  evaluateDependencyAudit,
   verifyPresentationExposureControls,
-  verifyTemporaryExceptionLock,
+  verifySecurityResolutions,
   type NpmAuditReport,
 } from "../../scripts/audit-high-severity";
 
@@ -83,80 +84,69 @@ test("CI conserva ffmpeg y las excepciones de escáner permanecen acotadas", () 
   assert.equal((publicAssets.match(/!resolved\.startsWith\(path\.resolve\([^\n]+\) \+ path\.sep\)/g) ?? []).length, 3);
 });
 
-function expectedAuditReport(): NpmAuditReport {
+function auditReportWithFindings(): NpmAuditReport {
   return {
     auditReportVersion: 2,
     vulnerabilities: {
-      "image-size": {
-        name: "image-size",
+      "high-risk": {
+        name: "high-risk",
         severity: "high",
-        nodes: ["node_modules/image-size"],
-        via: [
-          {
-            url: "https://github.com/advisories/GHSA-w3rx-r6r6-pgpr",
-            severity: "high",
-          },
-          {
-            url: "https://github.com/advisories/GHSA-5p2g-fcmc-qvqq",
-            severity: "high",
-          },
-        ],
+        nodes: ["node_modules/high-risk"],
+        via: [],
       },
-      pptxgenjs: {
-        name: "pptxgenjs",
-        severity: "high",
-        nodes: ["node_modules/pptxgenjs"],
-        via: ["image-size"],
-      },
-      informational: {
-        name: "informational",
+      "moderate-risk": {
+        name: "moderate-risk",
         severity: "moderate",
-        nodes: ["node_modules/informational"],
+        nodes: ["node_modules/moderate-risk"],
         via: [],
       },
     },
   };
 }
 
-test("la excepción temporal de npm audit acepta solo los dos avisos sin parche", () => {
-  const expected = evaluateHighSeverityAudit(expectedAuditReport());
-  assert.deepEqual(expected.unexpected, []);
-  assert.deepEqual(expected.accepted.sort(), ["image-size", "pptxgenjs"]);
-
-  const reportWithNewHigh = expectedAuditReport();
-  reportWithNewHigh.vulnerabilities["new-risk"] = {
-    name: "new-risk",
-    severity: "critical",
-    nodes: ["node_modules/new-risk"],
-    via: [],
+test("la política de dependencias exige cero vulnerabilidades conocidas", () => {
+  const cleanReport: NpmAuditReport = {
+    auditReportVersion: 2,
+    vulnerabilities: {},
   };
+  assert.deepEqual(evaluateDependencyAudit(cleanReport), []);
   assert.deepEqual(
-    evaluateHighSeverityAudit(reportWithNewHigh).unexpected,
-    ["new-risk (critical)"],
-  );
-
-  const reportWithChangedAdvisory = expectedAuditReport();
-  reportWithChangedAdvisory.vulnerabilities["image-size"].via.push({
-    url: "https://github.com/advisories/GHSA-new-advisory",
-    severity: "high",
-  });
-  assert.deepEqual(
-    evaluateHighSeverityAudit(reportWithChangedAdvisory).unexpected.sort(),
-    ["image-size (high)", "pptxgenjs (high)"],
+    evaluateDependencyAudit(auditReportWithFindings()),
+    ["high-risk (high)", "moderate-risk (moderate)"],
   );
 });
 
-test("la excepción npm queda ligada al lock y a los controles de imágenes", () => {
+test("las resoluciones seguras quedan ligadas al manifiesto y al lockfile", () => {
+  const rootPackage = JSON.parse(
+    fs.readFileSync(path.join(repositoryRoot, "package.json"), "utf8"),
+  );
   const packageLock = JSON.parse(
     fs.readFileSync(path.join(repositoryRoot, "package-lock.json"), "utf8"),
   );
-  assert.deepEqual(verifyTemporaryExceptionLock(packageLock), []);
+  assert.deepEqual(verifySecurityResolutions(rootPackage, packageLock), []);
   assert.deepEqual(verifyPresentationExposureControls(repositoryRoot), []);
 
   const changedLock = structuredClone(packageLock);
-  changedLock.packages["node_modules/image-size"].version = "2.0.2";
+  changedLock.packages["node_modules/uuid"].version = "9.0.1";
   assert.deepEqual(
-    verifyTemporaryExceptionLock(changedLock),
-    ["image-size version changed and requires review"],
+    verifySecurityResolutions(rootPackage, changedLock),
+    ["uuid must resolve to 11.1.1"],
+  );
+});
+
+test("el reemplazo local de image-size falla cerrado si llega a invocarse", () => {
+  const require = createRequire(import.meta.url);
+  const guardedImageSize = require("../../vendor/image-size-guard/index.cjs") as {
+    (input: Uint8Array): never;
+    ERROR_CODE: string;
+    types: readonly string[];
+  };
+
+  assert.equal(guardedImageSize.ERROR_CODE, "ERR_VWYS_IMAGE_SIZE_DISABLED");
+  assert.deepEqual(guardedImageSize.types, []);
+  assert.throws(
+    () => guardedImageSize(new Uint8Array()),
+    (error: unknown) => error instanceof Error
+      && (error as Error & { code?: string }).code === "ERR_VWYS_IMAGE_SIZE_DISABLED",
   );
 });
