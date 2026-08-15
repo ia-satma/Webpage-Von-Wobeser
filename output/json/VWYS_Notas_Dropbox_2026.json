@@ -1,0 +1,3213 @@
+{
+  "summary": {
+    "generatedAt": "2026-08-14T23:37:27.952356+00:00",
+    "source": "https://www.dropbox.com/scl/fo/4jfjqczcv4nazb9f4irzi/ADBWvFL_whoW4J4rfKXIvxY?rlkey=sh9kwmn6npsnr9g7gpkmj4tbu&dl=0",
+    "zipSha256": "851806ce9391f03ac9f419e87f3236473a7bad259a7011db42c3c65a1909f311",
+    "topicCount": 41,
+    "pdfCount": 81,
+    "validPdfCount": 81,
+    "docxCount": 83,
+    "representedTopicCount": 30,
+    "missingTopicCount": 11,
+    "representedProjectRowCount": 60,
+    "uniqueAuthorEmailCount": 55,
+    "matchedProfileCount": 49,
+    "unmatchedAuthorEmails": [
+      "adiener@vwys.com.mx",
+      "mpuebla@vwys.com.mx"
+    ],
+    "extensionCounts": {
+      ".ai": 20,
+      ".docx": 83,
+      ".html": 7,
+      ".indd": 48,
+      ".pdf": 81
+    }
+  },
+  "topics": [
+    {
+      "folder": "Enero/Nota Informativa 09 Enero",
+      "date": "2026-01-09",
+      "pdfCount": 2,
+      "validPdfCount": 2,
+      "pdfFiles": [
+        "Enero/Nota Informativa 09 Enero/2026-01-09-New-UMA-Values.pdf",
+        "Enero/Nota Informativa 09 Enero/2026-01-09-Nuevos-Valores-UMA.pdf"
+      ],
+      "docxCount": 2,
+      "docxFiles": [
+        "Enero/Nota Informativa 09 Enero/Flash Informativo UMA 2026 (ESP) 2 (1).docx",
+        "Enero/Nota Informativa 09 Enero/Flash Informativo UMA 2026 (ENG) 2 (1).docx"
+      ],
+      "emails": [
+        "aarizpe@vwys.com.mx",
+        "adcastillo@vwys.com.mx",
+        "alperez@vwys.com.mx",
+        "aruiz@vwys.com.mx",
+        "rrosasg@vwys.com.mx",
+        "rvallejo@vwys.com.mx",
+        "sgibert@vwys.com.mx",
+        "storres@vwys.com.mx"
+      ],
+      "status": "represented",
+      "projectMatches": [
+        {
+          "score": 0.95,
+          "id": "e9c0f9e1-e8ba-4cf4-977c-2757e3d318f0",
+          "legacyId": "2048",
+          "slug": "new-uma-values-effective-as-of-february-1st-2026",
+          "titleEs": "Nuevos Valores de la UMA vigentes a partir del 1º de febrero de 2026",
+          "titleEn": "New UMA Values Effective as of February 1st, 2026"
+        },
+        {
+          "score": 0.9227,
+          "id": "5da8aeab-f67b-45af-9f1c-caa8021ca590",
+          "legacyId": "2047",
+          "slug": "nuevos-valores-de-la-uma-vigentes-a-partir-del-1-de-febrero-de-2026",
+          "titleEs": "Nuevos Valores de la UMA vigentes a partir del 1º de febrero de 2026",
+          "titleEn": "New UMA Values Effective as of February 1, 2026"
+        }
+      ],
+      "title": "Nuevos Valores de la UMA vigentes a partir del 1º de febrero de 2026",
+      "authorMatches": [
+        {
+          "email": "aarizpe@vwys.com.mx",
+          "method": "email-local-part",
+          "profileId": "ef06b18e-f8e1-407b-a142-050db0eeb5f1",
+          "profileSlug": "alejandra-arizpe",
+          "profileName": "Alejandra Arizpe"
+        },
+        {
+          "email": "adcastillo@vwys.com.mx",
+          "method": "email-local-part",
+          "profileId": "182f1e31-6bca-405e-a302-22e1fe265257",
+          "profileSlug": "adrian-castillo",
+          "profileName": "Adrián Castillo"
+        },
+        {
+          "email": "alperez@vwys.com.mx",
+          "method": "email-local-part",
+          "profileId": "b85d7988-907d-47be-ad4b-4737540dce0c",
+          "profileSlug": "alejandro-perez",
+          "profileName": "Alejandro Pérez"
+        },
+        {
+          "email": "aruiz@vwys.com.mx",
+          "method": "email-local-part",
+          "profileId": "63929ada-66e1-45c3-b3f3-3e481e29cb96",
+          "profileSlug": "ana-ruiz",
+          "profileName": "Ana Ruiz"
+        },
+        {
+          "email": "rrosasg@vwys.com.mx",
+          "method": "email-local-part",
+          "profileId": "ec6d69ce-3c8f-4986-b312-136f0bc41edd",
+          "profileSlug": "ricardo-rosas",
+          "profileName": "Ricardo Rosas"
+        },
+        {
+          "email": "rvallejo@vwys.com.mx",
+          "method": "email-local-part",
+          "profileId": "92785b6f-dae6-497f-ab72-7be5f9343b3c",
+          "profileSlug": "rafael-vallejo",
+          "profileName": "Rafael Vallejo"
+        },
+        {
+          "email": "sgibert@vwys.com.mx",
+          "method": "email-local-part",
+          "profileId": "60ecdca7-7d91-425f-815a-13088f41d63c",
+          "profileSlug": "sarah-gibert",
+          "profileName": "Sarah Gibert"
+        },
+        {
+          "email": "storres@vwys.com.mx",
+          "method": "email-local-part",
+          "profileId": "9beb67df-a2ef-497a-b704-f6ba29eecfb9",
+          "profileSlug": "santiago-torres",
+          "profileName": "Santiago Torres"
+        }
+      ]
+    },
+    {
+      "folder": "Enero/Nota Informativa 20 Enero",
+      "date": "2026-01-20",
+      "pdfCount": 2,
+      "validPdfCount": 2,
+      "pdfFiles": [
+        "Enero/Nota Informativa 20 Enero/2026-01-20-Circular-Economy.pdf",
+        "Enero/Nota Informativa 20 Enero/2026-01-20-Economia-Circular.pdf"
+      ],
+      "docxCount": 2,
+      "docxFiles": [
+        "Enero/Nota Informativa 20 Enero/Nota Ley General de Economía Circular.DOCX",
+        "Enero/Nota Informativa 20 Enero/Nota Ley General de Economía Circular en-US.DOCX"
+      ],
+      "emails": [
+        "adiener@vwys.com.mx",
+        "amarin@vwys.com.mx",
+        "egrieger@vwys.com.mx",
+        "hsanchez@vwys.com.mx",
+        "rflores@vwys.com.mx",
+        "slopardo@vwys.com.mx"
+      ],
+      "status": "represented",
+      "projectMatches": [
+        {
+          "score": 0.9733,
+          "id": "dcc6dcad-eded-49e2-b72a-4df734c3fb23",
+          "legacyId": "2044",
+          "slug": "mexico-s-new-legal-framework-for-promoting-a-circular-economy",
+          "titleEs": "Nuevo marco jurídico de México para impulsar la economía circular",
+          "titleEn": "Mexico’s New Legal Framework for Promoting a Circular Economy"
+        },
+        {
+          "score": 0.9285,
+          "id": "349549d4-7cc6-4862-a27d-e539539ec55c",
+          "legacyId": "2043",
+          "slug": "nuevo-marco-juridico-para-impulsar-la-economia-circular-en-mexico",
+          "titleEs": "Nuevo marco jurídico para impulsar la Economía Circular en México",
+          "titleEn": "New Legal Framework to Promote the Circular Economy in Mexico"
+        }
+      ],
+      "title": "Nuevo marco jurídico de México para impulsar la economía circular",
+      "authorMatches": [
+        {
+          "email": "adiener@vwys.com.mx",
+          "method": "unmatched",
+          "profileId": "",
+          "profileSlug": "",
+          "profileName": ""
+        },
+        {
+          "email": "amarin@vwys.com.mx",
+          "method": "email-local-part",
+          "profileId": "fcaf76a9-02d0-497a-88b7-1c4306dbb330",
+          "profileSlug": "alondra-marin",
+          "profileName": "Alondra Marín"
+        },
+        {
+          "email": "egrieger@vwys.com.mx",
+          "method": "email-local-part",
+          "profileId": "2ef339e2-3bcf-488e-afed-09c1b9968a4b",
+          "profileSlug": "edmond-grieger",
+          "profileName": "Edmond Frederic Grieger"
+        },
+        {
+          "email": "hsanchez@vwys.com.mx",
+          "method": "email-local-part",
+          "profileId": "73cd6c5f-d67e-4269-b68b-dd4230cc3d0b",
+          "profileSlug": "hector-sanchez",
+          "profileName": "Héctor Sánchez"
+        },
+        {
+          "email": "rflores@vwys.com.mx",
+          "method": "email-local-part",
+          "profileId": "1e843eb4-4fbd-4ffa-8ae6-7835b61940c2",
+          "profileSlug": "roberto-flores",
+          "profileName": "Roberto Flores"
+        },
+        {
+          "email": "slopardo@vwys.com.mx",
+          "method": "email-local-part",
+          "profileId": "1c13bb67-bd2d-417a-8380-e95545261961",
+          "profileSlug": "stefania-lopardo",
+          "profileName": "Stefania Lopardo"
+        }
+      ]
+    },
+    {
+      "folder": "Enero/Nota Informativa 27 Enero",
+      "date": "2026-01-27",
+      "pdfCount": 2,
+      "validPdfCount": 2,
+      "pdfFiles": [
+        "Enero/Nota Informativa 27 Enero/2026-01-27-New-Obligations-Equity-Gender.pdf",
+        "Enero/Nota Informativa 27 Enero/2026-01-27-Nuevas-Obligaciones-Equidad-de-Genero.pdf"
+      ],
+      "docxCount": 2,
+      "docxFiles": [
+        "Enero/Nota Informativa 27 Enero/Flash Informativo - Nuevas obligaciones en materia de erradicación de violencia contra las mujeres e igualdad de género.DOCX",
+        "Enero/Nota Informativa 27 Enero/Flash Informativo - Nuevas obligaciones en materia de erradicación de violencia contra las mujeres e igualdad de género English.DOCX"
+      ],
+      "emails": [
+        "aarizpe@vwys.com.mx",
+        "alperez@vwys.com.mx",
+        "aruiz@vwys.com.mx",
+        "rrosasg@vwys.com.mx",
+        "rvallejo@vwys.com.mx",
+        "storres@vwys.com.mx"
+      ],
+      "status": "represented",
+      "projectMatches": [
+        {
+          "score": 0.9349,
+          "id": "cb8edf5a-8656-4655-8a17-fd0eb5104cb7",
+          "legacyId": "2046",
+          "slug": "new-obligations-for-employers-gender-equality-and-the-prevention-and-eradication",
+          "titleEs": "Nuevas obligaciones para los empleadores: igualdad de género y prevención y erradicación de la discriminación y la violencia",
+          "titleEn": "New Obligations for Employers: Gender Equality and the Prevention and Eradication of Discrimination and Violence"
+        },
+        {
+          "score": 0.9034,
+          "id": "cb74c451-98c1-4d0d-9db2-1ef337c6bff2",
+          "legacyId": "2045",
+          "slug": "nuevas-obligaciones-para-empleadores-igualdad-de-genero-prevencion-y-erradicacio",
+          "titleEs": "Nuevas Obligaciones para Empleadores: Igualdad de Género, Prevención y erradicación de la Discriminación y la Violencia",
+          "titleEn": "New Obligations for Employers: Gender Equality and the Prevention and Eradication of Discrimination and Violence"
+        }
+      ],
+      "title": "Nuevas obligaciones para los empleadores: igualdad de género y prevención y erradicación de la discriminación y la violencia",
+      "authorMatches": [
+        {
+          "email": "aarizpe@vwys.com.mx",
+          "method": "email-local-part",
+          "profileId": "ef06b18e-f8e1-407b-a142-050db0eeb5f1",
+          "profileSlug": "alejandra-arizpe",
+          "profileName": "Alejandra Arizpe"
+        },
+        {
+          "email": "alperez@vwys.com.mx",
+          "method": "email-local-part",
+          "profileId": "b85d7988-907d-47be-ad4b-4737540dce0c",
+          "profileSlug": "alejandro-perez",
+          "profileName": "Alejandro Pérez"
+        },
+        {
+          "email": "aruiz@vwys.com.mx",
+          "method": "email-local-part",
+          "profileId": "63929ada-66e1-45c3-b3f3-3e481e29cb96",
+          "profileSlug": "ana-ruiz",
+          "profileName": "Ana Ruiz"
+        },
+        {
+          "email": "rrosasg@vwys.com.mx",
+          "method": "email-local-part",
+          "profileId": "ec6d69ce-3c8f-4986-b312-136f0bc41edd",
+          "profileSlug": "ricardo-rosas",
+          "profileName": "Ricardo Rosas"
+        },
+        {
+          "email": "rvallejo@vwys.com.mx",
+          "method": "email-local-part",
+          "profileId": "92785b6f-dae6-497f-ab72-7be5f9343b3c",
+          "profileSlug": "rafael-vallejo",
+          "profileName": "Rafael Vallejo"
+        },
+        {
+          "email": "storres@vwys.com.mx",
+          "method": "email-local-part",
+          "profileId": "9beb67df-a2ef-497a-b704-f6ba29eecfb9",
+          "profileSlug": "santiago-torres",
+          "profileName": "Santiago Torres"
+        }
+      ]
+    },
+    {
+      "folder": "Febrero/Nota Informativa 4 Feb",
+      "date": "2026-02-04",
+      "pdfCount": 2,
+      "validPdfCount": 2,
+      "pdfFiles": [
+        "Febrero/Nota Informativa 4 Feb/2026-02-05-Lineamientos-de-los-esquemas-mixtos.pdf",
+        "Febrero/Nota Informativa 4 Feb/2026-02-05-Guidelines-for-mixed-development-schemes.pdf"
+      ],
+      "docxCount": 2,
+      "docxFiles": [
+        "Febrero/Nota Informativa 4 Feb/Nota Lineamientos Esquemas Mixtos CFE Ingles.docx",
+        "Febrero/Nota Informativa 4 Feb/Nota Lineamientos Esquemas Mixtos CFE Español.docx"
+      ],
+      "emails": [
+        "agarfio@vwys.com.mx",
+        "ahernandez@vwys.com.mx",
+        "eberumen@vwys.com.mx",
+        "egrieger@vwys.com.mx",
+        "hsanchez@vwys.com.mx",
+        "mpuebla@vwys.com.mx",
+        "rflores@vwys.com.mx",
+        "rgonzalez@vwys.com.mx"
+      ],
+      "status": "represented",
+      "projectMatches": [
+        {
+          "score": 0.978,
+          "id": "a4398c0a-4891-4d0e-9b74-f934ae3daa19",
+          "legacyId": "2042",
+          "slug": "the-federal-electricity-commission-issues-the-guidelines-for-mixed-development-s",
+          "titleEs": "La Comisión Federal de Electricidad emite los “Lineamientos de los Esquemas para el Desarrollo Mixto de la Empresa Pública del Estado, Comisión Federal de Electricidad”",
+          "titleEn": "The Federal Electricity Commission Issues the “Guidelines for Mixed-Development Schemes of the State-Owned Public Enterprise, Federal Electricity Commission”"
+        },
+        {
+          "score": 0.8735,
+          "id": "f63809a5-e678-464c-9252-b493d49aca03",
+          "legacyId": "2041",
+          "slug": "la-comision-federal-de-electricidad-emite-los-lineamientos-de-los-esquemas-para-",
+          "titleEs": "The Federal Electricity Commission Issues the \"Guidelines for the Schemes for the Mixed Development of the State-Owned Public Enterprise, Federal Electricity Commission\"",
+          "titleEn": "The Federal Electricity Commission Issues the \"Guidelines for the Schemes for the Mixed Development of the State-Owned Public Enterprise, Federal Electricity Commission\""
+        }
+      ],
+      "title": "La Comisión Federal de Electricidad emite los “Lineamientos de los Esquemas para el Desarrollo Mixto de la Empresa Pública del Estado, Comisión Federal de Electricidad”",
+      "authorMatches": [
+        {
+          "email": "agarfio@vwys.com.mx",
+          "method": "email-local-part",
+          "profileId": "7f750a71-a0fa-4dd4-817f-5e16c9a21cf4",
+          "profileSlug": "ariel-garfio",
+          "profileName": "Ariel Garfio"
+        },
+        {
+          "email": "ahernandez@vwys.com.mx",
+          "method": "email-local-part",
+          "profileId": "0a40e642-03bc-4330-8f3f-cf3511c8a34b",
+          "profileSlug": "arturo-hernandez",
+          "profileName": "Arturo Hernández"
+        },
+        {
+          "email": "eberumen@vwys.com.mx",
+          "method": "email-local-part",
+          "profileId": "c30fe9d4-d4d2-48e4-bec3-2ea19999e8dc",
+          "profileSlug": "edmundo-berumen",
+          "profileName": "Edmundo Berumen"
+        },
+        {
+          "email": "egrieger@vwys.com.mx",
+          "method": "email-local-part",
+          "profileId": "2ef339e2-3bcf-488e-afed-09c1b9968a4b",
+          "profileSlug": "edmond-grieger",
+          "profileName": "Edmond Frederic Grieger"
+        },
+        {
+          "email": "hsanchez@vwys.com.mx",
+          "method": "email-local-part",
+          "profileId": "73cd6c5f-d67e-4269-b68b-dd4230cc3d0b",
+          "profileSlug": "hector-sanchez",
+          "profileName": "Héctor Sánchez"
+        },
+        {
+          "email": "mpuebla@vwys.com.mx",
+          "method": "unmatched",
+          "profileId": "",
+          "profileSlug": "",
+          "profileName": ""
+        },
+        {
+          "email": "rflores@vwys.com.mx",
+          "method": "email-local-part",
+          "profileId": "1e843eb4-4fbd-4ffa-8ae6-7835b61940c2",
+          "profileSlug": "roberto-flores",
+          "profileName": "Roberto Flores"
+        },
+        {
+          "email": "rgonzalez@vwys.com.mx",
+          "method": "email-local-part",
+          "profileId": "b7e9d14e-e00e-482f-82bd-6404e4a94794",
+          "profileSlug": "regina-gonzalez",
+          "profileName": "Regina González"
+        }
+      ]
+    },
+    {
+      "folder": "Febrero/Nota Informativa 19 Feb",
+      "date": "2026-02-19",
+      "pdfCount": 2,
+      "validPdfCount": 2,
+      "pdfFiles": [
+        "Febrero/Nota Informativa 19 Feb/2026-02-19-estimulo-cine-mexico.pdf",
+        "Febrero/Nota Informativa 19 Feb/2026-02-19-tax-incentive-audoproduction-mexico.pdf"
+      ],
+      "docxCount": 2,
+      "docxFiles": [
+        "Febrero/Nota Informativa 19 Feb/VWyS- Flash Fiscal estímulo cine.docx",
+        "Febrero/Nota Informativa 19 Feb/VWyS- Flash Fiscal estímulo cine (en).docx"
+      ],
+      "emails": [
+        "aalpizar@vwys.com.mx",
+        "ajtorres@vwys.com.mx",
+        "ltorres@vwys.com.mx"
+      ],
+      "status": "represented",
+      "projectMatches": [
+        {
+          "score": 0.9781,
+          "id": "2aae22a0-0e17-4c28-aac8-2af79f018176",
+          "legacyId": "2040",
+          "slug": "a-tax-incentive-is-granted-through-a-transferable-tax-credit-to-film-and-audiovi",
+          "titleEs": "Se otorga un estímulo fiscal mediante un crédito fiscal transferible a la producción cinematográfica y audiovisual en México",
+          "titleEn": "A tax incentive is granted through a transferable tax credit to film and audiovisual production in Mexico"
+        },
+        {
+          "score": 0.9084,
+          "id": "017d7a10-306e-4eee-98a0-3d3039bea8f7",
+          "legacyId": "2039",
+          "slug": "se-otorga-un-estimulo-fiscal-mediante-credito-fiscal-transferible-a-la-produccio",
+          "titleEs": "Se otorga un estímulo fiscal mediante crédito fiscal transferible a la producción cinematográfica y audiovisual en México",
+          "titleEn": "A Tax Incentive is Granted Through a Transferable Tax Credit for Film and Audiovisual Production in Mexico"
+        }
+      ],
+      "title": "Se otorga un estímulo fiscal mediante un crédito fiscal transferible a la producción cinematográfica y audiovisual en México",
+      "authorMatches": [
+        {
+          "email": "aalpizar@vwys.com.mx",
+          "method": "email-local-part",
+          "profileId": "4f82e084-7cc6-4c40-b578-396e358b10d6",
+          "profileSlug": "ana-alpizar",
+          "profileName": "Ana Alpízar"
+        },
+        {
+          "email": "ajtorres@vwys.com.mx",
+          "method": "email-local-part",
+          "profileId": "e5927b98-019e-4325-9c41-32db57180f44",
+          "profileSlug": "alejandro-torres",
+          "profileName": "Alejandro Torres"
+        },
+        {
+          "email": "ltorres@vwys.com.mx",
+          "method": "email-local-part",
+          "profileId": "c02b8dcd-302e-43ac-b9b8-add9c0349c3a",
+          "profileSlug": "luis-enrique-torres",
+          "profileName": "Luis Enrique Torres"
+        }
+      ]
+    },
+    {
+      "folder": "Marzo/Nota Informativa 3 Mar",
+      "date": "2026-03-03",
+      "pdfCount": 2,
+      "validPdfCount": 2,
+      "pdfFiles": [
+        "Marzo/Nota Informativa 3 Mar/2026-03-03-pemex-policy.pdf",
+        "Marzo/Nota Informativa 3 Mar/2026-03-03-politica-pemex.pdf"
+      ],
+      "docxCount": 2,
+      "docxFiles": [
+        "Marzo/Nota Informativa 3 Mar/(ESP) Nota Inconstitucionalidad Politicas PEMEX.docx",
+        "Marzo/Nota Informativa 3 Mar/(ENG) Nota Inconstitucionalidad Politicas PEMEX (1).DOCX"
+      ],
+      "emails": [
+        "amagallanes@vwys.com.mx",
+        "eestrada@vwys.com.mx",
+        "jbarrera@vwys.com.mx",
+        "jrocha@vwys.com.mx",
+        "mmanzano@vwys.com.mx",
+        "pfautsch@vwys.com.mx",
+        "rbarradas@vwys.com.mx"
+      ],
+      "status": "represented",
+      "projectMatches": [
+        {
+          "score": 0.9242,
+          "id": "80443f4d-3363-40bc-8eaf-abe50d382e7d",
+          "legacyId": "2032",
+          "slug": "a-collegiate-court-declared-that-pemex-s-policy-restricting-contracts-with-compa",
+          "titleEs": "Un Tribunal Colegiado declaró inconstitucional la política de Pemex que restringe la contratación con empresas involucradas en litigios",
+          "titleEn": "A Collegiate Court Declared that Pemex’s Policy Restricting Contracts with Companies Involved in Litigation is Unconstitutional"
+        },
+        {
+          "score": 0.8756,
+          "id": "f631673c-ed67-4502-9907-5126c5966791",
+          "legacyId": "2031",
+          "slug": "tribunal-declara-inconstitucional-politica-de-pemex-que-restringia-contratos-con",
+          "titleEs": "Tribunal declara inconstitucional política de Pemex que restringía contratos con empresas en litigio",
+          "titleEn": "Court declares unconstitutional a Pemex policy that restricted contracts with companies in litigation"
+        }
+      ],
+      "title": "Un Tribunal Colegiado declaró inconstitucional la política de Pemex que restringe la contratación con empresas involucradas en litigios",
+      "authorMatches": [
+        {
+          "email": "amagallanes@vwys.com.mx",
+          "method": "email-local-part",
+          "profileId": "aeb5ea8e-d8f6-4537-9fcb-72f7390f7eaa",
+          "profileSlug": "adrian-magallanes",
+          "profileName": "Adrián Magallanes"
+        },
+        {
+          "email": "eestrada@vwys.com.mx",
+          "method": "email-local-part",
+          "profileId": "7a2754a8-8268-463c-a18e-39f1a0d2527e",
+          "profileSlug": "eduardo-estrada",
+          "profileName": "Eduardo Estrada"
+        },
+        {
+          "email": "jbarrera@vwys.com.mx",
+          "method": "email-local-part",
+          "profileId": "cb4c7ca4-78f9-43a5-a51c-418f6fbc748a",
+          "profileSlug": "juan-francisco-barrera",
+          "profileName": "Juan Francisco Barrera"
+        },
+        {
+          "email": "jrocha@vwys.com.mx",
+          "method": "email-local-part",
+          "profileId": "1be1f7f3-ed67-4421-b978-e3409e800750",
+          "profileSlug": "jessika-rocha",
+          "profileName": "Jessika Rocha"
+        },
+        {
+          "email": "mmanzano@vwys.com.mx",
+          "method": "email-local-part",
+          "profileId": "e899b8c4-16c1-48a5-b0b4-35e6ff368dc9",
+          "profileSlug": "montserrat-manzano",
+          "profileName": "Montserrat Manzano"
+        },
+        {
+          "email": "pfautsch@vwys.com.mx",
+          "method": "email-local-part",
+          "profileId": "d0ef7982-8598-46f0-81bf-13031999e61c",
+          "profileSlug": "pablo-fautsch",
+          "profileName": "Pablo Fautsch"
+        },
+        {
+          "email": "rbarradas@vwys.com.mx",
+          "method": "email-local-part",
+          "profileId": "2595a5fd-4146-4415-b34a-7a7479453a26",
+          "profileSlug": "rodrigo-barradas",
+          "profileName": "Rodrigo Barradas"
+        }
+      ]
+    },
+    {
+      "folder": "Marzo/Nota Informativa 4 Mar",
+      "date": "2026-03-04",
+      "pdfCount": 2,
+      "validPdfCount": 2,
+      "pdfFiles": [
+        "Marzo/Nota Informativa 4 Mar/2026-03-04-reduce-the-workweek.pdf",
+        "Marzo/Nota Informativa 4 Mar/2026-03-04-reduccion-jornada-laboral.pdf"
+      ],
+      "docxCount": 2,
+      "docxFiles": [
+        "Marzo/Nota Informativa 4 Mar/Flash Informativo - Reforma Constitucional en materia de reducción de la jornada laboral .DOCX",
+        "Marzo/Nota Informativa 4 Mar/Flash Informativo ENG  - Reforma Constitucional en materia de reducción de la jornada laboral inglés.DOCX"
+      ],
+      "emails": [
+        "aarizpe@vwys.com.mx",
+        "alperez@vwys.com.mx",
+        "aruiz@vwys.com.mx",
+        "rrosasg@vwys.com.mx",
+        "rvallejo@vwys.com.mx",
+        "storres@vwys.com.mx"
+      ],
+      "status": "represented",
+      "projectMatches": [
+        {
+          "score": 0.9455,
+          "id": "23f5d61a-8218-49a2-801d-8b2db8f8ffaa",
+          "legacyId": "2037",
+          "slug": "constitutional-reform-to-reduce-the-workweek",
+          "titleEs": "Reforma constitucional para reducir la jornada laboral",
+          "titleEn": "Constitutional reform to reduce the workweek"
+        },
+        {
+          "score": 0.8959,
+          "id": "59e9ff37-2233-4362-bd5c-4c2e121c15e7",
+          "legacyId": "2038",
+          "slug": "reforma-constitucional-reduccion-de-la-jornada-laboral",
+          "titleEs": "Reforma Constitucional: Reducción de la Jornada Laboral.",
+          "titleEn": "Constitutional Amendment: Reduction of the Working Day."
+        }
+      ],
+      "title": "Reforma constitucional para reducir la jornada laboral",
+      "authorMatches": [
+        {
+          "email": "aarizpe@vwys.com.mx",
+          "method": "email-local-part",
+          "profileId": "ef06b18e-f8e1-407b-a142-050db0eeb5f1",
+          "profileSlug": "alejandra-arizpe",
+          "profileName": "Alejandra Arizpe"
+        },
+        {
+          "email": "alperez@vwys.com.mx",
+          "method": "email-local-part",
+          "profileId": "b85d7988-907d-47be-ad4b-4737540dce0c",
+          "profileSlug": "alejandro-perez",
+          "profileName": "Alejandro Pérez"
+        },
+        {
+          "email": "aruiz@vwys.com.mx",
+          "method": "email-local-part",
+          "profileId": "63929ada-66e1-45c3-b3f3-3e481e29cb96",
+          "profileSlug": "ana-ruiz",
+          "profileName": "Ana Ruiz"
+        },
+        {
+          "email": "rrosasg@vwys.com.mx",
+          "method": "email-local-part",
+          "profileId": "ec6d69ce-3c8f-4986-b312-136f0bc41edd",
+          "profileSlug": "ricardo-rosas",
+          "profileName": "Ricardo Rosas"
+        },
+        {
+          "email": "rvallejo@vwys.com.mx",
+          "method": "email-local-part",
+          "profileId": "92785b6f-dae6-497f-ab72-7be5f9343b3c",
+          "profileSlug": "rafael-vallejo",
+          "profileName": "Rafael Vallejo"
+        },
+        {
+          "email": "storres@vwys.com.mx",
+          "method": "email-local-part",
+          "profileId": "9beb67df-a2ef-497a-b704-f6ba29eecfb9",
+          "profileSlug": "santiago-torres",
+          "profileName": "Santiago Torres"
+        }
+      ]
+    },
+    {
+      "folder": "Marzo/Nota Informativa 19 Mar",
+      "date": "2026-03-19",
+      "pdfCount": 2,
+      "validPdfCount": 2,
+      "pdfFiles": [
+        "Marzo/Nota Informativa 19 Mar/2026-03-19-CNE-Nuevo-Modelo.pdf",
+        "Marzo/Nota Informativa 19 Mar/2026-03-19-CNE-Resolution-New-Model.pdf"
+      ],
+      "docxCount": 2,
+      "docxFiles": [
+        "Marzo/Nota Informativa 19 Mar/Nota Acuerdo CNE Nuevo Modelo de Contratos de Interconexión-Conexión vf.docx",
+        "Marzo/Nota Informativa 19 Mar/Note - CNE Resolution Issuing the New Model Interconnection and Connection Agreements vf.docx"
+      ],
+      "emails": [
+        "agarfio@vwys.com.mx",
+        "ahernandez@vwys.com.mx",
+        "eberumen@vwys.com.mx",
+        "egrieger@vwys.com.mx",
+        "hsanchez@vwys.com.mx",
+        "mpuebla@vwys.com.mx",
+        "rflores@vwys.com.mx",
+        "rgonzalez@vwys.com.mx"
+      ],
+      "status": "represented",
+      "projectMatches": [
+        {
+          "score": 0.9726,
+          "id": "b3464078-7dc4-4b18-a0b5-9a796b9d6eca",
+          "legacyId": "2036",
+          "slug": "new-interconnection-and-connection-contract-model-structural-changes-enabling-ne",
+          "titleEs": "Nuevo modelo de contrato de interconexión y conexión: cambios estructurales que habilitan nuevos esquemas en el sector eléctrico",
+          "titleEn": "New interconnection and connection contract model: structural changes enabling new schemes in the power sector"
+        },
+        {
+          "score": 0.9183,
+          "id": "ac525602-f256-46ae-8311-4736e5c8a285",
+          "legacyId": "2035",
+          "slug": "nuevo-modelo-de-contrato-de-interconexion-y-conexion-cambios-estructurales-que-p",
+          "titleEs": "Nuevo modelo de contrato de Interconexión y Conexión: cambios estructurales que permiten nuevos esquemas en el sector eléctrico",
+          "titleEn": "New interconnection and connection contract model: structural changes enabling new schemes in the power sector"
+        }
+      ],
+      "title": "Nuevo modelo de contrato de interconexión y conexión: cambios estructurales que habilitan nuevos esquemas en el sector eléctrico",
+      "authorMatches": [
+        {
+          "email": "agarfio@vwys.com.mx",
+          "method": "email-local-part",
+          "profileId": "7f750a71-a0fa-4dd4-817f-5e16c9a21cf4",
+          "profileSlug": "ariel-garfio",
+          "profileName": "Ariel Garfio"
+        },
+        {
+          "email": "ahernandez@vwys.com.mx",
+          "method": "email-local-part",
+          "profileId": "0a40e642-03bc-4330-8f3f-cf3511c8a34b",
+          "profileSlug": "arturo-hernandez",
+          "profileName": "Arturo Hernández"
+        },
+        {
+          "email": "eberumen@vwys.com.mx",
+          "method": "email-local-part",
+          "profileId": "c30fe9d4-d4d2-48e4-bec3-2ea19999e8dc",
+          "profileSlug": "edmundo-berumen",
+          "profileName": "Edmundo Berumen"
+        },
+        {
+          "email": "egrieger@vwys.com.mx",
+          "method": "email-local-part",
+          "profileId": "2ef339e2-3bcf-488e-afed-09c1b9968a4b",
+          "profileSlug": "edmond-grieger",
+          "profileName": "Edmond Frederic Grieger"
+        },
+        {
+          "email": "hsanchez@vwys.com.mx",
+          "method": "email-local-part",
+          "profileId": "73cd6c5f-d67e-4269-b68b-dd4230cc3d0b",
+          "profileSlug": "hector-sanchez",
+          "profileName": "Héctor Sánchez"
+        },
+        {
+          "email": "mpuebla@vwys.com.mx",
+          "method": "unmatched",
+          "profileId": "",
+          "profileSlug": "",
+          "profileName": ""
+        },
+        {
+          "email": "rflores@vwys.com.mx",
+          "method": "email-local-part",
+          "profileId": "1e843eb4-4fbd-4ffa-8ae6-7835b61940c2",
+          "profileSlug": "roberto-flores",
+          "profileName": "Roberto Flores"
+        },
+        {
+          "email": "rgonzalez@vwys.com.mx",
+          "method": "email-local-part",
+          "profileId": "b7e9d14e-e00e-482f-82bd-6404e4a94794",
+          "profileSlug": "regina-gonzalez",
+          "profileName": "Regina González"
+        }
+      ]
+    },
+    {
+      "folder": "Marzo/Nota Informativa 31 Mar",
+      "date": "2026-03-31",
+      "pdfCount": 2,
+      "validPdfCount": 2,
+      "pdfFiles": [
+        "Marzo/Nota Informativa 31 Mar/2026-03-31-Reforma-ley-antilavado.pdf",
+        "Marzo/Nota Informativa 31 Mar/2026-03-31-Regulation-anti-laundry-money-law.pdf"
+      ],
+      "docxCount": 2,
+      "docxFiles": [
+        "Marzo/Nota Informativa 31 Mar/2026-03-31-Reforma-ley-antilavado.DOCX",
+        "Marzo/Nota Informativa 31 Mar/2026-03-31-Regulation-anti-laundry-money-law.DOCX"
+      ],
+      "emails": [
+        "acordoba@vwys.com.mx",
+        "dsierra@vwys.com.mx",
+        "jdominguez@vwys.com.mx",
+        "lburgueno@vwys.com.mx",
+        "mmorales@vwys.com.mx",
+        "rcacho@vwys.com.mx",
+        "rsoberanis@vwys.com.mx"
+      ],
+      "status": "represented",
+      "projectMatches": [
+        {
+          "score": 0.9592,
+          "id": "05cbba32-3416-4d46-99ae-569d16fb94da",
+          "legacyId": "2030",
+          "slug": "client-alert-amendment-to-the-regulations-of-the-anti-money-laundering-law-aml-l",
+          "titleEs": "Alerta a Clientes: Reforma al Reglamento de la Ley Antilavado (Ley Antilavado)",
+          "titleEn": "Client Alert: Amendment to the Regulations of the Anti-Money Laundering Law (AML Law)"
+        },
+        {
+          "score": 0.9044,
+          "id": "d9b9e480-a057-48cc-8ba3-530af50416b5",
+          "legacyId": "2029",
+          "slug": "client-alert-reforma-al-reglamento-de-la-ley-antilavado-lfpiorpi",
+          "titleEs": "Client Alert: Reforma al Reglamento de la Ley Antilavado (LFPIORPI)",
+          "titleEn": "Client Alert: Amendment to the Regulations of the Anti-Money Laundering Law (LFPIORPI)"
+        }
+      ],
+      "title": "Alerta a Clientes: Reforma al Reglamento de la Ley Antilavado (Ley Antilavado)",
+      "authorMatches": [
+        {
+          "email": "acordoba@vwys.com.mx",
+          "method": "email-local-part",
+          "profileId": "d0bd38b9-e8ab-4a28-945b-9f223933a90f",
+          "profileSlug": "alberto-cordoba",
+          "profileName": "Alberto Córdoba"
+        },
+        {
+          "email": "dsierra@vwys.com.mx",
+          "method": "email-local-part",
+          "profileId": "55f51bf2-defb-4530-8796-4e4fd90aef1d",
+          "profileSlug": "diego-sierra",
+          "profileName": "Diego Sierra"
+        },
+        {
+          "email": "jdominguez@vwys.com.mx",
+          "method": "email-local-part",
+          "profileId": "2e97b18f-0762-4e91-a2fb-0cb388141012",
+          "profileSlug": "joel-dominguez",
+          "profileName": "Joel Domínguez"
+        },
+        {
+          "email": "lburgueno@vwys.com.mx",
+          "method": "email-local-part",
+          "profileId": "0c2161f9-6f37-4749-831d-bf1f890bcb34",
+          "profileSlug": "luis-burgueno",
+          "profileName": "Luis Burgueño"
+        },
+        {
+          "email": "mmorales@vwys.com.mx",
+          "method": "email-local-part",
+          "profileId": "e915f28e-5271-4404-9baa-aaa0d747758a",
+          "profileSlug": "max-morales",
+          "profileName": "Max Morales"
+        },
+        {
+          "email": "rcacho@vwys.com.mx",
+          "method": "email-local-part",
+          "profileId": "bf075ce7-1683-4255-819c-67fcebf15bf1",
+          "profileSlug": "ricardo-cacho",
+          "profileName": "Ricardo Cacho"
+        },
+        {
+          "email": "rsoberanis@vwys.com.mx",
+          "method": "email-local-part",
+          "profileId": "b59893ab-fd0d-4836-b2d6-e5da89f0f9dc",
+          "profileSlug": "raymundo-soberanis",
+          "profileName": "Raymundo Soberanis"
+        }
+      ]
+    },
+    {
+      "folder": "Abril/Nota Informativa 8 Abr",
+      "date": "2026-04-08",
+      "pdfCount": 2,
+      "validPdfCount": 2,
+      "pdfFiles": [
+        "Abril/Nota Informativa 8 Abr/2026-04-08-Bloqueo-de-cuentas.pdf",
+        "Abril/Nota Informativa 8 Abr/2026-04-08-bank-account-blocking.pdf"
+      ],
+      "docxCount": 2,
+      "docxFiles": [
+        "Abril/Nota Informativa 8 Abr/Copia de Client Alert Traducción.docx",
+        "Abril/Nota Informativa 8 Abr/Client Alert bloqueo de cuentas 58-2022 RC 070426.docx"
+      ],
+      "emails": [],
+      "status": "represented",
+      "projectMatches": [
+        {
+          "score": 0.8901,
+          "id": "d1c173ef-b1f9-4d11-827c-ea4daef95210",
+          "legacyId": "2026",
+          "slug": "freezing-of-accounts-by-the-uif-is-constitutional-the-scjn-ruling-reminds-busine",
+          "titleEs": "El bloqueo de cuentas por parte de la UIF es constitucional: la resolución de la SCJN recuerda a los empresarios que sus programas de cumplimiento son clave para evitar medidas de la UIF",
+          "titleEn": "Freezing of Accounts by the UIF is Constitutional:The SCJN ruling reminds business owners that their compliance programs are key to avoiding UIF measures"
+        },
+        {
+          "score": 0.83,
+          "id": "80ca1abb-8b52-4106-b9b0-9f8fac0c3d56",
+          "legacyId": "2025",
+          "slug": "bloqueo-de-cuentas-por-uif-constitucional-la-sentencia-de-la-scjn-recuerda-a-los",
+          "titleEs": "Bloqueo de Cuentas por UIF Constitucional: La sentencia de la SCJN recuerda a los empresarios que sus programas de cumplimiento son clave para evitar las medidas de la UIF",
+          "titleEn": "Account Freezing by the FIU Ruled Constitutional: The Supreme Court's decision reminds businesses that their compliance programs are key to avoiding FIU measures"
+        }
+      ],
+      "title": "El bloqueo de cuentas por parte de la UIF es constitucional: la resolución de la SCJN recuerda a los empresarios que sus programas de cumplimiento son clave para evitar medidas de la UIF",
+      "authorMatches": []
+    },
+    {
+      "folder": "Abril/Nota Informativa 9 Abr",
+      "date": "2026-04-09",
+      "pdfCount": 2,
+      "validPdfCount": 2,
+      "pdfFiles": [
+        "Abril/Nota Informativa 9 Abr/2026-04-09-Oportunidades-de-inversion-sector-electrico.pdf",
+        "Abril/Nota Informativa 9 Abr/2026-04-09-Investment-opportunities-in-the-electric-sector.pdf"
+      ],
+      "docxCount": 2,
+      "docxFiles": [
+        "Abril/Nota Informativa 9 Abr/(vf) VWyS Newsletter_ Investment opportunities in the electricity sector_8abr2026 (inglés).docx",
+        "Abril/Nota Informativa 9 Abr/(vf) VWyS Newsletter_ Oportunidades de inversión en el sector eléctrico_8abr2026 (español).docx"
+      ],
+      "emails": [
+        "agarfio@vwys.com.mx",
+        "eberumen@vwys.com.mx",
+        "egrieger@vwys.com.mx",
+        "hsanchez@vwys.com.mx",
+        "mpuebla@vwys.com.mx",
+        "rflores@vwys.com.mx",
+        "rgonzalez@vwys.com.mx"
+      ],
+      "status": "represented",
+      "projectMatches": [
+        {
+          "score": 0.9581,
+          "id": "e772d8b4-4806-46a9-9988-77d5a9794cb0",
+          "legacyId": "2033",
+          "slug": "investment-opportunities-in-the-electricity-sector-transmission-and-transformati",
+          "titleEs": "Oportunidades de inversión en el sector eléctrico. Proyectos de Transmisión y Transformación – Esquemas de Desarrollo Mixto",
+          "titleEn": "Investment opportunities in the Electricity sector. Transmission and Transformation Projects – Joint Development Schemes"
+        },
+        {
+          "score": 0.8757,
+          "id": "2bba7f29-ca90-47cc-8167-ad10bc5a85b9",
+          "legacyId": "2034",
+          "slug": "oportunidades-de-inversion-en-el-sector-electrico-proyectos-de-transmision-y-tra",
+          "titleEs": "Oportunidades de inversión en el Sector Eléctrico proyectos de transmisión y transformación - esquemas para el desarrollo mixto",
+          "titleEn": "Investment opportunities in the Electricity Sector: transmission and transformation projects - schemes for mixed development"
+        }
+      ],
+      "title": "Oportunidades de inversión en el sector eléctrico. Proyectos de Transmisión y Transformación – Esquemas de Desarrollo Mixto",
+      "authorMatches": [
+        {
+          "email": "agarfio@vwys.com.mx",
+          "method": "email-local-part",
+          "profileId": "7f750a71-a0fa-4dd4-817f-5e16c9a21cf4",
+          "profileSlug": "ariel-garfio",
+          "profileName": "Ariel Garfio"
+        },
+        {
+          "email": "eberumen@vwys.com.mx",
+          "method": "email-local-part",
+          "profileId": "c30fe9d4-d4d2-48e4-bec3-2ea19999e8dc",
+          "profileSlug": "edmundo-berumen",
+          "profileName": "Edmundo Berumen"
+        },
+        {
+          "email": "egrieger@vwys.com.mx",
+          "method": "email-local-part",
+          "profileId": "2ef339e2-3bcf-488e-afed-09c1b9968a4b",
+          "profileSlug": "edmond-grieger",
+          "profileName": "Edmond Frederic Grieger"
+        },
+        {
+          "email": "hsanchez@vwys.com.mx",
+          "method": "email-local-part",
+          "profileId": "73cd6c5f-d67e-4269-b68b-dd4230cc3d0b",
+          "profileSlug": "hector-sanchez",
+          "profileName": "Héctor Sánchez"
+        },
+        {
+          "email": "mpuebla@vwys.com.mx",
+          "method": "unmatched",
+          "profileId": "",
+          "profileSlug": "",
+          "profileName": ""
+        },
+        {
+          "email": "rflores@vwys.com.mx",
+          "method": "email-local-part",
+          "profileId": "1e843eb4-4fbd-4ffa-8ae6-7835b61940c2",
+          "profileSlug": "roberto-flores",
+          "profileName": "Roberto Flores"
+        },
+        {
+          "email": "rgonzalez@vwys.com.mx",
+          "method": "email-local-part",
+          "profileId": "b7e9d14e-e00e-482f-82bd-6404e4a94794",
+          "profileSlug": "regina-gonzalez",
+          "profileName": "Regina González"
+        }
+      ]
+    },
+    {
+      "folder": "Abril/Nota Informativa 10 Abr",
+      "date": "2026-04-10",
+      "pdfCount": 2,
+      "validPdfCount": 2,
+      "pdfFiles": [
+        "Abril/Nota Informativa 10 Abr/2026-04-10-Decree-Amending-Article-141.pdf",
+        "Abril/Nota Informativa 10 Abr/2026-04-10-Decreto-se-reforma-articulo-141.pdf"
+      ],
+      "docxCount": 2,
+      "docxFiles": [
+        "Abril/Nota Informativa 10 Abr/Nota teìcnica Decreto artiìculo 141 CFF.docx",
+        "Abril/Nota Informativa 10 Abr/Nota_teìcnica_Decreto_artiìculo_141_CFF Inglés.docx"
+      ],
+      "emails": [
+        "ajtorres@vwys.com.mx",
+        "bcruz@vwys.com.mx",
+        "ltorres@vwys.com.mx",
+        "mchinchilla@vwys.com.mx"
+      ],
+      "status": "represented",
+      "projectMatches": [
+        {
+          "score": 0.9696,
+          "id": "8482e1e0-32fe-47b8-a8fe-1d273f2d3dbc",
+          "legacyId": "2023",
+          "slug": "decree-amending-article-141-of-the-federal-tax-code",
+          "titleEs": "Decreto por el que se reforma el artículo 141 del Código Fiscal de la Federación",
+          "titleEn": "Decree Amending Article 141 of the Federal Tax Code"
+        },
+        {
+          "score": 0.9201,
+          "id": "407ff722-5940-43f2-922a-9da128218536",
+          "legacyId": "2022",
+          "slug": "decreto-por-el-que-se-reforma-el-articulo-141-del-codigo-fiscal-de-la-federacion",
+          "titleEs": "Decreto por el que se reforma el artículo 141 del Código Fiscal de la Federación",
+          "titleEn": "Decree amending Article 141 of the Federal Fiscal Code"
+        }
+      ],
+      "title": "Decreto por el que se reforma el artículo 141 del Código Fiscal de la Federación",
+      "authorMatches": [
+        {
+          "email": "ajtorres@vwys.com.mx",
+          "method": "email-local-part",
+          "profileId": "e5927b98-019e-4325-9c41-32db57180f44",
+          "profileSlug": "alejandro-torres",
+          "profileName": "Alejandro Torres"
+        },
+        {
+          "email": "bcruz@vwys.com.mx",
+          "method": "email-local-part",
+          "profileId": "06fd9ed9-7a17-43a5-a196-9edebc3d3e6b",
+          "profileSlug": "melissa-cruz",
+          "profileName": "Melissa Cruz"
+        },
+        {
+          "email": "ltorres@vwys.com.mx",
+          "method": "email-local-part",
+          "profileId": "c02b8dcd-302e-43ac-b9b8-add9c0349c3a",
+          "profileSlug": "luis-enrique-torres",
+          "profileName": "Luis Enrique Torres"
+        },
+        {
+          "email": "mchinchilla@vwys.com.mx",
+          "method": "email-local-part",
+          "profileId": "3051a161-262d-4448-a2d5-9f71c28b751a",
+          "profileSlug": "miguel-angel-chinchilla",
+          "profileName": "Miguel Ángel Chinchilla"
+        }
+      ]
+    },
+    {
+      "folder": "Abril/Nota Informativa 13 Abr",
+      "date": "2026-04-13",
+      "pdfCount": 2,
+      "validPdfCount": 2,
+      "pdfFiles": [
+        "Abril/Nota Informativa 13 Abr/2026-04-13-Key-Reforms-to Mexicos-Industrial-Property-System.pdf",
+        "Abril/Nota Informativa 13 Abr/2026-04-13-Reformas-a-la Ley-de-Proteccion-Propiedad-Intelectual.pdf"
+      ],
+      "docxCount": 2,
+      "docxFiles": [
+        "Abril/Nota Informativa 13 Abr/Texto en inglés.docx",
+        "Abril/Nota Informativa 13 Abr/Texto en español.docx"
+      ],
+      "emails": [
+        "admartinez@vwys.com.mx",
+        "efsanchez@vwys.com.mx",
+        "pkaim@vwys.com.mx"
+      ],
+      "status": "represented",
+      "projectMatches": [
+        {
+          "score": 0.9747,
+          "id": "b0635ba2-faac-472a-a210-665667f6b1b8",
+          "legacyId": "2020",
+          "slug": "amendments-to-the-federal-law-for-the-protection-of-industrial-property",
+          "titleEs": "Reformas a la Ley Federal de Protección a la Propiedad Industrial",
+          "titleEn": "Amendments to the Federal Law for the Protection of Industrial Property"
+        },
+        {
+          "score": 0.8646,
+          "id": "93815070-2eb4-47f0-b0e8-b03d642e1bb1",
+          "legacyId": "2019",
+          "slug": "reformas-a-la-ley-federal-de-proteccion-a-la-propiedad-industrial",
+          "titleEs": "Reformas a la Ley Federal de Protección a la Propiedad Industrial",
+          "titleEn": "Amendments to the Federal Law for the Protection of Industrial Property"
+        }
+      ],
+      "title": "Reformas a la Ley Federal de Protección a la Propiedad Industrial",
+      "authorMatches": [
+        {
+          "email": "admartinez@vwys.com.mx",
+          "method": "email-local-part",
+          "profileId": "8a4e7a9e-1207-448d-955f-7804e71274b4",
+          "profileSlug": "adrian-martinez",
+          "profileName": "Adrián Martínez"
+        },
+        {
+          "email": "efsanchez@vwys.com.mx",
+          "method": "email-local-part",
+          "profileId": "e3c0ffb8-363e-4d98-888d-715779de279b",
+          "profileSlug": "efren-sanchez",
+          "profileName": "Efrén Sánchez"
+        },
+        {
+          "email": "pkaim@vwys.com.mx",
+          "method": "email-local-part",
+          "profileId": "240c672c-438d-4c4a-8eb0-067cd61cbfed",
+          "profileSlug": "patricia-kaim",
+          "profileName": "Patricia Kaim"
+        }
+      ]
+    },
+    {
+      "folder": "Abril/Nota Informativa 14 Abr",
+      "date": "2026-04-14",
+      "pdfCount": 1,
+      "validPdfCount": 1,
+      "pdfFiles": [
+        "Abril/Nota Informativa 14 Abr/2026-04-14-Mecanismos-de-Adquisicion.pdf"
+      ],
+      "docxCount": 2,
+      "docxFiles": [
+        "Abril/Nota Informativa 14 Abr/VWYSDOCS-#186195-v2-Legal_Note_-_Procurement_Mechanisms_US.DOCX",
+        "Abril/Nota Informativa 14 Abr/VWYSDOCS-#186122-v2A-Nota_Legal_-_Mecanismos_de_Adquisición_por_Confiabilidad.DOCX"
+      ],
+      "emails": [
+        "agarfio@vwys.com.mx",
+        "ahernandez@vwys.com.mx",
+        "eberumen@vwys.com.mx",
+        "egrieger@vwys.com.mx",
+        "hsanchez@vwys.com.mx",
+        "mpuebla@vwys.com.mx",
+        "rflores@vwys.com.mx",
+        "rgonzalez@vwys.com.mx"
+      ],
+      "status": "represented",
+      "projectMatches": [
+        {
+          "score": 0.8998,
+          "id": "f1ee026c-8f8f-48bd-bd72-77d001989ddd",
+          "legacyId": "2028",
+          "slug": "mexico-issues-new-administrative-provisions-for-cenace-competitive-procurement-m",
+          "titleEs": "México emite nuevas disposiciones administrativas para los mecanismos de contratación competitiva del CENACE de electricidad, capacidad, servicios conexos y productos asociados, y el CENACE publica la primera Convocatoria",
+          "titleEn": "Mexico Issues New Administrative Provisions for CENACE Competitive Procurement Mechanisms for Electricity, Capacity, Ancillary Services and Related Products and CENACE publishes the first Call"
+        },
+        {
+          "score": 0.8638,
+          "id": "e9833b55-aadc-4c33-8148-c0770b3f3653",
+          "legacyId": "2027",
+          "slug": "mexico-emite-nuevas-disposiciones-administrativas-para-los-mecanismos-competitiv",
+          "titleEs": "México emite nuevas disposiciones administrativas para los mecanismos competitivos de CENACE en la adquisición de electricidad, capacidad, servicios conexos, productos asociados y el CENACE publica la primera Convocatoria",
+          "titleEn": "Mexico issues new administrative provisions for CENACE's competitive mechanisms for the procurement of electricity, capacity, ancillary services and associated products, and CENACE publishes the first Call for Proposals"
+        }
+      ],
+      "title": "México emite nuevas disposiciones administrativas para los mecanismos de contratación competitiva del CENACE de electricidad, capacidad, servicios conexos y productos asociados, y el CENACE publica la primera Convocatoria",
+      "authorMatches": [
+        {
+          "email": "agarfio@vwys.com.mx",
+          "method": "email-local-part",
+          "profileId": "7f750a71-a0fa-4dd4-817f-5e16c9a21cf4",
+          "profileSlug": "ariel-garfio",
+          "profileName": "Ariel Garfio"
+        },
+        {
+          "email": "ahernandez@vwys.com.mx",
+          "method": "email-local-part",
+          "profileId": "0a40e642-03bc-4330-8f3f-cf3511c8a34b",
+          "profileSlug": "arturo-hernandez",
+          "profileName": "Arturo Hernández"
+        },
+        {
+          "email": "eberumen@vwys.com.mx",
+          "method": "email-local-part",
+          "profileId": "c30fe9d4-d4d2-48e4-bec3-2ea19999e8dc",
+          "profileSlug": "edmundo-berumen",
+          "profileName": "Edmundo Berumen"
+        },
+        {
+          "email": "egrieger@vwys.com.mx",
+          "method": "email-local-part",
+          "profileId": "2ef339e2-3bcf-488e-afed-09c1b9968a4b",
+          "profileSlug": "edmond-grieger",
+          "profileName": "Edmond Frederic Grieger"
+        },
+        {
+          "email": "hsanchez@vwys.com.mx",
+          "method": "email-local-part",
+          "profileId": "73cd6c5f-d67e-4269-b68b-dd4230cc3d0b",
+          "profileSlug": "hector-sanchez",
+          "profileName": "Héctor Sánchez"
+        },
+        {
+          "email": "mpuebla@vwys.com.mx",
+          "method": "unmatched",
+          "profileId": "",
+          "profileSlug": "",
+          "profileName": ""
+        },
+        {
+          "email": "rflores@vwys.com.mx",
+          "method": "email-local-part",
+          "profileId": "1e843eb4-4fbd-4ffa-8ae6-7835b61940c2",
+          "profileSlug": "roberto-flores",
+          "profileName": "Roberto Flores"
+        },
+        {
+          "email": "rgonzalez@vwys.com.mx",
+          "method": "email-local-part",
+          "profileId": "b7e9d14e-e00e-482f-82bd-6404e4a94794",
+          "profileSlug": "regina-gonzalez",
+          "profileName": "Regina González"
+        }
+      ]
+    },
+    {
+      "folder": "Abril/Nota Informativa 17 Abr",
+      "date": "2026-04-17",
+      "pdfCount": 2,
+      "validPdfCount": 2,
+      "pdfFiles": [
+        "Abril/Nota Informativa 17 Abr/2026-04-17-Ley-Desaparicion-Frozada-de-Personas.pdf",
+        "Abril/Nota Informativa 17 Abr/2026-04-17-General-Law-on-Forced-Disappearance-of-Persons.pdf"
+      ],
+      "docxCount": 2,
+      "docxFiles": [
+        "Abril/Nota Informativa 17 Abr/VWYSDOCS-#186395-v2-Client_Alert_-_PUI_-_english_version.DOCX",
+        "Abril/Nota Informativa 17 Abr/VWYSDOCS-#186022-v6-Client_Alert_(Reforma_a_la_LDP_y_LGP_-_PUI).DOCX"
+      ],
+      "emails": [
+        "cugalde@vwys.com.mx",
+        "gmartinez@vwys.com.mx",
+        "lburgueno@vwys.com.mx",
+        "rsoberanis@vwys.com.mx"
+      ],
+      "status": "represented",
+      "projectMatches": [
+        {
+          "score": 0.95,
+          "id": "c9a9562b-c3a5-4f02-94b7-38b2db2d4c02",
+          "legacyId": "2017",
+          "slug": "client-alert-amendment-to-the-general-law-on-forced-disappearance-of-persons-dis",
+          "titleEs": "Alerta a Clientes: Reforma a la Ley General en Materia de Desaparición Forzada de Personas, Desaparición Cometida por Particulares y del Sistema Nacional de Búsqueda de Personas (\"LDP\"); obligación de interconexión con la Plataforma Única de Identidad (\"PUI\")",
+          "titleEn": "Client Alert: Amendment to the General Law on Forced Disappearance of Persons, Disappearance Committed by Private Parties, and the National Missing Persons System (“LDP”); obligation to Interconnect with the Single Identity Platform (“PUI”)"
+        },
+        {
+          "score": 0.8913,
+          "id": "14d94d6b-a3eb-4ac6-a2f7-127c52a1e9f9",
+          "legacyId": "2016",
+          "slug": "client-alert-reforma-a-la-ley-general-en-materia-de-desaparicion-forzada-de-pers",
+          "titleEs": "Client Alert: Reforma a la Ley General en Materia de Desaparición Forzada de Personas, Desaparición Cometida por Particulares y del Sistema Nacional de Búsqueda de Personas (“LDP”); obligación de Interconexión con la Plataforma Única de Identidad (“PUI”)",
+          "titleEn": "Client Alert: Amendment to the General Law on Enforced Disappearance of Persons, Disappearance Committed by Private Parties and the National Search System for Persons (\"LDP\"); obligation to interconnect with the Single Identity Platform (\"PUI\")"
+        }
+      ],
+      "title": "Alerta a Clientes: Reforma a la Ley General en Materia de Desaparición Forzada de Personas, Desaparición Cometida por Particulares y del Sistema Nacional de Búsqueda de Personas (\"LDP\"); obligación de interconexión con la Plataforma Única de Identidad (\"PUI\")",
+      "authorMatches": [
+        {
+          "email": "cugalde@vwys.com.mx",
+          "method": "email-local-part",
+          "profileId": "a1dbc105-de89-45fb-a9e0-632f3405b0ff",
+          "profileSlug": "carlos-ugalde",
+          "profileName": "Carlos Ugalde"
+        },
+        {
+          "email": "gmartinez@vwys.com.mx",
+          "method": "email-local-part",
+          "profileId": "bd41d99d-bea9-4dfe-97b5-8a791a34d2df",
+          "profileSlug": "gloria-martinez",
+          "profileName": "Gloria Martínez"
+        },
+        {
+          "email": "lburgueno@vwys.com.mx",
+          "method": "email-local-part",
+          "profileId": "0c2161f9-6f37-4749-831d-bf1f890bcb34",
+          "profileSlug": "luis-burgueno",
+          "profileName": "Luis Burgueño"
+        },
+        {
+          "email": "rsoberanis@vwys.com.mx",
+          "method": "email-local-part",
+          "profileId": "b59893ab-fd0d-4836-b2d6-e5da89f0f9dc",
+          "profileSlug": "raymundo-soberanis",
+          "profileName": "Raymundo Soberanis"
+        }
+      ]
+    },
+    {
+      "folder": "Abril/Nota Informativa 22 Abr",
+      "date": "2026-04-22",
+      "pdfCount": 2,
+      "validPdfCount": 2,
+      "pdfFiles": [
+        "Abril/Nota Informativa 22 Abr/2026-04-23-the-law-to-promote-investment.pdf",
+        "Abril/Nota Informativa 22 Abr/2026-04-23-ley-para-el-fomento-de-la-inversion.pdf"
+      ],
+      "docxCount": 2,
+      "docxFiles": [
+        "Abril/Nota Informativa 22 Abr/VWYSDOCS-#186568-v2-Nota-_Ley_de_inversión.DOCX",
+        "Abril/Nota Informativa 22 Abr/Legal Note _ Law for Strategic Infrastructure.DOCX"
+      ],
+      "emails": [
+        "acordoba@vonwobeser.com",
+        "acordoba@vwys.com.mx",
+        "agarfio@vwys.com.mx",
+        "ahernandez@vwys.com.mx",
+        "eberumen@vwys.com.mx",
+        "echinchillas@vonwobeser.com",
+        "echinchillas@vwys.com.mx",
+        "jbetancourt@vonwobeser.com",
+        "jbetancourt@vwys.com.mx",
+        "mpuebla@vwys.com.mx",
+        "preyes@vonwobeser.com",
+        "preyes@vwys.com.mx",
+        "rgonzalez@vwys.com.mx"
+      ],
+      "status": "represented",
+      "projectMatches": [
+        {
+          "score": 0.9876,
+          "id": "a79520a6-1073-4563-911f-d582487ad6c1",
+          "legacyId": "2014",
+          "slug": "the-law-to-promote-investment-in-strategic-infrastructure-for-development-with-w",
+          "titleEs": "Se expide la Ley para el Fomento de la Inversión en Infraestructura Estratégica para el Desarrollo con Bienestar",
+          "titleEn": "The law to promote investment in strategic infrastructure for development with well-being is enacted"
+        },
+        {
+          "score": 0.9081,
+          "id": "6be67ebb-6f68-4566-8504-5c337c97ea80",
+          "legacyId": "2011",
+          "slug": "se-expide-la-ley-para-el-fomento-de-la-inversion-en-infraestructura-estrategica-",
+          "titleEs": "Se expide la ley para el fomento de la inversión en infraestructura estratégica para el desarrollo con bienestar",
+          "titleEn": "Enactment of the Law for the Promotion of Investment in Strategic Infrastructure for Development with Wellbeing"
+        }
+      ],
+      "title": "Se expide la Ley para el Fomento de la Inversión en Infraestructura Estratégica para el Desarrollo con Bienestar",
+      "authorMatches": [
+        {
+          "email": "acordoba@vonwobeser.com",
+          "method": "email-local-part",
+          "profileId": "d0bd38b9-e8ab-4a28-945b-9f223933a90f",
+          "profileSlug": "alberto-cordoba",
+          "profileName": "Alberto Córdoba"
+        },
+        {
+          "email": "acordoba@vwys.com.mx",
+          "method": "email-local-part",
+          "profileId": "d0bd38b9-e8ab-4a28-945b-9f223933a90f",
+          "profileSlug": "alberto-cordoba",
+          "profileName": "Alberto Córdoba"
+        },
+        {
+          "email": "agarfio@vwys.com.mx",
+          "method": "email-local-part",
+          "profileId": "7f750a71-a0fa-4dd4-817f-5e16c9a21cf4",
+          "profileSlug": "ariel-garfio",
+          "profileName": "Ariel Garfio"
+        },
+        {
+          "email": "ahernandez@vwys.com.mx",
+          "method": "email-local-part",
+          "profileId": "0a40e642-03bc-4330-8f3f-cf3511c8a34b",
+          "profileSlug": "arturo-hernandez",
+          "profileName": "Arturo Hernández"
+        },
+        {
+          "email": "eberumen@vwys.com.mx",
+          "method": "email-local-part",
+          "profileId": "c30fe9d4-d4d2-48e4-bec3-2ea19999e8dc",
+          "profileSlug": "edmundo-berumen",
+          "profileName": "Edmundo Berumen"
+        },
+        {
+          "email": "echinchillas@vonwobeser.com",
+          "method": "email-local-part",
+          "profileId": "658e2465-bf47-4a52-8ea0-2c431ba8334e",
+          "profileSlug": "eugenio-chinchillas",
+          "profileName": "Eugenio Chinchillas"
+        },
+        {
+          "email": "echinchillas@vwys.com.mx",
+          "method": "email-local-part",
+          "profileId": "658e2465-bf47-4a52-8ea0-2c431ba8334e",
+          "profileSlug": "eugenio-chinchillas",
+          "profileName": "Eugenio Chinchillas"
+        },
+        {
+          "email": "jbetancourt@vonwobeser.com",
+          "method": "email-local-part",
+          "profileId": "9243933d-c1f3-467f-9b56-e6c019709a34",
+          "profileSlug": "javier-betancourt",
+          "profileName": "Javier Betancourt"
+        },
+        {
+          "email": "jbetancourt@vwys.com.mx",
+          "method": "email-local-part",
+          "profileId": "9243933d-c1f3-467f-9b56-e6c019709a34",
+          "profileSlug": "javier-betancourt",
+          "profileName": "Javier Betancourt"
+        },
+        {
+          "email": "mpuebla@vwys.com.mx",
+          "method": "unmatched",
+          "profileId": "",
+          "profileSlug": "",
+          "profileName": ""
+        },
+        {
+          "email": "preyes@vonwobeser.com",
+          "method": "email-local-part",
+          "profileId": "4150188c-c011-44c0-ae27-ab65e6191cfa",
+          "profileSlug": "patricio-reyes-retana",
+          "profileName": "Patricio Reyes Retana"
+        },
+        {
+          "email": "preyes@vwys.com.mx",
+          "method": "email-local-part",
+          "profileId": "4150188c-c011-44c0-ae27-ab65e6191cfa",
+          "profileSlug": "patricio-reyes-retana",
+          "profileName": "Patricio Reyes Retana"
+        },
+        {
+          "email": "rgonzalez@vwys.com.mx",
+          "method": "email-local-part",
+          "profileId": "b7e9d14e-e00e-482f-82bd-6404e4a94794",
+          "profileSlug": "regina-gonzalez",
+          "profileName": "Regina González"
+        }
+      ]
+    },
+    {
+      "folder": "Abril/Nota Informativa 27 Abr",
+      "date": "2026-04-27",
+      "pdfCount": 2,
+      "validPdfCount": 2,
+      "pdfFiles": [
+        "Abril/Nota Informativa 27 Abr/2026-04-27-nec-integration-of-electric-energy-storage.pdf",
+        "Abril/Nota Informativa 27 Abr/2026-04-27-CNE-Integracion-de-sistemas-de-almacenamiento.pdf"
+      ],
+      "docxCount": 2,
+      "docxFiles": [
+        "Abril/Nota Informativa 27 Abr/Nota Legal - Electric Energy Storage System.docx",
+        "Abril/Nota Informativa 27 Abr/VWYSDOCS-#186666-v1-Nota_Legal_-_DACGs_SAEE_en_el_SEN (002).docx"
+      ],
+      "emails": [
+        "agarfio@vwys.com.mx",
+        "ahernandez@vwys.com.mx",
+        "eberumen@vwys.com.mx",
+        "egrieger@vwys.com.mx",
+        "hsanchez@vwys.com.mx",
+        "mpuebla@vwys.com.mx",
+        "rflores@vwys.com.mx",
+        "rgonzalez@vwys.com.mx"
+      ],
+      "status": "represented",
+      "projectMatches": [
+        {
+          "score": 0.9877,
+          "id": "8026fc54-fcb9-44b9-93c7-915512fac10d",
+          "legacyId": "2010",
+          "slug": "new-cne-provisions-regulate-the-integration-of-electric-energy-storage-systems-i",
+          "titleEs": "Nuevas disposiciones de la CNE regulan la integración de sistemas de almacenamiento de energía eléctrica al Sistema Eléctrico Nacional",
+          "titleEn": "New CNE provisions regulate the integration of electric energy storage systems into the National Electric System"
+        },
+        {
+          "score": 0.9363,
+          "id": "9026f6a2-09f5-4b75-9906-95962d77493f",
+          "legacyId": "2009",
+          "slug": "nuevas-disposiciones-de-la-cne-regulan-la-integracion-de-sistemas-de-almacenamie",
+          "titleEs": "Nuevas disposiciones de la CNE regulan la integración de sistemas de almacenamiento de energía eléctrica al Sistema Eléctrico Nacional",
+          "titleEn": "New CNE provisions regulate the integration of electric energy storage systems into the National Electric System"
+        }
+      ],
+      "title": "Nuevas disposiciones de la CNE regulan la integración de sistemas de almacenamiento de energía eléctrica al Sistema Eléctrico Nacional",
+      "authorMatches": [
+        {
+          "email": "agarfio@vwys.com.mx",
+          "method": "email-local-part",
+          "profileId": "7f750a71-a0fa-4dd4-817f-5e16c9a21cf4",
+          "profileSlug": "ariel-garfio",
+          "profileName": "Ariel Garfio"
+        },
+        {
+          "email": "ahernandez@vwys.com.mx",
+          "method": "email-local-part",
+          "profileId": "0a40e642-03bc-4330-8f3f-cf3511c8a34b",
+          "profileSlug": "arturo-hernandez",
+          "profileName": "Arturo Hernández"
+        },
+        {
+          "email": "eberumen@vwys.com.mx",
+          "method": "email-local-part",
+          "profileId": "c30fe9d4-d4d2-48e4-bec3-2ea19999e8dc",
+          "profileSlug": "edmundo-berumen",
+          "profileName": "Edmundo Berumen"
+        },
+        {
+          "email": "egrieger@vwys.com.mx",
+          "method": "email-local-part",
+          "profileId": "2ef339e2-3bcf-488e-afed-09c1b9968a4b",
+          "profileSlug": "edmond-grieger",
+          "profileName": "Edmond Frederic Grieger"
+        },
+        {
+          "email": "hsanchez@vwys.com.mx",
+          "method": "email-local-part",
+          "profileId": "73cd6c5f-d67e-4269-b68b-dd4230cc3d0b",
+          "profileSlug": "hector-sanchez",
+          "profileName": "Héctor Sánchez"
+        },
+        {
+          "email": "mpuebla@vwys.com.mx",
+          "method": "unmatched",
+          "profileId": "",
+          "profileSlug": "",
+          "profileName": ""
+        },
+        {
+          "email": "rflores@vwys.com.mx",
+          "method": "email-local-part",
+          "profileId": "1e843eb4-4fbd-4ffa-8ae6-7835b61940c2",
+          "profileSlug": "roberto-flores",
+          "profileName": "Roberto Flores"
+        },
+        {
+          "email": "rgonzalez@vwys.com.mx",
+          "method": "email-local-part",
+          "profileId": "b7e9d14e-e00e-482f-82bd-6404e4a94794",
+          "profileSlug": "regina-gonzalez",
+          "profileName": "Regina González"
+        }
+      ]
+    },
+    {
+      "folder": "Abril/Nota Informativa 29 Abr",
+      "date": "2026-04-29",
+      "pdfCount": 2,
+      "validPdfCount": 2,
+      "pdfFiles": [
+        "Abril/Nota Informativa 29 Abr/2026-04-29-guidelines-for-migration-PIE.pdf",
+        "Abril/Nota Informativa 29 Abr/2026-04-29-lineamientos-de-migracion-PIE.pdf"
+      ],
+      "docxCount": 2,
+      "docxFiles": [
+        "Abril/Nota Informativa 29 Abr/Nota Lineamientos Migración PIE Ingles vf.docx",
+        "Abril/Nota Informativa 29 Abr/Nota Lineamientos Migración PIE Español vf.docx"
+      ],
+      "emails": [
+        "agarfio@vwys.com.mx",
+        "ahernandez@vwys.com.mx",
+        "eberumen@vwys.com.mx",
+        "egrieger@vwys.com.mx",
+        "hsanchez@vwys.com.mx",
+        "mpuebla@vwys.com.mx",
+        "rflores@vwys.com.mx",
+        "rgonzalez@vwys.com.mx"
+      ],
+      "status": "represented",
+      "projectMatches": [
+        {
+          "score": 0.9789,
+          "id": "13f2213d-9434-4ea5-a848-cad67be030c3",
+          "legacyId": "2024",
+          "slug": "the-ministry-of-energy-issues-guidelines-for-the-voluntary-migration-of-independ",
+          "titleEs": "La Secretaría de Energía emite lineamientos para la Migración Voluntaria de Permisos de Producción Independiente de Energía",
+          "titleEn": "The Ministry of Energy issues guidelines for the Voluntary Migration of Independent Power Production Permits"
+        },
+        {
+          "score": 0.9209,
+          "id": "8c69f981-22a7-4f04-8bc1-c0bea6881a2d",
+          "legacyId": "2021",
+          "slug": "la-secretaria-de-energia-emite-los-lineamientos-para-la-migracion-voluntaria-de-",
+          "titleEs": "La Secretaría de Energía emite los lineamientos para la Migración Voluntaria de Permisos de Producción Independiente de Energía Eléctrica",
+          "titleEn": "The Ministry of Energy issues the guidelines for the Voluntary Migration of Independent Power Production Permits"
+        }
+      ],
+      "title": "La Secretaría de Energía emite lineamientos para la Migración Voluntaria de Permisos de Producción Independiente de Energía",
+      "authorMatches": [
+        {
+          "email": "agarfio@vwys.com.mx",
+          "method": "email-local-part",
+          "profileId": "7f750a71-a0fa-4dd4-817f-5e16c9a21cf4",
+          "profileSlug": "ariel-garfio",
+          "profileName": "Ariel Garfio"
+        },
+        {
+          "email": "ahernandez@vwys.com.mx",
+          "method": "email-local-part",
+          "profileId": "0a40e642-03bc-4330-8f3f-cf3511c8a34b",
+          "profileSlug": "arturo-hernandez",
+          "profileName": "Arturo Hernández"
+        },
+        {
+          "email": "eberumen@vwys.com.mx",
+          "method": "email-local-part",
+          "profileId": "c30fe9d4-d4d2-48e4-bec3-2ea19999e8dc",
+          "profileSlug": "edmundo-berumen",
+          "profileName": "Edmundo Berumen"
+        },
+        {
+          "email": "egrieger@vwys.com.mx",
+          "method": "email-local-part",
+          "profileId": "2ef339e2-3bcf-488e-afed-09c1b9968a4b",
+          "profileSlug": "edmond-grieger",
+          "profileName": "Edmond Frederic Grieger"
+        },
+        {
+          "email": "hsanchez@vwys.com.mx",
+          "method": "email-local-part",
+          "profileId": "73cd6c5f-d67e-4269-b68b-dd4230cc3d0b",
+          "profileSlug": "hector-sanchez",
+          "profileName": "Héctor Sánchez"
+        },
+        {
+          "email": "mpuebla@vwys.com.mx",
+          "method": "unmatched",
+          "profileId": "",
+          "profileSlug": "",
+          "profileName": ""
+        },
+        {
+          "email": "rflores@vwys.com.mx",
+          "method": "email-local-part",
+          "profileId": "1e843eb4-4fbd-4ffa-8ae6-7835b61940c2",
+          "profileSlug": "roberto-flores",
+          "profileName": "Roberto Flores"
+        },
+        {
+          "email": "rgonzalez@vwys.com.mx",
+          "method": "email-local-part",
+          "profileId": "b7e9d14e-e00e-482f-82bd-6404e4a94794",
+          "profileSlug": "regina-gonzalez",
+          "profileName": "Regina González"
+        }
+      ]
+    },
+    {
+      "folder": "Abril/Nota Informativa 29 Abr Bis",
+      "date": "2026-04-29",
+      "pdfCount": 2,
+      "validPdfCount": 2,
+      "pdfFiles": [
+        "Abril/Nota Informativa 29 Abr Bis/2026-04-29-B-Reglamento-LFPPI-VF.pdf",
+        "Abril/Nota Informativa 29 Abr Bis/2026-04-29-B-Regulations-LFPPI-VF.pdf"
+      ],
+      "docxCount": 2,
+      "docxFiles": [
+        "Abril/Nota Informativa 29 Abr Bis/Proyecto Newsletter - Reglamento LFPPI VF.docx",
+        "Abril/Nota Informativa 29 Abr Bis/Proyecto Newsletter - Reglamento LFPPI VF - English.docx"
+      ],
+      "emails": [
+        "admartinez@vwys.com.mx",
+        "efsanchez@vwys.com.mx",
+        "pkaim@vwys.com.mx"
+      ],
+      "status": "represented",
+      "projectMatches": [
+        {
+          "score": 0.9718,
+          "id": "d2676eb2-b0c2-4b5d-978f-bd77af5b7b98",
+          "legacyId": "2008",
+          "slug": "publication-of-the-regulations-of-the-federal-law-on-the-protection-of-industria",
+          "titleEs": "Publicación del Reglamento de la Ley Federal de Protección a la Propiedad Industrial",
+          "titleEn": "Publication of the Regulations of the Federal Law on the Protection of Industrial Property"
+        },
+        {
+          "score": 0.9195,
+          "id": "fb1545f6-e3e6-46b4-9fff-5e902e9e2779",
+          "legacyId": "2007",
+          "slug": "publicacion-del-reglamento-de-la-ley-federal-de-proteccion-a-la-propiedad-indust",
+          "titleEs": "Publicación del Reglamento de la Ley Federal de Protección a la Propiedad Industrial",
+          "titleEn": "Publication of the Regulations to the Federal Law for the Protection of Industrial Property"
+        }
+      ],
+      "title": "Publicación del Reglamento de la Ley Federal de Protección a la Propiedad Industrial",
+      "authorMatches": [
+        {
+          "email": "admartinez@vwys.com.mx",
+          "method": "email-local-part",
+          "profileId": "8a4e7a9e-1207-448d-955f-7804e71274b4",
+          "profileSlug": "adrian-martinez",
+          "profileName": "Adrián Martínez"
+        },
+        {
+          "email": "efsanchez@vwys.com.mx",
+          "method": "email-local-part",
+          "profileId": "e3c0ffb8-363e-4d98-888d-715779de279b",
+          "profileSlug": "efren-sanchez",
+          "profileName": "Efrén Sánchez"
+        },
+        {
+          "email": "pkaim@vwys.com.mx",
+          "method": "email-local-part",
+          "profileId": "240c672c-438d-4c4a-8eb0-067cd61cbfed",
+          "profileSlug": "patricia-kaim",
+          "profileName": "Patricia Kaim"
+        }
+      ]
+    },
+    {
+      "folder": "Mayo/5 Mayo",
+      "date": "2026-05-05",
+      "pdfCount": 2,
+      "validPdfCount": 2,
+      "pdfFiles": [
+        "Mayo/5 Mayo/2026-05-05-reduction-of-the-workweek.pdf",
+        "Mayo/5 Mayo/2026-05-05-reduccion-de-la-jornada-laboral.pdf"
+      ],
+      "docxCount": 2,
+      "docxFiles": [
+        "Mayo/5 Mayo/VWYS - Flash Informativo - Amendment FLL Reduction of the Workweek - (642636v1).docx",
+        "Mayo/5 Mayo/VWYS - Flash Informativo - Reforma LFT en materia de reduccioìn de la jornada laboral MAY2026 - (640911v2).docx"
+      ],
+      "emails": [
+        "aarizpe@vwys.com.mx",
+        "adcastillo@vwys.com.mx",
+        "alperez@vwys.com.mx",
+        "aruiz@vwys.com.mx",
+        "rrosasg@vwys.com.mx",
+        "rvallejo@vwys.com.mx",
+        "sgibert@vwys.com.mx",
+        "storres@vwys.com.mx"
+      ],
+      "status": "represented",
+      "projectMatches": [
+        {
+          "score": 0.9735,
+          "id": "acd9dcae-95bd-4b50-8df1-bfd4f95dc0a6",
+          "legacyId": "1997",
+          "slug": "amendment-to-the-federal-labor-law-regarding-the-reduction-of-the-workweek-48-to",
+          "titleEs": "Reforma a la Ley Federal del Trabajo en materia de Reducción de la Jornada Laboral (de 48 a 40 horas)",
+          "titleEn": "Amendment to the Federal Labor Law Regarding the Reduction of the Workweek (48 to 40 hours)"
+        },
+        {
+          "score": 0.8144,
+          "id": "aeefb567-9ebe-451e-90a4-893e0418718b",
+          "legacyId": "1998",
+          "slug": "publicacion-de-la-reforma-a-la-ley-federal-del-trabajo-en-materia-de-reduccion-a",
+          "titleEs": "Publication of the Amendment to the Federal Labor Law Regarding the Reduction of the Workweek (from 48 to 40 hours)",
+          "titleEn": "Publication of the Amendment to the Federal Labor Law Regarding the Reduction of the Workweek (from 48 to 40 hours)"
+        }
+      ],
+      "title": "Reforma a la Ley Federal del Trabajo en materia de Reducción de la Jornada Laboral (de 48 a 40 horas)",
+      "authorMatches": [
+        {
+          "email": "aarizpe@vwys.com.mx",
+          "method": "email-local-part",
+          "profileId": "ef06b18e-f8e1-407b-a142-050db0eeb5f1",
+          "profileSlug": "alejandra-arizpe",
+          "profileName": "Alejandra Arizpe"
+        },
+        {
+          "email": "adcastillo@vwys.com.mx",
+          "method": "email-local-part",
+          "profileId": "182f1e31-6bca-405e-a302-22e1fe265257",
+          "profileSlug": "adrian-castillo",
+          "profileName": "Adrián Castillo"
+        },
+        {
+          "email": "alperez@vwys.com.mx",
+          "method": "email-local-part",
+          "profileId": "b85d7988-907d-47be-ad4b-4737540dce0c",
+          "profileSlug": "alejandro-perez",
+          "profileName": "Alejandro Pérez"
+        },
+        {
+          "email": "aruiz@vwys.com.mx",
+          "method": "email-local-part",
+          "profileId": "63929ada-66e1-45c3-b3f3-3e481e29cb96",
+          "profileSlug": "ana-ruiz",
+          "profileName": "Ana Ruiz"
+        },
+        {
+          "email": "rrosasg@vwys.com.mx",
+          "method": "email-local-part",
+          "profileId": "ec6d69ce-3c8f-4986-b312-136f0bc41edd",
+          "profileSlug": "ricardo-rosas",
+          "profileName": "Ricardo Rosas"
+        },
+        {
+          "email": "rvallejo@vwys.com.mx",
+          "method": "email-local-part",
+          "profileId": "92785b6f-dae6-497f-ab72-7be5f9343b3c",
+          "profileSlug": "rafael-vallejo",
+          "profileName": "Rafael Vallejo"
+        },
+        {
+          "email": "sgibert@vwys.com.mx",
+          "method": "email-local-part",
+          "profileId": "60ecdca7-7d91-425f-815a-13088f41d63c",
+          "profileSlug": "sarah-gibert",
+          "profileName": "Sarah Gibert"
+        },
+        {
+          "email": "storres@vwys.com.mx",
+          "method": "email-local-part",
+          "profileId": "9beb67df-a2ef-497a-b704-f6ba29eecfb9",
+          "profileSlug": "santiago-torres",
+          "profileName": "Santiago Torres"
+        }
+      ]
+    },
+    {
+      "folder": "Mayo/5 Mayo BIS",
+      "date": "2026-05-05",
+      "pdfCount": 2,
+      "validPdfCount": 2,
+      "pdfFiles": [
+        "Mayo/5 Mayo BIS/2026-05-05-bis-insumos-a-la-salud.pdf",
+        "Mayo/5 Mayo BIS/2026-05-05-bis-regulations-for-health-supplies.pdf"
+      ],
+      "docxCount": 2,
+      "docxFiles": [
+        "Mayo/5 Mayo BIS/Traducción - Reforma al Reglamento de Insumos para la Salud.docx",
+        "Mayo/5 Mayo BIS/Reforma al Reglamento de Insumos para la Salud - Con comentarios PI - 4 Mayo 2026.docx"
+      ],
+      "emails": [],
+      "status": "represented",
+      "projectMatches": [
+        {
+          "score": 0.9179,
+          "id": "419f4a63-fc15-4ef6-ae7d-a884779c1554",
+          "legacyId": "2005",
+          "slug": "reforma-al-reglamento-de-insumos-para-la-salud",
+          "titleEs": "Reforma al Reglamento de Insumos para la Salud",
+          "titleEn": "Amendment to the Regulations on Health Supplies"
+        },
+        {
+          "score": 0.8333,
+          "id": "3590d2ef-714c-40f2-9719-39e2ac6b8439",
+          "legacyId": "2006",
+          "slug": "amendment-to-the-regulations-for-health-supplies",
+          "titleEs": "Reforma al Reglamento de Insumos para la Salud",
+          "titleEn": "Amendment to the Regulations for Health Supplies"
+        }
+      ],
+      "title": "Reforma al Reglamento de Insumos para la Salud",
+      "authorMatches": []
+    },
+    {
+      "folder": "Mayo/6 Mayo",
+      "date": "2026-05-06",
+      "pdfCount": 2,
+      "validPdfCount": 2,
+      "pdfFiles": [
+        "Mayo/6 Mayo/2026-05-06-Immediate-Actions-for-Investment.pdf",
+        "Mayo/6 Mayo/2026-05-06-Acciones-inmediatas-para-la-inversion.pdf"
+      ],
+      "docxCount": 2,
+      "docxFiles": [
+        "Mayo/6 Mayo/Nota Técnica Plan México.docx",
+        "Mayo/6 Mayo/Nota Técnica Plan México Inglés.docx"
+      ],
+      "emails": [
+        "ajtorres@vwys.com.mx",
+        "ltorres@vwys.com.mx",
+        "mchinchilla@vwys.com.mx"
+      ],
+      "status": "represented",
+      "projectMatches": [
+        {
+          "score": 0.988,
+          "id": "2db9a9d4-e247-4190-bdda-d1e041da323c",
+          "legacyId": "2004",
+          "slug": "plan-mexico-immediate-actions-for-investment",
+          "titleEs": "Plan Mexico — Immediate Actions for Investment",
+          "titleEn": "Plan Mexico — Immediate Actions for Investment"
+        },
+        {
+          "score": 0.9485,
+          "id": "b90baa98-bd82-4d3b-a891-53faaef837cd",
+          "legacyId": "2003",
+          "slug": "plan-mexico-acciones-inmediatas-para-la-inversion",
+          "titleEs": "Plan México — Acciones Inmediatas para la Inversión:",
+          "titleEn": "Plan Mexico — Immediate Actions for Investment:"
+        }
+      ],
+      "title": "Plan Mexico — Immediate Actions for Investment",
+      "authorMatches": [
+        {
+          "email": "ajtorres@vwys.com.mx",
+          "method": "email-local-part",
+          "profileId": "e5927b98-019e-4325-9c41-32db57180f44",
+          "profileSlug": "alejandro-torres",
+          "profileName": "Alejandro Torres"
+        },
+        {
+          "email": "ltorres@vwys.com.mx",
+          "method": "email-local-part",
+          "profileId": "c02b8dcd-302e-43ac-b9b8-add9c0349c3a",
+          "profileSlug": "luis-enrique-torres",
+          "profileName": "Luis Enrique Torres"
+        },
+        {
+          "email": "mchinchilla@vwys.com.mx",
+          "method": "email-local-part",
+          "profileId": "3051a161-262d-4448-a2d5-9f71c28b751a",
+          "profileSlug": "miguel-angel-chinchilla",
+          "profileName": "Miguel Ángel Chinchilla"
+        }
+      ]
+    },
+    {
+      "folder": "Mayo/19 Mayo",
+      "date": "2026-05-19",
+      "pdfCount": 2,
+      "validPdfCount": 2,
+      "pdfFiles": [
+        "Mayo/19 Mayo/2026-05-19-Implications-for-Mexico-of-the-United-States-of-Americas-2026.pdf",
+        "Mayo/19 Mayo/2026-05-19-Implicaciones para-Mexico-de-la-Estrategia-de-Control-de-Drogas-2026.pdf"
+      ],
+      "docxCount": 2,
+      "docxFiles": [
+        "Mayo/19 Mayo/VWYS - Alerta_Legal_Sobre_Implicaciones_NDCS_2026 - (647727v8).docx",
+        "Mayo/19 Mayo/VWYS - NCDS 2026 Implications Client Alert (English Version) - (650162v5).docx"
+      ],
+      "emails": [
+        "cugalde@vwys.com.mx",
+        "daltamirano@vwys.com.mx",
+        "jdominguez@vwys.com.mx",
+        "lburgueno@vwys.com.mx",
+        "lmjimenez@vwys.com.mx",
+        "rcacho@vwys.com.mx"
+      ],
+      "status": "represented",
+      "projectMatches": [
+        {
+          "score": 0.9702,
+          "id": "8b80fd68-8e4e-46ca-9a99-466806a65f27",
+          "legacyId": "2002",
+          "slug": "impact-in-mexico-of-the-u-s-2026-anti-drug-strategy-and-the-new-trade-and-financ",
+          "titleEs": "Impacto en México de la Estrategia Antidrogas 2026 de Estados Unidos y el Nuevo Paradigma de Cumplimiento Comercial y Financiero Vinculado a la Seguridad Nacional",
+          "titleEn": "Impact in Mexico of the U.S. 2026 Anti-Drug Strategy and the New Trade and Financial Compliance Paradigm Linked to National Security"
+        },
+        {
+          "score": 0.9263,
+          "id": "ba467993-4ab3-4b85-bd36-26a521944bd4",
+          "legacyId": "2001",
+          "slug": "impacto-en-mexico-de-la-estrategia-antidrogas-2026-de-eua-y-el-nuevo-paradigma-d",
+          "titleEs": "Impacto en México de la Estrategia Antidrogas 2026 de EUA y el nuevo paradigma de cumplimiento comercial y financiero ligado a seguridad nacional",
+          "titleEn": "Impact on Mexico of the U.S. 2026 Anti-Drug Strategy and the New Paradigm of Trade and Financial Compliance Tied to National Security"
+        }
+      ],
+      "title": "Impacto en México de la Estrategia Antidrogas 2026 de Estados Unidos y el Nuevo Paradigma de Cumplimiento Comercial y Financiero Vinculado a la Seguridad Nacional",
+      "authorMatches": [
+        {
+          "email": "cugalde@vwys.com.mx",
+          "method": "email-local-part",
+          "profileId": "a1dbc105-de89-45fb-a9e0-632f3405b0ff",
+          "profileSlug": "carlos-ugalde",
+          "profileName": "Carlos Ugalde"
+        },
+        {
+          "email": "daltamirano@vwys.com.mx",
+          "method": "email-local-part",
+          "profileId": "8fbd2454-dbc6-4c77-8601-f91727c38a70",
+          "profileSlug": "diego-altamirano",
+          "profileName": "Diego Altamirano"
+        },
+        {
+          "email": "jdominguez@vwys.com.mx",
+          "method": "email-local-part",
+          "profileId": "2e97b18f-0762-4e91-a2fb-0cb388141012",
+          "profileSlug": "joel-dominguez",
+          "profileName": "Joel Domínguez"
+        },
+        {
+          "email": "lburgueno@vwys.com.mx",
+          "method": "email-local-part",
+          "profileId": "0c2161f9-6f37-4749-831d-bf1f890bcb34",
+          "profileSlug": "luis-burgueno",
+          "profileName": "Luis Burgueño"
+        },
+        {
+          "email": "lmjimenez@vwys.com.mx",
+          "method": "email-local-part",
+          "profileId": "82509493-95d2-4684-b686-2f98db8a0d13",
+          "profileSlug": "luis-miguel-jimenez",
+          "profileName": "Luis Miguel Jiménez"
+        },
+        {
+          "email": "rcacho@vwys.com.mx",
+          "method": "email-local-part",
+          "profileId": "bf075ce7-1683-4255-819c-67fcebf15bf1",
+          "profileSlug": "ricardo-cacho",
+          "profileName": "Ricardo Cacho"
+        }
+      ]
+    },
+    {
+      "folder": "Mayo/19 Mayo-BIS",
+      "date": "2026-05-19",
+      "pdfCount": 2,
+      "validPdfCount": 2,
+      "pdfFiles": [
+        "Mayo/19 Mayo-BIS/2026-05-19-bis-sener-second-call-electricity-generation-permits-sen.pdf",
+        "Mayo/19 Mayo-BIS/2026-05-19-bis-sener-segunda-convocatoria-permisos-generacion-electrica-sen.pdf"
+      ],
+      "docxCount": 2,
+      "docxFiles": [
+        "Mayo/19 Mayo-BIS/VWYS - Nota Legal - Publicación de la Segunda Convocatoria (Eng.) - (669634v1).docx",
+        "Mayo/19 Mayo-BIS/VWYS - Nota Legal - Publicación de la Segunda Convocatoria Planeación Vinculante - (665148v3).docx"
+      ],
+      "emails": [
+        "agarfio@vwys.com.mx",
+        "ahernandez@vwys.com.mx",
+        "eberumen@vwys.com.mx",
+        "egrieger@vwys.com.mx",
+        "hsanchez@vwys.com.mx",
+        "mpuebla@vwys.com.mx",
+        "rflores@vwys.com.mx",
+        "rgonzalez@vwys.com.mx"
+      ],
+      "status": "represented",
+      "projectMatches": [
+        {
+          "score": 0.9763,
+          "id": "f132b29d-e331-42b1-825e-74dd8b261652",
+          "legacyId": "2015",
+          "slug": "sener-issues-the-second-call-for-the-priority-processing-of-applications-for-ele",
+          "titleEs": "La Sener emite la Segunda Convocatoria para la atención prioritaria de solicitudes de permisos de generación de energía eléctrica e interconexión al SEN",
+          "titleEn": "Sener Issues the Second Call for the Priority Processing of Applications for Electricity Generation Permits and Interconnection to the SEN"
+        },
+        {
+          "score": 0.9035,
+          "id": "b37834dd-42f3-4067-b620-bec9c3821b7c",
+          "legacyId": "2018",
+          "slug": "sener-emite-la-segunda-convocatoria-para-la-atencion-prioritaria-de-solicitudes-",
+          "titleEs": "Sener emite la Segunda Convocatoria para la atención prioritaria de solicitudes de permisos de generación eléctrica e interconexión al SEN",
+          "titleEn": "SENER issues the Second Call for the priority processing of applications for electricity generation permits and interconnection to the SEN"
+        }
+      ],
+      "title": "La Sener emite la Segunda Convocatoria para la atención prioritaria de solicitudes de permisos de generación de energía eléctrica e interconexión al SEN",
+      "authorMatches": [
+        {
+          "email": "agarfio@vwys.com.mx",
+          "method": "email-local-part",
+          "profileId": "7f750a71-a0fa-4dd4-817f-5e16c9a21cf4",
+          "profileSlug": "ariel-garfio",
+          "profileName": "Ariel Garfio"
+        },
+        {
+          "email": "ahernandez@vwys.com.mx",
+          "method": "email-local-part",
+          "profileId": "0a40e642-03bc-4330-8f3f-cf3511c8a34b",
+          "profileSlug": "arturo-hernandez",
+          "profileName": "Arturo Hernández"
+        },
+        {
+          "email": "eberumen@vwys.com.mx",
+          "method": "email-local-part",
+          "profileId": "c30fe9d4-d4d2-48e4-bec3-2ea19999e8dc",
+          "profileSlug": "edmundo-berumen",
+          "profileName": "Edmundo Berumen"
+        },
+        {
+          "email": "egrieger@vwys.com.mx",
+          "method": "email-local-part",
+          "profileId": "2ef339e2-3bcf-488e-afed-09c1b9968a4b",
+          "profileSlug": "edmond-grieger",
+          "profileName": "Edmond Frederic Grieger"
+        },
+        {
+          "email": "hsanchez@vwys.com.mx",
+          "method": "email-local-part",
+          "profileId": "73cd6c5f-d67e-4269-b68b-dd4230cc3d0b",
+          "profileSlug": "hector-sanchez",
+          "profileName": "Héctor Sánchez"
+        },
+        {
+          "email": "mpuebla@vwys.com.mx",
+          "method": "unmatched",
+          "profileId": "",
+          "profileSlug": "",
+          "profileName": ""
+        },
+        {
+          "email": "rflores@vwys.com.mx",
+          "method": "email-local-part",
+          "profileId": "1e843eb4-4fbd-4ffa-8ae6-7835b61940c2",
+          "profileSlug": "roberto-flores",
+          "profileName": "Roberto Flores"
+        },
+        {
+          "email": "rgonzalez@vwys.com.mx",
+          "method": "email-local-part",
+          "profileId": "b7e9d14e-e00e-482f-82bd-6404e4a94794",
+          "profileSlug": "regina-gonzalez",
+          "profileName": "Regina González"
+        }
+      ]
+    },
+    {
+      "folder": "Mayo/27 Mayo",
+      "date": "2026-05-27",
+      "pdfCount": 2,
+      "validPdfCount": 2,
+      "pdfFiles": [
+        "Mayo/27 Mayo/2026-05-27-sener-amendment-generation-permits-interconnection-sen.pdf",
+        "Mayo/27 Mayo/2026-05-27-sener-modificacion-segunda-convocatoria-permisos-generacion-electrica-interconexion-sen.pdf"
+      ],
+      "docxCount": 2,
+      "docxFiles": [
+        "Mayo/27 Mayo/VWYS - Nota Legal - Modificación de la Segunda Convocatoria (Eng.) - (678011v1).docx",
+        "Mayo/27 Mayo/VWYS - Nota Legal - Modificación de la Segunda Convocatoria Planeación Vinculante - (677739v1).docx"
+      ],
+      "emails": [
+        "agarfio@vwys.com.mx",
+        "ahernandez@vwys.com.mx",
+        "eberumen@vwys.com.mx",
+        "egrieger@vwys.com.mx",
+        "hsanchez@vwys.com.mx",
+        "mpuebla@vwys.com.mx",
+        "rflores@vwys.com.mx",
+        "rgonzalez@vwys.com.mx"
+      ],
+      "status": "represented",
+      "projectMatches": [
+        {
+          "score": 0.9537,
+          "id": "b0170c54-102f-4159-a528-a86667ed08a9",
+          "legacyId": "2000",
+          "slug": "sener-issues-the-amendment-to-the-second-call-for-the-priority-processing-of-app",
+          "titleEs": "SENER emite la Modificación a la Segunda Convocatoria para la atención prioritaria de solicitudes de permisos de generación de energía eléctrica e interconexión al SEN",
+          "titleEn": "SENER Issues the Amendment to the Second Call for the Priority Processing of Applications for Electricity Generation Permits and Interconnection to the SEN"
+        },
+        {
+          "score": 0.8879,
+          "id": "5a59e500-a215-41ce-a28d-d3659fd6dff1",
+          "legacyId": "1999",
+          "slug": "sener-emite-la-modificacion-a-la-segunda-convocatoria-para-la-atencion-prioritar",
+          "titleEs": "SENER emite la Modificación a la Segunda Convocatoria para la atención prioritaria de solicitudes de permisos de generación de energía eléctrica e interconexión al SEN",
+          "titleEn": "SENER Issues the Amendment to the Second Call for the Priority Processing of Applications for Electricity Generation Permits and Interconnection to the SEN"
+        }
+      ],
+      "title": "SENER emite la Modificación a la Segunda Convocatoria para la atención prioritaria de solicitudes de permisos de generación de energía eléctrica e interconexión al SEN",
+      "authorMatches": [
+        {
+          "email": "agarfio@vwys.com.mx",
+          "method": "email-local-part",
+          "profileId": "7f750a71-a0fa-4dd4-817f-5e16c9a21cf4",
+          "profileSlug": "ariel-garfio",
+          "profileName": "Ariel Garfio"
+        },
+        {
+          "email": "ahernandez@vwys.com.mx",
+          "method": "email-local-part",
+          "profileId": "0a40e642-03bc-4330-8f3f-cf3511c8a34b",
+          "profileSlug": "arturo-hernandez",
+          "profileName": "Arturo Hernández"
+        },
+        {
+          "email": "eberumen@vwys.com.mx",
+          "method": "email-local-part",
+          "profileId": "c30fe9d4-d4d2-48e4-bec3-2ea19999e8dc",
+          "profileSlug": "edmundo-berumen",
+          "profileName": "Edmundo Berumen"
+        },
+        {
+          "email": "egrieger@vwys.com.mx",
+          "method": "email-local-part",
+          "profileId": "2ef339e2-3bcf-488e-afed-09c1b9968a4b",
+          "profileSlug": "edmond-grieger",
+          "profileName": "Edmond Frederic Grieger"
+        },
+        {
+          "email": "hsanchez@vwys.com.mx",
+          "method": "email-local-part",
+          "profileId": "73cd6c5f-d67e-4269-b68b-dd4230cc3d0b",
+          "profileSlug": "hector-sanchez",
+          "profileName": "Héctor Sánchez"
+        },
+        {
+          "email": "mpuebla@vwys.com.mx",
+          "method": "unmatched",
+          "profileId": "",
+          "profileSlug": "",
+          "profileName": ""
+        },
+        {
+          "email": "rflores@vwys.com.mx",
+          "method": "email-local-part",
+          "profileId": "1e843eb4-4fbd-4ffa-8ae6-7835b61940c2",
+          "profileSlug": "roberto-flores",
+          "profileName": "Roberto Flores"
+        },
+        {
+          "email": "rgonzalez@vwys.com.mx",
+          "method": "email-local-part",
+          "profileId": "b7e9d14e-e00e-482f-82bd-6404e4a94794",
+          "profileSlug": "regina-gonzalez",
+          "profileName": "Regina González"
+        }
+      ]
+    },
+    {
+      "folder": "Junio/1 Junio",
+      "date": "2026-06-01",
+      "pdfCount": 2,
+      "validPdfCount": 2,
+      "pdfFiles": [
+        "Junio/1 Junio/2026-06-01-Client-Alert-AGM-ENG.pdf",
+        "Junio/1 Junio/2026-06-01-Client-Alert-AGM-ESP.pdf"
+      ],
+      "docxCount": 3,
+      "docxFiles": [
+        "Junio/1 Junio/Client Alert AGM-ESP.docx",
+        "Junio/1 Junio/Client Alert AGM-ENG.docx",
+        "Junio/1 Junio/Client Alert AGM (MM).docx"
+      ],
+      "emails": [],
+      "status": "represented",
+      "projectMatches": [
+        {
+          "score": 1.0,
+          "id": "6b4f97d7-f89e-4981-a560-c919dc37aa25",
+          "legacyId": "1995",
+          "slug": "mexico-and-the-european-union-sign-the-modernized-global-agreement-new-investmen",
+          "titleEs": "Mexico and the European Union Sign the Modernized Global Agreement: New Investment Protection Regime and Next Steps for Entry into Force",
+          "titleEn": "Mexico and the European Union Sign the Modernized Global Agreement: New Investment Protection Regime and Next Steps for Entry into Force"
+        },
+        {
+          "score": 0.9209,
+          "id": "33ae9dba-f36e-443e-b586-ee36f35cb797",
+          "legacyId": "1996",
+          "slug": "mexico-y-la-union-europea-firman-el-acuerdo-global-modernizado-nuevo-regimen-de-",
+          "titleEs": "Mexico and the European Union Sign the Modernized Global Agreement: A New Investment Protection Regime and Next Steps Toward Its Entry into Force",
+          "titleEn": "Mexico and the European Union Sign the Modernized Global Agreement: A New Investment Protection Regime and Next Steps Toward Its Entry into Force"
+        }
+      ],
+      "title": "Mexico and the European Union Sign the Modernized Global Agreement: New Investment Protection Regime and Next Steps for Entry into Force",
+      "authorMatches": []
+    },
+    {
+      "folder": "Junio/4 Junio",
+      "date": "2026-06-04",
+      "pdfCount": 2,
+      "validPdfCount": 2,
+      "pdfFiles": [
+        "Junio/4 Junio/2026-06-04-Amendment-to-the-General-Guidelines-for-the-Issuance-of-Visas.pdf",
+        "Junio/4 Junio/2026-06-04-Modificaciones-a-los-Lineamientos-Generales-para-la-Expedicion-de-Visas.pdf"
+      ],
+      "docxCount": 2,
+      "docxFiles": [
+        "Junio/4 Junio/VWYS - Flash Informativo - Modificación Guías - (685138v1).docx",
+        "Junio/4 Junio/VWYS - Flash Informativo - Amendment Guidelines to obtain Visa - (685108v1).docx"
+      ],
+      "emails": [
+        "gnegrete@vwys.com.mx",
+        "rvallejo@vwys.com.mx"
+      ],
+      "status": "represented",
+      "projectMatches": [
+        {
+          "score": 0.9466,
+          "id": "d959f14b-72e4-4f88-bb15-5e3c769cb604",
+          "legacyId": "2012",
+          "slug": "amendment-to-the-general-guidelines-for-the-issuance-of-visas",
+          "titleEs": "Modificaciones a los Lineamientos Generales para la Expedición de Visas.",
+          "titleEn": "Amendment to the General Guidelines for the Issuance of Visas."
+        },
+        {
+          "score": 0.8496,
+          "id": "87984ee1-21ec-45b1-8014-e8e02473f389",
+          "legacyId": "2013",
+          "slug": "modificaciones-a-los-lineamientos-generales-para-la-expedicion-de-visas",
+          "titleEs": "Modificaciones a los Lineamientos Generales para la Expedición de Visas",
+          "titleEn": "Amendments to the General Guidelines for the Issuance of Visas"
+        }
+      ],
+      "title": "Modificaciones a los Lineamientos Generales para la Expedición de Visas.",
+      "authorMatches": [
+        {
+          "email": "gnegrete@vwys.com.mx",
+          "method": "email-local-part",
+          "profileId": "121eb9fb-8f8b-4841-aa14-e2851f383dd0",
+          "profileSlug": "gabriela-negrete",
+          "profileName": "Gabriela Negrete"
+        },
+        {
+          "email": "rvallejo@vwys.com.mx",
+          "method": "email-local-part",
+          "profileId": "92785b6f-dae6-497f-ab72-7be5f9343b3c",
+          "profileSlug": "rafael-vallejo",
+          "profileName": "Rafael Vallejo"
+        }
+      ]
+    },
+    {
+      "folder": "Junio/10 Junio",
+      "date": "2026-06-10",
+      "pdfCount": 2,
+      "validPdfCount": 2,
+      "pdfFiles": [
+        "Junio/10 Junio/2026-06-10-WC-Opening-Mexico.pdf",
+        "Junio/10 Junio/2026-06-10-Inaguracion-Copa-Mundial-2026.pdf"
+      ],
+      "docxCount": 2,
+      "docxFiles": [
+        "Junio/10 Junio/VWYS - VWYS - Flash Informativo - Mundial - (698534v2).docx",
+        "Junio/10 Junio/VWYS - VWYS - Flash Informativo - Administrative Measures FIFA World Cup 2026 - (698538v1).docx"
+      ],
+      "emails": [
+        "aarizpe@vwys.com.mx",
+        "adcastillo@vwys.com.mx",
+        "alperez@vwys.com.mx",
+        "aruiz@vwys.com.mx",
+        "gnegrete@vwys.com.mx",
+        "gzambrano@vwys.com.mx",
+        "rrosasg@vwys.com.mx",
+        "rvallejo@vwys.com.mx",
+        "sgibert@vwys.com.mx",
+        "storres@vwys.com.mx"
+      ],
+      "status": "represented",
+      "projectMatches": [
+        {
+          "score": 1.0,
+          "id": "566fec09-2cf0-454f-9797-52e5f26c91c2",
+          "legacyId": "2050",
+          "slug": "administrative-measures-fifa-world-cup-2026-opening-match-in-mexico-city",
+          "titleEs": "Administrative Measures – FIFA World Cup 2026 Opening Match in Mexico City.",
+          "titleEn": "Administrative Measures – FIFA World Cup 2026 Opening Match in Mexico City."
+        },
+        {
+          "score": 0.8738,
+          "id": "578f9cb1-1fc5-4841-9268-5a2bade164e5",
+          "legacyId": "2049",
+          "slug": "medidas-administrativas-inauguracion-de-la-copa-mundial-fifa-2026-en-la-ciudad-d",
+          "titleEs": "Medidas administrativas – Inauguración de la Copa Mundial FIFA 2026 en la Ciudad de México.",
+          "titleEn": "Administrative Measures – Opening of the 2026 FIFA World Cup in Mexico City."
+        }
+      ],
+      "title": "Administrative Measures – FIFA World Cup 2026 Opening Match in Mexico City.",
+      "authorMatches": [
+        {
+          "email": "aarizpe@vwys.com.mx",
+          "method": "email-local-part",
+          "profileId": "ef06b18e-f8e1-407b-a142-050db0eeb5f1",
+          "profileSlug": "alejandra-arizpe",
+          "profileName": "Alejandra Arizpe"
+        },
+        {
+          "email": "adcastillo@vwys.com.mx",
+          "method": "email-local-part",
+          "profileId": "182f1e31-6bca-405e-a302-22e1fe265257",
+          "profileSlug": "adrian-castillo",
+          "profileName": "Adrián Castillo"
+        },
+        {
+          "email": "alperez@vwys.com.mx",
+          "method": "email-local-part",
+          "profileId": "b85d7988-907d-47be-ad4b-4737540dce0c",
+          "profileSlug": "alejandro-perez",
+          "profileName": "Alejandro Pérez"
+        },
+        {
+          "email": "aruiz@vwys.com.mx",
+          "method": "email-local-part",
+          "profileId": "63929ada-66e1-45c3-b3f3-3e481e29cb96",
+          "profileSlug": "ana-ruiz",
+          "profileName": "Ana Ruiz"
+        },
+        {
+          "email": "gnegrete@vwys.com.mx",
+          "method": "email-local-part",
+          "profileId": "121eb9fb-8f8b-4841-aa14-e2851f383dd0",
+          "profileSlug": "gabriela-negrete",
+          "profileName": "Gabriela Negrete"
+        },
+        {
+          "email": "gzambrano@vwys.com.mx",
+          "method": "email-local-part",
+          "profileId": "af182173-37ba-4fd6-a371-71bfe581cc58",
+          "profileSlug": "gabriela-zambrano",
+          "profileName": "Gabriela Zambrano"
+        },
+        {
+          "email": "rrosasg@vwys.com.mx",
+          "method": "email-local-part",
+          "profileId": "ec6d69ce-3c8f-4986-b312-136f0bc41edd",
+          "profileSlug": "ricardo-rosas",
+          "profileName": "Ricardo Rosas"
+        },
+        {
+          "email": "rvallejo@vwys.com.mx",
+          "method": "email-local-part",
+          "profileId": "92785b6f-dae6-497f-ab72-7be5f9343b3c",
+          "profileSlug": "rafael-vallejo",
+          "profileName": "Rafael Vallejo"
+        },
+        {
+          "email": "sgibert@vwys.com.mx",
+          "method": "email-local-part",
+          "profileId": "60ecdca7-7d91-425f-815a-13088f41d63c",
+          "profileSlug": "sarah-gibert",
+          "profileName": "Sarah Gibert"
+        },
+        {
+          "email": "storres@vwys.com.mx",
+          "method": "email-local-part",
+          "profileId": "9beb67df-a2ef-497a-b704-f6ba29eecfb9",
+          "profileSlug": "santiago-torres",
+          "profileName": "Santiago Torres"
+        }
+      ]
+    },
+    {
+      "folder": "Junio/12 Junio",
+      "date": "2026-06-12",
+      "pdfCount": 2,
+      "validPdfCount": 2,
+      "pdfFiles": [
+        "Junio/12 Junio/2026-06-12-CFE-Awards-Projects-Under-The-Mixed-Development-Scheme.pdf",
+        "Junio/12 Junio/2026-06-12-CFE-Adjudica-Proyectos-Bajo-El-Esquema-Para-Desarrollo-Mixto.pdf"
+      ],
+      "docxCount": 2,
+      "docxFiles": [
+        "Junio/12 Junio/VWYS - VWYS - Nota Legal - Segunda Modificación de la Segunda Convocatoria Planeación Vinculante (09.06.25) - (696925v2).docx",
+        "Junio/12 Junio/VWYS - Traducción Inglés -VWYS - Nota Legal - Segunda Modificación de la Segunda Convocatoria Planeación Vinculante (11.06.25) - (699339v3).docx"
+      ],
+      "emails": [
+        "agarfio@vwys.com.mx",
+        "ahernandez@vwys.com.mx",
+        "eberumen@vwys.com.mx",
+        "egrieger@vwys.com.mx",
+        "hsanchez@vwys.com.mx",
+        "mpuebla@vwys.com.mx",
+        "rflores@vwys.com.mx",
+        "rgonzalez@vwys.com.mx"
+      ],
+      "status": "represented",
+      "projectMatches": [
+        {
+          "score": 0.9798,
+          "id": "dc59e9ef-7061-428c-8294-c36923bb70da",
+          "legacyId": "2051",
+          "slug": "cfe-awards-projects-under-the-mixed-development-scheme-and-sener-extends-deadlin",
+          "titleEs": "La CFE adjudica proyectos bajo el esquema de desarrollo mixto, y la SENER prorroga los plazos de la segunda convocatoria para permisos de generación",
+          "titleEn": "CFE Awards Projects Under The Mixed Development Scheme, And Sener Extends Deadlines For The Second Call For Generation Permits"
+        },
+        {
+          "score": 0.8491,
+          "id": "434cc479-3fa2-4a98-bf3f-df0fa6f555be",
+          "legacyId": "2052",
+          "slug": "cfe-adjudica-proyectos-bajo-el-esquema-para-el-desarrollo-mixto-y-sener-prorroga",
+          "titleEs": "CFE Awards Projects Under the Mixed Development Scheme and SENER Extends the Deadlines of the Second Call for Generation Permits",
+          "titleEn": "CFE Awards Projects Under the Mixed Development Scheme and SENER Extends the Deadlines of the Second Call for Generation Permits"
+        }
+      ],
+      "title": "La CFE adjudica proyectos bajo el esquema de desarrollo mixto, y la SENER prorroga los plazos de la segunda convocatoria para permisos de generación",
+      "authorMatches": [
+        {
+          "email": "agarfio@vwys.com.mx",
+          "method": "email-local-part",
+          "profileId": "7f750a71-a0fa-4dd4-817f-5e16c9a21cf4",
+          "profileSlug": "ariel-garfio",
+          "profileName": "Ariel Garfio"
+        },
+        {
+          "email": "ahernandez@vwys.com.mx",
+          "method": "email-local-part",
+          "profileId": "0a40e642-03bc-4330-8f3f-cf3511c8a34b",
+          "profileSlug": "arturo-hernandez",
+          "profileName": "Arturo Hernández"
+        },
+        {
+          "email": "eberumen@vwys.com.mx",
+          "method": "email-local-part",
+          "profileId": "c30fe9d4-d4d2-48e4-bec3-2ea19999e8dc",
+          "profileSlug": "edmundo-berumen",
+          "profileName": "Edmundo Berumen"
+        },
+        {
+          "email": "egrieger@vwys.com.mx",
+          "method": "email-local-part",
+          "profileId": "2ef339e2-3bcf-488e-afed-09c1b9968a4b",
+          "profileSlug": "edmond-grieger",
+          "profileName": "Edmond Frederic Grieger"
+        },
+        {
+          "email": "hsanchez@vwys.com.mx",
+          "method": "email-local-part",
+          "profileId": "73cd6c5f-d67e-4269-b68b-dd4230cc3d0b",
+          "profileSlug": "hector-sanchez",
+          "profileName": "Héctor Sánchez"
+        },
+        {
+          "email": "mpuebla@vwys.com.mx",
+          "method": "unmatched",
+          "profileId": "",
+          "profileSlug": "",
+          "profileName": ""
+        },
+        {
+          "email": "rflores@vwys.com.mx",
+          "method": "email-local-part",
+          "profileId": "1e843eb4-4fbd-4ffa-8ae6-7835b61940c2",
+          "profileSlug": "roberto-flores",
+          "profileName": "Roberto Flores"
+        },
+        {
+          "email": "rgonzalez@vwys.com.mx",
+          "method": "email-local-part",
+          "profileId": "b7e9d14e-e00e-482f-82bd-6404e4a94794",
+          "profileSlug": "regina-gonzalez",
+          "profileName": "Regina González"
+        }
+      ]
+    },
+    {
+      "folder": "Junio/17 Junio",
+      "date": "2026-06-17",
+      "pdfCount": 2,
+      "validPdfCount": 2,
+      "pdfFiles": [
+        "Junio/17 Junio/2026-06-17-Events-Related-to-the-WC-FIFA-in-Mexico.pdf",
+        "Junio/17 Junio/2026-06-17-Eventos-Relativos-con-la-copa-mundial-FIFA-en-Mexico.pdf"
+      ],
+      "docxCount": 2,
+      "docxFiles": [
+        "Junio/17 Junio/VWYS - VWYS - Flash Informativo - Mundial II - (712281v1).docx",
+        "Junio/17 Junio/VWYS - VWYS - Flash Informativo - Administrative Measures FIFA World Cup 2026 2 - (712282v1).docx"
+      ],
+      "emails": [
+        "aarizpe@vwys.com.mx",
+        "adcastillo@vwys.com.mx",
+        "alperez@vwys.com.mx",
+        "aruiz@vwys.com.mx",
+        "gzambrano@vwys.com.mx",
+        "rrosasg@vwys.com.mx",
+        "rvallejo@vwys.com.mx",
+        "sgibert@vwys.com.mx",
+        "storres@vwys.com.mx"
+      ],
+      "status": "represented",
+      "projectMatches": [
+        {
+          "score": 0.9878,
+          "id": "614cd5ef-3dbb-4537-a46c-b5285453a106",
+          "legacyId": "2053",
+          "slug": "administrative-measures-events-related-to-the-fifa-world-cup-2026-in-mexico-city",
+          "titleEs": "Administrative Measures – Events Related to the FIFA World Cup 2026 in Mexico City and the Metropolitan Area of Guadalajara, Jalisco",
+          "titleEn": "Administrative Measures – Events Related to the FIFA World Cup 2026 in Mexico City and the Metropolitan Area of Guadalajara, Jalisco"
+        },
+        {
+          "score": 0.7937,
+          "id": "89097a29-85a9-466e-b5c7-41392870006d",
+          "legacyId": "2054",
+          "slug": "medidas-administrativas-eventos-relativos-a-la-copa-mundial-fifa-2026-en-la-ciud",
+          "titleEs": "Administrative Measures – Events Related to the FIFA World Cup 2026 in Mexico City and the Metropolitan Area of Guadalajara, Jalisco.",
+          "titleEn": "Administrative Measures – Events Related to the FIFA World Cup 2026 in Mexico City and the Metropolitan Area of Guadalajara, Jalisco."
+        }
+      ],
+      "title": "Administrative Measures – Events Related to the FIFA World Cup 2026 in Mexico City and the Metropolitan Area of Guadalajara, Jalisco",
+      "authorMatches": [
+        {
+          "email": "aarizpe@vwys.com.mx",
+          "method": "email-local-part",
+          "profileId": "ef06b18e-f8e1-407b-a142-050db0eeb5f1",
+          "profileSlug": "alejandra-arizpe",
+          "profileName": "Alejandra Arizpe"
+        },
+        {
+          "email": "adcastillo@vwys.com.mx",
+          "method": "email-local-part",
+          "profileId": "182f1e31-6bca-405e-a302-22e1fe265257",
+          "profileSlug": "adrian-castillo",
+          "profileName": "Adrián Castillo"
+        },
+        {
+          "email": "alperez@vwys.com.mx",
+          "method": "email-local-part",
+          "profileId": "b85d7988-907d-47be-ad4b-4737540dce0c",
+          "profileSlug": "alejandro-perez",
+          "profileName": "Alejandro Pérez"
+        },
+        {
+          "email": "aruiz@vwys.com.mx",
+          "method": "email-local-part",
+          "profileId": "63929ada-66e1-45c3-b3f3-3e481e29cb96",
+          "profileSlug": "ana-ruiz",
+          "profileName": "Ana Ruiz"
+        },
+        {
+          "email": "gzambrano@vwys.com.mx",
+          "method": "email-local-part",
+          "profileId": "af182173-37ba-4fd6-a371-71bfe581cc58",
+          "profileSlug": "gabriela-zambrano",
+          "profileName": "Gabriela Zambrano"
+        },
+        {
+          "email": "rrosasg@vwys.com.mx",
+          "method": "email-local-part",
+          "profileId": "ec6d69ce-3c8f-4986-b312-136f0bc41edd",
+          "profileSlug": "ricardo-rosas",
+          "profileName": "Ricardo Rosas"
+        },
+        {
+          "email": "rvallejo@vwys.com.mx",
+          "method": "email-local-part",
+          "profileId": "92785b6f-dae6-497f-ab72-7be5f9343b3c",
+          "profileSlug": "rafael-vallejo",
+          "profileName": "Rafael Vallejo"
+        },
+        {
+          "email": "sgibert@vwys.com.mx",
+          "method": "email-local-part",
+          "profileId": "60ecdca7-7d91-425f-815a-13088f41d63c",
+          "profileSlug": "sarah-gibert",
+          "profileName": "Sarah Gibert"
+        },
+        {
+          "email": "storres@vwys.com.mx",
+          "method": "email-local-part",
+          "profileId": "9beb67df-a2ef-497a-b704-f6ba29eecfb9",
+          "profileSlug": "santiago-torres",
+          "profileName": "Santiago Torres"
+        }
+      ]
+    },
+    {
+      "folder": "Junio/22 Junio",
+      "date": "2026-06-22",
+      "pdfCount": 2,
+      "validPdfCount": 2,
+      "pdfFiles": [
+        "Junio/22 Junio/2026-06-22-Acuerdo-migracion-expedita-LSPEE-LSE.pdf",
+        "Junio/22 Junio/2026-06-22-Expedited-Migration-Agreement-LSPEE-LSE.pdf"
+      ],
+      "docxCount": 2,
+      "docxFiles": [
+        "Junio/22 Junio/Nota_ Acuerdo migración expedita LSPEE LSE (inglés).docx",
+        "Junio/22 Junio/Nota_ Acuerdo migración expedita LSPEE LSE (español).docx"
+      ],
+      "emails": [
+        "agarfio@vwys.com.mx",
+        "eberumen@vwys.com.mx",
+        "egrieger@vwys.com.mx",
+        "hsanchez@vwys.com.mx",
+        "mpuebla@vwys.com.mx",
+        "rflores@vwys.com.mx",
+        "rgonzalez@vwys.com.mx"
+      ],
+      "status": "missing",
+      "projectMatches": [],
+      "title": "Migración voluntaria y expedita de permisos de autoabastecimiento y cogeneración al marco de la LSPEE/LSE",
+      "authorMatches": [
+        {
+          "email": "agarfio@vwys.com.mx",
+          "method": "email-local-part",
+          "profileId": "7f750a71-a0fa-4dd4-817f-5e16c9a21cf4",
+          "profileSlug": "ariel-garfio",
+          "profileName": "Ariel Garfio"
+        },
+        {
+          "email": "eberumen@vwys.com.mx",
+          "method": "email-local-part",
+          "profileId": "c30fe9d4-d4d2-48e4-bec3-2ea19999e8dc",
+          "profileSlug": "edmundo-berumen",
+          "profileName": "Edmundo Berumen"
+        },
+        {
+          "email": "egrieger@vwys.com.mx",
+          "method": "email-local-part",
+          "profileId": "2ef339e2-3bcf-488e-afed-09c1b9968a4b",
+          "profileSlug": "edmond-grieger",
+          "profileName": "Edmond Frederic Grieger"
+        },
+        {
+          "email": "hsanchez@vwys.com.mx",
+          "method": "email-local-part",
+          "profileId": "73cd6c5f-d67e-4269-b68b-dd4230cc3d0b",
+          "profileSlug": "hector-sanchez",
+          "profileName": "Héctor Sánchez"
+        },
+        {
+          "email": "mpuebla@vwys.com.mx",
+          "method": "unmatched",
+          "profileId": "",
+          "profileSlug": "",
+          "profileName": ""
+        },
+        {
+          "email": "rflores@vwys.com.mx",
+          "method": "email-local-part",
+          "profileId": "1e843eb4-4fbd-4ffa-8ae6-7835b61940c2",
+          "profileSlug": "roberto-flores",
+          "profileName": "Roberto Flores"
+        },
+        {
+          "email": "rgonzalez@vwys.com.mx",
+          "method": "email-local-part",
+          "profileId": "b7e9d14e-e00e-482f-82bd-6404e4a94794",
+          "profileSlug": "regina-gonzalez",
+          "profileName": "Regina González"
+        }
+      ]
+    },
+    {
+      "folder": "Junio/26 Junio",
+      "date": "2026-06-26",
+      "pdfCount": 2,
+      "validPdfCount": 2,
+      "pdfFiles": [
+        "Junio/26 Junio/2026-06-26-Events-Related-to-the-WC-FIFA-in-Mexico-City.pdf",
+        "Junio/26 Junio/2026-06-26-Eventos-Relativos-con-la-copa-mundial-FIFA-en-ciudad-de-mexico.pdf"
+      ],
+      "docxCount": 2,
+      "docxFiles": [
+        "Junio/26 Junio/VWYS - VWYS - Flash Informativo - Mundial 3 - (724467v2).docx",
+        "Junio/26 Junio/VWYS - VWYS - Flash Informativo - Administrative Measures FIFA World Cup 2026 3 - (724466v1).docx"
+      ],
+      "emails": [
+        "aarizpe@vwys.com.mx",
+        "adcastillo@vwys.com.mx",
+        "alperez@vwys.com.mx",
+        "aruiz@vwys.com.mx",
+        "gzambrano@vwys.com.mx",
+        "rrosasg@vwys.com.mx",
+        "rvallejo@vwys.com.mx",
+        "sgibert@vwys.com.mx",
+        "storres@vwys.com.mx"
+      ],
+      "status": "missing",
+      "projectMatches": [],
+      "title": "Medidas administrativas por eventos de la Copa Mundial FIFA 2026 en la Ciudad de México",
+      "authorMatches": [
+        {
+          "email": "aarizpe@vwys.com.mx",
+          "method": "email-local-part",
+          "profileId": "ef06b18e-f8e1-407b-a142-050db0eeb5f1",
+          "profileSlug": "alejandra-arizpe",
+          "profileName": "Alejandra Arizpe"
+        },
+        {
+          "email": "adcastillo@vwys.com.mx",
+          "method": "email-local-part",
+          "profileId": "182f1e31-6bca-405e-a302-22e1fe265257",
+          "profileSlug": "adrian-castillo",
+          "profileName": "Adrián Castillo"
+        },
+        {
+          "email": "alperez@vwys.com.mx",
+          "method": "email-local-part",
+          "profileId": "b85d7988-907d-47be-ad4b-4737540dce0c",
+          "profileSlug": "alejandro-perez",
+          "profileName": "Alejandro Pérez"
+        },
+        {
+          "email": "aruiz@vwys.com.mx",
+          "method": "email-local-part",
+          "profileId": "63929ada-66e1-45c3-b3f3-3e481e29cb96",
+          "profileSlug": "ana-ruiz",
+          "profileName": "Ana Ruiz"
+        },
+        {
+          "email": "gzambrano@vwys.com.mx",
+          "method": "email-local-part",
+          "profileId": "af182173-37ba-4fd6-a371-71bfe581cc58",
+          "profileSlug": "gabriela-zambrano",
+          "profileName": "Gabriela Zambrano"
+        },
+        {
+          "email": "rrosasg@vwys.com.mx",
+          "method": "email-local-part",
+          "profileId": "ec6d69ce-3c8f-4986-b312-136f0bc41edd",
+          "profileSlug": "ricardo-rosas",
+          "profileName": "Ricardo Rosas"
+        },
+        {
+          "email": "rvallejo@vwys.com.mx",
+          "method": "email-local-part",
+          "profileId": "92785b6f-dae6-497f-ab72-7be5f9343b3c",
+          "profileSlug": "rafael-vallejo",
+          "profileName": "Rafael Vallejo"
+        },
+        {
+          "email": "sgibert@vwys.com.mx",
+          "method": "email-local-part",
+          "profileId": "60ecdca7-7d91-425f-815a-13088f41d63c",
+          "profileSlug": "sarah-gibert",
+          "profileName": "Sarah Gibert"
+        },
+        {
+          "email": "storres@vwys.com.mx",
+          "method": "email-local-part",
+          "profileId": "9beb67df-a2ef-497a-b704-f6ba29eecfb9",
+          "profileSlug": "santiago-torres",
+          "profileName": "Santiago Torres"
+        }
+      ]
+    },
+    {
+      "folder": "Julio/03 Julio",
+      "date": "2026-07-03",
+      "pdfCount": 2,
+      "validPdfCount": 2,
+      "pdfFiles": [
+        "Julio/03 Julio/2026-07-03-Client-Alert-OFAC-ESP.pdf",
+        "Julio/03 Julio/2026-07-03-2026-07-03-Client-Alert-OFAC-ENG.pdf"
+      ],
+      "docxCount": 3,
+      "docxFiles": [
+        "Julio/03 Julio/Summary OFAC Client Alert.docx",
+        "Julio/03 Julio/030726 Client Alert OFAC July 2026 v2 (1).docx",
+        "Julio/03 Julio/0307026 Client_Alert_OFAC_CJNG_Julio_2026_ESP_v1 (1).docx"
+      ],
+      "emails": [],
+      "status": "missing",
+      "projectMatches": [],
+      "title": "OFAC y FinCEN: facilitadores del contrabando transfronterizo de combustible vinculado al CJNG",
+      "authorMatches": []
+    },
+    {
+      "folder": "Julio/16 Julio",
+      "date": "2026-07-16",
+      "pdfCount": 2,
+      "validPdfCount": 2,
+      "pdfFiles": [
+        "Julio/16 Julio/2026-07-16-Contingencia-Fiscal-Millonaria-Resuelta.pdf",
+        "Julio/16 Julio/2026-07-16-Multimillion-Peso-Tax-Contingency-Favorably-Resolved.pdf"
+      ],
+      "docxCount": 2,
+      "docxFiles": [
+        "Julio/16 Julio/Nota_Informativa_-_Acuerdo_Conclusivo_Exitoso_140726_EN.docx",
+        "Julio/16 Julio/Nota_Informativa_-_Acuerdo_Conclusivo_Exitoso_140726_ES.docx"
+      ],
+      "emails": [
+        "ajtorres@vwys.com.mx",
+        "ltorres@vwys.com.mx"
+      ],
+      "status": "missing",
+      "projectMatches": [],
+      "title": "Contingencia fiscal multimillonaria resuelta mediante acuerdo conclusivo",
+      "authorMatches": [
+        {
+          "email": "ajtorres@vwys.com.mx",
+          "method": "email-local-part",
+          "profileId": "e5927b98-019e-4325-9c41-32db57180f44",
+          "profileSlug": "alejandro-torres",
+          "profileName": "Alejandro Torres"
+        },
+        {
+          "email": "ltorres@vwys.com.mx",
+          "method": "email-local-part",
+          "profileId": "c02b8dcd-302e-43ac-b9b8-add9c0349c3a",
+          "profileSlug": "luis-enrique-torres",
+          "profileName": "Luis Enrique Torres"
+        }
+      ]
+    },
+    {
+      "folder": "Julio/17 Julio",
+      "date": "2026-07-17",
+      "pdfCount": 2,
+      "validPdfCount": 2,
+      "pdfFiles": [
+        "Julio/17 Julio/2026-07-17-US-Expands-Terrorist-Designations-of-Cartels.pdf",
+        "Julio/17 Julio/2026-07-17-EEUU-Amplia-Designaciones-Terroristas-de-Carteles.pdf"
+      ],
+      "docxCount": 2,
+      "docxFiles": [
+        "Julio/17 Julio/170726 FTO_Designation_Client_Alert_July_2026_English.docx",
+        "Julio/17 Julio/170726 FTO_Designation_Client_Alert_Julio_2026_Español.docx"
+      ],
+      "emails": [],
+      "status": "missing",
+      "projectMatches": [],
+      "title": "Estados Unidos amplía las designaciones terroristas de cárteles",
+      "authorMatches": []
+    },
+    {
+      "folder": "Julio/21 Julio",
+      "date": "2026-07-21",
+      "pdfCount": 2,
+      "validPdfCount": 2,
+      "pdfFiles": [
+        "Julio/21 Julio/2026-07-21-Implementacion-e.firma-IMSS.pdf",
+        "Julio/21 Julio/2026-07-21-Implementation-e.signature-IMSS.pdf"
+      ],
+      "docxCount": 2,
+      "docxFiles": [
+        "Julio/21 Julio/Flash Informativo e.firma IMSS (ENG) (1).docx",
+        "Julio/21 Julio/Flash Informativo e.firma IMSS (ESP) (1).docx"
+      ],
+      "emails": [
+        "aarizpe@vwys.com.mx",
+        "adcastillo@vwys.com.mx",
+        "alperez@vwys.com.mx",
+        "aruiz@vwys.com.mx",
+        "rrosasg@vwys.com.mx",
+        "rvallejo@vwys.com.mx",
+        "sgibert@vwys.com.mx",
+        "storres@vwys.com.mx"
+      ],
+      "status": "missing",
+      "projectMatches": [],
+      "title": "Implementación de la e.firma como único certificado válido ante el IMSS",
+      "authorMatches": [
+        {
+          "email": "aarizpe@vwys.com.mx",
+          "method": "email-local-part",
+          "profileId": "ef06b18e-f8e1-407b-a142-050db0eeb5f1",
+          "profileSlug": "alejandra-arizpe",
+          "profileName": "Alejandra Arizpe"
+        },
+        {
+          "email": "adcastillo@vwys.com.mx",
+          "method": "email-local-part",
+          "profileId": "182f1e31-6bca-405e-a302-22e1fe265257",
+          "profileSlug": "adrian-castillo",
+          "profileName": "Adrián Castillo"
+        },
+        {
+          "email": "alperez@vwys.com.mx",
+          "method": "email-local-part",
+          "profileId": "b85d7988-907d-47be-ad4b-4737540dce0c",
+          "profileSlug": "alejandro-perez",
+          "profileName": "Alejandro Pérez"
+        },
+        {
+          "email": "aruiz@vwys.com.mx",
+          "method": "email-local-part",
+          "profileId": "63929ada-66e1-45c3-b3f3-3e481e29cb96",
+          "profileSlug": "ana-ruiz",
+          "profileName": "Ana Ruiz"
+        },
+        {
+          "email": "rrosasg@vwys.com.mx",
+          "method": "email-local-part",
+          "profileId": "ec6d69ce-3c8f-4986-b312-136f0bc41edd",
+          "profileSlug": "ricardo-rosas",
+          "profileName": "Ricardo Rosas"
+        },
+        {
+          "email": "rvallejo@vwys.com.mx",
+          "method": "email-local-part",
+          "profileId": "92785b6f-dae6-497f-ab72-7be5f9343b3c",
+          "profileSlug": "rafael-vallejo",
+          "profileName": "Rafael Vallejo"
+        },
+        {
+          "email": "sgibert@vwys.com.mx",
+          "method": "email-local-part",
+          "profileId": "60ecdca7-7d91-425f-815a-13088f41d63c",
+          "profileSlug": "sarah-gibert",
+          "profileName": "Sarah Gibert"
+        },
+        {
+          "email": "storres@vwys.com.mx",
+          "method": "email-local-part",
+          "profileId": "9beb67df-a2ef-497a-b704-f6ba29eecfb9",
+          "profileSlug": "santiago-torres",
+          "profileName": "Santiago Torres"
+        }
+      ]
+    },
+    {
+      "folder": "Julio/28 Julio",
+      "date": "2026-07-28",
+      "pdfCount": 2,
+      "validPdfCount": 2,
+      "pdfFiles": [
+        "Julio/28 Julio/2026-07-28-IMPI-Designado-Busqueda-Internacional-Patentes.pdf",
+        "Julio/28 Julio/2026-07-28-IMPI-Designated-International-Searching-Authority.pdf"
+      ],
+      "docxCount": 1,
+      "docxFiles": [
+        "Julio/28 Julio/PROYECTO DE ARTICULO PARA BOLETIN IMPI es Designado como Administración encargada de la Búsqueda Internacional y del Examen Preliminar Inter.docx"
+      ],
+      "emails": [
+        "efsanchez@vwys.com.mx",
+        "pkaim@vwys.com.mx"
+      ],
+      "status": "missing",
+      "projectMatches": [],
+      "title": "IMPI designado como Administración de Búsqueda Internacional y Examen Preliminar Internacional",
+      "authorMatches": [
+        {
+          "email": "efsanchez@vwys.com.mx",
+          "method": "email-local-part",
+          "profileId": "e3c0ffb8-363e-4d98-888d-715779de279b",
+          "profileSlug": "efren-sanchez",
+          "profileName": "Efrén Sánchez"
+        },
+        {
+          "email": "pkaim@vwys.com.mx",
+          "method": "email-local-part",
+          "profileId": "240c672c-438d-4c4a-8eb0-067cd61cbfed",
+          "profileSlug": "patricia-kaim",
+          "profileName": "Patricia Kaim"
+        }
+      ]
+    },
+    {
+      "folder": "Julio/29 Julio",
+      "date": "2026-07-29",
+      "pdfCount": 2,
+      "validPdfCount": 2,
+      "pdfFiles": [
+        "Julio/29 Julio/2026-07-29-CNE-Temporary-Registration-Program-Self-Consumption.pdf",
+        "Julio/29 Julio/2026-07-29-CNE-Programa-Temporal-Registro-Autoconsumo-Petroliferos.pdf"
+      ],
+      "docxCount": 2,
+      "docxFiles": [
+        "Julio/29 Julio/VWYS - Nota Legal- Programa temporal de Registro CNE - (750929v1).docx",
+        "Julio/29 Julio/VWYS - Nota Legal- Programa temporal de Registro CNE en inglés (1).docx"
+      ],
+      "emails": [
+        "agarfio@vwys.com.mx",
+        "ahernandez@vwys.com.mx",
+        "eberumen@vwys.com.mx",
+        "mpuebla@vwys.com.mx",
+        "rgonzalez@vwys.com.mx"
+      ],
+      "status": "missing",
+      "projectMatches": [],
+      "title": "Programa temporal de registro para despacho para autoconsumo de petrolíferos",
+      "authorMatches": [
+        {
+          "email": "agarfio@vwys.com.mx",
+          "method": "email-local-part",
+          "profileId": "7f750a71-a0fa-4dd4-817f-5e16c9a21cf4",
+          "profileSlug": "ariel-garfio",
+          "profileName": "Ariel Garfio"
+        },
+        {
+          "email": "ahernandez@vwys.com.mx",
+          "method": "email-local-part",
+          "profileId": "0a40e642-03bc-4330-8f3f-cf3511c8a34b",
+          "profileSlug": "arturo-hernandez",
+          "profileName": "Arturo Hernández"
+        },
+        {
+          "email": "eberumen@vwys.com.mx",
+          "method": "email-local-part",
+          "profileId": "c30fe9d4-d4d2-48e4-bec3-2ea19999e8dc",
+          "profileSlug": "edmundo-berumen",
+          "profileName": "Edmundo Berumen"
+        },
+        {
+          "email": "mpuebla@vwys.com.mx",
+          "method": "unmatched",
+          "profileId": "",
+          "profileSlug": "",
+          "profileName": ""
+        },
+        {
+          "email": "rgonzalez@vwys.com.mx",
+          "method": "email-local-part",
+          "profileId": "b7e9d14e-e00e-482f-82bd-6404e4a94794",
+          "profileSlug": "regina-gonzalez",
+          "profileName": "Regina González"
+        }
+      ]
+    },
+    {
+      "folder": "Agosto/4 Agosto",
+      "date": "2026-08-04",
+      "pdfCount": 2,
+      "validPdfCount": 2,
+      "pdfFiles": [
+        "Agosto/4 Agosto/2026-08-04-New-Provisions-Mining-Projects-Protected-Natural-Areas.pdf",
+        "Agosto/4 Agosto/2026-08-04-Nuevas-Disposiciones-Mineria-Areas-Naturales-Protegidas.pdf"
+      ],
+      "docxCount": 2,
+      "docxFiles": [
+        "Agosto/4 Agosto/Nota - Acuerdo Minería ANP V.SLG 2.docx",
+        "Agosto/4 Agosto/Nota - Acuerdo Minería ANP V.P. ENG (002).docx"
+      ],
+      "emails": [],
+      "status": "missing",
+      "projectMatches": [],
+      "title": "Nuevas disposiciones para proyectos de minería en áreas naturales protegidas",
+      "authorMatches": []
+    },
+    {
+      "folder": "Agosto/14 Agosto",
+      "date": "2026-08-14",
+      "pdfCount": 2,
+      "validPdfCount": 2,
+      "pdfFiles": [
+        "Agosto/14 Agosto/2026-08-14-Reforma-Reglas-Caracter-General-Ley-Antilavado.pdf",
+        "Agosto/14 Agosto/2026-08-14-Amendment-General-Rules-Anti-Money-Laundering-Law.pdf"
+      ],
+      "docxCount": 2,
+      "docxFiles": [
+        "Agosto/14 Agosto/VWYS - Client Alert _ Reforma RGC PLD - (inglés).docx",
+        "Agosto/14 Agosto/VWYS - Client Alert _ Reforma RGC PLD - (738787v10).docx"
+      ],
+      "emails": [
+        "acordoba@vwys.com.mx",
+        "jdominguez@vwys.com.mx",
+        "lburgueno@vwys.com.mx",
+        "mmorales@vwys.com.mx",
+        "mvera@vwys.com.mx",
+        "rcacho@vwys.com.mx"
+      ],
+      "status": "missing",
+      "projectMatches": [],
+      "title": "Reforma a las Reglas de Carácter General de la Ley Antilavado",
+      "authorMatches": [
+        {
+          "email": "acordoba@vwys.com.mx",
+          "method": "email-local-part",
+          "profileId": "d0bd38b9-e8ab-4a28-945b-9f223933a90f",
+          "profileSlug": "alberto-cordoba",
+          "profileName": "Alberto Córdoba"
+        },
+        {
+          "email": "jdominguez@vwys.com.mx",
+          "method": "email-local-part",
+          "profileId": "2e97b18f-0762-4e91-a2fb-0cb388141012",
+          "profileSlug": "joel-dominguez",
+          "profileName": "Joel Domínguez"
+        },
+        {
+          "email": "lburgueno@vwys.com.mx",
+          "method": "email-local-part",
+          "profileId": "0c2161f9-6f37-4749-831d-bf1f890bcb34",
+          "profileSlug": "luis-burgueno",
+          "profileName": "Luis Burgueño"
+        },
+        {
+          "email": "mmorales@vwys.com.mx",
+          "method": "email-local-part",
+          "profileId": "e915f28e-5271-4404-9baa-aaa0d747758a",
+          "profileSlug": "max-morales",
+          "profileName": "Max Morales"
+        },
+        {
+          "email": "mvera@vwys.com.mx",
+          "method": "email-local-part",
+          "profileId": "70d9d925-4f32-476d-b020-ba8db3dbb271",
+          "profileSlug": "maria-elisa-vera-madrigal",
+          "profileName": "María Elisa Vera Madrigal"
+        },
+        {
+          "email": "rcacho@vwys.com.mx",
+          "method": "email-local-part",
+          "profileId": "bf075ce7-1683-4255-819c-67fcebf15bf1",
+          "profileSlug": "ricardo-cacho",
+          "profileName": "Ricardo Cacho"
+        }
+      ]
+    },
+    {
+      "folder": "Agosto/14 Agosto Bis",
+      "date": "2026-08-14",
+      "pdfCount": 2,
+      "validPdfCount": 2,
+      "pdfFiles": [
+        "Agosto/14 Agosto Bis/2026-08-14-Comite-Cientifico-Recomendaciones-Fracking-Mexico.pdf",
+        "Agosto/14 Agosto Bis/2026-08-14-Scientific-Committee-Recommendations-Fracking-Mexico.pdf"
+      ],
+      "docxCount": 2,
+      "docxFiles": [
+        "Agosto/14 Agosto Bis/VWYS - Nota Legal- Fracking en inglés (1).docx",
+        "Agosto/14 Agosto Bis/VWYS - Nota Legal- Fracking (VWYS!765502.1) 1 (1) (1).docx"
+      ],
+      "emails": [
+        "agarfio@vwys.com.mx",
+        "ahernandez@vwys.com.mx",
+        "eberumen@vwys.com.mx",
+        "mpuebla@vwys.com.mx",
+        "rgonzalez@vwys.com.mx"
+      ],
+      "status": "missing",
+      "projectMatches": [],
+      "title": "Recomendaciones sobre la viabilidad del fracking en México",
+      "authorMatches": [
+        {
+          "email": "agarfio@vwys.com.mx",
+          "method": "email-local-part",
+          "profileId": "7f750a71-a0fa-4dd4-817f-5e16c9a21cf4",
+          "profileSlug": "ariel-garfio",
+          "profileName": "Ariel Garfio"
+        },
+        {
+          "email": "ahernandez@vwys.com.mx",
+          "method": "email-local-part",
+          "profileId": "0a40e642-03bc-4330-8f3f-cf3511c8a34b",
+          "profileSlug": "arturo-hernandez",
+          "profileName": "Arturo Hernández"
+        },
+        {
+          "email": "eberumen@vwys.com.mx",
+          "method": "email-local-part",
+          "profileId": "c30fe9d4-d4d2-48e4-bec3-2ea19999e8dc",
+          "profileSlug": "edmundo-berumen",
+          "profileName": "Edmundo Berumen"
+        },
+        {
+          "email": "mpuebla@vwys.com.mx",
+          "method": "unmatched",
+          "profileId": "",
+          "profileSlug": "",
+          "profileName": ""
+        },
+        {
+          "email": "rgonzalez@vwys.com.mx",
+          "method": "email-local-part",
+          "profileId": "b7e9d14e-e00e-482f-82bd-6404e4a94794",
+          "profileSlug": "regina-gonzalez",
+          "profileName": "Regina González"
+        }
+      ]
+    }
+  ]
+}

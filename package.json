@@ -19,6 +19,7 @@
     "test:security": "node --import tsx --test server/security/*.test.ts",
     "test:performance": "node scripts/check-performance-budgets.mjs",
     "audit:high": "node --import tsx scripts/audit-high-severity.ts",
+    "audit:publications": "node scripts/audit-publications.mjs",
     "agents:cleanup-diagnostic-audit": "node --import tsx scripts/cleanup-diagnostic-audit-jobs.ts",
     "audits:cleanup-open": "node --import tsx scripts/cleanup-open-audit-findings.ts",
     "audit:typography-content": "node scripts/audit-content-typography.mjs",

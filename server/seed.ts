@@ -1,10 +1,15 @@
 import { db } from "./db";
 import { eq } from "drizzle-orm";
-import { news, officeImages, practiceGroups, industryGroups, teamMembers, representativeMatters, adminUsers, events, specializedDesks } from "@shared/schema";
+import { news, newsTeamMembers, officeImages, practiceGroups, industryGroups, teamMembers, representativeMatters, adminUsers, events, specializedDesks } from "@shared/schema";
 import { hashPassword } from "./auth";
 import { applyCanonicalPracticeContent } from "./content/canonicalPractices";
 import { applyCanonicalIndustryContent } from "./content/canonicalIndustries";
 import { applyCanonicalAttorneyContent } from "./content/canonicalAttorneys";
+import {
+  applyCanonicalDropboxNews2026,
+  loadCanonicalDropboxNews2026,
+  resolveCanonicalDropboxAuthorIds,
+} from "./content/canonicalDropboxNews2026";
 
 const legacyPracticeGroupsData = [
   { 
@@ -804,7 +809,7 @@ const teamMembersData = [
 // retirados. La función conserva solo metadata visual preexistente.
 export const canonicalTeamMembersData = applyCanonicalAttorneyContent(teamMembersData);
 
-const newsData = [
+const legacyNewsData = [
   {
     title: "Von Wobeser y Sierra completes transition to new offices: a strategic investment in the firm's future",
     titleEs: "Von Wobeser y Sierra completa transición a sus nuevas oficinas: una inversión estratégica en el futuro de la firma",
@@ -845,6 +850,12 @@ const newsData = [
     categoryEs: "Rankings",
   },
 ];
+
+// La semilla de una instalación nueva incluye las notas 2026 aprobadas y sus
+// PDF bilingües; la migración idempotente aplica el mismo snapshot a bases ya
+// existentes sin duplicar publicaciones.
+const canonicalDropboxNewsItems = loadCanonicalDropboxNews2026();
+const newsData = applyCanonicalDropboxNews2026(legacyNewsData) as typeof news.$inferInsert[];
 
 const officeImagesData = [
   { imageUrl: "https://vonwobeser.com/images/vonwobeser_2025.png", alt: "Von Wobeser y Sierra new offices at Torre SOMA", altEs: "Nuevas oficinas de Von Wobeser y Sierra en Torre SOMA", order: 1 },
@@ -1254,6 +1265,32 @@ export async function seed() {
   if (existingTeamMembers.length === 0) {
     console.log("Seeding team members...");
     await db.insert(teamMembers).values(canonicalTeamMembersData as typeof teamMembers.$inferInsert[]);
+  }
+
+  // Las relaciones autor-publicación se crean después de poblar el directorio.
+  // El correo es la clave primaria editorial y el nombre normalizado funciona
+  // como respaldo para fuentes con correos históricos. Un crédito sin perfil
+  // oficial (actualmente Mauricio Puebla) no bloquea el arranque ni crea un
+  // abogado inventado.
+  const [seededNewsRows, seededMemberRows] = await Promise.all([
+    db.select({ id: news.id, slug: news.slug }).from(news),
+    db.select({ id: teamMembers.id, name: teamMembers.name, email: teamMembers.email }).from(teamMembers),
+  ]);
+  const newsIdBySlug = new Map(seededNewsRows.map((item) => [item.slug, item.id]));
+  const desiredNewsTeamMembers: Array<typeof newsTeamMembers.$inferInsert> = [];
+  const unresolvedSourceCredits = new Set<string>();
+  for (const item of canonicalDropboxNewsItems) {
+    const newsId = newsIdBySlug.get(item.slug);
+    if (!newsId) continue;
+    const { resolvedIds, unresolved } = resolveCanonicalDropboxAuthorIds(item.authors, seededMemberRows);
+    for (const teamMemberId of resolvedIds) desiredNewsTeamMembers.push({ newsId, teamMemberId });
+    for (const author of unresolved) unresolvedSourceCredits.add(`${author.name} <${author.email}>`);
+  }
+  if (desiredNewsTeamMembers.length) {
+    await db.insert(newsTeamMembers).values(desiredNewsTeamMembers).onConflictDoNothing();
+  }
+  if (unresolvedSourceCredits.size) {
+    console.warn(`Dropbox 2026 source credits without a CMS profile: ${Array.from(unresolvedSourceCredits).join(", ")}`);
   }
 
   const existingRepresentativeMatters = await db.select().from(representativeMatters);
