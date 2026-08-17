@@ -1,0 +1,88 @@
+{
+  "auditDate": "2026-08-14",
+  "generatedAt": "2026-08-15T01:36:46.606Z",
+  "officialBase": "https://www.vonwobeser.com",
+  "projectBase": "https://webpage-von-wobeser-2026.replit.app",
+  "officialDirectoryCountEs": 133,
+  "officialDirectoryCountEn": 133,
+  "officialCanonicalCount": 133,
+  "projectPublishedCount": 142,
+  "projectTotalApiCount": 142,
+  "matchedCount": 133,
+  "missingInProjectCount": 0,
+  "projectOnlyCount": 9,
+  "exactMatchCount": 130,
+  "reviewCount": 3,
+  "linksChecked": 550,
+  "correctLinks": 550,
+  "problematicLinks": 0,
+  "officialLinkProblems": 0,
+  "projectLinkProblems": 0,
+  "categorySources": [
+    {
+      "category": "partners",
+      "es": {
+        "url": "https://www.vonwobeser.com/index.php/abogados/socios",
+        "status": 200,
+        "count": 26,
+        "sha256": "52ba0d2a188a7b2cd0075449bd9fe01c9f753dd8dd3c8e29143bd63cdae406a8"
+      },
+      "en": {
+        "url": "https://www.vonwobeser.com/index.php/attorneys/partners",
+        "status": 200,
+        "count": 26,
+        "sha256": "50d9fdfd31199780ae9b3d98f9fe4dba7af7b6d70994d35d07ecb0d4cdea37bc"
+      }
+    },
+    {
+      "category": "of-counsel",
+      "es": {
+        "url": "https://www.vonwobeser.com/index.php/abogados/of-counsel-sp",
+        "status": 200,
+        "count": 6,
+        "sha256": "e7ea6423d344da0be22dba9858601e0a8b9e59a0f863413582a5fbc11d412746"
+      },
+      "en": {
+        "url": "https://www.vonwobeser.com/index.php/attorneys/of-counsel",
+        "status": 200,
+        "count": 6,
+        "sha256": "b2ec98e70288e995e4772b4d540c8aa58477394f25e0103f307caffda7f50251"
+      }
+    },
+    {
+      "category": "counsel",
+      "es": {
+        "url": "https://www.vonwobeser.com/index.php/abogados/counsel-sp",
+        "status": 200,
+        "count": 9,
+        "sha256": "49facc81dab68e1e685310de7cf46562b4b3f12e857311d851972ced34dee0d9"
+      },
+      "en": {
+        "url": "https://www.vonwobeser.com/index.php/attorneys/counsel",
+        "status": 200,
+        "count": 9,
+        "sha256": "36230cc1b02e09edeffcf29a04efc91b8207ad7059948f702ff67c13ab6e8287"
+      }
+    },
+    {
+      "category": "associates",
+      "es": {
+        "url": "https://www.vonwobeser.com/index.php/abogados/asociados",
+        "status": 200,
+        "count": 92,
+        "sha256": "56423546bc0a7bf964d631d2d0421e591b1c70d96f3c918977d2d54b38a55bb0"
+      },
+      "en": {
+        "url": "https://www.vonwobeser.com/index.php/attorneys/associates",
+        "status": 200,
+        "count": 92,
+        "sha256": "a7de756eab35b96ca0e66be8a478027303967d96416f6069b12dd637173a2632"
+      }
+    }
+  ],
+  "projectApi": {
+    "url": "https://webpage-von-wobeser-2026.replit.app/api/team",
+    "status": 200,
+    "sha256": "d0e7cca8485f71d551916b8d20ae62b034010ed6a3e219d6317142bc6728541f"
+  }
+}

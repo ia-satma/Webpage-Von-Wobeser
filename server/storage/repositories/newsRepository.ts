@@ -8,8 +8,12 @@ import type { StorageDatabase } from "../types";
 // (contenido legacy migrado sin fecha) tienen date=NULL, así que dominaban la primera página
 // de "Noticias" en vez de mostrarse ahí el contenido genuinamente reciente — una noticia
 // recién creada con fecha real quedaba enterrada detrás de esos 616 registros. Se usa en
-// TODO lugar donde antes se ordenaba con `desc(news.date)`.
-const newsDateDescNullsLast = sql`${news.date} desc nulls last`;
+// todo lugar donde antes se ordenaba con `desc(news.date)`. Los registros sin
+// fecha NO se ocultan: quedan después de los fechados y usan el p_id histórico
+// como desempate estable. Para fechas de precisión mensual (guardadas el día 1),
+// el p_id numérico aproxima el orden histórico sin inventar una fecha editorial.
+// El segundo orden textual mantiene compatibilidad si apareciera un ID no numérico.
+const newsDateDescNullsLast = sql`${news.date} desc nulls last, case when ${news.legacyId} ~ '^[0-9]+$' then cast(${news.legacyId} as bigint) end desc nulls last, ${news.legacyId} desc nulls last, ${news.id} desc`;
 
 export function createNewsRepository(db: StorageDatabase) {
   class NewsRepository {
