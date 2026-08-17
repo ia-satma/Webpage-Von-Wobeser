@@ -29,6 +29,7 @@ const {
 const { applyNavigationMarkup } = await import("../mirror/navigationMarkup");
 const { buildPublicNavigationMenu } = await import("../mirror/navigationMenu");
 const { isSafeCatalogEmail, isSafeCatalogUrl } = await import("../routes/adminCatalogRoutes");
+const { normalizeDefinitiveInsightsLabel } = await import("../../migrations/20260817_0001_navigation_insights_label.mjs");
 
 function cloneConfiguration(): NavigationConfiguration {
   return structuredClone(DEFAULT_NAVIGATION_CONFIGURATION);
@@ -47,7 +48,7 @@ function readyAvailability(): NavigationAvailability {
 test("la navegación definitiva conserva orden, etiquetas y utilidades bilingües", () => {
   assert.deepEqual(NAVIGATION_PRIMARY_IDS, ["firm", "attorneys", "practices", "industries", "perspectives", "talent"]);
   assert.deepEqual(DEFAULT_NAVIGATION_CONFIGURATION.items.map((item) => item.labelEs), [
-    "Nuestra firma", "Abogados", "Prácticas", "Industrias", "Perspectivas", "Talento",
+    "Nuestra firma", "Abogados", "Prácticas", "Industrias", "Insights", "Talento",
   ]);
   assert.deepEqual(DEFAULT_NAVIGATION_CONFIGURATION.items.map((item) => item.labelEn), [
     "Our Firm", "Attorneys", "Practices", "Industries", "Insights", "Careers",
@@ -65,6 +66,26 @@ test("la navegación definitiva conserva orden, etiquetas y utilidades bilingüe
     "perspectives-all",
     "talent-work",
   ]);
+});
+
+test("la migración actualiza el menú definitivo guardado sin alterar rutas ni submenús", () => {
+  const stored = cloneConfiguration();
+  const perspectives = stored.items.find((item) => item.id === "perspectives")!;
+  perspectives.labelEs = "Perspectivas";
+  const beforeChildren = structuredClone(perspectives.children);
+
+  const resolvedWithoutMigration = parseNavigationConfiguration(stored);
+  assert.equal(resolvedWithoutMigration.items.find((item) => item.id === "perspectives")?.labelEs, "Insights");
+
+  const normalized = normalizeDefinitiveInsightsLabel(JSON.stringify(stored));
+  assert.ok(normalized);
+  const updated = JSON.parse(normalized) as NavigationConfiguration;
+  const insights = updated.items.find((item) => item.id === "perspectives")!;
+  assert.equal(insights.labelEs, "Insights");
+  assert.equal(insights.labelEn, "Insights");
+  assert.deepEqual(insights.children, beforeChildren);
+  assert.deepEqual(NAVIGATION_DESTINATIONS.perspectives, { pathEs: "/perspectivas", pathEn: "/insights" });
+  assert.equal(normalizeDefinitiveInsightsLabel("{malformed"), null);
 });
 
 test("el respaldo clásico conserva la navegación anterior sobre destinos actuales", () => {
@@ -187,6 +208,8 @@ test("el servidor entrega menú semántico, seguro y sin parpadeo heredado", () 
   }
   assert.equal($("#vw-nav-panel-firm .vw-nav-v2__landing").text().trim(), "Quiénes somos→");
   assert.equal($("#vw-nav-panel-attorneys .vw-nav-v2__landing").text().trim(), "Ver todos los abogados→");
+  assert.equal($(".vw-nav-v2__item--perspectives .vw-nav-v2__trigger").text().trim(), "Insights");
+  assert.equal($("#vw-nav-panel-perspectives .vw-nav-v2__landing").text().trim(), "Ver todos los Insights→");
   assert.equal($("#vw-nav-panel-talent .vw-nav-v2__landing").text().trim(), "Trabaja con nosotros→");
   assert.equal($("[data-vw-nav-search]").text().trim(), "Buscar");
   assert.equal($(".vw-nav-v2__utility--language").text().trim(), "ES | EN");

@@ -132,9 +132,20 @@ function cloneClassicDefault(): NavigationConfiguration {
   return JSON.parse(JSON.stringify(DEFAULT_CLASSIC_NAVIGATION_CONFIGURATION)) as NavigationConfiguration;
 }
 
+export function normalizeLegacyInsightsMenuLabel(configuration: NavigationConfiguration): NavigationConfiguration {
+  const item = configuration.items.find((candidate) => candidate.id === "perspectives");
+  if (item?.labelEs !== "Perspectivas" || item.labelEn !== "Insights") return configuration;
+  return {
+    ...configuration,
+    items: configuration.items.map((candidate) => candidate.id === "perspectives"
+      ? { ...candidate, labelEs: "Insights" }
+      : candidate),
+  };
+}
+
 export function parseNavigationConfiguration(value: unknown): NavigationConfiguration {
   const parsed = navigationConfigurationSchema.safeParse(value);
-  return parsed.success ? parsed.data : cloneDefault();
+  return parsed.success ? normalizeLegacyInsightsMenuLabel(parsed.data) : cloneDefault();
 }
 
 export function navigationConfigurationFromConfig(config: ConfigMap): NavigationConfiguration {

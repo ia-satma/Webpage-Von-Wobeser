@@ -18,7 +18,7 @@ export const NAVIGATION_PRESET_METADATA: Record<NavigationPresetId, {
 }> = {
   "definitive-2026": {
     name: "Menú definitivo 2026",
-    description: "La navegación editorial aprobada, con Perspectivas, Talento y desplegables compactos.",
+    description: "La navegación editorial aprobada, con Insights, Talento y desplegables compactos.",
   },
   "classic-vwys": {
     name: "Menú clásico VWyS",
@@ -187,7 +187,7 @@ const labels: Record<NavigationPrimaryId | NavigationChildId, NavigationLocalize
   "practices-all": { labelEs: "Ver todas las prácticas", labelEn: "View all practices" },
   industries: { labelEs: "Industrias", labelEn: "Industries" },
   "industries-all": { labelEs: "Ver todas las industrias", labelEn: "View all industries" },
-  perspectives: { labelEs: "Perspectivas", labelEn: "Insights" },
+  perspectives: { labelEs: "Insights", labelEn: "Insights" },
   "perspectives-articles": { labelEs: "Artículos", labelEn: "Articles" },
   "perspectives-events": { labelEs: "Eventos", labelEn: "Events" },
   "perspectives-recognitions": { labelEs: "Reconocimientos", labelEn: "Recognitions" },

@@ -32,6 +32,7 @@ import {
   navigationPresetStateFromConfig,
   navigationPresetStateRevision,
   navigationRevision,
+  normalizeLegacyInsightsMenuLabel,
   unavailableRequestedDestinations,
 } from "../navigationConfiguration";
 import { invalidatePublicNavigationMenuCache } from "../navigationMenu";
@@ -199,7 +200,7 @@ export function registerMirrorAdminRoutes(app: Express, runtime: MirrorRuntime):
       if (storedNavigation?.value) {
         try {
           const stored = navigationConfigurationSchema.safeParse(JSON.parse(storedNavigation.value));
-          if (stored.success) authoritative = stored.data;
+          if (stored.success) authoritative = normalizeLegacyInsightsMenuLabel(stored.data);
         } catch {
           // Un valor heredado inválido conserva el mismo fallback seguro que la lectura pública.
         }

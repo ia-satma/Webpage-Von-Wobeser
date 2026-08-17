@@ -29,7 +29,7 @@ function landingLabel(id: string, lang: "en" | "es", classic: boolean): string {
     attorneys: ["Ver todos los abogados", "View all attorneys"],
     practices: ["Ver todas las prácticas", "View all practices"],
     industries: ["Ver todas las industrias", "View all industries"],
-    perspectives: ["Ver todas las perspectivas", "View all insights"],
+    perspectives: ["Ver todos los Insights", "View all Insights"],
     talent: ["Trabaja con nosotros", "Work with us"],
   };
   return labels[id]?.[lang === "es" ? 0 : 1] || (lang === "es" ? "Ver sección" : "View section");
