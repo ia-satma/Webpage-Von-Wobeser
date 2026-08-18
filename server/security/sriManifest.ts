@@ -6,6 +6,7 @@
  * archivos se debe recalcular su SHA-384 antes de publicar.
  */
 export const LOCAL_SRI_MANIFEST: Readonly<Record<string, string>> = {
+  "/attorney-directory.js": "sha384-4JrBO+CitlCQ3L0kio2QxFsJQhjS12U5evFHx3AmzSlkrhrFyUYN2fbCEQsRcguH",
   "/_vendor/aos/aos.css": "sha384-6oNXtl81GMcKAnWPPXinWlPskKUQ0NGG1/XeyMfC5RgCJKPc03w0rHVt1jyoJLf0",
   "/_vendor/aos/aos.js": "sha384-ZGo5k5ISlEzWLoXyt+lnvKt9j03Z7GkxXh14zLqVy098XJhcdKHjL8pQYVMI8WiH",
   "/_vendor/bootstrap-icons/bootstrap-icons.min.css": "sha384-jiNSPb/W24B/Z+B37jzOcv8oxVfSWg0L25KWJgYoq7mmVVAuQdJAYmEBoZKFh5GU",
@@ -21,7 +22,7 @@ export const LOCAL_SRI_MANIFEST: Readonly<Record<string, string>> = {
   "/templates/beez3/css/style.css": "sha384-Pk0YxIfo/lG6lTqM6sUrLScLFFDiddhHZve/U96GD2yaJy2Rq0iNlB3vS0wHY0XF",
   "/templates/beez3/css/superslides.css": "sha384-z+22ma06Yj+RzvrnLIdIbqpLNw4zO+xMxfyjYGOAFOrf7MB8v1hi2958Kh/phTd4",
   "/templates/beez3/css/typography.css": "sha384-J+4WYxRlDivccMdkMkdFP0uXciQKHOeFm3NcFKDVDDBPuKMYka5fSNe3xbFql6n3",
-  "/templates/beez3/css/von.css": "sha384-OPtEO/ezfgoyS2c3/SV5iODWlfcUYQBDBdHx984nDdy01sXGITeU9HClwDWjm2F8",
+  "/templates/beez3/css/von.css": "sha384-wcZz4PWy2pruqeLMjqoDWgXD4JWrrcbdOO1zT0xbP55ExLbtmw8vnUsAR1s8ea1e",
   "/templates/beez3/javascript/jquery.animate-enhanced.min.js": "sha384-hBwyjIe2YAjxdmu4EQGiMrVR608DAhC+WLtQA0vqrd6F6pezYXKWoedQCnOXJ/4R",
   "/templates/beez3/javascript/jquery.easing.1.3.js": "sha384-MM5zsVvrGlQFmN1sWfTOj9JjMl0Gq4xJ8s/nBc2iPfG/XwziF9SGiLpI/v+PIHfi",
   "/templates/beez3/javascript/jquery.superslides.js": "sha384-H1HAmtf0gza6L5UL+wMlgdXIp6YOgNXcoghCRC38+M79RzQNeW8YRqKjpSp9FQhy",

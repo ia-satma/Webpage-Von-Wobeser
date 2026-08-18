@@ -9,21 +9,25 @@ export function registerMirrorAssetAndFallbackRoutes(app: Express, runtime: Mirr
   const { TEMPLATES, langOf, mirrorDir, pick, sendPage, tpl } = runtime;
 
   // El espejo registra su 404 antes de que Vite/serveStatic atienda `public/`.
-  // Por eso los recursos globales del gestor de consentimiento deben salir de
-  // forma explícita aquí; de otro modo el HTML los referencia correctamente,
-  // pero el navegador recibe un 404 y el panel nunca puede aparecer.
-  const consentAssets: Array<[string, string]> = [
+  // Estos recursos públicos deben salir explícitamente antes de ese fallback.
+  const publicClientAssets: Array<[string, string]> = [
     ["/vwb-privacy-preferences.css", "vwb-cookie-consent.css"],
     ["/vwb-privacy-preferences.js", "vwb-cookie-consent.js"],
     // Compatibilidad con HTML que pudiera seguir abierto o cacheado.
     ["/vwb-cookie-consent.css", "vwb-cookie-consent.css"],
     ["/vwb-cookie-consent.js", "vwb-cookie-consent.js"],
     ["/vwb-legacy-events.js", "vwb-legacy-events.js"],
+    ["/attorney-directory.js", "attorney-directory.js"],
   ];
-  for (const [route, filename] of consentAssets) {
+  for (const [route, filename] of publicClientAssets) {
     app.get(route, (_req, res, next) => {
       const assetPath = path.resolve(process.cwd(), "public", filename);
-      res.setHeader("Cache-Control", "public, max-age=31536000, immutable");
+      res.setHeader(
+        "Cache-Control",
+        filename === "attorney-directory.js"
+          ? "public, max-age=300, must-revalidate"
+          : "public, max-age=31536000, immutable",
+      );
       res.sendFile(assetPath, (error) => {
         if (error && !res.headersSent) next(error);
       });

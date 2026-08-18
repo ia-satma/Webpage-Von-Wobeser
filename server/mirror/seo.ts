@@ -449,7 +449,10 @@ export function applyA11y($: cheerio.CheerioAPI, lang: Lang): void {
     // Si ya tiene un <label for> asociado, no forzamos aria-label.
     const hasLabel = id && $(`label[for="${id}"]`).length > 0;
     if (!hasLabel && !($i.attr("aria-label") || "").trim()) $i.attr("aria-label", searchLabel);
-    if (($i.attr("placeholder") || "").trim()) $i.attr("placeholder", searchLabel);
+    // El directorio conserva un placeholder más descriptivo aprobado para
+    // nombre/apellido; el resto del buscador histórico sigue usando el texto
+    // breve localizado de forma centralizada.
+    if (($i.attr("placeholder") || "").trim() && !$i.is("[data-attorney-q]")) $i.attr("placeholder", searchLabel);
   });
 
   // 5) Landmark <main>: si no hay ninguno, marcar el contenedor de contenido principal.

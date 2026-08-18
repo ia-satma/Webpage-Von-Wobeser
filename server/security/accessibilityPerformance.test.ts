@@ -278,6 +278,7 @@ test("el directorio de abogados agrupa tarjetas, localiza perfiles y filtra desd
   const es = cheerio.load(renderAttorneyDirectory(template, [...attorneys], practices, filters, "es"));
   const en = cheerio.load(renderAttorneyDirectory(template, [...attorneys], practices, { q: "", role: "", practice: "", letter: "" }, "en"));
   const js = readFileSync(new URL("../../public/attorney-directory.js", import.meta.url), "utf8");
+  const css = readFileSync(new URL("../../frontend-mirror/templates/beez3/css/von.css", import.meta.url), "utf8");
 
   assert.equal(es(".attorney-directory").length, 1);
   assert.equal(es(".search__form").length, 0);
@@ -287,17 +288,26 @@ test("el directorio de abogados agrupa tarjetas, localiza perfiles y filtra desd
   assert.equal(es("[data-attorney-result]:not([hidden]) img").attr("loading"), "lazy");
   assert.equal(es("[data-attorney-letter-option][value=\"N\"]").attr("aria-pressed"), "true");
   assert.equal(es("input[data-attorney-letter]").attr("value"), "N");
-  assert.equal(es(".attorney-directory__initials > span").text(), "Búsqueda por inicial:");
+  assert.equal(es("[data-attorney-initial-label]").text(), "N");
+  assert.equal(es(".attorney-directory__initials summary .vw-sr-only").text(), "Búsqueda por inicial:");
+  assert.equal(es("[data-attorney-q]").attr("placeholder"), "Buscar por nombre o apellido…");
+  assert.equal(es(".attorney-directory__submit").attr("aria-label"), "Buscar");
+  assert.equal(es(".attorney-directory__filters [data-attorney-count]").length, 1);
   assert.equal(es('[data-attorney-result][data-name-initials="M|N"]').length, 1);
   assert.equal(es(".attorney-directory__grid").length, 4);
   assert.equal(es('link[rel="canonical"]').attr("href"), "https://www.vonwobeser.com/attorneys");
   assert.equal(en("[data-attorney-result]").first().find("a").attr("href"), "/lawyer/maria-nunez?lang=en");
   assert.equal(en('link[rel="canonical"]').attr("href"), "https://www.vonwobeser.com/attorneys?lang=en");
   assert.match(js, /data-attorney-letter-option/);
+  assert.match(js, /data-attorney-initial-label/);
+  assert.match(js, /initials\.open = false/);
   assert.match(js, /params\.has\("set-letter"\)/);
   assert.match(js, /"set-letter"\]\.?forEach/);
   assert.match(js, /window\.addEventListener\("popstate"/);
   assert.match(js, /window\.history\[mode \+ "State"\]/);
+  assert.match(js, /window\.requestAnimationFrame/);
+  assert.match(js, /status\.animate/);
+  assert.match(css, /\.attorney-directory__letter:first-child\{grid-column:1\/-1;width:auto\}/);
 });
 
 test("los módulos públicos añadidos usan la línea tipográfica institucional", () => {

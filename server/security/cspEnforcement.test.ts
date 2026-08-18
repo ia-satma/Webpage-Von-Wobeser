@@ -70,7 +70,7 @@ test("SRI manifest exactly matches every local immutable asset", () => {
   };
   for (const [url, integrity] of Object.entries(LOCAL_SRI_MANIFEST)) {
     const relative = (aliases[url] || url).replace(/^\//, "");
-    const file = relative.startsWith("vwb-")
+    const file = (relative.startsWith("vwb-") || relative === "attorney-directory.js")
       ? path.resolve(process.cwd(), "public", relative)
       : path.resolve(process.cwd(), "frontend-mirror", relative);
     assert.equal(existsSync(file), true, url + " must exist");
