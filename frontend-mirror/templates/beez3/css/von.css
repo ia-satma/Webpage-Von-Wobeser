@@ -804,6 +804,338 @@ a[href="/german-desk"],
   width: 106px;
 }
 
+/* Pie público centralizado (2026-08-18). Se renderiza en el servidor sobre
+ * las plantillas históricas, sin depender del cliente React ni alterar el
+ * menú superior. */
+.vwb-site-footer {
+  background: #5e5e5e !important;
+  color: #fff;
+  font-family: var(--vw-font-body, "Inter", sans-serif);
+  padding: 66px 0 0;
+}
+
+.vwb-site-footer,
+.vwb-site-footer * {
+  box-sizing: border-box;
+}
+
+.vwb-site-footer__inner {
+  margin: 0 auto;
+  max-width: 1440px;
+  padding: 0 clamp(28px, 5vw, 94px);
+}
+
+.vwb-site-footer__grid {
+  display: grid;
+  gap: 42px;
+  grid-template-columns: minmax(168px, 1.18fr) repeat(3, minmax(120px, .82fr)) minmax(230px, 1.32fr);
+  padding-bottom: 60px;
+}
+
+.vwb-site-footer__brand-link {
+  align-items: flex-start;
+  color: #fff;
+  display: inline-flex;
+  flex-direction: column;
+  text-decoration: none;
+}
+
+.vwb-site-footer__logo {
+  display: block;
+  height: auto;
+  margin: 2px 0 14px;
+  width: 76px;
+}
+
+.vwb-site-footer__brand-name {
+  font-family: var(--vw-font-editorial, "Gelasio", serif);
+  font-size: clamp(20px, 1.72vw, 28px);
+  font-weight: 400;
+  letter-spacing: -.025em;
+  line-height: 1.1;
+  max-width: 230px;
+}
+
+.vwb-site-footer h2,
+.vwb-site-footer__column h2 {
+  color: #fff;
+  font-family: var(--vw-font-ui, "Inter", sans-serif);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: .035em;
+  line-height: 1.2;
+  margin: 3px 0 24px;
+  text-transform: uppercase;
+}
+
+.vwb-site-footer ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.vwb-site-footer__column li + li {
+  margin-top: 15px;
+}
+
+.vwb-site-footer a {
+  color: rgba(255, 255, 255, .86);
+  text-decoration: none;
+}
+
+.vwb-site-footer__column a,
+.vwb-site-footer__legal a {
+  font-size: 14px;
+  line-height: 1.42;
+}
+
+.vwb-site-footer__column a:hover,
+.vwb-site-footer__legal a:hover,
+.vwb-site-footer__contact a:hover,
+.vwb-site-footer__brand-link:hover {
+  color: #fff;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.vwb-site-footer a:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 4px;
+}
+
+.vwb-site-footer__contact h2 {
+  margin-bottom: 23px;
+}
+
+.vwb-site-footer__contact-list {
+  display: grid;
+  gap: 14px;
+}
+
+.vwb-site-footer__contact-row {
+  align-items: flex-start;
+  color: rgba(255, 255, 255, .86);
+  display: grid;
+  font-size: 14px;
+  gap: 12px;
+  grid-template-columns: 17px minmax(0, 1fr);
+  line-height: 1.55;
+}
+
+.vwb-site-footer__contact-row address {
+  font-style: normal;
+  margin: 0;
+}
+
+.vwb-site-footer__contact-icon {
+  color: #fff;
+  fill: none;
+  height: 16px;
+  margin-top: 3px;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.45;
+  width: 16px;
+}
+
+.vwb-site-footer__socials {
+  margin-top: 27px;
+}
+
+.vwb-site-footer__socials h2 {
+  margin-bottom: 13px;
+}
+
+.vwb-site-footer__socials > div {
+  align-items: center;
+  display: flex;
+  gap: 13px;
+}
+
+.vwb-site-footer__social-link {
+  align-items: center;
+  display: inline-flex;
+  justify-content: center;
+  min-height: 24px;
+  min-width: 22px;
+  opacity: .92;
+}
+
+.vwb-site-footer__social-link img {
+  display: block;
+  height: 22px;
+  width: 22px;
+}
+
+.vwb-site-footer__social-link:hover {
+  opacity: 1;
+}
+
+.vwb-site-footer__bottom {
+  align-items: center;
+  border-top: 1px solid rgba(255, 255, 255, .48);
+  display: grid;
+  gap: 28px;
+  grid-template-columns: minmax(230px, 1fr) 112px minmax(420px, 1.48fr);
+  min-height: 116px;
+}
+
+.vwb-site-footer__copyright {
+  color: rgba(255, 255, 255, .84);
+  font-family: var(--vw-font-body, "Inter", sans-serif);
+  font-size: 12px;
+  line-height: 1.45;
+  margin: 0;
+}
+
+.vwb-site-footer__esr img {
+  background: #fff;
+  display: block;
+  height: auto;
+  max-width: 106px;
+  padding: 4px 6px;
+  width: 100%;
+}
+
+.vwb-site-footer__legal {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 18px;
+  justify-content: flex-end;
+}
+
+.vwb-site-footer__legal > span {
+  background: #ab162c;
+  display: block;
+  height: 15px;
+  width: 1px;
+}
+
+.vwb-site-footer__admin-link {
+  align-items: center;
+  display: inline-flex;
+  margin-left: 4px;
+  opacity: .3;
+  padding: 4px;
+}
+
+.vwb-site-footer__admin-link:hover {
+  opacity: .72;
+  text-decoration: none;
+}
+
+.vwb-site-footer__admin-link:focus-visible {
+  opacity: 1;
+}
+
+.vwb-site-footer__admin-icon {
+  fill: none;
+  height: 11px;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.05;
+  width: 11px;
+}
+
+@media (max-width: 1120px) {
+  .vwb-site-footer__grid {
+    grid-template-columns: minmax(160px, 1.1fr) repeat(3, minmax(125px, 1fr));
+  }
+
+  .vwb-site-footer__contact {
+    grid-column: 2 / span 3;
+    max-width: 410px;
+  }
+
+  .vwb-site-footer__bottom {
+    grid-template-columns: minmax(220px, 1fr) 106px minmax(290px, 1.2fr);
+  }
+}
+
+@media (max-width: 760px) {
+  .vwb-site-footer {
+    padding-top: 48px;
+  }
+
+  .vwb-site-footer__inner {
+    padding: 0 26px;
+  }
+
+  .vwb-site-footer__grid {
+    gap: 38px 24px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    padding-bottom: 46px;
+  }
+
+  .vwb-site-footer__brand,
+  .vwb-site-footer__contact {
+    grid-column: 1 / -1;
+  }
+
+  .vwb-site-footer__brand-name {
+    max-width: none;
+  }
+
+  .vwb-site-footer__contact {
+    max-width: 390px;
+  }
+
+  .vwb-site-footer__bottom {
+    align-items: flex-start;
+    gap: 24px;
+    grid-template-columns: 1fr 106px;
+    padding: 24px 0 30px;
+  }
+
+  .vwb-site-footer__legal {
+    grid-column: 1 / -1;
+    justify-content: flex-start;
+  }
+}
+
+@media (max-width: 480px) {
+  .vwb-site-footer__grid {
+    grid-template-columns: 1fr;
+  }
+
+  .vwb-site-footer__column,
+  .vwb-site-footer__contact {
+    grid-column: auto;
+  }
+
+  .vwb-site-footer__bottom {
+    grid-template-columns: 1fr;
+  }
+
+  .vwb-site-footer__esr {
+    order: -1;
+  }
+
+  .vwb-site-footer__legal {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .vwb-site-footer__legal > span {
+    display: none;
+  }
+
+  .vwb-site-footer__admin-link {
+    margin-left: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .vwb-site-footer__social-link,
+  .vwb-site-footer__admin-link {
+    transition: none;
+  }
+}
+
 /* Navegación directa: el mismo cromo se usa en miles de páginas del espejo.
  * En escritorio los siete accesos principales viven siempre en la barra superior;
  * en pantallas reducidas el panel conserva todos los destinos en una lista clara. */

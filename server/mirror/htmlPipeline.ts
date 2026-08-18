@@ -10,6 +10,7 @@ import { getPublicNavigationMenu, type PublicNavigationMenu } from "./navigation
 import { applyNavigationMarkup } from "./navigationMarkup";
 import { normalizeLegacyTypography } from "./legacyHtml";
 import { prepareTrustedHtmlForCsp } from "../security/csp";
+import { renderPublicFooter } from "./renderFooter";
 
 export type Lang = "en" | "es";
 
@@ -326,7 +327,7 @@ export const SEARCH_FORMS_SCRIPT = `<script>(function(){try{
 // ocultos detrás de los 30 días de caché de los assets estáticos.
 // Se incrementa junto con los estilos globales del espejo para que las
 // navegaciones existentes no conserven una tipografía previa en caché.
-const NAV_ASSET_VERSION = "20260814-home-editorial-controls";
+const NAV_ASSET_VERSION = "20260818-footer-central";
 const LEGACY_EVENTS_ASSET_VERSION = "20260813-csp";
 const LEGACY_EVENTS_SCRIPT = `<script defer src="/vwb-legacy-events.js?v=${LEGACY_EVENTS_ASSET_VERSION}"></script>`;
 function refreshNavigationAssets(html: string): string {
@@ -828,10 +829,8 @@ export async function sendPage(res: Response, html: string, status = 200) {
     : out + inject;
   if (!isOfficeShowcase) {
     try {
-      out = injectFooterString(out, config, lang);
+      out = renderPublicFooter(out, config, lang);
     } catch { /* si la config falla, se sirve el pie original de la plantilla */ }
-    out = injectFooterESR(out, config, lang);
-    out = injectAdminLink(out, lang);
   }
   out = ensureImgAlt(out); // backstop a11y: alt en imgs que escaparon a applyA11y
   const nonce = String(res.locals.cspNonce || "");
