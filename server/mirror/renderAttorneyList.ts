@@ -211,14 +211,18 @@ function normalizeDirectoryValue(value: unknown): string {
     .toLocaleLowerCase();
 }
 
-/** Una letra A-Z puede localizar cualquiera de las partes del nombre. */
+/**
+ * El directorio clasifica por la inicial del nombre principal o del apellido
+ * final, como el buscador anterior. Los segundos nombres no abren una sección
+ * adicional del abecedario.
+ */
 function directoryNameInitials(name: string): string[] {
-  return Array.from(new Set(
-    normalizeDirectoryValue(name)
-      .split(/\s+/)
-      .map((part) => part.charAt(0).toUpperCase())
-      .filter(Boolean),
-  ));
+  const parts = normalizeDirectoryValue(name).split(/\s+/).filter(Boolean);
+  if (!parts.length) return [];
+  return Array.from(new Set([
+    parts[0].charAt(0).toUpperCase(),
+    parts[parts.length - 1].charAt(0).toUpperCase(),
+  ].filter(Boolean)));
 }
 
 function attorneyMatchesDirectoryFilters(
@@ -252,6 +256,7 @@ export function renderAttorneyDirectory(
   const isEs = lang === "es";
   const copy = isEs
     ? {
+        eyebrow: "Nuestro equipo",
         title: "Abogados",
         intro: "Conoce a nuestro equipo y encuentra el perfil adecuado por nombre, cargo o área de práctica.",
         // Se conserva literalmente la nomenclatura del buscador que ya vive en
@@ -272,6 +277,7 @@ export function renderAttorneyDirectory(
         attorneys: "Abogados",
       }
     : {
+      eyebrow: "Our team",
       title: "Attorneys",
       intro: "Meet our team and find the right profile by name, role or practice area.",
       name: "Name:",
@@ -338,7 +344,7 @@ export function renderAttorneyDirectory(
 
   const status = `<p class="attorney-directory__status" aria-live="polite" data-attorney-count data-singular="${isEs ? "resultado" : "result"}" data-plural="${esc(copy.results)}">${matchedAttorneys.length} ${matchedAttorneys.length === 1 ? (isEs ? "resultado" : "result") : copy.results}</p>`;
   const clear = `<a class="attorney-directory__clear" href="/attorneys${langSuffix}" data-attorney-clear${hasActiveFilters ? "" : " hidden"}>${esc(copy.clear)}</a>`;
-  const formStart = `<form class="attorney-directory__filters" id="${isEs ? "buscar" : "search"}" action="/attorneys" method="get" data-attorney-filter-form>${isEs ? "" : `<input type="hidden" name="lang" value="en">`}`;
+  const formStart = `<form class="attorney-directory__filters" action="/attorneys" method="get" data-attorney-filter-form>${isEs ? "" : `<input type="hidden" name="lang" value="en">`}`;
   const editorialFilters =
     formStart +
       `<div class="attorney-directory__field attorney-directory__field--query">` +
@@ -364,7 +370,12 @@ export function renderAttorneyDirectory(
     `</form>` + status;
   const filtersMarkup = preset === "classic-vwys" ? classicFilters : editorialFilters;
   const directory =
-    `<main class="attorney-directory attorney-directory--${preset}" data-attorney-directory data-attorney-directory-preset="${preset}">` +
+    `<main class="attorney-directory attorney-directory--${preset}" id="${isEs ? "buscar" : "search"}" data-attorney-directory data-attorney-directory-preset="${preset}">` +
+      `<header class="attorney-directory__intro">` +
+        `<p class="attorney-directory__eyebrow">${esc(copy.eyebrow)}</p>` +
+        `<h1>${esc(copy.title)}</h1>` +
+        `<p>${esc(copy.intro)}</p>` +
+      `</header>` +
       filtersMarkup +
       `<p class="attorney-directory__empty" data-attorney-empty${matchedAttorneys.length ? " hidden" : ""}>${esc(copy.empty)}</p>` +
       `<div class="attorney-directory__groups" id="${isEs ? "directorio" : "directory"}" data-attorney-groups>${roleGroups}</div>` +

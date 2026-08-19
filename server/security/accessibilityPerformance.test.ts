@@ -291,6 +291,11 @@ test("el directorio de abogados agrupa tarjetas, localiza perfiles y filtra desd
   const css = readFileSync(new URL("../../frontend-mirror/templates/beez3/css/von.css", import.meta.url), "utf8");
 
   assert.equal(es(".attorney-directory").length, 1);
+  assert.equal(es(".attorney-directory").attr("id"), "buscar");
+  assert.equal(es(".attorney-directory__filters").attr("id"), undefined);
+  assert.equal(es(".attorney-directory__eyebrow").text(), "Nuestro equipo");
+  assert.equal(es(".attorney-directory__intro h1").text(), "Abogados");
+  assert.match(es(".attorney-directory__intro > p").text(), /Conoce a nuestro equipo/);
   assert.equal(es(".search__form").length, 0);
   assert.equal(es("[data-attorney-result]").length, 4);
   assert.equal(es("[data-attorney-result]:not([hidden])").length, 1);
@@ -307,6 +312,9 @@ test("el directorio de abogados agrupa tarjetas, localiza perfiles y filtra desd
   assert.equal(es(".attorney-directory__grid").length, 4);
   assert.equal(es('link[rel="canonical"]').attr("href"), "https://www.vonwobeser.com/attorneys");
   assert.equal(en("[data-attorney-result]").first().find("a").attr("href"), "/lawyer/maria-nunez?lang=en");
+  assert.equal(en(".attorney-directory").attr("id"), "search");
+  assert.equal(en(".attorney-directory__eyebrow").text(), "Our team");
+  assert.equal(en(".attorney-directory__intro h1").text(), "Attorneys");
   assert.equal(en('link[rel="canonical"]').attr("href"), "https://www.vonwobeser.com/attorneys?lang=en");
   assert.equal(classic(".attorney-directory").attr("data-attorney-directory-preset"), "classic-vwys");
   assert.equal(classic(".attorney-directory__filter-main").length, 1);
@@ -315,6 +323,7 @@ test("el directorio de abogados agrupa tarjetas, localiza perfiles y filtra desd
   assert.equal(classic("[data-attorney-role]").val(), "partners");
   assert.equal(classic("[data-attorney-letter-option][value=N]").attr("aria-pressed"), "true");
   assert.equal(classic("[data-attorney-result]").first().find("a").attr("href"), "/abogado/maria-nunez");
+  assert.equal(classic(".attorney-directory__intro h1").text(), "Abogados");
   assert.match(js, /data-attorney-letter-option/);
   assert.match(js, /data-attorney-initial-label/);
   assert.match(js, /initials\.open = false/);
@@ -326,6 +335,32 @@ test("el directorio de abogados agrupa tarjetas, localiza perfiles y filtra desd
   assert.match(js, /status\.animate/);
   assert.match(css, /\.attorney-directory__letter:first-child\{grid-column:1\/-1;width:auto\}/);
   assert.match(css, /data-attorney-directory-preset="classic-vwys"/);
+  assert.match(css, /scroll-margin-top:24px/);
+
+  const compoundAttorney = {
+    id: "5", slug: "luis-miguel-jimenez", name: "Luis Miguel Jiménez", role: "partners", roleLabel: "Socio", imageUrl: "/images/luis.jpg", practiceSlugs: ["tax"],
+  };
+  const compoundFilters = { q: "", role: "", practice: "", letter: "" };
+  const compoundBase = cheerio.load(renderAttorneyDirectory(template, [compoundAttorney], practices, compoundFilters, "es"));
+  const compoundFirst = cheerio.load(renderAttorneyDirectory(template, [compoundAttorney], practices, { ...compoundFilters, letter: "L" }, "es"));
+  const compoundSurname = cheerio.load(renderAttorneyDirectory(template, [compoundAttorney], practices, { ...compoundFilters, letter: "J" }, "es"));
+  const compoundMiddle = cheerio.load(renderAttorneyDirectory(template, [compoundAttorney], practices, { ...compoundFilters, letter: "M" }, "es"));
+  assert.equal(compoundBase("[data-attorney-result]").attr("data-name-initials"), "L|J");
+  assert.equal(compoundFirst("[data-attorney-result]:not([hidden])").length, 1);
+  assert.equal(compoundSurname("[data-attorney-result]:not([hidden])").length, 1);
+  assert.equal(compoundMiddle("[data-attorney-result]:not([hidden])").length, 0);
+
+  const accentedCompoundSurname = {
+    id: "6", slug: "alvaro-de-la-cruz", name: "Álvaro de la Cruz", role: "associates", roleLabel: "Asociado", imageUrl: "/images/alvaro.jpg", practiceSlugs: ["tax"],
+  };
+  const accentedFirst = cheerio.load(renderAttorneyDirectory(template, [accentedCompoundSurname], practices, { ...compoundFilters, letter: "A" }, "es"));
+  const accentedSurname = cheerio.load(renderAttorneyDirectory(template, [accentedCompoundSurname], practices, { ...compoundFilters, letter: "C" }, "es"));
+  const accentedInner = cheerio.load(renderAttorneyDirectory(template, [accentedCompoundSurname], practices, { ...compoundFilters, letter: "L" }, "es"));
+  assert.equal(accentedFirst("[data-attorney-result]").attr("data-name-initials"), "A|C");
+  assert.equal(accentedFirst("[data-attorney-result]:not([hidden])").length, 1);
+  assert.equal(accentedSurname("[data-attorney-result]:not([hidden])").length, 1);
+  assert.equal(accentedInner("[data-attorney-result]:not([hidden])").length, 0);
+  assert.match(js, /entry\.initials\.indexOf\("\\|" \+ selectedLetter \+ "\\|"\) !== -1/);
 });
 
 test("los módulos públicos añadidos usan la línea tipográfica institucional", () => {
