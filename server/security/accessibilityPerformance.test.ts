@@ -758,6 +758,8 @@ test("la carga pública elimina librerías Joomla duplicadas y usa jQuery vigent
     <script src="/media/system/js/core.js"></script>
     <script src="/templates/beez3/js/min/jquery_3.3.1.min.js"></script>
     <script src="/templates/beez3/js/min/slick.min.js"></script>
+    <link href="/templates/beez3/css/von.css" rel="stylesheet">
+    <link href="/_vendor/slick/slick.css" rel="stylesheet">
     <link href="/_vendor/fontawesome/all.css" rel="stylesheet">
     <script type="application/json" class="joomla-script-options new">{"legacy":true}</script>`;
   const optimized = optimizeLegacyAssets(html);
@@ -765,6 +767,8 @@ test("la carga pública elimina librerías Joomla duplicadas y usa jQuery vigent
   assert.doesNotMatch(optimized, /media\/jui|media\/system\/js\/core|jquery_3\.3\.1/);
   assert.match(optimized, /_vendor\/jquery\/jquery-3\.7\.1\.min\.js/);
   assert.match(optimized, /<script defer src="\/templates\/beez3\/js\/min\/slick\.min\.js"/);
+  assert.match(optimized, /templates\/beez3\/css\/public\.css\?v=20260819-pagespeed/);
+  assert.doesNotMatch(optimized, /_vendor\/slick\/slick\.css/);
   assert.doesNotMatch(optimized, /fontawesome|joomla-script-options/);
 });
 
@@ -780,6 +784,8 @@ test("la optimización responsiva respeta el tamaño CSS del logo institucional"
   assert.equal(logo.attr("width"), undefined);
   assert.equal(logo.attr("height"), undefined);
   assert.equal(logo.attr("fetchpriority"), "high");
+  assert.equal(logo.attr("sizes"), "220px");
+  assert.match(logo.attr("srcset") || "", /vw40-220\.webp 220w/);
   assert.equal(banner.attr("width"), "5184");
   assert.equal(banner.attr("height"), "3456");
   assert.match(banner.attr("srcset") || "", /3-640\.webp 640w/);

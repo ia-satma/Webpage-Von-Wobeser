@@ -32,6 +32,7 @@ import {
 import { renderOfficeShowcase } from "./renderOfficeShowcase";
 import { applyDiversityVideoGallery } from "./diversityVideoGallery";
 import { getCachedPublicPage } from "./pageCache";
+import { listPersistentPublicMediaPaths } from "../media/persistentMedia";
 import { seedCookiePolicy } from "../privacy/cookieConsent";
 import {
   isPublicPracticeSlug,
@@ -679,12 +680,13 @@ export async function createMirrorRuntime() {
       const newsCandidateLimit = Math.min(80, newsLimit * 4);
       // Las destacadas van primero y el resto se completa con las publicadas más
       // recientes. La cantidad se administra como páginas de dos noticias.
-      const [featured, rankings, practices, industries, testimonials] = await Promise.all([
+      const [featured, rankings, practices, industries, testimonials, persistentMediaPaths] = await Promise.all([
         storage.getFeaturedNews(newsCandidateLimit),
         storage.getRankings(),
         storage.getPracticeGroups(),
         storage.getIndustryGroups(),
         storage.getTestimonials(),
+        listPersistentPublicMediaPaths(),
       ]);
       let heroNews = featured.filter((item) => hasCompatibleLocalizedNewsTitle(item, lang)).slice(0, newsLimit);
       if (heroNews.length < newsLimit) {
@@ -698,6 +700,7 @@ export async function createMirrorRuntime() {
       return renderHome(
         pick(TEMPLATES.home, lang), heroNews, config, lang, rankings, practices, industries,
         testimonials.map((item) => ({ ...item, typography: testimonialTypography.get(item.id) })),
+        persistentMediaPaths,
       );
     };
     const html = bypassCache ? await build() : await getCachedPublicPage(`home:${lang}`, build);

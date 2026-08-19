@@ -77,6 +77,17 @@ function safeHref(value: unknown, fallback: string): string {
   return fallback;
 }
 
+function responsiveUploadAttributes(sourceUrl: string, availablePaths: ReadonlySet<string> | null | undefined): string {
+  const cleanUrl = sourceUrl.split(/[?#]/, 1)[0];
+  if (!availablePaths || !cleanUrl.startsWith("/uploads/") || cleanUrl.includes("/optimized/")) return "";
+  const parsed = path.posix.parse(cleanUrl);
+  const variants = [640, 1280, 1920]
+    .map((width) => ({ url: `/uploads/optimized/${parsed.name}-${width}.webp`, width }))
+    .filter((variant) => availablePaths.has(variant.url));
+  if (!variants.length) return "";
+  return ` srcset="${variants.map((variant) => `${escAttr(variant.url)} ${variant.width}w`).join(", ")}" sizes="156px"`;
+}
+
 function existingResponsiveVariant(sourceUrl: string, width: number): string {
   const cleanUrl = sourceUrl.split(/[?#]/, 1)[0];
   const parsed = path.posix.parse(cleanUrl);
@@ -125,6 +136,7 @@ const HERO_PERFORMANCE_SCRIPT = `<script id="vw-home-performance-js">(function()
     var retry=document.querySelector('[data-vw-home-video-retry]');
     var reduced=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     var saveData=!!(navigator.connection&&navigator.connection.saveData);
+    var mobile=window.matchMedia&&window.matchMedia('(max-width: 680px)').matches;
     var showRetry=function(){if(retry)retry.classList.add('is-visible');};
     var hideRetry=function(){if(retry)retry.classList.remove('is-visible');};
     var hydrated=false;
@@ -134,7 +146,10 @@ const HERO_PERFORMANCE_SCRIPT = `<script id="vw-home-performance-js">(function()
       for(var index=0;index<sources.length;index++){
         var source=sources[index];
         var url=source.getAttribute('data-vwb-src');
-        if(url){source.setAttribute('src',url);source.removeAttribute('data-vwb-src');}
+        var media=source.getAttribute('media');
+        if(url&&(!media||!window.matchMedia||window.matchMedia(media).matches)){
+          source.setAttribute('src',url);source.removeAttribute('data-vwb-src');
+        }
       }
       hydrated=true;
       video.setAttribute('data-vwb-hydrated','true');
@@ -148,15 +163,20 @@ const HERO_PERFORMANCE_SCRIPT = `<script id="vw-home-performance-js">(function()
     };
     video.addEventListener('playing',hideRetry);
     video.addEventListener('error',showRetry);
-    if(reduced||saveData){video.autoplay=false;video.pause();video.preload='none';showRetry();}
+    if(reduced||saveData||mobile){video.autoplay=false;video.pause();video.preload='none';showRetry();}
     else{
       video.autoplay=true;
       var begin=function(){
         start();
         window.setTimeout(function(){if(video.paused&&!video.ended)showRetry();},3500);
       };
-      if(window.requestAnimationFrame)window.requestAnimationFrame(function(){window.requestAnimationFrame(begin);});
-      else window.setTimeout(begin,0);
+      // El póster es el LCP; el video se inicia cuando el primer render terminó.
+      var startWhenIdle=function(){
+        if(window.requestIdleCallback)window.requestIdleCallback(begin,{timeout:2500});
+        else window.setTimeout(begin,1200);
+      };
+      if(document.readyState==='complete')startWhenIdle();
+      else window.addEventListener('load',startWhenIdle,{once:true});
     }
     if(retry)retry.addEventListener('click',function(){video.preload='auto';hideRetry();start();});
   }
@@ -706,6 +726,7 @@ export function renderHome(
   practices: HomeGroup[] = [],
   industries: HomeGroup[] = [],
   testimonials: HomeTestimonial[] = [],
+  availablePersistentMediaPaths: ReadonlySet<string> | null = null,
 ): string {
   const $ = cheerio.load(templateHtml);
   const seeMore = lang === "es" ? "VER MÁS" : "SEE MORE";
@@ -798,7 +819,8 @@ export function renderHome(
     videoElement.attr({
       width: "1920",
       height: "1080",
-      preload: "metadata",
+      // El póster precargado es el recurso LCP; el video se carga después.
+      preload: "none",
       poster: heroPoster,
       autoplay: "",
       muted: "",
@@ -908,8 +930,12 @@ export function renderHome(
     const slides = withLogo
       .map((r) => {
         const name = esc(lang === "es" ? r.nameEs || r.name : r.name);
-        const img = `<img class="home__rec--item" src="${esc(r.logoUrl)}" alt="${name}" title="${name}" loading="lazy" decoding="async">`;
-        return r.externalUrl ? `<a href="${esc(r.externalUrl)}" target="_blank" rel="noopener">${img}</a>` : img;
+        const responsive = responsiveUploadAttributes(String(r.logoUrl || ""), availablePersistentMediaPaths);
+        const img = `<img class="home__rec--item" src="${esc(r.logoUrl)}"${responsive} alt="${name}" title="${name}" loading="lazy" decoding="async">`;
+        const content = r.externalUrl ? `<a href="${esc(r.externalUrl)}" target="_blank" rel="noopener">${img}</a>` : img;
+        // Slick asigna role=listitem al nodo de cada slide. Un contenedor real
+        // evita que ese rol termine aplicado directamente a la imagen.
+        return `<div class="home__rec--slide">${content}</div>`;
       })
       .join("");
     $(".home__rec--slider").html(slides);

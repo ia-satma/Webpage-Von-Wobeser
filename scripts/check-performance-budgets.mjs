@@ -21,16 +21,12 @@ assert.ok(size("images/hero-20260810-fullhd-mobile.mp4") <= limits.mobileVideo, 
 assert.ok(size("images/hero-20260810-fullhd-desktop.mp4") <= limits.desktopVideo, "El video Full HD de escritorio supera 30 MB.");
 
 const initialMobileAssets = [
-  "images/hero-20260810-fullhd-mobile.mp4",
   "images/hero-20260810-fullhd-poster.webp",
   "images/optimized/images/banners/7-a-640.webp",
   "images/optimized/images/banners/1_ind-640.webp",
   "templates/beez3/webfont/Inter-Variable.woff2",
   "templates/beez3/webfont/Gelasio-Variable.woff2",
-  "templates/beez3/css/von.css",
-  "templates/beez3/css/typography.css",
-  "templates/beez3/css/style.css",
-  "_vendor/slick/slick.css",
+  "templates/beez3/css/public.css",
   "templates/beez3/css/print.css",
   "_vendor/jquery/jquery-3.7.1.min.js",
   "templates/beez3/js/min/slick.min.js",

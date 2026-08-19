@@ -328,6 +328,8 @@ export const SEARCH_FORMS_SCRIPT = `<script>(function(){try{
 // Se incrementa junto con los estilos globales del espejo para que las
 // navegaciones existentes no conserven una tipografía previa en caché.
 const NAV_ASSET_VERSION = "20260818-footer-central";
+const PUBLIC_STYLE_ASSET_VERSION = "20260819-pagespeed";
+const PUBLIC_STYLE_PATH = "/templates/beez3/css/public.css";
 const LEGACY_EVENTS_ASSET_VERSION = "20260813-csp";
 const LEGACY_EVENTS_SCRIPT = `<script defer src="/vwb-legacy-events.js?v=${LEGACY_EVENTS_ASSET_VERSION}"></script>`;
 function refreshNavigationAssets(html: string): string {
@@ -343,7 +345,7 @@ function refreshNavigationAssets(html: string): string {
 // sobre las 2,253 capturas) y el segundo jQuery es el que realmente consumen Slick
 // y functions.min.js. Se conserva una sola versión actual, ya incluida localmente.
 export function optimizeLegacyAssets(html: string): string {
-  return html
+  let out = html
     .replace(
       /<script\b[^>]*\bsrc=["']\/media\/(?:jui\/js\/(?:jquery(?:-migrate)?\.min\.js|jquery-noconflict\.js|bootstrap\.min\.js)|system\/js\/core\.js)["'][^>]*>\s*<\/script>/gi,
       "",
@@ -364,15 +366,44 @@ export function optimizeLegacyAssets(html: string): string {
       /<script(?![^>]*\bdefer\b)([^>]*\bsrc=["']\/(?:templates\/beez3\/js\/min\/(?:slick|functions)\.min\.js|_vendor\/slick\/slick\.min\.js)(?:\?[^"']*)?["'][^>]*)>/gi,
       "<script defer$1>",
     );
+  // Las cinco hojas compartidas se descubrían como solicitudes bloqueantes
+  // independientes. Se sirven como un único archivo en el mismo directorio
+  // para conservar todas las rutas relativas de fuentes e iconos.
+  const stylePaths = new Set([
+    "/templates/beez3/css/von.css",
+    "/templates/beez3/css/style.css",
+    "/templates/beez3/css/typography.css",
+    "/_vendor/slick/slick.css",
+    "/vwb-privacy-preferences.css",
+    "/vwb-cookie-consent.css",
+  ]);
+  let removedSharedStyle = false;
+  out = out.replace(/<link\b[^>]*>/gi, (tag) => {
+    const rel = tag.match(/\brel\s*=\s*(["'])([^"']*)\1/i)?.[2] || "";
+    const href = tag.match(/\bhref\s*=\s*(["'])([^"']*)\1/i)?.[2]?.split(/[?#]/, 1)[0] || "";
+    if (/\bstylesheet\b/i.test(rel) && stylePaths.has(href)) {
+      removedSharedStyle = true;
+      return "";
+    }
+    return tag;
+  });
+  const bundleHref = `${PUBLIC_STYLE_PATH}?v=${PUBLIC_STYLE_ASSET_VERSION}`;
+  if ((removedSharedStyle || /<head\b/i.test(out)) && !out.includes(PUBLIC_STYLE_PATH)) {
+    const bundle = `<link rel="stylesheet" href="${bundleHref}">`;
+    out = out.includes("</head>") ? out.replace("</head>", `${bundle}</head>`) : `${bundle}${out}`;
+  }
+  return out;
 }
 
 function injectPerformanceHints(html: string): string {
   if (!html.includes("</head>")) return html;
+  const usingPublicBundle = html.includes(PUBLIC_STYLE_PATH);
   const hints = [
-    '<link rel="stylesheet" href="/templates/beez3/css/typography.css?v=20260812-attorney-profiles">',
+    !usingPublicBundle && '<link rel="stylesheet" href="/templates/beez3/css/typography.css?v=20260812-attorney-profiles">',
     '<link rel="preload" href="/templates/beez3/webfont/Inter-Variable.woff2" as="font" type="font/woff2" crossorigin>',
     '<link rel="preload" href="/templates/beez3/webfont/Gelasio-Variable.woff2" as="font" type="font/woff2" crossorigin>',
-  ].filter((hint) => !html.includes(hint.match(/href="([^"]+)"/)?.[1] || ""));
+  ].filter((hint): hint is string => typeof hint === "string")
+    .filter((hint) => !html.includes(hint.match(/href="([^"]+)"/)?.[1] || ""));
   return hints.length ? html.replace("</head>", `${hints.join("")}</head>`) : html;
 }
 
@@ -413,6 +444,13 @@ export function optimizePublicImageTags(html: string): string {
       ? manifestEntry.variants
       : uploadedResponsiveVariants(cleanSource);
     const critical = /(?:logo|vonwobeser|vw40|vw2025|vw_2025)/i.test(source);
+    const displaySize = /\bhome__rec--item\b/i.test(tag)
+      ? "156px"
+      : /\bvwb-site-footer__logo\b/i.test(tag)
+        ? "80px"
+        : /\bheader__logo--img\b/i.test(tag)
+          ? "220px"
+          : "";
     let next = tag;
     const add = (attribute: string) => {
       next = next.replace(/\s*\/?>$/, (ending) => ` ${attribute}${ending.trimStart()}`);
@@ -421,7 +459,7 @@ export function optimizePublicImageTags(html: string): string {
     if (variants.length && !/\bsrcset=/i.test(next)) {
       const srcset = variants.map((variant) => `${variant.url} ${variant.width}w`).join(", ");
       add(`srcset="${srcset}"`);
-      if (!/\bsizes=/i.test(next)) add('sizes="(max-width: 680px) 100vw, 50vw"');
+      if (!/\bsizes=/i.test(next)) add(`sizes="${displaySize || "(max-width: 680px) 100vw, 50vw"}"`);
     }
     // Los logos del encabezado ya tienen límites de tamaño propios. Convertir sus
     // dimensiones intrínsecas en atributos HTML fija una altura desproporcionada

@@ -7,6 +7,9 @@ const mirrorRoot = path.join(root, "frontend-mirror");
 const imagesRoot = path.join(mirrorRoot, "images");
 const outputRoot = path.join(imagesRoot, "optimized");
 const widths = [640, 1280, 1920];
+const recognitionWidths = [160, 320];
+const brandLogoWidths = [80, 160];
+const headerLogoWidths = [220, 440];
 const minimumBytes = 256 * 1024;
 const supported = new Set([".jpg", ".jpeg", ".png", ".webp"]);
 const sourceDirectories = [
@@ -37,16 +40,33 @@ function outputBase(source) {
   return path.join(outputRoot, parsed.dir, parsed.name);
 }
 
+function variantWidths(source) {
+  const relative = path.relative(mirrorRoot, source).split(path.sep).join("/");
+  if (relative.startsWith("images/recognitions/2026/")) return recognitionWidths;
+  if (relative === "images/vw40F.png") return brandLogoWidths;
+  if (relative === "images/vw40.png") return headerLogoWidths;
+  return widths;
+}
+
+function shouldOptimize(source, stat) {
+  const relative = path.relative(mirrorRoot, source).split(path.sep).join("/");
+  return stat.size >= minimumBytes
+    || relative.startsWith("images/recognitions/2026/")
+    || relative === "images/vw40.png"
+    || relative === "images/vw40F.png";
+}
+
 async function generate(source) {
   const stat = await fs.stat(source);
   const metadata = await sharp(source).metadata();
   if (!metadata.width || !metadata.height) return { generated: [], metadata };
-  if (stat.size < minimumBytes) return { generated: [], metadata };
+  if (!shouldOptimize(source, stat)) return { generated: [], metadata };
   const base = outputBase(source);
   await fs.mkdir(path.dirname(base), { recursive: true });
   const generated = [];
-  for (const width of widths) {
-    if (width > metadata.width && width !== widths[0]) continue;
+  const sourceWidths = variantWidths(source);
+  for (const width of sourceWidths) {
+    if (width > metadata.width && width !== sourceWidths[0]) continue;
     const target = `${base}-${Math.min(width, metadata.width)}.webp`;
     await sharp(source)
       .rotate()

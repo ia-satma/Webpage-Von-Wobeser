@@ -2128,7 +2128,17 @@
       }
     ]
   },
-  "/images/home-hero-poster-v1.webp": {
+  "/images/hero-092c5875ed80af62-poster.webp": {
+    "width": 960,
+    "height": 540,
+    "variants": []
+  },
+  "/images/hero-20260810-fullhd-poster.webp": {
+    "width": 960,
+    "height": 540,
+    "variants": []
+  },
+  "/images/home-hero-poster-v2.webp": {
     "width": 960,
     "height": 540,
     "variants": []
@@ -2198,6 +2208,132 @@
     "height": 100,
     "variants": []
   },
+  "/images/recognitions/2026/chambers-global-2026.webp": {
+    "width": 1411,
+    "height": 1115,
+    "variants": [
+      {
+        "url": "/images/optimized/images/recognitions/2026/chambers-global-2026-160.webp",
+        "width": 160
+      },
+      {
+        "url": "/images/optimized/images/recognitions/2026/chambers-global-2026-320.webp",
+        "width": 320
+      }
+    ]
+  },
+  "/images/recognitions/2026/chambers-latin-america-2026.webp": {
+    "width": 1448,
+    "height": 1086,
+    "variants": [
+      {
+        "url": "/images/optimized/images/recognitions/2026/chambers-latin-america-2026-160.webp",
+        "width": 160
+      },
+      {
+        "url": "/images/optimized/images/recognitions/2026/chambers-latin-america-2026-320.webp",
+        "width": 320
+      }
+    ]
+  },
+  "/images/recognitions/2026/gar-100-2025.webp": {
+    "width": 1254,
+    "height": 1254,
+    "variants": [
+      {
+        "url": "/images/optimized/images/recognitions/2026/gar-100-2025-160.webp",
+        "width": 160
+      },
+      {
+        "url": "/images/optimized/images/recognitions/2026/gar-100-2025-320.webp",
+        "width": 320
+      }
+    ]
+  },
+  "/images/recognitions/2026/gcr-100-2026.webp": {
+    "width": 1254,
+    "height": 1254,
+    "variants": [
+      {
+        "url": "/images/optimized/images/recognitions/2026/gcr-100-2026-160.webp",
+        "width": 160
+      },
+      {
+        "url": "/images/optimized/images/recognitions/2026/gcr-100-2026-320.webp",
+        "width": 320
+      }
+    ]
+  },
+  "/images/recognitions/2026/iflr-1000.webp": {
+    "width": 1254,
+    "height": 1254,
+    "variants": [
+      {
+        "url": "/images/optimized/images/recognitions/2026/iflr-1000-160.webp",
+        "width": 160
+      },
+      {
+        "url": "/images/optimized/images/recognitions/2026/iflr-1000-320.webp",
+        "width": 320
+      }
+    ]
+  },
+  "/images/recognitions/2026/ip-stars.webp": {
+    "width": 1477,
+    "height": 1065,
+    "variants": [
+      {
+        "url": "/images/optimized/images/recognitions/2026/ip-stars-160.webp",
+        "width": 160
+      },
+      {
+        "url": "/images/optimized/images/recognitions/2026/ip-stars-320.webp",
+        "width": 320
+      }
+    ]
+  },
+  "/images/recognitions/2026/itr-world-tax-2026.webp": {
+    "width": 1308,
+    "height": 1203,
+    "variants": [
+      {
+        "url": "/images/optimized/images/recognitions/2026/itr-world-tax-2026-160.webp",
+        "width": 160
+      },
+      {
+        "url": "/images/optimized/images/recognitions/2026/itr-world-tax-2026-320.webp",
+        "width": 320
+      }
+    ]
+  },
+  "/images/recognitions/2026/latin-lawyer-250-2026.webp": {
+    "width": 1254,
+    "height": 1254,
+    "variants": [
+      {
+        "url": "/images/optimized/images/recognitions/2026/latin-lawyer-250-2026-160.webp",
+        "width": 160
+      },
+      {
+        "url": "/images/optimized/images/recognitions/2026/latin-lawyer-250-2026-320.webp",
+        "width": 320
+      }
+    ]
+  },
+  "/images/recognitions/2026/legal-500-latin-america-2026.webp": {
+    "width": 1254,
+    "height": 1254,
+    "variants": [
+      {
+        "url": "/images/optimized/images/recognitions/2026/legal-500-latin-america-2026-160.webp",
+        "width": 160
+      },
+      {
+        "url": "/images/optimized/images/recognitions/2026/legal-500-latin-america-2026-320.webp",
+        "width": 320
+      }
+    ]
+  },
   "/images/thumb_01.jpg": {
     "width": 350,
     "height": 197,
@@ -2251,12 +2387,30 @@
   "/images/vw40.png": {
     "width": 1148,
     "height": 264,
-    "variants": []
+    "variants": [
+      {
+        "url": "/images/optimized/images/vw40-220.webp",
+        "width": 220
+      },
+      {
+        "url": "/images/optimized/images/vw40-440.webp",
+        "width": 440
+      }
+    ]
   },
   "/images/vw40F.png": {
     "width": 1150,
     "height": 769,
-    "variants": []
+    "variants": [
+      {
+        "url": "/images/optimized/images/vw40F-80.webp",
+        "width": 80
+      },
+      {
+        "url": "/images/optimized/images/vw40F-160.webp",
+        "width": 160
+      }
+    ]
   },
   "/img/Banner/03.jpg": {
     "width": 2560,

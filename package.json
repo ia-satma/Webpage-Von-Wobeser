@@ -9,7 +9,9 @@
   "scripts": {
     "dev": "NODE_ENV=development tsx server/index.ts",
     "start:workspace": "node scripts/start-workspace.mjs",
+    "prebuild": "npm run build:public-css",
     "build": "node --import tsx script/build.ts",
+    "build:public-css": "node scripts/build-public-css.mjs",
     "start": "NODE_ENV=production node dist/index.cjs",
     "verify:video-runtime": "node scripts/verify-video-runtime.mjs",
     "start:deploy": "node scripts/start-deploy.mjs",

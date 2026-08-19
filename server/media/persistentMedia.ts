@@ -11,6 +11,7 @@ const MANAGED_PREFIXES = [
   "/generated-presentations/",
 ] as const;
 const AVAILABILITY_TTL_MS = 60_000;
+const PUBLIC_MEDIA_LIST_TTL_MS = 60_000;
 
 type Environment = NodeJS.ProcessEnv;
 type StreamOptions = {
@@ -21,6 +22,8 @@ type StreamOptions = {
 
 let appStorageClient: Client | null = null;
 const availabilityCache = new Map<string, { available: boolean; expiresAt: number }>();
+let publicMediaPathsCache: { paths: Set<string>; expiresAt: number } | null = null;
+let publicMediaPathsInFlight: Promise<Set<string> | null> | null = null;
 
 export class PersistentMediaUnavailableError extends Error {
   constructor() {
@@ -201,21 +204,31 @@ export async function persistentPublicMediaExists(publicPath: string): Promise<b
 
 export async function listPersistentPublicMediaPaths(): Promise<Set<string> | null> {
   if (!shouldAttemptPersistentMedia()) return null;
-  try {
-    const result = await getAppStorageClient().list({ prefix: `${STORAGE_ROOT}/` });
-    if (!result.ok) return null;
-    const paths = new Set<string>();
-    for (const item of result.value) {
-      const publicPath = publicPathFromManagedObjectName(item.name);
-      if (publicPath) {
-        paths.add(publicPath);
-        rememberAvailability(item.name, true);
-      }
-    }
-    return paths;
-  } catch {
-    return null;
+  if (publicMediaPathsCache && publicMediaPathsCache.expiresAt > Date.now()) {
+    return publicMediaPathsCache.paths;
   }
+  if (publicMediaPathsInFlight) return publicMediaPathsInFlight;
+  publicMediaPathsInFlight = (async () => {
+    try {
+      const result = await getAppStorageClient().list({ prefix: `${STORAGE_ROOT}/` });
+      if (!result.ok) return null;
+      const paths = new Set<string>();
+      for (const item of result.value) {
+        const publicPath = publicPathFromManagedObjectName(item.name);
+        if (publicPath) {
+          paths.add(publicPath);
+          rememberAvailability(item.name, true);
+        }
+      }
+      publicMediaPathsCache = { paths, expiresAt: Date.now() + PUBLIC_MEDIA_LIST_TTL_MS };
+      return paths;
+    } catch {
+      return null;
+    } finally {
+      publicMediaPathsInFlight = null;
+    }
+  })();
+  return publicMediaPathsInFlight;
 }
 
 export async function persistentMediaStorageStatus(): Promise<{
