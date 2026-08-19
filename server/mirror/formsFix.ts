@@ -34,6 +34,28 @@ function safeGoogleMapsEmbed(value: string): string | null {
   }
 }
 
+function safeGoogleMapsLink(value: string, fallback: string): string {
+  try {
+    const url = new URL(String(value ?? "").trim());
+    const googleHost = /(?:^|\.)google\.[a-z.]+$/i.test(url.hostname);
+    if (url.protocol === "https:" && googleHost && /^\/maps(?:\/|$)/i.test(url.pathname)) return url.toString();
+  } catch {
+    // La configuración se considera no confiable hasta que cumpla el allowlist.
+  }
+  return fallback;
+}
+
+function contactIcon(name: "pin" | "phone" | "mail" | "directions" | "external"): string {
+  const paths = {
+    pin: '<path d="M12 21s7-5.14 7-11a7 7 0 1 0-14 0c0 5.86 7 11 7 11Z"/><circle cx="12" cy="10" r="2.5"/>',
+    phone: '<path d="M5.2 4.8 8 3.7l2.05 4.78-1.96 1.64a15.05 15.05 0 0 0 5.83 5.83l1.64-1.96 4.78 2.05-1.1 2.8c-.32.8-1.16 1.25-2 1.09C9.52 18.45 5.55 14.48 4.11 6.76c-.16-.84.3-1.68 1.09-1.96Z"/>',
+    mail: '<rect x="3" y="5" width="18" height="14" rx="1"/><path d="m4 7 8 6 8-6"/>',
+    directions: '<path d="M12 21s7-5.14 7-11a7 7 0 1 0-14 0c0 5.86 7 11 7 11Z"/><circle cx="12" cy="10" r="2.5"/>',
+    external: '<path d="M14 4h6v6"/><path d="m20 4-9 9"/><path d="M19 14v5H5V5h5"/>',
+  } as const;
+  return `<svg class="vw-contact-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">${paths[name]}</svg>`;
+}
+
 /**
  * El formulario de "Pasantes" del sitio capturado es HTML crudo de Joomla con
  * action="" — al enviarse no llega a ningún backend (ni correo, ni BD, ni panel).
@@ -143,7 +165,7 @@ export function applyContactForm(
   const pageDefaults = lang === "es"
     ? {
         eyebrow: "CONTACTO",
-        title: "Estamos aquí para ayudarte.",
+        title: "Estamos aquí para ayudarte",
         description: "Ponte en contacto con nosotros o visita nuestras oficinas en Ciudad de México.",
         email: "info@vwys.com.mx",
         phone: "+52 (55) 5258 1000",
@@ -151,7 +173,7 @@ export function applyContactForm(
       }
     : {
         eyebrow: "CONTACT",
-        title: "We are here to help.",
+        title: "We are here to help",
         description: "Contact us or visit our offices in Mexico City.",
         email: "info@vwys.com.mx",
         phone: "+52 (55) 5258 1000",
@@ -208,7 +230,13 @@ export function applyContactForm(
   };
   const page = {
     eyebrow: text("page_contact_eyebrow", pageDefaults.eyebrow),
-    title: text("page_contact_title", pageDefaults.title),
+    // La copia inicial llevaba un punto final; se trata como valor legado para
+    // reflejar el ajuste editorial sin sobrescribir personalizaciones del CMS.
+    title: text(
+      "page_contact_title",
+      pageDefaults.title,
+      lang === "es" ? ["Estamos aquí para ayudarte."] : ["We are here to help."],
+    ),
     description: text("page_contact_description", pageDefaults.description),
     email: text("page_contact_email", pageDefaults.email),
     phone: text("page_contact_phone", pageDefaults.phone),
@@ -258,27 +286,27 @@ export function applyContactForm(
     lang === "es" ? "Ubicación de Von Wobeser y Sierra en Google Maps" : "Von Wobeser y Sierra location on Google Maps",
   );
 
-  $wrap.empty().addClass("vw-contact-page");
-  $wrap.append(`
-<header class="vw-contact-page__header">
-  <p class="vw-contact-page__eyebrow">${esc(page.eyebrow)}</p>
-  <h1 class="vw-contact-page__title">${esc(page.title)}</h1>
-  <div class="page__content--intro vw-contact-page__lede"><p>${esc(page.description)}</p></div>
-</header>
-<section class="vw-contact-page__location" aria-label="${esc(lang === "es" ? "Información de contacto y ubicación" : "Contact information and location")}">
-  <div class="vw-contact-page__details">
-    <div class="vw-contact-page__links">
-      <a href="mailto:${esc(publicEmail)}">${esc(publicEmail)}</a>
-      <a href="${esc(phoneHref)}">${esc(page.phone)}</a>
-    </div>
-    <address>${addressHtml}</address>
-  </div>
-  <div class="vw-contact-page__map-slot"></div>
-</section>`);
-  if ($map.length) $wrap.find(".vw-contact-page__map-slot").append($map);
-  $wrap.find(".vw-contact-page__title").attr(cfgTypographyAttribute(config, "page_contact_title", lang));
-  $wrap.find(".vw-contact-page__lede").attr(cfgTypographyAttribute(config, "page_contact_description", lang));
-  $wrap.find(".vw-contact-page__details").attr(cfgTypographyAttribute(config, "page_contact_address", lang));
+  const location = lang === "es"
+    ? {
+        eyebrow: "UBICACIÓN",
+        title: "Nuestra ubicación",
+        address: "Dirección",
+        phone: "Teléfono",
+        email: "Correo electrónico",
+        directions: "Obtener direcciones",
+        viewMap: "Ver en el mapa",
+      }
+    : {
+        eyebrow: "LOCATION",
+        title: "Our location",
+        address: "Address",
+        phone: "Phone",
+        email: "Email",
+        directions: "Get directions",
+        viewMap: "View on map",
+      };
+  const defaultMapLink = "https://www.google.com/maps/dir/?api=1&destination=19.427559,-99.195333";
+  const mapLink = safeGoogleMapsLink(cfg(config, "office_map_directions", lang), defaultMapLink);
 
   const options = practices
     .filter(isVisiblePublicPractice)
@@ -286,7 +314,13 @@ export function applyContactForm(
     .map((practice) => `<option value="${esc(practice.slug)}">${esc(lang === "es" ? practice.nameEs || practice.name : practice.name)}</option>`)
     .join("");
 
+  $wrap.empty().addClass("vw-contact-page");
   $wrap.append(`
+<header class="vw-contact-page__header">
+  <p class="vw-contact-page__eyebrow">${esc(page.eyebrow)}</p>
+  <h1 class="vw-contact-page__title">${esc(page.title)}</h1>
+  <div class="page__content--intro vw-contact-page__lede"><p>${esc(page.description)}</p></div>
+</header>
 <section class="vw-contact-form-section" aria-labelledby="vw-contact-form-title">
   <div class="vw-contact-form-section__heading">
     <h2 id="vw-contact-form-title">${esc(t.title)}</h2>
@@ -335,56 +369,104 @@ export function applyContactForm(
       </button>
     </div>
   </form>
+</section>
+<section class="vw-contact-location-section" aria-labelledby="vw-contact-location-title">
+  <header class="vw-contact-location-section__heading">
+    <p>${esc(location.eyebrow)}</p>
+    <h2 id="vw-contact-location-title">${esc(location.title)}</h2>
+  </header>
+  <div class="vw-contact-page__location" aria-label="${esc(lang === "es" ? "Información de contacto y ubicación" : "Contact information and location")}">
+    <div class="vw-contact-page__map-card"><div class="vw-contact-page__map-slot"></div></div>
+    <aside class="vw-contact-page__details">
+      <div class="vw-contact-location__row">
+        ${contactIcon("pin")}
+        <div><h3>${esc(location.address)}</h3><address>${addressHtml}</address></div>
+      </div>
+      <div class="vw-contact-location__row">
+        ${contactIcon("phone")}
+        <div><h3>${esc(location.phone)}</h3><a href="${esc(phoneHref)}">${esc(page.phone)}</a></div>
+      </div>
+      <div class="vw-contact-location__row">
+        ${contactIcon("mail")}
+        <div><h3>${esc(location.email)}</h3><a href="mailto:${esc(publicEmail)}">${esc(publicEmail)}</a></div>
+      </div>
+      <div class="vw-contact-location__actions">
+        <a class="vw-contact-location__action vw-contact-location__action--primary" href="${esc(mapLink)}" target="_blank" rel="noopener noreferrer">${contactIcon("directions")}<span>${esc(location.directions)}</span></a>
+        <a class="vw-contact-location__action" href="${esc(mapLink)}" target="_blank" rel="noopener noreferrer"><span>${esc(location.viewMap)}</span>${contactIcon("external")}</a>
+      </div>
+    </aside>
+  </div>
 </section>`);
+  if ($map.length) $wrap.find(".vw-contact-page__map-slot").append($map);
+  $wrap.find(".vw-contact-page__title").attr(cfgTypographyAttribute(config, "page_contact_title", lang));
+  $wrap.find(".vw-contact-page__lede").attr(cfgTypographyAttribute(config, "page_contact_description", lang));
+  $wrap.find(".vw-contact-page__details").attr(cfgTypographyAttribute(config, "page_contact_address", lang));
   $wrap.find("#vw-contact-form-title").attr(cfgTypographyAttribute(config, "contact_form_title", lang));
   $wrap.find(".vw-contact-form-section__heading p").attr(cfgTypographyAttribute(config, "contact_form_description", lang));
 
   $("head").append(`
 <style id="vw-contact-form-style">
-.vw-contact-page{display:block!important;padding-top:clamp(48px,5.5vw,76px);padding-bottom:clamp(48px,6vw,88px)}
-.vw-contact-page__header{max-width:1040px;margin:0 0 clamp(40px,4.5vw,62px)}
-.vw-contact-page__eyebrow{margin:0 0 24px;color:#ac162c;font:500 clamp(13px,1.15vw,17px)/1.2 var(--vw-font-ui);letter-spacing:.28em;text-transform:uppercase}
-.vw-contact-page__title{max-width:960px;margin:0;color:#565656;font:400 clamp(36px,3.8vw,52px)/1.08 var(--vw-font-editorial);letter-spacing:-.02em}
-.vw-contact-page__lede{max-width:720px;margin:20px 0 0!important;color:#606060;font:400 clamp(16px,1.25vw,19px)/1.55 var(--vw-font-body)!important}
-.vw-contact-page__lede p{margin:0!important;font:inherit!important;color:inherit!important}
-.vw-contact-page__location{display:grid;grid-template-columns:minmax(280px,.72fr) minmax(0,1.28fr);gap:clamp(42px,6vw,88px);align-items:stretch;padding-top:32px;border-top:2px solid #ac162c}
-.vw-contact-page__details{display:flex;flex-direction:column;justify-content:space-between;gap:56px;padding:8px 0 12px;color:#5c5c5c;font-family:var(--vw-font-body)}
-.vw-contact-page__links{display:grid;gap:8px}
-.vw-contact-page__links a{width:max-content;max-width:100%;color:#ac162c;font:500 clamp(18px,1.6vw,23px)/1.45 var(--vw-font-body);text-decoration:none;text-decoration-thickness:1.5px;text-underline-offset:.25em}
-.vw-contact-page__links a:hover,.vw-contact-page__links a:focus-visible{text-decoration:underline}
-.vw-contact-page__links a:focus-visible{outline:2px solid #ac162c;outline-offset:4px}
-.vw-contact-page__details address{display:grid;gap:5px;margin:0;color:#5c5c5c;font:400 clamp(16px,1.25vw,19px)/1.5 var(--vw-font-body);font-style:normal}
-.vw-contact-page__details address span{display:block}
-.vw-contact-page__map-slot,.vw-contact-page .page__map,.vw-contact-page .page__map--holder{width:100%;height:100%;min-height:430px;margin:0}
-.vw-contact-page .page__map{float:none}
-.vw-contact-page .page__map--holder{position:relative;background:#dededb}
-.vw-contact-page .page__map--holder iframe{display:block;width:100%;height:100%;min-height:430px;border:0}
-.vw-contact-form-section{width:100%;margin:clamp(68px,8vw,112px) 0 0;padding-top:34px;border-top:2px solid #ac162c}
-.vw-contact-form-section__heading{display:grid;grid-template-columns:minmax(280px,.72fr) minmax(0,1.28fr);gap:clamp(42px,6vw,88px);align-items:start;margin-bottom:34px}
-.vw-contact-form-section__heading h2{margin:0;color:#565656;font:400 clamp(36px,4.3vw,58px)/1.06 var(--vw-font-editorial)}
-.vw-contact-form-section__heading p{max-width:650px;margin:7px 0 0;color:#606060;font:400 18px/1.55 var(--vw-font-body)}
-.vw-contact-form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:26px 34px;padding:clamp(30px,4vw,48px);background:#747473}
-.vw-contact-field{display:grid;gap:10px;margin:0;color:#fff;font:500 12px/1.3 var(--vw-font-ui);letter-spacing:.14em;text-transform:uppercase}
-.vw-contact-field b{color:#fff;font-weight:400}
+.vw-contact-page{display:block!important;padding-top:clamp(44px,5vw,68px);padding-bottom:clamp(56px,7vw,96px)}
+.vw-contact-page__header{display:flex;flex-direction:column;align-items:center;max-width:920px;margin:0 auto clamp(42px,5vw,68px);text-align:center}
+.vw-contact-page__header .vw-contact-page__eyebrow,.vw-contact-page__header .vw-contact-page__title,.vw-contact-page__header .vw-contact-page__lede{float:none!important;width:100%;text-align:center!important}
+.vw-contact-page__eyebrow,.vw-contact-location-section__heading p{margin:0 0 20px;color:#ac162c;font:500 12px/1.2 var(--vw-font-ui);letter-spacing:.28em;text-transform:uppercase}
+.vw-contact-page__title{max-width:760px;margin:0;color:#565656;font:400 clamp(34px,3.25vw,46px)/1.14 var(--vw-font-editorial);letter-spacing:-.02em;text-transform:none}
+.vw-contact-page__lede{max-width:760px;margin:18px auto 0!important;border-bottom:0!important;padding-bottom:0!important;color:#606060;font:400 clamp(16px,1.2vw,18px)/1.55 var(--vw-font-body)!important;text-transform:none}
+.vw-contact-page__lede p{margin:0!important;color:inherit!important;font:inherit!important}
+.vw-contact-form-section{width:100%;margin:0;padding-top:38px;border-top:0}
+.vw-contact-form-section::before{content:"";display:block;width:100%;height:1px;margin:0 0 30px;background:#ac162c}
+.vw-contact-form-section__heading{max-width:760px;margin:0 0 28px}
+.vw-contact-form-section__heading h2{margin:0;color:#565656;font:400 clamp(34px,3.15vw,44px)/1.12 var(--vw-font-editorial);letter-spacing:-.02em;text-transform:none}
+.vw-contact-form-section__heading p{max-width:680px;margin:16px 0 0;color:#606060;font:400 clamp(16px,1.15vw,18px)/1.55 var(--vw-font-body);text-transform:none}
+.vw-contact-form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:22px 28px;padding:clamp(24px,2.8vw,34px);border-radius:8px;background:#747473}
+.vw-contact-field{display:grid;gap:8px;margin:0;color:#fff;font:500 14px/1.35 var(--vw-font-ui);letter-spacing:0;text-transform:none}
+.vw-contact-field b{color:#fff;font-weight:500}
 .vw-contact-field--full{grid-column:1/-1}
-.vw-contact-field input,.vw-contact-field select,.vw-contact-field textarea{box-sizing:border-box;width:100%;min-width:0;min-height:50px;margin:0;border:1px solid transparent;border-radius:0;background:#fff;color:#3f3f3f;padding:12px 14px;font:400 16px/1.4 var(--vw-font-ui);letter-spacing:0;text-transform:none;appearance:auto}
-.vw-contact-field textarea{min-height:152px;resize:vertical}
-.vw-contact-field input:focus-visible,.vw-contact-field select:focus-visible,.vw-contact-field textarea:focus-visible,.vw-contact-form button:focus-visible,.vw-contact-privacy input:focus-visible,.vw-contact-privacy a:focus-visible{outline:3px solid #fff;outline-offset:3px}
+.vw-contact-field input,.vw-contact-field select,.vw-contact-field textarea{box-sizing:border-box;width:100%;min-width:0;min-height:52px;margin:0;border:1px solid transparent;border-radius:5px;background:#fff;color:#3f3f3f;padding:12px 14px;font:400 16px/1.4 var(--vw-font-ui);letter-spacing:0;text-transform:none;appearance:auto}
+.vw-contact-field textarea{min-height:148px;resize:vertical}
+.vw-contact-field input:focus-visible,.vw-contact-field select:focus-visible,.vw-contact-field textarea:focus-visible{outline:3px solid #ac162c;outline-offset:2px}
 .vw-contact-field input[aria-invalid="true"],.vw-contact-field select[aria-invalid="true"],.vw-contact-field textarea[aria-invalid="true"]{border-color:#ac162c;box-shadow:0 0 0 2px #fff}
-.vw-contact-privacy{display:flex;align-items:flex-start;gap:12px;margin:0;background:#fff;color:#4f4f4f;padding:15px 17px;font:400 16px/1.55 var(--vw-font-ui);letter-spacing:0;text-transform:none}
-.vw-contact-privacy input{width:20px;height:20px;flex:0 0 20px;margin:2px 0 0;accent-color:#ac162c}
-.vw-contact-privacy a{color:#a5102a;font-weight:500;text-decoration:underline;text-decoration-color:#a5102a;text-decoration-thickness:2px;text-underline-offset:.2em}
-.vw-contact-form__footer{display:flex;align-items:center;justify-content:space-between;gap:30px;padding-top:6px}
-.vw-contact-form__feedback{min-height:24px;color:#fff;font:400 15px/1.5 var(--vw-font-ui)}
-.vw-contact-form__feedback[data-state="success"]{color:#fff;font-weight:500}
-.vw-contact-form button{display:inline-flex;align-items:center;justify-content:space-between;gap:30px;min-width:220px;min-height:52px;border:0;border-radius:0;background:#ac162c;color:#fff;padding:0 24px;font:500 13px/1 var(--vw-font-ui);letter-spacing:.14em;text-transform:uppercase;cursor:pointer;transition:transform .2s ease,background-color .2s ease}
+.vw-contact-privacy{display:flex;align-items:center;gap:14px;min-height:56px;margin:6px 0 0;border-radius:5px;background:#fff;color:#4f4f4f;padding:12px 16px;font:400 16px/1.45 var(--vw-font-ui);letter-spacing:0;text-transform:none}
+.vw-contact-privacy input{width:20px;height:20px;flex:0 0 20px;margin:0;accent-color:#ac162c}
+.vw-contact-privacy input:focus-visible,.vw-contact-privacy a:focus-visible{outline:3px solid #ac162c;outline-offset:3px}
+.vw-contact-privacy a{color:#ac162c;font-weight:500;text-decoration:underline;text-decoration-color:#ac162c;text-decoration-thickness:2px;text-underline-offset:.18em}
+.vw-contact-form__footer{display:grid;gap:14px;padding-top:0}
+.vw-contact-form__feedback{color:#fff;font:400 15px/1.5 var(--vw-font-ui)}
+.vw-contact-form__feedback:empty{display:none}
+.vw-contact-form__feedback[data-state="success"]{font-weight:500}
+.vw-contact-form button{display:inline-flex;align-items:center;justify-content:space-between;gap:30px;width:100%;min-height:52px;border:0;border-radius:5px;background:#ac162c;color:#fff;padding:0 20px;font:500 16px/1 var(--vw-font-ui);letter-spacing:0;text-transform:none;cursor:pointer;transition:transform .2s ease}
 .vw-contact-form button>span:last-child{font-size:21px;transition:transform .2s ease}
-.vw-contact-form button:hover,.vw-contact-form button:focus-visible{background:#971329}
+.vw-contact-form button:focus-visible{outline:3px solid #fff;outline-offset:3px}
 .vw-contact-form button:hover>span:last-child,.vw-contact-form button:focus-visible>span:last-child{transform:translateX(5px)}
 .vw-contact-form button:active{transform:translateY(1px)}
 .vw-contact-form button:disabled{cursor:wait;opacity:.7}
-@media(max-width:980px){.vw-contact-page__location,.vw-contact-form-section__heading{grid-template-columns:1fr;gap:28px}.vw-contact-page__details{gap:30px}.vw-contact-page__map-slot,.vw-contact-page .page__map,.vw-contact-page .page__map--holder,.vw-contact-page .page__map--holder iframe{min-height:380px}}
-@media(max-width:720px){.vw-contact-page{padding-top:44px;padding-bottom:48px}.vw-contact-page__header{margin-bottom:42px}.vw-contact-page__eyebrow{margin-bottom:18px}.vw-contact-page__lede{margin-top:18px!important}.vw-contact-page__location{padding-top:24px}.vw-contact-page__map-slot,.vw-contact-page .page__map,.vw-contact-page .page__map--holder,.vw-contact-page .page__map--holder iframe{min-height:320px}.vw-contact-form-section{margin-top:58px;padding-top:26px}.vw-contact-form{grid-template-columns:1fr;gap:22px;padding:28px 22px}.vw-contact-field--full{grid-column:auto}.vw-contact-form__footer{align-items:stretch;flex-direction:column}.vw-contact-form button{width:100%;min-width:0;min-height:52px}}
+.vw-contact-location-section{margin-top:clamp(64px,8vw,104px)}
+.vw-contact-location-section__heading{text-align:center}
+.vw-contact-location-section__heading p{margin-bottom:16px}
+.vw-contact-location-section__heading h2{margin:0;color:#565656;font:400 clamp(34px,3.15vw,44px)/1.12 var(--vw-font-editorial);letter-spacing:-.02em;text-transform:none}
+.vw-contact-page__location{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(300px,.85fr);gap:24px;align-items:stretch;margin-top:34px}
+.vw-contact-page__map-card{overflow:hidden;border:1px solid #d0d0ce;border-radius:6px;background:#dededb}
+.vw-contact-page__map-slot,.vw-contact-page .page__map,.vw-contact-page .page__map--holder{width:100%;height:100%;min-height:430px;margin:0}
+.vw-contact-page .page__map{float:none}
+.vw-contact-page .page__map--holder{position:relative;background:#dededb}
+.vw-contact-page .page__map--holder iframe{display:block;width:100%;height:100%;min-height:430px;border:0;filter:none!important}
+.vw-contact-page__details{display:flex;flex-direction:column;gap:22px;border:1px solid #d0d0ce;border-radius:6px;background:#fff;color:#4f4f4f;padding:clamp(24px,3vw,34px);font-family:var(--vw-font-body)}
+.vw-contact-location__row{display:grid;grid-template-columns:20px minmax(0,1fr);gap:14px;align-items:start}
+.vw-contact-location__row+.vw-contact-location__row{border-top:1px solid #ddddda;padding-top:20px}
+.vw-contact-icon{display:block;width:20px;height:20px;fill:none;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round;stroke-width:1.7}
+.vw-contact-location__row>.vw-contact-icon{margin-top:3px;color:#ac162c}
+.vw-contact-location__row h3{margin:0 0 6px;color:#4f4f4f;font:400 20px/1.2 var(--vw-font-editorial);text-transform:none}
+.vw-contact-location__row address,.vw-contact-location__row a{display:block;margin:0;color:#5c5c5c;font:400 15px/1.55 var(--vw-font-body);font-style:normal;text-decoration:none}
+.vw-contact-location__row a:hover,.vw-contact-location__row a:focus-visible{text-decoration:underline}
+.vw-contact-location__row a:focus-visible,.vw-contact-location__action:focus-visible{outline:2px solid #ac162c;outline-offset:3px}
+.vw-contact-page__details address span{display:block}
+.vw-contact-location__actions{display:grid;gap:10px;margin-top:auto;padding-top:2px}
+.vw-contact-location__action{display:flex;align-items:center;justify-content:center;gap:10px;min-height:48px;border:1px solid #c9c9c7;border-radius:5px;color:#4f4f4f;padding:0 16px;font:500 15px/1 var(--vw-font-ui);text-decoration:none;transition:transform .2s ease}
+.vw-contact-location__action .vw-contact-icon{width:18px;height:18px}
+.vw-contact-location__action--primary{border-color:#ac162c;background:#ac162c;color:#fff}
+.vw-contact-location__action:active{transform:translateY(1px)}
+@media(max-width:980px){.vw-contact-page__location{grid-template-columns:1fr}.vw-contact-page__map-slot,.vw-contact-page .page__map,.vw-contact-page .page__map--holder,.vw-contact-page .page__map--holder iframe{min-height:380px}}
+@media(max-width:720px){.vw-contact-page{padding-top:40px;padding-bottom:56px}.vw-contact-page__header{margin-bottom:42px}.vw-contact-page__eyebrow{margin-bottom:16px}.vw-contact-page__title{font-size:34px}.vw-contact-form-section{padding-top:24px}.vw-contact-form-section__heading{margin-bottom:24px}.vw-contact-form{grid-template-columns:1fr;gap:20px;padding:22px 18px}.vw-contact-field--full{grid-column:auto}.vw-contact-privacy{margin-top:8px;padding:12px 14px}.vw-contact-location-section{margin-top:64px}.vw-contact-page__location{margin-top:28px}.vw-contact-page__map-slot,.vw-contact-page .page__map,.vw-contact-page .page__map--holder,.vw-contact-page .page__map--holder iframe{min-height:320px}.vw-contact-page__details{padding:24px 20px}}
 @media(prefers-reduced-motion:reduce){.vw-contact-form button,.vw-contact-form button>span:last-child{transition:none}}
 </style>`);
 

@@ -194,6 +194,14 @@ test("la portada alterna entre Visión, misión y valores editorial y su diseño
   const editorialEs = cheerio.load(renderHome(template, [], config, "es"));
   const editorialEn = cheerio.load(renderHome(template.replace('lang="es"', 'lang="en"'), [], config, "en"));
   const classic = cheerio.load(renderHome(template, [], { ...config, home_about_layout: { value: "classic", valueEs: "classic", type: "select" } }, "es"));
+  const legacyIntro = cheerio.load(renderHome(template, [], {
+    ...config,
+    home_about_editorial_intro: {
+      value: "The principles that guide our work and our relationship with clients.",
+      valueEs: "Los principios que guían nuestro trabajo y nuestra relación con los clientes.",
+      type: "text",
+    },
+  }, "es"));
   const css = readFileSync(new URL("../../frontend-mirror/templates/beez3/css/von.css", import.meta.url), "utf8");
   const admin = readAdminFeatureSources("site-config", "AdminSiteConfig.tsx");
   const server = readMirrorSources();
@@ -204,6 +212,7 @@ test("la portada alterna entre Visión, misión y valores editorial y su diseño
   assert.equal(editorialEs("#vw-home-about-editorial-reveal").length, 1);
   assert.equal(editorialEs("#home-about-editorial-title").text(), "Visión, misión y valores");
   assert.equal(editorialEs(".home-about-editorial__heading > p").text(), "Principios que nos guían.");
+  assert.equal(legacyIntro(".home-about-editorial__heading > p").text(), "Los principios que guían nuestro trabajo y nuestra relación con nuestros clientes.");
   assert.equal(editorialEs(".home-about-editorial__principles article").length, 2);
   assert.equal(editorialEs(".home-about-editorial__value-list li").length, 2);
   assert.equal(editorialEs(".home-about-editorial__value-list h4").first().text(), "Integridad");
@@ -277,6 +286,7 @@ test("el directorio de abogados agrupa tarjetas, localiza perfiles y filtra desd
   const filters = { q: "NUNEZ", role: "partners", practice: "tax", letter: "N" };
   const es = cheerio.load(renderAttorneyDirectory(template, [...attorneys], practices, filters, "es"));
   const en = cheerio.load(renderAttorneyDirectory(template, [...attorneys], practices, { q: "", role: "", practice: "", letter: "" }, "en"));
+  const classic = cheerio.load(renderAttorneyDirectory(template, [...attorneys], practices, filters, "es", "classic-vwys"));
   const js = readFileSync(new URL("../../public/attorney-directory.js", import.meta.url), "utf8");
   const css = readFileSync(new URL("../../frontend-mirror/templates/beez3/css/von.css", import.meta.url), "utf8");
 
@@ -298,6 +308,13 @@ test("el directorio de abogados agrupa tarjetas, localiza perfiles y filtra desd
   assert.equal(es('link[rel="canonical"]').attr("href"), "https://www.vonwobeser.com/attorneys");
   assert.equal(en("[data-attorney-result]").first().find("a").attr("href"), "/lawyer/maria-nunez?lang=en");
   assert.equal(en('link[rel="canonical"]').attr("href"), "https://www.vonwobeser.com/attorneys?lang=en");
+  assert.equal(classic(".attorney-directory").attr("data-attorney-directory-preset"), "classic-vwys");
+  assert.equal(classic(".attorney-directory__filter-main").length, 1);
+  assert.equal(classic(".attorney-directory__submit").length, 0);
+  assert.equal(classic("[data-attorney-q]").attr("value"), "NUNEZ");
+  assert.equal(classic("[data-attorney-role]").val(), "partners");
+  assert.equal(classic("[data-attorney-letter-option][value=N]").attr("aria-pressed"), "true");
+  assert.equal(classic("[data-attorney-result]").first().find("a").attr("href"), "/abogado/maria-nunez");
   assert.match(js, /data-attorney-letter-option/);
   assert.match(js, /data-attorney-initial-label/);
   assert.match(js, /initials\.open = false/);
@@ -308,6 +325,7 @@ test("el directorio de abogados agrupa tarjetas, localiza perfiles y filtra desd
   assert.match(js, /window\.requestAnimationFrame/);
   assert.match(js, /status\.animate/);
   assert.match(css, /\.attorney-directory__letter:first-child\{grid-column:1\/-1;width:auto\}/);
+  assert.match(css, /data-attorney-directory-preset="classic-vwys"/);
 });
 
 test("los módulos públicos añadidos usan la línea tipográfica institucional", () => {

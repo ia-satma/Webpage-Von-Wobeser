@@ -23,6 +23,14 @@ function configText(config: ConfigMap, key: string, lang: Lang): string {
   return String(lang === "es" ? entry?.valueEs || "" : entry?.value || "");
 }
 
+function perspectivesTitle(config: ConfigMap, lang: Lang): string {
+  const configured = configText(config, "page_perspectives_title", lang).trim();
+  // "Perspectivas" fue el título predeterminado previo al ajuste del menú.
+  // Se normaliza solo ese valor exacto, sin sustituir una personalización del CMS.
+  if (!configured || (lang === "es" && configured === "Perspectivas")) return "Insights";
+  return configured;
+}
+
 function safeExternalHref(value: unknown, allowMail = false): string | null {
   const raw = String(value ?? "").trim();
   if (!raw) return null;
@@ -87,7 +95,7 @@ export function renderPerspectivesHub(
       `<a href="${lang === "es" ? "/#newsletter" : "/?lang=en#newsletter"}">${lang === "es" ? "Suscríbete" : "Subscribe"}<span aria-hidden="true">→</span></a>` +
     `</aside>`
   );
-  const title = configText(config, "page_perspectives_title", lang) || (lang === "es" ? "Perspectivas" : "Insights");
+  const title = perspectivesTitle(config, lang);
   const $ = pageShell(templateHtml, lang, {
     eyebrow: lang === "es" ? "CONOCIMIENTO Y ACTUALIDAD" : "KNOWLEDGE AND UPDATES",
     title,

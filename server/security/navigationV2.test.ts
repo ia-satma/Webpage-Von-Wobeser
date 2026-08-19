@@ -14,6 +14,7 @@ import {
 } from "../../shared/navigation";
 import type { NavigationAvailability } from "../mirror/navigationConfiguration";
 import type { ConfigMap } from "../mirror/siteConfig";
+import { renderPerspectivesHub } from "../mirror/renderNewPublicPages";
 import { buildSearchableEditorialPages } from "../mirror/searchEditorialPages";
 
 process.env.DATABASE_URL ||= "postgresql://test:test@127.0.0.1:5432/test";
@@ -341,6 +342,21 @@ test("la búsqueda editorial respeta disponibilidad, texto seguro y nunca indexa
   assert.equal(pages.some((page) => page.slug.includes("alumni")), false);
   assert.equal(pages.find((page) => page.slug === "perspectives")?.title, "Knowledge");
   assert.equal(pages.find((page) => page.slug === "perspectives")?.description, "Legal updates");
+});
+
+test("Insights sustituye el título predeterminado anterior en la portada y búsqueda españolas", () => {
+  const config: ConfigMap = {
+    page_perspectives_title: { value: "Insights", valueEs: "Perspectivas", type: "text" },
+  };
+  const html = renderPerspectivesHub(
+    "<!doctype html><html><head></head><body><section class=\"page\"></section></body></html>",
+    config,
+    "es",
+    [],
+  );
+  const $ = cheerio.load(html);
+  assert.equal($(".vw-perspectives h1").text(), "Insights");
+  assert.equal(buildSearchableEditorialPages(config, readyAvailability()).find((page) => page.slug === "perspectives")?.titleEs, "Insights");
 });
 
 test("el guardado del menú revalida la revisión bajo bloqueo transaccional", () => {

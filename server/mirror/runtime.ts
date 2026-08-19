@@ -23,6 +23,7 @@ import { renderNewsList, renderNewsDetail } from "./renderNews";
 import { applyPublicationsSearch, renderGlobalSearch } from "./renderSearch";
 import { buildIdMaps, type IdMaps } from "./idMap";
 import { cfg, getConfigMap, seedConfigDefaults } from "./siteConfig";
+import { attorneyDirectoryPresetFromConfig } from "./publicAppearanceConfiguration";
 import {
   setBaseUrl,
   setAnalyticsConfig,
@@ -424,7 +425,7 @@ export async function createMirrorRuntime() {
       practice: parsed.data.practice || "",
       letter: (parsed.data["set-letter"] ?? parsed.data.letter ?? "").toUpperCase(),
     };
-    const [members, practiceGroupsRaw, practiceRelations] = await Promise.all([
+    const [members, practiceGroupsRaw, practiceRelations, config] = await Promise.all([
       storage.getTeamMembers(),
       storage.getPracticeGroups(),
       db
@@ -435,6 +436,7 @@ export async function createMirrorRuntime() {
         })
         .from(teamMemberPracticeGroups)
         .innerJoin(practiceGroups, eq(teamMemberPracticeGroups.practiceGroupId, practiceGroups.id)),
+      getConfigMap(),
     ]);
 
     const practices: AttorneyDirectoryPractice[] = practiceGroupsRaw
@@ -471,7 +473,14 @@ export async function createMirrorRuntime() {
         };
       });
 
-    await sendPage(res, renderAttorneyDirectory(pick(TEMPLATES.list, lang), attorneys, practices, filters, lang));
+    await sendPage(res, renderAttorneyDirectory(
+      pick(TEMPLATES.list, lang),
+      attorneys,
+      practices,
+      filters,
+      lang,
+      attorneyDirectoryPresetFromConfig(config),
+    ));
   };
 
   // Ruta histórica: sus filtros se convierten a los del directorio unificado.

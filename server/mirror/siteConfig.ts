@@ -8,6 +8,10 @@ import {
   DEFAULT_NAVIGATION_CONFIGURATION,
   DEFAULT_NAVIGATION_PRESET,
 } from "@shared/navigation";
+import {
+  DEFAULT_ATTORNEY_DIRECTORY_PRESET,
+  DEFAULT_FOOTER_PRESET,
+} from "@shared/publicAppearance";
 
 export type ConfigMap = Record<string, { value: string; valueEs: string; type: string; typography?: TypographyStyles }>;
 
@@ -57,7 +61,7 @@ const DEFAULTS: Array<{ key: string; value: string; valueEs?: string; type: stri
   { key: "home_probono_body", value: "For more than 35 years, our firm has actively supported the Pro Bono cause.", valueEs: "Durante más de 35 años, nuestra firma ha apoyado la causa Pro Bono.", type: "text", category: "home", description: "Texto Pro Bono en portada" },
   { key: "home_about_layout", value: "editorial", valueEs: "editorial", type: "select", category: "home", description: "Diseño de Visión, Misión y Valores en portada: editorial o clásico" },
   { key: "home_about_editorial_title", value: "Vision, mission and values", valueEs: "Visión, misión y valores", type: "text", category: "home", description: "Título del diseño editorial de Visión, Misión y Valores" },
-  { key: "home_about_editorial_intro", value: "The principles that guide our work and our relationship with clients.", valueEs: "Los principios que guían nuestro trabajo y nuestra relación con los clientes.", type: "text", category: "home", description: "Introducción del diseño editorial de Visión, Misión y Valores" },
+  { key: "home_about_editorial_intro", value: "The principles that guide our work and our relationship with clients.", valueEs: "Los principios que guían nuestro trabajo y nuestra relación con nuestros clientes.", type: "text", category: "home", description: "Introducción del diseño editorial de Visión, Misión y Valores" },
   { key: "home_about_title", value: "ABOUT US", valueEs: "ACERCA DE NOSOTROS", type: "text", category: "home", description: "Título Acerca de nosotros en portada" },
   { key: "home_vision_label", value: "Vision", valueEs: "Visión", type: "text", category: "home", description: "Etiqueta Visión en portada" },
   { key: "home_vision_body", value: "To be the law firm of reference for the most complex and challenging legal matters in Mexico.", valueEs: "Ser el despacho de referencia para los asuntos legales más complejos y desafiantes de México.", type: "text", category: "home", description: "Texto Visión en portada" },
@@ -179,6 +183,22 @@ const DEFAULTS: Array<{ key: string; value: string; valueEs?: string; type: stri
     category: "navigation",
     description: "Preset activo del menú público: definitivo 2026 o clásico VWyS",
   },
+  {
+    key: "footer_active_preset",
+    value: DEFAULT_FOOTER_PRESET,
+    valueEs: DEFAULT_FOOTER_PRESET,
+    type: "select",
+    category: "footer",
+    description: "Diseño activo del pie público: central 2026 o clásico VWyS",
+  },
+  {
+    key: "attorney_directory_active_preset",
+    value: DEFAULT_ATTORNEY_DIRECTORY_PRESET,
+    valueEs: DEFAULT_ATTORNEY_DIRECTORY_PRESET,
+    type: "select",
+    category: "pages",
+    description: "Diseño activo del buscador público de abogados: editorial 2026 o clásico VWyS",
+  },
   ...["firm", "attorneys", "practices", "industries", "publications", "careers", "contact"].map((id) => ({
     key: `nav_visible_${id}`,
     value: "true",
@@ -187,7 +207,7 @@ const DEFAULTS: Array<{ key: string; value: string; valueEs?: string; type: stri
     category: "navigation",
     description: `Visibilidad global ES/EN del acceso ${id} en el menú público`,
   })),
-  { key: "page_perspectives_title", value: "Insights", valueEs: "Perspectivas", type: "text", category: "pages", description: "Perspectivas — título" },
+  { key: "page_perspectives_title", value: "Insights", valueEs: "Insights", type: "text", category: "pages", description: "Insights — título" },
   { key: "page_perspectives_intro", value: "", valueEs: "", type: "text", category: "pages", description: "Perspectivas — introducción editorial bilingüe" },
   { key: "page_international_title", value: "International reach", valueEs: "Alcance internacional", type: "text", category: "pages", description: "Alcance internacional — título" },
   { key: "page_international_intro", value: "", valueEs: "", type: "text", category: "pages", description: "Alcance internacional — introducción bilingüe" },
@@ -344,7 +364,7 @@ const DEFAULTS: Array<{ key: string; value: string; valueEs?: string; type: stri
   { key: "page_contact_intro", value: "", valueEs: "", type: "text", category: "pages", description: "Contacto — texto de introducción" },
   { key: "page_contact_body", value: "", valueEs: "", type: "text", category: "pages", description: "Contacto — dirección / texto principal" },
   { key: "page_contact_eyebrow", value: "CONTACT", valueEs: "CONTACTO", type: "text", category: "pages", description: "Contacto — etiqueta editorial" },
-  { key: "page_contact_title", value: "We are here to help.", valueEs: "Estamos aquí para ayudarte.", type: "text", category: "pages", description: "Contacto — título principal" },
+  { key: "page_contact_title", value: "We are here to help", valueEs: "Estamos aquí para ayudarte", type: "text", category: "pages", description: "Contacto — título principal" },
   { key: "page_contact_description", value: "Contact us or visit our offices in Mexico City.", valueEs: "Ponte en contacto con nosotros o visita nuestras oficinas en Ciudad de México.", type: "text", category: "pages", description: "Contacto — texto introductorio" },
   { key: "page_contact_email", value: "info@vwys.com.mx", valueEs: "info@vwys.com.mx", type: "text", category: "pages", description: "Contacto — correo público" },
   { key: "page_contact_phone", value: "+52 (55) 5258 1000", valueEs: "+52 (55) 5258 1000", type: "text", category: "pages", description: "Contacto — teléfono público" },

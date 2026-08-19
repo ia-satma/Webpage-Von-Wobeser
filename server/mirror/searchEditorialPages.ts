@@ -22,6 +22,13 @@ function configText(config: ConfigMap, key: string, language: "en" | "es"): stri
   return plainText(language === "es" ? entry?.valueEs : entry?.value);
 }
 
+function perspectivesTitle(config: ConfigMap, language: "en" | "es"): string {
+  const entry = config.page_perspectives_title;
+  const raw = String(language === "es" ? entry?.valueEs || "" : entry?.value || "").trim();
+  if (!raw || (language === "es" && raw === "Perspectivas")) return "Insights";
+  return plainText(raw);
+}
+
 /**
  * Registro único de páginas editoriales que pueden aparecer en los dos buscadores
  * públicos. Solo incluye destinos realmente disponibles y nunca expone Alumni.
@@ -33,8 +40,8 @@ export function buildSearchableEditorialPages(
   const pages: Array<SearchableEditorialPage & { ready?: boolean }> = [
     {
       slug: "perspectives",
-      title: configText(config, "page_perspectives_title", "en") || "Insights",
-      titleEs: configText(config, "page_perspectives_title", "es") || "Perspectivas",
+      title: perspectivesTitle(config, "en"),
+      titleEs: perspectivesTitle(config, "es"),
       description: configText(config, "page_perspectives_intro", "en") || "Articles, events, recognitions, communications and legal updates.",
       descriptionEs: configText(config, "page_perspectives_intro", "es") || "Artículos, eventos, reconocimientos, comunicaciones y actualizaciones legales.",
       hrefEn: "/insights",

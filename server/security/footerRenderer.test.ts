@@ -65,3 +65,27 @@ test("el footer en inglés localiza rutas y neutraliza URLs o texto no confiable
   assert.match($(".vwb-site-footer__brand").text(), /<img src=x onerror=alert\(1\)>/);
   assert.doesNotMatch(output, /javascript:alert/);
 });
+
+test("el preset clásico conserva datos actuales y no reutiliza el HTML legacy sin sanitizar", () => {
+  const output = renderPublicFooter(template, config({
+    footer_active_preset: "classic-vwys",
+    footer_firm: "Firma actualizada, S.C.",
+    footer_address: "Dirección vigente\nCiudad de México",
+    footer_phone: "+52 (55) 5258 1000",
+    footer_website: "javascript:alert(1)",
+    footer_twitter_visible: "true",
+    footer_twitter: "https://x.com/VWySOficial",
+    footer_linkedin_visible: "false",
+  }), "es");
+  const $ = cheerio.load(output);
+
+  assert.equal($(".vwb-classic-footer").length, 1);
+  assert.equal($(".vwb-site-footer").length, 0);
+  assert.match($(".vwb-classic-footer__brand").text(), /Firma actualizada, S\.C\./);
+  assert.equal($(".vwb-classic-footer__contact-row").length, 2);
+  assert.equal($(".vwb-classic-footer__social-link").length, 1);
+  assert.equal($(".vwb-classic-footer [data-vwb-cookie-preferences=true]").length, 1);
+  assert.equal($(".vwb-classic-footer__admin-link").attr("aria-label"), "Panel de administración");
+  assert.doesNotMatch(output, /javascript:alert/);
+  assert.match(footerStyles, /\.vwb-classic-footer\{background:#111/);
+});

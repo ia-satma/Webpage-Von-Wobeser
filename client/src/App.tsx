@@ -39,6 +39,7 @@ const AdminLogin = lazy(() => import("@/pages/admin/AdminLogin"));
 const AdminChangePassword = lazy(() => import("@/pages/admin/AdminChangePassword"));
 const AdminSiteConfig = lazy(() => import("@/pages/admin/AdminSiteConfig"));
 const AdminNavigation = lazy(() => import("@/pages/admin/AdminNavigation"));
+const AdminPublicAppearance = lazy(() => import("@/pages/admin/AdminPublicAppearance"));
 const AdminRecognitions = lazy(() => import("@/pages/admin/AdminRecognitions"));
 const AdminTestimonials = lazy(() => import("@/pages/admin/AdminTestimonials"));
 const AdminNewsletter = lazy(() => import("@/pages/admin/AdminNewsletter"));
@@ -162,6 +163,7 @@ function Router() {
         <Route path="/admin/site-config" component={AdminSiteConfig} />
         <Route path="/admin/site-config/:section" component={AdminSiteConfig} />
         <Route path="/admin/navigation" component={AdminNavigation} />
+        <Route path="/admin/public-appearance" component={AdminPublicAppearance} />
         <Route path="/admin/cookie-consent" component={AdminCookieConsent} />
         <Route path="/admin/users" component={AdminUsers} />
         <Route path="/admin/submissions" component={AdminSubmissions} />

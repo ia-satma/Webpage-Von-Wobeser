@@ -57,6 +57,13 @@ function normalizeLegacyBannerTitle(value: string, lang: Lang): string {
   return value;
 }
 
+function normalizeLegacyHomeEditorialIntro(value: string, lang: Lang): string {
+  if (lang === "es" && value.trim() === "Los principios que guían nuestro trabajo y nuestra relación con los clientes.") {
+    return "Los principios que guían nuestro trabajo y nuestra relación con nuestros clientes.";
+  }
+  return value;
+}
+
 function safeMediaUrl(value: unknown): string {
   const url = String(value ?? "").trim();
   if (/^\/[a-z0-9_./%+@~:-]+$/i.test(url) || /^https:\/\/[a-z0-9.-]+(?:[/:?#][^\s"'<>]*)?$/i.test(url)) return url;
@@ -967,10 +974,11 @@ export function renderHome(
       if (value) $(element).html(paragraphs(value));
     });
   } else if (about.length) {
+    const aboutEditorialIntro = normalizeLegacyHomeEditorialIntro(cfg(config, "home_about_editorial_intro", lang), lang);
     about.replaceWith(renderHomeAboutEditorial({
       title: cfg(config, "home_about_editorial_title", lang) || (lang === "es" ? "Visión, misión y valores" : "Vision, mission and values"),
-      intro: cfg(config, "home_about_editorial_intro", lang) || (lang === "es"
-        ? "Los principios que guían nuestro trabajo y nuestra relación con los clientes."
+      intro: aboutEditorialIntro || (lang === "es"
+        ? "Los principios que guían nuestro trabajo y nuestra relación con nuestros clientes."
         : "The principles that guide our work and our relationship with clients."),
       visionLabel: labels[0],
       visionBody: bodies[0],

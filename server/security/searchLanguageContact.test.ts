@@ -105,6 +105,7 @@ test("Contacto usa la jerarquía aprobada, conserva el mapa y ofrece País y Ár
       contact_form_title: { value: "Write us", valueEs: "Hablemos", type: "text" },
       contact_form_submit_label: { value: "Send", valueEs: "Enviar ahora", type: "text" },
       office_map_embed: { value: "https://www.google.com/maps/embed?pb=official", valueEs: "", type: "url" },
+      office_map_directions: { value: "https://www.google.com/maps/dir/?api=1&destination=official", valueEs: "", type: "url" },
     },
     [
       { slug: "arbitraje", name: "Arbitration", nameEs: "Arbitraje", published: true },
@@ -116,15 +117,19 @@ test("Contacto usa la jerarquía aprobada, conserva el mapa y ofrece País y Ár
 
   assert.equal($section.length, 1);
   assert.equal($section.parent().hasClass("page--wrap"), true);
-  assert.ok($(".vw-contact-page__location").index() < $section.index());
+  assert.ok($(".vw-contact-location-section").index() > $section.index());
   assert.equal($(".vw-contact-page__eyebrow").text(), "CONTACTO");
-  assert.equal($(".vw-contact-page__title").text(), "Estamos aquí para ayudarte.");
+  assert.equal($(".vw-contact-page__title").text(), "Estamos aquí para ayudarte");
   assert.equal(
     $(".vw-contact-page__lede").text(),
     "Ponte en contacto con nosotros o visita nuestras oficinas en Ciudad de México.",
   );
-  assert.equal($(".vw-contact-page__links a").first().attr("href"), "mailto:info@vwys.com.mx");
+  assert.equal($(".vw-contact-page__details a[href^='mailto:']").attr("href"), "mailto:info@vwys.com.mx");
   assert.match($(".vw-contact-page__details address").text(), /Arquímedes N.º 10/);
+  assert.equal($(".vw-contact-location-section__heading h2").text(), "Nuestra ubicación");
+  assert.equal($(".vw-contact-page__map-card").length, 1);
+  assert.equal($(".vw-contact-page__details").length, 1);
+  assert.equal($(".vw-contact-location__action--primary").attr("href"), "https://www.google.com/maps/dir/?api=1&destination=official");
   assert.match($.html(), /Hablemos|Enviar ahora/);
   assert.match($.html(), /option value="arbitraje">Arbitraje/);
   assert.doesNotMatch($.html(), /german-desk|Desk Alemán|value="oculta"/);
@@ -141,11 +146,30 @@ test("Contacto usa la jerarquía aprobada, conserva el mapa y ofrece País y Ár
   assert.match($.html(), /acceptPrivacy:\s*!!form\.acceptPrivacy\.checked/);
   assert.match($.html(), /href="\/aviso"/);
   assert.match($.html(), /Aviso de Privacidad/);
-  assert.match($.html(), /\.vw-contact-privacy a\{color:#a5102a;font-weight:500/);
+  assert.match($.html(), /\.vw-contact-privacy a\{color:#ac162c;font-weight:500/);
+  assert.match($.html(), /\.vw-contact-privacy\{display:flex;align-items:center;gap:14px;min-height:56px/);
+  assert.match($.html(), /\.vw-contact-field\{display:grid;gap:8px[^}]*text-transform:none/);
+  assert.match($.html(), /\.vw-contact-page__title\{[^}]*text-transform:none/);
+  assert.match($.html(), /\.vw-contact-page__location\{display:grid;grid-template-columns:minmax\(0,1\.15fr\) minmax\(300px,\.85fr\);gap:24px/);
+  assert.doesNotMatch($.html(), /#a5102a/);
   assert.match($.html(), /Torre SOMA Chapultepec, piso 18/);
   assert.doesNotMatch($.html(), /18th floor/);
   assert.equal($(".page__map--holder iframe").attr("src"), "https://www.google.com/maps/embed?pb=official");
   assert.match($(".page__map--holder iframe").attr("title") || "", /Ubicación de Von Wobeser/);
+});
+
+test("Contacto elimina el punto final heredado del título en ambos idiomas", () => {
+  for (const [lang, expected] of [["es", "Estamos aquí para ayudarte"], ["en", "We are here to help"]] as const) {
+    const $ = cheerio.load(chrome);
+    applyContactForm($, lang, {
+      page_contact_title: {
+        value: "We are here to help.",
+        valueEs: "Estamos aquí para ayudarte.",
+        type: "text",
+      },
+    });
+    assert.equal($(".vw-contact-page__title").text(), expected);
+  }
 });
 
 test("Contacto conserva el mapa capturado si la configuración no es un embed seguro de Google Maps", () => {
@@ -188,6 +212,22 @@ test("Contacto rechaza destinos de privacidad con protocolos activos", () => {
     [],
   );
   assert.equal($(".vw-contact-privacy a").attr("href"), "/aviso");
+  assert.doesNotMatch($.html(), /javascript:/i);
+});
+
+test("Contacto solo abre direcciones de Google Maps administradas", () => {
+  const $ = cheerio.load(chrome);
+  applyContactForm(
+    $,
+    "es",
+    {
+      office_map_directions: { value: "javascript:alert(1)", valueEs: "javascript:alert(1)", type: "url" },
+    },
+    [],
+  );
+
+  const directions = $(".vw-contact-location__action--primary").attr("href");
+  assert.equal(directions, "https://www.google.com/maps/dir/?api=1&destination=19.427559,-99.195333");
   assert.doesNotMatch($.html(), /javascript:/i);
 });
 

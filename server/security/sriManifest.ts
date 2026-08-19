@@ -22,7 +22,7 @@ export const LOCAL_SRI_MANIFEST: Readonly<Record<string, string>> = {
   "/templates/beez3/css/style.css": "sha384-Pk0YxIfo/lG6lTqM6sUrLScLFFDiddhHZve/U96GD2yaJy2Rq0iNlB3vS0wHY0XF",
   "/templates/beez3/css/superslides.css": "sha384-z+22ma06Yj+RzvrnLIdIbqpLNw4zO+xMxfyjYGOAFOrf7MB8v1hi2958Kh/phTd4",
   "/templates/beez3/css/typography.css": "sha384-J+4WYxRlDivccMdkMkdFP0uXciQKHOeFm3NcFKDVDDBPuKMYka5fSNe3xbFql6n3",
-  "/templates/beez3/css/von.css": "sha384-wcZz4PWy2pruqeLMjqoDWgXD4JWrrcbdOO1zT0xbP55ExLbtmw8vnUsAR1s8ea1e",
+  "/templates/beez3/css/von.css": "sha384-axEd9LfKwnOma9XlrJFcX+3r9gn/erlAkcTZQ1GFRV1JIJcHOtVa+4wp6Mo/7Skr",
   "/templates/beez3/javascript/jquery.animate-enhanced.min.js": "sha384-hBwyjIe2YAjxdmu4EQGiMrVR608DAhC+WLtQA0vqrd6F6pezYXKWoedQCnOXJ/4R",
   "/templates/beez3/javascript/jquery.easing.1.3.js": "sha384-MM5zsVvrGlQFmN1sWfTOj9JjMl0Gq4xJ8s/nBc2iPfG/XwziF9SGiLpI/v+PIHfi",
   "/templates/beez3/javascript/jquery.superslides.js": "sha384-H1HAmtf0gza6L5UL+wMlgdXIp6YOgNXcoghCRC38+M79RzQNeW8YRqKjpSp9FQhy",

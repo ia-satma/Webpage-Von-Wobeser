@@ -1,5 +1,6 @@
 import { cfg, isConfigEnabled, type ConfigMap } from "./siteConfig";
 import type { Lang } from "./htmlPipeline";
+import { footerPresetFromConfig } from "./publicAppearanceConfiguration";
 
 const FALLBACK = {
   firm: "Von Wobeser y Sierra, S.C.",
@@ -100,13 +101,13 @@ function phoneHref(value: string): string {
   return /^\+?\d{7,15}$/.test(normalized) ? `tel:${normalized}` : "";
 }
 
-function contactIcon(name: "building" | "phone" | "mail"): string {
+function contactIcon(name: "building" | "phone" | "mail", className = "vwb-site-footer__contact-icon"): string {
   const paths = {
     building: '<path d="M3.5 20.5h17M5.5 20.5V4.5h9v16M14.5 9.5h4v11M8.5 7.5h1M11.5 7.5h1M8.5 10.5h1M11.5 10.5h1M8.5 13.5h1M11.5 13.5h1M8.5 16.5h1M11.5 16.5h1"/>',
     phone: '<path d="M7.1 3.8 5.2 4.7c-.8.4-1.2 1.3-.9 2.2 1.6 5.2 5.5 9.1 10.7 10.7.9.3 1.8-.1 2.2-.9l.9-1.9-3.4-2.1-1.5 1.5c-2.2-1.1-3.9-2.8-5-5l1.5-1.5L7.1 3.8Z"/>',
     mail: '<rect x="3" y="5" width="18" height="14" rx="1"/><path d="m4 6 8 7 8-7"/>',
   };
-  return `<svg class="vwb-site-footer__contact-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">${paths[name]}</svg>`;
+  return `<svg class="${className}" viewBox="0 0 24 24" aria-hidden="true" focusable="false">${paths[name]}</svg>`;
 }
 
 function lockIcon(): string {
@@ -117,14 +118,14 @@ function listItem(label: string, href: string): string {
   return `<li><a href="${href}">${label}</a></li>`;
 }
 
-function socialLink(network: SocialNetwork, href: string): string {
+function socialLink(network: SocialNetwork, href: string, className = "vwb-site-footer__social-link"): string {
   const labels: Record<SocialNetwork, string> = { facebook: "Facebook", twitter: "X", linkedin: "LinkedIn" };
   const icons: Record<SocialNetwork, string> = {
     facebook: "/images/icon_facebook_gray.png",
     twitter: "/images/icon_twitter_gray.png",
     linkedin: "/images/icon_linkedin_gray.png",
   };
-  return `<a class="vwb-site-footer__social-link" href="${escapeHtml(href)}" target="_blank" rel="noopener noreferrer" aria-label="${labels[network]}" title="${labels[network]}"><img src="${icons[network]}" width="22" height="22" alt="" decoding="async"></a>`;
+  return `<a class="${className}" href="${escapeHtml(href)}" target="_blank" rel="noopener noreferrer" aria-label="${labels[network]}" title="${labels[network]}"><img src="${icons[network]}" width="22" height="22" alt="" decoding="async"></a>`;
 }
 
 /**
@@ -140,20 +141,25 @@ export function renderPublicFooter(html: string, config: ConfigMap, lang: Lang):
   const phone = value("footer_phone", FALLBACK.phone);
   const website = value("footer_website", FALLBACK.website);
   const websiteLink = websiteHref(website);
+  // El valor se muestra solo cuando también puede convertirse en un destino
+  // permitido. Evita presentar esquemas peligrosos como si fueran un dato de
+  // contacto legítimo, aun cuando el texto escapado no fuera ejecutable.
+  const websiteDisplay = websiteLink ? website : "";
   const phoneLink = phoneHref(phone);
   const esrSource = safeImageUrl(value("footer_esr_image", "/templates/beez3/img/esr.jpg"), "/templates/beez3/img/esr.jpg");
   const esrAlt = value("footer_esr_alt", copy.esr);
-  const social = (network: SocialNetwork, defaultVisible = true) => {
+  const preset = footerPresetFromConfig(config);
+  const social = (network: SocialNetwork, defaultVisible = true, className?: string) => {
     if (!isConfigEnabled(config, `footer_${network}_visible`, defaultVisible)) return "";
     const href = safeExternalUrl(value(`footer_${network}`, FALLBACK.social[network]));
-    return href ? socialLink(network, href) : "";
+    return href ? socialLink(network, href, className) : "";
   };
   const socialLinks = [social("facebook", false), social("linkedin"), social("twitter")].filter(Boolean).join("");
   const addressLines = address.split(/\r?\n/).filter(Boolean).map(escapeHtml).join("<br>");
   const contactRows = [
     addressLines ? `<div class="vwb-site-footer__contact-row">${contactIcon("building")}<address>${addressLines}</address></div>` : "",
     phone ? `<div class="vwb-site-footer__contact-row">${contactIcon("phone")}${phoneLink ? `<a href="${phoneLink}">${escapeHtml(phone)}</a>` : `<span>${escapeHtml(phone)}</span>`}</div>` : "",
-    website ? `<div class="vwb-site-footer__contact-row">${contactIcon("mail")}${websiteLink ? `<a href="${escapeHtml(websiteLink)}">${escapeHtml(website)}</a>` : `<span>${escapeHtml(website)}</span>`}</div>` : "",
+    websiteDisplay ? `<div class="vwb-site-footer__contact-row">${contactIcon("mail")}<a href="${escapeHtml(websiteLink)}">${escapeHtml(websiteDisplay)}</a></div>` : "",
   ].join("");
   const paths = lang === "es"
     ? {
@@ -168,7 +174,7 @@ export function renderPublicFooter(html: string, config: ConfigMap, lang: Lang):
     };
   const year = new Date().getFullYear();
 
-  const footer = `<div class="footer footer_fix vwb-site-footer">
+  const centralFooter = `<div class="footer footer_fix vwb-site-footer vwb-site-footer--central" data-vwb-footer-preset="central-2026">
   <div class="vwb-site-footer__inner">
     <div class="vwb-site-footer__grid">
       <section class="vwb-site-footer__brand" aria-label="${escapeHtml(firm)}">
@@ -205,6 +211,45 @@ export function renderPublicFooter(html: string, config: ConfigMap, lang: Lang):
   </div>
 </div>`;
 
+  // El preset clásico no conserva fragmentos editables del HTML capturado: se
+  // reconstruye con el mismo contenido canónico y sanitizado que el central.
+  // Así un cambio de diseño nunca reintroduce URLs, texto o etiquetas legadas.
+  const classicSocialLinks = [
+    social("facebook", false, "vwb-classic-footer__social-link"),
+    social("linkedin", true, "vwb-classic-footer__social-link"),
+    social("twitter", true, "vwb-classic-footer__social-link"),
+  ].filter(Boolean).join("");
+  const classicContactRows = [
+    addressLines ? `<div class="vwb-classic-footer__contact-row">${contactIcon("building", "vwb-classic-footer__contact-icon")}<address>${addressLines}</address></div>` : "",
+    phone ? `<div class="vwb-classic-footer__contact-row">${contactIcon("phone", "vwb-classic-footer__contact-icon")}${phoneLink ? `<a href="${phoneLink}">${escapeHtml(phone)}</a>` : `<span>${escapeHtml(phone)}</span>`}</div>` : "",
+    websiteDisplay ? `<div class="vwb-classic-footer__contact-row">${contactIcon("mail", "vwb-classic-footer__contact-icon")}<a href="${escapeHtml(websiteLink)}">${escapeHtml(websiteDisplay)}</a></div>` : "",
+  ].join("");
+  const classicFooter = `<div class="footer footer_fix vwb-classic-footer" data-vwb-footer-preset="classic-vwys">
+  <div class="vwb-classic-footer__inner">
+    <div class="vwb-classic-footer__grid">
+      <section class="vwb-classic-footer__brand" aria-label="${escapeHtml(firm)}">
+        <a href="${lang === "es" ? "/index.php/home/" : "/"}" aria-label="${lang === "es" ? "Ir al inicio" : "Go to home"}">
+          <img src="/images/vw40F.png" width="1150" height="769" alt="" decoding="async">
+          <span>${escapeHtml(firm)}</span>
+        </a>
+      </section>
+      <nav class="vwb-classic-footer__column" aria-label="${copy.firm}"><h2>${copy.firm}</h2><ul>${listItem(copy.about, paths.about)}${listItem(copy.team, paths.team)}${listItem(copy.careers, paths.careers)}${listItem(copy.contact, paths.contact)}</ul></nav>
+      <nav class="vwb-classic-footer__column" aria-label="${copy.capabilities}"><h2>${copy.capabilities}</h2><ul>${listItem(copy.practices, paths.practices)}${listItem(copy.industries, paths.industries)}</ul></nav>
+      <nav class="vwb-classic-footer__column" aria-label="${copy.resources}"><h2>${copy.resources}</h2><ul>${listItem(copy.insights, paths.insights)}${listItem(copy.rankings, paths.rankings)}</ul></nav>
+      <section class="vwb-classic-footer__contact" aria-labelledby="vwb-classic-footer-contact-title">
+        <h2 id="vwb-classic-footer-contact-title">${copy.contact}</h2><div>${classicContactRows}</div>
+        ${classicSocialLinks ? `<div class="vwb-classic-footer__socials"><h2>${copy.follow}</h2><div>${classicSocialLinks}</div></div>` : ""}
+      </section>
+    </div>
+    <div class="vwb-classic-footer__bottom">
+      <p>© ${year} ${escapeHtml(firm)}. ${copy.rights}</p>
+      <aside aria-label="${escapeHtml(esrAlt)}"><img src="${escapeHtml(esrSource)}" alt="${escapeHtml(esrAlt)}" loading="lazy" decoding="async"></aside>
+      <nav aria-label="${lang === "es" ? "Información legal" : "Legal information"}"><a href="${paths.privacy}">${copy.privacy}</a><a href="${paths.cookies}">${copy.cookies}</a><a href="#cookie-preferences" data-vwb-cookie-preferences="true">${copy.preferences}</a><a class="vwb-classic-footer__admin-link" href="/admin" target="_blank" rel="noopener" title="${copy.admin}" aria-label="${copy.admin}">${lockIcon()}</a></nav>
+    </div>
+  </div>
+</div>`;
+
   const legacyFooter = /<footer\b(?=[^>]*\bclass=["'][^"']*\bfooter_fix\b[^"']*["'])[^>]*>[\s\S]*?<\/footer>/i;
+  const footer = preset === "classic-vwys" ? classicFooter : centralFooter;
   return legacyFooter.test(html) ? html.replace(legacyFooter, footer) : html;
 }

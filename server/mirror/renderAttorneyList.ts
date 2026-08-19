@@ -1,5 +1,6 @@
 import * as cheerio from "cheerio";
 import { getLocalizedAttorneyTitle } from "@shared/attorneyTitles";
+import { DEFAULT_ATTORNEY_DIRECTORY_PRESET, type AttorneyDirectoryPresetId } from "@shared/publicAppearance";
 import { applySeo, breadcrumbNode } from "./seo";
 
 type Lang = "en" | "es";
@@ -245,6 +246,7 @@ export function renderAttorneyDirectory(
   practices: AttorneyDirectoryPractice[],
   filters: AttorneyDirectoryFilters,
   lang: Lang,
+  preset: AttorneyDirectoryPresetId = DEFAULT_ATTORNEY_DIRECTORY_PRESET,
 ): string {
   const $ = cheerio.load(templateHtml);
   const isEs = lang === "es";
@@ -334,21 +336,36 @@ export function renderAttorneyDirectory(
     })
     .join("");
 
+  const status = `<p class="attorney-directory__status" aria-live="polite" data-attorney-count data-singular="${isEs ? "resultado" : "result"}" data-plural="${esc(copy.results)}">${matchedAttorneys.length} ${matchedAttorneys.length === 1 ? (isEs ? "resultado" : "result") : copy.results}</p>`;
+  const clear = `<a class="attorney-directory__clear" href="/attorneys${langSuffix}" data-attorney-clear${hasActiveFilters ? "" : " hidden"}>${esc(copy.clear)}</a>`;
+  const formStart = `<form class="attorney-directory__filters" id="${isEs ? "buscar" : "search"}" action="/attorneys" method="get" data-attorney-filter-form>${isEs ? "" : `<input type="hidden" name="lang" value="en">`}`;
+  const editorialFilters =
+    formStart +
+      `<div class="attorney-directory__field attorney-directory__field--query">` +
+        `<label class="vw-sr-only" for="${queryInputId}">${esc(copy.name)}</label>` +
+        `<button class="attorney-directory__submit" type="submit" aria-label="${esc(copy.search)}"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="10.75" cy="10.75" r="5.75"></circle><path d="m15.15 15.15 4.1 4.1"></path></svg></button>` +
+        `<input id="${queryInputId}" type="search" name="q" value="${esc(filters.q)}" placeholder="${esc(copy.namePlaceholder)}" autocomplete="off" data-attorney-q>` +
+      `</div>` +
+      `<div class="attorney-directory__field"><label class="vw-sr-only" for="${roleInputId}">${esc(copy.role)}</label><select id="${roleInputId}" name="role" data-attorney-role><option value="">${esc(copy.allRoles)}</option>${roleOptions}</select></div>` +
+      `<div class="attorney-directory__field"><label class="vw-sr-only" for="${practiceInputId}">${esc(copy.practice)}</label><select id="${practiceInputId}" name="practice" data-attorney-practice><option value="">${esc(copy.allPractices)}</option>${practiceOptions}</select></div>` +
+      `<details class="attorney-directory__initials" data-attorney-initials><summary><span data-attorney-initial-label>${esc(initialLabel)}</span><span class="vw-sr-only">${esc(copy.initial)}</span></summary><input type="hidden" name="letter" value="${esc(filters.letter)}" data-attorney-letter><div class="attorney-directory__letters" role="group" aria-label="${esc(copy.initial)}">${letterButtons}</div></details>` +
+      status + clear +
+    `</form>`;
+  const classicFilters =
+    formStart +
+      `<div class="attorney-directory__filter-main">` +
+        `<p class="attorney-directory__filter-title">${isEs ? "Buscar por:" : "Search by:"}</p>` +
+        `<label class="attorney-directory__field" for="${queryInputId}"><span>${esc(copy.name)}</span><input id="${queryInputId}" type="search" name="q" value="${esc(filters.q)}" placeholder="${esc(copy.namePlaceholder)}" autocomplete="off" data-attorney-q></label>` +
+        `<label class="attorney-directory__field" for="${roleInputId}"><span>${esc(copy.role)}</span><select id="${roleInputId}" name="role" data-attorney-role><option value="">${esc(copy.allRoles)}</option>${roleOptions}</select></label>` +
+        `<label class="attorney-directory__field" for="${practiceInputId}"><span>${esc(copy.practice)}</span><select id="${practiceInputId}" name="practice" data-attorney-practice><option value="">${esc(copy.allPractices)}</option>${practiceOptions}</select></label>` +
+        `<div class="attorney-directory__actions"><button type="submit">${esc(copy.search)}</button>${clear}</div>` +
+      `</div>` +
+      `<div class="attorney-directory__initials" data-attorney-initials><span>${esc(copy.initial)} <b data-attorney-initial-label>${esc(initialLabel)}</b></span><input type="hidden" name="letter" value="${esc(filters.letter)}" data-attorney-letter><div class="attorney-directory__letters" role="group" aria-label="${esc(copy.initial)}">${letterButtons}</div></div>` +
+    `</form>` + status;
+  const filtersMarkup = preset === "classic-vwys" ? classicFilters : editorialFilters;
   const directory =
-    `<main class="attorney-directory" data-attorney-directory>` +
-      `<form class="attorney-directory__filters" id="${isEs ? "buscar" : "search"}" action="/attorneys" method="get" data-attorney-filter-form>` +
-        (isEs ? "" : `<input type="hidden" name="lang" value="en">`) +
-        `<div class="attorney-directory__field attorney-directory__field--query">` +
-          `<label class="vw-sr-only" for="${queryInputId}">${esc(copy.name)}</label>` +
-          `<button class="attorney-directory__submit" type="submit" aria-label="${esc(copy.search)}"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="10.75" cy="10.75" r="5.75"></circle><path d="m15.15 15.15 4.1 4.1"></path></svg></button>` +
-          `<input id="${queryInputId}" type="search" name="q" value="${esc(filters.q)}" placeholder="${esc(copy.namePlaceholder)}" autocomplete="off" data-attorney-q>` +
-        `</div>` +
-        `<div class="attorney-directory__field"><label class="vw-sr-only" for="${roleInputId}">${esc(copy.role)}</label><select id="${roleInputId}" name="role" data-attorney-role><option value="">${esc(copy.allRoles)}</option>${roleOptions}</select></div>` +
-        `<div class="attorney-directory__field"><label class="vw-sr-only" for="${practiceInputId}">${esc(copy.practice)}</label><select id="${practiceInputId}" name="practice" data-attorney-practice><option value="">${esc(copy.allPractices)}</option>${practiceOptions}</select></div>` +
-        `<details class="attorney-directory__initials" data-attorney-initials><summary><span data-attorney-initial-label>${esc(initialLabel)}</span><span class="vw-sr-only">${esc(copy.initial)}</span></summary><input type="hidden" name="letter" value="${esc(filters.letter)}" data-attorney-letter><div class="attorney-directory__letters" role="group" aria-label="${esc(copy.initial)}">${letterButtons}</div></details>` +
-        `<p class="attorney-directory__status" aria-live="polite" data-attorney-count data-singular="${isEs ? "resultado" : "result"}" data-plural="${esc(copy.results)}">${matchedAttorneys.length} ${matchedAttorneys.length === 1 ? (isEs ? "resultado" : "result") : copy.results}</p>` +
-        `<a class="attorney-directory__clear" href="/attorneys${langSuffix}" data-attorney-clear${hasActiveFilters ? "" : " hidden"}>${esc(copy.clear)}</a>` +
-      `</form>` +
+    `<main class="attorney-directory attorney-directory--${preset}" data-attorney-directory data-attorney-directory-preset="${preset}">` +
+      filtersMarkup +
       `<p class="attorney-directory__empty" data-attorney-empty${matchedAttorneys.length ? " hidden" : ""}>${esc(copy.empty)}</p>` +
       `<div class="attorney-directory__groups" id="${isEs ? "directorio" : "directory"}" data-attorney-groups>${roleGroups}</div>` +
     `</main>`;

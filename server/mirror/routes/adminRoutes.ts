@@ -8,6 +8,7 @@ import { getCookieConsentConfig, cookieConsentSchema, saveCookieConsentConfig } 
 import { storage } from "../../storage";
 import { insertOfficeSchema, offices, siteConfig } from "@shared/schema";
 import { NAVIGATION_PRESET_IDS, type NavigationPresetId } from "@shared/navigation";
+import { ATTORNEY_DIRECTORY_PRESET_IDS, FOOTER_PRESET_IDS } from "@shared/publicAppearance";
 import { invalidatePublicPageCache } from "../pageCache";
 import { sanitizeCms } from "../sanitize";
 import {
@@ -36,6 +37,14 @@ import {
   unavailableRequestedDestinations,
 } from "../navigationConfiguration";
 import { invalidatePublicNavigationMenuCache } from "../navigationMenu";
+import {
+  ATTORNEY_DIRECTORY_ACTIVE_PRESET_KEY,
+  FOOTER_ACTIVE_PRESET_KEY,
+  PUBLIC_APPEARANCE_CONFIG_KEYS,
+  adminPublicAppearancePayload,
+  publicAppearanceStateFromConfig,
+  publicAppearanceStateRevision,
+} from "../publicAppearanceConfiguration";
 
 export function registerMirrorAdminRoutes(app: Express, runtime: MirrorRuntime): void {
   const {
@@ -360,6 +369,85 @@ export function registerMirrorAdminRoutes(app: Express, runtime: MirrorRuntime):
         await getNavigationAvailability(updatedConfig),
       ),
     });
+  }));
+
+  // ---------- Admin: diseños reversibles de bloques públicos -------------
+  app.get("/api/admin/public-appearance", authMiddleware, requirePermission("config"), wrap(async (_req, res) => {
+    const config = await getConfigMap();
+    res.json(adminPublicAppearancePayload(publicAppearanceStateFromConfig(config)));
+  }));
+
+  app.put("/api/admin/public-appearance/active-preset", authMiddleware, requirePermission("config"), wrap(async (req, res) => {
+    const requestSchema = z.discriminatedUnion("target", [
+      z.object({
+        target: z.literal("footer"),
+        preset: z.enum(FOOTER_PRESET_IDS),
+        stateRevision: z.string().trim().length(16),
+      }).strict(),
+      z.object({
+        target: z.literal("attorney-directory"),
+        preset: z.enum(ATTORNEY_DIRECTORY_PRESET_IDS),
+        stateRevision: z.string().trim().length(16),
+      }).strict(),
+    ]);
+    const parsed = requestSchema.safeParse(req.body || {});
+    if (!parsed.success) {
+      res.status(400).json({ error: "Diseño público inválido", details: parsed.error.flatten() });
+      return;
+    }
+
+    const cachedConfig = await getConfigMap();
+    const activated = await db.transaction(async (tx) => {
+      // El estado agrupa ambos selectores, por lo que la revisión se verifica
+      // bajo el mismo candado que serializa dos administradores concurrentes.
+      await tx.execute(sql`SELECT pg_advisory_xact_lock(hashtext('vw-public-appearance-v1'))`);
+      const authoritativeConfig: ConfigMap = { ...cachedConfig };
+      for (const key of PUBLIC_APPEARANCE_CONFIG_KEYS) {
+        const [row] = await tx.select({ value: siteConfig.value, valueEs: siteConfig.valueEs, type: siteConfig.type })
+          .from(siteConfig)
+          .where(eq(siteConfig.key, key))
+          .limit(1);
+        if (row) {
+          authoritativeConfig[key] = {
+            value: row.value || "",
+            valueEs: row.valueEs || row.value || "",
+            type: row.type,
+          };
+        }
+      }
+      if (publicAppearanceStateRevision(publicAppearanceStateFromConfig(authoritativeConfig)) !== parsed.data.stateRevision) {
+        return false;
+      }
+
+      const key = parsed.data.target === "footer"
+        ? FOOTER_ACTIVE_PRESET_KEY
+        : ATTORNEY_DIRECTORY_ACTIVE_PRESET_KEY;
+      await tx.insert(siteConfig).values({
+        key,
+        value: parsed.data.preset,
+        valueEs: parsed.data.preset,
+        type: "select",
+        category: parsed.data.target === "footer" ? "footer" : "pages",
+        updatedAt: new Date(),
+      }).onConflictDoUpdate({
+        target: siteConfig.key,
+        set: { value: parsed.data.preset, valueEs: parsed.data.preset, updatedAt: new Date() },
+      });
+      return true;
+    });
+
+    if (!activated) {
+      res.status(409).json({
+        error: "El diseño cambió mientras lo elegías. Recarga antes de activar.",
+        code: "PUBLIC_APPEARANCE_REVISION_STALE",
+      });
+      return;
+    }
+
+    invalidateConfigCache();
+    invalidatePublicPageCache();
+    const updatedConfig = await getConfigMap();
+    res.json({ ok: true, ...adminPublicAppearancePayload(publicAppearanceStateFromConfig(updatedConfig)) });
   }));
 
   // ---------- Admin: editable site config (texts, hero video, etc.) -----

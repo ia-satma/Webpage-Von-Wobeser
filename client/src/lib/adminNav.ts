@@ -36,6 +36,7 @@ import {
   MessageSquare,
   Presentation,
   Navigation,
+  Paintbrush,
   Cookie,
 } from "lucide-react";
 
@@ -130,6 +131,7 @@ export const ADMIN_NAV_GROUPS: AdminNavGroup[] = [
     label: "Configuración",
     items: [
       { href: "/admin/navigation", label: "Navegación y visibilidad", icon: Navigation, requires: "config" },
+      { href: "/admin/public-appearance", label: "Diseños públicos", icon: Paintbrush, requires: "config" },
       { href: "/admin/site-config/footer", label: "Pie de página", icon: Settings, requires: "config" },
       { href: "/admin/site-config/seo", label: "SEO — Analytics y verificación", icon: LineChart, requires: "config" },
       { href: "/admin/cookie-consent", label: "Privacidad y cookies", icon: Cookie, requires: "config" },
