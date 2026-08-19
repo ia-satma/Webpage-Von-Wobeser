@@ -108,13 +108,16 @@ test("la política de cookies conserva tablas seguras editables", () => {
 test("la política pública usa la composición editorial y las dos fuentes institucionales", () => {
   const css = readFileSync(new URL("../../public/vwb-cookie-consent.css", import.meta.url), "utf8");
   const mirrorSource = readMirrorSources();
+  const policySource = readFileSync(new URL("../privacy/cookieConsent.ts", import.meta.url), "utf8");
 
   assert.match(css, /--vwb-title:"Gelasio",serif/);
   assert.match(css, /--vwb-body:"Inter",sans-serif/);
   assert.match(css, /\.vwb-cookie-policy__intro/);
   assert.match(css, /\.vwb-cookie-policy__table-shell/);
-  assert.match(css, /\.vwb-cookie-policy__legal-note/);
+  assert.doesNotMatch(css, /\.vwb-cookie-policy__legal-note/);
   assert.doesNotMatch(css, /Atkinson|Publico|Geomanist|Optima/);
   assert.match(mirrorSource, /vwb-cookie-policy__table-shell/);
-  assert.match(mirrorSource, /consent\.version/);
+  assert.doesNotMatch(mirrorSource, /policyVersionLabel/);
+  assert.match(policySource, /Infraestructura de alojamiento Replit \/ GAESA/);
+  assert.match(policySource, /Replit hosting infrastructure \/ GAESA/);
 });

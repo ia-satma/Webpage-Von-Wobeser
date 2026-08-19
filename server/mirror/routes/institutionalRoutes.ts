@@ -96,15 +96,12 @@ export function registerMirrorInstitutionalRoutes(app: Express, runtime: MirrorR
         const $policyBody = $(".page__content--body").first();
         const policyTableLabel = lang === "es" ? "Tecnologías y proveedores de cookies" : "Cookie technologies and providers";
         const policyMetaLabel = lang === "es" ? "Privacidad digital" : "Digital privacy";
-        const policyVersionLabel = lang === "es" ? "Versión" : "Version";
 
         $policyBody.addClass("vwb-cookie-policy__body");
         $policyBody.children("p").first().addClass("vwb-cookie-policy__intro");
         $policyBody.children("h2").addClass("vwb-cookie-policy__section-title");
-        $policyBody.children("p").last().addClass("vwb-cookie-policy__legal-note");
-        const $policyMeta = $('<div class="vwb-cookie-policy__meta"><span></span><span></span></div>');
+        const $policyMeta = $('<div class="vwb-cookie-policy__meta"><span></span></div>');
         $policyMeta.children().eq(0).text(policyMetaLabel);
-        $policyMeta.children().eq(1).text(`${policyVersionLabel} ${consent.version}`);
         $policyBody.prepend($policyMeta);
 
         const $policyTable = $policyBody.children("table").first();

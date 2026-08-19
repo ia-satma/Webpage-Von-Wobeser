@@ -13,7 +13,7 @@
 .vwb-cookie-policy .page__content{width:820px}
 .vwb-cookie-policy .page__sidebar{width:160px}
 .vwb-cookie-policy .page__content--body{color:#535353;font-family:var(--vwb-body);font-size:16px;line-height:1.7}
-.vwb-cookie-policy__meta{display:flex;align-items:center;justify-content:space-between;gap:24px;margin:0 0 34px;padding:0 0 14px;border-bottom:1px solid var(--vwb-line);color:var(--vwb-red);font:500 11px/1.2 var(--vwb-body);letter-spacing:.18em;text-transform:uppercase}
+.vwb-cookie-policy__meta{display:flex;align-items:center;justify-content:flex-start;gap:24px;margin:0 0 34px;padding:0 0 14px;border-bottom:1px solid var(--vwb-line);color:var(--vwb-red);font:500 11px/1.2 var(--vwb-body);letter-spacing:.18em;text-transform:uppercase}
 .vwb-cookie-policy__intro{max-width:690px;margin:0 0 54px;color:#454545;font:400 clamp(22px,2.1vw,30px)/1.45 var(--vwb-title)}
 .vwb-cookie-policy__section-title{position:relative;margin:54px 0 24px;padding-left:26px;color:#262626;font:500 clamp(27px,2.2vw,35px)/1.15 var(--vwb-title)}
 .vwb-cookie-policy__section-title::before{content:"";position:absolute;top:.62em;left:0;width:13px;height:2px;background:var(--vwb-red)}
@@ -31,12 +31,11 @@
 .vwb-cookie-policy__table tbody tr:last-child td{border-bottom:0}
 .vwb-cookie-policy__table tbody tr{transition:background-color .18s ease}
 .vwb-cookie-policy__table tbody tr:hover{background:#faf9f7}
-.vwb-cookie-policy__body>p:not(.vwb-cookie-policy__intro):not(.vwb-cookie-policy__legal-note){max-width:720px;margin:0 0 24px}
-.vwb-cookie-policy__legal-note{max-width:720px;margin:34px 0 0;padding:20px 22px;border-left:3px solid var(--vwb-red);background:#f5f4f2;color:#5d5d5d;font-size:14px;line-height:1.65}
+.vwb-cookie-policy__body>p:not(.vwb-cookie-policy__intro){max-width:720px;margin:0 0 24px}
 .vwb-cookie-policy__body a{color:var(--vwb-red);font-weight:500;text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:4px}
 .vwb-cookie-policy .page__sidebar a{font-family:var(--vwb-body);font-size:13px;letter-spacing:.05em;text-transform:uppercase}
 @media(max-width:1080px){.vwb-cookie-policy .page__content{width:calc(100% - 260px)}.vwb-cookie-policy .page__sidebar{width:150px}.vwb-cookie-policy__intro{max-width:620px}}
-@media(max-width:800px){.vwb-cookie-policy .page__content,.vwb-cookie-policy .page__sidebar{width:100%}.vwb-cookie-policy .page__content{margin-top:0}.vwb-cookie-policy__meta{margin-bottom:28px}.vwb-cookie-policy__intro{margin-bottom:42px;font-size:23px}.vwb-cookie-policy__section-title{margin-top:42px;padding-left:22px;font-size:28px}.vwb-cookie-policy__table-shell{margin-right:calc(50% - 50vw);margin-bottom:48px;width:calc(100vw - 20px)}.vwb-cookie-policy__table{min-width:720px}.vwb-cookie-policy__legal-note{padding:18px}}
+@media(max-width:800px){.vwb-cookie-policy .page__content,.vwb-cookie-policy .page__sidebar{width:100%}.vwb-cookie-policy .page__content{margin-top:0}.vwb-cookie-policy__meta{margin-bottom:28px}.vwb-cookie-policy__intro{margin-bottom:42px;font-size:23px}.vwb-cookie-policy__section-title{margin-top:42px;padding-left:22px;font-size:28px}.vwb-cookie-policy__table-shell{margin-right:calc(50% - 50vw);margin-bottom:48px;width:calc(100vw - 20px)}.vwb-cookie-policy__table{min-width:720px}}
 @media(prefers-reduced-motion:reduce){.vwb-cookie-policy__table tbody tr{transition:none}}
 @media print{.vwb-cookie-policy .page__ttl,.vwb-cookie-policy .page__sidebar{display:none!important}.vwb-cookie-policy .page__content{width:100%!important}.vwb-cookie-policy__table-shell{overflow:visible}.vwb-cookie-policy__table{min-width:0}.vwb-cookie-policy__table th,.vwb-cookie-policy__table td{padding:10px 8px;font-size:10px}}
 .vwb-consent button[data-action="reject"]{background:var(--vwb-red);color:#fff}
