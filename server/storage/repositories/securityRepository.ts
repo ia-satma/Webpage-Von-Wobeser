@@ -1,25 +1,10 @@
 import { eq, desc, asc, sql } from "drizzle-orm";
-import { type User, type InsertUser, type AdminUser, type InsertAdminUser, type InsertAdminLoginEvent, type AdminSession, type InsertAdminSession, type AdminMfaCredential, type InsertAdminMfaCredential, type AdminAuthChallenge, type InsertAdminAuthChallenge, users, adminUsers, adminLoginEvents, adminSessions, adminMfaCredentials, adminAuthChallenges, securityRateLimits } from "@shared/schema";
+import { type AdminUser, type InsertAdminUser, type InsertAdminLoginEvent, type AdminSession, type InsertAdminSession, type AdminMfaCredential, type InsertAdminMfaCredential, type AdminAuthChallenge, type InsertAdminAuthChallenge, adminUsers, adminLoginEvents, adminSessions, adminMfaCredentials, adminAuthChallenges, securityRateLimits } from "@shared/schema";
 import type { StorageDatabase } from "../types";
 import type { AdminLoginEventWithIdentity } from "../contracts";
 
 export function createSecurityRepository(db: StorageDatabase) {
   class SecurityRepository {
-    async getUser(id: string): Promise<User | undefined> {
-      const [user] = await db.select().from(users).where(eq(users.id, id));
-      return user;
-    }
-
-    async getUserByUsername(username: string): Promise<User | undefined> {
-      const [user] = await db.select().from(users).where(eq(users.username, username));
-      return user;
-    }
-
-    async createUser(insertUser: InsertUser): Promise<User> {
-      const [user] = await db.insert(users).values(insertUser).returning();
-      return user;
-    }
-
     // Admin User CRUD
     async getAdminUser(id: string): Promise<AdminUser | undefined> {
       const [user] = await db.select().from(adminUsers).where(eq(adminUsers.id, id));

@@ -9,6 +9,7 @@ import {
   authCookieOptions,
   authMiddleware,
   checkRateLimit,
+  checkSharedRateLimit,
   clearAuthCookie,
   comparePassword,
   deriveCsrfToken,
@@ -21,6 +22,7 @@ import {
   passwordNeedsRehash,
   readCookie,
   recordLoginAttempt,
+  recordSharedRateLimitAttempt,
   rehashVerifiedPassword,
   requirePermission,
   requireRole,
@@ -28,6 +30,17 @@ import {
   validateNewPassword,
 } from "../auth";
 import { db } from "../db";
+import {
+  consumeRecoveryCode,
+  decryptTotpSecret,
+  encryptTotpSecret,
+  generateRecoveryCodes,
+  generateTotpSecret,
+  isMfaConfigured,
+  isMfaRequiredForRole,
+  totpAuthUrl,
+  verifyTotp,
+} from "../security/mfa";
 import { smartImageGenerator } from "../services/SmartImageGenerator";
 import { storage } from "../storage";
 import { apiError, auditLog } from "./routeUtils";
@@ -78,6 +91,7 @@ export async function registerAdminAccessRoutes(app: Express): Promise<void> {
     },
     ipAddress: string,
     userAgent: string | null,
+    mfaVerified: boolean,
   ) => {
     const rawToken = generateToken();
     const csrfToken = deriveCsrfToken(rawToken);
@@ -88,9 +102,9 @@ export async function registerAdminAccessRoutes(app: Express): Promise<void> {
       expiresAt: getSessionExpiry(),
       absoluteExpiresAt: getAbsoluteSessionExpiry(),
       lastSeenAt: new Date(),
-      // Se conserva la columna histórica para compatibilidad de esquema. MFA está
-      // retirado del flujo activo y este valor ya no controla el acceso.
-      mfaVerified: true,
+      // Este dato permite auditar si la sesión completó el segundo factor. El
+      // middleware siempre valida además la cookie opaca, CSRF y el usuario activo.
+      mfaVerified,
       ipAddress,
       userAgent,
     });
@@ -99,6 +113,25 @@ export async function registerAdminAccessRoutes(app: Express): Promise<void> {
       csrfToken,
       user: adminSessionUserPayload(user),
     };
+  };
+
+  const issueMfaChallenge = async (
+    res: Response,
+    userId: string,
+    purpose: "mfa" | "enroll",
+  ) => {
+    // Un solo desafío vigente por usuario: evita que códigos o enlaces previos
+    // permanezcan utilizables después de un nuevo intento de acceso.
+    await storage.deleteAdminAuthChallengesByUserId(userId);
+    const rawToken = generateToken();
+    await storage.createAdminAuthChallenge({
+      userId,
+      tokenHash: hashOpaqueToken(rawToken),
+      purpose,
+      attempts: 0,
+      expiresAt: new Date(Date.now() + 10 * 60 * 1000),
+    });
+    res.cookie(CHALLENGE_COOKIE, rawToken, authCookieOptions(10 * 60 * 1000));
   };
 
   // Admin Login: nunca devuelve el token de sesión. La sesión final viaja
@@ -191,11 +224,29 @@ export async function registerAdminAccessRoutes(app: Express): Promise<void> {
         user = (await storage.getAdminUser(user.id)) || user;
       }
 
-      // Cualquier desafío antiguo queda inutilizado. Las credenciales TOTP
-      // cifradas se conservan en la base como respaldo, pero ya no participan.
+      if (isMfaRequiredForRole(user.role)) {
+        // Nunca degradar a solo contraseña si la política ya exige MFA. La clave
+        // se instala como Secret independiente en el Repl que recibe el proyecto.
+        if (!isMfaConfigured()) {
+          console.error("MFA is required but MFA_ENCRYPTION_KEY is unavailable");
+          return res.status(503).json({
+            error: "Two-step verification is not configured",
+            code: "MFA_CONFIGURATION_REQUIRED",
+          });
+        }
+        const credential = await storage.getAdminMfaCredential(user.id);
+        const purpose = credential?.enabledAt ? "mfa" : "enroll";
+        await issueMfaChallenge(res, user.id, purpose);
+        return res.status(202).json({
+          authenticated: false,
+          mfaRequired: true,
+          setupRequired: purpose === "enroll",
+        });
+      }
+
       await storage.deleteAdminAuthChallengesByUserId(user.id);
       clearAuthCookie(res, CHALLENGE_COOKIE);
-      const sessionPayload = await createAuthenticatedSession(res, user, ip, userAgent);
+      const sessionPayload = await createAuthenticatedSession(res, user, ip, userAgent, false);
       return res.json({ authenticated: true, ...sessionPayload });
     } catch (error) {
       console.error("Login error:", error instanceof Error ? error.message : "unknown");
@@ -209,18 +260,190 @@ export async function registerAdminAccessRoutes(app: Express): Promise<void> {
     }
   });
 
-  const retiredMfaApi = (_req: Request, res: Response) => {
-    clearAuthCookie(res, CHALLENGE_COOKIE);
-    res.status(410).json({
-      error: "Two-step verification has been retired",
-      code: "MFA_RETIRED",
-    });
+  const MFA_CODE_POLICY = { maxAttempts: 5, windowMs: 15 * 60 * 1000, blockDurationMs: 30 * 60 * 1000 };
+  const mfaCodeSchema = z.object({
+    code: z.string().trim().min(1).max(32),
+  });
+  const recoveryCodeSchema = z.object({
+    recoveryCode: z.string().trim().min(1).max(64),
+  });
+
+  const resolveMfaChallenge = async (
+    req: Request,
+    res: Response,
+    purpose: "mfa" | "enroll",
+  ) => {
+    const rawToken = readCookie(req, CHALLENGE_COOKIE);
+    if (!rawToken || rawToken.length < 32 || rawToken.length > 256) {
+      clearAuthCookie(res, CHALLENGE_COOKIE);
+      return null;
+    }
+    const tokenHash = hashOpaqueToken(rawToken);
+    const challenge = await storage.getAdminAuthChallenge(tokenHash);
+    if (
+      !challenge
+      || challenge.purpose !== purpose
+      || challenge.expiresAt <= new Date()
+      || challenge.attempts >= MFA_CODE_POLICY.maxAttempts
+    ) {
+      if (challenge) await storage.deleteAdminAuthChallenge(tokenHash);
+      clearAuthCookie(res, CHALLENGE_COOKIE);
+      return null;
+    }
+    const user = await storage.getAdminUser(challenge.userId);
+    if (!user?.isActive || !isMfaRequiredForRole(user.role)) {
+      await storage.deleteAdminAuthChallenge(tokenHash);
+      clearAuthCookie(res, CHALLENGE_COOKIE);
+      return null;
+    }
+    return { challenge, user, tokenHash };
   };
-  app.all(
-    ["/api/admin/mfa/enroll", "/api/admin/mfa/verify", "/api/admin/mfa/recovery"],
-    requireSameOrigin,
-    retiredMfaApi,
-  );
+
+  const rejectMfaAttempt = async (
+    req: Request,
+    res: Response,
+    challenge: { id: string; attempts: number },
+    tokenHash: string,
+    userId: string,
+  ) => {
+    const ip = req.ip || req.socket.remoteAddress || "unknown";
+    const key = `${ip}|${userId}`;
+    await recordSharedRateLimitAttempt("mfa", key, MFA_CODE_POLICY);
+    const nextAttempts = challenge.attempts + 1;
+    if (nextAttempts >= MFA_CODE_POLICY.maxAttempts) {
+      await storage.deleteAdminAuthChallenge(tokenHash);
+      clearAuthCookie(res, CHALLENGE_COOKIE);
+      res.setHeader("Retry-After", String(MFA_CODE_POLICY.blockDurationMs / 1000));
+      return res.status(429).json({ error: "Too many verification attempts", code: "MFA_RATE_LIMITED" });
+    }
+    await storage.updateAdminAuthChallengeAttempts(challenge.id, nextAttempts);
+    return res.status(401).json({ error: "Invalid verification code", code: "MFA_INVALID_CODE" });
+  };
+
+  const completeMfaLogin = async (
+    req: Request,
+    res: Response,
+    user: { id: string; username: string; email: string; role: string; permissions: string[] | null },
+    tokenHash: string,
+  ) => {
+    const ip = req.ip || req.socket.remoteAddress || "unknown";
+    const userAgent = req.headers["user-agent"] || null;
+    await storage.deleteAdminAuthChallenge(tokenHash);
+    clearAuthCookie(res, CHALLENGE_COOKIE);
+    await storage.updateAdminUserLogin(user.id);
+    await recordSharedRateLimitAttempt("mfa", `${ip}|${user.id}`, MFA_CODE_POLICY, true);
+    const sessionPayload = await createAuthenticatedSession(res, user, ip, userAgent, true);
+    return { authenticated: true, ...sessionPayload };
+  };
+
+  // La inscripción inicia únicamente después de validar usuario y contraseña y
+  // con un desafío HttpOnly de vida corta. El secreto devuelto se usa una sola
+  // vez para configurar una app TOTP y nunca se registra en logs.
+  app.get("/api/admin/mfa/enroll", requireSameOrigin, async (req: Request, res: Response) => {
+    try {
+      const resolved = await resolveMfaChallenge(req, res, "enroll");
+      if (!resolved) return res.status(401).json({ error: "MFA challenge expired", code: "MFA_CHALLENGE_INVALID" });
+      const current = await storage.getAdminMfaCredential(resolved.user.id);
+      if (current?.enabledAt) return res.status(409).json({ error: "MFA is already enabled", code: "MFA_ALREADY_ENABLED" });
+
+      const secret = generateTotpSecret();
+      await storage.upsertAdminMfaCredential({
+        userId: resolved.user.id,
+        encryptedSecret: encryptTotpSecret(secret),
+        recoveryCodeHashes: [],
+        enabledAt: null,
+      });
+      res.setHeader("Cache-Control", "no-store");
+      return res.json({
+        issuer: "Von Wobeser",
+        accountName: resolved.user.email,
+        secret,
+        otpauthUrl: totpAuthUrl(resolved.user.email, secret),
+      });
+    } catch (error) {
+      console.error("MFA enrollment start failed:", error instanceof Error ? error.message : "unknown");
+      return res.status(500).json({ error: "Could not start MFA enrollment", code: "MFA_ENROLLMENT_FAILED" });
+    }
+  });
+
+  app.post("/api/admin/mfa/enroll", requireSameOrigin, async (req: Request, res: Response) => {
+    try {
+      const parsed = mfaCodeSchema.safeParse(req.body);
+      if (!parsed.success) return res.status(400).json({ error: "Invalid verification code", code: "MFA_INVALID_CODE" });
+      const resolved = await resolveMfaChallenge(req, res, "enroll");
+      if (!resolved) return res.status(401).json({ error: "MFA challenge expired", code: "MFA_CHALLENGE_INVALID" });
+      const ip = req.ip || req.socket.remoteAddress || "unknown";
+      const rate = await checkSharedRateLimit("mfa", `${ip}|${resolved.user.id}`, MFA_CODE_POLICY);
+      if (!rate.allowed) {
+        res.setHeader("Retry-After", String(rate.retryAfter || 60));
+        return res.status(429).json({ error: "Too many verification attempts", code: "MFA_RATE_LIMITED" });
+      }
+      const credential = await storage.getAdminMfaCredential(resolved.user.id);
+      if (!credential || credential.enabledAt || !verifyTotp(decryptTotpSecret(credential.encryptedSecret), parsed.data.code)) {
+        return rejectMfaAttempt(req, res, resolved.challenge, resolved.tokenHash, resolved.user.id);
+      }
+      const recovery = generateRecoveryCodes();
+      await storage.updateAdminMfaCredential(resolved.user.id, {
+        recoveryCodeHashes: recovery.hashes,
+        enabledAt: new Date(),
+      });
+      const session = await completeMfaLogin(req, res, resolved.user, resolved.tokenHash);
+      return res.json({ ...session, recoveryCodes: recovery.plain });
+    } catch (error) {
+      console.error("MFA enrollment verification failed:", error instanceof Error ? error.message : "unknown");
+      return res.status(500).json({ error: "Could not verify MFA", code: "MFA_VERIFICATION_FAILED" });
+    }
+  });
+
+  app.post("/api/admin/mfa/verify", requireSameOrigin, async (req: Request, res: Response) => {
+    try {
+      const parsed = mfaCodeSchema.safeParse(req.body);
+      if (!parsed.success) return res.status(400).json({ error: "Invalid verification code", code: "MFA_INVALID_CODE" });
+      const resolved = await resolveMfaChallenge(req, res, "mfa");
+      if (!resolved) return res.status(401).json({ error: "MFA challenge expired", code: "MFA_CHALLENGE_INVALID" });
+      const ip = req.ip || req.socket.remoteAddress || "unknown";
+      const rate = await checkSharedRateLimit("mfa", `${ip}|${resolved.user.id}`, MFA_CODE_POLICY);
+      if (!rate.allowed) {
+        res.setHeader("Retry-After", String(rate.retryAfter || 60));
+        return res.status(429).json({ error: "Too many verification attempts", code: "MFA_RATE_LIMITED" });
+      }
+      const credential = await storage.getAdminMfaCredential(resolved.user.id);
+      if (!credential?.enabledAt || !verifyTotp(decryptTotpSecret(credential.encryptedSecret), parsed.data.code)) {
+        return rejectMfaAttempt(req, res, resolved.challenge, resolved.tokenHash, resolved.user.id);
+      }
+      return res.json(await completeMfaLogin(req, res, resolved.user, resolved.tokenHash));
+    } catch (error) {
+      console.error("MFA verification failed:", error instanceof Error ? error.message : "unknown");
+      return res.status(500).json({ error: "Could not verify MFA", code: "MFA_VERIFICATION_FAILED" });
+    }
+  });
+
+  app.post("/api/admin/mfa/recovery", requireSameOrigin, async (req: Request, res: Response) => {
+    try {
+      const parsed = recoveryCodeSchema.safeParse(req.body);
+      if (!parsed.success) return res.status(400).json({ error: "Invalid recovery code", code: "MFA_INVALID_CODE" });
+      const resolved = await resolveMfaChallenge(req, res, "mfa");
+      if (!resolved) return res.status(401).json({ error: "MFA challenge expired", code: "MFA_CHALLENGE_INVALID" });
+      const ip = req.ip || req.socket.remoteAddress || "unknown";
+      const rate = await checkSharedRateLimit("mfa", `${ip}|${resolved.user.id}`, MFA_CODE_POLICY);
+      if (!rate.allowed) {
+        res.setHeader("Retry-After", String(rate.retryAfter || 60));
+        return res.status(429).json({ error: "Too many verification attempts", code: "MFA_RATE_LIMITED" });
+      }
+      const credential = await storage.getAdminMfaCredential(resolved.user.id);
+      const remaining = credential?.enabledAt
+        ? consumeRecoveryCode(credential.recoveryCodeHashes || [], parsed.data.recoveryCode)
+        : null;
+      if (!credential || !remaining) {
+        return rejectMfaAttempt(req, res, resolved.challenge, resolved.tokenHash, resolved.user.id);
+      }
+      await storage.updateAdminMfaCredential(resolved.user.id, { recoveryCodeHashes: remaining });
+      return res.json(await completeMfaLogin(req, res, resolved.user, resolved.tokenHash));
+    } catch (error) {
+      console.error("MFA recovery failed:", error instanceof Error ? error.message : "unknown");
+      return res.status(500).json({ error: "Could not verify MFA", code: "MFA_VERIFICATION_FAILED" });
+    }
+  });
 
   // Contador de gasto ESTIMADO de la API de IA. OpenAI no expone el saldo por API key, así que
   // esto suma tokens/imágenes de NUESTRAS llamadas por el precio conocido del modelo (aproximado).

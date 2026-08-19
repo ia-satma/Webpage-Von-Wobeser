@@ -51,6 +51,10 @@ expertMode = true
 # Replit → Tools → Secrets. ADMIN_BOOTSTRAP_PASSWORD solo crea
 # al Dueño si ADMIN_EMAIL todavía no existe; una recuperación de una cuenta existente
 # requiere ejecutar manualmente `npm run admin:recover -- --confirm=<correo>`.
+# Para proteger a Dueño y Administradores con TOTP, definir en Secrets
+# MFA_ENCRYPTION_KEY (32 bytes aleatorios codificados en base64 o hex) y
+# MFA_REQUIRED_FOR_PRIVILEGED=true. No activar la segunda variable sin la clave:
+# el servicio rechaza el acceso privilegiado en vez de degradarlo a contraseña sola.
 # AI_MONTHLY_BUDGET_USD es opcional y limita el gasto mensual estimado (USD 100
 # si se omite). Las claves de proveedores también deben permanecer en Secrets.
 # Las imágenes y videos administrados requieren un bucket predeterminado vinculado

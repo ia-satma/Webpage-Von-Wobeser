@@ -63,6 +63,7 @@ test("el repositorio no versiona paquetes de entrega ni IDs de bucket", async ()
   assert.match(packageJson, /start:workspace/);
   assert.match(packageJson, /handoff:readiness/);
   assert.match(packageJson, /media:migrate-private/);
+  assert.match(packageJson, /security:retire-legacy-users/);
 });
 
 test("la entrega por GitHub está documentada sin copiar Secrets ni DATABASE_URL", async () => {
@@ -80,6 +81,8 @@ test("la entrega por GitHub está documentada sin copiar Secrets ni DATABASE_URL
   assert.match(guide, /ready_to_restore/);
   assert.match(guide, /Repl limpio/i);
   assert.match(guide, /no.*GitHub/is);
+  assert.match(guide, /MFA_ENCRYPTION_KEY/);
+  assert.match(guide, /retire-legacy-users/);
 });
 
 test("la auditoría de entrega exige datos y medios sin imprimir información personal", async () => {
@@ -93,6 +96,9 @@ test("la auditoría de entrega exige datos y medios sin imprimir información pe
   assert.match(source, /missingPrivateCvRecords > 0/);
   assert.match(source, /practiceGroups < 18/);
   assert.match(source, /teamMembers < 142/);
+  assert.match(source, /legacyPlaintextUsersTablePresent/);
+  assert.match(source, /mfaEncryptionKeyConfigured/);
+  assert.match(source, /privilegedMfaRequired/);
   assert.match(source, /select exists\(select 1 from admin_users where lower\(email\)/i);
   assert.doesNotMatch(source, /select\s+(?:first_name|last_name|cv_original_name)/i);
 });
@@ -115,8 +121,8 @@ test("el instalador exige Secrets, paquete y App Storage antes de restaurar", ()
     DATABASE_URL: "postgresql://example",
     ADMIN_EMAIL: "owner@example.com",
   });
-  assert.deepEqual(secrets.missing, ["ADMIN_BOOTSTRAP_PASSWORD", "DB_BACKUP_ENCRYPTION_KEY"]);
-  assert.deepEqual(HANDOFF_REQUIRED_SECRETS, ["DATABASE_URL", "ADMIN_EMAIL", "ADMIN_BOOTSTRAP_PASSWORD", "DB_BACKUP_ENCRYPTION_KEY"]);
+  assert.deepEqual(secrets.missing, ["ADMIN_BOOTSTRAP_PASSWORD", "DB_BACKUP_ENCRYPTION_KEY", "MFA_ENCRYPTION_KEY", "MFA_REQUIRED_FOR_PRIVILEGED"]);
+  assert.deepEqual(HANDOFF_REQUIRED_SECRETS, ["DATABASE_URL", "ADMIN_EMAIL", "ADMIN_BOOTSTRAP_PASSWORD", "DB_BACKUP_ENCRYPTION_KEY", "MFA_ENCRYPTION_KEY", "MFA_REQUIRED_FOR_PRIVILEGED"]);
   assert.equal(handoffDecision({
     database: { state: "empty" },
     secrets,
@@ -135,6 +141,25 @@ test("el instalador exige Secrets, paquete y App Storage antes de restaurar", ()
     packageStatus: { complete: true },
     appStorage: { state: "available" },
   }).state, "manual_review_required");
+});
+
+test("la entrega no acepta una configuración MFA vacía, inválida o desactivada", () => {
+  const base = {
+    DATABASE_URL: "postgresql://example",
+    ADMIN_EMAIL: "owner@example.com",
+    ADMIN_BOOTSTRAP_PASSWORD: "password",
+    DB_BACKUP_ENCRYPTION_KEY: "backup-key",
+  };
+  assert.deepEqual(requiredSecretsStatus({
+    ...base,
+    MFA_ENCRYPTION_KEY: "not-32-bytes",
+    MFA_REQUIRED_FOR_PRIVILEGED: "false",
+  }).missing, ["MFA_ENCRYPTION_KEY", "MFA_REQUIRED_FOR_PRIVILEGED"]);
+  assert.deepEqual(requiredSecretsStatus({
+    ...base,
+    MFA_ENCRYPTION_KEY: Buffer.alloc(32, 9).toString("base64"),
+    MFA_REQUIRED_FOR_PRIVILEGED: "true",
+  }).missing, []);
 });
 
 test("la detección exige un paquete completo, pero no lee Secrets", async () => {

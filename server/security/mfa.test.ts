@@ -6,6 +6,7 @@ import {
   encryptTotpSecret,
   generateRecoveryCodes,
   generateTotpSecret,
+  isMfaRequiredForRole,
   verifyTotp,
 } from "./mfa";
 
@@ -34,4 +35,19 @@ test("recovery codes are one-time values stored only as hashes", () => {
 
 test("TOTP rejects malformed codes without throwing", () => {
   assert.equal(verifyTotp(generateTotpSecret(), "not-a-code"), false);
+});
+
+test("la política exige MFA solo cuando se activa explícitamente para roles privilegiados", () => {
+  const previous = process.env.MFA_REQUIRED_FOR_PRIVILEGED;
+  try {
+    process.env.MFA_REQUIRED_FOR_PRIVILEGED = "true";
+    assert.equal(isMfaRequiredForRole("super_admin"), true);
+    assert.equal(isMfaRequiredForRole("admin"), true);
+    assert.equal(isMfaRequiredForRole("editor"), false);
+    process.env.MFA_REQUIRED_FOR_PRIVILEGED = "TRUE";
+    assert.equal(isMfaRequiredForRole("admin"), false);
+  } finally {
+    if (previous === undefined) delete process.env.MFA_REQUIRED_FOR_PRIVILEGED;
+    else process.env.MFA_REQUIRED_FOR_PRIVILEGED = previous;
+  }
 });

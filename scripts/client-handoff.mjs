@@ -18,6 +18,8 @@ export const HANDOFF_REQUIRED_SECRETS = [
   "ADMIN_EMAIL",
   "ADMIN_BOOTSTRAP_PASSWORD",
   "DB_BACKUP_ENCRYPTION_KEY",
+  "MFA_ENCRYPTION_KEY",
+  "MFA_REQUIRED_FOR_PRIVILEGED",
 ];
 
 export const CORE_HANDOFF_TABLES = [
@@ -29,6 +31,15 @@ export const CORE_HANDOFF_TABLES = [
   "career_applications",
   "app_schema_migrations",
 ];
+
+function validMfaEncryptionKey(value) {
+  const configured = String(value || "").trim();
+  if (!configured) return false;
+  const decoded = /^[a-f0-9]{64}$/i.test(configured)
+    ? Buffer.from(configured, "hex")
+    : Buffer.from(configured, "base64");
+  return decoded.length === 32;
+}
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const DB_BACKUP_PATTERN = /^[A-Za-z0-9][A-Za-z0-9._-]*\.dump\.enc$/;
@@ -89,7 +100,11 @@ export function classifyDatabase({ tables = [], appliedMigrations = [], expected
 }
 
 export function requiredSecretsStatus(environment = process.env) {
-  const present = HANDOFF_REQUIRED_SECRETS.filter((name) => String(environment[name] || "").trim());
+  const present = HANDOFF_REQUIRED_SECRETS.filter((name) => {
+    if (name === "MFA_ENCRYPTION_KEY") return validMfaEncryptionKey(environment[name]);
+    if (name === "MFA_REQUIRED_FOR_PRIVILEGED") return environment[name] === "true";
+    return String(environment[name] || "").trim();
+  });
   const missing = HANDOFF_REQUIRED_SECRETS.filter((name) => !present.includes(name));
   return { present, missing };
 }

@@ -3,6 +3,7 @@ import crypto from "node:crypto";
 const BASE32 = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
 const TOTP_PERIOD_SECONDS = 30;
 const TOTP_DIGITS = 6;
+const PRIVILEGED_MFA_ROLES = new Set(["super_admin", "admin"]);
 
 function encryptionKey(): Buffer {
   const configured = process.env.MFA_ENCRYPTION_KEY?.trim();
@@ -23,6 +24,16 @@ export function isMfaConfigured(): boolean {
   } catch {
     return false;
   }
+}
+
+/**
+ * MFA se activa por configuración de despliegue, no por la mera existencia de
+ * una clave. Esto permite preparar una migración sin bloquear el Repl actual.
+ * En la cuenta que recibe el proyecto debe configurarse explícitamente como
+ * `true`; cualquier otro valor se interpreta de forma segura como no activado.
+ */
+export function isMfaRequiredForRole(role: string): boolean {
+  return process.env.MFA_REQUIRED_FOR_PRIVILEGED === "true" && PRIVILEGED_MFA_ROLES.has(role);
 }
 
 export function base32Encode(input: Buffer): string {

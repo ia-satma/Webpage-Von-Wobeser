@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
@@ -16,6 +16,16 @@ import { LogIn, AlertCircle } from "lucide-react";
 type LoginFormData = {
   username: string;
   password: string;
+};
+
+type MfaFlow = {
+  setupRequired: boolean;
+};
+
+type MfaEnrollment = {
+  issuer: string;
+  accountName: string;
+  secret: string;
 };
 
 const createLoginSchema = (t: { emailRequired: string; passwordMin: string }) => z.object({
@@ -204,6 +214,46 @@ export default function AdminLogin() {
     },
   });
 
+  const [mfaFlow, setMfaFlow] = useState<MfaFlow | null>(null);
+  const [mfaEnrollment, setMfaEnrollment] = useState<MfaEnrollment | null>(null);
+  const [mfaCode, setMfaCode] = useState("");
+  const [useRecoveryCode, setUseRecoveryCode] = useState(false);
+  const [mfaError, setMfaError] = useState<string | null>(null);
+  const [recoveryCodes, setRecoveryCodes] = useState<string[] | null>(null);
+
+  const completeAuthenticatedLogin = (data: any) => {
+    establishAdminSession(data);
+    setMfaFlow(null);
+    setMfaEnrollment(null);
+    setMfaCode("");
+    toast({ title: t.loginSuccess });
+    setLocation("/admin/dashboard");
+  };
+
+  const beginMfa = async (data: { setupRequired?: boolean }) => {
+    const flow = { setupRequired: Boolean(data.setupRequired) };
+    setMfaFlow(flow);
+    setMfaError(null);
+    setMfaCode("");
+    setUseRecoveryCode(false);
+    if (!flow.setupRequired) return;
+
+    const response = await fetch("/api/admin/mfa/enroll", { credentials: "include" });
+    const body = await response.json().catch(() => ({}));
+    if (!response.ok || typeof body?.secret !== "string") {
+      throw new Error(
+        typeof body?.error === "string"
+          ? body.error
+          : (isSpanish ? "No se pudo preparar la verificación en dos pasos." : "Could not start two-step verification."),
+      );
+    }
+    setMfaEnrollment({
+      issuer: String(body.issuer || "Von Wobeser"),
+      accountName: String(body.accountName || ""),
+      secret: body.secret,
+    });
+  };
+
   const loginMutation = useMutation({
     mutationFn: async (data: LoginFormData) => {
       const res = await fetch("/api/admin/login", {
@@ -232,11 +282,11 @@ export default function AdminLogin() {
       return body;
     },
     onSuccess: (data) => {
-      establishAdminSession(data);
-      toast({
-        title: t.loginSuccess,
-      });
-      setLocation("/admin/dashboard");
+      if (data?.mfaRequired) {
+        void beginMfa(data).catch((error: Error) => setMfaError(error.message));
+        return;
+      }
+      completeAuthenticatedLogin(data);
     },
     onError: (error: Error) => {
       toast({
@@ -251,6 +301,50 @@ export default function AdminLogin() {
     loginMutation.mutate(data);
   };
 
+  const mfaMutation = useMutation({
+    mutationFn: async () => {
+      const endpoint = mfaFlow?.setupRequired
+        ? "/api/admin/mfa/enroll"
+        : useRecoveryCode
+          ? "/api/admin/mfa/recovery"
+          : "/api/admin/mfa/verify";
+      const body = mfaFlow?.setupRequired || !useRecoveryCode
+        ? { code: mfaCode }
+        : { recoveryCode: mfaCode };
+      const response = await fetch(endpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+        credentials: "include",
+      });
+      const result = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        const messages: Record<string, string> = {
+          MFA_INVALID_CODE: isSpanish ? "El código no es válido." : "The code is invalid.",
+          MFA_CHALLENGE_INVALID: isSpanish ? "La verificación expiró. Inicia sesión nuevamente." : "Verification expired. Sign in again.",
+          MFA_RATE_LIMITED: isSpanish ? "Demasiados intentos. Espera antes de volver a intentarlo." : "Too many attempts. Please wait before trying again.",
+        };
+        throw new Error(messages[String(result?.code || "")] || result?.error || (isSpanish ? "No se pudo verificar el código." : "Could not verify the code."));
+      }
+      return result;
+    },
+    onSuccess: (data) => {
+      if (Array.isArray(data?.recoveryCodes) && data.recoveryCodes.length) {
+        establishAdminSession(data);
+        setRecoveryCodes(data.recoveryCodes.filter((code: unknown) => typeof code === "string"));
+        return;
+      }
+      completeAuthenticatedLogin(data);
+    },
+    onError: (error: Error) => setMfaError(error.message),
+  });
+
+  const submitMfa = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setMfaError(null);
+    mfaMutation.mutate();
+  };
+
   return (
     <div className="admin-shell min-h-screen flex items-center justify-center px-4 bg-[radial-gradient(120%_120%_at_50%_0%,hsl(var(--muted))_0%,hsl(var(--background))_60%)]">
       <Card className="w-full max-w-md rounded-xl border-t-2 border-t-primary shadow-xl">
@@ -263,6 +357,105 @@ export default function AdminLogin() {
           </CardDescription>
         </CardHeader>
         <CardContent>
+          {recoveryCodes ? (
+            <div className="space-y-4" data-testid="mfa-recovery-codes">
+              <div className="rounded-md border border-amber-500/40 bg-amber-500/10 p-3 text-sm">
+                <p className="font-medium">{isSpanish ? "Guarda tus códigos de recuperación" : "Save your recovery codes"}</p>
+                <p className="mt-1 text-muted-foreground">
+                  {isSpanish
+                    ? "Cada código funciona una sola vez. Guárdalos en un gestor de contraseñas; no los compartas ni los guardes en el navegador."
+                    : "Each code works once. Store them in a password manager; do not share or save them in the browser."}
+                </p>
+              </div>
+              <div className="grid grid-cols-2 gap-2 rounded-md bg-muted p-3 font-mono text-xs" aria-label="Recovery codes">
+                {recoveryCodes.map((code) => <span key={code}>{code}</span>)}
+              </div>
+              <Button type="button" className="w-full" onClick={() => {
+                setRecoveryCodes(null);
+                setMfaFlow(null);
+                setMfaEnrollment(null);
+                toast({ title: t.loginSuccess });
+                setLocation("/admin/dashboard");
+              }}>
+                {isSpanish ? "Entiendo, continuar al panel" : "I understand, continue to the panel"}
+              </Button>
+            </div>
+          ) : mfaFlow ? (
+            <form onSubmit={submitMfa} className="space-y-4" data-testid="form-mfa">
+              <div className="space-y-1 text-sm">
+                <p className="font-medium">
+                  {mfaFlow.setupRequired
+                    ? (isSpanish ? "Configura la verificación en dos pasos" : "Set up two-step verification")
+                    : (isSpanish ? "Verificación en dos pasos" : "Two-step verification")}
+                </p>
+                {mfaFlow.setupRequired ? (
+                  <p className="text-muted-foreground">
+                    {isSpanish
+                      ? "Agrega una cuenta TOTP en tu autenticador con esta clave. Después escribe el código de seis dígitos."
+                      : "Add a TOTP account in your authenticator with this key, then enter its six-digit code."}
+                  </p>
+                ) : (
+                  <p className="text-muted-foreground">
+                    {useRecoveryCode
+                      ? (isSpanish ? "Escribe uno de tus códigos de recuperación." : "Enter one of your recovery codes.")
+                      : (isSpanish ? "Abre tu app autenticadora y escribe el código de seis dígitos." : "Open your authenticator app and enter the six-digit code.")}
+                  </p>
+                )}
+              </div>
+
+              {mfaFlow.setupRequired && (
+                <div className="rounded-md bg-muted p-3 text-sm">
+                  <p className="text-muted-foreground">{mfaEnrollment?.issuer || "Von Wobeser"} {mfaEnrollment?.accountName ? `— ${mfaEnrollment.accountName}` : ""}</p>
+                  <code className="mt-2 block break-all select-all font-mono text-xs" data-testid="text-mfa-secret">
+                    {mfaEnrollment?.secret || (isSpanish ? "Preparando clave…" : "Preparing key…")}
+                  </code>
+                </div>
+              )}
+
+              <div className="space-y-2">
+                <label htmlFor="mfa-code" className="text-sm font-medium">
+                  {useRecoveryCode ? (isSpanish ? "Código de recuperación" : "Recovery code") : (isSpanish ? "Código de verificación" : "Verification code")}
+                </label>
+                <Input
+                  id="mfa-code"
+                  value={mfaCode}
+                  onChange={(event) => setMfaCode(event.target.value)}
+                  inputMode={useRecoveryCode ? "text" : "numeric"}
+                  autoComplete="one-time-code"
+                  maxLength={useRecoveryCode ? 32 : 6}
+                  autoFocus
+                  required
+                  data-testid="input-mfa-code"
+                />
+              </div>
+
+              {mfaError && (
+                <div className="flex items-center gap-2 rounded-md bg-destructive/10 p-3 text-sm text-destructive" data-testid="error-mfa-message">
+                  <AlertCircle className="h-4 w-4" />
+                  <span>{mfaError}</span>
+                </div>
+              )}
+
+              <Button type="submit" className="w-full" disabled={mfaMutation.isPending || (mfaFlow.setupRequired && !mfaEnrollment)} data-testid="button-mfa-verify">
+                {mfaMutation.isPending
+                  ? (isSpanish ? "Verificando…" : "Verifying…")
+                  : (isSpanish ? "Verificar y continuar" : "Verify and continue")}
+              </Button>
+
+              {!mfaFlow.setupRequired && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  className="w-full text-xs"
+                  onClick={() => { setUseRecoveryCode((value) => !value); setMfaCode(""); setMfaError(null); }}
+                >
+                  {useRecoveryCode
+                    ? (isSpanish ? "Usar app autenticadora" : "Use authenticator app")
+                    : (isSpanish ? "Usar un código de recuperación" : "Use a recovery code")}
+                </Button>
+              )}
+            </form>
+          ) : (
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
               <FormField
@@ -331,6 +524,7 @@ export default function AdminLogin() {
               </Button>
             </form>
           </Form>
+          )}
         </CardContent>
       </Card>
     </div>

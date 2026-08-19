@@ -127,6 +127,8 @@ actual. Cada importación enlaza sus propios recursos.
 | `DB_BACKUP_ENCRYPTION_KEY` | Descifrar el respaldo entregado. Puede eliminarse después de validar la restauración y conservarse fuera de Replit. |
 | `SITE_URL` | URL pública definitiva del deployment. |
 | `REPLIT_APP_STORAGE_BUCKET_ID` | Solo si Replit no inyecta automáticamente el bucket vinculado. |
+| `MFA_ENCRYPTION_KEY` | 32 bytes aleatorios en base64 o hexadecimal. Cifra los secretos TOTP en PostgreSQL. |
+| `MFA_REQUIRED_FOR_PRIVILEGED` | Valor exacto `true`; exige TOTP a Dueño y Administradores. |
 
 `DATABASE_URL` debe ser la variable administrada e inyectada por la base del Replit del
 cliente; no se copia la URL actual.
@@ -139,8 +141,10 @@ cliente; no se copia la URL actual.
 | `OPENAI_IMAGE_API_KEY` | Opcional; clave separada para imágenes. |
 | `AI_MONTHLY_BUDGET_USD` | Presupuesto mensual visible para Dueños y Administradores. |
 
-La infraestructura MFA está desactivada; `MFA_ENCRYPTION_KEY` ya no es necesaria para
-el acceso administrativo.
+No activar `MFA_REQUIRED_FOR_PRIVILEGED` sin `MFA_ENCRYPTION_KEY`: el servicio
+rechaza el acceso privilegiado antes que degradarlo a solo contraseña. En el primer
+inicio de sesión, cada Dueño o Administrador configura una aplicación autenticadora
+TOTP y guarda sus códigos de recuperación fuera del navegador.
 
 No copiar Secrets desde GitHub ni compartir sus **valores** en comandos, capturas,
 documentos o registros. La contraseña se escribe solamente en el campo protegido de
@@ -248,6 +252,24 @@ Además, comprobar manualmente:
 - imágenes, video del Home y biblioteca de medios;
 - historiales de imágenes, audios y presentaciones;
 - ejecución controlada de los agentes con la API key del cliente.
+
+La auditoría de entrega también rechaza una tabla física heredada `public.users`,
+porque su modelo histórico contenía una columna de contraseña en texto claro. Antes
+de aprobar la entrega, ejecutar este diagnóstico sin exponer filas ni valores:
+
+```bash
+npm run security:retire-legacy-users
+```
+
+Si informa cero filas y la estructura esperada, Sistemas puede retirarla con la
+confirmación explícita:
+
+```bash
+npm run security:retire-legacy-users -- --confirm-empty-and-drop
+```
+
+Si hay filas o la estructura difiere, el comando no elimina nada: debe tratarse como
+incidente de datos heredados y revisarse fuera del repositorio antes de continuar.
 
 El instalador crea el Dueño indicado por `ADMIN_EMAIL` si no existe en el respaldo, sin
 modificar las demás cuentas. El cliente debe entrar con esa cuenta, confirmar sus

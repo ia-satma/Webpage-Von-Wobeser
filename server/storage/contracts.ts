@@ -44,7 +44,6 @@ import type {
   InsertTeamMember,
   InsertTestimonial,
   InsertTranslationCache,
-  InsertUser,
   InsertWebsiteAudit,
   InsertWebsiteAuditFinding,
   JobOpening,
@@ -64,7 +63,6 @@ import type {
   TeamMember,
   Testimonial,
   TranslationCache,
-  User,
   WebsiteAudit,
   WebsiteAuditFinding,
   news,
@@ -79,9 +77,6 @@ export type AdminLoginEventWithIdentity = AdminLoginEvent & {
 };
 
 export interface IStorage {
-  getUser(id: string): Promise<User | undefined>;
-  getUserByUsername(username: string): Promise<User | undefined>;
-  createUser(user: InsertUser): Promise<User>;
   getNews(): Promise<News[]>;
   getRecentNews(limit: number): Promise<News[]>;
   getRecentPublishedNews(limit: number): Promise<News[]>;

@@ -15,12 +15,12 @@ const moduleFiles = fs.readdirSync(modulesDirectory)
   .filter((name) => name.endsWith(".ts") && !name.startsWith("._"))
   .sort();
 
-const EXPECTED_SOURCE_EXPORT_HASH = "8f72b84f96367adcc70fc281d196987e45e9ab8fb06af3f636bdc575899a34a2";
-const EXPECTED_TYPE_DECLARATION_HASH = "39fb72955206eba6cad616bea7a77f29f4361785c196560680d2daad20dff1ad";
-const EXPECTED_RUNTIME_EXPORT_HASH = "c66d297641f74ff05ba3d3af84e638879084a7278ba4b14476560a4df4de27f9";
-const EXPECTED_ZOD_HASH = "8dc0612855c2af45046fb0616c5cfc27da2a60bd0da2dd4faed5dbc7b160c30e";
+const EXPECTED_SOURCE_EXPORT_HASH = "97d15399098fccd64a9ee7288ad34fd08ce3d4f99707a47305ca41a528e052e3";
+const EXPECTED_TYPE_DECLARATION_HASH = "d271c6c03f8fca90e84164693c69630bb0807396287a6d868896a08eac566d33";
+const EXPECTED_RUNTIME_EXPORT_HASH = "ad5bcca40ee936b9720990a60dcf4300e6ec30b18b94354ce80c037c3f9fda54";
+const EXPECTED_ZOD_HASH = "119e4a2cc0445b4b7f4a6a00f22341657bcab9494cd1fe0d353447f9c682b42b";
 const EXPECTED_CATALOG_HASH = "6662e2b3056e21bede4362ab8adaad8c20601663166b83b73511cce7fe634762";
-const EXPECTED_SQL_HASH = "20011ed701753df88f96f8b0429f356f1a0a5ef273efa5dbfa1dcd63efef5577";
+const EXPECTED_SQL_HASH = "e328a664d265aca7927ad8e5674a479ec909b170d66adc09b55b5ccf1d31d278";
 
 function sha256(value: unknown): string {
   const serialized = typeof value === "string" ? value : JSON.stringify(value);
@@ -177,18 +177,18 @@ function normalizedExportSql(): string {
 
 test("el esquema conserva exactamente su superficie pública original", () => {
   const sourceExports = collectSourceExports();
-  assert.equal(sourceExports.length, 233);
-  assert.equal(sourceExports.filter(([kind]) => kind === "value").length, 117);
-  assert.equal(sourceExports.filter(([kind]) => kind === "type").length, 102);
+  assert.equal(sourceExports.length, 229);
+  assert.equal(sourceExports.filter(([kind]) => kind === "value").length, 115);
+  assert.equal(sourceExports.filter(([kind]) => kind === "type").length, 100);
   assert.equal(sourceExports.filter(([kind]) => kind === "interface").length, 14);
   assert.equal(sha256(sourceExports), EXPECTED_SOURCE_EXPORT_HASH);
 
   const typeDeclarations = collectTypeDeclarations();
-  assert.equal(typeDeclarations.length, 116);
+  assert.equal(typeDeclarations.length, 114);
   assert.equal(sha256(typeDeclarations), EXPECTED_TYPE_DECLARATION_HASH);
 
   const runtimeExports = Object.keys(schema).sort();
-  assert.equal(runtimeExports.length, 117);
+  assert.equal(runtimeExports.length, 115);
   assert.equal(sha256(runtimeExports), EXPECTED_RUNTIME_EXPORT_HASH);
 });
 
@@ -201,13 +201,13 @@ test("las tablas, Zod, catálogos y DDL permanecen semánticamente idénticos", 
       return [];
     }
   });
-  assert.equal(tables.length, 56);
-  assert.equal(tables.reduce((total, table) => total + table.columns.length, 0), 627);
+  assert.equal(tables.length, 55);
+  assert.equal(tables.reduce((total, table) => total + table.columns.length, 0), 624);
   assert.equal(tables.reduce((total, table) => total + table.indexes.length, 0), 18);
   assert.equal(tables.reduce((total, table) => total + table.foreignKeys.length, 0), 10);
 
   const zodSchemas = normalizeExportedZod();
-  assert.equal(Object.keys(zodSchemas).length, 51);
+  assert.equal(Object.keys(zodSchemas).length, 50);
   assert.equal(sha256(zodSchemas), EXPECTED_ZOD_HASH);
 
   const catalogs = normalizeCatalogs();

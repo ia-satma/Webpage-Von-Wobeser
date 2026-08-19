@@ -1,6 +1,6 @@
 # Plan de pruebas y evidencia de seguridad
 
-Fecha de referencia: 2026-07-23.
+Fecha de referencia: 2026-08-19.
 
 ## Alcance y reglas
 
@@ -22,7 +22,7 @@ Decisiones del propietario:
 | --- | --- | --- |
 | V2 Autenticación | Argon2id 19 MiB/2/1, compatibilidad y migración silenciosa de bcrypt, política 12–16, contraseña generada definitiva | `server/security/auth.test.ts` |
 | V3 Sesiones | Cookie `__Host-*` HttpOnly/Secure/Strict, token hasheado, inactividad 30 min, máximo 8 h, revocación y CSRF | TypeScript, revisión de rutas |
-| V2 MFA retirado | Endpoints TOTP responden 410 y la infraestructura cifrada permanece inactiva para reversión | `server/security/passwordOnlyAuth.test.ts` |
+| V2 MFA | Para Dueño/Administrador, TOTP activado por política, secreto AES-256-GCM, desafío opaco HttpOnly de 10 min, 5 intentos y recuperación de un solo uso | `server/security/passwordOnlyAuth.test.ts`, `server/security/mfa.test.ts` |
 | V4 Acceso | Permisos separados para registros, exportaciones, documentos, usuarios y agentes | matriz manual por rol |
 | V5 Validación | Zod, límites de cuerpo/paginación/lotes, Drizzle parametrizado, comodines ILIKE escapados | TypeScript y pruebas de API |
 | V5 CSV | Neutralización de `=`, `+`, `-`, `@`, tabulador y retorno de carro | revisión de exportación |
@@ -30,8 +30,8 @@ Decisiones del propietario:
 | V8 Datos | noticias públicas solo publicadas y no futuras; retención y CV privados | pruebas de API y revisión |
 | V10 Comunicaciones | TLS validado para PostgreSQL externo; CORS explícito | configuración |
 | V12 Archivos | cuarentena, nombres de 128 bits, firma real, ZIP seguro, límites y ClamAV | `server/security/uploads.test.ts` |
-| V13 API | rate limit persistente, WebSocket autenticado/origen/límite, endpoints retirados | pruebas de API |
-| V14 Configuración | CSP Report-Only, Helmet, HSTS, `nosniff`, referrer y permissions policy | smoke test de cabeceras |
+| V13 API | rate limit persistente, WebSocket autenticado/origen/límite, MFA y endpoints administrativos protegidos | pruebas de API |
+| V14 Configuración | CSP aplicada en producción, Helmet, HSTS, `nosniff`, referrer y permissions policy | smoke test de cabeceras |
 | SSRF | allowlist, DNS previo y por redirección, bloqueo privado/metadata, timeout y tamaño | `server/security/network.test.ts` |
 | IA / prompt injection | bloques no confiables, redacción de aprendizaje, límites, revisión humana y presupuesto mensual | TypeScript y revisión de agentes |
 | Secretos/supply chain | Gitleaks en historial, CodeQL, Semgrep, Dependabot y `npm audit` | workflows de GitHub |
@@ -74,7 +74,7 @@ Ejecutar en ese clon:
 - SSRF a loopback, RFC1918, link-local, metadata, IPv6 privado, DNS rebinding simulado
   y redirecciones.
 - Traversal, doble extensión, MIME falso, SVG/HTML/ejecutable, ZIP bomb y muestra EICAR.
-- Fuerza bruta, enumeración, expiración absoluta/inactividad y revocación de sesiones.
+- Fuerza bruta, enumeración, expiración absoluta/inactividad, revocación y activación de MFA sobre sesiones previas.
 - WebSocket sin cookie, origen incorrecto y exceso de conexiones.
 - Límites y concurrencia de agentes, tamaño de prompts y presupuesto autorizado.
 - Exportaciones masivas, alertas y ausencia de PII/secretos en logs.
@@ -87,7 +87,7 @@ Ejecutar en ese clon:
 - `npm audit` sin vulnerabilidades altas.
 - Gitleaks sin secretos reales en archivos, ramas, etiquetas o historial.
 - TypeScript, pruebas, build y `git diff --check` exitosos.
-- Evidencia ES/EN del sitio, panel, acceso por contraseña, archivos y permisos.
+- Evidencia ES/EN del sitio, panel, MFA de una cuenta privilegiada, archivos y permisos.
 
 ## Riesgos residuales y pendientes externos
 

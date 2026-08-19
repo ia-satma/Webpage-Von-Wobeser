@@ -3,20 +3,6 @@ import { pgTable, text, varchar, timestamp, integer, boolean, jsonb, index } fro
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
-export const users = pgTable("users", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  username: text("username").notNull().unique(),
-  password: text("password").notNull(),
-});
-
-export const insertUserSchema = createInsertSchema(users).pick({
-  username: true,
-  password: true,
-});
-
-export type InsertUser = z.infer<typeof insertUserSchema>;
-export type User = typeof users.$inferSelect;
-
 // ============================================
 // BLOG ADMIN MODULE
 // ============================================
@@ -88,8 +74,8 @@ export const insertAdminSessionSchema = createInsertSchema(adminSessions).omit({
 export type InsertAdminSession = z.infer<typeof insertAdminSessionSchema>;
 export type AdminSession = typeof adminSessions.$inferSelect;
 
-// Infraestructura TOTP retirada del flujo activo y conservada para una posible
-// reversión. Los secretos existentes continúan cifrados y nunca se exponen.
+// Credenciales TOTP. El secreto se cifra con AES-256-GCM antes de persistirse;
+// `enabledAt` solo se establece después de comprobar un código válido.
 export const adminMfaCredentials = pgTable("admin_mfa_credentials", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   userId: varchar("user_id").notNull().unique().references(() => adminUsers.id, { onDelete: "cascade" }),
@@ -104,8 +90,8 @@ export const insertAdminMfaCredentialSchema = createInsertSchema(adminMfaCredent
 export type InsertAdminMfaCredential = typeof adminMfaCredentials.$inferInsert;
 export type AdminMfaCredential = typeof adminMfaCredentials.$inferSelect;
 
-// Desafíos históricos de MFA, conservados únicamente para compatibilidad y
-// limpieza de registros previos. Los endpoints activos responden 410 Gone.
+// Desafíos efímeros de MFA. La base conserva exclusivamente el hash SHA-256 del
+// token; el valor crudo vive en una cookie HttpOnly, SameSite=Strict y de vida corta.
 export const adminAuthChallenges = pgTable("admin_auth_challenges", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   userId: varchar("user_id").notNull().references(() => adminUsers.id, { onDelete: "cascade" }),

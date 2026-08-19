@@ -5,6 +5,7 @@ import { eq, sql } from "drizzle-orm";
 import { storage } from "./storage";
 import { db } from "./db";
 import { securityRateLimits, type AdminSession, type AdminUser } from "@shared/schema";
+import { isMfaRequiredForRole } from "./security/mfa";
 
 const TOKEN_BYTES = 32;
 const IDLE_SESSION_MINUTES = 30;
@@ -352,6 +353,16 @@ export async function authMiddleware(req: Request, res: Response, next: NextFunc
       return;
     }
     const { session, user } = resolved;
+
+    // Al activar MFA no se conservan sesiones privilegiadas creadas antes de
+    // completar el segundo factor. Esto evita una ventana de transición en la
+    // que una cookie previa pueda eludir la nueva política.
+    if (isMfaRequiredForRole(user.role) && !session.mfaVerified) {
+      await storage.deleteAdminSession(session.tokenHash);
+      clearAuthCookie(res, SESSION_COOKIE);
+      res.status(401).json({ error: "Two-step verification required", code: "MFA_REQUIRED" });
+      return;
+    }
 
     if (!["GET", "HEAD", "OPTIONS"].includes(req.method)) {
       const csrf = req.header("x-csrf-token");
