@@ -1657,6 +1657,99 @@ b,strong {
   }
 }
 
+/*
+ * Estabilidad de plantillas públicas en teléfonos.
+ *
+ * Son límites de cada superficie, no un ocultamiento global: cualquier fallo
+ * de layout conserva visibilidad durante desarrollo y los controles siguen
+ * pudiendo mostrar su foco fuera de la tarjeta.
+ */
+@media (max-width: 760px) {
+  .attorney-directory__groups {
+    margin-inline: 0;
+    min-width: 0;
+    width: 100%;
+  }
+
+  .attorney-directory__group {
+    min-width: 0;
+    padding-inline: 0;
+  }
+
+  .attorney-directory__grid,
+  .attorney-directory__result,
+  .attorney-directory__result a,
+  .attorney-directory__portrait,
+  .vw-contact-page__location,
+  .vw-contact-page__map-card,
+  .vw-contact-page__details,
+  .vwb-site-footer__grid,
+  .vwb-site-footer__bottom {
+    min-width: 0;
+  }
+
+  .attorney-directory__portrait img {
+    max-width: 100%;
+  }
+
+  .vw-contact-page__details address,
+  .vw-contact-location__row a,
+  .vwb-site-footer__contact-row address,
+  .vwb-site-footer__contact-row a,
+  .vwb-site-footer__copyright {
+    overflow-wrap: anywhere;
+  }
+
+  .home__rec--recognitions .slick-list {
+    margin-inline: 30px;
+  }
+
+  .home__rec--recognitions .slick-arrow.slick-prev {
+    left: 2px;
+  }
+
+  .home__rec--recognitions .slick-arrow.slick-next {
+    right: 2px;
+  }
+}
+
+@media (max-width: 480px) {
+  /* El antiguo valor de 3 px deja textos y controles pegados al borde. */
+  .wrap {
+    padding-inline: 18px;
+  }
+
+  .attorney-directory__filters {
+    row-gap: 10px;
+  }
+
+  .attorney-directory__status {
+    align-self: center;
+    font-size: 10px;
+    letter-spacing: .065em;
+  }
+
+  .attorney-directory__letters {
+    max-width: min(100vw - 32px, 252px);
+  }
+
+  .home__rec--recognitions .slick-list {
+    margin-inline: 24px;
+  }
+
+  .home__rec--recognitions .slick-arrow {
+    height: 32px;
+    width: 24px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .attorney-directory__portrait img,
+  .home__rec--recognitions .slick-arrow {
+    transition: none;
+  }
+}
+
 /*.page {
   padding-top: 110px;
   padding-bottom: 90px;

@@ -328,7 +328,7 @@ export const SEARCH_FORMS_SCRIPT = `<script>(function(){try{
 // Se incrementa junto con los estilos globales del espejo para que las
 // navegaciones existentes no conserven una tipografía previa en caché.
 const NAV_ASSET_VERSION = "20260818-footer-central";
-const PUBLIC_STYLE_ASSET_VERSION = "20260819-pagespeed";
+const PUBLIC_STYLE_ASSET_VERSION = "20260819-mobile";
 const PUBLIC_STYLE_PATH = "/templates/beez3/css/public.css";
 const LEGACY_EVENTS_ASSET_VERSION = "20260813-csp";
 const LEGACY_EVENTS_SCRIPT = `<script defer src="/vwb-legacy-events.js?v=${LEGACY_EVENTS_ASSET_VERSION}"></script>`;
@@ -435,6 +435,25 @@ function uploadedResponsiveVariants(source: string): Array<{ url: string; width:
   });
 }
 
+/**
+ * Los retratos del directorio viven fuera del espejo histórico, en
+ * `attached_assets`. Sus originales pesan hasta 1.2 MB y son mostrados en
+ * tarjetas de proporción 4:5. Se generan como recursos estáticos versionables
+ * durante `media:optimize`; nunca se transforma una URL arbitraria en runtime.
+ */
+function attorneyPortraitResponsiveVariants(source: string): Array<{ url: string; width: number }> {
+  const match = source.match(/^\/(partner_photos|associate_photos|of_counsel_photos)\/([A-Za-z0-9._-]+)$/);
+  if (!match) return [];
+  const [, group, filename] = match;
+  const parsed = path.posix.parse(filename);
+  return [320, 640].flatMap((width) => {
+    const relative = path.join("public", "optimized-attorney-photos", group, `${parsed.name}-${width}.webp`);
+    return fs.existsSync(path.join(process.cwd(), relative))
+      ? [{ url: `/optimized-attorney-photos/${group}/${parsed.name}-${width}.webp`, width }]
+      : [];
+  });
+}
+
 export function optimizePublicImageTags(html: string): string {
   return html.replace(/<img\b[^>]*>/gi, (tag) => {
     const source = tag.match(/\bsrc=["']([^"']+)["']/i)?.[1] || "";
@@ -442,15 +461,17 @@ export function optimizePublicImageTags(html: string): string {
     const manifestEntry = responsiveImageManifest[cleanSource];
     const variants = manifestEntry?.variants?.length
       ? manifestEntry.variants
-      : uploadedResponsiveVariants(cleanSource);
+      : [...uploadedResponsiveVariants(cleanSource), ...attorneyPortraitResponsiveVariants(cleanSource)];
     const critical = /(?:logo|vonwobeser|vw40|vw2025|vw_2025)/i.test(source);
     const displaySize = /\bhome__rec--item\b/i.test(tag)
       ? "156px"
       : /\bvwb-site-footer__logo\b/i.test(tag)
         ? "80px"
-        : /\bheader__logo--img\b/i.test(tag)
-          ? "220px"
-          : "";
+      : /\bheader__logo--img\b/i.test(tag)
+        ? "220px"
+        : /\bdata-vwb-image-kind=["']attorney-portrait["']/i.test(tag)
+          ? "(max-width: 640px) calc(100vw - 32px), (max-width: 980px) calc(50vw - 48px), 280px"
+        : "";
     let next = tag;
     const add = (attribute: string) => {
       next = next.replace(/\s*\/?>$/, (ending) => ` ${attribute}${ending.trimStart()}`);

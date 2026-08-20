@@ -16,6 +16,14 @@ export function registerPublicAssetRoutes(app: Express): void {
     res.sendFile(placeholderPath);
   });
 
+  // Variantes WebP del directorio. Se publican desde `public` con un nombre
+  // determinista y no sustituyen los retratos originales: el `src` conserva el
+  // respaldo para archivos nuevos que aún no hayan pasado por media:optimize.
+  app.use('/optimized-attorney-photos', express.static(path.join(process.cwd(), 'public', 'optimized-attorney-photos'), {
+    maxAge: '365d',
+    immutable: true,
+  }));
+
   // Serve partner photos from attached_assets/partner_photos
   app.use('/partner_photos', express.static(path.join(process.cwd(), 'attached_assets', 'partner_photos'), {
     maxAge: '7d',

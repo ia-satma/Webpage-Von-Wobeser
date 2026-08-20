@@ -301,6 +301,9 @@ test("el directorio de abogados agrupa tarjetas, localiza perfiles y filtra desd
   assert.equal(es("[data-attorney-result]:not([hidden])").length, 1);
   assert.equal(es("[data-attorney-result]:not([hidden]) a").attr("href"), "/abogado/maria-nunez");
   assert.equal(es("[data-attorney-result]:not([hidden]) img").attr("loading"), "lazy");
+  assert.equal(es("[data-attorney-result]:not([hidden]) img").attr("width"), "640");
+  assert.equal(es("[data-attorney-result]:not([hidden]) img").attr("height"), "800");
+  assert.equal(es("[data-attorney-result]:not([hidden]) img").attr("data-vwb-image-kind"), "attorney-portrait");
   assert.equal(es("[data-attorney-letter-option][value=\"N\"]").attr("aria-pressed"), "true");
   assert.equal(es("input[data-attorney-letter]").attr("value"), "N");
   assert.equal(es("[data-attorney-initial-label]").text(), "N");
@@ -767,7 +770,7 @@ test("la carga pública elimina librerías Joomla duplicadas y usa jQuery vigent
   assert.doesNotMatch(optimized, /media\/jui|media\/system\/js\/core|jquery_3\.3\.1/);
   assert.match(optimized, /_vendor\/jquery\/jquery-3\.7\.1\.min\.js/);
   assert.match(optimized, /<script defer src="\/templates\/beez3\/js\/min\/slick\.min\.js"/);
-  assert.match(optimized, /templates\/beez3\/css\/public\.css\?v=20260819-pagespeed/);
+  assert.match(optimized, /templates\/beez3\/css\/public\.css\?v=20260819-mobile/);
   assert.doesNotMatch(optimized, /_vendor\/slick\/slick\.css/);
   assert.doesNotMatch(optimized, /fontawesome|joomla-script-options/);
 });
@@ -789,6 +792,22 @@ test("la optimización responsiva respeta el tamaño CSS del logo institucional"
   assert.equal(banner.attr("width"), "5184");
   assert.equal(banner.attr("height"), "3456");
   assert.match(banner.attr("srcset") || "", /3-640\.webp 640w/);
+});
+
+test("los retratos locales del directorio reciben variantes WebP y conservan su respaldo", () => {
+  const html = optimizePublicImageTags(`
+    <img src="/partner_photos/luis_burgueno.jpg" width="640" height="800" data-vwb-image-kind="attorney-portrait" alt="">
+  `);
+  const $ = cheerio.load(html);
+  const portrait = $("img");
+
+  assert.equal(portrait.attr("src"), "/partner_photos/luis_burgueno.jpg");
+  assert.match(portrait.attr("srcset") || "", /optimized-attorney-photos\/partner_photos\/luis_burgueno-320\.webp 320w/);
+  assert.match(portrait.attr("srcset") || "", /optimized-attorney-photos\/partner_photos\/luis_burgueno-640\.webp 640w/);
+  assert.equal(portrait.attr("sizes"), "(max-width: 640px) calc(100vw - 32px), (max-width: 980px) calc(50vw - 48px), 280px");
+  assert.equal(portrait.attr("loading"), "lazy");
+  assert.equal(portrait.attr("width"), "640");
+  assert.equal(portrait.attr("height"), "800");
 });
 
 test("el carrusel heredado usa visibilidad real sin destruirse durante el scroll", () => {

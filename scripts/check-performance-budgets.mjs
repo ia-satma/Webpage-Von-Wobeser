@@ -59,6 +59,26 @@ assert.deepEqual(oversized, [], `Variantes responsivas demasiado pesadas: ${over
 const manifest = JSON.parse(fs.readFileSync(path.join(optimizedRoot, "manifest.json"), "utf8"));
 assert.ok(Object.keys(manifest).length >= 200, "El manifiesto responsivo no cubre suficientes imágenes públicas.");
 
+const attorneyVariantsRoot = path.join(root, "public", "optimized-attorney-photos");
+const attorneyVariantFiles = [];
+function walkAttorneyVariants(directory) {
+  for (const entry of fs.readdirSync(directory, { withFileTypes: true })) {
+    const absolute = path.join(directory, entry.name);
+    if (entry.isDirectory()) walkAttorneyVariants(absolute);
+    else if (entry.name.endsWith(".webp")) attorneyVariantFiles.push(absolute);
+  }
+}
+walkAttorneyVariants(attorneyVariantsRoot);
+assert.ok(attorneyVariantFiles.length >= 220, "Faltan variantes WebP para los retratos del directorio.");
+assert.ok(
+  attorneyVariantFiles.every((file) => !path.basename(file).startsWith("._")),
+  "El paquete móvil no debe incluir metadatos AppleDouble.",
+);
+assert.ok(
+  attorneyVariantFiles.every((file) => fs.statSync(file).size <= 180 * 1024),
+  "Una variante de retrato supera el presupuesto móvil de 180 KB.",
+);
+
 const renderer = fs.readFileSync(path.join(root, "server", "mirror", "renderHome.ts"), "utf8");
 assert.match(renderer, /data-bg-mobile=/, "El carrusel debe usar fondos diferidos.");
 assert.doesNotMatch(renderer, /style="background-image:url/, "El renderer no debe cargar fondos pesados de forma anticipada.");

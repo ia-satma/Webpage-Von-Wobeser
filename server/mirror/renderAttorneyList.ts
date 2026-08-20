@@ -330,7 +330,7 @@ export function renderAttorneyDirectory(
             : `/lawyer/${esc(attorney.slug)}${langSuffix}`;
           const hidden = attorneyMatchesDirectoryFilters(attorney, filters) ? "" : " hidden";
           const image = attorney.imageUrl
-            ? `<img src="${esc(attorney.imageUrl)}" alt="" loading="lazy" decoding="async">`
+            ? `<img src="${esc(attorney.imageUrl)}" alt="" width="640" height="800" loading="lazy" decoding="async" data-vwb-image-kind="attorney-portrait">`
             : `<span class="attorney-directory__portrait--fallback" aria-hidden="true"></span>`;
           return `<li class="attorney-directory__result" data-attorney-result data-name="${esc(normalizeDirectoryValue(attorney.name))}" data-role="${esc(attorney.role)}" data-practices="${esc(attorney.practiceSlugs.join("|"))}" data-name-initials="${esc(initials.join("|"))}"${hidden}>` +
             `<a href="${profilePath}"><span class="attorney-directory__portrait">${image}</span><span class="attorney-directory__name">${esc(attorney.name)}</span><span class="attorney-directory__role">${esc(attorney.roleLabel)}</span></a>` +
