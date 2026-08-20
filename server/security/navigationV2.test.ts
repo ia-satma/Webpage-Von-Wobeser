@@ -244,6 +244,7 @@ test("el preset clásico se identifica en servidor y conserva el diseño como al
 test("el clic abre escritorio, conserva el acordeón móvil y respeta el cromo blanco histórico", () => {
   const script = readFileSync(new URL("../../frontend-mirror/templates/beez3/js/min/functions.min.js", import.meta.url), "utf8");
   const styles = readFileSync(new URL("../../frontend-mirror/templates/beez3/css/von.css", import.meta.url), "utf8");
+  const stabilityStyles = readFileSync(new URL("../../frontend-mirror/templates/beez3/css/vwb-stability.css", import.meta.url), "utf8");
   const navigationStyles = styles.slice(
     styles.indexOf("Navegación VWyS v2"),
     styles.indexOf("La bibliografía propia"),
@@ -265,6 +266,9 @@ test("el clic abre escritorio, conserva el acordeón móvil y respeta el cromo b
   }
   assert.match(navigationStyles, /@media \(max-width: 1239px\)[\s\S]*?\.vw-nav-v2__panel:not\(\[hidden\]\)\s*\{[\s\S]*?background:\s*#faf9f8;[\s\S]*?border-radius:\s*7px;/);
   assert.doesNotMatch(navigationStyles, /#2d2d2f/i);
+  assert.match(stabilityStyles, /body\.vwb-navigation-v2 nav\.nav\.menu_JS \.vw-nav-v2__item,[\s\S]*?opacity:\s*1\s*!important;[\s\S]*?transform:\s*none\s*!important;/);
+  assert.match(stabilityStyles, /\.vw-nav-v2__trigger > span,[\s\S]*?-webkit-text-fill-color:\s*#5e5e5e\s*!important;/);
+  assert.match(stabilityStyles, /\.vw-nav-v2__item--current \.vw-nav-v2__trigger,[\s\S]*?-webkit-text-fill-color:\s*#ac162c\s*!important;/);
 });
 
 test("la respuesta pública mantiene los arreglos anteriores y admite 18 prácticas y 7 industrias", () => {

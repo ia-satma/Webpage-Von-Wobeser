@@ -196,6 +196,20 @@ test("la franja de Nuevas oficinas sale del hero heredado antes de renderizarse"
   assert.equal($(".home__hero").next("section").find(".home__rojo--title").text(), "Vamos a donde los clientes nos necesitan");
 });
 
+test("la plantilla real de Inicio conserva la franja fuera del hero y antes de los testimonios", () => {
+  const realTemplate = readFileSync(new URL("../../frontend-mirror/index.html", import.meta.url), "utf8");
+  const $ = cheerio.load(renderHome(realTemplate, [], {}, "es"));
+  const hero = $(".home__hero").first();
+  const banner = $(".home__rojo").first();
+  const bannerSection = banner.closest("section");
+
+  assert.equal($(".home__rojo").length, 1);
+  assert.equal(banner.closest(".home__hero").length, 0);
+  assert.equal(bannerSection.prev().is(hero), true);
+  assert.equal(bannerSection.next("#nav").length, 1);
+  assert.equal($("#nav .home__intro--wrap").length, 1);
+});
+
 test("Newsletter oculta solo la etiqueta vacía y permite restaurarla desde configuración", () => {
   const hiddenHtml = renderHome(homeTemplate, [], {}, "es");
   const $hidden = cheerio.load(hiddenHtml);

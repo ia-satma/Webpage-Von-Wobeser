@@ -775,13 +775,17 @@ export function renderHome(
   // El HTML histórico deja sin cerrar el contenedor del hero antes de la
   // franja roja. Si se conserva esa anidación, el banner se pinta encima del
   // video (especialmente en móvil) en lugar de iniciar la siguiente sección.
-  // Se mueve el bloque completo, no solo su texto, para preservar su CTA y
-  // mantenerlo inmediatamente después del hero en ambos idiomas.
+  // Se replica el bloque y se elimina el original antes de insertarlo junto al
+  // hero: mover un descendiente directamente después de su propio ancestro
+  // puede dejar una jerarquía inválida al normalizar el HTML legado.
   const bannerHero = $(".home__hero").first();
   const redBanner = bannerHero.find(".home__rojo").first();
   if (bannerHero.length && redBanner.length) {
     const bannerSection = redBanner.closest("section");
-    (bannerSection.length ? bannerSection : redBanner).insertAfter(bannerHero);
+    const bannerBlock = bannerSection.length ? bannerSection : redBanner;
+    const relocatedBanner = bannerBlock.clone();
+    bannerBlock.remove();
+    bannerHero.after(relocatedBanner);
   }
   const seeMore = lang === "es" ? "VER MÁS" : "SEE MORE";
   const newsTitle = cfg(config, "home_news_title", lang) || (lang === "es" ? "Noticias" : "News");

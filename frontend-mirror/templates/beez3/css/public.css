@@ -7716,3 +7716,90 @@ body {
 .vwb-consent button[data-action="reject"]{background:var(--vwb-red);color:#fff}
 /* Inter se limita a Regular y Medium; el diálogo no sintetiza pesos pesados. */
 .vwb-consent :where(a,button,h3,strong),.vwb-consent-dialog :where(a,button,h3,strong),.vwb-external-consent :where(button,h3,strong),.vwb-cookie-policy :where(.vwb-cookie-policy__meta,th,th:first-child,td:first-child,a,strong){font-weight:500!important}
+
+/* source: frontend-mirror/templates/beez3/css/vwb-stability.css */
+/* --------------------------------------------------------------------------
+   Estabilidad visual pública
+
+   Esta capa se empaqueta al final de public.css. Aísla dos componentes que
+   conviven con reglas históricas de igual nombre sin alterar sus plantillas,
+   contenido ni los presets del panel administrativo.
+   -------------------------------------------------------------------------- */
+
+/* El menú V2 reutiliza las clases heredadas .nav__menu--item y
+   .nav__menu--link. El CSS histórico las anima desde opacity: 0, un estado
+   correcto para el menú antiguo a pantalla completa, pero incorrecto para la
+   cabecera institucional persistente. */
+body.vwb-navigation-v2 .header.header_JS,
+body.vwb-navigation-v2 .header.header_JS.fixed,
+body.vwb-navigation-v2 .nav--white,
+body.vwb-navigation-v2 nav.nav.menu_JS,
+body.vwb-navigation-v2 nav.nav.menu_JS .nav__menu,
+body.vwb-navigation-v2 nav.nav.menu_JS .vw-nav-v2 {
+  background-color: #fff !important;
+  filter: none !important;
+  opacity: 1 !important;
+}
+
+body.vwb-navigation-v2 nav.nav.menu_JS .vw-nav-v2__item,
+body.vwb-navigation-v2 nav.nav.menu_JS .vw-nav-v2__utilities {
+  opacity: 1 !important;
+  -webkit-transform: none !important;
+  transform: none !important;
+}
+
+body.vwb-navigation-v2 nav.nav.menu_JS .vw-nav-v2__trigger,
+body.vwb-navigation-v2 nav.nav.menu_JS .vw-nav-v2__trigger > span,
+body.vwb-navigation-v2 nav.nav.menu_JS .vw-nav-v2__utility {
+  color: #5e5e5e !important;
+  -webkit-text-fill-color: #5e5e5e !important;
+  opacity: 1 !important;
+  text-shadow: none !important;
+}
+
+body.vwb-navigation-v2 nav.nav.menu_JS .vw-nav-v2__trigger:hover,
+body.vwb-navigation-v2 nav.nav.menu_JS .vw-nav-v2__trigger:focus-visible,
+body.vwb-navigation-v2 nav.nav.menu_JS .vw-nav-v2__trigger[aria-expanded="true"],
+body.vwb-navigation-v2 nav.nav.menu_JS .vw-nav-v2__item--current .vw-nav-v2__trigger,
+body.vwb-navigation-v2 nav.nav.menu_JS .vw-nav-v2__utility:hover,
+body.vwb-navigation-v2 nav.nav.menu_JS .vw-nav-v2__utility:focus-visible {
+  color: #ac162c !important;
+  -webkit-text-fill-color: #ac162c !important;
+}
+
+/* El carrusel de testimonios se mide por Slick; el contenedor exterior no
+   debe tener una altura de viewport. Así la sección conserva la altura del
+   contenido más una separación editorial estable, también en iOS. */
+.home .home__intro--wrap {
+  height: auto !important;
+  min-height: 0 !important;
+  padding-block: clamp(2rem, 4vw, 3.5rem) !important;
+}
+
+.home .home__intro {
+  padding-block: clamp(2rem, 4vw, 3.75rem) !important;
+}
+
+.home .home__intro:not(.slick-initialized) {
+  height: auto !important;
+  min-height: 0 !important;
+  overflow: hidden;
+}
+
+.home .home__intro:not(.slick-initialized) .home__intro--item:not(:first-child) {
+  display: none;
+}
+
+/* El margen negativo pertenecía a la versión en que la franja estaba anidada
+   dentro del hero. Como ahora es su sección hermana, no debe invadir el video
+   ni crear una línea de solapamiento al final de la portada. */
+.home__hero + section .home__rojo {
+  margin-top: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body.vwb-navigation-v2 nav.nav.menu_JS .vw-nav-v2__trigger,
+  body.vwb-navigation-v2 nav.nav.menu_JS .vw-nav-v2__utility {
+    transition: none !important;
+  }
+}

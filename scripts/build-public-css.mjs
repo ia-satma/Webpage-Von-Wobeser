@@ -10,6 +10,9 @@ const sources = [
   path.join(root, "frontend-mirror", "templates", "beez3", "css", "typography.css"),
   path.join(root, "frontend-mirror", "_vendor", "slick", "slick.css"),
   path.join(root, "public", "vwb-cookie-consent.css"),
+  // Debe quedar al final: sus reglas son correcciones acotadas que neutralizan
+  // colisiones de selectores del CSS heredado sin alterar su orden interno.
+  path.join(root, "frontend-mirror", "templates", "beez3", "css", "vwb-stability.css"),
 ];
 
 const sections = await Promise.all(sources.map(async (source) => {
