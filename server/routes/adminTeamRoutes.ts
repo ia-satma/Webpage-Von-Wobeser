@@ -88,7 +88,7 @@ export function registerAdminTeamRoutes(app: Express): void {
         storage.setTeamMemberPracticeGroups(member.id, practiceGroupIds),
         storage.setTeamMemberIndustryGroups(member.id, industryGroupIds),
       ]);
-      auditLog("create", "team", member.id, (req as any).adminUser?.id || "unknown");
+      await auditLog("create", "team", member.id, (req as any).adminUser?.id || "unknown", undefined, req);
       const linguisticWarnings = await getLinguisticWarnings([
         { field: "title", lang: "en", text: member.title },
         { field: "titleEs", lang: "es", text: member.titleEs },
@@ -131,7 +131,7 @@ export function registerAdminTeamRoutes(app: Express): void {
         industryGroupIds = req.body.industryGroupIds;
         await storage.setTeamMemberIndustryGroups(member.id, industryGroupIds!);
       }
-      auditLog("update", "team", req.params.id, (req as any).adminUser?.id || "unknown");
+      await auditLog("update", "team", req.params.id, (req as any).adminUser?.id || "unknown", undefined, req);
       const linguisticWarnings = await getLinguisticWarnings([
         { field: "title", lang: "en", text: member.title },
         { field: "titleEs", lang: "es", text: member.titleEs },
@@ -157,7 +157,7 @@ export function registerAdminTeamRoutes(app: Express): void {
       if (!deleted) {
         return apiError(res, 404, "Team member not found");
       }
-      auditLog("delete", "team", req.params.id, (req as any).adminUser?.id || "unknown");
+      await auditLog("delete", "team", req.params.id, (req as any).adminUser?.id || "unknown", undefined, req);
       res.json({ success: true });
     } catch (error) {
       console.error("Delete team member error:", error);

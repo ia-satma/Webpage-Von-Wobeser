@@ -2,12 +2,21 @@ import type { Express, Request, Response } from "express";
 import { z } from "zod";
 import { authMiddleware, requirePermission } from "../auth";
 import { storage } from "../storage";
+import { listAdminAuditEvents } from "../security/adminAudit";
 
 const findingsPageQuerySchema = z.object({
   page: z.coerce.number().int().min(1).max(100_000).default(1),
   limit: z.coerce.number().int().min(1).max(100).default(50),
   category: z.enum(["links", "navigation", "translations", "performance", "seo", "content", "linguistic", "system"]).optional(),
   severity: z.enum(["critical", "high", "medium", "low"]).optional(),
+}).strict();
+
+const auditEventsQuerySchema = z.object({
+  page: z.coerce.number().int().min(1).max(100_000).default(1),
+  limit: z.coerce.number().int().min(1).max(100).default(50),
+  action: z.enum(["create", "update", "delete"]).optional(),
+  resource: z.string().trim().regex(/^[a-z0-9][a-z0-9_.:-]{0,79}$/i).optional(),
+  actorId: z.string().uuid().optional(),
 }).strict();
 
 function pagination(page: number, limit: number, total: number) {
@@ -24,6 +33,23 @@ function shouldIncludeFindings(value: unknown): boolean {
 }
 
 export function registerSystemAuditRoutes(app: Express): void {
+  app.get("/api/admin/security/audit-events", authMiddleware, requirePermission("advanced"), async (req: Request, res: Response) => {
+    const parsed = auditEventsQuerySchema.safeParse(req.query);
+    if (!parsed.success) return res.status(400).json({ error: "Invalid audit query" });
+    try {
+      const { page, limit, action, resource, actorId } = parsed.data;
+      const result = await listAdminAuditEvents({ page, limit, action, resource, actorId });
+      res.setHeader("Cache-Control", "private, no-store");
+      res.json({
+        success: true,
+        events: result.events,
+        pagination: pagination(page, limit, result.total),
+      });
+    } catch {
+      res.status(500).json({ error: "Failed to fetch administrative audit events" });
+    }
+  });
+
   // System Chronicler API - Nerve Center data
   app.get("/api/system/chronicler", authMiddleware, requirePermission("advanced"), async (req: Request, res: Response) => {
     try {

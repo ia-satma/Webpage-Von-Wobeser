@@ -3,7 +3,7 @@ import express, { type Request, Response, NextFunction } from "express";
 import cors from "cors";
 import helmet from "helmet";
 import compression from "compression";
-import { registerRoutes, runSecurityMaintenance } from "./routes";
+import { registerRoutes } from "./routes";
 import { serveStatic } from "./static";
 import { createServer } from "http";
 import { randomUUID } from "node:crypto";
@@ -12,6 +12,9 @@ import { invalidatePublicPageCache } from "./mirror/pageCache";
 import { invalidatePublicNavigationMenuCache } from "./mirror/navigationMenu";
 import { isMigrationReadOnlyEnabled, migrationReadOnlyGuard } from "./database/maintenance";
 import { createCspNonce } from "./security/csp";
+import { recordDeploymentProvenance } from "./security/deploymentProvenance";
+import { auditResourceFromRoute, recordAdminAuditEvent } from "./security/adminAudit";
+import { hasDurableAuditForRequest } from "./routes/routeUtils";
 
 const app = express();
 // Detrás del reverse-proxy de Replit (inyecta X-Forwarded-For). Sin esto req.ip es la IP del
@@ -171,6 +174,30 @@ app.use((req, res, next) => {
 
       log(`${logLine} requestId=${requestId}`);
     }
+
+    const auditAction = req.method === "POST"
+      ? "create"
+      : req.method === "PUT" || req.method === "PATCH"
+        ? "update"
+        : req.method === "DELETE"
+          ? "delete"
+          : null;
+    if (
+      auditAction
+      && req.adminUser
+      && res.statusCode >= 200
+      && res.statusCode < 400
+      && !hasDurableAuditForRequest(req)
+    ) {
+      const routePath = typeof req.route?.path === "string" ? req.route.path : "admin-mutation";
+      void recordAdminAuditEvent({
+        action: auditAction,
+        resource: auditResourceFromRoute(req.baseUrl, routePath),
+        resourceId: req.params?.id || null,
+        actorId: req.adminUser.id,
+        details: { status: res.statusCode },
+      }).catch(() => console.error("[AUDIT] durable write failed"));
+    }
   });
 
   next();
@@ -238,6 +265,15 @@ app.use(migrationReadOnlyGuard);
         );
         return;
       }
+
+      if (isProduction) {
+        try {
+          const recorded = await recordDeploymentProvenance();
+          log(recorded ? "Build provenance recorded" : "Build provenance unavailable", "security");
+        } catch {
+          log("Build provenance could not be recorded", "security");
+        }
+      }
       
       // Initialize and start the agent orchestrator
       try {
@@ -248,44 +284,8 @@ app.use(migrationReadOnlyGuard);
         log("Failed to initialize agent orchestrator", "agents");
       }
 
-      // Mantenimiento de seguridad y retención: sesiones, logs de 90 días y
-      // formularios/CV con retención de 12 meses.
-      setInterval(async () => {
-        try {
-          const cleaned = await runSecurityMaintenance();
-          const total = Object.values(cleaned).reduce((sum, value) => sum + value, 0);
-          if (total > 0) {
-            log(`[Scheduler] Cleaned ${total} expired security/privacy records`, "scheduler");
-          }
-        } catch (err) {
-          log("[Scheduler] Error during hourly tick", "scheduler");
-        }
-      }, 60 * 60 * 1000);
-
-      // Auditoría diaria del sitio — antes el "self-healing" solo corría por clic manual en
-      // /admin/audits; con esto queda realmente 24/7 sin depender de que alguien lo dispare.
-      setInterval(async () => {
-        try {
-          await orchestrator.enqueueJob("website_auditor", { runType: "full", triggeredBy: "scheduled" });
-          log("[Scheduler] Auditoría diaria del sitio encolada", "scheduler");
-        } catch (err) {
-          log("[Scheduler] Error al encolar la auditoría diaria", "scheduler");
-        }
-      }, 24 * 60 * 60 * 1000);
-
-      // LegalAlertsAgent en piloto automático — antes requería que un abogado pegara
-      // manualmente texto/URL; ahora escanea periódicamente fuentes oficiales (COFECE por
-      // ahora) y encola borradores solo para publicaciones relevantes. Nunca autopublica:
-      // el borrador sigue naciendo con published:false para revisión humana.
-      setInterval(async () => {
-        try {
-          const { runScheduledLegalAlertsScan } = await import("./agents/specialized/legalAlertsScanner");
-          const { enqueued, skipped } = await runScheduledLegalAlertsScan();
-          log(`[Scheduler] Escaneo de fuentes oficiales: ${enqueued} alertas encoladas, ${skipped} descartadas`, "scheduler");
-        } catch (err) {
-          log("[Scheduler] Error en el escaneo de fuentes oficiales", "scheduler");
-        }
-      }, 12 * 60 * 60 * 1000); // cada 12 h (antes 6 h) para cuidar créditos de IA
+      // Las tareas de negocio ya no usan timers por instancia. Se ejecutan como
+      // Scheduled Deployments separados y se coordinan mediante advisory locks.
     },
   );
 })();

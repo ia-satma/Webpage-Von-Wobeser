@@ -86,7 +86,7 @@ export function registerAdminSubmissionRoutes(app: Express): void {
         res.setHeader("X-Content-Type-Options", "nosniff");
         res.setHeader("Content-Security-Policy", "sandbox");
         res.setHeader("Cache-Control", "private, no-store");
-        auditLog("update", "career_application_cv_download", application.id, req.adminUser!.id);
+        await auditLog("update", "career_application_cv_download", application.id, req.adminUser!.id, undefined, req);
         // absolutePath is built from a managed filename and accepted only when it remains inside uploadsDir.
         if (hasLocalFile && absolutePath) return res.sendFile(absolutePath); // nosemgrep: javascript.express.security.audit.express-res-sendfile.express-res-sendfile
         persistentStream!.once("error", () => {
@@ -170,10 +170,10 @@ export function registerAdminSubmissionRoutes(app: Express): void {
           subscriber.isActive ? "Activo" : "Inactivo",
         ]);
         const csv = [header, ...rows].map((row) => row.map(escapeCsvCell).join(",")).join("\r\n");
-        auditLog("create", "newsletter_export", null, req.adminUser!.id, {
+        await auditLog("create", "newsletter_export", null, req.adminUser!.id, {
           rowCount: subscribers.length,
           filtered: Object.values(newsletterFilters(req)).some((value) => value !== undefined),
-        });
+        }, req);
         res.setHeader("Content-Type", "text/csv; charset=utf-8");
         res.setHeader("X-Content-Type-Options", "nosniff");
         res.setHeader("Cache-Control", "no-store");

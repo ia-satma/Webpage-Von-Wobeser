@@ -581,7 +581,7 @@ export async function registerAdminAccessRoutes(app: Express): Promise<void> {
       if (r === "super_admin") {
         console.warn("[SECURITY_ALERT] A super administrator account was created");
       }
-      auditLog("create", "admin_user", created.id, actor?.id || "unknown");
+      await auditLog("create", "admin_user", created.id, actor?.id || "unknown", undefined, req);
       const { passwordHash: _omit, ...safe } = created as any;
       res.setHeader("Cache-Control", "no-store");
       res.status(201).json({ user: safe, generatedPassword });
@@ -635,7 +635,7 @@ export async function registerAdminAccessRoutes(app: Express): Promise<void> {
         await storage.deleteAdminSessionsByUserId(id);
         await storage.deleteAdminAuthChallengesByUserId(id);
       }
-      auditLog("update", "admin_user", id, actor?.id || "unknown");
+      await auditLog("update", "admin_user", id, actor?.id || "unknown", undefined, req);
       const { passwordHash: _o, ...safe } = (updated as any) || {};
       res.json(safe);
     } catch (error) {
@@ -658,7 +658,7 @@ export async function registerAdminAccessRoutes(app: Express): Promise<void> {
       await storage.setAdminUserPassword(idResult.data, await hashPassword(generatedPassword), false);
       await storage.deleteAdminSessionsByUserId(idResult.data);
       await storage.deleteAdminAuthChallengesByUserId(idResult.data);
-      auditLog("update", "admin_user", idResult.data, actor?.id || "unknown");
+      await auditLog("update", "admin_user", idResult.data, actor?.id || "unknown", undefined, req);
       res.setHeader("Cache-Control", "no-store");
       res.json({ ok: true, generatedPassword });
     } catch (error) {
@@ -685,7 +685,7 @@ export async function registerAdminAccessRoutes(app: Express): Promise<void> {
       await storage.deleteAdminSessionsByUserId(id);
       await storage.deleteAdminAuthChallengesByUserId(id);
       await storage.deleteAdminUser(id);
-      auditLog("delete", "admin_user", id, actor?.id || "unknown");
+      await auditLog("delete", "admin_user", id, actor?.id || "unknown", undefined, req);
       res.json({ ok: true });
     } catch (error) {
       console.error("Delete user error:", error);
@@ -713,7 +713,7 @@ export async function registerAdminAccessRoutes(app: Express): Promise<void> {
       await storage.deleteAdminSessionsByUserId(user.id);
       await storage.deleteAdminAuthChallengesByUserId(user.id);
       clearAuthCookie(res, SESSION_COOKIE);
-      auditLog("update", "admin_user_password", user.id, user.id);
+      await auditLog("update", "admin_user_password", user.id, user.id, undefined, req);
       res.json({ ok: true, reauthenticationRequired: true });
     } catch (error) {
       console.error("Password change error:", error instanceof Error ? error.message : "unknown");

@@ -254,7 +254,7 @@ export function registerAdminNewsRoutes(app: Express): void {
 
       const draft = await storage.createNewsProcessingDraft(source.id);
       if (!draft) return apiError(res, 409, "The processing draft could not be created", { code: "PROCESSING_DRAFT_NOT_CREATED" });
-      auditLog("create", "news_processing_draft", draft.id, (req as any).adminUser?.id || "unknown", { sourceId: source.id });
+      await auditLog("create", "news_processing_draft", draft.id, (req as any).adminUser?.id || "unknown", { sourceId: source.id }, req);
       return res.status(201).json({ sourceId: source.id, draft });
     } catch (error) {
       console.error("Create processing draft error:", error);
@@ -356,7 +356,7 @@ export function registerAdminNewsRoutes(app: Express): void {
         return apiError(res, 400, "One or more team members do not exist");
       }
       await storage.setTeamMembersForNews(newsItem.id, parsed.data.teamMemberIds);
-      auditLog("update", "news_team_members", newsItem.id, (req as any).adminUser?.id || "unknown");
+      await auditLog("update", "news_team_members", newsItem.id, (req as any).adminUser?.id || "unknown", undefined, req);
       res.json({ success: true });
     } catch (error) {
       console.error("Update news team members error:", error);
@@ -392,7 +392,7 @@ export function registerAdminNewsRoutes(app: Express): void {
         { field: "content", lang: "en", text: newsItem.content },
         { field: "contentEs", lang: "es", text: newsItem.contentEs },
       ]);
-      auditLog("create", "news", newsItem.id, (req as any).adminUser?.id || "unknown");
+      await auditLog("create", "news", newsItem.id, (req as any).adminUser?.id || "unknown", undefined, req);
       res.status(201).json({ ...newsItem, linguisticWarnings });
     } catch (error) {
       console.error("Create news error:", error);
@@ -428,7 +428,7 @@ export function registerAdminNewsRoutes(app: Express): void {
         { field: "content", lang: "en", text: newsItem.content },
         { field: "contentEs", lang: "es", text: newsItem.contentEs },
       ]);
-      auditLog("update", "news", req.params.id, (req as any).adminUser?.id || "unknown");
+      await auditLog("update", "news", req.params.id, (req as any).adminUser?.id || "unknown", undefined, req);
       res.json({ ...newsItem, linguisticWarnings });
     } catch (error) {
       if (error instanceof ZodError) {
@@ -446,7 +446,7 @@ export function registerAdminNewsRoutes(app: Express): void {
       if (!deleted) {
         return apiError(res, 404, "News not found");
       }
-      auditLog("delete", "news", req.params.id, (req as any).adminUser?.id || "unknown");
+      await auditLog("delete", "news", req.params.id, (req as any).adminUser?.id || "unknown", undefined, req);
       res.json({ success: true });
     } catch (error) {
       console.error("Delete news error:", error);
