@@ -211,7 +211,7 @@ Notas:
 - `SESSION_SECRET` no firma la cookie administrativa: esta contiene un token aleatorio y PostgreSQL guarda solamente su hash SHA-256, expiración, actividad y hash CSRF. Sin embargo, `SESSION_SECRET` sí es obligatorio en producción para firmar sesiones de carga fragmentada.
 - `site_url`, `ga4_measurement_id` y `google_site_verification` se leen **una vez al arranque**; editarlos en el panel requiere reiniciar.
 - CSP se aplica en producción con nonce y usa `Report-Only` solo en desarrollo; Helmet, HSTS, `frame-ancestors`, `nosniff`, Referrer y Permissions Policy también se configuran.
-- El WebSocket valida sesión, origen, heartbeat y máximo de tres conexiones por usuario. El permiso `agents`, la revalidación de la política MFA y las suscripciones aisladas por artículo están pendientes de la Fase 2.
+- El WebSocket valida sesión y origen antes del upgrade, exige permiso `agents`, aplica heartbeat y máximo de tres conexiones por usuario, revalida sesión/permisos/política MFA cada 30 segundos y entrega eventos únicamente a suscriptores del UUID de artículo correspondiente. MFA permanece desactivado; si en el futuro se exige por política, la misma conexión lo revalida.
 - El cliente OpenAI en `server/openai.ts` es lazy-init (envoltura `Proxy`), así que credenciales faltantes fallan por-request, no al arrancar.
 
 ---

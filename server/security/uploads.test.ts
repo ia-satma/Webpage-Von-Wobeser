@@ -338,6 +338,16 @@ test("chunked admin media upload reconstructs every byte and rejects altered ses
     );
     await removeChunkedMediaUpload(rejectedSession.token, "test-admin");
 
+    await assert.rejects(
+      () => storeChunkedMediaPart(
+        "not-a-session",
+        "test-admin",
+        0,
+        "not-binary" as unknown as Buffer,
+      ),
+      (error: unknown) => error instanceof ChunkedMediaUploadError && error.code === "INVALID_CHUNK_CONTENTS",
+    );
+
     const altered = `${token.slice(0, -1)}${token.endsWith("A") ? "B" : "A"}`;
     assert.throws(
       () => createChunkedMediaUpload({

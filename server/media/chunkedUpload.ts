@@ -272,6 +272,12 @@ export async function storeChunkedMediaPart(
   contents: Buffer,
   suppliedChecksum = "",
 ): Promise<{ received: number; totalChunks: number }> {
+  // Runtime boundary kept here as well as in the HTTP handler. Callers from a
+  // future transport cannot turn a string/string[] into file bytes merely by
+  // satisfying TypeScript's compile-time signature.
+  if (!Buffer.isBuffer(contents)) {
+    throw new ChunkedMediaUploadError("El fragmento no es binario.", "INVALID_CHUNK_CONTENTS");
+  }
   const session = readSession(token, userId);
   const expected = expectedChunkBytes(session, index);
   if (contents.length !== expected) {

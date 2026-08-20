@@ -59,6 +59,8 @@ app.use(helmet({
       fontSrc: ["'self'", "data:"],
       imgSrc: ["'self'", "data:", "blob:", "https:"],
       mediaSrc: ["'self'", "blob:", "https:"],
+      manifestSrc: ["'self'"],
+      workerSrc: ["'self'", "blob:"],
       // El sitio y el panel hablan con la misma origen. Las únicas conexiones
       // externas del navegador son los beacons de GA4, tras consentimiento.
       connectSrc: isProduction

@@ -1,11 +1,14 @@
 import type { Express, NextFunction, Request, Response } from "express";
 import type { Server } from "node:http";
-import crypto from "node:crypto";
-import { WebSocket, WebSocketServer } from "ws";
 import { z } from "zod";
-import { authMiddleware, requirePermission, resolveAdminSession } from "./auth";
+import { authMiddleware, requirePermission } from "./auth";
 import { isMigrationReadOnlyEnabled } from "./database/maintenance";
 import { seed } from "./seed";
+import { apiRouteRateLimit } from "./security/apiRateLimit";
+import {
+  broadcastPipelineProgress,
+  setupPipelineWebSocket,
+} from "./security/pipelineWebSocket";
 import { ensurePrivateUploadDirectories } from "./security/uploads";
 import { registerAdminAccessRoutes } from "./routes/adminAccessRoutes";
 import { registerAdminCatalogRoutes } from "./routes/adminCatalogRoutes";
@@ -28,27 +31,7 @@ import { registerSystemAuditRoutes } from "./routes/systemAuditRoutes";
 import { registerTranslationRoutes } from "./routes/translationRoutes";
 
 export { runSecurityMaintenance } from "./security/maintenance";
-
-// Global WebSocket clients map for pipeline progress updates
-const pipelineClients: Map<string, { ws: WebSocket; userId: string }> = new Map();
-
-export function broadcastPipelineProgress(articleId: string, data: {
-  step: string;
-  status: 'running' | 'completed' | 'error';
-  language?: string;
-  progress?: number;
-  message?: string;
-  data?: any;
-}) {
-  const payload = JSON.stringify({ articleId, ...data, timestamp: new Date().toISOString() });
-  
-  // Broadcast to all connected clients
-  pipelineClients.forEach(({ ws }) => {
-    if (ws.readyState === WebSocket.OPEN) {
-      ws.send(payload);
-    }
-  });
-}
+export { broadcastPipelineProgress };
 export async function registerRoutes(
   httpServer: Server,
   app: Express
@@ -79,72 +62,12 @@ export async function registerRoutes(
     next();
   });
 
-  // Setup WebSocket server for pipeline progress updates
-  const wss = new WebSocketServer({ server: httpServer, path: '/ws/pipeline' });
-  
-  // Heartbeat to detect stale connections
-  const heartbeatInterval = setInterval(() => {
-    pipelineClients.forEach(({ ws }, clientId) => {
-      if (ws.readyState !== WebSocket.OPEN) {
-        pipelineClients.delete(clientId);
-        return;
-      }
-      try {
-        ws.ping();
-      } catch (error) {
-        console.error('[WebSocket] Heartbeat ping failed for client:', clientId, error);
-        pipelineClients.delete(clientId);
-      }
-    });
-  }, 30000);
+  setupPipelineWebSocket(httpServer);
 
-  wss.on('close', () => {
-    clearInterval(heartbeatInterval);
-  });
-  
-  wss.on('connection', async (ws, req) => {
-    try {
-      const origin = req.headers.origin;
-      const host = req.headers.host;
-      if (!origin || !host || new URL(origin).host !== host) {
-        ws.close(1008, "Origin not allowed");
-        return;
-      }
-      const resolved = await resolveAdminSession(req as unknown as Request);
-      if (!resolved) {
-        ws.close(1008, "Authentication required");
-        return;
-      }
-      const currentConnections = Array.from(pipelineClients.values())
-        .filter((client) => client.userId === resolved.user.id).length;
-      if (currentConnections >= 3) {
-        ws.close(1008, "Connection limit reached");
-        return;
-      }
-
-      const clientId = crypto.randomBytes(8).toString('hex');
-      pipelineClients.set(clientId, { ws, userId: resolved.user.id });
-      console.log(`[WebSocket] Pipeline client connected: ${clientId}`);
-
-      ws.on('close', () => {
-        pipelineClients.delete(clientId);
-        console.log(`[WebSocket] Pipeline client disconnected: ${clientId}`);
-      });
-
-      ws.on('error', () => {
-        console.error(`[WebSocket] Client error ${clientId}`);
-        pipelineClients.delete(clientId);
-      });
-
-      ws.on('pong', () => {
-        // Client is alive, nothing to do
-      });
-
-      ws.send(JSON.stringify({ type: 'connected', clientId }));
-    } catch {
-      ws.close(1011, "Connection rejected");
-    }
-  });
+  // Cuota persistente por familia de ruta y por usuario/IP. Se registra antes
+  // de las APIs para cubrir también routers montados, pero después de validar
+  // los parámetros comunes y sin afectar archivos/páginas públicas.
+  app.use("/api", apiRouteRateLimit);
 
   registerPublicAssetRoutes(app);
 
