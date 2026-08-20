@@ -192,6 +192,7 @@ test("un Repl vacío sirve el bootstrap de handoff en lugar de ejecutar migracio
   ]);
   assert.match(deployment, /inspectDatabase/);
   assert.match(deployment, /handoff-bootstrap-server/);
+  assert.match(workspace, /db:migrate/);
   assert.match(workspace, /handoff-bootstrap-server/);
   assert.match(bootstrap, /Tools → Secrets/);
   assert.match(bootstrap, /noindex/);
