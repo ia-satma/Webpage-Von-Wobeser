@@ -271,6 +271,24 @@ export function registerSystemAuditRoutes(app: Express): void {
     }
   });
 
+  app.get("/api/health-check/clamav", authMiddleware, requirePermission("advanced"), async (_req: Request, res: Response) => {
+    try {
+      const { checkClamAvHealth } = await import("../security/uploads");
+      const clamav = await checkClamAvHealth();
+      res.setHeader("Cache-Control", "private, no-store");
+      res.status(clamav.available || !clamav.required ? 200 : 503).json({
+        success: clamav.available,
+        clamav,
+      });
+    } catch {
+      res.setHeader("Cache-Control", "private, no-store");
+      res.status(503).json({
+        success: false,
+        clamav: { available: false, required: true, version: null },
+      });
+    }
+  });
+
   app.post("/api/health-check/reset-zombies", authMiddleware, requirePermission("advanced"), async (req: Request, res: Response) => {
     try {
       const { systemHealthCheck } = await import('../agents/SystemHealthCheck');

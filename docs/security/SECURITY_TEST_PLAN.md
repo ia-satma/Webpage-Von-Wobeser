@@ -32,7 +32,7 @@ Decisiones del propietario:
 | V8 Datos | noticias públicas solo publicadas y no futuras; retención y CV privados | pruebas de API y revisión |
 | V10 Comunicaciones | TLS validado para PostgreSQL externo; CORS explícito | configuración |
 | V12 Archivos | cuarentena, nombres de 128 bits, firma real, ZIP seguro, límites y ClamAV | `server/security/uploads.test.ts` |
-| V13 API | Login/MFA/formularios tienen rate limit persistente. WebSocket valida sesión, origen y límite, pero permiso `agents`, revalidación MFA y suscripción por artículo quedan pendientes de Fase 2 | pruebas de API y riesgo registrado |
+| V13 API | Las rutas `/api` tienen límites persistentes compartidos por familia y usuario/IP. WebSocket valida sesión y origen antes del upgrade, exige permiso `agents`, revalida sesión/permisos/política MFA y difunde únicamente a suscriptores del artículo | `server/security/phase2ApiWebSocket.test.ts` y pruebas de API |
 | V14 Configuración | CSP aplicada en producción, Helmet, HSTS, `nosniff`, referrer y permissions policy | smoke test de cabeceras |
 | SSRF | allowlist, DNS previo y por redirección, bloqueo privado/metadata, timeout y tamaño | `server/security/network.test.ts` |
 | IA / prompt injection | bloques no confiables, redacción de aprendizaje, límites, revisión humana y presupuesto mensual | TypeScript y revisión de agentes |
@@ -99,7 +99,8 @@ Ejecutar en ese clon:
 - Se conserva una sola cuenta PostgreSQL, por lo que la separación de privilegios queda
   fuera de alcance.
 - CSP se aplica en producción y permanece en Report-Only únicamente en desarrollo.
-- El WebSocket no tiene todavía autorización granular equivalente a HTTP ni aislamiento
-  de eventos por artículo; no debe marcarse como aprobado hasta completar la Fase 2.
+- El WebSocket ya aplica autorización granular y aislamiento por artículo. Falta todavía una
+  prueba dinámica autenticada con cuentas sintéticas en un entorno aislado; por ello el control
+  se considera implementado y probado en código, no pentesteado en producción.
 - ZAP activo, SQLMap y restauración requieren que el propietario provea un entorno aislado;
   no se ejecutan contra la base actual.

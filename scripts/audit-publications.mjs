@@ -2,6 +2,7 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import crypto from "node:crypto";
+import os from "node:os";
 import { fileURLToPath } from "node:url";
 import * as cheerio from "cheerio";
 
@@ -19,7 +20,10 @@ const argValue = (name, fallback) => {
 const hasFlag = (name) => argv.includes(`--${name}`);
 const STAMP = argValue("stamp", DEFAULT_STAMP);
 const OUTPUT_DIR = path.resolve(ROOT, argValue("output", `output/audits/publicaciones-${STAMP}`));
-const CACHE_DIR = path.resolve(argValue("cache", `/tmp/vwys-publications-audit-cache-${STAMP.replaceAll("-", "")}`));
+const requestedCacheDir = argValue("cache", "").trim();
+const CACHE_DIR = requestedCacheDir
+  ? path.resolve(requestedCacheDir)
+  : await fs.mkdtemp(path.join(os.tmpdir(), `vwys-publications-audit-${STAMP.replaceAll("-", "")}-`));
 const CONCURRENCY = Math.max(1, Number(argValue("concurrency", "6")) || 6);
 const MAX_DETAILS = Math.max(0, Number(argValue("max-details", "0")) || 0);
 const MAX_PAGES = Math.max(0, Number(argValue("max-pages", "0")) || 0);
@@ -417,8 +421,17 @@ function pairOfficial(details) {
 
 function extractProjectPdfUrls(row) {
   const html = `${row.content ?? ""}\n${row.contentEs ?? ""}`;
-  const matches = [...html.matchAll(/https?:\/\/[^\s"'<>]+\.pdf(?:\?[^\s"'<>]*)?|\/(?:[^\s"'<>]+\/)*[^\s"'<>]+\.pdf(?:\?[^\s"'<>]*)?/gi)];
-  return unique(matches.map((match) => absoluteUrl(match[0], PROJECT_ORIGIN)));
+  const candidates = [...html.matchAll(/(?:https?:\/\/|\/)[^\s"'<>]{1,2048}/gi)]
+    .map((match) => match[0].replace(/[),.;]+$/g, ""));
+  return unique(candidates
+    .filter((candidate) => {
+      try {
+        return new URL(candidate, PROJECT_ORIGIN).pathname.toLowerCase().endsWith(".pdf");
+      } catch {
+        return false;
+      }
+    })
+    .map((candidate) => absoluteUrl(candidate, PROJECT_ORIGIN)));
 }
 
 function projectMatchScore(row, canonical) {

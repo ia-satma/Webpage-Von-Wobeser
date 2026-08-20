@@ -447,11 +447,42 @@ function runClamScan(
   });
 }
 
+export type ClamAvHealth = {
+  available: boolean;
+  required: boolean;
+  version: string | null;
+};
+
+export function isClamAvRequired(
+  env: { CLAMAV_REQUIRED?: string; NODE_ENV?: string } = process.env,
+): boolean {
+  return env.CLAMAV_REQUIRED === "true"
+    || (env.NODE_ENV === "production" && env.CLAMAV_REQUIRED !== "false");
+}
+
+/** Read-only readiness probe. It never scans, opens, moves or removes a file. */
+export async function checkClamAvHealth(timeoutMs = 5_000): Promise<ClamAvHealth> {
+  const required = isClamAvRequired();
+  return new Promise((resolve) => {
+    execFile("clamscan", ["--version"], {
+      timeout: timeoutMs,
+      windowsHide: true,
+      maxBuffer: 16 * 1024,
+    }, (error, stdout) => {
+      if (error) {
+        resolve({ available: false, required, version: null });
+        return;
+      }
+      const version = String(stdout || "").split(/\r?\n/, 1)[0].trim().slice(0, 160) || null;
+      resolve({ available: true, required, version });
+    });
+  });
+}
+
 export async function scanFileForMalware(filePath: string, timeoutMs = 60_000): Promise<void> {
   const result = await runClamScan(filePath, timeoutMs);
   if (result === "infected") throw new Error("Malware detected");
-  const required = process.env.CLAMAV_REQUIRED === "true"
-    || (process.env.NODE_ENV === "production" && process.env.CLAMAV_REQUIRED !== "false");
+  const required = isClamAvRequired();
   if (result === "unavailable" && required) {
     throw new Error("Malware scanner unavailable");
   }

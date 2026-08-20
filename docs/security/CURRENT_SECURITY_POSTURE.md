@@ -20,10 +20,15 @@ son registros históricos fechados y no deben usarse para inferir el estado pres
   aceptación temporal firmada por Sistemas.
 - CSP se aplica en producción con nonce; desarrollo usa Report-Only. HSTS, `nosniff`,
   Referrer-Policy y Permissions-Policy se configuran en el servidor.
-- El WebSocket exige sesión, origen válido, heartbeat y un máximo de tres conexiones por
-  usuario. Todavía no exige de forma equivalente el permiso `agents`, no revalida la
-  política MFA durante la conexión y difunde eventos globalmente. Su endurecimiento está
-  pendiente para la Fase 2.
+- El WebSocket rechaza el upgrade antes de conectar si faltan sesión, origen mismo host,
+  permiso `agents` o la futura condición MFA. Revalida sesión/usuario/permisos/MFA cada 30
+  segundos, limita conexiones y suscripciones, y entrega eventos únicamente a la suscripción
+  UUID del artículo correspondiente.
+- Todas las familias `/api` consumen límites persistentes compartidos entre instancias, por
+  usuario autenticado o IP pública. IA, traducción, auditorías y uploads tienen políticas
+  diferenciadas; login, MFA y formularios conservan además sus límites específicos.
+- ClamAV dispone de un health check administrativo de solo lectura. En producción es requerido
+  salvo excepción explícita `CLAMAV_REQUIRED=false`; esa excepción debe ser aprobada.
 - El conector pCloud quedó retirado del runtime, de las rutas y del panel. Esta retirada
   no borra ni modifica archivos que ya existan en una cuenta pCloud.
 - `SESSION_SECRET` no firma la cookie administrativa, pero sí es obligatorio en
@@ -53,7 +58,10 @@ son registros históricos fechados y no deben usarse para inferir el estado pres
 - GitHub Actions usa permisos predeterminados de solo lectura y no puede aprobar PR.
 - Secret scanning, push protection y Code Scanning no están disponibles para este
   repositorio privado con el plan actual. Los hallazgos CodeQL previos se conservan como
-  evidencia histórica y deberán reanalizarse con un escáner disponible.
+  evidencia histórica y deberán reanalizarse con un escáner disponible. Las 193 alertas
+  Critical/High están individualizadas y justificadas o corregidas en
+  `docs/security/CODEQL_CRITICAL_HIGH_TRIAGE_2026-08-20.md`; no se cerró ninguna en GitHub.
+- Gitleaks, Semgrep con baseline y la verificación integral del proyecto son gates de cada PR.
 
 ## Secrets operativos
 

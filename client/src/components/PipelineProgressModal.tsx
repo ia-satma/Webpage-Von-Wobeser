@@ -79,6 +79,7 @@ export function PipelineProgressModal({
   }, [articleId]);
   
   const { isConnected } = usePipelineProgress({
+    articleId,
     onProgress: handleProgress,
     onComplete: handleComplete,
     onError: handleError,
