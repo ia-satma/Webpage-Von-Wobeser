@@ -9,6 +9,7 @@ on:
 
 permissions:
   contents: read
+  pull-requests: read
   security-events: write
 
 jobs:
@@ -65,12 +66,17 @@ jobs:
               line = physical.get("region", {}).get("startLine", "?")
               print(f"- {result.get('ruleId', 'unknown')} — {artifact}:{line}")
           PY
-      - uses: github/codeql-action/upload-sarif@f205ea1c3313d32999d8d6a48b4f6530d4437b38 # v4.37.4
-        if: always()
+      - name: Upload Semgrep SARIF when GitHub Code Security is available
+        uses: github/codeql-action/upload-sarif@f205ea1c3313d32999d8d6a48b4f6530d4437b38 # v4.37.4
+        if: ${{ always() && github.event.repository.private == false }}
         with:
           sarif_file: semgrep.sarif
 
   codeql:
+    # The CodeQL CLI license and SARIF upload are not available for this
+    # personal private repository. Keep this job ready for a licensed GitHub
+    # Code Security plan; Semgrep remains the blocking SAST gate meanwhile.
+    if: ${{ github.event.repository.private == false }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
