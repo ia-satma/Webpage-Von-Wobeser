@@ -97,10 +97,34 @@ test("CI conserva SBOM y procedencia con una acción fijada por SHA", () => {
   const build = read("script/build.ts");
   assert.match(build, /generateBuildEvidence/);
   const evidence = read("script/buildEvidence.ts");
-  assert.match(evidence, /npm.*sbom/s);
+  assert.match(evidence, /generateCycloneDxSbom/);
+  assert.match(evidence, /bomFormat: "CycloneDX"/);
+  assert.match(evidence, /specVersion: "1\.5"/);
+  assert.doesNotMatch(evidence, /npmSbom/);
   assert.match(evidence, /packageLockSha256/);
   assert.match(evidence, /publicAssetsSha256/);
   assert.match(evidence, /--untracked-files=no/);
+});
+
+test("el SBOM CycloneDX nace del lockfile sin invocar npm ni la red", async () => {
+  const { generateCycloneDxSbom } = await import("../../script/buildEvidence");
+  const bom = generateCycloneDxSbom({
+    name: "synthetic-app",
+    version: "1.0.0",
+    packages: {
+      "": { name: "synthetic-app", version: "1.0.0" },
+      "node_modules/example": {
+        name: "example",
+        version: "2.0.0",
+        integrity: `sha512-${Buffer.from("synthetic").toString("base64")}`,
+      },
+    },
+  }, "2026-08-20T00:00:00.000Z") as any;
+  assert.equal(bom.bomFormat, "CycloneDX");
+  assert.equal(bom.specVersion, "1.5");
+  assert.equal(bom.components.length, 1);
+  assert.equal(bom.components[0].name, "example");
+  assert.equal(bom.components[0].hashes[0].alg, "SHA-512");
 });
 
 test("la configuración Replit queda documentada pero deliberadamente no activada", () => {
