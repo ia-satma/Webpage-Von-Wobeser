@@ -65,7 +65,8 @@ test("el footer central conserva los datos, assets y enlaces esperados en españ
   assert.equal($(".vwb-site-footer__logo").attr("src"), "/images/vw40F.png");
   assert.equal($(".vwb-site-footer__esr img").attr("src"), "/templates/beez3/img/esr.jpg");
   assert.equal($(".vwb-site-footer__social-link img[src=\"/images/icon_linkedin_gray.png\"]").length, 1);
-  assert.equal($(".vwb-site-footer__social-link img[src=\"/images/icon_twitter_gray.png\"]").length, 1);
+  assert.equal($(".vwb-site-footer__social-link img[src=\"/images/icon_twitter_gray.png\"]").length, 0);
+  assert.equal($(".vwb-site-footer__social-link[aria-label=\"X\"] svg.vwb-site-footer__social-icon--x").length, 1);
   assert.equal($(".vwb-site-footer__social-link img[src*=facebook]").length, 0);
   assert.equal($("[data-vwb-cookie-preferences=\"true\"]").length, 1);
   assert.equal($(".vwb-site-footer__admin-link").attr("aria-label"), "Panel de administración");
@@ -154,6 +155,8 @@ test("el preset clásico conserva datos actuales y no reutiliza el HTML legacy s
   assert.equal($(".vwb-classic-footer__contact-row").length, 2);
   assert.equal($(".vwb-classic-footer__column h2").eq(0).text(), "LA FIRMA");
   assert.equal($(".vwb-classic-footer__social-link").length, 1);
+  assert.equal($(".vwb-classic-footer__social-link[aria-label=\"X\"] img[src=\"/images/icon_twitter_gray.png\"]").length, 0);
+  assert.equal($(".vwb-classic-footer__social-link[aria-label=\"X\"] svg.vwb-site-footer__social-icon--x").length, 1);
   assert.equal($(".vwb-classic-footer [data-vwb-cookie-preferences=true]").length, 1);
   assert.equal($(".vwb-classic-footer__admin-link").attr("aria-label"), "Panel de administración");
   assert.doesNotMatch(output, /javascript:alert/);

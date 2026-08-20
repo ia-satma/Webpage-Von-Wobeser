@@ -74,6 +74,7 @@ export const PAGES: Record<string, SiteConfigPageDefinition> = {
           { key: "home_mission_body", label: "Misión — texto", bilingual: true, multiline: true },
           { key: "home_values_label", label: "Valores — etiqueta", bilingual: true },
           { key: "home_values_body", label: "Valores — texto (separa cada valor con una línea en blanco)", bilingual: true, multiline: true, rows: 12 },
+          { key: "home_location_visible", label: "Mostrar ubicación en la portada", control: "switch", defaultValue: true, help: "Usa la misma dirección, teléfono, correo, mapa e indicaciones de Contacto y Oficinas; no duplica datos." },
         ],
       },
       {

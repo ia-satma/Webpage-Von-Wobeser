@@ -385,6 +385,9 @@ test("Formulario de Abogados conserva contratos, relaciones y superficie adminis
     "industryGroupIds",
   ]);
   assert.deepEqual(Object.keys(teamFormTranslations), ["en", "es"]);
+  for (const role of ["Socia", "Asociada", "Asociada Senior"]) {
+    assert.match(source, new RegExp(`<SelectItem value="${role}">`));
+  }
   assert.equal((source.match(/<TabsTrigger/g) || []).length, 5);
   assert.equal((source.match(/data-testid=/g) || []).length, 19);
   for (const field of ["bioIntro", "bioIntroEs", "bio", "bioEs"]) {
@@ -405,6 +408,19 @@ test("Formulario de Abogados conserva normalización, slug y vista previa", () =
   });
   assert.equal(payload.titleEs, "Socio");
   assert.equal(payload.roleEs, "Socio");
+
+  const femininePayload = teamFormToPayload({
+    ...defaults,
+    name: "Ana María Núñez",
+    slug: "ana-maria-nunez",
+    title: "Associate",
+    titleEs: "Asociada",
+    role: "Associate",
+    roleEs: "Asociada",
+  });
+  assert.equal(femininePayload.titleEs, "Asociada");
+  assert.equal(femininePayload.roleEs, "Asociada");
+
   assert.equal(payload.email, null);
   assert.equal(generateTeamMemberSlug("Ana María Núñez"), "ana-maria-nunez");
   assert.equal(getTeamMemberInitials("Ana María Núñez"), "AM");
@@ -778,8 +794,9 @@ test("Configuración conserva secciones, claves, APIs, query keys y controles", 
   const declaredKeys = [...registrySource.matchAll(/key:\s*"([^"]+)"/g)]
     .map((match) => match[1]);
   assert.equal(Object.keys(PAGES).filter((key) => key !== "resumen-firma").length, 15);
-  assert.equal(declaredKeys.length, 215);
-  assert.equal(new Set(declaredKeys).size, 213);
+  assert.equal(declaredKeys.length, 216);
+  assert.equal(new Set(declaredKeys).size, 214);
+  assert.ok(declaredKeys.includes("home_location_visible"));
   assert.equal((source.match(/adminApiRequest\(/g) || []).length, 6);
   assert.equal((source.match(/queryKey:/g) || []).length, 3);
   assert.equal((source.match(/data-testid=/g) || []).length, 15);

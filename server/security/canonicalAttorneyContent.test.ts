@@ -52,7 +52,7 @@ test("el snapshot canónico contiene los 133 abogados oficiales bilingües y con
   }
 });
 
-test("la semilla aplica el contenido canónico y conserva los nueve perfiles adicionales sin tocar", () => {
+test("la semilla aplica el contenido canónico y conserva los perfiles adicionales para Administración", () => {
   const canonical = loadCanonicalAttorneyContent(mirrorDir);
   const source = canonical[0];
   const extras = [...preservedAdditionalAttorneySlugs].map((slug, index) => ({

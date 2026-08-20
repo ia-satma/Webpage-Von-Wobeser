@@ -224,12 +224,17 @@ function resolveCentralFooterLinks(navigation: ResolvedNavigationTree | undefine
 
 function socialLink(network: SocialNetwork, href: string, className = "vwb-site-footer__social-link"): string {
   const labels: Record<SocialNetwork, string> = { facebook: "Facebook", twitter: "X", linkedin: "LinkedIn" };
-  const icons: Record<SocialNetwork, string> = {
+  const icons: Record<Exclude<SocialNetwork, "twitter">, string> = {
     facebook: "/images/icon_facebook_gray.png",
-    twitter: "/images/icon_twitter_gray.png",
     linkedin: "/images/icon_linkedin_gray.png",
   };
-  return `<a class="${className}" href="${escapeHtml(href)}" target="_blank" rel="noopener noreferrer" aria-label="${labels[network]}" title="${labels[network]}"><img src="${icons[network]}" width="22" height="22" alt="" decoding="async"></a>`;
+  // El footer legado ya sustituía el pájaro de Twitter por la marca actual de
+  // X. El renderer centralizado debe emitir el mismo SVG para ambos presets;
+  // de otro modo, al reemplazar el HTML legado se reintroducía el PNG antiguo.
+  const icon = network === "twitter"
+    ? '<svg class="vwb-site-footer__social-icon vwb-site-footer__social-icon--x" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" focusable="false"><path fill="currentColor" d="M18.24 2.25h3.31l-7.23 8.26 8.51 11.24h-6.66l-5.21-6.82-5.97 6.82H1.68l7.73-8.84L1.25 2.25h6.83l4.71 6.23 5.45-6.23Zm-1.16 17.52h1.84L7.08 4.13H5.12l11.96 15.64Z"/></svg>'
+    : `<img src="${icons[network]}" width="22" height="22" alt="" decoding="async">`;
+  return `<a class="${className}" href="${escapeHtml(href)}" target="_blank" rel="noopener noreferrer" aria-label="${labels[network]}" title="${labels[network]}">${icon}</a>`;
 }
 
 /**

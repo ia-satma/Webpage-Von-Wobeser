@@ -1,6 +1,7 @@
 import * as cheerio from "cheerio";
 import { isVisiblePublicPractice } from "./publicPracticeGroups";
 import { cfg, cfgTypographyAttribute, type ConfigMap } from "./siteConfig";
+import { contactLocationIcon, renderContactAddressLines, resolveContactLocation } from "./contactLocation";
 
 function esc(s: string): string {
   return String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
@@ -15,45 +16,6 @@ function safePublicHref(value: string, fallback: string): string {
   if (/^\/(?!\/)[a-z0-9_./%+@~:?&=#-]*$/i.test(href)) return href;
   if (/^https:\/\/[a-z0-9.-]+(?:[/:?#][^\s"'<>]*)?$/i.test(href)) return href;
   return fallback;
-}
-
-/**
- * La URL del mapa se administra desde Oficinas y se reutiliza en Contacto.
- * Al ser un iframe, restringimos el origen a embeds HTTPS de Google Maps: así
- * un valor accidental o una URL de otro proveedor no convierte Contacto en un
- * punto de carga de contenido arbitrario.
- */
-function safeGoogleMapsEmbed(value: string): string | null {
-  try {
-    const url = new URL(String(value ?? "").trim());
-    const googleHost = /(?:^|\.)google\.[a-z.]+$/i.test(url.hostname);
-    if (url.protocol !== "https:" || !googleHost || !/^\/maps\/embed(?:\/|$)/i.test(url.pathname)) return null;
-    return url.toString();
-  } catch {
-    return null;
-  }
-}
-
-function safeGoogleMapsLink(value: string, fallback: string): string {
-  try {
-    const url = new URL(String(value ?? "").trim());
-    const googleHost = /(?:^|\.)google\.[a-z.]+$/i.test(url.hostname);
-    if (url.protocol === "https:" && googleHost && /^\/maps(?:\/|$)/i.test(url.pathname)) return url.toString();
-  } catch {
-    // La configuración se considera no confiable hasta que cumpla el allowlist.
-  }
-  return fallback;
-}
-
-function contactIcon(name: "pin" | "phone" | "mail" | "directions" | "external"): string {
-  const paths = {
-    pin: '<path d="M12 21s7-5.14 7-11a7 7 0 1 0-14 0c0 5.86 7 11 7 11Z"/><circle cx="12" cy="10" r="2.5"/>',
-    phone: '<path d="M5.2 4.8 8 3.7l2.05 4.78-1.96 1.64a15.05 15.05 0 0 0 5.83 5.83l1.64-1.96 4.78 2.05-1.1 2.8c-.32.8-1.16 1.25-2 1.09C9.52 18.45 5.55 14.48 4.11 6.76c-.16-.84.3-1.68 1.09-1.96Z"/>',
-    mail: '<rect x="3" y="5" width="18" height="14" rx="1"/><path d="m4 7 8 6 8-6"/>',
-    directions: '<path d="M12 21s7-5.14 7-11a7 7 0 1 0-14 0c0 5.86 7 11 7 11Z"/><circle cx="12" cy="10" r="2.5"/>',
-    external: '<path d="M14 4h6v6"/><path d="m20 4-9 9"/><path d="M19 14v5H5V5h5"/>',
-  } as const;
-  return `<svg class="vw-contact-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">${paths[name]}</svg>`;
 }
 
 /**
@@ -167,17 +129,11 @@ export function applyContactForm(
         eyebrow: "CONTACTO",
         title: "Estamos aquí para ayudarte",
         description: "Ponte en contacto con nosotros o visita nuestras oficinas en Ciudad de México.",
-        email: "info@vwys.com.mx",
-        phone: "+52 (55) 5258 1000",
-        address: "Torre SOMA Chapultepec, piso 18\nCampos Elíseos 204, Polanco\nAcceso por Calle Arquímedes N.º 10\nC.P. 11550, Ciudad de México",
       }
     : {
         eyebrow: "CONTACT",
         title: "We are here to help",
         description: "Contact us or visit our offices in Mexico City.",
-        email: "info@vwys.com.mx",
-        phone: "+52 (55) 5258 1000",
-        address: "Torre SOMA Chapultepec, 18th floor\n204 Campos Elíseos, Polanco\nAccess via 10 Arquímedes Street\nC.P. 11550, Mexico City",
       };
   const defaults = lang === "es"
     ? {
@@ -228,6 +184,7 @@ export function applyContactForm(
     const configured = cfg(config, key, lang).trim();
     return !configured || legacy.includes(configured) ? fallback : configured;
   };
+  const publicLocation = resolveContactLocation(config, lang);
   const page = {
     eyebrow: text("page_contact_eyebrow", pageDefaults.eyebrow),
     // La copia inicial llevaba un punto final; se trata como valor legado para
@@ -238,9 +195,9 @@ export function applyContactForm(
       lang === "es" ? ["Estamos aquí para ayudarte."] : ["We are here to help."],
     ),
     description: text("page_contact_description", pageDefaults.description),
-    email: text("page_contact_email", pageDefaults.email),
-    phone: text("page_contact_phone", pageDefaults.phone),
-    address: text("page_contact_address", pageDefaults.address),
+    email: publicLocation.email,
+    phone: publicLocation.phone,
+    address: publicLocation.address,
   };
   const t = {
     title: text("contact_form_title", defaults.title),
@@ -271,44 +228,29 @@ export function applyContactForm(
     netErr: text("contact_form_network_error_message", defaults.netErr),
   };
 
-  const publicEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(page.email) ? page.email : pageDefaults.email;
-  const phoneHref = `tel:${page.phone.replace(/[^+\d]/g, "")}`;
-  const addressLines = page.address.split(/\r?\n/).map((line) => line.trim()).filter(Boolean).slice(0, 8);
-  const addressHtml = addressLines.map((line) => `<span>${esc(line)}</span>`).join("");
+  const publicEmail = publicLocation.email;
+  const phoneHref = publicLocation.phoneHref;
+  const addressHtml = renderContactAddressLines(publicLocation.addressLines);
 
   // La plantilla aporta el iframe histórico; se conserva y solo se reemplaza
   // por el embed administrado cuando el origen de Google Maps es seguro.
   const $map = $wrap.find(".page__map").first().clone();
-  const mapEmbed = safeGoogleMapsEmbed(cfg(config, "office_map_embed", lang));
-  if (mapEmbed) $map.find("iframe").first().attr("src", mapEmbed);
-  $map.find("iframe").first()
-    .attr("data-vwb-contact-map", "always")
-    .attr(
-      "title",
-      lang === "es" ? "Ubicación de Von Wobeser y Sierra en Google Maps" : "Von Wobeser y Sierra location on Google Maps",
-    );
-
-  const location = lang === "es"
-    ? {
-        eyebrow: "UBICACIÓN",
-        title: "Nuestra ubicación",
-        address: "Dirección",
-        phone: "Teléfono",
-        email: "Correo electrónico",
-        directions: "Obtener direcciones",
-        viewMap: "Ver en el mapa",
-      }
-    : {
-        eyebrow: "LOCATION",
-        title: "Our location",
-        address: "Address",
-        phone: "Phone",
-        email: "Email",
-        directions: "Get directions",
-        viewMap: "View on map",
-      };
-  const defaultMapLink = "https://www.google.com/maps/dir/?api=1&destination=19.427559,-99.195333";
-  const mapLink = safeGoogleMapsLink(cfg(config, "office_map_directions", lang), defaultMapLink);
+  const $mapFrame = $map.find("iframe").first();
+  if (publicLocation.mapEmbed) {
+    $mapFrame
+      .attr("src", publicLocation.mapEmbed)
+      .attr("data-vwb-contact-map", "always")
+      .attr(
+        "title",
+        lang === "es" ? "Ubicación de Von Wobeser y Sierra en Google Maps" : "Von Wobeser y Sierra location on Google Maps",
+      );
+  } else {
+    // Si la URL administrada es inválida, nunca se conserva un iframe heredado
+    // con origen desconocido; las acciones seguras hacia Google Maps permanecen.
+    $mapFrame.remove();
+  }
+  const location = publicLocation.labels;
+  const mapLink = publicLocation.mapLink;
 
   const options = practices
     .filter(isVisiblePublicPractice)
@@ -381,20 +323,20 @@ export function applyContactForm(
     <div class="vw-contact-page__map-card"><div class="vw-contact-page__map-slot"></div></div>
     <aside class="vw-contact-page__details">
       <div class="vw-contact-location__row">
-        ${contactIcon("pin")}
+        ${contactLocationIcon("pin")}
         <div><h3>${esc(location.address)}</h3><address>${addressHtml}</address></div>
       </div>
       <div class="vw-contact-location__row">
-        ${contactIcon("phone")}
+        ${contactLocationIcon("phone")}
         <div><h3>${esc(location.phone)}</h3><a href="${esc(phoneHref)}">${esc(page.phone)}</a></div>
       </div>
       <div class="vw-contact-location__row">
-        ${contactIcon("mail")}
+        ${contactLocationIcon("mail")}
         <div><h3>${esc(location.email)}</h3><a href="mailto:${esc(publicEmail)}">${esc(publicEmail)}</a></div>
       </div>
       <div class="vw-contact-location__actions">
-        <a class="vw-contact-location__action vw-contact-location__action--primary" href="${esc(mapLink)}" target="_blank" rel="noopener noreferrer">${contactIcon("directions")}<span>${esc(location.directions)}</span></a>
-        <a class="vw-contact-location__action" href="${esc(mapLink)}" target="_blank" rel="noopener noreferrer"><span>${esc(location.viewMap)}</span>${contactIcon("external")}</a>
+        <a class="vw-contact-location__action vw-contact-location__action--primary" href="${esc(mapLink)}" target="_blank" rel="noopener noreferrer">${contactLocationIcon("directions")}<span>${esc(location.directions)}</span></a>
+        <a class="vw-contact-location__action" href="${esc(mapLink)}" target="_blank" rel="noopener noreferrer"><span>${esc(location.viewMap)}</span>${contactLocationIcon("external")}</a>
       </div>
     </aside>
   </div>

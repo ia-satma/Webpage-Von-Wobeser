@@ -14,6 +14,7 @@ import {
 } from "@shared/videoSource";
 import { hasCompatibleLocalizedNewsTitle } from "./newsLanguage";
 import { escapeHtmlAttribute, escapeHtmlText } from "./htmlEscape";
+import { contactLocationIcon, renderContactAddressLines, resolveContactLocation } from "./contactLocation";
 
 type Lang = "en" | "es";
 
@@ -113,7 +114,11 @@ function responsiveBackgroundUrls(sourceUrl: string): { mobile: string; desktop:
 
 const HERO_PERFORMANCE_STYLE = `<style id="vw-home-performance">
 .home__slider--item.vw-lazy-bg{background-color:#777;background-position:center;background-size:cover}
-.vw-home-video-facade{position:relative;width:100%;aspect-ratio:16/9;background-position:center;background-size:cover;background-color:#222;overflow:hidden}
+.home__hero{height:calc(100vh - 66px)!important;height:calc(100svh - 66px)!important;min-height:420px!important;overflow:hidden!important;isolation:isolate}
+.home__hero>.vw-home-video-link,.home__hero>.vw-home-video-facade{position:absolute!important;inset:0!important;display:block!important;width:100%!important;height:100%!important;margin:0!important;padding:0!important;z-index:0}
+.home__hero #video_header{display:block!important;width:100%!important;height:100%!important;margin:0!important;padding:0!important;object-fit:cover!important}
+.home__hero>.covid_cont,.home__hero>.home__hero--scroll{z-index:1}
+.vw-home-video-facade{background-position:center;background-size:cover;background-color:#222;overflow:hidden}
 .vw-home-video-facade__poster{position:absolute;inset:0;display:block;width:100%;height:100%;object-fit:cover}
 .vw-home-video-facade iframe,.vw-home-video-facade video{display:block;width:100%;height:100%;border:0;object-fit:cover}
 .vw-home-video-facade__play{position:absolute;z-index:1;inset:0;width:100%;border:0;background:rgba(0,0,0,.12);color:#fff;cursor:pointer;display:grid;place-items:center}
@@ -122,8 +127,7 @@ const HERO_PERFORMANCE_STYLE = `<style id="vw-home-performance">
 .vw-home-video-retry{position:absolute;z-index:8;left:50%;top:50%;display:none;align-items:center;gap:12px;min-height:48px;padding:10px 18px;border:1px solid rgba(255,255,255,.82);background:rgba(20,20,20,.72);color:#fff;cursor:pointer;font:500 14px/1.2 var(--font-body,"Inter",sans-serif);letter-spacing:.02em;transform:translate(-50%,-50%);backdrop-filter:blur(4px)}
 .vw-home-video-retry.is-visible{display:inline-flex}.vw-home-video-retry__icon{font-size:19px;line-height:1}.vw-home-video-retry:hover{background:rgba(20,20,20,.88)}.vw-home-video-retry:focus-visible{outline:3px solid #fff;outline-offset:3px}
 @media (prefers-reduced-motion:reduce){.home__hero{background-position:center;background-size:cover}}
-@media (max-width:800px){.vw-home-video-facade{margin-top:281px}}
-@media (max-width:430px){.vw-home-video-facade{margin-top:354px}}
+@media (max-width:680px){.home__hero{min-height:calc(100svh - 66px)!important}}
 </style>`;
 
 const HERO_PERFORMANCE_SCRIPT = `<script id="vw-home-performance-js">(function(){
@@ -132,7 +136,6 @@ const HERO_PERFORMANCE_SCRIPT = `<script id="vw-home-performance-js">(function()
     var retry=document.querySelector('[data-vw-home-video-retry]');
     var reduced=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     var saveData=!!(navigator.connection&&navigator.connection.saveData);
-    var mobile=window.matchMedia&&window.matchMedia('(max-width: 680px)').matches;
     var showRetry=function(){if(retry)retry.classList.add('is-visible');};
     var hideRetry=function(){if(retry)retry.classList.remove('is-visible');};
     var hydrated=false;
@@ -159,17 +162,20 @@ const HERO_PERFORMANCE_SCRIPT = `<script id="vw-home-performance-js">(function()
     };
     video.addEventListener('playing',hideRetry);
     video.addEventListener('error',showRetry);
-    if(reduced||saveData||mobile){video.autoplay=false;video.pause();video.preload='none';showRetry();}
+    if(reduced||saveData){video.autoplay=false;video.pause();video.preload='none';}
     else{
       video.autoplay=true;
       var begin=function(){
         start();
-        window.setTimeout(function(){if(video.paused&&!video.ended)showRetry();},3500);
       };
       // El póster es el LCP; el video se inicia cuando el primer render terminó.
       var startWhenIdle=function(){
-        if(window.requestIdleCallback)window.requestIdleCallback(begin,{timeout:2500});
-        else window.setTimeout(begin,1200);
+        var afterPaint=function(){
+          if(window.requestIdleCallback)window.requestIdleCallback(begin,{timeout:1200});
+          else window.setTimeout(begin,0);
+        };
+        if(window.requestAnimationFrame)window.requestAnimationFrame(function(){window.requestAnimationFrame(afterPaint);});
+        else window.setTimeout(afterPaint,0);
       };
       if(document.readyState==='complete')startWhenIdle();
       else window.addEventListener('load',startWhenIdle,{once:true});
@@ -388,6 +394,47 @@ function renderHomeAboutEditorial(content: {
       valuesMarkup() +
     `</div>` +
   `</section>`;
+}
+
+const HOME_LOCATION_STYLE = `<style id="vw-home-location-style">
+.vw-home-location{padding:clamp(3.5rem,5.5vw,5.5rem) 0;background:#fff;color:#4f4f4f}
+.vw-home-location__container{width:min(100% - 4rem,74rem);margin:0 auto}
+.vw-home-location__heading{text-align:center}.vw-home-location__eyebrow{margin:0 0 13px;color:#ac162c;font:500 11px/1.2 var(--vw-font-ui);letter-spacing:.28em;text-transform:uppercase}.vw-home-location__heading h2{margin:0;color:#565656;font:400 clamp(2rem,3vw,2.55rem)/1.12 var(--vw-font-editorial);letter-spacing:-.02em;text-transform:none}
+.vw-home-location__grid{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(18rem,.9fr);gap:20px;align-items:stretch;margin-top:28px}.vw-home-location__map-card{min-height:340px;overflow:hidden;border:1px solid #d0d0ce;border-radius:7px;background:#dededb}.vw-home-location__map-card iframe{display:block;width:100%;height:100%;min-height:340px;border:0;filter:none!important}.vw-home-location__map-fallback{display:grid;min-height:340px;place-items:center;padding:24px;color:#5c5c5c;font:400 15px/1.5 var(--vw-font-body);text-align:center}
+.vw-home-location__details{display:flex;flex-direction:column;gap:17px;border:1px solid #d0d0ce;border-radius:7px;background:#fff;padding:clamp(21px,2.4vw,28px);font-family:var(--vw-font-body)}.vw-home-location__row{display:grid;grid-template-columns:18px minmax(0,1fr);gap:12px;align-items:start}.vw-home-location__row+.vw-home-location__row{border-top:1px solid #ddddda;padding-top:17px}.vw-home-location .vw-contact-icon{display:block;width:18px;height:18px;fill:none;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round;stroke-width:1.7}.vw-home-location__row>.vw-contact-icon{margin-top:3px;color:#ac162c}.vw-home-location__row h3{margin:0 0 5px;color:#4f4f4f;font:400 18px/1.2 var(--vw-font-editorial);text-transform:none}.vw-home-location__row address,.vw-home-location__row a{display:block;margin:0;color:#5c5c5c;font:400 14px/1.52 var(--vw-font-body);font-style:normal;text-decoration:none}.vw-home-location__row a:hover,.vw-home-location__row a:focus-visible{text-decoration:underline}.vw-home-location__row a:focus-visible,.vw-home-location__action:focus-visible{outline:2px solid #ac162c;outline-offset:3px}.vw-home-location__details address span{display:block}
+.vw-home-location__actions{display:grid;gap:9px;margin-top:auto;padding-top:2px}.vw-home-location__action{display:flex;align-items:center;justify-content:center;gap:9px;min-height:44px;border:1px solid #c9c9c7;border-radius:5px;color:#4f4f4f;padding:0 14px;font:500 14px/1 var(--vw-font-ui);text-decoration:none;transition:transform .2s ease}.vw-home-location__action .vw-contact-icon{width:17px;height:17px}.vw-home-location__action--primary{border-color:#ac162c;background:#ac162c;color:#fff}.vw-home-location__action:active{transform:translateY(1px)}
+@media(max-width:900px){.vw-home-location__container{width:min(100% - 3rem,48rem)}.vw-home-location__grid{grid-template-columns:1fr}.vw-home-location__map-card,.vw-home-location__map-card iframe,.vw-home-location__map-fallback{min-height:320px}}
+@media(max-width:560px){.vw-home-location{padding:4rem 0}.vw-home-location__container{width:calc(100% - 2rem)}.vw-home-location__grid{gap:16px;margin-top:24px}.vw-home-location__map-card,.vw-home-location__map-card iframe,.vw-home-location__map-fallback{min-height:270px}.vw-home-location__details{gap:16px;padding:21px 18px}.vw-home-location__row+.vw-home-location__row{padding-top:16px}.vw-home-location__heading h2{font-size:2rem}}
+@media(prefers-reduced-motion:reduce){.vw-home-location__action{transition:none}}
+</style>`;
+
+function renderHomeLocation(config: ConfigMap, lang: Lang): string {
+  const location = resolveContactLocation(config, lang);
+  const labels = location.labels;
+  const mapTitle = lang === "es"
+    ? "Ubicación de Von Wobeser y Sierra en Google Maps"
+    : "Von Wobeser y Sierra location on Google Maps";
+  const map = location.mapEmbed
+    ? `<iframe src="${escAttr(location.mapEmbed)}" loading="lazy" referrerpolicy="strict-origin-when-cross-origin" data-vwb-location-map="always" title="${escAttr(mapTitle)}"></iframe>`
+    : `<div class="vw-home-location__map-fallback" role="status"><span>${esc(labels.unavailable)}</span></div>`;
+
+  return `<section class="vw-home-location" aria-labelledby="vw-home-location-title">
+    <div class="vw-home-location__container">
+      <header class="vw-home-location__heading"><p class="vw-home-location__eyebrow">${esc(labels.eyebrow)}</p><h2 id="vw-home-location-title">${esc(labels.title)}</h2></header>
+      <div class="vw-home-location__grid" aria-label="${escAttr(lang === "es" ? "Información de contacto y ubicación" : "Contact information and location")}">
+        <div class="vw-home-location__map-card">${map}</div>
+        <aside class="vw-home-location__details">
+          <div class="vw-home-location__row">${contactLocationIcon("pin")}<div><h3>${esc(labels.address)}</h3><address>${renderContactAddressLines(location.addressLines)}</address></div></div>
+          <div class="vw-home-location__row">${contactLocationIcon("phone")}<div><h3>${esc(labels.phone)}</h3><a href="${escAttr(location.phoneHref)}">${esc(location.phone)}</a></div></div>
+          <div class="vw-home-location__row">${contactLocationIcon("mail")}<div><h3>${esc(labels.email)}</h3><a href="mailto:${escAttr(location.email)}">${esc(location.email)}</a></div></div>
+          <div class="vw-home-location__actions">
+            <a class="vw-home-location__action vw-home-location__action--primary" href="${escAttr(location.mapLink)}" target="_blank" rel="noopener noreferrer">${contactLocationIcon("directions")}<span>${esc(labels.directions)}</span></a>
+            <a class="vw-home-location__action" href="${escAttr(location.mapLink)}" target="_blank" rel="noopener noreferrer"><span>${esc(labels.viewMap)}</span>${contactLocationIcon("external")}</a>
+          </div>
+        </aside>
+      </div>
+    </div>
+  </section>`;
 }
 
 function renderGroupSlider(groups: HomeGroup[], kind: "practice" | "industry", config: ConfigMap, lang: Lang): string {
@@ -811,7 +858,7 @@ export function renderHome(
     videoElement.parent("a").attr({
       href: heroLink,
       "aria-label": lang === "es" ? "Conoce Von Wobeser y Sierra" : "Discover Von Wobeser y Sierra",
-    });
+    }).addClass("vw-home-video-link");
     videoElement.attr({
       width: "1920",
       height: "1080",
@@ -823,7 +870,7 @@ export function renderHome(
       loop: "",
       playsinline: "",
     });
-    const retryLabel = lang === "es" ? "Reproducir video" : "Play video";
+    const retryLabel = lang === "es" ? "Reintentar video" : "Retry video";
     videoElement.parent("a").after(
       `<button type="button" class="vw-home-video-retry" data-vw-home-video-retry aria-label="${escAttr(retryLabel)}">` +
       `<span class="vw-home-video-retry__icon" aria-hidden="true">▶</span><span>${esc(retryLabel)}</span></button>`,
@@ -990,6 +1037,8 @@ export function renderHome(
   const labels = aboutLabels.map((key, index) => cfg(config, key, lang) || legacyLabels[index] || "");
   const bodies = aboutBodies.map((key, index) => cfg(config, key, lang) || legacyBodies[index] || "");
   const aboutLayout = cfg(config, "home_about_layout", lang).trim().toLowerCase() === "classic" ? "classic" : "editorial";
+  const homeLocationVisible = isConfigEnabled(config, "home_location_visible", true);
+  const homeLocation = homeLocationVisible ? renderHomeLocation(config, lang) : "";
 
   if (aboutLayout === "classic") {
     if (aboutTitle) about.find(".home__rec--ttl").first().text(aboutTitle);
@@ -1001,6 +1050,7 @@ export function renderHome(
       const value = bodies[index];
       if (value) $(element).html(paragraphs(value));
     });
+    if (homeLocation) about.after(homeLocation);
   } else if (about.length) {
     const aboutEditorialIntro = normalizeLegacyHomeEditorialIntro(cfg(config, "home_about_editorial_intro", lang), lang);
     about.replaceWith(renderHomeAboutEditorial({
@@ -1014,8 +1064,10 @@ export function renderHome(
       missionBody: bodies[1],
       valuesLabel: labels[2],
       valuesBody: bodies[2],
-    }));
+    }) + homeLocation);
   }
+
+  if (homeLocation) $("head").append(HOME_LOCATION_STYLE);
 
   if ($("[data-home-about-reveal]").length) {
     $("body").append(HOME_ABOUT_EDITORIAL_REVEAL_SCRIPT);

@@ -25,7 +25,7 @@ export const teamFormTranslations = {
     title: "Category",
     titleHint: "Determines which listing this person appears in (Partners, Of Counsel, Counsel, Associates). Must match exactly — pick from the list.",
     titleEs: "Displayed Title (Spanish)",
-    titleEsHint: "Text shown on the Spanish site. For partners use ‘Socio’ or ‘Socia’; if ‘Partner’ is entered it will be saved as ‘Socio’. Category defines the listing.",
+    titleEsHint: "Text shown on the Spanish site. Use ‘Socia’ or ‘Asociada’ for women and ‘Socio’ or ‘Asociado’ for men. If ‘Partner’ is entered it will be saved as ‘Socio’. Category defines the listing.",
     role: "Position",
     roleEs: "Position (Spanish)",
     email: "Email Address",
@@ -65,10 +65,13 @@ export const teamFormTranslations = {
     },
     rolesEs: {
       partner: "Socio",
+      partnerFemale: "Socia",
       ofCounsel: "Of Counsel",
       counsel: "Counsel",
       seniorAssociate: "Asociado Senior",
-      associate: "Asociado"
+      seniorAssociateFemale: "Asociada Senior",
+      associate: "Asociado",
+      associateFemale: "Asociada"
     }
   },
   es: {
@@ -97,7 +100,7 @@ export const teamFormTranslations = {
     title: "Categoría",
     titleHint: "Determina en qué listado aparece esta persona (Socios, Of Counsel, Consejeros, Asociados). Debe coincidir exacto — elígelo de la lista.",
     titleEs: "Título mostrado (Español)",
-    titleEsHint: "Texto mostrado en el sitio en español. Para Socios usa ‘Socio’ o ‘Socia’; si escribes ‘Partner’, se guardará como ‘Socio’. La Categoría define el listado.",
+    titleEsHint: "Texto mostrado en el sitio en español. Para mujeres usa ‘Socia’ o ‘Asociada’; para hombres, ‘Socio’ o ‘Asociado’. Si escribes ‘Partner’, se guardará como ‘Socio’. La Categoría define el listado.",
     role: "Posición",
     roleEs: "Posición (Español)",
     email: "Correo Electrónico",
@@ -137,10 +140,13 @@ export const teamFormTranslations = {
     },
     rolesEs: {
       partner: "Socio",
+      partnerFemale: "Socia",
       ofCounsel: "Of Counsel",
       counsel: "Counsel",
       seniorAssociate: "Asociado Senior",
-      associate: "Asociado"
+      seniorAssociateFemale: "Asociada Senior",
+      associate: "Asociado",
+      associateFemale: "Asociada"
     }
   },
 };

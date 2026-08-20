@@ -24,6 +24,7 @@ const { renderGroupList } = await import("../mirror/renderGroupList");
 const { renderNotFound } = await import("../mirror/renderNotFound");
 const { isPublicPracticeSlug } = await import("../mirror/publicPracticeGroups");
 const { practiceAreas } = await import("../../shared/schema");
+const { LOCAL_SRI_MANIFEST } = await import("./sriManifest");
 
 test("el cromo compartido usa lista válida y botón de búsqueda accesible", () => {
   const $ = cheerio.load(`<!doctype html><html lang="es"><head></head><body>
@@ -190,10 +191,21 @@ test("la portada alterna entre Visión, misión y valores editorial y su diseño
     home_mission_body: { value: "English mission.", valueEs: "Misión en español.", type: "text" },
     home_values_label: { value: "Values", valueEs: "Valores", type: "text" },
     home_values_body: { value: "Integrity: We do what we say.\n\nDescription without a title", valueEs: "Integridad: Hacemos lo que decimos.\n\nDescripción sin título", type: "text" },
+    page_contact_address: { value: "18th floor\n204 Campos Elíseos", valueEs: "Piso 18\nCampos Elíseos 204", type: "text" },
+    page_contact_phone: { value: "+52 (55) 5258 1000", valueEs: "+52 (55) 5258 1000", type: "text" },
+    page_contact_email: { value: "contact@example.com", valueEs: "contact@example.com", type: "text" },
+    office_map_embed: { value: "https://www.google.com/maps/embed?pb=home", valueEs: "https://www.google.com/maps/embed?pb=home", type: "url" },
+    office_map_directions: { value: "https://www.google.com/maps/dir/?api=1&destination=home", valueEs: "https://www.google.com/maps/dir/?api=1&destination=home", type: "url" },
   };
   const editorialEs = cheerio.load(renderHome(template, [], config, "es"));
   const editorialEn = cheerio.load(renderHome(template.replace('lang="es"', 'lang="en"'), [], config, "en"));
   const classic = cheerio.load(renderHome(template, [], { ...config, home_about_layout: { value: "classic", valueEs: "classic", type: "select" } }, "es"));
+  const hiddenLocation = cheerio.load(renderHome(template, [], { ...config, home_location_visible: { value: "false", valueEs: "false", type: "boolean" } }, "es"));
+  const invalidHomeMap = cheerio.load(renderHome(template, [], {
+    ...config,
+    office_map_embed: { value: "https://example.invalid/embed", valueEs: "javascript:alert(1)", type: "url" },
+    office_map_directions: { value: "https://example.invalid/directions", valueEs: "javascript:alert(1)", type: "url" },
+  }, "es"));
   const legacyIntro = cheerio.load(renderHome(template, [], {
     ...config,
     home_about_editorial_intro: {
@@ -219,10 +231,25 @@ test("la portada alterna entre Visión, misión y valores editorial y su diseño
   assert.equal(editorialEs(".home-about-editorial__value-list li").last().text().includes("Descripción sin título"), true);
   assert.equal(editorialEn("#home-about-editorial-title").text(), "Vision, mission and values");
   assert.equal(editorialEn(".home-about-editorial__value-list h4").first().text(), "Integrity");
+  assert.equal(editorialEs(".home-about-editorial + .vw-home-location").length, 1);
+  assert.equal(editorialEs(".vw-home-location__heading h2").text(), "Nuestra ubicación");
+  assert.equal(editorialEs(".vw-home-location__map-card iframe").attr("src"), "https://www.google.com/maps/embed?pb=home");
+  assert.equal(editorialEs(".vw-home-location__map-card iframe").attr("loading"), "lazy");
+  assert.equal(editorialEs(".vw-home-location__map-card iframe").attr("data-vwb-location-map"), "always");
+  assert.equal(editorialEs(".vw-home-location__details address").text(), "Piso 18Campos Elíseos 204");
+  assert.equal(editorialEs(".vw-home-location__action--primary").attr("href"), "https://www.google.com/maps/dir/?api=1&destination=home");
+  applyA11y(editorialEs, "es");
+  assert.equal(editorialEs(".vw-home-location__map-card iframe").attr("src"), "https://www.google.com/maps/embed?pb=home");
+  assert.equal(editorialEn(".vw-home-location__heading h2").text(), "Our location");
   assert.equal(classic(".home-about-editorial").length, 0);
   assert.equal(classic("#vw-home-about-editorial-reveal").length, 0);
   assert.equal(classic(".home__rec--wrap").length, 1);
   assert.equal(classic(".home__rec--ttl").text(), "ACERCA DE NOSOTROS");
+  assert.equal(classic(".home__rec--wrap + .vw-home-location").length, 1);
+  assert.equal(hiddenLocation(".vw-home-location").length, 0);
+  assert.equal(invalidHomeMap(".vw-home-location__map-card iframe").length, 0);
+  assert.equal(invalidHomeMap(".vw-home-location__map-fallback").length, 1);
+  assert.match(invalidHomeMap(".vw-home-location__action--primary").attr("href") || "", /^https:\/\/www\.google\.com\/maps\/dir/);
   assert.match(css, /\.home-about-editorial__value-list\s*\{[\s\S]*grid-template-columns:\s*repeat\(5/);
   assert.match(css, /\.home-about-editorial__heading\s*\{[^}]*justify-items:\s*center[^}]*margin:\s*0 auto clamp\([^}]*text-align:\s*center/);
   assert.match(css, /\.home-about-editorial__heading\s*>\s*p\s*\{[^}]*max-width:\s*680px[^}]*width:\s*100%/);
@@ -235,6 +262,7 @@ test("la portada alterna entre Visión, misión y valores editorial y su diseño
   assert.match(revealScript, /prefers-reduced-motion/);
   assert.match(revealScript, /max-width: 980px/);
   assert.match(admin, /home_about_layout/);
+  assert.match(admin, /home_location_visible/);
   assert.match(admin, /Editorial — retícula de valores/);
   assert.match(server, /z\.enum\(\["editorial", "classic"\]\)/);
 });
@@ -475,7 +503,7 @@ test("la portada nombra los cuatro carruseles y aplica contraste AA al módulo d
   assert.equal($("#video_header source").eq(1).attr("data-vwb-src"), "/images/hero-20260810-fullhd-desktop.mp4");
   assert.equal($("#video_header source").eq(1).attr("type"), "video/mp4");
   assert.equal($("#video_header").attr("autoplay"), "autoplay");
-  assert.equal($("[data-vw-home-video-retry] span").last().text().trim(), "Reproducir video");
+  assert.equal($("[data-vw-home-video-retry] span").last().text().trim(), "Reintentar video");
   assert.match(html, /video\.defaultMuted=true/);
   assert.match(html, /promise\.catch\(showRetry\)/);
   assert.match($(".home__hero").attr("style") || "", /hero-20260810-fullhd-poster\.webp/);
@@ -484,6 +512,8 @@ test("la portada nombra los cuatro carruseles y aplica contraste AA al módulo d
   assert.match($(".home_slider_JS").eq(0).find(".vw-lazy-bg").attr("data-bg-mobile") || "", /-640\.webp$/);
   assert.match($(".home_slider_JS").eq(0).find(".vw-lazy-bg").attr("data-bg-desktop") || "", /-(?:1280|1920)\.webp$/);
   assert.match($("#vw-home-performance-js").text(), /navigator\.connection/);
+  assert.match($("#vw-home-performance-js").text(), /requestAnimationFrame/);
+  assert.doesNotMatch($("#vw-home-performance-js").text(), /reduced\|\|saveData\|\|mobile/);
   assert.match($("#vw-home-performance-js").text(), /\.slick-cloned\.vw-lazy-bg/);
   assert.match($("#vw-home-performance-js").text(), /\.slick-active\.vw-lazy-bg/);
   assert.match($("#vw-home-performance-js").text(), /data-vw-bg-source/);
@@ -770,7 +800,9 @@ test("la carga pública elimina librerías Joomla duplicadas y usa jQuery vigent
   assert.doesNotMatch(optimized, /media\/jui|media\/system\/js\/core|jquery_3\.3\.1/);
   assert.match(optimized, /_vendor\/jquery\/jquery-3\.7\.1\.min\.js/);
   assert.match(optimized, /<script defer src="\/templates\/beez3\/js\/min\/slick\.min\.js"/);
-  assert.match(optimized, /templates\/beez3\/css\/public\.css\?v=20260819-mobile/);
+  const publicCssVersion = LOCAL_SRI_MANIFEST["/templates/beez3/css/public.css"]
+    .replace(/^sha384-/, "").replace(/[^a-zA-Z0-9]/g, "").slice(0, 20);
+  assert.match(optimized, new RegExp(`templates/beez3/css/public\\.css\\?v=${publicCssVersion}`));
   assert.doesNotMatch(optimized, /_vendor\/slick\/slick\.css/);
   assert.doesNotMatch(optimized, /fontawesome|joomla-script-options/);
 });

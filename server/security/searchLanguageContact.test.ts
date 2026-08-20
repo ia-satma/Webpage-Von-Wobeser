@@ -177,14 +177,16 @@ test("Contacto elimina el punto final heredado del título en ambos idiomas", ()
   }
 });
 
-test("Contacto conserva el mapa capturado si la configuración no es un embed seguro de Google Maps", () => {
+test("Contacto no conserva un iframe heredado si la configuración no es un embed seguro de Google Maps", () => {
   const $ = cheerio.load(chrome);
   $(".page__map--holder").html('<iframe src="https://www.google.com/maps/embed?pb=legacy"></iframe>');
   applyContactForm($, "en", {
     office_map_embed: { value: "https://example.com/embed", valueEs: "", type: "url" },
   });
 
-  assert.equal($(".page__map--holder iframe").attr("src"), "https://www.google.com/maps/embed?pb=legacy");
+  assert.equal($(".page__map--holder iframe").length, 0);
+  assert.doesNotMatch($.html(), /example\.com|pb=legacy/);
+  assert.equal($(".vw-contact-location__action--primary").attr("href"), "https://www.google.com/maps/dir/?api=1&destination=19.427559,-99.195333");
 });
 
 test("Contacto permite administrar el consentimiento bilingüe", () => {

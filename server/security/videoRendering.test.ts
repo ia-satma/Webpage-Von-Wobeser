@@ -50,13 +50,15 @@ test("el Home conserva video nativo y enlace institucional para archivos", async
   assert.equal($("#video_header source").first().attr("data-vwb-src"), "/uploads/video/mobile.webm");
   assert.equal($("#video_header source").first().attr("src"), undefined, "el video no debe descargarse antes de que el póster pinte");
   assert.equal($("#video_header").parent("a").attr("href"), "/acerca-de");
+  assert.equal($("#video_header").parent("a").hasClass("vw-home-video-link"), true);
   assert.equal($("#video_header").attr("autoplay"), "autoplay");
   assert.equal($("#video_header").attr("muted"), "");
+  assert.equal($("#video_header").attr("playsinline"), "");
   assert.equal($("[data-vw-home-video-retry]").length, 1);
   assert.equal($("[data-vw-home-video-facade]").length, 0);
 });
 
-test("el video nativo ofrece recuperación cuando Edge o Brave bloquean autoplay", async () => {
+test("el video nativo se reproduce automáticamente en móvil y ofrece recuperación solo tras un error", async () => {
   const { renderHome } = await import("../mirror/renderHome");
   const template = `<!doctype html><html><head></head><body>
     <div class="home__hero"><a href="/old"><video id="video_header"></video></a></div>
@@ -69,13 +71,18 @@ test("el video nativo ofrece recuperación cuando Edge o Brave bloquean autoplay
   }, "en");
   const $ = cheerio.load(html);
 
-  assert.equal($("[data-vw-home-video-retry] span").last().text().trim(), "Play video");
+  assert.equal($("[data-vw-home-video-retry] span").last().text().trim(), "Retry video");
   assert.match(html, /navigator\.connection&&navigator\.connection\.saveData/);
   assert.match(html, /prefers-reduced-motion: reduce/);
   assert.match(html, /source\[data-vwb-src\]/);
   assert.match(html, /video\.load\(\)/);
   assert.match(html, /requestAnimationFrame/);
   assert.match(html, /video\.preload='auto'/);
+  assert.doesNotMatch(html, /reduced\|\|saveData\|\|mobile/);
+  assert.match(html, /if\(reduced\|\|saveData\)\{video\.autoplay=false/);
+  assert.match(html, /promise\.catch\(showRetry\)/);
+  assert.match(html, /\.home__hero #video_header\{[\s\S]*?padding:0!important/);
+  assert.doesNotMatch(html, /vw-home-video-facade\{margin-top:/);
   assert.doesNotMatch(html, /#video_header\{display:none\}/);
 });
 

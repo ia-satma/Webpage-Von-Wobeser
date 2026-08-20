@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import test from "node:test";
-import { OFFICIAL_PARTNER_ORDER } from "@shared/attorneyOrder";
+import { CURRENT_ASSOCIATE_ORDER, MIRROR_ONLY_ASSOCIATE_NAMES, OFFICIAL_PARTNER_ORDER } from "@shared/attorneyOrder";
 
 process.env.DATABASE_URL ||= "postgresql://test:test@127.0.0.1:5432/test";
 
@@ -50,12 +50,29 @@ test("las instalaciones nuevas reciben el orden oficial íntegro de Socios", () 
   assert.deepEqual(partners.map((member) => member.order), OFFICIAL_PARTNER_ORDER.map((_, index) => index + 1));
 });
 
+test("las instalaciones nuevas conservan los 101 Asociados y ocultan solo los nueve perfiles adicionales", () => {
+  const associates = canonicalTeamMembersData
+    .filter((member) => member.title === "Associate")
+    .sort((left, right) => Number(left.order ?? 0) - Number(right.order ?? 0));
+
+  assert.equal(CURRENT_ASSOCIATE_ORDER.length, 101);
+  assert.equal(MIRROR_ONLY_ASSOCIATE_NAMES.length, 9);
+  assert.equal(new Set(CURRENT_ASSOCIATE_ORDER.map((name) => name.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase())).size, 101);
+  assert.deepEqual(associates.map((member) => member.name), CURRENT_ASSOCIATE_ORDER);
+  assert.deepEqual(associates.map((member) => member.order), CURRENT_ASSOCIATE_ORDER.map((_, index) => index + 1));
+  assert.deepEqual(
+    associates.filter((member) => member.published === false).map((member) => member.name).sort(),
+    [...MIRROR_ONLY_ASSOCIATE_NAMES].sort(),
+  );
+});
+
 test("el panel ofrece orden por categoría, guardado explícito y visibilidad directa", () => {
   const root = process.cwd();
   const panel = readFileSync(new URL("../../client/src/features/admin/team-order/AttorneyOrderPanel.tsx", import.meta.url), "utf8");
   const team = readFileSync(new URL("../../client/src/pages/admin/AdminTeam.tsx", import.meta.url), "utf8");
   const routes = readFileSync(new URL("../routes/adminTeamRoutes.ts", import.meta.url), "utf8");
-  const reconciliation = readFileSync(new URL("../../scripts/reconcile-partner-order.ts", import.meta.url), "utf8");
+  const partnerReconciliation = readFileSync(new URL("../../scripts/reconcile-partner-order.ts", import.meta.url), "utf8");
+  const associateReconciliation = readFileSync(new URL("../../scripts/reconcile-associate-order.ts", import.meta.url), "utf8");
 
   assert.match(panel, /\/api\/admin\/team\/order/);
   assert.match(panel, /button-save-attorney-order/);
@@ -70,7 +87,13 @@ test("el panel ofrece orden por categoría, guardado explícito y visibilidad di
   assert.match(routes, /TEAM_ORDER_STALE/);
   assert.match(routes, /attorneyOrderVersion/);
   assert.match(routes, /invalidatePublicPageCache/);
-  assert.match(reconciliation, /CONFIRM_PARTNER_ORDER_RECONCILIATION/);
-  assert.match(reconciliation, /LOCK TABLE team_members IN SHARE ROW EXCLUSIVE MODE/);
+  assert.match(partnerReconciliation, /CONFIRM_PARTNER_ORDER_RECONCILIATION/);
+  assert.match(partnerReconciliation, /LOCK TABLE team_members IN SHARE ROW EXCLUSIVE MODE/);
+  assert.match(associateReconciliation, /CONFIRM_ASSOCIATE_ORDER_RECONCILIATION/);
+  assert.match(associateReconciliation, /CURRENT_ASSOCIATE_ORDER/);
+  assert.match(associateReconciliation, /MIRROR_ONLY_ASSOCIATE_NAMES/);
+  assert.match(associateReconciliation, /Expected exactly/);
+  assert.match(associateReconciliation, /LOCK TABLE team_members IN SHARE ROW EXCLUSIVE MODE/);
+  assert.match(associateReconciliation, /published = false/);
   assert.ok(root.endsWith("Webpage-Von-Wobeser"));
 });

@@ -10,6 +10,7 @@ import { getPublicNavigationMenu, type PublicNavigationMenu } from "./navigation
 import { applyNavigationMarkup } from "./navigationMarkup";
 import { normalizeLegacyTypography } from "./legacyHtml";
 import { prepareTrustedHtmlForCsp } from "../security/csp";
+import { LOCAL_SRI_MANIFEST } from "../security/sriManifest";
 import { renderPublicFooter } from "./renderFooter";
 import { escapeHtmlAttribute, escapeHtmlText } from "./htmlEscape";
 
@@ -329,8 +330,15 @@ export const SEARCH_FORMS_SCRIPT = `<script>(function(){try{
 // Se incrementa junto con los estilos globales del espejo para que las
 // navegaciones existentes no conserven una tipografía previa en caché.
 const NAV_ASSET_VERSION = "20260818-footer-central";
-const PUBLIC_STYLE_ASSET_VERSION = "20260819-mobile";
 const PUBLIC_STYLE_PATH = "/templates/beez3/css/public.css";
+const PUBLIC_STYLE_INTEGRITY = LOCAL_SRI_MANIFEST[PUBLIC_STYLE_PATH];
+if (!PUBLIC_STYLE_INTEGRITY) throw new Error("Missing SRI entry for the public stylesheet.");
+// La URL se deriva del mismo contenido que valida SRI. Así un cambio de CSS
+// siempre invalida la entrada estática anterior sin reducir su TTL de caché.
+const PUBLIC_STYLE_ASSET_VERSION = PUBLIC_STYLE_INTEGRITY
+  .replace(/^sha384-/, "")
+  .replace(/[^a-zA-Z0-9]/g, "")
+  .slice(0, 20);
 const LEGACY_EVENTS_ASSET_VERSION = "20260813-csp";
 const LEGACY_EVENTS_SCRIPT = `<script defer src="/vwb-legacy-events.js?v=${LEGACY_EVENTS_ASSET_VERSION}"></script>`;
 function refreshNavigationAssets(html: string): string {

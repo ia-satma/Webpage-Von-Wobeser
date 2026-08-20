@@ -30,6 +30,7 @@ type ConsentConfig = {
   externalDescription: Pair;
   policyTitle: Pair;
   policyContent: Pair;
+  locationDisclosureReviewRequired: boolean;
 };
 
 const PAIR_FIELDS: Array<{ key: keyof ConsentConfig; label: string; long?: boolean }> = [
@@ -76,7 +77,7 @@ export default function AdminCookieConsent() {
     if (!draft) return;
     setSaving(true);
     try {
-      const { ga4Id: _ga4Id, ...payload } = draft;
+      const { ga4Id: _ga4Id, locationDisclosureReviewRequired: _locationDisclosureReviewRequired, ...payload } = draft;
       const response = await adminApiRequest("PUT", "/api/admin/cookie-consent", payload);
       if (!response.ok) throw new Error("save");
       setDraft(await response.json());
@@ -131,6 +132,9 @@ export default function AdminCookieConsent() {
       <Card>
         <CardHeader><CardTitle>Política de Cookies</CardTitle><CardDescription>Contenido bilingüe administrable que se publica en /politica-de-cookies y /cookie-policy. La firma puede sustituirlo por su propia redacción jurídica en cualquier momento.</CardDescription></CardHeader>
         <CardContent className="grid gap-6 lg:grid-cols-2">
+          {draft.locationDisclosureReviewRequired && <div role="status" className="lg:col-span-2 rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-950">
+            Esta política fue personalizada y se conservó sin sobrescribir. Revísala para declarar que Google Maps se carga automáticamente en Contacto y, al acercarse a la sección, en Inicio.
+          </div>}
           {(["es", "en"] as const).map((language) => <section key={language} className="space-y-3"><h2 className="flex items-center gap-2 font-semibold"><ShieldCheck className="h-4 w-4 text-primary" />{language === "es" ? "Español" : "Inglés"}</h2><Label>Título</Label><Input value={draft.policyTitle[language]} onChange={(event) => updatePair("policyTitle", language, event.target.value)} /><Label>Contenido</Label><Textarea className="min-h-80 font-sans" value={draft.policyContent[language]} onChange={(event) => updatePair("policyContent", language, event.target.value)} /></section>)}
         </CardContent>
       </Card>

@@ -3,7 +3,7 @@ import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
 import type { Affiliation, Education, Publication, Ranking } from "@shared/schema";
-import { OFFICIAL_PARTNER_ORDER } from "@shared/attorneyOrder";
+import { CURRENT_ASSOCIATE_ORDER, MIRROR_ONLY_ASSOCIATE_NAMES, OFFICIAL_PARTNER_ORDER } from "@shared/attorneyOrder";
 import { getMirrorDir } from "../mirror/config";
 
 /** Official attorney-directory snapshot verified on 12 August 2026. */
@@ -22,6 +22,60 @@ const ATTORNEY_SLUG_OVERRIDES: Record<string, string> = {
 // This is deliberately a single digest for the complete checked-in bilingual
 // corpus. It prevents a silent content change in any of the 132 snapshots.
 export const CANONICAL_ATTORNEYS_SNAPSHOT_SHA256 = "99e9e2790b61428fe22517758b754a308275cff6c79431c291907fc789e3aa7d";
+
+/**
+ * The historical Spanish mirror uses generic masculine titles for every
+ * Partner and Associate. These values are an editorial correction verified
+ * against the bilingual profile corpus; they are intentionally keyed by the
+ * stable legacy id rather than guessed from a person's name at runtime.
+ */
+export const FEMININE_SPANISH_ATTORNEY_TITLES: Readonly<Record<string, "Socia" | "Asociada">> = Object.freeze({
+  "157": "Asociada",
+  "161": "Asociada",
+  "168": "Socia",
+  "173": "Asociada",
+  "175": "Socia",
+  "181": "Asociada",
+  "186": "Socia",
+  "187": "Socia",
+  "200": "Asociada",
+  "217": "Asociada",
+  "235": "Asociada",
+  "300": "Asociada",
+  "319": "Asociada",
+  "322": "Asociada",
+  "334": "Asociada",
+  "342": "Asociada",
+  "349": "Asociada",
+  "351": "Asociada",
+  "354": "Asociada",
+  "357": "Asociada",
+  "359": "Asociada",
+  "362": "Asociada",
+  "381": "Asociada",
+  "383": "Asociada",
+  "392": "Asociada",
+  "394": "Asociada",
+  "398": "Asociada",
+  "401": "Asociada",
+  "402": "Asociada",
+  "403": "Asociada",
+  "405": "Asociada",
+  "407": "Asociada",
+  "408": "Asociada",
+  "412": "Asociada",
+  "413": "Asociada",
+  "415": "Asociada",
+  "418": "Asociada",
+  "427": "Asociada",
+  "430": "Asociada",
+  "437": "Asociada",
+  "445": "Asociada",
+  "446": "Asociada",
+  "451": "Asociada",
+  "455": "Asociada",
+  "456": "Asociada",
+});
 
 export type AttorneyResource = Publication & { kind: "news" | "article" };
 
@@ -77,9 +131,24 @@ const normalizeKey = (value: string) => normalize(value)
   .toLowerCase();
 
 const officialPartnerOrder = new Map(OFFICIAL_PARTNER_ORDER.map((name, index) => [normalizeKey(name), index + 1]));
+const currentAssociateOrder = new Map(CURRENT_ASSOCIATE_ORDER.map((name, index) => [normalizeKey(name), index + 1]));
+const mirrorOnlyAssociateNames = new Set(MIRROR_ONLY_ASSOCIATE_NAMES.map(normalizeKey));
 
 function slugify(value: string) {
   return normalizeKey(value).replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+}
+
+function localizedSpanishTitle(legacyId: string, historicalTitle: string): string {
+  const editorialTitle = FEMININE_SPANISH_ATTORNEY_TITLES[legacyId];
+  if (!editorialTitle) return historicalTitle;
+
+  const historicalNormalized = normalizeKey(historicalTitle);
+  const expectedHistoricalTitle = editorialTitle === "Socia" ? "socio" : "asociado";
+  const expectedEditorialTitle = normalizeKey(editorialTitle);
+  if (![expectedHistoricalTitle, expectedEditorialTitle].includes(historicalNormalized)) {
+    throw new Error(`Unexpected Spanish title for curated attorney ${legacyId}: ${historicalTitle}`);
+  }
+  return editorialTitle;
 }
 
 function absoluteOfficialUrl(value: string) {
@@ -241,9 +310,9 @@ export function loadCanonicalAttorneyContent(mirrorDir = getMirrorDir()): Canoni
       name: es.name,
       slug,
       title: en.role,
-      titleEs: es.role,
+      titleEs: localizedSpanishTitle(legacyId, es.role),
       role: en.role,
-      roleEs: es.role,
+      roleEs: localizedSpanishTitle(legacyId, es.role),
       email: es.email,
       phone: es.phone,
       imageUrl: es.imageUrl,
@@ -285,23 +354,31 @@ type SeedAttorney = {
 export function applyCanonicalAttorneyContent<T extends SeedAttorney>(seed: readonly T[]): Array<T | (CanonicalAttorney & { isPartner: boolean; order: number; published: boolean })> {
   const canonical = loadCanonicalAttorneyContent();
   const byIdentity = new Map(canonical.map((attorney) => [`${normalizeKey(attorney.name)}|${normalizeKey(attorney.titleEs)}`, attorney]));
-  // Keep the nine non-official records intact. They are intentionally retained
-  // in the directory while the canonical profiles receive only editorial data.
+  // Keep the nine non-official records available to Administration. New
+  // installations keep them hidden while canonical profiles receive editorial
+  // data and remain visible by default.
   const usedSlugs = new Set<string>();
   const seeded: Array<T | (CanonicalAttorney & { isPartner: boolean; order: number; published: boolean })> = seed.flatMap((attorney) => {
     const source = byIdentity.get(`${normalizeKey(attorney.name)}|${normalizeKey(attorney.titleEs)}`);
+    const associateOrder = currentAssociateOrder.get(normalizeKey(source?.name || attorney.name));
     const currentSlug = typeof attorney.slug === "string" ? attorney.slug : "";
     if (!source && !preservedAdditionalAttorneySlugs.has(currentSlug)) return [];
     const stableSlug = currentSlug && !usedSlugs.has(currentSlug)
       ? currentSlug
       : source?.slug || currentSlug;
     if (stableSlug) usedSlugs.add(stableSlug);
-    if (!source) return [attorney];
+    if (!source) return [{
+      ...attorney,
+      ...(associateOrder ? { order: associateOrder } : {}),
+      ...(mirrorOnlyAssociateNames.has(normalizeKey(attorney.name)) ? { published: false } : {}),
+    }];
     // Slug, image, display order and publication state are presentation metadata
     // and must remain stable across a clean install just as in the migration.
     const canonicalOrder = source.title === "Partner"
       ? officialPartnerOrder.get(normalizeKey(source.name))
-      : undefined;
+      : source.title === "Associate"
+        ? currentAssociateOrder.get(normalizeKey(source.name))
+        : undefined;
     return [{
       ...attorney,
       ...(stableSlug ? { slug: stableSlug } : {}),
@@ -334,7 +411,9 @@ export function applyCanonicalAttorneyContent<T extends SeedAttorney>(seed: read
         isPartner: attorney.title === "Partner",
         order: attorney.title === "Partner"
           ? officialPartnerOrder.get(normalizeKey(attorney.name)) || 9999
-          : 9999,
+          : attorney.title === "Associate"
+            ? currentAssociateOrder.get(normalizeKey(attorney.name)) || 9999
+            : 9999,
         published: true,
       });
     }

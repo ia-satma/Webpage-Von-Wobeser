@@ -205,10 +205,13 @@ export function GeneralTab({ form, t, language, generateSlug }: {
                                     </FormControl>
                                     <SelectContent className="rounded-none">
                                       <SelectItem value="Socio">{t.rolesEs.partner}</SelectItem>
+                                      <SelectItem value="Socia">{t.rolesEs.partnerFemale}</SelectItem>
                                       <SelectItem value="Of Counsel">{t.rolesEs.ofCounsel}</SelectItem>
                                       <SelectItem value="Counsel">{t.rolesEs.counsel}</SelectItem>
                                       <SelectItem value="Asociado Senior">{t.rolesEs.seniorAssociate}</SelectItem>
+                                      <SelectItem value="Asociada Senior">{t.rolesEs.seniorAssociateFemale}</SelectItem>
                                       <SelectItem value="Asociado">{t.rolesEs.associate}</SelectItem>
+                                      <SelectItem value="Asociada">{t.rolesEs.associateFemale}</SelectItem>
                                     </SelectContent>
                                   </Select>
                                   <FormMessage />
