@@ -20,6 +20,7 @@ import { cvUpload } from "./uploadMiddleware";
 import { getNavigationAvailability } from "../mirror/navigationConfiguration";
 import { buildSearchableEditorialPages } from "../mirror/searchEditorialPages";
 import { getConfigMap } from "../mirror/siteConfig";
+import { escapeHtmlAttribute } from "../mirror/htmlEscape";
 
 const isNewsPubliclyVisible = (news: { published?: boolean | null; publishAt?: Date | string | null }): boolean =>
   news.published === true && (!news.publishAt || new Date(news.publishAt) <= new Date());
@@ -382,9 +383,13 @@ export function registerPublicContentRoutes(app: Express): void {
     const token = typeof req.query.token === "string" && /^[A-Za-z0-9_-]{60,80}$/.test(req.query.token)
       ? req.query.token
       : "";
+    const escapedToken = escapeHtmlAttribute(token);
     res.setHeader("Cache-Control", "private, no-store");
     res.setHeader("Referrer-Policy", "no-referrer");
-    res.type("html").send(`<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Baja de newsletter</title></head><body><main><h1>Cancelar suscripción</h1><p>Confirma que deseas dejar de recibir el newsletter.</p><form method="post" action="/api/newsletter/unsubscribe"><input type="hidden" name="token" value="${token}"><button type="submit">Confirmar baja</button></form></main></body></html>`);
+    // La interpolación usa un valor base64url de longitud acotada y además escape
+    // contextual de atributo; no se inserta HTML libre.
+    // nosemgrep: javascript.express.security.injection.raw-html-format.raw-html-format
+    res.type("html").send(`<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Baja de newsletter</title></head><body><main><h1>Cancelar suscripción</h1><p>Confirma que deseas dejar de recibir el newsletter.</p><form method="post" action="/api/newsletter/unsubscribe"><input type="hidden" name="token" value="${escapedToken}"><button type="submit">Confirmar baja</button></form></main></body></html>`);
   });
 
   app.post("/api/newsletter/unsubscribe", publicFormLimiter, async (req, res) => {
