@@ -64,9 +64,11 @@ test("el footer central conserva los datos, assets y enlaces esperados en españ
   assert.doesNotMatch($(".vwb-site-footer__column").eq(1).text(), /\b(?:18|7)\b/);
   assert.equal($(".vwb-site-footer__logo").attr("src"), "/images/vw40F.png");
   assert.equal($(".vwb-site-footer__esr img").attr("src"), "/templates/beez3/img/esr.jpg");
-  assert.equal($(".vwb-site-footer__social-link img[src=\"/images/icon_linkedin_gray.png\"]").length, 1);
+  assert.equal($(".vwb-site-footer__social-link img[src=\"/images/icon_linkedin_gray.png\"]").length, 0);
+  assert.equal($(".vwb-site-footer__social-link[aria-label=\"LinkedIn\"] svg.vwb-site-footer__social-icon--linkedin").length, 1);
   assert.equal($(".vwb-site-footer__social-link img[src=\"/images/icon_twitter_gray.png\"]").length, 0);
   assert.equal($(".vwb-site-footer__social-link[aria-label=\"X\"] svg.vwb-site-footer__social-icon--x").length, 1);
+  assert.match(footerStyles, /\.vwb-site-footer__social-icon--linkedin\s*\{[\s\S]*?height:\s*32px[\s\S]*?width:\s*32px/);
   assert.equal($(".vwb-site-footer__social-link img[src*=facebook]").length, 0);
   assert.equal($("[data-vwb-cookie-preferences=\"true\"]").length, 1);
   assert.equal($(".vwb-site-footer__admin-link").attr("aria-label"), "Panel de administración");

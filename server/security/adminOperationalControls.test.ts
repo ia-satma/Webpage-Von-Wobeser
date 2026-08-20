@@ -179,6 +179,23 @@ test("la franja de Nuevas oficinas conserva contenido bilingüe con jerarquía s
   );
 });
 
+test("la franja de Nuevas oficinas sale del hero heredado antes de renderizarse", () => {
+  const malformedTemplate = `<!doctype html><html lang="es"><head><title>Home</title></head><body>
+    <div class="home__hero"><a href="/acerca-de"><video id="video_header"></video></a>
+      <section><div class="home__rojo"><div class="home__rojo--wrap wrap"><div class="home__rojo--txt"><a href="/nuevas-oficinas/">VER MÁS</a></div></div></div></section>
+    </div>
+  </body></html>`;
+  const config = {
+    banner_title: { value: "We go where clients need us", valueEs: "Vamos a donde los clientes nos necesitan", type: "text" },
+    banner_subtitle: { value: "New offices of Von Wobeser y Sierra", valueEs: "Nuevas oficinas de Von Wobeser y Sierra", type: "text" },
+  };
+  const $ = cheerio.load(renderHome(malformedTemplate, [], config, "es"));
+
+  assert.equal($(".home__hero .home__rojo").length, 0);
+  assert.equal($(".home__hero").next("section").find(".home__rojo").length, 1);
+  assert.equal($(".home__hero").next("section").find(".home__rojo--title").text(), "Vamos a donde los clientes nos necesitan");
+});
+
 test("Newsletter oculta solo la etiqueta vacía y permite restaurarla desde configuración", () => {
   const hiddenHtml = renderHome(homeTemplate, [], {}, "es");
   const $hidden = cheerio.load(hiddenHtml);

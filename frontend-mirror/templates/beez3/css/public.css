@@ -989,6 +989,14 @@ a[href="/german-desk"],
   width: 22px;
 }
 
+/* El glifo de LinkedIn tiene mucho aire interno en su viewBox. A 22 px se
+ * percibe claramente menor que X aunque ambas cajas midan lo mismo; 32 px
+ * iguala la masa visual sin agrandar su área interactiva. */
+.vwb-site-footer__social-icon--linkedin {
+  height: 32px;
+  width: 32px;
+}
+
 .vwb-site-footer__social-link:hover {
   opacity: 1;
 }

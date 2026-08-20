@@ -233,6 +233,8 @@ function socialLink(network: SocialNetwork, href: string, className = "vwb-site-
   // de otro modo, al reemplazar el HTML legado se reintroducía el PNG antiguo.
   const icon = network === "twitter"
     ? '<svg class="vwb-site-footer__social-icon vwb-site-footer__social-icon--x" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" focusable="false"><path fill="currentColor" d="M18.24 2.25h3.31l-7.23 8.26 8.51 11.24h-6.66l-5.21-6.82-5.97 6.82H1.68l7.73-8.84L1.25 2.25h6.83l4.71 6.23 5.45-6.23Zm-1.16 17.52h1.84L7.08 4.13H5.12l11.96 15.64Z"/></svg>'
+    : network === "linkedin"
+      ? '<svg class="vwb-site-footer__social-icon vwb-site-footer__social-icon--linkedin" viewBox="0 0 24 24" width="32" height="32" aria-hidden="true" focusable="false"><path fill="currentColor" d="M5.34 3.5A1.84 1.84 0 1 1 5.33 7.2a1.84 1.84 0 0 1 .01-3.69ZM3.75 8.73h3.18V19H3.75V8.73Zm5.17 0h3.05v1.4h.04c.42-.81 1.46-1.66 3-1.66 3.22 0 3.81 2.12 3.81 4.87V19h-3.18v-5.02c0-1.2-.02-2.74-1.67-2.74-1.67 0-1.93 1.31-1.93 2.65V19H8.92V8.73Z"/></svg>'
     : `<img src="${icons[network]}" width="22" height="22" alt="" decoding="async">`;
   return `<a class="${className}" href="${escapeHtml(href)}" target="_blank" rel="noopener noreferrer" aria-label="${labels[network]}" title="${labels[network]}">${icon}</a>`;
 }
