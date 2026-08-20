@@ -42,6 +42,7 @@ const ROLE_LABELS: Record<string, string> = {
 const GRANTABLE: { key: string; label: string; hint: string }[] = [
   { key: "content", label: "Contenido", hint: "Noticias, abogados, prácticas, eventos, blog…" },
   { key: "agents", label: "Agentes IA", hint: "Ejecutar los agentes de inteligencia artificial" },
+  { key: "agent_knowledge_admin", label: "Conocimiento de agentes", hint: "Clasificar, aprobar y administrar conocimiento enviado a IA" },
   { key: "config", label: "Configuración del sitio", hint: "Textos, pie de página, idiomas" },
   { key: "advanced", label: "Avanzado", hint: "Auditorías, salud del sistema, cronista" },
   { key: "contact_submissions", label: "Mensajes de contacto", hint: "Consultar y gestionar mensajes del formulario de contacto" },
@@ -53,8 +54,8 @@ const GRANTABLE: { key: string; label: string; hint: string }[] = [
 
 // Permisos BASE por rol (espejo de ROLE_PERMISSIONS en server/auth.ts).
 const ROLE_BASE: Record<string, string[]> = {
-  super_admin: ["content", "agents", "config", "advanced", "contact_submissions", "career_applications", "newsletter", "exports", "private_downloads"],
-  admin: ["content", "agents", "config", "advanced", "contact_submissions", "career_applications", "newsletter", "exports", "private_downloads"],
+  super_admin: ["content", "agents", "agent_knowledge_admin", "config", "advanced", "contact_submissions", "career_applications", "newsletter", "exports", "private_downloads"],
+  admin: ["content", "agents", "agent_knowledge_admin", "config", "advanced", "contact_submissions", "career_applications", "newsletter", "exports", "private_downloads"],
   editor: ["content", "config"],
   marketing: ["content", "agents"],
   sistemas: ["content", "agents", "advanced"],

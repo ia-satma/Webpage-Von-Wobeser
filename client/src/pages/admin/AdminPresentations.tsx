@@ -22,6 +22,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import { Presentation, Loader2, FileDown, FileText, Image as ImageIcon, Wand2, Eye } from "lucide-react";
+import type { AiDataClassification } from "@shared/aiGovernance";
 
 interface PresentationRow {
   id: string;
@@ -70,6 +71,8 @@ export default function AdminPresentations() {
   const [visuals, setVisuals] = useState(true);
   const [illustrate, setIllustrate] = useState(false);
   const [webSearch, setWebSearch] = useState(false);
+  const [dataClassification, setDataClassification] = useState<Extract<AiDataClassification, "public" | "internal">>("internal");
+  const [aiUseConfirmed, setAiUseConfirmed] = useState(false);
   const [supportImages, setSupportImages] = useState<string[]>([]);
   const [uploadingImg, setUploadingImg] = useState(false);
   const [supportUploadStatus, setSupportUploadStatus] = useState("");
@@ -136,6 +139,8 @@ export default function AdminPresentations() {
         illustrate: visuals && illustrate,
         supportImages: visuals ? supportImages : [],
         webSearch,
+        dataClassification,
+        aiUseConfirmed: true,
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error((data as any)?.error || "No se pudo generar la presentación.");
@@ -160,6 +165,7 @@ export default function AdminPresentations() {
   const canGenerate =
     !generateMutation.isPending &&
     (topic.trim().length > 0 || docs.length > 0) &&
+    aiUseConfirmed &&
     (formats.pptx || formats.pdf || formats.png) &&
     (branding !== "custom" || /^#[0-9a-f]{6}$/i.test(customColor));
 
@@ -197,7 +203,10 @@ export default function AdminPresentations() {
                 <Textarea
                   id="pres-topic"
                   value={topic}
-                  onChange={(e) => setTopic(e.target.value)}
+                  onChange={(e) => {
+                    setTopic(e.target.value);
+                    setAiUseConfirmed(false);
+                  }}
                   placeholder="Ej. Panorama de la reforma en competencia económica en México 2026, para clientes corporativos…"
                   rows={5}
                   data-testid="input-topic"
@@ -207,8 +216,50 @@ export default function AdminPresentations() {
 
               <div className="space-y-2">
                 <Label>Documentos de insumo (opcional)</Label>
-                <DocumentUpload docs={docs} onChange={setDocs} />
+                <DocumentUpload
+                  docs={docs}
+                  onChange={(nextDocs) => {
+                    setDocs(nextDocs);
+                    setAiUseConfirmed(false);
+                  }}
+                />
               </div>
+            </div>
+
+            <div className="space-y-4 border-l-4 border-amber-500 bg-amber-50 px-5 py-4 dark:bg-amber-950/20">
+              <div className="grid gap-4 md:grid-cols-2 md:items-start">
+                <div className="space-y-2">
+                  <Label>Clasificación obligatoria del material</Label>
+                  <Select
+                    value={dataClassification}
+                    onValueChange={(value) => {
+                      setDataClassification(value as "public" | "internal");
+                      setAiUseConfirmed(false);
+                    }}
+                  >
+                    <SelectTrigger data-testid="select-presentation-data-classification"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="public">Pública y aprobada para difusión</SelectItem>
+                      <SelectItem value="internal">Interna, sin datos personales ni secretos</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <label className="flex items-start gap-3 text-sm leading-relaxed">
+                  <Checkbox
+                    checked={aiUseConfirmed}
+                    onCheckedChange={(checked) => setAiUseConfirmed(checked === true)}
+                    data-testid="checkbox-presentation-ai-confirmation"
+                  />
+                  <span>
+                    Confirmo que revisé el tema y los documentos. No contienen datos personales,
+                    información confidencial, secretos de clientes ni comunicaciones privilegiadas.
+                  </span>
+                </label>
+              </div>
+              <p className="text-xs text-amber-800 dark:text-amber-200">
+                Si el material es personal, confidencial o privilegiado, no lo subas ni lo envíes a los proveedores de IA.
+                El servidor realizará una segunda revisión automática y bloqueará indicadores sensibles.
+              </p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">

@@ -2,8 +2,9 @@ import * as cheerio from 'cheerio';
 import crypto from 'crypto';
 import { storage } from '../../storage';
 import { orchestrator } from '../core/AgentOrchestrator';
-import { getTextModel, openai, safeParseJson, textModelParams } from '../../openai';
-import { assertAiBudget, recordChatUsage } from "../../services/usageTracker";
+import { getOpenAIClient, getTextModel, safeParseJson, textModelParams } from '../../openai';
+import { executeAiProviderCall } from '../../ai/gateway';
+import { recordChatUsage } from "../../services/usageTracker";
 import {
   isAllowedLegalHostname,
   isAllowedSourceUrl,
@@ -96,12 +97,27 @@ ${excerpt}
 { "relevant": true|false, "matchedPractice": "nombre del área si relevant=true, si no omite este campo" }`;
 
   try {
-    await assertAiBudget();
     const model = getTextModel();
-    const response = await openai.chat.completions.create({
+    const messages = [{ role: 'user' as const, content: prompt }];
+    const request = {
       ...textModelParams(model, 200),
-      messages: [{ role: 'user', content: prompt }],
-    } as any, { timeout: 45_000, maxRetries: 0 });
+      messages,
+    } as any;
+    const response = await executeAiProviderCall({
+      context: {
+        classification: 'public',
+        purpose: 'official_source_relevance',
+        source: 'official_source',
+        agentId: 'legal_alerts',
+      },
+      payload: messages,
+      provider: 'openai',
+      operation: 'chat',
+      invoke: () => getOpenAIClient().chat.completions.create(
+        request,
+        { timeout: 45_000, maxRetries: 0 },
+      ),
+    });
     recordChatUsage("chat", model, response.usage as any);
     const parsed = safeParseJson<{ relevant?: boolean; matchedPractice?: string }>(
       response.choices[0]?.message?.content,
@@ -143,7 +159,13 @@ export async function runScheduledLegalAlertsScan(): Promise<{ enqueued: number;
     try {
       await orchestrator.enqueueJob(
         'legal_alerts',
-        { sourceUrl: candidate.sourceUrl, triggeredBy: 'scheduled', matchedPractice },
+        {
+          sourceUrl: candidate.sourceUrl,
+          triggeredBy: 'scheduled',
+          matchedPractice,
+          dataClassification: 'public',
+          aiUseConfirmed: true,
+        },
         { priority: 'low' },
       );
       await storage.markSourceProcessed({

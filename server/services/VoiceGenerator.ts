@@ -1,9 +1,11 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import { hasOpenAITextClient, openai } from '../openai';
+import { hasOpenAITextClient, getOpenAIClient } from '../openai';
+import { executeAiProviderCall } from '../ai/gateway';
 import { storage } from '../storage';
-import { assertAiBudget, recordAudioUsage } from "./usageTracker";
+import { recordAudioUsage } from "./usageTracker";
 import { AsyncLocalStorage } from 'node:async_hooks';
+import type { AiDataClassification } from '@shared/aiGovernance';
 import {
   deletePersistentMediaObjects,
   persistPublicMediaFiles,
@@ -68,15 +70,27 @@ export class VoiceGenerator {
   private async callOpenAiTTS(
     text: string,
     voice: string,
+    classification: AiDataClassification,
   ): Promise<{ buffer?: Buffer; error?: string; errorCode?: string }> {
     try {
-      await assertAiBudget();
-      const response = await openai.audio.speech.create(
-        { model: MODEL, voice, input: text, response_format: 'mp3' },
-        // Un intento acotado mantiene la interfaz predecible. El usuario puede reintentar
-        // conscientemente; el SDK no repite en silencio la locución completa.
-        { maxRetries: 0, timeout: 30_000 },
-      );
+      const request = { model: MODEL, voice, input: text, response_format: 'mp3' as const };
+      const response = await executeAiProviderCall({
+        context: {
+          classification,
+          purpose: 'text_to_speech',
+          source: 'agent',
+          agentId: 'voice_agent',
+        },
+        payload: text,
+        provider: 'openai',
+        operation: 'speech',
+        invoke: () => getOpenAIClient().audio.speech.create(
+          request,
+          // Un intento acotado mantiene la interfaz predecible. El usuario puede reintentar
+          // conscientemente; el SDK no repite en silencio la locución completa.
+          { maxRetries: 0, timeout: 30_000 },
+        ),
+      });
       const arrayBuffer = await response.arrayBuffer();
       recordAudioUsage(text.length, MODEL);
       this.log('Audio generado correctamente');
@@ -94,14 +108,24 @@ export class VoiceGenerator {
 
   async generateSpeech(
     rawText: string,
-    opts: { voiceId?: string; sourceType: string; articleId?: string | null },
+    opts: {
+      voiceId?: string;
+      sourceType: string;
+      articleId?: string | null;
+      dataClassification?: AiDataClassification;
+    },
   ): Promise<AudioGenerationResult> {
     return this.logStorage.run([], () => this.generateSpeechInternal(rawText, opts));
   }
 
   private async generateSpeechInternal(
     rawText: string,
-    opts: { voiceId?: string; sourceType: string; articleId?: string | null },
+    opts: {
+      voiceId?: string;
+      sourceType: string;
+      articleId?: string | null;
+      dataClassification?: AiDataClassification;
+    },
   ): Promise<AudioGenerationResult> {
     const voice = opts.voiceId?.trim() || DEFAULT_VOICE;
     this.log(`Iniciando generación de audio (fuente: ${opts.sourceType})`);
@@ -133,7 +157,11 @@ export class VoiceGenerator {
       return result;
     }
 
-    const ttsResult = await this.callOpenAiTTS(cleaned, voice);
+    const ttsResult = await this.callOpenAiTTS(
+      cleaned,
+      voice,
+      opts.dataClassification || 'internal',
+    );
     result.retryCount++;
 
     if (!ttsResult.buffer) {

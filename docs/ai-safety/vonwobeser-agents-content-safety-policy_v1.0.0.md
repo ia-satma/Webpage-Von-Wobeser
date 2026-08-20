@@ -1,5 +1,10 @@
 # Von Wobeser y Sierra — AI Content Pipeline Safety Policy
 
+> **Documento histórico, sustituido para operación por**
+> [`AI_DATA_GOVERNANCE_POLICY_v2.0.0.md`](./AI_DATA_GOVERNANCE_POLICY_v2.0.0.md).
+> Esta versión 1.0.0 fue una taxonomía de evaluación para diez agentes y no debe presentarse
+> como un control conectado al runtime actual de catorce agentes.
+
 **Version:** 1.0.0
 **Date:** 2026-07-15
 **Owner:** SATMA (ia@satma.mx) on behalf of Von Wobeser y Sierra, S.C.

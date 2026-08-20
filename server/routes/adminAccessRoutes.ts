@@ -44,6 +44,7 @@ import {
   verifyTotp,
 } from "../security/mfa";
 import { pseudonymizeNetworkAddress } from "../security/privacy";
+import { AiGovernanceBlockedError } from "../ai/dataGovernance";
 import { smartImageGenerator } from "../services/SmartImageGenerator";
 import { storage } from "../storage";
 import { apiError, auditLog } from "./routeUtils";
@@ -487,20 +488,32 @@ export async function registerAdminAccessRoutes(app: Express): Promise<void> {
   // prompt/tema + formato opcional (1:1 / 16:9 / 9:16) y devuelve la URL de la imagen generada.
   app.post("/api/admin/generate-image", authMiddleware, requirePermission("content"), async (req: Request, res: Response) => {
     try {
-      const { prompt, aspect } = (req.body || {}) as { prompt?: string; aspect?: string };
-      if (!prompt || typeof prompt !== "string" || !prompt.trim()) {
-        return res.status(400).json({ error: "Falta el tema/prompt de la imagen" });
-      }
+      const parsed = z.object({
+        prompt: z.string().trim().min(1).max(800),
+        aspect: z.enum(["1:1", "16:9", "9:16"]).optional(),
+        dataClassification: z.enum(["public", "internal"]),
+        aiUseConfirmed: z.literal(true),
+      }).strict().safeParse(req.body);
+      if (!parsed.success) return res.status(400).json({ error: "Falta clasificar y confirmar el tema de la imagen" });
+      const { prompt, aspect, dataClassification } = parsed.data;
       const result = await smartImageGenerator.generateImage(
-        prompt.trim().substring(0, 800),
+        prompt,
         `manual-${Date.now()}`,
-        typeof aspect === "string" ? aspect : undefined,
+        aspect,
+        dataClassification,
       );
       if (!result.success || result.engine === "placeholder") {
         return res.status(502).json({ error: "No se pudo generar la imagen. Revisa la configuración del proveedor." });
       }
       res.json({ imageUrl: result.imageUrl, engine: result.engine });
-    } catch {
+    } catch (error) {
+      if (error instanceof AiGovernanceBlockedError) {
+        return res.status(422).json({
+          code: error.code,
+          error: error.message,
+          reasons: error.reasonCodes,
+        });
+      }
       res.status(500).json({ error: "Error al generar la imagen" });
     }
   });

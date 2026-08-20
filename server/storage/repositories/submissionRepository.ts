@@ -1,12 +1,25 @@
 import { eq, desc, and, sql, inArray, ilike, or, type SQL } from "drizzle-orm";
-import { type ContactSubmission, type InsertContactSubmission, contactSubmissions, type NewsletterSubscriber, type InsertNewsletterSubscriber, newsletterSubscribers, type CareerApplication, type InsertCareerApplication, careerApplications, type ProcessedOfficialSource, type InsertProcessedOfficialSource, processedOfficialSources } from "@shared/schema";
+import { type ContactSubmission, type InsertContactSubmission, contactSubmissions, type NewsletterSubscriber, type InsertNewsletterSubscriber, newsletterSubscribers, type CareerApplication, type InsertCareerApplication, careerApplications, type ProcessedOfficialSource, type InsertProcessedOfficialSource, processedOfficialSources, protectedFieldEnvelopes } from "@shared/schema";
+import { buildProtectedFieldEnvelopes } from "../../security/fieldEncryption";
 import type { StorageDatabase } from "../types";
 
 export function createSubmissionRepository(db: StorageDatabase) {
   class SubmissionRepository {
     async createContactSubmission(data: InsertContactSubmission): Promise<ContactSubmission> {
-      const [submission] = await db.insert(contactSubmissions).values(data).returning();
-      return submission;
+      return db.transaction(async (tx) => {
+        const [submission] = await tx.insert(contactSubmissions).values(data).returning();
+        const envelopes = buildProtectedFieldEnvelopes("contact_submission", submission.id, {
+          full_name: data.fullName,
+          email: data.email,
+          phone: data.phone,
+          company: data.company,
+          country: data.country,
+          practice_area: data.practiceArea,
+          message: data.message,
+        });
+        if (envelopes.length) await tx.insert(protectedFieldEnvelopes).values(envelopes);
+        return submission;
+      });
     }
 
     async getContactSubmissions(): Promise<ContactSubmission[]> {
@@ -62,8 +75,19 @@ export function createSubmissionRepository(db: StorageDatabase) {
     }
 
     async createCareerApplication(data: InsertCareerApplication): Promise<CareerApplication> {
-      const [application] = await db.insert(careerApplications).values(data).returning();
-      return application;
+      return db.transaction(async (tx) => {
+        const [application] = await tx.insert(careerApplications).values(data).returning();
+        const envelopes = buildProtectedFieldEnvelopes("career_application", application.id, {
+          first_name: data.firstName,
+          last_name: data.lastName,
+          email: data.email,
+          phone: data.phone,
+          address: data.address,
+          cv_original_name: data.cvOriginalName,
+        });
+        if (envelopes.length) await tx.insert(protectedFieldEnvelopes).values(envelopes);
+        return application;
+      });
     }
 
     async getCareerApplications(): Promise<CareerApplication[]> {

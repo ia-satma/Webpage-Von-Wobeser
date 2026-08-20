@@ -44,6 +44,8 @@ export function useKnowledgeAdmin() {
       agentType: "",
       language: "",
       confidence: 80,
+      dataClassification: "internal",
+      aiUseConfirmed: false,
     },
   });
 
@@ -53,6 +55,8 @@ export function useKnowledgeAdmin() {
       category: "legal_glossary",
       agentType: "polyglot_translator",
       data: "",
+      dataClassification: "internal",
+      aiUseConfirmed: false,
     },
   });
 
@@ -160,6 +164,8 @@ export function useKnowledgeAdmin() {
       agentType: document.agentType,
       language: document.metadata?.language || "",
       confidence: document.metadata?.confidence || 80,
+      dataClassification: document.dataClassification === "public" ? "public" : "internal",
+      aiUseConfirmed: false,
     });
     setIsEditModalOpen(true);
   }, [form]);

@@ -36,6 +36,8 @@ export function buildBulkKnowledgeItems(data: BulkUploadData) {
         title: key?.trim() || "",
         content: valueParts.join("|").trim() || key?.trim() || "",
         metadata: {},
+        dataClassification: data.dataClassification,
+        aiUseConfirmed: true,
       };
     })
     .filter((item) => item.title && item.content);

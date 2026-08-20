@@ -404,6 +404,7 @@ export function requireRole(...roles: string[]) {
 export const PERMISSIONS = [
   "content",
   "agents",
+  "agent_knowledge_admin",
   "config",
   "advanced",
   "contact_submissions",
@@ -418,6 +419,7 @@ export type Permission = (typeof PERMISSIONS)[number];
 export const GRANTABLE: Permission[] = [
   "content",
   "agents",
+  "agent_knowledge_admin",
   "config",
   "advanced",
   "contact_submissions",

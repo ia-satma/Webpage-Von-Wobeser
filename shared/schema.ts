@@ -7,6 +7,7 @@ export * from "./schema/publicForms";
 export * from "./schema/adminSecurity";
 export * from "./schema/eventsTranslations";
 export * from "./schema/agentsAudits";
+export * from "./schema/aiGovernance";
 export * from "./schema/recognitionClients";
 export * from "./schema/organization";
 export * from "./schema/site";

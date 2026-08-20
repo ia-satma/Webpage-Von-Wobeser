@@ -152,6 +152,11 @@ export const agentKnowledge = pgTable("agent_knowledge", {
   title: text("title").notNull(),
   content: text("content").notNull(),
   metadata: jsonb("metadata"),
+  // Los documentos históricos quedan `unclassified` y NO entran al runtime
+  // hasta que una persona con permiso específico los revise y apruebe.
+  dataClassification: text("data_classification").notNull().default("unclassified"),
+  approvedForAiAt: timestamp("approved_for_ai_at"),
+  approvedForAiBy: varchar("approved_for_ai_by"),
   usageCount: integer("usage_count").default(0),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),

@@ -4,6 +4,7 @@ import { ALL_AGENT_IDS, type AgentId } from '@shared/agentConstants';
 export const agentTypeSchema = z.enum(ALL_AGENT_IDS as [AgentId, ...AgentId[]]);
 export const articleIdSchema = z.string().uuid();
 export const languageSchema = z.enum(['en', 'es', 'de', 'zh', 'ko', 'ja', 'ar', 'ru', 'fr', 'it']);
+export const aiDataClassificationSchema = z.enum(['public', 'internal', 'personal', 'confidential', 'privileged']);
 
 const articleOnlySchema = z.object({ articleId: articleIdSchema }).strict();
 const localMediaPathSchema = z.string()
@@ -20,8 +21,26 @@ export const agentPayloadSchemas = {
     title: z.string().max(500).optional(),
     language: z.enum(['es', 'en']).optional(),
     applyChanges: z.boolean().default(false),
+    dataClassification: aiDataClassificationSchema.optional(),
+    aiUseConfirmed: z.literal(true).optional(),
   }).strict().refine((value) => Boolean(value.articleId || value.content), {
     message: 'articleId or content is required',
+  }).superRefine((value, ctx) => {
+    if (!value.content) return;
+    if (!value.dataClassification) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['dataClassification'],
+        message: 'dataClassification is required for raw content',
+      });
+    }
+    if (value.aiUseConfirmed !== true) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['aiUseConfirmed'],
+        message: 'aiUseConfirmed is required for raw content',
+      });
+    }
   }),
   metadata_linker: articleOnlySchema.extend({
     applyChanges: z.boolean().default(false),
@@ -64,6 +83,8 @@ export const agentPayloadSchemas = {
     sourceUrl: z.string().url().max(2_000).optional(),
     triggeredBy: z.enum(['manual', 'scheduled']).optional(),
     matchedPractice: z.string().trim().max(160).optional(),
+    dataClassification: aiDataClassificationSchema,
+    aiUseConfirmed: z.literal(true),
   }).strict().refine((value) => Boolean(value.sourceText || value.sourceUrl), {
     message: 'sourceText or sourceUrl is required',
   }),
@@ -72,6 +93,8 @@ export const agentPayloadSchemas = {
     sourceType: z.enum(['newsletter', 'social_media', 'legal_alerts']),
     articleId: articleIdSchema.optional(),
     voiceId: z.enum(['alloy', 'ash', 'ballad', 'coral', 'echo', 'fable', 'onyx', 'nova', 'sage', 'shimmer', 'verse']).optional(),
+    dataClassification: aiDataClassificationSchema,
+    aiUseConfirmed: z.literal(true),
   }).strict(),
   presentation_generator: z.object({
     topic: z.string().trim().max(10_000).optional(),
@@ -88,6 +111,8 @@ export const agentPayloadSchemas = {
     illustrate: z.boolean().optional(),
     supportImages: z.array(localMediaPathSchema).max(30).optional(),
     webSearch: z.boolean().optional(),
+    dataClassification: aiDataClassificationSchema,
+    aiUseConfirmed: z.literal(true),
   }).strict().refine((value) => Boolean(value.topic || value.documentsText), {
     message: 'topic or documentsText is required',
   }),

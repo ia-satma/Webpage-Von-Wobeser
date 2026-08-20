@@ -1,5 +1,5 @@
 import { db } from '../../db';
-import { eq, and, desc, inArray, lt, sql } from 'drizzle-orm';
+import { eq, and, desc, inArray, isNotNull, lt, sql } from 'drizzle-orm';
 import {
   agentJobs,
   agentEvents,
@@ -199,8 +199,18 @@ export class DatabasePersistence {
       .orderBy(desc(agentKnowledge.updatedAt));
   }
 
+  async getApprovedKnowledgeByAgent(agentType: string): Promise<DbAgentKnowledge[]> {
+    return db.select().from(agentKnowledge)
+      .where(and(
+        eq(agentKnowledge.agentType, agentType),
+        inArray(agentKnowledge.dataClassification, ['public', 'internal']),
+        isNotNull(agentKnowledge.approvedForAiAt),
+      ))
+      .orderBy(desc(agentKnowledge.updatedAt));
+  }
+
   async searchKnowledge(agentType: string, query: string, category?: string, limit = 10): Promise<DbAgentKnowledge[]> {
-    const docs = await this.getKnowledgeByAgent(agentType);
+    const docs = await this.getApprovedKnowledgeByAgent(agentType);
     const queryLower = query.toLowerCase();
     
     let filtered = docs.filter(doc =>

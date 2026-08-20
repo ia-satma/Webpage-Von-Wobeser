@@ -1,12 +1,15 @@
 import { GoogleGenAI, Modality } from "@google/genai";
-import { openai, getImageClient, hasDedicatedImageClient } from '../openai';
+import type { AiDataClassification } from '@shared/aiGovernance';
+import { getImageClient, hasDedicatedImageClient } from '../openai';
+import { AiGovernanceBlockedError } from '../ai/dataGovernance';
+import { executeAiProviderCall } from '../ai/gateway';
 import sharp from 'sharp';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as https from 'https';
 import { storage } from '../storage';
 import { getConfigMap } from '../mirror/siteConfig';
-import { assertAiBudget, recordImageUsage } from './usageTracker';
+import { recordImageUsage } from './usageTracker';
 import { AsyncLocalStorage } from 'node:async_hooks';
 import {
   deletePersistentMediaObjects,
@@ -234,6 +237,7 @@ export class SmartImageGenerator {
     prompt: string,
     maxRetries: number,
     aspect: string,
+    classification: AiDataClassification,
   ): Promise<{ buffer?: Buffer; name?: 'gptimage2' | 'gptimage' | 'dalle3'; error?: string; errorCode?: string }> {
     // El proxy de AI Integrations de Replit sirve texto, pero no el endpoint de imágenes.
     // Fallar de inmediato evita esperar un timeout largo contra un endpoint que nunca podrá
@@ -244,7 +248,6 @@ export class SmartImageGenerator {
         errorCode: 'openai_image_key_missing',
       };
     }
-    await assertAiBudget();
     let lastError: any = null;
     const backoffTimes = [0, 5000, 10000, 20000];
     const modelFallbacks = ['gpt-image-2', 'gpt-image-1', 'dall-e-3'] as const;
@@ -263,7 +266,7 @@ export class SmartImageGenerator {
         // Cliente dedicado (api.openai.com con OPENAI_IMAGE_API_KEY). El proxy de Replit NO
         // soporta imágenes, por eso se usa getImageClient() apuntado al OpenAI real.
         if (model !== 'dall-e-3') {
-          const res = await getImageClient().images.generate({
+          const request = {
             model,
             prompt,
             n: 1,
@@ -273,7 +276,19 @@ export class SmartImageGenerator {
             // Sharp antes de persistirlo, igual que el resto de imágenes del panel.
             output_format: 'jpeg',
             output_compression: 88,
-          } as any);
+          } as any;
+          const res = await executeAiProviderCall({
+            context: {
+              classification,
+              purpose: 'editorial_image',
+              source: 'agent',
+              agentId: 'image_suggestion',
+            },
+            payload: prompt,
+            provider: 'openai',
+            operation: 'image',
+            invoke: () => getImageClient().images.generate(request),
+          });
           const b64 = (res.data?.[0] as any)?.b64_json as string | undefined;
           if (b64) {
             this.log(`${model} generó imagen (intento ${attempt + 1}, quality ${IMAGE_QUALITY})`);
@@ -285,12 +300,24 @@ export class SmartImageGenerator {
           }
           lastError = new Error(`${model} no devolvió b64_json`);
         } else {
-          const res = await getImageClient().images.generate({
+          const request = {
             model: 'dall-e-3',
             prompt,
             n: 1,
             size: this.dalleSize(aspect),
-            quality: 'standard',
+            quality: 'standard' as const,
+          };
+          const res = await executeAiProviderCall({
+            context: {
+              classification,
+              purpose: 'editorial_image',
+              source: 'agent',
+              agentId: 'image_suggestion',
+            },
+            payload: prompt,
+            provider: 'openai',
+            operation: 'image',
+            invoke: () => getImageClient().images.generate(request),
           });
           const url = res.data?.[0]?.url;
           if (url) {
@@ -301,6 +328,7 @@ export class SmartImageGenerator {
           lastError = new Error('dall-e-3 no devolvió url');
         }
       } catch (err: any) {
+        if (err instanceof AiGovernanceBlockedError) throw err;
         lastError = err;
         const parsed = this.parseOpenAIError(err);
         const status = err?.status ?? err?.response?.status;
@@ -346,7 +374,10 @@ export class SmartImageGenerator {
   // Motor gratuito (Cloudflare Workers AI, free tier: 10,000 Neurons/día, sin tarjeta,
   // sin cobro automático al agotarse — las solicitudes solo fallan hasta el reinicio
   // diario a las 00:00 UTC). Se intenta primero para minimizar el uso de Gemini/DALL-E de pago.
-  private async callCloudflareFlux(prompt: string): Promise<{ buffer?: Buffer; error?: string; errorCode?: string }> {
+  private async callCloudflareFlux(
+    prompt: string,
+    classification: AiDataClassification,
+  ): Promise<{ buffer?: Buffer; error?: string; errorCode?: string }> {
     const accountId = process.env.CLOUDFLARE_ACCOUNT_ID;
     const apiToken = process.env.CLOUDFLARE_API_TOKEN;
     if (!accountId || !apiToken) {
@@ -356,15 +387,27 @@ export class SmartImageGenerator {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), 20000);
     try {
-      const res = await fetch(
-        `https://api.cloudflare.com/client/v4/accounts/${accountId}/ai/run/@cf/black-forest-labs/flux-1-schnell`,
-        {
-          method: 'POST',
-          signal: controller.signal,
-          headers: { Authorization: `Bearer ${apiToken}`, 'Content-Type': 'application/json' },
-          body: JSON.stringify({ prompt, num_steps: 4 }),
-        }
-      );
+      const res = await executeAiProviderCall({
+        context: {
+          classification,
+          purpose: 'editorial_image',
+          source: 'agent',
+          agentId: 'image_suggestion',
+        },
+        payload: prompt,
+        provider: 'cloudflare',
+        operation: 'image',
+        metered: false,
+        invoke: () => fetch(
+          `https://api.cloudflare.com/client/v4/accounts/${accountId}/ai/run/@cf/black-forest-labs/flux-1-schnell`,
+          {
+            method: 'POST',
+            signal: controller.signal,
+            headers: { Authorization: `Bearer ${apiToken}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ prompt, num_steps: 4 }),
+          },
+        ),
+      });
 
       if (res.status === 429) {
         return { error: 'Cuota diaria gratuita de Cloudflare agotada', errorCode: 'cloudflare_quota_exhausted' };
@@ -381,6 +424,7 @@ export class SmartImageGenerator {
       this.log('Cloudflare Workers AI (flux-1-schnell) generó la imagen correctamente');
       return { buffer: Buffer.from(data.result.image, 'base64') };
     } catch (err: any) {
+      if (err instanceof AiGovernanceBlockedError) throw err;
       const isTimeout = err?.name === 'AbortError';
       return { error: isTimeout ? 'Cloudflare timeout' : 'Cloudflare image generation failed', errorCode: isTimeout ? 'cloudflare_timeout' : 'cloudflare_error' };
     } finally {
@@ -388,16 +432,30 @@ export class SmartImageGenerator {
     }
   }
 
-  private async callGeminiImageGen(prompt: string): Promise<{ buffer?: Buffer; error?: string; errorCode?: string }> {
+  private async callGeminiImageGen(
+    prompt: string,
+    classification: AiDataClassification,
+  ): Promise<{ buffer?: Buffer; error?: string; errorCode?: string }> {
     try {
       this.log('Attempting Gemini image generation...');
-      
-      const response = await geminiAI.models.generateContent({
+      const request = {
         model: "gemini-2.5-flash-image",
         contents: [{ role: "user", parts: [{ text: prompt }] }],
         config: {
           responseModalities: [Modality.TEXT, Modality.IMAGE],
         },
+      };
+      const response = await executeAiProviderCall({
+        context: {
+          classification,
+          purpose: 'editorial_image',
+          source: 'agent',
+          agentId: 'image_suggestion',
+        },
+        payload: prompt,
+        provider: 'gemini',
+        operation: 'image',
+        invoke: () => geminiAI.models.generateContent(request),
       });
 
       const candidate = response.candidates?.[0];
@@ -411,16 +469,30 @@ export class SmartImageGenerator {
       this.log('Gemini image generation successful');
       return { buffer: imageBuffer };
     } catch (err: any) {
+      if (err instanceof AiGovernanceBlockedError) throw err;
       this.log("Gemini image generation failed");
       return { error: 'Gemini image generation failed', errorCode: 'gemini_error' };
     }
   }
 
-  async generateImage(originalPrompt: string, articleId: string, aspectOverride?: string): Promise<ImageGenerationResult> {
-    return this.logStorage.run([], () => this.generateImageInternal(originalPrompt, articleId, aspectOverride));
+  async generateImage(
+    originalPrompt: string,
+    articleId: string,
+    aspectOverride?: string,
+    classification: AiDataClassification = 'internal',
+  ): Promise<ImageGenerationResult> {
+    return this.logStorage.run(
+      [],
+      () => this.generateImageInternal(originalPrompt, articleId, aspectOverride, classification),
+    );
   }
 
-  private async generateImageInternal(originalPrompt: string, articleId: string, aspectOverride?: string): Promise<ImageGenerationResult> {
+  private async generateImageInternal(
+    originalPrompt: string,
+    articleId: string,
+    aspectOverride: string | undefined,
+    classification: AiDataClassification,
+  ): Promise<ImageGenerationResult> {
     this.log(`Starting smart image generation for article ${articleId}`);
     
     const result: ImageGenerationResult = {
@@ -455,10 +527,10 @@ export class SmartImageGenerator {
     ): Promise<{ buffer?: Buffer; name?: 'gptimage2' | 'gptimage' | 'dalle3' | 'cloudflare'; error?: string; errorCode?: string }> => {
       if (engine === 'openai') {
         // callOpenAIImage ya devuelve el buffer final (GPT Image en base64 o fallback descargado).
-        const r = await this.callOpenAIImage(prompt, 1, aspect);
+        const r = await this.callOpenAIImage(prompt, 1, aspect, classification);
         return r.buffer ? { buffer: r.buffer, name: r.name } : { error: r.error, errorCode: r.errorCode };
       }
-      const r = await this.callCloudflareFlux(prompt);
+      const r = await this.callCloudflareFlux(prompt, classification);
       return r.buffer ? { buffer: r.buffer, name: 'cloudflare' } : { error: r.error, errorCode: r.errorCode };
     };
 

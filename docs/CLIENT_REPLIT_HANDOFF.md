@@ -130,9 +130,18 @@ actual. Cada importación enlaza sus propios recursos.
 | `REPLIT_APP_STORAGE_BUCKET_ID` | Solo si Replit no inyecta automáticamente el bucket vinculado. |
 | `MFA_ENCRYPTION_KEY` | Solo al activar MFA: 32 bytes aleatorios en base64 o hexadecimal para cifrar secretos TOTP. |
 | `MFA_REQUIRED_FOR_PRIVILEGED` | Valor exacto `true`; capacidad opcional para exigir TOTP a Dueño y Administradores. Permanece desactivada en la excepción actual. |
+| `DATABASE_APP_URL` | Credencial de mínimo privilegio para el runtime, cuando Sistemas cree roles separados. |
+| `DATABASE_MIGRATION_URL` | Credencial distinta autorizada para aplicar migraciones aditivas. |
+| `REQUIRE_SEPARATE_DATABASE_ROLES` | Activar con `true` solo después de probar ambas credenciales; entonces el arranque falla si falta alguna. |
+| `AI_GOVERNANCE_AUDIT_ENABLED` | Solo para pruebas fuera de producción. En producción la auditoría previa es obligatoria y no admite bypass. |
+| `APP_FIELD_ENCRYPTION_KEY` | Clave de 32 bytes para copias cifradas aditivas; no configurar hasta aprobar custodia y recuperación. |
+| `APP_FIELD_ENCRYPTION_KEY_ID` | Identificador no secreto de la versión de llave. |
+| `APP_FIELD_ENCRYPTION_DUAL_WRITE` | Activar con `true` únicamente tras prueba de recuperación; afecta solo registros nuevos. |
 
 `DATABASE_URL` debe ser la variable administrada e inyectada por la base del Replit del
-cliente; no se copia la URL actual.
+cliente; no se copia la URL actual. La entrega inicial puede usar el modo compatible. La
+separación de roles debe hacerse después con credenciales emitidas por Sistemas: el código no
+crea usuarios PostgreSQL ni concede privilegios.
 
 ### Agentes de IA
 
@@ -141,6 +150,10 @@ cliente; no se copia la URL actual.
 | `OPENAI_API_KEY` | Modelos de texto, imagen y audio. |
 | `OPENAI_IMAGE_API_KEY` | Opcional; clave separada para imágenes. |
 | `AI_MONTHLY_BUDGET_USD` | Presupuesto mensual visible para Dueños y Administradores. |
+
+La política 2.0 permite enviar solo material `public` o `internal` que supere el escáner local.
+Datos personales, confidenciales o privilegiados se bloquean aunque exista una API key. El
+panel exige clasificación y confirmación para presentaciones, voz, alertas y conocimiento.
 
 No activar `MFA_REQUIRED_FOR_PRIVILEGED` sin `MFA_ENCRYPTION_KEY`: el servicio
 rechaza el acceso privilegiado antes que degradarlo a solo contraseña. La decisión

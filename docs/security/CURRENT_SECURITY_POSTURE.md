@@ -10,6 +10,17 @@ son registros históricos fechados y no deben usarse para inferir el estado pres
 
 - El inventario ejecutable canónico contiene 14 agentes y se define en
   `shared/agentConstants.ts`.
+- La política ejecutable de datos para IA 2.0 cubre los 14 agentes. Doce pueden consumir
+  proveedor externo y dos son deterministas. Solo `public` e `internal` son elegibles y un
+  escáner previo bloquea credenciales, datos personales y marcadores confidenciales o
+  privilegiados antes de abrir la conexión.
+- Las llamadas de producción a OpenAI, Gemini o Cloudflare AI pasan por un gateway central.
+  La decisión se registra en `ai_governance_events` sin prompt ni respuesta; si el registro
+  durable no está disponible en producción, la llamada falla cerrado.
+- Presentaciones, voz, alertas legales y texto libre del formateador requieren clasificación
+  y confirmación. El conocimiento de agentes exige el permiso independiente
+  `agent_knowledge_admin`; los documentos históricos quedan `unclassified` y fuera del
+  runtime hasta revisión humana.
 - El acceso administrativo usa Argon2id, sesiones opacas almacenadas por hash,
   cookies HttpOnly/Secure/SameSite Strict en producción y CSRF para mutaciones.
 - Las contraseñas nuevas aceptan de 15 a 128 caracteres. Las credenciales
@@ -55,6 +66,12 @@ son registros históricos fechados y no deben usarse para inferir el estado pres
   archivos públicos y SHA-256 del build. CI verifica y conserva ambos archivos por 30 días;
   al arrancar producción, el backend intenta registrar esa relación en
   `deployment_artifacts` sin bloquear el sitio si la evidencia no está disponible.
+- La migración de Fase 5 es aditiva: añade evidencia de gobierno, sobres cifrados opcionales
+  y aprobación de conocimiento. No actualiza, elimina ni reescribe filas existentes. El
+  cifrado dual de campos está desactivado hasta que Sistemas entregue y custodie una llave.
+- El código está preparado para separar `DATABASE_APP_URL` y `DATABASE_MIGRATION_URL`, pero
+  no crea roles ni privilegios. La separación real sigue pendiente de credenciales provistas
+  por Sistemas.
 
 ## Decisiones y excepciones vigentes
 
@@ -86,6 +103,12 @@ son registros históricos fechados y no deben usarse para inferir el estado pres
 - Cargas fragmentadas: `SESSION_SECRET`, generado aleatoriamente y distinto de cualquier
   contraseña humana.
 - IA: claves del proveedor aprobado y `AI_MONTHLY_BUDGET_USD`.
+- Gobierno de IA: la auditoría es obligatoria en producción; `AI_GOVERNANCE_AUDIT_ENABLED=true`
+  se usa solamente para probar persistencia fuera de producción.
+- Roles de base, cuando Sistemas los entregue: `DATABASE_APP_URL`,
+  `DATABASE_MIGRATION_URL` y `REQUIRE_SEPARATE_DATABASE_ROLES=true`.
+- Cifrado aditivo, únicamente tras aprobación: `APP_FIELD_ENCRYPTION_DUAL_WRITE=true`,
+  `APP_FIELD_ENCRYPTION_KEY` de 32 bytes y `APP_FIELD_ENCRYPTION_KEY_ID`.
 - MFA, solo cuando Sistemas decida activarlo: `MFA_ENCRYPTION_KEY` y
   `MFA_REQUIRED_FOR_PRIVILEGED=true`.
 - Migración, únicamente durante el procedimiento controlado: `SOURCE_DATABASE_URL` y
