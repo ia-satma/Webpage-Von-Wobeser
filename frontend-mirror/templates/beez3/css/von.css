@@ -2266,9 +2266,19 @@ a[href="/german-desk"],
 }
 
 @media (min-width: 1240px) {
+  /* La cabecera histórica alterna las clases `fix` y `fixed` al hacer scroll.
+     El navegador no debe depender del fondo de un ancestro para ocultar el
+     contenido de la página: tanto la barra como su zona central son blancas
+     y opacas en todos los estados. */
+  body.vwb-navigation-v2 .header.header_JS,
+  body.vwb-navigation-v2 .header.header_JS.fixed {
+    background-color: #fff !important;
+    opacity: 1;
+  }
+
   body.vwb-navigation-v2 nav.nav.menu_JS {
     align-items: stretch;
-    background: transparent !important;
+    background: #fff !important;
     border-radius: 0;
     box-shadow: none;
     display: flex !important;

@@ -253,7 +253,8 @@ test("el clic abre escritorio, conserva el acordeón móvil y respeta el cromo b
   assert.match(script, /o\.off\("\.vwNavV2"\)[\s\S]*?on\("keydown\.vwNavV2"/);
   assert.match(script, /e\.preventDefault\(\), e\.stopPropagation\(\)/);
   assert.match(script, /pointerdown\.vwNavV2/);
-  assert.match(navigationStyles, /body\.vwb-navigation-v2 nav\.nav\.menu_JS\s*\{[\s\S]*?background:\s*transparent\s*!important;[\s\S]*?height:\s*72px;[\s\S]*?right:\s*218px;/);
+  assert.match(navigationStyles, /body\.vwb-navigation-v2 \.header\.header_JS,[\s\S]*?\.header\.header_JS\.fixed\s*\{[\s\S]*?background-color:\s*#fff\s*!important;[\s\S]*?opacity:\s*1;/);
+  assert.match(navigationStyles, /body\.vwb-navigation-v2 nav\.nav\.menu_JS\s*\{[\s\S]*?background:\s*#fff\s*!important;[\s\S]*?height:\s*72px;[\s\S]*?right:\s*218px;/);
   assert.match(navigationStyles, /@media \(max-width: 1239px\)[\s\S]*?body\.vwb-navigation-v2 nav\.nav\.menu_JS\s*\{[\s\S]*?background:\s*#fff\s*!important;/);
   assert.match(navigationStyles, /\.vw-nav-v2__utility--search,[\s\S]*?\.vw-nav-v2__utility--language\s*\{\s*display:\s*none;/);
   assert.match(navigationStyles, /\.vw-nav-v2__panel:not\(\[hidden\]\)\s*\{[\s\S]*?animation:\s*vw-nav-panel-enter[\s\S]*?border-radius:\s*8px;[\s\S]*?padding:\s*14px 20px 16px;[\s\S]*?width:\s*min\(760px, calc\(100vw - 56px\)\);/);
