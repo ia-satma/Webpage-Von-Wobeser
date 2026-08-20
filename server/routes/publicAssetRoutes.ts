@@ -2,7 +2,6 @@ import type { Express } from "express";
 import express from "express";
 import fs from "node:fs";
 import path from "node:path";
-import { persistentPublicMediaExists } from "../media/persistentMedia";
 import { servePersistentManagedMedia } from "./managedMedia";
 
 export function registerPublicAssetRoutes(app: Express): void {
@@ -104,46 +103,10 @@ export function registerPublicAssetRoutes(app: Express): void {
     immutable: true,
   }));
 
-  // Serve AI-generated presentations (PresentationGenerator / presentation_generator agent):
-  // .pptx, .pdf y las .png por diapositiva. Mismo patrón anti path-traversal que audio/imágenes.
-  const generatedPresentationsDir = path.join(process.cwd(), 'public', 'generated-presentations');
-  if (!fs.existsSync(generatedPresentationsDir)) {
-    fs.mkdirSync(generatedPresentationsDir, { recursive: true });
-  }
-
-  const presentationAssetExists = async (
-    publicPath: string | null,
-    persistentPaths?: Set<string> | null,
-  ): Promise<boolean> => {
-    if (!publicPath || !/^\/generated-presentations\/[A-Za-z0-9._+-]+$/.test(publicPath)) {
-      return false;
-    }
-    const localPath = path.join(generatedPresentationsDir, path.basename(publicPath));
-    if (fs.existsSync(localPath) && fs.statSync(localPath).isFile()) return true;
-    if (persistentPaths) return persistentPaths.has(publicPath);
-    return persistentPublicMediaExists(publicPath);
-  };
-
-  app.get('/generated-presentations/:filename', async (req, res) => {
-    const resolved = path.resolve(generatedPresentationsDir, req.params.filename);
-    if (resolved !== path.resolve(generatedPresentationsDir) && !resolved.startsWith(path.resolve(generatedPresentationsDir) + path.sep)) {
-      return res.status(403).json({ error: 'Forbidden' });
-    }
-    if (fs.existsSync(resolved) && fs.statSync(resolved).isFile()) {
-      res.set('Cache-Control', 'public, max-age=31536000, immutable');
-      if (req.query.download !== undefined) {
-        res.setHeader('Content-Disposition', `attachment; filename="${path.basename(resolved)}"`);
-      }
-      // resolved is served only after the explicit generatedPresentationsDir containment check above.
-      return res.sendFile(resolved); // nosemgrep: javascript.express.security.audit.express-res-sendfile.express-res-sendfile
-    }
-    const publicPath = `/generated-presentations/${req.params.filename}`;
-    if (await servePersistentManagedMedia(req, res, publicPath)) return;
-    res.status(404).json({ error: 'Presentation not found' });
+  // Las presentaciones históricas pueden seguir físicamente en disco/App Storage durante la
+  // cuarentena, pero nunca vuelven a exponerse por una ruta pública. No se elimina ningún objeto.
+  app.use('/generated-presentations', (_req, res) => {
+    res.setHeader('Cache-Control', 'private, no-store');
+    res.status(404).end();
   });
-
-  app.use('/generated-presentations', express.static(generatedPresentationsDir, {
-    maxAge: '365d',
-    immutable: true,
-  }));
 }

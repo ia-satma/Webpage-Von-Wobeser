@@ -41,6 +41,7 @@ import {
   deletePersistentMediaObjects,
   hydratePersistentPublicMedia,
   listPersistentPublicMediaPaths,
+  managedMediaObjectName,
   persistPublicMediaFiles,
   persistentMediaStorageStatus,
   PersistentMediaUnavailableError,
@@ -611,17 +612,28 @@ export function registerAdminMediaRoutes(app: Express): void {
     }
   });
 
-  // Delete media item
+  // Solicitud durable de retiro. Esta llamada NO elimina la fila ni el objeto;
+  // un procesador idempotente posterior deberá comprobar referencias y actuar
+  // sobre el nombre exacto registrado en la outbox.
   app.delete("/api/admin/media/:id", authMiddleware, requirePermission("content"), async (req: Request, res: Response) => {
     try {
-      const deleted = await storage.deleteMediaItem(req.params.id);
-      if (!deleted) {
+      const item = await storage.getMediaItemById(req.params.id);
+      if (!item) {
         return res.status(404).json({ error: "Media item not found" });
       }
-      res.json({ success: true });
+      const request = await storage.queueMediaDeletion({
+        mediaItemId: item.id,
+        publicPath: item.path,
+        objectName: managedMediaObjectName(item.path),
+        requestedBy: req.adminUser!.id,
+      });
+      res.status(202).json({
+        success: true,
+        deletionRequest: { id: request.id, status: request.status, requestedAt: request.requestedAt },
+      });
     } catch (error) {
-      console.error("Delete media error:", error);
-      res.status(500).json({ error: "Failed to delete media" });
+      console.error("Queue media deletion error:", error);
+      res.status(500).json({ error: "Failed to queue media deletion" });
     }
   });
 }

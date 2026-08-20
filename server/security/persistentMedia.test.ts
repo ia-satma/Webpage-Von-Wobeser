@@ -69,7 +69,7 @@ test("el upload persiste originales y derivados antes de guardar su registro", (
   assert.match(routes, /res\.status\(404\)\.json\(\{ error: "Media not found" \}\)/);
 });
 
-test("imágenes, audios y presentaciones conservan archivos e historial permanente", () => {
+test("imágenes y audios conservan archivos; presentaciones usan almacenamiento privado", () => {
   const generator = readPresentationGeneratorModule("outputPipeline.ts");
   const voiceGenerator = readFileSync(new URL("../services/VoiceGenerator.ts", import.meta.url), "utf8");
   const imageGenerator = readFileSync(new URL("../services/SmartImageGenerator.ts", import.meta.url), "utf8");
@@ -110,10 +110,10 @@ test("imágenes, audios y presentaciones conservan archivos e historial permanen
     3,
   );
 
-  assert.match(migration, /"generated-presentations"/);
+  assert.doesNotMatch(migration, /publicPrefix:\s*"\/generated-presentations"/);
   assert.match(migration, /"generated-audio"/);
   assert.match(migration, /"\.mp3"/);
-  assert.match(migration, /"\.pdf", "\.pptx"/);
+  assert.doesNotMatch(migration, /"\.pptx"/);
 
   const audioPersistenceCall = voiceGenerator.indexOf("await persistPublicMediaFiles([{ absolutePath: outputPath, publicPath }])");
   const audioHistoryCall = voiceGenerator.indexOf("await storage.createGeneratedAudio({");

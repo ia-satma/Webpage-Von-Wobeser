@@ -14,10 +14,13 @@ import {
   validateCvFile,
 } from "../security/uploads";
 import { storage } from "../storage";
+import { requestNetworkPseudonym } from "../security/privacy";
+import { verifyNewsletterUnsubscribeToken } from "../security/newsletterUnsubscribe";
 import { cvUpload } from "./uploadMiddleware";
 import { getNavigationAvailability } from "../mirror/navigationConfiguration";
 import { buildSearchableEditorialPages } from "../mirror/searchEditorialPages";
 import { getConfigMap } from "../mirror/siteConfig";
+import { escapeHtmlAttribute } from "../mirror/htmlEscape";
 
 const isNewsPubliclyVisible = (news: { published?: boolean | null; publishAt?: Date | string | null }): boolean =>
   news.published === true && (!news.publishAt || new Date(news.publishAt) <= new Date());
@@ -314,11 +317,7 @@ export function registerPublicContentRoutes(app: Express): void {
         message: sanitize(contactData.message),
         acceptedPrivacy: true,
         consentedAt: new Date(),
-        ipAddress: (() => {
-          const fwd = req.headers["x-forwarded-for"];
-          const raw = Array.isArray(fwd) ? fwd[0] : fwd;
-          return raw?.split(",")[0]?.trim() || req.ip || null;
-        })(),
+        ipAddress: requestNetworkPseudonym(req),
       };
 
       const submission = await storage.createContactSubmission(sanitizedData);
@@ -378,6 +377,45 @@ export function registerPublicContentRoutes(app: Express): void {
     }
   });
 
+  // La visita desde un correo solo muestra confirmación; no modifica estado mediante GET,
+  // porque los escáneres automáticos de enlaces podrían activar una baja accidental.
+  app.get("/newsletter/unsubscribe", (req, res) => {
+    const token = typeof req.query.token === "string" && /^[A-Za-z0-9_-]{60,80}$/.test(req.query.token)
+      ? req.query.token
+      : "";
+    const escapedToken = escapeHtmlAttribute(token);
+    res.setHeader("Cache-Control", "private, no-store");
+    res.setHeader("Referrer-Policy", "no-referrer");
+    // La interpolación usa un valor base64url de longitud acotada y además escape
+    // contextual de atributo; no se inserta HTML libre.
+    // nosemgrep: javascript.express.security.injection.raw-html-format.raw-html-format
+    res.type("html").send(`<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Baja de newsletter</title></head><body><main><h1>Cancelar suscripción</h1><p>Confirma que deseas dejar de recibir el newsletter.</p><form method="post" action="/api/newsletter/unsubscribe"><input type="hidden" name="token" value="${escapedToken}"><button type="submit">Confirmar baja</button></form></main></body></html>`);
+  });
+
+  app.post("/api/newsletter/unsubscribe", publicFormLimiter, async (req, res) => {
+    res.setHeader("Cache-Control", "private, no-store");
+    const parsed = z.object({ token: z.string().regex(/^[A-Za-z0-9_-]{60,80}$/) }).strict().safeParse(req.body);
+    if (!parsed.success) return res.status(400).json({ error: "Invalid unsubscribe request" });
+    try {
+      const subscriberId = verifyNewsletterUnsubscribeToken(parsed.data.token);
+      if (subscriberId) {
+        const subscriber = await storage.getNewsletterSubscriberById(subscriberId);
+        if (subscriber?.isActive) {
+          await storage.updateNewsletterSubscriber(subscriber.id, {
+            isActive: false,
+            unsubscribedAt: new Date(),
+          });
+        }
+      }
+      if (req.is("application/x-www-form-urlencoded")) {
+        return res.type("html").send("<!doctype html><html lang=\"es\"><head><meta charset=\"utf-8\"><title>Suscripción cancelada</title></head><body><main><h1>Solicitud procesada</h1><p>Tu preferencia de newsletter fue actualizada.</p></main></body></html>");
+      }
+      return res.json({ success: true, message: "Unsubscribe request processed" });
+    } catch {
+      return res.status(503).json({ error: "Unable to process unsubscribe request" });
+    }
+  });
+
   // Formulario de "Pasantes" — antes era HTML de Joomla con action="" (no llegaba a
   // ningún lado). Los campos del multipart (name, l_name, mail, tel, comment, accept)
   // vienen tal cual del HTML original capturado; se mapean a las columnas de career_applications.
@@ -428,11 +466,7 @@ export function registerPublicContentRoutes(app: Express): void {
         cvPath: acceptedCv.storagePath,
         cvOriginalName: safeOriginalName,
         acceptedPrivacy: true,
-        ipAddress: (() => {
-          const fwd = req.headers["x-forwarded-for"];
-          const raw = Array.isArray(fwd) ? fwd[0] : fwd;
-          return raw?.split(",")[0]?.trim() || req.ip || null;
-        })(),
+        ipAddress: requestNetworkPseudonym(req),
       });
 
       console.log(`[CareerApplications] Submission saved with id ${application.id}`);

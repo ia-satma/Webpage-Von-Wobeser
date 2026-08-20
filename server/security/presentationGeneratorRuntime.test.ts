@@ -91,6 +91,8 @@ function generatedPresentation(overrides: Partial<GeneratedPresentation> = {}): 
     pngUrls: [],
     sourceDocs: [],
     engine: 'test-native',
+    status: 'active',
+    archivedAt: null,
     createdAt: new Date('2026-08-13T06:00:00.000Z'),
     ...overrides,
   };
@@ -172,8 +174,7 @@ function createPipelineHarness() {
       });
     },
     isPersistentStorageUnavailable: () => false,
-    now: () => 1_723_526_400_000,
-    random: () => 0.25,
+    randomUUID: () => '11111111-1111-4111-8111-111111111111',
     log: () => {},
     logError: () => operations.push('log-error'),
   };
@@ -427,6 +428,7 @@ test('la canalización guarda local, persiste y solo entonces crea historial', a
     'logo',
     'config',
     'slides',
+    'mkdir',
     'raster',
     'write:.png',
     'pdf',
@@ -436,10 +438,13 @@ test('la canalización guarda local, persiste y solo entonces crea historial', a
     'embed',
     'persist:3',
     'history',
+    'remove:.png',
+    'remove:.pdf',
+    'remove:.pptx',
   ]);
   assert.equal(harness.writtenFiles.length, 2);
-  assert.match(result.presentation?.pptxUrl || '', /^\/generated-presentations\/pres-\d+-[a-z0-9]+\.pptx$/);
-  assert.match(result.presentation?.pdfUrl || '', /^\/generated-presentations\/pres-\d+-[a-z0-9]+\.pdf$/);
+  assert.equal(result.presentation?.pptxUrl, 'private:generated-presentations/11111111-1111-4111-8111-111111111111/presentation.pptx');
+  assert.equal(result.presentation?.pdfUrl, 'private:generated-presentations/11111111-1111-4111-8111-111111111111/presentation.pdf');
   assert.equal(result.presentation?.pngUrls.length, 1);
 });
 
@@ -452,7 +457,7 @@ test('la canalización respeta formatos selectivos y no rasteriza un PPTX aislad
 
   assert.equal(result.success, true);
   assert.doesNotMatch(harness.operations.join(','), /raster|pdf|write:\.png|write:\.pdf/);
-  assert.match(harness.operations.join(','), /persist:1,history$/);
+  assert.match(harness.operations.join(','), /persist:1,history,remove:\.pptx$/);
   assert.deepEqual(result.presentation?.pngUrls, []);
   assert.equal(result.presentation?.pdfUrl, null);
 });
@@ -477,6 +482,27 @@ test('un fallo posterior a App Storage revierte objetos y todos los archivos loc
     harness.operations.filter((operation) => operation.startsWith('remove:')),
     ['remove:.png', 'remove:.pdf', 'remove:.pptx'],
   );
+});
+
+test('un fallo al limpiar temporales no revierte una presentación ya persistida', async () => {
+  const harness = createPipelineHarness();
+  let firstRemoval = true;
+  harness.dependencies.removeFile = (filePath) => {
+    harness.operations.push(`remove:${path.extname(filePath)}`);
+    if (firstRemoval) {
+      firstRemoval = false;
+      throw new Error('temporary cleanup failed');
+    }
+  };
+
+  const result = await harness.pipeline.renderAndSave(
+    PIPELINE_MODEL,
+    presentationOptions('vonwobeser'),
+  );
+  assert.equal(result.success, true);
+  assert.equal(harness.operations.includes('delete-persisted:3'), false);
+  assert.equal(harness.operations.includes('history'), true);
+  assert.equal(harness.operations.filter((operation) => operation.startsWith('remove:')).length, 3);
 });
 
 test('la indisponibilidad de App Storage conserva el mensaje específico y limpia local', async () => {

@@ -46,6 +46,11 @@ export function createSubmissionRepository(db: StorageDatabase) {
       return subscriber;
     }
 
+    async getNewsletterSubscriberById(id: string): Promise<NewsletterSubscriber | undefined> {
+      const [subscriber] = await db.select().from(newsletterSubscribers).where(eq(newsletterSubscribers.id, id));
+      return subscriber;
+    }
+
     async createNewsletterSubscriber(data: InsertNewsletterSubscriber): Promise<NewsletterSubscriber> {
       const [subscriber] = await db.insert(newsletterSubscribers).values(data).returning();
       return subscriber;

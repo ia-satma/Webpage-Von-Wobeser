@@ -1,15 +1,16 @@
 import * as fs from 'fs';
 import * as path from 'path';
+import { randomUUID } from 'node:crypto';
 import type PptxGenJS from 'pptxgenjs';
 import type { GeneratedPresentation, InsertGeneratedPresentation } from '../../../shared/schema';
 import { storage } from '../../storage';
 import { cfg, getConfigMap, type ConfigMap } from '../../mirror/siteConfig';
 import {
-  deletePersistentMediaObjects,
-  persistPublicMediaFiles,
-  PersistentMediaUnavailableError,
-  type PublicMediaFile,
-} from '../../media/persistentMedia';
+  deletePrivatePresentationObjects,
+  persistPrivatePresentationFiles,
+  PrivatePresentationStorageUnavailableError,
+  type PrivatePresentationFile,
+} from '../../media/privatePresentations';
 import { embedPresentationFonts } from '../presentationFonts';
 import { rasterizeSlide, resolveLogoInfo } from './assets';
 import type { RenderOptions, SlideModel } from './contracts';
@@ -49,12 +50,11 @@ export interface PresentationGeneratorDependencies {
     total: number,
   ): Promise<PptxGenJS>;
   embedFonts(filePath: string): Promise<void>;
-  persistFiles(files: PublicMediaFile[]): Promise<{ persisted: boolean; objectNames: string[] }>;
+  persistFiles(files: PrivatePresentationFile[]): Promise<{ persisted: boolean; objectNames: string[] }>;
   deletePersistentObjects(objectNames: string[]): Promise<void>;
-  createHistory(input: InsertGeneratedPresentation): Promise<GeneratedPresentation>;
+  createHistory(input: InsertGeneratedPresentation & { id?: string }): Promise<GeneratedPresentation>;
   isPersistentStorageUnavailable(error: unknown): boolean;
-  now(): number;
-  random(): number;
+  randomUUID(): string;
   log(message: string): void;
   logError(error: unknown): void;
 }
@@ -64,7 +64,7 @@ export function createDefaultPresentationDependencies(): PresentationGeneratorDe
   const log = (message: string) => console.log(`[PresentationGenerator] ${message}`);
 
   return {
-    outputDirectory: path.join(process.cwd(), 'public', 'generated-presentations'),
+    outputDirectory: path.join(process.cwd(), 'private', 'generated-presentations'),
     existsSync: fs.existsSync,
     makeDirectory: (filePath) => fs.mkdirSync(filePath, { recursive: true }),
     joinPath: path.join,
@@ -79,12 +79,11 @@ export function createDefaultPresentationDependencies(): PresentationGeneratorDe
     createPdf: createPdfFromPngs,
     buildPptx: (...args) => pptxRenderer.buildPptx(...args),
     embedFonts: embedPresentationFonts,
-    persistFiles: persistPublicMediaFiles,
-    deletePersistentObjects: deletePersistentMediaObjects,
+    persistFiles: persistPrivatePresentationFiles,
+    deletePersistentObjects: deletePrivatePresentationObjects,
     createHistory: (input) => storage.createGeneratedPresentation(input),
-    isPersistentStorageUnavailable: (error) => error instanceof PersistentMediaUnavailableError,
-    now: Date.now,
-    random: Math.random,
+    isPersistentStorageUnavailable: (error) => error instanceof PrivatePresentationStorageUnavailableError,
+    randomUUID,
     log,
     logError: (error) => console.error('[PresentationGenerator] Error:', error),
   };

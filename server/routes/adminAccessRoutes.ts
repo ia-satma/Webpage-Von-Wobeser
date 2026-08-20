@@ -43,6 +43,7 @@ import {
   totpAuthUrl,
   verifyTotp,
 } from "../security/mfa";
+import { pseudonymizeNetworkAddress } from "../security/privacy";
 import { smartImageGenerator } from "../services/SmartImageGenerator";
 import { storage } from "../storage";
 import { apiError, auditLog } from "./routeUtils";
@@ -107,7 +108,7 @@ export async function registerAdminAccessRoutes(app: Express): Promise<void> {
       // Este dato permite auditar si la sesión completó el segundo factor. El
       // middleware siempre valida además la cookie opaca, CSRF y el usuario activo.
       mfaVerified,
-      ipAddress,
+      ipAddress: pseudonymizeNetworkAddress(ipAddress),
       userAgent,
     });
     res.cookie(SESSION_COOKIE, rawToken, authCookieOptions(8 * 60 * 60 * 1000));

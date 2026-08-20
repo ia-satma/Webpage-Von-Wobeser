@@ -27,7 +27,9 @@ npm run dev      # NODE_ENV=development, tsx + Vite/HMR, puerto 5000 (o PORT)
 - `npm run start:deploy` → detecta una entrega pendiente sin fallar el deployment; con una base completa aplica migraciones y después inicia producción.
 - `npm run db:migrate` → aplica migraciones SQL versionadas e idempotentes.
 - `npm run db:replit-migrate -- <comando>` → audita, respalda, restaura y compara la migración a las bases administradas por Replit. Procedimiento en [`docs/REPLIT_DATABASE_MIGRATION.md`](./docs/REPLIT_DATABASE_MIGRATION.md).
-- `npm run media:migrate-storage` → copia imágenes, videos y archivos históricos de presentaciones (PPTX, PDF y PNG) a Replit App Storage.
+- `npm run media:migrate-storage` → copia imágenes, videos, audio y PDF públicos a Replit App Storage; excluye presentaciones.
+- `npm run presentations:inventory -- --output=/ruta/privada/inventario.json` → inventaría en solo lectura las presentaciones históricas y entrega su SHA-256.
+- `npm run presentations:quarantine -- --inventory=... --confirm-sha256=... --confirm-scope=generated-presentations-only` → cuarentena recuperable; no implementa purga definitiva.
 - `npm run media:migrate-private` → mueve CV históricos a la zona privada de App Storage y corrige sus referencias de forma segura.
 - `npm run handoff:storage -- <export|import|verify>` → crea o restaura el paquete portable de medios públicos para una entrega por GitHub.
 - `npm run handoff:private -- <export|import|verify>` → cifra, transporta y verifica los documentos privados sin exponerlos en Git.
@@ -57,6 +59,11 @@ confirma un archivo que pueda desaparecer con el siguiente deployment.
 Los CV de solicitudes se almacenan bajo `von-wobeser/private/cvs/`, no se sirven desde
 `/uploads` y solo se recuperan mediante una ruta administrativa autenticada. PostgreSQL
 guarda una referencia privada, nunca los bytes ni la ruta original del equipo del usuario.
+
+Las presentaciones nuevas se almacenan bajo
+`von-wobeser/private/generated-presentations/<uuid>/`. Solo se transmiten mediante rutas
+administrativas con permiso `agents`; el prefijo HTTP histórico
+`/generated-presentations/*` responde 404.
 
 ## ⚠️ No borrar `frontend-mirror/`
 

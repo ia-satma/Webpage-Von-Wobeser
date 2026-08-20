@@ -55,9 +55,10 @@ IDs inventariados individualmente:
   aplicar una consulta PostgreSQL por cada subrecurso empeoraría disponibilidad. Los controles
   adecuados son límites en el borde/WAF, caché cuando proceda, nombres no ejecutables y
   `nosniff`.
-- **#730 — riesgo abierto hasta Fase 3:** la ruta pública de presentaciones no recibe una falsa
-  declaración de “corregida”. Fase 3 la sustituye por descarga administrativa privada y 404
-  público.
+- **#730 — corregida en Fase 3:** la ruta pública de presentaciones responde 404. Las nuevas
+  referencias son privadas, ligadas al UUID del registro, y solo se transmiten por rutas
+  administrativas con sesión y permiso `agents`. La corrección queda pendiente de despliegue
+  mientras el PR de Fase 3 siga abierto.
 - **#642, #770, #771 y #772 — justificadas:** login/MFA ya consumen límites persistentes;
   CodeQL no modeló los helpers propios.
 - **Las otras 131 — corregidas como una brecha sistémica común:**

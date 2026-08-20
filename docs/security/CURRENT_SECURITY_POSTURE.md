@@ -35,15 +35,21 @@ son registros históricos fechados y no deben usarse para inferir el estado pres
   producción para firmar sesiones de carga fragmentada de medios.
 - La revisión denominada históricamente `legal_council` es apoyo automatizado de tres
   agentes. No constituye asesoría ni dictamen jurídico y siempre requiere decisión humana.
-- Las rutas públicas históricas de presentaciones y su almacenamiento privado están
-  pendientes de la Fase 3. No se ha borrado, movido ni inventariado App Storage desde esta
-  rama.
+- Las rutas públicas históricas de presentaciones responden 404. Las presentaciones nuevas
+  usan referencias opacas y el prefijo privado, y sus archivos solo se transmiten por API
+  administrativa con permiso `agents` y `private, no-store`.
+- La migración de Fase 3 es exclusivamente aditiva. El inventario y la cuarentena de objetos
+  históricos siguen pendientes de ejecución en Replit; desde esta rama no se ha borrado,
+  movido ni inventariado App Storage ni se ha aplicado una migración a la base conectada.
+- Los nuevos registros de contacto, postulaciones y sesiones administrativas almacenan un
+  pseudónimo HMAC de la dirección de red, o `null` si falta una clave segura. Las direcciones
+  históricas no se modifican.
 
 ## Decisiones y excepciones vigentes
 
 - MFA permanece desactivado y documentado como riesgo alto.
-- El newsletter conserva el alta actual sin doble opt-in; la baja pública mediante token
-  opaco queda para una fase posterior.
+- El newsletter conserva el alta actual sin doble opt-in y añade una baja pública mediante
+  token opaco firmado. Visitar el enlace no altera datos: la baja exige confirmación `POST`.
 - No se publica `security.txt` hasta contar con un contacto institucional aprobado.
 - La regla de dos aprobaciones de GitHub será configurada posteriormente por Sistemas.
 - Ninguna presentación se elimina definitivamente en la primera ejecución.
@@ -73,6 +79,9 @@ son registros históricos fechados y no deben usarse para inferir el estado pres
   `MFA_REQUIRED_FOR_PRIVILEGED=true`.
 - Migración, únicamente durante el procedimiento controlado: `SOURCE_DATABASE_URL` y
   `DB_BACKUP_ENCRYPTION_KEY`.
+- Privacidad: `PRIVACY_HASH_KEY` y `NEWSLETTER_UNSUBSCRIBE_SECRET`, ambas aleatorias con
+  al menos 32 caracteres y separadas de contraseñas humanas. Si se omiten, el runtime usa
+  `SESSION_SECRET` como respaldo criptográfico; es preferible separarlas en producción.
 
 Los valores se configuran en Replit Secrets o el gestor equivalente. Nunca se incluyen en
 Git, documentación, capturas, comandos compartidos, logs ni variables `VITE_*`.

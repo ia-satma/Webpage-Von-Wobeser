@@ -12,7 +12,7 @@ const ALLOWED_EXTENSIONS = new Set([
   ".png", ".jpg", ".jpeg", ".webp", ".gif",
   ".mp4", ".webm", ".ogv", ".ogg", ".mov",
   ".mp3",
-  ".pdf", ".pptx",
+  ".pdf",
 ]);
 
 async function walk(directory: string): Promise<string[]> {
@@ -45,10 +45,6 @@ const roots = [
   {
     absolute: path.join(process.cwd(), "public", "generated-audio"),
     publicPrefix: "/generated-audio",
-  },
-  {
-    absolute: path.join(process.cwd(), "public", "generated-presentations"),
-    publicPrefix: "/generated-presentations",
   },
 ];
 

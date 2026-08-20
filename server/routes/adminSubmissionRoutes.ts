@@ -5,6 +5,7 @@ import { z } from "zod";
 import { authMiddleware, requirePermission } from "../auth";
 import { openPersistentPrivateCvStream } from "../media/privateDocuments";
 import { escapeCsvCell } from "../security/csv";
+import { buildNewsletterUnsubscribeUrl } from "../security/newsletterUnsubscribe";
 import { resolvePrivateCvStoragePath } from "../security/uploads";
 import { storage } from "../storage";
 import { auditLog } from "./routeUtils";
@@ -132,6 +133,20 @@ export function registerAdminSubmissionRoutes(app: Express): void {
     } catch (error) {
       console.error("Update newsletter subscriber error:", error);
       res.status(500).json({ error: "Failed to update newsletter subscriber" });
+    }
+  });
+
+  app.get("/api/admin/newsletter-subscribers/:id/unsubscribe-link", authMiddleware, requirePermission("newsletter"), async (req: Request, res: Response) => {
+    try {
+      const subscriber = await storage.getNewsletterSubscriberById(req.params.id);
+      if (!subscriber) return res.status(404).json({ error: "Subscriber not found" });
+      const siteUrl = process.env.SITE_URL || process.env.PUBLIC_SITE_URL || "https://www.vonwobeser.com";
+      const url = buildNewsletterUnsubscribeUrl(siteUrl, subscriber.id);
+      if (!url) return res.status(503).json({ error: "Unsubscribe signing key is unavailable" });
+      res.setHeader("Cache-Control", "private, no-store");
+      res.json({ url });
+    } catch {
+      res.status(500).json({ error: "Failed to create unsubscribe link" });
     }
   });
 
