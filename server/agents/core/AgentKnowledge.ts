@@ -17,6 +17,9 @@ export class AgentKnowledgeStore {
         title: doc.title,
         content: doc.content,
         metadata: doc.metadata,
+        dataClassification: doc.dataClassification || 'unclassified',
+        approvedForAiAt: doc.approvedForAiAt || null,
+        approvedForAiBy: doc.approvedForAiBy || null,
       });
 
       return {
@@ -26,6 +29,9 @@ export class AgentKnowledgeStore {
         title: dbDoc.title,
         content: dbDoc.content,
         metadata: dbDoc.metadata as Record<string, unknown>,
+        dataClassification: dbDoc.dataClassification,
+        approvedForAiAt: dbDoc.approvedForAiAt,
+        approvedForAiBy: dbDoc.approvedForAiBy,
         usageCount: dbDoc.usageCount || 0,
         createdAt: dbDoc.createdAt || new Date(),
         updatedAt: dbDoc.updatedAt || new Date(),
@@ -46,6 +52,27 @@ export class AgentKnowledgeStore {
       title: doc.title,
       content: doc.content,
       metadata: doc.metadata as Record<string, unknown>,
+      dataClassification: doc.dataClassification,
+      approvedForAiAt: doc.approvedForAiAt,
+      approvedForAiBy: doc.approvedForAiBy,
+      usageCount: doc.usageCount || 0,
+      createdAt: doc.createdAt || new Date(),
+      updatedAt: doc.updatedAt || new Date(),
+    }));
+  }
+
+  async getApprovedDocuments(agentType: AgentType): Promise<KnowledgeDocument[]> {
+    const dbDocs = await dbPersistence.getApprovedKnowledgeByAgent(agentType);
+    return dbDocs.map((doc) => ({
+      id: doc.id,
+      agentType: doc.agentType as AgentType,
+      category: doc.category,
+      title: doc.title,
+      content: doc.content,
+      metadata: doc.metadata as Record<string, unknown>,
+      dataClassification: doc.dataClassification,
+      approvedForAiAt: doc.approvedForAiAt,
+      approvedForAiBy: doc.approvedForAiBy,
       usageCount: doc.usageCount || 0,
       createdAt: doc.createdAt || new Date(),
       updatedAt: doc.updatedAt || new Date(),
@@ -71,6 +98,9 @@ export class AgentKnowledgeStore {
       title: doc.title,
       content: doc.content,
       metadata: doc.metadata as Record<string, unknown>,
+      dataClassification: doc.dataClassification,
+      approvedForAiAt: doc.approvedForAiAt,
+      approvedForAiBy: doc.approvedForAiBy,
       usageCount: doc.usageCount || 0,
       createdAt: doc.createdAt || new Date(),
       updatedAt: doc.updatedAt || new Date(),
@@ -83,6 +113,9 @@ export class AgentKnowledgeStore {
     if (updates.title) dbUpdates.title = updates.title;
     if (updates.content) dbUpdates.content = updates.content;
     if (updates.metadata) dbUpdates.metadata = updates.metadata;
+    if (updates.dataClassification) dbUpdates.dataClassification = updates.dataClassification;
+    if (updates.approvedForAiAt !== undefined) dbUpdates.approvedForAiAt = updates.approvedForAiAt;
+    if (updates.approvedForAiBy !== undefined) dbUpdates.approvedForAiBy = updates.approvedForAiBy;
     if (updates.usageCount !== undefined) dbUpdates.usageCount = updates.usageCount;
 
     const dbDoc = await dbPersistence.updateKnowledge(id, dbUpdates);
@@ -95,6 +128,9 @@ export class AgentKnowledgeStore {
       title: dbDoc.title,
       content: dbDoc.content,
       metadata: dbDoc.metadata as Record<string, unknown>,
+      dataClassification: dbDoc.dataClassification,
+      approvedForAiAt: dbDoc.approvedForAiAt,
+      approvedForAiBy: dbDoc.approvedForAiBy,
       usageCount: dbDoc.usageCount || 0,
       createdAt: dbDoc.createdAt || new Date(),
       updatedAt: dbDoc.updatedAt || new Date(),
@@ -124,6 +160,9 @@ export class AgentKnowledgeStore {
         title: doc.title,
         content: doc.content,
         metadata: doc.metadata as Record<string, unknown>,
+        dataClassification: doc.dataClassification,
+        approvedForAiAt: doc.approvedForAiAt,
+        approvedForAiBy: doc.approvedForAiBy,
         usageCount: doc.usageCount || 0,
         createdAt: doc.createdAt || new Date(),
         updatedAt: doc.updatedAt || new Date(),
@@ -162,6 +201,9 @@ export class AgentKnowledgeStore {
         title: entry.term,
         content: JSON.stringify(entry.translations),
         metadata: { type: 'glossary_entry', term: entry.term },
+        dataClassification: 'internal',
+        approvedForAiAt: new Date(),
+        approvedForAiBy: 'system_seed',
       });
     }
 
@@ -225,6 +267,9 @@ export class AgentKnowledgeStore {
         title: g.title,
         content: g.content,
         metadata: { type: 'seed_guide', seeded: true },
+        dataClassification: 'internal',
+        approvedForAiAt: new Date(),
+        approvedForAiBy: 'system_seed',
       });
     }
 
@@ -241,6 +286,9 @@ export class AgentKnowledgeStore {
         title: doc.title,
         content: doc.content,
         metadata: doc.metadata as Record<string, unknown>,
+        dataClassification: doc.dataClassification,
+        approvedForAiAt: doc.approvedForAiAt,
+        approvedForAiBy: doc.approvedForAiBy,
         usageCount: doc.usageCount || 0,
         createdAt: doc.createdAt || new Date(),
         updatedAt: doc.updatedAt || new Date(),

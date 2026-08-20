@@ -5,8 +5,18 @@ import { pathToFileURL } from "node:url";
 import pg from "pg";
 import { getPostgresConnectionConfig } from "../shared/postgres-config.mjs";
 
-const databaseUrl = process.env.DATABASE_URL;
-if (!databaseUrl) throw new Error("DATABASE_URL is required");
+const databaseUrl = process.env.DATABASE_MIGRATION_URL || process.env.DATABASE_URL;
+if (!databaseUrl) throw new Error("DATABASE_MIGRATION_URL or DATABASE_URL is required");
+if (process.env.REQUIRE_SEPARATE_DATABASE_ROLES === "true" && !process.env.DATABASE_MIGRATION_URL) {
+  throw new Error("DATABASE_MIGRATION_URL is required when separate database roles are enforced");
+}
+if (
+  process.env.REQUIRE_SEPARATE_DATABASE_ROLES === "true"
+  && process.env.DATABASE_APP_URL
+  && process.env.DATABASE_APP_URL === process.env.DATABASE_MIGRATION_URL
+) {
+  throw new Error("Application and migration database credentials must be different");
+}
 
 const client = new pg.Client({
   ...getPostgresConnectionConfig(databaseUrl),

@@ -1,4 +1,6 @@
 {
+  "superseded_by": "AI_DATA_GOVERNANCE_POLICY_v2.0.0.md",
+  "runtime_status": "historical_evaluation_taxonomy_not_runtime_policy",
   "policy_name": "Von Wobeser y Sierra — AI Content Pipeline Safety Policy",
   "version": "1.0.0",
   "date": "2026-07-15",

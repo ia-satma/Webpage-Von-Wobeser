@@ -48,6 +48,7 @@ import {
 export type AdminNavPermission =
   | "config"
   | "agents"
+  | "agent_knowledge_admin"
   | "advanced"
   | "contact_submissions"
   | "career_applications"
@@ -158,7 +159,7 @@ export const ADMIN_NAV_GROUPS: AdminNavGroup[] = [
       { href: "/admin/generated-images", label: "Imágenes generadas por IA", icon: Sparkles, requires: "agents" },
       { href: "/admin/generated-audio", label: "Audio generado por IA", icon: Volume2, requires: "agents" },
       { href: "/admin/processing", label: "Procesamiento de artículos", icon: Cog, requires: "advanced" },
-      { href: "/admin/knowledge", label: "Base de conocimiento", icon: BookOpen, requires: "advanced" },
+      { href: "/admin/knowledge", label: "Base de conocimiento", icon: BookOpen, requires: "agent_knowledge_admin" },
       { href: "/admin/explorer", label: "Explorador del sistema", icon: Layers, requires: "advanced" },
       { href: "/admin/health-check", label: "Salud del sistema", icon: Activity, requires: "advanced" },
       { href: "/admin/performance", label: "Rendimiento", icon: BarChart3, requires: "advanced" },

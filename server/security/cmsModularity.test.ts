@@ -135,8 +135,11 @@ test("Conocimiento conserva contratos, inventarios y superficie administrativa",
   assert.match(source, /adminApiRequest\("POST", "\/api\/admin\/knowledge\/bulk",/);
   assert.deepEqual(knowledgeFormSchema.keyof().options, [
     "category", "title", "content", "agentType", "language", "confidence",
+    "dataClassification", "aiUseConfirmed",
   ]);
-  assert.deepEqual(bulkUploadSchema.keyof().options, ["category", "agentType", "data"]);
+  assert.deepEqual(bulkUploadSchema.keyof().options, [
+    "category", "agentType", "data", "dataClassification", "aiUseConfirmed",
+  ]);
   assert.equal(KNOWLEDGE_CATEGORIES.length, 5);
   assert.equal(AGENT_TYPES.length, 14);
   assert.equal(LANGUAGE_OPTIONS.length, 10);
@@ -147,7 +150,7 @@ test("Conocimiento conserva contratos, inventarios y superficie administrativa",
   for (const translation of Object.values(knowledgeTranslations)) {
     assert.deepEqual(Object.keys(translation), englishKeys);
   }
-  assert.equal((source.match(/data-testid=/g) || []).length, 34);
+  assert.equal((source.match(/data-testid=/g) || []).length, 36);
 });
 
 test("Conocimiento conserva filtros y sintaxis de carga masiva clave|valor", () => {
@@ -189,6 +192,8 @@ test("Conocimiento conserva filtros y sintaxis de carga masiva clave|valor", () 
       category: "legal_glossary",
       agentType: "polyglot_translator",
       data: "due_diligence|Debida diligencia\nmerger|Fusión|corporativa\nsolo_clave",
+      dataClassification: "internal",
+      aiUseConfirmed: true,
     }),
     [
       {
@@ -197,6 +202,8 @@ test("Conocimiento conserva filtros y sintaxis de carga masiva clave|valor", () 
         title: "due_diligence",
         content: "Debida diligencia",
         metadata: {},
+        dataClassification: "internal",
+        aiUseConfirmed: true,
       },
       {
         category: "legal_glossary",
@@ -204,6 +211,8 @@ test("Conocimiento conserva filtros y sintaxis de carga masiva clave|valor", () 
         title: "merger",
         content: "Fusión|corporativa",
         metadata: {},
+        dataClassification: "internal",
+        aiUseConfirmed: true,
       },
       {
         category: "legal_glossary",
@@ -211,6 +220,8 @@ test("Conocimiento conserva filtros y sintaxis de carga masiva clave|valor", () 
         title: "solo_clave",
         content: "solo_clave",
         metadata: {},
+        dataClassification: "internal",
+        aiUseConfirmed: true,
       },
     ],
   );

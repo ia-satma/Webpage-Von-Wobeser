@@ -455,7 +455,13 @@ test('voice agent covers success, timeout and persistence failure without consum
   try {
     const result = await voiceAgent.execute(
       context('voice_agent'),
-      { text: 'Texto aislado.', sourceType: 'newsletter', voiceId: 'alloy' },
+      {
+        text: 'Texto aislado.',
+        sourceType: 'newsletter',
+        voiceId: 'alloy',
+        dataClassification: 'internal',
+        aiUseConfirmed: true,
+      },
     );
     assert.equal(result.success, true);
     assert.deepEqual((result.data as { audioUrls: string[] }).audioUrls, ['/generated-audio/isolated.mp3']);
@@ -484,7 +490,13 @@ test('voice agent covers success, timeout and persistence failure without consum
     try {
       const result = await voiceAgent.execute(
         context('voice_agent'),
-        { text: 'Texto aislado.', sourceType: 'newsletter', voiceId: 'alloy' },
+        {
+          text: 'Texto aislado.',
+          sourceType: 'newsletter',
+          voiceId: 'alloy',
+          dataClassification: 'internal',
+          aiUseConfirmed: true,
+        },
       );
       assert.equal(result.success, false);
       assert.equal((result.data as { errorCode: string }).errorCode, failure.errorCode);
@@ -534,6 +546,8 @@ test('presentation agent validates render, preview and download metadata without
         topic: 'Panorama regulatorio',
         formats: ['pptx', 'pdf', 'png'],
         visuals: false,
+        dataClassification: 'internal',
+        aiUseConfirmed: true,
       },
     );
     assert.equal(result.success, true);
@@ -565,7 +579,12 @@ test('presentation agent validates render, preview and download metadata without
   try {
     const failed = await presentationGeneratorAgent.execute(
       context('presentation_generator'),
-      { topic: 'Prueba de error', visuals: false },
+      {
+        topic: 'Prueba de error',
+        visuals: false,
+        dataClassification: 'internal',
+        aiUseConfirmed: true,
+      },
     );
     assert.equal(failed.success, false);
     assert.match(failed.error || '', /simulated persistence failure/);
@@ -631,6 +650,8 @@ test('presentation illustration request creates image slides even when the text 
         formats: ['png'],
         visuals: true,
         illustrate: true,
+        dataClassification: 'internal',
+        aiUseConfirmed: true,
       },
     );
 

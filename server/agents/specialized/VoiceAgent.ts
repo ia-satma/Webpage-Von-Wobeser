@@ -2,6 +2,10 @@ import { BaseAgent } from '../core/BaseAgent';
 import { AgentConfig, AgentResult, ExecutionContext } from '../core/types';
 import { voiceGenerator } from '../../services/VoiceGenerator';
 import { getConfigMap } from '../../mirror/siteConfig';
+import {
+  isAiExternalClassificationAllowed,
+  type AiDataClassification,
+} from '@shared/aiGovernance';
 
 // Agente estructural (como content_auditor/website_auditor): no llama a un LLM de texto —
 // toma texto YA generado por otro agente (newsletter/social_media/legal_alerts) y lo convierte
@@ -33,11 +37,13 @@ export class VoiceAgent extends BaseAgent {
   }
 
   async execute(_context: ExecutionContext, payload: Record<string, unknown>): Promise<AgentResult> {
-    const { text, sourceType, articleId, voiceId } = payload as {
+    const { text, sourceType, articleId, voiceId, dataClassification, aiUseConfirmed } = payload as {
       text?: string;
       sourceType?: string;
       articleId?: string;
       voiceId?: string;
+      dataClassification?: AiDataClassification;
+      aiUseConfirmed?: boolean;
     };
 
     if (!text || !text.trim()) {
@@ -48,6 +54,16 @@ export class VoiceAgent extends BaseAgent {
     }
     if (voiceId && !VALID_VOICES.includes(voiceId as typeof VALID_VOICES[number])) {
       return { success: false, error: `voiceId debe ser uno de: ${VALID_VOICES.join(', ')}` };
+    }
+    if (
+      !dataClassification
+      || !isAiExternalClassificationAllowed(dataClassification)
+      || aiUseConfirmed !== true
+    ) {
+      return {
+        success: false,
+        error: 'Clasifica el texto como público o interno y confirma su uso antes de enviarlo a IA.',
+      };
     }
 
     try {
@@ -67,6 +83,7 @@ export class VoiceAgent extends BaseAgent {
           voiceId: resolvedVoiceId,
           sourceType,
           articleId: articleId || null,
+          dataClassification,
         });
         transparencyLog.push(...result.transparencyLog);
         if (!result.success || !result.audioUrl) {

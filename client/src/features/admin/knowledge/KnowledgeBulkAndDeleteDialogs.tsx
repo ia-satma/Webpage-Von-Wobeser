@@ -22,6 +22,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { Loader2 } from "lucide-react";
 import { AGENT_TYPES, KNOWLEDGE_CATEGORIES } from "./catalogs";
+import { KnowledgeGovernanceFields } from "./KnowledgeGovernanceFields";
 import type { KnowledgeAdminModel } from "./useKnowledgeAdmin";
 
 export function KnowledgeBulkAndDeleteDialogs({ model }: { model: KnowledgeAdminModel }) {
@@ -104,6 +105,10 @@ export function KnowledgeBulkAndDeleteDialogs({ model }: { model: KnowledgeAdmin
                       <FormControl>
                         <Textarea
                           {...field}
+                          onChange={(event) => {
+                            field.onChange(event);
+                            bulkForm.setValue("aiUseConfirmed", false);
+                          }}
                           placeholder={`due_diligence|Debida diligencia: Proceso de investigación exhaustiva
 merger|Fusión: Combinación de dos o más empresas
 acquisition|Adquisición: Compra de una empresa por otra`}
@@ -114,6 +119,13 @@ acquisition|Adquisición: Compra de una empresa por otra`}
                       <FormMessage />
                     </FormItem>
                   )}
+                />
+                <KnowledgeGovernanceFields
+                  control={bulkForm.control}
+                  setValue={bulkForm.setValue}
+                  testIdPrefix="bulk"
+                  label="Clasificación obligatoria para todo el lote"
+                  confirmation="Confirmo que revisé el lote y que ninguna entrada contiene información personal, confidencial o privilegiada."
                 />
                 <DialogFooter>
                   <Button type="button" variant="outline" onClick={() => setIsBulkModalOpen(false)}>

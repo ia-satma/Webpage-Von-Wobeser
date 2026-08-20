@@ -26,6 +26,7 @@ import {
   Zap,
 } from "lucide-react";
 import { AGENT_DEFINITIONS, type AgentId } from "@shared/agentConstants";
+import type { AiDataClassification } from "@shared/aiGovernance";
 import { adminApiRequest } from "@/lib/adminAuth";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -232,6 +233,8 @@ export function AgentUseCenter({ registeredAgents = [] }: AgentUseCenterProps) {
   const [voiceText, setVoiceText] = useState("");
   const [topic, setTopic] = useState("");
   const [illustrate, setIllustrate] = useState(false);
+  const [dataClassification, setDataClassification] = useState<Extract<AiDataClassification, "public" | "internal">>("internal");
+  const [aiUseConfirmed, setAiUseConfirmed] = useState(false);
   const [running, setRunning] = useState(false);
   const [result, setResult] = useState<{ ok: boolean; text: string; copyHistoryId?: string } | null>(null);
 
@@ -273,15 +276,26 @@ export function AgentUseCenter({ registeredAgents = [] }: AgentUseCenterProps) {
     }
     if (launcher.mode === "newsletter") return { limit, language };
     if (launcher.mode === "legal") {
-      if (!sourceText.trim() && !sourceUrl.trim()) return null;
-      return { sourceText: sourceText.trim() || undefined, sourceUrl: sourceUrl.trim() || undefined, triggeredBy: "manual" };
+      if ((!sourceText.trim() && !sourceUrl.trim()) || !aiUseConfirmed) return null;
+      return {
+        sourceText: sourceText.trim() || undefined,
+        sourceUrl: sourceUrl.trim() || undefined,
+        triggeredBy: "manual",
+        dataClassification,
+        aiUseConfirmed: true,
+      };
     }
     if (launcher.mode === "voice") {
-      if (!voiceText.trim()) return null;
-      return { text: voiceText.trim(), sourceType: "legal_alerts" };
+      if (!voiceText.trim() || !aiUseConfirmed) return null;
+      return {
+        text: voiceText.trim(),
+        sourceType: "legal_alerts",
+        dataClassification,
+        aiUseConfirmed: true,
+      };
     }
     if (launcher.mode === "presentation") {
-      if (!topic.trim()) return null;
+      if (!topic.trim() || !aiUseConfirmed) return null;
       return {
         topic: topic.trim(),
         slideCount: 5,
@@ -293,6 +307,8 @@ export function AgentUseCenter({ registeredAgents = [] }: AgentUseCenterProps) {
         illustrate,
         supportImages: [],
         webSearch: false,
+        dataClassification,
+        aiUseConfirmed: true,
       };
     }
     if (selected.id === "content_auditor") return { scanType: "full" };
@@ -384,6 +400,7 @@ export function AgentUseCenter({ registeredAgents = [] }: AgentUseCenterProps) {
                 onClick={() => {
                   setSelectedId(agent.id);
                   setResult(null);
+                  setAiUseConfirmed(false);
                 }}
                 data-testid={`button-select-agent-${agent.id}`}
               >
@@ -488,11 +505,17 @@ export function AgentUseCenter({ registeredAgents = [] }: AgentUseCenterProps) {
               <div className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="agent-legal-url">URL oficial (opcional)</Label>
-                  <Input id="agent-legal-url" type="url" value={sourceUrl} onChange={(event) => setSourceUrl(event.target.value)} placeholder="https://www.gob.mx/…" />
+                  <Input id="agent-legal-url" type="url" value={sourceUrl} onChange={(event) => {
+                    setSourceUrl(event.target.value);
+                    setAiUseConfirmed(false);
+                  }} placeholder="https://www.gob.mx/…" />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="agent-legal-text">Texto de la fuente</Label>
-                  <Textarea id="agent-legal-text" value={sourceText} onChange={(event) => setSourceText(event.target.value)} rows={6} placeholder="Pega aquí el contenido oficial que deseas convertir en una alerta…" />
+                  <Textarea id="agent-legal-text" value={sourceText} onChange={(event) => {
+                    setSourceText(event.target.value);
+                    setAiUseConfirmed(false);
+                  }} rows={6} placeholder="Pega aquí el contenido oficial que deseas convertir en una alerta…" />
                 </div>
               </div>
             )}
@@ -500,7 +523,10 @@ export function AgentUseCenter({ registeredAgents = [] }: AgentUseCenterProps) {
             {launcher.mode === "voice" && (
               <div className="space-y-2">
                 <Label htmlFor="agent-voice-text">Texto para audio</Label>
-                <Textarea id="agent-voice-text" value={voiceText} onChange={(event) => setVoiceText(event.target.value)} rows={6} placeholder="Escribe o pega el texto que se convertirá en audio…" />
+                <Textarea id="agent-voice-text" value={voiceText} onChange={(event) => {
+                  setVoiceText(event.target.value);
+                  setAiUseConfirmed(false);
+                }} rows={6} placeholder="Escribe o pega el texto que se convertirá en audio…" />
               </div>
             )}
 
@@ -508,7 +534,10 @@ export function AgentUseCenter({ registeredAgents = [] }: AgentUseCenterProps) {
               <div className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="agent-presentation-topic">Tema de la presentación</Label>
-                  <Textarea id="agent-presentation-topic" value={topic} onChange={(event) => setTopic(event.target.value)} rows={5} placeholder="Ej. Cambios regulatorios relevantes para empresas en México…" />
+                  <Textarea id="agent-presentation-topic" value={topic} onChange={(event) => {
+                    setTopic(event.target.value);
+                    setAiUseConfirmed(false);
+                  }} rows={5} placeholder="Ej. Cambios regulatorios relevantes para empresas en México…" />
                 </div>
                 <div className="flex flex-wrap items-center gap-5">
                   <div className="w-44 space-y-2">
@@ -523,6 +552,40 @@ export function AgentUseCenter({ registeredAgents = [] }: AgentUseCenterProps) {
                     <Label htmlFor="agent-presentation-images">Generar imágenes</Label>
                   </div>
                 </div>
+              </div>
+            )}
+
+            {(["legal", "voice", "presentation"] as const).includes(launcher.mode as "legal" | "voice" | "presentation") && (
+              <div className="space-y-3 border-l-4 border-amber-500 bg-amber-50 px-4 py-4 dark:bg-amber-950/20">
+                <div className="space-y-2">
+                  <Label>Clasificación de la información</Label>
+                  <Select
+                    value={dataClassification}
+                    onValueChange={(value) => {
+                      setDataClassification(value as "public" | "internal");
+                      setAiUseConfirmed(false);
+                    }}
+                  >
+                    <SelectTrigger data-testid="select-agent-data-classification"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="public">Pública y aprobada para difusión</SelectItem>
+                      <SelectItem value="internal">Interna, sin datos personales ni secretos</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <label className="flex items-start gap-3 text-sm">
+                  <input
+                    type="checkbox"
+                    checked={aiUseConfirmed}
+                    onChange={(event) => setAiUseConfirmed(event.target.checked)}
+                    className="mt-1 h-4 w-4"
+                    data-testid="checkbox-agent-ai-confirmation"
+                  />
+                  <span>
+                    Confirmo que el material fue clasificado y no contiene datos personales,
+                    información confidencial, secreto profesional ni comunicaciones privilegiadas.
+                  </span>
+                </label>
               </div>
             )}
 

@@ -4,6 +4,7 @@ import path from "node:path";
 import { z } from "zod";
 import type { ExecutionContext } from "../agents/core/types";
 import { presentationGeneratorAgent } from "../agents/specialized/PresentationGeneratorAgent";
+import { AiGovernanceBlockedError, inspectAiData } from "../ai/dataGovernance";
 import {
   TEXTUAL_AGENT_TYPES,
   copyPlainText,
@@ -227,6 +228,8 @@ export function registerAgentAssetHistoryRoutes(app: Express): void {
         illustrate: z.boolean().default(false),
         supportImages: z.array(presentationMediaPathSchema).max(30).default([]),
         webSearch: z.boolean().default(false),
+        dataClassification: z.enum(["public", "internal", "personal", "confidential", "privileged"]),
+        aiUseConfirmed: z.literal(true),
       }).strict().safeParse(req.body);
       if (!parsed.success) {
         const issue = parsed.error.issues[0];
@@ -250,6 +253,8 @@ export function registerAgentAssetHistoryRoutes(app: Express): void {
         illustrate,
         supportImages,
         webSearch,
+        dataClassification,
+        aiUseConfirmed,
       } = parsed.data;
 
       let documentsText = "";
@@ -270,6 +275,21 @@ export function registerAgentAssetHistoryRoutes(app: Express): void {
 
       if (!String(topic || "").trim() && !documentsText.trim()) {
         return res.status(400).json({ error: "Escribe un tema o sube al menos un documento con contenido de texto.", docNotes });
+      }
+
+      const decision = inspectAiData({
+        classification: dataClassification,
+        purpose: "presentation_draft",
+        source: "presentation",
+        agentId: "presentation_generator",
+        actorId: req.adminUser?.id || null,
+      }, { topic, documentsText });
+      if (!decision.allowed) {
+        return res.status(422).json({
+          code: "AI_DATA_GOVERNANCE_BLOCKED",
+          error: "El material no puede enviarse a un proveedor de IA con la clasificación indicada.",
+          reasons: decision.reasonCodes,
+        });
       }
 
       const context: ExecutionContext = {
@@ -294,6 +314,8 @@ export function registerAgentAssetHistoryRoutes(app: Express): void {
         illustrate,
         supportImages,
         webSearch,
+        dataClassification,
+        aiUseConfirmed,
       });
 
       if (!result.success) {
@@ -306,6 +328,13 @@ export function registerAgentAssetHistoryRoutes(app: Express): void {
       res.setHeader("Cache-Control", "private, no-store");
       res.json(payload);
     } catch (error) {
+      if (error instanceof AiGovernanceBlockedError) {
+        return res.status(422).json({
+          code: error.code,
+          error: error.message,
+          reasons: error.reasonCodes,
+        });
+      }
       console.error("[presentations/generate]", error);
       res.status(500).json({ error: "Falló la generación de la presentación." });
     }

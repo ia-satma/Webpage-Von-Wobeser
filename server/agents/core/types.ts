@@ -63,6 +63,9 @@ export interface KnowledgeDocument {
   title: string;
   content: string;
   metadata: Record<string, unknown>;
+  dataClassification?: string;
+  approvedForAiAt?: Date | null;
+  approvedForAiBy?: string | null;
   embedding?: number[];
   usageCount: number;
   createdAt: Date;

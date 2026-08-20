@@ -5,6 +5,7 @@ import { news } from '../../../shared/schema';
 import { eq } from 'drizzle-orm';
 import { sanitizeFields } from '../../mirror/sanitize';
 import { formatterOutputSchema } from '../core/contracts';
+import type { AiDataClassification } from '@shared/aiGovernance';
 
 const FORMATTER_CONFIG: AgentConfig = {
   agentType: 'formatter',
@@ -57,10 +58,18 @@ export class FormatterAgent extends BaseAgent {
       title?: string;
       language?: 'es' | 'en';
       applyChanges?: boolean;
+      dataClassification?: AiDataClassification;
+      aiUseConfirmed?: boolean;
     };
 
     if (!articleId && !content) {
       return { success: false, error: 'Either articleId or content is required' };
+    }
+    if (!articleId && content && (!payload.dataClassification || payload.aiUseConfirmed !== true)) {
+      return {
+        success: false,
+        error: 'Data classification and explicit AI-use confirmation are required for raw content',
+      };
     }
 
     let originalContent = content as string;
@@ -99,7 +108,11 @@ Return JSON with cleaned title, content, and excerpt.`;
 
       const response = await this.callLLM(
         [{ role: 'user', content: prompt }],
-        { temperature: 0.2, jsonMode: true }
+        {
+          temperature: 0.2,
+          jsonMode: true,
+          classification: articleId ? 'internal' : payload.dataClassification as AiDataClassification,
+        }
       );
 
       const result = formatterOutputSchema.parse(JSON.parse(response));

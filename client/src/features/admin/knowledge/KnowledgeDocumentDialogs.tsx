@@ -1,18 +1,12 @@
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Loader2 } from "lucide-react";
 import { AGENT_TYPES, KNOWLEDGE_CATEGORIES, LANGUAGE_OPTIONS } from "./catalogs";
+import { KnowledgeGovernanceFields } from "./KnowledgeGovernanceFields";
 import type { KnowledgeAdminModel } from "./useKnowledgeAdmin";
 
 export function KnowledgeDocumentDialogs({ model }: { model: KnowledgeAdminModel }) {
@@ -93,7 +87,10 @@ export function KnowledgeDocumentDialogs({ model }: { model: KnowledgeAdminModel
                     <FormItem>
                       <FormLabel>{t.titleKey}</FormLabel>
                       <FormControl>
-                        <Input {...field} placeholder={t.titlePlaceholder} data-testid="input-add-title" />
+                        <Input {...field} onChange={(event) => {
+                          field.onChange(event);
+                          form.setValue("aiUseConfirmed", false);
+                        }} placeholder={t.titlePlaceholder} data-testid="input-add-title" />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -108,6 +105,10 @@ export function KnowledgeDocumentDialogs({ model }: { model: KnowledgeAdminModel
                       <FormControl>
                         <Textarea
                           {...field}
+                          onChange={(event) => {
+                            field.onChange(event);
+                            form.setValue("aiUseConfirmed", false);
+                          }}
                           placeholder={t.contentPlaceholder}
                           className="min-h-[150px]"
                           data-testid="textarea-add-content"
@@ -162,6 +163,13 @@ export function KnowledgeDocumentDialogs({ model }: { model: KnowledgeAdminModel
                     )}
                   />
                 </div>
+                <KnowledgeGovernanceFields
+                  control={form.control}
+                  setValue={form.setValue}
+                  testIdPrefix="add"
+                  label="Clasificación obligatoria"
+                  confirmation="Confirmo que el documento no contiene datos personales, información confidencial ni comunicaciones privilegiadas."
+                />
                 <DialogFooter>
                   <Button type="button" variant="outline" onClick={() => setIsAddModalOpen(false)}>
                     {t.cancel}
@@ -239,7 +247,10 @@ export function KnowledgeDocumentDialogs({ model }: { model: KnowledgeAdminModel
                     <FormItem>
                       <FormLabel>{t.titleKey}</FormLabel>
                       <FormControl>
-                        <Input {...field} data-testid="input-edit-title" />
+                        <Input {...field} onChange={(event) => {
+                          field.onChange(event);
+                          form.setValue("aiUseConfirmed", false);
+                        }} data-testid="input-edit-title" />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -254,6 +265,10 @@ export function KnowledgeDocumentDialogs({ model }: { model: KnowledgeAdminModel
                       <FormControl>
                         <Textarea
                           {...field}
+                          onChange={(event) => {
+                            field.onChange(event);
+                            form.setValue("aiUseConfirmed", false);
+                          }}
                           className="min-h-[150px]"
                           data-testid="textarea-edit-content"
                         />
@@ -307,6 +322,13 @@ export function KnowledgeDocumentDialogs({ model }: { model: KnowledgeAdminModel
                     )}
                   />
                 </div>
+                <KnowledgeGovernanceFields
+                  control={form.control}
+                  setValue={form.setValue}
+                  testIdPrefix="edit"
+                  label="Clasificación obligatoria"
+                  confirmation="Confirmo que revisé esta versión y puede utilizarse como contexto de los agentes."
+                />
                 <DialogFooter>
                   <Button type="button" variant="outline" onClick={() => setIsEditModalOpen(false)}>
                     {t.cancel}

@@ -18,6 +18,11 @@ import {
 } from '../../services/PresentationGenerator';
 import { smartImageGenerator } from '../../services/SmartImageGenerator';
 import { hasDedicatedImageClient } from '../../openai';
+import {
+  isAiExternalClassificationAllowed,
+  type AiDataClassification,
+} from '@shared/aiGovernance';
+import { assertAiDataAllowed } from '../../ai/dataGovernance';
 import { webSearchSummary } from '../../services/webSearch';
 
 // 14° agente: Generador de Presentaciones. A diferencia de los agentes estructurales
@@ -100,6 +105,8 @@ export interface PresentationPayload {
   illustrate?: boolean;     // generar imágenes con IA por diapositiva (default false, usa créditos)
   supportImages?: string[]; // URLs de imágenes subidas por el usuario (pool para slides image)
   webSearch?: boolean;      // buscar información en la web (OpenAI web_search) para enriquecer
+  dataClassification?: AiDataClassification;
+  aiUseConfirmed?: boolean;
 }
 
 interface VisualResolutionResult {
@@ -126,15 +133,34 @@ export class PresentationGeneratorAgent extends BaseAgent {
     const formats = normalizeFormats(p.formats);
     const visuals = p.visuals !== false;   // gráficas/diagramas/imágenes permitidos por defecto
     const illustrate = p.illustrate === true; // imágenes IA solo si se pide (gasta créditos)
+    if (!topic && !documentsText) {
+      return { success: false, error: 'Escribe un tema o sube al menos un documento con contenido.' };
+    }
+    if (
+      !p.dataClassification
+      || !isAiExternalClassificationAllowed(p.dataClassification)
+      || p.aiUseConfirmed !== true
+    ) {
+      return {
+        success: false,
+        error: 'Clasifica el material como público o interno y confirma su uso antes de enviarlo a IA.',
+      };
+    }
+    const classification: AiDataClassification = p.dataClassification;
     // Solo se aceptan imágenes subidas por el panel (/uploads/, /generated-images/) — defensa en
     // profundidad contra rutas arbitrarias (además del bloqueo en resolveLocalAsset).
     const supportImages = Array.isArray(p.supportImages)
       ? p.supportImages.filter((u): u is string => typeof u === 'string' && (u.startsWith('/uploads/') || u.startsWith('/generated-images/')))
       : [];
 
-    if (!topic && !documentsText) {
-      return { success: false, error: 'Escribe un tema o sube al menos un documento con contenido.' };
-    }
+    // Preflight único sobre TODO el material. Si falla, no se permite que un
+    // fallback parcial derive prompts y los envíe posteriormente a otro motor.
+    assertAiDataAllowed({
+      classification,
+      purpose: 'presentation_draft',
+      source: 'presentation',
+      agentId: 'presentation_generator',
+    }, { topic, documentsText });
 
     let model: SlideModel | null = null;
     let engine = 'openai+native';
@@ -142,13 +168,16 @@ export class PresentationGeneratorAgent extends BaseAgent {
     // 0) Búsqueda web opcional (herramienta nativa de OpenAI) para enriquecer con datos verificados.
     let webInfo = '';
     if (p.webSearch === true && topic) {
-      webInfo = await webSearchSummary(topic);
+      webInfo = await webSearchSummary(topic, classification);
     }
 
     // 1) Estructuración con IA (con fallback determinista si falla / no hay créditos).
     try {
       const userPrompt = buildUserPrompt(topic, documentsText, slideCount, lang, visuals, webInfo);
-      const raw = await this.callLLM([{ role: 'user', content: userPrompt }], { jsonMode: true, temperature: 0.5 });
+      const raw = await this.callLLM(
+        [{ role: 'user', content: userPrompt }],
+        { jsonMode: true, temperature: 0.5, classification },
+      );
       const parsed = safeParseJson<SlideModel>(raw);
       model = normalizeModel(parsed, topic);
     } catch (err: any) {
@@ -163,7 +192,16 @@ export class PresentationGeneratorAgent extends BaseAgent {
 
     // 1.5) Resolver los elementos visuales: si no se permiten, degradar a viñetas; para slides
     // "image" asignar imagen del pool subido o generarla con IA (si illustrate), o degradar.
-    const visualResult = await this.resolveVisuals(model, { visuals, illustrate, supportImages, lang, template, branding, customPrimaryColor: p.customPrimaryColor ?? null });
+    const visualResult = await this.resolveVisuals(model, {
+      visuals,
+      illustrate,
+      supportImages,
+      lang,
+      template,
+      branding,
+      customPrimaryColor: p.customPrimaryColor ?? null,
+      classification,
+    });
 
     // Si el administrador pidió explícitamente ilustración, nunca se reporta una presentación
     // "correcta" sin una sola imagen. Antes el modelo podía devolver únicamente bullets y el
@@ -212,7 +250,16 @@ export class PresentationGeneratorAgent extends BaseAgent {
   // Resuelve los elementos visuales del modelo IN-PLACE.
   private async resolveVisuals(
     model: SlideModel,
-    opts: { visuals: boolean; illustrate: boolean; supportImages: string[]; lang: string; template: PresentationTemplate; branding: PresentationBranding; customPrimaryColor: string | null },
+    opts: {
+      visuals: boolean;
+      illustrate: boolean;
+      supportImages: string[];
+      lang: string;
+      template: PresentationTemplate;
+      branding: PresentationBranding;
+      customPrimaryColor: string | null;
+      classification: AiDataClassification;
+    },
   ): Promise<VisualResolutionResult> {
     const notes: string[] = [];
     const pool = [...opts.supportImages];
@@ -305,6 +352,7 @@ export class PresentationGeneratorAgent extends BaseAgent {
             candidate.prompt,
             `presentation-${Date.now()}-${candidate.index}`,
             '16:9',
+            opts.classification,
           );
           // engine 'placeholder' no es un recurso real y dejaría un marco vacío.
           if (res.success && res.imageUrl && res.engine !== 'placeholder') {

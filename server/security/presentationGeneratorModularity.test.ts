@@ -93,15 +93,17 @@ test('la fachada y los módulos respetan límites y dependencias unidireccionale
   }
 });
 
-test('el agente conserva la misma interfaz y queda fuera de esta fase', () => {
+test('el agente conserva la interfaz de generación y exige gobernanza de datos', () => {
   const agent = fs.readFileSync(
     path.join(root, 'server', 'agents', 'specialized', 'PresentationGeneratorAgent.ts'),
     'utf8',
   );
-  assert.equal(agent.split('\n').length, 580);
+  assert.equal(agent.split('\n').length, 628);
   assert.match(agent, /presentationGenerator\.renderAndSave\(model, \{/);
   assert.match(agent, /type SlideModel/);
   assert.match(agent, /type SlideLayout/);
+  assert.match(agent, /dataClassification/);
+  assert.match(agent, /aiUseConfirmed/);
 });
 
 test('las constantes de diseño, formatos y persistencia privada siguen congeladas', () => {

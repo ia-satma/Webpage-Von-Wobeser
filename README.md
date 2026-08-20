@@ -6,6 +6,10 @@ Plataforma web del despacho de abogados **Von Wobeser y Sierra**: sitio público
 
 > **Contexto más reciente:** [`docs/CONTEXT-2026-08-18.md`](./docs/CONTEXT-2026-08-18.md) consolida
 > arquitectura, contenido, CMS, agentes, seguridad, navegación, auditorías, Replit y pendientes.
+> El estado operativo de seguridad prevalente está en
+> [`docs/security/CURRENT_SECURITY_POSTURE.md`](./docs/security/CURRENT_SECURITY_POSTURE.md) y la
+> política ejecutable de datos para IA en
+> [`docs/ai-safety/AI_DATA_GOVERNANCE_POLICY_v2.0.0.md`](./docs/ai-safety/AI_DATA_GOVERNANCE_POLICY_v2.0.0.md).
 
 ## Arquitectura en 30 segundos
 
@@ -46,7 +50,11 @@ publicar el sitio antes de terminar la restauración.
 
 ## Variables de entorno
 
-Única obligatoria para arrancar: **`DATABASE_URL`**, inyectada por la base correspondiente de Replit. Las demás (IA, admin, imágenes, pCloud) son opcionales y degradan con gracia. Lista completa en [`replit.md`](./replit.md#secrets--variables-de-entorno).
+En modo compatible, la base inyecta **`DATABASE_URL`**. Sistemas puede separar el rol de
+aplicación (`DATABASE_APP_URL`) del rol de migración (`DATABASE_MIGRATION_URL`) y exigirlo con
+`REQUIRE_SEPARATE_DATABASE_ROLES=true`. Las llamadas de IA requieren además auditoría durable
+en producción y fallan cerrado si la evidencia previa no puede guardarse. Lista completa en
+[`replit.md`](./replit.md#secrets--variables-de-entorno).
 
 ## Medios administrados
 

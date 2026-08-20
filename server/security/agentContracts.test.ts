@@ -38,7 +38,11 @@ test('canonical runtime inventory contains 14 unique executable agents', () => {
 
 test('every runtime agent accepts its smallest valid payload', async (t) => {
   const payloads: Record<AgentId, unknown> = {
-    formatter: { content: 'Contenido legal suficientemente largo para ser formateado sin tocar la base de datos.' },
+    formatter: {
+      content: 'Contenido legal suficientemente largo para ser formateado sin tocar la base de datos.',
+      dataClassification: 'internal',
+      aiUseConfirmed: true,
+    },
     metadata_linker: { articleId: ARTICLE_ID },
     polyglot_translator: { articleId: ARTICLE_ID, targetLanguages: ['en'] },
     content_auditor: {},
@@ -49,9 +53,22 @@ test('every runtime agent accepts its smallest valid payload', async (t) => {
     website_auditor: {},
     social_media: { articleId: ARTICLE_ID },
     newsletter: {},
-    legal_alerts: { sourceText: 'Fuente oficial simulada con contenido suficiente para elaborar un borrador legal.' },
-    voice_agent: { text: 'Texto para audio', sourceType: 'newsletter' },
-    presentation_generator: { topic: 'Panorama regulatorio mexicano' },
+    legal_alerts: {
+      sourceText: 'Fuente oficial simulada con contenido suficiente para elaborar un borrador legal.',
+      dataClassification: 'public',
+      aiUseConfirmed: true,
+    },
+    voice_agent: {
+      text: 'Texto para audio',
+      sourceType: 'newsletter',
+      dataClassification: 'internal',
+      aiUseConfirmed: true,
+    },
+    presentation_generator: {
+      topic: 'Panorama regulatorio mexicano',
+      dataClassification: 'internal',
+      aiUseConfirmed: true,
+    },
   };
 
   for (const id of ALL_AGENT_IDS) {
@@ -88,11 +105,15 @@ test('agent contracts reject unsafe identifiers, sizes and options', () => {
     sourceUrl: 'https://www.dof.gob.mx/nota_detalle.php?codigo=1',
     triggeredBy: 'scheduled',
     matchedPractice: 'Competencia',
+    dataClassification: 'public',
+    aiUseConfirmed: true,
   }).success, true);
   const presentationWithVersionedMedia = parseAgentPayload('presentation_generator', {
     topic: 'tema',
     customLogoUrl: '/uploads/logo-institucional.png?v=20260731',
     supportImages: ['/generated-images/portada.jpg?download=0'],
+    dataClassification: 'internal',
+    aiUseConfirmed: true,
   });
   assert.equal(presentationWithVersionedMedia.success, true);
   if (presentationWithVersionedMedia.success) {
@@ -308,7 +329,7 @@ test('interactive AI calls have bounded waits and image generation fails fast wi
   assert.match(baseAgentSource, /maxRetries:\s*0/);
   assert.match(imageSource, /if \(!hasDedicatedImageClient\(\)\)/);
   assert.match(imageSource, /errorCode:\s*'openai_image_key_missing'/);
-  assert.match(imageSource, /callOpenAIImage\(prompt, 1, aspect\)/);
+  assert.match(imageSource, /callOpenAIImage\(prompt, 1, aspect, classification\)/);
 });
 
 test('the admin agent center exposes all 14 canonical agents with safe quick-use defaults', () => {

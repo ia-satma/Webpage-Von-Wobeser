@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { adminApiRequest } from "@/lib/adminAuth";
 import { useToast } from "@/hooks/use-toast";
 import { AgentButton } from "@/components/admin/AgentButton";
@@ -28,16 +28,37 @@ export function ImageGenButton({
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [aspect, setAspect] = useState(defaultAspect);
+  const [dataClassification, setDataClassification] = useState<"public" | "internal">("internal");
+  const [confirmedPrompt, setConfirmedPrompt] = useState<string | null>(null);
+  const currentPrompt = (getPrompt() || "").trim();
+  const aiUseConfirmed = currentPrompt.length > 0 && confirmedPrompt === currentPrompt;
+
+  useEffect(() => {
+    setConfirmedPrompt(null);
+  }, [currentPrompt, dataClassification]);
 
   const generate = async () => {
-    const prompt = (getPrompt() || "").trim();
+    const prompt = currentPrompt;
     if (!prompt) {
       toast({ title: "Falta el tema", description: "Escribe primero un título/tema para la imagen.", variant: "destructive" });
       return;
     }
+    if (!aiUseConfirmed) {
+      toast({
+        title: "Confirma el uso de IA",
+        description: "Clasifica el tema y confirma que no contiene datos personales, confidenciales ni privilegiados.",
+        variant: "destructive",
+      });
+      return;
+    }
     setLoading(true);
     try {
-      const res = await adminApiRequest("POST", "/api/admin/generate-image", { prompt, aspect });
+      const res = await adminApiRequest("POST", "/api/admin/generate-image", {
+        prompt,
+        aspect,
+        dataClassification,
+        aiUseConfirmed: true,
+      });
       const data = await res.json();
       if (!res.ok || !data.imageUrl) throw new Error(data.error || "No se pudo generar la imagen");
       onGenerated(data.imageUrl);
@@ -61,11 +82,34 @@ export function ImageGenButton({
           <option key={a.id} value={a.id}>{a.label}</option>
         ))}
       </select>
+      <select
+        value={dataClassification}
+        onChange={(event) => {
+          setDataClassification(event.target.value as "public" | "internal");
+          setConfirmedPrompt(null);
+        }}
+        className="h-9 rounded-none border border-input bg-background px-2 text-sm"
+        aria-label="Clasificación del tema para IA"
+        data-testid="select-image-classification"
+      >
+        <option value="internal">Interna, sin datos sensibles</option>
+        <option value="public">Pública</option>
+      </select>
+      <label className="flex max-w-sm items-start gap-2 text-xs leading-5">
+        <input
+          type="checkbox"
+          checked={aiUseConfirmed}
+          onChange={(event) => setConfirmedPrompt(event.target.checked ? currentPrompt : null)}
+          className="mt-1"
+          data-testid="checkbox-image-ai-confirmation"
+        />
+        <span>Confirmo que el tema no contiene datos personales, información confidencial ni comunicaciones privilegiadas.</span>
+      </label>
       <AgentButton
         type="button"
         size="sm"
         onClick={generate}
-        disabled={loading}
+        disabled={loading || !aiUseConfirmed}
         icon={loading ? <Loader2 className="h-4 w-4 mr-1.5 animate-spin" /> : undefined}
         data-testid="button-generate-image"
       >

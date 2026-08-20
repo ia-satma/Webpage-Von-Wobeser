@@ -7,7 +7,7 @@ Este proyecto es la plataforma web del despacho de abogados **Von Wobeser y Sier
 - **Sitio público = un ESPEJO estático**, no una app de React. El HTML del sitio original (Joomla) vive en `frontend-mirror/` y en cada request se re-parsea con **cheerio** para inyectarle datos frescos de la base de datos (abogados, noticias, grupos, configuración). Este es el frontend que ven los visitantes.
 - **Backend Express** sobre **PostgreSQL administrado desde Replit** (Drizzle ORM + `pg`) que sirve la API, el espejo y el panel.
 - **Panel de administración en React** (SPA con `wouter`), que existe **SOLO** bajo `/admin/*`. Es el CMS.
-- **Malla de 14 agentes ejecutables de IA** (OpenAI vía AI Integrations de Replit) que redactan, traducen, auditan, optimizan SEO, generan imágenes y voz.
+- **Malla de 14 agentes ejecutables**: doce pueden usar proveedores externos de IA mediante una puerta central de gobierno de datos y dos auditan de forma determinista.
 
 ---
 
@@ -99,8 +99,8 @@ Disparo central: **`POST /api/agents/run/:agentType`** (`server/agents/api/agent
 | `voice_agent` | Voice Agent | **No (estructural)** | n/a | botones "Generar audio" | Toma texto ya generado y lo convierte a voz con OpenAI TTS (no llama a LLM de texto). |
 | `presentation_generator` | Presentation Generator | Sí | gpt-5.4-mini + gpt-image-2 | Administración → Presentaciones | Estructura, ilustra y renderiza presentaciones PPTX/PDF/PNG a partir de tema y hasta 20 documentos. |
 
-- **3 son estructurales** (`content_auditor`, `website_auditor`, `voice_agent`): los dos auditores ejecutan comprobaciones deterministas y Voice usa TTS, no un LLM de texto.
-- Cómo llaman al LLM: `BaseAgent.callLLM()` → cliente compartido de `server/openai.ts` → `gpt-5.4-mini`, con timeout y un solo reintento para evitar cargas indefinidas.
+- **2 son deterministas** (`content_auditor`, `website_auditor`). `voice_agent` no usa un LLM de texto, pero sí envía texto a OpenAI TTS y por eso se considera consumidor de proveedor externo.
+- Las llamadas siguen `BaseAgent.callLLM()` o el servicio especializado → `server/ai/gateway.ts` → proveedor. La puerta inspecciona clasificación y contenido, registra evidencia sin guardar el prompt y falla cerrado antes de abrir la conexión. La política ejecutable 2.0 cubre los 14 agentes y vive en [`docs/ai-safety/AI_DATA_GOVERNANCE_POLICY_v2.0.0.md`](docs/ai-safety/AI_DATA_GOVERNANCE_POLICY_v2.0.0.md).
 - Otros disparadores en el mismo router: `POST /audit`, `POST|GET /analyze/:articleId`, `POST /pipeline/:articleId` + `/pipeline/batch` + `/pipeline/process-all`, `POST /queue`, `GET /status|/jobs|/jobs/failed`, `/evolution/*` y `/knowledge/:agentType`. Las rutas pCloud fueron retiradas.
 - Si `AI_INTEGRATIONS_OPENAI_*` no están inyectadas, el cliente es lazy (no crashea al importar) pero la **primera** llamada real de un agente-LLM falla; los estructurales siguen (salvo voice, que necesita la key del TTS).
 
@@ -117,8 +117,8 @@ Disparo central: **`POST /api/agents/run/:agentType`** (`server/agents/api/agent
 ## Datos
 
 - **BD = PostgreSQL** con **Drizzle ORM** y `node-postgres`. Desarrollo usa Helium y producción una base independiente, ambas administradas desde Replit. Las conexiones externas temporales validan TLS y la red interna `helium` opera sin SSL.
-- **`DATABASE_URL` es la ÚNICA env estrictamente obligatoria para arrancar.** Replit inyecta un valor distinto en desarrollo y producción; si falta, el proceso se detiene antes de escuchar.
-- **59 tablas** exportadas por el esquema modular, agrupadas en: **contenido público** (news, news_translations, practice_groups, industry_groups, team_members y relaciones, representative_matters, specialized_desks, rankings, awards, offices, alliances, faqs, events, banners, site_config, contact_submissions, career_applications, ...), **agentes de IA** (agent_jobs, agent_events, agent_knowledge, agent_skills, agent_evolution_proposals, content_analysis, website_audits, website_audit_findings, processed_official_sources, generated_images, generated_audio), y **sistema/auth/evidencia** (admin_users, admin_login_events, admin_sessions, credenciales TOTP cifradas, media_items, `admin_audit_events`, `scheduled_task_runs` y `deployment_artifacts`). Cualquier tabla física `users` heredada se revisa y retira con el procedimiento de seguridad antes de la entrega.
+- **`DATABASE_URL` es la única env estrictamente obligatoria mientras la separación de roles no esté activada.** El runtime prefiere `DATABASE_APP_URL` y las migraciones `DATABASE_MIGRATION_URL`. Con `REQUIRE_SEPARATE_DATABASE_ROLES=true`, cada proceso exige su credencial específica y rechaza que las dos URLs sean idénticas si ambas están presentes.
+- **61 tablas** exportadas por el esquema modular, agrupadas en: **contenido público** (news, news_translations, practice_groups, industry_groups, team_members y relaciones, representative_matters, specialized_desks, rankings, awards, offices, alliances, faqs, events, banners, site_config, contact_submissions, career_applications, ...), **agentes de IA** (agent_jobs, agent_events, agent_knowledge, agent_skills, agent_evolution_proposals, content_analysis, website_audits, website_audit_findings, processed_official_sources, generated_images, generated_audio), y **sistema/auth/evidencia** (admin_users, admin_login_events, admin_sessions, credenciales TOTP cifradas, media_items, `admin_audit_events`, `scheduled_task_runs`, `deployment_artifacts`, `ai_governance_events` y `protected_field_envelopes`). Cualquier tabla física `users` heredada se revisa y retira con el procedimiento de seguridad antes de la entrega.
 - **El contenido es REAL** (extraído del sitio Von Wobeser y Sierra, migrado de Joomla — `news.legacyId` mapea el `p_id` original), NO mock. Volúmenes en prod: ~134 abogados, 18 prácticas, 7 industrias, ~1742 publicaciones.
 - **Seed (`server/seed.ts`):** se invoca en CADA arranque desde `registerRoutes()`. Para cada tabla de contenido inserta datos semilla **solo si está vacía** (idempotente; en prod se salta). Es bootstrap para BD vacía, no la fuente de la data real; **nunca actualiza ni borra**.
 - **Admin en el seed:** `ADMIN_EMAIL` + `ADMIN_BOOTSTRAP_PASSWORD` viven en Replit Secrets. Solo crean al Dueño si el correo todavía no existe; la contraseña se convierte inmediatamente a Argon2id y se ignora por completo en reinicios posteriores. Una recuperación de una cuenta existente requiere ejecutar explícitamente `npm run admin:recover -- --confirm=<correo>`.
@@ -195,16 +195,17 @@ Login: `POST /api/admin/login` espera `username` y `password` y establece direct
 
 ## Secrets / variables de entorno
 
-**Obligatoria para arrancar (una sola):**
-- `DATABASE_URL` — conexión PostgreSQL inyectada por Replit para el entorno activo. Sin ella el proceso se detiene al importar.
+**Obligatoria para arrancar:**
+- `DATABASE_URL` — conexión PostgreSQL inyectada por Replit mientras se conserva el modo compatible. El runtime prefiere `DATABASE_APP_URL` y las migraciones `DATABASE_MIGRATION_URL` cuando Sistemas proporcione roles separados.
 
 **Opcionales (degradan con gracia; el server arranca sin ellas):**
 
 *IA (integración administrada de Replit — AI Integrations / Model Farm):*
-- `AI_INTEGRATIONS_OPENAI_API_KEY` y `AI_INTEGRATIONS_OPENAI_BASE_URL` — necesarias para los 10 agentes-LLM, el TTS de voz y LegalCouncilService. **Nota:** las inyecta el sistema de AI Integrations de Replit en runtime; **el aprovisionamiento de esta integración puede estar pendiente y hay que gestionarlo con el soporte de Replit** (declarar `javascript_openai_ai_integrations` en `.replit` es solo metadata, no inyecta las vars). Sin ellas la app arranca y solo fallan las features de IA/traducción/voz (con errorCode diferido, no crash).
-- `AI_INTEGRATIONS_GEMINI_API_KEY` y `AI_INTEGRATIONS_GEMINI_BASE_URL` — fallback de imágenes (Gemini).
-- `CLOUDFLARE_ACCOUNT_ID` y `CLOUDFLARE_API_TOKEN` — motor primario (gratis) de imágenes; si faltan, cae a Gemini.
+- `AI_INTEGRATIONS_OPENAI_API_KEY` y `AI_INTEGRATIONS_OPENAI_BASE_URL` — alternativa administrada para texto y TTS. La integración puede requerir aprovisionamiento; declararla en `.replit` no prueba que los Secrets estén inyectados.
+- `OPENAI_API_KEY` — credencial directa preferida para texto, voz, imágenes y búsqueda web; `OPENAI_IMAGE_API_KEY` permite separar imágenes.
+- `CLOUDFLARE_ACCOUNT_ID` y `CLOUDFLARE_API_TOKEN` — motor opcional de imágenes. Gemini conserva implementación protegida por el gateway, pero está retirado de la cascada activa.
 - `AI_MONTHLY_BUDGET_USD` — tope mensual estimado de IA pagada; por defecto USD 100. Al alcanzarlo se pausan llamadas pagadas y se registra una alerta sin datos sensibles.
+- `AI_GOVERNANCE_AUDIT_ENABLED=true` — solo permite ensayar la auditoría fuera de producción. En producción siempre es obligatoria y la app falla cerrado si no puede registrar la decisión previa a una llamada de IA.
 
 *Acceso administrativo:*
 - `ADMIN_EMAIL` + `ADMIN_BOOTSTRAP_PASSWORD` — crean el Dueño únicamente cuando el correo no existe. Las contraseñas nuevas aceptan entre 15 y 128 caracteres; las generadas por el panel tienen 20. El comando manual `admin:recover` puede reactivar esa misma cuenta usando estos Secrets, pero nunca se ejecuta automáticamente.
@@ -220,6 +221,12 @@ Login: `POST /api/admin/login` espera `username` y `password` y establece direct
 las tres claves separadas. Ninguna de estas claves se expone al navegador.
 
 *Migración temporal de base:* `SOURCE_DATABASE_URL` (origen de solo lectura para las herramientas), `DB_BACKUP_ENCRYPTION_KEY` (cifra respaldos) y `MIGRATION_READ_ONLY=true` durante el corte. Los dos primeros se eliminan al terminar su periodo de retención; nunca se exponen al cliente.
+
+*Roles y cifrado aditivo, pendientes de activación por Sistemas:* `DATABASE_APP_URL`,
+`DATABASE_MIGRATION_URL` y `REQUIRE_SEPARATE_DATABASE_ROLES=true` separan runtime y
+migraciones. `APP_FIELD_ENCRYPTION_DUAL_WRITE=true`, `APP_FIELD_ENCRYPTION_KEY` (32 bytes)
+y `APP_FIELD_ENCRYPTION_KEY_ID` habilitan copias cifradas únicamente para registros nuevos;
+no hacen backfill ni eliminan columnas históricas.
 
 Notas:
 - `SESSION_SECRET` no firma la cookie administrativa: esta contiene un token aleatorio y PostgreSQL guarda solamente su hash SHA-256, expiración, actividad y hash CSRF. Sin embargo, `SESSION_SECRET` sí es obligatorio en producción para firmar sesiones de carga fragmentada.

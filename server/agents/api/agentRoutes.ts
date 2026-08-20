@@ -10,6 +10,7 @@ import { db } from '../../db';
 import { news } from '../../../shared/schema';
 import { eq } from 'drizzle-orm';
 import { z } from 'zod';
+import { requirePermission } from '../../auth';
 import {
   agentTypeSchema,
   articleIdSchema,
@@ -310,7 +311,7 @@ router.post('/evolution/learning-cycle', async (req: Request, res: Response) => 
   }
 });
 
-router.get('/knowledge/:agentType', async (req: Request, res: Response) => {
+router.get('/knowledge/:agentType', requirePermission('agent_knowledge_admin'), async (req: Request, res: Response) => {
   try {
     const parsedAgent = agentTypeSchema.safeParse(req.params.agentType);
     if (!parsedAgent.success) return res.status(400).json({ error: 'Invalid agent type' });
@@ -321,7 +322,7 @@ router.get('/knowledge/:agentType', async (req: Request, res: Response) => {
   }
 });
 
-router.post('/knowledge/:agentType/search', async (req: Request, res: Response) => {
+router.post('/knowledge/:agentType/search', requirePermission('agent_knowledge_admin'), async (req: Request, res: Response) => {
   try {
     const parsedAgent = agentTypeSchema.safeParse(req.params.agentType);
     const parsed = z.object({

@@ -9,6 +9,10 @@ import { sanitizeNewsFields } from '../../mirror/sanitize';
 import { assertExternalUrl, fetchTextWithPolicy } from '../../security/network';
 import { legalAlertOutputSchema } from '../core/contracts';
 import { createHash } from 'node:crypto';
+import {
+  isAiExternalClassificationAllowed,
+  type AiDataClassification,
+} from '@shared/aiGovernance';
 
 // cofece.mx no envía el certificado intermedio en el handshake TLS (confirmado con
 // `openssl s_client -showcerts`: solo manda el leaf, firmado por "GeoTrust TLS RSA CA G1").
@@ -175,7 +179,29 @@ export class LegalAlertsAgent extends BaseAgent {
   constructor() { super(ALERTS_CONFIG); }
 
   async execute(_context: ExecutionContext, payload: Record<string, unknown>): Promise<AgentResult> {
-    const { sourceText, sourceUrl } = payload as { sourceText?: string; sourceUrl?: string };
+    const { sourceText, sourceUrl, dataClassification, aiUseConfirmed } = payload as {
+      sourceText?: string;
+      sourceUrl?: string;
+      dataClassification?: AiDataClassification;
+      aiUseConfirmed?: boolean;
+    };
+    const initialSource = (sourceText || '').trim();
+    if (!initialSource && !sourceUrl) {
+      return { success: false, error: 'Proporciona el texto de la fuente (o una URL oficial legible).' };
+    }
+    if (initialSource && initialSource.length < 40) {
+      return { success: false, error: 'Proporciona el texto de la fuente (o una URL oficial legible).' };
+    }
+    if (
+      !dataClassification
+      || !isAiExternalClassificationAllowed(dataClassification)
+      || aiUseConfirmed !== true
+    ) {
+      return {
+        success: false,
+        error: 'Clasifica la fuente como pública o interna y confirma su uso antes de enviarla a IA.',
+      };
+    }
 
     try {
       let source = (sourceText || '').trim();
@@ -202,7 +228,10 @@ ${source}
 
 Devuelve JSON con: titleEs, title, excerptEs, excerpt, contentEs, content, slug.`;
 
-      const response = await this.callLLM([{ role: 'user', content: prompt }], { jsonMode: true, temperature: 0.3 });
+      const response = await this.callLLM(
+        [{ role: 'user', content: prompt }],
+        { jsonMode: true, temperature: 0.3, classification: dataClassification },
+      );
       const a = legalAlertOutputSchema.parse(safeParseJson<AlertOut>(response));
 
       const baseSlug = (a.slug || this.slugify(a.titleEs)) || 'alerta';
