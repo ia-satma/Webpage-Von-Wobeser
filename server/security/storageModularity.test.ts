@@ -7,11 +7,11 @@ import ts from "typescript";
 
 process.env.DATABASE_URL ||= "postgresql://test:test@127.0.0.1:5432/test";
 
-const EXPECTED_STORAGE_METHOD_COUNT = 196;
+const EXPECTED_STORAGE_METHOD_COUNT = 199;
 const EXPECTED_STORAGE_CONTRACT_HASH =
-  "5783525cb947a877b8a95a7d51d3b97fee428e6451e2c4934e20236ca2fcb3c7";
+  "e0916b184aa6bd363e96963037564f3357d820c82f09db8e53731f7c4c2f8973";
 const EXPECTED_STORAGE_IMPLEMENTATION_HASH =
-  "27abacfe048584869982f0d48a941215cc9a397b471d7cac8f98f83ed86e93f6";
+  "ed9595224f4db0c5fcd82a35d3c8b0a64d05383434bc222dc4ce52a5730d7835";
 const REPOSITORY_FILES = [
   "auditRepository.ts",
   "catalogRepository.ts",
@@ -75,7 +75,7 @@ function repositoryMethodBodies(): Map<string, string> {
   return methods;
 }
 
-test("IStorage conserva sus 196 firmas y el mismo orden contractual", () => {
+test("IStorage conserva sus 199 firmas y el mismo orden contractual", () => {
   const contract = storageContract();
   assert.equal(contract.names.length, EXPECTED_STORAGE_METHOD_COUNT);
   assert.equal(contract.hash, EXPECTED_STORAGE_CONTRACT_HASH);
@@ -92,7 +92,7 @@ test("los repositorios cubren una sola vez todos los métodos trasladados", () =
   const publicMethods = repositoryMethods.filter((name) => name !== "publishedNewsConditions");
 
   assert.deepEqual(duplicates, []);
-  assert.equal(repositoryMethods.length, 198);
+  assert.equal(repositoryMethods.length, 201);
   assert.ok(repositoryMethods.includes("publishedNewsConditions"));
   assert.ok(repositoryMethods.includes("getNewsStatusCounts"));
   const normalizedImplementation = [...methodBodies.entries()]
@@ -126,7 +126,7 @@ test("DatabaseStorage y el singleton conservan la superficie pública en ejecuci
   }
 
   const installed = Object.getOwnPropertyNames(instance);
-  assert.equal(installed.length, 198);
+  assert.equal(installed.length, 201);
   assert.ok(installed.includes("publishedNewsConditions"));
   assert.ok(installed.includes("getNewsStatusCounts"));
 });

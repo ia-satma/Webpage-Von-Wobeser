@@ -104,7 +104,7 @@ test('el agente conserva la misma interfaz y queda fuera de esta fase', () => {
   assert.match(agent, /type SlideLayout/);
 });
 
-test('las constantes de diseño, formatos, nombres y persistencia siguen congeladas', () => {
+test('las constantes de diseño, formatos y persistencia privada siguen congeladas', () => {
   const design = fs.readFileSync(path.join(modulesDirectory, 'designSystem.ts'), 'utf8');
   const contracts = fs.readFileSync(path.join(modulesDirectory, 'contracts.ts'), 'utf8');
   const output = fs.readFileSync(path.join(modulesDirectory, 'outputPipeline.ts'), 'utf8');
@@ -115,7 +115,11 @@ test('las constantes de diseño, formatos, nombres y persistencia siguen congela
   assert.match(design, /SPINE = 80/);
   assert.match(design, /RIGHT = 1200/);
   assert.match(contracts, /'section' \| 'bullets' \| 'closing' \| 'image' \| 'chart' \| 'diagram' \| 'stat' \| 'quote' \| 'twocolumn'/);
-  assert.match(output, /`pres-\$\{stamp\}`/);
+  assert.match(output, /const presentationId = deps\.randomUUID\(\)/);
+  assert.match(output, /privatePresentationStoragePath\(presentationId, 'pptx'\)/);
+  assert.match(output, /privatePresentationStoragePath\(presentationId, 'pdf'\)/);
+  assert.match(output, /privatePresentationStoragePath\(presentationId, 'png', index \+ 1\)/);
+  assert.doesNotMatch(output, /\/generated-presentations\/\$\{filename\}/);
   assert.match(output, /\['pptx', 'pdf', 'png'\]/);
   assert.ok(output.indexOf('await deps.persistFiles(generatedFiles)') < output.indexOf('await deps.createHistory({'));
   assert.match(output, /deps\.deletePersistentObjects\(persistedObjectNames\)/);

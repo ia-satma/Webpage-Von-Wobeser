@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { pgTable, text, varchar, timestamp, integer, jsonb, index, doublePrecision } from "drizzle-orm/pg-core";
+import { pgTable, text, varchar, timestamp, integer, jsonb, index, uniqueIndex, doublePrecision } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -73,8 +73,8 @@ export type GeneratedAudio = typeof generatedAudio.$inferSelect;
 // pngUrls (una imagen por diapositiva). template = plantilla visual (vonwobeser|minimal|dark);
 // branding = perfil de marca aplicado (vonwobeser|custom); sourceDocs = nombres de los
 // documentos subidos que se usaron como insumo. PostgreSQL conserva este historial y
-// las rutas; los binarios de PPTX/PDF/PNG se guardan en App Storage bajo
-// /generated-presentations/ para sobrevivir a reinicios y Republish.
+// las referencias opacas; las presentaciones nuevas guardan sus binarios en App Storage bajo
+// von-wobeser/private/generated-presentations/<uuid>/ y solo se sirven con autorización.
 export const generatedPresentations = pgTable("generated_presentations", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   title: text("title").notNull(),
@@ -88,14 +88,18 @@ export const generatedPresentations = pgTable("generated_presentations", {
   pngUrls: jsonb("png_urls").$type<string[]>().default([]),
   sourceDocs: jsonb("source_docs").$type<string[]>().default([]),
   engine: text("engine").notNull(),
+  status: text("status").notNull().default("active"),
+  archivedAt: timestamp("archived_at"),
   createdAt: timestamp("created_at").defaultNow(),
-});
+}, (table) => ({
+  statusCreatedIdx: index("generated_presentations_status_created_idx").on(table.status, table.createdAt),
+}));
 
 export const insertGeneratedPresentationSchema = createInsertSchema(generatedPresentations, {
   // Refina los jsonb a arreglos de strings (drizzle-zod infiere unknown[] por defecto).
   pngUrls: z.array(z.string()).optional(),
   sourceDocs: z.array(z.string()).optional(),
-}).omit({ id: true, createdAt: true });
+}).omit({ id: true, createdAt: true, status: true, archivedAt: true });
 export type InsertGeneratedPresentation = z.infer<typeof insertGeneratedPresentationSchema>;
 export type GeneratedPresentation = typeof generatedPresentations.$inferSelect;
 
@@ -118,3 +122,27 @@ export const mediaItems = pgTable("media_items", {
 export const insertMediaItemSchema = createInsertSchema(mediaItems).omit({ id: true, createdAt: true });
 export type InsertMediaItem = z.infer<typeof insertMediaItemSchema>;
 export type MediaItem = typeof mediaItems.$inferSelect;
+
+// Outbox durable para solicitudes futuras de retiro desde el panel. Solicitar no elimina
+// el registro ni el objeto: un procesador idempotente debe comprobar referencias y retirar
+// exclusivamente el objeto exacto antes de completar la solicitud.
+export const mediaDeletionRequests = pgTable("media_deletion_requests", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  mediaItemId: varchar("media_item_id").notNull(),
+  publicPath: text("public_path").notNull(),
+  objectName: text("object_name"),
+  status: text("status").notNull().default("pending"),
+  requestedBy: varchar("requested_by").notNull(),
+  requestedAt: timestamp("requested_at").notNull().defaultNow(),
+  processedAt: timestamp("processed_at"),
+  attempts: integer("attempts").notNull().default(0),
+  lastError: text("last_error"),
+}, (table) => ({
+  mediaItemUnique: uniqueIndex("media_deletion_requests_media_item_idx").on(table.mediaItemId),
+  statusRequestedIdx: index("media_deletion_requests_status_requested_idx").on(table.status, table.requestedAt),
+}));
+
+export const insertMediaDeletionRequestSchema = createInsertSchema(mediaDeletionRequests)
+  .omit({ id: true, requestedAt: true, processedAt: true, attempts: true, lastError: true, status: true });
+export type InsertMediaDeletionRequest = z.infer<typeof insertMediaDeletionRequestSchema>;
+export type MediaDeletionRequest = typeof mediaDeletionRequests.$inferSelect;

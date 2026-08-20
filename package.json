@@ -28,6 +28,8 @@
     "media:optimize": "node scripts/generate-performance-assets.mjs && node scripts/generate-attorney-image-variants.mjs",
     "media:migrate-storage": "node --import tsx scripts/migrate-media-to-app-storage.ts",
     "media:migrate-private": "node --import tsx scripts/migrate-private-cvs-to-app-storage.ts",
+    "presentations:inventory": "node scripts/presentation-storage-safety.mjs --mode=inventory",
+    "presentations:quarantine": "node scripts/presentation-storage-safety.mjs --mode=quarantine",
     "handoff:storage": "node scripts/handoff-app-storage.mjs",
     "handoff:private": "node scripts/handoff-private-documents.mjs",
     "handoff:status": "node scripts/client-handoff.mjs status",

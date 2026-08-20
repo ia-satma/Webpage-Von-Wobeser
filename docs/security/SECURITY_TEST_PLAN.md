@@ -30,6 +30,8 @@ Decisiones del propietario:
 | V5 CSV | Neutralización de `=`, `+`, `-`, `@`, tabulador y retorno de carro | revisión de exportación |
 | V7 Errores/logs | ID de correlación, errores 500 genéricos, redacción de cookies/tokens/cuerpos | revisión y smoke test |
 | V8 Datos | noticias públicas solo publicadas y no futuras; retención y CV privados | pruebas de API y revisión |
+| V8 Presentaciones | rutas públicas 404, referencias UUID privadas, API con permiso `agents`, inventario firmado y cuarentena recuperable sin purga | `server/security/phase3PrivateStorage.test.ts` |
+| V8 Privacidad | nuevas IP pseudonimizadas con HMAC; baja de newsletter por token opaco y confirmación POST | `server/security/phase3PrivateStorage.test.ts` |
 | V10 Comunicaciones | TLS validado para PostgreSQL externo; CORS explícito | configuración |
 | V12 Archivos | cuarentena, nombres de 128 bits, firma real, ZIP seguro, límites y ClamAV | `server/security/uploads.test.ts` |
 | V13 API | Las rutas `/api` tienen límites persistentes compartidos por familia y usuario/IP. WebSocket valida sesión y origen antes del upgrade, exige permiso `agents`, revalida sesión/permisos/política MFA y difunde únicamente a suscriptores del artículo | `server/security/phase2ApiWebSocket.test.ts` y pruebas de API |
@@ -48,6 +50,15 @@ npm run build
 npm audit --audit-level=high
 git diff --check
 ```
+
+El inventario de presentaciones es exclusivamente de lectura y se ejecuta primero en Replit:
+
+```bash
+npm run presentations:inventory -- --output=/ruta/confidencial/inventario.json
+```
+
+La cuarentena no se ejecuta hasta que una persona revise ese archivo y confirme exactamente
+su SHA-256 y el alcance. No existe un modo de purga definitiva en esta fase.
 
 Gitleaks debe ejecutarse sobre todo el historial y con valores redactados:
 
@@ -104,3 +115,6 @@ Ejecutar en ese clon:
   se considera implementado y probado en código, no pentesteado en producción.
 - ZAP activo, SQLMap y restauración requieren que el propietario provea un entorno aislado;
   no se ejecutan contra la base actual.
+- La migración aditiva, el inventario de App Storage, la cuarentena y su restauración real
+  permanecen pendientes de ejecución controlada en Replit. Una prueba local no acredita el
+  contenido del bucket ni de la base productiva.

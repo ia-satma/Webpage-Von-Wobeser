@@ -58,8 +58,10 @@ Scripts (`package.json`):
 | `check` | `tsc` | Type-check. |
 | `db:migrate` | `node scripts/run-migrations.mjs` | Migraciones SQL versionadas con transacción y advisory lock. |
 | `db:replit-migrate` | `node scripts/migrate-database-to-replit.mjs` | Auditoría, respaldo cifrado, restauración y comparación exacta de bases. |
-| `media:migrate-storage` | `node --import tsx scripts/migrate-media-to-app-storage.ts` | Migra imágenes, videos y presentaciones históricas locales al bucket persistente de Replit. |
+| `media:migrate-storage` | `node --import tsx scripts/migrate-media-to-app-storage.ts` | Migra imágenes, videos, audio y PDF públicos al bucket; excluye presentaciones. |
 | `media:migrate-private` | `node --import tsx scripts/migrate-private-cvs-to-app-storage.ts` | Migra CV históricos a la zona privada de App Storage. |
+| `presentations:inventory` | `node scripts/presentation-storage-safety.mjs --mode=inventory` | Inventario de solo lectura del prefijo público histórico y sus referencias PostgreSQL. |
+| `presentations:quarantine` | `node scripts/presentation-storage-safety.mjs --mode=quarantine` | Copia verificada y retiro recuperable de presentaciones históricas, únicamente con inventario y confirmaciones exactas. No purga. |
 | `handoff:storage` | `node scripts/handoff-app-storage.mjs` | Exporta, importa y verifica los medios públicos en una entrega GitHub → Replit. |
 | `handoff:private` | `node scripts/handoff-private-documents.mjs` | Exporta, importa y verifica documentos privados cifrados. |
 | `handoff:status` | `node scripts/client-handoff.mjs status` | Diagnostica Database, App Storage, paquete y nombres de Secrets faltantes sin imprimir valores. |
@@ -116,7 +118,7 @@ Disparo central: **`POST /api/agents/run/:agentType`** (`server/agents/api/agent
 
 - **BD = PostgreSQL** con **Drizzle ORM** y `node-postgres`. Desarrollo usa Helium y producción una base independiente, ambas administradas desde Replit. Las conexiones externas temporales validan TLS y la red interna `helium` opera sin SSL.
 - **`DATABASE_URL` es la ÚNICA env estrictamente obligatoria para arrancar.** Replit inyecta un valor distinto en desarrollo y producción; si falta, el proceso se detiene antes de escuchar.
-- **48 tablas** en `shared/schema.ts`, agrupadas en: **contenido público** (news, news_translations, practice_groups, industry_groups, team_members y relaciones, representative_matters, specialized_desks, rankings, awards, offices, alliances, faqs, events, banners, site_config, contact_submissions, career_applications, ...), **agentes de IA** (agent_jobs, agent_events, agent_knowledge, agent_skills, agent_evolution_proposals, content_analysis, website_audits, website_audit_findings, processed_official_sources, generated_images, generated_audio), y **sistema/auth** (admin_users, admin_login_events, admin_sessions, credenciales TOTP cifradas y media_items). Cualquier tabla física `users` heredada se revisa y retira con el procedimiento de seguridad antes de la entrega.
+- **56 tablas** exportadas por el esquema modular, agrupadas en: **contenido público** (news, news_translations, practice_groups, industry_groups, team_members y relaciones, representative_matters, specialized_desks, rankings, awards, offices, alliances, faqs, events, banners, site_config, contact_submissions, career_applications, ...), **agentes de IA** (agent_jobs, agent_events, agent_knowledge, agent_skills, agent_evolution_proposals, content_analysis, website_audits, website_audit_findings, processed_official_sources, generated_images, generated_audio), y **sistema/auth** (admin_users, admin_login_events, admin_sessions, credenciales TOTP cifradas y media_items). Cualquier tabla física `users` heredada se revisa y retira con el procedimiento de seguridad antes de la entrega.
 - **El contenido es REAL** (extraído del sitio Von Wobeser y Sierra, migrado de Joomla — `news.legacyId` mapea el `p_id` original), NO mock. Volúmenes en prod: ~134 abogados, 18 prácticas, 7 industrias, ~1742 publicaciones.
 - **Seed (`server/seed.ts`):** se invoca en CADA arranque desde `registerRoutes()`. Para cada tabla de contenido inserta datos semilla **solo si está vacía** (idempotente; en prod se salta). Es bootstrap para BD vacía, no la fuente de la data real; **nunca actualiza ni borra**.
 - **Admin en el seed:** `ADMIN_EMAIL` + `ADMIN_BOOTSTRAP_PASSWORD` viven en Replit Secrets. Solo crean al Dueño si el correo todavía no existe; la contraseña se convierte inmediatamente a Argon2id y se ignora por completo en reinicios posteriores. Una recuperación de una cuenta existente requiere ejecutar explícitamente `npm run admin:recover -- --confirm=<correo>`.
@@ -132,6 +134,12 @@ Disparo central: **`POST /api/agents/run/:agentType`** (`server/agents/api/agent
 - `/uploads/*` conserva una copia caliente en el filesystem para rendimiento, pero
   puede recuperar el mismo objeto desde App Storage después de un restart o republish.
 - Las imágenes generadas por IA bajo `/generated-images/*` siguen el mismo flujo.
+- Las presentaciones nuevas nunca usan el prefijo público: se guardan bajo
+  `von-wobeser/private/generated-presentations/<uuid>/` y solo se descargan desde la API
+  administrativa con sesión y permiso `agents`. `/generated-presentations/*` responde 404.
+- `media:migrate-storage` excluye presentaciones. Las históricas se revisan con
+  `presentations:inventory` y, después de confirmar su SHA-256 y alcance exactos, se copian
+  a una cuarentena de 30 días con `presentations:quarantine`. Esta fase no implementa purga.
 - En Replit/producción, App Storage es obligatorio para aceptar una carga. Si el bucket
   no está conectado se devuelve `503` y se elimina la copia temporal; no queda una
   referencia falsa en la base.
@@ -204,6 +212,11 @@ Login: `POST /api/admin/login` espera `username` y `password` y establece direct
 *Almacenamiento de agentes:* pCloud está retirado del runtime, las rutas y el panel. No configurar `PCLOUD_USERNAME` ni `PCLOUD_PASSWORD`. La retirada del código no borra archivos históricos del proveedor.
 
 *Red / runtime:* `PORT` (default 5000), `NODE_ENV`, `CORS_ORIGIN` (vacío = sin cross-origin; el admin es same-origin), `SITE_URL` (default `https://www.vonwobeser.com`; base de canonical/OG/sitemap, se lee una vez al arranque), `MIRROR_DIR` (override del directorio del espejo; casi nunca hace falta por los fallbacks).
+
+*Privacidad:* `PRIVACY_HASH_KEY` pseudonimiza nuevas direcciones de red y
+`NEWSLETTER_UNSUBSCRIBE_SECRET` firma los tokens opacos de baja. Ambas deben tener al menos
+32 caracteres aleatorios. Si faltan, se usa `SESSION_SECRET`; en producción conviene mantener
+las tres claves separadas. Ninguna de estas claves se expone al navegador.
 
 *Migración temporal de base:* `SOURCE_DATABASE_URL` (origen de solo lectura para las herramientas), `DB_BACKUP_ENCRYPTION_KEY` (cifra respaldos) y `MIGRATION_READ_ONLY=true` durante el corte. Los dos primeros se eliminan al terminar su periodo de retención; nunca se exponen al cliente.
 

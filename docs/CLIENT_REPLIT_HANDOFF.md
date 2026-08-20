@@ -218,9 +218,10 @@ npm run handoff:storage -- verify \
   --directory="$PWD/.handoff/app-storage"
 ```
 
-La importación mantiene las rutas existentes en PostgreSQL y verifica cada objeto
-después de subirlo. Así, imágenes, videos, audios y presentaciones siguen disponibles
-sin modificar registros.
+La importación mantiene las rutas públicas existentes en PostgreSQL y verifica cada objeto
+después de subirlo. Incluye imágenes, videos, audios y PDF públicos; no convierte ni vuelve
+a publicar presentaciones. Las presentaciones históricas deben pasar primero por el inventario
+y cuarentena de Fase 3, y las nuevas permanecen en su prefijo privado.
 
 Restaurar después los documentos privados:
 
@@ -254,7 +255,8 @@ Además, comprobar manualmente:
 - Home ES/EN, menús, búsqueda y formularios;
 - noticias, abogados, 18 prácticas e industrias;
 - imágenes, video del Home y biblioteca de medios;
-- historiales de imágenes, audios y presentaciones;
+- historiales de imágenes, audios y presentaciones (sin asumir que un binario histórico
+  retirado del prefijo público esté disponible);
 - ejecución controlada de los agentes con la API key del cliente.
 
 La auditoría de entrega también rechaza una tabla física heredada `public.users`,

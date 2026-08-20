@@ -1,5 +1,5 @@
 import { eq, desc, asc } from "drizzle-orm";
-import { type OfficeImage, type InsertOfficeImage, type GeneratedImage, type InsertGeneratedImage, type GeneratedAudio, type InsertGeneratedAudio, type GeneratedPresentation, type InsertGeneratedPresentation, type MediaItem, type InsertMediaItem, news, officeImages, generatedImages, generatedAudio, generatedPresentations, mediaItems } from "@shared/schema";
+import { type OfficeImage, type InsertOfficeImage, type GeneratedImage, type InsertGeneratedImage, type GeneratedAudio, type InsertGeneratedAudio, type GeneratedPresentation, type InsertGeneratedPresentation, type MediaDeletionRequest, type InsertMediaDeletionRequest, type MediaItem, type InsertMediaItem, news, officeImages, generatedImages, generatedAudio, generatedPresentations, mediaDeletionRequests, mediaItems } from "@shared/schema";
 import type { StorageDatabase } from "../types";
 
 export function createMediaRepository(db: StorageDatabase) {
@@ -119,7 +119,7 @@ export function createMediaRepository(db: StorageDatabase) {
       return presentation;
     }
 
-    async createGeneratedPresentation(presentation: InsertGeneratedPresentation): Promise<GeneratedPresentation> {
+    async createGeneratedPresentation(presentation: InsertGeneratedPresentation & { id?: string }): Promise<GeneratedPresentation> {
       const [created] = await db.insert(generatedPresentations).values(presentation).returning();
       return created;
     }
@@ -139,6 +139,11 @@ export function createMediaRepository(db: StorageDatabase) {
       return db.select().from(mediaItems).orderBy(desc(mediaItems.createdAt));
     }
 
+    async getMediaItemById(id: string): Promise<MediaItem | undefined> {
+      const [mediaItem] = await db.select().from(mediaItems).where(eq(mediaItems.id, id));
+      return mediaItem;
+    }
+
     async createMediaItem(item: InsertMediaItem): Promise<MediaItem> {
       const [mediaItem] = await db.insert(mediaItems).values(item).returning();
       return mediaItem;
@@ -147,6 +152,18 @@ export function createMediaRepository(db: StorageDatabase) {
     async deleteMediaItem(id: string): Promise<boolean> {
       const result = await db.delete(mediaItems).where(eq(mediaItems.id, id)).returning();
       return result.length > 0;
+    }
+
+    async queueMediaDeletion(request: InsertMediaDeletionRequest): Promise<MediaDeletionRequest> {
+      const [created] = await db.insert(mediaDeletionRequests)
+        .values(request)
+        .onConflictDoNothing({ target: mediaDeletionRequests.mediaItemId })
+        .returning();
+      if (created) return created;
+      const [existing] = await db.select().from(mediaDeletionRequests)
+        .where(eq(mediaDeletionRequests.mediaItemId, request.mediaItemId));
+      if (!existing) throw new Error("Media deletion request could not be persisted");
+      return existing;
     }
   }
 

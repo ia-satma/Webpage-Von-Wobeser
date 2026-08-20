@@ -13,6 +13,7 @@ import type {
   GeneratedAudio,
   GeneratedImage,
   GeneratedPresentation,
+  MediaDeletionRequest,
   IndustryGroup,
   InsertAdminAuthChallenge,
   InsertAdminLoginEvent,
@@ -27,6 +28,7 @@ import type {
   InsertGeneratedAudio,
   InsertGeneratedImage,
   InsertGeneratedPresentation,
+  InsertMediaDeletionRequest,
   InsertIndustryGroup,
   InsertJobOpening,
   InsertMediaItem,
@@ -136,7 +138,7 @@ export interface IStorage {
   deleteGeneratedAudio(id: string): Promise<boolean>;
   getGeneratedPresentations(): Promise<GeneratedPresentation[]>;
   getGeneratedPresentationById(id: string): Promise<GeneratedPresentation | undefined>;
-  createGeneratedPresentation(presentation: InsertGeneratedPresentation): Promise<GeneratedPresentation>;
+  createGeneratedPresentation(presentation: InsertGeneratedPresentation & { id?: string }): Promise<GeneratedPresentation>;
   deleteGeneratedPresentation(id: string): Promise<boolean>;
   getSiteContent(): SiteContent;
   getStats(): Stat[];
@@ -184,8 +186,10 @@ export interface IStorage {
 
   // Media Items CRUD
   getMediaItems(): Promise<MediaItem[]>;
+  getMediaItemById(id: string): Promise<MediaItem | undefined>;
   createMediaItem(item: InsertMediaItem): Promise<MediaItem>;
   deleteMediaItem(id: string): Promise<boolean>;
+  queueMediaDeletion(request: InsertMediaDeletionRequest): Promise<MediaDeletionRequest>;
 
   // Admin Sessions
   createAdminSession(session: InsertAdminSession): Promise<AdminSession>;
@@ -330,6 +334,7 @@ export interface IStorage {
 
   // Newsletter (el Desk retirado no altera ni borra sus datos históricos).
   getNewsletterSubscribers(filters?: { search?: string; active?: boolean }): Promise<NewsletterSubscriber[]>;
+  getNewsletterSubscriberById(id: string): Promise<NewsletterSubscriber | undefined>;
   getNewsletterSubscriberByEmail(email: string): Promise<NewsletterSubscriber | undefined>;
   createNewsletterSubscriber(data: InsertNewsletterSubscriber): Promise<NewsletterSubscriber>;
   updateNewsletterSubscriber(id: string, data: Partial<InsertNewsletterSubscriber>): Promise<NewsletterSubscriber | undefined>;

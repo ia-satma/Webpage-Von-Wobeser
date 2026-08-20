@@ -80,8 +80,8 @@ test("CI conserva ffmpeg y las excepciones de escáner permanecen acotadas", () 
     "utf8",
   );
   assert.equal(adminSubmissions.split(semgrepRule).length - 1, 1);
-  assert.equal(publicAssets.split(semgrepRule).length - 1, 3);
-  assert.equal((publicAssets.match(/!resolved\.startsWith\(path\.resolve\([^\n]+\) \+ path\.sep\)/g) ?? []).length, 3);
+  assert.equal(publicAssets.split(semgrepRule).length - 1, 2);
+  assert.equal((publicAssets.match(/!resolved\.startsWith\(path\.resolve\([^\n]+\) \+ path\.sep\)/g) ?? []).length, 2);
 });
 
 function auditReportWithFindings(): NpmAuditReport {

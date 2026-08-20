@@ -1,4 +1,7 @@
-import type { PublicMediaFile } from '../../media/persistentMedia';
+import {
+  privatePresentationStoragePath,
+  type PrivatePresentationFile,
+} from '../../media/privatePresentations';
 import type { RenderOptions, RenderResult, SlideModel } from './contracts';
 import type { PresentationGeneratorDependencies } from './dependencies';
 
@@ -12,7 +15,7 @@ export class PresentationOutputPipeline {
   constructor(private readonly dependencies: PresentationGeneratorDependencies) {}
 
   async renderAndSave(model: SlideModel, options: RenderOptions): Promise<RenderResult> {
-    const generatedFiles: PublicMediaFile[] = [];
+    const generatedFiles: PrivatePresentationFile[] = [];
     let persistedObjectNames: string[] = [];
     const deps = this.dependencies;
 
@@ -20,7 +23,9 @@ export class PresentationOutputPipeline {
       if (!model || !model.title || !Array.isArray(model.slides) || model.slides.length === 0) {
         return { success: false, error: 'El modelo de diapositivas está vacío o es inválido.' };
       }
-      if (!deps.existsSync(deps.outputDirectory)) deps.makeDirectory(deps.outputDirectory);
+      const presentationId = deps.randomUUID();
+      const presentationDirectory = deps.joinPath(deps.outputDirectory, presentationId);
+      if (!deps.existsSync(presentationDirectory)) deps.makeDirectory(presentationDirectory);
 
       const logo = await deps.resolveLogo(options);
       const theme = deps.makeTheme(options, logo);
@@ -40,8 +45,6 @@ export class PresentationOutputPipeline {
         ...(phone ? [{ label: lang === 'en' ? 'Phone' : 'Teléfono', value: phone }] : []),
       ];
 
-      const stamp = `${deps.now()}-${deps.random().toString(36).slice(2, 8)}`;
-      const baseName = `pres-${stamp}`;
       const formats = options.formats && options.formats.length
         ? options.formats
         : ['pptx', 'pdf', 'png'] as const;
@@ -61,18 +64,21 @@ export class PresentationOutputPipeline {
       const needPng = formats.includes('png');
       const needPdf = formats.includes('pdf');
       const pngBuffers: Buffer[] = [];
+      const slideDirectory = deps.joinPath(presentationDirectory, 'slides');
+
+      if (needPng && !deps.existsSync(slideDirectory)) deps.makeDirectory(slideDirectory);
 
       if (needPng || needPdf) {
         for (let index = 0; index < slides.length; index += 1) {
           const png = await deps.rasterize(slides[index].build);
           pngBuffers.push(png);
           if (needPng) {
-            const filename = `${baseName}-slide-${index + 1}.png`;
-            const absolutePath = deps.joinPath(deps.outputDirectory, filename);
-            const publicPath = `/generated-presentations/${filename}`;
+            const storagePath = privatePresentationStoragePath(presentationId, 'png', index + 1);
+            if (!storagePath) throw new Error('Invalid private presentation identifier');
+            const absolutePath = deps.joinPath(presentationDirectory, 'slides', `${index + 1}.png`);
             deps.writeFile(absolutePath, png);
-            generatedFiles.push({ absolutePath, publicPath });
-            pngUrls.push(publicPath);
+            generatedFiles.push({ absolutePath, storagePath });
+            pngUrls.push(storagePath);
           }
         }
         deps.log(`Renderizadas ${pngBuffers.length} diapositivas a PNG`);
@@ -80,12 +86,12 @@ export class PresentationOutputPipeline {
 
       if (needPdf && pngBuffers.length) {
         const bytes = await deps.createPdf(pngBuffers);
-        const filename = `${baseName}.pdf`;
-        const absolutePath = deps.joinPath(deps.outputDirectory, filename);
-        const publicPath = `/generated-presentations/${filename}`;
+        const storagePath = privatePresentationStoragePath(presentationId, 'pdf');
+        if (!storagePath) throw new Error('Invalid private presentation identifier');
+        const absolutePath = deps.joinPath(presentationDirectory, 'presentation.pdf');
         deps.writeFile(absolutePath, bytes);
-        generatedFiles.push({ absolutePath, publicPath });
-        pdfUrl = publicPath;
+        generatedFiles.push({ absolutePath, storagePath });
+        pdfUrl = storagePath;
         deps.log('PDF generado');
       }
 
@@ -99,19 +105,20 @@ export class PresentationOutputPipeline {
           closingFooter,
           total,
         );
-        const filename = `${baseName}.pptx`;
-        const absolutePath = deps.joinPath(deps.outputDirectory, filename);
-        const publicPath = `/generated-presentations/${filename}`;
+        const storagePath = privatePresentationStoragePath(presentationId, 'pptx');
+        if (!storagePath) throw new Error('Invalid private presentation identifier');
+        const absolutePath = deps.joinPath(presentationDirectory, 'presentation.pptx');
         await pptx.writeFile({ fileName: absolutePath });
         await deps.embedFonts(absolutePath);
-        generatedFiles.push({ absolutePath, publicPath });
-        pptxUrl = publicPath;
+        generatedFiles.push({ absolutePath, storagePath });
+        pptxUrl = storagePath;
         deps.log('PPTX generado');
       }
 
       const persistence = await deps.persistFiles(generatedFiles);
       persistedObjectNames = persistence.objectNames;
       const presentation = await deps.createHistory({
+        id: presentationId,
         title: model.title,
         topic: options.topic || null,
         template: options.template,
@@ -124,6 +131,17 @@ export class PresentationOutputPipeline {
         sourceDocs: options.sourceDocs || [],
         engine: options.engine || 'openai+native',
       });
+      if (persistence.persisted) {
+        // El historial y App Storage ya son autoritativos. Un fallo al limpiar un
+        // temporal nunca debe revertir los objetos persistentes ni dejar una fila rota.
+        for (const generatedFile of generatedFiles) {
+          try {
+            deps.removeFile(generatedFile.absolutePath);
+          } catch {
+            deps.log(`No se pudo retirar el temporal ${generatedFile.absolutePath}; se conservará hasta el siguiente reinicio.`);
+          }
+        }
+      }
       return { success: true, presentation };
     } catch (error: any) {
       await deps.deletePersistentObjects(persistedObjectNames);

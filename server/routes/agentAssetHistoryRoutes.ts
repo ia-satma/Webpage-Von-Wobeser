@@ -13,6 +13,12 @@ import {
 } from "../agents/storage/CopyHistory";
 import { authMiddleware, requirePermission } from "../auth";
 import { listPersistentPublicMediaPaths, persistentPublicMediaExists } from "../media/persistentMedia";
+import {
+  openPrivatePresentationStream,
+  privatePresentationExists,
+  privatePresentationMimeType,
+  privatePresentationPathBelongsTo,
+} from "../media/privatePresentations";
 import { extractManyTexts } from "../services/documentText";
 import {
   privatePresentationDir,
@@ -26,18 +32,55 @@ import { presentationMediaPathSchema, receivePresentationDocument } from "./uplo
 
 const generatedImagesDir = path.join(process.cwd(), "public", "generated-images");
 const generatedAudioDir = path.join(process.cwd(), "public", "generated-audio");
-const generatedPresentationsDir = path.join(process.cwd(), "public", "generated-presentations");
-
-const presentationAssetExists = async (
-  publicPath: string | null,
-  persistentPaths?: Set<string> | null,
-): Promise<boolean> => {
-  if (!publicPath || !/^\/generated-presentations\/[A-Za-z0-9._+-]+$/.test(publicPath)) return false;
-  const localPath = path.join(generatedPresentationsDir, path.basename(publicPath));
-  if (fs.existsSync(localPath) && fs.statSync(localPath).isFile()) return true;
-  if (persistentPaths) return persistentPaths.has(publicPath);
-  return persistentPublicMediaExists(publicPath);
+const privatePresentationApiView = async (presentation: Awaited<ReturnType<typeof storage.getGeneratedPresentationById>>) => {
+  if (!presentation) return null;
+  const active = presentation.status === "active";
+  const pngRefs = Array.isArray(presentation.pngUrls) ? presentation.pngUrls : [];
+  const validPptx = active && privatePresentationPathBelongsTo(presentation.pptxUrl, presentation.id);
+  const validPdf = active && privatePresentationPathBelongsTo(presentation.pdfUrl, presentation.id);
+  const validPng = pngRefs.map((ref) => active && privatePresentationPathBelongsTo(ref, presentation.id));
+  const [pptxAvailable, pdfAvailable, pngAvailable] = await Promise.all([
+    validPptx ? privatePresentationExists(presentation.pptxUrl!) : false,
+    validPdf ? privatePresentationExists(presentation.pdfUrl!) : false,
+    Promise.all(pngRefs.map((ref, index) => validPng[index] ? privatePresentationExists(ref) : false)),
+  ]);
+  return {
+    ...presentation,
+    pptxUrl: pptxAvailable ? `/api/admin/generated-presentations/${presentation.id}/files/pptx` : null,
+    pdfUrl: pdfAvailable ? `/api/admin/generated-presentations/${presentation.id}/files/pdf` : null,
+    // Conservar posiciones: availability[index] debe corresponder siempre a la
+    // misma diapositiva, incluso si un objeto intermedio falta.
+    pngUrls: validPng.map((valid, index) => valid
+      ? `/api/admin/generated-presentations/${presentation.id}/slides/${index}`
+      : ""),
+    availability: {
+      pptx: pptxAvailable,
+      pdf: pdfAvailable,
+      png: pngAvailable,
+    },
+  };
 };
+
+function streamPrivatePresentation(
+  res: Response,
+  storagePath: string,
+  stream: NodeJS.ReadableStream,
+  downloadName: string,
+  disposition: "attachment" | "inline" = "attachment",
+): void {
+  res.setHeader("Content-Type", privatePresentationMimeType(storagePath));
+  res.setHeader("Cache-Control", "private, no-store");
+  res.setHeader("Pragma", "no-cache");
+  res.setHeader("X-Content-Type-Options", "nosniff");
+  res.setHeader("Cross-Origin-Resource-Policy", "same-origin");
+  res.setHeader("Content-Security-Policy", "sandbox");
+  res.setHeader("Content-Disposition", `${disposition}; filename="${downloadName}"`);
+  stream.once("error", () => {
+    if (!res.headersSent) res.status(404).end();
+    else res.destroy();
+  });
+  stream.pipe(res);
+}
 
 export function registerAgentAssetHistoryRoutes(app: Express): void {
   const generatedAssetAvailable = async (
@@ -257,7 +300,11 @@ export function registerAgentAssetHistoryRoutes(app: Express): void {
         return res.status(400).json({ error: result.error || "No se pudo generar la presentación.", docNotes });
       }
 
-      res.json({ ...(result.data as Record<string, unknown>), docNotes });
+      const payload: Record<string, unknown> = { ...(result.data as Record<string, unknown>), docNotes };
+      const generated = (payload.presentation || null) as Awaited<ReturnType<typeof storage.getGeneratedPresentationById>>;
+      if (generated?.id) payload.presentation = await privatePresentationApiView(generated);
+      res.setHeader("Cache-Control", "private, no-store");
+      res.json(payload);
     } catch (error) {
       console.error("[presentations/generate]", error);
       res.status(500).json({ error: "Falló la generación de la presentación." });
@@ -267,30 +314,45 @@ export function registerAgentAssetHistoryRoutes(app: Express): void {
   app.get("/api/admin/generated-presentations", authMiddleware, requirePermission("agents"), async (_req: Request, res: Response) => {
     try {
       const presentations = await storage.getGeneratedPresentations();
-      // Una sola lectura del inventario evita una petición remota por cada
-      // diapositiva al abrir historiales extensos.
-      const persistentPaths = await listPersistentPublicMediaPaths();
-      const presentationsWithAvailability = await Promise.all(
-        presentations.map(async (presentation) => {
-          const pngUrls = Array.isArray(presentation.pngUrls) ? presentation.pngUrls : [];
-          const [pptxAvailable, pdfAvailable, pngAvailable] = await Promise.all([
-            presentationAssetExists(presentation.pptxUrl, persistentPaths),
-            presentationAssetExists(presentation.pdfUrl, persistentPaths),
-            Promise.all(pngUrls.map((url) => presentationAssetExists(url, persistentPaths))),
-          ]);
-          return {
-            ...presentation,
-            availability: {
-              pptx: pptxAvailable,
-              pdf: pdfAvailable,
-              png: pngAvailable,
-            },
-          };
-        }),
-      );
-      res.json(presentationsWithAvailability);
+      res.setHeader("Cache-Control", "private, no-store");
+      res.json((await Promise.all(presentations.map(privatePresentationApiView))).filter(Boolean));
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch generated presentations" });
+    }
+  });
+
+  app.get("/api/admin/generated-presentations/:id/files/:format", authMiddleware, requirePermission("agents"), async (req: Request, res: Response) => {
+    if (!z.string().uuid().safeParse(req.params.id).success) return res.status(404).end();
+    const format = z.enum(["pptx", "pdf"]).safeParse(req.params.format);
+    if (!format.success) return res.status(404).end();
+    try {
+      const presentation = await storage.getGeneratedPresentationById(req.params.id);
+      if (!presentation || presentation.status !== "active") return res.status(404).end();
+      const storagePath = format.data === "pptx" ? presentation.pptxUrl : presentation.pdfUrl;
+      if (!privatePresentationPathBelongsTo(storagePath, presentation.id)) return res.status(404).end();
+      const stream = await openPrivatePresentationStream(storagePath!);
+      if (!stream) return res.status(404).end();
+      streamPrivatePresentation(res, storagePath!, stream, `presentacion-${presentation.id}.${format.data}`);
+    } catch {
+      res.status(404).end();
+    }
+  });
+
+  app.get("/api/admin/generated-presentations/:id/slides/:index", authMiddleware, requirePermission("agents"), async (req: Request, res: Response) => {
+    if (!z.string().uuid().safeParse(req.params.id).success) return res.status(404).end();
+    const index = z.coerce.number().int().min(0).max(998).safeParse(req.params.index);
+    if (!index.success) return res.status(404).end();
+    try {
+      const presentation = await storage.getGeneratedPresentationById(req.params.id);
+      if (!presentation || presentation.status !== "active") return res.status(404).end();
+      const pngRefs = Array.isArray(presentation.pngUrls) ? presentation.pngUrls : [];
+      const storagePath = pngRefs[index.data] || null;
+      if (!privatePresentationPathBelongsTo(storagePath, presentation.id)) return res.status(404).end();
+      const stream = await openPrivatePresentationStream(storagePath!);
+      if (!stream) return res.status(404).end();
+      streamPrivatePresentation(res, storagePath!, stream, `presentacion-${presentation.id}-diapositiva-${index.data + 1}.png`, "inline");
+    } catch {
+      res.status(404).end();
     }
   });
 
