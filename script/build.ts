@@ -1,6 +1,7 @@
 import { build as esbuild } from "esbuild";
 import { build as viteBuild } from "vite";
 import { rm, readFile } from "fs/promises";
+import { generateBuildEvidence } from "./buildEvidence";
 
 // server deps to bundle to reduce openat(2) syscalls
 // which helps cold start times
@@ -58,6 +59,10 @@ async function buildAll() {
     external: externals,
     logLevel: "info",
   });
+
+  console.log("generating SBOM and build provenance...");
+  const evidence = await generateBuildEvidence();
+  console.log(`build evidence ${evidence.buildSha256}`);
 }
 
 buildAll().catch((err) => {

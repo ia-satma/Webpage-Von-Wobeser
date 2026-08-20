@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { pgTable, text, varchar, timestamp, integer, boolean, jsonb, index } from "drizzle-orm/pg-core";
+import { pgTable, text, varchar, timestamp, integer, boolean, jsonb, index, uniqueIndex } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -116,6 +116,67 @@ export const securityRateLimits = pgTable("security_rate_limits", {
 });
 
 export type SecurityRateLimit = typeof securityRateLimits.$inferSelect;
+
+// Bitácora durable de acciones administrativas. No contiene cuerpos, nombres,
+// correos, direcciones IP, prompts, archivos ni secretos; `details` admite solo
+// metadatos operativos previamente saneados.
+export const adminAuditEvents = pgTable("admin_audit_events", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  action: text("action").notNull(),
+  resource: text("resource").notNull(),
+  resourceId: varchar("resource_id"),
+  actorId: varchar("actor_id"),
+  details: jsonb("details").$type<Record<string, string | number | boolean | null>>().notNull().default(sql`'{}'::jsonb`),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+}, (table) => ({
+  createdIdx: index("admin_audit_events_created_idx").on(table.createdAt),
+  actorCreatedIdx: index("admin_audit_events_actor_created_idx").on(table.actorId, table.createdAt),
+  resourceCreatedIdx: index("admin_audit_events_resource_created_idx").on(table.resource, table.createdAt),
+}));
+
+export type AdminAuditEvent = typeof adminAuditEvents.$inferSelect;
+
+// Ejecuciones externas de Replit Scheduled Deployments. La clave única por tarea
+// y ventana vuelve idempotente cada comando; el advisory lock evita concurrencia.
+export const scheduledTaskRuns = pgTable("scheduled_task_runs", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  taskName: text("task_name").notNull(),
+  scheduledFor: timestamp("scheduled_for").notNull(),
+  status: text("status").notNull().default("running"),
+  attempts: integer("attempts").notNull().default(1),
+  result: jsonb("result").$type<Record<string, string | number | boolean | null>>().notNull().default(sql`'{}'::jsonb`),
+  errorCode: text("error_code"),
+  commitSha: varchar("commit_sha", { length: 40 }),
+  buildSha256: varchar("build_sha256", { length: 64 }),
+  startedAt: timestamp("started_at").notNull().defaultNow(),
+  completedAt: timestamp("completed_at"),
+}, (table) => ({
+  taskWindowUnique: uniqueIndex("scheduled_task_runs_task_window_idx").on(table.taskName, table.scheduledFor),
+  statusStartedIdx: index("scheduled_task_runs_status_started_idx").on(table.status, table.startedAt),
+}));
+
+export type ScheduledTaskRun = typeof scheduledTaskRuns.$inferSelect;
+
+// Relación verificable entre commit, lockfile, SBOM, bundle y el build observado
+// al arrancar producción. Varias instancias del mismo build actualizan `lastSeenAt`.
+export const deploymentArtifacts = pgTable("deployment_artifacts", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  buildSha256: varchar("build_sha256", { length: 64 }).notNull(),
+  commitSha: varchar("commit_sha", { length: 40 }).notNull(),
+  packageLockSha256: varchar("package_lock_sha256", { length: 64 }).notNull(),
+  sbomSha256: varchar("sbom_sha256", { length: 64 }).notNull(),
+  serverBundleSha256: varchar("server_bundle_sha256", { length: 64 }).notNull(),
+  publicAssetsSha256: varchar("public_assets_sha256", { length: 64 }).notNull(),
+  sourceTreeDirty: boolean("source_tree_dirty").notNull().default(false),
+  builtAt: timestamp("built_at").notNull(),
+  firstDeployedAt: timestamp("first_deployed_at").notNull().defaultNow(),
+  lastSeenAt: timestamp("last_seen_at").notNull().defaultNow(),
+}, (table) => ({
+  buildUnique: uniqueIndex("deployment_artifacts_build_sha_idx").on(table.buildSha256),
+  deployedIdx: index("deployment_artifacts_last_seen_idx").on(table.lastSeenAt),
+}));
+
+export type DeploymentArtifact = typeof deploymentArtifacts.$inferSelect;
 
 // Admin login schema for validation (accepts email or username)
 export const adminLoginSchema = z.object({

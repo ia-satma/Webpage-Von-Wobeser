@@ -159,7 +159,7 @@ export function registerAgentAssetHistoryRoutes(app: Express): void {
     try {
       const copy = await setAgentCopyArchived(req.params.id, parsed.data.archived, req.adminUser!.id);
       if (!copy) return res.status(404).json({ error: "Copy history record not found" });
-      auditLog("update", "agent_copy_history", copy.id, req.adminUser!.id, { archived: copy.archived });
+      await auditLog("update", "agent_copy_history", copy.id, req.adminUser!.id, { archived: copy.archived }, req);
       res.json({ id: copy.id, archived: copy.archived, archivedAt: copy.archivedAt });
     } catch (error) {
       console.error("Copy history archive error:", error);

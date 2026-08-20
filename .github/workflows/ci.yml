@@ -27,4 +27,14 @@ jobs:
       - run: npm run test:security
       - run: npm run test:performance
       - run: npm run build
+      - run: npm run verify:build-evidence
+      - name: Preserve SBOM and build provenance
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: security-evidence-${{ github.sha }}
+          path: |
+            dist/sbom.cdx.json
+            dist/build-provenance.json
+          if-no-files-found: error
+          retention-days: 30
       - run: npm run audit:high

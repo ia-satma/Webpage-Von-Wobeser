@@ -44,6 +44,17 @@ son registros históricos fechados y no deben usarse para inferir el estado pres
 - Los nuevos registros de contacto, postulaciones y sesiones administrativas almacenan un
   pseudónimo HMAC de la dirección de red, o `null` si falta una clave segura. Las direcciones
   históricas no se modifican.
+- Las acciones administrativas cubiertas por los routers modulares se registran en
+  `admin_audit_events`. La bitácora acepta únicamente metadatos escalares saneados y no une
+  ni copia correos, nombres, IP, contenidos, archivos, prompts o secretos.
+- Los timers de negocio se retiraron del servidor Autoscale. Existen tres comandos
+  idempotentes coordinados con PostgreSQL advisory locks y `scheduled_task_runs`; todavía no
+  se han activado como Scheduled Deployments en la cuenta de Replit. La activación sigue el
+  gate de `docs/security/REPLIT_SCHEDULED_DEPLOYMENTS.md`.
+- Cada build genera un CycloneDX SBOM y un manifiesto que relaciona commit, lockfile, bundle,
+  archivos públicos y SHA-256 del build. CI verifica y conserva ambos archivos por 30 días;
+  al arrancar producción, el backend intenta registrar esa relación en
+  `deployment_artifacts` sin bloquear el sitio si la evidencia no está disponible.
 
 ## Decisiones y excepciones vigentes
 
