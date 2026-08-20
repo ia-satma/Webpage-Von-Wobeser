@@ -225,14 +225,14 @@ const LEGACY_AGENT_REGISTRY: AgentCapabilityCard[] = [
   {
     id: "legal_council",
     technicalName: "LegalCouncilService",
-    businessName: "The Digital Governance Council",
-    role: "Quality Arbiter",
+    businessName: "Automated Legal-Risk Review",
+    role: "Decision Support",
     category: "brain",
-    description: "A tribunal of three specialized AI agents (Legal Scholar, Risk Analyst, Brand Guardian) that evaluate every article before publication. Uses Promise.allSettled for fault-isolated voting with score 0-100 and majority consensus.",
+    description: "Three specialized AI agents evaluate each article and provide risk signals before publication. This automated review is not legal advice or an independent legal opinion; an authorized human remains responsible for the final decision.",
     capabilities: [
-      "3-agent evaluation council",
+      "Automated evaluation by 3 agents",
       "Institutional risk scoring",
-      "Individual votes with reasoning",
+      "Individual signals with reasoning",
       "Consolidated editor feedback",
       "Fault-tolerant isolation"
     ],

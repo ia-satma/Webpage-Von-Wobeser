@@ -13,6 +13,7 @@ import {
   type VideoSource,
 } from "@shared/videoSource";
 import { hasCompatibleLocalizedNewsTitle } from "./newsLanguage";
+import { escapeHtmlAttribute, escapeHtmlText } from "./htmlEscape";
 
 type Lang = "en" | "es";
 
@@ -38,13 +39,8 @@ type HomeTestimonial = {
   typography?: TypographyStyles;
 };
 
-function esc(s: any): string {
-  return String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-}
-
-function escAttr(s: any): string {
-  return esc(s).replace(/"/g, "&quot;").replace(/'/g, "&#39;");
-}
+const esc = escapeHtmlText;
+const escAttr = escapeHtmlAttribute;
 
 function normalizeLegacyBannerTitle(value: string, lang: Lang): string {
   const legacy = value.trim();
@@ -605,7 +601,7 @@ function renderHeroNewsCarousel(news: any[], config: ConfigMap, lang: Lang): str
   for (let index = 0; index < stories.length; index += 2) {
     const cards = stories.slice(index, index + 2).map((item) => {
       const title = lang === "es" ? item.titleEs : item.title;
-      return `<article class="news_item"><a class="vw-news-carousel__headline" href="/news/${esc(item.slug)}${langSuffix}"><h3>${esc(title)}</h3></a><a class="vw-news-carousel__more" href="/news${langSuffix}"><span>${copy.seeMore}</span></a></article>`;
+      return `<article class="news_item"><a class="vw-news-carousel__headline" href="/news/${escAttr(item.slug)}${langSuffix}"><h3>${esc(title)}</h3></a><a class="vw-news-carousel__more" href="/news${langSuffix}"><span>${esc(copy.seeMore)}</span></a></article>`;
     }).join("");
     slides.push(`<div class="vw-news-carousel__slide${index === 0 ? " is-active" : ""}" data-vw-news-slide aria-hidden="${index === 0 ? "false" : "true"}">${cards}</div>`);
   }
@@ -929,14 +925,16 @@ export function renderHome(
   if (withLogo.length) {
     const slides = withLogo
       .map((r) => {
-        const name = esc(lang === "es" ? r.nameEs || r.name : r.name);
+        const rawName = lang === "es" ? r.nameEs || r.name : r.name;
+        const name = esc(rawName);
+        const nameAttribute = escAttr(rawName);
         const responsive = responsiveUploadAttributes(String(r.logoUrl || ""), availablePersistentMediaPaths);
-        const img = `<img class="home__rec--item" src="${esc(r.logoUrl)}"${responsive} alt="${name}" title="${name}" loading="lazy" decoding="async">`;
+        const img = `<img class="home__rec--item" src="${escAttr(r.logoUrl)}"${responsive} alt="${nameAttribute}" title="${nameAttribute}" loading="lazy" decoding="async">`;
         // Los archivos de reconocimientos provienen del panel y pueden tener
         // dimensiones intrínsecas muy distintas. El marco da al CSS una caja
         // estable para contenerlos sin cambiar su proporción ni su enlace.
         const visual = `<span class="home__rec--logo-frame">${img}</span>`;
-        const content = r.externalUrl ? `<a class="home__rec--logo-link" href="${esc(r.externalUrl)}" target="_blank" rel="noopener">${visual}</a>` : visual;
+        const content = r.externalUrl ? `<a class="home__rec--logo-link" href="${escAttr(r.externalUrl)}" target="_blank" rel="noopener">${visual}</a>` : visual;
         // Slick asigna role=listitem al nodo de cada slide. Un contenedor real
         // evita que ese rol termine aplicado directamente a la imagen.
         return `<div class="home__rec--slide">${content}</div>`;

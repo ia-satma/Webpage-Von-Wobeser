@@ -189,7 +189,7 @@ export const ADMIN_MANUAL_SECTIONS: AdminManualSection[] = [
     whatFor: "Controlar quién puede editar cada área del sitio (solo administradores pueden gestionar esta sección).",
     steps: [
       "Entra a \"Usuarios y accesos\" (requiere rol de administrador).",
-      "Crea un nuevo usuario; el sistema generará una contraseña segura de 16 caracteres y la mostrará una sola vez.",
+      "Crea un nuevo usuario; el sistema generará una contraseña segura de 20 caracteres y la mostrará una sola vez.",
       "Comparte la contraseña por un canal seguro. Funcionará directamente y no exigirá cambiarla en el primer acceso.",
       "Asigna su rol (Dueño/Admin/Editor/Marketing/Sistemas) según las áreas que debe poder tocar.",
     ],

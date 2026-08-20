@@ -6,22 +6,31 @@ No publiques vulnerabilidades, credenciales ni datos personales en Issues. Repó
 directamente al responsable técnico del proyecto, incluyendo la ruta afectada, impacto,
 pasos mínimos de reproducción y una forma segura de contacto.
 
+Mientras la firma no apruebe un contacto institucional, no se publicará `security.txt`.
+El canal de reporte se acuerda fuera del repositorio.
+
 Nunca incluyas en el reporte contraseñas, cookies de sesión, `DATABASE_URL`,
 claves de IA ni archivos reales de postulantes.
 
-## Secretos requeridos en Replit
+## Secretos y configuración en Replit
 
 - `DATABASE_URL` (Replit inyecta una conexión distinta para desarrollo y producción).
 - `ADMIN_EMAIL`.
 - `ADMIN_BOOTSTRAP_PASSWORD`: solo crea al propietario cuando `ADMIN_EMAIL` todavía no
   existe. Después se ignora; PostgreSQL almacena exclusivamente el hash.
-- Claves de OpenAI, pCloud y cualquier proveedor externo usado por el despliegue.
+- `SESSION_SECRET`: valor aleatorio de alta entropía usado para firmar sesiones de carga
+  fragmentada; no se reutiliza como contraseña.
+- Claves de OpenAI y de cualquier proveedor externo aprobado para el despliegue.
 - `AI_MONTHLY_BUDGET_USD` para ajustar el límite mensual (USD 100 si se omite).
-- `MFA_ENCRYPTION_KEY`: 32 bytes aleatorios en base64 o hexadecimal para cifrar
-  los secretos TOTP con AES-256-GCM.
-- `MFA_REQUIRED_FOR_PRIVILEGED=true`: obliga TOTP para las cuentas Dueño y
-  Administrador. No se debe activar sin `MFA_ENCRYPTION_KEY`; el sistema rechaza
-  el acceso privilegiado antes que degradarlo a contraseña sola.
+- `MFA_ENCRYPTION_KEY`: solo se configura al activar MFA; son 32 bytes aleatorios
+  en base64 o hexadecimal para cifrar secretos TOTP con AES-256-GCM.
+- `MFA_REQUIRED_FOR_PRIVILEGED=true`: capacidad disponible para obligar TOTP a las
+  cuentas Dueño y Administrador. Actualmente permanece desactivada por decisión del
+  propietario y no debe habilitarse sin `MFA_ENCRYPTION_KEY`.
+
+El conector pCloud está retirado del runtime. `PCLOUD_USERNAME` y `PCLOUD_PASSWORD`
+no son Secrets operativos y no deben configurarse. La retirada del conector no elimina
+archivos históricos que existan en pCloud.
 
 En producción, los secretos solo se configuran en **Replit Secrets** (o en el
 gestor equivalente del proveedor final). Para desarrollo local se permite un `.env`
@@ -48,11 +57,14 @@ aceptan secretos en código, scripts, documentación, capturas, logs o variables
   fuente de verdad en producción.
 - Los CV son privados y solo se descargan desde el endpoint administrativo autenticado.
 - Ante sospecha de compromiso, revocar sesiones y cambiar las credenciales pertinentes.
-- TOTP está implementado para Dueño y Administradores: el alta se completa tras
+- TOTP está implementado para Dueño y Administradores: cuando se activa, el alta se completa tras
   la contraseña, con secreto cifrado AES-256-GCM, desafío opaco HttpOnly de 10
   minutos, cinco intentos y códigos de recuperación de un solo uso almacenados
-  únicamente como hashes. Debe quedar activado mediante los dos Secrets anteriores
-  antes de aprobar la entrega.
+  únicamente como hashes. En el estado actual está desactivado; esto es un riesgo alto
+  y no supera el gate formal de entrega salvo aceptación temporal firmada por Sistemas.
+
+La postura vigente, incluidas las limitaciones de WebSocket, CSP, GitHub y agentes, se
+mantiene en [`docs/security/CURRENT_SECURITY_POSTURE.md`](docs/security/CURRENT_SECURITY_POSTURE.md).
 
 Consulta [docs/security/SECURITY_TEST_PLAN.md](docs/security/SECURITY_TEST_PLAN.md) para
 la matriz de pruebas y los gates de liberación.

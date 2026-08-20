@@ -41,15 +41,15 @@ test("legacy bcrypt remains verifiable and is marked for lazy migration", async 
   assert.equal(passwordNeedsRehash(migrated), false);
 });
 
-test("password policy accepts 12–16 characters and generated credentials are definitive", () => {
-  assert.equal(validateNewPassword("A1-safe-key!").valid, true);
+test("password policy accepts 15–128 characters and generated credentials are definitive", () => {
   assert.equal(validateNewPassword("A1-safe-key!2026").valid, true);
-  assert.equal(validateNewPassword("short-key!1").valid, false);
-  assert.equal(validateNewPassword("A1-safe-key!2026x").valid, false);
+  assert.equal(validateNewPassword("A1-safe-key!2026".padEnd(128, "x")).valid, true);
+  assert.equal(validateNewPassword("A1-safe-key!20").valid, false);
+  assert.equal(validateNewPassword("A1-safe-key!2026".padEnd(129, "x")).valid, false);
   assert.equal(validateNewPassword("passwordpassword").valid, false);
   assert.equal(validateNewPassword("VonWobeser-Key!").valid, true);
   const generated = generateAdminPassword();
-  assert.equal(generated.length, 16);
+  assert.equal(generated.length, 20);
   assert.equal(validateNewPassword(generated).valid, true);
 });
 

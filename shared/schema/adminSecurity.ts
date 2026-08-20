@@ -128,7 +128,8 @@ export const adminLoginSchema = z.object({
     // parecer que una cuenta válida no existe. Los nombres de usuario se conservan.
     .transform((value) => value.includes("@") ? value.toLowerCase() : value),
   // El login debe aceptar hashes bcrypt y longitudes heredadas. El rango de
-  // 12–16 caracteres se aplica al crear o cambiar credenciales nuevas.
+  // La política reforzada de alta/cambio se valida en el servidor. El login
+  // conserva el rango legado para no bloquear credenciales existentes.
   password: z.string().min(1, "Password is required").max(128, "Password is too long"),
 });
 

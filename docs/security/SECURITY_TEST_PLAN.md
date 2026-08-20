@@ -1,6 +1,6 @@
 # Plan de pruebas y evidencia de seguridad
 
-Fecha de referencia: 2026-08-19.
+Fecha de referencia: 2026-08-20.
 
 ## Alcance y reglas
 
@@ -15,14 +15,16 @@ Decisiones del propietario:
 - No separar la cuenta de PostgreSQL.
 - Guardar la contraseña inicial solo en Replit Secrets y usarla únicamente si el
   propietario aún no existe.
+- Mantener MFA desactivado temporalmente y registrarlo como riesgo alto que impide el
+  gate formal salvo aceptación firmada de Sistemas.
 
 ## Controles implementados
 
 | Área ASVS / riesgo | Control | Evidencia automatizada |
 | --- | --- | --- |
-| V2 Autenticación | Argon2id 19 MiB/2/1, compatibilidad y migración silenciosa de bcrypt, política 12–16, contraseña generada definitiva | `server/security/auth.test.ts` |
+| V2 Autenticación | Argon2id 19 MiB/2/1, compatibilidad y migración silenciosa de bcrypt, política 15–128, contraseña generada de 20 caracteres | `server/security/auth.test.ts` |
 | V3 Sesiones | Cookie `__Host-*` HttpOnly/Secure/Strict, token hasheado, inactividad 30 min, máximo 8 h, revocación y CSRF | TypeScript, revisión de rutas |
-| V2 MFA | Para Dueño/Administrador, TOTP activado por política, secreto AES-256-GCM, desafío opaco HttpOnly de 10 min, 5 intentos y recuperación de un solo uso | `server/security/passwordOnlyAuth.test.ts`, `server/security/mfa.test.ts` |
+| V2 MFA | TOTP está implementado con secreto AES-256-GCM, desafío opaco HttpOnly, 5 intentos y recuperación de un solo uso, pero la política obligatoria está desactivada | `server/security/passwordOnlyAuth.test.ts`, `server/security/mfa.test.ts` |
 | V4 Acceso | Permisos separados para registros, exportaciones, documentos, usuarios y agentes | matriz manual por rol |
 | V5 Validación | Zod, límites de cuerpo/paginación/lotes, Drizzle parametrizado, comodines ILIKE escapados | TypeScript y pruebas de API |
 | V5 CSV | Neutralización de `=`, `+`, `-`, `@`, tabulador y retorno de carro | revisión de exportación |
@@ -30,11 +32,11 @@ Decisiones del propietario:
 | V8 Datos | noticias públicas solo publicadas y no futuras; retención y CV privados | pruebas de API y revisión |
 | V10 Comunicaciones | TLS validado para PostgreSQL externo; CORS explícito | configuración |
 | V12 Archivos | cuarentena, nombres de 128 bits, firma real, ZIP seguro, límites y ClamAV | `server/security/uploads.test.ts` |
-| V13 API | rate limit persistente, WebSocket autenticado/origen/límite, MFA y endpoints administrativos protegidos | pruebas de API |
+| V13 API | Login/MFA/formularios tienen rate limit persistente. WebSocket valida sesión, origen y límite, pero permiso `agents`, revalidación MFA y suscripción por artículo quedan pendientes de Fase 2 | pruebas de API y riesgo registrado |
 | V14 Configuración | CSP aplicada en producción, Helmet, HSTS, `nosniff`, referrer y permissions policy | smoke test de cabeceras |
 | SSRF | allowlist, DNS previo y por redirección, bloqueo privado/metadata, timeout y tamaño | `server/security/network.test.ts` |
 | IA / prompt injection | bloques no confiables, redacción de aprendizaje, límites, revisión humana y presupuesto mensual | TypeScript y revisión de agentes |
-| Secretos/supply chain | Gitleaks en historial, CodeQL, Semgrep, Dependabot y `npm audit` | workflows de GitHub |
+| Secretos/supply chain | Gitleaks, Semgrep, Dependabot y `npm audit`; el inventario CodeQL previo queda como evidencia, porque Code Scanning no está disponible en el repositorio privado con el plan actual | workflows de GitHub y evidencia fechada |
 
 ## Comandos seguros locales
 
@@ -87,7 +89,8 @@ Ejecutar en ese clon:
 - `npm audit` sin vulnerabilidades altas.
 - Gitleaks sin secretos reales en archivos, ramas, etiquetas o historial.
 - TypeScript, pruebas, build y `git diff --check` exitosos.
-- Evidencia ES/EN del sitio, panel, MFA de una cuenta privilegiada, archivos y permisos.
+- Evidencia ES/EN del sitio, panel, archivos y permisos. MFA requiere prueba de una cuenta
+  privilegiada o aceptación temporal firmada que identifique responsable y vencimiento.
 
 ## Riesgos residuales y pendientes externos
 
@@ -95,6 +98,8 @@ Ejecutar en ese clon:
   historial o terceros, el hallazgo debe documentarse sin imprimir su valor.
 - Se conserva una sola cuenta PostgreSQL, por lo que la separación de privilegios queda
   fuera de alcance.
-- CSP permanece inicialmente en Report-Only para recolectar violaciones antes de imponerla.
+- CSP se aplica en producción y permanece en Report-Only únicamente en desarrollo.
+- El WebSocket no tiene todavía autorización granular equivalente a HTTP ni aislamiento
+  de eventos por artículo; no debe marcarse como aprobado hasta completar la Fase 2.
 - ZAP activo, SQLMap y restauración requieren que el propietario provea un entorno aislado;
   no se ejecutan contra la base actual.

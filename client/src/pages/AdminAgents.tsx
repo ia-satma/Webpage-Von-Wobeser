@@ -26,8 +26,6 @@ import {
   Globe,
   Search,
   Zap,
-  Cloud,
-  CloudOff,
   Lightbulb,
   TrendingUp,
   Loader2,
@@ -240,22 +238,6 @@ export default function AdminAgents() {
     },
   });
 
-  const syncPCloudMutation = useMutation({
-    mutationFn: async () => {
-      const res = await adminApiRequest("POST", "/api/agents/pcloud/sync");
-      return readAdminJson<{ knowledge: boolean; evolution: boolean }>(res, "No se pudo sincronizar a la nube.");
-    },
-    onSuccess: (data: { knowledge: boolean; evolution: boolean }) => {
-      toast({ 
-        title: "Sincronización completada", 
-        description: `Conocimiento: ${data.knowledge ? 'OK' : 'Falló'}, Evolución: ${data.evolution ? 'OK' : 'Falló'}` 
-      });
-    },
-    onError: () => {
-      toast({ title: "Falló la sincronización", variant: "destructive" });
-    },
-  });
-
   const startProcessingMutation = useMutation({
     mutationFn: async () => {
       const res = await adminApiRequest("POST", "/api/agents/processing/start");
@@ -337,20 +319,6 @@ export default function AdminAgents() {
               >
                 <RefreshCw className="w-4 h-4 mr-2" />
                 Actualizar
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => syncPCloudMutation.mutate()}
-                disabled={syncPCloudMutation.isPending}
-                data-testid="button-sync-pcloud"
-              >
-                {syncPCloudMutation.isPending ? (
-                  <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
-                ) : (
-                  <Cloud className="w-4 h-4 mr-2" />
-                )}
-                Sincronizar a la nube
               </Button>
             </>
           }
@@ -819,34 +787,6 @@ export default function AdminAgents() {
                       <Sparkles className="w-4 h-4 mr-2" />
                     )}
                     Iniciar aprendizaje
-                  </Button>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Cloud className="w-5 h-5" />
-                    Sincronización en la nube
-                  </CardTitle>
-                  <CardDescription>
-                    Sincroniza el conocimiento y la evolución a pCloud para respaldo
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <Button 
-                    onClick={() => syncPCloudMutation.mutate()}
-                    disabled={syncPCloudMutation.isPending}
-                    className="w-full"
-                    variant="outline"
-                    data-testid="button-cloud-sync"
-                  >
-                    {syncPCloudMutation.isPending ? (
-                      <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
-                    ) : (
-                      <Cloud className="w-4 h-4 mr-2" />
-                    )}
-                    Sincronizar a pCloud
                   </Button>
                 </CardContent>
               </Card>

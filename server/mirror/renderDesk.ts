@@ -2,12 +2,11 @@ import * as cheerio from "cheerio";
 import { applySeo, breadcrumbNode, clip } from "./seo";
 import { CATEGORIES } from "./renderAttorneyList";
 import { renderRichText } from "./sanitize";
+import { escapeHtmlAttribute, escapeHtmlText } from "./htmlEscape";
 
 type Lang = "en" | "es";
 
-function esc(s: any): string {
-  return String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-}
+const esc = escapeHtmlText;
 
 function L(obj: any, base: string, lang: Lang): string {
   return lang === "es" ? obj[base + "Es"] || obj[base] || "" : obj[base] || "";
@@ -55,7 +54,7 @@ function buildDeskTeamAccordion(members: any[], lang: Lang): string {
     const items = list
       .map(
         (m) =>
-          `<p style="font-size:14px; margin-bottom:10px; margin-top:10px; line-height:18px;"><a href="/lawyer/${esc(m.slug)}${lang === "en" ? "?lang=en" : ""}">${esc(m.name)}</a></p>`,
+          `<p style="font-size:14px; margin-bottom:10px; margin-top:10px; line-height:18px;"><a href="/lawyer/${escapeHtmlAttribute(m.slug)}${lang === "en" ? "?lang=en" : ""}">${esc(m.name)}</a></p>`,
       )
       .join("");
     html += `<li class="accordion">${esc(label)}</li><div style="padding:0 10px; background-color:#bdbcbc;" class="panel">${items}</div>`;
@@ -87,7 +86,7 @@ export function renderDesksMap(
     item.find(".desks__item--txt").first().html(renderRichText(L(desk, "fullDescription", lang) || L(desk, "description", lang)));
     // El nombre completo enlaza a la página individual del desk para más detalle.
     item.find(".desks__item--txt").first().append(
-      `<p><a href="/desk/${esc(desk.slug)}${lang === "en" ? "?lang=en" : ""}">${esc(name)} →</a></p>`,
+      `<p><a href="/desk/${escapeHtmlAttribute(desk.slug)}${lang === "en" ? "?lang=en" : ""}">${esc(name)} →</a></p>`,
     );
     item.find(".seccion_desk").first().html(buildDeskTeamAccordion(teamMembersByDeskId[desk.id] || [], lang));
   }

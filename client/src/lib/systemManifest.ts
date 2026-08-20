@@ -125,13 +125,13 @@ const LEGACY_AI_BRAIN_AGENTS: SystemFeature[] = [
   {
     id: LEGACY_AGENT_IDS.LEGAL_COUNCIL,
     category: 'ai_brain',
-    name: 'Consejo de Gobernanza Digital',
+    name: 'Revisión automatizada de riesgo legal',
     technicalName: 'LegalCouncilService',
-    technicalDetail: 'Protocolo de Arbitraje Algorítmico Asíncrono. Tres redes neuronales especializadas (Erudito Legal, Analista de Riesgo, Guardián de Marca) auditan cada contenido con Promise.allSettled para aislamiento a prueba de fallos. Esquema VoteResult con puntuación 0-100, inyección de Abstención Sistémica para agentes fallidos.',
-    userBenefit: 'Garantiza la **Soberanía Humana Total** mediante validación por pares algorítmicos. Cada artículo pasa por un tribunal de 3 jueces de IA antes de publicación, protegiendo la reputación institucional.',
+    technicalDetail: 'Revisión automatizada de apoyo. Tres agentes (análisis jurídico, riesgo y marca) evalúan cada contenido con Promise.allSettled y producen una puntuación de 0-100. No sustituye la revisión de una persona abogada ni constituye dictamen jurídico.',
+    userBenefit: 'Aporta señales de riesgo y retroalimentación antes de publicar; la decisión final y la responsabilidad permanecen en una persona autorizada.',
     status: 'production',
     keyCapabilities: [
-      'Consejo de 3 agentes evaluadores',
+      'Evaluación automatizada por 3 agentes',
       'Puntuación de riesgo institucional',
       'Votos individuales con razonamiento',
       'Feedback consolidado para editores',
@@ -216,7 +216,7 @@ const LEGACY_AI_BRAIN_AGENTS: SystemFeature[] = [
     userBenefit: 'Sistema auto-documentado que habilita la visualización del Centro Nervioso en Vivo y rastrea la historia de evolución de agentes para insights de mejora continua.',
     status: 'production',
     keyCapabilities: [
-      'Registro de 9 agentes',
+      'Registro del inventario canónico de 14 agentes',
       'Tracking de evolución (1-5)',
       'Monitoreo de estado en tiempo real',
       'Persistencia de historia',
@@ -480,7 +480,8 @@ export const SECURITY_INFRASTRUCTURE: SystemFeature[] = [
     keyCapabilities: [
       'Argon2id con migración desde bcrypt',
       'Tokens de 256 bits',
-      'Contraseñas definitivas de 12 a 16 caracteres',
+      'Contraseñas nuevas de 15 a 128 caracteres',
+      'Credenciales administrativas generadas de 20 caracteres',
       'Cookie HttpOnly y protección CSRF',
       'Limpieza automática de sesiones',
     ],
@@ -535,9 +536,9 @@ export const SECURITY_INFRASTRUCTURE: SystemFeature[] = [
     category: 'security',
     name: 'Canal Seguro de Comunicación en Tiempo Real',
     technicalName: 'WebSocketSecurityLayer',
-    technicalDetail: 'WebSocket autenticado mediante la sesión HttpOnly, con validación estricta de Origin, máximo de tres conexiones por usuario y heartbeat cada 30 segundos.',
-    userBenefit: 'Comunicación bidireccional segura para actualizaciones de progreso de pipeline en tiempo real. Experiencia de usuario fluida sin polling.',
-    status: 'production',
+    technicalDetail: 'WebSocket autenticado mediante sesión HttpOnly, validación estricta de Origin, máximo de tres conexiones por usuario y heartbeat cada 30 segundos. El permiso agents, la revalidación de política MFA y el aislamiento por artículo están pendientes de Fase 2.',
+    userBenefit: 'Actualizaciones de progreso sin polling, con limitaciones de autorización granular documentadas hasta completar su endurecimiento.',
+    status: 'beta',
     keyCapabilities: [
       'Heartbeat cada 30 segundos',
       'Sesión administrativa obligatoria',
@@ -594,7 +595,7 @@ export const SECURITY_INFRASTRUCTURE: SystemFeature[] = [
 ];
 
 // ════════════════════════════════════════════════════════════════════════════════
-// 🏗️ COLUMNA VERTEBRAL - INFRAESTRUCTURA CRÍTICA (8 Módulos)
+// 🏗️ COLUMNA VERTEBRAL - INFRAESTRUCTURA CRÍTICA (inventario dinámico)
 // ════════════════════════════════════════════════════════════════════════════════
 
 export const CORE_INFRASTRUCTURE: SystemFeature[] = [
@@ -613,26 +614,6 @@ export const CORE_INFRASTRUCTURE: SystemFeature[] = [
       'Metadata extensible',
       'Memoria compartida inter-agente',
     ],
-  },
-  {
-    id: 'pcloud_sync',
-    category: 'infrastructure',
-    name: 'Sincronización en la Nube Persistente',
-    technicalName: 'PCloudStorage',
-    technicalDetail: 'Autenticación OAuth con pCloud, sincronización bidireccional de conocimiento y evolución, path base /VonWobeser/agents, upload multipart, listado de archivos con metadata, tolerancia a fallos de red.',
-    userBenefit: 'Persistencia de conocimiento de agentes a través de sesiones y reinicios. El aprendizaje nunca se pierde.',
-    status: 'production',
-    keyCapabilities: [
-      'Autenticación OAuth',
-      'Sync bidireccional',
-      'Upload multipart',
-      'Tolerancia a fallos',
-      'Persistencia cross-session',
-    ],
-    technicalSpecs: {
-      basePath: '/VonWobeser/agents',
-      provider: 'pCloud',
-    },
   },
   {
     id: 'translation_cache',
@@ -733,9 +714,9 @@ export const CORE_INFRASTRUCTURE: SystemFeature[] = [
     category: 'infrastructure',
     name: 'Difusor de Progreso de Pipeline',
     technicalName: 'PipelineProgressBroadcaster',
-    technicalDetail: 'WebSocket broadcast en tiempo real a todos los clientes conectados, payload estructurado (articleId, step, status, language, progress, message), timestamp automático, map de clientes activos con limpieza.',
-    userBenefit: 'Visibilidad total del progreso de procesamiento de artículos. Los editores ven cada paso del pipeline en vivo.',
-    status: 'production',
+    technicalDetail: 'WebSocket broadcast global a clientes administrativos conectados, con payload estructurado, timestamp y limpieza. La suscripción por artículo y la autorización equivalente a HTTP están pendientes de Fase 2.',
+    userBenefit: 'Muestra el progreso del pipeline en vivo; no debe considerarse aislado por artículo hasta completar la Fase 2.',
+    status: 'beta',
     keyCapabilities: [
       'Broadcast en tiempo real',
       'Payload estructurado',
@@ -1010,12 +991,12 @@ export const ADMIN_MODULES: SystemFeature[] = [
     category: 'admin_system',
     name: 'Gestor de Artículos con IA',
     technicalName: 'AdminNews.tsx + AdminArticleDetail.tsx',
-    technicalDetail: 'CRUD completo de artículos, integración de Legal Council, botón de validación y publicación, vista de veredicto de agentes, progreso de pipeline en tiempo real.',
-    userBenefit: 'Gestión de contenido con supervisión de IA integrada. Cada artículo pasa por validación automática antes de publicación.',
+    technicalDetail: 'CRUD completo de artículos, revisión automatizada de riesgo legal, botón de validación y publicación, vista de resultados de agentes y progreso de pipeline en tiempo real.',
+    userBenefit: 'Gestión de contenido con apoyo automatizado. La revisión no constituye dictamen jurídico y la publicación exige una decisión humana autorizada.',
     status: 'production',
     keyCapabilities: [
       'CRUD completo',
-      'Integración Legal Council',
+      'Revisión automatizada de riesgo legal',
       'Validación con un clic',
       'Progreso en tiempo real',
       'Vista de veredicto',
@@ -1055,11 +1036,11 @@ export const ADMIN_MODULES: SystemFeature[] = [
     category: 'admin_system',
     name: 'Centro Nervioso de Agentes en Vivo',
     technicalName: 'NerveCenter.tsx + EvolutionTimeline.tsx',
-    technicalDetail: 'Visualización de ecosistema de 9 agentes con refresh automático cada 30 segundos, organización en 3 categorías (Cerebro/Manos/Escudo), nivel de evolución (1-5 puntos), estado de cada agente, timeline narrativo de mejoras con niveles de impacto.',
+    technicalDetail: 'Visualización del inventario canónico de 14 agentes con refresh automático cada 30 segundos, organización en 3 categorías (Cerebro/Manos/Escudo), nivel de evolución, estado de cada agente y timeline de mejoras.',
     userBenefit: 'Visibilidad total del "sistema nervioso digital". Demuestra la sofisticación tecnológica a stakeholders.',
     status: 'production',
     keyCapabilities: [
-      'Visualización de 9 agentes',
+      'Visualización de 14 agentes',
       'Refresh cada 30 segundos',
       '3 categorías visuales',
       'Niveles de evolución',
@@ -1100,10 +1081,10 @@ export const ADMIN_MODULES: SystemFeature[] = [
   {
     id: 'council_safety_card',
     category: 'admin_system',
-    name: 'Tarjeta de Seguridad del Consejo',
+    name: 'Tarjeta de revisión automatizada',
     technicalName: 'CouncilSafetyCard.tsx',
-    technicalDetail: 'Visualización de veredicto de Legal Council, votos individuales de 3 agentes con puntuación y razonamiento, badges de estado (aprobado/rechazado/revisión), nivel de riesgo, feedback consolidado, botón de validación para admin.',
-    userBenefit: 'Visibilidad total de la evaluación de IA de cada artículo. Decisión informada antes de publicar.',
+    technicalDetail: 'Visualización del resultado automatizado, votos individuales de 3 agentes con puntuación y razonamiento, estados (aprobado/rechazado/revisión), nivel de riesgo, feedback consolidado y botón de validación humana.',
+    userBenefit: 'Apoya la decisión editorial antes de publicar. No es asesoría, revisión independiente ni dictamen jurídico.',
     status: 'production',
     keyCapabilities: [
       'Votos de 3 agentes',

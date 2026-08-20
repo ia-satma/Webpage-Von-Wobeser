@@ -14,9 +14,9 @@ const ARGON_MEMORY_KIB = 19_456;
 const ARGON_PASSES = 2;
 const ARGON_PARALLELISM = 1;
 const ARGON_TAG_LENGTH = 32;
-export const PASSWORD_MIN = 12;
-export const PASSWORD_MAX = 16;
-export const GENERATED_PASSWORD_LENGTH = 16;
+export const PASSWORD_MIN = 15;
+export const PASSWORD_MAX = 128;
+export const GENERATED_PASSWORD_LENGTH = 20;
 
 type NativeArgon2 = (
   algorithm: "argon2id",

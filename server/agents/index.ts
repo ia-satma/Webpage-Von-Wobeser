@@ -3,7 +3,6 @@ export * from './core/BaseAgent';
 export { knowledgeStore } from './core/AgentKnowledge';
 export { evolutionTracker } from './core/AgentEvolution';
 export { orchestrator } from './core/AgentOrchestrator';
-export { pcloudStorage } from './storage/PCloudStorage';
 export { dbPersistence } from './storage/DatabasePersistence';
 
 export { formatterAgent } from './specialized/FormatterAgent';

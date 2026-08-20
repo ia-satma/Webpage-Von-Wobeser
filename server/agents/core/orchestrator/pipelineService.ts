@@ -128,7 +128,7 @@ export class OrchestratorPipelineService {
   ): Promise<void> {
     try {
       this.dependencies.logger.log(
-        `[Orchestrator] Running Legal Council evaluation for article ${articleId}...`,
+        `[Orchestrator] Running automated legal-risk review for article ${articleId}...`,
       );
       await options.onProgress?.({
         stage: 'legal_council',
@@ -156,7 +156,7 @@ export class OrchestratorPipelineService {
         });
 
         this.dependencies.logger.log(
-          `[Orchestrator] Legal Council verdict: ${verdict.overallStatus}, Risk: ${verdict.riskFlag}`,
+          `[Orchestrator] Automated legal-risk review result: ${verdict.overallStatus}, Risk: ${verdict.riskFlag}`,
         );
         results.legal_council = {
           success: verdict.overallStatus !== 'rejected',
@@ -175,7 +175,7 @@ export class OrchestratorPipelineService {
       }
     } catch (councilError) {
       this.dependencies.logger.error(
-        '[Orchestrator] Legal Council evaluation failed:',
+        '[Orchestrator] Automated legal-risk review failed:',
         councilError,
       );
       await this.dependencies.articles.updateCouncil(articleId, {

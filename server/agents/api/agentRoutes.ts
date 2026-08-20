@@ -2,7 +2,6 @@ import { Router, Request, Response } from 'express';
 import { orchestrator } from '../core/AgentOrchestrator';
 import { knowledgeStore } from '../core/AgentKnowledge';
 import { evolutionTracker } from '../core/AgentEvolution';
-import { pcloudStorage } from '../storage/PCloudStorage';
 import { dbPersistence } from '../storage/DatabasePersistence';
 import { contentAnalyzerAgent } from '../specialized/ContentAnalyzerAgent';
 import { getCopyIdsByJobIds } from '../storage/CopyHistory';
@@ -341,33 +340,6 @@ router.post('/knowledge/:agentType/search', async (req: Request, res: Response) 
     );
 
     res.json(documents);
-  } catch (error) {
-    res.status(500).json({ error: 'Agent operation failed' });
-  }
-});
-
-router.get('/pcloud/test', async (req: Request, res: Response) => {
-  try {
-    const connected = await pcloudStorage.testConnection();
-    res.json({ connected });
-  } catch (error) {
-    res.status(500).json({ error: 'Storage connection failed', connected: false });
-  }
-});
-
-router.post('/pcloud/sync', async (req: Request, res: Response) => {
-  try {
-    const result = await pcloudStorage.syncAll();
-    res.json(result);
-  } catch (error) {
-    res.status(500).json({ error: 'Agent operation failed' });
-  }
-});
-
-router.post('/pcloud/load', async (req: Request, res: Response) => {
-  try {
-    const result = await pcloudStorage.loadAll();
-    res.json(result);
   } catch (error) {
     res.status(500).json({ error: 'Agent operation failed' });
   }

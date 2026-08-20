@@ -389,7 +389,7 @@ export default function AdminUsers() {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Nuevo usuario</DialogTitle>
-            <DialogDescription>El sistema generará una contraseña segura de 16 caracteres, la mostrará una sola vez y no exigirá reemplazarla.</DialogDescription>
+            <DialogDescription>El sistema generará una contraseña segura de 20 caracteres, la mostrará una sola vez y no exigirá reemplazarla.</DialogDescription>
           </DialogHeader>
           <div className="space-y-3">
             <div className="space-y-1"><Label>Correo *</Label><Input type="email" value={nf.email} onChange={(e) => setNf({ ...nf, email: e.target.value })} placeholder="persona@vonwobeser.com" data-testid="input-email" /></div>

@@ -3,7 +3,7 @@
  *
  * This is the single source of truth for agents that can actually be executed
  * by AgentOrchestrator. Infrastructure services such as the orchestrator,
- * Legal Council, Auto Recovery, System Health and System Chronicler are
+ * The automated legal-risk review (`legal_council`), Auto Recovery, System Health and System Chronicler are
  * intentionally not counted as runnable content agents.
  */
 

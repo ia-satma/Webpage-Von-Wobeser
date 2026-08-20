@@ -99,14 +99,14 @@ Disparo central: **`POST /api/agents/run/:agentType`** (`server/agents/api/agent
 
 - **3 son estructurales** (`content_auditor`, `website_auditor`, `voice_agent`): los dos auditores ejecutan comprobaciones deterministas y Voice usa TTS, no un LLM de texto.
 - Cómo llaman al LLM: `BaseAgent.callLLM()` → cliente compartido de `server/openai.ts` → `gpt-5.4-mini`, con timeout y un solo reintento para evitar cargas indefinidas.
-- Otros disparadores en el mismo router: `POST /audit`, `POST|GET /analyze/:articleId`, `POST /pipeline/:articleId` + `/pipeline/batch` + `/pipeline/process-all`, `POST /queue`, `GET /status|/jobs|/jobs/failed`, `/evolution/*`, `/knowledge/:agentType`, `/pcloud/*`.
+- Otros disparadores en el mismo router: `POST /audit`, `POST|GET /analyze/:articleId`, `POST /pipeline/:articleId` + `/pipeline/batch` + `/pipeline/process-all`, `POST /queue`, `GET /status|/jobs|/jobs/failed`, `/evolution/*` y `/knowledge/:agentType`. Las rutas pCloud fueron retiradas.
 - Si `AI_INTEGRATIONS_OPENAI_*` no están inyectadas, el cliente es lazy (no crashea al importar) pero la **primera** llamada real de un agente-LLM falla; los estructurales siguen (salvo voice, que necesita la key del TTS).
 
 ---
 
 ## Servicios de IA
 
-- **LegalCouncilService** (`services/agents/LegalCouncilService.ts`): "consejo legal" multi-agente que evalúa calidad/riesgo de un artículo. Corre 3 evaluadores en paralelo (Legal Scholar, Risk Analyst, Brand Guardian) con `Promise.allSettled`; cada uno devuelve `{score, decision, reasoning}` y se agregan en un `CouncilVerdict`. Usa el cliente compartido de OpenAI, respeta el presupuesto mensual, limita tiempos/tokens y trata el artículo como datos no confiables. Un evaluador que falla recibe abstención de sistema (score 50).
+- **Revisión automatizada de riesgo legal** (identificador interno `LegalCouncilService`, en `services/agents/LegalCouncilService.ts`): apoyo multiagente que evalúa calidad y riesgo de un artículo; no constituye asesoría ni dictamen jurídico. Corre 3 evaluadores en paralelo (Legal Scholar, Risk Analyst, Brand Guardian) con `Promise.allSettled`; cada uno devuelve `{score, decision, reasoning}` y se agregan en un `CouncilVerdict`. Usa el cliente compartido de OpenAI, respeta el presupuesto mensual, limita tiempos/tokens y trata el artículo como datos no confiables. Un evaluador que falla recibe abstención de sistema (score 50). La decisión final siempre corresponde a una persona autorizada.
 - **VoiceGenerator** (`server/services/VoiceGenerator.ts`): texto-a-voz con **OpenAI TTS `tts-1`** (voz `alloy`), vía el cliente `openai` compartido. Guarda mp3 en `public/generated-audio/` y registra el asset. **No usa ElevenLabs** (no está en AI Integrations de Replit). Si falta `AI_INTEGRATIONS_OPENAI_API_KEY` hace early-return con `not_configured`. Trunca a 4000 chars.
 - **SmartImageGenerator** (`server/services/SmartImageGenerator.ts`): imágenes con marca Von Wobeser. Por defecto usa **`gpt-image-2`** en calidad media y JPEG optimizado; si el modelo no está disponible intenta `gpt-image-1` y después DALL-E 3. Cloudflare continúa disponible como motor opcional configurado. Sanitiza términos legales sensibles y superpone el logo con `sharp`.
 
@@ -198,19 +198,20 @@ Login: `POST /api/admin/login` espera `username` y `password` y establece direct
 - `AI_MONTHLY_BUDGET_USD` — tope mensual estimado de IA pagada; por defecto USD 100. Al alcanzarlo se pausan llamadas pagadas y se registra una alerta sin datos sensibles.
 
 *Acceso administrativo:*
-- `ADMIN_EMAIL` + `ADMIN_BOOTSTRAP_PASSWORD` — crean el Dueño únicamente cuando el correo no existe. Las contraseñas nuevas deben tener entre 12 y 16 caracteres. El comando manual `admin:recover` puede reactivar esa misma cuenta usando estos Secrets, pero nunca se ejecuta automáticamente.
-- `MFA_ENCRYPTION_KEY` + `MFA_REQUIRED_FOR_PRIVILEGED=true` — obligan TOTP para Dueño y Administradores. La clave codifica exactamente 32 bytes y cifra los secretos con AES-256-GCM; sin una clave válida, la activación rechaza el acceso privilegiado antes que degradarlo a solo contraseña. La entrega al Repl del cliente exige ambas configuraciones y el primer acceso privilegiado completa el enrolamiento.
+- `ADMIN_EMAIL` + `ADMIN_BOOTSTRAP_PASSWORD` — crean el Dueño únicamente cuando el correo no existe. Las contraseñas nuevas aceptan entre 15 y 128 caracteres; las generadas por el panel tienen 20. El comando manual `admin:recover` puede reactivar esa misma cuenta usando estos Secrets, pero nunca se ejecuta automáticamente.
+- `MFA_ENCRYPTION_KEY` + `MFA_REQUIRED_FOR_PRIVILEGED=true` — capacidad para obligar TOTP a Dueño y Administradores. La clave codifica exactamente 32 bytes y cifra los secretos con AES-256-GCM. MFA permanece desactivado por decisión actual y se registra como riesgo alto; no activar la política sin la clave.
 
-*Almacenamiento de agentes:* `PCLOUD_USERNAME`, `PCLOUD_PASSWORD` — pCloud; si faltan, `authenticate()` devuelve false.
+*Almacenamiento de agentes:* pCloud está retirado del runtime, las rutas y el panel. No configurar `PCLOUD_USERNAME` ni `PCLOUD_PASSWORD`. La retirada del código no borra archivos históricos del proveedor.
 
 *Red / runtime:* `PORT` (default 5000), `NODE_ENV`, `CORS_ORIGIN` (vacío = sin cross-origin; el admin es same-origin), `SITE_URL` (default `https://www.vonwobeser.com`; base de canonical/OG/sitemap, se lee una vez al arranque), `MIRROR_DIR` (override del directorio del espejo; casi nunca hace falta por los fallbacks).
 
 *Migración temporal de base:* `SOURCE_DATABASE_URL` (origen de solo lectura para las herramientas), `DB_BACKUP_ENCRYPTION_KEY` (cifra respaldos) y `MIGRATION_READ_ONLY=true` durante el corte. Los dos primeros se eliminan al terminar su periodo de retención; nunca se exponen al cliente.
 
 Notas:
-- **`SESSION_SECRET` NO se usa.** La cookie contiene un token aleatorio; PostgreSQL guarda solamente su hash SHA-256, expiración, actividad y hash CSRF.
+- `SESSION_SECRET` no firma la cookie administrativa: esta contiene un token aleatorio y PostgreSQL guarda solamente su hash SHA-256, expiración, actividad y hash CSRF. Sin embargo, `SESSION_SECRET` sí es obligatorio en producción para firmar sesiones de carga fragmentada.
 - `site_url`, `ga4_measurement_id` y `google_site_verification` se leen **una vez al arranque**; editarlos en el panel requiere reiniciar.
-- CSP está activa inicialmente en modo `Report-Only`; los demás encabezados Helmet, HSTS, `frame-ancestors`, `nosniff`, Referrer y Permissions Policy sí se aplican.
+- CSP se aplica en producción con nonce y usa `Report-Only` solo en desarrollo; Helmet, HSTS, `frame-ancestors`, `nosniff`, Referrer y Permissions Policy también se configuran.
+- El WebSocket valida sesión, origen, heartbeat y máximo de tres conexiones por usuario. El permiso `agents`, la revalidación de la política MFA y las suscripciones aisladas por artículo están pendientes de la Fase 2.
 - El cliente OpenAI en `server/openai.ts` es lazy-init (envoltura `Proxy`), así que credenciales faltantes fallan por-request, no al arrancar.
 
 ---

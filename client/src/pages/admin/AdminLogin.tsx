@@ -31,7 +31,7 @@ type MfaEnrollment = {
 const createLoginSchema = (t: { emailRequired: string; passwordMin: string }) => z.object({
   username: z.string().min(1, t.emailRequired),
   // El acceso mantiene compatibilidad con credenciales heredadas; el rango
-  // de 12–16 caracteres se aplica únicamente al crear o cambiar contraseñas.
+  // de 15–128 caracteres se aplica únicamente al crear o cambiar contraseñas.
   password: z.string().min(1, t.passwordMin).max(128),
 });
 

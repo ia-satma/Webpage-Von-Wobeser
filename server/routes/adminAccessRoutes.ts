@@ -5,6 +5,8 @@ import { z } from "zod";
 import {
   SESSION_COOKIE,
   CHALLENGE_COOKIE,
+  PASSWORD_MAX,
+  PASSWORD_MIN,
   adminSessionUserPayload,
   authCookieOptions,
   authMiddleware,
@@ -694,9 +696,9 @@ export async function registerAdminAccessRoutes(app: Express): Promise<void> {
     try {
       const parsed = z.object({
         currentPassword: z.string().min(1).max(128),
-        newPassword: z.string().min(12).max(16),
+        newPassword: z.string().min(PASSWORD_MIN).max(PASSWORD_MAX),
       }).safeParse(req.body);
-      if (!parsed.success) return apiError(res, 400, "La nueva contraseña debe tener entre 12 y 16 caracteres");
+      if (!parsed.success) return apiError(res, 400, `La nueva contraseña debe tener entre ${PASSWORD_MIN} y ${PASSWORD_MAX} caracteres`);
       const policy = validateNewPassword(parsed.data.newPassword);
       if (!policy.valid) return apiError(res, 400, policy.error);
       const user = req.adminUser!;

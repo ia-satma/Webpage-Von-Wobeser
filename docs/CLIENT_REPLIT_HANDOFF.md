@@ -118,17 +118,18 @@ actual. Cada importación enlaza sus propios recursos.
 
 ## 3. Configurar Secrets del cliente
 
-### Esenciales
+### Esenciales y controles opcionales
 
 | Secret | Uso |
 |---|---|
 | `ADMIN_EMAIL` | Correo inicial del propietario. |
-| `ADMIN_BOOTSTRAP_PASSWORD` | Contraseña inicial de 12–16 caracteres; se usa solo si la cuenta no existe. |
+| `ADMIN_BOOTSTRAP_PASSWORD` | Contraseña inicial de 15–128 caracteres; se usa solo si la cuenta no existe. |
+| `SESSION_SECRET` | Valor aleatorio de alta entropía para firmar sesiones de carga fragmentada. No firma la cookie administrativa. |
 | `DB_BACKUP_ENCRYPTION_KEY` | Descifrar el respaldo entregado. Puede eliminarse después de validar la restauración y conservarse fuera de Replit. |
 | `SITE_URL` | URL pública definitiva del deployment. |
 | `REPLIT_APP_STORAGE_BUCKET_ID` | Solo si Replit no inyecta automáticamente el bucket vinculado. |
-| `MFA_ENCRYPTION_KEY` | 32 bytes aleatorios en base64 o hexadecimal. Cifra los secretos TOTP en PostgreSQL. |
-| `MFA_REQUIRED_FOR_PRIVILEGED` | Valor exacto `true`; exige TOTP a Dueño y Administradores. |
+| `MFA_ENCRYPTION_KEY` | Solo al activar MFA: 32 bytes aleatorios en base64 o hexadecimal para cifrar secretos TOTP. |
+| `MFA_REQUIRED_FOR_PRIVILEGED` | Valor exacto `true`; capacidad opcional para exigir TOTP a Dueño y Administradores. Permanece desactivada en la excepción actual. |
 
 `DATABASE_URL` debe ser la variable administrada e inyectada por la base del Replit del
 cliente; no se copia la URL actual.
@@ -142,9 +143,10 @@ cliente; no se copia la URL actual.
 | `AI_MONTHLY_BUDGET_USD` | Presupuesto mensual visible para Dueños y Administradores. |
 
 No activar `MFA_REQUIRED_FOR_PRIVILEGED` sin `MFA_ENCRYPTION_KEY`: el servicio
-rechaza el acceso privilegiado antes que degradarlo a solo contraseña. En el primer
-inicio de sesión, cada Dueño o Administrador configura una aplicación autenticadora
-TOTP y guarda sus códigos de recuperación fuera del navegador.
+rechaza el acceso privilegiado antes que degradarlo a solo contraseña. La decisión
+actual es mantener MFA desactivado; el readiness formal debe fallar o registrar una
+aceptación temporal firmada por Sistemas. Cuando se active, cada Dueño o Administrador
+configura TOTP y guarda sus códigos de recuperación fuera del navegador.
 
 No copiar Secrets desde GitHub ni compartir sus **valores** en comandos, capturas,
 documentos o registros. La contraseña se escribe solamente en el campo protegido de
@@ -152,8 +154,8 @@ Replit Secrets.
 
 ## 4. Restauración completa en un solo comando
 
-Después de crear la Database y App Storage, cargar el paquete y configurar los cuatro
-Secrets de instalación, el diagnóstico indicará `ready_to_restore`. Entonces ejecutar:
+Después de crear Database y App Storage, cargar el paquete y configurar los Secrets de
+instalación, el diagnóstico indicará `ready_to_restore`. Entonces ejecutar:
 
 ```bash
 npm run handoff:install -- \
@@ -240,6 +242,8 @@ administrativo autenticado y con el permiso correspondiente a registros recibido
 npm ci
 npm run check
 npm run test:security
+npm run test:performance
+npm run audit:high
 npm run build
 npm run handoff:readiness -- --confirm-database=heliumdb --owner-email=correo-del-cliente@ejemplo.com
 ```
@@ -254,22 +258,19 @@ Además, comprobar manualmente:
 - ejecución controlada de los agentes con la API key del cliente.
 
 La auditoría de entrega también rechaza una tabla física heredada `public.users`,
-porque su modelo histórico contenía una columna de contraseña en texto claro. Antes
-de aprobar la entrega, ejecutar este diagnóstico sin exponer filas ni valores:
+porque su modelo histórico contenía una columna de contraseña en texto claro. Durante
+esta remediación solo puede ejecutarse el diagnóstico de lectura, sin exponer filas ni
+valores:
 
 ```bash
 npm run security:retire-legacy-users
 ```
 
-Si informa cero filas y la estructura esperada, Sistemas puede retirarla con la
-confirmación explícita:
-
-```bash
-npm run security:retire-legacy-users -- --confirm-empty-and-drop
-```
-
-Si hay filas o la estructura difiere, el comando no elimina nada: debe tratarse como
-incidente de datos heredados y revisarse fuera del repositorio antes de continuar.
+No se ejecutará el modo de retiro ni ningún `DROP TABLE` durante estas fases. Aunque el
+diagnóstico informe cero filas, una eliminación futura requerirá un cambio separado,
+respaldo verificable y autorización escrita de Sistemas. Si hay filas o la estructura
+difiere, debe tratarse como incidente de datos heredados y revisarse fuera del
+repositorio antes de continuar.
 
 El instalador crea el Dueño indicado por `ADMIN_EMAIL` si no existe en el respaldo, sin
 modificar las demás cuentas. El cliente debe entrar con esa cuenta, confirmar sus

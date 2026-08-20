@@ -54,7 +54,7 @@ export function registerNewsWorkflowRoutes(app: Express): void {
   });
 
   // =============================================
-  // LEGAL COUNCIL API (Human-in-the-Loop)
+  // AUTOMATED LEGAL-RISK REVIEW API (Human-in-the-Loop)
   // =============================================
 
   // POST /api/news/:id/validate - Validate and publish article
@@ -82,7 +82,7 @@ export function registerNewsWorkflowRoutes(app: Express): void {
       if (!verdict || verdict.overallStatus !== 'approved') {
         return res.status(409).json({
           code: "ARTICLE_REQUIRES_COUNCIL_APPROVAL",
-          error: "Article requires an approved Legal Council verdict before publication",
+          error: "Article requires an approved automated risk review and an authorized human publication decision",
           verdict
         });
       }
@@ -119,7 +119,7 @@ export function registerNewsWorkflowRoutes(app: Express): void {
         return res.status(400).json({ error: "Article has no content to review" });
       }
 
-      // Import and run Legal Council
+      // Run the automated risk review. This is decision support, not legal advice.
       const { legalCouncilService } = await import('../../services/agents/LegalCouncilService');
       const verdict = await legalCouncilService.evaluateArticle(newsItem.content);
 

@@ -32,7 +32,7 @@ export const news = pgTable("news", {
   publishAt: timestamp("publish_at"),
   // ID original de la publicación en el sitio Joomla (p_id), para mapear URLs originales
   legacyId: text("legacy_id"),
-  // Legal Council AI evaluation
+  // Automated legal-risk review result (decision support, not legal advice)
   councilVerdict: jsonb("council_verdict"), // Stores CouncilVerdict: { overallStatus, riskFlag, consolidatedFeedback }
 }, (t) => ({
   // Acelera ORDER BY date DESC + LIMIT (home, listado de noticias).

@@ -11,6 +11,7 @@ import { applyNavigationMarkup } from "./navigationMarkup";
 import { normalizeLegacyTypography } from "./legacyHtml";
 import { prepareTrustedHtmlForCsp } from "../security/csp";
 import { renderPublicFooter } from "./renderFooter";
+import { escapeHtmlAttribute, escapeHtmlText } from "./htmlEscape";
 
 export type Lang = "en" | "es";
 
@@ -609,7 +610,7 @@ document.addEventListener('click',function(e){
 },false);
 })();</script>`;
 
-export const escHtml = (s: any) => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+export const escHtml = escapeHtmlText;
 
 // Inyecta los datos del pie de página (dirección, teléfono, redes) desde siteConfig
 // por reemplazo de string (sin re-parseo, muy barato). La plantilla en disco es
@@ -647,7 +648,7 @@ function modernSocialHref(network: keyof typeof FOOTER_SOCIAL_ANCHORS, href: str
 }
 
 function setAnchorAttribute(anchor: string, name: string, value: string): string {
-  const escaped = escHtml(value);
+  const escaped = escapeHtmlAttribute(value);
   const pattern = new RegExp(`\\s${name}=(['\"])[\\s\\S]*?\\1`, "i");
   if (pattern.test(anchor)) return anchor.replace(pattern, ` ${name}="${escaped}"`);
   return anchor.replace(/^<a\b/i, `<a ${name}="${escaped}"`);
@@ -705,7 +706,7 @@ function injectFooterESR(html: string, config: ConfigMap, lang: Lang): string {
   if (html.includes('class="vw-footer-esr"')) return html;
   const src = cfg(config, "footer_esr_image", lang).trim() || "/templates/beez3/img/esr.jpg";
   const alt = cfg(config, "footer_esr_alt", lang).trim() || (lang === "es" ? "Empresa Socialmente Responsable" : "Socially Responsible Company");
-  const mark = `<aside class="vw-footer-esr" aria-label="${escHtml(alt)}"><img class="vw-footer-esr__img" src="${escHtml(src)}" alt="${escHtml(alt)}" loading="lazy" decoding="async"></aside>`;
+  const mark = `<aside class="vw-footer-esr" aria-label="${escapeHtmlAttribute(alt)}"><img class="vw-footer-esr__img" src="${escapeHtmlAttribute(src)}" alt="${escapeHtmlAttribute(alt)}" loading="lazy" decoding="async"></aside>`;
   return html.replace(/(<div class="footer--copy">[\s\S]*?<\/div>)/, `$1${mark}`);
 }
 
