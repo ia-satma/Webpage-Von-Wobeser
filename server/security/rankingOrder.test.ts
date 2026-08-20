@@ -45,6 +45,19 @@ test("el Home conserva el orden manual aunque los años estén mezclados", () =>
     $(".home__rec--slider img").toArray().map((element) => $(element).attr("alt")),
     rankings.map((ranking) => ranking.nameEs),
   );
+  assert.equal($(".home__rec--slide > .home__rec--logo-frame").length, rankings.length);
+  assert.equal($(".home__rec--logo-link").length, 0);
+});
+
+test("los reconocimientos con enlace conservan su destino dentro de la caja de contención", () => {
+  const template = `<!doctype html><html><body><div class="home_rec_JS"><div class="home__rec--slider"></div></div></body></html>`;
+  const $ = cheerio.load(renderHome(template, [], {}, "en", [{
+    id: "1", name: "Wide recognition", nameEs: "Reconocimiento horizontal", year: 2026,
+    logoUrl: "/wide-logo.webp", externalUrl: "https://example.org/ranking",
+  }]));
+
+  assert.equal($(".home__rec--logo-link").attr("href"), "https://example.org/ranking");
+  assert.equal($(".home__rec--logo-link > .home__rec--logo-frame > img").length, 1);
 });
 
 test("la migración inicial prioriza los cinco reconocimientos solicitados sin tocar medios", () => {

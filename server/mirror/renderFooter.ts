@@ -17,6 +17,25 @@ const FALLBACK = {
   },
 } as const;
 
+// El pie central 2026 usa rótulos en estilo oración. El preset clásico
+// conserva sus altas históricas para que alternar de diseño no cambie ese pie.
+const CENTRAL_HEADING_COPY = {
+  en: {
+    firm: "The firm",
+    capabilities: "Capabilities",
+    resources: "Resources",
+    contact: "Contact",
+    follow: "Follow us",
+  },
+  es: {
+    firm: "La firma",
+    capabilities: "Capacidades",
+    resources: "Recursos",
+    contact: "Contacto",
+    follow: "Síguenos",
+  },
+} as const;
+
 const COPY = {
   en: {
     firm: "THE FIRM",
@@ -135,6 +154,7 @@ function socialLink(network: SocialNetwork, href: string, className = "vwb-site-
  */
 export function renderPublicFooter(html: string, config: ConfigMap, lang: Lang): string {
   const copy = COPY[lang];
+  const centralHeadings = CENTRAL_HEADING_COPY[lang];
   const value = (key: string, fallback = "") => cfg(config, key, lang).trim() || fallback;
   const firm = value("footer_firm", FALLBACK.firm);
   const address = value("footer_address", FALLBACK.address[lang]);
@@ -183,22 +203,22 @@ export function renderPublicFooter(html: string, config: ConfigMap, lang: Lang):
           <span class="vwb-site-footer__brand-name">${escapeHtml(firm)}</span>
         </a>
       </section>
-      <nav class="vwb-site-footer__column" aria-label="${copy.firm}">
-        <h2>${copy.firm}</h2>
+      <nav class="vwb-site-footer__column" aria-label="${centralHeadings.firm}">
+        <h2>${centralHeadings.firm}</h2>
         <ul>${listItem(copy.about, paths.about)}${listItem(copy.team, paths.team)}${listItem(copy.careers, paths.careers)}${listItem(copy.contact, paths.contact)}</ul>
       </nav>
-      <nav class="vwb-site-footer__column" aria-label="${copy.capabilities}">
-        <h2>${copy.capabilities}</h2>
+      <nav class="vwb-site-footer__column" aria-label="${centralHeadings.capabilities}">
+        <h2>${centralHeadings.capabilities}</h2>
         <ul>${listItem(copy.practices, paths.practices)}${listItem(copy.industries, paths.industries)}</ul>
       </nav>
-      <nav class="vwb-site-footer__column" aria-label="${copy.resources}">
-        <h2>${copy.resources}</h2>
+      <nav class="vwb-site-footer__column" aria-label="${centralHeadings.resources}">
+        <h2>${centralHeadings.resources}</h2>
         <ul>${listItem(copy.insights, paths.insights)}${listItem(copy.rankings, paths.rankings)}</ul>
       </nav>
       <section class="vwb-site-footer__contact" aria-labelledby="vwb-site-footer-contact-title">
-        <h2 id="vwb-site-footer-contact-title">${copy.contact}</h2>
+        <h2 id="vwb-site-footer-contact-title">${centralHeadings.contact}</h2>
         <div class="vwb-site-footer__contact-list">${contactRows}</div>
-        ${socialLinks ? `<div class="vwb-site-footer__socials"><h2>${copy.follow}</h2><div>${socialLinks}</div></div>` : ""}
+        ${socialLinks ? `<div class="vwb-site-footer__socials"><h2>${centralHeadings.follow}</h2><div>${socialLinks}</div></div>` : ""}
       </section>
     </div>
     <div class="vwb-site-footer__bottom">

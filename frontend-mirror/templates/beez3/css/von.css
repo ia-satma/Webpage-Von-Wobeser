@@ -859,13 +859,13 @@ a[href="/german-desk"],
 .vwb-site-footer h2,
 .vwb-site-footer__column h2 {
   color: #fff;
-  font-family: var(--vw-font-ui, "Inter", sans-serif);
-  font-size: 12px;
-  font-weight: 600;
-  letter-spacing: .035em;
-  line-height: 1.2;
+  font-family: var(--vw-font-ui, "Inter", sans-serif) !important;
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: .01em;
+  line-height: 1.35;
   margin: 3px 0 24px;
-  text-transform: uppercase;
+  text-transform: none;
 }
 
 .vwb-site-footer ul {

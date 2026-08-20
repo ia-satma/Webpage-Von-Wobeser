@@ -30,7 +30,9 @@ test("el footer central conserva los datos, assets y enlaces esperados en españ
   assert.equal($(".vwb-site-footer").length, 1);
   assert.equal($("footer.footer_fix").length, 0);
   assert.equal($(".vwb-site-footer__column").length, 3);
-  assert.equal($(".vwb-site-footer__column h2").eq(1).text(), "CAPACIDADES");
+  assert.equal($(".vwb-site-footer__column h2").eq(0).text(), "La firma");
+  assert.equal($(".vwb-site-footer__column h2").eq(1).text(), "Capacidades");
+  assert.equal($(".vwb-site-footer__socials h2").text(), "Síguenos");
   assert.match($(".vwb-site-footer__column").eq(1).text(), /Áreas de Práctica/);
   assert.match($(".vwb-site-footer__column").eq(1).text(), /Grupos Industriales/);
   assert.doesNotMatch($(".vwb-site-footer__column").eq(1).text(), /\b(?:18|7)\b/);
@@ -45,6 +47,7 @@ test("el footer central conserva los datos, assets y enlaces esperados en españ
   assert.match(footerStyles, /\.vwb-site-footer__admin-link\s*\{[\s\S]*?opacity:\s*\.3/);
   assert.match(footerStyles, /\.vwb-site-footer__admin-link:focus-visible\s*\{[\s\S]*?opacity:\s*1/);
   assert.match(footerStyles, /\.vwb-site-footer__admin-icon\s*\{[\s\S]*?height:\s*11px[\s\S]*?width:\s*11px/);
+  assert.match(footerStyles, /\.vwb-site-footer h2,[\s\S]*?font-family:\s*var\(--vw-font-ui, "Inter", sans-serif\) !important[\s\S]*?text-transform:\s*none/);
 });
 
 test("el footer en inglés localiza rutas y neutraliza URLs o texto no confiables", () => {
@@ -57,7 +60,7 @@ test("el footer en inglés localiza rutas y neutraliza URLs o texto no confiable
   }), "en");
   const $ = cheerio.load(output);
 
-  assert.equal($(".vwb-site-footer__column h2").eq(0).text(), "THE FIRM");
+  assert.equal($(".vwb-site-footer__column h2").eq(0).text(), "The firm");
   assert.equal($(".vwb-site-footer__column a[href=\"/capabilities/practices\"]").text(), "Practice areas");
   assert.equal($(".vwb-site-footer__esr img").attr("src"), "/templates/beez3/img/esr.jpg");
   assert.equal($(".vwb-site-footer__social-link").length, 0);
@@ -83,6 +86,7 @@ test("el preset clásico conserva datos actuales y no reutiliza el HTML legacy s
   assert.equal($(".vwb-site-footer").length, 0);
   assert.match($(".vwb-classic-footer__brand").text(), /Firma actualizada, S\.C\./);
   assert.equal($(".vwb-classic-footer__contact-row").length, 2);
+  assert.equal($(".vwb-classic-footer__column h2").eq(0).text(), "LA FIRMA");
   assert.equal($(".vwb-classic-footer__social-link").length, 1);
   assert.equal($(".vwb-classic-footer [data-vwb-cookie-preferences=true]").length, 1);
   assert.equal($(".vwb-classic-footer__admin-link").attr("aria-label"), "Panel de administración");

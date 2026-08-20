@@ -151,7 +151,7 @@ export function applyCareersFormFix($: cheerio.CheerioAPI, lang: "es" | "en" = "
 
 /**
  * Reconstruye Contacto sobre la plantilla actual: cabecera editorial, datos,
- * mapa con consentimiento y formulario comercial conectado a PostgreSQL.
+ * mapa público de ubicación y formulario comercial conectado a PostgreSQL.
  */
 export function applyContactForm(
   $: cheerio.CheerioAPI,
@@ -281,10 +281,12 @@ export function applyContactForm(
   const $map = $wrap.find(".page__map").first().clone();
   const mapEmbed = safeGoogleMapsEmbed(cfg(config, "office_map_embed", lang));
   if (mapEmbed) $map.find("iframe").first().attr("src", mapEmbed);
-  $map.find("iframe").first().attr(
-    "title",
-    lang === "es" ? "Ubicación de Von Wobeser y Sierra en Google Maps" : "Von Wobeser y Sierra location on Google Maps",
-  );
+  $map.find("iframe").first()
+    .attr("data-vwb-contact-map", "always")
+    .attr(
+      "title",
+      lang === "es" ? "Ubicación de Von Wobeser y Sierra en Google Maps" : "Von Wobeser y Sierra location on Google Maps",
+    );
 
   const location = lang === "es"
     ? {

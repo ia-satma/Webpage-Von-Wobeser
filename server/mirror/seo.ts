@@ -312,6 +312,12 @@ export function applyA11y($: cheerio.CheerioAPI, lang: Lang): void {
   $("iframe[src]").each((_, el) => {
     const $iframe = $(el);
     const src = String($iframe.attr("src") || "");
+    // Solo el iframe saneado que renderiza Contacto se carga sin consentimiento.
+    // La marca se exige junto con la tarjeta propia para que un iframe externo
+    // de otra página no pueda declarar por sí mismo esta excepción.
+    const isContactMap = $iframe.attr("data-vwb-contact-map") === "always"
+      && $iframe.closest(".vw-contact-page__map-card").length > 0;
+    if (isContactMap) return;
     if (!/(?:youtube(?:-nocookie)?\.com|youtu\.be|player\.vimeo\.com|google\.[^/]+\/maps|google\.com\/maps)/i.test(src)) return;
     $iframe.attr("data-vwb-consent-src", privacyEnhancedExternalUrl(src)).removeAttr("src");
     $iframe.attr("data-vwb-consent-provider", /vimeo/i.test(src) ? "Vimeo" : /maps/i.test(src) ? "Google Maps" : "YouTube");

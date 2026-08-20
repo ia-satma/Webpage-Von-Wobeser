@@ -24,7 +24,7 @@ const CURRENT_HERO_MEDIA = {
 
 /** Default site-config keys for the editable parts of the mirror frontend. */
 const DEFAULTS: Array<{ key: string; value: string; valueEs?: string; type: string; category: string; description: string }> = [
-  { key: "cookie_consent_version", value: "1.0", type: "text", category: "privacy", description: "Versión del consentimiento de cookies" },
+  { key: "cookie_consent_version", value: "1.1", type: "text", category: "privacy", description: "Versión del consentimiento de cookies" },
   { key: "cookie_consent_validity_months", value: "6", type: "number", category: "privacy", description: "Vigencia del consentimiento en meses" },
   { key: "ga4_enabled", value: "false", type: "boolean", category: "privacy", description: "Activar GA4 únicamente después del consentimiento" },
   { key: "cookie_banner_title", value: "Your privacy, your choice", valueEs: "Tu privacidad, tu decisión", type: "text", category: "privacy", description: "Título del panel de cookies" },
@@ -36,7 +36,7 @@ const DEFAULTS: Array<{ key: string; value: string; valueEs?: string; type: stri
   { key: "cookie_preferences_body", value: "Choose which optional technologies may be used. You can change this decision at any time.", valueEs: "Elige qué tecnologías opcionales pueden utilizarse. Puedes cambiar esta decisión en cualquier momento.", type: "text", category: "privacy", description: "Descripción del configurador" },
   { key: "cookie_essential_description", value: "Required for security, administrative sessions and basic site operation.", valueEs: "Necesarias para seguridad, sesiones administrativas y funcionamiento básico del sitio.", type: "text", category: "privacy", description: "Descripción de cookies esenciales" },
   { key: "cookie_analytics_description", value: "Aggregate usage statistics through Google Analytics 4.", valueEs: "Estadísticas agregadas de uso mediante Google Analytics 4.", type: "text", category: "privacy", description: "Descripción de analítica" },
-  { key: "cookie_external_description", value: "YouTube, Vimeo and Google Maps content.", valueEs: "Contenido de YouTube, Vimeo y Google Maps.", type: "text", category: "privacy", description: "Descripción de contenido externo" },
+  { key: "cookie_external_description", value: "YouTube and Vimeo content.", valueEs: "Contenido de YouTube y Vimeo.", type: "text", category: "privacy", description: "Descripción de contenido externo" },
   { key: "site_favicon", value: "/favicon-512x512.png", type: "url", category: "seo", description: "Favicon global del sitio y del panel administrativo" },
   { key: "hero_video_master", value: CURRENT_HERO_MEDIA.master, type: "url", category: "home", description: "Archivo maestro original del hero" },
   { key: "hero_video", value: CURRENT_HERO_MEDIA.desktop, type: "url", category: "home", description: "Video Full HD optimizado del hero para escritorio" },

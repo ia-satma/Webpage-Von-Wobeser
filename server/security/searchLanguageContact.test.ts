@@ -156,6 +156,7 @@ test("Contacto usa la jerarquía aprobada, conserva el mapa y ofrece País y Ár
   assert.doesNotMatch($.html(), /18th floor/);
   assert.equal($(".page__map--holder iframe").attr("src"), "https://www.google.com/maps/embed?pb=official");
   assert.match($(".page__map--holder iframe").attr("title") || "", /Ubicación de Von Wobeser/);
+  assert.equal($(".page__map--holder iframe").attr("data-vwb-contact-map"), "always");
 });
 
 test("Contacto elimina el punto final heredado del título en ambos idiomas", () => {

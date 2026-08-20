@@ -1594,9 +1594,58 @@ b,strong {
   border: 15px solid #fff;
 }
 
+/*
+ * Los reconocimientos del panel no comparten una dimensión de archivo: algunos
+ * logos son cuadrados y otros panorámicos. Se contienen dentro de la celda
+ * histórica del carrusel para que su tamaño intrínseco nunca invada el Home.
+ */
+.home__rec--recognitions .home__rec--slider {
+  overflow: hidden;
+}
+
+.home__rec--recognitions .home__rec--slide {
+  height: 158px;
+  overflow: hidden;
+}
+
+.home__rec--recognitions .home__rec--slide > .home__rec--logo-frame,
+.home__rec--recognitions .home__rec--slide > .home__rec--logo-link > .home__rec--logo-frame {
+  align-items: center;
+  display: flex;
+  height: 100%;
+  justify-content: center;
+  width: 100%;
+}
+
+.home__rec--recognitions .home__rec--slide > .home__rec--logo-link {
+  display: block;
+  height: 100%;
+  text-decoration: none;
+}
+
+.home__rec--recognitions .home__rec--item {
+  display: block;
+  flex: 0 1 auto;
+  height: auto !important;
+  margin: 0 auto;
+  max-height: calc(100% - 30px);
+  max-width: calc(100% - 30px);
+  object-fit: contain;
+  width: auto !important;
+}
+
 @media (max-width: 680px) {
   .home__rec--item {
     border: 10px solid #fff;
+  }
+
+  .home__rec--recognitions .home__rec--slide {
+    height: 107px;
+  }
+
+  .home__rec--recognitions .home__rec--item {
+    max-height: calc(100% - 20px);
+    max-width: calc(100% - 20px);
   }
 
   .logo_cham{

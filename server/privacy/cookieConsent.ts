@@ -5,7 +5,7 @@ import { legalDocuments } from "@shared/schema";
 import { cfg, getConfigMap, upsertConfig } from "../mirror/siteConfig";
 import { sanitizeCms } from "../mirror/sanitize";
 
-export const COOKIE_POLICY_VERSION = "1.0";
+export const COOKIE_POLICY_VERSION = "1.1";
 
 export const cookieConsentSchema = z.object({
   version: z.string().trim().min(1).max(24),
@@ -41,11 +41,11 @@ const fallback = {
   preferencesBody: { en: "Choose which optional technologies may be used. You can change this decision at any time.", es: "Elige qué tecnologías opcionales pueden utilizarse. Puedes cambiar esta decisión en cualquier momento." },
   essentialDescription: { en: "Required for security, administrative sessions and basic site operation.", es: "Necesarias para seguridad, sesiones administrativas y funcionamiento básico del sitio." },
   analyticsDescription: { en: "Helps us understand aggregate site usage through Google Analytics 4.", es: "Nos ayuda a comprender el uso agregado del sitio mediante Google Analytics 4." },
-  externalDescription: { en: "Allows YouTube, Vimeo and Google Maps content to load.", es: "Permite cargar contenido de YouTube, Vimeo y Google Maps." },
+  externalDescription: { en: "Allows YouTube and Vimeo content to load.", es: "Permite cargar contenido de YouTube y Vimeo." },
   policyTitle: { en: "Cookie Policy", es: "Política de Cookies" },
   policyContent: {
-    en: `<p>This policy explains how Von Wobeser y Sierra uses cookies and similar technologies.</p><h2>Technologies</h2><table><thead><tr><th>Provider / technology</th><th>Category</th><th>Purpose</th><th>Duration</th><th>Recipient or transfer</th></tr></thead><tbody><tr><td>Von Wobeser / vwb_cookie_consent</td><td>Essential</td><td>Stores the consent version, authorized categories and decision date.</td><td>Six months</td><td>Von Wobeser; no advertising transfer.</td></tr><tr><td>Von Wobeser / __Host-vwb_admin_session</td><td>Essential</td><td>Protects authenticated administrative sessions.</td><td>Session security limits</td><td>Von Wobeser and its managed infrastructure.</td></tr><tr><td>Replit hosting infrastructure / GAESA</td><td>Essential</td><td>Technical hosting and delivery of the site deployed on Replit.</td><td>Up to 30 days, according to the hosting infrastructure.</td><td>Replit and its delivery infrastructure.</td></tr><tr><td>Google Analytics 4 / _ga and _ga_*</td><td>Analytics</td><td>Aggregate audience measurement, only after consent.</td><td>According to the configured Google service limits</td><td>Google may process information under its applicable terms.</td></tr><tr><td>YouTube (privacy-enhanced mode), Vimeo (DNT) and Google Maps</td><td>External content</td><td>Displays videos or maps requested by the visitor.</td><td>Defined by each provider</td><td>The selected provider may receive technical connection data.</td></tr></tbody></table><h2>Withdrawing consent</h2><p>You may change or withdraw your consent at any time through “Cookie preferences” in the footer. Optional providers will not load again after withdrawal. The choice is valid for six months, unless this policy changes first.</p>`,
-    es: `<p>Esta política explica cómo Von Wobeser y Sierra utiliza cookies y tecnologías similares.</p><h2>Tecnologías</h2><table><thead><tr><th>Proveedor / tecnología</th><th>Categoría</th><th>Propósito</th><th>Duración</th><th>Destinatario o transferencia</th></tr></thead><tbody><tr><td>Von Wobeser / vwb_cookie_consent</td><td>Esencial</td><td>Guarda la versión, categorías autorizadas y fecha de decisión.</td><td>Seis meses</td><td>Von Wobeser; sin transferencia publicitaria.</td></tr><tr><td>Von Wobeser / __Host-vwb_admin_session</td><td>Esencial</td><td>Protege las sesiones administrativas autenticadas.</td><td>Límites de seguridad de la sesión</td><td>Von Wobeser y su infraestructura administrada.</td></tr><tr><td>Infraestructura de alojamiento Replit / GAESA</td><td>Esencial</td><td>Alojamiento técnico y entrega del sitio desplegado en Replit.</td><td>Hasta 30 días, según la infraestructura de alojamiento.</td><td>Replit y su infraestructura de entrega.</td></tr><tr><td>Google Analytics 4 / _ga y _ga_*</td><td>Analítica</td><td>Medición agregada de audiencia, únicamente con consentimiento.</td><td>Según los límites configurados del servicio de Google</td><td>Google puede tratar información conforme a sus términos aplicables.</td></tr><tr><td>YouTube (modo de privacidad mejorada), Vimeo (DNT) y Google Maps</td><td>Contenido externo</td><td>Muestra videos o mapas solicitados por el visitante.</td><td>Definida por cada proveedor</td><td>El proveedor seleccionado puede recibir datos técnicos de conexión.</td></tr></tbody></table><h2>Retiro del consentimiento</h2><p>Puedes cambiar o retirar tu consentimiento en cualquier momento desde “Preferencias de cookies” en el pie de página. Los proveedores opcionales no volverán a cargarse después del retiro. La elección tendrá una vigencia de seis meses, salvo que esta política cambie antes.</p>`,
+    en: `<p>This policy explains how Von Wobeser y Sierra uses cookies and similar technologies.</p><h2>Technologies</h2><table><thead><tr><th>Provider / technology</th><th>Category</th><th>Purpose</th><th>Duration</th><th>Recipient or transfer</th></tr></thead><tbody><tr><td>Von Wobeser / vwb_cookie_consent</td><td>Essential</td><td>Stores the consent version, authorized categories and decision date.</td><td>Six months</td><td>Von Wobeser; no advertising transfer.</td></tr><tr><td>Von Wobeser / __Host-vwb_admin_session</td><td>Essential</td><td>Protects authenticated administrative sessions.</td><td>Session security limits</td><td>Von Wobeser and its managed infrastructure.</td></tr><tr><td>Replit hosting infrastructure / GAESA</td><td>Essential</td><td>Technical hosting and delivery of the site deployed on Replit.</td><td>Up to 30 days, according to the hosting infrastructure.</td><td>Replit and its delivery infrastructure.</td></tr><tr><td>Google Analytics 4 / _ga and _ga_*</td><td>Analytics</td><td>Aggregate audience measurement, only after consent.</td><td>According to the configured Google service limits</td><td>Google may process information under its applicable terms.</td></tr><tr><td>Google Maps (Contact page)</td><td>Location service (automatically loaded)</td><td>Displays the office location when the Contact page is opened.</td><td>Defined by Google</td><td>Google receives technical connection data according to its applicable policies.</td></tr><tr><td>YouTube (privacy-enhanced mode) and Vimeo (DNT)</td><td>External content</td><td>Displays videos requested by the visitor after consent.</td><td>Defined by each provider</td><td>The selected provider may receive technical connection data.</td></tr></tbody></table><h2>Withdrawing consent</h2><p>You may change or withdraw consent for optional providers at any time through “Cookie preferences” in the footer. Videos and other optional providers will not load again after withdrawal. Google Maps on the Contact page is loaded automatically to display the office location. The choice is valid for six months, unless this policy changes first.</p>`,
+    es: `<p>Esta política explica cómo Von Wobeser y Sierra utiliza cookies y tecnologías similares.</p><h2>Tecnologías</h2><table><thead><tr><th>Proveedor / tecnología</th><th>Categoría</th><th>Propósito</th><th>Duración</th><th>Destinatario o transferencia</th></tr></thead><tbody><tr><td>Von Wobeser / vwb_cookie_consent</td><td>Esencial</td><td>Guarda la versión, categorías autorizadas y fecha de decisión.</td><td>Seis meses</td><td>Von Wobeser; sin transferencia publicitaria.</td></tr><tr><td>Von Wobeser / __Host-vwb_admin_session</td><td>Esencial</td><td>Protege las sesiones administrativas autenticadas.</td><td>Límites de seguridad de la sesión</td><td>Von Wobeser y su infraestructura administrada.</td></tr><tr><td>Infraestructura de alojamiento Replit / GAESA</td><td>Esencial</td><td>Alojamiento técnico y entrega del sitio desplegado en Replit.</td><td>Hasta 30 días, según la infraestructura de alojamiento.</td><td>Replit y su infraestructura de entrega.</td></tr><tr><td>Google Analytics 4 / _ga y _ga_*</td><td>Analítica</td><td>Medición agregada de audiencia, únicamente con consentimiento.</td><td>Según los límites configurados del servicio de Google</td><td>Google puede tratar información conforme a sus términos aplicables.</td></tr><tr><td>Google Maps (página de Contacto)</td><td>Servicio de ubicación (carga automática)</td><td>Muestra la ubicación de la oficina al abrir la página de Contacto.</td><td>Definida por Google</td><td>Google recibe datos técnicos de conexión conforme a sus políticas aplicables.</td></tr><tr><td>YouTube (modo de privacidad mejorada) y Vimeo (DNT)</td><td>Contenido externo</td><td>Muestra videos solicitados por el visitante después de su autorización.</td><td>Definida por cada proveedor</td><td>El proveedor seleccionado puede recibir datos técnicos de conexión.</td></tr></tbody></table><h2>Retiro del consentimiento</h2><p>Puedes cambiar o retirar el consentimiento para proveedores opcionales en cualquier momento desde “Preferencias de cookies” en el pie de página. Los videos y otros proveedores opcionales no volverán a cargarse después del retiro. Google Maps en la página de Contacto se carga automáticamente para mostrar la ubicación de la oficina. La elección tendrá una vigencia de seis meses, salvo que esta política cambie antes.</p>`,
   },
 };
 
@@ -144,21 +144,39 @@ export async function seedCookiePolicy() {
   for (const [key, en, es] of defaults) {
     if (!map[key]) await upsertConfig(key, en, es);
   }
+
+  // La versión 1.1 declara el mapa de Contacto como carga automática. Solo se
+  // actualizan valores que siguen siendo exactamente los predeterminados; una
+  // personalización hecha desde Administración siempre prevalece.
+  if (map.cookie_consent_version?.value === "1.0") {
+    await upsertConfig("cookie_consent_version", fallback.version);
+  }
+  if (
+    map.cookie_external_description?.value === "YouTube, Vimeo and Google Maps content."
+    && map.cookie_external_description?.valueEs === "Contenido de YouTube, Vimeo y Google Maps."
+  ) {
+    await upsertConfig("cookie_external_description", fallback.externalDescription.en, fallback.externalDescription.es);
+  }
   const [existing] = await db.select().from(legalDocuments).where(eq(legalDocuments.type, "cookie_policy")).limit(1);
   if (!existing) {
     await db.insert(legalDocuments).values({ type: "cookie_policy", title: fallback.policyTitle.en, titleEs: fallback.policyTitle.es, content: fallback.policyContent.en, contentEs: fallback.policyContent.es, version: fallback.version, published: true });
     return;
   }
 
-  // Solo migra el texto predeterminado de la primera entrega. Una redacción
-  // editada desde Administración nunca se sobrescribe.
-  const isPreviousDefault = existing.content.includes("This technical wording must be validated by the firm's privacy counsel")
-    && existing.content.includes("Google Analytics 4 / _ga and _ga_*")
-    && existing.contentEs.includes("Esta redacción técnica deberá ser validada por el responsable jurídico")
-    && existing.contentEs.includes("Google Analytics 4 / _ga y _ga_*");
-  if (isPreviousDefault) {
+  // Solo reemplaza la fila técnica heredada del mapa; el resto de una política
+  // editada en Administración se conserva intacto.
+  const legacyMapRowEn = "<tr><td>YouTube (privacy-enhanced mode), Vimeo (DNT) and Google Maps</td><td>External content</td><td>Displays videos or maps requested by the visitor.</td><td>Defined by each provider</td><td>The selected provider may receive technical connection data.</td></tr>";
+  const legacyMapRowEs = "<tr><td>YouTube (modo de privacidad mejorada), Vimeo (DNT) y Google Maps</td><td>Contenido externo</td><td>Muestra videos o mapas solicitados por el visitante.</td><td>Definida por cada proveedor</td><td>El proveedor seleccionado puede recibir datos técnicos de conexión.</td></tr>";
+  const hasLegacyMapDisclosure = existing.content.includes(legacyMapRowEn)
+    && existing.contentEs.includes(legacyMapRowEs);
+  if (hasLegacyMapDisclosure) {
     await db.update(legalDocuments)
-      .set({ content: fallback.policyContent.en, contentEs: fallback.policyContent.es, updatedAt: new Date() })
+      .set({
+        content: existing.content.replace(legacyMapRowEn, "<tr><td>Google Maps (Contact page)</td><td>Location service (automatically loaded)</td><td>Displays the office location when the Contact page is opened.</td><td>Defined by Google</td><td>Google receives technical connection data according to its applicable policies.</td></tr><tr><td>YouTube (privacy-enhanced mode) and Vimeo (DNT)</td><td>External content</td><td>Displays videos requested by the visitor after consent.</td><td>Defined by each provider</td><td>The selected provider may receive technical connection data.</td></tr>"),
+        contentEs: existing.contentEs.replace(legacyMapRowEs, "<tr><td>Google Maps (página de Contacto)</td><td>Servicio de ubicación (carga automática)</td><td>Muestra la ubicación de la oficina al abrir la página de Contacto.</td><td>Definida por Google</td><td>Google recibe datos técnicos de conexión conforme a sus políticas aplicables.</td></tr><tr><td>YouTube (modo de privacidad mejorada) y Vimeo (DNT)</td><td>Contenido externo</td><td>Muestra videos solicitados por el visitante después de su autorización.</td><td>Definida por cada proveedor</td><td>El proveedor seleccionado puede recibir datos técnicos de conexión.</td></tr>"),
+        version: existing.version === "1.0" ? fallback.version : existing.version,
+        updatedAt: new Date(),
+      })
       .where(eq(legalDocuments.id, existing.id));
   }
 }

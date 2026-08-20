@@ -932,7 +932,11 @@ export function renderHome(
         const name = esc(lang === "es" ? r.nameEs || r.name : r.name);
         const responsive = responsiveUploadAttributes(String(r.logoUrl || ""), availablePersistentMediaPaths);
         const img = `<img class="home__rec--item" src="${esc(r.logoUrl)}"${responsive} alt="${name}" title="${name}" loading="lazy" decoding="async">`;
-        const content = r.externalUrl ? `<a href="${esc(r.externalUrl)}" target="_blank" rel="noopener">${img}</a>` : img;
+        // Los archivos de reconocimientos provienen del panel y pueden tener
+        // dimensiones intrínsecas muy distintas. El marco da al CSS una caja
+        // estable para contenerlos sin cambiar su proporción ni su enlace.
+        const visual = `<span class="home__rec--logo-frame">${img}</span>`;
+        const content = r.externalUrl ? `<a class="home__rec--logo-link" href="${esc(r.externalUrl)}" target="_blank" rel="noopener">${visual}</a>` : visual;
         // Slick asigna role=listitem al nodo de cada slide. Un contenedor real
         // evita que ese rol termine aplicado directamente a la imagen.
         return `<div class="home__rec--slide">${content}</div>`;

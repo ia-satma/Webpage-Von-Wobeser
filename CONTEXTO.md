@@ -1,38 +1,47 @@
 # Contexto vigente — Von Wobeser y Sierra
 
-Última actualización: **2026-08-12 CST**.
+Última actualización: **2026-08-18, America/Monterrey**.
 
-Este archivo es el punto de entrada para continuar el proyecto. El detalle técnico, decisiones,
-errores corregidos, verificación y pendientes se encuentra en
-[`docs/CONTEXT-2026-08-12.md`](docs/CONTEXT-2026-08-12.md).
+Este archivo es el punto de entrada para continuar el proyecto. El estado completo de
+arquitectura, contenido, CMS, agentes, seguridad, navegación, auditorías, Replit, despliegue y
+pendientes se encuentra en
+[`docs/CONTEXT-2026-08-18.md`](docs/CONTEXT-2026-08-18.md).
 
 ## Estado breve
 
 - Fuente de verdad: `ia-satma/Webpage-Von-Wobeser`, rama `main`.
-- Sitio público: espejo editorial servido y enriquecido por Express.
-- Administración: aplicación React bajo `/admin/*`.
-- Datos: PostgreSQL de desarrollo y producción administrados desde Replit.
+- Commit vigente al levantar este contexto: `556dc1f`; `HEAD` y `origin/main` estaban
+  sincronizados (`0 0`).
+- Sitio público: espejo editorial HTML/Joomla servido y enriquecido por Express; **no es React**.
+- Administración: SPA React únicamente bajo `/admin/*`.
+- Datos: PostgreSQL/Drizzle con **56 tablas y 627 columnas**; migraciones versionadas,
+  transaccionales e idempotentes.
 - Archivos persistentes: Replit App Storage; PostgreSQL conserva rutas y metadatos.
-- Tipografía editorial vigente: **Gelasio** para introducciones y títulos, e **Inter** para
-  cuerpo e interfaz.
-- Idiomas: español e inglés con rutas, `canonical`, `hreflang` y selector compartidos.
-- Contenido canónico: 18 prácticas, 7 industrias y 133 perfiles oficiales bilingües;
-  el directorio conserva además 9 perfiles propios para un total de 142 publicados.
-- Handoff al cliente: detección de instalación, restauración completa cifrada y creación
-  segura del Dueño desde Replit Secrets; una Database nueva muestra una pantalla de
-  instalación en vez de fallar el deployment.
-- Validación más reciente documentada: TypeScript, build y **240/240 pruebas de seguridad**.
+- Idiomas y tipografía: ES/EN; Gelasio para jerarquía editorial e Inter para cuerpo e interfaz.
+- Contenido canónico: 18 prácticas, 7 industrias y 133 perfiles oficiales; el proyecto publica
+  9 perfiles adicionales, para un total auditado de 142.
+- Navegación activa: menú definitivo 2026, con `Insights` en ambos idiomas; el menú clásico
+  continúa disponible como respaldo reversible desde el CMS.
+- Publicaciones: 11 notas bilingües de 2026 incorporadas con 22 PDF y relaciones de autores;
+  las consultas muestran primero contenido con fecha reciente y conservan después los registros
+  sin fecha.
+- Agentes: 14 agentes canónicos y un historial privado, permanente e inmutable de Copys IA.
+- Seguridad: CSP obligatoria con nonce, SRI local, cookies propias seguras, CV privados y
+  controles de suministro/dependencias.
+- Producción respondió `200` el 18-ago-2026 y reflejó el menú definitivo, `Insights` y las notas
+  recientes. El SHA exacto del deployment no se expone en la respuesta HTTP.
 
 ## Reglas de continuidad
 
-1. No incluir contraseñas, tokens, cadenas de conexión ni valores de Secrets en Git o notas.
-2. No volver a almacenar cargas en el filesystem efímero como fuente única.
-3. Todo contenido nuevo debe heredar Gelasio/Inter; el editor elimina familias pegadas.
-4. No ejecutar migraciones destructivas ni pruebas invasivas contra producción.
-5. Los historiales de imágenes, audios y presentaciones son permanentes e inmutables.
-6. Antes de cerrar un lote: `npm run check`, `npm run test:security`, `npm run build` y
-   `git diff --check`.
-7. La aceptación final requiere recorrido humano ES/EN, móvil/escritorio y panel, además de
-   retroalimentación del cliente.
-8. Para una cuenta Replit nueva, usar `npm run handoff:status -- --directory=.handoff` y
-   después `npm run handoff:install`; nunca pegar valores de Secrets en Shell, Git o chat.
+1. Leer primero [`docs/CONTEXT-2026-08-18.md`](docs/CONTEXT-2026-08-18.md) y `replit.md`.
+2. No incluir contraseñas, tokens, URLs de base, paquetes `.handoff` ni valores de Secrets en Git,
+   notas, comandos compartidos o capturas.
+3. No borrar ni mover `frontend-mirror/`: es un activo obligatorio de runtime.
+4. No ejecutar migraciones destructivas ni aceptar SQL `DROP` generado por Replit sin una
+   revisión explícita.
+5. No procesar directamente una publicación publicada: crear un borrador de trabajo.
+6. No publicar cambios sin confirmar rama, SHA, CI, Preview y alcance de migraciones.
+7. Antes de cerrar un lote: `npm run check`, `npm run test:security`,
+   `npm run test:performance`, `npm run build` y `git diff --check`.
+8. Para una cuenta Replit nueva, usar el flujo `handoff:status` → `handoff:install`; no sustituir
+   una restauración completa por `db:migrate` sobre una base vacía.

@@ -17,6 +17,7 @@ test("el HTML público bloquea analítica y proveedores externos antes del conse
     <iframe src="https://www.youtube.com/embed/demo"></iframe>
     <iframe src="https://player.vimeo.com/video/123"></iframe>
     <iframe src="https://www.google.com/maps/embed?pb=demo"></iframe>
+    <section class="vw-contact-page"><div class="vw-contact-page__map-card"><iframe data-vwb-contact-map="always" src="https://www.google.com/maps/embed?pb=contact"></iframe></div></section>
     <img src="https://i.ytimg.com/vi/demo/hqdefault.jpg" alt="Video">
     <a href="#" data-cookie-preferences>Preferencias de cookies</a>
   </body></html>`);
@@ -25,7 +26,8 @@ test("el HTML público bloquea analítica y proveedores externos antes del conse
 
   assert.equal($('script[src*="googletagmanager"]').length, 0);
   assert.equal($("script").filter((_, node) => /gtag\(/.test($(node).html() || "")).length, 0);
-  assert.equal($("iframe[src]").length, 0);
+  assert.equal($("iframe[src]").length, 1);
+  assert.equal($("iframe[data-vwb-contact-map='always']").attr("src"), "https://www.google.com/maps/embed?pb=contact");
   assert.equal($("iframe[data-vwb-consent-src]").length, 3);
   assert.match($("iframe").eq(0).attr("data-vwb-consent-src") || "", /youtube-nocookie\.com/);
   assert.match($("iframe").eq(1).attr("data-vwb-consent-src") || "", /[?&]dnt=1/);
@@ -120,4 +122,7 @@ test("la política pública usa la composición editorial y las dos fuentes inst
   assert.doesNotMatch(mirrorSource, /policyVersionLabel/);
   assert.match(policySource, /Infraestructura de alojamiento Replit \/ GAESA/);
   assert.match(policySource, /Replit hosting infrastructure \/ GAESA/);
+  assert.match(policySource, /Google Maps \(página de Contacto\)/);
+  assert.match(policySource, /Google Maps \(Contact page\)/);
+  assert.match(policySource, /COOKIE_POLICY_VERSION = "1\.1"/);
 });
