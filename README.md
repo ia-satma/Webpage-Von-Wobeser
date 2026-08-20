@@ -27,7 +27,7 @@ npm run dev      # NODE_ENV=development, tsx + Vite/HMR, puerto 5000 (o PORT)
 
 - `npm run build` → produce `dist/index.cjs`.
 - `npm run start` → inicia el build de producción (`node dist/index.cjs`).
-- `npm run start:workspace` → en un Repl nuevo detecta una entrega pendiente y muestra una pantalla segura; cuando la base está lista inicia el modo de desarrollo.
+- `npm run start:workspace` → en un Repl nuevo detecta una entrega pendiente y muestra una pantalla segura; cuando la base está lista inicia el modo de desarrollo. El servidor vigila los cambios y se reinicia al actualizar el código o el CSS/SRI, para que Preview no mezcle recursos de versiones distintas.
 - `npm run start:deploy` → detecta una entrega pendiente sin fallar el deployment; con una base completa aplica migraciones y después inicia producción.
 - `npm run db:migrate` → aplica migraciones SQL versionadas e idempotentes.
 - `npm run db:replit-migrate -- <comando>` → audita, respalda, restaura y compara la migración a las bases administradas por Replit. Procedimiento en [`docs/REPLIT_DATABASE_MIGRATION.md`](./docs/REPLIT_DATABASE_MIGRATION.md).

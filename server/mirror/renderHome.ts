@@ -772,6 +772,27 @@ export function renderHome(
   availablePersistentMediaPaths: ReadonlySet<string> | null = null,
 ): string {
   const $ = cheerio.load(templateHtml);
+  // La captura histórica de Inicio no cierra el hero antes de imprimir el
+  // cromo persistente. El menú parecía tolerarlo hasta que el hero pasó a
+  // aislar el video para móvil: `isolation` y `overflow` atrapan a header/nav
+  // debajo de las secciones posteriores y sus controles dejan de recibir clics.
+  // Se clonan y se reinsertan fuera del hero para conservar el orden de la
+  // plantilla sin mover un descendiente directamente fuera de su ancestro.
+  const legacyHero = $(".home__hero").first();
+  const legacyHeader = $("header.header_JS").first();
+  const legacyNavigation = $("nav.nav.menu_JS").first();
+  const body = $("body").first();
+  if (legacyHero.length && body.length && (legacyHeader.length || legacyNavigation.length)) {
+    const relocatedHeader = legacyHeader.length ? legacyHeader.clone() : null;
+    const relocatedNavigation = legacyNavigation.length ? legacyNavigation.clone() : null;
+    legacyHeader.remove();
+    legacyNavigation.remove();
+    // Se insertan a nivel documento, no junto al hero: el wrapper histórico
+    // `#breadcrumbs` también queda abierto alrededor del contenido de Inicio.
+    // Dos `prepend` preservan header → navegación → contenido.
+    if (relocatedNavigation) body.prepend(relocatedNavigation);
+    if (relocatedHeader) body.prepend(relocatedHeader);
+  }
   // El HTML histórico deja sin cerrar el contenedor del hero antes de la
   // franja roja. Si se conserva esa anidación, el banner se pinta encima del
   // video (especialmente en móvil) en lugar de iniciar la siguiente sección.

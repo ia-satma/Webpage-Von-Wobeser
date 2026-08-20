@@ -196,18 +196,29 @@ test("la franja de Nuevas oficinas sale del hero heredado antes de renderizarse"
   assert.equal($(".home__hero").next("section").find(".home__rojo--title").text(), "Vamos a donde los clientes nos necesitan");
 });
 
-test("la plantilla real de Inicio conserva la franja fuera del hero y antes de los testimonios", () => {
-  const realTemplate = readFileSync(new URL("../../frontend-mirror/index.html", import.meta.url), "utf8");
-  const $ = cheerio.load(renderHome(realTemplate, [], {}, "es"));
-  const hero = $(".home__hero").first();
-  const banner = $(".home__rojo").first();
-  const bannerSection = banner.closest("section");
+test("la plantilla real de Inicio conserva el cromo persistente fuera del hero y la franja antes de los testimonios", () => {
+  for (const [templatePath, lang] of [
+    ["../../frontend-mirror/index.php/home/index.html", "es"],
+    ["../../frontend-mirror/index.html", "en"],
+  ] as const) {
+    const realTemplate = readFileSync(new URL(templatePath, import.meta.url), "utf8");
+    const $ = cheerio.load(renderHome(realTemplate, [], {}, lang));
+    const hero = $(".home__hero").first();
+    const banner = $(".home__rojo").first();
+    const bannerSection = banner.closest("section");
+    const header = $("body > header.header_JS").first();
+    const navigation = $("body > nav.nav.menu_JS").first();
 
-  assert.equal($(".home__rojo").length, 1);
-  assert.equal(banner.closest(".home__hero").length, 0);
-  assert.equal(bannerSection.prev().is(hero), true);
-  assert.equal(bannerSection.next("#nav").length, 1);
-  assert.equal($("#nav .home__intro--wrap").length, 1);
+    assert.equal(header.length, 1, lang);
+    assert.equal(navigation.length, 1, lang);
+    assert.equal(header.next().is(navigation), true, lang);
+    assert.equal(hero.find("header.header_JS, nav.nav.menu_JS").length, 0, lang);
+    assert.equal($(".home__rojo").length, 1, lang);
+    assert.equal(banner.closest(".home__hero").length, 0, lang);
+    assert.equal(bannerSection.prev().is(hero), true, lang);
+    assert.equal(bannerSection.next("#nav").length, 1, lang);
+    assert.equal($("#nav .home__intro--wrap").length, 1, lang);
+  }
 });
 
 test("Newsletter oculta solo la etiqueta vacía y permite restaurarla desde configuración", () => {

@@ -63,3 +63,15 @@ test("Vite normaliza una URL de Replit y descarta hosts inválidos", () => {
   assert.equal(invalid.protocol, "wss");
   assert.equal(invalid.clientPort, 443);
 });
+
+test("el Preview de Replit vigila el servidor para no mezclar HTML y CSS de versiones distintas", () => {
+  const packageJson = readFileSync(new URL("../../package.json", import.meta.url), "utf8");
+  const replitConfig = readFileSync(new URL("../../.replit", import.meta.url), "utf8");
+
+  // Si `npm run build` regenera el CSS/SRI mientras Preview está abierto, el
+  // proceso debe reiniciarse y volver a leer el manifiesto. De otro modo el
+  // HTML puede conservar una firma anterior y el navegador rechaza el CSS.
+  assert.match(packageJson, /"dev":\s*"NODE_ENV=development tsx watch server\/index\.ts"/);
+  assert.match(replitConfig, /args\s*=\s*"npm run start:workspace"/);
+  assert.match(replitConfig, /waitForPort\s*=\s*5000/);
+});
