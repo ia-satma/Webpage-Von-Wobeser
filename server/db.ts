@@ -2,6 +2,7 @@ import { drizzle } from "drizzle-orm/node-postgres";
 import pg from "pg";
 import * as schema from "@shared/schema";
 import { getPostgresConnectionConfig } from "@shared/postgres-config.mjs";
+import { attachDatabasePoolErrorHandler } from "./database/poolSafety";
 
 // Driver estándar de Postgres (node-postgres / pg). Se conecta a proveedores externos
 // con TLS validado y a la Postgres integrada de Replit por su red interna sin SSL.
@@ -22,6 +23,7 @@ const pool = new pg.Pool({
     readOnly: process.env.SECURITY_READ_ONLY_SMOKE === "true",
   }),
 });
+attachDatabasePoolErrorHandler(pool);
 
 export const db = drizzle(pool, { schema });
 
