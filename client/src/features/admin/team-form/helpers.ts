@@ -33,16 +33,17 @@ export function teamMemberToFormData(member: TeamMember): TeamMemberFormData {
 }
 
 export function teamFormToPayload(data: TeamMemberFormData) {
+  const { order: _editorialOrder, ...editableData } = data;
   return normalizeSpanishPartnerFields({
-    ...data,
-    email: data.email || null,
-    phone: data.phone || null,
-    linkedinUrl: data.linkedinUrl || null,
-    imageUrl: data.imageUrl || null,
-    bio: data.bio || null,
-    bioEs: data.bioEs || null,
-    bioIntro: data.bioIntro || null,
-    bioIntroEs: data.bioIntroEs || null,
+    ...editableData,
+    email: editableData.email || null,
+    phone: editableData.phone || null,
+    linkedinUrl: editableData.linkedinUrl || null,
+    imageUrl: editableData.imageUrl || null,
+    bio: editableData.bio || null,
+    bioEs: editableData.bioEs || null,
+    bioIntro: editableData.bioIntro || null,
+    bioIntroEs: editableData.bioIntroEs || null,
   });
 }
 

@@ -386,7 +386,7 @@ test("Formulario de Abogados conserva contratos, relaciones y superficie adminis
   ]);
   assert.deepEqual(Object.keys(teamFormTranslations), ["en", "es"]);
   assert.equal((source.match(/<TabsTrigger/g) || []).length, 5);
-  assert.equal((source.match(/data-testid=/g) || []).length, 20);
+  assert.equal((source.match(/data-testid=/g) || []).length, 19);
   for (const field of ["bioIntro", "bioIntroEs", "bio", "bioEs"]) {
     assert.match(source, new RegExp(`field="${field}"`));
   }

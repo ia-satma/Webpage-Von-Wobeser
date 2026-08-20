@@ -1,6 +1,8 @@
-import { eq, desc, asc, and, inArray, ilike } from "drizzle-orm";
+import { eq, desc, asc, and, inArray, ilike, sql } from "drizzle-orm";
 import { normalizeSpanishPartnerFields } from "@shared/attorneyTitles";
+import type { AttorneyOrderCategoryId } from "@shared/attorneyOrder";
 import { type PracticeGroup, type InsertPracticeGroup, type IndustryGroup, type InsertIndustryGroup, type TeamMember, type InsertTeamMember, type RepresentativeMatterDb, type InsertRepresentativeMatter, type SpecializedDesk, type InsertSpecializedDesk, practiceGroups, industryGroups, teamMembers, teamMemberPracticeGroups, teamMemberIndustryGroups, teamMemberDesks, representativeMatters, specializedDesks } from "@shared/schema";
+import { attorneyOrderVersion, getAttorneyOrderCategory, hasExactAttorneySet } from "../../attorneys/order";
 import type { StorageDatabase } from "../types";
 
 export function createPeopleRepository(db: StorageDatabase) {
@@ -63,18 +65,51 @@ export function createPeopleRepository(db: StorageDatabase) {
 
     async createTeamMember(member: InsertTeamMember): Promise<TeamMember> {
       const normalizedMember = normalizeSpanishPartnerFields(member);
-      const [item] = await db.insert(teamMembers).values(normalizedMember as typeof teamMembers.$inferInsert).returning();
-      return item;
+      return db.transaction(async (tx) => {
+        // El orden no se recibe como una prioridad arbitraria: un alta entra al
+        // final de su categoría pública y después puede moverse desde el panel.
+        await tx.execute(sql`LOCK TABLE ${teamMembers} IN SHARE ROW EXCLUSIVE MODE`);
+        const [current] = await tx
+          .select({ maxOrder: sql<number>`COALESCE(MAX(${teamMembers.order}), 0)` })
+          .from(teamMembers)
+          .where(eq(teamMembers.title, normalizedMember.title));
+        const [item] = await tx
+          .insert(teamMembers)
+          .values({ ...normalizedMember, order: Number(current?.maxOrder ?? 0) + 1 } as typeof teamMembers.$inferInsert)
+          .returning();
+        return item;
+      });
     }
 
     async updateTeamMember(id: string, member: Partial<InsertTeamMember>): Promise<TeamMember | undefined> {
       const current = await this.getTeamMemberById(id);
-      const normalized = normalizeSpanishPartnerFields({ ...(current ?? {}), ...member });
+      if (!current) return undefined;
+      // La prioridad editorial pertenece al reordenador por categoría. Ignorar
+      // cualquier valor legado recibido desde la ficha evita colisiones o saltos.
+      const { order: _ignoredOrder, ...memberWithoutOrder } = member;
+      const normalized = normalizeSpanishPartnerFields({ ...current, ...memberWithoutOrder });
       const normalizedMember: Partial<InsertTeamMember> = {
-        ...member,
+        ...memberWithoutOrder,
         ...(normalized.titleEs !== undefined ? { titleEs: normalized.titleEs } : {}),
         ...(normalized.roleEs !== undefined ? { roleEs: normalized.roleEs } : {}),
       };
+
+      if (normalized.title !== current.title) {
+        return db.transaction(async (tx) => {
+          await tx.execute(sql`LOCK TABLE ${teamMembers} IN SHARE ROW EXCLUSIVE MODE`);
+          const [target] = await tx
+            .select({ maxOrder: sql<number>`COALESCE(MAX(${teamMembers.order}), 0)` })
+            .from(teamMembers)
+            .where(eq(teamMembers.title, normalized.title || ""));
+          const [item] = await tx
+            .update(teamMembers)
+            .set({ ...normalizedMember, order: Number(target?.maxOrder ?? 0) + 1 } as Partial<typeof teamMembers.$inferInsert>)
+            .where(eq(teamMembers.id, id))
+            .returning();
+          return item;
+        });
+      }
+
       const [item] = await db
         .update(teamMembers)
         .set(normalizedMember as Partial<typeof teamMembers.$inferInsert>)
@@ -89,6 +124,52 @@ export function createPeopleRepository(db: StorageDatabase) {
         .where(eq(teamMembers.id, id))
         .returning();
       return result.length > 0;
+    }
+
+    async getTeamMembersForOrder(categoryId: AttorneyOrderCategoryId): Promise<TeamMember[]> {
+      const category = getAttorneyOrderCategory(categoryId);
+      return db
+        .select()
+        .from(teamMembers)
+        .where(eq(teamMembers.title, category.title))
+        .orderBy(asc(teamMembers.order), asc(teamMembers.id));
+    }
+
+    async reorderTeamMembers(categoryId: AttorneyOrderCategoryId, ids: string[], expectedVersion: string): Promise<
+      | { ok: true; members: TeamMember[] }
+      | { ok: false; reason: "stale" }
+    > {
+      const category = getAttorneyOrderCategory(categoryId);
+      return db.transaction(async (tx) => {
+        // Se bloquea el conjunto durante la validación y la escritura para no
+        // perder movimientos si otro administrador agrega, elimina o reordena.
+        await tx.execute(sql`LOCK TABLE ${teamMembers} IN SHARE ROW EXCLUSIVE MODE`);
+        const current = await tx
+          .select({ id: teamMembers.id, order: teamMembers.order })
+          .from(teamMembers)
+          .where(eq(teamMembers.title, category.title))
+          .orderBy(asc(teamMembers.order), asc(teamMembers.id));
+        if (
+          !hasExactAttorneySet(current.map((member) => member.id), ids)
+          || attorneyOrderVersion(current) !== expectedVersion
+        ) {
+          return { ok: false as const, reason: "stale" as const };
+        }
+
+        for (let index = 0; index < ids.length; index += 1) {
+          await tx
+            .update(teamMembers)
+            .set({ order: index + 1 })
+            .where(eq(teamMembers.id, ids[index]));
+        }
+
+        const members = await tx
+          .select()
+          .from(teamMembers)
+          .where(eq(teamMembers.title, category.title))
+          .orderBy(asc(teamMembers.order), asc(teamMembers.id));
+        return { ok: true as const, members };
+      });
     }
 
     async getTeamMemberPracticeGroupIds(teamMemberId: string): Promise<string[]> {

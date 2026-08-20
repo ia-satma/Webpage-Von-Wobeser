@@ -3,6 +3,7 @@ import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
 import type { Affiliation, Education, Publication, Ranking } from "@shared/schema";
+import { OFFICIAL_PARTNER_ORDER } from "@shared/attorneyOrder";
 import { getMirrorDir } from "../mirror/config";
 
 /** Official attorney-directory snapshot verified on 12 August 2026. */
@@ -74,6 +75,8 @@ const normalizeKey = (value: string) => normalize(value)
   .normalize("NFD")
   .replace(/[\u0300-\u036f]/g, "")
   .toLowerCase();
+
+const officialPartnerOrder = new Map(OFFICIAL_PARTNER_ORDER.map((name, index) => [normalizeKey(name), index + 1]));
 
 function slugify(value: string) {
   return normalizeKey(value).replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
@@ -296,6 +299,9 @@ export function applyCanonicalAttorneyContent<T extends SeedAttorney>(seed: read
     if (!source) return [attorney];
     // Slug, image, display order and publication state are presentation metadata
     // and must remain stable across a clean install just as in the migration.
+    const canonicalOrder = source.title === "Partner"
+      ? officialPartnerOrder.get(normalizeKey(source.name))
+      : undefined;
     return [{
       ...attorney,
       ...(stableSlug ? { slug: stableSlug } : {}),
@@ -316,13 +322,21 @@ export function applyCanonicalAttorneyContent<T extends SeedAttorney>(seed: read
       publications: source.publications,
       languages: source.languages,
       languagesEs: source.languagesEs,
+      ...(canonicalOrder ? { order: canonicalOrder } : {}),
     }];
   });
   const seededIdentities = new Set(seeded.map((attorney) => `${normalizeKey(attorney.name)}|${normalizeKey(attorney.titleEs)}`));
   for (const attorney of canonical) {
     const identity = `${normalizeKey(attorney.name)}|${normalizeKey(attorney.titleEs)}`;
     if (!seededIdentities.has(identity)) {
-      seeded.push({ ...attorney, isPartner: attorney.title === "Partner", order: 9999, published: true });
+      seeded.push({
+        ...attorney,
+        isPartner: attorney.title === "Partner",
+        order: attorney.title === "Partner"
+          ? officialPartnerOrder.get(normalizeKey(attorney.name)) || 9999
+          : 9999,
+        published: true,
+      });
     }
   }
   return seeded;

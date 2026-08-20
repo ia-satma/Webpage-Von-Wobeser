@@ -1,8 +1,7 @@
 import type { UseFormReturn } from "react-hook-form";
 import { Award, Settings } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
+import { FormControl, FormDescription, FormField, FormItem, FormLabel } from "@/components/ui/form";
 import { Switch } from "@/components/ui/switch";
 import { TabsContent } from "@/components/ui/tabs";
 import type { TeamFormCopy, TeamMemberFormData } from "./contracts";
@@ -77,28 +76,10 @@ export function SettingsTab({ form, t }: {
                             )}
                           />
 
-                          <FormField
-                            control={form.control}
-                            name="order"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel className="text-[#1D1D1B] font-medium">{t.order}</FormLabel>
-                                <FormControl>
-                                  <Input
-                                    type="number"
-                                    {...field}
-                                    onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
-                                    className="rounded-none border-[#D9D8D7] focus:border-[#AA1A2E] focus:ring-[#AA1A2E] w-32"
-                                    data-testid="input-order"
-                                  />
-                                </FormControl>
-                                <FormDescription className="text-[#878A8E] text-xs">
-                                  {t.orderHint}
-                                </FormDescription>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
+                          <div className="border-l-2 border-[#AA1A2E] bg-[#FAFAFA] px-4 py-3 text-sm text-[#5E5E5E]">
+                            <p className="font-medium text-[#1D1D1B]">{t.order}</p>
+                            <p className="mt-1">{t.orderManaged}</p>
+                          </div>
                         </CardContent>
                       </Card>
                     </TabsContent>

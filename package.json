@@ -41,6 +41,7 @@
     "handoff:readiness": "node scripts/verify-client-handoff.mjs",
     "db:migrate": "node scripts/run-migrations.mjs",
     "db:replit-migrate": "node scripts/migrate-database-to-replit.mjs",
+    "team:reconcile-partner-order": "node --import tsx scripts/reconcile-partner-order.ts",
     "security:retire-legacy-users": "node scripts/retire-legacy-users.mjs",
     "admin:recover": "node --import tsx scripts/recover-admin.ts"
   },

@@ -15,6 +15,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { Switch } from "@/components/ui/switch";
+import { AttorneyOrderPanel } from "@/features/admin/team-order/AttorneyOrderPanel";
 import { 
   Search, 
   Pencil, 
@@ -339,7 +341,10 @@ interface TeamStats {
   total: number;
   partners: number;
   ofCounsel: number;
+  counsel: number;
   associates: number;
+  published: number;
+  unpublished: number;
 }
 
 export default function AdminTeam() {
@@ -352,6 +357,9 @@ export default function AdminTeam() {
   const [roleFilter, setRoleFilter] = useState("all");
   const [page, setPage] = useState(1);
   const limit = 20;
+  const visibilityCopy = language === "es"
+    ? { column: "Visibilidad", visible: "Publicado", hidden: "Oculto", show: "Mostrar", hide: "Ocultar", success: "Visibilidad actualizada", error: "No se pudo actualizar la visibilidad", counsel: "Consejeros" }
+    : { column: "Visibility", visible: "Published", hidden: "Hidden", show: "Show", hide: "Hide", success: "Visibility updated", error: "Could not update visibility", counsel: "Counsel" };
 
   const { data, isLoading, isError, error, refetch } = useQuery<TeamResponse>({
     queryKey: ["/api/admin/team", { search, role: roleFilter, page, limit }],
@@ -391,6 +399,22 @@ export default function AdminTeam() {
     },
     onError: () => {
       toast({ title: t.deleteError, variant: "destructive" });
+    },
+  });
+
+  const publishedMutation = useMutation({
+    mutationFn: async ({ id, published }: { id: string; published: boolean }) => {
+      const response = await adminApiRequest("PUT", `/api/admin/team/${id}`, { published });
+      if (!response.ok) throw new Error("Failed to update visibility");
+      return response.json() as Promise<TeamMember>;
+    },
+    onSuccess: () => {
+      toast({ title: visibilityCopy.success });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/team"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/team/stats"] });
+    },
+    onError: () => {
+      toast({ title: visibilityCopy.error, variant: "destructive" });
     },
   });
 
@@ -446,7 +470,7 @@ export default function AdminTeam() {
 
         <AdminPageHelp pageId="equipo" manualSectionId="equipo">Aquí administras a los abogados y el equipo: agrega, edita y sube su foto. Puedes asignar a cada uno varias áreas de práctica e industrias.</AdminPageHelp>
         {stats && (
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
+          <div className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-5 mb-8">
             <Card>
               <CardContent className="p-4 text-center">
                 <div className="text-3xl font-bold text-primary">{stats.total}</div>
@@ -463,6 +487,12 @@ export default function AdminTeam() {
               <CardContent className="p-4 text-center">
                 <div className="text-3xl font-bold text-primary">{stats.ofCounsel}</div>
                 <div className="text-sm text-muted-foreground">{t.ofCounsel}</div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="p-4 text-center">
+                <div className="text-3xl font-bold text-primary">{stats.counsel}</div>
+                <div className="text-sm text-muted-foreground">{visibilityCopy.counsel}</div>
               </CardContent>
             </Card>
             <Card>
@@ -504,6 +534,7 @@ export default function AdminTeam() {
                   <SelectItem value="all">{t.all}</SelectItem>
                   <SelectItem value="partner">{t.partner}</SelectItem>
                   <SelectItem value="of counsel">{t.ofCounsel}</SelectItem>
+                  <SelectItem value="counsel">{visibilityCopy.counsel}</SelectItem>
                   <SelectItem value="associate">{t.associate}</SelectItem>
                 </SelectContent>
               </Select>
@@ -529,6 +560,7 @@ export default function AdminTeam() {
                       <TableHead className="w-[300px]">{t.name}</TableHead>
                       <TableHead>{t.role}</TableHead>
                       <TableHead>{t.email}</TableHead>
+                      <TableHead>{visibilityCopy.column}</TableHead>
                       <TableHead className="text-right">{t.actions}</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -555,6 +587,20 @@ export default function AdminTeam() {
                           </Badge>
                         </TableCell>
                         <TableCell>{member.email || "-"}</TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-2">
+                            <Switch
+                              checked={member.published !== false}
+                              onCheckedChange={(published) => publishedMutation.mutate({ id: member.id, published })}
+                              disabled={publishedMutation.isPending}
+                              aria-label={`${member.published === false ? visibilityCopy.show : visibilityCopy.hide} ${member.name}`}
+                              data-testid={`switch-member-published-${member.id}`}
+                            />
+                            <Badge variant={member.published === false ? "secondary" : "outline"} className={member.published === false ? "" : "border-emerald-600/30 bg-emerald-50 text-emerald-700"}>
+                              {member.published === false ? visibilityCopy.hidden : visibilityCopy.visible}
+                            </Badge>
+                          </div>
+                        </TableCell>
                         <TableCell>
                           <div className="flex items-center justify-end gap-2">
                             {/* Perfil público del abogado servido por el espejo (Express).
@@ -636,6 +682,9 @@ export default function AdminTeam() {
             )}
           </CardContent>
         </Card>
+        <div className="mt-8">
+          <AttorneyOrderPanel language={language} />
+        </div>
       </main>
     </div>
   );

@@ -833,6 +833,20 @@ a[href="/german-desk"],
   padding-bottom: 60px;
 }
 
+/* Las columnas del pie son una selección editorial del menú activo. Cuando
+   Administración oculta una sección, la cuadrícula se recompone sin huecos. */
+.vwb-site-footer__grid[data-vwb-footer-nav-columns="2"] {
+  grid-template-columns: minmax(168px, 1.18fr) repeat(2, minmax(120px, .82fr)) minmax(230px, 1.32fr);
+}
+
+.vwb-site-footer__grid[data-vwb-footer-nav-columns="1"] {
+  grid-template-columns: minmax(168px, 1.18fr) minmax(150px, .9fr) minmax(230px, 1.32fr);
+}
+
+.vwb-site-footer__grid[data-vwb-footer-nav-columns="0"] {
+  grid-template-columns: minmax(168px, 1fr) minmax(230px, 1.15fr);
+}
+
 .vwb-site-footer__brand-link {
   align-items: flex-start;
   color: #fff;
@@ -1046,9 +1060,29 @@ a[href="/german-desk"],
     grid-template-columns: minmax(160px, 1.1fr) repeat(3, minmax(125px, 1fr));
   }
 
+  .vwb-site-footer__grid[data-vwb-footer-nav-columns="2"] {
+    grid-template-columns: minmax(160px, 1.1fr) repeat(2, minmax(125px, 1fr)) minmax(230px, 1.2fr);
+  }
+
+  .vwb-site-footer__grid[data-vwb-footer-nav-columns="1"] {
+    grid-template-columns: minmax(160px, 1.1fr) minmax(125px, 1fr) minmax(230px, 1.2fr);
+  }
+
+  .vwb-site-footer__grid[data-vwb-footer-nav-columns="0"] {
+    grid-template-columns: minmax(160px, 1fr) minmax(230px, 1.2fr);
+  }
+
   .vwb-site-footer__contact {
     grid-column: 2 / span 3;
     max-width: 410px;
+  }
+
+  .vwb-site-footer__grid[data-vwb-footer-nav-columns="1"] .vwb-site-footer__contact {
+    grid-column: 2 / span 2;
+  }
+
+  .vwb-site-footer__grid[data-vwb-footer-nav-columns="0"] .vwb-site-footer__contact {
+    grid-column: 2;
   }
 
   .vwb-site-footer__bottom {
@@ -1073,6 +1107,10 @@ a[href="/german-desk"],
 
   .vwb-site-footer__brand,
   .vwb-site-footer__contact {
+    grid-column: 1 / -1;
+  }
+
+  .vwb-site-footer__grid[data-vwb-footer-nav-columns] .vwb-site-footer__contact {
     grid-column: 1 / -1;
   }
 

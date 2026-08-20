@@ -70,6 +70,7 @@ import type {
   news,
   rankings,
 } from "@shared/schema";
+import type { AttorneyOrderCategoryId } from "@shared/attorneyOrder";
 
 export type AdminLoginEventWithIdentity = AdminLoginEvent & {
   userEmail: string | null;
@@ -157,6 +158,11 @@ export interface IStorage {
   createTeamMember(member: InsertTeamMember): Promise<TeamMember>;
   updateTeamMember(id: string, member: Partial<InsertTeamMember>): Promise<TeamMember | undefined>;
   deleteTeamMember(id: string): Promise<boolean>;
+  getTeamMembersForOrder(category: AttorneyOrderCategoryId): Promise<TeamMember[]>;
+  reorderTeamMembers(category: AttorneyOrderCategoryId, ids: string[], expectedVersion: string): Promise<
+    | { ok: true; members: TeamMember[] }
+    | { ok: false; reason: "stale" }
+  >;
   getTeamMemberPracticeGroupIds(teamMemberId: string): Promise<string[]>;
   getTeamMemberIndustryGroupIds(teamMemberId: string): Promise<string[]>;
   setTeamMemberPracticeGroups(teamMemberId: string, practiceGroupIds: string[]): Promise<void>;

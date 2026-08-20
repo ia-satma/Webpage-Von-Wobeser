@@ -889,7 +889,7 @@ export async function sendPage(res: Response, html: string, status = 200) {
     : out + inject;
   if (!isOfficeShowcase) {
     try {
-      out = renderPublicFooter(out, config, lang);
+      out = renderPublicFooter(out, config, lang, navigationItems.navigation);
     } catch { /* si la config falla, se sirve el pie original de la plantilla */ }
   }
   out = ensureImgAlt(out); // backstop a11y: alt en imgs que escaparon a applyA11y

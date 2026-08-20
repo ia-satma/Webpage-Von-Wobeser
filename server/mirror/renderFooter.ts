@@ -1,6 +1,7 @@
 import { cfg, isConfigEnabled, type ConfigMap } from "./siteConfig";
 import type { Lang } from "./htmlPipeline";
 import { footerPresetFromConfig } from "./publicAppearanceConfiguration";
+import type { ResolvedNavigationTree } from "./navigationConfiguration";
 
 const FALLBACK = {
   firm: "Von Wobeser y Sierra, S.C.",
@@ -33,6 +34,31 @@ const CENTRAL_HEADING_COPY = {
     resources: "Recursos",
     contact: "Contacto",
     follow: "Síguenos",
+  },
+} as const;
+
+type FooterLink = { label: string; href: string };
+
+const CENTRAL_LINK_FALLBACK = {
+  en: {
+    firm: { label: "Our Firm", href: "/about" },
+    attorneys: { label: "Attorneys", href: "/attorneys?lang=en" },
+    talent: { label: "Careers", href: "/careers" },
+    contact: { label: "Contact", href: "/contact" },
+    practices: { label: "Practices", href: "/capabilities/practices" },
+    industries: { label: "Industries", href: "/capabilities/industries" },
+    perspectives: { label: "Insights", href: "/insights" },
+    recognitions: { label: "Recognitions", href: "/insights/recognitions" },
+  },
+  es: {
+    firm: { label: "Nuestra firma", href: "/acerca-de" },
+    attorneys: { label: "Abogados", href: "/attorneys" },
+    talent: { label: "Talento", href: "/bolsa-de-trabajo" },
+    contact: { label: "Contacto", href: "/contacto" },
+    practices: { label: "Prácticas", href: "/capacidades/practicas" },
+    industries: { label: "Industrias", href: "/capacidades/industrias" },
+    perspectives: { label: "Insights", href: "/perspectivas" },
+    recognitions: { label: "Reconocimientos", href: "/perspectivas/reconocimientos" },
   },
 } as const;
 
@@ -134,7 +160,66 @@ function lockIcon(): string {
 }
 
 function listItem(label: string, href: string): string {
-  return `<li><a href="${href}">${label}</a></li>`;
+  return `<li><a href="${escapeHtml(href)}">${escapeHtml(label)}</a></li>`;
+}
+
+function safeNavigationLink(value: { label: string; href: string } | undefined): FooterLink | undefined {
+  const label = value?.label.trim() || "";
+  const href = value?.href.trim() || "";
+  return label && /^\/(?!\/)/.test(href) ? { label, href } : undefined;
+}
+
+function primaryNavigationLink(
+  navigation: ResolvedNavigationTree | undefined,
+  id: string,
+  fallback: FooterLink,
+): FooterLink | undefined {
+  if (!navigation) return { ...fallback };
+  const item = navigation.items.find((candidate) => candidate.id === id);
+  return item?.visible ? safeNavigationLink(item) : undefined;
+}
+
+function childNavigationLink(
+  navigation: ResolvedNavigationTree | undefined,
+  parentId: string,
+  id: string,
+  fallback: FooterLink,
+): FooterLink | undefined {
+  if (!navigation) return { ...fallback };
+  const parent = navigation.items.find((candidate) => candidate.id === parentId);
+  const item = parent?.children.find((candidate) => candidate.id === id);
+  return parent?.visible && item?.visible ? safeNavigationLink(item) : undefined;
+}
+
+function contactNavigationLink(
+  navigation: ResolvedNavigationTree | undefined,
+  fallback: FooterLink,
+): FooterLink | undefined {
+  if (!navigation) return { ...fallback };
+  // El pie conserva la formulación editorial breve aprobada, aunque la
+  // utilidad superior use “Contáctanos” / “Contact us”.
+  return safeNavigationLink({ label: fallback.label, href: navigation.utilities.contact.href });
+}
+
+function resolveCentralFooterLinks(navigation: ResolvedNavigationTree | undefined, lang: Lang) {
+  const fallback = CENTRAL_LINK_FALLBACK[lang];
+  const compact = (links: Array<FooterLink | undefined>) => links.filter((link): link is FooterLink => Boolean(link));
+  return {
+    firm: compact([
+      primaryNavigationLink(navigation, "firm", fallback.firm),
+      primaryNavigationLink(navigation, "attorneys", fallback.attorneys),
+      primaryNavigationLink(navigation, "talent", fallback.talent),
+      contactNavigationLink(navigation, fallback.contact),
+    ]),
+    capabilities: compact([
+      primaryNavigationLink(navigation, "practices", fallback.practices),
+      primaryNavigationLink(navigation, "industries", fallback.industries),
+    ]),
+    resources: compact([
+      primaryNavigationLink(navigation, "perspectives", fallback.perspectives),
+      childNavigationLink(navigation, "perspectives", "perspectives-recognitions", fallback.recognitions),
+    ]),
+  };
 }
 
 function socialLink(network: SocialNetwork, href: string, className = "vwb-site-footer__social-link"): string {
@@ -152,7 +237,12 @@ function socialLink(network: SocialNetwork, href: string, className = "vwb-site-
  * exterior #footer ya aporta la semántica de footer; por eso el reemplazo es
  * un div y evita anidar elementos <footer> en los HTML históricos.
  */
-export function renderPublicFooter(html: string, config: ConfigMap, lang: Lang): string {
+export function renderPublicFooter(
+  html: string,
+  config: ConfigMap,
+  lang: Lang,
+  navigation?: ResolvedNavigationTree,
+): string {
   const copy = COPY[lang];
   const centralHeadings = CENTRAL_HEADING_COPY[lang];
   const value = (key: string, fallback = "") => cfg(config, key, lang).trim() || fallback;
@@ -193,28 +283,28 @@ export function renderPublicFooter(html: string, config: ConfigMap, lang: Lang):
       insights: "/insights", rankings: "/insights/recognitions", privacy: "/privacy", cookies: "/cookie-policy",
     };
   const year = new Date().getFullYear();
+  const centralLinks = resolveCentralFooterLinks(navigation, lang);
+  const centralColumns = [
+    { heading: centralHeadings.firm, links: centralLinks.firm },
+    { heading: centralHeadings.capabilities, links: centralLinks.capabilities },
+    { heading: centralHeadings.resources, links: centralLinks.resources },
+  ].filter((column) => column.links.length > 0);
+  const centralColumnMarkup = centralColumns.map((column) => (
+    `<nav class="vwb-site-footer__column" aria-label="${escapeHtml(column.heading)}">` +
+      `<h2>${escapeHtml(column.heading)}</h2><ul>${column.links.map((link) => listItem(link.label, link.href)).join("")}</ul>` +
+    `</nav>`
+  )).join("");
 
   const centralFooter = `<div class="footer footer_fix vwb-site-footer vwb-site-footer--central" data-vwb-footer-preset="central-2026">
   <div class="vwb-site-footer__inner">
-    <div class="vwb-site-footer__grid">
+    <div class="vwb-site-footer__grid" data-vwb-footer-nav-columns="${centralColumns.length}">
       <section class="vwb-site-footer__brand" aria-label="${escapeHtml(firm)}">
         <a class="vwb-site-footer__brand-link" href="${lang === "es" ? "/index.php/home/" : "/"}" aria-label="${lang === "es" ? "Ir al inicio" : "Go to home"}">
           <img class="vwb-site-footer__logo" src="/images/vw40F.png" width="1150" height="769" alt="" decoding="async">
           <span class="vwb-site-footer__brand-name">${escapeHtml(firm)}</span>
         </a>
       </section>
-      <nav class="vwb-site-footer__column" aria-label="${centralHeadings.firm}">
-        <h2>${centralHeadings.firm}</h2>
-        <ul>${listItem(copy.about, paths.about)}${listItem(copy.team, paths.team)}${listItem(copy.careers, paths.careers)}${listItem(copy.contact, paths.contact)}</ul>
-      </nav>
-      <nav class="vwb-site-footer__column" aria-label="${centralHeadings.capabilities}">
-        <h2>${centralHeadings.capabilities}</h2>
-        <ul>${listItem(copy.practices, paths.practices)}${listItem(copy.industries, paths.industries)}</ul>
-      </nav>
-      <nav class="vwb-site-footer__column" aria-label="${centralHeadings.resources}">
-        <h2>${centralHeadings.resources}</h2>
-        <ul>${listItem(copy.insights, paths.insights)}${listItem(copy.rankings, paths.rankings)}</ul>
-      </nav>
+      ${centralColumnMarkup}
       <section class="vwb-site-footer__contact" aria-labelledby="vwb-site-footer-contact-title">
         <h2 id="vwb-site-footer-contact-title">${centralHeadings.contact}</h2>
         <div class="vwb-site-footer__contact-list">${contactRows}</div>

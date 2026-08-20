@@ -2,6 +2,8 @@ import type { Express, NextFunction, Request, Response } from "express";
 import { insertTeamMemberSchema } from "@shared/schema";
 import { z, ZodError } from "zod";
 import { authMiddleware, requirePermission } from "../auth";
+import { attorneyOrderCategorySchema, attorneyOrderRequestSchema, attorneyOrderVersion } from "../attorneys/order";
+import { invalidatePublicPageCache } from "../mirror/pageCache";
 import { sanitizeFields } from "../mirror/sanitize";
 import { storage } from "../storage";
 import { apiError, auditLog, getLinguisticWarnings } from "./routeUtils";
@@ -36,7 +38,15 @@ export function registerAdminTeamRoutes(app: Express): void {
 
       // Filter by role/title
       if (role && role !== "all") {
-        members = members.filter(m => m.title.toLowerCase().includes(role.toLowerCase()));
+        const exactTitles: Record<string, string> = {
+          partner: "Partner",
+          "of counsel": "Of Counsel",
+          counsel: "Counsel",
+          associate: "Associate",
+        };
+        members = exactTitles[role.toLowerCase()]
+          ? members.filter((member) => member.title === exactTitles[role.toLowerCase()])
+          : members.filter((member) => member.title.toLowerCase().includes(role.toLowerCase()));
       }
 
       const total = members.length;
@@ -53,6 +63,49 @@ export function registerAdminTeamRoutes(app: Express): void {
     } catch (error) {
       console.error("Get admin team members error:", error);
       res.status(500).json({ error: "Failed to fetch team members" });
+    }
+  });
+
+  // Lista completa por categoría para el reordenador editorial. Incluye los
+  // perfiles ocultos para preservar su prioridad cuando vuelvan a publicarse.
+  app.get("/api/admin/team/order", authMiddleware, requirePermission("content"), async (req: Request, res: Response) => {
+    const parsed = z.object({ category: attorneyOrderCategorySchema }).safeParse(req.query);
+    if (!parsed.success) return apiError(res, 400, "Invalid attorney order category", parsed.error.errors);
+    try {
+      const members = await storage.getTeamMembersForOrder(parsed.data.category);
+      return res.json({ category: parsed.data.category, members, version: attorneyOrderVersion(members) });
+    } catch (error) {
+      console.error("Get attorney order error:", error);
+      return apiError(res, 500, "Failed to fetch attorney order");
+    }
+  });
+
+  // Solo una lista completa, validada y atómica puede modificar el orden. Si
+  // otro administrador altera el conjunto durante la edición se devuelve 409.
+  app.put("/api/admin/team/order", authMiddleware, requirePermission("content"), async (req: Request, res: Response) => {
+    try {
+      const data = attorneyOrderRequestSchema.parse(req.body);
+      const result = await storage.reorderTeamMembers(data.category, data.ids, data.version);
+      if (!result.ok) {
+        return res.status(409).json({
+          error: "Attorney list changed while it was being reordered",
+          code: "TEAM_ORDER_STALE",
+        });
+      }
+      invalidatePublicPageCache();
+      await auditLog(
+        "update",
+        "team_order",
+        null,
+        (req as any).adminUser?.id || "unknown",
+        { category: data.category, count: data.ids.length },
+        req,
+      );
+      return res.json({ category: data.category, members: result.members, version: attorneyOrderVersion(result.members) });
+    } catch (error) {
+      if (error instanceof ZodError) return apiError(res, 400, "Validation failed", error.errors);
+      console.error("Reorder team members error:", error);
+      return apiError(res, 500, "Failed to reorder attorneys");
     }
   });
 
@@ -88,6 +141,7 @@ export function registerAdminTeamRoutes(app: Express): void {
         storage.setTeamMemberPracticeGroups(member.id, practiceGroupIds),
         storage.setTeamMemberIndustryGroups(member.id, industryGroupIds),
       ]);
+      invalidatePublicPageCache();
       await auditLog("create", "team", member.id, (req as any).adminUser?.id || "unknown", undefined, req);
       const linguisticWarnings = await getLinguisticWarnings([
         { field: "title", lang: "en", text: member.title },
@@ -131,6 +185,9 @@ export function registerAdminTeamRoutes(app: Express): void {
         industryGroupIds = req.body.industryGroupIds;
         await storage.setTeamMemberIndustryGroups(member.id, industryGroupIds!);
       }
+      // Incluye el interruptor de visibilidad de la lista: el directorio y la
+      // ficha pública no deben conservar una versión previa hasta que venza TTL.
+      invalidatePublicPageCache();
       await auditLog("update", "team", req.params.id, (req as any).adminUser?.id || "unknown", undefined, req);
       const linguisticWarnings = await getLinguisticWarnings([
         { field: "title", lang: "en", text: member.title },
@@ -157,6 +214,7 @@ export function registerAdminTeamRoutes(app: Express): void {
       if (!deleted) {
         return apiError(res, 404, "Team member not found");
       }
+      invalidatePublicPageCache();
       await auditLog("delete", "team", req.params.id, (req as any).adminUser?.id || "unknown", undefined, req);
       res.json({ success: true });
     } catch (error) {
@@ -171,13 +229,18 @@ export function registerAdminTeamRoutes(app: Express): void {
       const members = await storage.getTeamMembers();
       const partners = members.filter(m => m.title.toLowerCase().includes("partner") || m.isPartner);
       const ofCounsel = members.filter(m => m.title.toLowerCase().includes("of counsel"));
+      const counsel = members.filter(m => m.title.toLowerCase() === "counsel");
       const associates = members.filter(m => m.title.toLowerCase().includes("associate"));
+      const published = members.filter(m => m.published !== false);
 
       res.json({
         total: members.length,
         partners: partners.length,
         ofCounsel: ofCounsel.length,
+        counsel: counsel.length,
         associates: associates.length,
+        published: published.length,
+        unpublished: members.length - published.length,
       });
     } catch (error) {
       console.error("Get team stats error:", error);
