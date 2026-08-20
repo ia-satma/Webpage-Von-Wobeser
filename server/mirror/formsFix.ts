@@ -449,8 +449,11 @@ export function applyContactForm(
 .vw-contact-page__location{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(300px,.85fr);gap:24px;align-items:stretch;margin-top:34px}
 .vw-contact-page__map-card{overflow:hidden;border:1px solid #d0d0ce;border-radius:6px;background:#dededb}
 .vw-contact-page__map-slot,.vw-contact-page .page__map,.vw-contact-page .page__map--holder{width:100%;height:100%;min-height:430px;margin:0}
-.vw-contact-page .page__map{float:none}
-.vw-contact-page .page__map--holder{position:relative;background:#dededb}
+/* El CSS legado limita .page__map a 500px y crea el alto mediante padding.
+   Dentro de la tarjeta nueva ambos valores dejan una franja gris y recortan el
+   iframe; se neutralizan solo en la superficie de Contacto. */
+.vw-contact-page .page__map{float:none;width:100%;max-width:none;margin:0}
+.vw-contact-page .page__map--holder{position:relative;box-sizing:border-box;padding-top:0;background:#dededb}
 .vw-contact-page .page__map--holder iframe{display:block;width:100%;height:100%;min-height:430px;border:0;filter:none!important}
 .vw-contact-page__details{display:flex;flex-direction:column;gap:22px;border:1px solid #d0d0ce;border-radius:6px;background:#fff;color:#4f4f4f;padding:clamp(24px,3vw,34px);font-family:var(--vw-font-body)}
 .vw-contact-location__row{display:grid;grid-template-columns:20px minmax(0,1fr);gap:14px;align-items:start}

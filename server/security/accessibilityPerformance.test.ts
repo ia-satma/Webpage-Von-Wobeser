@@ -812,8 +812,13 @@ test("los logos dinámicos de reconocimientos se contienen dentro de cada diapos
     new URL("../../frontend-mirror/templates/beez3/css/style.css", import.meta.url),
     "utf8",
   );
+  const publicStyles = readFileSync(
+    new URL("../../frontend-mirror/templates/beez3/css/public.css", import.meta.url),
+    "utf8",
+  );
 
-  assert.match(styles, /\.home__rec--recognitions \.home__rec--slider\s*\{[\s\S]*?overflow:\s*hidden/);
+  assert.match(styles, /\.home__rec--recognitions \.home__rec--slider\s*\{[\s\S]*?overflow:\s*visible/);
+  assert.match(publicStyles, /\.slick-list\s*\{[\s\S]*?overflow:\s*hidden/);
   assert.match(styles, /\.home__rec--recognitions \.home__rec--slide\s*\{[\s\S]*?height:\s*158px[\s\S]*?overflow:\s*hidden/);
   assert.match(styles, /\.home__rec--recognitions \.home__rec--item\s*\{[\s\S]*?max-height:\s*calc\(100% - 30px\)[\s\S]*?max-width:\s*calc\(100% - 30px\)[\s\S]*?object-fit:\s*contain/);
   assert.match(styles, /@media \(max-width: 680px\)[\s\S]*?\.home__rec--recognitions \.home__rec--slide\s*\{[\s\S]*?height:\s*107px/);

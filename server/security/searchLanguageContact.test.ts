@@ -151,6 +151,10 @@ test("Contacto usa la jerarquía aprobada, conserva el mapa y ofrece País y Ár
   assert.match($.html(), /\.vw-contact-field\{display:grid;gap:8px[^}]*text-transform:none/);
   assert.match($.html(), /\.vw-contact-page__title\{[^}]*text-transform:none/);
   assert.match($.html(), /\.vw-contact-page__location\{display:grid;grid-template-columns:minmax\(0,1\.15fr\) minmax\(300px,\.85fr\);gap:24px/);
+  assert.match($.html(), /\.vw-contact-page \.page__map\{float:none;width:100%;max-width:none;margin:0\}/);
+  assert.match($.html(), /\.vw-contact-page \.page__map--holder\{position:relative;box-sizing:border-box;padding-top:0;background:#dededb\}/);
+  assert.match($.html(), /@media\(max-width:980px\)\{\.vw-contact-page__location\{grid-template-columns:1fr\}[^}]*min-height:380px/);
+  assert.match($.html(), /@media\(max-width:720px\)\{.*?\.vw-contact-page__location\{margin-top:28px\}.*?min-height:320px/s);
   assert.doesNotMatch($.html(), /#a5102a/);
   assert.match($.html(), /Torre SOMA Chapultepec, piso 18/);
   assert.doesNotMatch($.html(), /18th floor/);

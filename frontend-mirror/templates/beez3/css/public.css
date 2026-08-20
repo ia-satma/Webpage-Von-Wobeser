@@ -4931,7 +4931,10 @@ b,strong {
  * histórica del carrusel para que su tamaño intrínseco nunca invada el Home.
  */
 .home__rec--recognitions .home__rec--slider {
-  overflow: hidden;
+  /* Slick ya recorta el track dentro de .slick-list. El slider también
+   * contiene sus flechas, que el diseño histórico posiciona fuera de la
+   * banda de logos; ocultar aquí el overflow las volvía inaccesibles. */
+  overflow: visible;
 }
 
 .home__rec--recognitions .home__rec--slide {
