@@ -1,4 +1,4 @@
-import { eq, desc, asc, sql } from "drizzle-orm";
+import { and, asc, desc, eq, gt, inArray, ne, sql } from "drizzle-orm";
 import { type AdminUser, type InsertAdminUser, type InsertAdminLoginEvent, type AdminSession, type InsertAdminSession, type AdminMfaCredential, type InsertAdminMfaCredential, type AdminAuthChallenge, type InsertAdminAuthChallenge, adminUsers, adminLoginEvents, adminSessions, adminMfaCredentials, adminAuthChallenges, securityRateLimits } from "@shared/schema";
 import type { StorageDatabase } from "../types";
 import type { AdminLoginEventWithIdentity } from "../contracts";
@@ -127,9 +127,35 @@ export function createSecurityRepository(db: StorageDatabase) {
     }
 
     // Admin Sessions
-    async createAdminSession(session: InsertAdminSession): Promise<AdminSession> {
-      const [item] = await db.insert(adminSessions).values(session).returning();
-      return item;
+    async createAdminSession(session: InsertAdminSession, maximumActiveSessions: 1 | 2): Promise<AdminSession> {
+      // El lock es por usuario — no global — para que dos inicios de sesión de la
+      // misma cuenta no rebasen la cuota al ocurrir simultáneamente en instancias
+      // distintas de Replit. Otras cuentas pueden iniciar sesión en paralelo.
+      return db.transaction(async (tx) => {
+        await tx.execute(sql`SELECT pg_advisory_xact_lock(hashtextextended(${`admin-session:${session.userId}`}, 0))`);
+        await tx.delete(adminSessions).where(and(
+          eq(adminSessions.userId, session.userId),
+          sql`${adminSessions.expiresAt} < NOW() OR ${adminSessions.absoluteExpiresAt} < NOW()`,
+        ));
+
+        const [created] = await tx.insert(adminSessions).values(session).returning();
+        const activeOlderSessions = await tx
+          .select({ id: adminSessions.id })
+          .from(adminSessions)
+          .where(and(
+            eq(adminSessions.userId, session.userId),
+            ne(adminSessions.id, created.id),
+            gt(adminSessions.expiresAt, new Date()),
+            gt(adminSessions.absoluteExpiresAt, new Date()),
+          ))
+          .orderBy(desc(adminSessions.lastSeenAt), desc(adminSessions.createdAt));
+
+        const sessionsToRevoke = activeOlderSessions.slice(Math.max(0, maximumActiveSessions - 1));
+        if (sessionsToRevoke.length > 0) {
+          await tx.delete(adminSessions).where(inArray(adminSessions.id, sessionsToRevoke.map((entry) => entry.id)));
+        }
+        return created;
+      });
     }
 
     async getAdminSession(tokenHash: string): Promise<AdminSession | undefined> {
@@ -153,6 +179,35 @@ export function createSecurityRepository(db: StorageDatabase) {
     async deleteAdminSessionsByUserId(userId: string): Promise<number> {
       const result = await db.delete(adminSessions).where(eq(adminSessions.userId, userId)).returning();
       return result.length;
+    }
+
+    async getActiveAdminSessionsByUserId(userId: string): Promise<AdminSession[]> {
+      const now = new Date();
+      return db
+        .select()
+        .from(adminSessions)
+        .where(and(
+          eq(adminSessions.userId, userId),
+          gt(adminSessions.expiresAt, now),
+          gt(adminSessions.absoluteExpiresAt, now),
+        ))
+        .orderBy(desc(adminSessions.lastSeenAt), desc(adminSessions.createdAt));
+    }
+
+    async deleteOtherAdminSessionsByUserId(userId: string, currentSessionId: string): Promise<number> {
+      const result = await db.delete(adminSessions).where(and(
+        eq(adminSessions.userId, userId),
+        ne(adminSessions.id, currentSessionId),
+      )).returning({ id: adminSessions.id });
+      return result.length;
+    }
+
+    async deleteAdminSessionByIdForUser(sessionId: string, userId: string): Promise<boolean> {
+      const result = await db.delete(adminSessions).where(and(
+        eq(adminSessions.id, sessionId),
+        eq(adminSessions.userId, userId),
+      )).returning({ id: adminSessions.id });
+      return result.length > 0;
     }
 
     async cleanExpiredSessions(): Promise<number> {

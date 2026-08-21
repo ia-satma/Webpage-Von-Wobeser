@@ -138,6 +138,7 @@ export const ADMIN_NAV_GROUPS: AdminNavGroup[] = [
       { href: "/admin/cookie-consent", label: "Privacidad y cookies", icon: Cookie, requires: "config" },
       { href: "/admin/translations", label: "Traducciones", icon: Languages, requires: "config" },
       { href: "/admin/users", label: "Usuarios y accesos", icon: ShieldCheck, requires: "adminOnly" },
+      { href: "/admin/change-password", label: "Mi seguridad", icon: Lock },
     ],
   },
   {

@@ -198,12 +198,15 @@ export interface IStorage {
   queueMediaDeletion(request: InsertMediaDeletionRequest): Promise<MediaDeletionRequest>;
 
   // Admin Sessions
-  createAdminSession(session: InsertAdminSession): Promise<AdminSession>;
+  createAdminSession(session: InsertAdminSession, maximumActiveSessions: 1 | 2): Promise<AdminSession>;
   getAdminSession(tokenHash: string): Promise<AdminSession | undefined>;
   touchAdminSession(id: string, expiresAt: Date): Promise<void>;
   rotateAdminSessionCsrf(id: string, csrfTokenHash: string): Promise<void>;
   deleteAdminSession(tokenHash: string): Promise<boolean>;
   deleteAdminSessionsByUserId(userId: string): Promise<number>;
+  getActiveAdminSessionsByUserId(userId: string): Promise<AdminSession[]>;
+  deleteOtherAdminSessionsByUserId(userId: string, currentSessionId: string): Promise<number>;
+  deleteAdminSessionByIdForUser(sessionId: string, userId: string): Promise<boolean>;
   cleanExpiredSessions(): Promise<number>;
   getAdminMfaCredential(userId: string): Promise<AdminMfaCredential | undefined>;
   upsertAdminMfaCredential(data: InsertAdminMfaCredential): Promise<AdminMfaCredential>;

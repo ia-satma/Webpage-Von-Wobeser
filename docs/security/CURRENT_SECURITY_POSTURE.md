@@ -1,6 +1,6 @@
 # Postura de seguridad vigente
 
-Fecha de corte: 2026-08-20.
+Fecha de corte: 2026-08-21.
 Referencia de código: `edb2e05d188834dc8b33b6a7b46bbefc9fefbc97` más la rama de remediación indicada en el PR vigente.
 
 Este documento es la referencia operativa actual. Los archivos `docs/CONTEXT-*.md`
@@ -23,6 +23,16 @@ son registros históricos fechados y no deben usarse para inferir el estado pres
   runtime hasta revisión humana.
 - El acceso administrativo usa Argon2id, sesiones opacas almacenadas por hash,
   cookies HttpOnly/Secure/SameSite Strict en producción y CSRF para mutaciones.
+- La política de sesión se aplica por cuenta y rol, dentro de una transacción con
+  advisory lock de PostgreSQL: Dueño/Administrador tienen una sesión concurrente y
+  15 minutos de inactividad; los demás roles, hasta dos sesiones y 30 minutos.
+  Todas tienen un máximo absoluto de ocho horas. No existe un límite global que
+  pudiera expulsar a otros usuarios del panel.
+- Cada cuenta puede consultar sus sesiones activas y revocar únicamente las propias.
+  La respuesta no expone hashes de token, direcciones IP ni user-agent crudo. Las
+  revocaciones quedan en la bitácora administrativa.
+- El panel comparte actividad entre pestañas, advierte cinco minutos antes del cierre
+  y termina la sesión de forma sincronizada al agotarse el tiempo de inactividad.
 - Las contraseñas nuevas aceptan de 15 a 128 caracteres. Las credenciales
   administrativas generadas tienen 20 caracteres. El login conserva compatibilidad
   con credenciales heredadas de 1 a 128 caracteres para no bloquear cuentas existentes.
@@ -76,6 +86,17 @@ son registros históricos fechados y no deben usarse para inferir el estado pres
 ## Decisiones y excepciones vigentes
 
 - MFA permanece desactivado y documentado como riesgo alto.
+
+### Activación controlada de MFA
+
+La implementación TOTP ya está disponible para Dueño y Administradores, pero no debe
+activarse hasta que Sistemas cargue en **Replit Secrets** una llave aleatoria de 32 bytes
+como `MFA_ENCRYPTION_KEY` (codificada en base64 o hex). Después, en una ventana de
+mantenimiento y con una cuenta de recuperación probada, se configura
+`MFA_REQUIRED_FOR_PRIVILEGED=true` y se valida el enrolamiento TOTP antes de ampliar el
+uso. El panel informa si la llave está disponible, pero no muestra ni permite editar
+Secret alguno. Activar el segundo valor sin la llave deja el acceso privilegiado bloqueado
+de forma segura, por lo que esa combinación está prohibida.
 - El newsletter conserva el alta actual sin doble opt-in y añade una baja pública mediante
   token opaco firmado. Visitar el enlace no altera datos: la baja exige confirmación `POST`.
 - No se publica `security.txt` hasta contar con un contacto institucional aprobado.

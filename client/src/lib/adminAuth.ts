@@ -4,6 +4,7 @@ import { useLocation } from "wouter";
 const SESSION_MARKER_KEY = "vwb_admin_session_active";
 const CSRF_KEY = "vwb_admin_csrf";
 const ROLE_KEY = "vwb_admin_role";
+const SESSION_POLICY_KEY = "vwb_admin_session_policy";
 
 export type AdminSessionUser = {
   id: string;
@@ -14,8 +15,16 @@ export type AdminSessionUser = {
   permissions?: string[];
 };
 
+export type AdminSessionPolicy = {
+  idleMinutes: 15 | 30;
+  warningMinutes: 5;
+  absoluteHours: 8;
+  maxConcurrentSessions: 1 | 2;
+};
+
 let cachedUser: AdminSessionUser | null = null;
 let sessionPromise: Promise<AdminSessionUser | null> | null = null;
+let cachedSessionPolicy: AdminSessionPolicy | null = null;
 
 function sessionGet(key: string): string | null {
   if (typeof window === "undefined") return null;
@@ -54,9 +63,11 @@ export function setRole(role: string): void {
 export function clearToken(): void {
   cachedUser = null;
   sessionPromise = null;
+  cachedSessionPolicy = null;
   sessionRemove(SESSION_MARKER_KEY);
   sessionRemove(CSRF_KEY);
   sessionRemove(ROLE_KEY);
+  sessionRemove(SESSION_POLICY_KEY);
   try {
     // Limpia cualquier credencial heredada que hubiera quedado de versiones previas.
     localStorage.removeItem("vwb_admin_token");
@@ -64,15 +75,44 @@ export function clearToken(): void {
   } catch { /* ignore */ }
 }
 
+function isSessionPolicy(value: unknown): value is AdminSessionPolicy {
+  if (!value || typeof value !== "object") return false;
+  const policy = value as Record<string, unknown>;
+  return (policy.idleMinutes === 15 || policy.idleMinutes === 30)
+    && policy.warningMinutes === 5
+    && policy.absoluteHours === 8
+    && (policy.maxConcurrentSessions === 1 || policy.maxConcurrentSessions === 2);
+}
+
+export function getAdminSessionPolicy(): AdminSessionPolicy | null {
+  if (cachedSessionPolicy) return cachedSessionPolicy;
+  const raw = sessionGet(SESSION_POLICY_KEY);
+  if (!raw) return null;
+  try {
+    const parsed = JSON.parse(raw);
+    if (isSessionPolicy(parsed)) {
+      cachedSessionPolicy = parsed;
+      return parsed;
+    }
+  } catch {
+    // La interfaz usa un valor conservador hasta refrescar la sesión.
+  }
+  return null;
+}
+
 export function isAuthenticated(): boolean {
   return cachedUser !== null || getToken() !== null;
 }
 
-export function establishAdminSession(payload: { csrfToken?: string; user?: AdminSessionUser }): void {
+export function establishAdminSession(payload: { csrfToken?: string; user?: AdminSessionUser; sessionPolicy?: AdminSessionPolicy }): void {
   if (payload.csrfToken) sessionSet(CSRF_KEY, payload.csrfToken);
   if (payload.user) {
     cachedUser = payload.user;
     setRole(payload.user.role);
+  }
+  if (isSessionPolicy(payload.sessionPolicy)) {
+    cachedSessionPolicy = payload.sessionPolicy;
+    sessionSet(SESSION_POLICY_KEY, JSON.stringify(payload.sessionPolicy));
   }
   sessionSet(SESSION_MARKER_KEY, "1");
   // Un payload de login heredado puede traer rol pero no permisos. En ese caso no se
@@ -167,6 +207,7 @@ interface AdminAuthState {
   token: string | null;
   role: string | null;
   user: AdminSessionUser | null;
+  sessionPolicy: AdminSessionPolicy | null;
 }
 
 export function useAdminAuth() {
@@ -177,6 +218,7 @@ export function useAdminAuth() {
     token: null,
     role: null,
     user: null,
+    sessionPolicy: null,
   });
 
   useEffect(() => {
@@ -189,6 +231,7 @@ export function useAdminAuth() {
         token: user ? "cookie-session" : null,
         role: user?.role || null,
         user,
+        sessionPolicy: getAdminSessionPolicy(),
       });
     });
     return () => { cancelled = true; };
@@ -203,13 +246,14 @@ export function useAdminAuth() {
       token: user ? "cookie-session" : null,
       role: user?.role || null,
       user,
+      sessionPolicy: getAdminSessionPolicy(),
     });
   }, []);
 
   const logout = useCallback(() => {
     void adminApiRequest("POST", "/api/admin/logout").finally(() => {
       clearToken();
-      setState({ isAuthenticated: false, isLoading: false, token: null, role: null, user: null });
+      setState({ isAuthenticated: false, isLoading: false, token: null, role: null, user: null, sessionPolicy: null });
       setLocation("/admin/login");
     });
   }, [setLocation]);

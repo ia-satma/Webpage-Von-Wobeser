@@ -20,6 +20,7 @@ import {
 } from "@/components/ui/sidebar";
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
 import { Button } from "@/components/ui/button";
+import { AdminSessionGuard } from "@/components/admin/AdminSessionGuard";
 import { ArrowUpRight, ChevronDown, LogOut } from "lucide-react";
 import adminLogoUrl from "@assets/vonwobeser_logo_hd.png";
 
@@ -132,7 +133,7 @@ function NavGroupSection({
  */
 export function AdminLayout({ children }: { children: ReactNode }) {
   const [location] = useLocation();
-  const { logout, role } = useAdminAuth();
+  const { logout, role, user, sessionPolicy } = useAdminAuth();
   const { has } = useMyPermissions();
   const isAdmin = role === "admin" || role === "super_admin";
   const isSuperAdmin = role === "super_admin";
@@ -171,6 +172,7 @@ export function AdminLayout({ children }: { children: ReactNode }) {
 
   return (
     <SidebarProvider className="admin-shell">
+      <AdminSessionGuard policy={sessionPolicy} userId={user?.id} />
       <Sidebar collapsible="icon">
         <SidebarHeader>
           <div className="flex items-center justify-between gap-2 px-1 py-1">

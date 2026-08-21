@@ -147,8 +147,7 @@ function Router() {
   const [routerLocation] = useLocation();
   // El shell del admin (barra superior) envuelve todas las páginas /admin excepto el login.
   const isAdminShell = routerLocation.startsWith("/admin")
-    && routerLocation !== "/admin/login"
-    && routerLocation !== "/admin/change-password";
+    && routerLocation !== "/admin/login";
   const routes = (
     <Switch>
       {/* Root of the React app → admin (public site lives in the mirror). */}

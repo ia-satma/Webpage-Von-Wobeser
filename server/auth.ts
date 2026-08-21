@@ -8,8 +8,8 @@ import { securityRateLimits, type AdminSession, type AdminUser } from "@shared/s
 import { isMfaRequiredForRole } from "./security/mfa";
 
 const TOKEN_BYTES = 32;
-const IDLE_SESSION_MINUTES = 30;
 const ABSOLUTE_SESSION_HOURS = 8;
+const SESSION_WARNING_MINUTES = 5;
 const ARGON_MEMORY_KIB = 19_456;
 const ARGON_PASSES = 2;
 const ARGON_PARALLELISM = 1;
@@ -176,8 +176,37 @@ export function deriveCsrfToken(rawSessionToken: string): string {
   return crypto.createHash("sha256").update(`csrf:${rawSessionToken}`, "utf8").digest("base64url");
 }
 
-export function getSessionExpiry(): Date {
-  return new Date(Date.now() + IDLE_SESSION_MINUTES * 60 * 1000);
+/**
+ * Política explícita por rol. La aplica el servidor en cada creación y renovación
+ * de sesión; el navegador solo recibe estos valores para poder anticipar el aviso
+ * de inactividad. Nunca se usa un límite global de sesiones: la cuota es por cuenta.
+ */
+export type AdminSessionPolicy = {
+  idleMinutes: 15 | 30;
+  warningMinutes: 5;
+  absoluteHours: 8;
+  maxConcurrentSessions: 1 | 2;
+};
+
+export function getAdminSessionPolicy(role: string): AdminSessionPolicy {
+  if (role === "super_admin" || role === "admin") {
+    return {
+      idleMinutes: 15,
+      warningMinutes: SESSION_WARNING_MINUTES,
+      absoluteHours: ABSOLUTE_SESSION_HOURS,
+      maxConcurrentSessions: 1,
+    };
+  }
+  return {
+    idleMinutes: 30,
+    warningMinutes: SESSION_WARNING_MINUTES,
+    absoluteHours: ABSOLUTE_SESSION_HOURS,
+    maxConcurrentSessions: 2,
+  };
+}
+
+export function getSessionExpiry(role = ""): Date {
+  return new Date(Date.now() + getAdminSessionPolicy(role).idleMinutes * 60 * 1000);
 }
 
 export function getAbsoluteSessionExpiry(): Date {
@@ -376,7 +405,7 @@ export async function authMiddleware(req: Request, res: Response, next: NextFunc
     req.adminSession = session;
     const lastSeen = session.lastSeenAt?.getTime() || session.createdAt?.getTime() || 0;
     if (Date.now() - lastSeen > 5 * 60 * 1000) {
-      const nextIdle = getSessionExpiry();
+      const nextIdle = getSessionExpiry(user.role);
       const absolute = session.absoluteExpiresAt || session.expiresAt;
       await storage.touchAdminSession(session.id, nextIdle > absolute ? absolute : nextIdle);
     }

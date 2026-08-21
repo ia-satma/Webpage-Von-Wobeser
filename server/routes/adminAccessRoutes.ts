@@ -17,6 +17,7 @@ import {
   deriveCsrfToken,
   generateAdminPassword,
   generateToken,
+  getAdminSessionPolicy,
   getAbsoluteSessionExpiry,
   getSessionExpiry,
   hashOpaqueToken,
@@ -48,6 +49,19 @@ import { AiGovernanceBlockedError } from "../ai/dataGovernance";
 import { smartImageGenerator } from "../services/SmartImageGenerator";
 import { storage } from "../storage";
 import { apiError, auditLog } from "./routeUtils";
+
+function sessionDeviceLabel(userAgent: string | null): string {
+  const value = (userAgent || "").toLowerCase();
+  const browser = value.includes("edg/") ? "Microsoft Edge"
+    : value.includes("firefox/") ? "Firefox"
+      : value.includes("crios/") || value.includes("chrome/") ? "Chrome"
+        : value.includes("safari/") ? "Safari"
+          : "Navegador";
+  const device = value.includes("ipad") || value.includes("tablet") ? "tablet"
+    : value.includes("iphone") || value.includes("android") || value.includes("mobile") ? "móvil"
+      : "escritorio";
+  return `${browser} · ${device}`;
+}
 
 export async function registerAdminAccessRoutes(app: Express): Promise<void> {
   // =============================================
@@ -103,7 +117,7 @@ export async function registerAdminAccessRoutes(app: Express): Promise<void> {
       userId: user.id,
       tokenHash: hashOpaqueToken(rawToken),
       csrfTokenHash: hashOpaqueToken(csrfToken),
-      expiresAt: getSessionExpiry(),
+      expiresAt: getSessionExpiry(user.role),
       absoluteExpiresAt: getAbsoluteSessionExpiry(),
       lastSeenAt: new Date(),
       // Este dato permite auditar si la sesión completó el segundo factor. El
@@ -111,11 +125,12 @@ export async function registerAdminAccessRoutes(app: Express): Promise<void> {
       mfaVerified,
       ipAddress: pseudonymizeNetworkAddress(ipAddress),
       userAgent,
-    });
+    }, getAdminSessionPolicy(user.role).maxConcurrentSessions);
     res.cookie(SESSION_COOKIE, rawToken, authCookieOptions(8 * 60 * 60 * 1000));
     return {
       csrfToken,
       user: adminSessionUserPayload(user),
+      sessionPolicy: getAdminSessionPolicy(user.role),
     };
   };
 
@@ -531,6 +546,7 @@ export async function registerAdminAccessRoutes(app: Express): Promise<void> {
       authenticated: true,
       csrfToken,
       user: adminSessionUserPayload(user),
+      sessionPolicy: getAdminSessionPolicy(user.role),
     });
   });
 
@@ -538,6 +554,22 @@ export async function registerAdminAccessRoutes(app: Express): Promise<void> {
   app.get("/api/admin/me", authMiddleware, async (req: Request, res: Response) => {
     const u = req.adminUser!;
     res.json(adminSessionUserPayload(u));
+  });
+
+  // Estado de endurecimiento que cada cuenta puede consultar para entender su
+  // propia sesión. No expone secretos, credenciales TOTP ni configuración ajena.
+  app.get("/api/admin/security/status", authMiddleware, async (req: Request, res: Response) => {
+    const role = req.adminUser!.role;
+    const privileged = role === "super_admin" || role === "admin";
+    res.setHeader("Cache-Control", "no-store");
+    res.json({
+      sessionPolicy: getAdminSessionPolicy(role),
+      mfa: {
+        eligible: privileged,
+        enforced: isMfaRequiredForRole(role),
+        encryptionReady: privileged && isMfaConfigured(),
+      },
+    });
   });
 
   // Historial de accesos (solo admin/dueño). Nunca expone contraseñas.
@@ -738,7 +770,44 @@ export async function registerAdminAccessRoutes(app: Express): Promise<void> {
     const count = await storage.deleteAdminSessionsByUserId(req.adminUser!.id);
     await storage.deleteAdminAuthChallengesByUserId(req.adminUser!.id);
     clearAuthCookie(res, SESSION_COOKIE);
+    await auditLog("delete", "admin_session", null, req.adminUser!.id, { scope: "all" }, req);
     res.json({ ok: true, revoked: count });
+  });
+
+  // Cada persona solo puede ver y revocar sus propias sesiones. El payload es
+  // deliberadamente mínimo: no incluye hashes de token, IP ni user-agent crudo.
+  app.get("/api/admin/sessions", authMiddleware, async (req: Request, res: Response) => {
+    const sessions = await storage.getActiveAdminSessionsByUserId(req.adminUser!.id);
+    res.setHeader("Cache-Control", "no-store");
+    res.json({
+      sessions: sessions.map((session) => ({
+        id: session.id,
+        isCurrent: session.id === req.adminSession!.id,
+        createdAt: session.createdAt,
+        lastSeenAt: session.lastSeenAt,
+        expiresAt: session.expiresAt,
+        device: sessionDeviceLabel(session.userAgent),
+      })),
+      policy: getAdminSessionPolicy(req.adminUser!.role),
+    });
+  });
+
+  app.post("/api/admin/sessions/revoke-others", authMiddleware, async (req: Request, res: Response) => {
+    const count = await storage.deleteOtherAdminSessionsByUserId(req.adminUser!.id, req.adminSession!.id);
+    await auditLog("delete", "admin_session", null, req.adminUser!.id, { scope: "others", revoked: count }, req);
+    res.json({ ok: true, revoked: count });
+  });
+
+  app.delete("/api/admin/sessions/:id", authMiddleware, async (req: Request, res: Response) => {
+    const parsed = z.string().uuid().safeParse(req.params.id);
+    if (!parsed.success) return apiError(res, 400, "Identificador de sesión inválido");
+    if (parsed.data === req.adminSession!.id) {
+      return apiError(res, 400, "Usa Cerrar sesión para terminar la sesión actual");
+    }
+    const revoked = await storage.deleteAdminSessionByIdForUser(parsed.data, req.adminUser!.id);
+    if (!revoked) return apiError(res, 404, "Sesión no encontrada");
+    await auditLog("delete", "admin_session", parsed.data, req.adminUser!.id, { scope: "one" }, req);
+    res.json({ ok: true });
   });
 
   // Admin Logout
