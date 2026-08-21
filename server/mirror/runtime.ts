@@ -769,8 +769,8 @@ export async function createMirrorRuntime() {
             : which === "diversity"
               ? ($: cheerio.CheerioAPI) => applyDiversityVideoGallery($, config, lang)
               : which === "proBono"
-                ? ($: cheerio.CheerioAPI) => applyProBonoMedia($, config)
-              : undefined,
+                ? ($: cheerio.CheerioAPI) => applyProBonoMedia($, config, lang)
+                : undefined,
         which === "diversity" || which === "proBono" ? { bodyMode: "prepend" } : undefined,
       ),
     );
@@ -807,7 +807,10 @@ export async function createMirrorRuntime() {
 
   const serveGroupList = async (kind: keyof typeof GROUP_LIST_SEO, lang: Lang, res: Response) => {
     const seo = GROUP_LIST_SEO[kind];
-    const rows = kind === "practice" ? await storage.getPracticeGroups() : await storage.getIndustryGroups();
+    const [rows, config] = await Promise.all([
+      kind === "practice" ? storage.getPracticeGroups() : storage.getIndustryGroups(),
+      getConfigMap(),
+    ]);
     const items: GroupListItem[] = rows
       .filter((r: any) => r.published !== false && (kind !== "practice" || isPublicPracticeSlug(r.slug)))
       .map((r: any) => ({ slug: r.slug, name: r.name, nameEs: r.nameEs, order: r.order }));
@@ -818,7 +821,7 @@ export async function createMirrorRuntime() {
         title: seo.title[lang],
         description: seo.desc[lang],
         crumbLabel: seo.crumb[lang],
-      }),
+      }, config),
     );
   };
 

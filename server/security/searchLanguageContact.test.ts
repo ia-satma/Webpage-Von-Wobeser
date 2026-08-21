@@ -6,6 +6,7 @@ import * as cheerio from "cheerio";
 process.env.DATABASE_URL ||= "postgresql://test:test@127.0.0.1:5432/test";
 
 const { applyContactForm } = await import("../mirror/formsFix");
+const { applyInternsContent, applyProBonoMedia } = await import("../mirror/htmlPipeline");
 const { renderNewsList } = await import("../mirror/renderNews");
 const { applyPublicationsSearch, renderGlobalSearch } = await import("../mirror/renderSearch");
 const { renderPage } = await import("../mirror/renderPage");
@@ -33,6 +34,76 @@ test("Publicaciones reemplaza acción y tokens Joomla por búsqueda GET", () => 
   assert.match(html, /option value="news"/);
   assert.match(html, /option value="articles">Artículos/);
   assert.doesNotMatch(html, /token-antiguo|index\.php\/results/);
+});
+
+test("Pasantes elimina permanentemente la ilustración heredada de siluetas", () => {
+  const $ = cheerio.load(`<!doctype html><html><body>
+    <section class="page careers">
+      <div class="careers__content">
+        <div class="page__content--intro"></div>
+        <div class="page__content--intro"></div>
+        <div class="page__content--body"></div>
+        <div class="page__content--intro"></div>
+        <div class="page__content--body"></div>
+      </div>
+      <div class="interns"><img src="/images/interns.png" alt=""></div>
+    </section>
+  </body></html>`);
+
+  applyInternsContent($, {}, "es");
+
+  assert.equal($(".interns").length, 0);
+  assert.equal($('img[src="/images/interns.png"]').length, 0);
+  assert.equal($(".page.careers").hasClass("vw-interns-page"), true);
+});
+
+test("Pasantes normaliza las negritas heredadas y las del contenido administrable", () => {
+  const $ = cheerio.load(`<!doctype html><html><body>
+    <section class="page careers"><div class="careers__content">
+      <div class="page__content--intro"></div>
+      <div class="page__content--intro"></div>
+      <div class="page__content--body"><p><span style="font-weight:bold">Texto heredado</span></p></div>
+      <div class="page__content--intro"></div>
+      <div class="page__content--body"><p><b>Otro texto heredado</b></p></div>
+    </div></section>
+  </body></html>`);
+
+  applyInternsContent($, {
+    page_interns_offer_body: {
+      valueEs: '<p><strong>Texto administrable</strong> <span style="font-weight: 700; color:#555">sin jerarquía extra</span></p>',
+      value: "",
+    },
+  }, "es");
+
+  assert.equal($(".careers__content strong, .careers__content b").length, 0);
+  assert.equal($(".careers__content [style*='font-weight']").length, 0);
+  assert.match($(".careers__content").text(), /Texto administrable/);
+  assert.match($(".careers__content").text(), /Texto heredado/);
+});
+
+test("Pro Bono usa la cabecera editorial bilingüe y conserva su introducción", () => {
+  const $ = cheerio.load(`<!doctype html><html><body>
+    <section class="page"><div class="page--wrap">
+      <div class="page__ttl"><div class="page__ttl--holder"><h1>PRO BONO</h1></div></div>
+      <main class="page__content"><div class="page__content--intro"><p>Introducción histórica.</p></div><div class="page__content--body"><p>Cuerpo original.</p></div></main>
+    </div></section>
+  </body></html>`);
+
+  applyProBonoMedia($, {
+    page_probono_eyebrow: { value: "Our firm", valueEs: "Nuestra firma", type: "text" },
+    page_probono_title: { value: "Pro Bono", valueEs: "Pro Bono", type: "text" },
+  }, "es");
+
+  assert.equal($(".page.vw-probono-page").attr("aria-labelledby"), "vw-probono-page-title");
+  assert.equal($(".page__ttl").length, 0);
+  assert.equal($(".vw-probono-page__eyebrow").text(), "Nuestra firma");
+  assert.equal($(".vw-probono-page__title").text(), "Pro Bono");
+  assert.match($(".page__content--intro").text(), /Introducción histórica/);
+  assert.match($(".page__content--body").text(), /Cuerpo original/);
+
+  const css = fs.readFileSync("frontend-mirror/templates/beez3/css/vwb-stability.css", "utf8");
+  assert.match(css, /\.vw-probono-page__title[\s\S]*?var\(--vw-font-editorial\)[\s\S]*?text-transform:\s*none/);
+  assert.match(css, /\.vw-probono-page \.page__content--intro p[\s\S]*?font:\s*inherit !important/);
 });
 
 test("Noticias conserva consulta, idioma y paginación en el archivo", () => {
@@ -155,6 +226,7 @@ test("Contacto usa la jerarquía aprobada, conserva el mapa y ofrece País y Ár
   assert.match($.html(), /\.vw-contact-page \.page__map--holder\{position:relative;box-sizing:border-box;padding-top:0;background:#dededb\}/);
   assert.match($.html(), /@media\(max-width:980px\)\{\.vw-contact-page__location\{grid-template-columns:1fr\}[^}]*min-height:380px/);
   assert.match($.html(), /@media\(max-width:720px\)\{.*?\.vw-contact-page__location\{margin-top:28px\}.*?min-height:320px/s);
+  assert.match($.html(), /@media\(max-width:720px\)\{\.vw-contact-page\{padding-top:112px;padding-bottom:56px\}/);
   assert.doesNotMatch($.html(), /#a5102a/);
   assert.match($.html(), /Torre SOMA Chapultepec, piso 18/);
   assert.doesNotMatch($.html(), /18th floor/);

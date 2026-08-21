@@ -806,7 +806,24 @@ export function navigationLabelsScript(
   })(${payload});</script>`;
 }
 
-export function applyProBonoMedia($: cheerio.CheerioAPI, config: ConfigMap): void {
+export function applyProBonoMedia($: cheerio.CheerioAPI, config: ConfigMap, lang: Lang): void {
+  // La captura histórica trataba el primer párrafo como encabezado visual y
+  // dejaba "PRO BONO" en un rótulo vertical. Se adopta la misma jerarquía
+  // editorial de Diversidad, Prácticas e Industrias: contexto, título y texto.
+  const page = $(".page").first();
+  const legacyTitle = page.find(".page__ttl").first();
+  if (page.length && legacyTitle.length) {
+    const eyebrow = cfg(config, "page_probono_eyebrow", lang).trim()
+      || (lang === "es" ? "Nuestra firma" : "Our firm");
+    const title = cfg(config, "page_probono_title", lang).trim() || "Pro Bono";
+    const heading = $("<header>")
+      .addClass("vw-probono-page__header")
+      .append($("<p>").addClass("vw-probono-page__eyebrow").text(eyebrow))
+      .append($("<h1>").addClass("vw-probono-page__title").attr("id", "vw-probono-page-title").text(title));
+    page.addClass("vw-probono-page").attr("aria-labelledby", "vw-probono-page-title");
+    legacyTitle.replaceWith(heading);
+  }
+
   const logos = [1, 2, 3, 4]
     .map((index) => (config[`page_probono_logo_${index}`]?.value || "").trim())
     .filter(Boolean);
@@ -829,6 +846,13 @@ export function applyProBonoMedia($: cheerio.CheerioAPI, config: ConfigMap): voi
 
 export function applyInternsContent($: cheerio.CheerioAPI, config: ConfigMap, lang: Lang): void {
   $("html").attr("lang", lang === "es" ? "es-mx" : "en-gb");
+  // Distingue este subapartado de la landing general de Talento para que sus
+  // correcciones de espaciado no se filtren a Vacantes u otras plantillas.
+  $(".page.careers").first().addClass("vw-interns-page");
+  // La ilustración genérica de siluetas se retiró por decisión editorial. El
+  // renderer la elimina como salvaguarda aunque una futura captura heredada la
+  // vuelva a incluir en cualquiera de las variantes de Pasantes/Interns.
+  $(".interns").remove();
   const intros = $(".careers__content .page__content--intro");
   const bodies = $(".careers__content .page__content--body");
   const slots: Array<[cheerio.Cheerio<any>, string]> = [
@@ -842,6 +866,26 @@ export function applyInternsContent($: cheerio.CheerioAPI, config: ConfigMap, la
     const value = cfg(config, key, lang).trim();
     if (value) $slot.html(renderRichText(value));
   }
+
+  // La página heredada destacaba fragmentos completos con <b>, <strong> y
+  // estilos inline. En Pasantes/Interns la jerarquía ya la dan los títulos y
+  // párrafos de la plantilla; esos énfasis rompen la lectura y la tipografía
+  // editorial. Se normaliza también el contenido que provenga del CMS para
+  // que ambas versiones permanezcan consistentes después de una edición.
+  const content = $(".careers__content");
+  content.find("strong, b").each((_index, element) => {
+    $(element).replaceWith($(element).contents());
+  });
+  content.find("[style]").each((_index, element) => {
+    const node = $(element);
+    const normalized = (node.attr("style") || "")
+      .replace(/(?:^|;)\s*font-weight\s*:[^;]+;?/gi, ";")
+      .replace(/^\s*;+|;+\s*$/g, "")
+      .replace(/;\s*;/g, ";")
+      .trim();
+    if (normalized) node.attr("style", normalized);
+    else node.removeAttr("style");
+  });
 }
 
 // Inyecta el toggle de idioma antes de </body>, aplica el pie editable y envía.

@@ -413,7 +413,10 @@ export function applyContactForm(
 .vw-contact-location__action--primary{border-color:#ac162c;background:#ac162c;color:#fff}
 .vw-contact-location__action:active{transform:translateY(1px)}
 @media(max-width:980px){.vw-contact-page__location{grid-template-columns:1fr}.vw-contact-page__map-slot,.vw-contact-page .page__map,.vw-contact-page .page__map--holder,.vw-contact-page .page__map--holder iframe{min-height:380px}}
-@media(max-width:720px){.vw-contact-page{padding-top:40px;padding-bottom:56px}.vw-contact-page__header{margin-bottom:42px}.vw-contact-page__eyebrow{margin-bottom:16px}.vw-contact-page__title{font-size:34px}.vw-contact-form-section{padding-top:24px}.vw-contact-form-section__heading{margin-bottom:24px}.vw-contact-form{grid-template-columns:1fr;gap:20px;padding:22px 18px}.vw-contact-field--full{grid-column:auto}.vw-contact-privacy{margin-top:8px;padding:12px 14px}.vw-contact-location-section{margin-top:64px}.vw-contact-page__location{margin-top:28px}.vw-contact-page__map-slot,.vw-contact-page .page__map,.vw-contact-page .page__map--holder,.vw-contact-page .page__map--holder iframe{min-height:320px}.vw-contact-page__details{padding:24px 20px}}
+/* La cabecera persistente móvil (logo + utilidades) ocupa la primera banda
+   visual. Esta zona segura evita que cubra la etiqueta editorial en Chrome y
+   Safari, sin alterar el flujo desktop. */
+@media(max-width:720px){.vw-contact-page{padding-top:112px;padding-bottom:56px}.vw-contact-page__header{margin-bottom:42px}.vw-contact-page__eyebrow{margin-bottom:16px}.vw-contact-page__title{font-size:34px}.vw-contact-form-section{padding-top:24px}.vw-contact-form-section__heading{margin-bottom:24px}.vw-contact-form{grid-template-columns:1fr;gap:20px;padding:22px 18px}.vw-contact-field--full{grid-column:auto}.vw-contact-privacy{margin-top:8px;padding:12px 14px}.vw-contact-location-section{margin-top:64px}.vw-contact-page__location{margin-top:28px}.vw-contact-page__map-slot,.vw-contact-page .page__map,.vw-contact-page .page__map--holder,.vw-contact-page .page__map--holder iframe{min-height:320px}.vw-contact-page__details{padding:24px 20px}}
 @media(prefers-reduced-motion:reduce){.vw-contact-form button,.vw-contact-form button>span:last-child{transition:none}}
 </style>`);
 

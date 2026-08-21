@@ -22,7 +22,7 @@
     "check": "tsc",
     "test:agents": "node --import tsx --test server/security/agent*.test.ts",
     "pretest:security": "node scripts/clean-appledouble.mjs",
-    "test:security": "node --import tsx --test server/security/*.test.ts",
+    "test:security": "node --import tsx --import ./server/security/testEnvironment.mjs --test server/security/*.test.ts",
     "test:performance": "node scripts/check-performance-budgets.mjs",
     "audit:high": "node --import tsx scripts/audit-high-severity.ts",
     "audit:publications": "node scripts/audit-publications.mjs",

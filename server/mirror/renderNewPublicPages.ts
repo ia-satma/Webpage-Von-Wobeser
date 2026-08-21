@@ -89,10 +89,10 @@ export function renderPerspectivesHub(
     `</article>`
   )).join("");
   const subscribe = (
-    `<aside class="vw-perspectives__subscribe">` +
+    `<aside class="vw-perspectives__subscribe" aria-labelledby="insights-subscribe-title">` +
       `<div><span>${lang === "es" ? "Mantente al día" : "Stay informed"}</span>` +
-      `<h2>${lang === "es" ? "Recibe nuestras perspectivas" : "Receive our insights"}</h2></div>` +
-      `<a href="${lang === "es" ? "/#newsletter" : "/?lang=en#newsletter"}">${lang === "es" ? "Suscríbete" : "Subscribe"}<span aria-hidden="true">→</span></a>` +
+      `<h2 id="insights-subscribe-title">${lang === "es" ? "Recibe nuestras perspectivas" : "Receive our insights"}</h2></div>` +
+      `<a class="vw-perspectives__subscribe-cta" href="${lang === "es" ? "/#newsletter" : "/?lang=en#newsletter"}">${lang === "es" ? "Suscríbete" : "Subscribe"}<span aria-hidden="true">→</span></a>` +
     `</aside>`
   );
   const title = perspectivesTitle(config, lang);

@@ -66,6 +66,12 @@ test("los enlaces de cookies del footer mantienen contraste visible sobre el fon
   assert.match(css, /font:400 \.82rem\/1\.45 var\(--vwb-body\)/);
 });
 
+test("el aviso inicial de cookies suaviza sus esquinas solo en escritorio", () => {
+  const css = readFileSync(new URL("../../public/vwb-cookie-consent.css", import.meta.url), "utf8");
+
+  assert.match(css, /@media\(min-width:801px\)\{\.vwb-consent\{border-radius:8px\}\}/);
+});
+
 test("el aviso de Google Maps queda dentro del rectángulo reservado para el mapa", () => {
   const css = readFileSync(new URL("../../public/vwb-cookie-consent.css", import.meta.url), "utf8");
 

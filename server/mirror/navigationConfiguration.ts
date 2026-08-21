@@ -229,11 +229,12 @@ function missing(reasonEs: string, reasonEn: string, future = false) {
 }
 
 export async function getNavigationAvailability(config: ConfigMap, now = new Date()): Promise<NavigationAvailability> {
-  const [events, alliances, openings, pressCount] = await Promise.all([
+  const [events, alliances, openings, pressCount, recognitionCount] = await Promise.all([
     storage.getEvents(),
     storage.getAlliances(),
     storage.getJobOpenings(),
     storage.getPublishedNewsCount("press"),
+    storage.getPublishedNewsCount("rankings"),
   ]);
 
   const hasPublishedEvent = events.some((event) => event.published === true);
@@ -273,6 +274,12 @@ export async function getNavigationAvailability(config: ConfigMap, now = new Dat
   availability["perspectives-events"] = hasPublishedEvent
     ? ready()
     : missing("Requiere al menos un evento publicado.", "Requires at least one published event.");
+  availability["perspectives-recognitions"] = recognitionCount > 0
+    ? ready()
+    : missing(
+      "Requiere al menos un reconocimiento publicado. La página permanece preparada para activarse desde Administración.",
+      "Requires at least one published recognition. The page remains ready to activate from Administration.",
+    );
   availability["perspectives-press"] = pressCount > 0
     ? ready()
     : missing("Requiere al menos una publicación de Sala de prensa.", "Requires at least one press publication.");

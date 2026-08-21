@@ -127,6 +127,26 @@ test("Noticias del Home se compacta en laptops sin perder la segunda noticia", (
   assert.doesNotMatch(responsiveStyle, /transform:\s*scale/);
 });
 
+test("Noticias del Home conserva título y controles legibles en móvil, contraída o expandida", () => {
+  const html = renderHome(homeTemplate, news.slice(0, 4), {
+    home_news_pages: { value: "2", valueEs: "2", type: "number" },
+  }, "es");
+  const $ = cheerio.load(html);
+  const responsiveStyle = $("#vw-news-carousel-responsive-style").text();
+
+  assert.equal($(".covid_title h2 span").text(), "Noticias");
+  assert.equal($(".covid_cont.vw-news-panel>.vw-news-panel__toggle").length, 1);
+  assert.equal($(".covid_cont.vw-news-panel>.vw-news-panel__toggle").attr("aria-expanded"), "true");
+  assert.match(responsiveStyle, /La plantilla histórica convierte el panel a 100% de ancho en móvil/);
+  assert.match(responsiveStyle, /top:clamp\(2rem,8vw,3rem\)!important/);
+  assert.match(responsiveStyle, /\.home__hero>\.covid_cont\.vw-news-panel\.vw-news-panel--minimized/);
+  assert.match(responsiveStyle, /width:min\(15rem,calc\(100% - 1rem\)\)!important/);
+  assert.match(responsiveStyle, /visibility:visible!important/);
+  assert.match(responsiveStyle, /@media \(max-width:600px\)/);
+  assert.match(responsiveStyle, /grid-template-columns:minmax\(0,1fr\)!important/);
+  assert.match(responsiveStyle, /border-top:1px solid #d2d2ce!important/);
+});
+
 test("el filtro lingüístico del Home es conservador con nombres propios y títulos breves", () => {
   assert.equal(isNewsTitleCompatible("Von Wobeser y Sierra", "es"), true);
   assert.equal(isNewsTitleCompatible("Von Wobeser y Sierra", "en"), true);

@@ -195,7 +195,7 @@ function renderIndexedList(
   return $list.html();
 }
 
-function renderHistory(config: ConfigMap, lang: Lang): string {
+function renderHistory(config: ConfigMap, lang: Lang, transitionMedia = ""): string {
   const fallbackIntro = lang === "es"
     ? "Von Wobeser y Sierra nació en 1986 con la excelencia y la integridad como piedras angulares. Hoy, nuestro equipo multidisciplinario brinda asesoría jurídica integral a través de las prácticas y grupos por industria de la firma."
     : "Von Wobeser y Sierra was founded in 1986 with excellence and integrity as its cornerstones. Today, our multidisciplinary team provides comprehensive legal counsel through the firm’s practices and industry groups.";
@@ -232,6 +232,7 @@ function renderHistory(config: ConfigMap, lang: Lang): string {
         <div class="vw-firm__prose">${renderRichText(text(config, "page_firm_body", lang, fallbackBody))}</div>
       </div>
     </div>
+    ${transitionMedia ? `<figure class="vw-firm__feature-media">${transitionMedia}</figure>` : ""}
   </section>`;
 }
 
@@ -471,7 +472,11 @@ const STYLE = `<style id="vw-firm-landing-style">
   @media(max-width:900px){.vw-firm__container{width:min(100% - 3rem,48rem)}.vw-firm__section{padding:5.5rem 0}.vw-firm__hero{min-height:42rem;padding-top:9rem}.vw-firm__hero-grid,.vw-firm__history-grid,.vw-firm__values-grid,.vw-firm__culture-intro,.vw-firm__diversity-heading,.vw-firm__rankings-grid,.vw-firm__cta-grid{grid-template-columns:1fr;gap:3rem}.vw-firm__hero h1{font-size:clamp(4rem,18vw,7rem)}.vw-firm__scroll{display:none}.vw-firm__prose{margin-top:2rem}.vw-firm__stats-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.vw-firm__stats-grid>div{border-left:0;border-top:1px solid rgba(255,255,255,.3);padding:2.2rem 1rem 1rem 0}.vw-firm__stats-grid>div:nth-child(even){border-left:1px solid rgba(255,255,255,.3);padding-left:1.5rem}.vw-firm__values-heading{gap:1.5rem}.vw-firm__values-list{grid-template-columns:repeat(2,minmax(0,1fr))}.vw-firm__values-list li:nth-child(odd){border-left:0}.vw-firm__culture-list{grid-template-columns:1fr}.vw-firm__culture-list li:nth-child(odd){transform:none}.vw-firm__diversity-list li{grid-template-columns:3rem minmax(0,1fr)}.vw-firm__diversity-list li>div{grid-column:2}.vw-firm__pathways-grid{grid-template-columns:1fr}.vw-firm__pathways article{min-height:22rem;padding:0 0 4rem}.vw-firm__pathways article+article{border-left:0;border-top:1px solid rgba(255,255,255,.4);padding:4rem 0 0}.vw-firm__cta-grid{align-items:start}}
   @media(max-width:560px){.vw-firm__container{width:calc(100% - 2rem)}.vw-firm__section{padding:4.5rem 0}.vw-firm__hero{min-height:36rem;padding:8rem 0 3.5rem}.vw-firm__hero h1{font-size:clamp(3.25rem,16vw,5rem)}.vw-firm__hero-subtitle{font-size:1.35rem}.vw-firm h2{font-size:clamp(2.25rem,10vw,3.25rem)}.vw-firm__history-intro{font-size:1.55rem}.vw-firm__stats-grid dd{font-size:3.5rem}.vw-firm__values-list{grid-template-columns:1fr}.vw-firm__values-list li{min-height:0;border-left:0}.vw-firm__culture-media{height:20rem;margin-top:3.5rem}.vw-firm__culture-list li{grid-template-columns:2rem minmax(0,1fr);gap:.8rem}.vw-firm__diversity-list{margin-top:3.5rem}.vw-firm__diversity-list li{grid-template-columns:2.2rem minmax(0,1fr);gap:1rem}.vw-firm__rankings-list a,.vw-firm__rankings-list li>div{grid-template-columns:2rem minmax(0,1fr) 1.2rem}.vw-firm__rankings-list img{display:none}.vw-firm__ranking-copy{grid-column:2}.vw-firm__pathways h2{font-size:3.2rem}}
   @media(prefers-reduced-motion:reduce){.vw-firm *{scroll-behavior:auto!important}.vw-firm--motion .vw-firm-reveal{opacity:1;transform:none;transition:none}.vw-firm__history-media img,.vw-firm__culture-media img,.vw-firm__text-link span,.vw-firm__ranking-arrow,.vw-firm__cta nav b{transition:none}}
-  @media print{.vw-firm__hero{min-height:0;padding:3rem 0;color:#222}.vw-firm__hero-media{display:none}.vw-firm__section{padding:2rem 0}.vw-firm__values-heading,.vw-firm__rankings .vw-firm__section-heading{position:static}.vw-firm-reveal{opacity:1!important;transform:none!important}}
+  /* Encabezado editorial compartido: la fotografía acompaña el título, no compite con él. */
+  .vw-firm__hero{display:block;min-height:0;padding:clamp(6rem,7vw,7.5rem) 0 2rem;background:#fff;color:var(--vw-ink);box-shadow:none}.vw-firm__hero-heading{display:flex;flex-direction:column;align-items:center;max-width:64rem;text-align:center}.vw-firm__hero .vw-firm__eyebrow{margin:0 0 1rem;color:var(--vw-red);font:500 .75rem/1.2 var(--vw-font-ui);letter-spacing:.28em;text-transform:uppercase}.vw-firm__hero h1{max-width:15ch;margin:0;color:#565656;font:400 clamp(2.6rem,4.7vw,4.75rem)/1.08 var(--vw-font-editorial);letter-spacing:-.025em}.vw-firm__hero-subtitle{max-width:48rem;margin:1.15rem auto 0;color:#606060;font:400 clamp(1rem,1.3vw,1.18rem)/1.55 var(--vw-font-body);text-wrap:balance}.vw-firm__hero-rule{display:block;width:100%;height:1px;margin:clamp(2.4rem,4vw,3.6rem) 0 0;background:var(--vw-red)}.vw-firm__history{padding:3.25rem 0 0}.vw-firm__feature-media{position:relative;display:block;width:min(100% - 8vw,86rem);aspect-ratio:21/7;margin:clamp(3.5rem,5vw,5rem) auto clamp(3rem,4.5vw,4.5rem);overflow:hidden;background:#e8e8e6}.vw-firm__feature-media img,.vw-firm__feature-media video,.vw-firm__feature-media iframe,.vw-firm__feature-media .vw-firm__video-facade{width:100%;height:100%;display:block;object-fit:cover}.vw-firm__feature-media iframe{border:0}.vw-firm__feature-media .vw-firm__video-facade{border:0}.vw-firm__feature-media .vw-firm__video-play{background:rgba(172,22,44,.9)}
+  @media(max-width:900px){.vw-firm__hero{min-height:0;padding:5.75rem 0 2.5rem}.vw-firm__hero h1{font-size:clamp(2.55rem,8vw,4rem)}.vw-firm__history{padding:3.5rem 0 0}.vw-firm__feature-media{width:min(100% - 3rem,48rem)}}
+  @media(max-width:560px){.vw-firm__hero{padding:5.25rem 0 2.5rem}.vw-firm__hero h1{font-size:clamp(2.45rem,11vw,3.25rem)}.vw-firm__hero-subtitle{font-size:1rem;line-height:1.55}.vw-firm__history{padding:3.25rem 0 0}.vw-firm__feature-media{width:calc(100% - 2rem);aspect-ratio:16/8;margin:3.25rem auto 3.25rem}}
+  @media print{.vw-firm__hero{min-height:0;padding:3rem 0;color:#222}.vw-firm__hero-media,.vw-firm__feature-media{display:none}.vw-firm__section{padding:2rem 0}.vw-firm__values-heading,.vw-firm__rankings .vw-firm__section-heading{position:static}.vw-firm-reveal{opacity:1!important;transform:none!important}}
 </style>`;
 
 const SCRIPT = `<script id="vw-firm-landing-script">(function(){
@@ -501,11 +506,12 @@ export function renderFirmLanding(
 ): string {
   const $ = cheerio.load(templateHtml);
   const heroVisible = visible(config, "firm_landing_hero_visible", lang);
-  const configuredEyebrow = text(config, "firm_landing_eyebrow", lang, "Von Wobeser").trim();
-  // Conserva cualquier texto personalizado, pero corrige el valor histórico del hero.
-  const eyebrow = /^von\s+wobeser\s+y\s+sierra$/i.test(configuredEyebrow)
-    ? "Von Wobeser"
-    : configuredEyebrow || "Von Wobeser";
+  const eyebrow = text(
+    config,
+    "firm_landing_eyebrow",
+    lang,
+    lang === "es" ? "Nuestra firma" : "Our firm",
+  ).trim() || (lang === "es" ? "Nuestra firma" : "Our firm");
   const configuredTitle = text(config, "firm_landing_title", lang, "Von Wobeser y Sierra");
   const title = configuredTitle === "Nuestra Firma" || configuredTitle === "Our Firm"
     ? "Von Wobeser y Sierra"
@@ -525,38 +531,31 @@ export function renderFirmLanding(
       ? "Sala de consejo de las nuevas oficinas de Von Wobeser y Sierra"
       : "Boardroom at the new Von Wobeser y Sierra offices")
     : configuredHeroAlt;
-  const configuredScrollLabel = text(config, "firm_landing_scroll_label", lang, lang === "es" ? "Conoce VWyS" : "Discover VWyS");
-  const scrollLabel = configuredScrollLabel === "Conoce nuestra firma"
-    ? "Conoce VWyS"
-    : configuredScrollLabel === "Discover our firm"
-      ? "Discover VWyS"
-      : configuredScrollLabel;
-
   const heroVideo = heroVideoSource?.kind === "file" ? heroVideoSource.url : "";
   const heroEmbed = heroVideoSource && heroVideoSource.kind !== "file"
     ? buildVideoEmbedUrl(heroVideoSource, { autoplay: true, controls: true, muted: true, playsInline: true })
     : null;
   const playLabel = lang === "es" ? "Reproducir video" : "Play video";
 
+  const heroMedia = heroEmbed
+    ? `<button class="vw-firm__video-facade" type="button" data-embed="${escAttr(heroEmbed)}" aria-label="${escAttr(`${playLabel}: ${heroAlt}`)}">${heroImage ? `<img src="${escAttr(heroImage)}" alt="" fetchpriority="high" decoding="async">` : ""}<span class="vw-firm__video-play" aria-hidden="true">▶</span></button>`
+    : heroVideo
+      ? `<video autoplay muted loop playsinline preload="metadata"${heroImage ? ` poster="${escAttr(heroImage)}"` : ""} aria-label="${escAttr(heroAlt)}"><source src="${escAttr(heroVideo)}"></video>`
+      : heroImage
+        ? `<img src="${escAttr(heroImage)}" alt="${escAttr(heroAlt)}" loading="lazy" decoding="async">`
+        : "";
   const hero = heroVisible ? `<section class="vw-firm__hero" aria-labelledby="vw-firm-title">
-    <figure class="vw-firm__hero-media">
-      ${heroEmbed
-        ? `<button class="vw-firm__video-facade" type="button" data-embed="${escAttr(heroEmbed)}" aria-label="${escAttr(`${playLabel}: ${heroAlt}`)}">${heroImage ? `<img src="${escAttr(heroImage)}" alt="" fetchpriority="high" decoding="async">` : ""}<span class="vw-firm__video-play" aria-hidden="true">▶</span></button>`
-        : heroVideo
-        ? `<video autoplay muted loop playsinline preload="metadata"${heroImage ? ` poster="${escAttr(heroImage)}"` : ""} aria-label="${escAttr(heroAlt)}"><source src="${escAttr(heroVideo)}"></video>`
-        : heroImage
-          ? `<img src="${escAttr(heroImage)}" alt="${escAttr(heroAlt)}" fetchpriority="high" decoding="async">`
-          : ""}
-    </figure>
-    <div class="vw-firm__container vw-firm__hero-grid">
-      <div><p class="vw-firm__eyebrow">${esc(eyebrow)}</p><h1 id="vw-firm-title">${esc(title)}</h1><p class="vw-firm__hero-subtitle">${esc(subtitle)}</p></div>
-      <a class="vw-firm__scroll" href="#historia">${esc(scrollLabel)}</a>
+    <div class="vw-firm__container vw-firm__hero-heading">
+      <p class="vw-firm__eyebrow">${esc(eyebrow)}</p>
+      <h1 id="vw-firm-title">${esc(title)}</h1>
+      <p class="vw-firm__hero-subtitle">${esc(subtitle)}</p>
+      <span class="vw-firm__hero-rule" aria-hidden="true"></span>
     </div>
   </section>` : "";
 
   const sections = [
     { id: "hero", visible: heroVisible, order: order(config, "firm_landing_hero_order", lang, 0), html: hero },
-    { id: "history", visible: visible(config, "firm_landing_history_visible", lang), order: order(config, "firm_landing_history_order", lang, 10), html: renderHistory(config, lang) },
+    { id: "history", visible: visible(config, "firm_landing_history_visible", lang), order: order(config, "firm_landing_history_order", lang, 10), html: renderHistory(config, lang, heroVisible ? heroMedia : "") },
     { id: "stats", visible: visible(config, "firm_landing_stats_visible", lang), order: order(config, "firm_landing_stats_order", lang, 20), html: renderStats(config, lang, data) },
     { id: "values", visible: visible(config, "firm_landing_values_visible", lang), order: order(config, "firm_landing_values_order", lang, 30), html: renderValues(config, lang) },
     { id: "cta", visible: visible(config, "firm_landing_cta_visible", lang), order: order(config, "firm_landing_cta_order", lang, 80), html: renderFinalCta(config, lang) },

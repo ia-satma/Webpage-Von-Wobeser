@@ -794,9 +794,19 @@ test("Configuración conserva secciones, claves, APIs, query keys y controles", 
   const declaredKeys = [...registrySource.matchAll(/key:\s*"([^"]+)"/g)]
     .map((match) => match[1]);
   assert.equal(Object.keys(PAGES).filter((key) => key !== "resumen-firma").length, 15);
-  assert.equal(declaredKeys.length, 216);
-  assert.equal(new Set(declaredKeys).size, 214);
+  // El inventario incorpora las cabeceras editables de Prácticas, Industrias,
+  // Diversidad y Pro Bono, además de los controles del carrusel de Noticias.
+  // Conservamos las dos repeticiones intencionales del resumen institucional.
+  assert.equal(declaredKeys.length, 226);
+  assert.equal(new Set(declaredKeys).size, 224);
   assert.ok(declaredKeys.includes("home_location_visible"));
+  for (const key of [
+    "home_news_title",
+    "page_practices_title",
+    "page_industries_title",
+    "page_diversity_title",
+    "page_probono_title",
+  ]) assert.ok(declaredKeys.includes(key), `Falta el control administrativo ${key}`);
   assert.equal((source.match(/adminApiRequest\(/g) || []).length, 6);
   assert.equal((source.match(/queryKey:/g) || []).length, 3);
   assert.equal((source.match(/data-testid=/g) || []).length, 15);

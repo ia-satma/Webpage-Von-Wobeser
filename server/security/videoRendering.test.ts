@@ -1,5 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import fs from "node:fs";
+import path from "node:path";
 import * as cheerio from "cheerio";
 import { applyDiversityVideoGallery } from "../mirror/diversityVideoGallery";
 import type { ConfigMap } from "../mirror/siteConfig";
@@ -86,6 +88,20 @@ test("el video nativo se reproduce automáticamente en móvil y ofrece recuperac
   assert.doesNotMatch(html, /#video_header\{display:none\}/);
 });
 
+test("el indicador Scroll de Inicio se ancla al borde inferior del video", async () => {
+  const { renderHome } = await import("../mirror/renderHome");
+  const template = `<!doctype html><html><head></head><body>
+    <div class="home__hero"><a href="/old"><video id="video_header"></video></a><div class="home__hero--scroll" style="bottom:310px"><span>Scroll</span></div></div>
+  </body></html>`;
+  const html = renderHome(template, [], {}, "es");
+  const $ = cheerio.load(html);
+
+  assert.doesNotMatch($(".home__hero--scroll").attr("style") || "", /bottom\s*:/i);
+  assert.match(html, /\.home__hero>\.home__hero--scroll\{bottom:clamp\(1\.5rem,3vw,3rem\)!important\}/);
+  assert.match(html, /\.home__hero>\.home__hero--scroll:after\{display:none!important\}/);
+  assert.match(html, /@media \(max-width:680px\)\{[\s\S]*?\.home__hero>\.home__hero--scroll\{bottom:1\.5rem!important\}/);
+});
+
 test("Diversidad alterna de forma segura entre archivo, YouTube y Vimeo", () => {
   const $ = cheerio.load(`<!doctype html><html><body>
     <div class="slide_vid"><video id="videoPlayer"><source id="videoSource"></video></div>
@@ -107,4 +123,40 @@ test("Diversidad alterna de forma segura entre archivo, YouTube y Vimeo", () => 
   assert.match($(".thumb[name='vid_02']").attr("data-embed") || "", /^https:\/\/player\.vimeo\.com\/video\/76979871/);
   assert.match($.html(), /vwSelectDiversityVideo/);
   assert.doesNotMatch($.html(), /<iframe[^>]+(?:evil|javascript:)/i);
+});
+
+test("Diversidad e Inclusión usa la cabecera editorial bilingüe sin el rótulo vertical legado", () => {
+  const template = `<!doctype html><html><body><section class="page"><div class="page--wrap">
+    <div class="page__ttl"><span>DIVERSIDAD E INCLUSIÓN</span></div>
+    <div class="page__content"><div class="page__content--intro"><p>Texto de introducción.</p></div><div class="page__content--body"><div class="slide_vid"><video id="videoPlayer"><source id="videoSource"></video></div></div></div>
+    <aside class="page__sidebar"><img class="img_probono_1"><img class="img_probono_2 img_probono_2_fix"><img class="img_probono_3 fix_3"></aside>
+  </div></section></body></html>`;
+  const config: ConfigMap = {
+    page_diversity_eyebrow: { value: "Our firm", valueEs: "Nuestra firma", type: "text" },
+    page_diversity_title: { value: "Diversity & inclusion", valueEs: "Diversidad e inclusión", type: "text" },
+    page_diversity_logo_1: entry("/uploads/diversity-1.png"),
+    page_diversity_logo_2: entry("/uploads/diversity-2.png"),
+    page_diversity_logo_3: entry("/uploads/diversity-3.png"),
+  };
+  const es = cheerio.load(template);
+  const en = cheerio.load(template);
+  applyDiversityVideoGallery(es, config, "es");
+  applyDiversityVideoGallery(en, config, "en");
+
+  assert.equal(es(".page.vw-diversity-page").attr("aria-labelledby"), "vw-diversity-page-title");
+  assert.equal(es(".vw-diversity-page__eyebrow").text(), "Nuestra firma");
+  assert.equal(es("h1.vw-diversity-page__title").text(), "Diversidad e inclusión");
+  assert.equal(en(".vw-diversity-page__eyebrow").text(), "Our firm");
+  assert.equal(en("h1.vw-diversity-page__title").text(), "Diversity & inclusion");
+  assert.equal(es(".page__ttl").length, 0);
+  assert.deepEqual(es(".page__sidebar > img").map((_, element) => es(element).attr("src")).get(), [
+    "/uploads/diversity-1.png",
+    "/uploads/diversity-2.png",
+    "/uploads/diversity-3.png",
+  ]);
+
+  const css = fs.readFileSync(path.resolve(import.meta.dirname, "../../frontend-mirror/templates/beez3/css/vwb-stability.css"), "utf8");
+  assert.match(css, /\.vw-diversity-page__title\s*,\s*\.vw-probono-page__title\s*\{[\s\S]*?var\(--vw-font-editorial\)[\s\S]*?text-transform:\s*none/);
+  assert.match(css, /@media \(max-width: 720px\)[\s\S]*?\.vw-diversity-page__title\s*,\s*\.vw-probono-page__title\s*\{[\s\S]*?font-size:\s*34px/);
+  assert.match(css, /@media \(min-width: 801px\)[\s\S]*?\.vw-diversity-page \.page__sidebar > \.img_probono_1,[\s\S]*?position:\s*static !important/);
 });

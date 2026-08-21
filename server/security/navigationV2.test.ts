@@ -59,6 +59,9 @@ test("la navegación definitiva conserva orden, etiquetas y utilidades bilingüe
   assert.equal(DEFAULT_NAVIGATION_CONFIGURATION.utilities.contact.labelEs, "Contáctanos");
   assert.equal(DEFAULT_NAVIGATION_CONFIGURATION.utilities.contact.labelEn, "Contact us");
   assert.equal(DEFAULT_NAVIGATION_CONFIGURATION.items.find((item) => item.id === "firm")?.children.find((child) => child.id === "firm-alumni")?.visible, false);
+  assert.equal(DEFAULT_NAVIGATION_CONFIGURATION.items.find((item) => item.id === "firm")?.children.find((child) => child.id === "firm-value")?.visible, false);
+  assert.equal(DEFAULT_NAVIGATION_CONFIGURATION.items.find((item) => item.id === "firm")?.children.find((child) => child.id === "firm-recognitions")?.visible, false);
+  assert.equal(DEFAULT_NAVIGATION_CONFIGURATION.items.find((item) => item.id === "perspectives")?.children.find((child) => child.id === "perspectives-recognitions")?.visible, false);
   assert.deepEqual(NAVIGATION_LANDING_CHILD_IDS, [
     "firm-overview",
     "attorneys-all",
@@ -342,11 +345,52 @@ test("la búsqueda editorial respeta disponibilidad, texto seguro y nunca indexa
   };
   const pages = buildSearchableEditorialPages(config, availability);
   assert.equal(pages.some((page) => page.slug === "events"), false);
+  assert.equal(pages.some((page) => page.slug === "recognitions"), true);
   assert.equal(pages.some((page) => page.slug === "international-reach"), true);
   assert.equal(pages.some((page) => page.slug === "openings"), true);
   assert.equal(pages.some((page) => page.slug.includes("alumni")), false);
   assert.equal(pages.find((page) => page.slug === "perspectives")?.title, "Knowledge");
   assert.equal(pages.find((page) => page.slug === "perspectives")?.description, "Legal updates");
+});
+
+test("Reconocimientos de Insights queda preparado, oculto sin contenido y activable al publicarlo", () => {
+  const withoutContent = readyAvailability();
+  withoutContent["perspectives-recognitions"] = {
+    contentReady: false,
+    reasonEs: "Requiere al menos un reconocimiento publicado.",
+    reasonEn: "Requires at least one published recognition.",
+  };
+  const configured = cloneConfiguration();
+  const insights = configured.items.find((item) => item.id === "perspectives")!;
+  const recognitions = insights.children.find((child) => child.id === "perspectives-recognitions")!;
+  recognitions.visible = true;
+
+  const hidden = resolveNavigationTree(configured, withoutContent, "es");
+  const hiddenRecognition = hidden.items.find((item) => item.id === "perspectives")!.children.find((child) => child.id === "perspectives-recognitions")!;
+  assert.equal(hiddenRecognition.visible, false);
+  assert.equal(hiddenRecognition.status, "no-content");
+  assert.equal(buildSearchableEditorialPages({}, withoutContent).some((page) => page.slug === "recognitions"), false);
+
+  const ready = resolveNavigationTree(configured, readyAvailability(), "es");
+  const readyRecognition = ready.items.find((item) => item.id === "perspectives")!.children.find((child) => child.id === "perspectives-recognitions")!;
+  assert.equal(readyRecognition.visible, true);
+  assert.equal(readyRecognition.status, "ready");
+});
+
+test("los destinos redundantes de Nuestra firma quedan ocultos y pueden reactivarse desde Administración", () => {
+  const configured = cloneConfiguration();
+  const firm = configured.items.find((item) => item.id === "firm")!;
+  const value = firm.children.find((child) => child.id === "firm-value")!;
+  const recognitions = firm.children.find((child) => child.id === "firm-recognitions")!;
+  assert.equal(value.visible, false);
+  assert.equal(recognitions.visible, false);
+
+  value.visible = true;
+  recognitions.visible = true;
+  const resolved = resolveNavigationTree(configured, readyAvailability(), "es");
+  const children = resolved.items.find((item) => item.id === "firm")!.children;
+  assert.equal(children.find((child) => child.id === "firm-value")?.visible, true);
+  assert.equal(children.find((child) => child.id === "firm-recognitions")?.visible, true);
 });
 
 test("Insights sustituye el título predeterminado anterior en la portada y búsqueda españolas", () => {
@@ -362,6 +406,20 @@ test("Insights sustituye el título predeterminado anterior en la portada y bús
   const $ = cheerio.load(html);
   assert.equal($(".vw-perspectives h1").text(), "Insights");
   assert.equal(buildSearchableEditorialPages(config, readyAvailability()).find((page) => page.slug === "perspectives")?.titleEs, "Insights");
+});
+
+test("el llamado a suscripción de Insights conserva su destino y una etiqueta accesible", () => {
+  const html = renderPerspectivesHub(
+    "<!doctype html><html><head></head><body><section class=\"page\"></section></body></html>",
+    {},
+    "es",
+    [],
+  );
+  const $ = cheerio.load(html);
+  const subscribe = $(".vw-perspectives__subscribe");
+  assert.equal(subscribe.attr("aria-labelledby"), "insights-subscribe-title");
+  assert.equal(subscribe.find("#insights-subscribe-title").text(), "Recibe nuestras perspectivas");
+  assert.equal(subscribe.find(".vw-perspectives__subscribe-cta").attr("href"), "/#newsletter");
 });
 
 test("el guardado del menú revalida la revisión bajo bloqueo transaccional", () => {

@@ -212,7 +212,15 @@ export const DEFAULT_NAVIGATION_CONFIGURATION: NavigationConfiguration = {
     children: NAVIGATION_CHILD_IDS[id].map((childId) => ({
       id: childId,
       ...labels[childId],
-      visible: childId !== "firm-alumni",
+      // Estos destinos conservan sus rutas y configuración, pero permanecen
+      // preparados fuera de la navegación hasta que el equipo los habilite
+      // explícitamente desde Administración.
+      visible: ![
+        "firm-alumni",
+        "firm-value",
+        "firm-recognitions",
+        "perspectives-recognitions",
+      ].includes(childId),
     })),
   })) as NavigationPrimaryConfiguration[],
   utilities: {

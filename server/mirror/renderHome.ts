@@ -118,6 +118,8 @@ const HERO_PERFORMANCE_STYLE = `<style id="vw-home-performance">
 .home__hero>.vw-home-video-link,.home__hero>.vw-home-video-facade{position:absolute!important;inset:0!important;display:block!important;width:100%!important;height:100%!important;margin:0!important;padding:0!important;z-index:0}
 .home__hero #video_header{display:block!important;width:100%!important;height:100%!important;margin:0!important;padding:0!important;object-fit:cover!important}
 .home__hero>.covid_cont,.home__hero>.home__hero--scroll{z-index:1}
+.home__hero>.home__hero--scroll{bottom:clamp(1.5rem,3vw,3rem)!important}
+.home__hero>.home__hero--scroll:after{display:none!important}
 .vw-home-video-facade{background-position:center;background-size:cover;background-color:#222;overflow:hidden}
 .vw-home-video-facade__poster{position:absolute;inset:0;display:block;width:100%;height:100%;object-fit:cover}
 .vw-home-video-facade iframe,.vw-home-video-facade video{display:block;width:100%;height:100%;border:0;object-fit:cover}
@@ -127,7 +129,7 @@ const HERO_PERFORMANCE_STYLE = `<style id="vw-home-performance">
 .vw-home-video-retry{position:absolute;z-index:8;left:50%;top:50%;display:none;align-items:center;gap:12px;min-height:48px;padding:10px 18px;border:1px solid rgba(255,255,255,.82);background:rgba(20,20,20,.72);color:#fff;cursor:pointer;font:500 14px/1.2 var(--font-body,"Inter",sans-serif);letter-spacing:.02em;transform:translate(-50%,-50%);backdrop-filter:blur(4px)}
 .vw-home-video-retry.is-visible{display:inline-flex}.vw-home-video-retry__icon{font-size:19px;line-height:1}.vw-home-video-retry:hover{background:rgba(20,20,20,.88)}.vw-home-video-retry:focus-visible{outline:3px solid #fff;outline-offset:3px}
 @media (prefers-reduced-motion:reduce){.home__hero{background-position:center;background-size:cover}}
-@media (max-width:680px){.home__hero{min-height:calc(100svh - 66px)!important}}
+@media (max-width:680px){.home__hero{min-height:calc(100svh - 66px)!important}.home__hero>.home__hero--scroll{bottom:1.5rem!important}}
 </style>`;
 
 const HERO_PERFORMANCE_SCRIPT = `<script id="vw-home-performance-js">(function(){
@@ -695,8 +697,9 @@ const HERO_NEWS_CAROUSEL_STYLE = `<style id="vw-news-carousel-style">
     .covid_cont.vw-news-panel:not(.vw-news-panel--minimized) .vw-news-carousel__nav{bottom:-43px;}
   }
 
-  /* Tablet y móvil conservan ambas noticias en dos columnas compactas: así el
-     panel no crece verticalmente ni obliga a ocultar la segunda noticia. */
+  /* Tablet conserva ambas noticias en dos columnas compactas. Los teléfonos
+     angostos reciben el ajuste final inferior a una columna para mantener la
+     lectura completa de ambas notas sin recortes. */
   @media (max-width:800px) {
     .covid_cont.vw-news-panel:not(.vw-news-panel--minimized){
       box-sizing:border-box;
@@ -735,6 +738,108 @@ const HERO_NEWS_CAROUSEL_STYLE = `<style id="vw-news-carousel-style">
     .covid_cont.vw-news-panel:not(.vw-news-panel--minimized) .vw-news-carousel .news_item{min-height:84px;padding-right:10px;}
     .covid_cont.vw-news-panel:not(.vw-news-panel--minimized) .vw-news-carousel .news_item+.news_item{padding-left:10px;padding-right:0;}
     .covid_cont.vw-news-panel:not(.vw-news-panel--minimized) .vw-news-carousel .news_item h3{font-size:14px;}
+  }
+
+  /* La plantilla histórica convierte el panel a 100% de ancho en móvil y
+     oculta parte del encabezado al contraerlo. Esta capa final se limita al
+     hero para conservar la tarjeta legible en ambos estados sin alterar el
+     carrusel de escritorio ni los módulos de Noticias de otras páginas. */
+  @media (max-width:800px) {
+    .home__hero>.covid_cont.vw-news-panel{
+      background:#fff!important;
+      color:#5f5f5f!important;
+      max-width:min(31rem,calc(100% - 1rem))!important;
+      padding:14px 16px 58px!important;
+      /* El encabezado móvil es fijo y alcanza 96 px de alto. El panel vive
+         dentro del hero, que empieza debajo del encabezado de escritorio
+         histórico; este margen evita que el título quede debajo de él. */
+      top:clamp(2rem,8vw,3rem)!important;
+      width:calc(100% - 1rem)!important;
+    }
+    .home__hero>.covid_cont.vw-news-panel .covid_title,
+    .home__hero>.covid_cont.vw-news-panel .covid_title h2,
+    .home__hero>.covid_cont.vw-news-panel .covid_title h2 span{
+      display:block!important;
+      height:auto!important;
+      max-height:none!important;
+      opacity:1!important;
+      overflow:visible!important;
+      transform:none!important;
+      visibility:visible!important;
+    }
+    .home__hero>.covid_cont.vw-news-panel .covid_title{
+      border-bottom:1px solid #ac162c!important;
+      padding:0 48px 10px 0!important;
+      text-align:left!important;
+    }
+    .home__hero>.covid_cont.vw-news-panel .covid_title h2{margin:0!important;}
+    .home__hero>.covid_cont.vw-news-panel .covid_title h2 span{
+      color:#5f5f5f!important;
+      font-family:var(--vw-font-editorial)!important;
+      font-size:clamp(20px,6vw,24px)!important;
+      font-weight:400!important;
+      letter-spacing:normal!important;
+      line-height:1.12!important;
+      text-transform:none!important;
+    }
+    .home__hero>.covid_cont.vw-news-panel:not(.vw-news-panel--minimized) .covid_headlines{margin-top:12px!important;}
+    .home__hero>.covid_cont.vw-news-panel:not(.vw-news-panel--minimized) .vw-news-carousel__slide{gap:14px!important;}
+    .home__hero>.covid_cont.vw-news-panel:not(.vw-news-panel--minimized) .vw-news-carousel .news_item{
+      min-height:92px!important;
+      padding:0!important;
+    }
+    .home__hero>.covid_cont.vw-news-panel:not(.vw-news-panel--minimized) .vw-news-carousel .news_item h3{
+      color:#5f5f5f!important;
+      font-size:16px!important;
+      line-height:1.3!important;
+      opacity:1!important;
+      padding:0!important;
+      visibility:visible!important;
+      -webkit-line-clamp:3!important;
+    }
+    .home__hero>.covid_cont.vw-news-panel:not(.vw-news-panel--minimized) .covid_headlines .vw-news-carousel .news_item>a.vw-news-carousel__more{
+      color:#5f5f5f!important;
+      font-size:12px!important;
+      min-height:40px!important;
+      padding-top:8px!important;
+    }
+    .home__hero>.covid_cont.vw-news-panel>.vw-news-panel__toggle{
+      align-items:center!important;
+      display:inline-flex!important;
+      height:44px!important;
+      justify-content:center!important;
+      right:8px!important;
+      top:8px!important;
+      width:44px!important;
+    }
+    .home__hero>.covid_cont.vw-news-panel>.vw-news-panel__toggle svg{color:#ac162c!important;}
+    .home__hero>.covid_cont.vw-news-panel.vw-news-panel--minimized{
+      min-height:58px!important;
+      padding:16px 56px 16px 16px!important;
+      width:min(15rem,calc(100% - 1rem))!important;
+    }
+    .home__hero>.covid_cont.vw-news-panel.vw-news-panel--minimized .covid_title{
+      border-bottom:0!important;
+      padding:0!important;
+    }
+    .home__hero>.covid_cont.vw-news-panel.vw-news-panel--minimized .covid_title h2 span{
+      font-size:20px!important;
+      line-height:1.2!important;
+    }
+    .home__hero>.covid_cont.vw-news-panel.vw-news-panel--minimized>.vw-news-panel__toggle{
+      top:7px!important;
+    }
+  }
+
+  @media (max-width:600px) {
+    .home__hero>.covid_cont.vw-news-panel:not(.vw-news-panel--minimized) .vw-news-carousel__slide{
+      grid-template-columns:minmax(0,1fr)!important;
+    }
+    .home__hero>.covid_cont.vw-news-panel:not(.vw-news-panel--minimized) .vw-news-carousel .news_item+.news_item{
+      border-left:0!important;
+      border-top:1px solid #d2d2ce!important;
+      padding-top:14px!important;
+    }
   }
 </style>`;
 
@@ -913,6 +1018,20 @@ export function renderHome(
     );
   }
   const hero = $(".home__hero").first();
+  // La captura histórica fija este indicador a 310 px del borde inferior,
+  // por lo que termina en el centro del video en pantallas altas. Conservamos
+  // cualquier otro estilo legítimo, pero la posición la determina la regla
+  // responsive del hero para que permanezca al borde inferior.
+  hero.find(".home__hero--scroll").each((_, element) => {
+    const indicator = $(element);
+    const legacyStyle = indicator.attr("style") || "";
+    const retainedStyle = legacyStyle
+      .replace(/(?:^|;)\s*bottom\s*:[^;]+;?/gi, ";")
+      .replace(/^;|;$/g, "")
+      .trim();
+    if (retainedStyle) indicator.attr("style", retainedStyle);
+    else indicator.removeAttr("style");
+  });
   const heroStyle = hero.attr("style") || "";
   if (/home-hero\.(?:jpg|webp)/.test(heroStyle)) {
     hero.attr("style", heroStyle.replace(/\/images\/home-hero\.(?:jpg|webp)/g, heroPoster));

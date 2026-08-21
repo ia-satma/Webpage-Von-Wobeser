@@ -1,25 +1,28 @@
 # Contexto vigente — Von Wobeser y Sierra
 
-Última actualización: **2026-08-18, America/Monterrey**.
+Última actualización: **2026-08-20, America/Monterrey**.
 
 Este archivo es el punto de entrada para continuar el proyecto. El estado completo de
 arquitectura, contenido, CMS, agentes, seguridad, navegación, auditorías, Replit, despliegue y
 pendientes se encuentra en
-[`docs/CONTEXT-2026-08-18.md`](docs/CONTEXT-2026-08-18.md).
+[`docs/CONTEXT-2026-08-20.md`](docs/CONTEXT-2026-08-20.md).
 
 ## Estado breve
 
 - Fuente de verdad: `ia-satma/Webpage-Von-Wobeser`, rama `main`.
-- Commit vigente al levantar este contexto: `556dc1f`; `HEAD` y `origin/main` estaban
-  sincronizados (`0 0`).
+- Commit vigente: `16c87c2` (`fix: stabilize home navigation outside hero`), enviado a
+  `origin/main` el 20-ago-2026. La compilación de Replit terminó correctamente; confirmar
+  Publishing desde su panel antes de considerar la entrega pública concluida.
 - Sitio público: espejo editorial HTML/Joomla servido y enriquecido por Express; **no es React**.
 - Administración: SPA React únicamente bajo `/admin/*`.
 - Datos: PostgreSQL/Drizzle con **56 tablas y 627 columnas**; migraciones versionadas,
   transaccionales e idempotentes.
 - Archivos persistentes: Replit App Storage; PostgreSQL conserva rutas y metadatos.
 - Idiomas y tipografía: ES/EN; Gelasio para jerarquía editorial e Inter para cuerpo e interfaz.
-- Contenido canónico: 18 prácticas, 7 industrias y 133 perfiles oficiales; el proyecto publica
-  9 perfiles adicionales, para un total auditado de 142.
+- Contenido canónico: 18 prácticas, 7 industrias y 133 perfiles oficiales. El directorio
+  público conserva 26 Socios, 6 Of Counsel, 9 Consejeros y 92 Asociados oficiales. Nueve
+  Asociados históricos adicionales siguen en Administración, pero están ocultos por decisión
+  editorial reversible.
 - Navegación activa: menú definitivo 2026, con `Insights` en ambos idiomas; el menú clásico
   continúa disponible como respaldo reversible desde el CMS.
 - Publicaciones: 11 notas bilingües de 2026 incorporadas con 22 PDF y relaciones de autores;
@@ -28,12 +31,16 @@ pendientes se encuentra en
 - Agentes: 14 agentes canónicos y un historial privado, permanente e inmutable de Copys IA.
 - Seguridad: CSP obligatoria con nonce, SRI local, cookies propias seguras, CV privados y
   controles de suministro/dependencias.
-- Producción respondió `200` el 18-ago-2026 y reflejó el menú definitivo, `Insights` y las notas
-  recientes. El SHA exacto del deployment no se expone en la respuesta HTTP.
+- Apariencia administrable: menú definitivo/clásico, Pie central 2026/clásico y buscador
+  editorial/clásico son presets reversibles desde Administración.
+- La navegación persistente de Inicio se extrae del hero histórico antes de renderizar. Esto evita
+  que las capas del video o de carruseles vuelvan transparente o inoperante al menú al hacer scroll.
+- Última validación local: tipos, presupuesto de rendimiento, build y 460 pruebas de seguridad
+  aprobadas; recorrido real de Inicio confirmó menú opaco, clicable y sin scroll horizontal.
 
 ## Reglas de continuidad
 
-1. Leer primero [`docs/CONTEXT-2026-08-18.md`](docs/CONTEXT-2026-08-18.md) y `replit.md`.
+1. Leer primero [`docs/CONTEXT-2026-08-20.md`](docs/CONTEXT-2026-08-20.md) y `replit.md`.
 2. No incluir contraseñas, tokens, URLs de base, paquetes `.handoff` ni valores de Secrets en Git,
    notas, comandos compartidos o capturas.
 3. No borrar ni mover `frontend-mirror/`: es un activo obligatorio de runtime.

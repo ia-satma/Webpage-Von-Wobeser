@@ -43,8 +43,13 @@ test("landing de Firma usa hechos verificados y cifras publicadas", () => {
   assert.match(html, /src="\/img\/Collage\/collage_02\.jpg"/);
   assert.match(html, /src="\/img\/Collage\/collage_07\.jpg"/);
   assert.match(html, /Área de colaboración en las oficinas de Von Wobeser y Sierra/);
-  assert.match(html, /class="vw-firm__eyebrow">Von Wobeser<\/p>/);
-  assert.doesNotMatch(html, /class="vw-firm__eyebrow">Von Wobeser y Sierra<\/p>/);
+  assert.match(html, /class="vw-firm__eyebrow">Nuestra firma<\/p>/);
+  assert.match(html, /class="vw-firm__container vw-firm__hero-heading"[\s\S]*?class="vw-firm__hero-rule"/);
+  const document = load(html);
+  assert.equal(document(".vw-firm__hero .vw-firm__feature-media").length, 0);
+  assert.equal(document(".vw-firm__history .vw-firm__feature-media").length, 1);
+  assert.match(document(".vw-firm__history .vw-firm__feature-media").html() ?? "", /src="\/img\/Collage\/collage_02\.jpg"/);
+  assert.equal(document(".vw-firm__history").next().hasClass("vw-firm__stats"), true);
 });
 
 test("landing de Firma respeta visibilidad, orden y escape de contenido", () => {
@@ -72,13 +77,18 @@ test("landing de Firma genera canonical y hreflang con rutas limpias distintas",
   assert.match(htmlEn, /href="https:\/\/www\.vonwobeser\.com\/acerca-de" hreflang="es-MX"/);
 });
 
-test("landing de Firma conserva un eyebrow personalizado y usa una escala editorial acotada", () => {
+test("landing de Firma conserva un eyebrow personalizado y usa una escala editorial compartida", () => {
   const html = renderFirmLanding(template, {
     firm_landing_eyebrow: { value: "About the firm", valueEs: "La firma", type: "text" },
   }, "es");
 
   assert.match(html, /class="vw-firm__eyebrow">La firma<\/p>/);
-  assert.match(html, /font-size:clamp\(2\.55rem,4\.2vw,4\.65rem\)/);
+  assert.match(html, /font:400 clamp\(2\.6rem,4\.7vw,4\.75rem\)\/1\.08 var\(--vw-font-editorial\)/);
+  assert.match(html, /\.vw-firm__hero\{display:block;min-height:0;padding:clamp\(6rem,7vw,7\.5rem\) 0 2rem/);
+  assert.match(html, /@media\(max-width:900px\)\{\.vw-firm__hero\{min-height:0;padding:5\.75rem 0 2\.5rem/);
+  assert.match(html, /@media\(max-width:560px\)\{\.vw-firm__hero\{padding:5\.25rem 0 2\.5rem/);
+  assert.match(html, /vw-firm__feature-media\{position:relative;display:block;width:min\(100% - 8vw,86rem\);aspect-ratio:21\/7/);
+  assert.match(html, /vw-firm__history\{padding:3\.25rem 0 0\}/);
   assert.match(html, /font-family:var\(--vw-font-editorial\)/);
   assert.match(html, /font-family:var\(--vw-font-body\)/);
   assert.doesNotMatch(html, />01 — 05</);

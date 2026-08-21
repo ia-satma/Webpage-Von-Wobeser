@@ -168,6 +168,28 @@ const DEFAULTS: Array<{ key: string; value: string; valueEs?: string; type: stri
     category: "navigation",
     description: "Jerarquía versionada del menú público VWyS",
   },
+  // Marca interna y de un solo uso: permite aplicar con seguridad la decisión
+  // editorial de ocultar Reconocimientos de Insights en instalaciones ya
+  // publicadas, sin sobrescribir una activación posterior desde Administración.
+  {
+    key: "nav_recognitions_visibility_migration_v1",
+    value: "pending",
+    valueEs: "pending",
+    type: "text",
+    category: "internal",
+    description: "Migración interna de visibilidad para Reconocimientos de Insights",
+  },
+  // Marca interna y de un solo uso para retirar temporalmente dos destinos de
+  // Nuestra firma que hoy comparten la misma landing. Sus rutas y controles
+  // permanecen disponibles para una activación futura desde Administración.
+  {
+    key: "nav_firm_destinations_visibility_migration_v1",
+    value: "pending",
+    valueEs: "pending",
+    type: "text",
+    category: "internal",
+    description: "Migración interna de visibilidad para destinos de Nuestra firma",
+  },
   {
     key: "nav_classic_structure_v2",
     value: JSON.stringify(DEFAULT_CLASSIC_NAVIGATION_CONFIGURATION),
@@ -243,14 +265,14 @@ const DEFAULTS: Array<{ key: string; value: string; valueEs?: string; type: stri
   // introducción y el cuerpo de Historia para no perder ninguna edición administrativa previa.
   { key: "page_firm_intro", value: "Von Wobeser y Sierra was founded in 1986 with excellence and integrity as its cornerstones. Today, our multidisciplinary team provides comprehensive legal advice across the firm’s practices and industry groups.", valueEs: "Von Wobeser y Sierra nació en 1986 con la excelencia y la integridad como piedras angulares. Hoy, nuestro equipo multidisciplinario brinda asesoría jurídica integral a través de las prácticas y grupos por industria de la firma.", type: "text", category: "pages", description: "Nuestra Firma — introducción de Historia" },
   { key: "page_firm_body", value: "The business and legal community recognizes our team for its experience, expertise and ability to advise leading companies throughout their development in Mexico and abroad.\n\nWe work as a strategic partner, combining preventive and solution-oriented counsel with an in-depth understanding of each client’s business and its most relevant legal matters.", valueEs: "El medio empresarial y legal reconoce a nuestro equipo por su experiencia, especialización y capacidad para asesorar a compañías líderes durante su desarrollo en México y en el extranjero.\n\nTrabajamos como un socio estratégico, combinando asesoría preventiva y resolutiva con un entendimiento profundo del negocio de cada cliente y de sus asuntos legales más relevantes.", type: "text", category: "pages", description: "Nuestra Firma — cuerpo de Historia" },
-  { key: "firm_landing_hero_visible", value: "true", type: "boolean", category: "firm", description: "Mostrar el hero de Nuestra Firma" },
-  { key: "firm_landing_hero_order", value: "0", type: "number", category: "firm", description: "Orden del hero de Nuestra Firma" },
-  { key: "firm_landing_eyebrow", value: "Von Wobeser y Sierra", valueEs: "Von Wobeser y Sierra", type: "text", category: "firm", description: "Nuestra Firma — etiqueta del hero" },
-  { key: "firm_landing_title", value: "Von Wobeser y Sierra", valueEs: "Von Wobeser y Sierra", type: "text", category: "firm", description: "Resumen institucional — título principal" },
-  { key: "firm_landing_subtitle", value: "More than forty years of legal excellence in Mexico", valueEs: "Más de cuarenta años de excelencia jurídica en México", type: "text", category: "firm", description: "Nuestra Firma — subtítulo principal" },
-  { key: "firm_landing_hero_image", value: "/img/Collage/collage_02.jpg", type: "url", category: "firm", description: "Resumen institucional — imagen principal reutilizada de Nuevas Oficinas" },
-  { key: "firm_landing_hero_video", value: "", type: "url", category: "firm", description: "Nuestra Firma — video principal opcional" },
-  { key: "firm_landing_hero_alt", value: "Boardroom at the new Von Wobeser y Sierra offices", valueEs: "Sala de consejo de las nuevas oficinas de Von Wobeser y Sierra", type: "text", category: "firm", description: "Resumen institucional — texto alternativo del hero" },
+  { key: "firm_landing_hero_visible", value: "true", type: "boolean", category: "firm", description: "Mostrar el encabezado e imagen de Nuestra Firma" },
+  { key: "firm_landing_hero_order", value: "0", type: "number", category: "firm", description: "Orden del encabezado de Nuestra Firma" },
+  { key: "firm_landing_eyebrow", value: "Our firm", valueEs: "Nuestra firma", type: "text", category: "firm", description: "Nuestra Firma — etiqueta editorial" },
+  { key: "firm_landing_title", value: "Von Wobeser y Sierra", valueEs: "Von Wobeser y Sierra", type: "text", category: "firm", description: "Nuestra Firma — título editorial principal" },
+  { key: "firm_landing_subtitle", value: "More than forty years of legal excellence in Mexico", valueEs: "Más de cuarenta años de excelencia jurídica en México", type: "text", category: "firm", description: "Nuestra Firma — descripción editorial" },
+  { key: "firm_landing_hero_image", value: "/img/Collage/collage_02.jpg", type: "url", category: "firm", description: "Nuestra Firma — fotografía panorámica antes de Cifras" },
+  { key: "firm_landing_hero_video", value: "", type: "url", category: "firm", description: "Nuestra Firma — video panorámico opcional antes de Cifras" },
+  { key: "firm_landing_hero_alt", value: "Boardroom at the new Von Wobeser y Sierra offices", valueEs: "Sala de consejo de las nuevas oficinas de Von Wobeser y Sierra", type: "text", category: "firm", description: "Nuestra Firma — texto alternativo de la fotografía panorámica" },
   { key: "firm_landing_scroll_label", value: "Discover VWyS", valueEs: "Conoce VWyS", type: "text", category: "firm", description: "Resumen institucional — etiqueta de desplazamiento" },
 
   { key: "firm_landing_history_visible", value: "true", type: "boolean", category: "firm", description: "Mostrar Historia" },
@@ -397,10 +419,20 @@ const DEFAULTS: Array<{ key: string; value: string; valueEs?: string; type: stri
   { key: "page_interns_summer_body", value: "", valueEs: "", type: "text", category: "pages", description: "Pasantes — descripción del programa de verano" },
   { key: "page_interns_offer_title", value: "", valueEs: "", type: "text", category: "pages", description: "Pasantes — título de beneficios" },
   { key: "page_interns_offer_body", value: "", valueEs: "", type: "text", category: "pages", description: "Pasantes — beneficios" },
+  { key: "page_probono_eyebrow", value: "Our firm", valueEs: "Nuestra firma", type: "text", category: "pages", description: "Pro Bono — etiqueta editorial" },
+  { key: "page_probono_title", value: "Pro Bono", valueEs: "Pro Bono", type: "text", category: "pages", description: "Pro Bono — título principal" },
   { key: "page_probono_intro", value: "", valueEs: "", type: "text", category: "pages", description: "Pro Bono — párrafo de introducción" },
   { key: "page_probono_body", value: "", valueEs: "", type: "text", category: "pages", description: "Pro Bono — cuerpo del texto" },
   { key: "page_capabilities_body", value: "", valueEs: "", type: "text", category: "pages", description: "Capacidades — párrafo de introducción" },
+  { key: "page_practices_eyebrow", value: "Practices", valueEs: "Prácticas", type: "text", category: "pages", description: "Prácticas — etiqueta editorial" },
+  { key: "page_practices_title", value: "Our practices", valueEs: "Nuestras prácticas", type: "text", category: "pages", description: "Prácticas — título principal" },
+  { key: "page_practices_description", value: "Explore the areas in which we provide specialized legal advice.", valueEs: "Conoce las áreas en las que ofrecemos asesoría legal especializada.", type: "text", category: "pages", description: "Prácticas — texto introductorio" },
+  { key: "page_industries_eyebrow", value: "Industries", valueEs: "Industrias", type: "text", category: "pages", description: "Industrias — etiqueta editorial" },
+  { key: "page_industries_title", value: "Our industries", valueEs: "Nuestras industrias", type: "text", category: "pages", description: "Industrias — título principal" },
+  { key: "page_industries_description", value: "Explore the industry groups with which we address the specific needs of every sector.", valueEs: "Conoce los grupos de práctica con los que atendemos las necesidades específicas de cada industria.", type: "text", category: "pages", description: "Industrias — texto introductorio" },
   { key: "page_privacy_body", value: "", valueEs: "", type: "text", category: "pages", description: "Aviso de Privacidad — texto completo" },
+  { key: "page_diversity_eyebrow", value: "Our firm", valueEs: "Nuestra firma", type: "text", category: "pages", description: "Diversidad e Inclusión — etiqueta editorial" },
+  { key: "page_diversity_title", value: "Diversity & inclusion", valueEs: "Diversidad e inclusión", type: "text", category: "pages", description: "Diversidad e Inclusión — título principal" },
   { key: "page_diversity_intro", value: "", valueEs: "", type: "text", category: "pages", description: "Diversidad e Inclusión — párrafo de introducción" },
   { key: "page_diversity_body", value: "", valueEs: "", type: "text", category: "pages", description: "Diversidad e Inclusión — texto adicional (se muestra arriba de la galería de video, no la reemplaza)" },
   // Galería de video de Diversidad e Inclusión: 1 video principal + 7 miniaturas que lo
@@ -575,6 +607,116 @@ export async function seedConfigDefaults(): Promise<void> {
     );
   }
 
+  // El subdestino de Reconocimientos de Insights está listo como ruta, pero no
+  // cuenta todavía con publicaciones. Al aplicar esta decisión una sola vez se
+  // oculta en los dos presets guardados; más adelante el administrador podrá
+  // activarlo de forma explícita cuando exista contenido, sin que un reinicio
+  // del servidor vuelva a cambiar su decisión.
+  const [recognitionsVisibilityMigration] = await db
+    .select({ value: siteConfig.value })
+    .from(siteConfig)
+    .where(eq(siteConfig.key, "nav_recognitions_visibility_migration_v1"));
+  let recognitionsNavigationUpdated = false;
+  if (recognitionsVisibilityMigration?.value !== "complete") {
+    const navigationKeys = ["nav_structure_v2", "nav_classic_structure_v2"] as const;
+    await db.transaction(async (tx) => {
+      for (const key of navigationKeys) {
+        const [current] = await tx
+          .select({ value: siteConfig.value, valueEs: siteConfig.valueEs })
+          .from(siteConfig)
+          .where(eq(siteConfig.key, key));
+        if (!current?.value) continue;
+        try {
+          const configuration = JSON.parse(current.value) as {
+            items?: Array<{ id?: string; children?: Array<{ id?: string; visible?: boolean }> }>;
+          };
+          const recognitions = configuration.items
+            ?.find((item) => item.id === "perspectives")
+            ?.children?.find((child) => child.id === "perspectives-recognitions");
+          if (!recognitions || recognitions.visible === false) continue;
+          recognitions.visible = false;
+          const next = JSON.stringify(configuration);
+          await tx.update(siteConfig)
+            .set({ value: next, valueEs: next, updatedAt: new Date() })
+            .where(eq(siteConfig.key, key));
+          recognitionsNavigationUpdated = true;
+        } catch {
+          // Una configuración inválida ya utiliza el fallback seguro de
+          // navegación; nunca se reemplaza a ciegas durante el arranque.
+        }
+      }
+      await tx.insert(siteConfig).values({
+        key: "nav_recognitions_visibility_migration_v1",
+        value: "complete",
+        valueEs: "complete",
+        type: "text",
+        category: "internal",
+        description: "Migración interna de visibilidad para Reconocimientos de Insights",
+        updatedAt: new Date(),
+      }).onConflictDoUpdate({
+        target: siteConfig.key,
+        set: { value: "complete", valueEs: "complete", updatedAt: new Date() },
+      });
+    });
+  }
+
+  // Propuesta de valor y Reconocimientos de Nuestra firma llevan hoy a la
+  // misma landing. Se ocultan una sola vez en los presets guardados, sin borrar
+  // rutas ni contenido, y sin revertir una reactivación administrativa futura.
+  const [firmDestinationsVisibilityMigration] = await db
+    .select({ value: siteConfig.value })
+    .from(siteConfig)
+    .where(eq(siteConfig.key, "nav_firm_destinations_visibility_migration_v1"));
+  let firmDestinationsNavigationUpdated = false;
+  if (firmDestinationsVisibilityMigration?.value !== "complete") {
+    const navigationKeys = ["nav_structure_v2", "nav_classic_structure_v2"] as const;
+    await db.transaction(async (tx) => {
+      for (const key of navigationKeys) {
+        const [current] = await tx
+          .select({ value: siteConfig.value, valueEs: siteConfig.valueEs })
+          .from(siteConfig)
+          .where(eq(siteConfig.key, key));
+        if (!current?.value) continue;
+        try {
+          const configuration = JSON.parse(current.value) as {
+            items?: Array<{ id?: string; children?: Array<{ id?: string; visible?: boolean }> }>;
+          };
+          const firm = configuration.items?.find((item) => item.id === "firm");
+          if (!firm?.children) continue;
+          let changed = false;
+          for (const childId of ["firm-value", "firm-recognitions"]) {
+            const child = firm.children.find((entry) => entry.id === childId);
+            if (child && child.visible !== false) {
+              child.visible = false;
+              changed = true;
+            }
+          }
+          if (!changed) continue;
+          const next = JSON.stringify(configuration);
+          await tx.update(siteConfig)
+            .set({ value: next, valueEs: next, updatedAt: new Date() })
+            .where(eq(siteConfig.key, key));
+          firmDestinationsNavigationUpdated = true;
+        } catch {
+          // Una configuración inválida conserva el fallback seguro; no se
+          // reemplaza a ciegas durante el arranque.
+        }
+      }
+      await tx.insert(siteConfig).values({
+        key: "nav_firm_destinations_visibility_migration_v1",
+        value: "complete",
+        valueEs: "complete",
+        type: "text",
+        category: "internal",
+        description: "Migración interna de visibilidad para destinos de Nuestra firma",
+        updatedAt: new Date(),
+      }).onConflictDoUpdate({
+        target: siteConfig.key,
+        set: { value: "complete", valueEs: "complete", updatedAt: new Date() },
+      });
+    });
+  }
+
   // Debe ejecutarse antes de cualquier normalización de la landing. Así la copia
   // conserva exactamente la versión que el público veía antes de consolidarla.
   const firmPreviousVersionCreated = await ensureFirmPreviousVersion();
@@ -660,6 +802,7 @@ export async function seedConfigDefaults(): Promise<void> {
   // Se actualizan solo los defaults exactos para mantener separadas ambas experiencias.
   let landingRouteUpdated = false;
   const landingLegacyPairs: Array<[string, string, string, string, string]> = [
+    ["firm_landing_eyebrow", "Von Wobeser y Sierra", "Von Wobeser y Sierra", "Our firm", "Nuestra firma"],
     ["firm_landing_title", "Our Firm", "Nuestra Firma", "Von Wobeser y Sierra", "Von Wobeser y Sierra"],
     ["firm_landing_scroll_label", "Discover our firm", "Conoce nuestra firma", "Discover VWyS", "Conoce VWyS"],
     ["firm_landing_hero_alt", "Aerial view of Mexico City", "Vista aérea de la Ciudad de México", "Boardroom at the new Von Wobeser y Sierra offices", "Sala de consejo de las nuevas oficinas de Von Wobeser y Sierra"],
@@ -823,7 +966,7 @@ export async function seedConfigDefaults(): Promise<void> {
     contactCopyUpdated = true;
   }
 
-  if (missing.length || firmPreviousVersionCreated || heroMediaUpdated || bannerCopyUpdated || footerUpdated || heroLinkUpdated || landingRouteUpdated || firmCopyUpdated || rankingTitleUpdated || newsletterCopyUpdated || contactCopyUpdated) invalidateConfigCache();
+  if (missing.length || recognitionsNavigationUpdated || firmDestinationsNavigationUpdated || firmPreviousVersionCreated || heroMediaUpdated || bannerCopyUpdated || footerUpdated || heroLinkUpdated || landingRouteUpdated || firmCopyUpdated || rankingTitleUpdated || newsletterCopyUpdated || contactCopyUpdated) invalidateConfigCache();
 }
 
 /** Upsert one key (used by the admin endpoint). */

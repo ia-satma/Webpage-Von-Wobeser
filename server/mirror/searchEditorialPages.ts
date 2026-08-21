@@ -74,6 +74,7 @@ export function buildSearchableEditorialPages(
       descriptionEs: "Reconocimientos y rankings publicados por Von Wobeser y Sierra.",
       hrefEn: "/insights/recognitions",
       hrefEs: "/perspectivas/reconocimientos",
+      ready: availability["perspectives-recognitions"].contentReady,
     },
     {
       slug: "communications",

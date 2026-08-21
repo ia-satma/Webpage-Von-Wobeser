@@ -4,7 +4,7 @@ Plataforma web del despacho de abogados **Von Wobeser y Sierra**: sitio público
 
 > **Documentación completa para agentes/ingenieros:** ver [`replit.md`](./replit.md). Léelo antes de tocar el código — explica la arquitectura crítica que evita romper el sitio.
 
-> **Contexto más reciente:** [`docs/CONTEXT-2026-08-18.md`](./docs/CONTEXT-2026-08-18.md) consolida
+> **Contexto más reciente:** [`docs/CONTEXT-2026-08-20.md`](./docs/CONTEXT-2026-08-20.md) consolida
 > arquitectura, contenido, CMS, agentes, seguridad, navegación, auditorías, Replit y pendientes.
 > El estado operativo de seguridad prevalente está en
 > [`docs/security/CURRENT_SECURITY_POSTURE.md`](./docs/security/CURRENT_SECURITY_POSTURE.md) y la

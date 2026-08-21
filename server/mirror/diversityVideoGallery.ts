@@ -2,7 +2,7 @@ import fs from "node:fs";
 import * as cheerio from "cheerio";
 import { buildVideoEmbedUrl, parseVideoSource } from "@shared/videoSource";
 import { mirrorPath } from "./config";
-import type { ConfigMap } from "./siteConfig";
+import { cfg, type ConfigMap } from "./siteConfig";
 
 type Lang = "en" | "es";
 
@@ -25,6 +25,25 @@ const diversityLocalFileExists = (relUrl: string): boolean => {
  */
 export function applyDiversityVideoGallery($: cheerio.CheerioAPI, config: ConfigMap, lang: Lang): void {
   const v = (key: string, fallback: string) => (config[key]?.value || "").trim() || fallback;
+  const localized = (key: string, fallback: string) => cfg(config, key, lang).trim() || fallback;
+
+  // La captura histórica usa un rótulo vertical en mayúsculas y convierte el
+  // primer párrafo en el título visual. Reemplazamos solo esa cabecera por la
+  // misma jerarquía editorial de Contacto/Prácticas, conservando el intro,
+  // galería, logotipos y demás contenido administrable sin duplicarlo.
+  const page = $(".page").first();
+  const legacyTitle = page.find(".page__ttl").first();
+  if (page.length && legacyTitle.length) {
+    const eyebrow = localized("page_diversity_eyebrow", lang === "es" ? "Nuestra firma" : "Our firm");
+    const title = localized("page_diversity_title", lang === "es" ? "Diversidad e inclusión" : "Diversity & inclusion");
+    const heading = $("<header>")
+      .addClass("vw-diversity-page__header")
+      .append($("<p>").addClass("vw-diversity-page__eyebrow").text(eyebrow))
+      .append($("<h1>").addClass("vw-diversity-page__title").attr("id", "vw-diversity-page-title").text(title));
+    page.addClass("vw-diversity-page").attr("aria-labelledby", "vw-diversity-page-title");
+    legacyTitle.replaceWith(heading);
+  }
+
   const mainUrl = v("page_diversity_video_main", "/images/vw_vid_02.mp4");
   const resolve = (url: string) => (diversityLocalFileExists(url) ? url : mainUrl);
   const slots: Record<string, string> = {
@@ -77,6 +96,16 @@ export function applyDiversityVideoGallery($: cheerio.CheerioAPI, config: Config
 
   const partnerLogos = ["page_diversity_logo_1", "page_diversity_logo_2", "page_diversity_logo_3"];
   $(".page__content--body .pro_img img").each((index, el) => {
+    if (partnerLogos[index]) $(el).attr({
+      src: v(partnerLogos[index], $(el).attr("src") || ""),
+      alt: `Diversity partner ${index + 1}`,
+    });
+  });
+  // Escritorio conserva los mismos tres aliados en la columna lateral. La
+  // captura tenía archivos y posiciones independientes para esa variante;
+  // al reutilizar esta fuente única, una edición desde Administración se
+  // refleja igual en escritorio y móvil.
+  $(".page__sidebar > img.img_probono_1, .page__sidebar > img.img_probono_2, .page__sidebar > img.img_probono_3, .page__sidebar > img.img_probono_4").each((index, el) => {
     if (partnerLogos[index]) $(el).attr({
       src: v(partnerLogos[index], $(el).attr("src") || ""),
       alt: `Diversity partner ${index + 1}`,

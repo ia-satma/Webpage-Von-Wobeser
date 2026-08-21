@@ -194,16 +194,16 @@ export const PAGES: Record<string, SiteConfigPageDefinition> = {
     icon: Landmark,
     groups: [
       {
-        title: "Hero",
+        title: "Encabezado e imagen institucional",
         fields: [
-          { key: "firm_landing_hero_visible", label: "Mostrar sección", control: "switch", help: "Ocultarla no elimina sus textos ni medios." },
-          { key: "firm_landing_hero_order", label: "Orden", control: "number", help: "Cero mantiene el hero al inicio de la landing." },
-          { key: "firm_landing_eyebrow", label: "Etiqueta superior", bilingual: true },
+          { key: "firm_landing_hero_visible", label: "Mostrar encabezado e imagen", control: "switch", help: "Ocultarla no elimina sus textos ni medios." },
+          { key: "firm_landing_hero_order", label: "Orden del encabezado", control: "number", help: "Cero mantiene el encabezado al inicio de la landing." },
+          { key: "firm_landing_eyebrow", label: "Etiqueta editorial", bilingual: true },
           { key: "firm_landing_title", label: "Título principal", bilingual: true },
           { key: "firm_landing_subtitle", label: "Subtítulo", bilingual: true, multiline: true },
-          { key: "firm_landing_hero_image", label: "Imagen principal / póster", media: "image", bilingual: true, help: "Utiliza por defecto una fotografía panorámica de Nuevas Oficinas. También se usa como póster cuando hay un video." },
-          { key: "firm_landing_hero_video", label: "Video principal (opcional)", media: "video", bilingual: true, help: "Puedes subir un archivo o pegar un enlace de YouTube/Vimeo. Si lo dejas vacío, se muestra la imagen principal." },
-          { key: "firm_landing_hero_alt", label: "Descripción accesible del medio", bilingual: true },
+          { key: "firm_landing_hero_image", label: "Fotografía panorámica / póster", media: "image", bilingual: true, help: "Se muestra después de “En breve” y antes de “Nuestra firma en cifras”. También se usa como póster cuando hay un video." },
+          { key: "firm_landing_hero_video", label: "Video panorámico (opcional)", media: "video", bilingual: true, help: "Puedes subir un archivo o pegar un enlace de YouTube/Vimeo. Si lo dejas vacío, se muestra la fotografía panorámica." },
+          { key: "firm_landing_hero_alt", label: "Descripción accesible de la fotografía o video", bilingual: true },
           { key: "firm_landing_scroll_label", label: "Indicador para seguir leyendo", bilingual: true },
         ],
       },
@@ -329,7 +329,10 @@ export const PAGES: Record<string, SiteConfigPageDefinition> = {
     icon: HeartHandshake,
     groups: [
       {
+        title: "Encabezado",
         fields: [
+          { key: "page_probono_eyebrow", label: "Etiqueta editorial", bilingual: true },
+          { key: "page_probono_title", label: "Título principal", bilingual: true },
           { key: "page_probono_intro", label: "Introducción", bilingual: true, multiline: true },
           { key: "page_probono_body", label: "Cuerpo", bilingual: true, multiline: true },
         ],
@@ -351,7 +354,10 @@ export const PAGES: Record<string, SiteConfigPageDefinition> = {
     icon: Sparkles,
     groups: [
       {
+        title: "Encabezado",
         fields: [
+          { key: "page_diversity_eyebrow", label: "Etiqueta editorial", bilingual: true },
+          { key: "page_diversity_title", label: "Título principal", bilingual: true },
           { key: "page_diversity_intro", label: "Introducción", bilingual: true, multiline: true },
           { key: "page_diversity_body", label: "Texto adicional", help: "Se muestra ARRIBA de la galería de video, sin borrarla. Déjalo vacío si no quieres agregar nada.", bilingual: true, multiline: true },
         ],
@@ -406,9 +412,25 @@ export const PAGES: Record<string, SiteConfigPageDefinition> = {
   },
   capacidades: {
     title: "Introducción de Capacidades",
-    description: "Si lo dejas vacío, se muestra el texto original de la página.",
+    description: "Edita la introducción de Capacidades y las cabeceras editoriales de Prácticas e Industrias.",
     icon: Briefcase,
     groups: [
+      {
+        title: "Listado de Prácticas",
+        fields: [
+          { key: "page_practices_eyebrow", label: "Prácticas — etiqueta editorial", bilingual: true, help: "Se muestra en Inter, como la etiqueta de Contacto." },
+          { key: "page_practices_title", label: "Prácticas — título principal", bilingual: true, help: "Se muestra en Gelasio y con capitalización normal, no en mayúsculas sostenidas." },
+          { key: "page_practices_description", label: "Prácticas — introducción", bilingual: true, multiline: true },
+        ],
+      },
+      {
+        title: "Listado de Industrias",
+        fields: [
+          { key: "page_industries_eyebrow", label: "Industrias — etiqueta editorial", bilingual: true, help: "Se muestra en Inter, como la etiqueta de Contacto." },
+          { key: "page_industries_title", label: "Industrias — título principal", bilingual: true, help: "Se muestra en Gelasio y con capitalización normal, no en mayúsculas sostenidas." },
+          { key: "page_industries_description", label: "Industrias — introducción", bilingual: true, multiline: true },
+        ],
+      },
       {
         fields: [
           { key: "page_capabilities_body", label: "Introducción", bilingual: true, multiline: true },

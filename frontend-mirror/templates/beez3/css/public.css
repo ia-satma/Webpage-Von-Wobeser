@@ -7684,6 +7684,7 @@ body {
    flujo después del padding ni cubrir la siguiente sección de Contacto. */
 .page__map--holder>.vwb-external-consent{position:absolute;inset:0;width:100%;height:100%;min-height:0;margin:0}
 @media(max-width:800px){.vwb-consent{grid-template-columns:1fr;padding:18px}.vwb-consent__actions{justify-content:stretch}.vwb-consent__actions button{flex:1 1 150px}.vwb-consent-dialog__panel{padding:22px 18px}.vwb-consent-dialog__actions button{flex:1 1 160px}}
+@media(min-width:801px){.vwb-consent{border-radius:8px}}
 @media(prefers-reduced-motion:reduce){.vwb-consent,.vwb-consent-dialog,.vwb-external-consent{scroll-behavior:auto!important;animation:none!important;transition:none!important}}
 .vwb-cookie-policy .page__content{width:820px}
 .vwb-cookie-policy .page__sidebar{width:160px}
@@ -7795,6 +7796,455 @@ body.vwb-navigation-v2 nav.nav.menu_JS .vw-nav-v2__utility:focus-visible {
    ni crear una línea de solapamiento al final de la portada. */
 .home__hero + section .home__rojo {
   margin-top: 0;
+}
+
+/* El llamado a suscripción del hub de Insights ya no compite con las tarjetas
+   de contenido: adopta la misma composición clara del resto de las páginas
+   editoriales. Conserva el enlace al formulario existente, pero sin el bloque
+   oscuro ni el botón sobredimensionado heredados. */
+.vw-perspectives__subscribe {
+  align-items: center;
+  background: #fff !important;
+  border-bottom: 1px solid #cfcfcd;
+  border-top: 2px solid #ac162c;
+  color: #5e5e60;
+  display: grid;
+  gap: clamp(22px, 4vw, 54px);
+  grid-template-columns: minmax(0, 1fr) auto;
+  margin-top: clamp(44px, 5vw, 62px);
+  padding: clamp(26px, 3.2vw, 42px) 0;
+}
+
+.vw-perspectives__subscribe > div > span {
+  color: #ac162c;
+  font: 500 11px/1.2 var(--vw-font-ui, "Inter", sans-serif);
+  letter-spacing: .18em;
+  text-transform: uppercase;
+}
+
+.vw-perspectives__subscribe h2 {
+  color: #565656 !important;
+  font: 400 clamp(30px, 3vw, 42px)/1.08 var(--vw-font-editorial, "Gelasio", serif);
+  letter-spacing: -.015em;
+  margin: 10px 0 0;
+  text-transform: none;
+}
+
+.vw-perspectives__subscribe .vw-perspectives__subscribe-cta {
+  align-items: center;
+  background: transparent !important;
+  border: 1px solid #ac162c;
+  color: #ac162c;
+  display: inline-flex;
+  font: 500 13px/1 var(--vw-font-ui, "Inter", sans-serif);
+  gap: 13px;
+  justify-content: center;
+  letter-spacing: .02em;
+  min-height: 48px;
+  min-width: 164px;
+  padding: 14px 20px;
+  text-decoration: none;
+  text-transform: none;
+  transition: background-color .18s ease, color .18s ease;
+}
+
+.vw-perspectives__subscribe .vw-perspectives__subscribe-cta > span {
+  font-size: 18px;
+  line-height: 1;
+  transition: transform .18s ease;
+}
+
+.vw-perspectives__subscribe .vw-perspectives__subscribe-cta:hover,
+.vw-perspectives__subscribe .vw-perspectives__subscribe-cta:focus-visible {
+  background: #ac162c !important;
+  color: #fff;
+}
+
+.vw-perspectives__subscribe .vw-perspectives__subscribe-cta:hover > span,
+.vw-perspectives__subscribe .vw-perspectives__subscribe-cta:focus-visible > span {
+  transform: translateX(3px);
+}
+
+/* Pasantes/Interns ya no muestra la ilustración heredada que compensaba el
+   final de la página. El margen negativo restante pegaba el último párrafo al
+   footer; se recupera un cierre editorial acotado solo para este subapartado. */
+.page.careers.vw-interns-page {
+  margin-bottom: 0 !important;
+  padding-bottom: clamp(3rem, 6vw, 5.25rem) !important;
+}
+
+/* Los catálogos completos de Prácticas e Industrias adoptan la misma
+   jerarquía de encabezado de Contacto. Reemplazan únicamente el rótulo
+   vertical de la plantilla capturada: etiqueta Inter, título Gelasio en
+   capitalización normal e introducción centrada. Los enlaces y la imagen
+   lateral de cada catálogo permanecen sin cambios. */
+.page.practices.vw-practice-list-page,
+.page.practices.vw-industry-list-page {
+  /* La navegación persistente ocupa ~90 px. La cabecera editorial necesita
+     empezar después de ella, igual que Contacto, no por debajo del header. */
+  padding-top: clamp(112px, 10vw, 132px) !important;
+  padding-bottom: clamp(56px, 7vw, 96px) !important;
+}
+
+.vw-practice-list-page .page--wrap,
+.vw-industry-list-page .page--wrap {
+  align-items: flex-start;
+}
+
+.vw-practice-list-page__header,
+.vw-industry-list-page__header {
+  align-items: center;
+  display: flex;
+  flex: 0 0 100%;
+  flex-direction: column;
+  margin: 0 auto clamp(42px, 5vw, 68px);
+  max-width: 920px;
+  text-align: center;
+  width: 100%;
+}
+
+.vw-practice-list-page__eyebrow,
+.vw-industry-list-page__eyebrow {
+  color: #ac162c;
+  font: 500 12px/1.2 var(--vw-font-ui);
+  letter-spacing: 0.22em;
+  margin: 0 0 20px;
+  text-transform: uppercase;
+}
+
+.vw-practice-list-page__title,
+.vw-industry-list-page__title {
+  color: #565656;
+  font: 400 clamp(38px, 4.4vw, 58px) / 1.04 var(--vw-font-editorial);
+  letter-spacing: -0.02em;
+  margin: 0;
+  text-transform: none;
+}
+
+.vw-practice-list-page__lede,
+.vw-industry-list-page__lede {
+  color: #5c5c5c;
+  font: 400 clamp(16px, 1.35vw, 18px) / 1.55 var(--vw-font-body);
+  margin: 20px auto 0;
+  max-width: 680px;
+}
+
+.vw-practice-list-page__lede p,
+.vw-industry-list-page__lede p {
+  margin: 0;
+}
+
+.vw-practice-list-page .capabilities__meta,
+.vw-industry-list-page .capabilities__meta {
+  align-content: flex-start;
+}
+
+/* Prácticas conserva la misma composición aprobada, con una escala apenas
+   mayor para que los destinos se lean con la misma presencia editorial que
+   Industrias, también en teléfono. */
+.vw-practice-list-page .page__content--item {
+  font-size: clamp(22px, 1.55vw, 24px);
+  line-height: 1.28;
+}
+
+/* Diversidad e Inclusión conserva su contenido y galería histórica, pero usa
+   la misma cabecera legible del resto de secciones: etiqueta institucional,
+   título en Gelasio con capitalización normal e introducción de apoyo. */
+.page.vw-diversity-page,
+.page.vw-probono-page {
+  padding-top: clamp(112px, 10vw, 132px) !important;
+  padding-bottom: clamp(56px, 7vw, 96px) !important;
+}
+
+.vw-diversity-page .page--wrap,
+.vw-probono-page .page--wrap {
+  align-items: flex-start;
+}
+
+.vw-diversity-page__header,
+.vw-probono-page__header {
+  align-items: center;
+  display: flex;
+  flex: 0 0 100%;
+  flex-direction: column;
+  margin: 0 auto clamp(30px, 3vw, 42px);
+  max-width: 920px;
+  text-align: center;
+  width: 100%;
+}
+
+.vw-diversity-page__eyebrow,
+.vw-probono-page__eyebrow {
+  color: #ac162c;
+  font: 500 12px/1.2 var(--vw-font-ui);
+  letter-spacing: 0.22em;
+  margin: 0 0 20px;
+  text-transform: uppercase;
+}
+
+.vw-diversity-page__title,
+.vw-probono-page__title {
+  color: #565656;
+  font: 400 clamp(38px, 4.4vw, 58px) / 1.04 var(--vw-font-editorial);
+  letter-spacing: -0.02em;
+  margin: 0;
+  text-transform: none;
+}
+
+.vw-diversity-page .page__content--intro,
+.vw-probono-page .page__content--intro {
+  color: #5c5c5c;
+  font: 400 clamp(16px, 1.35vw, 18px) / 1.55 var(--vw-font-body);
+  margin-bottom: clamp(32px, 4vw, 48px);
+  max-width: 44rem;
+  padding-bottom: clamp(20px, 2.5vw, 28px);
+}
+
+.vw-diversity-page .page__content--intro p {
+  line-height: inherit;
+}
+
+/* La introducción heredada de Pro Bono llevaba una escala de display aunque
+   ya no es el título. Hereda la escala de apoyo como en las demás secciones. */
+.vw-probono-page .page__content--intro p {
+  color: inherit !important;
+  font: inherit !important;
+  line-height: inherit;
+  margin: 0;
+}
+
+.vw-diversity-page .page__content,
+.vw-diversity-page .page__sidebar,
+.vw-probono-page .page__content,
+.vw-probono-page .page__sidebar {
+  margin-top: 0;
+}
+
+/* Los logotipos aliados del sidebar heredado tenían offsets en vw, floats y
+   tamaños propios de otra plantilla. En escritorio se convierten en una
+   columna contenida: una sola fuente administrable y proporciones intactas. */
+@media (min-width: 801px) {
+  .vw-diversity-page .page__sidebar {
+    align-items: center;
+    display: flex;
+    flex-direction: column;
+    gap: clamp(22px, 2.5vw, 34px);
+  }
+
+  .vw-diversity-page .page__sidebar > .page--btn {
+    margin-bottom: clamp(4px, 0.8vw, 10px);
+  }
+
+  .vw-diversity-page .page__sidebar > .img_probono_1,
+  .vw-diversity-page .page__sidebar > .img_probono_2,
+  .vw-diversity-page .page__sidebar > .img_probono_3,
+  .vw-diversity-page .page__sidebar > .img_probono_4 {
+    display: block !important;
+    float: none !important;
+    height: auto !important;
+    left: auto !important;
+    margin: 0 auto !important;
+    max-height: 136px;
+    max-width: 235px;
+    object-fit: contain;
+    position: static !important;
+    top: auto !important;
+    width: 100% !important;
+  }
+}
+
+/* Industrias tiene solo siete destinos; el margen vertical automático del
+   layout histórico la centraba frente a una imagen de alto viewport y dejaba
+   un vacío desproporcionado. En escritorio la lista parte ahora al nivel del
+   visual y gana presencia sin afectar su orden ni el apilado móvil. */
+@media (min-width: 981px) {
+  .vw-industry-list-page .capabilities__meta {
+    align-self: flex-start;
+    margin: 0;
+  }
+
+  .vw-industry-list-page .page__content--item {
+    font-size: clamp(22px, 1.55vw, 25px);
+    line-height: 1.3;
+    margin-bottom: clamp(18px, 1.45vw, 24px);
+  }
+}
+
+/* En teléfono, la imagen heredada intentaba ocupar 100vw desde una columna
+   estrecha y aplicaba transformaciones opuestas entre Safari y Chrome. Eso
+   dejaba un visual desplazado y parcialmente visible. Industrias la muestra
+   ahora como un bloque autónomo bajo el listado: conserva la fotografía, pero
+   con un encuadre estable y una proporción editorial predecible. */
+@media (max-width: 980px) {
+  .vw-industry-list-page .capabilities__slider {
+    height: auto !important;
+    margin-top: clamp(16px, 5vw, 28px);
+    overflow: hidden !important;
+    position: static !important;
+  }
+
+  .vw-industry-list-page .capabilities__slide {
+    height: auto;
+    overflow: hidden !important;
+  }
+
+  .vw-industry-list-page .capabilities__slide--img {
+    aspect-ratio: 4 / 3;
+    height: auto !important;
+    inset: auto !important;
+    left: auto !important;
+    position: relative !important;
+    top: auto !important;
+    transform: none !important;
+    width: 100% !important;
+    background-position: center center !important;
+  }
+
+  .vw-industry-list-page .capabilities__slide--inner {
+    display: none !important;
+    height: 0 !important;
+  }
+}
+
+@media (max-width: 720px) {
+  .page.practices.vw-practice-list-page,
+  .page.practices.vw-industry-list-page {
+    padding-top: 104px !important;
+    padding-bottom: 56px !important;
+  }
+
+  .vw-practice-list-page__header,
+  .vw-industry-list-page__header {
+    margin-bottom: 42px;
+  }
+
+  .vw-practice-list-page__eyebrow,
+  .vw-industry-list-page__eyebrow {
+    margin-bottom: 16px;
+  }
+
+  .vw-practice-list-page__title,
+  .vw-industry-list-page__title {
+    font-size: 34px;
+  }
+
+  .vw-practice-list-page__lede,
+  .vw-industry-list-page__lede {
+    font-size: 16px;
+    line-height: 1.5;
+    max-width: 34rem;
+  }
+
+  .page.vw-diversity-page,
+  .page.vw-probono-page {
+    padding-top: 104px !important;
+    padding-bottom: 56px !important;
+  }
+
+  .vw-diversity-page__header,
+  .vw-probono-page__header {
+    margin-bottom: 42px;
+  }
+
+  .vw-diversity-page__eyebrow,
+  .vw-probono-page__eyebrow {
+    margin-bottom: 16px;
+  }
+
+  .vw-diversity-page__title,
+  .vw-probono-page__title {
+    font-size: 34px;
+  }
+
+  .vw-diversity-page .page__content--intro,
+  .vw-probono-page .page__content--intro {
+    font-size: 16px;
+    line-height: 1.5;
+  }
+}
+
+/* En los listados históricos de Abogados, nombre y cargo se colocaban con
+   position:absolute y un margen porcentual. Al reducir el viewport ambos
+   invadían el retrato y podían coincidir entre sí. La composición móvil usa
+   una retícula explícita: retrato a la izquierda, nombre y cargo a la derecha.
+   No afecta el detalle maestro de escritorio ni el directorio nuevo. */
+@media (max-width: 980px) {
+  .attorneys__list--item {
+    display: grid !important;
+    grid-template-columns: clamp(100px, 19vw, 160px) minmax(0, 1fr);
+    grid-template-rows: auto auto;
+    column-gap: clamp(18px, 4vw, 36px);
+    row-gap: 0.4rem;
+    align-items: center;
+    min-height: 0 !important;
+    margin-bottom: 0 !important;
+    padding: clamp(22px, 4vw, 38px) 0 !important;
+    line-height: normal !important;
+  }
+
+  .attorneys__list--item .img {
+    position: static !important;
+    grid-column: 1;
+    grid-row: 1 / span 2;
+    align-self: center;
+    width: 100% !important;
+    height: auto !important;
+    max-height: none !important;
+    aspect-ratio: 4 / 5;
+    background-position: center top;
+  }
+
+  .attorneys__list--item .name {
+    position: static !important;
+    grid-column: 2;
+    grid-row: 1;
+    width: auto !important;
+    margin: 0 !important;
+    font-size: clamp(20px, 4.6vw, 27px) !important;
+    line-height: 1.12 !important;
+    overflow-wrap: anywhere;
+  }
+
+  .attorneys__list--item .role {
+    position: static !important;
+    grid-column: 2;
+    grid-row: 2;
+    width: auto !important;
+    margin: 0 !important;
+    align-self: start;
+    white-space: normal;
+    font-size: clamp(12px, 3.1vw, 16px) !important;
+    line-height: 1.4 !important;
+    letter-spacing: clamp(2.25px, 0.8vw, 4px);
+  }
+}
+
+/* El directorio con filtros comparte los cargos en Inter. En teléfono, 11 px
+   los volvía secundarios frente a las fotografías; se aumenta de forma sutil
+   sin modificar los nombres, tarjetas ni los dos presets del buscador. */
+@media (max-width: 640px) {
+  .vw-perspectives__subscribe {
+    align-items: stretch;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    margin-top: 42px;
+    padding: 28px 0 30px;
+  }
+
+  .vw-perspectives__subscribe h2 {
+    font-size: clamp(29px, 8vw, 37px);
+  }
+
+  .vw-perspectives__subscribe .vw-perspectives__subscribe-cta {
+    align-self: flex-start;
+    min-width: 0;
+  }
+
+  .attorney-directory__role {
+    font-size: clamp(12px, 3.1vw, 14px);
+    letter-spacing: clamp(2.25px, 0.8vw, 4px);
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
