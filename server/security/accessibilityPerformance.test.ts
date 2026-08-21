@@ -498,7 +498,7 @@ test("la portada nombra los cuatro carruseles y aplica contraste AA al módulo d
   assert.equal($("#video_header").attr("poster"), "/images/hero-20260810-fullhd-poster.webp");
   assert.equal($("#video_header").attr("width"), "1920");
   assert.equal($("#video_header").attr("height"), "1080");
-  assert.equal($("#video_header source").eq(0).attr("data-vwb-src"), "/images/hero-20260810-fullhd-mobile.mp4");
+  assert.equal($("#video_header source").eq(0).attr("data-vwb-src"), "/images/hero-20260821-hd-mobile-v2.mp4");
   assert.equal($("#video_header source").eq(0).attr("media"), "(max-width: 680px)");
   assert.equal($("#video_header source").eq(1).attr("data-vwb-src"), "/images/hero-20260810-fullhd-desktop.mp4");
   assert.equal($("#video_header source").eq(1).attr("type"), "video/mp4");

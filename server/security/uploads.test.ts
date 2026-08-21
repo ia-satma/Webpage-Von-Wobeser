@@ -396,9 +396,9 @@ test("hero video derivatives preserve a Full HD desktop profile without replacin
 
   assert.match(source, /scale=1920:1080/);
   assert.match(source, /"-crf", "20"/);
-  assert.match(source, /scale=640:360/);
-  assert.match(source, /await encodeMobile\("30", "180k", "360k"\)/);
-  assert.match(source, /No fue posible crear una variante móvil dentro del presupuesto de 1\.5 MB/);
+  assert.match(source, /scale=1280:720/);
+  assert.match(source, /await encodeMobile\("19", "3200k", "6400k"\)/);
+  assert.match(source, /No fue posible crear una variante móvil HD de alta tasa dentro del presupuesto de 26 MB/);
   assert.match(source, /El archivo original permanece intacto/);
 });
 

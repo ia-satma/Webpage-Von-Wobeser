@@ -6,7 +6,9 @@ const root = process.cwd();
 const mirror = path.join(root, "frontend-mirror");
 const limits = {
   poster: 50 * 1024,
-  mobileVideo: 1.5 * 1024 * 1024,
+  // El video del hero se difiere hasta después de la primera pintura; el
+  // presupuesto permite 720p para que no se degrade en pantallas Retina.
+  mobileVideo: 26 * 1024 * 1024,
   desktopVideo: 30 * 1024 * 1024,
   responsiveImage: 850 * 1024,
   initialMobile: 2 * 1024 * 1024,
@@ -17,7 +19,7 @@ function size(relativePath) {
 }
 
 assert.ok(size("images/hero-20260810-fullhd-poster.webp") <= limits.poster, "El póster del hero supera 50 KB.");
-assert.ok(size("images/hero-20260810-fullhd-mobile.mp4") <= limits.mobileVideo, "El video móvil supera 1.5 MB.");
+assert.ok(size("images/hero-20260821-hd-mobile-v2.mp4") <= limits.mobileVideo, "El video móvil HD de alta tasa supera 26 MB.");
 assert.ok(size("images/hero-20260810-fullhd-desktop.mp4") <= limits.desktopVideo, "El video Full HD de escritorio supera 30 MB.");
 
 const initialMobileAssets = [
@@ -82,6 +84,6 @@ assert.ok(
 const renderer = fs.readFileSync(path.join(root, "server", "mirror", "renderHome.ts"), "utf8");
 assert.match(renderer, /data-bg-mobile=/, "El carrusel debe usar fondos diferidos.");
 assert.doesNotMatch(renderer, /style="background-image:url/, "El renderer no debe cargar fondos pesados de forma anticipada.");
-assert.match(renderer, /hero-20260810-fullhd-mobile\.mp4/, "Falta la variante móvil predeterminada.");
+assert.match(renderer, /hero-20260821-hd-mobile-v2\.mp4/, "Falta la variante móvil HD de alta tasa predeterminada.");
 
 console.log(`[performance] Presupuestos aprobados; transferencia móvil estimada: ${initialMobileBytes} bytes.`);

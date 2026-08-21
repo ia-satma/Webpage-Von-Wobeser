@@ -18,7 +18,7 @@ export type ConfigMap = Record<string, { value: string; valueEs: string; type: s
 const CURRENT_HERO_MEDIA = {
   master: "/images/hero-20260810-fullhd-master.mp4",
   desktop: "/images/hero-20260810-fullhd-desktop.mp4",
-  mobile: "/images/hero-20260810-fullhd-mobile.mp4",
+  mobile: "/images/hero-20260821-hd-mobile-v2.mp4",
   poster: "/images/hero-20260810-fullhd-poster.webp",
 } as const;
 
@@ -40,7 +40,7 @@ const DEFAULTS: Array<{ key: string; value: string; valueEs?: string; type: stri
   { key: "site_favicon", value: "/favicon-512x512.png", type: "url", category: "seo", description: "Favicon global del sitio y del panel administrativo" },
   { key: "hero_video_master", value: CURRENT_HERO_MEDIA.master, type: "url", category: "home", description: "Archivo maestro original del hero" },
   { key: "hero_video", value: CURRENT_HERO_MEDIA.desktop, type: "url", category: "home", description: "Video Full HD optimizado del hero para escritorio" },
-  { key: "hero_video_mobile", value: CURRENT_HERO_MEDIA.mobile, type: "url", category: "home", description: "Video optimizado de alta calidad del hero para móvil" },
+  { key: "hero_video_mobile", value: CURRENT_HERO_MEDIA.mobile, type: "url", category: "home", description: "Video HD optimizado del hero para móvil" },
   { key: "hero_video_poster", value: CURRENT_HERO_MEDIA.poster, type: "url", category: "home", description: "Póster del primer fotograma real del hero" },
   { key: "hero_practice_link", value: "/about", valueEs: "/acerca-de", type: "url", category: "home", description: "Destino bilingüe al hacer clic en el video del hero" },
   { key: "home_experience_visible", value: "false", valueEs: "false", type: "boolean", category: "home", description: "Mostrar la frase de años de experiencia en la portada" },
@@ -731,7 +731,10 @@ export async function seedConfigDefaults(): Promise<void> {
     },
     hero_video_mobile: {
       current: CURRENT_HERO_MEDIA.mobile,
-      legacy: new Set(["", "/images/home-hero-mobile-v1.mp4", "/images/home-hero-mobile-v2.mp4", "/images/hero-092c5875ed80af62-mobile.mp4"]),
+      // Las variantes previas eran presets móviles del sitio. Solo se migran
+      // esas rutas exactas; una selección hecha desde Administración conserva
+      // siempre el archivo que eligió la firma.
+      legacy: new Set(["", "/images/home-hero-mobile-v1.mp4", "/images/home-hero-mobile-v2.mp4", "/images/hero-092c5875ed80af62-mobile.mp4", "/images/hero-20260810-fullhd-mobile.mp4", "/images/hero-20260821-hd-mobile.mp4"]),
     },
     hero_video_poster: {
       current: CURRENT_HERO_MEDIA.poster,

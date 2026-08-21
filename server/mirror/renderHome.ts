@@ -848,13 +848,16 @@ const HERO_NEWS_CAROUSEL_SCRIPT = `<script id="vw-news-carousel-script">
     if(window.__vwHeroNewsCarousel)return;window.__vwHeroNewsCarousel=true;
     document.querySelectorAll('[data-vw-news-carousel]').forEach(function(root){
       var panel=root.closest('.covid_cont'),slides=Array.prototype.slice.call(root.querySelectorAll('[data-vw-news-slide]')),prev=root.querySelector('[data-vw-news-prev]'),next=root.querySelector('[data-vw-news-next]'),toggle=panel&&panel.querySelector('.vw-news-panel__toggle'),count=root.querySelector('[data-vw-news-count]'),toggleLabel=toggle&&toggle.querySelector('[data-vw-news-toggle-label]');
-      if(!panel||!slides.length)return;var index=0,timer=null,panelMotion=null,paused=false,reduced=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches,key='vw-news-panel-minimized';
+      if(!panel||!slides.length)return;var index=0,timer=null,panelMotion=null,paused=false,reduced=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches,mobile=window.matchMedia&&window.matchMedia('(max-width: 800px)').matches,key='vw-news-panel-minimized';
       function show(nextIndex){index=(nextIndex+slides.length)%slides.length;slides.forEach(function(slide,slideIndex){var active=slideIndex===index;slide.classList.toggle('is-active',active);slide.setAttribute('aria-hidden',active?'false':'true');});if(count)count.textContent=(index+1)+' / '+slides.length;}
       function stop(){if(timer){window.clearInterval(timer);timer=null;}}
       function start(){stop();if(slides.length>1&&!paused&&!reduced)timer=window.setInterval(function(){show(index+1);},7000);}
       function animatePanel(first){if(!first||reduced||typeof panel.animate!=='function')return;var last=panel.getBoundingClientRect();if(!last.width||!last.height)return;if(panelMotion)panelMotion.cancel();var dx=first.left-last.left,dy=first.top-last.top,sx=first.width/last.width,sy=first.height/last.height;panel.style.willChange='transform';panelMotion=panel.animate([{transform:'translate('+dx+'px,'+dy+'px) scale('+sx+','+sy+')',opacity:.96},{transform:'translate(0,0) scale(1,1)',opacity:1}],{duration:420,easing:'cubic-bezier(.16,1,.3,1)'});var current=panelMotion;var clean=function(){if(panelMotion===current){panelMotion=null;panel.style.willChange='';}};current.onfinish=clean;current.oncancel=clean;}
       function setMinimized(value,withMotion){var first=withMotion&&!reduced?panel.getBoundingClientRect():null;panel.classList.toggle('vw-news-panel--minimized',value);toggle.setAttribute('aria-expanded',String(!value));toggle.setAttribute('aria-label',value?(root.getAttribute('data-expand-label')||'Show news'):(root.getAttribute('data-minimize-label')||'Minimize news'));if(toggleLabel)toggleLabel.textContent=toggle.getAttribute('aria-label');animatePanel(first);try{localStorage.setItem(key,value?'1':'0');}catch(_error){}if(value)stop();else start();}
-      try{setMinimized(localStorage.getItem(key)==='1',false);}catch(_error){setMinimized(false,false);}show(0);
+      /* En móvil el hero conserva el foco en el video: Noticias comienza siempre
+         contraído, incluso si una sesión anterior había guardado la expansión.
+         El control sigue disponible para desplegarlo de forma intencional. */
+      try{setMinimized(Boolean(mobile)||localStorage.getItem(key)==='1',false);}catch(_error){setMinimized(Boolean(mobile),false);}show(0);
       if(prev)prev.addEventListener('click',function(){show(index-1);start();});if(next)next.addEventListener('click',function(){show(index+1);start();});if(toggle)toggle.addEventListener('click',function(){setMinimized(!panel.classList.contains('vw-news-panel--minimized'),true);});
       root.addEventListener('mouseenter',function(){paused=true;stop();});root.addEventListener('mouseleave',function(){paused=false;start();});root.addEventListener('focusin',function(){paused=true;stop();});root.addEventListener('focusout',function(event){if(!root.contains(event.relatedTarget)){paused=false;start();}});document.addEventListener('visibilitychange',function(){if(document.hidden)stop();else start();});start();
     });
@@ -940,14 +943,14 @@ export function renderHome(
     "/images/hero-092c5875ed80af62-desktop.mp4",
   ]);
   const defaultDesktopVideo = "/images/hero-20260810-fullhd-desktop.mp4";
-  const defaultMobileVideo = "/images/hero-20260810-fullhd-mobile.mp4";
+  const defaultMobileVideo = "/images/hero-20260821-hd-mobile-v2.mp4";
   const configuredDesktop = parseVideoSource(cfg(config, "hero_video", lang));
   const desktopSource: VideoSource = !configuredDesktop
     || (configuredDesktop.kind === "file" && legacyHeroVideos.has(configuredDesktop.url))
     ? { kind: "file", url: defaultDesktopVideo }
     : configuredDesktop;
   const configuredMobile = parseVideoSource(cfg(config, "hero_video_mobile", lang));
-  const legacyMobileVideos = new Set(["/images/home-hero-mobile-v1.mp4", "/images/home-hero-mobile-v2.mp4", "/images/hero-092c5875ed80af62-mobile.mp4"]);
+  const legacyMobileVideos = new Set(["/images/home-hero-mobile-v1.mp4", "/images/home-hero-mobile-v2.mp4", "/images/hero-092c5875ed80af62-mobile.mp4", "/images/hero-20260810-fullhd-mobile.mp4", "/images/hero-20260821-hd-mobile.mp4"]);
   const mobileSource: VideoSource = !configuredMobile
     || (configuredMobile.kind === "file" && legacyMobileVideos.has(configuredMobile.url))
     ? (desktopSource.kind === "file" && desktopSource.url === defaultDesktopVideo

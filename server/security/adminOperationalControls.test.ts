@@ -145,6 +145,8 @@ test("Noticias del Home conserva título y controles legibles en móvil, contra�
   assert.match(responsiveStyle, /@media \(max-width:600px\)/);
   assert.match(responsiveStyle, /grid-template-columns:minmax\(0,1fr\)!important/);
   assert.match(responsiveStyle, /border-top:1px solid #d2d2ce!important/);
+  assert.match(html, /matchMedia\('\(max-width: 800px\)'\)\.matches/);
+  assert.match(html, /Boolean\(mobile\)\|\|localStorage\.getItem\(key\)==='1'/);
 });
 
 test("el filtro lingüístico del Home es conservador con nombres propios y títulos breves", () => {

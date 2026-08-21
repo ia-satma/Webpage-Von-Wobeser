@@ -145,8 +145,8 @@ async function assertHeroVariant(
   variant: "desktop" | "mobile",
 ): Promise<void> {
   const probe = await probeVideo(filePath);
-  const maxWidth = variant === "desktop" ? 1920 : 640;
-  const maxHeight = variant === "desktop" ? 1080 : 360;
+  const maxWidth = variant === "desktop" ? 1920 : 1280;
+  const maxHeight = variant === "desktop" ? 1080 : 720;
   if (
     probe.codec !== "h264"
     || probe.pixelFormat !== "yuv420p"
@@ -203,7 +203,7 @@ export async function generateHeroVideoVariants(
   const sourceProbe = await probeVideo(sourcePath);
   const fingerprint = crypto
     .createHash("sha256")
-    .update(`hero-stream-v8-fullhd-master:${path.basename(sourcePath)}:${sourceStat.size}:${sourceStat.mtimeMs}`)
+    .update(`hero-stream-v10-hd-mobile-bitrate-master:${path.basename(sourcePath)}:${sourceStat.size}:${sourceStat.mtimeMs}`)
     .digest("hex")
     .slice(0, 16);
   const desktopName = `hero-${fingerprint}-desktop.mp4`;
@@ -256,20 +256,20 @@ export async function generateHeroVideoVariants(
     const encodeMobile = async (crf: string, maxRate: string, bufferSize: string): Promise<void> => {
       await runFfmpeg([
         "-y", "-i", sourcePath, "-map", "0:v:0", "-an",
-        "-vf", "scale=640:360:force_original_aspect_ratio=decrease:force_divisible_by=2,fps=20",
-        "-c:v", "libx264", "-profile:v", "high", "-level", "3.1",
+        "-vf", "scale=1280:720:force_original_aspect_ratio=decrease:force_divisible_by=2,fps=24",
+        "-c:v", "libx264", "-profile:v", "high", "-level", "4.0",
         "-preset", "medium", "-crf", crf, "-maxrate", maxRate, "-bufsize", bufferSize,
         "-pix_fmt", "yuv420p",
         "-tag:v", "avc1",
         "-movflags", "+faststart", temporaryMobile,
       ]);
     };
-    await encodeMobile("30", "180k", "360k");
-    if ((await fs.stat(temporaryMobile)).size > 1.5 * 1024 * 1024) {
-      await encodeMobile("34", "120k", "240k");
+    await encodeMobile("19", "3200k", "6400k");
+    if ((await fs.stat(temporaryMobile)).size > 26 * 1024 * 1024) {
+      await encodeMobile("21", "2600k", "5200k");
     }
-    if ((await fs.stat(temporaryMobile)).size > 1.5 * 1024 * 1024) {
-      throw new Error("No fue posible crear una variante móvil dentro del presupuesto de 1.5 MB.");
+    if ((await fs.stat(temporaryMobile)).size > 26 * 1024 * 1024) {
+      throw new Error("No fue posible crear una variante móvil HD de alta tasa dentro del presupuesto de 26 MB.");
     }
     await runFfmpeg([
       "-y", "-ss", "1", "-i", sourcePath, "-frames:v", "1",
