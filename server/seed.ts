@@ -11,6 +11,36 @@ import {
   resolveCanonicalDropboxAuthorIds,
 } from "./content/canonicalDropboxNews2026";
 
+// Estas fotografías se verifican contra las fichas históricas del espejo. Las
+// rutas anteriores llegaron a la base durante semillas previas y muestran una
+// persona distinta. Cada corrección se limita a esas rutas conocidas: una
+// imagen personalizada desde Administración nunca se sobrescribe al arrancar.
+const CANONICAL_ATTORNEY_PHOTO_CORRECTIONS: ReadonlyArray<{
+  slug: string;
+  imageUrl: string;
+  incorrectImageUrls: readonly string[];
+}> = [
+  {
+    slug: "javier-lizardi",
+    imageUrl: "/images/Socios/Fotos_socios/02-Javier-Lizardi.jpg",
+    incorrectImageUrls: [
+      "https://www.vonwobeser.com/images/Socios/Fotos_socios/JavierLizardi_Hires.jpg",
+      "/of_counsel_photos/javier_lizardi.jpg",
+    ],
+  },
+  {
+    slug: "fernando-moreno",
+    imageUrl: "/images/Socios/Fotos_socios/03-Fernando-Moreno.jpg",
+    incorrectImageUrls: [
+      "https://www.vonwobeser.com/images/Socios/Fotos_socios/FernandoMoreno_Hires.jpg",
+      "/of_counsel_photos/fernando_moreno.jpg",
+    ],
+  },
+];
+
+const JAVIER_LIZARDI_CANONICAL_IMAGE_URL = CANONICAL_ATTORNEY_PHOTO_CORRECTIONS[0].imageUrl;
+const FERNANDO_MORENO_CANONICAL_IMAGE_URL = CANONICAL_ATTORNEY_PHOTO_CORRECTIONS[1].imageUrl;
+
 const legacyPracticeGroupsData = [
   { 
     name: "Corporate, Mergers & Acquisitions", 
@@ -696,7 +726,7 @@ const teamMembersData = [
     phone: "+52 (55) 5258-1000",
     isPartner: false, 
     order: 24, 
-    imageUrl: "https://www.vonwobeser.com/images/Socios/Fotos_socios/JavierLizardi_Hires.jpg" 
+    imageUrl: JAVIER_LIZARDI_CANONICAL_IMAGE_URL,
   },
   { 
     name: "Fernando Moreno", 
@@ -709,7 +739,7 @@ const teamMembersData = [
     phone: "+52 (55) 5258-1000",
     isPartner: false, 
     order: 25, 
-    imageUrl: "https://www.vonwobeser.com/images/Socios/Fotos_socios/FernandoMoreno_Hires.jpg" 
+    imageUrl: FERNANDO_MORENO_CANONICAL_IMAGE_URL,
   },
   // Associates
   { name: "Adrian Martinez", slug: "adrian-martinez", title: "Associate", titleEs: "Asociado", role: "Corporate & M&A", roleEs: "Corporativo y M&A", email: "amartinez@vwys.com.mx", phone: "+52 (55) 5258-1000", isPartner: false, order: 26, imageUrl: "/associate_photos/adrian_martinez.jpg" },
@@ -1265,6 +1295,21 @@ export async function seed() {
   if (existingTeamMembers.length === 0) {
     console.log("Seeding team members...");
     await db.insert(teamMembers).values(canonicalTeamMembersData as typeof teamMembers.$inferInsert[]);
+  }
+
+  // También repara instalaciones existentes. No se modifica ningún otro dato
+  // del perfil y una personalización realizada en Administración se conserva.
+  for (const correction of CANONICAL_ATTORNEY_PHOTO_CORRECTIONS) {
+    const [member] = await db
+      .select({ id: teamMembers.id, imageUrl: teamMembers.imageUrl })
+      .from(teamMembers)
+      .where(eq(teamMembers.slug, correction.slug));
+    if (member && correction.incorrectImageUrls.includes(member.imageUrl || "")) {
+      await db
+        .update(teamMembers)
+        .set({ imageUrl: correction.imageUrl })
+        .where(eq(teamMembers.id, member.id));
+    }
   }
 
   // Las relaciones autor-publicación se crean después de poblar el directorio.

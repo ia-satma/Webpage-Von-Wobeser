@@ -10,9 +10,9 @@ pendientes se encuentra en
 ## Estado breve
 
 - Fuente de verdad: `ia-satma/Webpage-Von-Wobeser`, rama `main`.
-- Commit vigente en `main`: `9b6be90` (`feat: refine insight archives and shared admin content`),
-  enviado a `origin/main` el 21-ago-2026. Replit descargó el SHA mediante rebase y terminó
-  `npm run build` correctamente; Publishing sigue siendo una acción explícita desde su panel.
+- Commit vigente en `main`: `4eac65e` (`fix: preserve applied migration checksum`), enviado a
+  `origin/main` el 21-ago-2026. Replit descargó el SHA mediante rebase y terminó `npm run build`
+  correctamente; Publishing sigue siendo una acción explícita desde su panel.
 - Sitio público: espejo editorial HTML/Joomla servido y enriquecido por Express; **no es React**.
 - Administración: SPA React únicamente bajo `/admin/*`.
 - Datos: PostgreSQL/Drizzle con **56 tablas y 627 columnas**; migraciones versionadas,
@@ -46,7 +46,9 @@ pendientes se encuentra en
   demás entradas se mantienen recuperables desde Administración. Artículos y Comunicaciones usan
   una cabecera editorial visible y el buscador accesible común, siempre contra contenido publicado
   administrado.
-- Última validación local: tipos, build y **484** pruebas de seguridad aprobadas. Se verificaron
+- Última validación local: tipos, build y **484** pruebas de seguridad aprobadas. También pasó la
+  prueba específica de migración Dropbox (5/5) y se confirmó que la huella SHA-256 de la migración
+  aplicada coincide exactamente con su versión histórica. Se verificaron
   Artículos y Comunicaciones en ES/EN, filtros, resultados, paginación, limpieza, cabeceras,
   controles responsivos y ausencia de desbordamiento; Replit confirmó el build posterior al pull.
 
@@ -68,3 +70,6 @@ pendientes se encuentra en
 9. Para comprobar la conexión de Git de una Shell de Replit sin modificar archivos, usar
    `git remote get-url origin && git ls-remote origin HEAD`. Si devuelve un SHA, ejecutar el pull
    y build; no regenerar ni compartir tokens por Shell o chat.
+10. Una migración ya registrada en `app_schema_migrations` es inmutable: nunca editar su archivo
+    para corregir comportamiento. Restaurar su SHA exacto y aplicar cualquier adaptación desde el
+    ejecutor o una migración nueva, con una prueba de regresión antes de Publishing.
