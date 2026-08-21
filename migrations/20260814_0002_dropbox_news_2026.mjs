@@ -95,6 +95,11 @@ export default async function migrateDropboxNews2026(client) {
     }
   }
 
+  // Se preservan los créditos en el snapshot editorial, pero los mensajes operativos
+  // no deben contener nombres ni correos de personas. Sólo se conserva una clave local
+  // para contar créditos distintos durante la migración.
+  const unresolvedSourceCreditKeys = new Set();
+
   for (const item of items) {
     const upserted = await client.query(`
       INSERT INTO news (
@@ -138,11 +143,10 @@ export default async function migrateDropboxNews2026(client) {
     if (!newsId) throw new Error(`Unable to upsert canonical Dropbox note: ${item.slug}`);
 
     await client.query("DELETE FROM news_team_members WHERE news_id = $1", [newsId]);
-    const unresolved = [];
     const memberIds = new Set();
     for (const author of item.authors) {
       const member = uniqueMatch(membersByEmail, normalize(author.email)) || uniqueMatch(membersByName, normalize(author.name));
-      if (!member) unresolved.push(`${author.name} <${author.email}>`);
+      if (!member) unresolvedSourceCreditKeys.add(`${normalize(author.name)}\u0000${normalize(author.email)}`);
       else memberIds.add(member.id);
     }
     for (const memberId of memberIds) {
@@ -152,8 +156,12 @@ export default async function migrateDropboxNews2026(client) {
         ON CONFLICT (news_id, team_member_id) DO NOTHING
       `, [newsId, memberId]);
     }
-    if (unresolved.length) {
-      console.warn(`[migrations] ${item.slug}: authors without a CMS profile were preserved as source credits only: ${unresolved.join(", ")}`);
-    }
+  }
+
+  if (unresolvedSourceCreditKeys.size) {
+    console.warn(
+      `[data-quality] code=UNRESOLVED_SOURCE_AUTHOR_CREDITS source=dropbox-2026 ` +
+      `affected_records=${unresolvedSourceCreditKeys.size} details=redacted`,
+    );
   }
 }

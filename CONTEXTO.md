@@ -5,12 +5,12 @@
 Este archivo es el punto de entrada para continuar el proyecto. El estado completo de
 arquitectura, contenido, CMS, agentes, seguridad, navegación, auditorías, Replit, despliegue y
 pendientes se encuentra en
-[`docs/CONTEXT-2026-08-20.md`](docs/CONTEXT-2026-08-20.md).
+[`docs/CONTEXT-2026-08-21.md`](docs/CONTEXT-2026-08-21.md).
 
 ## Estado breve
 
 - Fuente de verdad: `ia-satma/Webpage-Von-Wobeser`, rama `main`.
-- Commit vigente en `main`: `446a8c9` (`feat: unify office showcase navigation and footer`),
+- Commit vigente en `main`: `9b6be90` (`feat: refine insight archives and shared admin content`),
   enviado a `origin/main` el 21-ago-2026. Replit descargó el SHA mediante rebase y terminó
   `npm run build` correctamente; Publishing sigue siendo una acción explícita desde su panel.
 - Sitio público: espejo editorial HTML/Joomla servido y enriquecido por Express; **no es React**.
@@ -39,14 +39,21 @@ pendientes se encuentra en
   configuraciones duplicadas de logo, redes o footer. Desde Administración → Oficinas se enlaza
   a Navegación, Pie de página y Apariencia pública; los datos de contacto/mapa permanecen en sus
   controles administrables vigentes.
-- Última validación local: tipos, presupuesto de rendimiento, build y **477** pruebas de seguridad
-  aprobadas; Nuevas oficinas se comprobó en ES/EN, escritorio y móvil, sin desbordamiento, con
-  mapa a color, menú funcional y ambos presets de pie. La auditoría comprobó 224 controles
-  administrativos conectados, sin claves literales pendientes.
+- El mapa compartido ahora se administra desde Administración → Configuración del sitio → Contacto;
+  Contacto, Inicio y Nuevas oficinas consumen esas mismas URLs seguras. Oficinas conserva los
+  datos específicos de oficina y un enlace al editor único, sin campos duplicados.
+- Insights deja activas por decisión editorial sólo Artículos, Comunicaciones y Suscríbete; las
+  demás entradas se mantienen recuperables desde Administración. Artículos y Comunicaciones usan
+  una cabecera editorial visible y el buscador accesible común, siempre contra contenido publicado
+  administrado.
+- Última validación local: tipos, build y **484** pruebas de seguridad aprobadas. Se verificaron
+  Artículos y Comunicaciones en ES/EN, filtros, resultados, paginación, limpieza, cabeceras,
+  controles responsivos y ausencia de desbordamiento; Replit confirmó el build posterior al pull.
 
 ## Reglas de continuidad
 
-1. Leer primero [`docs/CONTEXT-2026-08-20.md`](docs/CONTEXT-2026-08-20.md) y `replit.md`.
+1. Leer primero [`docs/CONTEXT-2026-08-21.md`](docs/CONTEXT-2026-08-21.md), su antecedente
+   [`docs/CONTEXT-2026-08-20.md`](docs/CONTEXT-2026-08-20.md) y `replit.md`.
 2. No incluir contraseñas, tokens, URLs de base, paquetes `.handoff` ni valores de Secrets en Git,
    notas, comandos compartidos o capturas.
 3. No borrar ni mover `frontend-mirror/`: es un activo obligatorio de runtime.

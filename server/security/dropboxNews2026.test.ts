@@ -145,7 +145,10 @@ test("la migración inserta o actualiza 11 notas sin DDL y sincroniza autores de
   assert.ok(upserts.every((call) => call.values.length === 13));
   assert.ok(upserts.every((call) => /ON CONFLICT \(slug\) DO UPDATE/i.test(call.sql)));
   assert.ok(relationInserts.every((call) => /ON CONFLICT \(news_id, team_member_id\) DO NOTHING/i.test(call.sql)));
-  assert.ok(warnings.some((warning) => /Mauricio Puebla <mpuebla@vwys\.com\.mx>/.test(warning)));
+  assert.ok(warnings.some((warning) => (
+    /\[data-quality\] code=UNRESOLVED_SOURCE_AUTHOR_CREDITS source=dropbox-2026 affected_records=1 details=redacted/.test(warning)
+  )));
+  assert.ok(warnings.every((warning) => !/Mauricio Puebla|mpuebla@vwys\.com\.mx/i.test(warning)));
   const migrationSql = calls.map((call) => call.sql).join("\n");
   assert.doesNotMatch(migrationSql, /\b(?:CREATE|ALTER|DROP)\s+(?:TABLE|COLUMN|INDEX)\b/i);
   assert.doesNotMatch(migrationSql, /DELETE FROM news\b/i);

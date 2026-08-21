@@ -1278,19 +1278,27 @@ export async function seed() {
   ]);
   const newsIdBySlug = new Map(seededNewsRows.map((item) => [item.slug, item.id]));
   const desiredNewsTeamMembers: Array<typeof newsTeamMembers.$inferInsert> = [];
-  const unresolvedSourceCredits = new Set<string>();
+  // Los créditos fuente se conservan en el snapshot y se pueden revisar mediante los
+  // flujos administrativos autorizados. El identificador sólo vive durante la siembra
+  // para contar duplicados: jamás se imprime un nombre o correo en logs operativos.
+  const unresolvedSourceCreditKeys = new Set<string>();
   for (const item of canonicalDropboxNewsItems) {
     const newsId = newsIdBySlug.get(item.slug);
     if (!newsId) continue;
     const { resolvedIds, unresolved } = resolveCanonicalDropboxAuthorIds(item.authors, seededMemberRows);
     for (const teamMemberId of resolvedIds) desiredNewsTeamMembers.push({ newsId, teamMemberId });
-    for (const author of unresolved) unresolvedSourceCredits.add(`${author.name} <${author.email}>`);
+    for (const author of unresolved) {
+      unresolvedSourceCreditKeys.add(`${author.name}\u0000${author.email}`);
+    }
   }
   if (desiredNewsTeamMembers.length) {
     await db.insert(newsTeamMembers).values(desiredNewsTeamMembers).onConflictDoNothing();
   }
-  if (unresolvedSourceCredits.size) {
-    console.warn(`Dropbox 2026 source credits without a CMS profile: ${Array.from(unresolvedSourceCredits).join(", ")}`);
+  if (unresolvedSourceCreditKeys.size) {
+    console.warn(
+      `[data-quality] code=UNRESOLVED_SOURCE_AUTHOR_CREDITS source=dropbox-2026 ` +
+      `affected_records=${unresolvedSourceCreditKeys.size} details=redacted`,
+    );
   }
 
   const existingRepresentativeMatters = await db.select().from(representativeMatters);
