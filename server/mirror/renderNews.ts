@@ -44,7 +44,23 @@ export type NewsListOpts = {
   query?: string;
   author?: { name: string; slug: string } | null;
   alternatePaths?: { en: string; es: string };
+  /** Cabecera editorial visible de los archivos que el menú trata como una sección propia. */
+  editorialHeader?: {
+    eyebrow: { en: string; es: string };
+    title: { en: string; es: string };
+    description: { en: string; es: string };
+  };
 };
+
+type NewsListPageInfo = {
+  page: number;
+  totalPages: number;
+  /** Total filtrado, para que la barra editorial pueda informar un resultado real. */
+  totalItems?: number;
+};
+
+const SEARCH_ICON =
+  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.3"></circle><path d="m16 16 4.2 4.2"></path></svg>';
 
 /** News listing — replaces the archive cards with DB news (paginated). Reused for both
  *  "Noticias" (default opts) and "Artículos" (opts.basePath="/articles", distinto título). */
@@ -52,7 +68,7 @@ export function renderNewsList(
   templateHtml: string,
   news: any[],
   lang: Lang = "en",
-  pageInfo?: { page: number; totalPages: number },
+  pageInfo?: NewsListPageInfo,
   opts: NewsListOpts = {},
 ): string {
   const $ = cheerio.load(templateHtml);
@@ -92,27 +108,79 @@ export function renderNewsList(
 
   // El buscador del archivo queda limitado a esta sección y usa GET para que la
   // consulta se pueda compartir, paginar y alternar de idioma sin perderse.
+  // Sustituye el input Joomla de 170 px por la misma jerarquía visual del
+  // directorio de Abogados, sin simular filtros que estas listas no tienen.
   const $filterForm = $(".archive__filters form").filter((_, form) => $(form).find(".news_search").length > 0).first();
   if ($filterForm.length) {
-    $filterForm.attr({ action: basePath, method: "get", role: "search" });
-    $filterForm.find('input[type="hidden"]').remove();
-    const $input = $filterForm.find('input[name="q"]').first();
-    $input
-      .attr({
-        type: "search",
-        value: query,
-        minlength: "2",
-        maxlength: "200",
-        autocomplete: "off",
-        "aria-label": lang === "es" ? "Buscar en esta sección" : "Search this section",
-        placeholder: lang === "es" ? "Buscar" : "Search",
-      });
-    if (lang === "en") $filterForm.append('<input type="hidden" name="lang" value="en">');
-    if (author) $filterForm.append(`<input type="hidden" name="author" value="${esc(author.slug)}">`);
+    const copy = lang === "es"
+      ? {
+          label: "Buscar en esta sección",
+          placeholder: "Buscar por título, tema o palabra clave…",
+          submit: "Buscar",
+          clear: "Limpiar búsqueda",
+          singular: "resultado",
+          plural: "resultados",
+          minHint: "Escribe al menos 2 caracteres.",
+        }
+      : {
+          label: "Search this section",
+          placeholder: "Search by title, topic or keyword…",
+          submit: "Search",
+          clear: "Clear search",
+          singular: "result",
+          plural: "results",
+          minHint: "Enter at least 2 characters.",
+        };
+    const resultCount = pageInfo?.totalItems ?? news.length;
+    const resetParams = new URLSearchParams();
+    if (author) resetParams.set("author", author.slug);
+    if (lang === "en") resetParams.set("lang", "en");
+    const resetHref = `${basePath}${resetParams.size ? `?${resetParams.toString()}` : ""}`;
+    const inputId = "vw-publications-search-q";
+    const hiddenFields = `${lang === "en" ? '<input type="hidden" name="lang" value="en">' : ""}` +
+      `${author ? `<input type="hidden" name="author" value="${esc(author.slug)}">` : ""}`;
+    const clearLink = query
+      ? `<a class="vw-publications-search__clear" href="${esc(resetHref)}">${esc(copy.clear)}</a>`
+      : "";
+
+    $filterForm
+      .attr({ action: basePath, method: "get", role: "search", class: "vw-publications-search__form" })
+      .removeAttr("style")
+      .html(
+        `${hiddenFields}` +
+        `<label class="vw-sr-only" for="${inputId}">${esc(copy.label)}</label>` +
+        `<div class="vw-publications-search__field">${SEARCH_ICON}` +
+          `<input id="${inputId}" class="news_search" type="search" name="q" value="${esc(query)}" minlength="2" maxlength="200" autocomplete="off" placeholder="${esc(copy.placeholder)}" aria-describedby="vw-publications-search-hint" data-vw-publications-q>` +
+        `</div>` +
+        `<button class="vw-publications-search__submit" type="submit">${esc(copy.submit)}</button>` +
+        `<p class="vw-publications-search__count" role="status" aria-live="polite">${resultCount} ${resultCount === 1 ? copy.singular : copy.plural}</p>` +
+        `${clearLink}<span id="vw-publications-search-hint" class="vw-sr-only">${esc(copy.minHint)}</span>`,
+      );
+    $filterForm.closest(".archive__filters").addClass("vw-publications-search").removeAttr("style");
   }
   // El selector Joomla de cantidad no está conectado al nuevo listado; se elimina para
   // evitar un segundo formulario roto que daba la impresión de que el filtro fallaba.
   $(".archive__filters form#adminForm").remove();
+
+  // Las listas de Artículos y Comunicaciones se presentan como destinos editoriales
+  // independientes. La cabecera se inserta junto al archivo (no en la navegación) para
+  // que el visitante siempre sepa en qué pestaña está, incluso al llegar desde una URL
+  // compartida o después de una búsqueda.
+  if (opts.editorialHeader) {
+    $(".vw-publications-page__header").remove();
+    const header = opts.editorialHeader;
+    const $header = $(
+      `<header class="vw-publications-page__header" aria-labelledby="vw-publications-page-title">` +
+        `<p class="vw-publications-page__eyebrow">${esc(header.eyebrow[lang])}</p>` +
+        `<h1 class="vw-publications-page__title" id="vw-publications-page-title">${esc(header.title[lang])}</h1>` +
+        `<p class="vw-publications-page__lede">${esc(header.description[lang])}</p>` +
+      `</header>`,
+    );
+    const $filters = $(".archive__filters.vw-publications-search, .archive__filters").first();
+    if ($filters.length) $filters.before($header);
+    else $(".archive__list").first().before($header);
+    $header.closest(".page.archive").addClass("vw-publications-page");
+  }
 
   if (query || author) {
     const summary = [

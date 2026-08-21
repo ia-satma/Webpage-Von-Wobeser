@@ -32,7 +32,13 @@ function safePublicHref(value: string, fallback: string): string {
 export function applyCareersFormFix($: cheerio.CheerioAPI, lang: "es" | "en" = "en"): void {
   // La abreviatura de marca en la etiqueta editorial se mantiene breve y es
   // independiente de los nombres largos usados en copys legales o SEO.
-  $(".careers__meta .page__ttl--holder > span").first().text(lang === "es" ? "CARRERA EN VW" : "CAREER AT VW");
+  const $legacyLabel = $(".careers__meta .page__ttl--holder > span").first();
+  const isInterns = /pasantes|interns/i.test($legacyLabel.text());
+  $legacyLabel.text(
+    isInterns
+      ? (lang === "es" ? "PASANTES" : "LEGAL INTERNS")
+      : (lang === "es" ? "CARRERA EN VW" : "CAREER AT VW"),
+  );
 
   // La plantilla en inglés capturada tiene un segundo enlace a "Privacy Notice." (pie de
   // página, fuera del formulario) que por un error del sitio original apunta al aviso en
@@ -45,7 +51,120 @@ export function applyCareersFormFix($: cheerio.CheerioAPI, lang: "es" | "en" = "
   const $form = $("#careersForm");
   if (!$form.length) return;
 
-  $form.attr("action", "/api/career-applications"); // defensivo, por si el JS no corre
+  // El contenido y el formulario siguen siendo los heredados/editables. Solo
+  // se promueve la primera introducción a una cabecera editorial común con
+  // Contacto, Prácticas e Industrias. De ese modo Administración conserva una
+  // única fuente para cada texto y no se duplica la introducción en pantalla.
+  const $wrap = $form.parent(".careers--wrap").first();
+  const $meta = $wrap.children(".careers__meta").first();
+  if ($wrap.length && $meta.length && !$wrap.children(".vw-careers-header").length) {
+    const headerCopy = isInterns
+      ? (lang === "es"
+        ? { eyebrow: "Talento", title: "Pasantes", fallback: "Conoce nuestro programa de pasantes." }
+        : { eyebrow: "Talent", title: "Legal interns", fallback: "Learn about our legal interns program." })
+      : (lang === "es"
+        ? { eyebrow: "Talento", title: "Carrera en VW", fallback: "Conoce las oportunidades para formar parte de nuestro equipo." }
+        : { eyebrow: "Talent", title: "Career at VW", fallback: "Learn about opportunities to join our team." });
+    const $content = $meta.children(".careers__content").first();
+    const $lead = $content.children(".page__content--intro").first();
+    const $header = $("<header>").addClass("vw-careers-header").attr("aria-labelledby", "vw-careers-page-title");
+    const $description = $("<div>").addClass("vw-careers-header__description page__content--intro");
+
+    if ($lead.length) {
+      $description.html($lead.html() || "");
+      $lead.remove();
+    } else {
+      $description.append($("<p>").text(headerCopy.fallback));
+    }
+
+    $header
+      .append($("<p>").addClass("vw-careers-header__eyebrow").text(headerCopy.eyebrow))
+      .append($("<h1>").attr("id", "vw-careers-page-title").text(headerCopy.title))
+      .append($description)
+      .append($("<span>").addClass("vw-careers-header__rule").attr("aria-hidden", "true"));
+
+    $meta.children(".page__ttl").first().remove();
+    $meta.addClass("vw-careers-copy");
+    $wrap.addClass("vw-careers-layout");
+    $meta.before($header);
+  }
+
+  const copy = lang === "es"
+    ? {
+        required: "Completa nombre, apellido, correo, adjunta tu CV y acepta el aviso de privacidad.",
+        success: "Gracias, tu solicitud fue enviada correctamente.",
+        error: "Ocurrió un error, intenta de nuevo.",
+        network: "Ocurrió un error de red, intenta de nuevo.",
+        fileEmpty: "Ningún archivo seleccionado",
+      }
+    : {
+        required: "Complete your name, last name and email, attach your CV, and accept the Privacy Notice.",
+        success: "Thank you, your application was sent successfully.",
+        error: "Something went wrong. Please try again.",
+        network: "A network error occurred. Please try again.",
+        fileEmpty: "No file selected",
+      };
+
+  // Conservamos nombres, campos y endpoint del formulario original. La clase es
+  // intencionalmente específica: permite adoptar el sistema visual de Contacto
+  // sin alterar formularios heredados de otras plantillas.
+  $form
+    .attr("action", "/api/career-applications") // defensivo, por si el JS no corre
+    .attr("novalidate", "")
+    .addClass("vw-careers-form");
+  $form.find('[name="name"]').attr({ autocomplete: "given-name", required: "" });
+  $form.find('[name="l_name"]').attr({ autocomplete: "family-name", required: "" });
+  $form.find('[name="mail"]').attr({ autocomplete: "email", required: "" });
+  $form.find('[name="tel"]').attr({ autocomplete: "tel" });
+  $form.find('[name="accept"]').attr("required", "");
+  $form.find(".careers__form--button").addClass("vw-careers-form__upload");
+  $form.find(".careers__form--label.checkbox").addClass("vw-careers-form__privacy");
+  $form.find(".careers__form--label.submit").removeAttr("style").addClass("vw-careers-form__submit");
+  $form.find("#filename")
+    .removeAttr("style")
+    .addClass("vw-careers-form__filename")
+    .attr({ placeholder: copy.fileEmpty, "aria-live": "polite" });
+  $form.find("p").last().removeAttr("style").addClass("vw-careers-form__help");
+  $form.find(".loader").addClass("vw-careers-form__loader");
+
+  if (!$("#vw-careers-form-style").length) {
+    $("head").append(`
+<style id="vw-careers-form-style">
+.page.careers{padding:clamp(6rem,7vw,7.5rem) 0 64px!important}
+.page.careers .careers--wrap.vw-careers-layout{display:grid!important;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:clamp(34px,5vw,72px);align-items:start}
+.page.careers .vw-careers-header{grid-column:1/-1;box-sizing:border-box;width:100%;margin:0 0 clamp(30px,3.5vw,44px);padding:0;color:#5a5a5a;text-align:center}
+.page.careers .vw-careers-header__eyebrow{margin:0 0 15px;color:#ac162c;font:500 12px/1.2 var(--vw-font-ui);letter-spacing:.24em;text-transform:uppercase}
+.page.careers .vw-careers-header h1{margin:0;color:#595959;font:400 clamp(40px,4.5vw,58px)/1.08 var(--vw-font-editorial);letter-spacing:-.025em;text-transform:none}
+.page.careers .vw-careers-header__description{max-width:720px!important;width:auto!important;margin:18px auto 0!important;border:0!important;color:#626262;font:400 clamp(16px,1.35vw,19px)/1.58 var(--vw-font-body);letter-spacing:0;text-align:center;text-transform:none}
+.page.careers .vw-careers-header__description p{margin:0!important}
+.page.careers .vw-careers-header__rule{display:block;width:100%;height:1px;margin:clamp(23px,2.4vw,32px) 0 0;background:#ac162c}
+.page.careers .vw-careers-copy{grid-column:1;box-sizing:border-box;width:auto!important;max-width:none!important;margin:0!important;display:block!important}
+.page.careers .vw-careers-copy .careers__content{width:100%!important}
+.page.careers .vw-careers-copy .careers__content p{margin:0 0 18px;color:#616161;font:400 16px/1.68 var(--vw-font-body);letter-spacing:0;text-transform:none}
+.page.careers .vw-careers-copy .careers__content--intro{margin:0 0 18px;border:0!important;color:#565656;font:400 clamp(24px,2.25vw,31px)/1.18 var(--vw-font-editorial);letter-spacing:-.015em;text-transform:none}
+.page.careers .vw-careers-copy .careers__content--intro p{color:inherit;font:inherit;line-height:inherit}
+.page.careers .vw-careers-form{box-sizing:border-box;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:22px 20px;width:calc(50% - 30px)!important;max-width:540px!important;height:auto!important;align-self:flex-start;margin:0 0 0 auto!important;padding:clamp(24px,2.8vw,34px)!important;border-radius:8px;background:#747473;color:#fff;scroll-margin-top:104px}
+.page.careers .vw-careers-layout>.vw-careers-form{grid-column:2;width:100%!important;justify-self:end}
+.page.careers .vw-careers-form .careers__form--label{display:flex;flex-direction:column;width:auto!important;min-width:0;gap:8px;margin:0!important;float:none!important;color:#fff;font:500 14px/1.35 var(--vw-font-ui);letter-spacing:0;text-transform:none}
+.page.careers .vw-careers-form .careers__form--input{box-sizing:border-box;display:block;width:100%!important;min-width:0;min-height:52px;margin:0!important;border:1px solid transparent;border-radius:5px;background:#fff;color:#3f3f3f;padding:12px 14px;font:400 16px/1.4 var(--vw-font-ui);letter-spacing:0;text-transform:none}
+.page.careers .vw-careers-form .careers__form--input:focus-visible,.page.careers .vw-careers-form .careers__form--checkbox:focus-visible,.page.careers .vw-careers-form .careers__form--submit:focus-visible,.page.careers .vw-careers-form .vw-careers-form__upload:focus-within{outline:3px solid #ac162c;outline-offset:3px}
+.page.careers .vw-careers-form .vw-careers-form__upload{grid-column:1/-1;display:flex;align-items:center;width:100%;min-height:52px;box-sizing:border-box;margin:0!important;border:1px solid transparent;border-radius:5px;background:#fff;color:#3f3f3f;padding:0 14px;font:400 16px/1.4 var(--vw-font-ui);letter-spacing:0;text-transform:none}
+.page.careers .vw-careers-form .vw-careers-form__upload span{display:inline-flex;align-items:center;justify-content:center;min-height:32px;border-radius:4px;background:#ac162c;color:#fff;padding:0 13px;font:500 14px/1 var(--vw-font-ui);letter-spacing:0;text-transform:none}
+.page.careers .vw-careers-form .vw-careers-form__filename{grid-column:1/-1;box-sizing:border-box;display:block;width:100%!important;min-height:24px;margin:-10px 0 0!important;border:0!important;background:transparent!important;color:#fff!important;padding:0!important;font:400 14px/1.45 var(--vw-font-ui)!important;letter-spacing:0!important;text-transform:none!important}
+.page.careers .vw-careers-form .vw-careers-form__filename::placeholder{color:rgba(255,255,255,.78);opacity:1}
+.page.careers .vw-careers-form .vw-careers-form__privacy{grid-column:1/-1;display:flex;flex-direction:row;align-items:center;justify-content:flex-start!important;gap:14px;min-height:56px;box-sizing:border-box;margin:2px 0 0!important;border-radius:5px;background:#fff;color:#4f4f4f;padding:12px 16px;font:400 16px/1.45 var(--vw-font-ui);letter-spacing:0;text-align:left!important;text-transform:none}
+.page.careers .vw-careers-form .vw-careers-form__privacy .careers__form--checkbox{appearance:auto;width:20px;height:20px;flex:0 0 20px;margin:0;border:0;border-radius:0;accent-color:#ac162c}
+.page.careers .vw-careers-form .vw-careers-form__privacy span{display:block;width:auto!important;margin:0!important;line-height:1.45;text-align:left!important}.page.careers .vw-careers-form .vw-careers-form__privacy a{color:#ac162c;font-weight:500;text-decoration:underline;text-decoration-color:#ac162c;text-decoration-thickness:2px;text-underline-offset:.18em}
+.page.careers .vw-careers-form .vw-careers-form__submit{grid-column:1/-1;display:block;position:relative;width:100%;margin:0!important;border:0!important;padding:0!important}
+.page.careers .vw-careers-form .careers__form--submit{display:block;width:100%;min-height:52px;border:0;border-radius:5px;background:#ac162c;color:#fff;padding:0 56px 0 20px;font:500 16px/1 var(--vw-font-ui);letter-spacing:0;text-align:center;text-transform:none;cursor:pointer;transition:transform .2s ease}
+.page.careers .vw-careers-form .vw-careers-form__submit::after{content:"→";position:absolute;right:20px;top:50%;font-size:21px;line-height:1;pointer-events:none;transform:translateY(-50%);transition:transform .2s ease}.page.careers .vw-careers-form .vw-careers-form__submit:hover::after,.page.careers .vw-careers-form .vw-careers-form__submit:focus-within::after{transform:translate(5px,-50%)}.page.careers .vw-careers-form .careers__form--submit:active{transform:translateY(1px)}
+.page.careers .vw-careers-form .vw-careers-form__help{grid-column:1/-1;margin:0!important;color:#fff!important;font:400 14px/1.5 var(--vw-font-ui)!important;letter-spacing:0!important;text-transform:none!important}.page.careers .vw-careers-form .vw-careers-form__help a{color:#fff!important;text-decoration:underline;text-underline-offset:.18em}.page.careers .vw-careers-form .vw-careers-form__loader{grid-column:1/-1;width:30px;margin:0 auto!important}
+.page.careers .vw-careers-form [data-vw-feedback]{grid-column:1/-1;margin:0;color:#fff;font:400 15px/1.5 var(--vw-font-ui)}.page.careers .vw-careers-form [data-vw-feedback]:empty{display:none}.page.careers .vw-careers-form input[aria-invalid="true"]{border-color:#ac162c;box-shadow:0 0 0 2px #fff}
+@media(max-width:980px){.page.careers{padding:5.75rem 0 56px!important}.page.careers .careers--wrap.vw-careers-layout{grid-template-columns:1fr;gap:0}.page.careers .vw-careers-header{margin-bottom:2rem;padding-bottom:0}.page.careers .vw-careers-copy{grid-column:1}.page.careers .vw-careers-layout>.vw-careers-form{grid-column:1;justify-self:stretch}.page.careers .vw-careers-form{width:min(100%,600px)!important;max-width:600px!important;margin:2.5rem auto 0!important}}
+@media(max-width:680px){.page.careers{padding:5.25rem 0 48px!important}.page.careers .vw-careers-form{grid-template-columns:1fr;gap:20px;width:100%!important;margin-top:2.5rem!important;padding:22px 18px!important}.page.careers .vw-careers-form .vw-careers-form__upload,.page.careers .vw-careers-form .vw-careers-form__filename,.page.careers .vw-careers-form .vw-careers-form__privacy,.page.careers .vw-careers-form .vw-careers-form__submit,.page.careers .vw-careers-form .vw-careers-form__help,.page.careers .vw-careers-form .vw-careers-form__loader,.page.careers .vw-careers-form [data-vw-feedback]{grid-column:auto}.page.careers .vw-careers-form .vw-careers-form__privacy{align-items:flex-start;font-size:15px}.page.careers .vw-careers-form .vw-careers-form__filename{margin-top:-8px!important}}
+@media(prefers-reduced-motion:reduce){.page.careers .vw-careers-form .careers__form--submit,.page.careers .vw-careers-form .careers__form--submit::after{transition:none}}
+</style>`);
+  }
 
   const script = `
 <script>
@@ -55,11 +174,17 @@ export function applyCareersFormFix($: cheerio.CheerioAPI, lang: "es" | "en" = "
     if (!form) return;
     var loader = form.querySelector('.loader');
     var submitLabel = form.querySelector('.submit');
+    var fileInput = form.querySelector('[name="uploaded_file"]');
+    var fileName = form.querySelector('#filename');
     var feedback = document.createElement('div');
     feedback.setAttribute('data-vw-feedback', '1');
-    feedback.style.marginTop = '10px';
-    feedback.style.fontSize = '13px';
     (loader || form).parentNode.insertBefore(feedback, loader || null);
+
+    if (fileInput && fileName) {
+      fileInput.addEventListener('change', function () {
+        fileName.value = fileInput.files && fileInput.files.length ? fileInput.files[0].name : '';
+      });
+    }
 
     form.addEventListener('submit', function (e) {
       e.preventDefault();
@@ -70,11 +195,10 @@ export function applyCareersFormFix($: cheerio.CheerioAPI, lang: "es" | "en" = "
       var name = (form.querySelector('[name="name"]') || {}).value || '';
       var lName = (form.querySelector('[name="l_name"]') || {}).value || '';
       var mail = (form.querySelector('[name="mail"]') || {}).value || '';
-      var fileInput = form.querySelector('[name="uploaded_file"]');
       var accept = (form.querySelector('[name="accept"]') || {}).checked;
 
       if (!name.trim() || !lName.trim() || !mail.trim() || !fileInput || !fileInput.files || !fileInput.files.length || !accept) {
-        feedback.textContent = 'Completa nombre, apellido, correo, adjunta tu CV y acepta el aviso de privacidad.';
+        feedback.textContent = ${jsString(copy.required)};
         return;
       }
 
@@ -89,17 +213,18 @@ export function applyCareersFormFix($: cheerio.CheerioAPI, lang: "es" | "en" = "
           if (loader) loader.style.display = 'none';
           if (result.ok) {
             feedback.style.color = '#7CFC7C';
-            feedback.textContent = 'Gracias, tu solicitud fue enviada correctamente.';
+            feedback.textContent = ${jsString(copy.success)};
             form.reset();
+            if (fileName) fileName.value = '';
           } else {
             if (submitLabel) submitLabel.style.display = '';
-            feedback.textContent = (result.data && result.data.error) || 'Ocurrió un error, intenta de nuevo.';
+            feedback.textContent = (result.data && result.data.error) || ${jsString(copy.error)};
           }
         })
         .catch(function () {
           if (loader) loader.style.display = 'none';
           if (submitLabel) submitLabel.style.display = '';
-          feedback.textContent = 'Ocurrió un error de red, intenta de nuevo.';
+          feedback.textContent = ${jsString(copy.network)};
         });
     }, true);
   }

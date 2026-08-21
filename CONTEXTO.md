@@ -1,6 +1,6 @@
 # Contexto vigente — Von Wobeser y Sierra
 
-Última actualización: **2026-08-20, America/Monterrey**.
+Última actualización: **2026-08-21, America/Monterrey**.
 
 Este archivo es el punto de entrada para continuar el proyecto. El estado completo de
 arquitectura, contenido, CMS, agentes, seguridad, navegación, auditorías, Replit, despliegue y
@@ -10,10 +10,9 @@ pendientes se encuentra en
 ## Estado breve
 
 - Fuente de verdad: `ia-satma/Webpage-Von-Wobeser`, rama `main`.
-- Commit vigente: `b37f7c1` (`feat: refine public editorial experience`), enviado a
-  `origin/main` el 20-ago-2026. Replit verificó autenticación, descargó este SHA con rebase y
-  terminó `npm run build` correctamente; Publishing sigue siendo una acción explícita desde su
-  panel.
+- Commit vigente en `main`: `446a8c9` (`feat: unify office showcase navigation and footer`),
+  enviado a `origin/main` el 21-ago-2026. Replit descargó el SHA mediante rebase y terminó
+  `npm run build` correctamente; Publishing sigue siendo una acción explícita desde su panel.
 - Sitio público: espejo editorial HTML/Joomla servido y enriquecido por Express; **no es React**.
 - Administración: SPA React únicamente bajo `/admin/*`.
 - Datos: PostgreSQL/Drizzle con **56 tablas y 627 columnas**; migraciones versionadas,
@@ -36,9 +35,14 @@ pendientes se encuentra en
   editorial/clásico son presets reversibles desde Administración.
 - La navegación persistente de Inicio se extrae del hero histórico antes de renderizar. Esto evita
   que las capas del video o de carruseles vuelvan transparente o inoperante al menú al hacer scroll.
-- Última validación local: tipos, presupuesto de rendimiento, build y **475** pruebas de seguridad
-  aprobadas; recorrido real de Inicio confirmó menú opaco, clicable y sin scroll horizontal. La
-  auditoría comprobó 224 controles administrativos conectados, sin claves literales pendientes.
+- Nuevas oficinas ya usa la navegación, el mapa y el pie compartidos del sitio: no conserva
+  configuraciones duplicadas de logo, redes o footer. Desde Administración → Oficinas se enlaza
+  a Navegación, Pie de página y Apariencia pública; los datos de contacto/mapa permanecen en sus
+  controles administrables vigentes.
+- Última validación local: tipos, presupuesto de rendimiento, build y **477** pruebas de seguridad
+  aprobadas; Nuevas oficinas se comprobó en ES/EN, escritorio y móvil, sin desbordamiento, con
+  mapa a color, menú funcional y ambos presets de pie. La auditoría comprobó 224 controles
+  administrativos conectados, sin claves literales pendientes.
 
 ## Reglas de continuidad
 

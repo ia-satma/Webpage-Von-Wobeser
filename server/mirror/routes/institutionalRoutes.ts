@@ -131,9 +131,11 @@ export function registerMirrorInstitutionalRoutes(app: Express, runtime: MirrorR
   for (const p of ["/index.php/bolsa-de-trabajo/pasantes/index.html", "/index.php/bolsa-de-trabajo/pasantes/", "/bolsa-de-trabajo/pasantes"])
     app.get(p, wrap((_req, res) => {
       const $ = cheerio.load(tpl("index.php/bolsa-de-trabajo/pasantes/index.html"));
-      applyCareersFormFix($, "es");
       return getConfigMap().then((config) => {
         applyInternsContent($, config, "es");
+        // La cabecera toma la introducción ya resuelta desde Administración;
+        // por eso este paso sigue a la inyección de contenido bilingüe.
+        applyCareersFormFix($, "es");
         applyA11y($, "es"); // estas subpáginas no pasan por applySeo
         return sendPage(res, $.html());
       });
@@ -141,9 +143,9 @@ export function registerMirrorInstitutionalRoutes(app: Express, runtime: MirrorR
   for (const p of ["/index.php/careers/interns/index.html", "/index.php/careers/interns/", "/careers/interns"])
     app.get(p, wrap((_req, res) => {
       const $ = cheerio.load(tpl("index.php/careers/interns/index.html"));
-      applyCareersFormFix($, "en");
       return getConfigMap().then((config) => {
         applyInternsContent($, config, "en");
+        applyCareersFormFix($, "en");
         applyA11y($, "en"); // estas subpáginas no pasan por applySeo
         return sendPage(res, $.html());
       });

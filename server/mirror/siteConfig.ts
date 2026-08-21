@@ -179,6 +179,17 @@ const DEFAULTS: Array<{ key: string; value: string; valueEs?: string; type: stri
     category: "internal",
     description: "Migración interna de visibilidad para Reconocimientos de Insights",
   },
+  // Marca interna y de un solo uso: conserva solo Artículos, Comunicaciones y
+  // Suscríbete en Insights. Los demás destinos no se eliminan y el panel puede
+  // reactivarlos posteriormente.
+  {
+    key: "nav_insights_destinations_visibility_migration_v2",
+    value: "pending",
+    valueEs: "pending",
+    type: "text",
+    category: "internal",
+    description: "Migración interna de visibilidad para destinos de Insights",
+  },
   // Marca interna y de un solo uso para retirar temporalmente dos destinos de
   // Nuestra firma que hoy comparten la misma landing. Sus rutas y controles
   // permanecen disponibles para una activación futura desde Administración.
@@ -660,6 +671,84 @@ export async function seedConfigDefaults(): Promise<void> {
     });
   }
 
+  // La navegación de Insights conserva temporalmente Artículos,
+  // Comunicaciones y Suscríbete. Se aplica una sola vez a ambos presets
+  // guardados: ninguna ruta ni contenido se borra, y cada interruptor sigue
+  // disponible en Administración para una reactivación futura.
+  const [insightsDestinationsVisibilityMigration] = await db
+    .select({ value: siteConfig.value })
+    .from(siteConfig)
+    .where(eq(siteConfig.key, "nav_insights_destinations_visibility_migration_v2"));
+  let insightsDestinationsNavigationUpdated = false;
+  if (insightsDestinationsVisibilityMigration?.value !== "complete") {
+    const navigationKeys = ["nav_structure_v2", "nav_classic_structure_v2"] as const;
+    const hiddenInsightsDestinations = new Set([
+      "perspectives-events",
+      "perspectives-recognitions",
+      "perspectives-analysis",
+      "perspectives-press",
+    ]);
+    await db.transaction(async (tx) => {
+      for (const key of navigationKeys) {
+        const [current] = await tx
+          .select({ value: siteConfig.value, valueEs: siteConfig.valueEs })
+          .from(siteConfig)
+          .where(eq(siteConfig.key, key));
+        if (!current?.value) continue;
+        try {
+          const configuration = JSON.parse(current.value) as {
+            items?: Array<{
+              id?: string;
+              children?: Array<{ id?: string; labelEs?: string; labelEn?: string; visible?: boolean }>;
+            }>;
+          };
+          const insights = configuration.items?.find((item) => item.id === "perspectives");
+          if (!insights?.children) continue;
+          let changed = false;
+          for (const child of insights.children) {
+            if (hiddenInsightsDestinations.has(child.id || "") && child.visible !== false) {
+              child.visible = false;
+              changed = true;
+            }
+            if (child.id === "perspectives-subscribe" && child.visible !== true) {
+              child.visible = true;
+              changed = true;
+            }
+            // El preset clásico usaba la etiqueta histórica “Noticias” para
+            // Comunicaciones. Solo se normaliza ese par exacto de defaults;
+            // cualquier redacción personalizada desde Administración prevalece.
+            if (child.id === "perspectives-communications" && child.labelEs === "Noticias" && child.labelEn === "News") {
+              child.labelEs = "Comunicaciones";
+              child.labelEn = "Communications";
+              changed = true;
+            }
+          }
+          if (!changed) continue;
+          const next = JSON.stringify(configuration);
+          await tx.update(siteConfig)
+            .set({ value: next, valueEs: next, updatedAt: new Date() })
+            .where(eq(siteConfig.key, key));
+          insightsDestinationsNavigationUpdated = true;
+        } catch {
+          // Una configuración inválida conserva su fallback seguro de
+          // navegación; nunca se sobrescribe durante el arranque.
+        }
+      }
+      await tx.insert(siteConfig).values({
+        key: "nav_insights_destinations_visibility_migration_v2",
+        value: "complete",
+        valueEs: "complete",
+        type: "text",
+        category: "internal",
+        description: "Migración interna de visibilidad para destinos de Insights",
+        updatedAt: new Date(),
+      }).onConflictDoUpdate({
+        target: siteConfig.key,
+        set: { value: "complete", valueEs: "complete", updatedAt: new Date() },
+      });
+    });
+  }
+
   // Propuesta de valor y Reconocimientos de Nuestra firma llevan hoy a la
   // misma landing. Se ocultan una sola vez en los presets guardados, sin borrar
   // rutas ni contenido, y sin revertir una reactivación administrativa futura.
@@ -969,7 +1058,7 @@ export async function seedConfigDefaults(): Promise<void> {
     contactCopyUpdated = true;
   }
 
-  if (missing.length || recognitionsNavigationUpdated || firmDestinationsNavigationUpdated || firmPreviousVersionCreated || heroMediaUpdated || bannerCopyUpdated || footerUpdated || heroLinkUpdated || landingRouteUpdated || firmCopyUpdated || rankingTitleUpdated || newsletterCopyUpdated || contactCopyUpdated) invalidateConfigCache();
+  if (missing.length || recognitionsNavigationUpdated || insightsDestinationsNavigationUpdated || firmDestinationsNavigationUpdated || firmPreviousVersionCreated || heroMediaUpdated || bannerCopyUpdated || footerUpdated || heroLinkUpdated || landingRouteUpdated || firmCopyUpdated || rankingTitleUpdated || newsletterCopyUpdated || contactCopyUpdated) invalidateConfigCache();
 }
 
 /** Upsert one key (used by the admin endpoint). */

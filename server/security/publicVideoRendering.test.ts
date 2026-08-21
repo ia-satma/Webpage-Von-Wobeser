@@ -108,3 +108,15 @@ test("Nuevas oficinas reutiliza navegación compartida y sólo carga el embed de
   assert.match(adminOffices, /href="\/admin\/site-config\/footer"/);
   assert.doesNotMatch(adminOffices, /office_footer_logo/);
 });
+
+test("Administración concentra la edición del mapa compartido en Contacto", () => {
+  const registry = readFileSync("client/src/features/admin/site-config/registry.ts", "utf8");
+  const adminOffices = readFileSync("client/src/pages/admin/AdminOffices.tsx", "utf8");
+
+  assert.match(registry, /title: "Mapa compartido"/);
+  assert.match(registry, /key: "office_map_embed"/);
+  assert.match(registry, /key: "office_map_directions"/);
+  assert.match(registry, /Contacto, la portada y Nuevas oficinas/);
+  assert.match(adminOffices, /Editar mapa desde Contacto/);
+  assert.match(adminOffices, /href="\/admin\/site-config\/contacto"/);
+});

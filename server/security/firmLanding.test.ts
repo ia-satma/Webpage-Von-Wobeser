@@ -119,15 +119,58 @@ test("landing de Firma ofrece prácticas, industrias y contacto en el CTA final 
   assert.doesNotMatch(ctaEn, /Legal practices/);
 });
 
-test("las etiquetas de Carrera usan la abreviatura VW en ambos idiomas", () => {
+test("Carrera y Pasantes usan la jerarquía editorial bilingüe de las subpáginas", () => {
   const spanish = load('<div class="careers__meta"><div class="page__ttl--holder"><span>CARRERA EN VWyS</span></div></div>');
   const english = load('<div class="careers__meta"><div class="page__ttl--holder"><span>CAREER AT VWyS</span></div></div>');
+  const interns = load(`<!doctype html><html><head></head><body><section class="page careers"><div class="careers--wrap"><div class="careers__meta"><div class="page__ttl"><div class="page__ttl--holder"><span>PASANTES</span></div></div><div class="careers__content"><div class="page__content--intro"><p>Introducción editable.</p></div></div></div><form id="careersForm"></form></div></section></body></html>`);
 
   applyCareersFormFix(spanish, "es");
   applyCareersFormFix(english, "en");
+  applyCareersFormFix(interns, "es");
 
   assert.equal(spanish(".page__ttl--holder > span").text(), "CARRERA EN VW");
   assert.equal(english(".page__ttl--holder > span").text(), "CAREER AT VW");
+  assert.equal(interns(".vw-careers-header__eyebrow").text(), "Talento");
+  assert.equal(interns(".vw-careers-header h1").text(), "Pasantes");
+  assert.equal(interns(".vw-careers-header__description").text(), "Introducción editable.");
+  assert.equal(interns(".careers__content > .page__content--intro").length, 0);
+  assert.match(interns.html(), /\.vw-careers-header h1/);
+  assert.match(interns.html(), /grid-template-columns:minmax\(0,1fr\) minmax\(0,1fr\)/);
+});
+
+test("Carrera y Pasantes comparten la superficie de formulario de Contacto sin cambiar su envío", () => {
+  const page = load(`<!doctype html><html><head></head><body>
+    <section class="page careers"><form id="careersForm" class="careers__form" action="" enctype="multipart/form-data">
+      <label class="careers__form--label">Nombre<input class="careers__form--input" name="name"></label>
+      <label class="careers__form--label">Apellido<input class="careers__form--input" name="l_name"></label>
+      <label class="careers__form--label">Correo<input class="careers__form--input" name="mail" type="email"></label>
+      <label class="careers__form--label">Teléfono<input class="careers__form--input" name="tel"></label>
+      <label class="careers__form--button"><span>Adjuntar CV</span><input name="uploaded_file" type="file"></label>
+      <label class="careers__form--label checkbox"><input class="careers__form--checkbox" name="accept" type="checkbox"><span>Aviso de privacidad</span></label>
+      <input id="filename" style="border:0">
+      <label class="careers__form--label submit" style="margin-top:10px"><input class="careers__form--submit" type="submit"></label>
+      <p style="color:#fff">Ayuda</p><img class="loader">
+    </form></section></body></html>`);
+
+  applyCareersFormFix(page, "es");
+
+  assert.equal(page("#careersForm").attr("action"), "/api/career-applications");
+  assert.equal(page("#careersForm").hasClass("vw-careers-form"), true);
+  assert.equal(page("[name='name']").attr("autocomplete"), "given-name");
+  assert.equal(page("[name='l_name']").attr("autocomplete"), "family-name");
+  assert.equal(page("[name='mail']").attr("autocomplete"), "email");
+  assert.equal(page("[name='accept']").attr("required"), "required");
+  assert.equal(page(".vw-careers-form__upload").length, 1);
+  assert.equal(page(".vw-careers-form__privacy").length, 1);
+  assert.equal(page(".vw-careers-form__filename").attr("placeholder"), "Ningún archivo seleccionado");
+  assert.equal(page(".vw-careers-form__help").length, 1);
+  assert.match(page.html(), /id="vw-careers-form-style"/);
+  assert.match(page.html(), /grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/);
+  assert.match(page.html(), /width:calc\(50% - 30px\)!important/);
+  assert.match(page.html(), /margin:0 0 0 auto!important/);
+  assert.match(page.html(), /@media\(max-width:980px\)/);
+  assert.match(page.html(), /fetch\('\/api\/career-applications'/);
+  assert.match(page.html(), /fileInput\.addEventListener\('change'/);
 });
 
 test("la migración del CTA conserva personalizaciones y convierte solamente los tres valores heredados", () => {

@@ -106,7 +106,7 @@ test("Pro Bono usa la cabecera editorial bilingüe y conserva su introducción",
   assert.match(css, /\.vw-probono-page \.page__content--intro p[\s\S]*?font:\s*inherit !important/);
 });
 
-test("Noticias conserva consulta, idioma y paginación en el archivo", () => {
+test("Artículos y Comunicaciones comparten una cabecera visible y una búsqueda accesible", () => {
   const template = `<!doctype html><html lang="en"><head><title>News</title></head><body>
     <div class="archive__filters">
       <form action="/index.php/results" method="post"><input class="news_search" name="q"><input type="hidden" name="kind" value="news"></form>
@@ -125,16 +125,61 @@ test("Noticias conserva consulta, idioma y paginación en el archivo", () => {
       date: new Date("2026-07-20"),
     }],
     "en",
-    { page: 2, totalPages: 3 },
-    { query: `arbitration & competition` },
+    { page: 2, totalPages: 3, totalItems: 31 },
+    {
+      basePath: "/articles",
+      query: `arbitration & competition`,
+      editorialHeader: {
+        eyebrow: { en: "Insights", es: "Insights" },
+        title: { en: "Articles", es: "Artículos" },
+        description: {
+          en: "Legal articles and opinion pieces authored by Von Wobeser y Sierra attorneys.",
+          es: "Artículos y columnas de opinión escritos por los abogados de Von Wobeser y Sierra.",
+        },
+      },
+    },
   );
 
-  assert.match(html, /action="\/news" method="get"/);
+  assert.match(html, /action="\/articles" method="get"/);
   assert.match(html, /name="lang" value="en"/);
   assert.match(html, /q=arbitration\+%26\+competition&amp;page=1&amp;lang=en/);
   assert.match(html, /value="arbitration &amp; competition"/);
   assert.doesNotMatch(html, /id="adminForm"|index\.php\/results/);
   assert.match(html, /name="robots" content="noindex,follow"/);
+  const $ = cheerio.load(html);
+  assert.equal($(".vw-publications-page__eyebrow").text(), "Insights");
+  assert.equal($("h1.vw-publications-page__title").text(), "Articles");
+  assert.match($(".vw-publications-page__lede").text(), /Legal articles and opinion pieces/);
+  assert.equal($(".vw-publications-page__header").nextAll(".archive__filters").first().hasClass("vw-publications-search"), true);
+  assert.equal($(".archive__filters").hasClass("vw-publications-search"), true);
+  assert.equal($(".vw-publications-search__field svg").attr("aria-hidden"), "true");
+  assert.equal($(".vw-publications-search__submit").text(), "Search");
+  assert.equal($(".vw-publications-search__count").text(), "31 results");
+  assert.equal($(".vw-publications-search__clear").attr("href"), "/articles?lang=en");
+  assert.equal($("#vw-publications-search-q").attr("minlength"), "2");
+  assert.equal($("#vw-publications-search-q").attr("placeholder"), "Search by title, topic or keyword…");
+  assert.equal($("#vw-publications-search-q").is("[data-vw-publications-q]"), true);
+
+  const communications = cheerio.load(renderNewsList(
+    template,
+    [],
+    "es",
+    { page: 1, totalPages: 1, totalItems: 0 },
+    {
+      basePath: "/perspectivas/comunicaciones",
+      editorialHeader: {
+        eyebrow: { en: "Insights", es: "Insights" },
+        title: { en: "Communications", es: "Comunicaciones" },
+        description: {
+          en: "Communications and news from Von Wobeser y Sierra.",
+          es: "Comunicaciones y actualidad de Von Wobeser y Sierra.",
+        },
+      },
+    },
+  ));
+  assert.equal(communications("h1.vw-publications-page__title").text(), "Comunicaciones");
+  assert.match(communications(".vw-publications-page__lede").text(), /actualidad de Von Wobeser/);
+  assert.equal(communications("#vw-publications-search-q").attr("placeholder"), "Buscar por título, tema o palabra clave…");
 });
 
 test("buscador global escapa contenido y enlaza todos los tipos publicados", () => {

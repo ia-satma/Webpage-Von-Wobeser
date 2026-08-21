@@ -288,8 +288,17 @@ export default function AdminOffices() {
                 <div className="space-y-1"><Label>Latitud</Label><Input value={office.latitude || ""} onChange={(e) => setOfficeValue("latitude", e.target.value)} /></div>
                 <div className="space-y-1"><Label>Longitud</Label><Input value={office.longitude || ""} onChange={(e) => setOfficeValue("longitude", e.target.value)} /></div>
               </div>
-              <div className="space-y-1"><Label>URL del mapa incrustado</Label><Textarea rows={3} value={draft.office_map_embed?.value || ""} onChange={(e) => setSingleConfig("office_map_embed", e.target.value)} /></div>
-              <div className="space-y-1"><Label>URL para obtener indicaciones</Label><Input value={draft.office_map_directions?.value || ""} onChange={(e) => setSingleConfig("office_map_directions", e.target.value)} /></div>
+            </CardContent>
+          </Card>
+          <Card className="border-l-4 border-l-[#AA1A2E]">
+            <CardHeader>
+              <CardTitle>Mapa compartido</CardTitle>
+              <CardDescription>El mismo mapa seguro de Google Maps se publica en Contacto, Portada y Nuevas oficinas.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Button asChild variant="outline">
+                <a href="/admin/site-config/contacto">Editar mapa desde Contacto</a>
+              </Button>
             </CardContent>
           </Card>
         </TabsContent>

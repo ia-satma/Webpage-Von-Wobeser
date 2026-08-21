@@ -795,10 +795,11 @@ test("Configuración conserva secciones, claves, APIs, query keys y controles", 
     .map((match) => match[1]);
   assert.equal(Object.keys(PAGES).filter((key) => key !== "resumen-firma").length, 15);
   // El inventario incorpora las cabeceras editables de Prácticas, Industrias,
-  // Diversidad y Pro Bono, además de los controles del carrusel de Noticias.
+  // Diversidad y Pro Bono, los controles del carrusel de Noticias y las dos
+  // URLs del mapa compartido administradas desde Contacto.
   // Conservamos las dos repeticiones intencionales del resumen institucional.
-  assert.equal(declaredKeys.length, 226);
-  assert.equal(new Set(declaredKeys).size, 224);
+  assert.equal(declaredKeys.length, 228);
+  assert.equal(new Set(declaredKeys).size, 226);
   assert.ok(declaredKeys.includes("home_location_visible"));
   for (const key of [
     "home_news_title",

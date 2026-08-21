@@ -21,6 +21,9 @@ type NewsCategoryPage = {
   paths: { es: string; en: string };
   title: { es: string; en: string };
   description: { es: string; en: string };
+  editorialHeader?: {
+    eyebrow: { es: string; en: string };
+  };
 };
 
 const CATEGORY_PAGES: NewsCategoryPage[] = [
@@ -35,6 +38,7 @@ const CATEGORY_PAGES: NewsCategoryPage[] = [
     paths: { es: "/perspectivas/comunicaciones", en: "/insights/communications" },
     title: { es: "Comunicaciones", en: "Communications" },
     description: { es: "Comunicaciones y actualidad de Von Wobeser y Sierra.", en: "Communications and news from Von Wobeser y Sierra." },
+    editorialHeader: { eyebrow: { es: "Insights", en: "Insights" } },
   },
   {
     category: ["insights", "alerts"],
@@ -56,7 +60,7 @@ function publishedCurrentOpenings<T extends { published?: boolean | null; expire
 }
 
 export function registerMirrorNewPublicRoutes(app: Express, runtime: MirrorRuntime): void {
-  const { TEMPLATES, pick, sendPage, tpl, wrap } = runtime;
+  const { TEMPLATES, parsePublicPage, parsePublicSearch, pick, sendPage, tpl, wrap } = runtime;
   const notFound = (lang: Lang, path: string, res: Response) => sendPage(
     res,
     renderNotFound(pick(TEMPLATES.publications, lang), lang, path),
@@ -115,27 +119,91 @@ export function registerMirrorNewPublicRoutes(app: Express, runtime: MirrorRunti
   app.get(["/insights/events", "/insights/events/"], wrap((_req, res) => serveEvents("en", res)));
 
   for (const page of CATEGORY_PAGES) {
-    const serveCategory = async (lang: Lang, res: Response) => {
+    const serveCategory = async (lang: Lang, res: Response, requestedPage = 1, query = "") => {
       const categories = Array.isArray(page.category) ? page.category : [page.category];
-      const batches = await Promise.all(categories.map((category) => storage.getPublishedNewsPage(100, 0, category)));
-      const rows = batches.flat().sort((a, b) => new Date(b.date || 0).getTime() - new Date(a.date || 0).getTime());
-      if (!rows.length) return notFound(lang, page.paths[lang], res);
+      const perPage = 24;
+
+      // Comunicaciones comparte ahora la búsqueda paginada y segura de
+      // Artículos. Para las rutas secundarias que mezclan categorías se
+      // mantiene la misma semántica, unificando primero el resultado ordenado.
+      if (categories.length === 1) {
+        const category = categories[0];
+        const searched = query.length >= 2
+          ? await storage.searchPublishedNewsPage({
+              query,
+              limit: perPage,
+              offset: Math.max(0, requestedPage - 1) * perPage,
+              category,
+            })
+          : null;
+        const total = searched?.total ?? (query ? 0 : await storage.getPublishedNewsCount(category));
+        const totalPages = Math.max(1, Math.ceil(total / perPage));
+        const currentPage = Math.min(Math.max(1, requestedPage), totalPages);
+        const rows = query.length >= 2 && currentPage !== requestedPage
+          ? (await storage.searchPublishedNewsPage({ query, limit: perPage, offset: (currentPage - 1) * perPage, category })).rows
+          : searched?.rows ?? (query ? [] : await storage.getPublishedNewsPage(perPage, (currentPage - 1) * perPage, category));
+        if (!rows.length && !query) return notFound(lang, page.paths[lang], res);
+        return sendPage(res, renderNewsList(
+          pick(TEMPLATES.newsList, lang),
+          rows,
+          lang,
+          { page: currentPage, totalPages, totalItems: total },
+          {
+            basePath: page.paths[lang],
+            alternatePaths: page.paths,
+            title: { en: `${page.title.en} | Von Wobeser y Sierra`, es: `${page.title.es} | Von Wobeser y Sierra` },
+            description: page.description,
+            crumbLabel: page.title,
+            editorialHeader: page.editorialHeader
+              ? { ...page.editorialHeader, title: page.title, description: page.description }
+              : undefined,
+            query,
+          },
+        ));
+      }
+
+      const batches = await Promise.all(categories.map(async (category) => {
+        if (query && query.length < 2) return [];
+        if (query) {
+          const first = await storage.searchPublishedNewsPage({ query, limit: 1, offset: 0, category });
+          return first.total ? (await storage.searchPublishedNewsPage({ query, limit: first.total, offset: 0, category })).rows : [];
+        }
+        const total = await storage.getPublishedNewsCount(category);
+        return total ? storage.getPublishedNewsPage(total, 0, category) : [];
+      }));
+      const allRows = batches.flat().sort((a, b) => new Date(b.date || 0).getTime() - new Date(a.date || 0).getTime());
+      if (!allRows.length && !query) return notFound(lang, page.paths[lang], res);
+      const totalPages = Math.max(1, Math.ceil(allRows.length / perPage));
+      const currentPage = Math.min(Math.max(1, requestedPage), totalPages);
+      const rows = allRows.slice((currentPage - 1) * perPage, currentPage * perPage);
       sendPage(res, renderNewsList(
         pick(TEMPLATES.newsList, lang),
         rows,
         lang,
-        undefined,
+        { page: currentPage, totalPages, totalItems: allRows.length },
         {
           basePath: page.paths[lang],
           alternatePaths: page.paths,
           title: { en: `${page.title.en} | Von Wobeser y Sierra`, es: `${page.title.es} | Von Wobeser y Sierra` },
           description: page.description,
           crumbLabel: page.title,
+          editorialHeader: page.editorialHeader
+            ? { ...page.editorialHeader, title: page.title, description: page.description }
+            : undefined,
+          query,
         },
       ));
     };
-    app.get([page.paths.es, `${page.paths.es}/`], wrap((_req, res) => serveCategory("es", res)));
-    app.get([page.paths.en, `${page.paths.en}/`], wrap((_req, res) => serveCategory("en", res)));
+    app.get([page.paths.es, `${page.paths.es}/`], wrap(async (req, res) => {
+      const query = parsePublicSearch(req.query.q, "es", res);
+      if (query === null) return;
+      await serveCategory("es", res, parsePublicPage(req.query.page), query);
+    }));
+    app.get([page.paths.en, `${page.paths.en}/`], wrap(async (req, res) => {
+      const query = parsePublicSearch(req.query.q, "en", res);
+      if (query === null) return;
+      await serveCategory("en", res, parsePublicPage(req.query.page), query);
+    }));
   }
 
   const serveInternational = async (lang: Lang, res: Response) => {

@@ -6,6 +6,7 @@ import {
   DEFAULT_CLASSIC_NAVIGATION_CONFIGURATION,
   DEFAULT_NAVIGATION_CONFIGURATION,
   DEFAULT_NAVIGATION_PRESET,
+  ACTIVE_INSIGHTS_NAVIGATION_CHILD_IDS,
   NAVIGATION_CHILD_IDS,
   NAVIGATION_DESTINATIONS,
   NAVIGATION_LANDING_CHILD_IDS,
@@ -62,7 +63,19 @@ test("la navegación definitiva conserva orden, etiquetas y utilidades bilingüe
   assert.equal(DEFAULT_NAVIGATION_CONFIGURATION.items.find((item) => item.id === "firm")?.children.find((child) => child.id === "firm-alumni")?.visible, false);
   assert.equal(DEFAULT_NAVIGATION_CONFIGURATION.items.find((item) => item.id === "firm")?.children.find((child) => child.id === "firm-value")?.visible, false);
   assert.equal(DEFAULT_NAVIGATION_CONFIGURATION.items.find((item) => item.id === "firm")?.children.find((child) => child.id === "firm-recognitions")?.visible, false);
-  assert.equal(DEFAULT_NAVIGATION_CONFIGURATION.items.find((item) => item.id === "perspectives")?.children.find((child) => child.id === "perspectives-recognitions")?.visible, false);
+  const insights = DEFAULT_NAVIGATION_CONFIGURATION.items.find((item) => item.id === "perspectives")!;
+  assert.deepEqual(ACTIVE_INSIGHTS_NAVIGATION_CHILD_IDS, [
+    "perspectives-articles",
+    "perspectives-communications",
+    "perspectives-subscribe",
+  ]);
+  assert.deepEqual(
+    insights.children.filter((child) => child.id !== "perspectives-all" && child.visible).map((child) => child.id),
+    ACTIVE_INSIGHTS_NAVIGATION_CHILD_IDS,
+  );
+  for (const childId of ["perspectives-events", "perspectives-recognitions", "perspectives-analysis", "perspectives-press"]) {
+    assert.equal(insights.children.find((child) => child.id === childId)?.visible, false);
+  }
   assert.deepEqual(NAVIGATION_LANDING_CHILD_IDS, [
     "firm-overview",
     "attorneys-all",
@@ -106,7 +119,7 @@ test("el respaldo clásico conserva la navegación anterior sobre destinos actua
   assert.deepEqual(
     DEFAULT_CLASSIC_NAVIGATION_CONFIGURATION.items
       .find((item) => item.id === "perspectives")?.children.filter((child) => child.visible).map((child) => child.labelEs),
-    ["Artículos", "Noticias"],
+    ["Artículos", "Comunicaciones", "Suscríbete"],
   );
   assert.deepEqual(
     DEFAULT_CLASSIC_NAVIGATION_CONFIGURATION.items
@@ -169,7 +182,12 @@ test("el árbol resuelto oculta contenido incompleto y conserva Alumni como futu
     reasonEn: "Future capability",
     future: true,
   };
-  const tree = resolveNavigationTree(cloneConfiguration(), availability, "es");
+  const configuration = cloneConfiguration();
+  // Eventos parte oculto por decisión editorial; al reactivarlo desde
+  // Administración, la disponibilidad de contenido sigue teniendo prioridad.
+  configuration.items.find((item) => item.id === "perspectives")!
+    .children.find((child) => child.id === "perspectives-events")!.visible = true;
+  const tree = resolveNavigationTree(configuration, availability, "es");
   const perspectives = tree.items.find((item) => item.id === "perspectives");
   const firm = tree.items.find((item) => item.id === "firm");
   assert.equal(perspectives?.children.find((item) => item.id === "perspectives-events")?.visible, false);
@@ -400,6 +418,30 @@ test("los destinos redundantes de Nuestra firma quedan ocultos y pueden reactiva
   const children = resolved.items.find((item) => item.id === "firm")!.children;
   assert.equal(children.find((child) => child.id === "firm-value")?.visible, true);
   assert.equal(children.find((child) => child.id === "firm-recognitions")?.visible, true);
+});
+
+test("Insights conserva solo los tres destinos aprobados y los demás pueden reactivarse desde Administración", () => {
+  const configured = cloneConfiguration();
+  const insights = configured.items.find((item) => item.id === "perspectives")!;
+  const initiallyVisible = insights.children
+    .filter((child) => child.id !== "perspectives-all" && child.visible)
+    .map((child) => child.id);
+  assert.deepEqual(initiallyVisible, ACTIVE_INSIGHTS_NAVIGATION_CHILD_IDS);
+
+  const events = insights.children.find((child) => child.id === "perspectives-events")!;
+  const analysis = insights.children.find((child) => child.id === "perspectives-analysis")!;
+  events.visible = true;
+  analysis.visible = true;
+  const resolved = resolveNavigationTree(configured, readyAvailability(), "es");
+  const children = resolved.items.find((item) => item.id === "perspectives")!.children;
+  assert.equal(children.find((child) => child.id === "perspectives-events")?.visible, true);
+  assert.equal(children.find((child) => child.id === "perspectives-analysis")?.visible, true);
+
+  const configSource = readFileSync(new URL("../mirror/siteConfig.ts", import.meta.url), "utf8");
+  const adminSource = readFileSync(new URL("../../client/src/features/admin/navigation/NavigationSectionCard.tsx", import.meta.url), "utf8");
+  assert.match(configSource, /nav_insights_destinations_visibility_migration_v2/);
+  assert.match(configSource, /perspectives-subscribe/);
+  assert.match(adminSource, /Mostrar \$\{child\.labelEs\}/);
 });
 
 test("Insights sustituye el título predeterminado anterior en la portada y búsqueda españolas", () => {

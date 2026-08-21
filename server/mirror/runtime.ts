@@ -581,7 +581,7 @@ export async function createMirrorRuntime() {
       : searched?.rows ?? (query ? [] : await storage.getPublishedNewsPage(perPage, (p - 1) * perPage));
     sendPage(
       res,
-      renderNewsList(pick(TEMPLATES.newsList, lang), slice, lang, { page: p, totalPages }, { query, author }),
+      renderNewsList(pick(TEMPLATES.newsList, lang), slice, lang, { page: p, totalPages, totalItems: total }, { query, author }),
     );
   };
 
@@ -618,7 +618,7 @@ export async function createMirrorRuntime() {
       : searched?.rows ?? (query ? [] : await storage.getPublishedNewsPage(perPage, (p - 1) * perPage, "articles"));
     sendPage(
       res,
-      renderNewsList(pick(TEMPLATES.articlesList, lang), slice, lang, { page: p, totalPages }, {
+      renderNewsList(pick(TEMPLATES.articlesList, lang), slice, lang, { page: p, totalPages, totalItems: total }, {
         // Misma convención que "/news": una sola ruta corta, idioma por ?lang=en (no
         // /publicaciones/articulos como ruta "limpia" — esa forma queda solo como legacy).
         basePath: "/articles",
@@ -628,6 +628,14 @@ export async function createMirrorRuntime() {
           es: "Artículos y columnas de opinión escritos por los abogados de Von Wobeser y Sierra.",
         },
         crumbLabel: { en: "Articles", es: "Artículos" },
+        editorialHeader: {
+          eyebrow: { en: "Insights", es: "Insights" },
+          title: { en: "Articles", es: "Artículos" },
+          description: {
+            en: "Legal articles and opinion pieces authored by Von Wobeser y Sierra attorneys.",
+            es: "Artículos y columnas de opinión escritos por los abogados de Von Wobeser y Sierra.",
+          },
+        },
         query,
         author,
       }),

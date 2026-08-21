@@ -533,6 +533,23 @@ export const PAGES: Record<string, SiteConfigPageDefinition> = {
         ],
       },
       {
+        title: "Mapa compartido",
+        fields: [
+          {
+            key: "office_map_embed",
+            label: "URL del mapa incrustado",
+            multiline: true,
+            rows: 3,
+            help: "Un único mapa para Contacto, la portada y Nuevas oficinas. Usa únicamente el enlace HTTPS de inserción de Google Maps.",
+          },
+          {
+            key: "office_map_directions",
+            label: "URL para obtener indicaciones",
+            help: "Este enlace se usa en los botones de indicaciones y de ver el mapa en las tres páginas.",
+          },
+        ],
+      },
+      {
         title: "Formulario",
         fields: [
           { key: "contact_form_title", label: "Título", bilingual: true },

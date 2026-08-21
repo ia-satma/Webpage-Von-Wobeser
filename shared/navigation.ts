@@ -79,6 +79,17 @@ export const NAVIGATION_CHILD_IDS = {
 export type NavigationChildId = typeof NAVIGATION_CHILD_IDS[NavigationPrimaryId][number];
 
 /**
+ * Destinos de Insights aprobados para la navegación pública actual. El
+ * inventario completo permanece en el CMS para que el equipo pueda volver a
+ * habilitar cualquier destino cuando su línea editorial lo requiera.
+ */
+export const ACTIVE_INSIGHTS_NAVIGATION_CHILD_IDS = [
+  "perspectives-articles",
+  "perspectives-communications",
+  "perspectives-subscribe",
+] as const satisfies readonly NavigationChildId[];
+
+/**
  * Destinos ya representados por el enlace editorial del encabezado de cada
  * desplegable. Permanecen en la configuración versionada por compatibilidad,
  * pero no deben repetirse dentro de la lista pública.
@@ -219,7 +230,10 @@ export const DEFAULT_NAVIGATION_CONFIGURATION: NavigationConfiguration = {
         "firm-alumni",
         "firm-value",
         "firm-recognitions",
+        "perspectives-events",
         "perspectives-recognitions",
+        "perspectives-analysis",
+        "perspectives-press",
       ].includes(childId),
     })),
   })) as NavigationPrimaryConfiguration[],
@@ -236,8 +250,7 @@ const CLASSIC_VISIBLE_CHILDREN = new Set<NavigationChildId>([
   "attorneys-of-counsel",
   "attorneys-counsel",
   "attorneys-associates",
-  "perspectives-articles",
-  "perspectives-communications",
+  ...ACTIVE_INSIGHTS_NAVIGATION_CHILD_IDS,
   "talent-interns",
 ]);
 
@@ -245,7 +258,7 @@ const classicLabels: Partial<Record<NavigationPrimaryId | NavigationChildId, Nav
   firm: { labelEs: "Nuestra Firma", labelEn: "Our Firm" },
   perspectives: { labelEs: "Publicaciones", labelEn: "Publications" },
   talent: { labelEs: "Carrera en VWyS", labelEn: "Careers at VWyS" },
-  "perspectives-communications": { labelEs: "Noticias", labelEn: "News" },
+  "perspectives-communications": { labelEs: "Comunicaciones", labelEn: "Communications" },
 };
 
 /**
