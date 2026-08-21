@@ -4,6 +4,7 @@ import path from "node:path";
 import { pathToFileURL } from "node:url";
 import pg from "pg";
 import { getPostgresConnectionConfig } from "../shared/postgres-config.mjs";
+import { runMigrationWithRedactedLegacyWarnings } from "./legacy-migration-log-redaction.mjs";
 
 const databaseUrl = process.env.DATABASE_MIGRATION_URL || process.env.DATABASE_URL;
 if (!databaseUrl) throw new Error("DATABASE_MIGRATION_URL or DATABASE_URL is required");
@@ -134,7 +135,7 @@ try {
         if (typeof module.default !== "function") {
           throw new Error(`Data migration must have a default function: ${name}`);
         }
-        await module.default(client);
+        await runMigrationWithRedactedLegacyWarnings(name, module.default, client);
       }
       if (countsBefore) {
         const countsAfter = await getPublicTableCounts();

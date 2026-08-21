@@ -12,6 +12,7 @@ import {
   resolveCanonicalDropboxAuthorIds,
 } from "../content/canonicalDropboxNews2026";
 import { renderRichText } from "../mirror/sanitize";
+import { runMigrationWithRedactedLegacyWarnings } from "../../scripts/legacy-migration-log-redaction.mjs";
 
 const mirrorDir = path.resolve(process.cwd(), "frontend-mirror");
 
@@ -116,7 +117,7 @@ test("la migración inserta o actualiza 11 notas sin DDL y sincroniza autores de
   const migration = await import("../../migrations/20260814_0002_dropbox_news_2026.mjs");
 
   try {
-    await migration.default({
+    await runMigrationWithRedactedLegacyWarnings("20260814_0002_dropbox_news_2026.mjs", migration.default, {
       query: async (sql: string, values: unknown[] = []) => {
         calls.push({ sql, values });
         if (/SELECT id, name, email FROM team_members/i.test(sql)) {
@@ -145,9 +146,7 @@ test("la migración inserta o actualiza 11 notas sin DDL y sincroniza autores de
   assert.ok(upserts.every((call) => call.values.length === 13));
   assert.ok(upserts.every((call) => /ON CONFLICT \(slug\) DO UPDATE/i.test(call.sql)));
   assert.ok(relationInserts.every((call) => /ON CONFLICT \(news_id, team_member_id\) DO NOTHING/i.test(call.sql)));
-  assert.ok(warnings.some((warning) => (
-    /\[data-quality\] code=UNRESOLVED_SOURCE_AUTHOR_CREDITS source=dropbox-2026 affected_records=1 details=redacted/.test(warning)
-  )));
+  assert.ok(warnings.some((warning) => /\[data-quality\] code=UNRESOLVED_SOURCE_AUTHOR_CREDITS source=dropbox-2026 affected_records=1 details=redacted/.test(warning)));
   assert.ok(warnings.every((warning) => !/Mauricio Puebla|mpuebla@vwys\.com\.mx/i.test(warning)));
   const migrationSql = calls.map((call) => call.sql).join("\n");
   assert.doesNotMatch(migrationSql, /\b(?:CREATE|ALTER|DROP)\s+(?:TABLE|COLUMN|INDEX)\b/i);
