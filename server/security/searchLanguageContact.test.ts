@@ -104,6 +104,71 @@ test("Pro Bono usa la cabecera editorial bilingüe y conserva su introducción",
   const css = fs.readFileSync("frontend-mirror/templates/beez3/css/vwb-stability.css", "utf8");
   assert.match(css, /\.vw-probono-page__title[\s\S]*?var\(--vw-font-editorial\)[\s\S]*?text-transform:\s*none/);
   assert.match(css, /\.vw-probono-page \.page__content--intro p[\s\S]*?font:\s*inherit !important/);
+  assert.match(css, /\.vw-probono-page \.page__sidebar[\s\S]*?display:\s*flex/);
+  assert.match(css, /\.vw-probono-page__logos[\s\S]*?display:\s*grid/);
+  assert.match(css, /\.vw-probono-page__logos img[\s\S]*?max-width:\s*min\(100%, 200px\)/);
+});
+
+test("Pro Bono coloca sus reconocimientos administrables en la barra lateral", () => {
+  const $ = cheerio.load(`<!doctype html><html><body><section class="page"><div class="page--wrap">
+    <div class="page__content"><div class="page__content--body"><p>Texto Pro Bono.</p><p class="pro_img">Logo heredado.</p></div></div>
+    <aside class="page__sidebar"><a class="page--btn">Imprimir</a><div><div class="img_probono_1"></div></div></aside>
+  </div></section></body></html>`);
+  const config = {
+    page_probono_logo_1: { value: "/media/probono-one.png", valueEs: "", type: "url" as const },
+    page_probono_logo_2: { value: "/media/probono-two.png", valueEs: "", type: "url" as const },
+  };
+
+  applyProBonoMedia($, config, "es");
+
+  assert.equal($(".page__content--body .pro_img").length, 0);
+  assert.equal($(".page__sidebar .img_probono_1").length, 0);
+  assert.equal($(".page__sidebar .vw-probono-page__logos img").length, 2);
+  assert.equal($(".page__sidebar .vw-probono-page__logos img").first().attr("src"), "/media/probono-one.png");
+  assert.equal($(".page__sidebar .vw-probono-page__logos").attr("aria-label"), "Reconocimientos Pro Bono");
+});
+
+test("Pro Bono elimina el comentario heredado que ocultaba la galería administrable", () => {
+  // La captura histórica deja este comentario sin cierre: el HTML siguiente,
+  // incluida cualquier galería que se agregue al sidebar, queda comentado en
+  // el navegador si no se sanea antes de renderizarlo.
+  const $ = cheerio.load(`<!doctype html><html><body><section class="page"><div class="page--wrap">
+    <div class="page__content"><div class="page__content--body"><p>Texto Pro Bono.</p></div></div>
+    <aside class="page__sidebar"><a class="page--btn">Imprimir</a><!--<img class="img_probono_1" src="/legacy.png">`);
+  const config = {
+    page_probono_logo_1: { value: "/media/probono-one.png", valueEs: "", type: "url" as const },
+  };
+
+  applyProBonoMedia($, config, "es");
+
+  assert.equal($(".page__sidebar").contents().filter((_index, node) => node.type === "comment").length, 0);
+  assert.equal($(".page__sidebar .vw-probono-page__logos img").length, 1);
+  assert.equal($(".page__sidebar .vw-probono-page__logos img").attr("loading"), "eager");
+  assert.doesNotMatch($.html(), /<!--<img class="img_probono_1"/);
+});
+
+test("Pro Bono reemplaza el cuerpo heredado por el contenido administrable sin duplicarlo", () => {
+  const paragraph = "Von Wobeser y Sierra se enorgullece de ser una firma líder en lo relativo a la causa pro bono.";
+  const template = `<!doctype html><html><body><section class="page"><div class="page--wrap">
+    <div class="page__ttl"><div class="page__ttl--holder">PRO BONO</div></div>
+    <div class="page__content"><div class="page__content--intro"><p>Introducción.</p></div>
+      <div class="page__content--body"><p>Von Wobeser y Sierra se enorgullece de ser una firma líder en lo relativo a la causa <em>pro bono</em>.</p></div>
+    </div>
+  </div></section></body></html>`;
+  const config = {
+    page_probono_body: { value: "", valueEs: paragraph, type: "text" as const },
+    page_probono_eyebrow: { value: "", valueEs: "Nuestra firma", type: "text" as const },
+    page_probono_title: { value: "", valueEs: "Pro Bono", type: "text" as const },
+  };
+  const html = renderPage(template, config, "es", { body: "page_probono_body" }, undefined, ($) => {
+    applyProBonoMedia($, config, "es");
+  });
+  const $ = cheerio.load(html);
+  const body = $(".page__content--body");
+
+  assert.equal(body.find("p").length, 1);
+  assert.equal(body.text().match(/Von Wobeser y Sierra se enorgullece/g)?.length, 1);
+  assert.equal(body.find("em").text(), "pro bono");
 });
 
 test("Artículos y Comunicaciones comparten una cabecera visible y una búsqueda accesible", () => {

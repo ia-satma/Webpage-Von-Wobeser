@@ -833,24 +833,62 @@ export function applyProBonoMedia($: cheerio.CheerioAPI, config: ConfigMap, lang
     legacyTitle.replaceWith(heading);
   }
 
+  const body = $(".page__content--body").first();
+  // El contenido original de Pro Bono usa cursivas para el término latino. Los
+  // campos del panel también aceptan texto plano; se conserva la misma
+  // convención editorial sin tocar etiquetas <em> que ya hubiera añadido quien
+  // edita el contenido.
+  body.find("p, li").contents().each((_index, node) => {
+    if (node.type !== "text") return;
+    const text = node.data || "";
+    if (!/\bpro bono\b/i.test(text)) return;
+    const replacement = $("<span>")
+      .html(escapeHtmlText(text).replace(/\b(pro bono)\b/gi, "<em>$1</em>"))
+      .contents();
+    $(node).replaceWith(replacement);
+  });
+
   const logos = [1, 2, 3, 4]
     .map((index) => (config[`page_probono_logo_${index}`]?.value || "").trim())
     .filter(Boolean);
   if (!logos.length) return;
-  const body = $(".page__content--body").first();
+
+  const sidebar = page.find(".page__sidebar").first();
+  const legacyLogoSelector = ".img_probono_1, .img_probono_2, .img_probono_3, .img_probono_4";
   body.find(".pro_img").remove();
-  const widths = [156, 200, 130, 171];
+  // El fragmento histórico deja un comentario HTML sin cierre después de los
+  // logos antiguos. Cheerio conserva ese nodo y, si no se retira, cualquier
+  // galería agregada al final del sidebar queda serializada dentro del
+  // comentario y el navegador nunca la pinta. Los comentarios de esta barra
+  // solo contienen esos recursos obsoletos, por lo que se eliminan antes de
+  // insertar la versión administrable.
+  sidebar.contents().filter((_index, node) => node.type === "comment").remove();
+  // La captura envuelve los logos históricos en un <div> con estilos
+  // posicionales. Retiramos también ese envoltorio vacío para que no reserve
+  // espacio ni interfiera con la galería administrable.
+  sidebar.children("div").filter((_index, element) => $(element).find(legacyLogoSelector).length > 0).remove();
+  sidebar.find(`.vw-probono-page__logos, ${legacyLogoSelector}`).remove();
+  // Los reconocimientos pertenecen al contenido de Pro Bono, no al flujo de
+  // lectura de sus párrafos. La barra lateral ya existe en la plantilla
+  // histórica: en escritorio los coloca a la derecha y en móvil se apila
+  // naturalmente después del texto. Si una captura futura no trajera barra,
+  // se conserva el respaldo seguro al final del contenido.
+  const gallery = $("<div>")
+    .addClass("vw-probono-page__logos")
+    .attr("aria-label", lang === "es" ? "Reconocimientos Pro Bono" : "Pro Bono recognitions");
   logos.forEach((url, index) => {
-    const paragraph = $("<p>").addClass("pro_img");
     const image = $("<img>").attr({
       src: url,
       alt: `Pro Bono ${index + 1}`,
       decoding: "async",
-      style: `display:block;width:min(${widths[index] || 180}px,100%);height:auto;margin:24px auto`,
+      // La barra lateral está visible junto al contenido principal; diferir
+      // estas imágenes puede hacer que aparezcan tarde o no se soliciten al
+      // quedar cerca del límite del viewport en móviles.
+      loading: "eager",
     });
-    paragraph.append(image);
-    body.append(paragraph);
+    gallery.append(image);
   });
+  (sidebar.length ? sidebar : body).append(gallery);
 }
 
 export function applyInternsContent($: cheerio.CheerioAPI, config: ConfigMap, lang: Lang): void {

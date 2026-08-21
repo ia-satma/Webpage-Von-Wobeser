@@ -173,6 +173,29 @@ test("Carrera y Pasantes comparten la superficie de formulario de Contacto sin c
   assert.match(page.html(), /fileInput\.addEventListener\('change'/);
 });
 
+test("el llamado final de Cultura conserva jerarquía móvil sin separar el formulario", () => {
+  const culture = load(`<!doctype html><html><head></head><body>
+    <section class="page careers"><div class="careers--wrap">
+      <div class="careers__meta"><div class="page__ttl"><div class="page__ttl--holder"><span>CARRERA EN VWyS</span></div></div>
+        <div class="careers__content">
+          <div class="page__content--intro"><p>Introducción editable.</p></div>
+          <div class="page__content--body"><p>Contenido editable.</p></div>
+          <div class="page__content--intro"><p>Si estás interesado en formar parte de nuestro equipo, contáctanos.</p></div>
+        </div>
+      </div>
+      <form id="careersForm"></form>
+    </div></section>
+  </body></html>`);
+
+  applyCareersFormFix(culture, "es");
+
+  assert.equal(culture(".vw-careers-copy__cta").text(), "Si estás interesado en formar parte de nuestro equipo, contáctanos.");
+  assert.equal(culture("#careersForm").hasClass("vw-careers-form--culture"), true);
+  assert.match(culture.html(), /\.vw-careers-copy__cta\{margin:26px 0 0!important;border:0!important;color:#616161;font:400 16px\/1\.68 var\(--vw-font-body\)/);
+  assert.match(culture.html(), /\.vw-careers-copy__cta p\{margin:0!important;color:inherit!important;font:inherit!important/);
+  assert.match(culture.html(), /\.vw-careers-form--culture\{margin-top:1\.5rem!important/);
+});
+
 test("la migración del CTA conserva personalizaciones y convierte solamente los tres valores heredados", () => {
   const migration = readFileSync(
     new URL("../../migrations/20260807_0001_firm_landing_cta_industries.sql", import.meta.url),

@@ -1178,8 +1178,19 @@ b,strong {
 
 @media (max-width: 680px) {
   .home__rojo--txt .home__rojo--title {
-    font-size: clamp(0.88rem, 3.9vw, 1.65rem);
+    /* En móvil conserva una sola línea, pero domina de forma perceptible
+       al nombre de la nota sin desbordar el ancho más pequeño soportado. */
+    font-size: min(4.55vw, 1.5rem);
+    line-height: 1.15;
     max-width: none;
+    white-space: nowrap;
+  }
+
+  .home__rojo--txt .home__rojo--subtitle {
+    font-size: clamp(.82rem, 3.7vw, 1.1rem);
+    line-height: 1.2;
+    max-width: none;
+    white-space: nowrap;
   }
 }
 

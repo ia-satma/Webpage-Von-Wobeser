@@ -267,8 +267,10 @@ export function renderAttorneyDirectory(
         role: "Posición:",
         practice: "Práctica:",
         initial: "Búsqueda por inicial:",
-        allRoles: "Todas",
-        allPractices: "Todas",
+        // El valor vacío explica qué filtro se está viendo; "Todas" por sí
+        // solo era ambiguo al mostrarse junto a dos listas desplegables.
+        allRoles: "Todos los puestos",
+        allPractices: "Todas las prácticas",
         allInitials: "Todas",
         search: "Buscar",
         clear: "Limpiar filtros",
@@ -285,8 +287,8 @@ export function renderAttorneyDirectory(
       role: "Position:",
       practice: "Practice:",
       initial: "Browse by initial:",
-      allRoles: "All",
-      allPractices: "All",
+      allRoles: "All positions",
+      allPractices: "All practices",
       allInitials: "All",
       search: "Search",
       clear: "Clear filters",

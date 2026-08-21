@@ -330,6 +330,32 @@ body.office-showcase--shared-navigation > header.header_JS .menu_btn_JS::after {
   margin: 0;
 }
 
+/* Los reconocimientos de Pro Bono acompañan la ficha, no interrumpen la
+   lectura. En escritorio el renderer los sitúa en la barra lateral; al
+   apilarse la plantilla histórica en móvil permanecen después del contenido. */
+.vw-probono-page .page__sidebar {
+  align-items: center;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(20px, 2.5vw, 32px);
+}
+
+.vw-probono-page__logos {
+  display: grid;
+  gap: clamp(20px, 2.5vw, 32px);
+  justify-items: center;
+  width: 100%;
+}
+
+.vw-probono-page__logos img {
+  display: block;
+  height: auto;
+  max-height: 136px;
+  max-width: min(100%, 200px);
+  object-fit: contain;
+  width: auto;
+}
+
 .vw-diversity-page .page__content,
 .vw-diversity-page .page__sidebar,
 .vw-probono-page .page__content,

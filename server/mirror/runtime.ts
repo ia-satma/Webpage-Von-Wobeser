@@ -786,7 +786,11 @@ export async function createMirrorRuntime() {
               : which === "proBono"
                 ? ($: cheerio.CheerioAPI) => applyProBonoMedia($, config, lang)
                 : undefined,
-        which === "diversity" || which === "proBono" ? { bodyMode: "prepend" } : undefined,
+        // Diversidad conserva una galería heredada debajo de su texto, por lo que
+        // necesita insertar el contenido administrable antes de esa galería. Pro
+        // Bono no: sus logotipos se reconstruyen en applyProBonoMedia(), así que
+        // anteponer el cuerpo del CMS dejaba dos copias del mismo texto visible.
+        which === "diversity" ? { bodyMode: "prepend" } : undefined,
       ),
     );
   };

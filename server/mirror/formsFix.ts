@@ -86,6 +86,16 @@ export function applyCareersFormFix($: cheerio.CheerioAPI, lang: "es" | "en" = "
     $meta.children(".page__ttl").first().remove();
     $meta.addClass("vw-careers-copy");
     $wrap.addClass("vw-careers-layout");
+
+    // En "Carrera en VW" el último destacado es un llamado al formulario,
+    // no otro encabezado. Lo marcamos de forma semántica para que en móvil
+    // conserve énfasis sin competir con el cuerpo del contenido ni quedar
+    // separado del formulario. El contenido continúa siendo el heredado y
+    // editable: no se sustituye ni se duplica ningún texto.
+    if (!isInterns) {
+      $content.children(".careers__content--intro, .page__content--intro").last().addClass("vw-careers-copy__cta");
+    }
+
     $meta.before($header);
   }
 
@@ -112,6 +122,7 @@ export function applyCareersFormFix($: cheerio.CheerioAPI, lang: "es" | "en" = "
     .attr("action", "/api/career-applications") // defensivo, por si el JS no corre
     .attr("novalidate", "")
     .addClass("vw-careers-form");
+  if (!isInterns) $form.addClass("vw-careers-form--culture");
   $form.find('[name="name"]').attr({ autocomplete: "given-name", required: "" });
   $form.find('[name="l_name"]').attr({ autocomplete: "family-name", required: "" });
   $form.find('[name="mail"]').attr({ autocomplete: "email", required: "" });
@@ -143,6 +154,7 @@ export function applyCareersFormFix($: cheerio.CheerioAPI, lang: "es" | "en" = "
 .page.careers .vw-careers-copy .careers__content p{margin:0 0 18px;color:#616161;font:400 16px/1.68 var(--vw-font-body);letter-spacing:0;text-transform:none}
 .page.careers .vw-careers-copy .careers__content--intro{margin:0 0 18px;border:0!important;color:#565656;font:400 clamp(24px,2.25vw,31px)/1.18 var(--vw-font-editorial);letter-spacing:-.015em;text-transform:none}
 .page.careers .vw-careers-copy .careers__content--intro p{color:inherit;font:inherit;line-height:inherit}
+.page.careers .vw-careers-copy .vw-careers-copy__cta{margin:26px 0 0!important;border:0!important;color:#616161;font:400 16px/1.68 var(--vw-font-body);letter-spacing:0;text-transform:none}.page.careers .vw-careers-copy .vw-careers-copy__cta p{margin:0!important;color:inherit!important;font:inherit!important;line-height:inherit!important}
 .page.careers .vw-careers-form{box-sizing:border-box;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:22px 20px;width:calc(50% - 30px)!important;max-width:540px!important;height:auto!important;align-self:flex-start;margin:0 0 0 auto!important;padding:clamp(24px,2.8vw,34px)!important;border-radius:8px;background:#747473;color:#fff;scroll-margin-top:104px}
 .page.careers .vw-careers-layout>.vw-careers-form{grid-column:2;width:100%!important;justify-self:end}
 .page.careers .vw-careers-form .careers__form--label{display:flex;flex-direction:column;width:auto!important;min-width:0;gap:8px;margin:0!important;float:none!important;color:#fff;font:500 14px/1.35 var(--vw-font-ui);letter-spacing:0;text-transform:none}
@@ -161,7 +173,7 @@ export function applyCareersFormFix($: cheerio.CheerioAPI, lang: "es" | "en" = "
 .page.careers .vw-careers-form .vw-careers-form__help{grid-column:1/-1;margin:0!important;color:#fff!important;font:400 14px/1.5 var(--vw-font-ui)!important;letter-spacing:0!important;text-transform:none!important}.page.careers .vw-careers-form .vw-careers-form__help a{color:#fff!important;text-decoration:underline;text-underline-offset:.18em}.page.careers .vw-careers-form .vw-careers-form__loader{grid-column:1/-1;width:30px;margin:0 auto!important}
 .page.careers .vw-careers-form [data-vw-feedback]{grid-column:1/-1;margin:0;color:#fff;font:400 15px/1.5 var(--vw-font-ui)}.page.careers .vw-careers-form [data-vw-feedback]:empty{display:none}.page.careers .vw-careers-form input[aria-invalid="true"]{border-color:#ac162c;box-shadow:0 0 0 2px #fff}
 @media(max-width:980px){.page.careers{padding:5.75rem 0 56px!important}.page.careers .careers--wrap.vw-careers-layout{grid-template-columns:1fr;gap:0}.page.careers .vw-careers-header{margin-bottom:2rem;padding-bottom:0}.page.careers .vw-careers-copy{grid-column:1}.page.careers .vw-careers-layout>.vw-careers-form{grid-column:1;justify-self:stretch}.page.careers .vw-careers-form{width:min(100%,600px)!important;max-width:600px!important;margin:2.5rem auto 0!important}}
-@media(max-width:680px){.page.careers{padding:5.25rem 0 48px!important}.page.careers .vw-careers-form{grid-template-columns:1fr;gap:20px;width:100%!important;margin-top:2.5rem!important;padding:22px 18px!important}.page.careers .vw-careers-form .vw-careers-form__upload,.page.careers .vw-careers-form .vw-careers-form__filename,.page.careers .vw-careers-form .vw-careers-form__privacy,.page.careers .vw-careers-form .vw-careers-form__submit,.page.careers .vw-careers-form .vw-careers-form__help,.page.careers .vw-careers-form .vw-careers-form__loader,.page.careers .vw-careers-form [data-vw-feedback]{grid-column:auto}.page.careers .vw-careers-form .vw-careers-form__privacy{align-items:flex-start;font-size:15px}.page.careers .vw-careers-form .vw-careers-form__filename{margin-top:-8px!important}}
+@media(max-width:680px){.page.careers{padding:5.25rem 0 48px!important}.page.careers .vw-careers-form{grid-template-columns:1fr;gap:20px;width:100%!important;margin-top:2.5rem!important;padding:22px 18px!important}.page.careers .vw-careers-form--culture{margin-top:1.5rem!important}.page.careers .vw-careers-form .vw-careers-form__upload,.page.careers .vw-careers-form .vw-careers-form__filename,.page.careers .vw-careers-form .vw-careers-form__privacy,.page.careers .vw-careers-form .vw-careers-form__submit,.page.careers .vw-careers-form .vw-careers-form__help,.page.careers .vw-careers-form .vw-careers-form__loader,.page.careers .vw-careers-form [data-vw-feedback]{grid-column:auto}.page.careers .vw-careers-form .vw-careers-form__privacy{align-items:flex-start;font-size:15px}.page.careers .vw-careers-form .vw-careers-form__filename{margin-top:-8px!important}}
 @media(prefers-reduced-motion:reduce){.page.careers .vw-careers-form .careers__form--submit,.page.careers .vw-careers-form .careers__form--submit::after{transition:none}}
 </style>`);
   }
