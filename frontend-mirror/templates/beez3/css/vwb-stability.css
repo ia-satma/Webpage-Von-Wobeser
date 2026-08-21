@@ -47,6 +47,44 @@ body.vwb-navigation-v2 nav.nav.menu_JS .vw-nav-v2__utility:focus-visible {
   -webkit-text-fill-color: #ac162c !important;
 }
 
+/* La plantilla histórica de Nuevas oficinas reutilizaba .header--btn para un
+   menú de hamburguesa. En el encabezado compartido la misma clase es el texto
+   “MENÚ”; los pseudoelementos heredados dibujaban dos líneas sobre la palabra
+   únicamente en móvil. El selector se limita al encabezado superior de esta
+   ruta: el botón del panel de navegación conserva sus propios controles. */
+body.office-showcase--shared-navigation > header.header_JS .menu_btn_JS::before,
+body.office-showcase--shared-navigation > header.header_JS .menu_btn_JS::after {
+  display: none !important;
+  content: none !important;
+}
+
+/* Nuevas oficinas partía de una microplantilla que no incluía el cromo
+ * compartido. Al incorporarlo, una regla histórica dejaba la lupa en flujo
+ * estático y la superponía al idioma. Estas posiciones solo se aplican a esa
+ * página: el encabezado conserva exactamente las mismas zonas que el resto
+ * de las rutas públicas. */
+@media (min-width: 1240px) {
+  body.office-showcase--shared-navigation .header.header_JS .search_form_cont {
+    position: absolute !important;
+  }
+
+  body.office-showcase--shared-navigation .header.header_JS .eyeglass {
+    background-image: url("/images/search83.svg") !important;
+    background-repeat: no-repeat !important;
+  }
+}
+
+@media (max-width: 1239px) {
+  body.office-showcase--shared-navigation .header.header_JS .search_form_cont {
+    position: absolute !important;
+  }
+
+  body.office-showcase--shared-navigation .header.header_JS .eyeglass {
+    background-image: url("/images/search83.svg") !important;
+    background-repeat: no-repeat !important;
+  }
+}
+
 /* El carrusel de testimonios se mide por Slick; el contenedor exterior no
    debe tener una altura de viewport. Así la sección conserva la altura del
    contenido más una separación editorial estable, también en iOS. */

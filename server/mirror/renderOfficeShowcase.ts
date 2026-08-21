@@ -1,7 +1,9 @@
 import * as cheerio from "cheerio";
 import type { Office, OfficeImage } from "@shared/schema";
 import { buildVideoEmbedUrl, parseVideoSource } from "@shared/videoSource";
-import { cfg, isConfigEnabled, type ConfigMap } from "./siteConfig";
+import { resolveContactLocation } from "./contactLocation";
+import { LOCAL_SRI_MANIFEST } from "../security/sriManifest";
+import { cfg, type ConfigMap } from "./siteConfig";
 
 type Lang = "en" | "es";
 
@@ -28,12 +30,45 @@ function setMeta($: cheerio.CheerioAPI, selector: string, attrs: Record<string, 
   for (const [key, value] of Object.entries(attrs)) node.attr(key, value);
 }
 
+/**
+ * El micrositio de oficinas fue capturado con un encabezado propio (sólo Inicio
+ * e idioma). Conservamos su contenido, pero sustituimos ese cromo aislado por
+ * el mismo header/nav del espejo antes de que el pipeline resuelva el preset
+ * administrable. Así no se duplican menús ni se crean rutas paralelas.
+ */
+function applySharedNavigationChrome(
+  $: cheerio.CheerioAPI,
+  chromeTemplate: string | undefined,
+): void {
+  if (!chromeTemplate) return;
+  const $chrome = cheerio.load(chromeTemplate);
+  const header = $chrome("header.header_JS").first();
+  const nav = $chrome("nav.nav.menu_JS").first();
+  if (!header.length || !nav.length) return;
+
+  const legacyHeader = $("body > div").filter((_, node) => $(node).find(".contenedor_header").length > 0).first();
+  if (legacyHeader.length) legacyHeader.remove();
+  else $(".contenedor_header").first().remove();
+
+  header.addClass("office-showcase__shared-header");
+  nav.addClass("office-showcase__shared-navigation");
+  const hero = $(".hero-container").first();
+  if (hero.length) {
+    hero.before(header);
+    hero.before(nav);
+  } else {
+    $("body").prepend(nav).prepend(header);
+  }
+  $("body").addClass("office-showcase--shared-navigation");
+}
+
 export function renderOfficeShowcase(
   template: string,
   config: ConfigMap,
   lang: Lang,
   office: Office | undefined,
   gallery: OfficeImage[],
+  chromeTemplate?: string,
 ): string {
   const $ = cheerio.load(template);
   const value = (key: string) => cfg(config, key, lang).trim();
@@ -54,24 +89,7 @@ export function renderOfficeShowcase(
   $("head").append(`<link rel="alternate" hreflang="${lang === "es" ? "en" : "es-MX"}" href="${siteUrl}${alternatePath}">`);
   $("head").append(`<link rel="alternate" hreflang="x-default" href="${siteUrl}/nuevas-oficinas/">`);
 
-  const headerLogo = $(".contenedor_header img.logo")
-    .attr("src", safeUrl(value("office_header_logo"), "/images/vw40.png"))
-    .attr("alt", "Von Wobeser y Sierra");
-  const homePath = lang === "es" ? "/index.php/home/" : "/";
-  if (!headerLogo.parent().is("a")) {
-    headerLogo.wrap(`<a class="office-home-logo" href="${homePath}" aria-label="${lang === "es" ? "Ir al inicio" : "Go to home"}"></a>`);
-  } else {
-    headerLogo.parent("a").attr("href", homePath);
-  }
-  const languageButton = $("#langToggleBtn")
-    .text(lang === "es" ? "ENG" : "ESP")
-    .attr("aria-label", lang === "es" ? "View this page in English" : "Ver esta página en español")
-    .attr("onclick", `window.location.href='${alternatePath}'`);
-  const headerActions = languageButton.parent()
-    .removeClass("absolute right-4 sm:right-6 lg:right-8")
-    .addClass("office-header-actions");
-  headerActions.find(".office-home-link").remove();
-  languageButton.before($("<a></a>").addClass("office-home-link").attr("href", homePath).text(value("office_home_label")));
+  applySharedNavigationChrome($, chromeTemplate);
 
   $(".hero-container").attr("data-office-banner", safeUrl(value("office_banner_image"), "/img/Banner/03.jpg"));
   setLines($(".hero-content h1.titulo_banner").first(), value("office_hero_title"));
@@ -100,14 +118,27 @@ export function renderOfficeShowcase(
   const role = value("office_quote_role");
   $(".contenedor_comillas p.p").first().text(`– ${author}${role ? `, ${role}` : ""}`);
 
+  const location = resolveContactLocation(config, lang);
   const officeAddress = lang === "es"
     ? (office?.addressEs || office?.address || "")
     : (office?.address || office?.addressEs || "");
   $(".bg-custom-red.text-center h2").first().text(value("office_address_title"));
   const addressLink = $(".bg-custom-red.text-center p a").first();
-  addressLink.attr("href", safeUrl(value("office_map_directions"), "https://www.google.com/maps"));
+  addressLink.attr("href", location.mapLink);
   setLines(addressLink, officeAddress);
-  $("iframe.map-iframe").attr("src", safeUrl(value("office_map_embed"), "https://www.google.com/maps"));
+  // Es la misma URL administrada que consumen Inicio y Contacto. La validación
+  // evita que el micrositio vuelva a aceptar iframes arbitrarios y el CSS lo
+  // deja a color, como las demás superficies públicas.
+  const map = $("iframe.map-iframe").first();
+  if (location.mapEmbed) {
+    map.attr({
+      src: location.mapEmbed,
+      title: lang === "es" ? "Ubicación de Von Wobeser y Sierra" : "Von Wobeser y Sierra location",
+      "data-vwb-office-map": "shared",
+    });
+  } else {
+    map.removeAttr("src").attr("data-vwb-office-map", "unavailable");
+  }
 
   const mainVideo = $("#videoPrincipal").first();
   let mainEmbed = $("#videoPrincipalEmbed").first();
@@ -153,25 +184,38 @@ export function renderOfficeShowcase(
     modalImages.eq(index).attr({ src: safeUrl(image.imageUrl), alt });
   });
 
-  $("footer img").first()
-    .attr("src", safeUrl(value("office_footer_logo"), "/img/vw40b.png"))
-    .attr("alt", "Von Wobeser y Sierra");
-  $("footer a.mb-1").first()
-    .attr("href", safeUrl(value("office_press_pdf")))
-    .text(value("office_press_label"));
-  const linkedinVisible = isConfigEnabled(config, "footer_linkedin_visible");
-  const twitterVisible = isConfigEnabled(config, "footer_twitter_visible");
-  const linkedin = $("footer a[aria-label=LinkedIn]");
-  const twitter = $("footer a[aria-label=X]");
-  if (linkedinVisible) linkedin.attr("href", safeUrl(value("office_linkedin")));
-  else linkedin.remove();
-  if (twitterVisible) twitter.attr("href", safeUrl(value("office_x")));
-  else twitter.remove();
-  if (linkedinVisible || twitterVisible) $("footer .follow-text").text(value("office_follow_label"));
-  else $("footer .follow-text").remove();
+  // El pie capturado era una variante aislada. Lo marcamos para que el
+  // pipeline lo reemplace por el mismo pie configurable del resto del sitio.
+  // De esta manera preset, enlaces, redes y datos de contacto tienen una sola
+  // fuente de verdad en Administración.
+  const legacyFooter = $("footer").first();
+  if (legacyFooter.length) {
+    legacyFooter.addClass("footer footer_fix");
 
-  // Versionado explícito: evita conservar una copia incompleta de CSS/JS en caché.
-  $('link[href*="estilos_home.css"]').attr("href", "/css/estilos_home.css?v=20260804-gelasio-inter1");
+    // El comunicado sigue siendo una pieza exclusiva de Nuevas oficinas, por
+    // lo que se conserva como acción discreta antes del pie compartido.
+    const pressHref = safeUrl(value("office_press_pdf"));
+    const pressLabel = value("office_press_label");
+    if (pressHref && pressLabel) {
+      const press = $("<aside></aside>")
+        .addClass("office-showcase__press")
+        .attr("aria-label", lang === "es" ? "Comunicado de prensa" : "Press release");
+      const pressLink = $("<a></a>")
+        .attr({ href: pressHref, target: "_blank", rel: "noopener noreferrer" })
+        .text(pressLabel);
+      press.append(pressLink);
+      legacyFooter.before(press);
+    }
+  }
+
+  // La versión procede del mismo contenido protegido por SRI: una hoja de
+  // estilos almacenada en caché nunca se reutiliza con un hash nuevo.
+  const officeCssIntegrity = LOCAL_SRI_MANIFEST["/css/estilos_home.css"] || "";
+  const officeCssVersion = officeCssIntegrity.replace(/^sha384-/, "").slice(0, 16);
+  $('link[href*="estilos_home.css"]').attr(
+    "href",
+    officeCssVersion ? `/css/estilos_home.css?v=${officeCssVersion}` : "/css/estilos_home.css",
+  );
   $('script[src*="funciones_animaciones"]').attr("src", "/js/office-showcase.js?v=20260803-video-providers1");
   return $.html();
 }

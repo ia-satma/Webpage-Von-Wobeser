@@ -723,7 +723,14 @@ export async function createMirrorRuntime() {
       );
       return;
     }
-    const html = renderOfficeShowcase(pick(TEMPLATES.offices, lang), config, lang, office, gallery);
+    const html = renderOfficeShowcase(
+      pick(TEMPLATES.offices, lang),
+      config,
+      lang,
+      office,
+      gallery,
+      pick(TEMPLATES.home, lang),
+    );
     sendPage(res, html);
   };
 

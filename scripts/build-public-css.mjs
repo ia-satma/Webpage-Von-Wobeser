@@ -35,6 +35,9 @@ const sriAssets = new Map([
   ["/templates/beez3/css/style.css", sources[1]],
   ["/templates/beez3/css/typography.css", sources[2]],
   ["/_vendor/slick/slick.css", sources[3]],
+  // Esta hoja se conserva como respaldo exclusivo de Nuevas oficinas. Al ser
+  // pública e inmutable, su SRI debe avanzar junto con cualquier ajuste visual.
+  ["/css/estilos_home.css", path.join(root, "frontend-mirror", "css", "estilos_home.css")],
   ["/vwb-cookie-consent.css", sources[4]],
   ["/vwb-privacy-preferences.css", sources[4]],
 ]);

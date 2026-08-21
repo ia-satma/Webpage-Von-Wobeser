@@ -74,7 +74,8 @@ test("el contenedor social desaparece cuando las tres redes están ocultas", () 
   assert.doesNotMatch(rendered, /vw-footer-socials|facebook\.com|twitter\.com|linkedin\.com/);
 });
 
-test("Nuevas Oficinas respeta la visibilidad global de LinkedIn y X", () => {
+test("Nuevas Oficinas hereda la visibilidad global de LinkedIn y X desde el pie compartido", async () => {
+  const { renderPublicFooter } = await import("../mirror/renderFooter");
   const template = `<!doctype html><html><head></head><body>
     <footer>
       <img src="/logo.png">
@@ -84,15 +85,15 @@ test("Nuevas Oficinas respeta la visibilidad global de LinkedIn y X", () => {
       <a aria-label="X" href="https://x.com/original"></a>
     </footer>
   </body></html>`;
-  const rendered = renderOfficeShowcase(template, config({
+  const sharedConfig = config({
     footer_linkedin_visible: "true",
     footer_twitter_visible: "false",
-    office_linkedin: "https://www.linkedin.com/company/von-wobeser-y-sierra/",
-    office_follow_label: "Síguenos",
-  }), "es", undefined, []);
+    footer_linkedin: "https://www.linkedin.com/company/von-wobeser-y-sierra/",
+  });
+  const rendered = renderPublicFooter(renderOfficeShowcase(template, sharedConfig, "es", undefined, []), sharedConfig, "es");
   const $ = cheerio.load(rendered);
 
-  assert.equal($('footer a[aria-label="LinkedIn"]').length, 1);
-  assert.equal($('footer a[aria-label="X"]').length, 0);
-  assert.equal($("footer .follow-text").text(), "Síguenos");
+  assert.equal($('.vwb-site-footer__social-link[aria-label="LinkedIn"]').length, 1);
+  assert.equal($('.vwb-site-footer__social-link[aria-label="X"]').length, 0);
+  assert.equal($(".vwb-site-footer__socials h2").text(), "Síguenos");
 });

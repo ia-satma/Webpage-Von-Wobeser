@@ -349,6 +349,15 @@ function refreshNavigationAssets(html: string): string {
     .replace(/(src=["']\/templates\/beez3\/js\/min\/slick\.min\.js)(?:\?[^"']*)?(["'])/gi, `$1?v=${NAV_ASSET_VERSION}$2`);
 }
 
+/** Toda superficie que recibe el nav administrable necesita su controlador
+ * accesible. Las plantillas Joomla ya lo incluyen; el micrositio de Oficinas
+ * no, porque nació con un header independiente. */
+export function ensureNavigationRuntime(html: string): string {
+  if (!/\bnav__menu--holder\b/i.test(html) || /\/templates\/beez3\/js\/min\/functions\.min\.js/i.test(html)) return html;
+  const script = '<script defer src="/templates/beez3/js/min/functions.min.js"></script>';
+  return html.includes("</body>") ? html.replace("</body>", `${script}</body>`) : `${html}${script}`;
+}
+
 // El espejo carga dos versiones completas de jQuery, jQuery Migrate y el core
 // público de Joomla en cada página. El HTML no usa ninguna API Joomla (comprobado
 // sobre las 2,253 capturas) y el segundo jQuery es el que realmente consumen Slick
@@ -912,7 +921,6 @@ function ensureImgAlt(html: string): string {
 
 export async function sendPage(res: Response, html: string, status = 200) {
   const lang: Lang = /<html\b[^>]*\blang=["']es(?:-|["'])/i.test(html) ? "es" : "en";
-  const isOfficeShowcase = /<body\b[^>]*\boffice-showcase\b/i.test(html);
   let config: ConfigMap = {};
   let consentConfigScript = "";
   let navigationItems: PublicNavigationMenu = { practices: [], industries: [] };
@@ -932,18 +940,16 @@ export async function sendPage(res: Response, html: string, status = 200) {
   }
   const inject = `${consentConfigScript}${navigationLabelsScript(config, lang, navigationItems)}${LANG_TOGGLE_SCRIPT}${SEARCH_FORMS_SCRIPT}${DOC_ACTIONS_SCRIPT}${LEGACY_EVENTS_SCRIPT}`;
   let out = normalizeLegacyTypography(hardenLegacyClientScripts(
-    stripRetiredDeskLinks(refreshNavigationAssets(optimizeLegacyAssets(html))),
+    stripRetiredDeskLinks(refreshNavigationAssets(ensureNavigationRuntime(optimizeLegacyAssets(html)))),
   ));
   out = applyNavigationMarkup(out, navigationItems, lang);
   out = injectPerformanceHints(optimizePublicImageTags(out));
   out = out.includes("</body>")
     ? out.replace("</body>", `${inject}</body>`)
     : out + inject;
-  if (!isOfficeShowcase) {
-    try {
-      out = renderPublicFooter(out, config, lang, navigationItems.navigation);
-    } catch { /* si la config falla, se sirve el pie original de la plantilla */ }
-  }
+  try {
+    out = renderPublicFooter(out, config, lang, navigationItems.navigation);
+  } catch { /* si la config falla, se sirve el pie original de la plantilla */ }
   out = ensureImgAlt(out); // backstop a11y: alt en imgs que escaparon a applyA11y
   const nonce = String(res.locals.cspNonce || "");
   if (!nonce) throw new Error("Missing CSP nonce for public HTML response");

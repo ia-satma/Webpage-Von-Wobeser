@@ -330,19 +330,23 @@ export default function AdminOffices() {
             </CardContent>
           </Card>
           <Card>
-            <CardHeader><CardTitle>Recursos y redes</CardTitle></CardHeader>
+            <CardHeader><CardTitle>Recursos visuales</CardTitle><CardDescription>Estos recursos pertenecen únicamente a la página de Nuevas oficinas.</CardDescription></CardHeader>
             <CardContent className="space-y-6">
               <div className="grid gap-5 lg:grid-cols-2">
-                <div className="space-y-2"><Label>Logo del encabezado</Label><ImageUpload value={draft.office_header_logo?.value || ""} onChange={(value) => setSingleConfig("office_header_logo", value)} /></div>
-                <div className="space-y-2"><Label>Logo blanco del pie</Label><ImageUpload value={draft.office_footer_logo?.value || ""} onChange={(value) => setSingleConfig("office_footer_logo", value)} /></div>
                 <div className="space-y-2"><Label>Imagen del banner</Label><ImageUpload value={draft.office_banner_image?.value || ""} onChange={(value) => setSingleConfig("office_banner_image", value)} /></div>
                 <div className="space-y-2"><Label>Imagen para compartir</Label><ImageUpload value={draft.office_seo_image?.value || ""} onChange={(value) => setSingleConfig("office_seo_image", value)} /></div>
               </div>
-              <div className="grid gap-4 lg:grid-cols-2">
-                <div className="space-y-1"><Label>LinkedIn</Label><Input value={draft.office_linkedin?.value || ""} onChange={(e) => setSingleConfig("office_linkedin", e.target.value)} /></div>
-                <div className="space-y-1"><Label>X</Label><Input value={draft.office_x?.value || ""} onChange={(e) => setSingleConfig("office_x", e.target.value)} /></div>
-              </div>
-              <BilingualConfigField field={{ key: "office_follow_label", label: "Etiqueta de redes" }} draft={draft} setValue={setConfig} />
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader>
+              <CardTitle>Navegación y pie compartidos</CardTitle>
+              <CardDescription>El encabezado, el menú, las redes, los datos de contacto y el diseño del pie se reutilizan desde la configuración global. Así Nuevas oficinas siempre conserva el mismo cromo que el resto del sitio.</CardDescription>
+            </CardHeader>
+            <CardContent className="flex flex-wrap gap-3">
+              <Button asChild variant="outline"><a href="/admin/navigation">Administrar navegación <ExternalLink className="ml-2 h-4 w-4" /></a></Button>
+              <Button asChild variant="outline"><a href="/admin/site-config/footer">Administrar pie de página <ExternalLink className="ml-2 h-4 w-4" /></a></Button>
+              <Button asChild variant="outline"><a href="/admin/public-appearance">Cambiar diseño público <ExternalLink className="ml-2 h-4 w-4" /></a></Button>
             </CardContent>
           </Card>
           <Card>

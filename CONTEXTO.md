@@ -10,9 +10,10 @@ pendientes se encuentra en
 ## Estado breve
 
 - Fuente de verdad: `ia-satma/Webpage-Von-Wobeser`, rama `main`.
-- Commit vigente: `16c87c2` (`fix: stabilize home navigation outside hero`), enviado a
-  `origin/main` el 20-ago-2026. La compilación de Replit terminó correctamente; confirmar
-  Publishing desde su panel antes de considerar la entrega pública concluida.
+- Commit vigente: `b37f7c1` (`feat: refine public editorial experience`), enviado a
+  `origin/main` el 20-ago-2026. Replit verificó autenticación, descargó este SHA con rebase y
+  terminó `npm run build` correctamente; Publishing sigue siendo una acción explícita desde su
+  panel.
 - Sitio público: espejo editorial HTML/Joomla servido y enriquecido por Express; **no es React**.
 - Administración: SPA React únicamente bajo `/admin/*`.
 - Datos: PostgreSQL/Drizzle con **56 tablas y 627 columnas**; migraciones versionadas,
@@ -35,8 +36,9 @@ pendientes se encuentra en
   editorial/clásico son presets reversibles desde Administración.
 - La navegación persistente de Inicio se extrae del hero histórico antes de renderizar. Esto evita
   que las capas del video o de carruseles vuelvan transparente o inoperante al menú al hacer scroll.
-- Última validación local: tipos, presupuesto de rendimiento, build y 460 pruebas de seguridad
-  aprobadas; recorrido real de Inicio confirmó menú opaco, clicable y sin scroll horizontal.
+- Última validación local: tipos, presupuesto de rendimiento, build y **475** pruebas de seguridad
+  aprobadas; recorrido real de Inicio confirmó menú opaco, clicable y sin scroll horizontal. La
+  auditoría comprobó 224 controles administrativos conectados, sin claves literales pendientes.
 
 ## Reglas de continuidad
 
@@ -52,3 +54,6 @@ pendientes se encuentra en
    `npm run test:performance`, `npm run build` y `git diff --check`.
 8. Para una cuenta Replit nueva, usar el flujo `handoff:status` → `handoff:install`; no sustituir
    una restauración completa por `db:migrate` sobre una base vacía.
+9. Para comprobar la conexión de Git de una Shell de Replit sin modificar archivos, usar
+   `git remote get-url origin && git ls-remote origin HEAD`. Si devuelve un SHA, ejecutar el pull
+   y build; no regenerar ni compartir tokens por Shell o chat.

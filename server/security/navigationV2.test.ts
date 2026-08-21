@@ -29,6 +29,7 @@ const {
 } = await import("../mirror/navigationConfiguration");
 const { applyNavigationMarkup } = await import("../mirror/navigationMarkup");
 const { buildPublicNavigationMenu } = await import("../mirror/navigationMenu");
+const { ensureNavigationRuntime } = await import("../mirror/htmlPipeline");
 const { isSafeCatalogEmail, isSafeCatalogUrl } = await import("../routes/adminCatalogRoutes");
 const { normalizeDefinitiveInsightsLabel } = await import("../../migrations/20260817_0001_navigation_insights_label.mjs");
 
@@ -220,6 +221,14 @@ test("el servidor entrega menú semántico, seguro y sin parpadeo heredado", () 
   assert.equal($(".vw-nav-v2__utility--contact").attr("href"), "/contacto");
   assert.equal($(".vw-nav-v2__panel img").length, 0);
   assert.equal($("a[href=\"/old\"]").length, 0);
+});
+
+test("una plantilla con navegación compartida recibe el controlador accesible una sola vez", () => {
+  const source = '<!doctype html><html><body><nav><div class="nav__menu--holder"></div></nav></body></html>';
+  const withRuntime = ensureNavigationRuntime(source);
+  assert.match(withRuntime, /functions\.min\.js/);
+  assert.equal((withRuntime.match(/functions\.min\.js/g) || []).length, 1);
+  assert.equal(ensureNavigationRuntime(withRuntime), withRuntime);
 });
 
 test("el preset clásico se identifica en servidor y conserva el diseño como alternativa", () => {
