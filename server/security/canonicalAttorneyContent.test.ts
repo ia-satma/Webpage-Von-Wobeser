@@ -119,6 +119,34 @@ test("la ficha dinámica separa destacado y cuerpo, usa idiomas y no duplica not
   assert.equal($(".attorney__meta--list a[href='/news/already-listed']").length, 1);
 });
 
+test("los años de experiencia de Asociados se ocultan de forma reversible", () => {
+  const template = read("../../frontend-mirror/index.php/lawyer/l-134.html");
+  const associate = {
+    name: "Asociada de prueba",
+    slug: "asociada-de-prueba",
+    title: "Associate",
+    titleEs: "Asociada",
+    role: "Associate",
+    roleEs: "Asociada",
+    email: "asociada@example.com",
+    phone: "+52 55 0000 0000",
+    bioIntro: "<p>She advises clients on labor matters. She has more than five years of experience in employment litigation.</p>",
+    bioIntroEs: "<p>Asesora a clientes en asuntos laborales. Cuenta con más de cinco años de experiencia en litigio laboral.</p>",
+    bio: "<p>Her professional profile is kept in the CMS.</p>",
+    bioEs: "<p>Su perfil profesional se conserva en el CMS.</p>",
+  };
+
+  const hidden = cheerio.load(renderAttorney(template, associate, "es", undefined, { associateExperienceVisible: false }));
+  assert.match(hidden(".attorney__content--intro").text(), /Asesora a clientes en asuntos laborales\./);
+  assert.doesNotMatch(hidden(".attorney__content--intro").text(), /años de experiencia/i);
+
+  const visible = cheerio.load(renderAttorney(template, associate, "es", undefined, { associateExperienceVisible: true }));
+  assert.match(visible(".attorney__content--intro").text(), /más de cinco años de experiencia/i);
+
+  const partner = cheerio.load(renderAttorney(template, { ...associate, title: "Partner", titleEs: "Socia" }, "es", undefined, { associateExperienceVisible: false }));
+  assert.match(partner(".attorney__content--intro").text(), /más de cinco años de experiencia/i);
+});
+
 test("el CMS expone introducción, estructura completa y saneamiento para los perfiles", () => {
   const form = readAdminFeatureSources("team-form", "AdminTeamForm.tsx");
   const routes = readRouteSources();
@@ -138,6 +166,8 @@ test("el CMS expone introducción, estructura completa y saneamiento para los pe
   assert.match(typography, /\.attorney\[data-vw-content-kind="attorney"\][\s\S]*?\.attorney__content--txt[\s\S]*?var\(--vw-font-body\)/);
   assert.match(typography, /\.attorney__content--txt p \+ p[\s\S]*?margin-top:\s*1\.35em/);
   assert.match(idMap, /attorney\.set\("457", bernardoSlug\)/);
+  const siteConfigRegistry = read("../../client/src/features/admin/site-config/registry.ts");
+  assert.match(siteConfigRegistry, /key:\s*"associate_experience_visible"[\s\S]*?control:\s*"switch"/);
 });
 
 test("la migración parametrizada actualiza 132 perfiles, agrega a Bernardo y deja intactos los nueve adicionales", async () => {

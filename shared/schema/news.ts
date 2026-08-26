@@ -11,6 +11,9 @@ export const news = pgTable("news", {
   excerptEs: text("excerpt_es").notNull(),
   content: text("content"),
   contentEs: text("content_es"),
+  // Enlace verificable a la publicación o documento de origen. Se conserva separado
+  // del extracto para que la ficha pueda mostrar un CTA claro, nunca una URL cruda.
+  sourceUrl: text("source_url"),
   slug: text("slug").notNull().unique(),
   imageUrl: text("image_url"),
   date: timestamp("date").defaultNow(),

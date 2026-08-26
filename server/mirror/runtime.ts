@@ -362,16 +362,24 @@ export async function createMirrorRuntime() {
     if (!member) member = await storage.getTeamMemberById(slug);
     if (!member) return next();
     if ((member as any).published === false) return next(); // oculto
-    const [groups, relatedNews] = await Promise.all([
+    const [groups, relatedNews, config] = await Promise.all([
       getAttorneyGroups(member.id),
       storage.getPublishedNewsByTeamMemberIdPage({
         teamMemberId: member.id,
         limit: 6,
         offset: 0,
       }).then((result) => result.rows).catch(() => []),
+      getConfigMap(),
     ]);
     const typography = await getEditorialTypography("team_member", member.id);
-    sendPage(res, renderAttorney(pick(TEMPLATES.attorney, lang), { ...member, ...groups, relatedNews }, lang, typography));
+    const associateExperienceVisible = cfg(config, "associate_experience_visible", lang).trim().toLowerCase() === "true";
+    sendPage(res, renderAttorney(
+      pick(TEMPLATES.attorney, lang),
+      { ...member, ...groups, relatedNews },
+      lang,
+      typography,
+      { associateExperienceVisible },
+    ));
   };
 
   const serveList = async (

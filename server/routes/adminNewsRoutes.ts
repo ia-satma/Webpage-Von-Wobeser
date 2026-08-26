@@ -15,15 +15,12 @@ import { sanitizeNewsFields } from "../mirror/sanitize";
 import { SUPPORTED_LANGUAGES } from "../openai";
 import { storage } from "../storage";
 import { apiError, auditLog, getLinguisticWarnings } from "./routeUtils";
+import { hasPublishableNewsContent, isVerifiedNewsSourceUrl } from "../newsPublicationPolicy";
 
 export function registerAdminNewsRoutes(app: Express): void {
   // =============================================
   // ADMIN NEWS CRUD
   // =============================================
-
-  const hasCmsText = (value: unknown) => String(value ?? "").replace(/<[^>]*>/g, "").replace(/&nbsp;/gi, " ").trim().length > 0;
-  const hasPublishableBilingualNews = (item: { title?: unknown; titleEs?: unknown; excerpt?: unknown; excerptEs?: unknown }) =>
-    hasCmsText(item.title) && hasCmsText(item.titleEs) && hasCmsText(item.excerpt) && hasCmsText(item.excerptEs);
 
   // Get all news with pagination/search
   app.get("/api/admin/news", authMiddleware, requirePermission("content"), async (req: Request, res: Response) => {
@@ -222,12 +219,18 @@ export function registerAdminNewsRoutes(app: Express): void {
   const editorialTagsSchema = z.array(z.string().trim().min(2).max(60)).max(12).transform((tags) =>
     Array.from(new Set(tags.map((tag) => tag.replace(/\s+/g, " ").toLocaleLowerCase("es-MX")).filter(Boolean))),
   );
+  const sourceUrlSchema = z.preprocess(
+    (value) => typeof value === "string" && !value.trim() ? null : value,
+    z.string().trim().max(2_000).url().refine(isVerifiedNewsSourceUrl, "La fuente debe usar una URL HTTPS pública").nullable().optional(),
+  );
   const adminNewsCreateSchema = insertNewsSchema.extend({
     tags: editorialTagsSchema.default([]),
+    sourceUrl: sourceUrlSchema,
     teamMemberIds: teamMemberIdsSchema.default([]),
   });
   const adminNewsUpdateSchema = insertNewsSchema.partial().extend({
     tags: editorialTagsSchema.optional(),
+    sourceUrl: sourceUrlSchema,
     teamMemberIds: teamMemberIdsSchema.optional(),
   });
 
@@ -375,8 +378,8 @@ export function registerAdminNewsRoutes(app: Express): void {
 
       const { teamMemberIds, ...newsData } = validation.data;
       sanitizeNewsFields(newsData);
-      if (newsData.published && !hasPublishableBilingualNews(newsData)) {
-        return apiError(res, 400, "Published news requires title and excerpt in English and Spanish");
+      if (newsData.published && !hasPublishableNewsContent(newsData)) {
+        return apiError(res, 400, "Published news requires title and excerpt in English and Spanish, or a verified source for Articles");
       }
 
       if (!await validateNewsTeamMembers(teamMemberIds)) {
@@ -410,8 +413,8 @@ export function registerAdminNewsRoutes(app: Express): void {
       const current = await storage.getNewsById(req.params.id);
       if (!current) return apiError(res, 404, "News not found");
       const finalState = { ...current, ...validated };
-      if (finalState.published && !hasPublishableBilingualNews(finalState)) {
-        return apiError(res, 400, "Published news requires title and excerpt in English and Spanish");
+      if (finalState.published && !hasPublishableNewsContent(finalState)) {
+        return apiError(res, 400, "Published news requires title and excerpt in English and Spanish, or a verified source for Articles");
       }
       if (teamMemberIds && !await validateNewsTeamMembers(teamMemberIds)) {
         return apiError(res, 400, "One or more team members do not exist");

@@ -19,6 +19,7 @@ const template = `<!doctype html><html lang="es"><head><title>Anterior</title></
 test("landing de Firma usa hechos verificados y cifras publicadas", () => {
   const html = renderFirmLanding(template, {
     firm_landing_stat_3_value: { value: "19", valueEs: "19", type: "text" },
+    firm_landing_stat_2_label: { value: "Attorneys", valueEs: "Abogados", type: "text" },
   }, "es", {
     teamMembers: [{ published: true }, { published: true }, { published: false }],
     practices: [
@@ -31,10 +32,17 @@ test("landing de Firma usa hechos verificados y cifras publicadas", () => {
 
   assert.match(html, /Von Wobeser y Sierra/);
   assert.match(html, /Desde 1986/);
+  const document = load(html);
   assert.deepEqual(
-    [...html.matchAll(/<dd>(.*?)<\/dd>/g)].map((match) => match[1]),
-    ["40+", "2", "1", "1"],
+    document(".vw-firm__stats-grid dd").map((_, element) => document(element).text()).get(),
+    ["40+", "Más de 180", "1", "1"],
   );
+  assert.equal(document(".vw-firm__stat-value--team .vw-firm__stat-prefix").text(), "Más de");
+  assert.equal(document(".vw-firm__stat-value--team .vw-firm__stat-number").text(), "180");
+  assert.match(html, /\.vw-firm__stat-value--team\{position:relative;display:block/);
+  assert.match(html, /\.vw-firm__stat-prefix\{position:absolute;left:0;bottom:calc\(100% \+ \.45rem\)/);
+  assert.match(html, /Integrantes del equipo legal/);
+  assert.doesNotMatch(html, /<dt>Abogados<\/dt>/);
   assert.doesNotMatch(html, /1952|70 años|seven decades|german desk/i);
   assert.doesNotMatch(html, /<section[^>]+id="(?:cultura|diversidad|reconocimientos)"/);
   assert.doesNotMatch(html, /<section[^>]+vw-firm__pathways/);
@@ -45,7 +53,6 @@ test("landing de Firma usa hechos verificados y cifras publicadas", () => {
   assert.match(html, /Área de colaboración en las oficinas de Von Wobeser y Sierra/);
   assert.match(html, /class="vw-firm__eyebrow">Nuestra firma<\/p>/);
   assert.match(html, /class="vw-firm__container vw-firm__hero-heading"[\s\S]*?class="vw-firm__hero-rule"/);
-  const document = load(html);
   assert.equal(document(".vw-firm__hero .vw-firm__feature-media").length, 0);
   assert.equal(document(".vw-firm__history .vw-firm__feature-media").length, 1);
   assert.match(document(".vw-firm__history .vw-firm__feature-media").html() ?? "", /src="\/img\/Collage\/collage_02\.jpg"/);

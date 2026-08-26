@@ -796,3 +796,28 @@ body.office-showcase--shared-navigation > header.header_JS .menu_btn_JS::after {
     grid-column: auto;
   }
 }
+
+/* Fuente externa de un Artículo: CTA independiente del resumen, de lectura clara y
+ * sin presentar la URL cruda como texto editorial. */
+.vw-news-source-link {
+  margin: 0 0 28px;
+  font-family: "Inter", sans-serif;
+  font-size: 13px;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.vw-news-source-link a {
+  color: #ac162c;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+.vw-news-source-link a:hover,
+.vw-news-source-link a:focus-visible {
+  color: #75101e;
+}
+
+.vw-news-source-link--archive {
+  margin-top: -14px;
+}

@@ -803,10 +803,11 @@ test("Configuración conserva secciones, claves, APIs, query keys y controles", 
   // Conservamos las dos repeticiones intencionales del resumen institucional.
   // Incluye el video maestro anterior del hero, conservado como historial
   // seleccionable desde Administración sin volver a publicarlo por defecto.
-  assert.equal(declaredKeys.length, 229);
-  assert.equal(new Set(declaredKeys).size, 227);
+  assert.equal(declaredKeys.length, 230);
+  assert.equal(new Set(declaredKeys).size, 228);
   assert.ok(declaredKeys.includes("home_location_visible"));
   assert.ok(declaredKeys.includes("hero_video_previous_master"));
+  assert.ok(declaredKeys.includes("associate_experience_visible"));
   for (const key of [
     "home_news_title",
     "page_practices_title",
@@ -829,7 +830,7 @@ test("Configuración conserva secciones, claves, APIs, query keys y controles", 
   }
   assert.equal(HOME_TAB_LABELS.length, 5);
   assert.equal(FIRM_TAB_LABELS.length, 8);
-  assert.equal(PAGES.firma.groups.length, 8);
+  assert.equal(PAGES.firma.groups.length, 9);
   assert.equal(PAGES["resumen-firma"].groups.length, 8);
 });
 

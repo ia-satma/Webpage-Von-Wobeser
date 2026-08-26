@@ -229,8 +229,8 @@ export const PAGES: Record<string, SiteConfigPageDefinition> = {
           { key: "firm_landing_stats_title", label: "Título", bilingual: true },
           { key: "firm_landing_stat_1_value", label: "Años de experiencia — cifra", help: "Ejemplo: 40+." },
           { key: "firm_landing_stat_1_label", label: "Años de experiencia — etiqueta", bilingual: true },
-          { key: "firm_landing_stat_2_value", label: "Abogados — cifra opcional", help: "Vacío = cuenta automáticamente los abogados publicados." },
-          { key: "firm_landing_stat_2_label", label: "Abogados — etiqueta", bilingual: true },
+          { key: "firm_landing_stat_2_value", label: "Equipo legal — cifra", help: "Valor editorial actual: Más de 180." },
+          { key: "firm_landing_stat_2_label", label: "Equipo legal — etiqueta", bilingual: true },
           { key: "firm_landing_stat_3_value", label: "Prácticas — cifra opcional", help: "Vacío = cuenta automáticamente las prácticas publicadas." },
           { key: "firm_landing_stat_3_label", label: "Prácticas — etiqueta", bilingual: true },
           { key: "firm_landing_stat_4_value", label: "Grupos por industria — cifra opcional", help: "Vacío = cuenta automáticamente los grupos publicados." },
@@ -591,18 +591,26 @@ const firmLandingPage = PAGES["resumen-firma"];
 PAGES.firma = {
   ...PAGES.firma,
   description: "Edita la landing institucional, su contenido bilingüe, medios, secciones, enlaces y SEO desde un solo lugar.",
-  groups: firmLandingPage.groups.map((group) => ({
-    ...group,
-    fields: group.fields.map((field) => {
-      if (field.key === "firm_landing_history_intro") {
-        return { ...field, key: "page_firm_intro", label: "Introducción institucional", rows: 6 };
-      }
-      if (field.key === "firm_landing_history_body") {
-        return { ...field, key: "page_firm_body", label: "Presentación institucional", rows: 9 };
-      }
-      return field;
-    }),
-  })),
+  groups: [
+    {
+      title: "Perfiles de asociados",
+      fields: [
+        { key: "associate_experience_visible", label: "Mostrar años de experiencia", control: "switch", defaultValue: false, help: "Afecta únicamente a los perfiles públicos de Asociados. Al apagarlo se ocultan las oraciones con años de experiencia, pero los textos bilingües se conservan para reactivarlos después." },
+      ],
+    },
+    ...firmLandingPage.groups.map((group) => ({
+      ...group,
+      fields: group.fields.map((field) => {
+        if (field.key === "firm_landing_history_intro") {
+          return { ...field, key: "page_firm_intro", label: "Introducción institucional", rows: 6 };
+        }
+        if (field.key === "firm_landing_history_body") {
+          return { ...field, key: "page_firm_body", label: "Presentación institucional", rows: 9 };
+        }
+        return field;
+      }),
+    })),
+  ],
 };
 
 export const HOME_TAB_LABELS = [

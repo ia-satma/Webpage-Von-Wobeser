@@ -17,6 +17,7 @@ export function publishedArticleCompletenessIssues(article: {
   excerptEs?: string | null;
   content?: string | null;
   contentEs?: string | null;
+  sourceUrl?: string | null;
 }): string[] {
   const issues: string[] = [];
   const hasEnglishBody = hasText(article.content);
@@ -24,8 +25,10 @@ export function publishedArticleCompletenessIssues(article: {
   const isBodylessBibliographicArticle = article.category === 'articles'
     && !hasEnglishBody
     && !hasSpanishBody
-    && hasText(article.excerpt)
-    && hasText(article.excerptEs);
+    && (
+      (hasText(article.excerpt) && hasText(article.excerptEs))
+      || /^https:\/\/[^\s]+$/i.test(String(article.sourceUrl || '').trim())
+    );
 
   if (!hasEnglishBody && !isBodylessBibliographicArticle) issues.push('missing English content');
   if (!hasText(article.title)) issues.push('missing English title');

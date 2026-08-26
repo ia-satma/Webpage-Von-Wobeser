@@ -40,6 +40,7 @@
     "handoff:install": "node scripts/client-handoff.mjs install",
     "handoff:readiness": "node scripts/verify-client-handoff.mjs",
     "db:migrate": "node scripts/run-migrations.mjs",
+    "content:apply-article-curation": "CONFIRM_ARTICLE_SUMMARY_CURATION=1 node --import tsx scripts/apply-article-summary-curation-2026.ts --apply",
     "db:replit-migrate": "node scripts/migrate-database-to-replit.mjs",
     "team:reconcile-partner-order": "node --import tsx scripts/reconcile-partner-order.ts",
     "team:reconcile-associate-order": "node --import tsx scripts/reconcile-associate-order.ts",

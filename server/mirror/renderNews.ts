@@ -24,6 +24,51 @@ function L(obj: any, base: string, lang: Lang): string {
   return lang === "es" ? obj[base + "Es"] || "" : obj[base] || "";
 }
 
+function plainText(value: unknown): string {
+  return cheerio.load(String(value ?? "")).text().replace(/\s+/g, " ").trim();
+}
+
+function normalizedEditorialText(value: unknown): string {
+  return plainText(value)
+    .toLocaleLowerCase("es-MX")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, "");
+}
+
+/**
+ * Legacy article records occasionally stored the heading, “Introduction”, “PDF” or a raw
+ * URL in the excerpt/body slots. Those are metadata placeholders, not editorial copy, and
+ * must not be rendered as a second title or as unusable plain text.
+ */
+function isArticlePlaceholder(value: unknown, title: unknown): boolean {
+  const text = plainText(value);
+  if (!text) return true;
+  if (/^https?:\/\//i.test(text)) return true;
+  if (/^(?:introducci[oó]n|introduction|pdf)$/i.test(text)) return true;
+  const normalized = normalizedEditorialText(text);
+  return Boolean(normalized && normalized === normalizedEditorialText(title));
+}
+
+function verifiedSourceUrl(value: unknown): string | null {
+  const raw = String(value ?? "").trim();
+  if (!raw || raw.length > 2_000) return null;
+  try {
+    const url = new URL(raw);
+    if (url.protocol !== "https:" || url.username || url.password) return null;
+    return url.toString();
+  } catch {
+    return null;
+  }
+}
+
+function sourceLink(url: string | null, lang: Lang, context: "archive" | "detail"): string {
+  if (!url) return "";
+  const label = lang === "es" ? "Ver publicación original" : "Read original publication";
+  const className = context === "archive" ? "vw-news-source-link vw-news-source-link--archive" : "vw-news-source-link";
+  return `<p class="${className}"><a href="${esc(url)}" target="_blank" rel="noopener noreferrer">${esc(label)}</a></p>`;
+}
+
 const MONTHS: Record<Lang, string[]> = {
   en: ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"],
   es: ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"],
@@ -81,13 +126,17 @@ export function renderNewsList(
 
   const cards = news.map((n) => {
     const title = esc(L(n, "title", lang));
-    const intro = renderRichText(L(n, "excerpt", lang));
+    const rawExcerpt = L(n, "excerpt", lang);
+    const articleWithoutSummary = n.category === "articles" && isArticlePlaceholder(rawExcerpt, L(n, "title", lang));
+    const intro = articleWithoutSummary ? "" : renderRichText(rawExcerpt);
+    const originalSource = sourceLink(verifiedSourceUrl(n.sourceUrl), lang, "archive");
     const href = `/news/${esc(n.slug)}${langSuffix}`;
     return (
       `<div class="archive__item"><a href="${href}">` +
       `<div class="archive__item--ttl">${title}</div></a>` +
       `<div class="archive__item--date">${esc(fmtDate(n.date, lang))}</div>` +
       `<div class="archive__item--intro">${intro || ""}</div>` +
+      originalSource +
       `<a href="${href}"><div class="more archive__item--btn" style="clear:right;">${readMore}</div></a>` +
       `</div>`
     );
@@ -320,15 +369,20 @@ function buildRelatedInsights(items: any[], lang: Lang): string {
 export function renderNewsDetail(templateHtml: string, item: any, lang: Lang = "en", typography?: TypographyStyles): string {
   const $ = cheerio.load(templateHtml);
   const title = L(item, "title", lang);
-  const excerpt = renderRichText(L(item, "excerpt", lang));
-  const content = renderRichText(L(item, "content", lang));
+  const isArticle = item.category === "articles";
+  const rawExcerpt = L(item, "excerpt", lang);
+  const rawContent = L(item, "content", lang);
+  const excerpt = isArticle && isArticlePlaceholder(rawExcerpt, title) ? "" : renderRichText(rawExcerpt);
+  const content = isArticle && isArticlePlaceholder(rawContent, title) ? "" : renderRichText(rawContent);
+  const originalSource = sourceLink(verifiedSourceUrl(item.sourceUrl), lang, "detail");
   const date = fmtDate(item.date, lang);
 
   $(".single__meta--name").first().attr(typographyAttribute(typography, lang === "es" ? "titleEs" : "title", lang)).text(title);
   // Show the date inside the meta sidebar (kept minimal, original styling).
   $(".single__meta--list").first().html(date ? `<p style="color:#fff;">${esc(date)}</p>` : "");
   $(".single__content--intro").attr(typographyAttribute(typography, lang === "es" ? "excerptEs" : "excerpt", lang)).html(excerpt || "");
-  $(".single__content--txt").attr(typographyAttribute(typography, lang === "es" ? "contentEs" : "content", lang)).html(content || (excerpt ? "" : `<p>${esc(title)}</p>`));
+  $(".single__content--txt").attr(typographyAttribute(typography, lang === "es" ? "contentEs" : "content", lang)).html(content || "");
+  if (originalSource) $(".single__content--intro").after(originalSource);
   $(".news-related-attorneys").remove();
   $(".news-related-insights").remove();
   const relatedAttorneys = (item.relatedTeamMembers || []) as any[];

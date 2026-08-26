@@ -7,6 +7,14 @@ import { typographyAttribute, type TypographyStyles } from "@shared/editorialTyp
 
 type Lang = "en" | "es";
 
+type AttorneyRenderOptions = {
+  /**
+   * Global editorial control. It applies only to the Associate category and
+   * leaves the bilingual source copy intact in the CMS.
+   */
+  associateExperienceVisible?: boolean;
+};
+
 /** Pick the EN or ES variant of a field, falling back to EN. */
 function L(obj: any, base: string, lang: Lang): string {
   if (!obj) return "";
@@ -189,10 +197,68 @@ function splitFirstBlock(html: string): { first: string; rest: string } {
 }
 
 /**
+ * Returns true when a sentence makes a quantified claim about the attorney's
+ * experience. The canonical profiles use both digit and written numbers, so
+ * the number itself is intentionally not restricted to a finite vocabulary.
+ */
+function hasExperienceYears(sentence: string, lang: Lang): boolean {
+  const numberOrWord = "(?:\\d+|[A-Za-zÀ-ÖØ-öø-ÿ-]+)";
+  const numberedYears = lang === "es"
+    ? new RegExp(`\\b${numberOrWord}\\s+años?\\b[\\s\\S]{0,140}\\bexperiencia\\b`, "i")
+    : new RegExp(`\\b${numberOrWord}\\s+years?\\b[\\s\\S]{0,140}\\b(?:professional\\s+)?experience\\b`, "i");
+  if (numberedYears.test(sentence)) return true;
+
+  // A small number of English biographies say “worked … years” rather than
+  // “years of experience”. They represent the same claim and need to follow
+  // the same visibility decision as their Spanish counterpart.
+  return lang === "en" && new RegExp(`\\b(?:worked|working)\\b[\\s\\S]{0,50}\\b${numberOrWord}\\s+years?\\b`, "i").test(sentence);
+}
+
+/**
+ * Hides only complete quantified-experience sentences at render time. The
+ * stored bio remains untouched, so the Admin switch can restore it exactly.
+ * Existing canonical copy uses plain paragraphs; for an edited rich-text
+ * paragraph, the remaining text is safely serialized as text rather than
+ * risking a partial HTML fragment after sentence removal.
+ */
+function hideAssociateExperienceYears(html: string, lang: Lang): string {
+  if (!html.trim()) return html;
+
+  const $fragment = cheerio.load(`<div data-vw-associate-bio>${html}</div>`);
+  const $root = $fragment("[data-vw-associate-bio]");
+  const segmenter = new Intl.Segmenter(lang === "es" ? "es" : "en", { granularity: "sentence" });
+
+  $root.find("p, li").each((_, element) => {
+    const text = $fragment(element).text().replace(/\s+/g, " ").trim();
+    if (!text) return;
+
+    const retained = Array.from(segmenter.segment(text), ({ segment }) => segment)
+      .filter((sentence) => !hasExperienceYears(sentence, lang))
+      .join("")
+      .trim();
+
+    if (retained === text) return;
+    if (!retained) {
+      $fragment(element).remove();
+      return;
+    }
+    $fragment(element).text(retained);
+  });
+
+  return $root.html() || "";
+}
+
+/**
  * Takes the original mirror HTML of an attorney profile and injects the
  * given attorney record from our backend, preserving the original markup.
  */
-export function renderAttorney(templateHtml: string, a: any, lang: Lang = "en", typography?: TypographyStyles): string {
+export function renderAttorney(
+  templateHtml: string,
+  a: any,
+  lang: Lang = "en",
+  typography?: TypographyStyles,
+  options: AttorneyRenderOptions = {},
+): string {
   const $ = cheerio.load(templateHtml);
   $(".attorney").attr("data-vw-content-kind", "attorney");
 
@@ -223,9 +289,14 @@ export function renderAttorney(templateHtml: string, a: any, lang: Lang = "en", 
   // --- Bio ---------------------------------------------------------------
   const bio = L(a, "bio", lang);
   const storedIntro = L(a, "bioIntro", lang);
-  const { first: legacyIntro, rest: legacyRest } = splitFirstBlock(renderRichText(bio));
-  const bioIntro = storedIntro ? renderRichText(storedIntro) : legacyIntro;
-  const bioRest = storedIntro ? renderRichText(bio) : legacyRest;
+  const hideExperienceYears = a.title === "Associate" && options.associateExperienceVisible === false;
+  const renderBio = (value: string) => {
+    const rendered = renderRichText(value);
+    return hideExperienceYears ? hideAssociateExperienceYears(rendered, lang) : rendered;
+  };
+  const { first: legacyIntro, rest: legacyRest } = splitFirstBlock(renderBio(bio));
+  const bioIntro = storedIntro ? renderBio(storedIntro) : legacyIntro;
+  const bioRest = storedIntro ? renderBio(bio) : legacyRest;
   $(".attorney__content--intro").attr(typographyAttribute(typography, lang === "es" ? "bioIntroEs" : "bioIntro", lang)).html(bioIntro);
   $(".attorney__content--txt").attr(typographyAttribute(typography, lang === "es" ? "bioEs" : "bio", lang)).html(bioRest);
   const relatedInsights = buildRelatedInsights(a, lang);

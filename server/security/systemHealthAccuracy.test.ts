@@ -21,6 +21,16 @@ test('las fichas bibliográficas sin cuerpo no se reportan como publicaciones in
   }), []);
 
   assert.deepEqual(publishedArticleCompletenessIssues({
+    category: 'articles',
+    title: 'Historic publication',
+    excerpt: '',
+    excerptEs: '',
+    content: null,
+    contentEs: null,
+    sourceUrl: 'https://www.vonwobeser.com/original-publication.pdf',
+  }), []);
+
+  assert.deepEqual(publishedArticleCompletenessIssues({
     category: 'news',
     title: 'English title',
     excerpt: 'English excerpt',

@@ -37,7 +37,7 @@ const hasReadableText = (value: string) => value.replace(/<[^>]*>/g, "").replace
 
 const EMPTY = {
   titleEs: "", title: "", excerptEs: "", excerpt: "", contentEs: "", content: "",
-  imageUrl: "", slug: "", category: "press", published: false, featuredHome: false,
+  imageUrl: "", sourceUrl: "", slug: "", category: "press", published: false, featuredHome: false,
   tags: [] as string[],
 };
 
@@ -46,6 +46,7 @@ type TeamMemberLite = { id: string; name: string; slug: string };
 /**
  * Editor de Noticias (crear / editar). Los borradores pueden prepararse por etapas,
  * pero una noticia publicada requiere título y extracto reales en ambos idiomas.
+ * La excepción editorial es un Artículo histórico con fuente HTTPS verificable.
  */
 export default function AdminNewsForm() {
   const { id } = useParams<{ id: string }>();
@@ -78,7 +79,7 @@ export default function AdminNewsForm() {
       titleEs: n.titleEs || "", title: n.title || "",
       excerptEs: n.excerptEs || "", excerpt: n.excerpt || "",
       contentEs: n.contentEs || "", content: n.content || "",
-      imageUrl: n.imageUrl || "", slug: n.slug || "",
+      imageUrl: n.imageUrl || "", sourceUrl: n.sourceUrl || "", slug: n.slug || "",
       category: n.category || "press", published: !!n.published, featuredHome: !!(n as any).featuredHome,
       tags: (n.tags || []).filter((tag): tag is string => typeof tag === "string"),
     });
@@ -151,6 +152,7 @@ export default function AdminNewsForm() {
         contentEs: form.contentEs.trim() || null,
         content: form.content.trim() || null,
         imageUrl: form.imageUrl.trim() || null,
+        sourceUrl: form.sourceUrl.trim() || null,
         slug: (form.slug.trim() || generateSlug(form.titleEs)),
         category: form.category,
         categoryEs: catEs,
@@ -181,16 +183,19 @@ export default function AdminNewsForm() {
 
   const spanishReady = hasReadableText(form.titleEs) && hasReadableText(form.excerptEs);
   const englishReady = hasReadableText(form.title) && hasReadableText(form.excerpt);
-  const canSave = spanishReady && (!form.published || englishReady) && !saveMutation.isPending;
+  const sourceOnlyArticle = form.category === "articles" && /^https:\/\//i.test(form.sourceUrl.trim());
+  const canSave = hasReadableText(form.titleEs)
+    && (!form.published || (hasReadableText(form.title) && (englishReady && spanishReady || sourceOnlyArticle)))
+    && !saveMutation.isPending;
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!spanishReady) {
-      toast({ title: "Faltan datos", description: "El título y el extracto (en español) son obligatorios.", variant: "destructive" });
+    if (!hasReadableText(form.titleEs)) {
+      toast({ title: "Faltan datos", description: "El título en español es obligatorio.", variant: "destructive" });
       return;
     }
-    if (form.published && !englishReady) {
-      toast({ title: "Falta la versión en inglés", description: "Para publicar, completa el título y el extracto en inglés o usa el traductor y revisa el resultado.", variant: "destructive" });
+    if (form.published && (!hasReadableText(form.title) || (!(englishReady && spanishReady) && !sourceOnlyArticle))) {
+      toast({ title: "Faltan datos", description: "Para publicar completa ambos extractos o, si es un Artículo sin texto verificable, agrega una fuente HTTPS original.", variant: "destructive" });
       return;
     }
     saveMutation.mutate();
@@ -236,7 +241,8 @@ export default function AdminNewsForm() {
 
         <AdminPageHelp pageId="noticias-form" manualSectionId="noticias">
           Llena el contenido en español y revisa también su versión en inglés. Puedes guardar un borrador
-          mientras traduces, pero para publicarlo son obligatorios el título y el extracto en ambos idiomas.
+          mientras traduces. Para publicar son obligatorios el título y el extracto en ambos idiomas;
+          un Artículo histórico puede conservar sólo una fuente HTTPS original cuando no hay texto verificable para resumir.
           Usa <strong>“Traducir al inglés con IA”</strong> como apoyo y revisa el resultado. Sube una imagen destacada, elige la categoría y activa
           <strong> “Publicada”</strong> cuando quieras que aparezca en el sitio.
         </AdminPageHelp>
@@ -264,12 +270,12 @@ export default function AdminNewsForm() {
               </div>
 
               <div className="space-y-1.5">
-                <Label htmlFor="excerptEs">Extracto (español) *</Label>
+                <Label htmlFor="excerptEs">Extracto (español) <span className="text-muted-foreground text-xs">— obligatorio salvo Artículos con fuente original</span></Label>
                 <RichTextEditor rows={2} value={form.excerptEs} onChange={(html) => set("excerptEs", html)} placeholder="Resumen corto que aparece en el listado" recommendedFamily="gelasio" data-testid="input-excerpt-es" />
                 <TypographyFieldControl entityType="news" entityId={id} field="excerptEs" language="es" role="editorial" compact />
               </div>
               <div className="space-y-1.5">
-                <Label htmlFor="excerpt">Extracto (inglés) <span className="text-muted-foreground text-xs">— obligatorio al publicar</span></Label>
+                <Label htmlFor="excerpt">Extracto (inglés) <span className="text-muted-foreground text-xs">— obligatorio salvo Artículos con fuente original</span></Label>
                 <RichTextEditor rows={2} value={form.excerpt} onChange={(html) => set("excerpt", html)} placeholder="Short summary" recommendedFamily="gelasio" data-testid="input-excerpt-en" />
                 <TypographyFieldControl entityType="news" entityId={id} field="excerpt" language="en" role="editorial" compact />
               </div>
@@ -316,6 +322,12 @@ export default function AdminNewsForm() {
                   <Label htmlFor="slug">URL (slug)</Label>
                   <Input id="slug" value={form.slug} onChange={(e) => { setSlugTouched(true); set("slug", e.target.value); }} placeholder="se-genera-del-titulo" data-testid="input-slug" />
                 </div>
+              </div>
+
+              <div className="space-y-1.5">
+                <Label htmlFor="sourceUrl">Fuente original <span className="text-muted-foreground text-xs">— opcional</span></Label>
+                <Input id="sourceUrl" type="url" value={form.sourceUrl} onChange={(e) => set("sourceUrl", e.target.value)} placeholder="https://…" data-testid="input-source-url" />
+                <p className="text-xs text-muted-foreground">Se muestra como enlace clicable en el listado y en el detalle. Es obligatoria si un Artículo publicado no tiene extractos verificables.</p>
               </div>
 
               <div className="flex items-center gap-3">

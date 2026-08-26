@@ -10,6 +10,7 @@ process.env.DATABASE_URL ||= "postgresql://test:test@127.0.0.1:5432/test";
 
 const { renderAttorney } = await import("../mirror/renderAttorney");
 const { renderNewsDetail, renderNewsList } = await import("../mirror/renderNews");
+const { ARTICLE_SUMMARY_CURATION_20260826 } = await import("@shared/articleSummaryCuration2026");
 
 const attorneyTemplate = `<!doctype html><html><head><title>Profile</title></head><body><section class="page attorney"><div class="page--wrap wrap">
   <div class="attorney__meta--name"></div><div class="attorney__meta--role"></div>
@@ -109,6 +110,57 @@ test("el archivo conserva el filtro de autor al buscar y paginar", () => {
   assert.match($(".pagination-dyn").html() || "", /lang=en/);
 });
 
+test("los Artículos no repiten el título ni imprimen URLs crudas, y exponen su fuente segura", () => {
+  const archived = renderNewsList(
+    `<!doctype html><html><head></head><body><div class="archive__list"></div></body></html>`,
+    [{
+      slug: "legacy-article",
+      category: "articles",
+      title: "Legacy article",
+      titleEs: "Artículo histórico",
+      excerpt: "https://source.example/original.pdf",
+      excerptEs: "https://source.example/original.pdf",
+      sourceUrl: "https://source.example/original.pdf",
+      date: "2026-08-26",
+    }],
+    "es",
+  );
+  const detail = renderNewsDetail(newsTemplate, {
+    slug: "legacy-article",
+    category: "articles",
+    title: "Legacy article",
+    titleEs: "Artículo histórico",
+    excerpt: "Legacy article",
+    excerptEs: "Artículo histórico",
+    content: "PDF",
+    contentEs: "Introducción",
+    sourceUrl: "https://source.example/original.pdf",
+    date: "2026-08-26",
+  }, "es");
+  const $archive = cheerio.load(archived);
+  const $detail = cheerio.load(detail);
+
+  assert.equal($archive(".archive__item--intro").text().trim(), "");
+  assert.equal($archive(".vw-news-source-link a").text().trim(), "Ver publicación original");
+  assert.equal($archive(".vw-news-source-link a").attr("href"), "https://source.example/original.pdf");
+  assert.equal($archive(".vw-news-source-link a").attr("target"), "_blank");
+  assert.equal($archive(".vw-news-source-link a").attr("rel"), "noopener noreferrer");
+  assert.equal($detail(".single__content--intro").text().trim(), "");
+  assert.equal($detail(".single__content--txt").text().trim(), "");
+  assert.equal($detail(".vw-news-source-link a").text().trim(), "Ver publicación original");
+  assert.equal($detail(".single__meta--name").text().trim(), "Artículo histórico");
+});
+
+test("la curación cubre exactamente los 55 Artículos deficientes con fuente HTTPS", () => {
+  assert.equal(ARTICLE_SUMMARY_CURATION_20260826.length, 55);
+  assert.equal(new Set(ARTICLE_SUMMARY_CURATION_20260826.map((entry) => entry.slug)).size, 55);
+  assert.equal(ARTICLE_SUMMARY_CURATION_20260826.filter((entry) => entry.excerpt && entry.excerptEs).length, 10);
+  assert.equal(ARTICLE_SUMMARY_CURATION_20260826.filter((entry) => !entry.excerpt && !entry.excerptEs).length, 45);
+  for (const entry of ARTICLE_SUMMARY_CURATION_20260826) {
+    assert.match(entry.sourceUrl, /^https:\/\//);
+  }
+});
+
 test("el panel manda vínculos desde la creación y expone revisión humana", () => {
   const form = readFileSync(new URL("../../client/src/pages/admin/AdminNewsForm.tsx", import.meta.url), "utf8");
   const review = readFileSync(new URL("../../client/src/pages/admin/AdminNewsAuthorReview.tsx", import.meta.url), "utf8");
@@ -117,10 +169,14 @@ test("el panel manda vínculos desde la creación y expone revisión humana", ()
   assert.match(form, /tags:\s*form\.tags/);
   assert.match(form, /input-author-search/);
   assert.match(form, /input-editorial-tags/);
+  assert.match(form, /input-source-url/);
+  assert.match(form, /sourceOnlyArticle/);
   assert.match(review, /Confirmar vínculos/);
   assert.match(routes, /\/api\/admin\/news\/author-review/);
   assert.match(routes, /createNewsWithTeamMembers/);
   assert.match(routes, /editorialTagsSchema/);
+  assert.match(routes, /sourceUrlSchema/);
+  assert.match(routes, /verified source for Articles/);
 });
 
 test("las perspectivas del perfil se presentan en una franja horizontal antes del footer", () => {
