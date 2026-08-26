@@ -17,5 +17,8 @@ if (["empty", "partial", "unavailable"].includes(status.state)) {
 } else {
   await run("npm", ["run", "verify:video-runtime"]);
   await run("npm", ["run", "db:migrate"]);
+  // La curación editorial es idempotente y debe ejecutarse después de que
+  // source_url exista también en la base del deployment (Preview/producción).
+  await run("npm", ["run", "content:apply-article-curation"]);
   await run("npm", ["run", "start"]);
 }
