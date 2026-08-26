@@ -12,6 +12,13 @@ import {
   DEFAULT_ATTORNEY_DIRECTORY_PRESET,
   DEFAULT_FOOTER_PRESET,
 } from "@shared/publicAppearance";
+import {
+  PRIVACY_NOTICE_VWYS_2026_EN,
+  PRIVACY_NOTICE_VWYS_2026_ES,
+  PRIVACY_NOTICE_VWYS_2026_MIGRATION_KEY,
+  PRIVACY_NOTICE_VWYS_2026_PREVIOUS_VERSION_KEY,
+  PRIVACY_NOTICE_VWYS_2026_SOURCE,
+} from "../content/privacyNoticeVwys2026";
 
 export type ConfigMap = Record<string, { value: string; valueEs: string; type: string; typography?: TypographyStyles }>;
 
@@ -441,7 +448,7 @@ const DEFAULTS: Array<{ key: string; value: string; valueEs?: string; type: stri
   { key: "page_industries_eyebrow", value: "Industries", valueEs: "Industrias", type: "text", category: "pages", description: "Industrias — etiqueta editorial" },
   { key: "page_industries_title", value: "Our industries", valueEs: "Nuestras industrias", type: "text", category: "pages", description: "Industrias — título principal" },
   { key: "page_industries_description", value: "Explore the industry groups with which we address the specific needs of every sector.", valueEs: "Conoce los grupos de práctica con los que atendemos las necesidades específicas de cada industria.", type: "text", category: "pages", description: "Industrias — texto introductorio" },
-  { key: "page_privacy_body", value: "", valueEs: "", type: "text", category: "pages", description: "Aviso de Privacidad — texto completo" },
+  { key: "page_privacy_body", value: PRIVACY_NOTICE_VWYS_2026_EN, valueEs: PRIVACY_NOTICE_VWYS_2026_ES, type: "text", category: "pages", description: "Aviso de Privacidad — texto completo (VWyS!636089.3)" },
   { key: "page_diversity_eyebrow", value: "Our firm", valueEs: "Nuestra firma", type: "text", category: "pages", description: "Diversidad e Inclusión — etiqueta editorial" },
   { key: "page_diversity_title", value: "Diversity & inclusion", valueEs: "Diversidad e inclusión", type: "text", category: "pages", description: "Diversidad e Inclusión — título principal" },
   { key: "page_diversity_intro", value: "", valueEs: "", type: "text", category: "pages", description: "Diversidad e Inclusión — párrafo de introducción" },
@@ -543,6 +550,79 @@ async function ensureFirmPreviousVersion(): Promise<boolean> {
     category: "firm",
     description: "Respaldo interno de la versión anterior de la landing institucional",
   }).onConflictDoNothing({ target: siteConfig.key });
+  return true;
+}
+
+/**
+ * Publica una sola vez el Aviso de Privacidad 2026 entregado por la firma.
+ * Antes de reemplazar el texto histórico conserva ambos idiomas en una clave
+ * interna. El marcador evita que futuros arranques reemplacen cambios hechos
+ * conscientemente desde Administración.
+ */
+async function ensurePrivacyNoticeVwys2026(): Promise<boolean> {
+  const [migration] = await db
+    .select({ value: siteConfig.value })
+    .from(siteConfig)
+    .where(eq(siteConfig.key, PRIVACY_NOTICE_VWYS_2026_MIGRATION_KEY));
+  if (migration?.value === "complete") return false;
+
+  const [current] = await db.select().from(siteConfig).where(eq(siteConfig.key, "page_privacy_body"));
+  const capturedAt = new Date().toISOString();
+  const previous = {
+    capturedAt,
+    source: PRIVACY_NOTICE_VWYS_2026_SOURCE,
+    content: {
+      value: current?.value ?? "",
+      valueEs: current?.valueEs ?? "",
+    },
+  };
+
+  await db.transaction(async (tx) => {
+    // El respaldo se crea únicamente si aún no existe. Si hay dos arranques
+    // concurrentes, ninguno puede sobrescribir la primera copia histórica.
+    await tx.insert(siteConfig).values({
+      key: PRIVACY_NOTICE_VWYS_2026_PREVIOUS_VERSION_KEY,
+      value: JSON.stringify(previous),
+      valueEs: "",
+      type: "json",
+      category: "privacy",
+      description: "Respaldo interno previo al Aviso de Privacidad VWyS 2026",
+      updatedAt: new Date(),
+    }).onConflictDoNothing({ target: siteConfig.key });
+
+    await tx.insert(siteConfig).values({
+      key: "page_privacy_body",
+      value: PRIVACY_NOTICE_VWYS_2026_EN,
+      valueEs: PRIVACY_NOTICE_VWYS_2026_ES,
+      type: "text",
+      category: "pages",
+      description: `Aviso de Privacidad — texto completo (${PRIVACY_NOTICE_VWYS_2026_SOURCE})`,
+      updatedAt: new Date(),
+    }).onConflictDoUpdate({
+      target: siteConfig.key,
+      set: {
+        value: PRIVACY_NOTICE_VWYS_2026_EN,
+        valueEs: PRIVACY_NOTICE_VWYS_2026_ES,
+        type: "text",
+        category: "pages",
+        description: `Aviso de Privacidad — texto completo (${PRIVACY_NOTICE_VWYS_2026_SOURCE})`,
+        updatedAt: new Date(),
+      },
+    });
+
+    await tx.insert(siteConfig).values({
+      key: PRIVACY_NOTICE_VWYS_2026_MIGRATION_KEY,
+      value: "complete",
+      valueEs: "complete",
+      type: "text",
+      category: "internal",
+      description: `Migración interna del Aviso de Privacidad ${PRIVACY_NOTICE_VWYS_2026_SOURCE}`,
+      updatedAt: new Date(),
+    }).onConflictDoUpdate({
+      target: siteConfig.key,
+      set: { value: "complete", valueEs: "complete", updatedAt: new Date() },
+    });
+  });
   return true;
 }
 
@@ -809,6 +889,7 @@ export async function seedConfigDefaults(): Promise<void> {
   // Debe ejecutarse antes de cualquier normalización de la landing. Así la copia
   // conserva exactamente la versión que el público veía antes de consolidarla.
   const firmPreviousVersionCreated = await ensureFirmPreviousVersion();
+  const privacyNoticeUpdated = await ensurePrivacyNoticeVwys2026();
 
   // Publica el video 2026 entregado por el cliente únicamente cuando cada campo
   // conserva un recurso predeterminado anterior. Los medios personalizados que
@@ -1058,7 +1139,7 @@ export async function seedConfigDefaults(): Promise<void> {
     contactCopyUpdated = true;
   }
 
-  if (missing.length || recognitionsNavigationUpdated || insightsDestinationsNavigationUpdated || firmDestinationsNavigationUpdated || firmPreviousVersionCreated || heroMediaUpdated || bannerCopyUpdated || footerUpdated || heroLinkUpdated || landingRouteUpdated || firmCopyUpdated || rankingTitleUpdated || newsletterCopyUpdated || contactCopyUpdated) invalidateConfigCache();
+  if (missing.length || recognitionsNavigationUpdated || insightsDestinationsNavigationUpdated || firmDestinationsNavigationUpdated || firmPreviousVersionCreated || privacyNoticeUpdated || heroMediaUpdated || bannerCopyUpdated || footerUpdated || heroLinkUpdated || landingRouteUpdated || firmCopyUpdated || rankingTitleUpdated || newsletterCopyUpdated || contactCopyUpdated) invalidateConfigCache();
 }
 
 /** Upsert one key (used by the admin endpoint). */

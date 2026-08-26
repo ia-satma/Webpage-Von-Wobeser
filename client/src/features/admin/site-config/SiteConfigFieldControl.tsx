@@ -212,7 +212,7 @@ export function SiteConfigFieldControl({
             ? (field.key === "hero_video_master" ? "Generando versiones…" : "Guardando…")
             : (field.key === "hero_video_master" ? "Generar / regenerar Full HD" : "Guardar")}
         </Button>
-        {field.bilingual && (
+        {field.bilingual && field.allowAutoTranslation !== false && (
           <TranslateButton
             getSource={() => ({ value: draft[field.key]?.valueEs ?? "" })}
             onApply={(translation) => {

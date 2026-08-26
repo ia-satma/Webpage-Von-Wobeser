@@ -6,6 +6,8 @@ export type SiteConfigField = {
   label: string;
   help?: string;
   bilingual?: boolean;
+  /** El contenido legal requiere versión revisada; no ofrece traducción automática. */
+  allowAutoTranslation?: boolean;
   media?: "image" | "video";
   multiline?: boolean;
   rows?: number;

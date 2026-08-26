@@ -400,12 +400,12 @@ export const PAGES: Record<string, SiteConfigPageDefinition> = {
   },
   privacidad: {
     title: "Aviso de Privacidad",
-    description: "Documento legal (LFPDPPP). Si lo dejas vacío, se muestra el texto original.",
+    description: "Documento legal (LFPDPPP). El aviso vigente se administra en español e inglés desde este módulo.",
     icon: Lock,
     groups: [
       {
         fields: [
-          { key: "page_privacy_body", label: "Texto completo", help: "Edítalo si cambia el domicilio, el responsable de los datos u otro dato de cumplimiento.", bilingual: true, multiline: true, rows: 14 },
+          { key: "page_privacy_body", label: "Texto completo", help: "Aviso VWyS 2026. Puedes editar ambos idiomas; conserva el marcador [___] hasta que Legal defina el medio de comunicación de modificaciones. La traducción automática está deshabilitada para este texto legal.", bilingual: true, multiline: true, rows: 18, allowAutoTranslation: false },
         ],
       },
     ],
