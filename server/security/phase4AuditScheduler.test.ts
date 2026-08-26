@@ -64,6 +64,9 @@ test("el ejecutor de migraciones compara conteos y revierte ante diferencias", (
   assert.match(source, /Protected table counts changed/);
   assert.match(source, /await client\.query\("ROLLBACK"\)/);
   assert.match(source, /strictAdditiveStart = "20260820_0001"/);
+  assert.match(source, /20260826_0001_news_source_url\.sql/);
+  assert.match(source, /table: "news", column: "source_url", dataType: "text"/);
+  assert.match(source, /reconciled platform-applied schema migration/);
 });
 
 test("las tareas usan lock, idempotencia y resultados sin datos libres", () => {

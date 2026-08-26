@@ -26,6 +26,12 @@ const client = new pg.Client({
 
 const migrationsDir = path.join(process.cwd(), "migrations");
 const strictAdditiveStart = "20260820_0001";
+// Replit may provision an approved additive schema migration before this
+// runner starts. Reconcile only this exact, verified column so a deployment
+// never treats an already-applied migration as a fatal duplicate.
+const platformSchemaReconciliations = new Map([
+  ["20260826_0001_news_source_url.sql", { table: "news", column: "source_url", dataType: "text" }],
+]);
 
 function quoteIdentifier(value) {
   return `"${String(value).replace(/"/g, '""')}"`;
@@ -90,6 +96,18 @@ function assertProtectedCountsUnchanged(name, before, after) {
   }
 }
 
+async function isPlatformSchemaMigrationAlreadyApplied(name) {
+  const expected = platformSchemaReconciliations.get(name);
+  if (!expected) return false;
+  const result = await client.query(
+    `SELECT data_type
+       FROM information_schema.columns
+      WHERE table_schema = 'public' AND table_name = $1 AND column_name = $2`,
+    [expected.table, expected.column],
+  );
+  return result.rowCount === 1 && result.rows[0].data_type === expected.dataType;
+}
+
 await client.connect();
 try {
   await client.query("SELECT pg_advisory_lock($1)", [2026072301]);
@@ -130,7 +148,11 @@ try {
         console.log(`[migrations] schema-manifest before ${name}: ${schemaBefore}`);
       }
       if (name.endsWith(".sql")) {
-        await client.query(source);
+        if (await isPlatformSchemaMigrationAlreadyApplied(name)) {
+          console.log(`[migrations] reconciled platform-applied schema migration ${name}`);
+        } else {
+          await client.query(source);
+        }
       } else {
         const module = await import(`${pathToFileURL(sourcePath).href}?sha256=${sha256}`);
         if (typeof module.default !== "function") {
