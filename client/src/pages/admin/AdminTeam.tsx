@@ -29,6 +29,7 @@ import {
   UserPlus
 } from "lucide-react";
 import type { TeamMember } from "@shared/schema";
+import { getAttorneyPublicName } from "@shared/attorneyName";
 
 const translations = {
   en: {
@@ -565,16 +566,17 @@ export default function AdminTeam() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {data.members.map((member) => (
-                      <TableRow key={member.id} data-testid={`row-member-${member.id}`}>
+                    {data.members.map((member) => {
+                      const publicName = getAttorneyPublicName(member);
+                      return <TableRow key={member.id} data-testid={`row-member-${member.id}`}>
                         <TableCell>
                           <div className="flex items-center gap-3">
                             <Avatar className="h-10 w-10">
-                              <AvatarImage src={member.imageUrl || undefined} alt={member.name} />
-                              <AvatarFallback>{getInitials(member.name)}</AvatarFallback>
+                              <AvatarImage src={member.imageUrl || undefined} alt={publicName} />
+                              <AvatarFallback>{getInitials(publicName)}</AvatarFallback>
                             </Avatar>
                             <div>
-                              <div className="font-medium">{member.name}</div>
+                              <div className="font-medium">{publicName}</div>
                               <div className="text-sm text-muted-foreground">
                                 {language === "es" ? member.titleEs : member.title}
                               </div>
@@ -593,7 +595,7 @@ export default function AdminTeam() {
                               checked={member.published !== false}
                               onCheckedChange={(published) => publishedMutation.mutate({ id: member.id, published })}
                               disabled={publishedMutation.isPending}
-                              aria-label={`${member.published === false ? visibilityCopy.show : visibilityCopy.hide} ${member.name}`}
+                              aria-label={`${member.published === false ? visibilityCopy.show : visibilityCopy.hide} ${publicName}`}
                               data-testid={`switch-member-published-${member.id}`}
                             />
                             <Badge variant={member.published === false ? "secondary" : "outline"} className={member.published === false ? "" : "border-emerald-600/30 bg-emerald-50 text-emerald-700"}>
@@ -635,8 +637,8 @@ export default function AdminTeam() {
                             </Button>
                           </div>
                         </TableCell>
-                      </TableRow>
-                    ))}
+                      </TableRow>;
+                    })}
                   </TableBody>
                 </Table>
 

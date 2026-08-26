@@ -1,5 +1,6 @@
 import * as cheerio from "cheerio";
 import { getLocalizedAttorneyRole, getLocalizedAttorneyTitle } from "@shared/attorneyTitles";
+import { getAttorneyPublicName } from "@shared/attorneyName";
 import { applySeo, personNode, breadcrumbNode, clip } from "./seo";
 import { renderRichText } from "./sanitize";
 import { typographyAttribute, type TypographyStyles } from "@shared/editorialTypography";
@@ -195,7 +196,7 @@ export function renderAttorney(templateHtml: string, a: any, lang: Lang = "en", 
   const $ = cheerio.load(templateHtml);
   $(".attorney").attr("data-vw-content-kind", "attorney");
 
-  const name = a.name || "";
+  const name = getAttorneyPublicName(a);
   const role = getLocalizedAttorneyTitle(a, lang) || getLocalizedAttorneyRole(a, lang);
   const phone = a.phone || "";
   const email = a.email || "";

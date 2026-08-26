@@ -3,6 +3,7 @@ import { applySeo, serviceNode, breadcrumbNode, clip } from "./seo";
 import { renderRichText } from "./sanitize";
 import { typographyAttribute, type TypographyStyles } from "@shared/editorialTypography";
 import { escapeHtmlAttribute, escapeHtmlText } from "./htmlEscape";
+import { getAttorneyPublicName } from "@shared/attorneyName";
 
 type Lang = "en" | "es";
 type Kind = "practice" | "industry";
@@ -30,7 +31,7 @@ function buildAttorneyAccordion(attorneys: any[], kind: Kind, lang: Lang): strin
 
   const p = (a: any) =>
     `<p style="font-size:14px; margin-bottom:10px; margin-top:10px; line-height:18px;">` +
-    `<a href="/lawyer/${escapeHtmlAttribute(a.slug)}${langSuffix}">${esc(a.name)}</a></p>`;
+    `<a href="/lawyer/${escapeHtmlAttribute(a.slug)}${langSuffix}">${esc(getAttorneyPublicName(a))}</a></p>`;
 
   const blocks: string[] = [];
   for (const g of ROLE_GROUPS) {

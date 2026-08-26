@@ -3,6 +3,7 @@ import { applySeo, breadcrumbNode, clip } from "./seo";
 import { CATEGORIES } from "./renderAttorneyList";
 import { renderRichText } from "./sanitize";
 import { escapeHtmlAttribute, escapeHtmlText } from "./htmlEscape";
+import { getAttorneyPublicName } from "@shared/attorneyName";
 
 type Lang = "en" | "es";
 
@@ -54,7 +55,7 @@ function buildDeskTeamAccordion(members: any[], lang: Lang): string {
     const items = list
       .map(
         (m) =>
-          `<p style="font-size:14px; margin-bottom:10px; margin-top:10px; line-height:18px;"><a href="/lawyer/${escapeHtmlAttribute(m.slug)}${lang === "en" ? "?lang=en" : ""}">${esc(m.name)}</a></p>`,
+          `<p style="font-size:14px; margin-bottom:10px; margin-top:10px; line-height:18px;"><a href="/lawyer/${escapeHtmlAttribute(m.slug)}${lang === "en" ? "?lang=en" : ""}">${esc(getAttorneyPublicName(m))}</a></p>`,
       )
       .join("");
     html += `<li class="accordion">${esc(label)}</li><div style="padding:0 10px; background-color:#bdbcbc;" class="panel">${items}</div>`;

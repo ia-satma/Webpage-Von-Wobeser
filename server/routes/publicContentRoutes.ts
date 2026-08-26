@@ -2,6 +2,7 @@ import type { Express, NextFunction, Request, Response } from "express";
 import path from "node:path";
 import { contactFormSchema, newsletterSubscribeSchema } from "@shared/schema";
 import { getLocalizedAttorneyRole, getLocalizedAttorneyTitle } from "@shared/attorneyTitles";
+import { getAttorneyPublicName, getAttorneySearchName } from "@shared/attorneyName";
 import { z } from "zod";
 import { checkSharedRateLimit, recordSharedRateLimitAttempt } from "../auth";
 import { deletePersistentPrivateCv, persistPrivateCvFile } from "../media/privateDocuments";
@@ -24,6 +25,16 @@ import { escapeHtmlAttribute } from "../mirror/htmlEscape";
 
 const isNewsPubliclyVisible = (news: { published?: boolean | null; publishAt?: Date | string | null }): boolean =>
   news.published === true && (!news.publishAt || new Date(news.publishAt) <= new Date());
+
+/**
+ * The public API follows the same presentation contract as server-rendered
+ * pages: second surnames remain in the administrative record, not in browser
+ * responses. vCards intentionally continue using the legal/canonical name.
+ */
+function toPublicTeamMember(member: any) {
+  const { givenNames: _givenNames, firstSurname: _firstSurname, secondSurname: _secondSurname, ...publicMember } = member;
+  return { ...publicMember, name: getAttorneyPublicName(member) };
+}
 
 function generateVCard(member: any, language: "es" | "en" = "es"): string {
   const vcardText = (value: unknown) => String(value ?? "")
@@ -166,7 +177,7 @@ export function registerPublicContentRoutes(app: Express): void {
     try {
       const members = (await storage.getTeamMembers()).filter(isPubliclyVisible);
       res.set("Cache-Control", "public, max-age=60");
-      res.json(members);
+      res.json(members.map(toPublicTeamMember));
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch team members" });
     }
@@ -176,7 +187,7 @@ export function registerPublicContentRoutes(app: Express): void {
     try {
       const partners = (await storage.getPartners()).filter(isPubliclyVisible);
       res.set("Cache-Control", "public, max-age=60");
-      res.json(partners);
+      res.json(partners.map(toPublicTeamMember));
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch partners" });
     }
@@ -203,7 +214,7 @@ export function registerPublicContentRoutes(app: Express): void {
 
       const members = await storage.searchTeamMembers({ q, title, practiceGroupId });
       res.set("Cache-Control", "public, max-age=60");
-      res.json(members);
+      res.json(members.map(toPublicTeamMember));
     } catch (error) {
       console.error("Team search error:", error);
       res.status(500).json({ error: "Failed to search team members" });
@@ -220,7 +231,7 @@ export function registerPublicContentRoutes(app: Express): void {
       if (!member || !isPubliclyVisible(member)) {
         return res.status(404).json({ error: "Team member not found" });
       }
-      res.json(member);
+      res.json(toPublicTeamMember(member));
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch team member" });
     }
@@ -568,7 +579,7 @@ export function registerPublicContentRoutes(app: Express): void {
       const industryGroups = industryGroupsRaw.filter(isPubliclyVisible);
 
       const filteredTeam = team.filter(m =>
-        m.name.toLowerCase().includes(query) ||
+        getAttorneySearchName(m).toLowerCase().includes(query) ||
         m.title.toLowerCase().includes(query) ||
         m.titleEs.toLowerCase().includes(query) ||
         m.role.toLowerCase().includes(query) ||
@@ -603,7 +614,7 @@ export function registerPublicContentRoutes(app: Express): void {
         .some(value => value.toLowerCase().includes(query)));
 
       res.json({
-        team: filteredTeam,
+        team: filteredTeam.map(toPublicTeamMember),
         practiceGroups: filteredPractice,
         industryGroups: filteredIndustry,
         news: filteredNews,

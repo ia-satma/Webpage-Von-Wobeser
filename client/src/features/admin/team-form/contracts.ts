@@ -2,7 +2,10 @@ import { z } from "zod";
 import { teamFormTranslations } from "./translations";
 
 export const TEAM_LABELS: Record<string, string> = {
-  name: "Nombre",
+  name: "Nombre legal completo",
+  givenNames: "Nombre(s)",
+  firstSurname: "Primer apellido",
+  secondSurname: "Segundo apellido",
   slug: "Slug",
   title: "Cargo",
   titleEs: "Cargo (español)",
@@ -24,6 +27,9 @@ export const TEAM_LABELS: Record<string, string> = {
 
 export const teamMemberFormSchema = z.object({
   name: z.string().min(1, "Name is required"),
+  givenNames: z.string().min(1, "Given name is required"),
+  firstSurname: z.string().min(1, "First surname is required"),
+  secondSurname: z.string().optional(),
   slug: z.string().min(1, "Slug is required"),
   title: z.string().min(1, "Title is required"),
   titleEs: z.string().min(1, "Spanish title is required"),
@@ -81,6 +87,9 @@ export type TeamFormCopy = typeof teamFormTranslations.en | typeof teamFormTrans
 export function createTeamMemberDefaults(): TeamMemberFormData {
   return {
     name: "",
+    givenNames: "",
+    firstSurname: "",
+    secondSurname: "",
     slug: "",
     title: "",
     titleEs: "",

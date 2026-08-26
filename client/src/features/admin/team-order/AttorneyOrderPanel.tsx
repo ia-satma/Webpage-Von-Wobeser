@@ -10,6 +10,7 @@ import {
   SlidersHorizontal,
 } from "lucide-react";
 import type { TeamMember } from "@shared/schema";
+import { getAttorneyPublicName } from "@shared/attorneyName";
 import {
   ATTORNEY_ORDER_CATEGORIES,
   type AttorneyOrderCategoryId,
@@ -217,8 +218,9 @@ export function AttorneyOrderPanel({ language }: { language: string }) {
           <p className="p-6 text-sm text-muted-foreground">{isEs ? "No hay abogados en esta categoría." : "There are no attorneys in this category."}</p>
         ) : (
           <ul className="divide-y divide-[#E7E5E4]" aria-label={`${copy.title}: ${ATTORNEY_ORDER_CATEGORIES.find((item) => item.id === category)?.[isEs ? "labelEs" : "labelEn"] || ""}`}>
-            {orderedMembers.map((member, index) => (
-              <li
+            {orderedMembers.map((member, index) => {
+              const publicName = getAttorneyPublicName(member);
+              return <li
                 key={member.id}
                 className={`transition-colors ${dragOverId === member.id ? "bg-[#AA1A2E]/5" : ""}`}
                 onDragOver={(event) => {
@@ -238,7 +240,7 @@ export function AttorneyOrderPanel({ language }: { language: string }) {
                       type="button"
                       draggable
                       className="hidden size-9 shrink-0 cursor-grab items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#AA1A2E] active:cursor-grabbing sm:flex"
-                      aria-label={`${copy.move} ${member.name}`}
+                      aria-label={`${copy.move} ${publicName}`}
                       title={copy.move}
                       onDragStart={(event) => {
                         event.dataTransfer.effectAllowed = "move";
@@ -255,10 +257,10 @@ export function AttorneyOrderPanel({ language }: { language: string }) {
                     <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-muted text-xs font-semibold tabular-nums" aria-label={`${copy.position} ${index + 1}`}>{index + 1}</span>
                     <Avatar className="size-10 shrink-0 rounded-md">
                       <AvatarImage src={member.imageUrl || undefined} alt="" />
-                      <AvatarFallback className="rounded-md text-xs">{initials(member.name)}</AvatarFallback>
+                      <AvatarFallback className="rounded-md text-xs">{initials(publicName)}</AvatarFallback>
                     </Avatar>
                     <div className="min-w-0">
-                      <p className="truncate font-medium text-[#1D1D1B]">{member.name}</p>
+                      <p className="truncate font-medium text-[#1D1D1B]">{publicName}</p>
                       <p className="truncate text-sm text-muted-foreground">{isEs ? member.titleEs : member.title}</p>
                     </div>
                     <Badge variant={member.published === false ? "secondary" : "outline"} className={member.published === false ? "ml-auto shrink-0" : "ml-auto shrink-0 border-emerald-600/30 bg-emerald-50 text-emerald-700"}>
@@ -266,16 +268,16 @@ export function AttorneyOrderPanel({ language }: { language: string }) {
                     </Badge>
                   </div>
                   <div className="flex items-center gap-2 self-end sm:self-auto">
-                    <Button type="button" variant="outline" size="sm" onClick={() => move(member.id, -1)} disabled={index === 0 || saveMutation.isPending} aria-label={`${copy.up} ${member.name}`} data-testid={`button-attorney-order-up-${member.id}`}>
+                    <Button type="button" variant="outline" size="sm" onClick={() => move(member.id, -1)} disabled={index === 0 || saveMutation.isPending} aria-label={`${copy.up} ${publicName}`} data-testid={`button-attorney-order-up-${member.id}`}>
                       <ArrowUp className="mr-1 size-4" aria-hidden="true" />{copy.up}
                     </Button>
-                    <Button type="button" variant="outline" size="sm" onClick={() => move(member.id, 1)} disabled={index === orderedMembers.length - 1 || saveMutation.isPending} aria-label={`${copy.down} ${member.name}`} data-testid={`button-attorney-order-down-${member.id}`}>
+                    <Button type="button" variant="outline" size="sm" onClick={() => move(member.id, 1)} disabled={index === orderedMembers.length - 1 || saveMutation.isPending} aria-label={`${copy.down} ${publicName}`} data-testid={`button-attorney-order-down-${member.id}`}>
                       <ArrowDown className="mr-1 size-4" aria-hidden="true" />{copy.down}
                     </Button>
                   </div>
                 </div>
-              </li>
-            ))}
+              </li>;
+            })}
           </ul>
         )}
       </CardContent>

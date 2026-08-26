@@ -1,4 +1,5 @@
 import * as cheerio from "cheerio";
+import { getAttorneyPublicName } from "@shared/attorneyName";
 
 type Lang = "en" | "es";
 
@@ -31,7 +32,7 @@ export function renderAttorneyResults(templateHtml: string, attorneys: any[], la
         `<div class="archive__item search_photo fotos_abogados">` +
         `<a href="/lawyer/${esc(a.slug)}${langSuffix}">` +
         `<div style="${photoStyle}"></div>` +
-        `<div class="archive__item--ttl" style="text-align:center;width:200px;margin-top:8px;">${esc(a.name)}</div>` +
+        `<div class="archive__item--ttl" style="text-align:center;width:200px;margin-top:8px;">${esc(getAttorneyPublicName(a))}</div>` +
         `</a></div>`
       );
     })

@@ -1,5 +1,6 @@
-import { eq, desc, asc, and, inArray, ilike, sql } from "drizzle-orm";
+import { eq, desc, asc, and, or, inArray, ilike, sql } from "drizzle-orm";
 import { normalizeSpanishPartnerFields } from "@shared/attorneyTitles";
+import { deriveAttorneyNameParts, getAttorneyFullName } from "@shared/attorneyName";
 import type { AttorneyOrderCategoryId } from "@shared/attorneyOrder";
 import { type PracticeGroup, type InsertPracticeGroup, type IndustryGroup, type InsertIndustryGroup, type TeamMember, type InsertTeamMember, type RepresentativeMatterDb, type InsertRepresentativeMatter, type SpecializedDesk, type InsertSpecializedDesk, practiceGroups, industryGroups, teamMembers, teamMemberPracticeGroups, teamMemberIndustryGroups, teamMemberDesks, representativeMatters, specializedDesks } from "@shared/schema";
 import { attorneyOrderVersion, getAttorneyOrderCategory, hasExactAttorneySet } from "../../attorneys/order";
@@ -64,7 +65,12 @@ export function createPeopleRepository(db: StorageDatabase) {
     }
 
     async createTeamMember(member: InsertTeamMember): Promise<TeamMember> {
-      const normalizedMember = normalizeSpanishPartnerFields(member);
+      const nameParts = deriveAttorneyNameParts(member);
+      const normalizedMember = normalizeSpanishPartnerFields({
+        ...member,
+        ...nameParts,
+        name: getAttorneyFullName(nameParts),
+      });
       return db.transaction(async (tx) => {
         // El orden no se recibe como una prioridad arbitraria: un alta entra al
         // final de su categoría pública y después puede moverse desde el panel.
@@ -87,9 +93,23 @@ export function createPeopleRepository(db: StorageDatabase) {
       // La prioridad editorial pertenece al reordenador por categoría. Ignorar
       // cualquier valor legado recibido desde la ficha evita colisiones o saltos.
       const { order: _ignoredOrder, ...memberWithoutOrder } = member;
-      const normalized = normalizeSpanishPartnerFields({ ...current, ...memberWithoutOrder });
+      const hasNameInput = ["name", "givenNames", "firstSurname", "secondSurname"]
+        .some((field) => Object.prototype.hasOwnProperty.call(memberWithoutOrder, field));
+      const nameParts = hasNameInput
+        ? deriveAttorneyNameParts(
+          "givenNames" in memberWithoutOrder || "firstSurname" in memberWithoutOrder || "secondSurname" in memberWithoutOrder
+            ? { ...current, ...memberWithoutOrder }
+            : { name: memberWithoutOrder.name },
+        )
+        : undefined;
+      const normalized = normalizeSpanishPartnerFields({
+        ...current,
+        ...memberWithoutOrder,
+        ...(nameParts ? { ...nameParts, name: getAttorneyFullName(nameParts) } : {}),
+      });
       const normalizedMember: Partial<InsertTeamMember> = {
         ...memberWithoutOrder,
+        ...(nameParts ? { ...nameParts, name: getAttorneyFullName(nameParts) } : {}),
         ...(normalized.titleEs !== undefined ? { titleEs: normalized.titleEs } : {}),
         ...(normalized.roleEs !== undefined ? { roleEs: normalized.roleEs } : {}),
       };
@@ -211,7 +231,12 @@ export function createPeopleRepository(db: StorageDatabase) {
       const q = filters.q?.trim();
       if (q) {
         const like = `%${q.replace(/[%_\\]/g, "\\$&")}%`; // escapa comodines para búsqueda literal
-        conds.push(ilike(teamMembers.name, like));
+        conds.push(or(
+          ilike(teamMembers.name, like),
+          ilike(teamMembers.givenNames, like),
+          ilike(teamMembers.firstSurname, like),
+          ilike(teamMembers.secondSurname, like),
+        )!);
       }
       if (filters.practiceGroupId) {
         const rows = await db

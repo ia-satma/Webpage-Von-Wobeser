@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { TeamFormCopy, TeamMemberFormData } from "./contracts";
 import { calculateProfileProgress, getTeamMemberInitials } from "./helpers";
+import { getAttorneyPublicName } from "@shared/attorneyName";
 
 interface TeamMemberPreviewProps {
   values: TeamMemberFormData;
@@ -13,6 +14,7 @@ interface TeamMemberPreviewProps {
 }
 
 export function TeamMemberPreview({ values, language, t }: TeamMemberPreviewProps) {
+  const publicName = getAttorneyPublicName(values);
   return (
     <motion.div
       initial={{ opacity: 0, x: 20 }}
@@ -29,13 +31,13 @@ export function TeamMemberPreview({ values, language, t }: TeamMemberPreviewProp
         <CardContent className="p-0">
           <div className="p-6 text-center border-b border-[#D9D8D7]">
             <Avatar className="w-28 h-28 mx-auto mb-4 rounded-none">
-              <AvatarImage src={values.imageUrl || undefined} alt={values.name} className="object-cover" />
+              <AvatarImage src={values.imageUrl || undefined} alt={publicName} className="object-cover" />
               <AvatarFallback className="rounded-none bg-[#AA1A2E] text-white text-2xl font-bold">
-                {values.name ? getTeamMemberInitials(values.name) : <User className="w-10 h-10" />}
+                {publicName ? getTeamMemberInitials(publicName) : <User className="w-10 h-10" />}
               </AvatarFallback>
             </Avatar>
             <h3 className="text-xl font-bold text-[#1D1D1B] mb-1">
-              {values.name || (language === "es" ? "Nombre del Abogado" : "Lawyer Name")}
+              {publicName || (language === "es" ? "Nombre del Abogado" : "Lawyer Name")}
             </h3>
             <p className="text-[#AA1A2E] font-medium mb-1">
               {language === "es" ? values.titleEs : values.title}

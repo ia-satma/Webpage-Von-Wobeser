@@ -51,6 +51,7 @@ import { z } from "zod";
 import { isMigrationReadOnlyEnabled } from "../database/maintenance";
 import { normalizeVideoSource } from "@shared/videoSource";
 import { getLocalizedAttorneyTitle } from "@shared/attorneyTitles";
+import { getAttorneyPublicName, getAttorneySearchName } from "@shared/attorneyName";
 import { getEditorialTypography, getEditorialTypographyForEntities } from "../editorialTypography";
 import { getNavigationAvailability } from "./navigationConfiguration";
 import { buildSearchableEditorialPages } from "./searchEditorialPages";
@@ -94,7 +95,7 @@ function normalizedManagedVideoValue(key: string, value: unknown): string | null
 /** Attorneys belonging to a practice group (reverse of the seeded relation). */
 async function getAttorneysByPractice(practiceGroupId: string) {
   return db
-    .select({ name: teamMembers.name, slug: teamMembers.slug, title: teamMembers.title, order: teamMembers.order })
+    .select({ name: teamMembers.name, givenNames: teamMembers.givenNames, firstSurname: teamMembers.firstSurname, secondSurname: teamMembers.secondSurname, slug: teamMembers.slug, title: teamMembers.title, order: teamMembers.order })
     .from(teamMemberPracticeGroups)
     .innerJoin(teamMembers, eq(teamMemberPracticeGroups.teamMemberId, teamMembers.id))
     .where(and(eq(teamMemberPracticeGroups.practiceGroupId, practiceGroupId), eq(teamMembers.published, true)));
@@ -103,7 +104,7 @@ async function getAttorneysByPractice(practiceGroupId: string) {
 /** Attorneys belonging to an industry group. */
 async function getAttorneysByIndustry(industryGroupId: string) {
   return db
-    .select({ name: teamMembers.name, slug: teamMembers.slug, title: teamMembers.title, order: teamMembers.order })
+    .select({ name: teamMembers.name, givenNames: teamMembers.givenNames, firstSurname: teamMembers.firstSurname, secondSurname: teamMembers.secondSurname, slug: teamMembers.slug, title: teamMembers.title, order: teamMembers.order })
     .from(teamMemberIndustryGroups)
     .innerJoin(teamMembers, eq(teamMemberIndustryGroups.teamMemberId, teamMembers.id))
     .where(and(eq(teamMemberIndustryGroups.industryGroupId, industryGroupId), eq(teamMembers.published, true)));
@@ -466,7 +467,8 @@ export async function createMirrorRuntime() {
         return {
           id: member.id,
           slug: member.slug,
-          name: member.name,
+          name: getAttorneyPublicName(member),
+          searchName: getAttorneySearchName(member),
           role,
           roleLabel: getLocalizedAttorneyTitle(member, lang) || CATEGORIES[role][lang === "es" ? "es" : "en"],
           imageUrl: member.imageUrl || "",
@@ -661,7 +663,7 @@ export async function createMirrorRuntime() {
       values.some((value) => normalizeStr(value || "").includes(normalized));
     const results = {
       team: teamRows
-        .filter((item) => item.published !== false && contains(item.name, item.title, item.titleEs, item.role, item.roleEs, item.bio, item.bioEs))
+        .filter((item) => item.published !== false && contains(getAttorneySearchName(item), item.title, item.titleEs, item.role, item.roleEs, item.bio, item.bioEs))
         .slice(0, 20),
       practiceGroups: practiceRows
         .filter((item) => isVisiblePublicPractice(item) && contains(item.name, item.nameEs, item.description, item.descriptionEs))
@@ -886,7 +888,7 @@ export async function createMirrorRuntime() {
       );
       return null;
     }
-    return { id: member.id, slug: member.slug, name: member.name };
+    return { id: member.id, slug: member.slug, name: getAttorneyPublicName(member) };
   };
   const searchRedirect = (rawKind: unknown, rawQuery: unknown, lang: Lang): string => {
     const kind = String(rawKind || "general").trim().toLowerCase();

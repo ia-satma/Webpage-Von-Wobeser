@@ -1,6 +1,8 @@
 import { db } from "./db";
 import { eq } from "drizzle-orm";
-import { news, newsTeamMembers, officeImages, practiceGroups, industryGroups, teamMembers, representativeMatters, adminUsers, events, specializedDesks } from "@shared/schema";
+import { news, newsTeamMembers, officeImages, practiceGroups, industryGroups, teamMembers, representativeMatters, adminUsers, events, specializedDesks, siteConfig } from "@shared/schema";
+import { CURRENT_ASSOCIATE_ORDER } from "@shared/attorneyOrder";
+import { deriveAttorneyNameParts } from "@shared/attorneyName";
 import { hashPassword } from "./auth";
 import { applyCanonicalPracticeContent } from "./content/canonicalPractices";
 import { applyCanonicalIndustryContent } from "./content/canonicalIndustries";
@@ -837,7 +839,94 @@ const teamMembersData = [
 // El directorio inicial debe coincidir con la fuente editorial canónica; evita
 // que una instalación limpia vuelva a cargar biografías abreviadas o perfiles
 // retirados. La función conserva solo metadata visual preexistente.
-export const canonicalTeamMembersData = applyCanonicalAttorneyContent(teamMembersData);
+// The canonical reconciler intentionally leaves additional historical records
+// untouched. A fresh installation, however, must receive structured names and
+// the approved Associate order for every profile (including hidden records).
+export const canonicalTeamMembersData = applyCanonicalAttorneyContent(teamMembersData).map((member: any) => {
+  const nameParts = deriveAttorneyNameParts(member);
+  const associateOrder = member.title === "Associate"
+    ? CURRENT_ASSOCIATE_ORDER.findIndex((name) => normalizeAttorneyIdentity(name) === normalizeAttorneyIdentity(member.name)) + 1
+    : 0;
+  return {
+    ...member,
+    ...nameParts,
+    ...(associateOrder > 0 ? { order: associateOrder } : {}),
+  };
+});
+
+const ATTORNEY_NAME_PARTS_MIGRATION_KEY = "attorney_name_parts_and_associate_order_v1";
+
+function normalizeAttorneyIdentity(value: string) {
+  return value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+/**
+ * One-time, non-destructive data upgrade for the structured attorney names.
+ * The full legacy `name` is not touched: it remains the stable identity for
+ * URL slugs, historic author relations and audit history. Only the new name
+ * parts and the requested initial Associate sequence are initialized.
+ */
+async function initializeAttorneyNamePartsAndAssociateOrder(): Promise<void> {
+  const [marker] = await db
+    .select({ value: siteConfig.value })
+    .from(siteConfig)
+    .where(eq(siteConfig.key, ATTORNEY_NAME_PARTS_MIGRATION_KEY));
+  if (marker?.value === "complete") return;
+
+  const canonicalBySlug = new Map(
+    canonicalTeamMembersData
+      .filter((member: any) => typeof member.slug === "string")
+      .map((member: any) => [member.slug, deriveAttorneyNameParts(member)]),
+  );
+  const associateOrder = new Map(
+    CURRENT_ASSOCIATE_ORDER.map((name, index) => [normalizeAttorneyIdentity(name), index + 1]),
+  );
+  const members = await db
+    .select({
+      id: teamMembers.id,
+      slug: teamMembers.slug,
+      name: teamMembers.name,
+      title: teamMembers.title,
+    })
+    .from(teamMembers);
+
+  await db.transaction(async (tx) => {
+    for (const member of members) {
+      const parts = canonicalBySlug.get(member.slug) || deriveAttorneyNameParts({ name: member.name });
+      const order = member.title === "Associate"
+        ? associateOrder.get(normalizeAttorneyIdentity(member.name))
+        : undefined;
+      await tx
+        .update(teamMembers)
+        .set({
+          givenNames: parts.givenNames,
+          firstSurname: parts.firstSurname,
+          secondSurname: parts.secondSurname || null,
+          ...(order ? { order } : {}),
+        })
+        .where(eq(teamMembers.id, member.id));
+    }
+    await tx
+      .insert(siteConfig)
+      .values({
+        key: ATTORNEY_NAME_PARTS_MIGRATION_KEY,
+        value: "complete",
+        valueEs: "complete",
+        type: "text",
+        category: "team",
+        description: "Inicialización de nombres estructurados y orden de Asociados",
+      })
+      .onConflictDoUpdate({
+        target: siteConfig.key,
+        set: { value: "complete", valueEs: "complete", updatedAt: new Date() },
+      });
+  });
+}
 
 const legacyNewsData = [
   {
@@ -1311,6 +1400,8 @@ export async function seed() {
         .where(eq(teamMembers.id, member.id));
     }
   }
+
+  await initializeAttorneyNamePartsAndAssociateOrder();
 
   // Las relaciones autor-publicación se crean después de poblar el directorio.
   // El correo es la clave primaria editorial y el nombre normalizado funciona

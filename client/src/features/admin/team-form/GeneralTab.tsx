@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { TabsContent } from "@/components/ui/tabs";
+import { getAttorneyFullName } from "@shared/attorneyName";
 import type { TeamFormCopy, TeamMemberFormData } from "./contracts";
 
 export function GeneralTab({ form, t, language, generateSlug }: {
@@ -15,6 +16,21 @@ export function GeneralTab({ form, t, language, generateSlug }: {
   language: string;
   generateSlug: () => void;
 }) {
+  const updateStructuredName = (field: "givenNames" | "firstSurname" | "secondSurname", value: string) => {
+    const next = {
+      givenNames: form.getValues("givenNames"),
+      firstSurname: form.getValues("firstSurname"),
+      secondSurname: form.getValues("secondSurname"),
+      [field]: value,
+    };
+    form.setValue("name", getAttorneyFullName(next), { shouldDirty: true, shouldValidate: false });
+  };
+  const fullLegalName = getAttorneyFullName({
+    givenNames: form.watch("givenNames"),
+    firstSurname: form.watch("firstSurname"),
+    secondSurname: form.watch("secondSurname"),
+  });
+
   return (
                     <TabsContent value="general" className="mt-6">
                       <Card className="rounded-none border-[#D9D8D7]">
@@ -30,14 +46,14 @@ export function GeneralTab({ form, t, language, generateSlug }: {
                           </div>
                         </CardHeader>
                         <CardContent className="p-6 space-y-6">
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                             <FormField
                               control={form.control}
-                              name="name"
+                              name="givenNames"
                               render={({ field }) => (
                                 <FormItem>
                                   <FormLabel className="text-[#1D1D1B] font-medium flex items-center gap-2">
-                                    {t.name}
+                                    {t.givenNames}
                                     <Badge variant="destructive" className="rounded-none text-[10px] px-1.5 py-0">
                                       {t.requiredField}
                                     </Badge>
@@ -46,18 +62,22 @@ export function GeneralTab({ form, t, language, generateSlug }: {
                                     <Input
                                       {...field}
                                       className="rounded-none border-[#D9D8D7] focus:border-[#AA1A2E] focus:ring-[#AA1A2E]"
-                                      placeholder="María García López"
+                                      placeholder="María Elisa"
+                                      onChange={(event) => {
+                                        field.onChange(event);
+                                        updateStructuredName("givenNames", event.target.value);
+                                      }}
                                       onBlur={() => {
                                         field.onBlur();
                                         if (!form.getValues("slug")) {
                                           generateSlug();
                                         }
                                       }}
-                                      data-testid="input-name"
+                                      data-testid="input-given-names"
                                     />
                                   </FormControl>
                                   <FormDescription className="text-[#878A8E] text-xs">
-                                    {t.nameHint}
+                                    {t.givenNamesHint}
                                   </FormDescription>
                                   <FormMessage />
                                 </FormItem>
@@ -65,11 +85,11 @@ export function GeneralTab({ form, t, language, generateSlug }: {
                             />
                             <FormField
                               control={form.control}
-                              name="slug"
+                              name="firstSurname"
                               render={({ field }) => (
                                 <FormItem>
                                   <FormLabel className="text-[#1D1D1B] font-medium flex items-center gap-2">
-                                    {t.slug}
+                                    {t.firstSurname}
                                     <Badge variant="destructive" className="rounded-none text-[10px] px-1.5 py-0">
                                       {t.requiredField}
                                     </Badge>
@@ -77,17 +97,70 @@ export function GeneralTab({ form, t, language, generateSlug }: {
                                   <FormControl>
                                     <Input
                                       {...field}
-                                      className="rounded-none border-[#D9D8D7] focus:border-[#AA1A2E] focus:ring-[#AA1A2E] font-mono text-sm"
-                                      data-testid="input-slug"
+                                      className="rounded-none border-[#D9D8D7] focus:border-[#AA1A2E] focus:ring-[#AA1A2E]"
+                                      placeholder="García"
+                                      onChange={(event) => {
+                                        field.onChange(event);
+                                        updateStructuredName("firstSurname", event.target.value);
+                                      }}
+                                      data-testid="input-first-surname"
                                     />
                                   </FormControl>
                                   <FormDescription className="text-[#878A8E] text-xs">
-                                    {t.slugHint}
+                                    {t.firstSurnameHint}
                                   </FormDescription>
                                   <FormMessage />
                                 </FormItem>
                               )}
                             />
+                            <FormField
+                              control={form.control}
+                              name="secondSurname"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel className="text-[#1D1D1B] font-medium">{t.secondSurname}</FormLabel>
+                                  <FormControl>
+                                    <Input
+                                      {...field}
+                                      className="rounded-none border-[#D9D8D7] focus:border-[#AA1A2E] focus:ring-[#AA1A2E]"
+                                      placeholder="López"
+                                      onChange={(event) => {
+                                        field.onChange(event);
+                                        updateStructuredName("secondSurname", event.target.value);
+                                      }}
+                                      data-testid="input-second-surname"
+                                    />
+                                  </FormControl>
+                                  <FormDescription className="text-[#878A8E] text-xs">{t.secondSurnameHint}</FormDescription>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                          </div>
+
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-end">
+                            <FormField
+                              control={form.control}
+                              name="slug"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel className="text-[#1D1D1B] font-medium flex items-center gap-2">
+                                    {t.slug}
+                                    <Badge variant="destructive" className="rounded-none text-[10px] px-1.5 py-0">{t.requiredField}</Badge>
+                                  </FormLabel>
+                                  <FormControl>
+                                    <Input {...field} className="rounded-none border-[#D9D8D7] focus:border-[#AA1A2E] focus:ring-[#AA1A2E] font-mono text-sm" data-testid="input-slug" />
+                                  </FormControl>
+                                  <FormDescription className="text-[#878A8E] text-xs">{t.slugHint}</FormDescription>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                            <div className="pb-1">
+                              <p className="text-sm font-medium text-[#1D1D1B]">{t.name}</p>
+                              <p className="mt-1 text-sm text-[#54565B]" data-testid="text-full-legal-name">{fullLegalName || "—"}</p>
+                              <p className="mt-1 text-xs text-[#878A8E]">{t.nameHint}</p>
+                            </div>
                           </div>
 
                           <Separator className="bg-[#D9D8D7]" />

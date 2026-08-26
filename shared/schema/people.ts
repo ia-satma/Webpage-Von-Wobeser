@@ -45,7 +45,13 @@ export type IndustryGroup = typeof industryGroups.$inferSelect;
 
 export const teamMembers = pgTable("team_members", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  // `name` remains the complete canonical identity used by historical routes,
+  // author relations and audit records. Presentation uses the structured
+  // fields so the public site can show only the first surname.
   name: text("name").notNull(),
+  givenNames: text("given_names"),
+  firstSurname: text("first_surname"),
+  secondSurname: text("second_surname"),
   slug: text("slug").notNull().unique(),
   title: text("title").notNull(),
   titleEs: text("title_es").notNull(),

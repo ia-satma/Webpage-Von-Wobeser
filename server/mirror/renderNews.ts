@@ -3,6 +3,7 @@ import { renderRichText } from "./sanitize";
 import { typographyAttribute, type TypographyStyles } from "@shared/editorialTypography";
 import { applySeo, articleNode, breadcrumbNode, clip } from "./seo";
 import { getLocalizedAttorneyRole, getLocalizedAttorneyTitle } from "@shared/attorneyTitles";
+import { getAttorneyPublicName } from "@shared/attorneyName";
 
 type Lang = "en" | "es";
 
@@ -270,7 +271,7 @@ function buildRelatedAttorneys(attorneys: any[], lang: Lang): string {
       : `<span class="news-related-attorneys__image" aria-hidden="true"></span>`;
     return `<article class="news-related-attorneys__item">` +
       image +
-      `<div><h3><a href="${href}">${esc(attorney.name)}</a></h3>` +
+      `<div><h3><a href="${href}">${esc(getAttorneyPublicName(attorney))}</a></h3>` +
       `<p>${esc(title)}</p><a class="news-related-attorneys__link" href="${href}">${labels.view}</a></div>` +
       `</article>`;
   }).join("");
@@ -388,7 +389,7 @@ export function renderNewsDetail(templateHtml: string, item: any, lang: Lang = "
         datePublished: iso,
         dateModified: item.updatedAt ? new Date(item.updatedAt).toISOString() : iso,
         authors: relatedAttorneys.map((attorney) => ({
-          name: attorney.name,
+          name: getAttorneyPublicName(attorney),
           path: lang === "es" ? `/abogado/${attorney.slug}` : `/lawyer/${attorney.slug}`,
         })),
         lang,

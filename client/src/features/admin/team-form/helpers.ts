@@ -1,10 +1,15 @@
 import type { TeamMember } from "@shared/schema";
 import { normalizeSpanishPartnerFields } from "@shared/attorneyTitles";
+import { deriveAttorneyNameParts, getAttorneyFullName } from "@shared/attorneyName";
 import type { TeamMemberFormData } from "./contracts";
 
 export function teamMemberToFormData(member: TeamMember): TeamMemberFormData {
+  const nameParts = deriveAttorneyNameParts(member);
   return {
     name: member.name || "",
+    givenNames: nameParts.givenNames,
+    firstSurname: nameParts.firstSurname,
+    secondSurname: nameParts.secondSurname,
     slug: member.slug || "",
     title: member.title || "",
     titleEs: member.titleEs || "",
@@ -36,6 +41,7 @@ export function teamFormToPayload(data: TeamMemberFormData) {
   const { order: _editorialOrder, ...editableData } = data;
   return normalizeSpanishPartnerFields({
     ...editableData,
+    name: getAttorneyFullName(editableData),
     email: editableData.email || null,
     phone: editableData.phone || null,
     linkedinUrl: editableData.linkedinUrl || null,

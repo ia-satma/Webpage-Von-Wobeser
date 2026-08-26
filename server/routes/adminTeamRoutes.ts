@@ -32,6 +32,9 @@ export function registerAdminTeamRoutes(app: Express): void {
         const searchLower = search.toLowerCase();
         members = members.filter(m =>
           m.name.toLowerCase().includes(searchLower) ||
+          (m.givenNames && m.givenNames.toLowerCase().includes(searchLower)) ||
+          (m.firstSurname && m.firstSurname.toLowerCase().includes(searchLower)) ||
+          (m.secondSurname && m.secondSurname.toLowerCase().includes(searchLower)) ||
           (m.email && m.email.toLowerCase().includes(searchLower))
         );
       }

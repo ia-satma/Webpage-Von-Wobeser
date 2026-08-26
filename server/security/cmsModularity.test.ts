@@ -359,6 +359,9 @@ test("Formulario de Abogados conserva contratos, relaciones y superficie adminis
   assert.match(source, /queryKey: \["\/api\/industry-groups"\]/);
   assert.deepEqual(teamMemberFormSchema.keyof().options, [
     "name",
+    "givenNames",
+    "firstSurname",
+    "secondSurname",
     "slug",
     "title",
     "titleEs",
@@ -389,7 +392,7 @@ test("Formulario de Abogados conserva contratos, relaciones y superficie adminis
     assert.match(source, new RegExp(`<SelectItem value="${role}">`));
   }
   assert.equal((source.match(/<TabsTrigger/g) || []).length, 5);
-  assert.equal((source.match(/data-testid=/g) || []).length, 19);
+  assert.equal((source.match(/data-testid=/g) || []).length, 22);
   for (const field of ["bioIntro", "bioIntroEs", "bio", "bioEs"]) {
     assert.match(source, new RegExp(`field="${field}"`));
   }

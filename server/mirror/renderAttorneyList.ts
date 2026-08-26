@@ -1,5 +1,6 @@
 import * as cheerio from "cheerio";
 import { getLocalizedAttorneyTitle } from "@shared/attorneyTitles";
+import { getAttorneyPublicName, getAttorneySearchName } from "@shared/attorneyName";
 import { DEFAULT_ATTORNEY_DIRECTORY_PRESET, type AttorneyDirectoryPresetId } from "@shared/publicAppearance";
 import { applySeo, breadcrumbNode } from "./seo";
 
@@ -63,7 +64,7 @@ export function renderAttorneyList(
     listItems.push(
       `<a class="attorneys__list--item attorney_item_JS ${active}" href="/lawyer/${esc(a.slug)}${langSuffix}" data-item="${di}">` +
         `<span class="img" style="background-image:url(${img});"></span>` +
-        `<span class="name">${esc(a.name)}</span>` +
+        `<span class="name">${esc(getAttorneyPublicName(a))}</span>` +
         `<span class="role">${esc(role)}</span>` +
         `</a>`,
     );
@@ -184,6 +185,8 @@ export type AttorneyDirectoryItem = {
   id: string;
   slug: string;
   name: string;
+  /** Canonical full identity, kept searchable without exposing a second surname. */
+  searchName?: string;
   role: keyof typeof CATEGORIES;
   roleLabel: string;
   imageUrl: string;
@@ -229,7 +232,7 @@ function attorneyMatchesDirectoryFilters(
   attorney: AttorneyDirectoryItem,
   filters: AttorneyDirectoryFilters,
 ): boolean {
-  const name = normalizeDirectoryValue(attorney.name);
+  const name = normalizeDirectoryValue(attorney.searchName || attorney.name);
   const query = normalizeDirectoryValue(filters.q).trim();
   const initials = directoryNameInitials(attorney.name);
 
@@ -334,7 +337,7 @@ export function renderAttorneyDirectory(
           const image = attorney.imageUrl
             ? `<img src="${esc(attorney.imageUrl)}" alt="" width="640" height="800" loading="lazy" decoding="async" data-vwb-image-kind="attorney-portrait">`
             : `<span class="attorney-directory__portrait--fallback" aria-hidden="true"></span>`;
-          return `<li class="attorney-directory__result" data-attorney-result data-name="${esc(normalizeDirectoryValue(attorney.name))}" data-role="${esc(attorney.role)}" data-practices="${esc(attorney.practiceSlugs.join("|"))}" data-name-initials="${esc(initials.join("|"))}"${hidden}>` +
+          return `<li class="attorney-directory__result" data-attorney-result data-name="${esc(normalizeDirectoryValue(attorney.searchName || attorney.name))}" data-role="${esc(attorney.role)}" data-practices="${esc(attorney.practiceSlugs.join("|"))}" data-name-initials="${esc(initials.join("|"))}"${hidden}>` +
             `<a href="${profilePath}"><span class="attorney-directory__portrait">${image}</span><span class="attorney-directory__name">${esc(attorney.name)}</span><span class="attorney-directory__role">${esc(attorney.roleLabel)}</span></a>` +
           `</li>`;
         })

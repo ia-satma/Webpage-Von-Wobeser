@@ -1,5 +1,6 @@
 import * as cheerio from "cheerio";
 import { applySeo, breadcrumbNode, clip } from "./seo";
+import { getAttorneyPublicName } from "@shared/attorneyName";
 
 type Lang = "en" | "es";
 
@@ -123,7 +124,7 @@ export function renderGlobalSearch(
       results.team,
       lang,
       (item) => lang === "es" ? `/abogado/${encodeURIComponent(item.slug || "")}` : `/lawyer/${encodeURIComponent(item.slug || "")}?lang=en`,
-      (item) => item.name || "",
+      (item) => getAttorneyPublicName(item),
       (item) => localized(item, "role", lang) || localized(item, "title", lang),
     ),
     resultSection(

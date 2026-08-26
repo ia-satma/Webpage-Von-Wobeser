@@ -4,6 +4,7 @@ import fs from "node:fs";
 import path from "node:path";
 import type { Affiliation, Education, Publication, Ranking } from "@shared/schema";
 import { CURRENT_ASSOCIATE_ORDER, MIRROR_ONLY_ASSOCIATE_NAMES, OFFICIAL_PARTNER_ORDER } from "@shared/attorneyOrder";
+import { deriveAttorneyNameParts } from "@shared/attorneyName";
 import { getMirrorDir } from "../mirror/config";
 
 /** Official attorney-directory snapshot verified on 12 August 2026. */
@@ -360,7 +361,6 @@ export function applyCanonicalAttorneyContent<T extends SeedAttorney>(seed: read
   const usedSlugs = new Set<string>();
   const seeded: Array<T | (CanonicalAttorney & { isPartner: boolean; order: number; published: boolean })> = seed.flatMap((attorney) => {
     const source = byIdentity.get(`${normalizeKey(attorney.name)}|${normalizeKey(attorney.titleEs)}`);
-    const associateOrder = currentAssociateOrder.get(normalizeKey(source?.name || attorney.name));
     const currentSlug = typeof attorney.slug === "string" ? attorney.slug : "";
     if (!source && !preservedAdditionalAttorneySlugs.has(currentSlug)) return [];
     const stableSlug = currentSlug && !usedSlugs.has(currentSlug)
@@ -369,7 +369,6 @@ export function applyCanonicalAttorneyContent<T extends SeedAttorney>(seed: read
     if (stableSlug) usedSlugs.add(stableSlug);
     if (!source) return [{
       ...attorney,
-      ...(associateOrder ? { order: associateOrder } : {}),
       ...(mirrorOnlyAssociateNames.has(normalizeKey(attorney.name)) ? { published: false } : {}),
     }];
     // Slug, image, display order and publication state are presentation metadata
@@ -383,6 +382,7 @@ export function applyCanonicalAttorneyContent<T extends SeedAttorney>(seed: read
       ...attorney,
       ...(stableSlug ? { slug: stableSlug } : {}),
       name: source.name,
+      ...deriveAttorneyNameParts({ name: source.name }),
       title: source.title,
       titleEs: source.titleEs,
       role: source.role,
@@ -408,6 +408,7 @@ export function applyCanonicalAttorneyContent<T extends SeedAttorney>(seed: read
     if (!seededIdentities.has(identity)) {
       seeded.push({
         ...attorney,
+        ...deriveAttorneyNameParts({ name: attorney.name }),
         isPartner: attorney.title === "Partner",
         order: attorney.title === "Partner"
           ? officialPartnerOrder.get(normalizeKey(attorney.name)) || 9999
