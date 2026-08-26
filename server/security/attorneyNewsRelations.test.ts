@@ -154,10 +154,15 @@ test("los Artículos no repiten el título ni imprimen URLs crudas, y exponen su
 test("la curación cubre exactamente los 55 Artículos deficientes con fuente HTTPS", () => {
   assert.equal(ARTICLE_SUMMARY_CURATION_20260826.length, 55);
   assert.equal(new Set(ARTICLE_SUMMARY_CURATION_20260826.map((entry) => entry.slug)).size, 55);
-  assert.equal(ARTICLE_SUMMARY_CURATION_20260826.filter((entry) => entry.excerpt && entry.excerptEs).length, 10);
-  assert.equal(ARTICLE_SUMMARY_CURATION_20260826.filter((entry) => !entry.excerpt && !entry.excerptEs).length, 45);
+  assert.equal(ARTICLE_SUMMARY_CURATION_20260826.filter((entry) => entry.excerpt && entry.excerptEs).length, 37);
+  assert.equal(ARTICLE_SUMMARY_CURATION_20260826.filter((entry) => !entry.excerpt && !entry.excerptEs).length, 18);
+  assert.equal(ARTICLE_SUMMARY_CURATION_20260826.filter((entry) => entry.replaceableSourceUrls?.length).length, 6);
   for (const entry of ARTICLE_SUMMARY_CURATION_20260826) {
     assert.match(entry.sourceUrl, /^https:\/\//);
+    for (const replaceableSourceUrl of entry.replaceableSourceUrls ?? []) {
+      assert.match(replaceableSourceUrl, /^https:\/\//);
+      assert.notEqual(replaceableSourceUrl, entry.sourceUrl);
+    }
   }
 });
 

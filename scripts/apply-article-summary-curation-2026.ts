@@ -93,7 +93,9 @@ try {
     // No se pisan correcciones editoriales posteriores: sólo reemplazamos los placeholders
     // detectados; la fuente faltante sí se puede completar de forma independiente.
     const update: { sourceUrl?: string; excerpt?: string; excerptEs?: string } = {};
-    if (!row.source_url) update.sourceUrl = entry.sourceUrl;
+    // Sólo se reemplazan URLs que esta curación reconoce expresamente como un
+    // apuntador histórico; nunca se pisa una fuente corregida posteriormente.
+    if (!row.source_url || entry.replaceableSourceUrls?.includes(row.source_url)) update.sourceUrl = entry.sourceUrl;
     if (hasPlaceholderExcerpts) {
       update.excerpt = entry.excerpt;
       update.excerptEs = entry.excerptEs;
