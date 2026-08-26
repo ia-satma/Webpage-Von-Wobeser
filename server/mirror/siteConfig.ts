@@ -1,6 +1,14 @@
 import { eq } from "drizzle-orm";
+import fs from "node:fs/promises";
+import path from "node:path";
 import { db } from "../db";
 import { siteConfig } from "@shared/schema";
+import { getMirrorDir } from "./config";
+import {
+  persistPublicMediaFiles,
+  persistentMediaStorageStatus,
+  type PublicMediaFile,
+} from "../media/persistentMedia";
 import { getEditorialTypographyForEntities } from "../editorialTypography";
 import { typographyAttribute, type TypographyStyles } from "@shared/editorialTypography";
 import {
@@ -22,12 +30,52 @@ import {
 
 export type ConfigMap = Record<string, { value: string; valueEs: string; type: string; typography?: TypographyStyles }>;
 
-const CURRENT_HERO_MEDIA = {
+/** El video que estaba activo antes del cambio solicitado el 25 de agosto.
+ * Se conserva íntegro y queda disponible desde Administración como respaldo. */
+const PREVIOUS_HERO_MEDIA = {
   master: "/images/hero-20260810-fullhd-master.mp4",
   desktop: "/images/hero-20260810-fullhd-desktop.mp4",
   mobile: "/images/hero-20260821-hd-mobile-v2.mp4",
   poster: "/images/hero-20260810-fullhd-poster.webp",
 } as const;
+
+/**
+ * Video histórico de la portada anterior. Sus derivados no amplifican ni
+ * inventan detalle del original 960×540: usan escalado Lanczos y bitrate alto
+ * para evitar una segunda degradación al servir escritorio y móvil.
+ */
+const CURRENT_HERO_MEDIA = {
+  master: "/images/dron_2026_40.mp4",
+  desktop: "/images/hero-20260825-dron-fullhd-desktop.mp4",
+  mobile: "/images/hero-20260825-dron-hd-mobile.mp4",
+  poster: "/images/hero-20260825-dron-poster.webp",
+} as const;
+
+/**
+ * Rutas administradas y persistentes de ambos juegos de medios. Los nombres
+ * deterministas evitan duplicados en App Storage y permiten auditar o restaurar
+ * el hero previo desde Administración sin depender del disco del despliegue.
+ */
+const PERSISTENT_CURRENT_HERO_MEDIA = {
+  master: "/uploads/hero/masters/hero-master-dron-20260825.mp4",
+  desktop: "/uploads/hero/hero-dron-20260825-desktop.mp4",
+  mobile: "/uploads/hero/hero-dron-20260825-mobile.mp4",
+  poster: "/uploads/hero/hero-dron-20260825-poster.webp",
+} as const;
+
+const PERSISTENT_PREVIOUS_HERO_MEDIA = {
+  master: "/uploads/hero/masters/hero-master-previous-20260810.mp4",
+  desktop: "/uploads/hero/hero-previous-20260810-desktop.mp4",
+  mobile: "/uploads/hero/hero-previous-20260810-mobile.mp4",
+  poster: "/uploads/hero/hero-previous-20260810-poster.webp",
+} as const;
+
+const HERO_VIDEO_HISTORY_MIGRATION_KEY = "hero_video_dron_2026_activation_v1";
+const HERO_VIDEO_APP_STORAGE_MIGRATION_KEY = "hero_video_app_storage_archive_v1";
+const HERO_VIDEO_PREVIOUS_MASTER_KEY = "hero_video_previous_master";
+const HERO_VIDEO_PREVIOUS_DESKTOP_KEY = "hero_video_previous_desktop";
+const HERO_VIDEO_PREVIOUS_MOBILE_KEY = "hero_video_previous_mobile";
+const HERO_VIDEO_PREVIOUS_POSTER_KEY = "hero_video_previous_poster";
 
 /** Default site-config keys for the editable parts of the mirror frontend. */
 const DEFAULTS: Array<{ key: string; value: string; valueEs?: string; type: string; category: string; description: string }> = [
@@ -49,6 +97,12 @@ const DEFAULTS: Array<{ key: string; value: string; valueEs?: string; type: stri
   { key: "hero_video", value: CURRENT_HERO_MEDIA.desktop, type: "url", category: "home", description: "Video Full HD optimizado del hero para escritorio" },
   { key: "hero_video_mobile", value: CURRENT_HERO_MEDIA.mobile, type: "url", category: "home", description: "Video HD optimizado del hero para móvil" },
   { key: "hero_video_poster", value: CURRENT_HERO_MEDIA.poster, type: "url", category: "home", description: "Póster del primer fotograma real del hero" },
+  // Historial administrable: no se renderiza en el sitio. Sus cuatro rutas
+  // permiten recuperar el hero anterior sin depender de un archivo externo.
+  { key: HERO_VIDEO_PREVIOUS_MASTER_KEY, value: PREVIOUS_HERO_MEDIA.master, type: "url", category: "home", description: "Respaldo — archivo maestro del video anterior del hero" },
+  { key: HERO_VIDEO_PREVIOUS_DESKTOP_KEY, value: PREVIOUS_HERO_MEDIA.desktop, type: "url", category: "home", description: "Respaldo — video anterior de escritorio del hero" },
+  { key: HERO_VIDEO_PREVIOUS_MOBILE_KEY, value: PREVIOUS_HERO_MEDIA.mobile, type: "url", category: "home", description: "Respaldo — video anterior móvil del hero" },
+  { key: HERO_VIDEO_PREVIOUS_POSTER_KEY, value: PREVIOUS_HERO_MEDIA.poster, type: "url", category: "home", description: "Respaldo — póster anterior del hero" },
   { key: "hero_practice_link", value: "/about", valueEs: "/acerca-de", type: "url", category: "home", description: "Destino bilingüe al hacer clic en el video del hero" },
   { key: "home_experience_visible", value: "false", valueEs: "false", type: "boolean", category: "home", description: "Mostrar la frase de años de experiencia en la portada" },
   { key: "home_experience", value: "Von Wobeser y Sierra, S.C. has more than forty years of experience.", valueEs: "Von Wobeser y Sierra, S.C. cuenta con más de cuarenta años de experiencia.", type: "text", category: "home", description: "Frase de experiencia de la portada" },
@@ -626,6 +680,306 @@ async function ensurePrivacyNoticeVwys2026(): Promise<boolean> {
   return true;
 }
 
+/**
+ * Activa una sola vez el video histórico autorizado para la portada y conserva
+ * la selección vigente en claves de historial. El marcador hace que una futura
+ * elección del administrador nunca sea reemplazada por un reinicio.
+ */
+async function ensureLegacyDronHeroVideo(): Promise<boolean> {
+  const [migration] = await db
+    .select({ value: siteConfig.value })
+    .from(siteConfig)
+    .where(eq(siteConfig.key, HERO_VIDEO_HISTORY_MIGRATION_KEY));
+  if (migration?.value === "complete") return false;
+
+  const activeKeys = ["hero_video_master", "hero_video", "hero_video_mobile", "hero_video_poster"] as const;
+  const activeRows = await Promise.all(activeKeys.map(async (key) => {
+    const [row] = await db.select().from(siteConfig).where(eq(siteConfig.key, key));
+    return [key, row] as const;
+  }));
+  const active = Object.fromEntries(activeRows) as Record<(typeof activeKeys)[number], typeof activeRows[number][1]>;
+
+  const alreadyUsingDron = active.hero_video_master?.value === CURRENT_HERO_MEDIA.master
+    && active.hero_video?.value === CURRENT_HERO_MEDIA.desktop
+    && active.hero_video_mobile?.value === CURRENT_HERO_MEDIA.mobile
+    && active.hero_video_poster?.value === CURRENT_HERO_MEDIA.poster;
+  const previousDefaultFor = (key: typeof activeKeys[number]) => PREVIOUS_HERO_MEDIA[
+    key === "hero_video_master" ? "master" : key === "hero_video" ? "desktop" : key === "hero_video_mobile" ? "mobile" : "poster"
+  ];
+
+  await db.transaction(async (tx) => {
+    if (!alreadyUsingDron) {
+      const historyPairs = [
+        [HERO_VIDEO_PREVIOUS_MASTER_KEY, "hero_video_master", "Respaldo — archivo maestro del video anterior del hero"],
+        [HERO_VIDEO_PREVIOUS_DESKTOP_KEY, "hero_video", "Respaldo — video anterior de escritorio del hero"],
+        [HERO_VIDEO_PREVIOUS_MOBILE_KEY, "hero_video_mobile", "Respaldo — video anterior móvil del hero"],
+        [HERO_VIDEO_PREVIOUS_POSTER_KEY, "hero_video_poster", "Respaldo — póster anterior del hero"],
+      ] as const;
+      for (const [historyKey, activeKey, description] of historyPairs) {
+        const previous = active[activeKey];
+        const value = previous?.value || previousDefaultFor(activeKey);
+        const valueEs = previous?.valueEs || previous?.value || previousDefaultFor(activeKey);
+        await tx.insert(siteConfig).values({
+          key: historyKey,
+          value,
+          valueEs,
+          type: "url",
+          category: "home",
+          description,
+          updatedAt: new Date(),
+        }).onConflictDoUpdate({
+          target: siteConfig.key,
+          set: { value, valueEs, type: "url", category: "home", description, updatedAt: new Date() },
+        });
+      }
+
+      const activePairs = [
+        ["hero_video_master", CURRENT_HERO_MEDIA.master, "Archivo maestro del hero"],
+        ["hero_video", CURRENT_HERO_MEDIA.desktop, "Video Full HD optimizado del hero para escritorio"],
+        ["hero_video_mobile", CURRENT_HERO_MEDIA.mobile, "Video HD optimizado del hero para móvil"],
+        ["hero_video_poster", CURRENT_HERO_MEDIA.poster, "Póster del primer fotograma real del hero"],
+      ] as const;
+      for (const [key, value, description] of activePairs) {
+        await tx.insert(siteConfig).values({
+          key,
+          value,
+          valueEs: value,
+          type: "url",
+          category: "home",
+          description,
+          updatedAt: new Date(),
+        }).onConflictDoUpdate({
+          target: siteConfig.key,
+          set: { value, valueEs: value, type: "url", category: "home", description, updatedAt: new Date() },
+        });
+      }
+    }
+
+    await tx.insert(siteConfig).values({
+      key: HERO_VIDEO_HISTORY_MIGRATION_KEY,
+      value: "complete",
+      valueEs: "complete",
+      type: "text",
+      category: "internal",
+      description: "Migración interna: activa el video histórico dron 2026 y preserva el hero anterior",
+      updatedAt: new Date(),
+    }).onConflictDoUpdate({
+      target: siteConfig.key,
+      set: { value: "complete", valueEs: "complete", updatedAt: new Date() },
+    });
+  });
+  return !alreadyUsingDron;
+}
+
+const HERO_ACTIVE_MEDIA_KEYS = ["hero_video_master", "hero_video", "hero_video_mobile", "hero_video_poster"] as const;
+const HERO_PREVIOUS_MEDIA_KEYS = [
+  HERO_VIDEO_PREVIOUS_MASTER_KEY,
+  HERO_VIDEO_PREVIOUS_DESKTOP_KEY,
+  HERO_VIDEO_PREVIOUS_MOBILE_KEY,
+  HERO_VIDEO_PREVIOUS_POSTER_KEY,
+] as const;
+
+type HeroMediaPaths = {
+  readonly master: string;
+  readonly desktop: string;
+  readonly mobile: string;
+  readonly poster: string;
+};
+
+function heroMediaValuesMatch(
+  values: Record<string, string | undefined>,
+  keys: readonly string[],
+  media: HeroMediaPaths,
+): boolean {
+  return values[keys[0]] === media.master
+    && values[keys[1]] === media.desktop
+    && values[keys[2]] === media.mobile
+    && values[keys[3]] === media.poster;
+}
+
+function heroMediaValuesAreManaged(
+  values: Record<string, string | undefined>,
+  keys: readonly string[],
+): boolean {
+  return keys.every((key) => values[key]?.startsWith("/uploads/") === true);
+}
+
+/**
+ * Resuelve una fuente estática del espejo sin permitir traversal. Estos son
+ * valores internos fijos, pero se valida la raíz como defensa adicional antes
+ * de copiar los archivos a la zona temporal de App Storage.
+ */
+function staticHeroMediaSource(publicPath: string): string {
+  if (!publicPath.startsWith("/images/")) throw new Error("Invalid static hero media path");
+  const mirrorDirectory = path.resolve(getMirrorDir());
+  const source = path.resolve(mirrorDirectory, `.${publicPath}`);
+  if (!source.startsWith(`${mirrorDirectory}${path.sep}`)) {
+    throw new Error("Static hero media path escapes mirror directory");
+  }
+  return source;
+}
+
+/** Igual que la fuente, la ruta destino está limitada a uploads administrados. */
+function managedHeroMediaDestination(publicPath: string): string {
+  const prefix = "/uploads/";
+  if (!publicPath.startsWith(prefix)) throw new Error("Invalid managed hero media path");
+  const uploadsDirectory = path.resolve(process.cwd(), "uploads");
+  const destination = path.resolve(uploadsDirectory, publicPath.slice(prefix.length));
+  if (!destination.startsWith(`${uploadsDirectory}${path.sep}`)) {
+    throw new Error("Managed hero media path escapes uploads directory");
+  }
+  return destination;
+}
+
+async function stageHeroMediaForPersistentStorage(
+  sourceMedia: HeroMediaPaths,
+  destinationMedia: HeroMediaPaths,
+): Promise<PublicMediaFile[]> {
+  const pairs = [
+    [sourceMedia.master, destinationMedia.master],
+    [sourceMedia.desktop, destinationMedia.desktop],
+    [sourceMedia.mobile, destinationMedia.mobile],
+    [sourceMedia.poster, destinationMedia.poster],
+  ] as const;
+
+  return Promise.all(pairs.map(async ([sourcePublicPath, destinationPublicPath]) => {
+    const source = staticHeroMediaSource(sourcePublicPath);
+    const destination = managedHeroMediaDestination(destinationPublicPath);
+    await fs.mkdir(path.dirname(destination), { recursive: true });
+    await fs.copyFile(source, destination);
+    return { absolutePath: destination, publicPath: destinationPublicPath };
+  }));
+}
+
+/**
+ * Convierte los dos videos iniciales del hero en medios administrados.
+ *
+ * Solo escribe site_config después de que App Storage confirma el lote completo.
+ * Si App Storage no está disponible, el sitio sigue sirviendo los archivos
+ * empaquetados y la próxima ejecución vuelve a intentarlo: nunca quedan rutas
+ * públicas apuntando a un objeto inexistente.
+ */
+async function ensureHeroMediaInPersistentStorage(): Promise<boolean> {
+  const [migration] = await db
+    .select({ value: siteConfig.value })
+    .from(siteConfig)
+    .where(eq(siteConfig.key, HERO_VIDEO_APP_STORAGE_MIGRATION_KEY));
+  if (migration?.value === "complete") return false;
+
+  const keys = [...HERO_ACTIVE_MEDIA_KEYS, ...HERO_PREVIOUS_MEDIA_KEYS];
+  const rows = await Promise.all(keys.map(async (key) => {
+    const [row] = await db.select({ value: siteConfig.value }).from(siteConfig).where(eq(siteConfig.key, key));
+    return [key, row?.value] as const;
+  }));
+  const values = Object.fromEntries(rows) as Record<string, string | undefined>;
+
+  const activeIsStatic = heroMediaValuesMatch(values, HERO_ACTIVE_MEDIA_KEYS, CURRENT_HERO_MEDIA);
+  const previousIsStatic = heroMediaValuesMatch(values, HERO_PREVIOUS_MEDIA_KEYS, PREVIOUS_HERO_MEDIA);
+  const activeIsManaged = heroMediaValuesAreManaged(values, HERO_ACTIVE_MEDIA_KEYS);
+  const previousIsManaged = heroMediaValuesAreManaged(values, HERO_PREVIOUS_MEDIA_KEYS);
+
+  // Una selección distinta del administrador nunca se reemplaza. Las rutas
+  // /uploads ya siguen el flujo normal, que persiste antes de guardar cambios.
+  if (!activeIsStatic && !activeIsManaged) return false;
+  if (!previousIsStatic && !previousIsManaged) return false;
+
+  if (activeIsManaged && previousIsManaged) {
+    await db.insert(siteConfig).values({
+      key: HERO_VIDEO_APP_STORAGE_MIGRATION_KEY,
+      value: "complete",
+      valueEs: "complete",
+      type: "text",
+      category: "internal",
+      description: "Migración interna: ambos juegos de video del hero están verificados en App Storage",
+      updatedAt: new Date(),
+    }).onConflictDoUpdate({
+      target: siteConfig.key,
+      set: { value: "complete", valueEs: "complete", updatedAt: new Date() },
+    });
+    return true;
+  }
+
+  const storage = await persistentMediaStorageStatus();
+  if (!storage.available || storage.provider !== "replit_app_storage") {
+    // En desarrollo local los archivos /images son intencionalmente válidos.
+    // En producción se reintentará en el siguiente arranque, sin fallar la web.
+    console.warn("Hero media persistence pending: App Storage is unavailable");
+    return false;
+  }
+
+  const files = [
+    ...(activeIsStatic
+      ? await stageHeroMediaForPersistentStorage(CURRENT_HERO_MEDIA, PERSISTENT_CURRENT_HERO_MEDIA)
+      : []),
+    ...(previousIsStatic
+      ? await stageHeroMediaForPersistentStorage(PREVIOUS_HERO_MEDIA, PERSISTENT_PREVIOUS_HERO_MEDIA)
+      : []),
+  ];
+
+  try {
+    const persisted = await persistPublicMediaFiles(files);
+    if (!persisted.persisted) {
+      console.warn("Hero media persistence pending: App Storage did not confirm the media batch");
+      return false;
+    }
+  } catch {
+    // La función de persistencia limpia cualquier lote parcial. Conservamos las
+    // rutas estáticas activas y no exponemos detalles de infraestructura en logs.
+    console.warn("Hero media persistence pending: App Storage transfer failed");
+    return false;
+  }
+
+  await db.transaction(async (tx) => {
+    const updates = [
+      ...(activeIsStatic
+        ? [
+          ["hero_video_master", PERSISTENT_CURRENT_HERO_MEDIA.master, "Archivo maestro persistente del hero"],
+          ["hero_video", PERSISTENT_CURRENT_HERO_MEDIA.desktop, "Video Full HD persistente del hero para escritorio"],
+          ["hero_video_mobile", PERSISTENT_CURRENT_HERO_MEDIA.mobile, "Video HD persistente del hero para móvil"],
+          ["hero_video_poster", PERSISTENT_CURRENT_HERO_MEDIA.poster, "Póster persistente del hero"],
+        ] as const
+        : []),
+      ...(previousIsStatic
+        ? [
+          [HERO_VIDEO_PREVIOUS_MASTER_KEY, PERSISTENT_PREVIOUS_HERO_MEDIA.master, "Respaldo persistente — archivo maestro del video anterior del hero"],
+          [HERO_VIDEO_PREVIOUS_DESKTOP_KEY, PERSISTENT_PREVIOUS_HERO_MEDIA.desktop, "Respaldo persistente — video anterior de escritorio del hero"],
+          [HERO_VIDEO_PREVIOUS_MOBILE_KEY, PERSISTENT_PREVIOUS_HERO_MEDIA.mobile, "Respaldo persistente — video anterior móvil del hero"],
+          [HERO_VIDEO_PREVIOUS_POSTER_KEY, PERSISTENT_PREVIOUS_HERO_MEDIA.poster, "Respaldo persistente — póster anterior del hero"],
+        ] as const
+        : []),
+    ];
+
+    for (const [key, value, description] of updates) {
+      await tx.insert(siteConfig).values({
+        key,
+        value,
+        valueEs: value,
+        type: "url",
+        category: "home",
+        description,
+        updatedAt: new Date(),
+      }).onConflictDoUpdate({
+        target: siteConfig.key,
+        set: { value, valueEs: value, type: "url", category: "home", description, updatedAt: new Date() },
+      });
+    }
+
+    await tx.insert(siteConfig).values({
+      key: HERO_VIDEO_APP_STORAGE_MIGRATION_KEY,
+      value: "complete",
+      valueEs: "complete",
+      type: "text",
+      category: "internal",
+      description: "Migración interna: ambos juegos de video del hero están verificados en App Storage",
+      updatedAt: new Date(),
+    }).onConflictDoUpdate({
+      target: siteConfig.key,
+      set: { value: "complete", valueEs: "complete", updatedAt: new Date() },
+    });
+  });
+  return true;
+}
+
 export async function getFirmPreviousVersion(): Promise<FirmPreviousVersion | null> {
   const [row] = await db.select({ value: siteConfig.value }).from(siteConfig).where(eq(siteConfig.key, FIRM_PREVIOUS_VERSION_KEY));
   return parseFirmPreviousVersion(row?.value);
@@ -890,6 +1244,8 @@ export async function seedConfigDefaults(): Promise<void> {
   // conserva exactamente la versión que el público veía antes de consolidarla.
   const firmPreviousVersionCreated = await ensureFirmPreviousVersion();
   const privacyNoticeUpdated = await ensurePrivacyNoticeVwys2026();
+  const legacyDronHeroActivated = await ensureLegacyDronHeroVideo();
+  const heroMediaPersisted = await ensureHeroMediaInPersistentStorage();
 
   // Publica el video 2026 entregado por el cliente únicamente cuando cada campo
   // conserva un recurso predeterminado anterior. Los medios personalizados que
@@ -1139,7 +1495,7 @@ export async function seedConfigDefaults(): Promise<void> {
     contactCopyUpdated = true;
   }
 
-  if (missing.length || recognitionsNavigationUpdated || insightsDestinationsNavigationUpdated || firmDestinationsNavigationUpdated || firmPreviousVersionCreated || privacyNoticeUpdated || heroMediaUpdated || bannerCopyUpdated || footerUpdated || heroLinkUpdated || landingRouteUpdated || firmCopyUpdated || rankingTitleUpdated || newsletterCopyUpdated || contactCopyUpdated) invalidateConfigCache();
+  if (missing.length || recognitionsNavigationUpdated || insightsDestinationsNavigationUpdated || firmDestinationsNavigationUpdated || firmPreviousVersionCreated || privacyNoticeUpdated || legacyDronHeroActivated || heroMediaPersisted || heroMediaUpdated || bannerCopyUpdated || footerUpdated || heroLinkUpdated || landingRouteUpdated || firmCopyUpdated || rankingTitleUpdated || newsletterCopyUpdated || contactCopyUpdated) invalidateConfigCache();
 }
 
 /** Upsert one key (used by the admin endpoint). */

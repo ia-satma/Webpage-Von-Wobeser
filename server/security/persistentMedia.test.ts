@@ -69,6 +69,22 @@ test("el upload persiste originales y derivados antes de guardar su registro", (
   assert.match(routes, /res\.status\(404\)\.json\(\{ error: "Media not found" \}\)/);
 });
 
+test("el hero inicial se archiva de forma atómica en App Storage sin reemplazar elecciones administrativas", () => {
+  const siteConfigSource = readFileSync(
+    new URL("../mirror/siteConfig.ts", import.meta.url),
+    "utf8",
+  );
+
+  assert.match(siteConfigSource, /hero_video_app_storage_archive_v1/);
+  assert.match(siteConfigSource, /hero-master-dron-20260825\.mp4/);
+  assert.match(siteConfigSource, /hero-master-previous-20260810\.mp4/);
+  assert.match(siteConfigSource, /await persistPublicMediaFiles\(files\)/);
+  assert.match(siteConfigSource, /Solo escribe site_config después de que App Storage confirma el lote completo/);
+  assert.match(siteConfigSource, /if \(!activeIsStatic && !activeIsManaged\) return false/);
+  assert.match(siteConfigSource, /if \(!previousIsStatic && !previousIsManaged\) return false/);
+  assert.match(siteConfigSource, /Hero media persistence pending: App Storage transfer failed/);
+});
+
 test("imágenes y audios conservan archivos; presentaciones usan almacenamiento privado", () => {
   const generator = readPresentationGeneratorModule("outputPipeline.ts");
   const voiceGenerator = readFileSync(new URL("../services/VoiceGenerator.ts", import.meta.url), "utf8");

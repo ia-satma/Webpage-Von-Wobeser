@@ -798,9 +798,12 @@ test("Configuración conserva secciones, claves, APIs, query keys y controles", 
   // Diversidad y Pro Bono, los controles del carrusel de Noticias y las dos
   // URLs del mapa compartido administradas desde Contacto.
   // Conservamos las dos repeticiones intencionales del resumen institucional.
-  assert.equal(declaredKeys.length, 228);
-  assert.equal(new Set(declaredKeys).size, 226);
+  // Incluye el video maestro anterior del hero, conservado como historial
+  // seleccionable desde Administración sin volver a publicarlo por defecto.
+  assert.equal(declaredKeys.length, 229);
+  assert.equal(new Set(declaredKeys).size, 227);
   assert.ok(declaredKeys.includes("home_location_visible"));
+  assert.ok(declaredKeys.includes("hero_video_previous_master"));
   for (const key of [
     "home_news_title",
     "page_practices_title",

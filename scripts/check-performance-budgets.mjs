@@ -18,12 +18,12 @@ function size(relativePath) {
   return fs.statSync(path.join(mirror, relativePath)).size;
 }
 
-assert.ok(size("images/hero-20260810-fullhd-poster.webp") <= limits.poster, "El póster del hero supera 50 KB.");
-assert.ok(size("images/hero-20260821-hd-mobile-v2.mp4") <= limits.mobileVideo, "El video móvil HD de alta tasa supera 26 MB.");
-assert.ok(size("images/hero-20260810-fullhd-desktop.mp4") <= limits.desktopVideo, "El video Full HD de escritorio supera 30 MB.");
+assert.ok(size("images/hero-20260825-dron-poster.webp") <= limits.poster, "El póster del hero supera 50 KB.");
+assert.ok(size("images/hero-20260825-dron-hd-mobile.mp4") <= limits.mobileVideo, "El video móvil HD de alta tasa supera 26 MB.");
+assert.ok(size("images/hero-20260825-dron-fullhd-desktop.mp4") <= limits.desktopVideo, "El video Full HD de escritorio supera 30 MB.");
 
 const initialMobileAssets = [
-  "images/hero-20260810-fullhd-poster.webp",
+  "images/hero-20260825-dron-poster.webp",
   "images/optimized/images/banners/7-a-640.webp",
   "images/optimized/images/banners/1_ind-640.webp",
   "templates/beez3/webfont/Inter-Variable.woff2",
@@ -84,6 +84,6 @@ assert.ok(
 const renderer = fs.readFileSync(path.join(root, "server", "mirror", "renderHome.ts"), "utf8");
 assert.match(renderer, /data-bg-mobile=/, "El carrusel debe usar fondos diferidos.");
 assert.doesNotMatch(renderer, /style="background-image:url/, "El renderer no debe cargar fondos pesados de forma anticipada.");
-assert.match(renderer, /hero-20260821-hd-mobile-v2\.mp4/, "Falta la variante móvil HD de alta tasa predeterminada.");
+assert.match(renderer, /hero-20260825-dron-hd-mobile\.mp4/, "Falta la variante móvil HD de alta tasa predeterminada.");
 
 console.log(`[performance] Presupuestos aprobados; transferencia móvil estimada: ${initialMobileBytes} bytes.`);

@@ -25,7 +25,8 @@ export const PAGES: Record<string, SiteConfigPageDefinition> = {
       {
         title: "Portada (home)",
         fields: [
-          { key: "hero_video_master", label: "Video maestro del hero", media: "video", help: "Sube MP4 (H.264 recomendado), WebM, OGV o MOV de hasta 200 MB. Conservamos el maestro y generamos automáticamente Full HD para escritorio, una versión HD para móvil y el póster. Los enlaces externos usan el reproductor seguro del proveedor." },
+          { key: "hero_video_master", label: "Video maestro del hero", media: "video", help: "Sube MP4 (H.264 recomendado), WebM, OGV o MOV de hasta 200 MB. El maestro, sus derivados y el póster se verifican en App Storage antes de publicarse. El video anterior se mantiene disponible en el historial de abajo." },
+          { key: "hero_video_previous_master", label: "Historial — video anterior del hero", media: "video", help: "Respaldo persistente en App Storage. No se publica ni se elimina. Para recuperarlo en el futuro, selecciónalo arriba como Video maestro del hero y usa “Generar / regenerar Full HD”." },
           { key: "hero_practice_link", label: "Destino del video del hero", bilingual: true, help: "Inglés: /about. Español: /acerca-de." },
           { key: "home_experience_visible", label: "Mostrar frase de experiencia", control: "switch", defaultValue: false, help: "Permite ocultar el bloque sin borrar su texto en español ni en inglés." },
           { key: "home_experience", label: "Frase — años de experiencia", bilingual: true },
