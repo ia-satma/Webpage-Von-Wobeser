@@ -3,6 +3,12 @@ import crypto from "node:crypto";
 import { sanitizeNewsFields } from "../../mirror/sanitize";
 import { type News, type InsertNews, type TeamMember, news, newsTranslations, teamMembers, newsTeamMembers } from "@shared/schema";
 import type { StorageDatabase } from "../types";
+import {
+  loadCanonicalPublicationAuthorEvidence,
+  publicationFamilyKeys,
+  publicationSourceLanguageByLegacyId,
+  type PublicationSourceLanguage,
+} from "../../content/canonicalPublicationAuthorEvidence2026";
 
 // Postgres pone los NULL PRIMERO en "ORDER BY ... DESC" por defecto. 616 de 1792 noticias
 // (contenido legacy migrado sin fecha) tienen date=NULL, así que dominaban la primera página
@@ -14,6 +20,39 @@ import type { StorageDatabase } from "../types";
 // el p_id numérico aproxima el orden histórico sin inventar una fecha editorial.
 // El segundo orden textual mantiene compatibilidad si apareciera un ID no numérico.
 const newsDateDescNullsLast = sql`${news.date} desc nulls last, case when ${news.legacyId} ~ '^[0-9]+$' then cast(${news.legacyId} as bigint) end desc nulls last, ${news.legacyId} desc nulls last, ${news.id} desc`;
+
+type AuthorArchiveLanguage = PublicationSourceLanguage;
+
+let authorArchiveEvidence: {
+  familyByLegacyId: ReadonlyMap<string, string>;
+  sourceLanguageByLegacyId: ReadonlyMap<string, PublicationSourceLanguage>;
+} | undefined;
+
+function getAuthorArchiveEvidence() {
+  if (!authorArchiveEvidence) {
+    const evidence = loadCanonicalPublicationAuthorEvidence();
+    authorArchiveEvidence = {
+      familyByLegacyId: publicationFamilyKeys(evidence),
+      sourceLanguageByLegacyId: publicationSourceLanguageByLegacyId(evidence),
+    };
+  }
+  return authorArchiveEvidence;
+}
+
+/** Shows one card per bilingual historic publication, choosing the requested source locale. */
+export function dedupeAuthorArchivePublications(rows: News[], language?: AuthorArchiveLanguage): News[] {
+  const { familyByLegacyId, sourceLanguageByLegacyId } = getAuthorArchiveEvidence();
+  const families = new Map<string, News[]>();
+  for (const item of rows) {
+    const legacyId = String(item.legacyId || "");
+    const family = familyByLegacyId.get(legacyId) || `news:${item.id}`;
+    families.set(family, [...(families.get(family) || []), item]);
+  }
+  return Array.from(families.values()).map((items) => {
+    if (!language) return items[0];
+    return items.find((item) => sourceLanguageByLegacyId.get(String(item.legacyId || "")) === language) || items[0];
+  });
+}
 
 export function createNewsRepository(db: StorageDatabase) {
   class NewsRepository {
@@ -121,6 +160,7 @@ export function createNewsRepository(db: StorageDatabase) {
       offset: number;
       query?: string;
       category?: string;
+      language?: AuthorArchiveLanguage;
     }): Promise<{ rows: News[]; total: number }> {
       const conditions: SQL[] = [
         eq(newsTeamMembers.teamMemberId, opts.teamMemberId),
@@ -140,47 +180,45 @@ export function createNewsRepository(db: StorageDatabase) {
         ) as SQL);
       }
       const where = and(...conditions);
-      const [rows, countRows] = await Promise.all([
-        db
-          .select({ item: news })
-          .from(newsTeamMembers)
-          .innerJoin(news, eq(newsTeamMembers.newsId, news.id))
-          .where(where)
-          .orderBy(newsDateDescNullsLast)
-          .limit(opts.limit)
-          .offset(opts.offset),
-        db
-          .select({ count: sql<number>`count(*)::int` })
-          .from(newsTeamMembers)
-          .innerJoin(news, eq(newsTeamMembers.newsId, news.id))
-          .where(where),
-      ]);
-      return { rows: rows.map((row) => row.item), total: countRows[0]?.count ?? 0 };
+      // Las versiones históricas ES/EN son filas distintas, pero una sola
+      // publicación editorial. La deduplicación debe ocurrir ANTES de paginar
+      // para que el total y cada página no contengan tarjetas repetidas.
+      const rows = await db
+        .select({ item: news })
+        .from(newsTeamMembers)
+        .innerJoin(news, eq(newsTeamMembers.newsId, news.id))
+        .where(where)
+        .orderBy(newsDateDescNullsLast);
+      const items = dedupeAuthorArchivePublications(rows.map((row) => row.item), opts.language);
+      return { rows: items.slice(opts.offset, opts.offset + opts.limit), total: items.length };
     }
 
     /**
      * Recomendaciones para un detalle editorial: otras publicaciones públicas firmadas por al
-     * menos una de las mismas personas. `distinct` evita repetir una noticia cofirmada.
+     * menos una de las mismas personas. La deduplicación ocurre después de la consulta para
+     * conservar el orden editorial; PostgreSQL no permite ordenar un SELECT DISTINCT por los
+     * desempates de fecha/legacy que no pertenecen a su lista explícita de selección.
      */
     async getRelatedPublishedNewsForTeamMembers(opts: {
       teamMemberIds: string[];
-      excludeNewsId: string;
+      excludeNewsId?: string;
       limit: number;
+      language?: AuthorArchiveLanguage;
     }): Promise<News[]> {
       const ids = Array.from(new Set(opts.teamMemberIds.filter(Boolean)));
-      if (!ids.length || !opts.excludeNewsId || opts.limit < 1) return [];
+      if (!ids.length || opts.limit < 1) return [];
+      const conditions: SQL[] = [
+        inArray(newsTeamMembers.teamMemberId, ids),
+        this.publishedNewsConditions() as SQL,
+      ];
+      if (opts.excludeNewsId) conditions.push(ne(news.id, opts.excludeNewsId));
       const rows = await db
-        .selectDistinct({ item: news })
+        .select({ item: news })
         .from(newsTeamMembers)
         .innerJoin(news, eq(newsTeamMembers.newsId, news.id))
-        .where(and(
-          inArray(newsTeamMembers.teamMemberId, ids),
-          ne(news.id, opts.excludeNewsId),
-          this.publishedNewsConditions(),
-        ))
-        .orderBy(newsDateDescNullsLast)
-        .limit(opts.limit);
-      return rows.map((row) => row.item);
+        .where(and(...conditions))
+        .orderBy(newsDateDescNullsLast);
+      return dedupeAuthorArchivePublications(rows.map((row) => row.item), opts.language).slice(0, opts.limit);
     }
 
     /**

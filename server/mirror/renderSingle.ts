@@ -21,7 +21,11 @@ const ROLE_GROUPS = [
   { title: "Associate", en: "Associates", es: "Asociados" },
 ];
 
-/** Build the accordion of attorneys grouped by role for the sidebar. */
+/**
+ * Build the role accordion for the sidebar. Industry pages deliberately use
+ * only the Partner group: the stored relationships for the other roles stay
+ * available to Administration but are not part of the public industry roster.
+ */
 function buildAttorneyAccordion(attorneys: any[], kind: Kind, lang: Lang): string {
   const langSuffix = lang === "en" ? "?lang=en" : "";
   const inThe =
@@ -34,8 +38,18 @@ function buildAttorneyAccordion(attorneys: any[], kind: Kind, lang: Lang): strin
     `<a href="/lawyer/${escapeHtmlAttribute(a.slug)}${langSuffix}">${esc(getAttorneyPublicName(a))}</a></p>`;
 
   const blocks: string[] = [];
-  for (const g of ROLE_GROUPS) {
-    const members = attorneys.filter((a) => a.title === g.title);
+  const roleGroups = kind === "industry" ? ROLE_GROUPS.slice(0, 1) : ROLE_GROUPS;
+  for (const g of roleGroups) {
+    const relatedMembers = attorneys.filter((a) => a.title === g.title);
+    // The SQL query applies this sequence too. Keeping it here makes the
+    // public output deterministic if this renderer is ever called directly.
+    const members = kind === "industry"
+      ? relatedMembers.sort((left, right) => {
+        const leftOrder = Number.isFinite(Number(left.order)) ? Number(left.order) : Number.MAX_SAFE_INTEGER;
+        const rightOrder = Number.isFinite(Number(right.order)) ? Number(right.order) : Number.MAX_SAFE_INTEGER;
+        return leftOrder - rightOrder || String(left.id || left.slug).localeCompare(String(right.id || right.slug));
+      })
+      : relatedMembers;
     if (!members.length) continue;
     const label = `${lang === "es" ? g.es : g.en} ${inThe}`;
     blocks.push(

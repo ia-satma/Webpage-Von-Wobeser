@@ -24,7 +24,7 @@ const newsTemplate = `<!doctype html><html><head><title>Publication</title></hea
   <main class="single__content"><div class="single__content--intro"></div><div class="single__content--txt"></div></main>
   </div></section></body></html>`;
 
-test("el perfil muestra seis perspectivas editoriales y conserva el archivo bilingüe", () => {
+test("el perfil muestra seis publicaciones propias y conserva el archivo bilingüe", () => {
   const relatedNews = Array.from({ length: 6 }, (_, index) => ({
     slug: `insight-${index + 1}`,
     title: `Insight ${index + 1}`,
@@ -52,10 +52,34 @@ test("el perfil muestra seis perspectivas editoriales y conserva el archivo bili
   assert.equal($(".attorney-related-insights").length, 1);
   assert.equal($(".attorney-related-insights__item").length, 6);
   assert.equal($(".attorney-related-insights__more").attr("href"), "/news?author=ana-perez");
-  assert.equal($(".attorney-related-insights__item").first().find("a").first().attr("href"), "/news/insight-1");
+  assert.equal($(".attorney-related-insights__item").first().find("a").first().attr("href"), "/news/insight-6");
+  assert.equal($(".attorney-related-insights__item").first().find("time").text(), "Junio, 2026");
   assert.equal($(".page--wrap").next(".attorney-related-insights").length, 1);
   assert.equal($(".attorney__meta--list").text().includes("Noticias relacionadas"), false);
-  assert.match($(".attorney-related-insights").text(), /Perspectivas relacionadas/);
+  assert.match($(".attorney-related-insights").text(), /Publicaciones de Ana Pérez/);
+});
+
+test("las publicaciones del perfil se ordenan por fecha descendente y declaran su fecha", () => {
+  const html = renderAttorney(attorneyTemplate, {
+    name: "Ana Pérez", slug: "ana-perez", title: "Partner", role: "Partner", bio: "<p>Bio.</p>",
+    relatedNews: [
+      { slug: "without-date", title: "Without date", titleEs: "Sin fecha", excerpt: "Summary", excerptEs: "Resumen", date: null },
+      { slug: "older", title: "Older", titleEs: "Anterior", excerpt: "Summary", excerptEs: "Resumen", date: "2023-05-01" },
+      { slug: "latest", title: "Most recent", titleEs: "Más reciente", excerpt: "Summary", excerptEs: "Resumen", date: "2026-08-26" },
+    ],
+  }, "es");
+  const $ = cheerio.load(html);
+  assert.deepEqual($(".attorney-related-insights__item h3").map((_, item) => $(item).text()).get(), ["Más reciente", "Anterior", "Sin fecha"]);
+  assert.equal($(".attorney-related-insights__item").first().find("time").attr("datetime"), "2026-08-26");
+  assert.match($(".attorney-related-insights__item").last().find(".attorney-related-insights__meta").text(), /Fecha no disponible/);
+});
+
+test("la fecha editorial no retrocede un mes por zona horaria", () => {
+  const html = renderAttorney(attorneyTemplate, {
+    name: "Ana Pérez", slug: "ana-perez", title: "Partner", role: "Partner", bio: "<p>Bio.</p>",
+    relatedNews: [{ slug: "may", title: "May", titleEs: "Mayo", excerpt: "Summary", excerptEs: "Resumen", date: "2022-05-01" }],
+  }, "es");
+  assert.equal(cheerio.load(html)(".attorney-related-insights time").text(), "Mayo, 2022");
 });
 
 test("el perfil en inglés conserva enlaces relacionados e idioma", () => {
@@ -64,6 +88,7 @@ test("el perfil en inglés conserva enlaces relacionados e idioma", () => {
     bio: "<p>Bio.</p>", relatedNews: [{ slug: "insight", title: "Insight", excerpt: "Summary", category: "Articles", date: "2026-06-01" }],
   }, "en");
   const $ = cheerio.load(html);
+  assert.match($(".attorney-related-insights").text(), /Publications by Ana Pérez/);
   assert.equal($(".attorney-related-insights__more").attr("href"), "/news?author=ana-perez&lang=en");
   assert.equal($(".attorney-related-insights__item h3 a").attr("href"), "/news/insight?lang=en");
 });
@@ -73,6 +98,26 @@ test("el perfil no crea una sección vacía de perspectivas", () => {
     name: "Sin publicaciones", slug: "sin-publicaciones", title: "Associate", role: "Associate", bio: "<p>Bio.</p>",
   }, "en");
   assert.equal(cheerio.load(html)(".attorney-related-insights").length, 0);
+});
+
+test("un perfil sin autoría propia muestra lecturas de su práctica sin atribuirlas", () => {
+  const html = renderAttorney(attorneyTemplate, {
+    name: "Ana Pérez", slug: "ana-perez", title: "Associate", role: "Associate", bio: "<p>Bio.</p>",
+    practiceGroups: [{ name: "Corporate M&A", nameEs: "Corporativo / Fusiones y Adquisiciones" }],
+    relatedReadings: [{ slug: "practice-reading", title: "Practice reading", titleEs: "Lectura de práctica", excerpt: "Summary", excerptEs: "Resumen", category: "Articles", categoryEs: "Artículos", date: "2026-06-01" }],
+  }, "es");
+  const $ = cheerio.load(html);
+  assert.match($(".attorney-related-insights h2").text(), /Lecturas relacionadas/);
+  assert.match($(".attorney-related-insights__description").text(), /Corporativo/);
+  assert.doesNotMatch($(".attorney-related-insights").text(), /Publicaciones de Ana Pérez/);
+});
+
+test("las lecturas de práctica conservan el orden editorial sin un DISTINCT incompatible", () => {
+  const storage = readStorageSources();
+  const method = storage.match(/async getRelatedPublishedNewsForTeamMembers[\s\S]*?\n    }\n\n    \/\*\*/)?.[0] || "";
+  assert.match(method, /\.select\(\{ item: news \}\)/);
+  assert.doesNotMatch(method, /selectDistinct/);
+  assert.match(method, /orderBy\(newsDateDescNullsLast\)/);
 });
 
 test("la publicación enlaza de vuelta a perfiles activos y expone autores en SEO", () => {
@@ -108,6 +153,8 @@ test("el archivo conserva el filtro de autor al buscar y paginar", () => {
   assert.match($(".vw-search-summary").text(), /Publications by Ana Pérez/);
   assert.match($(".pagination-dyn").html() || "", /author=ana-perez/);
   assert.match($(".pagination-dyn").html() || "", /lang=en/);
+  assert.match($("link[hreflang='es-MX']").attr("href") || "", /\/news\?q=tax&author=ana-perez&page=2$/);
+  assert.match($("link[hreflang='en']").attr("href") || "", /\/news\?q=tax&author=ana-perez&page=2&lang=en$/);
 });
 
 test("los Artículos no repiten el título ni imprimen URLs crudas, y exponen su fuente segura", () => {

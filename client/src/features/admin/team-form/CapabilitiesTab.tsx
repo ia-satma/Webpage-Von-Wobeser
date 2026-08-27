@@ -86,6 +86,11 @@ export function CapabilitiesTab({ form, language, practiceGroups, industryGroups
                                   <Globe className="w-4 h-4 text-[#878A8E]" />
                                   {language === "es" ? "Industrias / sectores" : "Industries"}
                                 </FormLabel>
+                                <p className="text-xs leading-5 text-[#6E7073]" data-testid="industry-public-roster-note">
+                                  {language === "es"
+                                    ? "Esta asignación se conserva para gestión interna; las páginas públicas de Industria muestran únicamente Socios."
+                                    : "This assignment is retained for internal management; public Industry pages show Partners only."}
+                                </p>
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-72 overflow-y-auto border border-[#D9D8D7] p-4">
                                   {industryGroups.length === 0 && (
                                     <p className="text-sm text-[#878A8E] col-span-2">

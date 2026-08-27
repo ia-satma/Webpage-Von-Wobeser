@@ -100,11 +100,13 @@ export interface IStorage {
     offset: number;
     query?: string;
     category?: string;
+    language?: "en" | "es";
   }): Promise<{ rows: News[]; total: number }>;
   getRelatedPublishedNewsForTeamMembers(opts: {
     teamMemberIds: string[];
-    excludeNewsId: string;
+    excludeNewsId?: string;
     limit: number;
+    language?: "en" | "es";
   }): Promise<News[]>;
   getEditorialRecommendations(opts: {
     excludeNewsId: string;

@@ -100,7 +100,7 @@ test("la semilla real publica exactamente 142 perfiles con slugs únicos", async
   for (const slug of preservedAdditionalAttorneySlugs) assert.ok(slugs.includes(slug));
 });
 
-test("la ficha dinámica separa destacado y cuerpo, usa idiomas y no duplica noticias", () => {
+test("la ficha dinámica separa destacado y cuerpo, y muestra las noticias internas una sola vez", () => {
   const template = read("../../frontend-mirror/index.php/lawyer/l-134.html");
   const attorney = loadCanonicalAttorneyContent(mirrorDir).find((candidate) => candidate.slug === "bernardo-zatarain")!;
   const html = renderAttorney(template, {
@@ -115,8 +115,9 @@ test("la ficha dinámica separa destacado y cuerpo, usa idiomas y no duplica not
   assert.equal($(".attorney__content--txt").html(), attorney.bioEs);
   assert.equal($(".attorney__content--txt").text().includes($(".attorney__content--intro").text()), false);
   assert.match($(".attorney__meta--list").text(), /Español, inglés/);
-  assert.equal($(".attorney-related-insights").length, 0);
-  assert.equal($(".attorney__meta--list a[href='/news/already-listed']").length, 1);
+  assert.equal($(".attorney-related-insights").length, 1);
+  assert.equal($(".attorney-related-insights__item h3 a[href='/news/already-listed']").length, 1);
+  assert.equal($(".attorney__meta--list a[href='/news/already-listed']").length, 0);
 });
 
 test("los años de experiencia de Asociados se ocultan de forma reversible", () => {

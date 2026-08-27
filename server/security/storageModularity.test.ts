@@ -9,9 +9,9 @@ process.env.DATABASE_URL ||= "postgresql://test:test@127.0.0.1:5432/test";
 
 const EXPECTED_STORAGE_METHOD_COUNT = 204;
 const EXPECTED_STORAGE_CONTRACT_HASH =
-  "b186022265355ecd94db592cadce90a9e168ea98700cdd5b530d2e1e718ab909";
+  "820278654857424c17bc23c98ad51cbc0c116cf59b8479a5841407e27bc1f7a6";
 const EXPECTED_STORAGE_IMPLEMENTATION_HASH =
-  "dbb276611a0496964f038a0b5521cb66787fc0aaf287093e82cc8bbff2805a5e";
+  "64b5fe19efd784a45ac679ac2e9a413ff5b6f4ecdc94200fba7a67cc253a18e3";
 const REPOSITORY_FILES = [
   "auditRepository.ts",
   "catalogRepository.ts",

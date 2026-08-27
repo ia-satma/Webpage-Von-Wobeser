@@ -32,6 +32,21 @@ const strictAdditiveStart = "20260820_0001";
 const platformSchemaReconciliations = new Map([
   ["20260826_0001_news_source_url.sql", { table: "news", column: "source_url", dataType: "text" }],
 ]);
+// Las migraciones posteriores al endurecimiento son aditivas por defecto. Esta
+// excepción individual conserva una reconciliación editorial comprobable: la
+// migración sólo puede cambiar el pivote de autorías y el runner verifica que
+// no altere esquema ni conteos de ninguna otra tabla.
+const verifiedDataMigrationPolicies = new Map([
+  ["20260826_0002_reconcile_publication_authors.mjs", {
+    allowedCountChanges: new Set(["news_team_members"]),
+  }],
+  // Retiro editorial solicitado de una publicación histórica identificada por
+  // su legacy id. La migración sólo puede afectar la publicación, su relación
+  // de autores y, si existiera, sus traducciones dependientes.
+  ["20260826_0003_delete_legacy_article_1568.mjs", {
+    allowedCountChanges: new Set(["news", "news_team_members", "news_translations"]),
+  }],
+]);
 
 function quoteIdentifier(value) {
   return `"${String(value).replace(/"/g, '""')}"`;
@@ -45,7 +60,10 @@ function stripSqlComments(source) {
 
 function assertStrictAdditiveMigration(name, source) {
   if (!name.endsWith(".sql")) {
-    throw new Error(`Strict remediation migration must be SQL: ${name}`);
+    if (!verifiedDataMigrationPolicies.has(name)) {
+      throw new Error(`Strict remediation migration must be SQL: ${name}`);
+    }
+    return;
   }
   const statements = stripSqlComments(source)
     .split(";")
@@ -88,12 +106,18 @@ async function getSchemaManifestDigest() {
   return crypto.createHash("sha256").update(JSON.stringify(result.rows)).digest("hex");
 }
 
-function assertProtectedCountsUnchanged(name, before, after) {
-  const changed = Object.entries(before).filter(([tableName, count]) => after[tableName] !== count);
+function assertProtectedCountsUnchanged(name, before, after, allowedCountChanges = new Set()) {
+  const changed = Object.entries(before).filter(([tableName, count]) =>
+    after[tableName] !== count && !allowedCountChanges.has(tableName),
+  );
   if (changed.length) {
     const tableNames = changed.map(([tableName]) => tableName).join(",");
     throw new Error(`Protected table counts changed in ${name}: ${tableNames}`);
   }
+}
+
+function assertStrictSchemaUnchanged(name, before, after) {
+  if (before !== after) throw new Error(`Schema manifest changed in strict data migration: ${name}`);
 }
 
 async function isPlatformSchemaMigrationAlreadyApplied(name) {
@@ -141,6 +165,7 @@ try {
     try {
       const strictAdditive = name >= strictAdditiveStart;
       if (strictAdditive) assertStrictAdditiveMigration(name, source);
+      const dataMigrationPolicy = verifiedDataMigrationPolicies.get(name);
       const countsBefore = strictAdditive ? await getPublicTableCounts() : null;
       const schemaBefore = strictAdditive ? await getSchemaManifestDigest() : null;
       if (countsBefore) {
@@ -162,9 +187,11 @@ try {
       }
       if (countsBefore) {
         const countsAfter = await getPublicTableCounts();
-        assertProtectedCountsUnchanged(name, countsBefore, countsAfter);
+        assertProtectedCountsUnchanged(name, countsBefore, countsAfter, dataMigrationPolicy?.allowedCountChanges);
         console.log(`[migrations] protected-counts after ${name}: ${JSON.stringify(countsAfter)}`);
-        console.log(`[migrations] schema-manifest after ${name}: ${await getSchemaManifestDigest()}`);
+        const schemaAfter = await getSchemaManifestDigest();
+        if (dataMigrationPolicy) assertStrictSchemaUnchanged(name, schemaBefore, schemaAfter);
+        console.log(`[migrations] schema-manifest after ${name}: ${schemaAfter}`);
       }
       await client.query(
         "INSERT INTO app_schema_migrations (name, sha256) VALUES ($1, $2)",

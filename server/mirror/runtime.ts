@@ -1,6 +1,6 @@
 import { type Request, type Response, type NextFunction } from "express";
 import fs from "fs";
-import { eq, and } from "drizzle-orm";
+import { eq, and, asc, inArray } from "drizzle-orm";
 import { getMirrorDir, mirrorPath } from "./config";
 import { renderAttorney } from "./renderAttorney";
 import {
@@ -102,13 +102,23 @@ async function getAttorneysByPractice(practiceGroupId: string) {
     .where(and(eq(teamMemberPracticeGroups.practiceGroupId, practiceGroupId), eq(teamMembers.published, true)));
 }
 
-/** Attorneys belonging to an industry group. */
+/**
+ * Public industry rosters are intentionally limited to Partners. Their
+ * existing editorial sequence is the firm's seniority order, maintained in
+ * Administration under "Orden editorial > Socios". Other industry relations
+ * remain stored for internal management and attorney profiles.
+ */
 async function getAttorneysByIndustry(industryGroupId: string) {
   return db
-    .select({ name: teamMembers.name, givenNames: teamMembers.givenNames, firstSurname: teamMembers.firstSurname, secondSurname: teamMembers.secondSurname, slug: teamMembers.slug, title: teamMembers.title, order: teamMembers.order })
+    .select({ id: teamMembers.id, name: teamMembers.name, givenNames: teamMembers.givenNames, firstSurname: teamMembers.firstSurname, secondSurname: teamMembers.secondSurname, slug: teamMembers.slug, title: teamMembers.title, order: teamMembers.order })
     .from(teamMemberIndustryGroups)
     .innerJoin(teamMembers, eq(teamMemberIndustryGroups.teamMemberId, teamMembers.id))
-    .where(and(eq(teamMemberIndustryGroups.industryGroupId, industryGroupId), eq(teamMembers.published, true)));
+    .where(and(
+      eq(teamMemberIndustryGroups.industryGroupId, industryGroupId),
+      eq(teamMembers.title, "Partner"),
+      eq(teamMembers.published, true),
+    ))
+    .orderBy(asc(teamMembers.order), asc(teamMembers.id));
 }
 
 /** Fetch an attorney's practice & industry groups via the join tables. */
@@ -126,6 +136,25 @@ async function getAttorneyGroups(memberId: string) {
       .where(and(eq(teamMemberIndustryGroups.teamMemberId, memberId), eq(industryGroups.published, true))),
   ]);
   return { practiceGroups: pg.filter((group) => isPublicPracticeSlug(group.slug)), industryGroups: ig };
+}
+
+/** Public reading recommendations come only from colleagues who share a practice. */
+async function getPracticePeerIds(memberId: string): Promise<string[]> {
+  const memberships = await db
+    .select({ practiceGroupId: teamMemberPracticeGroups.practiceGroupId })
+    .from(teamMemberPracticeGroups)
+    .where(eq(teamMemberPracticeGroups.teamMemberId, memberId));
+  const practiceIds = memberships.map((membership) => membership.practiceGroupId);
+  if (!practiceIds.length) return [];
+  const peers = await db
+    .select({ id: teamMembers.id })
+    .from(teamMemberPracticeGroups)
+    .innerJoin(teamMembers, eq(teamMemberPracticeGroups.teamMemberId, teamMembers.id))
+    .where(and(
+      inArray(teamMemberPracticeGroups.practiceGroupId, practiceIds),
+      eq(teamMembers.published, true),
+    ));
+  return Array.from(new Set(peers.map((peer) => peer.id)));
 }
 
 // ES attorney-listing category slugs → our canonical category keys.
@@ -363,20 +392,29 @@ export async function createMirrorRuntime() {
     if (!member) member = await storage.getTeamMemberById(slug);
     if (!member) return next();
     if ((member as any).published === false) return next(); // oculto
-    const [groups, relatedNews, config] = await Promise.all([
+    const [groups, relatedNews, practicePeerIds, config] = await Promise.all([
       getAttorneyGroups(member.id),
       storage.getPublishedNewsByTeamMemberIdPage({
         teamMemberId: member.id,
         limit: 6,
         offset: 0,
+        language: lang,
       }).then((result) => result.rows).catch(() => []),
+      getPracticePeerIds(member.id),
       getConfigMap(),
     ]);
+    const relatedReadings = relatedNews.length || !practicePeerIds.length
+      ? []
+      : await storage.getRelatedPublishedNewsForTeamMembers({
+        teamMemberIds: practicePeerIds,
+        limit: 6,
+        language: lang,
+      }).catch(() => []);
     const typography = await getEditorialTypography("team_member", member.id);
     const associateExperienceVisible = cfg(config, "associate_experience_visible", lang).trim().toLowerCase() === "true";
     sendPage(res, renderAttorney(
       pick(TEMPLATES.attorney, lang),
-      { ...member, ...groups, relatedNews },
+      { ...member, ...groups, relatedNews, relatedReadings },
       lang,
       typography,
       { associateExperienceVisible },
@@ -576,6 +614,7 @@ export async function createMirrorRuntime() {
       query: query.length >= 2 ? query : undefined,
       limit: perPage,
       offset: (targetPage - 1) * perPage,
+      language: lang,
     });
     const authorPage = author && (!query || query.length >= 2) ? await fetchAuthorPage(page) : null;
     // Cuenta + una sola página en SQL, en vez de traer TODAS las noticias y paginar en memoria.
@@ -609,6 +648,7 @@ export async function createMirrorRuntime() {
       category: "articles",
       limit: perPage,
       offset: (targetPage - 1) * perPage,
+      language: lang,
     });
     const authorPage = author && (!query || query.length >= 2) ? await fetchAuthorPage(page) : null;
     const searched = !author && query.length >= 2

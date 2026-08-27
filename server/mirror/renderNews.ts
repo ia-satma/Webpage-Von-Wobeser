@@ -91,7 +91,9 @@ function fmtDate(d: any, lang: Lang): string {
   if (!d) return "";
   const dt = new Date(d);
   if (isNaN(dt.getTime())) return "";
-  return `${MONTHS[lang][dt.getMonth()]}, ${dt.getFullYear()}`;
+  // `date` es editorial y no representa una hora local: UTC impide que el
+  // navegador/servidor la desplace al día o mes anterior por su zona horaria.
+  return `${MONTHS[lang][dt.getUTCMonth()]}, ${dt.getUTCFullYear()}`;
 }
 
 export type NewsListOpts = {
@@ -460,12 +462,22 @@ export function renderNewsList(
   const crumbLabel = opts.crumbLabel || defaultCrumb;
   const shouldPaginateEditorialSeo = Boolean(opts.editorialHeader && pageInfo && pageInfo.page > 1 && !query && !author);
   const seoPath = shouldPaginateEditorialSeo ? paginatedArchivePath(basePath, pageInfo!.page) : basePath;
-  const seoAlternatePaths = shouldPaginateEditorialSeo && opts.alternatePaths
+  // Los archivos filtrados no se indexan, pero sí deben conservar autor,
+  // búsqueda, página e idioma al alternar ES/EN desde la cabecera pública.
+  // Sin estas rutas explícitas applySeo sólo añadía `lang=en` a la base y
+  // perdía el filtro de abogado.
+  const filteredAlternatePaths = (query || author)
+    ? {
+        es: listPageHref(basePath, pageInfo?.page || 1, "es", query, author),
+        en: listPageHref(basePath, pageInfo?.page || 1, "en", query, author),
+      }
+    : undefined;
+  const seoAlternatePaths = filteredAlternatePaths || (shouldPaginateEditorialSeo && opts.alternatePaths
     ? {
         es: paginatedArchivePath(opts.alternatePaths.es, pageInfo!.page),
         en: paginatedArchivePath(opts.alternatePaths.en, pageInfo!.page),
       }
-    : opts.alternatePaths;
+    : opts.alternatePaths);
 
   applySeo($, {
     lang,
