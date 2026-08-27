@@ -24,8 +24,8 @@ const newsTemplate = `<!doctype html><html><head><title>Publication</title></hea
   <main class="single__content"><div class="single__content--intro"></div><div class="single__content--txt"></div></main>
   </div></section></body></html>`;
 
-test("el perfil muestra seis publicaciones propias y conserva el archivo bilingüe", () => {
-  const relatedNews = Array.from({ length: 6 }, (_, index) => ({
+test("el perfil muestra tres publicaciones propias junto a la biografía y conserva el archivo bilingüe", () => {
+  const relatedNews = Array.from({ length: 3 }, (_, index) => ({
     slug: `insight-${index + 1}`,
     title: `Insight ${index + 1}`,
     titleEs: `Perspectiva ${index + 1}`,
@@ -33,7 +33,7 @@ test("el perfil muestra seis publicaciones propias y conserva el archivo biling�
     excerptEs: "Un resumen editorial breve.",
     category: "Articles",
     categoryEs: "Artículos",
-    date: new Date(2026, index, 1),
+    date: new Date(2026, index + 3, 1),
     imageUrl: index === 0 ? "/uploads/insight.jpg" : null,
   }));
   const html = renderAttorney(attorneyTemplate, {
@@ -43,20 +43,27 @@ test("el perfil muestra seis publicaciones propias y conserva el archivo biling�
     titleEs: "Socia",
     role: "Partner",
     roleEs: "Socia",
-    bio: "<p>Bio.</p>",
-    bioEs: "<p>Biografía.</p>",
+    bioIntro: "<p>Short professional introduction.</p>",
+    bioIntroEs: "<p>Introducción profesional breve.</p>",
+    bio: "<p>Professional background.</p>",
+    bioEs: "<p>Trayectoria profesional.</p>",
     relatedNews,
   }, "es");
   const $ = cheerio.load(html);
 
   assert.equal($(".attorney-related-insights").length, 1);
-  assert.equal($(".attorney-related-insights__item").length, 6);
+  assert.equal($(".attorney-related-insights__item").length, 3);
   assert.equal($(".attorney-related-insights__more").attr("href"), "/news?author=ana-perez");
-  assert.equal($(".attorney-related-insights__item").first().find("a").first().attr("href"), "/news/insight-6");
+  assert.equal($(".attorney-related-insights__item").first().find("a").first().attr("href"), "/news/insight-3");
   assert.equal($(".attorney-related-insights__item").first().find("time").text(), "Junio, 2026");
-  assert.equal($(".page--wrap").next(".attorney-related-insights").length, 1);
+  assert.equal($(".attorney-bio-disclosure").attr("open"), undefined);
+  assert.equal($(".attorney-bio-disclosure").next(".attorney-related-insights").length, 1);
+  assert.equal($("h1.attorney__meta--name").length, 1);
+  assert.equal($("h1").length, 1);
+  assert.equal($(".attorney__meta--list.list_JS").length, 1);
+  assert.equal($(".attorney-profile__nav").length, 0);
   assert.equal($(".attorney__meta--list").text().includes("Noticias relacionadas"), false);
-  assert.match($(".attorney-related-insights").text(), /Publicaciones de Ana Pérez/);
+  assert.match($(".attorney-related-insights h2").text(), /Perspectivas relacionadas/);
 });
 
 test("las publicaciones del perfil se ordenan por fecha descendente y declaran su fecha", () => {
@@ -88,16 +95,45 @@ test("el perfil en inglés conserva enlaces relacionados e idioma", () => {
     bio: "<p>Bio.</p>", relatedNews: [{ slug: "insight", title: "Insight", excerpt: "Summary", category: "Articles", date: "2026-06-01" }],
   }, "en");
   const $ = cheerio.load(html);
-  assert.match($(".attorney-related-insights").text(), /Publications by Ana Pérez/);
+  assert.match($(".attorney-related-insights h2").text(), /Related insights/);
   assert.equal($(".attorney-related-insights__more").attr("href"), "/news?author=ana-perez&lang=en");
   assert.equal($(".attorney-related-insights__item h3 a").attr("href"), "/news/insight?lang=en");
+});
+
+test("la columna lateral conserva su acordeón gris y sus relaciones públicas", () => {
+  const html = renderAttorney(attorneyTemplate, {
+    name: "Ana Pérez", slug: "ana-perez", title: "Partner", titleEs: "Socia", role: "Partner", roleEs: "Socia",
+    bioIntro: "<p>Introducción.</p>", bioIntroEs: "<p>Introducción.</p>",
+    bio: "<p>Experiencia profesional.</p>", bioEs: "<p>Experiencia profesional.</p>",
+    practiceGroups: [{ slug: "corporate", name: "Corporate", nameEs: "Corporativo" }],
+    industryGroups: [{ slug: "energy", name: "Energy", nameEs: "Energía" }],
+    rankings: [{ ranking: "Band 1", rankingEs: "Banda 1", publication: "Chambers", publicationEs: "Chambers" }],
+    education: [{ degree: "Law degree", degreeEs: "Licenciatura en Derecho", school: "University", schoolEs: "Universidad" }],
+    affiliations: [{ organization: "Association", organizationEs: "Asociación" }],
+    relatedNews: [{ slug: "insight", title: "Insight", titleEs: "Perspectiva", excerpt: "Summary", excerptEs: "Resumen", date: "2026-06-01" }],
+  }, "es");
+  const $ = cheerio.load(html);
+
+  assert.equal($(".attorney__meta--list.list_JS a[href='/practice/corporate']").text(), "Corporativo");
+  assert.equal($(".attorney__meta--list.list_JS a[href='/industry/energy']").text(), "Energía");
+  assert.match($(".attorney__meta--list").text(), /Educación y experiencia/);
+  assert.match($(".attorney__meta--list").text(), /Afiliaciones y actividades académicas/);
+  assert.match($(".attorney__meta--list ul#recognitions").text(), /Banda 1/);
+  assert.match($(".attorney__meta--list").text(), /Licenciatura en Derecho/);
+  assert.match($(".attorney__meta--list ul#affiliations").text(), /Asociación/);
+  assert.equal($(".attorney-profile__nav").length, 0);
+  assert.equal($(".attorney__content").text().includes("Banda 1"), false);
+  assert.equal($(".attorney__content").text().includes("Licenciatura en Derecho"), false);
+  assert.equal($(".attorney-bio-disclosure").attr("open"), undefined);
 });
 
 test("el perfil no crea una sección vacía de perspectivas", () => {
   const html = renderAttorney(attorneyTemplate, {
     name: "Sin publicaciones", slug: "sin-publicaciones", title: "Associate", role: "Associate", bio: "<p>Bio.</p>",
   }, "en");
-  assert.equal(cheerio.load(html)(".attorney-related-insights").length, 0);
+  const $ = cheerio.load(html);
+  assert.equal($(".attorney-related-insights").length, 0);
+  assert.equal($(".attorney__meta--list.list_JS > li").length, 0);
 });
 
 test("un perfil sin autoría propia muestra lecturas de su práctica sin atribuirlas", () => {
@@ -107,7 +143,7 @@ test("un perfil sin autoría propia muestra lecturas de su práctica sin atribui
     relatedReadings: [{ slug: "practice-reading", title: "Practice reading", titleEs: "Lectura de práctica", excerpt: "Summary", excerptEs: "Resumen", category: "Articles", categoryEs: "Artículos", date: "2026-06-01" }],
   }, "es");
   const $ = cheerio.load(html);
-  assert.match($(".attorney-related-insights h2").text(), /Lecturas relacionadas/);
+  assert.match($(".attorney-related-insights h2").text(), /Perspectivas relacionadas/);
   assert.match($(".attorney-related-insights__description").text(), /Corporativo/);
   assert.doesNotMatch($(".attorney-related-insights").text(), /Publicaciones de Ana Pérez/);
 });
@@ -231,11 +267,34 @@ test("el panel manda vínculos desde la creación y expone revisión humana", ()
   assert.match(routes, /verified source for Articles/);
 });
 
-test("las perspectivas del perfil se presentan en una franja horizontal antes del footer", () => {
-  const css = readFileSync(new URL("../../frontend-mirror/templates/beez3/css/von.css", import.meta.url), "utf8");
-  assert.match(css, /\.attorney > \.attorney-related-insights/);
-  assert.match(css, /grid-auto-flow: column/);
-  assert.match(css, /overflow-x: auto/);
+test("las perspectivas del perfil acompañan la biografía sin carrusel horizontal", () => {
+  const css = readFileSync(new URL("../../frontend-mirror/templates/beez3/css/typography.css", import.meta.url), "utf8");
+  const legacyCss = readFileSync(new URL("../../frontend-mirror/templates/beez3/css/style.css", import.meta.url), "utf8");
+  assert.match(css, /\.attorney-bio-disclosure/);
+  assert.match(css, /attorney__content--intro:has\(\+ \.attorney-bio-disclosure\)/);
+  assert.match(css, /linear-gradient\(to bottom, rgba\(255, 255, 255, 0\), #fff 88%\)/);
+  assert.match(css, /attorney-bio-disclosure\[open\][\s\S]*?max-height:\s*none/);
+  assert.match(css, /attorney-bio-disclosure__content[\s\S]*?grid-template-rows:\s*0fr[\s\S]*?transition:\s*grid-template-rows/);
+  assert.match(css, /attorney-bio-disclosure\[open\][\s\S]*?grid-template-rows:\s*1fr/);
+  assert.match(css, /grid-template-columns:\s*repeat\(auto-fit, minmax\(180px, 1fr\)\)/);
+  assert.match(css, /grid-auto-flow:\s*row/);
+  assert.match(css, /attorney-related-insights__grid[\s\S]*?gap:\s*14px/);
+  assert.match(css, /attorney-related-insights\s*\{[\s\S]*?margin:\s*44px 0 clamp\(64px, 7vw, 104px\)/);
+  assert.match(css, /@media \(max-width: 780px\)[\s\S]*?attorney__meta[\s\S]*?padding-bottom:\s*42px/);
+  assert.match(css, /attorney-related-insights__item[\s\S]*?background:\s*#fff[\s\S]*?border:\s*1px solid #d4d4d0[\s\S]*?border-radius:\s*3px/);
+  assert.match(css, /attorney-related-insights__item[\s\S]*?min-height:\s*280px[\s\S]*?aspect-ratio:\s*auto/);
+  assert.match(css, /attorney-related-insights__arrow[\s\S]*?color:\s*rgba\(169, 25, 49, \.76\)[\s\S]*?font-size:\s*20px/);
+  assert.match(css, /@media print[\s\S]*?\.attorney-bio-disclosure__content[\s\S]*?display:\s*block\s*!important/);
+  assert.doesNotMatch(css, /grid-auto-flow:\s*column/);
+  assert.match(legacyCss, /background-color:\s*#c4c4c4/);
+  assert.doesNotMatch(css, /background:\s*#f5f5f2/);
+});
+
+test("la ficha consulta sólo tres publicaciones sin modificar el archivo", () => {
+  const runtime = readFileSync(new URL("../mirror/runtime.ts", import.meta.url), "utf8");
+  const serveAttorney = runtime.match(/const serveAttorney[\s\S]*?\n  };\n\n  const serveList/)?.[0] || "";
+  assert.match(serveAttorney, /getPublishedNewsByTeamMemberIdPage\([\s\S]*?limit:\s*3/);
+  assert.match(serveAttorney, /getRelatedPublishedNewsForTeamMembers\([\s\S]*?limit:\s*3/);
 });
 
 test("el detalle recomienda publicaciones por etiquetas, autores y categoría sin repetir la actual", () => {

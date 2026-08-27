@@ -29,6 +29,7 @@ await fs.writeFile(publicCss, `${sections.join("\n").trim()}\n`);
 // legado de la captura original. También se actualizan las fuentes de CSS que
 // aún pueden servirse de manera individual como respaldo.
 const sriManifest = path.join(root, "server", "security", "sriManifest.ts");
+const adminShell = path.join(root, "client", "index.html");
 const sriAssets = new Map([
   ["/templates/beez3/css/public.css", publicCss],
   ["/templates/beez3/css/von.css", sources[0]],
@@ -51,5 +52,20 @@ for (const [url, asset] of sriAssets) {
   manifest = manifest.replace(entry, `$1"${integrity}",`);
 }
 await fs.writeFile(sriManifest, manifest);
+
+// El panel carga la hoja tipográfica directamente para compartir las familias
+// institucionales. Su SRI debe avanzar junto con el manifiesto; de otro modo
+// los navegadores rechazan la hoja tras cualquier ajuste editorial público.
+const typographyIntegrity = `sha384-${createHash("sha384").update(await fs.readFile(sources[2])).digest("base64")}`;
+const adminHtml = await fs.readFile(adminShell, "utf8");
+const typographyLinkPattern = /(<link\b[^>]*\bhref="\/templates\/beez3\/css\/typography\.css(?:\?[^\"]*)?"[^>]*\bintegrity=")sha384-[^"]+("[^>]*>)/i;
+if (!typographyLinkPattern.test(adminHtml)) {
+  throw new Error("[public-css] No se encontró el enlace tipográfico con SRI del panel.");
+}
+const updatedAdminHtml = adminHtml.replace(
+  typographyLinkPattern,
+  `$1${typographyIntegrity}$2`,
+);
+if (updatedAdminHtml !== adminHtml) await fs.writeFile(adminShell, updatedAdminHtml);
 
 console.log(`[public-css] ${path.relative(root, publicCss)} actualizado desde ${sources.length} hojas y SRI sincronizado.`);

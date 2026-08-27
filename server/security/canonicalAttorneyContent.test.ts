@@ -112,9 +112,12 @@ test("la ficha dinámica separa destacado y cuerpo, y muestra las noticias inter
 
   assert.equal($(".attorney").attr("data-vw-content-kind"), "attorney");
   assert.equal($(".attorney__content--intro").html(), attorney.bioIntroEs);
-  assert.equal($(".attorney__content--txt").html(), attorney.bioEs);
+  assert.equal($(".attorney-bio-disclosure .attorney__content--txt").html(), attorney.bioEs);
   assert.equal($(".attorney__content--txt").text().includes($(".attorney__content--intro").text()), false);
-  assert.match($(".attorney__meta--list").text(), /Español, inglés/);
+  assert.equal($("h1").length, 1);
+  assert.equal($("h1.attorney__meta--name").text(), "Bernardo Zatarain");
+  assert.equal($(".attorney__meta--list.list_JS").length, 1);
+  assert.equal($(".attorney-profile__nav").length, 0);
   assert.equal($(".attorney-related-insights").length, 1);
   assert.equal($(".attorney-related-insights__item h3 a[href='/news/already-listed']").length, 1);
   assert.equal($(".attorney__meta--list a[href='/news/already-listed']").length, 0);

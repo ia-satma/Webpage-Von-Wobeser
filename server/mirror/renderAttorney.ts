@@ -45,100 +45,73 @@ function fmtDate(value: unknown, lang: Lang): string {
   return `${MONTHS[lang][date.getUTCMonth()]}, ${date.getUTCFullYear()}`;
 }
 
-/** Build the inner HTML of the `.attorney__meta--list` block from DB data. */
-function buildMetaList(a: any, lang: Lang): string {
-  const blocks: string[] = [];
-
-  const section = (label: string, items: string[], ulAttrs = "") => {
-    if (!items.length) return;
-    blocks.push(
-      `<li>${label}<ul${ulAttrs}>${items.map((i) => `<li>${i}</li>`).join("")}</ul></li>`,
-    );
-  };
-
-  // Practices / Industries come from join tables (currently empty in DB) —
-  // rendered when present so the section lights up once relations are seeded.
-  const practices: string[] = (a.practiceGroups || []).map((p: any) =>
-    esc(L(p, "name", lang)),
-  );
-  section(lang === "es" ? "Áreas de práctica" : "Practices", practices);
-
-  const industries: string[] = (a.industryGroups || []).map((p: any) =>
-    esc(L(p, "name", lang)),
-  );
-  section(lang === "es" ? "Grupos de industria" : "Industry Groups", industries);
-
-  const education: string[] = (a.education || []).map((e: any) => {
-    const deg = esc(L(e, "degree", lang));
-    const sch = esc(L(e, "school", lang));
-    return [deg, sch].filter(Boolean).join(", ");
-  });
-  section(
-    lang === "es" ? "Educación y experiencia" : "Education & Experience",
-    education,
-  );
-
-  const affiliations: string[] = (a.affiliations || []).map((f: any) => {
-    const role = esc(L(f, "role", lang));
-    const org = esc(L(f, "organization", lang));
-    return role ? `${org} — ${role}` : org;
-  });
-  section(
-    lang === "es" ? "Afiliaciones y actividades académicas" : "Affiliations & Academic Activities",
-    affiliations,
-    ' id="affiliations"',
-  );
-
-  const recognitions: string[] = (a.rankings || []).map((r: any) => {
-    const rank = esc(r.ranking || "");
-    const pub = esc(r.publication || "");
-    return rank ? `${rank} — ${pub}` : pub;
-  });
-  section(
-    lang === "es" ? "Reconocimientos" : "Recognitions",
-    recognitions,
-    ' id="recognitions"',
-  );
-
-  const resourceUrl = (value: unknown) => {
-    const url = String(value || "").trim();
-    return /^(?:\/news\/|\/articles\/|https:\/\/vonwobeser\.com\/)/i.test(url) ? url : "";
-  };
-  const renderResource = (p: any) => {
-    const title = esc(L(p, "title", lang));
-    const journal = esc(p.journal || "");
-    const year = esc(p.year || "");
-    const label = [title, journal, year && `(${year})`].filter(Boolean).join(", ");
-    const url = resourceUrl(p.url);
-    return url ? `<a href="${esc(url)}" rel="noopener noreferrer">${label}</a>` : label;
-  };
-  const resources = a.publications || [];
-  // Las publicaciones internas se presentan en la franja editorial del perfil.
-  // La columna conserva solamente bibliografía externa para no repetir títulos.
-  const resourcesForMeta = (a.relatedNews || []).length
-    ? resources.filter((resource: any) => !/^\/(?:news|articles)\//i.test(String(resource.url || "")))
-    : resources;
-  section(lang === "es" ? "Noticias" : "News", resourcesForMeta.filter((p: any) => p.kind === "news").map(renderResource));
-  section(lang === "es" ? "Artículos" : "Articles", resourcesForMeta.filter((p: any) => p.kind !== "news").map(renderResource));
-
-  const languages: string[] = (lang === "es" ? a.languagesEs : a.languages) || a.languages || [];
-  if (languages.length) {
-    blocks.push(
-      `<li>${lang === "es" ? "Idiomas" : "Languages"}<ul><li>${esc(languages.join(", "))}.</li></ul></li>`,
-    );
-  }
-
-  const tel = `<p class='tel_print'>${lang === "es" ? "Tel" : "Phone"}:${esc(a.phone || "")}<br>${esc(a.email || "")}</p>`;
-  return tel + blocks.join("\n");
+function profileEducation(a: any, lang: Lang): string[] {
+  return (a.education || []).map((entry: any) => {
+    const degree = esc(L(entry, "degree", lang));
+    const school = esc(L(entry, "school", lang));
+    return [degree, school].filter(Boolean).join(", ");
+  }).filter(Boolean);
 }
 
-function publicInsightImage(value: unknown): string {
-  const source = String(value || "").trim();
+function profileRecognitions(a: any, lang: Lang): string[] {
+  return (a.rankings || []).map((entry: any) => {
+    const ranking = esc(L(entry, "ranking", lang));
+    const publication = esc(L(entry, "publication", lang));
+    return ranking ? `${ranking} — ${publication}` : publication;
+  }).filter(Boolean);
+}
 
-  // Algunos registros históricos conservan imágenes generadas que ya no están
-  // disponibles en el sitio público. La imagen es complementaria: solo usamos
-  // rutas que pertenecen al almacenamiento público o una URL externa completa.
-  return /^(?:https?:\/\/|\/uploads\/)/i.test(source) ? source : "";
+function profileGroupLinks(groups: any[], kind: "practice" | "industry", lang: Lang): string[] {
+  return groups.map((group) => {
+    const name = esc(L(group, "name", lang));
+    const slug = String(group?.slug || "").trim();
+    if (!name) return "";
+    const href = slug
+      ? `/${kind}/${encodeURIComponent(slug)}${lang === "en" ? "?lang=en" : ""}`
+      : "";
+    return href ? `<a href="${href}">${name}</a>` : name;
+  }).filter(Boolean);
+}
+
+/** The historic compact sidebar is intentionally preserved.  Its accordion
+ * categories remain in the left grey column, while the new editorial content
+ * lives only in the main reading column. */
+function buildCompactSidebar(a: any, lang: Lang): string {
+  const copy = lang === "es"
+    ? {
+      practices: "Áreas de práctica", industries: "Grupos de industria",
+      education: "Educación y experiencia", affiliations: "Afiliaciones y actividades académicas",
+      recognitions: "Reconocimientos", languages: "Idiomas",
+    }
+    : {
+      practices: "Practices", industries: "Industry Groups",
+      education: "Education & Experience", affiliations: "Affiliations & Academic Activities",
+      recognitions: "Recognitions", languages: "Languages",
+    };
+  const section = (label: string, items: string[], attrs = "") =>
+    items.length ? `<li>${esc(label)}<ul${attrs}>${items.map((item) => `<li>${item}</li>`).join("")}</ul></li>` : "";
+  const education = profileEducation(a, lang);
+  const recognitions = profileRecognitions(a, lang);
+  const affiliations = (a.affiliations || []).map((entry: any) => {
+    const organization = esc(L(entry, "organization", lang));
+    const role = esc(L(entry, "role", lang));
+    return organization ? (role ? `${organization} — ${role}` : organization) : "";
+  }).filter(Boolean);
+  const languages = ((lang === "es" ? a.languagesEs : a.languages) || a.languages || [])
+    .map((entry: unknown) => esc(String(entry || "").trim()))
+    .filter(Boolean);
+  const items = [
+    section(copy.practices, profileGroupLinks(a.practiceGroups || [], "practice", lang)),
+    section(copy.industries, profileGroupLinks(a.industryGroups || [], "industry", lang)),
+    section(copy.education, education),
+    section(copy.affiliations, affiliations, ' id="affiliations"'),
+    section(copy.recognitions, recognitions, ' id="recognitions"'),
+    section(copy.languages, languages),
+  ].join("");
+  return `<div class="attorney__meta--list list_JS">` +
+    `<p class="tel_print">${lang === "es" ? "Tel" : "Phone"}:${esc(a.phone || "")}<br>${esc(a.email || "")}</p>` +
+    items +
+    `</div>`;
 }
 
 /** Publicaciones propias: fecha descendente, con las sin fecha al final. El
@@ -173,15 +146,12 @@ function insightCards(items: any[], labels: { read: string }, lang: Lang): strin
     const dateMarkup = date
       ? `<time datetime="${esc(dateTime)}">${esc(date)}</time>`
       : `<span>${lang === "es" ? "Fecha no disponible" : "Date unavailable"}</span>`;
-    const image = publicInsightImage(item.imageUrl || item.image);
-    const imageMarkup = image
-      ? `<div class="attorney-related-insights__image"><img src="${esc(String(image))}" alt="" loading="lazy"></div>`
-      : "";
-    return `<article class="attorney-related-insights__item">${imageMarkup}` +
+    return `<article class="attorney-related-insights__item">` +
       `<div class="attorney-related-insights__body">` +
       `<div class="attorney-related-insights__meta">${dateMarkup}</div>` +
       `<h3><a href="${href}" aria-label="${esc(`${labels.read}: ${L(item, "title", lang)}`)}">${title}</a></h3>` +
       `<div class="attorney-related-insights__excerpt">${excerpt}</div>` +
+      `<a class="attorney-related-insights__arrow" href="${href}" aria-hidden="true" tabindex="-1">→</a>` +
       `</div></article>`;
   }).join("");
 }
@@ -197,12 +167,11 @@ function buildInsightsSection(opts: {
 }): string {
   if (!opts.items.length) return "";
   const description = opts.description ? `<p class="attorney-related-insights__description">${esc(opts.description)}</p>` : "";
-  return `<section class="attorney-related-insights" aria-labelledby="attorney-related-insights-title">` +
-    `<div class="attorney-related-insights__wrap wrap">` +
+  return `<section class="attorney-related-insights" id="attorney-publications" aria-labelledby="attorney-related-insights-title">` +
     `<div class="attorney-related-insights__header">` +
     `<h2 id="attorney-related-insights-title">${esc(opts.title)}</h2>${description}` +
     `<a class="attorney-related-insights__more" href="${esc(opts.href)}">${esc(opts.more)}</a>` +
-    `</div><div class="attorney-related-insights__grid">${insightCards(opts.items, opts, opts.lang)}</div></div></section>`;
+    `</div><div class="attorney-related-insights__grid">${insightCards(opts.items, opts, opts.lang)}</div></section>`;
 }
 
 /** Publicaciones propias del sitio, respaldadas por la relación editorial del perfil. */
@@ -211,8 +180,8 @@ function buildAuthoredInsights(attorney: any, lang: Lang): string {
   if (!relatedNews.length) return "";
 
   const labels = lang === "es"
-    ? { title: `Publicaciones de ${attorney.name || ""}`, more: "Ver todas las publicaciones", read: "Leer publicación" }
-    : { title: `Publications by ${attorney.name || ""}`, more: "View all publications", read: "Read publication" };
+    ? { title: "Perspectivas relacionadas", more: "Ver todas las publicaciones", read: "Leer publicación" }
+    : { title: "Related insights", more: "View all publications", read: "Read publication" };
   const archiveParams = new URLSearchParams({ author: attorney.slug || "" });
   if (lang === "en") archiveParams.set("lang", "en");
   return buildInsightsSection({ ...labels, items: relatedNews, href: `/news?${archiveParams.toString()}`, lang });
@@ -224,12 +193,27 @@ function buildPracticeReadings(attorney: any, lang: Lang): string {
   if (!readings.length) return "";
   const practiceNames = (attorney.practiceGroups || []).map((practice: any) => L(practice, "name", lang)).filter(Boolean);
   const labels = lang === "es"
-    ? { title: "Lecturas relacionadas", more: "Ver todas las publicaciones", read: "Leer publicación" }
-    : { title: "Related reading", more: "View all publications", read: "Read publication" };
+    ? { title: "Perspectivas relacionadas", more: "Ver todas las publicaciones", read: "Leer publicación" }
+    : { title: "Related insights", more: "View all publications", read: "Read publication" };
   const description = practiceNames.length
     ? (lang === "es" ? `Contenido de integrantes de ${practiceNames.join(", ")}.` : `Published by members of ${practiceNames.join(", ")}.`)
     : undefined;
   return buildInsightsSection({ ...labels, items: readings, href: lang === "en" ? "/news?lang=en" : "/news", lang, description });
+}
+
+/** The full biography stays in the HTML and is revealed with native details.
+ * The original sidebar keeps education, affiliations and recognitions. */
+function buildBiographyDisclosure(opts: {
+  bio: string;
+  lang: Lang;
+}): string {
+  const copy = opts.lang === "es"
+    ? { show: "Mostrar biografía completa", hide: "Ocultar biografía" }
+    : { show: "Show full biography", hide: "Show less" };
+  if (!opts.bio.trim()) return "";
+  return `<details class="attorney-bio-disclosure" data-vw-attorney-bio>` +
+    `<summary><span class="attorney-bio-disclosure__show">${esc(copy.show)}</span><span class="attorney-bio-disclosure__hide">${esc(copy.hide)}</span><span class="attorney-bio-disclosure__chevron" aria-hidden="true"></span></summary>` +
+    `<div class="attorney-bio-disclosure__content"><div class="attorney__content--txt" id="attorney-experience">${opts.bio}</div></div></details>`;
 }
 
 /**
@@ -322,7 +306,11 @@ export function renderAttorney(
   const img = a.imageUrl || "";
 
   // --- Header card -------------------------------------------------------
-  $(".attorney__meta--name").attr(typographyAttribute(typography, "name", lang)).text(name);
+  const $name = $(".attorney__meta--name").first();
+  if ($name.length) {
+    const nameAttributes = { ...($name.attr() || {}), ...typographyAttribute(typography, "name", lang) };
+    $name.replaceWith($("<h1>").attr(nameAttributes).text(name));
+  }
   $(".attorney__meta--role").attr(typographyAttribute(typography, lang === "es" ? "titleEs" : "title", lang)).text(role);
 
   const $img = $(".attorney__meta--img");
@@ -336,9 +324,6 @@ export function renderAttorney(
       `<a href="mailto:${esc(email)}">${esc(email)}</a></p>`,
   );
 
-  // --- Structured list ---------------------------------------------------
-  $(".attorney__meta--list").html(buildMetaList(a, lang));
-
   // --- Bio ---------------------------------------------------------------
   const bio = L(a, "bio", lang);
   const storedIntro = L(a, "bioIntro", lang);
@@ -350,17 +335,35 @@ export function renderAttorney(
   const { first: legacyIntro, rest: legacyRest } = splitFirstBlock(renderBio(bio));
   const bioIntro = storedIntro ? renderBio(storedIntro) : legacyIntro;
   const bioRest = storedIntro ? renderBio(bio) : legacyRest;
-  $(".attorney__content--intro").attr(typographyAttribute(typography, lang === "es" ? "bioIntroEs" : "bioIntro", lang)).html(bioIntro);
-  $(".attorney__content--txt").attr(typographyAttribute(typography, lang === "es" ? "bioEs" : "bio", lang)).html(bioRest);
-  const relatedInsights = buildAuthoredInsights(a, lang) || buildPracticeReadings(a, lang);
-  $(".attorney-related-insights").remove();
-  if (relatedInsights) {
-    // El perfil termina con una franja editorial completa, antes del footer. Así las
-    // publicaciones no compiten con la biografía en la columna derecha del espejo.
-    const $profileWrap = $(".page--wrap").first();
-    if ($profileWrap.length) $profileWrap.after(relatedInsights);
-    else $(".attorney__content--txt").after(relatedInsights);
+  const disclosure = buildBiographyDisclosure({ bio: bioRest, lang });
+  const $content = $(".attorney__content").first();
+  const $intro = $content.find(".attorney__content--intro").first();
+  $content.find(".attorney-bio-disclosure, .attorney-related-insights").remove();
+  // La columna editorial queda reservada para la biografía y publicaciones;
+  // no dejamos controles heredados debajo de ese bloque.
+  $content.find(".attorney__content--btns").remove();
+  $intro.attr(typographyAttribute(typography, lang === "es" ? "bioIntroEs" : "bioIntro", lang)).html(bioIntro);
+  const $body = $content.find(".attorney__content--txt").first();
+  if (disclosure) {
+    $body.replaceWith(disclosure);
+    $content.find(".attorney-bio-disclosure .attorney__content--txt")
+      .attr(typographyAttribute(typography, lang === "es" ? "bioEs" : "bio", lang));
+  } else {
+    $body.attr(typographyAttribute(typography, lang === "es" ? "bioEs" : "bio", lang)).html(bioRest);
   }
+  const relatedInsights = buildAuthoredInsights(a, lang) || buildPracticeReadings(a, lang);
+  if (relatedInsights) {
+    const $afterBiography = $content.find(".attorney-bio-disclosure").first().length
+      ? $content.find(".attorney-bio-disclosure").first()
+      : $body;
+    $afterBiography.after(relatedInsights);
+  }
+
+  // --- Sidebar legado compacto ------------------------------------------
+  const sidebar = buildCompactSidebar(a, lang);
+  const $sidebar = $(".attorney__meta--list").first();
+  if ($sidebar.length) $sidebar.replaceWith(sidebar);
+  else $(".attorney__meta").append(sidebar);
 
   // --- Head metadata -----------------------------------------------------
   $('meta[name="Attorney"]').attr("content", name);

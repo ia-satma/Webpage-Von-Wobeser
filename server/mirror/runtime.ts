@@ -396,7 +396,9 @@ export async function createMirrorRuntime() {
       getAttorneyGroups(member.id),
       storage.getPublishedNewsByTeamMemberIdPage({
         teamMemberId: member.id,
-        limit: 6,
+        // La ficha es una selección editorial breve; el archivo por autor
+        // conserva el resto de publicaciones y su paginación normal.
+        limit: 3,
         offset: 0,
         language: lang,
       }).then((result) => result.rows).catch(() => []),
@@ -407,7 +409,7 @@ export async function createMirrorRuntime() {
       ? []
       : await storage.getRelatedPublishedNewsForTeamMembers({
         teamMemberIds: practicePeerIds,
-        limit: 6,
+        limit: 3,
         language: lang,
       }).catch(() => []);
     const typography = await getEditorialTypography("team_member", member.id);
