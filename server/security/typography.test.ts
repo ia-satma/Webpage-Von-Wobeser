@@ -210,10 +210,10 @@ test('HTML histórico recibe idioma, tipografías y paginación bilingüe correc
   assert.match(normalizedControls, /font-family:Inter,sans-serif/);
   assert.doesNotMatch(normalizedControls, /font-family:(?:Gelasio|Inter),serif/);
 
-  assert.equal(legacyPaginationDestination('/index.php/publications/news/start-10.html'), '/news?page=1&lang=en');
+  assert.equal(legacyPaginationDestination('/index.php/publications/news/start-10.html'), '/news?lang=en');
   assert.equal(legacyPaginationDestination('/index.php/publicaciones/noticias/start-50.html'), '/news?page=3');
-  assert.equal(legacyPaginationDestination('/index.php/publications/articles/start-140.html'), '/articles?page=6&lang=en');
-  assert.equal(legacyPaginationDestination('/index.php/publicaciones/articulos/start-20.html'), '/articles?page=1');
+  assert.equal(legacyPaginationDestination('/index.php/publications/articles/start-140.html'), '/articles?page=24&lang=en');
+  assert.equal(legacyPaginationDestination('/index.php/publicaciones/articulos/start-20.html'), '/articles?page=4');
   assert.equal(legacyPaginationDestination('/index.php/publicaciones/noticias/index.html'), null);
 });
 

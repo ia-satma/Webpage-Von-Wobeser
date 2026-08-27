@@ -18,11 +18,18 @@ import type { MirrorRuntime } from "../runtime";
 
 type NewsCategoryPage = {
   category: string | string[];
+  /** Las secciones editoriales extensas pueden usar un archivo más contenido. */
+  pageSize?: number;
   paths: { es: string; en: string };
   title: { es: string; en: string };
   description: { es: string; en: string };
   editorialHeader?: {
     eyebrow: { es: string; en: string };
+    officeVisual?: {
+      image: string;
+      alt: { es: string; en: string };
+      scene: "meeting-room" | "reception";
+    };
   };
 };
 
@@ -35,10 +42,21 @@ const CATEGORY_PAGES: NewsCategoryPage[] = [
   },
   {
     category: "news",
+    pageSize: 6,
     paths: { es: "/perspectivas/comunicaciones", en: "/insights/communications" },
     title: { es: "Comunicaciones", en: "Communications" },
     description: { es: "Comunicaciones y actualidad de Von Wobeser y Sierra.", en: "Communications and news from Von Wobeser y Sierra." },
-    editorialHeader: { eyebrow: { es: "Insights", en: "Insights" } },
+    editorialHeader: {
+      eyebrow: { es: "Insights", en: "Insights" },
+      officeVisual: {
+        image: "/img/Collage/collage_07.jpg",
+        scene: "reception",
+        alt: {
+          es: "Recepción de las nuevas oficinas de Von Wobeser y Sierra",
+          en: "Reception area at Von Wobeser y Sierra's new offices",
+        },
+      },
+    },
   },
   {
     category: ["insights", "alerts"],
@@ -121,7 +139,7 @@ export function registerMirrorNewPublicRoutes(app: Express, runtime: MirrorRunti
   for (const page of CATEGORY_PAGES) {
     const serveCategory = async (lang: Lang, res: Response, requestedPage = 1, query = "") => {
       const categories = Array.isArray(page.category) ? page.category : [page.category];
-      const perPage = 24;
+      const perPage = page.pageSize ?? 24;
 
       // Comunicaciones comparte ahora la búsqueda paginada y segura de
       // Artículos. Para las rutas secundarias que mezclan categorías se

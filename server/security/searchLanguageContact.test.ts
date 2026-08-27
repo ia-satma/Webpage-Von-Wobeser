@@ -207,7 +207,7 @@ test("Artículos y Comunicaciones comparten una cabecera visible y una búsqueda
 
   assert.match(html, /action="\/articles" method="get"/);
   assert.match(html, /name="lang" value="en"/);
-  assert.match(html, /q=arbitration\+%26\+competition&amp;page=1&amp;lang=en/);
+  assert.match(html, /q=arbitration\+%26\+competition&amp;lang=en/);
   assert.match(html, /value="arbitration &amp; competition"/);
   assert.doesNotMatch(html, /id="adminForm"|index\.php\/results/);
   assert.match(html, /name="robots" content="noindex,follow"/);
@@ -224,6 +224,15 @@ test("Artículos y Comunicaciones comparten una cabecera visible y una búsqueda
   assert.equal($("#vw-publications-search-q").attr("minlength"), "2");
   assert.equal($("#vw-publications-search-q").attr("placeholder"), "Search by title, topic or keyword…");
   assert.equal($("#vw-publications-search-q").is("[data-vw-publications-q]"), true);
+  assert.equal($(".archive__item--editorial").length, 1);
+  assert.equal($(".archive__item--editorial .archive__item--date").text(), "July, 2026");
+  assert.equal($(".archive__item--editorial .archive__item--action").attr("aria-label"), "Read more: Safe result");
+  assert.equal($(".archive__item--editorial .archive__item--action").text(), "→");
+  assert.equal($(".archive__item--editorial .archive__item--intro").text(), "English excerpt");
+  assert.equal($(".pagination-dyn--editorial").attr("aria-label"), "Publication pagination");
+  assert.equal($(".pagination-dyn--editorial [aria-current=page]").text(), "2");
+  assert.equal($(".pagination-dyn--editorial .pagination__item--first").attr("href"), "/articles?q=arbitration+%26+competition&lang=en");
+  assert.equal($(".pagination-dyn--editorial .pagination__item--last").attr("href"), "/articles?q=arbitration+%26+competition&page=3&lang=en");
 
   const communications = cheerio.load(renderNewsList(
     template,
@@ -239,12 +248,57 @@ test("Artículos y Comunicaciones comparten una cabecera visible y una búsqueda
           en: "Communications and news from Von Wobeser y Sierra.",
           es: "Comunicaciones y actualidad de Von Wobeser y Sierra.",
         },
+        officeVisual: {
+          image: "/img/Collage/collage_07.jpg",
+          scene: "reception",
+          alt: {
+            en: "Reception area at Von Wobeser y Sierra's new offices",
+            es: "Recepción de las nuevas oficinas de Von Wobeser y Sierra",
+          },
+        },
       },
     },
   ));
   assert.equal(communications("h1.vw-publications-page__title").text(), "Comunicaciones");
   assert.match(communications(".vw-publications-page__lede").text(), /actualidad de Von Wobeser/);
   assert.equal(communications("#vw-publications-search-q").attr("placeholder"), "Buscar por título, tema o palabra clave…");
+  assert.equal(communications(".vw-publications-page__body").length, 1);
+  assert.equal(communications(".vw-publications-office__image").attr("src"), "/img/Collage/collage_07.jpg");
+  assert.equal(communications(".vw-publications-office__image").attr("alt"), "Recepción de las nuevas oficinas de Von Wobeser y Sierra");
+  assert.equal(communications(".vw-publications-office").attr("data-vw-office-scene"), "reception");
+  assert.equal(communications(".vw-publications-office__link").attr("href"), "/nuevas-oficinas/");
+});
+
+test("la paginación editorial conserva SEO por página y controles accesibles", () => {
+  const template = `<!doctype html><html lang="es"><head><title>Noticias</title></head><body>
+    <div class="archive__filters"><form><input class="news_search" name="q"></form></div>
+    <div class="archive__list"></div><div class="pagination"></div>
+  </body></html>`;
+  const html = renderNewsList(
+    template,
+    [],
+    "es",
+    { page: 24, totalPages: 242, totalItems: 1452 },
+    {
+      basePath: "/perspectivas/comunicaciones",
+      alternatePaths: { es: "/perspectivas/comunicaciones", en: "/insights/communications" },
+      editorialHeader: {
+        eyebrow: { en: "Insights", es: "Insights" },
+        title: { en: "Communications", es: "Comunicaciones" },
+        description: { en: "Communications", es: "Comunicaciones" },
+      },
+    },
+  );
+  const $ = cheerio.load(html);
+
+  assert.equal($('link[rel="canonical"]').attr("href"), "https://www.vonwobeser.com/perspectivas/comunicaciones?page=24");
+  assert.equal($('link[rel="alternate"][hreflang="en"]').attr("href"), "https://www.vonwobeser.com/insights/communications?page=24");
+  assert.equal($('meta[property="og:url"]').attr("content"), "https://www.vonwobeser.com/perspectivas/comunicaciones?page=24");
+  assert.equal($(".pagination-dyn--editorial").attr("aria-label"), "Paginación de publicaciones");
+  assert.equal($(".pagination-dyn--editorial [aria-current=page]").text(), "24");
+  assert.equal($(".pagination-dyn--editorial .pagination__item--first").attr("href"), "/perspectivas/comunicaciones");
+  assert.equal($(".pagination-dyn--editorial .pagination__item--last").attr("href"), "/perspectivas/comunicaciones?page=242");
+  assert.equal($(".pagination-dyn--editorial .pagination__ellipsis").length, 2);
 });
 
 test("buscador global escapa contenido y enlaza todos los tipos publicados", () => {

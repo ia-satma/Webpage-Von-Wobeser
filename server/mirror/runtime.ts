@@ -75,6 +75,7 @@ import {
 
 
 const ATTORNEY_DIRECTORY_ROLE_KEYS = ["partners", "of-counsel", "counsel", "associates"] as const;
+const EDITORIAL_ARCHIVE_PAGE_SIZE = 6;
 const attorneyDirectoryQuerySchema = z.object({
   q: z.string().trim().max(200).optional(),
   role: z.union([z.enum(ATTORNEY_DIRECTORY_ROLE_KEYS), z.literal("")]).optional(),
@@ -601,7 +602,7 @@ export async function createMirrorRuntime() {
   // reusa renderNewsList con opts distintos; Noticias sigue sin filtrar por categoría (no se
   // le quita nada de lo que ya mostraba), así que un artículo puede aparecer en ambos listados.
   const serveArticlesList = async (lang: Lang, res: Response, page = 1, query = "", author?: PublicAuthorFilter) => {
-    const perPage = 24;
+    const perPage = EDITORIAL_ARCHIVE_PAGE_SIZE;
     const fetchAuthorPage = (targetPage: number) => storage.getPublishedNewsByTeamMemberIdPage({
       teamMemberId: author!.id,
       query: query.length >= 2 ? query : undefined,
@@ -644,6 +645,14 @@ export async function createMirrorRuntime() {
           description: {
             en: "Legal articles and opinion pieces authored by Von Wobeser y Sierra attorneys.",
             es: "Artículos y columnas de opinión escritos por los abogados de Von Wobeser y Sierra.",
+          },
+          officeVisual: {
+            image: "/img/Collage/collage_02.jpg",
+            scene: "meeting-room",
+            alt: {
+              en: "Meeting room at Von Wobeser y Sierra's new offices",
+              es: "Sala de juntas de las nuevas oficinas de Von Wobeser y Sierra",
+            },
           },
         },
         query,

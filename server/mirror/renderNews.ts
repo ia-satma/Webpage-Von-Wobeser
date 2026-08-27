@@ -36,6 +36,19 @@ function normalizedEditorialText(value: unknown): string {
     .replace(/[^a-z0-9]+/g, "");
 }
 
+/** Texto breve para los renglones de archivo. El detalle conserva el extracto
+ * completo y su formato; aquí evitamos que una línea se recorte visualmente a
+ * mitad de palabra en una lista larga. */
+function archiveSummary(value: unknown, maxChars = 155): string {
+  const text = plainText(value);
+  if (text.length <= maxChars) return text;
+  const candidate = text.slice(0, maxChars + 1);
+  const lastSentence = Math.max(candidate.lastIndexOf(". "), candidate.lastIndexOf("! "), candidate.lastIndexOf("? "));
+  if (lastSentence >= Math.floor(maxChars * 0.55)) return candidate.slice(0, lastSentence + 1).trim();
+  const lastSpace = candidate.lastIndexOf(" ");
+  return `${candidate.slice(0, lastSpace > 0 ? lastSpace : maxChars).trim()}…`;
+}
+
 /**
  * Legacy article records occasionally stored the heading, “Introduction”, “PDF” or a raw
  * URL in the excerpt/body slots. Those are metadata placeholders, not editorial copy, and
@@ -95,6 +108,12 @@ export type NewsListOpts = {
     eyebrow: { en: string; es: string };
     title: { en: string; es: string };
     description: { en: string; es: string };
+    /** Imagen institucional que equilibra los archivos editoriales extensos. */
+    officeVisual?: {
+      image: string;
+      alt: { en: string; es: string };
+      scene: "meeting-room" | "reception";
+    };
   };
 };
 
@@ -104,6 +123,103 @@ type NewsListPageInfo = {
   /** Total filtrado, para que la barra editorial pueda informar un resultado real. */
   totalItems?: number;
 };
+
+/** Conserva filtros e idioma al navegar el archivo. La primera página no lleva
+ * `page=1`, para mantener una URL canónica y compartible más limpia. */
+function listPageHref(
+  basePath: string,
+  page: number,
+  lang: Lang,
+  query: string,
+  author: NewsListOpts["author"],
+): string {
+  const questionMark = basePath.indexOf("?");
+  const pathname = questionMark === -1 ? basePath : basePath.slice(0, questionMark);
+  const params = new URLSearchParams(questionMark === -1 ? "" : basePath.slice(questionMark + 1));
+  if (query) params.set("q", query);
+  else params.delete("q");
+  if (author) params.set("author", author.slug);
+  else params.delete("author");
+  if (page > 1) params.set("page", String(page));
+  else params.delete("page");
+  if (lang === "en") params.set("lang", "en");
+  else params.delete("lang");
+  return `${pathname}${params.size ? `?${params.toString()}` : ""}`;
+}
+
+/** Añade la página únicamente a URLs de archivo indexables. Las búsquedas
+ * conservan su canonical base y `noindex,follow`. */
+function paginatedArchivePath(path: string, page: number): string {
+  const questionMark = path.indexOf("?");
+  const pathname = questionMark === -1 ? path : path.slice(0, questionMark);
+  const params = new URLSearchParams(questionMark === -1 ? "" : path.slice(questionMark + 1));
+  if (page > 1) params.set("page", String(page));
+  else params.delete("page");
+  return `${pathname}${params.size ? `?${params.toString()}` : ""}`;
+}
+
+function renderEditorialPagination(
+  basePath: string,
+  pageInfo: NewsListPageInfo,
+  lang: Lang,
+  query: string,
+  author: NewsListOpts["author"],
+): string {
+  const { page, totalPages } = pageInfo;
+  const copy = lang === "es"
+    ? {
+        navigation: "Paginación de publicaciones",
+        first: "Primera",
+        previous: "Anterior",
+        next: "Siguiente",
+        last: "Última",
+        page: "Página",
+        goTo: "Ir a la página",
+      }
+    : {
+        navigation: "Publication pagination",
+        first: "First",
+        previous: "Prev",
+        next: "Next",
+        last: "Last",
+        page: "Page",
+        goTo: "Go to page",
+      };
+  const href = (targetPage: number) => listPageHref(basePath, targetPage, lang, query, author);
+  const link = (targetPage: number, label: string, modifier = "", visibleLabel = label) =>
+    `<a class="pagination__item${modifier ? ` ${modifier}` : ""}" href="${esc(href(targetPage))}" aria-label="${esc(label)}">${esc(visibleLabel)}</a>`;
+  const current = (targetPage: number) =>
+    `<span class="pagination__item is-active" aria-current="page" aria-label="${esc(`${copy.page} ${targetPage}`)}">${targetPage}</span>`;
+  const pageLink = (targetPage: number) => targetPage === page
+    ? current(targetPage)
+    : link(targetPage, `${copy.goTo} ${targetPage}`, "pagination__item--number", String(targetPage));
+  const parts: string[] = [];
+  const nearbyStart = Math.max(1, page - 1);
+  const nearbyEnd = Math.min(totalPages, page + 1);
+
+  if (page > 1) {
+    parts.push(link(1, `« ${copy.first}`, "pagination__item--first"));
+    parts.push(link(page - 1, `‹ ${copy.previous}`, "pagination__item--previous"));
+  }
+  if (nearbyStart > 1) {
+    if (nearbyStart > 2) parts.push('<span class="pagination__ellipsis" aria-hidden="true">…</span>');
+  }
+  for (let targetPage = nearbyStart; targetPage <= nearbyEnd; targetPage += 1) parts.push(pageLink(targetPage));
+  if (nearbyEnd < totalPages && nearbyEnd < totalPages - 1) {
+    parts.push('<span class="pagination__ellipsis" aria-hidden="true">…</span>');
+  }
+  if (page < totalPages) {
+    parts.push(link(page + 1, `${copy.next} ›`, "pagination__item--next"));
+    parts.push(link(totalPages, `${copy.last} »`, "pagination__item--last"));
+  }
+
+  return (
+    `<nav class="pagination-dyn pagination-dyn--editorial" aria-label="${esc(copy.navigation)}">` +
+      `<div class="pagination-dyn__controls">${parts.join("")}</div>` +
+      `<p class="pagination-dyn__status" aria-live="polite">${esc(`${copy.page} ${page} / ${totalPages}`)}</p>` +
+    `</nav>`
+  );
+}
 
 const SEARCH_ICON =
   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.3"></circle><path d="m16 16 4.2 4.2"></path></svg>';
@@ -131,6 +247,23 @@ export function renderNewsList(
     const intro = articleWithoutSummary ? "" : renderRichText(rawExcerpt);
     const originalSource = sourceLink(verifiedSourceUrl(n.sourceUrl), lang, "archive");
     const href = `/news/${esc(n.slug)}${langSuffix}`;
+    // Artículos y Comunicaciones comparten una lectura de archivo editorial:
+    // fecha, contenido y acceso al detalle se ordenan como una fila. El resto
+    // de los listados conserva el marcado histórico de tarjetas.
+    if (opts.editorialHeader) {
+      const summary = articleWithoutSummary ? "" : archiveSummary(rawExcerpt);
+      return (
+        `<article class="archive__item archive__item--editorial">` +
+          `<div class="archive__item--date">${esc(fmtDate(n.date, lang))}</div>` +
+          `<div class="archive__item--content">` +
+            `<a class="archive__item--title-link" href="${href}"><h2 class="archive__item--ttl">${title}</h2></a>` +
+            `<div class="archive__item--intro">${summary ? `<p>${esc(summary)}</p>` : ""}</div>` +
+            originalSource +
+          `</div>` +
+          `<a class="archive__item--action" href="${href}" aria-label="${esc(`${readMore}: ${L(n, "title", lang)}`)}"><span aria-hidden="true">→</span></a>` +
+        `</article>`
+      );
+    }
     return (
       `<div class="archive__item"><a href="${href}">` +
       `<div class="archive__item--ttl">${title}</div></a>` +
@@ -229,7 +362,44 @@ export function renderNewsList(
     const $filters = $(".archive__filters.vw-publications-search, .archive__filters").first();
     if ($filters.length) $filters.before($header);
     else $(".archive__list").first().before($header);
-    $header.closest(".page.archive").addClass("vw-publications-page");
+    const $page = $header.closest(".page.archive");
+    $page.addClass("vw-publications-page");
+
+    // Artículos y Comunicaciones son listados largos, antes enteramente textuales.
+    // La fotografía de las nuevas oficinas vive en una columna secundaria y no se
+    // repite por tarjeta; así aporta contexto sin competir con cada publicación.
+    if (header.officeVisual) {
+      const visual = header.officeVisual;
+      const officeHref = lang === "es" ? "/nuevas-oficinas/" : "/new-offices/";
+      const label = lang === "es" ? "Nuestras oficinas" : "Our offices";
+      const cta = lang === "es" ? "Conoce nuestras oficinas" : "Discover our offices";
+      const $list = $(".archive__list").first();
+      const $listContainer = $list.closest("form").first();
+      const $main = $('<div class="vw-publications-page__content"></div>');
+      const $visual = $(
+        `<aside class="vw-publications-office" data-vw-office-scene="${visual.scene}" aria-label="${esc(label)}">` +
+          `<a class="vw-publications-office__link" href="${officeHref}">` +
+            `<figure class="vw-publications-office__figure">` +
+              `<img class="vw-publications-office__image" src="${esc(visual.image)}" alt="${esc(visual.alt[lang])}" width="1280" height="720" loading="lazy" decoding="async">` +
+              `<figcaption class="vw-publications-office__caption">` +
+                `<span class="vw-publications-office__label">${esc(label)}</span>` +
+                `<span class="vw-publications-office__cta">${esc(cta)} <span aria-hidden="true">→</span></span>` +
+              `</figcaption>` +
+            `</figure>` +
+          `</a>` +
+        `</aside>`,
+      );
+      const $layout = $('<div class="vw-publications-page__body"></div>');
+
+      // La lista puede vivir dentro del formulario heredado de Joomla o como un
+      // nodo directo en las plantillas simplificadas usadas por las pruebas.
+      // Mover el contenedor completo conserva paginación y resultados de búsqueda.
+      if ($filters.length) $main.append($filters);
+      if ($listContainer.length) $main.append($listContainer);
+      else if ($list.length) $main.append($list);
+      $layout.append($main, $visual);
+      $header.after($layout);
+    }
   }
 
   if (query || author) {
@@ -254,24 +424,28 @@ export function renderNewsList(
 
   // Paginación dinámica
   if (pageInfo && pageInfo.totalPages > 1) {
-    const { page, totalPages } = pageInfo;
-    const linkPage = (p: number) => {
-      const params = new URLSearchParams();
-      if (query) params.set("q", query);
-      if (author) params.set("author", author.slug);
-      params.set("page", String(p));
-      if (lang === "en") params.set("lang", "en");
-      return `${basePath}?${params.toString()}`;
-    };
-    const parts: string[] = [];
-    if (page > 1) parts.push(`<a class="pagination__item" href="${linkPage(page - 1)}">‹ ${lang === "es" ? "Anterior" : "Prev"}</a>`);
-    const from = Math.max(1, page - 2), to = Math.min(totalPages, page + 2);
-    for (let p = from; p <= to; p++) parts.push(`<a class="pagination__item${p === page ? " is-active" : ""}" href="${linkPage(p)}" style="${p === page ? "font-weight:500;text-decoration:underline;" : ""}margin:0 6px;">${p}</a>`);
-    if (page < totalPages) parts.push(`<a class="pagination__item" href="${linkPage(page + 1)}">${lang === "es" ? "Siguiente" : "Next"} ›</a>`);
-    $(".archive__list").after(
-      `<div class="pagination-dyn" style="text-align:center;padding:30px 0;font-size:14px;">${parts.join(" ")}` +
-        `<div style="color:#999;margin-top:8px;">${lang === "es" ? "Página" : "Page"} ${page} / ${totalPages}</div></div>`,
-    );
+    if (opts.editorialHeader) {
+      $(".archive__list").after(renderEditorialPagination(basePath, pageInfo, lang, query, author));
+    } else {
+      const { page, totalPages } = pageInfo;
+      const linkPage = (p: number) => {
+        const params = new URLSearchParams();
+        if (query) params.set("q", query);
+        if (author) params.set("author", author.slug);
+        params.set("page", String(p));
+        if (lang === "en") params.set("lang", "en");
+        return `${basePath}?${params.toString()}`;
+      };
+      const parts: string[] = [];
+      if (page > 1) parts.push(`<a class="pagination__item" href="${linkPage(page - 1)}">‹ ${lang === "es" ? "Anterior" : "Prev"}</a>`);
+      const from = Math.max(1, page - 2), to = Math.min(totalPages, page + 2);
+      for (let p = from; p <= to; p++) parts.push(`<a class="pagination__item${p === page ? " is-active" : ""}" href="${linkPage(p)}" style="${p === page ? "font-weight:500;text-decoration:underline;" : ""}margin:0 6px;">${p}</a>`);
+      if (page < totalPages) parts.push(`<a class="pagination__item" href="${linkPage(page + 1)}">${lang === "es" ? "Siguiente" : "Next"} ›</a>`);
+      $(".archive__list").after(
+        `<div class="pagination-dyn" style="text-align:center;padding:30px 0;font-size:14px;">${parts.join(" ")}` +
+          `<div style="color:#999;margin-top:8px;">${lang === "es" ? "Página" : "Page"} ${page} / ${totalPages}</div></div>`,
+      );
+    }
   }
 
   $("html").attr("lang", lang === "es" ? "es-mx" : "en-gb");
@@ -284,10 +458,19 @@ export function renderNewsList(
   const title = opts.title || defaultTitle;
   const description = opts.description || defaultDesc;
   const crumbLabel = opts.crumbLabel || defaultCrumb;
+  const shouldPaginateEditorialSeo = Boolean(opts.editorialHeader && pageInfo && pageInfo.page > 1 && !query && !author);
+  const seoPath = shouldPaginateEditorialSeo ? paginatedArchivePath(basePath, pageInfo!.page) : basePath;
+  const seoAlternatePaths = shouldPaginateEditorialSeo && opts.alternatePaths
+    ? {
+        es: paginatedArchivePath(opts.alternatePaths.es, pageInfo!.page),
+        en: paginatedArchivePath(opts.alternatePaths.en, pageInfo!.page),
+      }
+    : opts.alternatePaths;
+
   applySeo($, {
     lang,
-    path: basePath,
-    alternatePaths: opts.alternatePaths,
+    path: seoPath,
+    alternatePaths: seoAlternatePaths,
     title: title[lang],
     description: description[lang],
     type: "website",

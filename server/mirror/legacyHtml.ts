@@ -2,6 +2,7 @@ export type LegacyLanguage = "en" | "es";
 
 const LEGACY_ENGLISH_SECTIONS = /\/(?:attorneys|capabilities|careers|contact|industry|lawyer|new-offices|our-firm|practice|privacy|publication|publications)(?:\/|$)/i;
 const PUBLIC_LIST_PAGE_SIZE = 24;
+const LEGACY_ARTICLES_PAGE_SIZE = 6;
 
 /** Infiere el idioma de una captura histórica; español sigue siendo el predeterminado. */
 export function legacyHtmlLanguage(pathname: string, requestedLanguage?: unknown): LegacyLanguage {
@@ -28,10 +29,14 @@ export function legacyPaginationDestination(pathname: string): string | null {
   const offset = Number(match[3]);
   if (!Number.isSafeInteger(offset) || offset < 0) return null;
   const lang: LegacyLanguage = match[1].toLowerCase() === "publications" ? "en" : "es";
-  const section = /articles|articulos/i.test(match[2]) ? "/articles" : "/news";
-  const params = new URLSearchParams({ page: String(Math.floor(offset / PUBLIC_LIST_PAGE_SIZE) + 1) });
+  const isArticles = /articles|articulos/i.test(match[2]);
+  const section = isArticles ? "/articles" : "/news";
+  const pageSize = isArticles ? LEGACY_ARTICLES_PAGE_SIZE : PUBLIC_LIST_PAGE_SIZE;
+  const page = Math.floor(offset / pageSize) + 1;
+  const params = new URLSearchParams();
+  if (page > 1) params.set("page", String(page));
   if (lang === "en") params.set("lang", "en");
-  return `${section}?${params.toString()}`;
+  return `${section}${params.size ? `?${params.toString()}` : ""}`;
 }
 
 /**
