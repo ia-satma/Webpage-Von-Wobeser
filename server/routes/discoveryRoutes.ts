@@ -1,10 +1,12 @@
 import type { Express } from "express";
 import { isPublishedPublicPractice } from "../mirror/publicPracticeGroups";
+import { getBaseUrl } from "../mirror/seo";
 import { storage } from "../storage";
 
 export function registerDiscoveryRoutes(app: Express): void {
   app.get("/robots.txt", (_req, res) => {
-    const robotsTxt = `# robots.txt for https://www.vonwobeser.com
+    const base = getBaseUrl();
+    const robotsTxt = `# robots.txt for ${base}
 User-agent: *
 Allow: /
 
@@ -12,16 +14,17 @@ Allow: /
 Disallow: /api/
 
 # Sitemap location
-Sitemap: https://www.vonwobeser.com/sitemap.xml
+Sitemap: ${base}/sitemap.xml
 `;
     res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+    res.setHeader('Cache-Control', 'public, max-age=86400');
     res.send(robotsTxt);
   });
 
   // llms.txt — índice legible por motores generativos (GEO). Formato llmstxt.org:
   // describe qué es la firma y enlaza sus secciones clave para que la IA cite bien.
   app.get('/llms.txt', (_req, res) => {
-    const base = (process.env.SITE_URL || 'https://www.vonwobeser.com').replace(/\/+$/, '');
+    const base = getBaseUrl();
     const llms = `# Von Wobeser y Sierra, S.C.
 
 > Von Wobeser y Sierra es una de las firmas de abogados líderes en México, con reconocimiento internacional (Chambers, The Legal 500, Latin Lawyer). Ofrece asesoría en derecho corporativo, litigio, arbitraje, competencia económica, propiedad intelectual, laboral, fiscal, ambiental y más. Sede en Ciudad de México. Sitio bilingüe español/inglés (versión en inglés con ?lang=en).
@@ -57,7 +60,7 @@ Sitemap: https://www.vonwobeser.com/sitemap.xml
         res.setHeader('Cache-Control', 'public, max-age=3600');
         return res.send(sitemapCache.xml);
       }
-      const baseUrl = (process.env.SITE_URL || 'https://www.vonwobeser.com').replace(/\/+$/, '');
+      const baseUrl = getBaseUrl();
       const today = new Date().toISOString().split('T')[0];
       const xmlEsc = (s: string) => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 

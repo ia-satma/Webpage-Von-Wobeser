@@ -201,6 +201,14 @@ test("Artículos y Comunicaciones comparten una cabecera visible y una búsqueda
           en: "Legal articles and opinion pieces authored by Von Wobeser y Sierra attorneys.",
           es: "Artículos y columnas de opinión escritos por los abogados de Von Wobeser y Sierra.",
         },
+        officeVisual: {
+          image: "/img/Collage/collage_02.jpg",
+          scene: "meeting-room",
+          alt: {
+            en: "Meeting room at Von Wobeser y Sierra's new offices",
+            es: "Sala de juntas de las nuevas oficinas de Von Wobeser y Sierra",
+          },
+        },
       },
     },
   );
@@ -216,6 +224,9 @@ test("Artículos y Comunicaciones comparten una cabecera visible y una búsqueda
   assert.equal($("h1.vw-publications-page__title").text(), "Articles");
   assert.match($(".vw-publications-page__lede").text(), /Legal articles and opinion pieces/);
   assert.equal($(".vw-publications-page__header").nextAll(".archive__filters").first().hasClass("vw-publications-search"), true);
+  assert.equal($(".vw-publications-page__header").next().hasClass("vw-publications-search"), true);
+  assert.equal($(".archive__filters.vw-publications-search").next().hasClass("vw-publications-page__body"), true);
+  assert.equal($(".vw-publications-page__body .archive__filters").length, 0);
   assert.equal($(".archive__filters").hasClass("vw-publications-search"), true);
   assert.equal($(".vw-publications-search__field svg").attr("aria-hidden"), "true");
   assert.equal($(".vw-publications-search__submit").text(), "Search");
@@ -263,6 +274,9 @@ test("Artículos y Comunicaciones comparten una cabecera visible y una búsqueda
   assert.match(communications(".vw-publications-page__lede").text(), /actualidad de Von Wobeser/);
   assert.equal(communications("#vw-publications-search-q").attr("placeholder"), "Buscar por título, tema o palabra clave…");
   assert.equal(communications(".vw-publications-page__body").length, 1);
+  assert.equal(communications(".vw-publications-page__header").next().hasClass("vw-publications-search"), true);
+  assert.equal(communications(".archive__filters.vw-publications-search").next().hasClass("vw-publications-page__body"), true);
+  assert.equal(communications(".vw-publications-page__body .archive__filters").length, 0);
   assert.equal(communications(".vw-publications-office__image").attr("src"), "/img/Collage/collage_07.jpg");
   assert.equal(communications(".vw-publications-office__image").attr("alt"), "Recepción de las nuevas oficinas de Von Wobeser y Sierra");
   assert.equal(communications(".vw-publications-office").attr("data-vw-office-scene"), "reception");

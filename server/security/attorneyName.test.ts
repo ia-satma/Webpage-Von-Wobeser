@@ -29,6 +29,17 @@ test("el nombre público conserva nombres y primer apellido, sin perder el nombr
   assert.equal(getAttorneyPublicName(familyParticle), "Claus von Wobeser");
 });
 
+test("Edmond Grieger no muestra su segundo nombre en el directorio público", () => {
+  const edmond = {
+    name: "Edmond Frederic Grieger",
+    givenNames: "Edmond",
+    firstSurname: "Grieger",
+    secondSurname: null,
+  };
+  assert.equal(getAttorneyPublicName(edmond), "Edmond Grieger");
+  assert.match(getAttorneySearchName(edmond), /Edmond Frederic Grieger/);
+});
+
 test("los Asociados conservan su secuencia aprobada por primer apellido", () => {
   const collator = new Intl.Collator("es", { sensitivity: "base", ignorePunctuation: true });
   const sortKeys = CURRENT_ASSOCIATE_ORDER.map((name) => getAttorneyFirstSurnameSortKey({ name }));

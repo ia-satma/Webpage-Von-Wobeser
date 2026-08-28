@@ -306,7 +306,7 @@ export function renderPublicFooter(
   <div class="vwb-site-footer__inner">
     <div class="vwb-site-footer__grid" data-vwb-footer-nav-columns="${centralColumns.length}">
       <section class="vwb-site-footer__brand" aria-label="${escapeHtml(firm)}">
-        <a class="vwb-site-footer__brand-link" href="${lang === "es" ? "/index.php/home/" : "/"}" aria-label="${lang === "es" ? "Ir al inicio" : "Go to home"}">
+        <a class="vwb-site-footer__brand-link" href="${lang === "es" ? "/" : "/?lang=en"}" aria-label="${lang === "es" ? "Ir al inicio" : "Go to home"}">
           <img class="vwb-site-footer__logo" src="/images/vw40F.png" width="1150" height="769" alt="" decoding="async">
           <span class="vwb-site-footer__brand-name">${escapeHtml(firm)}</span>
         </a>
@@ -345,7 +345,7 @@ export function renderPublicFooter(
   <div class="vwb-classic-footer__inner">
     <div class="vwb-classic-footer__grid">
       <section class="vwb-classic-footer__brand" aria-label="${escapeHtml(firm)}">
-        <a href="${lang === "es" ? "/index.php/home/" : "/"}" aria-label="${lang === "es" ? "Ir al inicio" : "Go to home"}">
+        <a href="${lang === "es" ? "/" : "/?lang=en"}" aria-label="${lang === "es" ? "Ir al inicio" : "Go to home"}">
           <img src="/images/vw40F.png" width="1150" height="769" alt="" decoding="async">
           <span>${escapeHtml(firm)}</span>
         </a>

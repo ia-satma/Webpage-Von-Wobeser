@@ -3,6 +3,7 @@ import * as cheerio from "cheerio";
 import { getCookieConsentConfig } from "../../privacy/cookieConsent";
 import { applyCareersFormFix } from "../formsFix";
 import { renderPage } from "../renderPage";
+import { renderTalentPrivacyNotice, TALENT_PRIVACY_NOTICE_PATH } from "../renderTalentPrivacyNotice";
 import { applyA11y } from "../seo";
 import { getConfigMap, type ConfigMap } from "../siteConfig";
 import type { Lang } from "../htmlPipeline";
@@ -65,6 +66,10 @@ export function registerMirrorInstitutionalRoutes(app: Express, runtime: MirrorR
     app.get(p, wrap((_req, res) => servePage("privacy", "es", res)));
   for (const p of ["/index.php/privacy/index.html", "/index.php/privacy/", "/privacy"])
     app.get(p, wrap((_req, res) => servePage("privacy", "en", res)));
+  app.get([TALENT_PRIVACY_NOTICE_PATH, `${TALENT_PRIVACY_NOTICE_PATH}/`], wrap(async (_req, res) => {
+    const config = await getConfigMap();
+    sendPage(res, renderTalentPrivacyNotice(pick(TEMPLATES.privacy, "es"), config));
+  }));
   const serveCookiePolicy = async (lang: Lang, res: Response) => {
     const [config, consent] = await Promise.all([getConfigMap(), getCookieConsentConfig()]);
     const policyKey = "page_privacy_body";

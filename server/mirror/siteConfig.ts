@@ -27,6 +27,7 @@ import {
   PRIVACY_NOTICE_VWYS_2026_PREVIOUS_VERSION_KEY,
   PRIVACY_NOTICE_VWYS_2026_SOURCE,
 } from "../content/privacyNoticeVwys2026";
+import { TALENT_PRIVACY_NOTICE_CANDIDATES_2026_ES, TALENT_PRIVACY_NOTICE_CANDIDATES_2026_SOURCE } from "../content/talentPrivacyNoticeCandidates2026";
 
 export type ConfigMap = Record<string, { value: string; valueEs: string; type: string; typography?: TypographyStyles }>;
 
@@ -504,6 +505,7 @@ const DEFAULTS: Array<{ key: string; value: string; valueEs?: string; type: stri
   { key: "page_industries_title", value: "Our industries", valueEs: "Nuestras industrias", type: "text", category: "pages", description: "Industrias — título principal" },
   { key: "page_industries_description", value: "Explore the industry groups with which we address the specific needs of every sector.", valueEs: "Conoce los grupos de práctica con los que atendemos las necesidades específicas de cada industria.", type: "text", category: "pages", description: "Industrias — texto introductorio" },
   { key: "page_privacy_body", value: PRIVACY_NOTICE_VWYS_2026_EN, valueEs: PRIVACY_NOTICE_VWYS_2026_ES, type: "text", category: "pages", description: "Aviso de Privacidad — texto completo (VWyS!636089.3)" },
+  { key: "page_talent_privacy_body", value: TALENT_PRIVACY_NOTICE_CANDIDATES_2026_ES, valueEs: TALENT_PRIVACY_NOTICE_CANDIDATES_2026_ES, type: "text", category: "pages", description: `Aviso de Privacidad para Candidaturas — texto oficial en español (${TALENT_PRIVACY_NOTICE_CANDIDATES_2026_SOURCE})` },
   { key: "page_diversity_eyebrow", value: "Our firm", valueEs: "Nuestra firma", type: "text", category: "pages", description: "Diversidad e Inclusión — etiqueta editorial" },
   { key: "page_diversity_title", value: "Diversity & inclusion", valueEs: "Diversidad e inclusión", type: "text", category: "pages", description: "Diversidad e Inclusión — título principal" },
   { key: "page_diversity_intro", value: "", valueEs: "", type: "text", category: "pages", description: "Diversidad e Inclusión — párrafo de introducción" },

@@ -22,7 +22,7 @@ export function attorneyOrderCategoryById(id: string) {
   return ATTORNEY_ORDER_CATEGORIES.find((category) => category.id === id);
 }
 
-/** Official partner sequence verified against vonwobeser.com on 20 August 2026. */
+/** Official partner sequence, updated with the client's approved seniority order on 27 August 2026. */
 export const OFFICIAL_PARTNER_ORDER = [
   "Luis Burgueño",
   "Luis Miguel Jiménez",

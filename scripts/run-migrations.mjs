@@ -47,6 +47,11 @@ const verifiedDataMigrationPolicies = new Map([
   ["20260826_0003_delete_legacy_article_1568.mjs", {
     allowedCountChanges: new Set(["news", "news_team_members", "news_translations"]),
   }],
+  // Corrección editorial de presentación: sólo actualiza los campos
+  // estructurados del perfil existente y no altera registros ni esquema.
+  ["20260827_0001_edmond_grieger_public_name.mjs", {
+    allowedCountChanges: new Set(),
+  }],
 ]);
 
 function quoteIdentifier(value) {

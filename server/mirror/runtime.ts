@@ -349,9 +349,10 @@ export async function createMirrorRuntime() {
       await ensureOfficeShowcaseData();
       await ensureHomeContentData();
     }
-    // Base URL para canonical/OG/JSON-LD: env SITE_URL o la key editable site_url.
+    // Base URL para canonical/OG/JSON-LD: una URL de producción explícita, el
+    // dominio publicado de Replit o, fuera de él, la key editable site_url.
     const configAtStartup = await getConfigMap();
-    setBaseUrl(process.env.SITE_URL || configAtStartup.site_url?.value);
+    setBaseUrl(configAtStartup.site_url?.value);
     // GA4 / Search Console: igual que site_url, se lee una vez al arrancar — si se
     // editan en el panel después, el cambio aplica hasta el siguiente restart.
     setAnalyticsConfig({

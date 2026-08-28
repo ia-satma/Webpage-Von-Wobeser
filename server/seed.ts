@@ -431,6 +431,10 @@ const teamMembersData = [
   },
   { 
     name: "Edmond Frederic Grieger", 
+    // El nombre editorial histórico se conserva para relaciones y auditoría;
+    // la ficha pública muestra únicamente Edmond Grieger.
+    givenNames: "Edmond",
+    firstSurname: "Grieger",
     slug: "edmond-grieger", 
     title: "Partner", 
     titleEs: "Socio", 

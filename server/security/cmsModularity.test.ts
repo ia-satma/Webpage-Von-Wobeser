@@ -800,15 +800,17 @@ test("Configuración conserva secciones, claves, APIs, query keys y controles", 
   assert.equal(Object.keys(PAGES).filter((key) => key !== "resumen-firma").length, 15);
   // El inventario incorpora las cabeceras editables de Prácticas, Industrias,
   // Diversidad y Pro Bono, los controles del carrusel de Noticias y las dos
-  // URLs del mapa compartido administradas desde Contacto.
+  // URLs del mapa compartido administradas desde Contacto y el aviso legal
+  // independiente de candidaturas administrado desde Talento.
   // Conservamos las dos repeticiones intencionales del resumen institucional.
   // Incluye el video maestro anterior del hero, conservado como historial
   // seleccionable desde Administración sin volver a publicarlo por defecto.
-  assert.equal(declaredKeys.length, 230);
-  assert.equal(new Set(declaredKeys).size, 228);
+  assert.equal(declaredKeys.length, 231);
+  assert.equal(new Set(declaredKeys).size, 229);
   assert.ok(declaredKeys.includes("home_location_visible"));
   assert.ok(declaredKeys.includes("hero_video_previous_master"));
   assert.ok(declaredKeys.includes("associate_experience_visible"));
+  assert.ok(declaredKeys.includes("page_talent_privacy_body"));
   for (const key of [
     "home_news_title",
     "page_practices_title",

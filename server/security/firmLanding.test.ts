@@ -114,8 +114,7 @@ test("landing de Firma ofrece prácticas, industrias y contacto en el CTA final 
 
   assert.match(ctaEs, /Prácticas/);
   assert.match(ctaEs, /Industrias/);
-  assert.match(ctaEs, /class="vw-firm__eyebrow">VW<\/p>/);
-  assert.doesNotMatch(ctaEs, /class="vw-firm__eyebrow">VWyS<\/p>/);
+  assert.doesNotMatch(ctaEs, /class="vw-firm__eyebrow">(?:VW|VWyS)<\/p>/);
   assert.match(ctaEs, /href="\/capacidades\/industrias"/);
   assert.match(ctaEs, /Contacto/);
   assert.doesNotMatch(ctaEs, /Prácticas legales/);

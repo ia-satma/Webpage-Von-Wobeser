@@ -407,6 +407,7 @@ export const PAGES: Record<string, SiteConfigPageDefinition> = {
       {
         fields: [
           { key: "page_privacy_body", label: "Texto completo", help: "Aviso VWyS 2026. Puedes editar ambos idiomas; conserva el marcador [___] hasta que Legal defina el medio de comunicación de modificaciones. La traducción automática está deshabilitada para este texto legal.", bilingual: true, multiline: true, rows: 18, allowAutoTranslation: false },
+          { key: "page_talent_privacy_body", label: "Aviso de Privacidad para Candidaturas", help: "Exclusivo de los formularios de Talento. Es el texto oficial en español entregado por Legal; no sustituye el Aviso general ni debe traducirse sin una versión aprobada.", multiline: true, rows: 18, allowAutoTranslation: false },
         ],
       },
     ],

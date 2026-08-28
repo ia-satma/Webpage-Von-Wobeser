@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
+import { resolve } from "node:path";
 import test from "node:test";
 import { CURRENT_ASSOCIATE_ORDER, MIRROR_ONLY_ASSOCIATE_NAMES, OFFICIAL_PARTNER_ORDER } from "@shared/attorneyOrder";
 
@@ -50,6 +51,19 @@ test("las instalaciones nuevas reciben el orden oficial íntegro de Socios", () 
   assert.deepEqual(partners.map((member) => member.order), OFFICIAL_PARTNER_ORDER.map((_, index) => index + 1));
 });
 
+test("el tramo ajustado de Socios conserva la secuencia editorial aprobada", () => {
+  assert.deepEqual(OFFICIAL_PARTNER_ORDER.slice(9, 16), [
+    "Patricia Kaim",
+    "Alberto Córdoba",
+    "Raymundo Soberanis",
+    "Pablo Jiménez",
+    "Pablo Fautsch",
+    "Jessika Rocha",
+    "Ariel Garfio",
+  ]);
+  assert.equal(new Set(OFFICIAL_PARTNER_ORDER).size, OFFICIAL_PARTNER_ORDER.length);
+});
+
 test("las instalaciones nuevas conservan los 101 Asociados y ocultan solo los nueve perfiles adicionales", () => {
   const associates = canonicalTeamMembersData
     .filter((member) => member.title === "Associate")
@@ -95,5 +109,5 @@ test("el panel ofrece orden por categoría, guardado explícito y visibilidad di
   assert.match(associateReconciliation, /Expected exactly/);
   assert.match(associateReconciliation, /LOCK TABLE team_members IN SHARE ROW EXCLUSIVE MODE/);
   assert.match(associateReconciliation, /published = false/);
-  assert.ok(root.endsWith("Webpage-Von-Wobeser"));
+  assert.ok(existsSync(resolve(root, "package.json")));
 });

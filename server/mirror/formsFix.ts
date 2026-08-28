@@ -101,18 +101,24 @@ export function applyCareersFormFix($: cheerio.CheerioAPI, lang: "es" | "en" = "
 
   const copy = lang === "es"
     ? {
-        required: "Completa nombre, apellido, correo, adjunta tu CV y acepta el aviso de privacidad.",
+        required: "Completa nombre, apellido, correo, adjunta tu CV y acepta el Aviso de Privacidad para Candidaturas.",
         success: "Gracias, tu solicitud fue enviada correctamente.",
         error: "Ocurrió un error, intenta de nuevo.",
         network: "Ocurrió un error de red, intenta de nuevo.",
         fileEmpty: "Ningún archivo seleccionado",
+        privacyIntro: "He leído y acepto el",
+        // El destino es el aviso específico de candidaturas, pero dentro del
+        // checkbox usamos la etiqueta legal breve para no romper la lectura.
+        privacyLink: "Aviso de Privacidad",
       }
     : {
-        required: "Complete your name, last name and email, attach your CV, and accept the Privacy Notice.",
+        required: "Complete your name, last name and email, attach your CV, and accept the Privacy Notice for Candidates.",
         success: "Thank you, your application was sent successfully.",
         error: "Something went wrong. Please try again.",
         network: "A network error occurred. Please try again.",
         fileEmpty: "No file selected",
+        privacyIntro: "I have read and accept the",
+        privacyLink: "Privacy Notice",
       };
 
   // Conservamos nombres, campos y endpoint del formulario original. La clase es
@@ -129,7 +135,22 @@ export function applyCareersFormFix($: cheerio.CheerioAPI, lang: "es" | "en" = "
   $form.find('[name="tel"]').attr({ autocomplete: "tel" });
   $form.find('[name="accept"]').attr("required", "");
   $form.find(".careers__form--button").addClass("vw-careers-form__upload");
-  $form.find(".careers__form--label.checkbox").addClass("vw-careers-form__privacy");
+  const $privacyLabel = $form.find(".careers__form--label.checkbox").addClass("vw-careers-form__privacy");
+  const $privacyText = $privacyLabel.find("span").first();
+  if ($privacyText.length) {
+    $privacyText.empty().append(`${copy.privacyIntro} `);
+    $privacyText.append(
+      $("<a>")
+        .attr({
+          href: "/aviso-de-privacidad-candidaturas",
+          target: "_blank",
+          rel: "noopener noreferrer",
+          hreflang: "es",
+        })
+        .text(copy.privacyLink),
+    );
+    $privacyLabel.attr("data-vw-privacy-notice", "talent-candidates");
+  }
   $form.find(".careers__form--label.submit").removeAttr("style").addClass("vw-careers-form__submit");
   $form.find("#filename")
     .removeAttr("style")

@@ -8696,16 +8696,17 @@ body.office-showcase--shared-navigation > header.header_JS .menu_btn_JS::after {
   max-width: 700px;
 }
 
-/* El título conserva la lectura editorial arriba y a la izquierda. Debajo, el
-   contenido se vuelve una retícula: lista funcional a la izquierda y una única
-   imagen institucional a la derecha. No se replica una foto por publicación. */
+/* El buscador ocupa una franja propia y centrada bajo la cabecera editorial.
+   Después, el contenido se vuelve una retícula: lista funcional a la izquierda
+   y una única imagen institucional a la derecha. No se replica una foto por
+   publicación. */
 .page.archive.vw-publications-page .vw-publications-page__body {
   align-items: start;
   display: grid;
   flex: 0 0 100%;
   gap: clamp(40px, 5vw, 76px);
   grid-template-columns: minmax(0, 1fr) minmax(340px, 430px);
-  margin: clamp(34px, 4vw, 56px) 0 clamp(58px, 7vw, 104px);
+  margin: 0 0 clamp(58px, 7vw, 104px);
   width: 100%;
 }
 
@@ -8713,9 +8714,9 @@ body.office-showcase--shared-navigation > header.header_JS .menu_btn_JS::after {
   min-width: 0;
 }
 
-.page.archive.vw-publications-page .vw-publications-page__body .archive__filters.vw-publications-search {
-  margin: 0 0 clamp(34px, 4vw, 52px) !important;
-  max-width: none;
+.page.archive.vw-publications-page .archive__filters.vw-publications-search {
+  margin: clamp(28px, 4vw, 56px) auto clamp(34px, 4.5vw, 64px) !important;
+  max-width: min(100%, 760px);
 }
 
 .page.archive.vw-publications-page .vw-publications-page__body .archive__list {
@@ -8984,6 +8985,17 @@ body.office-showcase--shared-navigation > header.header_JS .menu_btn_JS::after {
   width: 100%;
 }
 
+/* On desktop, the controls themselves provide enough structure. Removing the
+   full-width rules keeps the search connected to the editorial header. */
+@media (min-width: 721px) {
+  .page.archive.vw-publications-page .archive__filters.vw-publications-search {
+    background: transparent;
+    border: 0;
+    margin: clamp(24px, 3vw, 40px) auto clamp(38px, 4.2vw, 58px) !important;
+    padding: 0;
+  }
+}
+
 .page.archive .vw-publications-search .vw-publications-search__form {
   align-items: center;
   display: grid !important;
@@ -9165,11 +9177,7 @@ body.office-showcase--shared-navigation > header.header_JS .menu_btn_JS::after {
 @media (max-width: 980px) {
   .page.archive.vw-publications-page .vw-publications-page__body {
     display: block;
-    margin-top: 32px;
-  }
-
-  .page.archive.vw-publications-page .vw-publications-page__body .archive__filters.vw-publications-search {
-    margin-bottom: 38px !important;
+    margin-top: 0;
   }
 
   .vw-publications-office {

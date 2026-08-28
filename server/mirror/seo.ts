@@ -4,12 +4,39 @@ type Lang = "en" | "es";
 
 // -------------------------------------------------------------------------
 // URL base del sitio (para canonical / og:url / JSON-LD absolutos).
-// Configurable: por env SITE_URL, o vía setBaseUrl() que setupMirror llama al
-// arranque con la key `site_url` de siteConfig si está definida. Default = prod.
+// La base se obtiene exclusivamente de configuración institucional. Nunca se
+// infiere de REPLIT_DOMAINS: ese valor también existe en previews efímeros y
+// no debe terminar en canonical, sitemap ni datos estructurados.
 // -------------------------------------------------------------------------
-let BASE_URL = (process.env.SITE_URL || "https://www.vonwobeser.com").replace(/\/+$/, "");
+const DEFAULT_BASE_URL = "https://www.vonwobeser.com";
+
+function normalizeHttpBase(value: string | undefined | null): string | null {
+  const candidate = String(value || "").trim();
+  if (!candidate) return null;
+  try {
+    const url = new URL(candidate);
+    if (url.protocol !== "https:" && url.protocol !== "http:") return null;
+    if (url.username || url.password) return null;
+    return url.origin.replace(/\/+$/, "");
+  } catch {
+    return null;
+  }
+}
+
+/** Resuelve la base pública canónica, segura y estable. */
+export function resolvePublicBaseUrl(
+  configuredUrl?: string | undefined | null,
+  env: NodeJS.ProcessEnv = process.env,
+): string {
+  return normalizeHttpBase(env.SITE_URL)
+    || normalizeHttpBase(env.PUBLIC_SITE_URL)
+    || normalizeHttpBase(configuredUrl)
+    || DEFAULT_BASE_URL;
+}
+
+let BASE_URL = resolvePublicBaseUrl();
 export function setBaseUrl(url: string | undefined | null): void {
-  if (url && /^https?:\/\//i.test(url)) BASE_URL = url.replace(/\/+$/, "");
+  BASE_URL = resolvePublicBaseUrl(url);
 }
 export function getBaseUrl(): string {
   return BASE_URL;
@@ -258,6 +285,12 @@ export interface SeoOptions {
   path: string;
   /** Rutas distintas por idioma para páginas institucionales (p.ej. /nuestra-firma y /our-firm). */
   alternatePaths?: { es: string; en: string };
+  /**
+   * Algunos documentos legales se han entregado y aprobado únicamente en
+   * español. En esos casos no se publica un hreflang EN ficticio que apunte
+   * a la misma versión española.
+   */
+  availableLanguages?: "both" | "es";
   /** <title> completo de la página. */
   title: string;
   description?: string;
@@ -417,6 +450,34 @@ export function applyA11y($: cheerio.CheerioAPI, lang: Lang): void {
     if (!$img.attr("decoding")) $img.attr("decoding", "async");
   });
 
+  // Los enlaces de Inicio heredados siguen siendo atendidos con 301 para
+  // favoritos y resultados antiguos, pero la navegación que se renderiza hoy
+  // nunca debe volver a enlazarlos. Esto evita que los crawlers auditen una
+  // URL de compatibilidad en vez de la portada canónica.
+  const legacyHomePaths = new Set([
+    "/index.html",
+    "index.html",
+    "/index.php/index.html",
+    "index.php/index.html",
+    "/index.php/home",
+    "/index.php/home/",
+    "/index.php/home/index.html",
+    "index.php/home/index.html",
+  ]);
+  $("a[href]").each((_, el) => {
+    const $link = $(el);
+    const href = String($link.attr("href") || "").trim();
+    if (!href || /^(?:[a-z][a-z0-9+.-]*:|\/\/|#)/i.test(href)) return;
+    try {
+      const url = new URL(href, "https://local.invalid");
+      if (!legacyHomePaths.has(url.pathname)) return;
+      const english = lang === "en" || url.searchParams.get("lang") === "en";
+      $link.attr("href", `${english ? "/?lang=en" : "/"}${url.hash}`);
+    } catch {
+      // Un href malformado no se modifica ni se usa para SEO.
+    }
+  });
+
   // 3) Vínculos sin nombre reconocible (íconos): aria-label desde el dominio del href.
   $("a").each((_, el) => {
     const $a = $(el);
@@ -555,7 +616,7 @@ export function applySeo($: cheerio.CheerioAPI, opts: SeoOptions): void {
   $('head link[rel="canonical"], head link[rel="alternate"][hreflang]').remove();
   upsertLink($, "canonical", canonical);
   upsertLink($, "alternate", esUrl, "es-MX");
-  upsertLink($, "alternate", enUrl, "en");
+  if (opts.availableLanguages !== "es") upsertLink($, "alternate", enUrl, "en");
   upsertLink($, "alternate", esUrl, "x-default");
 
   // Identidad del navegador. Se retiran los íconos heredados para que todas las

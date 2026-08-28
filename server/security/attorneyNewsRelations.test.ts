@@ -57,6 +57,8 @@ test("el perfil muestra tres publicaciones propias junto a la biografía y conse
   assert.equal($(".attorney-related-insights__item").first().find("a").first().attr("href"), "/news/insight-3");
   assert.equal($(".attorney-related-insights__item").first().find("time").text(), "Junio, 2026");
   assert.equal($(".attorney-bio-disclosure").attr("open"), undefined);
+  assert.equal($(".attorney-bio-disclosure__show").text(), "Mostrar biografía completa");
+  assert.equal($(".attorney-bio-disclosure__hide").text(), "Ver menos");
   assert.equal($(".attorney-bio-disclosure").next(".attorney-related-insights").length, 1);
   assert.equal($("h1.attorney__meta--name").length, 1);
   assert.equal($("h1").length, 1);

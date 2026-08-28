@@ -4,6 +4,7 @@ import { buildVideoEmbedUrl, parseVideoSource } from "@shared/videoSource";
 import { resolveContactLocation } from "./contactLocation";
 import { LOCAL_SRI_MANIFEST } from "../security/sriManifest";
 import { cfg, type ConfigMap } from "./siteConfig";
+import { getBaseUrl } from "./seo";
 
 type Lang = "en" | "es";
 
@@ -74,7 +75,7 @@ export function renderOfficeShowcase(
   const value = (key: string) => cfg(config, key, lang).trim();
   const path = lang === "es" ? "/nuevas-oficinas/" : "/new-offices/";
   const alternatePath = lang === "es" ? "/new-offices/" : "/nuevas-oficinas/";
-  const siteUrl = (config.site_url?.value || "https://www.vonwobeser.com").replace(/\/+$/, "");
+  const siteUrl = getBaseUrl();
 
   $("html").attr("lang", lang);
   $("body").addClass("office-showcase");

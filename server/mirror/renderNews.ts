@@ -393,14 +393,21 @@ export function renderNewsList(
       );
       const $layout = $('<div class="vw-publications-page__body"></div>');
 
+      // El buscador queda en su propia franja, centrada debajo de la cabecera.
+      // Así la retícula editorial empieza después con resultados e imagen al mismo
+      // nivel, sin encerrar el control en la columna de publicaciones.
       // La lista puede vivir dentro del formulario heredado de Joomla o como un
       // nodo directo en las plantillas simplificadas usadas por las pruebas.
       // Mover el contenedor completo conserva paginación y resultados de búsqueda.
-      if ($filters.length) $main.append($filters);
       if ($listContainer.length) $main.append($listContainer);
       else if ($list.length) $main.append($list);
       $layout.append($main, $visual);
-      $header.after($layout);
+      if ($filters.length) {
+        $header.after($filters);
+        $filters.after($layout);
+      } else {
+        $header.after($layout);
+      }
     }
   }
 

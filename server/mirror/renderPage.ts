@@ -20,6 +20,7 @@ export function renderPage(
     title: string;
     description?: string;
     alternatePaths?: { es: string; en: string };
+    availableLanguages?: "both" | "es";
   },
   postProcess?: ($: cheerio.CheerioAPI) => void,
   opts?: { bodyMode?: "replace" | "prepend" },
@@ -56,6 +57,7 @@ export function renderPage(
       lang,
       path: meta.path,
       alternatePaths: meta.alternatePaths,
+      availableLanguages: meta.availableLanguages,
       title: meta.title,
       description: meta.description || clip(introText) || fallbackDesc,
       type: "website",

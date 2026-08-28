@@ -208,7 +208,7 @@ function buildBiographyDisclosure(opts: {
   lang: Lang;
 }): string {
   const copy = opts.lang === "es"
-    ? { show: "Mostrar biografía completa", hide: "Ocultar biografía" }
+    ? { show: "Mostrar biografía completa", hide: "Ver menos" }
     : { show: "Show full biography", hide: "Show less" };
   if (!opts.bio.trim()) return "";
   return `<details class="attorney-bio-disclosure" data-vw-attorney-bio>` +
