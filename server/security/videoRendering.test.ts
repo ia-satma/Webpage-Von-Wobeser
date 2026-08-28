@@ -125,6 +125,45 @@ test("Diversidad alterna de forma segura entre archivo, YouTube y Vimeo", () => 
   assert.doesNotMatch($.html(), /<iframe[^>]+(?:evil|javascript:)/i);
 });
 
+test("Diversidad muestra el fotograma correspondiente a cada video y oculta un espacio sin video", () => {
+  const $ = cheerio.load(`<!doctype html><html><body>
+    <div class="slide_vid"><video id="videoPlayer"><source id="videoSource"></video></div>
+    <div class="thumb" name="vid_04"><img></div>
+    <div class="thumb" name="vw_vid_02"><img></div>
+    <div class="thumb" name="vid_01"><img></div>
+    <div class="thumb" name="vid_07"><img></div>
+  </body></html>`);
+  const config: ConfigMap = {
+    page_diversity_video_main: entry("/images/vw_vid_02.mp4"),
+    page_diversity_video_1: entry("/img/videos/video1.mp4"),
+    page_diversity_video_4: entry("/img/videos/video4.mp4"),
+    page_diversity_thumb_main: entry("/images/diversity-thumbnails/main.jpg"),
+    page_diversity_thumb_1: entry("/images/diversity-thumbnails/video-1.jpg"),
+    page_diversity_thumb_4: entry("/images/diversity-thumbnails/video-4.jpg"),
+  };
+
+  applyDiversityVideoGallery($, config, "es");
+
+  assert.equal($(".thumb[name='vw_vid_02'] img").attr("src"), "/images/diversity-thumbnails/main.jpg");
+  assert.equal($(".thumb[name='vid_01'] img").attr("src"), "/images/diversity-thumbnails/video-1.jpg");
+  assert.equal($(".thumb[name='vid_04'] img").attr("src"), "/images/diversity-thumbnails/video-4.jpg");
+  assert.equal($(".thumb[name='vid_04']").attr("data-video"), "/img/videos/video4.mp4");
+  assert.equal($(".thumb[name='vid_07']").length, 0);
+});
+
+test("Diversidad conserva los siete fotogramas generados a partir de sus videos", () => {
+  const thumbnails = ["main", ...Array.from({ length: 6 }, (_, index) => `video-${index + 1}`)];
+  for (const thumbnail of thumbnails) {
+    const asset = path.resolve(
+      import.meta.dirname,
+      `../../frontend-mirror/images/diversity-thumbnails/${thumbnail}.jpg`,
+    );
+    const bytes = fs.readFileSync(asset);
+    assert.deepEqual([...bytes.subarray(0, 3)], [0xff, 0xd8, 0xff], `${thumbnail} debe ser un JPEG válido`);
+    assert.ok(bytes.length > 10_000, `${thumbnail} no debe ser un marcador diminuto`);
+  }
+});
+
 test("Diversidad e Inclusión usa la cabecera editorial bilingüe sin el rótulo vertical legado", () => {
   const template = `<!doctype html><html><body><section class="page"><div class="page--wrap">
     <div class="page__ttl"><span>DIVERSIDAD E INCLUSIÓN</span></div>

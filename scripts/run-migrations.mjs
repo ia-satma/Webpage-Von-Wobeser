@@ -60,6 +60,11 @@ const verifiedDataMigrationPolicies = new Map([
   ["20260828_0002_set_verified_contact_map_destination.mjs", {
     allowedCountChanges: new Set(),
   }],
+  // Sustituye referencias de galería que ya no existen y sus logotipos por
+  // videos y fotogramas reales; conserva cualquier edición diferente del CMS.
+  ["20260828_0003_restore_diversity_video_gallery.mjs", {
+    allowedCountChanges: new Set(),
+  }],
 ]);
 
 function quoteIdentifier(value) {

@@ -45,16 +45,41 @@ export function applyDiversityVideoGallery($: cheerio.CheerioAPI, config: Config
   }
 
   const mainUrl = v("page_diversity_video_main", "/images/vw_vid_02.mp4");
-  const resolve = (url: string) => (diversityLocalFileExists(url) ? url : mainUrl);
-  const slots: Record<string, string> = {
+  const resolve = (url: string): string | null => (url && diversityLocalFileExists(url) ? url : null);
+  // El espejo conserva siete videos reales: el principal y seis entrevistas.
+  // Nunca repetimos el principal para llenar una miniatura cuyo archivo ya no
+  // existe; una octava posición sólo se muestra si Administración aporta video.
+  const slots: Record<string, string | null> = {
     vw_vid_02: mainUrl,
-    vid_01: resolve(v("page_diversity_video_1", "/images/vid_01.mp4")),
-    vid_02: resolve(v("page_diversity_video_2", "/images/vid_02.mp4")),
-    vid_03: resolve(v("page_diversity_video_3", "/images/vid_03.mp4")),
-    vid_04: resolve(v("page_diversity_video_4", "/images/vid_04.mp4")),
-    vid_05: resolve(v("page_diversity_video_5", "/images/vid_05.mp4")),
-    vid_06: resolve(v("page_diversity_video_6", "/images/vid_06.mp4")),
-    vid_07: resolve(v("page_diversity_video_7", "/images/vid_07.mp4")),
+    vid_01: resolve(v("page_diversity_video_1", "/img/videos/video1.mp4")),
+    vid_02: resolve(v("page_diversity_video_2", "/img/videos/video2.mp4")),
+    vid_03: resolve(v("page_diversity_video_3", "/img/videos/video3.mp4")),
+    vid_04: resolve(v("page_diversity_video_4", "/img/videos/video4.mp4")),
+    vid_05: resolve(v("page_diversity_video_5", "/img/videos/video5.mp4")),
+    vid_06: resolve(v("page_diversity_video_6", "/img/videos/video6.mp4")),
+    vid_07: resolve((config.page_diversity_video_7?.value || "").trim()),
+  };
+  const thumbKeys: Record<string, string> = {
+    vw_vid_02: "page_diversity_thumb_main",
+    vid_01: "page_diversity_thumb_1",
+    vid_02: "page_diversity_thumb_2",
+    vid_03: "page_diversity_thumb_3",
+    vid_04: "page_diversity_thumb_4",
+    vid_05: "page_diversity_thumb_5",
+    vid_06: "page_diversity_thumb_6",
+    vid_07: "page_diversity_thumb_7",
+  };
+  const thumbFallbacks: Record<string, string> = {
+    vw_vid_02: "/images/diversity-thumbnails/main.jpg",
+    vid_01: "/images/diversity-thumbnails/video-1.jpg",
+    vid_02: "/images/diversity-thumbnails/video-2.jpg",
+    vid_03: "/images/diversity-thumbnails/video-3.jpg",
+    vid_04: "/images/diversity-thumbnails/video-4.jpg",
+    vid_05: "/images/diversity-thumbnails/video-5.jpg",
+    vid_06: "/images/diversity-thumbnails/video-6.jpg",
+    // El séptimo video es opcional: si se habilita sin subir aún su imagen,
+    // mostramos un respaldo válido en lugar de una miniatura rota.
+    vid_07: "/images/diversity-thumbnails/main.jpg",
   };
   const mainSource = parseVideoSource(mainUrl) || parseVideoSource("/images/vw_vid_02.mp4")!;
   const mainEmbed = buildVideoEmbedUrl(mainSource, { autoplay: false, controls: true });
@@ -80,18 +105,23 @@ export function applyDiversityVideoGallery($: cheerio.CheerioAPI, config: Config
     frame.attr("hidden", "");
   }
 
-  $(".thumb[name]").each((index, el) => {
+  $(".thumb[name]").each((_index, el) => {
     const name = $(el).attr("name") || "";
-    const slotSource = parseVideoSource(slots[name]) || mainSource;
+    const selectedUrl = slots[name];
+    if (!selectedUrl) {
+      $(el).remove();
+      return;
+    }
+    const slotSource = parseVideoSource(selectedUrl) || mainSource;
     $(el).removeAttr("data-video").removeAttr("data-embed");
     if (slotSource.kind === "file") {
       $(el).attr("data-video", slotSource.url);
     } else {
       $(el).attr("data-embed", buildVideoEmbedUrl(slotSource, { autoplay: true, controls: true }) || "");
     }
-    const thumbKey = index === 0 ? "page_diversity_thumb_main" : `page_diversity_thumb_${index}`;
-    const thumb = v(thumbKey, "/images/thumb_main_vid.png");
-    $(el).find("img").first().attr({ src: thumb, alt: `Video ${index + 1}` });
+    const thumbKey = thumbKeys[name];
+    const thumb = v(thumbKey, thumbFallbacks[name] || thumbFallbacks.vw_vid_02);
+    $(el).find("img").first().attr({ src: thumb, alt: lang === "es" ? "Vista previa del video" : "Video preview" });
   });
 
   const partnerLogos = ["page_diversity_logo_1", "page_diversity_logo_2", "page_diversity_logo_3"];
