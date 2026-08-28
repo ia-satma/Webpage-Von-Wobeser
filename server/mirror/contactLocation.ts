@@ -25,7 +25,9 @@ export type ContactLocation = {
   labels: LocationLabels;
 };
 
-const DEFAULT_MAP_LINK = "https://www.google.com/maps/dir/?api=1&destination=19.427559,-99.195333";
+// Destino verificado por el cliente. No se añaden alias de edificio ni vías de
+// acceso: Google Maps debe resolver exactamente el domicilio postal solicitado.
+export const OFFICE_DIRECTIONS_URL = "https://www.google.com/maps/dir/?api=1&destination=Campos%20El%C3%ADseos%20204%2C%20Polanco%2C%20Polanco%20IV%20Secc%2C%20Miguel%20Hidalgo%2C%2011550%20Ciudad%20de%20M%C3%A9xico%2C%20CDMX";
 
 const FALLBACKS: Record<PublicLanguage, Omit<ContactLocation, "addressLines" | "phoneHref" | "mapEmbed" | "mapLink"> & { mapEmbed: null; mapLink: string }> = {
   es: {
@@ -33,7 +35,7 @@ const FALLBACKS: Record<PublicLanguage, Omit<ContactLocation, "addressLines" | "
     email: "info@vwys.com.mx",
     phone: "+52 (55) 5258 1000",
     mapEmbed: null,
-    mapLink: DEFAULT_MAP_LINK,
+    mapLink: OFFICE_DIRECTIONS_URL,
     labels: {
       eyebrow: "UBICACIÓN",
       title: "Nuestra ubicación",
@@ -50,7 +52,7 @@ const FALLBACKS: Record<PublicLanguage, Omit<ContactLocation, "addressLines" | "
     email: "info@vwys.com.mx",
     phone: "+52 (55) 5258 1000",
     mapEmbed: null,
-    mapLink: DEFAULT_MAP_LINK,
+    mapLink: OFFICE_DIRECTIONS_URL,
     labels: {
       eyebrow: "LOCATION",
       title: "Our location",
@@ -77,7 +79,7 @@ export function safeGoogleMapsEmbed(value: string): string | null {
 }
 
 /** Las acciones públicas conservan una URL de Google Maps aun si el embed falla. */
-export function safeGoogleMapsLink(value: string, fallback = DEFAULT_MAP_LINK): string {
+export function safeGoogleMapsLink(value: string, fallback = OFFICE_DIRECTIONS_URL): string {
   try {
     const url = new URL(String(value ?? "").trim());
     const googleHost = /(?:^|\.)google\.[a-z.]+$/i.test(url.hostname);

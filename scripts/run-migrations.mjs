@@ -52,6 +52,14 @@ const verifiedDataMigrationPolicies = new Map([
   ["20260827_0001_edmond_grieger_public_name.mjs", {
     allowedCountChanges: new Set(),
   }],
+  // Corrección de una URL pública: actualiza sólo el valor histórico erróneo
+  // de indicaciones y deja intacta cualquier edición posterior del panel.
+  ["20260828_0001_correct_contact_map_directions.mjs", {
+    allowedCountChanges: new Set(),
+  }],
+  ["20260828_0002_set_verified_contact_map_destination.mjs", {
+    allowedCountChanges: new Set(),
+  }],
 ]);
 
 function quoteIdentifier(value) {

@@ -436,7 +436,7 @@ test("Contacto no conserva un iframe heredado si la configuración no es un embe
 
   assert.equal($(".page__map--holder iframe").length, 0);
   assert.doesNotMatch($.html(), /example\.com|pb=legacy/);
-  assert.equal($(".vw-contact-location__action--primary").attr("href"), "https://www.google.com/maps/dir/?api=1&destination=19.427559,-99.195333");
+  assert.equal($(".vw-contact-location__action--primary").attr("href"), "https://www.google.com/maps/dir/?api=1&destination=Campos%20El%C3%ADseos%20204%2C%20Polanco%2C%20Polanco%20IV%20Secc%2C%20Miguel%20Hidalgo%2C%2011550%20Ciudad%20de%20M%C3%A9xico%2C%20CDMX");
 });
 
 test("Contacto permite administrar el consentimiento bilingüe", () => {
@@ -484,7 +484,7 @@ test("Contacto solo abre direcciones de Google Maps administradas", () => {
   );
 
   const directions = $(".vw-contact-location__action--primary").attr("href");
-  assert.equal(directions, "https://www.google.com/maps/dir/?api=1&destination=19.427559,-99.195333");
+  assert.equal(directions, "https://www.google.com/maps/dir/?api=1&destination=Campos%20El%C3%ADseos%20204%2C%20Polanco%2C%20Polanco%20IV%20Secc%2C%20Miguel%20Hidalgo%2C%2011550%20Ciudad%20de%20M%C3%A9xico%2C%20CDMX");
   assert.doesNotMatch($.html(), /javascript:/i);
 });
 
