@@ -13,7 +13,7 @@ export type ArticleSummaryCuration = Readonly<{
 }>;
 
 const legacyPublication = (legacyId: number, language: "en" | "es") =>
-  `https://www.vonwobeser.com/index.php/${language === "en" ? "publication" : "publicacion"}/p_id-${legacyId}.html`;
+  `https://www.vonwobeser.com/index.php/${language === "en" ? "publication" : "publicacion"}?p_id=${legacyId}`;
 
 const sourceOnly = (slug: string, sourceUrl: string): ArticleSummaryCuration => ({ slug, sourceUrl, excerpt: "", excerptEs: "" });
 

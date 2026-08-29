@@ -2,6 +2,18 @@ function hasCmsText(value: unknown): boolean {
   return String(value ?? "").replace(/<[^>]*>/g, "").replace(/&nbsp;/gi, " ").trim().length > 0;
 }
 
+/**
+ * Joomla still serves article records through the p_id query parameter. Its
+ * older /p_id-123.html form now redirects to the legacy 404 route, so normalize
+ * only that exact first-party pattern before it can reach a public CTA.
+ */
+export function normalizeOriginalSourceUrl(value: unknown): string {
+  const source = String(value ?? "").trim();
+  const match = source.match(/^https:\/\/(?:www\.)?vonwobeser\.com\/index\.php\/(publication|publicacion)\/p_id-(\d+)\.html$/i);
+  if (!match) return source;
+  return `https://www.vonwobeser.com/index.php/${match[1].toLowerCase()}?p_id=${match[2]}`;
+}
+
 export function isVerifiedNewsSourceUrl(value: unknown): boolean {
   try {
     const url = new URL(String(value ?? "").trim());

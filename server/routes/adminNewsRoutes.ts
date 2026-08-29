@@ -15,7 +15,7 @@ import { sanitizeNewsFields } from "../mirror/sanitize";
 import { SUPPORTED_LANGUAGES } from "../openai";
 import { storage } from "../storage";
 import { apiError, auditLog, getLinguisticWarnings } from "./routeUtils";
-import { editorialDateAtNoon, hasPublishableNewsContent, isValidEditorialDate, isVerifiedNewsSourceUrl, requiresExplicitEditorialDate } from "../newsPublicationPolicy";
+import { editorialDateAtNoon, hasPublishableNewsContent, isValidEditorialDate, isVerifiedNewsSourceUrl, normalizeOriginalSourceUrl, requiresExplicitEditorialDate } from "../newsPublicationPolicy";
 import { findIntroducedUnlinkedArticleUrls, findUnlinkedArticleUrls } from "../articleLinkIntegrity";
 
 const isArticle = (category: unknown) => String(category ?? "").trim().toLowerCase() === "articles";
@@ -224,7 +224,7 @@ export function registerAdminNewsRoutes(app: Express): void {
     Array.from(new Set(tags.map((tag) => tag.replace(/\s+/g, " ").toLocaleLowerCase("es-MX")).filter(Boolean))),
   );
   const sourceUrlSchema = z.preprocess(
-    (value) => typeof value === "string" && !value.trim() ? null : value,
+    (value) => typeof value === "string" && !value.trim() ? null : normalizeOriginalSourceUrl(value),
     z.string().trim().max(2_000).url().refine(isVerifiedNewsSourceUrl, "La fuente debe usar una URL HTTPS pública").nullable().optional(),
   );
   // La fecha viaja como YYYY-MM-DD desde el panel y se fija al mediodía UTC:

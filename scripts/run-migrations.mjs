@@ -84,6 +84,11 @@ const verifiedDataMigrationPolicies = new Map([
   ["20260828_0007_correct_news_1911_author_relations.mjs", {
     allowedCountChanges: new Set(["news_team_members"]),
   }],
+  // Corrige exclusivamente una familia de rutas Joomla que el sitio legado
+  // redirige hoy a 404; no cambia contenido ni cardinalidad de ninguna tabla.
+  ["20260829_0001_normalize_legacy_article_source_routes.mjs", {
+    allowedCountChanges: new Set(),
+  }],
 ]);
 
 // Algunos entornos de publicación se crearon sin una publicación histórica

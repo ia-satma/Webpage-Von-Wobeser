@@ -264,8 +264,11 @@ test("la curación cubre exactamente los 55 Artículos deficientes con fuente HT
   assert.equal(ARTICLE_SUMMARY_CURATION_20260826.filter((entry) => entry.excerpt && entry.excerptEs).length, 37);
   assert.equal(ARTICLE_SUMMARY_CURATION_20260826.filter((entry) => !entry.excerpt && !entry.excerptEs).length, 18);
   assert.equal(ARTICLE_SUMMARY_CURATION_20260826.filter((entry) => entry.replaceableSourceUrls?.length).length, 6);
+  const legacyOfficialRoutes = ARTICLE_SUMMARY_CURATION_20260826.filter((entry) => /vonwobeser\.com\/index\.php\/(?:publication|publicacion)\?p_id=\d+$/.test(entry.sourceUrl));
+  assert.equal(legacyOfficialRoutes.length, 16);
   for (const entry of ARTICLE_SUMMARY_CURATION_20260826) {
     assert.match(entry.sourceUrl, /^https:\/\//);
+    assert.doesNotMatch(entry.sourceUrl, /\/p_id-\d+\.html$/);
     for (const replaceableSourceUrl of entry.replaceableSourceUrls ?? []) {
       assert.match(replaceableSourceUrl, /^https:\/\//);
       assert.notEqual(replaceableSourceUrl, entry.sourceUrl);

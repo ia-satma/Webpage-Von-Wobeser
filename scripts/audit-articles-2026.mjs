@@ -40,6 +40,10 @@ const CONCURRENCY = Math.max(1, Math.min(10, Number(argValue("concurrency", "6")
 const MAX_PAGES = Math.max(0, Number(argValue("max-pages", "0")) || 0);
 const MAX_DETAILS = Math.max(0, Number(argValue("max-details", "0")) || 0);
 const SKIP_LINKS = hasFlag("--skip-links");
+// Cambia cuando la semántica de las comprobaciones evoluciona: evita reutilizar
+// resultados de auditorías que todavía aceptaban una ruta redirigida a 404.
+const FETCH_CACHE_VERSION = "2026-08-29-direct-source-route-v2";
+const MAX_REDIRECTS = 8;
 
 const COLLECTIONS = [
   { key: "es", language: "es", url: `${OFFICIAL_ORIGIN}/index.php/publicaciones/articulos` },
@@ -60,6 +64,12 @@ const unique = (values) => [...new Set(values.filter(Boolean))];
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 const isHttp = (value) => /^https?:\/\//i.test(String(value ?? ""));
 const articlePid = (value) => String(value ?? "").match(/[?&]p_id=(\d+)|p_id-(\d+)/i)?.slice(1).find(Boolean) ?? "";
+const isLegacy404Url = (value) => {
+  try {
+    const url = new URL(value);
+    return url.hostname.endsWith("vonwobeser.com") && url.pathname === "/index.php/404";
+  } catch { return false; }
+};
 const toAbsolute = (href, base) => {
   try { return href ? new URL(String(href).replace(/&amp;/g, "&"), base).toString() : ""; } catch { return ""; }
 };
@@ -134,6 +144,7 @@ function publicContentLinks($, root, baseUrl) {
 }
 
 function classifyLink(result, kind) {
+  if (result.redirectedToLegacy404) return "roto";
   if (result.error || result.status === 0) return "inaccesible";
   if ([401, 403, 429].includes(result.status)) return "bloqueado";
   if ([404, 410].includes(result.status)) return "roto";
@@ -148,7 +159,7 @@ class FetchCache {
   constructor(root) { this.root = root; }
   async init() { await fs.mkdir(this.root, { recursive: true }); }
   paths(url, mode) {
-    const key = sha256(`${mode}:${url}`);
+    const key = sha256(`${FETCH_CACHE_VERSION}:${mode}:${url}`);
     return { meta: path.join(this.root, `${key}.json`), body: path.join(this.root, `${key}.body`) };
   }
   async read(url, mode) {
@@ -177,27 +188,57 @@ async function fetchWithRetries(url, { mode = "text", attempts = 3, timeoutMs = 
     try {
       const headers = { "user-agent": "VWYS-Articles-Audit/1.0", accept: "text/html,application/xhtml+xml,application/pdf;q=0.9,*/*;q=0.8" };
       if (mode === "probe") headers.range = "bytes=0-31";
-      const response = await fetch(url, { headers, redirect: "follow", signal: controller.signal });
-      let body = Buffer.alloc(0);
-      if (mode !== "probe") body = Buffer.from(await response.arrayBuffer());
-      else if (response.body) {
-        const reader = response.body.getReader();
-        const first = await reader.read();
-        body = Buffer.from(first.value ?? new Uint8Array());
-        await reader.cancel();
+      const redirectChain = [];
+      let currentUrl = url;
+      for (let hop = 0; hop <= MAX_REDIRECTS; hop += 1) {
+        const response = await fetch(currentUrl, { headers, redirect: "manual", signal: controller.signal });
+        const location = response.headers.get("location");
+        if (response.status >= 300 && response.status < 400 && location) {
+          const nextUrl = new URL(location, currentUrl).toString();
+          redirectChain.push({ from: currentUrl, status: response.status, to: nextUrl });
+          if (isLegacy404Url(nextUrl)) {
+            clearTimeout(timer);
+            const result = {
+              requestedUrl: url, finalUrl: nextUrl, status: 404, redirected: true,
+              redirectedToLegacy404: true, redirectChain, mime: response.headers.get("content-type") ?? "",
+              signature: "", error: "redirected to legacy /index.php/404", body: Buffer.alloc(0),
+            };
+            await cache.write(url, mode, result);
+            return result;
+          }
+          if (hop === MAX_REDIRECTS) throw new Error(`too many redirects after ${MAX_REDIRECTS} hops`);
+          currentUrl = nextUrl;
+          continue;
+        }
+        let body = Buffer.alloc(0);
+        if (mode !== "probe") body = Buffer.from(await response.arrayBuffer());
+        else if (response.body) {
+          const reader = response.body.getReader();
+          const first = await reader.read();
+          body = Buffer.from(first.value ?? new Uint8Array());
+          await reader.cancel();
+        }
+        clearTimeout(timer);
+        const result = {
+          requestedUrl: url, finalUrl: currentUrl, status: response.status, redirected: redirectChain.length > 0,
+          redirectedToLegacy404: false, redirectChain, mime: response.headers.get("content-type") ?? "",
+          signature: body.subarray(0, 16).toString("latin1"), error: "", body,
+        };
+        if ((response.status === 429 || response.status >= 500) && attempt < attempts) {
+          clearTimeout(timer);
+          await sleep(500 * attempt);
+          break;
+        }
+        await cache.write(url, mode, result);
+        return result;
       }
-      clearTimeout(timer);
-      const result = { requestedUrl: url, finalUrl: response.url, status: response.status, redirected: response.redirected, mime: response.headers.get("content-type") ?? "", signature: body.subarray(0, 16).toString("latin1"), error: "", body };
-      if ((response.status === 429 || response.status >= 500) && attempt < attempts) { await sleep(500 * attempt); continue; }
-      await cache.write(url, mode, result);
-      return result;
     } catch (error) {
       clearTimeout(timer);
       errorText = error?.name === "AbortError" ? `timeout after ${timeoutMs}ms` : String(error?.message ?? error);
       if (attempt < attempts) await sleep(500 * attempt);
     }
   }
-  const result = { requestedUrl: url, finalUrl: "", status: 0, redirected: false, mime: "", signature: "", error: errorText, body: Buffer.alloc(0) };
+  const result = { requestedUrl: url, finalUrl: "", status: 0, redirected: false, redirectedToLegacy404: false, redirectChain: [], mime: "", signature: "", error: errorText, body: Buffer.alloc(0) };
   await cache.write(url, mode, result);
   return result;
 }
@@ -359,7 +400,6 @@ async function main() {
   const inventory = officialDetails.map((item) => compareRecord(item, matchProjectRecord(item, detailByKey, projectByLegacy)));
   const matchedProjectIds = new Set(inventory.map((item) => item.projectId).filter(Boolean));
   const projectRowById = new Map(projectRows.map((row) => [row.id, row]));
-  const officialDetailByLegacyId = new Map(officialDetails.map((item) => [item.legacyId, item]));
   const projectOnly = projectRows.filter((row) => !matchedProjectIds.has(row.id)).map((row) => ({ id: row.id, legacyId: row.legacyId || "", slug: row.slug, date: row.date ? new Date(row.date).toISOString().slice(0, 10) : "", published: Boolean(row.published), titleEs: row.titleEs, title: row.title, reason: row.legacyId ? "legacy_id_not_in_official_articles" : "without_legacy_id" }));
 
   const uniqueProjectRows = [...new Map(inventory.filter((item) => item.projectId).map((item) => [item.projectId, projectRows.find((row) => row.id === item.projectId)])).values()];
@@ -371,13 +411,10 @@ async function main() {
     for (const url of item.contentUrls) linkTargets.push({ owner: item.sourceKey, source: "official", kind: "content-link", language: item.language, url });
     if (item.projectSlug && item.sourceComparison !== "not_applicable") {
       const sourceUrl = projectRowById.get(item.projectId)?.sourceUrl ?? "";
-      // Varias fichas históricas conservan su propia URL Joomla como sourceUrl.
-      // La ficha oficial del mismo p_id ya fue leída y validada arriba; reutilizar
-      // ese resultado evita un falso "inaccesible" provocado por un segundo
-      // request Range al mismo recurso, sin asumir equivalencias por título.
-      const sourcePid = articlePid(sourceUrl);
-      const isOfficialSource = (() => { try { return new URL(sourceUrl).hostname.endsWith("vonwobeser.com"); } catch { return false; } })();
-      linkTargets.push({ owner: item.sourceKey, source: "project", kind: "source-url", language: item.language, url: sourceUrl, existing: isOfficialSource && sourcePid ? officialDetailByLegacyId.get(sourcePid) : undefined });
+      // La fuente configurada y el CTA público se verifican tal cual se entregan
+      // al lector. Compartir el p_id con una ficha oficial no prueba que esta URL
+      // concreta sea navegable.
+      linkTargets.push({ owner: item.sourceKey, source: "project", kind: "source-url", language: item.language, url: sourceUrl });
     }
   }
   for (const document of projectDocuments) {
@@ -388,8 +425,13 @@ async function main() {
   const auditableLinkTargets = linkTargets.filter((target) => isHttp(target.url));
   const uniqueLinks = [...new Map(auditableLinkTargets.map((target) => [`${target.kind}:${target.url}`, target])).values()];
   const probes = SKIP_LINKS ? [] : await concurrent(uniqueLinks, async (target) => {
-    const result = target.existing ? { status: target.existing.status, finalUrl: target.existing.finalUrl, redirected: target.existing.finalUrl !== target.url, mime: target.existing.mime, signature: "", error: target.existing.fetchError } : await fetchWithRetries(target.url, { mode: "probe" });
-    return { key: `${target.kind}:${target.url}`, status: result.status, finalUrl: result.finalUrl, redirected: result.redirected, mime: result.mime, error: result.error, classification: classifyLink(result, target.kind) };
+    const result = target.existing ? { status: target.existing.status, finalUrl: target.existing.finalUrl, redirected: target.existing.finalUrl !== target.url, redirectedToLegacy404: false, redirectChain: [], mime: target.existing.mime, signature: "", error: target.existing.fetchError } : await fetchWithRetries(target.url, { mode: "probe" });
+    return {
+      key: `${target.kind}:${target.url}`, status: result.status, finalUrl: result.finalUrl,
+      redirected: result.redirected, redirectedToLegacy404: result.redirectedToLegacy404,
+      redirectChain: (result.redirectChain ?? []).map((hop) => `${hop.status}:${hop.from}=>${hop.to}`).join(" | "),
+      mime: result.mime, error: result.error, classification: classifyLink(result, target.kind),
+    };
   }, "enlaces");
   const probeByKey = new Map(probes.map((probe) => [probe.key, probe]));
   const links = SKIP_LINKS ? [] : auditableLinkTargets.map((target) => ({ ...target, ...probeByKey.get(`${target.kind}:${target.url}`) }));
@@ -423,7 +465,7 @@ async function main() {
     },
     findingCounts: Object.fromEntries(unique(inventory.flatMap((item) => item.findings)).sort().map((code) => [code, findingCount(code)])),
   };
-  const linkHeaders = ["owner", "source", "kind", "language", "url", "status", "classification", "finalUrl", "redirected", "mime", "error"];
+  const linkHeaders = ["owner", "source", "kind", "language", "url", "status", "classification", "finalUrl", "redirected", "redirectedToLegacy404", "redirectChain", "mime", "error"];
   const headerHeaders = ["projectId", "language", "url", "status", "classification", "h1Count", "h1Text", "documentTitle", "description", "canonical", "hreflang", "sourceExpectedUrl", "sourceCtaHref", "sourceCtaMatches", "sourceCtaSecure", "contentLinks", "rawUrlTexts", "findings"];
   await Promise.all([
     fs.writeFile(path.join(OUTPUT, `VWYS_Auditoria_Articulos_${STAMP}.resumen.json`), `${JSON.stringify(summary, null, 2)}\n`),

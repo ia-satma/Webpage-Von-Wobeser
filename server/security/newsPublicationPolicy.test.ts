@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { editorialDateAtNoon, hasPublishableNewsContent, isValidEditorialDate, isVerifiedNewsSourceUrl, requiresExplicitEditorialDate } from "../newsPublicationPolicy";
+import { editorialDateAtNoon, hasPublishableNewsContent, isValidEditorialDate, isVerifiedNewsSourceUrl, normalizeOriginalSourceUrl, requiresExplicitEditorialDate } from "../newsPublicationPolicy";
 
 test("la API acepta Artículos publicados solo con fuente HTTPS verificable", () => {
   const sourceOnlyArticle = {
@@ -34,6 +34,19 @@ test("la API conserva el requisito bilingüe para las demás publicaciones", () 
   }), false);
   assert.equal(isVerifiedNewsSourceUrl("https://source.example/article"), true);
   assert.equal(isVerifiedNewsSourceUrl("javascript:alert(1)"), false);
+});
+
+test("la API normaliza solamente la ruta Joomla histórica que hoy lleva al 404", () => {
+  assert.equal(
+    normalizeOriginalSourceUrl("https://www.vonwobeser.com/index.php/publication/p_id-1830.html"),
+    "https://www.vonwobeser.com/index.php/publication?p_id=1830",
+  );
+  assert.equal(
+    normalizeOriginalSourceUrl("https://vonwobeser.com/index.php/publicacion/p_id-1815.html"),
+    "https://www.vonwobeser.com/index.php/publicacion?p_id=1815",
+  );
+  assert.equal(normalizeOriginalSourceUrl("https://example.com/index.php/publication/p_id-1830.html"), "https://example.com/index.php/publication/p_id-1830.html");
+  assert.equal(normalizeOriginalSourceUrl("https://www.vonwobeser.com/index.php/publication?p_id=1830"), "https://www.vonwobeser.com/index.php/publication?p_id=1830");
 });
 
 test("la fecha editorial exige un día real y mantiene su mes en UTC", () => {

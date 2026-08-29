@@ -44,12 +44,16 @@ test("article audit accepts only p_id or a reciprocal official language counterp
 test("article audit classifies valid redirects and broken links without writing data", async () => {
   assert.equal(auditor.classifyLink({ status: 200, error: "", redirected: true, mime: "text/html", signature: "" }, "content-link"), "redireccion-valida");
   assert.equal(auditor.classifyLink({ status: 404, error: "", redirected: false, mime: "", signature: "" }, "content-link"), "roto");
+  assert.equal(auditor.classifyLink({ status: 404, error: "redirected to legacy /index.php/404", redirected: true, redirectedToLegacy404: true, mime: "", signature: "" }, "public-source-cta"), "roto");
   assert.equal(auditor.compareText("Título oficial", "Título oficial"), "match");
   assert.equal(auditor.compareText("Texto de fuente", ""), "project_missing");
 
   const source = await readFile(new URL("../../scripts/audit-articles-2026.mjs", import.meta.url), "utf8");
   assert.match(source, /where lower\(coalesce\(category, ''\)\) = 'articles'/);
   assert.match(source, /--apply no está permitido/);
+  assert.match(source, /FETCH_CACHE_VERSION = "2026-08-29-direct-source-route-v2"/);
+  assert.match(source, /redirectedToLegacy404/);
+  assert.doesNotMatch(source, /existing: isOfficialSource && sourcePid/);
   assert.doesNotMatch(source, /\b(update|insert|delete)\s+news\b/i);
 });
 
@@ -84,9 +88,10 @@ test("article audit verifies the public CTA and records bare visible URLs", () =
   assert.ok(document.findings.includes("PROJECT_VISIBLE_RAW_URL"));
 });
 
-test("article source normalization is limited to the two approved legacy records", async () => {
-  const [migration, runner, routes, authorAudit] = await Promise.all([
+test("article source normalizations are limited to their approved historical records", async () => {
+  const [migration, routeMigration, runner, routes, authorAudit] = await Promise.all([
     readFile(new URL("../../migrations/20260828_0006_normalize_article_source_links.mjs", import.meta.url), "utf8"),
+    readFile(new URL("../../migrations/20260829_0001_normalize_legacy_article_source_routes.mjs", import.meta.url), "utf8"),
     readFile(new URL("../../scripts/run-migrations.mjs", import.meta.url), "utf8"),
     readFile(new URL("../routes/adminNewsRoutes.ts", import.meta.url), "utf8"),
     readFile(new URL("../../scripts/audit-publication-author-relations-2026.ts", import.meta.url), "utf8"),
@@ -95,9 +100,42 @@ test("article source normalization is limited to the two approved legacy records
   assert.match(migration, /legacyId: "1700"/);
   assert.match(migration, /EXPANSION_SOURCE_URL/);
   assert.doesNotMatch(migration, /\b(?:INSERT|DELETE)\s+INTO\s+news\b/i);
+  assert.match(routeMigration, /LEGACY_ARTICLE_SOURCE_ROUTE_FIXES/);
+  assert.match(routeMigration, /Expected \$\{LEGACY_ARTICLE_SOURCE_ROUTE_FIXES\.length\} legacy Article source rows/);
+  assert.match(routeMigration, /refusing to overwrite it/);
+  assert.doesNotMatch(routeMigration, /\b(?:INSERT|DELETE)\s+INTO\s+news\b/i);
   assert.match(runner, /20260828_0006_normalize_article_source_links\.mjs/);
+  assert.match(runner, /20260829_0001_normalize_legacy_article_source_routes\.mjs/);
+  assert.match(routes, /normalizeOriginalSourceUrl/);
   assert.match(routes, /findIntroducedUnlinkedArticleUrls/);
   assert.match(routes, /Published Articles must use Fuente original/);
   assert.match(authorAudit, /articles:\s*\{/);
   assert.match(authorAudit, /publishedWithoutVerifiedAuthors: articlesWithoutVerifiedAuthors/);
+});
+
+test("la migración de rutas históricas cambia sólo las dieciséis fuentes exactas y es idempotente", async () => {
+  const { default: normalizeLegacyArticleSourceRoutes, LEGACY_ARTICLE_SOURCE_ROUTE_FIXES } = await import("../../migrations/20260829_0001_normalize_legacy_article_source_routes.mjs");
+  const rows = LEGACY_ARTICLE_SOURCE_ROUTE_FIXES.map((entry, index) => ({
+    id: `article-${index}`,
+    legacy_id: entry.legacyId,
+    category: "articles",
+    source_url: entry.oldUrl,
+  }));
+  let updates = 0;
+  const client = {
+    query: async (statement: string, params?: string[]) => {
+      if (statement.includes("SELECT id, legacy_id")) return { rowCount: rows.length, rows };
+      const [sourceUrl, id, legacyId, oldUrl] = params!;
+      const row = rows.find((item) => item.id === id && item.legacy_id === legacyId && item.source_url === oldUrl);
+      if (!row) return { rowCount: 0, rows: [] };
+      row.source_url = sourceUrl;
+      updates += 1;
+      return { rowCount: 1, rows: [{ legacy_id: legacyId, source_url: sourceUrl }] };
+    },
+  };
+  await normalizeLegacyArticleSourceRoutes(client);
+  assert.equal(updates, 16);
+  assert.deepEqual(rows.map((row) => row.source_url), LEGACY_ARTICLE_SOURCE_ROUTE_FIXES.map((entry) => entry.sourceUrl));
+  await normalizeLegacyArticleSourceRoutes(client);
+  assert.equal(updates, 16);
 });
