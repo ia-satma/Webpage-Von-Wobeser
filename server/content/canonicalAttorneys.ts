@@ -20,6 +20,14 @@ const ATTORNEY_SLUG_OVERRIDES: Record<string, string> = {
   "333": "alejandro-torres-333",
 };
 
+// The versioned legacy mirror preserves the spelling supplied by the former
+// website. These narrowly scoped editorial corrections are applied *after*
+// verifying the immutable mirror digest, so a fresh installation receives the
+// approved public spelling without altering the historical source files.
+const ATTORNEY_NAME_CORRECTIONS: Readonly<Record<string, string>> = Object.freeze({
+  "452": "Alejandro Ávila",
+});
+
 // This is deliberately a single digest for the complete checked-in bilingual
 // corpus. It prevents a silent content change in any of the 132 snapshots.
 export const CANONICAL_ATTORNEYS_SNAPSHOT_SHA256 = "99e9e2790b61428fe22517758b754a308275cff6c79431c291907fc789e3aa7d";
@@ -137,6 +145,15 @@ const mirrorOnlyAssociateNames = new Set(MIRROR_ONLY_ASSOCIATE_NAMES.map(normali
 
 function slugify(value: string) {
   return normalizeKey(value).replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+}
+
+function canonicalAttorneyName(legacyId: string, historicalName: string) {
+  const correctedName = ATTORNEY_NAME_CORRECTIONS[legacyId];
+  if (!correctedName) return historicalName;
+  if (normalizeKey(correctedName) !== normalizeKey(historicalName)) {
+    throw new Error(`Unexpected historical name for curated attorney ${legacyId}: ${historicalName}`);
+  }
+  return correctedName;
 }
 
 function localizedSpanishTitle(legacyId: string, historicalTitle: string): string {
@@ -300,7 +317,8 @@ export function loadCanonicalAttorneyContent(mirrorDir = getMirrorDir()): Canoni
     const es = readSnapshotProfile(path.join(mirrorDir, "index.php", "abogado", `l-${legacyId}.html`));
     const en = readSnapshotProfile(path.join(mirrorDir, "index.php", "lawyer", `l-${legacyId}.html`));
     if (normalizeKey(es.name) !== normalizeKey(en.name)) throw new Error(`Name mismatch in attorney ${legacyId}`);
-    const baseSlug = ATTORNEY_SLUG_OVERRIDES[legacyId] || slugify(es.name);
+    const name = canonicalAttorneyName(legacyId, es.name);
+    const baseSlug = ATTORNEY_SLUG_OVERRIDES[legacyId] || slugify(name);
     // The official directory contains two distinct Alejandro Torres profiles.
     // A clean installation needs a deterministic unique slug; the migration
     // never changes the existing production slug for either record.
@@ -308,7 +326,7 @@ export function loadCanonicalAttorneyContent(mirrorDir = getMirrorDir()): Canoni
     usedSlugs.add(slug);
     return {
       legacyId,
-      name: es.name,
+      name,
       slug,
       title: en.role,
       titleEs: localizedSpanishTitle(legacyId, es.role),

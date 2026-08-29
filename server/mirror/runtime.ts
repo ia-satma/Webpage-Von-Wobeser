@@ -52,6 +52,7 @@ import { isMigrationReadOnlyEnabled } from "../database/maintenance";
 import { normalizeVideoSource } from "@shared/videoSource";
 import { getLocalizedAttorneyTitle } from "@shared/attorneyTitles";
 import { getAttorneyPublicName, getAttorneySearchName } from "@shared/attorneyName";
+import { comparePublicAttorneyDirectoryOrder } from "@shared/attorneyOrder";
 import { getEditorialTypography, getEditorialTypographyForEntities } from "../editorialTypography";
 import { getNavigationAvailability } from "./navigationConfiguration";
 import { buildSearchableEditorialPages } from "./searchEditorialPages";
@@ -430,7 +431,7 @@ export async function createMirrorRuntime() {
     const all = await storage.getTeamMembers();
     const attorneys = all
       .filter((m: any) => m.title === cat.title && m.published !== false)
-      .sort((a: any, b: any) => (a.order ?? 0) - (b.order ?? 0) || a.name.localeCompare(b.name));
+      .sort(comparePublicAttorneyDirectoryOrder);
 
     const practiceGroupsRaw = await storage.getPracticeGroups();
     const practiceGroups = practiceGroupsRaw
@@ -490,7 +491,7 @@ export async function createMirrorRuntime() {
     );
     const attorneys: AttorneyDirectoryItem[] = members
       .filter((member) => member.published !== false && roleByTitle.has(member.title))
-      .sort((a, b) => (a.order ?? 0) - (b.order ?? 0) || a.name.localeCompare(b.name, lang === "es" ? "es" : "en", { sensitivity: "base" }))
+      .sort(comparePublicAttorneyDirectoryOrder)
       .map((member) => {
         const role = roleByTitle.get(member.title)!;
         return {
@@ -825,7 +826,7 @@ export async function createMirrorRuntime() {
         PAGE_KEYS[which],
         { path: seo.path[lang], title: seo.title[lang], alternatePaths: seo.path },
         which === "careers"
-          ? ($: cheerio.CheerioAPI) => applyCareersFormFix($, lang)
+          ? ($: cheerio.CheerioAPI) => applyCareersFormFix($, lang, config)
           : which === "contact"
             ? ($: cheerio.CheerioAPI) => applyContactForm($, lang, config, contactPractices)
             : which === "publications"

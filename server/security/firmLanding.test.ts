@@ -7,6 +7,7 @@ process.env.DATABASE_URL ||= "postgresql://test:test@127.0.0.1:5432/test";
 
 const { renderFirmLanding } = await import("../mirror/renderFirmLanding");
 const { renderHome } = await import("../mirror/renderHome");
+const { renderPage } = await import("../mirror/renderPage");
 const { applyCareersFormFix } = await import("../mirror/formsFix");
 const { load } = await import("cheerio");
 
@@ -151,6 +152,7 @@ test("Carrera y Pasantes comparten la superficie de formulario de Contacto sin c
       <label class="careers__form--label">Apellido<input class="careers__form--input" name="l_name"></label>
       <label class="careers__form--label">Correo<input class="careers__form--input" name="mail" type="email"></label>
       <label class="careers__form--label">Teléfono<input class="careers__form--input" name="tel"></label>
+      <label class="careers__form--label">Domicilio<input class="careers__form--input" name="comment"></label>
       <label class="careers__form--button"><span>Adjuntar CV</span><input name="uploaded_file" type="file"></label>
       <label class="careers__form--label checkbox"><input class="careers__form--checkbox" name="accept" type="checkbox"><span>Aviso de privacidad</span></label>
       <input id="filename" style="border:0">
@@ -166,7 +168,9 @@ test("Carrera y Pasantes comparten la superficie de formulario de Contacto sin c
   assert.equal(page("[name='l_name']").attr("autocomplete"), "family-name");
   assert.equal(page("[name='mail']").attr("autocomplete"), "email");
   assert.equal(page("[name='accept']").attr("required"), "required");
+  assert.equal(page("[name='comment']").length, 0);
   assert.equal(page(".vw-careers-form__upload").length, 1);
+  assert.equal(page(".vw-careers-form__upload span").first().text(), "Adjunta tu hoja de vida");
   assert.equal(page(".vw-careers-form__privacy").length, 1);
   assert.equal(page(".vw-careers-form__filename").attr("placeholder"), "Ningún archivo seleccionado");
   assert.equal(page(".vw-careers-form__help").length, 1);
@@ -177,6 +181,25 @@ test("Carrera y Pasantes comparten la superficie de formulario de Contacto sin c
   assert.match(page.html(), /@media\(max-width:980px\)/);
   assert.match(page.html(), /fetch\('\/api\/career-applications'/);
   assert.match(page.html(), /fileInput\.addEventListener\('change'/);
+});
+
+test("Carrera conserva el copy aprobado de mejor talento desde Administración", () => {
+  const page = renderPage(`<!doctype html><html><head></head><body>
+    <section class="page careers"><div class="page__content">
+      <div class="page__content--intro"><p>Introducción heredada.</p></div>
+      <div class="page__content--body"><p>Contenido heredado.</p></div>
+    </div></section>
+  </body></html>`, {
+    page_careers_body: {
+      value: "<p>We are a firm in constant growth.</p><p>Through our career plan, which consists of creating, training and retaining the best talent.</p>",
+      valueEs: "<p>Somos un despacho en constante crecimiento.</p><p>A través de nuestro plan de carrera, el cual consiste en crear, formar y retener el mejor talento.</p>",
+      type: "text",
+    },
+  }, "es", { body: "page_careers_body" });
+
+  assert.match(page, /retener el mejor talento/);
+  assert.doesNotMatch(page, /abogados talentosos/);
+  assert.match(page, /Somos un despacho en constante crecimiento/);
 });
 
 test("el llamado final de Cultura conserva jerarquía móvil sin separar el formulario", () => {
@@ -195,6 +218,7 @@ test("el llamado final de Cultura conserva jerarquía móvil sin separar el form
 
   applyCareersFormFix(culture, "es");
 
+  assert.equal(culture(".vw-careers-header h1").text(), "Tú carrera en Von Wobeser y Sierra");
   assert.equal(culture(".vw-careers-copy__cta").text(), "Si estás interesado en formar parte de nuestro equipo, contáctanos.");
   assert.equal(culture("#careersForm").hasClass("vw-careers-form--culture"), true);
   assert.match(culture.html(), /\.vw-careers-copy__cta\{margin:26px 0 0!important;border:0!important;color:#616161;font:400 16px\/1\.68 var\(--vw-font-body\)/);

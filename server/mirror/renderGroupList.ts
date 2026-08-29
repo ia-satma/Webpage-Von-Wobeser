@@ -64,13 +64,13 @@ export function renderGroupList(
         defaults: lang === "es"
           ? {
               eyebrow: "Prácticas",
-              title: "Nuestras prácticas",
-              description: "Conoce las áreas en las que ofrecemos asesoría legal especializada.",
+              title: "Áreas de Práctica",
+              description: "",
             }
           : {
               eyebrow: "Practices",
-              title: "Our practices",
-              description: "Explore the areas in which we provide specialized legal advice.",
+              title: "Practice Areas",
+              description: "",
             },
       }
     : linkPrefix === "/industry/"
@@ -108,11 +108,14 @@ export function renderGroupList(
     // La plantilla capturada contiene el título rotado dentro de la columna
     // de enlaces. Se elimina antes de insertar un único H1 centrado.
     $wrap.find(".capabilities__meta .page__ttl").first().remove();
+    const lede = heading.description
+      ? `<div class="${className}__lede"><p>${esc(heading.description)}</p></div>`
+      : "";
     $wrap.prepend(`
       <header class="${className}__header">
         <p class="${className}__eyebrow">${esc(heading.eyebrow)}</p>
         <h1 class="${className}__title">${esc(heading.title)}</h1>
-        <div class="${className}__lede"><p>${esc(heading.description)}</p></div>
+        ${lede}
       </header>
     `);
     $wrap.find(`.${className}__title`).attr(

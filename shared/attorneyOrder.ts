@@ -1,3 +1,5 @@
+import { getAttorneyFirstSurnameSortKey, getAttorneyFullName, type AttorneyNameSource } from "./attorneyName";
+
 /**
  * Public directory categories and their editorial ordering contract.
  *
@@ -12,6 +14,47 @@ export const ATTORNEY_ORDER_CATEGORIES = [
 ] as const;
 
 export type AttorneyOrderCategoryId = (typeof ATTORNEY_ORDER_CATEGORIES)[number]["id"];
+
+export type PublicAttorneyDirectoryOrderMember = AttorneyNameSource & {
+  title?: string | null;
+  order?: number | null;
+  id?: string | null;
+};
+
+const PUBLIC_ATTORNEY_NAME_COLLATOR = new Intl.Collator("es-MX", {
+  sensitivity: "base",
+  ignorePunctuation: true,
+  usage: "sort",
+});
+
+/**
+ * Counsel is the sole public directory category whose order is alphabetical
+ * by first surname. All other categories retain their approved editorial
+ * sequence. Structured surnames are used so a second surname never changes
+ * an attorney's placement.
+ */
+export function comparePublicAttorneyDirectoryOrder(
+  left: PublicAttorneyDirectoryOrderMember,
+  right: PublicAttorneyDirectoryOrderMember,
+): number {
+  if (left.title === "Counsel" && right.title === "Counsel") {
+    const surnameOrder = PUBLIC_ATTORNEY_NAME_COLLATOR.compare(
+      getAttorneyFirstSurnameSortKey(left),
+      getAttorneyFirstSurnameSortKey(right),
+    );
+    if (surnameOrder !== 0) return surnameOrder;
+
+    const nameOrder = PUBLIC_ATTORNEY_NAME_COLLATOR.compare(
+      getAttorneyFullName(left),
+      getAttorneyFullName(right),
+    );
+    if (nameOrder !== 0) return nameOrder;
+  }
+
+  const editorialOrder = Number(left.order ?? 0) - Number(right.order ?? 0);
+  if (editorialOrder !== 0) return editorialOrder;
+  return PUBLIC_ATTORNEY_NAME_COLLATOR.compare(String(left.id ?? left.name ?? ""), String(right.id ?? right.name ?? ""));
+}
 
 export const ATTORNEY_ORDER_CATEGORY_IDS = ATTORNEY_ORDER_CATEGORIES.map((category) => category.id) as [
   AttorneyOrderCategoryId,
@@ -62,7 +105,7 @@ export const MIRROR_ONLY_ASSOCIATE_NAMES = [
   "Paola Hernandez",
   "Raul Quintero",
   "Regina Forte",
-  "Ruben Villegas",
+  "Rubén Villegas",
 ] as const;
 
 /**
@@ -82,7 +125,7 @@ export const CURRENT_ASSOCIATE_ORDER = [
   "Diego Altamirano",
   "Daniel Araujo",
   "Alejandra Arizpe",
-  "Alejandro Avila",
+  "Alejandro Ávila",
   "Alexander Barnes",
   "Juan Francisco Barrera",
   "Julieta Béjar",
@@ -172,7 +215,7 @@ export const CURRENT_ASSOCIATE_ORDER = [
   "Jorge Vázquez",
   "Rocío Vega",
   "María Elisa Vera Madrigal",
-  "Ruben Villegas",
+  "Rubén Villegas",
   "Christopher Wilkerson",
   "Gabriela Zambrano",
   "Bernardo Zatarain",

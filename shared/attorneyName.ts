@@ -35,6 +35,8 @@ const clean = (value: unknown) => String(value ?? "").replace(/\s+/g, " ").trim(
  */
 const CURATED_PARTS: Readonly<Record<string, AttorneyNameParts>> = Object.freeze({
   "pablo saez williams": { givenNames: "Pablo", firstSurname: "Saez", secondSurname: "Williams" },
+  "alejandro avila": { givenNames: "Alejandro", firstSurname: "Ávila", secondSurname: "" },
+  "ruben villegas": { givenNames: "Rubén", firstSurname: "Villegas", secondSurname: "" },
   "claus von wobeser": { givenNames: "Claus", firstSurname: "von Wobeser", secondSurname: "" },
   "margarita beatriz luna ramos": { givenNames: "Margarita Beatriz", firstSurname: "Luna", secondSurname: "Ramos" },
   "guillermo i. ortiz mayagoitia": { givenNames: "Guillermo I.", firstSurname: "Ortiz", secondSurname: "Mayagoitia" },

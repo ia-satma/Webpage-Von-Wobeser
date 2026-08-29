@@ -110,6 +110,36 @@ const verifiedDataMigrationPolicies = new Map([
   ["20260829_0006_backfill_article_author_relationship_roles.mjs", {
     allowedCountChanges: new Set(),
   }],
+  // Corrección ortográfica puntual de un perfil existente. Conserva todas las
+  // relaciones, slug y visibilidad; sólo normaliza nombre y apellidos.
+  ["20260829_0007_correct_alejandro_avila_accent.mjs", {
+    allowedCountChanges: new Set(),
+  }],
+  // Corrección ortográfica puntual equivalente, sin afectar identidad ni
+  // relaciones del perfil existente.
+  ["20260829_0008_correct_ruben_villegas_accent.mjs", {
+    allowedCountChanges: new Set(),
+  }],
+  // Mantiene el perfil y sus vínculos para Administración, pero despublica
+  // únicamente el perfil solicitado del directorio público.
+  ["20260829_0009_unpublish_eugenio_chinchillas.mjs", {
+    allowedCountChanges: new Set(),
+  }],
+  // Actualiza únicamente los valores editoriales heredados de la cabecera de
+  // Áreas de Práctica; la clave sigue disponible para edición administrativa.
+  ["20260829_0010_rename_practice_listing_heading.mjs", {
+    allowedCountChanges: new Set(),
+  }],
+  // Añade el título de Carrera como copy administrable con el texto editorial
+  // aprobado; no modifica introducción, cuerpo ni postulaciones.
+  ["20260829_0011_add_careers_page_title.mjs", {
+    allowedCountChanges: new Set(),
+  }],
+  // Convierte el cuerpo heredado de Carrera en copy administrable con el
+  // ajuste aprobado, sin sobrescribir una edición existente del panel.
+  ["20260829_0012_update_careers_talent_copy.mjs", {
+    allowedCountChanges: new Set(),
+  }],
 ]);
 
 // Algunos entornos de publicación se crearon sin una publicación histórica

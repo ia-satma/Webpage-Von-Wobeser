@@ -24,6 +24,7 @@ function careersFormTemplate(): string {
     <label class="careers__form--label"><input name="l_name"></label>
     <label class="careers__form--label"><input name="mail"></label>
     <label class="careers__form--label"><input name="tel"></label>
+    <label class="careers__form--label">Dirección<input name="comment"></label>
     <label class="careers__form--button"><span>Adjuntar</span><input name="uploaded_file" type="file"></label>
     <label class="careers__form--label checkbox"><input name="accept" type="checkbox"><span>Aviso de privacidad anterior</span></label>
     <input id="filename"><label class="careers__form--label submit"><input type="submit"></label><p>Ayuda</p><img class="loader">
@@ -69,9 +70,9 @@ test("la página pública de Candidaturas es independiente, editable y conserva 
 });
 
 test("todos los formularios de Talento enlazan el aviso exclusivo, sin alterar su endpoint", () => {
-  for (const [lang, linkText] of [
-    ["es", "Aviso de Privacidad"],
-    ["en", "Privacy Notice"],
+  for (const [lang, linkText, uploadText] of [
+    ["es", "Aviso de Privacidad", "Adjunta tu hoja de vida"],
+    ["en", "Privacy Notice", "Attach your résumé"],
   ] as const) {
     const $ = cheerio.load(careersFormTemplate());
     applyCareersFormFix($, lang);
@@ -85,6 +86,21 @@ test("todos los formularios de Talento enlazan el aviso exclusivo, sin alterar s
     assert.equal($link.attr("hreflang"), "es");
     assert.equal($link.text(), linkText);
     assert.equal($form.find('[name="accept"]').attr("required"), "required");
+    assert.equal($form.find('[name="comment"]').length, 0);
+    assert.equal($form.find(".vw-careers-form__upload span").first().text(), uploadText);
+  }
+});
+
+test("las cuatro plantillas de Talento no conservan Dirección y usan la etiqueta de carga vigente", () => {
+  for (const [path, uploadText] of [
+    ["../../frontend-mirror/index.php/bolsa-de-trabajo/index.html", "Adjunta tu hoja de vida"],
+    ["../../frontend-mirror/index.php/bolsa-de-trabajo/pasantes/index.html", "Adjunta tu hoja de vida"],
+    ["../../frontend-mirror/index.php/careers/index.html", "Attach your résumé"],
+    ["../../frontend-mirror/index.php/careers/interns/index.html", "Attach your résumé"],
+  ] as const) {
+    const html = readFileSync(new URL(path, import.meta.url), "utf8");
+    assert.doesNotMatch(html, /name="comment"/);
+    assert.match(html, new RegExp(`<span>${uploadText}</span>`));
   }
 });
 

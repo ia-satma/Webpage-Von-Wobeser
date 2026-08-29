@@ -29,7 +29,11 @@ function safePublicHref(value: string, fallback: string): string {
  * Validate ya presente en el HTML (que solo hacía form.submit()), sin depender de que
  * jQuery/jQuery Validate estén cargados ni de su orden de inicialización.
  */
-export function applyCareersFormFix($: cheerio.CheerioAPI, lang: "es" | "en" = "en"): void {
+export function applyCareersFormFix(
+  $: cheerio.CheerioAPI,
+  lang: "es" | "en" = "en",
+  config: ConfigMap = {},
+): void {
   // La abreviatura de marca en la etiqueta editorial se mantiene breve y es
   // independiente de los nombres largos usados en copys legales o SEO.
   const $legacyLabel = $(".careers__meta .page__ttl--holder > span").first();
@@ -63,8 +67,8 @@ export function applyCareersFormFix($: cheerio.CheerioAPI, lang: "es" | "en" = "
         ? { eyebrow: "Talento", title: "Pasantes", fallback: "Conoce nuestro programa de pasantes." }
         : { eyebrow: "Talent", title: "Legal interns", fallback: "Learn about our legal interns program." })
       : (lang === "es"
-        ? { eyebrow: "Talento", title: "Carrera en VW", fallback: "Conoce las oportunidades para formar parte de nuestro equipo." }
-        : { eyebrow: "Talent", title: "Career at VW", fallback: "Learn about opportunities to join our team." });
+        ? { eyebrow: "Talento", title: cfg(config, "page_careers_title", lang) || "Tú carrera en Von Wobeser y Sierra", fallback: "Conoce las oportunidades para formar parte de nuestro equipo." }
+        : { eyebrow: "Talent", title: cfg(config, "page_careers_title", lang) || "Your career at Von Wobeser y Sierra", fallback: "Learn about opportunities to join our team." });
     const $content = $meta.children(".careers__content").first();
     const $lead = $content.children(".page__content--intro").first();
     const $header = $("<header>").addClass("vw-careers-header").attr("aria-labelledby", "vw-careers-page-title");
@@ -101,22 +105,24 @@ export function applyCareersFormFix($: cheerio.CheerioAPI, lang: "es" | "en" = "
 
   const copy = lang === "es"
     ? {
-        required: "Completa nombre, apellido, correo, adjunta tu CV y acepta el Aviso de Privacidad para Candidaturas.",
+        required: "Completa nombre, apellido, correo, adjunta tu hoja de vida y acepta el Aviso de Privacidad para Candidaturas.",
         success: "Gracias, tu solicitud fue enviada correctamente.",
         error: "Ocurrió un error, intenta de nuevo.",
         network: "Ocurrió un error de red, intenta de nuevo.",
         fileEmpty: "Ningún archivo seleccionado",
+        upload: "Adjunta tu hoja de vida",
         privacyIntro: "He leído y acepto el",
         // El destino es el aviso específico de candidaturas, pero dentro del
         // checkbox usamos la etiqueta legal breve para no romper la lectura.
         privacyLink: "Aviso de Privacidad",
       }
     : {
-        required: "Complete your name, last name and email, attach your CV, and accept the Privacy Notice for Candidates.",
+        required: "Complete your name, last name and email, attach your résumé, and accept the Privacy Notice for Candidates.",
         success: "Thank you, your application was sent successfully.",
         error: "Something went wrong. Please try again.",
         network: "A network error occurred. Please try again.",
         fileEmpty: "No file selected",
+        upload: "Attach your résumé",
         privacyIntro: "I have read and accept the",
         privacyLink: "Privacy Notice",
       };
@@ -134,7 +140,21 @@ export function applyCareersFormFix($: cheerio.CheerioAPI, lang: "es" | "en" = "
   $form.find('[name="mail"]').attr({ autocomplete: "email", required: "" });
   $form.find('[name="tel"]').attr({ autocomplete: "tel" });
   $form.find('[name="accept"]').attr("required", "");
-  $form.find(".careers__form--button").addClass("vw-careers-form__upload");
+  // Dirección ya no se solicita en los formularios de Talento. Conservamos
+  // las direcciones de solicitudes históricas en Administración, pero el
+  // campo se retira completamente antes de que el formulario se renderice o
+  // pueda enviarse.
+  $form.find('[name="comment"]').each((_, field) => {
+    const $field = $(field);
+    const $fieldLabel = $field.closest(".careers__form--label, label");
+    if ($fieldLabel.length) $fieldLabel.remove();
+    else $field.remove();
+  });
+  $form.find(".careers__form--button")
+    .addClass("vw-careers-form__upload")
+    .find("span")
+    .first()
+    .text(copy.upload);
   const $privacyLabel = $form.find(".careers__form--label.checkbox").addClass("vw-careers-form__privacy");
   const $privacyText = $privacyLabel.find("span").first();
   if ($privacyText.length) {

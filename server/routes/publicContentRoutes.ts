@@ -449,7 +449,7 @@ export function registerPublicContentRoutes(app: Express): void {
         return res.status(400).json({ error: "Revisa los campos obligatorios y el Aviso de Privacidad." });
       }
       if (!req.file) {
-        return res.status(400).json({ error: "Adjunta tu CV (PDF, DOC o DOCX)." });
+        return res.status(400).json({ error: "Adjunta tu hoja de vida (PDF, DOC o DOCX)." });
       }
       if (!await validateCvFile(req.file.path, req.file.mimetype)) {
         await removeUploadQuietly(req.file.path);

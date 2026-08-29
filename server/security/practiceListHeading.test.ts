@@ -21,22 +21,22 @@ const meta = {
   crumbLabel: "Prácticas",
 };
 
-test("el listado de Prácticas usa la cabecera editorial bilingüe y no conserva el título lateral heredado", () => {
+test("el listado de Áreas de Práctica usa la cabecera editorial aprobada y no conserva subtítulo", () => {
   const es = cheerio.load(renderGroupList(template, items, "/practice/", "es", meta, {
     page_practices_eyebrow: { value: "Practices", valueEs: "Prácticas", type: "text" },
-    page_practices_title: { value: "Our practices", valueEs: "Nuestras prácticas", type: "text" },
-    page_practices_description: { value: "Explore", valueEs: "Conoce nuestras áreas.", type: "text" },
+    page_practices_title: { value: "Practice Areas", valueEs: "Áreas de Práctica", type: "text" },
+    page_practices_description: { value: "", valueEs: "", type: "text" },
   }));
   const en = cheerio.load(renderGroupList(template, items, "/practice/", "en", { ...meta, path: "/capabilities/practices" }));
 
   assert.equal(es(".vw-practice-list-page").length, 1);
   assert.equal(es(".vw-practice-list-page__eyebrow").text(), "Prácticas");
-  assert.equal(es("h1.vw-practice-list-page__title").text(), "Nuestras prácticas");
-  assert.equal(es(".vw-practice-list-page__lede").text(), "Conoce nuestras áreas.");
+  assert.equal(es("h1.vw-practice-list-page__title").text(), "Áreas de Práctica");
+  assert.equal(es(".vw-practice-list-page__lede").length, 0);
   assert.equal(es(".capabilities__meta .page__ttl").length, 0);
   assert.equal(en(".vw-practice-list-page__eyebrow").text(), "Practices");
-  assert.equal(en("h1.vw-practice-list-page__title").text(), "Our practices");
-  assert.match(en(".vw-practice-list-page__title").text(), /^[A-Z][^A-Z]*$/);
+  assert.equal(en("h1.vw-practice-list-page__title").text(), "Practice Areas");
+  assert.equal(en(".vw-practice-list-page__lede").length, 0);
 });
 
 test("el listado de Industrias usa la misma jerarquía editorial y conserva sus enlaces", () => {

@@ -140,7 +140,7 @@ export function registerMirrorInstitutionalRoutes(app: Express, runtime: MirrorR
         applyInternsContent($, config, "es");
         // La cabecera toma la introducción ya resuelta desde Administración;
         // por eso este paso sigue a la inyección de contenido bilingüe.
-        applyCareersFormFix($, "es");
+        applyCareersFormFix($, "es", config);
         applyA11y($, "es"); // estas subpáginas no pasan por applySeo
         return sendPage(res, $.html());
       });
@@ -150,7 +150,7 @@ export function registerMirrorInstitutionalRoutes(app: Express, runtime: MirrorR
       const $ = cheerio.load(tpl("index.php/careers/interns/index.html"));
       return getConfigMap().then((config) => {
         applyInternsContent($, config, "en");
-        applyCareersFormFix($, "en");
+        applyCareersFormFix($, "en", config);
         applyA11y($, "en"); // estas subpáginas no pasan por applySeo
         return sendPage(res, $.html());
       });

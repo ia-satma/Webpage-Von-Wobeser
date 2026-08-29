@@ -13,6 +13,7 @@ import type { TeamMember } from "@shared/schema";
 import { getAttorneyPublicName } from "@shared/attorneyName";
 import {
   ATTORNEY_ORDER_CATEGORIES,
+  comparePublicAttorneyDirectoryOrder,
   type AttorneyOrderCategoryId,
 } from "@shared/attorneyOrder";
 import { adminApiRequest, useAdminAuth } from "@/lib/adminAuth";
@@ -44,6 +45,7 @@ export function AttorneyOrderPanel({ language }: { language: string }) {
   const [orderDirty, setOrderDirty] = useState(false);
   const [draggedId, setDraggedId] = useState<string | null>(null);
   const [dragOverId, setDragOverId] = useState<string | null>(null);
+  const isAlphabeticalCategory = category === "counsel";
 
   const copy = isEs
     ? {
@@ -55,6 +57,7 @@ export function AttorneyOrderPanel({ language }: { language: string }) {
         saved: "Orden guardado", savedDescription: "El directorio público ya usa esta secuencia.", saveError: "No se pudo guardar el orden",
         saveErrorDescription: "Tus movimientos siguen visibles para que puedas intentarlo nuevamente.",
         move: "Arrastrar", up: "Subir", down: "Bajar", position: "Posición",
+        alphabetical: "Los Consejeros se muestran automáticamente en orden alfabético por primer apellido. No requieren orden editorial manual.",
       }
     : {
         title: "Editorial order", description: "Public order is managed per category. Hidden profiles retain their position.",
@@ -65,6 +68,7 @@ export function AttorneyOrderPanel({ language }: { language: string }) {
         saved: "Order saved", savedDescription: "The public directory now uses this sequence.", saveError: "Could not save order",
         saveErrorDescription: "Your moves remain visible so you can try again.",
         move: "Drag", up: "Move up", down: "Move down", position: "Position",
+        alphabetical: "Counsel are displayed automatically in alphabetical order by first surname. They do not require manual editorial ordering.",
       };
 
   const orderQuery = useQuery<AttorneyOrderResponse>({
@@ -79,10 +83,12 @@ export function AttorneyOrderPanel({ language }: { language: string }) {
 
   useEffect(() => {
     if (!orderDirty && orderQuery.data) {
-      setOrderedMembers(orderQuery.data.members);
+      setOrderedMembers(isAlphabeticalCategory
+        ? [...orderQuery.data.members].sort(comparePublicAttorneyDirectoryOrder)
+        : orderQuery.data.members);
       setOrderVersion(orderQuery.data.version);
     }
-  }, [orderDirty, orderQuery.data]);
+  }, [isAlphabeticalCategory, orderDirty, orderQuery.data]);
 
   const move = (id: string, direction: -1 | 1) => {
     setOrderedMembers((current) => {
@@ -176,9 +182,11 @@ export function AttorneyOrderPanel({ language }: { language: string }) {
                 <CardDescription>{copy.description}</CardDescription>
               </div>
             </div>
-            <p className="mt-4 max-w-2xl text-sm leading-6 text-muted-foreground">{copy.instruction}</p>
+            <p className="mt-4 max-w-2xl text-sm leading-6 text-muted-foreground">
+              {isAlphabeticalCategory ? copy.alphabetical : copy.instruction}
+            </p>
           </div>
-          <div className="grid w-full gap-2 sm:grid-cols-[minmax(12rem,1fr)_auto_auto] lg:w-auto">
+          <div className={`grid w-full gap-2 ${isAlphabeticalCategory ? "sm:grid-cols-[minmax(12rem,1fr)]" : "sm:grid-cols-[minmax(12rem,1fr)_auto_auto]"} lg:w-auto`}>
             <div>
               <label className="mb-1.5 block text-xs font-medium text-[#4B4B4B]" htmlFor="attorney-order-category">{copy.category}</label>
               <Select
@@ -196,12 +204,14 @@ export function AttorneyOrderPanel({ language }: { language: string }) {
                 </SelectContent>
               </Select>
             </div>
-            <Button type="button" variant="outline" className="self-end" onClick={cancel} disabled={!orderDirty || saveMutation.isPending} data-testid="button-cancel-attorney-order">
-              <RotateCcw className="mr-2 size-4" aria-hidden="true" />{copy.cancel}
-            </Button>
-            <Button type="button" className="self-end bg-[#AA1A2E] hover:bg-[#8D1626] active:scale-[0.98]" onClick={() => saveMutation.mutate()} disabled={!orderDirty || saveMutation.isPending} data-testid="button-save-attorney-order">
-              {saveMutation.isPending ? <Loader2 className="mr-2 size-4 animate-spin" aria-hidden="true" /> : <Save className="mr-2 size-4" aria-hidden="true" />}{copy.save}
-            </Button>
+            {!isAlphabeticalCategory && <>
+              <Button type="button" variant="outline" className="self-end" onClick={cancel} disabled={!orderDirty || saveMutation.isPending} data-testid="button-cancel-attorney-order">
+                <RotateCcw className="mr-2 size-4" aria-hidden="true" />{copy.cancel}
+              </Button>
+              <Button type="button" className="self-end bg-[#AA1A2E] hover:bg-[#8D1626] active:scale-[0.98]" onClick={() => saveMutation.mutate()} disabled={!orderDirty || saveMutation.isPending} data-testid="button-save-attorney-order">
+                {saveMutation.isPending ? <Loader2 className="mr-2 size-4 animate-spin" aria-hidden="true" /> : <Save className="mr-2 size-4" aria-hidden="true" />}{copy.save}
+              </Button>
+            </>}
           </div>
         </div>
         {orderDirty && <p className="border-l-2 border-[#AA1A2E] pl-3 text-sm text-[#1D1D1B]" role="status">{copy.pending}</p>}
@@ -236,7 +246,7 @@ export function AttorneyOrderPanel({ language }: { language: string }) {
               >
                 <div className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center">
                   <div className="flex min-w-0 flex-1 items-center gap-3">
-                    <button
+                    {!isAlphabeticalCategory && <button
                       type="button"
                       draggable
                       className="hidden size-9 shrink-0 cursor-grab items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#AA1A2E] active:cursor-grabbing sm:flex"
@@ -253,7 +263,7 @@ export function AttorneyOrderPanel({ language }: { language: string }) {
                       }}
                     >
                       <GripVertical className="size-5" aria-hidden="true" />
-                    </button>
+                    </button>}
                     <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-muted text-xs font-semibold tabular-nums" aria-label={`${copy.position} ${index + 1}`}>{index + 1}</span>
                     <Avatar className="size-10 shrink-0 rounded-md">
                       <AvatarImage src={member.imageUrl || undefined} alt="" />
@@ -267,14 +277,14 @@ export function AttorneyOrderPanel({ language }: { language: string }) {
                       {member.published === false ? copy.hidden : copy.visible}
                     </Badge>
                   </div>
-                  <div className="flex items-center gap-2 self-end sm:self-auto">
+                  {!isAlphabeticalCategory && <div className="flex items-center gap-2 self-end sm:self-auto">
                     <Button type="button" variant="outline" size="sm" onClick={() => move(member.id, -1)} disabled={index === 0 || saveMutation.isPending} aria-label={`${copy.up} ${publicName}`} data-testid={`button-attorney-order-up-${member.id}`}>
                       <ArrowUp className="mr-1 size-4" aria-hidden="true" />{copy.up}
                     </Button>
                     <Button type="button" variant="outline" size="sm" onClick={() => move(member.id, 1)} disabled={index === orderedMembers.length - 1 || saveMutation.isPending} aria-label={`${copy.down} ${publicName}`} data-testid={`button-attorney-order-down-${member.id}`}>
                       <ArrowDown className="mr-1 size-4" aria-hidden="true" />{copy.down}
                     </Button>
-                  </div>
+                  </div>}
                 </div>
               </li>;
             })}

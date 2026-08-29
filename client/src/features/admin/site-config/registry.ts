@@ -421,8 +421,8 @@ export const PAGES: Record<string, SiteConfigPageDefinition> = {
         title: "Listado de Prácticas",
         fields: [
           { key: "page_practices_eyebrow", label: "Prácticas — etiqueta editorial", bilingual: true, help: "Se muestra en Inter, como la etiqueta de Contacto." },
-          { key: "page_practices_title", label: "Prácticas — título principal", bilingual: true, help: "Se muestra en Gelasio y con capitalización normal, no en mayúsculas sostenidas." },
-          { key: "page_practices_description", label: "Prácticas — introducción", bilingual: true, multiline: true },
+          { key: "page_practices_title", label: "Áreas de Práctica — título principal", bilingual: true, help: "Se muestra en Gelasio y con capitalización normal, no en mayúsculas sostenidas." },
+          { key: "page_practices_description", label: "Áreas de Práctica — subtítulo opcional", bilingual: true, multiline: true, help: "Déjalo vacío para no mostrar un subtítulo en el listado público." },
         ],
       },
       {
@@ -496,12 +496,13 @@ export const PAGES: Record<string, SiteConfigPageDefinition> = {
     ],
   },
   carrera: {
-    title: "Carrera en VWyS",
+    title: "Carrera",
     description: "Si lo dejas vacío, se muestra el texto original de la página.",
     icon: GraduationCap,
     groups: [
       {
         fields: [
+          { key: "page_careers_title", label: "Título principal", bilingual: true, help: "Se muestra como el H1 de la página pública de Carrera." },
           { key: "page_careers_intro", label: "Introducción", bilingual: true, multiline: true },
           { key: "page_careers_body", label: "Cuerpo", bilingual: true, multiline: true },
         ],
