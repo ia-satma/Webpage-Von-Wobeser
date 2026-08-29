@@ -14,6 +14,10 @@ import {
 import { applyCareersFormFix } from "../mirror/formsFix";
 import { renderRichText } from "../mirror/sanitize";
 
+const { default: updateCareersTalentCopy } = await import(
+  new URL("../../migrations/20260829_0012_update_careers_talent_copy.mjs", import.meta.url).href,
+);
+
 const noticeTemplate = `<!doctype html><html lang="es"><head><title>Anterior</title></head><body>
   <section class="page"><div class="page__ttl--holder"><span>Anterior</span></div><div class="page__content--body"><p>Texto anterior.</p></div></section>
 </body></html>`;
@@ -102,6 +106,32 @@ test("las cuatro plantillas de Talento no conservan Dirección y usan la etiquet
     assert.doesNotMatch(html, /name="comment"/);
     assert.match(html, new RegExp(`<span>${uploadText}</span>`));
   }
+});
+
+test("la migración de Carrera corrige sólo la frase heredada y preserva el resto del copy", async () => {
+  const saved = {
+    key: "page_careers_body",
+    value: "<p>English copy kept intact; retaining talented lawyers helps the firm.</p>",
+    value_es: "<p>Texto español intacto; crear, formar y retener abogados talentosos.</p>",
+  };
+  const client = {
+    query: async (sql: string, values?: string[]) => {
+      if (sql.includes("SELECT key, value, value_es")) return { rowCount: 1, rows: [{ ...saved }] };
+      if (sql.includes("UPDATE site_config")) {
+        saved.value = values?.[0] ?? saved.value;
+        saved.value_es = values?.[1] ?? saved.value_es;
+        return { rowCount: 1, rows: [{ ...saved }] };
+      }
+      throw new Error(`Unexpected query: ${sql}`);
+    },
+  };
+
+  await updateCareersTalentCopy(client);
+
+  assert.match(saved.value, /English copy kept intact/);
+  assert.match(saved.value, /retaining the best talent/);
+  assert.match(saved.value_es, /Texto español intacto/);
+  assert.match(saved.value_es, /retener el mejor talento/);
 });
 
 test("Administración registra, edita de forma segura y no traduce automáticamente el aviso de Candidaturas", () => {

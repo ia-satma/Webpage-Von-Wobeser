@@ -1,9 +1,13 @@
 export const CAREERS_BODY_EN = "<p>We are a firm in constant growth, with a culture and environment that promotes your potential, consolidating new skills and values.</p><p>Through our career plan, which consists of creating, training and retaining the best talent, we offer professional and personal development which is optimal.</p>";
 export const CAREERS_BODY_ES = "<p>Somos un despacho en constante crecimiento, con una cultura y ambiente que promuevan tu potencial, consolidando nuevas habilidades y valores.</p><p>A través de nuestro plan de carrera, el cual consiste en crear, formar y retener el mejor talento, te ofrecemos un desarrollo profesional y personal óptimo.</p>";
 
+const LEGACY_TALENT_PHRASE_EN = "retaining talented lawyers";
+const LEGACY_TALENT_PHRASE_ES = "retener abogados talentosos";
+
 /**
- * Promotes the inherited Career body into the editable configuration only
- * while it is blank. Existing administrator copy is intentionally preserved.
+ * Replaces only the approved inherited phrase in the editable Career copy.
+ * Any other administrator change remains protected: we never replace a whole
+ * body just because it is non-empty.
  */
 export default async function updateCareersTalentCopy(client) {
   const located = await client.query(
@@ -21,9 +25,21 @@ export default async function updateCareersTalentCopy(client) {
     console.log("[migrations] Careers body already contains approved talent copy");
     return;
   }
-  if (String(current.value || "").trim() || String(current.value_es || "").trim()) {
+
+  const currentEn = String(current.value || "");
+  const currentEs = String(current.value_es || "");
+  const hasLegacyEn = currentEn.includes(LEGACY_TALENT_PHRASE_EN);
+  const hasLegacyEs = currentEs.includes(LEGACY_TALENT_PHRASE_ES);
+  if (!hasLegacyEn && !hasLegacyEs) {
     throw new Error("Refusing to overwrite custom Careers body copy");
   }
+
+  const nextEn = hasLegacyEn
+    ? currentEn.replace(LEGACY_TALENT_PHRASE_EN, "retaining the best talent")
+    : currentEn;
+  const nextEs = hasLegacyEs
+    ? currentEs.replace(LEGACY_TALENT_PHRASE_ES, "retener el mejor talento")
+    : currentEs;
 
   const updated = await client.query(
     `UPDATE site_config
@@ -32,14 +48,14 @@ export default async function updateCareersTalentCopy(client) {
             updated_at = now()
       WHERE key = 'page_careers_body'
       RETURNING key, value, value_es`,
-    [CAREERS_BODY_EN, CAREERS_BODY_ES],
+    [nextEn, nextEs],
   );
   const result = updated.rows[0];
   if (
     updated.rowCount !== 1
     || result?.key !== "page_careers_body"
-    || result?.value !== CAREERS_BODY_EN
-    || result?.value_es !== CAREERS_BODY_ES
+    || result?.value !== nextEn
+    || result?.value_es !== nextEs
   ) {
     throw new Error("Unable to persist approved Careers body copy");
   }
