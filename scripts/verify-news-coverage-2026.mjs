@@ -30,7 +30,7 @@ const csvCell = (value) => {
   const text = Array.isArray(value) ? value.join(" | ") : value == null ? "" : String(value);
   return /[",\n\r]/.test(text) ? `"${text.replaceAll('"', '""')}"` : text;
 };
-const toCsv = (rows, headers) => `${headers.join(",")}\n${rows.map((row) => headers.map((header) => csvCell(row[header])).join(",")).join("\n")}\n`;
+const toCsv = (rows, headers) => `${headers.join(",")}${rows.length ? `\n${rows.map((row) => headers.map((header) => csvCell(row[header])).join(","))}` : ""}\n`;
 const counterpartId = (href) => String(href ?? "").match(/[?&]p_id=(\d+)|p_id-(\d+)/i)?.slice(1).find(Boolean) ?? "";
 
 function parseCsvLine(line) {

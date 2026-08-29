@@ -45,6 +45,7 @@
     "content:reconcile-news-coverage": "node scripts/reconcile-news-coverage-2026.mjs",
     "content:verify-news-coverage": "node scripts/verify-news-coverage-2026.mjs",
     "content:recover-news-dates": "node scripts/recover-news-dates-2026.mjs",
+    "content:audit-articles": "node scripts/audit-articles-2026.mjs",
     "db:replit-migrate": "node scripts/migrate-database-to-replit.mjs",
     "team:reconcile-partner-order": "node --import tsx scripts/reconcile-partner-order.ts",
     "team:reconcile-associate-order": "node --import tsx scripts/reconcile-associate-order.ts",

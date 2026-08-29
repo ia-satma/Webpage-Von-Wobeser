@@ -70,6 +70,16 @@ const verifiedDataMigrationPolicies = new Map([
   ["20260828_0005_backfill_author_verification_status.mjs", {
     allowedCountChanges: new Set(),
   }],
+  // Reemplaza una URL visible como texto por su CTA de fuente verificable en
+  // dos Artículos históricos; no agrega ni elimina ninguna fila o relación.
+  ["20260828_0006_normalize_article_source_links.mjs", {
+    allowedCountChanges: new Set(),
+  }],
+  // Repara una sola publicación de Noticias cuya evidencia histórica acredita
+  // seis autores: confirma cinco vínculos existentes y agrega uno faltante.
+  ["20260828_0007_correct_news_1911_author_relations.mjs", {
+    allowedCountChanges: new Set(["news_team_members"]),
+  }],
 ]);
 
 function quoteIdentifier(value) {

@@ -190,6 +190,17 @@ test("la publicación enlaza de vuelta a perfiles activos y expone autores en SE
   assert.match(html, /Ana Pérez/);
 });
 
+test("las miniaturas de autores mantienen el encuadre vertical sin cortar la cabeza", () => {
+  const css = readFileSync(new URL("../../frontend-mirror/templates/beez3/css/von.css", import.meta.url), "utf8");
+  const imageFrame = css.match(/\.news-related-attorneys__image\s*\{([\s\S]*?)\n\}/)?.[1] || "";
+  const image = css.match(/\.news-related-attorneys__image img\s*\{([\s\S]*?)\n\}/)?.[1] || "";
+
+  assert.match(imageFrame, /width:\s*64px/);
+  assert.match(imageFrame, /height:\s*80px/);
+  assert.match(image, /object-fit:\s*cover/);
+  assert.match(image, /object-position:\s*center top/);
+});
+
 test("el archivo conserva el filtro de autor al buscar y paginar", () => {
   const template = `<!doctype html><html><head></head><body><div class="archive__filters"><form><input class="news_search" name="q"></form></div><div class="archive__list"></div><div class="pagination"></div></body></html>`;
   const html = renderNewsList(template, [], "en", { page: 2, totalPages: 3 }, {
@@ -347,6 +358,19 @@ test("las autorías públicas requieren evidencia y las relaciones heredadas per
   assert.match(migrationData, /Historic author evidence inventory or digest changed/);
   assert.match(migrationData, /UPDATE news_team_members SET verification_status/);
   assert.match(migrationRunner, /20260828_0005_backfill_author_verification_status\.mjs/);
+});
+
+test("la corrección puntual de la nota 1911 sólo confirma sus seis autores históricos", () => {
+  const migration = readFileSync(new URL("../../migrations/20260828_0007_correct_news_1911_author_relations.mjs", import.meta.url), "utf8");
+  const migrationRunner = readFileSync(new URL("../../scripts/run-migrations.mjs", import.meta.url), "utf8");
+  assert.match(migration, /NEWS_1911_LEGACY_ID = "1911"/);
+  for (const name of ["Luis Burgueño", "Diego Sierra", "Alberto Córdoba", "Raymundo Soberanis", "Max Morales", "Ricardo Cacho"]) {
+    assert.match(migration, new RegExp(name));
+  }
+  assert.match(migration, /verification_status = 'verified_historic'/);
+  assert.match(migration, /Missing unexpected historic author/);
+  assert.doesNotMatch(migration, /\bDELETE\s+FROM\s+news_team_members\b/i);
+  assert.match(migrationRunner, /20260828_0007_correct_news_1911_author_relations\.mjs/);
 });
 
 test("el detalle recomienda publicaciones por etiquetas, autores y categoría sin repetir la actual", () => {

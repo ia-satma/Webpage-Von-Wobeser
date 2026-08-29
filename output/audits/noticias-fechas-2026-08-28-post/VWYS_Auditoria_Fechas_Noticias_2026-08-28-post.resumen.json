@@ -1,0 +1,59 @@
+{
+  "generatedAt": "2026-08-29T01:14:24.281Z",
+  "sourceCutoff": "2026-08-28-post",
+  "scope": "news",
+  "mode": "dates-only",
+  "officialOrigin": "https://www.vonwobeser.com",
+  "projectOrigin": "http://localhost:5050",
+  "parameters": {
+    "concurrency": 6,
+    "maxPages": 0,
+    "scope": "news",
+    "datesOnly": true
+  },
+  "collections": [
+    {
+      "key": "es-news",
+      "expectedLastStart": 760,
+      "pages": 77,
+      "items": 764,
+      "pageErrors": []
+    },
+    {
+      "key": "en-news",
+      "expectedLastStart": 760,
+      "pages": 77,
+      "items": 746,
+      "pageErrors": [
+        {
+          "url": "https://www.vonwobeser.com/index.php/publications/news?start=440",
+          "status": 0,
+          "error": "timeout after 60000ms"
+        },
+        {
+          "url": "https://www.vonwobeser.com/index.php/publications/news?start=450",
+          "status": 0,
+          "error": "timeout after 60000ms"
+        }
+      ]
+    }
+  ],
+  "counts": {
+    "officialLocalizedEntries": 1510,
+    "officialSpanishEntries": 764,
+    "officialEnglishEntries": 746,
+    "officialDatePrecision": {
+      "month": 1510
+    },
+    "projectRowsInScope": 1532,
+    "dateMatch": 866,
+    "projectDateMissing": 588,
+    "dateMismatch": 0,
+    "projectMissing": 56,
+    "projectLanguageCounterpartMatch": 5,
+    "officialDateMissing": 0,
+    "ambiguousProjectMatch": 0,
+    "inaccessibleOfficialDetails": 0,
+    "projectOnlyNewsRows": 83
+  }
+}

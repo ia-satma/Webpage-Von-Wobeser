@@ -16,6 +16,10 @@ import { SUPPORTED_LANGUAGES } from "../openai";
 import { storage } from "../storage";
 import { apiError, auditLog, getLinguisticWarnings } from "./routeUtils";
 import { editorialDateAtNoon, hasPublishableNewsContent, isValidEditorialDate, isVerifiedNewsSourceUrl, requiresExplicitEditorialDate } from "../newsPublicationPolicy";
+import { findIntroducedUnlinkedArticleUrls, findUnlinkedArticleUrls } from "../articleLinkIntegrity";
+
+const isArticle = (category: unknown) => String(category ?? "").trim().toLowerCase() === "articles";
+const rawArticleUrlError = "Published Articles must use Fuente original or an actual hyperlink; plain URLs are not allowed";
 
 export function registerAdminNewsRoutes(app: Express): void {
   // =============================================
@@ -398,6 +402,9 @@ export function registerAdminNewsRoutes(app: Express): void {
       if (newsData.published && !hasPublishableNewsContent(newsData)) {
         return apiError(res, 400, "Published news requires title and excerpt in English and Spanish, or a verified source for Articles");
       }
+      if (newsData.published && isArticle(newsData.category) && findUnlinkedArticleUrls(newsData).length) {
+        return apiError(res, 400, rawArticleUrlError);
+      }
 
       if (!await validateNewsTeamMembers(teamMemberIds)) {
         return apiError(res, 400, "One or more team members do not exist");
@@ -438,6 +445,13 @@ export function registerAdminNewsRoutes(app: Express): void {
       }
       if (finalState.published && !hasPublishableNewsContent(finalState)) {
         return apiError(res, 400, "Published news requires title and excerpt in English and Spanish, or a verified source for Articles");
+      }
+      if (finalState.published && isArticle(finalState.category)) {
+        const legacyPublishedArticle = current.published === true && isArticle(current.category);
+        const rawUrls = legacyPublishedArticle
+          ? findIntroducedUnlinkedArticleUrls(current, finalState)
+          : findUnlinkedArticleUrls(finalState);
+        if (rawUrls.length) return apiError(res, 400, rawArticleUrlError);
       }
       if (teamMemberIds && !await validateNewsTeamMembers(teamMemberIds)) {
         return apiError(res, 400, "One or more team members do not exist");

@@ -12,7 +12,7 @@ const [{ db, closeDatabasePool }, schema, { reconcilePublicationAuthors }] = awa
 
 try {
   const [newsRows, memberRows, linkRows] = await Promise.all([
-    db.select({ id: schema.news.id, legacyId: schema.news.legacyId, slug: schema.news.slug, published: schema.news.published })
+    db.select({ id: schema.news.id, legacyId: schema.news.legacyId, slug: schema.news.slug, published: schema.news.published, category: schema.news.category })
       .from(schema.news),
     db.select({ id: schema.teamMembers.id, name: schema.teamMembers.name, title: schema.teamMembers.title, email: schema.teamMembers.email, published: schema.teamMembers.published })
       .from(schema.teamMembers),
@@ -42,6 +42,22 @@ try {
     relation.newsId === item.id
     && relation.verificationStatus !== "legacy_unverified",
   )).length;
+  const articleIds = new Set(newsRows
+    .filter((item) => String(item.category || "").toLowerCase() === "articles")
+    .map((item) => item.id));
+  const forArticles = <T extends { newsId: string }>(rows: T[]) => rows.filter((item) => articleIds.has(item.newsId));
+  const articleLinks = linkRows.filter((relation) => articleIds.has(relation.newsId));
+  const articleVerification = Object.fromEntries(
+    ["verified_historic", "verified_editorial_2026", "verified_manual", "legacy_unverified"].map((status) => [
+      status,
+      articleLinks.filter((relation) => relation.verificationStatus === status).length,
+    ]),
+  );
+  const articleRows = newsRows.filter((item) => articleIds.has(item.id));
+  const articlesWithoutVerifiedAuthors = articleRows.filter((item) => item.published !== false && !articleLinks.some((relation) =>
+    relation.newsId === item.id
+    && relation.verificationStatus !== "legacy_unverified",
+  )).length;
 
   console.log(JSON.stringify({
     mode: "read-only",
@@ -58,6 +74,16 @@ try {
     sources: {
       historic: audit.expected.filter((item) => item.source === "historic").length,
       dropbox2026: audit.expected.filter((item) => item.source === "dropbox-2026").length,
+    },
+    articles: {
+      publications: articleRows.length,
+      expected: forArticles(audit.expected).length,
+      confirmed: forArticles(audit.confirmed).length,
+      missing: forArticles(audit.missing).length,
+      contradictions: forArticles(audit.contradictions).length,
+      retainedWithoutSource: forArticles(audit.retainedWithoutSource).length,
+      verification: articleVerification,
+      publishedWithoutVerifiedAuthors: articlesWithoutVerifiedAuthors,
     },
   }, null, 2));
 } finally {

@@ -1,0 +1,60 @@
+{
+  "generatedAt": "2026-08-29T05:41:52.217Z",
+  "mode": "read-only",
+  "scope": "articles",
+  "sourceCutoff": "2026-08-28",
+  "officialOrigin": "https://www.vonwobeser.com",
+  "projectOrigin": "http://localhost:5050",
+  "parameters": {
+    "concurrency": 6,
+    "maxPages": 0,
+    "maxDetails": 0,
+    "skipLinks": false
+  },
+  "collections": [
+    {
+      "language": "es",
+      "pages": 15,
+      "expectedLastStart": 140,
+      "items": 143,
+      "pageErrors": []
+    },
+    {
+      "language": "en",
+      "pages": 15,
+      "expectedLastStart": 140,
+      "items": 143,
+      "pageErrors": []
+    }
+  ],
+  "counts": {
+    "officialLocalizedEntries": 286,
+    "officialSpanishEntries": 143,
+    "officialEnglishEntries": 143,
+    "officialDetailsAccessible": 286,
+    "projectArticles": 283,
+    "directLegacyMatches": 283,
+    "verifiedLanguageCounterpartMatches": 3,
+    "missingInProject": 0,
+    "ambiguousMatches": 0,
+    "projectOnly": 0,
+    "dateMatch": 286,
+    "sourceOnlyOfficial": 5,
+    "linkTargets": 1367,
+    "brokenLinks": 0,
+    "inaccessibleLinks": 32,
+    "blockedLinks": 0,
+    "serverErrorLinks": 0,
+    "publicDetailPages": 566,
+    "publicSourceCtasExpected": 114,
+    "publicSourceCtasValid": 114,
+    "publicContentLinks": 442,
+    "publicBrokenLinks": 0,
+    "publicVisibleRawUrls": 0
+  },
+  "findingCounts": {
+    "CONTENT_DIFFERENT": 26,
+    "TITLE_DIFFERENT": 19,
+    "TITLE_SIMILAR": 3
+  }
+}

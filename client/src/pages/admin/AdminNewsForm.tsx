@@ -347,7 +347,7 @@ export default function AdminNewsForm() {
               <div className="space-y-1.5">
                 <Label htmlFor="sourceUrl">Fuente original <span className="text-muted-foreground text-xs">— opcional</span></Label>
                 <Input id="sourceUrl" type="url" value={form.sourceUrl} onChange={(e) => set("sourceUrl", e.target.value)} placeholder="https://…" data-testid="input-source-url" />
-                <p className="text-xs text-muted-foreground">Se muestra como enlace clicable en el listado y en el detalle. Es obligatoria si un Artículo publicado no tiene extractos verificables.</p>
+                <p className="text-xs text-muted-foreground">Se muestra como enlace clicable en el listado y en el detalle. Es obligatoria si un Artículo publicado no tiene extractos verificables. No pegues una URL como texto: usa este campo o crea un hipervínculo desde el editor.</p>
               </div>
 
               <div className="space-y-1.5">
