@@ -53,6 +53,7 @@ export async function publicImageAssetExists(
     partner_photos: path.join(cwd, "attached_assets", "partner_photos"),
     associate_photos: path.join(cwd, "attached_assets", "associate_photos"),
     of_counsel_photos: path.join(cwd, "attached_assets", "of_counsel_photos"),
+    counsel_photos: path.join(cwd, "attached_assets", "counsel_photos"),
     uploads: path.join(cwd, "uploads"),
   };
   const routeRoot = routeRoots[firstSegment];

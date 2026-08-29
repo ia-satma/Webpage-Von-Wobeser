@@ -31,13 +31,16 @@ test("el auditor resuelve imágenes desde las mismas raíces públicas y bloquea
 
   try {
     fs.mkdirSync(path.join(cwd, "attached_assets", "partner_photos"), { recursive: true });
+    fs.mkdirSync(path.join(cwd, "attached_assets", "counsel_photos"), { recursive: true });
     fs.mkdirSync(path.join(cwd, "public"), { recursive: true });
     fs.mkdirSync(path.join(mirrorDir, "images"), { recursive: true });
     fs.writeFileSync(path.join(cwd, "attached_assets", "partner_photos", "partner.jpg"), "photo");
+    fs.writeFileSync(path.join(cwd, "attached_assets", "counsel_photos", "counsel.png"), "photo");
     fs.writeFileSync(path.join(cwd, "public", "placeholder-article.svg"), "<svg/>");
     fs.writeFileSync(path.join(mirrorDir, "images", "legacy.jpg"), "legacy");
 
     assert.equal(await publicImageAssetExists("/partner_photos/partner.jpg?v=1", { cwd, mirrorDir, persistentExists }), true);
+    assert.equal(await publicImageAssetExists("/counsel_photos/counsel.png", { cwd, mirrorDir, persistentExists }), true);
     assert.equal(await publicImageAssetExists("/placeholder-article.svg", { cwd, mirrorDir, persistentExists }), true);
     assert.equal(await publicImageAssetExists("/images/legacy.jpg", { cwd, mirrorDir, persistentExists }), true);
     assert.equal(await publicImageAssetExists("/generated-images/remote.png", { cwd, mirrorDir, persistentExists }), true);

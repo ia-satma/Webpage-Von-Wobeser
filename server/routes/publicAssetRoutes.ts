@@ -41,6 +41,14 @@ export function registerPublicAssetRoutes(app: Express): void {
     immutable: true,
   }));
 
+  // Serve Counsel photos from their own versioned source directory. This is
+  // intentionally separate from Of Counsel so the editorial category remains
+  // explicit in Administration and in the responsive-image pipeline.
+  app.use('/counsel_photos', express.static(path.join(process.cwd(), 'attached_assets', 'counsel_photos'), {
+    maxAge: '7d',
+    immutable: true,
+  }));
+
   // Serve AI-generated images with Von Wobeser branding
   const generatedImagesDir = path.join(process.cwd(), 'public', 'generated-images');
   if (!fs.existsSync(generatedImagesDir)) {

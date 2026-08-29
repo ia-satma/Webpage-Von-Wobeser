@@ -5,7 +5,7 @@ import sharp from "sharp";
 const root = process.cwd();
 const sourceRoot = path.join(root, "attached_assets");
 const outputRoot = path.join(root, "public", "optimized-attorney-photos");
-const groups = ["partner_photos", "associate_photos", "of_counsel_photos"];
+const groups = ["partner_photos", "associate_photos", "of_counsel_photos", "counsel_photos"];
 const widths = [320, 640];
 const supported = new Set([".jpg", ".jpeg", ".png", ".webp"]);
 
@@ -32,10 +32,13 @@ for (const group of groups) {
       continue;
     }
     for (const width of widths) {
-      const target = path.join(directory, `${parsed.name}-${Math.min(width, metadata.width)}.webp`);
+      // El renderer declara de forma determinista las variantes 320 y 640. Aun
+      // si un original heredado es menor, emitimos ambas rutas para que nunca
+      // haya un srcset roto; el PNG original permanece como respaldo canónico.
+      const target = path.join(directory, `${parsed.name}-${width}.webp`);
       await sharp(source)
         .rotate()
-        .resize({ width, withoutEnlargement: true })
+        .resize({ width })
         .webp({ quality: width <= 320 ? 70 : 74, effort: 6, smartSubsample: true })
         .toFile(target);
       generated += 1;

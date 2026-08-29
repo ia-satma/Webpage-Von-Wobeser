@@ -2051,6 +2051,41 @@
       }
     ]
   },
+  "/images/diversity-thumbnails/main.jpg": {
+    "width": 960,
+    "height": 540,
+    "variants": []
+  },
+  "/images/diversity-thumbnails/video-1.jpg": {
+    "width": 960,
+    "height": 540,
+    "variants": []
+  },
+  "/images/diversity-thumbnails/video-2.jpg": {
+    "width": 960,
+    "height": 540,
+    "variants": []
+  },
+  "/images/diversity-thumbnails/video-3.jpg": {
+    "width": 960,
+    "height": 540,
+    "variants": []
+  },
+  "/images/diversity-thumbnails/video-4.jpg": {
+    "width": 960,
+    "height": 540,
+    "variants": []
+  },
+  "/images/diversity-thumbnails/video-5.jpg": {
+    "width": 960,
+    "height": 540,
+    "variants": []
+  },
+  "/images/diversity-thumbnails/video-6.jpg": {
+    "width": 960,
+    "height": 540,
+    "variants": []
+  },
   "/images/equidadMx.png": {
     "width": 126,
     "height": 126,
@@ -2136,6 +2171,11 @@
   "/images/hero-20260810-fullhd-poster.webp": {
     "width": 960,
     "height": 540,
+    "variants": []
+  },
+  "/images/hero-20260825-dron-poster.webp": {
+    "width": 1920,
+    "height": 1080,
     "variants": []
   },
   "/images/home-hero-poster-v2.webp": {

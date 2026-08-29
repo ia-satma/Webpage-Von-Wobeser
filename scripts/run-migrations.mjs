@@ -159,6 +159,12 @@ const verifiedDataMigrationPolicies = new Map([
   ["20260829_0015_publish_chambers_latin_america_2027_recognition.mjs", {
     allowedCountChanges: new Set(["news", "news_team_members", "news_external_links"]),
   }],
+  // Sustituye únicamente la ruta de imagen de 131 perfiles aprobados. La
+  // migración verifica nombre, categoría, checksum del PNG y ruta anterior;
+  // no altera contenido, orden, rol ni visibilidad.
+  ["20260829_0016_refresh_attorney_white_background_photos.mjs", {
+    allowedCountChanges: new Set(),
+  }],
 ]);
 
 // Algunos entornos de publicación se crearon sin una publicación histórica

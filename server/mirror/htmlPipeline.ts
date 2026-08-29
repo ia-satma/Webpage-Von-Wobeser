@@ -460,7 +460,7 @@ function uploadedResponsiveVariants(source: string): Array<{ url: string; width:
  * durante `media:optimize`; nunca se transforma una URL arbitraria en runtime.
  */
 function attorneyPortraitResponsiveVariants(source: string): Array<{ url: string; width: number }> {
-  const match = source.match(/^\/(partner_photos|associate_photos|of_counsel_photos)\/([A-Za-z0-9._-]+)$/);
+  const match = source.match(/^\/(partner_photos|associate_photos|of_counsel_photos|counsel_photos)\/([A-Za-z0-9._-]+)$/);
   if (!match) return [];
   const [, group, filename] = match;
   const parsed = path.posix.parse(filename);

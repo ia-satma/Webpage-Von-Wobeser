@@ -1,0 +1,2309 @@
+{
+  "version": 1,
+  "generatedAt": "2026-08-29",
+  "source": {
+    "provider": "pcloud",
+    "publicLinkCode": "kZSAiJJZYvzCjfqcKhbUBKgbiY3tXzWNYwNk",
+    "folderName": "Fotografías fondo blanco",
+    "downloadUrl": "https://api.pcloud.com/getpubzip?code=kZSAiJJZYvzCjfqcKhbUBKgbiY3tXzWNYwNk"
+  },
+  "approvedCount": 131,
+  "unchangedCount": 11,
+  "profiles": [
+    {
+      "slug": "adrian-castillo",
+      "expectedName": "Adrián Castillo",
+      "role": "Partner",
+      "previousImageUrl": "/partner_photos/adrian_castillo.jpg",
+      "targetImageUrl": "/partner_photos/adrian-castillo-2026-white-bg.png",
+      "source": {
+        "category": "Partner",
+        "originalFilename": "22. Adrián Castillo.png",
+        "relativePath": "Fotografías fondo blanco/1. Socios/Fotografías en blanco y negro/22. Adrián Castillo.png",
+        "fileId": "92353860887",
+        "width": 1417,
+        "height": 1890,
+        "bytes": 1560861,
+        "sha256": "1500843d0496c9b78e597a0ad0d0b6b43ec5e92ef01eb45f2a847aa7452d3354"
+      }
+    },
+    {
+      "slug": "adrian-magallanes",
+      "expectedName": "Adrián Magallanes",
+      "role": "Partner",
+      "previousImageUrl": "/partner_photos/adrian_magallanes.jpg",
+      "targetImageUrl": "/partner_photos/adrian-magallanes-2026-white-bg.png",
+      "source": {
+        "category": "Partner",
+        "originalFilename": "6. Adrian Magallanes.png",
+        "relativePath": "Fotografías fondo blanco/1. Socios/Fotografías en blanco y negro/6. Adrian Magallanes.png",
+        "fileId": "92353865654",
+        "width": 768,
+        "height": 1024,
+        "bytes": 423200,
+        "sha256": "71ec06fd595ccac07dd0d345a5b01e681a6ab25f1d4e49d972987d736ad40dfe"
+      }
+    },
+    {
+      "slug": "adrian-martinez",
+      "expectedName": "Adrián Martínez",
+      "role": "Associate",
+      "previousImageUrl": "/associate_photos/adrian_martinez.jpg",
+      "targetImageUrl": "/associate_photos/adrian-martinez-2026-white-bg.png",
+      "source": {
+        "category": "Associate",
+        "originalFilename": "Adrián Martínez .png",
+        "relativePath": "Fotografías fondo blanco/4. Asociados/Fotografías en blanco y negro/Adrián Martínez .png",
+        "fileId": "92353871306",
+        "width": 1417,
+        "height": 1890,
+        "bytes": 1441706,
+        "sha256": "c20a1dd047b2f013bc46c99537ee441c001a37494994ead9ec38ebd5aa7c8c50"
+      }
+    },
+    {
+      "slug": "adrian-rodriguez",
+      "expectedName": "Adrian Rodriguez",
+      "role": "Associate",
+      "previousImageUrl": "/associate_photos/adrian_rodriguez.jpg",
+      "targetImageUrl": "/associate_photos/adrian-rodriguez-2026-white-bg.png",
+      "source": {
+        "category": "Associate",
+        "originalFilename": "Adrián Rodríguez.png",
+        "relativePath": "Fotografías fondo blanco/4. Asociados/Fotografías en blanco y negro/Adrián Rodríguez.png",
+        "fileId": "92353871494",
+        "width": 1417,
+        "height": 1890,
+        "bytes": 1559539,
+        "sha256": "fa506e1437b77252844a54efcb3be5dd3ed7fcdb6927d30539f28f6195c862ca"
+      }
+    },
+    {
+      "slug": "alberto-cordoba",
+      "expectedName": "Alberto Córdoba",
+      "role": "Partner",
+      "previousImageUrl": "/partner_photos/alberto_cordoba.jpg",
+      "targetImageUrl": "/partner_photos/alberto-cordoba-2026-white-bg.png",
+      "source": {
+        "category": "Partner",
+        "originalFilename": "11. Alberto Córdoba.png",
+        "relativePath": "Fotografías fondo blanco/1. Socios/Fotografías en blanco y negro/11. Alberto Córdoba.png",
+        "fileId": "92353856678",
+        "width": 1417,
+        "height": 1890,
+        "bytes": 1612191,
+        "sha256": "63027591f46d7a39647638a5990d7030df7d393598e57a5ded1d6fb7ed184d4a"
+      }
+    },
+    {
+      "slug": "alejandra-arizpe",
+      "expectedName": "Alejandra Arizpe",
+      "role": "Associate",
+      "previousImageUrl": "/associate_photos/alejandra_arizpe.jpg",
+      "targetImageUrl": "/associate_photos/alejandra-arizpe-2026-white-bg.png",
+      "source": {
+        "category": "Associate",
+        "originalFilename": "Alejandra Arizpe.png",
+        "relativePath": "Fotografías fondo blanco/4. Asociados/Fotografías en blanco y negro/Alejandra Arizpe.png",
+        "fileId": "92353871776",
+        "width": 1417,
+        "height": 1890,
+        "bytes": 1753367,
+        "sha256": "1bf3c766526b19427df2381b83c545623edf51832412601bc500c6ffe916289b"
+      }
+    },
+    {
+      "slug": "alejandro-avila",
+      "expectedName": "Alejandro Ávila",
+      "role": "Associate",
+      "previousImageUrl": "/images/Alejandro-Avila-2026-05-08-at-09.40.33.jpeg",
+      "targetImageUrl": "/associate_photos/alejandro-avila-2026-white-bg.png",
+      "source": {
+        "category": "Associate",
+        "originalFilename": "Alejandro Ávila.png",
+        "relativePath": "Fotografías fondo blanco/4. Asociados/Fotografías en blanco y negro/Alejandro Ávila.png",
+        "fileId": "92353872631",
+        "width": 1417,
+        "height": 1890,
+        "bytes": 1221303,
+        "sha256": "a609886a7678ed904a7860e0e8b2dcfa6d8d91958d8f6afe4c3d04cb2e5bb05e"
+      }
+    },
+    {
+      "slug": "alejandro-perez",
+      "expectedName": "Alejandro Pérez",
+      "role": "Associate",
+      "previousImageUrl": "/associate_photos/alejandro_perez.jpg",
+      "targetImageUrl": "/associate_photos/alejandro-perez-2026-white-bg.png",
+      "source": {
+        "category": "Associate",
+        "originalFilename": "Alejandro Pérez.png",
+        "relativePath": "Fotografías fondo blanco/4. Asociados/Fotografías en blanco y negro/Alejandro Pérez.png",
+        "fileId": "92353871947",
+        "width": 470,
+        "height": 627,
+        "bytes": 151272,
+        "sha256": "7a4c35b4d9d326e80e00edf1e1ab146cb3b34d7ea2159fbb87871f5eb499b151"
+      }
+    },
+    {
+      "slug": "alejandro-torres",
+      "expectedName": "Alejandro Torres",
+      "role": "Partner",
+      "previousImageUrl": "/partner_photos/alejandro_torres.jpg",
+      "targetImageUrl": "/partner_photos/alejandro-torres-2026-white-bg.png",
+      "source": {
+        "category": "Partner",
+        "originalFilename": "20. Alejandro Torres.png",
+        "relativePath": "Fotografías fondo blanco/1. Socios/Fotografías en blanco y negro/20. Alejandro Torres.png",
+        "fileId": "92353860572",
+        "width": 1417,
+        "height": 1890,
+        "bytes": 1882927,
+        "sha256": "d9e1d527e23b95f696c5a00117d327464e4255995c9f332608b32e6aed185927"
+      }
+    },
+    {
+      "slug": "alejandro-torres-associate",
+      "expectedName": "Alejandro Torres",
+      "role": "Associate",
+      "previousImageUrl": "/associate_photos/alejandro_torres.jpg",
+      "targetImageUrl": "/associate_photos/alejandro-torres-associate-2026-white-bg.png",
+      "source": {
+        "category": "Associate",
+        "originalFilename": "Alejandro Torres.png",
+        "relativePath": "Fotografías fondo blanco/4. Asociados/Fotografías en blanco y negro/Alejandro Torres.png",
+        "fileId": "92353872369",
+        "width": 1417,
+        "height": 1890,
+        "bytes": 1643242,
+        "sha256": "5d7000110d85e5f514dec02734878b993d43dfb6282cd5c1a8580490285c4f5a"
+      }
+    },
+    {
+      "slug": "alexa-mendivil",
+      "expectedName": "Alexa Mendivil",
+      "role": "Associate",
+      "previousImageUrl": "/associate_photos/alexa_mendivil.jpg",
+      "targetImageUrl": "/associate_photos/alexa-mendivil-2026-white-bg.png",
+      "source": {
+        "category": "Associate",
+        "originalFilename": "Alexa Mendivil.png",
+        "relativePath": "Fotografías fondo blanco/4. Asociados/Fotografías en blanco y negro/Alexa Mendivil.png",
+        "fileId": "92353872740",
+        "width": 1417,
+        "height": 1890,
+        "bytes": 1334364,
+        "sha256": "5907929657f66abee91e496b65572479cd209a41621ac1f0758e61a2ee5186a9"
+      }
+    },
+    {
+      "slug": "alexander-barnes",
+      "expectedName": "Alexander Barnes",
+      "role": "Associate",
+      "previousImageUrl": "/associate_photos/alexander_barnes.jpg",
+      "targetImageUrl": "/associate_photos/alexander-barnes-2026-white-bg.png",
+      "source": {
+        "category": "Associate",
+        "originalFilename": "Alexander Barnes.png",
+        "relativePath": "Fotografías fondo blanco/4. Asociados/Fotografías en blanco y negro/Alexander Barnes.png",
+        "fileId": "92353872920",
+        "width": 1417,
+        "height": 1890,
+        "bytes": 1799923,
+        "sha256": "0f3668a1b07717d5c25ee5e5899a8ca96b74deb3f302634585201503b060e9d2"
+      }
+    },
+    {
+      "slug": "alfonso-lenero",
+      "expectedName": "Alfonso Leñero",
+      "role": "Associate",
+      "previousImageUrl": "/associate_photos/alfonso_lenero.jpg",
+      "targetImageUrl": "/associate_photos/alfonso-lenero-2026-white-bg.png",
+      "source": {
+        "category": "Associate",
+        "originalFilename": "Alfonso Leñero.png",
+        "relativePath": "Fotografías fondo blanco/4. Asociados/Fotografías en blanco y negro/Alfonso Leñero.png",
+        "fileId": "92353873055",
+        "width": 1417,
+        "height": 1890,
+        "bytes": 1264467,
+        "sha256": "9ce918a52a961c390096d74d27fae2339f78600be43519dcef7b6fa9bbf2afdb"
+      }
+    },
+    {
+      "slug": "alondra-marin",
+      "expectedName": "Alondra Marín",
+      "role": "Associate",
+      "previousImageUrl": "/associate_photos/alondra_marin.jpg",
+      "targetImageUrl": "/associate_photos/alondra-marin-2026-white-bg.png",
+      "source": {
+        "category": "Associate",
+        "originalFilename": "Alondra Marín.png",
+        "relativePath": "Fotografías fondo blanco/4. Asociados/Fotografías en blanco y negro/Alondra Marín.png",
+        "fileId": "92353873254",
+        "width": 1417,
+        "height": 1890,
+        "bytes": 1261736,
+        "sha256": "26c8f3096a32be693a57b34438ffda884d2940a33f6055fcbe3ba84b39fa0676"
+      }
+    },
+    {
+      "slug": "amanda-ibanez",
+      "expectedName": "Amanda Ibáñez",
+      "role": "Associate",
+      "previousImageUrl": "/associate_photos/amanda_ibanez.jpg",
+      "targetImageUrl": "/associate_photos/amanda-ibanez-2026-white-bg.png",
+      "source": {
+        "category": "Associate",
+        "originalFilename": "Amanda Ibáñez.png",
+        "relativePath": "Fotografías fondo blanco/4. Asociados/Fotografías en blanco y negro/Amanda Ibáñez.png",
+        "fileId": "92353873385",
+        "width": 1417,
+        "height": 1890,
+        "bytes": 1124627,
+        "sha256": "4cf9b5f8e0c80f303793835f9c9c76ae7416b9eb5fb13252290a0d05bd438e34"
+      }
+    },
+    {
+      "slug": "ana-alpizar",
+      "expectedName": "Ana Alpízar",
+      "role": "Associate",
+      "previousImageUrl": "/associate_photos/ana_alpizar.jpg",
+      "targetImageUrl": "/associate_photos/ana-alpizar-2026-white-bg.png",
+      "source": {
+        "category": "Associate",
+        "originalFilename": "Ana Alpízar.png",
+        "relativePath": "Fotografías fondo blanco/4. Asociados/Fotografías en blanco y negro/Ana Alpízar.png",
+        "fileId": "92353873484",
+        "width": 1417,
+        "height": 1890,
+        "bytes": 1330663,
+        "sha256": "072b87df599af05fdca14a193ba960928b134399ed65e286298054ee9b7c2faa"
+      }
+    },
+    {
+      "slug": "ana-ruiz",
+      "expectedName": "Ana Ruiz",
+      "role": "Associate",
+      "previousImageUrl": "/associate_photos/ana_ruiz.jpg",
+      "targetImageUrl": "/associate_photos/ana-ruiz-2026-white-bg.png",
+      "source": {
+        "category": "Associate",
+        "originalFilename": "Ana Ruíz.png",
+        "relativePath": "Fotografías fondo blanco/4. Asociados/Fotografías en blanco y negro/Ana Ruíz.png",
+        "fileId": "92353873854",
+        "width": 1417,
+        "height": 1890,
+        "bytes": 1354220,
+        "sha256": "59deabccbf45bc42ba6b687f3ac0b079954ece859217405aad9aa277cf1ae2c2"
+      }
+    },
+    {
+      "slug": "ana-victoria-guevara",
+      "expectedName": "Ana Victoria Guevara",
+      "role": "Associate",
+      "previousImageUrl": "/associate_photos/ana_victoria_guevara.jpg",
+      "targetImageUrl": "/associate_photos/ana-victoria-guevara-2026-white-bg.png",
+      "source": {
+        "category": "Associate",
+        "originalFilename": "Ana Victoria Guevara.png",
+        "relativePath": "Fotografías fondo blanco/4. Asociados/Fotografías en blanco y negro/Ana Victoria Guevara.png",
+        "fileId": "92353874201",
+        "width": 1417,
+        "height": 1890,
+        "bytes": 1186386,
+        "sha256": "52cbb8b6709a26c29aade0e6bb0b8947fe8a5e9b0aaf08aa45fbf9686a2238fb"
+      }
+    },
+    {
+      "slug": "andoni-garza",
+      "expectedName": "Andoni Garza",
+      "role": "Associate",
+      "previousImageUrl": "/associate_photos/andoni_garza.jpg",
+      "targetImageUrl": "/associate_photos/andoni-garza-2026-white-bg.png",
+      "source": {
+        "category": "Associate",
+        "originalFilename": "Andoni Garza.png",
+        "relativePath": "Fotografías fondo blanco/4. Asociados/Fotografías en blanco y negro/Andoni Garza.png",
+        "fileId": "92353874342",
+        "width": 1417,
+        "height": 1890,
+        "bytes": 1654793,
+        "sha256": "2bd7fe99113e55be912101293aa4d5ae64c1826addd06bc197c3ddb576e9aa6d"
+      }
+    },
+    {
+      "slug": "andres-jimenez",
+      "expectedName": "Andrés Jiménez",
+      "role": "Associate",
+      "previousImageUrl": "/associate_photos/andres_jimenez.jpg",
+      "targetImageUrl": "/associate_photos/andres-jimenez-2026-white-bg.png",
+      "source": {
+        "category": "Associate",
+        "originalFilename": "Andrés Jiménez.png",
+        "relativePath": "Fotografías fondo blanco/4. Asociados/Fotografías en blanco y negro/Andrés Jiménez.png",
+        "fileId": "92353874574",
+        "width": 1417,
+        "height": 1890,
+        "bytes": 1144481,
+        "sha256": "1049c537cb18fa60c6db3b47c031cdd929aba5cb8ac41dd3eafad195e88ba71e"
+      }
+    },
+    {
+      "slug": "anna-maria-brandstadter",
+      "expectedName": "Anna-Maria Brandstädter",
+      "role": "Associate",
+      "previousImageUrl": "/associate_photos/anna_maria_brandstadter.jpg",
+      "targetImageUrl": "/associate_photos/anna-maria-brandstadter-2026-white-bg.png",
+      "source": {
+        "category": "Associate",
+        "originalFilename": "Anna-Maria Brandstadter.png",
+        "relativePath": "Fotografías fondo blanco/4. Asociados/Fotografías en blanco y negro/Anna-Maria Brandstadter.png",
+        "fileId": "92353874961",
+        "width": 1417,
+        "height": 1890,
+        "bytes": 1101671,
+        "sha256": "6bb5566311e8a4b7a7f3f19ad2ca624363c704686a3f70ba838635ca0f0f897b"
+      }
+    },
+    {
+      "slug": "ariel-garfio",
+      "expectedName": "Ariel Garfio",
+      "role": "Partner",
+      "previousImageUrl": "/partner_photos/ariel_garfio.png",
+      "targetImageUrl": "/partner_photos/ariel-garfio-2026-white-bg.png",
+      "source": {
+        "category": "Partner",
+        "originalFilename": "16. Ariel Garfio.png",
+        "relativePath": "Fotografías fondo blanco/1. Socios/Fotografías en blanco y negro/16. Ariel Garfio.png",
+        "fileId": "92353858451",
+        "width": 1417,
+        "height": 1890,
+        "bytes": 1474629,
+        "sha256": "9f3f1e8972f69a8b8cea1da976246f4bf3c69df92e3c51269ec0f70de989ae17"
+      }
+    },
+    {
+      "slug": "arturo-hernandez",
+      "expectedName": "Arturo Hernández",
+      "role": "Associate",
+      "previousImageUrl": "/associate_photos/arturo_hernandez.jpg",
+      "targetImageUrl": "/associate_photos/arturo-hernandez-2026-white-bg.png",
+      "source": {
+        "category": "Associate",
+        "originalFilename": "Arturo Hernández.png",
+        "relativePath": "Fotografías fondo blanco/4. Asociados/Fotografías en blanco y negro/Arturo Hernández.png",
+        "fileId": "92353875419",
+        "width": 1417,
+        "height": 1890,
+        "bytes": 1222498,
+        "sha256": "d9bb946d2b679c75388cb1bc3123f8801e947e01c718105bd74b1bf3fdf79f64"
+      }
+    },
+    {
+      "slug": "bernardo-zatarain",
+      "expectedName": "Bernardo Zatarain",
+      "role": "Associate",
+      "previousImageUrl": "https://vonwobeser.com/images/Bernardo_Zatarain_2026-07-20.jpeg",
+      "targetImageUrl": "/associate_photos/bernardo-zatarain-2026-white-bg.png",
+      "source": {
+        "category": "Associate",
+        "originalFilename": "Bernardo Zatarain.png",
+        "relativePath": "Fotografías fondo blanco/4. Asociados/Fotografías en blanco y negro/Bernardo Zatarain.png",
+        "fileId": "92353875751",
+        "width": 1417,
+        "height": 1890,
+        "bytes": 1781732,
+        "sha256": "63933a63b493ae326e097951b3f18454ab755b445ba231cf4a04903aed7228b3"
+      }
+    },
+    {
+      "slug": "carlos-cazares",
+      "expectedName": "Carlos Cázares",
+      "role": "Associate",
+      "previousImageUrl": "/associate_photos/carlos_cazares.jpg",
+      "targetImageUrl": "/associate_photos/carlos-cazares-2026-white-bg.png",
+      "source": {
+        "category": "Associate",
+        "originalFilename": "Carlos Cázares.png",
+        "relativePath": "Fotografías fondo blanco/4. Asociados/Fotografías en blanco y negro/Carlos Cázares.png",
+        "fileId": "92353876284",
+        "width": 1417,
+        "height": 1890,
+        "bytes": 1165958,
+        "sha256": "5d872a633378e0a75cc0aee7a47263fac6cdc32b69df16a8fec632d666e3fb13"
+      }
+    },
+    {
+      "slug": "carlos-cevallos",
+      "expectedName": "Carlos Cevallos",
+      "role": "Associate",
+      "previousImageUrl": "/associate_photos/carlos_cevallos.jpg",
+      "targetImageUrl": "/associate_photos/carlos-cevallos-2026-white-bg.png",
+      "source": {
+        "category": "Associate",
+        "originalFilename": "Carlos Cevallos.png",
+        "relativePath": "Fotografías fondo blanco/4. Asociados/Fotografías en blanco y negro/Carlos Cevallos.png",
+        "fileId": "92353876005",
+        "width": 1417,
+        "height": 1890,
+        "bytes": 936787,
+        "sha256": "32ef1a21ec9e894b81da02f375de1ed361bc487dc0f69d7a75023c8b27bcdd94"
+      }
+    },
+    {
+      "slug": "carlos-lopez-cordova",
+      "expectedName": "Carlos López Córdova",
+      "role": "Counsel",
+      "previousImageUrl": "/images/asociados/Carlos-Lpez-07032023.jpg",
+      "targetImageUrl": "/counsel_photos/carlos-lopez-cordova-2026-white-bg.png",
+      "source": {
+        "category": "Counsel",
+        "originalFilename": "Carlos López Córdova.png",
+        "relativePath": "Fotografías fondo blanco/3. Consejeros (counsel)/Fotografías en blanco y negro/Carlos López Córdova.png",
+        "fileId": "92353869023",
+        "width": 1417,
+        "height": 1890,
+        "bytes": 1533291,
+        "sha256": "fefcb92d94efceb4ce800ef35752221f592f6997345e39443e57047afe154f32"
+      }
+    },
+    {
+      "slug": "carlos-ugalde",
+      "expectedName": "Carlos Ugalde",
+      "role": "Associate",
+      "previousImageUrl": "/associate_photos/carlos_ugalde.jpg",
+      "targetImageUrl": "/associate_photos/carlos-ugalde-2026-white-bg.png",
+      "source": {
+        "category": "Associate",
+        "originalFilename": "Carlos Ugalde.png",
+        "relativePath": "Fotografías fondo blanco/4. Asociados/Fotografías en blanco y negro/Carlos Ugalde.png",
+        "fileId": "92353876707",
+        "width": 1417,
+        "height": 1890,
+        "bytes": 1536807,
+        "sha256": "2fc18a4deb45d6895b1ef46a892808e376f30e51e13a777da50cb135555522aa"
+      }
+    },
+    {
+      "slug": "carolina-camacho",
+      "expectedName": "Carolina Camacho",
+      "role": "Associate",
+      "previousImageUrl": "/associate_photos/carolina_camacho.jpg",
+      "targetImageUrl": "/associate_photos/carolina-camacho-2026-white-bg.png",
+      "source": {
+        "category": "Associate",
+        "originalFilename": "Carolina Camacho.png",
+        "relativePath": "Fotografías fondo blanco/4. Asociados/Fotografías en blanco y negro/Carolina Camacho.png",
+        "fileId": "92353876935",
+        "width": 1417,
+        "height": 1890,
+        "bytes": 1754009,
+        "sha256": "388d75a0a631a3a1c5af9a03d528fd99cfdc44dad094d4ec7ce822cf37b7c889"
+      }
+    },
+    {
+      "slug": "cesar-martinez",
+      "expectedName": "César Martínez",
+      "role": "Counsel",
+      "previousImageUrl": "/images/asociados/Fotos/Cesar-Martinez.jpg",
+      "targetImageUrl": "/counsel_photos/cesar-martinez-2026-white-bg.png",
+      "source": {
+        "category": "Counsel",
+        "originalFilename": "César Martínez.png",
+        "relativePath": "Fotografías fondo blanco/3. Consejeros (counsel)/Fotografías en blanco y negro/César Martínez.png",
+        "fileId": "92353869376",
+        "width": 1417,
+        "height": 1890,
+        "bytes": 1042421,
+        "sha256": "5053265d0044b1eb48210418f77b4a5e059053e18eca7f9b48192dcec1e9e9a4"
+      }
+    },
+    {
+      "slug": "christian-ramirez",
+      "expectedName": "Christian Ramírez",
+      "role": "Associate",
+      "previousImageUrl": "/associate_photos/christian_ramirez.jpg",
+      "targetImageUrl": "/associate_photos/christian-ramirez-2026-white-bg.png",
+      "source": {
+        "category": "Associate",
+        "originalFilename": "Christian Ramírez .png",
+        "relativePath": "Fotografías fondo blanco/4. Asociados/Fotografías en blanco y negro/Christian Ramírez .png",
+        "fileId": "92353877108",
+        "width": 1417,
+        "height": 1890,
+        "bytes": 1085097,
+        "sha256": "9884607db9a6e2a4f05dc28670f1943d54d0aa4cdfd50d438756305a5adf79e2"
+      }
+    },
+    {
+      "slug": "christopher-wilkerson",
+      "expectedName": "Christopher Wilkerson",
+      "role": "Associate",
+      "previousImageUrl": "/associate_photos/christopher_wilkerson.jpg",
+      "targetImageUrl": "/associate_photos/christopher-wilkerson-2026-white-bg.png",
+      "source": {
+        "category": "Associate",
+        "originalFilename": "Christopher Wilkerson.png",
+        "relativePath": "Fotografías fondo blanco/4. Asociados/Fotografías en blanco y negro/Christopher Wilkerson.png",
+        "fileId": "92353877252",
+        "width": 1417,
+        "height": 1890,
+        "bytes": 1374763,
+        "sha256": "f0121fc325efd22d68042d5c71a6cb34da876d8659e231c760d98b9aa9fffc93"
+      }
+    },
+    {
+      "slug": "cinthya-gonzalez",
+      "expectedName": "Cinthya González",
+      "role": "Associate",
+      "previousImageUrl": "/associate_photos/cinthya_gonzalez.jpg",
+      "targetImageUrl": "/associate_photos/cinthya-gonzalez-2026-white-bg.png",
+      "source": {
+        "category": "Associate",
+        "originalFilename": "Cinthya González.png",
+        "relativePath": "Fotografías fondo blanco/4. Asociados/Fotografías en blanco y negro/Cinthya González.png",
+        "fileId": "92353877404",
+        "width": 1417,
+        "height": 1890,
+        "bytes": 1355632,
+        "sha256": "cd28240c2e632947e1ac2e0b05d1973d3c8d0b5fb7bace23fdf0e254e04d9e48"
+      }
+    },
+    {
+      "slug": "claus-von-wobeser",
+      "expectedName": "Claus von Wobeser",
+      "role": "Of Counsel",
+      "previousImageUrl": "/of_counsel_photos/claus_von_wobeser.jpg",
+      "targetImageUrl": "/of_counsel_photos/claus-von-wobeser-2026-white-bg.png",
+      "source": {
+        "category": "Of Counsel",
+        "originalFilename": "Claus von Wobeser.png",
+        "relativePath": "Fotografías fondo blanco/2. Of Counsel/Fotografías en blanco y negro/Claus von Wobeser.png",
+        "fileId": "92353867418",
+        "width": 1417,
+        "height": 1890,
+        "bytes": 1380352,
+        "sha256": "7b878ed9193f99788deec2fe441323b74a90cd58bd0a5206fa7e7d0ee7fb1437"
+      }
+    },
+    {
+      "slug": "cynthia-osio",
+      "expectedName": "Cynthia Osio",
+      "role": "Associate",
+      "previousImageUrl": "/associate_photos/cynthia_osio.jpg",
+      "targetImageUrl": "/associate_photos/cynthia-osio-2026-white-bg.png",
+      "source": {
+        "category": "Associate",
+        "originalFilename": "Cynthia Osio.png",
+        "relativePath": "Fotografías fondo blanco/4. Asociados/Fotografías en blanco y negro/Cynthia Osio.png",
+        "fileId": "92353877598",
+        "width": 1417,
+        "height": 1890,
+        "bytes": 1506533,
+        "sha256": "a84538c69e132c3a77535a793f83d918287ac7804c9ee185133395245b99cfa7"
+      }
+    },
+    {
+      "slug": "daniel-araujo",
+      "expectedName": "Daniel Araujo",
+      "role": "Associate",
+      "previousImageUrl": "/associate_photos/daniel_araujo.jpg",
+      "targetImageUrl": "/associate_photos/daniel-araujo-2026-white-bg.png",
+      "source": {
+        "category": "Associate",
+        "originalFilename": "Daniel Araujo.png",
+        "relativePath": "Fotografías fondo blanco/4. Asociados/Fotografías en blanco y negro/Daniel Araujo.png",
+        "fileId": "92353877772",
+        "width": 1417,
+        "height": 1890,
+        "bytes": 2090697,
+        "sha256": "f92db13f9753b3d1aee478588fe913a9bbb53c205a9ee3b652254c097480e878"
+      }
+    },
+    {
+      "slug": "daniela-pons",
+      "expectedName": "Daniela Pons",
+      "role": "Associate",
+      "previousImageUrl": "/associate_photos/daniela_pons.jpg",
+      "targetImageUrl": "/associate_photos/daniela-pons-2026-white-bg.png",
+      "source": {
+        "category": "Associate",
+        "originalFilename": "Daniela Pons.png",
+        "relativePath": "Fotografías fondo blanco/4. Asociados/Fotografías en blanco y negro/Daniela Pons.png",
+        "fileId": "92353877944",
+        "width": 1417,
+        "height": 1890,
+        "bytes": 1555004,
+        "sha256": "5cad6f37c52af4b42c419ecec54c22be9331cde6c85ed21a03576f8fe577a4a1"
+      }
+    },
+    {
+      "slug": "dario-figueroa",
+      "expectedName": "Darío Figueroa",
+      "role": "Associate",
+      "previousImageUrl": "/associate_photos/dario_figueroa.jpg",
+      "targetImageUrl": "/associate_photos/dario-figueroa-2026-white-bg.png",
+      "source": {
+        "category": "Associate",
+        "originalFilename": "Darío Figueroa.png",
+        "relativePath": "Fotografías fondo blanco/4. Asociados/Fotografías en blanco y negro/Darío Figueroa.png",
+        "fileId": "92353878414",
+        "width": 1417,
+        "height": 1890,
+        "bytes": 1349962,
+        "sha256": "9d06d310a2c52b2009c028173cd81cc5751053b36b3d94b4fb81e4658d15927a"
+      }
+    },
+    {
+      "slug": "david-fainsod",
+      "expectedName": "David Fainsod",
+      "role": "Associate",
+      "previousImageUrl": "/associate_photos/david_fainsod.jpg",
+      "targetImageUrl": "/associate_photos/david-fainsod-2026-white-bg.png",
+      "source": {
+        "category": "Associate",
+        "originalFilename": "David Fainsod .png",
+        "relativePath": "Fotografías fondo blanco/4. Asociados/Fotografías en blanco y negro/David Fainsod .png",
+        "fileId": "92353878589",
+        "width": 1417,
+        "height": 1890,
+        "bytes": 1309078,
+        "sha256": "39f67937a10da7520c4dcc3f1c12e1ddf67b2f5593374246448b537613355dbd"
+      }
+    },
+    {
+      "slug": "deborah-luengo",
+      "expectedName": "Déborah Luengo",
+      "role": "Associate",
+      "previousImageUrl": "/associate_photos/deborah_luengo.jpg",
+      "targetImageUrl": "/associate_photos/deborah-luengo-2026-white-bg.png",
+      "source": {
+        "category": "Associate",
+        "originalFilename": "Deborah Luengo.png",
+        "relativePath": "Fotografías fondo blanco/4. Asociados/Fotografías en blanco y negro/Deborah Luengo.png",
+        "fileId": "92353879735",
+        "width": 1417,
+        "height": 1890,
+        "bytes": 1347259,
+        "sha256": "cc9633873a64ae67b076cb47619a4074096fd426fb6785df5ff918b503a3cef7"
+      }
+    },
+    {
+      "slug": "diego-altamirano",
+      "expectedName": "Diego Altamirano",
+      "role": "Associate",
+      "previousImageUrl": "/associate_photos/diego_altamirano.jpg",
+      "targetImageUrl": "/associate_photos/diego-altamirano-2026-white-bg.png",
+      "source": {
+        "category": "Associate",
+        "originalFilename": "Diego Altamirano.png",
+        "relativePath": "Fotografías fondo blanco/4. Asociados/Fotografías en blanco y negro/Diego Altamirano.png",
+        "fileId": "92353879953",
+        "width": 1417,
+        "height": 1890,
+        "bytes": 1515349,
+        "sha256": "19a8005ec9ad7099d9d0b067e16535824b718fb2febbce3745977ce8525169dd"
+      }
+    },
+    {
+      "slug": "diego-benitez",
+      "expectedName": "Diego Benítez",
+      "role": "Associate",
+      "previousImageUrl": "/associate_photos/diego_benitez.jpg",
+      "targetImageUrl": "/associate_photos/diego-benitez-2026-white-bg.png",
+      "source": {
+        "category": "Associate",
+        "originalFilename": "Diego Benítez.png",
+        "relativePath": "Fotografías fondo blanco/4. Asociados/Fotografías en blanco y negro/Diego Benítez.png",
+        "fileId": "92353880092",
+        "width": 1417,
+        "height": 1890,
+        "bytes": 1421830,
+        "sha256": "35a53ca5a5c50acd993e12835fb94e4eec0f5ab2deefbe12b1a5fac4449fe089"
+      }
+    },
+    {
+      "slug": "diego-lozada",
+      "expectedName": "Diego Lozada",
+      "role": "Associate",
+      "previousImageUrl": "/associate_photos/diego_lozada.jpg",
+      "targetImageUrl": "/associate_photos/diego-lozada-2026-white-bg.png",
+      "source": {
+        "category": "Associate",
+        "originalFilename": "Diego Lozada.png",
+        "relativePath": "Fotografías fondo blanco/4. Asociados/Fotografías en blanco y negro/Diego Lozada.png",
+        "fileId": "92353880469",
+        "width": 1417,
+        "height": 1890,
+        "bytes": 1480588,
+        "sha256": "5301a16a3762ab34c0d9b1a2fb9653d3814b7792d0d7ccff5261c8e87bc1bfa7"
+      }
+    },
+    {
+      "slug": "diego-sierra",
+      "expectedName": "Diego Sierra",
+      "role": "Partner",
+      "previousImageUrl": "/partner_photos/diego_sierra.jpg",
+      "targetImageUrl": "/partner_photos/diego-sierra-2026-white-bg.png",
+      "source": {
+        "category": "Partner",
+        "originalFilename": "7. Diego Sierra.png",
+        "relativePath": "Fotografías fondo blanco/1. Socios/Fotografías en blanco y negro/7. Diego Sierra.png",
+        "fileId": "92353866334",
+        "width": 1417,
+        "height": 1890,
+        "bytes": 1563647,
+        "sha256": "801bc7e754a485b06271d5f6edd3cf0a200a93a09da53bc23ce5e838fbb99646"
+      }
+    },
+    {
+      "slug": "dolores-jimenez",
+      "expectedName": "Dolores Jiménez",
+      "role": "Associate",
+      "previousImageUrl": "/associate_photos/dolores_jimenez.jpg",
+      "targetImageUrl": "/associate_photos/dolores-jimenez-2026-white-bg.png",
+      "source": {
+        "category": "Associate",
+        "originalFilename": "Dolores Jiménez.png",
+        "relativePath": "Fotografías fondo blanco/4. Asociados/Fotografías en blanco y negro/Dolores Jiménez.png",
+        "fileId": "92353880635",
+        "width": 1417,
+        "height": 1890,
+        "bytes": 1225692,
+        "sha256": "99f26061f2f741dcb09b5e0ceb1f90b7893e7c63f120f64b55793dfff84a81bd"
+      }
+    },
+    {
+      "slug": "edmond-grieger",
+      "expectedName": "Edmond Frederic Grieger",
+      "role": "Partner",
+      "previousImageUrl": "/partner_photos/edmond_grieger.jpg",
+      "targetImageUrl": "/partner_photos/edmond-grieger-2026-white-bg.png",
+      "source": {
+        "category": "Partner",
+        "originalFilename": "5.2. Edmond Grieger (para eventos).png",
+        "relativePath": "Fotografías fondo blanco/1. Socios/Fotografías en blanco y negro/5.2. Edmond Grieger (para eventos).png",
+        "fileId": "92353865521",
+        "width": 2550,
+        "height": 3300,
+        "bytes": 3552618,
+        "sha256": "8a0b53c5e6a0ec184d457a1dc95e3d0733be78dacf671726f6fd1ee9dc9bd945"
+      }
+    },
+    {
+      "slug": "edmund-duckwitz",
+      "expectedName": "Edmund Duckwitz",
+      "role": "Of Counsel",
+      "previousImageUrl": "/images/consejeros/Fotos/Edmund_cons.JPG",
+      "targetImageUrl": "/of_counsel_photos/edmund-duckwitz-2026-white-bg.png",
+      "source": {
+        "category": "Of Counsel",
+        "originalFilename": "Edmund Duckwitz.png",
+        "relativePath": "Fotografías fondo blanco/2. Of Counsel/Fotografías en blanco y negro/Edmund Duckwitz.png",
+        "fileId": "92353867535",
+        "width": 1417,
+        "height": 1890,
+        "bytes": 1566723,
+        "sha256": "7fe8d519c8648b2b8e88537f569e30d61b53b208f95814254014d30a94acc34d"
+      }
+    },
+    {
+      "slug": "edmundo-berumen",
+      "expectedName": "Edmundo Berumen",
+      "role": "Associate",
+      "previousImageUrl": "/associate_photos/edmundo_berumen.jpg",
+      "targetImageUrl": "/associate_photos/edmundo-berumen-2026-white-bg.png",
+      "source": {
+        "category": "Associate",
+        "originalFilename": "Edmundo Berumen.png",
+        "relativePath": "Fotografías fondo blanco/4. Asociados/Fotografías en blanco y negro/Edmundo Berumen.png",
+        "fileId": "92353880937",
+        "width": 1417,
+        "height": 1890,
+        "bytes": 1258979,
+        "sha256": "20dee45009b1eb912bb13f91cdcab1ff7ee0d40af6f9d906ecf907ffeb22102c"
+      }
+    },
+    {
+      "slug": "eduardo-estrada",
+      "expectedName": "Eduardo Estrada",
+      "role": "Associate",
+      "previousImageUrl": "/associate_photos/eduardo_estrada.jpg",
+      "targetImageUrl": "/associate_photos/eduardo-estrada-2026-white-bg.png",
+      "source": {
+        "category": "Associate",
+        "originalFilename": "Eduardo Estrada.png",
+        "relativePath": "Fotografías fondo blanco/4. Asociados/Fotografías en blanco y negro/Eduardo Estrada.png",
+        "fileId": "92353881050",
+        "width": 1417,
+        "height": 1890,
+        "bytes": 1485931,
+        "sha256": "8b0eba4e8d202b86776c752f88014697431d22bebd3c4b79bb1ac2902cabb0d9"
+      }
+    },
+    {
+      "slug": "efren-sanchez",
+      "expectedName": "Efrén Sánchez",
+      "role": "Associate",
+      "previousImageUrl": "/associate_photos/efren_sanchez.jpg",
+      "targetImageUrl": "/associate_photos/efren-sanchez-2026-white-bg.png",
+      "source": {
+        "category": "Associate",
+        "originalFilename": "Efrén Sánchez.png",
+        "relativePath": "Fotografías fondo blanco/4. Asociados/Fotografías en blanco y negro/Efrén Sánchez.png",
+        "fileId": "92353881382",
+        "width": 1417,
+        "height": 1890,
+        "bytes": 1573275,
+        "sha256": "81bdbdc79ba24ab8164f7c07b8f467826f413c4c4c32ba570d2843b32d4611a5"
+      }
+    },
+    {
+      "slug": "eliana-gonzalez",
+      "expectedName": "Eliana González",
+      "role": "Associate",
+      "previousImageUrl": "/associate_photos/eliana_gonzalez.jpg",
+      "targetImageUrl": "/associate_photos/eliana-gonzalez-2026-white-bg.png",
+      "source": {
+        "category": "Associate",
+        "originalFilename": "Eliana González.png",
+        "relativePath": "Fotografías fondo blanco/4. Asociados/Fotografías en blanco y negro/Eliana González.png",
+        "fileId": "92353881496",
+        "width": 1417,
+        "height": 1890,
+        "bytes": 1427736,
+        "sha256": "08c58f8ee35ea4055d773fa66c662ae97f421e5959ad5ca50e6cfb6a86a26a94"
+      }
+    },
+    {
+      "slug": "elias-jalife",
+      "expectedName": "Elías Jalife",
+      "role": "Associate",
+      "previousImageUrl": "/associate_photos/elias_jalife.jpg",
+      "targetImageUrl": "/associate_photos/elias-jalife-2026-white-bg.png",
+      "source": {
+        "category": "Associate",
+        "originalFilename": "Elías Jalife.png",
+        "relativePath": "Fotografías fondo blanco/4. Asociados/Fotografías en blanco y negro/Elías Jalife.png",
+        "fileId": "92353881642",
+        "width": 1417,
+        "height": 1890,
+        "bytes": 1667670,
+        "sha256": "8c4024ed3ec9b27d16a2dd765904e3a4488e27eb08e9a0b7a7d8ff4f967fb3c6"
+      }
+    },
+    {
+      "slug": "enrique-riquelme",
+      "expectedName": "Enrique Riquelme",
+      "role": "Counsel",
+      "previousImageUrl": "/images/asociados/Nuevos_socios_19/EnriqueRiquelme_HiRes.png",
+      "targetImageUrl": "/counsel_photos/enrique-riquelme-2026-white-bg.png",
+      "source": {
+        "category": "Counsel",
+        "originalFilename": "Enrique Riquelme.png",
+        "relativePath": "Fotografías fondo blanco/3. Consejeros (counsel)/Fotografías en blanco y negro/Enrique Riquelme.png",
+        "fileId": "92353869565",
+        "width": 1417,
+        "height": 1890,
+        "bytes": 1343959,
+        "sha256": "7abdae22608f90b25cf4bbf475b2058f99589feb57507b7e5302253b7932cde4"
+      }
+    },
+    {
+      "slug": "eric-palacios",
+      "expectedName": "Eric Palacios",
+      "role": "Counsel",
+      "previousImageUrl": "/images/Eric-Palacios.jpg",
+      "targetImageUrl": "/counsel_photos/eric-palacios-2026-white-bg.png",
+      "source": {
+        "category": "Counsel",
+        "originalFilename": "Eric Palacios.png",
+        "relativePath": "Fotografías fondo blanco/3. Consejeros (counsel)/Fotografías en blanco y negro/Eric Palacios.png",
+        "fileId": "92353869754",
+        "width": 1417,
+        "height": 1890,
+        "bytes": 1587043,
+        "sha256": "3e907ff263df335de652533223463027d0a69e3c0d8d701237762992e71f3891"
+      }
+    },
+    {
+      "slug": "ernesto-palomares",
+      "expectedName": "Ernesto Palomares",
+      "role": "Associate",
+      "previousImageUrl": "/associate_photos/ernesto_palomares.jpg",
+      "targetImageUrl": "/associate_photos/ernesto-palomares-2026-white-bg.png",
+      "source": {
+        "category": "Associate",
+        "originalFilename": "Ernesto Palomares.png",
+        "relativePath": "Fotografías fondo blanco/4. Asociados/Fotografías en blanco y negro/Ernesto Palomares.png",
+        "fileId": "92353882036",
+        "width": 1417,
+        "height": 1890,
+        "bytes": 1697955,
+        "sha256": "df0c2069a1e653e5ef690544cf374f3e43149271c50233405520cdc913dcd5b0"
+      }
+    },
+    {
+      "slug": "eugenio-chinchillas",
+      "expectedName": "Eugenio Chinchillas",
+      "role": "Associate",
+      "previousImageUrl": "/associate_photos/eugenio_chinchillas.jpg",
+      "targetImageUrl": "/associate_photos/eugenio-chinchillas-2026-white-bg.png",
+      "source": {
+        "category": "Associate",
+        "originalFilename": "Eugenio Chinchillas.png",
+        "relativePath": "Fotografías fondo blanco/4. Asociados/Fotografías en blanco y negro/Eugenio Chinchillas.png",
+        "fileId": "92353882331",
+        "width": 1417,
+        "height": 1890,
+        "bytes": 1313447,
+        "sha256": "0fac7b627d7c5ad31664d871ace8a2ebab0478ae1e0421e0306c5034a734a7db"
+      }
+    },
+    {
+      "slug": "fernando-carreno",
+      "expectedName": "Fernando Carreño",
+      "role": "Partner",
+      "previousImageUrl": "/partner_photos/fernando_carreno.jpg",
+      "targetImageUrl": "/partner_photos/fernando-carreno-2026-white-bg.png",
+      "source": {
+        "category": "Partner",
+        "originalFilename": "4. Fernando Carreño.png",
+        "relativePath": "Fotografías fondo blanco/1. Socios/Fotografías en blanco y negro/4. Fernando Carreño.png",
+        "fileId": "92353863404",
+        "width": 1417,
+        "height": 1890,
+        "bytes": 2856794,
+        "sha256": "b6a61aefa29d16b33fa4c57df55d5e970eea7e87ec693059be8c0158a5a7136c"
+      }
+    },
+    {
+      "slug": "fernando-mancilla",
+      "expectedName": "Fernando Mancilla",
+      "role": "Associate",
+      "previousImageUrl": "/associate_photos/fernando_mancilla.jpg",
+      "targetImageUrl": "/associate_photos/fernando-mancilla-2026-white-bg.png",
+      "source": {
+        "category": "Associate",
+        "originalFilename": "Fernando Mancilla.png",
+        "relativePath": "Fotografías fondo blanco/4. Asociados/Fotografías en blanco y negro/Fernando Mancilla.png",
+        "fileId": "92353882464",
+        "width": 1417,
+        "height": 1890,
+        "bytes": 1640583,
+        "sha256": "18b8026c74ba7c3d0dafa5f96151b884d7c140000120337abbeab168a1f3dea0"
+      }
+    },
+    {
+      "slug": "fernando-moreno",
+      "expectedName": "Fernando Moreno",
+      "role": "Of Counsel",
+      "previousImageUrl": "/images/Socios/Fotos_socios/03-Fernando-Moreno.jpg",
+      "targetImageUrl": "/of_counsel_photos/fernando-moreno-2026-white-bg.png",
+      "source": {
+        "category": "Of Counsel",
+        "originalFilename": "Fernando Moreno.png",
+        "relativePath": "Fotografías fondo blanco/2. Of Counsel/Fotografías en blanco y negro/Fernando Moreno.png",
+        "fileId": "92353867800",
+        "width": 1417,
+        "height": 1890,
+        "bytes": 1973192,
+        "sha256": "9eb1573d9e12eb61d0ffffe82bb7af1dcfaa1dd90e9760e6973a2cf64221cace"
+      }
+    },
+    {
+      "slug": "gabriela-mancha",
+      "expectedName": "Gabriela Mancha",
+      "role": "Associate",
+      "previousImageUrl": "/images/Gabriela-Mancha.jpg",
+      "targetImageUrl": "/associate_photos/gabriela-mancha-2026-white-bg.png",
+      "source": {
+        "category": "Associate",
+        "originalFilename": "Gabriela Mancha.png",
+        "relativePath": "Fotografías fondo blanco/4. Asociados/Fotografías en blanco y negro/Gabriela Mancha.png",
+        "fileId": "92353882982",
+        "width": 1417,
+        "height": 1890,
+        "bytes": 1227091,
+        "sha256": "0ecd2c30c4912a95170625a180b6c528d31d6c459a3d0d688fa543c6c760a159"
+      }
+    },
+    {
+      "slug": "gabriela-negrete",
+      "expectedName": "Gabriela Negrete",
+      "role": "Associate",
+      "previousImageUrl": "/associate_photos/gabriela_negrete.jpg",
+      "targetImageUrl": "/associate_photos/gabriela-negrete-2026-white-bg.png",
+      "source": {
+        "category": "Associate",
+        "originalFilename": "Gabriela Negrete.png",
+        "relativePath": "Fotografías fondo blanco/4. Asociados/Fotografías en blanco y negro/Gabriela Negrete.png",
+        "fileId": "92353883150",
+        "width": 1417,
+        "height": 1890,
+        "bytes": 1565523,
+        "sha256": "49b868df30a8520c3c9eae7db45e31f7ef64c4e932dfcbd6d04d60262b803b3f"
+      }
+    },
+    {
+      "slug": "gabriela-zambrano",
+      "expectedName": "Gabriela Zambrano",
+      "role": "Associate",
+      "previousImageUrl": "/images/PHOTO-2026-06-02-08-42-18.jpg",
+      "targetImageUrl": "/associate_photos/gabriela-zambrano-2026-white-bg.png",
+      "source": {
+        "category": "Associate",
+        "originalFilename": "Gabriela Zambrano.png",
+        "relativePath": "Fotografías fondo blanco/4. Asociados/Fotografías en blanco y negro/Gabriela Zambrano.png",
+        "fileId": "92353883268",
+        "width": 1417,
+        "height": 1890,
+        "bytes": 1701669,
+        "sha256": "006c7762f004b11572c9a04ee46076c6a71f69d61ad22cda4910bfd903d32e3b"
+      }
+    },
+    {
+      "slug": "gaston-hinojosa",
+      "expectedName": "Gastón Hinojosa",
+      "role": "Associate",
+      "previousImageUrl": "/associate_photos/gaston_hinojosa.jpg",
+      "targetImageUrl": "/associate_photos/gaston-hinojosa-2026-white-bg.png",
+      "source": {
+        "category": "Associate",
+        "originalFilename": "Gastón Hinojosa.png",
+        "relativePath": "Fotografías fondo blanco/4. Asociados/Fotografías en blanco y negro/Gastón Hinojosa.png",
+        "fileId": "92353883405",
+        "width": 1417,
+        "height": 1890,
+        "bytes": 1596961,
+        "sha256": "f4e1cdfc7c8beb860a2d9f832a481ef45b99ee5bd56b21051d3c3d15678aa5e1"
+      }
+    },
+    {
+      "slug": "gloria-martinez",
+      "expectedName": "Gloria Martínez",
+      "role": "Counsel",
+      "previousImageUrl": "/images/asociados/Fotos/GloriaMartinez_HiRes_BW.jpg",
+      "targetImageUrl": "/counsel_photos/gloria-martinez-2026-white-bg.png",
+      "source": {
+        "category": "Counsel",
+        "originalFilename": "Gloria Martínez.png",
+        "relativePath": "Fotografías fondo blanco/3. Consejeros (counsel)/Fotografías en blanco y negro/Gloria Martínez.png",
+        "fileId": "92353870004",
+        "width": 1417,
+        "height": 1890,
+        "bytes": 1375908,
+        "sha256": "78f42159d79962c5340db54b6dc2b4a86089b7d2fd51a318f7e6509089f8cc8f"
+      }
+    },
+    {
+      "slug": "guillermo-i-ortiz-mayagoitia",
+      "expectedName": "Guillermo I. Ortiz Mayagoitia",
+      "role": "Of Counsel",
+      "previousImageUrl": "/images/consejeros/Fotos/Guillermo_cons.jpg",
+      "targetImageUrl": "/of_counsel_photos/guillermo-i-ortiz-mayagoitia-2026-white-bg.png",
+      "source": {
+        "category": "Of Counsel",
+        "originalFilename": "Guillermo I. Ortiz Mayagoitia.png",
+        "relativePath": "Fotografías fondo blanco/2. Of Counsel/Fotografías en blanco y negro/Guillermo I. Ortiz Mayagoitia.png",
+        "fileId": "92353867962",
+        "width": 1417,
+        "height": 1890,
+        "bytes": 2025967,
+        "sha256": "6233f472902418bb3901b762a79d3a7a6f1209dd57c7939b05c352fc65d41d49"
+      }
+    },
+    {
+      "slug": "gustavo-padilla",
+      "expectedName": "Gustavo Padilla",
+      "role": "Associate",
+      "previousImageUrl": "/associate_photos/gustavo_padilla.jpg",
+      "targetImageUrl": "/associate_photos/gustavo-padilla-2026-white-bg.png",
+      "source": {
+        "category": "Associate",
+        "originalFilename": "Gustavo Padilla.png",
+        "relativePath": "Fotografías fondo blanco/4. Asociados/Fotografías en blanco y negro/Gustavo Padilla.png",
+        "fileId": "92353883567",
+        "width": 1417,
+        "height": 1890,
+        "bytes": 1638070,
+        "sha256": "eeb100f68979e222b00e4b3386578d52b2d62398fa0aed95905494230d0e0eb4"
+      }
+    },
+    {
+      "slug": "gustavo-vaca",
+      "expectedName": "Gustavo Vaca",
+      "role": "Associate",
+      "previousImageUrl": "/associate_photos/gustavo_vaca.jpg",
+      "targetImageUrl": "/associate_photos/gustavo-vaca-2026-white-bg.png",
+      "source": {
+        "category": "Associate",
+        "originalFilename": "Gustavo Vaca.png",
+        "relativePath": "Fotografías fondo blanco/4. Asociados/Fotografías en blanco y negro/Gustavo Vaca.png",
+        "fileId": "92353883776",
+        "width": 1417,
+        "height": 1890,
+        "bytes": 1833264,
+        "sha256": "f5c07839fa2e5f7785b23a1d923c2004694cf2def65f2723b1a230f43a3a26b0"
+      }
+    },
+    {
+      "slug": "hector-sanchez",
+      "expectedName": "Héctor Sánchez",
+      "role": "Associate",
+      "previousImageUrl": "/associate_photos/hector_sanchez.jpg",
+      "targetImageUrl": "/associate_photos/hector-sanchez-2026-white-bg.png",
+      "source": {
+        "category": "Associate",
+        "originalFilename": "Héctor Sánchez.png",
+        "relativePath": "Fotografías fondo blanco/4. Asociados/Fotografías en blanco y negro/Héctor Sánchez.png",
+        "fileId": "92353884150",
+        "width": 1417,
+        "height": 1890,
+        "bytes": 2077976,
+        "sha256": "e0ce11e4fa3996bbcfc738f3de9effdc409f658c41d67cc77cff31fa01c0c17f"
+      }
+    },
+    {
+      "slug": "ileana-pantiga",
+      "expectedName": "Ileana Pantiga",
+      "role": "Associate",
+      "previousImageUrl": "/associate_photos/ileana_pantiga.jpg",
+      "targetImageUrl": "/associate_photos/ileana-pantiga-2026-white-bg.png",
+      "source": {
+        "category": "Associate",
+        "originalFilename": "Ileana Pantiga.png",
+        "relativePath": "Fotografías fondo blanco/4. Asociados/Fotografías en blanco y negro/Ileana Pantiga.png",
+        "fileId": "92353884324",
+        "width": 1417,
+        "height": 1890,
+        "bytes": 1406503,
+        "sha256": "6a7ed978d9840cda7c2cf7fbebfdd4fbb7c3b25eb322cfffd0237b8df3ecd8d5"
+      }
+    },
+    {
+      "slug": "jaime-ostos",
+      "expectedName": "Jaime Ostos",
+      "role": "Counsel",
+      "previousImageUrl": "/images/asociados/Nuevos_socios_19/JaimeOstos_Feb2021.jpg",
+      "targetImageUrl": "/counsel_photos/jaime-ostos-2026-white-bg.png",
+      "source": {
+        "category": "Counsel",
+        "originalFilename": "Jaime Ostos.png",
+        "relativePath": "Fotografías fondo blanco/3. Consejeros (counsel)/Fotografías en blanco y negro/Jaime Ostos.png",
+        "fileId": "92353870189",
+        "width": 1417,
+        "height": 1890,
+        "bytes": 1702222,
+        "sha256": "d57e7687feba4f04baa2194a51069239ca68e77c5df95f308d3e089746a73fc2"
+      }
+    },
+    {
+      "slug": "javier-betancourt",
+      "expectedName": "Javier Betancourt",
+      "role": "Partner",
+      "previousImageUrl": "/partner_photos/javier_betancourt.jpg",
+      "targetImageUrl": "/partner_photos/javier-betancourt-2026-white-bg.png",
+      "source": {
+        "category": "Partner",
+        "originalFilename": "21. Javier Betancourt.png",
+        "relativePath": "Fotografías fondo blanco/1. Socios/Fotografías en blanco y negro/21. Javier Betancourt.png",
+        "fileId": "92353860744",
+        "width": 1417,
+        "height": 1890,
+        "bytes": 2016512,
+        "sha256": "662a94e4d14d918ecc0ec3249aca1fcd9666576519c8113f8047dcfa47ec305e"
+      }
+    },
+    {
+      "slug": "javier-lizardi",
+      "expectedName": "Javier Lizardi",
+      "role": "Of Counsel",
+      "previousImageUrl": "/images/Socios/Fotos_socios/02-Javier-Lizardi.jpg",
+      "targetImageUrl": "/of_counsel_photos/javier-lizardi-2026-white-bg.png",
+      "source": {
+        "category": "Of Counsel",
+        "originalFilename": "Javier Lizardi.png",
+        "relativePath": "Fotografías fondo blanco/2. Of Counsel/Fotografías en blanco y negro/Javier Lizardi.png",
+        "fileId": "92353868052",
+        "width": 1417,
+        "height": 1890,
+        "bytes": 1429098,
+        "sha256": "fb23192ea9991c8b85ac893ba4a457d6388aef0d34da5fba10ca62d5f50faa4b"
+      }
+    },
+    {
+      "slug": "jessika-rocha",
+      "expectedName": "Jessika Rocha",
+      "role": "Partner",
+      "previousImageUrl": "/partner_photos/jessika_rocha.jpg",
+      "targetImageUrl": "/partner_photos/jessika-rocha-2026-white-bg.png",
+      "source": {
+        "category": "Partner",
+        "originalFilename": "15. Jessika Rocha.png",
+        "relativePath": "Fotografías fondo blanco/1. Socios/Fotografías en blanco y negro/15. Jessika Rocha.png",
+        "fileId": "92353858291",
+        "width": 1417,
+        "height": 1890,
+        "bytes": 1429415,
+        "sha256": "2c64a684964f521b30a472a5c8b0c4280d8bfdcd4af3638fb01f9ee9852f0024"
+      }
+    },
+    {
+      "slug": "joel-dominguez",
+      "expectedName": "Joel Domínguez",
+      "role": "Associate",
+      "previousImageUrl": "/associate_photos/joel_dominguez.jpg",
+      "targetImageUrl": "/associate_photos/joel-dominguez-2026-white-bg.png",
+      "source": {
+        "category": "Associate",
+        "originalFilename": "Joel Domínguez.png",
+        "relativePath": "Fotografías fondo blanco/4. Asociados/Fotografías en blanco y negro/Joel Domínguez.png",
+        "fileId": "92353884974",
+        "width": 1417,
+        "height": 1890,
+        "bytes": 1517537,
+        "sha256": "9d2e0a199b99365a39ff75173578ae75b10b7fb0105fda91909bbe897798de33"
+      }
+    },
+    {
+      "slug": "jorge-vazquez",
+      "expectedName": "Jorge Vázquez",
+      "role": "Associate",
+      "previousImageUrl": "/associate_photos/jorge_vazquez.jpg",
+      "targetImageUrl": "/associate_photos/jorge-vazquez-2026-white-bg.png",
+      "source": {
+        "category": "Associate",
+        "originalFilename": "Jorge Vázquez.png",
+        "relativePath": "Fotografías fondo blanco/4. Asociados/Fotografías en blanco y negro/Jorge Vázquez.png",
+        "fileId": "92353885066",
+        "width": 470,
+        "height": 627,
+        "bytes": 133234,
+        "sha256": "f15b41fbf51e45be590a9c567b4fec9181fe42c6f195d3a532e4cc66c6fd4001"
+      }
+    },
+    {
+      "slug": "jose-antonio-gomez",
+      "expectedName": "José Antonio Gómez",
+      "role": "Associate",
+      "previousImageUrl": "/associate_photos/jose_antonio_gomez.jpg",
+      "targetImageUrl": "/associate_photos/jose-antonio-gomez-2026-white-bg.png",
+      "source": {
+        "category": "Associate",
+        "originalFilename": "José Antonio Gómez.png",
+        "relativePath": "Fotografías fondo blanco/4. Asociados/Fotografías en blanco y negro/José Antonio Gómez.png",
+        "fileId": "92353885451",
+        "width": 768,
+        "height": 1024,
+        "bytes": 444944,
+        "sha256": "69c007cd01310f796fb9734b30bcbd8e91c6f1684972aa28b2e3000fed79c559"
+      }
+    },
+    {
+      "slug": "jose-carlos-aguilar",
+      "expectedName": "Jose Carlos Aguilar",
+      "role": "Associate",
+      "previousImageUrl": "/associate_photos/jose_carlos_aguilar.jpg",
+      "targetImageUrl": "/associate_photos/jose-carlos-aguilar-2026-white-bg.png",
+      "source": {
+        "category": "Associate",
+        "originalFilename": "José Carlos Aguilar.png",
+        "relativePath": "Fotografías fondo blanco/4. Asociados/Fotografías en blanco y negro/José Carlos Aguilar.png",
+        "fileId": "92353885669",
+        "width": 1417,
+        "height": 1890,
+        "bytes": 1464977,
+        "sha256": "ec34ab88ff1249816e0d11bdf8d8a76eccc032f9e3f98be7299b8d38bb26f788"
+      }
+    },
+    {
+      "slug": "jose-luis-ortega",
+      "expectedName": "Jose Luis Ortega",
+      "role": "Associate",
+      "previousImageUrl": "/associate_photos/jose_luis_ortega.jpg",
+      "targetImageUrl": "/associate_photos/jose-luis-ortega-2026-white-bg.png",
+      "source": {
+        "category": "Associate",
+        "originalFilename": "José Luis Ortega.png",
+        "relativePath": "Fotografías fondo blanco/4. Asociados/Fotografías en blanco y negro/José Luis Ortega.png",
+        "fileId": "92353885771",
+        "width": 470,
+        "height": 627,
+        "bytes": 171021,
+        "sha256": "524226746af2944462c290b702cc4c9a281e9d621234d633160f88b541e0a88a"
+      }
+    },
+    {
+      "slug": "juan-francisco-barrera",
+      "expectedName": "Juan Francisco Barrera",
+      "role": "Associate",
+      "previousImageUrl": "/associate_photos/juan_francisco_barrera.jpg",
+      "targetImageUrl": "/associate_photos/juan-francisco-barrera-2026-white-bg.png",
+      "source": {
+        "category": "Associate",
+        "originalFilename": "Juan Francisco Barrera.png",
+        "relativePath": "Fotografías fondo blanco/4. Asociados/Fotografías en blanco y negro/Juan Francisco Barrera.png",
+        "fileId": "92353885905",
+        "width": 1417,
+        "height": 1890,
+        "bytes": 1515309,
+        "sha256": "f4f03e37e32f3e8dbff0107a2cbb7c336fd9a8b82fcbd94aa001cbca637ef6c5"
+      }
+    },
+    {
+      "slug": "juan-manuel-moran",
+      "expectedName": "Juan Manuel Moran",
+      "role": "Associate",
+      "previousImageUrl": "/associate_photos/juan_manuel_moran.jpg",
+      "targetImageUrl": "/associate_photos/juan-manuel-moran-2026-white-bg.png",
+      "source": {
+        "category": "Associate",
+        "originalFilename": "Juan Manuel Morán.png",
+        "relativePath": "Fotografías fondo blanco/4. Asociados/Fotografías en blanco y negro/Juan Manuel Morán.png",
+        "fileId": "92353886122",
+        "width": 1417,
+        "height": 1890,
+        "bytes": 1559178,
+        "sha256": "cd23a98934c251b45b8645e3b40d7ddec9d976fc38b6800e22ab7979dfc24b86"
+      }
+    },
+    {
+      "slug": "julian-luna",
+      "expectedName": "Julián Luna",
+      "role": "Associate",
+      "previousImageUrl": "/images/Julian-Luna.jpg",
+      "targetImageUrl": "/associate_photos/julian-luna-2026-white-bg.png",
+      "source": {
+        "category": "Associate",
+        "originalFilename": "Julián Luna.png",
+        "relativePath": "Fotografías fondo blanco/4. Asociados/Fotografías en blanco y negro/Julián Luna.png",
+        "fileId": "92353886609",
+        "width": 1417,
+        "height": 1890,
+        "bytes": 1866702,
+        "sha256": "23ece080f081f1728dc7462a370f9b5f3866edae8b9755c9a32964d9dd666855"
+      }
+    },
+    {
+      "slug": "julieta-bejar",
+      "expectedName": "Julieta Béjar",
+      "role": "Associate",
+      "previousImageUrl": "/associate_photos/julieta_bejar.jpg",
+      "targetImageUrl": "/associate_photos/julieta-bejar-2026-white-bg.png",
+      "source": {
+        "category": "Associate",
+        "originalFilename": "Julieta Bejar.png",
+        "relativePath": "Fotografías fondo blanco/4. Asociados/Fotografías en blanco y negro/Julieta Bejar.png",
+        "fileId": "92353886376",
+        "width": 768,
+        "height": 1024,
+        "bytes": 446670,
+        "sha256": "a8359a04ef91fe6b1c71b4e4cc97f004c6b4080b52f18deef826a1b7149ba37d"
+      }
+    },
+    {
+      "slug": "katharina-roehr",
+      "expectedName": "Katharina Roehr",
+      "role": "Partner",
+      "previousImageUrl": "/partner_photos/katharina_roehr.jpg",
+      "targetImageUrl": "/partner_photos/katharina-roehr-2026-white-bg.png",
+      "source": {
+        "category": "Partner",
+        "originalFilename": "18. Katharina Roehr.png",
+        "relativePath": "Fotografías fondo blanco/1. Socios/Fotografías en blanco y negro/18. Katharina Roehr.png",
+        "fileId": "92353859371",
+        "width": 1417,
+        "height": 1890,
+        "bytes": 1408141,
+        "sha256": "121e4797b47a2f95f46e403633a48988a2a9afe87ce6f7923ff8f482a5c6cfdd"
+      }
+    },
+    {
+      "slug": "laura-maldonado",
+      "expectedName": "Laura Maldonado",
+      "role": "Associate",
+      "previousImageUrl": "/associate_photos/laura_maldonado.jpg",
+      "targetImageUrl": "/associate_photos/laura-maldonado-2026-white-bg.png",
+      "source": {
+        "category": "Associate",
+        "originalFilename": "Laura Maldonado.png",
+        "relativePath": "Fotografías fondo blanco/4. Asociados/Fotografías en blanco y negro/Laura Maldonado.png",
+        "fileId": "92353886782",
+        "width": 1417,
+        "height": 1890,
+        "bytes": 1117538,
+        "sha256": "6345a7136eb242a2cdcbdf62d8894f07f577b39199e83d39666190a189d93ff6"
+      }
+    },
+    {
+      "slug": "libna-macias",
+      "expectedName": "Libna Macías",
+      "role": "Associate",
+      "previousImageUrl": "/associate_photos/libna_macias.jpg",
+      "targetImageUrl": "/associate_photos/libna-macias-2026-white-bg.png",
+      "source": {
+        "category": "Associate",
+        "originalFilename": "Libna Macías.png",
+        "relativePath": "Fotografías fondo blanco/4. Asociados/Fotografías en blanco y negro/Libna Macías.png",
+        "fileId": "92353886871",
+        "width": 470,
+        "height": 627,
+        "bytes": 207574,
+        "sha256": "ab592491905286a570857f602d8f55fcd8bdf384662a7bc8a861b07f8bd5b386"
+      }
+    },
+    {
+      "slug": "liliana-perez",
+      "expectedName": "Liliana Pérez",
+      "role": "Associate",
+      "previousImageUrl": "/associate_photos/liliana_perez.jpg",
+      "targetImageUrl": "/associate_photos/liliana-perez-2026-white-bg.png",
+      "source": {
+        "category": "Associate",
+        "originalFilename": "Liliana Perez.png",
+        "relativePath": "Fotografías fondo blanco/4. Asociados/Fotografías en blanco y negro/Liliana Perez.png",
+        "fileId": "92353887027",
+        "width": 1417,
+        "height": 1890,
+        "bytes": 1313646,
+        "sha256": "c16b6e28fcc3fa49631d0c6ed1eda88aa4beab28b4aa4c3399315dff79f2ea5f"
+      }
+    },
+    {
+      "slug": "lourdes-salazar-y-vera",
+      "expectedName": "Lourdes Salazar y Vera",
+      "role": "Counsel",
+      "previousImageUrl": "/images/asociados/Fotos/Lourdes_Salazar-.jpg",
+      "targetImageUrl": "/counsel_photos/lourdes-salazar-y-vera-2026-white-bg.png",
+      "source": {
+        "category": "Counsel",
+        "originalFilename": "Lourdes Salazar y Vera.png",
+        "relativePath": "Fotografías fondo blanco/3. Consejeros (counsel)/Fotografías en blanco y negro/Lourdes Salazar y Vera.png",
+        "fileId": "92353870334",
+        "width": 1080,
+        "height": 1080,
+        "bytes": 868081,
+        "sha256": "7c44b73ae41be3580ccd203041a430296b47f1255ab2cd7d66712b74cba5eb5e"
+      }
+    },
+    {
+      "slug": "luis-burgueno",
+      "expectedName": "Luis Burgueño",
+      "role": "Partner",
+      "previousImageUrl": "/partner_photos/luis_burgueno.jpg",
+      "targetImageUrl": "/partner_photos/luis-burgueno-2026-white-bg.png",
+      "source": {
+        "category": "Partner",
+        "originalFilename": "1. Luis Burgueño.png",
+        "relativePath": "Fotografías fondo blanco/1. Socios/Fotografías en blanco y negro/1. Luis Burgueño.png",
+        "fileId": "92353855661",
+        "width": 1417,
+        "height": 1890,
+        "bytes": 1714364,
+        "sha256": "d14617d4cd822aedb64fab7730c7b21524196e2f39efb570289c796c06e17248"
+      }
+    },
+    {
+      "slug": "luis-enrique-torres",
+      "expectedName": "Luis Enrique Torres",
+      "role": "Partner",
+      "previousImageUrl": "/images/consejeros/LuisTorres_HiRes_BW.jpg",
+      "targetImageUrl": "/partner_photos/luis-enrique-torres-2026-white-bg.png",
+      "source": {
+        "category": "Partner",
+        "originalFilename": "25. Luis Enrique Torres.png",
+        "relativePath": "Fotografías fondo blanco/1. Socios/Fotografías en blanco y negro/25. Luis Enrique Torres.png",
+        "fileId": "92353862618",
+        "width": 1417,
+        "height": 1890,
+        "bytes": 1752378,
+        "sha256": "dfd65648eccc6a2a695c6152f2f1cb441ab60ae8ce95924c7befa05868637f27"
+      }
+    },
+    {
+      "slug": "luis-miguel-jimenez",
+      "expectedName": "Luis Miguel Jiménez",
+      "role": "Partner",
+      "previousImageUrl": "/partner_photos/luis_miguel_jimenez.png",
+      "targetImageUrl": "/partner_photos/luis-miguel-jimenez-2026-white-bg.png",
+      "source": {
+        "category": "Partner",
+        "originalFilename": "2. Luis Miguel Jiménez.png",
+        "relativePath": "Fotografías fondo blanco/1. Socios/Fotografías en blanco y negro/2. Luis Miguel Jiménez.png",
+        "fileId": "92353859978",
+        "width": 1417,
+        "height": 1890,
+        "bytes": 1806731,
+        "sha256": "8f03bdbb16daae8639f029d6a0070ae3c9f5efa7e525a6d4d279b1f7928ec792"
+      }
+    },
+    {
+      "slug": "manuel-martinez",
+      "expectedName": "Manuel Martínez",
+      "role": "Counsel",
+      "previousImageUrl": "/images/asociados/Manuel-Martinez.jpg",
+      "targetImageUrl": "/counsel_photos/manuel-martinez-2026-white-bg.png",
+      "source": {
+        "category": "Counsel",
+        "originalFilename": "Manuel Martínez.png",
+        "relativePath": "Fotografías fondo blanco/3. Consejeros (counsel)/Fotografías en blanco y negro/Manuel Martínez.png",
+        "fileId": "92353870661",
+        "width": 1417,
+        "height": 1890,
+        "bytes": 1450014,
+        "sha256": "44f035e2c7824262bd677666a2743c849e192799119cb438fba0950d9e5063fc"
+      }
+    },
+    {
+      "slug": "marcela-calderon",
+      "expectedName": "Marcela Calderón",
+      "role": "Counsel",
+      "previousImageUrl": "/images/Marcela-Calderon.jpg",
+      "targetImageUrl": "/counsel_photos/marcela-calderon-2026-white-bg.png",
+      "source": {
+        "category": "Counsel",
+        "originalFilename": "Marcela Calderón.png",
+        "relativePath": "Fotografías fondo blanco/3. Consejeros (counsel)/Fotografías en blanco y negro/Marcela Calderón.png",
+        "fileId": "92353870989",
+        "width": 1417,
+        "height": 1890,
+        "bytes": 1362194,
+        "sha256": "713a5a92fe5437424acd159c9af6c5dba04b730b9725620fbb7c1269be6273be"
+      }
+    },
+    {
+      "slug": "margarita-beatriz-luna-ramos",
+      "expectedName": "Margarita Beatriz Luna Ramos",
+      "role": "Of Counsel",
+      "previousImageUrl": "/images/consejeros/Fotos/470_Magistrada_Margarita_HiRes.png",
+      "targetImageUrl": "/of_counsel_photos/margarita-beatriz-luna-ramos-2026-white-bg.png",
+      "source": {
+        "category": "Of Counsel",
+        "originalFilename": "Margarita Beatriz Luna Ramos.png",
+        "relativePath": "Fotografías fondo blanco/2. Of Counsel/Fotografías en blanco y negro/Margarita Beatriz Luna Ramos.png",
+        "fileId": "92353868837",
+        "width": 1417,
+        "height": 1890,
+        "bytes": 1694400,
+        "sha256": "4cf490c5f6f04a589b2237f484861bfac6972040a67fb57647a81142addd135d"
+      }
+    },
+    {
+      "slug": "maria-garcia",
+      "expectedName": "María García",
+      "role": "Associate",
+      "previousImageUrl": "/associate_photos/maria_garcia.jpg",
+      "targetImageUrl": "/associate_photos/maria-garcia-2026-white-bg.png",
+      "source": {
+        "category": "Associate",
+        "originalFilename": "María García .png",
+        "relativePath": "Fotografías fondo blanco/4. Asociados/Fotografías en blanco y negro/María García .png",
+        "fileId": "92353888665",
+        "width": 1714,
+        "height": 2400,
+        "bytes": 3653889,
+        "sha256": "de52abf72b39296b514959ff6f751e61692edb002083dbb8477713ad38cf04bc"
+      }
+    },
+    {
+      "slug": "mariana-salcedo",
+      "expectedName": "Mariana Salcedo",
+      "role": "Associate",
+      "previousImageUrl": "/images/Mariana-Salcedo.jpg",
+      "targetImageUrl": "/associate_photos/mariana-salcedo-2026-white-bg.png",
+      "source": {
+        "category": "Associate",
+        "originalFilename": "Mariana Salcedo.png",
+        "relativePath": "Fotografías fondo blanco/4. Asociados/Fotografías en blanco y negro/Mariana Salcedo.png",
+        "fileId": "92353888270",
+        "width": 1417,
+        "height": 1890,
+        "bytes": 1318523,
+        "sha256": "6f3e25a0f5cd91e7805d0a12fc938b5861c9b290a030e667bb88b53a294557fa"
+      }
+    },
+    {
+      "slug": "mario-lugo",
+      "expectedName": "Mario Lugo",
+      "role": "Associate",
+      "previousImageUrl": "/associate_photos/mario_lugo.jpg",
+      "targetImageUrl": "/associate_photos/mario-lugo-2026-white-bg.png",
+      "source": {
+        "category": "Associate",
+        "originalFilename": "Mario Lugo.png",
+        "relativePath": "Fotografías fondo blanco/4. Asociados/Fotografías en blanco y negro/Mario Lugo.png",
+        "fileId": "92353888422",
+        "width": 1417,
+        "height": 1890,
+        "bytes": 1611358,
+        "sha256": "a9c493452562a2c673cc2793d485023d976592b25763e6601fe50fcf5898ce9e"
+      }
+    },
+    {
+      "slug": "max-morales",
+      "expectedName": "Max Morales",
+      "role": "Associate",
+      "previousImageUrl": "/associate_photos/max_morales.jpg",
+      "targetImageUrl": "/associate_photos/max-morales-2026-white-bg.png",
+      "source": {
+        "category": "Associate",
+        "originalFilename": "Max Morales.png",
+        "relativePath": "Fotografías fondo blanco/4. Asociados/Fotografías en blanco y negro/Max Morales.png",
+        "fileId": "92353889581",
+        "width": 470,
+        "height": 627,
+        "bytes": 165212,
+        "sha256": "5bd3411599b0ec918efeee193b9874fb227c66aba336b3d53bcf6490c887b441"
+      }
+    },
+    {
+      "slug": "melissa-cruz",
+      "expectedName": "Melissa Cruz",
+      "role": "Associate",
+      "previousImageUrl": "/associate_photos/melissa_cruz.jpg",
+      "targetImageUrl": "/associate_photos/melissa-cruz-2026-white-bg.png",
+      "source": {
+        "category": "Associate",
+        "originalFilename": "Melissa Cruz.png",
+        "relativePath": "Fotografías fondo blanco/4. Asociados/Fotografías en blanco y negro/Melissa Cruz.png",
+        "fileId": "92353889711",
+        "width": 1417,
+        "height": 1890,
+        "bytes": 1225185,
+        "sha256": "09db0e0ba6d9de7d63435eae29808507bbf2d40fa302547014272cce7ace1710"
+      }
+    },
+    {
+      "slug": "michael-schreiber",
+      "expectedName": "Michael Schreiber",
+      "role": "Associate",
+      "previousImageUrl": "/associate_photos/michael_schreiber.jpg",
+      "targetImageUrl": "/associate_photos/michael-schreiber-2026-white-bg.png",
+      "source": {
+        "category": "Associate",
+        "originalFilename": "Michael Schreiber.png",
+        "relativePath": "Fotografías fondo blanco/4. Asociados/Fotografías en blanco y negro/Michael Schreiber.png",
+        "fileId": "92353890110",
+        "width": 1417,
+        "height": 1890,
+        "bytes": 1110052,
+        "sha256": "f18f94e83fbada9ef542d7daffa4e60f0f68c7af4368f590e25d974467b143a8"
+      }
+    },
+    {
+      "slug": "michel-llorens",
+      "expectedName": "Michel Llorens",
+      "role": "Partner",
+      "previousImageUrl": "/images/asociados/Nuevos_socios_19/470_MichelLlorens_HiRes.jpg",
+      "targetImageUrl": "/partner_photos/michel-llorens-2026-white-bg.png",
+      "source": {
+        "category": "Partner",
+        "originalFilename": "24. Michel Llorens.png",
+        "relativePath": "Fotografías fondo blanco/1. Socios/Fotografías en blanco y negro/24. Michel Llorens.png",
+        "fileId": "92353862347",
+        "width": 470,
+        "height": 627,
+        "bytes": 130931,
+        "sha256": "160fadb74f84b6503513cdb80657247c31935f526ae901045b8cd6be45b6f6b5"
+      }
+    },
+    {
+      "slug": "montserrat-garcia",
+      "expectedName": "Montserrat García",
+      "role": "Associate",
+      "previousImageUrl": "/associate_photos/montserrat_garcia.jpg",
+      "targetImageUrl": "/associate_photos/montserrat-garcia-2026-white-bg.png",
+      "source": {
+        "category": "Associate",
+        "originalFilename": "Montserrat García .png",
+        "relativePath": "Fotografías fondo blanco/4. Asociados/Fotografías en blanco y negro/Montserrat García .png",
+        "fileId": "92353890461",
+        "width": 1714,
+        "height": 2400,
+        "bytes": 2463795,
+        "sha256": "915f54f8d4dbe40d00353c8022311d78d9496c5f7684e6225692f50a4d932587"
+      }
+    },
+    {
+      "slug": "montserrat-manzano",
+      "expectedName": "Montserrat Manzano",
+      "role": "Partner",
+      "previousImageUrl": "/partner_photos/montserrat_manzano.jpg",
+      "targetImageUrl": "/partner_photos/montserrat-manzano-2026-white-bg.png",
+      "source": {
+        "category": "Partner",
+        "originalFilename": "8.1. Montserrat Manzano.png",
+        "relativePath": "Fotografías fondo blanco/1. Socios/Fotografías en blanco y negro/8.1. Montserrat Manzano.png",
+        "fileId": "92353866818",
+        "width": 1417,
+        "height": 1890,
+        "bytes": 1347374,
+        "sha256": "2edd973967399797387db2ca0724ea9b1821783a484db4b88555b6ef54ccf76d"
+      }
+    },
+    {
+      "slug": "pablo-aceves",
+      "expectedName": "Pablo Aceves",
+      "role": "Associate",
+      "previousImageUrl": "/associate_photos/pablo_aceves.jpg",
+      "targetImageUrl": "/associate_photos/pablo-aceves-2026-white-bg.png",
+      "source": {
+        "category": "Associate",
+        "originalFilename": "Pablo Aceves.png",
+        "relativePath": "Fotografías fondo blanco/4. Asociados/Fotografías en blanco y negro/Pablo Aceves.png",
+        "fileId": "92353891135",
+        "width": 1417,
+        "height": 1890,
+        "bytes": 1590932,
+        "sha256": "dac1bf10396d4aa5fe2ba48779dbf726543b1dc7117454696248486b418f6794"
+      }
+    },
+    {
+      "slug": "pablo-fautsch",
+      "expectedName": "Pablo Fautsch",
+      "role": "Partner",
+      "previousImageUrl": "/partner_photos/pablo_fautsch.png",
+      "targetImageUrl": "/partner_photos/pablo-fautsch-2026-white-bg.png",
+      "source": {
+        "category": "Partner",
+        "originalFilename": "14. Pablo Fautsch.png",
+        "relativePath": "Fotografías fondo blanco/1. Socios/Fotografías en blanco y negro/14. Pablo Fautsch.png",
+        "fileId": "92353858167",
+        "width": 1417,
+        "height": 1890,
+        "bytes": 1769374,
+        "sha256": "888474babe43adbfb4d7d784686153d3f82d440bc28cb49827cdede9f267848a"
+      }
+    },
+    {
+      "slug": "pablo-jimenez",
+      "expectedName": "Pablo Jiménez",
+      "role": "Partner",
+      "previousImageUrl": "/partner_photos/pablo_jimenez.jpg",
+      "targetImageUrl": "/partner_photos/pablo-jimenez-2026-white-bg.png",
+      "source": {
+        "category": "Partner",
+        "originalFilename": "13. Pablo Jiménez.png",
+        "relativePath": "Fotografías fondo blanco/1. Socios/Fotografías en blanco y negro/13. Pablo Jiménez.png",
+        "fileId": "92353857604",
+        "width": 1417,
+        "height": 1890,
+        "bytes": 1337307,
+        "sha256": "a59a9dfa0ce9ca7798eaa7b3176db8ee2d2a4ad67e6f172d40a01626a73d505f"
+      }
+    },
+    {
+      "slug": "paola-hernandez",
+      "expectedName": "Paola Hernandez",
+      "role": "Associate",
+      "previousImageUrl": "/associate_photos/paola_hernandez.jpg",
+      "targetImageUrl": "/associate_photos/paola-hernandez-2026-white-bg.png",
+      "source": {
+        "category": "Associate",
+        "originalFilename": "Paola Hernández.png",
+        "relativePath": "Fotografías fondo blanco/4. Asociados/Fotografías en blanco y negro/Paola Hernández.png",
+        "fileId": "92353891508",
+        "width": 1417,
+        "height": 1890,
+        "bytes": 1506997,
+        "sha256": "29d59c67234ef1f736d261452eb295209475fb8f8f917beb2b051819d7a7f568"
+      }
+    },
+    {
+      "slug": "patricia-kaim",
+      "expectedName": "Patricia Kaim",
+      "role": "Partner",
+      "previousImageUrl": "/partner_photos/patricia_kaim.jpg",
+      "targetImageUrl": "/partner_photos/patricia-kaim-2026-white-bg.png",
+      "source": {
+        "category": "Partner",
+        "originalFilename": "10. Patricia Kaim.png",
+        "relativePath": "Fotografías fondo blanco/1. Socios/Fotografías en blanco y negro/10. Patricia Kaim.png",
+        "fileId": "92353856241",
+        "width": 2624,
+        "height": 3936,
+        "bytes": 3981719,
+        "sha256": "eded6656b88811844ea39d6f2a679de3f14f89f5c1cea17e07c149522d4e990a"
+      }
+    },
+    {
+      "slug": "patricio-reyes-retana",
+      "expectedName": "Patricio Reyes Retana",
+      "role": "Associate",
+      "previousImageUrl": "/associate_photos/patricio_reyes_retana.jpg",
+      "targetImageUrl": "/associate_photos/patricio-reyes-retana-2026-white-bg.png",
+      "source": {
+        "category": "Associate",
+        "originalFilename": "Patricio Reyes Retana.png",
+        "relativePath": "Fotografías fondo blanco/4. Asociados/Fotografías en blanco y negro/Patricio Reyes Retana.png",
+        "fileId": "92353892009",
+        "width": 1417,
+        "height": 1890,
+        "bytes": 1340932,
+        "sha256": "8dc287807dcd701477567b5a5f802c75475fd83af4e6393355552583bc0f0f07"
+      }
+    },
+    {
+      "slug": "rafael-vallejo",
+      "expectedName": "Rafael Vallejo",
+      "role": "Partner",
+      "previousImageUrl": "/partner_photos/rafael_vallejo.jpg",
+      "targetImageUrl": "/partner_photos/rafael-vallejo-2026-white-bg.png",
+      "source": {
+        "category": "Partner",
+        "originalFilename": "17. Rafael Vallejo.png",
+        "relativePath": "Fotografías fondo blanco/1. Socios/Fotografías en blanco y negro/17. Rafael Vallejo.png",
+        "fileId": "92353859149",
+        "width": 1417,
+        "height": 1890,
+        "bytes": 2042533,
+        "sha256": "d7d8e8ea22d714f80a63078b4d3cd18dda7ecb8b58fbd3ed046804a76ce1744d"
+      }
+    },
+    {
+      "slug": "raul-chaidez",
+      "expectedName": "Raúl Chaidez",
+      "role": "Associate",
+      "previousImageUrl": "/associate_photos/raul_chaidez.jpg",
+      "targetImageUrl": "/associate_photos/raul-chaidez-2026-white-bg.png",
+      "source": {
+        "category": "Associate",
+        "originalFilename": "Raúl Chaidez.png",
+        "relativePath": "Fotografías fondo blanco/4. Asociados/Fotografías en blanco y negro/Raúl Chaidez.png",
+        "fileId": "92353892320",
+        "width": 1417,
+        "height": 1890,
+        "bytes": 1840568,
+        "sha256": "959b8a186834c2ddd351b39394a2f9a9b078418bc45d27e896fefa3cfd5cfc17"
+      }
+    },
+    {
+      "slug": "raul-quintero",
+      "expectedName": "Raul Quintero",
+      "role": "Associate",
+      "previousImageUrl": "/associate_photos/raul_quintero.jpg",
+      "targetImageUrl": "/associate_photos/raul-quintero-2026-white-bg.png",
+      "source": {
+        "category": "Associate",
+        "originalFilename": "Raúl Quintero.png",
+        "relativePath": "Fotografías fondo blanco/4. Asociados/Fotografías en blanco y negro/Raúl Quintero.png",
+        "fileId": "92353892445",
+        "width": 1417,
+        "height": 1890,
+        "bytes": 1727712,
+        "sha256": "c21cc823596991461d9a492ec4ce95e4aeaca279c86e7195b3a109a00815d4f1"
+      }
+    },
+    {
+      "slug": "raymundo-soberanis",
+      "expectedName": "Raymundo Soberanis",
+      "role": "Partner",
+      "previousImageUrl": "/partner_photos/raymundo_soberanis.jpg",
+      "targetImageUrl": "/partner_photos/raymundo-soberanis-2026-white-bg.png",
+      "source": {
+        "category": "Partner",
+        "originalFilename": "12. Raymundo Soberanis.png",
+        "relativePath": "Fotografías fondo blanco/1. Socios/Fotografías en blanco y negro/12. Raymundo Soberanis.png",
+        "fileId": "92353856804",
+        "width": 1417,
+        "height": 1890,
+        "bytes": 1630493,
+        "sha256": "d9c3963892d2c99b8bb7cc559b88c39cdbb86cba871d6af330536e504b45d676"
+      }
+    },
+    {
+      "slug": "regina-castillo",
+      "expectedName": "Regina Castillo",
+      "role": "Associate",
+      "previousImageUrl": "/associate_photos/regina_castillo.jpg",
+      "targetImageUrl": "/associate_photos/regina-castillo-2026-white-bg.png",
+      "source": {
+        "category": "Associate",
+        "originalFilename": "Regina Castillo.png",
+        "relativePath": "Fotografías fondo blanco/4. Asociados/Fotografías en blanco y negro/Regina Castillo.png",
+        "fileId": "92353892543",
+        "width": 1417,
+        "height": 1890,
+        "bytes": 1360726,
+        "sha256": "563e9b6a1bca1897b31de14f7d2d931f2997a8d1a43b3d019432661a4de0d186"
+      }
+    },
+    {
+      "slug": "regina-forte",
+      "expectedName": "Regina Forte",
+      "role": "Associate",
+      "previousImageUrl": "/associate_photos/regina_forte.jpg",
+      "targetImageUrl": "/associate_photos/regina-forte-2026-white-bg.png",
+      "source": {
+        "category": "Associate",
+        "originalFilename": "Regina Forte.png",
+        "relativePath": "Fotografías fondo blanco/4. Asociados/Fotografías en blanco y negro/Regina Forte.png",
+        "fileId": "92353892915",
+        "width": 1417,
+        "height": 1890,
+        "bytes": 1164551,
+        "sha256": "268a9e869e0cc1005d66e3d9d7743c02a704d22920070a67078fa8dcaf7d7201"
+      }
+    },
+    {
+      "slug": "regina-godinez",
+      "expectedName": "Regina Godínez",
+      "role": "Associate",
+      "previousImageUrl": "/associate_photos/regina_godinez.jpg",
+      "targetImageUrl": "/associate_photos/regina-godinez-2026-white-bg.png",
+      "source": {
+        "category": "Associate",
+        "originalFilename": "Regina Godínez.png",
+        "relativePath": "Fotografías fondo blanco/4. Asociados/Fotografías en blanco y negro/Regina Godínez.png",
+        "fileId": "92353893185",
+        "width": 1417,
+        "height": 1890,
+        "bytes": 1347821,
+        "sha256": "1f99279a3b1c02f1bf33e059f9cadbb7de7c852ef5080051f659a48de51bb705"
+      }
+    },
+    {
+      "slug": "regina-gonzalez",
+      "expectedName": "Regina González",
+      "role": "Associate",
+      "previousImageUrl": "/associate_photos/regina_gonzalez.jpg",
+      "targetImageUrl": "/associate_photos/regina-gonzalez-2026-white-bg.png",
+      "source": {
+        "category": "Associate",
+        "originalFilename": "Regina González.png",
+        "relativePath": "Fotografías fondo blanco/4. Asociados/Fotografías en blanco y negro/Regina González.png",
+        "fileId": "92353893599",
+        "width": 1417,
+        "height": 1890,
+        "bytes": 1583813,
+        "sha256": "6d7a9113dc62a99642151e7746ff51edbec73149981c7e124741ace0886af8a2"
+      }
+    },
+    {
+      "slug": "ricardo-cacho",
+      "expectedName": "Ricardo Cacho",
+      "role": "Partner",
+      "previousImageUrl": "/images/Ricardo-Cacho_25032024.jpg",
+      "targetImageUrl": "/partner_photos/ricardo-cacho-2026-white-bg.png",
+      "source": {
+        "category": "Partner",
+        "originalFilename": "26. Ricardo Cacho.png",
+        "relativePath": "Fotografías fondo blanco/1. Socios/Fotografías en blanco y negro/26. Ricardo Cacho.png",
+        "fileId": "92353862799",
+        "width": 1417,
+        "height": 1890,
+        "bytes": 1368791,
+        "sha256": "10f9105aa54d22ed22396dc8c3f39e4d442dd836314cb02c7e873667c56dbfa4"
+      }
+    },
+    {
+      "slug": "roberto-flores",
+      "expectedName": "Roberto Flores",
+      "role": "Associate",
+      "previousImageUrl": "/associate_photos/roberto_flores.jpg",
+      "targetImageUrl": "/associate_photos/roberto-flores-2026-white-bg.png",
+      "source": {
+        "category": "Associate",
+        "originalFilename": "Roberto Flores.png",
+        "relativePath": "Fotografías fondo blanco/4. Asociados/Fotografías en blanco y negro/Roberto Flores.png",
+        "fileId": "92353894631",
+        "width": 1417,
+        "height": 1890,
+        "bytes": 1536143,
+        "sha256": "2853813faab20823fd5d73c2ab7092de62c50a6cd54cfb98a7e7132be09ee94e"
+      }
+    },
+    {
+      "slug": "rocio-vega",
+      "expectedName": "Rocío Vega",
+      "role": "Associate",
+      "previousImageUrl": "/associate_photos/rocio_vega.jpg",
+      "targetImageUrl": "/associate_photos/rocio-vega-2026-white-bg.png",
+      "source": {
+        "category": "Associate",
+        "originalFilename": "Rocío Vega.png",
+        "relativePath": "Fotografías fondo blanco/4. Asociados/Fotografías en blanco y negro/Rocío Vega.png",
+        "fileId": "92353894748",
+        "width": 1417,
+        "height": 1890,
+        "bytes": 2032791,
+        "sha256": "d3decb8b6eac89756b919a374fab62a4c5d0747ea5c82bd6866fd763a4d569f0"
+      }
+    },
+    {
+      "slug": "rodrigo-barradas",
+      "expectedName": "Rodrigo Barradas",
+      "role": "Partner",
+      "previousImageUrl": "/images/asociados/Fotos/RodrigoBarradas_HiRes.jpg",
+      "targetImageUrl": "/partner_photos/rodrigo-barradas-2026-white-bg.png",
+      "source": {
+        "category": "Partner",
+        "originalFilename": "23. Rodrigo Barradas.png",
+        "relativePath": "Fotografías fondo blanco/1. Socios/Fotografías en blanco y negro/23. Rodrigo Barradas.png",
+        "fileId": "92353861167",
+        "width": 1417,
+        "height": 1890,
+        "bytes": 1793630,
+        "sha256": "b21de413490b02eda1e60291c4863941f98a8b2e8d91687a0b5e0ad8ddaaf043"
+      }
+    },
+    {
+      "slug": "rodrigo-garcia",
+      "expectedName": "Rodrigo García",
+      "role": "Associate",
+      "previousImageUrl": "/associate_photos/rodrigo_garcia.jpg",
+      "targetImageUrl": "/associate_photos/rodrigo-garcia-2026-white-bg.png",
+      "source": {
+        "category": "Associate",
+        "originalFilename": "Rodrigo García.png",
+        "relativePath": "Fotografías fondo blanco/4. Asociados/Fotografías en blanco y negro/Rodrigo García.png",
+        "fileId": "92353894856",
+        "width": 470,
+        "height": 627,
+        "bytes": 228320,
+        "sha256": "bb8cd5857caa7adb9e6338fe6ab6d389c16992620927af8bb6911526fc0fe422"
+      }
+    },
+    {
+      "slug": "ruben-villegas",
+      "expectedName": "Rubén Villegas",
+      "role": "Associate",
+      "previousImageUrl": "/associate_photos/ruben_villegas.jpg",
+      "targetImageUrl": "/associate_photos/ruben-villegas-2026-white-bg.png",
+      "source": {
+        "category": "Associate",
+        "originalFilename": "Rubén Villegas.png",
+        "relativePath": "Fotografías fondo blanco/4. Asociados/Fotografías en blanco y negro/Rubén Villegas.png",
+        "fileId": "92353895033",
+        "width": 480,
+        "height": 640,
+        "bytes": 227912,
+        "sha256": "0e5790f8b5be4aaabc7d5bf7664879c4adc16910d9ee2d7d11ef2d79d3edf4f1"
+      }
+    },
+    {
+      "slug": "rupert-huttler",
+      "expectedName": "Rupert Hüttler",
+      "role": "Partner",
+      "previousImageUrl": "/partner_photos/rupert_huttler.jpg",
+      "targetImageUrl": "/partner_photos/rupert-huttler-2026-white-bg.png",
+      "source": {
+        "category": "Partner",
+        "originalFilename": "3. Rupert Hüttler.png",
+        "relativePath": "Fotografías fondo blanco/1. Socios/Fotografías en blanco y negro/3. Rupert Hüttler.png",
+        "fileId": "92353863146",
+        "width": 1417,
+        "height": 1890,
+        "bytes": 1298230,
+        "sha256": "de71c91985b4bcddf5ebd497734ab66820258eeda2ebb578397465b601c00444"
+      }
+    },
+    {
+      "slug": "santiago-torres",
+      "expectedName": "Santiago Torres",
+      "role": "Associate",
+      "previousImageUrl": "/associate_photos/santiago_torres.jpg",
+      "targetImageUrl": "/associate_photos/santiago-torres-2026-white-bg.png",
+      "source": {
+        "category": "Associate",
+        "originalFilename": "Santiago Torres.png",
+        "relativePath": "Fotografías fondo blanco/4. Asociados/Fotografías en blanco y negro/Santiago Torres.png",
+        "fileId": "92353895439",
+        "width": 1417,
+        "height": 1890,
+        "bytes": 1493879,
+        "sha256": "66f487b09f17c7761cee747ae1e2987d48eed283f753d01940be043c9f24fb2a"
+      }
+    },
+    {
+      "slug": "sara-ortiz",
+      "expectedName": "Sara Ortiz",
+      "role": "Associate",
+      "previousImageUrl": "/associate_photos/sara_ortiz.jpg",
+      "targetImageUrl": "/associate_photos/sara-ortiz-2026-white-bg.png",
+      "source": {
+        "category": "Associate",
+        "originalFilename": "Sara Ortiz.png",
+        "relativePath": "Fotografías fondo blanco/4. Asociados/Fotografías en blanco y negro/Sara Ortiz.png",
+        "fileId": "92353895503",
+        "width": 1417,
+        "height": 1890,
+        "bytes": 1311986,
+        "sha256": "4c7a5b6137a7d2f7d8bdaf3cb21c2f5c823fe5068eed0e9b42a8dcb5a30b070c"
+      }
+    },
+    {
+      "slug": "sarah-gibert",
+      "expectedName": "Sarah Gibert",
+      "role": "Associate",
+      "previousImageUrl": "/associate_photos/sarah_gibert.jpg",
+      "targetImageUrl": "/associate_photos/sarah-gibert-2026-white-bg.png",
+      "source": {
+        "category": "Associate",
+        "originalFilename": "Sarah Gibert.png",
+        "relativePath": "Fotografías fondo blanco/4. Asociados/Fotografías en blanco y negro/Sarah Gibert.png",
+        "fileId": "92353896045",
+        "width": 1417,
+        "height": 1890,
+        "bytes": 1812876,
+        "sha256": "83a4498674304bdf68de7ad5da1a0f949b8f47d35e88e4ef47d6b257cd437f26"
+      }
+    },
+    {
+      "slug": "sergio-lopez",
+      "expectedName": "Sergio López",
+      "role": "Partner",
+      "previousImageUrl": "/partner_photos/sergio_lopez.jpg",
+      "targetImageUrl": "/partner_photos/sergio-lopez-2026-white-bg.png",
+      "source": {
+        "category": "Partner",
+        "originalFilename": "19. Sergio López.png",
+        "relativePath": "Fotografías fondo blanco/1. Socios/Fotografías en blanco y negro/19. Sergio López.png",
+        "fileId": "92353859715",
+        "width": 1512,
+        "height": 2016,
+        "bytes": 1267932,
+        "sha256": "43fe4b5a4c6f97d150a589fc770ca86e45ab502e4f9cb086b4f7eed7f2eeaa44"
+      }
+    },
+    {
+      "slug": "sofia-alcantara",
+      "expectedName": "Sofía Alcántara",
+      "role": "Associate",
+      "previousImageUrl": "/associate_photos/sofia_alcantara.jpg",
+      "targetImageUrl": "/associate_photos/sofia-alcantara-2026-white-bg.png",
+      "source": {
+        "category": "Associate",
+        "originalFilename": "Sofía Alcántara.png",
+        "relativePath": "Fotografías fondo blanco/4. Asociados/Fotografías en blanco y negro/Sofía Alcántara.png",
+        "fileId": "92353898314",
+        "width": 1417,
+        "height": 1890,
+        "bytes": 1272164,
+        "sha256": "d7c8cdc54065e1acb85eb6254dac6bdc1b09fa4b47516b9ef1e7c8df04289962"
+      }
+    },
+    {
+      "slug": "sofia-reyes",
+      "expectedName": "Sofía Reyes",
+      "role": "Associate",
+      "previousImageUrl": "/associate_photos/sofia_reyes.jpg",
+      "targetImageUrl": "/associate_photos/sofia-reyes-2026-white-bg.png",
+      "source": {
+        "category": "Associate",
+        "originalFilename": "Sofía Reyes.png",
+        "relativePath": "Fotografías fondo blanco/4. Asociados/Fotografías en blanco y negro/Sofía Reyes.png",
+        "fileId": "92353898930",
+        "width": 1417,
+        "height": 1890,
+        "bytes": 1290701,
+        "sha256": "47e8c733a064a3522ba6034b101d795319b4b3eae8ef8598a26bcefcc165937a"
+      }
+    },
+    {
+      "slug": "stefania-lopardo",
+      "expectedName": "Stefania Lopardo",
+      "role": "Associate",
+      "previousImageUrl": "/associate_photos/stefania_lopardo.jpg",
+      "targetImageUrl": "/associate_photos/stefania-lopardo-2026-white-bg.png",
+      "source": {
+        "category": "Associate",
+        "originalFilename": "Stefanía Lopardo.png",
+        "relativePath": "Fotografías fondo blanco/4. Asociados/Fotografías en blanco y negro/Stefanía Lopardo.png",
+        "fileId": "92353899082",
+        "width": 1417,
+        "height": 1890,
+        "bytes": 1273918,
+        "sha256": "8fd4cf99d8900df28acb9c6cdfc9925017245b4a15df0c6e8ab7ee33f8e4bf47"
+      }
+    },
+    {
+      "slug": "virginia-cornett",
+      "expectedName": "Virginia Cornett",
+      "role": "Associate",
+      "previousImageUrl": "/associate_photos/virginia_cornett.jpg",
+      "targetImageUrl": "/associate_photos/virginia-cornett-2026-white-bg.png",
+      "source": {
+        "category": "Associate",
+        "originalFilename": "Virginia Cornett.png",
+        "relativePath": "Fotografías fondo blanco/4. Asociados/Fotografías en blanco y negro/Virginia Cornett.png",
+        "fileId": "92353899294",
+        "width": 1417,
+        "height": 1890,
+        "bytes": 1466708,
+        "sha256": "50220daef37bda2a3292183aca2eb0395fbb6a75acc742b5a5df7b2892730d03"
+      }
+    }
+  ],
+  "unchangedProfiles": [
+    {
+      "slug": "jaime-antonio-sanchez",
+      "name": "Jaime Antonio Sánchez",
+      "title": "Associate",
+      "reason": "approved-omission"
+    },
+    {
+      "slug": "juan-arturo-ramos-robles",
+      "name": "Juan Arturo Ramos Robles",
+      "title": "Associate",
+      "reason": "approved-omission"
+    },
+    {
+      "slug": "margarita-lima",
+      "name": "Margarita Lima",
+      "title": "Associate",
+      "reason": "approved-omission"
+    },
+    {
+      "slug": "maria-elisa-vera-madrigal",
+      "name": "María Elisa Vera Madrigal",
+      "title": "Associate",
+      "reason": "approved-omission"
+    },
+    {
+      "slug": "mariana-gomez-vallin",
+      "name": "Mariana Gómez-Vallin",
+      "title": "Associate",
+      "reason": "approved-omission"
+    },
+    {
+      "slug": "mercedes-jimenez-roel",
+      "name": "Mercedes Jiménez Roel",
+      "title": "Associate",
+      "reason": "approved-omission"
+    },
+    {
+      "slug": "miguel-angel-chinchilla",
+      "name": "Miguel Ángel Chinchilla",
+      "title": "Associate",
+      "reason": "approved-omission"
+    },
+    {
+      "slug": "pablo-saez-williams",
+      "name": "Pablo Saez Williams",
+      "title": "Partner",
+      "reason": "approved-omission"
+    },
+    {
+      "slug": "patricio-cortina",
+      "name": "Patricio Cortina",
+      "title": "Associate",
+      "reason": "approved-omission"
+    },
+    {
+      "slug": "ricardo-rosas",
+      "name": "Ricardo Rosas",
+      "title": "Associate",
+      "reason": "approved-omission"
+    },
+    {
+      "slug": "victor-delgado",
+      "name": "Víctor Delgado",
+      "title": "Associate",
+      "reason": "approved-omission"
+    }
+  ]
+}

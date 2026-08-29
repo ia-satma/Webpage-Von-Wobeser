@@ -842,6 +842,17 @@ test("los retratos locales del directorio reciben variantes WebP y conservan su 
   assert.equal(portrait.attr("height"), "800");
 });
 
+test("los retratos de Consejeros usan el mismo manifiesto responsivo que las demás categorías", () => {
+  const html = optimizePublicImageTags(`
+    <img src="/counsel_photos/gloria-martinez-2026-white-bg.png" width="640" height="800" data-vwb-image-kind="attorney-portrait" alt="">
+  `);
+  const $ = cheerio.load(html);
+  const portrait = $("img");
+
+  assert.match(portrait.attr("srcset") || "", /optimized-attorney-photos\/counsel_photos\/gloria-martinez-2026-white-bg-320\.webp 320w/);
+  assert.match(portrait.attr("srcset") || "", /optimized-attorney-photos\/counsel_photos\/gloria-martinez-2026-white-bg-640\.webp 640w/);
+});
+
 test("el carrusel heredado usa visibilidad real sin destruirse durante el scroll", () => {
   const legacy = readFileSync(
     new URL("../../frontend-mirror/index.php/home/index.html", import.meta.url),

@@ -143,6 +143,9 @@ test("Carrera y Pasantes usan la jerarquía editorial bilingüe de las subpágin
   assert.equal(interns(".careers__content > .page__content--intro").length, 0);
   assert.match(interns.html(), /\.vw-careers-header h1/);
   assert.match(interns.html(), /grid-template-columns:minmax\(0,1fr\) minmax\(0,1fr\)/);
+  assert.match(interns.html(), /careers--wrap\.vw-careers-layout\{display:grid!important;box-sizing:border-box;width:100%;max-width:100%;min-width:0/);
+  assert.match(interns.html(), /vw-careers-copy \.careers__content p\{max-width:100%;overflow-wrap:anywhere/);
+  assert.match(interns.html(), /@media\(max-width:680px\).*vw-careers-header,.page\.careers \.vw-careers-copy.*overflow-wrap:anywhere/s);
 });
 
 test("Carrera y Pasantes comparten la superficie de formulario de Contacto sin cambiar su envío", () => {
