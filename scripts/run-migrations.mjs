@@ -32,6 +32,10 @@ const strictAdditiveStart = "20260820_0001";
 // never treats an already-applied migration as a fatal duplicate.
 const platformSchemaReconciliations = new Map([
   ["20260826_0001_news_source_url.sql", { table: "news", column: "source_url", dataType: "text" }],
+  // Replit can materialize the approved production schema change before the
+  // application process starts. The runner still records this exact local
+  // migration, but must not attempt to add the same column a second time.
+  ["20260828_0004_news_author_verification_status.sql", { table: "news_team_members", column: "verification_status", dataType: "text" }],
 ]);
 // Las migraciones posteriores al endurecimiento son aditivas por defecto. Esta
 // excepción individual conserva una reconciliación editorial comprobable: la
