@@ -207,7 +207,23 @@ app.use((req, res, next) => {
 // pero ninguna ruta puede modificar contenido ni crear registros nuevos.
 app.use(migrationReadOnlyGuard);
 
-(async () => {
+// En Autoscale, Replit empieza a comprobar `/` apenas crea el contenedor. La
+// preparación editorial (semillas, rutas del espejo y configuración) puede
+// requerir unos segundos en una base con contenido real. El socket debe abrirse
+// primero para que ese trabajo no se interprete como un proceso caído. Cuando la
+// aplicación ya está lista este middleware sólo delega hacia la página real.
+let applicationReady = false;
+let applicationStartupError = false;
+const respondDuringStartup = (_req: Request, res: Response, next: NextFunction) => {
+  if (applicationReady) return next();
+  if (applicationStartupError) return res.status(503).type("text/plain").send("Service unavailable");
+  res.setHeader("Cache-Control", "no-store");
+  return res.status(200).type("text/plain").send("Starting");
+};
+app.get("/", respondDuringStartup);
+app.get("/healthz", respondDuringStartup);
+
+async function bootstrapApplication(): Promise<void> {
   await registerRoutes(httpServer, app);
 
   // Mirror frontend (original site look) wired to our backend. Registered
@@ -240,52 +256,63 @@ app.use(migrationReadOnlyGuard);
     await setupVite(httpServer, app);
   }
 
-  // ALWAYS serve the app on the port specified in the environment variable PORT
-  // Other ports are firewalled. Default to 5000 if not specified.
-  // this serves both the API and the client.
-  // It is the only port that is not firewalled.
-  const port = parseInt(process.env.PORT || "5000", 10);
-  httpServer.listen(
-    {
-      port,
-      host: "0.0.0.0",
-      // reusePort (SO_REUSEPORT) is supported on Linux (Replit) but not macOS,
-      // where it throws ENOTSUP. Enable it only where the OS supports it.
-      ...(process.platform === "linux" ? { reusePort: true } : {}),
-    },
-    async () => {
-      log(`serving on port ${port}`);
+  applicationReady = true;
+  log("Application routes are ready", "startup");
+  void startBackgroundServices();
+}
 
-      if (process.env.SECURITY_READ_ONLY_SMOKE === "true" || isMigrationReadOnlyEnabled()) {
-        log(
-          isMigrationReadOnlyEnabled()
-            ? "Database migration maintenance active; background workers are disabled"
-            : "Read-only security smoke mode active; background workers are disabled",
-          "security",
-        );
-        return;
-      }
+async function startBackgroundServices(): Promise<void> {
+  if (process.env.SECURITY_READ_ONLY_SMOKE === "true" || isMigrationReadOnlyEnabled()) {
+    log(
+      isMigrationReadOnlyEnabled()
+        ? "Database migration maintenance active; background workers are disabled"
+        : "Read-only security smoke mode active; background workers are disabled",
+      "security",
+    );
+    return;
+  }
 
-      if (isProduction) {
-        try {
-          const recorded = await recordDeploymentProvenance();
-          log(recorded ? "Build provenance recorded" : "Build provenance unavailable", "security");
-        } catch {
-          log("Build provenance could not be recorded", "security");
-        }
-      }
-      
-      // Initialize and start the agent orchestrator
-      try {
-        await initializeAgents();
-        orchestrator.start(2000); // Process jobs every 2 seconds
-        log("Agent orchestrator initialized and started", "agents");
-      } catch (error) {
-        log("Failed to initialize agent orchestrator", "agents");
-      }
+  if (isProduction) {
+    try {
+      const recorded = await recordDeploymentProvenance();
+      log(recorded ? "Build provenance recorded" : "Build provenance unavailable", "security");
+    } catch {
+      log("Build provenance could not be recorded", "security");
+    }
+  }
 
-      // Las tareas de negocio ya no usan timers por instancia. Se ejecutan como
-      // Scheduled Deployments separados y se coordinan mediante advisory locks.
-    },
-  );
-})();
+  // Initialize and start the agent orchestrator only after the public routes
+  // are ready. This avoids competing with the initial seed during deployment.
+  try {
+    await initializeAgents();
+    orchestrator.start(2000); // Process jobs every 2 seconds
+    log("Agent orchestrator initialized and started", "agents");
+  } catch {
+    log("Failed to initialize agent orchestrator", "agents");
+  }
+
+  // Las tareas de negocio ya no usan timers por instancia. Se ejecutan como
+  // Scheduled Deployments separados y se coordinan mediante advisory locks.
+}
+
+// ALWAYS serve the app on the port specified in the environment variable PORT.
+// Other ports are firewalled. Default to 5000 if not specified.
+// It is the only port that is not firewalled.
+const port = parseInt(process.env.PORT || "5000", 10);
+httpServer.listen(
+  {
+    port,
+    host: "0.0.0.0",
+    // reusePort (SO_REUSEPORT) is supported on Linux (Replit) but not macOS,
+    // where it throws ENOTSUP. Enable it only where the OS supports it.
+    ...(process.platform === "linux" ? { reusePort: true } : {}),
+  },
+  () => {
+    log(`serving on port ${port}`);
+  },
+);
+
+void bootstrapApplication().catch((error) => {
+  applicationStartupError = true;
+  console.error("[startup] Application bootstrap failed", error instanceof Error ? error.stack || error.message : error);
+});
