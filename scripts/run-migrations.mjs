@@ -133,7 +133,9 @@ const verifiedDataMigrationPolicies = new Map([
   // Añade el título de Carrera como copy administrable con el texto editorial
   // aprobado; no modifica introducción, cuerpo ni postulaciones.
   ["20260829_0011_add_careers_page_title.mjs", {
-    allowedCountChanges: new Set(),
+    // Esta migración crea exactamente una clave nueva de configuración si
+    // todavía no existe; ningún otro conteo puede cambiar.
+    allowedCountChanges: new Set(["site_config"]),
   }],
   // Convierte el cuerpo heredado de Carrera en copy administrable con el
   // ajuste aprobado, sin sobrescribir una edición existente del panel.
