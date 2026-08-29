@@ -7,7 +7,10 @@ import {
   type TeamMember,
   publicAuthorVerificationStatuses,
   news,
+  newsExternalLinks,
   newsTranslations,
+  type InsertNewsExternalLink,
+  type NewsExternalLink,
   teamMembers,
   newsTeamMembers,
 } from "@shared/schema";
@@ -548,6 +551,47 @@ export function createNewsRepository(db: StorageDatabase) {
         }
         return item;
       });
+    }
+
+    async getNewsExternalLinks(newsId: string): Promise<NewsExternalLink[]> {
+      return db.select().from(newsExternalLinks)
+        .where(eq(newsExternalLinks.newsId, newsId))
+        .orderBy(newsExternalLinks.kind, newsExternalLinks.normalizedUrl);
+    }
+
+    async getDisabledNewsExternalUrls(newsId: string): Promise<string[]> {
+      const rows = await db.select({ normalizedUrl: newsExternalLinks.normalizedUrl })
+        .from(newsExternalLinks)
+        .where(and(eq(newsExternalLinks.newsId, newsId), eq(newsExternalLinks.status, "disabled")));
+      return rows.map((row) => row.normalizedUrl);
+    }
+
+    async getDisabledNewsExternalUrlsByNewsIds(newsIds: string[]): Promise<Map<string, string[]>> {
+      const ids = Array.from(new Set(newsIds.filter(Boolean)));
+      if (!ids.length) return new Map();
+      const rows = await db.select({ newsId: newsExternalLinks.newsId, normalizedUrl: newsExternalLinks.normalizedUrl })
+        .from(newsExternalLinks)
+        .where(and(inArray(newsExternalLinks.newsId, ids), eq(newsExternalLinks.status, "disabled")));
+      const byNewsId = new Map<string, string[]>();
+      for (const row of rows) byNewsId.set(row.newsId, [...(byNewsId.get(row.newsId) || []), row.normalizedUrl]);
+      return byNewsId;
+    }
+
+    async upsertNewsExternalLink(data: InsertNewsExternalLink): Promise<NewsExternalLink> {
+      const [item] = await db.insert(newsExternalLinks).values(data)
+        .onConflictDoUpdate({
+          target: [newsExternalLinks.newsId, newsExternalLinks.normalizedUrl, newsExternalLinks.kind],
+          set: {
+            url: data.url,
+            status: data.status,
+            finalUrl: data.finalUrl,
+            failureCode: data.failureCode,
+            checkedAt: data.checkedAt,
+            disabledAt: data.disabledAt,
+          },
+        })
+        .returning();
+      return item;
     }
 
     async deleteNews(id: string): Promise<boolean> {

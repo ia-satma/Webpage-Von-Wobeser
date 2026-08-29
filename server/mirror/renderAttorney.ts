@@ -140,7 +140,9 @@ function insightCards(items: any[], labels: { read: string }, lang: Lang): strin
     return !Number.isNaN(value);
   }).map((item) => {
     const title = esc(L(item, "title", lang));
-    const excerpt = renderRichText(L(item, "excerpt", lang));
+    const excerpt = renderRichText(L(item, "excerpt", lang), {
+      disabledExternalUrls: Array.isArray(item?.disabledExternalUrls) ? item.disabledExternalUrls : [],
+    });
     const href = `/news/${encodeURIComponent(String(item.slug || ""))}${lang === "en" ? "?lang=en" : ""}`;
     const date = fmtDate(item.date, lang);
     const dateTime = item.date && !Number.isNaN(new Date(item.date).getTime())

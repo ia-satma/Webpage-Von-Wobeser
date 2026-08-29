@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { pgTable, text, varchar, timestamp, boolean, jsonb, index } from "drizzle-orm/pg-core";
+import { pgTable, text, varchar, timestamp, boolean, jsonb, index, uniqueIndex } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -58,6 +58,31 @@ export const newsCategories = [
 export const insertNewsSchema = createInsertSchema(news).omit({ id: true, date: true });
 export type InsertNews = z.infer<typeof insertNewsSchema>;
 export type News = typeof news.$inferSelect;
+
+/**
+ * Resultado persistente de la comprobación de enlaces externos de Artículos.
+ * La URL original nunca se sobrescribe: si falla, el registro explica por qué
+ * quedó inactivo y permite al editor comprobarlo otra vez desde Administración.
+ */
+export const newsExternalLinks = pgTable("news_external_links", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  newsId: varchar("news_id").notNull().references(() => news.id, { onDelete: "cascade" }),
+  kind: text("kind").notNull(), // source | content
+  url: text("url").notNull(),
+  normalizedUrl: text("normalized_url").notNull(),
+  status: text("status").notNull().default("verified"), // verified | disabled
+  finalUrl: text("final_url"),
+  failureCode: text("failure_code"),
+  checkedAt: timestamp("checked_at").notNull().defaultNow(),
+  disabledAt: timestamp("disabled_at"),
+}, (t) => ({
+  newsIdIdx: index("news_external_links_news_id_idx").on(t.newsId),
+  statusIdx: index("news_external_links_status_idx").on(t.status),
+  newsUrlKindIdx: uniqueIndex("news_external_links_news_url_kind_idx").on(t.newsId, t.normalizedUrl, t.kind),
+}));
+
+export type NewsExternalLink = typeof newsExternalLinks.$inferSelect;
+export type InsertNewsExternalLink = typeof newsExternalLinks.$inferInsert;
 
 export const newsTranslations = pgTable("news_translations", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),

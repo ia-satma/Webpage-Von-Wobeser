@@ -17,9 +17,34 @@ import { storage } from "../storage";
 import { apiError, auditLog, getLinguisticWarnings } from "./routeUtils";
 import { editorialDateAtNoon, hasPublishableNewsContent, isValidEditorialDate, isVerifiedNewsSourceUrl, normalizeOriginalSourceUrl, requiresExplicitEditorialDate } from "../newsPublicationPolicy";
 import { findIntroducedUnlinkedArticleUrls, findUnlinkedArticleUrls } from "../articleLinkIntegrity";
+import {
+  auditAndPersistArticleExternalLinks,
+  collectArticleExternalLinks,
+  persistArticleExternalLinkVerifications,
+  verifyArticleExternalLink,
+  type ArticleExternalLinkVerification,
+} from "../articleExternalLinkIntegrity";
 
 const isArticle = (category: unknown) => String(category ?? "").trim().toLowerCase() === "articles";
 const rawArticleUrlError = "Published Articles must use Fuente original or an actual hyperlink; plain URLs are not allowed";
+
+async function verifyConfiguredArticleSource(item: {
+  sourceUrl?: unknown;
+  excerpt?: unknown;
+  excerptEs?: unknown;
+  content?: unknown;
+  contentEs?: unknown;
+  title?: unknown;
+  titleEs?: unknown;
+}): Promise<ArticleExternalLinkVerification | null> {
+  const source = collectArticleExternalLinks(item as any).find((candidate) => candidate.kind === "source");
+  return source ? verifyArticleExternalLink(source) : null;
+}
+
+function sourceVerificationError(result: ArticleExternalLinkVerification): string {
+  const detail = result.failureCode || "UNKNOWN";
+  return `La fuente original no entregó contenido verificable (${detail}). El Artículo debe guardarse como borrador hasta corregirla.`;
+}
 
 export function registerAdminNewsRoutes(app: Express): void {
   // =============================================
@@ -217,6 +242,55 @@ export function registerAdminNewsRoutes(app: Express): void {
     }
   });
 
+  app.get("/api/admin/news/:id/link-integrity", authMiddleware, requirePermission("content"), async (req: Request, res: Response) => {
+    try {
+      const item = await storage.getNewsById(req.params.id);
+      if (!item) return apiError(res, 404, "News not found");
+      if (!isArticle(item.category)) return apiError(res, 400, "Link integrity is only available for Articles");
+      const links = await storage.getNewsExternalLinks(item.id);
+      res.json({
+        articleId: item.id,
+        published: item.published === true,
+        sourceUrl: item.sourceUrl,
+        links,
+      });
+    } catch (error) {
+      console.error("Get article link integrity error:", error);
+      return apiError(res, 500, "Failed to fetch article link integrity");
+    }
+  });
+
+  app.post("/api/admin/news/:id/link-integrity/verify", authMiddleware, requirePermission("content"), async (req: Request, res: Response) => {
+    try {
+      const item = await storage.getNewsById(req.params.id);
+      if (!item) return apiError(res, 404, "News not found");
+      if (!isArticle(item.category)) return apiError(res, 400, "Link integrity is only available for Articles");
+      const result = await auditAndPersistArticleExternalLinks(item);
+      invalidatePublicPageCache();
+      await auditLog("update", "news_link_integrity", item.id, (req as any).adminUser?.id || "unknown", {
+        checked: result.verifications.length,
+        sourceDisabled: result.sourceDisabled,
+        disabledContentLinks: result.disabledContentLinks,
+      }, req);
+      const updated = await storage.getNewsById(item.id);
+      const links = await storage.getNewsExternalLinks(item.id);
+      return res.json({
+        articleId: item.id,
+        published: updated?.published === true,
+        sourceUrl: updated?.sourceUrl ?? item.sourceUrl,
+        links,
+        result: {
+          checked: result.verifications.length,
+          sourceDisabled: result.sourceDisabled,
+          disabledContentLinks: result.disabledContentLinks,
+        },
+      });
+    } catch (error) {
+      console.error("Verify article link integrity error:", error);
+      return apiError(res, 500, "Failed to verify article links");
+    }
+  });
+
   const teamMemberIdsSchema = z.array(z.string().uuid()).max(50).transform((ids) => Array.from(new Set(ids)));
   // Las etiquetas son una decisión editorial, no una inferencia opaca sobre el texto.
   // Se normalizan para que "Fiscal" y " fiscal " siempre enlacen el mismo tema.
@@ -406,11 +480,22 @@ export function registerAdminNewsRoutes(app: Express): void {
         return apiError(res, 400, rawArticleUrlError);
       }
 
+      const sourceVerification = newsData.published && isArticle(newsData.category)
+        ? await verifyConfiguredArticleSource(newsData)
+        : null;
+      if (sourceVerification && !sourceVerification.valid) {
+        return apiError(res, 409, sourceVerificationError(sourceVerification), {
+          code: "ARTICLE_SOURCE_UNVERIFIED",
+          sourceIntegrity: sourceVerification,
+        });
+      }
+
       if (!await validateNewsTeamMembers(teamMemberIds)) {
         return apiError(res, 400, "One or more team members do not exist");
       }
 
       const newsItem = await storage.createNewsWithTeamMembers(newsData, teamMemberIds);
+      if (sourceVerification) await persistArticleExternalLinkVerifications(newsItem, [sourceVerification]);
       invalidatePublicPageCache();
       const linguisticWarnings = await getLinguisticWarnings([
         { field: "title", lang: "en", text: newsItem.title },
@@ -453,6 +538,17 @@ export function registerAdminNewsRoutes(app: Express): void {
           : findUnlinkedArticleUrls(finalState);
         if (rawUrls.length) return apiError(res, 400, rawArticleUrlError);
       }
+      const sourceChanged = Object.prototype.hasOwnProperty.call(validated, "sourceUrl") && validated.sourceUrl !== current.sourceUrl;
+      const publishingNow = requiresExplicitEditorialDate(current.published, finalState.published);
+      const sourceVerification = finalState.published && isArticle(finalState.category) && (sourceChanged || publishingNow)
+        ? await verifyConfiguredArticleSource(finalState)
+        : null;
+      if (sourceVerification && !sourceVerification.valid) {
+        return apiError(res, 409, sourceVerificationError(sourceVerification), {
+          code: "ARTICLE_SOURCE_UNVERIFIED",
+          sourceIntegrity: sourceVerification,
+        });
+      }
       if (teamMemberIds && !await validateNewsTeamMembers(teamMemberIds)) {
         return apiError(res, 400, "One or more team members do not exist");
       }
@@ -460,6 +556,7 @@ export function registerAdminNewsRoutes(app: Express): void {
       if (!newsItem) {
         return apiError(res, 404, "News not found");
       }
+      if (sourceVerification) await persistArticleExternalLinkVerifications(newsItem, [sourceVerification]);
       invalidatePublicPageCache();
       const linguisticWarnings = await getLinguisticWarnings([
         { field: "title", lang: "en", text: newsItem.title },

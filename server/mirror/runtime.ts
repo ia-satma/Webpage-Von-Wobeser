@@ -368,6 +368,12 @@ export async function createMirrorRuntime() {
   }
 
   // ---------- Reusable serve helpers ------------------------------------
+  const withDisabledExternalUrls = async <T extends { id: string }>(items: T[]): Promise<Array<T & { disabledExternalUrls: string[] }>> =>
+    Promise.all(items.map(async (item) => ({
+      ...item,
+      disabledExternalUrls: await storage.getDisabledNewsExternalUrls(item.id),
+    })));
+
   const serveAttorney = async (slug: string | undefined, lang: Lang, res: Response, next: NextFunction) => {
     if (!slug) return next();
     let member = await storage.getTeamMemberBySlug(slug);
@@ -383,7 +389,7 @@ export async function createMirrorRuntime() {
         limit: 3,
         offset: 0,
         language: lang,
-      }).then((result) => result.rows).catch(() => []),
+      }).then((result) => withDisabledExternalUrls(result.rows)).catch(() => []),
       getConfigMap(),
     ]);
     const typography = await getEditorialTypography("team_member", member.id);
@@ -566,8 +572,11 @@ export async function createMirrorRuntime() {
     if (!slug) return next();
     const item = await storage.getNewsBySlug(slug);
     if (!item || !isPubliclyVisible(item)) return next();
-    const relatedTeamMembers = (await storage.getVerifiedTeamMembersByNewsId(item.id))
-      .filter((member) => member.published === true);
+    const [verifiedMembers, disabledExternalUrls] = await Promise.all([
+      storage.getVerifiedTeamMembersByNewsId(item.id),
+      storage.getDisabledNewsExternalUrls(item.id),
+    ]);
+    const relatedTeamMembers = verifiedMembers.filter((member) => member.published === true);
     // La red editorial conecta las publicaciones por temas, autores y categoría. La
     // ponderación está en storage para que cada criterio se pueda controlar desde CMS.
     const relatedNews = await storage.getEditorialRecommendations({
@@ -576,9 +585,9 @@ export async function createMirrorRuntime() {
       tags: item.tags || [],
       category: item.category,
       limit: 6,
-    }).catch(() => []);
+    }).then(withDisabledExternalUrls).catch(() => []);
     const typography = await getEditorialTypography("news", item.id);
-    sendPage(res, renderNewsDetail(pick(TEMPLATES.newsDetail, lang), { ...item, relatedTeamMembers, relatedNews }, lang, typography));
+    sendPage(res, renderNewsDetail(pick(TEMPLATES.newsDetail, lang), { ...item, disabledExternalUrls, relatedTeamMembers, relatedNews }, lang, typography));
   };
 
   type PublicAuthorFilter = { id: string; slug: string; name: string };

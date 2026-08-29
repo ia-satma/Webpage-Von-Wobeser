@@ -1,4 +1,5 @@
 import sanitizeHtml from "sanitize-html";
+import * as cheerio from "cheerio";
 
 // Sanitiza contenido HTML del CMS antes de inyectarlo en las páginas públicas.
 // Conserva el formato legítimo (párrafos, enlaces, listas, énfasis) pero elimina
@@ -86,10 +87,49 @@ const LOOKS_LIKE_HTML = /<\/?[a-z][\s\S]*>/i;
  * que existía solo el <Textarea>) y trata cada caso apropiadamente — así el contenido viejo
  * sigue viéndose igual sin necesidad de una migración masiva.
  */
-export function renderRichText(text: string | null | undefined): string {
+function normalizedLinkUrl(value: string): string | null {
+  const raw = String(value ?? "").trim();
+  if (raw.startsWith("/") && !raw.startsWith("//") && !raw.includes("\\")) {
+    try {
+      const parsed = new URL(raw, "https://article-link.local");
+      const pathname = decodeURIComponent(parsed.pathname);
+      if (pathname.startsWith("/") && !pathname.split("/").some((part) => part === "." || part === "..")) return pathname;
+    } catch {
+      return null;
+    }
+  }
+  try {
+    const url = new URL(raw);
+    if (!/^https?:$/.test(url.protocol) || url.username || url.password) return null;
+    url.hash = "";
+    return url.toString();
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Un enlace marcado como inactivo conserva su texto editorial, pero deja de
+ * ser clicable. Así una cita histórica no desaparece ni puede enviar al lector
+ * a un 404 mientras el equipo la revisa desde Administración.
+ */
+function removeDisabledExternalLinks(html: string, disabledExternalUrls: readonly string[]): string {
+  if (!disabledExternalUrls.length) return html;
+  const disabled = new Set(disabledExternalUrls.map(normalizedLinkUrl).filter((url): url is string => Boolean(url)));
+  if (!disabled.size) return html;
+  const $ = cheerio.load(html, null, false);
+  $("a[href]").each((_index, anchor) => {
+    const href = normalizedLinkUrl(String($(anchor).attr("href") ?? ""));
+    if (href && disabled.has(href)) $(anchor).replaceWith($(anchor).contents());
+  });
+  return $.root().html() || "";
+}
+
+export function renderRichText(text: string | null | undefined, options: { disabledExternalUrls?: readonly string[] } = {}): string {
   if (!text) return "";
   const s = String(text);
-  return sanitizeCms(LOOKS_LIKE_HTML.test(s) ? s : plainTextToHtml(s));
+  const clean = sanitizeCms(LOOKS_LIKE_HTML.test(s) ? s : plainTextToHtml(s));
+  return removeDisabledExternalLinks(clean, options.disabledExternalUrls ?? []);
 }
 
 /**

@@ -33,6 +33,7 @@ import type {
   InsertJobOpening,
   InsertMediaItem,
   InsertNews,
+  InsertNewsExternalLink,
   InsertNewsTranslation,
   InsertNewsletterSubscriber,
   InsertOffice,
@@ -51,6 +52,7 @@ import type {
   JobOpening,
   MediaItem,
   News,
+  NewsExternalLink,
   NewsTranslation,
   NewsletterSubscriber,
   Office,
@@ -133,6 +135,10 @@ export interface IStorage {
   createNewsProcessingDraft(newsId: string): Promise<News | undefined>;
   updateNews(id: string, data: Partial<InsertNews>): Promise<News | undefined>;
   updateNewsWithTeamMembers(id: string, data: Partial<InsertNews>, teamMemberIds?: string[]): Promise<News | undefined>;
+  getNewsExternalLinks(newsId: string): Promise<NewsExternalLink[]>;
+  getDisabledNewsExternalUrls(newsId: string): Promise<string[]>;
+  getDisabledNewsExternalUrlsByNewsIds(newsIds: string[]): Promise<Map<string, string[]>>;
+  upsertNewsExternalLink(data: InsertNewsExternalLink): Promise<NewsExternalLink>;
   deleteNews(id: string): Promise<boolean>;
   getOfficeImages(): Promise<OfficeImage[]>;
   createOfficeImage(image: InsertOfficeImage): Promise<OfficeImage>;

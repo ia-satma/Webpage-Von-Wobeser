@@ -19,7 +19,7 @@ import { ImageGenButton } from "@/components/admin/ImageGenButton";
 import { AdminPageHelp } from "@/components/admin/AdminPageHelp";
 import { SocialPostButton, VoiceButton } from "@/components/admin/AgentTools";
 import { TranslateButton } from "@/components/admin/TranslateButton";
-import { ArrowLeft, Save, Loader2 } from "lucide-react";
+import { ArrowLeft, Save, Loader2, RefreshCw } from "lucide-react";
 import { newsCategories, type News } from "@shared/schema";
 
 /** slug amigable a partir del título (sin acentos, minúsculas, guiones). */
@@ -43,6 +43,22 @@ const EMPTY = {
 
 type TeamMemberLite = { id: string; name: string; slug: string };
 type AuthorRelation = { member: TeamMemberLite; verificationStatus: "verified_historic" | "verified_editorial_2026" | "verified_manual" | "legacy_unverified" };
+type ExternalLinkIntegrity = {
+  id: string;
+  kind: "source" | "content";
+  url: string;
+  status: "verified" | "disabled";
+  finalUrl: string | null;
+  failureCode: string | null;
+  checkedAt: string;
+};
+type LinkIntegrityResponse = {
+  articleId: string;
+  published: boolean;
+  sourceUrl: string | null;
+  links: ExternalLinkIntegrity[];
+  result?: { checked: number; sourceDisabled: boolean; disabledContentLinks: number };
+};
 
 /**
  * Editor de Noticias (crear / editar). Los borradores pueden prepararse por etapas,
@@ -119,6 +135,40 @@ export default function AdminNewsForm() {
       .map((relation) => relation.member.id);
     setAuthorIds(ids);
   }, [authorsQuery.data]);
+
+  const linkIntegrityQuery = useQuery<LinkIntegrityResponse>({
+    queryKey: ["/api/admin/news", id, "link-integrity"],
+    enabled: isEdit && !!id && form.category === "articles",
+    queryFn: async () => {
+      const res = await adminApiRequest("GET", `/api/admin/news/${id}/link-integrity`);
+      if (!res.ok) throw new Error("No se pudo cargar el estado de enlaces");
+      return res.json();
+    },
+  });
+
+  const verifyLinksMutation = useMutation({
+    mutationFn: async () => {
+      const res = await adminApiRequest("POST", `/api/admin/news/${id}/link-integrity/verify`, {});
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err?.error || "No se pudieron verificar los enlaces");
+      }
+      return res.json() as Promise<LinkIntegrityResponse>;
+    },
+    onSuccess: (result) => {
+      queryClient.setQueryData(["/api/admin/news", id, "link-integrity"], result);
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/news", id] });
+      queryClient.invalidateQueries({ queryKey: ["/api/news"] });
+      if (!result.published && result.result?.sourceDisabled) set("published", false);
+      toast({
+        title: result.result?.sourceDisabled ? "Artículo despublicado" : "Enlaces verificados",
+        description: result.result?.sourceDisabled
+          ? "La fuente no es verificable. La ficha dejó de ser visible públicamente hasta corregirla."
+          : "El estado de los enlaces se actualizó.",
+      });
+    },
+    onError: (error: Error) => toast({ title: "No se pudo verificar", description: error.message, variant: "destructive" }),
+  });
 
   const toggleAuthor = (memberId: string, checked: boolean) => {
     setAuthorIds((prev) => (checked ? (prev.includes(memberId) ? prev : [...prev, memberId]) : prev.filter((x) => x !== memberId)));
@@ -347,8 +397,50 @@ export default function AdminNewsForm() {
               <div className="space-y-1.5">
                 <Label htmlFor="sourceUrl">Fuente original <span className="text-muted-foreground text-xs">— opcional</span></Label>
                 <Input id="sourceUrl" type="url" value={form.sourceUrl} onChange={(e) => set("sourceUrl", e.target.value)} placeholder="https://…" data-testid="input-source-url" />
-                <p className="text-xs text-muted-foreground">Se muestra como enlace clicable en el listado y en el detalle. Es obligatoria si un Artículo publicado no tiene extractos verificables. No pegues una URL como texto: usa este campo o crea un hipervínculo desde el editor.</p>
+                <p className="text-xs text-muted-foreground">Se muestra como enlace clicable en el listado y en el detalle. Es obligatoria si un Artículo publicado no tiene extractos verificables. Si deja de entregar contenido real, el Artículo se despublica automáticamente. No pegues una URL como texto: usa este campo o crea un hipervínculo desde el editor.</p>
               </div>
+
+              {isEdit && form.category === "articles" && (
+                <div className="rounded-md border p-4 space-y-3" data-testid="article-link-integrity">
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    <div>
+                      <Label>Estado de enlaces</Label>
+                      <p className="mt-1 text-xs text-muted-foreground">Las fuentes inválidas despublican la ficha. Los enlaces internos inválidos conservan su texto, pero dejan de ser clicables.</p>
+                    </div>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => verifyLinksMutation.mutate()}
+                      disabled={verifyLinksMutation.isPending}
+                      data-testid="button-verify-article-links"
+                    >
+                      {verifyLinksMutation.isPending ? <Loader2 className="mr-1 h-4 w-4 animate-spin" /> : <RefreshCw className="mr-1 h-4 w-4" />}
+                      Verificar ahora
+                    </Button>
+                  </div>
+                  {linkIntegrityQuery.isLoading && <p className="text-sm text-muted-foreground">Cargando estado…</p>}
+                  {linkIntegrityQuery.isError && <p className="text-sm text-destructive">No fue posible cargar el estado de enlaces.</p>}
+                  {!linkIntegrityQuery.isLoading && !linkIntegrityQuery.isError && (linkIntegrityQuery.data?.links.length || 0) === 0 && (
+                    <p className="text-sm text-muted-foreground">Aún no hay enlaces auditados. Guarda o verifica este Artículo para crear su registro.</p>
+                  )}
+                  <div className="space-y-2" aria-live="polite">
+                    {(linkIntegrityQuery.data?.links || []).map((link) => (
+                      <div key={link.id} className="rounded border bg-muted/30 p-2 text-xs">
+                        <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                          <span className={link.status === "verified" ? "font-medium text-emerald-700" : "font-medium text-destructive"}>
+                            {link.status === "verified" ? "Verificado" : "Desactivado"}
+                          </span>
+                          <span className="text-muted-foreground">{link.kind === "source" ? "Fuente original" : "Enlace en contenido"}</span>
+                          {link.failureCode && <span className="text-destructive">{link.failureCode}</span>}
+                        </div>
+                        <p className="mt-1 break-all text-muted-foreground">{link.url}</p>
+                        <p className="mt-1 text-muted-foreground">Revisado: {new Date(link.checkedAt).toLocaleString("es-MX")}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               <div className="space-y-1.5">
                 <Label htmlFor="editorialDate">Fecha editorial <span className="text-muted-foreground text-xs">— obligatoria al publicar</span></Label>

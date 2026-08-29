@@ -559,7 +559,9 @@ function buildRelatedInsights(items: any[], lang: Lang): string {
       `<div class="news-related-insights__body">` +
       `<div class="news-related-insights__meta">${category}${category && date ? " · " : ""}${date}</div>` +
       `<h3><a href="${href}" aria-label="${esc(`${labels.read}: ${L(item, "title", lang)}`)}">${title}</a></h3>` +
-      `<div class="news-related-insights__excerpt">${renderRichText(L(item, "excerpt", lang))}</div>` +
+      `<div class="news-related-insights__excerpt">${renderRichText(L(item, "excerpt", lang), {
+        disabledExternalUrls: Array.isArray(item?.disabledExternalUrls) ? item.disabledExternalUrls : [],
+      })}</div>` +
       `</div></article>`;
   }).join("");
 
@@ -577,8 +579,9 @@ export function renderNewsDetail(templateHtml: string, item: any, lang: Lang = "
   const isArticle = item.category === "articles";
   const rawExcerpt = L(item, "excerpt", lang);
   const rawContent = L(item, "content", lang);
-  const excerpt = isArticle && isArticlePlaceholder(rawExcerpt, title) ? "" : renderRichText(rawExcerpt);
-  const content = isArticle && isArticlePlaceholder(rawContent, title) ? "" : renderRichText(rawContent);
+  const richTextOptions = { disabledExternalUrls: Array.isArray(item.disabledExternalUrls) ? item.disabledExternalUrls : [] };
+  const excerpt = isArticle && isArticlePlaceholder(rawExcerpt, title) ? "" : renderRichText(rawExcerpt, richTextOptions);
+  const content = isArticle && isArticlePlaceholder(rawContent, title) ? "" : renderRichText(rawContent, richTextOptions);
   const originalSource = sourceLink(verifiedSourceUrl(item.sourceUrl), lang, "detail");
   const date = fmtDate(item.date, lang);
 
