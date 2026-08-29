@@ -68,6 +68,8 @@ test("el ejecutor de migraciones compara conteos y revierte ante diferencias", (
   assert.match(source, /table: "news", column: "source_url", dataType: "text"/);
   assert.match(source, /20260828_0004_news_author_verification_status\.sql/);
   assert.match(source, /table: "news_team_members", column: "verification_status", dataType: "text"/);
+  assert.match(source, /20260829_0005_news_team_member_relationship_role\.sql/);
+  assert.match(source, /table: "news_team_members", column: "relationship_role", dataType: "text"/);
   assert.match(source, /reconciled platform-applied schema migration/);
 });
 

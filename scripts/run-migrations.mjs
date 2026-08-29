@@ -36,6 +36,10 @@ const platformSchemaReconciliations = new Map([
   // application process starts. The runner still records this exact local
   // migration, but must not attempt to add the same column a second time.
   ["20260828_0004_news_author_verification_status.sql", { table: "news_team_members", column: "verification_status", dataType: "text" }],
+  // Igual protección para el rol de relación editorial: Replit puede aplicar
+  // el ALTER TABLE aprobado antes del arranque. Sólo se reconcilia si existe
+  // exactamente esta columna de texto en la tabla esperada.
+  ["20260829_0005_news_team_member_relationship_role.sql", { table: "news_team_members", column: "relationship_role", dataType: "text" }],
 ]);
 // Las migraciones posteriores al endurecimiento son aditivas por defecto. Esta
 // excepción individual conserva una reconciliación editorial comprobable: la
