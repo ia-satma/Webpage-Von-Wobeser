@@ -371,6 +371,10 @@ test("la corrección puntual de la nota 1911 sólo confirma sus seis autores his
   assert.match(migration, /Missing unexpected historic author/);
   assert.doesNotMatch(migration, /\bDELETE\s+FROM\s+news_team_members\b/i);
   assert.match(migrationRunner, /20260828_0007_correct_news_1911_author_relations\.mjs/);
+  assert.match(migrationRunner, /dataMigrationNotApplicableWhenTargetIsAbsent/);
+  assert.match(migrationRunner, /reconciled not-applicable data migration/);
+  assert.match(migrationRunner, /legacyId: "1911"/);
+  assert.match(migrationRunner, /WHERE legacy_id = \$1 LIMIT 2/);
 });
 
 test("el detalle recomienda publicaciones por etiquetas, autores y categoría sin repetir la actual", () => {

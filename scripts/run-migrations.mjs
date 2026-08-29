@@ -82,6 +82,18 @@ const verifiedDataMigrationPolicies = new Map([
   }],
 ]);
 
+// Algunos entornos de publicación se crearon sin una publicación histórica
+// concreta. La corrección editorial sigue siendo estricta cuando existe su
+// objetivo, pero una ausencia total no debe bloquear todas las migraciones ni
+// crear una relación inferida. El registro se marca aplicado como no aplicable
+// únicamente después de comprobar que no hay ninguna fila con ese legacy id.
+const dataMigrationNotApplicableWhenTargetIsAbsent = new Map([
+  ["20260828_0007_correct_news_1911_author_relations.mjs", {
+    table: "news",
+    legacyId: "1911",
+  }],
+]);
+
 function quoteIdentifier(value) {
   return `"${String(value).replace(/"/g, '""')}"`;
 }
@@ -166,6 +178,18 @@ async function isPlatformSchemaMigrationAlreadyApplied(name) {
   return result.rowCount === 1 && result.rows[0].data_type === expected.dataType;
 }
 
+async function isDataMigrationNotApplicable(name) {
+  const expected = dataMigrationNotApplicableWhenTargetIsAbsent.get(name);
+  if (!expected) return false;
+  const result = await client.query(
+    `SELECT id FROM ${quoteIdentifier(expected.table)} WHERE legacy_id = $1 LIMIT 2`,
+    [expected.legacyId],
+  );
+  if (result.rowCount !== 0) return false;
+  console.log(`[migrations] reconciled not-applicable data migration ${name}: legacyId ${expected.legacyId} is absent`);
+  return true;
+}
+
 await client.connect();
 try {
   await client.query("SELECT pg_advisory_lock($1)", [2026072301]);
@@ -212,6 +236,10 @@ try {
         } else {
           await client.query(source);
         }
+      } else if (await isDataMigrationNotApplicable(name)) {
+        // La ausencia se comprobó con una consulta acotada y no se modifica
+        // contenido. El registro de migración evita que cada despliegue vuelva
+        // a detenerse por una corrección sin objetivo en este entorno.
       } else {
         const module = await import(`${pathToFileURL(sourcePath).href}?sha256=${sha256}`);
         if (typeof module.default !== "function") {
