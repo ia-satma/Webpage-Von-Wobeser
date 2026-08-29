@@ -10,18 +10,44 @@ import { renderRichText } from "../mirror/sanitize";
 
 const publicationHtml = `<!doctype html><html><head><title>Von Wobeser y Sierra - Política Criminal Contemporánea de la Secretaría de Hacienda y Crédito Público, Thomson Reuters (2015)</title></head><body><main><h1>Política Criminal Contemporánea de la Secretaría de Hacienda y Crédito Público, Thomson Reuters (2015)</h1><p>Contenido oficial verificable de la publicación histórica con suficiente detalle editorial para distinguirlo de una página vacía, de navegación o de error.</p></main></body></html>`;
 
-test("la fuente Joomla p_id=1830 se conserva cuando entrega el título y contenido correctos", async () => {
+test("la fuente Joomla p_id=1830 se desactiva aunque entregue contenido y nunca se solicita", async () => {
   const [candidate] = collectArticleExternalLinks({
     sourceUrl: "https://www.vonwobeser.com/index.php/publication?p_id=1830",
     title: "Contemporary Criminal Policy of the Ministry of Finance and Public Credit, Thomson Reuters (2015)",
     titleEs: "Política Criminal Contemporánea de la Secretaría de Hacienda y Crédito Público, Thomson Reuters (2015)",
     excerpt: "", excerptEs: "", content: "", contentEs: "",
   });
+  let requests = 0;
   const result = await verifyArticleExternalLink(candidate, {
-    fetchImpl: async () => new Response(publicationHtml, { status: 200, headers: { "content-type": "text/html; charset=utf-8" } }),
+    fetchImpl: async () => {
+      requests += 1;
+      return new Response(publicationHtml, { status: 200, headers: { "content-type": "text/html; charset=utf-8" } });
+    },
   });
-  assert.equal(result.valid, true);
+  assert.equal(result.valid, false);
+  assert.equal(result.failureCode, "LEGACY_FIRM_PAGE");
   assert.equal(result.finalUrl, candidate.normalizedUrl);
+  assert.equal(requests, 0);
+});
+
+test("un vínculo dentro del contenido a la página anterior también queda invalidado", async () => {
+  const [candidate] = collectArticleExternalLinks({
+    sourceUrl: "",
+    title: "Article",
+    titleEs: "Artículo",
+    excerpt: '<p><a href="https://www.vonwobeser.com/index.php/publication?p_id=1830">Historic publication</a></p>',
+    excerptEs: "",
+    content: "",
+    contentEs: "",
+  });
+  assert.equal(candidate.kind, "content");
+  const result = await verifyArticleExternalLink(candidate, {
+    fetchImpl: async () => {
+      throw new Error("the legacy address must never be fetched");
+    },
+  });
+  assert.equal(result.valid, false);
+  assert.equal(result.failureCode, "LEGACY_FIRM_PAGE");
 });
 
 test("un 404, una página de error 200 y un redireccionamiento al 404 legado son inválidos", async () => {
@@ -45,6 +71,11 @@ test("un 404, una página de error 200 y un redireccionamiento al 404 legado son
     fetchImpl: async () => new Response(null, { status: 302, headers: { location: "https://www.vonwobeser.com/index.php/404" } }),
   });
   assert.equal(legacyRedirect.failureCode, "REDIRECT_TO_LEGACY_404");
+
+  const legacyFirmRedirect = await verifyArticleExternalLink(candidate, {
+    fetchImpl: async () => new Response(null, { status: 302, headers: { location: "https://www.vonwobeser.com/index.php/publication?p_id=1830" } }),
+  });
+  assert.equal(legacyFirmRedirect.failureCode, "LEGACY_FIRM_PAGE");
 });
 
 test("un PDF válido y una redirección a contenido real permanecen activos", async () => {

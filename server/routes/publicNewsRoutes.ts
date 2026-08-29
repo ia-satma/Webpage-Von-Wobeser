@@ -2,6 +2,7 @@ import type { Express } from "express";
 import { storage } from "../storage";
 import type { News } from "@shared/schema";
 import { renderRichText } from "../mirror/sanitize";
+import { isLegacyFirmPublicationUrl } from "../newsPublicationPolicy";
 
 const isPubliclyVisible = (entity: { published?: boolean | null }): boolean => entity.published === true;
 
@@ -12,9 +13,11 @@ async function withoutDisabledArticleLinks(items: News[]): Promise<News[]> {
   if (!disabledByNewsId.size) return items;
   return items.map((item) => {
     const disabledExternalUrls = disabledByNewsId.get(item.id) || [];
-    if (!disabledExternalUrls.length) return item;
+    const hasLegacySource = String(item.category || "").toLowerCase() === "articles" && isLegacyFirmPublicationUrl(item.sourceUrl);
+    if (!disabledExternalUrls.length && !hasLegacySource) return item;
     return {
       ...item,
+      sourceUrl: hasLegacySource ? null : item.sourceUrl,
       excerpt: renderRichText(item.excerpt, { disabledExternalUrls }),
       excerptEs: renderRichText(item.excerptEs, { disabledExternalUrls }),
       content: renderRichText(item.content, { disabledExternalUrls }),

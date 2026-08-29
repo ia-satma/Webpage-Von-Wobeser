@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { editorialDateAtNoon, hasPublishableNewsContent, isValidEditorialDate, isVerifiedNewsSourceUrl, normalizeOriginalSourceUrl, requiresExplicitEditorialDate } from "../newsPublicationPolicy";
+import { editorialDateAtNoon, hasPublishableNewsContent, isLegacyFirmPublicationUrl, isValidEditorialDate, isVerifiedNewsSourceUrl, normalizeOriginalSourceUrl, requiresExplicitEditorialDate } from "../newsPublicationPolicy";
 
 test("la API acepta Artículos publicados solo con fuente HTTPS verificable", () => {
   const sourceOnlyArticle = {
@@ -36,17 +36,20 @@ test("la API conserva el requisito bilingüe para las demás publicaciones", () 
   assert.equal(isVerifiedNewsSourceUrl("javascript:alert(1)"), false);
 });
 
-test("la API normaliza solamente la ruta Joomla histórica que hoy lleva al 404", () => {
+test("la API conserva rutas antiguas para que Administración pueda desactivarlas, nunca las normaliza", () => {
   assert.equal(
     normalizeOriginalSourceUrl("https://www.vonwobeser.com/index.php/publication/p_id-1830.html"),
-    "https://www.vonwobeser.com/index.php/publication?p_id=1830",
+    "https://www.vonwobeser.com/index.php/publication/p_id-1830.html",
   );
   assert.equal(
     normalizeOriginalSourceUrl("https://vonwobeser.com/index.php/publicacion/p_id-1815.html"),
-    "https://www.vonwobeser.com/index.php/publicacion?p_id=1815",
+    "https://vonwobeser.com/index.php/publicacion/p_id-1815.html",
   );
   assert.equal(normalizeOriginalSourceUrl("https://example.com/index.php/publication/p_id-1830.html"), "https://example.com/index.php/publication/p_id-1830.html");
   assert.equal(normalizeOriginalSourceUrl("https://www.vonwobeser.com/index.php/publication?p_id=1830"), "https://www.vonwobeser.com/index.php/publication?p_id=1830");
+  assert.equal(isLegacyFirmPublicationUrl("https://www.vonwobeser.com/index.php/publication?p_id=1830"), true);
+  assert.equal(isLegacyFirmPublicationUrl("https://vonwobeser.com/index.php/publicacion/p_id-1815.html"), true);
+  assert.equal(isLegacyFirmPublicationUrl("https://www.vonwobeser.com/images/PDF/2022/documento.pdf"), false);
 });
 
 test("la fecha editorial exige un día real y mantiene su mes en UTC", () => {

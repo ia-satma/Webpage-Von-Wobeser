@@ -5,6 +5,7 @@ import path from "node:path";
 import { db } from "./db";
 import { news, newsExternalLinks, type News } from "@shared/schema";
 import { getMirrorDir } from "./mirror/config";
+import { isLegacyFirmPublicationUrl } from "./newsPublicationPolicy";
 
 type DatabaseTransaction = Parameters<Parameters<typeof db.transaction>[0]>[0];
 
@@ -14,6 +15,7 @@ export type ArticleExternalLinkFailure =
   | "UNSAFE_HOST"
   | "REDIRECT_LIMIT"
   | "REDIRECT_WITHOUT_LOCATION"
+  | "LEGACY_FIRM_PAGE"
   | "REDIRECT_TO_LEGACY_404"
   | "HTTP_ERROR"
   | "NETWORK_ERROR"
@@ -155,36 +157,8 @@ function isLegacy404(url: string): boolean {
   }
 }
 
-function isFirstPartyPublication(url: string): boolean {
-  try {
-    const parsed = new URL(url);
-    return FIRST_PARTY_HOSTS.has(parsed.hostname.toLowerCase())
-      && /^\/index\.php\/(?:publication|publicacion)\/?$/i.test(parsed.pathname)
-      && /^\d+$/.test(parsed.searchParams.get("p_id") || "");
-  } catch {
-    return false;
-  }
-}
-
 function visibleText(html: string): string {
   return cheerio.load(html).text().replace(/\s+/g, " ").trim();
-}
-
-function normalizedWords(value: string): Set<string> {
-  return new Set(value.toLocaleLowerCase("es-MX").normalize("NFD").replace(/[\u0300-\u036f]/g, "")
-    .split(/[^a-z0-9]+/).filter((word) => word.length >= 4));
-}
-
-function firstPartyTitleMatches(title: string, expectedTitles: string[]): boolean {
-  const actual = normalizedWords(title);
-  if (!actual.size) return false;
-  return expectedTitles.some((expected) => {
-    const expectedWords = normalizedWords(expected);
-    if (!expectedWords.size) return true;
-    let matches = 0;
-    for (const word of Array.from(expectedWords)) if (actual.has(word)) matches += 1;
-    return matches >= Math.min(2, expectedWords.size) && matches / expectedWords.size >= 0.4;
-  });
 }
 
 async function readSnippet(response: Response, maxBytes = 256_000): Promise<Buffer> {
@@ -253,6 +227,11 @@ export async function verifyArticleExternalLink(
   if (!initialUrl) {
     return { ...candidate, valid: false, status: null, finalUrl: null, failureCode: "INVALID_URL", redirectChain: [], contentType: "" };
   }
+  // Una ficha HTML de la firma anterior no es una fuente válida aunque todavía
+  // responda con 200. Nunca hacemos una solicitud que pueda legitimarla.
+  if (isLegacyFirmPublicationUrl(initialUrl)) {
+    return { ...candidate, valid: false, status: null, finalUrl: initialUrl, failureCode: "LEGACY_FIRM_PAGE", redirectChain: [], contentType: "" };
+  }
   let currentUrl = initialUrl;
   const redirectChain: string[] = [];
   try {
@@ -279,6 +258,7 @@ export async function verifyArticleExternalLink(
         const next = normalizeArticleExternalUrl(new URL(location, currentUrl).toString());
         if (!next) return { ...candidate, valid: false, status: response.status, finalUrl: currentUrl, failureCode: "UNSAFE_HOST", redirectChain, contentType: "" };
         redirectChain.push(`${response.status}:${currentUrl}=>${next}`);
+        if (isLegacyFirmPublicationUrl(next)) return { ...candidate, valid: false, status: response.status, finalUrl: next, failureCode: "LEGACY_FIRM_PAGE", redirectChain, contentType: "" };
         if (isLegacy404(next)) return { ...candidate, valid: false, status: response.status, finalUrl: next, failureCode: "REDIRECT_TO_LEGACY_404", redirectChain, contentType: "" };
         currentUrl = next;
         continue;
@@ -286,6 +266,7 @@ export async function verifyArticleExternalLink(
       if (response.status < 200 || response.status >= 300) {
         return { ...candidate, valid: false, status: response.status, finalUrl: currentUrl, failureCode: "HTTP_ERROR", redirectChain, contentType: response.headers.get("content-type") || "" };
       }
+      if (isLegacyFirmPublicationUrl(currentUrl)) return { ...candidate, valid: false, status: response.status, finalUrl: currentUrl, failureCode: "LEGACY_FIRM_PAGE", redirectChain, contentType: response.headers.get("content-type") || "" };
       if (isLegacy404(currentUrl)) return { ...candidate, valid: false, status: response.status, finalUrl: currentUrl, failureCode: "REDIRECT_TO_LEGACY_404", redirectChain, contentType: response.headers.get("content-type") || "" };
       const contentType = response.headers.get("content-type") || "";
       const body = await readSnippet(response);
@@ -302,9 +283,6 @@ export async function verifyArticleExternalLink(
       if (text.length < 80) return { ...candidate, valid: false, status: response.status, finalUrl: currentUrl, failureCode: "HTML_EMPTY", redirectChain, contentType };
       if (ERROR_DOCUMENT.test(`${title} ${text.slice(0, 3000)}`)) {
         return { ...candidate, valid: false, status: response.status, finalUrl: currentUrl, failureCode: "HTML_ERROR_DOCUMENT", redirectChain, contentType };
-      }
-      if (isFirstPartyPublication(currentUrl) && !firstPartyTitleMatches(title, candidate.expectedTitles)) {
-        return { ...candidate, valid: false, status: response.status, finalUrl: currentUrl, failureCode: "HTML_TITLE_MISMATCH", redirectChain, contentType };
       }
       return { ...candidate, valid: true, status: response.status, finalUrl: currentUrl, failureCode: null, redirectChain, contentType };
     }
@@ -333,7 +311,7 @@ export async function verifyArticleExternalLinks(item: Pick<News, "sourceUrl" | 
 export async function persistArticleExternalLinkVerifications(
   item: Pick<News, "id" | "category" | "sourceUrl">,
   verifications: ArticleExternalLinkVerification[],
-): Promise<{ sourceDisabled: boolean; disabledContentLinks: number }> {
+): Promise<{ sourceDisabled: boolean; disabledContentLinks: number; legacyFirmPageDetected: boolean; articleUnpublished: boolean }> {
   return db.transaction((tx) => persistArticleExternalLinkVerificationsInTransaction(tx, item, verifications));
 }
 
@@ -341,9 +319,10 @@ async function persistArticleExternalLinkVerificationsInTransaction(
   tx: DatabaseTransaction,
   item: Pick<News, "id" | "category" | "sourceUrl">,
   verifications: ArticleExternalLinkVerification[],
-): Promise<{ sourceDisabled: boolean; disabledContentLinks: number }> {
+): Promise<{ sourceDisabled: boolean; disabledContentLinks: number; legacyFirmPageDetected: boolean; articleUnpublished: boolean }> {
   let sourceDisabled = false;
   let disabledContentLinks = 0;
+  const legacyFirmPageDetected = verifications.some((result) => result.failureCode === "LEGACY_FIRM_PAGE");
   for (const result of verifications) {
     const disabled = !result.valid;
     if (result.kind === "source" && disabled) sourceDisabled = true;
@@ -370,14 +349,16 @@ async function persistArticleExternalLinkVerificationsInTransaction(
       },
     });
   }
-  if (sourceDisabled && String(item.category || "").toLowerCase() === "articles") {
+  let articleUnpublished = false;
+  if ((sourceDisabled || legacyFirmPageDetected) && String(item.category || "").toLowerCase() === "articles") {
     const currentSource = normalizeArticleExternalUrl(item.sourceUrl) || String(item.sourceUrl ?? "").trim();
     const failedCurrentSource = verifications.some((result) => result.kind === "source" && !result.valid && result.normalizedUrl === currentSource);
-    if (failedCurrentSource) {
+    if (failedCurrentSource || legacyFirmPageDetected) {
       await tx.update(news).set({ published: false, featuredHome: false }).where(eq(news.id, item.id));
+      articleUnpublished = true;
     }
   }
-  return { sourceDisabled, disabledContentLinks };
+  return { sourceDisabled, disabledContentLinks, legacyFirmPageDetected, articleUnpublished };
 }
 
 export async function auditAndPersistArticleExternalLinks(item: News, options: { fetchImpl?: FetchLike; timeoutMs?: number } = {}) {
@@ -392,8 +373,10 @@ export async function auditAllArticleExternalLinks(options: { fetchImpl?: FetchL
   const results = [] as Array<{
     id: string;
     slug: string;
+    published: boolean;
     sourceDisabled: boolean;
     disabledContentLinks: number;
+    legacyFirmPageDetected: boolean;
     checked: number;
     verifications: ArticleExternalLinkVerification[];
   }>;
@@ -401,7 +384,8 @@ export async function auditAllArticleExternalLinks(options: { fetchImpl?: FetchL
     const verifications = await verifyArticleExternalLinks(article, options);
     const sourceDisabled = verifications.some((result) => result.kind === "source" && !result.valid);
     const disabledContentLinks = verifications.filter((result) => result.kind === "content" && !result.valid).length;
-    results.push({ id: article.id, slug: article.slug, sourceDisabled, disabledContentLinks, checked: verifications.length, verifications });
+    const legacyFirmPageDetected = verifications.some((result) => result.failureCode === "LEGACY_FIRM_PAGE");
+    results.push({ id: article.id, slug: article.slug, published: article.published === true, sourceDisabled, disabledContentLinks, legacyFirmPageDetected, checked: verifications.length, verifications });
   }
   // La aplicación posterior a la auditoría no deja estados a medias: todos los
   // resultados ya se verificaron, y después se guardan (incluidas las
@@ -418,6 +402,8 @@ export async function auditAllArticleExternalLinks(options: { fetchImpl?: FetchL
     totalLinks: results.reduce((total, result) => total + result.checked, 0),
     sourceDisabled: results.filter((result) => result.sourceDisabled).length,
     disabledContentLinks: results.reduce((total, result) => total + result.disabledContentLinks, 0),
+    legacyFirmPageDetected: results.filter((result) => result.legacyFirmPageDetected).length,
+    publicLegacyFirmPageDetected: results.filter((result) => result.published && result.legacyFirmPageDetected).length,
     results,
   };
 }

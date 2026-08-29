@@ -21,14 +21,14 @@ import {
   auditAndPersistArticleExternalLinks,
   collectArticleExternalLinks,
   persistArticleExternalLinkVerifications,
-  verifyArticleExternalLink,
+  verifyArticleExternalLinks,
   type ArticleExternalLinkVerification,
 } from "../articleExternalLinkIntegrity";
 
 const isArticle = (category: unknown) => String(category ?? "").trim().toLowerCase() === "articles";
 const rawArticleUrlError = "Published Articles must use Fuente original or an actual hyperlink; plain URLs are not allowed";
 
-async function verifyConfiguredArticleSource(item: {
+async function verifyConfiguredArticleLinks(item: {
   sourceUrl?: unknown;
   excerpt?: unknown;
   excerptEs?: unknown;
@@ -36,12 +36,18 @@ async function verifyConfiguredArticleSource(item: {
   contentEs?: unknown;
   title?: unknown;
   titleEs?: unknown;
-}): Promise<ArticleExternalLinkVerification | null> {
-  const source = collectArticleExternalLinks(item as any).find((candidate) => candidate.kind === "source");
-  return source ? verifyArticleExternalLink(source) : null;
+}): Promise<ArticleExternalLinkVerification[]> {
+  return verifyArticleExternalLinks(item as any);
+}
+
+function configuredSourceVerification(verifications: ArticleExternalLinkVerification[]): ArticleExternalLinkVerification | null {
+  return verifications.find((candidate) => candidate.kind === "source") || null;
 }
 
 function sourceVerificationError(result: ArticleExternalLinkVerification): string {
+  if (result.failureCode === "LEGACY_FIRM_PAGE") {
+    return "La fuente pertenece a la página anterior de la firma. El Artículo debe mantenerse como borrador hasta sustituirla por una fuente vigente verificable.";
+  }
   const detail = result.failureCode || "UNKNOWN";
   return `La fuente original no entregó contenido verificable (${detail}). El Artículo debe guardarse como borrador hasta corregirla.`;
 }
@@ -271,6 +277,8 @@ export function registerAdminNewsRoutes(app: Express): void {
         checked: result.verifications.length,
         sourceDisabled: result.sourceDisabled,
         disabledContentLinks: result.disabledContentLinks,
+        legacyFirmPageDetected: result.legacyFirmPageDetected,
+        articleUnpublished: result.articleUnpublished,
       }, req);
       const updated = await storage.getNewsById(item.id);
       const links = await storage.getNewsExternalLinks(item.id);
@@ -283,6 +291,8 @@ export function registerAdminNewsRoutes(app: Express): void {
           checked: result.verifications.length,
           sourceDisabled: result.sourceDisabled,
           disabledContentLinks: result.disabledContentLinks,
+          legacyFirmPageDetected: result.legacyFirmPageDetected,
+          articleUnpublished: result.articleUnpublished,
         },
       });
     } catch (error) {
@@ -473,6 +483,16 @@ export function registerAdminNewsRoutes(app: Express): void {
       if (newsData.published && !newsData.date) {
         return apiError(res, 400, "Published news requires a valid editorial date");
       }
+      const linkVerifications = newsData.published && isArticle(newsData.category)
+        ? await verifyConfiguredArticleLinks(newsData)
+        : [];
+      const sourceVerification = configuredSourceVerification(linkVerifications);
+      if (sourceVerification && !sourceVerification.valid) {
+        return apiError(res, 409, sourceVerificationError(sourceVerification), {
+          code: "ARTICLE_SOURCE_UNVERIFIED",
+          sourceIntegrity: sourceVerification,
+        });
+      }
       if (newsData.published && !hasPublishableNewsContent(newsData)) {
         return apiError(res, 400, "Published news requires title and excerpt in English and Spanish, or a verified source for Articles");
       }
@@ -480,33 +500,28 @@ export function registerAdminNewsRoutes(app: Express): void {
         return apiError(res, 400, rawArticleUrlError);
       }
 
-      const sourceVerification = newsData.published && isArticle(newsData.category)
-        ? await verifyConfiguredArticleSource(newsData)
-        : null;
-      if (sourceVerification && !sourceVerification.valid) {
-        return apiError(res, 409, sourceVerificationError(sourceVerification), {
-          code: "ARTICLE_SOURCE_UNVERIFIED",
-          sourceIntegrity: sourceVerification,
-        });
-      }
-
       if (!await validateNewsTeamMembers(teamMemberIds)) {
         return apiError(res, 400, "One or more team members do not exist");
       }
 
       const newsItem = await storage.createNewsWithTeamMembers(newsData, teamMemberIds);
-      if (sourceVerification) await persistArticleExternalLinkVerifications(newsItem, [sourceVerification]);
+      const linkIntegrity = linkVerifications.length
+        ? await persistArticleExternalLinkVerifications(newsItem, linkVerifications)
+        : null;
+      const responseItem = linkIntegrity?.articleUnpublished
+        ? await storage.getNewsById(newsItem.id) || newsItem
+        : newsItem;
       invalidatePublicPageCache();
       const linguisticWarnings = await getLinguisticWarnings([
-        { field: "title", lang: "en", text: newsItem.title },
-        { field: "titleEs", lang: "es", text: newsItem.titleEs },
-        { field: "excerpt", lang: "en", text: newsItem.excerpt },
-        { field: "excerptEs", lang: "es", text: newsItem.excerptEs },
-        { field: "content", lang: "en", text: newsItem.content },
-        { field: "contentEs", lang: "es", text: newsItem.contentEs },
+        { field: "title", lang: "en", text: responseItem.title },
+        { field: "titleEs", lang: "es", text: responseItem.titleEs },
+        { field: "excerpt", lang: "en", text: responseItem.excerpt },
+        { field: "excerptEs", lang: "es", text: responseItem.excerptEs },
+        { field: "content", lang: "en", text: responseItem.content },
+        { field: "contentEs", lang: "es", text: responseItem.contentEs },
       ]);
       await auditLog("create", "news", newsItem.id, (req as any).adminUser?.id || "unknown", undefined, req);
-      res.status(201).json({ ...newsItem, linguisticWarnings });
+      res.status(201).json({ ...responseItem, linguisticWarnings });
     } catch (error) {
       console.error("Create news error:", error);
       return apiError(res, 500, "Failed to create news");
@@ -528,6 +543,19 @@ export function registerAdminNewsRoutes(app: Express): void {
       if (requiresExplicitEditorialDate(current.published, finalState.published) && !validated.date) {
         return apiError(res, 400, "Publishing news requires a valid editorial date");
       }
+      // Se revisan todas las fuentes y vínculos de un Artículo publicado en
+      // cada guardado. Así un enlace heredado a la firma anterior no puede
+      // reaparecer al editar otro campo desde Administración.
+      const linkVerifications = finalState.published && isArticle(finalState.category)
+        ? await verifyConfiguredArticleLinks(finalState)
+        : [];
+      const sourceVerification = configuredSourceVerification(linkVerifications);
+      if (sourceVerification && !sourceVerification.valid) {
+        return apiError(res, 409, sourceVerificationError(sourceVerification), {
+          code: "ARTICLE_SOURCE_UNVERIFIED",
+          sourceIntegrity: sourceVerification,
+        });
+      }
       if (finalState.published && !hasPublishableNewsContent(finalState)) {
         return apiError(res, 400, "Published news requires title and excerpt in English and Spanish, or a verified source for Articles");
       }
@@ -538,17 +566,6 @@ export function registerAdminNewsRoutes(app: Express): void {
           : findUnlinkedArticleUrls(finalState);
         if (rawUrls.length) return apiError(res, 400, rawArticleUrlError);
       }
-      const sourceChanged = Object.prototype.hasOwnProperty.call(validated, "sourceUrl") && validated.sourceUrl !== current.sourceUrl;
-      const publishingNow = requiresExplicitEditorialDate(current.published, finalState.published);
-      const sourceVerification = finalState.published && isArticle(finalState.category) && (sourceChanged || publishingNow)
-        ? await verifyConfiguredArticleSource(finalState)
-        : null;
-      if (sourceVerification && !sourceVerification.valid) {
-        return apiError(res, 409, sourceVerificationError(sourceVerification), {
-          code: "ARTICLE_SOURCE_UNVERIFIED",
-          sourceIntegrity: sourceVerification,
-        });
-      }
       if (teamMemberIds && !await validateNewsTeamMembers(teamMemberIds)) {
         return apiError(res, 400, "One or more team members do not exist");
       }
@@ -556,18 +573,23 @@ export function registerAdminNewsRoutes(app: Express): void {
       if (!newsItem) {
         return apiError(res, 404, "News not found");
       }
-      if (sourceVerification) await persistArticleExternalLinkVerifications(newsItem, [sourceVerification]);
+      const linkIntegrity = linkVerifications.length
+        ? await persistArticleExternalLinkVerifications(newsItem, linkVerifications)
+        : null;
+      const responseItem = linkIntegrity?.articleUnpublished
+        ? await storage.getNewsById(newsItem.id) || newsItem
+        : newsItem;
       invalidatePublicPageCache();
       const linguisticWarnings = await getLinguisticWarnings([
-        { field: "title", lang: "en", text: newsItem.title },
-        { field: "titleEs", lang: "es", text: newsItem.titleEs },
-        { field: "excerpt", lang: "en", text: newsItem.excerpt },
-        { field: "excerptEs", lang: "es", text: newsItem.excerptEs },
-        { field: "content", lang: "en", text: newsItem.content },
-        { field: "contentEs", lang: "es", text: newsItem.contentEs },
+        { field: "title", lang: "en", text: responseItem.title },
+        { field: "titleEs", lang: "es", text: responseItem.titleEs },
+        { field: "excerpt", lang: "en", text: responseItem.excerpt },
+        { field: "excerptEs", lang: "es", text: responseItem.excerptEs },
+        { field: "content", lang: "en", text: responseItem.content },
+        { field: "contentEs", lang: "es", text: responseItem.contentEs },
       ]);
       await auditLog("update", "news", req.params.id, (req as any).adminUser?.id || "unknown", undefined, req);
-      res.json({ ...newsItem, linguisticWarnings });
+      res.json({ ...responseItem, linguisticWarnings });
     } catch (error) {
       if (error instanceof ZodError) {
         return apiError(res, 400, "Invalid input", error.errors);

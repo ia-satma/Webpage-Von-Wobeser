@@ -41,7 +41,6 @@ test("las ventanas del scheduler son deterministas y UTC", async () => {
   assert.equal(scheduledWindowStart("security-maintenance", instant).toISOString(), "2026-08-20T17:00:00.000Z");
   assert.equal(scheduledWindowStart("website-audit", instant).toISOString(), "2026-08-20T00:00:00.000Z");
   assert.equal(scheduledWindowStart("legal-alerts", instant).toISOString(), "2026-08-20T12:00:00.000Z");
-  assert.equal(scheduledWindowStart("article-link-integrity", instant).toISOString(), "2026-08-20T00:00:00.000Z");
 });
 
 test("las migraciones de remediación son exclusivamente aditivas", () => {
@@ -84,8 +83,8 @@ test("las tareas usan lock, idempotencia y resultados sin datos libres", () => {
   assert.doesNotMatch(command, /runSecurityMaintenance\s*\(/);
   assert.match(command, /deleteExpiredSessionsByExactId/);
   assert.match(command, /applyChanges: false/);
-  assert.match(command, /article-link-integrity/);
-  assert.match(command, /auditAllArticleExternalLinks/);
+  assert.doesNotMatch(command, /article-link-integrity/);
+  assert.doesNotMatch(command, /auditAllArticleExternalLinks/);
   assert.doesNotMatch(command, /delete(?:TeamMember|News|Contact|Career|Media|Generated)/);
 
   const cleanup = read("server/security/expiredSessionCleanup.ts");

@@ -258,6 +258,38 @@ test("los Artículos no repiten el título ni imprimen URLs crudas, y exponen su
   assert.equal($detail(".single__meta--name").text().trim(), "Artículo histórico");
 });
 
+test("una fuente de la página anterior nunca genera un CTA público", () => {
+  const sourceUrl = "https://www.vonwobeser.com/index.php/publication?p_id=1830";
+  const archive = renderNewsList(
+    `<!doctype html><html><head></head><body><div class="archive__list"></div></body></html>`,
+    [{
+      slug: "legacy-source", category: "articles", title: "Legacy source", titleEs: "Fuente anterior",
+      excerpt: "", excerptEs: "", sourceUrl, date: "2026-08-26",
+    }],
+    "es",
+  );
+  const detail = renderNewsDetail(newsTemplate, {
+    slug: "legacy-source", category: "articles", title: "Legacy source", titleEs: "Fuente anterior",
+    excerpt: "", excerptEs: "", content: "", contentEs: "", sourceUrl, date: "2026-08-26",
+  }, "es");
+  assert.doesNotMatch(archive, /p_id=1830/);
+  assert.doesNotMatch(detail, /p_id=1830/);
+  assert.equal(cheerio.load(archive)(".vw-news-source-link").length, 0);
+  assert.equal(cheerio.load(detail)(".vw-news-source-link").length, 0);
+});
+
+test("un vínculo interno a la página anterior conserva su texto pero nunca queda clicable", () => {
+  const detail = renderNewsDetail(newsTemplate, {
+    slug: "legacy-inline-link", category: "articles", title: "Legacy source", titleEs: "Fuente anterior",
+    excerpt: "", excerptEs: "", sourceUrl: null, date: "2026-08-26",
+    content: '<p>Consultar <a href="https://www.vonwobeser.com/index.php/publication?p_id=1830">publicación histórica</a>.</p>',
+    contentEs: '<p>Consultar <a href="https://www.vonwobeser.com/index.php/publicacion?p_id=1807">publicación histórica</a>.</p>',
+  }, "es");
+  const $ = cheerio.load(detail);
+  assert.equal($("a[href*='index.php/publicacion']").length, 0);
+  assert.match($("body").text(), /publicación histórica/);
+});
+
 test("la curación cubre exactamente los 55 Artículos deficientes con fuente HTTPS", () => {
   assert.equal(ARTICLE_SUMMARY_CURATION_20260826.length, 55);
   assert.equal(new Set(ARTICLE_SUMMARY_CURATION_20260826.map((entry) => entry.slug)).size, 55);

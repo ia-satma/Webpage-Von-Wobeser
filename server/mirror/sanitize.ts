@@ -1,5 +1,6 @@
 import sanitizeHtml from "sanitize-html";
 import * as cheerio from "cheerio";
+import { isLegacyFirmPublicationUrl } from "../newsPublicationPolicy";
 
 // Sanitiza contenido HTML del CMS antes de inyectarlo en las páginas públicas.
 // Conserva el formato legítimo (párrafos, enlaces, listas, énfasis) pero elimina
@@ -114,13 +115,16 @@ function normalizedLinkUrl(value: string): string | null {
  * a un 404 mientras el equipo la revisa desde Administración.
  */
 function removeDisabledExternalLinks(html: string, disabledExternalUrls: readonly string[]): string {
-  if (!disabledExternalUrls.length) return html;
   const disabled = new Set(disabledExternalUrls.map(normalizedLinkUrl).filter((url): url is string => Boolean(url)));
-  if (!disabled.size) return html;
   const $ = cheerio.load(html, null, false);
   $("a[href]").each((_index, anchor) => {
-    const href = normalizedLinkUrl(String($(anchor).attr("href") ?? ""));
-    if (href && disabled.has(href)) $(anchor).replaceWith($(anchor).contents());
+    const rawHref = String($(anchor).attr("href") ?? "");
+    const href = normalizedLinkUrl(rawHref);
+    // Defensa en profundidad: incluso si una ficha legada aún no hubiera sido
+    // auditada, jamás exponemos un hipervínculo a la plataforma anterior.
+    if (isLegacyFirmPublicationUrl(rawHref) || (href && disabled.has(href))) {
+      $(anchor).replaceWith($(anchor).contents());
+    }
   });
   return $.root().html() || "";
 }

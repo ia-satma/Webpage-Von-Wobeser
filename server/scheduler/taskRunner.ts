@@ -6,7 +6,6 @@ export const SCHEDULED_TASKS = [
   "security-maintenance",
   "website-audit",
   "legal-alerts",
-  "article-link-integrity",
 ] as const;
 
 export type ScheduledTaskName = typeof SCHEDULED_TASKS[number];
@@ -24,7 +23,6 @@ export function scheduledWindowStart(taskName: ScheduledTaskName, at = new Date(
   date.setUTCMinutes(0, 0, 0);
   if (taskName === "website-audit") date.setUTCHours(0);
   if (taskName === "legal-alerts") date.setUTCHours(date.getUTCHours() < 12 ? 0 : 12);
-  if (taskName === "article-link-integrity") date.setUTCHours(0);
   return date;
 }
 

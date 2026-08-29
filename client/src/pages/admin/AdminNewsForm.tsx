@@ -57,7 +57,13 @@ type LinkIntegrityResponse = {
   published: boolean;
   sourceUrl: string | null;
   links: ExternalLinkIntegrity[];
-  result?: { checked: number; sourceDisabled: boolean; disabledContentLinks: number };
+  result?: {
+    checked: number;
+    sourceDisabled: boolean;
+    disabledContentLinks: number;
+    legacyFirmPageDetected: boolean;
+    articleUnpublished: boolean;
+  };
 };
 
 /**
@@ -159,11 +165,13 @@ export default function AdminNewsForm() {
       queryClient.setQueryData(["/api/admin/news", id, "link-integrity"], result);
       queryClient.invalidateQueries({ queryKey: ["/api/admin/news", id] });
       queryClient.invalidateQueries({ queryKey: ["/api/news"] });
-      if (!result.published && result.result?.sourceDisabled) set("published", false);
+      if (!result.published && result.result?.articleUnpublished) set("published", false);
       toast({
-        title: result.result?.sourceDisabled ? "Artículo despublicado" : "Enlaces verificados",
-        description: result.result?.sourceDisabled
-          ? "La fuente no es verificable. La ficha dejó de ser visible públicamente hasta corregirla."
+        title: result.result?.articleUnpublished ? "Artículo despublicado" : "Enlaces verificados",
+        description: result.result?.articleUnpublished
+          ? result.result?.legacyFirmPageDetected
+            ? "La ficha apunta a la página anterior de la firma y quedó despublicada hasta sustituir la fuente."
+            : "La fuente no es verificable. La ficha dejó de ser visible públicamente hasta corregirla."
           : "El estado de los enlaces se actualizó.",
       });
     },
@@ -397,7 +405,7 @@ export default function AdminNewsForm() {
               <div className="space-y-1.5">
                 <Label htmlFor="sourceUrl">Fuente original <span className="text-muted-foreground text-xs">— opcional</span></Label>
                 <Input id="sourceUrl" type="url" value={form.sourceUrl} onChange={(e) => set("sourceUrl", e.target.value)} placeholder="https://…" data-testid="input-source-url" />
-                <p className="text-xs text-muted-foreground">Se muestra como enlace clicable en el listado y en el detalle. Es obligatoria si un Artículo publicado no tiene extractos verificables. Si deja de entregar contenido real, el Artículo se despublica automáticamente. No pegues una URL como texto: usa este campo o crea un hipervínculo desde el editor.</p>
+                <p className="text-xs text-muted-foreground">Se muestra como enlace clicable en el listado y en el detalle. Es obligatoria si un Artículo publicado no tiene extractos verificables. Las fichas HTML de la página anterior de la firma no se aceptan: el Artículo queda como borrador hasta sustituir la fuente. No pegues una URL como texto: usa este campo o crea un hipervínculo desde el editor.</p>
               </div>
 
               {isEdit && form.category === "articles" && (
@@ -405,7 +413,7 @@ export default function AdminNewsForm() {
                   <div className="flex flex-wrap items-center justify-between gap-3">
                     <div>
                       <Label>Estado de enlaces</Label>
-                      <p className="mt-1 text-xs text-muted-foreground">Las fuentes inválidas despublican la ficha. Los enlaces internos inválidos conservan su texto, pero dejan de ser clicables.</p>
+                      <p className="mt-1 text-xs text-muted-foreground">Las fuentes inválidas y cualquier enlace a la página anterior de la firma despublican la ficha. Los demás enlaces internos inválidos conservan su texto, pero dejan de ser clicables.</p>
                     </div>
                     <Button
                       type="button"
@@ -432,7 +440,7 @@ export default function AdminNewsForm() {
                             {link.status === "verified" ? "Verificado" : "Desactivado"}
                           </span>
                           <span className="text-muted-foreground">{link.kind === "source" ? "Fuente original" : "Enlace en contenido"}</span>
-                          {link.failureCode && <span className="text-destructive">{link.failureCode}</span>}
+                          {link.failureCode && <span className="text-destructive">{link.failureCode === "LEGACY_FIRM_PAGE" ? "Página anterior de la firma — Artículo despublicado" : link.failureCode}</span>}
                         </div>
                         <p className="mt-1 break-all text-muted-foreground">{link.url}</p>
                         <p className="mt-1 text-muted-foreground">Revisado: {new Date(link.checkedAt).toLocaleString("es-MX")}</p>

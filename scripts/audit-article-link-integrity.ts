@@ -25,6 +25,7 @@ try {
   const rows = result.results.flatMap((article) => article.verifications.map((link) => ({
     articleId: article.id,
     slug: article.slug,
+    published: article.published,
     kind: link.kind,
     url: link.url,
     status: link.status ?? "",
@@ -33,7 +34,7 @@ try {
     failureCode: link.failureCode ?? "",
     redirectChain: link.redirectChain.join(" | "),
     contentType: link.contentType,
-    action: !link.valid && link.kind === "source" ? "unpublish_article" : !link.valid ? "disable_inline_link" : "keep_active",
+    action: link.failureCode === "LEGACY_FIRM_PAGE" ? "unpublish_article_legacy_firm_page" : !link.valid && link.kind === "source" ? "unpublish_article" : !link.valid ? "disable_inline_link" : "keep_active",
   })));
   const summary = {
     generatedAt: new Date().toISOString(),
@@ -42,10 +43,12 @@ try {
     totalLinks: result.totalLinks,
     sourceDisabled: result.sourceDisabled,
     disabledContentLinks: result.disabledContentLinks,
+    legacyFirmPageDetected: result.legacyFirmPageDetected,
+    publicLegacyFirmPageDetected: result.publicLegacyFirmPageDetected,
   };
   await fs.writeFile(path.join(output, "VWYS_Auditoria_Integridad_Articulos.resumen.json"), `${JSON.stringify(summary, null, 2)}\n`);
   await fs.writeFile(path.join(output, "VWYS_Auditoria_Integridad_Articulos.inventario.json"), `${JSON.stringify(rows, null, 2)}\n`);
-  const headers = ["articleId", "slug", "kind", "url", "status", "valid", "finalUrl", "failureCode", "redirectChain", "contentType", "action"];
+  const headers = ["articleId", "slug", "published", "kind", "url", "status", "valid", "finalUrl", "failureCode", "redirectChain", "contentType", "action"];
   await fs.writeFile(path.join(output, "VWYS_Auditoria_Integridad_Articulos.inventario.csv"), `${headers.join(",")}\n${rows.map((row) => headers.map((header) => csv(row[header as keyof typeof row])).join(",")).join("\n")}\n`);
   console.log(JSON.stringify({ ...summary, output }));
 } finally {

@@ -139,3 +139,50 @@ test("la migración de rutas históricas cambia sólo las dieciséis fuentes exa
   await normalizeLegacyArticleSourceRoutes(client);
   assert.equal(updates, 16);
 });
+
+test("las dieciséis fichas de la firma anterior quedan como borrador con evidencia reversible", async () => {
+  const { default: deactivateLegacyArticlePages, LEGACY_FIRM_ARTICLE_PAGES } = await import("../../migrations/20260829_0003_deactivate_legacy_article_pages.mjs");
+  const rows = LEGACY_FIRM_ARTICLE_PAGES.map((entry, index) => ({
+    id: `article-${index}`,
+    legacy_id: entry.legacyId,
+    category: "articles",
+    source_url: entry.sourceUrl,
+    published: true,
+    featured_home: true,
+  }));
+  const links = new Map<string, { status: string; failureCode: string }>();
+  let publishedUpdates = 0;
+  const client = {
+    query: async (statement: string, params?: string[]) => {
+      if (statement.includes("SELECT id, legacy_id")) return { rowCount: rows.length, rows };
+      if (statement.includes("INSERT INTO news_external_links")) {
+        const [id, url] = params!;
+        const current = links.get(id);
+        if (current?.status === "disabled" && current.failureCode === "LEGACY_FIRM_PAGE") return { rowCount: 0, rows: [] };
+        links.set(id, { status: "disabled", failureCode: "LEGACY_FIRM_PAGE" });
+        assert.equal(rows.find((row) => row.id === id)?.source_url, url);
+        return { rowCount: 1, rows: [{ id }] };
+      }
+      if (statement.includes("UPDATE news")) {
+        const [id, legacyId, sourceUrl] = params!;
+        const row = rows.find((item) => item.id === id && item.legacy_id === legacyId && item.source_url === sourceUrl);
+        if (!row || (row.published === false && row.featured_home === false)) return { rowCount: 0, rows: [] };
+        row.published = false;
+        row.featured_home = false;
+        publishedUpdates += 1;
+        return { rowCount: 1, rows: [{ id }] };
+      }
+      throw new Error(`Unexpected query: ${statement}`);
+    },
+  };
+
+  await deactivateLegacyArticlePages(client);
+  assert.equal(links.size, 16);
+  assert.equal(publishedUpdates, 16);
+  assert.ok(rows.every((row) => row.published === false && row.featured_home === false));
+  assert.ok(Array.from(links.values()).every((link) => link.status === "disabled" && link.failureCode === "LEGACY_FIRM_PAGE"));
+
+  await deactivateLegacyArticlePages(client);
+  assert.equal(links.size, 16);
+  assert.equal(publishedUpdates, 16);
+});

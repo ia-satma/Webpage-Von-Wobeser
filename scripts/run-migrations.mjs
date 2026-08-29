@@ -89,6 +89,12 @@ const verifiedDataMigrationPolicies = new Map([
   ["20260829_0001_normalize_legacy_article_source_routes.mjs", {
     allowedCountChanges: new Set(),
   }],
+  // Retira de las superficies públicas las fichas HTML de la plataforma
+  // anterior y guarda su motivo en la bitácora de integridad. Sólo aumenta la
+  // evidencia reversible de enlaces; no elimina ni crea publicaciones.
+  ["20260829_0003_deactivate_legacy_article_pages.mjs", {
+    allowedCountChanges: new Set(["news_external_links"]),
+  }],
 ]);
 
 // Algunos entornos de publicación se crearon sin una publicación histórica

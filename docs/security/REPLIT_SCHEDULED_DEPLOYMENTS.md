@@ -40,7 +40,6 @@ Los minutos están escalonados para reducir competencia por recursos.
 |---|---:|---|---|
 | Sesiones expiradas | `5 * * * *` | `npm run scheduled:security-maintenance` | Retira por ID exacto hasta 500 sesiones ya vencidas. |
 | Auditoría del sitio | `20 3 * * *` | `npm run scheduled:website-audit` | Registra una auditoría diagnóstica diaria sin cambios editoriales. |
-| Integridad de enlaces de Artículos | `40 3 * * *` | `npm run scheduled:article-link-integrity` | Comprueba fuentes externas y enlaces internos de contenido; despublica sólo Artículos cuya fuente no entrega contenido verificable. |
 | Alertas legales | `35 6,18 * * *` | `npm run scheduled:legal-alerts` | Consulta fuentes permitidas, usa IA para relevancia y encola borradores para revisión humana. |
 
 Build command recomendado para cada publicación: `npm ci`. El esquema debe haberse

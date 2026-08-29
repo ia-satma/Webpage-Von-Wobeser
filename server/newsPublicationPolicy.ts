@@ -3,15 +3,31 @@ function hasCmsText(value: unknown): boolean {
 }
 
 /**
- * Joomla still serves article records through the p_id query parameter. Its
- * older /p_id-123.html form now redirects to the legacy 404 route, so normalize
- * only that exact first-party pattern before it can reach a public CTA.
+ * Las fichas HTML de la plataforma anterior no son una fuente pública
+ * aceptable. Aunque sigan respondiendo hoy, dependen de una instalación que la
+ * firma retirará; los PDFs estáticos no coinciden con este patrón y permanecen
+ * sujetos a su comprobación de integridad normal.
+ */
+export function isLegacyFirmPublicationUrl(value: unknown): boolean {
+  try {
+    const url = new URL(String(value ?? "").trim());
+    const host = url.hostname.toLowerCase().replace(/^www\./, "");
+    if (host !== "vonwobeser.com") return false;
+    const htmlPath = /^\/index\.php\/(?:publication|publicacion)\/p_id-\d+\.html$/i;
+    const queryPath = /^\/index\.php\/(?:publication|publicacion)\/?$/i;
+    return htmlPath.test(url.pathname) || (queryPath.test(url.pathname) && /^\d+$/.test(url.searchParams.get("p_id") || ""));
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Se conserva la entrada tal cual fue escrita para que Administración pueda
+ * mostrarla y justificar su bloqueo. Nunca se transforma una ruta antigua en
+ * un CTA aparentemente válido.
  */
 export function normalizeOriginalSourceUrl(value: unknown): string {
-  const source = String(value ?? "").trim();
-  const match = source.match(/^https:\/\/(?:www\.)?vonwobeser\.com\/index\.php\/(publication|publicacion)\/p_id-(\d+)\.html$/i);
-  if (!match) return source;
-  return `https://www.vonwobeser.com/index.php/${match[1].toLowerCase()}?p_id=${match[2]}`;
+  return String(value ?? "").trim();
 }
 
 export function isVerifiedNewsSourceUrl(value: unknown): boolean {

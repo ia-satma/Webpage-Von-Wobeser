@@ -4,6 +4,7 @@ import { typographyAttribute, type TypographyStyles } from "@shared/editorialTyp
 import { applySeo, articleNode, breadcrumbNode, clip } from "./seo";
 import { getLocalizedAttorneyRole, getLocalizedAttorneyTitle } from "@shared/attorneyTitles";
 import { getAttorneyPublicName } from "@shared/attorneyName";
+import { isLegacyFirmPublicationUrl } from "../newsPublicationPolicy";
 
 type Lang = "en" | "es";
 
@@ -66,6 +67,9 @@ function isArticlePlaceholder(value: unknown, title: unknown): boolean {
 function verifiedSourceUrl(value: unknown): string | null {
   const raw = String(value ?? "").trim();
   if (!raw || raw.length > 2_000) return null;
+  // Defensa en profundidad: una ficha olvidada en la base de datos nunca debe
+  // volver a ofrecer como CTA la página anterior de la firma.
+  if (isLegacyFirmPublicationUrl(raw)) return null;
   try {
     const url = new URL(raw);
     if (url.protocol !== "https:" || url.username || url.password) return null;
