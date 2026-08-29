@@ -10,6 +10,7 @@ process.env.DATABASE_URL ||= "postgresql://test:test@127.0.0.1:5432/test";
 
 const { renderAttorney } = await import("../mirror/renderAttorney");
 const { renderNewsDetail, renderNewsList } = await import("../mirror/renderNews");
+const { generateVCard } = await import("../routes/publicContentRoutes");
 const { ARTICLE_SUMMARY_CURATION_20260826 } = await import("@shared/articleSummaryCuration2026");
 
 const attorneyTemplate = `<!doctype html><html><head><title>Profile</title></head><body><section class="page attorney"><div class="page--wrap wrap">
@@ -63,6 +64,9 @@ test("el perfil muestra tres publicaciones propias junto a la biografía y conse
   assert.equal($("h1.attorney__meta--name").length, 1);
   assert.equal($("h1").length, 1);
   assert.equal($(".attorney__meta--list.list_JS").length, 1);
+  assert.equal($(".attorney__meta--txt a[download]").attr("href"), "/api/team/ana-perez/vcard");
+  assert.equal($(".attorney__meta--txt a[download]").attr("type"), "text/vcard");
+  assert.equal($(".attorney__meta--txt a[download]").text(), "Descargar vCard");
   assert.equal($(".attorney-profile__nav").length, 0);
   assert.equal($(".attorney__meta--list").text().includes("Noticias relacionadas"), false);
   assert.match($(".attorney-related-insights h2").text(), /^Insights$/);
@@ -109,6 +113,28 @@ test("el perfil en inglés conserva enlaces relacionados e idioma", () => {
   assert.match($(".attorney-related-insights h2").text(), /^Insights$/);
   assert.equal($(".attorney-related-insights__more").attr("href"), "/news?author=ana-perez&lang=en");
   assert.equal($(".attorney-related-insights__item h3 a").attr("href"), "/news/insight?lang=en");
+  assert.equal($(".attorney__meta--txt a[download]").attr("href"), "/api/team/ana-perez/vcard?lang=en");
+  assert.equal($(".attorney__meta--txt a[download]").text(), "Download vCard");
+});
+
+test("la vCard usa los datos públicos vigentes y se entrega en el formato estándar", () => {
+  const vcard = generateVCard({
+    name: "Ana Pérez",
+    slug: "ana-perez",
+    title: "Partner",
+    titleEs: "Socia",
+    role: "Partner",
+    roleEs: "Socia",
+    email: "ana.perez@vwys.com.mx",
+    phone: "+52 (55) 5258-1000",
+  }, "es");
+
+  assert.match(vcard, /^BEGIN:VCARD\r\nVERSION:3\.0\r\n/m);
+  assert.match(vcard, /FN:Ana Pérez/);
+  assert.match(vcard, /TITLE:Socia/);
+  assert.match(vcard, /EMAIL;TYPE=WORK:ana\.perez@vwys\.com\.mx/);
+  assert.match(vcard, /TEL;TYPE=WORK,VOICE:\+52 \(55\) 5258-1000/);
+  assert.match(vcard, /END:VCARD$/);
 });
 
 test("la columna lateral conserva su acordeón gris y sus relaciones públicas", () => {

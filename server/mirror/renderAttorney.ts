@@ -308,6 +308,13 @@ export function renderAttorney(
   const phone = a.phone || "";
   const email = a.email || "";
   const img = a.imageUrl || "";
+  // La API genera una vCard desde los datos públicos y vigentes del perfil;
+  // no reutilizamos la URL heredada del sitio anterior. Así cualquier cambio
+  // hecho en Administración se refleja inmediatamente al descargarla.
+  const vcardHref = a.slug
+    ? `/api/team/${encodeURIComponent(String(a.slug))}/vcard${lang === "en" ? "?lang=en" : ""}`
+    : "";
+  const vcardLabel = lang === "es" ? "Descargar vCard" : "Download vCard";
 
   // --- Header card -------------------------------------------------------
   const $name = $(".attorney__meta--name").first();
@@ -325,7 +332,10 @@ export function renderAttorney(
 
   $(".attorney__meta--txt").html(
     `<p>${lang === "es" ? "Tel" : "Phone"}:${esc(phone)}<br>` +
-      `<a href="mailto:${esc(email)}">${esc(email)}</a></p>`,
+      `<a href="mailto:${esc(email)}">${esc(email)}</a></p>` +
+      (vcardHref
+        ? `<p class="attorney__meta--vcard"><a download type="text/vcard" href="${esc(vcardHref)}" aria-label="${esc(`${vcardLabel}: ${name}`)}">${esc(vcardLabel)}</a></p>`
+        : ""),
   );
 
   // --- Bio ---------------------------------------------------------------

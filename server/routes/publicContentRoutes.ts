@@ -36,7 +36,7 @@ function toPublicTeamMember(member: any) {
   return { ...publicMember, name: getAttorneyPublicName(member) };
 }
 
-function generateVCard(member: any, language: "es" | "en" = "es"): string {
+export function generateVCard(member: any, language: "es" | "en" = "es"): string {
   const vcardText = (value: unknown) => String(value ?? "")
     .replace(/\\/g, "\\\\")
     .replace(/\r?\n/g, "\\n")

@@ -284,7 +284,7 @@ const categoryOptions = [
   { value: "articles", en: "Articles", es: "Artículos", de: "Artikel", zh: "文章", ko: "기사", ja: "記事", ar: "مقالات", ru: "Статьи", fr: "Articles", it: "Articoli" },
   { value: "press", en: "Press", es: "Prensa", de: "Presse", zh: "新闻稿", ko: "보도자료", ja: "プレスリリース", ar: "صحافة", ru: "Пресса", fr: "Presse", it: "Stampa" },
   { value: "insights", en: "Insights", es: "Insights", de: "Einblicke", zh: "洞察", ko: "인사이트", ja: "インサイト", ar: "رؤى", ru: "Аналитика", fr: "Analyses", it: "Approfondimenti" },
-  { value: "rankings", en: "Rankings", es: "Rankings", de: "Rankings", zh: "排名", ko: "랭킹", ja: "ランキング", ar: "التصنيفات", ru: "Рейтинги", fr: "Classements", it: "Classifiche" },
+  { value: "rankings", en: "Recognitions", es: "Reconocimientos", de: "Rankings", zh: "排名", ko: "랭킹", ja: "ランキング", ar: "التصنيفات", ru: "Рейтинги", fr: "Classements", it: "Classifiche" },
   { value: "events", en: "Events", es: "Eventos", de: "Veranstaltungen", zh: "活动", ko: "이벤트", ja: "イベント", ar: "فعاليات", ru: "Мероприятия", fr: "Événements", it: "Eventi" },
   { value: "alerts", en: "Alerts", es: "Alertas", de: "Warnungen", zh: "警报", ko: "알림", ja: "アラート", ar: "تنبيهات", ru: "Оповещения", fr: "Alertes", it: "Avvisi" },
 ];

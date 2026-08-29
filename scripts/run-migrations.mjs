@@ -142,6 +142,23 @@ const verifiedDataMigrationPolicies = new Map([
   ["20260829_0012_update_careers_talent_copy.mjs", {
     allowedCountChanges: new Set(),
   }],
+  // Importación editorial entregada por CMDN: agrega registros nuevos, sus
+  // autorías manualmente confirmadas y el estado de cada fuente verificable.
+  // No modifica publicaciones existentes ni relaciones ajenas al calendario.
+  ["20260829_0013_import_cmdn_editorial_calendar_articles.mjs", {
+    allowedCountChanges: new Set(["news", "news_team_members", "news_external_links"]),
+  }],
+  // Memorándum aprobado con sus dos autorías explícitas y evidencia del PDF
+  // público; no toca ninguna publicación existente.
+  ["20260829_0014_publish_key_issues_ma_mexico_2026.mjs", {
+    allowedCountChanges: new Set(["news", "news_team_members", "news_external_links"]),
+  }],
+  // Reconocimiento Chambers Latin America 2027 entregado por el equipo
+  // editorial: crea una sola ficha, sus 26 relaciones profesionales
+  // explícitas (no autorías) y la evidencia de su fuente original.
+  ["20260829_0015_publish_chambers_latin_america_2027_recognition.mjs", {
+    allowedCountChanges: new Set(["news", "news_team_members", "news_external_links"]),
+  }],
 ]);
 
 // Algunos entornos de publicación se crearon sin una publicación histórica

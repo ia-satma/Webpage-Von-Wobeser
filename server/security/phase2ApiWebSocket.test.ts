@@ -7,6 +7,7 @@ process.env.DATABASE_URL ||= "postgresql://unused:unused@127.0.0.1:1/unused?sslm
 const {
   apiRouteBucket,
   apiRoutePolicy,
+  isPublicVcardDownloadRoute,
   nextApiRateLimitState,
 } = await import("./apiRateLimit");
 const {
@@ -24,6 +25,11 @@ test("API quotas use bounded route families and stricter expensive-operation lim
   assert.equal(apiRouteBucket("GET", "/api/unknown-two/a-different-value"), "public-other-read");
   assert.equal(apiRouteBucket("POST", "/api/agents/pipeline/process-all"), "agents");
   assert.equal(apiRouteBucket("POST", "/api/admin/media/upload/part"), "admin-media-upload");
+
+  assert.equal(isPublicVcardDownloadRoute("GET", "/api/team/ana-perez/vcard"), true);
+  assert.equal(isPublicVcardDownloadRoute("HEAD", "/api/team/ana-perez/vcard?lang=en"), true);
+  assert.equal(isPublicVcardDownloadRoute("POST", "/api/team/ana-perez/vcard"), false);
+  assert.equal(isPublicVcardDownloadRoute("GET", "/api/team/ana-perez"), false);
 
   const expensive = apiRoutePolicy("POST", "agents", true);
   const ordinaryWrite = apiRoutePolicy("POST", "admin-news", true);

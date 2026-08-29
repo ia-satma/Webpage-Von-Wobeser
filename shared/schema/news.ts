@@ -50,7 +50,10 @@ export const newsCategories = [
   { value: "articles", en: "Articles", es: "Artículos" },
   { value: "press", en: "Press", es: "Prensa" },
   { value: "insights", en: "Insights", es: "Insights" },
-  { value: "rankings", en: "Rankings", es: "Rankings" },
+  // La ruta técnica histórica se conserva como `rankings`, pero en el CMS y
+  // en las superficies editoriales se presenta con el nombre que entiende el
+  // equipo: Reconocimientos / Recognitions.
+  { value: "rankings", en: "Recognitions", es: "Reconocimientos" },
   { value: "events", en: "Events", es: "Eventos" },
   { value: "alerts", en: "Alerts", es: "Alertas" },
 ] as const;

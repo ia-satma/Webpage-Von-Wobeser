@@ -55,6 +55,19 @@ function pathnameOf(originalUrl: string): string {
 }
 
 /**
+ * A vCard is a downloadable representation of information already rendered in
+ * a published lawyer profile.  Keep this small, public artifact available when
+ * the persistent quota store is temporarily unavailable: otherwise the profile
+ * advertises a download that can never complete.  The route still verifies
+ * that the profile is published before producing any data.
+ */
+export function isPublicVcardDownloadRoute(method: string, originalUrl: string): boolean {
+  if (!new Set(["GET", "HEAD"]).has(method.toUpperCase())) return false;
+  const pathname = pathnameOf(originalUrl).replace(/\/+$/g, "");
+  return /^\/api\/team\/[^/]+\/vcard$/i.test(pathname);
+}
+
+/**
  * Return one of a finite number of buckets. Never put an arbitrary slug, UUID
  * or attacker-controlled unknown path into PostgreSQL's rate-limit key space.
  */
@@ -221,6 +234,11 @@ export async function apiRouteRateLimit(
   next: NextFunction,
 ): Promise<void> {
   if (req.method === "OPTIONS") {
+    next();
+    return;
+  }
+
+  if (isPublicVcardDownloadRoute(req.method, req.originalUrl)) {
     next();
     return;
   }
