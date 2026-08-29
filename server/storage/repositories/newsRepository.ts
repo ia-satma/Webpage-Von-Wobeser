@@ -1,7 +1,16 @@
-import { eq, ne, and, isNull, lte, sql, inArray, ilike, or, arrayOverlaps, type SQL } from "drizzle-orm";
+import { eq, ne, and, isNull, isNotNull, lte, sql, inArray, ilike, or, arrayOverlaps, notInArray, type SQL } from "drizzle-orm";
 import crypto from "node:crypto";
 import { sanitizeNewsFields } from "../../mirror/sanitize";
-import { type News, type InsertNews, type TeamMember, news, newsTranslations, teamMembers, newsTeamMembers } from "@shared/schema";
+import {
+  type News,
+  type InsertNews,
+  type TeamMember,
+  publicAuthorVerificationStatuses,
+  news,
+  newsTranslations,
+  teamMembers,
+  newsTeamMembers,
+} from "@shared/schema";
 import type { StorageDatabase } from "../types";
 import {
   loadCanonicalPublicationAuthorEvidence,
@@ -20,6 +29,9 @@ import {
 // el p_id numérico aproxima el orden histórico sin inventar una fecha editorial.
 // El segundo orden textual mantiene compatibilidad si apareciera un ID no numérico.
 const newsDateDescNullsLast = sql`${news.date} desc nulls last, case when ${news.legacyId} ~ '^[0-9]+$' then cast(${news.legacyId} as bigint) end desc nulls last, ${news.legacyId} desc nulls last, ${news.id} desc`;
+const verifiedAuthorRelation = inArray(newsTeamMembers.verificationStatus, publicAuthorVerificationStatuses);
+const isPublicAuthorVerificationStatus = (status: string) =>
+  status === "verified_historic" || status === "verified_editorial_2026" || status === "verified_manual";
 
 type AuthorArchiveLanguage = PublicationSourceLanguage;
 
@@ -164,6 +176,10 @@ export function createNewsRepository(db: StorageDatabase) {
     }): Promise<{ rows: News[]; total: number }> {
       const conditions: SQL[] = [
         eq(newsTeamMembers.teamMemberId, opts.teamMemberId),
+        verifiedAuthorRelation,
+        // Una ficha de abogado nunca debe mostrar una tarjeta editorial sin
+        // fecha verificable. El archivo general conserva esos registros.
+        isNotNull(news.date),
         eq(news.published, true),
         or(isNull(news.publishAt), lte(news.publishAt, new Date())) as SQL,
       ];
@@ -209,6 +225,8 @@ export function createNewsRepository(db: StorageDatabase) {
       if (!ids.length || opts.limit < 1) return [];
       const conditions: SQL[] = [
         inArray(newsTeamMembers.teamMemberId, ids),
+        verifiedAuthorRelation,
+        isNotNull(news.date),
         this.publishedNewsConditions() as SQL,
       ];
       if (opts.excludeNewsId) conditions.push(ne(news.id, opts.excludeNewsId));
@@ -236,7 +254,9 @@ export function createNewsRepository(db: StorageDatabase) {
       const candidateLimit = Math.max(limit * 3, 12);
       const teamMemberIds = Array.from(new Set((opts.teamMemberIds || []).filter(Boolean)));
       const tags = Array.from(new Set((opts.tags || []).filter(Boolean)));
-      const baseConditions = [ne(news.id, opts.excludeNewsId), this.publishedNewsConditions()];
+      // Las tarjetas de "Contenido relacionado" también muestran fecha; los
+      // legados sin fecha siguen en el archivo pero no en Insights.
+      const baseConditions = [ne(news.id, opts.excludeNewsId), isNotNull(news.date), this.publishedNewsConditions()];
 
       const [byAuthor, byTag, byCategory] = await Promise.all([
         teamMemberIds.length
@@ -278,15 +298,16 @@ export function createNewsRepository(db: StorageDatabase) {
         .map(({ item }) => item);
     }
 
-    /** Cola administrativa: contenido sin ninguna persona vinculada, más reciente primero. */
+    /** Cola administrativa: contenido sin una autoría verificada, más reciente primero. */
     async getNewsWithoutTeamMembersPage(opts: { limit: number; offset: number }): Promise<{ rows: News[]; total: number }> {
-      const withoutRelations = sql`not exists (
+      const withoutVerifiedRelations = sql`not exists (
         select 1 from ${newsTeamMembers}
         where ${newsTeamMembers.newsId} = ${news.id}
+          and ${newsTeamMembers.verificationStatus} in ('verified_historic', 'verified_editorial_2026', 'verified_manual')
       )`;
       const [rows, countRows] = await Promise.all([
-        db.select().from(news).where(withoutRelations).orderBy(newsDateDescNullsLast).limit(opts.limit).offset(opts.offset),
-        db.select({ count: sql<number>`count(*)::int` }).from(news).where(withoutRelations),
+        db.select().from(news).where(withoutVerifiedRelations).orderBy(newsDateDescNullsLast).limit(opts.limit).offset(opts.offset),
+        db.select({ count: sql<number>`count(*)::int` }).from(news).where(withoutVerifiedRelations),
       ]);
       return { rows, total: countRows[0]?.count ?? 0 };
     }
@@ -399,7 +420,11 @@ export function createNewsRepository(db: StorageDatabase) {
       return db.transaction(async (tx) => {
         const [item] = await tx.insert(news).values(safeNews).returning();
         if (ids.length) {
-          await tx.insert(newsTeamMembers).values(ids.map((teamMemberId) => ({ newsId: item.id, teamMemberId })));
+          await tx.insert(newsTeamMembers).values(ids.map((teamMemberId) => ({
+            newsId: item.id,
+            teamMemberId,
+            verificationStatus: "verified_manual" as const,
+          })));
         }
         return item;
       });
@@ -453,6 +478,7 @@ export function createNewsRepository(db: StorageDatabase) {
           await tx.insert(newsTeamMembers).values(authorLinks.map((link) => ({
             newsId: draft.id,
             teamMemberId: link.teamMemberId,
+            verificationStatus: link.verificationStatus,
           })));
         }
         if (translations.length) {
@@ -494,9 +520,31 @@ export function createNewsRepository(db: StorageDatabase) {
       return db.transaction(async (tx) => {
         const [item] = await tx.update(news).set(safeData).where(eq(news.id, id)).returning();
         if (!item || ids === undefined) return item;
-        await tx.delete(newsTeamMembers).where(eq(newsTeamMembers.newsId, id));
-        if (ids.length) {
-          await tx.insert(newsTeamMembers).values(ids.map((teamMemberId) => ({ newsId: id, teamMemberId })));
+        const existing = await tx.select().from(newsTeamMembers).where(eq(newsTeamMembers.newsId, id));
+        const existingIds = new Set(existing.map((relation) => relation.teamMemberId));
+        const manualRemoval = ids.length
+          ? and(
+              eq(newsTeamMembers.newsId, id),
+              eq(newsTeamMembers.verificationStatus, "verified_manual"),
+              notInArray(newsTeamMembers.teamMemberId, ids),
+            )
+          : and(eq(newsTeamMembers.newsId, id), eq(newsTeamMembers.verificationStatus, "verified_manual"));
+        await tx.delete(newsTeamMembers).where(manualRemoval);
+        const confirmedLegacyIds = existing
+          .filter((relation) => relation.verificationStatus === "legacy_unverified" && ids.includes(relation.teamMemberId))
+          .map((relation) => relation.teamMemberId);
+        if (confirmedLegacyIds.length) {
+          await tx.update(newsTeamMembers)
+            .set({ verificationStatus: "verified_manual" })
+            .where(and(eq(newsTeamMembers.newsId, id), inArray(newsTeamMembers.teamMemberId, confirmedLegacyIds)));
+        }
+        const additions = ids.filter((teamMemberId) => !existingIds.has(teamMemberId));
+        if (additions.length) {
+          await tx.insert(newsTeamMembers).values(additions.map((teamMemberId) => ({
+            newsId: id,
+            teamMemberId,
+            verificationStatus: "verified_manual" as const,
+          })));
         }
         return item;
       });
@@ -515,7 +563,7 @@ export function createNewsRepository(db: StorageDatabase) {
       const pivotRows = await db
         .select()
         .from(newsTeamMembers)
-        .where(eq(newsTeamMembers.teamMemberId, teamMemberId));
+        .where(and(eq(newsTeamMembers.teamMemberId, teamMemberId), verifiedAuthorRelation));
 
       if (pivotRows.length === 0) {
         return [];
@@ -545,12 +593,50 @@ export function createNewsRepository(db: StorageDatabase) {
       return teamMemberIds.map((id) => byId.get(id)).filter((m): m is TeamMember => !!m);
     }
 
+    async getVerifiedTeamMembersByNewsId(newsId: string): Promise<TeamMember[]> {
+      const relations = await this.getNewsTeamMemberRelations(newsId);
+      return relations
+        .filter((relation) => isPublicAuthorVerificationStatus(relation.verificationStatus))
+        .map((relation) => relation.member);
+    }
+
+    async getNewsTeamMemberRelations(newsId: string) {
+      const rows = await db
+        .select({ member: teamMembers, verificationStatus: newsTeamMembers.verificationStatus })
+        .from(newsTeamMembers)
+        .innerJoin(teamMembers, eq(teamMembers.id, newsTeamMembers.teamMemberId))
+        .where(eq(newsTeamMembers.newsId, newsId));
+      return rows;
+    }
+
     async setTeamMembersForNews(newsId: string, teamMemberIds: string[]): Promise<void> {
       const ids = Array.from(new Set(teamMemberIds));
       await db.transaction(async (tx) => {
-        await tx.delete(newsTeamMembers).where(eq(newsTeamMembers.newsId, newsId));
-        if (ids.length) {
-          await tx.insert(newsTeamMembers).values(ids.map((teamMemberId) => ({ newsId, teamMemberId })));
+        const existing = await tx.select().from(newsTeamMembers).where(eq(newsTeamMembers.newsId, newsId));
+        const existingIds = new Set(existing.map((relation) => relation.teamMemberId));
+        const manualRemoval = ids.length
+          ? and(
+              eq(newsTeamMembers.newsId, newsId),
+              eq(newsTeamMembers.verificationStatus, "verified_manual"),
+              notInArray(newsTeamMembers.teamMemberId, ids),
+            )
+          : and(eq(newsTeamMembers.newsId, newsId), eq(newsTeamMembers.verificationStatus, "verified_manual"));
+        await tx.delete(newsTeamMembers).where(manualRemoval);
+        const confirmedLegacyIds = existing
+          .filter((relation) => relation.verificationStatus === "legacy_unverified" && ids.includes(relation.teamMemberId))
+          .map((relation) => relation.teamMemberId);
+        if (confirmedLegacyIds.length) {
+          await tx.update(newsTeamMembers)
+            .set({ verificationStatus: "verified_manual" })
+            .where(and(eq(newsTeamMembers.newsId, newsId), inArray(newsTeamMembers.teamMemberId, confirmedLegacyIds)));
+        }
+        const additions = ids.filter((teamMemberId) => !existingIds.has(teamMemberId));
+        if (additions.length) {
+          await tx.insert(newsTeamMembers).values(additions.map((teamMemberId) => ({
+            newsId,
+            teamMemberId,
+            verificationStatus: "verified_manual" as const,
+          })));
         }
       });
     }
@@ -562,14 +648,18 @@ export function createNewsRepository(db: StorageDatabase) {
         .where(and(eq(newsTeamMembers.newsId, newsId), eq(newsTeamMembers.teamMemberId, teamMemberId)));
 
       if (!existing) {
-        await db.insert(newsTeamMembers).values({ newsId, teamMemberId });
+        await db.insert(newsTeamMembers).values({ newsId, teamMemberId, verificationStatus: "verified_manual" });
       }
     }
 
     async removeTeamMemberFromNews(newsId: string, teamMemberId: string): Promise<void> {
       await db
         .delete(newsTeamMembers)
-        .where(and(eq(newsTeamMembers.newsId, newsId), eq(newsTeamMembers.teamMemberId, teamMemberId)));
+        .where(and(
+          eq(newsTeamMembers.newsId, newsId),
+          eq(newsTeamMembers.teamMemberId, teamMemberId),
+          eq(newsTeamMembers.verificationStatus, "verified_manual"),
+        ));
     }
   }
 

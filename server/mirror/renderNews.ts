@@ -249,6 +249,8 @@ export function renderNewsList(
     const intro = articleWithoutSummary ? "" : renderRichText(rawExcerpt);
     const originalSource = sourceLink(verifiedSourceUrl(n.sourceUrl), lang, "archive");
     const href = `/news/${esc(n.slug)}${langSuffix}`;
+    const date = fmtDate(n.date, lang);
+    const dateMarkup = date ? `<div class="archive__item--date">${esc(date)}</div>` : "";
     // Artículos y Comunicaciones comparten una lectura de archivo editorial:
     // fecha, contenido y acceso al detalle se ordenan como una fila. El resto
     // de los listados conserva el marcado histórico de tarjetas.
@@ -256,7 +258,7 @@ export function renderNewsList(
       const summary = articleWithoutSummary ? "" : archiveSummary(rawExcerpt);
       return (
         `<article class="archive__item archive__item--editorial">` +
-          `<div class="archive__item--date">${esc(fmtDate(n.date, lang))}</div>` +
+          dateMarkup +
           `<div class="archive__item--content">` +
             `<a class="archive__item--title-link" href="${href}"><h2 class="archive__item--ttl">${title}</h2></a>` +
             `<div class="archive__item--intro">${summary ? `<p>${esc(summary)}</p>` : ""}</div>` +
@@ -269,7 +271,7 @@ export function renderNewsList(
     return (
       `<div class="archive__item"><a href="${href}">` +
       `<div class="archive__item--ttl">${title}</div></a>` +
-      `<div class="archive__item--date">${esc(fmtDate(n.date, lang))}</div>` +
+      dateMarkup +
       `<div class="archive__item--intro">${intro || ""}</div>` +
       originalSource +
       `<a href="${href}"><div class="more archive__item--btn" style="clear:right;">${readMore}</div></a>` +
@@ -538,12 +540,13 @@ function publicInsightImage(value: unknown): string {
 
 /** Contenido relacionado por etiquetas editoriales, autores o categoría. */
 function buildRelatedInsights(items: any[], lang: Lang): string {
-  if (!items.length) return "";
+  const datedItems = items.filter((item) => item?.date && !Number.isNaN(new Date(item.date).getTime()));
+  if (!datedItems.length) return "";
   const labels = lang === "es"
     ? { heading: "Contenido relacionado", read: "Leer publicación" }
     : { heading: "Related insights", read: "Read publication" };
   const langSuffix = lang === "en" ? "?lang=en" : "";
-  const cards = items.map((item) => {
+  const cards = datedItems.map((item) => {
     const title = esc(L(item, "title", lang));
     const category = esc(L(item, "category", lang));
     const date = esc(fmtDate(item.date, lang));

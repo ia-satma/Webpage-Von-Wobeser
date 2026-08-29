@@ -52,7 +52,9 @@ export default function AdminNewsAuthorReview() {
     setSelections((current) => {
       const next = { ...current };
       for (const item of reviewQuery.data.news) {
-        if (!(item.id in next)) next[item.id] = item.authorCandidates.map((candidate) => candidate.id);
+        // A match in the text is only a review lead, never approval. Editors
+        // must choose every author deliberately before it can be public.
+        if (!(item.id in next)) next[item.id] = [];
       }
       return next;
     });
@@ -99,7 +101,7 @@ export default function AdminNewsAuthorReview() {
           actions={<Link href="/admin/news"><Button variant="outline" size="sm"><ArrowLeft className="mr-2 h-4 w-4" />Volver a publicaciones</Button></Link>}
         />
         <AdminPageHelp pageId="noticias" manualSectionId="noticias">
-          Estas son coincidencias por nombre encontradas en publicaciones que aún no tienen abogados vinculados. Revisa la evidencia y confirma solo los autores correctos; ninguna sugerencia se publica automáticamente.
+          Estas son sugerencias por nombre para publicaciones sin una autoría verificada. Revisa el crédito visible en la fuente y marca sólo a los autores correctos; una coincidencia nunca se publica automáticamente.
         </AdminPageHelp>
 
         {reviewQuery.isLoading ? (
@@ -110,7 +112,7 @@ export default function AdminNewsAuthorReview() {
           <Card><CardContent className="py-12 text-center"><p className="font-medium">No hay publicaciones pendientes de vincular.</p><p className="mt-2 text-sm text-muted-foreground">Las publicaciones nuevas se etiquetan directamente desde su formulario.</p></CardContent></Card>
         ) : (
           <div className="space-y-4">
-            <p className="text-sm text-muted-foreground" data-testid="text-author-review-total">{data?.total ?? 0} publicaciones sin abogados vinculados.</p>
+            <p className="text-sm text-muted-foreground" data-testid="text-author-review-total">{data?.total ?? 0} publicaciones sin autoría verificada.</p>
             {data?.news.map((item) => {
               const selected = selections[item.id] || [];
               return (
@@ -132,7 +134,7 @@ export default function AdminNewsAuthorReview() {
                       <p className="text-sm text-muted-foreground">No encontramos una coincidencia segura. Puedes asignar abogados manualmente desde el editor.</p>
                     ) : (
                       <>
-                        <p className="text-sm text-muted-foreground">Selecciona únicamente a las personas que realmente participan en esta publicación.</p>
+                        <p className="text-sm text-muted-foreground">Las opciones inician sin marcar. Selecciona únicamente a las personas cuyo crédito puedas confirmar en la fuente.</p>
                         <div className="space-y-3 rounded-md border p-3">
                           {item.authorCandidates.map((candidate) => (
                             <label key={candidate.id} className="block cursor-pointer rounded-sm p-1 hover:bg-muted">

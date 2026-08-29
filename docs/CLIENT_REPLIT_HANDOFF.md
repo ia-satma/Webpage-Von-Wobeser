@@ -5,6 +5,27 @@
 El cliente recibirá el repositorio de GitHub e importará el proyecto en su propia
 cuenta de Replit. No se transferirá el Repl actual.
 
+## Regla de operación para Replit Agent
+
+Al abrir el repositorio importado, Replit Agent debe conservarlo intacto hasta que la
+instalación esté lista. Su primera y única acción de diagnóstico es:
+
+```bash
+npm run handoff:status -- --directory=.handoff
+```
+
+Ese comando es de solo lectura: no modifica código, dependencias, Database, App Storage
+ni configuración. El agente debe comunicar los **nombres** de los recursos y Secrets
+que el resultado marque como faltantes, y esperar a que el usuario los configure en
+**Tools → Secrets**. Nunca debe pedir sus valores por chat ni pegarlos en Shell, Git,
+`.env` o código.
+
+Hasta que el diagnóstico indique `ready_to_restore` y el usuario lo confirme
+expresamente, el agente no debe ejecutar migraciones, restauraciones manuales, cambios
+de código, instalaciones de dependencias o limpiezas. La única operación de escritura
+autorizada para la entrega es `npm run handoff:install -- ...`, con las dos
+confirmaciones obligatorias.
+
 GitHub contiene el código y los recursos versionados, pero **no** transporta:
 
 - Secrets ni contraseñas.
@@ -39,8 +60,9 @@ npm run handoff:status -- --directory=.handoff
 El resultado solo enumera estados y **nombres** de Secrets faltantes; nunca revela sus
 valores, contraseñas, correos existentes ni URLs de conexión. Replit Agent puede correr
 el mismo diagnóstico y pedir al cliente que configure los nombres faltantes desde
-**Tools → Secrets**. No se deben pegar Secrets en el chat del agente, comandos, Git ni
-capturas.
+**Tools → Secrets**. También enumera lo faltante antes de publicar, los controles de
+seguridad recomendados y las alternativas para IA. No se deben pegar Secrets en el chat
+del agente, comandos, Git ni capturas.
 
 ## 1. Preparar el paquete desde el Replit actual
 
@@ -137,6 +159,23 @@ actual. Cada importación enlaza sus propios recursos.
 | `APP_FIELD_ENCRYPTION_KEY` | Clave de 32 bytes para copias cifradas aditivas; no configurar hasta aprobar custodia y recuperación. |
 | `APP_FIELD_ENCRYPTION_KEY_ID` | Identificador no secreto de la versión de llave. |
 | `APP_FIELD_ENCRYPTION_DUAL_WRITE` | Activar con `true` únicamente tras prueba de recuperación; afecta solo registros nuevos. |
+
+### Inventario de Secrets y valores de origen
+
+El diagnóstico `handoff:status` agrupa las necesidades para que Replit Agent no olvide
+ninguna. Al configurarlas, se usan valores que pertenezcan a la cuenta del cliente o al
+paquete de entrega; no se copian credenciales de la cuenta original.
+
+| Situación | Qué debe hacer el cliente o Replit Agent |
+|---|---|
+| `DATABASE_URL` | Crear o vincular la Database del **cliente**; Replit la inyecta. Nunca copiar la URL de origen. |
+| `ADMIN_EMAIL`, `ADMIN_BOOTSTRAP_PASSWORD`, `SESSION_SECRET` y `SITE_URL` | Crear valores para el cliente. `SITE_URL` debe ser su dominio final. |
+| `DB_BACKUP_ENCRYPTION_KEY` | Configurar temporalmente la clave que descifra el paquete `.handoff/`; compartirla por un canal distinto al paquete y retirarla de Replit tras validar, si la política del cliente lo permite. |
+| `MFA_ENCRYPTION_KEY`, `MFA_REQUIRED_FOR_PRIVILEGED` | Configurar ambos controles que solicita el diagnóstico. La llave debe conservar la capacidad de leer la información MFA restaurada. |
+| `REPLIT_APP_STORAGE_BUCKET_ID` | Normalmente no hace falta: vincular App Storage del cliente. Si se define, usar exclusivamente el ID de su bucket, nunca el de origen. |
+| `OPENAI_API_KEY` **o** `AI_INTEGRATIONS_OPENAI_API_KEY` | Elegir una alternativa propia del cliente para habilitar los agentes. `OPENAI_IMAGE_API_KEY` se agrega si se usarán imágenes con OpenAI. |
+| `PRIVACY_HASH_KEY`, `NEWSLETTER_UNSUBSCRIBE_SECRET` | Recomendados para producción; generar valores aleatorios del cliente, distintos de `SESSION_SECRET`. |
+| `SOURCE_DATABASE_URL`, `MIGRATION_READ_ONLY`, `ADMIN_RESET_PASSWORD` | No trasladar. Son, respectivamente, conexión temporal del origen, modo de mantenimiento temporal y un nombre heredado que no forma parte de la instalación. |
 
 `DATABASE_URL` debe ser la variable administrada e inyectada por la base del Replit del
 cliente; no se copia la URL actual. La entrega inicial puede usar el modo compatible. La

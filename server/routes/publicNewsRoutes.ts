@@ -56,7 +56,7 @@ export function registerPublicNewsRoutes(app: Express): void {
       if (!newsItem || !isNewsPubliclyVisible(newsItem)) {
         return res.status(404).json({ error: "News not found" });
       }
-      const teamMembersList = (await storage.getTeamMembersByNewsId(newsItem.id))
+      const teamMembersList = (await storage.getVerifiedTeamMembersByNewsId(newsItem.id))
         .filter(isPubliclyVisible);
       res.json(teamMembersList);
     } catch (error) {

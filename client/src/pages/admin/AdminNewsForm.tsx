@@ -37,11 +37,12 @@ const hasReadableText = (value: string) => value.replace(/<[^>]*>/g, "").replace
 
 const EMPTY = {
   titleEs: "", title: "", excerptEs: "", excerpt: "", contentEs: "", content: "",
-  imageUrl: "", sourceUrl: "", slug: "", category: "press", published: false, featuredHome: false,
+  imageUrl: "", sourceUrl: "", date: "", slug: "", category: "press", published: false, featuredHome: false,
   tags: [] as string[],
 };
 
 type TeamMemberLite = { id: string; name: string; slug: string };
+type AuthorRelation = { member: TeamMemberLite; verificationStatus: "verified_historic" | "verified_editorial_2026" | "verified_manual" | "legacy_unverified" };
 
 /**
  * Editor de Noticias (crear / editar). Los borradores pueden prepararse por etapas,
@@ -79,7 +80,7 @@ export default function AdminNewsForm() {
       titleEs: n.titleEs || "", title: n.title || "",
       excerptEs: n.excerptEs || "", excerpt: n.excerpt || "",
       contentEs: n.contentEs || "", content: n.content || "",
-      imageUrl: n.imageUrl || "", sourceUrl: n.sourceUrl || "", slug: n.slug || "",
+      imageUrl: n.imageUrl || "", sourceUrl: n.sourceUrl || "", date: n.date ? String(n.date).slice(0, 10) : "", slug: n.slug || "",
       category: n.category || "press", published: !!n.published, featuredHome: !!(n as any).featuredHome,
       tags: (n.tags || []).filter((tag): tag is string => typeof tag === "string"),
     });
@@ -98,7 +99,7 @@ export default function AdminNewsForm() {
   });
 
   // Al editar, la ruta administrativa también conserva los vínculos de perfiles aún no publicados.
-  const authorsQuery = useQuery<TeamMemberLite[]>({
+  const authorsQuery = useQuery<AuthorRelation[]>({
     queryKey: ["/api/admin/news", id, "team-members"],
     enabled: isEdit && !!id,
     queryFn: async () => {
@@ -110,7 +111,12 @@ export default function AdminNewsForm() {
 
   useEffect(() => {
     if (!authorsQuery.data) return;
-    const ids = authorsQuery.data.map((m) => m.id);
+    // Only explicit manual approvals are editable.  Source-backed links stay
+    // authoritative, while historical links remain internal until an editor
+    // deliberately selects that person below.
+    const ids = authorsQuery.data
+      .filter((relation) => relation.verificationStatus === "verified_manual")
+      .map((relation) => relation.member.id);
     setAuthorIds(ids);
   }, [authorsQuery.data]);
 
@@ -153,6 +159,7 @@ export default function AdminNewsForm() {
         content: form.content.trim() || null,
         imageUrl: form.imageUrl.trim() || null,
         sourceUrl: form.sourceUrl.trim() || null,
+        date: form.date.trim() || undefined,
         slug: (form.slug.trim() || generateSlug(form.titleEs)),
         category: form.category,
         categoryEs: catEs,
@@ -184,7 +191,10 @@ export default function AdminNewsForm() {
   const spanishReady = hasReadableText(form.titleEs) && hasReadableText(form.excerptEs);
   const englishReady = hasReadableText(form.title) && hasReadableText(form.excerpt);
   const sourceOnlyArticle = form.category === "articles" && /^https:\/\//i.test(form.sourceUrl.trim());
+  const editingPublishedLegacyWithoutDate = isEdit && newsQuery.data?.published === true && !newsQuery.data?.date;
+  const dateReady = !form.published || hasReadableText(form.date) || editingPublishedLegacyWithoutDate;
   const canSave = hasReadableText(form.titleEs)
+    && dateReady
     && (!form.published || (hasReadableText(form.title) && (englishReady && spanishReady || sourceOnlyArticle)))
     && !saveMutation.isPending;
 
@@ -194,12 +204,22 @@ export default function AdminNewsForm() {
       toast({ title: "Faltan datos", description: "El título en español es obligatorio.", variant: "destructive" });
       return;
     }
+    if (form.published && !hasReadableText(form.date) && !editingPublishedLegacyWithoutDate) {
+      toast({ title: "Falta la fecha", description: "Toda nueva publicación visible necesita una fecha editorial verificable.", variant: "destructive" });
+      return;
+    }
     if (form.published && (!hasReadableText(form.title) || (!(englishReady && spanishReady) && !sourceOnlyArticle))) {
       toast({ title: "Faltan datos", description: "Para publicar completa ambos extractos o, si es un Artículo sin texto verificable, agrega una fuente HTTPS original.", variant: "destructive" });
       return;
     }
     saveMutation.mutate();
   };
+
+  const sourceVerifiedAuthors = (authorsQuery.data || []).filter((relation) =>
+    relation.verificationStatus === "verified_historic" || relation.verificationStatus === "verified_editorial_2026",
+  );
+  const sourceVerifiedIds = new Set(sourceVerifiedAuthors.map((relation) => relation.member.id));
+  const legacyAuthorRelations = (authorsQuery.data || []).filter((relation) => relation.verificationStatus === "legacy_unverified");
 
   if (isEdit && newsQuery.isLoading) {
     return (
@@ -330,6 +350,12 @@ export default function AdminNewsForm() {
                 <p className="text-xs text-muted-foreground">Se muestra como enlace clicable en el listado y en el detalle. Es obligatoria si un Artículo publicado no tiene extractos verificables.</p>
               </div>
 
+              <div className="space-y-1.5">
+                <Label htmlFor="editorialDate">Fecha editorial <span className="text-muted-foreground text-xs">— obligatoria al publicar</span></Label>
+                <Input id="editorialDate" type="date" value={form.date} onChange={(e) => set("date", e.target.value)} data-testid="input-editorial-date" />
+                <p className="text-xs text-muted-foreground">En el sitio se muestra mes y año. Los registros históricos sin fuente pueden permanecer sin fecha, pero no aparecerán en Insights.</p>
+              </div>
+
               <div className="flex items-center gap-3">
                 <Switch id="published" checked={form.published} onCheckedChange={(v) => set("published", v)} data-testid="switch-published" />
                 <Label htmlFor="published" className="cursor-pointer">
@@ -350,7 +376,7 @@ export default function AdminNewsForm() {
             <CardHeader><CardTitle className="text-base">Relación editorial</CardTitle></CardHeader>
             <CardContent className="space-y-3">
               <p className="text-xs text-muted-foreground">
-                Define temas y autores para conectar esta publicación con el resto del contenido. Las recomendaciones públicas priorizan las etiquetas, después los autores y finalmente la categoría.
+                Las etiquetas organizan recomendaciones editoriales. Los autores se muestran en Insights sólo con una fuente acreditada o una confirmación manual explícita.
               </p>
               <div className="space-y-2">
                 <Label htmlFor="editorial-tags">Etiquetas temáticas</Label>
@@ -388,7 +414,7 @@ export default function AdminNewsForm() {
               </div>
               <div className="border-t pt-4" />
               <div className="space-y-1.5">
-                <Label htmlFor="author-search">Autores de esta publicación</Label>
+                <Label htmlFor="author-search">Confirmar autores de esta publicación</Label>
                 <Input
                   id="author-search"
                   value={authorSearch}
@@ -399,7 +425,7 @@ export default function AdminNewsForm() {
                 />
               </div>
               <div className="flex items-center justify-between text-xs text-muted-foreground">
-                <span>{authorIds.length === 1 ? "1 persona seleccionada" : `${authorIds.length} personas seleccionadas`}</span>
+                <span>{authorIds.length === 1 ? "1 confirmación manual" : `${authorIds.length} confirmaciones manuales`}</span>
                 {authorIds.length > 0 && (
                   <button type="button" className="underline underline-offset-4" onClick={() => setAuthorIds([])}>
                     Limpiar selección
@@ -410,6 +436,7 @@ export default function AdminNewsForm() {
                 {teamQuery.isLoading && <p className="text-sm text-muted-foreground col-span-2">Cargando…</p>}
                 {teamQuery.isError && <p className="text-sm text-destructive col-span-2">No fue posible cargar el directorio.</p>}
                 {(teamQuery.data?.members || [])
+                  .filter((member) => !sourceVerifiedIds.has(member.id))
                   .filter((member) => member.name.toLocaleLowerCase("es").includes(authorSearch.trim().toLocaleLowerCase("es")))
                   .map((member) => (
                     <label key={member.id} className="flex items-center gap-2 text-sm cursor-pointer rounded-sm px-1 py-1 hover:bg-muted">
@@ -421,10 +448,25 @@ export default function AdminNewsForm() {
                       {member.name}
                     </label>
                   ))}
-                {!teamQuery.isLoading && !teamQuery.isError && (teamQuery.data?.members || []).filter((member) => member.name.toLocaleLowerCase("es").includes(authorSearch.trim().toLocaleLowerCase("es"))).length === 0 && (
+                {!teamQuery.isLoading && !teamQuery.isError && (teamQuery.data?.members || []).filter((member) => !sourceVerifiedIds.has(member.id)).filter((member) => member.name.toLocaleLowerCase("es").includes(authorSearch.trim().toLocaleLowerCase("es"))).length === 0 && (
                   <p className="text-sm text-muted-foreground col-span-2">No hay coincidencias.</p>
                 )}
               </div>
+              <p className="text-xs text-muted-foreground">Al guardar, esta selección queda aprobada y se muestra de inmediato en Insights. Una coincidencia de nombre, práctica, industria o texto nunca se vincula automáticamente.</p>
+              {sourceVerifiedAuthors.length > 0 && (
+                <div className="rounded-md border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-950">
+                  <p className="font-medium">Autorías acreditadas por fuente</p>
+                  <p className="mt-1 text-xs">Se conservan automáticamente porque provienen de “Abogados involucrados” o de un crédito editorial verificable.</p>
+                  <p className="mt-2">{sourceVerifiedAuthors.map((relation) => relation.member.name).join(", ")}</p>
+                </div>
+              )}
+              {legacyAuthorRelations.length > 0 && (
+                <div className="rounded-md border border-amber-200 bg-amber-50 p-3 text-sm text-amber-950">
+                  <p className="font-medium">Relaciones heredadas sin confirmar</p>
+                  <p className="mt-1 text-xs">Se conservan para gestión interna, pero no aparecen en Insights ni en archivos por autor. Selecciona a una persona arriba sólo si confirmas expresamente su autoría.</p>
+                  <p className="mt-2">{legacyAuthorRelations.map((relation) => relation.member.name).join(", ")}</p>
+                </div>
+              )}
             </CardContent>
           </Card>
 

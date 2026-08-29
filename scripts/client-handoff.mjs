@@ -22,6 +22,33 @@ export const HANDOFF_REQUIRED_SECRETS = [
   "MFA_REQUIRED_FOR_PRIVILEGED",
 ];
 
+// Estos grupos no cambian la restauración de la entrega: sirven para que el
+// diagnóstico le diga a la persona (o a Replit Agent) qué falta ANTES de
+// publicar. Nunca se imprimen valores, solo nombres y estados.
+export const HANDOFF_PREPUBLISH_SECRETS = [
+  "SESSION_SECRET",
+  "SITE_URL",
+];
+
+export const HANDOFF_RECOMMENDED_SECURITY_SECRETS = [
+  "PRIVACY_HASH_KEY",
+  "NEWSLETTER_UNSUBSCRIBE_SECRET",
+];
+
+export const HANDOFF_AI_SECRET_ALTERNATIVES = [
+  "OPENAI_API_KEY",
+  "AI_INTEGRATIONS_OPENAI_API_KEY",
+];
+
+// Son valores ligados a la cuenta Replit de origen, temporales o heredados.
+// El diagnóstico los nombra para evitar que alguien los copie por error al
+// Repl del cliente. DATABASE_URL y el bucket se crean o vinculan allá.
+export const HANDOFF_DO_NOT_COPY_SECRETS = [
+  "SOURCE_DATABASE_URL",
+  "MIGRATION_READ_ONLY",
+  "ADMIN_RESET_PASSWORD",
+];
+
 export const CORE_HANDOFF_TABLES = [
   "admin_users",
   "site_config",
@@ -107,6 +134,35 @@ export function requiredSecretsStatus(environment = process.env) {
   });
   const missing = HANDOFF_REQUIRED_SECRETS.filter((name) => !present.includes(name));
   return { present, missing };
+}
+
+function configured(environment, name) {
+  return Boolean(String(environment[name] || "").trim());
+}
+
+/**
+ * Inventario seguro para el Repl del cliente. Al estar separado de los
+ * requisitos de instalación, podemos pedir de una vez todo lo necesario para
+ * publicar sin forzar a que un Secret opcional de IA bloquee la restauración.
+ */
+export function prepublishSecretsStatus(environment = process.env) {
+  const requiredBeforePublish = HANDOFF_PREPUBLISH_SECRETS.filter((name) => !configured(environment, name));
+  const recommendedSecurity = HANDOFF_RECOMMENDED_SECURITY_SECRETS.filter((name) => !configured(environment, name));
+  const aiConfigured = HANDOFF_AI_SECRET_ALTERNATIVES.some((name) => configured(environment, name));
+  const imageGenerationConfigured = configured(environment, "OPENAI_IMAGE_API_KEY") || configured(environment, "OPENAI_API_KEY");
+
+  return {
+    missingBeforePublish: requiredBeforePublish,
+    recommendedSecurity,
+    ai: {
+      configured: aiConfigured,
+      alternatives: HANDOFF_AI_SECRET_ALTERNATIVES,
+      imageGenerationConfigured,
+      imageGenerationSecret: "OPENAI_IMAGE_API_KEY",
+    },
+    doNotCopyFromSource: HANDOFF_DO_NOT_COPY_SECRETS,
+    targetManagedResources: ["DATABASE_URL", "REPLIT_APP_STORAGE_BUCKET_ID"],
+  };
 }
 
 export function handoffDecision({ database, secrets, packageStatus, appStorage }) {
@@ -250,6 +306,7 @@ export async function getHandoffStatus(directory = option("directory") || ".hand
     inspectAppStorage(),
   ]);
   const secrets = requiredSecretsStatus();
+  const prepublishSecrets = prepublishSecretsStatus();
   return {
     mode: "complete_client_handoff",
     decision: handoffDecision({ database, secrets, packageStatus, appStorage }),
@@ -259,7 +316,8 @@ export async function getHandoffStatus(directory = option("directory") || ".hand
     secrets: {
       missingForInstall: secrets.missing,
       configuredForInstall: secrets.present,
-      optionalForAgents: ["OPENAI_API_KEY", "OPENAI_IMAGE_API_KEY", "AI_MONTHLY_BUDGET_USD"].filter(
+      ...prepublishSecrets,
+      optionalForAgents: ["OPENAI_IMAGE_API_KEY", "AI_MONTHLY_BUDGET_USD"].filter(
         (name) => !String(process.env[name] || "").trim(),
       ),
     },

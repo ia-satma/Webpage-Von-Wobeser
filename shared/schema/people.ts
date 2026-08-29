@@ -101,13 +101,33 @@ export const teamMemberIndustryGroups = pgTable("team_member_industry_groups", {
   industryGroupId: varchar("industry_group_id").notNull(),
 });
 
+/**
+ * Public author attribution is deliberately conservative.  A relationship may
+ * stay in the CMS for editorial history, but it appears as authorship only
+ * after one of these verification paths has been recorded.
+ */
+export const authorVerificationStatuses = [
+  "verified_historic",
+  "verified_editorial_2026",
+  "verified_manual",
+  "legacy_unverified",
+] as const;
+export type AuthorVerificationStatus = typeof authorVerificationStatuses[number];
+export const publicAuthorVerificationStatuses = [
+  "verified_historic",
+  "verified_editorial_2026",
+  "verified_manual",
+] as const satisfies readonly AuthorVerificationStatus[];
+
 export const newsTeamMembers = pgTable("news_team_members", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   newsId: varchar("news_id").notNull(),
   teamMemberId: varchar("team_member_id").notNull(),
+  verificationStatus: text("verification_status").$type<AuthorVerificationStatus>().notNull().default("legacy_unverified"),
 }, (t) => ({
   newsMemberUnique: uniqueIndex("news_team_members_news_member_unique").on(t.newsId, t.teamMemberId),
   teamNewsIdx: index("news_team_members_team_news_idx").on(t.teamMemberId, t.newsId),
+  teamVerificationNewsIdx: index("news_team_members_team_verification_news_idx").on(t.teamMemberId, t.verificationStatus, t.newsId),
 }));
 
 export const insertNewsTeamMemberSchema = createInsertSchema(newsTeamMembers).omit({ id: true });

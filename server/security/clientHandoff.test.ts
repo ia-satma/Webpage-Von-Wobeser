@@ -16,6 +16,7 @@ import {
   handoffDecision,
   HANDOFF_REQUIRED_SECRETS,
   inspectPackage,
+  prepublishSecretsStatus,
   requiredSecretsStatus,
 } from "../../scripts/client-handoff.mjs";
 
@@ -160,6 +161,19 @@ test("la entrega no acepta una configuración MFA vacía, inválida o desactivad
     MFA_ENCRYPTION_KEY: Buffer.alloc(32, 9).toString("base64"),
     MFA_REQUIRED_FOR_PRIVILEGED: "true",
   }).missing, []);
+});
+
+test("el diagnóstico enumera los Secrets de publicación sin exponer valores", () => {
+  const status = prepublishSecretsStatus({
+    SESSION_SECRET: "s".repeat(32),
+    OPENAI_API_KEY: "configured-on-the-client",
+  });
+  assert.deepEqual(status.missingBeforePublish, ["SITE_URL"]);
+  assert.deepEqual(status.recommendedSecurity, ["PRIVACY_HASH_KEY", "NEWSLETTER_UNSUBSCRIBE_SECRET"]);
+  assert.equal(status.ai.configured, true);
+  assert.equal(status.ai.imageGenerationConfigured, true);
+  assert.deepEqual(status.doNotCopyFromSource, ["SOURCE_DATABASE_URL", "MIGRATION_READ_ONLY", "ADMIN_RESET_PASSWORD"]);
+  assert.deepEqual(status.targetManagedResources, ["DATABASE_URL", "REPLIT_APP_STORAGE_BUCKET_ID"]);
 });
 
 test("la detección exige un paquete completo, pero no lee Secrets", async () => {

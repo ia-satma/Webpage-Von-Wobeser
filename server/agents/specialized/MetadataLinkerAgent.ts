@@ -1,7 +1,7 @@
 import { BaseAgent } from '../core/BaseAgent';
 import { AgentConfig, AgentResult, ExecutionContext } from '../core/types';
 import { db } from '../../db';
-import { news, teamMembers, practiceGroups, industryGroups, newsTeamMembers } from '../../../shared/schema';
+import { news, teamMembers, practiceGroups, industryGroups } from '../../../shared/schema';
 import { eq } from 'drizzle-orm';
 import { metadataAnalysisSchema } from '../core/contracts';
 
@@ -17,10 +17,10 @@ function normalizeEntityName(value: string): string {
 const LINKER_CONFIG: AgentConfig = {
   agentType: 'metadata_linker',
   name: 'Metadata Linker Agent',
-  description: 'Links articles to authors, practice groups, and industry groups',
+  description: 'Suggests authors and classifies practice groups and industry groups for editorial review',
   systemPrompt: `You are a legal content analyst for Von Wobeser y Sierra law firm. Your task is to analyze article content and identify:
 
-1. AUTHORS: Identify lawyer names mentioned in the article (often at the end)
+1. AUTHORS: Identify only explicit author-credit candidates. A name merely mentioned in the article is not authorship.
 2. PRACTICE AREAS: Determine which legal practice areas the article relates to
 3. INDUSTRIES: Identify which industries the article is relevant to
 
@@ -75,7 +75,7 @@ export class MetadataLinkerAgent extends BaseAgent {
   }
 
   async execute(context: ExecutionContext, payload: Record<string, unknown>): Promise<AgentResult> {
-    const { articleId, applyChanges } = payload as { articleId: string; applyChanges?: boolean };
+    const { articleId } = payload as { articleId: string; applyChanges?: boolean };
 
     if (!articleId) {
       return { success: false, error: 'articleId is required' };
@@ -125,7 +125,6 @@ Return JSON with practiceAreas (array of slugs), industries (array of slugs), an
 
       const analysis = metadataAnalysisSchema.parse(JSON.parse(response));
 
-      const linkedAuthors: string[] = [];
       const linkedPracticeGroups: string[] = [];
       const linkedIndustries: string[] = [];
       const authorCandidates: { id: string; name: string }[] = [];
@@ -140,22 +139,9 @@ Return JSON with practiceAreas (array of slugs), industries (array of slugs), an
         }
       }
 
-      const existingAuthorLinks = await db.select()
-        .from(newsTeamMembers)
-        .where(eq(newsTeamMembers.newsId, articleId));
-      const canApply = applyChanges === true && article.published === false;
-      if (canApply) {
-        for (const candidate of authorCandidates) {
-          if (!existingAuthorLinks.some((link) => link.teamMemberId === candidate.id)) {
-            await db.insert(newsTeamMembers).values({
-              newsId: articleId,
-              teamMemberId: candidate.id,
-            });
-            linkedAuthors.push(candidate.name);
-          }
-        }
-      }
-
+      // AI output is a lead for a human editor, never public authorship. The
+      // editor must explicitly confirm a person in Administration, which then
+      // records a verified_manual relationship.
       for (const slug of analysis.practiceAreas) {
         const practice = practices.find((item) => item.slug === slug);
         if (practice) linkedPracticeGroups.push(practice.nameEs || practice.name);
@@ -169,14 +155,13 @@ Return JSON with practiceAreas (array of slugs), industries (array of slugs), an
         success: true,
         data: {
           articleId,
-          linkedAuthors,
           authorCandidates,
           linkedPracticeGroups,
           linkedIndustries,
-          changesApplied: canApply && linkedAuthors.length > 0,
+          changesApplied: false,
         },
         metrics: {
-          authorsLinked: linkedAuthors.length,
+          authorsLinked: 0,
           authorCandidates: authorCandidates.length,
           practiceGroupsIdentified: linkedPracticeGroups.length,
           industriesIdentified: linkedIndustries.length,

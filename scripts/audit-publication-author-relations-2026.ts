@@ -16,10 +16,32 @@ try {
       .from(schema.news),
     db.select({ id: schema.teamMembers.id, name: schema.teamMembers.name, title: schema.teamMembers.title, email: schema.teamMembers.email, published: schema.teamMembers.published })
       .from(schema.teamMembers),
-    db.select({ newsId: schema.newsTeamMembers.newsId, teamMemberId: schema.newsTeamMembers.teamMemberId })
+    db.select({
+      newsId: schema.newsTeamMembers.newsId,
+      teamMemberId: schema.newsTeamMembers.teamMemberId,
+      verificationStatus: schema.newsTeamMembers.verificationStatus,
+    })
       .from(schema.newsTeamMembers),
   ]);
   const audit = reconcilePublicationAuthors({ news: newsRows, members: memberRows, links: linkRows });
+  const byStatus = Object.fromEntries(
+    ["verified_historic", "verified_editorial_2026", "verified_manual", "legacy_unverified"].map((status) => [
+      status,
+      linkRows.filter((relation) => relation.verificationStatus === status).length,
+    ]),
+  );
+  const expectedByKey = new Map(audit.expected.map((relation) => [
+    `${relation.newsId}\u0000${relation.teamMemberId}`,
+    relation.source === "historic" ? "verified_historic" : "verified_editorial_2026",
+  ]));
+  const sourceStatusMismatches = linkRows.filter((relation) =>
+    expectedByKey.has(`${relation.newsId}\u0000${relation.teamMemberId}`)
+    && expectedByKey.get(`${relation.newsId}\u0000${relation.teamMemberId}`) !== relation.verificationStatus,
+  ).length;
+  const publishedWithoutVerifiedAuthors = newsRows.filter((item) => item.published !== false).filter((item) => !linkRows.some((relation) =>
+    relation.newsId === item.id
+    && relation.verificationStatus !== "legacy_unverified",
+  )).length;
 
   console.log(JSON.stringify({
     mode: "read-only",
@@ -28,6 +50,11 @@ try {
     missing: audit.missing.length,
     contradictions: audit.contradictions.length,
     retainedWithoutSource: audit.retainedWithoutSource.length,
+    verification: {
+      ...byStatus,
+      sourceStatusMismatches,
+      publishedWithoutVerifiedAuthors,
+    },
     sources: {
       historic: audit.expected.filter((item) => item.source === "historic").length,
       dropbox2026: audit.expected.filter((item) => item.source === "dropbox-2026").length,

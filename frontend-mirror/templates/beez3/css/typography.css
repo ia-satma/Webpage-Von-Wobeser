@@ -302,7 +302,7 @@ body {
   grid-column: 1;
   margin: 0;
   color: #a91931;
-  font-size: clamp(17px, 1.25vw, 19px);
+  font-size: clamp(19px, 1.4vw, 22px);
   line-height: 1.2;
 }
 
@@ -396,7 +396,7 @@ body {
 
 @media (max-width: 640px) {
   .attorney[data-vw-content-kind="attorney"] .attorney-related-insights h2 {
-    font-size: 17px;
+    font-size: 19px;
   }
 
   .attorney[data-vw-content-kind="attorney"] .attorney-related-insights__header {

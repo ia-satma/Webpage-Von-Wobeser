@@ -135,7 +135,10 @@ function chronologicalPublications(items: any[]): any[] {
 }
 
 function insightCards(items: any[], labels: { read: string }, lang: Lang): string {
-  return chronologicalPublications(items).map((item) => {
+  return chronologicalPublications(items).filter((item) => {
+    const value = item?.date ? new Date(item.date).getTime() : Number.NaN;
+    return !Number.isNaN(value);
+  }).map((item) => {
     const title = esc(L(item, "title", lang));
     const excerpt = renderRichText(L(item, "excerpt", lang));
     const href = `/news/${encodeURIComponent(String(item.slug || ""))}${lang === "en" ? "?lang=en" : ""}`;
@@ -143,9 +146,9 @@ function insightCards(items: any[], labels: { read: string }, lang: Lang): strin
     const dateTime = item.date && !Number.isNaN(new Date(item.date).getTime())
       ? new Date(item.date).toISOString().slice(0, 10)
       : "";
-    const dateMarkup = date
-      ? `<time datetime="${esc(dateTime)}">${esc(date)}</time>`
-      : `<span>${lang === "es" ? "Fecha no disponible" : "Date unavailable"}</span>`;
+    // El filtro anterior garantiza una fecha válida; todo Insight conserva un
+    // elemento time accesible y nunca presenta un marcador incompleto.
+    const dateMarkup = `<time datetime="${esc(dateTime)}">${esc(date)}</time>`;
     return `<article class="attorney-related-insights__item">` +
       `<div class="attorney-related-insights__body">` +
       `<div class="attorney-related-insights__meta">${dateMarkup}</div>` +
@@ -165,13 +168,14 @@ function buildInsightsSection(opts: {
   lang: Lang;
   description?: string;
 }): string {
-  if (!opts.items.length) return "";
+  const datedItems = opts.items.filter((item) => item?.date && !Number.isNaN(new Date(item.date).getTime()));
+  if (!datedItems.length) return "";
   const description = opts.description ? `<p class="attorney-related-insights__description">${esc(opts.description)}</p>` : "";
   return `<section class="attorney-related-insights" id="attorney-publications" aria-labelledby="attorney-related-insights-title">` +
     `<div class="attorney-related-insights__header">` +
     `<h2 id="attorney-related-insights-title">${esc(opts.title)}</h2>${description}` +
     `<a class="attorney-related-insights__more" href="${esc(opts.href)}">${esc(opts.more)}</a>` +
-    `</div><div class="attorney-related-insights__grid">${insightCards(opts.items, opts, opts.lang)}</div></section>`;
+    `</div><div class="attorney-related-insights__grid">${insightCards(datedItems, opts, opts.lang)}</div></section>`;
 }
 
 /** Publicaciones propias del sitio, respaldadas por la relación editorial del perfil. */
@@ -180,25 +184,11 @@ function buildAuthoredInsights(attorney: any, lang: Lang): string {
   if (!relatedNews.length) return "";
 
   const labels = lang === "es"
-    ? { title: "Perspectivas relacionadas", more: "Ver todas las publicaciones", read: "Leer publicación" }
-    : { title: "Related insights", more: "View all publications", read: "Read publication" };
+    ? { title: "Insights", more: "Ver todas las publicaciones", read: "Leer publicación" }
+    : { title: "Insights", more: "View all publications", read: "Read publication" };
   const archiveParams = new URLSearchParams({ author: attorney.slug || "" });
   if (lang === "en") archiveParams.set("lang", "en");
   return buildInsightsSection({ ...labels, items: relatedNews, href: `/news?${archiveParams.toString()}`, lang });
-}
-
-/** Clearly labelled peer-practice reading for profiles without own publications. */
-function buildPracticeReadings(attorney: any, lang: Lang): string {
-  const readings: any[] = attorney.relatedReadings || [];
-  if (!readings.length) return "";
-  const practiceNames = (attorney.practiceGroups || []).map((practice: any) => L(practice, "name", lang)).filter(Boolean);
-  const labels = lang === "es"
-    ? { title: "Perspectivas relacionadas", more: "Ver todas las publicaciones", read: "Leer publicación" }
-    : { title: "Related insights", more: "View all publications", read: "Read publication" };
-  const description = practiceNames.length
-    ? (lang === "es" ? `Contenido de integrantes de ${practiceNames.join(", ")}.` : `Published by members of ${practiceNames.join(", ")}.`)
-    : undefined;
-  return buildInsightsSection({ ...labels, items: readings, href: lang === "en" ? "/news?lang=en" : "/news", lang, description });
 }
 
 /** The full biography stays in the HTML and is revealed with native details.
@@ -351,7 +341,7 @@ export function renderAttorney(
   } else {
     $body.attr(typographyAttribute(typography, lang === "es" ? "bioEs" : "bio", lang)).html(bioRest);
   }
-  const relatedInsights = buildAuthoredInsights(a, lang) || buildPracticeReadings(a, lang);
+  const relatedInsights = buildAuthoredInsights(a, lang);
   if (relatedInsights) {
     const $afterBiography = $content.find(".attorney-bio-disclosure").first().length
       ? $content.find(".attorney-bio-disclosure").first()

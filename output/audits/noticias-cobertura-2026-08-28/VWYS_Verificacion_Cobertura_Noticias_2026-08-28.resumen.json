@@ -1,0 +1,22 @@
+{
+  "generatedAt": "2026-08-29T03:07:20.913Z",
+  "officialAuditSource": "output/audits/noticias-fechas-2026-08-28/VWYS_Auditoria_Fechas_Noticias_2026-08-28.snapshot.json",
+  "officialInventory": {
+    "localizedEntries": 1530,
+    "spanishEntries": 764,
+    "englishEntries": 766,
+    "auditVerifiedOfficialDetails": true
+  },
+  "currentPublicProject": {
+    "rows": 1532,
+    "coveredOfficialEntries": 1530,
+    "directLegacyMatches": 1469,
+    "verifiedLanguageCounterpartMatches": 61,
+    "missingOfficialEntries": 0,
+    "ambiguousOfficialEntries": 0,
+    "dateMatch": 1530,
+    "projectDateMissing": 0,
+    "dateMismatch": 0,
+    "publicProjectOnlyRows": 63
+  }
+}

@@ -63,6 +63,7 @@ import type {
   SpecializedDesk,
   Stat,
   TeamMember,
+  AuthorVerificationStatus,
   Testimonial,
   TranslationCache,
   WebsiteAudit,
@@ -77,6 +78,11 @@ export type AdminLoginEventWithIdentity = AdminLoginEvent & {
   username: string | null;
   userRole: string | null;
   userExists: boolean;
+};
+
+export type NewsTeamMemberRelation = {
+  member: TeamMember;
+  verificationStatus: AuthorVerificationStatus;
 };
 
 export interface IStorage {
@@ -222,6 +228,8 @@ export interface IStorage {
   // News Team Members (many-to-many relationship)
   getNewsByTeamMemberId(teamMemberId: string): Promise<News[]>;
   getTeamMembersByNewsId(newsId: string): Promise<TeamMember[]>;
+  getVerifiedTeamMembersByNewsId(newsId: string): Promise<TeamMember[]>;
+  getNewsTeamMemberRelations(newsId: string): Promise<NewsTeamMemberRelation[]>;
   setTeamMembersForNews(newsId: string, teamMemberIds: string[]): Promise<void>;
   addTeamMemberToNews(newsId: string, teamMemberId: string): Promise<void>;
   removeTeamMemberFromNews(newsId: string, teamMemberId: string): Promise<void>;

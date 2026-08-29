@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { hasPublishableNewsContent, isVerifiedNewsSourceUrl } from "../newsPublicationPolicy";
+import { editorialDateAtNoon, hasPublishableNewsContent, isValidEditorialDate, isVerifiedNewsSourceUrl, requiresExplicitEditorialDate } from "../newsPublicationPolicy";
 
 test("la API acepta Artículos publicados solo con fuente HTTPS verificable", () => {
   const sourceOnlyArticle = {
@@ -34,4 +34,20 @@ test("la API conserva el requisito bilingüe para las demás publicaciones", () 
   }), false);
   assert.equal(isVerifiedNewsSourceUrl("https://source.example/article"), true);
   assert.equal(isVerifiedNewsSourceUrl("javascript:alert(1)"), false);
+});
+
+test("la fecha editorial exige un día real y mantiene su mes en UTC", () => {
+  assert.equal(isValidEditorialDate("2026-08-28"), true);
+  assert.equal(isValidEditorialDate("2024-02-29"), true);
+  assert.equal(isValidEditorialDate("2026-02-29"), false);
+  assert.equal(isValidEditorialDate("2026-02-31"), false);
+  assert.equal(isValidEditorialDate("2026-8-28"), false);
+  assert.equal(editorialDateAtNoon("2026-08-28").toISOString(), "2026-08-28T12:00:00.000Z");
+});
+
+test("publicar un borrador exige que la solicitud aporte fecha editorial", () => {
+  assert.equal(requiresExplicitEditorialDate(false, true), true);
+  assert.equal(requiresExplicitEditorialDate(undefined, true), true);
+  assert.equal(requiresExplicitEditorialDate(true, true), false);
+  assert.equal(requiresExplicitEditorialDate(false, false), false);
 });

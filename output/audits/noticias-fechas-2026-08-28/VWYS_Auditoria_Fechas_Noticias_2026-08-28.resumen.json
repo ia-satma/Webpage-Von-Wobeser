@@ -1,0 +1,47 @@
+{
+  "generatedAt": "2026-08-29T00:38:32.806Z",
+  "sourceCutoff": "2026-08-28",
+  "scope": "news",
+  "mode": "dates-only",
+  "officialOrigin": "https://www.vonwobeser.com",
+  "projectOrigin": "http://localhost:5050",
+  "parameters": {
+    "concurrency": 6,
+    "maxPages": 0,
+    "scope": "news",
+    "datesOnly": true
+  },
+  "collections": [
+    {
+      "key": "es-news",
+      "expectedLastStart": 760,
+      "pages": 77,
+      "items": 764,
+      "pageErrors": []
+    },
+    {
+      "key": "en-news",
+      "expectedLastStart": 760,
+      "pages": 77,
+      "items": 766,
+      "pageErrors": []
+    }
+  ],
+  "counts": {
+    "officialLocalizedEntries": 1530,
+    "officialSpanishEntries": 764,
+    "officialEnglishEntries": 766,
+    "officialDatePrecision": {
+      "month": 1530
+    },
+    "projectRowsInScope": 1519,
+    "dateMatch": 840,
+    "projectDateMissing": 597,
+    "dateMismatch": 0,
+    "projectMissing": 93,
+    "officialDateMissing": 0,
+    "ambiguousProjectMatch": 0,
+    "inaccessibleOfficialDetails": 0,
+    "projectOnlyNewsRows": 82
+  }
+}

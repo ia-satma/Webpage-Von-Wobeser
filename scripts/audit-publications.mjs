@@ -9,7 +9,6 @@ import * as cheerio from "cheerio";
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const DEFAULT_STAMP = "2026-08-14";
 const OFFICIAL_ORIGIN = "https://www.vonwobeser.com";
-const PROJECT_ORIGIN = "https://webpage-von-wobeser-2026.replit.app";
 
 const argv = process.argv.slice(2);
 const argValue = (name, fallback) => {
@@ -19,7 +18,16 @@ const argValue = (name, fallback) => {
 };
 const hasFlag = (name) => argv.includes(`--${name}`);
 const STAMP = argValue("stamp", DEFAULT_STAMP);
-const OUTPUT_DIR = path.resolve(ROOT, argValue("output", `output/audits/publicaciones-${STAMP}`));
+const SCOPE = argValue("scope", "all").trim().toLowerCase();
+if (!new Set(["all", "news", "articles"]).has(SCOPE)) {
+  throw new Error("--scope debe ser all, news o articles");
+}
+const DATES_ONLY = hasFlag("dates-only");
+const PROJECT_ORIGIN = argValue("project-origin", "https://webpage-von-wobeser-2026.replit.app").replace(/\/$/, "");
+const defaultOutput = DATES_ONLY && SCOPE === "news"
+  ? `output/audits/noticias-fechas-${STAMP}`
+  : `output/audits/publicaciones-${STAMP}`;
+const OUTPUT_DIR = path.resolve(ROOT, argValue("output", defaultOutput));
 const requestedCacheDir = argValue("cache", "").trim();
 const CACHE_DIR = requestedCacheDir
   ? path.resolve(requestedCacheDir)
@@ -28,6 +36,7 @@ const CONCURRENCY = Math.max(1, Number(argValue("concurrency", "6")) || 6);
 const MAX_DETAILS = Math.max(0, Number(argValue("max-details", "0")) || 0);
 const MAX_PAGES = Math.max(0, Number(argValue("max-pages", "0")) || 0);
 const SKIP_LINKS = hasFlag("skip-links");
+const SKIP_DETAIL_PROBES = hasFlag("skip-detail-probes");
 const REFRESH = hasFlag("refresh");
 const USER_AGENT = "VWYS-Publications-Audit/1.0 (+https://webpage-von-wobeser-2026.replit.app/)";
 
@@ -37,6 +46,9 @@ const COLLECTIONS = [
   { key: "es-articles", language: "es", type: "articles", url: `${OFFICIAL_ORIGIN}/index.php/publicaciones/articulos` },
   { key: "en-articles", language: "en", type: "articles", url: `${OFFICIAL_ORIGIN}/index.php/publications/articles` },
 ];
+const ACTIVE_COLLECTIONS = SCOPE === "all"
+  ? COLLECTIONS
+  : COLLECTIONS.filter((collection) => collection.type === SCOPE);
 
 const MONTHS = new Map([
   ["enero", 1], ["febrero", 2], ["marzo", 3], ["abril", 4], ["mayo", 5], ["junio", 6],
@@ -557,6 +569,183 @@ function linkRecord({ owner, source, kind, language, url, result }) {
   };
 }
 
+/**
+ * Auditoría deliberadamente estrecha para contrastar fechas.  El p_id de cada
+ * ficha es el identificador editorial estable de Joomla; por ello no se usa
+ * ninguna inferencia por título para decidir que una fila del proyecto es la
+ * misma publicación oficial.
+ */
+function dateAuditProjectRows(rows) {
+  if (SCOPE === "news") return rows.filter((row) => String(row.category || "").toLowerCase() !== "articles");
+  if (SCOPE === "articles") return rows.filter((row) => String(row.category || "").toLowerCase() === "articles");
+  return rows;
+}
+
+function projectDate(value) {
+  const text = String(value ?? "").slice(0, 10);
+  return /^\d{4}-\d{2}-\d{2}$/.test(text) ? text : "";
+}
+
+function dateAuditStatus({ officialDate, projectRows }) {
+  if (projectRows.length > 1) return "ambiguous_project_match";
+  if (!projectRows.length) return "project_missing";
+  if (!officialDate.normalized) return "official_date_missing";
+  const date = projectDate(projectRows[0].date);
+  if (!date) return "project_date_missing";
+  return date.slice(0, 7) === officialDate.normalized.slice(0, 7) ? "date_match" : "date_mismatch";
+}
+
+async function runDateOnlyAudit({ listings, collectionSummary }) {
+  const detailChecks = SKIP_DETAIL_PROBES
+    ? listings.map((item) => ({
+      sourceKey: item.sourceKey,
+      status: 0,
+      finalUrl: "",
+      redirected: false,
+      error: "",
+      classification: "not_rechecked",
+    }))
+    : await mapConcurrent(listings, Math.min(CONCURRENCY, 8), async (item) => {
+      const result = await requestWithRetries(item.detailUrl, { mode: "probe", attempts: 3, timeoutMs: 45000 });
+      return {
+        sourceKey: item.sourceKey,
+        status: result.status,
+        finalUrl: result.finalUrl,
+        redirected: result.redirected,
+        error: result.error,
+        classification: classifyLink(result, "detalle"),
+      };
+    }, "fichas oficiales");
+  const detailBySourceKey = new Map(detailChecks.map((check) => [check.sourceKey, check]));
+
+  const projectNewsResult = await requestWithRetries(`${PROJECT_ORIGIN}/api/news`, { mode: "json", attempts: 4, timeoutMs: 120000 });
+  if (!projectNewsResult.ok) throw new Error(`No se pudo leer el inventario del proyecto: ${projectNewsResult.status} ${projectNewsResult.error}`);
+  const allProjectRows = JSON.parse(projectNewsResult.body.toString("utf8"));
+  const projectRows = dateAuditProjectRows(allProjectRows);
+  const byLegacyId = new Map();
+  for (const row of projectRows) {
+    const legacyId = String(row.legacyId || "").trim();
+    if (!legacyId) continue;
+    byLegacyId.set(legacyId, [...(byLegacyId.get(legacyId) || []), row]);
+  }
+
+  // Algunas fichas históricas usan un p_id para ES y otro para EN. El sitio
+  // conserva una sola ficha bilingüe con el p_id principal; la equivalencia se
+  // acepta sólo cuando la propia ficha oficial enlaza de manera explícita a su
+  // contraparte y el título de esa lengua coincide con la fila local. No se
+  // usa similitud de títulos ni inferencia textual para esta decisión.
+  const withoutDirectLegacyId = listings.filter((item) => !(byLegacyId.get(String(item.pid)) || []).length);
+  const counterpartMatches = await mapConcurrent(withoutDirectLegacyId, Math.min(CONCURRENCY, 6), async (item) => {
+    const result = await requestWithRetries(item.detailUrl, { mode: "text", attempts: 3, timeoutMs: 60000 });
+    if (!result.ok) return { sourceKey: item.sourceKey, projectRows: [], counterpartLegacyId: "", verified: false };
+    const detail = parseDetail(result.body.toString("utf8"), item, result);
+    const counterpartLegacyId = detail.counterpartPid;
+    const candidates = counterpartLegacyId ? byLegacyId.get(counterpartLegacyId) || [] : [];
+    const localizedTitle = (row) => item.language === "es" ? row.titleEs : row.title;
+    const verifiedRows = candidates.filter((row) => normalizeTitle(localizedTitle(row)) === detail.titleNormalized);
+    return {
+      sourceKey: item.sourceKey,
+      projectRows: verifiedRows.length === 1 ? verifiedRows : [],
+      counterpartLegacyId,
+      verified: verifiedRows.length === 1,
+    };
+  }, "equivalencias bilingües");
+  const counterpartBySourceKey = new Map(counterpartMatches.map((match) => [match.sourceKey, match]));
+
+  const rows = listings
+    .map((item) => {
+      const directMatches = byLegacyId.get(String(item.pid)) || [];
+      const counterpart = directMatches.length ? null : counterpartBySourceKey.get(item.sourceKey);
+      const matches = directMatches.length ? directMatches : counterpart?.projectRows || [];
+      const detail = detailBySourceKey.get(item.sourceKey);
+      const status = dateAuditStatus({ officialDate: item.date, projectRows: matches });
+      return {
+        sourceKey: item.sourceKey,
+        language: item.language,
+        type: item.type,
+        legacyId: item.pid,
+        titleOfficial: item.title,
+        officialUrl: item.detailUrl,
+        listingUrl: item.listingUrl,
+        officialDateRaw: item.date.raw,
+        officialDateNormalized: item.date.normalized,
+        officialDatePrecision: item.date.precision,
+        detailStatus: detail?.status ?? 0,
+        detailClassification: detail?.classification ?? "inaccesible",
+        detailFinalUrl: detail?.finalUrl ?? "",
+        detailError: detail?.error ?? "",
+        projectMatchCount: matches.length,
+        projectMatchMethod: directMatches.length ? "legacy_id" : counterpart?.verified ? "verified_language_counterpart" : "",
+        projectMatchedLegacyIds: matches.map((row) => String(row.legacyId || "")),
+        officialCounterpartLegacyId: counterpart?.counterpartLegacyId || "",
+        projectIds: matches.map((row) => row.id),
+        projectSlugs: matches.map((row) => row.slug),
+        projectCategories: matches.map((row) => row.category || ""),
+        projectDates: matches.map((row) => projectDate(row.date)),
+        comparison: status,
+      };
+    })
+    .sort((left, right) => left.language.localeCompare(right.language) || Number(right.legacyId) - Number(left.legacyId));
+
+  const officialLegacyIds = new Set(rows.map((row) => String(row.legacyId)));
+  const projectOnly = projectRows
+    .filter((row) => !row.legacyId || !officialLegacyIds.has(String(row.legacyId)))
+    .map((row) => ({
+      id: row.id,
+      legacyId: row.legacyId || "",
+      slug: row.slug,
+      category: row.category || "",
+      titleEs: row.titleEs || "",
+      title: row.title || "",
+      date: projectDate(row.date),
+      reason: row.legacyId ? "legacy_id_not_in_official_news" : "without_legacy_id",
+    }));
+
+  const count = (comparison) => rows.filter((row) => row.comparison === comparison).length;
+  const officialDatePrecisions = Object.fromEntries(
+    [...new Set(rows.map((row) => row.officialDatePrecision))]
+      .sort()
+      .map((precision) => [precision, rows.filter((row) => row.officialDatePrecision === precision).length]),
+  );
+  const summary = {
+    generatedAt: new Date().toISOString(),
+    sourceCutoff: STAMP,
+    scope: SCOPE,
+    mode: "dates-only",
+    officialOrigin: OFFICIAL_ORIGIN,
+    projectOrigin: PROJECT_ORIGIN,
+    parameters: { concurrency: CONCURRENCY, maxPages: MAX_PAGES, scope: SCOPE, datesOnly: true, skipDetailProbes: SKIP_DETAIL_PROBES },
+    collections: collectionSummary,
+    counts: {
+      officialLocalizedEntries: rows.length,
+      officialSpanishEntries: rows.filter((row) => row.language === "es").length,
+      officialEnglishEntries: rows.filter((row) => row.language === "en").length,
+      officialDatePrecision: officialDatePrecisions,
+      projectRowsInScope: projectRows.length,
+      dateMatch: count("date_match"),
+      projectDateMissing: count("project_date_missing"),
+      dateMismatch: count("date_mismatch"),
+      projectMissing: count("project_missing"),
+      projectLanguageCounterpartMatch: rows.filter((row) => row.projectMatchMethod === "verified_language_counterpart").length,
+      officialDateMissing: count("official_date_missing"),
+      ambiguousProjectMatch: count("ambiguous_project_match"),
+      inaccessibleOfficialDetails: rows.filter((row) => !["correcto", "redireccion-valida", "not_rechecked"].includes(row.detailClassification)).length,
+      officialDetailsNotRechecked: rows.filter((row) => row.detailClassification === "not_rechecked").length,
+      projectOnlyNewsRows: projectOnly.length,
+    },
+  };
+
+  const base = `VWYS_Auditoria_Fechas_Noticias_${STAMP}`;
+  const headers = ["sourceKey", "language", "type", "legacyId", "titleOfficial", "officialUrl", "listingUrl", "officialDateRaw", "officialDateNormalized", "officialDatePrecision", "detailStatus", "detailClassification", "detailFinalUrl", "detailError", "projectMatchCount", "projectMatchMethod", "projectMatchedLegacyIds", "officialCounterpartLegacyId", "projectIds", "projectSlugs", "projectCategories", "projectDates", "comparison"];
+  await fs.writeFile(path.join(OUTPUT_DIR, `${base}.resumen.json`), `${JSON.stringify(summary, null, 2)}\n`);
+  await fs.writeFile(path.join(OUTPUT_DIR, `${base}.inventario.csv`), toCsv(rows, headers));
+  await fs.writeFile(path.join(OUTPUT_DIR, `${base}.diferencias.csv`), toCsv(rows.filter((row) => row.comparison !== "date_match"), headers));
+  await fs.writeFile(path.join(OUTPUT_DIR, `${base}.proyecto-sin-correspondencia.csv`), toCsv(projectOnly, ["id", "legacyId", "slug", "category", "titleEs", "title", "date", "reason"]));
+  await fs.writeFile(path.join(OUTPUT_DIR, `${base}.snapshot.json`), `${JSON.stringify({ summary, rows, projectOnly }, null, 2)}\n`);
+  console.log(JSON.stringify(summary.counts, null, 2));
+  console.log(`[audit] Evidencias de fechas generadas en ${OUTPUT_DIR}`);
+}
+
 async function main() {
   await cache.init();
   await fs.mkdir(OUTPUT_DIR, { recursive: true });
@@ -564,7 +753,7 @@ async function main() {
   console.log(`[audit] Caché: ${CACHE_DIR}`);
   const listingItems = [];
   const collectionSummary = [];
-  for (const collection of COLLECTIONS) {
+  for (const collection of ACTIVE_COLLECTIONS) {
     const firstResult = await requestWithRetries(collection.url);
     if (!firstResult.ok) throw new Error(`No se pudo leer ${collection.url}: ${firstResult.status} ${firstResult.error}`);
     const first = parseListing(firstResult.body.toString("utf8"), collection, collection.url);
@@ -581,6 +770,10 @@ async function main() {
     collectionSummary.push({ key: collection.key, expectedLastStart: first.lastStart, pages: pages.length, items: deduped.length, pageErrors: pages.filter((page) => !page.result.ok).map((page) => ({ url: page.pageUrl, status: page.result.status, error: page.result.error })) });
   }
   const uniqueListings = [...new Map(listingItems.map((item) => [item.sourceKey, item])).values()];
+  if (DATES_ONLY) {
+    await runDateOnlyAudit({ listings: uniqueListings, collectionSummary });
+    return;
+  }
   const detailTargets = MAX_DETAILS ? uniqueListings.slice(0, MAX_DETAILS) : uniqueListings;
   console.log(`[audit] Fichas oficiales únicas en alcance: ${detailTargets.length}`);
   const details = (await mapConcurrent(detailTargets, CONCURRENCY, async (item) => {

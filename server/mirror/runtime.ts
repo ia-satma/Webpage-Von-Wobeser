@@ -138,25 +138,6 @@ async function getAttorneyGroups(memberId: string) {
   return { practiceGroups: pg.filter((group) => isPublicPracticeSlug(group.slug)), industryGroups: ig };
 }
 
-/** Public reading recommendations come only from colleagues who share a practice. */
-async function getPracticePeerIds(memberId: string): Promise<string[]> {
-  const memberships = await db
-    .select({ practiceGroupId: teamMemberPracticeGroups.practiceGroupId })
-    .from(teamMemberPracticeGroups)
-    .where(eq(teamMemberPracticeGroups.teamMemberId, memberId));
-  const practiceIds = memberships.map((membership) => membership.practiceGroupId);
-  if (!practiceIds.length) return [];
-  const peers = await db
-    .select({ id: teamMembers.id })
-    .from(teamMemberPracticeGroups)
-    .innerJoin(teamMembers, eq(teamMemberPracticeGroups.teamMemberId, teamMembers.id))
-    .where(and(
-      inArray(teamMemberPracticeGroups.practiceGroupId, practiceIds),
-      eq(teamMembers.published, true),
-    ));
-  return Array.from(new Set(peers.map((peer) => peer.id)));
-}
-
 // ES attorney-listing category slugs → our canonical category keys.
 const ES_CATEGORY: Record<string, string> = {
   socios: "partners",
@@ -393,7 +374,7 @@ export async function createMirrorRuntime() {
     if (!member) member = await storage.getTeamMemberById(slug);
     if (!member) return next();
     if ((member as any).published === false) return next(); // oculto
-    const [groups, relatedNews, practicePeerIds, config] = await Promise.all([
+    const [groups, relatedNews, config] = await Promise.all([
       getAttorneyGroups(member.id),
       storage.getPublishedNewsByTeamMemberIdPage({
         teamMemberId: member.id,
@@ -403,21 +384,13 @@ export async function createMirrorRuntime() {
         offset: 0,
         language: lang,
       }).then((result) => result.rows).catch(() => []),
-      getPracticePeerIds(member.id),
       getConfigMap(),
     ]);
-    const relatedReadings = relatedNews.length || !practicePeerIds.length
-      ? []
-      : await storage.getRelatedPublishedNewsForTeamMembers({
-        teamMemberIds: practicePeerIds,
-        limit: 3,
-        language: lang,
-      }).catch(() => []);
     const typography = await getEditorialTypography("team_member", member.id);
     const associateExperienceVisible = cfg(config, "associate_experience_visible", lang).trim().toLowerCase() === "true";
     sendPage(res, renderAttorney(
       pick(TEMPLATES.attorney, lang),
-      { ...member, ...groups, relatedNews, relatedReadings },
+      { ...member, ...groups, relatedNews },
       lang,
       typography,
       { associateExperienceVisible },
@@ -593,7 +566,7 @@ export async function createMirrorRuntime() {
     if (!slug) return next();
     const item = await storage.getNewsBySlug(slug);
     if (!item || !isPubliclyVisible(item)) return next();
-    const relatedTeamMembers = (await storage.getTeamMembersByNewsId(item.id))
+    const relatedTeamMembers = (await storage.getVerifiedTeamMembersByNewsId(item.id))
       .filter((member) => member.published === true);
     // La red editorial conecta las publicaciones por temas, autores y categoría. La
     // ponderación está en storage para que cada criterio se pueda controlar desde CMS.

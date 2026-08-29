@@ -11,6 +11,36 @@ Este proyecto es la plataforma web del despacho de abogados **Von Wobeser y Sier
 
 ---
 
+## Entrega a una cuenta del cliente — instrucción obligatoria para Replit Agent
+
+Al importar este repositorio en un Repl nuevo, la prioridad es **preservar la
+entrega, no modificarla**. Antes de editar código, dependencias, `.replit`,
+migraciones, contenido o configuraciones, seguir exactamente este orden:
+
+1. Ejecutar únicamente `npm run handoff:status -- --directory=.handoff`. Es un
+   diagnóstico de solo lectura: no modifica código, Database ni App Storage.
+2. Informar el estado y pedir al usuario solamente los **nombres** de los
+   recursos o Secrets que el diagnóstico indique como faltantes. Los valores se
+   introducen exclusivamente por el usuario en **Tools → Secrets**; nunca en el
+   chat, Shell, Git, `.env`, código, ni capturas.
+3. No copiar desde el Repl original `SOURCE_DATABASE_URL`,
+   `MIGRATION_READ_ONLY`, `ADMIN_RESET_PASSWORD`, `DATABASE_URL` ni el ID de
+   App Storage. La Database y el bucket deben ser propios de la cuenta del
+   cliente. El diagnóstico marca estos casos explícitamente.
+4. Esperar a que el usuario confirme que ya vinculó Database/App Storage,
+   configuró los Secrets solicitados y cargó el paquete privado `.handoff/`.
+   No ejecutar `db:migrate`, restauraciones manuales, cambios de código ni
+   comandos de limpieza mientras el diagnóstico esté pendiente.
+5. Solo tras esa confirmación y cuando el diagnóstico diga `ready_to_restore`,
+   ejecutar el único instalador autorizado: `npm run handoff:install -- ...`.
+   El usuario debe confirmar el nombre de la Database y el correo del Dueño.
+
+El diagnóstico además enumera los Secrets que faltan antes de publicar, los
+recomendados de seguridad y las opciones de IA. No revela ni necesita sus
+valores. La guía completa está en `docs/CLIENT_REPLIT_HANDOFF.md`.
+
+---
+
 ## Arquitectura crítica que un agente DEBE entender antes de tocar nada
 
 Lee esto completo antes de mover un solo archivo. Tres cosas rompen "todo el sitio" de forma silenciosa si no se entienden.
@@ -163,13 +193,13 @@ Disparo central: **`POST /api/agents/run/:agentType`** (`server/agents/api/agent
 Si un usuario importa el repositorio en una cuenta nueva de Replit, no tratar una base
 vacía como un bug de aplicación. Ejecutar primero `npm run handoff:status --
 --directory=.handoff` y leer su estado. Pedir al cliente crear o vincular Database y
-App Storage, y configurar en **Tools → Secrets** `ADMIN_EMAIL`,
-`ADMIN_BOOTSTRAP_PASSWORD` y `DB_BACKUP_ENCRYPTION_KEY`; el valor de los Secrets nunca
-se pide ni se pega en Shell, en el chat o en Git. Tras recibir por un canal privado la
-carpeta `.handoff/`, usar el comando `handoff:install` documentado. No ejecutar una
-restauración manual ni `db:migrate` sobre una base vacía como sustituto del instalador.
-El instalador confirma el nombre de la Database y el correo Dueño, conserva las demás
-cuentas restauradas y detiene cualquier base parcial antes de escribir.
+App Storage y configurar todos los nombres que aparezcan bajo `missingForInstall` y
+`missingBeforePublish`; el valor de los Secrets nunca se pide ni se pega en Shell, en
+el chat o en Git. Tras recibir por un canal privado la carpeta `.handoff/`, usar el
+comando `handoff:install` documentado. No ejecutar una restauración manual ni
+`db:migrate` sobre una base vacía como sustituto del instalador. El instalador confirma
+el nombre de la Database y el correo Dueño, conserva las demás cuentas restauradas y
+detiene cualquier base parcial antes de escribir.
 
 ---
 

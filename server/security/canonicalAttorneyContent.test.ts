@@ -105,7 +105,7 @@ test("la ficha dinámica separa destacado y cuerpo, y muestra las noticias inter
   const attorney = loadCanonicalAttorneyContent(mirrorDir).find((candidate) => candidate.slug === "bernardo-zatarain")!;
   const html = renderAttorney(template, {
     ...attorney,
-    relatedNews: [{ slug: "already-listed", title: "News title", titleEs: "Noticia listada", excerpt: "x", excerptEs: "x" }],
+    relatedNews: [{ slug: "already-listed", title: "News title", titleEs: "Noticia listada", excerpt: "x", excerptEs: "x", date: "2026-08-01T12:00:00.000Z" }],
     publications: [{ kind: "news", title: "News title", titleEs: "Noticia listada", url: "/news/already-listed" }],
   }, "es");
   const $ = cheerio.load(html);

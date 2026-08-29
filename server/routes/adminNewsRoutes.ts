@@ -15,7 +15,7 @@ import { sanitizeNewsFields } from "../mirror/sanitize";
 import { SUPPORTED_LANGUAGES } from "../openai";
 import { storage } from "../storage";
 import { apiError, auditLog, getLinguisticWarnings } from "./routeUtils";
-import { hasPublishableNewsContent, isVerifiedNewsSourceUrl } from "../newsPublicationPolicy";
+import { editorialDateAtNoon, hasPublishableNewsContent, isValidEditorialDate, isVerifiedNewsSourceUrl, requiresExplicitEditorialDate } from "../newsPublicationPolicy";
 
 export function registerAdminNewsRoutes(app: Express): void {
   // =============================================
@@ -223,12 +223,25 @@ export function registerAdminNewsRoutes(app: Express): void {
     (value) => typeof value === "string" && !value.trim() ? null : value,
     z.string().trim().max(2_000).url().refine(isVerifiedNewsSourceUrl, "La fuente debe usar una URL HTTPS pública").nullable().optional(),
   );
+  // La fecha viaja como YYYY-MM-DD desde el panel y se fija al mediodía UTC:
+  // así no retrocede de mes en zonas horarias occidentales. Las recuperaciones
+  // históricas usan sólo mes/año y el render público no expone el día técnico.
+  const editorialDateSchema = z.string().trim()
+    .regex(/^\d{4}-\d{2}-\d{2}$/, "La fecha editorial debe usar AAAA-MM-DD")
+    .refine(isValidEditorialDate, "La fecha editorial no es válida")
+    .transform(editorialDateAtNoon);
+  const optionalEditorialDateSchema = z.preprocess(
+    (value) => typeof value === "string" && !value.trim() ? undefined : value,
+    editorialDateSchema.optional(),
+  );
   const adminNewsCreateSchema = insertNewsSchema.extend({
+    date: optionalEditorialDateSchema,
     tags: editorialTagsSchema.default([]),
     sourceUrl: sourceUrlSchema,
     teamMemberIds: teamMemberIdsSchema.default([]),
   });
   const adminNewsUpdateSchema = insertNewsSchema.partial().extend({
+    date: optionalEditorialDateSchema,
     tags: editorialTagsSchema.optional(),
     sourceUrl: sourceUrlSchema,
     teamMemberIds: teamMemberIdsSchema.optional(),
@@ -342,7 +355,7 @@ export function registerAdminNewsRoutes(app: Express): void {
     try {
       const newsItem = await storage.getNewsById(req.params.id);
       if (!newsItem) return res.status(404).json({ error: "News not found" });
-      res.json(await storage.getTeamMembersByNewsId(newsItem.id));
+      res.json(await storage.getNewsTeamMemberRelations(newsItem.id));
     } catch (error) {
       console.error("Get news team members error:", error);
       res.status(500).json({ error: "Failed to fetch related team members" });
@@ -359,6 +372,7 @@ export function registerAdminNewsRoutes(app: Express): void {
         return apiError(res, 400, "One or more team members do not exist");
       }
       await storage.setTeamMembersForNews(newsItem.id, parsed.data.teamMemberIds);
+      invalidatePublicPageCache();
       await auditLog("update", "news_team_members", newsItem.id, (req as any).adminUser?.id || "unknown", undefined, req);
       res.json({ success: true });
     } catch (error) {
@@ -378,6 +392,9 @@ export function registerAdminNewsRoutes(app: Express): void {
 
       const { teamMemberIds, ...newsData } = validation.data;
       sanitizeNewsFields(newsData);
+      if (newsData.published && !newsData.date) {
+        return apiError(res, 400, "Published news requires a valid editorial date");
+      }
       if (newsData.published && !hasPublishableNewsContent(newsData)) {
         return apiError(res, 400, "Published news requires title and excerpt in English and Spanish, or a verified source for Articles");
       }
@@ -387,6 +404,7 @@ export function registerAdminNewsRoutes(app: Express): void {
       }
 
       const newsItem = await storage.createNewsWithTeamMembers(newsData, teamMemberIds);
+      invalidatePublicPageCache();
       const linguisticWarnings = await getLinguisticWarnings([
         { field: "title", lang: "en", text: newsItem.title },
         { field: "titleEs", lang: "es", text: newsItem.titleEs },
@@ -413,6 +431,11 @@ export function registerAdminNewsRoutes(app: Express): void {
       const current = await storage.getNewsById(req.params.id);
       if (!current) return apiError(res, 404, "News not found");
       const finalState = { ...current, ...validated };
+      // Los históricos públicos sin fuente siguen editables, pero una nueva
+      // publicación no puede entrar al sitio sin una fecha verificable.
+      if (requiresExplicitEditorialDate(current.published, finalState.published) && !validated.date) {
+        return apiError(res, 400, "Publishing news requires a valid editorial date");
+      }
       if (finalState.published && !hasPublishableNewsContent(finalState)) {
         return apiError(res, 400, "Published news requires title and excerpt in English and Spanish, or a verified source for Articles");
       }
@@ -423,6 +446,7 @@ export function registerAdminNewsRoutes(app: Express): void {
       if (!newsItem) {
         return apiError(res, 404, "News not found");
       }
+      invalidatePublicPageCache();
       const linguisticWarnings = await getLinguisticWarnings([
         { field: "title", lang: "en", text: newsItem.title },
         { field: "titleEs", lang: "es", text: newsItem.titleEs },

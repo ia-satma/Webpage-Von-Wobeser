@@ -1426,7 +1426,9 @@ export async function seed() {
     const newsId = newsIdBySlug.get(item.slug);
     if (!newsId) continue;
     const { resolvedIds, unresolved } = resolveCanonicalDropboxAuthorIds(item.authors, seededMemberRows);
-    for (const teamMemberId of resolvedIds) desiredNewsTeamMembers.push({ newsId, teamMemberId });
+    for (const teamMemberId of resolvedIds) {
+      desiredNewsTeamMembers.push({ newsId, teamMemberId, verificationStatus: "verified_editorial_2026" });
+    }
     for (const author of unresolved) {
       unresolvedSourceCreditKeys.add(`${author.name}\u0000${author.email}`);
     }

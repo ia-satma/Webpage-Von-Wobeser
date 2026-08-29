@@ -1,0 +1,13 @@
+{
+  "generatedAt": "2026-08-29T03:07:18.888Z",
+  "mode": "dry-run",
+  "officialEvidenceEntries": 1530,
+  "recoverySourceEvidenceEntries": 597,
+  "verifiedLanguageCounterpartEvidenceEntries": 56,
+  "uniqueProjectRows": 597,
+  "pendingProjectRows": 0,
+  "alreadyRecoveredProjectRows": 597,
+  "preservedProjectOnlyRows": 63,
+  "precision": "month",
+  "changes": []
+}

@@ -65,6 +65,11 @@ const verifiedDataMigrationPolicies = new Map([
   ["20260828_0003_restore_diversity_video_gallery.mjs", {
     allowedCountChanges: new Set(),
   }],
+  // Clasifica vínculos de autor existentes sin borrarlos ni crear otros: sólo
+  // conserva la procedencia verificable para el filtro público conservador.
+  ["20260828_0005_backfill_author_verification_status.mjs", {
+    allowedCountChanges: new Set(),
+  }],
 ]);
 
 function quoteIdentifier(value) {
