@@ -83,6 +83,17 @@ test("la semilla agrega las 11 notas y conserva metadatos visuales preexistentes
   assert.equal(canonicalDropboxNewsSeedRows({ mirrorDir }).length, 11);
 });
 
+test("la semilla canónica no conserva etiquetas editoriales en el título de Comunicaciones", () => {
+  const item = loadCanonicalDropboxNews2026({ mirrorDir }).find(
+    (entry) => entry.slug === "reforma-reglas-ley-antilavado-2026",
+  );
+
+  assert.ok(item);
+  assert.equal(item.title, "Amendment to the General Rules of the Anti-Money Laundering Law (LFPIORPI)");
+  assert.equal(item.titleEs, "Reforma a las Reglas de Carácter General de la Ley Antilavado (LFPIORPI)");
+  assert.doesNotMatch(`${item.title} ${item.titleEs}`, /^(?:alerta\s+(?:legal|a\s+clientes)|client\s+alert|legal\s+alert)\s*:/i);
+});
+
 test("los créditos se resuelven contra abogados existentes y Mauricio Puebla queda explícitamente pendiente", async () => {
   process.env.DATABASE_URL ||= "postgresql://test:test@127.0.0.1:5432/test";
   const { canonicalTeamMembersData } = await import("../seed");

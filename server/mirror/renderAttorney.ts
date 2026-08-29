@@ -55,6 +55,17 @@ function profileEducation(a: any, lang: Lang): string[] {
 
 function profileRecognitions(a: any, lang: Lang): string[] {
   return (a.rankings || []).map((entry: any) => {
+    // Las fichas históricas guardan cada reconocimiento completo por idioma.
+    // Al reconciliarlas, el texto EN vive en `publication` y su equivalente ES
+    // en `rankingEs` (sin un `publicationEs`). No son dos campos que deban
+    // concatenarse: hacerlo mostraba ambos idiomas en la ficha en español.
+    const localizedHistoricalRecognition = !String(entry?.ranking || "").trim()
+      && String(entry?.rankingEs || "").trim()
+      && String(entry?.publication || "").trim()
+      && !String(entry?.publicationEs || "").trim();
+    if (localizedHistoricalRecognition) {
+      return esc(lang === "es" ? entry.rankingEs : entry.publication);
+    }
     const ranking = esc(L(entry, "ranking", lang));
     const publication = esc(L(entry, "publication", lang));
     return ranking ? `${ranking} — ${publication}` : publication;
@@ -65,11 +76,12 @@ function profileGroupLinks(groups: any[], kind: "practice" | "industry", lang: L
   return groups.map((group) => {
     const name = esc(L(group, "name", lang));
     const slug = String(group?.slug || "").trim();
-    if (!name) return "";
-    const href = slug
-      ? `/${kind}/${encodeURIComponent(slug)}${lang === "en" ? "?lang=en" : ""}`
-      : "";
-    return href ? `<a href="${href}">${name}</a>` : name;
+    // Las relaciones públicas de práctica e industria deben ser navegables. Si
+    // un dato legado llegara sin slug, no se presenta como texto aislado: así
+    // el panel puede corregir la relación antes de volverla visible al público.
+    if (!name || !slug) return "";
+    const href = `/${kind}/${encodeURIComponent(slug)}${lang === "en" ? "?lang=en" : ""}`;
+    return `<a href="${href}">${name}</a>`;
   }).filter(Boolean);
 }
 

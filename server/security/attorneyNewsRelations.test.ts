@@ -138,6 +138,30 @@ test("la columna lateral conserva su acordeón gris y sus relaciones públicas",
   assert.equal($(".attorney-bio-disclosure").attr("open"), undefined);
 });
 
+test("las prácticas e industrias visibles del perfil siempre son enlaces navegables", () => {
+  const profile = {
+    name: "Ana Pérez", slug: "ana-perez", title: "Partner", titleEs: "Socia", role: "Partner", roleEs: "Socia",
+    bio: "<p>Bio.</p>", bioEs: "<p>Biografía.</p>",
+    practiceGroups: [
+      { slug: "corporate", name: "Corporate", nameEs: "Corporativo" },
+      { name: "Relación sin destino", nameEs: "Relación sin destino" },
+    ],
+    industryGroups: [
+      { slug: "energy", name: "Energy", nameEs: "Energía" },
+      { name: "Industria sin destino", nameEs: "Industria sin destino" },
+    ],
+  };
+  const spanish = cheerio.load(renderAttorney(attorneyTemplate, profile, "es"));
+  const english = cheerio.load(renderAttorney(attorneyTemplate, profile, "en"));
+
+  assert.equal(spanish(".attorney__meta--list a[href='/practice/corporate']").text(), "Corporativo");
+  assert.equal(spanish(".attorney__meta--list a[href='/industry/energy']").text(), "Energía");
+  assert.equal(english(".attorney__meta--list a[href='/practice/corporate?lang=en']").text(), "Corporate");
+  assert.equal(english(".attorney__meta--list a[href='/industry/energy?lang=en']").text(), "Energy");
+  assert.equal(spanish(".attorney__meta--list").text().includes("Relación sin destino"), false);
+  assert.equal(spanish(".attorney__meta--list").text().includes("Industria sin destino"), false);
+});
+
 test("el perfil no crea una sección vacía de perspectivas", () => {
   const html = renderAttorney(attorneyTemplate, {
     name: "Sin publicaciones", slug: "sin-publicaciones", title: "Associate", role: "Associate", bio: "<p>Bio.</p>",
@@ -171,7 +195,7 @@ test("la publicación enlaza de vuelta a perfiles activos y expone autores en SE
   const html = renderNewsDetail(newsTemplate, {
     slug: "new-rules", title: "New rules", titleEs: "Nuevas reglas", excerpt: "Summary", excerptEs: "Resumen",
     content: "<p>Body.</p>", contentEs: "<p>Cuerpo.</p>", date: "2026-06-01",
-    relatedTeamMembers: [{ name: "Ana Pérez", slug: "ana-perez", title: "Partner", titleEs: "Socia", role: "Partner", roleEs: "Socia", imageUrl: "/uploads/ana.jpg" }],
+    relatedTeamMembers: [{ name: "Ana Pérez", slug: "ana-perez", title: "Partner", titleEs: "Socia", role: "Partner", roleEs: "Socia", imageUrl: "/uploads/ana.jpg", relationshipRole: "author" }],
     relatedNews: [
       { slug: "related-insight", title: "Related insight", titleEs: "Perspectiva relacionada", excerpt: "Summary", excerptEs: "Resumen", category: "Articles", categoryEs: "Artículos", date: "2026-05-01" },
       { slug: "another-insight", title: "Another insight", titleEs: "Otra perspectiva", excerpt: "Summary", excerptEs: "Resumen", category: "Articles", categoryEs: "Artículos", date: "2026-04-01" },
@@ -188,6 +212,58 @@ test("la publicación enlaza de vuelta a perfiles activos y expone autores en SE
   assert.equal($(".page--wrap").next(".news-related-insights").length, 1);
   assert.match(html, /"@type":"Person"/);
   assert.match(html, /Ana Pérez/);
+});
+
+test("el contenido relacionado conserva todas las tarjetas sin carrusel ni espacios artificiales", () => {
+  const relatedNews = Array.from({ length: 6 }, (_, index) => ({
+    slug: `related-${index + 1}`,
+    title: `Related publication ${index + 1}`,
+    titleEs: `Publicación relacionada ${index + 1}`,
+    excerpt: "Short summary.",
+    excerptEs: "Resumen breve.",
+    category: "News",
+    categoryEs: "Noticias",
+    date: `2026-0${Math.min(index + 1, 9)}-01`,
+  }));
+  const html = renderNewsDetail(newsTemplate, {
+    slug: "current-publication", title: "Current publication", titleEs: "Publicación actual",
+    excerpt: "Summary", excerptEs: "Resumen", content: "<p>Body.</p>", contentEs: "<p>Cuerpo.</p>",
+    date: "2026-08-01", relatedNews,
+  }, "es");
+  assert.equal(cheerio.load(html)(".news-related-insights__item").length, 6);
+
+  const css = readFileSync(new URL("../../frontend-mirror/templates/beez3/css/typography.css", import.meta.url), "utf8");
+  const grid = css.match(/\.single > \.news-related-insights \.news-related-insights__grid\s*\{([\s\S]*?)\n\}/)?.[1] || "";
+  const item = css.match(/\.single > \.news-related-insights \.news-related-insights__item,[\s\S]*?\.single > \.news-related-insights \.news-related-insights__item:first-child\s*\{([\s\S]*?)\n\}/)?.[1] || "";
+  assert.match(grid, /grid-auto-flow:\s*row/);
+  assert.match(grid, /grid-template-columns:\s*repeat\(auto-fit, minmax\(min\(100%, 300px\), 1fr\)\)/);
+  assert.match(grid, /overflow:\s*visible/);
+  assert.match(grid, /scroll-snap-type:\s*none/);
+  assert.doesNotMatch(grid, /grid-auto-flow:\s*column|overflow-x:\s*auto/);
+  assert.match(item, /min-height:\s*0/);
+  assert.match(css, /\.single > \.news-related-insights \.news-related-insights__excerpt\s*\{[\s\S]*?margin-top:\s*13px/);
+});
+
+test("el detalle separa autores acreditados de profesionales relacionados", () => {
+  const html = renderNewsDetail(newsTemplate, {
+    slug: "event", title: "Event", titleEs: "Evento", excerpt: "Summary", excerptEs: "Resumen",
+    content: "<p>Body.</p>", contentEs: "<p>Cuerpo.</p>", date: "2026-06-01",
+    relatedTeamMembers: [
+      { name: "Ana Pérez", slug: "ana-perez", title: "Partner", titleEs: "Socia", relationshipRole: "author" },
+      { name: "Luis Gómez", slug: "luis-gomez", title: "Partner", titleEs: "Socio", relationshipRole: "related" },
+    ],
+  }, "es");
+  const $ = cheerio.load(html);
+  assert.equal($(".news-related-attorneys--author").length, 1);
+  assert.equal($(".news-related-attorneys--related").length, 1);
+  assert.match($(".news-related-attorneys--author h2").text(), /Autores de esta publicación/);
+  assert.match($(".news-related-attorneys--related h2").text(), /Profesionales relacionados/);
+  assert.match($(".news-related-attorneys--author").text(), /Ana Pérez/);
+  assert.doesNotMatch($(".news-related-attorneys--author").text(), /Luis Gómez/);
+  assert.match($(".news-related-attorneys--related").text(), /Luis Gómez/);
+  const structuredData = JSON.parse($("script[type='application/ld+json']").text());
+  const articleNode = structuredData["@graph"].find((node: any) => node["@type"] === "NewsArticle");
+  assert.deepEqual(articleNode.author.map((author: any) => author.name), ["Ana Pérez"]);
 });
 
 test("las miniaturas de autores mantienen el encuadre vertical sin cortar la cabeza", () => {
@@ -312,7 +388,9 @@ test("el panel manda vínculos desde la creación y expone revisión humana", ()
   const form = readFileSync(new URL("../../client/src/pages/admin/AdminNewsForm.tsx", import.meta.url), "utf8");
   const review = readFileSync(new URL("../../client/src/pages/admin/AdminNewsAuthorReview.tsx", import.meta.url), "utf8");
   const routes = readRouteSources();
-  assert.match(form, /teamMemberIds:\s*authorIds/);
+  assert.match(form, /teamMemberRelations:/);
+  assert.match(form, /Autor\/a acreditado\/a/);
+  assert.match(form, /Profesional relacionado/);
   assert.match(form, /tags:\s*form\.tags/);
   assert.match(form, /input-author-search/);
   assert.match(form, /input-editorial-tags/);
@@ -321,6 +399,7 @@ test("el panel manda vínculos desde la creación y expone revisión humana", ()
   assert.match(form, /date:\s*form\.date/);
   assert.match(form, /sourceOnlyArticle/);
   assert.match(review, /Confirmar vínculos/);
+  assert.match(review, /teamMemberRelations/);
   assert.match(routes, /\/api\/admin\/news\/author-review/);
   assert.match(routes, /createNewsWithTeamMembers/);
   assert.match(routes, /editorialTagsSchema/);
@@ -346,7 +425,12 @@ test("las perspectivas del perfil acompañan la biografía sin carrusel horizont
   assert.match(css, /@media \(max-width: 780px\)[\s\S]*?attorney__meta[\s\S]*?padding-bottom:\s*42px/);
   assert.match(css, /attorney-related-insights__item[\s\S]*?background:\s*#fff[\s\S]*?border:\s*1px solid #d4d4d0[\s\S]*?border-radius:\s*3px/);
   assert.match(css, /attorney-related-insights__item[\s\S]*?min-height:\s*280px[\s\S]*?aspect-ratio:\s*auto/);
-  assert.match(css, /attorney-related-insights__arrow[\s\S]*?color:\s*rgba\(169, 25, 49, \.76\)[\s\S]*?font-size:\s*20px/);
+  assert.match(css, /attorney\[data-vw-content-kind="attorney"\] \.attorney-related-insights h2[\s\S]*?color:\s*#5f5f5f/);
+  assert.match(css, /attorney\[data-vw-content-kind="attorney"\] \.attorney-related-insights__more[\s\S]*?color:\s*#5f5f5f/);
+  assert.match(css, /attorney\[data-vw-content-kind="attorney"\] \.attorney-related-insights__meta[\s\S]*?color:\s*#737373/);
+  assert.match(css, /attorney-related-insights__arrow[\s\S]*?color:\s*#737373[\s\S]*?font-size:\s*20px/);
+  assert.match(css, /attorney\[data-vw-content-kind="attorney"\] \.attorney-related-insights h3[\s\S]*?overflow-wrap:\s*anywhere/);
+  assert.match(css, /attorney-related-insights__excerpt[\s\S]*?overflow-wrap:\s*anywhere/);
   assert.match(css, /@media print[\s\S]*?\.attorney-bio-disclosure__content[\s\S]*?display:\s*block\s*!important/);
   assert.doesNotMatch(css, /grid-auto-flow:\s*column/);
   assert.match(legacyCss, /background-color:\s*#c4c4c4/);
@@ -376,23 +460,27 @@ test("las autorías públicas requieren evidencia y las relaciones heredadas per
   assert.match(schema, /verified_editorial_2026/);
   assert.match(schema, /verified_manual/);
   assert.match(schema, /legacy_unverified/);
+  assert.match(schema, /newsTeamMemberRelationshipRoles/);
+  assert.match(schema, /relationshipRole/);
   assert.match(schema, /team_verification_news_idx/);
   const authorArchive = storage.match(/async getPublishedNewsByTeamMemberIdPage[\s\S]*?\n    }\n\n    \/\*\*/)?.[0] || "";
   assert.match(authorArchive, /verifiedAuthorRelation/);
   assert.match(storage, /getVerifiedTeamMembersByNewsId/);
+  assert.match(storage, /getPublicNewsTeamMemberRelations/);
   assert.match(storage, /getNewsTeamMemberRelations/);
   assert.match(storage, /verificationStatus: "verified_manual"/);
-  assert.match(storage, /confirmedLegacyIds/);
-  assert.match(runtime, /getVerifiedTeamMembersByNewsId\(item\.id\)/);
+  assert.match(storage, /relationshipRole/);
+  assert.match(runtime, /getPublicNewsTeamMemberRelations\(item\.id\)/);
   assert.match(form, /Relaciones heredadas sin confirmar/);
-  assert.match(review, /next\[item\.id\] = \[\]/);
+  assert.match(review, /next\[item\.id\] = \{\}/);
   assert.doesNotMatch(linker, /insert\(newsTeamMembers\)/);
-  assert.match(routes, /setTeamMembersForNews\(newsItem\.id, parsed\.data\.teamMemberIds\);[\s\S]*?invalidatePublicPageCache\(\)/);
+  assert.match(routes, /setTeamMembersForNews\(newsItem\.id, relations\);[\s\S]*?invalidatePublicPageCache\(\)/);
   assert.match(migrationSql, /ADD COLUMN "verification_status" text NOT NULL DEFAULT 'legacy_unverified'/);
   assert.match(migrationSql, /CREATE INDEX "news_team_members_team_verification_news_idx"/);
   assert.match(migrationData, /Historic author evidence inventory or digest changed/);
   assert.match(migrationData, /UPDATE news_team_members SET verification_status/);
   assert.match(migrationRunner, /20260828_0005_backfill_author_verification_status\.mjs/);
+  assert.match(migrationRunner, /20260829_0006_backfill_article_author_relationship_roles\.mjs/);
 });
 
 test("la corrección puntual de la nota 1911 sólo confirma sus seis autores históricos", () => {

@@ -301,7 +301,7 @@ body {
 .attorney[data-vw-content-kind="attorney"] .attorney-related-insights h2 {
   grid-column: 1;
   margin: 0;
-  color: #a91931;
+  color: #5f5f5f;
   font-size: clamp(19px, 1.4vw, 22px);
   line-height: 1.2;
 }
@@ -317,6 +317,7 @@ body {
   align-self: center;
   padding: 0;
   border: 0;
+  color: #5f5f5f;
   font-size: 10px;
   letter-spacing: .08em;
   text-transform: none;
@@ -336,6 +337,8 @@ body {
 .attorney[data-vw-content-kind="attorney"] .attorney-related-insights__item,
 .attorney[data-vw-content-kind="attorney"] .attorney-related-insights__item:nth-child(even) {
   display: flex;
+  min-width: 0;
+  max-width: 100%;
   min-height: 280px;
   height: auto;
   aspect-ratio: auto;
@@ -356,11 +359,32 @@ body {
   display: flex;
   flex: 1 1 auto;
   flex-direction: column;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .attorney[data-vw-content-kind="attorney"] .attorney-related-insights h3 {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  hyphens: auto;
   font-size: clamp(16px, 1.25vw, 19px);
   line-height: 1.2;
+}
+
+.attorney[data-vw-content-kind="attorney"] .attorney-related-insights h3 a {
+  display: block;
+  overflow-wrap: anywhere;
+}
+
+.attorney[data-vw-content-kind="attorney"] .attorney-related-insights__meta,
+.attorney[data-vw-content-kind="attorney"] .attorney-related-insights__excerpt {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  hyphens: auto;
+}
+
+.attorney[data-vw-content-kind="attorney"] .attorney-related-insights__meta {
+  color: #737373;
 }
 
 .attorney[data-vw-content-kind="attorney"] .attorney-related-insights__excerpt {
@@ -375,12 +399,70 @@ body {
 .attorney-related-insights__arrow {
   display: inline-block;
   margin-top: auto;
-  color: rgba(169, 25, 49, .76);
+  color: #737373;
   font-family: var(--vw-font-ui) !important;
   font-size: 20px;
   font-weight: 400;
   line-height: 1;
   text-decoration: none;
+}
+
+/* Contenido relacionado de una publicación: a diferencia de la selección
+   breve de la ficha de abogado, una nota puede tener hasta seis sugerencias.
+   Nunca se presentan como un carrusel recortado: la retícula baja a otra fila
+   y cada tarjeta deja que título y resumen fluyan de manera continua. */
+.single > .news-related-insights {
+  min-width: 0;
+}
+
+.single > .news-related-insights .news-related-insights__wrap {
+  width: 100%;
+  min-width: 0;
+}
+
+.single > .news-related-insights .news-related-insights__grid {
+  display: grid;
+  grid-auto-columns: auto;
+  grid-auto-flow: row;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
+  gap: 14px;
+  overflow: visible;
+  border: 0;
+  scroll-snap-type: none;
+}
+
+.single > .news-related-insights .news-related-insights__item,
+.single > .news-related-insights .news-related-insights__item:first-child {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  max-width: 100%;
+  padding: 20px;
+  background: #fff;
+  border: 1px solid #d4d4d0;
+  border-radius: 3px;
+}
+
+.single > .news-related-insights .news-related-insights__body {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.single > .news-related-insights .news-related-insights__meta,
+.single > .news-related-insights h3,
+.single > .news-related-insights h3 a,
+.single > .news-related-insights .news-related-insights__excerpt {
+  overflow-wrap: anywhere;
+  hyphens: auto;
+}
+
+.single > .news-related-insights h3 a {
+  color: #5f5f5f;
+}
+
+.single > .news-related-insights .news-related-insights__excerpt {
+  margin-top: 13px;
 }
 
 @media (max-width: 780px) {
@@ -390,6 +472,11 @@ body {
 
   .attorney[data-vw-content-kind="attorney"] .attorney-related-insights__grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .single > .news-related-insights .news-related-insights__item,
+  .single > .news-related-insights .news-related-insights__item:first-child {
+    padding: 18px;
   }
 
 }

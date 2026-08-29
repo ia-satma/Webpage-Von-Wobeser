@@ -66,6 +66,7 @@ import type {
   Stat,
   TeamMember,
   AuthorVerificationStatus,
+  NewsTeamMemberRelationshipRole,
   Testimonial,
   TranslationCache,
   WebsiteAudit,
@@ -85,6 +86,12 @@ export type AdminLoginEventWithIdentity = AdminLoginEvent & {
 export type NewsTeamMemberRelation = {
   member: TeamMember;
   verificationStatus: AuthorVerificationStatus;
+  relationshipRole: NewsTeamMemberRelationshipRole;
+};
+
+export type NewsTeamMemberRelationInput = {
+  teamMemberId: string;
+  relationshipRole: NewsTeamMemberRelationshipRole;
 };
 
 export interface IStorage {
@@ -131,10 +138,10 @@ export interface IStorage {
   getNewsById(id: string): Promise<News | undefined>;
   getNewsBySlug(slug: string): Promise<News | undefined>;
   createNews(news: InsertNews): Promise<News>;
-  createNewsWithTeamMembers(news: InsertNews, teamMemberIds: string[]): Promise<News>;
+  createNewsWithTeamMembers(news: InsertNews, relations: NewsTeamMemberRelationInput[]): Promise<News>;
   createNewsProcessingDraft(newsId: string): Promise<News | undefined>;
   updateNews(id: string, data: Partial<InsertNews>): Promise<News | undefined>;
-  updateNewsWithTeamMembers(id: string, data: Partial<InsertNews>, teamMemberIds?: string[]): Promise<News | undefined>;
+  updateNewsWithTeamMembers(id: string, data: Partial<InsertNews>, relations?: NewsTeamMemberRelationInput[]): Promise<News | undefined>;
   getNewsExternalLinks(newsId: string): Promise<NewsExternalLink[]>;
   getDisabledNewsExternalUrls(newsId: string): Promise<string[]>;
   getDisabledNewsExternalUrlsByNewsIds(newsIds: string[]): Promise<Map<string, string[]>>;
@@ -235,9 +242,10 @@ export interface IStorage {
   getNewsByTeamMemberId(teamMemberId: string): Promise<News[]>;
   getTeamMembersByNewsId(newsId: string): Promise<TeamMember[]>;
   getVerifiedTeamMembersByNewsId(newsId: string): Promise<TeamMember[]>;
+  getPublicNewsTeamMemberRelations(newsId: string): Promise<NewsTeamMemberRelation[]>;
   getNewsTeamMemberRelations(newsId: string): Promise<NewsTeamMemberRelation[]>;
-  setTeamMembersForNews(newsId: string, teamMemberIds: string[]): Promise<void>;
-  addTeamMemberToNews(newsId: string, teamMemberId: string): Promise<void>;
+  setTeamMembersForNews(newsId: string, relations: NewsTeamMemberRelationInput[]): Promise<void>;
+  addTeamMemberToNews(newsId: string, teamMemberId: string, relationshipRole: NewsTeamMemberRelationshipRole): Promise<void>;
   removeTeamMemberFromNews(newsId: string, teamMemberId: string): Promise<void>;
 
   // Events CRUD

@@ -20,6 +20,7 @@ try {
       newsId: schema.newsTeamMembers.newsId,
       teamMemberId: schema.newsTeamMembers.teamMemberId,
       verificationStatus: schema.newsTeamMembers.verificationStatus,
+      relationshipRole: schema.newsTeamMembers.relationshipRole,
     })
       .from(schema.newsTeamMembers),
   ]);
@@ -30,6 +31,28 @@ try {
       linkRows.filter((relation) => relation.verificationStatus === status).length,
     ]),
   );
+  const byRelationshipRole = Object.fromEntries(
+    ["author", "related"].map((role) => [
+      role,
+      linkRows.filter((relation) => relation.relationshipRole === role).length,
+    ]),
+  );
+  const newsById = new Map(newsRows.map((item) => [item.id, item]));
+  const publicAuthorLinks = linkRows.filter((relation) =>
+    relation.relationshipRole === "author"
+    && relation.verificationStatus !== "legacy_unverified",
+  );
+  // Historic "Lawyers involved" references are public authorship only for
+  // Artículos. Other historic content remains a related-professional link;
+  // Dropbox 2026 and manual confirmations explicitly identify authors.
+  const roleMismatches = linkRows.filter((relation) => {
+    const category = String(newsById.get(relation.newsId)?.category || "").toLowerCase();
+    if (relation.verificationStatus === "verified_historic") {
+      return relation.relationshipRole !== (category === "articles" ? "author" : "related");
+    }
+    if (relation.verificationStatus === "verified_editorial_2026") return relation.relationshipRole !== "author";
+    return false;
+  });
   const expectedByKey = new Map(audit.expected.map((relation) => [
     `${relation.newsId}\u0000${relation.teamMemberId}`,
     relation.source === "historic" ? "verified_historic" : "verified_editorial_2026",
@@ -38,9 +61,8 @@ try {
     expectedByKey.has(`${relation.newsId}\u0000${relation.teamMemberId}`)
     && expectedByKey.get(`${relation.newsId}\u0000${relation.teamMemberId}`) !== relation.verificationStatus,
   ).length;
-  const publishedWithoutVerifiedAuthors = newsRows.filter((item) => item.published !== false).filter((item) => !linkRows.some((relation) =>
+  const publishedWithoutVerifiedAuthors = newsRows.filter((item) => item.published !== false).filter((item) => !publicAuthorLinks.some((relation) =>
     relation.newsId === item.id
-    && relation.verificationStatus !== "legacy_unverified",
   )).length;
   const articleIds = new Set(newsRows
     .filter((item) => String(item.category || "").toLowerCase() === "articles")
@@ -56,6 +78,7 @@ try {
   const articleRows = newsRows.filter((item) => articleIds.has(item.id));
   const articlesWithoutVerifiedAuthors = articleRows.filter((item) => item.published !== false && !articleLinks.some((relation) =>
     relation.newsId === item.id
+    && relation.relationshipRole === "author"
     && relation.verificationStatus !== "legacy_unverified",
   )).length;
 
@@ -68,7 +91,9 @@ try {
     retainedWithoutSource: audit.retainedWithoutSource.length,
     verification: {
       ...byStatus,
+      roles: byRelationshipRole,
       sourceStatusMismatches,
+      roleMismatches: roleMismatches.length,
       publishedWithoutVerifiedAuthors,
     },
     sources: {

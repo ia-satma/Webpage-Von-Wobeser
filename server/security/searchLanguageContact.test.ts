@@ -245,6 +245,34 @@ test("Artículos y Comunicaciones comparten una cabecera visible y una búsqueda
   assert.equal($(".pagination-dyn--editorial .pagination__item--first").attr("href"), "/articles?q=arbitration+%26+competition&lang=en");
   assert.equal($(".pagination-dyn--editorial .pagination__item--last").attr("href"), "/articles?q=arbitration+%26+competition&page=3&lang=en");
 
+  const undatedArticle = cheerio.load(renderNewsList(
+    template,
+    [{
+      slug: "historical-without-date",
+      title: "Historical communication without a verified date",
+      titleEs: "Comunicación histórica sin fecha verificable",
+      excerpt: "Historical content",
+      excerptEs: "Contenido histórico",
+      date: null,
+    }],
+    "es",
+    undefined,
+    {
+      basePath: "/perspectivas/comunicaciones",
+      editorialHeader: {
+        eyebrow: { en: "Insights", es: "Insights" },
+        title: { en: "Communications", es: "Comunicaciones" },
+        description: { en: "News", es: "Noticias" },
+      },
+    },
+  ));
+  assert.equal(undatedArticle(".archive__item--editorial").hasClass("archive__item--undated"), true);
+  assert.equal(undatedArticle(".archive__item--editorial .archive__item--date").length, 0);
+  assert.match(
+    fs.readFileSync("frontend-mirror/templates/beez3/css/vwb-stability.css", "utf8"),
+    /\.archive__item--editorial\.archive__item--undated\s*\{[\s\S]*?grid-template-columns:\s*minmax\(0,\s*1fr\)\s+28px/,
+  );
+
   const communications = cheerio.load(renderNewsList(
     template,
     [],

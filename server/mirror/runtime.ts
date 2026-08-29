@@ -572,16 +572,21 @@ export async function createMirrorRuntime() {
     if (!slug) return next();
     const item = await storage.getNewsBySlug(slug);
     if (!item || !isPubliclyVisible(item)) return next();
-    const [verifiedMembers, disabledExternalUrls] = await Promise.all([
-      storage.getVerifiedTeamMembersByNewsId(item.id),
+    const [publicRelations, disabledExternalUrls] = await Promise.all([
+      storage.getPublicNewsTeamMemberRelations(item.id),
       storage.getDisabledNewsExternalUrls(item.id),
     ]);
-    const relatedTeamMembers = verifiedMembers.filter((member) => member.published === true);
+    const relatedTeamMembers = publicRelations
+      .filter((relation) => relation.member.published === true)
+      .map((relation) => ({ ...relation.member, relationshipRole: relation.relationshipRole }));
+    const authorTeamMemberIds = relatedTeamMembers
+      .filter((member) => member.relationshipRole === "author")
+      .map((member) => member.id);
     // La red editorial conecta las publicaciones por temas, autores y categoría. La
     // ponderación está en storage para que cada criterio se pueda controlar desde CMS.
     const relatedNews = await storage.getEditorialRecommendations({
       excludeNewsId: item.id,
-      teamMemberIds: relatedTeamMembers.map((member) => member.id),
+      teamMemberIds: authorTeamMemberIds,
       tags: item.tags || [],
       category: item.category,
       limit: 6,

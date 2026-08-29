@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 
 type Candidate = { id: string; name: string; evidence: string };
@@ -25,13 +26,14 @@ type ReviewItem = {
 type ReviewResponse = { news: ReviewItem[]; total: number; page: number; totalPages: number };
 
 const PAGE_SIZE = 12;
+type RelationshipRole = "author" | "related";
 
 /** Revisión explícita del histórico: las sugerencias no escriben nada hasta confirmarse. */
 export default function AdminNewsAuthorReview() {
   const { isAuthenticated, isLoading: authLoading, requireAuth } = useAdminAuth();
   const { toast } = useToast();
   const [page, setPage] = useState(1);
-  const [selections, setSelections] = useState<Record<string, string[]>>({});
+  const [selections, setSelections] = useState<Record<string, Partial<Record<string, RelationshipRole>>>>({});
 
   useEffect(() => {
     if (!authLoading) requireAuth();
@@ -53,16 +55,16 @@ export default function AdminNewsAuthorReview() {
       const next = { ...current };
       for (const item of reviewQuery.data.news) {
         // A match in the text is only a review lead, never approval. Editors
-        // must choose every author deliberately before it can be public.
-        if (!(item.id in next)) next[item.id] = [];
+        // must choose every person and relationship type deliberately.
+        if (!(item.id in next)) next[item.id] = {};
       }
       return next;
     });
   }, [reviewQuery.data]);
 
   const applyMutation = useMutation({
-    mutationFn: async ({ newsId, teamMemberIds }: { newsId: string; teamMemberIds: string[] }) => {
-      const response = await adminApiRequest("PUT", `/api/admin/news/${newsId}/team-members`, { teamMemberIds });
+    mutationFn: async ({ newsId, teamMemberRelations }: { newsId: string; teamMemberRelations: Array<{ teamMemberId: string; relationshipRole: RelationshipRole }> }) => {
+      const response = await adminApiRequest("PUT", `/api/admin/news/${newsId}/team-members`, { teamMemberRelations });
       if (!response.ok) {
         const body = await response.json().catch(() => ({}));
         throw new Error(body.error || "No se pudo guardar la relación.");
@@ -72,21 +74,28 @@ export default function AdminNewsAuthorReview() {
       queryClient.invalidateQueries({ queryKey: ["/api/admin/news/author-review"] });
       queryClient.invalidateQueries({ queryKey: ["/api/admin/news"] });
       queryClient.invalidateQueries({ queryKey: ["/api/news"] });
-      toast({ title: "Relación guardada", description: "La publicación ya aparecerá en el perfil de las personas aprobadas." });
+      toast({ title: "Relación guardada", description: "Sólo las autorías acreditadas aparecerán en Insights; los demás vínculos quedarán en la publicación como profesionales relacionados." });
     },
     onError: (error: Error) => toast({ title: "No se guardó", description: error.message, variant: "destructive" }),
   });
 
   const toggleCandidate = (newsId: string, candidateId: string, checked: boolean) => {
     setSelections((current) => {
-      const selected = current[newsId] || [];
+      const selected = current[newsId] || {};
       return {
         ...current,
         [newsId]: checked
-          ? (selected.includes(candidateId) ? selected : [...selected, candidateId])
-          : selected.filter((id) => id !== candidateId),
+          ? (candidateId in selected ? selected : { ...selected, [candidateId]: undefined })
+          : Object.fromEntries(Object.entries(selected).filter(([id]) => id !== candidateId)),
       };
     });
+  };
+
+  const setRelationshipRole = (newsId: string, candidateId: string, relationshipRole: RelationshipRole) => {
+    setSelections((current) => ({
+      ...current,
+      [newsId]: { ...(current[newsId] || {}), [candidateId]: relationshipRole },
+    }));
   };
 
   if (authLoading || !isAuthenticated) return null;
@@ -96,12 +105,12 @@ export default function AdminNewsAuthorReview() {
     <div className="min-h-screen bg-background">
       <main className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <AdminPageHeader
-          title="Revisar autores sugeridos"
+          title="Revisar vínculos sugeridos"
           icon={Users}
           actions={<Link href="/admin/news"><Button variant="outline" size="sm"><ArrowLeft className="mr-2 h-4 w-4" />Volver a publicaciones</Button></Link>}
         />
         <AdminPageHelp pageId="noticias" manualSectionId="noticias">
-          Estas son sugerencias por nombre para publicaciones sin una autoría verificada. Revisa el crédito visible en la fuente y marca sólo a los autores correctos; una coincidencia nunca se publica automáticamente.
+          Estas son sugerencias por nombre para publicaciones sin una relación verificada. Revisa la fuente y marca sólo a profesionales que realmente participen; define si hubo autoría acreditada o sólo relación profesional. Una coincidencia nunca se publica automáticamente.
         </AdminPageHelp>
 
         {reviewQuery.isLoading ? (
@@ -112,9 +121,13 @@ export default function AdminNewsAuthorReview() {
           <Card><CardContent className="py-12 text-center"><p className="font-medium">No hay publicaciones pendientes de vincular.</p><p className="mt-2 text-sm text-muted-foreground">Las publicaciones nuevas se etiquetan directamente desde su formulario.</p></CardContent></Card>
         ) : (
           <div className="space-y-4">
-            <p className="text-sm text-muted-foreground" data-testid="text-author-review-total">{data?.total ?? 0} publicaciones sin autoría verificada.</p>
+            <p className="text-sm text-muted-foreground" data-testid="text-author-review-total">{data?.total ?? 0} publicaciones sin relación editorial verificada.</p>
             {data?.news.map((item) => {
-              const selected = selections[item.id] || [];
+              const selected = selections[item.id] || {};
+              const selectedIds = Object.keys(selected);
+              const readyRelations = selectedIds
+                .filter((id): id is string => selected[id] === "author" || selected[id] === "related")
+                .map((teamMemberId) => ({ teamMemberId, relationshipRole: selected[teamMemberId] as RelationshipRole }));
               return (
                 <Card key={item.id} data-testid={`author-review-${item.id}`}>
                   <CardHeader className="pb-3">
@@ -134,27 +147,44 @@ export default function AdminNewsAuthorReview() {
                       <p className="text-sm text-muted-foreground">No encontramos una coincidencia segura. Puedes asignar abogados manualmente desde el editor.</p>
                     ) : (
                       <>
-                        <p className="text-sm text-muted-foreground">Las opciones inician sin marcar. Selecciona únicamente a las personas cuyo crédito puedas confirmar en la fuente.</p>
+                        <p className="text-sm text-muted-foreground">Las opciones inician sin marcar. Selecciona únicamente a las personas cuya participación puedas comprobar y define el tipo de vínculo.</p>
                         <div className="space-y-3 rounded-md border p-3">
-                          {item.authorCandidates.map((candidate) => (
-                            <label key={candidate.id} className="block cursor-pointer rounded-sm p-1 hover:bg-muted">
-                              <span className="flex items-center gap-2 font-medium text-sm">
+                          {item.authorCandidates.map((candidate) => {
+                            const selectedRole = selected[candidate.id];
+                            const isSelected = candidate.id in selected;
+                            return (
+                            <div key={candidate.id} className="rounded-sm p-1 hover:bg-muted">
+                              <label className="flex items-center gap-2 font-medium text-sm cursor-pointer">
                                 <Checkbox
-                                  checked={selected.includes(candidate.id)}
+                                  checked={isSelected}
                                   onCheckedChange={(checked) => toggleCandidate(item.id, candidate.id, !!checked)}
                                   data-testid={`author-review-checkbox-${item.id}-${candidate.id}`}
                                 />
                                 {candidate.name}
-                              </span>
+                              </label>
                               <span className="mt-1 block pl-6 text-xs leading-relaxed text-muted-foreground">“…{candidate.evidence}…”</span>
-                            </label>
-                          ))}
+                              {isSelected && (
+                                <div className="mt-2 pl-6">
+                                  <Select value={selectedRole || "pending"} onValueChange={(value) => {
+                                    if (value === "author" || value === "related") setRelationshipRole(item.id, candidate.id, value);
+                                  }}>
+                                    <SelectTrigger className="h-8 w-56 text-xs"><SelectValue /></SelectTrigger>
+                                    <SelectContent>
+                                      {!selectedRole && <SelectItem value="pending" disabled>Elige un tipo</SelectItem>}
+                                      <SelectItem value="author">Autor/a acreditado/a</SelectItem>
+                                      <SelectItem value="related">Profesional relacionado</SelectItem>
+                                    </SelectContent>
+                                  </Select>
+                                </div>
+                              )}
+                            </div>
+                          )})}
                         </div>
                         <div className="flex justify-end">
                           <Button
                             size="sm"
-                            disabled={selected.length === 0 || applyMutation.isPending}
-                            onClick={() => applyMutation.mutate({ newsId: item.id, teamMemberIds: selected })}
+                            disabled={readyRelations.length === 0 || readyRelations.length !== selectedIds.length || applyMutation.isPending}
+                            onClick={() => applyMutation.mutate({ newsId: item.id, teamMemberRelations: readyRelations })}
                             data-testid={`button-approve-authors-${item.id}`}
                           >
                             <Check className="mr-2 h-4 w-4" />Confirmar vínculos

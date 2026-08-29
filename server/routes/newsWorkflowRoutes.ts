@@ -11,10 +11,10 @@ export function registerNewsWorkflowRoutes(app: Express): void {
   app.post("/api/news/:id/team-members", authMiddleware, requirePermission("content"), async (req: Request, res: Response) => {
     try {
       const newsId = req.params.id;
-      const { teamMemberId } = req.body;
+      const { teamMemberId, relationshipRole } = req.body;
 
-      if (!teamMemberId) {
-        return res.status(400).json({ error: "teamMemberId is required" });
+      if (!teamMemberId || !["author", "related"].includes(relationshipRole)) {
+        return res.status(400).json({ error: "teamMemberId and relationshipRole (author or related) are required" });
       }
 
       const newsItem = await storage.getNewsById(newsId);
@@ -27,7 +27,7 @@ export function registerNewsWorkflowRoutes(app: Express): void {
         return res.status(404).json({ error: "Team member not found" });
       }
 
-      await storage.addTeamMemberToNews(newsId, teamMemberId);
+      await storage.addTeamMemberToNews(newsId, teamMemberId, relationshipRole);
       res.status(201).json({ success: true, message: "Team member added to news article" });
     } catch (error) {
       console.error("Add team member to news error:", error);

@@ -119,15 +119,26 @@ export const publicAuthorVerificationStatuses = [
   "verified_manual",
 ] as const satisfies readonly AuthorVerificationStatus[];
 
+/**
+ * A verified person may be the author of an editorial publication or a
+ * professional connected to an announcement, event or recognition. Keeping
+ * that distinction in the relation prevents a participant from being shown as
+ * the author of work they did not write.
+ */
+export const newsTeamMemberRelationshipRoles = ["author", "related"] as const;
+export type NewsTeamMemberRelationshipRole = typeof newsTeamMemberRelationshipRoles[number];
+
 export const newsTeamMembers = pgTable("news_team_members", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   newsId: varchar("news_id").notNull(),
   teamMemberId: varchar("team_member_id").notNull(),
   verificationStatus: text("verification_status").$type<AuthorVerificationStatus>().notNull().default("legacy_unverified"),
+  relationshipRole: text("relationship_role").$type<NewsTeamMemberRelationshipRole>().notNull().default("related"),
 }, (t) => ({
   newsMemberUnique: uniqueIndex("news_team_members_news_member_unique").on(t.newsId, t.teamMemberId),
   teamNewsIdx: index("news_team_members_team_news_idx").on(t.teamMemberId, t.newsId),
   teamVerificationNewsIdx: index("news_team_members_team_verification_news_idx").on(t.teamMemberId, t.verificationStatus, t.newsId),
+  teamVerificationRoleNewsIdx: index("news_team_members_team_verification_role_news_idx").on(t.teamMemberId, t.verificationStatus, t.relationshipRole, t.newsId),
 }));
 
 export const insertNewsTeamMemberSchema = createInsertSchema(newsTeamMembers).omit({ id: true });

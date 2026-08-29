@@ -5,6 +5,7 @@ import {
   type News,
   type InsertNews,
   type TeamMember,
+  type NewsTeamMemberRelationshipRole,
   publicAuthorVerificationStatuses,
   news,
   newsExternalLinks,
@@ -15,6 +16,7 @@ import {
   newsTeamMembers,
 } from "@shared/schema";
 import type { StorageDatabase } from "../types";
+import type { NewsTeamMemberRelationInput } from "../contracts";
 import {
   loadCanonicalPublicationAuthorEvidence,
   publicationFamilyKeys,
@@ -32,9 +34,22 @@ import {
 // el p_id numérico aproxima el orden histórico sin inventar una fecha editorial.
 // El segundo orden textual mantiene compatibilidad si apareciera un ID no numérico.
 const newsDateDescNullsLast = sql`${news.date} desc nulls last, case when ${news.legacyId} ~ '^[0-9]+$' then cast(${news.legacyId} as bigint) end desc nulls last, ${news.legacyId} desc nulls last, ${news.id} desc`;
-const verifiedAuthorRelation = inArray(newsTeamMembers.verificationStatus, publicAuthorVerificationStatuses);
+const verifiedProfessionalRelation = inArray(newsTeamMembers.verificationStatus, publicAuthorVerificationStatuses);
+const verifiedAuthorRelation = and(
+  verifiedProfessionalRelation,
+  eq(newsTeamMembers.relationshipRole, "author"),
+)!;
 const isPublicAuthorVerificationStatus = (status: string) =>
   status === "verified_historic" || status === "verified_editorial_2026" || status === "verified_manual";
+
+function uniqueTeamMemberRelations(relations: NewsTeamMemberRelationInput[]): NewsTeamMemberRelationInput[] {
+  const byMemberId = new Map<string, NewsTeamMemberRelationInput>();
+  for (const relation of relations) {
+    if (!relation?.teamMemberId) continue;
+    byMemberId.set(relation.teamMemberId, relation);
+  }
+  return Array.from(byMemberId.values());
+}
 
 type AuthorArchiveLanguage = PublicationSourceLanguage;
 
@@ -307,6 +322,7 @@ export function createNewsRepository(db: StorageDatabase) {
         select 1 from ${newsTeamMembers}
         where ${newsTeamMembers.newsId} = ${news.id}
           and ${newsTeamMembers.verificationStatus} in ('verified_historic', 'verified_editorial_2026', 'verified_manual')
+          and ${newsTeamMembers.relationshipRole} = 'author'
       )`;
       const [rows, countRows] = await Promise.all([
         db.select().from(news).where(withoutVerifiedRelations).orderBy(newsDateDescNullsLast).limit(opts.limit).offset(opts.offset),
@@ -417,16 +433,17 @@ export function createNewsRepository(db: StorageDatabase) {
       return item;
     }
 
-    async createNewsWithTeamMembers(insertNews: InsertNews, teamMemberIds: string[]): Promise<News> {
+    async createNewsWithTeamMembers(insertNews: InsertNews, inputRelations: NewsTeamMemberRelationInput[]): Promise<News> {
       const safeNews = sanitizeNewsFields({ ...insertNews });
-      const ids = Array.from(new Set(teamMemberIds));
+      const relations = uniqueTeamMemberRelations(inputRelations);
       return db.transaction(async (tx) => {
         const [item] = await tx.insert(news).values(safeNews).returning();
-        if (ids.length) {
-          await tx.insert(newsTeamMembers).values(ids.map((teamMemberId) => ({
+        if (relations.length) {
+          await tx.insert(newsTeamMembers).values(relations.map((relation) => ({
             newsId: item.id,
-            teamMemberId,
+            teamMemberId: relation.teamMemberId,
             verificationStatus: "verified_manual" as const,
+            relationshipRole: relation.relationshipRole,
           })));
         }
         return item;
@@ -482,6 +499,7 @@ export function createNewsRepository(db: StorageDatabase) {
             newsId: draft.id,
             teamMemberId: link.teamMemberId,
             verificationStatus: link.verificationStatus,
+            relationshipRole: link.relationshipRole,
           })));
         }
         if (translations.length) {
@@ -516,37 +534,66 @@ export function createNewsRepository(db: StorageDatabase) {
     async updateNewsWithTeamMembers(
       id: string,
       data: Partial<InsertNews>,
-      teamMemberIds?: string[],
+      inputRelations?: NewsTeamMemberRelationInput[],
     ): Promise<News | undefined> {
       const safeData = sanitizeNewsFields({ ...data });
-      const ids = teamMemberIds === undefined ? undefined : Array.from(new Set(teamMemberIds));
+      const relations = inputRelations === undefined ? undefined : uniqueTeamMemberRelations(inputRelations);
       return db.transaction(async (tx) => {
         const [item] = await tx.update(news).set(safeData).where(eq(news.id, id)).returning();
-        if (!item || ids === undefined) return item;
+        if (!item || relations === undefined) return item;
         const existing = await tx.select().from(newsTeamMembers).where(eq(newsTeamMembers.newsId, id));
         const existingIds = new Set(existing.map((relation) => relation.teamMemberId));
-        const manualRemoval = ids.length
+        const relationIds = relations.map((relation) => relation.teamMemberId);
+        const manualRemoval = relationIds.length
           ? and(
               eq(newsTeamMembers.newsId, id),
               eq(newsTeamMembers.verificationStatus, "verified_manual"),
-              notInArray(newsTeamMembers.teamMemberId, ids),
+              notInArray(newsTeamMembers.teamMemberId, relationIds),
             )
           : and(eq(newsTeamMembers.newsId, id), eq(newsTeamMembers.verificationStatus, "verified_manual"));
         await tx.delete(newsTeamMembers).where(manualRemoval);
-        const confirmedLegacyIds = existing
-          .filter((relation) => relation.verificationStatus === "legacy_unverified" && ids.includes(relation.teamMemberId))
-          .map((relation) => relation.teamMemberId);
-        if (confirmedLegacyIds.length) {
+        for (const relationshipRole of ["author", "related"] as const) {
+          const idsForRole = relations
+            .filter((relation) => relation.relationshipRole === relationshipRole)
+            .map((relation) => relation.teamMemberId);
+          if (!idsForRole.length) continue;
           await tx.update(newsTeamMembers)
-            .set({ verificationStatus: "verified_manual" })
-            .where(and(eq(newsTeamMembers.newsId, id), inArray(newsTeamMembers.teamMemberId, confirmedLegacyIds)));
+            .set({ verificationStatus: "verified_manual", relationshipRole })
+            .where(and(
+              eq(newsTeamMembers.newsId, id),
+              eq(newsTeamMembers.verificationStatus, "legacy_unverified"),
+              inArray(newsTeamMembers.teamMemberId, idsForRole),
+            ));
+          await tx.update(newsTeamMembers)
+            .set({ relationshipRole })
+            .where(and(
+              eq(newsTeamMembers.newsId, id),
+              eq(newsTeamMembers.verificationStatus, "verified_manual"),
+              inArray(newsTeamMembers.teamMemberId, idsForRole),
+            ));
         }
-        const additions = ids.filter((teamMemberId) => !existingIds.has(teamMemberId));
+        // A source-backed historic relation changes role only after an editor
+        // explicitly confirms the new classification in Administration.
+        for (const relation of relations) {
+          const existingRelation = existing.find((candidate) => candidate.teamMemberId === relation.teamMemberId);
+          if (!existingRelation
+            || existingRelation.verificationStatus === "legacy_unverified"
+            || existingRelation.verificationStatus === "verified_manual"
+            || existingRelation.relationshipRole === relation.relationshipRole) continue;
+          await tx.update(newsTeamMembers)
+            .set({ verificationStatus: "verified_manual", relationshipRole: relation.relationshipRole })
+            .where(and(
+              eq(newsTeamMembers.newsId, id),
+              eq(newsTeamMembers.teamMemberId, relation.teamMemberId),
+            ));
+        }
+        const additions = relations.filter((relation) => !existingIds.has(relation.teamMemberId));
         if (additions.length) {
-          await tx.insert(newsTeamMembers).values(additions.map((teamMemberId) => ({
+          await tx.insert(newsTeamMembers).values(additions.map((relation) => ({
             newsId: id,
-            teamMemberId,
+            teamMemberId: relation.teamMemberId,
             verificationStatus: "verified_manual" as const,
+            relationshipRole: relation.relationshipRole,
           })));
         }
         return item;
@@ -640,59 +687,95 @@ export function createNewsRepository(db: StorageDatabase) {
     async getVerifiedTeamMembersByNewsId(newsId: string): Promise<TeamMember[]> {
       const relations = await this.getNewsTeamMemberRelations(newsId);
       return relations
-        .filter((relation) => isPublicAuthorVerificationStatus(relation.verificationStatus))
+        .filter((relation) => isPublicAuthorVerificationStatus(relation.verificationStatus) && relation.relationshipRole === "author")
         .map((relation) => relation.member);
+    }
+
+    async getPublicNewsTeamMemberRelations(newsId: string) {
+      const relations = await this.getNewsTeamMemberRelations(newsId);
+      return relations.filter((relation) => isPublicAuthorVerificationStatus(relation.verificationStatus));
     }
 
     async getNewsTeamMemberRelations(newsId: string) {
       const rows = await db
-        .select({ member: teamMembers, verificationStatus: newsTeamMembers.verificationStatus })
+        .select({
+          member: teamMembers,
+          verificationStatus: newsTeamMembers.verificationStatus,
+          relationshipRole: newsTeamMembers.relationshipRole,
+        })
         .from(newsTeamMembers)
         .innerJoin(teamMembers, eq(teamMembers.id, newsTeamMembers.teamMemberId))
         .where(eq(newsTeamMembers.newsId, newsId));
       return rows;
     }
 
-    async setTeamMembersForNews(newsId: string, teamMemberIds: string[]): Promise<void> {
-      const ids = Array.from(new Set(teamMemberIds));
+    async setTeamMembersForNews(newsId: string, inputRelations: NewsTeamMemberRelationInput[]): Promise<void> {
+      const relations = uniqueTeamMemberRelations(inputRelations);
       await db.transaction(async (tx) => {
         const existing = await tx.select().from(newsTeamMembers).where(eq(newsTeamMembers.newsId, newsId));
         const existingIds = new Set(existing.map((relation) => relation.teamMemberId));
-        const manualRemoval = ids.length
+        const relationIds = relations.map((relation) => relation.teamMemberId);
+        const manualRemoval = relationIds.length
           ? and(
               eq(newsTeamMembers.newsId, newsId),
               eq(newsTeamMembers.verificationStatus, "verified_manual"),
-              notInArray(newsTeamMembers.teamMemberId, ids),
+              notInArray(newsTeamMembers.teamMemberId, relationIds),
             )
           : and(eq(newsTeamMembers.newsId, newsId), eq(newsTeamMembers.verificationStatus, "verified_manual"));
         await tx.delete(newsTeamMembers).where(manualRemoval);
-        const confirmedLegacyIds = existing
-          .filter((relation) => relation.verificationStatus === "legacy_unverified" && ids.includes(relation.teamMemberId))
-          .map((relation) => relation.teamMemberId);
-        if (confirmedLegacyIds.length) {
+        for (const relationshipRole of ["author", "related"] as const) {
+          const idsForRole = relations
+            .filter((relation) => relation.relationshipRole === relationshipRole)
+            .map((relation) => relation.teamMemberId);
+          if (!idsForRole.length) continue;
           await tx.update(newsTeamMembers)
-            .set({ verificationStatus: "verified_manual" })
-            .where(and(eq(newsTeamMembers.newsId, newsId), inArray(newsTeamMembers.teamMemberId, confirmedLegacyIds)));
+            .set({ verificationStatus: "verified_manual", relationshipRole })
+            .where(and(
+              eq(newsTeamMembers.newsId, newsId),
+              eq(newsTeamMembers.verificationStatus, "legacy_unverified"),
+              inArray(newsTeamMembers.teamMemberId, idsForRole),
+            ));
+          await tx.update(newsTeamMembers)
+            .set({ relationshipRole })
+            .where(and(
+              eq(newsTeamMembers.newsId, newsId),
+              eq(newsTeamMembers.verificationStatus, "verified_manual"),
+              inArray(newsTeamMembers.teamMemberId, idsForRole),
+            ));
         }
-        const additions = ids.filter((teamMemberId) => !existingIds.has(teamMemberId));
+        for (const relation of relations) {
+          const existingRelation = existing.find((candidate) => candidate.teamMemberId === relation.teamMemberId);
+          if (!existingRelation
+            || existingRelation.verificationStatus === "legacy_unverified"
+            || existingRelation.verificationStatus === "verified_manual"
+            || existingRelation.relationshipRole === relation.relationshipRole) continue;
+          await tx.update(newsTeamMembers)
+            .set({ verificationStatus: "verified_manual", relationshipRole: relation.relationshipRole })
+            .where(and(
+              eq(newsTeamMembers.newsId, newsId),
+              eq(newsTeamMembers.teamMemberId, relation.teamMemberId),
+            ));
+        }
+        const additions = relations.filter((relation) => !existingIds.has(relation.teamMemberId));
         if (additions.length) {
-          await tx.insert(newsTeamMembers).values(additions.map((teamMemberId) => ({
+          await tx.insert(newsTeamMembers).values(additions.map((relation) => ({
             newsId,
-            teamMemberId,
+            teamMemberId: relation.teamMemberId,
             verificationStatus: "verified_manual" as const,
+            relationshipRole: relation.relationshipRole,
           })));
         }
       });
     }
 
-    async addTeamMemberToNews(newsId: string, teamMemberId: string): Promise<void> {
+    async addTeamMemberToNews(newsId: string, teamMemberId: string, relationshipRole: NewsTeamMemberRelationshipRole): Promise<void> {
       const [existing] = await db
         .select()
         .from(newsTeamMembers)
         .where(and(eq(newsTeamMembers.newsId, newsId), eq(newsTeamMembers.teamMemberId, teamMemberId)));
 
       if (!existing) {
-        await db.insert(newsTeamMembers).values({ newsId, teamMemberId, verificationStatus: "verified_manual" });
+        await db.insert(newsTeamMembers).values({ newsId, teamMemberId, verificationStatus: "verified_manual", relationshipRole });
       }
     }
 

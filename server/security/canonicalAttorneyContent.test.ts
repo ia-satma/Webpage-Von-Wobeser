@@ -123,6 +123,55 @@ test("la ficha dinámica separa destacado y cuerpo, y muestra las noticias inter
   assert.equal($(".attorney__meta--list a[href='/news/already-listed']").length, 0);
 });
 
+test("los reconocimientos históricos muestran sólo el idioma activo en todas las fichas", () => {
+  const template = read("../../frontend-mirror/index.php/lawyer/l-134.html");
+  const attorneysWithHistoricalRecognitions = loadCanonicalAttorneyContent(mirrorDir)
+    .filter((attorney) => attorney.rankings.some((entry) => !entry.ranking && entry.rankingEs && entry.publication && !entry.publicationEs));
+
+  assert.ok(attorneysWithHistoricalRecognitions.length > 0);
+  for (const attorney of attorneysWithHistoricalRecognitions) {
+    const expectedEs = attorney.rankings
+      .filter((entry) => !entry.ranking && entry.rankingEs && entry.publication && !entry.publicationEs)
+      .map((entry) => entry.rankingEs);
+    const expectedEn = attorney.rankings
+      .filter((entry) => !entry.ranking && entry.rankingEs && entry.publication && !entry.publicationEs)
+      .map((entry) => entry.publication);
+    const spanish = cheerio.load(renderAttorney(template, attorney, "es"));
+    const english = cheerio.load(renderAttorney(template, attorney, "en"));
+
+    assert.deepEqual(
+      spanish("#recognitions > li").map((_, element) => spanish(element).text().trim()).get(),
+      expectedEs,
+      `${attorney.slug} must not append the English recognition in Spanish`,
+    );
+    assert.deepEqual(
+      english("#recognitions > li").map((_, element) => english(element).text().trim()).get(),
+      expectedEn,
+      `${attorney.slug} must not append the Spanish recognition in English`,
+    );
+  }
+
+  const structuredRecognition = {
+    name: "Perfil de prueba",
+    slug: "perfil-de-prueba",
+    title: "Partner",
+    titleEs: "Socio",
+    role: "Partner",
+    roleEs: "Socio",
+    email: "test@example.com",
+    phone: "+52 55 0000 0000",
+    bioIntro: "<p>English biography.</p>",
+    bioIntroEs: "<p>Biografía en español.</p>",
+    bio: "<p>English biography.</p>",
+    bioEs: "<p>Biografía en español.</p>",
+    rankings: [{ ranking: "Band 1", rankingEs: "Banda 1", publication: "Chambers", publicationEs: "Chambers" }],
+  };
+  const spanishStructured = cheerio.load(renderAttorney(template, structuredRecognition, "es"));
+  const englishStructured = cheerio.load(renderAttorney(template, structuredRecognition, "en"));
+  assert.equal(spanishStructured("#recognitions > li").text().trim(), "Banda 1 — Chambers");
+  assert.equal(englishStructured("#recognitions > li").text().trim(), "Band 1 — Chambers");
+});
+
 test("los años de experiencia de Asociados se ocultan de forma reversible", () => {
   const template = read("../../frontend-mirror/index.php/lawyer/l-134.html");
   const associate = {

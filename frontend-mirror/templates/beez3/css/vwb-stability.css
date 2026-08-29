@@ -686,6 +686,14 @@ body.office-showcase--shared-navigation > header.header_JS .menu_btn_JS::after {
   transition: background-color 180ms ease;
 }
 
+/* Algunas Comunicaciones históricas no tienen fecha editorial verificable. Sin
+   este modificador, su contenido ocuparía la estrecha columna reservada para
+   la fecha y cada palabra se partiría en una línea. Conservamos el registro
+   sin fecha inventada y le asignamos la retícula correcta de contenido + acción. */
+.page.archive.vw-publications-page .archive__item--editorial.archive__item--undated {
+  grid-template-columns: minmax(0, 1fr) 28px;
+}
+
 .page.archive.vw-publications-page .archive__list > .archive__item--editorial:last-child {
   border-bottom: 1px solid #deddd9;
 }

@@ -42,7 +42,12 @@ const EMPTY = {
 };
 
 type TeamMemberLite = { id: string; name: string; slug: string };
-type AuthorRelation = { member: TeamMemberLite; verificationStatus: "verified_historic" | "verified_editorial_2026" | "verified_manual" | "legacy_unverified" };
+type RelationshipRole = "author" | "related";
+type ProfessionalRelation = {
+  member: TeamMemberLite;
+  verificationStatus: "verified_historic" | "verified_editorial_2026" | "verified_manual" | "legacy_unverified";
+  relationshipRole: RelationshipRole;
+};
 type ExternalLinkIntegrity = {
   id: string;
   kind: "source" | "content";
@@ -78,7 +83,8 @@ export default function AdminNewsForm() {
   const { toast } = useToast();
   const [form, setForm] = useState({ ...EMPTY });
   const [slugTouched, setSlugTouched] = useState(false);
-  const [authorIds, setAuthorIds] = useState<string[]>([]);
+  const [professionalRoles, setProfessionalRoles] = useState<Partial<Record<string, RelationshipRole>>>({});
+  const [sourceProfessionalRoles, setSourceProfessionalRoles] = useState<Record<string, RelationshipRole>>({});
   const [authorSearch, setAuthorSearch] = useState("");
   const [tagInput, setTagInput] = useState("");
 
@@ -121,7 +127,7 @@ export default function AdminNewsForm() {
   });
 
   // Al editar, la ruta administrativa también conserva los vínculos de perfiles aún no publicados.
-  const authorsQuery = useQuery<AuthorRelation[]>({
+  const authorsQuery = useQuery<ProfessionalRelation[]>({
     queryKey: ["/api/admin/news", id, "team-members"],
     enabled: isEdit && !!id,
     queryFn: async () => {
@@ -136,10 +142,20 @@ export default function AdminNewsForm() {
     // Only explicit manual approvals are editable.  Source-backed links stay
     // authoritative, while historical links remain internal until an editor
     // deliberately selects that person below.
-    const ids = authorsQuery.data
+    const manualRoles = authorsQuery.data
       .filter((relation) => relation.verificationStatus === "verified_manual")
-      .map((relation) => relation.member.id);
-    setAuthorIds(ids);
+      .reduce<Partial<Record<string, RelationshipRole>>>((next, relation) => {
+        next[relation.member.id] = relation.relationshipRole;
+        return next;
+      }, {});
+    setProfessionalRoles(manualRoles);
+    const sourceRoles = authorsQuery.data
+      .filter((relation) => relation.verificationStatus === "verified_historic" || relation.verificationStatus === "verified_editorial_2026")
+      .reduce<Record<string, RelationshipRole>>((next, relation) => {
+        next[relation.member.id] = relation.relationshipRole;
+        return next;
+      }, {});
+    setSourceProfessionalRoles(sourceRoles);
   }, [authorsQuery.data]);
 
   const linkIntegrityQuery = useQuery<LinkIntegrityResponse>({
@@ -178,8 +194,22 @@ export default function AdminNewsForm() {
     onError: (error: Error) => toast({ title: "No se pudo verificar", description: error.message, variant: "destructive" }),
   });
 
-  const toggleAuthor = (memberId: string, checked: boolean) => {
-    setAuthorIds((prev) => (checked ? (prev.includes(memberId) ? prev : [...prev, memberId]) : prev.filter((x) => x !== memberId)));
+  const toggleProfessional = (memberId: string, checked: boolean) => {
+    setProfessionalRoles((current) => {
+      if (!checked) {
+        const { [memberId]: _removed, ...rest } = current;
+        return rest;
+      }
+      return memberId in current ? current : { ...current, [memberId]: undefined };
+    });
+  };
+
+  const setProfessionalRole = (memberId: string, relationshipRole: RelationshipRole) => {
+    setProfessionalRoles((current) => ({ ...current, [memberId]: relationshipRole }));
+  };
+
+  const setSourceProfessionalRole = (memberId: string, relationshipRole: RelationshipRole) => {
+    setSourceProfessionalRoles((current) => ({ ...current, [memberId]: relationshipRole }));
   };
 
   const addTags = (value: string) => {
@@ -224,7 +254,12 @@ export default function AdminNewsForm() {
         published: form.published,
         featuredHome: form.featuredHome,
         tags: form.tags,
-        teamMemberIds: authorIds,
+        teamMemberRelations: [
+          ...Object.entries(sourceProfessionalRoles).map(([teamMemberId, relationshipRole]) => ({ teamMemberId, relationshipRole })),
+          ...Object.entries(professionalRoles)
+          .filter((entry): entry is [string, RelationshipRole] => entry[1] === "author" || entry[1] === "related")
+          .map(([teamMemberId, relationshipRole]) => ({ teamMemberId, relationshipRole })),
+        ],
       };
       const res = isEdit
         ? await adminApiRequest("PUT", `/api/admin/news/${id}`, payload)
@@ -251,8 +286,11 @@ export default function AdminNewsForm() {
   const sourceOnlyArticle = form.category === "articles" && /^https:\/\//i.test(form.sourceUrl.trim());
   const editingPublishedLegacyWithoutDate = isEdit && newsQuery.data?.published === true && !newsQuery.data?.date;
   const dateReady = !form.published || hasReadableText(form.date) || editingPublishedLegacyWithoutDate;
+  const selectedProfessionalIds = Object.keys(professionalRoles);
+  const pendingProfessionalRoleIds = selectedProfessionalIds.filter((id) => !professionalRoles[id]);
   const canSave = hasReadableText(form.titleEs)
     && dateReady
+    && pendingProfessionalRoleIds.length === 0
     && (!form.published || (hasReadableText(form.title) && (englishReady && spanishReady || sourceOnlyArticle)))
     && !saveMutation.isPending;
 
@@ -270,13 +308,17 @@ export default function AdminNewsForm() {
       toast({ title: "Faltan datos", description: "Para publicar completa ambos extractos o, si es un Artículo sin texto verificable, agrega una fuente HTTPS original.", variant: "destructive" });
       return;
     }
+    if (pendingProfessionalRoleIds.length) {
+      toast({ title: "Falta el tipo de vínculo", description: "Define si cada profesional seleccionado es autor o profesional relacionado.", variant: "destructive" });
+      return;
+    }
     saveMutation.mutate();
   };
 
-  const sourceVerifiedAuthors = (authorsQuery.data || []).filter((relation) =>
+  const sourceVerifiedProfessionals = (authorsQuery.data || []).filter((relation) =>
     relation.verificationStatus === "verified_historic" || relation.verificationStatus === "verified_editorial_2026",
   );
-  const sourceVerifiedIds = new Set(sourceVerifiedAuthors.map((relation) => relation.member.id));
+  const sourceVerifiedIds = new Set(sourceVerifiedProfessionals.map((relation) => relation.member.id));
   const legacyAuthorRelations = (authorsQuery.data || []).filter((relation) => relation.verificationStatus === "legacy_unverified");
 
   if (isEdit && newsQuery.isLoading) {
@@ -476,7 +518,7 @@ export default function AdminNewsForm() {
             <CardHeader><CardTitle className="text-base">Relación editorial</CardTitle></CardHeader>
             <CardContent className="space-y-3">
               <p className="text-xs text-muted-foreground">
-                Las etiquetas organizan recomendaciones editoriales. Los autores se muestran en Insights sólo con una fuente acreditada o una confirmación manual explícita.
+                Las etiquetas organizan recomendaciones editoriales. La autoría y la participación se gestionan por separado: sólo una autoría acreditada aparece como Insight en la ficha de un abogado.
               </p>
               <div className="space-y-2">
                 <Label htmlFor="editorial-tags">Etiquetas temáticas</Label>
@@ -514,7 +556,7 @@ export default function AdminNewsForm() {
               </div>
               <div className="border-t pt-4" />
               <div className="space-y-1.5">
-                <Label htmlFor="author-search">Confirmar autores de esta publicación</Label>
+                <Label htmlFor="author-search">Profesionales vinculados</Label>
                 <Input
                   id="author-search"
                   value={authorSearch}
@@ -523,11 +565,12 @@ export default function AdminNewsForm() {
                   autoComplete="off"
                   data-testid="input-author-search"
                 />
+                <p className="text-xs text-muted-foreground">Selecciona sólo a una persona cuya participación puedas acreditar y después indica el tipo de vínculo. No se crean relaciones por coincidencias de nombre, práctica, industria o texto.</p>
               </div>
               <div className="flex items-center justify-between text-xs text-muted-foreground">
-                <span>{authorIds.length === 1 ? "1 confirmación manual" : `${authorIds.length} confirmaciones manuales`}</span>
-                {authorIds.length > 0 && (
-                  <button type="button" className="underline underline-offset-4" onClick={() => setAuthorIds([])}>
+                <span>{selectedProfessionalIds.length === 1 ? "1 vínculo manual" : `${selectedProfessionalIds.length} vínculos manuales`}</span>
+                {selectedProfessionalIds.length > 0 && (
+                  <button type="button" className="underline underline-offset-4" onClick={() => setProfessionalRoles({})}>
                     Limpiar selección
                   </button>
                 )}
@@ -538,32 +581,68 @@ export default function AdminNewsForm() {
                 {(teamQuery.data?.members || [])
                   .filter((member) => !sourceVerifiedIds.has(member.id))
                   .filter((member) => member.name.toLocaleLowerCase("es").includes(authorSearch.trim().toLocaleLowerCase("es")))
-                  .map((member) => (
-                    <label key={member.id} className="flex items-center gap-2 text-sm cursor-pointer rounded-sm px-1 py-1 hover:bg-muted">
-                      <Checkbox
-                        checked={authorIds.includes(member.id)}
-                        onCheckedChange={(checked) => toggleAuthor(member.id, !!checked)}
-                        data-testid={`checkbox-author-${member.id}`}
-                      />
-                      {member.name}
-                    </label>
-                  ))}
+                  .map((member) => {
+                    const selected = member.id in professionalRoles;
+                    const relationshipRole = professionalRoles[member.id];
+                    return (
+                      <div key={member.id} className="flex flex-wrap items-center gap-2 rounded-sm px-1 py-1 hover:bg-muted">
+                        <label className="flex min-w-0 flex-1 items-center gap-2 text-sm cursor-pointer">
+                          <Checkbox
+                            checked={selected}
+                            onCheckedChange={(checked) => toggleProfessional(member.id, !!checked)}
+                            data-testid={`checkbox-professional-${member.id}`}
+                          />
+                          <span className="truncate">{member.name}</span>
+                        </label>
+                        {selected && (
+                          <Select value={relationshipRole || "pending"} onValueChange={(value) => {
+                            if (value === "author" || value === "related") setProfessionalRole(member.id, value);
+                          }}>
+                            <SelectTrigger className="h-8 w-[168px] text-xs" data-testid={`select-professional-role-${member.id}`}><SelectValue /></SelectTrigger>
+                            <SelectContent>
+                              {!relationshipRole && <SelectItem value="pending" disabled>Elige un tipo</SelectItem>}
+                              <SelectItem value="author">Autor/a acreditado/a</SelectItem>
+                              <SelectItem value="related">Profesional relacionado</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        )}
+                      </div>
+                    );
+                  })}
                 {!teamQuery.isLoading && !teamQuery.isError && (teamQuery.data?.members || []).filter((member) => !sourceVerifiedIds.has(member.id)).filter((member) => member.name.toLocaleLowerCase("es").includes(authorSearch.trim().toLocaleLowerCase("es"))).length === 0 && (
                   <p className="text-sm text-muted-foreground col-span-2">No hay coincidencias.</p>
                 )}
               </div>
-              <p className="text-xs text-muted-foreground">Al guardar, esta selección queda aprobada y se muestra de inmediato en Insights. Una coincidencia de nombre, práctica, industria o texto nunca se vincula automáticamente.</p>
-              {sourceVerifiedAuthors.length > 0 && (
+              <p className="text-xs text-muted-foreground">“Autor/a acreditado/a” requiere crédito visible en la fuente o confirmación editorial expresa y alimenta los Insights del perfil. “Profesional relacionado” se muestra sólo dentro de la publicación y nunca como autoría.</p>
+              {sourceVerifiedProfessionals.length > 0 && (
                 <div className="rounded-md border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-950">
-                  <p className="font-medium">Autorías acreditadas por fuente</p>
-                  <p className="mt-1 text-xs">Se conservan automáticamente porque provienen de “Abogados involucrados” o de un crédito editorial verificable.</p>
-                  <p className="mt-2">{sourceVerifiedAuthors.map((relation) => relation.member.name).join(", ")}</p>
+                  <p className="font-medium">Relaciones acreditadas por fuente</p>
+                  <p className="mt-1 text-xs">Se conservan porque provienen de una fuente histórica o de un crédito editorial verificable. Sólo cambia el tipo si revisaste la evidencia: al reclasificarlo, Administración registra una confirmación manual.</p>
+                  <div className="mt-3 space-y-2">
+                    {sourceVerifiedProfessionals.map((relation) => {
+                      const relationshipRole = sourceProfessionalRoles[relation.member.id] || relation.relationshipRole;
+                      return (
+                        <div key={relation.member.id} className="flex flex-wrap items-center justify-between gap-2 rounded border border-emerald-200/80 bg-white/60 px-2 py-1.5">
+                          <span className="text-xs font-medium">{relation.member.name}</span>
+                          <Select value={relationshipRole} onValueChange={(value) => {
+                            if (value === "author" || value === "related") setSourceProfessionalRole(relation.member.id, value);
+                          }}>
+                            <SelectTrigger className="h-8 w-[188px] bg-white text-xs" data-testid={`select-source-professional-role-${relation.member.id}`}><SelectValue /></SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="author">Autor/a acreditado/a</SelectItem>
+                              <SelectItem value="related">Profesional relacionado</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
               )}
               {legacyAuthorRelations.length > 0 && (
                 <div className="rounded-md border border-amber-200 bg-amber-50 p-3 text-sm text-amber-950">
                   <p className="font-medium">Relaciones heredadas sin confirmar</p>
-                  <p className="mt-1 text-xs">Se conservan para gestión interna, pero no aparecen en Insights ni en archivos por autor. Selecciona a una persona arriba sólo si confirmas expresamente su autoría.</p>
+                  <p className="mt-1 text-xs">Se conservan para gestión interna, pero no aparecen en Insights ni en archivos por autor. Selecciona a una persona arriba sólo si confirmas su participación y defines si tuvo autoría o sólo relación profesional.</p>
                   <p className="mt-2">{legacyAuthorRelations.map((relation) => relation.member.name).join(", ")}</p>
                 </div>
               )}

@@ -260,8 +260,12 @@ export function renderNewsList(
     // de los listados conserva el marcado histórico de tarjetas.
     if (opts.editorialHeader) {
       const summary = articleWithoutSummary ? "" : archiveSummary(rawExcerpt);
+      // En las filas editoriales la fecha ocupa una columna propia. Los registros
+      // históricos sin fecha no deben caer en esa columna angosta ni presentar
+      // una fecha inventada: el modificador les da una retícula de dos columnas.
+      const editorialClass = date ? "" : " archive__item--undated";
       return (
-        `<article class="archive__item archive__item--editorial">` +
+        `<article class="archive__item archive__item--editorial${editorialClass}">` +
           dateMarkup +
           `<div class="archive__item--content">` +
             `<a class="archive__item--title-link" href="${href}"><h2 class="archive__item--ttl">${title}</h2></a>` +
@@ -513,12 +517,27 @@ export function renderNewsList(
   return $.html();
 }
 
-function buildRelatedAttorneys(attorneys: any[], lang: Lang): string {
+function buildPublicationProfessionals(attorneys: any[], lang: Lang): string {
   if (!attorneys.length) return "";
   const labels = lang === "es"
-    ? { heading: "Autores de esta publicación", view: "Ver perfil" }
-    : { heading: "Publication authors", view: "View profile" };
-  const cards = attorneys.map((attorney) => {
+    ? {
+      author: { heading: "Autores de esta publicación", view: "Ver perfil", id: "news-publication-authors-title" },
+      related: { heading: "Profesionales relacionados", view: "Ver perfil", id: "news-related-professionals-title" },
+    }
+    : {
+      author: { heading: "Publication authors", view: "View profile", id: "news-publication-authors-title" },
+      related: { heading: "Related professionals", view: "View profile", id: "news-related-professionals-title" },
+    };
+  const byRole = new Map<"author" | "related", any[]>([["author", []], ["related", []]]);
+  for (const attorney of attorneys) {
+    const relationshipRole = attorney?.relationshipRole === "author" ? "author" : "related";
+    byRole.get(relationshipRole)!.push(attorney);
+  }
+  return (["author", "related"] as const).map((relationshipRole) => {
+    const people = byRole.get(relationshipRole) || [];
+    if (!people.length) return "";
+    const group = labels[relationshipRole];
+    const cards = people.map((attorney) => {
     const title = getLocalizedAttorneyTitle(attorney, lang) || getLocalizedAttorneyRole(attorney, lang);
     const href = lang === "es"
       ? `/abogado/${encodeURIComponent(attorney.slug)}`
@@ -529,12 +548,13 @@ function buildRelatedAttorneys(attorneys: any[], lang: Lang): string {
     return `<article class="news-related-attorneys__item">` +
       image +
       `<div><h3><a href="${href}">${esc(getAttorneyPublicName(attorney))}</a></h3>` +
-      `<p>${esc(title)}</p><a class="news-related-attorneys__link" href="${href}">${labels.view}</a></div>` +
+      `<p>${esc(title)}</p><a class="news-related-attorneys__link" href="${href}">${group.view}</a></div>` +
       `</article>`;
-  }).join("");
-  return `<section class="news-related-attorneys" aria-labelledby="news-related-attorneys-title">` +
-    `<h2 id="news-related-attorneys-title">${labels.heading}</h2>` +
+    }).join("");
+    return `<section class="news-related-attorneys news-related-attorneys--${relationshipRole}" aria-labelledby="${group.id}">` +
+    `<h2 id="${group.id}">${group.heading}</h2>` +
     `<div class="news-related-attorneys__grid">${cards}</div></section>`;
+  }).join("");
 }
 
 function publicInsightImage(value: unknown): string {
@@ -597,14 +617,14 @@ export function renderNewsDetail(templateHtml: string, item: any, lang: Lang = "
   if (originalSource) $(".single__content--intro").after(originalSource);
   $(".news-related-attorneys").remove();
   $(".news-related-insights").remove();
-  const relatedAttorneys = (item.relatedTeamMembers || []) as any[];
-  const relatedAttorneyMarkup = buildRelatedAttorneys(relatedAttorneys, lang);
-  if (relatedAttorneyMarkup) $(".single__content--txt").after(relatedAttorneyMarkup);
+  const relatedProfessionals = (item.relatedTeamMembers || []) as any[];
+  const relatedProfessionalMarkup = buildPublicationProfessionals(relatedProfessionals, lang);
+  if (relatedProfessionalMarkup) $(".single__content--txt").after(relatedProfessionalMarkup);
   const relatedInsightsMarkup = buildRelatedInsights((item.relatedNews || []) as any[], lang);
   if (relatedInsightsMarkup) {
     const $pageWrap = $(".page--wrap").first();
     if ($pageWrap.length) $pageWrap.after(relatedInsightsMarkup);
-    else if (relatedAttorneyMarkup) $(".news-related-attorneys").after(relatedInsightsMarkup);
+    else if (relatedProfessionalMarkup) $(".news-related-attorneys").last().after(relatedInsightsMarkup);
     else $(".single__content--txt").after(relatedInsightsMarkup);
   }
 
@@ -654,7 +674,10 @@ export function renderNewsDetail(templateHtml: string, item: any, lang: Lang = "
         path,
         datePublished: iso,
         dateModified: item.updatedAt ? new Date(item.updatedAt).toISOString() : iso,
-        authors: relatedAttorneys.map((attorney) => ({
+        // Schema.org authorship is deliberately limited to people marked as
+        // authors. Related professionals are visible to readers but are never
+        // emitted as the writer of an event, recognition or communication.
+        authors: relatedProfessionals.filter((attorney) => attorney.relationshipRole === "author").map((attorney) => ({
           name: getAttorneyPublicName(attorney),
           path: lang === "es" ? `/abogado/${attorney.slug}` : `/lawyer/${attorney.slug}`,
         })),

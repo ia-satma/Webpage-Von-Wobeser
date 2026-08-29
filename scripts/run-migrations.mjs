@@ -95,6 +95,17 @@ const verifiedDataMigrationPolicies = new Map([
   ["20260829_0003_deactivate_legacy_article_pages.mjs", {
     allowedCountChanges: new Set(["news_external_links"]),
   }],
+  // Corrige etiquetas editoriales entregadas como parte de cinco títulos de
+  // Comunicaciones, sin modificar contenido, visibilidad ni relaciones.
+  ["20260829_0004_remove_communication_title_prefixes.mjs", {
+    allowedCountChanges: new Set(),
+  }],
+  // Clasifica las relaciones ya verificadas sin borrar, crear ni cambiar
+  // contenido: sólo los Artículos acreditados pasan a "author"; las demás
+  // publicaciones permanecen como profesionales relacionados.
+  ["20260829_0006_backfill_article_author_relationship_roles.mjs", {
+    allowedCountChanges: new Set(),
+  }],
 ]);
 
 // Algunos entornos de publicación se crearon sin una publicación histórica

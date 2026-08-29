@@ -302,6 +302,19 @@ export function registerAdminNewsRoutes(app: Express): void {
   });
 
   const teamMemberIdsSchema = z.array(z.string().uuid()).max(50).transform((ids) => Array.from(new Set(ids)));
+  const teamMemberRelationshipRoleSchema = z.enum(["author", "related"]);
+  const teamMemberRelationsSchema = z.array(z.object({
+    teamMemberId: z.string().uuid(),
+    relationshipRole: teamMemberRelationshipRoleSchema,
+  })).max(50).superRefine((relations, ctx) => {
+    const seen = new Set<string>();
+    relations.forEach((relation, index) => {
+      if (seen.has(relation.teamMemberId)) {
+        ctx.addIssue({ code: z.ZodIssueCode.custom, path: [index, "teamMemberId"], message: "Cada profesional sólo puede vincularse una vez" });
+      }
+      seen.add(relation.teamMemberId);
+    });
+  });
   // Las etiquetas son una decisión editorial, no una inferencia opaca sobre el texto.
   // Se normalizan para que "Fiscal" y " fiscal " siempre enlacen el mismo tema.
   const editorialTagsSchema = z.array(z.string().trim().min(2).max(60)).max(12).transform((tags) =>
@@ -326,13 +339,17 @@ export function registerAdminNewsRoutes(app: Express): void {
     date: optionalEditorialDateSchema,
     tags: editorialTagsSchema.default([]),
     sourceUrl: sourceUrlSchema,
-    teamMemberIds: teamMemberIdsSchema.default([]),
+    // teamMemberIds se conserva sólo para clientes administrativos previos.
+    // El formulario actual manda el rol explícito en teamMemberRelations.
+    teamMemberIds: teamMemberIdsSchema.optional(),
+    teamMemberRelations: teamMemberRelationsSchema.default([]),
   });
   const adminNewsUpdateSchema = insertNewsSchema.partial().extend({
     date: optionalEditorialDateSchema,
     tags: editorialTagsSchema.optional(),
     sourceUrl: sourceUrlSchema,
     teamMemberIds: teamMemberIdsSchema.optional(),
+    teamMemberRelations: teamMemberRelationsSchema.optional(),
   });
 
   const validateNewsTeamMembers = async (ids: string[]) => {
@@ -340,6 +357,10 @@ export function registerAdminNewsRoutes(app: Express): void {
     const knownIds = new Set((await storage.getTeamMembers()).map((member) => member.id));
     return ids.every((id) => knownIds.has(id));
   };
+  const legacyIdsAsExplicitAuthors = (ids: string[] | undefined) => (ids || []).map((teamMemberId) => ({
+    teamMemberId,
+    relationshipRole: "author" as const,
+  }));
 
   // El pipeline modifica el contenido y por diseño solo puede trabajar sobre
   // borradores. En vez de despublicar una nota visible, crea una copia de
@@ -452,14 +473,20 @@ export function registerAdminNewsRoutes(app: Express): void {
 
   app.put("/api/admin/news/:id/team-members", authMiddleware, requirePermission("content"), async (req: Request, res: Response) => {
     try {
-      const parsed = z.object({ teamMemberIds: teamMemberIdsSchema }).safeParse(req.body);
+      const parsed = z.object({
+        teamMemberIds: teamMemberIdsSchema.optional(),
+        teamMemberRelations: teamMemberRelationsSchema.optional(),
+      }).refine((value) => value.teamMemberIds !== undefined || value.teamMemberRelations !== undefined, {
+        message: "A relationship selection is required",
+      }).safeParse(req.body);
       if (!parsed.success) return apiError(res, 400, "Invalid team members", parsed.error.errors);
       const newsItem = await storage.getNewsById(req.params.id);
       if (!newsItem) return apiError(res, 404, "News not found");
-      if (!await validateNewsTeamMembers(parsed.data.teamMemberIds)) {
+      const relations = parsed.data.teamMemberRelations ?? legacyIdsAsExplicitAuthors(parsed.data.teamMemberIds);
+      if (!await validateNewsTeamMembers(relations.map((relation) => relation.teamMemberId))) {
         return apiError(res, 400, "One or more team members do not exist");
       }
-      await storage.setTeamMembersForNews(newsItem.id, parsed.data.teamMemberIds);
+      await storage.setTeamMembersForNews(newsItem.id, relations);
       invalidatePublicPageCache();
       await auditLog("update", "news_team_members", newsItem.id, (req as any).adminUser?.id || "unknown", undefined, req);
       res.json({ success: true });
@@ -478,7 +505,8 @@ export function registerAdminNewsRoutes(app: Express): void {
         return apiError(res, 400, "Validation failed", validation.error.errors);
       }
 
-      const { teamMemberIds, ...newsData } = validation.data;
+      const { teamMemberIds, teamMemberRelations, ...newsData } = validation.data;
+      const relations = teamMemberRelations.length ? teamMemberRelations : legacyIdsAsExplicitAuthors(teamMemberIds);
       sanitizeNewsFields(newsData);
       if (newsData.published && !newsData.date) {
         return apiError(res, 400, "Published news requires a valid editorial date");
@@ -500,11 +528,11 @@ export function registerAdminNewsRoutes(app: Express): void {
         return apiError(res, 400, rawArticleUrlError);
       }
 
-      if (!await validateNewsTeamMembers(teamMemberIds)) {
+      if (!await validateNewsTeamMembers(relations.map((relation) => relation.teamMemberId))) {
         return apiError(res, 400, "One or more team members do not exist");
       }
 
-      const newsItem = await storage.createNewsWithTeamMembers(newsData, teamMemberIds);
+      const newsItem = await storage.createNewsWithTeamMembers(newsData, relations);
       const linkIntegrity = linkVerifications.length
         ? await persistArticleExternalLinkVerifications(newsItem, linkVerifications)
         : null;
@@ -533,7 +561,8 @@ export function registerAdminNewsRoutes(app: Express): void {
     try {
       const parsed = adminNewsUpdateSchema.safeParse(req.body);
       if (!parsed.success) return apiError(res, 400, "Invalid input", parsed.error.errors);
-      const { teamMemberIds, ...validated } = parsed.data;
+      const { teamMemberIds, teamMemberRelations, ...validated } = parsed.data;
+      const relations = teamMemberRelations ?? (teamMemberIds === undefined ? undefined : legacyIdsAsExplicitAuthors(teamMemberIds));
       sanitizeNewsFields(validated);
       const current = await storage.getNewsById(req.params.id);
       if (!current) return apiError(res, 404, "News not found");
@@ -566,10 +595,10 @@ export function registerAdminNewsRoutes(app: Express): void {
           : findUnlinkedArticleUrls(finalState);
         if (rawUrls.length) return apiError(res, 400, rawArticleUrlError);
       }
-      if (teamMemberIds && !await validateNewsTeamMembers(teamMemberIds)) {
+      if (relations && !await validateNewsTeamMembers(relations.map((relation) => relation.teamMemberId))) {
         return apiError(res, 400, "One or more team members do not exist");
       }
-      const newsItem = await storage.updateNewsWithTeamMembers(req.params.id, validated, teamMemberIds);
+      const newsItem = await storage.updateNewsWithTeamMembers(req.params.id, validated, relations);
       if (!newsItem) {
         return apiError(res, 404, "News not found");
       }

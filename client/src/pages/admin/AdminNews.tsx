@@ -404,7 +404,7 @@ export default function AdminNews() {
               <LegalAlertButton />
               <Link href="/admin/news/authors-review">
                 <Button size="sm" variant="outline" data-testid="button-author-review">
-                  Revisar autores
+                  Revisar vínculos
                 </Button>
               </Link>
               <Link href="/admin/news/new">
