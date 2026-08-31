@@ -86,41 +86,27 @@ export function registerMirrorNewPublicRoutes(app: Express, runtime: MirrorRunti
   );
 
   const serveHub = async (lang: Lang, res: Response) => {
-    const [config, articles, rankings, communications, insights, alerts, press, events] = await Promise.all([
+    const [config, articles, communications, insights, alerts] = await Promise.all([
       getConfigMap(),
       storage.getPublishedNewsPage(2, 0, "articles"),
-      storage.getPublishedNewsPage(2, 0, "rankings"),
       storage.getPublishedNewsPage(2, 0, "news"),
       storage.getPublishedNewsPage(2, 0, "insights"),
       storage.getPublishedNewsPage(2, 0, "alerts"),
-      storage.getPublishedNewsPage(2, 0, "press"),
-      storage.getEvents(),
     ]);
-    const [articleCount, rankingCount, communicationCount, insightCount, alertCount, pressCount] = await Promise.all([
+    const [articleCount, communicationCount, insightCount, alertCount] = await Promise.all([
       storage.getPublishedNewsCount("articles"),
-      storage.getPublishedNewsCount("rankings"),
       storage.getPublishedNewsCount("news"),
       storage.getPublishedNewsCount("insights"),
       storage.getPublishedNewsCount("alerts"),
-      storage.getPublishedNewsCount("press"),
     ]);
     const suffix = lang === "en" ? "?lang=en" : "";
-    const eventPath = lang === "es" ? "/perspectivas/eventos" : "/insights/events";
-    const eventHighlights = events.slice(0, 2).map((event) => ({
-      title: lang === "es" ? event.titleEs : event.title,
-      href: `${eventPath}#evento-${encodeURIComponent(event.id)}`,
-      date: event.date,
-    }));
     const analysis = [...insights, ...alerts]
       .sort((a, b) => new Date(b.date || 0).getTime() - new Date(a.date || 0).getTime())
       .slice(0, 2);
     const sections: PerspectiveHubSection[] = [
       { id: "articles", title: lang === "es" ? "Artículos" : "Articles", href: `/articles${suffix}`, count: articleCount, highlights: articles.map((item) => newsHighlight(item, lang)) },
-      { id: "events", title: lang === "es" ? "Eventos" : "Events", href: eventPath, count: events.length, highlights: eventHighlights },
-      { id: "recognitions", title: lang === "es" ? "Reconocimientos" : "Recognitions", href: lang === "es" ? "/perspectivas/reconocimientos" : "/insights/recognitions", count: rankingCount, highlights: rankings.map((item) => newsHighlight(item, lang)) },
       { id: "communications", title: lang === "es" ? "Comunicaciones" : "Communications", href: lang === "es" ? "/perspectivas/comunicaciones" : "/insights/communications", count: communicationCount, highlights: communications.map((item) => newsHighlight(item, lang)) },
       { id: "analysis", title: lang === "es" ? "Análisis y actualizaciones" : "Analysis and updates", href: lang === "es" ? "/perspectivas/analisis-y-actualizaciones" : "/insights/analysis-and-updates", count: insightCount + alertCount, highlights: analysis.map((item) => newsHighlight(item, lang)) },
-      { id: "press", title: lang === "es" ? "Sala de prensa" : "Press room", href: lang === "es" ? "/perspectivas/sala-de-prensa" : "/insights/press-room", count: pressCount, highlights: press.map((item) => newsHighlight(item, lang)) },
     ];
     sendPage(res, renderPerspectivesHub(pick(TEMPLATES.publications, lang), config, lang, sections));
   };

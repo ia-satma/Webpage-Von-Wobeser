@@ -1,20 +1,21 @@
 # Contexto vigente — Von Wobeser y Sierra
 
-Última actualización: **2026-08-28, America/Monterrey**.
+Última actualización: **2026-08-31, America/Monterrey**.
 
 Este archivo es el punto de entrada para continuar el proyecto. El estado completo de
 arquitectura, contenido, CMS, agentes, seguridad, navegación, auditorías, Replit, despliegue y
 pendientes se encuentra en
-[`docs/CONTEXT-2026-08-28.md`](docs/CONTEXT-2026-08-28.md). El antecedente detallado anterior
-permanece en [`docs/CONTEXT-2026-08-26.md`](docs/CONTEXT-2026-08-26.md).
+[`docs/CONTEXT-2026-08-31.md`](docs/CONTEXT-2026-08-31.md). El antecedente detallado anterior
+permanece en [`docs/CONTEXT-2026-08-28.md`](docs/CONTEXT-2026-08-28.md).
 
 ## Estado breve
 
 - Fuente de verdad: `ia-satma/Webpage-Von-Wobeser`, rama `main`.
-- Commit vigente en `main`: `a6c2408` (`Add Talent privacy notice and refine public pages`),
-  enviado a `origin/main` el 28-ago-2026. Replit descargó ese SHA, terminó la migración idempotente
-  de nombre público de Edmond Grieger, reconcilió los 26 Socios y aprobó TypeScript, **528/528**
-  pruebas de seguridad, rendimiento y build. Falta solamente que el operador pulse **Republish**.
+- Commit vigente en `main`: `2c6b29a` (`Fix Talent mobile forms and career title`), enviado a
+  `origin/main` el 31-ago-2026. La Shell de Replit descargó el SHA, aplicó la migración editorial
+  de Carrera y aprobó TypeScript y build. La validación local completa aprobó TypeScript,
+  **592/592** pruebas de seguridad, build y `git diff --check`; para hacer público el corte el
+  operador aún debe pulsar **Republish**.
 - Sitio público: espejo editorial HTML/Joomla servido y enriquecido por Express; **no es React**.
 - Administración: SPA React únicamente bajo `/admin/*`.
 - Datos: PostgreSQL/Drizzle con migraciones versionadas, transaccionales e idempotentes. Cada
@@ -29,7 +30,8 @@ permanece en [`docs/CONTEXT-2026-08-26.md`](docs/CONTEXT-2026-08-26.md).
   editorial reversible.
 - Avisos de Privacidad: el aviso general VWyS 2026 es bilingüe y administrable. Talento usa un
   aviso independiente para Candidaturas, también bilingüe, editable en Administración y enlazado
-  por todos sus formularios sin alterar sus endpoints.
+  por todos sus formularios sin alterar sus endpoints. Sus dos formularios comparten una regla
+  responsive que evita cualquier desbordamiento horizontal de campos, botón, aviso y enlaces.
 - Hero de Inicio: los medios actuales persisten en App Storage con historial administrativo; el
   video previo no se elimina del historial. Conservar derivados de escritorio, móvil y póster.
 - Navegación activa: menú definitivo 2026, con `Insights` en ambos idiomas; el menú clásico
@@ -67,14 +69,21 @@ permanece en [`docs/CONTEXT-2026-08-26.md`](docs/CONTEXT-2026-08-26.md).
   URL canónica. Nunca inferir canonical, `hreflang`, `og:url`, JSON-LD, sitemap ni `robots.txt`
   desde `REPLIT_DOMAINS`, pues expone dominios temporales de Preview. El valor institucional actual
   `https://www.vonwobeser.com` responde públicamente y es el canónico correcto.
-- Última validación local y en Replit: TypeScript, rendimiento, build, `git diff --check` y
-  **528/528** pruebas de seguridad aprobadas. Los avisos de Vite por assets históricos de
-  `templates/beez3` se resuelven en runtime y no son errores de compilación.
+- El título español administrable de Carrera es **“Tu carrera en Von Wobeser y Sierra”**, sin tilde
+  en `Tu`; inglés y cualquier edición posterior desde el panel se conservan. La migración sólo
+  cambia el valor histórico exacto y se detiene ante una edición distinta de Administración.
+- La portada pública de Perspectivas/Insights sólo reúne Artículos, Comunicaciones y, cuando exista,
+  Análisis y actualizaciones. Eventos, Reconocimientos y Sala de prensa se conservan en el CMS y
+  sus rutas directas, pero nunca se muestran como tarjetas de esa portada.
+- Última validación local y en Replit: TypeScript, build, `git diff --check` y **594/594** pruebas
+  de seguridad aprobadas; Replit confirmó además que la migración de título no cambió conteos
+  protegidos ni esquema. Los avisos de Vite por assets históricos de `templates/beez3` se resuelven
+  en runtime y no son errores de compilación.
 
 ## Reglas de continuidad
 
-1. Leer primero [`docs/CONTEXT-2026-08-28.md`](docs/CONTEXT-2026-08-28.md), su antecedente
-   [`docs/CONTEXT-2026-08-26.md`](docs/CONTEXT-2026-08-26.md) y `replit.md`.
+1. Leer primero [`docs/CONTEXT-2026-08-31.md`](docs/CONTEXT-2026-08-31.md), su antecedente
+   [`docs/CONTEXT-2026-08-28.md`](docs/CONTEXT-2026-08-28.md) y `replit.md`.
 2. No incluir contraseñas, tokens, URLs de base, paquetes `.handoff` ni valores de Secrets en Git,
    notas, comandos compartidos o capturas.
 3. No borrar ni mover `frontend-mirror/`: es un activo obligatorio de runtime.
@@ -102,3 +111,8 @@ permanece en [`docs/CONTEXT-2026-08-26.md`](docs/CONTEXT-2026-08-26.md).
 13. Para auditorías SEO de Replit usar la raíz pública
     `https://webpage-von-wobeser-2026.replit.app/`, nunca `/index.html` ni
     `/index.php/index.html`: esas rutas históricas redirigen intencionalmente a la portada limpia.
+14. Los avisos `[csp-report]` con `style-src-elem` en logs de Replit son telemetría de la Política
+    de Seguridad de Contenido: el navegador bloqueó un estilo dinámico sin nonce. No son fallos
+    500, migraciones ni base de datos. Los `200`/`304` de `manifest.webmanifest` son respuestas
+    normales. No relajar la CSP para silenciar el reporte; investigar su origen sólo si hay una
+    regresión visual reproducible.

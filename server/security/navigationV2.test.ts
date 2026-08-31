@@ -473,6 +473,29 @@ test("el llamado a suscripción de Insights conserva su destino y una etiqueta a
   assert.equal(subscribe.find(".vw-perspectives__subscribe-cta").attr("href"), "/#newsletter");
 });
 
+test("la portada de Insights nunca expone Eventos, Reconocimientos ni Sala de prensa", () => {
+  const sections = [
+    { id: "articles", title: "Artículos", href: "/articles", count: 3, highlights: [] },
+    { id: "communications", title: "Comunicaciones", href: "/perspectivas/comunicaciones", count: 2, highlights: [] },
+    { id: "events", title: "Eventos", href: "/perspectivas/eventos", count: 5, highlights: [] },
+    { id: "recognitions", title: "Reconocimientos", href: "/perspectivas/reconocimientos", count: 1, highlights: [] },
+    { id: "press", title: "Sala de prensa", href: "/perspectivas/sala-de-prensa", count: 1, highlights: [] },
+  ];
+  const html = renderPerspectivesHub(
+    "<!doctype html><html><head></head><body><section class=\"page\"></section></body></html>",
+    {},
+    "es",
+    sections,
+  );
+  const $ = cheerio.load(html);
+  const headings = $(".vw-perspectives__card h2").map((_, node) => $(node).text()).get();
+
+  assert.deepEqual(headings, ["Artículos", "Comunicaciones"]);
+  assert.equal(html.includes("/perspectivas/eventos"), false);
+  assert.equal(html.includes("/perspectivas/reconocimientos"), false);
+  assert.equal(html.includes("/perspectivas/sala-de-prensa"), false);
+});
+
 test("el guardado del menú revalida la revisión bajo bloqueo transaccional", () => {
   const routes = readFileSync(new URL("../mirror/routes/adminRoutes.ts", import.meta.url), "utf8");
   assert.match(routes, /pg_advisory_xact_lock\(hashtext\('vw-navigation-v2'\)\)/);

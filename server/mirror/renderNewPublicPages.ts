@@ -70,13 +70,25 @@ export type PerspectiveHubSection = {
   highlights: Array<{ title: string; href: string; date?: Date | string | null }>;
 };
 
+// Estas colecciones siguen disponibles y administrables de forma individual,
+// pero no forman parte de la portada editorial de Insights. La defensa vive
+// aquí, junto al renderizado, para que ningún llamador futuro pueda volver a
+// exponerlas accidentalmente sólo por tener contenido publicado.
+export const HIDDEN_PERSPECTIVES_HUB_SECTION_IDS = new Set([
+  "events",
+  "recognitions",
+  "press",
+]);
+
 export function renderPerspectivesHub(
   templateHtml: string,
   config: ConfigMap,
   lang: Lang,
   sections: PerspectiveHubSection[],
 ): string {
-  const available = sections.filter((section) => section.count > 0);
+  const available = sections.filter((section) => (
+    section.count > 0 && !HIDDEN_PERSPECTIVES_HUB_SECTION_IDS.has(section.id)
+  ));
   const cards = available.map((section) => (
     `<article class="vw-perspectives__card">` +
       `<div class="vw-perspectives__card-head"><h2>${esc(section.title)}</h2><span>${section.count}</span></div>` +
@@ -109,8 +121,8 @@ export function renderPerspectivesHub(
     alternatePaths: { es: "/perspectivas", en: "/insights" },
     title: `${title} | Von Wobeser y Sierra`,
     description: lang === "es"
-      ? "Artículos, eventos, reconocimientos, comunicaciones y análisis de Von Wobeser y Sierra."
-      : "Articles, events, recognitions, communications and analysis from Von Wobeser y Sierra.",
+      ? "Artículos, comunicaciones y análisis de Von Wobeser y Sierra."
+      : "Articles, communications and analysis from Von Wobeser y Sierra.",
     type: "website",
     jsonLd: [breadcrumbNode([
       { name: lang === "es" ? "Inicio" : "Home", path: "/" },
