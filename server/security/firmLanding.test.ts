@@ -143,9 +143,9 @@ test("Carrera y Pasantes usan la jerarquía editorial bilingüe de las subpágin
   assert.equal(interns(".careers__content > .page__content--intro").length, 0);
   assert.match(interns.html(), /\.vw-careers-header h1/);
   assert.match(interns.html(), /grid-template-columns:minmax\(0,1fr\) minmax\(0,1fr\)/);
-  assert.match(interns.html(), /careers--wrap\.vw-careers-layout\{display:grid!important;box-sizing:border-box;width:100%;max-width:100%;min-width:0/);
+  assert.match(interns.html(), /careers--wrap\.vw-careers-layout\{display:grid!important;box-sizing:border-box;width:min\(100%,100vw\)!important;inline-size:min\(100%,100vw\)!important/);
   assert.match(interns.html(), /vw-careers-copy \.careers__content p\{max-width:100%;overflow-wrap:anywhere/);
-  assert.match(interns.html(), /@media\(max-width:680px\).*vw-careers-header,.page\.careers \.vw-careers-copy.*overflow-wrap:anywhere/s);
+  assert.match(interns.html(), /@media\(max-width:680px\).*width:min\(100%,100vw\)!important.*padding-inline:clamp\(18px,5\.65vw,22px\)!important/s);
 });
 
 test("Carrera y Pasantes comparten la superficie de formulario de Contacto sin cambiar su envío", () => {
@@ -182,6 +182,9 @@ test("Carrera y Pasantes comparten la superficie de formulario de Contacto sin c
   assert.match(page.html(), /width:calc\(50% - 30px\)!important/);
   assert.match(page.html(), /margin:0 0 0 auto!important/);
   assert.match(page.html(), /@media\(max-width:980px\)/);
+  assert.match(page.html(), /\.vw-careers-form,\.page\.careers \.vw-careers-form \*,\.page\.careers \.vw-careers-form \*::before/);
+  assert.match(page.html(), /vw-careers-form__help\{grid-column:1\/-1;max-width:100%;min-width:0;min-inline-size:0/);
+  assert.match(page.html(), /\.vw-careers-form\{grid-template-columns:minmax\(0,1fr\);gap:20px;width:100%!important;inline-size:100%!important;max-width:100%!important;max-inline-size:100%!important/);
   assert.match(page.html(), /fetch\('\/api\/career-applications'/);
   assert.match(page.html(), /fileInput\.addEventListener\('change'/);
 });
@@ -221,7 +224,7 @@ test("el llamado final de Cultura conserva jerarquía móvil sin separar el form
 
   applyCareersFormFix(culture, "es");
 
-  assert.equal(culture(".vw-careers-header h1").text(), "Tú carrera en Von Wobeser y Sierra");
+  assert.equal(culture(".vw-careers-header h1").text(), "Tu carrera en Von Wobeser y Sierra");
   assert.equal(culture(".vw-careers-copy__cta").text(), "Si estás interesado en formar parte de nuestro equipo, contáctanos.");
   assert.equal(culture("#careersForm").hasClass("vw-careers-form--culture"), true);
   assert.match(culture.html(), /\.vw-careers-copy__cta\{margin:26px 0 0!important;border:0!important;color:#616161;font:400 16px\/1\.68 var\(--vw-font-body\)/);

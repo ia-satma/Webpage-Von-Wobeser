@@ -165,6 +165,12 @@ const verifiedDataMigrationPolicies = new Map([
   ["20260829_0016_refresh_attorney_white_background_photos.mjs", {
     allowedCountChanges: new Set(),
   }],
+  // Ajuste tipográfico puntual solicitado para la cabecera administrable de
+  // Carrera. Sólo modifica el valor español heredado cuando coincide de forma
+  // exacta; nunca sustituye una edición diferente del panel.
+  ["20260831_0001_unaccent_careers_page_title.mjs", {
+    allowedCountChanges: new Set(),
+  }],
 ]);
 
 // Algunos entornos de publicación se crearon sin una publicación histórica

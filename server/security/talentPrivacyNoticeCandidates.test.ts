@@ -17,6 +17,9 @@ import { renderRichText } from "../mirror/sanitize";
 const { default: updateCareersTalentCopy } = await import(
   new URL("../../migrations/20260829_0012_update_careers_talent_copy.mjs", import.meta.url).href,
 );
+const { default: unaccentCareersPageTitle } = await import(
+  new URL("../../migrations/20260831_0001_unaccent_careers_page_title.mjs", import.meta.url).href,
+);
 
 const noticeTemplate = `<!doctype html><html lang="es"><head><title>Anterior</title></head><body>
   <section class="page"><div class="page__ttl--holder"><span>Anterior</span></div><div class="page__content--body"><p>Texto anterior.</p></div></section>
@@ -132,6 +135,30 @@ test("la migración de Carrera corrige sólo la frase heredada y preserva el res
   assert.match(saved.value, /retaining the best talent/);
   assert.match(saved.value_es, /Texto español intacto/);
   assert.match(saved.value_es, /retener el mejor talento/);
+});
+
+test("el título de Carrera retira sólo la tilde solicitada y conserva el inglés administrativo", async () => {
+  const saved = {
+    key: "page_careers_title",
+    value: "Your career at Von Wobeser y Sierra",
+    value_es: "Tú carrera en Von Wobeser y Sierra",
+  };
+  const client = {
+    query: async (sql: string, values?: string[]) => {
+      if (sql.includes("SELECT key, value_es")) return { rowCount: 1, rows: [{ ...saved }] };
+      if (sql.includes("UPDATE site_config")) {
+        saved.value_es = values?.[0] ?? saved.value_es;
+        return { rowCount: 1, rows: [{ key: saved.key, value_es: saved.value_es }] };
+      }
+      throw new Error(`Unexpected query: ${sql}`);
+    },
+  };
+
+  await unaccentCareersPageTitle(client);
+  await unaccentCareersPageTitle(client);
+
+  assert.equal(saved.value, "Your career at Von Wobeser y Sierra");
+  assert.equal(saved.value_es, "Tu carrera en Von Wobeser y Sierra");
 });
 
 test("Administración registra, edita de forma segura y no traduce automáticamente el aviso de Candidaturas", () => {
