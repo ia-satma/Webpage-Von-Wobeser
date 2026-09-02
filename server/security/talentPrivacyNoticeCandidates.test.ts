@@ -27,6 +27,7 @@ const noticeTemplate = `<!doctype html><html lang="es"><head><title>Anterior</ti
 
 function careersFormTemplate(): string {
   return `<!doctype html><html><head></head><body><section class="page careers"><form id="careersForm" action="">
+    <input type="hidden" name="legacy_cms_token" value="1">
     <label class="careers__form--label"><input name="name"></label>
     <label class="careers__form--label"><input name="l_name"></label>
     <label class="careers__form--label"><input name="mail"></label>
@@ -93,7 +94,9 @@ test("todos los formularios de Talento enlazan el aviso exclusivo, sin alterar s
     assert.equal($link.attr("hreflang"), "es");
     assert.equal($link.text(), linkText);
     assert.equal($form.find('[name="accept"]').attr("required"), "required");
+    assert.equal($form.find('input[type="hidden"]').length, 0);
     assert.equal($form.find('[name="comment"]').length, 0);
+    assert.equal($form.find('[name="uploaded_file"]').attr("required"), "required");
     assert.equal($form.find(".vw-careers-form__upload span").first().text(), uploadText);
   }
 });

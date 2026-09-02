@@ -151,6 +151,7 @@ test("Carrera y Pasantes usan la jerarquía editorial bilingüe de las subpágin
 test("Carrera y Pasantes comparten la superficie de formulario de Contacto sin cambiar su envío", () => {
   const page = load(`<!doctype html><html><head></head><body>
     <section class="page careers"><form id="careersForm" class="careers__form" action="" enctype="multipart/form-data">
+      <input type="hidden" name="legacy_joomla_token" value="1">
       <label class="careers__form--label">Nombre<input class="careers__form--input" name="name"></label>
       <label class="careers__form--label">Apellido<input class="careers__form--input" name="l_name"></label>
       <label class="careers__form--label">Correo<input class="careers__form--input" name="mail" type="email"></label>
@@ -166,12 +167,17 @@ test("Carrera y Pasantes comparten la superficie de formulario de Contacto sin c
   applyCareersFormFix(page, "es");
 
   assert.equal(page("#careersForm").attr("action"), "/api/career-applications");
+  assert.equal(page("#careersForm").attr("method"), "post");
+  assert.equal(page("#careersForm").attr("enctype"), "multipart/form-data");
   assert.equal(page("#careersForm").hasClass("vw-careers-form"), true);
   assert.equal(page("[name='name']").attr("autocomplete"), "given-name");
   assert.equal(page("[name='l_name']").attr("autocomplete"), "family-name");
   assert.equal(page("[name='mail']").attr("autocomplete"), "email");
   assert.equal(page("[name='accept']").attr("required"), "required");
+  assert.equal(page("input[type='hidden']").length, 0);
   assert.equal(page("[name='comment']").length, 0);
+  assert.equal(page("[name='uploaded_file']").attr("required"), "required");
+  assert.equal(page("[name='uploaded_file']").attr("aria-label"), "Adjunta tu hoja de vida");
   assert.equal(page(".vw-careers-form__upload").length, 1);
   assert.equal(page(".vw-careers-form__upload span").first().text(), "Adjunta tu hoja de vida");
   assert.equal(page(".vw-careers-form__privacy").length, 1);
@@ -187,6 +193,7 @@ test("Carrera y Pasantes comparten la superficie de formulario de Contacto sin c
   assert.match(page.html(), /\.vw-careers-form\{grid-template-columns:minmax\(0,1fr\);gap:20px;width:100%!important;inline-size:100%!important;max-width:100%!important;max-inline-size:100%!important/);
   assert.match(page.html(), /fetch\('\/api\/career-applications'/);
   assert.match(page.html(), /fileInput\.addEventListener\('change'/);
+  assert.match(page.html(), /vw-careers-form__upload input\[type="file"\]\{position:absolute!important;inset:0!important;display:block!important;width:100%!important;height:100%!important/);
 });
 
 test("Carrera conserva el copy aprobado de mejor talento desde Administración", () => {

@@ -132,6 +132,8 @@ export function applyCareersFormFix(
   // sin alterar formularios heredados de otras plantillas.
   $form
     .attr("action", "/api/career-applications") // defensivo, por si el JS no corre
+    .attr("method", "post")
+    .attr("enctype", "multipart/form-data")
     .attr("novalidate", "")
     .addClass("vw-careers-form");
   if (!isInterns) $form.addClass("vw-careers-form--culture");
@@ -140,6 +142,17 @@ export function applyCareersFormFix(
   $form.find('[name="mail"]').attr({ autocomplete: "email", required: "" });
   $form.find('[name="tel"]').attr({ autocomplete: "tel" });
   $form.find('[name="accept"]').attr("required", "");
+  // Las cuatro plantillas heredadas traen un token de Joomla con un nombre
+  // aleatorio. El endpoint propio no lo usa y, correctamente, rechaza campos
+  // desconocidos para impedir que se almacenen datos arbitrarios. Eliminarlo
+  // al renderizar evita que el token histórico bloquee todas las solicitudes.
+  $form.find('input[type="hidden"]').remove();
+  // La plantilla original escondía el input a 0×0 px y dependía de un handler
+  // de Joomla. Conservamos el input semántico, pero eliminamos ese handler:
+  // el estilo propio lo cubre ahora sobre toda el área visible de carga.
+  $form.find('[name="uploaded_file"]')
+    .removeAttr("onchange")
+    .attr({ required: "", "aria-label": copy.upload });
   // Dirección ya no se solicita en los formularios de Talento. Conservamos
   // las direcciones de solicitudes históricas en Administración, pero el
   // campo se retira completamente antes de que el formulario se renderice o
@@ -202,8 +215,12 @@ export function applyCareersFormFix(
 .page.careers .vw-careers-form .careers__form--label{display:flex;flex-direction:column;width:auto!important;max-width:100%;min-width:0;min-inline-size:0;gap:8px;margin:0!important;float:none!important;color:#fff;font:500 14px/1.35 var(--vw-font-ui);letter-spacing:0;text-transform:none}
 .page.careers .vw-careers-form .careers__form--input{box-sizing:border-box;display:block;width:100%!important;max-width:100%;min-width:0;min-inline-size:0;min-height:52px;margin:0!important;border:1px solid transparent;border-radius:5px;background:#fff;color:#3f3f3f;padding:12px 14px;font:400 16px/1.4 var(--vw-font-ui);letter-spacing:0;text-transform:none}
 .page.careers .vw-careers-form .careers__form--input:focus-visible,.page.careers .vw-careers-form .careers__form--checkbox:focus-visible,.page.careers .vw-careers-form .careers__form--submit:focus-visible,.page.careers .vw-careers-form .vw-careers-form__upload:focus-within{outline:3px solid #ac162c;outline-offset:3px}
-.page.careers .vw-careers-form .vw-careers-form__upload{grid-column:1/-1;display:flex;align-items:center;width:100%;min-height:52px;box-sizing:border-box;margin:0!important;border:1px solid transparent;border-radius:5px;background:#fff;color:#3f3f3f;padding:0 14px;font:400 16px/1.4 var(--vw-font-ui);letter-spacing:0;text-transform:none}
-.page.careers .vw-careers-form .vw-careers-form__upload span{display:inline-flex;align-items:center;justify-content:center;min-height:32px;border-radius:4px;background:#ac162c;color:#fff;padding:0 13px;font:500 14px/1 var(--vw-font-ui);letter-spacing:0;text-transform:none}
+.page.careers .vw-careers-form .vw-careers-form__upload{grid-column:1/-1;position:relative;display:flex;align-items:center;width:100%;min-height:52px;box-sizing:border-box;margin:0!important;border:1px solid transparent;border-radius:5px;background:#fff;color:#3f3f3f;padding:0 14px;font:400 16px/1.4 var(--vw-font-ui);letter-spacing:0;text-transform:none;cursor:pointer}
+.page.careers .vw-careers-form .vw-careers-form__upload span{display:inline-flex;align-items:center;justify-content:center;min-height:32px;border-radius:4px;background:#ac162c;color:#fff;padding:0 13px;font:500 14px/1 var(--vw-font-ui);letter-spacing:0;text-transform:none;pointer-events:none}
+/* El input heredado tenía ancho y alto cero inline. Oculto visualmente pero
+   ocupando toda la etiqueta, permite abrir el selector al tocar cualquier
+   parte de “Adjunta tu hoja de vida”, en escritorio y móvil. */
+.page.careers .vw-careers-form .vw-careers-form__upload input[type="file"]{position:absolute!important;inset:0!important;display:block!important;width:100%!important;height:100%!important;margin:0!important;border:0!important;padding:0!important;opacity:0!important;cursor:pointer!important}
 .page.careers .vw-careers-form .vw-careers-form__filename{grid-column:1/-1;box-sizing:border-box;display:block;width:100%!important;min-height:24px;margin:-10px 0 0!important;border:0!important;background:transparent!important;color:#fff!important;padding:0!important;font:400 14px/1.45 var(--vw-font-ui)!important;letter-spacing:0!important;text-transform:none!important}
 .page.careers .vw-careers-form .vw-careers-form__filename::placeholder{color:rgba(255,255,255,.78);opacity:1}
 .page.careers .vw-careers-form .vw-careers-form__privacy{grid-column:1/-1;display:flex;flex-direction:row;align-items:center;justify-content:flex-start!important;gap:14px;min-height:56px;box-sizing:border-box;margin:2px 0 0!important;border-radius:5px;background:#fff;color:#4f4f4f;padding:12px 16px;font:400 16px/1.45 var(--vw-font-ui);letter-spacing:0;text-align:left!important;text-transform:none}
