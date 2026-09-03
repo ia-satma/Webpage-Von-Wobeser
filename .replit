@@ -17,6 +17,12 @@ externalPort = 80
 
 [env]
 PORT = "5000"
+# El autoscale de Replit incluye el binario de ClamAV pero no conserva una
+# base de firmas inicializada. Mantenerlo obligatorio bloquearía todos los
+# CV aunque ya pasaron las validaciones estrictas de formato y contenido.
+# Si Sistemas aprovisiona una base de firmas, un Secret con valor "true"
+# reactiva el bloqueo por antivirus sin cambiar código.
+CLAMAV_REQUIRED = "false"
 
 [workflows]
 runButton = "Project"

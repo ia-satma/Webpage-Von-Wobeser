@@ -110,6 +110,8 @@ test("ClamAV readiness follows the production fail-closed configuration", () => 
   assert.equal(isClamAvRequired({ NODE_ENV: "production", CLAMAV_REQUIRED: "false" }), false);
   assert.equal(isClamAvRequired({ NODE_ENV: "development", CLAMAV_REQUIRED: "true" }), true);
   assert.equal(isClamAvRequired({ NODE_ENV: "development", CLAMAV_REQUIRED: undefined }), false);
+  const replit = fs.readFileSync(new URL("../../.replit", import.meta.url), "utf8");
+  assert.match(replit, /CLAMAV_REQUIRED\s*=\s*"false"/);
 });
 
 test("production CSP adds explicit worker and manifest boundaries", () => {

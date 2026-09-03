@@ -82,8 +82,7 @@ test("la ruta de solicitudes persiste y recupera CV privados", async () => {
   );
   assert.match(routes, /persistPrivateCvFile/);
   assert.match(routes, /privateDocumentStorageStatus/);
-  assert.match(routes, /CV_STORAGE_UNAVAILABLE/);
-  assert.match(routes, /CAREER_APPLICATIONS_SCHEMA_PENDING/);
+  assert.match(routes, /classifyCareerApplicationFailure/);
   assert.match(routes, /openPersistentPrivateCvStream/);
   assert.match(routes, /deletePersistentPrivateCv/);
   assert.match(routes, /requirePermission\("career_applications"\)/);
