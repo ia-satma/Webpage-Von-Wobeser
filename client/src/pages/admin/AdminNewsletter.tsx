@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useLocation } from "wouter";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Download, Mail, Search } from "lucide-react";
+import { Download, Mail, Search, Trash2 } from "lucide-react";
 import { adminApiRequest, useAdminAuth, useMyPermissions } from "@/lib/adminAuth";
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 import { Badge } from "@/components/ui/badge";
@@ -80,6 +80,21 @@ export default function AdminNewsletter() {
     }
   };
 
+  const deleteSubscriber = async (subscriber: Subscriber) => {
+    if (!window.confirm(`¿Eliminar permanentemente la suscripción de ${subscriber.email}? Esta acción no se puede deshacer.`)) return;
+    setUpdatingId(subscriber.id);
+    try {
+      const res = await adminApiRequest("DELETE", `/api/admin/newsletter-subscribers/${subscriber.id}`);
+      if (!res.ok) throw new Error();
+      toast({ title: "Suscripción eliminada" });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/newsletter-subscribers"] });
+    } catch {
+      toast({ title: "No se pudo eliminar la suscripción", variant: "destructive" });
+    } finally {
+      setUpdatingId(null);
+    }
+  };
+
   const exportCsv = async () => {
     try {
       const res = await adminApiRequest("GET", `/api/admin/newsletter-subscribers/export.csv${queryString ? `?${queryString}` : ""}`);
@@ -104,7 +119,7 @@ export default function AdminNewsletter() {
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
         <AdminPageHeader
           title="Suscriptores del Newsletter"
-          description="Registros recibidos desde la portada. Puedes desactivar una suscripción y exportar el resultado filtrado."
+          description="Registros recibidos desde la portada. Puedes desactivar o eliminar una suscripción y exportar el resultado filtrado."
           icon={Mail}
           actions={has("exports") ? <Button onClick={exportCsv} variant="outline"><Download className="h-4 w-4 mr-2" />Exportar CSV</Button> : undefined}
         />
@@ -154,7 +169,14 @@ export default function AdminNewsletter() {
                         <TableCell className="uppercase">{subscriber.preferredLanguage || "—"}</TableCell>
                         <TableCell className="whitespace-nowrap text-sm">{fmtDate(subscriber.subscribedAt)}</TableCell>
                         <TableCell><Badge variant={subscriber.isActive ? "default" : "secondary"}>{subscriber.isActive ? "Activo" : "Inactivo"}</Badge></TableCell>
-                        <TableCell className="text-right"><Button variant="ghost" size="sm" disabled={updatingId === subscriber.id} onClick={() => updateStatus(subscriber)}>{subscriber.isActive ? "Desactivar" : "Reactivar"}</Button></TableCell>
+                        <TableCell className="text-right">
+                          <div className="inline-flex items-center gap-1">
+                            <Button variant="ghost" size="sm" disabled={updatingId === subscriber.id} onClick={() => updateStatus(subscriber)}>{subscriber.isActive ? "Desactivar" : "Reactivar"}</Button>
+                            <Button variant="ghost" size="icon" disabled={updatingId === subscriber.id} onClick={() => deleteSubscriber(subscriber)} title="Eliminar suscripción" aria-label="Eliminar suscripción">
+                              <Trash2 className="h-4 w-4 text-destructive" />
+                            </Button>
+                          </div>
+                        </TableCell>
                       </TableRow>
                     ))}
                   </TableBody>

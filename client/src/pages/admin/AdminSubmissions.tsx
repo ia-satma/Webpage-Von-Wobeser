@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useToast } from "@/hooks/use-toast";
-import { Mail, FileText, Download, Check } from "lucide-react";
+import { Mail, FileText, Download, Check, Trash2 } from "lucide-react";
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 import { AdminPageHelp } from "@/components/admin/AdminPageHelp";
 
@@ -84,6 +84,30 @@ export default function AdminSubmissions() {
       }
     } catch {
       toast({ title: "Error", description: "No fue posible conectar con el servidor.", variant: "destructive" });
+    }
+  };
+
+  const deleteContact = async (id: string) => {
+    if (!window.confirm("¿Eliminar permanentemente este mensaje de contacto? Esta acción no se puede deshacer.")) return;
+    try {
+      const res = await adminApiRequest("DELETE", `/api/admin/contact-submissions/${id}`);
+      if (!res.ok) throw new Error();
+      toast({ title: "Mensaje eliminado" });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/contact-submissions"] });
+    } catch {
+      toast({ title: "No se pudo eliminar el mensaje", description: "Inténtalo de nuevo.", variant: "destructive" });
+    }
+  };
+
+  const deleteCareer = async (id: string) => {
+    if (!window.confirm("¿Eliminar permanentemente esta solicitud y su hoja de vida? Esta acción no se puede deshacer.")) return;
+    try {
+      const res = await adminApiRequest("DELETE", `/api/admin/career-applications/${id}`);
+      if (!res.ok) throw new Error();
+      toast({ title: "Solicitud y hoja de vida eliminadas" });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/career-applications"] });
+    } catch {
+      toast({ title: "No se pudo completar la eliminación", description: "Inténtalo de nuevo.", variant: "destructive" });
     }
   };
 
@@ -167,11 +191,16 @@ export default function AdminSubmissions() {
                             )}
                           </TableCell>
                           <TableCell>
-                            {!c.read && (
-                              <Button variant="ghost" size="sm" onClick={() => markContactRead(c.id)}>
-                                <Check className="h-3.5 w-3.5 mr-1" /> Marcar leído
+                            <div className="flex items-center gap-1">
+                              {!c.read && (
+                                <Button variant="ghost" size="sm" onClick={() => markContactRead(c.id)}>
+                                  <Check className="h-3.5 w-3.5 mr-1" /> Marcar leído
+                                </Button>
+                              )}
+                              <Button variant="ghost" size="icon" onClick={() => deleteContact(c.id)} title="Eliminar mensaje" aria-label="Eliminar mensaje">
+                                <Trash2 className="h-4 w-4 text-destructive" />
                               </Button>
-                            )}
+                            </div>
                           </TableCell>
                         </TableRow>
                       ))}
@@ -222,11 +251,16 @@ export default function AdminSubmissions() {
                             )}
                           </TableCell>
                           <TableCell>
-                            {!c.read && (
-                              <Button variant="ghost" size="sm" onClick={() => markCareerRead(c.id)}>
-                                <Check className="h-3.5 w-3.5 mr-1" /> Marcar leído
+                            <div className="flex items-center gap-1">
+                              {!c.read && (
+                                <Button variant="ghost" size="sm" onClick={() => markCareerRead(c.id)}>
+                                  <Check className="h-3.5 w-3.5 mr-1" /> Marcar leído
+                                </Button>
+                              )}
+                              <Button variant="ghost" size="icon" onClick={() => deleteCareer(c.id)} title="Eliminar solicitud y hoja de vida" aria-label="Eliminar solicitud y hoja de vida">
+                                <Trash2 className="h-4 w-4 text-destructive" />
                               </Button>
-                            )}
+                            </div>
                           </TableCell>
                         </TableRow>
                       ))}

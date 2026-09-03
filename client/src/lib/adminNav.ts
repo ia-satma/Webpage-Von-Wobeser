@@ -73,6 +73,15 @@ export interface AdminNavGroup {
   id: string;
   label: string | null;
   items: AdminNavItem[];
+  /**
+   * Color semántico del grupo. No sustituye su título ni su descripción: sólo ayuda a
+   * identificar de qué tipo de trabajo se trata al recorrer el panel.
+   */
+  tone?: "editorial" | "inbox" | "settings" | "technical" | "neutral";
+  /** Explicación breve que aparece debajo del nombre del grupo en el menú expandido. */
+  description?: string;
+  /** Señal explícita para no presentar módulos técnicos como herramientas editoriales. */
+  technical?: boolean;
 }
 
 export const ADMIN_NAV_GROUPS: AdminNavGroup[] = [
@@ -87,6 +96,8 @@ export const ADMIN_NAV_GROUPS: AdminNavGroup[] = [
   {
     id: "contenido",
     label: "Contenido del sitio",
+    tone: "editorial",
+    description: "Publica y actualiza lo que las personas ven en el sitio.",
     items: [
       { href: "/admin/site-config", label: "Portada", icon: Settings, requires: "config" },
       { href: "/admin/site-config/firma", label: "Nuestra Firma", icon: Landmark, requires: "config" },
@@ -106,6 +117,8 @@ export const ADMIN_NAV_GROUPS: AdminNavGroup[] = [
   {
     id: "complementario",
     label: "Contenido complementario",
+    tone: "editorial",
+    description: "Completa las páginas institucionales, testimonios y reconocimientos.",
     items: [
       { href: "/admin/site-config/probono", label: "Pro Bono", icon: HeartHandshake, requires: "config" },
       { href: "/admin/site-config/diversidad", label: "Diversidad e Inclusión", icon: Sparkles, requires: "config" },
@@ -121,6 +134,8 @@ export const ADMIN_NAV_GROUPS: AdminNavGroup[] = [
   {
     id: "registros",
     label: "Registros recibidos",
+    tone: "inbox",
+    description: "Consulta y gestiona los mensajes, suscripciones y solicitudes que llegan al sitio.",
     items: [
       { href: "/admin/newsletter", label: "Suscriptores del Newsletter", icon: Mail, requires: "newsletter" },
       { href: "/admin/submissions?tab=contact", label: "Mensajes de contacto", icon: MessageSquare, requires: "contact_submissions" },
@@ -130,6 +145,8 @@ export const ADMIN_NAV_GROUPS: AdminNavGroup[] = [
   {
     id: "configuracion",
     label: "Configuración",
+    tone: "settings",
+    description: "Ajusta cómo se presenta y funciona el sitio. Estos cambios pueden afectar varias páginas.",
     items: [
       { href: "/admin/navigation", label: "Navegación y visibilidad", icon: Navigation, requires: "config" },
       { href: "/admin/public-appearance", label: "Diseños públicos", icon: Paintbrush, requires: "config" },
@@ -144,6 +161,8 @@ export const ADMIN_NAV_GROUPS: AdminNavGroup[] = [
   {
     id: "construccion",
     label: "En construcción",
+    tone: "neutral",
+    description: "Módulos preparados para una fase posterior; no cambian el sitio público hoy.",
     items: [
       { href: "/admin/coming-soon/premios", label: "Premios", icon: Trophy, comingSoon: true, requires: "superAdminOnly" },
       { href: "/admin/coming-soon/clientes", label: "Clientes", icon: Handshake, comingSoon: true, requires: "superAdminOnly" },
@@ -152,6 +171,9 @@ export const ADMIN_NAV_GROUPS: AdminNavGroup[] = [
   {
     id: "avanzado",
     label: "Avanzado · Agentes IA",
+    tone: "technical",
+    technical: true,
+    description: "Área técnica para automatización, auditorías y operación del sistema. No es necesaria para publicar contenido.",
     items: [
       { href: "/admin/site-config/voz", label: "Voz corporativa", icon: Volume2, requires: "config" },
       { href: "/admin/agents", label: "Agentes IA", icon: Bot, requires: "agents" },

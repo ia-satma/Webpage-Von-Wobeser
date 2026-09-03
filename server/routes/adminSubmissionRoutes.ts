@@ -3,10 +3,10 @@ import fs from "node:fs";
 import path from "node:path";
 import { z } from "zod";
 import { authMiddleware, requirePermission } from "../auth";
-import { openPersistentPrivateCvStream } from "../media/privateDocuments";
+import { deletePersistentPrivateCv, openPersistentPrivateCvStream } from "../media/privateDocuments";
 import { escapeCsvCell } from "../security/csv";
 import { buildNewsletterUnsubscribeUrl } from "../security/newsletterUnsubscribe";
-import { resolvePrivateCvStoragePath } from "../security/uploads";
+import { removeUploadQuietly, resolvePrivateCvStoragePath } from "../security/uploads";
 import { storage } from "../storage";
 import { auditLog } from "./routeUtils";
 
@@ -16,6 +16,25 @@ function newsletterFilters(req: Request) {
   const search = typeof req.query.search === "string" ? req.query.search.slice(0, 160) : undefined;
   const state = typeof req.query.active === "string" ? req.query.active : "all";
   return { search, active: state === "active" ? true : state === "inactive" ? false : undefined };
+}
+
+const submissionIdSchema = z.string().uuid();
+
+function resolveLegacyCvPath(cvPath: string): string | null {
+  if (!cvPath.startsWith("/uploads/")) return null;
+  const legacyPath = path.resolve(uploadsDir, path.basename(cvPath));
+  return path.dirname(legacyPath) === path.resolve(uploadsDir) ? legacyPath : null;
+}
+
+/**
+ * La base se borra únicamente después de retirar el archivo privado. Así, si
+ * App Storage no está disponible, la solicitud permanece íntegra y se puede
+ * reintentar desde Administración sin dejar un CV huérfano.
+ */
+async function deleteCareerApplicationDocument(cvPath: string): Promise<void> {
+  const localPath = resolvePrivateCvStoragePath(cvPath) || resolveLegacyCvPath(cvPath);
+  await deletePersistentPrivateCv(cvPath);
+  await removeUploadQuietly(localPath || undefined);
 }
 
 export function registerAdminSubmissionRoutes(app: Express): void {
@@ -36,6 +55,20 @@ export function registerAdminSubmissionRoutes(app: Express): void {
     } catch (error) {
       console.error("Mark contact submission read error:", error);
       res.status(500).json({ error: "Failed to update submission" });
+    }
+  });
+
+  app.delete("/api/admin/contact-submissions/:id", authMiddleware, requirePermission("contact_submissions"), async (req: Request, res: Response) => {
+    try {
+      const parsedId = submissionIdSchema.safeParse(req.params.id);
+      if (!parsedId.success) return res.status(404).json({ error: "Submission not found" });
+      const deleted = await storage.deleteContactSubmission(parsedId.data);
+      if (!deleted) return res.status(404).json({ error: "Submission not found" });
+      await auditLog("delete", "contact_submission", parsedId.data, req.adminUser!.id, { permanent: true }, req);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Delete contact submission error:", error);
+      res.status(500).json({ error: "Failed to delete submission" });
     }
   });
 
@@ -111,6 +144,31 @@ export function registerAdminSubmissionRoutes(app: Express): void {
     }
   });
 
+  app.delete("/api/admin/career-applications/:id", authMiddleware, requirePermission("career_applications"), async (req: Request, res: Response) => {
+    const parsedId = submissionIdSchema.safeParse(req.params.id);
+    if (!parsedId.success) return res.status(404).json({ error: "Application not found" });
+
+    try {
+      const application = await storage.getCareerApplication(parsedId.data);
+      if (!application) return res.status(404).json({ error: "Application not found" });
+      await deleteCareerApplicationDocument(application.cvPath);
+    } catch (error) {
+      console.error("Delete career application error:", error);
+      res.status(503).json({ error: "Unable to delete application and private document" });
+      return;
+    }
+
+    try {
+      const deleted = await storage.deleteCareerApplication(parsedId.data);
+      if (!deleted) return res.status(404).json({ error: "Application not found" });
+      await auditLog("delete", "career_application", parsedId.data, req.adminUser!.id, { permanent: true, cvDeleted: true }, req);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Delete career application record error:", error);
+      res.status(500).json({ error: "Failed to delete application" });
+    }
+  });
+
   app.get("/api/admin/newsletter-subscribers", authMiddleware, requirePermission("newsletter"), async (req: Request, res: Response) => {
     try {
       res.json(await storage.getNewsletterSubscribers(newsletterFilters(req)));
@@ -133,6 +191,20 @@ export function registerAdminSubmissionRoutes(app: Express): void {
     } catch (error) {
       console.error("Update newsletter subscriber error:", error);
       res.status(500).json({ error: "Failed to update newsletter subscriber" });
+    }
+  });
+
+  app.delete("/api/admin/newsletter-subscribers/:id", authMiddleware, requirePermission("newsletter"), async (req: Request, res: Response) => {
+    try {
+      const parsedId = submissionIdSchema.safeParse(req.params.id);
+      if (!parsedId.success) return res.status(404).json({ error: "Subscriber not found" });
+      const deleted = await storage.deleteNewsletterSubscriber(parsedId.data);
+      if (!deleted) return res.status(404).json({ error: "Subscriber not found" });
+      await auditLog("delete", "newsletter_subscriber", parsedId.data, req.adminUser!.id, { permanent: true }, req);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Delete newsletter subscriber error:", error);
+      res.status(500).json({ error: "Failed to delete newsletter subscriber" });
     }
   });
 

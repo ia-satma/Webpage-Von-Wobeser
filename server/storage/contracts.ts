@@ -363,6 +363,7 @@ export interface IStorage {
   createContactSubmission(data: InsertContactSubmission): Promise<ContactSubmission>;
   getContactSubmissions(): Promise<ContactSubmission[]>;
   markContactSubmissionRead(id: string): Promise<boolean>;
+  deleteContactSubmission(id: string): Promise<boolean>;
   deleteExpiredContactSubmissions(): Promise<number>;
 
   // Newsletter (el Desk retirado no altera ni borra sus datos históricos).
@@ -371,6 +372,7 @@ export interface IStorage {
   getNewsletterSubscriberByEmail(email: string): Promise<NewsletterSubscriber | undefined>;
   createNewsletterSubscriber(data: InsertNewsletterSubscriber): Promise<NewsletterSubscriber>;
   updateNewsletterSubscriber(id: string, data: Partial<InsertNewsletterSubscriber>): Promise<NewsletterSubscriber | undefined>;
+  deleteNewsletterSubscriber(id: string): Promise<boolean>;
 
   // Career Applications (Pasantes)
   createCareerApplication(data: InsertCareerApplication): Promise<CareerApplication>;
@@ -378,6 +380,7 @@ export interface IStorage {
   getCareerApplication(id: string): Promise<CareerApplication | undefined>;
   getCareerApplicationByCvPath(cvPath: string): Promise<CareerApplication | undefined>;
   markCareerApplicationRead(id: string): Promise<boolean>;
+  deleteCareerApplication(id: string): Promise<boolean>;
   getExpiredCareerApplications(): Promise<CareerApplication[]>;
   deleteCareerApplications(ids: string[]): Promise<number>;
 

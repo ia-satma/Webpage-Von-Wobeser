@@ -11,12 +11,7 @@ import { Progress } from "@/components/ui/progress";
 import { AdminPageHelp } from "@/components/admin/AdminPageHelp";
 import { AiUsageCard } from "@/components/admin/AiUsageCard";
 import {
-  FileText,
-  FilePenLine,
-  CheckCircle,
-  PlusCircle,
   FolderOpen,
-  LogOut,
   Newspaper,
   Languages,
   Activity,
@@ -26,9 +21,7 @@ import {
   Users,
   ChevronRight,
   Settings,
-  ArrowUpRight,
   Database,
-  ArrowRight,
   Mail,
   HelpCircle,
   Navigation,
@@ -608,6 +601,19 @@ export default function AdminDashboard() {
   const { has } = useMyPermissions();
   const isAdmin = role === "admin" || role === "super_admin";
   const canConfig = has("config");
+  const canReviewSubmissions = has("contact_submissions") || has("career_applications");
+  const canReviewNewsletter = has("newsletter");
+  const canSeeTechnicalStatus = isAdmin || has("advanced");
+  const canSeeAiTranslations = isAdmin || has("agents");
+  const submissionsHref = has("contact_submissions")
+    ? "/admin/submissions?tab=contact"
+    : "/admin/submissions?tab=career";
+  const taskGroupCount = 1 + Number(canReviewSubmissions || canReviewNewsletter) + Number(canConfig);
+  const taskGridClass = taskGroupCount === 3
+    ? "xl:grid-cols-[1.25fr_1fr_1fr]"
+    : taskGroupCount === 2
+      ? "lg:grid-cols-2"
+      : "";
   // Caja "Distribución por Idioma" colapsada por defecto (foco en ES/EN).
   const [showLangDist, setShowLangDist] = useState(false);
   const [location] = useLocation();
@@ -666,17 +672,19 @@ export default function AdminDashboard() {
             <h2 className="text-2xl sm:text-3xl font-semibold tracking-tight text-foreground" data-testid="text-dashboard-title">
               Panel de administración
             </h2>
-            <p className="text-muted-foreground mt-1">Von Wobeser y Sierra — resumen del sitio</p>
+            <p className="text-muted-foreground mt-1">Contenido, comunicaciones y configuración del sitio.</p>
           </div>
-          <Badge variant="secondary" className="flex items-center gap-1.5 rounded-full px-3 py-1" data-testid="badge-processing-status">
-            {statsUnavailable ? (
-              <><span className="h-2 w-2 rounded-full bg-red-500" />No disponible</>
-            ) : cmsStats?.processingStatus === "processing" ? (
-              <><Loader2 className="h-3 w-3 animate-spin" />{t.processing}</>
-            ) : (
-              <><span className="h-2 w-2 rounded-full bg-green-500" />{t.idle}</>
-            )}
-          </Badge>
+          {canSeeTechnicalStatus && (
+            <Badge variant="secondary" className="flex items-center gap-1.5 rounded-full px-3 py-1" data-testid="badge-processing-status">
+              {statsUnavailable ? (
+                <><span className="h-2 w-2 rounded-full bg-red-500" />No disponible</>
+              ) : cmsStats?.processingStatus === "processing" ? (
+                <><Loader2 className="h-3 w-3 animate-spin" />{t.processing}</>
+              ) : (
+                <><span className="h-2 w-2 rounded-full bg-green-500" />{t.idle}</>
+              )}
+            </Badge>
+          )}
         </div>
 
         <AdminPageHelp pageId="admin-dashboard">
@@ -693,12 +701,14 @@ export default function AdminDashboard() {
         )}
 
         {/* ── Tarjetas de estado ── */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        <div className={`grid grid-cols-2 gap-4 mb-8 ${canSeeTechnicalStatus ? "lg:grid-cols-4" : "lg:grid-cols-2"}`}>
           {[
             { key: "content", label: "Contenido", icon: Newspaper, value: statsUnavailable ? "—" : (cmsStats?.totalArticles ?? 0), sub: "artículos publicables" },
             { key: "translations", label: "Español → Inglés", icon: Languages, value: statsUnavailable ? "—" : `${translationPercentage}%`, sub: enCoverage ? `${enCoverage.translated} de ${enCoverage.total} con inglés real` : "" },
-            { key: "db", label: "Base de datos", icon: Database, value: statsUnavailable ? "No disponible" : "Conectada", sub: statsUnavailable ? "sin verificación" : "en línea", ok: !statsUnavailable },
-            { key: "status", label: "Estado", icon: Activity, value: statsUnavailable ? "No disponible" : (cmsStats?.processingStatus === "processing" ? t.processing : "Activo"), sub: statsUnavailable ? "sin verificación" : "sistema operativo", ok: !statsUnavailable },
+            ...(canSeeTechnicalStatus ? [
+              { key: "db", label: "Base de datos", icon: Database, value: statsUnavailable ? "No disponible" : "Conectada", sub: statsUnavailable ? "sin verificación" : "en línea", ok: !statsUnavailable },
+              { key: "status", label: "Estado", icon: Activity, value: statsUnavailable ? "No disponible" : (cmsStats?.processingStatus === "processing" ? t.processing : "Activo"), sub: statsUnavailable ? "sin verificación" : "sistema operativo", ok: !statsUnavailable },
+            ] : []),
           ].map((s) => {
             const Icon = s.icon;
             return (
@@ -740,39 +750,84 @@ export default function AdminDashboard() {
           </CardContent>
         </Card>
 
-        {/* ── Accesos rápidos — el resto de las secciones ya viven en el sidebar ── */}
+        {/* ── Accesos por tarea — el color acompaña al texto, nunca lo sustituye ── */}
         <Card className="mb-8 rounded-xl" data-testid="card-quick-actions">
           <CardHeader>
-            <CardTitle>Accesos rápidos</CardTitle>
-            <CardDescription>Las tareas más frecuentes. El resto de las secciones está en el menú lateral.</CardDescription>
+            <CardTitle>¿Qué necesitas hacer?</CardTitle>
+            <CardDescription>Elige una tarea. El menú lateral conserva todas las secciones organizadas por tipo de trabajo.</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-5">
-              <Link href="/admin/news/new">
-                <Button variant="outline" className="w-full justify-start h-auto py-2" data-testid="button-quick-new-news"><Newspaper className="mr-2 h-4 w-4" /><span className="flex flex-col items-start text-left leading-tight"><span>Nueva noticia</span><span className="text-[11px] font-normal text-muted-foreground mt-0.5">Publica un comunicado o artículo.</span></span></Button>
-              </Link>
-              <Link href="/admin/team/new">
-                <Button variant="outline" className="w-full justify-start h-auto py-2" data-testid="button-quick-new-team"><Users className="mr-2 h-4 w-4" /><span className="flex flex-col items-start text-left leading-tight"><span>Nuevo abogado</span><span className="text-[11px] font-normal text-muted-foreground mt-0.5">Agrega un integrante al equipo.</span></span></Button>
-              </Link>
-              {canConfig && (
-                <Link href="/admin/site-config">
-                  <Button variant="outline" className="w-full justify-start h-auto py-2" data-testid="button-quick-site-config"><Settings className="mr-2 h-4 w-4" /><span className="flex flex-col items-start text-left leading-tight"><span>Editar portada</span><span className="text-[11px] font-normal text-muted-foreground mt-0.5">Inicio organizado por bloques.</span></span></Button>
-                </Link>
+            <div className={`grid gap-4 ${taskGridClass}`}>
+              <section className="border border-sky-200 bg-sky-50/50 p-4" aria-labelledby="dashboard-task-content">
+                <div className="mb-3 flex items-start gap-2">
+                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-sky-200 bg-sky-100 text-sky-800"><Newspaper className="h-4 w-4" /></span>
+                  <div>
+                    <h3 id="dashboard-task-content" className="font-semibold text-sky-950">Publicar y actualizar contenido</h3>
+                    <p className="text-xs leading-snug text-sky-950/70">Noticias, artículos y perfiles que se muestran en el sitio.</p>
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Link href="/admin/news/new">
+                    <Button variant="outline" className="w-full justify-start border-sky-200 bg-white hover:bg-sky-100" data-testid="button-quick-new-news"><Newspaper className="mr-2 h-4 w-4 text-sky-800" />Nueva publicación</Button>
+                  </Link>
+                  <Link href="/admin/news">
+                    <Button variant="outline" className="w-full justify-start border-sky-200 bg-white hover:bg-sky-100" data-testid="button-quick-news"><FolderOpen className="mr-2 h-4 w-4 text-sky-800" />Publicaciones y borradores</Button>
+                  </Link>
+                  <Link href="/admin/team">
+                    <Button variant="outline" className="w-full justify-start border-sky-200 bg-white hover:bg-sky-100" data-testid="button-quick-team"><Users className="mr-2 h-4 w-4 text-sky-800" />Perfiles de abogados</Button>
+                  </Link>
+                </div>
+              </section>
+
+              {(canReviewSubmissions || canReviewNewsletter) && (
+                <section className="border border-emerald-200 bg-emerald-50/60 p-4" aria-labelledby="dashboard-task-inbox">
+                  <div className="mb-3 flex items-start gap-2">
+                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-emerald-200 bg-emerald-100 text-emerald-800"><Mail className="h-4 w-4" /></span>
+                    <div>
+                      <h3 id="dashboard-task-inbox" className="font-semibold text-emerald-950">Revisar registros recibidos</h3>
+                      <p className="text-xs leading-snug text-emerald-950/70">Mensajes, solicitudes y suscripciones enviados desde el sitio.</p>
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    {canReviewSubmissions && (
+                      <Link href={submissionsHref}>
+                        <Button variant="outline" className="w-full justify-start border-emerald-200 bg-white hover:bg-emerald-100" data-testid="button-quick-submissions"><Mail className="mr-2 h-4 w-4 text-emerald-800" />Ver solicitudes recibidas</Button>
+                      </Link>
+                    )}
+                    {canReviewNewsletter && (
+                      <Link href="/admin/newsletter">
+                        <Button variant="outline" className="w-full justify-start border-emerald-200 bg-white hover:bg-emerald-100" data-testid="button-quick-newsletter"><Mail className="mr-2 h-4 w-4 text-emerald-800" />Suscriptores del newsletter</Button>
+                      </Link>
+                    )}
+                  </div>
+                </section>
               )}
+
               {canConfig && (
-                <Link href="/admin/navigation">
-                  <Button variant="outline" className="w-full justify-start h-auto py-2" data-testid="button-quick-navigation"><Navigation className="mr-2 h-4 w-4" /><span className="flex flex-col items-start text-left leading-tight"><span>Navegación y visibilidad</span><span className="text-[11px] font-normal text-muted-foreground mt-0.5">Muestra u oculta opciones del menú.</span></span></Button>
-                </Link>
+                <section className="border border-amber-200 bg-amber-50/70 p-4" aria-labelledby="dashboard-task-settings">
+                  <div className="mb-3 flex items-start gap-2">
+                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-amber-200 bg-amber-100 text-amber-900"><Settings className="h-4 w-4" /></span>
+                    <div>
+                      <h3 id="dashboard-task-settings" className="font-semibold text-amber-950">Configurar el sitio</h3>
+                      <p className="text-xs leading-snug text-amber-950/70">Cambios que pueden afectar varias páginas públicas.</p>
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Link href="/admin/site-config">
+                      <Button variant="outline" className="w-full justify-start border-amber-200 bg-white hover:bg-amber-100" data-testid="button-quick-site-config"><Settings className="mr-2 h-4 w-4 text-amber-900" />Editar portada</Button>
+                    </Link>
+                    <Link href="/admin/navigation">
+                      <Button variant="outline" className="w-full justify-start border-amber-200 bg-white hover:bg-amber-100" data-testid="button-quick-navigation"><Navigation className="mr-2 h-4 w-4 text-amber-900" />Navegación y visibilidad</Button>
+                    </Link>
+                  </div>
+                </section>
               )}
-              <Link href="/admin/submissions">
-                <Button variant="outline" className="w-full justify-start h-auto py-2" data-testid="button-quick-submissions"><Mail className="mr-2 h-4 w-4" /><span className="flex flex-col items-start text-left leading-tight"><span>Ver solicitudes</span><span className="text-[11px] font-normal text-muted-foreground mt-0.5">Mensajes de contacto y pasantías.</span></span></Button>
-              </Link>
             </div>
           </CardContent>
         </Card>
 
-        <div className="grid gap-6 lg:grid-cols-3 mb-8">
-          <Card className="lg:col-span-1 rounded-xl" data-testid="card-translation-coverage">
+        <div className={`grid gap-6 mb-8 ${canSeeAiTranslations ? "lg:grid-cols-3" : "max-w-xl"}`}>
+          <Card className={`${canSeeAiTranslations ? "lg:col-span-1" : ""} rounded-xl`} data-testid="card-translation-coverage">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <BarChart3 className="h-5 w-5" />
@@ -809,6 +864,7 @@ export default function AdminDashboard() {
             </CardContent>
           </Card>
 
+          {canSeeAiTranslations && (
           <Card className="lg:col-span-2 rounded-xl" data-testid="card-language-distribution">
             <CardHeader
               className="cursor-pointer select-none"
@@ -868,6 +924,7 @@ export default function AdminDashboard() {
             </CardContent>
             )}
           </Card>
+          )}
         </div>
 
         <Card data-testid="card-recent-activity">

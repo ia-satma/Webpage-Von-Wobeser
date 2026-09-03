@@ -21,10 +21,48 @@ import {
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
 import { Button } from "@/components/ui/button";
 import { AdminSessionGuard } from "@/components/admin/AdminSessionGuard";
-import { ArrowUpRight, ChevronDown, LogOut } from "lucide-react";
+import { ArrowUpRight, BookOpen, ChevronDown, Inbox, LogOut, Settings2, SlidersHorizontal } from "lucide-react";
 import adminLogoUrl from "@assets/vonwobeser_logo_hd.png";
 
 const OPEN_GROUPS_KEY = "admin-sidebar-open-groups";
+
+const GROUP_TONES = {
+  editorial: {
+    icon: BookOpen,
+    iconClass: "border-sky-200 bg-sky-100 text-sky-800",
+    labelClass: "text-sky-900",
+    descriptionClass: "text-sky-900/70",
+    badgeClass: "border-sky-200 bg-sky-100 text-sky-800",
+  },
+  inbox: {
+    icon: Inbox,
+    iconClass: "border-emerald-200 bg-emerald-100 text-emerald-800",
+    labelClass: "text-emerald-900",
+    descriptionClass: "text-emerald-900/70",
+    badgeClass: "border-emerald-200 bg-emerald-100 text-emerald-800",
+  },
+  settings: {
+    icon: Settings2,
+    iconClass: "border-amber-200 bg-amber-100 text-amber-900",
+    labelClass: "text-amber-950",
+    descriptionClass: "text-amber-950/70",
+    badgeClass: "border-amber-200 bg-amber-100 text-amber-900",
+  },
+  technical: {
+    icon: SlidersHorizontal,
+    iconClass: "border-amber-200 bg-amber-100 text-amber-900",
+    labelClass: "text-amber-950",
+    descriptionClass: "text-amber-950/70",
+    badgeClass: "border-amber-200 bg-amber-100 text-amber-900",
+  },
+  neutral: {
+    icon: Settings2,
+    iconClass: "border-border bg-muted text-muted-foreground",
+    labelClass: "text-muted-foreground",
+    descriptionClass: "text-muted-foreground",
+    badgeClass: "border-border bg-muted text-muted-foreground",
+  },
+} as const;
 
 function loadOpenGroups(): Set<string> {
   try {
@@ -94,6 +132,8 @@ function NavGroupSection({
 }) {
   const { state } = useSidebar();
   const open = state === "collapsed" || isOpen;
+  const tone = GROUP_TONES[group.tone || "neutral"];
+  const GroupIcon = tone.icon;
 
   if (!group.label) {
     return (
@@ -109,13 +149,28 @@ function NavGroupSection({
     <SidebarGroup>
       <Collapsible open={open} onOpenChange={onToggle}>
         <SidebarGroupLabel asChild>
-          <CollapsibleTrigger className="flex w-full items-center justify-between cursor-pointer" data-testid={`nav-group-toggle-${group.id}`}>
-            <span>{group.label}</span>
+          <CollapsibleTrigger className={`flex w-full items-center justify-between gap-2 rounded-md px-2 py-1.5 text-left transition-colors hover:bg-muted/70 ${tone.labelClass}`} data-testid={`nav-group-toggle-${group.id}`}>
+            <span className="flex min-w-0 items-center gap-2">
+              <span className={`flex h-5 w-5 shrink-0 items-center justify-center rounded border ${tone.iconClass}`} aria-hidden="true">
+                <GroupIcon className="h-3 w-3" />
+              </span>
+              <span className="truncate">{group.label}</span>
+              {group.technical && (
+                <span className={`rounded border px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide ${tone.badgeClass}`}>
+                  Técnico
+                </span>
+              )}
+            </span>
             <ChevronDown className={`h-3.5 w-3.5 shrink-0 transition-transform duration-200 ${open ? "" : "-rotate-90"}`} />
           </CollapsibleTrigger>
         </SidebarGroupLabel>
         <CollapsibleContent>
           <SidebarGroupContent>
+            {group.description && (
+              <p className={`px-2 pb-2 pt-0.5 text-[11px] leading-snug ${tone.descriptionClass}`}>
+                {group.description}
+              </p>
+            )}
             <NavItems items={visibleItems} location={location} />
           </SidebarGroupContent>
         </CollapsibleContent>

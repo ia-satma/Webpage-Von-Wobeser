@@ -318,7 +318,15 @@ test("Newsletter conserva un único flujo entre Home, PostgreSQL y Administraci�
     routesSource,
     /"\/api\/admin\/newsletter-subscribers",\s*authMiddleware,\s*requirePermission\("newsletter"\)/,
   );
+  assert.match(
+    routesSource,
+    /app\.delete\("\/api\/admin\/newsletter-subscribers\/:id",\s*authMiddleware,\s*requirePermission\("newsletter"\)/,
+  );
+  assert.match(routesSource, /storage\.deleteNewsletterSubscriber\(parsedId\.data\)/);
+  assert.match(storageSource, /deleteNewsletterSubscriber\(id: string\)/);
   assert.match(adminSource, /\/api\/admin\/newsletter-subscribers/);
+  assert.match(adminSource, /DELETE", `\/api\/admin\/newsletter-subscribers\/\$\{subscriber\.id\}`/);
+  assert.match(adminSource, /Eliminar permanentemente la suscripción/);
   assert.match(adminSource, /queryClient\.invalidateQueries/);
   for (const key of [
     "newsletter_title",

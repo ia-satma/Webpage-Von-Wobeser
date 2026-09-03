@@ -31,11 +31,33 @@ export function createSubmissionRepository(db: StorageDatabase) {
       return result.length > 0;
     }
 
+    async deleteContactSubmission(id: string): Promise<boolean> {
+      return db.transaction(async (tx) => {
+        const [deleted] = await tx.delete(contactSubmissions)
+          .where(eq(contactSubmissions.id, id))
+          .returning({ id: contactSubmissions.id });
+        if (!deleted) return false;
+        await tx.delete(protectedFieldEnvelopes).where(and(
+          eq(protectedFieldEnvelopes.resourceType, "contact_submission"),
+          eq(protectedFieldEnvelopes.resourceId, id),
+        ));
+        return true;
+      });
+    }
+
     async deleteExpiredContactSubmissions(): Promise<number> {
-      const deleted = await db.delete(contactSubmissions)
-        .where(sql`${contactSubmissions.submittedAt} < NOW() - INTERVAL '12 months'`)
-        .returning({ id: contactSubmissions.id });
-      return deleted.length;
+      return db.transaction(async (tx) => {
+        const deleted = await tx.delete(contactSubmissions)
+          .where(sql`${contactSubmissions.submittedAt} < NOW() - INTERVAL '12 months'`)
+          .returning({ id: contactSubmissions.id });
+        if (deleted.length) {
+          await tx.delete(protectedFieldEnvelopes).where(and(
+            eq(protectedFieldEnvelopes.resourceType, "contact_submission"),
+            inArray(protectedFieldEnvelopes.resourceId, deleted.map((item) => item.id)),
+          ));
+        }
+        return deleted.length;
+      });
     }
 
     async getNewsletterSubscribers(filters: { search?: string; active?: boolean } = {}): Promise<NewsletterSubscriber[]> {
@@ -74,6 +96,13 @@ export function createSubmissionRepository(db: StorageDatabase) {
       return subscriber;
     }
 
+    async deleteNewsletterSubscriber(id: string): Promise<boolean> {
+      const deleted = await db.delete(newsletterSubscribers)
+        .where(eq(newsletterSubscribers.id, id))
+        .returning({ id: newsletterSubscribers.id });
+      return deleted.length > 0;
+    }
+
     async createCareerApplication(data: InsertCareerApplication): Promise<CareerApplication> {
       return db.transaction(async (tx) => {
         const [application] = await tx.insert(careerApplications).values(data).returning();
@@ -109,6 +138,20 @@ export function createSubmissionRepository(db: StorageDatabase) {
       return result.length > 0;
     }
 
+    async deleteCareerApplication(id: string): Promise<boolean> {
+      return db.transaction(async (tx) => {
+        const [deleted] = await tx.delete(careerApplications)
+          .where(eq(careerApplications.id, id))
+          .returning({ id: careerApplications.id });
+        if (!deleted) return false;
+        await tx.delete(protectedFieldEnvelopes).where(and(
+          eq(protectedFieldEnvelopes.resourceType, "career_application"),
+          eq(protectedFieldEnvelopes.resourceId, id),
+        ));
+        return true;
+      });
+    }
+
     async getExpiredCareerApplications(): Promise<CareerApplication[]> {
       return db.select().from(careerApplications)
         .where(sql`${careerApplications.submittedAt} < NOW() - INTERVAL '12 months'`);
@@ -116,10 +159,18 @@ export function createSubmissionRepository(db: StorageDatabase) {
 
     async deleteCareerApplications(ids: string[]): Promise<number> {
       if (!ids.length) return 0;
-      const deleted = await db.delete(careerApplications)
-        .where(inArray(careerApplications.id, ids))
-        .returning({ id: careerApplications.id });
-      return deleted.length;
+      return db.transaction(async (tx) => {
+        const deleted = await tx.delete(careerApplications)
+          .where(inArray(careerApplications.id, ids))
+          .returning({ id: careerApplications.id });
+        if (deleted.length) {
+          await tx.delete(protectedFieldEnvelopes).where(and(
+            eq(protectedFieldEnvelopes.resourceType, "career_application"),
+            inArray(protectedFieldEnvelopes.resourceId, deleted.map((item) => item.id)),
+          ));
+        }
+        return deleted.length;
+      });
     }
 
     async isSourceProcessed(sourceUrl: string): Promise<boolean> {

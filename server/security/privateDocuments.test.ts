@@ -104,7 +104,17 @@ test("la ruta de solicitudes persiste y recupera CV privados", async () => {
   assert.match(adminRoutes, /requirePermission\("career_applications"\)[\s\S]{0,180}requirePermission\("private_downloads"\)/);
   assert.match(adminRoutes, /Content-Disposition/);
   assert.match(adminRoutes, /Cache-Control", "private, no-store/);
+  assert.match(adminRoutes, /app\.delete\("\/api\/admin\/contact-submissions\/:id",\s*authMiddleware,\s*requirePermission\("contact_submissions"\)/);
+  assert.match(adminRoutes, /storage\.deleteContactSubmission\(parsedId\.data\)/);
+  assert.match(adminRoutes, /app\.delete\("\/api\/admin\/career-applications\/:id",\s*authMiddleware,\s*requirePermission\("career_applications"\)/);
+  assert.match(adminRoutes, /deleteCareerApplicationDocument\(application\.cvPath\)/);
+  assert.match(adminRoutes, /deletePersistentPrivateCv\(cvPath\)/);
+  assert.match(adminRoutes, /removeUploadQuietly\(localPath/);
+  assert.match(adminRoutes, /storage\.deleteCareerApplication\(parsedId\.data\)/);
   assert.match(adminPage, /\/api\/admin\/career-applications/);
   assert.match(adminPage, /\/api\/admin\/career-applications\/\$\{c\.id\}\/cv/);
+  assert.match(adminPage, /DELETE", `\/api\/admin\/contact-submissions\/\$\{id\}`/);
+  assert.match(adminPage, /DELETE", `\/api\/admin\/career-applications\/\$\{id\}`/);
+  assert.match(adminPage, /Eliminar permanentemente esta solicitud y su hoja de vida/);
   assert.match(adminPage, /has\("private_downloads"\)/);
 });
