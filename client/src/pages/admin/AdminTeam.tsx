@@ -26,8 +26,10 @@ import {
   ChevronRight,
   Users,
   Plus,
-  UserPlus
+  UserPlus,
+  MoreHorizontal,
 } from "lucide-react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import type { TeamMember } from "@shared/schema";
 import { getAttorneyPublicName } from "@shared/attorneyName";
 
@@ -604,37 +606,49 @@ export default function AdminTeam() {
                           </div>
                         </TableCell>
                         <TableCell>
-                          <div className="flex items-center justify-end gap-2">
+                          <div className="hidden items-center justify-end gap-1 sm:flex">
                             {/* Perfil público del abogado servido por el espejo (Express).
                                 La ruta correcta es /abogado/:slug (no /team/:slug, que no existe)
                                 y se usa <a> nativo, no <Link> de wouter, para pegarle al servidor. */}
                             <a href={`/abogado/${member.slug}`} target="_blank" rel="noopener noreferrer">
                               <Button
                                 variant="ghost"
-                                size="icon"
+                                size="sm"
                                 data-testid={`button-view-${member.id}`}
                               >
-                                <Eye className="w-4 h-4" />
+                                <Eye className="mr-1.5 h-4 w-4" />{t.view}
                               </Button>
                             </a>
                             <Link href={`/admin/team/${member.id}/edit`}>
                               <Button
                                 variant="ghost"
-                                size="icon"
+                                size="sm"
                                 data-testid={`button-edit-${member.id}`}
                               >
-                                <Pencil className="w-4 h-4" />
+                                <Pencil className="mr-1.5 h-4 w-4" />{t.edit}
                               </Button>
                             </Link>
                             <Button
                               variant="ghost"
-                              size="icon"
+                              size="sm"
                               onClick={() => handleDelete(member.id)}
                               disabled={deleteMutation.isPending}
                               data-testid={`button-delete-${member.id}`}
                             >
-                              <Trash2 className="w-4 h-4 text-destructive" />
+                              <Trash2 className="mr-1.5 h-4 w-4 text-destructive" />{t.delete}
                             </Button>
+                          </div>
+                          <div className="flex justify-end sm:hidden">
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="icon" aria-label={`Acciones para ${publicName}`}><MoreHorizontal className="h-4 w-4" /></Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end">
+                                <DropdownMenuItem asChild><a href={`/abogado/${member.slug}`} target="_blank" rel="noopener noreferrer"><Eye />{t.view}</a></DropdownMenuItem>
+                                <DropdownMenuItem asChild><Link href={`/admin/team/${member.id}/edit`}><Pencil />{t.edit}</Link></DropdownMenuItem>
+                                <DropdownMenuItem className="text-destructive focus:text-destructive" onSelect={() => handleDelete(member.id)} disabled={deleteMutation.isPending}><Trash2 />{t.delete}</DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
                           </div>
                         </TableCell>
                       </TableRow>;

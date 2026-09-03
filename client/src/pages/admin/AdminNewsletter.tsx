@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { useLocation } from "wouter";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Download, Mail, Search, Trash2 } from "lucide-react";
+import { Download, Mail, Search, Trash2, MoreHorizontal } from "lucide-react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { adminApiRequest, useAdminAuth, useMyPermissions } from "@/lib/adminAuth";
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 import { Badge } from "@/components/ui/badge";
@@ -170,11 +171,17 @@ export default function AdminNewsletter() {
                         <TableCell className="whitespace-nowrap text-sm">{fmtDate(subscriber.subscribedAt)}</TableCell>
                         <TableCell><Badge variant={subscriber.isActive ? "default" : "secondary"}>{subscriber.isActive ? "Activo" : "Inactivo"}</Badge></TableCell>
                         <TableCell className="text-right">
-                          <div className="inline-flex items-center gap-1">
+                          <div className="hidden items-center gap-1 sm:inline-flex">
                             <Button variant="ghost" size="sm" disabled={updatingId === subscriber.id} onClick={() => updateStatus(subscriber)}>{subscriber.isActive ? "Desactivar" : "Reactivar"}</Button>
-                            <Button variant="ghost" size="icon" disabled={updatingId === subscriber.id} onClick={() => deleteSubscriber(subscriber)} title="Eliminar suscripción" aria-label="Eliminar suscripción">
-                              <Trash2 className="h-4 w-4 text-destructive" />
+                            <Button variant="ghost" size="sm" disabled={updatingId === subscriber.id} onClick={() => deleteSubscriber(subscriber)} title="Eliminar suscripción" aria-label="Eliminar suscripción">
+                              <Trash2 className="mr-1 h-4 w-4 text-destructive" />Eliminar
                             </Button>
+                          </div>
+                          <div className="sm:hidden">
+                            <DropdownMenu><DropdownMenuTrigger asChild><Button variant="ghost" size="icon" aria-label={`Acciones para ${subscriber.email}`}><MoreHorizontal className="h-4 w-4" /></Button></DropdownMenuTrigger><DropdownMenuContent align="end">
+                              <DropdownMenuItem onSelect={() => updateStatus(subscriber)} disabled={updatingId === subscriber.id}>{subscriber.isActive ? "Desactivar" : "Reactivar"}</DropdownMenuItem>
+                              <DropdownMenuItem className="text-destructive focus:text-destructive" onSelect={() => deleteSubscriber(subscriber)} disabled={updatingId === subscriber.id}><Trash2 />Eliminar</DropdownMenuItem>
+                            </DropdownMenuContent></DropdownMenu>
                           </div>
                         </TableCell>
                       </TableRow>

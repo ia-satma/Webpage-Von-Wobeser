@@ -1,27 +1,42 @@
 import { ArrowLeft, Loader2 } from "lucide-react";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import { AdminPageHelp } from "@/components/admin/AdminPageHelp";
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 import { ConfirmChangesDialog } from "@/components/admin/ConfirmChangesDialog";
+import { AdminEditStatus, useAdminEditRegistration, useAdminEditingState } from "@/components/admin/AdminEditingState";
+import { configMapToDraft } from "./helpers";
 import { SiteConfigSections } from "./SiteConfigSections";
 import { useSiteConfig } from "./useSiteConfig";
 
 export default function AdminSiteConfigPage() {
+  const [, setLocation] = useLocation();
+  const { requestNavigation } = useAdminEditingState();
   const controller = useSiteConfig();
-  const { section, page } = controller;
+  const { section, page, data, draft, saving } = controller;
+  const isDirty = !!data && JSON.stringify(draft) !== JSON.stringify(configMapToDraft(data));
+  useAdminEditRegistration({ id: `site-config:${section}`, isDirty, isSaving: !!saving });
   return (
     <div className="min-h-screen bg-background">
       <main className="max-w-4xl mx-auto px-6 py-8 space-y-6">
         {section !== "portada" && (
           <Link
             href="/admin/site-config"
+            onClick={(event) => {
+              event.preventDefault();
+              requestNavigation(() => setLocation("/admin/site-config"));
+            }}
             className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors"
             data-testid="link-back-site-config"
           >
             <ArrowLeft className="h-3.5 w-3.5" /> Configuración
           </Link>
         )}
-        <AdminPageHeader title={page.title} description={page.description} icon={page.icon} />
+        <AdminPageHeader
+          title={page.title}
+          description={page.description}
+          icon={page.icon}
+          actions={<AdminEditStatus isDirty={isDirty} isSaving={!!saving} />}
+        />
         <AdminPageHelp
           pageId={section === "seo" ? "seo" : "configuracion"}
           manualSectionId={section === "seo" ? "seo" : "configuracion"}

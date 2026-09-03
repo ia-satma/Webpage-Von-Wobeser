@@ -5,6 +5,7 @@ import { Loader2, Navigation, Save } from "lucide-react";
 import type { NavigationConfiguration, NavigationPresetId } from "@shared/navigation";
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 import { AdminPageHelp } from "@/components/admin/AdminPageHelp";
+import { AdminEditStatus, useAdminEditRegistration } from "@/components/admin/AdminEditingState";
 import { ConfirmChangesDialog, type Change } from "@/components/admin/ConfirmChangesDialog";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -61,6 +62,7 @@ export default function AdminNavigationPage() {
     () => draft && selectedMetadata ? navigationChanges(selectedMetadata.configuration, draft) : [],
     [draft, selectedMetadata],
   );
+  useAdminEditRegistration({ id: "site-navigation", isDirty: changes.length > 0, isSaving: saving || activating });
   const valid = Boolean(draft && draft.items.every((item) => (
     item.labelEs.trim() && item.labelEn.trim()
     && item.children.every((child) => child.labelEs.trim() && child.labelEn.trim())
@@ -142,7 +144,7 @@ export default function AdminNavigationPage() {
           title="Navegación y visibilidad"
           description="Administra dos diseños reversibles del menú. Las rutas y el contenido permanecen protegidos por el sistema."
           icon={Navigation}
-          actions={<Button disabled={!changes.length || !valid || saving} onClick={() => setConfirmOpen(true)} data-testid="save-navigation"><Save className="mr-2 size-4" />{selectedIsActive ? "Guardar cambios" : "Guardar respaldo"}</Button>}
+          actions={<><AdminEditStatus isDirty={changes.length > 0} isSaving={saving || activating} /><Button disabled={!changes.length || !valid || saving} onClick={() => setConfirmOpen(true)} data-testid="save-navigation"><Save className="mr-2 size-4" />{selectedIsActive ? "Guardar cambios" : "Guardar respaldo"}</Button></>}
         />
         <AdminPageHelp pageId="site-navigation" manualSectionId="navegacion">
           El diseño marcado como Activo es el único visible en el sitio. Puedes editar el respaldo sin publicarlo y activarlo después con una confirmación explícita.

@@ -15,6 +15,8 @@ import { registerAdminCatalogRoutes } from "./routes/adminCatalogRoutes";
 import { registerAdminKnowledgeRoutes } from "./routes/adminKnowledgeRoutes";
 import { registerAdminMediaRoutes } from "./routes/adminMediaRoutes";
 import { registerAdminNewsRoutes } from "./routes/adminNewsRoutes";
+import { registerAdminNavigationRoutes } from "./routes/adminNavigationRoutes";
+import { registerAdminPreviewRoutes } from "./routes/adminPreviewRoutes";
 import { registerAdminSubmissionRoutes } from "./routes/adminSubmissionRoutes";
 import { registerAdminTeamRoutes } from "./routes/adminTeamRoutes";
 import { registerAgentAssetHistoryRoutes } from "./routes/agentAssetHistoryRoutes";
@@ -88,6 +90,10 @@ export async function registerRoutes(
   await registerAdminAccessRoutes(app);
 
   registerAdminNewsRoutes(app);
+
+  registerAdminNavigationRoutes(app);
+
+  registerAdminPreviewRoutes(app);
 
   registerAdminTeamRoutes(app);
 

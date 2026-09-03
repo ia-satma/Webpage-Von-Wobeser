@@ -33,7 +33,7 @@ export function AdminPageHelp({ pageId, manualSectionId, children }: AdminPageHe
         className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-primary mb-6"
         data-testid="admin-page-help-reopen"
       >
-        <Info className="h-3.5 w-3.5" /> Mostrar ayuda de esta sección
+        <Info className="h-3.5 w-3.5" /> ¿Necesitas ayuda con esta sección?
       </button>
     );
   }

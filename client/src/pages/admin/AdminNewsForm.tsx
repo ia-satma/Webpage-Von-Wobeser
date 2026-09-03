@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link, useParams, useLocation } from "wouter";
+import { useParams, useLocation } from "wouter";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { adminApiRequest } from "@/lib/adminAuth";
 import { queryClient } from "@/lib/queryClient";
@@ -17,9 +17,13 @@ import { useToast } from "@/hooks/use-toast";
 import { ImageUpload } from "@/components/admin/ImageUpload";
 import { ImageGenButton } from "@/components/admin/ImageGenButton";
 import { AdminPageHelp } from "@/components/admin/AdminPageHelp";
+import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
+import { AdminCompletionChecklist } from "@/components/admin/AdminCompletionChecklist";
+import { AdminEditStatus, useAdminEditRegistration, useAdminEditingState } from "@/components/admin/AdminEditingState";
+import { AdminPrivatePreviewButton } from "@/components/admin/AdminPrivatePreviewButton";
 import { SocialPostButton, VoiceButton } from "@/components/admin/AgentTools";
 import { TranslateButton } from "@/components/admin/TranslateButton";
-import { ArrowLeft, Save, Loader2, RefreshCw } from "lucide-react";
+import { Save, Loader2, RefreshCw } from "lucide-react";
 import { newsCategories, type News } from "@shared/schema";
 
 /** slug amigable a partir del título (sin acentos, minúsculas, guiones). */
@@ -82,13 +86,18 @@ export default function AdminNewsForm() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const [form, setForm] = useState({ ...EMPTY });
+  const [isDirty, setIsDirty] = useState(false);
   const [slugTouched, setSlugTouched] = useState(false);
   const [professionalRoles, setProfessionalRoles] = useState<Partial<Record<string, RelationshipRole>>>({});
   const [sourceProfessionalRoles, setSourceProfessionalRoles] = useState<Record<string, RelationshipRole>>({});
   const [authorSearch, setAuthorSearch] = useState("");
   const [tagInput, setTagInput] = useState("");
 
-  const set = (k: keyof typeof EMPTY, v: string | boolean | string[]) => setForm((f) => ({ ...f, [k]: v }));
+  const { requestNavigation } = useAdminEditingState();
+  const set = (k: keyof typeof EMPTY, v: string | boolean | string[]) => {
+    setIsDirty(true);
+    setForm((f) => ({ ...f, [k]: v }));
+  };
 
   // Cargar la noticia al editar.
   const newsQuery = useQuery<News>({
@@ -113,6 +122,7 @@ export default function AdminNewsForm() {
       tags: (n.tags || []).filter((tag): tag is string => typeof tag === "string"),
     });
     setSlugTouched(true); // no re-generar slug de una noticia existente
+    setIsDirty(false);
   }, [newsQuery.data]);
 
   // El selector incluye perfiles aún en borrador para que una noticia no pierda
@@ -195,6 +205,7 @@ export default function AdminNewsForm() {
   });
 
   const toggleProfessional = (memberId: string, checked: boolean) => {
+    setIsDirty(true);
     setProfessionalRoles((current) => {
       if (!checked) {
         const { [memberId]: _removed, ...rest } = current;
@@ -205,10 +216,12 @@ export default function AdminNewsForm() {
   };
 
   const setProfessionalRole = (memberId: string, relationshipRole: RelationshipRole) => {
+    setIsDirty(true);
     setProfessionalRoles((current) => ({ ...current, [memberId]: relationshipRole }));
   };
 
   const setSourceProfessionalRole = (memberId: string, relationshipRole: RelationshipRole) => {
+    setIsDirty(true);
     setSourceProfessionalRoles((current) => ({ ...current, [memberId]: relationshipRole }));
   };
 
@@ -218,6 +231,7 @@ export default function AdminNewsForm() {
       .map((tag) => tag.trim().replace(/\s+/g, " ").toLocaleLowerCase("es-MX"))
       .filter((tag) => tag.length >= 2 && tag.length <= 60);
     if (!nextTags.length) return;
+    setIsDirty(true);
     setForm((current) => ({
       ...current,
       tags: Array.from(new Set([...current.tags, ...nextTags])).slice(0, 12),
@@ -225,10 +239,13 @@ export default function AdminNewsForm() {
     setTagInput("");
   };
 
-  const removeTag = (tag: string) => setForm((current) => ({
-    ...current,
-    tags: current.tags.filter((value) => value !== tag),
-  }));
+  const removeTag = (tag: string) => {
+    setIsDirty(true);
+    setForm((current) => ({
+      ...current,
+      tags: current.tags.filter((value) => value !== tag),
+    }));
+  };
 
   // Auto-slug desde el título en español mientras no se edite manualmente.
   useEffect(() => {
@@ -273,6 +290,8 @@ export default function AdminNewsForm() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/admin/news"] });
       queryClient.invalidateQueries({ queryKey: ["/api/news"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/navigation-status"] });
+      setIsDirty(false);
       toast({ title: isEdit ? "Noticia actualizada" : "Noticia creada", description: "Los cambios se guardaron." });
       setLocation("/admin/news");
     },
@@ -293,6 +312,16 @@ export default function AdminNewsForm() {
     && pendingProfessionalRoleIds.length === 0
     && (!form.published || (hasReadableText(form.title) && (englishReady && spanishReady || sourceOnlyArticle)))
     && !saveMutation.isPending;
+
+  useAdminEditRegistration({ id: `news:${id || "new"}`, isDirty, isSaving: saveMutation.isPending });
+  const reviewItems = [
+    { label: "Contenido", complete: hasReadableText(form.titleEs), hint: "agrega el título en español" },
+    { label: "Idiomas", complete: !form.published || (spanishReady && (englishReady || sourceOnlyArticle)), hint: "revisa español e inglés" },
+    { label: "Imagen", complete: !!form.imageUrl.trim(), hint: "opcional, pero recomendada" },
+    { label: "Fecha y publicación", complete: dateReady, hint: "confirma la fecha editorial" },
+    { label: "Revisión final", complete: canSave && !isDirty, hint: "guarda para actualizar la vista previa" },
+  ];
+  const exitToList = () => requestNavigation(() => setLocation("/admin/news"));
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -335,17 +364,15 @@ export default function AdminNewsForm() {
   return (
     <div className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-8 max-w-3xl">
-        <div className="flex items-center justify-between gap-4 mb-6">
-          <div className="flex items-center gap-4">
-            <Link href="/admin/news">
-              <Button variant="ghost" size="icon" data-testid="button-back"><ArrowLeft className="h-5 w-5" /></Button>
-            </Link>
-            <h1 className="text-2xl font-bold" data-testid="text-page-title">
-              {isEdit ? "Editar noticia" : "Nueva noticia"}
-            </h1>
-          </div>
-          {isEdit && id && (
-            <div className="flex items-center gap-2">
+        <AdminPageHeader
+          title={isEdit ? "Editar publicación" : "Nueva publicación"}
+          description="Los cambios afectan sólo esta publicación. Guarda un borrador antes de abrir la vista previa privada."
+          actions={
+            <div className="flex flex-wrap items-start justify-end gap-2">
+              <AdminEditStatus isDirty={isDirty} isSaving={saveMutation.isPending} published={form.published} />
+              <AdminPrivatePreviewButton entity="news" id={id} hasUnsavedChanges={isDirty} />
+              {isEdit && id && (
+                <div className="flex items-center gap-2">
               <SocialPostButton articleId={id} />
               {form.category === "alerts" && (
                 <VoiceButton
@@ -355,9 +382,11 @@ export default function AdminNewsForm() {
                   label="Generar audio de la alerta"
                 />
               )}
+                </div>
+              )}
             </div>
-          )}
-        </div>
+          }
+        />
 
         <AdminPageHelp pageId="noticias-form" manualSectionId="noticias">
           Llena el contenido en español y revisa también su versión en inglés. Puedes guardar un borrador
@@ -370,9 +399,14 @@ export default function AdminNewsForm() {
         <div className="flex justify-end mb-3">
           <TranslateButton
             getSource={() => ({ title: form.titleEs, excerpt: form.excerptEs, content: form.contentEs })}
-            onApply={(f) => setForm((prev) => ({ ...prev, title: f.title ?? prev.title, excerpt: f.excerpt ?? prev.excerpt, content: f.content ?? prev.content }))}
+            onApply={(f) => {
+              setIsDirty(true);
+              setForm((prev) => ({ ...prev, title: f.title ?? prev.title, excerpt: f.excerpt ?? prev.excerpt, content: f.content ?? prev.content }));
+            }}
           />
         </div>
+
+        <AdminCompletionChecklist items={reviewItems} />
 
         <form onSubmit={submit}>
           <Card>
@@ -650,7 +684,7 @@ export default function AdminNewsForm() {
           </Card>
 
           <div className="flex items-center justify-end gap-3 mt-6">
-            <Link href="/admin/news"><Button type="button" variant="outline">Cancelar</Button></Link>
+            <Button type="button" variant="outline" onClick={exitToList}>Cancelar</Button>
             <Button type="submit" disabled={!canSave} data-testid="button-save">
               {saveMutation.isPending ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : <Save className="h-4 w-4 mr-1" />}
               {isEdit ? "Guardar cambios" : "Crear noticia"}

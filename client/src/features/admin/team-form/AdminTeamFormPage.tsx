@@ -1,7 +1,10 @@
-import { Link } from "wouter";
+import { useLocation } from "wouter";
 import { Loader2, Save, User } from "lucide-react";
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 import { AdminPageHelp } from "@/components/admin/AdminPageHelp";
+import { AdminCompletionChecklist } from "@/components/admin/AdminCompletionChecklist";
+import { AdminEditStatus, useAdminEditRegistration, useAdminEditingState } from "@/components/admin/AdminEditingState";
+import { AdminPrivatePreviewButton } from "@/components/admin/AdminPrivatePreviewButton";
 import { ConfirmChangesDialog } from "@/components/admin/ConfirmChangesDialog";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -10,6 +13,8 @@ import { TeamMemberPreview } from "./TeamMemberPreview";
 import { useTeamMemberForm } from "./useTeamMemberForm";
 
 export default function AdminTeamFormPage() {
+  const [, setLocation] = useLocation();
+  const { requestNavigation } = useAdminEditingState();
   const controller = useTeamMemberForm();
   const {
     authLoading,
@@ -24,7 +29,20 @@ export default function AdminTeamFormPage() {
     updateMutation,
     createMutation,
     doSave,
+    form,
+    memberId,
+    watchedValues,
   } = controller;
+  const isDirty = form.formState.isDirty;
+  useAdminEditRegistration({ id: `team:${memberId || "new"}`, isDirty, isSaving: isPending });
+  const reviewItems = [
+    { label: "Datos generales", complete: Boolean(watchedValues.name?.trim() && watchedValues.titleEs?.trim()), hint: "nombre y cargo" },
+    { label: "Contacto", complete: Boolean(watchedValues.email?.trim() || watchedValues.phone?.trim()), hint: "opcional, pero recomendado" },
+    { label: "Biografía", complete: Boolean(watchedValues.bioEs?.trim() || watchedValues.bio?.trim()), hint: "agrega una biografía" },
+    { label: "Prácticas e industrias", complete: watchedValues.practiceGroupIds.length > 0 || watchedValues.industryGroupIds.length > 0, hint: "asocia al menos una si corresponde" },
+    { label: "Visibilidad", complete: typeof watchedValues.published === "boolean", hint: "revisa si debe estar visible" },
+  ];
+  const leaveForm = () => requestNavigation(() => setLocation("/admin/team"));
 
   if (authLoading) {
     return (
@@ -66,16 +84,17 @@ export default function AdminTeamFormPage() {
           icon={User}
           actions={
             <>
-              <Link href="/admin/team">
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="rounded-none border-[#D9D8D7] text-[#54565B] hover:bg-[#F8F8F8]"
-                  data-testid="button-cancel"
-                >
-                  {t.cancel}
-                </Button>
-              </Link>
+              <AdminEditStatus isDirty={isDirty} isSaving={isPending} published={watchedValues.published} />
+              <AdminPrivatePreviewButton entity="team" id={memberId} hasUnsavedChanges={isDirty} />
+              <Button
+                type="button"
+                variant="outline"
+                onClick={leaveForm}
+                className="rounded-none border-[#D9D8D7] text-[#54565B] hover:bg-[#F8F8F8]"
+                data-testid="button-cancel"
+              >
+                {t.cancel}
+              </Button>
               <Button
                 type="submit"
                 form="team-member-form"
@@ -101,6 +120,7 @@ export default function AdminTeamFormPage() {
         <AdminPageHelp pageId="equipo-form" manualSectionId="equipo">
           Aquí agregas o editas la ficha de un abogado del equipo: nombre, cargo, foto, áreas de práctica y biografía.
         </AdminPageHelp>
+        <AdminCompletionChecklist items={reviewItems} />
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2">
             <TeamFormTabs controller={controller} />

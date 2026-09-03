@@ -8,7 +8,8 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useToast } from "@/hooks/use-toast";
-import { Mail, FileText, Download, Check, Trash2 } from "lucide-react";
+import { Mail, FileText, Download, Check, Trash2, MoreHorizontal } from "lucide-react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 import { AdminPageHelp } from "@/components/admin/AdminPageHelp";
 
@@ -65,6 +66,7 @@ export default function AdminSubmissions() {
       if (res.ok) {
         toast({ title: "Marcado como leído" });
         queryClient.invalidateQueries({ queryKey: ["/api/admin/contact-submissions"] });
+        queryClient.invalidateQueries({ queryKey: ["/api/admin/navigation-status"] });
       } else {
         toast({ title: "Error", description: "No se pudo actualizar.", variant: "destructive" });
       }
@@ -79,6 +81,7 @@ export default function AdminSubmissions() {
       if (res.ok) {
         toast({ title: "Marcado como leído" });
         queryClient.invalidateQueries({ queryKey: ["/api/admin/career-applications"] });
+        queryClient.invalidateQueries({ queryKey: ["/api/admin/navigation-status"] });
       } else {
         toast({ title: "Error", description: "No se pudo actualizar.", variant: "destructive" });
       }
@@ -94,6 +97,7 @@ export default function AdminSubmissions() {
       if (!res.ok) throw new Error();
       toast({ title: "Mensaje eliminado" });
       queryClient.invalidateQueries({ queryKey: ["/api/admin/contact-submissions"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/navigation-status"] });
     } catch {
       toast({ title: "No se pudo eliminar el mensaje", description: "Inténtalo de nuevo.", variant: "destructive" });
     }
@@ -106,6 +110,7 @@ export default function AdminSubmissions() {
       if (!res.ok) throw new Error();
       toast({ title: "Solicitud y hoja de vida eliminadas" });
       queryClient.invalidateQueries({ queryKey: ["/api/admin/career-applications"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/navigation-status"] });
     } catch {
       toast({ title: "No se pudo completar la eliminación", description: "Inténtalo de nuevo.", variant: "destructive" });
     }
@@ -161,7 +166,7 @@ export default function AdminSubmissions() {
                 ) : !contactQuery.data?.length ? (
                   <p className="text-sm text-muted-foreground">Aún no hay mensajes de contacto.</p>
                 ) : (
-                  <Table>
+                  <div className="overflow-x-auto"><Table>
                     <TableHeader>
                       <TableRow>
                         <TableHead>Fecha</TableHead>
@@ -191,21 +196,27 @@ export default function AdminSubmissions() {
                             )}
                           </TableCell>
                           <TableCell>
-                            <div className="flex items-center gap-1">
+                            <div className="hidden items-center gap-1 sm:flex">
                               {!c.read && (
                                 <Button variant="ghost" size="sm" onClick={() => markContactRead(c.id)}>
                                   <Check className="h-3.5 w-3.5 mr-1" /> Marcar leído
                                 </Button>
                               )}
-                              <Button variant="ghost" size="icon" onClick={() => deleteContact(c.id)} title="Eliminar mensaje" aria-label="Eliminar mensaje">
-                                <Trash2 className="h-4 w-4 text-destructive" />
+                              <Button variant="ghost" size="sm" onClick={() => deleteContact(c.id)} title="Eliminar mensaje" aria-label="Eliminar mensaje">
+                                <Trash2 className="mr-1 h-4 w-4 text-destructive" />Eliminar
                               </Button>
+                            </div>
+                            <div className="sm:hidden">
+                              <DropdownMenu><DropdownMenuTrigger asChild><Button variant="ghost" size="icon" aria-label="Acciones del mensaje"><MoreHorizontal className="h-4 w-4" /></Button></DropdownMenuTrigger><DropdownMenuContent align="end">
+                                {!c.read && <DropdownMenuItem onSelect={() => markContactRead(c.id)}><Check />Marcar leído</DropdownMenuItem>}
+                                <DropdownMenuItem className="text-destructive focus:text-destructive" onSelect={() => deleteContact(c.id)}><Trash2 />Eliminar</DropdownMenuItem>
+                              </DropdownMenuContent></DropdownMenu>
                             </div>
                           </TableCell>
                         </TableRow>
                       ))}
                     </TableBody>
-                  </Table>
+                  </Table></div>
                 )}
               </CardContent>
             </Card>
@@ -223,7 +234,7 @@ export default function AdminSubmissions() {
                 ) : !careerQuery.data?.length ? (
                   <p className="text-sm text-muted-foreground">Aún no hay solicitudes de pasantías.</p>
                 ) : (
-                  <Table>
+                  <div className="overflow-x-auto"><Table>
                     <TableHeader>
                       <TableRow>
                         <TableHead>Fecha</TableHead>
@@ -251,21 +262,28 @@ export default function AdminSubmissions() {
                             )}
                           </TableCell>
                           <TableCell>
-                            <div className="flex items-center gap-1">
+                            <div className="hidden items-center gap-1 sm:flex">
                               {!c.read && (
                                 <Button variant="ghost" size="sm" onClick={() => markCareerRead(c.id)}>
                                   <Check className="h-3.5 w-3.5 mr-1" /> Marcar leído
                                 </Button>
                               )}
-                              <Button variant="ghost" size="icon" onClick={() => deleteCareer(c.id)} title="Eliminar solicitud y hoja de vida" aria-label="Eliminar solicitud y hoja de vida">
-                                <Trash2 className="h-4 w-4 text-destructive" />
+                              <Button variant="ghost" size="sm" onClick={() => deleteCareer(c.id)} title="Eliminar solicitud y hoja de vida" aria-label="Eliminar solicitud y hoja de vida">
+                                <Trash2 className="mr-1 h-4 w-4 text-destructive" />Eliminar
                               </Button>
+                            </div>
+                            <div className="sm:hidden">
+                              <DropdownMenu><DropdownMenuTrigger asChild><Button variant="ghost" size="icon" aria-label="Acciones de la solicitud"><MoreHorizontal className="h-4 w-4" /></Button></DropdownMenuTrigger><DropdownMenuContent align="end">
+                                {!c.read && <DropdownMenuItem onSelect={() => markCareerRead(c.id)}><Check />Marcar leído</DropdownMenuItem>}
+                                {canDownloadPrivate && <DropdownMenuItem asChild><a href={`/api/admin/career-applications/${c.id}/cv`} download><Download />Descargar CV</a></DropdownMenuItem>}
+                                <DropdownMenuItem className="text-destructive focus:text-destructive" onSelect={() => deleteCareer(c.id)}><Trash2 />Eliminar</DropdownMenuItem>
+                              </DropdownMenuContent></DropdownMenu>
                             </div>
                           </TableCell>
                         </TableRow>
                       ))}
                     </TableBody>
-                  </Table>
+                  </Table></div>
                 )}
               </CardContent>
             </Card>

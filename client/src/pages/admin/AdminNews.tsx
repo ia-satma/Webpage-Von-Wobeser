@@ -21,10 +21,12 @@ import {
   Trash2,
   Eye,
   Plus,
+  MoreHorizontal,
   ChevronLeft,
   ChevronRight,
   Newspaper
 } from "lucide-react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import type { News } from "@shared/schema";
 
 const translations = {
@@ -330,6 +332,7 @@ export default function AdminNews() {
     onSuccess: () => {
       toast({ title: t.deleteSuccess });
       queryClient.invalidateQueries({ queryKey: ["/api/admin/news"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/navigation-status"] });
     },
     onError: () => {
       toast({ title: t.deleteError, variant: "destructive" });
@@ -500,7 +503,7 @@ export default function AdminNews() {
                           </div>
                         </TableCell>
                         <TableCell className="text-right">
-                          <div className="flex justify-end gap-2">
+                          <div className="hidden justify-end gap-1 sm:flex">
                             {newsItem.published && (
                               // Página pública servida por el espejo (Express), no por React:
                               // usar <a> nativo (no <Link> de wouter) para que la petición
@@ -508,34 +511,50 @@ export default function AdminNews() {
                               <a href={`/news/${newsItem.slug}`} target="_blank" rel="noopener noreferrer">
                                 <Button
                                   variant="ghost"
-                                  size="icon"
+                                  size="sm"
                                   data-testid={`button-view-${newsItem.id}`}
                                   title={t.view}
                                 >
-                                  <Eye className="h-4 w-4" />
+                                  <Eye className="mr-1.5 h-4 w-4" />{t.view}
                                 </Button>
                               </a>
                             )}
                             <Link href={`/admin/news/${newsItem.id}/edit`}>
                               <Button
                                 variant="ghost"
-                                size="icon"
+                                size="sm"
                                 data-testid={`button-edit-${newsItem.id}`}
                                 title={t.edit}
                               >
-                                <Pencil className="h-4 w-4" />
+                                <Pencil className="mr-1.5 h-4 w-4" />{t.edit}
                               </Button>
                             </Link>
                             <Button
                               variant="ghost"
-                              size="icon"
+                              size="sm"
                               onClick={() => handleDelete(newsItem.id)}
                               disabled={deleteMutation.isPending}
                               data-testid={`button-delete-${newsItem.id}`}
                               title={t.delete}
                             >
-                              <Trash2 className="h-4 w-4" />
+                              <Trash2 className="mr-1.5 h-4 w-4 text-destructive" />{t.delete}
                             </Button>
+                          </div>
+                          <div className="flex justify-end sm:hidden">
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="icon" aria-label={`Acciones para ${language === "es" ? newsItem.titleEs : newsItem.title}`}><MoreHorizontal className="h-4 w-4" /></Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end">
+                                {newsItem.published && (
+                                  <DropdownMenuItem asChild>
+                                    <a href={`/news/${newsItem.slug}`} target="_blank" rel="noopener noreferrer"><Eye />{t.view}</a>
+                                  </DropdownMenuItem>
+                                )}
+                                <DropdownMenuItem asChild><Link href={`/admin/news/${newsItem.id}/edit`}><Pencil />{t.edit}</Link></DropdownMenuItem>
+                                <DropdownMenuItem className="text-destructive focus:text-destructive" onSelect={() => handleDelete(newsItem.id)} disabled={deleteMutation.isPending}><Trash2 />{t.delete}</DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
                           </div>
                         </TableCell>
                       </TableRow>
