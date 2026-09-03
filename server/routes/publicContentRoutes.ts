@@ -5,7 +5,12 @@ import { getLocalizedAttorneyRole, getLocalizedAttorneyTitle } from "@shared/att
 import { getAttorneyPublicName, getAttorneySearchName } from "@shared/attorneyName";
 import { z } from "zod";
 import { checkSharedRateLimit, recordSharedRateLimitAttempt } from "../auth";
-import { deletePersistentPrivateCv, persistPrivateCvFile } from "../media/privateDocuments";
+import {
+  deletePersistentPrivateCv,
+  persistPrivateCvFile,
+  PrivateDocumentStorageUnavailableError,
+  privateDocumentStorageStatus,
+} from "../media/privateDocuments";
 import { isPublishedPublicPractice, isPublicPracticeSlug } from "../mirror/publicPracticeGroups";
 import { CATEGORIES as ATTORNEY_CATEGORIES } from "../mirror/renderAttorneyList";
 import {
@@ -455,6 +460,18 @@ export function registerPublicContentRoutes(app: Express): void {
         await removeUploadQuietly(req.file.path);
         return res.status(400).json({ error: "El contenido del archivo no corresponde a un PDF, DOC o DOCX válido." });
       }
+      // En producción, el CV nunca puede permanecer sólo en el disco efímero
+      // de Replit. Detectamos la ausencia de App Storage antes de procesar la
+      // solicitud para dar una respuesta accionable y no simular un envío que
+      // se perdería en el siguiente despliegue.
+      const privateStorage = await privateDocumentStorageStatus();
+      if (privateStorage.required && !privateStorage.available) {
+        await removeUploadQuietly(req.file.path);
+        return res.status(503).json({
+          error: "La plataforma para recibir hojas de vida está temporalmente no disponible. Intenta de nuevo más tarde.",
+          code: "CV_STORAGE_UNAVAILABLE",
+        });
+      }
       await scanFileForMalware(req.file.path);
       const acceptedCv = await acceptQuarantinedCv(req.file.path, req.file.mimetype);
       acceptedCvPath = acceptedCv.absolutePath;
@@ -488,14 +505,39 @@ export function registerPublicContentRoutes(app: Express): void {
       }
 
       res.json({ success: true, message: "Application submitted successfully" });
-    } catch (error) {
+    } catch (error: unknown) {
       await removeUploadQuietly(req.file?.path);
       await removeUploadQuietly(acceptedCvPath);
       if (acceptedCvPersisted && acceptedCvStoragePath) {
         await deletePersistentPrivateCv(acceptedCvStoragePath).catch(() => undefined);
       }
-      console.error("Career application processing failed");
-      res.status(500).json({ error: "No fue posible procesar la solicitud." });
+      // No se registra el cuerpo de la solicitud, nombre de archivo ni correo.
+      // Basta con un código técnico para investigar sin exponer datos de una
+      // candidatura en los logs de producción.
+      const rawCode = error instanceof PrivateDocumentStorageUnavailableError
+        ? "CV_STORAGE_UNAVAILABLE"
+        : (typeof (error as { code?: unknown })?.code === "string"
+          ? String((error as { code: string }).code).slice(0, 40)
+          : "CAREER_APPLICATION_PROCESSING_FAILED");
+      const code = rawCode === "CV_STORAGE_UNAVAILABLE"
+        ? "CV_STORAGE_UNAVAILABLE"
+        : rawCode === "42P01"
+          ? "CAREER_APPLICATIONS_SCHEMA_PENDING"
+          : "CAREER_APPLICATION_PROCESSING_FAILED";
+      console.error(`[CareerApplications] processing failed code=${code}`);
+      if (code === "CV_STORAGE_UNAVAILABLE") {
+        return res.status(503).json({
+          error: "La plataforma para recibir hojas de vida está temporalmente no disponible. Intenta de nuevo más tarde.",
+          code,
+        });
+      }
+      if (code === "CAREER_APPLICATIONS_SCHEMA_PENDING") {
+        return res.status(503).json({
+          error: "El sistema de solicitudes se está preparando. Intenta de nuevo en unos minutos.",
+          code,
+        });
+      }
+      return res.status(500).json({ error: "No fue posible procesar la solicitud.", code });
     }
   });
 
