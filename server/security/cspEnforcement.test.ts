@@ -89,6 +89,10 @@ test("production CSP is enforced and does not permit inline script attributes", 
   assert.match(source, /scriptSrc:\s*isProduction[\s\S]*cspNonceSource/);
   assert.match(source, /styleSrcElem:\s*isProduction[\s\S]*cspNonceSource/);
   assert.match(source, /connectSrc:\s*isProduction[\s\S]*www\.google-analytics\.com/);
+  assert.match(source, /cdn\.leadinfo\.net/);
+  assert.match(source, /api\.leadinfo\.com/);
+  assert.match(source, /collector\.leadinfo\.net/);
+  assert.doesNotMatch(source, /ldnfrpl\.com/);
   assert.match(source, /upgradeInsecureRequests/);
   assert.doesNotMatch(source, /unsafe-eval/);
 });

@@ -63,7 +63,10 @@ export function registerMirrorPublicRoutes(app: Express, runtime: MirrorRuntime)
   }));
   app.get(["/api/public/privacy-preferences", "/api/public/consent-config"], wrap(async (_req, res) => {
     const payload = publicConsentPayload(await getCookieConsentConfig());
-    res.set("Cache-Control", "public, max-age=60, stale-while-revalidate=300").json(payload);
+    // La configuración de consentimiento no puede servirse desactualizada:
+    // apagar Leadinfo debe impedir nuevas cargas inmediatamente, sin esperar a
+    // una ventana de CDN/caché y sin requerir reiniciar el servidor.
+    res.set("Cache-Control", "no-store, max-age=0").json(payload);
   }));
   app.get(["/vwb-privacy-preferences-config.js", "/vwb-cookie-consent-config.js"], wrap(async (_req, res) => {
     const payload = publicConsentPayload(await getCookieConsentConfig());
@@ -73,7 +76,7 @@ export function registerMirrorPublicRoutes(app: Express, runtime: MirrorRuntime)
       .replace(/\u2029/g, "\\u2029");
     res
       .type("application/javascript")
-      .set("Cache-Control", "public, max-age=60, stale-while-revalidate=300")
+      .set("Cache-Control", "no-store, max-age=0")
       .send(`window.__VWB_COOKIE_CONSENT_CONFIG__=${serialized};`);
   }));
   app.get("/", wrap((req, res) => serveHome(langOf(req), res, typeof req.query.preview === "string")));

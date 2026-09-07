@@ -1,6 +1,6 @@
 import type { Express, Response } from "express";
 import * as cheerio from "cheerio";
-import { getCookieConsentConfig } from "../../privacy/cookieConsent";
+import { getCookieConsentConfig, getLeadinfoPolicyDisclosure } from "../../privacy/cookieConsent";
 import { applyCareersFormFix } from "../formsFix";
 import { renderPage } from "../renderPage";
 import { renderTalentPrivacyNotice, TALENT_PRIVACY_NOTICE_PATH } from "../renderTalentPrivacyNotice";
@@ -111,6 +111,13 @@ export function registerMirrorInstitutionalRoutes(app: Express, runtime: MirrorR
 
         const $policyTable = $policyBody.children("table").first();
         if ($policyTable.length) {
+          const leadinfoDisclosure = getLeadinfoPolicyDisclosure(consent, lang);
+          if (leadinfoDisclosure) {
+            const $body = $policyTable.children("tbody");
+            if ($body.length) $body.append(leadinfoDisclosure.tableRow);
+            else $policyTable.append(`<tbody>${leadinfoDisclosure.tableRow}</tbody>`);
+            $policyBody.append(`<h2 class="vwb-cookie-policy__section-title">${leadinfoDisclosure.heading}</h2><p>${leadinfoDisclosure.body}</p>`);
+          }
           $policyTable.addClass("vwb-cookie-policy__table");
           $policyTable.wrap(
             `<div class="vwb-cookie-policy__table-shell" role="region" tabindex="0" aria-label="${policyTableLabel}"></div>`,

@@ -7,10 +7,35 @@ import { sanitizeCms } from "../mirror/sanitize";
 
 export const COOKIE_POLICY_VERSION = "1.2";
 
+// Leadinfo entrega un identificador de sitio que el navegador puede conocer
+// cuando el proveedor está activo; no es una credencial. Aun así, sólo se
+// admite el identificador, nunca el fragmento HTML/JS del proveedor. Esto evita
+// que el panel se convierta en una vía para inyectar scripts arbitrarios.
+const LEADINFO_SITE_ID = /^[A-Za-z0-9_-]{4,160}$/;
+const LEADINFO_CONSENT_REVISION = 1;
+
+export function isValidLeadinfoSiteId(value: string): boolean {
+  return LEADINFO_SITE_ID.test(value.trim());
+}
+
+function parseProductionHostname(value: string): string {
+  try {
+    const url = new URL(value);
+    return url.protocol === "https:" ? url.hostname.toLowerCase() : "";
+  } catch {
+    return "";
+  }
+}
+
 export const cookieConsentSchema = z.object({
   version: z.string().trim().min(1).max(24),
   validityMonths: z.coerce.number().int().min(1).max(12),
   analyticsEnabled: z.boolean(),
+  leadinfoSiteId: z.string().trim().max(160).refine((value) => value === "" || isValidLeadinfoSiteId(value), {
+    message: "El Site ID de Leadinfo sólo puede contener letras, números, guiones y guiones bajos.",
+  }),
+  leadinfoEnabled: z.boolean(),
+  leadinfoDisclosureReviewed: z.boolean(),
   bannerTitle: z.object({ en: z.string().trim().min(1).max(120), es: z.string().trim().min(1).max(120) }),
   bannerBody: z.object({ en: z.string().trim().min(1).max(600), es: z.string().trim().min(1).max(600) }),
   acceptAll: z.object({ en: z.string().trim().min(1).max(80), es: z.string().trim().min(1).max(80) }),
@@ -20,15 +45,27 @@ export const cookieConsentSchema = z.object({
   preferencesBody: z.object({ en: z.string().trim().min(1).max(600), es: z.string().trim().min(1).max(600) }),
   essentialDescription: z.object({ en: z.string().trim().min(1).max(500), es: z.string().trim().min(1).max(500) }),
   analyticsDescription: z.object({ en: z.string().trim().min(1).max(500), es: z.string().trim().min(1).max(500) }),
+  leadinfoDescription: z.object({ en: z.string().trim().min(1).max(500), es: z.string().trim().min(1).max(500) }),
   externalDescription: z.object({ en: z.string().trim().min(1).max(500), es: z.string().trim().min(1).max(500) }),
   policyTitle: z.object({ en: z.string().trim().min(1).max(120), es: z.string().trim().min(1).max(120) }),
   policyContent: z.object({ en: z.string().trim().min(50).max(60_000), es: z.string().trim().min(50).max(60_000) }),
-}).strict();
+}).strict().superRefine((value, context) => {
+  if (!value.leadinfoEnabled) return;
+  if (!isValidLeadinfoSiteId(value.leadinfoSiteId)) {
+    context.addIssue({ code: z.ZodIssueCode.custom, path: ["leadinfoSiteId"], message: "Ingresa un Site ID válido antes de activar Leadinfo." });
+  }
+  if (!value.leadinfoDisclosureReviewed) {
+    context.addIssue({ code: z.ZodIssueCode.custom, path: ["leadinfoDisclosureReviewed"], message: "Confirma la revisión del aviso de privacidad y cookies antes de activar Leadinfo." });
+  }
+});
 
 const fallback = {
   version: COOKIE_POLICY_VERSION,
   validityMonths: 6,
   analyticsEnabled: false,
+  leadinfoSiteId: "",
+  leadinfoEnabled: false,
+  leadinfoDisclosureReviewed: false,
   bannerTitle: { en: "Your privacy, your choice", es: "Tu privacidad, tu decisión" },
   bannerBody: {
     en: "We use essential cookies to operate this site. With your permission, we also use analytics and load content from external providers.",
@@ -41,6 +78,10 @@ const fallback = {
   preferencesBody: { en: "Choose which optional technologies may be used. You can change this decision at any time.", es: "Elige qué tecnologías opcionales pueden utilizarse. Puedes cambiar esta decisión en cualquier momento." },
   essentialDescription: { en: "Required for security, administrative sessions and basic site operation.", es: "Necesarias para seguridad, sesiones administrativas y funcionamiento básico del sitio." },
   analyticsDescription: { en: "Helps us understand aggregate site usage through Google Analytics 4.", es: "Nos ayuda a comprender el uso agregado del sitio mediante Google Analytics 4." },
+  leadinfoDescription: {
+    en: "Allows Leadinfo to identify visits from companies based on IP addresses and provide business visit analytics.",
+    es: "Permite a Leadinfo identificar visitas de empresas con base en direcciones IP y proporcionar analítica de visitas empresariales.",
+  },
   externalDescription: { en: "Allows YouTube and Vimeo content to load.", es: "Permite cargar contenido de YouTube y Vimeo." },
   policyTitle: { en: "Cookie Policy", es: "Política de Cookies" },
   policyContent: {
@@ -98,14 +139,51 @@ const pair = (map: Awaited<ReturnType<typeof getConfigMap>>, key: string, fallba
   es: cfg(map, key, "es") || fallbackPair.es,
 });
 
+type LeadinfoConfig = {
+  siteId: string;
+  enabled: boolean;
+  disclosureReviewed: boolean;
+  activationRevision: number;
+  productionHostname: string;
+};
+
+function isLeadinfoActive(config: LeadinfoConfig): boolean {
+  return config.enabled
+    && config.disclosureReviewed
+    && isValidLeadinfoSiteId(config.siteId)
+    && Boolean(config.productionHostname);
+}
+
+function leadinfoStatus(config: LeadinfoConfig): "not_configured" | "inactive" | "ready" | "active" {
+  if (!isValidLeadinfoSiteId(config.siteId)) return "not_configured";
+  if (isLeadinfoActive(config)) return "active";
+  if (config.disclosureReviewed && Boolean(config.productionHostname)) return "ready";
+  return "inactive";
+}
+
 export async function getCookieConsentConfig() {
   const map = await getConfigMap();
   const [policy] = await db.select().from(legalDocuments).where(eq(legalDocuments.type, "cookie_policy")).limit(1);
+  const leadinfo: LeadinfoConfig = {
+    siteId: (map.leadinfo_site_id?.value || fallback.leadinfoSiteId).trim(),
+    enabled: (map.leadinfo_enabled?.value || "false") === "true",
+    disclosureReviewed: (map.leadinfo_disclosure_reviewed?.value || "false") === "true",
+    activationRevision: Math.max(0, Number.parseInt(map.leadinfo_activation_revision?.value || "0", 10) || 0),
+    productionHostname: parseProductionHostname(map.site_url?.value || ""),
+  };
+  const active = isLeadinfoActive(leadinfo);
   return {
     version: map.cookie_consent_version?.value || policy?.version || fallback.version,
     validityMonths: Number(map.cookie_consent_validity_months?.value || fallback.validityMonths),
     analyticsEnabled: (map.ga4_enabled?.value || "false") === "true",
     ga4Id: map.ga4_measurement_id?.value || "",
+    leadinfoSiteId: leadinfo.siteId,
+    leadinfoEnabled: leadinfo.enabled,
+    leadinfoDisclosureReviewed: leadinfo.disclosureReviewed,
+    leadinfoStatus: leadinfoStatus(leadinfo),
+    leadinfoActive: active,
+    leadinfoActivationRevision: leadinfo.activationRevision,
+    leadinfoProductionHostname: leadinfo.productionHostname,
     bannerTitle: pair(map, "cookie_banner_title", fallback.bannerTitle),
     bannerBody: pair(map, "cookie_banner_body", fallback.bannerBody),
     acceptAll: pair(map, "cookie_accept_all", fallback.acceptAll),
@@ -115,6 +193,7 @@ export async function getCookieConsentConfig() {
     preferencesBody: pair(map, "cookie_preferences_body", fallback.preferencesBody),
     essentialDescription: pair(map, "cookie_essential_description", fallback.essentialDescription),
     analyticsDescription: pair(map, "cookie_analytics_description", fallback.analyticsDescription),
+    leadinfoDescription: pair(map, "cookie_leadinfo_description", fallback.leadinfoDescription),
     externalDescription: pair(map, "cookie_external_description", fallback.externalDescription),
     policyTitle: { en: policy?.title || fallback.policyTitle.en, es: policy?.titleEs || fallback.policyTitle.es },
     policyContent: { en: policy?.content || fallback.policyContent.en, es: policy?.contentEs || fallback.policyContent.es },
@@ -127,9 +206,30 @@ export async function getCookieConsentConfig() {
 }
 
 export function publicConsentPayload(config: Awaited<ReturnType<typeof getCookieConsentConfig>>) {
-  const { locationDisclosureReviewRequired: _locationDisclosureReviewRequired, ...publicConfig } = config;
+  const {
+    locationDisclosureReviewRequired: _locationDisclosureReviewRequired,
+    leadinfoSiteId,
+    leadinfoEnabled: _leadinfoEnabled,
+    leadinfoDisclosureReviewed: _leadinfoDisclosureReviewed,
+    leadinfoStatus: _leadinfoStatus,
+    leadinfoDescription,
+    ...publicConfig
+  } = config;
+  // El identificador sólo alcanza al navegador cuando la activación ya pasó
+  // todas las protecciones del servidor. Con el módulo preparado o apagado la
+  // respuesta pública no permite deducir la cuenta de Leadinfo.
+  const leadinfoPublic = config.leadinfoActive
+    ? {
+      leadinfoActive: true,
+      leadinfoSiteId,
+      leadinfoDescription,
+      leadinfoTitle: { en: "Business visitor identification", es: "Identificación de empresas" },
+      leadinfoConsentVersion: `${config.version}:leadinfo-${config.leadinfoActivationRevision || LEADINFO_CONSENT_REVISION}`,
+    }
+    : { leadinfoActive: false, leadinfoActivationRevision: 0, leadinfoProductionHostname: "" };
   return {
     ...publicConfig,
+    ...leadinfoPublic,
     essentialTitle: { en: "Essential", es: "Esenciales" },
     analyticsTitle: { en: "Analytics", es: "Analítica" },
     externalTitle: { en: "External content", es: "Contenido externo" },
@@ -142,16 +242,64 @@ export function publicConsentPayload(config: Awaited<ReturnType<typeof getCookie
   };
 }
 
+/**
+ * Texto fijo de transparencia que se incorpora a la política pública sólo
+ * después de una activación válida. No se mezcla con el contenido editable
+ * mientras Leadinfo está preparado/inactivo, ni se toma de un campo libre.
+ */
+export function getLeadinfoPolicyDisclosure(
+  config: Awaited<ReturnType<typeof getCookieConsentConfig>>,
+  lang: "en" | "es",
+): { tableRow: string; heading: string; body: string } | null {
+  if (!config.leadinfoActive) return null;
+  if (lang === "es") {
+    return {
+      tableRow: "<tr><td>Leadinfo B.V. / _li_id y _li_ses</td><td>Identificación de empresas</td><td>Reconoce visitas de empresas con base en direcciones IP y proporciona analítica de visitas empresariales, únicamente después de autorización.</td><td>_li_id: dos años; _li_ses: sesión actual</td><td>Leadinfo B.V.; consulta su aviso de privacidad y opción de exclusión.</td></tr>",
+      heading: "Leadinfo",
+      body: "Con autorización, Von Wobeser y Sierra utiliza Leadinfo B.V. para identificar visitas de empresas con base en direcciones IP y mostrar información empresarial disponible públicamente. Leadinfo utiliza las cookies _li_id y _li_ses para analítica de visitas. El sitio no envía mediante esta integración nombres, correos, currículums ni mensajes de formularios. Puedes consultar el <a href=\"https://www.leadinfo.com/en/privacy/\" target=\"_blank\" rel=\"noopener noreferrer\">aviso de privacidad de Leadinfo</a> y ejercer su <a href=\"https://www.leadinfo.com/en/opt-out\" target=\"_blank\" rel=\"noopener noreferrer\">opción de exclusión</a>.",
+    };
+  }
+  return {
+    tableRow: "<tr><td>Leadinfo B.V. / _li_id and _li_ses</td><td>Business visitor identification</td><td>Recognizes company visits based on IP addresses and provides business visit analytics, only after authorization.</td><td>_li_id: two years; _li_ses: current session</td><td>Leadinfo B.V.; see its privacy notice and opt-out option.</td></tr>",
+    heading: "Leadinfo",
+    body: "With authorization, Von Wobeser y Sierra uses Leadinfo B.V. to identify company visits based on IP addresses and show publicly available company information. Leadinfo uses the _li_id and _li_ses cookies for visit analytics. This integration does not send names, email addresses, CVs or form messages from this website. You can read the <a href=\"https://www.leadinfo.com/en/privacy/\" target=\"_blank\" rel=\"noopener noreferrer\">Leadinfo Privacy Notice</a> and use its <a href=\"https://www.leadinfo.com/en/opt-out\" target=\"_blank\" rel=\"noopener noreferrer\">opt-out option</a>.",
+  };
+}
+
 export async function saveCookieConsentConfig(input: z.infer<typeof cookieConsentSchema>) {
+  const currentMap = await getConfigMap();
+  const currentLeadinfo: LeadinfoConfig = {
+    siteId: (currentMap.leadinfo_site_id?.value || "").trim(),
+    enabled: (currentMap.leadinfo_enabled?.value || "false") === "true",
+    disclosureReviewed: (currentMap.leadinfo_disclosure_reviewed?.value || "false") === "true",
+    activationRevision: Math.max(0, Number.parseInt(currentMap.leadinfo_activation_revision?.value || "0", 10) || 0),
+    productionHostname: parseProductionHostname(currentMap.site_url?.value || ""),
+  };
+  const nextLeadinfo: LeadinfoConfig = {
+    ...currentLeadinfo,
+    siteId: input.leadinfoSiteId.trim(),
+    enabled: input.leadinfoEnabled,
+    disclosureReviewed: input.leadinfoDisclosureReviewed,
+  };
+  // Una activación nueva invalida por diseño cualquier consentimiento anterior.
+  // Apagar y volver a activar genera otra revisión aunque conserve el mismo ID.
+  if (isLeadinfoActive(nextLeadinfo) && !isLeadinfoActive(currentLeadinfo)) {
+    nextLeadinfo.activationRevision = currentLeadinfo.activationRevision + 1;
+  }
   const entries: Array<[string, string, string?]> = [
     ["cookie_consent_version", input.version], ["cookie_consent_validity_months", String(input.validityMonths)],
     ["ga4_enabled", String(input.analyticsEnabled)],
+    ["leadinfo_site_id", nextLeadinfo.siteId],
+    ["leadinfo_enabled", String(nextLeadinfo.enabled)],
+    ["leadinfo_disclosure_reviewed", String(nextLeadinfo.disclosureReviewed)],
+    ["leadinfo_activation_revision", String(nextLeadinfo.activationRevision)],
     ["cookie_banner_title", input.bannerTitle.en, input.bannerTitle.es], ["cookie_banner_body", input.bannerBody.en, input.bannerBody.es],
     ["cookie_accept_all", input.acceptAll.en, input.acceptAll.es], ["cookie_reject_optional", input.rejectOptional.en, input.rejectOptional.es],
     ["cookie_configure", input.configure.en, input.configure.es], ["cookie_preferences_title", input.preferencesTitle.en, input.preferencesTitle.es],
     ["cookie_preferences_body", input.preferencesBody.en, input.preferencesBody.es],
     ["cookie_essential_description", input.essentialDescription.en, input.essentialDescription.es],
     ["cookie_analytics_description", input.analyticsDescription.en, input.analyticsDescription.es],
+    ["cookie_leadinfo_description", input.leadinfoDescription.en, input.leadinfoDescription.es],
     ["cookie_external_description", input.externalDescription.en, input.externalDescription.es],
   ];
   for (const [key, en, es] of entries) await upsertConfig(key, en, es);
@@ -178,6 +326,10 @@ export async function seedCookiePolicy() {
     ["cookie_consent_version", fallback.version],
     ["cookie_consent_validity_months", String(fallback.validityMonths)],
     ["ga4_enabled", String(fallback.analyticsEnabled)],
+    ["leadinfo_site_id", fallback.leadinfoSiteId],
+    ["leadinfo_enabled", String(fallback.leadinfoEnabled)],
+    ["leadinfo_disclosure_reviewed", String(fallback.leadinfoDisclosureReviewed)],
+    ["leadinfo_activation_revision", "0"],
     ["cookie_banner_title", fallback.bannerTitle.en, fallback.bannerTitle.es],
     ["cookie_banner_body", fallback.bannerBody.en, fallback.bannerBody.es],
     ["cookie_accept_all", fallback.acceptAll.en, fallback.acceptAll.es],
@@ -187,6 +339,7 @@ export async function seedCookiePolicy() {
     ["cookie_preferences_body", fallback.preferencesBody.en, fallback.preferencesBody.es],
     ["cookie_essential_description", fallback.essentialDescription.en, fallback.essentialDescription.es],
     ["cookie_analytics_description", fallback.analyticsDescription.en, fallback.analyticsDescription.es],
+    ["cookie_leadinfo_description", fallback.leadinfoDescription.en, fallback.leadinfoDescription.es],
     ["cookie_external_description", fallback.externalDescription.en, fallback.externalDescription.es],
   ];
   // Inicialización no destructiva: una configuración administrativa existente

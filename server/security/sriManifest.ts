@@ -31,8 +31,8 @@ export const LOCAL_SRI_MANIFEST: Readonly<Record<string, string>> = {
   "/templates/beez3/js/min/functions.min.js": "sha384-AjM4W6exMPHQGIePNbOCRNNYiI1OEQ94g2kqFjrV53LXsAnUwtgiOBsSD8eK3Dtu",
   "/templates/beez3/js/min/slick.min.js": "sha384-ZksLXabWuIO7qoVRTFcupPswPwiOeNwCTpqJKbAbJeZbD9OEpxBFBe7s2tDhv2KV",
   "/vwb-privacy-preferences.css": "sha384-qJUs7G//xptsLjG9/Z+pLfm/3RIaqVxRpcJU5Yfw2Luiad4A19D5t1R2UvFOkOo1",
-  "/vwb-privacy-preferences.js": "sha384-8Lwn/pZn+FPHZY6WN0A6T7DkTTF4CSwBEDdJvm+KVJyYIhtU+ucs3bGab9+TwqdR",
+  "/vwb-privacy-preferences.js": "sha384-SeeMxWYqNi/2J1sg+8wL5yDSIhhDPWZqFxsaRuBtH8e7KgriKAWCtlhYinw6OEdE",
   "/vwb-cookie-consent.css": "sha384-qJUs7G//xptsLjG9/Z+pLfm/3RIaqVxRpcJU5Yfw2Luiad4A19D5t1R2UvFOkOo1",
-  "/vwb-cookie-consent.js": "sha384-8Lwn/pZn+FPHZY6WN0A6T7DkTTF4CSwBEDdJvm+KVJyYIhtU+ucs3bGab9+TwqdR",
+  "/vwb-cookie-consent.js": "sha384-SeeMxWYqNi/2J1sg+8wL5yDSIhhDPWZqFxsaRuBtH8e7KgriKAWCtlhYinw6OEdE",
   "/vwb-legacy-events.js": "sha384-/uK7MT/KUJxTkm0sshzn9npwccNY5lWRAW0uHNKdMi2/TnAmgOdc8zISVFNnsud7",
 };

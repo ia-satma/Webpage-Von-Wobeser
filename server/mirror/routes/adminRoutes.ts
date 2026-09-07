@@ -524,6 +524,13 @@ export function registerMirrorAdminRoutes(app: Express, runtime: MirrorRuntime):
     res.json(saved);
   }));
   app.put("/api/admin/site-config/:key", authMiddleware, requirePermission("config"), wrap(async (req, res) => {
+    // Leadinfo se administra únicamente desde Privacidad y cookies. Así se
+    // valida como Site ID y no puede recibir un script, una URL o una
+    // activación que omita la confirmación legal.
+    if (req.params.key.startsWith("leadinfo_")) {
+      res.status(403).json({ error: "Leadinfo sólo puede modificarse desde Privacidad y cookies." });
+      return;
+    }
     let { value, valueEs } = req.body || {};
     if (req.params.key === "home_news_pages") {
       const parsedPages = z.coerce.number().int().min(1).max(10).safeParse(value);

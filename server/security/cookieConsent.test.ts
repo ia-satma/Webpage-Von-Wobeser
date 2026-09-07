@@ -8,6 +8,11 @@ process.env.DATABASE_URL ||= "postgresql://test:test@127.0.0.1:5432/test";
 
 const { applyA11y } = await import("../mirror/seo");
 const { sanitizeCms } = await import("../mirror/sanitize");
+const {
+  getLeadinfoPolicyDisclosure,
+  isValidLeadinfoSiteId,
+  publicConsentPayload,
+} = await import("../privacy/cookieConsent");
 
 test("el HTML público bloquea analítica y proveedores externos antes del consentimiento", () => {
   const $ = cheerio.load(`<!doctype html><html lang="es"><head>
@@ -98,13 +103,62 @@ test("el gestor conserva elección versionada, respeta GPC sin ocultar el aviso 
   assert.match(source, /if \(!choice\) banner\(\)/);
   assert.match(source, /_ga_/);
   assert.match(source, /googletagmanager\.com\/gtag\/js/);
+  assert.match(source, /cdn\.leadinfo\.net\/ping\.js/);
+  assert.match(source, /leadinfoCanLoad/);
+  assert.match(source, /leadinfoProductionHostname/);
+  assert.match(source, /URLSearchParams\(location\.search\)\.has\("preview"\)/);
+  assert.match(source, /window\.leadinfo\.t = config\.leadinfoSiteId/);
+  assert.doesNotMatch(source, /leadinfo\("create", config\.leadinfoSiteId\)/);
+  assert.match(source, /_li_id/);
+  assert.match(source, /_li_ses/);
+  assert.match(source, /location\.reload\(\)/);
   assert.match(source, /vwb:open-cookie-preferences/);
   assert.match(source, /validityMonths/);
   assert.match(mirrorSource, /\/vwb-privacy-preferences\.css/);
   assert.match(mirrorSource, /\/vwb-privacy-preferences\.js/);
   assert.match(mirrorSource, /\/vwb-privacy-preferences-config\.js/);
   assert.match(mirrorSource, /\/api\/public\/privacy-preferences/);
+  assert.match(mirrorSource, /Cache-Control", "no-store, max-age=0"/);
   assert.match(mirrorSource, /res\.sendFile\(assetPath/);
+});
+
+test("Leadinfo sólo expone el Site ID después de una activación válida", () => {
+  assert.equal(isValidLeadinfoSiteId("site_123-ABC"), true);
+  assert.equal(isValidLeadinfoSiteId("<script>alert(1)</script>"), false);
+  assert.equal(isValidLeadinfoSiteId("https://cdn.leadinfo.net/ping.js"), false);
+
+  const inactive = publicConsentPayload({
+    version: "1.2",
+    leadinfoActive: false,
+    leadinfoSiteId: "site_123-ABC",
+    leadinfoActivationRevision: 7,
+    leadinfoProductionHostname: "www.vonwobeser.com",
+    leadinfoDescription: { en: "Leadinfo", es: "Leadinfo" },
+  } as any);
+  assert.equal(inactive.leadinfoActive, false);
+  assert.equal("leadinfoSiteId" in inactive, false);
+  assert.equal("leadinfoDescription" in inactive, false);
+  assert.equal(inactive.leadinfoProductionHostname, "");
+
+  const active = publicConsentPayload({
+    version: "1.2",
+    leadinfoActive: true,
+    leadinfoSiteId: "site_123-ABC",
+    leadinfoActivationRevision: 7,
+    leadinfoProductionHostname: "www.vonwobeser.com",
+    leadinfoDescription: { en: "Leadinfo", es: "Leadinfo" },
+  } as any);
+  assert.equal(active.leadinfoActive, true);
+  assert.equal(active.leadinfoSiteId, "site_123-ABC");
+  assert.equal(active.leadinfoConsentVersion, "1.2:leadinfo-7");
+  assert.equal(active.leadinfoProductionHostname, "www.vonwobeser.com");
+});
+
+test("la transparencia de Leadinfo sólo se incorpora a la política cuando está activo", () => {
+  assert.equal(getLeadinfoPolicyDisclosure({ leadinfoActive: false } as any, "es"), null);
+  const disclosure = getLeadinfoPolicyDisclosure({ leadinfoActive: true } as any, "es");
+  assert.match(disclosure?.tableRow || "", /_li_id/);
+  assert.match(disclosure?.body || "", /leadinfo\.com\/en\/opt-out/);
 });
 
 test("la política de cookies conserva tablas seguras editables", () => {

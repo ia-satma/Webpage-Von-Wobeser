@@ -7,6 +7,7 @@
   let config = null;
   let choice = null;
   let lastFocus = null;
+  let leadinfoLoaded = false;
 
   const lang = () => document.documentElement.lang.toLowerCase().startsWith("es") ? "es" : "en";
   const text = (key) => {
@@ -14,6 +15,9 @@
     return typeof value === "object" ? (value[lang()] || value.en || value.es || "") : (value || "");
   };
   const secureAttribute = () => location.protocol === "https:" ? "; Secure" : "";
+  const consentVersion = () => config?.leadinfoActive === true
+    ? (config.leadinfoConsentVersion || `${config.version}:leadinfo`)
+    : config?.version;
   const esc = (value) => String(value ?? "").replace(/[&<>"']/g, (character) => ({
     "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;",
   })[character]);
@@ -23,7 +27,7 @@
       const raw = document.cookie.split(";").map((value) => value.trim()).find((value) => value.startsWith(`${COOKIE}=`));
       if (!raw) return null;
       const data = JSON.parse(decodeURIComponent(raw.slice(COOKIE.length + 1)));
-      if (data.version !== config.version || Date.parse(data.expiresAt) <= Date.now()) return null;
+      if (data.version !== consentVersion() || Date.parse(data.expiresAt) <= Date.now()) return null;
       if (!data.categories || data.categories.essential !== true) return null;
       return data;
     } catch {
@@ -32,14 +36,16 @@
   };
 
   const write = (categories) => {
+    const reloadAfterLeadinfoRevocation = Boolean(choice?.categories?.leadinfo && categories.leadinfo !== true && leadinfoLoaded);
     const months = Math.max(1, Math.min(12, Number(config.validityMonths) || 6));
     const expires = new Date();
     expires.setMonth(expires.getMonth() + months);
     choice = {
-      version: config.version,
+      version: consentVersion(),
       categories: {
         essential: true,
         analytics: categories.analytics === true,
+        leadinfo: config?.leadinfoActive === true && categories.leadinfo === true,
         external: categories.external === true,
       },
       decidedAt: new Date().toISOString(),
@@ -48,6 +54,10 @@
     document.cookie = `${COOKIE}=${encodeURIComponent(JSON.stringify(choice))}; Max-Age=${Math.round((expires.getTime() - Date.now()) / 1000)}; Path=/; SameSite=Lax${secureAttribute()}`;
     apply();
     window.dispatchEvent(new CustomEvent("vwb:consent-changed", { detail: choice }));
+    // Un tercero ya cargado no puede des-ejecutarse de forma fiable desde la
+    // misma página. Al retirar esta categoría se conserva la decisión, se
+    // limpian sus cookies y se recarga sin el script para cortar su ejecución.
+    if (reloadAfterLeadinfoRevocation) window.setTimeout(() => location.reload(), 0);
   };
 
   const gaCookieNames = () => document.cookie
@@ -72,6 +82,68 @@
         document.cookie = `${name}=; Max-Age=0; Path=/; Domain=${domain}; SameSite=Lax${secureAttribute()}`;
       });
     });
+  };
+
+  const leadinfoCookieNames = () => document.cookie
+    .split(";")
+    .map((value) => value.trim().split("=")[0])
+    .filter((name) => name === "_li_id" || name === "_li_ses");
+
+  const removeCookieEverywhere = (name) => {
+    const labels = location.hostname.split(".");
+    const domains = [location.hostname];
+    for (let index = 1; index < labels.length - 1; index += 1) domains.push(`.${labels.slice(index).join(".")}`);
+    document.cookie = `${name}=; Max-Age=0; Path=/; SameSite=Lax${secureAttribute()}`;
+    domains.forEach((domain) => {
+      document.cookie = `${name}=; Max-Age=0; Path=/; Domain=${domain}; SameSite=Lax${secureAttribute()}`;
+    });
+  };
+
+  const clearLeadinfo = () => {
+    leadinfoCookieNames().forEach(removeCookieEverywhere);
+    document.querySelector("script[data-vwb-leadinfo]")?.remove();
+    if (window.leadinfo?.q) window.leadinfo.q.length = 0;
+    leadinfoLoaded = false;
+  };
+
+  const leadinfoCanLoad = () => {
+    const siteId = String(config?.leadinfoSiteId || "");
+    const productionHost = String(config?.leadinfoProductionHostname || "").toLowerCase();
+    const currentHost = location.hostname.toLowerCase();
+    const isPrivatePreview = new URLSearchParams(location.search).has("preview");
+    return config?.leadinfoActive === true
+      && /^[A-Za-z0-9_-]{4,160}$/.test(siteId)
+      && productionHost !== ""
+      && currentHost === productionHost
+      && !isPrivatePreview
+      && !location.pathname.startsWith("/admin")
+      && !location.pathname.startsWith("/api/admin/");
+  };
+
+  const loadLeadinfo = () => {
+    if (!leadinfoCanLoad()) return;
+    if (document.querySelector("script[data-vwb-leadinfo]")) {
+      leadinfoLoaded = true;
+      return;
+    }
+    // El cargador oficial recibe el Site ID en `leadinfo.t` antes de insertar
+    // ping.js. Se reproduce esa inicialización de forma nativa, sin aceptar
+    // fragmentos de código del panel ni usar Google Tag Manager.
+    if (!window.leadinfo) {
+      window.GlobalLeadinfoNamespace = window.GlobalLeadinfoNamespace || [];
+      window.GlobalLeadinfoNamespace.push("leadinfo");
+      window.leadinfo = function leadinfo() {
+        (window.leadinfo.q = window.leadinfo.q || []).push(arguments);
+      };
+      window.leadinfo.t = config.leadinfoSiteId;
+      window.leadinfo.q = window.leadinfo.q || [];
+    }
+    const script = document.createElement("script");
+    script.async = true;
+    script.dataset.vwbLeadinfo = "true";
+    script.src = "https://cdn.leadinfo.net/ping.js";
+    document.head.appendChild(script);
+    leadinfoLoaded = true;
   };
 
   const loadAnalytics = () => {
@@ -105,7 +177,7 @@
     box.className = "vwb-external-consent";
     box.innerHTML = `<div class="vwb-external-consent__inner"><h3>${esc(text("externalTitle"))}</h3><p>${esc(text("externalBlocked").replace("{provider}", provider(url)))}</p><button type="button">${esc(text("allowExternal"))}</button></div>`;
     box.querySelector("button").addEventListener("click", () => {
-      write({ analytics: !!choice?.categories?.analytics, external: true });
+      write({ analytics: !!choice?.categories?.analytics, leadinfo: !!choice?.categories?.leadinfo, external: true });
       closeDialog();
     });
     element.hidden = true;
@@ -151,6 +223,8 @@
   const apply = () => {
     if (choice?.categories?.analytics) loadAnalytics();
     else clearGa();
+    if (choice?.categories?.leadinfo) loadLeadinfo();
+    else clearLeadinfo();
     applyExternalFrames();
     applyExternalImages();
     applyEmbeds();
@@ -170,8 +244,8 @@
     element.innerHTML = `<div><h2 id="vwb-consent-title">${esc(labelsValue.title)}</h2><p>${esc(labelsValue.body)} <a href="${labelsValue.policyUrl}">${esc(labelsValue.policy)}</a></p></div><div class="vwb-consent__actions"><button type="button" data-action="reject">${esc(labelsValue.reject)}</button><button type="button" data-action="configure">${esc(labelsValue.configure)}</button><button type="button" data-action="accept">${esc(labelsValue.accept)}</button></div>`;
     element.addEventListener("click", (event) => {
       const action = event.target.closest("button")?.dataset.action;
-      if (action === "accept") { write({ analytics: true, external: true }); element.remove(); }
-      if (action === "reject") { write({ analytics: false, external: false }); element.remove(); }
+      if (action === "accept") { write({ analytics: true, leadinfo: config?.leadinfoActive === true, external: true }); element.remove(); }
+      if (action === "reject") { write({ analytics: false, leadinfo: false, external: false }); element.remove(); }
       if (action === "configure") openDialog();
     });
     document.body.appendChild(element);
@@ -205,15 +279,17 @@
       element.setAttribute("aria-modal", "true");
       element.setAttribute("aria-labelledby", "vwb-consent-preferences-title");
       element.setAttribute("aria-describedby", "vwb-consent-preferences-body");
-      element.innerHTML = `<div class="vwb-consent-dialog__panel"><button type="button" class="vwb-consent-dialog__close" data-action="cancel" aria-label="${esc(text("cancel"))}">×</button><h2 id="vwb-consent-preferences-title">${esc(text("preferencesTitle"))}</h2><p id="vwb-consent-preferences-body" class="vwb-consent-dialog__intro">${esc(text("preferencesBody"))}</p>${["essential", "analytics", "external"].map((key, index) => `<div class="vwb-consent-category"><div><h3>${esc(text(`${key}Title`))}</h3><p>${esc(text(`${key}Description`))}</p></div>${index === 0 ? `<strong>${esc(text("alwaysActive"))}</strong>` : `<input type="checkbox" data-category="${key}" aria-label="${esc(text(`${key}Title`))}">`}</div>`).join("")}<div class="vwb-consent-dialog__actions"><button type="button" data-action="cancel">${esc(text("cancel"))}</button><button type="button" data-action="reject">${esc(text("rejectOptional"))}</button><button type="button" data-action="save">${esc(text("savePreferences"))}</button></div></div>`;
+      const categories = ["essential", "analytics", ...(config?.leadinfoActive === true ? ["leadinfo"] : []), "external"];
+      element.innerHTML = `<div class="vwb-consent-dialog__panel"><button type="button" class="vwb-consent-dialog__close" data-action="cancel" aria-label="${esc(text("cancel"))}">×</button><h2 id="vwb-consent-preferences-title">${esc(text("preferencesTitle"))}</h2><p id="vwb-consent-preferences-body" class="vwb-consent-dialog__intro">${esc(text("preferencesBody"))}</p>${categories.map((key) => `<div class="vwb-consent-category"><div><h3>${esc(text(`${key}Title`))}</h3><p>${esc(text(`${key}Description`))}</p></div>${key === "essential" ? `<strong>${esc(text("alwaysActive"))}</strong>` : `<input type="checkbox" data-category="${key}" aria-label="${esc(text(`${key}Title`))}">`}</div>`).join("")}<div class="vwb-consent-dialog__actions"><button type="button" data-action="cancel">${esc(text("cancel"))}</button><button type="button" data-action="reject">${esc(text("rejectOptional"))}</button><button type="button" data-action="save">${esc(text("savePreferences"))}</button></div></div>`;
       element.addEventListener("click", (event) => {
         if (event.target === element || event.target.closest('[data-action="cancel"]')) closeDialog();
         if (event.target.closest('[data-action="reject"]')) {
-          write({ analytics: false, external: false }); closeDialog(); document.querySelector(".vwb-consent")?.remove();
+          write({ analytics: false, leadinfo: false, external: false }); closeDialog(); document.querySelector(".vwb-consent")?.remove();
         }
         if (event.target.closest('[data-action="save"]')) {
           write({
             analytics: !!element.querySelector('[data-category="analytics"]').checked,
+            leadinfo: !!element.querySelector('[data-category="leadinfo"]')?.checked,
             external: !!element.querySelector('[data-category="external"]').checked,
           });
           closeDialog(); document.querySelector(".vwb-consent")?.remove();
@@ -222,6 +298,8 @@
       document.body.appendChild(element);
     }
     element.querySelector('[data-category="analytics"]').checked = !!choice?.categories?.analytics;
+    const leadinfoInput = element.querySelector('[data-category="leadinfo"]');
+    if (leadinfoInput) leadinfoInput.checked = !!choice?.categories?.leadinfo;
     element.querySelector('[data-category="external"]').checked = !!choice?.categories?.external;
     element.removeAttribute("hidden");
     element.querySelector("button,input")?.focus();
@@ -284,7 +362,7 @@
       // Otherwise the visitor has no visible way to review the policy or
       // manage their preferences on a first visit.
       const gpcOptOut = navigator.globalPrivacyControl === true && !choice;
-      if (gpcOptOut) clearGa();
+      if (gpcOptOut) { clearGa(); clearLeadinfo(); }
       apply();
       if (!choice) banner();
     } catch {

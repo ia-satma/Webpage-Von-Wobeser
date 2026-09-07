@@ -49,25 +49,27 @@ app.use(helmet({
       // Los scripts inline legítimos reciben nonce al generarse la respuesta.
       // Los handlers HTML heredados se migran a eventos delegados locales.
       scriptSrc: isProduction
-        ? ["'self'", cspNonceSource, "https://www.googletagmanager.com"]
-        : ["'self'", "'unsafe-inline'", "https://www.googletagmanager.com"],
+        ? ["'self'", cspNonceSource, "https://www.googletagmanager.com", "https://cdn.leadinfo.net"]
+        : ["'self'", "'unsafe-inline'", "https://www.googletagmanager.com", "https://cdn.leadinfo.net"],
       scriptSrcElem: isProduction
-        ? ["'self'", cspNonceSource, "https://www.googletagmanager.com"]
-        : ["'self'", "'unsafe-inline'", "https://www.googletagmanager.com"],
+        ? ["'self'", cspNonceSource, "https://www.googletagmanager.com", "https://cdn.leadinfo.net"]
+        : ["'self'", "'unsafe-inline'", "https://www.googletagmanager.com", "https://cdn.leadinfo.net"],
       scriptSrcAttr: isProduction ? ["'none'"] : ["'unsafe-inline'"],
       styleSrc: isProduction ? ["'self'", cspNonceSource] : ["'self'", "'unsafe-inline'"],
       styleSrcElem: isProduction ? ["'self'", cspNonceSource] : ["'self'", "'unsafe-inline'"],
       // React y las capturas históricas usan atributos style; no ejecutan JS.
       styleSrcAttr: ["'unsafe-inline'"],
       fontSrc: ["'self'", "data:"],
-      imgSrc: ["'self'", "data:", "blob:", "https:"],
+      imgSrc: ["'self'", "data:", "blob:", "https:", "https://collector.leadinfo.net"],
       mediaSrc: ["'self'", "blob:", "https:"],
       manifestSrc: ["'self'"],
       workerSrc: ["'self'", "blob:"],
       // El sitio y el panel hablan con la misma origen. Las únicas conexiones
-      // externas del navegador son los beacons de GA4, tras consentimiento.
+      // externas del navegador son los beacons de GA4 y, sólo después del
+      // consentimiento específico, los de Leadinfo. No se habilitan sus
+      // módulos opcionales de formularios o grabación de pantalla.
       connectSrc: isProduction
-        ? ["'self'", "https://www.googletagmanager.com", "https://www.google-analytics.com", "https://region1.google-analytics.com"]
+        ? ["'self'", "https://www.googletagmanager.com", "https://www.google-analytics.com", "https://region1.google-analytics.com", "https://api.leadinfo.com", "https://collector.leadinfo.net"]
         : ["'self'", "https:", "wss:", "ws:"],
       frameSrc: ["'self'", "https://www.google.com", "https://www.youtube.com", "https://www.youtube-nocookie.com", "https://player.vimeo.com"],
       ...(isProduction ? { upgradeInsecureRequests: [] } : {}),
