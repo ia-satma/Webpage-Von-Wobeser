@@ -8654,16 +8654,23 @@ body.office-showcase--shared-navigation > header.header_JS .menu_btn_JS::after {
   }
 }
 
+/* La columna lateral es el selector del detalle de escritorio: ahí el año
+   vive sólo en la ficha activa. En móvil esta regla queda anulada abajo. */
+.attorneys__list--item .attorneys__partner-since {
+  display: none;
+}
+
 /* En los listados históricos de Abogados, nombre y cargo se colocaban con
    position:absolute y un margen porcentual. Al reducir el viewport ambos
    invadían el retrato y podían coincidir entre sí. La composición móvil usa
-   una retícula explícita: retrato a la izquierda, nombre y cargo a la derecha.
+   una retícula explícita: retrato a la izquierda, nombre, cargo y (sólo en
+   Socios) antigüedad a la derecha.
    No afecta el detalle maestro de escritorio ni el directorio nuevo. */
 @media (max-width: 980px) {
   .attorneys__list--item {
     display: grid !important;
     grid-template-columns: clamp(100px, 19vw, 160px) minmax(0, 1fr);
-    grid-template-rows: auto auto;
+    grid-template-rows: auto auto auto;
     column-gap: clamp(18px, 4vw, 36px);
     row-gap: 0.4rem;
     align-items: center;
@@ -8676,7 +8683,7 @@ body.office-showcase--shared-navigation > header.header_JS .menu_btn_JS::after {
   .attorneys__list--item .img {
     position: static !important;
     grid-column: 1;
-    grid-row: 1 / span 2;
+    grid-row: 1 / span 3;
     align-self: center;
     width: 100% !important;
     height: auto !important;
@@ -8708,7 +8715,32 @@ body.office-showcase--shared-navigation > header.header_JS .menu_btn_JS::after {
     line-height: 1.4 !important;
     letter-spacing: clamp(2.25px, 0.8vw, 4px);
   }
+
+  .attorneys__list--item .attorneys__partner-since {
+    display: block;
+    grid-column: 2;
+    grid-row: 3;
+    margin: 0 !important;
+    color: #6b6d72;
+    font-family: "Inter", sans-serif;
+    font-size: clamp(12px, 3vw, 14px);
+    font-weight: 400;
+    line-height: 1.35;
+    letter-spacing: normal;
+  }
 }
+
+/* La antigüedad como Socio se muestra en la ficha maestra de escritorio y,
+   cuando esa ficha se oculta, dentro de su tarjeta móvil equivalente. */
+.attorneys__meta--item .attorneys__partner-since {
+  margin: 0 0 18px;
+  color: #54565b;
+  font-family: "Inter", sans-serif;
+  font-size: clamp(17px, 1.35vw, 21px);
+  font-weight: 400;
+  line-height: 1.35;
+}
+
 
 /* El directorio con filtros comparte los cargos en Inter. En teléfono, 11 px
    los volvía secundarios frente a las fotografías; se aumenta de forma sutil

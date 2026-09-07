@@ -1,6 +1,7 @@
 import * as cheerio from "cheerio";
 import { getLocalizedAttorneyTitle } from "@shared/attorneyTitles";
 import { getAttorneyPublicName, getAttorneySearchName } from "@shared/attorneyName";
+import { getPartnerSinceLabel } from "@shared/partnerSince";
 import { DEFAULT_ATTORNEY_DIRECTORY_PRESET, type AttorneyDirectoryPresetId } from "@shared/publicAppearance";
 import { applySeo, breadcrumbNode } from "./seo";
 
@@ -48,12 +49,14 @@ export function renderAttorneyList(
     const di = idx + 1;
     const img = esc(a.imageUrl || "");
     const role = getLocalizedAttorneyTitle(a, lang);
+    const partnerSinceLabel = getPartnerSinceLabel(a, lang);
     const vcard = `/api/team/${esc(a.slug)}/vcard`;
 
     metaItems.push(
       `<div class="attorneys__meta--item attorney_meta_JS ${active}" data-item="${di}">` +
         `<div class="img" style="background-image:url(${img});"></div>` +
         `<div class="txt">` +
+        (partnerSinceLabel ? `<p class="attorneys__partner-since">${esc(partnerSinceLabel)}</p>` : "") +
         `<p>${lang === "es" ? "Tel" : "Phone"}: ${esc(a.phone || "")}` +
         (a.email ? `<br><a href="mailto:${esc(a.email)}">${esc(a.email)}</a>` : "") +
         `</p>` +
@@ -66,6 +69,10 @@ export function renderAttorneyList(
         `<span class="img" style="background-image:url(${img});"></span>` +
         `<span class="name">${esc(getAttorneyPublicName(a))}</span>` +
         `<span class="role">${esc(role)}</span>` +
+        // En escritorio esta lista funciona como selector lateral y el dato se
+        // muestra en la ficha principal. En móvil la ficha principal se oculta,
+        // por lo que conservamos el año en la tarjeta equivalente del Socio.
+        (partnerSinceLabel ? `<span class="attorneys__partner-since">${esc(partnerSinceLabel)}</span>` : "") +
         `</a>`,
     );
   });

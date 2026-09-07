@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { PARTNER_SINCE_YEAR_MAX, PARTNER_SINCE_YEAR_MIN } from "@shared/partnerSince";
 import { teamFormTranslations } from "./translations";
 
 export const TEAM_LABELS: Record<string, string> = {
@@ -16,6 +17,8 @@ export const TEAM_LABELS: Record<string, string> = {
   imageUrl: "Foto",
   linkedinUrl: "LinkedIn",
   isPartner: "Socio",
+  partnerSinceYear: "Socio desde",
+  showPartnerSince: "Mostrar antigüedad de Socio",
   published: "Visible en el sitio",
   bioIntro: "Introducción",
   bioIntroEs: "Introducción (español)",
@@ -24,6 +27,11 @@ export const TEAM_LABELS: Record<string, string> = {
   practiceGroupIds: "Áreas de práctica",
   industryGroupIds: "Industrias",
 };
+
+const partnerSinceYearInput = z.preprocess(
+  (value) => value === "" || value === undefined ? null : value,
+  z.coerce.number().int().min(PARTNER_SINCE_YEAR_MIN).max(PARTNER_SINCE_YEAR_MAX).nullable(),
+);
 
 export const teamMemberFormSchema = z.object({
   name: z.string().min(1, "Name is required"),
@@ -75,6 +83,8 @@ export const teamMemberFormSchema = z.object({
   languages: z.array(z.string()).default([]),
   languagesEs: z.array(z.string()).default([]),
   isPartner: z.boolean().default(false),
+  partnerSinceYear: partnerSinceYearInput.default(null),
+  showPartnerSince: z.boolean().default(true),
   published: z.boolean().default(true),
   order: z.coerce.number().min(0).default(0),
   practiceGroupIds: z.array(z.string()).default([]),
@@ -110,6 +120,8 @@ export function createTeamMemberDefaults(): TeamMemberFormData {
     languages: [],
     languagesEs: [],
     isPartner: false,
+    partnerSinceYear: null,
+    showPartnerSince: true,
     published: true,
     order: 0,
     practiceGroupIds: [],

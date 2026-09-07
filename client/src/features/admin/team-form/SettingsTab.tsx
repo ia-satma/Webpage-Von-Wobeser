@@ -1,7 +1,8 @@
 import type { UseFormReturn } from "react-hook-form";
 import { Award, Settings } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { FormControl, FormDescription, FormField, FormItem, FormLabel } from "@/components/ui/form";
+import { FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { TabsContent } from "@/components/ui/tabs";
 import type { TeamFormCopy, TeamMemberFormData } from "./contracts";
@@ -10,6 +11,8 @@ export function SettingsTab({ form, t }: {
   form: UseFormReturn<TeamMemberFormData>;
   t: TeamFormCopy;
 }) {
+  const isPartnerProfile = form.watch("title") === "Partner" || form.watch("isPartner");
+
   return (
                     <TabsContent value="settings" className="mt-6">
                       <Card className="rounded-none border-[#D9D8D7]">
@@ -50,6 +53,55 @@ export function SettingsTab({ form, t }: {
                               </FormItem>
                             )}
                           />
+
+                          {isPartnerProfile && (
+                            <div className="space-y-4 border border-[#D9D8D7] bg-[#FAFAFA] p-4">
+                              <FormField
+                                control={form.control}
+                                name="partnerSinceYear"
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel className="text-[#1D1D1B] font-medium">{t.partnerSinceYear}</FormLabel>
+                                    <FormControl>
+                                      <Input
+                                        type="number"
+                                        inputMode="numeric"
+                                        min={1900}
+                                        max={2100}
+                                        step={1}
+                                        value={field.value ?? ""}
+                                        onChange={(event) => field.onChange(event.target.value === "" ? null : Number(event.target.value))}
+                                        data-testid="input-partner-since-year"
+                                      />
+                                    </FormControl>
+                                    <FormDescription className="text-[#878A8E] text-sm">{t.partnerSinceYearDesc}</FormDescription>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+
+                              <FormField
+                                control={form.control}
+                                name="showPartnerSince"
+                                render={({ field }) => (
+                                  <FormItem className="flex items-center justify-between gap-4">
+                                    <div className="space-y-1">
+                                      <FormLabel className="text-[#1D1D1B] font-medium">{t.showPartnerSince}</FormLabel>
+                                      <FormDescription className="text-[#878A8E] text-sm">{t.showPartnerSinceDesc}</FormDescription>
+                                    </div>
+                                    <FormControl>
+                                      <Switch
+                                        checked={field.value}
+                                        onCheckedChange={field.onChange}
+                                        className="data-[state=checked]:bg-[#AA1A2E]"
+                                        data-testid="switch-show-partner-since"
+                                      />
+                                    </FormControl>
+                                  </FormItem>
+                                )}
+                              />
+                            </div>
+                          )}
 
                           <FormField
                             control={form.control}

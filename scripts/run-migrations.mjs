@@ -171,6 +171,17 @@ const verifiedDataMigrationPolicies = new Map([
   ["20260831_0001_unaccent_careers_page_title.mjs", {
     allowedCountChanges: new Set(),
   }],
+  // Completa exclusivamente el extracto editorial omitido en la importación
+  // CMDN. La migración protege toda edición posterior de Administración.
+  ["20260907_0001_add_property_theft_article_excerpt.mjs", {
+    allowedCountChanges: new Set(),
+  }],
+  // Inicializa exclusivamente los años aprobados de Socio. La migración
+  // bloquea cada perfil y se detiene ante cualquier edición posterior desde
+  // Administración; no agrega ni elimina registros.
+  ["20260907_0003_backfill_partner_since_years.mjs", {
+    allowedCountChanges: new Set(),
+  }],
 ]);
 
 // Algunos entornos de publicación se crearon sin una publicación histórica

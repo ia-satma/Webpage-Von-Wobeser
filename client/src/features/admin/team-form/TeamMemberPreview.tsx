@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { TeamFormCopy, TeamMemberFormData } from "./contracts";
 import { calculateProfileProgress, getTeamMemberInitials } from "./helpers";
 import { getAttorneyPublicName } from "@shared/attorneyName";
+import { getPartnerSinceLabel } from "@shared/partnerSince";
 
 interface TeamMemberPreviewProps {
   values: TeamMemberFormData;
@@ -15,6 +16,7 @@ interface TeamMemberPreviewProps {
 
 export function TeamMemberPreview({ values, language, t }: TeamMemberPreviewProps) {
   const publicName = getAttorneyPublicName(values);
+  const partnerSinceLabel = getPartnerSinceLabel(values, language === "es" ? "es" : "en");
   return (
     <motion.div
       initial={{ opacity: 0, x: 20 }}
@@ -50,6 +52,9 @@ export function TeamMemberPreview({ values, language, t }: TeamMemberPreviewProp
                 <Award className="w-3 h-3 mr-1" />
                 {language === "es" ? "Socio" : "Partner"}
               </Badge>
+            )}
+            {partnerSinceLabel && (
+              <p className="mt-3 text-sm font-medium text-[#54565B]">{partnerSinceLabel}</p>
             )}
           </div>
           <div className="p-4 space-y-3">

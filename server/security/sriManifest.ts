@@ -19,7 +19,7 @@ export const LOCAL_SRI_MANIFEST: Readonly<Record<string, string>> = {
   "/css/estilos_home.css": "sha384-NGCHxTVDaSrIzxf/f4T4EDfxbHoHYlcRzdHm50Y01zPdNzGChpDAad+cB17OdL9z",
   "/templates/beez3/css/ie7only.css": "sha384-G6ybb7/As3FRY6Xh6pOOSuuz0JhYVVcwejGdDYcl+NQWVEQ4lI9f2qbmP51Pqk/u",
   "/templates/beez3/css/print.css": "sha384-UYxdMiNRTL5AFHzWZ/ly4jvbWTTBZP62vToqX3cOo9XF9/3F1QosKtOhZB+4rk7J",
-  "/templates/beez3/css/public.css": "sha384-2VfpfowUNlMIbGEMF/UywL0nlgVP09flhKIhBMkXwILVbH9U8+bu4ocSgNZMG3R7",
+  "/templates/beez3/css/public.css": "sha384-TeODUPV8A6ME9ekp4E2fzgSkpKlNflyc2c34XCtm2UF4yExRZGZN2kJJ5wF8Vw8F",
   "/templates/beez3/css/style.css": "sha384-n000cO1HzNA09aA0Y6kILuhoS1vrOyMCXCqwV0I2yt9Km/JqyCc3K6gYiaKjjNf6",
   "/templates/beez3/css/superslides.css": "sha384-z+22ma06Yj+RzvrnLIdIbqpLNw4zO+xMxfyjYGOAFOrf7MB8v1hi2958Kh/phTd4",
   "/templates/beez3/css/typography.css": "sha384-JhNspn8aTP8N9Sw8wY8Wz8SP5WrOICq5iexv52xKIBgZn5hJYd7e6XIenAk8A/ZU",

@@ -68,6 +68,10 @@ export const teamMembers = pgTable("team_members", {
   imageUrl: text("image_url"),
   linkedinUrl: text("linkedin_url"),
   isPartner: boolean("is_partner").default(false),
+  // Dato editorial opcional para la ficha de Socios. Su visibilidad no afecta
+  // la publicación del perfil: puede ocultarse sin retirar al abogado.
+  partnerSinceYear: integer("partner_since_year"),
+  showPartnerSince: boolean("show_partner_since").notNull().default(true),
   order: integer("order").default(0),
   published: boolean("published").default(true),
   // Extended profile fields
@@ -85,7 +89,10 @@ export const teamMembers = pgTable("team_members", {
   publishedOrderIdx: index("team_members_published_order_idx").on(t.published, t.order),
 }));
 
-export const insertTeamMemberSchema = createInsertSchema(teamMembers).omit({ id: true });
+export const insertTeamMemberSchema = createInsertSchema(teamMembers, {
+  partnerSinceYear: z.number().int().min(1900).max(2100).nullable().optional(),
+  showPartnerSince: z.boolean().optional(),
+}).omit({ id: true });
 export type InsertTeamMember = z.infer<typeof insertTeamMemberSchema>;
 export type TeamMember = typeof teamMembers.$inferSelect;
 

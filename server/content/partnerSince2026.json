@@ -1,0 +1,36 @@
+{
+  "source": {
+    "file": "Socios _ Fecha de ingreso y sociedad.xlsx",
+    "sheet": "Socios",
+    "column": "SOCIO DE A PARTIR DE",
+    "receivedAt": "2026-09-04"
+  },
+  "entries": [
+    { "slug": "adrian-castillo", "expectedName": "Adrián Castillo", "expectedTitle": "Partner", "year": 2025 },
+    { "slug": "adrian-magallanes", "expectedName": "Adrián Magallanes", "expectedTitle": "Partner", "year": 2013 },
+    { "slug": "alberto-cordoba", "expectedName": "Alberto Córdoba", "expectedTitle": "Partner", "year": 2020 },
+    { "slug": "alejandro-torres", "expectedName": "Alejandro Torres", "expectedTitle": "Partner", "year": 2023 },
+    { "slug": "ariel-garfio", "expectedName": "Ariel Garfio", "expectedTitle": "Partner", "year": 2022 },
+    { "slug": "diego-sierra", "expectedName": "Diego Sierra", "expectedTitle": "Partner", "year": 2014 },
+    { "slug": "edmond-grieger", "expectedName": "Edmond Frederic Grieger", "expectedTitle": "Partner", "year": 2013 },
+    { "slug": "fernando-carreno", "expectedName": "Fernando Carreño", "expectedTitle": "Partner", "year": 2010 },
+    { "slug": "javier-betancourt", "expectedName": "Javier Betancourt", "expectedTitle": "Partner", "year": 2024 },
+    { "slug": "jessika-rocha", "expectedName": "Jessika Rocha", "expectedTitle": "Partner", "year": 2022 },
+    { "slug": "katharina-roehr", "expectedName": "Katharina Roehr", "expectedTitle": "Partner", "year": 2023 },
+    { "slug": "luis-burgueno", "expectedName": "Luis Burgueño", "expectedTitle": "Partner", "year": 2003 },
+    { "slug": "luis-miguel-jimenez", "expectedName": "Luis Miguel Jiménez", "expectedTitle": "Partner", "year": 2006 },
+    { "slug": "luis-enrique-torres", "expectedName": "Luis Enrique Torres", "expectedTitle": "Partner", "year": 2026 },
+    { "slug": "michel-llorens", "expectedName": "Michel Llorens", "expectedTitle": "Partner", "year": 2024 },
+    { "slug": "montserrat-manzano", "expectedName": "Montserrat Manzano", "expectedTitle": "Partner", "year": 2017 },
+    { "slug": "pablo-fautsch", "expectedName": "Pablo Fautsch", "expectedTitle": "Partner", "year": 2022 },
+    { "slug": "pablo-jimenez", "expectedName": "Pablo Jiménez", "expectedTitle": "Partner", "year": 2021 },
+    { "slug": "pablo-saez-williams", "expectedName": "Pablo Saez Williams", "expectedTitle": "Partner", "year": 2017 },
+    { "slug": "patricia-kaim", "expectedName": "Patricia Kaim", "expectedTitle": "Partner", "year": 2020 },
+    { "slug": "rafael-vallejo", "expectedName": "Rafael Vallejo", "expectedTitle": "Partner", "year": 2022 },
+    { "slug": "raymundo-soberanis", "expectedName": "Raymundo Soberanis", "expectedTitle": "Partner", "year": 2021 },
+    { "slug": "ricardo-cacho", "expectedName": "Ricardo Cacho", "expectedTitle": "Partner", "year": 2026 },
+    { "slug": "rodrigo-barradas", "expectedName": "Rodrigo Barradas", "expectedTitle": "Partner", "year": 2026 },
+    { "slug": "rupert-huttler", "expectedName": "Rupert Hüttler", "expectedTitle": "Partner", "year": 2009 },
+    { "slug": "sergio-lopez", "expectedName": "Sergio López", "expectedTitle": "Partner", "year": 2023 }
+  ]
+}

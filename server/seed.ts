@@ -13,6 +13,7 @@ import {
   resolveCanonicalDropboxAuthorIds,
 } from "./content/canonicalDropboxNews2026";
 import attorneyPhotoRefresh2026 from "./content/attorneyPhotoRefresh2026.json";
+import partnerSince2026 from "./content/partnerSince2026.json";
 
 // Estas fotografías se verifican contra las fichas históricas del espejo. Las
 // rutas anteriores llegaron a la base durante semillas previas y muestran una
@@ -852,10 +853,17 @@ const teamMembersData = [
 const WHITE_BACKGROUND_PHOTO_BY_SLUG = new Map(
   attorneyPhotoRefresh2026.profiles.map((profile) => [profile.slug, profile.targetImageUrl]),
 );
+const PARTNER_SINCE_BY_SLUG = new Map(
+  partnerSince2026.entries.map((entry) => [entry.slug, entry]),
+);
 
 export const canonicalTeamMembersData = applyCanonicalAttorneyContent(teamMembersData).map((member: any) => {
   const nameParts = deriveAttorneyNameParts(member);
   const approvedImageUrl = WHITE_BACKGROUND_PHOTO_BY_SLUG.get(member.slug);
+  const partnerSince = PARTNER_SINCE_BY_SLUG.get(member.slug);
+  if (partnerSince && (member.title !== partnerSince.expectedTitle || member.name !== partnerSince.expectedName)) {
+    throw new Error(`Partner-since catalog identity mismatch for ${member.slug}`);
+  }
   const associateOrder = member.title === "Associate"
     ? CURRENT_ASSOCIATE_ORDER.findIndex((name) => normalizeAttorneyIdentity(name) === normalizeAttorneyIdentity(member.name)) + 1
     : 0;
@@ -863,6 +871,7 @@ export const canonicalTeamMembersData = applyCanonicalAttorneyContent(teamMember
     ...member,
     ...nameParts,
     ...(approvedImageUrl ? { imageUrl: approvedImageUrl } : {}),
+    ...(partnerSince ? { partnerSinceYear: partnerSince.year, showPartnerSince: true } : {}),
     ...(associateOrder > 0 ? { order: associateOrder } : {}),
   };
 });

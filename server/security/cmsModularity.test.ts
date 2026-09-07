@@ -382,6 +382,8 @@ test("Formulario de Abogados conserva contratos, relaciones y superficie adminis
     "languages",
     "languagesEs",
     "isPartner",
+    "partnerSinceYear",
+    "showPartnerSince",
     "published",
     "order",
     "practiceGroupIds",
@@ -392,7 +394,7 @@ test("Formulario de Abogados conserva contratos, relaciones y superficie adminis
     assert.match(source, new RegExp(`<SelectItem value="${role}">`));
   }
   assert.equal((source.match(/<TabsTrigger/g) || []).length, 5);
-  assert.equal((source.match(/data-testid=/g) || []).length, 23);
+  assert.equal((source.match(/data-testid=/g) || []).length, 25);
   assert.match(source, /data-testid="industry-public-roster-note"/);
   for (const field of ["bioIntro", "bioIntroEs", "bio", "bioEs"]) {
     assert.match(source, new RegExp(`field="${field}"`));

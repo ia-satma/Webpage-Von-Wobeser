@@ -18,11 +18,11 @@ const moduleFiles = fs.readdirSync(modulesDirectory)
 const EXPECTED_SOURCE_EXPORT_HASH = "655057b215e7be2fd34e3fe3685651ffe37fb5fd92ce80dc2b4b98ff9c55c1ec";
 const EXPECTED_TYPE_DECLARATION_HASH = "7784a4ff4c5dfdffc461c4d466508e1eff041c85edabbbe253d3402faaf7ca0f";
 const EXPECTED_RUNTIME_EXPORT_HASH = "a56116019fd7daa2a0e69e90f3e782fe36c48222e1728fca204eb3c8e31402c1";
-const EXPECTED_ZOD_HASH = "f34d93fba568e789cdc22c4a4920e7ae3fdacd18d5ce0877296711c1a046eb04";
+const EXPECTED_ZOD_HASH = "c33600f4502a6d48bbae6941840d19bc3f4e02628f640b1d022dfc7c8fab9095";
 // Actualizado junto con la etiqueta editorial de la categoría técnica
 // `rankings`: el panel ahora muestra Reconocimientos / Recognitions.
 const EXPECTED_CATALOG_HASH = "6f4013314edcd478e9df0634763988e86da489cf4501e6bc7bb006973e626793";
-const EXPECTED_SQL_HASH = "48b183e0d563c5787637ecebe2daec280cb886791b191cc33d7a8acae2f3b5d2";
+const EXPECTED_SQL_HASH = "d6a4b72f8a2104a6943208993aa926b1c3d6848d7914e56fa0ced0e7ec7dd4ea";
 
 function sha256(value: unknown): string {
   const serialized = typeof value === "string" ? value : JSON.stringify(value);
@@ -204,7 +204,7 @@ test("las tablas, Zod, catálogos y DDL permanecen semánticamente idénticos", 
     }
   });
   assert.equal(tables.length, 62);
-  assert.equal(tables.reduce((total, table) => total + table.columns.length, 0), 707);
+  assert.equal(tables.reduce((total, table) => total + table.columns.length, 0), 709);
   assert.equal(tables.reduce((total, table) => total + table.indexes.length, 0), 37);
   assert.equal(tables.reduce((total, table) => total + table.foreignKeys.length, 0), 11);
 

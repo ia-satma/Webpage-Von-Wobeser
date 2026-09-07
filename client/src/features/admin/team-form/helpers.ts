@@ -30,6 +30,8 @@ export function teamMemberToFormData(member: TeamMember): TeamMemberFormData {
     languages: member.languages || [],
     languagesEs: (member as any).languagesEs || [],
     isPartner: member.isPartner || false,
+    partnerSinceYear: member.partnerSinceYear ?? null,
+    showPartnerSince: member.showPartnerSince !== false,
     published: member.published !== false,
     order: member.order || 0,
     practiceGroupIds: (member as any).practiceGroupIds || [],
