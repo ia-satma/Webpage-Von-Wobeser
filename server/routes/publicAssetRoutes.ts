@@ -5,14 +5,15 @@ import path from "node:path";
 import { servePersistentManagedMedia } from "./managedMedia";
 
 export function registerPublicAssetRoutes(app: Express): void {
+  const placeholderArticlePath = path.join(process.cwd(), 'public', 'placeholder-article.svg');
+
   // El catch-all del espejo se registra antes que el estático general de
   // `public/`. Esta ruta explícita garantiza que el fallback editorial nunca
   // termine convertido en un 404 de texto.
   app.get('/placeholder-article.svg', (_req, res) => {
-    const placeholderPath = path.join(process.cwd(), 'public', 'placeholder-article.svg');
     res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
     res.setHeader('X-Content-Type-Options', 'nosniff');
-    res.sendFile(placeholderPath);
+    res.sendFile(placeholderArticlePath);
   });
 
   // Variantes WebP del directorio. Se publican desde `public` con un nombre
@@ -74,7 +75,15 @@ export function registerPublicAssetRoutes(app: Express): void {
     }
     const publicPath = `/generated-images/${req.params.filename}`;
     if (await servePersistentManagedMedia(req, res, publicPath)) return;
-    res.status(404).json({ error: 'Image not found' });
+    // Imágenes históricas que preceden App Storage pueden seguir referenciadas
+    // por una publicación aunque su binario ya no exista. No alteramos el
+    // registro editorial ni fingimos que el original fue recuperado: el panel
+    // lo conserva como "Archivo no disponible", mientras el sitio público
+    // muestra un fallback seguro en lugar de un ícono roto.
+    res.setHeader('Cache-Control', 'no-store');
+    res.setHeader('X-Content-Type-Options', 'nosniff');
+    res.setHeader('X-VWB-Media-Fallback', 'missing-generated-image');
+    return res.sendFile(placeholderArticlePath);
   });
 
   app.use('/generated-images', express.static(generatedImagesDir, {

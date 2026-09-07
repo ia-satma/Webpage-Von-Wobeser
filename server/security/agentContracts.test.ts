@@ -191,8 +191,14 @@ test('administrative article processing uses private content and the canonical o
       < routeSource.indexOf('"/api/agents/pipeline/:articleId"'),
     'the exact batch route must be registered before the dynamic article route',
   );
+  assert.equal(
+    (routeSource.match(/"\/api\/agents\/pipeline\/process-all"/g) || []).length,
+    1,
+    'the batch pipeline must have one canonical route',
+  );
   assert.match(orchestratorSource, /parsePayload\(agentType, payload\)/);
   assert.match(routeSource, /orchestrator\.runPipeline\(articleId, stages,\s*\{/);
+  assert.doesNotMatch(routeSource, /(?:formatter|category|metadataLinker|seoOptimizer|polyglotTranslator|imageSuggestion)Agent\.execute\(/);
   assert.match(routeSource, /onProgress:\s*\(\{ stage, status, index, message \}\)/);
   assert.match(routeSource, /legal_council:\s*'council'/);
   assert.match(routeSource, /"\/api\/admin\/news\/:id\/processing-draft"/);

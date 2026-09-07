@@ -113,6 +113,16 @@ test("el placeholder es un SVG estático seguro y tiene una ruta anterior al cat
   assert.match(routes, /max-age=31536000, immutable/);
 });
 
+test("una imagen generada histórica ausente conserva la evidencia administrativa y no rompe el sitio público", () => {
+  const routes = fs.readFileSync(path.join(root, "server", "routes", "publicAssetRoutes.ts"), "utf8");
+  const persistentAttempt = routes.indexOf("await servePersistentManagedMedia(req, res, publicPath)");
+  const fallback = routes.indexOf("X-VWB-Media-Fallback', 'missing-generated-image'");
+
+  assert.ok(persistentAttempt >= 0 && fallback > persistentAttempt);
+  assert.match(routes, /res\.setHeader\('Cache-Control', 'no-store'\)/);
+  assert.match(routes, /return res\.sendFile\(placeholderArticlePath\)/);
+});
+
 test("API y panel paginan hallazgos sin quitar la exportación completa", () => {
   const routeSource = fs.readFileSync(path.join(root, "server", "routes", "systemAuditRoutes.ts"), "utf8");
   const storageSource = fs.readFileSync(path.join(root, "server", "storage", "repositories", "auditRepository.ts"), "utf8");

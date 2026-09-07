@@ -1,21 +1,20 @@
 # Contexto vigente — Von Wobeser y Sierra
 
-Última actualización: **2026-08-31, America/Monterrey**.
+Última actualización: **2026-09-07, America/Monterrey**.
 
 Este archivo es el punto de entrada para continuar el proyecto. El estado completo de
 arquitectura, contenido, CMS, agentes, seguridad, navegación, auditorías, Replit, despliegue y
 pendientes se encuentra en
-[`docs/CONTEXT-2026-08-31.md`](docs/CONTEXT-2026-08-31.md). El antecedente detallado anterior
-permanece en [`docs/CONTEXT-2026-08-28.md`](docs/CONTEXT-2026-08-28.md).
+[`docs/CONTEXT-2026-09-07.md`](docs/CONTEXT-2026-09-07.md). El corte detallado anterior permanece
+en [`docs/CONTEXT-2026-08-31.md`](docs/CONTEXT-2026-08-31.md).
 
 ## Estado breve
 
 - Fuente de verdad: `ia-satma/Webpage-Von-Wobeser`, rama `main`.
-- Commit vigente en `main`: `2c6b29a` (`Fix Talent mobile forms and career title`), enviado a
-  `origin/main` el 31-ago-2026. La Shell de Replit descargó el SHA, aplicó la migración editorial
-  de Carrera y aprobó TypeScript y build. La validación local completa aprobó TypeScript,
-  **592/592** pruebas de seguridad, build y `git diff --check`; para hacer público el corte el
-  operador aún debe pulsar **Republish**.
+- Commit vigente en `main`: `4f42e5b` (`Add partner since dates and article excerpt`), enviado a
+  `origin/main` el 7-sep-2026. La Shell de Replit descargó el SHA, aplicó las tres migraciones del
+  lote y aprobó `npm run check`; para hacer público el corte el operador aún debe pulsar
+  **Republish**.
 - Sitio público: espejo editorial HTML/Joomla servido y enriquecido por Express; **no es React**.
 - Administración: SPA React únicamente bajo `/admin/*`.
 - Datos: PostgreSQL/Drizzle con migraciones versionadas, transaccionales e idempotentes. Cada
@@ -32,6 +31,10 @@ permanece en [`docs/CONTEXT-2026-08-28.md`](docs/CONTEXT-2026-08-28.md).
   aviso independiente para Candidaturas, también bilingüe, editable en Administración y enlazado
   por todos sus formularios sin alterar sus endpoints. Sus dos formularios comparten una regla
   responsive que evita cualquier desbordamiento horizontal de campos, botón, aviso y enlaces.
+- Talento: ambos formularios envían CV por `multipart/form-data` al endpoint propio y persisten
+  solicitudes sólo cuando App Storage y el esquema versionado están disponibles. Los CV son
+  privados y descargables exclusivamente por Administración autorizada; ante una dependencia
+  ausente se informa el fallo seguro, sin simular una solicitud exitosa.
 - Hero de Inicio: los medios actuales persisten en App Storage con historial administrativo; el
   video previo no se elimina del historial. Conservar derivados de escritorio, móvil y póster.
 - Navegación activa: menú definitivo 2026, con `Insights` en ambos idiomas; el menú clásico
@@ -75,15 +78,32 @@ permanece en [`docs/CONTEXT-2026-08-28.md`](docs/CONTEXT-2026-08-28.md).
 - La portada pública de Perspectivas/Insights sólo reúne Artículos, Comunicaciones y, cuando exista,
   Análisis y actualizaciones. Eventos, Reconocimientos y Sala de prensa se conservan en el CMS y
   sus rutas directas, pero nunca se muestran como tarjetas de esa portada.
-- Última validación local y en Replit: TypeScript, build, `git diff --check` y **594/594** pruebas
-  de seguridad aprobadas; Replit confirmó además que la migración de título no cambió conteos
-  protegidos ni esquema. Los avisos de Vite por assets históricos de `templates/beez3` se resuelven
-  en runtime y no son errores de compilación.
+- Administración conserva el mismo orden, permisos y grupos, pero ahora suma buscador de acciones
+  con `Cmd/Ctrl + K`, migas de pan, contexto de impacto, contadores agregados, estado de guardado,
+  guías discretas, acciones legibles y vistas previas privadas de Noticias y perfiles. Registros de
+  contacto, solicitudes y newsletter se eliminan con confirmación y permisos, sin exponer datos.
+- Leadinfo está preparado pero inactivo hasta recibir Site ID y la confirmación legal. En ese
+  estado no carga scripts/cookies ni altera GA4. Al activarse requerirá consentimiento separado de
+  identificación empresarial y sólo podrá cargar su script oficial en producción HTTPS autorizada.
+- El Artículo de despojo inmobiliario ya tiene extracto ES/EN para seguir el formato de listado.
+  La regla de enlaces se mantiene: una ficha antigua de Von Wobeser con `p_id` es inválida aunque
+  devuelva 200, y no existe automatización diaria en Replit para este control.
+- Socios: 26 perfiles tienen año opcional `partner_since_year` y control `show_partner_since`.
+  Sólo `/attorneys/partners` muestra `Socio/Socia desde` o `Partner since`; en móvil usa jerarquía
+  visual secundaria. Administración puede editar u ocultar la leyenda sin despublicar al perfil.
+- Agentes: el pipeline individual y masivo usan exclusivamente el orquestador canónico. La ruta
+  masiva existe una sola vez; se eliminaron las rutas y bloques inalcanzables que invocaban agentes
+  especializados de forma directa. La prueba de contratos protege ambas invariantes.
+- Última validación local: TypeScript, rendimiento, build, evidencia de build, `git diff --check` y
+  **613/613** pruebas de seguridad aprobadas. Las verificaciones específicas confirmaron los 26
+  años ES/EN, el pipeline canónico y su ausencia fuera del listado de Socios. Replit aplicó las tres
+  migraciones y aprobó TypeScript. Los avisos de Vite por assets históricos de `templates/beez3` se
+  resuelven en runtime y no son errores de compilación.
 
 ## Reglas de continuidad
 
-1. Leer primero [`docs/CONTEXT-2026-08-31.md`](docs/CONTEXT-2026-08-31.md), su antecedente
-   [`docs/CONTEXT-2026-08-28.md`](docs/CONTEXT-2026-08-28.md) y `replit.md`.
+1. Leer primero [`docs/CONTEXT-2026-09-07.md`](docs/CONTEXT-2026-09-07.md), su antecedente
+   [`docs/CONTEXT-2026-08-31.md`](docs/CONTEXT-2026-08-31.md) y `replit.md`.
 2. No incluir contraseñas, tokens, URLs de base, paquetes `.handoff` ni valores de Secrets en Git,
    notas, comandos compartidos o capturas.
 3. No borrar ni mover `frontend-mirror/`: es un activo obligatorio de runtime.
@@ -116,3 +136,12 @@ permanece en [`docs/CONTEXT-2026-08-28.md`](docs/CONTEXT-2026-08-28.md).
     500, migraciones ni base de datos. Los `200`/`304` de `manifest.webmanifest` son respuestas
     normales. No relajar la CSP para silenciar el reporte; investigar su origen sólo si hay una
     regresión visual reproducible.
+15. Después de sincronizar una instancia real de Replit con `git pull --rebase`, migraciones y
+    validaciones exitosas, pulsar **Republish**. El comando de Shell no actualiza producción por sí
+    mismo.
+16. Antes de recibir un archivo privado, verificar disponibilidad de App Storage y del esquema
+    versionado. Si falla alguna dependencia, responder de forma explícita, limpiar temporales y no
+    registrar ni mostrar una solicitud como exitosa.
+17. Leadinfo se mantiene inactivo sin Site ID válido, aprobación legal y consentimiento específico;
+    no pegar snippets ni permitir la carga en Administración, previews, localhost o entornos no
+    autorizados.

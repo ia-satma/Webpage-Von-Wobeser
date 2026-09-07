@@ -222,8 +222,18 @@ const respondDuringStartup = (_req: Request, res: Response, next: NextFunction) 
   res.setHeader("Cache-Control", "no-store");
   return res.status(200).type("text/plain").send("Starting");
 };
+
+// A diferencia de `/`, esta ruta no debe caer al espejo una vez que el
+// arranque terminó. Autoscale y los monitores necesitan un 200 inequívoco
+// para diferenciar una aplicación sana de una ruta pública inexistente.
+const respondHealthz = (_req: Request, res: Response) => {
+  if (applicationReady) return res.status(200).type("text/plain").send("OK");
+  if (applicationStartupError) return res.status(503).type("text/plain").send("Service unavailable");
+  res.setHeader("Cache-Control", "no-store");
+  return res.status(200).type("text/plain").send("Starting");
+};
 app.get("/", respondDuringStartup);
-app.get("/healthz", respondDuringStartup);
+app.get("/healthz", respondHealthz);
 
 async function bootstrapApplication(): Promise<void> {
   await registerRoutes(httpServer, app);

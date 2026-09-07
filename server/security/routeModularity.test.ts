@@ -4,8 +4,8 @@ import { readFileSync } from "node:fs";
 import test from "node:test";
 import type { Express } from "express";
 
-const BASELINE_ROUTE_COUNT = 215;
-const BASELINE_ROUTE_SHA256 = "20129a27146f106d7000b3097a1ba35b974043e2f7cacccc7c305aa63f46ffee";
+const BASELINE_ROUTE_COUNT = 214;
+const BASELINE_ROUTE_SHA256 = "37c94535905013fbd265e15230c50dce4778d2ec08e981a807def81a62fea81b";
 
 type RouteMethod = "get" | "post" | "put" | "patch" | "delete" | "all" | "use";
 
@@ -22,7 +22,7 @@ function createRouteRecorder() {
   return { app: app as unknown as Express, routes };
 }
 
-test("la modularización conserva exactamente los 215 métodos, rutas y su orden", async () => {
+test("la modularización conserva exactamente los 214 métodos, rutas y su orden", async () => {
   process.env.DATABASE_URL ||= "postgresql://route-contract:route-contract@127.0.0.1:5432/route-contract";
   const [
     { registerAdminAccessRoutes },

@@ -7,8 +7,9 @@ test("Autoscale recibe una respuesta sana mientras terminan las rutas públicas"
   const source = fs.readFileSync(path.join(process.cwd(), "server", "index.ts"), "utf8");
 
   assert.match(source, /app\.get\("\/", respondDuringStartup\)/);
-  assert.match(source, /app\.get\("\/healthz", respondDuringStartup\)/);
+  assert.match(source, /app\.get\("\/healthz", respondHealthz\)/);
   assert.match(source, /return res\.status\(200\)\.type\("text\/plain"\)\.send\("Starting"\)/);
+  assert.match(source, /const respondHealthz[\s\S]*?if \(applicationReady\) return res\.status\(200\)\.type\("text\/plain"\)\.send\("OK"\)/);
   assert.match(source, /applicationReady = true/);
   assert.match(source, /applicationStartupError = true/);
   assert.match(source, /void startBackgroundServices\(\)/);
