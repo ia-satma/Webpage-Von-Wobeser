@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { editorialDateAtNoon, hasPublishableNewsContent, isLegacyFirmPublicationUrl, isValidEditorialDate, isVerifiedNewsSourceUrl, normalizeOriginalSourceUrl, requiresExplicitEditorialDate } from "../newsPublicationPolicy";
+import { editorialDateAtNoon, hasPublishableNewsContent, isLegacyFirmPublicationUrl, isValidEditorialDate, isVerifiedNewsSourceUrl, normalizeOptionalOriginalSourceUrl, normalizeOriginalSourceUrl, requiresExplicitEditorialDate } from "../newsPublicationPolicy";
 
 test("la API acepta Artículos publicados solo con fuente HTTPS verificable", () => {
   const sourceOnlyArticle = {
@@ -50,6 +50,13 @@ test("la API conserva rutas antiguas para que Administración pueda desactivarla
   assert.equal(isLegacyFirmPublicationUrl("https://www.vonwobeser.com/index.php/publication?p_id=1830"), true);
   assert.equal(isLegacyFirmPublicationUrl("https://vonwobeser.com/index.php/publicacion/p_id-1815.html"), true);
   assert.equal(isLegacyFirmPublicationUrl("https://www.vonwobeser.com/images/PDF/2022/documento.pdf"), false);
+});
+
+test("la fuente original vacía del formulario administrativo se conserva como ausencia de fuente", () => {
+  assert.equal(normalizeOptionalOriginalSourceUrl(null), null);
+  assert.equal(normalizeOptionalOriginalSourceUrl(undefined), null);
+  assert.equal(normalizeOptionalOriginalSourceUrl("   "), null);
+  assert.equal(normalizeOptionalOriginalSourceUrl("https://source.example/original.pdf"), "https://source.example/original.pdf");
 });
 
 test("la fecha editorial exige un día real y mantiene su mes en UTC", () => {

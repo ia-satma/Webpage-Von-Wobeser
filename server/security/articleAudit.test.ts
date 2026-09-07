@@ -106,7 +106,7 @@ test("article source normalizations are limited to their approved historical rec
   assert.doesNotMatch(routeMigration, /\b(?:INSERT|DELETE)\s+INTO\s+news\b/i);
   assert.match(runner, /20260828_0006_normalize_article_source_links\.mjs/);
   assert.match(runner, /20260829_0001_normalize_legacy_article_source_routes\.mjs/);
-  assert.match(routes, /normalizeOriginalSourceUrl/);
+  assert.match(routes, /normalize(?:Optional)?OriginalSourceUrl/);
   assert.match(routes, /findIntroducedUnlinkedArticleUrls/);
   assert.match(routes, /Published Articles must use Fuente original/);
   assert.match(authorAudit, /articles:\s*\{/);

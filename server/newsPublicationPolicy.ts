@@ -30,6 +30,17 @@ export function normalizeOriginalSourceUrl(value: unknown): string {
   return String(value ?? "").trim();
 }
 
+/**
+ * La API administrativa recibe `null` cuando el editor deja vacía la fuente.
+ * Debe conservarse como ausencia de fuente, no pasar por el normalizador de
+ * URL y terminar rechazándose como una URL vacía inválida.
+ */
+export function normalizeOptionalOriginalSourceUrl(value: unknown): string | null {
+  if (value === null || value === undefined) return null;
+  if (typeof value === "string" && !value.trim()) return null;
+  return normalizeOriginalSourceUrl(value);
+}
+
 export function isVerifiedNewsSourceUrl(value: unknown): boolean {
   try {
     const url = new URL(String(value ?? "").trim());
