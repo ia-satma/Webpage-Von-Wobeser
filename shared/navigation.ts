@@ -208,8 +208,8 @@ const labels: Record<NavigationPrimaryId | NavigationChildId, NavigationLocalize
   "perspectives-all": { labelEs: "Ver todas", labelEn: "View all" },
   "perspectives-subscribe": { labelEs: "Suscríbete", labelEn: "Subscribe" },
   talent: { labelEs: "Talento", labelEn: "Careers" },
-  "talent-culture": { labelEs: "Conoce nuestra cultura", labelEn: "Discover our culture" },
-  "talent-work": { labelEs: "Tu carrera con nosotros", labelEn: "Your career with us" },
+  "talent-culture": { labelEs: "Tu carrera con nosotros", labelEn: "Your career with us" },
+  "talent-work": { labelEs: "Trabaja con nosotros", labelEn: "Work with us" },
   "talent-interns": { labelEs: "Pasantes", labelEn: "Interns" },
   "talent-openings": { labelEs: "Vacantes", labelEn: "Openings" },
 };

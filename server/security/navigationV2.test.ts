@@ -37,6 +37,10 @@ const {
   default: migrateNavigationTalentLandingLabel,
   normalizeTalentLandingLabel,
 } = await import("../../migrations/20260907_0004_navigation_talent_landing_label.mjs");
+const {
+  default: correctTalentCultureNavigationLabel,
+  normalizeTalentCultureNavigationLabel,
+} = await import("../../migrations/20260907_0005_correct_talent_culture_navigation_label.mjs");
 
 function cloneConfiguration(): NavigationConfiguration {
   return structuredClone(DEFAULT_NAVIGATION_CONFIGURATION);
@@ -64,6 +68,15 @@ test("la navegación definitiva conserva orden, etiquetas y utilidades bilingüe
   assert.equal(DEFAULT_NAVIGATION_CONFIGURATION.utilities.search.labelEn, "Search");
   assert.equal(DEFAULT_NAVIGATION_CONFIGURATION.utilities.contact.labelEs, "Contáctanos");
   assert.equal(DEFAULT_NAVIGATION_CONFIGURATION.utilities.contact.labelEn, "Contact us");
+  const talent = DEFAULT_NAVIGATION_CONFIGURATION.items.find((item) => item.id === "talent")!;
+  assert.deepEqual(
+    talent.children.find((child) => child.id === "talent-culture"),
+    { id: "talent-culture", labelEs: "Tu carrera con nosotros", labelEn: "Your career with us", visible: true },
+  );
+  assert.deepEqual(
+    talent.children.find((child) => child.id === "talent-work"),
+    { id: "talent-work", labelEs: "Trabaja con nosotros", labelEn: "Work with us", visible: true },
+  );
   assert.equal(DEFAULT_NAVIGATION_CONFIGURATION.items.find((item) => item.id === "firm")?.children.find((child) => child.id === "firm-alumni")?.visible, false);
   assert.equal(DEFAULT_NAVIGATION_CONFIGURATION.items.find((item) => item.id === "firm")?.children.find((child) => child.id === "firm-value")?.visible, false);
   assert.equal(DEFAULT_NAVIGATION_CONFIGURATION.items.find((item) => item.id === "firm")?.children.find((child) => child.id === "firm-recognitions")?.visible, false);
@@ -188,6 +201,69 @@ test("la migración de Talento alinea ambos presets guardados sin sobrescribir e
     preservedCustom.items.find((item) => item.id === "talent")?.children.find((child) => child.id === "talent-work")?.labelEs,
     "Etiqueta editorial personalizada",
   );
+});
+
+test("la corrección de Talento asigna el copy al submenú de cultura y conserva el enlace editorial", () => {
+  const stored = cloneConfiguration();
+  const talent = stored.items.find((item) => item.id === "talent")!;
+  const culture = talent.children.find((child) => child.id === "talent-culture")!;
+  const landing = talent.children.find((child) => child.id === "talent-work")!;
+  culture.labelEs = "Conoce nuestra cultura";
+  culture.labelEn = "Discover our culture";
+  landing.labelEs = "Tu carrera con nosotros";
+  landing.labelEn = "Your career with us";
+
+  const normalized = normalizeTalentCultureNavigationLabel(JSON.stringify(stored));
+  assert.ok(normalized);
+  const updated = JSON.parse(normalized) as NavigationConfiguration;
+  const updatedTalent = updated.items.find((item) => item.id === "talent")!;
+  assert.deepEqual(
+    updatedTalent.children.find((child) => child.id === "talent-culture"),
+    { id: "talent-culture", labelEs: "Tu carrera con nosotros", labelEn: "Your career with us", visible: true },
+  );
+  assert.deepEqual(
+    updatedTalent.children.find((child) => child.id === "talent-work"),
+    { id: "talent-work", labelEs: "Trabaja con nosotros", labelEn: "Work with us", visible: true },
+  );
+  assert.equal(normalizeTalentCultureNavigationLabel(JSON.stringify(updated)), null);
+  assert.equal(normalizeTalentCultureNavigationLabel("{malformed"), null);
+});
+
+test("la corrección de Talento actualiza el menú guardado sin sobrescribir ajustes editoriales", async () => {
+  const historical = cloneConfiguration();
+  const talent = historical.items.find((item) => item.id === "talent")!;
+  const culture = talent.children.find((child) => child.id === "talent-culture")!;
+  const landing = talent.children.find((child) => child.id === "talent-work")!;
+  culture.labelEs = "Conoce nuestra cultura";
+  culture.labelEn = "Discover our culture";
+  landing.labelEs = "Tu carrera con nosotros";
+  landing.labelEn = "Your career with us";
+
+  const custom = structuredClone(historical);
+  custom.items.find((item) => item.id === "talent")!.children.find((child) => child.id === "talent-culture")!.labelEs = "Etiqueta personalizada";
+  const rows = [
+    { key: "nav_structure_v2", value: JSON.stringify(historical), value_es: JSON.stringify(historical) },
+    { key: "nav_classic_structure_v2", value: JSON.stringify(historical), value_es: JSON.stringify(custom) },
+  ];
+  const updates: Array<{ key: string; value: string; valueEs: string }> = [];
+  await correctTalentCultureNavigationLabel({
+    async query(statement: string, parameters?: unknown[]) {
+      if (statement.includes("SELECT key, value, value_es")) return { rows };
+      if (statement.includes("UPDATE site_config")) {
+        updates.push({ key: String(parameters?.[2]), value: String(parameters?.[0]), valueEs: String(parameters?.[1]) });
+        return { rows: [] };
+      }
+      throw new Error(`Consulta inesperada: ${statement}`);
+    },
+  });
+
+  assert.equal(updates.length, 2);
+  const definitive = JSON.parse(updates.find((update) => update.key === "nav_structure_v2")!.value) as NavigationConfiguration;
+  const definitiveTalent = definitive.items.find((item) => item.id === "talent")!;
+  assert.equal(definitiveTalent.children.find((child) => child.id === "talent-culture")?.labelEs, "Tu carrera con nosotros");
+  assert.equal(definitiveTalent.children.find((child) => child.id === "talent-work")?.labelEs, "Trabaja con nosotros");
+  const classic = JSON.parse(updates.find((update) => update.key === "nav_classic_structure_v2")!.valueEs) as NavigationConfiguration;
+  assert.equal(classic.items.find((item) => item.id === "talent")?.children.find((child) => child.id === "talent-culture")?.labelEs, "Etiqueta personalizada");
 });
 
 test("el respaldo clásico conserva la navegación anterior sobre destinos actuales", () => {
@@ -317,7 +393,8 @@ test("el servidor entrega menú semántico, seguro y sin parpadeo heredado", () 
   assert.equal($("#vw-nav-panel-attorneys .vw-nav-v2__landing").text().trim(), "Ver todos los abogados→");
   assert.equal($(".vw-nav-v2__item--perspectives .vw-nav-v2__trigger").text().trim(), "Insights");
   assert.equal($("#vw-nav-panel-perspectives .vw-nav-v2__landing").text().trim(), "Ver todos los Insights→");
-  assert.equal($("#vw-nav-panel-talent .vw-nav-v2__landing").text().trim(), "Tu carrera con nosotros→");
+  assert.equal($("#vw-nav-panel-talent .vw-nav-v2__landing").text().trim(), "Trabaja con nosotros→");
+  assert.equal($("#vw-nav-panel-talent [data-vw-destination=\"talent-culture\"]").text().trim(), "Tu carrera con nosotros→");
   assert.equal($("[data-vw-nav-search]").text().trim(), "Buscar");
   assert.equal($(".vw-nav-v2__utility--language").text().trim(), "ES | EN");
   assert.equal($(".vw-nav-v2__utility--contact").attr("href"), "/contacto");
@@ -330,7 +407,8 @@ test("el servidor entrega menú semántico, seguro y sin parpadeo heredado", () 
     "en",
   );
   const $english = cheerio.load(renderedEnglish);
-  assert.equal($english("#vw-nav-panel-talent .vw-nav-v2__landing").text().trim(), "Your career with us→");
+  assert.equal($english("#vw-nav-panel-talent .vw-nav-v2__landing").text().trim(), "Work with us→");
+  assert.equal($english("#vw-nav-panel-talent [data-vw-destination=\"talent-culture\"]").text().trim(), "Your career with us→");
 });
 
 test("una plantilla con navegación compartida recibe el controlador accesible una sola vez", () => {

@@ -188,6 +188,12 @@ const verifiedDataMigrationPolicies = new Map([
   ["20260907_0004_navigation_talent_landing_label.mjs", {
     allowedCountChanges: new Set(),
   }],
+  // Corrige el destino del copy de Talento después de una interpretación
+  // inicial errónea: sólo intercambia etiquetas heredadas exactas y no altera
+  // ningún contenido, ruta, visibilidad ni edición posterior del panel.
+  ["20260907_0005_correct_talent_culture_navigation_label.mjs", {
+    allowedCountChanges: new Set(),
+  }],
 ]);
 
 // Algunos entornos de publicación se crearon sin una publicación histórica
