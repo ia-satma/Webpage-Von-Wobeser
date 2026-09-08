@@ -20,7 +20,7 @@ function landingLabel(id: string, lang: "en" | "es", classic: boolean): string {
       practices: ["Todas las prácticas", "All practices"],
       industries: ["Todas las industrias", "All industries"],
       perspectives: ["Todas las publicaciones", "All publications"],
-      talent: ["Carrera en VWyS", "Careers at VWyS"],
+      talent: ["Tu carrera con nosotros", "Your career with us"],
     };
     return classicLabels[id]?.[lang === "es" ? 0 : 1] || (lang === "es" ? "Ver sección" : "View section");
   }
@@ -30,7 +30,7 @@ function landingLabel(id: string, lang: "en" | "es", classic: boolean): string {
     practices: ["Ver todas las prácticas", "View all practices"],
     industries: ["Ver todas las industrias", "View all industries"],
     perspectives: ["Ver todos los Insights", "View all Insights"],
-    talent: ["Trabaja con nosotros", "Work with us"],
+    talent: ["Tu carrera con nosotros", "Your career with us"],
   };
   return labels[id]?.[lang === "es" ? 0 : 1] || (lang === "es" ? "Ver sección" : "View section");
 }

@@ -33,6 +33,10 @@ const { buildPublicNavigationMenu } = await import("../mirror/navigationMenu");
 const { ensureNavigationRuntime } = await import("../mirror/htmlPipeline");
 const { isSafeCatalogEmail, isSafeCatalogUrl } = await import("../routes/adminCatalogRoutes");
 const { normalizeDefinitiveInsightsLabel } = await import("../../migrations/20260817_0001_navigation_insights_label.mjs");
+const {
+  default: migrateNavigationTalentLandingLabel,
+  normalizeTalentLandingLabel,
+} = await import("../../migrations/20260907_0004_navigation_talent_landing_label.mjs");
 
 function cloneConfiguration(): NavigationConfiguration {
   return structuredClone(DEFAULT_NAVIGATION_CONFIGURATION);
@@ -104,6 +108,86 @@ test("la migración actualiza el menú definitivo guardado sin alterar rutas ni 
   assert.deepEqual(insights.children, beforeChildren);
   assert.deepEqual(NAVIGATION_DESTINATIONS.perspectives, { pathEs: "/perspectivas", pathEn: "/insights" });
   assert.equal(normalizeDefinitiveInsightsLabel("{malformed"), null);
+});
+
+test("la migración de Talento actualiza sólo la etiqueta histórica del enlace editorial", () => {
+  const stored = cloneConfiguration();
+  const talent = stored.items.find((item) => item.id === "talent")!;
+  const landing = talent.children.find((child) => child.id === "talent-work")!;
+  landing.labelEs = "Trabaja con nosotros";
+  landing.labelEn = "Work with us";
+  const before = structuredClone(stored);
+
+  const normalized = normalizeTalentLandingLabel(JSON.stringify(stored));
+  assert.ok(normalized);
+  const updated = JSON.parse(normalized) as NavigationConfiguration;
+  const updatedTalent = updated.items.find((item) => item.id === "talent")!;
+  assert.equal(updatedTalent.children.find((child) => child.id === "talent-work")?.labelEs, "Tu carrera con nosotros");
+  assert.equal(updatedTalent.children.find((child) => child.id === "talent-work")?.labelEn, "Your career with us");
+  assert.deepEqual(
+    updatedTalent.children.filter((child) => child.id !== "talent-work"),
+    before.items.find((item) => item.id === "talent")?.children.filter((child) => child.id !== "talent-work"),
+  );
+  assert.equal(normalizeTalentLandingLabel(JSON.stringify(updated)), null);
+  assert.equal(normalizeTalentLandingLabel("{malformed"), null);
+
+  const classic = structuredClone(DEFAULT_CLASSIC_NAVIGATION_CONFIGURATION);
+  const classicLanding = classic.items.find((item) => item.id === "talent")?.children.find((child) => child.id === "talent-work");
+  assert.ok(classicLanding);
+  classicLanding.labelEs = "Trabaja con nosotros";
+  classicLanding.labelEn = "Work with us";
+  const normalizedClassic = normalizeTalentLandingLabel(JSON.stringify(classic));
+  assert.ok(normalizedClassic);
+  const updatedClassic = JSON.parse(normalizedClassic) as NavigationConfiguration;
+  const updatedClassicLanding = updatedClassic.items.find((item) => item.id === "talent")?.children.find((child) => child.id === "talent-work");
+  assert.deepEqual(
+    { labelEs: updatedClassicLanding?.labelEs, labelEn: updatedClassicLanding?.labelEn },
+    { labelEs: "Tu carrera con nosotros", labelEn: "Your career with us" },
+  );
+});
+
+test("la migración de Talento alinea ambos presets guardados sin sobrescribir etiquetas personalizadas", async () => {
+  const definitive = cloneConfiguration();
+  const classic = structuredClone(DEFAULT_CLASSIC_NAVIGATION_CONFIGURATION);
+  for (const configuration of [definitive, classic]) {
+    const landing = configuration.items.find((item) => item.id === "talent")?.children.find((child) => child.id === "talent-work");
+    assert.ok(landing);
+    landing.labelEs = "Trabaja con nosotros";
+    landing.labelEn = "Work with us";
+  }
+  const custom = cloneConfiguration();
+  const customLanding = custom.items.find((item) => item.id === "talent")?.children.find((child) => child.id === "talent-work");
+  assert.ok(customLanding);
+  customLanding.labelEs = "Etiqueta editorial personalizada";
+
+  const rows = [
+    { key: "nav_structure_v2", value: JSON.stringify(definitive), value_es: JSON.stringify(definitive) },
+    { key: "nav_classic_structure_v2", value: JSON.stringify(classic), value_es: JSON.stringify(custom) },
+  ];
+  const updates: Array<{ key: string; value: string; valueEs: string }> = [];
+  await migrateNavigationTalentLandingLabel({
+    async query(statement: string, parameters?: unknown[]) {
+      if (statement.includes("SELECT key, value, value_es")) return { rows };
+      if (statement.includes("UPDATE site_config")) {
+        updates.push({ key: String(parameters?.[2]), value: String(parameters?.[0]), valueEs: String(parameters?.[1]) });
+        return { rows: [] };
+      }
+      throw new Error(`Consulta inesperada: ${statement}`);
+    },
+  });
+
+  assert.equal(updates.length, 2);
+  for (const update of updates) {
+    const spanish = JSON.parse(update.value) as NavigationConfiguration;
+    assert.equal(spanish.items.find((item) => item.id === "talent")?.children.find((child) => child.id === "talent-work")?.labelEs, "Tu carrera con nosotros");
+  }
+  const classicUpdate = updates.find((update) => update.key === "nav_classic_structure_v2");
+  assert.ok(classicUpdate);
+  const preservedCustom = JSON.parse(classicUpdate.valueEs) as NavigationConfiguration;
+  assert.equal(
+    preservedCustom.items.find((item) => item.id === "talent")?.children.find((child) => child.id === "talent-work")?.labelEs,
+    "Etiqueta editorial personalizada",
+  );
 });
 
 test("el respaldo clásico conserva la navegación anterior sobre destinos actuales", () => {
@@ -233,12 +317,20 @@ test("el servidor entrega menú semántico, seguro y sin parpadeo heredado", () 
   assert.equal($("#vw-nav-panel-attorneys .vw-nav-v2__landing").text().trim(), "Ver todos los abogados→");
   assert.equal($(".vw-nav-v2__item--perspectives .vw-nav-v2__trigger").text().trim(), "Insights");
   assert.equal($("#vw-nav-panel-perspectives .vw-nav-v2__landing").text().trim(), "Ver todos los Insights→");
-  assert.equal($("#vw-nav-panel-talent .vw-nav-v2__landing").text().trim(), "Trabaja con nosotros→");
+  assert.equal($("#vw-nav-panel-talent .vw-nav-v2__landing").text().trim(), "Tu carrera con nosotros→");
   assert.equal($("[data-vw-nav-search]").text().trim(), "Buscar");
   assert.equal($(".vw-nav-v2__utility--language").text().trim(), "ES | EN");
   assert.equal($(".vw-nav-v2__utility--contact").attr("href"), "/contacto");
   assert.equal($(".vw-nav-v2__panel img").length, 0);
   assert.equal($("a[href=\"/old\"]").length, 0);
+
+  const renderedEnglish = applyNavigationMarkup(
+    '<!doctype html><html><body><nav class="nav menu_JS"><div class="nav__menu--holder"></div></nav></body></html>',
+    { practices: [], industries: [], navigation: resolveNavigationTree(cloneConfiguration(), readyAvailability(), "en") },
+    "en",
+  );
+  const $english = cheerio.load(renderedEnglish);
+  assert.equal($english("#vw-nav-panel-talent .vw-nav-v2__landing").text().trim(), "Your career with us→");
 });
 
 test("una plantilla con navegación compartida recibe el controlador accesible una sola vez", () => {
