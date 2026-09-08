@@ -182,6 +182,12 @@ const verifiedDataMigrationPolicies = new Map([
   ["20260907_0003_backfill_partner_since_years.mjs", {
     allowedCountChanges: new Set(),
   }],
+  // Normaliza exclusivamente la etiqueta editorial histórica del enlace de
+  // Talento en ambos presets del menú. No crea, elimina ni reordena destinos
+  // y conserva cualquier etiqueta personalizada desde Administración.
+  ["20260907_0004_navigation_talent_landing_label.mjs", {
+    allowedCountChanges: new Set(),
+  }],
 ]);
 
 // Algunos entornos de publicación se crearon sin una publicación histórica
