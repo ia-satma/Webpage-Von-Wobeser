@@ -9,6 +9,7 @@ type Lang = "en" | "es";
 const DIVERSITY_SWAP_ORIGINAL = "salsa.setAttribute('src', '/images/' + cual + '.mp4');";
 const DIVERSITY_SWAP_EDITABLE =
   "if(window.vwSelectDiversityVideo){window.vwSelectDiversityVideo(this);return;}salsa.setAttribute('src', $(this).attr('data-video') || ('/images/' + cual + '.mp4'));";
+const OFFICE_SHOWCASE_VIDEO = /^\/img\/videos\/video[1-6]\.mp4$/;
 
 const diversityLocalFileExists = (relUrl: string): boolean => {
   if (!relUrl.startsWith("/images/")) return true;
@@ -20,8 +21,10 @@ const diversityLocalFileExists = (relUrl: string): boolean => {
 };
 
 /**
- * Conecta los ocho videos administrables de Diversidad con un reproductor que
- * acepta archivos propios y enlaces normalizados de YouTube/Vimeo.
+ * Conecta el video principal y los videos propios administrables de Diversidad
+ * con un reproductor que acepta archivos propios y enlaces normalizados de
+ * YouTube/Vimeo. Los seis recorridos de Nuevas oficinas nunca pueden aparecer
+ * aquí, aunque una configuración heredada los conserve.
  */
 export function applyDiversityVideoGallery($: cheerio.CheerioAPI, config: ConfigMap, lang: Lang): void {
   const v = (key: string, fallback: string) => (config[key]?.value || "").trim() || fallback;
@@ -45,19 +48,20 @@ export function applyDiversityVideoGallery($: cheerio.CheerioAPI, config: Config
   }
 
   const mainUrl = v("page_diversity_video_main", "/images/vw_vid_02.mp4");
-  const resolve = (url: string): string | null => (url && diversityLocalFileExists(url) ? url : null);
-  // El espejo conserva siete videos reales: el principal y seis entrevistas.
-  // Nunca repetimos el principal para llenar una miniatura cuyo archivo ya no
-  // existe; una octava posición sólo se muestra si Administración aporta video.
+  const resolveDiversityVideo = (url: string): string | null => (
+    url && !OFFICE_SHOWCASE_VIDEO.test(url) && diversityLocalFileExists(url) ? url : null
+  );
+  // Los espacios secundarios sólo se muestran si Administración entrega un
+  // video propio de Diversidad. No se rellenan con recursos de otra página.
   const slots: Record<string, string | null> = {
     vw_vid_02: mainUrl,
-    vid_01: resolve(v("page_diversity_video_1", "/img/videos/video1.mp4")),
-    vid_02: resolve(v("page_diversity_video_2", "/img/videos/video2.mp4")),
-    vid_03: resolve(v("page_diversity_video_3", "/img/videos/video3.mp4")),
-    vid_04: resolve(v("page_diversity_video_4", "/img/videos/video4.mp4")),
-    vid_05: resolve(v("page_diversity_video_5", "/img/videos/video5.mp4")),
-    vid_06: resolve(v("page_diversity_video_6", "/img/videos/video6.mp4")),
-    vid_07: resolve((config.page_diversity_video_7?.value || "").trim()),
+    vid_01: resolveDiversityVideo((config.page_diversity_video_1?.value || "").trim()),
+    vid_02: resolveDiversityVideo((config.page_diversity_video_2?.value || "").trim()),
+    vid_03: resolveDiversityVideo((config.page_diversity_video_3?.value || "").trim()),
+    vid_04: resolveDiversityVideo((config.page_diversity_video_4?.value || "").trim()),
+    vid_05: resolveDiversityVideo((config.page_diversity_video_5?.value || "").trim()),
+    vid_06: resolveDiversityVideo((config.page_diversity_video_6?.value || "").trim()),
+    vid_07: resolveDiversityVideo((config.page_diversity_video_7?.value || "").trim()),
   };
   const thumbKeys: Record<string, string> = {
     vw_vid_02: "page_diversity_thumb_main",
@@ -123,6 +127,10 @@ export function applyDiversityVideoGallery($: cheerio.CheerioAPI, config: Config
     const thumb = v(thumbKey, thumbFallbacks[name] || thumbFallbacks.vw_vid_02);
     $(el).find("img").first().attr({ src: thumb, alt: lang === "es" ? "Vista previa del video" : "Video preview" });
   });
+  if (!Object.entries(slots).some(([name, url]) => name !== "vw_vid_02" && Boolean(url))) {
+    // Una sola ficha que duplica el reproductor no constituye una galería.
+    $(".slide_videos_thumbs").remove();
+  }
 
   const partnerLogos = ["page_diversity_logo_1", "page_diversity_logo_2", "page_diversity_logo_3"];
   $(".page__content--body .pro_img img").each((index, el) => {

@@ -125,13 +125,15 @@ test("Diversidad alterna de forma segura entre archivo, YouTube y Vimeo", () => 
   assert.doesNotMatch($.html(), /<iframe[^>]+(?:evil|javascript:)/i);
 });
 
-test("Diversidad muestra el fotograma correspondiente a cada video y oculta un espacio sin video", () => {
+test("Diversidad nunca reutiliza videos de Nuevas oficinas y oculta una galería sin videos propios", () => {
   const $ = cheerio.load(`<!doctype html><html><body>
     <div class="slide_vid"><video id="videoPlayer"><source id="videoSource"></video></div>
-    <div class="thumb" name="vid_04"><img></div>
-    <div class="thumb" name="vw_vid_02"><img></div>
-    <div class="thumb" name="vid_01"><img></div>
-    <div class="thumb" name="vid_07"><img></div>
+    <div class="slide_videos_thumbs">
+      <div class="thumb" name="vid_04"><img></div>
+      <div class="thumb" name="vw_vid_02"><img></div>
+      <div class="thumb" name="vid_01"><img></div>
+      <div class="thumb" name="vid_07"><img></div>
+    </div>
   </body></html>`);
   const config: ConfigMap = {
     page_diversity_video_main: entry("/images/vw_vid_02.mp4"),
@@ -144,11 +146,8 @@ test("Diversidad muestra el fotograma correspondiente a cada video y oculta un e
 
   applyDiversityVideoGallery($, config, "es");
 
-  assert.equal($(".thumb[name='vw_vid_02'] img").attr("src"), "/images/diversity-thumbnails/main.jpg");
-  assert.equal($(".thumb[name='vid_01'] img").attr("src"), "/images/diversity-thumbnails/video-1.jpg");
-  assert.equal($(".thumb[name='vid_04'] img").attr("src"), "/images/diversity-thumbnails/video-4.jpg");
-  assert.equal($(".thumb[name='vid_04']").attr("data-video"), "/img/videos/video4.mp4");
-  assert.equal($(".thumb[name='vid_07']").length, 0);
+  assert.equal($(".slide_videos_thumbs").length, 0);
+  assert.doesNotMatch($.html(), /\/img\/videos\/video[1-6]\.mp4/);
 });
 
 test("Diversidad conserva los siete fotogramas generados a partir de sus videos", () => {

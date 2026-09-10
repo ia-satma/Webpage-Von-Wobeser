@@ -351,7 +351,7 @@ export const PAGES: Record<string, SiteConfigPageDefinition> = {
   },
   diversidad: {
     title: "Diversidad e Inclusión",
-    description: "Textos y galería de video de la página. Si dejas un campo de texto vacío, se muestra el original.",
+    description: "Textos y videos propios de la página. Los espacios secundarios vacíos no se muestran; los videos de Nuevas oficinas no se reutilizan aquí.",
     icon: Sparkles,
     groups: [
       {
@@ -367,12 +367,12 @@ export const PAGES: Record<string, SiteConfigPageDefinition> = {
         title: "Galería de video",
         fields: [
           { key: "page_diversity_video_main", label: "Video principal", media: "video", help: "El video que se reproduce por defecto al entrar a la página. Puedes subir un archivo o pegar un enlace de YouTube/Vimeo." },
-          { key: "page_diversity_video_1", label: "Video 1", media: "video" },
-          { key: "page_diversity_video_2", label: "Video 2", media: "video" },
-          { key: "page_diversity_video_3", label: "Video 3", media: "video" },
-          { key: "page_diversity_video_4", label: "Video 4", media: "video" },
-          { key: "page_diversity_video_5", label: "Video 5", media: "video" },
-          { key: "page_diversity_video_6", label: "Video 6", media: "video" },
+          { key: "page_diversity_video_1", label: "Video 1 (opcional)", media: "video", help: "Carga únicamente un video propio de Diversidad e Inclusión." },
+          { key: "page_diversity_video_2", label: "Video 2 (opcional)", media: "video", help: "Carga únicamente un video propio de Diversidad e Inclusión." },
+          { key: "page_diversity_video_3", label: "Video 3 (opcional)", media: "video", help: "Carga únicamente un video propio de Diversidad e Inclusión." },
+          { key: "page_diversity_video_4", label: "Video 4 (opcional)", media: "video", help: "Carga únicamente un video propio de Diversidad e Inclusión." },
+          { key: "page_diversity_video_5", label: "Video 5 (opcional)", media: "video", help: "Carga únicamente un video propio de Diversidad e Inclusión." },
+          { key: "page_diversity_video_6", label: "Video 6 (opcional)", media: "video", help: "Carga únicamente un video propio de Diversidad e Inclusión." },
           { key: "page_diversity_video_7", label: "Video 7 (opcional)", media: "video", help: "Se muestra sólo cuando tenga un video propio." },
         ],
       },

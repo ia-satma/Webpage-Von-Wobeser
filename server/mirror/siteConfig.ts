@@ -516,24 +516,24 @@ const DEFAULTS: Array<{ key: string; value: string; valueEs?: string; type: stri
   { key: "page_diversity_title", value: "Diversity & inclusion", valueEs: "Diversidad e inclusión", type: "text", category: "pages", description: "Diversidad e Inclusión — título principal" },
   { key: "page_diversity_intro", value: "", valueEs: "", type: "text", category: "pages", description: "Diversidad e Inclusión — párrafo de introducción" },
   { key: "page_diversity_body", value: "", valueEs: "", type: "text", category: "pages", description: "Diversidad e Inclusión — texto adicional (se muestra arriba de la galería de video, no la reemplaza)" },
-  // Galería de Diversidad: un video principal y seis entrevistas con sus
-  // propias miniaturas. El séptimo espacio permanece opcional para contenido
-  // futuro administrado desde el panel, sin repetir el video principal.
+  // Diversidad conserva su video principal. Los espacios secundarios quedan
+  // vacíos hasta recibir videos propios: nunca reutilizan el recorrido de
+  // Nuevas oficinas.
   { key: "page_diversity_video_main", value: "/images/vw_vid_02.mp4", type: "url", category: "pages", description: "Diversidad e Inclusión — video principal" },
-  { key: "page_diversity_video_1", value: "/img/videos/video1.mp4", type: "url", category: "pages", description: "Diversidad e Inclusión — video 1" },
-  { key: "page_diversity_video_2", value: "/img/videos/video2.mp4", type: "url", category: "pages", description: "Diversidad e Inclusión — video 2" },
-  { key: "page_diversity_video_3", value: "/img/videos/video3.mp4", type: "url", category: "pages", description: "Diversidad e Inclusión — video 3" },
-  { key: "page_diversity_video_4", value: "/img/videos/video4.mp4", type: "url", category: "pages", description: "Diversidad e Inclusión — video 4" },
-  { key: "page_diversity_video_5", value: "/img/videos/video5.mp4", type: "url", category: "pages", description: "Diversidad e Inclusión — video 5" },
-  { key: "page_diversity_video_6", value: "/img/videos/video6.mp4", type: "url", category: "pages", description: "Diversidad e Inclusión — video 6" },
+  { key: "page_diversity_video_1", value: "", type: "url", category: "pages", description: "Diversidad e Inclusión — video 1 propio (opcional)" },
+  { key: "page_diversity_video_2", value: "", type: "url", category: "pages", description: "Diversidad e Inclusión — video 2 propio (opcional)" },
+  { key: "page_diversity_video_3", value: "", type: "url", category: "pages", description: "Diversidad e Inclusión — video 3 propio (opcional)" },
+  { key: "page_diversity_video_4", value: "", type: "url", category: "pages", description: "Diversidad e Inclusión — video 4 propio (opcional)" },
+  { key: "page_diversity_video_5", value: "", type: "url", category: "pages", description: "Diversidad e Inclusión — video 5 propio (opcional)" },
+  { key: "page_diversity_video_6", value: "", type: "url", category: "pages", description: "Diversidad e Inclusión — video 6 propio (opcional)" },
   { key: "page_diversity_video_7", value: "", type: "url", category: "pages", description: "Diversidad e Inclusión — video 7 opcional" },
   { key: "page_diversity_thumb_main", value: "/images/diversity-thumbnails/main.jpg", type: "url", category: "pages", description: "Diversidad e Inclusión — miniatura del video principal" },
   ...Array.from({ length: 6 }, (_, index) => ({
     key: `page_diversity_thumb_${index + 1}`,
-    value: `/images/diversity-thumbnails/video-${index + 1}.jpg`,
+    value: "",
     type: "url",
     category: "pages",
-    description: `Diversidad e Inclusión — miniatura del video ${index + 1}`,
+    description: `Diversidad e Inclusión — miniatura del video ${index + 1} propio`,
   })),
   { key: "page_diversity_thumb_7", value: "", type: "url", category: "pages", description: "Diversidad e Inclusión — miniatura del video 7 opcional" },
   { key: "page_diversity_logo_1", value: "/images/equidadMx.png", type: "url", category: "pages", description: "Diversidad e Inclusión — logotipo aliado 1" },

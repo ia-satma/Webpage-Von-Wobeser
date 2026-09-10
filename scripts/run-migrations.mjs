@@ -199,6 +199,11 @@ const verifiedDataMigrationPolicies = new Map([
   ["20260910_0001_refresh_bernardo_zatarain_photo.mjs", {
     allowedCountChanges: new Set(),
   }],
+  // Retira de Diversidad únicamente las rutas heredadas del recorrido de
+  // Nuevas oficinas; conserva videos o miniaturas personalizados del panel.
+  ["20260910_0002_remove_new_offices_videos_from_diversity.mjs", {
+    allowedCountChanges: new Set(),
+  }],
 ]);
 
 // Algunos entornos de publicación se crearon sin una publicación histórica
