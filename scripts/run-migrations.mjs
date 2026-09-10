@@ -194,6 +194,11 @@ const verifiedDataMigrationPolicies = new Map([
   ["20260907_0005_correct_talent_culture_navigation_label.mjs", {
     allowedCountChanges: new Set(),
   }],
+  // Cambia únicamente la ruta de la fotografía de Bernardo Zatarain y añade
+  // una versión de caché. Se detiene ante una edición distinta del panel.
+  ["20260910_0001_refresh_bernardo_zatarain_photo.mjs", {
+    allowedCountChanges: new Set(),
+  }],
 ]);
 
 // Algunos entornos de publicación se crearon sin una publicación histórica

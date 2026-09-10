@@ -460,14 +460,17 @@ function uploadedResponsiveVariants(source: string): Array<{ url: string; width:
  * durante `media:optimize`; nunca se transforma una URL arbitraria en runtime.
  */
 function attorneyPortraitResponsiveVariants(source: string): Array<{ url: string; width: number }> {
-  const match = source.match(/^\/(partner_photos|associate_photos|of_counsel_photos|counsel_photos)\/([A-Za-z0-9._-]+)$/);
+  const parts = source.match(/^([^?#]+)([?#].*)?$/);
+  const pathname = parts?.[1] || source;
+  const cacheBuster = parts?.[2] || "";
+  const match = pathname.match(/^\/(partner_photos|associate_photos|of_counsel_photos|counsel_photos)\/([A-Za-z0-9._-]+)$/);
   if (!match) return [];
   const [, group, filename] = match;
   const parsed = path.posix.parse(filename);
   return [320, 640].flatMap((width) => {
     const relative = path.join("public", "optimized-attorney-photos", group, `${parsed.name}-${width}.webp`);
     return fs.existsSync(path.join(process.cwd(), relative))
-      ? [{ url: `/optimized-attorney-photos/${group}/${parsed.name}-${width}.webp`, width }]
+      ? [{ url: `/optimized-attorney-photos/${group}/${parsed.name}-${width}.webp${cacheBuster}`, width }]
       : [];
   });
 }
@@ -479,7 +482,7 @@ export function optimizePublicImageTags(html: string): string {
     const manifestEntry = responsiveImageManifest[cleanSource];
     const variants = manifestEntry?.variants?.length
       ? manifestEntry.variants
-      : [...uploadedResponsiveVariants(cleanSource), ...attorneyPortraitResponsiveVariants(cleanSource)];
+      : [...uploadedResponsiveVariants(cleanSource), ...attorneyPortraitResponsiveVariants(source)];
     const critical = /(?:logo|vonwobeser|vw40|vw2025|vw_2025)/i.test(source);
     const displaySize = /\bhome__rec--item\b/i.test(tag)
       ? "156px"
