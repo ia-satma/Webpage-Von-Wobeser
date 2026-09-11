@@ -219,6 +219,12 @@ const verifiedDataMigrationPolicies = new Map([
   ["20260910_0005_correct_michel_llorens_partner_since_year.mjs", {
     allowedCountChanges: new Set(),
   }],
+  // Reubica exclusivamente a Pablo Fautsch y Jessika Rocha dentro del tramo
+  // aprobado de Socios. Verifica los cinco registros y el orden heredado
+  // completo antes de tocar cuatro valores de orden.
+  ["20260911_0001_reposition_pablo_fautsch_and_jessika_rocha.mjs", {
+    allowedCountChanges: new Set(),
+  }],
 ]);
 
 // Algunos entornos de publicación se crearon sin una publicación histórica
